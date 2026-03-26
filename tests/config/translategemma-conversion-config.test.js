@@ -18,13 +18,13 @@ assert.ok(converterConfig.execution?.kernels, 'v1 must have execution.kernels');
 assert.ok(converterConfig.inference?.attention, 'v1 must have explicit inference.attention');
 assert.ok(converterConfig.inference?.chatTemplate?.type, 'translategemma');
 
-// === Session defaults ===
+// === Session ===
 
-assert.equal(converterConfig.sessionDefaults?.compute?.defaults?.activationDtype, 'f32');
-assert.equal(converterConfig.sessionDefaults?.compute?.defaults?.mathDtype, 'f32');
-assert.equal(converterConfig.sessionDefaults?.compute?.defaults?.accumDtype, 'f32');
-assert.equal(converterConfig.sessionDefaults?.compute?.defaults?.outputDtype, 'f32');
-assert.equal(converterConfig.sessionDefaults?.kvcache?.kvDtype, 'f16');
+assert.equal(converterConfig.session?.compute?.defaults?.activationDtype, 'f32');
+assert.equal(converterConfig.session?.compute?.defaults?.mathDtype, 'f32');
+assert.equal(converterConfig.session?.compute?.defaults?.accumDtype, 'f32');
+assert.equal(converterConfig.session?.compute?.defaults?.outputDtype, 'f32');
+assert.equal(converterConfig.session?.kvcache?.kvDtype, 'f16');
 
 // === Execution graph expands correctly ===
 

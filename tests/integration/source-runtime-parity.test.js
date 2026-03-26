@@ -231,7 +231,7 @@ try {
         weights: 'f32',
       },
       inference: {
-        sessionDefaults: executionSessionDefaults,
+        session: executionSessionDefaults,
         execution: castOnlyExecution,
       },
     },

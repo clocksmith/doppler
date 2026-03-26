@@ -121,7 +121,7 @@ export {
   type ExecutionV1BoundaryStep,
   type ExecutionV1ComputeDefaultsSchema,
   type ExecutionV1DecodeLoopSchema,
-  type ExecutionV1SessionDefaultsSchema,
+  type ExecutionV1SessionSchema,
   type ExecutionV1PoliciesSchema,
   type ExecutionV1GraphSchema,
   type ExecutionV1ConfigSchema,
@@ -133,7 +133,7 @@ export {
   type ExecutionV1ExpandedStepSchema,
   EXECUTION_V1_SCHEMA_ID,
   DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS,
-  DEFAULT_EXECUTION_V1_SESSION_DEFAULTS,
+  DEFAULT_EXECUTION_V1_SESSION,
   DEFAULT_EXECUTION_V1_POLICIES,
   DEFAULT_EXECUTION_V1_PATCH,
   isExecutionV1Digest,
@@ -352,33 +352,6 @@ export {
   DEFAULT_STORAGE_ALIGNMENT_CONFIG,
   DEFAULT_STORAGE_FULL_CONFIG,
 } from './storage.schema.js';
-
-// =============================================================================
-// Inference Defaults Schema
-// =============================================================================
-export {
-  // Types
-  type BatchingDefaultsSchema,
-  type ComputeDefaultsSchema,
-  type LargeWeightConfigSchema,
-  type SamplingDefaultsSchema,
-  type GenerationDefaultsSchema,
-  type TokenizerDefaultsSchema,
-  type KernelPathPolicySchema,
-  type InferenceDefaultsConfigSchema,
-  type ModelInferenceOverrides,
-
-  // Defaults
-  DEFAULT_BATCHING_DEFAULTS,
-  DEFAULT_COMPUTE_DEFAULTS,
-  DEFAULT_LARGE_WEIGHT_CONFIG,
-  DEFAULT_SAMPLING_DEFAULTS,
-  DEFAULT_GENERATION_CONFIG,
-  DEFAULT_TOKENIZER_DEFAULTS,
-  DEFAULT_KERNEL_PATH_POLICY,
-  DEFAULT_INFERENCE_DEFAULTS_CONFIG,
-  DEFAULT_MODEL_INFERENCE_DEFAULTS,
-} from './inference-defaults.schema.js';
 
 // =============================================================================
 // Distribution Schema

@@ -3,6 +3,20 @@ import { getDevice } from '../../gpu/device.js';
 import { runKVQuantize, recordKVQuantize } from '../../gpu/kernel-selector.js';
 import { KVCache } from './base.js';
 import { SlidingWindowKVCache } from './sliding-window.js';
+import {
+  computePackedStride,
+  generateRotationMatrix,
+  uploadRotationMatrix,
+  getCodebook,
+  uploadCodebook,
+  generateQJLMatrix,
+  ROTATION_SEED,
+  QJL_SEED,
+} from '../../gpu/kernels/turboquant-codebook.js';
+
+function isTurboQuantMode(mode) {
+  return mode === 'turboquant' || mode === 'turboquant_prod' || mode === 'turboquant_outlier';
+}
 
 // ============================================================================
 // TieredKVCache (hot ring + cold paged)
@@ -55,9 +69,10 @@ export class TieredKVCache {
     
     this.tieringMode = tiering.mode;
     
-    const defaultCompressionMode = tiering.mode === 'int8'
-      ? 'int8'
-      : (tiering.mode === 'int4' ? 'int4' : 'none');
+    const turboQuantModes = ['turboquant', 'turboquant_prod', 'turboquant_outlier'];
+    const defaultCompressionMode = turboQuantModes.includes(tiering.mode)
+      ? tiering.mode
+      : (tiering.mode === 'int8' ? 'int8' : (tiering.mode === 'int4' ? 'int4' : 'none'));
     this.compression = tiering.compression ?? { mode: defaultCompressionMode, blockSize: 1 };
     
     this.gating = tiering.gating ?? { mode: 'force_off', minAluBwRatio: 0.0 };
@@ -84,11 +99,31 @@ export class TieredKVCache {
 
     this.coldQuantMode = this._resolveCompressionMode(this.compression, this.gating);
     if (this.coldQuantMode !== 'none' && this.compression.blockSize !== 1) {
-      throw new Error('TieredKVCache compression.blockSize must be 1 (per-token) for int8/int4 cold tiers.');
+      throw new Error('TieredKVCache compression.blockSize must be 1 (per-token) for quantized cold tiers.');
     }
-    this.coldPackedStride = this.coldQuantMode === 'int4'
-      ? Math.ceil(this.headDim / 8)
-      : Math.ceil(this.headDim / 4);
+
+    this.isTurboQuant = isTurboQuantMode(this.coldQuantMode);
+    this.isProdMode = this.coldQuantMode === 'turboquant_prod';
+    this.turboQuantBitWidth = this.compression.bitWidth ?? 4;
+
+    if (this.isTurboQuant) {
+      this.coldPackedStride = computePackedStride(this.headDim, this.turboQuantBitWidth);
+      if (this.isProdMode) {
+        const mseBitWidth = this.turboQuantBitWidth - 1;
+        this.msePackedStride = computePackedStride(this.headDim, mseBitWidth);
+        this.residualPackedStride = Math.ceil(this.headDim / 32);
+      }
+    } else {
+      this.coldPackedStride = this.coldQuantMode === 'int4'
+        ? Math.ceil(this.headDim / 8)
+        : Math.ceil(this.headDim / 4);
+    }
+
+    // Shared TurboQuant GPU buffers (allocated lazily in _createColdQuantizedLayers)
+    this.rotationMatrixBuffer = null;
+    this.codebookCentroidsBuffer = null;
+    this.codebookBoundariesBuffer = null;
+    this.qjlMatrixBuffer = null;
 
     if (this.coldQuantMode !== 'none' && !this.useGPU) {
       throw new Error('TieredKVCache quantization requires GPU.');
@@ -168,44 +203,125 @@ export class TieredKVCache {
     if (!device) {
       throw new Error('GPU device not initialized.');
     }
-    const layers = new Array(this.numLayers);
-    const packedStride = this.coldPackedStride;
-    const packedBytes = this.maxSeqLen * this.numHeads * packedStride * 4;
-    const scalesBytes = this.maxSeqLen * this.numHeads * 2;
 
-    for (let l = 0; l < this.numLayers; l++) {
-      const keysPackedGPU = device.createBuffer({
-        label: `kv_cache_cold_keys_packed_layer_${l}`,
-        size: packedBytes,
-        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-      });
-      const valuesPackedGPU = device.createBuffer({
-        label: `kv_cache_cold_values_packed_layer_${l}`,
-        size: packedBytes,
-        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-      });
-      const scalesKGPU = device.createBuffer({
-        label: `kv_cache_cold_scales_k_layer_${l}`,
-        size: scalesBytes,
-        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-      });
-      const scalesVGPU = device.createBuffer({
-        label: `kv_cache_cold_scales_v_layer_${l}`,
-        size: scalesBytes,
-        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-      });
-      layers[l] = {
-        keysPackedGPU,
-        valuesPackedGPU,
-        scalesKGPU,
-        scalesVGPU,
-        seqLen: 0,
-      };
+    // Upload shared TurboQuant buffers if needed
+    if (this.isTurboQuant) {
+      const rotMatrix = generateRotationMatrix(this.headDim, ROTATION_SEED);
+      this.rotationMatrixBuffer = uploadRotationMatrix(device, rotMatrix, 'turboquant_rotation');
+
+      const codebook = getCodebook(this.headDim, this.turboQuantBitWidth);
+      const { centroidsBuffer, boundariesBuffer } = uploadCodebook(device, codebook, 'turboquant_codebook');
+      this.codebookCentroidsBuffer = centroidsBuffer;
+      this.codebookBoundariesBuffer = boundariesBuffer;
+
+      if (this.isProdMode) {
+        const qjlData = generateQJLMatrix(this.headDim, QJL_SEED);
+        const qjlBuffer = device.createBuffer({
+          label: 'turboquant_qjl_matrix',
+          size: qjlData.byteLength,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+          mappedAtCreation: true,
+        });
+        new Float32Array(qjlBuffer.getMappedRange()).set(qjlData);
+        qjlBuffer.unmap();
+        this.qjlMatrixBuffer = qjlBuffer;
+      }
+    }
+
+    const layers = new Array(this.numLayers);
+    const scalesBytes = this.maxSeqLen * this.numHeads * 2;
+    const bufUsage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC;
+
+    if (this.isProdMode) {
+      const msePackedBytes = this.maxSeqLen * this.numHeads * this.msePackedStride * 4;
+      const resPackedBytes = this.maxSeqLen * this.numHeads * this.residualPackedStride * 4;
+
+      for (let l = 0; l < this.numLayers; l++) {
+        layers[l] = {
+          keysPackedGPU: device.createBuffer({ label: `kv_cache_cold_keys_mse_${l}`, size: msePackedBytes, usage: bufUsage }),
+          valuesPackedGPU: device.createBuffer({ label: `kv_cache_cold_values_mse_${l}`, size: msePackedBytes, usage: bufUsage }),
+          residualKGPU: device.createBuffer({ label: `kv_cache_cold_res_k_${l}`, size: resPackedBytes, usage: bufUsage }),
+          residualVGPU: device.createBuffer({ label: `kv_cache_cold_res_v_${l}`, size: resPackedBytes, usage: bufUsage }),
+          residualNormsKGPU: device.createBuffer({ label: `kv_cache_cold_rnorm_k_${l}`, size: scalesBytes, usage: bufUsage }),
+          residualNormsVGPU: device.createBuffer({ label: `kv_cache_cold_rnorm_v_${l}`, size: scalesBytes, usage: bufUsage }),
+          scalesKGPU: device.createBuffer({ label: `kv_cache_cold_scales_k_${l}`, size: scalesBytes, usage: bufUsage }),
+          scalesVGPU: device.createBuffer({ label: `kv_cache_cold_scales_v_${l}`, size: scalesBytes, usage: bufUsage }),
+          seqLen: 0,
+        };
+      }
+    } else {
+      const packedStride = this.isTurboQuant ? this.coldPackedStride : this.coldPackedStride;
+      const packedBytes = this.maxSeqLen * this.numHeads * packedStride * 4;
+
+      for (let l = 0; l < this.numLayers; l++) {
+        layers[l] = {
+          keysPackedGPU: device.createBuffer({ label: `kv_cache_cold_keys_packed_layer_${l}`, size: packedBytes, usage: bufUsage }),
+          valuesPackedGPU: device.createBuffer({ label: `kv_cache_cold_values_packed_layer_${l}`, size: packedBytes, usage: bufUsage }),
+          scalesKGPU: device.createBuffer({ label: `kv_cache_cold_scales_k_layer_${l}`, size: scalesBytes, usage: bufUsage }),
+          scalesVGPU: device.createBuffer({ label: `kv_cache_cold_scales_v_layer_${l}`, size: scalesBytes, usage: bufUsage }),
+          seqLen: 0,
+        };
+      }
     }
     return layers;
   }
 
   
+  _buildQuantizeOptions(layer, startPos, numTokens) {
+    const base = {
+      numKVHeads: this.numHeads,
+      headDim: this.headDim,
+      startPos,
+      numTokens,
+      mode: this.coldQuantMode,
+    };
+
+    if (this.isProdMode) {
+      return {
+        outputKeysBuffer: layer.keysPackedGPU,
+        outputValuesBuffer: layer.valuesPackedGPU,
+        options: {
+          ...base,
+          packedStride: this.msePackedStride,
+          rotationMatrixBuffer: this.rotationMatrixBuffer,
+          codebookCentroidsBuffer: this.codebookCentroidsBuffer,
+          codebookBoundariesBuffer: this.codebookBoundariesBuffer,
+          qjlMatrixBuffer: this.qjlMatrixBuffer,
+          residualKBuffer: layer.residualKGPU,
+          residualVBuffer: layer.residualVGPU,
+          residualNormsKBuffer: layer.residualNormsKGPU,
+          residualNormsVBuffer: layer.residualNormsVGPU,
+          residualPackedStride: this.residualPackedStride,
+          bitWidth: this.turboQuantBitWidth - 1,
+        },
+      };
+    }
+
+    if (this.isTurboQuant) {
+      return {
+        outputKeysBuffer: layer.keysPackedGPU,
+        outputValuesBuffer: layer.valuesPackedGPU,
+        options: {
+          ...base,
+          packedStride: this.coldPackedStride,
+          rotationMatrixBuffer: this.rotationMatrixBuffer,
+          codebookCentroidsBuffer: this.codebookCentroidsBuffer,
+          codebookBoundariesBuffer: this.codebookBoundariesBuffer,
+          bitWidth: this.turboQuantBitWidth,
+        },
+      };
+    }
+
+    return {
+      outputKeysBuffer: layer.keysPackedGPU,
+      outputValuesBuffer: layer.valuesPackedGPU,
+      options: {
+        ...base,
+        packedStride: this.coldPackedStride,
+      },
+    };
+  }
+
   _getColdStoreBytes() {
     if (this.coldCache) {
       return this.coldCache.getMemoryStats().theoretical;
@@ -318,21 +434,15 @@ export class TieredKVCache {
       this.totalTokensSeen = this.coldCache.totalTokensSeen;
     } else {
       const layer = this.coldLayers[layerIdx];
+      const quantOpts = this._buildQuantizeOptions(layer, startPos, numTokens);
       await runKVQuantize(
         keysBuffer,
         valuesBuffer,
-        layer.keysPackedGPU,
-        layer.valuesPackedGPU,
+        quantOpts.outputKeysBuffer,
+        quantOpts.outputValuesBuffer,
         layer.scalesKGPU,
         layer.scalesVGPU,
-        {
-          numKVHeads: this.numHeads,
-          headDim: this.headDim,
-          startPos,
-          numTokens,
-          packedStride: this.coldPackedStride,
-          mode: this.coldQuantMode,
-        }
+        quantOpts.options
       );
       layer.seqLen = Math.max(layer.seqLen, startPos + numTokens);
       this.currentSeqLen = Math.max(this.currentSeqLen, startPos + numTokens);
@@ -364,22 +474,16 @@ export class TieredKVCache {
       this.coldCache.recordUpdateFromGPU(recorder, layerIdx, keysBuffer, valuesBuffer, startPos, numTokens);
     } else {
       const layer = this.coldLayers[layerIdx];
+      const quantOpts = this._buildQuantizeOptions(layer, startPos, numTokens);
       await recordKVQuantize(
         recorder,
         keysBuffer,
         valuesBuffer,
-        layer.keysPackedGPU,
-        layer.valuesPackedGPU,
+        quantOpts.outputKeysBuffer,
+        quantOpts.outputValuesBuffer,
         layer.scalesKGPU,
         layer.scalesVGPU,
-        {
-          numKVHeads: this.numHeads,
-          headDim: this.headDim,
-          startPos,
-          numTokens,
-          packedStride: this.coldPackedStride,
-          mode: this.coldQuantMode,
-        }
+        quantOpts.options
       );
       layer.seqLen = Math.max(layer.seqLen, startPos + numTokens);
     }
@@ -427,7 +531,7 @@ export class TieredKVCache {
     }
 
     const coldLayer = this.coldLayers[layerIdx];
-    return {
+    const result = {
       layout: 'tiered',
       seqLen: totalSeqLen,
       hotKeysGPU: hot.keysGPU,
@@ -442,9 +546,24 @@ export class TieredKVCache {
       coldSeqLen: coldLen,
       coldPageTableGPU: null,
       coldPageSize: 0,
-      coldPackedStride: this.coldPackedStride,
+      coldPackedStride: this.isProdMode ? this.msePackedStride : this.coldPackedStride,
       coldQuantMode: this.coldQuantMode,
     };
+
+    if (this.isTurboQuant) {
+      result.rotationMatrixBuffer = this.rotationMatrixBuffer;
+      result.codebookCentroidsBuffer = this.codebookCentroidsBuffer;
+    }
+    if (this.isProdMode) {
+      result.residualKGPU = coldLayer.residualKGPU;
+      result.residualVGPU = coldLayer.residualVGPU;
+      result.residualNormsKGPU = coldLayer.residualNormsKGPU;
+      result.residualNormsVGPU = coldLayer.residualNormsVGPU;
+      result.qjlMatrixBuffer = this.qjlMatrixBuffer;
+      result.residualPackedStride = this.residualPackedStride;
+    }
+
+    return result;
   }
 
   
@@ -511,12 +630,20 @@ export class TieredKVCache {
       this.coldCache.destroy();
     } else if (this.coldLayers) {
       for (const layer of this.coldLayers) {
-        layer.keysPackedGPU.destroy();
-        layer.valuesPackedGPU.destroy();
-        layer.scalesKGPU.destroy();
-        layer.scalesVGPU.destroy();
+        layer.keysPackedGPU?.destroy();
+        layer.valuesPackedGPU?.destroy();
+        layer.scalesKGPU?.destroy();
+        layer.scalesVGPU?.destroy();
+        layer.residualKGPU?.destroy();
+        layer.residualVGPU?.destroy();
+        layer.residualNormsKGPU?.destroy();
+        layer.residualNormsVGPU?.destroy();
       }
     }
+    this.rotationMatrixBuffer?.destroy();
+    this.codebookCentroidsBuffer?.destroy();
+    this.codebookBoundariesBuffer?.destroy();
+    this.qjlMatrixBuffer?.destroy();
   }
 
   

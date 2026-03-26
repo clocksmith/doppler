@@ -14,14 +14,6 @@ import { KERNEL_CONFIGS } from '../../../gpu/kernels/kernel-configs.js';
 import { initTokenizer } from './init.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
-import {
-  DEFAULT_BATCHING_DEFAULTS,
-  DEFAULT_COMPUTE_DEFAULTS,
-  DEFAULT_GENERATION_CONFIG,
-  DEFAULT_KERNEL_PATH_POLICY as SCHEMA_DEFAULT_KERNEL_PATH_POLICY,
-} from '../../../config/schema/inference-defaults.schema.js';
-import { DEFAULT_KVCACHE_CONFIG } from '../../../config/schema/kvcache.schema.js';
-import { DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS } from '../../../config/schema/execution-v1.schema.js';
 
 function validateKernelWarmupMode(mode) {
   if (mode !== 'parallel' && mode !== 'sequential') {
@@ -51,7 +43,7 @@ function normalizeBoolean(value) {
   return typeof value === 'boolean' ? value : null;
 }
 
-function parseManifestDecodeLoopOptionalPositiveInt(value, label, modelId) {
+function parseSessionDecodeLoopOptionalPositiveInt(value, label, modelId) {
   if (value === undefined) {
     return undefined;
   }
@@ -61,133 +53,65 @@ function parseManifestDecodeLoopOptionalPositiveInt(value, label, modelId) {
   const normalized = normalizePositiveInt(value);
   if (normalized == null) {
     throw new Error(
-      `Manifest "${modelId}" inference.sessionDefaults.decodeLoop.${label} must be a positive integer or null.`
+      `Manifest "${modelId}" inference.session.decodeLoop.${label} must be a positive integer or null.`
     );
   }
   return normalized;
 }
 
-function parseManifestDecodeLoopOptionalBoolean(value, label, modelId) {
+function parseSessionDecodeLoopOptionalBoolean(value, label, modelId) {
   if (value === undefined) {
     return undefined;
   }
   if (typeof value !== 'boolean') {
     throw new Error(
-      `Manifest "${modelId}" inference.sessionDefaults.decodeLoop.${label} must be a boolean when provided.`
+      `Manifest "${modelId}" inference.session.decodeLoop.${label} must be a boolean when provided.`
     );
   }
   return value;
 }
 
-function requireGlobalBatchingDefault(value, label) {
+function requireSessionDecodeLoopPositiveInt(value, label, modelId) {
   const normalized = normalizePositiveInt(value);
   if (normalized == null) {
-    throw new Error(`${label} must be a positive integer.`);
+    throw new Error(`Manifest "${modelId}" inference.session.decodeLoop.${label} must be a positive integer.`);
   }
   return normalized;
 }
 
-function requireGlobalStopCheckMode(value, label) {
-  const normalized = normalizeStopCheckMode(value);
-  if (normalized == null) {
-    throw new Error(`${label} must be "batch" or "per-token".`);
-  }
-  return normalized;
-}
-
-const GLOBAL_DEFAULT_BATCHING = Object.freeze({
-  batchSize: requireGlobalBatchingDefault(
-    DEFAULT_BATCHING_DEFAULTS.batchSize,
-    'DEFAULT_BATCHING_DEFAULTS.batchSize'
-  ),
-  stopCheckMode: requireGlobalStopCheckMode(
-    DEFAULT_BATCHING_DEFAULTS.stopCheckMode,
-    'DEFAULT_BATCHING_DEFAULTS.stopCheckMode'
-  ),
-  readbackInterval: requireGlobalBatchingDefault(
-    DEFAULT_BATCHING_DEFAULTS.readbackInterval,
-    'DEFAULT_BATCHING_DEFAULTS.readbackInterval'
-  ),
-  ringTokens: requireGlobalBatchingDefault(
-    DEFAULT_BATCHING_DEFAULTS.ringTokens,
-    'DEFAULT_BATCHING_DEFAULTS.ringTokens'
-  ),
-  ringStop: requireGlobalBatchingDefault(
-    DEFAULT_BATCHING_DEFAULTS.ringStop,
-    'DEFAULT_BATCHING_DEFAULTS.ringStop'
-  ),
-  ringStaging: requireGlobalBatchingDefault(
-    DEFAULT_BATCHING_DEFAULTS.ringStaging,
-    'DEFAULT_BATCHING_DEFAULTS.ringStaging'
-  ),
-});
-
-const GLOBAL_DEFAULT_GENERATION = Object.freeze({
-  disableCommandBatching: DEFAULT_GENERATION_CONFIG.disableCommandBatching === true,
-});
-
-const GLOBAL_DEFAULT_KERNEL_PATH_DTYPES = Object.freeze({
-  activationDtype: DEFAULT_COMPUTE_DEFAULTS.activationDtype,
-  kvDtype: DEFAULT_KVCACHE_CONFIG.kvDtype,
-  outputDtype: DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS.outputDtype,
-});
-
-function isRuntimeBatchingAtGlobalDefaults(batching) {
-  if (!batching || typeof batching !== 'object') {
-    return false;
-  }
-  return normalizePositiveInt(batching.batchSize) === GLOBAL_DEFAULT_BATCHING.batchSize
-    && normalizeStopCheckMode(batching.stopCheckMode) === GLOBAL_DEFAULT_BATCHING.stopCheckMode
-    && normalizeReadbackInterval(batching.readbackInterval) === GLOBAL_DEFAULT_BATCHING.readbackInterval
-    && normalizeReadbackInterval(batching.ringTokens) === GLOBAL_DEFAULT_BATCHING.ringTokens
-    && normalizeReadbackInterval(batching.ringStop) === GLOBAL_DEFAULT_BATCHING.ringStop
-    && normalizeReadbackInterval(batching.ringStaging) === GLOBAL_DEFAULT_BATCHING.ringStaging;
-}
-
-function isRuntimeGenerationAtGlobalDefaults(generation) {
-  if (!generation || typeof generation !== 'object') {
-    return false;
-  }
-  return (generation.disableCommandBatching === true) === GLOBAL_DEFAULT_GENERATION.disableCommandBatching;
-}
-
-function requireManifestDecodeLoopPositiveInt(value, label, modelId) {
-  const normalized = normalizePositiveInt(value);
-  if (normalized == null) {
-    throw new Error(`Manifest "${modelId}" inference.sessionDefaults.decodeLoop.${label} must be a positive integer.`);
-  }
-  return normalized;
-}
-
-function requireManifestDecodeLoopStopCheckMode(value, modelId) {
+function requireSessionDecodeLoopStopCheckMode(value, modelId) {
   const normalized = normalizeStopCheckMode(value);
   if (normalized == null) {
     throw new Error(
-      `Manifest "${modelId}" inference.sessionDefaults.decodeLoop.stopCheckMode must be "batch" or "per-token".`
+      `Manifest "${modelId}" inference.session.decodeLoop.stopCheckMode must be "batch" or "per-token".`
     );
   }
   return normalized;
 }
 
-function buildManifestDecodeLoopRuntimePatch(manifest) {
-  const decodeLoop = manifest?.inference?.sessionDefaults?.decodeLoop;
+function buildResolvedDecodeLoopRuntimePatch(runtimeConfig, manifest) {
+  const resolvedSession = mergeRuntimeValues(
+    manifest?.inference?.session ?? {},
+    runtimeConfig?.inference?.session ?? {}
+  );
+  const decodeLoop = resolvedSession?.decodeLoop;
   if (decodeLoop == null) {
     return null;
   }
   const modelId = String(manifest?.modelId ?? 'unknown').trim() || 'unknown';
   if (typeof decodeLoop !== 'object') {
     throw new Error(
-      `Manifest "${modelId}" inference.sessionDefaults.decodeLoop must be an object when provided.`
+      `Manifest "${modelId}" inference.session.decodeLoop must be an object when provided.`
     );
   }
-  const batchSize = requireManifestDecodeLoopPositiveInt(decodeLoop.batchSize, 'batchSize', modelId);
-  const stopCheckMode = requireManifestDecodeLoopStopCheckMode(decodeLoop.stopCheckMode, modelId);
-  const readbackInterval = requireManifestDecodeLoopPositiveInt(
+  const batchSize = requireSessionDecodeLoopPositiveInt(decodeLoop.batchSize, 'batchSize', modelId);
+  const stopCheckMode = requireSessionDecodeLoopStopCheckMode(decodeLoop.stopCheckMode, modelId);
+  const readbackInterval = requireSessionDecodeLoopPositiveInt(
     decodeLoop.readbackInterval,
     'readbackInterval',
     modelId
   );
-  const disableCommandBatching = parseManifestDecodeLoopOptionalBoolean(
+  const disableCommandBatching = parseSessionDecodeLoopOptionalBoolean(
     decodeLoop.disableCommandBatching,
     'disableCommandBatching',
     modelId
@@ -198,7 +122,7 @@ function buildManifestDecodeLoopRuntimePatch(manifest) {
     stopCheckMode,
     readbackInterval,
   };
-  const ringTokens = parseManifestDecodeLoopOptionalPositiveInt(
+  const ringTokens = parseSessionDecodeLoopOptionalPositiveInt(
     decodeLoop.ringTokens,
     'ringTokens',
     modelId
@@ -206,7 +130,7 @@ function buildManifestDecodeLoopRuntimePatch(manifest) {
   if (ringTokens !== undefined) {
     batchingPatch.ringTokens = ringTokens;
   }
-  const ringStop = parseManifestDecodeLoopOptionalPositiveInt(
+  const ringStop = parseSessionDecodeLoopOptionalPositiveInt(
     decodeLoop.ringStop,
     'ringStop',
     modelId
@@ -214,7 +138,7 @@ function buildManifestDecodeLoopRuntimePatch(manifest) {
   if (ringStop !== undefined) {
     batchingPatch.ringStop = ringStop;
   }
-  const ringStaging = parseManifestDecodeLoopOptionalPositiveInt(
+  const ringStaging = parseSessionDecodeLoopOptionalPositiveInt(
     decodeLoop.ringStaging,
     'ringStaging',
     modelId
@@ -224,6 +148,19 @@ function buildManifestDecodeLoopRuntimePatch(manifest) {
   }
 
   return {
+    session: {
+      ...resolvedSession,
+      decodeLoop: {
+        ...decodeLoop,
+        batchSize,
+        stopCheckMode,
+        readbackInterval,
+        ...(ringTokens !== undefined ? { ringTokens } : {}),
+        ...(ringStop !== undefined ? { ringStop } : {}),
+        ...(ringStaging !== undefined ? { ringStaging } : {}),
+        ...(disableCommandBatching !== undefined ? { disableCommandBatching } : {}),
+      },
+    },
     batching: batchingPatch,
     generation: disableCommandBatching == null
       ? null
@@ -233,42 +170,21 @@ function buildManifestDecodeLoopRuntimePatch(manifest) {
 
 export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, modelConfig) {
   void modelConfig;
-  const batching = runtimeConfig?.inference?.batching;
-  const generation = runtimeConfig?.inference?.generation;
-  const runtimeBatchingAtDefaults = isRuntimeBatchingAtGlobalDefaults(batching);
-  const runtimeGenerationAtDefaults = isRuntimeGenerationAtGlobalDefaults(generation);
-
-  const patch = buildManifestDecodeLoopRuntimePatch(manifest);
+  const patch = buildResolvedDecodeLoopRuntimePatch(runtimeConfig, manifest);
   if (!patch) {
     return runtimeConfig;
   }
 
-  const runtimeDisableCommandBatching = generation?.disableCommandBatching === true;
-  const manifestDisableCommandBatching = patch.generation?.disableCommandBatching === true;
-  if (!runtimeBatchingAtDefaults) {
-    log.info(
-      'Pipeline',
-      `Manifest decodeLoop skipped for "${manifest?.modelId ?? 'unknown'}": ` +
-      'runtime.inference.batching is already explicitly configured (runtime overrides take precedence).'
-    );
-    return runtimeConfig;
-  }
-  if (patch.generation && !runtimeGenerationAtDefaults && runtimeDisableCommandBatching !== manifestDisableCommandBatching) {
-    throw new Error(
-      'Manifest decodeLoop.disableCommandBatching conflicts with runtime.inference.generation.disableCommandBatching. ' +
-      'Choose one explicit source of truth.'
-    );
-  }
-
   const nextRuntimeConfig = mergeRuntimeValues(runtimeConfig, {
     inference: {
+      session: patch.session,
       batching: patch.batching,
       ...(patch.generation ? { generation: patch.generation } : {}),
     },
   });
   log.info(
     'Pipeline',
-    `Manifest decodeLoop applied (${manifest?.modelId ?? 'unknown'}): ` +
+    `Resolved session applied (${manifest?.modelId ?? 'unknown'}): ` +
     `batchSize=${patch.batching.batchSize}, stopCheckMode=${patch.batching.stopCheckMode}, ` +
     `readbackInterval=${patch.batching.readbackInterval}, ` +
     `disableCommandBatching=${patch.generation?.disableCommandBatching === true}`
@@ -481,13 +397,6 @@ function buildKernelPathDtypeContract(resolvedKernelPath) {
   };
 }
 
-function isGlobalKernelPathDtypeDefault(currentValue, key) {
-  if (currentValue == null) {
-    return true;
-  }
-  return currentValue === GLOBAL_DEFAULT_KERNEL_PATH_DTYPES[key];
-}
-
 function describeKernelPathDtypeMismatch(contract, current) {
   const mismatches = [];
   if (contract.activationDtype && current.activationDtype !== contract.activationDtype) {
@@ -505,6 +414,41 @@ function describeKernelPathDtypeMismatch(contract, current) {
   if (contract.outputDtype && current.outputDtype !== contract.outputDtype) {
     mismatches.push(
       `runtime.inference.session.compute.defaults.outputDtype=${current.outputDtype ?? 'unset'} ` +
+      `(expected ${contract.outputDtype})`
+    );
+  }
+  return mismatches;
+}
+
+function describeExplicitRuntimeDtypeMismatch(contract, explicitRuntime) {
+  const mismatches = [];
+  if (
+    contract.activationDtype
+    && explicitRuntime.activationDtype != null
+    && explicitRuntime.activationDtype !== contract.activationDtype
+  ) {
+    mismatches.push(
+      `runtime.inference.session.compute.defaults.activationDtype=${explicitRuntime.activationDtype} ` +
+      `(expected ${contract.activationDtype})`
+    );
+  }
+  if (
+    contract.kvDtype
+    && explicitRuntime.kvDtype != null
+    && explicitRuntime.kvDtype !== contract.kvDtype
+  ) {
+    mismatches.push(
+      `runtime.inference.session.kvcache.kvDtype=${explicitRuntime.kvDtype} ` +
+      `(expected ${contract.kvDtype})`
+    );
+  }
+  if (
+    contract.outputDtype
+    && explicitRuntime.outputDtype != null
+    && explicitRuntime.outputDtype !== contract.outputDtype
+  ) {
+    mismatches.push(
+      `runtime.inference.session.compute.defaults.outputDtype=${explicitRuntime.outputDtype} ` +
       `(expected ${contract.outputDtype})`
     );
   }
@@ -538,9 +482,9 @@ function getKernelCapabilitiesSafe() {
 }
 
 const DEFAULT_KERNEL_PATH_POLICY = Object.freeze({
-  mode: SCHEMA_DEFAULT_KERNEL_PATH_POLICY.mode,
-  sourceScope: Object.freeze([...SCHEMA_DEFAULT_KERNEL_PATH_POLICY.sourceScope]),
-  onIncompatible: SCHEMA_DEFAULT_KERNEL_PATH_POLICY.onIncompatible,
+  mode: 'locked',
+  sourceScope: Object.freeze(['model', 'manifest']),
+  onIncompatible: 'error',
 });
 
 function normalizeKernelPathPolicyMode(value) {
@@ -600,7 +544,29 @@ function resolveKernelPathPolicy(policy) {
   };
 }
 
-function applyKernelPathRuntimeDtypeContract(resolvedKernelPath, runtimeConfig, kernelPathSource, modelId) {
+function getExplicitRuntimeDtypeOverrides(runtimeOverrides) {
+  return {
+    activationDtype: normalizeKernelDtype(
+      runtimeOverrides?.inference?.session?.compute?.defaults?.activationDtype
+      ?? runtimeOverrides?.inference?.compute?.activationDtype
+    ),
+    kvDtype: normalizeKernelDtype(
+      runtimeOverrides?.inference?.session?.kvcache?.kvDtype
+      ?? runtimeOverrides?.inference?.kvcache?.kvDtype
+    ),
+    outputDtype: normalizeKernelDtype(
+      runtimeOverrides?.inference?.session?.compute?.defaults?.outputDtype
+    ),
+  };
+}
+
+function applyKernelPathRuntimeDtypeContract(
+  resolvedKernelPath,
+  runtimeConfig,
+  runtimeOverrides,
+  kernelPathSource,
+  modelId
+) {
   const contract = buildKernelPathDtypeContract(resolvedKernelPath);
   if (!contract) {
     return runtimeConfig;
@@ -616,25 +582,23 @@ function applyKernelPathRuntimeDtypeContract(resolvedKernelPath, runtimeConfig, 
     return runtimeConfig;
   }
 
+  const explicitRuntime = getExplicitRuntimeDtypeOverrides(runtimeOverrides);
+  const explicitMismatches = describeExplicitRuntimeDtypeMismatch(contract, explicitRuntime);
+
   if (kernelPathSource === 'config') {
     throw new Error(
       `KernelPath "${resolvedKernelPath?.id ?? 'unknown'}" selected from ${kernelPathSource} ` +
       `requires explicit matching runtime dtypes for "${modelId}". ` +
       `Mismatches: ${mismatches.join('; ')}. ` +
-      'Set runtime.inference.compute.activationDtype, runtime.inference.kvcache.kvDtype, ' +
+      'Set runtime.inference.session.compute.defaults.activationDtype, runtime.inference.session.kvcache.kvDtype, ' +
       'and runtime.inference.session.compute.defaults.outputDtype to match the kernel path.'
     );
   }
 
-  const canApplyManifestDefaults = (
-    (contract.activationDtype == null || isGlobalKernelPathDtypeDefault(current.activationDtype, 'activationDtype'))
-    && (contract.kvDtype == null || isGlobalKernelPathDtypeDefault(current.kvDtype, 'kvDtype'))
-    && (contract.outputDtype == null || isGlobalKernelPathDtypeDefault(current.outputDtype, 'outputDtype'))
-  );
-  if (!canApplyManifestDefaults) {
+  if (explicitMismatches.length > 0) {
     throw new Error(
       `Manifest/model kernelPath "${resolvedKernelPath?.id ?? 'unknown'}" for "${modelId}" ` +
-      `conflicts with runtime dtype overrides. Mismatches: ${mismatches.join('; ')}. ` +
+      `conflicts with runtime dtype overrides. Mismatches: ${explicitMismatches.join('; ')}. ` +
       'Either remove the runtime dtype override or set it to match the kernel path.'
     );
   }
@@ -643,16 +607,30 @@ function applyKernelPathRuntimeDtypeContract(resolvedKernelPath, runtimeConfig, 
     ...runtimeConfig.inference,
     compute: { ...runtimeConfig.inference.compute },
     kvcache: { ...runtimeConfig.inference.kvcache },
+    session: {
+      ...(runtimeConfig.inference.session ?? {}),
+      compute: {
+        ...(runtimeConfig.inference.session?.compute ?? {}),
+        defaults: {
+          ...(runtimeConfig.inference.session?.compute?.defaults ?? {}),
+        },
+      },
+      kvcache: {
+        ...(runtimeConfig.inference.session?.kvcache ?? {}),
+      },
+    },
   };
   const dtypeChanges = [];
 
   if (contract.activationDtype && current.activationDtype !== contract.activationDtype) {
     nextInference.compute.activationDtype = contract.activationDtype;
+    nextInference.session.compute.defaults.activationDtype = contract.activationDtype;
     dtypeChanges.push(`activation=${current.activationDtype ?? 'unset'}->${contract.activationDtype}`);
   }
 
   if (contract.kvDtype && current.kvDtype !== contract.kvDtype) {
     nextInference.kvcache.kvDtype = contract.kvDtype;
+    nextInference.session.kvcache.kvDtype = contract.kvDtype;
     dtypeChanges.push(`kv=${current.kvDtype ?? 'unset'}->${contract.kvDtype}`);
   }
 
@@ -681,6 +659,7 @@ export function resolveKernelPathState(options) {
   const {
     manifest,
     runtimeConfig,
+    runtimeOverrides = null,
     modelConfig,
     kernelCapabilities = null,
   } = options;
@@ -744,6 +723,7 @@ export function resolveKernelPathState(options) {
   const nextRuntimeConfig = applyKernelPathRuntimeDtypeContract(
     resolvedKernelPath,
     runtimeConfig,
+    runtimeOverrides,
     kernelPathSource,
     String(manifest?.modelId ?? 'unknown').trim() || 'unknown'
   );

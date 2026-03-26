@@ -108,7 +108,7 @@ For claimable numbers, use `docs/benchmark-methodology.md` and artifacts in
 | Intermediate hidden states | GPU buffers | No |
 | **Final logits** | **GPU → CPU** | **Yes (required for CPU-side sampling in current default flow)** |
 
-Readback cadence is runtime-configurable (`runtime.inference.batching.readbackInterval`).
+Readback cadence is runtime-configurable (`runtime.inference.session.decodeLoop.readbackInterval`).
 Default parity decode is typically per-token, but batched decode modes can amortize readbacks.
 See `src/inference/pipelines/text/generator-steps.js`.
 

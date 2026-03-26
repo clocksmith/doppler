@@ -4287,7 +4287,7 @@ const TRANSLATE_MODEL_HINTS = Object.freeze([
   'opus',
   'mt',
 ]);
-const DEMO_DEFAULT_TEXT_MODEL_ID = 'gemma-3-270m-it-q4k-ehf16-af32';
+const DEMO_DEFAULT_TEXT_MODEL_ID = 'qwen-3-5-0-8b-q4k-ehaf16';
 
 function getModelSelectionScore(mode, modelId) {
   const normalizedMode = normalizeDeepLinkMode(mode, 'run');

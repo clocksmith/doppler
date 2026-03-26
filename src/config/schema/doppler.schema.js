@@ -1,5 +1,4 @@
 import { DEFAULT_LOADING_CONFIG } from './loading.schema.js';
-import { DEFAULT_INFERENCE_DEFAULTS_CONFIG } from './inference-defaults.schema.js';
 import { DEFAULT_SHARED_RUNTIME_CONFIG } from './shared-runtime.schema.js';
 import { DEFAULT_EMULATION_CONFIG, createEmulationConfig } from './emulation.schema.js';
 import { mergeEcosystemConfig } from './ecosystem.schema.js';
@@ -19,7 +18,22 @@ import {
 export const DEFAULT_RUNTIME_CONFIG = {
   shared: DEFAULT_SHARED_RUNTIME_CONFIG,
   loading: DEFAULT_LOADING_CONFIG,
-  inference: DEFAULT_INFERENCE_DEFAULTS_CONFIG,
+  inference: {
+    batching: {},
+    sampling: {},
+    compute: {},
+    tokenizer: {},
+    largeWeights: {},
+    kvcache: {},
+    diffusion: {},
+    energy: {},
+    moe: {},
+    speculative: {},
+    generation: {},
+    chatTemplate: {},
+    session: {},
+    executionPatch: {},
+  },
   emulation: DEFAULT_EMULATION_CONFIG,
 };
 
@@ -189,6 +203,11 @@ function mergeInferenceConfig(
   const overrideExecutionPatch = overrides.executionPatch ?? {};
   const baseKernelPathPolicy = base.kernelPathPolicy ?? {};
   const overrideKernelPathPolicy = overrides.kernelPathPolicy ?? {};
+  const baseDiffusion = base.diffusion ?? {};
+  const baseDiffusionDecode = baseDiffusion.decode ?? {};
+  const baseEnergy = base.energy ?? {};
+  const baseEnergyQuintel = baseEnergy.quintel ?? {};
+  const baseMoe = base.moe ?? {};
   const hasRuntimeKernelProfiles = Object.prototype.hasOwnProperty.call(
     overrideSessionCompute,
     'kernelProfiles'
@@ -205,47 +224,47 @@ function mergeInferenceConfig(
     kvcache: { ...base.kvcache, ...overrides.kvcache },
     diffusion: overrides.diffusion
       ? {
-          ...base.diffusion,
+          ...baseDiffusion,
           ...overrides.diffusion,
-          scheduler: { ...base.diffusion.scheduler, ...overrides.diffusion.scheduler },
-          latent: { ...base.diffusion.latent, ...overrides.diffusion.latent },
-          textEncoder: { ...base.diffusion.textEncoder, ...overrides.diffusion.textEncoder },
+          scheduler: { ...baseDiffusion.scheduler, ...overrides.diffusion.scheduler },
+          latent: { ...baseDiffusion.latent, ...overrides.diffusion.latent },
+          textEncoder: { ...baseDiffusion.textEncoder, ...overrides.diffusion.textEncoder },
           decode: {
-            ...base.diffusion.decode,
+            ...baseDiffusionDecode,
             ...overrides.diffusion.decode,
-            tiling: { ...base.diffusion.decode.tiling, ...overrides.diffusion.decode?.tiling },
+            tiling: { ...baseDiffusionDecode.tiling, ...overrides.diffusion.decode?.tiling },
           },
-          swapper: { ...base.diffusion.swapper, ...overrides.diffusion.swapper },
-          quantization: { ...base.diffusion.quantization, ...overrides.diffusion.quantization },
+          swapper: { ...baseDiffusion.swapper, ...overrides.diffusion.swapper },
+          quantization: { ...baseDiffusion.quantization, ...overrides.diffusion.quantization },
         }
-      : { ...base.diffusion },
+      : { ...baseDiffusion },
     energy: overrides.energy
       ? {
-          ...base.energy,
+          ...baseEnergy,
           ...overrides.energy,
-          problem: overrides.energy.problem ?? base.energy.problem,
-          state: { ...base.energy.state, ...overrides.energy.state },
-          init: { ...base.energy.init, ...overrides.energy.init },
-          target: { ...base.energy.target, ...overrides.energy.target },
-          loop: { ...base.energy.loop, ...overrides.energy.loop },
-          diagnostics: { ...base.energy.diagnostics, ...overrides.energy.diagnostics },
+          problem: overrides.energy.problem ?? baseEnergy.problem,
+          state: { ...baseEnergy.state, ...overrides.energy.state },
+          init: { ...baseEnergy.init, ...overrides.energy.init },
+          target: { ...baseEnergy.target, ...overrides.energy.target },
+          loop: { ...baseEnergy.loop, ...overrides.energy.loop },
+          diagnostics: { ...baseEnergy.diagnostics, ...overrides.energy.diagnostics },
           quintel: overrides.energy.quintel
             ? {
-                ...base.energy.quintel,
+                ...baseEnergyQuintel,
                 ...overrides.energy.quintel,
-                rules: { ...base.energy.quintel.rules, ...overrides.energy.quintel.rules },
-                weights: { ...base.energy.quintel.weights, ...overrides.energy.quintel.weights },
-                clamp: { ...base.energy.quintel.clamp, ...overrides.energy.quintel.clamp },
+                rules: { ...baseEnergyQuintel.rules, ...overrides.energy.quintel.rules },
+                weights: { ...baseEnergyQuintel.weights, ...overrides.energy.quintel.weights },
+                clamp: { ...baseEnergyQuintel.clamp, ...overrides.energy.quintel.clamp },
               }
-            : { ...base.energy.quintel },
+            : { ...baseEnergyQuintel },
         }
-      : { ...base.energy },
+      : { ...baseEnergy },
     moe: overrides.moe
       ? {
-          routing: { ...base.moe.routing, ...overrides.moe.routing },
-          cache: { ...base.moe.cache, ...overrides.moe.cache },
+          routing: { ...baseMoe.routing, ...overrides.moe.routing },
+          cache: { ...baseMoe.cache, ...overrides.moe.cache },
         }
-      : { ...base.moe },
+      : { ...baseMoe },
     speculative: { ...base.speculative, ...overrides.speculative },
     generation: { ...base.generation, ...overrides.generation },
     pipeline: overrides.pipeline ?? base.pipeline,

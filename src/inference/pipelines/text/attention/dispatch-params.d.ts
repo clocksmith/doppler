@@ -22,7 +22,7 @@ export interface KVCacheDispatchState {
   causalForAttention: boolean;
   startPosForMask: number;
   kvStart: number;
-  kvLayout: 'contiguous' | 'ring' | 'paged' | 'tiered' | 'bdpa';
+  kvLayout: 'contiguous' | 'contiguous_quantized' | 'ring' | 'paged' | 'tiered' | 'bdpa';
   kvPageTable: GPUBuffer | null;
   kvPageSize: number;
   cachedKHot: GPUBuffer | undefined;
@@ -81,6 +81,7 @@ export interface AttentionDispatchParams {
   cachedKTensor: Tensor | null;
   cachedVTensor: Tensor | null;
   isTieredKernel: boolean;
+  prefillFallbackNeedsCast: boolean;
   causalForAttention: boolean;
 }
 

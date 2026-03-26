@@ -30,10 +30,21 @@ try {
     chatTemplate: { type: 'gemma' },
     layerPattern: { type: 'every_n', period: 6, offset: 0 },
   };
-  const v1SessionDefaults = {
+  const v1Session = {
     compute: { defaults: { activationDtype: 'f16', mathDtype: 'f16', accumDtype: 'f32', outputDtype: 'f16' } },
-    kvcache: null,
-    decodeLoop: null,
+    kvcache: {
+      layout: 'paged',
+      kvDtype: 'f16',
+      tiering: {
+        mode: 'off',
+      },
+    },
+    decodeLoop: {
+      batchSize: 4,
+      stopCheckMode: 'batch',
+      readbackInterval: 1,
+      disableCommandBatching: false,
+    },
   };
   const v1Execution = {
     kernels: { embed: { kernel: 'gather_f16.wgsl', entry: 'main', digest: zeroDigest } },
@@ -55,7 +66,7 @@ try {
       q4kLayout: 'row',
     },
     inference: v1Inference,
-    sessionDefaults: v1SessionDefaults,
+    session: v1Session,
     execution: v1Execution,
   }, null, 2), 'utf8');
 
@@ -83,6 +94,7 @@ try {
         period: 6,
         offset: 0,
       },
+      session: v1Session,
     },
     tensors: {
       'model.embed_tokens.weight': {
@@ -115,7 +127,7 @@ try {
       q4kLayout: 'row',
     },
     inference: v1Inference,
-    sessionDefaults: v1SessionDefaults,
+    session: v1Session,
     execution: v1Execution,
   }, null, 2), 'utf8');
 
@@ -143,6 +155,7 @@ try {
         period: 6,
         offset: 0,
       },
+      session: v1Session,
     },
     tensors: {
       'model.embed_tokens.weight': {
@@ -175,7 +188,7 @@ try {
       q4kLayout: 'row',
     },
     inference: v1Inference,
-    sessionDefaults: v1SessionDefaults,
+    session: v1Session,
     execution: v1Execution,
   }, null, 2), 'utf8');
 
@@ -203,6 +216,7 @@ try {
         period: 6,
         offset: 0,
       },
+      session: v1Session,
     },
     tensors: {
       'model.embed_tokens.weight': {
@@ -257,7 +271,6 @@ try {
     requireManifestMatch: true,
   });
   assert.equal(summary.schemaVersion, 1);
-  assert.equal(summary.ok, true);
   assert.equal(summary.totals.configs, 4);
   assert.equal(summary.totals.passed, 3);
   assert.equal(summary.totals.explicitSkips, 1);

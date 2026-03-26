@@ -15,15 +15,15 @@ Add a new sampling parameter or change how token selection works after logits ar
 
 ## Required Touch Points
 
-- `src/config/schema/inference-defaults.schema.js` and `.d.ts`
+- `src/config/schema/doppler.schema.js` and `.d.ts`
 - If the shared benchmark contract exposes the knob:
   `src/config/schema/benchmark.schema.js` and `.d.ts`
-- `src/inference/pipelines/text/sampling.js`
+- `src/inference/pipelines/text/sampling-config.js`
 - Tests for the new sampling behavior
 
 ## Recommended Order
 
-1. Add the field to runtime defaults and declaration files.
+1. Add the field to the sparse runtime inference schema and declaration files.
 2. Update any command or benchmark schema that needs to validate the new knob.
 3. Implement the new behavior in `src/inference/pipelines/text/sampling.js`.
 4. Add tests that cover default behavior, non-default behavior, and edge cases.
@@ -47,7 +47,7 @@ Add a new sampling parameter or change how token selection works after logits ar
 
 ## Canonical References
 
-- `src/config/schema/inference-defaults.schema.js`
+- `src/config/schema/doppler.schema.js`
 - `src/config/schema/benchmark.schema.js`
-- `src/inference/pipelines/text/sampling.js`
+- `src/inference/pipelines/text/sampling-config.js`
 - [../config.md](../config.md)

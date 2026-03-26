@@ -191,7 +191,7 @@ const compiled = compileExecutionV1({
   manifestInference: {
     schema: EXECUTION_V1_SCHEMA_ID,
     execution: graph,
-    sessionDefaults: {
+    session: {
       compute: {
         defaults: { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' },
       },
@@ -234,7 +234,7 @@ const compiledWithoutInlineKernelPath = compileExecutionV1({
       ...graph,
       inlineKernelPath: false,
     },
-    sessionDefaults: {
+    session: {
       compute: {
         defaults: { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' },
       },

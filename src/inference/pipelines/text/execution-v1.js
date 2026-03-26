@@ -54,20 +54,24 @@ export function compileExecutionV1(options = {}) {
   const numLayers = options.numLayers ?? 0;
   const capabilities = options.capabilities ?? null;
   const platform = options.platform ?? null;
+  const runtimeSession = options.runtimeSession ?? null;
 
   if (!hasExecutionV1(manifestInference)) {
     throw new Error(`[ExecutionV1] manifest.inference.schema must be "${EXECUTION_V1_SCHEMA_ID}".`);
   }
 
   let execution = manifestInference.execution;
-  const sessionDefaults = manifestInference.sessionDefaults;
+  const session = mergeRuntimeValues(
+    manifestInference.session ?? {},
+    runtimeSession ?? {}
+  );
 
-  if (!sessionDefaults?.compute?.defaults?.activationDtype) {
-    throw new Error('[ExecutionV1] sessionDefaults.compute.defaults.activationDtype is required.');
+  if (!session?.compute?.defaults?.activationDtype) {
+    throw new Error('[ExecutionV1] session.compute.defaults.activationDtype is required.');
   }
 
-  const activationDtype = sessionDefaults.compute.defaults.activationDtype;
-  const kvDtype = sessionDefaults?.kvcache?.kvDtype ?? activationDtype;
+  const activationDtype = session.compute.defaults.activationDtype;
+  const kvDtype = session?.kvcache?.kvDtype ?? activationDtype;
 
   // Validate the original manifest graph (full digest checks).
   expandExecutionV1(execution);
@@ -132,28 +136,28 @@ export function compileExecutionV1(options = {}) {
   const decodeSteps = resolvedSteps.filter((s) => s.phase === 'decode' || s.phase === 'both');
 
   // When widenToF32Activations was applied, the graph's kernels now expect f32
-  // activations. The sessionDefaults must reflect this for kernel path building
+  // activations. The resolved session must reflect this for kernel path building
   // and the runtime session patch. When the GPU has no f16 at all (full f32),
   // KV cache and all compute dtypes must also be f32.
   const activationWidened = appliedTransformNames.includes('widenToF32Activations');
   const fullF32 = activationWidened && capabilities?.hasF16 === false;
-  let effectiveSessionDefaults = sessionDefaults;
+  let effectiveSession = session;
   if (activationWidened) {
     const f32Defaults = fullF32
       ? { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' }
       : { activationDtype: 'f32' };
-    effectiveSessionDefaults = {
-      ...sessionDefaults,
+    effectiveSession = {
+      ...session,
       compute: {
-        ...sessionDefaults.compute,
+        ...session.compute,
         defaults: {
-          ...sessionDefaults.compute.defaults,
+          ...session.compute.defaults,
           ...f32Defaults,
         },
       },
-      ...(fullF32 && sessionDefaults?.kvcache ? {
+      ...(fullF32 && session?.kvcache ? {
         kvcache: {
-          ...sessionDefaults.kvcache,
+          ...session.kvcache,
           kvDtype: 'f32',
         },
       } : {}),
@@ -168,7 +172,7 @@ export function compileExecutionV1(options = {}) {
   const kernelPath = inlineKernelPathEnabled
     ? buildInlineKernelPath(
       resolvedSteps,
-      effectiveSessionDefaults,
+      effectiveSession,
       modelId,
       numLayers,
       finitenessFallback
@@ -179,19 +183,19 @@ export function compileExecutionV1(options = {}) {
   let fallbackKernelPath = null;
   if (fallbackExecution && inlineKernelPathEnabled) {
     const fallbackSteps = expandV1ToResolvedSteps(fallbackExecution, { skipDigestValidation: true });
-    const fallbackSessionDefaults = {
-      ...sessionDefaults,
+    const fallbackSession = {
+      ...session,
       compute: {
-        ...sessionDefaults.compute,
+        ...session.compute,
         defaults: {
-          ...sessionDefaults.compute.defaults,
+          ...session.compute.defaults,
           activationDtype: 'f32',
         },
       },
     };
     fallbackKernelPath = buildInlineKernelPath(
       fallbackSteps,
-      fallbackSessionDefaults,
+      fallbackSession,
       modelId,
       numLayers,
       null
@@ -213,12 +217,12 @@ export function compileExecutionV1(options = {}) {
     );
   }
   const layerPipeline = layerPipelineResult?.incompatibleOps ? null : layerPipelineResult;
-  const sessionPatch = buildSessionRuntimePatch(effectiveSessionDefaults, {
+  const sessionPatch = buildSessionRuntimePatch(effectiveSession, {
     includeDecodeLoop: false,
   });
 
   return {
-    sessionDefaults: effectiveSessionDefaults,
+    session: effectiveSession,
     policies: execution.policies,
     resolvedSteps: {
       prefill: prefillSteps,
@@ -241,7 +245,7 @@ export function compileExecutionV1(options = {}) {
 //      builds inline kernel path and layer pipeline from the execution graph.
 //   2. mergeRuntimeValues — merges the runtimeInferencePatch into runtimeConfig.inference.
 //      This writes kernelPath, kernelPathSource, pipeline, compute, kvcache, and
-//      session defaults into the runtime config. decodeLoop stays manifest-owned
+//      session into the runtime config. decodeLoop stays manifest-owned
 //      until applyModelBatchingRuntimeDefaults in phase 2. If runtime batching was
 //      already explicitly configured, manifest decodeLoop is skipped and runtime
 //      values take precedence.
@@ -273,6 +277,7 @@ export function applyExecutionV1RuntimeConfig(options = {}) {
     numLayers: options.numLayers ?? manifest.architecture?.numLayers ?? 0,
     capabilities: options.capabilities ?? null,
     platform: options.platform ?? null,
+    runtimeSession: runtimeConfig.inference?.session ?? null,
   });
 
   const runtimeInferencePatch = executionV1State.runtimeInferencePatch;

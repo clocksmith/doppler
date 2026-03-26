@@ -252,14 +252,14 @@ function buildComparableLayerPhaseSteps(resolvedSteps, phase, layerIdx) {
 
 function buildComparableKernelPathFromResolvedSteps(
   resolvedSteps,
-  sessionDefaults,
+  session,
   modelId,
   numLayers
 ) {
-  const activationDtype = requireSessionActivationDtype(sessionDefaults);
+  const activationDtype = requireSessionActivationDtype(session);
   const kvDtype = normalizeDtype(
-    sessionDefaults?.kvcache?.kvDtype ?? activationDtype,
-    'sessionDefaults.kvcache.kvDtype'
+    session?.kvcache?.kvDtype ?? activationDtype,
+    'session.kvcache.kvDtype'
   );
   const decodeSteps = buildComparableLayerPhaseSteps(resolvedSteps, 'decode', 0);
   const prefillSteps = buildComparableLayerPhaseSteps(resolvedSteps, 'prefill', 0);
@@ -622,9 +622,9 @@ function buildSuggestedKernelPathId(modelRecord, candidateShape) {
     .join('-');
 }
 
-function buildRuntimeConfigFromSessionDefaults(sessionDefaults) {
+function buildRuntimeConfigFromSession(session) {
   const runtimeConfig = cloneJsonLike(DEFAULT_RUNTIME_CONFIG);
-  const runtimeInferencePatch = buildSessionRuntimePatch(sessionDefaults);
+  const runtimeInferencePatch = buildSessionRuntimePatch(session);
   return {
     ...runtimeConfig,
     inference: mergeRuntimeValues(runtimeConfig.inference ?? {}, runtimeInferencePatch),
@@ -641,7 +641,7 @@ function summarizeCompiledPlan(planState) {
   };
 }
 
-function verifyKernelPathProposal(path, candidateShape, sessionDefaults) {
+function verifyKernelPathProposal(path, candidateShape, session) {
   if (!path) {
     return null;
   }
@@ -658,7 +658,7 @@ function verifyKernelPathProposal(path, candidateShape, sessionDefaults) {
   }
 
   try {
-    assertKernelPathSessionCompatibility(path, sessionDefaults);
+    assertKernelPathSessionCompatibility(path, session);
     checks.push({
       id: 'sessionCompatibility',
       ok: true,
@@ -682,7 +682,7 @@ function verifyKernelPathProposal(path, candidateShape, sessionDefaults) {
   }
 
   try {
-    const runtimeConfig = buildRuntimeConfigFromSessionDefaults(sessionDefaults);
+    const runtimeConfig = buildRuntimeConfigFromSession(session);
     const planState = compileExecutionPlanState({
       runtimeConfig,
       resolvedKernelPath: path,
@@ -715,7 +715,7 @@ function verifyKernelPathProposal(path, candidateShape, sessionDefaults) {
   }
 }
 
-function buildProposedKernelPath(modelRecord, candidateShape, exactMatchEntry, sessionDefaults) {
+function buildProposedKernelPath(modelRecord, candidateShape, exactMatchEntry, session) {
   if (!candidateShape) {
     return null;
   }
@@ -726,7 +726,7 @@ function buildProposedKernelPath(modelRecord, candidateShape, exactMatchEntry, s
       name: `Derived kernel path for ${modelRecord.modelId}`,
       description: `Generated from ${modelRecord.modelId} execution-v1 graph.`,
     });
-  const verification = verifyKernelPathProposal(proposalPath, candidateShape, sessionDefaults);
+  const verification = verifyKernelPathProposal(proposalPath, candidateShape, session);
   return {
     kind: exactMatchEntry?.path ? 'existing' : 'proposed',
     selectedKernelPathId: exactMatchEntry?.id ?? null,
@@ -736,17 +736,17 @@ function buildProposedKernelPath(modelRecord, candidateShape, exactMatchEntry, s
 }
 
 function buildFallbackExecutionContractSessionFacts(manifest) {
-  const sessionDefaults = normalizeObject(manifest?.inference?.sessionDefaults);
-  const decodeLoop = normalizeObject(sessionDefaults.decodeLoop);
+  const session = normalizeObject(manifest?.inference?.session);
+  const decodeLoop = normalizeObject(session.decodeLoop);
   return {
-    source: 'session-defaults',
+    source: 'session',
     facts: {
-      layout: normalizeText(sessionDefaults?.kvcache?.layout) || null,
+      layout: normalizeText(session?.kvcache?.layout) || null,
       disableCommandBatching: decodeLoop.disableCommandBatching ?? null,
       decodeBatchSize: normalizeInteger(decodeLoop.batchSize),
       headDim: normalizeInteger(manifest?.architecture?.headDim),
-      kvLen: normalizeInteger(manifest?.architecture?.maxSeqLen ?? sessionDefaults?.kvcache?.maxSeqLen),
-      coldQuantMode: normalizeText(sessionDefaults?.kvcache?.tiering?.mode) || null,
+      kvLen: normalizeInteger(manifest?.architecture?.maxSeqLen ?? session?.kvcache?.maxSeqLen),
+      coldQuantMode: normalizeText(session?.kvcache?.tiering?.mode) || null,
     },
     error: null,
   };
@@ -757,7 +757,7 @@ function buildExecutionContractSessionFacts(manifest, resolvedSteps) {
     modelId: manifest?.modelId ?? 'model',
     architecture: manifest?.architecture ?? null,
     inference: {
-      sessionDefaults: manifest?.inference?.sessionDefaults ?? null,
+      session: manifest?.inference?.session ?? null,
       execution: {
         steps: resolvedSteps.map((step) => ({
           id: step.id,
@@ -942,14 +942,14 @@ function buildModelRecord(materializations, registryEntries) {
   let candidateError = null;
   const comparableKernelPath = buildComparableKernelPathFromResolvedSteps(
     resolvedSteps,
-    manifestInference.sessionDefaults,
+    manifestInference.session,
     modelId,
     layerCount ?? 0
   );
   try {
     candidateKernelPath = buildInlineKernelPath(
       resolvedSteps,
-      manifestInference.sessionDefaults,
+      manifestInference.session,
       modelId,
       layerCount ?? 0,
       null
@@ -975,8 +975,8 @@ function buildModelRecord(materializations, registryEntries) {
     ? registryEntries.find((entry) => entry.id === exactMatchIds[0]) || null
     : null;
 
-  const sessionDefaults = normalizeObject(manifestInference.sessionDefaults);
-  const computeDefaults = normalizeObject(sessionDefaults.compute?.defaults);
+  const session = normalizeObject(manifestInference.session);
+  const computeDefaults = normalizeObject(session.compute?.defaults);
   const layerTypes = Array.isArray(manifestInference?.layerPattern?.layerTypes)
     ? [...manifestInference.layerPattern.layerTypes]
     : null;
@@ -996,17 +996,17 @@ function buildModelRecord(materializations, registryEntries) {
         accumDtype: normalizeText(computeDefaults.accumDtype) || null,
         outputDtype: normalizeText(computeDefaults.outputDtype) || null,
       },
-      kvDtype: normalizeText(sessionDefaults?.kvcache?.kvDtype) || null,
+      kvDtype: normalizeText(session?.kvcache?.kvDtype) || null,
       kvLayout: normalizeText(contractSession.facts?.layout) || null,
-      decodeLoop: stableValue(normalizeObject(sessionDefaults.decodeLoop)),
+      decodeLoop: stableValue(normalizeObject(session.decodeLoop)),
       batching: {
         disableCommandBatching: contractSession.facts?.disableCommandBatching ?? null,
         batchSize: contractSession.facts?.decodeBatchSize ?? null,
-        readbackInterval: sessionDefaults?.decodeLoop?.readbackInterval ?? null,
-        ringTokens: sessionDefaults?.decodeLoop?.ringTokens ?? null,
-        ringStop: sessionDefaults?.decodeLoop?.ringStop ?? null,
-        ringStaging: sessionDefaults?.decodeLoop?.ringStaging ?? null,
-        stopCheckMode: normalizeText(sessionDefaults?.decodeLoop?.stopCheckMode) || null,
+        readbackInterval: session?.decodeLoop?.readbackInterval ?? null,
+        ringTokens: session?.decodeLoop?.ringTokens ?? null,
+        ringStop: session?.decodeLoop?.ringStop ?? null,
+        ringStaging: session?.decodeLoop?.ringStaging ?? null,
+        stopCheckMode: normalizeText(session?.decodeLoop?.stopCheckMode) || null,
       },
       executionContract: {
         source: contractSession.source,
@@ -1054,7 +1054,7 @@ function buildModelRecord(materializations, registryEntries) {
     modelRecord,
     candidateShape,
     exactMatchEntry,
-    manifestInference.sessionDefaults
+    manifestInference.session
   );
 
   if (

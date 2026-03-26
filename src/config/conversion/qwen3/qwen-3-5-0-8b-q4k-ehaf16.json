@@ -111,7 +111,7 @@
       "enabled": true
     }
   },
-  "sessionDefaults": {
+    "session": {
     "compute": {
       "defaults": {
         "activationDtype": "f32",
@@ -121,12 +121,17 @@
       }
     },
     "kvcache": {
-      "kvDtype": "f16"
+      "kvDtype": "f16",
+      "layout": "contiguous",
+      "pageSize": 256,
+      "tiering": {
+        "mode": "off"
+      }
     },
     "decodeLoop": {
-      "batchSize": 8,
+      "batchSize": 4,
       "stopCheckMode": "batch",
-      "readbackInterval": 4,
+      "readbackInterval": 32,
       "ringTokens": 1,
       "ringStop": 1,
       "ringStaging": 1,
@@ -141,7 +146,7 @@
     }
   },
   "execution": {
-    "inlineKernelPath": false,
+    "inlineKernelPath": true,
     "kernels": {
       "embed": {
         "kernel": "gather_f16.wgsl",
@@ -156,7 +161,7 @@
       "q4_decode": {
         "kernel": "fused_matmul_q4.wgsl",
         "entry": "main_multicol",
-        "digest": "sha256:c0262226752914e863e8b5dc34479b523f9c93e2cef69c9057dcbde2b82854ef"
+        "digest": "sha256:86a9d548c8d653d001d3165f10c535d6fd1bb6c5f76f8d51a1f09aff9753068c"
       },
       "rope": {
         "kernel": "rope.wgsl",

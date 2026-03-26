@@ -622,6 +622,56 @@
             "wgslOnDisk": true
           }
         },
+        "q4_fused_multicol_fast": {
+          "wgsl": "fused_matmul_q4.wgsl",
+          "entryPoint": "main_multicol_fast",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "subgroups"
+          ],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "colsPerWg": 32
+          },
+          "description": "Fast-dequant multi-column GEMV - direct word extraction replaces per-element get_q4 calls",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
+            ],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
+        "q4_fused_multicol_shared": {
+          "wgsl": "fused_matmul_q4.wgsl",
+          "entryPoint": "main_multicol_shared",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "subgroups"
+          ],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "colsPerWg": 32
+          },
+          "description": "Shared-A multi-column GEMV - cooperative A load eliminates redundant global reads across 32 columns",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
+            ],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
         "q4_fused_multicol_f16": {
           "wgsl": "fused_matmul_q4_multicol_f16.wgsl",
           "entryPoint": "main_multicol_f16",
@@ -2443,6 +2493,223 @@
             "ruleChains": [],
             "wgslOnDisk": true
           }
+        },
+        "decode_tiered_turboquant_f16kv": {
+          "wgsl": "attention_decode_tiered_turboquant_f16kv.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "maxKVLen": 2048
+          },
+          "description": "Tiered decode kernel - TurboQuant MSE cold K/V with f16 hot K/V",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "attention.rules.json#tieredQuantVariant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "decode_tiered_turboquant_prod_f16kv": {
+          "wgsl": "attention_decode_tiered_turboquant_prod_f16kv.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "maxKVLen": 2048
+          },
+          "description": "Tiered decode kernel - TurboQuant prod (MSE+QJL) cold K/V with f16 hot K/V",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "attention.rules.json#tieredQuantVariant"
+            ],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
+    "attention_contiguous_quant": {
+      "description": "Contiguous quantized attention kernels for full-attention models",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "Q",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "K_packed",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "V_packed",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "scales_k",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 5,
+          "name": "scales_v",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 6,
+          "name": "output",
+          "type": "storage"
+        },
+        {
+          "index": 7,
+          "name": "rotation_matrix",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 8,
+          "name": "codebook_centroids",
+          "type": "read-only-storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 48,
+        "fields": [
+          {
+            "name": "num_heads",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "num_kv_heads",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "head_dim",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "kv_len",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "seq_len",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "offset": 20
+          },
+          {
+            "name": "is_causal",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "start_pos",
+            "type": "u32",
+            "offset": 28
+          },
+          {
+            "name": "attn_softcap",
+            "type": "f32",
+            "offset": 32
+          },
+          {
+            "name": "sliding_window",
+            "type": "u32",
+            "offset": 36
+          },
+          {
+            "name": "packed_stride",
+            "type": "u32",
+            "offset": 40
+          },
+          {
+            "name": "_pad",
+            "type": "u32",
+            "offset": 44
+          }
+        ]
+      },
+      "variants": {
+        "decode_contiguous_turboquant_f16kv": {
+          "wgsl": "attention_decode_contiguous_turboquant_f16kv.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "maxKVLen": 2048
+          },
+          "description": "Contiguous decode kernel - TurboQuant MSE quantized K/V",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "attention.rules.json#contiguousQuantVariant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "decode_contiguous_turboquant_prod_f16kv": {
+          "wgsl": "attention_decode_contiguous_turboquant_prod_f16kv.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "maxKVLen": 2048
+          },
+          "description": "Contiguous decode kernel - TurboQuant prod (MSE+QJL) quantized K/V",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "attention.rules.json#contiguousQuantVariant"
+            ],
+            "wgslOnDisk": true
+          }
         }
       }
     },
@@ -2554,6 +2821,69 @@
             "shader-f16"
           ],
           "description": "Quantize KV to int4 (packed u32) with per-head scale",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "kv_quantize.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "turboquant": {
+          "wgsl": "kv_quantize_turboquant.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "description": "TurboQuant MSE: rotation + codebook quantize with per-head norm",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "kv_quantize.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "turboquant_prod": {
+          "wgsl": "kv_quantize_turboquant_prod.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "description": "TurboQuant prod: MSE at (b-1) bits + 1-bit QJL residual for unbiased inner products",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "kv_quantize.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "turboquant_outlier": {
+          "wgsl": "kv_quantize_turboquant.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "description": "TurboQuant MSE with non-integer bit-width outlier channel support",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],

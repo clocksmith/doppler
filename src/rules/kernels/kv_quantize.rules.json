@@ -1,5 +1,8 @@
 {
   "variant": [
+    { "match": { "mode": "turboquant" }, "value": "turboquant" },
+    { "match": { "mode": "turboquant_prod" }, "value": "turboquant_prod" },
+    { "match": { "mode": "turboquant_outlier" }, "value": "turboquant_outlier" },
     { "match": { "mode": "int4" }, "value": "int4" },
     { "match": { "mode": "int8" }, "value": "int8" },
     { "match": {}, "value": "int8" }

@@ -58,12 +58,12 @@ function assertNoDeprecatedRuntimeKeys(overrides) {
   if (inference?.debug !== undefined) {
     throw new Error('runtime.inference.debug is removed; use runtime.shared.debug');
   }
-  // Deprecated in v0.9 — sampling section replaced by inference.batching
+  // Deprecated in v0.9 — sampling.maxTokens replaced by generation.maxTokens
   if (inference?.sampling?.maxTokens !== undefined) {
-    throw new Error('sampling.maxTokens is removed; use inference.batching.maxTokens');
+    throw new Error('sampling.maxTokens is removed; use inference.generation.maxTokens');
   }
-  // Deprecated in v0.9 — session.maxNewTokens replaced by inference.batching.maxTokens
+  // Deprecated in v0.9 — session.maxNewTokens replaced by inference.generation.maxTokens
   if (inference?.session?.maxNewTokens !== undefined) {
-    throw new Error('inference.session.maxNewTokens is not a supported runtime config key; use inference.batching.maxTokens');
+    throw new Error('inference.session.maxNewTokens is not a supported runtime config key; use inference.generation.maxTokens');
   }
 }

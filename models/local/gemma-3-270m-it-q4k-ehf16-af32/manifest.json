@@ -87,7 +87,7 @@
       "enabled": true
     },
     "pipeline": null,
-    "sessionDefaults": {
+    "session": {
       "compute": {
         "defaults": {
           "activationDtype": "f32",
@@ -97,9 +97,22 @@
         }
       },
       "kvcache": {
-        "kvDtype": "f16"
+        "kvDtype": "f16",
+        "layout": "contiguous",
+        "pageSize": 256,
+        "tiering": {
+          "mode": "off"
+        }
       },
-      "decodeLoop": null
+      "decodeLoop": {
+        "batchSize": 4,
+        "stopCheckMode": "batch",
+        "readbackInterval": 1,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1,
+        "disableCommandBatching": false
+      }
     },
     "execution": {
       "kernels": {
@@ -3276,7 +3289,7 @@
     "convertedAt": "2026-03-19T16:33:03.316Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-03-20T14:12:30.869Z",
+      "at": "2026-03-25T20:57:33.062Z",
       "config": "gemma-3-270m-it-q4k-ehf16-af32.json"
     }
   },

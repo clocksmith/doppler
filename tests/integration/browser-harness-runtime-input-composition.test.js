@@ -26,8 +26,10 @@ try {
       runtime: {
         inference: {
           prompt: 'chain',
-          batching: {
+          generation: {
             maxTokens: 16,
+          },
+          batching: {
             batchSize: 2,
             stopCheckMode: 'per-batch',
           },
@@ -38,8 +40,10 @@ try {
       runtime: {
         inference: {
           prompt: 'profile',
-          batching: {
+          generation: {
             maxTokens: 12,
+          },
+          batching: {
             batchSize: 4,
             stopCheckMode: 'per-token',
           },
@@ -98,7 +102,7 @@ try {
     runtimeConfig: {
       inference: {
         prompt: 'inline',
-        batching: {
+        generation: {
           maxTokens: 8,
         },
       },
@@ -114,7 +118,7 @@ try {
   assert.equal(runtimeConfig.shared.harness.workload, 'inference');
   assert.equal(runtimeConfig.shared.harness.modelId, 'gemma3-270m');
   assert.equal(runtimeConfig.inference.prompt, 'inline');
-  assert.equal(runtimeConfig.inference.batching.maxTokens, 8);
+  assert.equal(runtimeConfig.inference.generation.maxTokens, 8);
   assert.equal(runtimeConfig.inference.batching.batchSize, 6);
   assert.equal(runtimeConfig.inference.batching.readbackInterval, 3);
   assert.equal(runtimeConfig.inference.batching.stopCheckMode, 'per-token');
@@ -182,7 +186,7 @@ try {
     },
     inference: {
       kernelPath: 'gemma3-q4k-dequant-f16a-online',
-      batching: {
+      generation: {
         maxTokens: 5,
       },
     },
@@ -191,7 +195,7 @@ try {
   const resolvedRuntime = resolveRuntime({});
   assert.equal(resolvedRuntime.runtimeConfig.shared.tooling.carried, true);
   assert.equal(resolvedRuntime.runtimeConfig.inference.kernelPath, 'gemma3-q4k-dequant-f16a-online');
-  assert.equal(resolvedRuntime.runtimeConfig.inference.batching.maxTokens, 5);
+  assert.equal(resolvedRuntime.runtimeConfig.inference.generation.maxTokens, 5);
 
   const malformedRuntimeConfig = new URLSearchParams();
   malformedRuntimeConfig.set('runtimeConfig', '{');

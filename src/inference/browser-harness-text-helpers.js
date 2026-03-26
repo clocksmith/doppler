@@ -2,7 +2,15 @@ import { log as debugLog } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { loadJson } from '../utils/load-json.js';
 import { isPlainObject } from '../utils/plain-object.js';
-import { DEFAULT_SAMPLING_DEFAULTS } from '../config/schema/inference-defaults.schema.js';
+
+const DEFAULT_SAMPLING_DEFAULTS = Object.freeze({
+  temperature: 1.0,
+  topP: 0.95,
+  topK: 50,
+  repetitionPenalty: 1.1,
+  greedyThreshold: 0.01,
+  repetitionPenaltyWindow: 100,
+});
 
 const DEFAULT_HARNESS_PROMPT = 'The color of the sky is';
 const DEFAULT_RUNTIME_PLACEHOLDER_PROMPT = 'Hello from Doppler.';
@@ -40,7 +48,7 @@ function warnIfUsingDefaults(runtimeConfig) {
     && runtimeConfig.inference.prompt.trim().length > 0;
   const hasSampling = isPlainObject(runtimeConfig?.inference?.sampling)
     && Object.keys(runtimeConfig.inference.sampling).length > 0;
-  const hasMaxTokens = Number.isFinite(runtimeConfig?.inference?.batching?.maxTokens);
+  const hasMaxTokens = Number.isFinite(runtimeConfig?.inference?.generation?.maxTokens);
   if (hasPrompt && hasSampling && hasMaxTokens) return;
   defaultsWarningEmitted = true;
   const defaults = [
@@ -53,7 +61,7 @@ function warnIfUsingDefaults(runtimeConfig) {
   debugLog.warn('Harness',
     'Running with default inference parameters (no runtime config override):\n'
     + defaults.join('\n')
-    + '\n  See: src/config/schema/inference-defaults.schema.js'
+    + '\n  Provide explicit runtime.inference.sampling and generation.maxTokens if you want harness-stable settings.'
   );
 }
 const embeddingSemanticFixtureAsset = await loadJson(
@@ -390,7 +398,7 @@ function resolveGenerationPromptInput(runtimeConfig, runOverrides = null, source
 }
 
 function resolveMaxTokens(runtimeConfig) {
-  const runtimeMax = runtimeConfig?.inference?.batching?.maxTokens;
+  const runtimeMax = runtimeConfig?.inference?.generation?.maxTokens;
   if (Number.isFinite(runtimeMax)) {
     return Math.max(1, Math.floor(runtimeMax));
   }

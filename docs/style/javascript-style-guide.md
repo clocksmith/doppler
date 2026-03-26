@@ -845,7 +845,7 @@ const maxSeq = config.maxSeqLen;
 if (maxSeq === undefined) throw new Error('maxSeqLen is required');
 
 // GOOD - use config schema defaults
-const maxTokens = opts.maxTokens ?? getRuntimeConfig().inference.batching.maxTokens;
+const maxTokens = opts.maxTokens ?? getRuntimeConfig().inference.generation.maxTokens;
 ```
 
 **Rule:** If a value has a fallback, the fallback must be a named constant or config getter. If the value is truly required, don't provide a fallback. Fail fast with a descriptive error.

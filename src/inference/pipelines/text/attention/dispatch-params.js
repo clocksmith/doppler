@@ -87,6 +87,35 @@ export function resolveKVCacheState(state, layerIdx, kTensor, vTensor, currentSe
     kvState.coldPageSize = gpuBuffers.coldPageSize ?? state.kvCache.coldPageSize ?? 0;
     kvState.kvLenForAttention = kvState.coldLen + kvState.hotLen;
     kvState.kvLayout = 'tiered';
+    // TurboQuant shared buffers
+    kvState.rotationMatrixBuffer = gpuBuffers.rotationMatrixBuffer ?? null;
+    kvState.codebookCentroidsBuffer = gpuBuffers.codebookCentroidsBuffer ?? null;
+    // TurboQuant prod buffers
+    kvState.residualKGPU = gpuBuffers.residualKGPU ?? null;
+    kvState.residualVGPU = gpuBuffers.residualVGPU ?? null;
+    kvState.residualNormsKGPU = gpuBuffers.residualNormsKGPU ?? null;
+    kvState.residualNormsVGPU = gpuBuffers.residualNormsVGPU ?? null;
+    kvState.qjlMatrixBuffer = gpuBuffers.qjlMatrixBuffer ?? null;
+    kvState.residualPackedStride = gpuBuffers.residualPackedStride ?? 0;
+  } else if (gpuBuffers?.layout === 'contiguous_quantized') {
+    kvState.kvLayout = 'contiguous_quantized';
+    kvState.kvLenForAttention = gpuBuffers.seqLen;
+    kvState.cachedKCold = gpuBuffers.keysPackedGPU;
+    kvState.cachedVCold = gpuBuffers.valuesPackedGPU;
+    kvState.coldScalesK = gpuBuffers.scalesKGPU ?? null;
+    kvState.coldScalesV = gpuBuffers.scalesVGPU ?? null;
+    kvState.coldPackedStride = gpuBuffers.packedStride ?? 0;
+    kvState.coldQuantMode = gpuBuffers.quantMode ?? 'turboquant';
+    kvState.rotationMatrixBuffer = gpuBuffers.rotationMatrixBuffer ?? null;
+    kvState.codebookCentroidsBuffer = gpuBuffers.codebookCentroidsBuffer ?? null;
+    // Prod-mode buffers
+    kvState.residualKGPU = gpuBuffers.residualKGPU ?? null;
+    kvState.residualVGPU = gpuBuffers.residualVGPU ?? null;
+    kvState.residualNormsKGPU = gpuBuffers.residualNormsKGPU ?? null;
+    kvState.residualNormsVGPU = gpuBuffers.residualNormsVGPU ?? null;
+    kvState.qjlMatrixBuffer = gpuBuffers.qjlMatrixBuffer ?? null;
+    kvState.residualPackedStride = gpuBuffers.residualPackedStride ?? 0;
+    kvState.prodMode = gpuBuffers.prodMode === true;
   } else if (gpuBuffers?.layout === 'bdpa') {
     kvState.kvLayout = 'bdpa';
     kvState.kvLenForAttention = gpuBuffers.seqLen;
@@ -122,10 +151,9 @@ export function buildAttentionDispatchParams(config, state, kTensor, vTensor, kv
   } = config;
 
   // Tiered prefill fallback: tiered layout does not support prefill (numTokens > 1)
+  let prefillFallbackNeedsCast = false;
   if (kvState.kvLayout === 'tiered' && numTokens > 1) {
     kvState.kvLayout = 'contiguous';
-    kvState.cachedK = kTensor.buffer;
-    kvState.cachedV = vTensor.buffer;
     kvState.kvLenForAttention = numTokens;
     kvState.startPosForMask = 0;
     kvState.cachedKHot = null;
@@ -133,6 +161,18 @@ export function buildAttentionDispatchParams(config, state, kTensor, vTensor, kv
     kvState.cachedKCold = null;
     kvState.cachedVCold = null;
     kvState.coldQuantMode = 'none';
+    prefillFallbackNeedsCast = true;
+  }
+
+  // Contiguous quantized prefill fallback: decode-only kernel, use raw K/V for prefill
+  if (kvState.kvLayout === 'contiguous_quantized' && numTokens > 1) {
+    kvState.kvLayout = 'contiguous';
+    kvState.kvLenForAttention = numTokens;
+    kvState.startPosForMask = 0;
+    kvState.cachedKCold = null;
+    kvState.cachedVCold = null;
+    kvState.coldQuantMode = 'none';
+    prefillFallbackNeedsCast = true;
   }
 
   // Sliding window
@@ -189,12 +229,14 @@ export function buildAttentionDispatchParams(config, state, kTensor, vTensor, kv
     fallback: vTensor.dtype,
   });
 
-  // Cached K/V tensors (null for tiered kernels)
+  // Cached K/V tensors (null for tiered, contiguousQuant, and prefill-fallback paths)
   const isTieredKernel = attentionKernelVariant === 'tiered' || attentionKernelVariant === 'tieredQuant';
-  const cachedKTensor = isTieredKernel
+  const isContiguousQuantKernel = attentionKernelVariant === 'contiguousQuant';
+  const skipCachedKVTensors = isTieredKernel || isContiguousQuantKernel || prefillFallbackNeedsCast;
+  const cachedKTensor = skipCachedKVTensors
     ? null
     : createTensor(kvState.cachedK, cachedKDtype, [kvState.kvLenForAttention, numKVHeads * headDim], 'cached_K');
-  const cachedVTensor = isTieredKernel
+  const cachedVTensor = skipCachedKVTensors
     ? null
     : createTensor(kvState.cachedV, cachedVDtype, [kvState.kvLenForAttention, numKVHeads * headDim], 'cached_V');
 
@@ -207,6 +249,7 @@ export function buildAttentionDispatchParams(config, state, kTensor, vTensor, kv
     cachedKTensor,
     cachedVTensor,
     isTieredKernel,
+    prefillFallbackNeedsCast,
     causalForAttention: config.causalAttention !== false,
   };
 }

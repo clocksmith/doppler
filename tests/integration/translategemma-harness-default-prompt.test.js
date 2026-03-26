@@ -61,7 +61,7 @@ function createHarnessOverride() {
           maxSeqLen: 131072,
         },
         inference: {
-          sessionDefaults: {
+          session: {
             kvcache: {
               layout: 'contiguous',
             },

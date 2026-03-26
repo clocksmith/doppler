@@ -180,7 +180,7 @@ import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text
         type: 'qwen',
         enabled: true,
       },
-      sessionDefaults: {
+      session: {
         decodeLoop: {
           batchSize: 4,
           disableCommandBatching: true,

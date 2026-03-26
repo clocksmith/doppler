@@ -38,7 +38,7 @@ export async function* generate(prompt, options = {}) {
 
   const runtimeConfig = pipeline.runtimeConfig ?? getRuntimeConfig();
   const samplingDefaults = runtimeConfig.inference.sampling;
-  const maxTokensDefault = runtimeConfig.inference.batching.maxTokens;
+  const maxTokensDefault = runtimeConfig.inference.generation?.maxTokens;
 
   const maxTokens = options.maxTokens ?? maxTokensDefault;
   const temperature = options.temperature ?? samplingDefaults.temperature;

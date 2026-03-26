@@ -603,7 +603,7 @@ export async function resolveBridgeSourceRuntimeBundle(options = {}) {
       modelBaseId: requestedModelId || null,
     },
     inference: SOURCE_RUNTIME_INFERENCE,
-    sessionDefaults: SOURCE_RUNTIME_SESSION_DEFAULTS,
+    session: SOURCE_RUNTIME_SESSION_DEFAULTS,
     execution: SOURCE_RUNTIME_EXECUTION,
   });
   const plan = resolveConversionPlan({

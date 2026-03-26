@@ -71,7 +71,7 @@
       "enabled": false
     }
   },
-  "sessionDefaults": {
+    "session": {
     "compute": {
       "defaults": {
         "activationDtype": "f16",

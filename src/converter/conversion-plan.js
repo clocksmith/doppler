@@ -121,7 +121,9 @@ function resolveConversionPlanV1(options) {
   const converterConfig = options.converterConfig;
   const inference = converterConfig.inference;
   const execution = converterConfig.execution;
-  const sessionDefaults = converterConfig.sessionDefaults;
+  const session = converterConfig.session;
+  const modelType = converterConfig?.modelType ?? rawConfig?.model_type ?? 'transformer';
+  const requiresSessionPolicy = modelType !== 'embedding';
 
   if (!inference || typeof inference !== 'object') {
     throw new Error(
@@ -133,9 +135,9 @@ function resolveConversionPlanV1(options) {
       'V1 config requires execution with kernels, decode, and prefill arrays.'
     );
   }
-  if (!sessionDefaults || typeof sessionDefaults !== 'object') {
+  if (requiresSessionPolicy && (!session || typeof session !== 'object')) {
     throw new Error(
-      'V1 config requires sessionDefaults with compute defaults and kvcache policy.'
+      'V1 config requires session with compute defaults and kvcache policy.'
     );
   }
   if (!execution.policies || typeof execution.policies !== 'object') {
@@ -173,8 +175,6 @@ function resolveConversionPlanV1(options) {
   );
   const manifestQuantization = resolveManifestQuantization(weightOverride, sourceQuantization);
 
-  const modelType = converterConfig?.modelType ?? rawConfig?.model_type ?? 'transformer';
-
   // Warn if tensor count seems low for the declared architecture.
   // A typical transformer layer has at least 4 weight tensors (QKV + O projections),
   // plus embeddings and output head, so numLayers * 4 is a rough lower bound.
@@ -203,7 +203,7 @@ function resolveConversionPlanV1(options) {
     layerPattern: inference.layerPattern ?? { type: 'uniform', globalPattern: null, period: null, offset: null, layerTypes: null },
     chatTemplate: inference.chatTemplate,
     pipeline: inference.pipeline ?? null,
-    sessionDefaults,
+    session,
     execution,
   };
 

@@ -18,6 +18,7 @@ Notes:
 - Execution-v1 configs may set `execution.inlineKernelPath: false` when the
   manifest must own an explicit execution graph without lowering it into
   `runtime.inference.kernelPath`.
+- Manifest session policy is authored as `inference.session`.
 
 Current config intent:
 
@@ -46,12 +47,14 @@ Current config intent:
   - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
   - Compute: `f32`
   - Kernel path: `gemma3-q4k-dequant-f32a-online`
+  - Session: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=false`
 
 - `src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json`
   - Output base: `models/local/gemma-3-1b-it-f16-af32`
   - Resolved modelId: `gemma-3-1b-it-f16-af32`
   - Compute: `f32`
   - Kernel path: `gemma3-f16-fused-f32a-online`
+  - Session: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=false`
 
 - `src/config/conversion/gemma3/gemma-3-1b-it-f16.json`
   - Output base: `models/local/gemma-3-1b-it-f16`
@@ -71,6 +74,7 @@ Current config intent:
   - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
   - Compute: `f32`
   - Kernel path: `gemma3-q4k-dequant-f32a-online`
+  - Session: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=false`
 
 - `src/config/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json`
   - Output base: `models/local/translategemma-4b-it-q4k-ehf16-af32`
@@ -79,12 +83,37 @@ Current config intent:
   - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
   - Compute: `f16`
   - Kernel path: `gemma3-q4k-dequant-f16a-online`
-  - Execution: explicit `sessionDefaults` + full `execution.steps` mirrored from `gemma3-q4k-dequant-f16a-online`
+  - Execution: explicit `session` + full `execution.steps` mirrored from `gemma3-q4k-dequant-f16a-online`
+  - Session: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=false`
+
+- `src/config/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json`
+  - Output base: `models/local/translategemma-4b-1b-enes-q4k-ehf16-af32`
+  - Resolved modelId: `translategemma-4b-1b-enes-q4k-ehf16-af32`
+  - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
+  - Compute: `f32`
+  - Kernel path: `gemma3-q4k-dequant-f32a-online`
+  - Session: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=false`
+
+- `src/config/conversion/gemma4/gemma-4-moe-q4k-ehf16-af32.json`
+  - Output base: `models/local/gemma-4-moe-q4k-ehf16-af32`
+  - Resolved modelId: `gemma-4-moe-q4k-ehf16-af32`
+  - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
+  - Compute: `f32`
+  - Session: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=false`
 
 - `src/config/conversion/gpt-oss-20b-f16-xmxfp4.json`
   - Output base: `models/local/gpt-oss-20b-f16-xmxfp4`
   - Resolved modelId: `gpt-oss-20b-f16-xmxfp4`
   - Compute: `f16`
+  - Session: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=false`
+
+- `src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json`
+  - Output base: `models/local/janus-pro-1b-text-q4k-ehaf16`
+  - Resolved modelId: `janus-pro-1b-text-q4k-ehaf16`
+  - Output mode: `textOnly: true`
+  - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
+  - Compute: `f16`
+  - Session: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=false`
 
 - `src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json`
   - Output base: `models/local/qwen-3-5-0-8b-q4k-ehaf16`
@@ -94,7 +123,7 @@ Current config intent:
   - Compute: `f16`
   - Kernel path: `null` (no explicit manifest kernel-path contract)
   - Execution-v1: explicit execution graph with `inlineKernelPath: false`
-  - Session defaults: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=true`
+  - Session: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=32`, `disableCommandBatching=false`
 
 - `src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json`
   - Output base: `models/local/qwen-3-5-2b-q4k-ehaf16`
@@ -104,7 +133,7 @@ Current config intent:
   - Compute: `f16`
   - Kernel path: `null` (no explicit manifest kernel-path contract)
   - Execution-v1: explicit execution graph with `inlineKernelPath: false`
-  - Session defaults: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=true`
+  - Session: decode loop `batchSize=8`, `stopCheckMode=batch`, `readbackInterval=32`, `disableCommandBatching=false`
 
 - `src/config/conversion/sana/sana-sprint-0.6b-f16.json`
   - Output base: `models/local/sana-sprint-0.6b-f16`
@@ -127,7 +156,7 @@ Current config intent:
   - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
   - Compute: `f32`
   - Kernel path: `lfm2-q4k-dequant-f32a-online` (explicit; LFM2 fast-prefill F32A path)
-  - Session defaults only: decode loop `batchSize=8`, `stopCheckMode=batch`, `readbackInterval=8`
+  - Session only: decode loop `batchSize=8`, `stopCheckMode=batch`, `readbackInterval=8`, `disableCommandBatching=false`
   - Does not emit execution schema because custom conv layer scheduling skips kernel-path auto-generation
 
 - `src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehaf16.json`

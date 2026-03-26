@@ -41,6 +41,21 @@
     { "match": { "kvLayout": "bdpa" }, "value": "bdpa" },
     {
       "match": {
+        "kvLayout": "contiguous_quantized",
+        "numTokens": {
+          "gt": 1
+        }
+      },
+      "value": "contiguous"
+    },
+    {
+      "match": {
+        "kvLayout": "contiguous_quantized"
+      },
+      "value": "contiguousQuant"
+    },
+    {
+      "match": {
         "kvLayout": "tiered",
         "coldQuantMode": {
           "neq": "none"

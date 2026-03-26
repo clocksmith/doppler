@@ -9,6 +9,10 @@ function resolveQuantizeVariant(mode) {
   return selectKernelRuleValue('kv_quantize', 'variant', { mode });
 }
 
+function isTurboQuantMode(mode) {
+  return mode === 'turboquant' || mode === 'turboquant_prod' || mode === 'turboquant_outlier';
+}
+
 
 function createQuantizeUniformBuffer(device, recorder, params) {
   return createUniformBufferWithView(
@@ -28,65 +32,60 @@ function createQuantizeUniformBuffer(device, recorder, params) {
 }
 
 
-export async function runKVQuantize(
-  keys,
-  values,
-  outputKeys,
-  outputValues,
-  scalesK,
-  scalesV,
-  options = {}
-) {
-  const device = getDevice();
-  const {
-    numKVHeads,
-    headDim,
-    startPos,
-    numTokens,
-    packedStride,
-    mode = 'int8',
-  } = options;
+function buildTurboQuantBindEntries(uniformBuffer, keys, values, outputKeys, outputValues, scalesK, scalesV, options) {
+  const entries = [
+    { binding: 0, resource: { buffer: uniformBuffer } },
+    { binding: 1, resource: { buffer: keys } },
+    { binding: 2, resource: { buffer: values } },
+    { binding: 3, resource: { buffer: outputKeys } },
+    { binding: 4, resource: { buffer: outputValues } },
+    { binding: 5, resource: { buffer: scalesK } },
+    { binding: 6, resource: { buffer: scalesV } },
+    { binding: 7, resource: { buffer: options.rotationMatrixBuffer } },
+    { binding: 8, resource: { buffer: options.codebookBoundariesBuffer } },
+  ];
 
-  const variant = resolveQuantizeVariant(mode);
-  const config = getKernelConfig('kv_quantize', variant);
-  const caps = getKernelCapabilities();
-  if (!hasRequiredFeatures(config.requires, caps)) {
-    throw new Error(`KV quantize kernel "${variant}" requires unsupported GPU features.`);
+  if (options.mode === 'turboquant_prod') {
+    // Prod mode: bindings 7-14 (residual + rotation + codebook + QJL)
+    entries.length = 7;
+    entries.push(
+      { binding: 7, resource: { buffer: options.residualKBuffer } },
+      { binding: 8, resource: { buffer: options.residualVBuffer } },
+      { binding: 9, resource: { buffer: options.residualNormsKBuffer } },
+      { binding: 10, resource: { buffer: options.residualNormsVBuffer } },
+      { binding: 11, resource: { buffer: options.rotationMatrixBuffer } },
+      { binding: 12, resource: { buffer: options.codebookCentroidsBuffer } },
+      { binding: 13, resource: { buffer: options.codebookBoundariesBuffer } },
+      { binding: 14, resource: { buffer: options.qjlMatrixBuffer } },
+    );
+  } else if (options.mode === 'turboquant_outlier') {
+    // Outlier mode: bindings 10-14 (outlier high-precision buffers + mask)
+    entries.push(
+      { binding: 10, resource: { buffer: options.outputKeysHighBuffer } },
+      { binding: 11, resource: { buffer: options.outputValuesHighBuffer } },
+      { binding: 12, resource: { buffer: options.codebookCentroidsHighBuffer } },
+      { binding: 13, resource: { buffer: options.codebookBoundariesHighBuffer } },
+      { binding: 14, resource: { buffer: options.outlierMaskBuffer } },
+    );
   }
+  return entries;
+}
 
-  const pipeline = await createPipeline('kv_quantize', variant);
-  const uniformBuffer = createQuantizeUniformBuffer(device, null, {
-    numKVHeads,
-    headDim,
-    startPos,
-    numTokens,
-    packedStride,
-  });
 
-  const bindGroup = device.createBindGroup({
-    label: 'kv_quantize_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: keys } },
-      { binding: 2, resource: { buffer: values } },
-      { binding: 3, resource: { buffer: outputKeys } },
-      { binding: 4, resource: { buffer: outputValues } },
-      { binding: 5, resource: { buffer: scalesK } },
-      { binding: 6, resource: { buffer: scalesV } },
-    ],
-  });
-
-  const workgroups = [numKVHeads, numTokens, 1];
-  try {
-    dispatch(device, pipeline, bindGroup, workgroups, 'kv_quantize');
-  } finally {
-    uniformBuffer.destroy();
+function dispatchQuantize(device, pipeline, bindGroup, workgroups, uniformBuffer, recorder) {
+  if (recorder) {
+    recordDispatch(recorder, pipeline, bindGroup, workgroups, 'kv_quantize');
+  } else {
+    try {
+      dispatch(device, pipeline, bindGroup, workgroups, 'kv_quantize');
+    } finally {
+      uniformBuffer.destroy();
+    }
   }
 }
 
 
-export async function recordKVQuantize(
+async function executeKVQuantize(
   recorder,
   keys,
   values,
@@ -96,7 +95,7 @@ export async function recordKVQuantize(
   scalesV,
   options = {}
 ) {
-  const device = recorder.device;
+  const device = recorder?.device || getDevice();
   const {
     numKVHeads,
     headDim,
@@ -122,10 +121,13 @@ export async function recordKVQuantize(
     packedStride,
   });
 
-  const bindGroup = device.createBindGroup({
-    label: 'kv_quantize_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
+  let entries;
+  if (isTurboQuantMode(mode)) {
+    entries = buildTurboQuantBindEntries(
+      uniformBuffer, keys, values, outputKeys, outputValues, scalesK, scalesV, options
+    );
+  } else {
+    entries = [
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: keys } },
       { binding: 2, resource: { buffer: values } },
@@ -133,9 +135,42 @@ export async function recordKVQuantize(
       { binding: 4, resource: { buffer: outputValues } },
       { binding: 5, resource: { buffer: scalesK } },
       { binding: 6, resource: { buffer: scalesV } },
-    ],
+    ];
+  }
+
+  const bindGroup = device.createBindGroup({
+    label: 'kv_quantize_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries,
   });
 
   const workgroups = [numKVHeads, numTokens, 1];
-  recordDispatch(recorder, pipeline, bindGroup, workgroups, 'kv_quantize');
+  dispatchQuantize(device, pipeline, bindGroup, workgroups, uniformBuffer, recorder);
+}
+
+
+export async function runKVQuantize(
+  keys,
+  values,
+  outputKeys,
+  outputValues,
+  scalesK,
+  scalesV,
+  options = {}
+) {
+  return executeKVQuantize(null, keys, values, outputKeys, outputValues, scalesK, scalesV, options);
+}
+
+
+export async function recordKVQuantize(
+  recorder,
+  keys,
+  values,
+  outputKeys,
+  outputValues,
+  scalesK,
+  scalesV,
+  options = {}
+) {
+  return executeKVQuantize(recorder, keys, values, outputKeys, outputValues, scalesK, scalesV, options);
 }

@@ -205,7 +205,7 @@ const minimalV1Inference = {
           weights: 'f16',
         },
         inference: minimalV1Inference,
-        sessionDefaults: minimalV1SessionDefaults,
+        session: minimalV1SessionDefaults,
         execution: minimalV1Execution,
       },
       execution: {
@@ -289,7 +289,7 @@ const minimalV1Inference = {
           weights: 'f16',
         },
         inference: minimalV1Inference,
-        sessionDefaults: minimalV1SessionDefaults,
+        session: minimalV1SessionDefaults,
         execution: minimalV1Execution,
       },
       execution: {

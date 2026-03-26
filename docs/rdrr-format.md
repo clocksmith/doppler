@@ -41,11 +41,11 @@ At minimum, manifests must include:
 - Manifest is validated before runtime dispatch.
 - Unresolved execution choices fail closed.
 - Runtime behavior is derived from manifest + runtime config merge.
-- Manifests must include explicit `sessionDefaults` and `execution` (v1 execution graph):
-  - `sessionDefaults.compute.defaults.{activationDtype,mathDtype,accumDtype,outputDtype}`
-  - `sessionDefaults.compute.kernelProfiles`
-  - `sessionDefaults.kvcache` (nullable, but explicit)
-  - `sessionDefaults.decodeLoop` (nullable, but explicit)
+- Manifests must include explicit `session` and `execution` (v1 execution graph):
+  - `session.compute.defaults.{activationDtype,mathDtype,accumDtype,outputDtype}`
+  - `session.compute.kernelProfiles`
+  - `session.kvcache` (nullable, but explicit)
+  - `session.decodeLoop` (nullable, but explicit)
   - pinned `kernelRef` for each non-cast execution step
 
 ## Related implementation

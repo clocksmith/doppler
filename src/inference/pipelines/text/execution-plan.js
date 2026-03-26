@@ -7,6 +7,7 @@ import { log } from '../../../debug/index.js';
 
 export const PRIMARY_EXECUTION_PLAN_ID = 'primary';
 export const FINITENESS_FALLBACK_EXECUTION_PLAN_ID = 'finiteness_fallback';
+const DEFAULT_MAX_TOKENS = 256;
 
 function assertOptionalBoolean(value, label) {
   if (value === undefined) {
@@ -157,11 +158,24 @@ export function compileExecutionPlanState(options) {
 
   const inferenceConfig = runtimeConfig.inference;
   const computeConfig = inferenceConfig.compute;
-  const generationConfig = inferenceConfig.generation;
-  const batchingConfig = inferenceConfig.batching;
+  const generationConfig = inferenceConfig.generation ?? {};
+  const sessionConfig = inferenceConfig.session ?? {};
+  const decodeLoopConfig = sessionConfig.decodeLoop;
+  if (!decodeLoopConfig || typeof decodeLoopConfig !== 'object') {
+    throw new Error('[ExecutionPlan] runtimeConfig.inference.session.decodeLoop is required.');
+  }
 
   const finitenessPolicy = resolveRangeAwareSelectiveWideningConfig(computeConfig);
   const deferredRoundingWindowTokens = resolveDeferredRoundingWindowTokens(computeConfig);
+  const batchingConfig = {
+    batchSize: decodeLoopConfig.batchSize,
+    stopCheckMode: decodeLoopConfig.stopCheckMode,
+    maxTokens: generationConfig.maxTokens ?? DEFAULT_MAX_TOKENS,
+    readbackInterval: decodeLoopConfig.readbackInterval,
+    ringTokens: decodeLoopConfig.ringTokens,
+    ringStop: decodeLoopConfig.ringStop,
+    ringStaging: decodeLoopConfig.ringStaging,
+  };
 
   const primaryPlan = createStaticExecutionPlan({
     id: PRIMARY_EXECUTION_PLAN_ID,
@@ -305,6 +319,10 @@ function resolveExecutionOverrides(options = {}) {
     batchSize: assertOptionalPositiveInt(options.batchSize, 'batchSize'),
     stopCheckMode: assertOptionalStopCheckMode(options.stopCheckMode),
     maxTokens: assertOptionalPositiveInt(options.maxTokens, 'maxTokens'),
+    readbackInterval: assertOptionalPositiveInt(options.readbackInterval, 'readbackInterval'),
+    ringTokens: assertOptionalPositiveInt(options.ringTokens, 'ringTokens'),
+    ringStop: assertOptionalPositiveInt(options.ringStop, 'ringStop'),
+    ringStaging: assertOptionalPositiveInt(options.ringStaging, 'ringStaging'),
   };
 }
 
@@ -327,10 +345,10 @@ export function resolveExecutionSessionPlan(container, options = {}) {
     batchSize: overrides.batchSize ?? activePlan.defaultBatchSize,
     stopCheckMode: overrides.stopCheckMode ?? activePlan.defaultStopCheckMode,
     maxTokens: overrides.maxTokens ?? activePlan.defaultMaxTokens,
-    readbackInterval: activePlan.readbackInterval,
-    ringTokens: activePlan.ringTokens,
-    ringStop: activePlan.ringStop,
-    ringStaging: activePlan.ringStaging,
+    readbackInterval: overrides.readbackInterval ?? activePlan.readbackInterval,
+    ringTokens: overrides.ringTokens ?? activePlan.ringTokens,
+    ringStop: overrides.ringStop ?? activePlan.ringStop,
+    ringStaging: overrides.ringStaging ?? activePlan.ringStaging,
     overrides,
   };
 }

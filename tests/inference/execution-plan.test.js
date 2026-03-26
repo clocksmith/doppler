@@ -4,7 +4,6 @@ import { installNodeFileFetchShim } from '../../src/tooling/node-file-fetch.js';
 installNodeFileFetchShim();
 
 const { createDopplerConfig } = await import('../../src/config/schema/index.js');
-const { resolveKernelPath } = await import('../../src/config/kernel-path-loader.js');
 const {
   compileExecutionPlanState,
   hasFallbackExecutionPlan,
@@ -19,13 +18,42 @@ const {
   isProfileDecodeRecorderEnabled,
 } = await import('../../src/inference/pipelines/text/execution-plan.js');
 
-const runtimeConfig = createDopplerConfig().runtime;
-runtimeConfig.inference.compute.activationDtype = 'f16';
+const minimalKernelPath = {
+  id: 'gemma3-f16-fused-f16a-online',
+  name: 'gemma3-f16-fused-f16a-online',
+  activationDtype: 'f16',
+  decode: { steps: [{ op: 'noop', kernel: 'noop.wgsl' }] },
+  prefill: { steps: [{ op: 'noop', kernel: 'noop.wgsl' }] },
+};
+
+const minimalFallbackKernelPath = {
+  id: 'gemma3-f16-fused-f32a-online',
+  name: 'gemma3-f16-fused-f32a-online',
+  activationDtype: 'f32',
+  decode: { steps: [{ op: 'noop', kernel: 'noop.wgsl' }] },
+  prefill: { steps: [{ op: 'noop', kernel: 'noop.wgsl' }] },
+};
+
+function createRuntimeConfig(activationDtype = 'f16', maxTokens = 256) {
+  const runtimeConfig = createDopplerConfig().runtime;
+  runtimeConfig.inference.compute.activationDtype = activationDtype;
+  runtimeConfig.inference.generation.maxTokens = maxTokens;
+  runtimeConfig.inference.session.decodeLoop = {
+    batchSize: 4,
+    stopCheckMode: 'batch',
+    readbackInterval: 1,
+    disableCommandBatching: false,
+  };
+  return runtimeConfig;
+}
+
+const runtimeConfig = createRuntimeConfig('f16');
 
 const planState = compileExecutionPlanState({
   runtimeConfig,
-  resolvedKernelPath: resolveKernelPath('gemma3-f16-fused-f16a-online'),
+  resolvedKernelPath: minimalKernelPath,
   kernelPathSource: 'model',
+  fallbackKernelPath: minimalFallbackKernelPath,
 });
 
 const container = { executionPlanState: planState };
@@ -59,10 +87,22 @@ const container = { executionPlanState: planState };
   const primarySession = resolveExecutionSessionPlan(container, {
     batchSize: 6,
     disableCommandBatching: true,
+    readbackInterval: 3,
+    ringTokens: 2,
+    ringStop: 2,
+    ringStaging: 2,
   });
   assert.equal(primarySession.activationDtype, 'f32');
   assert.equal(primarySession.batchSize, 6);
   assert.equal(primarySession.disableCommandBatching, true);
+  assert.equal(primarySession.readbackInterval, 3);
+  assert.equal(primarySession.ringTokens, 2);
+  assert.equal(primarySession.ringStop, 2);
+  assert.equal(primarySession.ringStaging, 2);
+  assert.equal(primarySession.overrides.readbackInterval, 3);
+  assert.equal(primarySession.overrides.ringTokens, 2);
+  assert.equal(primarySession.overrides.ringStop, 2);
+  assert.equal(primarySession.overrides.ringStaging, 2);
 
   resetActiveExecutionPlan(container);
   const rebasedPrimary = rebaseExecutionSessionPlan(container, primarySession);
@@ -129,11 +169,16 @@ const container = { executionPlanState: planState };
 }
 
 {
-  const runtimeConfigNoFallback = createDopplerConfig().runtime;
-  runtimeConfigNoFallback.inference.compute.activationDtype = 'f32';
+  const runtimeConfigNoFallback = createRuntimeConfig('f32');
   const noFallbackPlanState = compileExecutionPlanState({
     runtimeConfig: runtimeConfigNoFallback,
-    resolvedKernelPath: resolveKernelPath('gemma3-f16-fused-f32a-online'),
+    resolvedKernelPath: {
+      id: 'gemma3-f16-fused-f32a-online',
+      name: 'gemma3-f16-fused-f32a-online',
+      activationDtype: 'f32',
+      decode: { steps: [{ op: 'noop', kernel: 'noop.wgsl' }] },
+      prefill: { steps: [{ op: 'noop', kernel: 'noop.wgsl' }] },
+    },
     kernelPathSource: 'model',
   });
 
@@ -143,8 +188,7 @@ const container = { executionPlanState: planState };
 }
 
 {
-  const runtimeConfigMissingRule = createDopplerConfig().runtime;
-  runtimeConfigMissingRule.inference.compute.activationDtype = 'f16';
+  const runtimeConfigMissingRule = createRuntimeConfig('f16');
   assert.throws(
     () => compileExecutionPlanState({
       runtimeConfig: runtimeConfigMissingRule,
@@ -155,19 +199,20 @@ const container = { executionPlanState: planState };
       },
       kernelPathSource: 'model',
     }),
-    /Missing finiteness fallback kernel path mapping for "missing-fallback-path"/
+    /finiteness fallback kernel path required for "missing-fallback-path"/
   );
 }
 
 {
-  const runtimeConfigMissingId = createDopplerConfig().runtime;
-  runtimeConfigMissingId.inference.compute.activationDtype = 'f16';
+  const runtimeConfigMissingId = createRuntimeConfig('f16');
   const noKernelPathPlanState = compileExecutionPlanState({
     runtimeConfig: runtimeConfigMissingId,
     resolvedKernelPath: {
       activationDtype: 'f16',
-      decode: { steps: [] },
+      decode: { steps: [{ op: 'noop', kernel: 'noop.wgsl' }] },
+      prefill: { steps: [{ op: 'noop', kernel: 'noop.wgsl' }] },
     },
+    fallbackKernelPath: minimalFallbackKernelPath,
     kernelPathSource: 'model',
   });
 
@@ -175,29 +220,35 @@ const container = { executionPlanState: planState };
   assert.equal(hasFallbackExecutionPlan(noKernelPathPlanState), true);
   const fallback = activateFallbackExecutionPlan(noKernelPathPlanState);
   assert.ok(fallback);
-  assert.equal(fallback.kernelPathId, null);
-  assert.equal(fallback.kernelPathSource, 'none');
+  assert.equal(fallback.kernelPathId, minimalFallbackKernelPath.id);
+  assert.equal(fallback.kernelPathSource, 'execution-v1-transform');
   assert.equal(fallback.activationDtype, 'f32');
 }
 
 {
-  const runtimeConfigInlineFallback = createDopplerConfig().runtime;
-  runtimeConfigInlineFallback.inference.compute.activationDtype = 'f16';
+  const runtimeConfigInlineFallback = createRuntimeConfig('f16');
   const inlinePlanState = compileExecutionPlanState({
     runtimeConfig: runtimeConfigInlineFallback,
     resolvedKernelPath: {
       id: 'gemma-inline-fallback',
       activationDtype: 'f16',
       finitenessFallbackKernelPathId: 'gemma3-q4k-dequant-f32a-nosubgroups',
-      decode: { steps: [] },
+      decode: { steps: [{ op: 'noop', kernel: 'noop.wgsl' }] },
+      prefill: { steps: [{ op: 'noop', kernel: 'noop.wgsl' }] },
     },
     kernelPathSource: 'config',
+    fallbackKernelPath: {
+      id: 'gemma-inline-fallback-transform',
+      activationDtype: 'f32',
+      decode: { steps: [{ op: 'noop', kernel: 'noop.wgsl' }] },
+      prefill: { steps: [{ op: 'noop', kernel: 'noop.wgsl' }] },
+    },
   });
 
   const fallback = activateFallbackExecutionPlan(inlinePlanState);
   assert.ok(fallback);
-  assert.equal(fallback.kernelPathId, 'gemma3-q4k-dequant-f32a-nosubgroups');
-  assert.equal(fallback.kernelPathSource, 'rule');
+  assert.equal(fallback.kernelPathId, 'gemma-inline-fallback-transform');
+  assert.equal(fallback.kernelPathSource, 'execution-v1-transform');
   assert.equal(fallback.activationDtype, 'f32');
 }
 
@@ -225,6 +276,22 @@ const container = { executionPlanState: planState };
   assert.throws(
     () => resolveExecutionSessionPlan(container, { disableMultiTokenDecode: 1 }),
     /disableMultiTokenDecode must be boolean/
+  );
+  assert.throws(
+    () => resolveExecutionSessionPlan(container, { readbackInterval: 0 }),
+    /readbackInterval must be a positive integer/
+  );
+  assert.throws(
+    () => resolveExecutionSessionPlan(container, { ringTokens: 0 }),
+    /ringTokens must be a positive integer/
+  );
+  assert.throws(
+    () => resolveExecutionSessionPlan(container, { ringStop: 0 }),
+    /ringStop must be a positive integer/
+  );
+  assert.throws(
+    () => resolveExecutionSessionPlan(container, { ringStaging: 0 }),
+    /ringStaging must be a positive integer/
   );
 }
 

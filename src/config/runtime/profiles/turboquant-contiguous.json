@@ -1,0 +1,17 @@
+{
+  "id": "turboquant-contiguous-4bit",
+  "intent": "calibrate",
+  "stability": "experimental",
+  "owner": "inference",
+  "createdAtUtc": "2026-03-25T00:00:00Z",
+  "inference": {
+    "kvcache": {
+      "layout": "contiguous",
+      "quantization": {
+        "mode": "turboquant",
+        "bitWidth": 4,
+        "prodMode": false
+      }
+    }
+  }
+}

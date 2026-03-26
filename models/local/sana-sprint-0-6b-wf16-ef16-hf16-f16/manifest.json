@@ -70,7 +70,7 @@
       "enabled": false
     },
     "pipeline": "diffusion",
-    "sessionDefaults": {
+    "session": {
       "compute": {
         "defaults": {
           "activationDtype": "f16",
@@ -80,7 +80,15 @@
         }
       },
       "kvcache": null,
-      "decodeLoop": null
+      "decodeLoop": {
+        "batchSize": 4,
+        "stopCheckMode": "batch",
+        "readbackInterval": 1,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1,
+        "disableCommandBatching": false
+      }
     },
     "execution": {
       "kernels": {
@@ -18003,7 +18011,7 @@
     "source": "convert-core",
     "convertedAt": "2026-03-06T15:40:39.962Z",
     "manifestRefresh": {
-      "at": "2026-03-20T14:12:31.643Z",
+      "at": "2026-03-25T20:57:33.209Z",
       "config": "sana-sprint-0.6b-f16.json"
     }
   }

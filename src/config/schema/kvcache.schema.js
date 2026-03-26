@@ -26,6 +26,13 @@ export const DEFAULT_KVCACHE_CONFIG = {
       minAluBwRatio: 0.0,
     },
   },
+  // Contiguous quantized KV cache controls (for full-attention models)
+  // Activates when layout is auto-resolved to 'contiguous_quantized' or set explicitly.
+  quantization: {
+    mode: 'none',       // none | turboquant | turboquant_prod | turboquant_outlier
+    bitWidth: 4,
+    prodMode: false,
+  },
 };
 
 export const PAGED_LAYOUT_SEQ_LEN_THRESHOLD = 8192;

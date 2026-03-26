@@ -1,5 +1,13 @@
 import { log } from '../../../debug/index.js';
-import { DEFAULT_SAMPLING_DEFAULTS } from '../../../config/schema/inference-defaults.schema.js';
+
+const DEFAULT_SAMPLING_DEFAULTS = Object.freeze({
+  temperature: 1.0,
+  topP: 0.95,
+  topK: 50,
+  repetitionPenalty: 1.1,
+  greedyThreshold: 0.01,
+  repetitionPenaltyWindow: 100,
+});
 
 /**
  * Merge per-call sampling options with runtime config defaults.

@@ -68,6 +68,7 @@ export class InferencePipeline extends PipelineState {
 
 
   _preloadedWeights = null;
+  runtimeOverrides = null;
 
   constructor() {
     super();
@@ -90,6 +91,9 @@ export class InferencePipeline extends PipelineState {
       assignStorageContext: true,
     });
     this.runtimeConfig = runtimeConfig;
+    this.runtimeOverrides = typeof structuredClone === 'function'
+      ? structuredClone(runtimeConfig)
+      : JSON.parse(JSON.stringify(runtimeConfig));
     applyPipelineDebugConfig(sharedDebug?.pipeline);
     configurePerfGuards(sharedDebug?.perfGuards);
 
@@ -222,6 +226,7 @@ export class InferencePipeline extends PipelineState {
     const kernelPathState = resolveKernelPathState({
       manifest,
       runtimeConfig: this.runtimeConfig,
+      runtimeOverrides: this.runtimeOverrides,
       modelConfig: this.modelConfig,
     });
     this.resolvedKernelPath = kernelPathState.resolvedKernelPath;

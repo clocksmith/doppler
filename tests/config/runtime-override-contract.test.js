@@ -14,7 +14,7 @@ try {
   );
 
   // inference.session.maxNewTokens is silently ignored by the config merge but is
-  // never wired to the decode loop (which reads inference.batching.maxTokens).
+  // never wired to generation limits (which now read inference.generation.maxTokens).
   // It must be rejected fast so callers don't get unbounded 300s+ runs.
   assert.throws(
     () => setRuntimeConfig({
@@ -24,8 +24,8 @@ try {
         },
       },
     }),
-    /inference\.session\.maxNewTokens.*inference\.batching\.maxTokens/,
-    'session.maxNewTokens must throw with redirect to batching.maxTokens'
+    /inference\.session\.maxNewTokens.*inference\.generation\.maxTokens/,
+    'session.maxNewTokens must throw with redirect to generation.maxTokens'
   );
 
   assert.throws(

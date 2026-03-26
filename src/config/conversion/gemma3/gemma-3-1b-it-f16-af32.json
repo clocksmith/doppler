@@ -68,7 +68,7 @@
       "enabled": true
     }
   },
-  "sessionDefaults": {
+    "session": {
     "compute": {
       "defaults": {
         "activationDtype": "f32",
@@ -78,9 +78,22 @@
       }
     },
     "kvcache": {
-      "kvDtype": "f16"
+      "kvDtype": "f16",
+      "layout": "contiguous",
+      "pageSize": 256,
+      "tiering": {
+        "mode": "off"
+      }
     },
-    "decodeLoop": null
+    "decodeLoop": {
+      "batchSize": 4,
+      "stopCheckMode": "batch",
+      "readbackInterval": 1,
+      "ringTokens": 1,
+      "ringStop": 1,
+      "ringStaging": 1,
+      "disableCommandBatching": false
+    }
   },
   "execution": {
     "kernels": {

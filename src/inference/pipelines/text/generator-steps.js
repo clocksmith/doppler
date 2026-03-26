@@ -991,7 +991,9 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   if (eosTokenId == null) {
     throw new Error('[Pipeline] Missing EOS token. Ensure tokenizer or manifest provides stop tokens.');
   }
-  const maxTokens = executionPlan?.maxTokens ?? opts.maxTokens ?? state.runtimeConfig.inference.batching.maxTokens;
+  const maxTokens = executionPlan?.maxTokens
+    ?? opts.maxTokens
+    ?? state.runtimeConfig.inference.generation.maxTokens;
   const maxSeqLen = state.currentSeqLen + maxTokens;
 
   const recordStart = performance.now();
@@ -1085,10 +1087,15 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
       device.queue.writeBuffer(repHistoryBuffer, 0, historyData);
     }
 
+    // Hoist loop-invariant values to avoid repeated rule lookups and allocations.
+    const embeddingDtype = selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype });
+    const debugProbes = state.runtimeConfig.shared.debug.probes;
+    const currentTokenIdsArray = [startToken];
+
     for (let i = 0; i < N; i++) {
       const currentPos = state.currentSeqLen + i;
       context.currentSeqLen = currentPos;
-      context.currentTokenIds = [startToken];
+      context.currentTokenIds = currentTokenIdsArray;
       context.decodeBuffers?.resetPingPong();
 
       const hiddenTensor = await embed(tokensBuffer, embedBuffer, {
@@ -1097,9 +1104,9 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
         scaleEmbeddings: config.scaleEmbeddings,
         recorder,
         transpose: state.embeddingTranspose,
-        debugProbes: state.runtimeConfig.shared.debug.probes,
+        debugProbes,
         activationDtype,
-        embeddingDtype: selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype }),
+        embeddingDtype,
         numTokens: 1,
         indexOffset: i,
       });

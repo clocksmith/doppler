@@ -50,21 +50,21 @@ for (const manifestPath of collectManifestPaths(path.join(process.cwd(), 'models
     continue;
   }
 
-  const sessionDefaults = inference.sessionDefaults;
-  assert.ok(sessionDefaults && typeof sessionDefaults === 'object', `${label}: manifests with execution steps require sessionDefaults`);
+  const session = inference.session;
+  assert.ok(session && typeof session === 'object', `${label}: manifests with execution steps require session`);
   assert.ok(
-    sessionDefaults.compute?.defaults && typeof sessionDefaults.compute.defaults === 'object',
-    `${label}: manifests with execution steps require sessionDefaults.compute.defaults`
+    session.compute?.defaults && typeof session.compute.defaults === 'object',
+    `${label}: manifests with execution steps require session.compute.defaults`
   );
   assert.notEqual(
-    sessionDefaults.kvcache,
+    session.kvcache,
     undefined,
-    `${label}: manifests with execution steps require explicit sessionDefaults.kvcache`
+    `${label}: manifests with execution steps require explicit session.kvcache`
   );
   assert.notEqual(
-    sessionDefaults.decodeLoop,
+    session.decodeLoop,
     undefined,
-    `${label}: manifests with execution steps require explicit sessionDefaults.decodeLoop`
+    `${label}: manifests with execution steps require explicit session.decodeLoop`
   );
   assert.ok(
     Array.isArray(inference.execution?.steps),

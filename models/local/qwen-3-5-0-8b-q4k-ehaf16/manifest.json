@@ -9,7 +9,7 @@
     "vision": "f16",
     "compute": "f32",
     "layout": "row",
-    "variantTag": "q4k-ehaf16"
+    "variantTag": "q4k-ehf16-af32-vf16"
   },
   "architecture": {
     "numLayers": 24,
@@ -40,7 +40,7 @@
       "attentionOutputGate": true
     },
     "normalization": {
-      "rmsNormEps": 1e-06,
+      "rmsNormEps": 0.000001,
       "rmsNormWeightOffset": true,
       "postAttentionNorm": true,
       "preFeedforwardNorm": false,
@@ -77,7 +77,7 @@
       "tieWordEmbeddings": true,
       "scaleEmbeddings": false,
       "embeddingTranspose": false,
-      "embeddingVocabSize": 248320,
+      "embeddingVocabSize": null,
       "embeddingPostprocessor": null
     },
     "layerPattern": {
@@ -117,7 +117,7 @@
       "enabled": true
     },
     "pipeline": null,
-    "sessionDefaults": {
+    "session": {
       "compute": {
         "defaults": {
           "activationDtype": "f32",
@@ -127,12 +127,17 @@
         }
       },
       "kvcache": {
-        "kvDtype": "f16"
+        "kvDtype": "f16",
+        "layout": "contiguous",
+        "pageSize": 256,
+        "tiering": {
+          "mode": "off"
+        }
       },
       "decodeLoop": {
-        "batchSize": 8,
+        "batchSize": 4,
         "stopCheckMode": "batch",
-        "readbackInterval": 4,
+        "readbackInterval": 32,
         "ringTokens": 1,
         "ringStop": 1,
         "ringStaging": 1,
@@ -147,7 +152,7 @@
       }
     },
     "execution": {
-      "inlineKernelPath": false,
+      "inlineKernelPath": true,
       "kernels": {
         "embed": {
           "kernel": "gather_f16.wgsl",
@@ -162,7 +167,7 @@
         "q4_decode": {
           "kernel": "fused_matmul_q4.wgsl",
           "entry": "main_multicol",
-          "digest": "sha256:c0262226752914e863e8b5dc34479b523f9c93e2cef69c9057dcbde2b82854ef"
+          "digest": "sha256:86a9d548c8d653d001d3165f10c535d6fd1bb6c5f76f8d51a1f09aff9753068c"
         },
         "rope": {
           "kernel": "rope.wgsl",
@@ -395,6 +400,7 @@
       "filename": "shard_00000.bin",
       "size": 67108864,
       "hash": "4dd461bea0d6cc891f78a7fe4dc744c0d269ea685b5a5a5de74c07d5422e4a3e",
+      "blake3": "4dd461bea0d6cc891f78a7fe4dc744c0d269ea685b5a5a5de74c07d5422e4a3e",
       "offset": 0
     },
     {
@@ -402,6 +408,7 @@
       "filename": "shard_00001.bin",
       "size": 67108864,
       "hash": "627234b5f84ede2314d044d0eb479068766b0cd5f936a29bd6373d9397ac7614",
+      "blake3": "627234b5f84ede2314d044d0eb479068766b0cd5f936a29bd6373d9397ac7614",
       "offset": 67108864
     },
     {
@@ -409,6 +416,7 @@
       "filename": "shard_00002.bin",
       "size": 67108864,
       "hash": "772a45a3111f9f0b826600a7950cc77991b65d6c3650df5ad6e882015522c600",
+      "blake3": "772a45a3111f9f0b826600a7950cc77991b65d6c3650df5ad6e882015522c600",
       "offset": 134217728
     },
     {
@@ -416,6 +424,7 @@
       "filename": "shard_00003.bin",
       "size": 67108864,
       "hash": "a201dbf89e6ff7d6898e452bed94de20b02c9080aaa8efb6c52581069b6b80f9",
+      "blake3": "a201dbf89e6ff7d6898e452bed94de20b02c9080aaa8efb6c52581069b6b80f9",
       "offset": 201326592
     },
     {
@@ -423,6 +432,7 @@
       "filename": "shard_00004.bin",
       "size": 67108864,
       "hash": "1b7a6b6cb47286a640ac67692a160f3292e46bd496c7fe467ab932851bce054b",
+      "blake3": "1b7a6b6cb47286a640ac67692a160f3292e46bd496c7fe467ab932851bce054b",
       "offset": 268435456
     },
     {
@@ -430,6 +440,7 @@
       "filename": "shard_00005.bin",
       "size": 67108864,
       "hash": "de1383a9cb1bf810079f0aefe923846d8e827257416b41b0740343d497ad4c36",
+      "blake3": "de1383a9cb1bf810079f0aefe923846d8e827257416b41b0740343d497ad4c36",
       "offset": 335544320
     },
     {
@@ -437,6 +448,7 @@
       "filename": "shard_00006.bin",
       "size": 67108864,
       "hash": "d5143b6dea2e1d072041d933b174c6e3974ea5d434fa00149cc0ef9883bc8194",
+      "blake3": "d5143b6dea2e1d072041d933b174c6e3974ea5d434fa00149cc0ef9883bc8194",
       "offset": 402653184
     },
     {
@@ -444,6 +456,7 @@
       "filename": "shard_00007.bin",
       "size": 67108864,
       "hash": "9c059d5f25fbf63dc3d43809b18864d23db3d737988783a1cc905568076e96ca",
+      "blake3": "9c059d5f25fbf63dc3d43809b18864d23db3d737988783a1cc905568076e96ca",
       "offset": 469762048
     },
     {
@@ -451,6 +464,7 @@
       "filename": "shard_00008.bin",
       "size": 67108864,
       "hash": "a58d96d7b4dd46f527c8cab0d3f88a8400f977ced510e047a246b64d0ea30d7e",
+      "blake3": "a58d96d7b4dd46f527c8cab0d3f88a8400f977ced510e047a246b64d0ea30d7e",
       "offset": 536870912
     },
     {
@@ -458,6 +472,7 @@
       "filename": "shard_00009.bin",
       "size": 67108864,
       "hash": "9e3dfd8dafd142a7075d5596a3c14ce5fe450b7559915c4dfafcef5979ce7e7d",
+      "blake3": "9e3dfd8dafd142a7075d5596a3c14ce5fe450b7559915c4dfafcef5979ce7e7d",
       "offset": 603979776
     },
     {
@@ -465,6 +480,7 @@
       "filename": "shard_00010.bin",
       "size": 67108864,
       "hash": "c53a446230d5fa3ea6f4291770484befb92ac3b8cf866c299a2375902f0141eb",
+      "blake3": "c53a446230d5fa3ea6f4291770484befb92ac3b8cf866c299a2375902f0141eb",
       "offset": 671088640
     },
     {
@@ -472,6 +488,7 @@
       "filename": "shard_00011.bin",
       "size": 67108864,
       "hash": "21bd0db18c8da3b98ee7bc48427b6b7d0a4dedf314fb36f59b5d2979703d6070",
+      "blake3": "21bd0db18c8da3b98ee7bc48427b6b7d0a4dedf314fb36f59b5d2979703d6070",
       "offset": 738197504
     },
     {
@@ -479,6 +496,7 @@
       "filename": "shard_00012.bin",
       "size": 67108864,
       "hash": "b84051c7d492efe08a444e1bec385dd5ec181f74c94a415b8a62e4fa923143a4",
+      "blake3": "b84051c7d492efe08a444e1bec385dd5ec181f74c94a415b8a62e4fa923143a4",
       "offset": 805306368
     },
     {
@@ -486,6 +504,7 @@
       "filename": "shard_00013.bin",
       "size": 67108864,
       "hash": "e01ff5a0e6a93892a07ca34b4e5ee66c8cda8c39b21f5160d2170c3871acb0be",
+      "blake3": "e01ff5a0e6a93892a07ca34b4e5ee66c8cda8c39b21f5160d2170c3871acb0be",
       "offset": 872415232
     },
     {
@@ -493,6 +512,7 @@
       "filename": "shard_00014.bin",
       "size": 63492288,
       "hash": "5233f11682c5ec307ffc38627ae8931ab7c3a8784206716f17a5ed0a3e846e0e",
+      "blake3": "5233f11682c5ec307ffc38627ae8931ab7c3a8784206716f17a5ed0a3e846e0e",
       "offset": 939524096
     }
   ],
@@ -6448,7 +6468,11 @@
   "metadata": {
     "source": "convert-core",
     "convertedAt": "2026-03-24T15:00:03.514Z",
-    "hasTokenizer": true
+    "hasTokenizer": true,
+    "manifestRefresh": {
+      "at": "2026-03-25T20:57:33.190Z",
+      "config": "qwen-3-5-0-8b-q4k-ehaf16.json"
+    }
   },
   "tokenizer": {
     "type": "bundled",

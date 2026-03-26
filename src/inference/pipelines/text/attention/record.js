@@ -9,6 +9,7 @@ import {
   recordAttention,
   recordAttentionTiered,
   recordAttentionTieredQuant,
+  recordAttentionContiguousQuant,
   recordAttentionBDPA,
   recordSiLU,
   recordCastF16ToF32,
@@ -216,7 +217,6 @@ export async function recordLayerAttentionGPU(
   }
 
   // 4. Update KV cache (cache stores raw GPUBuffers for memory efficiency)
-
   if (state.kvCache?.hasGPUCache?.()) {
     // Use recordUpdateFromGPU to record copy operations to the recorder's encoder
     // This ensures K/V buffers are populated before copying (all ops submitted together)
@@ -246,7 +246,7 @@ export async function recordLayerAttentionGPU(
   const {
     effectiveSlidingWindow, attentionKernelVariant, attnScale,
     cachedKDtype, cachedVDtype, cachedKTensor, cachedVTensor,
-    causalForAttention,
+    prefillFallbackNeedsCast, causalForAttention,
   } = dispatchParams;
 
   // 5. Attention
@@ -316,6 +316,53 @@ export async function recordLayerAttentionGPU(
         mode: kvState.coldQuantMode,
       });
     },
+    contiguousQuant: async () => {
+      let qForAttention = qTensor;
+      if (qTensor.dtype !== 'f32') {
+        qForAttention = await recordCastF16ToF32(recorder, qTensor);
+        recorder.trackTemporaryBuffer(qForAttention.buffer);
+      }
+
+      if (!kvState.coldScalesK || !kvState.coldScalesV) {
+        throw new Error('Contiguous quant attention requires scale buffers.');
+      }
+      if (!kvState.rotationMatrixBuffer || !kvState.codebookCentroidsBuffer) {
+        throw new Error('Contiguous quant attention requires TurboQuant shared buffers.');
+      }
+
+      const isProd = kvState.prodMode === true;
+      return recordAttentionContiguousQuant(
+        recorder,
+        qForAttention,
+        kvState.cachedKCold,
+        kvState.cachedVCold,
+        kvState.coldScalesK,
+        kvState.coldScalesV,
+        numHeads,
+        headDim,
+        {
+          seqLen: numTokens,
+          kvLen: kvState.kvLenForAttention,
+          numKVHeads,
+          causal: causalForAttention,
+          startPos: kvState.startPosForMask,
+          slidingWindow: effectiveSlidingWindow ?? 0,
+          attnSoftcap,
+          scale: attnScale,
+          packedStride: kvState.coldPackedStride,
+          mode: kvState.coldQuantMode,
+          rotationMatrixBuffer: kvState.rotationMatrixBuffer,
+          codebookCentroidsBuffer: kvState.codebookCentroidsBuffer,
+          residualKBuffer: isProd ? kvState.residualKGPU : null,
+          residualVBuffer: isProd ? kvState.residualVGPU : null,
+          residualNormsKBuffer: isProd ? kvState.residualNormsKGPU : null,
+          residualNormsVBuffer: isProd ? kvState.residualNormsVGPU : null,
+          qjlMatrixBuffer: isProd ? kvState.qjlMatrixBuffer : null,
+          packedStrideMSE: isProd ? kvState.coldPackedStride : undefined,
+          packedStrideResidual: isProd ? kvState.residualPackedStride : undefined,
+        }
+      );
+    },
     tiered: async () => {
       const cachedHotKTensor = createTensor(kvState.cachedKHot, cachedKDtype, [kvState.hotLen, numKVHeads * headDim], 'cached_K_hot');
       const cachedHotVTensor = createTensor(kvState.cachedVHot, cachedVDtype, [kvState.hotLen, numKVHeads * headDim], 'cached_V_hot');
@@ -339,22 +386,37 @@ export async function recordLayerAttentionGPU(
         hotLayout: kvState.hotWindow > 0 ? 1 : 0,
       });
     },
-    contiguous: async () => recordAttention(recorder, qTensor, cachedKTensor, cachedVTensor, null, numHeads, headDim, {
-      seqLen: numTokens,
-      kvLen: kvState.kvLenForAttention,
-      numKVHeads,
-      causal: causalForAttention,
-      startPos: kvState.startPosForMask,
-      layerIdx,
-      slidingWindow: effectiveSlidingWindow,
-      attnSoftcap,
-      scale: attnScale,
-      kvStart: kvState.kvStart,
-      kvLayout: kvState.kvLayout,
-      kvPageTable: kvState.kvPageTable,
-      kvPageSize: kvState.kvPageSize,
-      kernelPath,
-    }),
+    contiguous: async () => {
+      // Prefill fallback: quantized/tiered layouts use raw K/V for prefill, cast to f16 to match kernel path
+      let kForAttn = cachedKTensor;
+      let vForAttn = cachedVTensor;
+      if (prefillFallbackNeedsCast) {
+        const kCasted = cachedKDtype === 'f16' && kTensor.dtype !== 'f16'
+          ? await recordCastF32ToF16(recorder, kTensor) : kTensor;
+        const vCasted = cachedVDtype === 'f16' && vTensor.dtype !== 'f16'
+          ? await recordCastF32ToF16(recorder, vTensor) : vTensor;
+        kForAttn = createTensor(kCasted.buffer, kCasted.dtype, [kvState.kvLenForAttention, numKVHeads * headDim], 'cached_K');
+        vForAttn = createTensor(vCasted.buffer, vCasted.dtype, [kvState.kvLenForAttention, numKVHeads * headDim], 'cached_V');
+        if (kTensor.dtype !== 'f16') recorder.trackTemporaryBuffer(kCasted.buffer);
+        if (vTensor.dtype !== 'f16') recorder.trackTemporaryBuffer(vCasted.buffer);
+      }
+      return recordAttention(recorder, qTensor, kForAttn, vForAttn, null, numHeads, headDim, {
+        seqLen: numTokens,
+        kvLen: kvState.kvLenForAttention,
+        numKVHeads,
+        causal: causalForAttention,
+        startPos: kvState.startPosForMask,
+        layerIdx,
+        slidingWindow: effectiveSlidingWindow,
+        attnSoftcap,
+        scale: attnScale,
+        kvStart: kvState.kvStart,
+        kvLayout: kvState.kvLayout,
+        kvPageTable: kvState.kvPageTable,
+        kvPageSize: kvState.kvPageSize,
+        kernelPath,
+      });
+    },
   };
   const runAttentionKernel = attentionKernelRunners[attentionKernelVariant];
   if (!runAttentionKernel) {

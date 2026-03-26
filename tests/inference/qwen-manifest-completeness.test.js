@@ -35,18 +35,32 @@ const EXPECTED_QWEN_COMPUTE_DEFAULTS = Object.freeze({
   outputDtype: 'f32',
 });
 const EXPECTED_QWEN_EOS_TOKEN_ID = 248046;
-
-function getExpectedQwenDecodeLoop(label) {
-  const modelLabel = String(label ?? '');
-  return {
+const EXPECTED_QWEN_DECODE_LOOPS = Object.freeze({
+  'qwen-3-5-0-8b-q4k-ehaf16': {
     batchSize: 4,
     stopCheckMode: 'batch',
-    readbackInterval: 1,
+    readbackInterval: 32,
     ringTokens: 1,
     ringStop: 1,
     ringStaging: 1,
-    disableCommandBatching: modelLabel.includes('qwen-3-5-0-8b'),
-  };
+    disableCommandBatching: false,
+  },
+  'qwen-3-5-2b-q4k-ehaf16': {
+    batchSize: 8,
+    stopCheckMode: 'batch',
+    readbackInterval: 32,
+    ringTokens: 1,
+    ringStop: 1,
+    ringStaging: 1,
+    disableCommandBatching: false,
+  },
+});
+
+function getExpectedQwenDecodeLoop(label) {
+  const modelLabel = String(label ?? '');
+  const matchedKey = Object.keys(EXPECTED_QWEN_DECODE_LOOPS).find((key) => modelLabel.includes(key));
+  assert.ok(matchedKey, `missing expected qwen decode loop for ${modelLabel}`);
+  return EXPECTED_QWEN_DECODE_LOOPS[matchedKey];
 }
 
 function assertQwenDecodeLoop(decodeLoop, label) {
@@ -68,9 +82,9 @@ function assertQwenConversionConfig(config) {
   assert.equal(config.inference.layerPattern.period, null);
   assert.equal(config.inference.layerPattern.offset, null);
   assert.deepEqual(config.inference.layerPattern.layerTypes, EXPECTED_QWEN_LAYER_TYPES);
-  assertQwenDecodeLoop(config.sessionDefaults?.decodeLoop, config.output?.modelBaseId ?? 'qwen');
+  assertQwenDecodeLoop(config.session?.decodeLoop, config.output?.modelBaseId ?? 'qwen');
   assertQwenComputeDefaults(
-    config.sessionDefaults?.compute?.defaults,
+    config.session?.compute?.defaults,
     config.output?.modelBaseId ?? 'qwen'
   );
   assert.ok(config.execution && typeof config.execution === 'object', 'qwen execution config must be present');
@@ -116,15 +130,15 @@ if (!hasExactLocalManifests) {
   }
 }
 
-// --- Manifest: sessionDefaults keep explicit compute/kvcache + Qwen decode loop ---
+// --- Manifest: session keep explicit compute/kvcache + Qwen decode loop ---
 
 {
   for (const manifest of [f16Manifest, q4kManifest]) {
-    const sd = manifest.inference.sessionDefaults;
+    const sd = manifest.inference.session;
     assert.ok(sd != null);
-    assertQwenDecodeLoop(sd.decodeLoop, `${manifest.modelId}.inference.sessionDefaults`);
+    assertQwenDecodeLoop(sd.decodeLoop, `${manifest.modelId}.inference.session`);
     assert.equal(sd.kvcache?.kvDtype, 'f16');
-    assertQwenComputeDefaults(sd.compute?.defaults, `${manifest.modelId}.inference.sessionDefaults`);
+    assertQwenComputeDefaults(sd.compute?.defaults, `${manifest.modelId}.inference.session`);
     assert.equal(sd.execution, undefined);
   }
 }
@@ -252,10 +266,10 @@ for (const config of convConfigs) {
   assertQwenConversionConfig(config);
 }
 
-// --- Conversion configs: top-level sessionDefaults keep the Qwen decode loop contract ---
+// --- Conversion configs: top-level session keep the Qwen decode loop contract ---
 
 for (const config of convConfigs) {
-  assertQwenDecodeLoop(config.sessionDefaults?.decodeLoop, config.output?.modelBaseId ?? 'qwen');
+  assertQwenDecodeLoop(config.session?.decodeLoop, config.output?.modelBaseId ?? 'qwen');
 }
 
 console.log('qwen-manifest-completeness.test: ok');

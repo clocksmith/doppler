@@ -11,6 +11,7 @@ import {
   runAttentionBDPA,
   runAttentionTieredQuant,
   runAttentionTiered,
+  runAttentionContiguousQuant,
   runSiLU,
   castF16ToF32,
   castF32ToF16,
@@ -455,7 +456,7 @@ export async function runLayerAttentionGPU(
   const {
     effectiveSlidingWindow, attentionKernelVariant, attnScale,
     cachedKDtype, cachedVDtype, cachedKTensor, cachedVTensor,
-    causalForAttention,
+    prefillFallbackNeedsCast, causalForAttention,
   } = dispatchParams;
 
   // 5. Attention (uses raw GPUBuffers)
@@ -551,7 +552,68 @@ export async function runLayerAttentionGPU(
         hotStart: kvState.hotStart,
         packedStride: kvState.coldPackedStride,
         mode: kvState.coldQuantMode,
+        // TurboQuant buffers (null for int4/int8 modes)
+        rotationMatrixBuffer: kvState.rotationMatrixBuffer,
+        codebookCentroidsBuffer: kvState.codebookCentroidsBuffer,
+        residualKBuffer: kvState.residualKGPU,
+        residualVBuffer: kvState.residualVGPU,
+        residualNormsKBuffer: kvState.residualNormsKGPU,
+        residualNormsVBuffer: kvState.residualNormsVGPU,
+        qjlMatrixBuffer: kvState.qjlMatrixBuffer,
       });
+
+      if (qTemp) {
+        releaseBuffer(qTemp.buffer);
+      }
+      return output;
+    },
+    contiguousQuant: async () => {
+      let qForAttention = qTensor;
+      let qTemp = null;
+      if (qTensor.dtype !== 'f32') {
+        qForAttention = await castF16ToF32(qTensor);
+        qTemp = qForAttention;
+      }
+
+      if (!kvState.coldScalesK || !kvState.coldScalesV) {
+        throw new Error('Contiguous quant attention requires scale buffers.');
+      }
+      if (!kvState.rotationMatrixBuffer || !kvState.codebookCentroidsBuffer) {
+        throw new Error('Contiguous quant attention requires TurboQuant shared buffers.');
+      }
+
+      const isProd = kvState.prodMode === true;
+      const output = await runAttentionContiguousQuant(
+        qForAttention,
+        kvState.cachedKCold,
+        kvState.cachedVCold,
+        kvState.coldScalesK,
+        kvState.coldScalesV,
+        numHeads,
+        headDim,
+        {
+          seqLen: numTokens,
+          kvLen: kvState.kvLenForAttention,
+          numKVHeads,
+          causal: causalForAttention,
+          startPos: kvState.startPosForMask,
+          slidingWindow: effectiveSlidingWindow ?? 0,
+          attnSoftcap,
+          scale: attnScale,
+          packedStride: kvState.coldPackedStride,
+          mode: kvState.coldQuantMode,
+          rotationMatrixBuffer: kvState.rotationMatrixBuffer,
+          codebookCentroidsBuffer: kvState.codebookCentroidsBuffer,
+          // Prod-mode buffers
+          residualKBuffer: isProd ? kvState.residualKGPU : null,
+          residualVBuffer: isProd ? kvState.residualVGPU : null,
+          residualNormsKBuffer: isProd ? kvState.residualNormsKGPU : null,
+          residualNormsVBuffer: isProd ? kvState.residualNormsVGPU : null,
+          qjlMatrixBuffer: isProd ? kvState.qjlMatrixBuffer : null,
+          packedStrideMSE: isProd ? kvState.coldPackedStride : undefined,
+          packedStrideResidual: isProd ? kvState.residualPackedStride : undefined,
+        }
+      );
 
       if (qTemp) {
         releaseBuffer(qTemp.buffer);
@@ -582,22 +644,40 @@ export async function runLayerAttentionGPU(
         hotLayout: kvState.hotWindow > 0 ? 1 : 0,
       });
     },
-    contiguous: async () => runAttention(qTensor, cachedKTensor, cachedVTensor, null, numHeads, headDim, {
-      seqLen: numTokens,
-      kvLen: kvState.kvLenForAttention,
-      numKVHeads,
-      causal: causalForAttention,
-      startPos: kvState.startPosForMask,
-      layerIdx,
-      slidingWindow: effectiveSlidingWindow,
-      attnSoftcap,
-      scale: attnScale,
-      kvStart: kvState.kvStart,
-      kvLayout: kvState.kvLayout,
-      kvPageTable: kvState.kvPageTable,
-      kvPageSize: kvState.kvPageSize,
-      kernelPath,
-    }),
+    contiguous: async () => {
+      // Prefill fallback: quantized/tiered layouts use raw K/V for prefill, cast to f16 to match kernel path
+      let kForAttn = cachedKTensor;
+      let vForAttn = cachedVTensor;
+      if (prefillFallbackNeedsCast) {
+        const kCasted = cachedKDtype === 'f16' && kTensor.dtype !== 'f16'
+          ? await castF32ToF16(kTensor) : kTensor;
+        const vCasted = cachedVDtype === 'f16' && vTensor.dtype !== 'f16'
+          ? await castF32ToF16(vTensor) : vTensor;
+        kForAttn = createTensor(kCasted.buffer, kCasted.dtype, [kvState.kvLenForAttention, numKVHeads * headDim], 'cached_K');
+        vForAttn = createTensor(vCasted.buffer, vCasted.dtype, [kvState.kvLenForAttention, numKVHeads * headDim], 'cached_V');
+      }
+      const result = await runAttention(qTensor, kForAttn, vForAttn, null, numHeads, headDim, {
+        seqLen: numTokens,
+        kvLen: kvState.kvLenForAttention,
+        numKVHeads,
+        causal: causalForAttention,
+        startPos: kvState.startPosForMask,
+        layerIdx,
+        slidingWindow: effectiveSlidingWindow,
+        attnSoftcap,
+        scale: attnScale,
+        kvStart: kvState.kvStart,
+        kvLayout: kvState.kvLayout,
+        kvPageTable: kvState.kvPageTable,
+        kvPageSize: kvState.kvPageSize,
+        kernelPath,
+      });
+      if (prefillFallbackNeedsCast) {
+        if (kTensor.dtype !== 'f16') releaseBuffer(kForAttn.buffer);
+        if (vTensor.dtype !== 'f16') releaseBuffer(vForAttn.buffer);
+      }
+      return result;
+    },
   };
 
   const runAttentionKernel = attentionKernelRunners[attentionKernelVariant];

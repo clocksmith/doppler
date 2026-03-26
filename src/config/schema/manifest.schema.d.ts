@@ -12,7 +12,7 @@ import type { LayerPipelineSchema, LayerType, LinearNormMode } from './inference
 import type { EnergyModelConfigSchema } from './energy.schema.js';
 import type {
   ExecutionV1GraphSchema,
-  ExecutionV1SessionDefaultsSchema,
+  ExecutionV1SessionSchema,
 } from './execution-v1.schema.js';
 
 /** Supported hash algorithms */
@@ -331,8 +331,8 @@ export interface ManifestInferenceSchema {
   chatTemplate: ManifestChatTemplateSchema;
   /** Layer pipeline override (null = use optimized hardcoded path) */
   pipeline: LayerPipelineSchema | null;
-  /** Session defaults for execution v1 manifests */
-  sessionDefaults: ExecutionV1SessionDefaultsSchema | null;
+  /** Explicit session policy for execution v1 manifests */
+  session: ExecutionV1SessionSchema | null;
   /** Explicit execution graph (v1 compact tuple format) */
   execution: ExecutionV1GraphSchema | null;
 }

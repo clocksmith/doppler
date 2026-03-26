@@ -29,7 +29,7 @@ ManifestInferenceSchema (embedded in manifest.json)
 - output
 - layerPattern
 - chatTemplate
-- sessionDefaults
+- session
 - execution
 - defaultKernelPath
 
@@ -72,7 +72,7 @@ InferenceConfigSchema (runtime.inference)
 - prompt
 - modelOverrides
 
-### Batching Defaults (runtime.inference.batching)
+### Session Decode Loop (runtime.inference.session.decodeLoop)
 
 - batchSize
 - maxTokens
@@ -86,13 +86,13 @@ InferenceConfigSchema (runtime.inference)
 
 | Category | Resolution Order | Call-time | Runtime | Manifest |
 | --- | --- | --- | --- | --- |
-| Generation | call → runtime → default | ✓ | ✓ | n/a |
-| Model | runtime (experimental) → manifest → default | ✗ (throw) | ✓ (warn) | ✓ |
-| Session | runtime → default² | ✗ (throw) | ✓ | n/a¹ |
-| Hybrid | call → runtime → manifest → default | ✓ | ✓ | ✓ |
+| Generation | call → runtime | ✓ | ✓ | n/a |
+| Model | runtime (experimental) → manifest | ✗ (throw) | ✓ (warn) | ✓ |
+| Session | runtime → manifest | ✗ (throw) | ✓ | n/a¹ |
+| Hybrid | call → runtime → manifest | ✓ | ✓ | ✓ |
 
-¹ `manifest.inference.sessionDefaults` is the base layer for session resolution — `resolvedSession = merge(manifest.inference.sessionDefaults, runtime.inference.session)`.
-² Manifests may provide `manifest.inference.sessionDefaults.decodeLoop` as manifest batching defaults. Loader applies those defaults only while runtime batching is still at global defaults; when runtime batching has been explicitly configured, manifest decodeLoop is skipped and runtime values take precedence.
+¹ `manifest.inference.session` is the base layer for session resolution — `resolvedSession = merge(manifest.inference.session, runtime.inference.session)`.
+² Session policy is explicit on both sides. The manifest owns the baseline decode loop; runtime session overrides win field-by-field.
 
 ### Examples
 
@@ -136,7 +136,7 @@ When you need a change, create a profile or pass a runtime config file via `runt
 Runtime config merge order:
 
 ```
-runtimeConfig = merge(runtimeDefaults, runtimeProfileConfig, runtimeOverrideConfig)
+runtimeConfig = merge(runtimeProfileConfig, runtimeOverrideConfig)
 ```
 
 Manifest inference config merge order:
@@ -153,8 +153,8 @@ Execution runtime compile order (when `manifest.inference.execution` exists):
 
 ```
 Expand compact tuples into resolved steps, build inline kernel path and
-layer pipeline from resolved steps, merge sessionDefaults into runtime
-inference config.
+layer pipeline from resolved steps, merge `manifest.inference.session` into
+`runtime.inference.session`.
 ```
 
 `execution.inlineKernelPath: false` is the explicit contract for manifests that
@@ -195,7 +195,7 @@ Benchmark definitions must be composed from two layers:
    - stop conditions
    - run policy (`warmupRuns`, `timedRuns`, `cacheMode`)
 2. **Engine overlay**:
-   - Doppler-only: `runtime.inference.batching.batchSize`, `runtime.inference.batching.readbackInterval`, `runtime.inference.kernelPath`, `runtime.inference.kernelPathPolicy`
+   - Doppler-only: `runtime.inference.session.decodeLoop.batchSize`, `runtime.inference.session.decodeLoop.readbackInterval`, `runtime.inference.kernelPath`, `runtime.inference.kernelPathPolicy`
    - TJS-only: backend/session plumbing that does not alter fairness semantics
 
 Calibration comparisons are invalid if shared-contract fields differ across engines.
@@ -226,11 +226,11 @@ Agents should resolve profiles by metadata/intent, not filename heuristics.
 - Converter → manifest is the only bridge into runtime.
 - Execution steps require explicit `src` and `dst`.
 - Non-cast steps require explicit `kernel` and pinned `kernelRef`.
-- `kernelRef` is exact-match pinned (`id`, `version`, `digest`) against `sessionDefaults.compute.kernelProfiles`.
+- `kernelRef` is exact-match pinned (`id`, `version`, `digest`) against `session.compute.kernelProfiles`.
 - `kernelRef.digest` is WGSL-content pinning (`sha256(normalized shader source + entry)`), not filename-only identity.
 - Loader must not mutate inference config.
 - Shared runtime is the only cross-cutting config between loader and inference.
-- Defaults live in schema files; runtime code should not hardcode fallbacks.
+- Session policy lives in manifest/config assets; runtime code should not hardcode fallbacks.
 - Rule maps are config assets: JSON-only, data-only, and loaded via the rule registry.
 - Runtime must not silently escalate precision to `f32`.
 - Any `f32` activation path must be explicit in config/manifest and documented as a stability or capability choice.

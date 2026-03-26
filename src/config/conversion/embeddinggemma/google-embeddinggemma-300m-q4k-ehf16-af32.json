@@ -70,20 +70,7 @@
       "enabled": false
     }
   },
-  "sessionDefaults": {
-    "compute": {
-      "defaults": {
-        "activationDtype": "f32",
-        "mathDtype": "f32",
-        "accumDtype": "f32",
-        "outputDtype": "f32"
-      }
-    },
-    "kvcache": {
-      "kvDtype": "f32"
-    },
-    "decodeLoop": null
-  },
+  "session": null,
   "execution": {
     "kernels": {
       "embed": {

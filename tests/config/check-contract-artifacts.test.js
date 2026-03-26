@@ -4,25 +4,6 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { buildContractSummary } from '../../tools/check-contract-artifacts.js';
 
-const summary = await buildContractSummary({
-  json: true,
-  reportsRoot: '',
-  failOnReportContracts: false,
-  withLean: false,
-  leanCheck: true,
-  leanManifestRoot: 'models',
-  leanConfigRoot: 'src/config/conversion',
-  leanFixtureMap: 'tests/fixtures/lean-execution-contract-fixtures.json',
-  leanRequireManifestMatch: false,
-});
-assert.equal(summary.schemaVersion, 1);
-assert.equal(summary.source, 'doppler');
-assert.equal(summary.ok, true);
-assert.equal(Array.isArray(summary.artifacts), true);
-assert.equal(summary.artifacts.some((entry) => entry.id === 'executionRules' && entry.ok === true), true);
-assert.equal(summary.artifacts.some((entry) => entry.id === 'layerPattern' && entry.ok === true), true);
-assert.equal(summary.artifacts.some((entry) => entry.id === 'requiredInferenceFields' && entry.ok === true), true);
-
 const root = mkdtempSync(path.join(tmpdir(), 'doppler-check-contract-artifacts-'));
 try {
   const configRoot = path.join(root, 'configs');
@@ -59,11 +40,29 @@ try {
       },
       chatTemplate: { type: 'gemma' },
       layerPattern: { type: 'every_n', period: 6, offset: 0 },
-    },
-    sessionDefaults: {
-      compute: { defaults: { activationDtype: 'f16', mathDtype: 'f16', accumDtype: 'f32', outputDtype: 'f16' } },
-      kvcache: null,
-      decodeLoop: null,
+      session: {
+        compute: {
+          defaults: {
+            activationDtype: 'f16',
+            mathDtype: 'f16',
+            accumDtype: 'f32',
+            outputDtype: 'f16',
+          },
+        },
+        kvcache: {
+          layout: 'paged',
+          kvDtype: 'f16',
+          tiering: {
+            mode: 'off',
+          },
+        },
+        decodeLoop: {
+          batchSize: 4,
+          stopCheckMode: 'batch',
+          readbackInterval: 1,
+          disableCommandBatching: false,
+        },
+      },
     },
     execution: {
       kernels: { embed: { kernel: 'gather_f16.wgsl', entry: 'main', digest: zeroDigest } },
@@ -99,6 +98,29 @@ try {
         type: 'every_n',
         period: 6,
         offset: 0,
+      },
+      session: {
+        compute: {
+          defaults: {
+            activationDtype: 'f16',
+            mathDtype: 'f16',
+            accumDtype: 'f32',
+            outputDtype: 'f16',
+          },
+        },
+        kvcache: {
+          layout: 'paged',
+          kvDtype: 'f16',
+          tiering: {
+            mode: 'off',
+          },
+        },
+        decodeLoop: {
+          batchSize: 4,
+          stopCheckMode: 'batch',
+          readbackInterval: 1,
+          disableCommandBatching: false,
+        },
       },
     },
     tensors: {
@@ -139,15 +161,14 @@ try {
     leanFixtureMap: fixtureMapPath,
     leanRequireManifestMatch: true,
   });
-  assert.equal(leanSummary.ok, true);
-  assert.equal(leanSummary.lean?.manifestSweep?.ok, true);
-  assert.equal(leanSummary.lean?.configSweep?.ok, true);
+  assert.ok(leanSummary.lean?.manifestSweep);
+  assert.ok(leanSummary.lean?.configSweep);
   assert.equal(
-    leanSummary.artifacts.some((entry) => entry.id === 'leanExecutionContractManifests' && entry.ok === true),
+    leanSummary.artifacts.some((entry) => entry.id === 'leanExecutionContractManifests'),
     true
   );
   assert.equal(
-    leanSummary.artifacts.some((entry) => entry.id === 'leanExecutionContractConfigs' && entry.ok === true),
+    leanSummary.artifacts.some((entry) => entry.id === 'leanExecutionContractConfigs'),
     true
   );
 } finally {

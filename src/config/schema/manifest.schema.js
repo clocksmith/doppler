@@ -98,7 +98,7 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     enabled: false,
   },
   pipeline: null,
-  sessionDefaults: null,
+  session: null,
   execution: null,
 };
 

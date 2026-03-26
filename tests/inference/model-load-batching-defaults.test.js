@@ -3,11 +3,14 @@ import { installNodeFileFetchShim } from '../../src/tooling/node-file-fetch.js';
 
 installNodeFileFetchShim();
 
-const { createDopplerConfig } = await import('../../src/config/schema/index.js');
 const { applyModelBatchingRuntimeDefaults } = await import('../../src/inference/pipelines/text/model-load.js');
 
-function createRuntimeConfig() {
-  return structuredClone(createDopplerConfig().runtime);
+function createRuntimeConfig(session = {}) {
+  return {
+    inference: {
+      session: structuredClone(session),
+    },
+  };
 }
 
 {
@@ -26,10 +29,10 @@ function createRuntimeConfig() {
 {
   const runtimeConfig = createRuntimeConfig();
   const manifest = {
-    modelId: 'lfm2-manifest-session-defaults-test',
+    modelId: 'lfm2-manifest-session-test',
     modelType: 'transformer',
     inference: {
-      sessionDefaults: {
+      session: {
         decodeLoop: {
           batchSize: 16,
           stopCheckMode: 'batch',
@@ -41,23 +44,32 @@ function createRuntimeConfig() {
 
   const nextRuntime = applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null);
   assert.notStrictEqual(nextRuntime, runtimeConfig);
-  assert.equal(nextRuntime.inference.batching.batchSize, 16);
-  assert.equal(nextRuntime.inference.batching.readbackInterval, 4);
-  assert.equal(nextRuntime.inference.batching.ringTokens, runtimeConfig.inference.batching.ringTokens);
+  assert.deepEqual(nextRuntime.inference.session.decodeLoop, {
+    batchSize: 16,
+    stopCheckMode: 'batch',
+    readbackInterval: 4,
+  });
 }
 
 {
-  const runtimeConfig = createRuntimeConfig();
+  const runtimeConfig = createRuntimeConfig({
+    decodeLoop: {
+      batchSize: 4,
+      stopCheckMode: 'batch',
+      readbackInterval: 1,
+      disableCommandBatching: true,
+    },
+  });
   const manifest = {
-    modelId: 'qwen3-manifest-disable-recorder-default-test',
+    modelId: 'qwen3-runtime-session-override-test',
     modelType: 'transformer',
     inference: {
-      sessionDefaults: {
+      session: {
         decodeLoop: {
           batchSize: 4,
           stopCheckMode: 'batch',
           readbackInterval: 1,
-          disableCommandBatching: true,
+          disableCommandBatching: false,
         },
       },
     },
@@ -65,7 +77,7 @@ function createRuntimeConfig() {
 
   const nextRuntime = applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null);
   assert.notStrictEqual(nextRuntime, runtimeConfig);
-  assert.equal(nextRuntime.inference.generation.disableCommandBatching, true);
+  assert.equal(nextRuntime.inference.session.decodeLoop.disableCommandBatching, true);
 }
 
 {
@@ -74,7 +86,7 @@ function createRuntimeConfig() {
     modelId: 'lfm2-manifest-ring-defaults-test',
     modelType: 'transformer',
     inference: {
-      sessionDefaults: {
+      session: {
         decodeLoop: {
           batchSize: 8,
           stopCheckMode: 'batch',
@@ -89,11 +101,14 @@ function createRuntimeConfig() {
 
   const nextRuntime = applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null);
   assert.notStrictEqual(nextRuntime, runtimeConfig);
-  assert.equal(nextRuntime.inference.batching.batchSize, 8);
-  assert.equal(nextRuntime.inference.batching.readbackInterval, 8);
-  assert.equal(nextRuntime.inference.batching.ringTokens, 4);
-  assert.equal(nextRuntime.inference.batching.ringStop, 2);
-  assert.equal(nextRuntime.inference.batching.ringStaging, 3);
+  assert.deepEqual(nextRuntime.inference.session.decodeLoop, {
+    batchSize: 8,
+    stopCheckMode: 'batch',
+    readbackInterval: 8,
+    ringTokens: 4,
+    ringStop: 2,
+    ringStaging: 3,
+  });
 }
 
 {
@@ -102,7 +117,7 @@ function createRuntimeConfig() {
     modelId: 'lfm2-manifest-ring-disable-test',
     modelType: 'transformer',
     inference: {
-      sessionDefaults: {
+      session: {
         decodeLoop: {
           batchSize: 8,
           stopCheckMode: 'batch',
@@ -117,9 +132,14 @@ function createRuntimeConfig() {
 
   const nextRuntime = applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null);
   assert.notStrictEqual(nextRuntime, runtimeConfig);
-  assert.equal(nextRuntime.inference.batching.ringTokens, null);
-  assert.equal(nextRuntime.inference.batching.ringStop, null);
-  assert.equal(nextRuntime.inference.batching.ringStaging, null);
+  assert.deepEqual(nextRuntime.inference.session.decodeLoop, {
+    batchSize: 8,
+    stopCheckMode: 'batch',
+    readbackInterval: 8,
+    ringTokens: null,
+    ringStop: null,
+    ringStaging: null,
+  });
 }
 
 {
@@ -135,13 +155,18 @@ function createRuntimeConfig() {
 }
 
 {
-  const runtimeConfig = createRuntimeConfig();
-  runtimeConfig.inference.batching.batchSize = 16;
+  const runtimeConfig = createRuntimeConfig({
+    decodeLoop: {
+      batchSize: 16,
+      stopCheckMode: 'batch',
+      readbackInterval: 2,
+    },
+  });
   const manifest = {
     modelId: 'lfm2-runtime-override-wins-test',
     modelType: 'transformer',
     inference: {
-      sessionDefaults: {
+      session: {
         decodeLoop: {
           batchSize: 8,
           stopCheckMode: 'batch',
@@ -152,18 +177,25 @@ function createRuntimeConfig() {
   };
 
   const nextRuntime = applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null);
-  assert.strictEqual(nextRuntime, runtimeConfig);
-  assert.equal(nextRuntime.inference.batching.batchSize, 16);
+  assert.notStrictEqual(nextRuntime, runtimeConfig);
+  assert.equal(nextRuntime.inference.session.decodeLoop.batchSize, 16);
+  assert.equal(nextRuntime.inference.session.decodeLoop.readbackInterval, 2);
 }
 
 {
-  const runtimeConfig = createRuntimeConfig();
-  runtimeConfig.inference.generation.disableCommandBatching = true;
+  const runtimeConfig = createRuntimeConfig({
+    decodeLoop: {
+      batchSize: 8,
+      stopCheckMode: 'batch',
+      readbackInterval: 8,
+      disableCommandBatching: true,
+    },
+  });
   const manifest = {
-    modelId: 'lfm2-conflicting-disable-command-batching-test',
+    modelId: 'lfm2-disable-command-batching-override-test',
     modelType: 'transformer',
     inference: {
-      sessionDefaults: {
+      session: {
         decodeLoop: {
           batchSize: 8,
           stopCheckMode: 'batch',
@@ -174,10 +206,8 @@ function createRuntimeConfig() {
     },
   };
 
-  assert.throws(
-    () => applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null),
-    /Manifest decodeLoop\.disableCommandBatching conflicts with runtime\.inference\.generation\.disableCommandBatching/
-  );
+  const nextRuntime = applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null);
+  assert.equal(nextRuntime.inference.session.decodeLoop.disableCommandBatching, true);
 }
 
 {
@@ -186,7 +216,7 @@ function createRuntimeConfig() {
     modelId: 'lfm2-invalid-decode-loop-test',
     modelType: 'transformer',
     inference: {
-      sessionDefaults: {
+      session: {
         decodeLoop: {
           batchSize: 8,
           readbackInterval: 8,
@@ -197,7 +227,7 @@ function createRuntimeConfig() {
 
   assert.throws(
     () => applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null),
-    /inference\.sessionDefaults\.decodeLoop\.stopCheckMode must be "batch" or "per-token"/
+    /inference\.session\.decodeLoop\.stopCheckMode must be "batch" or "per-token"/
   );
 }
 
@@ -207,7 +237,7 @@ function createRuntimeConfig() {
     modelId: 'lfm2-invalid-ring-tokens-test',
     modelType: 'transformer',
     inference: {
-      sessionDefaults: {
+      session: {
         decodeLoop: {
           batchSize: 8,
           stopCheckMode: 'batch',
@@ -220,7 +250,7 @@ function createRuntimeConfig() {
 
   assert.throws(
     () => applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null),
-    /inference\.sessionDefaults\.decodeLoop\.ringTokens must be a positive integer or null/
+    /inference\.session\.decodeLoop\.ringTokens must be a positive integer or null/
   );
 }
 
@@ -230,7 +260,7 @@ function createRuntimeConfig() {
     modelId: 'lfm2-invalid-disable-command-batching-type-test',
     modelType: 'transformer',
     inference: {
-      sessionDefaults: {
+      session: {
         decodeLoop: {
           batchSize: 8,
           stopCheckMode: 'batch',
@@ -243,19 +273,24 @@ function createRuntimeConfig() {
 
   assert.throws(
     () => applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null),
-    /inference\.sessionDefaults\.decodeLoop\.disableCommandBatching must be a boolean when provided/
+    /inference\.session\.decodeLoop\.disableCommandBatching must be a boolean when provided/
   );
 }
 
 {
-  const runtimeConfig = createRuntimeConfig();
-  runtimeConfig.inference.batching.batchSize = 8;
-  runtimeConfig.inference.generation.disableCommandBatching = true;
+  const runtimeConfig = createRuntimeConfig({
+    decodeLoop: {
+      batchSize: 8,
+      stopCheckMode: 'batch',
+      readbackInterval: 4,
+      disableCommandBatching: true,
+    },
+  });
   const manifest = {
     modelId: 'lfm2-full-runtime-override-test',
     modelType: 'transformer',
     inference: {
-      sessionDefaults: {
+      session: {
         decodeLoop: {
           batchSize: 16,
           stopCheckMode: 'batch',
@@ -267,9 +302,9 @@ function createRuntimeConfig() {
   };
 
   const nextRuntime = applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null);
-  assert.strictEqual(nextRuntime, runtimeConfig);
-  assert.equal(nextRuntime.inference.batching.batchSize, 8);
-  assert.equal(nextRuntime.inference.generation.disableCommandBatching, true);
+  assert.notStrictEqual(nextRuntime, runtimeConfig);
+  assert.equal(nextRuntime.inference.session.decodeLoop.batchSize, 8);
+  assert.equal(nextRuntime.inference.session.decodeLoop.disableCommandBatching, true);
 }
 
 console.log('model-load-batching-defaults.test: ok');

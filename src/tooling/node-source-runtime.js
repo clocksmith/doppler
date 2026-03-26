@@ -5,7 +5,7 @@ import path from 'node:path';
 import {
   HEADER_READ_SIZE,
   createConverterConfig,
-  DEFAULT_EXECUTION_V1_SESSION_DEFAULTS,
+  DEFAULT_EXECUTION_V1_SESSION,
 } from '../config/schema/index.js';
 import { extractArchitecture } from '../converter/core.js';
 import {
@@ -36,11 +36,11 @@ const SOURCE_RUNTIME_EXECUTION_OVERRIDE = {
   steps: [],
 };
 
-function cloneSessionDefaults() {
+function cloneExecutionSession() {
   if (typeof structuredClone === 'function') {
-    return structuredClone(DEFAULT_EXECUTION_V1_SESSION_DEFAULTS);
+    return structuredClone(DEFAULT_EXECUTION_V1_SESSION);
   }
-  return JSON.parse(JSON.stringify(DEFAULT_EXECUTION_V1_SESSION_DEFAULTS));
+  return JSON.parse(JSON.stringify(DEFAULT_EXECUTION_V1_SESSION));
 }
 
 function toArrayBuffer(value, label) {
@@ -538,10 +538,8 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
     output: {
       modelBaseId: options.modelId || null,
     },
-    inference: {
-      sessionDefaults: cloneSessionDefaults(),
-      execution: SOURCE_RUNTIME_EXECUTION_OVERRIDE,
-    },
+    session: cloneExecutionSession(),
+    execution: SOURCE_RUNTIME_EXECUTION_OVERRIDE,
   });
   const plan = resolveConversionPlan({
     rawConfig: parsed.config,

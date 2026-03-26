@@ -62,12 +62,12 @@ const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
   assert.ok(expanded.length > 0, 'execution must expand to at least one step');
 }
 
-// === Session defaults present ===
+// === Session present ===
 
 {
-  assert.ok(config.sessionDefaults, 'must have sessionDefaults');
-  assert.ok(config.sessionDefaults.compute?.defaults, 'must have compute defaults');
-  assert.equal(config.sessionDefaults.compute.defaults.activationDtype, 'f32');
+  assert.ok(config.session, 'must have session');
+  assert.ok(config.session.compute?.defaults, 'must have compute defaults');
+  assert.equal(config.session.compute.defaults.activationDtype, 'f32');
 }
 
 // === Gemma 4 specific: sliding window + YARN scaling ===

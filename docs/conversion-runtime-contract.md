@@ -32,7 +32,7 @@ re-conversion or can be changed per-run.
 | `manifest.hashAlgorithm` | Conversion | Yes (`hashAlgorithm`, shard hashes) | No | Yes |
 | `quantization.computePrecision` | Conversion-authored runtime default | Yes (`quantizationInfo.compute`) | Yes (through runtime/session policy) | No (for runtime behavior) |
 | `inference.defaultKernelPath` | Conversion-authored runtime default | Yes | Yes (`runtime.inference.kernelPath`) | No (for runtime behavior) |
-| `inference.sessionDefaults.decodeLoop.*` | Conversion-authored batching default | Yes | Via `runtime.inference.session`; runtime batching/generation override while runtime remains at global defaults | No (for runtime behavior) |
+| `inference.session.decodeLoop.*` | Conversion-authored batching policy | Yes | Via `runtime.inference.session` | No (for runtime behavior) |
 | `output.fast` | Reserved converter config flag | No active effect in current converter path | n/a | n/a |
 
 Notes:
@@ -54,17 +54,17 @@ implicit `'auto'` kernel path.
 
 Execution compile order:
 
-1. Start from `manifest.inference.sessionDefaults` and `manifest.inference.execution`
+1. Start from `manifest.inference.session` and `manifest.inference.execution`
 2. Expand compact tuples into resolved steps
 3. Build inline kernel path and layer pipeline from resolved steps
-4. Merge `sessionDefaults` into runtime inference config
+4. Merge `session` into `runtime.inference.session`
 
 Execution dtype ownership:
 
 - config-selected kernel paths must already match runtime `activationDtype`
   and `kvDtype`
 - manifest/model-selected kernel paths may seed those runtime dtypes only when
-  runtime is still at global defaults; conflicting runtime overrides fail closed
+  the resolved session does not already specify conflicting values; conflicts fail closed
 
 ## Why this file exists
 

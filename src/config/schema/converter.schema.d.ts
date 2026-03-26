@@ -14,7 +14,7 @@ import type {
 } from './manifest.schema.js';
 import type {
   ExecutionV1GraphSchema,
-  ExecutionV1SessionDefaultsSchema,
+  ExecutionV1SessionSchema,
 } from './execution-v1.schema.js';
 
 export type ComputePrecision = 'f16' | 'f32' | 'auto' | null;
@@ -59,7 +59,7 @@ export interface ConverterManifestConfigSchema {
 }
 
 export interface ConverterInferenceConfigSchema {
-  sessionDefaults: ExecutionV1SessionDefaultsSchema | null;
+  session: ExecutionV1SessionSchema | null;
   execution: ExecutionV1GraphSchema | null;
 }
 

@@ -20,12 +20,16 @@ try {
       maxSeqLen: 2048,
     },
     inference: {
-      sessionDefaults: {
+      session: {
         kvcache: {
           layout: 'paged',
+          tiering: {
+            mode: 'off',
+          },
         },
         decodeLoop: {
           batchSize: 4,
+          disableCommandBatching: false,
         },
       },
       execution: {

@@ -6,5 +6,7 @@ export {
     recordAttentionTiered,
     runAttentionTieredQuant,
     recordAttentionTieredQuant,
-    recordAttentionBDPA
+    recordAttentionBDPA,
+    runAttentionContiguousQuant,
+    recordAttentionContiguousQuant,
 } from './kernels/attention.js';

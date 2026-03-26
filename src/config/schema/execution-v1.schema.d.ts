@@ -72,7 +72,7 @@ export type ExecutionV1StepEntry = ExecutionV1StepTuple | ExecutionV1LayerGroupS
  */
 export type ExecutionV1BoundaryStep = ExecutionV1StepTuple;
 
-// === Session Defaults ===
+// === Session ===
 
 export interface ExecutionV1ComputeDefaultsSchema {
   activationDtype: ExecutionV1Dtype;
@@ -99,7 +99,7 @@ export interface ExecutionV1SelfSpeculationSchema {
   rollbackOnReject: boolean;
 }
 
-export interface ExecutionV1SessionDefaultsSchema {
+export interface ExecutionV1SessionSchema {
   compute: {
     defaults: ExecutionV1ComputeDefaultsSchema;
   };
@@ -153,8 +153,8 @@ export interface ExecutionV1ConfigSchema {
   /** Schema discriminator — always "doppler.execution/v1" */
   schema: 'doppler.execution/v1';
 
-  /** Session defaults (dtypes, KV cache, decode loop) */
-  sessionDefaults: ExecutionV1SessionDefaultsSchema;
+  /** Session policy (dtypes, KV cache, decode loop) */
+  session: ExecutionV1SessionSchema;
 
   /** The execution graph */
   execution: ExecutionV1GraphSchema;
@@ -228,7 +228,7 @@ export interface ExecutionV1ExpandedStepSchema {
 
 export declare const EXECUTION_V1_SCHEMA_ID: string;
 export declare const DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS: ExecutionV1ComputeDefaultsSchema;
-export declare const DEFAULT_EXECUTION_V1_SESSION_DEFAULTS: ExecutionV1SessionDefaultsSchema;
+export declare const DEFAULT_EXECUTION_V1_SESSION: ExecutionV1SessionSchema;
 export declare const DEFAULT_EXECUTION_V1_POLICIES: ExecutionV1PoliciesSchema;
 export declare const DEFAULT_EXECUTION_V1_PATCH: ExecutionV1PatchSchema;
 

@@ -82,7 +82,7 @@
       "enabled": true
     },
     "pipeline": null,
-    "sessionDefaults": {
+    "session": {
       "compute": {
         "defaults": {
           "activationDtype": "f32",
@@ -92,9 +92,22 @@
         }
       },
       "kvcache": {
-        "kvDtype": "f16"
+        "kvDtype": "f16",
+        "layout": "contiguous",
+        "pageSize": 256,
+        "tiering": {
+          "mode": "off"
+        }
       },
-      "decodeLoop": null
+      "decodeLoop": {
+        "batchSize": 4,
+        "stopCheckMode": "batch",
+        "readbackInterval": 1,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1,
+        "disableCommandBatching": false
+      }
     },
     "execution": {
       "kernels": {
@@ -4346,7 +4359,7 @@
     "convertedAt": "2026-02-26T20:19:47.896Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-03-20T14:12:30.982Z",
+      "at": "2026-03-25T20:57:33.067Z",
       "source": "local-hash-resync",
       "config": "gemma-3-1b-it-q4k-ehf16-af32.json"
     }

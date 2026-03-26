@@ -44,7 +44,7 @@ export const DEFAULT_CONVERTER_MANIFEST_CONFIG = {
 };
 
 export const DEFAULT_CONVERTER_INFERENCE_CONFIG = {
-  sessionDefaults: null,
+  session: null,
   execution: null,
 };
 
@@ -124,14 +124,14 @@ export function createConverterConfig(overrides) {
       ? { ...DEFAULT_CONVERTER_OUTPUT_CONFIG, ...overrides.output }
       : { ...DEFAULT_CONVERTER_OUTPUT_CONFIG },
   };
-  // V1 conversion configs place execution, sessionDefaults, and modelType at the top level.
+  // V1 conversion configs place execution, session, and modelType at the top level.
   // Pass them through so isV1Config() can detect the v1 format and resolveConversionPlanV1
   // can read modelType.
-  if (overrides.execution && typeof overrides.execution === 'object') {
+  if (Object.prototype.hasOwnProperty.call(overrides, 'execution')) {
     config.execution = overrides.execution;
   }
-  if (overrides.sessionDefaults && typeof overrides.sessionDefaults === 'object') {
-    config.sessionDefaults = overrides.sessionDefaults;
+  if (Object.prototype.hasOwnProperty.call(overrides, 'session')) {
+    config.session = overrides.session;
   }
   if (typeof overrides.modelType === 'string') {
     config.modelType = overrides.modelType;

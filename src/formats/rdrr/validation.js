@@ -7,6 +7,7 @@ export function validateManifest(manifest) {
 
   const isDiffusion = manifest.modelType === 'diffusion';
   const isEnergy = manifest.modelType === 'energy';
+  const isEmbedding = manifest.modelType === 'embedding';
 
   // Version check
   const version = typeof manifest.version === 'string'
@@ -43,7 +44,7 @@ export function validateManifest(manifest) {
 
   // EOS token ID (required for text models)
   const eosTokenId = manifest.eos_token_id;
-  if (!isDiffusion && !isEnergy) {
+  if (!isDiffusion && !isEnergy && !isEmbedding) {
     if (eosTokenId === undefined) {
       errors.push('Missing eos_token_id');
     } else if (Array.isArray(eosTokenId)) {
@@ -66,7 +67,7 @@ export function validateManifest(manifest) {
   // Architecture validation (skip for LoRA adapters)
   const isLoRAAdapter = manifest.adapterType === 'lora' || manifest.modelType === 'lora' || !!manifest.loraConfig;
 
-  if (!isLoRAAdapter && !isDiffusion && !isEnergy && manifest.architecture && typeof manifest.architecture === 'object') {
+  if (!isLoRAAdapter && !isDiffusion && !isEnergy && !isEmbedding && manifest.architecture && typeof manifest.architecture === 'object') {
     const arch = manifest.architecture;
     const requiredFields = [
       'numLayers',
@@ -84,7 +85,7 @@ export function validateManifest(manifest) {
         errors.push(`Invalid architecture.${field}`);
       }
     }
-  } else if (!isLoRAAdapter && !isDiffusion && !isEnergy && !manifest.architecture) {
+  } else if (!isLoRAAdapter && !isDiffusion && !isEnergy && !isEmbedding && !manifest.architecture) {
     errors.push('Missing architecture field');
   }
 
@@ -187,7 +188,7 @@ export function validateManifest(manifest) {
 
   // Tensor-config consistency validation
   // This catches bugs like postFeedforwardNorm=false when the weights exist
-  if (!isDiffusion && !isEnergy) {
+  if (!isDiffusion && !isEnergy && !isEmbedding) {
     const tensorConfigResult = validateTensorConfigConsistency(manifest);
     for (const err of tensorConfigResult.errors) {
       errors.push(`[${err.code}] ${err.message}${err.suggestion ? ` -> ${err.suggestion}` : ''}`);
@@ -197,7 +198,7 @@ export function validateManifest(manifest) {
     }
   }
 
-  if (!isDiffusion && !isEnergy && errors.length === 0) {
+  if (!isDiffusion && !isEnergy && !isEmbedding && errors.length === 0) {
     try {
       const executionContract = validateManifestExecutionContract(manifest);
       for (const error of executionContract.errors) {

@@ -15,9 +15,33 @@
  */
 
 import type { LoadingConfigSchema } from './loading.schema.js';
-import type { InferenceDefaultsConfigSchema } from './inference-defaults.schema.js';
+import type { ExecutionV1PatchSchema, ExecutionV1SessionSchema } from './execution-v1.schema.js';
 import type { SharedRuntimeConfigSchema } from './shared-runtime.schema.js';
 import type { EmulationConfigSchema } from './emulation.schema.js';
+
+export interface RuntimeInferenceConfigSchema {
+  prompt?: string | null;
+  debugTokens?: boolean;
+  batching: Record<string, unknown>;
+  sampling: Record<string, unknown>;
+  compute: Record<string, unknown>;
+  tokenizer: Record<string, unknown>;
+  largeWeights: Record<string, unknown>;
+  kvcache: Record<string, unknown>;
+  diffusion: Record<string, unknown>;
+  energy: Record<string, unknown>;
+  moe: Record<string, unknown>;
+  speculative: Record<string, unknown>;
+  generation: Record<string, unknown>;
+  chatTemplate: Record<string, unknown>;
+  session: Partial<ExecutionV1SessionSchema>;
+  executionPatch: ExecutionV1PatchSchema | Record<string, unknown>;
+  kernelPath?: unknown;
+  kernelPathSource?: 'runtime' | 'config' | 'model' | 'manifest' | 'none';
+  kernelPathPolicy?: Record<string, unknown> | null;
+  modelOverrides?: Record<string, unknown>;
+  pipeline?: Record<string, unknown> | null;
+}
 
 /**
  * Runtime configuration schema.
@@ -33,7 +57,7 @@ export interface RuntimeConfigSchema {
   loading: LoadingConfigSchema;
 
   /** Batching, sampling, tokenizer defaults */
-  inference: InferenceDefaultsConfigSchema;
+  inference: RuntimeInferenceConfigSchema;
 
   /** NVIDIA superchip emulation settings */
   emulation: EmulationConfigSchema;

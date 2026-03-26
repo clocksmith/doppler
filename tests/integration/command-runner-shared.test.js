@@ -67,14 +67,16 @@ function mergeRuntime(base, patch) {
     },
     inference: {
       prompt: 'initial',
-      batching: { maxTokens: 16, batchSize: 1 },
+      generation: { maxTokens: 16 },
+      batching: { batchSize: 1 },
     },
   }, {
     profiles: {
       'profiles/verbose-trace': {
         inference: {
           prompt: 'profile',
-          batching: { maxTokens: 14, batchSize: 2 },
+          generation: { maxTokens: 14 },
+          batching: { batchSize: 2 },
         },
       },
     },
@@ -98,7 +100,7 @@ function mergeRuntime(base, patch) {
     runtimeConfig: {
       inference: {
         prompt: 'The sky is',
-        batching: { maxTokens: 8 },
+        generation: { maxTokens: 8 },
       },
     },
   }, runtime.bridge, { source: 'test' });
@@ -117,7 +119,7 @@ function mergeRuntime(base, patch) {
   ]);
 
   assert.equal(runtime.getRuntime().inference.prompt, 'The sky is');
-  assert.equal(runtime.getRuntime().inference.batching.maxTokens, 8);
+  assert.equal(runtime.getRuntime().inference.generation.maxTokens, 8);
   assert.equal(runtime.getRuntime().inference.batching.batchSize, 6);
   assert.equal(runtime.getRuntime().inference.batching.readbackInterval, 3);
   assert.equal(runtime.getRuntime().shared.harness.mode, 'verify');

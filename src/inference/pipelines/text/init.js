@@ -3,7 +3,16 @@
 import { parseModelConfig } from './config.js';
 import { getDevice, getDeviceLimits, getKernelCapabilities } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
-import { KVCache, SlidingWindowKVCache, TieredKVCache, BasisDecomposedPagedCache } from '../../kv-cache.js';
+import { KVCache, SlidingWindowKVCache, TieredKVCache, BasisDecomposedPagedCache, QuantizedKVCache } from '../../kv-cache.js';
+import {
+  generateRotationMatrix,
+  uploadRotationMatrix,
+  getCodebook,
+  uploadCodebook,
+  generateQJLMatrix,
+  ROTATION_SEED,
+  QJL_SEED,
+} from '../../../gpu/kernels/turboquant-codebook.js';
 import { Tokenizer } from '../../tokenizer.js';
 import { MoERouter } from '../../moe-router.js';
 import { SpeculativeDecoder } from '../../speculative.js';
@@ -538,6 +547,11 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
     cacheLayout = 'paged';
     layoutSource = 'threshold';
   }
+  const quantMode = runtimeKV.quantization?.mode ?? 'none';
+  if (forceContiguousKVCache && cacheLayout === 'contiguous' && quantMode !== 'none') {
+    cacheLayout = 'contiguous_quantized';
+    layoutSource = 'quantization';
+  }
   if (forceContiguousKVCache && cacheLayout === 'paged') {
     throw new Error(
       'Paged KV cache layout is not supported for models with full-attention layers. ' +
@@ -581,8 +595,14 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   if (cacheLayout === 'tiered' && kvDtype !== 'f16') {
     throw new Error('Tiered KV cache requires kvDtype="f16" (no f32 tiered kernels yet).');
   }
+  if (cacheLayout === 'contiguous_quantized' && kvDtype !== 'f16') {
+    throw new Error('Contiguous quantized KV cache requires kvDtype="f16".');
+  }
+  if (cacheLayout === 'contiguous_quantized' && !useGPU) {
+    throw new Error('Contiguous quantized KV cache requires GPU.');
+  }
 
-  if (useGPU && (cacheLayout === 'paged' || cacheLayout === 'tiered' || cacheLayout === 'bdpa')) {
+  if (useGPU && (cacheLayout === 'paged' || cacheLayout === 'tiered' || cacheLayout === 'bdpa' || cacheLayout === 'contiguous_quantized')) {
     const limits = getDeviceLimits();
     if (limits) {
       const bytesPerToken = modelConfig.numKVHeads * modelConfig.headDim * (kvDtype === 'f16' ? 2 : 4);
@@ -635,6 +655,41 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
       ...cacheConfig,
       tiering: runtimeKV.tiering,
     });
+  } else if (cacheLayout === 'contiguous_quantized') {
+    const quantCfg = runtimeKV.quantization ?? {};
+    const qCache = new QuantizedKVCache({
+      ...cacheConfig,
+      quantMode: quantCfg.mode ?? 'turboquant',
+      bitWidth: quantCfg.bitWidth ?? 4,
+      prodMode: quantCfg.prodMode === true,
+    });
+    // Allocate and set shared TurboQuant buffers
+    const device = getDevice();
+    const rotMatrix = generateRotationMatrix(modelConfig.headDim, ROTATION_SEED);
+    const rotationMatrixBuffer = uploadRotationMatrix(device, rotMatrix, 'turboquant_rotation');
+    const codebook = getCodebook(modelConfig.headDim, quantCfg.bitWidth ?? 4);
+    const { centroidsBuffer: codebookCentroidsBuffer, boundariesBuffer: codebookBoundariesBuffer } =
+      uploadCodebook(device, codebook, 'turboquant_codebook');
+
+    const sharedBuffers = {
+      rotationMatrixBuffer,
+      codebookCentroidsBuffer,
+      codebookBoundariesBuffer,
+    };
+    if (quantCfg.prodMode === true) {
+      const qjlData = generateQJLMatrix(modelConfig.headDim, QJL_SEED);
+      const qjlBuffer = device.createBuffer({
+        label: 'turboquant_qjl_matrix',
+        size: qjlData.byteLength,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+        mappedAtCreation: true,
+      });
+      new Float32Array(qjlBuffer.getMappedRange()).set(qjlData);
+      qjlBuffer.unmap();
+      sharedBuffers.qjlMatrixBuffer = qjlBuffer;
+    }
+    qCache.setSharedBuffers(sharedBuffers);
+    kvCache = qCache;
   } else {
     kvCache = new KVCache(cacheConfig);
   }

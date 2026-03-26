@@ -31,6 +31,15 @@ if (!fs.existsSync(gemmaManifestPath)) {
   assert.equal(materialized.modelType, 'transformer');
   assert.equal(materialized.inference?.schema, 'doppler.execution/v1');
   assert.equal(materialized.inference?.defaultKernelPath, undefined);
+  assert.deepEqual(materialized.inference?.session?.decodeLoop, {
+    batchSize: 4,
+    stopCheckMode: 'batch',
+    readbackInterval: 1,
+    ringTokens: 1,
+    ringStop: 1,
+    ringStaging: 1,
+    disableCommandBatching: false,
+  });
   assert.ok(Array.isArray(materialized.inference?.execution?.decode));
   assert.ok(materialized.inference.execution.decode.length > 0);
 }
@@ -54,7 +63,15 @@ if (!fs.existsSync(qwenManifestPath)) {
   assert.equal(materialized.modelType, 'transformer');
   assert.equal(materialized.inference?.schema, 'doppler.execution/v1');
   assert.equal(materialized.inference?.execution?.inlineKernelPath, true);
-  assert.equal(materialized.inference?.sessionDefaults?.decodeLoop?.disableCommandBatching, true);
+  assert.deepEqual(materialized.inference?.session?.decodeLoop, {
+    batchSize: 4,
+    stopCheckMode: 'batch',
+    readbackInterval: 32,
+    ringTokens: 1,
+    ringStop: 1,
+    ringStaging: 1,
+    disableCommandBatching: false,
+  });
   assert.equal(materialized.inference?.execution?.kernels?.q4_decode?.kernel, 'fused_matmul_q4.wgsl');
   assert.equal(materialized.inference?.execution?.kernels?.q4_prefill?.kernel, 'fused_matmul_q4_batched.wgsl');
   assert.equal(materialized.inference?.execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16kv.wgsl');

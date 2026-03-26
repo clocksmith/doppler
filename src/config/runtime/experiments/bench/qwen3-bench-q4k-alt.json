@@ -1,0 +1,55 @@
+{
+  "id": "experiments/bench/qwen3-bench-q4k-alt",
+  "name": "qwen3-bench-q4k-alt",
+  "description": "Qwen 3.5 0.8B Q4K alternate throughput profile for batched decode tuning.",
+  "intent": "calibrate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-03-25T01:45:00Z",
+  "model": "qwen-3-5-0-8b-q4k-ehaf16",
+  "extends": "profiles/throughput",
+  "runtime": {
+    "shared": {
+      "benchmark": {
+        "run": {
+          "promptName": "xs",
+          "maxNewTokens": 256,
+          "warmupRuns": 1,
+          "timedRuns": 1,
+          "sampling": {
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1
+          },
+          "profile": false,
+          "captureMemoryTimeSeries": false
+        }
+      }
+    },
+    "inference": {
+      "batching": {
+        "batchSize": 8,
+        "maxTokens": 256,
+        "stopCheckMode": "batch",
+        "readbackInterval": 32,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "session": {
+        "decodeLoop": {
+          "batchSize": 8,
+          "stopCheckMode": "batch",
+          "readbackInterval": 32,
+          "ringTokens": 1,
+          "ringStop": 1,
+          "ringStaging": 1,
+          "disableCommandBatching": false
+        }
+      },
+      "sampling": {
+        "temperature": 0
+      }
+    }
+  }
+}

@@ -16,12 +16,16 @@ import {
       maxSeqLen: 131072,
     },
     inference: {
-      sessionDefaults: {
+      session: {
         kvcache: {
           layout: 'bdpa',
+          tiering: {
+            mode: 'off',
+          },
         },
         decodeLoop: {
           batchSize: 16,
+          disableCommandBatching: false,
         },
       },
       execution: {
@@ -72,9 +76,12 @@ import {
       maxSeqLen: 4096,
     },
     inference: {
-      sessionDefaults: {
+      session: {
         kvcache: {
           layout: 'bdpa_paged',
+          tiering: {
+            mode: 'off',
+          },
         },
         decodeLoop: {
           batchSize: 1,
@@ -116,21 +123,27 @@ import {
     console.log('lean-execution-contract.test: skipped (local model fixture missing)');
   } else {
     const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    if (
+      manifest?.inference?.session?.decodeLoop == null
+      || manifest.inference.session?.kvcache?.layout == null
+    ) {
+      console.log('lean-execution-contract.test: skipped (local model fixture has stale session contract)');
+    } else {
+      const facts = extractExecutionContractFacts(manifest);
+      assert.equal(facts.modelId, 'translategemma-4b-it-q4k-ehf16-af32');
+      assert.equal(facts.session.layout, 'paged');
+      assert.equal(facts.session.decodeBatchSize, 1);
+      assert.equal(
+        facts.steps.some((step) => step.phase === 'prefill' && step.opClass === 'attention'),
+        true
+      );
 
-    const facts = extractExecutionContractFacts(manifest);
-    assert.equal(facts.modelId, 'translategemma-4b-it-q4k-ehf16-af32');
-    assert.equal(facts.session.layout, 'paged');
-    assert.equal(facts.session.decodeBatchSize, 1);
-    assert.equal(
-      facts.steps.some((step) => step.phase === 'prefill' && step.opClass === 'attention'),
-      true
-    );
-
-    const rendered = renderExecutionContractLeanModule(facts, {
-      moduleName: sanitizeLeanModuleName(facts.modelId),
-    });
-    assert.match(rendered, /layout := \.paged/);
-    assert.match(rendered, /translategemma-4b-it-q4k-ehf16-af32\.steps/);
+      const rendered = renderExecutionContractLeanModule(facts, {
+        moduleName: sanitizeLeanModuleName(facts.modelId),
+      });
+      assert.match(rendered, /layout := \.paged/);
+      assert.match(rendered, /translategemma-4b-it-q4k-ehf16-af32\.steps/);
+    }
   }
 }
 

@@ -372,7 +372,7 @@
         if (!prompt) {
           throw new Error('runtime.inference.prompt must be set for inference tests.');
         }
-        const maxTokens = runtimeConfig.inference.batching.maxTokens;
+        const maxTokens = runtimeConfig.inference.generation.maxTokens;
         const temperature = runtimeConfig.inference.sampling.temperature;
         const profile = runtimeConfig.shared.debug.profiler?.enabled === true;
         const debugTokens = runtimeConfig.inference.debugTokens === true;

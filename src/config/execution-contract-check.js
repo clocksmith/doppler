@@ -1,6 +1,3 @@
-import { DEFAULT_BATCHING_DEFAULTS, DEFAULT_GENERATION_CONFIG } from './schema/inference-defaults.schema.js';
-import { DEFAULT_KVCACHE_CONFIG } from './schema/kvcache.schema.js';
-
 const KV_LAYOUTS = new Set(['contiguous', 'paged', 'tiered', 'bdpa']);
 const PHASES = new Set(['prefill', 'decode', 'both']);
 const COLD_QUANT_MODES = new Set(['none', 'int8', 'int4']);
@@ -29,15 +26,22 @@ function assertPositiveInteger(value, label) {
   return value;
 }
 
-function assertPositiveIntegerOrDefault(value, fallback, label) {
+function assertRequiredValue(value, label) {
   if (value == null) {
-    return assertPositiveInteger(fallback, `${label} fallback`);
+    throw new Error(`execution contract: ${label} is required.`);
   }
-  return assertPositiveInteger(value, label);
+  return value;
+}
+
+function assertBoolean(value, label) {
+  if (value !== true && value !== false) {
+    throw new Error(`execution contract: ${label} must be boolean.`);
+  }
+  return value;
 }
 
 function normalizeKVLayout(value) {
-  const normalized = String(value ?? DEFAULT_KVCACHE_CONFIG.layout).trim().toLowerCase();
+  const normalized = String(assertRequiredValue(value, 'session.kvcache.layout')).trim().toLowerCase();
   if (!KV_LAYOUTS.has(normalized)) {
     throw new Error(
       `execution contract: unsupported KV layout "${value}". ` +
@@ -59,8 +63,7 @@ function normalizePhase(value, label) {
 
 function normalizeColdQuantMode(kvcache) {
   const tieringMode = String(
-    kvcache?.tiering?.mode
-      ?? DEFAULT_KVCACHE_CONFIG.tiering.mode
+    assertRequiredValue(kvcache?.tiering?.mode, 'session.kvcache.tiering.mode')
   ).trim().toLowerCase();
   if (tieringMode === 'off' || tieringMode === 'fp16') {
     return 'none';
@@ -110,17 +113,15 @@ export function extractExecutionContractFacts(manifest) {
   const inference = isPlainObject(normalizedManifest.inference)
     ? normalizedManifest.inference
     : {};
-  const sessionDefaults = isPlainObject(inference.sessionDefaults)
-    ? inference.sessionDefaults
-    : {};
+  const session = isPlainObject(inference.session) ? inference.session : {};
   const execution = isPlainObject(inference.execution)
     ? inference.execution
     : {};
-  const kvcache = isPlainObject(sessionDefaults.kvcache)
-    ? sessionDefaults.kvcache
+  const kvcache = isPlainObject(session.kvcache)
+    ? session.kvcache
     : {};
-  const decodeLoop = isPlainObject(sessionDefaults.decodeLoop)
-    ? sessionDefaults.decodeLoop
+  const decodeLoop = isPlainObject(session.decodeLoop)
+    ? session.decodeLoop
     : {};
 
   const steps = Array.isArray(execution.steps)
@@ -144,17 +145,20 @@ export function extractExecutionContractFacts(manifest) {
     modelId,
     session: {
       layout: normalizeKVLayout(kvcache.layout),
-      disableCommandBatching: decodeLoop.disableCommandBatching
-        ?? DEFAULT_GENERATION_CONFIG.disableCommandBatching,
-      decodeBatchSize: assertPositiveIntegerOrDefault(
-        decodeLoop.batchSize,
-        DEFAULT_BATCHING_DEFAULTS.batchSize,
-        'sessionDefaults.decodeLoop.batchSize'
+      disableCommandBatching: assertBoolean(
+        decodeLoop.disableCommandBatching,
+        'session.decodeLoop.disableCommandBatching'
+      ),
+      decodeBatchSize: assertPositiveInteger(
+        assertRequiredValue(decodeLoop.batchSize, 'session.decodeLoop.batchSize'),
+        'session.decodeLoop.batchSize'
       ),
       headDim: assertPositiveInteger(architecture.headDim, 'architecture.headDim'),
-      kvLen: assertPositiveIntegerOrDefault(
-        architecture.maxSeqLen ?? kvcache.maxSeqLen,
-        DEFAULT_KVCACHE_CONFIG.maxSeqLen,
+      kvLen: assertPositiveInteger(
+        assertRequiredValue(
+          architecture.maxSeqLen ?? kvcache.maxSeqLen,
+          'architecture.maxSeqLen'
+        ),
         'architecture.maxSeqLen'
       ),
       coldQuantMode: normalizeColdQuantMode(kvcache),
@@ -175,7 +179,7 @@ export function validateExecutionContractFacts(facts) {
     : null;
   if (incompatibleStep) {
     errors.push(
-      `[ExecutionContract] sessionDefaults.kvcache.layout="bdpa" is decode-only, ` +
+      `[ExecutionContract] session.kvcache.layout="bdpa" is decode-only, ` +
       `but step "${incompatibleStep.id}" declares ${incompatibleStep.phase} attention.`
     );
   }
@@ -188,25 +192,25 @@ export function validateExecutionContractFacts(facts) {
   if (session.layout === 'bdpa') {
     if (session.disableCommandBatching !== true) {
       errors.push(
-        '[ExecutionContract] sessionDefaults.kvcache.layout="bdpa" requires ' +
-        'sessionDefaults.decodeLoop.disableCommandBatching=true.'
+        '[ExecutionContract] session.kvcache.layout="bdpa" requires ' +
+        'session.decodeLoop.disableCommandBatching=true.'
       );
     }
     if (session.decodeBatchSize > 1) {
       errors.push(
-        `[ExecutionContract] sessionDefaults.kvcache.layout="bdpa" requires ` +
-        `sessionDefaults.decodeLoop.batchSize <= 1; got ${session.decodeBatchSize}.`
+        `[ExecutionContract] session.kvcache.layout="bdpa" requires ` +
+        `session.decodeLoop.batchSize <= 1; got ${session.decodeBatchSize}.`
       );
     }
     if (session.headDim > BDPA_MAX_HEAD_DIM) {
       errors.push(
-        `[ExecutionContract] sessionDefaults.kvcache.layout="bdpa" requires architecture.headDim <= ${BDPA_MAX_HEAD_DIM}; ` +
+        `[ExecutionContract] session.kvcache.layout="bdpa" requires architecture.headDim <= ${BDPA_MAX_HEAD_DIM}; ` +
         `got ${session.headDim}.`
       );
     }
     if (session.kvLen > BDPA_MAX_KV_LEN) {
       errors.push(
-        `[ExecutionContract] sessionDefaults.kvcache.layout="bdpa" requires architecture.maxSeqLen <= ${BDPA_MAX_KV_LEN}; ` +
+        `[ExecutionContract] session.kvcache.layout="bdpa" requires architecture.maxSeqLen <= ${BDPA_MAX_KV_LEN}; ` +
         `got ${session.kvLen}.`
       );
     }
@@ -218,7 +222,7 @@ export function validateExecutionContractFacts(facts) {
     && session.headDim > TIERED_MAX_QUANT_HEAD_DIM
   ) {
     errors.push(
-      `[ExecutionContract] sessionDefaults.kvcache.layout="tiered" with cold quantization requires ` +
+      `[ExecutionContract] session.kvcache.layout="tiered" with cold quantization requires ` +
       `architecture.headDim <= ${TIERED_MAX_QUANT_HEAD_DIM}; got ${session.headDim}.`
     );
   }
@@ -248,7 +252,11 @@ export function buildExecutionContractArtifact(manifest) {
   if (!manifest || typeof manifest !== 'object') {
     return null;
   }
-  if (manifest.modelType === 'diffusion' || manifest.modelType === 'energy') {
+  if (
+    manifest.modelType === 'diffusion'
+    || manifest.modelType === 'energy'
+    || manifest.modelType === 'embedding'
+  ) {
     return null;
   }
   if (!manifest.architecture || !manifest.inference || typeof manifest.inference !== 'object') {

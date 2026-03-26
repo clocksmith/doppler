@@ -65,34 +65,39 @@ export function validateRuntimeConfig(runtimeConfig) {
   if (!runtimeConfig) return;
 
   const generation = runtimeConfig.inference?.generation;
-  if (!generation) {
-    throw new Error('DopplerConfigError: runtime.inference.generation is required.');
-  }
-
   const batching = runtimeConfig.inference?.batching;
-  if (!batching) {
-    throw new Error('DopplerConfigError: runtime.inference.batching is required.');
-  }
   const compute = runtimeConfig.inference?.compute;
-  if (!compute) {
-    throw new Error('DopplerConfigError: runtime.inference.compute is required.');
-  }
   const kernelPathPolicy = runtimeConfig.inference?.kernelPathPolicy;
-  if (!kernelPathPolicy) {
-    throw new Error('DopplerConfigError: runtime.inference.kernelPathPolicy is required.');
-  }
 
-  assertNullablePositiveInt('runtime.inference.batching.readbackInterval', batching.readbackInterval);
-  assertNullablePositiveInt('runtime.inference.batching.ringTokens', batching.ringTokens);
-  assertNullablePositiveInt('runtime.inference.batching.ringStop', batching.ringStop);
-  assertNullablePositiveInt('runtime.inference.batching.ringStaging', batching.ringStaging);
-  assertPositiveInt('runtime.inference.compute.deferredRoundingWindowTokens', compute.deferredRoundingWindowTokens);
-  validateKernelPathPolicy('runtime.inference.kernelPathPolicy', kernelPathPolicy);
-  validateRangeAwareSelectiveWidening(
-    'runtime.inference.compute.rangeAwareSelectiveWidening',
-    compute.rangeAwareSelectiveWidening
-  );
-  assertEmbeddingMode('runtime.inference.generation.embeddingMode', generation.embeddingMode);
+  if (batching) {
+    if (batching.readbackInterval !== undefined) {
+      assertNullablePositiveInt('runtime.inference.batching.readbackInterval', batching.readbackInterval);
+    }
+    if (batching.ringTokens !== undefined) {
+      assertNullablePositiveInt('runtime.inference.batching.ringTokens', batching.ringTokens);
+    }
+    if (batching.ringStop !== undefined) {
+      assertNullablePositiveInt('runtime.inference.batching.ringStop', batching.ringStop);
+    }
+    if (batching.ringStaging !== undefined) {
+      assertNullablePositiveInt('runtime.inference.batching.ringStaging', batching.ringStaging);
+    }
+  }
+  if (compute?.deferredRoundingWindowTokens !== undefined) {
+    assertPositiveInt('runtime.inference.compute.deferredRoundingWindowTokens', compute.deferredRoundingWindowTokens);
+  }
+  if (kernelPathPolicy) {
+    validateKernelPathPolicy('runtime.inference.kernelPathPolicy', kernelPathPolicy);
+  }
+  if (compute?.rangeAwareSelectiveWidening !== undefined) {
+    validateRangeAwareSelectiveWidening(
+      'runtime.inference.compute.rangeAwareSelectiveWidening',
+      compute.rangeAwareSelectiveWidening
+    );
+  }
+  if (generation?.embeddingMode !== undefined) {
+    assertEmbeddingMode('runtime.inference.generation.embeddingMode', generation.embeddingMode);
+  }
 
   validateToolingIntent(runtimeConfig);
   validateEcosystemConfig(runtimeConfig.shared?.ecosystem);
@@ -100,7 +105,7 @@ export function validateRuntimeConfig(runtimeConfig) {
   const debug = runtimeConfig.shared?.debug;
   const debugEnabled = isDebugMode(debug);
   const allowF32Upcast = runtimeConfig.loading?.allowF32UpcastNonMatmul === true;
-  const keepF32Weights = compute.keepF32Weights === true;
+  const keepF32Weights = compute?.keepF32Weights === true;
 
   if (!debugEnabled && (allowF32Upcast || keepF32Weights)) {
     const flags = [];

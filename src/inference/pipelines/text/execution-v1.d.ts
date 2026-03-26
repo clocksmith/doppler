@@ -1,12 +1,12 @@
 import type {
   ExecutionV1GraphSchema,
-  ExecutionV1SessionDefaultsSchema,
+  ExecutionV1SessionSchema,
   ExecutionV1PoliciesSchema,
   ExecutionV1ExpandedStepSchema,
 } from '../../../config/schema/execution-v1.schema.js';
 
 export interface ExecutionV1CompiledState {
-  sessionDefaults: ExecutionV1SessionDefaultsSchema;
+  session: ExecutionV1SessionSchema;
   policies: ExecutionV1PoliciesSchema;
   resolvedSteps: {
     prefill: ExecutionV1ExpandedStepSchema[];
@@ -24,16 +24,17 @@ export declare function compileExecutionV1(options?: {
   manifestInference: {
     schema: string;
     execution: ExecutionV1GraphSchema;
-    sessionDefaults: ExecutionV1SessionDefaultsSchema;
+    session: ExecutionV1SessionSchema;
   };
   modelId?: string;
   numLayers?: number;
+  runtimeSession?: ExecutionV1SessionSchema | null;
 }): ExecutionV1CompiledState;
 
 export declare function applyExecutionV1RuntimeConfig(options?: {
   runtimeConfig: Record<string, unknown>;
   manifest: {
-    inference?: { schema?: string; execution?: ExecutionV1GraphSchema; sessionDefaults?: ExecutionV1SessionDefaultsSchema };
+    inference?: { schema?: string; execution?: ExecutionV1GraphSchema; session?: ExecutionV1SessionSchema };
     modelId?: string;
     architecture?: { numLayers?: number };
   };

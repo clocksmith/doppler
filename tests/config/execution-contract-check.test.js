@@ -54,7 +54,7 @@ function buildExecutionContractFixtureManifest() {
         period: 6,
         offset: 0,
       },
-      sessionDefaults: {
+      session: {
         compute: {
           defaults: {
             activationDtype: 'f32',
@@ -71,6 +71,9 @@ function buildExecutionContractFixtureManifest() {
         kvcache: {
           layout: 'paged',
           kvDtype: 'f16',
+          tiering: {
+            mode: 'off',
+          },
         },
         decodeLoop: {
           batchSize: 1,
@@ -112,12 +115,12 @@ const translateGemmaManifest = buildExecutionContractFixtureManifest();
 
 {
   const conflictingManifest = structuredClone(translateGemmaManifest);
-  conflictingManifest.inference.sessionDefaults.kvcache.layout = 'bdpa';
-  conflictingManifest.inference.sessionDefaults.decodeLoop = {
-    ...(conflictingManifest.inference.sessionDefaults.decodeLoop ?? {}),
+  conflictingManifest.inference.session.kvcache.layout = 'bdpa';
+  conflictingManifest.inference.session.decodeLoop = {
+    ...(conflictingManifest.inference.session.decodeLoop ?? {}),
+    disableCommandBatching: false,
   };
-  conflictingManifest.inference.sessionDefaults.decodeLoop.batchSize = 16;
-  delete conflictingManifest.inference.sessionDefaults.decodeLoop.disableCommandBatching;
+  conflictingManifest.inference.session.decodeLoop.batchSize = 16;
 
   const facts = extractExecutionContractFacts(conflictingManifest);
   assert.equal(facts.session.layout, 'bdpa');
@@ -165,7 +168,7 @@ const translateGemmaManifest = buildExecutionContractFixtureManifest();
       numLayers: 2,
     },
     inference: {
-      sessionDefaults: {
+      session: {
         compute: {
           defaults: {
             activationDtype: 'f16',
@@ -182,11 +185,15 @@ const translateGemmaManifest = buildExecutionContractFixtureManifest();
         kvcache: {
           layout: 'paged',
           kvDtype: 'f16',
+          tiering: {
+            mode: 'off',
+          },
         },
         decodeLoop: {
           batchSize: 4,
           stopCheckMode: 'batch',
           readbackInterval: 1,
+          disableCommandBatching: false,
         },
       },
       execution: {

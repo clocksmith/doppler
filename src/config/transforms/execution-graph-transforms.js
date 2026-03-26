@@ -292,7 +292,7 @@ const FULL_F32_SHADER_MAP = new Map([
  * Returns null if the graph contains fused_ffn_f16.wgsl (no direct f32
  * equivalent exists) or if no f16 activation shaders are present.
  *
- * NOTE: The caller is responsible for also updating sessionDefaults.activationDtype
+ * NOTE: The caller is responsible for also updating session.activationDtype
  * to reflect the widened dtype.
  *
  * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph

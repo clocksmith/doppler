@@ -36,10 +36,10 @@ export function stepHasLayer(step, layerIdx) {
 }
 
 export function requireSessionActivationDtype(
-  sessionDefaults,
-  label = 'sessionDefaults.compute.defaults.activationDtype'
+  session,
+  label = 'session.compute.defaults.activationDtype'
 ) {
-  const activationDtype = sessionDefaults?.compute?.defaults?.activationDtype;
+  const activationDtype = session?.compute?.defaults?.activationDtype;
   if (activationDtype == null) {
     throw new Error(`[Execution] ${label} is required.`);
   }
@@ -93,16 +93,16 @@ function getInlineKernelPathSteps(path) {
   ];
 }
 
-export function assertKernelPathSessionCompatibility(path, sessionDefaults) {
+export function assertKernelPathSessionCompatibility(path, session) {
   if (!path) {
     return;
   }
   const globalActivationDtype = normalizeDtype(
-    path.activationDtype ?? requireSessionActivationDtype(sessionDefaults),
+    path.activationDtype ?? requireSessionActivationDtype(session),
     'inlineKernelPath.activationDtype'
   );
   const kvDtype = normalizeDtype(
-    path.kvDtype ?? sessionDefaults?.kvcache?.kvDtype ?? globalActivationDtype,
+    path.kvDtype ?? session?.kvcache?.kvDtype ?? globalActivationDtype,
     'inlineKernelPath.kvDtype'
   );
 
@@ -161,15 +161,15 @@ export function resolveFinitenessFallbackKernelPathId(kernelPathId) {
 
 export function buildInlineKernelPath(
   steps,
-  sessionDefaults,
+  session,
   modelId,
   numLayers,
   finitenessFallbackKernelPathId = null
 ) {
-  const activationDtype = requireSessionActivationDtype(sessionDefaults);
+  const activationDtype = requireSessionActivationDtype(session);
   const kvDtype = normalizeDtype(
-    sessionDefaults?.kvcache?.kvDtype ?? activationDtype,
-    'sessionDefaults.kvcache.kvDtype'
+    session?.kvcache?.kvDtype ?? activationDtype,
+    'session.kvcache.kvDtype'
   );
   const decodeSteps = buildLayerPhaseSteps(steps, 'decode', 0);
   const prefillSteps = buildLayerPhaseSteps(steps, 'prefill', 0);
@@ -230,7 +230,7 @@ export function buildInlineKernelPath(
     path.sampling = sampling;
   }
 
-  assertKernelPathSessionCompatibility(path, sessionDefaults);
+  assertKernelPathSessionCompatibility(path, session);
   return path;
 }
 
@@ -295,7 +295,7 @@ export function buildLayerPipelineFromExecution(steps, options = {}) {
 }
 
 /**
- * Build a runtime config patch from manifest sessionDefaults.
+ * Build a runtime config patch from manifest/runtime session.
  *
  * Field consumption status after merge into runtimeConfig.inference:
  *
@@ -318,10 +318,10 @@ export function buildLayerPipelineFromExecution(steps, options = {}) {
  * future consumption. They should NOT be removed (non-breaking), but new code
  * should not rely on reading them from runtimeConfig.inference.session.
  */
-export function buildSessionRuntimePatch(sessionDefaults, options = {}) {
+export function buildSessionRuntimePatch(session, options = {}) {
   const includeDecodeLoop = options.includeDecodeLoop !== false;
   const patch = {};
-  const computeDefaults = sessionDefaults?.compute?.defaults ?? null;
+  const computeDefaults = session?.compute?.defaults ?? null;
   const computePatch = {};
   const sessionComputeDefaultsPatch = {};
   const activationDtype = computeDefaults?.activationDtype;
@@ -360,23 +360,26 @@ export function buildSessionRuntimePatch(sessionDefaults, options = {}) {
       },
     };
   }
-  if (sessionDefaults?.kvcache) {
-    patch.kvcache = sessionDefaults.kvcache;
+  if (session?.kvcache) {
+    patch.kvcache = session.kvcache;
   }
-  if (includeDecodeLoop && sessionDefaults?.decodeLoop) {
+  if (includeDecodeLoop && session?.decodeLoop) {
     patch.batching = {
-      batchSize: sessionDefaults.decodeLoop.batchSize,
-      stopCheckMode: sessionDefaults.decodeLoop.stopCheckMode,
-      readbackInterval: sessionDefaults.decodeLoop.readbackInterval,
-      ringTokens: sessionDefaults.decodeLoop.ringTokens,
-      ringStop: sessionDefaults.decodeLoop.ringStop,
-      ringStaging: sessionDefaults.decodeLoop.ringStaging,
+      batchSize: session.decodeLoop.batchSize,
+      stopCheckMode: session.decodeLoop.stopCheckMode,
+      readbackInterval: session.decodeLoop.readbackInterval,
+      ringTokens: session.decodeLoop.ringTokens,
+      ringStop: session.decodeLoop.ringStop,
+      ringStaging: session.decodeLoop.ringStaging,
     };
-    if (sessionDefaults.decodeLoop.disableCommandBatching !== undefined) {
+    if (session.decodeLoop.disableCommandBatching !== undefined) {
       patch.generation = {
-        disableCommandBatching: sessionDefaults.decodeLoop.disableCommandBatching === true,
+        disableCommandBatching: session.decodeLoop.disableCommandBatching === true,
       };
     }
+  }
+  if (session) {
+    patch.session = session;
   }
   return patch;
 }

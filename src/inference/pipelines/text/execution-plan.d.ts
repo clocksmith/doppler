@@ -61,6 +61,10 @@ export interface ExecutionSessionPlan {
     batchSize?: number;
     stopCheckMode?: 'batch' | 'per-token';
     maxTokens?: number;
+    readbackInterval?: number;
+    ringTokens?: number;
+    ringStop?: number;
+    ringStaging?: number;
   };
 }
 
@@ -90,6 +94,10 @@ export declare function resolveExecutionSessionPlan(
     batchSize?: number;
     stopCheckMode?: 'batch' | 'per-token';
     maxTokens?: number;
+    readbackInterval?: number;
+    ringTokens?: number;
+    ringStop?: number;
+    ringStaging?: number;
   }
 ): ExecutionSessionPlan;
 

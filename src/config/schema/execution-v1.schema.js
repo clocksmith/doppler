@@ -13,7 +13,7 @@ export const DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS = {
   outputDtype: 'f16',
 };
 
-export const DEFAULT_EXECUTION_V1_SESSION_DEFAULTS = {
+export const DEFAULT_EXECUTION_V1_SESSION = {
   compute: {
     defaults: { ...DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS },
   },
