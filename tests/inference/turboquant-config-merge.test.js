@@ -40,9 +40,10 @@ function createMockGPUBuffer(descriptor) {
     mappedAtCreation: descriptor?.mappedAtCreation ?? false,
     _arrayBuffer: ab,
     _id: nextBufferId++,
+    destroyed: false,
     getMappedRange() { return ab; },
     unmap() { this.mapState = 'unmapped'; },
-    destroy() {},
+    destroy() { this.destroyed = true; },
     mapAsync() { return Promise.resolve(); },
   };
 }
@@ -244,6 +245,106 @@ try {
     cache.destroy();
   }
 
+  {
+    const cache = createKVCache(
+      baseModelConfig({
+        layerTypes: null,
+        slidingWindow: null,
+      }),
+      true,
+      false,
+      baseRuntimeKV({
+        kvDtype: 'f16',
+        quantization: { mode: 'turboquant', bitWidth: 4, prodMode: false },
+      })
+    );
+    assert.ok(
+      cache instanceof QuantizedKVCache,
+      'Null layerTypes with slidingWindow=null should still create QuantizedKVCache for full-attention-compatible manifests'
+    );
+    assert.equal(cache.layout, 'contiguous_quantized');
+    cache.destroy();
+  }
+
+  {
+    const cache = createKVCache(
+      baseModelConfig({
+        layerTypes: ['full_attention'],
+      }),
+      true,
+      false,
+      {
+        session: {
+          kvcache: baseRuntimeKV({
+            kvDtype: 'f16',
+            quantization: { mode: 'turboquant', bitWidth: 4, prodMode: false },
+          }),
+        },
+      }
+    );
+    assert.ok(
+      cache instanceof QuantizedKVCache,
+      'Session-owned TurboQuant config should create QuantizedKVCache without a top-level kvcache mirror'
+    );
+    cache.destroy();
+  }
+
+  {
+    assert.throws(
+      () => createKVCache(
+        baseModelConfig({
+          layerTypes: ['full_attention'],
+        }),
+        true,
+        false,
+        {
+          kvcache: baseRuntimeKV({
+            kvDtype: 'f16',
+            quantization: { mode: 'turboquant', bitWidth: 4, prodMode: false },
+          }),
+        }
+      ),
+      /runtime\.inference\.session\.kvcache is required/,
+      'Inference inputs must not fall back to top-level runtime.inference.kvcache on the live path'
+    );
+  }
+
+  // Shared read-only TurboQuant buffers should be reused across contiguous caches.
+  {
+    const cacheA = createKVCache(
+      baseModelConfig({
+        layerTypes: ['full_attention'],
+      }),
+      true,
+      false,
+      baseRuntimeKV({
+        kvDtype: 'f16',
+        quantization: { mode: 'turboquant', bitWidth: 4, prodMode: false },
+      })
+    );
+    const cacheB = createKVCache(
+      baseModelConfig({
+        layerTypes: ['full_attention'],
+      }),
+      true,
+      false,
+      baseRuntimeKV({
+        kvDtype: 'f16',
+        quantization: { mode: 'turboquant', bitWidth: 4, prodMode: false },
+      })
+    );
+
+    assert.equal(cacheA.rotationMatrixBuffer, cacheB.rotationMatrixBuffer);
+    assert.equal(cacheA.codebookCentroidsBuffer, cacheB.codebookCentroidsBuffer);
+    assert.equal(cacheA.codebookBoundariesBuffer, cacheB.codebookBoundariesBuffer);
+
+    const sharedRotation = cacheA.rotationMatrixBuffer;
+    cacheA.destroy();
+    assert.equal(sharedRotation.destroyed, false, 'shared rotation buffer must stay alive until final release');
+    cacheB.destroy();
+    assert.equal(sharedRotation.destroyed, true, 'shared rotation buffer must release after final cache destroy');
+  }
+
   // Full-attention + turboquant_prod creates QuantizedKVCache with QJL buffer
   {
     const cache = createKVCache(
@@ -263,6 +364,39 @@ try {
     assert.equal(cache.prodMode, true);
     assert.ok(cache.qjlMatrixBuffer, 'Prod mode should have QJL buffer');
     cache.destroy();
+  }
+
+  // Prod-mode QJL buffer should also be reused across caches.
+  {
+    const cacheA = createKVCache(
+      baseModelConfig({
+        layerTypes: ['full_attention'],
+      }),
+      true,
+      false,
+      baseRuntimeKV({
+        kvDtype: 'f16',
+        quantization: { mode: 'turboquant_prod', bitWidth: 4, prodMode: true },
+      })
+    );
+    const cacheB = createKVCache(
+      baseModelConfig({
+        layerTypes: ['full_attention'],
+      }),
+      true,
+      false,
+      baseRuntimeKV({
+        kvDtype: 'f16',
+        quantization: { mode: 'turboquant_prod', bitWidth: 4, prodMode: true },
+      })
+    );
+
+    assert.equal(cacheA.qjlMatrixBuffer, cacheB.qjlMatrixBuffer);
+    const sharedQjl = cacheA.qjlMatrixBuffer;
+    cacheA.destroy();
+    assert.equal(sharedQjl.destroyed, false, 'shared QJL buffer must stay alive until final release');
+    cacheB.destroy();
+    assert.equal(sharedQjl.destroyed, true, 'shared QJL buffer must release after final cache destroy');
   }
 
   // Full-attention + quantization.mode='none' (default) stays contiguous
@@ -361,6 +495,97 @@ try {
       ),
       /Contiguous quantized KV cache requires/,
       'contiguous_quantized without GPU must throw'
+    );
+  }
+
+  // TurboQuant decode kernels are currently capped at 2048 KV entries.
+  {
+    assert.throws(
+      () => createKVCache(
+        baseModelConfig({
+          layerTypes: ['full_attention'],
+          maxSeqLen: 4096,
+        }),
+        true,
+        false,
+        baseRuntimeKV({
+          kvDtype: 'f16',
+          maxSeqLen: 4096,
+          quantization: { mode: 'turboquant', bitWidth: 4, prodMode: false },
+        })
+      ),
+      /Contiguous quantized KV cache requires maxSeqLen <= 2048/,
+      'contiguous_quantized must fail fast when maxSeqLen exceeds kernel limits'
+    );
+  }
+
+  {
+    assert.throws(
+      () => createKVCache(
+        baseModelConfig({
+          layerTypes: ['full_attention'],
+        }),
+        true,
+        false,
+        baseRuntimeKV({
+          kvDtype: 'f16',
+          quantization: { mode: 'turboquant_outlier', bitWidth: 4, prodMode: false },
+        })
+      ),
+      /turboquant_outlier.*not supported/,
+      'contiguous turboquant_outlier must fail closed until outlier buffers and decode kernels are wired'
+    );
+  }
+
+  {
+    assert.throws(
+      () => createKVCache(
+        baseModelConfig({
+          layerTypes: ['full_attention'],
+          maxSeqLen: 4096,
+        }),
+        true,
+        false,
+        baseRuntimeKV({
+          kvDtype: 'f16',
+          maxSeqLen: 4096,
+          tiering: {
+            ...DEFAULT_KVCACHE_CONFIG.tiering,
+            mode: 'turboquant',
+            hotWindow: 256,
+            coldPageSize: 64,
+            compression: { mode: 'turboquant', blockSize: 1, bitWidth: 4, prodMode: false },
+            gating: { mode: 'force_on', minAluBwRatio: 0 },
+          },
+        })
+      ),
+      /Tiered quantized KV cache requires maxSeqLen <= 2048/,
+      'tiered TurboQuant must fail fast when maxSeqLen exceeds kernel limits'
+    );
+  }
+
+  {
+    assert.throws(
+      () => createKVCache(
+        baseModelConfig({
+          layerTypes: ['full_attention'],
+        }),
+        true,
+        false,
+        baseRuntimeKV({
+          kvDtype: 'f16',
+          tiering: {
+            ...DEFAULT_KVCACHE_CONFIG.tiering,
+            mode: 'turboquant_outlier',
+            hotWindow: 256,
+            coldPageSize: 64,
+            compression: { mode: 'turboquant_outlier', blockSize: 1, bitWidth: 4, prodMode: false },
+            gating: { mode: 'force_on', minAluBwRatio: 0 },
+          },
+        })
+      ),
+      /turboquant_outlier.*not supported/,
+      'tiered turboquant_outlier must fail closed until outlier buffers and decode kernels are wired'
     );
   }
 

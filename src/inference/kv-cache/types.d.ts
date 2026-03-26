@@ -17,19 +17,29 @@ export interface KVCacheConfig {
   headDim: number;
   maxSeqLen: number;
   useGPU: boolean;
-  layout: 'contiguous' | 'paged' | 'tiered' | 'bdpa' | 'bdpa_paged';
+  layout: 'contiguous' | 'contiguous_quantized' | 'paged' | 'tiered' | 'bdpa' | 'bdpa_paged';
   pageSize: number;
   kvDtype: 'f16' | 'f32';
   /** Window size for sliding window cache */
   windowSize?: number;
   /** Tiered KV cache settings (required when layout = 'tiered') */
   tiering?: {
-    mode: 'off' | 'fp16' | 'int8' | 'int4';
+    mode: 'off' | 'fp16' | 'int8' | 'int4' | 'turboquant' | 'turboquant_prod';
     hotWindow: number;
     coldPageSize: number;
     coldDtype: 'f16' | 'f32';
-    compression: { mode: 'none' | 'int8' | 'int4'; blockSize: number };
+    compression: {
+      mode: 'none' | 'int8' | 'int4' | 'turboquant' | 'turboquant_prod';
+      blockSize: number;
+      bitWidth?: number;
+      prodMode?: boolean;
+    };
     gating: { mode: 'auto' | 'force_on' | 'force_off'; minAluBwRatio: number };
+  };
+  quantization?: {
+    mode: 'none' | 'turboquant' | 'turboquant_prod';
+    bitWidth?: number;
+    prodMode?: boolean;
   };
 }
 
@@ -114,7 +124,35 @@ export interface TieredGPUBuffersResult {
   coldPageTableGPU?: GPUBuffer;
   coldPageSize?: number;
   coldPackedStride?: number;
-  coldQuantMode?: 'none' | 'int8' | 'int4';
+  coldQuantMode?: 'none' | 'int8' | 'int4' | 'turboquant' | 'turboquant_prod';
+  rotationMatrixBuffer?: GPUBuffer;
+  codebookCentroidsBuffer?: GPUBuffer;
+  residualKGPU?: GPUBuffer;
+  residualVGPU?: GPUBuffer;
+  residualNormsKGPU?: GPUBuffer;
+  residualNormsVGPU?: GPUBuffer;
+  qjlMatrixBuffer?: GPUBuffer;
+  residualPackedStride?: number;
+}
+
+export interface QuantizedGPUBuffersResult {
+  layout: 'contiguous_quantized';
+  seqLen: number;
+  quantMode: 'turboquant' | 'turboquant_prod';
+  prodMode: boolean;
+  packedStride: number;
+  scalesKGPU: GPUBuffer;
+  scalesVGPU: GPUBuffer;
+  rotationMatrixBuffer: GPUBuffer;
+  codebookCentroidsBuffer: GPUBuffer;
+  keysPackedGPU: GPUBuffer;
+  valuesPackedGPU: GPUBuffer;
+  residualKGPU?: GPUBuffer;
+  residualVGPU?: GPUBuffer;
+  residualNormsKGPU?: GPUBuffer;
+  residualNormsVGPU?: GPUBuffer;
+  residualPackedStride?: number;
+  qjlMatrixBuffer?: GPUBuffer;
 }
 
 export interface BDPAGPUBuffersResult {
@@ -127,7 +165,11 @@ export interface BDPAGPUBuffersResult {
   pageSize: number;
 }
 
-export type GPUBuffersResult = StandardGPUBuffersResult | TieredGPUBuffersResult | BDPAGPUBuffersResult;
+export type GPUBuffersResult =
+  | StandardGPUBuffersResult
+  | TieredGPUBuffersResult
+  | QuantizedGPUBuffersResult
+  | BDPAGPUBuffersResult;
 
 /**
  * Memory statistics
@@ -139,7 +181,7 @@ export interface MemoryStats {
   efficiency: number;
   seqLen: number;
   maxSeqLen: number;
-  layout: 'contiguous' | 'paged' | 'tiered' | 'bdpa_paged';
+  layout: 'contiguous' | 'contiguous_quantized' | 'paged' | 'tiered' | 'bdpa_paged';
 }
 
 /**

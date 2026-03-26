@@ -1,16 +1,28 @@
 {
-  "id": "turboquant-contiguous-prod-4bit",
+  "id": "profiles/turboquant-contiguous-prod",
+  "name": "turboquant-contiguous-prod",
+  "description": "Experimental contiguous TurboQuant prod profile with execution-v1-native session wiring and QJL residual buffers.",
   "intent": "calibrate",
   "stability": "experimental",
   "owner": "inference",
   "createdAtUtc": "2026-03-25T00:00:00Z",
-  "inference": {
-    "kvcache": {
-      "layout": "contiguous",
-      "quantization": {
-        "mode": "turboquant_prod",
-        "bitWidth": 4,
-        "prodMode": true
+  "extends": "profiles/throughput",
+  "runtime": {
+    "inference": {
+      "session": {
+        "kvcache": {
+          "layout": "contiguous",
+          "maxSeqLen": 2048,
+          "kvDtype": "f16",
+          "tiering": {
+            "mode": "off"
+          },
+          "quantization": {
+            "mode": "turboquant_prod",
+            "bitWidth": 4,
+            "prodMode": true
+          }
+        }
       }
     }
   }

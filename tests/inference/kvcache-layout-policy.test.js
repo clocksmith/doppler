@@ -126,6 +126,40 @@ try {
     );
   }
 
+  {
+    const cache = createKVCache(
+      baseModelConfig({
+        layerTypes: null,
+        slidingWindow: null,
+      }),
+      false,
+      false,
+      baseRuntimeKV()
+    );
+    assert.equal(
+      cache.layout,
+      'contiguous',
+      'Null layerTypes with slidingWindow=null should stay contiguous for full-attention-compatible manifests'
+    );
+  }
+
+  {
+    const cache = createKVCache(
+      baseModelConfig({
+        layerTypes: null,
+        slidingWindow: 1024,
+      }),
+      false,
+      false,
+      baseRuntimeKV()
+    );
+    assert.equal(
+      cache.layout,
+      'paged',
+      'Null layerTypes with explicit slidingWindow should still allow paged upgrade'
+    );
+  }
+
   // === Explicit paged + forceContiguousKVCache must fail fast ===
   // When runtime config requests layout: 'paged' explicitly,
   // but model has full-attention layers, the runtime must reject the request

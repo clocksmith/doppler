@@ -158,9 +158,16 @@ export function computeMaxLloydCodebook(d, bitWidth) {
 // -- Codebook cache (per dimension × bit-width) -------------------------------
 
 const codebookCache = new Map();
+const rotationMatrixCache = new Map();
+const qjlMatrixCache = new Map();
+const turboQuantSharedBufferCache = new WeakMap();
 
 function codebookKey(d, bitWidth) {
   return `${d}:${bitWidth}`;
+}
+
+function matrixKey(d, seed) {
+  return `${d}:${seed}`;
 }
 
 /**
@@ -179,6 +186,28 @@ export function getCodebook(d, bitWidth) {
     log.info('TurboQuant', `Computed codebook: d=${d}, b=${bitWidth}, centroids=${cb.centroids.length}`);
   }
   return cb;
+}
+
+export function getRotationMatrix(d, seed) {
+  const key = matrixKey(d, seed);
+  let matrix = rotationMatrixCache.get(key);
+  if (!matrix) {
+    matrix = generateRotationMatrix(d, seed);
+    rotationMatrixCache.set(key, matrix);
+    log.info('TurboQuant', `Computed rotation matrix: d=${d}, seed=${seed}`);
+  }
+  return matrix;
+}
+
+export function getQJLMatrix(d, seed) {
+  const key = matrixKey(d, seed);
+  let matrix = qjlMatrixCache.get(key);
+  if (!matrix) {
+    matrix = generateQJLMatrix(d, seed);
+    qjlMatrixCache.set(key, matrix);
+    log.info('TurboQuant', `Computed QJL matrix: d=${d}, seed=${seed}`);
+  }
+  return matrix;
 }
 
 // -- Rotation matrix generation -----------------------------------------------
@@ -386,6 +415,119 @@ export function uploadCodebook(device, codebook, prefix) {
   device.queue.writeBuffer(boundariesBuffer, 0, codebook.boundaries);
 
   return { centroidsBuffer, boundariesBuffer };
+}
+
+function getDeviceSharedBufferCache(device) {
+  let cache = turboQuantSharedBufferCache.get(device);
+  if (!cache) {
+    cache = new Map();
+    turboQuantSharedBufferCache.set(device, cache);
+  }
+  return cache;
+}
+
+function retainSharedBuffer(cache, key, factory) {
+  let entry = cache.get(key);
+  if (!entry) {
+    entry = factory();
+    entry.refCount = 0;
+    cache.set(key, entry);
+  }
+  entry.refCount += 1;
+
+  let released = false;
+  return {
+    value: entry.value,
+    release() {
+      if (released) {
+        return;
+      }
+      released = true;
+      entry.refCount -= 1;
+      if (entry.refCount <= 0) {
+        entry.destroy();
+        cache.delete(key);
+      }
+    },
+  };
+}
+
+export function retainTurboQuantSharedBuffers(device, options = {}) {
+  const headDim = Number(options.headDim);
+  const bitWidth = Number(options.bitWidth ?? 4);
+  const prodMode = options.prodMode === true;
+  if (!device) {
+    throw new Error('TurboQuant shared buffers require a GPU device.');
+  }
+  if (!Number.isInteger(headDim) || headDim <= 0) {
+    throw new Error(`TurboQuant shared buffers require headDim > 0; got "${options.headDim}".`);
+  }
+  if (!Number.isInteger(bitWidth) || bitWidth < 1 || bitWidth > 4) {
+    throw new Error(`TurboQuant shared buffers require bitWidth in [1, 4]; got "${options.bitWidth}".`);
+  }
+
+  const cache = getDeviceSharedBufferCache(device);
+  const releasers = [];
+
+  const rotation = retainSharedBuffer(cache, `rotation:${headDim}`, () => {
+    const buffer = uploadRotationMatrix(device, getRotationMatrix(headDim, ROTATION_SEED), 'turboquant_rotation');
+    return {
+      value: buffer,
+      destroy() {
+        buffer.destroy();
+      },
+    };
+  });
+  releasers.push(rotation.release);
+
+  const codebook = retainSharedBuffer(cache, `codebook:${headDim}:${bitWidth}`, () => {
+    const uploaded = uploadCodebook(device, getCodebook(headDim, bitWidth), 'turboquant_codebook');
+    return {
+      value: uploaded,
+      destroy() {
+        uploaded.centroidsBuffer.destroy();
+        uploaded.boundariesBuffer.destroy();
+      },
+    };
+  });
+  releasers.push(codebook.release);
+
+  let qjl = null;
+  if (prodMode) {
+    qjl = retainSharedBuffer(cache, `qjl:${headDim}`, () => {
+      const qjlData = getQJLMatrix(headDim, QJL_SEED);
+      const buffer = device.createBuffer({
+        label: 'turboquant_qjl_matrix',
+        size: qjlData.byteLength,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      });
+      device.queue.writeBuffer(buffer, 0, qjlData);
+      return {
+        value: buffer,
+        destroy() {
+          buffer.destroy();
+        },
+      };
+    });
+    releasers.push(qjl.release);
+  }
+
+  let released = false;
+  return {
+    rotationMatrixBuffer: rotation.value,
+    codebookCentroidsBuffer: codebook.value.centroidsBuffer,
+    codebookBoundariesBuffer: codebook.value.boundariesBuffer,
+    qjlMatrixBuffer: qjl ? qjl.value : null,
+    release() {
+      if (released) {
+        return;
+      }
+      released = true;
+      for (let idx = releasers.length - 1; idx >= 0; idx--) {
+        releasers[idx]();
+      }
+    },
+  };
 }
 
 // -- TurboQuant packing helpers -----------------------------------------------

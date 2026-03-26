@@ -5,14 +5,10 @@ import { getDevice, getDeviceLimits, getKernelCapabilities } from '../../../gpu/
 import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { KVCache, SlidingWindowKVCache, TieredKVCache, BasisDecomposedPagedCache, QuantizedKVCache } from '../../kv-cache.js';
 import {
-  generateRotationMatrix,
-  uploadRotationMatrix,
-  getCodebook,
-  uploadCodebook,
-  generateQJLMatrix,
-  ROTATION_SEED,
-  QJL_SEED,
+  retainTurboQuantSharedBuffers,
 } from '../../../gpu/kernels/turboquant-codebook.js';
+import { getKernelConfig } from '../../../gpu/kernels/kernel-configs.js';
+import { selectRuleValue as selectKernelRuleValue } from '../../../gpu/kernels/rule-registry.js';
 import { Tokenizer } from '../../tokenizer.js';
 import { MoERouter } from '../../moe-router.js';
 import { SpeculativeDecoder } from '../../speculative.js';
@@ -36,6 +32,48 @@ function resolveErrorMessage(error) {
     return error;
   }
   return String(error);
+}
+
+function isPlainObject(value) {
+  return value != null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isRuntimeInferenceConfigInput(value) {
+  if (!isPlainObject(value)) {
+    return false;
+  }
+  return Object.prototype.hasOwnProperty.call(value, 'session')
+    || Object.prototype.hasOwnProperty.call(value, 'kvcache')
+    || Object.prototype.hasOwnProperty.call(value, 'compute')
+    || Object.prototype.hasOwnProperty.call(value, 'batching')
+    || Object.prototype.hasOwnProperty.call(value, 'generation')
+    || Object.prototype.hasOwnProperty.call(value, 'kernelPath')
+    || Object.prototype.hasOwnProperty.call(value, 'pipeline');
+}
+
+function resolveRuntimeKVConfig(runtimeInput) {
+  if (runtimeInput != null && !isRuntimeInferenceConfigInput(runtimeInput)) {
+    return runtimeInput;
+  }
+  const runtimeInference = runtimeInput ?? getRuntimeConfig().inference;
+  if (runtimeInference?.session?.kvcache) {
+    return runtimeInference.session.kvcache;
+  }
+  throw new Error(
+    'runtime.inference.session.kvcache is required for live KV cache creation. ' +
+    'Top-level runtime.inference.kvcache is not supported on the live path.'
+  );
+}
+
+function assertSupportedTurboQuantMode(mode, label) {
+  if (String(mode ?? '').trim().toLowerCase() !== 'turboquant_outlier') {
+    return;
+  }
+  throw new Error(
+    `${label}="turboquant_outlier" is not supported yet. ` +
+    'TurboQuant outlier high-precision buffers and decode kernels are not wired end to end; ' +
+    'use "turboquant" or "turboquant_prod".'
+  );
 }
 
 function toArrayBuffer(value, label) {
@@ -503,6 +541,114 @@ function hasFullAttentionLayers(layerTypes) {
   return layerTypes.some((layerType) => !isSlidingLayerType(layerType));
 }
 
+function resolveContiguousKVPolicy(modelConfig) {
+  if (hasFullAttentionLayers(modelConfig.layerTypes)) {
+    return {
+      forceContiguousKVCache: true,
+      reason: 'layerPattern',
+    };
+  }
+  if (modelConfig.layerTypes == null && modelConfig.slidingWindow == null) {
+    return {
+      forceContiguousKVCache: true,
+      reason: 'slidingWindow',
+    };
+  }
+  return {
+    forceContiguousKVCache: false,
+    reason: 'none',
+  };
+}
+
+function getRequiredKernelMaxKVLen(operation, variant, label) {
+  const config = getKernelConfig(operation, variant);
+  const maxKVLen = config.variantMetadata?.maxKVLen;
+  if (!Number.isFinite(maxKVLen) || maxKVLen <= 0) {
+    throw new Error(`${label} kernel "${variant}" is missing variantMetadata.maxKVLen.`);
+  }
+  return maxKVLen;
+}
+
+function resolveTieredRequestedQuantMode(runtimeKV) {
+  const tieringMode = String(runtimeKV?.tiering?.mode ?? 'off').trim().toLowerCase();
+  assertSupportedTurboQuantMode(tieringMode, 'runtime.inference.session.kvcache.tiering.mode');
+  const compressionMode = String(
+    runtimeKV?.tiering?.compression?.mode
+    ?? (tieringMode === 'int8'
+      || tieringMode === 'int4'
+      || tieringMode === 'turboquant'
+      || tieringMode === 'turboquant_prod'
+      ? tieringMode
+      : 'none')
+  ).trim().toLowerCase();
+  assertSupportedTurboQuantMode(
+    compressionMode,
+    'runtime.inference.session.kvcache.tiering.compression.mode'
+  );
+  const gatingMode = String(runtimeKV?.tiering?.gating?.mode ?? 'auto').trim().toLowerCase();
+  if (gatingMode === 'force_off') {
+    return 'none';
+  }
+  return compressionMode;
+}
+
+function resolveContiguousRequestedQuantMode(runtimeKV) {
+  const quantMode = String(runtimeKV?.quantization?.mode ?? 'none').trim().toLowerCase();
+  assertSupportedTurboQuantMode(
+    quantMode,
+    'runtime.inference.session.kvcache.quantization.mode'
+  );
+  return quantMode;
+}
+
+function assertQuantizedKVKernelSupport(modelConfig, cacheLayout, cacheMaxSeqLen, runtimeKV) {
+  if (cacheLayout === 'contiguous_quantized') {
+    if (modelConfig.headDim > 256) {
+      throw new Error(
+        `Contiguous quantized KV cache requires headDim <= 256; got ${modelConfig.headDim}.`
+      );
+    }
+    const quantMode = resolveContiguousRequestedQuantMode(runtimeKV);
+    const variant = selectKernelRuleValue('attention', 'contiguousQuantVariant', { mode: quantMode });
+    const maxKVLen = getRequiredKernelMaxKVLen(
+      'attention_contiguous_quant',
+      variant,
+      'Contiguous quant attention'
+    );
+    if (cacheMaxSeqLen > maxKVLen) {
+      throw new Error(
+        `Contiguous quantized KV cache requires maxSeqLen <= ${maxKVLen}; got ${cacheMaxSeqLen}.`
+      );
+    }
+    return;
+  }
+
+  if (cacheLayout !== 'tiered') {
+    return;
+  }
+
+  const coldQuantMode = resolveTieredRequestedQuantMode(runtimeKV);
+  if (coldQuantMode === 'none') {
+    return;
+  }
+  if (modelConfig.headDim > 256) {
+    throw new Error(
+      `Tiered quantized KV cache requires headDim <= 256; got ${modelConfig.headDim}.`
+    );
+  }
+  const variant = selectKernelRuleValue('attention', 'tieredQuantVariant', { mode: coldQuantMode });
+  const maxKVLen = getRequiredKernelMaxKVLen(
+    'attention_tiered_quant',
+    variant,
+    'Tiered quant attention'
+  );
+  if (cacheMaxSeqLen > maxKVLen) {
+    throw new Error(
+      `Tiered quantized KV cache requires maxSeqLen <= ${maxKVLen}; got ${cacheMaxSeqLen}.`
+    );
+  }
+}
+
 
 // ============================================================================
 // KV Cache Setup
@@ -510,8 +656,9 @@ function hasFullAttentionLayers(layerTypes) {
 
 
 export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig) {
-  const runtimeKV = runtimeConfig ?? getRuntimeConfig().inference.kvcache;
-  const forceContiguousKVCache = hasFullAttentionLayers(modelConfig.layerTypes);
+  const runtimeKV = resolveRuntimeKVConfig(runtimeConfig);
+  const contiguousKVPolicy = resolveContiguousKVPolicy(modelConfig);
+  const forceContiguousKVCache = contiguousKVPolicy.forceContiguousKVCache;
   const modelMaxSeqLen = modelConfig.maxSeqLen;
   if (!Number.isFinite(modelMaxSeqLen) || modelMaxSeqLen <= 0) {
     throw new Error('Model config is missing maxSeqLen.');
@@ -526,19 +673,19 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   
   let cacheLayout = runtimeKV.layout;
   if (!cacheLayout) {
-    throw new Error('runtime.inference.kvcache.layout is required.');
+    throw new Error('runtime.inference.session.kvcache.layout is required.');
   }
   if (cacheLayout === 'tiered' && !runtimeKV.tiering) {
-    throw new Error('runtime.inference.kvcache.tiering is required for tiered layout.');
+    throw new Error('runtime.inference.session.kvcache.tiering is required for tiered layout.');
   }
   const tieringMode = runtimeKV.tiering?.mode;
   if (tieringMode == null) {
-    throw new Error('runtime.inference.kvcache.tiering.mode is required.');
+    throw new Error('runtime.inference.session.kvcache.tiering.mode is required.');
   }
   let layoutSource = 'runtime';
   if (tieringMode !== 'off' && cacheLayout !== 'tiered') {
     if (cacheLayout !== 'contiguous') {
-      throw new Error('runtime.inference.kvcache.layout must be "tiered" when tiering.mode is enabled.');
+      throw new Error('runtime.inference.session.kvcache.layout must be "tiered" when tiering.mode is enabled.');
     }
     cacheLayout = 'tiered';
     layoutSource = 'tiering';
@@ -547,7 +694,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
     cacheLayout = 'paged';
     layoutSource = 'threshold';
   }
-  const quantMode = runtimeKV.quantization?.mode ?? 'none';
+  const quantMode = resolveContiguousRequestedQuantMode(runtimeKV);
   if (forceContiguousKVCache && cacheLayout === 'contiguous' && quantMode !== 'none') {
     cacheLayout = 'contiguous_quantized';
     layoutSource = 'quantization';
@@ -555,7 +702,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   if (forceContiguousKVCache && cacheLayout === 'paged') {
     throw new Error(
       'Paged KV cache layout is not supported for models with full-attention layers. ' +
-      'Set runtime.inference.kvcache.layout to "contiguous" instead.'
+      'Set runtime.inference.session.kvcache.layout to "contiguous" instead.'
     );
   }
   if (debug && cacheLayout !== runtimeKV.layout) {
@@ -625,6 +772,8 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
     }
   }
 
+  assertQuantizedKVKernelSupport(modelConfig, cacheLayout, cacheMaxSeqLen, runtimeKV);
+
   
 	  const cacheConfig = {
 	    numLayers: modelConfig.numLayers,
@@ -659,36 +808,16 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
     const quantCfg = runtimeKV.quantization ?? {};
     const qCache = new QuantizedKVCache({
       ...cacheConfig,
-      quantMode: quantCfg.mode ?? 'turboquant',
+      quantMode,
       bitWidth: quantCfg.bitWidth ?? 4,
       prodMode: quantCfg.prodMode === true,
     });
-    // Allocate and set shared TurboQuant buffers
     const device = getDevice();
-    const rotMatrix = generateRotationMatrix(modelConfig.headDim, ROTATION_SEED);
-    const rotationMatrixBuffer = uploadRotationMatrix(device, rotMatrix, 'turboquant_rotation');
-    const codebook = getCodebook(modelConfig.headDim, quantCfg.bitWidth ?? 4);
-    const { centroidsBuffer: codebookCentroidsBuffer, boundariesBuffer: codebookBoundariesBuffer } =
-      uploadCodebook(device, codebook, 'turboquant_codebook');
-
-    const sharedBuffers = {
-      rotationMatrixBuffer,
-      codebookCentroidsBuffer,
-      codebookBoundariesBuffer,
-    };
-    if (quantCfg.prodMode === true) {
-      const qjlData = generateQJLMatrix(modelConfig.headDim, QJL_SEED);
-      const qjlBuffer = device.createBuffer({
-        label: 'turboquant_qjl_matrix',
-        size: qjlData.byteLength,
-        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-        mappedAtCreation: true,
-      });
-      new Float32Array(qjlBuffer.getMappedRange()).set(qjlData);
-      qjlBuffer.unmap();
-      sharedBuffers.qjlMatrixBuffer = qjlBuffer;
-    }
-    qCache.setSharedBuffers(sharedBuffers);
+    qCache.setSharedBuffers(retainTurboQuantSharedBuffers(device, {
+      headDim: modelConfig.headDim,
+      bitWidth: quantCfg.bitWidth ?? 4,
+      prodMode: quantCfg.prodMode === true,
+    }));
     kvCache = qCache;
   } else {
     kvCache = new KVCache(cacheConfig);
@@ -722,8 +851,10 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   );
 
   if (debug) {
-    if (forceContiguousKVCache && modelConfig.layerTypes) {
+    if (contiguousKVPolicy.reason === 'layerPattern') {
       log.debug('Pipeline', 'Layer pattern includes full-attention layers; paged layout blocked, contiguous enforced.');
+    } else if (contiguousKVPolicy.reason === 'slidingWindow') {
+      log.debug('Pipeline', 'Model declares attention.slidingWindow=null without explicit layerTypes; treating KV layout as contiguous-compatible.');
     }
     const isSliding = kvCache instanceof SlidingWindowKVCache;
     log.debug('Pipeline', `KV cache: type=${kvCache?.constructor?.name || 'unknown'}, kvDtype=${kvCache.kvDtype}, layout=${kvCache.layout}, maxSeqLen=${kvCache.maxSeqLen}, windowSize=${isSliding ? kvCache.windowSize : null}`);

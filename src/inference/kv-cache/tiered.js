@@ -5,17 +5,21 @@ import { KVCache } from './base.js';
 import { SlidingWindowKVCache } from './sliding-window.js';
 import {
   computePackedStride,
-  generateRotationMatrix,
-  uploadRotationMatrix,
-  getCodebook,
-  uploadCodebook,
-  generateQJLMatrix,
-  ROTATION_SEED,
-  QJL_SEED,
+  retainTurboQuantSharedBuffers,
 } from '../../gpu/kernels/turboquant-codebook.js';
 
 function isTurboQuantMode(mode) {
-  return mode === 'turboquant' || mode === 'turboquant_prod' || mode === 'turboquant_outlier';
+  return mode === 'turboquant' || mode === 'turboquant_prod';
+}
+
+function assertSupportedTurboQuantMode(mode, label) {
+  if (mode !== 'turboquant_outlier') {
+    return mode;
+  }
+  throw new Error(
+    `TieredKVCache ${label}="${mode}" is not supported yet. ` +
+    'TurboQuant outlier high-precision buffers and decode kernels are not wired end to end.'
+  );
 }
 
 // ============================================================================
@@ -69,7 +73,7 @@ export class TieredKVCache {
     
     this.tieringMode = tiering.mode;
     
-    const turboQuantModes = ['turboquant', 'turboquant_prod', 'turboquant_outlier'];
+    const turboQuantModes = ['turboquant', 'turboquant_prod'];
     const defaultCompressionMode = turboQuantModes.includes(tiering.mode)
       ? tiering.mode
       : (tiering.mode === 'int8' ? 'int8' : (tiering.mode === 'int4' ? 'int4' : 'none'));
@@ -97,7 +101,10 @@ export class TieredKVCache {
       throw new Error('TieredKVCache currently requires f16 KV storage.');
     }
 
+    assertSupportedTurboQuantMode(this.tieringMode, 'tiering.mode');
+    assertSupportedTurboQuantMode(this.compression?.mode ?? 'none', 'tiering.compression.mode');
     this.coldQuantMode = this._resolveCompressionMode(this.compression, this.gating);
+    assertSupportedTurboQuantMode(this.coldQuantMode, 'resolved cold quant mode');
     if (this.coldQuantMode !== 'none' && this.compression.blockSize !== 1) {
       throw new Error('TieredKVCache compression.blockSize must be 1 (per-token) for quantized cold tiers.');
     }
@@ -124,6 +131,7 @@ export class TieredKVCache {
     this.codebookCentroidsBuffer = null;
     this.codebookBoundariesBuffer = null;
     this.qjlMatrixBuffer = null;
+    this.releaseSharedBuffers = null;
 
     if (this.coldQuantMode !== 'none' && !this.useGPU) {
       throw new Error('TieredKVCache quantization requires GPU.');
@@ -206,26 +214,16 @@ export class TieredKVCache {
 
     // Upload shared TurboQuant buffers if needed
     if (this.isTurboQuant) {
-      const rotMatrix = generateRotationMatrix(this.headDim, ROTATION_SEED);
-      this.rotationMatrixBuffer = uploadRotationMatrix(device, rotMatrix, 'turboquant_rotation');
-
-      const codebook = getCodebook(this.headDim, this.turboQuantBitWidth);
-      const { centroidsBuffer, boundariesBuffer } = uploadCodebook(device, codebook, 'turboquant_codebook');
-      this.codebookCentroidsBuffer = centroidsBuffer;
-      this.codebookBoundariesBuffer = boundariesBuffer;
-
-      if (this.isProdMode) {
-        const qjlData = generateQJLMatrix(this.headDim, QJL_SEED);
-        const qjlBuffer = device.createBuffer({
-          label: 'turboquant_qjl_matrix',
-          size: qjlData.byteLength,
-          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-          mappedAtCreation: true,
-        });
-        new Float32Array(qjlBuffer.getMappedRange()).set(qjlData);
-        qjlBuffer.unmap();
-        this.qjlMatrixBuffer = qjlBuffer;
-      }
+      const sharedBuffers = retainTurboQuantSharedBuffers(device, {
+        headDim: this.headDim,
+        bitWidth: this.turboQuantBitWidth,
+        prodMode: this.isProdMode,
+      });
+      this.rotationMatrixBuffer = sharedBuffers.rotationMatrixBuffer;
+      this.codebookCentroidsBuffer = sharedBuffers.codebookCentroidsBuffer;
+      this.codebookBoundariesBuffer = sharedBuffers.codebookBoundariesBuffer;
+      this.qjlMatrixBuffer = sharedBuffers.qjlMatrixBuffer;
+      this.releaseSharedBuffers = sharedBuffers.release;
     }
 
     const layers = new Array(this.numLayers);
@@ -640,10 +638,14 @@ export class TieredKVCache {
         layer.residualNormsVGPU?.destroy();
       }
     }
-    this.rotationMatrixBuffer?.destroy();
-    this.codebookCentroidsBuffer?.destroy();
-    this.codebookBoundariesBuffer?.destroy();
-    this.qjlMatrixBuffer?.destroy();
+    if (this.releaseSharedBuffers) {
+      this.releaseSharedBuffers();
+    } else {
+      this.rotationMatrixBuffer?.destroy();
+      this.codebookCentroidsBuffer?.destroy();
+      this.codebookBoundariesBuffer?.destroy();
+      this.qjlMatrixBuffer?.destroy();
+    }
   }
 
   
@@ -678,21 +680,30 @@ export class TieredKVCache {
       const packedStride = this.coldPackedStride;
       const packedBytesPerToken = this.numHeads * packedStride * 4;
       const scalesBytesPerToken = this.numHeads * 2;
+      const mseBytesPerToken = this.isProdMode ? this.numHeads * this.msePackedStride * 4 : packedBytesPerToken;
+      const residualBytesPerToken = this.isProdMode ? this.numHeads * this.residualPackedStride * 4 : 0;
       for (let l = 0; l < this.numLayers; l++) {
         const src = this.coldLayers[l];
         const dst = cloned.coldLayers[l];
         const usedTokens = src.seqLen;
         if (usedTokens > 0) {
-          const packedBytes = usedTokens * packedBytesPerToken;
+          const packedBytes = usedTokens * mseBytesPerToken;
           const scalesBytes = usedTokens * scalesBytesPerToken;
           const encoder = device.createCommandEncoder({ label: `kv_cache_cold_clone_${l}` });
           encoder.copyBufferToBuffer(src.keysPackedGPU, 0, dst.keysPackedGPU, 0, packedBytes);
           encoder.copyBufferToBuffer(src.valuesPackedGPU, 0, dst.valuesPackedGPU, 0, packedBytes);
           encoder.copyBufferToBuffer(src.scalesKGPU, 0, dst.scalesKGPU, 0, scalesBytes);
           encoder.copyBufferToBuffer(src.scalesVGPU, 0, dst.scalesVGPU, 0, scalesBytes);
+          if (this.isProdMode) {
+            const residualBytes = usedTokens * residualBytesPerToken;
+            encoder.copyBufferToBuffer(src.residualKGPU, 0, dst.residualKGPU, 0, residualBytes);
+            encoder.copyBufferToBuffer(src.residualVGPU, 0, dst.residualVGPU, 0, residualBytes);
+            encoder.copyBufferToBuffer(src.residualNormsKGPU, 0, dst.residualNormsKGPU, 0, scalesBytes);
+            encoder.copyBufferToBuffer(src.residualNormsVGPU, 0, dst.residualNormsVGPU, 0, scalesBytes);
+          }
           device.queue.submit([encoder.finish()]);
-          dst.seqLen = src.seqLen;
         }
+        dst.seqLen = src.seqLen;
       }
     }
 

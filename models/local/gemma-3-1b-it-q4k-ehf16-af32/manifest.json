@@ -4359,7 +4359,7 @@
     "convertedAt": "2026-02-26T20:19:47.896Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-03-25T20:57:33.067Z",
+      "at": "2026-03-26T12:12:36.863Z",
       "source": "local-hash-resync",
       "config": "gemma-3-1b-it-q4k-ehf16-af32.json"
     }

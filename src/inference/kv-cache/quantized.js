@@ -35,6 +35,12 @@ export class QuantizedKVCache {
     if (this.kvDtype !== 'f16') {
       throw new Error('QuantizedKVCache requires f16 KV input.');
     }
+    if (this.quantMode === 'turboquant_outlier') {
+      throw new Error(
+        'QuantizedKVCache quantMode="turboquant_outlier" is not supported yet. ' +
+        'TurboQuant outlier high-precision buffers and decode kernels are not wired end to end.'
+      );
+    }
     if (!this.useGPU) {
       throw new Error('QuantizedKVCache requires GPU.');
     }
@@ -59,6 +65,7 @@ export class QuantizedKVCache {
     this.codebookCentroidsBuffer = null;
     this.codebookBoundariesBuffer = null;
     this.qjlMatrixBuffer = null;
+    this.releaseSharedBuffers = null;
 
     // Per-layer quantized storage
     this.layers = this._createLayers();
@@ -174,6 +181,7 @@ export class QuantizedKVCache {
     this.rotationMatrixBuffer = buffers.rotationMatrixBuffer;
     this.codebookCentroidsBuffer = buffers.codebookCentroidsBuffer;
     this.codebookBoundariesBuffer = buffers.codebookBoundariesBuffer;
+    this.releaseSharedBuffers = typeof buffers.release === 'function' ? buffers.release : null;
     if (this.prodMode) {
       this.qjlMatrixBuffer = buffers.qjlMatrixBuffer;
     }
@@ -363,9 +371,13 @@ export class QuantizedKVCache {
       layer.scalesK?.destroy();
       layer.scalesV?.destroy();
     }
-    this.rotationMatrixBuffer?.destroy();
-    this.codebookCentroidsBuffer?.destroy();
-    this.codebookBoundariesBuffer?.destroy();
-    this.qjlMatrixBuffer?.destroy();
+    if (this.releaseSharedBuffers) {
+      this.releaseSharedBuffers();
+    } else {
+      this.rotationMatrixBuffer?.destroy();
+      this.codebookCentroidsBuffer?.destroy();
+      this.codebookBoundariesBuffer?.destroy();
+      this.qjlMatrixBuffer?.destroy();
+    }
   }
 }

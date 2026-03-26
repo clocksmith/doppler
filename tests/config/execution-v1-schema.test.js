@@ -217,14 +217,98 @@ if (compiled.runtimeInferencePatch.kernelPathSource !== 'execution-v1') {
 if (!compiled.runtimeInferencePatch.compute?.activationDtype) {
   throw new Error('Expected compute.activationDtype in patch');
 }
-if (!compiled.runtimeInferencePatch.kvcache?.kvDtype) {
-  throw new Error('Expected kvcache.kvDtype in patch');
+if (!compiled.runtimeInferencePatch.session?.kvcache?.kvDtype) {
+  throw new Error('Expected session.kvcache.kvDtype in patch');
+}
+if (compiled.runtimeInferencePatch.kvcache) {
+  throw new Error('Execution-v1 runtime patch must not mirror session.kvcache to top-level kvcache');
 }
 if (compiled.runtimeInferencePatch.batching) {
   throw new Error('Execution-v1 runtime patch must not pre-apply decodeLoop batching defaults');
 }
 if (compiled.runtimeInferencePatch.generation) {
   throw new Error('Execution-v1 runtime patch must not pre-apply decodeLoop generation defaults');
+}
+
+const compiledTurboQuant = compileExecutionV1({
+  manifestInference: {
+    schema: EXECUTION_V1_SCHEMA_ID,
+    execution: graph,
+    session: {
+      compute: {
+        defaults: { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' },
+      },
+      kvcache: {
+        layout: 'contiguous',
+        kvDtype: 'f16',
+        maxSeqLen: 2048,
+        tiering: { mode: 'off' },
+        quantization: {
+          mode: 'turboquant',
+          bitWidth: 4,
+          prodMode: false,
+        },
+      },
+      decodeLoop: null,
+    },
+  },
+  modelId: 'test-model-turboquant',
+  numLayers: 26,
+});
+
+if (compiledTurboQuant.runtimeInferencePatch.session?.kvcache?.quantization?.mode !== 'turboquant') {
+  throw new Error('Execution-v1 session patch must preserve quantization mode');
+}
+if (compiledTurboQuant.runtimeInferencePatch.session?.kvcache?.maxSeqLen !== 2048) {
+  throw new Error('Execution-v1 session patch must preserve maxSeqLen');
+}
+if (compiledTurboQuant.runtimeInferencePatch.kvcache) {
+  throw new Error('Execution-v1 TurboQuant patch must not mirror session.kvcache to top-level kvcache');
+}
+
+const compiledTieredTurboQuant = compileExecutionV1({
+  manifestInference: {
+    schema: EXECUTION_V1_SCHEMA_ID,
+    execution: graph,
+    session: {
+      compute: {
+        defaults: { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' },
+      },
+      kvcache: {
+        layout: 'tiered',
+        kvDtype: 'f16',
+        maxSeqLen: 2048,
+        tiering: {
+          mode: 'turboquant',
+          hotWindow: 256,
+          coldPageSize: 64,
+          coldDtype: 'f16',
+          compression: {
+            mode: 'turboquant',
+            blockSize: 1,
+            bitWidth: 4,
+            prodMode: false,
+          },
+          gating: {
+            mode: 'force_on',
+          },
+        },
+      },
+      decodeLoop: null,
+    },
+  },
+  modelId: 'test-model-tiered-turboquant',
+  numLayers: 26,
+});
+
+if (compiledTieredTurboQuant.runtimeInferencePatch.session?.kvcache?.tiering?.mode !== 'turboquant') {
+  throw new Error('Execution-v1 session patch must preserve tiered TurboQuant mode');
+}
+if (compiledTieredTurboQuant.runtimeInferencePatch.session?.kvcache?.tiering?.compression?.mode !== 'turboquant') {
+  throw new Error('Execution-v1 session patch must preserve tiered TurboQuant compression mode');
+}
+if (compiledTieredTurboQuant.runtimeInferencePatch.kvcache) {
+  throw new Error('Execution-v1 tiered TurboQuant patch must not mirror session.kvcache to top-level kvcache');
 }
 
 const compiledWithoutInlineKernelPath = compileExecutionV1({

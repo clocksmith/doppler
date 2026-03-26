@@ -78,7 +78,7 @@ function createStaticExecutionPlan({
     finitenessAbsThreshold: finitenessPolicy.absThreshold,
     finitenessIncludeNonFinite: finitenessPolicy.includeNonFinite,
     deferredRoundingWindowTokens,
-    defaultDisableCommandBatching: generationConfig.disableCommandBatching,
+    defaultDisableCommandBatching: batchingConfig.disableCommandBatching,
     defaultDisableMultiTokenDecode: generationConfig.disableMultiTokenDecode,
     defaultBatchSize: batchingConfig.batchSize,
     defaultStopCheckMode: batchingConfig.stopCheckMode,
@@ -159,6 +159,12 @@ export function compileExecutionPlanState(options) {
   const inferenceConfig = runtimeConfig.inference;
   const computeConfig = inferenceConfig.compute;
   const generationConfig = inferenceConfig.generation ?? {};
+  if (generationConfig.disableCommandBatching !== undefined) {
+    throw new Error(
+      '[ExecutionPlan] runtime.inference.generation.disableCommandBatching is removed. ' +
+      'Use runtime.inference.session.decodeLoop.disableCommandBatching.'
+    );
+  }
   const sessionConfig = inferenceConfig.session ?? {};
   const decodeLoopConfig = sessionConfig.decodeLoop;
   if (!decodeLoopConfig || typeof decodeLoopConfig !== 'object') {
@@ -175,6 +181,10 @@ export function compileExecutionPlanState(options) {
     ringTokens: decodeLoopConfig.ringTokens,
     ringStop: decodeLoopConfig.ringStop,
     ringStaging: decodeLoopConfig.ringStaging,
+    disableCommandBatching: assertOptionalBoolean(
+      decodeLoopConfig.disableCommandBatching,
+      'runtimeConfig.inference.session.decodeLoop.disableCommandBatching'
+    ),
   };
 
   const primaryPlan = createStaticExecutionPlan({

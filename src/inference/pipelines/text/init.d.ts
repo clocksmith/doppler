@@ -16,7 +16,7 @@ import type { ParsedModelConfig, Manifest } from './config.js';
 import type { KernelCapabilities } from '../../../gpu/device.js';
 import type { WeightBuffer, CpuWeightBuffer } from '../../../gpu/weight-buffer.js';
 import type { LoadedEmbeddingPostprocessor } from '../../../loader/final-weights-loader.js';
-import { KVCache, SlidingWindowKVCache, TieredKVCache, BasisDecomposedPagedCache } from '../../kv-cache.js';
+import { KVCache, SlidingWindowKVCache, TieredKVCache, BasisDecomposedPagedCache, QuantizedKVCache } from '../../kv-cache.js';
 import { Tokenizer, type ModelManifest as TokenizerManifest } from '../../tokenizer.js';
 import { MoERouter } from '../../moe-router.js';
 import { SpeculativeDecoder } from '../../speculative.js';
@@ -129,7 +129,7 @@ export interface KVCacheConfig {
   headDim: number;
   maxSeqLen: number;
   useGPU: boolean;
-  layout: 'contiguous' | 'paged' | 'tiered' | 'bdpa';
+  layout: 'contiguous' | 'contiguous_quantized' | 'paged' | 'tiered' | 'bdpa';
   kvDtype: 'f16' | 'f32';
   pageSize?: number;
   slidingWindow?: number;
@@ -150,8 +150,8 @@ export function createKVCache(
   modelConfig: ParsedModelConfig,
   useGPU: boolean,
   debug?: boolean,
-  runtimeConfig?: KVCacheConfigSchema
-): KVCache | SlidingWindowKVCache | TieredKVCache | BasisDecomposedPagedCache;
+  runtimeConfig?: KVCacheConfigSchema | RuntimeConfigSchema['inference']
+): KVCache | SlidingWindowKVCache | TieredKVCache | BasisDecomposedPagedCache | QuantizedKVCache;
 
 /**
  * Options for tokenizer initialization.

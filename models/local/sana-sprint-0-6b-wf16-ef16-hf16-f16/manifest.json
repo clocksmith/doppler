@@ -80,15 +80,7 @@
         }
       },
       "kvcache": null,
-      "decodeLoop": {
-        "batchSize": 4,
-        "stopCheckMode": "batch",
-        "readbackInterval": 1,
-        "ringTokens": 1,
-        "ringStop": 1,
-        "ringStaging": 1,
-        "disableCommandBatching": false
-      }
+      "decodeLoop": null
     },
     "execution": {
       "kernels": {
@@ -18011,7 +18003,7 @@
     "source": "convert-core",
     "convertedAt": "2026-03-06T15:40:39.962Z",
     "manifestRefresh": {
-      "at": "2026-03-25T20:57:33.209Z",
+      "at": "2026-03-26T12:13:29.496Z",
       "config": "sana-sprint-0.6b-f16.json"
     }
   }

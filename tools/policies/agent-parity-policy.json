@@ -29,7 +29,7 @@
   "requiredSkills": [
     "doppler-debug",
     "doppler-bench",
-    "doppler-perf-squeeze",
+    "doppler-perf",
     "doppler-convert",
     "doppler-kernel-reviewer"
   ],

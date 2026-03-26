@@ -36,7 +36,7 @@ Add full guides by task/skill:
   - mandatory: `docs/style/general-style-guide.md`, `docs/style/javascript-style-guide.md`, `docs/style/config-style-guide.md`, `docs/style/command-interface-design-guide.md`, `docs/style/harness-style-guide.md`
 - `doppler-bench`
   - mandatory: `docs/style/general-style-guide.md`, `docs/style/javascript-style-guide.md`, `docs/style/config-style-guide.md`, `docs/style/command-interface-design-guide.md`, `docs/style/harness-style-guide.md`, `docs/style/benchmark-style-guide.md`
-- `doppler-perf-squeeze`
+- `doppler-perf`
   - mandatory: `docs/style/general-style-guide.md`, `docs/style/javascript-style-guide.md`, `docs/style/config-style-guide.md`, `docs/style/harness-style-guide.md`, `docs/style/benchmark-style-guide.md`
   - also read `docs/style/wgsl-style-guide.md` for shader changes
   - also read `docs/style/command-interface-design-guide.md` when changing `bench`/`debug` command behavior
@@ -167,7 +167,7 @@ These docs are loaded by skills on demand — not for every task:
 
 - `docs/agents/conversion-protocol.md` — conversion triage + promotion gate (used by `doppler-convert`, `doppler-debug`)
 - `docs/agents/debug-protocol.md` — inference debug ladder (used by `doppler-debug`)
-- `docs/agents/benchmark-protocol.md` — vendor benchmark registry (used by `doppler-bench`, `doppler-perf-squeeze`)
+- `docs/agents/benchmark-protocol.md` — vendor benchmark registry (used by `doppler-bench`, `doppler-perf`)
 - `docs/agents/hardware-notes.md` — GPU memory assumptions (used by all inference skills)
 
 See `docs/agents/README.md` for the full index.
@@ -241,7 +241,7 @@ Canonical path: `skills/` (see `skills/README.md`).
 
 - `doppler-debug`: debug inference issues.
 - `doppler-bench`: run performance benchmarks.
-- `doppler-perf-squeeze`: investigate and improve decode/prefill performance.
+- `doppler-perf`: investigate and improve decode/prefill performance.
 - `doppler-convert`: convert models to RDRR.
 - `doppler-kernel-reviewer`: review WGSL/JS kernel implementations against style rules.
 

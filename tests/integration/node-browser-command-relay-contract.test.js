@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
+import { pathToFileURL } from 'node:url';
 
 import {
   finalizeBrowserRelayResponse,
+  resolveLocalFileModelUrlForBrowserRelay,
   runBrowserCommandInNode,
 } from '../../src/tooling/node-browser-command-runner.js';
 
@@ -67,6 +70,37 @@ const KERNELS_REQUEST = {
   }, effectiveRequest);
   assert.equal(response.request.loadMode, 'opfs');
   assert.equal(response.request.modelUrl, sourceRequest.modelUrl);
+}
+
+{
+  const modelDir = await fs.mkdtemp(path.join(tmpdir(), 'doppler-browser-relay-local-model-'));
+  try {
+    const resolution = await resolveLocalFileModelUrlForBrowserRelay({
+      ...KERNELS_REQUEST,
+      modelId: 'toy-local-model',
+      modelUrl: pathToFileURL(modelDir).href,
+    }, {
+      staticMounts: [{
+        urlPrefix: '/models/external',
+        rootDir: '/tmp/external',
+      }],
+    });
+    assert.ok(
+      resolution.relayRequest.modelUrl.startsWith('/__doppler_local_model/'),
+      `expected relay modelUrl mount, got ${resolution.relayRequest.modelUrl}`
+    );
+    assert.equal(resolution.staticMounts.length, 2);
+    assert.equal(
+      resolution.staticMounts[1].urlPrefix,
+      resolution.relayRequest.modelUrl
+    );
+    assert.equal(
+      resolution.staticMounts[1].rootDir,
+      modelDir
+    );
+  } finally {
+    await fs.rm(modelDir, { recursive: true, force: true });
+  }
 }
 
 await assert.rejects(
@@ -152,6 +186,24 @@ await assert.rejects(
   }),
   /browser command: loadMode=opfs requires modelId when modelUrl is provided/
 );
+
+{
+  const modelDir = await fs.mkdtemp(path.join(tmpdir(), 'doppler-browser-relay-local-model-'));
+  try {
+    await assert.rejects(
+      () => runBrowserCommandInNode({
+        ...KERNELS_REQUEST,
+        modelId: 'toy-local-model',
+        modelUrl: pathToFileURL(modelDir).href,
+      }, {
+        baseUrl: 'http://127.0.0.1:1',
+      }),
+      /browser command: explicit local file:\/\/ modelUrl requires the relay-owned static server/
+    );
+  } finally {
+    await fs.rm(modelDir, { recursive: true, force: true });
+  }
+}
 
 await assert.rejects(
   () => runBrowserCommandInNode({

@@ -244,8 +244,8 @@ export function compileExecutionV1(options = {}) {
 //   1. compileExecutionV1 — resolves execution graph, applies capability transforms,
 //      builds inline kernel path and layer pipeline from the execution graph.
 //   2. mergeRuntimeValues — merges the runtimeInferencePatch into runtimeConfig.inference.
-//      This writes kernelPath, kernelPathSource, pipeline, compute, kvcache, and
-//      session into the runtime config. decodeLoop stays manifest-owned
+//      This writes kernelPath, kernelPathSource, pipeline, compute, and session
+//      into the runtime config. decodeLoop stays manifest-owned
 //      until applyModelBatchingRuntimeDefaults in phase 2. If runtime batching was
 //      already explicitly configured, manifest decodeLoop is skipped and runtime
 //      values take precedence.

@@ -60,35 +60,6 @@ export function parseManifest(jsonString) {
     });
   }
 
-  // Migration compat: promote sessionDefaults → session during transition.
-  // Also fill in kvcache/decodeLoop fields that older manifests omit but the
-  // contract now requires. Remove this block once all HF artifacts are regenerated.
-  if (manifest.inference) {
-    if (manifest.inference.sessionDefaults && !manifest.inference.session) {
-      manifest.inference.session = manifest.inference.sessionDefaults;
-    }
-    const s = manifest.inference.session;
-    if (s && typeof s === 'object') {
-      if (s.kvcache && typeof s.kvcache === 'object') {
-        if (!s.kvcache.layout) s.kvcache.layout = 'contiguous';
-        if (!s.kvcache.pageSize) s.kvcache.pageSize = 256;
-        if (!s.kvcache.tiering) s.kvcache.tiering = { mode: 'off' };
-        else if (!s.kvcache.tiering.mode) s.kvcache.tiering.mode = 'off';
-      }
-      if (!s.decodeLoop || typeof s.decodeLoop !== 'object') {
-        s.decodeLoop = { batchSize: 4, stopCheckMode: 'batch', readbackInterval: 1, ringTokens: 1, ringStop: 1, ringStaging: 1, disableCommandBatching: false };
-      } else {
-        if (!s.decodeLoop.stopCheckMode) s.decodeLoop.stopCheckMode = 'batch';
-        if (!s.decodeLoop.batchSize) s.decodeLoop.batchSize = 4;
-        if (s.decodeLoop.disableCommandBatching == null) s.decodeLoop.disableCommandBatching = false;
-        if (!s.decodeLoop.readbackInterval) s.decodeLoop.readbackInterval = 1;
-        if (!s.decodeLoop.ringTokens) s.decodeLoop.ringTokens = 1;
-        if (!s.decodeLoop.ringStop) s.decodeLoop.ringStop = 1;
-        if (!s.decodeLoop.ringStaging) s.decodeLoop.ringStaging = 1;
-      }
-    }
-  }
-
   // Validate
   const validation = validateManifest(manifest);
   if (!validation.valid) {

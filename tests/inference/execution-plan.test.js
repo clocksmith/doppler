@@ -142,6 +142,39 @@ const container = { executionPlanState: planState };
 }
 
 {
+  const runtimeConfigSessionWins = createRuntimeConfig('f16');
+  runtimeConfigSessionWins.inference.session.decodeLoop.disableCommandBatching = true;
+
+  const sessionWinsPlanState = compileExecutionPlanState({
+    runtimeConfig: runtimeConfigSessionWins,
+    resolvedKernelPath: minimalKernelPath,
+    kernelPathSource: 'model',
+    fallbackKernelPath: minimalFallbackKernelPath,
+  });
+
+  assert.equal(sessionWinsPlanState.primaryPlan.defaultDisableCommandBatching, true);
+  assert.equal(
+    resolveExecutionSessionPlan(sessionWinsPlanState).disableCommandBatching,
+    true
+  );
+}
+
+{
+  const runtimeConfigLegacyGenerationField = createRuntimeConfig('f16');
+  runtimeConfigLegacyGenerationField.inference.generation.disableCommandBatching = true;
+
+  assert.throws(
+    () => compileExecutionPlanState({
+      runtimeConfig: runtimeConfigLegacyGenerationField,
+      resolvedKernelPath: minimalKernelPath,
+      kernelPathSource: 'model',
+      fallbackKernelPath: minimalFallbackKernelPath,
+    }),
+    /runtime\.inference\.generation\.disableCommandBatching is removed/
+  );
+}
+
+{
   const enabledConfig = {
     hasDevice: true,
     debug: false,

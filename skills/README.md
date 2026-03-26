@@ -5,11 +5,12 @@
 Required aliases:
 - `.claude/skills -> ../skills`
 - `.gemini/skills -> ../skills`
+- `.codex/skills -> ../skills`
 
 Primary skills:
 - `skills/doppler-debug/SKILL.md`
 - `skills/doppler-bench/SKILL.md`
-- `skills/doppler-perf-squeeze/SKILL.md`
+- `skills/doppler-perf/SKILL.md`
 - `skills/doppler-convert/SKILL.md`
 - `skills/doppler-kernel-reviewer/SKILL.md`
 

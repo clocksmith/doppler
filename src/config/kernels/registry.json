@@ -2871,27 +2871,6 @@
             ],
             "wgslOnDisk": true
           }
-        },
-        "turboquant_outlier": {
-          "wgsl": "kv_quantize_turboquant.wgsl",
-          "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
-          "description": "TurboQuant MSE with non-integer bit-width outlier channel support",
-          "reachability": {
-            "status": "selectable",
-            "inlineConfigs": [],
-            "ruleChains": [
-              "kv_quantize.rules.json#variant"
-            ],
-            "wgslOnDisk": true
-          }
         }
       }
     },

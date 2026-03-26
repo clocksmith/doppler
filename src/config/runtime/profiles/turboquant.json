@@ -1,25 +1,34 @@
 {
-  "id": "turboquant-tiered-4bit",
+  "id": "profiles/turboquant",
+  "name": "turboquant",
+  "description": "Experimental tiered TurboQuant profile with execution-v1-native session KV cache settings.",
   "intent": "calibrate",
   "stability": "experimental",
   "owner": "inference",
   "createdAtUtc": "2026-03-25T00:00:00Z",
-  "inference": {
-    "kvcache": {
-      "layout": "tiered",
-      "tiering": {
-        "mode": "turboquant",
-        "hotWindow": 256,
-        "coldPageSize": 64,
-        "coldDtype": "f16",
-        "compression": {
-          "mode": "turboquant",
-          "blockSize": 1,
-          "bitWidth": 4,
-          "prodMode": false
-        },
-        "gating": {
-          "mode": "force_on"
+  "extends": "profiles/throughput",
+  "runtime": {
+    "inference": {
+      "session": {
+        "kvcache": {
+          "layout": "tiered",
+          "maxSeqLen": 2048,
+          "kvDtype": "f16",
+          "tiering": {
+            "mode": "turboquant",
+            "hotWindow": 256,
+            "coldPageSize": 64,
+            "coldDtype": "f16",
+            "compression": {
+              "mode": "turboquant",
+              "blockSize": 1,
+              "bitWidth": 4,
+              "prodMode": false
+            },
+            "gating": {
+              "mode": "force_on"
+            }
+          }
         }
       }
     }

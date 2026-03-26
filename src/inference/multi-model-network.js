@@ -306,6 +306,7 @@ export class MultiModelNetwork {
     const samplingDefaults = runtimeDefaults.sampling;
     const batchingDefaults = runtimeDefaults.batching;
     const generationDefaults = runtimeDefaults.generation;
+    const sessionDecodeLoopDefaults = runtimeDefaults.session?.decodeLoop ?? {};
 
     const opts = {
       maxTokens: options.maxTokens ?? batchingDefaults.maxTokens,
@@ -321,7 +322,7 @@ export class MultiModelNetwork {
       debug: options.debug ?? basePipeline.debug,
       debugLayers: options.debugLayers,
       profile: options.profile ?? generationDefaults.profile,
-      disableCommandBatching: options.disableCommandBatching ?? generationDefaults.disableCommandBatching,
+      disableCommandBatching: options.disableCommandBatching ?? sessionDecodeLoopDefaults.disableCommandBatching,
       disableMultiTokenDecode: options.disableMultiTokenDecode ?? generationDefaults.disableMultiTokenDecode,
       batchSize: options.batchSize ?? batchingDefaults.batchSize,
       stopCheckMode: options.stopCheckMode ?? batchingDefaults.stopCheckMode,

@@ -38,6 +38,10 @@ import {
   buildAttentionDispatchParams,
   buildAttentionInputsData,
 } from './dispatch-params.js';
+import {
+  buildTieredQuantAttentionOptions,
+  buildContiguousQuantAttentionOptions,
+} from './quant-options.js';
 
 const ATTENTION_DTYPE_LOGGED = new Set();
 
@@ -300,21 +304,27 @@ export async function recordLayerAttentionGPU(
 
       const cachedHotKTensor = createTensor(kvState.cachedKHot, cachedKDtype, [kvState.hotLen, numKVHeads * headDim], 'cached_K_hot');
       const cachedHotVTensor = createTensor(kvState.cachedVHot, cachedVDtype, [kvState.hotLen, numKVHeads * headDim], 'cached_V_hot');
-      return recordAttentionTieredQuant(recorder, qForAttention, cachedHotKTensor, cachedHotVTensor, kvState.cachedKCold, kvState.cachedVCold, kvState.coldScalesK, kvState.coldScalesV, numHeads, headDim, {
-        seqLen: numTokens,
-        coldLen: kvState.coldLen,
-        hotLen: kvState.hotLen,
-        numKVHeads,
-        causal: causalForAttention,
-        startPos: kvState.startPosForMask,
-        slidingWindow: effectiveSlidingWindow ?? 0,
-        attnSoftcap,
-        scale: attnScale,
-        hotWindow: kvState.hotWindow,
-        hotStart: kvState.hotStart,
-        packedStride: kvState.coldPackedStride,
-        mode: kvState.coldQuantMode,
-      });
+      return recordAttentionTieredQuant(
+        recorder,
+        qForAttention,
+        cachedHotKTensor,
+        cachedHotVTensor,
+        kvState.cachedKCold,
+        kvState.cachedVCold,
+        kvState.coldScalesK,
+        kvState.coldScalesV,
+        numHeads,
+        headDim,
+        buildTieredQuantAttentionOptions(kvState, {
+          seqLen: numTokens,
+          numKVHeads,
+          causal: causalForAttention,
+          startPos: kvState.startPosForMask,
+          slidingWindow: effectiveSlidingWindow ?? 0,
+          attnSoftcap,
+          scale: attnScale,
+        })
+      );
     },
     contiguousQuant: async () => {
       let qForAttention = qTensor;
@@ -330,7 +340,6 @@ export async function recordLayerAttentionGPU(
         throw new Error('Contiguous quant attention requires TurboQuant shared buffers.');
       }
 
-      const isProd = kvState.prodMode === true;
       return recordAttentionContiguousQuant(
         recorder,
         qForAttention,
@@ -340,7 +349,7 @@ export async function recordLayerAttentionGPU(
         kvState.coldScalesV,
         numHeads,
         headDim,
-        {
+        buildContiguousQuantAttentionOptions(kvState, {
           seqLen: numTokens,
           kvLen: kvState.kvLenForAttention,
           numKVHeads,
@@ -349,18 +358,7 @@ export async function recordLayerAttentionGPU(
           slidingWindow: effectiveSlidingWindow ?? 0,
           attnSoftcap,
           scale: attnScale,
-          packedStride: kvState.coldPackedStride,
-          mode: kvState.coldQuantMode,
-          rotationMatrixBuffer: kvState.rotationMatrixBuffer,
-          codebookCentroidsBuffer: kvState.codebookCentroidsBuffer,
-          residualKBuffer: isProd ? kvState.residualKGPU : null,
-          residualVBuffer: isProd ? kvState.residualVGPU : null,
-          residualNormsKBuffer: isProd ? kvState.residualNormsKGPU : null,
-          residualNormsVBuffer: isProd ? kvState.residualNormsVGPU : null,
-          qjlMatrixBuffer: isProd ? kvState.qjlMatrixBuffer : null,
-          packedStrideMSE: isProd ? kvState.coldPackedStride : undefined,
-          packedStrideResidual: isProd ? kvState.residualPackedStride : undefined,
-        }
+        })
       );
     },
     tiered: async () => {

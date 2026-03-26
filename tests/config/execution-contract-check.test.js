@@ -159,6 +159,108 @@ const translateGemmaManifest = buildExecutionContractFixtureManifest();
 }
 
 {
+  const turboquantManifest = structuredClone(translateGemmaManifest);
+  turboquantManifest.inference.session.kvcache = {
+    layout: 'contiguous',
+    kvDtype: 'f16',
+    maxSeqLen: 2048,
+    tiering: {
+      mode: 'off',
+    },
+    quantization: {
+      mode: 'turboquant',
+      bitWidth: 4,
+      prodMode: false,
+    },
+  };
+
+  const facts = extractExecutionContractFacts(turboquantManifest);
+  assert.equal(facts.session.kvLen, 2048, 'session maxSeqLen should clamp execution-contract KV len');
+  assert.equal(facts.session.contiguousQuantMode, 'turboquant');
+
+  const evaluation = validateExecutionContractFacts(facts);
+  assert.equal(evaluation.ok, true);
+}
+
+{
+  const invalidTurboquantManifest = structuredClone(translateGemmaManifest);
+  invalidTurboquantManifest.inference.session.kvcache = {
+    layout: 'contiguous',
+    kvDtype: 'f16',
+    maxSeqLen: 4096,
+    tiering: {
+      mode: 'off',
+    },
+    quantization: {
+      mode: 'turboquant',
+      bitWidth: 4,
+      prodMode: false,
+    },
+  };
+
+  const evaluation = validateManifestExecutionContract(invalidTurboquantManifest);
+  assert.equal(evaluation.ok, false);
+  assert.ok(
+    evaluation.errors.some((message) =>
+      message.includes('quantization.mode="turboquant"') && message.includes('effective maxSeqLen <= 2048')
+    )
+  );
+}
+
+{
+  const unsupportedOutlierManifest = structuredClone(translateGemmaManifest);
+  unsupportedOutlierManifest.inference.session.kvcache = {
+    layout: 'contiguous',
+    kvDtype: 'f16',
+    maxSeqLen: 2048,
+    tiering: {
+      mode: 'off',
+    },
+    quantization: {
+      mode: 'turboquant_outlier',
+      bitWidth: 4,
+      prodMode: false,
+    },
+  };
+
+  assert.throws(
+    () => validateManifestExecutionContract(unsupportedOutlierManifest),
+    /turboquant_outlier.*not supported/,
+    'turboquant_outlier must fail closed during execution-contract extraction'
+  );
+}
+
+{
+  const tieredTurboquantManifest = structuredClone(translateGemmaManifest);
+  tieredTurboquantManifest.inference.session.kvcache = {
+    layout: 'tiered',
+    kvDtype: 'f16',
+    maxSeqLen: 2048,
+    tiering: {
+      mode: 'turboquant',
+      hotWindow: 256,
+      coldPageSize: 64,
+      coldDtype: 'f16',
+      compression: {
+        mode: 'turboquant',
+        blockSize: 1,
+        bitWidth: 4,
+        prodMode: false,
+      },
+      gating: {
+        mode: 'force_on',
+      },
+    },
+  };
+
+  const facts = extractExecutionContractFacts(tieredTurboquantManifest);
+  assert.equal(facts.session.coldQuantMode, 'turboquant');
+
+  const evaluation = validateExecutionContractFacts(facts);
+  assert.equal(evaluation.ok, true);
+}
+
+{
   const executionContractManifest = {
     modelId: 'execution-contract-artifact',
     modelType: 'transformer',

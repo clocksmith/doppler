@@ -70,6 +70,8 @@ Do not short-circuit after the first provided input. Do not silently ignore a su
 - When a caller provides an explicit `modelUrl` or source URL, manifest/source comparison failures must fail closed.
 - Harness/provider code must not silently reuse cached artifacts when explicit source verification fails.
 - If explicit source selection cannot be honored, surface an actionable error at the load boundary.
+- Browser relay may rewrite an explicit local `file://` model directory onto a relay-owned same-origin static mount.
+- When `run.browser.baseUrl` points at an external server, browser relay cannot honor a local `file://` `modelUrl` and must fail closed.
 
 ## Background Side Effects
 

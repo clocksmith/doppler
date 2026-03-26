@@ -90,17 +90,23 @@ Example:
 test -f /tmp/OUTPUT_ID-rebuild/manifest.json
 
 # 2) Verify key manifest fields
-jq '.modelId, .modelType, .quantization, .quantizationInfo, .inference.defaultKernelPath' /tmp/OUTPUT_ID-rebuild/manifest.json
+jq '.modelId, .modelType, .quantization, .quantizationInfo, .inference.schema, (.inference.session != null), (.inference.execution != null)' /tmp/OUTPUT_ID-rebuild/manifest.json
 
 # 3) Verify shards exist
 ls /tmp/OUTPUT_ID-rebuild/shard_*.bin | wc -l
 
-# 4) After verification passes, copy to external volume (source of truth)
-cp -a /tmp/OUTPUT_ID-rebuild/. /media/x/models/rdrr/OUTPUT_ID/
+# 4) After verification passes, copy to the external RDRR root (source of truth)
+# macOS: /Volumes/models/rdrr/OUTPUT_ID/
+# Linux: /media/x/models/rdrr/OUTPUT_ID/
+cp -a /tmp/OUTPUT_ID-rebuild/. "$RDRR_ROOT/OUTPUT_ID/"
 
-# 4) Sanity-run inference
+# 5) Sanity-run inference
 npm run debug -- --config '{"request":{"modelId":"OUTPUT_ID","runtimeProfile":"profiles/verbose-trace"},"run":{"surface":"auto"}}' --json
 ```
+
+Notes:
+- For execution-v1 artifacts, `inference.schema`, `inference.session`, and `inference.execution` are the important contract checks.
+- Do not use `inference.defaultKernelPath` as a required success criterion for v1 manifests.
 
 For publication candidates, the verification bar is higher:
 
@@ -134,7 +140,7 @@ npm run debug -- \
 
 When conversion quality is in question, follow the triage protocol in `docs/agents/conversion-protocol.md`:
 1. Verify source dtypes.
-2. Verify manifest `quantization` + `quantizationInfo` + default kernel path.
+2. Verify manifest `quantization` + `quantizationInfo` + execution-v1/session fields.
 3. Verify shard integrity vs manifest hashes.
 4. Verify sampled tensor numeric sanity source vs converted bytes.
 5. Verify layer pattern semantics (`every_n` behavior).

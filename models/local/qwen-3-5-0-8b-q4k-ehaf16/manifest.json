@@ -6470,7 +6470,7 @@
     "convertedAt": "2026-03-24T15:00:03.514Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-03-25T20:57:33.190Z",
+      "at": "2026-03-26T12:13:29.194Z",
       "config": "qwen-3-5-0-8b-q4k-ehaf16.json"
     }
   },

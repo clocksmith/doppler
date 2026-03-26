@@ -1,6 +1,6 @@
 # Benchmark Protocol
 
-Referenced by: `doppler-bench`, `doppler-perf-squeeze`
+Referenced by: `doppler-bench`, `doppler-perf`
 
 ## Vendor Benchmark Registry
 

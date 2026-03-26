@@ -198,14 +198,18 @@ function buildRuntimeConfig(maxTokens) {
   return createDopplerConfig({
     runtime: {
       inference: {
-        batching: {
-          maxTokens,
-          batchSize: 1,
-          readbackInterval: 1,
-        },
+        batching: {},
         generation: {
-          disableCommandBatching: true,
+          maxTokens,
           disableMultiTokenDecode: true,
+        },
+        session: {
+          decodeLoop: {
+            batchSize: 1,
+            stopCheckMode: 'batch',
+            readbackInterval: 1,
+            disableCommandBatching: true,
+          },
         },
         sampling: {
           temperature: 0,

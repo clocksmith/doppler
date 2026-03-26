@@ -45,6 +45,10 @@ import {
   buildAttentionDispatchParams,
   buildAttentionInputsData,
 } from './dispatch-params.js';
+import {
+  buildTieredQuantAttentionOptions,
+  buildContiguousQuantAttentionOptions,
+} from './quant-options.js';
 
 const ATTENTION_DTYPE_LOGGED = new Set();
 
@@ -538,29 +542,26 @@ export async function runLayerAttentionGPU(
         throw new Error('Tiered quant attention requires cold scale buffers.');
       }
 
-      const output = await runAttentionTieredQuant(qForAttention, cachedHotKTensor, cachedHotVTensor, kvState.cachedKCold, kvState.cachedVCold, kvState.coldScalesK, kvState.coldScalesV, numHeads, headDim, {
-        seqLen: numTokens,
-        coldLen: kvState.coldLen,
-        hotLen: kvState.hotLen,
-        numKVHeads,
-        causal: causalForAttention,
-        startPos: kvState.startPosForMask,
-        slidingWindow: effectiveSlidingWindow ?? 0,
-        attnSoftcap,
-        scale: attnScale,
-        hotWindow: kvState.hotWindow,
-        hotStart: kvState.hotStart,
-        packedStride: kvState.coldPackedStride,
-        mode: kvState.coldQuantMode,
-        // TurboQuant buffers (null for int4/int8 modes)
-        rotationMatrixBuffer: kvState.rotationMatrixBuffer,
-        codebookCentroidsBuffer: kvState.codebookCentroidsBuffer,
-        residualKBuffer: kvState.residualKGPU,
-        residualVBuffer: kvState.residualVGPU,
-        residualNormsKBuffer: kvState.residualNormsKGPU,
-        residualNormsVBuffer: kvState.residualNormsVGPU,
-        qjlMatrixBuffer: kvState.qjlMatrixBuffer,
-      });
+      const output = await runAttentionTieredQuant(
+        qForAttention,
+        cachedHotKTensor,
+        cachedHotVTensor,
+        kvState.cachedKCold,
+        kvState.cachedVCold,
+        kvState.coldScalesK,
+        kvState.coldScalesV,
+        numHeads,
+        headDim,
+        buildTieredQuantAttentionOptions(kvState, {
+          seqLen: numTokens,
+          numKVHeads,
+          causal: causalForAttention,
+          startPos: kvState.startPosForMask,
+          slidingWindow: effectiveSlidingWindow ?? 0,
+          attnSoftcap,
+          scale: attnScale,
+        })
+      );
 
       if (qTemp) {
         releaseBuffer(qTemp.buffer);
@@ -582,7 +583,6 @@ export async function runLayerAttentionGPU(
         throw new Error('Contiguous quant attention requires TurboQuant shared buffers.');
       }
 
-      const isProd = kvState.prodMode === true;
       const output = await runAttentionContiguousQuant(
         qForAttention,
         kvState.cachedKCold,
@@ -591,7 +591,7 @@ export async function runLayerAttentionGPU(
         kvState.coldScalesV,
         numHeads,
         headDim,
-        {
+        buildContiguousQuantAttentionOptions(kvState, {
           seqLen: numTokens,
           kvLen: kvState.kvLenForAttention,
           numKVHeads,
@@ -600,19 +600,7 @@ export async function runLayerAttentionGPU(
           slidingWindow: effectiveSlidingWindow ?? 0,
           attnSoftcap,
           scale: attnScale,
-          packedStride: kvState.coldPackedStride,
-          mode: kvState.coldQuantMode,
-          rotationMatrixBuffer: kvState.rotationMatrixBuffer,
-          codebookCentroidsBuffer: kvState.codebookCentroidsBuffer,
-          // Prod-mode buffers
-          residualKBuffer: isProd ? kvState.residualKGPU : null,
-          residualVBuffer: isProd ? kvState.residualVGPU : null,
-          residualNormsKBuffer: isProd ? kvState.residualNormsKGPU : null,
-          residualNormsVBuffer: isProd ? kvState.residualNormsVGPU : null,
-          qjlMatrixBuffer: isProd ? kvState.qjlMatrixBuffer : null,
-          packedStrideMSE: isProd ? kvState.coldPackedStride : undefined,
-          packedStrideResidual: isProd ? kvState.residualPackedStride : undefined,
-        }
+        })
       );
 
       if (qTemp) {

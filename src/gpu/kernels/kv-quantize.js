@@ -6,11 +6,17 @@ import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 
 
 function resolveQuantizeVariant(mode) {
+  if (mode === 'turboquant_outlier') {
+    throw new Error(
+      'TurboQuant outlier KV quantize is not supported yet. ' +
+      'Outlier-mode high-precision buffers are not wired end to end.'
+    );
+  }
   return selectKernelRuleValue('kv_quantize', 'variant', { mode });
 }
 
 function isTurboQuantMode(mode) {
-  return mode === 'turboquant' || mode === 'turboquant_prod' || mode === 'turboquant_outlier';
+  return mode === 'turboquant' || mode === 'turboquant_prod';
 }
 
 
@@ -57,15 +63,6 @@ function buildTurboQuantBindEntries(uniformBuffer, keys, values, outputKeys, out
       { binding: 12, resource: { buffer: options.codebookCentroidsBuffer } },
       { binding: 13, resource: { buffer: options.codebookBoundariesBuffer } },
       { binding: 14, resource: { buffer: options.qjlMatrixBuffer } },
-    );
-  } else if (options.mode === 'turboquant_outlier') {
-    // Outlier mode: bindings 10-14 (outlier high-precision buffers + mask)
-    entries.push(
-      { binding: 10, resource: { buffer: options.outputKeysHighBuffer } },
-      { binding: 11, resource: { buffer: options.outputValuesHighBuffer } },
-      { binding: 12, resource: { buffer: options.codebookCentroidsHighBuffer } },
-      { binding: 13, resource: { buffer: options.codebookBoundariesHighBuffer } },
-      { binding: 14, resource: { buffer: options.outlierMaskBuffer } },
     );
   }
   return entries;

@@ -6463,7 +6463,7 @@
     "convertedAt": "2026-03-15T21:32:57.224Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-03-25T20:57:33.190Z",
+      "at": "2026-03-26T12:13:29.545Z",
       "config": "translategemma-4b-it-q4k-ehf16-af32.json"
     }
   },

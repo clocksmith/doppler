@@ -304,10 +304,9 @@ export function buildLayerPipelineFromExecution(steps, options = {}) {
  *     logits fallback (getRuntimeConfig().inference.compute.activationDtype),
  *     and layer context builder.
  *
- * CONSUMED (read by KV cache and batching subsystems):
- *   - patch.kvcache.*
+ * CONSUMED (read by KV cache, batching, and execution-plan subsystems):
+ *   - patch.session.kvcache.*
  *   - patch.batching.*
- *   - patch.generation.disableCommandBatching
  *
  * DEAD / NOT CONSUMED at runtime (merged into runtimeConfig but never read back):
  *   - patch.session.compute.defaults.mathDtype
@@ -360,9 +359,6 @@ export function buildSessionRuntimePatch(session, options = {}) {
       },
     };
   }
-  if (session?.kvcache) {
-    patch.kvcache = session.kvcache;
-  }
   if (includeDecodeLoop && session?.decodeLoop) {
     patch.batching = {
       batchSize: session.decodeLoop.batchSize,
@@ -372,11 +368,6 @@ export function buildSessionRuntimePatch(session, options = {}) {
       ringStop: session.decodeLoop.ringStop,
       ringStaging: session.decodeLoop.ringStaging,
     };
-    if (session.decodeLoop.disableCommandBatching !== undefined) {
-      patch.generation = {
-        disableCommandBatching: session.decodeLoop.disableCommandBatching === true,
-      };
-    }
   }
   if (session) {
     patch.session = session;

@@ -135,7 +135,7 @@ export class InferencePipeline extends PipelineState {
     // Phase 1 — applyExecutionV1RuntimeConfig
     //   Reads: manifest.inference.execution, kernelCapabilities, platform
     //   Mutates: runtimeConfig.inference (kernelPath, pipeline, compute,
-    //            kvcache via runtimeInferencePatch)
+    //            session via runtimeInferencePatch)
     //
     // Phase 2 — parseModelConfig + applyModelBatchingRuntimeDefaults
     //   Reads: manifest.architecture, runtimeConfig.inference.modelOverrides
@@ -145,7 +145,7 @@ export class InferencePipeline extends PipelineState {
     // Phase 3 — resolveKernelPathState
     //   Reads: manifest, modelConfig.kernelPath, runtimeConfig.inference.kernelPath
     //   Mutates: runtimeConfig.inference.compute.activationDtype,
-    //            runtimeConfig.inference.kvcache.kvDtype,
+    //            runtimeConfig.inference.session.kvcache.kvDtype,
     //            runtimeConfig.inference.session.compute.defaults.outputDtype
     //
     // Phase 4 — _resolveLayerPipeline
@@ -259,7 +259,7 @@ export class InferencePipeline extends PipelineState {
     // Check for execution-v1 kvDtype conflict with manifest quantization info
     if (this.executionV1State && this.resolvedKernelPath) {
       const manifestComputeHint = manifest?.quantizationInfo?.compute;
-      const resolvedKvDtype = this.runtimeConfig.inference.kvcache?.kvDtype;
+      const resolvedKvDtype = this.runtimeConfig.inference.session?.kvcache?.kvDtype;
       if (
         manifestComputeHint
         && resolvedKvDtype
@@ -275,7 +275,7 @@ export class InferencePipeline extends PipelineState {
     }
 
     // Initialize KV cache
-    this.kvCache = createKVCache(this.modelConfig, this.useGPU, this.debug, this.runtimeConfig.inference.kvcache);
+    this.kvCache = createKVCache(this.modelConfig, this.useGPU, this.debug, this.runtimeConfig.inference);
     this.executionPlanState = compileExecutionPlanState({
       runtimeConfig: this.runtimeConfig,
       resolvedKernelPath: this.resolvedKernelPath,

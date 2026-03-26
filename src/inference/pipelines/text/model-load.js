@@ -162,9 +162,6 @@ function buildResolvedDecodeLoopRuntimePatch(runtimeConfig, manifest) {
       },
     },
     batching: batchingPatch,
-    generation: disableCommandBatching == null
-      ? null
-      : { disableCommandBatching: disableCommandBatching === true },
   };
 }
 
@@ -179,7 +176,6 @@ export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, model
     inference: {
       session: patch.session,
       batching: patch.batching,
-      ...(patch.generation ? { generation: patch.generation } : {}),
     },
   });
   log.info(
@@ -187,7 +183,7 @@ export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, model
     `Resolved session applied (${manifest?.modelId ?? 'unknown'}): ` +
     `batchSize=${patch.batching.batchSize}, stopCheckMode=${patch.batching.stopCheckMode}, ` +
     `readbackInterval=${patch.batching.readbackInterval}, ` +
-    `disableCommandBatching=${patch.generation?.disableCommandBatching === true}`
+    `disableCommandBatching=${patch.session.decodeLoop?.disableCommandBatching === true}`
   );
   return nextRuntimeConfig;
 }
@@ -407,7 +403,7 @@ function describeKernelPathDtypeMismatch(contract, current) {
   }
   if (contract.kvDtype && current.kvDtype !== contract.kvDtype) {
     mismatches.push(
-      `runtime.inference.kvcache.kvDtype=${current.kvDtype ?? 'unset'} ` +
+      `runtime.inference.session.kvcache.kvDtype=${current.kvDtype ?? 'unset'} ` +
       `(expected ${contract.kvDtype})`
     );
   }
@@ -552,7 +548,6 @@ function getExplicitRuntimeDtypeOverrides(runtimeOverrides) {
     ),
     kvDtype: normalizeKernelDtype(
       runtimeOverrides?.inference?.session?.kvcache?.kvDtype
-      ?? runtimeOverrides?.inference?.kvcache?.kvDtype
     ),
     outputDtype: normalizeKernelDtype(
       runtimeOverrides?.inference?.session?.compute?.defaults?.outputDtype
@@ -574,7 +569,7 @@ function applyKernelPathRuntimeDtypeContract(
 
   const current = {
     activationDtype: normalizeKernelDtype(runtimeConfig.inference?.compute?.activationDtype),
-    kvDtype: normalizeKernelDtype(runtimeConfig.inference?.kvcache?.kvDtype),
+    kvDtype: normalizeKernelDtype(runtimeConfig.inference?.session?.kvcache?.kvDtype),
     outputDtype: normalizeKernelDtype(runtimeConfig.inference?.session?.compute?.defaults?.outputDtype),
   };
   const mismatches = describeKernelPathDtypeMismatch(contract, current);
@@ -629,7 +624,6 @@ function applyKernelPathRuntimeDtypeContract(
   }
 
   if (contract.kvDtype && current.kvDtype !== contract.kvDtype) {
-    nextInference.kvcache.kvDtype = contract.kvDtype;
     nextInference.session.kvcache.kvDtype = contract.kvDtype;
     dtypeChanges.push(`kv=${current.kvDtype ?? 'unset'}->${contract.kvDtype}`);
   }

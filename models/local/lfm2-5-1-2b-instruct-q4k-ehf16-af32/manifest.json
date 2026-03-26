@@ -2412,7 +2412,7 @@
     "convertedAt": "2026-03-14T20:13:06.599Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-03-25T20:57:33.205Z",
+      "at": "2026-03-26T12:13:28.877Z",
       "config": "lfm2.5-1.2b-instruct-q4k-ehf16-af32.json"
     }
   },

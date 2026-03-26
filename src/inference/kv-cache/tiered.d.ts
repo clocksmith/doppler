@@ -27,10 +27,15 @@ export class TieredKVCache {
   hotWindow: number;
   coldPageSize: number;
   coldDtype: 'f16' | 'f32';
-  tieringMode: 'off' | 'fp16' | 'int8' | 'int4';
-  coldQuantMode: 'none' | 'int8' | 'int4';
+  tieringMode: 'off' | 'fp16' | 'int8' | 'int4' | 'turboquant' | 'turboquant_prod';
+  coldQuantMode: 'none' | 'int8' | 'int4' | 'turboquant' | 'turboquant_prod';
   coldPackedStride: number;
-  compression: { mode: 'none' | 'int8' | 'int4'; blockSize: number };
+  compression: {
+    mode: 'none' | 'int8' | 'int4' | 'turboquant' | 'turboquant_prod';
+    blockSize: number;
+    bitWidth?: number;
+    prodMode?: boolean;
+  };
   gating: { mode: 'auto' | 'force_on' | 'force_off'; minAluBwRatio: number };
   currentSeqLen: number;
   totalTokensSeen: number;
@@ -42,11 +47,19 @@ export class TieredKVCache {
   coldStoreChunks: string[];
   hotCache: SlidingWindowKVCache;
   coldCache: KVCache | null;
+  rotationMatrixBuffer: GPUBuffer | null;
+  codebookCentroidsBuffer: GPUBuffer | null;
+  codebookBoundariesBuffer: GPUBuffer | null;
+  qjlMatrixBuffer: GPUBuffer | null;
   coldLayers: Array<{
     keysPackedGPU: GPUBuffer;
     valuesPackedGPU: GPUBuffer;
     scalesKGPU: GPUBuffer;
     scalesVGPU: GPUBuffer;
+    residualKGPU?: GPUBuffer;
+    residualVGPU?: GPUBuffer;
+    residualNormsKGPU?: GPUBuffer;
+    residualNormsVGPU?: GPUBuffer;
     seqLen: number;
   }> | null;
 
@@ -60,6 +73,10 @@ export class TieredKVCache {
         valuesPackedGPU: GPUBuffer;
         scalesKGPU: GPUBuffer;
         scalesVGPU: GPUBuffer;
+        residualKGPU?: GPUBuffer;
+        residualVGPU?: GPUBuffer;
+        residualNormsKGPU?: GPUBuffer;
+        residualNormsVGPU?: GPUBuffer;
         seqLen: number;
       }> | null;
       coldStore?: EmulatedVramStore | null;

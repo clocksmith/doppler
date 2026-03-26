@@ -98,6 +98,12 @@ export function validateRuntimeConfig(runtimeConfig) {
   if (generation?.embeddingMode !== undefined) {
     assertEmbeddingMode('runtime.inference.generation.embeddingMode', generation.embeddingMode);
   }
+  if (generation?.disableCommandBatching !== undefined) {
+    throw new Error(
+      'DopplerConfigError: runtime.inference.generation.disableCommandBatching is removed. ' +
+      'Use runtime.inference.session.decodeLoop.disableCommandBatching.'
+    );
+  }
 
   validateToolingIntent(runtimeConfig);
   validateEcosystemConfig(runtimeConfig.shared?.ecosystem);

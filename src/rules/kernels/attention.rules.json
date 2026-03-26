@@ -34,7 +34,6 @@
   "tieredQuantVariant": [
     { "match": { "mode": "turboquant" }, "value": "decode_tiered_turboquant_f16kv" },
     { "match": { "mode": "turboquant_prod" }, "value": "decode_tiered_turboquant_prod_f16kv" },
-    { "match": { "mode": "turboquant_outlier" }, "value": "decode_tiered_turboquant_f16kv" },
     { "match": { "mode": "int4" }, "value": "decode_tiered_int4_f16kv" },
     { "match": { "mode": "int8" }, "value": "decode_tiered_int8_f16kv" },
     { "match": {}, "value": "decode_tiered_int8_f16kv" }
@@ -42,7 +41,6 @@
   "contiguousQuantVariant": [
     { "match": { "mode": "turboquant" }, "value": "decode_contiguous_turboquant_f16kv" },
     { "match": { "mode": "turboquant_prod" }, "value": "decode_contiguous_turboquant_prod_f16kv" },
-    { "match": { "mode": "turboquant_outlier" }, "value": "decode_contiguous_turboquant_f16kv" },
     { "match": {}, "value": "decode_contiguous_turboquant_f16kv" }
   ],
   "variant": [

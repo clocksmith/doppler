@@ -313,6 +313,70 @@ function normalizeBaseUrl(value) {
   }
 }
 
+function resolveLocalFileModelPath(modelUrl) {
+  const normalized = asNonEmptyString(modelUrl);
+  if (!normalized || !normalized.startsWith('file://')) {
+    return null;
+  }
+  try {
+    return fileURLToPath(normalized);
+  } catch (error) {
+    throw new Error(
+      `browser command: request.modelUrl must be a valid file:// URL when provided explicitly; got ${JSON.stringify(modelUrl)} (${error?.message || error}).`
+    );
+  }
+}
+
+export async function resolveLocalFileModelUrlForBrowserRelay(request, options = {}) {
+  const localModelPath = resolveLocalFileModelPath(request?.modelUrl);
+  if (options.staticMounts != null && !Array.isArray(options.staticMounts)) {
+    throw new Error('browser command: staticMounts must be an array.');
+  }
+  const staticMounts = Array.isArray(options.staticMounts) ? [...options.staticMounts] : [];
+  if (!localModelPath) {
+    return {
+      relayRequest: request,
+      staticMounts,
+    };
+  }
+  if (options.baseUrl) {
+    throw new Error(
+      'browser command: explicit local file:// modelUrl requires the relay-owned static server. ' +
+      'Remove run.browser.baseUrl or use modelId.'
+    );
+  }
+
+  let stats;
+  try {
+    stats = await fs.stat(localModelPath);
+  } catch (error) {
+    throw new Error(
+      `browser command: explicit local modelUrl "${request.modelUrl}" is not accessible: ${error?.message || error}.`
+    );
+  }
+  if (!stats.isDirectory()) {
+    throw new Error(
+      `browser command: explicit local file:// modelUrl must point to a model directory; got "${request.modelUrl}".`
+    );
+  }
+
+  const mountName = encodeURIComponent(path.basename(localModelPath) || 'model');
+  const urlPrefix = `/__doppler_local_model/${mountName}-${process.pid}-${Date.now()}`;
+  return {
+    relayRequest: {
+      ...request,
+      modelUrl: urlPrefix,
+    },
+    staticMounts: [
+      ...staticMounts,
+      {
+        urlPrefix,
+        rootDir: localModelPath,
+      },
+    ],
+  };
+}
+
 function normalizeBrowserArgs(value) {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value)) {
@@ -611,13 +675,19 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
     let useOpfsCache = options.opfsCache !== false;
     let relayRequest = request;
     const userDataDir = options.userDataDir || DEFAULT_OPFS_CACHE_DIR;
+    const baseUrl = normalizeBaseUrl(options.baseUrl);
+    const localModelRelayState = await resolveLocalFileModelUrlForBrowserRelay(relayRequest, {
+      baseUrl,
+      staticMounts: options.staticMounts,
+    });
+    relayRequest = localModelRelayState.relayRequest;
+    const relayStaticMounts = localModelRelayState.staticMounts;
 
     if (options.wipeCacheBeforeLaunch && useOpfsCache) {
       await fs.rm(userDataDir, { recursive: true, force: true }).catch(() => {});
     }
 
     const { chromium } = await import('playwright');
-    const baseUrl = normalizeBaseUrl(options.baseUrl);
     // When OPFS caching is enabled, use a fixed port so the browser origin stays the same
     // across runs (OPFS is origin-scoped). Without this, random ports create new origins.
     const serverPort = options.port ?? (useOpfsCache ? DEFAULT_OPFS_CACHE_PORT : 0);
@@ -625,7 +695,7 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
       ? null
       : await createStaticFileServer({
         rootDir: options.staticRootDir,
-        staticMounts: options.staticMounts,
+        staticMounts: relayStaticMounts,
         host: options.host,
         port: serverPort,
       }).catch((error) => {

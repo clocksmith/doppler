@@ -66,4 +66,11 @@ function assertNoDeprecatedRuntimeKeys(overrides) {
   if (inference?.session?.maxNewTokens !== undefined) {
     throw new Error('inference.session.maxNewTokens is not a supported runtime config key; use inference.generation.maxTokens');
   }
+  // Deprecated in v0.9 — command batching policy now lives in the session decode loop
+  if (inference?.generation?.disableCommandBatching !== undefined) {
+    throw new Error(
+      'inference.generation.disableCommandBatching is removed; ' +
+      'use inference.session.decodeLoop.disableCommandBatching'
+    );
+  }
 }

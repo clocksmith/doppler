@@ -44,8 +44,12 @@ const result = await runBrowserCommandInNode({
       inference: {
         prompt: PROMPT,
         chatTemplate: { enabled: false },
-        generation: { disableCommandBatching: true },
-        batching: { maxTokens: 4 },
+        generation: { maxTokens: 4 },
+        session: {
+          decodeLoop: {
+            disableCommandBatching: true,
+          },
+        },
         sampling: { temperature: 0, topK: 1, topP: 1 },
       },
     },

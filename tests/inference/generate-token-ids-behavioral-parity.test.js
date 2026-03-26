@@ -46,14 +46,21 @@ function createMinimalState(overrides = {}) {
   const runtimeConfig = createDopplerConfig({
     runtime: {
       inference: {
-        batching: {
-          maxTokens: overrides.maxTokens ?? 10,
-          batchSize: 1,
-          readbackInterval: 1,
+        batching: {},
+        compute: {
+          activationDtype: 'f32',
         },
         generation: {
-          disableCommandBatching: true,
+          maxTokens: overrides.maxTokens ?? 10,
           disableMultiTokenDecode: true,
+        },
+        session: {
+          decodeLoop: {
+            batchSize: 1,
+            stopCheckMode: 'batch',
+            readbackInterval: 1,
+            disableCommandBatching: true,
+          },
         },
         sampling: {
           temperature: 0,

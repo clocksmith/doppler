@@ -1289,7 +1289,14 @@ async function executeAttentionTieredQuant(
     qjlMatrixBuffer = null,
   } = options;
 
-  const isTurboQuant = mode === 'turboquant' || mode === 'turboquant_prod' || mode === 'turboquant_outlier';
+  if (mode === 'turboquant_outlier') {
+    throw new Error(
+      'TurboQuant outlier attention is not supported yet. ' +
+      'Outlier-mode decode kernels are not wired end to end.'
+    );
+  }
+
+  const isTurboQuant = mode === 'turboquant' || mode === 'turboquant_prod';
   const isProd = mode === 'turboquant_prod';
 
   const totalLen = coldLen + hotLen;

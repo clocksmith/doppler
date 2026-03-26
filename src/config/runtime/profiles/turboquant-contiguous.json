@@ -1,16 +1,28 @@
 {
-  "id": "turboquant-contiguous-4bit",
+  "id": "profiles/turboquant-contiguous",
+  "name": "turboquant-contiguous",
+  "description": "Experimental contiguous TurboQuant profile for full-attention decode with execution-v1-native session wiring.",
   "intent": "calibrate",
   "stability": "experimental",
   "owner": "inference",
   "createdAtUtc": "2026-03-25T00:00:00Z",
-  "inference": {
-    "kvcache": {
-      "layout": "contiguous",
-      "quantization": {
-        "mode": "turboquant",
-        "bitWidth": 4,
-        "prodMode": false
+  "extends": "profiles/throughput",
+  "runtime": {
+    "inference": {
+      "session": {
+        "kvcache": {
+          "layout": "contiguous",
+          "maxSeqLen": 2048,
+          "kvDtype": "f16",
+          "tiering": {
+            "mode": "off"
+          },
+          "quantization": {
+            "mode": "turboquant",
+            "bitWidth": 4,
+            "prodMode": false
+          }
+        }
       }
     }
   }

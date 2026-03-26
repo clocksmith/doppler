@@ -17,6 +17,7 @@ export {
   type KVGetResult,
   type GPUBuffersResult,
   type TieredGPUBuffersResult,
+  type QuantizedGPUBuffersResult,
   type BDPAGPUBuffersResult,
   type MemoryStats,
   type GPUContext,
@@ -31,6 +32,7 @@ export {
   SlidingWindowKVCache,
   TieredKVCache,
   BasisDecomposedPagedCache,
+  QuantizedKVCache,
   // Default
   KVCache as default,
 } from './kv-cache/index.js';

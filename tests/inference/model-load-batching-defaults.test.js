@@ -49,6 +49,7 @@ function createRuntimeConfig(session = {}) {
     stopCheckMode: 'batch',
     readbackInterval: 4,
   });
+  assert.equal(nextRuntime.inference.generation, undefined);
 }
 
 {
@@ -78,6 +79,7 @@ function createRuntimeConfig(session = {}) {
   const nextRuntime = applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null);
   assert.notStrictEqual(nextRuntime, runtimeConfig);
   assert.equal(nextRuntime.inference.session.decodeLoop.disableCommandBatching, true);
+  assert.equal(nextRuntime.inference.generation, undefined);
 }
 
 {
@@ -208,6 +210,7 @@ function createRuntimeConfig(session = {}) {
 
   const nextRuntime = applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null);
   assert.equal(nextRuntime.inference.session.decodeLoop.disableCommandBatching, true);
+  assert.equal(nextRuntime.inference.generation, undefined);
 }
 
 {
@@ -305,6 +308,7 @@ function createRuntimeConfig(session = {}) {
   assert.notStrictEqual(nextRuntime, runtimeConfig);
   assert.equal(nextRuntime.inference.session.decodeLoop.batchSize, 8);
   assert.equal(nextRuntime.inference.session.decodeLoop.disableCommandBatching, true);
+  assert.equal(nextRuntime.inference.generation, undefined);
 }
 
 console.log('model-load-batching-defaults.test: ok');

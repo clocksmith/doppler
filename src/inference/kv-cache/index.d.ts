@@ -14,6 +14,7 @@ export {
   type KVGetResult,
   type GPUBuffersResult,
   type TieredGPUBuffersResult,
+  type QuantizedGPUBuffersResult,
   type BDPAGPUBuffersResult,
   type MemoryStats,
   type GPUContext,
@@ -30,6 +31,7 @@ export { KVCache } from './base.js';
 export { SlidingWindowKVCache } from './sliding-window.js';
 export { TieredKVCache } from './tiered.js';
 export { BasisDecomposedPagedCache } from './basis-decomposed-paged.js';
+export { QuantizedKVCache } from './quantized.js';
 
 // Default export for backward compatibility
 export { KVCache as default } from './base.js';

@@ -31,6 +31,18 @@ try {
   assert.throws(
     () => setRuntimeConfig({
       inference: {
+        generation: {
+          disableCommandBatching: true,
+        },
+      },
+    }),
+    /inference\.generation\.disableCommandBatching.*inference\.session\.decodeLoop\.disableCommandBatching/,
+    'generation.disableCommandBatching must throw with redirect to session.decodeLoop.disableCommandBatching'
+  );
+
+  assert.throws(
+    () => setRuntimeConfig({
+      inference: {
         batching: null,
       },
     }),
@@ -91,6 +103,13 @@ try {
   assert.throws(
     () => validateRuntimeConfig(runtimeConfig),
     /sourceScope and runtime\.inference\.kernelPathPolicy\.allowSources must match exactly/
+  );
+
+  const legacyGenerationDisableCommandBatchingRuntime = createDopplerConfig().runtime;
+  legacyGenerationDisableCommandBatchingRuntime.inference.generation.disableCommandBatching = true;
+  assert.throws(
+    () => validateRuntimeConfig(legacyGenerationDisableCommandBatchingRuntime),
+    /runtime\.inference\.generation\.disableCommandBatching.*runtime\.inference\.session\.decodeLoop\.disableCommandBatching/
   );
 
   const updatedRuntime = setRuntimeConfig({

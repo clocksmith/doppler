@@ -24,6 +24,19 @@ export interface NodeBrowserCommandRunOptions {
   onConsole?: (entry: { type: string; text: string }) => void;
 }
 
+export interface BrowserRelayLocalModelResolution {
+  relayRequest: ToolingCommandRequestInput;
+  staticMounts: Array<{
+    urlPrefix: string;
+    rootDir: string;
+  }>;
+}
+
+export declare function resolveLocalFileModelUrlForBrowserRelay(
+  commandRequest: ToolingCommandRequestInput,
+  options?: Pick<NodeBrowserCommandRunOptions, 'baseUrl' | 'staticMounts'>
+): Promise<BrowserRelayLocalModelResolution>;
+
 export declare function runBrowserCommandInNode(
   commandRequest: ToolingCommandRequestInput,
   options?: NodeBrowserCommandRunOptions

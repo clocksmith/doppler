@@ -107,30 +107,33 @@ Use runtime JSON patches instead of ad-hoc flags:
 ```bash
 npm run debug -- \
   --config '{"request":{"modelId":"MODEL_ID"},"run":{"surface":"auto"}}' \
-  --runtime-config '{"shared":{"tooling":{"intent":"investigate"},"debug":{"trace":{"enabled":true,"categories":["attn","ffn"],"maxDecodeSteps":2}}},"inference":{"batching":{"maxTokens":8},"sampling":{"temperature":0}}}' \
-  --json
-```
-
-## Perf-Focused Investigation
-
-```bash
-# Investigate-mode profile run (trace/profiler enabled by profile)
-npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"experiments/gemma3-profile"},"run":{"surface":"auto"}}' --json
-
-# Fast readback sensitivity checks
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"experiments/gemma3-investigate-readback-r1","cacheMode":"warm"},"run":{"surface":"browser"}}' --json
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"experiments/gemma3-investigate-readback-r8","cacheMode":"warm"},"run":{"surface":"browser"}}' --json
-
-# Direct override for decode cadence tuning
-npm run bench -- \
-  --config '{"request":{"modelId":"MODEL_ID","cacheMode":"warm"},"run":{"surface":"browser"}}' \
-  --runtime-config '{"shared":{"tooling":{"intent":"investigate"}},"inference":{"batching":{"batchSize":4,"readbackInterval":4,"stopCheckMode":"per-token","maxTokens":128},"sampling":{"temperature":0}}}' \
+  --runtime-config '{"shared":{"debug":{"trace":{"enabled":true,"categories":["attn","ffn"],"maxDecodeSteps":2}}},"inference":{"generation":{"maxTokens":8},"sampling":{"temperature":0,"topK":1,"topP":1,"repetitionPenalty":1,"greedyThreshold":0},"session":{"decodeLoop":{"batchSize":1,"stopCheckMode":"batch","readbackInterval":1}}}}' \
   --json
 ```
 
 Notes:
-- `runtime.shared.tooling.intent="calibrate"` forbids trace/profiler instrumentation.
-- Set `runtime.shared.tooling.intent="investigate"` for profiling/tracing runs.
+- Decode cadence lives under `runtime.inference.session.decodeLoop`, not `runtime.inference.batching`.
+- Token budget lives under `runtime.inference.generation.maxTokens`, not `sampling.maxTokens`.
+
+## Focused Probes
+
+```bash
+# Broad trace-heavy debug run
+npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"profiles/verbose-trace"},"run":{"surface":"auto"}}' --json
+
+# Logit-focused browser relay run
+npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"diagnostics/debug-logits"},"run":{"surface":"browser","browser":{"channel":"chrome","console":true}}}' --json
+
+# Minimal deterministic decode probe
+npm run debug -- \
+  --config '{"request":{"modelId":"MODEL_ID"},"run":{"surface":"auto"}}' \
+  --runtime-config '{"inference":{"generation":{"maxTokens":16},"sampling":{"temperature":0,"topK":1,"topP":1,"repetitionPenalty":1,"greedyThreshold":0},"session":{"decodeLoop":{"batchSize":1,"stopCheckMode":"batch","readbackInterval":1}}}}' \
+  --json
+```
+
+Notes:
+- Use `debug` for trace/probe work and `verify:model` for pass/fail gates.
+- For throughput sweeps or batching/readback tuning, switch to `doppler-perf`; do not overload debug runs with benchmark methodology.
 
 ## Cache and Surface Control
 

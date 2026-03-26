@@ -1,12 +1,27 @@
+import { getKernelConfig } from '../gpu/kernels/kernel-configs.js';
+import { selectRuleValue as selectKernelRuleValue } from '../gpu/kernels/rule-registry.js';
+
 const KV_LAYOUTS = new Set(['contiguous', 'paged', 'tiered', 'bdpa']);
 const PHASES = new Set(['prefill', 'decode', 'both']);
-const COLD_QUANT_MODES = new Set(['none', 'int8', 'int4']);
+const TIERED_QUANT_MODES = new Set([
+  'none',
+  'int8',
+  'int4',
+  'turboquant',
+  'turboquant_prod',
+]);
+const CONTIGUOUS_QUANT_MODES = new Set([
+  'none',
+  'turboquant',
+  'turboquant_prod',
+]);
 const ATTENTION_OPS = new Set(['attention']);
 const EMBED_OPS = new Set(['embed', 'gather']);
 const SAMPLE_OPS = new Set(['sample']);
 const BDPA_MAX_HEAD_DIM = 256;
 const BDPA_MAX_KV_LEN = 2048;
-const TIERED_MAX_QUANT_HEAD_DIM = 256;
+const QUANTIZED_KV_MAX_HEAD_DIM = 256;
+const UNSUPPORTED_TURBOQUANT_OUTLIER_MODE = 'turboquant_outlier';
 
 function isPlainObject(value) {
   return value != null && typeof value === 'object' && !Array.isArray(value);
@@ -31,6 +46,17 @@ function assertRequiredValue(value, label) {
     throw new Error(`execution contract: ${label} is required.`);
   }
   return value;
+}
+
+function assertSupportedTurboQuantMode(mode, label) {
+  if (mode !== UNSUPPORTED_TURBOQUANT_OUTLIER_MODE) {
+    return mode;
+  }
+  throw new Error(
+    `execution contract: ${label}="${mode}" is not supported. ` +
+    'TurboQuant outlier high-precision buffers and decode kernels are not wired end to end; ' +
+    'use "turboquant" or "turboquant_prod".'
+  );
 }
 
 function assertBoolean(value, label) {
@@ -61,19 +87,85 @@ function normalizePhase(value, label) {
   return normalized;
 }
 
-function normalizeColdQuantMode(kvcache) {
-  const tieringMode = String(
-    assertRequiredValue(kvcache?.tiering?.mode, 'session.kvcache.tiering.mode')
-  ).trim().toLowerCase();
-  if (tieringMode === 'off' || tieringMode === 'fp16') {
+function getRequiredVariantMaxKVLen(operation, variant, errorLabel) {
+  const config = getKernelConfig(operation, variant);
+  const maxKVLen = config.variantMetadata?.maxKVLen;
+  if (!Number.isFinite(maxKVLen) || maxKVLen <= 0) {
+    throw new Error(`execution contract: kernel ${errorLabel} "${variant}" is missing variantMetadata.maxKVLen.`);
+  }
+  return maxKVLen;
+}
+
+function getTieredQuantMaxKVLen(mode) {
+  const variant = selectKernelRuleValue('attention', 'tieredQuantVariant', { mode });
+  return getRequiredVariantMaxKVLen(
+    'attention_tiered_quant',
+    variant,
+    'attention_tiered_quant'
+  );
+}
+
+function getContiguousQuantMaxKVLen(mode) {
+  const variant = selectKernelRuleValue('attention', 'contiguousQuantVariant', { mode });
+  return getRequiredVariantMaxKVLen(
+    'attention_contiguous_quant',
+    variant,
+    'attention_contiguous_quant'
+  );
+}
+
+function normalizeTieredQuantMode(kvcache) {
+  const tieringMode = String(kvcache?.tiering?.mode ?? 'off').trim().toLowerCase();
+  assertSupportedTurboQuantMode(tieringMode, 'session.kvcache.tiering.mode');
+  const gatingMode = String(kvcache?.tiering?.gating?.mode ?? 'auto').trim().toLowerCase();
+  if (gatingMode === 'force_off' || tieringMode === 'off' || tieringMode === 'fp16') {
     return 'none';
   }
-  if (!COLD_QUANT_MODES.has(tieringMode)) {
+  const compressionMode = String(
+    kvcache?.tiering?.compression?.mode
+    ?? (tieringMode === 'int8'
+      || tieringMode === 'int4'
+      || tieringMode === 'turboquant'
+      || tieringMode === 'turboquant_prod'
+      ? tieringMode
+      : 'none')
+  ).trim().toLowerCase();
+  assertSupportedTurboQuantMode(compressionMode, 'session.kvcache.tiering.compression.mode');
+  if (!TIERED_QUANT_MODES.has(compressionMode)) {
     throw new Error(
-      `execution contract: unsupported tiered cold quant mode "${tieringMode}".`
+      `execution contract: unsupported tiered cold quant mode "${compressionMode}".`
     );
   }
-  return tieringMode;
+  return compressionMode;
+}
+
+function normalizeContiguousQuantMode(kvcache) {
+  const quantMode = String(kvcache?.quantization?.mode ?? 'none').trim().toLowerCase();
+  assertSupportedTurboQuantMode(quantMode, 'session.kvcache.quantization.mode');
+  if (!CONTIGUOUS_QUANT_MODES.has(quantMode)) {
+    throw new Error(
+      `execution contract: unsupported contiguous quant mode "${quantMode}".`
+    );
+  }
+  return quantMode;
+}
+
+function resolveSessionKVLen(architectureMaxSeqLen, sessionMaxSeqLen) {
+  const architectureKVLen = assertPositiveInteger(
+    assertRequiredValue(
+      architectureMaxSeqLen ?? sessionMaxSeqLen,
+      'architecture.maxSeqLen'
+    ),
+    'architecture.maxSeqLen'
+  );
+  if (sessionMaxSeqLen == null) {
+    return architectureKVLen;
+  }
+  const sessionKVLen = assertPositiveInteger(sessionMaxSeqLen, 'session.kvcache.maxSeqLen');
+  if (sessionKVLen <= 0) {
+    throw new Error('execution contract: session.kvcache.maxSeqLen must be greater than zero.');
+  }
+  return Math.min(architectureKVLen, sessionKVLen);
 }
 
 function classifyOp(op) {
@@ -154,14 +246,9 @@ export function extractExecutionContractFacts(manifest) {
         'session.decodeLoop.batchSize'
       ),
       headDim: assertPositiveInteger(architecture.headDim, 'architecture.headDim'),
-      kvLen: assertPositiveInteger(
-        assertRequiredValue(
-          architecture.maxSeqLen ?? kvcache.maxSeqLen,
-          'architecture.maxSeqLen'
-        ),
-        'architecture.maxSeqLen'
-      ),
-      coldQuantMode: normalizeColdQuantMode(kvcache),
+      kvLen: resolveSessionKVLen(architecture.maxSeqLen, kvcache.maxSeqLen),
+      coldQuantMode: normalizeTieredQuantMode(kvcache),
+      contiguousQuantMode: normalizeContiguousQuantMode(kvcache),
     },
     steps,
   };
@@ -219,12 +306,39 @@ export function validateExecutionContractFacts(facts) {
   if (
     session.layout === 'tiered'
     && session.coldQuantMode !== 'none'
-    && session.headDim > TIERED_MAX_QUANT_HEAD_DIM
   ) {
-    errors.push(
-      `[ExecutionContract] session.kvcache.layout="tiered" with cold quantization requires ` +
-      `architecture.headDim <= ${TIERED_MAX_QUANT_HEAD_DIM}; got ${session.headDim}.`
-    );
+    if (session.headDim > QUANTIZED_KV_MAX_HEAD_DIM) {
+      errors.push(
+        `[ExecutionContract] session.kvcache.layout="tiered" with cold quantization requires ` +
+        `architecture.headDim <= ${QUANTIZED_KV_MAX_HEAD_DIM}; got ${session.headDim}.`
+      );
+    }
+    const maxKVLen = getTieredQuantMaxKVLen(session.coldQuantMode);
+    if (session.kvLen > maxKVLen) {
+      errors.push(
+        `[ExecutionContract] session.kvcache.layout="tiered" with cold quantization requires ` +
+        `effective maxSeqLen <= ${maxKVLen}; got ${session.kvLen}.`
+      );
+    }
+  }
+
+  if (
+    session.layout === 'contiguous'
+    && session.contiguousQuantMode !== 'none'
+  ) {
+    if (session.headDim > QUANTIZED_KV_MAX_HEAD_DIM) {
+      errors.push(
+        `[ExecutionContract] session.kvcache.layout="contiguous" with quantization.mode="${session.contiguousQuantMode}" ` +
+        `requires architecture.headDim <= ${QUANTIZED_KV_MAX_HEAD_DIM}; got ${session.headDim}.`
+      );
+    }
+    const maxKVLen = getContiguousQuantMaxKVLen(session.contiguousQuantMode);
+    if (session.kvLen > maxKVLen) {
+      errors.push(
+        `[ExecutionContract] session.kvcache.layout="contiguous" with quantization.mode="${session.contiguousQuantMode}" ` +
+        `requires effective maxSeqLen <= ${maxKVLen}; got ${session.kvLen}.`
+      );
+    }
   }
 
   checks.push({

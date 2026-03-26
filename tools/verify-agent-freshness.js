@@ -149,7 +149,7 @@ function ensureSkillFiles(issues) {
   const skillPaths = [
     'skills/doppler-debug/SKILL.md',
     'skills/doppler-bench/SKILL.md',
-    'skills/doppler-perf-squeeze/SKILL.md',
+    'skills/doppler-perf/SKILL.md',
     'skills/doppler-convert/SKILL.md',
     'skills/doppler-kernel-reviewer/SKILL.md',
   ];
