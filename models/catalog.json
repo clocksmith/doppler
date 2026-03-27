@@ -148,7 +148,7 @@
         "path": "models/gemma-3-1b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
-      "quickstart": false,
+      "quickstart": true,
       "sizeBytes": 1044786820,
       "recommended": false,
       "sortOrder": 12,
@@ -270,6 +270,7 @@
         "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
       },
       "baseUrl": null,
+      "quickstart": true,
       "sizeBytes": 798093788,
       "recommended": true,
       "sortOrder": 20,
@@ -331,6 +332,7 @@
         "path": "models/qwen-3-5-2b-q4k-ehaf16"
       },
       "baseUrl": null,
+      "quickstart": true,
       "sizeBytes": 2496068973,
       "recommended": false,
       "sortOrder": 21,

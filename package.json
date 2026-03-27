@@ -6,9 +6,13 @@
   "types": "src/index.d.ts",
   "type": "module",
   "bin": {
-    "doppler": "src/cli/doppler-cli.js"
+    "doppler": "src/cli/doppler-cli.js",
+    "doppler-gpu": "src/cli/doppler-quickstart.js",
+    "doppler-serve": "src/cli/doppler-serve.js"
   },
   "scripts": {
+    "quickstart": "node src/cli/doppler-quickstart.js",
+    "serve": "node src/cli/doppler-serve.js",
     "cli": "node src/cli/doppler-cli.js",
     "convert": "node src/cli/doppler-cli.js convert",
     "manifest-refresh": "node tools/refresh-converted-manifest.js",
@@ -180,7 +184,10 @@
     "BRANDING.md",
     "SECURITY.md",
     "src/cli/doppler-cli.js",
-    "tools/convert-safetensors-node.js"
+    "tools/convert-safetensors-node.js",
+    "src/cli/config/doppler-quickstart.json",
+    "src/cli/doppler-quickstart.js",
+    "src/cli/doppler-serve.js"
   ],
   "devDependencies": {
     "@huggingface/transformers": "4.0.0-next.8",

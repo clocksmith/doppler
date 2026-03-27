@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "defaults": {
+    "model": "gemma3-270m",
+    "prompt": "Explain what Doppler GPU is in one short paragraph.",
+    "maxTokens": 96,
+    "temperature": 0,
+    "topK": 1
+  }
+}

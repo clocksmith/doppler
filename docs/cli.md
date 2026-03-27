@@ -2,6 +2,11 @@
 
 The canonical CLI entrypoint is `src/cli/doppler-cli.js`.
 
+For the npm-facing quickstart path, use `npx doppler-gpu`. That bin is a thin
+first-run surface for local generation. The `doppler` CLI below is the
+contract-driven tooling surface for `verify`, `debug`, `bench`, `convert`, and
+operator workflows.
+
 ## Command Surface
 
 ```bash

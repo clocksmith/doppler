@@ -17,7 +17,7 @@
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "f5698592e69b97c38f21c68e01db2216c2f40965",
+        "revision": "dfbe333a262f00050eebb6704827cad4839c6825",
         "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
       }
     },
@@ -33,8 +33,61 @@
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "9e4ef13a43ed47eda17bdc271ae90632eb22b9c7",
+        "revision": "dfbe333a262f00050eebb6704827cad4839c6825",
         "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32"
+      }
+    },
+    {
+      "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
+      "aliases": [
+        "gemma3-1b",
+        "google/gemma-3-1b-it",
+        "gemma-3-1b-it-wq4k-ef16-hf16"
+      ],
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "dfbe333a262f00050eebb6704827cad4839c6825",
+        "path": "models/gemma-3-1b-it-q4k-ehf16-af32"
+      }
+    },
+    {
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "aliases": [
+        "qwen3-0.8b",
+        "qwen-3-5-0-8b",
+        "Qwen/Qwen3.5-0.8B",
+        "qwen-3-5-0-8b-wq4k-ef16-hf16-f16"
+      ],
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "24ce24c50bad0b3ddf5d2b95d75d7caa9fe2bab7",
+        "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
+      }
+    },
+    {
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "aliases": [
+        "qwen3-2b",
+        "qwen-3-5-2b",
+        "Qwen/Qwen3.5-2B",
+        "qwen-3-5-2b-wq4k-ef16-hf16-f16"
+      ],
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "a43ad44918b0cfc15d214421e4ee83323f77f8c2",
+        "path": "models/qwen-3-5-2b-q4k-ehaf16"
       }
     }
   ]

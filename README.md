@@ -1,12 +1,34 @@
 # doppler-gpu
 
-Inference and training on raw WebGPU. Pure JS + WGSL.
+Browser-native inference on raw WebGPU. Pure JS + WGSL.
 
 **[Try the live demo](https://d4da.com)** | **[npm](https://www.npmjs.com/package/doppler-gpu)** | **[docs](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)**
 
-![Phase-latency comparison on one workload across models](https://raw.githubusercontent.com/clocksmith/doppler/main/benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
+[![Representative phase-latency comparison across selected workloads](https://raw.githubusercontent.com/clocksmith/doppler/main/benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
+
+Warm-cache phase-latency comparison on Gemma 3 1B and LFM 2.5 1.2B (MacBook Air M3, 64 prompt / 64 decode tokens, greedy). Doppler.js vs Transformers.js v4. See the [benchmark methodology](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md).
 
 ## Quick start
+
+### Browser
+
+Open the [live demo](https://d4da.com) — runs entirely in the browser with no server required. Models load into the browser cache and work offline after first download.
+
+### CLI
+
+```bash
+npx doppler-gpu
+```
+
+Downloads the default quickstart model, runs a local prompt, and prints the answer.
+
+```bash
+npx doppler-gpu "Summarize WebGPU in one sentence"
+npx doppler-gpu --model qwen3-0.8b --prompt "Write a haiku about GPUs"
+npx doppler-gpu --list-models
+```
+
+### API
 
 ```js
 import { doppler } from 'doppler-gpu';
@@ -21,14 +43,37 @@ for await (const token of model.generate('Describe WebGPU briefly')) {
 const text = await model.generateText('Explain WebGPU in one sentence');
 
 // LoRA hot-swap
-await model.loadLoRA('https://oneshift-twoshift-redshift-blueshift.com/manifest.json');
+await model.loadLoRA('https://example.com/adapter/manifest.json');
 ```
 
-Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default. Tokens stream from a native `AsyncGenerator`. See the canonical [Root API guide](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
+### OpenAI-compatible server
+
+For existing apps, SDKs, and eval stacks that speak the OpenAI protocol:
+
+```bash
+npx doppler-serve --model gemma3-270m --port 8080
+```
+
+Then point any OpenAI client at `http://localhost:8080/v1`:
+
+```js
+import OpenAI from 'openai';
+const client = new OpenAI({ baseURL: 'http://localhost:8080/v1', apiKey: 'unused' });
+const response = await client.chat.completions.create({
+  model: 'gemma3-270m',
+  messages: [{ role: 'user', content: 'Hello' }],
+});
+```
+
+This is a compatibility bridge — the core engine runs identically in the browser or Node.
+
+Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default. See the [Root API guide](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
 
 ## Why Doppler
 
-**JS → WGSL → WebGPU.** Direct JavaScript orchestration into native WebGPU kernels, avoiding ONNX runtimes, WASM blobs, and bridge layers.
+**Browser-native.** Runs entirely in any WebGPU browser tab — no server, no WASM, no native extensions. Models cache in OPFS and work offline.
+
+**JS → WGSL → WebGPU.** Direct JavaScript orchestration into native WebGPU kernels, avoiding ONNX runtimes and bridge layers.
 
 **`for await` streaming.** Generation uses a native `AsyncGenerator` that fits normal app control flow.
 
@@ -36,25 +81,25 @@ Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default.
 
 **Independent model instances.** Run multiple models concurrently. Each owns its pipeline, buffers, and KV cache.
 
-## Supported models
+## Quickstart-supported models
 
 All models below are verified with deterministic greedy decoding on WebGPU hardware.
-Registry IDs resolve to hosted RDRR artifacts automatically.
+These registry IDs resolve to hosted RDRR artifacts automatically from the browser demo,
+`npx doppler-gpu`, or `doppler.load(...)`.
 
-| Model | Registry ID | Quant | Params |
-| --- | --- | --- | --- |
-| Gemma 3 270M IT | `gemma3-270m` | Q4K | 270M |
-| Gemma 3 1B IT | `gemma3-1b` | Q4K | 1B |
-| TranslateGemma 4B IT | `translategemma-4b-it-q4k-ehf16-af32` | Q4K | 4B |
-| EmbeddingGemma 300M | `google-embeddinggemma-300m-q4k-ehf16-af32` | Q4K | 300M |
-| Qwen 3.5 0.8B | `qwen-3-5-0-8b-q4k-ehaf16` | Q4K | 0.8B |
-| Qwen 3.5 2B | `qwen-3-5-2b-q4k-ehaf16` | Q4K | 2B |
-| LFM2.5 1.2B Instruct | `lfm2-5-1-2b-instruct-q4k-ehf16-af32` | Q4K | 1.2B |
+| Model | Registry ID | Quant | Size | Family |
+| --- | --- | --- | --- | --- |
+| Gemma 3 270M IT | `gemma3-270m` | Q4K | 270M | Gemma |
+| Gemma 3 1B IT | `gemma3-1b` | Q4K | 1B | Gemma |
+| EmbeddingGemma 300M | `embeddinggemma-300m` | Q4K | 300M | Gemma |
+| Qwen 3.5 0.8B | `qwen3-0.8b` | Q4K | 0.8B | Qwen |
+| Qwen 3.5 2B | `qwen3-2b` | Q4K | 2B | Qwen |
 
-Additional model families (Llama 3, DeepSeek, Gemma 4 MoE, Mixtral, and others) have conversion
-configs ready but are not yet cataloged. See the full
-[model support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md)
-for details.
+Additional verified models (TranslateGemma 4B, LFM2.5 1.2B) are available with
+local artifacts rather than the quickstart registry. Conversion configs exist
+for Gemma 4 MoE, Janus, and Sana but are not yet in the quickstart registry.
+See the
+[model support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md).
 
 ## Under the hood
 
@@ -65,6 +110,7 @@ for details.
 
 ## Documentation
 
+- npm quickstart: run `npx doppler-gpu --help`
 - Docs index (canonical navigation): [docs/INDEX.md](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)
 - First-run workflow: [docs/getting-started.md](https://github.com/clocksmith/doppler/blob/main/docs/getting-started.md)
 - CLI reference: [docs/cli.md](https://github.com/clocksmith/doppler/blob/main/docs/cli.md)
@@ -75,10 +121,9 @@ for details.
 ## Environment requirements
 
 - WebGPU is required.
-- Supported runtimes: WebGPU-capable browsers, or Node with a WebGPU provider.
-- Chrome / Edge 113+ supported.
-- Firefox support varies (typically behind a flag).
-- Safari support is evolving.
+- **Browser**: Current Chromium browsers with WebGPU enabled, including Chrome and Edge.
+  WebGPU shipped in Chrome/Edge 113+. Firefox and Safari support varies.
+- **Node**: Requires a WebGPU provider (`webgpu` npm package). Installed automatically as an optional dependency.
 
 ## License
 

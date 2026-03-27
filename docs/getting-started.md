@@ -5,6 +5,7 @@ This is the canonical day-1 workflow for Doppler.
 ## Scope
 
 Use this guide for:
+- first local generation via `npx doppler-gpu`
 - first successful `verify`
 - optional local conversion
 - first benchmark artifact
@@ -16,6 +17,24 @@ For hardware sizing and expected performance, see [performance-sizing.md](perfor
 - Node.js 20+
 - repo dependencies installed
 - WebGPU-capable runtime for `verify`, `debug`, and `bench`
+
+## Fastest first run
+
+If you only want a local success moment, use the npm-facing quickstart bin:
+
+```bash
+npx doppler-gpu
+```
+
+Optional variants:
+
+```bash
+npx doppler-gpu "Summarize WebGPU in one sentence"
+npx doppler-gpu --list-models
+```
+
+Use the rest of this guide when you want the heavier convert/verify/bench
+tooling workflow.
 
 CLI entrypoint:
 

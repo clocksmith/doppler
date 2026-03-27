@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-03-19T17:51:58.495Z
-Release: channel=main-snapshot, version=0.1.8, commit=2f5fc6169c89158905065954a5e6ef9bc34e7fb9, dirty=yes
+Generated: 2026-03-27T21:36:24.752Z
+Release: channel=main-snapshot, version=0.2.0, commit=eda092c8931816bae064a71e151135f81626350a, dirty=yes
 
 ## Engine Matrix
 
@@ -28,26 +28,20 @@ Release: channel=main-snapshot, version=0.1.8, commit=2f5fc6169c89158905065954a5
 
 | Doppler Model | In Catalog | Catalog Modes | TJS Mapping | Kernel Path | Surface | Base Dir |
 |---|---|---|---|---|---|---|
-| `gemma-3-1b-it-f16-af32` | yes | run, translate | `onnx-community/gemma-3-1b-it-ONNX-GQA` | `gemma3-f16-fused-f32a-online` | auto | local |
-| `gemma-3-1b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-1b-it-ONNX-GQA` | `gemma3-q4k-dequant-f32a-online` | auto | local |
-| `gemma-3-270m-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` | `gemma3-q4k-dequant-f32a-online` | auto | local |
+| `gemma-3-1b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-1b-it-ONNX-GQA` |  | auto | local |
+| `gemma-3-270m-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` |  | auto | local |
 | `google-embeddinggemma-300m-q4k-ehf16-af32` | yes | embedding | `onnx-community/embeddinggemma-300m-ONNX` |  | auto | local |
-| `lfm2-5-1-2b-instruct-q4k-ehf16-af32` | yes | run, translate | `LiquidAI/LFM2.5-1.2B-Instruct-ONNX` | `lfm2-q4k-dequant-f32a-online` | auto | local |
+| `lfm2-5-1-2b-instruct-q4k-ehf16-af32` | yes | run, translate | `LiquidAI/LFM2.5-1.2B-Instruct-ONNX` |  | auto | local |
 | `qwen-3-5-0-8b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-0.8B-ONNX` |  | auto | local |
 | `qwen-3-5-2b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-2B-ONNX` |  | auto | local |
-| `translategemma-4b-1b-enes-q4k-ehf16-af32` | yes | run, translate |  | `gemma3-q4k-dequant-f32a-online` | auto | local |
-| `translategemma-4b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/translategemma-text-4b-it-ONNX` | `gemma3-q4k-dequant-f32w-f32a-online` | auto | local |
+| `translategemma-4b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/translategemma-text-4b-it-ONNX` |  | auto | local |
 
 ## Workloads
 
 | Workload ID | Model | Prefill | Decode | Sampling | Runtime (GPU/Backend/OS/Browser) | Date |
 |---|---|---:|---:|---|---|---|
-| [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/g3-1b-p064-d064-t0-k1.compare.json) | Gemma 3 1B Instruct (F16/F32a) (1.88 GiB) | 64 | 64 | greedy (t=0) | Apple M3; metal; darwin; chromium | 2026-03-03 |
-| [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json) | Gemma 3 1B Instruct (F16/F32a) (1.88 GiB) | 64 | 64 | greedy (t=0) | AMD RYZEN AI MAX+ 395 w/ Radeon 8060S; vulkan; linux; chromium | 2026-02-25 |
-| [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.apple-m3pro.compare.json) | Gemma 3 1B Instruct (F16/F32a) (1.88 GiB) | 64 | 64 | greedy (t=0) | Apple M3; metal; darwin; chromium | 2026-02-25 |
 | [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/lfm2-5-1-2b-p064-d064-t0-k1.compare.json) | LFM 2.5 1.2B Instruct (Q4K/F32a) (814 MiB) | 64 | 64 | greedy (t=0) | Apple M3; metal; darwin; chromium | 2026-03-03 |
-| [`p064-d064-t1-k32`](../benchmarks/vendors/fixtures/g3-p064-d064-t1-k32.compare.json) | Gemma 3 1B Instruct (F16/F32a) (1.88 GiB) | 64 | 64 | t=1, k=32, p=1 | AMD RYZEN AI MAX+ 395 w/ Radeon 8060S; vulkan; linux; chromium | 2026-02-25 |
-| [`p064-d064-t1-k32`](../benchmarks/vendors/fixtures/g3-p064-d064-t1-k32.apple-m3pro.compare.json) | Gemma 3 1B Instruct (F16/F32a) (1.88 GiB) | 64 | 64 | t=1, k=32, p=1 | Apple M3; metal; darwin; chromium | 2026-02-24 |
+| `p064-d064-t1-k32` | not captured | 64 | 64 | t=1, k=32, p=1 | not captured | not captured |
 | `p256-d128-t0-k1` | not captured | 256 | 128 | greedy (t=0) | not captured | not captured |
 | `p512-d128-t0-k1` | not captured | 512 | 128 | greedy (t=0) | not captured | not captured |
 | `p256-d128-t1-k32` | not captured | 256 | 128 | t=1, k=32, p=1 | not captured | not captured |
