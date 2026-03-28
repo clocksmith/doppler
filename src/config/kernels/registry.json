@@ -594,6 +594,30 @@
             "wgslOnDisk": true
           }
         },
+        "q4_fused_batched_multicol_shared": {
+          "wgsl": "fused_matmul_q4_batched_multicol_shared.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            32,
+            4,
+            1
+          ],
+          "requires": [],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "tileM": 4,
+            "colsPerWg": 8
+          },
+          "description": "Shared-A Q4_K prefill matmul: 4 rows x 8 columns per workgroup while preserving block/subblock traversal",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "capability-transforms.rules.json#remapDenseQ4KPrefillToQ4Native"
+            ],
+            "wgslOnDisk": true
+          }
+        },
         "q4_fused_multicol": {
           "wgsl": "fused_matmul_q4.wgsl",
           "entryPoint": "main_multicol",
@@ -613,6 +637,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16"
             ],

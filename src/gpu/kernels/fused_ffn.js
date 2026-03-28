@@ -29,13 +29,22 @@ class FusedFFNKernel extends KernelBase {
   }
 }
 
+const SHARED_INPUT_SIZE_VARIANTS = new Set([
+  'default',
+  'batched',
+  'f16',
+  'multi',
+  'f16_native',
+  'f16_native_batched',
+]);
+
 
 function selectFFNVariant(batchSize, weightDtype, intermediateSize, hiddenSize, inputDtype) {
   const { multiOutputThreshold } = getKernelThresholds().ffn;
   const capabilities = getKernelCapabilities();
   const isQ4K = weightDtype === 'q4k';
   const fusedAllowed = !isFusedQ4KDisabled();
-  const hiddenAligned = hiddenSize % QK_K === 0;
+  const hiddenSubblockAligned = hiddenSize % 32 === 0;
   const useMultiOutput = intermediateSize <= multiOutputThreshold;
   const hasF16 = capabilities.hasF16;
   const useF16Input = inputDtype === 'f16';
@@ -43,7 +52,16 @@ function selectFFNVariant(batchSize, weightDtype, intermediateSize, hiddenSize, 
   return selectRuleValue(
     'fusedFfn',
     'variant',
-    { isQ4K, fusedAllowed, hiddenAligned, batchSize, weightDtype, useMultiOutput, hasF16, useF16Input }
+    {
+      isQ4K,
+      fusedAllowed,
+      hiddenSubblockAligned,
+      batchSize,
+      weightDtype,
+      useMultiOutput,
+      hasF16,
+      useF16Input,
+    }
   );
 }
 
@@ -61,7 +79,7 @@ function createFFNUniformBuffer(device, recorder, params) {
       view.setUint32(16, params.activation === 'silu' ? 0 : 1, true);
       // Q4K needs num_blocks_per_row at offset 20
       if (params.isQ4K) {
-        view.setUint32(20, Math.floor(params.hiddenSize / 256), true);
+        view.setUint32(20, Math.ceil(params.hiddenSize / 256), true);
       }
       view.setFloat32(24, swigluLimit, true);
     },
@@ -95,6 +113,16 @@ function calculateFFNDispatch(variant, batchSize, intermediateSize) {
   }
 
   return { workgroupsX, workgroupsY };
+}
+
+function resolveFusedFFNPipelineConstants(variant, hiddenSize) {
+  if (!SHARED_INPUT_SIZE_VARIANTS.has(variant)) {
+    return null;
+  }
+  return (hiddenSize % FFN_DISPATCH.SHARED_INPUT_SIZE_DEFAULT !== 0 &&
+      hiddenSize % FFN_DISPATCH.SHARED_INPUT_SIZE_SMALL === 0)
+    ? { SHARED_INPUT_SIZE: FFN_DISPATCH.SHARED_INPUT_SIZE_SMALL }
+    : null;
 }
 
 
@@ -155,9 +183,7 @@ export async function runFusedFFN(
   trace.kernels(`FusedFFN: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}, isQ4K=${isQ4K}`);
 
   const kernel = new FusedFFNKernel(device);
-  const constants = (hiddenSize % FFN_DISPATCH.SHARED_INPUT_SIZE_DEFAULT !== 0 && hiddenSize % FFN_DISPATCH.SHARED_INPUT_SIZE_SMALL === 0)
-    ? { SHARED_INPUT_SIZE: FFN_DISPATCH.SHARED_INPUT_SIZE_SMALL }
-    : null;
+  const constants = resolveFusedFFNPipelineConstants(variant, hiddenSize);
   const pipeline = await kernel.getPipeline(variant, constants);
 
   // Create output buffer: f16_native outputs f16 (2 bytes), others output f32 (4 bytes)
@@ -250,9 +276,7 @@ export async function recordFusedFFN(
   trace.kernels(`FusedFFN record: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}, isQ4K=${isQ4K}`);
 
   const kernel = new FusedFFNKernel(device);
-  const constants = (hiddenSize % FFN_DISPATCH.SHARED_INPUT_SIZE_DEFAULT !== 0 && hiddenSize % FFN_DISPATCH.SHARED_INPUT_SIZE_SMALL === 0)
-    ? { SHARED_INPUT_SIZE: FFN_DISPATCH.SHARED_INPUT_SIZE_SMALL }
-    : null;
+  const constants = resolveFusedFFNPipelineConstants(variant, hiddenSize);
   const pipeline = await kernel.getPipeline(variant, constants);
 
   const outputBytesPerElement = isF16Native ? 2 : 4;

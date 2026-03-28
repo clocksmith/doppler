@@ -5,9 +5,9 @@
 <script type="importmap">
 {
   "imports": {
-    "onnxruntime-common": "/node_modules/onnxruntime-common/dist/esm/index.js",
-    "onnxruntime-web": "/benchmarks/runners/transformersjs-ort.webgpu.bundle.min.js",
-    "onnxruntime-web/webgpu": "/benchmarks/runners/transformersjs-ort.webgpu.bundle.min.js"
+    "onnxruntime-common": "/node_modules/@huggingface/transformers/node_modules/onnxruntime-common/dist/esm/index.js",
+    "onnxruntime-web": "/node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist/ort.webgpu.min.mjs",
+    "onnxruntime-web/webgpu": "/node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist/ort.webgpu.min.mjs"
   }
 }
 </script>
@@ -26,7 +26,7 @@ globalThis.Worker = class extends _OrigWorker {
     if (typeof resolved === 'string' &&
         resolved.includes('onnxruntime-web') &&
         (resolved.endsWith('/dist') || resolved.endsWith('/dist/'))) {
-      resolved = `${resolved.replace(/\/dist\/?$/, '')}/transformersjs-ort.webgpu.bundle.min.js`;
+      resolved = `${resolved.replace(/\/dist\/?$/, '/dist/')}ort.webgpu.min.mjs`;
       console.log(`[tjs-bench] Worker URL rewrite: ${resolved}`);
     }
     super(resolved, opts);
@@ -57,17 +57,9 @@ if (tjsVersion === '4' && loadedVersion && !loadedVersion.startsWith('4.')) {
 }
 
 function buildLocalOrtWasmPaths() {
-  const baseUrl = '/node_modules/onnxruntime-web/dist/';
-  const asyncify = globalThis.navigator?.userAgent?.includes('Safari')
-    ? {
-        mjs: `${baseUrl}ort-wasm-simd-threaded.mjs`,
-        wasm: `${baseUrl}ort-wasm-simd-threaded.wasm`,
-      }
-    : {
-        mjs: `${baseUrl}ort-wasm-simd-threaded.asyncify.mjs`,
-        wasm: `${baseUrl}ort-wasm-simd-threaded.asyncify.wasm`,
-      };
-  return asyncify;
+  // Point to the TJS v4 matched ORT dist — WebGPU requires the JSEP variant.
+  // ORT resolves the specific WASM filename internally from this base prefix.
+  return '/node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist/';
 }
 
 // Local model path override via query param (serves from static server)
@@ -102,7 +94,7 @@ if (tjsVersion === '4') {
   }
   globalThis.__tjsOrtWebgpu = ort;
   console.log(
-    `[tjs-bench] ORT: proxy=off, threads=1, wasmPaths.mjs=${localOrtWasmPaths.mjs}, wasmPaths.wasm=${localOrtWasmPaths.wasm}`,
+    `[tjs-bench] ORT: proxy=off, threads=1, wasmPaths=${localOrtWasmPaths}`,
   );
 }
 

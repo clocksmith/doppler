@@ -41,6 +41,11 @@ function isSubgroupKernel(kernelEntry) {
   return kernelEntry.kernel.includes('subgroup') || SUBGROUP_REQUIRING_FILES.has(kernelEntry.kernel);
 }
 
+function requiresNoSubgroupFallback(kernelEntry) {
+  if (typeof kernelEntry?.kernel !== 'string') return false;
+  return isSubgroupKernel(kernelEntry) || kernelEntry.kernel.startsWith('fused_matmul_q4');
+}
+
 /**
  * Find all kernel keys in the graph whose `kernel` file matches the given filename.
  * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
@@ -136,6 +141,44 @@ function stepUsesFile(graph, step, filename) {
   return entry != null && entry.kernel === filename;
 }
 
+/**
+ * Find the first kernel key used by matching ops in a phase whose shader file
+ * satisfies the provided predicate.
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {Array<Array>} steps
+ * @param {ReadonlySet<string>} ops
+ * @param {(entry: { kernel: string, entry: string }) => boolean} predicate
+ * @returns {string | null}
+ */
+function findPhaseKernelKey(graph, steps, ops, predicate) {
+  for (const step of steps || []) {
+    if (!ops.has(step[0])) {
+      continue;
+    }
+    const entry = graph.kernels[step[1]];
+    if (entry && predicate(entry)) {
+      return step[1];
+    }
+  }
+  return null;
+}
+
+/**
+ * Find an existing kernel key by shader file and entry point.
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {string} filename
+ * @param {string} entryPoint
+ * @returns {string | null}
+ */
+function findKernelKeyByFileAndEntry(graph, filename, entryPoint) {
+  for (const [key, entry] of Object.entries(graph.kernels)) {
+    if (entry.kernel === filename && entry.entry === entryPoint) {
+      return key;
+    }
+  }
+  return null;
+}
+
 // =============================================================================
 // Transform: removeSubgroups
 // =============================================================================
@@ -151,8 +194,8 @@ function stepUsesFile(graph, step, filename) {
  * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function removeSubgroups(graph, ctx) {
-  const hasAnySubgroup = Object.values(graph.kernels).some(isSubgroupKernel);
-  if (!hasAnySubgroup) {
+  const hasAnyFallbackKernel = Object.values(graph.kernels).some(requiresNoSubgroupFallback);
+  if (!hasAnyFallbackKernel) {
     return null;
   }
 
@@ -160,15 +203,16 @@ export function removeSubgroups(graph, ctx) {
   const keyMap = new Map();
   const isF16Activation = ctx.activationDtype === 'f16';
 
-  // Build replacement kernel entries for each subgroup kernel reference
-  // found in decode and postLayer steps.
+  // Build replacement kernel entries for each subgroup or fused-Q4K kernel
+  // reference found in decode, prefill, and postLayer steps.
   const decodeKeys = new Set((result.decode || []).map((s) => s[1]));
+  const prefillKeys = new Set((result.prefill || []).map((s) => s[1]));
   const postLayerKeys = new Set((result.postLayer || []).map((s) => s[1]));
-  const relevantKeys = new Set([...decodeKeys, ...postLayerKeys]);
+  const relevantKeys = new Set([...decodeKeys, ...prefillKeys, ...postLayerKeys]);
 
   for (const key of relevantKeys) {
     const entry = result.kernels[key];
-    if (!entry || !isSubgroupKernel(entry)) {
+    if (!entry || !requiresNoSubgroupFallback(entry)) {
       continue;
     }
 
@@ -205,6 +249,9 @@ export function removeSubgroups(graph, ctx) {
     } else if (entry.kernel === 'attention_decode_online_f16.wgsl') {
       newFile = 'attention_decode_chunked_f16.wgsl';
       newEntry = entry.entry;
+    } else if (entry.kernel.startsWith('fused_matmul_q4')) {
+      newFile = isF16Activation ? 'matmul_f16_tiled.wgsl' : 'matmul_f16w_f32a_tiled.wgsl';
+      newConstants = null;
     } else {
       // Unknown subgroup kernel — skip
       continue;
@@ -219,8 +266,9 @@ export function removeSubgroups(graph, ctx) {
     return null;
   }
 
-  // Remap decode and postLayer steps; leave prefill and preLayer untouched
+  // Remap decode, prefill, and postLayer steps; leave preLayer untouched
   result.decode = remapStepKeys(result.decode || [], keyMap);
+  result.prefill = remapStepKeys(result.prefill || [], keyMap);
   result.postLayer = remapStepKeys(result.postLayer || [], keyMap);
 
   return result;
@@ -414,6 +462,13 @@ const LAYER_PROJECTION_OPS = new Set([
   'gate_proj', 'up_proj', 'down_proj',
 ]);
 
+const DENSE_Q4_PREFILL_FILES = new Set([
+  'matmul_f16w_f32a.wgsl',
+  'matmul_f16w_f32a_tiled.wgsl',
+  'matmul_f16.wgsl',
+  'matmul_f16_tiled.wgsl',
+]);
+
 /**
  * Replace projection matmul kernels with f32 weight variants.
  *
@@ -473,6 +528,88 @@ export function widenProjectionWeightsToF32(graph, ctx) {
 }
 
 // =============================================================================
+// Transform: remapDenseQ4KPrefillToQ4Native
+// =============================================================================
+
+/**
+ * Replace dense prefill projection kernels with Q4-native prefill variants.
+ *
+ * This applies only when the graph already exposes a compatible fused Q4 decode
+ * projection kernel. All prefill layer projections are remapped to the shared-A
+ * batched multicol Q4 prefill kernel so the transformed path remains valid for
+ * `M > 1` prefill workloads.
+ *
+ * Returns null when the graph does not have the required dense-prefill + Q4
+ * decode shape.
+ *
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {import('./execution-graph-transforms.js').TransformContext} ctx
+ * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
+ */
+export function remapDenseQ4KPrefillToQ4Native(graph, ctx) {
+  const densePrefillProjectionSteps = (graph.prefill || []).filter((step) => {
+    if (!LAYER_PROJECTION_OPS.has(step[0])) {
+      return false;
+    }
+    const entry = graph.kernels[step[1]];
+    return entry != null && DENSE_Q4_PREFILL_FILES.has(entry.kernel);
+  });
+  if (densePrefillProjectionSteps.length === 0) {
+    return null;
+  }
+
+  const result = cloneGraph(graph);
+  const existingSharedKey = findKernelKeyByFileAndEntry(
+    result,
+    'fused_matmul_q4_batched_multicol_shared.wgsl',
+    'main'
+  );
+  let sharedKey = existingSharedKey;
+  if (!sharedKey) {
+    const q4DecodeKey = findPhaseKernelKey(
+      graph,
+      graph.decode || [],
+      LAYER_PROJECTION_OPS,
+      (entry) => entry.kernel === 'fused_matmul_q4.wgsl'
+    );
+    if (!q4DecodeKey) {
+      return null;
+    }
+    const q4DecodeEntry = result.kernels[q4DecodeKey];
+    sharedKey = deriveKernelKey(result.kernels, q4DecodeKey, '_prefill_shared');
+    result.kernels[sharedKey] = deriveKernelEntry(
+      q4DecodeEntry,
+      'fused_matmul_q4_batched_multicol_shared.wgsl',
+      'main',
+      null
+    );
+  }
+
+  let changed = false;
+  result.prefill = (result.prefill || []).map((step) => {
+    const op = step[0];
+    if (!LAYER_PROJECTION_OPS.has(op)) {
+      return step;
+    }
+    const entry = result.kernels[step[1]];
+    if (!entry || !DENSE_Q4_PREFILL_FILES.has(entry.kernel)) {
+      return step;
+    }
+
+    const replacementKey = sharedKey;
+    if (replacementKey === step[1]) {
+      return step;
+    }
+    changed = true;
+    const next = [...step];
+    next[1] = replacementKey;
+    return next;
+  });
+
+  return changed ? result : null;
+}
+
+// =============================================================================
 // Composition
 // =============================================================================
 
@@ -508,5 +645,6 @@ export const TRANSFORMS = Object.freeze({
   widenToF32Activations,
   swapPrefillAttention,
   widenProjectionWeightsToF32,
+  remapDenseQ4KPrefillToQ4Native,
   composeTransforms,
 });

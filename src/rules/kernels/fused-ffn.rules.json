@@ -1,7 +1,7 @@
 {
   "variant": [
-    { "match": { "isQ4K": true, "fusedAllowed": true, "hiddenAligned": true, "batchSize": { "gt": 1 } }, "value": "q4k_batched" },
-    { "match": { "isQ4K": true, "fusedAllowed": true, "hiddenAligned": true }, "value": "q4k" },
+    { "match": { "isQ4K": true, "fusedAllowed": true, "hiddenSubblockAligned": true, "batchSize": { "gt": 1 } }, "value": "q4k_batched" },
+    { "match": { "isQ4K": true, "fusedAllowed": true, "hiddenSubblockAligned": true }, "value": "q4k" },
     { "match": { "weightDtype": "f16", "hasF16": true, "useF16Input": true, "batchSize": { "gt": 1 } }, "value": "f16_native_batched" },
     { "match": { "weightDtype": "f16", "hasF16": true, "useF16Input": true }, "value": "f16_native" },
     { "match": { "weightDtype": "f16", "batchSize": { "gt": 1 } }, "value": "batched" },

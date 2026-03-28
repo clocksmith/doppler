@@ -227,6 +227,11 @@ function validateRangeAwareSelectiveWidening(label, value) {
   if (value.includeNonFinite !== true && value.includeNonFinite !== false) {
     throw new Error(`DopplerConfigError: ${label}.includeNonFinite must be boolean.`);
   }
+  if (value.onTrigger !== undefined && value.onTrigger !== 'error' && value.onTrigger !== 'fallback-plan') {
+    throw new Error(
+      `DopplerConfigError: ${label}.onTrigger must be "error" or "fallback-plan".`
+    );
+  }
   if (!Number.isFinite(value.absThreshold) || value.absThreshold <= 0) {
     throw new Error(`DopplerConfigError: ${label}.absThreshold must be a positive number.`);
   }

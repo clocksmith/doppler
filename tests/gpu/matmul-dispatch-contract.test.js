@@ -230,6 +230,21 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
   assert.deepEqual(result.workgroups, [N, Math.ceil(M / tileM), 1]);
 }
 
+// === calculateMatmulDispatch: q4_fused_batched_multicol_shared uses both tiles ===
+{
+  const M = 182;
+  const N = 6912;
+  const tileM = 4;
+  const colsPerWg = 8;
+  const config = {
+    workgroupSize: [32, 4, 1],
+    variantMetadata: { tileM, colsPerWg },
+  };
+
+  const result = calculateMatmulDispatch('q4_fused_batched_multicol_shared', true, false, M, N, config);
+  assert.deepEqual(result.workgroups, [Math.ceil(N / colsPerWg), Math.ceil(M / tileM), 1]);
+}
+
 // === calculateMatmulDispatch: f16_tiled prefill variant ===
 {
   const M = 128;
@@ -367,6 +382,7 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
     'q4_fused',
     'q4_fused_multicol',
     'q4_fused_batched',
+    'q4_fused_batched_multicol_shared',
     'f32',
   ];
   for (const v of f32aVariants) {

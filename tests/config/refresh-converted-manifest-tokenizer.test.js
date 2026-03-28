@@ -11,8 +11,17 @@ try {
   await writeFile(
     path.join(tmpDir, 'tokenizer.json'),
     JSON.stringify({
-      add_bos_token: false,
       add_eos_token: true,
+      post_processor: {
+        type: 'TemplateProcessing',
+        single: [
+          { SpecialToken: { id: '<bos>', type_id: 0 } },
+          { Sequence: { id: 'A', type_id: 0 } },
+        ],
+        special_tokens: {
+          '<bos>': { id: '<bos>', ids: [1], tokens: ['<bos>'] },
+        },
+      },
       model: {
         vocab: {
           a: 0,
@@ -30,7 +39,7 @@ try {
   });
 
   assert.deepEqual(patch, {
-    addBosToken: false,
+    addBosToken: true,
     addEosToken: true,
   });
 } finally {

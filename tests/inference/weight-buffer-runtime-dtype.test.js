@@ -91,6 +91,51 @@ try {
   assert.equal(fused.dtype, 'f16');
   assert.deepEqual(Array.from(fused.shape), [12, 4]);
   assert.equal(fused.buffer.size, 12 * 4 * 2);
+
+  const qProjQ4 = new GPUBuffer({ size: 80, usage: GPUBufferUsage.STORAGE, label: 'q_proj_q4_dense' });
+  const kProjQ4 = new GPUBuffer({ size: 80, usage: GPUBufferUsage.STORAGE, label: 'k_proj_q4_dense' });
+  const vProjQ4 = new GPUBuffer({ size: 80, usage: GPUBufferUsage.STORAGE, label: 'v_proj_q4_dense' });
+  tagBufferDtype(qProjQ4, 'f16');
+  tagBufferDtype(kProjQ4, 'f16');
+  tagBufferDtype(vProjQ4, 'f16');
+
+  const q4KernelPath = {
+    id: 'test_q4_prefill',
+    name: 'Test Q4 Prefill',
+    activationDtype: 'f32',
+    decode: {
+      steps: [
+        { op: 'q_proj', kernel: 'matmul_f16w_f32a.wgsl', entry: 'main' },
+      ],
+    },
+    prefill: {
+      steps: [
+        { op: 'q_proj', kernel: 'fused_matmul_q4_batched_multicol_shared.wgsl', entry: 'main' },
+      ],
+    },
+  };
+
+  const q4LayerWeights = new Map();
+  q4LayerWeights.set('layer_0', {
+    qProj: qProjQ4,
+    kProj: kProjQ4,
+    vProj: vProjQ4,
+    qkvProj: null,
+  });
+
+  fuseQKVWeights(q4LayerWeights, {
+    numLayers: 1,
+    numHeads: 1,
+    numKVHeads: 1,
+    headDim: 4,
+    hiddenSize: 4,
+  }, q4KernelPath);
+
+  assert.equal(
+    q4LayerWeights.get('layer_0').qkvProj,
+    null,
+    'QKV fusion must skip when the active kernel path requires q4k weights for qkv_proj'
+  );
 } finally {
   setDevice(null, { platformConfig: null });
 }

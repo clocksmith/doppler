@@ -24,6 +24,7 @@ export interface TransformContext {
   };
   activationDtype: 'f16' | 'f32';
   kvDtype: 'f16' | 'f32';
+  modelId?: string;
 }
 
 /**
@@ -79,6 +80,15 @@ export declare function swapPrefillAttention(
  * Replace projection matmul kernels with f32-weight variants for numeric debugging.
  */
 export declare function widenProjectionWeightsToF32(graph: ExecutionGraph, ctx: TransformContext): ExecutionGraph | null;
+
+/**
+ * Replace dense Q4K prefill projections with explicit Q4-native prefill kernels
+ * when the graph already exposes a compatible fused Q4 decode kernel.
+ */
+export declare function remapDenseQ4KPrefillToQ4Native(
+  graph: ExecutionGraph,
+  ctx: TransformContext
+): ExecutionGraph | null;
 
 /**
  * Compose multiple transforms into a single transform.

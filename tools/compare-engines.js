@@ -7,8 +7,14 @@ import fsSync from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { buildExecutionContractArtifact } from '../src/config/execution-contract-check.js';
+import { buildManifestRequiredInferenceFieldsArtifact } from '../src/config/required-inference-fields-contract-check.js';
+import { mergeKernelPathPolicy } from '../src/config/merge-helpers.js';
 import { mergeRuntimeValues } from '../src/config/runtime-merge.js';
-import { DEFAULT_EXTERNAL_MODELS_ROOT } from '../src/tooling/hf-registry-utils.js';
+import {
+  DEFAULT_EXTERNAL_MODELS_ROOT,
+  buildEntryRemoteBaseUrl,
+} from '../src/tooling/hf-registry-utils.js';
 
 const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -75,6 +81,45 @@ const TJS_HARNESS_PATH = path.join(
   'harnesses',
   'transformersjs.json',
 );
+const QUICKSTART_REGISTRY_PATH = path.join(
+  DOPPLER_ROOT,
+  'src',
+  'client',
+  'doppler-registry.json',
+);
+const TRANSFORMERSJS_RUNNER_HTML_PATH = path.join(
+  DOPPLER_ROOT,
+  'benchmarks',
+  'runners',
+  'transformersjs-runner.html',
+);
+const TJS_PACKAGE_JSON_PATH = path.join(
+  DOPPLER_ROOT,
+  'node_modules',
+  '@huggingface',
+  'transformers',
+  'package.json',
+);
+const TJS_ORT_WEB_PACKAGE_JSON_PATH = path.join(
+  DOPPLER_ROOT,
+  'node_modules',
+  '@huggingface',
+  'transformers',
+  'node_modules',
+  'onnxruntime-web',
+  'package.json',
+);
+const TJS_ORT_COMMON_PACKAGE_JSON_PATH = path.join(
+  DOPPLER_ROOT,
+  'node_modules',
+  '@huggingface',
+  'transformers',
+  'node_modules',
+  'onnxruntime-common',
+  'package.json',
+);
+const TJS_V4_ORT_COMMON_IMPORT_PATH = '/node_modules/@huggingface/transformers/node_modules/onnxruntime-common/dist/esm/index.js';
+const TJS_V4_ORT_WEB_IMPORT_PATH = '/node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist/ort.webgpu.min.mjs';
 
 const DEFAULT_PROMPT = 'word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31';
 const DEFAULT_MAX_TOKENS = 64;
@@ -86,6 +131,10 @@ const DEFAULT_SHARED_SAMPLING = Object.freeze({
   topK: 1,
   topP: 1,
 });
+const DOPPLER_MODEL_SOURCES = Object.freeze(['local', 'quickstart-registry']);
+const COMPARE_LANES = Object.freeze(['performance_comparable', 'capability_only']);
+const DEFAULT_COMPARE_LANE = 'performance_comparable';
+const DEFAULT_DOPPLER_MODEL_SOURCE = 'local';
 const DEFAULT_BENCHMARK_POLICY = Object.freeze({
   timeoutsMs: Object.freeze({
     compare: 600_000,
@@ -133,6 +182,11 @@ const DEFAULT_BENCHMARK_POLICY = Object.freeze({
     }),
   }),
   browser: Object.freeze({
+    compareChannelByPlatform: Object.freeze({
+      darwin: 'chromium',
+      linux: 'chromium',
+      win32: 'chromium',
+    }),
     stableArgs: Object.freeze([
       '--disable-breakpad',
       '--disable-gpu-sandbox',
@@ -140,6 +194,12 @@ const DEFAULT_BENCHMARK_POLICY = Object.freeze({
     ]),
   }),
   kernelPathPolicy: Object.freeze({
+    compareRuntime: Object.freeze({
+      mode: 'capability-aware',
+      sourceScope: Object.freeze(['model', 'manifest', 'config']),
+      allowSources: Object.freeze(['model', 'manifest', 'config']),
+      onIncompatible: 'remap',
+    }),
     knownBadByModel: Object.freeze({
       'gemma-3-270m-it-f16-af32': Object.freeze(['gemma3-f16-fused-f16a-online']),
     }),
@@ -172,6 +232,28 @@ function normalizeStopCheckMode(value, label) {
     return normalized;
   }
   throw new Error(`${label} must be "batch" or "per-token"`);
+}
+
+function normalizeCompareLane(value, label, fallback = DEFAULT_COMPARE_LANE) {
+  const normalized = typeof value === 'string' ? value.trim().toLowerCase() : '';
+  if (!normalized) {
+    return fallback;
+  }
+  if (COMPARE_LANES.includes(normalized)) {
+    return normalized;
+  }
+  throw new Error(`${label} must be one of: ${COMPARE_LANES.join(', ')}`);
+}
+
+function normalizeDopplerModelSource(value, label, fallback = DEFAULT_DOPPLER_MODEL_SOURCE) {
+  const normalized = typeof value === 'string' ? value.trim().toLowerCase() : '';
+  if (!normalized) {
+    return fallback;
+  }
+  if (DOPPLER_MODEL_SOURCES.includes(normalized)) {
+    return normalized;
+  }
+  throw new Error(`${label} must be one of: ${DOPPLER_MODEL_SOURCES.join(', ')}`);
 }
 
 function normalizeDecodeProfiles(raw) {
@@ -232,6 +314,30 @@ function normalizeKnownBadKernelPaths(raw) {
   return Object.freeze(normalized);
 }
 
+function normalizeChannelByPlatform(raw, label) {
+  if (raw == null) {
+    return Object.freeze({});
+  }
+  if (typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new Error(`${label} must be an object`);
+  }
+  const normalized = {};
+  for (const [platform, channel] of Object.entries(raw)) {
+    if (typeof platform !== 'string' || platform.trim() === '') {
+      throw new Error(`${label} contains an invalid platform key`);
+    }
+    if (channel == null) {
+      normalized[platform] = null;
+      continue;
+    }
+    if (typeof channel !== 'string' || channel.trim() === '') {
+      throw new Error(`${label}.${platform} must be a non-empty string or null`);
+    }
+    normalized[platform] = channel.trim();
+  }
+  return Object.freeze(normalized);
+}
+
 function loadBenchmarkPolicy() {
   let raw;
   try {
@@ -282,9 +388,21 @@ function loadBenchmarkPolicy() {
       'browser.stableArgs'
     )
   );
+  const compareChannelByPlatform = normalizeChannelByPlatform(
+    parsed?.browser?.compareChannelByPlatform
+      ?? DEFAULT_BENCHMARK_POLICY.browser.compareChannelByPlatform,
+    'browser.compareChannelByPlatform'
+  );
   const knownBadByModel = normalizeKnownBadKernelPaths(
     parsed?.kernelPathPolicy?.knownBadByModel
       ?? DEFAULT_BENCHMARK_POLICY.kernelPathPolicy.knownBadByModel
+  );
+  const compareRuntime = Object.freeze(
+    mergeKernelPathPolicy(
+      undefined,
+      parsed?.kernelPathPolicy?.compareRuntime
+        ?? DEFAULT_BENCHMARK_POLICY.kernelPathPolicy.compareRuntime
+    )
   );
 
   return Object.freeze({
@@ -296,8 +414,8 @@ function loadBenchmarkPolicy() {
     requiredTimingFields,
     requiredCompareMetricIds,
     decodeProfiles,
-    browser: Object.freeze({ stableArgs }),
-    kernelPathPolicy: Object.freeze({ knownBadByModel }),
+    browser: Object.freeze({ stableArgs, compareChannelByPlatform }),
+    kernelPathPolicy: Object.freeze({ compareRuntime, knownBadByModel }),
   });
 }
 
@@ -408,7 +526,7 @@ function usage() {
     'Common options:',
     '  --help, -h                    Show this help text',
     '  --model-id <id>               Doppler model ID (default: first profile in compare-engines.config.json)',
-    '  --model-url <url>             Doppler model URL path (default: /models/local/<model-id>)',
+    '  --model-url <url>             Doppler model base URL override (default: compare profile source resolution)',
     '  --tjs-model <id>              Transformers.js model ID (default: profile mapping in compare-engines.config.json)',
     '  --tjs-version <3|4>           Transformers.js version (default: 4)',
     '  --tjs-dtype <fp16|q4|q4f16>   Transformers.js dtype (default: fp16)',
@@ -436,6 +554,7 @@ function usage() {
     '  --load-mode <opfs|http|memory>  Asset-load mode for both engines (default depends on cache-mode)',
   '  --doppler-browser-user-data <path> Doppler Chromium profile dir',
   '  --doppler-browser-port <n>      Doppler browser relay static port (0 = random)',
+  '  --doppler-browser-channel <id>   Doppler browser channel override (default: benchmark policy)',
   '  --browser-base-url <url>         Base URL for both benchmark runners (skips local server startup)',
   '  --browser-executable <path>      Browser executable for both benchmark runners',
   '  --runtime-config-json <json>      Engine-only JSON overlay merged into Doppler runtime config (fairness axes protected)',
@@ -444,6 +563,7 @@ function usage() {
   '  --timeout-ms <ms>                 Shared benchmark timeout',
   '  --doppler-timeout-ms <ms>         Doppler-only benchmark timeout',
   '  --tjs-timeout-ms <ms>             TJS-only benchmark timeout',
+    '  --allow-non-comparable-lane      Allow capability-only diagnostic lanes from compare-engines.config.json',
     '  --tjs-server-port <n>             TJS server port (0 = random)',
     '  --tjs-browser-console             Stream browser console on TJS failures/retries',
     '  --save                           Save results to benchmarks/vendors/results/',
@@ -824,6 +944,9 @@ function resolveCompareEnginesConfigPath(rawPath) {
 
 function toRepoRelativeSourcePath(sourcePath) {
   if (typeof sourcePath !== 'string' || sourcePath.trim() === '') return sourcePath;
+  if (/^[a-z]+:\/\//i.test(sourcePath.trim())) {
+    return sourcePath.trim();
+  }
   const absolutePath = path.isAbsolute(sourcePath)
     ? sourcePath
     : path.resolve(process.cwd(), sourcePath);
@@ -918,6 +1041,22 @@ async function loadCompareEnginesConfig(rawPath) {
     if (row.modelBaseDir != null && (typeof row.modelBaseDir !== 'string' || row.modelBaseDir.trim() === '')) {
       throw new Error(`compare-engines.config.json modelBaseDir for ${row.dopplerModelId} must be a non-empty string or null`);
     }
+    row.defaultDopplerSource = normalizeDopplerModelSource(
+      row.defaultDopplerSource,
+      `compare-engines.config.json defaultDopplerSource for ${row.dopplerModelId}`
+    );
+    row.compareLane = normalizeCompareLane(
+      row.compareLane,
+      `compare-engines.config.json compareLane for ${row.dopplerModelId}`
+    );
+    if (
+      row.compareLaneReason != null
+      && (typeof row.compareLaneReason !== 'string' || row.compareLaneReason.trim() === '')
+    ) {
+      throw new Error(
+        `compare-engines.config.json compareLaneReason for ${row.dopplerModelId} must be a non-empty string or null`
+      );
+    }
     if (row.defaultDopplerSurface != null) {
       const normalizedSurface = String(row.defaultDopplerSurface).trim().toLowerCase();
       if (!DOPPLER_SURFACES.includes(normalizedSurface)) {
@@ -926,6 +1065,11 @@ async function loadCompareEnginesConfig(rawPath) {
         );
       }
       row.defaultDopplerSurface = normalizedSurface;
+    }
+    if (row.defaultDopplerSource === 'quickstart-registry' && row.modelBaseDir != null) {
+      throw new Error(
+        `compare-engines.config.json modelBaseDir for ${row.dopplerModelId} must be null when defaultDopplerSource is "quickstart-registry"`
+      );
     }
   }
 
@@ -945,13 +1089,132 @@ function resolveCompareProfile(compareConfig, modelId) {
   const profile = compareConfig?.modelProfileById?.get(normalizedModelId) || null;
   return {
     source: profile == null ? DEFAULT_COMPARE_PROFILE_SOURCE : 'config',
-    modelBaseDir: profile?.modelBaseDir || 'local',
+    defaultDopplerSource: profile?.defaultDopplerSource || DEFAULT_DOPPLER_MODEL_SOURCE,
+    modelBaseDir: profile?.modelBaseDir ?? null,
     defaultTjsModelId: profile?.defaultTjsModelId || null,
     defaultKernelPath: profile?.defaultKernelPath || null,
     defaultDopplerSurface: profile?.defaultDopplerSurface || 'auto',
     defaultDopplerFormat: profile?.defaultDopplerFormat || DEFAULT_DOPPLER_FORMAT,
     defaultTjsFormat: profile?.defaultTjsFormat || DEFAULT_TJS_FORMAT,
     safetensorsSourceId: profile?.safetensorsSourceId || null,
+    compareLane: profile?.compareLane || DEFAULT_COMPARE_LANE,
+    compareLaneReason: profile?.compareLaneReason || null,
+  };
+}
+
+async function loadQuickstartRegistry() {
+  const raw = await fs.readFile(QUICKSTART_REGISTRY_PATH, 'utf-8');
+  const payload = JSON.parse(raw);
+  const rows = Array.isArray(payload?.models) ? payload.models : [];
+  const modelById = new Map();
+  for (const row of rows) {
+    const modelId = typeof row?.modelId === 'string' ? row.modelId.trim() : '';
+    if (!modelId) {
+      throw new Error('doppler-registry.json quickstart entries must define modelId');
+    }
+    if (modelById.has(modelId.toLowerCase())) {
+      throw new Error(`doppler-registry.json has duplicate quickstart modelId "${modelId}"`);
+    }
+    modelById.set(modelId.toLowerCase(), row);
+  }
+  return {
+    source: QUICKSTART_REGISTRY_PATH,
+    sourceSha256: hashText(raw),
+    modelById,
+  };
+}
+
+async function resolveExplicitModelManifestSource(modelUrl) {
+  const normalizedUrl = String(modelUrl ?? '').trim().replace(/\/+$/, '');
+  if (!normalizedUrl) {
+    throw new Error('Explicit Doppler model URL must be a non-empty string.');
+  }
+  const explicitManifestUrl = normalizedUrl.endsWith('/manifest.json')
+    ? normalizedUrl
+    : `${normalizedUrl}/manifest.json`;
+  if (/^https?:\/\//i.test(normalizedUrl)) {
+    return {
+      manifestSourceType: 'remote',
+      manifestSource: explicitManifestUrl,
+    };
+  }
+  if (normalizedUrl.startsWith('/models/')) {
+    return {
+      manifestSourceType: 'local',
+      manifestSource: normalizedUrl.endsWith('/manifest.json')
+        ? path.join(DOPPLER_ROOT, normalizedUrl.replace(/^\/+/, ''))
+        : path.join(DOPPLER_ROOT, normalizedUrl.replace(/^\/+/, ''), 'manifest.json'),
+    };
+  }
+  if (normalizedUrl.startsWith('file://')) {
+    const localPath = fileURLToPath(normalizedUrl.endsWith('/manifest.json') ? normalizedUrl : `${normalizedUrl}/manifest.json`);
+    return {
+      manifestSourceType: 'local',
+      manifestSource: localPath,
+    };
+  }
+  const resolvedPath = path.isAbsolute(normalizedUrl)
+    ? normalizedUrl
+    : path.resolve(process.cwd(), normalizedUrl);
+  const manifestPath = resolvedPath.endsWith(`${path.sep}manifest.json`)
+    ? resolvedPath
+    : path.join(resolvedPath, 'manifest.json');
+  return {
+    manifestSourceType: 'local',
+    manifestSource: manifestPath,
+  };
+}
+
+async function resolveDopplerModelSource(compareProfile, dopplerModelId, explicitModelUrl) {
+  if (explicitModelUrl != null && String(explicitModelUrl).trim() !== '') {
+    const normalizedModelUrl = String(explicitModelUrl).trim().replace(/\/+$/, '');
+    const explicitManifest = await resolveExplicitModelManifestSource(normalizedModelUrl);
+    return {
+      source: 'explicit',
+      modelUrl: normalizedModelUrl,
+      locator: normalizedModelUrl,
+      registrySource: null,
+      modelBaseDir: null,
+      ...explicitManifest,
+    };
+  }
+
+  if (compareProfile.defaultDopplerSource === 'quickstart-registry') {
+    const quickstartRegistry = await loadQuickstartRegistry();
+    const registryEntry = quickstartRegistry.modelById.get(String(dopplerModelId).trim().toLowerCase()) || null;
+    if (!registryEntry) {
+      throw new Error(
+        `compare profile for "${dopplerModelId}" requires quickstart-registry resolution, `
+        + `but no matching quickstart entry exists in ${toRepoRelativeSourcePath(QUICKSTART_REGISTRY_PATH)}.`
+      );
+    }
+    const modelUrl = buildEntryRemoteBaseUrl(registryEntry);
+    if (!modelUrl) {
+      throw new Error(`Quickstart registry entry for "${dopplerModelId}" is missing complete hosted HF coordinates.`);
+    }
+    return {
+      source: 'quickstart-registry',
+      modelUrl,
+      locator: registryEntry.modelId,
+      registrySource: {
+        source: toRepoRelativeSourcePath(quickstartRegistry.source),
+        sourceSha256: quickstartRegistry.sourceSha256,
+      },
+      modelBaseDir: null,
+      manifestSourceType: 'remote',
+      manifestSource: `${modelUrl}/manifest.json`,
+    };
+  }
+
+  const modelBaseDir = compareProfile.modelBaseDir || 'local';
+  return {
+    source: 'local',
+    modelUrl: `/models/${modelBaseDir}/${dopplerModelId}`,
+    locator: dopplerModelId,
+    registrySource: null,
+    modelBaseDir,
+    manifestSourceType: 'local',
+    manifestSource: path.join(DOPPLER_ROOT, 'models', modelBaseDir, dopplerModelId, 'manifest.json'),
   };
 }
 
@@ -1121,6 +1384,134 @@ function hashJsonPayload(payload) {
   return crypto.createHash('sha256').update(text).digest('hex');
 }
 
+async function readJsonFileWithHash(filePath, label) {
+  const raw = await fs.readFile(filePath, 'utf-8');
+  let payload;
+  try {
+    payload = JSON.parse(raw);
+  } catch (error) {
+    throw new Error(`${label} is not valid JSON: ${error.message}`);
+  }
+  return {
+    payload,
+    source: filePath,
+    sourceSha256: hashText(raw),
+  };
+}
+
+async function fetchJsonWithHash(url, label) {
+  let response;
+  try {
+    response = await fetch(url, { method: 'GET', redirect: 'follow' });
+  } catch (error) {
+    throw new Error(`${label} fetch failed: ${error.message}`);
+  }
+  if (!response.ok) {
+    throw new Error(`${label} HTTP ${response.status} at ${url}`);
+  }
+  const raw = await response.text();
+  let payload;
+  try {
+    payload = JSON.parse(raw);
+  } catch (error) {
+    throw new Error(`${label} returned invalid JSON: ${error.message}`);
+  }
+  return {
+    payload,
+    source: url,
+    sourceSha256: hashText(raw),
+  };
+}
+
+async function loadManifestForCompareSource(dopplerModelSource) {
+  if (dopplerModelSource.manifestSourceType === 'remote') {
+    return fetchJsonWithHash(dopplerModelSource.manifestSource, 'compare Doppler manifest');
+  }
+  return readJsonFileWithHash(dopplerModelSource.manifestSource, 'compare Doppler manifest');
+}
+
+async function preflightDopplerManifestContract(dopplerModelSource, dopplerModelId) {
+  const manifestBundle = await loadManifestForCompareSource(dopplerModelSource);
+  const manifest = manifestBundle.payload;
+  const requiredInferenceFieldsArtifact = buildManifestRequiredInferenceFieldsArtifact(
+    manifest?.inference ?? null,
+    `${dopplerModelId}.manifest.inference`
+  );
+  const executionContractArtifact = buildExecutionContractArtifact(manifest);
+  const executionContractOk = executionContractArtifact == null || executionContractArtifact.ok === true;
+  const errors = [
+    ...(Array.isArray(requiredInferenceFieldsArtifact?.errors) ? requiredInferenceFieldsArtifact.errors : []),
+    ...(Array.isArray(executionContractArtifact?.errors) ? executionContractArtifact.errors : []),
+  ];
+  return {
+    manifestSource: toRepoRelativeSourcePath(manifestBundle.source),
+    manifestSha256: manifestBundle.sourceSha256,
+    requiredInferenceFieldsArtifact,
+    executionContractArtifact,
+    ok: requiredInferenceFieldsArtifact.ok === true && executionContractOk,
+    errors,
+  };
+}
+
+function formatPreflightErrors(errors = []) {
+  return errors.map((entry) => `- ${entry}`).join('\n');
+}
+
+async function resolveTransformersjsRuntimeStack(tjsVersion) {
+  const normalizedVersion = String(tjsVersion ?? '').trim();
+  const runnerHtmlRaw = await fs.readFile(TRANSFORMERSJS_RUNNER_HTML_PATH, 'utf-8');
+  const runnerHtmlSha256 = hashText(runnerHtmlRaw);
+  const stack = {
+    requestedMajor: normalizedVersion || null,
+    runner: {
+      source: toRepoRelativeSourcePath(TRANSFORMERSJS_RUNNER_HTML_PATH),
+      sourceSha256: runnerHtmlSha256,
+    },
+  };
+
+  if (normalizedVersion !== '4') {
+    return stack;
+  }
+
+  const [tjsPackage, ortWebPackage, ortCommonPackage] = await Promise.all([
+    readJsonFileWithHash(TJS_PACKAGE_JSON_PATH, '@huggingface/transformers package.json'),
+    readJsonFileWithHash(TJS_ORT_WEB_PACKAGE_JSON_PATH, 'nested onnxruntime-web package.json'),
+    readJsonFileWithHash(TJS_ORT_COMMON_PACKAGE_JSON_PATH, 'nested onnxruntime-common package.json'),
+  ]);
+
+  if (!runnerHtmlRaw.includes(TJS_V4_ORT_COMMON_IMPORT_PATH) || !runnerHtmlRaw.includes(TJS_V4_ORT_WEB_IMPORT_PATH)) {
+    throw new Error(
+      'transformersjs-runner.html is not pinned to the installed TJS v4 nested ORT modules. '
+      + `Expected import paths ${TJS_V4_ORT_COMMON_IMPORT_PATH} and ${TJS_V4_ORT_WEB_IMPORT_PATH}.`
+    );
+  }
+
+  return {
+    ...stack,
+    library: {
+      packageName: '@huggingface/transformers',
+      version: tjsPackage.payload?.version ?? null,
+      source: toRepoRelativeSourcePath(tjsPackage.source),
+      sourceSha256: tjsPackage.sourceSha256,
+    },
+    onnxruntime: {
+      web: {
+        version: ortWebPackage.payload?.version ?? null,
+        dependencyOnCommon: ortWebPackage.payload?.dependencies?.['onnxruntime-common'] ?? null,
+        source: toRepoRelativeSourcePath(ortWebPackage.source),
+        sourceSha256: ortWebPackage.sourceSha256,
+        importPath: TJS_V4_ORT_WEB_IMPORT_PATH,
+      },
+      common: {
+        version: ortCommonPackage.payload?.version ?? null,
+        source: toRepoRelativeSourcePath(ortCommonPackage.source),
+        sourceSha256: ortCommonPackage.sourceSha256,
+        importPath: TJS_V4_ORT_COMMON_IMPORT_PATH,
+      },
+    },
+  };
+}
+
 function parseDecodeProfile(value) {
   if (value == null || value === '') return DEFAULT_DECODE_PROFILE;
   const profile = String(value);
@@ -1193,8 +1584,8 @@ function parseArgs(argv) {
       || key === 'save'
       || key === 'doppler-no-opfs-cache'
       || key === 'tjs-browser-console'
-      || key === 'use-chat-template'
       || key === 'skip-matrix-update'
+      || key === 'allow-non-comparable-lane'
       || key === 'help'
       || key === 'h'
     ) {
@@ -1209,6 +1600,14 @@ function parseArgs(argv) {
     i++;
   }
   return flags;
+}
+
+function resolveBrowserChannelOverride(requestedChannel) {
+  if (requestedChannel == null || requestedChannel === '') {
+    return BENCHMARK_POLICY.browser.compareChannelByPlatform[process.platform] ?? null;
+  }
+  const normalized = String(requestedChannel).trim();
+  return normalized === '' ? null : normalized;
 }
 
 function appendBrowserArgs(baseArgs = [], extraArgs = []) {
@@ -1273,6 +1672,7 @@ function buildDopplerRuntimeConfig(sharedContract, engineOverlay) {
       },
     },
     inference: {
+      kernelPathPolicy: engineOverlay.kernelPathPolicy,
       prompt: sharedContract.prompt,
       chatTemplate: {
         enabled: sharedContract.useChatTemplate,
@@ -1333,10 +1733,12 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
     DEFAULT_DOPPLER_BROWSER_PORT,
     '--doppler-browser-port'
   );
+  const resolvedBrowserChannel = resolveBrowserChannelOverride(options.browserChannel);
   const resolvedBrowserBaseUrl = options.browserBaseUrl || null;
   const resolvedBrowserExecutable = options.browserExecutable || null;
   const runtimeConfig = buildDopplerRuntimeConfig(sharedContract, {
     kernelPath: resolvedKernelPath,
+    kernelPathPolicy: BENCHMARK_POLICY.kernelPathPolicy.compareRuntime,
     batchSize: resolvedBatchSize,
     readbackInterval: resolvedReadbackInterval,
     stopCheckMode: resolvedStopCheckMode,
@@ -1356,6 +1758,7 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
         ...(resolvedBrowserBaseUrl
           ? { baseUrl: String(resolvedBrowserBaseUrl) }
           : (options.browserPort != null ? { port: resolvedBrowserPort } : {})),
+        ...(resolvedBrowserChannel ? { channel: resolvedBrowserChannel } : {}),
         ...(resolvedBrowserExecutable ? { executablePath: String(resolvedBrowserExecutable) } : {}),
         ...(options.browserUserData ? { userDataDir: String(options.browserUserData) } : {}),
         ...(options.noOpfsCache ? { opfsCache: false } : {}),
@@ -1796,7 +2199,14 @@ async function main() {
   const defaultDopplerModelId = resolveDefaultDopplerModelId(compareProfileConfig);
   const dopplerModelId = flags['model-id'] || defaultDopplerModelId;
   const compareProfile = resolveCompareProfile(compareProfileConfig, dopplerModelId);
-  const dopplerModelBaseDir = compareProfile.modelBaseDir || 'local';
+  const allowNonComparableLane = flags['allow-non-comparable-lane'] === true;
+  if (compareProfile.compareLane !== 'performance_comparable' && !allowNonComparableLane) {
+    throw new Error(
+      `Model "${dopplerModelId}" is classified as ${compareProfile.compareLane} in compare-engines.config.json. `
+      + `${compareProfile.compareLaneReason || 'This lane is not apples-to-apples performance evidence.'} `
+      + 'Use --allow-non-comparable-lane to run it as a diagnostic/support-only lane.'
+    );
+  }
   const compareProfileDefaultDopplerSurface = compareProfile.defaultDopplerSurface || 'auto';
   const compareMetricContractConfig = await loadCompareMetricContract(flags['compare-metric-contract']);
   assertCompareMetricContractCompleteness(compareMetricContractConfig.metrics);
@@ -1846,7 +2256,31 @@ async function main() {
       + `Check MODEL_INDEX.json on the external volume (${MODEL_INDEX_PATH}) or pass --safetensors-path.`
     );
   }
-  const dopplerModelUrl = flags['model-url'] || `/models/${dopplerModelBaseDir}/${dopplerModelId}`;
+  const runtimeConfigOverride = parseRuntimeConfigJson(flags['runtime-config-json']);
+  assertAllowedCompareRuntimeConfigOverride(runtimeConfigOverride);
+  const runtimeConfigOverrideHash = runtimeConfigOverride == null
+    ? null
+    : hashJsonPayload(runtimeConfigOverride);
+  const dopplerModelSource = dopplerFormat === 'safetensors'
+    ? {
+        source: 'safetensors',
+        modelUrl: safetensorsSourcePath,
+        locator: safetensorsSourceId,
+        registrySource: null,
+        modelBaseDir: null,
+        manifestSourceType: null,
+        manifestSource: null,
+      }
+    : await resolveDopplerModelSource(compareProfile, dopplerModelId, flags['model-url']);
+  const dopplerManifestPreflight = dopplerFormat === 'safetensors'
+    ? null
+    : await preflightDopplerManifestContract(dopplerModelSource, dopplerModelId);
+  if (dopplerManifestPreflight && dopplerManifestPreflight.ok !== true) {
+    throw new Error(
+      `Doppler compare preflight failed for "${dopplerModelId}" from ${dopplerManifestPreflight.manifestSource}:\n`
+      + formatPreflightErrors(dopplerManifestPreflight.errors)
+    );
+  }
   const resolvedDefaultTjsModel = compareProfile.defaultTjsModelId || null;
   const tjsModelOverridden = flags['tjs-model'] != null;
   const tjsModelId = flags['tjs-model']
@@ -1859,6 +2293,7 @@ async function main() {
   }
   const tjsLocalModelPath = flags['tjs-local-model-path'] || null;
   const tjsVersion = flags['tjs-version'] || '4';
+  const tjsRuntimeStack = await resolveTransformersjsRuntimeStack(tjsVersion);
   const tjsDtype = parseChoice(flags['tjs-dtype'], ['fp16', 'q4', 'q4f16'], '--tjs-dtype', 'fp16');
   const mode = flags.mode || 'all';
   const sharedContract = buildSharedBenchmarkContract({
@@ -1869,9 +2304,7 @@ async function main() {
     seed: flags.seed,
     loadMode: parseLoadMode(flags['load-mode'], '--load-mode', null),
     sampling,
-    useChatTemplate: flags['use-chat-template'] === true
-      ? true
-      : parseOnOff(flags['use-chat-template'], false, '--use-chat-template'),
+    useChatTemplate: parseOnOff(flags['use-chat-template'], false, '--use-chat-template'),
   });
   const prompt = sharedContract.prompt;
   const maxTokens = sharedContract.maxTokens;
@@ -1947,6 +2380,7 @@ async function main() {
   if (dopplerNoOpfsCache && dopplerSurface === 'node') {
     throw new Error('--doppler-no-opfs-cache is browser-only; use --doppler-surface browser|auto or remove this flag.');
   }
+  const dopplerBrowserChannel = resolveBrowserChannelOverride(flags['doppler-browser-channel']);
   const dopplerBrowserUserData = flags['doppler-browser-user-data'] || null;
     const dopplerBrowserPort = flags['doppler-browser-port'] != null
       ? parseNonNegativeInt(
@@ -1955,11 +2389,6 @@ async function main() {
         '--doppler-browser-port'
       )
       : null;
-  const runtimeConfigOverride = parseRuntimeConfigJson(flags['runtime-config-json']);
-  assertAllowedCompareRuntimeConfigOverride(runtimeConfigOverride);
-  const runtimeConfigOverrideHash = runtimeConfigOverride == null
-    ? null
-    : hashJsonPayload(runtimeConfigOverride);
   const jsonOutput = flags.json === true;
   const shouldSave = flags.save === true;
   const skipMatrixUpdate = flags['skip-matrix-update'] === true;
@@ -1981,16 +2410,29 @@ async function main() {
   }
   console.error(
     `[compare] model-profile source: ${compareProfile.source}`
-    + ` (dopplerBaseDir=${dopplerModelBaseDir}, defaultKernelPath=${dopplerKernelResolution.kernelPath ?? 'manifest-default'})`
+    + ` (dopplerSource=${dopplerModelSource.source}, locator=${dopplerModelSource.locator ?? 'n/a'}, `
+    + `defaultKernelPath=${dopplerKernelResolution.kernelPath ?? 'manifest-default'}, compareLane=${compareProfile.compareLane})`
   );
+  if (compareProfile.compareLaneReason) {
+    console.error(`[compare] compare-lane note: ${compareProfile.compareLaneReason}`);
+  }
   console.error(
     `[compare] Doppler kernel path: ${dopplerKernelPath ?? 'manifest-default'} `
     + `(${dopplerKernelResolution.source})`
   );
+  if (dopplerManifestPreflight) {
+    console.error(
+      `[compare] Doppler manifest: ${dopplerManifestPreflight.manifestSource} `
+      + `(sha256=${dopplerManifestPreflight.manifestSha256.slice(0, 12)}…, `
+      + `requiredInference=${dopplerManifestPreflight.requiredInferenceFieldsArtifact.ok ? 'ok' : 'fail'}, `
+      + `executionContract=${dopplerManifestPreflight.executionContractArtifact?.ok !== false ? 'ok' : 'fail'})`
+    );
+  }
   console.error(
     `[compare] mode: ${mode}, maxTokens: ${maxTokens}, warmupRuns: ${warmupRuns}, runs: ${runs}, `
     + `decodeProfile: ${decodeProfile}, workload=${workloadId ?? 'none'}, `
     + `dopplerSurface: ${dopplerSurface}, `
+    + `dopplerBrowserChannel: ${dopplerBrowserChannel ?? 'default'}, `
     + `sampling=(temp=${sharedContract.sampling.temperature}, topK=${sharedContract.sampling.topK}, topP=${sharedContract.sampling.topP}), `
     + `useChatTemplate: ${sharedContract.useChatTemplate === true ? 'on' : 'off'}, `
     + `dopplerBatchSize: ${dopplerBatchSize}, `
@@ -2046,8 +2488,23 @@ async function main() {
       runtimeConfigSha256: runtimeConfigOverrideHash,
       compareProfileSchemaVersion: compareProfileConfig.schemaVersion ?? DEFAULT_COMPARE_CONFIG_SCHEMA_VERSION,
     },
+    compareLane: {
+      declared: compareProfile.compareLane,
+      reason: compareProfile.compareLaneReason,
+      allowNonComparableLane,
+    },
     dopplerModelId,
     dopplerDtype: parseDopplerDtype(dopplerModelId),
+    dopplerModelSource: {
+      source: dopplerModelSource.source,
+      locator: dopplerModelSource.locator ?? null,
+      modelUrl: dopplerModelSource.modelUrl ?? null,
+      modelBaseDir: dopplerModelSource.modelBaseDir ?? null,
+      manifestSource: dopplerManifestPreflight?.manifestSource ?? null,
+      manifestSha256: dopplerManifestPreflight?.manifestSha256 ?? null,
+      registrySource: dopplerModelSource.registrySource ?? null,
+    },
+    dopplerManifestPreflight,
     dopplerSurface,
     dopplerKernelPath: dopplerKernelPath ?? 'manifest-default',
     dopplerKernelPathSource: dopplerKernelResolution.source,
@@ -2077,7 +2534,11 @@ async function main() {
       browser: {
         executable: browserExecutable || null,
         baseUrl: browserBaseUrl || null,
+        channel: dopplerBrowserChannel,
       },
+    },
+    comparatorStack: {
+      transformersjs: tjsRuntimeStack,
     },
     timeoutMs: compareSharedTimeoutMs ?? compareDopplerTimeoutMs,
     dopplerTimeoutMs: compareDopplerTimeoutMs,
@@ -2161,7 +2622,7 @@ async function main() {
     );
     dopplerComputeParity = await runDoppler(
       dopplerModelId,
-      dopplerModelUrl,
+      dopplerModelSource.modelUrl,
       sharedContract,
       'warm',
       {
@@ -2171,6 +2632,7 @@ async function main() {
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
         browserPort: dopplerBrowserPort,
+        browserChannel: dopplerBrowserChannel,
         browserExecutable,
         browserBaseUrl,
         timeoutMs: compareDopplerTimeoutMs,
@@ -2198,7 +2660,7 @@ async function main() {
 
     dopplerComputeThroughput = await runDoppler(
       dopplerModelId,
-      dopplerModelUrl,
+      dopplerModelSource.modelUrl,
       sharedContract,
       'warm',
       {
@@ -2208,6 +2670,7 @@ async function main() {
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
         browserPort: dopplerBrowserPort,
+        browserChannel: dopplerBrowserChannel,
         browserExecutable,
         browserBaseUrl,
         timeoutMs: compareDopplerTimeoutMs,
@@ -2236,7 +2699,7 @@ async function main() {
   if (needWarm) {
     dopplerWarm = await runDoppler(
       dopplerModelId,
-      dopplerModelUrl,
+      dopplerModelSource.modelUrl,
       sharedContract,
       'warm',
       {
@@ -2246,6 +2709,7 @@ async function main() {
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
         browserPort: dopplerBrowserPort,
+        browserChannel: dopplerBrowserChannel,
         browserExecutable,
         browserBaseUrl,
         timeoutMs: compareDopplerTimeoutMs,
@@ -2295,7 +2759,7 @@ async function main() {
   if (needCold) {
     dopplerCold = await runDoppler(
       dopplerModelId,
-      dopplerModelUrl,
+      dopplerModelSource.modelUrl,
       sharedContract,
       'cold',
       {
@@ -2305,6 +2769,7 @@ async function main() {
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
         browserPort: dopplerBrowserPort,
+        browserChannel: dopplerBrowserChannel,
         browserExecutable,
         browserBaseUrl,
         timeoutMs: compareDopplerTimeoutMs,
@@ -2435,7 +2900,15 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(`[compare] ${error.message}`);
-  process.exit(1);
-});
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error) => {
+    console.error(`[compare] ${error.message}`);
+    process.exit(1);
+  });
+}
+
+export {
+  buildSharedBenchmarkContract,
+  parseArgs,
+  parseOnOff,
+};

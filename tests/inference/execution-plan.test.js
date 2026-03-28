@@ -37,6 +37,12 @@ const minimalFallbackKernelPath = {
 function createRuntimeConfig(activationDtype = 'f16', maxTokens = 256) {
   const runtimeConfig = createDopplerConfig().runtime;
   runtimeConfig.inference.compute.activationDtype = activationDtype;
+  runtimeConfig.inference.compute.rangeAwareSelectiveWidening = {
+    enabled: true,
+    includeNonFinite: true,
+    onTrigger: 'error',
+    absThreshold: 65500,
+  };
   runtimeConfig.inference.generation.maxTokens = maxTokens;
   runtimeConfig.inference.session.decodeLoop = {
     batchSize: 4,
@@ -48,6 +54,7 @@ function createRuntimeConfig(activationDtype = 'f16', maxTokens = 256) {
 }
 
 const runtimeConfig = createRuntimeConfig('f16');
+runtimeConfig.inference.compute.rangeAwareSelectiveWidening.onTrigger = 'fallback-plan';
 
 const planState = compileExecutionPlanState({
   runtimeConfig,
@@ -69,6 +76,7 @@ const container = { executionPlanState: planState };
   assert.equal(active.activationDtype, 'f16');
   assert.equal(active.kernelPathId, 'gemma3-f16-fused-f16a-online');
   assert.equal(active.finitenessGuardEnabled, true);
+  assert.equal(active.finitenessOnTrigger, 'fallback-plan');
 }
 
 {
@@ -202,6 +210,19 @@ const container = { executionPlanState: planState };
 }
 
 {
+  const runtimeConfigFailFast = createRuntimeConfig('f16');
+  const failFastPlanState = compileExecutionPlanState({
+    runtimeConfig: runtimeConfigFailFast,
+    resolvedKernelPath: minimalKernelPath,
+    kernelPathSource: 'model',
+  });
+
+  assert.equal(hasFallbackExecutionPlan(failFastPlanState), false);
+  assert.equal(failFastPlanState.primaryPlan.finitenessOnTrigger, 'error');
+  assert.equal(activateFallbackExecutionPlan(failFastPlanState), null);
+}
+
+{
   const runtimeConfigNoFallback = createRuntimeConfig('f32');
   const noFallbackPlanState = compileExecutionPlanState({
     runtimeConfig: runtimeConfigNoFallback,
@@ -222,6 +243,7 @@ const container = { executionPlanState: planState };
 
 {
   const runtimeConfigMissingRule = createRuntimeConfig('f16');
+  runtimeConfigMissingRule.inference.compute.rangeAwareSelectiveWidening.onTrigger = 'fallback-plan';
   assert.throws(
     () => compileExecutionPlanState({
       runtimeConfig: runtimeConfigMissingRule,
@@ -238,6 +260,7 @@ const container = { executionPlanState: planState };
 
 {
   const runtimeConfigMissingId = createRuntimeConfig('f16');
+  runtimeConfigMissingId.inference.compute.rangeAwareSelectiveWidening.onTrigger = 'fallback-plan';
   const noKernelPathPlanState = compileExecutionPlanState({
     runtimeConfig: runtimeConfigMissingId,
     resolvedKernelPath: {
@@ -260,6 +283,7 @@ const container = { executionPlanState: planState };
 
 {
   const runtimeConfigInlineFallback = createRuntimeConfig('f16');
+  runtimeConfigInlineFallback.inference.compute.rangeAwareSelectiveWidening.onTrigger = 'fallback-plan';
   const inlinePlanState = compileExecutionPlanState({
     runtimeConfig: runtimeConfigInlineFallback,
     resolvedKernelPath: {

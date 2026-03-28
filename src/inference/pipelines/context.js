@@ -121,7 +121,15 @@ export function applyPipelineContexts(target, contexts = {}, options = {}) {
 
   if (contexts.gpu?.device) {
     const device = contexts.gpu.device;
-    setDevice(device);
+    const isRebindingCurrentDevice = previousDevice != null && device === previousDevice;
+    const nextAdapterInfo = contexts.gpu.adapterInfo
+      ?? (isRebindingCurrentDevice ? previousAdapterInfo : undefined);
+    const nextPlatformConfig = contexts.gpu.platformConfig
+      ?? (isRebindingCurrentDevice ? previousPlatformConfig : undefined);
+    setDevice(device, {
+      ...(nextAdapterInfo ? { adapterInfo: nextAdapterInfo } : {}),
+      ...(nextPlatformConfig !== undefined ? { platformConfig: nextPlatformConfig } : {}),
+    });
     setGPUDevice(device);
     if (options.assignGpuContext) {
       target.gpuContext = { device };

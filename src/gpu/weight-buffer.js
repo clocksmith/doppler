@@ -39,15 +39,34 @@ export function createWeightBuffer(
   dtype,
   layout,
   shape,
-  label
+  label,
+  materializations = null
 ) {
   tagBufferDtype(buffer, dtype);
+  const normalizedMaterializations = {};
+  if (materializations && typeof materializations === 'object') {
+    for (const [materializationDtype, descriptor] of Object.entries(materializations)) {
+      if (!descriptor?.buffer) {
+        continue;
+      }
+      tagBufferDtype(descriptor.buffer, materializationDtype);
+      normalizedMaterializations[materializationDtype] = Object.freeze({
+        buffer: descriptor.buffer,
+        layout: descriptor.layout ?? layout,
+      });
+    }
+  }
+  normalizedMaterializations[dtype] = Object.freeze({
+    buffer,
+    layout,
+  });
   return {
     buffer,
     dtype,
     layout,
     shape: Object.freeze([...shape]),
     label,
+    materializations: Object.freeze(normalizedMaterializations),
   };
 }
 
@@ -129,4 +148,20 @@ export function getWeightDtype(weight) {
   if (isWeightBuffer(weight)) return weight.dtype;
   if (isTensorLike(weight)) return weight.dtype;
   return getBufferDtype(weight);
+}
+
+export function resolveWeightBufferMaterialization(weight, preferredDtype = null) {
+  if (!isWeightBuffer(weight) || preferredDtype == null || preferredDtype === weight.dtype) {
+    return weight;
+  }
+  const materialization = weight.materializations?.[preferredDtype];
+  if (!materialization?.buffer) {
+    return weight;
+  }
+  return {
+    ...weight,
+    buffer: materialization.buffer,
+    dtype: preferredDtype,
+    layout: materialization.layout ?? weight.layout,
+  };
 }

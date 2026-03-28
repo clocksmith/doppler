@@ -29,6 +29,17 @@ export interface ComputeLogitsOptions {
   lastPositionOnly?: boolean;
 }
 
+export interface ResolvedLmHeadMatmulConfig {
+  lastPositionOnly: boolean;
+  matmulRows: number;
+  phaseOverride: 'decode' | null;
+}
+
+export function resolveLmHeadMatmulConfig(
+  numTokens: number,
+  options?: ComputeLogitsOptions | null
+): ResolvedLmHeadMatmulConfig;
+
 /**
  * Compute logits from hidden states.
  *

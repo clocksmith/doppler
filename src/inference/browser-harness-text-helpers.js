@@ -1,4 +1,5 @@
 import { log as debugLog } from '../debug/index.js';
+import { CAPTURE_LEVELS, createDefaultCaptureConfig } from '../debug/capture-policy.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { loadJson } from '../utils/load-json.js';
 import { isPlainObject } from '../utils/plain-object.js';
@@ -405,6 +406,27 @@ function resolveMaxTokens(runtimeConfig) {
   return DEFAULT_HARNESS_MAX_TOKENS;
 }
 
+function resolveAutomaticGenerationDiagnostics(runtimeConfig, runOverrides = null) {
+  const overrideDiagnostics = runOverrides?.diagnostics ?? null;
+  if (overrideDiagnostics?.enabled === true) {
+    return overrideDiagnostics;
+  }
+
+  const diagnosticsPolicy = runtimeConfig?.shared?.tooling?.diagnostics ?? 'off';
+  if (diagnosticsPolicy !== 'always') {
+    return overrideDiagnostics;
+  }
+
+  return {
+    enabled: true,
+    captureConfig: {
+      ...createDefaultCaptureConfig(),
+      enabled: true,
+      defaultLevel: CAPTURE_LEVELS.NONE,
+    },
+  };
+}
+
 export function resolveBenchmarkRunSettings(runtimeConfig, source = null) {
   const benchConfig = runtimeConfig?.shared?.benchmark?.run || {};
   const runtimeSampling = isPlainObject(runtimeConfig?.inference?.sampling)
@@ -769,12 +791,12 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     : (runtimeConfig.inference?.sampling || {});
   const debugProbes = runtimeConfig.shared?.debug?.probes || [];
   const profile = runtimeConfig.shared?.debug?.profiler?.enabled === true;
-  const diagnosticsEnabled = runtimeConfig.shared?.harness?.mode === 'diagnose'
+  const explicitDiagnosticsEnabled = runtimeConfig.shared?.harness?.mode === 'diagnose'
     || runOverrides?.diagnostics?.enabled === true;
-  const disableCommandBatching = diagnosticsEnabled
+  const disableCommandBatching = explicitDiagnosticsEnabled
     || (Array.isArray(debugProbes) && debugProbes.length > 0);
   const start = performance.now();
-  const diagnostics = runOverrides?.diagnostics ?? null;
+  const diagnostics = resolveAutomaticGenerationDiagnostics(runtimeConfig, runOverrides);
 
   for await (const tokenText of pipeline.generate(promptInput, {
     maxTokens,

@@ -32,6 +32,15 @@ function shouldForceStableF32Logits(config, inputDtype) {
     && config.hiddenSize <= 768;
 }
 
+export function resolveLmHeadMatmulConfig(numTokens, options = null) {
+  const lastPositionOnly = options?.lastPositionOnly === true && numTokens > 1;
+  return {
+    lastPositionOnly,
+    matmulRows: lastPositionOnly ? 1 : numTokens,
+    phaseOverride: lastPositionOnly ? 'decode' : null,
+  };
+}
+
 
 export async function computeLogits(
   hiddenStates,
@@ -253,17 +262,22 @@ export async function computeLogits(
     lmHeadBufferOwned = true;
   }
 
+  const lastTokenMatmul = resolveLmHeadMatmulConfig(numTokens, options);
+  const { lastPositionOnly, matmulRows } = lastTokenMatmul;
+  const matmulPhaseOverride = lastTokenMatmul.phaseOverride;
+
   // Debug: Log buffer info for lm_head matmul
   const lmHeadGPU = isWeightBuffer(lmHeadBuffer) ? lmHeadBuffer.buffer : lmHeadBuffer;
-  const lmHeadDtype = getWeightDtype(lmHeadBuffer);  // dtype from WeightBuffer metadata
+  const lmHeadDtype = getWeightDtype(lmHeadBuffer);
   const normedDtype = normedTensor.dtype;
   if (isTraceEnabled('logits')) {
-    trace.logits(`LM_HEAD_MATMUL: M=${numTokens}, N=${matmulVocabSize}, K=${hiddenSize}, lmHeadDtype=${lmHeadDtype}, normedDtype=${normedDtype}, size=${lmHeadGPU.size}, bufLabel=${lmHeadGPU.label}`);
+    trace.logits(
+      `LM_HEAD_MATMUL: M=${matmulRows}, N=${matmulVocabSize}, K=${hiddenSize}, ` +
+      `phase=${matmulPhaseOverride ?? 'auto'}, lmHeadDtype=${lmHeadDtype}, ` +
+      `normedDtype=${normedDtype}, size=${lmHeadGPU.size}, bufLabel=${lmHeadGPU.label}`
+    );
   }
 
-  const lastPositionOnly = options?.lastPositionOnly === true && numTokens > 1;
-  const matmulRows = lastPositionOnly ? 1 : numTokens;
-  const matmulPhaseOverride = lastPositionOnly ? 'prefill' : null;
   let matmulInputTensor = normedTensor;
   let matmulInputOwned = false;
   if (lastPositionOnly) {

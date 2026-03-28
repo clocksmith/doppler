@@ -4,6 +4,7 @@ import type {
   ExecutionV1PoliciesSchema,
   ExecutionV1ExpandedStepSchema,
 } from '../../../config/schema/execution-v1.schema.js';
+import type { KernelPathSchema } from '../../../config/schema/index.js';
 
 export interface ExecutionV1CompiledState {
   session: ExecutionV1SessionSchema;
@@ -14,6 +15,8 @@ export interface ExecutionV1CompiledState {
     all: ExecutionV1ExpandedStepSchema[];
   };
   runtimeInferencePatch: Record<string, unknown>;
+  appliedTransforms?: string[];
+  fallbackKernelPath?: KernelPathSchema | null;
 }
 
 export declare function hasExecutionV1(
@@ -29,6 +32,20 @@ export declare function compileExecutionV1(options?: {
   modelId?: string;
   numLayers?: number;
   runtimeSession?: ExecutionV1SessionSchema | null;
+  runtimeCompute?: Record<string, unknown> | null;
+  kernelPathPolicy?: Record<string, unknown> | null;
+  capabilities?: {
+    hasSubgroups?: boolean;
+    hasF16?: boolean;
+    hasSubgroupsF16?: boolean;
+    maxWorkgroupSize?: number;
+    maxBufferSize?: number;
+  } | null;
+  platform?: {
+    id?: string;
+    vendor?: string;
+    architecture?: string;
+  } | null;
 }): ExecutionV1CompiledState;
 
 export declare function applyExecutionV1RuntimeConfig(options?: {

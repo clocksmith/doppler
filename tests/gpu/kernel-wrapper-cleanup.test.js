@@ -63,9 +63,10 @@ const { runScale } = await import('../../src/gpu/kernels/scale.js');
 const { runSplitQKV } = await import('../../src/gpu/kernels/split_qkv.js');
 
 class FakeBuffer {
-  constructor({ size, usage, initialBytes = null }) {
+  constructor({ size, usage, label = null, initialBytes = null }) {
     this.size = size;
     this.usage = usage;
+    this.label = label;
     this.destroyed = false;
     this.bytes = initialBytes ? new Uint8Array(initialBytes) : null;
   }
@@ -89,13 +90,25 @@ class FakeBuffer {
 const ORIGINAL_GPU_BUFFER = globalThis.GPUBuffer;
 globalThis.GPUBuffer = FakeBuffer;
 
-function createFakeDevice({ createBindGroupThrowAt = null } = {}) {
+function createFakeDevice({
+  createBindGroupThrowAt = null,
+  trackCreatedBuffers = false,
+  trackPipelineDescriptors = false,
+} = {}) {
   let createBindGroupCount = 0;
+  const createdBuffers = trackCreatedBuffers ? [] : null;
+  const pipelineDescriptors = trackPipelineDescriptors ? [] : null;
 
   return {
     queue: {
       submit() {},
-      writeBuffer() {},
+      writeBuffer(buffer, offset, data) {
+        const bytes = data instanceof ArrayBuffer
+          ? new Uint8Array(data)
+          : new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+        const target = buffer.ensureBytes(offset + bytes.byteLength);
+        target.set(bytes, offset);
+      },
       onSubmittedWorkDone() {
         return Promise.resolve();
       },
@@ -133,15 +146,22 @@ function createFakeDevice({ createBindGroupThrowAt = null } = {}) {
         },
       };
     },
-    async createComputePipelineAsync() {
+    async createComputePipelineAsync(descriptor) {
+      if (pipelineDescriptors) {
+        pipelineDescriptors.push(descriptor);
+      }
       return {
         getBindGroupLayout() {
           return {};
         },
       };
     },
-    createBuffer({ size, usage }) {
-      return new FakeBuffer({ size, usage });
+    createBuffer({ size, usage, label }) {
+      const buffer = new FakeBuffer({ size, usage, label });
+      if (createdBuffers) {
+        createdBuffers.push(buffer);
+      }
+      return buffer;
     },
     createCommandEncoder() {
       return {
@@ -150,6 +170,8 @@ function createFakeDevice({ createBindGroupThrowAt = null } = {}) {
         },
       };
     },
+    ...(createdBuffers ? { createdBuffers } : {}),
+    ...(pipelineDescriptors ? { pipelineDescriptors } : {}),
   };
 }
 
@@ -204,6 +226,49 @@ function assertDeviceBuffersDestroyed(device) {
   await assert.rejects(
     () => runFusedFFN(input, gate, up, 1, 1, { swigluLimit: null }),
     /createBindGroup failed at 1/
+  );
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice({ createBindGroupThrowAt: 1, trackCreatedBuffers: true });
+  resetRuntimeState(device);
+  const input = createExternalTensor(new Float32Array(1152), [1, 1152], 'ffn_q4k_input');
+  const gate = createWeightLike(144 * 5, 'q4k');
+  const up = createWeightLike(144 * 5, 'q4k');
+  await assert.rejects(
+    () => runFusedFFN(input, gate, up, 1152, 1, { swigluLimit: null }),
+    /createBindGroup failed at 1/
+  );
+  const uniformBuffer = device.createdBuffers.find((buffer) => buffer.label === 'fused_ffn_uniforms');
+  assert.ok(uniformBuffer, 'Fused FFN should allocate a uniform buffer before bind group creation.');
+  assert.equal(uniformBuffer.destroyed, true, 'Fused FFN uniform buffer must be destroyed on failure.');
+  const numBlocksPerRow = new DataView(uniformBuffer.bytes.buffer).getUint32(20, true);
+  assert.equal(
+    numBlocksPerRow,
+    5,
+    'Q4K fused FFN uniforms must use ceil(hiddenSize / 256) so Gemma 3 1B hiddenSize=1152 keeps the tail block.'
+  );
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice({ createBindGroupThrowAt: 1, trackPipelineDescriptors: true });
+  resetRuntimeState(device);
+  const input = createExternalTensor(new Float32Array(1152), [1, 1152], 'ffn_q4k_input');
+  const gate = createWeightLike(144 * 5, 'q4k');
+  const up = createWeightLike(144 * 5, 'q4k');
+  await assert.rejects(
+    () => runFusedFFN(input, gate, up, 1152, 1, { swigluLimit: null }),
+    /createBindGroup failed at 1/
+  );
+  assert.equal(device.pipelineDescriptors.length, 1, 'Q4K fused FFN should compile exactly one pipeline.');
+  assert.equal(
+    device.pipelineDescriptors[0].compute.constants,
+    undefined,
+    'Q4K fused FFN must not pass SHARED_INPUT_SIZE constants to fused_ffn_q4k.wgsl.'
   );
   assertPoolIsClean();
   resetRuntimeState();

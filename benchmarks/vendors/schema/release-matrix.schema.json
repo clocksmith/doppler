@@ -248,9 +248,12 @@
         "required": [
           "dopplerModelId",
           "dopplerModelBaseDir",
+          "dopplerSource",
           "defaultTjsModelId",
           "defaultKernelPath",
           "defaultDopplerSurface",
+          "compareLane",
+          "compareLaneReason",
           "inCatalog",
           "catalogLabel",
           "catalogModes",
@@ -262,6 +265,12 @@
             "type": "string"
           },
           "dopplerModelBaseDir": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "dopplerSource": {
             "type": [
               "string",
               "null"
@@ -280,6 +289,18 @@
             ]
           },
           "defaultDopplerSurface": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "compareLane": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "compareLaneReason": {
             "type": [
               "string",
               "null"
@@ -460,7 +481,25 @@
                 "null"
               ]
             },
+            "dopplerModelSource": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "tjsModelId": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "compareLane": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "compareLaneReason": {
               "type": [
                 "string",
                 "null"

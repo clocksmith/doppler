@@ -77,6 +77,13 @@ intent, diagnostics), but may not rewrite conversion-owned storage facts
 
 If a change requires different storage artifacts, reconvert the model.
 
+For investigate/verify text-generation runs, `runtime.shared.tooling.diagnostics="always"`
+enables operator-timeline capture without switching the harness mode to
+`diagnose`. The automatic policy is intended for compare-like debug lanes: it
+emits low-overhead operator records while preserving the resolved execution
+plan and batching behavior unless the caller explicitly requests a heavier
+diagnostics payload.
+
 ## Command/runtime patch fields
 
 Harnessed command runs (`verify`, `debug`, `bench`) must preserve:

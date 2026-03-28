@@ -265,9 +265,11 @@ export async function runDenseFFNGPU(
     hasLoRA,
     dtypeMatches,
     dtypeSupported,
+    weightDtype: gateDtype,
     activationDtype,
     f16BatchSupported,
     batchSize: numTokens,
+    hiddenSizeAligned32: hiddenSize % 32 === 0,
   });
 
   if (useFusedGateUp) {

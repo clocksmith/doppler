@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { parseManifest, parseTensorMap } from '../src/formats/rdrr/parsing.js';
 import { createConverterConfig } from '../src/config/schema/index.js';
 import { resolveConversionPlan } from '../src/converter/conversion-plan.js';
+import { inferBundledTokenizerBehaviorFlags } from '../src/inference/tokenizers/behavior-flags.js';
 
 function fail(message) {
   console.error(`[refresh-manifest] ${message}`);
@@ -234,11 +235,16 @@ export async function resolveBundledTokenizerRefreshPatch(modelDir, manifest) {
   const patch = {};
   const addBosToken = resolveTokenizerBehaviorField(tokenizerJson, 'add_bos_token', 'addBosToken');
   const addEosToken = resolveTokenizerBehaviorField(tokenizerJson, 'add_eos_token', 'addEosToken');
+  const inferredFlags = inferBundledTokenizerBehaviorFlags(tokenizerJson);
   if (addBosToken != null) {
     patch.addBosToken = addBosToken;
+  } else if (inferredFlags.addBosToken != null) {
+    patch.addBosToken = inferredFlags.addBosToken;
   }
   if (addEosToken != null) {
     patch.addEosToken = addEosToken;
+  } else if (inferredFlags.addEosToken != null) {
+    patch.addEosToken = inferredFlags.addEosToken;
   }
   return Object.keys(patch).length > 0 ? patch : null;
 }

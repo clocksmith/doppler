@@ -10,101 +10,131 @@
             "dopplerModelId": "gemma-3-270m-it-q4k-ehf16-af32",
             "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
             "defaultKernelPath": null,
-            "modelBaseDir": "local",
+            "defaultDopplerSource": "quickstart-registry",
+            "modelBaseDir": null,
             "defaultDopplerSurface": "auto",
             "defaultDopplerFormat": "rdrr",
             "defaultTjsFormat": "onnx",
-            "safetensorsSourceId": "google/gemma-3-270m-it"
+            "safetensorsSourceId": "google/gemma-3-270m-it",
+            "compareLane": "performance_comparable",
+            "compareLaneReason": null
         },
         {
             "dopplerModelId": "gemma-3-270m-it-f16-af32",
             "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
             "defaultKernelPath": null,
+            "defaultDopplerSource": "local",
             "modelBaseDir": "local",
             "defaultDopplerSurface": "auto",
             "defaultDopplerFormat": "rdrr",
             "defaultTjsFormat": "onnx",
-            "safetensorsSourceId": "google/gemma-3-270m-it"
+            "safetensorsSourceId": "google/gemma-3-270m-it",
+            "compareLane": "performance_comparable",
+            "compareLaneReason": null
         },
         {
             "dopplerModelId": "gemma-3-1b-it-q4k-ehf16-af32",
             "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
             "defaultKernelPath": null,
-            "modelBaseDir": "local",
+            "defaultDopplerSource": "quickstart-registry",
+            "modelBaseDir": null,
             "defaultDopplerSurface": "auto",
             "defaultDopplerFormat": "rdrr",
             "defaultTjsFormat": "onnx",
-            "safetensorsSourceId": "google/gemma-3-1b-it"
+            "safetensorsSourceId": "google/gemma-3-1b-it",
+            "compareLane": "performance_comparable",
+            "compareLaneReason": null
         },
         {
             "dopplerModelId": "gemma-3-1b-it-f16-af32",
             "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
             "defaultKernelPath": null,
+            "defaultDopplerSource": "local",
             "modelBaseDir": "local",
             "defaultDopplerSurface": "auto",
             "defaultDopplerFormat": "rdrr",
             "defaultTjsFormat": "onnx",
-            "safetensorsSourceId": "google/gemma-3-1b-it"
+            "safetensorsSourceId": "google/gemma-3-1b-it",
+            "compareLane": "performance_comparable",
+            "compareLaneReason": null
         },
         {
             "dopplerModelId": "translategemma-4b-it-q4k-ehf16-af32",
             "defaultTjsModelId": "onnx-community/translategemma-text-4b-it-ONNX",
             "defaultKernelPath": null,
+            "defaultDopplerSource": "local",
             "modelBaseDir": "local",
             "defaultDopplerSurface": "auto",
             "defaultDopplerFormat": "rdrr",
             "defaultTjsFormat": "onnx",
-            "safetensorsSourceId": "google/translategemma-4b-it"
+            "safetensorsSourceId": "google/translategemma-4b-it",
+            "compareLane": "performance_comparable",
+            "compareLaneReason": null
         },
         {
             "dopplerModelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
             "defaultTjsModelId": null,
             "defaultKernelPath": null,
+            "defaultDopplerSource": "local",
             "modelBaseDir": "local",
             "defaultDopplerSurface": "auto",
             "defaultDopplerFormat": "rdrr",
             "defaultTjsFormat": null,
-            "safetensorsSourceId": null
+            "safetensorsSourceId": null,
+            "compareLane": "capability_only",
+            "compareLaneReason": "No canonical Transformers.js mapping is configured for this bilingual TranslateGemma artifact."
         },
         {
             "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
             "defaultTjsModelId": "onnx-community/Qwen3.5-0.8B-ONNX",
             "defaultKernelPath": null,
-            "modelBaseDir": "local",
+            "defaultDopplerSource": "quickstart-registry",
+            "modelBaseDir": null,
             "defaultDopplerSurface": "auto",
             "defaultDopplerFormat": "rdrr",
             "defaultTjsFormat": "onnx",
-            "safetensorsSourceId": "Qwen/Qwen3.5-0.8B"
+            "safetensorsSourceId": "Qwen/Qwen3.5-0.8B",
+            "compareLane": "capability_only",
+            "compareLaneReason": "Transformers.js v4 does not currently support the qwen3_5 architecture on the WebGPU compare lane."
         },
         {
             "dopplerModelId": "qwen-3-5-2b-q4k-ehaf16",
             "defaultTjsModelId": "onnx-community/Qwen3.5-2B-ONNX",
             "defaultKernelPath": null,
-            "modelBaseDir": "local",
+            "defaultDopplerSource": "quickstart-registry",
+            "modelBaseDir": null,
             "defaultDopplerSurface": "auto",
             "defaultDopplerFormat": "rdrr",
             "defaultTjsFormat": "onnx",
-            "safetensorsSourceId": "Qwen/Qwen3.5-2B"
+            "safetensorsSourceId": "Qwen/Qwen3.5-2B",
+            "compareLane": "capability_only",
+            "compareLaneReason": "Transformers.js v4 does not currently support the qwen3_5 architecture on the WebGPU compare lane."
         },
         {
             "dopplerModelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
             "defaultTjsModelId": "LiquidAI/LFM2.5-1.2B-Instruct-ONNX",
             "defaultKernelPath": null,
+            "defaultDopplerSource": "local",
             "modelBaseDir": "local",
             "defaultDopplerSurface": "auto",
             "defaultDopplerFormat": "rdrr",
             "defaultTjsFormat": "onnx",
-            "safetensorsSourceId": "LiquidAI/LFM2.5-1.2B-Instruct"
+            "safetensorsSourceId": "LiquidAI/LFM2.5-1.2B-Instruct",
+            "compareLane": "performance_comparable",
+            "compareLaneReason": null
         },
         {
             "dopplerModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
             "defaultTjsModelId": "onnx-community/embeddinggemma-300m-ONNX",
             "defaultKernelPath": null,
-            "modelBaseDir": "local",
+            "defaultDopplerSource": "quickstart-registry",
+            "modelBaseDir": null,
             "defaultDopplerSurface": "auto",
             "defaultDopplerFormat": "rdrr",
             "defaultTjsFormat": "onnx",
-            "safetensorsSourceId": "google/embeddinggemma-300m"
+            "safetensorsSourceId": "google/embeddinggemma-300m",
+            "compareLane": "capability_only",
+            "compareLaneReason": "Embedding models use a separate workload contract and are not part of the text-generation compare lane."
         }
     ]
 }

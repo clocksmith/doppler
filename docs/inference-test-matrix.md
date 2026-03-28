@@ -62,7 +62,7 @@ Use one canonical model per architectural feature. Do not duplicate across quant
 
 Test that all generation surfaces honor the same contract obligations without running the full GPU pipeline.
 
-- **Structural parity test:** `tests/inference/generate-token-ids-contract.test.js` verifies that `generateTokenIds()`, `_runDecodeLoop()`, and `_generateTokensInternal()` all include the same contract checks (abort, EOS, stop sequences, finiteness fallback, stats, cleanup).
+- **Structural parity test:** `tests/inference/generate-token-ids-contract.test.js` verifies that `generateTokenIds()`, `_runDecodeLoop()`, and `_generateTokensInternal()` all include the same contract checks (abort, EOS, stop sequences, finiteness handling, stats, cleanup).
 - **Behavioral parity benchmark:** `tools/bench-text-decode-paths.js --teacher-forced` runs both the token-return and logits-return paths on the same teacher sequence and fails if outputs diverge.
 
 ### Layer 5: Performance benchmarks (nightly/adhoc)

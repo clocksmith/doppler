@@ -22,7 +22,12 @@ const {
   restorePipelineContexts,
 } = await import('../../src/inference/pipelines/context.js');
 const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/runtime.js');
-const { getDevice, setDevice } = await import('../../src/gpu/device.js');
+const {
+  getDevice,
+  getKernelCapabilities,
+  getPlatformConfig,
+  setDevice,
+} = await import('../../src/gpu/device.js');
 const { EnergyPipeline } = await import('../../src/inference/pipelines/energy/pipeline.js');
 
 class FakeBuffer {}
@@ -170,6 +175,43 @@ function createFakeDevice(label) {
   assert.equal(getRuntimeConfig().inference.batching.batchSize, originalRuntime.inference.batching.batchSize);
   assert.equal(getDevice(), originalDevice);
   assert.equal(restorePipelineContexts(pipeline), false);
+  setRuntimeConfig(originalRuntime);
+  setDevice(null);
+}
+
+{
+  const originalRuntime = getRuntimeConfig();
+  const originalDevice = createFakeDevice('original');
+  const originalPlatformConfig = {
+    platform: { id: 'original-platform', name: 'Original' },
+  };
+  const originalAdapterInfo = {
+    vendor: 'orig',
+    architecture: 'orig-arch',
+    device: 'orig-device',
+    description: '',
+  };
+  setDevice(originalDevice, {
+    platformConfig: originalPlatformConfig,
+    adapterInfo: originalAdapterInfo,
+  });
+
+  const target = {};
+  const applied = applyPipelineContexts(target, {
+    gpu: { device: originalDevice },
+  }, {
+    assignGpuContext: true,
+  });
+
+  assert.equal(getDevice(), originalDevice);
+  assert.deepEqual(getKernelCapabilities().adapterInfo, originalAdapterInfo);
+  assert.deepEqual(getPlatformConfig(), originalPlatformConfig);
+  assert.deepEqual(target.gpuContext, { device: originalDevice });
+
+  applied.restore();
+  assert.equal(getDevice(), originalDevice);
+  assert.deepEqual(getKernelCapabilities().adapterInfo, originalAdapterInfo);
+  assert.deepEqual(getPlatformConfig(), originalPlatformConfig);
   setRuntimeConfig(originalRuntime);
   setDevice(null);
 }

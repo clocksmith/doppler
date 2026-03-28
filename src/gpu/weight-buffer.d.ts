@@ -35,6 +35,10 @@ export interface WeightBuffer {
   readonly layout: WeightLayout;
   readonly shape: readonly number[];
   readonly label?: string;
+  readonly materializations?: Readonly<Partial<Record<WeightDtype, {
+    readonly buffer: GPUBuffer;
+    readonly layout: WeightLayout;
+  }>>>;
 }
 
 /**
@@ -73,7 +77,11 @@ export function createWeightBuffer(
   dtype: WeightDtype,
   layout: WeightLayout,
   shape: number[],
-  label?: string
+  label?: string,
+  materializations?: Partial<Record<WeightDtype, {
+    buffer: GPUBuffer;
+    layout?: WeightLayout;
+  }>> | null
 ): WeightBuffer;
 
 /**
@@ -119,3 +127,12 @@ export function getLayout(weight: GPUBuffer | WeightBuffer | TensorLike): Weight
  * Get dtype from WeightBuffer, tagged raw GPUBuffer, or TensorLike.
  */
 export function getWeightDtype(weight: GPUBuffer | WeightBuffer | TensorLike): WeightDtype | TensorLike['dtype'] | null;
+
+/**
+ * Resolve a preferred materialization view from a WeightBuffer when alternate
+ * dense/quantized buffers are available.
+ */
+export function resolveWeightBufferMaterialization(
+  weight: GPUBuffer | WeightBuffer | TensorLike,
+  preferredDtype?: WeightDtype | TensorLike['dtype'] | null
+): GPUBuffer | WeightBuffer | TensorLike;

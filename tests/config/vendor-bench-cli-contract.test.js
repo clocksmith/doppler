@@ -68,12 +68,15 @@ async function readExpectedReleaseClaimableModelIds() {
   assert.ok(matrixPayload.sources?.benchmarkPolicy);
   assert.ok(matrixPayload.sources?.['harness:doppler']);
   assert.ok(matrixPayload.sources?.['harness:transformersjs']);
+  assert.ok(matrixPayload.modelCoverage.every((entry) => Object.prototype.hasOwnProperty.call(entry, 'dopplerSource')));
+  assert.ok(matrixPayload.modelCoverage.every((entry) => Object.prototype.hasOwnProperty.call(entry, 'compareLane')));
   assert.deepEqual(
     matrixPayload.modelCoverage.map((entry) => entry.dopplerModelId).sort(),
     expectedModelCoverage
   );
   assert.match(markdownPayload, /^# Release Matrix/m);
   assert.match(markdownPayload, /Generated: 2026-03-05T00:00:00.000Z/);
+  assert.match(markdownPayload, /\| Doppler Model \| In Catalog \| Catalog Modes \| TJS Mapping \| Kernel Path \| Surface \| Source \| Compare Lane \| Notes \|/);
 }
 
 {

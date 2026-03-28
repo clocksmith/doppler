@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 
 const { runBrowserSuite } = await import('../../src/inference/browser-harness.js');
+const { runGeneration } = await import('../../src/inference/browser-harness-text-helpers.js');
 
 function createHarnessOverride(records) {
   let recordIndex = 0;
@@ -164,6 +165,56 @@ function createHarnessOverride(records) {
   });
 
   assert.equal(observed.useChatTemplate, undefined);
+}
+
+{
+  const observed = {
+    diagnostics: null,
+    disableCommandBatching: null,
+  };
+  const pipeline = {
+    async *generate(_promptInput, options = {}) {
+      observed.diagnostics = options.diagnostics ?? null;
+      observed.disableCommandBatching = options.disableCommandBatching ?? null;
+      options.onToken?.(1, 'Blue');
+      yield 'Blue';
+    },
+    getStats() {
+      return {
+        prefillTimeMs: 1,
+        ttftMs: 1,
+        decodeTimeMs: 1,
+        prefillTokens: 1,
+        decodeTokens: 1,
+        decodeProfileSteps: [],
+      };
+    },
+  };
+
+  const result = await runGeneration(pipeline, {
+    shared: {
+      tooling: {
+        diagnostics: 'always',
+      },
+    },
+    inference: {
+      prompt: 'The sky is',
+      generation: {
+        maxTokens: 1,
+      },
+      sampling: {
+        temperature: 0,
+        topK: 1,
+        topP: 1,
+      },
+    },
+  });
+
+  assert.equal(result.output, 'Blue');
+  assert.equal(observed.disableCommandBatching, false);
+  assert.equal(observed.diagnostics?.enabled, true);
+  assert.equal(observed.diagnostics?.captureConfig?.enabled, true);
+  assert.equal(observed.diagnostics?.captureConfig?.defaultLevel, 'none');
 }
 
 console.log('browser-harness-generation-diagnostics.test: ok');

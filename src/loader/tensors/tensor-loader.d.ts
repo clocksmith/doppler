@@ -17,6 +17,8 @@ import type { LoaderDebugConfigSchema } from '../../config/schema/debug.schema.j
 export interface TensorLoadConfig {
   /** Use fused Q4K matmul kernels */
   useFusedQ4K: boolean;
+  /** Q4K weight materialization mode derived from the resolved execution graph */
+  q4kMaterializationMode?: 'dense' | 'fused' | 'mixed';
   /** Debug controls for Q4K loading/dequantization */
   loaderDebug?: LoaderDebugConfigSchema | null;
   /** Keep weights as F32 (disable F16 downcasting) */
@@ -91,6 +93,16 @@ export declare function loadQ4KFused(
  * Load Q4K tensor to GPU with dequantization.
  */
 export declare function loadQ4KDequant(
+  shardData: Uint8Array,
+  location: TensorLocation,
+  name: string,
+  config: TensorLoadConfig
+): Promise<TensorLoadResult>;
+
+/**
+ * Load Q4K tensor to GPU with both dense and fused-compatible materializations.
+ */
+export declare function loadQ4KMixed(
   shardData: Uint8Array,
   location: TensorLocation,
   name: string,

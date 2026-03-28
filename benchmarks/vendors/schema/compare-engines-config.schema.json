@@ -44,6 +44,10 @@
             "type": ["string", "null"],
             "minLength": 1
           },
+          "defaultDopplerSource": {
+            "type": ["string", "null"],
+            "enum": ["local", "quickstart-registry", null]
+          },
           "modelBaseDir": {
             "type": ["string", "null"],
             "minLength": 1
@@ -61,6 +65,14 @@
             "enum": ["onnx", "safetensors", null]
           },
           "safetensorsSourceId": {
+            "type": ["string", "null"],
+            "minLength": 1
+          },
+          "compareLane": {
+            "type": ["string", "null"],
+            "enum": ["performance_comparable", "capability_only", null]
+          },
+          "compareLaneReason": {
             "type": ["string", "null"],
             "minLength": 1
           }

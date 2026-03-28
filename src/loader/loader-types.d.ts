@@ -189,6 +189,8 @@ export interface Q4KConfig {
   q4kLayout: 'row' | 'col' | null;
   /** Keep weights as F32 (disable F16 downcasting) */
   keepF32Weights: boolean;
+  /** Explicit dense/fused/mixed projection materialization mode */
+  q4kMaterializationMode?: 'dense' | 'fused' | 'mixed';
 }
 
 /**

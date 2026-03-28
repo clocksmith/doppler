@@ -34,11 +34,11 @@ override THREADS_PER_COL: u32 = 8u;  // 256 / 32 = 8
 
 struct Uniforms {
     M: u32,                   // Batch size (usually 1 for decode)
-    hidden_size: u32,         // Input dimension (K, must be multiple of 256)
+    hidden_size: u32,         // Input dimension (K)
     intermediate_size: u32,   // Output dimension (N)
     alpha: f32,               // Scale factor
     activation: u32,          // 0=silu, 1=gelu
-    num_blocks_per_row: u32,  // hidden_size / 256
+    num_blocks_per_row: u32,  // ceil(hidden_size / 256)
     clamp_max: f32,           // SwiGLU clamp (0 = disabled)
     _pad0: u32,
 }
@@ -175,8 +175,11 @@ fn main(
 
             let k_base = b * QK_K;
 
-            // Process all 8 sub-blocks
+            // Process all 8 sub-blocks (skip sub-blocks beyond hidden_size)
             for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+                let sb_base = sb * SUBBLOCK_SIZE;
+                if (k_base + sb_base >= u.hidden_size) { break; }
+
                 let gate_sm = get_scale_min_k4(gate_block.scales, sb);
                 let gate_scale = gate_d * f32(gate_sm.x);
                 let gate_min = gate_dmin * f32(gate_sm.y);
@@ -184,8 +187,6 @@ fn main(
                 let up_sm = get_scale_min_k4(up_block.scales, sb);
                 let up_scale = up_d * f32(up_sm.x);
                 let up_min = up_dmin * f32(up_sm.y);
-
-                let sb_base = sb * SUBBLOCK_SIZE;
 
                 // Unroll by 4 for better ILP
                 for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
@@ -303,6 +304,9 @@ fn main_batched(
             let k_base = b * QK_K;
 
             for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+                let sb_base = sb * SUBBLOCK_SIZE;
+                if (k_base + sb_base >= u.hidden_size) { break; }
+
                 let gate_sm = get_scale_min_k4(gate_block.scales, sb);
                 let gate_scale = gate_d * f32(gate_sm.x);
                 let gate_min = gate_dmin * f32(gate_sm.y);
@@ -310,8 +314,6 @@ fn main_batched(
                 let up_sm = get_scale_min_k4(up_block.scales, sb);
                 let up_scale = up_d * f32(up_sm.x);
                 let up_min = up_dmin * f32(up_sm.y);
-
-                let sb_base = sb * SUBBLOCK_SIZE;
 
                 for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
                     let k0 = k_base + sb_base + i;

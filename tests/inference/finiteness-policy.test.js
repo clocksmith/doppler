@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   DEFAULT_DEFERRED_ROUNDING_WINDOW_TOKENS,
   DEFAULT_FINITENESS_ABS_THRESHOLD,
+  DEFAULT_FINITENESS_ON_TRIGGER_MODE,
   resolveDeferredRoundingWindowTokens,
   resolveRangeAwareSelectiveWideningConfig,
   shouldRunFinitenessGuard,
@@ -11,6 +12,7 @@ import {
   const policy = resolveRangeAwareSelectiveWideningConfig(undefined);
   assert.equal(policy.enabled, true);
   assert.equal(policy.includeNonFinite, true);
+  assert.equal(policy.onTrigger, DEFAULT_FINITENESS_ON_TRIGGER_MODE);
   assert.equal(policy.absThreshold, DEFAULT_FINITENESS_ABS_THRESHOLD);
 }
 
@@ -19,11 +21,13 @@ import {
     rangeAwareSelectiveWidening: {
       enabled: false,
       includeNonFinite: false,
+      onTrigger: 'fallback-plan',
       absThreshold: 64000,
     },
   });
   assert.equal(policy.enabled, false);
   assert.equal(policy.includeNonFinite, false);
+  assert.equal(policy.onTrigger, 'fallback-plan');
   assert.equal(policy.absThreshold, 64000);
 }
 

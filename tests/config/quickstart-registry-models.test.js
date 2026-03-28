@@ -4,6 +4,7 @@ import {
   resolveQuickstartModel,
 } from '../../src/client/doppler-registry.js';
 
+const BROKEN_GEMMA_1B_QUICKSTART_REVISION = 'dfbe333a262f00050eebb6704827cad4839c6825';
 const models = await listQuickstartModels();
 
 // Registry should have 5 models after adding Gemma 3 1B, Qwen 3.5 0.8B, Qwen 3.5 2B
@@ -21,6 +22,12 @@ assert.ok(modelIds.includes('qwen-3-5-2b-q4k-ehaf16'), 'Qwen 3.5 2B missing');
   const entry = await resolveQuickstartModel('gemma3-1b');
   assert.equal(entry.modelId, 'gemma-3-1b-it-q4k-ehf16-af32');
   assert.ok(entry.modes.includes('text'));
+  assert.ok(entry.hf);
+  assert.notEqual(
+    entry.hf.revision,
+    BROKEN_GEMMA_1B_QUICKSTART_REVISION,
+    'gemma3-1b quickstart registry must not point at the broken HF revision'
+  );
 }
 
 {

@@ -14,12 +14,33 @@ const rules = await loadJson(
  *
  * @param {Object} capabilities - { hasSubgroups, hasF16, hasSubgroupsF16, maxWorkgroupSize, maxBufferSize }
  * @param {Object} platform - { id, vendor, architecture }
- * @param {Object} graphContext - { activationDtype, kvDtype }
+ * @param {Object} graphContext - execution-v1 graph/dtype summary
+ *   { activationDtype, kvDtype, modelId?, hasDensePrefillProjectionKernel?,
+ *     hasQ4DecodeProjectionKernel?, hasQ4PrefillProjectionKernel?,
+ *     hasAvailableQ4PrefillProjectionKernel? }
  * @returns {{ transforms: Function[], names: string[], reason: string }}
  */
 export function resolveCapabilityTransforms(capabilities, platform, graphContext) {
+  const normalizedGraphContext = graphContext ?? {};
+  const matchContext = {
+    ...capabilities,
+    ...normalizedGraphContext,
+    activationDtype: normalizedGraphContext.activationDtype ?? null,
+    kvDtype: normalizedGraphContext.kvDtype ?? null,
+    modelId: normalizedGraphContext.modelId ?? 'unknown',
+    platformId: platform?.id ?? 'unknown',
+    platformVendor: platform?.vendor
+      ?? platform?.detection?.vendor
+      ?? capabilities?.adapterInfo?.vendor
+      ?? 'unknown',
+    platformArchitecture: platform?.architecture
+      ?? platform?.detection?.architecture
+      ?? capabilities?.adapterInfo?.architecture
+      ?? 'unknown',
+  };
+
   for (const rule of rules.capabilityTransforms) {
-    if (matchesRule(rule.match, capabilities)) {
+    if (matchesRule(rule.match, matchContext)) {
       const transforms = rule.transforms.map(name => {
         const fn = TRANSFORMS[name];
         if (!fn) {
@@ -40,7 +61,7 @@ export function resolveCapabilityTransforms(capabilities, platform, graphContext
 
   throw new Error(
     'CapabilityTransformResolver: no rule matched capabilities ' +
-    JSON.stringify(capabilities)
+    JSON.stringify(matchContext)
   );
 }
 

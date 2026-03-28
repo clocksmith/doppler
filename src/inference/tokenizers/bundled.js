@@ -3,6 +3,7 @@
 import { BaseTokenizer } from './base.js';
 import { log } from '../../debug/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
+import { inferBundledTokenizerBehaviorFlags } from './behavior-flags.js';
 
 function pickCandidate(...values) {
   for (const value of values) {
@@ -437,15 +438,18 @@ export class BundledTokenizer extends BaseTokenizer {
     const byteLevelPretokenizer = resolveByteLevelPretokenizerConfig(hf.pre_tokenizer);
     const configuredAddBosToken = this.addBosToken;
     const configuredAddEosToken = this.addEosToken;
+    const inferredFlags = inferBundledTokenizerBehaviorFlags(hf, this.specialTokens);
     this.addBosToken =
       hf.add_bos_token
       ?? hf.addBosToken
       ?? configuredAddBosToken
+      ?? inferredFlags.addBosToken
       ?? runtimeDefaults.addBosToken;
     this.addEosToken =
       hf.add_eos_token
       ?? hf.addEosToken
       ?? configuredAddEosToken
+      ?? inferredFlags.addEosToken
       ?? runtimeDefaults.addEosToken;
     if (this.addBosToken && this.specialTokens.bos == null) {
       throw new Error('[Tokenizer] addBosToken is enabled but bos token is missing.');
@@ -621,15 +625,18 @@ export class BundledTokenizer extends BaseTokenizer {
     const byteLevelPretokenizer = resolveByteLevelPretokenizerConfig(tokenizerJson.pre_tokenizer);
     const configuredAddBosToken = this.addBosToken;
     const configuredAddEosToken = this.addEosToken;
+    const inferredFlags = inferBundledTokenizerBehaviorFlags(tokenizerJson, this.specialTokens);
     this.addBosToken =
       tokenizerJson.addBosToken
       ?? tokenizerJson.add_bos_token
       ?? configuredAddBosToken
+      ?? inferredFlags.addBosToken
       ?? runtimeDefaults.addBosToken;
     this.addEosToken =
       tokenizerJson.addEosToken
       ?? tokenizerJson.add_eos_token
       ?? configuredAddEosToken
+      ?? inferredFlags.addEosToken
       ?? runtimeDefaults.addEosToken;
     if (this.addBosToken && this.specialTokens.bos == null) {
       throw new Error('[Tokenizer] addBosToken is enabled but bos token is missing.');

@@ -204,6 +204,11 @@
       "prompt": "Hello",
       "batching": {
         "maxTokens": 8
+      },
+      "sampling": {
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1
       }
     }
   }

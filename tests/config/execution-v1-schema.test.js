@@ -337,6 +337,43 @@ if (compiledWithoutInlineKernelPath.runtimeInferencePatch.kernelPathSource) {
   throw new Error('inlineKernelPath=false should not stamp kernelPathSource');
 }
 
+const compiledWithRuntimeSessionDefaults = compileExecutionV1({
+  manifestInference: {
+    schema: EXECUTION_V1_SCHEMA_ID,
+    execution: graph,
+    session: {
+      compute: {
+        defaults: { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' },
+      },
+      kvcache: { kvDtype: 'f16', layout: 'contiguous' },
+      decodeLoop: null,
+    },
+  },
+  modelId: 'test-model-runtime-session-defaults',
+  numLayers: 26,
+  runtimeSession: {
+    compute: {
+      defaults: { activationDtype: 'f16' },
+    },
+    kvcache: { kvDtype: 'f16', layout: 'contiguous', maxSeqLen: 4096 },
+  },
+  capabilities: { hasF16: true, hasSubgroups: true },
+  platform: { id: 'test', vendor: 'test', architecture: 'test' },
+});
+
+if (compiledWithRuntimeSessionDefaults.session?.compute?.defaults?.activationDtype !== 'f32') {
+  throw new Error('Execution-v1 must preserve manifest activationDtype over runtime session defaults');
+}
+if (compiledWithRuntimeSessionDefaults.session?.kvcache?.kvDtype !== 'f16') {
+  throw new Error('Execution-v1 must preserve manifest kvDtype over runtime session defaults');
+}
+if (compiledWithRuntimeSessionDefaults.runtimeInferencePatch.kernelPath?.activationDtype !== 'f32') {
+  throw new Error('Execution-v1 inline kernel path must retain manifest activationDtype');
+}
+if (compiledWithRuntimeSessionDefaults.runtimeInferencePatch.session?.kvcache?.maxSeqLen !== 4096) {
+  throw new Error('Execution-v1 session merge must still retain non-dtype runtime session fields');
+}
+
 // === Real config file ===
 const realConfig = JSON.parse(readFileSync('src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json', 'utf8'));
 const realExpanded = expandExecutionV1(realConfig.execution);

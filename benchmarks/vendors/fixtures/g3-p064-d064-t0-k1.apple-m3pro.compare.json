@@ -3,7 +3,7 @@
   "benchmarkPolicy": {
     "source": "benchmarks/vendors/benchmark-policy.json",
     "schemaVersion": 1,
-    "sourceSha256": "7d702886d5c1da2f6b9baaef4a14095a6e11ac89da3366b0fdbbdf873c5f3436",
+    "sourceSha256": "9f9a652f077e3b4f6b180c9fc22582e49570176a21f87d809333da9b3af9db2e",
     "updated": "2026-03-08"
   },
   "mode": "compute",
@@ -193,7 +193,7 @@
   },
   "compareConfig": {
     "source": "benchmarks/vendors/compare-engines.config.json",
-    "sourceSha256": "5967f611d4aedd920025ade78c1eefda1d11e5a24435fd247c455a6cc935ff8f"
+    "sourceSha256": "9b898e788d37704d2322e8cab073596d2271d51f32d368c24039db9d9a975ddf"
   },
   "harnesses": {
     "doppler": {

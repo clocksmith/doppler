@@ -160,8 +160,17 @@ node tools/compare-engines.js --model-id gemma-3-1b-it-q4k-ehf16-af32 \
 ```
 
 Config in [compare-engines.config.json](./compare-engines.config.json):
-each model profile has `defaultDopplerFormat`, `defaultTjsFormat`, and
-`safetensorsSourceId` (the HF repo with the original F16/BF16 weights).
+each model profile has:
+- `defaultDopplerSource` (`quickstart-registry|local`) so compare runs resolve the same artifact source on every machine
+- `compareLane` (`performance_comparable|capability_only`) so support-only rows do not turn into accidental speed claims
+- `defaultDopplerFormat`, `defaultTjsFormat`, and `safetensorsSourceId`
+  (the HF repo with the original F16/BF16 weights)
+
+`tools/compare-engines.js` resolves the Doppler model from that declared source
+and preflights the selected manifest before timing. Hosted quickstart models
+therefore use the published HF artifact by default and fail closed when that
+artifact is stale. Capability-only lanes are rejected unless you pass
+`--allow-non-comparable-lane`.
 
 Capabilities in [capabilities.json](./capabilities.json): the `format`
 feature category tracks `rdrr_runtime`, `onnx_runtime`, `safetensors_runtime`,
@@ -235,6 +244,9 @@ When `--compare-result` is provided, matrix generation also captures host/browse
 - Path order is canonicalized in harness files and validated before comparison.
 - Metric paths are canonicalized through [harnesses/](./harnesses) and validated as required before any comparison.
 - [tools/compare-engines.js](../../tools/compare-engines.js) defaults to `--decode-profile parity` (Doppler `batchSize=1`, `readbackInterval=1`) for closer Transformers.js decode cadence matching; use `--decode-profile throughput` for Doppler-tuned runs.
+- [tools/compare-engines.js](../../tools/compare-engines.js) records the exact installed Transformers.js / ONNX Runtime stack in each compare artifact and validates that the v4 runner is pinned to the same nested ORT modules before timing starts.
+- [tools/compare-engines.js](../../tools/compare-engines.js) applies the explicit Doppler compare-lane `runtime.inference.kernelPathPolicy` from [benchmark-policy.json](./benchmark-policy.json); capability-aware remaps used for known platform/runtime constraints are therefore part of the recorded engine overlay, not a hidden runtime fallback.
+- [tools/compare-engines.js](../../tools/compare-engines.js) also applies the explicit Doppler browser channel from [benchmark-policy.json](./benchmark-policy.json) unless `--doppler-browser-channel` overrides it, so compare runs do not silently drift across locally installed browser channels.
 - Compare artifacts pin harness + metric-contract hashes; stale compare JSON is dropped from `vendor-bench matrix` unless you refresh it.
 - Doppler surface is now explicit in compare runs: `--doppler-surface auto|node|browser` (default from `compare-engines.config.json` per model profile via `defaultDopplerSurface`, fallback `auto`).
 

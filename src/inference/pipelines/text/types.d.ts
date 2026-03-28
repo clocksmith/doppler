@@ -98,6 +98,7 @@ export interface LayerContext {
     rangeAwareSelectiveWidening?: {
       enabled?: boolean;
       includeNonFinite?: boolean;
+      onTrigger?: 'error' | 'fallback-plan';
       absThreshold?: number;
     };
   };

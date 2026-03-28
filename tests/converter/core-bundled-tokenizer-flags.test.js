@@ -30,10 +30,19 @@ const model = {
     eos_token_id: 1,
   },
   tokenizerConfig: {
-    add_bos_token: false,
     add_eos_token: true,
   },
   tokenizerJson: {
+    post_processor: {
+      type: 'TemplateProcessing',
+      single: [
+        { SpecialToken: { id: '<bos>', type_id: 0 } },
+        { Sequence: { id: 'A', type_id: 0 } },
+      ],
+      special_tokens: {
+        '<bos>': { id: '<bos>', ids: [7], tokens: ['<bos>'] },
+      },
+    },
     model: {
       vocab: {
         a: 0,
@@ -62,7 +71,7 @@ const manifest = createManifest(
 
 assert.equal(manifest.tokenizer?.type, 'bundled');
 assert.equal(manifest.tokenizer?.file, 'tokenizer.json');
-assert.equal(manifest.tokenizer?.addBosToken, false);
+assert.equal(manifest.tokenizer?.addBosToken, true);
 assert.equal(manifest.tokenizer?.addEosToken, true);
 
 console.log('core-bundled-tokenizer-flags.test: ok');

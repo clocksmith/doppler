@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 
-const { resolveKernelPath } = await import('../../src/config/kernel-path-loader.js');
 const { setDevice } = await import('../../src/gpu/device.js');
 const { resolveQ4KConfig } = await import('../../src/inference/pipelines/text/init.js');
 
@@ -58,8 +57,45 @@ const manifest = {
   },
 };
 
-const defaultPath = resolveKernelPath('gemma3-q4k-dequant-f32a-online');
-const f32WeightPath = resolveKernelPath('gemma3-q4k-dequant-f32w-f32a-online');
+const defaultPath = {
+  id: 'unit-q4k-dequant',
+  decode: {
+    steps: [
+      { op: 'q_proj', kernel: 'matmul_gemv_subgroup.wgsl', entry: 'main_vec4' },
+    ],
+  },
+  prefill: {
+    steps: [
+      { op: 'q_proj', kernel: 'matmul_f16w_f32a_tiled.wgsl', entry: 'main' },
+    ],
+  },
+  postLayer: [],
+  preLayer: [],
+};
+const f32WeightPath = {
+  ...defaultPath,
+  id: 'unit-q4k-dequant-f32w',
+  decode: {
+    steps: [
+      { op: 'q_proj', kernel: 'matmul_f32.wgsl', entry: 'main' },
+    ],
+  },
+};
+const mixedPath = {
+  id: 'unit-q4k-mixed',
+  decode: {
+    steps: [
+      { op: 'q_proj', kernel: 'fused_matmul_q4.wgsl', entry: 'main_multicol' },
+    ],
+  },
+  prefill: {
+    steps: [
+      { op: 'q_proj', kernel: 'matmul_f16w_f32a_tiled.wgsl', entry: 'main' },
+    ],
+  },
+  postLayer: [],
+  preLayer: [],
+};
 
 setDevice(createFakeDevice(), { platformConfig: null });
 
@@ -68,18 +104,28 @@ try {
     useFusedQ4K: false,
     q4kLayout: 'row',
     keepF32Weights: false,
+    q4kMaterializationMode: 'dense',
   });
 
   assert.deepEqual(resolveQ4KConfig(manifest, defaultPath, 'config', true), {
     useFusedQ4K: false,
     q4kLayout: 'row',
     keepF32Weights: true,
+    q4kMaterializationMode: 'dense',
   });
 
   assert.deepEqual(resolveQ4KConfig(manifest, f32WeightPath, 'config', false), {
     useFusedQ4K: false,
     q4kLayout: 'row',
     keepF32Weights: true,
+    q4kMaterializationMode: 'dense',
+  });
+
+  assert.deepEqual(resolveQ4KConfig(manifest, mixedPath, 'execution-v1', false), {
+    useFusedQ4K: true,
+    q4kLayout: 'row',
+    keepF32Weights: false,
+    q4kMaterializationMode: 'mixed',
   });
 } finally {
   setDevice(null, { platformConfig: null });

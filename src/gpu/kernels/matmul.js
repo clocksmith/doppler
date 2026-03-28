@@ -1,10 +1,16 @@
 import { getDevice, getKernelCapabilities } from '../device.js';
 import { createTensor } from '../tensor.js';
-import { getBuffer, getLayout, getWeightDtype } from '../weight-buffer.js';
+import {
+  getBuffer,
+  getLayout,
+  getWeightDtype,
+  resolveWeightBufferMaterialization,
+} from '../weight-buffer.js';
 import { log, trace, isTraceEnabled } from '../../debug/index.js';
 import { releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import { castF16ToF32, recordCastF16ToF32 } from './cast.js';
+import { getKernelPathMatmulVariant } from '../../config/kernel-path-loader.js';
 import {
   resolveMatmulPhase,
   resolveMatmulConstants,
@@ -123,6 +129,34 @@ function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuff
   return entries;
 }
 
+function resolvePreferredWeightDtypeForVariant(variant) {
+  if (typeof variant !== 'string' || variant.length === 0) {
+    return null;
+  }
+
+  let config;
+  try {
+    config = getMatmulConfig(variant, null);
+  } catch {
+    return null;
+  }
+
+  const shaderFile = String(config?.shaderFile ?? config?.wgsl ?? '');
+  if (!shaderFile) {
+    return null;
+  }
+  if (shaderFile.startsWith('fused_matmul_q4')) {
+    return 'q4k';
+  }
+  if (shaderFile === 'matmul_f32.wgsl' || shaderFile === 'matmul_gemv.wgsl') {
+    return 'f32';
+  }
+  if (shaderFile.startsWith('matmul_')) {
+    return 'f16';
+  }
+  return null;
+}
+
 async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   const isRecord = Boolean(recorder);
   const mode = isRecord ? 'record' : 'run';
@@ -139,11 +173,15 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
     cOffset = 0,
   } = options;
 
-  const bBuffer = getBuffer(B);
-  const weightDtype = getWeightDtype(B);
-  const weightLabel = (B && typeof B === 'object' ? B.label : null) ?? bBuffer?.label ?? null;
-  const weightLayout = getLayout(B);
-  const weightShape = B?.shape ? `[${B.shape.join(', ')}]` : null;
+  const phase = resolveMatmulPhase(M, options.phaseOverride ?? null);
+  const pathVariant = getKernelPathMatmulVariant(options.role, phase, options.layerIdx, options.kernelPath);
+  const preferredWeightDtype = resolvePreferredWeightDtypeForVariant(pathVariant);
+  const resolvedWeight = resolveWeightBufferMaterialization(B, preferredWeightDtype);
+  const bBuffer = getBuffer(resolvedWeight);
+  const weightDtype = getWeightDtype(resolvedWeight);
+  const weightLabel = (resolvedWeight && typeof resolvedWeight === 'object' ? resolvedWeight.label : null) ?? bBuffer?.label ?? null;
+  const weightLayout = getLayout(resolvedWeight);
+  const weightShape = resolvedWeight?.shape ? `[${resolvedWeight.shape.join(', ')}]` : null;
   const matmulDebug = normalizeMatmulDebugConfig(options.matmulDebug);
   const debugAttention = matmulDebug?.enabled === true;
   const isAttnProj = isAttentionProjectionRole(options.role ?? '');
@@ -157,7 +195,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
     trace.kernels(`${modeLabel}: M=${M}, N=${N}, K=${K}, transposeBOption=${transposeBOption}, weightLayout=${weightLayout}, weightDtype=${weightDtype}`);
   }
 
-  const transposeB = resolveTransposeB(B, transposeBOption);
+  const transposeB = resolveTransposeB(resolvedWeight, transposeBOption);
   validateMatmulDimensions(opLabel, M, N, K);
 
   const aDtype = toMatmulDtype(A.dtype);
@@ -189,7 +227,6 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
     options
   );
 
-  const phase = resolveMatmulPhase(M, options.phaseOverride ?? null);
   const constants = resolveMatmulConstants(options, phase);
 
   let matmulInput = A;

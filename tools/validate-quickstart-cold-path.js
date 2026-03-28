@@ -18,6 +18,7 @@ import { fileURLToPath } from 'node:url';
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const STEPS = [];
 let failures = 0;
+const BROKEN_GEMMA_1B_QUICKSTART_REVISION = 'dfbe333a262f00050eebb6704827cad4839c6825';
 
 function step(label, fn) {
   STEPS.push({ label, fn });
@@ -132,6 +133,12 @@ step('all registry models have HF coordinates', async () => {
     } else {
       fail(`${model.modelId}: missing HF repoId, revision, or path`);
     }
+    if (
+      entry.modelId === 'gemma-3-1b-it-q4k-ehf16-af32'
+      && entry.hf?.revision === BROKEN_GEMMA_1B_QUICKSTART_REVISION
+    ) {
+      fail(`${model.modelId}: pinned to known-broken HF revision ${BROKEN_GEMMA_1B_QUICKSTART_REVISION}`);
+    }
   }
 });
 
@@ -180,6 +187,29 @@ step('HF manifest reachability (network probe)', async () => {
         pass(`${model.modelId}: manifest reachable (${response.status})`);
       } else {
         fail(`${model.modelId}: manifest HTTP ${response.status} at ${manifestUrl}`);
+        continue;
+      }
+
+      if (model.modes.includes('text')) {
+        const manifestResponse = await fetch(manifestUrl, { method: 'GET', redirect: 'follow' });
+        if (!manifestResponse.ok) {
+          fail(`${model.modelId}: manifest GET HTTP ${manifestResponse.status} at ${manifestUrl}`);
+          continue;
+        }
+        const manifest = await manifestResponse.json();
+        const session = manifest?.inference?.session;
+        const kvcache_layout = session?.kvcache?.layout;
+        const decode_loop = session?.decodeLoop;
+        if (typeof kvcache_layout === 'string' && kvcache_layout.length > 0) {
+          pass(`${model.modelId}: session.kvcache.layout=${kvcache_layout}`);
+        } else {
+          fail(`${model.modelId}: text quickstart manifest missing session.kvcache.layout`);
+        }
+        if (decode_loop && typeof decode_loop === 'object') {
+          pass(`${model.modelId}: session.decodeLoop present`);
+        } else {
+          fail(`${model.modelId}: text quickstart manifest missing session.decodeLoop`);
+        }
       }
     } catch (error) {
       fail(`${model.modelId}: manifest fetch failed: ${error.message}`);

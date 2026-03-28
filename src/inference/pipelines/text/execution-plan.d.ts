@@ -13,6 +13,7 @@ export interface StaticExecutionPlan {
   kernelPathSource: KernelPathSource | 'rule' | 'self' | 'none';
   activationDtype: 'f16' | 'f32';
   finitenessGuardEnabled: boolean;
+  finitenessOnTrigger: 'error' | 'fallback-plan';
   finitenessAbsThreshold: number;
   finitenessIncludeNonFinite: boolean;
   deferredRoundingWindowTokens: number;
@@ -43,6 +44,7 @@ export interface ExecutionSessionPlan {
   kernelPathId: string | null;
   activationDtype: 'f16' | 'f32';
   finitenessGuardEnabled: boolean;
+  finitenessOnTrigger: 'error' | 'fallback-plan';
   finitenessAbsThreshold: number;
   finitenessIncludeNonFinite: boolean;
   deferredRoundingWindowTokens: number;

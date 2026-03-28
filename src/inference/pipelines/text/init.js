@@ -16,7 +16,10 @@ import { getDopplerLoader } from '../../../loader/doppler-loader.js';
 import { log, setGPUDevice, trace as debugTrace } from '../../../debug/index.js';
 import { getRuntimeConfig } from '../../../config/runtime.js';
 import { PAGED_LAYOUT_SEQ_LEN_THRESHOLD } from '../../../config/schema/index.js';
-import { isKernelPathFusedQ4K, kernelPathRequiresF32MatmulWeights } from '../../../config/kernel-path-loader.js';
+import {
+  getKernelPathMatmulVariant,
+  kernelPathRequiresF32MatmulWeights,
+} from '../../../config/kernel-path-loader.js';
 import { createWeightBuffer, getWeightDtype, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import {
@@ -189,6 +192,62 @@ function createRemoteStorageContext(baseUrl, manifest) {
 
 /** Allowed quantizationInfo.layout values for Q4K models. */
 const Q4K_LAYOUT_ALLOWLIST = new Set(['row', 'col']);
+const Q4K_PROJECTION_OPS = new Set([
+  'q_proj', 'k_proj', 'v_proj', 'o_proj',
+  'gate_proj', 'up_proj', 'down_proj',
+]);
+
+function summarizeQ4KProjectionKernelKinds(kernelPath) {
+  const summary = {
+    denseProjectionKernels: [],
+    fusedProjectionKernels: [],
+  };
+  if (!kernelPath || typeof kernelPath !== 'object') {
+    return summary;
+  }
+
+  const appendPhase = (phase, steps) => {
+    for (const step of steps ?? []) {
+      if (!Q4K_PROJECTION_OPS.has(step?.op)) {
+        continue;
+      }
+      const kernel = String(step?.kernel ?? '');
+      if (!kernel) {
+        continue;
+      }
+      const descriptor = `${phase}.${step.op}:${kernel}#${String(step?.entry ?? 'main')}`;
+      if (kernel.startsWith('fused_matmul_q4')) {
+        summary.fusedProjectionKernels.push(descriptor);
+      } else if (kernel.startsWith('matmul_')) {
+        summary.denseProjectionKernels.push(descriptor);
+      }
+    }
+  };
+
+  appendPhase('decode', kernelPath.decode?.steps);
+  appendPhase('prefill', kernelPath.prefill?.steps);
+  return summary;
+}
+
+function resolveQ4KProjectionMaterializationMode(
+  manifest,
+  kernelPath,
+  kernelPathSource = 'none'
+) {
+  const summary = summarizeQ4KProjectionKernelKinds(kernelPath);
+  if (summary.denseProjectionKernels.length > 0 && summary.fusedProjectionKernels.length > 0) {
+    debugTrace.loader(
+      `Q4K mixed projection materialization enabled for "${manifest?.modelId ?? 'unknown'}" ` +
+      `(source=${kernelPathSource}, dense=${summary.denseProjectionKernels.length}, ` +
+      `fused=${summary.fusedProjectionKernels.length})`
+    );
+    return 'mixed';
+  }
+  if (summary.fusedProjectionKernels.length > 0) {
+    return 'fused';
+  }
+  return 'dense';
+}
 
 export function resolveQ4KConfig(
   manifest,
@@ -212,7 +271,19 @@ export function resolveQ4KConfig(
       `Allowed values: ${[...Q4K_LAYOUT_ALLOWLIST].join(', ')}.`
     );
   }
-  let useFused = kernelPath ? isKernelPathFusedQ4K(kernelPath) : hasSubgroups;
+  const q4kMaterializationMode = isQ4KModel
+    ? resolveQ4KProjectionMaterializationMode(manifest, kernelPath, kernelPathSource)
+    : 'dense';
+  if (isQ4KModel) {
+    debugTrace.loader(
+      `Q4K projection materialization: model=${manifest?.modelId ?? 'unknown'}, ` +
+      `mode=${q4kMaterializationMode}, source=${kernelPathSource}`
+    );
+  }
+  const hasExplicitKernelPath = kernelPath != null;
+  let useFused = hasExplicitKernelPath
+    ? q4kMaterializationMode !== 'dense'
+    : hasSubgroups;
   const kernelPathKeepsF32Weights = kernelPathRequiresF32MatmulWeights(kernelPath);
   if (q4kLayout === 'col') {
     useFused = false;
@@ -223,13 +294,15 @@ export function resolveQ4KConfig(
   const layoutLabel = q4kLayout ?? 'none';
   debugTrace.loader(
     `Q4K config: fused=${useFused}, kernelPath=${pathLabel}, source=${kernelPathSource}, ` +
-    `layout=${layoutLabel}, keepF32Weights=${resolvedKeepF32Weights}, subgroups=${hasSubgroups}`
+    `layout=${layoutLabel}, materialization=${q4kMaterializationMode}, ` +
+    `keepF32Weights=${resolvedKeepF32Weights}, subgroups=${hasSubgroups}`
   );
 
   return {
     useFusedQ4K: useFused,
     q4kLayout,
     keepF32Weights: resolvedKeepF32Weights,
+    q4kMaterializationMode,
   };
 }
 
@@ -1032,7 +1105,7 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
 function applyTurnBasedTemplate(prompt) {
   // Turn-based format: <start_of_turn>role\ncontent<end_of_turn>
   const userTurn = `<start_of_turn>user\n${prompt}<end_of_turn>\n`;
-  const modelTurn = `<start_of_turn>model\n`;
+  const modelTurn = '<start_of_turn>model\n';
   return userTurn + modelTurn;
 }
 
@@ -1160,7 +1233,33 @@ export function initSpeculativeDecoder(manifest, speculativeConfig) {
 // ============================================================================
 
 
-export function fuseQKVWeights(layerWeights, modelConfig) {
+function kernelPathVariantRequiresQ4KWeights(variant) {
+  if (typeof variant !== 'string' || variant.length === 0) {
+    return false;
+  }
+  let config;
+  try {
+    config = getKernelConfig('matmul', variant);
+  } catch {
+    return false;
+  }
+  const shaderFile = String(config?.shaderFile ?? config?.wgsl ?? '');
+  return shaderFile.startsWith('fused_matmul_q4');
+}
+
+function shouldSkipQKVFusionForLayer(layerIdx, kernelPath) {
+  if (!kernelPath) {
+    return false;
+  }
+  const prefillVariant = getKernelPathMatmulVariant('qkv_proj', 'prefill', layerIdx, kernelPath);
+  if (kernelPathVariantRequiresQ4KWeights(prefillVariant)) {
+    return true;
+  }
+  const decodeVariant = getKernelPathMatmulVariant('qkv_proj', 'decode', layerIdx, kernelPath);
+  return kernelPathVariantRequiresQ4KWeights(decodeVariant);
+}
+
+export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null) {
   const device = getDevice();
   if (!device) {
     log.debug('QKV Fusion', 'No GPU device, skipping fusion');
@@ -1215,6 +1314,13 @@ export function fuseQKVWeights(layerWeights, modelConfig) {
 
     // Skip if already fused or if weights are not GPUBuffers
     if (weights.qkvProj) continue;
+    if (shouldSkipQKVFusionForLayer(l, kernelPath)) {
+      log.debug(
+        'QKV Fusion',
+        `Layer ${l}: skipped because active kernel path requires Q4K weights for qkv_proj`
+      );
+      continue;
+    }
     const qProj = resolveWeight(weights.qProj);
     const kProj = resolveWeight(weights.kProj);
     const vProj = resolveWeight(weights.vProj);

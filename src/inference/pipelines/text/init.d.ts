@@ -197,6 +197,7 @@ export interface ResolvedQ4KConfig {
   useFusedQ4K: boolean;
   q4kLayout: 'row' | 'col' | null;
   keepF32Weights: boolean;
+  q4kMaterializationMode: 'dense' | 'fused' | 'mixed';
 }
 
 /** Options for loadWeights */
@@ -289,7 +290,8 @@ export function initSpeculativeDecoder(
  */
 export function fuseQKVWeights(
   layerWeights: Map<string, LayerWeights>,
-  modelConfig: ParsedModelConfig
+  modelConfig: ParsedModelConfig,
+  kernelPath?: KernelPathSchema | null
 ): void;
 
 /**

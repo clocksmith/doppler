@@ -22,13 +22,22 @@ export interface ResolvedTransforms {
 export declare function resolveCapabilityTransforms(
   capabilities: TransformContext['capabilities'],
   platform: TransformContext['platform'],
-  graphContext: { activationDtype: string; kvDtype: string }
+  graphContext: {
+    activationDtype: string;
+    kvDtype: string;
+    modelId?: string;
+    hasDensePrefillProjectionKernel?: boolean;
+    hasQ4DecodeProjectionKernel?: boolean;
+    hasQ4PrefillProjectionKernel?: boolean;
+    hasAvailableQ4PrefillProjectionKernel?: boolean;
+  }
 ): ResolvedTransforms;
 
 /**
- * Resolve the finiteness fallback transform (widenToF32Activations when activation is f16).
- * Returns null when already f32 (no fallback available).
+ * Resolve the explicit alternate-plan transform for finiteness handling
+ * (widenToF32Activations when activation is f16).
+ * Returns null when already f32 (no alternate plan available).
  */
 export declare function resolveFinitenessFallbackTransform(
-  activationDtype: string
-): ExecutionGraphTransform | null;
+  graphContext: { activationDtype: string; kvDtype: string; modelId?: string }
+): { transform: ExecutionGraphTransform; name: string } | null;

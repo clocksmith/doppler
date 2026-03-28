@@ -204,6 +204,143 @@ export async function loadQ4KFused(shardData, location, name) {
   }
 }
 
+async function materializeQ4KDenseBuffer(quantBuffer, shardData, location, name, config) {
+  let dequantized = null;
+  const outputDtype = getQ4KOutputDtype(location, config);
+  const loaderDebug = normalizeLoaderDebugConfig(config);
+  const debugEnabled = loaderDebug?.enabled === true;
+  const forceGpuDequant = loaderDebug?.forceGpuDequant === true;
+  const failOnCpuDequantPath = loaderDebug?.failOnCpuDequantPath === true;
+  const runQ4KDequantParity = loaderDebug?.runQ4KDequantParity === true;
+  const paritySamples = loaderDebug?.q4kDequantParitySamples ?? 256;
+
+  const q4kCpuReferenceContext = getQ4KCpuReferenceContext(shardData, location, config);
+  const { needsRowwise, layout, K } = q4kCpuReferenceContext;
+  const preferCpuDequant = loaderDebug?.preferCpuDequant === true;
+  const canUseCpuReference = !forceGpuDequant && preferCpuDequant && q4kCpuReferenceContext.eligible;
+
+  if (canUseCpuReference && failOnCpuDequantPath) {
+    throw new Error(
+      `[LoaderDebug] CPU dequant path taken for ${name}; this run is configured fail-closed. ` +
+      'Set runtime.shared.debug.loader.forceGpuDequant=true to isolate GPU dequant.'
+    );
+  }
+
+  if (canUseCpuReference) {
+    const quantizedBytes = toUint8View(shardData);
+    const numBlocks = Math.ceil(location.size / Q4K_BLOCK_BYTES);
+    debugTrace.loader(
+      `Dequantizing ${name} with CPU reference path: ` +
+      `shape=[${location.shape.join(',')}], layout=${layout}, needsRowwise=${needsRowwise}`
+    );
+    const f32Weights = needsRowwise
+      ? dequantizeQ4KMRowWise(quantizedBytes, location.shape)
+      : dequantizeQ4KM(quantizedBytes, numBlocks, location.shape);
+    const outputBuffer = acquireAlignedBuffer(f32Weights.byteLength, `dequant_cpu_${name}`);
+    try {
+      writeBufferAligned(getDevice(), outputBuffer, new Uint8Array(f32Weights.buffer));
+      return {
+        buffer: outputBuffer,
+        outputDtype: 'f32',
+        layout,
+        allocatedBuffers: [outputBuffer],
+      };
+    } catch (error) {
+      releaseBuffer(outputBuffer);
+      throw error;
+    }
+  }
+
+  let numBlocks = null;
+  let dequantizedTensor;
+  if (needsRowwise) {
+    const rows = location.shape[0];
+    debugTrace.loader(
+      `Dequantizing ${name} (row-wise): [${rows},${K}], K not 256-aligned, ` +
+      `outputDtype=${outputDtype}`
+    );
+    dequantizedTensor = await dequantizeRowwise(quantBuffer, rows, K, { outputDtype });
+  } else {
+    numBlocks = Math.ceil(location.size / Q4K_BLOCK_BYTES);
+    debugTrace.loader(
+      `Dequantizing ${name}: size=${location.size}, numBlocks=${numBlocks}, ` +
+      `outputDtype=${outputDtype}, expectedOutput=${numBlocks * QK_K * (outputDtype === 'f16' ? 2 : 4)}`
+    );
+    dequantizedTensor = await dequantize(quantBuffer, numBlocks, { outputDtype });
+  }
+  dequantized = dequantizedTensor.buffer;
+
+  debugTrace.loader(`Dequantized ${name}: resultSize=${dequantized.size}`);
+
+  if (runQ4KDequantParity && !isGpuBufferInstance(shardData) && dequantized && numBlocks !== null) {
+    const isProbeTarget = debugEnabled &&
+      (name.includes('.self_attn.q_proj.weight') || name.includes('.self_attn.k_proj.weight') ||
+        name.includes('.self_attn.v_proj.weight') || name.includes('.self_attn.qkv_proj.weight'));
+
+    if (isProbeTarget) {
+      try {
+        const bytesPerElem = outputDtype === 'f16' ? 2 : 4;
+        const requestedOutputBytes = numBlocks * QK_K * bytesPerElem;
+        const sampleCount = paritySamples;
+        const readSize = Math.min(sampleCount * bytesPerElem, dequantized.size);
+        const gpuRaw = await readBuffer(dequantized, readSize);
+        const gpuBytes = gpuRaw instanceof ArrayBuffer
+          ? new Uint8Array(gpuRaw)
+          : new Uint8Array(gpuRaw.buffer, gpuRaw.byteOffset, gpuRaw.byteLength);
+
+        let gpuVals;
+        if (outputDtype === 'f16') {
+          const u16 = new Uint16Array(gpuBytes.buffer, gpuBytes.byteOffset,
+            Math.min(sampleCount, Math.floor(gpuBytes.byteLength / 2)));
+          gpuVals = Array.from(u16, (half) => f16ToF32(half));
+        } else {
+          const f32 = new Float32Array(gpuBytes.buffer, gpuBytes.byteOffset,
+            Math.min(sampleCount, Math.floor(gpuBytes.byteLength / 4)));
+          gpuVals = Array.from(f32);
+        }
+
+        const quantizedBytes = toUint8View(shardData);
+        const cpuRef = Array.from(
+          needsRowwise
+            ? dequantizeQ4KMRowWise(quantizedBytes, location.shape)
+            : dequantizeQ4KM(quantizedBytes, numBlocks, location.shape)
+        ).slice(0, gpuVals.length);
+
+        let maxDiff = 0;
+        let diffIdx = -1;
+        for (let i = 0; i < gpuVals.length && i < cpuRef.length; i++) {
+          const d = Math.abs(gpuVals[i] - cpuRef[i]);
+          if (d > maxDiff) {
+            maxDiff = d;
+            diffIdx = i;
+          }
+        }
+
+        log.warn('DequantProbe',
+          `tensor="${name}" shape=[${location.shape}] ` +
+          `location.size=${location.size} numBlocks=${numBlocks} outputDtype=${outputDtype} ` +
+          `bytesPerElem=${bytesPerElem} requestedOutputBytes=${requestedOutputBytes} bufSize=${dequantized.size} ` +
+          `runParity=true sampleCount=${sampleCount}`
+        );
+        log.warn('DequantProbe',
+          `parity: maxDiff=${maxDiff.toFixed(8)} at idx=${diffIdx} ` +
+          `gpu[0..3]=[${gpuVals.slice(0, 4).map((v) => v.toFixed(6))}] ` +
+          `cpu[0..3]=[${cpuRef.slice(0, 4).map((v) => v.toFixed(6))}]`
+        );
+      } catch (e) {
+        log.warn('DequantProbe', `Readback failed: ${e.message}`);
+      }
+    }
+  }
+
+  return {
+    buffer: dequantized,
+    outputDtype,
+    layout,
+    allocatedBuffers: [dequantized],
+  };
+}
+
 
 export async function loadQ4KDequant(shardData, location, name, config) {
   const device = getDevice();
@@ -217,136 +354,59 @@ export async function loadQ4KDequant(shardData, location, name, config) {
       writeBufferAligned(device, quantBuffer, shardData);
     }
 
-    const outputDtype = getQ4KOutputDtype(location, config);
-    const loaderDebug = normalizeLoaderDebugConfig(config);
-    const debugEnabled = loaderDebug?.enabled === true;
-    const forceGpuDequant = loaderDebug?.forceGpuDequant === true;
-    const failOnCpuDequantPath = loaderDebug?.failOnCpuDequantPath === true;
-    const runQ4KDequantParity = loaderDebug?.runQ4KDequantParity === true;
-    const paritySamples = loaderDebug?.q4kDequantParitySamples ?? 256;
-
-    const q4kCpuReferenceContext = getQ4KCpuReferenceContext(shardData, location, config);
-    const { needsRowwise, layout, K } = q4kCpuReferenceContext;
-    const preferCpuDequant = loaderDebug?.preferCpuDequant === true;
-    const canUseCpuReference = !forceGpuDequant && preferCpuDequant && q4kCpuReferenceContext.eligible;
-
-    if (canUseCpuReference && failOnCpuDequantPath) {
-      throw new Error(
-        `[LoaderDebug] CPU dequant path taken for ${name}; this run is configured fail-closed. ` +
-        'Set runtime.shared.debug.loader.forceGpuDequant=true to isolate GPU dequant.'
-      );
-    }
-
-    if (canUseCpuReference) {
-      const quantizedBytes = toUint8View(shardData);
-      const numBlocks = Math.ceil(location.size / Q4K_BLOCK_BYTES);
-      debugTrace.loader(
-        `Dequantizing ${name} with CPU reference path: ` +
-        `shape=[${location.shape.join(',')}], layout=${layout}, needsRowwise=${needsRowwise}`
-      );
-      const f32Weights = needsRowwise
-        ? dequantizeQ4KMRowWise(quantizedBytes, location.shape)
-        : dequantizeQ4KM(quantizedBytes, numBlocks, location.shape);
-      const outputBuffer = acquireAlignedBuffer(f32Weights.byteLength, `dequant_cpu_${name}`);
-      writeBufferAligned(device, outputBuffer, new Uint8Array(f32Weights.buffer));
-      releaseOwnedGpuBuffer(quantBuffer, ownsQuantBuffer);
-      ownsQuantBuffer = false;
-      return {
-        data: createWeightBuffer(outputBuffer, 'f32', layout, location.shape, name),
-        allocatedBuffers: [outputBuffer],
-      };
-    }
-
-    let numBlocks = null;
-    let dequantizedTensor;
-    if (needsRowwise) {
-      const rows = location.shape[0];
-      debugTrace.loader(
-        `Dequantizing ${name} (row-wise): [${rows},${K}], K not 256-aligned, ` +
-        `outputDtype=${outputDtype}`
-      );
-      dequantizedTensor = await dequantizeRowwise(quantBuffer, rows, K, { outputDtype });
-    } else {
-      numBlocks = Math.ceil(location.size / Q4K_BLOCK_BYTES);
-      debugTrace.loader(
-        `Dequantizing ${name}: size=${location.size}, numBlocks=${numBlocks}, ` +
-        `outputDtype=${outputDtype}, expectedOutput=${numBlocks * QK_K * (outputDtype === 'f16' ? 2 : 4)}`
-      );
-      dequantizedTensor = await dequantize(quantBuffer, numBlocks, { outputDtype });
-    }
-    dequantized = dequantizedTensor.buffer;
-
-    debugTrace.loader(`Dequantized ${name}: resultSize=${dequantized.size}`);
-
-    if (runQ4KDequantParity && !isGpuBufferInstance(shardData) && dequantized && numBlocks !== null) {
-      const isProbeTarget = debugEnabled &&
-        (name.includes('.self_attn.q_proj.weight') || name.includes('.self_attn.k_proj.weight') ||
-          name.includes('.self_attn.v_proj.weight') || name.includes('.self_attn.qkv_proj.weight'));
-
-      if (isProbeTarget) {
-        try {
-          const bytesPerElem = outputDtype === 'f16' ? 2 : 4;
-          const requestedOutputBytes = numBlocks * QK_K * bytesPerElem;
-          const sampleCount = paritySamples;
-          const readSize = Math.min(sampleCount * bytesPerElem, dequantized.size);
-          const gpuRaw = await readBuffer(dequantized, readSize);
-          const gpuBytes = gpuRaw instanceof ArrayBuffer
-            ? new Uint8Array(gpuRaw)
-            : new Uint8Array(gpuRaw.buffer, gpuRaw.byteOffset, gpuRaw.byteLength);
-
-          let gpuVals;
-          if (outputDtype === 'f16') {
-            const u16 = new Uint16Array(gpuBytes.buffer, gpuBytes.byteOffset,
-              Math.min(sampleCount, Math.floor(gpuBytes.byteLength / 2)));
-            gpuVals = Array.from(u16, (half) => f16ToF32(half));
-          } else {
-            const f32 = new Float32Array(gpuBytes.buffer, gpuBytes.byteOffset,
-              Math.min(sampleCount, Math.floor(gpuBytes.byteLength / 4)));
-            gpuVals = Array.from(f32);
-          }
-
-          const quantizedBytes = toUint8View(shardData);
-          const cpuRef = Array.from(
-            needsRowwise
-              ? dequantizeQ4KMRowWise(quantizedBytes, location.shape)
-              : dequantizeQ4KM(quantizedBytes, numBlocks, location.shape)
-          ).slice(0, gpuVals.length);
-
-          let maxDiff = 0;
-          let diffIdx = -1;
-          for (let i = 0; i < gpuVals.length && i < cpuRef.length; i++) {
-            const d = Math.abs(gpuVals[i] - cpuRef[i]);
-            if (d > maxDiff) {
-              maxDiff = d;
-              diffIdx = i;
-            }
-          }
-
-          log.warn('DequantProbe',
-            `tensor="${name}" shape=[${location.shape}] ` +
-            `location.size=${location.size} numBlocks=${numBlocks} outputDtype=${outputDtype} ` +
-            `bytesPerElem=${bytesPerElem} requestedOutputBytes=${requestedOutputBytes} bufSize=${dequantized.size} ` +
-            `runParity=true sampleCount=${sampleCount}`
-          );
-          log.warn('DequantProbe',
-            `parity: maxDiff=${maxDiff.toFixed(8)} at idx=${diffIdx} ` +
-            `gpu[0..3]=[${gpuVals.slice(0, 4).map((v) => v.toFixed(6))}] ` +
-            `cpu[0..3]=[${cpuRef.slice(0, 4).map((v) => v.toFixed(6))}]`
-          );
-        } catch (e) {
-          log.warn('DequantProbe', `Readback failed: ${e.message}`);
-        }
-      }
-    }
-
+    const dense = await materializeQ4KDenseBuffer(quantBuffer, shardData, location, name, config);
+    dequantized = dense.buffer;
     releaseOwnedGpuBuffer(quantBuffer, ownsQuantBuffer);
     ownsQuantBuffer = false;
 
-    const dtype = outputDtype;
+    return {
+      data: createWeightBuffer(dequantized, dense.outputDtype, dense.layout, location.shape, name),
+      allocatedBuffers: [dequantized],
+    };
+  } catch (error) {
+    if (isReleasableBuffer(dequantized)) {
+      releaseBuffer(dequantized);
+    }
+    throw error;
+  } finally {
+    releaseOwnedGpuBuffer(quantBuffer, ownsQuantBuffer);
+  }
+}
+
+export async function loadQ4KMixed(shardData, location, name, config) {
+  const canMaterializeMixed = shouldUseFusedQ4K(location, config)
+    && config.q4kLayout === 'row';
+  if (!canMaterializeMixed) {
+    return loadQ4KDequant(shardData, location, name, config);
+  }
+
+  const device = getDevice();
+  let ownsQuantBuffer = !isGpuBufferInstance(shardData);
+  const quantBuffer = isGpuBufferInstance(shardData)
+    ? shardData
+    : acquireAlignedBuffer(location.size, `q4k_mixed_${name}`);
+  let dequantized = null;
+  try {
+    if (ownsQuantBuffer) {
+      writeBufferAligned(device, quantBuffer, shardData);
+    }
+
+    const dense = await materializeQ4KDenseBuffer(quantBuffer, shardData, location, name, config);
+    dequantized = dense.buffer;
+    ownsQuantBuffer = false;
 
     return {
-      data: createWeightBuffer(dequantized, dtype, layout, location.shape, name),
-      allocatedBuffers: [dequantized],
+      data: createWeightBuffer(
+        dense.buffer,
+        dense.outputDtype,
+        dense.layout,
+        location.shape,
+        name,
+        {
+          q4k: { buffer: quantBuffer, layout: 'row' },
+        }
+      ),
+      allocatedBuffers: [quantBuffer, dense.buffer],
     };
   } catch (error) {
     if (isReleasableBuffer(dequantized)) {
@@ -578,6 +638,7 @@ export async function loadFloat(shardData, location, name, config) {
 
 
 const GPU_LOADER_DISPATCH = {
+  q4k_mixed: (shardData, location, name, config) => loadQ4KMixed(shardData, location, name, config),
   q4k_fused: (shardData, location, name, _config) => {
     debugTrace.loader(`Loading Q4K weight (fused): ${name} (size=${location.size})`);
     return loadQ4KFused(shardData, location, name);
@@ -617,6 +678,7 @@ export async function loadTensorToGPU(shardData, location, name, config) {
   const loaderPath = selectRuleValue('loader', 'tensorLoader', 'gpuLoaderPath', {
     dtype,
     useFusedQ4K,
+    q4kMaterializationMode: config.q4kMaterializationMode ?? 'dense',
     q4kCpuReferenceEligible: q4kReferenceContext.eligible,
     q4kBasicBackendClass,
   });

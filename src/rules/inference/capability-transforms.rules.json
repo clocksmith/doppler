@@ -16,6 +16,19 @@
       "reason": "GPU lacks shader-f16"
     },
     {
+      "match": {
+        "hasSubgroups": true,
+        "hasF16": true,
+        "activationDtype": "f32",
+        "platformVendor": "apple",
+        "hasDensePrefillProjectionKernel": true,
+        "hasAvailableQ4PrefillProjectionKernel": true,
+        "hasQ4PrefillProjectionKernel": false
+      },
+      "transforms": ["remapDenseQ4KPrefillToQ4Native"],
+      "reason": "Apple/WebGPU dense Q4K prefill path is remapped to an explicit available Q4-native prefill kernel"
+    },
+    {
       "match": {},
       "transforms": [],
       "reason": "GPU supports all required features"

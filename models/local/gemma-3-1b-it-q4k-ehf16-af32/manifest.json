@@ -150,14 +150,19 @@
           }
         },
         "tiled": {
-          "kernel": "matmul_f16w_f32a.wgsl",
+          "kernel": "matmul_f16w_f32a_tiled.wgsl",
           "entry": "main",
-          "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
+          "digest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c"
         },
-        "attn_stream": {
-          "kernel": "attention_streaming_f16kv.wgsl",
+        "q4_prefill_shared": {
+          "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
           "entry": "main",
-          "digest": "sha256:b337a2dcf7b40431a733d1726eee8bf23504136fd5f915bec057fb59f3ea7480"
+          "digest": "sha256:142817adcacb28750a92793996cd15c2d9fe13d03e0c2d0aadf3e674dc7a35d6"
+        },
+        "attn_small": {
+          "kernel": "attention_small_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:7e3acc24b8b45294d18052c759319fe8a202d4ebfc4b653d4b904b245ae7e5c9"
         },
         "lm_head_gemv": {
           "kernel": "matmul_gemv_subgroup.wgsl",
@@ -280,7 +285,7 @@
         ],
         [
           "attention",
-          "attn_stream"
+          "attn_small"
         ],
         [
           "o_proj",
@@ -4359,7 +4364,7 @@
     "convertedAt": "2026-02-26T20:19:47.896Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-03-26T12:12:36.863Z",
+      "at": "2026-03-28T18:06:24.841Z",
       "source": "local-hash-resync",
       "config": "gemma-3-1b-it-q4k-ehf16-af32.json"
     }
@@ -4367,6 +4372,7 @@
   "tokenizer": {
     "type": "bundled",
     "vocabSize": 262144,
-    "file": "tokenizer.json"
+    "file": "tokenizer.json",
+    "addBosToken": true
   }
 }

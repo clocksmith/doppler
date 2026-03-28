@@ -5,6 +5,7 @@ import {
   buildSessionRuntimePatch,
   PIPELINE_COMPATIBLE_OPS,
 } from './execution-runtime-builders.js';
+import { mergeKernelPathPolicy } from '../../../config/merge-helpers.js';
 import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
 import { buildOpIdFromExecutionStep } from './operator-identity.js';
 import {
@@ -12,12 +13,112 @@ import {
   resolveFinitenessFallbackTransform,
 } from '../../../config/transforms/capability-transform-resolver.js';
 import { composeTransforms } from '../../../config/transforms/execution-graph-transforms.js';
+import { resolveRangeAwareSelectiveWideningConfig } from './finiteness-policy.js';
 import { log } from '../../../debug/index.js';
 
 export function hasExecutionV1(manifestInference) {
   return manifestInference?.schema === EXECUTION_V1_SCHEMA_ID
     && manifestInference?.execution
     && typeof manifestInference.execution.kernels === 'object';
+}
+
+function mergeExecutionV1Session(manifestSession, runtimeSession) {
+  const session = mergeRuntimeValues(
+    manifestSession ?? {},
+    runtimeSession ?? {}
+  );
+  const manifestDefaults = manifestSession?.compute?.defaults ?? null;
+  const manifestKvCache = manifestSession?.kvcache ?? null;
+  const lockedDefaults = {};
+
+  if (manifestDefaults?.activationDtype != null) {
+    lockedDefaults.activationDtype = manifestDefaults.activationDtype;
+  }
+  if (manifestDefaults?.mathDtype != null) {
+    lockedDefaults.mathDtype = manifestDefaults.mathDtype;
+  }
+  if (manifestDefaults?.accumDtype != null) {
+    lockedDefaults.accumDtype = manifestDefaults.accumDtype;
+  }
+  if (manifestDefaults?.outputDtype != null) {
+    lockedDefaults.outputDtype = manifestDefaults.outputDtype;
+  }
+
+  return {
+    ...session,
+    ...(Object.keys(lockedDefaults).length > 0
+      ? {
+        compute: {
+          ...session.compute,
+          defaults: {
+            ...session.compute?.defaults,
+            ...lockedDefaults,
+          },
+        },
+      }
+      : {}),
+    ...(manifestKvCache?.kvDtype != null
+      ? {
+        kvcache: {
+          ...session.kvcache,
+          kvDtype: manifestKvCache.kvDtype,
+        },
+      }
+      : {}),
+  };
+}
+
+const EXECUTION_V1_PROJECTION_OPS = new Set([
+  'q_proj', 'k_proj', 'v_proj', 'o_proj',
+  'gate_proj', 'up_proj', 'down_proj',
+]);
+
+const EXECUTION_V1_DENSE_Q4_PREFILL_FILES = new Set([
+  'matmul_f16w_f32a.wgsl',
+  'matmul_f16w_f32a_tiled.wgsl',
+  'matmul_f16.wgsl',
+  'matmul_f16_tiled.wgsl',
+]);
+
+function summarizeExecutionGraphContext(execution) {
+  const summary = {
+    hasDensePrefillProjectionKernel: false,
+    hasQ4DecodeProjectionKernel: false,
+    hasQ4PrefillProjectionKernel: false,
+    hasAvailableQ4PrefillProjectionKernel: false,
+  };
+  const phases = [
+    ['decode', execution?.decode ?? []],
+    ['prefill', execution?.prefill ?? []],
+  ];
+
+  for (const [phase, steps] of phases) {
+    for (const step of steps) {
+      if (!EXECUTION_V1_PROJECTION_OPS.has(step[0])) {
+        continue;
+      }
+      const kernelEntry = execution?.kernels?.[step[1]];
+      if (!kernelEntry) {
+        continue;
+      }
+      if (phase === 'decode' && kernelEntry.kernel === 'fused_matmul_q4.wgsl') {
+        summary.hasQ4DecodeProjectionKernel = true;
+      }
+      if (phase === 'prefill' && EXECUTION_V1_DENSE_Q4_PREFILL_FILES.has(kernelEntry.kernel)) {
+        summary.hasDensePrefillProjectionKernel = true;
+      }
+      if (phase === 'prefill' && kernelEntry.kernel.startsWith('fused_matmul_q4')) {
+        summary.hasQ4PrefillProjectionKernel = true;
+      }
+    }
+  }
+
+  summary.hasAvailableQ4PrefillProjectionKernel = Object.values(execution?.kernels ?? {}).some(
+    (entry) => entry?.kernel === 'fused_matmul_q4_batched_multicol_shared.wgsl'
+      || entry?.kernel === 'fused_matmul_q4_batched.wgsl'
+  );
+
+  return summary;
 }
 
 
@@ -55,13 +156,15 @@ export function compileExecutionV1(options = {}) {
   const capabilities = options.capabilities ?? null;
   const platform = options.platform ?? null;
   const runtimeSession = options.runtimeSession ?? null;
+  const runtimeCompute = options.runtimeCompute ?? null;
+  const kernelPathPolicy = mergeKernelPathPolicy(undefined, options.kernelPathPolicy ?? undefined);
 
   if (!hasExecutionV1(manifestInference)) {
     throw new Error(`[ExecutionV1] manifest.inference.schema must be "${EXECUTION_V1_SCHEMA_ID}".`);
   }
 
   let execution = manifestInference.execution;
-  const session = mergeRuntimeValues(
+  const session = mergeExecutionV1Session(
     manifestInference.session ?? {},
     runtimeSession ?? {}
   );
@@ -72,6 +175,7 @@ export function compileExecutionV1(options = {}) {
 
   const activationDtype = session.compute.defaults.activationDtype;
   const kvDtype = session?.kvcache?.kvDtype ?? activationDtype;
+  const finitenessPolicy = resolveRangeAwareSelectiveWideningConfig(runtimeCompute);
 
   // Validate the original manifest graph (full digest checks).
   expandExecutionV1(execution);
@@ -84,16 +188,33 @@ export function compileExecutionV1(options = {}) {
   let graphWasTransformed = false;
 
   if (capabilities) {
-    const graphContext = { activationDtype, kvDtype };
+    const graphContext = {
+      activationDtype,
+      kvDtype,
+      modelId,
+      ...summarizeExecutionGraphContext(execution),
+    };
     const resolved = resolveCapabilityTransforms(capabilities, platform, graphContext);
+    const sourceScope = kernelPathPolicy.sourceScope ?? kernelPathPolicy.allowSources ?? [];
+    const remapAllowed = kernelPathPolicy.mode === 'capability-aware'
+      && kernelPathPolicy.onIncompatible === 'remap'
+      && sourceScope.includes('manifest');
 
     if (resolved.transforms.length > 0) {
+      if (!remapAllowed) {
+        throw new Error(
+          `[ExecutionV1] capability transforms required for "${modelId}" (${resolved.reason}) ` +
+          `but runtime.inference.kernelPathPolicy is ${JSON.stringify(kernelPathPolicy)}. ` +
+          'Use capability-aware remap for manifest-owned execution graphs or choose a compatible runtime.'
+        );
+      }
       const composed = composeTransforms(...resolved.transforms);
       const transformed = composed(execution, {
         capabilities,
         platform: platform ?? { id: 'unknown', vendor: 'unknown', architecture: 'unknown' },
         activationDtype,
         kvDtype,
+        modelId,
       });
       if (transformed !== execution) {
         execution = transformed;
@@ -108,14 +229,18 @@ export function compileExecutionV1(options = {}) {
       log.debug('ExecutionV1', `No capability transforms needed (${resolved.reason})`);
     }
 
-    // Build finiteness fallback from the (possibly transformed) graph
-    const fallbackResult = resolveFinitenessFallbackTransform(graphContext);
+    // Build explicit finiteness fallback only when the runtime opted into
+    // alternate-plan recovery. The default policy is fail-fast.
+    const fallbackResult = finitenessPolicy.onTrigger === 'fallback-plan'
+      ? resolveFinitenessFallbackTransform(graphContext)
+      : null;
     if (fallbackResult) {
       const fallbackGraph = fallbackResult.transform(execution, {
         capabilities,
         platform: platform ?? { id: 'unknown', vendor: 'unknown', architecture: 'unknown' },
         activationDtype,
         kvDtype,
+        modelId,
       });
       if (fallbackGraph) {
         fallbackExecution = fallbackGraph;
@@ -163,7 +288,6 @@ export function compileExecutionV1(options = {}) {
       } : {}),
     };
   }
-
   const inlineKernelPathEnabled = execution.inlineKernelPath !== false;
   const finitenessFallback = typeof execution.finitenessFallbackKernelPathId === 'string'
     && execution.finitenessFallbackKernelPathId.length > 0
@@ -278,6 +402,8 @@ export function applyExecutionV1RuntimeConfig(options = {}) {
     capabilities: options.capabilities ?? null,
     platform: options.platform ?? null,
     runtimeSession: runtimeConfig.inference?.session ?? null,
+    runtimeCompute: runtimeConfig.inference?.compute ?? null,
+    kernelPathPolicy: runtimeConfig.inference?.kernelPathPolicy ?? null,
   });
 
   const runtimeInferencePatch = executionV1State.runtimeInferencePatch;

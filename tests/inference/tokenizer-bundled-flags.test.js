@@ -59,6 +59,39 @@ try {
     });
     assert.deepEqual(tokenizer.encode('hello'), [0]);
   }
+
+  {
+    const tokenizer = new BundledTokenizer({
+      vocabSize: 1,
+      deferSpecialTokens: true,
+      addEosToken: false,
+    });
+    tokenizer.load({
+      model: {
+        type: 'BPE',
+        vocab: {
+          hello: 0,
+        },
+        merges: [],
+      },
+      added_tokens: [
+        { id: 2, content: '<bos>', special: true },
+        { id: 1, content: '<eos>', special: true },
+        { id: 3, content: '<unk>', special: true },
+      ],
+      post_processor: {
+        type: 'TemplateProcessing',
+        single: [
+          { SpecialToken: { id: '<bos>', type_id: 0 } },
+          { Sequence: { id: 'A', type_id: 0 } },
+        ],
+        special_tokens: {
+          '<bos>': { id: '<bos>', ids: [2], tokens: ['<bos>'] },
+        },
+      },
+    });
+    assert.deepEqual(tokenizer.encode('hello'), [2, 0]);
+  }
 } finally {
   resetRuntimeConfig();
 }

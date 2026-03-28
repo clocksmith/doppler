@@ -57,6 +57,11 @@
     }
   },
   "browser": {
+    "compareChannelByPlatform": {
+      "darwin": "chromium",
+      "linux": "chromium",
+      "win32": "chromium"
+    },
     "stableArgs": [
       "--disable-breakpad",
       "--disable-gpu-sandbox",
@@ -81,6 +86,20 @@
     }
   },
   "kernelPathPolicy": {
+    "compareRuntime": {
+      "mode": "capability-aware",
+      "sourceScope": [
+        "model",
+        "manifest",
+        "config"
+      ],
+      "allowSources": [
+        "model",
+        "manifest",
+        "config"
+      ],
+      "onIncompatible": "remap"
+    },
     "knownBadByModel": {
       "gemma-3-270m-it-f16-af32": [
         "gemma3-f16-fused-f16a-online"

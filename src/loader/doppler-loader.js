@@ -148,6 +148,8 @@ export class DopplerLoader {
   
   keepF32Weights = false;
 
+  q4kMaterializationMode = 'dense';
+
   // Internal tracking
   
   #normOffsetLogged = false;
@@ -198,6 +200,7 @@ export class DopplerLoader {
     this.useFusedQ4K = config.useFusedQ4K;
     this.q4kLayout = config.q4kLayout;
     this.keepF32Weights = config.keepF32Weights;
+    this.q4kMaterializationMode = config.q4kMaterializationMode ?? 'dense';
   }
 
   
@@ -734,6 +737,7 @@ export class DopplerLoader {
       }
       const config = {
         useFusedQ4K: this.useFusedQ4K,
+        q4kMaterializationMode: this.q4kMaterializationMode,
         keepF32Weights: this.keepF32Weights,
         q4kLayout: this.q4kLayout,
         loaderDebug: this.#loaderDebug,

@@ -385,7 +385,7 @@ export class InferencePipeline extends PipelineState {
     }
 
     if (this.useGPU && this.modelConfig) {
-      fuseQKVWeights(result.layerWeights, this.modelConfig);
+      fuseQKVWeights(result.layerWeights, this.modelConfig, this.resolvedKernelPath);
     }
 
     if (this.useGPU && this.modelConfig) {

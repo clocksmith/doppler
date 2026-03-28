@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-03-27T21:36:24.752Z
-Release: channel=main-snapshot, version=0.2.0, commit=eda092c8931816bae064a71e151135f81626350a, dirty=yes
+Generated: 2026-03-28T19:05:35.108Z
+Release: channel=main-snapshot, version=0.2.0, commit=d5ea67695daef626aa105697301ef7ac2c5fb932, dirty=yes
 
 ## Engine Matrix
 
@@ -26,15 +26,15 @@ Release: channel=main-snapshot, version=0.2.0, commit=eda092c8931816bae064a71e15
 
 ## Model Coverage
 
-| Doppler Model | In Catalog | Catalog Modes | TJS Mapping | Kernel Path | Surface | Base Dir |
-|---|---|---|---|---|---|---|
-| `gemma-3-1b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-1b-it-ONNX-GQA` |  | auto | local |
-| `gemma-3-270m-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` |  | auto | local |
-| `google-embeddinggemma-300m-q4k-ehf16-af32` | yes | embedding | `onnx-community/embeddinggemma-300m-ONNX` |  | auto | local |
-| `lfm2-5-1-2b-instruct-q4k-ehf16-af32` | yes | run, translate | `LiquidAI/LFM2.5-1.2B-Instruct-ONNX` |  | auto | local |
-| `qwen-3-5-0-8b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-0.8B-ONNX` |  | auto | local |
-| `qwen-3-5-2b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-2B-ONNX` |  | auto | local |
-| `translategemma-4b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/translategemma-text-4b-it-ONNX` |  | auto | local |
+| Doppler Model | In Catalog | Catalog Modes | TJS Mapping | Kernel Path | Surface | Source | Compare Lane | Notes |
+|---|---|---|---|---|---|---|---|---|
+| `gemma-3-1b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-1b-it-ONNX-GQA` |  | auto | quickstart-registry | performance_comparable |  |
+| `gemma-3-270m-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` |  | auto | quickstart-registry | performance_comparable |  |
+| `google-embeddinggemma-300m-q4k-ehf16-af32` | yes | embedding | `onnx-community/embeddinggemma-300m-ONNX` |  | auto | quickstart-registry | capability_only | Embedding models use a separate workload contract and are not part of the text-generation compare lane. |
+| `lfm2-5-1-2b-instruct-q4k-ehf16-af32` | yes | run, translate | `LiquidAI/LFM2.5-1.2B-Instruct-ONNX` |  | auto | local | performance_comparable |  |
+| `qwen-3-5-0-8b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-0.8B-ONNX` |  | auto | quickstart-registry | capability_only | Transformers.js v4 does not currently support the qwen3_5 architecture on the WebGPU compare lane. |
+| `qwen-3-5-2b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-2B-ONNX` |  | auto | quickstart-registry | capability_only | Transformers.js v4 does not currently support the qwen3_5 architecture on the WebGPU compare lane. |
+| `translategemma-4b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/translategemma-text-4b-it-ONNX` |  | auto | local | performance_comparable |  |
 
 ## Workloads
 

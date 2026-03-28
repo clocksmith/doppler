@@ -1,5 +1,6 @@
 {
   "gpuLoaderPath": [
+    { "match": { "dtype": { "in": ["Q4_K_M", "Q4_K"] }, "q4kMaterializationMode": "mixed" }, "value": "q4k_mixed" },
     { "match": { "dtype": { "in": ["Q4_K_M", "Q4_K"] }, "useFusedQ4K": true }, "value": "q4k_fused" },
     {
       "match": {

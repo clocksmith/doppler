@@ -26,6 +26,7 @@ import {
 import { buildExecutionContractArtifact } from '../config/execution-contract-check.js';
 import { buildManifestRequiredInferenceFieldsArtifact } from '../config/required-inference-fields-contract-check.js';
 import { resolveEosTokenId } from './tokenizer-utils.js';
+import { inferBundledTokenizerBehaviorFlags } from '../inference/tokenizers/behavior-flags.js';
 import {
   normalizeQ4KLayout,
   resolveManifestQuantization,
@@ -602,9 +603,12 @@ function buildBundledTokenizer(tokenizerJson, tokenizerConfig, rawConfig) {
     ?? resolveTokenizerField(tokenizerConfig, 'add_eos_token', 'addEosToken')
     ?? resolveConfigBoolean(rawConfig, 'add_eos_token', 'addEosToken')
   );
+  const inferredFlags = inferBundledTokenizerBehaviorFlags(tokenizerJson);
 
   if (addBosToken != null) tokenizer.addBosToken = addBosToken;
+  else if (inferredFlags.addBosToken != null) tokenizer.addBosToken = inferredFlags.addBosToken;
   if (addEosToken != null) tokenizer.addEosToken = addEosToken;
+  else if (inferredFlags.addEosToken != null) tokenizer.addEosToken = inferredFlags.addEosToken;
 
   return tokenizer;
 }

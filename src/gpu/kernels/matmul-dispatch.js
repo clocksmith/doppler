@@ -61,6 +61,9 @@ export function calculateMatmulDispatch(variant, useQ4KFused, useGemv, M, N, con
     if (variant === 'q4_fused') {
       workgroupsX = N;
       workgroupsY = 1;
+    } else if (config.variantMetadata?.colsPerWg && config.variantMetadata?.tileM) {
+      workgroupsX = Math.ceil(N / colsPerWg);
+      workgroupsY = Math.ceil(M / tileM);
     } else if (config.variantMetadata?.colsPerWg) {
       // Multicol variants: q4_fused_multicol, q4_fused_multicol_f16
       workgroupsX = Math.ceil(N / colsPerWg);

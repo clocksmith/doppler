@@ -75,6 +75,7 @@ function createStaticExecutionPlan({
     kernelPathSource,
     activationDtype,
     finitenessGuardEnabled: activationDtype === 'f16' && finitenessPolicy.enabled,
+    finitenessOnTrigger: finitenessPolicy.onTrigger,
     finitenessAbsThreshold: finitenessPolicy.absThreshold,
     finitenessIncludeNonFinite: finitenessPolicy.includeNonFinite,
     deferredRoundingWindowTokens,
@@ -200,7 +201,7 @@ export function compileExecutionPlanState(options) {
   });
 
   let fallbackPlan = null;
-  if (primaryPlan.finitenessGuardEnabled) {
+  if (primaryPlan.finitenessGuardEnabled && primaryPlan.finitenessOnTrigger === 'fallback-plan') {
     const fallbackActivationDtype = resolveFallbackActivationDtype(primaryPlan.activationDtype);
     if (fallbackActivationDtype !== 'f32') {
       throw new Error(
@@ -347,6 +348,7 @@ export function resolveExecutionSessionPlan(container, options = {}) {
     kernelPathId: activePlan.kernelPathId,
     activationDtype: activePlan.activationDtype,
     finitenessGuardEnabled: activePlan.finitenessGuardEnabled,
+    finitenessOnTrigger: activePlan.finitenessOnTrigger,
     finitenessAbsThreshold: activePlan.finitenessAbsThreshold,
     finitenessIncludeNonFinite: activePlan.finitenessIncludeNonFinite,
     deferredRoundingWindowTokens: activePlan.deferredRoundingWindowTokens,

@@ -77,4 +77,28 @@ if (!fs.existsSync(qwenManifestPath)) {
   assert.equal(materialized.inference?.execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16kv.wgsl');
 }
 
+const gemma1bManifestPath = path.join('models/local/gemma-3-1b-it-q4k-ehf16-af32', 'manifest.json');
+if (!fs.existsSync(gemma1bManifestPath)) {
+  console.log('conversion-config-materializer.test: skipped gemma 1b fixture (local model missing)');
+} else {
+  const conversionConfig = readJson('src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json');
+  const manifest = readJson(gemma1bManifestPath);
+  const materialized = resolveMaterializedManifestFromConversionConfig(conversionConfig, manifest);
+
+  assert.equal(materialized.modelId, manifest.modelId);
+  assert.equal(materialized.inference?.execution?.kernels?.q4_decode, undefined);
+  assert.equal(materialized.inference?.execution?.kernels?.gemv?.kernel, 'matmul_gemv_subgroup.wgsl');
+  assert.equal(materialized.inference?.execution?.kernels?.q4_prefill, undefined);
+  assert.equal(materialized.inference?.execution?.kernels?.tiled?.kernel, 'matmul_f16w_f32a_tiled.wgsl');
+  const qProjDecode = materialized.inference?.execution?.decode?.find((step) => step[0] === 'q_proj');
+  assert.ok(qProjDecode, 'gemma 1b materialized decode q_proj step missing');
+  assert.equal(qProjDecode[1], 'gemv');
+  const qProjPrefill = materialized.inference?.execution?.prefill?.find((step) => step[0] === 'q_proj');
+  assert.ok(qProjPrefill, 'gemma 1b materialized prefill q_proj step missing');
+  assert.equal(qProjPrefill[1], 'tiled');
+  const attnPrefill = materialized.inference?.execution?.prefill?.find((step) => step[0] === 'attention');
+  assert.ok(attnPrefill, 'gemma 1b materialized prefill attention step missing');
+  assert.equal(attnPrefill[1], 'attn_small');
+}
+
 console.log('conversion-config-materializer.test: ok');

@@ -475,6 +475,7 @@ async function createStaticServer(root, preferredPort) {
   const mimeTypes = {
     '.html': 'text/html',
     '.js': 'text/javascript',
+    '.mjs': 'text/javascript',
     '.json': 'application/json',
     '.wasm': 'application/wasm',
     '.onnx': 'application/octet-stream',
