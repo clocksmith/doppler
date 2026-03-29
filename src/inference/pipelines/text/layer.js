@@ -261,6 +261,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       getWeightBuffer: (weight, label) => getWeightBuffer(weight, label),
       getNormWeightBuffer: (weight, label) => getNormWeightBuffer(weight, label, weightConfig, debugFlags),
       debugProbes: context.debugProbes,
+      operatorDiagnostics: context.operatorDiagnostics,
       recorder: recorder ?? null,
     });
   } else {
@@ -311,6 +312,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       kvCache: ((kvCache)),
       stats: context.stats,
       debugProbes: context.debugProbes,
+      operatorDiagnostics: context.operatorDiagnostics,
       linearRuntime: context.linearAttentionRuntime ?? null,
     };
 
@@ -372,6 +374,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     hiddenSize,
     probes: context.debugProbes,
     recorder,
+    operatorDiagnostics: context.operatorDiagnostics,
     dtype: attnOutput.dtype,
   });
 
@@ -442,6 +445,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     hiddenSize,
     probes: context.debugProbes,
     recorder,
+    operatorDiagnostics: context.operatorDiagnostics,
     dtype: postAttn.dtype,
   });
 
@@ -549,6 +553,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
       : (ropeFreqsSin),
     kvCache: ((kvCache)),
     linearRuntime: context.linearAttentionRuntime ?? null,
+    operatorDiagnostics: context.operatorDiagnostics,
   };
 
   const allowResidualFuse = numTokens === 1 && !(sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm);
@@ -740,6 +745,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
               hiddenSize,
               probes: context.debugProbes,
               recorder,
+              operatorDiagnostics: context.operatorDiagnostics,
               dtype: outputDtype,
             });
           }
@@ -785,6 +791,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
               hiddenSize,
               probes: context.debugProbes,
               recorder,
+              operatorDiagnostics: context.operatorDiagnostics,
               dtype: outputDtype,
             });
           }
@@ -820,6 +827,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
               hiddenSize,
               probes: context.debugProbes,
               recorder,
+              operatorDiagnostics: context.operatorDiagnostics,
               dtype: outputDtype,
             });
           }
@@ -855,6 +863,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
               hiddenSize,
               probes: context.debugProbes,
               recorder,
+              operatorDiagnostics: context.operatorDiagnostics,
               dtype: outputDtype,
             });
           }
@@ -880,6 +889,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
               hiddenSize,
               probes: context.debugProbes,
               recorder,
+              operatorDiagnostics: context.operatorDiagnostics,
               dtype: outputDtype,
             });
           }
@@ -907,6 +917,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
               hiddenSize,
               probes: context.debugProbes,
               recorder,
+              operatorDiagnostics: context.operatorDiagnostics,
               dtype: toDtype,
             });
           }
@@ -937,6 +948,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
     hiddenSize,
     probes: context.debugProbes,
     recorder,
+    operatorDiagnostics: context.operatorDiagnostics,
     dtype: getSlotDtype('state') ?? activationDtype,
   });
 

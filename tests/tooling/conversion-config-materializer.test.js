@@ -31,6 +31,10 @@ if (!fs.existsSync(gemmaManifestPath)) {
   assert.equal(materialized.modelType, 'transformer');
   assert.equal(materialized.inference?.schema, 'doppler.execution/v1');
   assert.equal(materialized.inference?.defaultKernelPath, undefined);
+  assert.equal(materialized.inference?.attention?.slidingWindow, 512);
+  assert.equal(materialized.inference?.rope?.ropeLocalTheta, 10000);
+  assert.equal(materialized.inference?.layerPattern?.type, 'every_n');
+  assert.equal(materialized.inference?.layerPattern?.period, 6);
   assert.deepEqual(materialized.inference?.session?.decodeLoop, {
     batchSize: 4,
     stopCheckMode: 'batch',
@@ -87,6 +91,10 @@ if (!fs.existsSync(gemma1bManifestPath)) {
 
   assert.equal(materialized.modelId, manifest.modelId);
   assert.equal(materialized.inference?.execution?.kernels?.q4_decode, undefined);
+  assert.equal(materialized.inference?.attention?.slidingWindow, 512);
+  assert.equal(materialized.inference?.rope?.ropeLocalTheta, 10000);
+  assert.equal(materialized.inference?.layerPattern?.type, 'every_n');
+  assert.equal(materialized.inference?.layerPattern?.period, 6);
   assert.equal(materialized.inference?.execution?.kernels?.gemv?.kernel, 'matmul_gemv_subgroup.wgsl');
   assert.equal(materialized.inference?.execution?.kernels?.q4_prefill, undefined);
   assert.equal(materialized.inference?.execution?.kernels?.tiled?.kernel, 'matmul_f16w_f32a_tiled.wgsl');

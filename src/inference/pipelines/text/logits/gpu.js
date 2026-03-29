@@ -114,6 +114,7 @@ export async function computeChunkedLogitsGPU(
   vocabSize,
   weightVocabSize,
   debugProbes,
+  operatorDiagnostics,
   largeWeightConfig,
   kernelPath = null
 ) {
@@ -178,11 +179,12 @@ export async function computeChunkedLogitsGPU(
       kernelPath,
     });
 
-    if (debugProbes?.length) {
+    if (debugProbes?.length || operatorDiagnostics?.enabled) {
       await runProbes('logits', logitsTensor.buffer, {
         numTokens,
         hiddenSize: rowCount,
         probes: debugProbes,
+        operatorDiagnostics,
         dtype: logitsTensor.dtype,
       });
     }
@@ -212,6 +214,7 @@ export async function computeLogitsGPU(
   weights,
   config,
   debugFlags,
+  operatorDiagnostics = null,
 ) {
   const {
     hiddenSize,
@@ -271,6 +274,12 @@ export async function computeLogitsGPU(
 
     const inputDtype = isGpuBufferInstance(hiddenStates) ? activationDtype : 'f32';
     const inputTensor = createTensor(inputBuffer, inputDtype, [numTokens, hiddenSize], 'logits_input');
+    await runProbes('pre_final_norm', inputBuffer, {
+      numTokens,
+      hiddenSize,
+      operatorDiagnostics,
+      dtype: inputDtype,
+    });
     const forceStableF32Logits = shouldForceStableF32Logits(config, inputDtype);
     normInputTensor = inputTensor;
     if (forceStableF32Logits) {
@@ -281,6 +290,12 @@ export async function computeLogitsGPU(
       batchSize: numTokens,
       hiddenSize,
       rmsNormWeightOffset: config.rmsNormWeightOffset,
+    });
+    await runProbes('final_norm', normedTensor.buffer, {
+      numTokens,
+      hiddenSize,
+      operatorDiagnostics,
+      dtype: normedTensor.dtype,
     });
     if (normInputOwned) {
       releaseBuffer(normInputTensor.buffer);
@@ -308,6 +323,12 @@ export async function computeLogitsGPU(
       role: 'lm_head',
       kernelPath: config.kernelPath ?? null,
     });
+    await runProbes('logits', logitsTensor.buffer, {
+      numTokens,
+      hiddenSize: matmulVocabSize,
+      operatorDiagnostics,
+      dtype: logitsTensor.dtype,
+    });
 
     // Cleanup intermediate buffers (but keep logitsBuffer)
     if (inputBufferOwned) { releaseBuffer(inputBuffer); inputBufferOwned = false; }
@@ -332,6 +353,7 @@ export async function recordLogitsGPU(
   numTokens,
   weights,
   config,
+  operatorDiagnostics = null,
 ) {
   const {
     hiddenSize,
@@ -367,6 +389,13 @@ export async function recordLogitsGPU(
   const inputDtype = activationDtype;
   // Wrap input buffer as Tensor for RMSNorm
   const inputTensor = createTensor(hiddenStates, inputDtype, [numTokens, hiddenSize], 'logits_input');
+  await runProbes('pre_final_norm', hiddenStates, {
+    numTokens,
+    hiddenSize,
+    recorder,
+    operatorDiagnostics,
+    dtype: inputDtype,
+  });
   const forceStableF32Logits = shouldForceStableF32Logits(config, inputDtype);
   let normInputTensor = inputTensor;
   let normInputOwned = false;
@@ -379,6 +408,13 @@ export async function recordLogitsGPU(
     batchSize: numTokens,
     hiddenSize,
     rmsNormWeightOffset: config.rmsNormWeightOffset,
+  });
+  await runProbes('final_norm', normedTensor.buffer, {
+    numTokens,
+    hiddenSize,
+    recorder,
+    operatorDiagnostics,
+    dtype: normedTensor.dtype,
   });
 
   // Get LM head buffer
@@ -401,6 +437,13 @@ export async function recordLogitsGPU(
     transposeB: 'auto',
     role: 'lm_head',
     kernelPath: config.kernelPath ?? null,
+  });
+  await runProbes('logits', logitsTensor.buffer, {
+    numTokens,
+    hiddenSize: matmulVocabSize,
+    recorder,
+    operatorDiagnostics,
+    dtype: logitsTensor.dtype,
   });
 
   // Track intermediate buffer for cleanup after submit

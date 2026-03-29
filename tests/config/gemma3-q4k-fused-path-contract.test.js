@@ -28,8 +28,19 @@ function assertProjectionKernel(graph, phase, expectedKernelKey) {
   }
 }
 
+function assertGemma3HybridAttention(inference, label) {
+  assert.equal(inference.attention?.slidingWindow, 512, `${label}: Gemma 3 sliding window`);
+  assert.equal(inference.rope?.ropeLocalTheta, 10000, `${label}: Gemma 3 local RoPE theta`);
+  assert.equal(inference.layerPattern?.type, 'every_n', `${label}: Gemma 3 layer pattern type`);
+  assert.equal(inference.layerPattern?.period, 6, `${label}: Gemma 3 layer pattern period`);
+  assert.equal(inference.layerPattern?.offset, null, `${label}: Gemma 3 layer pattern offset`);
+}
+
 const conversionConfig = readJson('src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json');
 const localManifest = readJson('models/local/gemma-3-1b-it-q4k-ehf16-af32/manifest.json');
+
+assertGemma3HybridAttention(conversionConfig.inference, 'conversion');
+assertGemma3HybridAttention(localManifest.inference, 'manifest');
 
 for (const [label, graph] of [
   ['conversion', conversionConfig.execution],

@@ -4,9 +4,9 @@ Browser-native inference on raw WebGPU. Pure JS + WGSL.
 
 **[Try the live demo](https://d4da.com)** | **[npm](https://www.npmjs.com/package/doppler-gpu)** | **[docs](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)**
 
-[![Representative phase-latency comparison across selected workloads](https://raw.githubusercontent.com/clocksmith/doppler/main/benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
+[![Warm-cache phase-latency comparison across Gemma 3 1B and LFM 2.5 1.2B](./benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
 
-Warm-cache phase-latency comparison on Gemma 3 1B and LFM 2.5 1.2B (MacBook Air M3, 64 prompt / 64 decode tokens, greedy). Doppler.js vs Transformers.js v4. See the [benchmark methodology](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md).
+See the [benchmark methodology](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md).
 
 ## Quick start
 
@@ -71,9 +71,11 @@ Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default.
 
 ## Why Doppler
 
-**Browser-native.** Runs entirely in any WebGPU browser tab — no server, no WASM, no native extensions. Models cache in OPFS and work offline.
+**Browser-native.** Runs in a WebGPU browser tab with OPFS caching, so models stay available offline after the first load.
 
-**JS → WGSL → WebGPU.** Direct JavaScript orchestration into native WebGPU kernels, avoiding ONNX runtimes and bridge layers.
+**JavaScript-first execution.** JSON resolves policy, JavaScript handles orchestration, and WGSL kernels handle compute. Kernel paths, dtype choices, and runtime behavior stay visible in the shipped source.
+
+**Fast iteration.** JS, WGSL, and JSON changes run directly through the same stack used by the browser and Node surfaces, which keeps debugging and profiling close to real runtime behavior.
 
 **`for await` streaming.** Generation uses a native `AsyncGenerator` that fits normal app control flow.
 
@@ -105,6 +107,7 @@ See the
 
 - Sharded weight loading via OPFS moves multi-GB weights into VRAM without blocking the main thread.
 - Quantized inference (Q4K, F16) runs practical model sizes on consumer GPUs.
+- TurboQuant KV-cache profiles are available for quantized decode-cache runs.
 - Kernel hot-swap between prefill and decode paths with zero graph recompilation.
 - Config-driven runtime with explicit profiles, kernel-path selection, and sampling.
 

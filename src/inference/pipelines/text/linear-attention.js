@@ -832,6 +832,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
       hiddenSize: projectionLayout.convDim,
       probes: options.debugProbes,
       recorder,
+      operatorDiagnostics: options.operatorDiagnostics,
       dtype: qkvTensor.dtype,
     });
     await runProbes('linear_z_proj', zTensor.buffer, {
@@ -840,6 +841,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
       hiddenSize: projectionLayout.valueDim,
       probes: options.debugProbes,
       recorder,
+      operatorDiagnostics: options.operatorDiagnostics,
       dtype: zTensor.dtype,
     });
     await runProbes('linear_a_proj', aTensor.buffer, {
@@ -848,6 +850,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
       hiddenSize: projectionLayout.numVHeads,
       probes: options.debugProbes,
       recorder,
+      operatorDiagnostics: options.operatorDiagnostics,
       dtype: aTensor.dtype,
     });
     await runProbes('linear_b_proj', bTensor.buffer, {
@@ -856,6 +859,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
       hiddenSize: projectionLayout.numVHeads,
       probes: options.debugProbes,
       recorder,
+      operatorDiagnostics: options.operatorDiagnostics,
       dtype: bTensor.dtype,
     });
     // Linear attention core kernels use array<f32>. Cast f16 projections.
@@ -897,6 +901,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
       hiddenSize: projectionLayout.valueDim,
       probes: options.debugProbes,
       recorder,
+      operatorDiagnostics: options.operatorDiagnostics,
       dtype: coreTensor.dtype,
     });
     layerState.seqLen = currentSeqLen + numTokens;

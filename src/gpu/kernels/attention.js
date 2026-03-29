@@ -477,10 +477,21 @@ function validateAttentionVariant(
       && !normalized.startsWith('decode_online')
       && !isChunked;
     if (isTiled) {
-      const requiredShared = isSmall
-        ? (useF16KV ? thresholds.smallSharedF16 : thresholds.smallSharedF32)
-        : (useF16KV ? thresholds.largeSharedF16 : thresholds.largeSharedF32);
-      const maxHeadDim = isSmall ? thresholds.smallMaxHeadDim : thresholds.largeMaxHeadDim;
+      const metadata = config.variantMetadata ?? {};
+      const requiredShared = metadata.requiredShared ?? (
+        isSmall
+          ? (useF16KV ? thresholds.smallSharedF16 : thresholds.smallSharedF32)
+          : (useF16KV ? thresholds.largeSharedF16 : thresholds.largeSharedF32)
+      );
+      const maxHeadDim = metadata.maxHeadDim ?? (isSmall ? thresholds.smallMaxHeadDim : thresholds.largeMaxHeadDim);
+      const minHeadDim = metadata.minHeadDim ?? 0;
+      const exactHeadDim = metadata.exactHeadDim;
+      if (Number.isFinite(exactHeadDim) && headDim !== exactHeadDim) {
+        throw new Error(`Attention kernel "${variant}" requires headDim == ${exactHeadDim} but got ${headDim}.`);
+      }
+      if (headDim < minHeadDim) {
+        throw new Error(`Attention kernel "${variant}" requires headDim >= ${minHeadDim} but got ${headDim}.`);
+      }
       if (headDim > maxHeadDim) {
         throw new Error(`Attention kernel "${variant}" requires headDim <= ${maxHeadDim} but got ${headDim}.`);
       }

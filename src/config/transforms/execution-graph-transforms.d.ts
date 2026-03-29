@@ -16,6 +16,7 @@ export interface TransformContext {
     hasSubgroups: boolean;
     hasF16: boolean;
     hasSubgroupsF16: boolean;
+    maxWorkgroupStorageSize?: number;
   };
   platform: {
     id: string;
@@ -74,6 +75,15 @@ export declare function swapPrefillAttention(
   graph: ExecutionGraph,
   ctx: TransformContext,
   options: { from: string; to: string }
+): ExecutionGraph | null;
+
+/**
+ * Replace eligible prefill f16kv attention kernels with the fixed 256-dim
+ * shared-block variant when the graph is eligible.
+ */
+export declare function useHead256PrefillAttention(
+  graph: ExecutionGraph,
+  ctx: TransformContext
 ): ExecutionGraph | null;
 
 /**

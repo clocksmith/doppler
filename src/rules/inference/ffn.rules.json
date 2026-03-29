@@ -39,7 +39,22 @@
         "dtypeSupported": true,
         "weightDtype": "q4k",
         "activationDtype": "f32",
-        "batchSize": 1,
+        "hiddenSizeAligned32": true
+      },
+      "value": true
+    },
+    {
+      "match": {
+        "hasGate": true,
+        "hasUp": true,
+        "hasDown": true,
+        "hasFusedWeights": false,
+        "inputIsSupported": true,
+        "hasLoRA": false,
+        "dtypeMatches": true,
+        "dtypeSupported": true,
+        "hasQ4KMaterialization": true,
+        "activationDtype": "f32",
         "hiddenSizeAligned32": true
       },
       "value": true

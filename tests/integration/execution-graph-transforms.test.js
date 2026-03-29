@@ -7,6 +7,7 @@ import {
   removeSubgroups,
   widenToF32Activations,
   swapPrefillAttention,
+  useHead256PrefillAttention,
   widenProjectionWeightsToF32,
   remapDenseQ4KPrefillToQ4Native,
   composeTransforms,
@@ -409,7 +410,54 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
-// Test 6: widenProjectionWeightsToF32 transform
+// Test 6: useHead256PrefillAttention transform
+// ===========================================================================
+{
+  const graph = structuredClone(REAL_GRAPH);
+  const frozen = structuredClone(graph);
+  const result = useHead256PrefillAttention(graph, { ...CTX_F32, modelId: 'gemma-3-1b-it-q4k-ehf16-af32' });
+
+  ok(result !== null, 'useHead256PrefillAttention should return a non-null result');
+  equal(result.kernels.attn_small.kernel, 'attention_head256_f16kv.wgsl',
+    'prefill attention should be swapped to attention_head256_f16kv.wgsl');
+  equal(result.kernels.attn_decode.kernel, 'attention_decode_online_f16kv.wgsl',
+    'decode attention should remain unchanged');
+  equal(result.kernels.attn_small.digest, null,
+    'head256 prefill attention should clear the digest after remap');
+
+  deepEqual(graph, frozen, 'useHead256PrefillAttention must not mutate the input graph');
+}
+
+// ===========================================================================
+// Test 6b: useHead256PrefillAttention supports legacy streaming prefill graphs
+// ===========================================================================
+{
+  const graph = structuredClone(REAL_GRAPH);
+  const prefillAttentionIndex = graph.prefill.findIndex((step) => step[0] === 'attention');
+  ok(prefillAttentionIndex !== -1, 'precondition: real graph must contain a prefill attention step');
+  graph.kernels.attn_stream = {
+    ...graph.kernels[graph.prefill[prefillAttentionIndex][1]],
+    kernel: 'attention_streaming_f16kv.wgsl',
+    digest: 'sha256:legacy_prefill_stream',
+  };
+  graph.prefill[prefillAttentionIndex] = ['attention', 'attn_stream'];
+  const frozen = structuredClone(graph);
+
+  const result = useHead256PrefillAttention(graph, { ...CTX_F32, modelId: 'gemma-3-1b-it-q4k-ehf16-af32' });
+
+  ok(result !== null, 'useHead256PrefillAttention should remap legacy streaming prefill attention');
+  equal(result.kernels.attn_stream.kernel, 'attention_head256_f16kv.wgsl',
+    'legacy streaming prefill attention should be swapped to attention_head256_f16kv.wgsl');
+  equal(result.kernels.attn_stream.digest, null,
+    'legacy streaming prefill attention should clear the digest after remap');
+  equal(result.kernels.attn_decode.kernel, 'attention_decode_online_f16kv.wgsl',
+    'decode attention should remain unchanged');
+
+  deepEqual(graph, frozen, 'useHead256PrefillAttention must not mutate legacy streaming graphs');
+}
+
+// ===========================================================================
+// Test 7: widenProjectionWeightsToF32 transform
 // ===========================================================================
 {
   const graph = buildF16WeightProjectionGraph();
@@ -435,7 +483,7 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
-// Test 7: remapDenseQ4KPrefillToQ4Native
+// Test 8: remapDenseQ4KPrefillToQ4Native
 // ===========================================================================
 {
   const graph = structuredClone(REAL_GRAPH);
@@ -451,7 +499,7 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
-// Test 8: composeTransforms — only first applies
+// Test 9: composeTransforms — only first applies
 // ===========================================================================
 {
   // For the real graph (f32 activations with subgroup kernels):
@@ -572,6 +620,7 @@ function buildF16WeightProjectionGraph() {
       {
         hasSubgroups: true,
         hasF16: true,
+        maxWorkgroupStorageSize: 32768,
         adapterInfo: {
           vendor: 'apple',
           architecture: 'metal-3',
@@ -581,6 +630,39 @@ function buildF16WeightProjectionGraph() {
       {
         activationDtype: 'f32',
         kvDtype: 'f16',
+        modelId: 'gemma-3-1b-it-q4k-ehf16-af32',
+        hasDensePrefillProjectionKernel: true,
+        hasQ4DecodeProjectionKernel: false,
+        hasQ4PrefillProjectionKernel: false,
+        hasAvailableQ4PrefillProjectionKernel: true,
+      }
+    );
+    deepEqual(
+      r.names,
+      ['useHead256PrefillAttention'],
+      'apple Gemma 3 1B graph should resolve the fixed head-dim-256 prefill attention transform'
+    );
+    equal(r.transforms.length, 1, 'apple Gemma 3 1B graph: one transform function');
+    equal(r.transforms[0], useHead256PrefillAttention,
+      'apple Gemma 3 1B graph: transform function is useHead256PrefillAttention');
+  }
+
+  {
+    const r = resolveCapabilityTransforms(
+      {
+        hasSubgroups: true,
+        hasF16: true,
+        maxWorkgroupStorageSize: 32768,
+        adapterInfo: {
+          vendor: 'apple',
+          architecture: 'metal-3',
+        },
+      },
+      { id: 'apple-m3', vendor: 'apple', architecture: 'm-series' },
+      {
+        activationDtype: 'f32',
+        kvDtype: 'f16',
+        modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
         hasDensePrefillProjectionKernel: true,
         hasQ4DecodeProjectionKernel: false,
         hasQ4PrefillProjectionKernel: false,
@@ -596,6 +678,7 @@ function buildF16WeightProjectionGraph() {
       {
         hasSubgroups: true,
         hasF16: true,
+        maxWorkgroupStorageSize: 32768,
         adapterInfo: {
           vendor: 'apple',
           architecture: 'metal-3',
@@ -708,6 +791,11 @@ function buildF16WeightProjectionGraph() {
     to: 'attention_small_f16kv.wgsl',
   });
   deepEqual(swapGraph, swapClone, 'purity: swapPrefillAttention must not mutate input');
+
+  const head256Graph = structuredClone(REAL_GRAPH);
+  const head256Clone = structuredClone(head256Graph);
+  useHead256PrefillAttention(head256Graph, CTX_F32);
+  deepEqual(head256Graph, head256Clone, 'purity: useHead256PrefillAttention must not mutate input');
 
   // Apply widenProjectionWeightsToF32
   const projGraph = buildF16WeightProjectionGraph();

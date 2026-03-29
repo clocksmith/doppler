@@ -975,7 +975,7 @@ async function main() {
           throw new Error('__primeBenchModel is not available in runner page');
         }
         return window.__primeBenchModel(primeConfig);
-      }, { modelId, dtype: tjsDtype });
+      }, { modelId, dtype: tjsDtype, format: tjsFormat });
       const reportedPrimeMs = Number(primeResult?.primeMs);
       cachePrime.primed = primeResult?.ok === true;
       cachePrime.primeMs = Number.isFinite(reportedPrimeMs) ? reportedPrimeMs : 0;

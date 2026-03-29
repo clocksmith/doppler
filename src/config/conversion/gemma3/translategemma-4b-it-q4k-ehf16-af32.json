@@ -15,7 +15,7 @@
     "attention": {
       "queryPreAttnScalar": 256,
       "attnLogitSoftcapping": null,
-      "slidingWindow": null,
+      "slidingWindow": 512,
       "queryKeyNorm": true,
       "causal": true,
       "attentionBias": false,
@@ -35,7 +35,7 @@
     },
     "rope": {
       "ropeTheta": 1000000,
-      "ropeLocalTheta": null,
+      "ropeLocalTheta": 10000,
       "mropeInterleaved": false,
       "mropeSection": null,
       "partialRotaryFactor": null,
@@ -59,9 +59,9 @@
       "embeddingPostprocessor": null
     },
     "layerPattern": {
-      "type": "uniform",
+      "type": "every_n",
       "globalPattern": null,
-      "period": null,
+      "period": 6,
       "offset": null,
       "layerTypes": null
     },

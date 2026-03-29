@@ -50,6 +50,7 @@ export async function processFFNWithSandwichNorm(
     hiddenSize,
     probes: context.debugProbes,
     recorder,
+    operatorDiagnostics: context.operatorDiagnostics,
     dtype: ffnInput.dtype,
   });
 
@@ -122,6 +123,7 @@ export async function processFFNWithSandwichNorm(
     hiddenSize,
     probes: context.debugProbes,
     recorder,
+    operatorDiagnostics: context.operatorDiagnostics,
     dtype: ffnOutput.dtype,
   });
 
@@ -178,6 +180,7 @@ export async function processFFNWithSandwichNorm(
     hiddenSize,
     probes: context.debugProbes,
     recorder,
+    operatorDiagnostics: context.operatorDiagnostics,
     dtype: output.dtype,
   });
 

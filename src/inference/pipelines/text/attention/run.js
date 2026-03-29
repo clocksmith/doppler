@@ -172,6 +172,7 @@ export async function runLayerAttentionGPU(
       numTokens,
       hiddenSize,
       probes: state.debugProbes,
+      operatorDiagnostics: state.operatorDiagnostics,
       dtype: normed.dtype,
     });
   }
@@ -250,6 +251,7 @@ export async function runLayerAttentionGPU(
     numTokens,
     hiddenSize: numHeads * headDim,
     probes: state.debugProbes,
+    operatorDiagnostics: state.operatorDiagnostics,
     dtype: qTensor.dtype,
   });
   await runProbes('k_proj', kTensor.buffer, {
@@ -257,6 +259,7 @@ export async function runLayerAttentionGPU(
     numTokens,
     hiddenSize: numKVHeads * headDim,
     probes: state.debugProbes,
+    operatorDiagnostics: state.operatorDiagnostics,
     dtype: kTensor.dtype,
   });
   await runProbes('v_proj', vTensor.buffer, {
@@ -264,6 +267,7 @@ export async function runLayerAttentionGPU(
     numTokens,
     hiddenSize: numKVHeads * headDim,
     probes: state.debugProbes,
+    operatorDiagnostics: state.operatorDiagnostics,
     dtype: vTensor.dtype,
   });
 
@@ -351,6 +355,7 @@ export async function runLayerAttentionGPU(
     numTokens,
     hiddenSize: numHeads * headDim,
     probes: state.debugProbes,
+    operatorDiagnostics: state.operatorDiagnostics,
     dtype: qTensor.dtype,
   });
   await runProbes('k_norm', kTensor.buffer, {
@@ -358,6 +363,7 @@ export async function runLayerAttentionGPU(
     numTokens,
     hiddenSize: numKVHeads * headDim,
     probes: state.debugProbes,
+    operatorDiagnostics: state.operatorDiagnostics,
     dtype: kTensor.dtype,
   });
 
@@ -393,6 +399,7 @@ export async function runLayerAttentionGPU(
     numTokens,
     hiddenSize: numHeads * headDim,
     probes: state.debugProbes,
+    operatorDiagnostics: state.operatorDiagnostics,
     dtype: qTensor.dtype,
   });
   await runProbes('k_rope', kTensor.buffer, {
@@ -400,6 +407,7 @@ export async function runLayerAttentionGPU(
     numTokens,
     hiddenSize: numKVHeads * headDim,
     probes: state.debugProbes,
+    operatorDiagnostics: state.operatorDiagnostics,
     dtype: kTensor.dtype,
   });
   if (isKernelDebugEnabled(layerIdx)) {

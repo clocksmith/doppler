@@ -46,7 +46,7 @@ const cdnUrl = tjsVersion === '4'
 
 console.log(`[tjs-bench] loading transformers.js from ${cdnUrl}`);
 const tjs = await import(cdnUrl);
-const { pipeline, env } = tjs;
+const { pipeline, env, AutoTokenizer, Qwen3_5ForConditionalGeneration } = tjs;
 const TextStreamer = tjs.TextStreamer;
 const loadedVersion = typeof tjs?.VERSION === 'string' ? tjs.VERSION : null;
 
@@ -249,7 +249,7 @@ function buildTimingDiagnostics(timing = {}, options = {}) {
   };
 }
 
-function buildPipelineOptions(enableOrtProfiling, dtype = 'fp16', providerMode = 'default') {
+function buildModelLoadOptions(enableOrtProfiling, dtype = 'fp16', providerMode = 'default') {
   const hybridProviderMode = providerMode === 'webgpu+wasm' || providerMode === 'webgpu+wasm-safe';
   const forceWebgpuOnly = providerMode === 'webgpu-only';
   const executionProviders = hybridProviderMode
@@ -267,6 +267,10 @@ function buildPipelineOptions(enableOrtProfiling, dtype = 'fp16', providerMode =
     dtype,
     session_options: sessionOptions,
   };
+}
+
+function buildPipelineOptions(enableOrtProfiling, dtype = 'fp16', providerMode = 'default') {
+  return buildModelLoadOptions(enableOrtProfiling, dtype, providerMode);
 }
 
 function isOrtBadAlloc(error) {
@@ -297,14 +301,101 @@ function isInt64CastKernelGap(error) {
     && message.includes('webgpuexecutionprovider');
 }
 
+function shouldUseQwen35ConditionalGeneration(modelId, format = 'onnx') {
+  if (tjsVersion !== '4') return false;
+  if (format !== 'onnx') return false;
+  const normalizedModelId = String(modelId || '').trim().toLowerCase();
+  return normalizedModelId.includes('qwen3.5') || normalizedModelId.includes('qwen3_5');
+}
+
+function encodeBenchPrompt(tokenizer, prompt) {
+  tokenizer.padding_side = 'left';
+  return tokenizer([String(prompt ?? '')], {
+    add_special_tokens: false,
+    padding: true,
+    truncation: true,
+  });
+}
+
+function countPromptTokensFromEncoded(encoded) {
+  const inputIds = encoded?.input_ids ?? null;
+  if (!inputIds) return null;
+  const dims = Array.isArray(inputIds?.dims) ? inputIds.dims : null;
+  if (dims && dims.length > 0) {
+    const lastDim = Number(dims[dims.length - 1]);
+    if (Number.isFinite(lastDim)) {
+      return lastDim;
+    }
+  }
+  const size = Number(inputIds?.size ?? inputIds?.length);
+  return Number.isFinite(size) ? size : null;
+}
+
+function createQwen35Generator(model, tokenizer) {
+  const generator = async (prompt, generationOptions = {}) => {
+    const textInputs = encodeBenchPrompt(tokenizer, prompt);
+    return await model.generate({
+      ...textInputs,
+      ...generationOptions,
+    });
+  };
+  generator.model = model;
+  generator.tokenizer = tokenizer;
+  generator.generation_config = model?.generation_config ?? null;
+  generator.countPromptTokens = async (prompt) => {
+    const encoded = encodeBenchPrompt(tokenizer, prompt);
+    return countPromptTokensFromEncoded(encoded);
+  };
+  return generator;
+}
+
+async function loadQwen35Generator(modelId, enableOrtProfiling, execution) {
+  if (!AutoTokenizer || typeof AutoTokenizer.from_pretrained !== 'function') {
+    throw new Error(
+      'Transformers.js benchmark Qwen3.5 path requires AutoTokenizer.from_pretrained in the loaded v4 bundle.'
+    );
+  }
+  if (
+    !Qwen3_5ForConditionalGeneration
+    || typeof Qwen3_5ForConditionalGeneration.from_pretrained !== 'function'
+  ) {
+    throw new Error(
+      'Transformers.js benchmark Qwen3.5 path requires Qwen3_5ForConditionalGeneration.from_pretrained in the loaded v4 bundle.'
+    );
+  }
+
+  const modelLoadOptions = buildModelLoadOptions(
+    enableOrtProfiling,
+    execution.effectiveDtype,
+    execution.executionProviderMode
+  );
+  const [tokenizer, model] = await Promise.all([
+    AutoTokenizer.from_pretrained(modelId),
+    Qwen3_5ForConditionalGeneration.from_pretrained(modelId, modelLoadOptions),
+  ]);
+
+  return {
+    generator: createQwen35Generator(model, tokenizer),
+    runnerKind: 'qwen3_5_conditional_generation',
+    modelArchitecture: 'qwen3_5',
+  };
+}
+
 async function loadGenerator(modelId, enableOrtProfiling, preferredDtype = 'fp16', format = 'onnx') {
   const execution = buildStrictWebgpuExecution(preferredDtype);
   setOrtProxyMode(execution.effectiveOrtProxy);
+  const useQwen35ConditionalGeneration = shouldUseQwen35ConditionalGeneration(modelId, format);
   const isSafetensors = format === 'safetensors';
   const pipelineOptions = isSafetensors
     ? { dtype: execution.effectiveDtype }
     : buildPipelineOptions(enableOrtProfiling, execution.effectiveDtype, execution.executionProviderMode);
   try {
+    if (useQwen35ConditionalGeneration) {
+      return {
+        ...(await loadQwen35Generator(modelId, enableOrtProfiling, execution)),
+        ...execution,
+      };
+    }
     const generator = await pipeline(
       'text-generation',
       modelId,
@@ -312,6 +403,8 @@ async function loadGenerator(modelId, enableOrtProfiling, preferredDtype = 'fp16
     );
     return {
       generator,
+      runnerKind: 'pipeline_text_generation',
+      modelArchitecture: null,
       ...execution,
     };
   } catch (error) {
@@ -367,11 +460,12 @@ async function releaseGenerator(generator) {
 window.__primeBenchModel = async (config = {}) => {
   const modelId = String(config?.modelId || '').trim();
   const requestedDtype = String(config?.dtype || 'fp16').trim() || 'fp16';
+  const requestedFormat = String(config?.format || 'onnx').trim() || 'onnx';
   if (!modelId) {
     throw new Error('modelId is required for cache priming');
   }
   const start = performance.now();
-  const load = await loadGenerator(modelId, false, requestedDtype);
+  const load = await loadGenerator(modelId, false, requestedDtype, requestedFormat);
   await releaseGenerator(load.generator);
   return {
     ok: true,
@@ -384,6 +478,7 @@ window.__primeBenchModel = async (config = {}) => {
     ortProxyFallbackUsed: load.ortProxyFallbackUsed === true,
     executionProviderMode: load.executionProviderMode || 'webgpu-only',
     executionProviderFallbackUsed: load.executionProviderFallbackUsed === true,
+    runnerKind: load.runnerKind || 'pipeline_text_generation',
   };
 };
 
@@ -454,6 +549,7 @@ window.__runBench = async (config) => {
       `ortProxy=${load.effectiveOrtProxy ? 'on' : 'off'}`
     );
   }
+  console.log(`[tjs-bench] runner kind: ${load.runnerKind || 'pipeline_text_generation'}`);
   const modelLoadMs = performance.now() - loadStart;
   console.log(`[tjs-bench] model loaded in ${(modelLoadMs / 1000).toFixed(1)}s`);
   const rawGenerationConfig = (
@@ -484,8 +580,12 @@ window.__runBench = async (config) => {
   // Count prompt tokens via the tokenizer
   let prefillTokens = null;
   try {
-    const encoded = generator.tokenizer.encode(generationPrompt);
-    prefillTokens = encoded.length;
+    if (typeof generator?.countPromptTokens === 'function') {
+      prefillTokens = await generator.countPromptTokens(generationPrompt);
+    } else {
+      const encoded = generator.tokenizer.encode(generationPrompt);
+      prefillTokens = encoded.length;
+    }
   } catch {
     try {
       const encoded = generator.tokenizer(generationPrompt);
@@ -743,6 +843,8 @@ window.__runBench = async (config) => {
       executionProviderFallbackUsed: load.executionProviderFallbackUsed === true,
       ortProxyMode: load.effectiveOrtProxy ? 'on' : 'off',
       ortProxyFallbackUsed: load.ortProxyFallbackUsed === true,
+      runnerKind: load.runnerKind || 'pipeline_text_generation',
+      modelArchitecture: load.modelArchitecture || null,
     },
     profiling: {
       enabled: enableOrtProfiling,

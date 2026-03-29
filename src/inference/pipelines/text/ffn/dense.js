@@ -5,7 +5,11 @@ import {
   releaseOrTrack
 } from '../ops.js';
 import { createTensor } from '../../../../gpu/tensor.js';
-import { isWeightBuffer } from '../../../../gpu/weight-buffer.js';
+import {
+  getWeightDtype,
+  isWeightBuffer,
+  resolveWeightBufferMaterialization,
+} from '../../../../gpu/weight-buffer.js';
 import { getDevice, getKernelCapabilities } from '../../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../../../memory/buffer-pool.js';
 import {
@@ -17,7 +21,7 @@ import {
   recordCastF32ToF16,
   isFusedQ4KDisabled
 } from '../../../../gpu/kernel-selector.js';
-import { log } from '../../../../debug/index.js';
+import { log, trace } from '../../../../debug/index.js';
 import { isKernelDebugEnabled, dumpTokenVector } from '../debug-utils.js';
 import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
@@ -31,6 +35,36 @@ const ACTIVATION_FN_MAP = {
 
 function resolveActivationOp(hiddenActivation) {
   return selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation });
+}
+
+function hasQ4KMaterialization(weight) {
+  return isWeightBuffer(weight) && !!weight.materializations?.q4k?.buffer;
+}
+
+export function resolveFusedGateUpWeights(layerWeights, options = {}) {
+  const gate = layerWeights?.gate ?? null;
+  const up = layerWeights?.up ?? null;
+  const hiddenSize = Number.isFinite(options.hiddenSize) ? options.hiddenSize : 0;
+  const q4kAllowed = !isFusedQ4KDisabled({ kernelPath: options.kernelPath ?? null });
+  const hasMixedQ4KMaterialization = hasQ4KMaterialization(gate) && hasQ4KMaterialization(up);
+  const preferQ4KMaterialization = hiddenSize > 0
+    && hiddenSize % 32 === 0
+    && q4kAllowed
+    && hasMixedQ4KMaterialization;
+  const resolvedGate = preferQ4KMaterialization
+    ? resolveWeightBufferMaterialization(gate, 'q4k')
+    : gate;
+  const resolvedUp = preferQ4KMaterialization
+    ? resolveWeightBufferMaterialization(up, 'q4k')
+    : up;
+
+  return {
+    gate: resolvedGate,
+    up: resolvedUp,
+    gateDtype: resolvedGate ? getWeightDtype(resolvedGate) : null,
+    upDtype: resolvedUp ? getWeightDtype(resolvedUp) : null,
+    hasQ4KMaterialization: hasMixedQ4KMaterialization,
+  };
 }
 
 async function dispatchActivation(hiddenActivation, input, options, recorder) {
@@ -246,15 +280,21 @@ export async function runDenseFFNGPU(
     (hasGate ? getLoRAModule(lora, layerIdx, 'gate_proj') : null) ||
     (hasUp ? getLoRAModule(lora, layerIdx, 'up_proj') : null)
   );
-  const gateDtype = hasGate && isWeightBuffer(layerWeights.gate) ? layerWeights.gate.dtype : (hasGate ? 'f32' : null);
-  const upDtype = hasUp && isWeightBuffer(layerWeights.up) ? layerWeights.up.dtype : (hasUp ? 'f32' : null);
-  const dtypeMatches = gateDtype != null && upDtype != null && gateDtype === upDtype;
-  const q4kFusedAllowed = gateDtype !== 'q4k' || !isFusedQ4KDisabled({ kernelPath });
-  const dtypeSupported = gateDtype === 'f16' || gateDtype === 'f32' || (gateDtype === 'q4k' && q4kFusedAllowed);
+  const hiddenSizeAligned32 = hiddenSize % 32 === 0;
   const activationDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
     useF16: inputTensor.dtype === 'f16',
     fallback: inputTensor.dtype,
   });
+  const fusedGateUpWeights = resolveFusedGateUpWeights(layerWeights, {
+    activationDtype,
+    hiddenSize,
+    kernelPath,
+  });
+  const gateDtype = fusedGateUpWeights.gateDtype ?? (hasGate ? 'f32' : null);
+  const upDtype = fusedGateUpWeights.upDtype ?? (hasUp ? 'f32' : null);
+  const dtypeMatches = gateDtype != null && upDtype != null && gateDtype === upDtype;
+  const q4kFusedAllowed = gateDtype !== 'q4k' || !isFusedQ4KDisabled({ kernelPath });
+  const dtypeSupported = gateDtype === 'f16' || gateDtype === 'f32' || (gateDtype === 'q4k' && q4kFusedAllowed);
   const f16BatchSupported = getKernelCapabilities().hasF16;
   const useFusedGateUp = selectRuleValue('inference', 'ffn', 'useFusedGateUp', {
     hasGate,
@@ -266,15 +306,22 @@ export async function runDenseFFNGPU(
     dtypeMatches,
     dtypeSupported,
     weightDtype: gateDtype,
+    hasQ4KMaterialization: fusedGateUpWeights.hasQ4KMaterialization,
     activationDtype,
     f16BatchSupported,
     batchSize: numTokens,
-    hiddenSizeAligned32: hiddenSize % 32 === 0,
+    hiddenSizeAligned32,
   });
+  trace.ffn(
+    layerIdx,
+    `useFusedGateUp=${useFusedGateUp} inputDtype=${inputTensor.dtype} activationDtype=${activationDtype} ` +
+    `gateDtype=${gateDtype} upDtype=${upDtype} hasQ4KMaterialization=${fusedGateUpWeights.hasQ4KMaterialization} ` +
+    `dtypeMatches=${dtypeMatches} dtypeSupported=${dtypeSupported} hiddenSizeAligned32=${hiddenSizeAligned32} batchSize=${numTokens}`
+  );
 
   if (useFusedGateUp) {
-    const gateWeight = getWeightBuffer(layerWeights.gate, 'ffn_gate');
-    const upWeight = getWeightBuffer(layerWeights.up, 'ffn_up');
+    const gateWeight = getWeightBuffer(fusedGateUpWeights.gate ?? layerWeights.gate, 'ffn_gate');
+    const upWeight = getWeightBuffer(fusedGateUpWeights.up ?? layerWeights.up, 'ffn_up');
     const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
     const useF16 = inputTensor.dtype === 'f16';
     const matmulOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
@@ -650,16 +697,53 @@ export async function runDenseFFNWithFusedPostNormGPU(
       releaseBuffer(gateUpOutput.buffer);
     }
   } else {
-    const gateWeight = getWeightBuffer(layerWeights.gate, 'ffn_gate');
-    const upWeight = getWeightBuffer(layerWeights.up, 'ffn_up');
-    const gateDtype = isWeightBuffer(layerWeights.gate) ? layerWeights.gate.dtype : 'f32';
-    const upDtype = isWeightBuffer(layerWeights.up) ? layerWeights.up.dtype : 'f32';
+    const hiddenSizeAligned32 = hiddenSize % 32 === 0;
+    const activationDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
+      useF16,
+      fallback: inputTensor.dtype,
+    });
+    const fusedGateUpWeights = resolveFusedGateUpWeights(layerWeights, {
+      activationDtype,
+      hiddenSize,
+      kernelPath,
+    });
+    const fusedGateWeight = getWeightBuffer(fusedGateUpWeights.gate ?? layerWeights.gate, 'ffn_gate');
+    const fusedUpWeight = getWeightBuffer(fusedGateUpWeights.up ?? layerWeights.up, 'ffn_up');
+    const gateDtype = fusedGateUpWeights.gateDtype ?? 'f32';
+    const upDtype = fusedGateUpWeights.upDtype ?? 'f32';
     const hasLoRAGate = Boolean(getLoRAModule(lora, layerIdx, 'gate_proj'));
     const hasLoRAUp = Boolean(getLoRAModule(lora, layerIdx, 'up_proj'));
     const dtypeMatches = gateDtype != null && upDtype != null && gateDtype === upDtype;
     const q4kFusedAllowed = gateDtype !== 'q4k' || !isFusedQ4KDisabled({ kernelPath });
     const dtypeSupported = gateDtype === 'f16' || gateDtype === 'f32' || (gateDtype === 'q4k' && q4kFusedAllowed);
-    const canUseFusedGateUp = !hasLoRAGate && !hasLoRAUp && dtypeMatches && dtypeSupported;
+    const canUseFusedGateUp = selectRuleValue('inference', 'ffn', 'useFusedGateUp', {
+      hasGate: true,
+      hasUp: true,
+      hasDown: true,
+      hasFusedWeights: false,
+      inputIsSupported: inputTensor.dtype === 'f32' || inputTensor.dtype === 'f16',
+      hasLoRA: hasLoRAGate || hasLoRAUp,
+      dtypeMatches,
+      dtypeSupported,
+      weightDtype: gateDtype,
+      hasQ4KMaterialization: fusedGateUpWeights.hasQ4KMaterialization,
+      activationDtype,
+      f16BatchSupported: getKernelCapabilities().hasF16,
+      batchSize: numTokens,
+      hiddenSizeAligned32,
+    });
+    trace.ffn(
+      layerIdx,
+      `useFusedGateUpWithPostNorm=${canUseFusedGateUp} inputDtype=${inputTensor.dtype} activationDtype=${activationDtype} ` +
+      `gateDtype=${gateDtype} upDtype=${upDtype} hasQ4KMaterialization=${fusedGateUpWeights.hasQ4KMaterialization} ` +
+      `dtypeMatches=${dtypeMatches} dtypeSupported=${dtypeSupported} hiddenSizeAligned32=${hiddenSizeAligned32} batchSize=${numTokens}`
+    );
+    const gateWeight = canUseFusedGateUp
+      ? fusedGateWeight
+      : getWeightBuffer(layerWeights.gate, 'ffn_gate');
+    const upWeight = canUseFusedGateUp
+      ? fusedUpWeight
+      : getWeightBuffer(layerWeights.up, 'ffn_up');
 
     if (canUseFusedGateUp) {
       activatedOutput = await dispatchFusedGateUp({

@@ -1,6 +1,6 @@
 {
     "schemaVersion": 1,
-    "updated": "2026-03-24",
+    "updated": "2026-03-29",
     "formatMatrix": {
         "doppler": ["rdrr", "safetensors"],
         "transformersjs": ["onnx", "safetensors"]
@@ -90,12 +90,12 @@
             "defaultKernelPath": null,
             "defaultDopplerSource": "quickstart-registry",
             "modelBaseDir": null,
-            "defaultDopplerSurface": "auto",
+            "defaultDopplerSurface": "browser",
             "defaultDopplerFormat": "rdrr",
             "defaultTjsFormat": "onnx",
             "safetensorsSourceId": "Qwen/Qwen3.5-0.8B",
-            "compareLane": "capability_only",
-            "compareLaneReason": "Transformers.js v4 does not currently support the qwen3_5 architecture on the WebGPU compare lane."
+            "compareLane": "performance_comparable",
+            "compareLaneReason": null
         },
         {
             "dopplerModelId": "qwen-3-5-2b-q4k-ehaf16",
@@ -108,7 +108,7 @@
             "defaultTjsFormat": "onnx",
             "safetensorsSourceId": "Qwen/Qwen3.5-2B",
             "compareLane": "capability_only",
-            "compareLaneReason": "Transformers.js v4 does not currently support the qwen3_5 architecture on the WebGPU compare lane."
+            "compareLaneReason": "Qwen3.5 2B has the direct Transformers.js WebGPU runner path but is not yet promoted to a claimable compare lane."
         },
         {
             "dopplerModelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",

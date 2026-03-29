@@ -19,6 +19,8 @@ globalThis.GPUMapMode = {
 };
 
 const { runProbes } = await import('../../src/inference/pipelines/text/probes.js');
+const { OperatorEventEmitter } = await import('../../src/inference/pipelines/text/operator-events.js');
+const { createDefaultCaptureConfig } = await import('../../src/debug/capture-policy.js');
 const { setDevice } = await import('../../src/gpu/device.js');
 const { configurePerfGuards } = await import('../../src/gpu/perf-guards.js');
 const { destroyBufferPool } = await import('../../src/memory/buffer-pool.js');
@@ -169,6 +171,61 @@ try {
 
   assert.equal(attnMessages.length, 1);
   assert.match(attnMessages[0], /PROBE L0_norm stage=post_input_norm token=0 values=\[0=1\.5000, 1=2\.5000\]/);
+
+  const diagnostics = {
+    enabled: true,
+    captureConfig: {
+      ...createDefaultCaptureConfig(),
+      enabled: true,
+      defaultLevel: 'none',
+    },
+    emitter: new OperatorEventEmitter({
+      modelHash: 'probe-readback-test',
+      runtimeConfigHash: 'runtime',
+      executionPlanHash: 'plan',
+    }),
+  };
+  const cpuBuffer = new Float32Array([3.5, 4.5]);
+
+  await runProbes('embed_out', cpuBuffer, {
+    numTokens: 1,
+    hiddenSize: 2,
+    probes: [],
+    operatorDiagnostics: diagnostics,
+    dtype: 'f32',
+    phase: 'prefill',
+  });
+
+  await runProbes('logits', cpuBuffer, {
+    numTokens: 1,
+    hiddenSize: 2,
+    probes: [],
+    recorder: {},
+    operatorDiagnostics: diagnostics,
+    dtype: 'f32',
+    phase: 'decode',
+  });
+
+  assert.equal(diagnostics.emitter.length, 2);
+  assert.deepEqual(
+    diagnostics.emitter.getTimeline().map((record) => ({
+      opId: record.opId,
+      phase: record.phase,
+      capturePolicy: record.capturePolicy,
+    })),
+    [
+      {
+        opId: 'embed.out',
+        phase: 'prefill',
+        capturePolicy: 'none',
+      },
+      {
+        opId: 'logits.out',
+        phase: 'decode',
+        capturePolicy: 'none',
+      },
+    ]
+  );
 } finally {
   trace.embed = originalEmbed;
   trace.attn = originalAttn;

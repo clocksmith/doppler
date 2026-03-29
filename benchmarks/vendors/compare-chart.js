@@ -18,7 +18,7 @@ const EMPTY_STRING = '';
 const DEFAULT_UNIT = EMPTY_STRING;
 const DEFAULT_SAFE_TITLE = EMPTY_STRING;
 const CANVAS_PADDING = 14;
-const STATIC_CHART_TITLE = 'Phase-latency comparison across models on MacBook Air M3';
+const STATIC_CHART_TITLE = 'Latency timeline on MacBook Air M3';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const COMPARE_METRICS_PATH = path.join(__dirname, 'compare-metrics.json');
 const DOPPLER_HARNESS_PATH = path.join(__dirname, 'harnesses', 'doppler.json');
@@ -32,7 +32,7 @@ const CHART_SCENARIOS = Object.freeze({
       path.join(__dirname, 'fixtures', 'lfm2-5-1-2b-p064-d064-t0-k1.compare.json'),
     ]),
     chart: 'phases',
-    section: 'warm',
+    section: 'compute/parity',
     width: 1200,
     height: 474,
     output: path.join(__dirname, 'results', 'compare_1b_multi-workload_favorable_phases.svg'),
@@ -629,6 +629,20 @@ function firstNonNull(...values) {
   return null;
 }
 
+function normalizeComparableSectionLabel(sectionLabel) {
+  const normalized = String(sectionLabel || EMPTY_STRING).trim();
+  if (normalized === 'warm' || normalized === 'compute/parity') return 'warm-parity';
+  if (normalized === 'compute/throughput') return 'warm-throughput';
+  return normalized.length > 0 ? normalized : null;
+}
+
+function normalizeComparableModeLabel(modeLabel, comparableSection) {
+  if (comparableSection === 'warm-parity' || comparableSection === 'warm-throughput') {
+    return 'warm';
+  }
+  return modeLabel == null ? null : String(modeLabel);
+}
+
 function buildComparabilityRecord(entry) {
   const report = entry?.report || {};
   const workload = report.workload || {};
@@ -639,10 +653,12 @@ function buildComparabilityRecord(entry) {
   const resolvedMode = typeof entry?.resolvedSection === 'string'
     ? entry.resolvedSection.split('/')[0]
     : null;
+  const comparableSection = normalizeComparableSectionLabel(entry?.resolvedSection || null);
+  const comparableMode = normalizeComparableModeLabel(firstNonNull(report.mode, resolvedMode), comparableSection);
 
   return {
-    section: normalizeComparableValue(entry?.resolvedSection || null),
-    mode: normalizeComparableValue(firstNonNull(report.mode, resolvedMode)),
+    section: normalizeComparableValue(comparableSection),
+    mode: normalizeComparableValue(comparableMode),
     decodeProfile: normalizeComparableValue(report.decodeProfile ?? null),
     workloadId: normalizeComparableValue(workload.id ?? null),
     prefillTokenTarget: normalizeComparableValue(firstNonNull(
@@ -818,9 +834,24 @@ function resolveSection(report, requestedSection) {
     }
     cursor = cursor[segment];
   }
-  return sectionHasComparable(cursor)
-    ? { section: requestedSection, payload: cursor }
-    : null;
+  if (sectionHasComparable(cursor)) {
+    return { section: requestedSection, payload: cursor };
+  }
+
+  const normalizedSection = String(requestedSection || EMPTY_STRING).trim();
+  if (normalizedSection === 'compute/parity' || normalizedSection === 'compute/throughput') {
+    const warmPayload = report.sections.warm;
+    if (sectionHasComparable(warmPayload)) {
+      return { section: 'warm', payload: warmPayload };
+    }
+  }
+  if (normalizedSection === 'warm') {
+    const parityPayload = report.sections.compute?.parity;
+    if (sectionHasComparable(parityPayload)) {
+      return { section: 'compute/parity', payload: parityPayload };
+    }
+  }
+  return null;
 }
 
 function enginePayload(sectionPayload, engineId) {
@@ -1172,11 +1203,26 @@ function resolvePhaseValues(sectionPayload, engineId) {
   if (!payload || payload.failed === true) return null;
   const scope = payload.result ? payload : { result: payload };
   const timing = scope.result?.timing || scope.result || {};
+  const metrics = scope.result?.metrics || {};
 
   const modelLoadMs = toNumber(timing.modelLoadMs);
   const prefillMs = toNumber(timing.prefillMs);
   const firstTokenMs = toNumber(timing.firstTokenMs);
   const decodeMs = toNumber(timing.decodeMs);
+  const promptTokensPerSecToFirstToken = firstFinite([
+    timing.promptTokensPerSecToFirstToken,
+    metrics.promptTokensPerSecToFirstToken,
+    metrics.medianPrefillTokensPerSecTtft,
+    metrics.avgPrefillTokensPerSecTtft,
+    timing.prefillTokensPerSecTtft,
+    metrics.prefillTokensPerSecTtft,
+    timing.prefillTokensPerSec,
+    metrics.prefillTokensPerSec,
+  ]);
+  const decodeTokensPerSec = firstFinite([
+    timing.decodeTokensPerSec,
+    metrics.decodeTokensPerSec,
+  ]);
 
   const ttft = isFiniteNumber(firstTokenMs) ? firstTokenMs : prefillMs;
 
@@ -1184,7 +1230,15 @@ function resolvePhaseValues(sectionPayload, engineId) {
     .filter((v) => isFiniteNumber(v))
     .reduce((sum, v) => sum + v, 0);
 
-  return { modelLoadMs, ttft, prefillMs, decodeMs, endToEnd };
+  return {
+    modelLoadMs,
+    ttft,
+    prefillMs,
+    promptTokensPerSecToFirstToken,
+    decodeMs,
+    decodeTokensPerSec,
+    endToEnd,
+  };
 }
 
 function formatDurationCompact(value) {
@@ -1193,6 +1247,12 @@ function formatDurationCompact(value) {
     return `${(value / 1000).toFixed(value >= 10000 ? 1 : 2)} s`;
   }
   return `${value.toFixed(value >= 100 ? 0 : 1)} ms`;
+}
+
+function formatThroughputCompact(value) {
+  if (!isFiniteNumber(value)) return 'n/a';
+  const decimals = value >= 100 ? 1 : 2;
+  return `${value.toFixed(decimals)} tok/s`;
 }
 
 function computePhaseRaceSummary(dopplerPhases, transformersPhases) {
@@ -1210,8 +1270,21 @@ function computePhaseRaceSummary(dopplerPhases, transformersPhases) {
   return { winner, deltaPct };
 }
 
+function formatPhaseSegmentValue(segmentTitle, resolved) {
+  if (!resolved) return 'n/a';
+  if (segmentTitle === 'First token') {
+    return `${formatDurationCompact(resolved.ttft)} • ${formatThroughputCompact(resolved.promptTokensPerSecToFirstToken)}`;
+  }
+  if (segmentTitle === 'Decode') {
+    return `${formatDurationCompact(resolved.decodeMs)} • ${formatThroughputCompact(resolved.decodeTokensPerSec)}`;
+  }
+  return formatDurationCompact(resolved.modelLoadMs);
+}
+
 function renderPhaseSegmentLabel(x, y, width, title, valueLabel) {
-  if (width < 52) return '';
+  if (width < 52) {
+    return `<text x="${x + Math.max(width / 2, 8)}" y="${y - 6}" text-anchor="middle" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="9">${escapeXml(valueLabel)}</text>\n`;
+  }
   if (width < 92) {
     return `<text x="${x + 8}" y="${y + 30}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${escapeXml(valueLabel)}</text>\n`;
   }
@@ -1255,7 +1328,7 @@ function renderPhaseLane({ x, y, width, engine, resolved, globalMax }) {
       if (!isFiniteNumber(segment.value) || segment.value <= 0) continue;
       const segmentWidth = Math.max(2, segment.value * pxPerMs);
       body += `<rect x="${cursor}" y="${y + 4}" width="${segmentWidth}" height="${barHeight - 8}" fill="${segment.fill}" />\n`;
-      body += renderPhaseSegmentLabel(cursor, y + 4, segmentWidth, segment.title, formatDurationCompact(segment.value));
+      body += renderPhaseSegmentLabel(cursor, y + 4, segmentWidth, segment.title, formatPhaseSegmentValue(segment.title, resolved));
       cursor += segmentWidth;
     }
   }
@@ -1268,25 +1341,25 @@ function renderPhaseLane({ x, y, width, engine, resolved, globalMax }) {
 }
 
 function renderPhaseWorkloadPanel({ x, y, width, workloadLabel, dopplerPhases, transformersPhases, globalMax }) {
-  const headerHeight = 70;
-  const laneGap = 18;
+  const headerHeight = 54;
+  const laneGap = 16;
   const laneHeight = 56;
   const laneX = x + 24;
   const laneWidth = width - 48;
   const race = computePhaseRaceSummary(dopplerPhases, transformersPhases);
-  const panelHeight = 212;
+  const panelHeight = 190;
 
   let body = '';
   body += `<rect x="${x}" y="${y}" width="${width}" height="${panelHeight}" rx="26" fill="url(#phase-workload-panel)" stroke="url(#phase-workload-stroke)" stroke-width="1.4" />\n`;
-  body += `<line x1="${x + 24}" y1="${y + 58}" x2="${x + width - 24}" y2="${y + 58}" stroke="#ffffff14" stroke-width="1" />\n`;
+  body += `<line x1="${x + 24}" y1="${y + 46}" x2="${x + width - 24}" y2="${y + 46}" stroke="#ffffff14" stroke-width="1" />\n`;
   body += `<text x="${x + 26}" y="${y + 32}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="20" font-weight="bold" stroke="none">${escapeXml(workloadLabel)}</text>\n`;
-  body += `<text x="${x + 26}" y="${y + 51}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12" stroke="none">Phase breakdown with warm load, first-token latency, and decode time.</text>\n`;
 
   if (race?.winner) {
-    const pillWidth = 242;
+    const pillWidth = 220;
     const pillX = x + width - pillWidth - 24;
-    body += `<rect x="${pillX}" y="${y + 18}" width="${pillWidth}" height="28" rx="14" fill="url(#phase-winner-pill)" stroke="${race.winner.color}" stroke-width="1.2" />\n`;
-    body += `<text x="${pillX + 14}" y="${y + 37}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="12" font-weight="bold" stroke="none">${escapeXml(`${race.winner.label} leads by ${race.deltaPct.toFixed(1)}%`)}</text>\n`;
+    const winnerShort = race.winner.key === ENGINE_META.doppler.key ? 'Doppler' : 'TJS v4';
+    body += `<rect x="${pillX}" y="${y + 18}" width="${pillWidth}" height="28" rx="14" fill="#22c55e" stroke="none" />\n`;
+    body += `<text x="${pillX + pillWidth / 2}" y="${y + 37}" text-anchor="middle" fill="#ffffff" font-family="${FONT_UI}" font-size="18" font-weight="bold" stroke="none">${escapeXml(`${winnerShort} ${race.deltaPct.toFixed(1)}% faster`)}</text>\n`;
   }
 
   body += renderPhaseLane({
@@ -1312,6 +1385,7 @@ function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectio
   const dopplerPhases = resolvePhaseValues(sectionPayload, ENGINE_META.doppler.key);
   const transformersPhases = resolvePhaseValues(sectionPayload, ENGINE_META.transformersjs.key);
   const globalMax = Math.max(1, dopplerPhases?.endToEnd || 0, transformersPhases?.endToEnd || 0);
+  const displaySectionLabel = prettifySectionLabel(sectionLabel);
 
   let body = '';
   body += renderPhaseSceneDefs();
@@ -1319,7 +1393,7 @@ function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectio
   body += `<text x="36" y="54" fill="${ARCHITECTURE_COLORS.edge}" font-family="${FONT_UI}" font-size="12" font-weight="bold" letter-spacing="1.2" stroke="none">PHASE EVIDENCE</text>\n`;
   body += `<text x="36" y="92" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="30" font-weight="bold" stroke="none">${escapeXml(title)}</text>\n`;
   body += `<text x="36" y="116" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="14" stroke="none">${escapeXml(subtitle)}</text>\n`;
-  body += `<text x="36" y="136" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12" stroke="none">${escapeXml(`Section: ${sectionLabel} • lower is better`)}</text>\n`;
+  body += `<text x="36" y="136" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12" stroke="none">${escapeXml(`Section: ${displaySectionLabel} • lower is better`)}</text>\n`;
   body += renderPhaseWorkloadPanel({
     x: 28,
     y: 164,
@@ -1329,18 +1403,21 @@ function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectio
     transformersPhases,
     globalMax,
   }).body;
-  return svgWrap(width, height, body, title, `${subtitle} • Section: ${sectionLabel}`);
+  return svgWrap(width, height, body, title, `${subtitle} • Section: ${displaySectionLabel}`);
 }
 
 function renderMultiPhases(entries, width, title, subtitle) {
   let globalMax = 0;
+  const sharedWorkload = entriesShareWorkload(entries);
   const workloads = entries.map((entry) => {
     const dopplerPhases = resolvePhaseValues(entry.sectionPayload, ENGINE_META.doppler.key);
     const transformersPhases = resolvePhaseValues(entry.sectionPayload, ENGINE_META.transformersjs.key);
     globalMax = Math.max(globalMax, dopplerPhases?.endToEnd || 0, transformersPhases?.endToEnd || 0);
     const fallbackWorkload = entry.report.workload?.id || path.basename(entry.inputPath, '.json');
     return {
-      workloadLabel: buildWorkloadPanelLabel(entry.report, fallbackWorkload),
+      workloadLabel: sharedWorkload
+        ? (buildModelLabel(entry.report) || buildWorkloadPanelLabel(entry.report, fallbackWorkload))
+        : buildWorkloadPanelLabel(entry.report, fallbackWorkload),
       dopplerPhases,
       transformersPhases,
     };
@@ -1348,22 +1425,21 @@ function renderMultiPhases(entries, width, title, subtitle) {
 
   if (globalMax <= 0) globalMax = 1;
 
-  const panelGap = 28;
-  const panelHeight = 212;
-  const headerTop = 160;
-  const legendHeight = 74;
-  const footerHeight = 24;
+  const panelGap = 22;
+  const panelHeight = 190;
+  const headerTop = 128;
+  const legendHeight = 56;
+  const footerHeight = 20;
   const height = headerTop + workloads.length * panelHeight + Math.max(0, workloads.length - 1) * panelGap + legendHeight + footerHeight;
 
   let body = '';
   body += renderPhaseSceneDefs();
   body += `<rect x="${CANVAS_PADDING}" y="${CANVAS_PADDING}" width="${width - CANVAS_PADDING * 2}" height="${height - CANVAS_PADDING * 2}" fill="url(#phase-canvas-glow)" stroke="none" />\n`;
-  body += `<text x="36" y="50" fill="${ARCHITECTURE_COLORS.edge}" font-family="${FONT_UI}" font-size="12" font-weight="bold" letter-spacing="1.2" stroke="none">PHASE EVIDENCE</text>\n`;
-  body += `<text x="36" y="92" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="32" font-weight="bold" stroke="none">${escapeXml(title)}</text>\n`;
-  body += `<text x="36" y="117" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="14" stroke="none">${escapeXml(subtitle)}</text>\n`;
-  body += `<text x="36" y="138" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12" stroke="none">Warm-cache phase evidence across curated workloads. Lower total latency wins.</text>\n`;
-  body += `<rect x="${width - 266}" y="38" width="230" height="34" rx="17" fill="url(#phase-winner-pill)" stroke="#ffffff24" stroke-width="1.1" />\n`;
-  body += `<text x="${width - 151}" y="59" text-anchor="middle" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="12" font-weight="bold" stroke="none">${escapeXml(`${workloads.length} workloads • warm cache`)}</text>\n`;
+  body += `<text x="36" y="48" fill="${ARCHITECTURE_COLORS.edge}" font-family="${FONT_UI}" font-size="12" font-weight="bold" letter-spacing="1.2" stroke="none">TIMELINE</text>\n`;
+  body += `<text x="36" y="86" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="30" font-weight="bold" stroke="none">${escapeXml(title)}</text>\n`;
+  body += `<text x="36" y="110" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="13" stroke="none">${escapeXml(subtitle)}</text>\n`;
+  body += `<rect x="${width - 304}" y="36" width="268" height="34" rx="17" fill="url(#phase-winner-pill)" stroke="${PHASE_COLORS.decode}" stroke-width="1.1" />\n`;
+  body += `<text x="${width - 170}" y="57" text-anchor="middle" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="12" font-weight="bold" stroke="none">SHORTER BAR = FASTER</text>\n`;
 
   workloads.forEach((workload, index) => {
     body += renderPhaseWorkloadPanel({
@@ -1379,7 +1455,7 @@ function renderMultiPhases(entries, width, title, subtitle) {
 
   const legendY = headerTop + workloads.length * panelHeight + Math.max(0, workloads.length - 1) * panelGap + 26;
   const legendItems = [
-    { fill: 'url(#phase-load-grad)', label: 'Warm load' },
+    { fill: 'url(#phase-load-grad)', label: 'Load' },
     { fill: 'url(#phase-prefill-grad)', label: 'First token' },
     { fill: 'url(#phase-decode-grad)', label: 'Decode' },
   ];
@@ -1388,7 +1464,6 @@ function renderMultiPhases(entries, width, title, subtitle) {
     body += `<rect x="${x}" y="${legendY}" width="18" height="18" rx="6" fill="${item.fill}" />\n`;
     body += `<text x="${x + 28}" y="${legendY + 13}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="13" stroke="none">${item.label}</text>\n`;
   });
-  body += `<text x="${width - 36}" y="${legendY + 13}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12" text-anchor="end" font-style="italic" stroke="none">Architecture palette: red load, purple first-token bridge, blue decode.</text>\n`;
   return svgWrap(width, height, body, title, subtitle);
 }
 
@@ -1558,6 +1633,32 @@ function prettifyWorkload(workload) {
   return parts.length > 0 ? parts.join(', ') : workload.id || EMPTY_STRING;
 }
 
+function prettifyCompactWorkload(workload) {
+  if (!workload) return '';
+  const parts = [];
+  const prefill = workload.prefillTokenTarget ?? workload.prefillTokens;
+  const decode = workload.decodeTokenTarget ?? workload.decodeTokens;
+  if (isFiniteNumber(prefill) && isFiniteNumber(decode)) {
+    parts.push(`${prefill} prompt / ${decode} decode`);
+  } else {
+    const verbose = prettifyWorkload(workload);
+    if (verbose.length > 0) return verbose;
+  }
+  const sampling = workload.sampling || {};
+  if (isFiniteNumber(sampling.temperature)) {
+    parts.push(sampling.temperature === 0 ? 'greedy' : `temp ${sampling.temperature}`);
+  } else if (workload.id && /t0/.test(workload.id)) {
+    parts.push('greedy');
+  }
+  if (isFiniteNumber(sampling.topK) && sampling.topK > 1) {
+    parts.push(`top-k ${sampling.topK}`);
+  } else if (workload.id) {
+    const kMatch = workload.id.match(/k(\d+)/);
+    if (kMatch && Number(kMatch[1]) > 1) parts.push(`top-k ${kMatch[1]}`);
+  }
+  return parts.length > 0 ? parts.join(' • ') : workload.id || EMPTY_STRING;
+}
+
 function formatDtypeSuffix(dtype) {
   if (!dtype) return '';
   const lower = dtype.toLowerCase();
@@ -1599,11 +1700,24 @@ function buildSubtitle(report, inputPath) {
   return buildHeaderLabel(report);
 }
 
+function prettifySectionLabel(sectionLabel) {
+  const normalized = String(sectionLabel || EMPTY_STRING).trim();
+  if (normalized === 'compute/parity') return 'warm parity';
+  if (normalized === 'compute/throughput') return 'warm throughput';
+  return normalized;
+}
+
 function buildMultiPhaseSubtitle(entries) {
-  const workload = prettifyWorkload(entries[0]?.report?.workload);
+  const sharedWorkload = entriesShareWorkload(entries);
+  const workload = sharedWorkload ? prettifyCompactWorkload(entries[0]?.report?.workload) : '';
   const models = [...new Set(entries.map((entry) => buildModelLabel(entry.report)).filter((value) => value.length > 0))];
-  if (models.length === 0) return workload || 'Multi-workload phase comparison';
-  return workload ? `${models.join(' + ')} • ${workload}` : models.join(' + ');
+  if (models.length === 0) return workload ? `Warm cache • ${workload}` : 'Warm cache';
+  return workload ? `${models.join(' + ')} • warm cache • ${workload}` : models.join(' + ');
+}
+
+function entriesShareWorkload(entries) {
+  const workloads = [...new Set(entries.map((entry) => prettifyWorkload(entry.report?.workload)).filter((value) => value.length > 0))];
+  return workloads.length <= 1;
 }
 
 function defaultOutputPath(inputPath, sectionLabel, chartType, width, height) {
@@ -1684,7 +1798,7 @@ function main() {
       ? renderPhases(rows, options.width, options.height, title, subtitle, firstEntry.resolvedSection, firstEntry.sectionPayload)
       : options.chart === 'stacked'
         ? renderStackedBars(rows, options.width, options.height, title, subtitle, firstEntry.resolvedSection)
-        : options.chart === 'radar'
+      : options.chart === 'radar'
           ? renderRadar(rows, options.width, options.height, title, subtitle, firstEntry.resolvedSection)
           : renderBarChart(rows, options.width, options.height, title, subtitle, firstEntry.resolvedSection);
   }

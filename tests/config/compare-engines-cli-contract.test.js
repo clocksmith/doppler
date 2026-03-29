@@ -35,6 +35,17 @@ function runCompareEngines(args) {
       .map((entry) => entry?.dopplerModelId)
       .filter(Boolean)
   );
+  const qwen08Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'qwen-3-5-0-8b-q4k-ehaf16') || null;
+  const qwen2Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'qwen-3-5-2b-q4k-ehaf16') || null;
+
+  assert.ok(qwen08Profile, 'compare config must include qwen-3-5-0-8b-q4k-ehaf16');
+  assert.equal(qwen08Profile.defaultDopplerSurface, 'browser');
+  assert.equal(qwen08Profile.compareLane, 'performance_comparable');
+  assert.equal(qwen08Profile.compareLaneReason, null);
+
+  assert.ok(qwen2Profile, 'compare config must include qwen-3-5-2b-q4k-ehaf16');
+  assert.equal(qwen2Profile.compareLane, 'capability_only');
+  assert.match(qwen2Profile.compareLaneReason, /not yet promoted to a claimable compare lane/i);
 
   for (const profile of compareConfig.modelProfiles) {
     assert.ok(['performance_comparable', 'capability_only'].includes(profile.compareLane));
@@ -130,6 +141,8 @@ function runCompareEngines(args) {
     useChatTemplate: parseCompareOnOff(flags['use-chat-template'], false, '--use-chat-template'),
   });
   assert.equal(sharedContract.useChatTemplate, false);
+  assert.equal(sharedContract.sampling.repetitionPenalty, 1);
+  assert.equal(sharedContract.sampling.greedyThreshold, 0.01);
 }
 
 {

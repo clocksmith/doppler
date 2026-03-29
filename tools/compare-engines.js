@@ -130,6 +130,8 @@ const DEFAULT_SHARED_SAMPLING = Object.freeze({
   temperature: 0,
   topK: 1,
   topP: 1,
+  repetitionPenalty: 1,
+  greedyThreshold: 0.01,
 });
 const DOPPLER_MODEL_SOURCES = Object.freeze(['local', 'quickstart-registry']);
 const COMPARE_LANES = Object.freeze(['performance_comparable', 'capability_only']);
@@ -1637,9 +1639,25 @@ function buildSharedBenchmarkContract({
     timedRuns: parsePositiveInt(timedRuns, DEFAULT_RUNS, '--runs'),
     seed: parseNonNegativeInt(seed, DEFAULT_SEED, '--seed'),
     sampling: {
-      temperature: Number(sampling.temperature),
-      topK: Number(sampling.topK),
-      topP: Number(sampling.topP),
+      temperature: parseNonNegativeNumber(sampling.temperature, DEFAULT_SHARED_SAMPLING.temperature, 'sampling.temperature'),
+      topK: parsePositiveInt(sampling.topK, DEFAULT_SHARED_SAMPLING.topK, 'sampling.topK'),
+      topP: parseTopP(sampling.topP, DEFAULT_SHARED_SAMPLING.topP, 'sampling.topP'),
+      repetitionPenalty: (() => {
+        const value = parseNonNegativeNumber(
+          sampling.repetitionPenalty,
+          DEFAULT_SHARED_SAMPLING.repetitionPenalty,
+          'sampling.repetitionPenalty'
+        );
+        if (!(value > 0)) {
+          throw new Error('sampling.repetitionPenalty must be greater than 0');
+        }
+        return value;
+      })(),
+      greedyThreshold: parseNonNegativeNumber(
+        sampling.greedyThreshold,
+        DEFAULT_SHARED_SAMPLING.greedyThreshold,
+        'sampling.greedyThreshold'
+      ),
     },
     useChatTemplate: useChatTemplate === true,
     loadMode,
@@ -1656,6 +1674,8 @@ function buildDopplerRuntimeConfig(sharedContract, engineOverlay) {
     temperature: sharedContract.sampling.temperature,
     topK: sharedContract.sampling.topK,
     topP: sharedContract.sampling.topP,
+    repetitionPenalty: sharedContract.sampling.repetitionPenalty,
+    greedyThreshold: sharedContract.sampling.greedyThreshold,
   };
   const runtimeConfig = {
     shared: {
@@ -2190,6 +2210,12 @@ async function main() {
     temperature: parseNonNegativeNumber(flags.temperature, workloadSampling.temperature, '--temperature'),
     topK: parsePositiveInt(flags['top-k'], workloadSampling.topK, '--top-k'),
     topP: parseTopP(flags['top-p'], workloadSampling.topP, '--top-p'),
+    repetitionPenalty: Number.isFinite(Number(workloadSampling.repetitionPenalty))
+      ? Number(workloadSampling.repetitionPenalty)
+      : DEFAULT_SHARED_SAMPLING.repetitionPenalty,
+    greedyThreshold: Number.isFinite(Number(workloadSampling.greedyThreshold))
+      ? Number(workloadSampling.greedyThreshold)
+      : DEFAULT_SHARED_SAMPLING.greedyThreshold,
   };
   const promptInput = flags.prompt
     || (Number.isFinite(prefillTokenTarget) ? buildSyntheticPrompt(prefillTokenTarget) : DEFAULT_PROMPT);
@@ -2554,6 +2580,8 @@ async function main() {
         temperature: sharedContract.sampling.temperature,
         topK: sharedContract.sampling.topK,
         topP: sharedContract.sampling.topP,
+        repetitionPenalty: sharedContract.sampling.repetitionPenalty,
+        greedyThreshold: sharedContract.sampling.greedyThreshold,
       },
       promptParity: {
         dopplerChatTemplateEnabled: sharedContract.useChatTemplate,

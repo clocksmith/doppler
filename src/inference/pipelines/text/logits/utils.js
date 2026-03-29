@@ -35,7 +35,8 @@ export async function finalizeLogits(
   matmulVocabSize,
   vocabSize,
   config,
-  debugProbes
+  debugProbes,
+  operatorDiagnostics = null
 ) {
   let logits = rawLogits;
 
@@ -62,6 +63,7 @@ export async function finalizeLogits(
     numTokens,
     hiddenSize: vocabSize,
     probes: debugProbes,
+    operatorDiagnostics,
   });
 
   return logits;

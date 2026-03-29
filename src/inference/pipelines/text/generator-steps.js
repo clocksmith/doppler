@@ -279,6 +279,7 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
     outputBuffer: decodeHiddenBuffer ?? undefined,
     transpose: state.embeddingTranspose,
     debugProbes: state.runtimeConfig.shared.debug.probes,
+    operatorDiagnostics: state.operatorDiagnostics,
     activationDtype,
     embeddingDtype: selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype }),
   });
@@ -399,6 +400,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     outputBuffer: decodeHiddenBuffer ?? undefined,
     transpose: state.embeddingTranspose,
     debugProbes: state.runtimeConfig.shared.debug.probes,
+    operatorDiagnostics: state.operatorDiagnostics,
     activationDtype,
     embeddingDtype: selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype }),
   });
@@ -478,6 +480,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       numTokens,
       helpers.getLogitsWeights(),
       helpers.getLogitsConfig(),
+      state.operatorDiagnostics,
     );
 
     const ringTokensBuffer = ringSlot?.tokens ?? null;
@@ -610,7 +613,9 @@ export async function decodeStep(state, currentIds, opts, helpers) {
         state.debugFlags,
         undefined,
         debugCheckBuffer,
-        state.runtimeConfig.shared.debug.probes
+        state.runtimeConfig.shared.debug.probes,
+        null,
+        state.operatorDiagnostics
       );
       applyRepetitionPenalty(fallbackLogits, currentIds, opts.repetitionPenalty);
       const fallbackToken = sample(fallbackLogits, {
@@ -673,7 +678,8 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       numTokens,
       helpers.getLogitsWeights(),
       helpers.getLogitsConfig(),
-      state.debugFlags
+      state.debugFlags,
+      state.operatorDiagnostics
     );
     if (logitsResult) {
       const { logitsBuffer, vocabSize, logitsDtype } = logitsResult;
@@ -691,7 +697,8 @@ export async function decodeStep(state, currentIds, opts, helpers) {
         vocabSize,
         config.vocabSize,
         config,
-        state.runtimeConfig.shared.debug.probes
+        state.runtimeConfig.shared.debug.probes,
+        state.operatorDiagnostics
       );
       const sampledLogits = extractLastPositionLogits(finalizedLogits, numTokens, config.vocabSize);
 
@@ -736,7 +743,9 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     state.debugFlags,
     undefined,
     debugCheckBuffer,
-    state.runtimeConfig.shared.debug.probes
+    state.runtimeConfig.shared.debug.probes,
+    null,
+    state.operatorDiagnostics
   );
 
   if (!context.decodeBuffers?.ownsBuffer(hiddenStates)) {
@@ -794,7 +803,8 @@ export async function decodeStepLogits(state, currentIds, opts, helpers) {
       numTokens,
       helpers.getLogitsWeights(),
       helpers.getLogitsConfig(),
-      state.debugFlags
+      state.debugFlags,
+      state.operatorDiagnostics
     );
 
     if (logitsResult) {
@@ -811,7 +821,8 @@ export async function decodeStepLogits(state, currentIds, opts, helpers) {
         rawVocabSize,
         config.vocabSize,
         config,
-        state.runtimeConfig.shared.debug.probes
+        state.runtimeConfig.shared.debug.probes,
+        state.operatorDiagnostics
       );
       logits = extractLastPositionLogits(finalized, numTokens, config.vocabSize);
     }
@@ -827,7 +838,9 @@ export async function decodeStepLogits(state, currentIds, opts, helpers) {
       state.debugFlags,
       undefined,
       debugCheckBuffer,
-      state.runtimeConfig.shared.debug.probes
+      state.runtimeConfig.shared.debug.probes,
+      null,
+      state.operatorDiagnostics
     );
     logits = extractLastPositionLogits(rawLogits, numTokens, config.vocabSize);
   }
@@ -1105,6 +1118,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
         recorder,
         transpose: state.embeddingTranspose,
         debugProbes,
+        operatorDiagnostics: state.operatorDiagnostics,
         activationDtype,
         embeddingDtype,
         numTokens: 1,
@@ -1129,7 +1143,8 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
         hiddenStatesBuffer,
         1,
         helpers.getLogitsWeights(),
-        helpers.getLogitsConfig()
+        helpers.getLogitsConfig(),
+        state.operatorDiagnostics
       );
       const { logitsBuffer, vocabSize, logitsDtype } = logits;
 

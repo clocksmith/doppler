@@ -1464,6 +1464,7 @@ export class PipelineGenerator {
       recorder,
       transpose: this.#state.embeddingTranspose,
       debugProbes: this.#state.runtimeConfig.shared.debug.probes,
+      operatorDiagnostics: this.#state.operatorDiagnostics,
       activationDtype,
       embeddingDtype: selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype }),
     });
@@ -1630,7 +1631,8 @@ export class PipelineGenerator {
         currentHiddenBuffer,
         numTokens,
         getLogitsWeights(this.#state),
-        getLogitsConfig(this.#state)
+        getLogitsConfig(this.#state),
+        this.#state.operatorDiagnostics
       );
       logitsVocabSize = recorded.vocabSize;
       usedRecordedLogits = true;
@@ -1663,7 +1665,8 @@ export class PipelineGenerator {
           undefined,
           debugCheckBuffer,
           this.#state.runtimeConfig.shared.debug.probes,
-          { lastPositionOnly: true }
+          { lastPositionOnly: true },
+          this.#state.operatorDiagnostics
         );
         const fallbackHealth = getLogitsHealth(fallbackLogits);
         if (fallbackHealth.nanCount > 0 || fallbackHealth.infCount > 0 || fallbackHealth.nonZeroCount === 0) {
@@ -1695,7 +1698,8 @@ export class PipelineGenerator {
         undefined,
         debugCheckBuffer,
         this.#state.runtimeConfig.shared.debug.probes,
-        { lastPositionOnly: true }
+        { lastPositionOnly: true },
+        this.#state.operatorDiagnostics
       );
 
       lastLogits = logits.length === logitsVocabSize

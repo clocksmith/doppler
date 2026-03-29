@@ -1936,6 +1936,31 @@
             "wgslOnDisk": true
           }
         },
+        "prefill_head256_f16kv": {
+          "wgsl": "attention_head256_f16kv.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            32,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "tier": "tiled_small",
+            "exactHeadDim": 256,
+            "maxHeadDim": 256,
+            "requiredShared": 16384
+          },
+          "reachability": {
+            "status": "experimental",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
         "prefill_streaming_f16kv": {
           "wgsl": "attention_streaming_f16kv.wgsl",
           "entryPoint": "main",

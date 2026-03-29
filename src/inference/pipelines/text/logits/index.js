@@ -52,7 +52,8 @@ export async function computeLogits(
   getNormWeightBuffer,
   debugCheckBuffer,
   debugProbes,
-  options = null
+  options = null,
+  operatorDiagnostics = null
 ) {
   if (isTraceEnabled('logits')) {
     trace.logits(`LOGITS_ENTRY: numTokens=${numTokens}, useGPU=${useGPU}`);
@@ -147,7 +148,7 @@ export async function computeLogits(
         cpuWeightLayout === 'column' ? cpuWeightVocabSize : null
       )
       : matmulCPU(normed, (lmHead), numTokens, matmulVocabSize, hiddenSize);
-    return finalizeLogits(rawLogits, numTokens, matmulVocabSize, vocabSize, config, debugProbes);
+    return finalizeLogits(rawLogits, numTokens, matmulVocabSize, vocabSize, config, debugProbes, operatorDiagnostics);
   }
 
   // GPU path
@@ -167,6 +168,7 @@ export async function computeLogits(
     numTokens,
     hiddenSize,
     probes: debugProbes,
+    operatorDiagnostics,
     dtype: inputDtype,
   });
 
@@ -210,6 +212,7 @@ export async function computeLogits(
     numTokens,
     hiddenSize,
     probes: debugProbes,
+    operatorDiagnostics,
     dtype: normedTensor.dtype,
   });
 
@@ -236,6 +239,7 @@ export async function computeLogits(
       matmulVocabSize,
       cpuWeightVocabSize,
       debugProbes,
+      operatorDiagnostics,
       largeWeights,
       config.kernelPath ?? null
     );
@@ -244,7 +248,7 @@ export async function computeLogits(
     releaseBuffer(normedTensor.buffer);
     if (!getNormWeightBuffer && !isGpuBufferInstance(finalNorm)) releaseBuffer(normWeightBuffer);
 
-    return finalizeLogits(rawLogits, numTokens, matmulVocabSize, vocabSize, config, debugProbes);
+    return finalizeLogits(rawLogits, numTokens, matmulVocabSize, vocabSize, config, debugProbes, operatorDiagnostics);
   }
 
   // 3. Project to vocab via LM head
@@ -303,6 +307,7 @@ export async function computeLogits(
     numTokens: matmulRows,
     hiddenSize: matmulVocabSize,
     probes: debugProbes,
+    operatorDiagnostics,
     dtype: logitsTensor.dtype,
   });
 
@@ -326,5 +331,5 @@ export async function computeLogits(
   const rawLogits = logitsTensor.dtype === 'f16'
     ? f16BufferToF32(logitsData)
     : new Float32Array(logitsData);
-  return finalizeLogits(rawLogits, matmulRows, matmulVocabSize, vocabSize, config, debugProbes);
+  return finalizeLogits(rawLogits, matmulRows, matmulVocabSize, vocabSize, config, debugProbes, operatorDiagnostics);
 }

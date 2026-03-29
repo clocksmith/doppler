@@ -62,6 +62,7 @@ export async function processFFNStandard(
     hiddenSize,
     probes: context.debugProbes,
     recorder,
+    operatorDiagnostics: context.operatorDiagnostics,
     dtype: normedTensor.dtype,
   });
 
@@ -79,6 +80,7 @@ export async function processFFNStandard(
     hiddenSize,
     probes: context.debugProbes,
     recorder,
+    operatorDiagnostics: context.operatorDiagnostics,
     dtype: ffnOutput.dtype,
   });
 
@@ -97,6 +99,7 @@ export async function processFFNStandard(
     hiddenSize,
     probes: context.debugProbes,
     recorder,
+    operatorDiagnostics: context.operatorDiagnostics,
     dtype: output.dtype,
   });
 

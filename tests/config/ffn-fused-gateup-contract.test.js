@@ -40,10 +40,48 @@ assert.equal(
     ...BASE_FUSED_GATE_UP_CONTEXT,
     weightDtype: 'q4k',
     activationDtype: 'f32',
+    batchSize: 4,
+  }),
+  true,
+  'Q4K FFN fused gate/up should stay enabled for batched prefill when hidden size is 32-aligned'
+);
+
+assert.equal(
+  selectRuleValue('inference', 'ffn', 'useFusedGateUp', {
+    ...BASE_FUSED_GATE_UP_CONTEXT,
+    weightDtype: 'f16',
+    hasQ4KMaterialization: true,
+    activationDtype: 'f32',
+    batchSize: 4,
+  }),
+  true,
+  'Mixed Q4K materializations should keep the widened f32 fused gate/up path enabled for batched prefill'
+);
+
+assert.equal(
+  selectRuleValue('inference', 'ffn', 'useFusedGateUp', {
+    ...BASE_FUSED_GATE_UP_CONTEXT,
+    weightDtype: 'q4k',
+    activationDtype: 'f32',
     hiddenSizeAligned32: false,
   }),
   false,
   'Q4K FFN fused gate/up must stay disabled when hidden size is not 32-aligned'
+);
+
+assert.equal(
+  selectRuleValue('kernels', 'fusedFfn', 'variant', {
+    isQ4K: true,
+    fusedAllowed: true,
+    hiddenSubblockAligned: true,
+    batchSize: 4,
+    weightDtype: 'q4k',
+    useMultiOutput: false,
+    hasF16: true,
+    useF16Input: false,
+  }),
+  'q4k_batched',
+  'Q4K fused FFN kernel should use the batched variant for prefill'
 );
 
 assert.equal(

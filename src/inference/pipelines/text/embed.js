@@ -183,6 +183,7 @@ export async function embed(tokenIds, embedBuffer, config) {
     transpose = false,
     activationDtype,
     embeddingDtype,
+    operatorDiagnostics,
   } = config;
   const device = getDevice();
   const tokenBufferInput = isGpuBufferInstance(tokenIds);
@@ -303,6 +304,7 @@ export async function embed(tokenIds, embedBuffer, config) {
         hiddenSize,
         probes: config.debugProbes,
         recorder,
+        operatorDiagnostics,
         dtype: 'f16',
       });
       return f16Tensor;
@@ -318,6 +320,7 @@ export async function embed(tokenIds, embedBuffer, config) {
       hiddenSize,
       probes: config.debugProbes,
       recorder,
+      operatorDiagnostics,
     });
     return createTensor(outputBuffer, dtype, [numTokens, hiddenSize], 'embed_output');
   }
@@ -385,6 +388,7 @@ export async function embed(tokenIds, embedBuffer, config) {
       hiddenSize,
       probes: config.debugProbes,
       recorder,
+      operatorDiagnostics,
       dtype: gatherOptions.outputDtype,
     });
     return gatherOutput;
@@ -444,6 +448,7 @@ export async function embed(tokenIds, embedBuffer, config) {
     hiddenSize,
     probes: config.debugProbes,
     recorder,
+    operatorDiagnostics,
     dtype,
   });
 

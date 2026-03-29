@@ -439,6 +439,30 @@ export function swapPrefillAttention(graph, ctx, opts) {
 }
 
 // =============================================================================
+// Transform: useHead256PrefillAttention
+// =============================================================================
+
+/**
+ * Promote prefill attention onto the fixed 256-dim shared-block kernel.
+ *
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {import('./execution-graph-transforms.js').TransformContext} ctx
+ * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
+ */
+export function useHead256PrefillAttention(graph, ctx) {
+  return (
+    swapPrefillAttention(graph, ctx, {
+      from: 'attention_small_f16kv.wgsl',
+      to: 'attention_head256_f16kv.wgsl',
+    })
+    || swapPrefillAttention(graph, ctx, {
+      from: 'attention_streaming_f16kv.wgsl',
+      to: 'attention_head256_f16kv.wgsl',
+    })
+  );
+}
+
+// =============================================================================
 // Transform: widenProjectionWeightsToF32
 // =============================================================================
 
@@ -644,6 +668,7 @@ export const TRANSFORMS = Object.freeze({
   removeSubgroups,
   widenToF32Activations,
   swapPrefillAttention,
+  useHead256PrefillAttention,
   widenProjectionWeightsToF32,
   remapDenseQ4KPrefillToQ4Native,
   composeTransforms,

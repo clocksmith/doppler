@@ -10,7 +10,23 @@
  */
 
 import type { Tensor } from '../../../../gpu/tensor.js';
+import type { WeightBuffer } from '../../../../gpu/weight-buffer.js';
 import type { LayerContext, LayerWeights } from '../types.js';
+
+export declare function resolveFusedGateUpWeights(
+  layerWeights: LayerWeights | undefined,
+  options?: {
+    activationDtype?: 'f16' | 'f32' | null;
+    hiddenSize?: number;
+    kernelPath?: Record<string, unknown> | null;
+  }
+): {
+  gate: GPUBuffer | WeightBuffer | null;
+  up: GPUBuffer | WeightBuffer | null;
+  gateDtype: string | null;
+  upDtype: string | null;
+  hasQ4KMaterialization: boolean;
+};
 
 /**
  * Run dense (non-MoE) FFN on GPU.

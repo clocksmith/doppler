@@ -20,7 +20,21 @@
         "hasSubgroups": true,
         "hasF16": true,
         "activationDtype": "f32",
+        "kvDtype": "f16",
         "platformVendor": "apple",
+        "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
+        "maxWorkgroupStorageSize": { "gte": 16384 }
+      },
+      "transforms": ["useHead256PrefillAttention"],
+      "reason": "Apple/WebGPU Gemma 3 1B promotes prefill attention to the 256-dim shared-block kernel"
+    },
+    {
+      "match": {
+        "hasSubgroups": true,
+        "hasF16": true,
+        "activationDtype": "f32",
+        "platformVendor": "apple",
+        "modelId": { "neq": "gemma-3-1b-it-q4k-ehf16-af32" },
         "hasDensePrefillProjectionKernel": true,
         "hasAvailableQ4PrefillProjectionKernel": true,
         "hasQ4PrefillProjectionKernel": false
