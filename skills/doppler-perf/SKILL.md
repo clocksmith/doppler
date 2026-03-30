@@ -56,7 +56,15 @@ Read from output:
 
 If you need compare-engine or publication-grade evidence at this stage, switch to `doppler-bench` instead of expanding the squeeze loop.
 
-### 2) Sweep Runtime Decode Cadence
+### 2) Localize The Phase And The Wall
+
+Before changing kernels:
+- Treat prefill and decode as separate investigations.
+- Dump resolved prefill/decode kernel path and the actual loaded weight/materialization dtype for the hot ops.
+- For decode, record `decodeMode`, `batchGuardReason`, speculation state, `decodeRecordMs`, `decodeSubmitWaitMs`, `decodeReadbackWaitMs`, `singleTokenReadbackWaitMs`, and `singleTokenOrchestrationMs`.
+- If submit/readback dominates, fix orchestration first; do not assume the math kernel is the main wall.
+
+### 3) Sweep Runtime Decode Cadence
 
 ```bash
 # Single-token-style control

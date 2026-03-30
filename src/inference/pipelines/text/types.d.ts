@@ -612,6 +612,11 @@ export interface PipelineStats {
   } | null;
   kernelPathId?: string | null;
   kernelPathSource?: string | null;
+  prefillProfileSteps?: Array<{
+    label?: string;
+    timings: Record<string, number>;
+    totalMs?: number;
+  }>;
   decodeProfileSteps?: Array<{
     step?: number;
     stepStart?: number;

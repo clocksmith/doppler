@@ -75,6 +75,14 @@ function isStructuredChatRequest(prompt) {
     && Array.isArray(prompt.messages);
 }
 
+function recordPrefillProfileStep(state, entry) {
+  if (!entry?.timings || Object.keys(entry.timings).length === 0) return;
+  if (!state.stats.prefillProfileSteps) {
+    state.stats.prefillProfileSteps = [];
+  }
+  state.stats.prefillProfileSteps.push(entry);
+}
+
 function resolvePromptInput(state, prompt, useChatTemplate, contextLabel) {
   if (typeof prompt === 'string') {
     if (useChatTemplate && state.modelConfig.chatTemplateType) {
@@ -289,6 +297,7 @@ export class PipelineGenerator {
   }
 
   _resetDecodeRuntimeState() {
+    this.#state.stats.prefillProfileSteps = [];
     this.#state.stats.decodeMode = null;
     this.#state.stats.batchGuardReason = null;
     this.#state.stats.decodeProfileSteps = [];
@@ -833,6 +842,7 @@ export class PipelineGenerator {
     }
     this._resetDecodeRuntimeState();
     this.#state.stats.gpuTimePrefillMs = undefined;
+    this.#state.stats.prefillProfileSteps = [];
     const opts = resolvePrefillOptions(this.#state, options);
     const inputIds = this._resolvePromptTokenIds(prompt, opts.useChatTemplate, 'prefillKVOnly');
     if (opts.debug) {
@@ -897,6 +907,7 @@ export class PipelineGenerator {
     }
     this._resetDecodeRuntimeState();
     this.#state.stats.gpuTimePrefillMs = undefined;
+    this.#state.stats.prefillProfileSteps = [];
     const opts = resolvePrefillEmbeddingOptions(this.#state, options);
     const inputIds = this._resolvePromptTokenIds(prompt, opts.useChatTemplate, 'prefillWithEmbedding');
     if (opts.debug) {
@@ -991,6 +1002,7 @@ export class PipelineGenerator {
     }
     this._resetDecodeRuntimeState();
     this.#state.stats.gpuTimePrefillMs = undefined;
+    this.#state.stats.prefillProfileSteps = [];
     const opts = resolvePrefillOptions(this.#state, options);
     const { inputIds, logits } = await this._prefillPromptToLogits(prompt, opts, 'prefillWithLogits');
 
@@ -1043,6 +1055,7 @@ export class PipelineGenerator {
     resetActiveExecutionPlan(this.#state);
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.gpuTimeDecodeMs = undefined;
+    this.#state.stats.prefillProfileSteps = [];
     this.#state.decodeRing?.reset();
     this.#state.stats.decodeRecordMs = 0;
     this.#state.stats.decodeSubmitWaitMs = 0;
@@ -1384,6 +1397,7 @@ export class PipelineGenerator {
     const startPos = this.#state.currentSeqLen;
     const returnHidden = opts?._returnHidden === true;
     this.#state.stats.gpuTimePrefillMs = undefined;
+    this.#state.stats.prefillProfileSteps = [];
 
     if (startPos === 0 && hasLinearAttentionLayers(config.layerTypes)) {
       this.#state.linearAttentionRuntime = resetLinearAttentionRuntime(this.#state.linearAttentionRuntime);
@@ -1443,6 +1457,11 @@ export class PipelineGenerator {
         hasGpuTimePrefill = true;
       }
       if (timings) {
+        recordPrefillProfileStep(this.#state, {
+          label: rec.label,
+          timings,
+          totalMs: total ?? undefined,
+        });
         log.warn('Profile', `Prefill (${rec.label}):`);
         log.warn('Profile', CommandRecorder.formatProfileReport(timings));
       }

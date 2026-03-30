@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-03-29T17:31:56.823Z",
+  "generatedAt": "2026-03-30T01:51:47.027Z",
   "release": {
     "channel": "main-snapshot",
     "version": "0.2.0",
-    "commitSha": "5ff283c0af2bce07f94c5f57df08a14ca48271d9",
+    "commitSha": "4f7d7558c507ac07ba02f53937b03926b7b5e5ad",
     "dirty": true
   },
   "sources": {
@@ -28,9 +28,9 @@
     },
     "compareConfig": {
       "path": "benchmarks/vendors/compare-engines.config.json",
-      "sha256": "a415f2cb216d20be7b4a41315ec6a067bebaae8abab2141e8b82c291340ba620",
-      "bytes": 4387,
-      "updated": "2026-03-24"
+      "sha256": "2b15e70eece6bcf555a55d40e4862b05159bb35ec6184783a1a938814c6f1855",
+      "bytes": 4316,
+      "updated": "2026-03-29"
     },
     "compareMetricContract": {
       "path": "benchmarks/vendors/compare-metrics.json",
@@ -40,9 +40,9 @@
     },
     "benchmarkPolicy": {
       "path": "benchmarks/vendors/benchmark-policy.json",
-      "sha256": "9da1013c59be45ff5eb7c9561ec7dc51b1f68791e2eec03ee06be503696ead1a",
-      "bytes": 1786,
-      "updated": "2026-03-19"
+      "sha256": "cd704566ef535ed2afbba87982f18652285499ca85c18a912cedf9d823a7d6b4",
+      "bytes": 1899,
+      "updated": "2026-03-29"
     },
     "modelCatalog": {
       "path": "models/catalog.json",
@@ -1156,9 +1156,9 @@
       "dopplerSource": "quickstart-registry",
       "defaultTjsModelId": "onnx-community/Qwen3.5-0.8B-ONNX",
       "defaultKernelPath": null,
-      "defaultDopplerSurface": "auto",
-      "compareLane": "capability_only",
-      "compareLaneReason": "Transformers.js v4 does not currently support the qwen3_5 architecture on the WebGPU compare lane.",
+      "defaultDopplerSurface": "browser",
+      "compareLane": "performance_comparable",
+      "compareLaneReason": null,
       "inCatalog": true,
       "catalogLabel": "Qwen 3.5 0.8B (Q4K)",
       "catalogModes": [
@@ -1176,7 +1176,7 @@
       "defaultKernelPath": null,
       "defaultDopplerSurface": "auto",
       "compareLane": "capability_only",
-      "compareLaneReason": "Transformers.js v4 does not currently support the qwen3_5 architecture on the WebGPU compare lane.",
+      "compareLaneReason": "Qwen3.5 2B has the direct Transformers.js WebGPU runner path but is not yet promoted to a claimable compare lane.",
       "inCatalog": true,
       "catalogLabel": "Qwen 3.5 2B (Q4K)",
       "catalogModes": [
@@ -1267,15 +1267,15 @@
       "benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg"
     ],
     "latestCompareResult": {
-      "path": "benchmarks/vendors/fixtures/lfm2-5-1-2b-p064-d064-t0-k1.compare.json",
-      "timestamp": "2026-03-03T21:00:53.179Z",
-      "mode": "warm",
-      "section": "warm",
+      "path": "benchmarks/vendors/fixtures/qwen3-5-0-8b-p064-d064-t0-k1.compare.json",
+      "timestamp": "2026-03-30T01:46:06.985Z",
+      "mode": "all",
+      "section": "compute/parity",
       "decodeProfile": "parity",
-      "dopplerModelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
-      "dopplerModelSource": null,
-      "tjsModelId": "LiquidAI/LFM2.5-1.2B-Instruct-ONNX",
-      "compareLane": null,
+      "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "dopplerModelSource": "quickstart-registry",
+      "tjsModelId": "onnx-community/Qwen3.5-0.8B-ONNX",
+      "compareLane": "performance_comparable",
       "compareLaneReason": null,
       "dopplerKernelPath": "manifest-default",
       "workloadId": "p064-d064-t0-k1",
@@ -1325,11 +1325,11 @@
               "executable": null
             },
             "gpu": {
-              "backend": "metal",
-              "vendor": "unknown",
-              "architecture": "unknown",
-              "device": "unknown",
-              "description": null,
+              "backend": null,
+              "vendor": "apple",
+              "architecture": "metal-3",
+              "device": "0x0000",
+              "description": "Apple M3",
               "hasF16": true,
               "hasSubgroups": true,
               "hasTimestampQuery": true
@@ -1343,7 +1343,7 @@
               "device": "webgpu",
               "dtype": "fp16",
               "requestedDtype": "fp16",
-              "executionProviderMode": "default"
+              "executionProviderMode": "webgpu-only"
             },
             "browser": {
               "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
@@ -1367,44 +1367,44 @@
       },
       "metrics": {
         "decodeTokensPerSec": {
-          "doppler": 29.4,
-          "transformersjs": 27.51464172008682
+          "doppler": 11.15,
+          "transformersjs": 26.08787472892221
         },
         "promptTokensPerSecToFirstToken": {
           "doppler": null,
-          "transformersjs": null
+          "transformersjs": 40.59899127009408
         },
         "firstTokenMs": {
-          "doppler": 344.4,
-          "transformersjs": 186.54500000178814
+          "doppler": 693.7,
+          "transformersjs": 4482.870000123978
         },
         "firstResponseMs": {
-          "doppler": 1196.3,
-          "transformersjs": 2833.5849999934435
+          "doppler": 2490.9,
+          "transformersjs": 8169.920000076294
         },
         "decodeMs": {
-          "doppler": 2176.8,
-          "transformersjs": 2289.689999997616
+          "doppler": 5738.9,
+          "transformersjs": 2414.914999961853
         },
         "totalRunMs": {
-          "doppler": 2521.3,
-          "transformersjs": 2476.234999999404
+          "doppler": 6432.9,
+          "transformersjs": 6897.785000085831
         },
         "modelLoadMs": {
-          "doppler": 851.9,
-          "transformersjs": 2647.0399999916553
+          "doppler": 1797.2,
+          "transformersjs": 3687.0499999523163
         },
         "decodeMsPerTokenP50": {
-          "doppler": 34.01,
-          "transformersjs": 36.190000012516975
+          "doppler": 89.67,
+          "transformersjs": 37.53499984741211
         },
         "decodeMsPerTokenP95": {
-          "doppler": 34.02,
-          "transformersjs": 37.77099999785423
+          "doppler": 89.67,
+          "transformersjs": 40.62949998378754
         },
         "decodeMsPerTokenP99": {
-          "doppler": 34.02,
-          "transformersjs": 39.12940000832081
+          "doppler": 89.67,
+          "transformersjs": 51.70349997997289
         }
       },
       "origin": "fixture"

@@ -465,6 +465,7 @@ async function runInferenceSuite(options = {}) {
       decodeTokensPerSec: safeToFixed(run.phase.decodeTokensPerSec),
       modelLoadMs: safeModelLoadMs,
       gpu: run.phase.gpu,
+      prefillProfileSteps: run.phase.prefillProfileSteps,
       decodeProfileSteps: run.phase.decodeProfileSteps,
       executionPlan: run.phase.executionPlan,
       kernelPathId: run.phase.kernelPathId,

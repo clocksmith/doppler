@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-03-29T17:31:56.823Z
-Release: channel=main-snapshot, version=0.2.0, commit=5ff283c0af2bce07f94c5f57df08a14ca48271d9, dirty=yes
+Generated: 2026-03-30T01:51:47.027Z
+Release: channel=main-snapshot, version=0.2.0, commit=4f7d7558c507ac07ba02f53937b03926b7b5e5ad, dirty=yes
 
 ## Engine Matrix
 
@@ -32,15 +32,17 @@ Release: channel=main-snapshot, version=0.2.0, commit=5ff283c0af2bce07f94c5f57df
 | `gemma-3-270m-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` |  | auto | quickstart-registry | performance_comparable |  |
 | `google-embeddinggemma-300m-q4k-ehf16-af32` | yes | embedding | `onnx-community/embeddinggemma-300m-ONNX` |  | auto | quickstart-registry | capability_only | Embedding models use a separate workload contract and are not part of the text-generation compare lane. |
 | `lfm2-5-1-2b-instruct-q4k-ehf16-af32` | yes | run, translate | `LiquidAI/LFM2.5-1.2B-Instruct-ONNX` |  | auto | local | performance_comparable |  |
-| `qwen-3-5-0-8b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-0.8B-ONNX` |  | auto | quickstart-registry | capability_only | Transformers.js v4 does not currently support the qwen3_5 architecture on the WebGPU compare lane. |
-| `qwen-3-5-2b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-2B-ONNX` |  | auto | quickstart-registry | capability_only | Transformers.js v4 does not currently support the qwen3_5 architecture on the WebGPU compare lane. |
+| `qwen-3-5-0-8b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-0.8B-ONNX` |  | browser | quickstart-registry | performance_comparable |  |
+| `qwen-3-5-2b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-2B-ONNX` |  | auto | quickstart-registry | capability_only | Qwen3.5 2B has the direct Transformers.js WebGPU runner path but is not yet promoted to a claimable compare lane. |
 | `translategemma-4b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/translategemma-text-4b-it-ONNX` |  | auto | local | performance_comparable |  |
 
 ## Workloads
 
 | Workload ID | Model | Prefill | Decode | Sampling | Runtime (GPU/Backend/OS/Browser) | Date |
 |---|---|---:|---:|---|---|---|
+| [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/g3-1b-p064-d064-t0-k1.compare.json) | Gemma 3 1B Instruct (Q4K/F32a) (996.4 MiB) | 64 | 64 | greedy (t=0) | Apple M3; metal; darwin; chromium | 2026-03-29 |
 | [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/lfm2-5-1-2b-p064-d064-t0-k1.compare.json) | LFM 2.5 1.2B Instruct (Q4K/F32a) (814 MiB) | 64 | 64 | greedy (t=0) | Apple M3; metal; darwin; chromium | 2026-03-03 |
+| [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/qwen3-5-0-8b-p064-d064-t0-k1.compare.json) | Qwen 3.5 0.8B (Q4K) (761.1 MiB) | 64 | 64 | greedy (t=0) | Apple M3; metal; darwin; chromium | 2026-03-30 |
 | `p064-d064-t1-k32` | not captured | 64 | 64 | t=1, k=32, p=1 | not captured | not captured |
 | `p256-d128-t0-k1` | not captured | 256 | 128 | greedy (t=0) | not captured | not captured |
 | `p512-d128-t0-k1` | not captured | 512 | 128 | greedy (t=0) | not captured | not captured |

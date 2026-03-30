@@ -6,6 +6,7 @@ import process from 'node:process';
 import { spawnSync } from 'node:child_process';
 import { mergeKernelPathPolicy } from '../../src/config/merge-helpers.js';
 import {
+  buildDopplerRuntimeConfig,
   buildSharedBenchmarkContract,
   parseArgs as parseCompareArgs,
   parseOnOff as parseCompareOnOff,
@@ -146,6 +147,53 @@ function runCompareEngines(args) {
 }
 
 {
+  const sharedContract = buildSharedBenchmarkContract({
+    prompt: 'unit prompt',
+    maxTokens: 8,
+    warmupRuns: 0,
+    timedRuns: 1,
+    seed: 7,
+    sampling: {
+      temperature: 0,
+      topK: 1,
+      topP: 1,
+    },
+    useChatTemplate: false,
+  });
+  const runtimeConfig = buildDopplerRuntimeConfig(sharedContract, {
+    batchSize: 4,
+    readbackInterval: 4,
+    disableMultiTokenDecode: true,
+    speculationMode: 'none',
+    stopCheckMode: 'per-token',
+    kernelPath: null,
+    kernelPathPolicy: {
+      mode: 'capability-aware',
+      sourceScope: ['model', 'manifest', 'config'],
+      allowSources: ['model', 'manifest', 'config'],
+      onIncompatible: 'remap',
+    },
+    runtimeConfigJson: null,
+  });
+  assert.equal(runtimeConfig.inference.generation.disableMultiTokenDecode, true);
+  assert.deepEqual(runtimeConfig.inference.session.decodeLoop, {
+    batchSize: 4,
+    stopCheckMode: 'per-token',
+    readbackInterval: 4,
+    disableCommandBatching: false,
+  });
+  assert.deepEqual(runtimeConfig.inference.session.speculation, {
+    mode: 'none',
+    tokens: 1,
+    verify: 'greedy',
+    threshold: null,
+    rollbackOnReject: true,
+  });
+  assert.equal(runtimeConfig.inference.batching.batchSize, 4);
+  assert.equal(runtimeConfig.inference.batching.readbackInterval, 4);
+}
+
+{
   const result = runCompareEngines([
     '--doppler-surface', 'invalid-surface',
     '--json',
@@ -157,6 +205,19 @@ function runCompareEngines(args) {
   const result = runCompareEngines([
     '--runtime-config-json',
     '{"inference":{"prompt":"override"}}',
+    '--json',
+  ]);
+  assert.notEqual(result.status, 0);
+  assert.match(
+    result.stderr,
+    /--runtime-config-json must not override compare-managed fairness or cadence fields/
+  );
+}
+
+{
+  const result = runCompareEngines([
+    '--runtime-config-json',
+    '{"inference":{"session":{"speculation":{"mode":"self","tokens":1,"verify":"greedy","threshold":null,"rollbackOnReject":true}}}}',
     '--json',
   ]);
   assert.notEqual(result.status, 0);

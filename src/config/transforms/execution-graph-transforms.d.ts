@@ -26,6 +26,14 @@ export interface TransformContext {
   activationDtype: 'f16' | 'f32';
   kvDtype: 'f16' | 'f32';
   modelId?: string;
+  layerTypes?: string[] | null;
+}
+
+export interface ExecutionKernelPrecision {
+  activationDtype?: 'f16' | 'f32';
+  kvDtype?: 'f16' | 'f32';
+  inputDtype?: 'f16' | 'f32';
+  outputDtype?: 'f16' | 'f32';
 }
 
 /**
@@ -36,7 +44,15 @@ export interface ExecutionKernelEntry {
   entry: string;
   digest: string | null;
   constants?: Record<string, unknown>;
+  precision?: ExecutionKernelPrecision;
 }
+
+export interface ExecutionGraphLayerGroup {
+  layers: number[];
+  steps: unknown[][];
+}
+
+export type ExecutionGraphLayerEntry = unknown[] | ExecutionGraphLayerGroup;
 
 /**
  * The execution-v1 graph structure from manifest.inference.execution.
@@ -44,8 +60,8 @@ export interface ExecutionKernelEntry {
 export interface ExecutionGraph {
   kernels: Record<string, ExecutionKernelEntry>;
   preLayer: unknown[][];
-  decode: unknown[][];
-  prefill: unknown[][];
+  decode: ExecutionGraphLayerEntry[];
+  prefill: ExecutionGraphLayerEntry[];
   postLayer: unknown[][];
   policies?: Record<string, unknown>;
 }
@@ -96,6 +112,25 @@ export declare function widenProjectionWeightsToF32(graph: ExecutionGraph, ctx: 
  * when the graph already exposes a compatible fused Q4 decode kernel.
  */
 export declare function remapDenseQ4KPrefillToQ4Native(
+  graph: ExecutionGraph,
+  ctx: TransformContext
+): ExecutionGraph | null;
+
+/**
+ * Replace fused Q4K prefill projections with dense tiled matmul kernels while
+ * leaving decode unchanged.
+ */
+export declare function remapQ4KPrefillToDense(
+  graph: ExecutionGraph,
+  ctx: TransformContext
+): ExecutionGraph | null;
+
+/**
+ * Mark Qwen linear-attention decode projection outputs as f16 for targeted
+ * Apple/WebGPU decode throughput work while keeping full-attention layers on
+ * the manifest-owned f32 activation contract.
+ */
+export declare function useLinearDecodeProjectionF16(
   graph: ExecutionGraph,
   ctx: TransformContext
 ): ExecutionGraph | null;

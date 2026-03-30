@@ -10,6 +10,8 @@ import {
   useHead256PrefillAttention,
   widenProjectionWeightsToF32,
   remapDenseQ4KPrefillToQ4Native,
+  remapQ4KPrefillToDense,
+  useLinearDecodeProjectionF16,
   composeTransforms,
 } from '../../src/config/transforms/execution-graph-transforms.js';
 
@@ -31,8 +33,16 @@ const conversionConfig = JSON.parse(
   )
 );
 
+const qwenConversionConfig = JSON.parse(
+  readFileSync(
+    path.resolve(__dirname, '../../src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json'),
+    'utf-8'
+  )
+);
+
 /** The real execution graph from the gemma3-1b-q4k conversion config. */
 const REAL_GRAPH = conversionConfig.execution;
+const QWEN_REAL_GRAPH = qwenConversionConfig.execution;
 
 /** Default transform context matching the conversion config. */
 const CTX_F32 = { activationDtype: 'f32', kvDtype: 'f16' };
@@ -69,11 +79,22 @@ function collectKernelFilesForPhase(graph, phase) {
   const steps = graph[phase];
   if (!Array.isArray(steps)) return new Set();
   const files = new Set();
+  const appendFiles = (stepList) => {
+    for (const step of stepList) {
+      const kernelKey = step[1];
+      const entry = graph.kernels[kernelKey];
+      if (entry) {
+        files.add(entry.kernel);
+      }
+    }
+  };
   for (const step of steps) {
-    const kernelKey = step[1];
-    const entry = graph.kernels[kernelKey];
-    if (entry) {
-      files.add(entry.kernel);
+    if (Array.isArray(step)) {
+      appendFiles([step]);
+      continue;
+    }
+    if (step && typeof step === 'object' && Array.isArray(step.steps)) {
+      appendFiles(step.steps);
     }
   }
   return files;
@@ -499,7 +520,57 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
-// Test 9: composeTransforms — only first applies
+// Test 9: remapQ4KPrefillToDense
+// ===========================================================================
+{
+  const graph = structuredClone(QWEN_REAL_GRAPH);
+  const frozen = structuredClone(graph);
+  const result = remapQ4KPrefillToDense(graph, { ...CTX_F32, modelId: 'qwen-3-5-0-8b-q4k-ehaf16' });
+
+  ok(result !== null, 'remapQ4KPrefillToDense should remap Qwen 3.5 0.8B prefill projections to dense kernels');
+  const prefillProjectionFiles = collectKernelFilesForPhase(result, 'prefill');
+  ok(prefillProjectionFiles.has('matmul_f16w_f32a.wgsl'),
+    'remapQ4KPrefillToDense should swap prefill projections to matmul_f16w_f32a.wgsl');
+  ok(!prefillProjectionFiles.has('fused_matmul_q4_batched.wgsl'),
+    'remapQ4KPrefillToDense should remove fused_matmul_q4_batched.wgsl from prefill projections');
+
+  deepEqual(graph, frozen, 'remapQ4KPrefillToDense must not mutate the input graph');
+}
+
+// ===========================================================================
+// Test 10: useLinearDecodeProjectionF16
+// ===========================================================================
+{
+  const graph = structuredClone(QWEN_REAL_GRAPH);
+  const frozen = structuredClone(graph);
+  const result = useLinearDecodeProjectionF16(graph, {
+    ...CTX_F32,
+    modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+    layerTypes: qwenConversionConfig.inference.layerPattern.layerTypes,
+  });
+
+  ok(result !== null, 'useLinearDecodeProjectionF16 should create a decode override for Qwen linear-attention layers');
+  const qProjGroups = result.decode.filter((entry) => !Array.isArray(entry) && entry?.steps?.[0]?.[0] === 'q_proj');
+  equal(qProjGroups.length, 2, 'useLinearDecodeProjectionF16 should split q_proj into linear and non-linear layer groups');
+  const linearGroup = qProjGroups.find((entry) => entry.layers.includes(0) && entry.layers.includes(1) && !entry.layers.includes(3));
+  ok(linearGroup, 'useLinearDecodeProjectionF16 should tag the linear-attention layers as a dedicated q_proj group');
+  const linearKernelKey = linearGroup.steps[0][1];
+  equal(
+    result.kernels[linearKernelKey].precision?.outputDtype,
+    'f16',
+    'useLinearDecodeProjectionF16 should request f16 outputs for linear decode projections'
+  );
+  equal(
+    result.kernels.q4_decode.precision,
+    undefined,
+    'useLinearDecodeProjectionF16 should leave the original decode kernel entry unchanged for full-attention layers'
+  );
+
+  deepEqual(graph, frozen, 'useLinearDecodeProjectionF16 must not mutate the input graph');
+}
+
+// ===========================================================================
+// Test 11: composeTransforms — only first applies
 // ===========================================================================
 {
   // For the real graph (f32 activations with subgroup kernels):
@@ -523,7 +594,7 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
-// Test 9: composeTransforms with multiple applicable transforms
+// Test 12: composeTransforms with multiple applicable transforms
 // ===========================================================================
 {
   const graph = buildF16SubgroupGraph();
@@ -567,7 +638,7 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
-// Test 10: resolveCapabilityTransforms
+// Test 13: resolveCapabilityTransforms
 // ===========================================================================
 {
   const platform = { id: 'test', vendor: 'test', architecture: 'test' };
@@ -696,10 +767,46 @@ function buildF16WeightProjectionGraph() {
     );
     deepEqual(r.names, ['remapDenseQ4KPrefillToQ4Native'], 'generic platform with Apple adapter info should still resolve remapDenseQ4KPrefillToQ4Native');
   }
+
+  {
+    const r = resolveCapabilityTransforms(
+      {
+        hasSubgroups: true,
+        hasF16: true,
+        maxWorkgroupStorageSize: 32768,
+        adapterInfo: {
+          vendor: 'apple',
+          architecture: 'metal-3',
+        },
+      },
+      { id: 'apple-m3', vendor: 'apple', architecture: 'm-series' },
+      {
+        activationDtype: 'f32',
+        kvDtype: 'f16',
+        modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+        hasDensePrefillProjectionKernel: false,
+        hasQ4DecodeProjectionKernel: true,
+        hasQ4PrefillProjectionKernel: true,
+        hasAvailableQ4PrefillProjectionKernel: true,
+      }
+    );
+    deepEqual(
+      r.names,
+      ['useHead256PrefillAttention', 'remapQ4KPrefillToDense', 'useLinearDecodeProjectionF16'],
+      'apple Qwen 3.5 0.8B graph should resolve prefill and decode transforms together'
+    );
+    equal(r.transforms.length, 3, 'apple Qwen 3.5 0.8B graph: three transform functions');
+    equal(r.transforms[0], useHead256PrefillAttention,
+      'apple Qwen 3.5 0.8B graph: first transform function is useHead256PrefillAttention');
+    equal(r.transforms[1], remapQ4KPrefillToDense,
+      'apple Qwen 3.5 0.8B graph: second transform function is remapQ4KPrefillToDense');
+    equal(r.transforms[2], useLinearDecodeProjectionF16,
+      'apple Qwen 3.5 0.8B graph: third transform function is useLinearDecodeProjectionF16');
+  }
 }
 
 // ===========================================================================
-// Test 11: resolveFinitenessFallbackTransform
+// Test 14: resolveFinitenessFallbackTransform
 // ===========================================================================
 {
   // activationDtype 'f16' => returns transform
@@ -718,7 +825,7 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
-// Test 12: Snapshot test — removeSubgroups produces expected kernel files
+// Test 15: Snapshot test — removeSubgroups produces expected kernel files
 // ===========================================================================
 {
   const input = structuredClone(REAL_GRAPH);
@@ -767,7 +874,7 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
-// Test 13: Purity/immutability test
+// Test 16: Purity/immutability test
 // ===========================================================================
 {
   const input = structuredClone(REAL_GRAPH);
@@ -808,10 +915,19 @@ function buildF16WeightProjectionGraph() {
   const q4PrefillClone = structuredClone(q4PrefillGraph);
   remapDenseQ4KPrefillToQ4Native(q4PrefillGraph, CTX_F32);
   deepEqual(q4PrefillGraph, q4PrefillClone, 'purity: remapDenseQ4KPrefillToQ4Native must not mutate input');
+
+  const qwenLinearGraph = structuredClone(QWEN_REAL_GRAPH);
+  const qwenLinearClone = structuredClone(qwenLinearGraph);
+  useLinearDecodeProjectionF16(qwenLinearGraph, {
+    ...CTX_F32,
+    modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+    layerTypes: qwenConversionConfig.inference.layerPattern.layerTypes,
+  });
+  deepEqual(qwenLinearGraph, qwenLinearClone, 'purity: useLinearDecodeProjectionF16 must not mutate input');
 }
 
 // ===========================================================================
-// Test 14: digest is nulled on modified kernels
+// Test 17: digest is nulled on modified kernels
 // ===========================================================================
 {
   const input = structuredClone(REAL_GRAPH);

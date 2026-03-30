@@ -174,11 +174,15 @@ const DEFAULT_BENCHMARK_POLICY = Object.freeze({
       parity: Object.freeze({
         batchSize: 1,
         readbackInterval: 1,
+        disableMultiTokenDecode: true,
+        speculationMode: 'none',
         label: 'TJS-like per-token cadence',
       }),
       throughput: Object.freeze({
         batchSize: 4,
         readbackInterval: 4,
+        disableMultiTokenDecode: false,
+        speculationMode: 'none',
         label: 'Doppler throughput-tuned cadence',
       }),
     }),
@@ -284,6 +288,17 @@ function normalizeDecodeProfiles(raw) {
         profileValue.readbackInterval,
         `decodeProfiles.profiles.${profileId}.readbackInterval`
       ),
+      disableMultiTokenDecode: profileValue.disableMultiTokenDecode === true,
+      speculationMode: (() => {
+        const normalized = typeof profileValue.speculationMode === 'string'
+          ? profileValue.speculationMode.trim().toLowerCase()
+          : '';
+        if (!normalized) return null;
+        if (normalized === 'none' || normalized === 'self') return normalized;
+        throw new Error(
+          `decodeProfiles.profiles.${profileId}.speculationMode must be "none", "self", or omitted`
+        );
+      })(),
       stopCheckMode: normalizeStopCheckMode(
         profileValue.stopCheckMode ?? 'per-token',
         `decodeProfiles.profiles.${profileId}.stopCheckMode`
@@ -504,6 +519,10 @@ const PROTECTED_RUNTIME_CONFIG_PREFIXES = Object.freeze([
     reason: 'decode token budget is a shared fairness axis; use --max-tokens or --workload',
   },
   {
+    prefix: 'inference.generation.disableMultiTokenDecode',
+    reason: 'decode token grouping is compare-managed for apples-to-apples decode semantics',
+  },
+  {
     prefix: 'inference.batching.stopCheckMode',
     reason: 'decode stop-check cadence is compare-managed for consistent semantics',
   },
@@ -514,6 +533,26 @@ const PROTECTED_RUNTIME_CONFIG_PREFIXES = Object.freeze([
   {
     prefix: 'inference.batching.readbackInterval',
     reason: 'decode cadence is compare-managed; use --decode-profile or --doppler-readback-interval',
+  },
+  {
+    prefix: 'inference.session.decodeLoop.stopCheckMode',
+    reason: 'decode stop-check cadence is compare-managed for consistent semantics',
+  },
+  {
+    prefix: 'inference.session.decodeLoop.batchSize',
+    reason: 'decode cadence is compare-managed; use --decode-profile or --doppler-batch-size',
+  },
+  {
+    prefix: 'inference.session.decodeLoop.readbackInterval',
+    reason: 'decode cadence is compare-managed; use --decode-profile or --doppler-readback-interval',
+  },
+  {
+    prefix: 'inference.session.decodeLoop.disableCommandBatching',
+    reason: 'decode batching contract is compare-managed for fair cadence measurement',
+  },
+  {
+    prefix: 'inference.session.speculation',
+    reason: 'same-model speculation is compare-managed for apples-to-apples decode semantics',
   },
   {
     prefix: 'inference.kernelPath',
@@ -1697,11 +1736,33 @@ function buildDopplerRuntimeConfig(sharedContract, engineOverlay) {
       chatTemplate: {
         enabled: sharedContract.useChatTemplate,
       },
+      generation: {
+        disableMultiTokenDecode: engineOverlay.disableMultiTokenDecode === true,
+      },
       batching: {
         maxTokens: sharedContract.maxTokens,
         batchSize: engineOverlay.batchSize,
         readbackInterval: engineOverlay.readbackInterval,
         stopCheckMode: engineOverlay.stopCheckMode,
+      },
+      session: {
+        decodeLoop: {
+          batchSize: engineOverlay.batchSize,
+          stopCheckMode: engineOverlay.stopCheckMode,
+          readbackInterval: engineOverlay.readbackInterval,
+          disableCommandBatching: false,
+        },
+        ...(engineOverlay.speculationMode
+          ? {
+              speculation: {
+                mode: engineOverlay.speculationMode,
+                tokens: 1,
+                verify: 'greedy',
+                threshold: null,
+                rollbackOnReject: true,
+              },
+            }
+          : {}),
       },
       sampling,
     },
@@ -1748,6 +1809,13 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
     options.stopCheckMode ?? DEFAULT_DOPPLER_STOP_CHECK_MODE,
     '--doppler-stop-check-mode'
   );
+  const resolvedDisableMultiTokenDecode = options.disableMultiTokenDecode === true;
+  const resolvedSpeculationMode = typeof options.speculationMode === 'string'
+    ? options.speculationMode.trim().toLowerCase()
+    : '';
+  if (resolvedSpeculationMode && resolvedSpeculationMode !== 'none' && resolvedSpeculationMode !== 'self') {
+    throw new Error('runDoppler speculationMode must be "none", "self", or omitted.');
+  }
   const resolvedBrowserPort = parseNonNegativeInt(
     options.browserPort,
     DEFAULT_DOPPLER_BROWSER_PORT,
@@ -1761,6 +1829,8 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
     kernelPathPolicy: BENCHMARK_POLICY.kernelPathPolicy.compareRuntime,
     batchSize: resolvedBatchSize,
     readbackInterval: resolvedReadbackInterval,
+    disableMultiTokenDecode: resolvedDisableMultiTokenDecode,
+    speculationMode: resolvedSpeculationMode || null,
     stopCheckMode: resolvedStopCheckMode,
     runtimeConfigJson: options.runtimeConfigJson,
   });
@@ -2606,6 +2676,8 @@ async function main() {
         batchSize: dopplerBatchSize,
         readbackInterval: dopplerReadbackInterval,
         stopCheckMode: DECODE_PROFILE_CONFIGS[decodeProfile]?.stopCheckMode ?? DEFAULT_DOPPLER_STOP_CHECK_MODE,
+        disableMultiTokenDecode: DECODE_PROFILE_CONFIGS[decodeProfile]?.disableMultiTokenDecode === true,
+        speculationMode: DECODE_PROFILE_CONFIGS[decodeProfile]?.speculationMode ?? 'inherit',
         tokensPerReadback: dopplerTokensPerReadback,
       },
       transformersjsDecodeCadence: {
@@ -2657,6 +2729,8 @@ async function main() {
         kernelPath: dopplerKernelPath,
         batchSize: DECODE_PROFILE_CONFIGS.parity.batchSize,
         readbackInterval: DECODE_PROFILE_CONFIGS.parity.readbackInterval,
+        disableMultiTokenDecode: DECODE_PROFILE_CONFIGS.parity.disableMultiTokenDecode === true,
+        speculationMode: DECODE_PROFILE_CONFIGS.parity.speculationMode ?? null,
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
         browserPort: dopplerBrowserPort,
@@ -2695,6 +2769,8 @@ async function main() {
         kernelPath: dopplerKernelPath,
         batchSize: DECODE_PROFILE_CONFIGS.throughput.batchSize,
         readbackInterval: DECODE_PROFILE_CONFIGS.throughput.readbackInterval,
+        disableMultiTokenDecode: DECODE_PROFILE_CONFIGS.throughput.disableMultiTokenDecode === true,
+        speculationMode: DECODE_PROFILE_CONFIGS.throughput.speculationMode ?? null,
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
         browserPort: dopplerBrowserPort,
@@ -2734,6 +2810,8 @@ async function main() {
         kernelPath: dopplerKernelPath,
         batchSize: dopplerBatchSize,
         readbackInterval: dopplerReadbackInterval,
+        disableMultiTokenDecode: decodeProfileConfig.disableMultiTokenDecode === true,
+        speculationMode: decodeProfileConfig.speculationMode ?? null,
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
         browserPort: dopplerBrowserPort,
@@ -2794,6 +2872,8 @@ async function main() {
         kernelPath: dopplerKernelPath,
         batchSize: dopplerBatchSize,
         readbackInterval: dopplerReadbackInterval,
+        disableMultiTokenDecode: decodeProfileConfig.disableMultiTokenDecode === true,
+        speculationMode: decodeProfileConfig.speculationMode ?? null,
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
         browserPort: dopplerBrowserPort,
@@ -2936,6 +3016,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 }
 
 export {
+  buildDopplerRuntimeConfig,
   buildSharedBenchmarkContract,
   parseArgs,
   parseOnOff,

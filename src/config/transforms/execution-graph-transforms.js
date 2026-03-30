@@ -179,6 +179,56 @@ function findKernelKeyByFileAndEntry(graph, filename, entryPoint) {
   return null;
 }
 
+function normalizeLayerType(layerType) {
+  return typeof layerType === 'string' ? layerType.trim().toLowerCase() : '';
+}
+
+function isLinearAttentionLayerType(layerType) {
+  const normalized = normalizeLayerType(layerType);
+  return normalized === 'linear_attention'
+    || normalized === 'linear'
+    || normalized === 'gated_delta'
+    || normalized === 'gated_delta_net';
+}
+
+function buildGroupedLayerEntries(baseStep, targetLayers, replacementKernelKey) {
+  const groupedEntries = [];
+  if (!Array.isArray(baseStep) || baseStep.length < 2) {
+    return groupedEntries;
+  }
+
+  const totalLayers = targetLayers.allLayers;
+  const targeted = targetLayers.matchingLayers;
+  const remaining = totalLayers.filter((layerIdx) => !targeted.includes(layerIdx));
+
+  if (remaining.length > 0) {
+    groupedEntries.push({
+      layers: remaining,
+      steps: [baseStep],
+    });
+  }
+  if (targeted.length > 0) {
+    const replacement = [...baseStep];
+    replacement[1] = replacementKernelKey;
+    groupedEntries.push({
+      layers: targeted,
+      steps: [replacement],
+    });
+  }
+
+  return groupedEntries;
+}
+
+function deriveKernelEntryWithPrecision(base, precision) {
+  return {
+    ...base,
+    precision: {
+      ...(base.precision ?? {}),
+      ...precision,
+    },
+  };
+}
+
 // =============================================================================
 // Transform: removeSubgroups
 // =============================================================================
@@ -493,6 +543,12 @@ const DENSE_Q4_PREFILL_FILES = new Set([
   'matmul_f16_tiled.wgsl',
 ]);
 
+function resolveDensePrefillProjectionKernel(ctx) {
+  return ctx.activationDtype === 'f16'
+    ? 'matmul_f16.wgsl'
+    : 'matmul_f16w_f32a.wgsl';
+}
+
 /**
  * Replace projection matmul kernels with f32 weight variants.
  *
@@ -634,6 +690,143 @@ export function remapDenseQ4KPrefillToQ4Native(graph, ctx) {
 }
 
 // =============================================================================
+// Transform: remapQ4KPrefillToDense
+// =============================================================================
+
+/**
+ * Replace fused Q4K prefill projection kernels with dense tiled variants.
+ *
+ * Decode remains unchanged so the runtime can keep using fused Q4K decode while
+ * the loader exposes mixed dense+Q4K materializations for prefill.
+ *
+ * Returns null when the graph has no fused Q4K prefill projection kernels.
+ *
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {import('./execution-graph-transforms.js').TransformContext} ctx
+ * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
+ */
+export function remapQ4KPrefillToDense(graph, ctx) {
+  const q4PrefillProjectionSteps = (graph.prefill || []).filter((step) => {
+    if (!LAYER_PROJECTION_OPS.has(step[0])) {
+      return false;
+    }
+    const entry = graph.kernels[step[1]];
+    return entry != null && entry.kernel.startsWith('fused_matmul_q4');
+  });
+  if (q4PrefillProjectionSteps.length === 0) {
+    return null;
+  }
+
+  const denseKernelFile = resolveDensePrefillProjectionKernel(ctx);
+  const result = cloneGraph(graph);
+  let denseKey = findKernelKeyByFileAndEntry(result, denseKernelFile, 'main');
+  if (!denseKey) {
+    const sourceKey = q4PrefillProjectionSteps[0][1];
+    const sourceEntry = result.kernels[sourceKey];
+    denseKey = deriveKernelKey(result.kernels, sourceKey, '_prefill_dense');
+    result.kernels[denseKey] = deriveKernelEntry(
+      sourceEntry,
+      denseKernelFile,
+      'main',
+      null
+    );
+  }
+
+  let changed = false;
+  result.prefill = (result.prefill || []).map((step) => {
+    if (!LAYER_PROJECTION_OPS.has(step[0])) {
+      return step;
+    }
+    const entry = result.kernels[step[1]];
+    if (!entry || !entry.kernel.startsWith('fused_matmul_q4')) {
+      return step;
+    }
+    if (step[1] === denseKey) {
+      return step;
+    }
+    changed = true;
+    const next = [...step];
+    next[1] = denseKey;
+    return next;
+  });
+
+  return changed ? result : null;
+}
+
+// =============================================================================
+// Transform: useLinearDecodeProjectionF16
+// =============================================================================
+
+/**
+ * Mark Qwen linear-attention decode projections as f16-output on only the
+ * linear-attention layers. This preserves the manifest-wide f32 activation
+ * contract for full-attention layers while allowing the linear decode path to
+ * use the f16-output fused Q4 kernels that the recurrent core already accepts.
+ *
+ * The transform rewrites the compact decode tuples into layer groups so only
+ * the linear-attention layers pick up the precision-tagged kernel entry.
+ *
+ * Returns null when layerTypes are unavailable, when no linear-attention layers
+ * are present, or when the decode graph does not expose a q_proj step.
+ *
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {import('./execution-graph-transforms.js').TransformContext} ctx
+ * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
+ */
+export function useLinearDecodeProjectionF16(graph, ctx) {
+  const layerTypes = Array.isArray(ctx.layerTypes) ? ctx.layerTypes : null;
+  if (!layerTypes || layerTypes.length === 0) {
+    return null;
+  }
+
+  const matchingLayers = layerTypes
+    .map((layerType, layerIdx) => ({ layerType, layerIdx }))
+    .filter(({ layerType }) => isLinearAttentionLayerType(layerType))
+    .map(({ layerIdx }) => layerIdx);
+  if (matchingLayers.length === 0) {
+    return null;
+  }
+
+  const qProjIndex = (graph.decode || []).findIndex((entry) => Array.isArray(entry) && entry[0] === 'q_proj');
+  if (qProjIndex === -1) {
+    return null;
+  }
+  const qProjStep = graph.decode[qProjIndex];
+  const qProjKernelKey = qProjStep[1];
+  const qProjKernel = graph.kernels[qProjKernelKey];
+  if (!qProjKernel) {
+    return null;
+  }
+
+  if (qProjKernel.precision?.outputDtype === 'f16') {
+    return null;
+  }
+
+  const result = cloneGraph(graph);
+  const linearQProjKey = deriveKernelKey(result.kernels, qProjKernelKey, '_linear_f16out');
+  result.kernels[linearQProjKey] = deriveKernelEntryWithPrecision(qProjKernel, {
+    outputDtype: 'f16',
+  });
+
+  const targetLayers = {
+    allLayers: layerTypes.map((_, layerIdx) => layerIdx),
+    matchingLayers,
+  };
+  const groupedEntries = buildGroupedLayerEntries(qProjStep, targetLayers, linearQProjKey);
+  if (groupedEntries.length === 0) {
+    return null;
+  }
+
+  result.decode = [
+    ...result.decode.slice(0, qProjIndex),
+    ...groupedEntries,
+    ...result.decode.slice(qProjIndex + 1),
+  ];
+
+  return result;
+}
+
+// =============================================================================
 // Composition
 // =============================================================================
 
@@ -671,5 +864,7 @@ export const TRANSFORMS = Object.freeze({
   useHead256PrefillAttention,
   widenProjectionWeightsToF32,
   remapDenseQ4KPrefillToQ4Native,
+  remapQ4KPrefillToDense,
+  useLinearDecodeProjectionF16,
   composeTransforms,
 });

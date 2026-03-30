@@ -40,6 +40,20 @@ Claim format to keep reports auditable:
   - generated outputs under [results/](./results/)
   - committed fixture evidence under [fixtures/](./fixtures/) when publishing stable claims
 
+## Claimable Evidence Rules
+
+Use these before turning a compare result into README copy, a chart, or a release-facing statement:
+
+- Correctness must be clean on the promoted lane.
+  A mismatch compare artifact is diagnostic evidence, not claimable speed evidence.
+- Verify the measured artifact source.
+  Published HF artifacts, local manifests, and compare-profile defaults can diverge; claim only from the source the artifact actually used.
+- Use the real performance lane.
+  Do not promote timing from a debug-only `f32`, `http`, or otherwise investigation-specific profile as if it were the warmed compare lane.
+- Keep one traceable artifact per claim.
+  A claim should point back to one saved compare JSON and one reproducible command.
+- If a chart mixes legacy `warm` fixtures with newer `compute/parity` fixtures, the chart tool must normalize that intentionally and have a regression test covering it.
+
 ## Registry Files
 
 - [registry.json](./registry.json): canonical list of vendor products and harness links.
@@ -209,7 +223,7 @@ Use [tools/vendor-bench.js](../../tools/vendor-bench.js):
 
 `import` and `run` both produce normalized records under [results/](./results/) unless `--output` is specified.
 `matrix` writes [release-matrix.json](./release-matrix.json) and [docs/release-matrix.md](../../docs/release-matrix.md).
-By default, `matrix` auto-discovers compare JSON artifacts under [fixtures/](./fixtures/) only.
+By default, `matrix` auto-discovers committed compare fixtures ending in `.compare.json` under [fixtures/](./fixtures/) only.
 Use `--include-local-results` to also scan [results/](./results/) for additional compare JSON artifacts.
 Use `--strict-compare-artifacts` to fail generation when any auto-discovered compare artifact is invalid.
 Workload rows in the markdown include a `GPU/OS/Platform` column derived from each linked compare artifact's runtime environment metadata.
@@ -243,7 +257,7 @@ When `--compare-result` is provided, matrix generation also captures host/browse
 - Harness mappings allow ordered fallback path arrays (`normalization.metricPaths` / `metadataPaths`).
 - Path order is canonicalized in harness files and validated before comparison.
 - Metric paths are canonicalized through [harnesses/](./harnesses) and validated as required before any comparison.
-- [tools/compare-engines.js](../../tools/compare-engines.js) defaults to `--decode-profile parity` (Doppler `batchSize=1`, `readbackInterval=1`) for closer Transformers.js decode cadence matching; use `--decode-profile throughput` for Doppler-tuned runs.
+- [tools/compare-engines.js](../../tools/compare-engines.js) defaults to `--decode-profile parity` (Doppler `batchSize=1`, `readbackInterval=1`, `disableMultiTokenDecode=true`, `session.speculation.mode=none`) for closer Transformers.js decode cadence matching; use `--decode-profile throughput` for Doppler-tuned runs.
 - [tools/compare-engines.js](../../tools/compare-engines.js) records the exact installed Transformers.js / ONNX Runtime stack in each compare artifact and validates that the v4 runner is pinned to the same nested ORT modules before timing starts.
 - [tools/compare-engines.js](../../tools/compare-engines.js) applies the explicit Doppler compare-lane `runtime.inference.kernelPathPolicy` from [benchmark-policy.json](./benchmark-policy.json); capability-aware remaps used for known platform/runtime constraints are therefore part of the recorded engine overlay, not a hidden runtime fallback.
 - [tools/compare-engines.js](../../tools/compare-engines.js) also applies the explicit Doppler browser channel from [benchmark-policy.json](./benchmark-policy.json) unless `--doppler-browser-channel` overrides it, so compare runs do not silently drift across locally installed browser channels.

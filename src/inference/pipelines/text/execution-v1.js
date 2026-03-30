@@ -175,6 +175,7 @@ export function compileExecutionV1(options = {}) {
 
   const activationDtype = session.compute.defaults.activationDtype;
   const kvDtype = session?.kvcache?.kvDtype ?? activationDtype;
+  const layerTypes = manifestInference?.layerPattern?.layerTypes ?? null;
   const finitenessPolicy = resolveRangeAwareSelectiveWideningConfig(runtimeCompute);
 
   // Validate the original manifest graph (full digest checks).
@@ -192,6 +193,7 @@ export function compileExecutionV1(options = {}) {
       activationDtype,
       kvDtype,
       modelId,
+      layerTypes,
       ...summarizeExecutionGraphContext(execution),
     };
     const resolved = resolveCapabilityTransforms(capabilities, platform, graphContext);
@@ -215,6 +217,7 @@ export function compileExecutionV1(options = {}) {
         activationDtype,
         kvDtype,
         modelId,
+        layerTypes,
       });
       if (transformed !== execution) {
         execution = transformed;

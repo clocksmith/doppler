@@ -15,7 +15,8 @@ const rules = await loadJson(
  * @param {Object} capabilities - { hasSubgroups, hasF16, hasSubgroupsF16, maxWorkgroupSize, maxBufferSize }
  * @param {Object} platform - { id, vendor, architecture }
  * @param {Object} graphContext - execution-v1 graph/dtype summary
- *   { activationDtype, kvDtype, modelId?, hasDensePrefillProjectionKernel?,
+ *   { activationDtype, kvDtype, modelId?, layerTypes?,
+ *     hasDensePrefillProjectionKernel?,
  *     hasQ4DecodeProjectionKernel?, hasQ4PrefillProjectionKernel?,
  *     hasAvailableQ4PrefillProjectionKernel? }
  * @returns {{ transforms: Function[], names: string[], reason: string }}
@@ -69,7 +70,7 @@ export function resolveCapabilityTransforms(capabilities, platform, graphContext
  * Returns widenToF32Activations when current activationDtype is f16,
  * or null when already f32 (no fallback available).
  *
- * @param {Object} graphContext - { activationDtype, kvDtype }
+ * @param {Object} graphContext - { activationDtype, kvDtype, modelId?, layerTypes? }
  * @returns {{ transform: Function, name: string } | null}
  */
 export function resolveFinitenessFallbackTransform(graphContext) {

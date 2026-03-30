@@ -857,6 +857,9 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
   const decodeProfileSteps = Array.isArray(stats.decodeProfileSteps)
     ? stats.decodeProfileSteps
     : null;
+  const prefillProfileSteps = Array.isArray(stats.prefillProfileSteps)
+    ? stats.prefillProfileSteps
+    : null;
 
   return {
     prompt: promptLabel,
@@ -879,6 +882,7 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
       prefillTokensPerSecTtft,
       decodeTokensPerSec,
       gpu: gpuPhase,
+      prefillProfileSteps,
       decodeProfileSteps,
       decodeMode: stats.decodeMode ?? null,
       batchGuardReason: stats.batchGuardReason ?? null,

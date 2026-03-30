@@ -27,6 +27,7 @@ import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
 import { getWeightBuffer, getNormWeightBuffer } from '../weights.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
+import { getKernelPathMatmulVariant } from '../../../../config/kernel-path-loader.js';
 
 const ACTIVATION_FN_MAP = {
   gelu: doGeLU,
@@ -39,6 +40,37 @@ function resolveActivationOp(hiddenActivation) {
 
 function hasQ4KMaterialization(weight) {
   return isWeightBuffer(weight) && !!weight.materializations?.q4k?.buffer;
+}
+
+function isQ4KMatmulVariant(variant) {
+  return typeof variant === 'string' && variant.startsWith('q4_');
+}
+
+export function resolveGateUpPathMode(options = {}) {
+  const kernelPath = options.kernelPath ?? null;
+  const phase = options.phase ?? null;
+  const layerIdx = Number.isFinite(options.layerIdx) ? options.layerIdx : 0;
+  if (!kernelPath || phase !== 'prefill') {
+    return 'implicit';
+  }
+
+  const fusedVariant = getKernelPathMatmulVariant('ffn_gate_up', phase, layerIdx, kernelPath);
+  if (fusedVariant != null) {
+    return 'fused';
+  }
+
+  const gateVariant = getKernelPathMatmulVariant('ffn_gate', phase, layerIdx, kernelPath);
+  const upVariant = getKernelPathMatmulVariant('ffn_up', phase, layerIdx, kernelPath);
+  if (
+    gateVariant != null
+    && upVariant != null
+    && !isQ4KMatmulVariant(gateVariant)
+    && !isQ4KMatmulVariant(upVariant)
+  ) {
+    return 'split';
+  }
+
+  return 'implicit';
 }
 
 export function resolveFusedGateUpWeights(layerWeights, options = {}) {
@@ -133,6 +165,8 @@ export async function runDenseFFNGPU(
   const lastTokenIdx = Math.max(0, numTokens - 1);
   const lora = context.lora || null;
   const kernelPath = context.kernelPath ?? null;
+  const phase = context.phase ?? (numTokens === 1 ? 'decode' : 'prefill');
+  const gateUpPathMode = resolveGateUpPathMode({ kernelPath, phase, layerIdx });
 
   if (layerWeights?.gateUp && layerWeights?.down) {
     const gateUpWeight = getWeightBuffer(layerWeights.gateUp, 'ffn_gate_up');
@@ -289,6 +323,8 @@ export async function runDenseFFNGPU(
     activationDtype,
     hiddenSize,
     kernelPath,
+    phase,
+    layerIdx,
   });
   const gateDtype = fusedGateUpWeights.gateDtype ?? (hasGate ? 'f32' : null);
   const upDtype = fusedGateUpWeights.upDtype ?? (hasUp ? 'f32' : null);
@@ -296,7 +332,7 @@ export async function runDenseFFNGPU(
   const q4kFusedAllowed = gateDtype !== 'q4k' || !isFusedQ4KDisabled({ kernelPath });
   const dtypeSupported = gateDtype === 'f16' || gateDtype === 'f32' || (gateDtype === 'q4k' && q4kFusedAllowed);
   const f16BatchSupported = getKernelCapabilities().hasF16;
-  const useFusedGateUp = selectRuleValue('inference', 'ffn', 'useFusedGateUp', {
+  const useFusedGateUpByRule = selectRuleValue('inference', 'ffn', 'useFusedGateUp', {
     hasGate,
     hasUp,
     hasDown,
@@ -312,9 +348,12 @@ export async function runDenseFFNGPU(
     batchSize: numTokens,
     hiddenSizeAligned32,
   });
+  const useFusedGateUp = gateUpPathMode === 'split'
+    ? false
+    : useFusedGateUpByRule;
   trace.ffn(
     layerIdx,
-    `useFusedGateUp=${useFusedGateUp} inputDtype=${inputTensor.dtype} activationDtype=${activationDtype} ` +
+    `useFusedGateUp=${useFusedGateUp} gateUpPathMode=${gateUpPathMode} inputDtype=${inputTensor.dtype} activationDtype=${activationDtype} ` +
     `gateDtype=${gateDtype} upDtype=${upDtype} hasQ4KMaterialization=${fusedGateUpWeights.hasQ4KMaterialization} ` +
     `dtypeMatches=${dtypeMatches} dtypeSupported=${dtypeSupported} hiddenSizeAligned32=${hiddenSizeAligned32} batchSize=${numTokens}`
   );
@@ -627,6 +666,8 @@ export async function runDenseFFNWithFusedPostNormGPU(
   const { hiddenSize, intermediateSize, hiddenActivation, swigluLimit } = config;
   const lora = context.lora || null;
   const kernelPath = context.kernelPath ?? null;
+  const phase = context.phase ?? (numTokens === 1 ? 'decode' : 'prefill');
+  const gateUpPathMode = resolveGateUpPathMode({ kernelPath, phase, layerIdx });
 
   if (!layerWeights.down || !layerWeights.postFeedforwardNorm) {
     throw new Error('Missing down or norm weights');
@@ -706,6 +747,8 @@ export async function runDenseFFNWithFusedPostNormGPU(
       activationDtype,
       hiddenSize,
       kernelPath,
+      phase,
+      layerIdx,
     });
     const fusedGateWeight = getWeightBuffer(fusedGateUpWeights.gate ?? layerWeights.gate, 'ffn_gate');
     const fusedUpWeight = getWeightBuffer(fusedGateUpWeights.up ?? layerWeights.up, 'ffn_up');
@@ -716,7 +759,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
     const dtypeMatches = gateDtype != null && upDtype != null && gateDtype === upDtype;
     const q4kFusedAllowed = gateDtype !== 'q4k' || !isFusedQ4KDisabled({ kernelPath });
     const dtypeSupported = gateDtype === 'f16' || gateDtype === 'f32' || (gateDtype === 'q4k' && q4kFusedAllowed);
-    const canUseFusedGateUp = selectRuleValue('inference', 'ffn', 'useFusedGateUp', {
+    const canUseFusedGateUpByRule = selectRuleValue('inference', 'ffn', 'useFusedGateUp', {
       hasGate: true,
       hasUp: true,
       hasDown: true,
@@ -732,9 +775,12 @@ export async function runDenseFFNWithFusedPostNormGPU(
       batchSize: numTokens,
       hiddenSizeAligned32,
     });
+    const canUseFusedGateUp = gateUpPathMode === 'split'
+      ? false
+      : canUseFusedGateUpByRule;
     trace.ffn(
       layerIdx,
-      `useFusedGateUpWithPostNorm=${canUseFusedGateUp} inputDtype=${inputTensor.dtype} activationDtype=${activationDtype} ` +
+      `useFusedGateUpWithPostNorm=${canUseFusedGateUp} gateUpPathMode=${gateUpPathMode} inputDtype=${inputTensor.dtype} activationDtype=${activationDtype} ` +
       `gateDtype=${gateDtype} upDtype=${upDtype} hasQ4KMaterialization=${fusedGateUpWeights.hasQ4KMaterialization} ` +
       `dtypeMatches=${dtypeMatches} dtypeSupported=${dtypeSupported} hiddenSizeAligned32=${hiddenSizeAligned32} batchSize=${numTokens}`
     );

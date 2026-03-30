@@ -172,6 +172,12 @@ These docs are loaded by skills on demand — not for every task:
 
 See `docs/agents/README.md` for the full index.
 
+### Performance Investigation Discipline
+
+- Treat prefill and decode as separate phases. Dump resolved kernel path, active decode mode, and loaded weight/materialization dtype per phase before changing kernels.
+- Keep parity and throughput lanes separate. Claimable compare work belongs to fairness-managed parity lanes; throughput-tuned runs are tuning evidence until promoted explicitly.
+- Before kernel edits, classify the wall: GPU compute vs submit/readback/orchestration. Do not assume a math-kernel bug when timing already shows orchestration dominating.
+
 ### Logging
 
 Use debug module (`src/debug/index.js`), not raw `console.*` in runtime code.

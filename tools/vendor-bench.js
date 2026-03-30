@@ -1930,11 +1930,17 @@ async function listCommittedCharts() {
     .sort();
 }
 
-function isCompareResultArtifactFileName(fileName) {
+function isCommittedCompareFixtureFileName(fileName) {
+  const lower = String(fileName || '').trim().toLowerCase();
+  if (!lower.endsWith('.json')) return false;
+  return lower.endsWith('.compare.json');
+}
+
+function isLocalCompareResultArtifactFileName(fileName) {
   const lower = String(fileName || '').trim().toLowerCase();
   if (!lower.endsWith('.json')) return false;
   if (lower === 'compare_latest.json') return false;
-  return lower.includes('compare');
+  return lower.startsWith('compare_') || lower.endsWith('.compare.json');
 }
 
 function isPathWithin(baseDir, candidatePath) {
@@ -1964,7 +1970,8 @@ async function listCompareResultCandidateEntries(options = {}) {
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
     for (const entry of entries) {
       if (!entry.isFile()) continue;
-      if (!isCompareResultArtifactFileName(entry.name)) continue;
+      if (origin === 'fixture' && !isCommittedCompareFixtureFileName(entry.name)) continue;
+      if (origin === 'local' && !isLocalCompareResultArtifactFileName(entry.name)) continue;
       out.push({
         absolutePath: path.join(dirPath, entry.name),
         origin,

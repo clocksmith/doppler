@@ -1,6 +1,5 @@
 import { getBufferDtype, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { recordMatmul, recordRMSNorm, runMatmul, runRMSNorm, castF32ToF16, recordCastF32ToF16 } from '../../../gpu/kernel-selector.js';
-import { castF16ToF32, recordCastF16ToF32 } from '../../../gpu/kernels/cast.js';
 import { readBuffer, releaseBuffer, uploadData, acquireBuffer } from '../../../memory/buffer-pool.js';
 import { log } from '../../../debug/index.js';
 import { decodeReadback } from './debug-utils/index.js';
@@ -8,6 +7,8 @@ import { runLinearAttentionCoreGPU } from '../../../gpu/kernels/linear-attention
 import { runProbes } from './probes.js';
 import { QK_K, Q4K_BLOCK_BYTES } from '../../../config/schema/index.js';
 import { dequantizeQ4KM } from '../../../converter/quantizer.js';
+import { getKernelPathMatmulPrecision } from '../../../config/kernel-path-loader.js';
+import { selectRuleValue } from '../../../rules/rule-registry.js';
 
 const LINEAR_RUNTIME_SCHEMA_VERSION = 1;
 const QK_L2NORM_EPS = 1e-6;
@@ -35,6 +36,15 @@ function bytesFromDtype(dtype) {
   const normalized = String(dtype ?? '').toLowerCase();
   if (normalized === 'f16' || normalized === 'bf16') return 2;
   return 4;
+}
+
+function resolveMatmulStepDtype(role, phase, layerIdx, kernelPath, fallback, field) {
+  const precision = getKernelPathMatmulPrecision(role, phase, layerIdx, kernelPath);
+  const requested = precision?.[field] ?? fallback;
+  if (requested == null) {
+    return fallback;
+  }
+  return selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: requested });
 }
 
 export function applyLinearNormWeightOffset(values, rmsNormWeightOffset) {
@@ -597,6 +607,7 @@ async function projectLinearTensor({
   inputTensor,
   sourceWeight,
   role,
+  phase,
   outDim,
   numTokens,
   hiddenSize,
@@ -607,6 +618,14 @@ async function projectLinearTensor({
   recorder,
 }) {
   const resolvedWeight = getWeightBuffer(sourceWeight, role);
+  const resolvedOutputDtype = resolveMatmulStepDtype(
+    role,
+    phase,
+    layerIdx,
+    kernelPath,
+    outputDtype,
+    'outputDtype'
+  );
   try {
     if (recorder) {
       return await recordMatmul(recorder, inputTensor, resolvedWeight, numTokens, outDim, hiddenSize, {
@@ -614,7 +633,7 @@ async function projectLinearTensor({
         role,
         layerIdx,
         kernelPath,
-        outputDtype,
+        outputDtype: resolvedOutputDtype,
       });
     }
     return await runMatmul(inputTensor, resolvedWeight, numTokens, outDim, hiddenSize, {
@@ -622,7 +641,7 @@ async function projectLinearTensor({
       role,
       layerIdx,
       kernelPath,
-      outputDtype,
+      outputDtype: resolvedOutputDtype,
     });
   } finally {
     releaseResolvedWeightBuffer(sourceWeight, resolvedWeight, recorder);
@@ -745,6 +764,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
 
   const outputDtype = activationDtype === 'f16' ? 'f16' : 'f32';
   const projectionDtype = activationDtype === 'f16' ? 'f16' : 'f32';
+  const phase = numTokens === 1 ? 'decode' : 'prefill';
   let normedTensor = inputTensor;
   let normedCreated = false;
 
@@ -776,6 +796,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     inputTensor: normedTensor,
     sourceWeight: layerWeights.qkvProj,
     role: 'linear_qkv_proj',
+    phase,
     outDim: projectionLayout.convDim,
     numTokens,
     hiddenSize,
@@ -789,6 +810,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     inputTensor: normedTensor,
     sourceWeight: layerWeights.linearInProjZ,
     role: 'linear_z_proj',
+    phase,
     outDim: projectionLayout.valueDim,
     numTokens,
     hiddenSize,
@@ -802,6 +824,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     inputTensor: normedTensor,
     sourceWeight: layerWeights.linearInProjA,
     role: 'linear_a_proj',
+    phase,
     outDim: projectionLayout.numVHeads,
     numTokens,
     hiddenSize,
@@ -815,6 +838,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     inputTensor: normedTensor,
     sourceWeight: layerWeights.linearInProjB,
     role: 'linear_b_proj',
+    phase,
     outDim: projectionLayout.numVHeads,
     numTokens,
     hiddenSize,
@@ -862,25 +886,11 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
       operatorDiagnostics: options.operatorDiagnostics,
       dtype: bTensor.dtype,
     });
-    // Linear attention core kernels use array<f32>. Cast f16 projections.
-    let coreQkv = qkvTensor;
-    let coreZ = zTensor;
-    let coreA = aTensor;
-    let coreB = bTensor;
-    const needsCast = qkvTensor.dtype === 'f16';
-    if (needsCast) {
-      const castFn = recorder ? recordCastF16ToF32 : castF16ToF32;
-      const castArgs = recorder ? [recorder] : [];
-      coreQkv = await castFn(...castArgs, qkvTensor);
-      coreZ = await castFn(...castArgs, zTensor);
-      coreA = await castFn(...castArgs, aTensor);
-      coreB = await castFn(...castArgs, bTensor);
-    }
     const coreTensor = await runLinearAttentionCoreGPU(
-      coreQkv,
-      coreZ,
-      coreA,
-      coreB,
+      qkvTensor,
+      zTensor,
+      aTensor,
+      bTensor,
       layerState,
       {
         numTokens,
@@ -889,12 +899,6 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
         recorder,
       }
     );
-    if (needsCast) {
-      releaseOrTrackBuffer(recorder, coreQkv.buffer);
-      releaseOrTrackBuffer(recorder, coreZ.buffer);
-      releaseOrTrackBuffer(recorder, coreA.buffer);
-      releaseOrTrackBuffer(recorder, coreB.buffer);
-    }
     await runProbes('linear_core_out', coreTensor.buffer, {
       layerIdx,
       numTokens,
@@ -905,15 +909,31 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
       dtype: coreTensor.dtype,
     });
     layerState.seqLen = currentSeqLen + numTokens;
-    // The linear attention core always outputs f32. Use f32 for the output
-    // projection matmul (matching the core tensor dtype), then cast to f16
-    // if the execution graph requires f16 activations.
-    const outProjOutputDtype = coreTensor.dtype === 'f32' && outputDtype === 'f16' ? 'f32' : outputDtype;
+    const outProjInputDtype = resolveMatmulStepDtype(
+      'linear_out_proj',
+      phase,
+      layerIdx,
+      kernelPath,
+      coreTensor.dtype,
+      'inputDtype'
+    );
+    const outProjOutputDtype = resolveMatmulStepDtype(
+      'linear_out_proj',
+      phase,
+      layerIdx,
+      kernelPath,
+      outputDtype,
+      'outputDtype'
+    );
+    const wantsF16OutProj = coreTensor.dtype === 'f32' && outProjInputDtype === 'f16';
+    const outProjInput = wantsF16OutProj
+      ? (recorder ? await recordCastF32ToF16(recorder, coreTensor) : await castF32ToF16(coreTensor))
+      : coreTensor;
     const outProjWeight = getWeightBuffer(layerWeights.oProj, `L${layerIdx}.linear_out_proj`);
     try {
       let result;
       if (recorder) {
-        result = await recordMatmul(recorder, coreTensor, outProjWeight, numTokens, hiddenSize, projectionLayout.valueDim, {
+        result = await recordMatmul(recorder, outProjInput, outProjWeight, numTokens, hiddenSize, projectionLayout.valueDim, {
           transposeB: 'auto',
           role: 'linear_out_proj',
           layerIdx,
@@ -921,7 +941,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
           outputDtype: outProjOutputDtype,
         });
       } else {
-        result = await runMatmul(coreTensor, outProjWeight, numTokens, hiddenSize, projectionLayout.valueDim, {
+        result = await runMatmul(outProjInput, outProjWeight, numTokens, hiddenSize, projectionLayout.valueDim, {
           transposeB: 'auto',
           role: 'linear_out_proj',
           layerIdx,
@@ -938,6 +958,9 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
       }
       return result;
     } finally {
+      if (outProjInput !== coreTensor) {
+        releaseOrTrackBuffer(recorder, outProjInput.buffer);
+      }
       releaseOrTrackBuffer(recorder, coreTensor.buffer);
       releaseResolvedWeightBuffer(layerWeights.oProj, outProjWeight, recorder);
     }

@@ -42,6 +42,18 @@ export interface KernelStepSchema {
   constants?: Record<string, number | boolean>;
 
   /**
+   * Optional per-step precision contract. Used by execution-v1-derived kernel
+   * paths to narrow or widen only specific ops without changing the global
+   * activation/KV contract.
+   */
+  precision?: {
+    activationDtype?: 'f16' | 'f32';
+    kvDtype?: 'f16' | 'f32';
+    inputDtype?: 'f16' | 'f32';
+    outputDtype?: 'f16' | 'f32';
+  };
+
+  /**
    * Weight buffer reference (for matmul ops).
    * Uses template syntax: 'layer.{L}.self_attn.q_proj'
    * {L} is replaced with layer index at runtime.

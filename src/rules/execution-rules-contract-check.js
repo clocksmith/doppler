@@ -242,7 +242,7 @@ export function buildInferenceExecutionRulesContractArtifact(ruleGroup) {
       batchSize: { gt: 1 },
       useGPU: true,
       gpuSamplingAvailable: true,
-      disableMultiTokenDecode: false,
+      disableMultiTokenDecode: { neq: true },
       disableCommandBatching: false,
       isBdpaPagedLayout: false,
       finitenessFallbackWindowOpen: false,

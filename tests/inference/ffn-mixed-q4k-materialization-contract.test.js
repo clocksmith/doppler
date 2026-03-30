@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 
 const { setDevice } = await import('../../src/gpu/device.js');
-const { resolveFusedGateUpWeights } = await import('../../src/inference/pipelines/text/ffn/dense.js');
+const {
+  resolveFusedGateUpWeights,
+  resolveGateUpPathMode,
+} = await import('../../src/inference/pipelines/text/ffn/dense.js');
 
 function createMixedWeight(label) {
   const denseBuffer = { label: `${label}_dense` };
@@ -37,12 +40,28 @@ const denseKernelPath = {
   id: 'unit-dense-inline',
   decode: {
     steps: [
-      { op: 'q_proj', kernel: 'matmul_f16w_f32a.wgsl', entry: 'main' },
+      { op: 'ffn_gate', kernel: 'matmul_f16w_f32a.wgsl', entry: 'main' },
     ],
   },
   prefill: {
     steps: [
-      { op: 'q_proj', kernel: 'matmul_f16w_f32a_tiled.wgsl', entry: 'main' },
+      { op: 'ffn_gate', kernel: 'matmul_f16w_f32a_tiled.wgsl', entry: 'main' },
+    ],
+  },
+};
+
+const mixedKernelPath = {
+  id: 'unit-mixed-inline',
+  decode: {
+    steps: [
+      { op: 'ffn_gate', kernel: 'fused_matmul_q4.wgsl', entry: 'main' },
+      { op: 'ffn_up', kernel: 'fused_matmul_q4.wgsl', entry: 'main' },
+    ],
+  },
+  prefill: {
+    steps: [
+      { op: 'ffn_gate', kernel: 'matmul_f16w_f32a_tiled.wgsl', entry: 'main' },
+      { op: 'ffn_up', kernel: 'matmul_f16w_f32a_tiled.wgsl', entry: 'main' },
     ],
   },
 };
@@ -131,6 +150,37 @@ assert.equal(nativeF16.up.buffer.label, 'up_q4k');
   });
   assert.equal(densePath.gateDtype, 'f16');
   assert.equal(densePath.upDtype, 'f16');
+
+  const mixedPrefill = resolveFusedGateUpWeights(mixedWeights, {
+    activationDtype: 'f32',
+    hiddenSize: 1152,
+    kernelPath: mixedKernelPath,
+    phase: 'prefill',
+    layerIdx: 0,
+  });
+  assert.equal(mixedPrefill.gateDtype, 'q4k');
+  assert.equal(mixedPrefill.upDtype, 'q4k');
+
+  const mixedDecode = resolveFusedGateUpWeights(mixedWeights, {
+    activationDtype: 'f32',
+    hiddenSize: 1152,
+    kernelPath: mixedKernelPath,
+    phase: 'decode',
+    layerIdx: 0,
+  });
+  assert.equal(mixedDecode.gateDtype, 'q4k');
+  assert.equal(mixedDecode.upDtype, 'q4k');
+
+  assert.equal(resolveGateUpPathMode({
+    kernelPath: mixedKernelPath,
+    phase: 'prefill',
+    layerIdx: 0,
+  }), 'split');
+  assert.equal(resolveGateUpPathMode({
+    kernelPath: mixedKernelPath,
+    phase: 'decode',
+    layerIdx: 0,
+  }), 'implicit');
 } finally {
   setDevice(null, { platformConfig: null });
 }

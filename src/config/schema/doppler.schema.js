@@ -29,7 +29,9 @@ export const DEFAULT_RUNTIME_CONFIG = {
     energy: {},
     moe: {},
     speculative: {},
-    generation: {},
+    generation: {
+      disableMultiTokenDecode: false,
+    },
     chatTemplate: {},
     session: {},
     executionPatch: {},

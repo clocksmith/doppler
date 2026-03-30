@@ -144,6 +144,7 @@ const container = { executionPlanState: planState };
   assert.equal(isBatchDecodeEnabled({ ...enabledConfig, useGPU: false }), false);
   assert.equal(isBatchDecodeEnabled({ ...enabledConfig, gpuSamplingAvailable: false }), false);
   assert.equal(isBatchDecodeEnabled({ ...enabledConfig, disableMultiTokenDecode: true }), false);
+  assert.equal(isBatchDecodeEnabled({ ...enabledConfig, disableMultiTokenDecode: undefined }), true);
   assert.equal(isBatchDecodeEnabled({ ...enabledConfig, disableCommandBatching: true }), false);
   assert.equal(isBatchDecodeEnabled({ ...enabledConfig, isBdpaPagedLayout: true }), false);
   assert.equal(isBatchDecodeEnabled({ ...enabledConfig, finitenessFallbackWindowOpen: true }), false);

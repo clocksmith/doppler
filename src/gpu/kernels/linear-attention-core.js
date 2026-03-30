@@ -8,12 +8,15 @@ import {
   getOrCreatePipelineLayout,
 } from './utils.js';
 import { recordDispatch } from './dispatch.js';
+import { selectRuleValue } from '../../rules/rule-registry.js';
 
 const CONV_WORKGROUP_SIZE = WORKGROUP_SIZES.DEFAULT;
 const HEAD_WORKGROUP_SIZE = 128;
 
-const CONV_SHADER = /* wgsl */ `
-override WORKGROUP_SIZE: u32 = 256u;
+function buildLinearAttentionConvShader(inputDtype) {
+  const inputScalar = selectRuleValue('shared', 'dtype', 'f16OrF32', { useF16: inputDtype === 'f16' });
+  const enableF16 = inputScalar === 'f16' ? 'enable f16;\n\n' : '';
+  return /* wgsl */ `${enableF16}override WORKGROUP_SIZE: u32 = 256u;
 
 struct LinearAttentionParams {
   num_tokens: u32,
@@ -35,7 +38,7 @@ struct LinearAttentionParams {
 }
 
 @group(0) @binding(0) var<uniform> params: LinearAttentionParams;
-@group(0) @binding(1) var<storage, read> qkv: array<f32>;
+@group(0) @binding(1) var<storage, read> qkv: array<${inputScalar}>;
 @group(0) @binding(2) var<storage, read> conv_weight: array<f32>;
 @group(0) @binding(3) var<storage, read_write> conv_state: array<f32>;
 @group(0) @binding(4) var<storage, read_write> conv_out: array<f32>;
@@ -61,7 +64,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
   for (var token_idx: u32 = 0u; token_idx < params.num_tokens; token_idx = token_idx + 1u) {
     let qkv_idx = token_idx * params.conv_dim + channel;
-    let newest = qkv[qkv_idx];
+    let newest = f32(qkv[qkv_idx]);
 
     for (var k: u32 = 0u; k + 1u < kernel_size; k = k + 1u) {
       conv_state[state_base + k] = conv_state[state_base + k + 1u];
@@ -77,9 +80,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   }
 }
 `;
+}
 
-const RECURRENT_SHADER = /* wgsl */ `
-override WORKGROUP_SIZE: u32 = 128u;
+function buildLinearAttentionRecurrentShader(inputDtype) {
+  const inputScalar = selectRuleValue('shared', 'dtype', 'f16OrF32', { useF16: inputDtype === 'f16' });
+  const enableF16 = inputScalar === 'f16' ? 'enable f16;\n\n' : '';
+  return /* wgsl */ `${enableF16}override WORKGROUP_SIZE: u32 = 128u;
 
 struct LinearAttentionParams {
   num_tokens: u32,
@@ -102,9 +108,9 @@ struct LinearAttentionParams {
 
 @group(0) @binding(0) var<uniform> params: LinearAttentionParams;
 @group(0) @binding(1) var<storage, read> conv_out: array<f32>;
-@group(0) @binding(2) var<storage, read> z_proj: array<f32>;
-@group(0) @binding(3) var<storage, read> a_proj: array<f32>;
-@group(0) @binding(4) var<storage, read> b_proj: array<f32>;
+@group(0) @binding(2) var<storage, read> z_proj: array<${inputScalar}>;
+@group(0) @binding(3) var<storage, read> a_proj: array<${inputScalar}>;
+@group(0) @binding(4) var<storage, read> b_proj: array<${inputScalar}>;
 @group(0) @binding(5) var<storage, read> dt_bias: array<f32>;
 @group(0) @binding(6) var<storage, read> a_neg_exp: array<f32>;
 @group(0) @binding(7) var<storage, read> norm_weight: array<f32>;
@@ -158,42 +164,52 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
     let ab_row_base = token_idx * params.num_v_heads + head;
     let out_row_base = token_idx * params.value_dim + head * head_v_dim;
 
-    // L2 norm for Q and K (redundant across threads but avoids shared memory)
     var q_norm_sq = 0.0;
-    var k_norm_sq = 0.0;
-    for (var d: u32 = 0u; d < head_k_dim; d = d + 1u) {
+    for (var d: u32 = vd; d < head_k_dim; d = d + WORKGROUP_SIZE) {
       let q_val = conv_out[conv_row_base + q_base + d];
-      let k_val = conv_out[conv_row_base + k_base + d];
       q_norm_sq = q_norm_sq + q_val * q_val;
+    }
+    shared_sq[vd] = q_norm_sq;
+    workgroupBarrier();
+    for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride / 2u) {
+      if (vd < stride) {
+        shared_sq[vd] = shared_sq[vd] + shared_sq[vd + stride];
+      }
+      workgroupBarrier();
+    }
+    let q_norm_scale = head_scale / sqrt(shared_sq[0] + params.qk_l2norm_eps);
+
+    var k_norm_sq = 0.0;
+    for (var d: u32 = vd; d < head_k_dim; d = d + WORKGROUP_SIZE) {
+      let k_val = conv_out[conv_row_base + k_base + d];
       k_norm_sq = k_norm_sq + k_val * k_val;
     }
-
-    let q_norm_scale = head_scale / sqrt(q_norm_sq + params.qk_l2norm_eps);
-    let k_norm_scale = inverseSqrt(k_norm_sq + params.qk_l2norm_eps);
-    let beta = 1.0 / (1.0 + exp(-b_proj[ab_row_base]));
-    let g = a_neg_exp[head] * softplus(a_proj[ab_row_base] + dt_bias[head]);
+    shared_sq[vd] = k_norm_sq;
+    workgroupBarrier();
+    for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride / 2u) {
+      if (vd < stride) {
+        shared_sq[vd] = shared_sq[vd] + shared_sq[vd + stride];
+      }
+      workgroupBarrier();
+    }
+    let k_norm_scale = inverseSqrt(shared_sq[0] + params.qk_l2norm_eps);
+    let beta = 1.0 / (1.0 + exp(-f32(b_proj[ab_row_base])));
+    let g = a_neg_exp[head] * softplus(f32(a_proj[ab_row_base]) + dt_bias[head]);
     let g_exp = exp(g);
 
-    // Gated delta net recurrence (matches HF Qwen3_5 reference):
-    //   S_t = exp(g) * S_{t-1}                    (decay)
-    //   kv_mem = S_t^T @ k                         (retrieve from decayed state)
-    //   delta = beta * (v - kv_mem)                 (error-corrected update)
-    //   S_t = S_t + k @ delta^T                    (write)
-    //   o_t = S_t^T @ q                            (read from updated state)
     if (is_active) {
-      // Step 1: Decay state
       for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
         let state_idx = recurrent_head_base + kd * head_v_dim + vd;
         recurrent_state[state_idx] = recurrent_state[state_idx] * g_exp;
       }
-      // Step 2: Retrieve from decayed state
-      var kv_mem = 0.0;
+    }
+    var kv_mem = 0.0;
+    if (is_active) {
       for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
         let k_normed = conv_out[conv_row_base + k_base + kd] * k_norm_scale;
         let state_idx = recurrent_head_base + kd * head_v_dim + vd;
         kv_mem = kv_mem + recurrent_state[state_idx] * k_normed;
       }
-      // Step 3-4: Compute delta and write update
       let delta = (conv_out[conv_row_base + v_base + vd] - kv_mem) * beta;
       for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
         let k_normed = conv_out[conv_row_base + k_base + kd] * k_norm_scale;
@@ -202,7 +218,6 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
       }
     }
 
-    // Output — each thread computes one vd element
     var out_value = 0.0;
     if (is_active) {
       for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
@@ -210,13 +225,13 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
         let state_idx = recurrent_head_base + kd * head_v_dim + vd;
         out_value = out_value + recurrent_state[state_idx] * q_normed;
       }
+    }
+    if (is_active) {
       output[out_row_base + vd] = out_value;
     }
 
-    // RMS norm reduction across vd (workgroup-level)
     shared_sq[vd] = select(0.0, out_value * out_value, is_active);
     workgroupBarrier();
-    // Tree reduction
     for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride / 2u) {
       if (vd < stride) {
         shared_sq[vd] = shared_sq[vd] + shared_sq[vd + stride];
@@ -225,23 +240,22 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
     }
     let inv_rms = inverseSqrt(shared_sq[0] / f32(head_v_dim) + params.rms_norm_eps);
 
-    // Apply norm + gate
     if (is_active) {
-      let gate = silu(z_proj[z_row_base + vd]);
+      let gate = silu(f32(z_proj[z_row_base + vd]));
       let norm_index = select(vd, head * head_v_dim + vd, params.norm_mode == 1u);
       output[out_row_base + vd] = (output[out_row_base + vd] * inv_rms) * norm_weight[norm_index] * gate;
     }
   }
 }
 `;
+}
 
 let cachedEpoch = -1;
-let convPipeline = null;
-let recurrentPipeline = null;
+const pipelineCache = new Map();
 let convBindGroupLayout = null;
 let recurrentBindGroupLayout = null;
 
-function createPipelines(device) {
+function createBindGroupLayouts(device) {
   convBindGroupLayout = getOrCreateBindGroupLayout(
     'linear_attention_conv_layout',
     [
@@ -269,18 +283,22 @@ function createPipelines(device) {
     ],
     device
   );
+}
 
+function createPipelines(device, inputDtype) {
+  createBindGroupLayouts(device);
+  const variant = inputDtype === 'f16' ? 'f16' : 'f32';
   const convModule = device.createShaderModule({
-    label: 'linear_attention_conv',
-    code: CONV_SHADER,
+    label: `linear_attention_conv_${variant}`,
+    code: buildLinearAttentionConvShader(variant),
   });
   const recurrentModule = device.createShaderModule({
-    label: 'linear_attention_recurrent',
-    code: RECURRENT_SHADER,
+    label: `linear_attention_recurrent_${variant}`,
+    code: buildLinearAttentionRecurrentShader(variant),
   });
 
-  convPipeline = device.createComputePipeline({
-    label: 'linear_attention_conv_pipeline',
+  const convPipeline = device.createComputePipeline({
+    label: `linear_attention_conv_pipeline_${variant}`,
     layout: getOrCreatePipelineLayout('linear_attention_conv_pipeline_layout', [convBindGroupLayout], device),
     compute: {
       module: convModule,
@@ -290,8 +308,8 @@ function createPipelines(device) {
       },
     },
   });
-  recurrentPipeline = device.createComputePipeline({
-    label: 'linear_attention_recurrent_pipeline',
+  const recurrentPipeline = device.createComputePipeline({
+    label: `linear_attention_recurrent_pipeline_${variant}`,
     layout: getOrCreatePipelineLayout('linear_attention_recurrent_pipeline_layout', [recurrentBindGroupLayout], device),
     compute: {
       module: recurrentModule,
@@ -301,14 +319,28 @@ function createPipelines(device) {
       },
     },
   });
+
+  pipelineCache.set(variant, { convPipeline, recurrentPipeline });
 }
 
-function ensurePipelines(device) {
+function normalizeInputDtype(dtype) {
+  return selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype });
+}
+
+function ensurePipelines(device, inputDtype) {
   const epoch = getDeviceEpoch();
-  if (epoch !== cachedEpoch || !convPipeline || !recurrentPipeline) {
-    createPipelines(device);
+  if (epoch !== cachedEpoch) {
+    pipelineCache.clear();
+    convBindGroupLayout = null;
+    recurrentBindGroupLayout = null;
     cachedEpoch = epoch;
   }
+  const variant = normalizeInputDtype(inputDtype);
+  if (!pipelineCache.has(variant)) {
+    createPipelines(device, variant);
+    cachedEpoch = epoch;
+  }
+  return pipelineCache.get(variant) ?? null;
 }
 
 function buildParamsData(params) {
@@ -371,7 +403,21 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
     throw new Error(`linear_attention requires supported normMode, got ${layerState.normMode}.`);
   }
 
-  ensurePipelines(device);
+  const inputDtype = normalizeInputDtype(qkvTensor?.dtype);
+  if (normalizeInputDtype(zTensor?.dtype) !== inputDtype) {
+    throw new Error(`linear_attention core requires matching qkv/z dtypes; got ${qkvTensor?.dtype} and ${zTensor?.dtype}.`);
+  }
+  if (normalizeInputDtype(aTensor?.dtype) !== inputDtype) {
+    throw new Error(`linear_attention core requires matching qkv/a dtypes; got ${qkvTensor?.dtype} and ${aTensor?.dtype}.`);
+  }
+  if (normalizeInputDtype(bTensor?.dtype) !== inputDtype) {
+    throw new Error(`linear_attention core requires matching qkv/b dtypes; got ${qkvTensor?.dtype} and ${bTensor?.dtype}.`);
+  }
+
+  const pipelines = ensurePipelines(device, inputDtype);
+  if (!pipelines) {
+    throw new Error(`linear_attention core failed to resolve pipelines for dtype "${inputDtype}".`);
+  }
 
   const convOutSize = numTokens * layerState.convDim * Float32Array.BYTES_PER_ELEMENT;
   const outputSize = numTokens * layerState.valueDim * Float32Array.BYTES_PER_ELEMENT;
@@ -430,14 +476,14 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
 
       recordDispatch(
         recorder,
-        convPipeline,
+        pipelines.convPipeline,
         convBindGroup,
         [Math.ceil(layerState.convDim / CONV_WORKGROUP_SIZE), 1, 1],
         'linear_attention_conv'
       );
       recordDispatch(
         recorder,
-        recurrentPipeline,
+        pipelines.recurrentPipeline,
         recurrentBindGroup,
         [layerState.numVHeads, 1, 1],
         'linear_attention_recurrent'
@@ -516,7 +562,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
 
     {
       const pass = encoder.beginComputePass({ label: 'linear_attention_conv_pass' });
-      pass.setPipeline(convPipeline);
+      pass.setPipeline(pipelines.convPipeline);
       pass.setBindGroup(0, convBindGroup);
       pass.dispatchWorkgroups(Math.ceil(layerState.convDim / CONV_WORKGROUP_SIZE), 1, 1);
       pass.end();
@@ -524,7 +570,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
 
     {
       const pass = encoder.beginComputePass({ label: 'linear_attention_recurrent_pass' });
-      pass.setPipeline(recurrentPipeline);
+      pass.setPipeline(pipelines.recurrentPipeline);
       pass.setBindGroup(0, recurrentBindGroup);
       pass.dispatchWorkgroups(layerState.numVHeads, 1, 1);
       pass.end();

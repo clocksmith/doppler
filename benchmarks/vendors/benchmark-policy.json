@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-03-19",
+  "updated": "2026-03-29",
   "timeoutsMs": {
     "compare": 600000,
     "doppler": 600000,
@@ -45,12 +45,16 @@
       "parity": {
         "batchSize": 1,
         "readbackInterval": 1,
+        "disableMultiTokenDecode": true,
+        "speculationMode": "none",
         "stopCheckMode": "per-token",
         "label": "TJS-like per-token cadence"
       },
       "throughput": {
         "batchSize": 4,
         "readbackInterval": 4,
+        "disableMultiTokenDecode": false,
+        "speculationMode": "none",
         "stopCheckMode": "per-token",
         "label": "Doppler throughput-tuned cadence"
       }

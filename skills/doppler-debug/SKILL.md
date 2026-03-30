@@ -54,7 +54,14 @@ Use this order for inference failures that load successfully but generate bad ou
 - one early activation slice
 - one output/logits slice
 
-3. Compare boundary-by-boundary and stop at first divergence:
+3. Dump the phase-specific execution contract:
+- resolved prefill kernel path
+- resolved decode kernel path
+- active `decodeMode` and `batchGuardReason`
+- speculation / multi-token decode state
+- actual loaded weight/materialization dtype for the hot ops
+
+4. Compare boundary-by-boundary and stop at first divergence:
 - embeddings
 - post input norm
 - Q/K/V pre-RoPE
@@ -63,13 +70,18 @@ Use this order for inference failures that load successfully but generate bad ou
 - FFN output
 - final logits
 
-4. Once token IDs or embeddings match, stop changing prompt wrappers or harness formatting until later evidence requires it.
+5. Once token IDs or embeddings match, stop changing prompt wrappers or harness formatting until later evidence requires it.
 
-5. For quantized failures, run one F16 or source-precision control before changing quantized kernels.
+6. For quantized failures, run one F16 or source-precision control before changing quantized kernels.
 - F16/source-precision good + quantized bad => quantized path issue
 - F16/source-precision bad + quantized bad => shared conversion/layout/runtime issue
 
-6. Prefer one config-driven probe over one new theory.
+7. Prefer one config-driven probe over one new theory.
+
+For decode performance regressions, classify the wall before editing kernels:
+- `decodeRecordMs` high => GPU compute or recording path
+- `decodeSubmitWaitMs` / `decodeReadbackWaitMs` high => orchestration or readback path
+- `singleTokenReadbackWaitMs` high on a fair parity lane => likely not a phase-math problem first
 
 Reference workflow: `docs/debug-playbook.md`
 Reusable report template: `docs/debug-investigation-template.md`

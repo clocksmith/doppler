@@ -217,4 +217,80 @@ function createHarnessOverride(records) {
   assert.equal(observed.diagnostics?.captureConfig?.defaultLevel, 'none');
 }
 
+{
+  const result = await runBrowserSuite({
+    suite: 'debug',
+    command: 'debug',
+    surface: 'node',
+    harnessOverride: {
+      modelLoadMs: 1,
+      manifest: {
+        modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+        modelType: 'transformer',
+        architecture: {
+          numLayers: 24,
+          hiddenSize: 1024,
+          intermediateSize: 3584,
+          numAttentionHeads: 8,
+          numKeyValueHeads: 2,
+          headDim: 256,
+          vocabSize: 248320,
+          maxSeqLen: 262144,
+        },
+        inference: {
+          attention: {
+            queryPreAttnScalar: 256,
+          },
+          chatTemplate: {
+            type: 'qwen',
+            enabled: false,
+          },
+        },
+      },
+      pipeline: {
+        async *generate(_promptInput, options = {}) {
+          options.onToken?.(1, 'Blue');
+          yield 'Blue';
+        },
+        getStats() {
+          return {
+            prefillTimeMs: 1,
+            ttftMs: 1,
+            decodeTimeMs: 1,
+            prefillTokens: 64,
+            decodeTokens: 1,
+            prefillProfileSteps: [
+              {
+                label: 'prefill',
+                timings: {
+                  attention: 10,
+                  linear_attention_recurrent: 2,
+                },
+                totalMs: 12,
+              },
+            ],
+            decodeProfileSteps: [],
+          };
+        },
+        reset() {},
+        async unload() {},
+      },
+    },
+  });
+
+  assert.deepEqual(
+    result.metrics.prefillProfileSteps,
+    [
+      {
+        label: 'prefill',
+        timings: {
+          attention: 10,
+          linear_attention_recurrent: 2,
+        },
+        totalMs: 12,
+      },
+    ]
+  );
+}
+
 console.log('browser-harness-generation-diagnostics.test: ok');

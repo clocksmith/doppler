@@ -99,7 +99,10 @@ const MATMUL_ROLE_ALIASES = {
   k_proj: { section: 'layer', ops: ['k_proj'] },
   v_proj: { section: 'layer', ops: ['v_proj'] },
   qkv_proj: { section: 'layer', ops: ['qkv_proj', 'q_proj'] },
+  linear_qkv_proj: { section: 'layer', ops: ['qkv_proj', 'q_proj'] },
+  linear_z_proj: { section: 'layer', ops: ['q_proj'] },
   o_proj: { section: 'layer', ops: ['o_proj'] },
+  linear_out_proj: { section: 'layer', ops: ['o_proj'] },
   ffn_gate: { section: 'layer', ops: ['ffn_gate', 'gate_proj'] },
   ffn_up: { section: 'layer', ops: ['ffn_up', 'up_proj'] },
   ffn_down: { section: 'layer', ops: ['ffn_down', 'down_proj'] },
@@ -235,6 +238,16 @@ export function getKernelPathMatmulConstants(
 ) {
   const step = getKernelPathMatmulStep(role, phase, layerIndex, path);
   return step?.constants ?? null;
+}
+
+export function getKernelPathMatmulPrecision(
+  role,
+  phase,
+  layerIndex,
+  path = undefined
+) {
+  const step = getKernelPathMatmulStep(role, phase, layerIndex, path);
+  return step?.precision ?? null;
 }
 
 function getKernelPathMatmulStep(

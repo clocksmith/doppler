@@ -9,6 +9,7 @@ import {
   getKernelPathAttentionVariant,
   getKernelPathKVDtype,
   getKernelPathMatmulConstants,
+  getKernelPathMatmulPrecision,
   getKernelPathMatmulVariant,
   getKernelPathOutputDtype,
   getKernelPathStats,
@@ -138,6 +139,25 @@ try {
     ],
   };
 
+  const qwenLinearPath = {
+    id: 'qwen-linear-prefill-q4',
+    name: 'Qwen Linear Prefill Q4',
+    activationDtype: 'f32',
+    decode: {
+      steps: [
+        { op: 'q_proj', kernel: 'fused_matmul_q4.wgsl', entry: 'main_multicol', precision: { outputDtype: 'f16' } },
+        { op: 'o_proj', kernel: 'fused_matmul_q4.wgsl', entry: 'main_multicol' },
+      ],
+    },
+    prefill: {
+      steps: [
+        { op: 'q_proj', kernel: 'fused_matmul_q4_batched.wgsl', entry: 'main' },
+        { op: 'o_proj', kernel: 'fused_matmul_q4_batched.wgsl', entry: 'main' },
+      ],
+    },
+    postLayer: [],
+  };
+
   assert.equal(getKernelPathActivationDtype({ activationDtype: 'f16' }), 'f16');
   assert.equal(getKernelPathActivationDtype({}), null);
   assert.equal(getKernelPathOutputDtype({ outputDtype: 'f32' }), 'f32');
@@ -203,6 +223,24 @@ try {
 
   assert.equal(getKernelPathAttentionVariant('decode', 0, { decode: { steps: [] } }), null);
   assert.equal(getKernelPathMatmulVariant('missing_role', 'decode', 0, { decode: { steps: [] } }), null);
+  assert.equal(
+    getKernelPathMatmulVariant('linear_qkv_proj', 'prefill', 0, qwenLinearPath),
+    getKernelPathMatmulVariant('q_proj', 'prefill', 0, qwenLinearPath)
+  );
+  assert.equal(
+    getKernelPathMatmulVariant('linear_z_proj', 'prefill', 0, qwenLinearPath),
+    getKernelPathMatmulVariant('q_proj', 'prefill', 0, qwenLinearPath)
+  );
+  assert.equal(
+    getKernelPathMatmulVariant('linear_out_proj', 'decode', 0, qwenLinearPath),
+    getKernelPathMatmulVariant('o_proj', 'decode', 0, qwenLinearPath)
+  );
+  assert.equal(getKernelPathMatmulPrecision('linear_a_proj', 'decode', 0, qwenLinearPath), null);
+  assert.equal(getKernelPathMatmulPrecision('linear_b_proj', 'decode', 0, qwenLinearPath), null);
+  assert.equal(
+    getKernelPathMatmulPrecision('linear_qkv_proj', 'decode', 0, qwenLinearPath)?.outputDtype,
+    'f16'
+  );
 
   assert.equal(isKernelPathFusedQ4K(fusedPath), true);
   assert.equal(isKernelPathFusedQ4K(dequantPath), false);

@@ -3,8 +3,8 @@
   "benchmarkPolicy": {
     "source": "benchmarks/vendors/benchmark-policy.json",
     "schemaVersion": 1,
-    "sourceSha256": "9f9a652f077e3b4f6b180c9fc22582e49570176a21f87d809333da9b3af9db2e",
-    "updated": "2026-03-08"
+    "sourceSha256": "798ec52be7d53b74f144f99e2db4e7085ad277caa16c26f64adce4a66ae0ced3",
+    "updated": "2026-03-29"
   },
   "compareConfig": {
     "source": "benchmarks/vendors/compare-engines.config.json",

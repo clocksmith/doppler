@@ -4,6 +4,7 @@ const { probeNodeGPU } = await import('../helpers/gpu-probe.js');
 const { acquireBuffer, uploadData, readBuffer, releaseBuffer } = await import('../../src/memory/buffer-pool.js');
 const { createTensor } = await import('../../src/gpu/tensor.js');
 const { runLinearAttentionCoreGPU } = await import('../../src/gpu/kernels/linear-attention-core.js');
+const { float16ToFloat32, float32ToFloat16 } = await import('../../src/converter/quantizer.js');
 
 function silu(x) {
   return x / (1 + Math.exp(-x));
@@ -15,8 +16,15 @@ function softplus(x) {
   return Math.log(1 + Math.exp(x));
 }
 
-function toRoundedArray(values) {
-  return Array.from(values, (value) => Number(value.toFixed(6)));
+function assertArraysClose(actual, expected, tolerance, label) {
+  assert.equal(actual.length, expected.length, `${label} length mismatch`);
+  for (let i = 0; i < actual.length; i += 1) {
+    const delta = Math.abs(actual[i] - expected[i]);
+    assert.ok(
+      delta <= tolerance,
+      `${label}[${i}] mismatch: actual=${actual[i]} expected=${expected[i]} delta=${delta} tolerance=${tolerance}`
+    );
+  }
 }
 
 function buildReferenceOutput({ qkv, z, a, b, layerState, numTokens, qkL2NormEps }) {
@@ -122,6 +130,16 @@ function createGpuBuffer(values, label) {
   return buffer;
 }
 
+function createF16View(values) {
+  const encoded = new Uint16Array(values.length);
+  const rounded = new Float32Array(values.length);
+  for (let i = 0; i < values.length; i += 1) {
+    encoded[i] = float32ToFloat16(values[i]);
+    rounded[i] = float16ToFloat32(encoded[i]);
+  }
+  return { encoded, rounded };
+}
+
 const gpuProbe = await probeNodeGPU();
 if (!gpuProbe.ready) {
   console.log(`linear-attention-core-gpu-regression.test: skipped (${gpuProbe.reason})`);
@@ -166,67 +184,74 @@ const layerState = {
   recurrentState: new Float32Array(8),
 };
 
-const gpuLayerState = {
-  ...layerState,
-  convWeightGPU: createGpuBuffer(layerState.convWeight, 'linear_conv_weight'),
-  dtBiasGPU: createGpuBuffer(layerState.dtBias, 'linear_dt_bias'),
-  aNegExpGPU: createGpuBuffer(layerState.aNegExp, 'linear_a_neg_exp'),
-  normWeightGPU: createGpuBuffer(layerState.normWeight, 'linear_norm_weight'),
-  convStateGPU: createGpuBuffer(layerState.convState, 'linear_conv_state'),
-  recurrentStateGPU: createGpuBuffer(layerState.recurrentState, 'linear_recurrent_state'),
-};
+async function runCase(inputDtype) {
+  const qkvInput = inputDtype === 'f16' ? createF16View(qkv) : null;
+  const zInput = inputDtype === 'f16' ? createF16View(z) : null;
+  const aInput = inputDtype === 'f16' ? createF16View(a) : null;
+  const bInput = inputDtype === 'f16' ? createF16View(b) : null;
+  const reference = buildReferenceOutput({
+    qkv: qkvInput?.rounded ?? qkv,
+    z: zInput?.rounded ?? z,
+    a: aInput?.rounded ?? a,
+    b: bInput?.rounded ?? b,
+    layerState,
+    numTokens,
+    qkL2NormEps,
+  });
+  const gpuLayerState = {
+    ...layerState,
+    convWeightGPU: createGpuBuffer(layerState.convWeight, `linear_conv_weight_${inputDtype}`),
+    dtBiasGPU: createGpuBuffer(layerState.dtBias, `linear_dt_bias_${inputDtype}`),
+    aNegExpGPU: createGpuBuffer(layerState.aNegExp, `linear_a_neg_exp_${inputDtype}`),
+    normWeightGPU: createGpuBuffer(layerState.normWeight, `linear_norm_weight_${inputDtype}`),
+    convStateGPU: createGpuBuffer(layerState.convState, `linear_conv_state_${inputDtype}`),
+    recurrentStateGPU: createGpuBuffer(layerState.recurrentState, `linear_recurrent_state_${inputDtype}`),
+  };
+  const qkvBuffer = createGpuBuffer(qkvInput?.encoded ?? qkv, `linear_qkv_${inputDtype}`);
+  const zBuffer = createGpuBuffer(zInput?.encoded ?? z, `linear_z_${inputDtype}`);
+  const aBuffer = createGpuBuffer(aInput?.encoded ?? a, `linear_a_${inputDtype}`);
+  const bBuffer = createGpuBuffer(bInput?.encoded ?? b, `linear_b_${inputDtype}`);
 
-const qkvBuffer = createGpuBuffer(qkv, 'linear_qkv');
-const zBuffer = createGpuBuffer(z, 'linear_z');
-const aBuffer = createGpuBuffer(a, 'linear_a');
-const bBuffer = createGpuBuffer(b, 'linear_b');
+  let outputTensor = null;
+  try {
+    outputTensor = await runLinearAttentionCoreGPU(
+      createTensor(qkvBuffer, inputDtype, [numTokens, layerState.convDim], `linear_qkv_${inputDtype}`),
+      createTensor(zBuffer, inputDtype, [numTokens, layerState.valueDim], `linear_z_${inputDtype}`),
+      createTensor(aBuffer, inputDtype, [numTokens, layerState.numVHeads], `linear_a_${inputDtype}`),
+      createTensor(bBuffer, inputDtype, [numTokens, layerState.numVHeads], `linear_b_${inputDtype}`),
+      gpuLayerState,
+      { numTokens, qkL2NormEps }
+    );
 
-const reference = buildReferenceOutput({
-  qkv,
-  z,
-  a,
-  b,
-  layerState,
-  numTokens,
-  qkL2NormEps,
-});
-
-let outputTensor = null;
-try {
-  outputTensor = await runLinearAttentionCoreGPU(
-    createTensor(qkvBuffer, 'f32', [numTokens, layerState.convDim], 'linear_qkv'),
-    createTensor(zBuffer, 'f32', [numTokens, layerState.valueDim], 'linear_z'),
-    createTensor(aBuffer, 'f32', [numTokens, layerState.numVHeads], 'linear_a'),
-    createTensor(bBuffer, 'f32', [numTokens, layerState.numVHeads], 'linear_b'),
-    gpuLayerState,
-    { numTokens, qkL2NormEps }
-  );
-
-  const gpuOutput = new Float32Array(await readBuffer(outputTensor.buffer, reference.output.byteLength));
-  const gpuState = new Float32Array(
-    await readBuffer(gpuLayerState.recurrentStateGPU, reference.recurrentState.byteLength)
-  );
-
-  assert.deepEqual(toRoundedArray(gpuOutput), toRoundedArray(reference.output));
-  assert.deepEqual(toRoundedArray(gpuState), toRoundedArray(reference.recurrentState));
-} finally {
-  if (outputTensor?.buffer) {
-    releaseBuffer(outputTensor.buffer);
-  }
-  for (const buffer of [
-    qkvBuffer,
-    zBuffer,
-    aBuffer,
-    bBuffer,
-    gpuLayerState.convWeightGPU,
-    gpuLayerState.dtBiasGPU,
-    gpuLayerState.aNegExpGPU,
-    gpuLayerState.normWeightGPU,
-    gpuLayerState.convStateGPU,
-    gpuLayerState.recurrentStateGPU,
-  ]) {
-    releaseBuffer(buffer);
+    const gpuOutput = new Float32Array(await readBuffer(outputTensor.buffer, reference.output.byteLength));
+    const gpuState = new Float32Array(
+      await readBuffer(gpuLayerState.recurrentStateGPU, reference.recurrentState.byteLength)
+    );
+    const tolerance = inputDtype === 'f16' ? 7e-4 : 1e-5;
+    assertArraysClose(gpuOutput, reference.output, tolerance, `${inputDtype} output`);
+    assertArraysClose(gpuState, reference.recurrentState, tolerance, `${inputDtype} recurrent_state`);
+  } finally {
+    if (outputTensor?.buffer) {
+      releaseBuffer(outputTensor.buffer);
+    }
+    for (const buffer of [
+      qkvBuffer,
+      zBuffer,
+      aBuffer,
+      bBuffer,
+      gpuLayerState.convWeightGPU,
+      gpuLayerState.dtBiasGPU,
+      gpuLayerState.aNegExpGPU,
+      gpuLayerState.normWeightGPU,
+      gpuLayerState.convStateGPU,
+      gpuLayerState.recurrentStateGPU,
+    ]) {
+      releaseBuffer(buffer);
+    }
   }
 }
+
+await runCase('f32');
+await runCase('f16');
 
 console.log('linear-attention-core-gpu-regression.test: ok');

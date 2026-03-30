@@ -23,7 +23,14 @@ import {
     },
   };
 
-  assert.equal(resolveSection(report, 'compute/parity'), null);
+  assert.deepEqual(resolveSection(report, 'compute/parity'), {
+    section: 'warm',
+    payload: report.sections.warm,
+  });
+  assert.deepEqual(resolveSection(report, 'compute/throughput'), {
+    section: 'warm',
+    payload: report.sections.warm,
+  });
   assert.deepEqual(resolveSection(report, 'warm'), {
     section: 'warm',
     payload: report.sections.warm,
@@ -31,9 +38,28 @@ import {
 }
 
 {
+  const report = {
+    sections: {
+      compute: {
+        parity: {
+          doppler: { result: { timing: { decodeTokensPerSec: 1 } } },
+          transformersjs: { result: { timing: { decodeTokensPerSec: 1 } } },
+        },
+      },
+    },
+  };
+
+  assert.deepEqual(resolveSection(report, 'warm'), {
+    section: 'compute/parity',
+    payload: report.sections.compute.parity,
+  });
+}
+
+{
   const source = readFileSync(new URL('../../benchmarks/vendors/compare-chart.js', import.meta.url), 'utf8');
   assert.match(source, /title: 'First token'/);
-  assert.match(source, /Phase breakdown with warm load, first-token latency, and decode time\./);
+  assert.match(source, /SHORTER BAR = FASTER/);
+  assert.match(source, /normalized === 'warm' \|\| normalized === 'compute\/parity'/);
   assert.match(source, /font-weight="bold" stroke="none">TOTAL<\/text>/);
 }
 

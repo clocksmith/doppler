@@ -33,6 +33,20 @@
         "hasSubgroups": true,
         "hasF16": true,
         "activationDtype": "f32",
+        "kvDtype": "f16",
+        "platformVendor": "apple",
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "maxWorkgroupStorageSize": { "gte": 16384 },
+        "hasQ4PrefillProjectionKernel": true
+      },
+      "transforms": ["useHead256PrefillAttention", "remapQ4KPrefillToDense", "useLinearDecodeProjectionF16"],
+      "reason": "Apple/WebGPU Qwen 3.5 0.8B promotes 256-dim prefill attention, remaps fused-Q4 prefill projections onto dense matmul kernels, and narrows linear decode projections to f16 outputs"
+    },
+    {
+      "match": {
+        "hasSubgroups": true,
+        "hasF16": true,
+        "activationDtype": "f32",
         "platformVendor": "apple",
         "modelId": { "neq": "gemma-3-1b-it-q4k-ehf16-af32" },
         "hasDensePrefillProjectionKernel": true,

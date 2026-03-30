@@ -13,12 +13,20 @@ import type { Tensor } from '../../../../gpu/tensor.js';
 import type { WeightBuffer } from '../../../../gpu/weight-buffer.js';
 import type { LayerContext, LayerWeights } from '../types.js';
 
+export declare function resolveGateUpPathMode(options?: {
+  kernelPath?: Record<string, unknown> | null;
+  phase?: 'prefill' | 'decode' | null;
+  layerIdx?: number;
+}): 'fused' | 'split' | 'implicit';
+
 export declare function resolveFusedGateUpWeights(
   layerWeights: LayerWeights | undefined,
   options?: {
     activationDtype?: 'f16' | 'f32' | null;
     hiddenSize?: number;
     kernelPath?: Record<string, unknown> | null;
+    phase?: 'prefill' | 'decode' | null;
+    layerIdx?: number;
   }
 ): {
   gate: GPUBuffer | WeightBuffer | null;

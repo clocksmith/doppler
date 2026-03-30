@@ -26,6 +26,7 @@ export declare function resolveCapabilityTransforms(
     activationDtype: string;
     kvDtype: string;
     modelId?: string;
+    layerTypes?: string[] | null;
     hasDensePrefillProjectionKernel?: boolean;
     hasQ4DecodeProjectionKernel?: boolean;
     hasQ4PrefillProjectionKernel?: boolean;
@@ -39,5 +40,5 @@ export declare function resolveCapabilityTransforms(
  * Returns null when already f32 (no alternate plan available).
  */
 export declare function resolveFinitenessFallbackTransform(
-  graphContext: { activationDtype: string; kvDtype: string; modelId?: string }
+  graphContext: { activationDtype: string; kvDtype: string; modelId?: string; layerTypes?: string[] | null }
 ): { transform: ExecutionGraphTransform; name: string } | null;

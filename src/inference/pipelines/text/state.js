@@ -100,6 +100,7 @@ export class PipelineState {
       decodeRecordMs: 0,
       decodeSubmitWaitMs: 0,
       decodeReadbackWaitMs: 0,
+      prefillProfileSteps: [],
       decodeProfileSteps: [],
       executionPlan: null,
       kernelPathId: null,

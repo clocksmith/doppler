@@ -89,6 +89,18 @@ export function getKernelPathMatmulConstants(
   path?: KernelPathSchema | null
 ): Record<string, number | boolean> | null;
 
+export function getKernelPathMatmulPrecision(
+  role: string | undefined,
+  phase: KernelPathPhase,
+  layerIndex?: number,
+  path?: KernelPathSchema | null
+): {
+  activationDtype?: 'f16' | 'f32';
+  kvDtype?: 'f16' | 'f32';
+  inputDtype?: 'f16' | 'f32';
+  outputDtype?: 'f16' | 'f32';
+} | null;
+
 export function getKernelPathAttentionVariant(
   phase: KernelPathPhase,
   layerIndex?: number,
