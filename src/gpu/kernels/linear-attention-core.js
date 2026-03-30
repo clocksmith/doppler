@@ -2,6 +2,7 @@ import { getDevice, getDeviceEpoch } from '../device.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
+import { castF32ToF16, recordCastF32ToF16 } from './cast.js';
 import {
   createUniformBufferFromData,
   getOrCreateBindGroupLayout,
@@ -371,6 +372,19 @@ function requireGpuBuffer(buffer, label) {
   }
 }
 
+function resolveOutputDtype(outputDtype) {
+  const normalized = selectRuleValue(
+    'shared',
+    'dtype',
+    'f16OrF32FromDtype',
+    { dtype: outputDtype === undefined ? 'f32' : outputDtype }
+  );
+  if (normalized === 'f16' || normalized === 'f32') {
+    return normalized;
+  }
+  throw new Error(`linear_attention core output dtype "${outputDtype}" is invalid.`);
+}
+
 export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTensor, layerState, options = {}) {
   const device = getDevice();
   if (!device) {
@@ -423,6 +437,8 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
   const outputSize = numTokens * layerState.valueDim * Float32Array.BYTES_PER_ELEMENT;
   const convOutBuffer = acquireBuffer(convOutSize, undefined, `L${options.layerIdx ?? 0}.linear_conv_out`);
   const outputBuffer = acquireBuffer(outputSize, undefined, `L${options.layerIdx ?? 0}.linear_attention_core_out`);
+  const outputDtype = resolveOutputDtype(options.outputDtype);
+  const outputShape = [numTokens, layerState.valueDim];
   if (useRecorder) {
     const paramsBuffer = createUniformBufferFromData(
       'linear_attention_params',
@@ -491,12 +507,18 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
 
       recorder.trackTemporaryBuffer(convOutBuffer);
 
-      return createTensor(
+      const output = createTensor(
         outputBuffer,
         'f32',
-        [numTokens, layerState.valueDim],
+        outputShape,
         `L${options.layerIdx ?? 0}.linear_attention_core`
       );
+      if (outputDtype === 'f16') {
+        const casted = await recordCastF32ToF16(recorder, output);
+        recorder.trackTemporaryBuffer(outputBuffer);
+        return casted;
+      }
+      return output;
     } catch (error) {
       releaseBuffer(convOutBuffer);
       releaseBuffer(outputBuffer);
@@ -579,12 +601,18 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
     device.queue.submit([encoder.finish()]);
     submitted = true;
 
-    return createTensor(
+    const output = createTensor(
       outputBuffer,
       'f32',
-      [numTokens, layerState.valueDim],
+      outputShape,
       `L${options.layerIdx ?? 0}.linear_attention_core`
     );
+    if (outputDtype === 'f16') {
+      const casted = await castF32ToF16(output);
+      releaseBuffer(outputBuffer);
+      return casted;
+    }
+    return output;
   } catch (error) {
     releaseBuffer(outputBuffer);
     throw error;

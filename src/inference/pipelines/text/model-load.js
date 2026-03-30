@@ -277,6 +277,8 @@ function collectKernelPathSteps(kernelPath) {
   append(kernelPath?.sampling);
   for (const override of kernelPath?.layerOverrides ?? []) {
     append(override?.steps);
+    append(override?.decode?.steps);
+    append(override?.prefill?.steps);
   }
   return steps;
 }

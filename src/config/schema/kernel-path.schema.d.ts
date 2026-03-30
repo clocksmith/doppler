@@ -88,8 +88,23 @@ export interface LayerOverrideSchema {
   /** Layer indices this override applies to */
   layers: number[];
 
-  /** Steps to use instead of default */
-  steps: KernelStepSchema[];
+  /**
+   * Legacy all-phase override steps. When present, these replace both decode
+   * and prefill defaults.
+   */
+  steps?: KernelStepSchema[];
+
+  /**
+   * Phase-specific decode override. When omitted, decode falls back to
+   * `steps` or the base decode path.
+   */
+  decode?: LayerKernelPathSchema;
+
+  /**
+   * Phase-specific prefill override. When omitted, prefill falls back to
+   * `steps` or the base prefill path.
+   */
+  prefill?: LayerKernelPathSchema;
 }
 
 /**

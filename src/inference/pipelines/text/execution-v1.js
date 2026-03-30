@@ -136,6 +136,7 @@ function expandV1ToResolvedSteps(execution, options = {}) {
       entry: step.entry,
       ...(step.weights ? { weights: step.weights } : {}),
       ...(step.constants ? { constants: step.constants } : {}),
+      ...(step.precision ? { precision: step.precision } : {}),
       layers: step.layers,
       kernelRef: {
         id: `${step.kernel.replace('.wgsl', '')}.${step.entry}`,

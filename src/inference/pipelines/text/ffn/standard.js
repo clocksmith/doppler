@@ -86,7 +86,7 @@ export async function processFFNStandard(
 
   // 3. Residual add (uses prenorm sum when fused, otherwise postAttn)
   const residualTensor = prenormSumBuffer
-    ? { buffer: prenormSumBuffer, dtype: postAttn.dtype }
+    ? { buffer: prenormSumBuffer, dtype: postAttn.dtype, shape: postAttn.shape }
     : postAttn;
   const output = await doResidualAdd(ffnOutput, residualTensor, size, recorder, {
     label: `L${layerIdx}.ffn_residual`,

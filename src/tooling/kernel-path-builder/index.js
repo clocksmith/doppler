@@ -191,7 +191,15 @@ function normalizeKernelPathShape(path) {
     layerOverrides: Array.isArray(path.layerOverrides)
       ? path.layerOverrides.map((override) => ({
         layers: normalizeLayers(override?.layers) || [],
-        steps: Array.isArray(override?.steps) ? override.steps.map(normalizeStep) : [],
+        ...(Array.isArray(override?.steps) && override.steps.length > 0
+          ? { steps: override.steps.map(normalizeStep) }
+          : {}),
+        ...(Array.isArray(override?.decode?.steps) && override.decode.steps.length > 0
+          ? { decode: { steps: override.decode.steps.map(normalizeStep) } }
+          : {}),
+        ...(Array.isArray(override?.prefill?.steps) && override.prefill.steps.length > 0
+          ? { prefill: { steps: override.prefill.steps.map(normalizeStep) } }
+          : {}),
       }))
       : [],
   });
@@ -221,7 +229,15 @@ function materializeKernelPathFromShape(modelId, shape, meta = {}) {
       ? {
         layerOverrides: shape.layerOverrides.map((override) => ({
           layers: normalizeLayers(override?.layers) || [],
-          steps: cloneSteps(override?.steps),
+          ...(Array.isArray(override?.steps) && override.steps.length > 0
+            ? { steps: cloneSteps(override.steps) }
+            : {}),
+          ...(Array.isArray(override?.decode?.steps) && override.decode.steps.length > 0
+            ? { decode: { steps: cloneSteps(override.decode.steps) } }
+            : {}),
+          ...(Array.isArray(override?.prefill?.steps) && override.prefill.steps.length > 0
+            ? { prefill: { steps: cloneSteps(override.prefill.steps) } }
+            : {}),
         })),
       }
       : {}),

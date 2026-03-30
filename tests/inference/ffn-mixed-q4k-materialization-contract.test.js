@@ -66,6 +66,35 @@ const mixedKernelPath = {
   },
 };
 
+const decodePrecisionKernelPath = {
+  id: 'unit-qwen-decode-inline',
+  decode: {
+    steps: [
+      {
+        op: 'ffn_gate',
+        kernel: 'fused_matmul_q4_multicol_f16a.wgsl',
+        entry: 'main_multicol_f16a',
+        precision: {
+          inputDtype: 'f16',
+          outputDtype: 'f16',
+        },
+      },
+      {
+        op: 'ffn_up',
+        kernel: 'fused_matmul_q4_multicol_f16a.wgsl',
+        entry: 'main_multicol_f16a',
+        precision: {
+          inputDtype: 'f16',
+          outputDtype: 'f16',
+        },
+      },
+    ],
+  },
+  prefill: {
+    steps: [],
+  },
+};
+
 const mixedWeights = {
   gate: createMixedWeight('gate'),
   up: createMixedWeight('up'),
@@ -178,6 +207,14 @@ assert.equal(nativeF16.up.buffer.label, 'up_q4k');
   }), 'split');
   assert.equal(resolveGateUpPathMode({
     kernelPath: mixedKernelPath,
+    phase: 'decode',
+    layerIdx: 0,
+  }), 'implicit');
+  // Decode precision overrides now fall through to the rule engine (fused FFN
+  // handles Q4K→f32 internally, so forcing 'split' adds dispatch overhead
+  // without a measurable accuracy win).
+  assert.equal(resolveGateUpPathMode({
+    kernelPath: decodePrecisionKernelPath,
     phase: 'decode',
     layerIdx: 0,
   }), 'implicit');

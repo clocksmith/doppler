@@ -12,7 +12,7 @@ export { extractLastPositionLogits, finalizeLogits, readBufferWithCleanup } from
 // Imports for computeLogits orchestrator
 import { getDevice } from '../../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
-import { runMatmul, runRMSNorm, castF16ToF32 } from '../../../../gpu/kernel-selector.js';
+import { runMatmul, runRMSNorm, castF16ToF32, castF32ToF16 } from '../../../../gpu/kernel-selector.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, getWeightDtype } from '../../../../gpu/weight-buffer.js';
 import { kernelTrace, traceStep } from '../kernel-trace.js';
@@ -22,6 +22,7 @@ import { rmsNormCPU, matmulCPU, f16BufferToF32 } from './cpu.js';
 import { resolveCpuWeightDims, computeChunkedLogitsGPU } from './gpu.js';
 import { finalizeLogits, readBufferWithCleanup } from './utils.js';
 import { getRuntimeConfig } from '../../../../config/runtime.js';
+import { getKernelPathMatmulPrecision } from '../../../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 
 function shouldForceStableF32Logits(config, inputDtype) {
@@ -30,6 +31,28 @@ function shouldForceStableF32Logits(config, inputDtype) {
     && config.rmsNormWeightOffset === true
     && Number.isFinite(config.hiddenSize)
     && config.hiddenSize <= 768;
+}
+
+function resolveMatmulStepDtype(role, phase, kernelPath, fallback, field) {
+  const precision = getKernelPathMatmulPrecision(role, phase, 0, kernelPath);
+  const requested = precision?.[field] ?? fallback;
+  if (requested == null) {
+    return fallback;
+  }
+  return selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: requested });
+}
+
+async function coerceTensorDtype(tensor, targetDtype) {
+  if (!targetDtype || tensor.dtype === targetDtype) {
+    return tensor;
+  }
+  if (tensor.dtype === 'f32' && targetDtype === 'f16') {
+    return castF32ToF16(tensor);
+  }
+  if (tensor.dtype === 'f16' && targetDtype === 'f32') {
+    return castF16ToF32(tensor);
+  }
+  throw new Error(`Unsupported logits matmul dtype coercion: ${tensor.dtype} -> ${targetDtype}`);
 }
 
 export function resolveLmHeadMatmulConfig(numTokens, options = null) {
@@ -269,6 +292,7 @@ export async function computeLogits(
   const lastTokenMatmul = resolveLmHeadMatmulConfig(numTokens, options);
   const { lastPositionOnly, matmulRows } = lastTokenMatmul;
   const matmulPhaseOverride = lastTokenMatmul.phaseOverride;
+  const lmHeadPhase = matmulPhaseOverride ?? (matmulRows === 1 ? 'decode' : 'prefill');
 
   // Debug: Log buffer info for lm_head matmul
   const lmHeadGPU = isWeightBuffer(lmHeadBuffer) ? lmHeadBuffer.buffer : lmHeadBuffer;
@@ -295,6 +319,20 @@ export async function computeLogits(
     matmulInputTensor = createTensor(lastInputBuffer, normedTensor.dtype, [1, hiddenSize], 'logits_input_last');
     matmulInputOwned = true;
   }
+  const lmHeadInputDtype = forceStableF32Logits
+    ? matmulInputTensor.dtype
+    : resolveMatmulStepDtype('lm_head', lmHeadPhase, config.kernelPath ?? null, matmulInputTensor.dtype, 'inputDtype');
+  const lmHeadOutputDtype = forceStableF32Logits
+    ? matmulInputTensor.dtype
+    : resolveMatmulStepDtype('lm_head', lmHeadPhase, config.kernelPath ?? null, matmulInputTensor.dtype, 'outputDtype');
+  if (lmHeadInputDtype !== matmulInputTensor.dtype) {
+    const coercedInput = await coerceTensorDtype(matmulInputTensor, lmHeadInputDtype);
+    if (matmulInputOwned) {
+      releaseBuffer(matmulInputTensor.buffer);
+    }
+    matmulInputTensor = coercedInput;
+    matmulInputOwned = true;
+  }
 
   // HuggingFace models store lm_head as [vocabSize, hiddenSize], so transposeB=true
   const logitsTensor = await runMatmul(matmulInputTensor, lmHeadBuffer, matmulRows, matmulVocabSize, hiddenSize, {
@@ -302,6 +340,7 @@ export async function computeLogits(
     role: 'lm_head',
     phaseOverride: matmulPhaseOverride,
     kernelPath: config.kernelPath ?? null,
+    outputDtype: lmHeadOutputDtype,
   });
   await runProbes('logits', logitsTensor.buffer, {
     numTokens: matmulRows,

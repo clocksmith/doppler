@@ -89,7 +89,11 @@ function getInlineKernelPathSteps(path) {
     ...(path?.prefill?.steps ?? []),
     ...(path?.postLayer ?? []),
     ...(path?.sampling ?? []),
-    ...(path?.layerOverrides?.flatMap((override) => override.steps ?? []) ?? []),
+    ...(path?.layerOverrides?.flatMap((override) => [
+      ...(override?.steps ?? []),
+      ...(override?.decode?.steps ?? []),
+      ...(override?.prefill?.steps ?? []),
+    ]) ?? []),
   ];
 }
 
@@ -202,15 +206,22 @@ export function buildInlineKernelPath(
       const hasCustomDecode = JSON.stringify(decodeLayerSteps) !== JSON.stringify(path.decode.steps);
       const hasCustomPrefill = JSON.stringify(prefillLayerSteps) !== JSON.stringify(path.prefill.steps);
       if (!hasCustomDecode && !hasCustomPrefill) continue;
-      const mergedLayerSteps = decodeLayerSteps.length > 0
-        ? decodeLayerSteps
-        : prefillLayerSteps;
-      if (mergedLayerSteps.length > 0) {
-        overrides.push({
-          layers: [layerIdx],
-          steps: mergedLayerSteps,
-        });
+      const override = { layers: [layerIdx] };
+      if (
+        hasCustomDecode
+        && hasCustomPrefill
+        && JSON.stringify(decodeLayerSteps) === JSON.stringify(prefillLayerSteps)
+      ) {
+        override.steps = decodeLayerSteps;
+      } else {
+        if (hasCustomDecode && decodeLayerSteps.length > 0) {
+          override.decode = { steps: decodeLayerSteps };
+        }
+        if (hasCustomPrefill && prefillLayerSteps.length > 0) {
+          override.prefill = { steps: prefillLayerSteps };
+        }
       }
+      overrides.push(override);
     }
     if (overrides.length > 0) {
       path.layerOverrides = overrides;

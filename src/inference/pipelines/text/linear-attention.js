@@ -618,6 +618,14 @@ async function projectLinearTensor({
   recorder,
 }) {
   const resolvedWeight = getWeightBuffer(sourceWeight, role);
+  const resolvedInputDtype = resolveMatmulStepDtype(
+    role,
+    phase,
+    layerIdx,
+    kernelPath,
+    inputTensor.dtype,
+    'inputDtype'
+  );
   const resolvedOutputDtype = resolveMatmulStepDtype(
     role,
     phase,
@@ -626,9 +634,13 @@ async function projectLinearTensor({
     outputDtype,
     'outputDtype'
   );
+  const wantsF16Input = inputTensor.dtype === 'f32' && resolvedInputDtype === 'f16';
+  const matmulInput = wantsF16Input
+    ? (recorder ? await recordCastF32ToF16(recorder, inputTensor) : await castF32ToF16(inputTensor))
+    : inputTensor;
   try {
     if (recorder) {
-      return await recordMatmul(recorder, inputTensor, resolvedWeight, numTokens, outDim, hiddenSize, {
+      return await recordMatmul(recorder, matmulInput, resolvedWeight, numTokens, outDim, hiddenSize, {
         transposeB: 'auto',
         role,
         layerIdx,
@@ -636,7 +648,7 @@ async function projectLinearTensor({
         outputDtype: resolvedOutputDtype,
       });
     }
-    return await runMatmul(inputTensor, resolvedWeight, numTokens, outDim, hiddenSize, {
+    return await runMatmul(matmulInput, resolvedWeight, numTokens, outDim, hiddenSize, {
       transposeB: 'auto',
       role,
       layerIdx,
@@ -644,6 +656,9 @@ async function projectLinearTensor({
       outputDtype: resolvedOutputDtype,
     });
   } finally {
+    if (matmulInput !== inputTensor) {
+      releaseOrTrackBuffer(recorder, matmulInput.buffer);
+    }
     releaseResolvedWeightBuffer(sourceWeight, resolvedWeight, recorder);
   }
 }
@@ -849,6 +864,23 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     recorder,
   });
 
+  const outProjInputDtype = resolveMatmulStepDtype(
+    'linear_out_proj',
+    phase,
+    layerIdx,
+    kernelPath,
+    projectionDtype,
+    'inputDtype'
+  );
+  const outProjOutputDtype = resolveMatmulStepDtype(
+    'linear_out_proj',
+    phase,
+    layerIdx,
+    kernelPath,
+    outputDtype,
+    'outputDtype'
+  );
+
   try {
     await runProbes('linear_qkv_proj', qkvTensor.buffer, {
       layerIdx,
@@ -894,6 +926,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
       layerState,
       {
         numTokens,
+        outputDtype: outProjInputDtype,
         layerIdx,
         qkL2NormEps: QK_L2NORM_EPS,
         recorder,
@@ -909,31 +942,11 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
       dtype: coreTensor.dtype,
     });
     layerState.seqLen = currentSeqLen + numTokens;
-    const outProjInputDtype = resolveMatmulStepDtype(
-      'linear_out_proj',
-      phase,
-      layerIdx,
-      kernelPath,
-      coreTensor.dtype,
-      'inputDtype'
-    );
-    const outProjOutputDtype = resolveMatmulStepDtype(
-      'linear_out_proj',
-      phase,
-      layerIdx,
-      kernelPath,
-      outputDtype,
-      'outputDtype'
-    );
-    const wantsF16OutProj = coreTensor.dtype === 'f32' && outProjInputDtype === 'f16';
-    const outProjInput = wantsF16OutProj
-      ? (recorder ? await recordCastF32ToF16(recorder, coreTensor) : await castF32ToF16(coreTensor))
-      : coreTensor;
     const outProjWeight = getWeightBuffer(layerWeights.oProj, `L${layerIdx}.linear_out_proj`);
     try {
       let result;
       if (recorder) {
-        result = await recordMatmul(recorder, outProjInput, outProjWeight, numTokens, hiddenSize, projectionLayout.valueDim, {
+        result = await recordMatmul(recorder, coreTensor, outProjWeight, numTokens, hiddenSize, projectionLayout.valueDim, {
           transposeB: 'auto',
           role: 'linear_out_proj',
           layerIdx,
@@ -941,7 +954,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
           outputDtype: outProjOutputDtype,
         });
       } else {
-        result = await runMatmul(outProjInput, outProjWeight, numTokens, hiddenSize, projectionLayout.valueDim, {
+        result = await runMatmul(coreTensor, outProjWeight, numTokens, hiddenSize, projectionLayout.valueDim, {
           transposeB: 'auto',
           role: 'linear_out_proj',
           layerIdx,
@@ -958,9 +971,6 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
       }
       return result;
     } finally {
-      if (outProjInput !== coreTensor) {
-        releaseOrTrackBuffer(recorder, outProjInput.buffer);
-      }
       releaseOrTrackBuffer(recorder, coreTensor.buffer);
       releaseResolvedWeightBuffer(layerWeights.oProj, outProjWeight, recorder);
     }

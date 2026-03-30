@@ -12,6 +12,8 @@ import {
   remapDenseQ4KPrefillToQ4Native,
   remapQ4KPrefillToDense,
   useLinearDecodeProjectionF16,
+  remapQ4KDecodeToGemv,
+  useQwenDecodeF16Matmuls,
   composeTransforms,
 } from '../../src/config/transforms/execution-graph-transforms.js';
 
@@ -560,6 +562,12 @@ function buildF16WeightProjectionGraph() {
     'f16',
     'useLinearDecodeProjectionF16 should request f16 outputs for linear decode projections'
   );
+  // o_proj must NOT be remapped to f16 — f16 truncation in the residual stream
+  // across 18 linear-attention layers corrupts the logit distribution.
+  const oProjGroups = result.decode.filter((entry) => !Array.isArray(entry) && entry?.steps?.[0]?.[0] === 'o_proj');
+  equal(oProjGroups.length, 0, 'useLinearDecodeProjectionF16 must not split o_proj (f16 residual corruption)');
+  const oProjTuples = result.decode.filter((entry) => Array.isArray(entry) && entry[0] === 'o_proj');
+  equal(oProjTuples.length, 1, 'useLinearDecodeProjectionF16 must leave the o_proj tuple unchanged');
   equal(
     result.kernels.q4_decode.precision,
     undefined,
@@ -567,6 +575,89 @@ function buildF16WeightProjectionGraph() {
   );
 
   deepEqual(graph, frozen, 'useLinearDecodeProjectionF16 must not mutate the input graph');
+}
+
+// ===========================================================================
+// Test 10b: useQwenDecodeF16Matmuls
+// ===========================================================================
+{
+  const graph = structuredClone(QWEN_REAL_GRAPH);
+  const frozen = structuredClone(graph);
+  const result = useQwenDecodeF16Matmuls(graph, {
+    ...CTX_F32,
+    modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+  });
+
+  ok(result !== null, 'useQwenDecodeF16Matmuls should rewrite selected Qwen decode matmuls onto explicit f16 kernels');
+  equal(
+    result.kernels[result.decode.find((entry) => Array.isArray(entry) && entry[0] === 'gate_proj')[1]].kernel,
+    'fused_matmul_q4_multicol_f16a.wgsl',
+    'useQwenDecodeF16Matmuls should move gate_proj onto the explicit q4 f16a kernel'
+  );
+  equal(
+    result.kernels[result.decode.find((entry) => Array.isArray(entry) && entry[0] === 'up_proj')[1]].precision?.inputDtype,
+    'f16',
+    'useQwenDecodeF16Matmuls should request f16 FFN up-proj inputs'
+  );
+  equal(
+    result.kernels[result.postLayer.find((entry) => entry[0] === 'lm_head')[1]].kernel,
+    'matmul_gemv_subgroup_f16a.wgsl',
+    'useQwenDecodeF16Matmuls should move decode lm_head onto the explicit f16a GEMV kernel'
+  );
+
+  deepEqual(graph, frozen, 'useQwenDecodeF16Matmuls must not mutate the input graph');
+}
+
+// ===========================================================================
+// Test 10c: remapQ4KDecodeToGemv
+// ===========================================================================
+{
+  const graph = structuredClone(QWEN_REAL_GRAPH);
+  const frozen = structuredClone(graph);
+  const result = remapQ4KDecodeToGemv(graph, {
+    ...CTX_F32,
+    modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+  });
+
+  ok(result !== null, 'remapQ4KDecodeToGemv should replace fused Q4K decode kernels with GEMV subgroup');
+  const decodeFiles = collectKernelFilesForPhase(result, 'decode');
+  ok(!decodeFiles.has('fused_matmul_q4.wgsl'),
+    'remapQ4KDecodeToGemv should remove fused_matmul_q4.wgsl from decode');
+  ok(decodeFiles.has('matmul_gemv_subgroup.wgsl'),
+    'remapQ4KDecodeToGemv should add matmul_gemv_subgroup.wgsl to decode');
+
+  // Verify all projection ops now use the GEMV kernel
+  for (const op of ['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj']) {
+    const step = result.decode.find((entry) => Array.isArray(entry) && entry[0] === op);
+    ok(step, `remapQ4KDecodeToGemv: ${op} step should exist in decode`);
+    const entry = result.kernels[step[1]];
+    equal(entry.kernel, 'matmul_gemv_subgroup.wgsl',
+      `remapQ4KDecodeToGemv: ${op} should use matmul_gemv_subgroup.wgsl, got ${entry.kernel}`);
+    equal(entry.entry, 'main_multicol',
+      `remapQ4KDecodeToGemv: ${op} entry should be main_multicol`);
+  }
+
+  // Non-matmul decode ops (rmsnorm, rope, attention, residual, silu) must be unchanged
+  const nonMatmulOps = ['input_norm', 'rope_q', 'rope_k', 'attention', 'attn_residual', 'post_attn_norm', 'activation', 'ffn_residual'];
+  for (const op of nonMatmulOps) {
+    const step = result.decode.find((entry) => Array.isArray(entry) && entry[0] === op);
+    ok(step, `remapQ4KDecodeToGemv: ${op} should still be present`);
+    const origStep = graph.decode.find((entry) => Array.isArray(entry) && entry[0] === op);
+    equal(step[1], origStep[1],
+      `remapQ4KDecodeToGemv: ${op} kernel key should be unchanged`);
+  }
+
+  // Prefill must be untouched
+  deepEqual(result.prefill, graph.prefill, 'remapQ4KDecodeToGemv should not modify prefill');
+
+  // PostLayer (lm_head) must be untouched
+  deepEqual(result.postLayer, graph.postLayer, 'remapQ4KDecodeToGemv should not modify postLayer');
+
+  // No-op for f16 activation context
+  const f16Result = remapQ4KDecodeToGemv(graph, { ...CTX_F16, modelId: 'qwen-3-5-0-8b-q4k-ehaf16' });
+  equal(f16Result, null, 'remapQ4KDecodeToGemv should return null for f16 activations');
+
+  deepEqual(graph, frozen, 'remapQ4KDecodeToGemv must not mutate the input graph');
 }
 
 // ===========================================================================
@@ -792,16 +883,16 @@ function buildF16WeightProjectionGraph() {
     );
     deepEqual(
       r.names,
-      ['useHead256PrefillAttention', 'remapQ4KPrefillToDense', 'useLinearDecodeProjectionF16'],
-      'apple Qwen 3.5 0.8B graph should resolve prefill and decode transforms together'
+      ['useHead256PrefillAttention', 'remapQ4KPrefillToDense', 'remapQ4KDecodeToGemv'],
+      'apple Qwen 3.5 0.8B graph should resolve prefill remap and decode GEMV transforms'
     );
     equal(r.transforms.length, 3, 'apple Qwen 3.5 0.8B graph: three transform functions');
     equal(r.transforms[0], useHead256PrefillAttention,
       'apple Qwen 3.5 0.8B graph: first transform function is useHead256PrefillAttention');
     equal(r.transforms[1], remapQ4KPrefillToDense,
       'apple Qwen 3.5 0.8B graph: second transform function is remapQ4KPrefillToDense');
-    equal(r.transforms[2], useLinearDecodeProjectionF16,
-      'apple Qwen 3.5 0.8B graph: third transform function is useLinearDecodeProjectionF16');
+    equal(r.transforms[2], remapQ4KDecodeToGemv,
+      'apple Qwen 3.5 0.8B graph: third transform function is remapQ4KDecodeToGemv');
   }
 }
 

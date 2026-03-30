@@ -317,7 +317,7 @@ function resolveMatmulOverride(
   }
   if (requestedOutputDtype && outputDtype !== requestedOutputDtype) {
     return failOrWarn(
-      `Matmul kernel "${variantOverride}" outputs ${outputDtype} but ${requestedOutputDtype} was requested.`
+      `Matmul kernel "${variantOverride}" outputs ${outputDtype} but ${requestedOutputDtype} was requested. [M=${M} K=${K} aDtype=${aDtype} bDtype=${bDtype}]`
     );
   }
 
@@ -408,6 +408,9 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
       strict,
       fusedQ4KDisabled
     );
+    if (!override && strict) {
+      throw new Error(`[Matmul] Path variant "${pathVariant}" rejected for role=${options.role ?? '?'} layerIdx=${options.layerIdx ?? '?'} phase=${phase} M=${M} K=${K} aDtype=${aDtype} bDtype=${bDtype} outDtype=${requestedOutputDtype}`);
+    }
     if (override) {
       if (
         phase === 'prefill'

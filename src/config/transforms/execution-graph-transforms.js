@@ -219,6 +219,26 @@ function buildGroupedLayerEntries(baseStep, targetLayers, replacementKernelKey) 
   return groupedEntries;
 }
 
+function replacePhaseStepKernelKey(steps, op, replacementKernelKey) {
+  if (!Array.isArray(steps) || steps.length === 0 || !replacementKernelKey) {
+    return { steps, changed: false };
+  }
+  let changed = false;
+  const nextSteps = steps.map((step) => {
+    if (!Array.isArray(step) || step[0] !== op) {
+      return step;
+    }
+    if (step[1] === replacementKernelKey) {
+      return step;
+    }
+    const replacement = [...step];
+    replacement[1] = replacementKernelKey;
+    changed = true;
+    return replacement;
+  });
+  return { steps: nextSteps, changed };
+}
+
 function deriveKernelEntryWithPrecision(base, precision) {
   return {
     ...base,
@@ -227,6 +247,49 @@ function deriveKernelEntryWithPrecision(base, precision) {
       ...precision,
     },
   };
+}
+
+function deriveLinearDecodeF16KernelEntry(base) {
+  const precision = {
+    inputDtype: 'f16',
+    outputDtype: 'f16',
+  };
+  if (base.kernel === 'fused_matmul_q4.wgsl' && base.entry === 'main_multicol') {
+    return {
+      ...deriveKernelEntry(base, 'fused_matmul_q4_multicol_f16a.wgsl', 'main_multicol_f16a'),
+      precision: {
+        ...(base.precision ?? {}),
+        ...precision,
+      },
+    };
+  }
+  if (
+    (base.kernel === 'fused_matmul_q4_multicol_f16.wgsl' && base.entry === 'main_multicol_f16')
+    || (base.kernel === 'fused_matmul_q4_multicol_f16a.wgsl' && base.entry === 'main_multicol_f16a')
+  ) {
+    return deriveKernelEntryWithPrecision(base, precision);
+  }
+  return null;
+}
+
+function deriveLmHeadDecodeF16KernelEntry(base) {
+  const precision = {
+    inputDtype: 'f16',
+    outputDtype: 'f16',
+  };
+  if (base.kernel === 'matmul_gemv_subgroup.wgsl' && base.entry === 'main_multicol') {
+    return {
+      ...deriveKernelEntry(base, 'matmul_gemv_subgroup_f16a.wgsl', 'main_multicol'),
+      precision: {
+        ...(base.precision ?? {}),
+        ...precision,
+      },
+    };
+  }
+  if (base.kernel === 'matmul_gemv_subgroup_f16a.wgsl' && base.entry === 'main_multicol') {
+    return deriveKernelEntryWithPrecision(base, precision);
+  }
+  return null;
 }
 
 // =============================================================================
@@ -758,16 +821,16 @@ export function remapQ4KPrefillToDense(graph, ctx) {
 // =============================================================================
 
 /**
- * Mark Qwen linear-attention decode projections as f16-output on only the
- * linear-attention layers. This preserves the manifest-wide f32 activation
- * contract for full-attention layers while allowing the linear decode path to
- * use the f16-output fused Q4 kernels that the recurrent core already accepts.
+ * Remap the linear-attention q_proj decode step onto the f16-activation fused
+ * Q4 kernel for linear-attention layers only. Full-attention layers keep the
+ * manifest-wide f32 activation contract.
  *
- * The transform rewrites the compact decode tuples into layer groups so only
- * the linear-attention layers pick up the precision-tagged kernel entry.
- *
- * Returns null when layerTypes are unavailable, when no linear-attention layers
- * are present, or when the decode graph does not expose a q_proj step.
+ * Only q_proj is remapped.  o_proj is intentionally excluded: the o_proj
+ * output enters the residual stream directly, and f16 truncation there
+ * accumulates across the 18 linear-attention layers in the Qwen 3.5 pattern,
+ * corrupting the logit distribution (empirically verified: degenerate
+ * repetitive output under greedy decode).  q_proj f16 is safe because the
+ * linear attention core absorbs the f16 input into its f32 internal state.
  *
  * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
  * @param {import('./execution-graph-transforms.js').TransformContext} ctx
@@ -787,36 +850,33 @@ export function useLinearDecodeProjectionF16(graph, ctx) {
     return null;
   }
 
-  const qProjIndex = (graph.decode || []).findIndex((entry) => Array.isArray(entry) && entry[0] === 'q_proj');
-  if (qProjIndex === -1) {
-    return null;
-  }
-  const qProjStep = graph.decode[qProjIndex];
-  const qProjKernelKey = qProjStep[1];
-  const qProjKernel = graph.kernels[qProjKernelKey];
-  if (!qProjKernel) {
-    return null;
-  }
-
-  if (qProjKernel.precision?.outputDtype === 'f16') {
-    return null;
-  }
-
   const result = cloneGraph(graph);
-  const linearQProjKey = deriveKernelKey(result.kernels, qProjKernelKey, '_linear_f16out');
-  result.kernels[linearQProjKey] = deriveKernelEntryWithPrecision(qProjKernel, {
-    outputDtype: 'f16',
-  });
-
   const targetLayers = {
     allLayers: layerTypes.map((_, layerIdx) => layerIdx),
     matchingLayers,
   };
-  const groupedEntries = buildGroupedLayerEntries(qProjStep, targetLayers, linearQProjKey);
-  if (groupedEntries.length === 0) {
+  const qProjIndex = (result.decode || []).findIndex((entry) => Array.isArray(entry) && entry[0] === 'q_proj');
+  if (qProjIndex === -1) {
+    return null;
+  }
+  const qProjStep = result.decode[qProjIndex];
+  const qProjKernelKey = qProjStep[1];
+  const qProjKernel = result.kernels[qProjKernelKey];
+  if (!qProjKernel) {
     return null;
   }
 
+  const derivedEntry = deriveLinearDecodeF16KernelEntry(qProjKernel);
+  if (!derivedEntry) {
+    return null;
+  }
+
+  const derivedKey = deriveKernelKey(result.kernels, qProjKernelKey, '_linear_f16out');
+  result.kernels[derivedKey] = derivedEntry;
+  const groupedEntries = buildGroupedLayerEntries(qProjStep, targetLayers, derivedKey);
+  if (groupedEntries.length === 0) {
+    return null;
+  }
   result.decode = [
     ...result.decode.slice(0, qProjIndex),
     ...groupedEntries,
@@ -824,6 +884,151 @@ export function useLinearDecodeProjectionF16(graph, ctx) {
   ];
 
   return result;
+}
+
+// =============================================================================
+// Transform: remapQ4KDecodeToGemv
+// =============================================================================
+
+/**
+ * Replace fused Q4K decode projection kernels with GEMV subgroup variants.
+ *
+ * When Q4K weights have f16 materializations (mixed/dense loader mode), the
+ * GEMV subgroup kernel on pre-dequantized f16 weights is significantly faster
+ * than the fused Q4K kernel for M=1 decode (empirically 2.3x on Apple M-series).
+ *
+ * After this transform no decode kernels reference fused_matmul_q4*, which
+ * signals the loader to use dense materialization (f16 only — no Q4K buffer
+ * retained in GPU memory, reducing peak VRAM).
+ *
+ * Only layer projection ops are remapped.  Non-matmul ops (rmsnorm, rope,
+ * attention, residual, activation) are left untouched.
+ *
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {import('./execution-graph-transforms.js').TransformContext} ctx
+ * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
+ */
+export function remapQ4KDecodeToGemv(graph, ctx) {
+  if (ctx.activationDtype === 'f16') {
+    return null;
+  }
+
+  const decodeSteps = graph.decode || [];
+  const fusedDecodeKeys = new Set();
+  for (const step of decodeSteps) {
+    if (!Array.isArray(step)) continue;
+    const kernelKey = step[1];
+    const entry = graph.kernels[kernelKey];
+    if (entry && entry.kernel.startsWith('fused_matmul_q4')) {
+      fusedDecodeKeys.add(kernelKey);
+    }
+  }
+  if (fusedDecodeKeys.size === 0) {
+    return null;
+  }
+
+  const result = cloneGraph(graph);
+  const keyMap = new Map();
+
+  for (const key of fusedDecodeKeys) {
+    const newKey = deriveKernelKey(result.kernels, key, '_gemv');
+    result.kernels[newKey] = deriveKernelEntry(
+      result.kernels[key],
+      'matmul_gemv_subgroup.wgsl',
+      'main_multicol',
+      null
+    );
+    keyMap.set(key, newKey);
+  }
+
+  result.decode = remapStepKeys(result.decode, keyMap);
+  return result;
+}
+
+// =============================================================================
+// Transform: useQwenDecodeF16Matmuls
+// =============================================================================
+
+/**
+ * Narrow selected Qwen decode matmuls onto explicit f16-input/f16-output
+ * kernels while keeping the manifest-wide f32 activation contract intact.
+ *
+ * This transform is intentionally selective:
+ * - FFN gate/up decode matmuls switch to f16a so decode can bypass the slow
+ *   fused-q4k FFN path when capability policy opts in.
+ * - LM head decode switches to the subgroup f16a GEMV path.
+ *
+ * FFN down remains on the f32-output contract so the layer residual path stays
+ * numerically aligned with the manifest-owned activation dtype.
+ *
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {import('./execution-graph-transforms.js').TransformContext} ctx
+ * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
+ */
+export function useQwenDecodeF16Matmuls(graph, ctx) {
+  const modelId = typeof ctx.modelId === 'string' ? ctx.modelId.trim() : '';
+  if (modelId !== 'qwen-3-5-0-8b-q4k-ehaf16') {
+    return null;
+  }
+
+  const result = cloneGraph(graph);
+  let changed = false;
+
+  for (const op of ['gate_proj', 'up_proj']) {
+    const stepIndex = (result.decode || []).findIndex((entry) => Array.isArray(entry) && entry[0] === op);
+    if (stepIndex === -1) {
+      continue;
+    }
+    const step = result.decode[stepIndex];
+    const kernelKey = step[1];
+    const kernelEntry = result.kernels[kernelKey];
+    if (!kernelEntry) {
+      continue;
+    }
+    const derivedEntry = deriveLinearDecodeF16KernelEntry(kernelEntry);
+    if (!derivedEntry) {
+      continue;
+    }
+    const derivedKey = deriveKernelKey(result.kernels, kernelKey, '_decode_f16out');
+    result.kernels[derivedKey] = derivedEntry;
+    const replacement = [...step];
+    replacement[1] = derivedKey;
+    result.decode = [
+      ...result.decode.slice(0, stepIndex),
+      replacement,
+      ...result.decode.slice(stepIndex + 1),
+    ];
+    changed = true;
+  }
+
+  const postLayerResult = replacePhaseStepKernelKey(
+    result.postLayer ?? [],
+    'lm_head',
+    (() => {
+      const lmHeadStep = (result.postLayer || []).find((entry) => Array.isArray(entry) && entry[0] === 'lm_head');
+      if (!lmHeadStep) {
+        return null;
+      }
+      const lmHeadKernelKey = lmHeadStep[1];
+      const lmHeadKernel = result.kernels[lmHeadKernelKey];
+      if (!lmHeadKernel) {
+        return null;
+      }
+      const derivedEntry = deriveLmHeadDecodeF16KernelEntry(lmHeadKernel);
+      if (!derivedEntry) {
+        return null;
+      }
+      const derivedKey = deriveKernelKey(result.kernels, lmHeadKernelKey, '_decode_f16out');
+      result.kernels[derivedKey] = derivedEntry;
+      return derivedKey;
+    })()
+  );
+  if (postLayerResult.changed) {
+    result.postLayer = postLayerResult.steps;
+    changed = true;
+  }
+
+  return changed ? result : null;
 }
 
 // =============================================================================
@@ -866,5 +1071,7 @@ export const TRANSFORMS = Object.freeze({
   remapDenseQ4KPrefillToQ4Native,
   remapQ4KPrefillToDense,
   useLinearDecodeProjectionF16,
+  remapQ4KDecodeToGemv,
+  useQwenDecodeF16Matmuls,
   composeTransforms,
 });

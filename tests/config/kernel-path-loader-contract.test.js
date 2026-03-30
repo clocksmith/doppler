@@ -145,7 +145,12 @@ try {
     activationDtype: 'f32',
     decode: {
       steps: [
-        { op: 'q_proj', kernel: 'fused_matmul_q4.wgsl', entry: 'main_multicol', precision: { outputDtype: 'f16' } },
+        {
+          op: 'q_proj',
+          kernel: 'fused_matmul_q4_multicol_f16a.wgsl',
+          entry: 'main_multicol_f16a',
+          precision: { inputDtype: 'f16', outputDtype: 'f16' },
+        },
         { op: 'o_proj', kernel: 'fused_matmul_q4.wgsl', entry: 'main_multicol' },
       ],
     },
@@ -183,6 +188,15 @@ try {
         layers: [1],
         steps: [{ op: 'override_step', kernel: 'override_kernel.wgsl' }],
       },
+      {
+        layers: [2],
+        decode: {
+          steps: [{ op: 'decode_override', kernel: 'decode_override_kernel.wgsl' }],
+        },
+        prefill: {
+          steps: [{ op: 'prefill_override', kernel: 'prefill_override_kernel.wgsl' }],
+        },
+      },
     ],
     postLayer: [
       { op: 'lm_head_prefill', kernel: 'matmul.wgsl', constants: { mode: 'prefill' } },
@@ -190,6 +204,9 @@ try {
     ],
   };
   assert.equal(getLayerSteps(overridePath, 1, 'decode')[0].op, 'override_step');
+  assert.equal(getLayerSteps(overridePath, 1, 'prefill')[0].op, 'override_step');
+  assert.equal(getLayerSteps(overridePath, 2, 'decode')[0].op, 'decode_override');
+  assert.equal(getLayerSteps(overridePath, 2, 'prefill')[0].op, 'prefill_override');
   assert.equal(getLayerSteps(overridePath, 0, 'prefill')[0].op, 'prefill_only');
   assert.equal(getLayerSteps(overridePath, 0, 'decode')[0].op, 'decode_only');
 
@@ -235,11 +252,21 @@ try {
     getKernelPathMatmulVariant('linear_out_proj', 'decode', 0, qwenLinearPath),
     getKernelPathMatmulVariant('o_proj', 'decode', 0, qwenLinearPath)
   );
-  assert.equal(getKernelPathMatmulPrecision('linear_a_proj', 'decode', 0, qwenLinearPath), null);
-  assert.equal(getKernelPathMatmulPrecision('linear_b_proj', 'decode', 0, qwenLinearPath), null);
+  assert.equal(
+    getKernelPathMatmulPrecision('linear_a_proj', 'decode', 0, qwenLinearPath)?.outputDtype,
+    'f16'
+  );
+  assert.equal(
+    getKernelPathMatmulPrecision('linear_b_proj', 'decode', 0, qwenLinearPath)?.outputDtype,
+    'f16'
+  );
   assert.equal(
     getKernelPathMatmulPrecision('linear_qkv_proj', 'decode', 0, qwenLinearPath)?.outputDtype,
     'f16'
+  );
+  assert.equal(
+    getKernelPathMatmulVariant('linear_qkv_proj', 'decode', 0, qwenLinearPath),
+    'q4_fused_multicol_f16a'
   );
 
   assert.equal(isKernelPathFusedQ4K(fusedPath), true);

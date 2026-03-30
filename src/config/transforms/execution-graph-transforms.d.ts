@@ -126,11 +126,30 @@ export declare function remapQ4KPrefillToDense(
 ): ExecutionGraph | null;
 
 /**
- * Mark Qwen linear-attention decode projection outputs as f16 for targeted
+ * Mark Qwen linear-attention decode q/o projections as f16 for targeted
  * Apple/WebGPU decode throughput work while keeping full-attention layers on
  * the manifest-owned f32 activation contract.
  */
 export declare function useLinearDecodeProjectionF16(
+  graph: ExecutionGraph,
+  ctx: TransformContext
+): ExecutionGraph | null;
+
+/**
+ * Replace fused Q4K decode projection kernels with GEMV subgroup variants.
+ * On pre-dequantized f16 weights the GEMV path is ~2.3x faster than the fused
+ * Q4K kernel for M=1 decode.
+ */
+export declare function remapQ4KDecodeToGemv(
+  graph: ExecutionGraph,
+  ctx: TransformContext
+): ExecutionGraph | null;
+
+/**
+ * Narrow selected Qwen decode FFN + lm_head matmuls onto explicit f16 kernels
+ * while keeping the manifest-owned activation contract intact.
+ */
+export declare function useQwenDecodeF16Matmuls(
   graph: ExecutionGraph,
   ctx: TransformContext
 ): ExecutionGraph | null;

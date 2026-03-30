@@ -51,11 +51,27 @@ export function getLayerSteps(
   layerIndex,
   phase
 ) {
-  // Check for layer-specific overrides
+  const resolveOverrideSteps = (override) => {
+    const phaseSteps = phase === 'prefill'
+      ? override.prefill?.steps
+      : override.decode?.steps;
+    if (Array.isArray(phaseSteps) && phaseSteps.length > 0) {
+      return phaseSteps;
+    }
+    if (Array.isArray(override.steps) && override.steps.length > 0) {
+      return override.steps;
+    }
+    return null;
+  };
+
   if (path.layerOverrides) {
     for (const override of path.layerOverrides) {
       if (override.layers.includes(layerIndex)) {
-        return override.steps;
+        const overrideSteps = resolveOverrideSteps(override);
+        if (overrideSteps) {
+          return overrideSteps;
+        }
+        break;
       }
     }
   }
@@ -94,7 +110,7 @@ export function validateKernelPath(path) {
 // Kernel Path Variant Resolution
 // =============================================================================
 
-const MATMUL_ROLE_ALIASES = {
+const MATMUL_STEP_ROLE_ALIASES = {
   q_proj: { section: 'layer', ops: ['q_proj'] },
   k_proj: { section: 'layer', ops: ['k_proj'] },
   v_proj: { section: 'layer', ops: ['v_proj'] },
@@ -108,6 +124,12 @@ const MATMUL_ROLE_ALIASES = {
   ffn_down: { section: 'layer', ops: ['ffn_down', 'down_proj'] },
   ffn_gate_up: { section: 'layer', ops: ['ffn_gate_up'] },
   lm_head: { section: 'postLayer', ops: ['lm_head'] },
+};
+
+const MATMUL_PRECISION_ROLE_ALIASES = {
+  ...MATMUL_STEP_ROLE_ALIASES,
+  linear_a_proj: { section: 'layer', ops: ['q_proj'] },
+  linear_b_proj: { section: 'layer', ops: ['q_proj'] },
 };
 
 function normalizeKernelFile(kernel) {
@@ -225,7 +247,7 @@ export function getKernelPathMatmulVariant(
   layerIndex,
   path = undefined
 ) {
-  const step = getKernelPathMatmulStep(role, phase, layerIndex, path);
+  const step = getKernelPathMatmulStep(role, phase, layerIndex, path, MATMUL_STEP_ROLE_ALIASES);
   if (!step) return null;
   return findKernelVariant('matmul', step.kernel, step.entry, phase, step.constants);
 }
@@ -236,7 +258,7 @@ export function getKernelPathMatmulConstants(
   layerIndex,
   path = undefined
 ) {
-  const step = getKernelPathMatmulStep(role, phase, layerIndex, path);
+  const step = getKernelPathMatmulStep(role, phase, layerIndex, path, MATMUL_STEP_ROLE_ALIASES);
   return step?.constants ?? null;
 }
 
@@ -246,7 +268,7 @@ export function getKernelPathMatmulPrecision(
   layerIndex,
   path = undefined
 ) {
-  const step = getKernelPathMatmulStep(role, phase, layerIndex, path);
+  const step = getKernelPathMatmulStep(role, phase, layerIndex, path, MATMUL_PRECISION_ROLE_ALIASES);
   return step?.precision ?? null;
 }
 
@@ -254,11 +276,12 @@ function getKernelPathMatmulStep(
   role,
   phase,
   layerIndex,
-  path = undefined
+  path = undefined,
+  aliasMap = MATMUL_STEP_ROLE_ALIASES
 ) {
   const lookupPath = path === undefined ? activeKernelPath : path;
   if (!lookupPath || !role) return null;
-  const alias = MATMUL_ROLE_ALIASES[role] ?? { section: 'layer', ops: [role] };
+  const alias = aliasMap[role] ?? { section: 'layer', ops: [role] };
   const steps = getKernelPathStepsForSection(lookupPath, alias.section, phase, layerIndex ?? 0);
   if (role === 'lm_head' && phase === 'prefill') {
     const prefillStep = findStepByOp(steps, 'lm_head_prefill');
@@ -337,7 +360,11 @@ export function isKernelPathFusedQ4K(path = undefined) {
     ...(lookupPath.prefill?.steps ?? []),
     ...(lookupPath.preLayer ?? []),
     ...(lookupPath.postLayer ?? []),
-    ...(lookupPath.layerOverrides?.flatMap((override) => override.steps) ?? []),
+    ...(lookupPath.layerOverrides?.flatMap((override) => [
+      ...(override?.steps ?? []),
+      ...(override?.decode?.steps ?? []),
+      ...(override?.prefill?.steps ?? []),
+    ]) ?? []),
   ];
   return kernelSteps.some((step) => step.kernel.includes('fused_matmul_q4'));
 }
@@ -350,7 +377,11 @@ export function kernelPathRequiresF32MatmulWeights(path = undefined) {
     ...(lookupPath.prefill?.steps ?? []),
     ...(lookupPath.preLayer ?? []),
     ...(lookupPath.postLayer ?? []),
-    ...(lookupPath.layerOverrides?.flatMap((override) => override.steps) ?? []),
+    ...(lookupPath.layerOverrides?.flatMap((override) => [
+      ...(override?.steps ?? []),
+      ...(override?.decode?.steps ?? []),
+      ...(override?.prefill?.steps ?? []),
+    ]) ?? []),
   ];
   return kernelSteps.some((step) => normalizeKernelFile(step.kernel) === 'matmul_f32.wgsl');
 }
@@ -367,7 +398,11 @@ export function isKernelPathDequant(path = undefined) {
     ...(lookupPath.prefill?.steps ?? []),
     ...(lookupPath.preLayer ?? []),
     ...(lookupPath.postLayer ?? []),
-    ...(lookupPath.layerOverrides?.flatMap((override) => override.steps) ?? []),
+    ...(lookupPath.layerOverrides?.flatMap((override) => [
+      ...(override?.steps ?? []),
+      ...(override?.decode?.steps ?? []),
+      ...(override?.prefill?.steps ?? []),
+    ]) ?? []),
   ];
   return kernelSteps.some((step) => step.kernel.startsWith('matmul_'));
 }

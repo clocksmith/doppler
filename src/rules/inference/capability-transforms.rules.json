@@ -39,8 +39,8 @@
         "maxWorkgroupStorageSize": { "gte": 16384 },
         "hasQ4PrefillProjectionKernel": true
       },
-      "transforms": ["useHead256PrefillAttention", "remapQ4KPrefillToDense", "useLinearDecodeProjectionF16"],
-      "reason": "Apple/WebGPU Qwen 3.5 0.8B promotes 256-dim prefill attention, remaps fused-Q4 prefill projections onto dense matmul kernels, and narrows linear decode projections to f16 outputs"
+      "transforms": ["useHead256PrefillAttention", "remapQ4KPrefillToDense", "useLinearDecodeProjectionF16", "useQwenDecodeF16Matmuls"],
+      "reason": "Apple/WebGPU Qwen 3.5 0.8B — old 4-transform chain (baseline test)"
     },
     {
       "match": {

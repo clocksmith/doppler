@@ -27,6 +27,7 @@ export interface RunLinearAttentionCoreGPUOptions {
   layerIdx?: number;
   qkL2NormEps?: number;
   recorder?: CommandRecorder | null;
+  outputDtype?: 'f16' | 'f32';
 }
 
 export declare function runLinearAttentionCoreGPU(
