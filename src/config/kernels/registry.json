@@ -697,6 +697,33 @@
             "wgslOnDisk": true
           }
         },
+        "q4_fused_gemv": {
+          "wgsl": "fused_matmul_q4.wgsl",
+          "entryPoint": "main_gemv",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "subgroups"
+          ],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "colsPerWg": 32
+          },
+          "description": "Optimised fused Q4K GEMV - shared-A cooperative load + fast nibble extraction for maximum M=1 decode throughput without f16 precision loss",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
+            ],
+            "ruleChains": [
+              "capabilityTransforms"
+            ],
+            "wgslOnDisk": true
+          }
+        },
         "q4_fused_multicol_f16": {
           "wgsl": "fused_matmul_q4_multicol_f16.wgsl",
           "entryPoint": "main_multicol_f16",

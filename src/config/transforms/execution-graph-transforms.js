@@ -1016,6 +1016,82 @@ export function remapQ4KDecodeAttentionToGemv(graph, ctx) {
 }
 
 // =============================================================================
+// Transform: remapQ4KDecodeAttentionToFusedQ4KGemv
+// =============================================================================
+
+/**
+ * Replace fused Q4K ATTENTION-ONLY decode projection kernels with the
+ * optimised fused Q4K GEMV variant (main_gemv), which combines shared-A
+ * cooperative loading with fast nibble extraction for maximum M=1 throughput
+ * while preserving full Q4K dequant precision (no f16 weight materialization).
+ *
+ * This is the production fix for the f16-precision-loss regression observed
+ * when attention projections use the f16-weight GEMV path: softmax amplifies
+ * the f16 round-trip error in Q/K/V projections, causing garbage output.
+ * By keeping inline Q4K dequant (f32 arithmetic) the attention path stays
+ * numerically correct.  FFN projections are unaffected and can safely use
+ * the f16-weight GEMV path via remapQ4KDecodeFFNToGemv.
+ *
+ * Because the derived kernel still references fused_matmul_q4.wgsl,
+ * isKernelPathFusedQ4K stays true and the weight loader remains in
+ * mixed-materialization mode (Q4K retained for attention, f16 for FFN).
+ *
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {import('./execution-graph-transforms.js').TransformContext} ctx
+ * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
+ */
+export function remapQ4KDecodeAttentionToFusedQ4KGemv(graph, ctx) {
+  if (ctx.activationDtype === 'f16') {
+    return null;
+  }
+
+  const decodeSteps = graph.decode || [];
+  const attnFusedKeys = new Set();
+  for (const step of decodeSteps) {
+    if (!Array.isArray(step)) continue;
+    const op = step[0];
+    if (!ATTENTION_PROJECTION_OPS.has(op)) continue;
+    const kernelKey = step[1];
+    const entry = graph.kernels[kernelKey];
+    if (entry && entry.kernel.startsWith('fused_matmul_q4')) {
+      attnFusedKeys.add(kernelKey);
+    }
+  }
+  if (attnFusedKeys.size === 0) {
+    return null;
+  }
+
+  const result = cloneGraph(graph);
+  const keyMap = new Map();
+
+  for (const key of attnFusedKeys) {
+    const newKey = deriveKernelKey(result.kernels, key, '_gemv');
+    result.kernels[newKey] = deriveKernelEntry(
+      result.kernels[key],
+      'fused_matmul_q4.wgsl',
+      'main_gemv',
+      null
+    );
+    keyMap.set(key, newKey);
+  }
+
+  // Only remap attention projection steps, leave FFN steps unchanged.
+  result.decode = result.decode.map((step) => {
+    if (!Array.isArray(step)) return step;
+    if (!ATTENTION_PROJECTION_OPS.has(step[0])) return step;
+    const replacement = keyMap.get(step[1]);
+    if (replacement !== undefined) {
+      const newStep = [...step];
+      newStep[1] = replacement;
+      return newStep;
+    }
+    return step;
+  });
+
+  return result;
+}
+
+// =============================================================================
 // Transform: remapQ4KDecodeFFNToGemv (diagnostic)
 // =============================================================================
 
@@ -1214,6 +1290,7 @@ export const TRANSFORMS = Object.freeze({
   useLinearDecodeProjectionF16,
   remapQ4KDecodeToGemv,
   remapQ4KDecodeAttentionToGemv,
+  remapQ4KDecodeAttentionToFusedQ4KGemv,
   remapQ4KDecodeFFNToGemv,
   useQwenDecodeF16Matmuls,
   composeTransforms,

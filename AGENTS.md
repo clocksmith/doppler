@@ -178,6 +178,16 @@ See `docs/agents/README.md` for the full index.
 - Keep parity and throughput lanes separate. Claimable compare work belongs to fairness-managed parity lanes; throughput-tuned runs are tuning evidence until promoted explicitly.
 - Before kernel edits, classify the wall: GPU compute vs submit/readback/orchestration. Do not assume a math-kernel bug when timing already shows orchestration dominating.
 
+### Correctness Regression Discipline
+
+When a code change (kernel swap, transform, dtype policy, materialization path) produces incorrect model output — garbled text, numerical divergence, repeated tokens, or silent quality loss:
+
+1. **Hypothesis first.** Before reading code, write down exactly one falsifiable hypothesis and the diagnostic that would disprove it. Do not read more than 5 files before running a diagnostic.
+2. **Measure before tracing.** After isolating a behavioral difference (e.g., "path A correct, path B wrong"), the next step is always a per-layer or per-op numerical readback — not more static code analysis. Use `doppler-debug` probes to capture boundary values at the first divergence point.
+3. **Scope the change, not the codebase.** If the regression correlates with a specific transform or kernel swap, diff the execution graph before and after the transform. Do not trace the entire pipeline hoping to find the bug by inspection.
+4. **Do not ship workarounds as fixes.** Disabling a broken path is a workaround, not a fix. Label it as such. The underlying bug must be tracked and the workaround must include a comment or test explaining what it avoids and why.
+5. **Auto-trigger `doppler-debug`.** When the task involves incorrect model output, garbled text, or numerical divergence, invoke `doppler-debug` before any manual investigation. The debug ladder (classify → reference → dump → compare → isolate) exists to prevent aimless code reading.
+
 ### Logging
 
 Use debug module (`src/debug/index.js`), not raw `console.*` in runtime code.

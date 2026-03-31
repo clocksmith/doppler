@@ -190,14 +190,12 @@ export function compileExecutionV1(options = {}) {
   let graphWasTransformed = false;
 
   if (capabilities) {
-    const diagnosticGemvScope = options.runtimeCompute?.diagnosticGemvScope ?? null;
     const graphContext = {
       activationDtype,
       kvDtype,
       modelId,
       layerTypes,
       ...summarizeExecutionGraphContext(execution),
-      ...(diagnosticGemvScope ? { diagnosticGemvScope } : {}),
     };
     const resolved = resolveCapabilityTransforms(capabilities, platform, graphContext);
     const sourceScope = kernelPathPolicy.sourceScope ?? kernelPathPolicy.allowSources ?? [];

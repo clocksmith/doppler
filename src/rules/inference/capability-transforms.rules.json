@@ -38,58 +38,10 @@
         "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
         "maxWorkgroupStorageSize": { "gte": 16384 },
         "hasQ4PrefillProjectionKernel": true,
-        "hasQ4DecodeProjectionKernel": true,
-        "diagnosticGemvScope": "none"
-      },
-      "transforms": ["useHead256PrefillAttention", "remapQ4KPrefillToDense"],
-      "reason": "DIAGNOSTIC: prefill transforms only, no decode GEMV — isolates materialization mode impact"
-    },
-    {
-      "match": {
-        "hasSubgroups": true,
-        "hasF16": true,
-        "activationDtype": "f32",
-        "kvDtype": "f16",
-        "platformVendor": "apple",
-        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-        "maxWorkgroupStorageSize": { "gte": 16384 },
-        "hasQ4PrefillProjectionKernel": true,
-        "hasQ4DecodeProjectionKernel": true,
-        "diagnosticGemvScope": "attention"
-      },
-      "transforms": ["useHead256PrefillAttention", "remapQ4KPrefillToDense", "remapQ4KDecodeAttentionToGemv"],
-      "reason": "DIAGNOSTIC: GEMV for attention projections only — isolates attention vs FFN GEMV regression"
-    },
-    {
-      "match": {
-        "hasSubgroups": true,
-        "hasF16": true,
-        "activationDtype": "f32",
-        "kvDtype": "f16",
-        "platformVendor": "apple",
-        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-        "maxWorkgroupStorageSize": { "gte": 16384 },
-        "hasQ4PrefillProjectionKernel": true,
-        "hasQ4DecodeProjectionKernel": true,
-        "diagnosticGemvScope": "ffn"
-      },
-      "transforms": ["useHead256PrefillAttention", "remapQ4KPrefillToDense", "remapQ4KDecodeFFNToGemv"],
-      "reason": "DIAGNOSTIC: GEMV for FFN projections only — isolates attention vs FFN GEMV regression"
-    },
-    {
-      "match": {
-        "hasSubgroups": true,
-        "hasF16": true,
-        "activationDtype": "f32",
-        "kvDtype": "f16",
-        "platformVendor": "apple",
-        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-        "maxWorkgroupStorageSize": { "gte": 16384 },
-        "hasQ4PrefillProjectionKernel": true,
         "hasQ4DecodeProjectionKernel": true
       },
       "transforms": ["useHead256PrefillAttention", "remapQ4KPrefillToDense", "remapQ4KDecodeToGemv"],
-      "reason": "Apple/WebGPU Qwen 3.5 0.8B — GEMV decode for all projections (3.2x decode throughput)"
+      "reason": "Apple/WebGPU Qwen 3.5 0.8B — f16 GEMV decode for all projections (33 tok/s, no precision issues)"
     },
     {
       "match": {

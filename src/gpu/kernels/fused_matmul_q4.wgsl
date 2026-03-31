@@ -677,3 +677,145 @@ fn main_multicol_shared(
         C[col] = final_sum * u.alpha;
     }
 }
+
+// ============================================================================
+// Optimised GEMV: shared-A cooperative load + fast nibble extraction.
+// Combines the shared A buffer from main_multicol_shared with the direct
+// word extraction from main_multicol_fast for maximum M=1 decode throughput.
+// Use when K <= SHARED_A_MAX (compile-time override, default 3584).
+// ============================================================================
+var<workgroup> gemv_shared_A: array<f32, SHARED_A_MAX>;
+var<workgroup> gemv_sums: array<f32, MAX_WORKGROUP_SIZE>;
+
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+fn main_gemv(
+    @builtin(local_invocation_id) lid: vec3<u32>,
+    @builtin(workgroup_id) wg_id: vec3<u32>,
+    @builtin(subgroup_invocation_id) sg_id: u32,
+    @builtin(subgroup_size) sg_size: u32
+) {
+    let local_id = lid.x;
+
+    // Cooperative load: all 256 threads fill shared A from global memory once.
+    for (var idx: u32 = local_id; idx < u.K; idx = idx + WORKGROUP_SIZE) {
+        gemv_shared_A[idx] = A[idx];
+    }
+    workgroupBarrier();
+
+    let col_in_wg = local_id / THREADS_PER_COL_GEMV;
+    let tid_in_col = local_id % THREADS_PER_COL_GEMV;
+    let col = wg_id.x * COLS_PER_WG + col_in_wg;
+    let is_valid = col < u.N;
+
+    var partial_sum: f32 = 0.0;
+
+    if (is_valid) {
+        let num_blocks = u.num_blocks_per_row;
+        let tail_size = u.K & 255u;
+        let full_blocks = num_blocks - select(0u, 1u, tail_size > 0u);
+
+        for (var b: u32 = tid_in_col; b < full_blocks; b = b + THREADS_PER_COL_GEMV) {
+            let block = B_q4k[col * num_blocks + b];
+            let d = unpack_f16_lo(block.d_dmin);
+            let dmin = unpack_f16_hi(block.d_dmin);
+            let k_base = b * QK_K;
+
+            for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+                let sm = get_scale_min_k4(block.scales, sb);
+                let scale = d * f32(sm.x);
+                let min_val = dmin * f32(sm.y);
+                let sb_base = sb * SUBBLOCK_SIZE;
+
+                // Fast nibble extraction: even sub-blocks use lower nibble,
+                // odd sub-blocks use upper nibble.
+                let chunk = sb >> 1u;
+                let nibble_shift = (sb & 1u) * 4u;
+                let word_base = chunk * 8u;
+
+                for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
+                    let k0 = k_base + sb_base + i;
+
+                    let a0 = gemv_shared_A[k0];
+                    let a1 = gemv_shared_A[k0 + 1u];
+                    let a2 = gemv_shared_A[k0 + 2u];
+                    let a3 = gemv_shared_A[k0 + 3u];
+
+                    let word = block.qs[word_base + (i >> 2u)];
+                    let q0 = (word >> nibble_shift) & 0xFu;
+                    let q1 = (word >> (nibble_shift + 8u)) & 0xFu;
+                    let q2 = (word >> (nibble_shift + 16u)) & 0xFu;
+                    let q3 = (word >> (nibble_shift + 24u)) & 0xFu;
+
+                    let w0 = scale * f32(q0) - min_val;
+                    let w1 = scale * f32(q1) - min_val;
+                    let w2 = scale * f32(q2) - min_val;
+                    let w3 = scale * f32(q3) - min_val;
+
+                    partial_sum = partial_sum + a0 * w0 + a1 * w1 + a2 * w2 + a3 * w3;
+                }
+            }
+        }
+
+        if (tail_size > 0u) {
+            let tail_block = full_blocks;
+            if (tail_block % THREADS_PER_COL_GEMV == tid_in_col) {
+                let block = B_q4k[col * num_blocks + tail_block];
+                let d = unpack_f16_lo(block.d_dmin);
+                let dmin = unpack_f16_hi(block.d_dmin);
+                let k_base = tail_block * QK_K;
+
+                for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+                    let sb_base = sb * SUBBLOCK_SIZE;
+                    if (sb_base >= tail_size) {
+                        break;
+                    }
+                    let sm = get_scale_min_k4(block.scales, sb);
+                    let scale = d * f32(sm.x);
+                    let min_val = dmin * f32(sm.y);
+
+                    let chunk = sb >> 1u;
+                    let nibble_shift = (sb & 1u) * 4u;
+                    let word_base = chunk * 8u;
+
+                    for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
+                        let k0 = k_base + sb_base + i;
+
+                        var a0: f32 = 0.0;
+                        var a1: f32 = 0.0;
+                        var a2: f32 = 0.0;
+                        var a3: f32 = 0.0;
+                        if (k0 < u.K) { a0 = gemv_shared_A[k0]; }
+                        if (k0 + 1u < u.K) { a1 = gemv_shared_A[k0 + 1u]; }
+                        if (k0 + 2u < u.K) { a2 = gemv_shared_A[k0 + 2u]; }
+                        if (k0 + 3u < u.K) { a3 = gemv_shared_A[k0 + 3u]; }
+
+                        let word = block.qs[word_base + (i >> 2u)];
+                        let q0 = (word >> nibble_shift) & 0xFu;
+                        let q1 = (word >> (nibble_shift + 8u)) & 0xFu;
+                        let q2 = (word >> (nibble_shift + 16u)) & 0xFu;
+                        let q3 = (word >> (nibble_shift + 24u)) & 0xFu;
+
+                        let w0 = scale * f32(q0) - min_val;
+                        let w1 = scale * f32(q1) - min_val;
+                        let w2 = scale * f32(q2) - min_val;
+                        let w3 = scale * f32(q3) - min_val;
+
+                        partial_sum = partial_sum + a0 * w0 + a1 * w1 + a2 * w2 + a3 * w3;
+                    }
+                }
+            }
+        }
+    }
+
+    gemv_sums[local_id] = partial_sum;
+    workgroupBarrier();
+
+    if (tid_in_col == 0u && is_valid) {
+        var final_sum: f32 = 0.0;
+        let base = col_in_wg * THREADS_PER_COL_GEMV;
+        for (var i: u32 = 0u; i < THREADS_PER_COL_GEMV; i = i + 1u) {
+            final_sum = final_sum + gemv_sums[base + i];
+        }
+        C[col] = final_sum * u.alpha;
+    }
+}

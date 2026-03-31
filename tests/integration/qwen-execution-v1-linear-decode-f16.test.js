@@ -43,7 +43,7 @@ const compiled = compileExecutionV1({
   },
 });
 
-// Transform chain: prefill attention + prefill dense remap + decode GEMV
+// Transform chain: prefill attention + prefill dense remap + full f16 GEMV decode
 assert.deepEqual(
   compiled.appliedTransforms,
   ['useHead256PrefillAttention', 'remapQ4KPrefillToDense', 'remapQ4KDecodeToGemv']
@@ -73,13 +73,7 @@ assert.equal(
   'attention_head256_f16kv.wgsl'
 );
 
-// GEMV decode projections should NOT have precision overrides — f32 in/out is
-// the natural contract for the GEMV f32-activation path
-assert.equal(
-  kernelPath.decode.steps.find((step) => step.op === 'q_proj')?.precision,
-  undefined,
-  'GEMV decode q_proj should have no precision override'
-);
+// GEMV decode FFN projections should NOT have precision overrides
 assert.equal(
   kernelPath.decode.steps.find((step) => step.op === 'gate_proj')?.precision,
   undefined,

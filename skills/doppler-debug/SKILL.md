@@ -37,6 +37,15 @@ Common routes:
 - WGSL executes resolved kernels; any policy branch belongs to config/rule selection before dispatch.
 - For parity checks, command intent must match: unknown/mismatched intent is a failure, not an alternate path.
 
+## Context Budget Discipline
+
+Investigation and diagnosis should consume no more than 30% of available context. If you have not formed a testable hypothesis after reading 5–8 files, stop reading code and do one of:
+- Write a minimal reproduction script that isolates the failing path.
+- Run a `doppler-debug` probe to capture per-layer numerical readback at the suspected divergence point.
+- Narrow scope by diffing the execution graph before/after the suspected change.
+
+Exhaustive static code tracing across an entire pipeline (kernel dispatch → selection → config → shader) without running a diagnostic is an anti-pattern. Each file read should either confirm or refute a specific hypothesis. If it does neither, the hypothesis is too vague — sharpen it before continuing.
+
 ## Required Debug Ladder
 
 Use this order for inference failures that load successfully but generate bad output:

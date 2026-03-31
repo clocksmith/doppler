@@ -7,7 +7,7 @@ import {
   resolveWeightBufferMaterialization,
 } from '../weight-buffer.js';
 import { log, trace, isTraceEnabled } from '../../debug/index.js';
-import { releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
+import { releaseBuffer } from '../../memory/buffer-pool.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import { castF16ToF32, recordCastF16ToF32 } from './cast.js';
 import { getKernelPathMatmulVariant } from '../../config/kernel-path-loader.js';
@@ -39,8 +39,6 @@ export { createMatmulBindGroupLayout };
 
 let _runMatmulDebugCount = 0;
 let _recordMatmulDebugCount = 0;
-let _gemvProbeCount = 0;
-let _bufIdCounter = 0;
 
 function normalizeMatmulDebugConfig(config) {
   if (!config || typeof config !== 'object') {
@@ -391,42 +389,6 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
       kernel.dispatch(pipeline, bindGroup, dispatchPlan.workgroups);
     }
     completed = true;
-    // GEMV diagnostic probe — logs metadata for first 48 GEMV dispatches to help
-    // isolate the attention GEMV correctness regression.
-    if (useGemv && _gemvProbeCount < 2) {
-      _gemvProbeCount++;
-      const expectedBSizeF16 = N * K * 2;
-      const actualBSize = bBuffer?.size ?? 0;
-      const sizeOk = actualBSize >= expectedBSizeF16;
-      const q4kBuf = B?.materializations?.q4k?.buffer ?? null;
-      const isQ4KBuffer = q4kBuf != null && bBuffer === q4kBuf;
-      log.warn('GemvProbe',
-        `#${_gemvProbeCount} role=${options.role ?? '?'} layer=${options.layerIdx ?? '?'} ` +
-        `M=${M} N=${N} K=${K} variant=${variant} pathVariant=${pathVariant} ` +
-        `bSize=${actualBSize} expectedF16>=${expectedBSizeF16} sizeOk=${sizeOk} ` +
-        `bDtype=${bDtype} weightDtype=${weightDtype ?? 'n/a'} transposeB=${transposeB} ` +
-        `isQ4KBuffer=${isQ4KBuffer} isRecord=${isRecord} ` +
-        `wg=[${dispatchPlan.workgroups}] uniformWgX=${dispatchPlan.uniformWorkgroupsX}`
-      );
-    }
-    // Weight identity probe — log buffer identity for GEMV calls
-    if (useGemv && _gemvProbeCount <= 200) {
-      if (!bBuffer._probeId) {
-        bBuffer._probeId = `buf_${++_bufIdCounter}`;
-      }
-      log.warn('WeightIdProbe',
-        `role=${options.role ?? '?'} layer=${options.layerIdx ?? '?'} ` +
-        `N=${N} K=${K} bufSize=${bBuffer?.size ?? 0} bufId=${bBuffer._probeId} ` +
-        `bufLabel=${bBuffer?.label ?? 'none'} variant=${variant}`
-      );
-    }
-    if (!isRecord && matmulDebug?.logProjectionValues && isAttnProj && M === 1 && options.layerIdx === 0) {
-      await device.queue.onSubmittedWorkDone();
-      const raw = await readBuffer(C);
-      const numVals = Math.min(8, Math.floor(raw.byteLength / 4));
-      const vals = numVals > 0 ? new Float32Array(raw, 0, numVals) : [];
-      log.warn('ProjectionProbe', `role=${options.role ?? ''} L0 M1 first8_f32: ${Array.from(vals).map(v => v.toFixed(5)).join(' ')}`);
-    }
     return createTensor(C, actualOutputDtype, [M, N], 'matmul_output');
   } finally {
     if (!isRecord && uniformBuffer) {

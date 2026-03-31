@@ -13,6 +13,8 @@ import {
   remapQ4KPrefillToDense,
   useLinearDecodeProjectionF16,
   remapQ4KDecodeToGemv,
+  remapQ4KDecodeAttentionToFusedQ4KGemv,
+  remapQ4KDecodeFFNToGemv,
   useQwenDecodeF16Matmuls,
   composeTransforms,
 } from '../../src/config/transforms/execution-graph-transforms.js';
@@ -884,7 +886,7 @@ function buildF16WeightProjectionGraph() {
     deepEqual(
       r.names,
       ['useHead256PrefillAttention', 'remapQ4KPrefillToDense', 'remapQ4KDecodeToGemv'],
-      'apple Qwen 3.5 0.8B graph should resolve prefill remap and decode GEMV transforms'
+      'apple Qwen 3.5 0.8B graph should resolve prefill remap and full GEMV decode'
     );
     equal(r.transforms.length, 3, 'apple Qwen 3.5 0.8B graph: three transform functions');
     equal(r.transforms[0], useHead256PrefillAttention,

@@ -103,6 +103,10 @@ Rules:
 
 ### 4) Form Hypotheses and Patch
 
+**Correctness gate:** If a performance change (kernel swap, transform, materialization path) produces incorrect output — garbled text, numerical divergence, repeated tokens — stop the perf workflow and invoke `doppler-debug` immediately. Do not continue tuning a path that produces wrong answers. The debug ladder must confirm correctness before perf measurement resumes.
+
+**Context budget:** Investigation and diagnosis should consume no more than 30% of available context. If you have not formed a testable hypothesis after reading 5–8 files, stop reading code and run a diagnostic probe or write a minimal reproduction instead. Exhaustive static code tracing without running a test is an anti-pattern.
+
 Common patterns:
 - Decode slowdown:
   - Too-frequent readback/map on logits path.
@@ -110,6 +114,10 @@ Common patterns:
 - Prefill slowdown:
   - Full-sequence logits readback when only last-position logits are needed.
   - Extra tensor materialization in prefill path.
+- Correctness regression from perf change:
+  - Precision loss in dtype materialization path (e.g., f16 round-trip in weight dequant).
+  - Transform remapping that changes kernel precision semantics (e.g., fused Q4K → GEMV with f16 weights).
+  - Always measure per-op numerical error before attributing to a specific kernel.
 
 Priority code hotspots:
 - `src/inference/pipelines/text/logits/index.js`

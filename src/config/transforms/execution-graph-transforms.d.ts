@@ -158,6 +158,19 @@ export declare function remapQ4KDecodeAttentionToGemv(
 ): ExecutionGraph | null;
 
 /**
+ * Replace ONLY attention-projection decode kernels (q/k/v/o_proj) with the
+ * optimised fused Q4K GEMV variant (main_gemv). Combines shared-A cooperative
+ * loading with fast nibble extraction for maximum M=1 throughput while
+ * preserving full Q4K dequant precision (no f16 weight materialization).
+ *
+ * Production fix for the f16-precision-loss regression in the attention path.
+ */
+export declare function remapQ4KDecodeAttentionToFusedQ4KGemv(
+  graph: ExecutionGraph,
+  ctx: TransformContext
+): ExecutionGraph | null;
+
+/**
  * Replace ONLY FFN-projection decode kernels (gate/up/down_proj) with GEMV
  * subgroup variants, leaving attention projections as fused Q4K.
  *
