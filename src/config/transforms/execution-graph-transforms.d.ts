@@ -146,6 +146,30 @@ export declare function remapQ4KDecodeToGemv(
 ): ExecutionGraph | null;
 
 /**
+ * Replace ONLY attention-projection decode kernels (q/k/v/o_proj) with GEMV
+ * subgroup variants, leaving FFN projections as fused Q4K.
+ *
+ * Diagnostic transform for isolating GEMV correctness regressions between the
+ * attention and FFN decode paths.
+ */
+export declare function remapQ4KDecodeAttentionToGemv(
+  graph: ExecutionGraph,
+  ctx: TransformContext
+): ExecutionGraph | null;
+
+/**
+ * Replace ONLY FFN-projection decode kernels (gate/up/down_proj) with GEMV
+ * subgroup variants, leaving attention projections as fused Q4K.
+ *
+ * Diagnostic complement to `remapQ4KDecodeAttentionToGemv` for isolating
+ * GEMV correctness regressions to the FFN decode path.
+ */
+export declare function remapQ4KDecodeFFNToGemv(
+  graph: ExecutionGraph,
+  ctx: TransformContext
+): ExecutionGraph | null;
+
+/**
  * Narrow selected Qwen decode FFN + lm_head matmuls onto explicit f16 kernels
  * while keeping the manifest-owned activation contract intact.
  */
