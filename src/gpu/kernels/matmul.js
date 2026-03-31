@@ -40,6 +40,7 @@ export { createMatmulBindGroupLayout };
 let _runMatmulDebugCount = 0;
 let _recordMatmulDebugCount = 0;
 let _gemvProbeCount = 0;
+let _bufIdCounter = 0;
 
 function normalizeMatmulDebugConfig(config) {
   if (!config || typeof config !== 'object') {
@@ -410,11 +411,13 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
     }
     // Weight identity probe — log buffer identity for GEMV calls
     if (useGemv && _gemvProbeCount <= 200) {
+      if (!bBuffer._probeId) {
+        bBuffer._probeId = `buf_${++_bufIdCounter}`;
+      }
       log.warn('WeightIdProbe',
         `role=${options.role ?? '?'} layer=${options.layerIdx ?? '?'} ` +
-        `N=${N} K=${K} bufSize=${bBuffer?.size ?? 0} bufLabel=${bBuffer?.label ?? 'none'} ` +
-        `isWeightBuf=${!!(B && typeof B === 'object' && 'dtype' in B)} ` +
-        `weightDtype=${weightDtype ?? 'n/a'} bDtype=${bDtype} variant=${variant}`
+        `N=${N} K=${K} bufSize=${bBuffer?.size ?? 0} bufId=${bBuffer._probeId} ` +
+        `bufLabel=${bBuffer?.label ?? 'none'} variant=${variant}`
       );
     }
     if (!isRecord && matmulDebug?.logProjectionValues && isAttnProj && M === 1 && options.layerIdx === 0) {
