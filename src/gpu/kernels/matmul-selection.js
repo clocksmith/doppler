@@ -97,9 +97,15 @@ export function isFusedQ4KDisabled(options = {}) {
   const capabilities = getKernelCapabilities();
   const hasSubgroups = capabilities?.hasSubgroups === true;
 
+  // When subgroups are available, always allow fused Q4K as a fallback path.
+  // This is critical for mixed-materialization weights: the kernel path may specify
+  // non-fused variants (e.g. gemv_decode, tiled) but when the actual weight buffer
+  // resolves to Q4K (for F32 precision preservation), fused Q4K must be selectable.
+  if (hasSubgroups) return false;
+
   if (options.kernelPath !== undefined) {
     if (!options.kernelPath) {
-      return !hasSubgroups;
+      return true;
     }
     return !isKernelPathFusedQ4K(options.kernelPath);
   }
@@ -109,7 +115,7 @@ export function isFusedQ4KDisabled(options = {}) {
     return !isKernelPathFusedQ4K(activeKernelPath);
   }
 
-  return !hasSubgroups;
+  return true;
 }
 
 
@@ -323,8 +329,7 @@ function resolveMatmulOverride(
 
   const requiredWeightDtype = resolveRequiredWeightDtype(config);
   const weightDtypeOk = !requiredWeightDtype
-    || bDtype === requiredWeightDtype
-    || (requiredWeightDtype === 'f16' && bDtype === 'q4k');
+    || bDtype === requiredWeightDtype;
   if (!weightDtypeOk) {
     return failOrWarn(
       `Matmul kernel "${variantOverride}" requires ${requiredWeightDtype} weights but B dtype is ${bDtype}.`
@@ -409,7 +414,17 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
       fusedQ4KDisabled
     );
     if (!override && strict) {
-      throw new Error(`[Matmul] Path variant "${pathVariant}" rejected for role=${options.role ?? '?'} layerIdx=${options.layerIdx ?? '?'} phase=${phase} M=${M} K=${K} aDtype=${aDtype} bDtype=${bDtype} outDtype=${requestedOutputDtype}`);
+      // When weights resolved to Q4K (precision upgrade) but the path variant requires F16,
+      // fall through to auto-selection rather than throwing. The auto path will pick
+      // the correct fused Q4K variant for the actual weight dtype.
+      if (bDtype === 'q4k') {
+        logKernelSelectionOnce('matmul', {
+          variant: pathVariant,
+          reason: 'path_override_q4k_fallthrough',
+        });
+      } else {
+        throw new Error(`[Matmul] Path variant "${pathVariant}" rejected for role=${options.role ?? '?'} layerIdx=${options.layerIdx ?? '?'} phase=${phase} M=${M} K=${K} aDtype=${aDtype} bDtype=${bDtype} outDtype=${requestedOutputDtype}`);
+      }
     }
     if (override) {
       if (
