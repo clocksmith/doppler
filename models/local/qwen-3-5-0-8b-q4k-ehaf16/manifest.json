@@ -113,7 +113,7 @@
       ]
     },
     "chatTemplate": {
-      "type": "qwen",
+      "type": "chatml",
       "enabled": true
     },
     "pipeline": null,

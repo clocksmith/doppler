@@ -107,7 +107,7 @@
       ]
     },
     "chatTemplate": {
-      "type": "qwen",
+      "type": "chatml",
       "enabled": true
     }
   },
