@@ -191,6 +191,6 @@
   },
   "optionalDependencies": {
     "@simulatte/webgpu": "0.x.x",
-    "webgpu": "^0.3.8"
+    "webgpu": "^0.4.0"
   }
 }

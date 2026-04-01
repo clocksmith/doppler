@@ -445,6 +445,7 @@ const FULL_F32_SHADER_MAP = new Map([
   ['attention_decode_chunked_f16kv.wgsl', 'attention_decode.wgsl'],
   ['attention_small_f16kv.wgsl', 'attention_small.wgsl'],
   ['attention_streaming_f16kv.wgsl', 'attention_streaming.wgsl'],
+  ['attention_head256_f16kv.wgsl', 'attention_small.wgsl'],
 ]);
 
 /**

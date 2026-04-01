@@ -6,7 +6,6 @@ const DEFAULT_DOE_PROVIDER_CREATE_ARGS = 'enable-dawn-features=allow_unsafe_apis
 const DOE_PROVIDER_CREATE_ARGS_ENV = 'FAWN_WEBGPU_CREATE_ARGS';
 const DOE_PROVIDER_SPECIFIERS = Object.freeze([
   '@doe-gpu/webgpu',
-  '@simulatte/webgpu',
 ]);
 const ADAPTER_PROBE_OPTIONS = Object.freeze([
   { powerPreference: 'high-performance' },
@@ -380,8 +379,7 @@ export async function bootstrapNodeWebGPUProvider(providerSpecifier, options = {
  *
  * 3. **Default candidates** — tried in order:
  *    a. `'@doe-gpu/webgpu'` (current Doe package name)
- *    b. `'@simulatte/webgpu'` (legacy package name during transition)
- *    c. `'webgpu'` (community Dawn bindings)
+ *    b. `'webgpu'` (community Dawn bindings)
  *    The first one that imports, installs, and passes an adapter probe wins.
  *
  * @returns {Promise<{ ok: boolean, provider: string | null }>}
