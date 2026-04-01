@@ -1,7 +1,7 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-03-24",
+  "updatedAt": "2026-03-31",
   "models": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
@@ -24,7 +24,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "e62fb338bbbd110264d2687a2daaba720023483c",
+        "revision": "dfbe333a262f00050eebb6704827cad4839c6825",
         "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -84,7 +84,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "e62fb338bbbd110264d2687a2daaba720023483c",
+        "revision": "dfbe333a262f00050eebb6704827cad4839c6825",
         "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -144,7 +144,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "e62fb338bbbd110264d2687a2daaba720023483c",
+        "revision": "dfbe333a262f00050eebb6704827cad4839c6825",
         "path": "models/gemma-3-1b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -205,7 +205,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "e62fb338bbbd110264d2687a2daaba720023483c",
+        "revision": "dfbe333a262f00050eebb6704827cad4839c6825",
         "path": "models/translategemma-4b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -266,7 +266,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "e62fb338bbbd110264d2687a2daaba720023483c",
+        "revision": "cba9b6481e3c9dbf9884a92802284aabb92f2b0e",
         "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
       },
       "baseUrl": null,
@@ -293,9 +293,9 @@
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-03-24",
+          "lastVerifiedAt": "2026-03-31",
           "source": "runtime-verify",
-          "notes": "Browser/WebGPU headless Chromium on Apple M3 verified 2026-03-24: coherent sky-color output at 10.6 tok/s. Fixed: Q4K fused_matmul kernels, attention_streaming_f16kv, computePrecision f32, q4kLayout row. execution.inlineKernelPath=true, decodeLoop batchSize=4.",
+          "notes": "Browser/WebGPU headless Chromium on Apple M3 verified 2026-03-31: GEMV decode path (remapQ4KDecodeToGemv) at 33 tok/s, prefill remapped to dense f16. capability-transforms rule applied: useHead256PrefillAttention + remapQ4KPrefillToDense + remapQ4KDecodeToGemv. maxSeqLen capped to 8192. execution.inlineKernelPath=true.",
           "contracts": {
             "executionContractOk": true
           }
@@ -328,7 +328,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "e62fb338bbbd110264d2687a2daaba720023483c",
+        "revision": "e1b24ee458a2c3602fabc4b797eac77cbd410ad1",
         "path": "models/qwen-3-5-2b-q4k-ehaf16"
       },
       "baseUrl": null,
@@ -355,9 +355,9 @@
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-03-24",
+          "lastVerifiedAt": "2026-03-31",
           "source": "runtime-verify",
-          "notes": "Browser/WebGPU headless Chromium on Apple M3 verified 2026-03-24: coherent sky-color output at 6.9 tok/s. Fixed: 2B execution graph was using F16 kernels on Q4K shards (quantization header lied F16). Corrected to Q4_K_M with fused_matmul_q4 kernels, attention_streaming_f16kv, computePrecision f32, q4kLayout row. execution.inlineKernelPath=true.",
+          "notes": "Browser/WebGPU headless Chromium on Apple M3 verified 2026-03-31: GEMV decode path (remapQ4KDecodeToGemv) at 17 tok/s, prefill remapped to dense f16. capability-transforms rule applied: useHead256PrefillAttention + remapQ4KPrefillToDense + remapQ4KDecodeToGemv. maxSeqLen capped to 8192. execution.inlineKernelPath=true.",
           "contracts": {
             "executionContractOk": true
           }
@@ -389,7 +389,7 @@
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "path": "models/lfm2-5-1-2b-instruct-q4k-ehf16-af32",
-        "revision": "e62fb338bbbd110264d2687a2daaba720023483c"
+        "revision": "dfbe333a262f00050eebb6704827cad4839c6825"
       },
       "baseUrl": null,
       "quickstart": false,

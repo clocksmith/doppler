@@ -786,9 +786,11 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
   const maxTokens = Number.isFinite(runOverrides?.maxTokens)
     ? Math.max(1, Math.floor(runOverrides.maxTokens))
     : resolveMaxTokens(runtimeConfig);
-  const sampling = isPlainObject(runOverrides?.sampling)
-    ? runOverrides.sampling
-    : (runtimeConfig.inference?.sampling || {});
+  const sampling = {
+    ...DEFAULT_SAMPLING_DEFAULTS,
+    ...(runtimeConfig.inference?.sampling || {}),
+    ...(isPlainObject(runOverrides?.sampling) ? runOverrides.sampling : {}),
+  };
   const debugProbes = runtimeConfig.shared?.debug?.probes || [];
   const profile = runtimeConfig.shared?.debug?.profiler?.enabled === true;
   const explicitDiagnosticsEnabled = runtimeConfig.shared?.harness?.mode === 'diagnose'

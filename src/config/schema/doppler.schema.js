@@ -20,7 +20,14 @@ export const DEFAULT_RUNTIME_CONFIG = {
   loading: DEFAULT_LOADING_CONFIG,
   inference: {
     batching: {},
-    sampling: {},
+    sampling: {
+      temperature: 1.0,
+      topP: 0.95,
+      topK: 50,
+      repetitionPenalty: 1.1,
+      greedyThreshold: 0.01,
+      repetitionPenaltyWindow: 100,
+    },
     compute: {},
     tokenizer: {},
     largeWeights: {},

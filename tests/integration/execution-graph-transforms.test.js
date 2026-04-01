@@ -896,6 +896,37 @@ function buildF16WeightProjectionGraph() {
     equal(r.transforms[2], remapQ4KDecodeToGemv,
       'apple Qwen 3.5 0.8B graph: third transform function is remapQ4KDecodeToGemv');
   }
+
+  // Qwen 3.5 2B — same GEMV decode transform chain as 0.8B
+  {
+    const r = resolveCapabilityTransforms(
+      {
+        hasSubgroups: true,
+        hasF16: true,
+        maxWorkgroupStorageSize: 32768,
+        adapterInfo: {
+          vendor: 'apple',
+          architecture: 'metal-3',
+        },
+      },
+      { id: 'apple-m3', vendor: 'apple', architecture: 'm-series' },
+      {
+        activationDtype: 'f32',
+        kvDtype: 'f16',
+        modelId: 'qwen-3-5-2b-q4k-ehaf16',
+        hasDensePrefillProjectionKernel: false,
+        hasQ4DecodeProjectionKernel: true,
+        hasQ4PrefillProjectionKernel: true,
+        hasAvailableQ4PrefillProjectionKernel: true,
+      }
+    );
+    deepEqual(
+      r.names,
+      ['useHead256PrefillAttention', 'remapQ4KPrefillToDense', 'remapQ4KDecodeToGemv'],
+      'apple Qwen 3.5 2B graph should resolve prefill remap and full GEMV decode'
+    );
+    equal(r.transforms.length, 3, 'apple Qwen 3.5 2B graph: three transform functions');
+  }
 }
 
 // ===========================================================================

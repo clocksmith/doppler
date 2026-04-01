@@ -48,6 +48,21 @@
         "hasSubgroups": true,
         "hasF16": true,
         "activationDtype": "f32",
+        "kvDtype": "f16",
+        "platformVendor": "apple",
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "maxWorkgroupStorageSize": { "gte": 16384 },
+        "hasQ4PrefillProjectionKernel": true,
+        "hasQ4DecodeProjectionKernel": true
+      },
+      "transforms": ["useHead256PrefillAttention", "remapQ4KPrefillToDense", "remapQ4KDecodeToGemv"],
+      "reason": "Apple/WebGPU Qwen 3.5 2B — f16 GEMV decode for all projections"
+    },
+    {
+      "match": {
+        "hasSubgroups": true,
+        "hasF16": true,
+        "activationDtype": "f32",
         "platformVendor": "apple",
         "modelId": { "neq": "gemma-3-1b-it-q4k-ehf16-af32" },
         "hasDensePrefillProjectionKernel": true,
