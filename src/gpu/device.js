@@ -1,6 +1,7 @@
 
 
 import { wrapQueueForTracking, setTrackSubmits } from './submit-tracker.js';
+import { probeSubmitLatency } from './submit-probe.js';
 import { log } from '../debug/index.js';
 import { createDopplerError, ERROR_CODES } from '../errors/index.js';
 import { GB } from '../config/schema/index.js';
@@ -405,13 +406,18 @@ export async function initDevice() {
       device: adapterInfo.device || 'unknown',
       description: adapterInfo.description || '',
     },
+    submitProbeMs: null,
   };
+
+  const probeMs = await probeSubmitLatency(gpuDevice);
+  kernelCapabilities.submitProbeMs = probeMs;
 
   const features = [
     kernelCapabilities.hasF16 && 'f16',
     kernelCapabilities.hasSubgroups && 'subgroups',
   ].filter(Boolean).join('/') || 'basic';
-  console.log('[GPU] ' + (adapterInfo.vendor || 'unknown') + ' ' + (adapterInfo.architecture || adapterInfo.device || '') + ', ' + features + ', ' + (kernelCapabilities.maxBufferSize / GB).toFixed(1) + 'GB');
+  const probeStr = probeMs != null ? ', submit probe: ' + probeMs.toFixed(1) + 'ms' : '';
+  console.log('[GPU] ' + (adapterInfo.vendor || 'unknown') + ' ' + (adapterInfo.architecture || adapterInfo.device || '') + ', ' + features + ', ' + (kernelCapabilities.maxBufferSize / GB).toFixed(1) + 'GB' + probeStr);
 
   return gpuDevice;
 }
@@ -442,6 +448,8 @@ export function setDevice(device, options = {}) {
     setDeviceHasF16 = probeShaderF16(gpuDevice);
   }
 
+  const previousSubmitProbeMs = kernelCapabilities?.submitProbeMs ?? null;
+
   kernelCapabilities = {
     hasSubgroups: gpuDevice.features.has(FEATURES.SUBGROUPS),
     hasSubgroupsF16: gpuDevice.features.has(FEATURES.SUBGROUPS_F16),
@@ -451,6 +459,7 @@ export function setDevice(device, options = {}) {
     maxWorkgroupSize: gpuDevice.limits.maxComputeInvocationsPerWorkgroup,
     maxWorkgroupStorageSize: gpuDevice.limits.maxComputeWorkgroupStorageSize,
     adapterInfo,
+    submitProbeMs: previousSubmitProbeMs,
   };
 
   if (options.platformConfig !== undefined) {

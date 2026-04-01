@@ -40,6 +40,8 @@ export interface KernelCapabilities {
   maxWorkgroupStorageSize: number;
   adapterInfo: AdapterInfo;
   features?: string[];
+  /** GPU submit+readback roundtrip probe result in ms, or null if not probed. */
+  submitProbeMs: number | null;
 }
 
 /**

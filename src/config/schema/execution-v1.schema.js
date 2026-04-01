@@ -20,6 +20,7 @@ export const DEFAULT_EXECUTION_V1_SESSION = {
   kvcache: null,
   decodeLoop: null,
   speculation: null,
+  submitLatencyThresholdMs: 100,
 };
 
 export const DEFAULT_EXECUTION_V1_POLICIES = {

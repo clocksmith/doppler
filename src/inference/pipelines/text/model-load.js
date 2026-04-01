@@ -172,6 +172,33 @@ export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, model
     return runtimeConfig;
   }
 
+  // Submit latency probe override: if the GPU submit roundtrip exceeds the
+  // configured threshold, downgrade to batchSize=1 single-token decode to
+  // avoid pipeline stall from high submit/readback latency.
+  const resolvedSession = patch.session;
+  const thresholdMs = resolvedSession.submitLatencyThresholdMs;
+  if (thresholdMs != null && patch.batching.batchSize > 1) {
+    let probeMs = null;
+    try {
+      probeMs = getKernelCapabilities().submitProbeMs;
+    } catch {
+      // Device not initialized yet — skip probe override.
+    }
+    if (probeMs != null && probeMs > thresholdMs) {
+      log.info(
+        'Pipeline',
+        `Submit probe ${probeMs.toFixed(1)}ms > threshold ${thresholdMs}ms; ` +
+        `overriding batchSize ${patch.batching.batchSize} → 1 (single-token decode)`
+      );
+      patch.batching.batchSize = 1;
+      patch.batching.stopCheckMode = 'per-token';
+      patch.batching.readbackInterval = 1;
+      patch.session.decodeLoop.batchSize = 1;
+      patch.session.decodeLoop.stopCheckMode = 'per-token';
+      patch.session.decodeLoop.readbackInterval = 1;
+    }
+  }
+
   const nextRuntimeConfig = mergeRuntimeValues(runtimeConfig, {
     inference: {
       session: patch.session,

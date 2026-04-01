@@ -106,6 +106,14 @@ export interface ExecutionV1SessionSchema {
   kvcache: Partial<KVCacheConfigSchema> | null;
   decodeLoop: ExecutionV1DecodeLoopSchema | null;
   speculation: ExecutionV1SelfSpeculationSchema | null;
+  /**
+   * Submit latency threshold in ms. When the GPU submit probe roundtrip
+   * exceeds this value, the session resolver downgrades to batchSize=1
+   * single-token decode to avoid pipeline stall.
+   *
+   * Set to `null` to disable the probe-driven override.
+   */
+  submitLatencyThresholdMs: number | null;
 }
 
 // === Policies ===
