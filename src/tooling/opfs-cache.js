@@ -3,9 +3,10 @@ import {
   openModelStore,
   loadManifestFromStore,
   saveManifest,
+  deleteModel,
 } from '../storage/shard-manager.js';
-import { downloadModel } from '../storage/downloader.js';
-import { isOPFSAvailable } from '../storage/quota.js';
+import { downloadModel, estimateTimeRemaining, formatSpeed } from '../storage/downloader.js';
+import { isOPFSAvailable, formatBytes } from '../storage/quota.js';
 import { parseManifest, getManifestUrl } from '../formats/rdrr/index.js';
 import { log } from '../debug/index.js';
 import {
@@ -118,7 +119,47 @@ async function loadCachedManifest(modelId) {
   return { text, manifest: parseManifest(text) };
 }
 
-export async function ensureModelCached(modelId, modelBaseUrl) {
+function buildDownloadProgress(progress) {
+  if (!progress) return null;
+  const totalBytes = Number.isFinite(progress.totalBytes) ? progress.totalBytes : 0;
+  const downloadedBytes = Number.isFinite(progress.downloadedBytes) ? progress.downloadedBytes : 0;
+  const speed = Number.isFinite(progress.speed) ? progress.speed : 0;
+  const remainingBytes = Math.max(0, totalBytes - downloadedBytes);
+  return {
+    stage: 'downloading',
+    modelId: progress.modelId || null,
+    totalShards: Number.isFinite(progress.totalShards) ? progress.totalShards : 0,
+    completedShards: Number.isFinite(progress.completedShards) ? progress.completedShards : 0,
+    totalBytes,
+    downloadedBytes,
+    percent: Number.isFinite(progress.percent) ? progress.percent : 0,
+    speed,
+    speedFormatted: speed > 0 ? formatSpeed(speed) : '',
+    totalFormatted: totalBytes > 0 ? formatBytes(totalBytes) : '',
+    downloadedFormatted: downloadedBytes > 0 ? formatBytes(downloadedBytes) : '',
+    eta: speed > 0 && remainingBytes > 0 ? estimateTimeRemaining(remainingBytes, speed) : '',
+    message: buildDownloadStatusLine(progress, speed, remainingBytes),
+  };
+}
+
+function buildDownloadStatusLine(progress, speed, remainingBytes) {
+  const parts = [];
+  const downloaded = Number.isFinite(progress.downloadedBytes) ? formatBytes(progress.downloadedBytes) : '0 B';
+  const total = Number.isFinite(progress.totalBytes) ? formatBytes(progress.totalBytes) : '?';
+  parts.push(`${downloaded} / ${total}`);
+  if (Number.isFinite(progress.completedShards) && Number.isFinite(progress.totalShards)) {
+    parts.push(`shard ${progress.completedShards}/${progress.totalShards}`);
+  }
+  if (speed > 0) {
+    parts.push(formatSpeed(speed));
+  }
+  if (speed > 0 && remainingBytes > 0) {
+    parts.push(`~${estimateTimeRemaining(remainingBytes, speed)} remaining`);
+  }
+  return parts.join(' | ');
+}
+
+export async function ensureModelCached(modelId, modelBaseUrl, onProgress = null) {
   if (!modelId || !modelBaseUrl) {
     return {
       cached: false,
@@ -140,6 +181,8 @@ export async function ensureModelCached(modelId, modelBaseUrl) {
     };
   }
 
+  let needsFullImport = false;
+
   try {
     const exists = await modelExists(modelId);
     if (exists) {
@@ -151,6 +194,7 @@ export async function ensureModelCached(modelId, modelBaseUrl) {
 
         if (!cachedManifestText || !cachedManifest) {
           log.warn(MODULE, `Cache miss: "${modelId}" has no readable manifest in OPFS; re-importing`);
+          needsFullImport = true;
         } else {
           const cachedSourceArtifact = resolveSourceArtifact(cachedManifest);
           const sourceIntegrity = cachedSourceArtifact
@@ -167,6 +211,7 @@ export async function ensureModelCached(modelId, modelBaseUrl) {
           const remoteFingerprint = buildManifestFingerprint(remoteManifest);
           if (sourceIntegrityValid && cachedFingerprint === remoteFingerprint) {
             log.info(MODULE, `Cache hit: "${modelId}"`);
+            onProgress?.({ stage: 'cache-hit', modelId, message: `OPFS cache hit: ${modelId}`, percent: 100 });
             return {
               cached: true,
               fromCache: true,
@@ -182,6 +227,7 @@ export async function ensureModelCached(modelId, modelBaseUrl) {
             await openModelStore(modelId);
             await saveManifest(remoteManifestText);
             log.info(MODULE, `Cache manifest refreshed: "${modelId}" (shards unchanged)`);
+            onProgress?.({ stage: 'cache-refresh', modelId, message: `Manifest refreshed: ${modelId} (shards unchanged)`, percent: 100 });
             return {
               cached: true,
               fromCache: false,
@@ -190,7 +236,17 @@ export async function ensureModelCached(modelId, modelBaseUrl) {
               error: null,
             };
           }
-          log.info(MODULE, `Cache stale: "${modelId}" manifest/shards changed; re-importing`);
+
+          // Cache is stale — newer model version. Delete old data before re-importing.
+          log.info(MODULE, `Cache stale: "${modelId}" manifest/shards changed; deleting old version and re-importing`);
+          onProgress?.({ stage: 'cache-invalidate', modelId, message: `Purging stale OPFS cache for ${modelId}`, percent: 0 });
+          try {
+            await deleteModel(modelId);
+            log.info(MODULE, `Deleted stale OPFS cache for "${modelId}"`);
+          } catch (deleteError) {
+            log.warn(MODULE, `Failed to delete stale cache for "${modelId}": ${toErrorMessage(deleteError)}`);
+          }
+          needsFullImport = true;
         }
       } catch (error) {
         const message = toErrorMessage(error);
@@ -216,11 +272,19 @@ export async function ensureModelCached(modelId, modelBaseUrl) {
     };
   }
 
-  log.info(MODULE, `Cache miss: "${modelId}". Triggering full model download from ${modelBaseUrl}`);
+  if (!needsFullImport) {
+    log.info(MODULE, `Cache miss: "${modelId}". Triggering full model download from ${modelBaseUrl}`);
+  }
+
+  onProgress?.({ stage: 'download-start', modelId, message: `Downloading ${modelId}...`, percent: 0 });
 
   try {
     const success = await downloadModel(modelBaseUrl, (progress) => {
       if (!progress) return;
+      const enriched = buildDownloadProgress(progress);
+      if (enriched) {
+        onProgress?.(enriched);
+      }
       const shard = Number.isFinite(progress.completedShards) ? progress.completedShards : '?';
       const total = Number.isFinite(progress.totalShards) ? progress.totalShards : '?';
       const mb = Number.isFinite(progress.downloadedBytes)
@@ -231,6 +295,7 @@ export async function ensureModelCached(modelId, modelBaseUrl) {
 
     if (success) {
       log.info(MODULE, `Import complete: "${modelId}"`);
+      onProgress?.({ stage: 'download-complete', modelId, message: `Download complete: ${modelId}`, percent: 100 });
       return {
         cached: true,
         fromCache: false,

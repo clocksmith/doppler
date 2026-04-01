@@ -36,6 +36,8 @@ export {
   loadFileFromStore,
   streamFileFromStore,
   computeHash,
+  deleteModel,
+  listModels,
 } from './storage/shard-manager.js';
 export { exportModelToDirectory } from './storage/export.js';
 export { parseManifest, getManifest, setManifest, clearManifest, classifyTensorRole } from './formats/rdrr/index.js';
