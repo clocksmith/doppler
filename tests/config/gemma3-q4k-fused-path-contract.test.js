@@ -54,11 +54,12 @@ for (const [label, graph] of [
   assert.equal(graph.kernels.q4_prefill_shared.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl', `${label}: q4_prefill_shared kernel`);
   assert.equal(graph.kernels.q4_prefill_shared.entry, 'main', `${label}: q4_prefill_shared entry`);
   assert.equal(graph.kernels.attn_small.kernel, 'attention_small_f16kv.wgsl', `${label}: attn_small kernel`);
+  assert.equal(graph.kernels.attn_head256.kernel, 'attention_head256_f16kv.wgsl', `${label}: attn_head256 kernel`);
   assertProjectionKernel(graph, 'decode', 'gemv');
   assertProjectionKernel(graph, 'prefill', 'tiled');
   const prefillAttention = graph.prefill.find((step) => step[0] === 'attention');
   assert.ok(prefillAttention, `${label}: prefill attention step must exist`);
-  assert.equal(prefillAttention[1], 'attn_small', `${label}: prefill attention should use attn_small`);
+  assert.equal(prefillAttention[1], 'attn_head256', `${label}: prefill attention should use attn_head256`);
 
   const lmHeadPrefill = graph.postLayer.find((step) => step[0] === 'lm_head_prefill');
   assert.ok(lmHeadPrefill, `${label}: lm_head_prefill step must exist`);

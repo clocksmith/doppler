@@ -76,9 +76,9 @@ if (!fs.existsSync(qwenManifestPath)) {
     ringStaging: 1,
     disableCommandBatching: false,
   });
-  assert.equal(materialized.inference?.execution?.kernels?.q4_decode?.kernel, 'fused_matmul_q4.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.q4_prefill?.kernel, 'fused_matmul_q4_batched.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16kv.wgsl');
+  assert.equal(materialized.inference?.execution?.kernels?.gemv_decode?.kernel, 'matmul_gemv_subgroup.wgsl');
+  assert.equal(materialized.inference?.execution?.kernels?.tiled?.kernel, 'matmul_f16w_f32a.wgsl');
+  assert.equal(materialized.inference?.execution?.kernels?.attn_head256?.kernel, 'attention_head256_f16kv.wgsl');
 }
 
 const gemma1bManifestPath = path.join('models/local/gemma-3-1b-it-q4k-ehf16-af32', 'manifest.json');
@@ -106,7 +106,7 @@ if (!fs.existsSync(gemma1bManifestPath)) {
   assert.equal(qProjPrefill[1], 'tiled');
   const attnPrefill = materialized.inference?.execution?.prefill?.find((step) => step[0] === 'attention');
   assert.ok(attnPrefill, 'gemma 1b materialized prefill attention step missing');
-  assert.equal(attnPrefill[1], 'attn_small');
+  assert.equal(attnPrefill[1], 'attn_head256');
 }
 
 console.log('conversion-config-materializer.test: ok');

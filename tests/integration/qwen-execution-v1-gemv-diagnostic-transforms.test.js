@@ -4,7 +4,7 @@ import fs from 'node:fs';
 const { resolveCapabilityTransforms } = await import(
   '../../src/config/transforms/capability-transform-resolver.js'
 );
-const { composeTransforms, remapQ4KDecodeFFNToGemv, remapQ4KDecodeAttentionToGemv, remapQ4KDecodeAttentionToFusedQ4KGemv } = await import(
+const { composeTransforms, remapQ4KDecodeToGemv, remapQ4KDecodeFFNToGemv, remapQ4KDecodeAttentionToGemv, remapQ4KDecodeAttentionToFusedQ4KGemv, remapQ4KPrefillToDense } = await import(
   '../../src/config/transforms/execution-graph-transforms.js'
 );
 
@@ -21,25 +21,9 @@ const capabilities = {
   hasF16: true,
   maxWorkgroupStorageSize: 32768,
 };
-const platform = {
-  id: 'metal',
-  vendor: 'apple',
-  architecture: 'metal-3',
-};
-const baseGraphContext = {
-  activationDtype: 'f32',
-  kvDtype: 'f16',
-  modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
-  layerTypes: conversionConfig.inference.layerPattern.layerTypes,
-  hasDensePrefillProjectionKernel: false,
-  hasQ4DecodeProjectionKernel: true,
-  hasQ4PrefillProjectionKernel: true,
-  hasAvailableQ4PrefillProjectionKernel: true,
-};
 
 const transformCtx = {
   capabilities,
-  platform,
   activationDtype: 'f32',
   kvDtype: 'f16',
   modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
@@ -47,116 +31,136 @@ const transformCtx = {
 };
 
 // =============================================================================
-// Default chain: full GEMV decode for all projections
+// GEMV decode is baked into the conversion config as the primary execution graph.
+// Capability transforms should resolve to [] on all capable platforms.
 // =============================================================================
 {
-  const resolved = resolveCapabilityTransforms(capabilities, platform, baseGraphContext);
-  assert.deepEqual(
-    resolved.names,
-    ['useHead256PrefillAttention', 'remapQ4KPrefillToDense', 'remapQ4KDecodeToGemv'],
-    'Default chain should use f16 GEMV for all decode projections'
+  // Apple Metal
+  const resolvedApple = resolveCapabilityTransforms(capabilities, {
+    id: 'metal', vendor: 'apple', architecture: 'metal-3',
+  }, {
+    activationDtype: 'f32',
+    kvDtype: 'f16',
+    modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+    layerTypes: conversionConfig.inference.layerPattern.layerTypes,
+    hasDensePrefillProjectionKernel: true,
+    hasQ4DecodeProjectionKernel: false,
+    hasQ4PrefillProjectionKernel: false,
+    hasAvailableQ4PrefillProjectionKernel: false,
+  });
+  assert.deepEqual(resolvedApple.names, [],
+    'Apple Metal: no capability transforms needed (GEMV is primary path)');
+
+  // AMD Vulkan
+  const resolvedAmd = resolveCapabilityTransforms(capabilities, {
+    id: 'vulkan', vendor: 'amd', architecture: 'rdna3',
+  }, {
+    activationDtype: 'f32',
+    kvDtype: 'f16',
+    modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+    layerTypes: conversionConfig.inference.layerPattern.layerTypes,
+    hasDensePrefillProjectionKernel: true,
+    hasQ4DecodeProjectionKernel: false,
+    hasQ4PrefillProjectionKernel: false,
+    hasAvailableQ4PrefillProjectionKernel: false,
+  });
+  assert.deepEqual(resolvedAmd.names, [],
+    'AMD Vulkan: no capability transforms needed (GEMV is primary path)');
+}
+
+// =============================================================================
+// Direct transform functions return null on an already-GEMV execution graph
+// (no fused Q4K decode kernels to remap)
+// =============================================================================
+{
+  assert.equal(
+    remapQ4KDecodeToGemv(structuredClone(execution), transformCtx),
+    null,
+    'remapQ4KDecodeToGemv returns null — no fused Q4K decode kernels to remap'
   );
 
-  const composed = composeTransforms(...resolved.transforms);
-  const graph = composed(execution, transformCtx);
-  assert.ok(graph, 'Full GEMV chain should produce a transformed graph');
+  assert.equal(
+    remapQ4KDecodeAttentionToGemv(structuredClone(execution), transformCtx),
+    null,
+    'remapQ4KDecodeAttentionToGemv returns null — attention projections already GEMV'
+  );
 
-  // All decode projections: GEMV
-  for (const step of graph.decode) {
+  assert.equal(
+    remapQ4KDecodeAttentionToFusedQ4KGemv(structuredClone(execution), transformCtx),
+    null,
+    'remapQ4KDecodeAttentionToFusedQ4KGemv returns null — no fused Q4K attention kernels'
+  );
+
+  assert.equal(
+    remapQ4KDecodeFFNToGemv(structuredClone(execution), transformCtx),
+    null,
+    'remapQ4KDecodeFFNToGemv returns null — no fused Q4K FFN kernels'
+  );
+
+  assert.equal(
+    remapQ4KPrefillToDense(structuredClone(execution), transformCtx),
+    null,
+    'remapQ4KPrefillToDense returns null — prefill already uses dense tiled kernels'
+  );
+}
+
+// =============================================================================
+// Verify primary graph has correct kernel assignments
+// =============================================================================
+{
+  // Decode: all projections use GEMV subgroup
+  for (const step of execution.decode) {
     if (!Array.isArray(step)) continue;
     const op = step[0];
     if (['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'].includes(op)) {
-      const entry = graph.kernels[step[1]];
+      const entry = execution.kernels[step[1]];
       assert.equal(
         entry.kernel, 'matmul_gemv_subgroup.wgsl',
-        `Default: decode ${op} should use GEMV`
+        `Primary graph: decode ${op} should use GEMV subgroup`
       );
     }
   }
 
-  // Prefill projections should be dense (from remapQ4KPrefillToDense)
-  for (const step of graph.prefill) {
+  // Prefill: all projections use dense tiled
+  for (const step of execution.prefill) {
     if (!Array.isArray(step)) continue;
-    if (step[0] === 'q_proj') {
-      const entry = graph.kernels[step[1]];
-      assert.ok(
-        entry.kernel.startsWith('matmul_f16w_f32a'),
-        `Default: prefill q_proj should use dense matmul, got ${entry.kernel}`
+    const op = step[0];
+    if (['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'].includes(op)) {
+      const entry = execution.kernels[step[1]];
+      assert.equal(
+        entry.kernel, 'matmul_f16w_f32a.wgsl',
+        `Primary graph: prefill ${op} should use dense tiled`
+      );
+    }
+  }
+
+  // Prefill attention: head256
+  for (const step of execution.prefill) {
+    if (!Array.isArray(step)) continue;
+    if (step[0] === 'attention') {
+      const entry = execution.kernels[step[1]];
+      assert.equal(
+        entry.kernel, 'attention_head256_f16kv.wgsl',
+        'Primary graph: prefill attention should use head256'
+      );
+    }
+  }
+
+  // Post-layer lm_head: GEMV subgroup
+  for (const step of execution.postLayer) {
+    if (!Array.isArray(step)) continue;
+    if (step[0] === 'lm_head') {
+      const entry = execution.kernels[step[1]];
+      assert.equal(
+        entry.kernel, 'matmul_gemv_subgroup.wgsl',
+        'Primary graph: lm_head should use GEMV subgroup'
       );
     }
   }
 }
 
 // =============================================================================
-// Direct transform function tests (not rule-resolved)
-// =============================================================================
-// remapQ4KDecodeAttentionToGemv, remapQ4KDecodeAttentionToFusedQ4KGemv, and
-// remapQ4KDecodeFFNToGemv are tested directly.
-{
-  // Attention-only f16 GEMV (diagnostic — causes precision loss)
-  const attnGraph = remapQ4KDecodeAttentionToGemv(structuredClone(execution), transformCtx);
-  assert.ok(attnGraph, 'remapQ4KDecodeAttentionToGemv should produce a transformed graph');
-
-  for (const step of attnGraph.decode) {
-    if (!Array.isArray(step)) continue;
-    const op = step[0];
-    if (['q_proj', 'k_proj', 'v_proj', 'o_proj'].includes(op)) {
-      const entry = attnGraph.kernels[step[1]];
-      assert.equal(entry.kernel, 'matmul_gemv_subgroup.wgsl',
-        `remapQ4KDecodeAttentionToGemv: decode ${op} should use GEMV`);
-    }
-    if (['gate_proj', 'up_proj', 'down_proj'].includes(op)) {
-      const entry = attnGraph.kernels[step[1]];
-      assert.ok(entry.kernel.startsWith('fused_matmul_q4'),
-        `remapQ4KDecodeAttentionToGemv: decode ${op} should remain fused Q4K`);
-    }
-  }
-
-  // Attention-only fused Q4K GEMV (production — no precision loss)
-  const attnFusedGraph = remapQ4KDecodeAttentionToFusedQ4KGemv(structuredClone(execution), transformCtx);
-  assert.ok(attnFusedGraph, 'remapQ4KDecodeAttentionToFusedQ4KGemv should produce a transformed graph');
-
-  for (const step of attnFusedGraph.decode) {
-    if (!Array.isArray(step)) continue;
-    const op = step[0];
-    if (['q_proj', 'k_proj', 'v_proj', 'o_proj'].includes(op)) {
-      const entry = attnFusedGraph.kernels[step[1]];
-      assert.equal(entry.kernel, 'fused_matmul_q4.wgsl',
-        `remapQ4KDecodeAttentionToFusedQ4KGemv: decode ${op} should use fused Q4K`);
-      assert.equal(entry.entry, 'main_gemv',
-        `remapQ4KDecodeAttentionToFusedQ4KGemv: decode ${op} should use main_gemv entry`);
-    }
-    if (['gate_proj', 'up_proj', 'down_proj'].includes(op)) {
-      const entry = attnFusedGraph.kernels[step[1]];
-      assert.ok(entry.kernel.startsWith('fused_matmul_q4'),
-        `remapQ4KDecodeAttentionToFusedQ4KGemv: decode ${op} should remain original fused Q4K`);
-      assert.notEqual(entry.entry, 'main_gemv',
-        `remapQ4KDecodeAttentionToFusedQ4KGemv: decode ${op} should NOT use main_gemv`);
-    }
-  }
-
-  // FFN-only GEMV
-  const ffnGraph = remapQ4KDecodeFFNToGemv(structuredClone(execution), transformCtx);
-  assert.ok(ffnGraph, 'remapQ4KDecodeFFNToGemv should produce a transformed graph');
-
-  for (const step of ffnGraph.decode) {
-    if (!Array.isArray(step)) continue;
-    const op = step[0];
-    if (['q_proj', 'k_proj', 'v_proj', 'o_proj'].includes(op)) {
-      const entry = ffnGraph.kernels[step[1]];
-      assert.ok(entry.kernel.startsWith('fused_matmul_q4'),
-        `remapQ4KDecodeFFNToGemv: decode ${op} should remain fused Q4K`);
-    }
-    if (['gate_proj', 'up_proj', 'down_proj'].includes(op)) {
-      const entry = ffnGraph.kernels[step[1]];
-      assert.equal(entry.kernel, 'matmul_gemv_subgroup.wgsl',
-        `remapQ4KDecodeFFNToGemv: decode ${op} should use GEMV`);
-    }
-  }
-}
-
-// =============================================================================
-// Verify compileExecutionV1 default path — full f16 GEMV decode
+// Verify compileExecutionV1 — zero transforms, correct kernel path
 // =============================================================================
 {
   const { compileExecutionV1 } = await import(
@@ -175,9 +179,7 @@ const transformCtx = {
     modelId: conversionConfig.output.modelBaseId,
     numLayers: conversionConfig.inference.layerPattern.layerTypes.length,
     runtimeSession: conversionConfig.session,
-    runtimeCompute: {
-      activationDtype: 'f32',
-    },
+    runtimeCompute: { activationDtype: 'f32' },
     kernelPathPolicy: {
       mode: 'capability-aware',
       sourceScope: ['model', 'manifest', 'config'],
@@ -185,25 +187,32 @@ const transformCtx = {
       onIncompatible: 'remap',
     },
     capabilities,
-    platform,
+    platform: { id: 'metal', vendor: 'apple', architecture: 'metal-3' },
   });
-  assert.deepEqual(
-    compiled.appliedTransforms,
-    ['useHead256PrefillAttention', 'remapQ4KPrefillToDense', 'remapQ4KDecodeToGemv'],
-    'compileExecutionV1 default should select full f16 GEMV decode chain'
-  );
+
+  assert.deepEqual(compiled.appliedTransforms, [],
+    'compileExecutionV1: zero transforms applied (GEMV is primary path)');
 
   const kp = compiled.runtimeInferencePatch.kernelPath;
-  // All decode projections: GEMV
   assert.equal(
     kp.decode.steps.find((s) => s.op === 'q_proj')?.kernel,
     'matmul_gemv_subgroup.wgsl',
-    'compileExecutionV1 default: decode q_proj should use GEMV'
+    'compileExecutionV1: decode q_proj uses GEMV'
   );
   assert.equal(
     kp.decode.steps.find((s) => s.op === 'gate_proj')?.kernel,
     'matmul_gemv_subgroup.wgsl',
-    'compileExecutionV1 default: decode gate_proj should use GEMV'
+    'compileExecutionV1: decode gate_proj uses GEMV'
+  );
+  assert.equal(
+    kp.prefill.steps.find((s) => s.op === 'q_proj')?.kernel,
+    'matmul_f16w_f32a.wgsl',
+    'compileExecutionV1: prefill q_proj uses dense tiled'
+  );
+  assert.equal(
+    kp.prefill.steps.find((s) => s.op === 'attention')?.kernel,
+    'attention_head256_f16kv.wgsl',
+    'compileExecutionV1: prefill attention uses head256'
   );
 }
 

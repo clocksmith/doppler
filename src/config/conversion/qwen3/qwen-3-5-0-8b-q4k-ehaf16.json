@@ -159,10 +159,10 @@
         "entry": "main",
         "digest": "sha256:f516b3e4bde2015f2a207c3ca5b8c9820c7809fa8f8d0786f90c568e0f1ac077"
       },
-      "q4_decode": {
-        "kernel": "fused_matmul_q4.wgsl",
+      "gemv_decode": {
+        "kernel": "matmul_gemv_subgroup.wgsl",
         "entry": "main_multicol",
-        "digest": "sha256:86a9d548c8d653d001d3165f10c535d6fd1bb6c5f76f8d51a1f09aff9753068c"
+        "digest": "sha256:f4d392b7f1e97e5bd63044ce09bdeb77ed7e77f6080181d483b8f1553e844ec4"
       },
       "rope": {
         "kernel": "rope.wgsl",
@@ -187,10 +187,10 @@
           "HAS_GATE": true
         }
       },
-      "q4_prefill": {
-        "kernel": "fused_matmul_q4_batched.wgsl",
-        "entry": "main_batched",
-        "digest": "sha256:a513e4170792aaf2f1c22b73f34288721541acf5954756993a0001a412c91209"
+      "attn_head256": {
+        "kernel": "attention_head256_f16kv.wgsl",
+        "entry": "main",
+        "digest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a"
       },
       "tiled": {
         "kernel": "matmul_f16w_f32a.wgsl",
@@ -231,17 +231,17 @@
       ],
       [
         "q_proj",
-        "q4_decode",
+        "gemv_decode",
         "layer.{L}.self_attn.q_proj"
       ],
       [
         "k_proj",
-        "q4_decode",
+        "gemv_decode",
         "layer.{L}.self_attn.k_proj"
       ],
       [
         "v_proj",
-        "q4_decode",
+        "gemv_decode",
         "layer.{L}.self_attn.v_proj"
       ],
       [
@@ -258,7 +258,7 @@
       ],
       [
         "o_proj",
-        "q4_decode",
+        "gemv_decode",
         "layer.{L}.self_attn.o_proj"
       ],
       [
@@ -271,12 +271,12 @@
       ],
       [
         "gate_proj",
-        "q4_decode",
+        "gemv_decode",
         "layer.{L}.mlp.gate_proj"
       ],
       [
         "up_proj",
-        "q4_decode",
+        "gemv_decode",
         "layer.{L}.mlp.up_proj"
       ],
       [
@@ -285,7 +285,7 @@
       ],
       [
         "down_proj",
-        "q4_decode",
+        "gemv_decode",
         "layer.{L}.mlp.down_proj"
       ],
       [
@@ -300,17 +300,17 @@
       ],
       [
         "q_proj",
-        "q4_prefill",
+        "tiled",
         "layer.{L}.self_attn.q_proj"
       ],
       [
         "k_proj",
-        "q4_prefill",
+        "tiled",
         "layer.{L}.self_attn.k_proj"
       ],
       [
         "v_proj",
-        "q4_prefill",
+        "tiled",
         "layer.{L}.self_attn.v_proj"
       ],
       [
@@ -323,11 +323,11 @@
       ],
       [
         "attention",
-        "attn_stream"
+        "attn_head256"
       ],
       [
         "o_proj",
-        "q4_prefill",
+        "tiled",
         "layer.{L}.self_attn.o_proj"
       ],
       [
@@ -340,12 +340,12 @@
       ],
       [
         "gate_proj",
-        "q4_prefill",
+        "tiled",
         "layer.{L}.mlp.gate_proj"
       ],
       [
         "up_proj",
-        "q4_prefill",
+        "tiled",
         "layer.{L}.mlp.up_proj"
       ],
       [
@@ -354,7 +354,7 @@
       ],
       [
         "down_proj",
-        "q4_prefill",
+        "tiled",
         "layer.{L}.mlp.down_proj"
       ],
       [

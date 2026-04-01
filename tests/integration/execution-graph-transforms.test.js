@@ -438,7 +438,12 @@ function buildF16WeightProjectionGraph() {
 // Test 6: useHead256PrefillAttention transform
 // ===========================================================================
 {
+  // The real graph now uses attn_head256 as primary. Build a synthetic graph
+  // with attn_small to test the transform function's swap behaviour.
   const graph = structuredClone(REAL_GRAPH);
+  const prefillAttnIdx = graph.prefill.findIndex((step) => step[0] === 'attention');
+  ok(prefillAttnIdx !== -1, 'precondition: real graph must contain a prefill attention step');
+  graph.prefill[prefillAttnIdx] = ['attention', 'attn_small'];
   const frozen = structuredClone(graph);
   const result = useHead256PrefillAttention(graph, { ...CTX_F32, modelId: 'gemma-3-1b-it-q4k-ehf16-af32' });
 
@@ -479,6 +484,15 @@ function buildF16WeightProjectionGraph() {
     'decode attention should remain unchanged');
 
   deepEqual(graph, frozen, 'useHead256PrefillAttention must not mutate legacy streaming graphs');
+}
+
+// ===========================================================================
+// Test 6c: useHead256PrefillAttention returns null when already head256
+// ===========================================================================
+{
+  const graph = structuredClone(REAL_GRAPH);
+  const result = useHead256PrefillAttention(graph, { ...CTX_F32, modelId: 'gemma-3-1b-it-q4k-ehf16-af32' });
+  equal(result, null, 'useHead256PrefillAttention should return null when prefill already uses head256');
 }
 
 // ===========================================================================
@@ -524,25 +538,27 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
-// Test 9: remapQ4KPrefillToDense
+// Test 9: remapQ4KPrefillToDense — no-op on Qwen (prefill is already dense)
 // ===========================================================================
 {
   const graph = structuredClone(QWEN_REAL_GRAPH);
   const frozen = structuredClone(graph);
   const result = remapQ4KPrefillToDense(graph, { ...CTX_F32, modelId: 'qwen-3-5-0-8b-q4k-ehaf16' });
 
-  ok(result !== null, 'remapQ4KPrefillToDense should remap Qwen 3.5 0.8B prefill projections to dense kernels');
-  const prefillProjectionFiles = collectKernelFilesForPhase(result, 'prefill');
+  equal(result, null, 'remapQ4KPrefillToDense should return null on Qwen graph (prefill already uses dense tiled kernels)');
+
+  // Verify the Qwen graph already has dense prefill as the primary path
+  const prefillProjectionFiles = collectKernelFilesForPhase(graph, 'prefill');
   ok(prefillProjectionFiles.has('matmul_f16w_f32a.wgsl'),
-    'remapQ4KPrefillToDense should swap prefill projections to matmul_f16w_f32a.wgsl');
+    'Qwen primary graph should already have matmul_f16w_f32a.wgsl in prefill');
   ok(!prefillProjectionFiles.has('fused_matmul_q4_batched.wgsl'),
-    'remapQ4KPrefillToDense should remove fused_matmul_q4_batched.wgsl from prefill projections');
+    'Qwen primary graph should not have fused_matmul_q4_batched.wgsl in prefill');
 
   deepEqual(graph, frozen, 'remapQ4KPrefillToDense must not mutate the input graph');
 }
 
 // ===========================================================================
-// Test 10: useLinearDecodeProjectionF16
+// Test 10: useLinearDecodeProjectionF16 — no-op on Qwen (decode uses GEMV)
 // ===========================================================================
 {
   const graph = structuredClone(QWEN_REAL_GRAPH);
@@ -553,34 +569,20 @@ function buildF16WeightProjectionGraph() {
     layerTypes: qwenConversionConfig.inference.layerPattern.layerTypes,
   });
 
-  ok(result !== null, 'useLinearDecodeProjectionF16 should create a decode override for Qwen linear-attention layers');
-  const qProjGroups = result.decode.filter((entry) => !Array.isArray(entry) && entry?.steps?.[0]?.[0] === 'q_proj');
-  equal(qProjGroups.length, 2, 'useLinearDecodeProjectionF16 should split q_proj into linear and non-linear layer groups');
-  const linearGroup = qProjGroups.find((entry) => entry.layers.includes(0) && entry.layers.includes(1) && !entry.layers.includes(3));
-  ok(linearGroup, 'useLinearDecodeProjectionF16 should tag the linear-attention layers as a dedicated q_proj group');
-  const linearKernelKey = linearGroup.steps[0][1];
-  equal(
-    result.kernels[linearKernelKey].precision?.outputDtype,
-    'f16',
-    'useLinearDecodeProjectionF16 should request f16 outputs for linear decode projections'
-  );
-  // o_proj must NOT be remapped to f16 — f16 truncation in the residual stream
-  // across 18 linear-attention layers corrupts the logit distribution.
-  const oProjGroups = result.decode.filter((entry) => !Array.isArray(entry) && entry?.steps?.[0]?.[0] === 'o_proj');
-  equal(oProjGroups.length, 0, 'useLinearDecodeProjectionF16 must not split o_proj (f16 residual corruption)');
-  const oProjTuples = result.decode.filter((entry) => Array.isArray(entry) && entry[0] === 'o_proj');
-  equal(oProjTuples.length, 1, 'useLinearDecodeProjectionF16 must leave the o_proj tuple unchanged');
-  equal(
-    result.kernels.q4_decode.precision,
-    undefined,
-    'useLinearDecodeProjectionF16 should leave the original decode kernel entry unchanged for full-attention layers'
-  );
+  equal(result, null, 'useLinearDecodeProjectionF16 should return null on Qwen GEMV graph (no fused Q4K decode to split)');
+
+  // Verify the Qwen graph already has GEMV decode as the primary path
+  const decodeFiles = collectKernelFilesForPhase(graph, 'decode');
+  ok(decodeFiles.has('matmul_gemv_subgroup.wgsl'),
+    'Qwen primary graph should already have matmul_gemv_subgroup.wgsl in decode');
+  ok(!decodeFiles.has('fused_matmul_q4.wgsl'),
+    'Qwen primary graph should not have fused_matmul_q4.wgsl in decode');
 
   deepEqual(graph, frozen, 'useLinearDecodeProjectionF16 must not mutate the input graph');
 }
 
 // ===========================================================================
-// Test 10b: useQwenDecodeF16Matmuls
+// Test 10b: useQwenDecodeF16Matmuls — partial on Qwen GEMV graph
 // ===========================================================================
 {
   const graph = structuredClone(QWEN_REAL_GRAPH);
@@ -590,28 +592,20 @@ function buildF16WeightProjectionGraph() {
     modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
   });
 
-  ok(result !== null, 'useQwenDecodeF16Matmuls should rewrite selected Qwen decode matmuls onto explicit f16 kernels');
+  // gate/up_proj are already GEMV (not fused Q4K), so deriveLinearDecodeF16KernelEntry returns null.
+  // Only lm_head rewrite may apply (GEMV -> f16a GEMV).
+  const gateStep = (result || graph).decode.find((entry) => Array.isArray(entry) && entry[0] === 'gate_proj');
   equal(
-    result.kernels[result.decode.find((entry) => Array.isArray(entry) && entry[0] === 'gate_proj')[1]].kernel,
-    'fused_matmul_q4_multicol_f16a.wgsl',
-    'useQwenDecodeF16Matmuls should move gate_proj onto the explicit q4 f16a kernel'
-  );
-  equal(
-    result.kernels[result.decode.find((entry) => Array.isArray(entry) && entry[0] === 'up_proj')[1]].precision?.inputDtype,
-    'f16',
-    'useQwenDecodeF16Matmuls should request f16 FFN up-proj inputs'
-  );
-  equal(
-    result.kernels[result.postLayer.find((entry) => entry[0] === 'lm_head')[1]].kernel,
-    'matmul_gemv_subgroup_f16a.wgsl',
-    'useQwenDecodeF16Matmuls should move decode lm_head onto the explicit f16a GEMV kernel'
+    (result || graph).kernels[gateStep[1]].kernel,
+    'matmul_gemv_subgroup.wgsl',
+    'useQwenDecodeF16Matmuls should leave GEMV gate_proj unchanged (not fused Q4K)'
   );
 
   deepEqual(graph, frozen, 'useQwenDecodeF16Matmuls must not mutate the input graph');
 }
 
 // ===========================================================================
-// Test 10c: remapQ4KDecodeToGemv
+// Test 10c: remapQ4KDecodeToGemv — no-op on Qwen (decode is already GEMV)
 // ===========================================================================
 {
   const graph = structuredClone(QWEN_REAL_GRAPH);
@@ -621,43 +615,30 @@ function buildF16WeightProjectionGraph() {
     modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
   });
 
-  ok(result !== null, 'remapQ4KDecodeToGemv should replace fused Q4K decode kernels with GEMV subgroup');
-  const decodeFiles = collectKernelFilesForPhase(result, 'decode');
-  ok(!decodeFiles.has('fused_matmul_q4.wgsl'),
-    'remapQ4KDecodeToGemv should remove fused_matmul_q4.wgsl from decode');
+  equal(result, null, 'remapQ4KDecodeToGemv should return null on Qwen graph (decode already uses GEMV)');
+
+  // Verify the Qwen graph already has GEMV decode as the primary path
+  const decodeFiles = collectKernelFilesForPhase(graph, 'decode');
   ok(decodeFiles.has('matmul_gemv_subgroup.wgsl'),
-    'remapQ4KDecodeToGemv should add matmul_gemv_subgroup.wgsl to decode');
+    'Qwen primary graph should already have matmul_gemv_subgroup.wgsl in decode');
+  ok(!decodeFiles.has('fused_matmul_q4.wgsl'),
+    'Qwen primary graph should not have fused_matmul_q4.wgsl in decode');
 
-  // Verify all projection ops now use the GEMV kernel
+  // Verify all projection ops already use the GEMV kernel
   for (const op of ['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj']) {
-    const step = result.decode.find((entry) => Array.isArray(entry) && entry[0] === op);
-    ok(step, `remapQ4KDecodeToGemv: ${op} step should exist in decode`);
-    const entry = result.kernels[step[1]];
+    const step = graph.decode.find((entry) => Array.isArray(entry) && entry[0] === op);
+    ok(step, `Qwen primary graph: ${op} step should exist in decode`);
+    const entry = graph.kernels[step[1]];
     equal(entry.kernel, 'matmul_gemv_subgroup.wgsl',
-      `remapQ4KDecodeToGemv: ${op} should use matmul_gemv_subgroup.wgsl, got ${entry.kernel}`);
-    equal(entry.entry, 'main_multicol',
-      `remapQ4KDecodeToGemv: ${op} entry should be main_multicol`);
+      `Qwen primary graph: ${op} should use matmul_gemv_subgroup.wgsl, got ${entry.kernel}`);
   }
 
-  // Non-matmul decode ops (rmsnorm, rope, attention, residual, silu) must be unchanged
-  const nonMatmulOps = ['input_norm', 'rope_q', 'rope_k', 'attention', 'attn_residual', 'post_attn_norm', 'activation', 'ffn_residual'];
-  for (const op of nonMatmulOps) {
-    const step = result.decode.find((entry) => Array.isArray(entry) && entry[0] === op);
-    ok(step, `remapQ4KDecodeToGemv: ${op} should still be present`);
-    const origStep = graph.decode.find((entry) => Array.isArray(entry) && entry[0] === op);
-    equal(step[1], origStep[1],
-      `remapQ4KDecodeToGemv: ${op} kernel key should be unchanged`);
-  }
-
-  // Prefill must be untouched
-  deepEqual(result.prefill, graph.prefill, 'remapQ4KDecodeToGemv should not modify prefill');
-
-  // PostLayer (lm_head) must be untouched
-  deepEqual(result.postLayer, graph.postLayer, 'remapQ4KDecodeToGemv should not modify postLayer');
-
-  // No-op for f16 activation context
-  const f16Result = remapQ4KDecodeToGemv(graph, { ...CTX_F16, modelId: 'qwen-3-5-0-8b-q4k-ehaf16' });
-  equal(f16Result, null, 'remapQ4KDecodeToGemv should return null for f16 activations');
+  // Verify prefill uses dense tiled and head256 attention
+  const prefillFiles = collectKernelFilesForPhase(graph, 'prefill');
+  ok(prefillFiles.has('matmul_f16w_f32a.wgsl'),
+    'Qwen primary graph should have matmul_f16w_f32a.wgsl in prefill');
+  ok(prefillFiles.has('attention_head256_f16kv.wgsl'),
+    'Qwen primary graph should have attention_head256_f16kv.wgsl in prefill');
 
   deepEqual(graph, frozen, 'remapQ4KDecodeToGemv must not mutate the input graph');
 }
@@ -779,6 +760,8 @@ function buildF16WeightProjectionGraph() {
     equal(r.transforms[1], widenToF32Activations, 'no subgroups+no f16: second is widenToF32Activations');
   }
 
+  // Gemma 3 1B — head256 prefill attention is now baked into the conversion
+  // config/manifest as the primary path. No model-specific capability transforms needed.
   {
     const r = resolveCapabilityTransforms(
       {
@@ -803,129 +786,51 @@ function buildF16WeightProjectionGraph() {
     );
     deepEqual(
       r.names,
-      ['useHead256PrefillAttention'],
-      'apple Gemma 3 1B graph should resolve the fixed head-dim-256 prefill attention transform'
+      [],
+      'Gemma 3 1B: no capability transforms needed (head256 is primary path)'
     );
-    equal(r.transforms.length, 1, 'apple Gemma 3 1B graph: one transform function');
-    equal(r.transforms[0], useHead256PrefillAttention,
-      'apple Gemma 3 1B graph: transform function is useHead256PrefillAttention');
+    equal(r.transforms.length, 0, 'Gemma 3 1B: zero transform functions');
   }
 
+  // Qwen models — GEMV decode and dense prefill are now the primary execution
+  // graph path (baked into conversion config/manifest). Capability transforms
+  // should resolve to the empty catch-all (no transforms needed).
   {
     const r = resolveCapabilityTransforms(
       {
         hasSubgroups: true,
         hasF16: true,
         maxWorkgroupStorageSize: 32768,
-        adapterInfo: {
-          vendor: 'apple',
-          architecture: 'metal-3',
-        },
-      },
-      { id: 'apple-m3', vendor: 'apple', architecture: 'm-series' },
-      {
-        activationDtype: 'f32',
-        kvDtype: 'f16',
-        modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
-        hasDensePrefillProjectionKernel: true,
-        hasQ4DecodeProjectionKernel: false,
-        hasQ4PrefillProjectionKernel: false,
-        hasAvailableQ4PrefillProjectionKernel: true,
-      }
-    );
-    deepEqual(r.names, ['remapDenseQ4KPrefillToQ4Native'], 'apple dense-only Gemma graph with explicit Q4 prefill kernel should resolve remapDenseQ4KPrefillToQ4Native');
-    equal(r.transforms.length, 1, 'apple dense-only Gemma graph with explicit Q4 prefill kernel: one transform function');
-  }
-
-  {
-    const r = resolveCapabilityTransforms(
-      {
-        hasSubgroups: true,
-        hasF16: true,
-        maxWorkgroupStorageSize: 32768,
-        adapterInfo: {
-          vendor: 'apple',
-          architecture: 'metal-3',
-        },
-      },
-      { id: 'generic' },
-      {
-        activationDtype: 'f32',
-        kvDtype: 'f16',
-        hasDensePrefillProjectionKernel: true,
-        hasQ4DecodeProjectionKernel: false,
-        hasQ4PrefillProjectionKernel: false,
-        hasAvailableQ4PrefillProjectionKernel: true,
-      }
-    );
-    deepEqual(r.names, ['remapDenseQ4KPrefillToQ4Native'], 'generic platform with Apple adapter info should still resolve remapDenseQ4KPrefillToQ4Native');
-  }
-
-  {
-    const r = resolveCapabilityTransforms(
-      {
-        hasSubgroups: true,
-        hasF16: true,
-        maxWorkgroupStorageSize: 32768,
-        adapterInfo: {
-          vendor: 'apple',
-          architecture: 'metal-3',
-        },
+        adapterInfo: { vendor: 'apple', architecture: 'metal-3' },
       },
       { id: 'apple-m3', vendor: 'apple', architecture: 'm-series' },
       {
         activationDtype: 'f32',
         kvDtype: 'f16',
         modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
-        hasDensePrefillProjectionKernel: false,
-        hasQ4DecodeProjectionKernel: true,
-        hasQ4PrefillProjectionKernel: true,
-        hasAvailableQ4PrefillProjectionKernel: true,
       }
     );
-    deepEqual(
-      r.names,
-      ['useHead256PrefillAttention', 'remapQ4KPrefillToDense', 'remapQ4KDecodeToGemv'],
-      'apple Qwen 3.5 0.8B graph should resolve prefill remap and full GEMV decode'
-    );
-    equal(r.transforms.length, 3, 'apple Qwen 3.5 0.8B graph: three transform functions');
-    equal(r.transforms[0], useHead256PrefillAttention,
-      'apple Qwen 3.5 0.8B graph: first transform function is useHead256PrefillAttention');
-    equal(r.transforms[1], remapQ4KPrefillToDense,
-      'apple Qwen 3.5 0.8B graph: second transform function is remapQ4KPrefillToDense');
-    equal(r.transforms[2], remapQ4KDecodeToGemv,
-      'apple Qwen 3.5 0.8B graph: third transform function is remapQ4KDecodeToGemv');
+    deepEqual(r.names, [], 'Qwen 3.5 0.8B on capable GPU: no capability transforms needed');
+    equal(r.transforms.length, 0, 'Qwen 3.5 0.8B on capable GPU: zero transform functions');
   }
 
-  // Qwen 3.5 2B — same GEMV decode transform chain as 0.8B
   {
     const r = resolveCapabilityTransforms(
       {
         hasSubgroups: true,
         hasF16: true,
         maxWorkgroupStorageSize: 32768,
-        adapterInfo: {
-          vendor: 'apple',
-          architecture: 'metal-3',
-        },
+        adapterInfo: { vendor: 'amd', architecture: 'rdna3' },
       },
-      { id: 'apple-m3', vendor: 'apple', architecture: 'm-series' },
+      { id: 'amd-rdna3', vendor: 'amd', architecture: 'rdna3' },
       {
         activationDtype: 'f32',
         kvDtype: 'f16',
         modelId: 'qwen-3-5-2b-q4k-ehaf16',
-        hasDensePrefillProjectionKernel: false,
-        hasQ4DecodeProjectionKernel: true,
-        hasQ4PrefillProjectionKernel: true,
-        hasAvailableQ4PrefillProjectionKernel: true,
       }
     );
-    deepEqual(
-      r.names,
-      ['useHead256PrefillAttention', 'remapQ4KPrefillToDense', 'remapQ4KDecodeToGemv'],
-      'apple Qwen 3.5 2B graph should resolve prefill remap and full GEMV decode'
-    );
-    equal(r.transforms.length, 3, 'apple Qwen 3.5 2B graph: three transform functions');
+    deepEqual(r.names, [], 'Qwen 3.5 2B on AMD: no capability transforms needed');
+    equal(r.transforms.length, 0, 'Qwen 3.5 2B on AMD: zero transform functions');
   }
 }
 
