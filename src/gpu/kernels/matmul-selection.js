@@ -97,15 +97,9 @@ export function isFusedQ4KDisabled(options = {}) {
   const capabilities = getKernelCapabilities();
   const hasSubgroups = capabilities?.hasSubgroups === true;
 
-  // When subgroups are available, always allow fused Q4K as a fallback path.
-  // This is critical for mixed-materialization weights: the kernel path may specify
-  // non-fused variants (e.g. gemv_decode, tiled) but when the actual weight buffer
-  // resolves to Q4K (for F32 precision preservation), fused Q4K must be selectable.
-  if (hasSubgroups) return false;
-
   if (options.kernelPath !== undefined) {
     if (!options.kernelPath) {
-      return true;
+      return !hasSubgroups;
     }
     return !isKernelPathFusedQ4K(options.kernelPath);
   }
@@ -115,7 +109,7 @@ export function isFusedQ4KDisabled(options = {}) {
     return !isKernelPathFusedQ4K(activeKernelPath);
   }
 
-  return true;
+  return !hasSubgroups;
 }
 
 
@@ -331,6 +325,13 @@ function resolveMatmulOverride(
   const weightDtypeOk = !requiredWeightDtype
     || bDtype === requiredWeightDtype;
   if (!weightDtypeOk) {
+    const overridePolicy = selectKernelRuleValue(
+      'matmul', 'weightDtypeMismatchPolicy',
+      { requiredWeightDtype, actualWeightDtype: bDtype }
+    );
+    if (overridePolicy === 'fallthrough') {
+      return null;
+    }
     return failOrWarn(
       `Matmul kernel "${variantOverride}" requires ${requiredWeightDtype} weights but B dtype is ${bDtype}.`
     );

@@ -246,18 +246,6 @@ function resolveQ4KProjectionMaterializationMode(
   if (summary.fusedProjectionKernels.length > 0) {
     return 'fused';
   }
-  // When subgroups are available, retain Q4K materializations even for all-dense
-  // kernel paths. Fused Q4K compute preserves F32 precision during weight×activation
-  // multiply, which avoids F16 dequant precision loss that compounds across phases
-  // in models with recurrent/linear attention layers.
-  const caps = getKernelCapabilities();
-  if (caps?.hasSubgroups === true && summary.denseProjectionKernels.length > 0) {
-    debugTrace.loader(
-      `Q4K mixed materialization forced for "${manifest?.modelId ?? 'unknown'}" ` +
-      `(all-dense kernel path, subgroups available, source=${kernelPathSource})`
-    );
-    return 'mixed';
-  }
   return 'dense';
 }
 

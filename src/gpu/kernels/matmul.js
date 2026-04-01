@@ -4,7 +4,6 @@ import {
   getBuffer,
   getLayout,
   getWeightDtype,
-  isWeightBuffer,
   resolveWeightBufferMaterialization,
 } from '../weight-buffer.js';
 import { log, trace, isTraceEnabled } from '../../debug/index.js';
@@ -177,12 +176,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   const phase = resolveMatmulPhase(M, options.phaseOverride ?? null);
   const pathVariant = getKernelPathMatmulVariant(options.role, phase, options.layerIdx, options.kernelPath);
   const preferredWeightDtype = resolvePreferredWeightDtypeForVariant(pathVariant);
-  // When the path variant prefers F16 weights but Q4K materialization exists and subgroups
-  // are available, prefer Q4K. Fused Q4K matmul computes entirely in F32, avoiding the
-  // F16 dequant precision loss that compounds across layers in recurrent/linear attention.
-  const hasQ4KMat = isWeightBuffer(B) && B.materializations?.q4k?.buffer != null;
-  const upgradeToQ4K = preferredWeightDtype === 'f16' && hasQ4KMat && capabilities?.hasSubgroups === true;
-  const resolvedWeight = resolveWeightBufferMaterialization(B, upgradeToQ4K ? 'q4k' : preferredWeightDtype);
+  const resolvedWeight = resolveWeightBufferMaterialization(B, preferredWeightDtype);
   const bBuffer = getBuffer(resolvedWeight);
   const weightDtype = getWeightDtype(resolvedWeight);
   const weightLabel = (resolvedWeight && typeof resolvedWeight === 'object' ? resolvedWeight.label : null) ?? bBuffer?.label ?? null;
