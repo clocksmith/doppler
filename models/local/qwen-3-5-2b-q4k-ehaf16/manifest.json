@@ -138,6 +138,8 @@
         "batchSize": 8,
         "stopCheckMode": "batch",
         "readbackInterval": 32,
+        "readbackMode": "sequential",
+        "submitLatencyThresholdMs": null,
         "ringTokens": 1,
         "ringStop": 1,
         "ringStaging": 1,

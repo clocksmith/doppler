@@ -81,10 +81,21 @@ export interface ExecutionV1ComputeDefaultsSchema {
   outputDtype: ExecutionV1Dtype;
 }
 
+export type ReadbackMode = 'sequential' | 'overlapped' | 'auto';
+
 export interface ExecutionV1DecodeLoopSchema {
   batchSize: number;
   stopCheckMode: 'per-token' | 'batch';
   readbackInterval: number | null;
+  readbackMode: ReadbackMode;
+  /**
+   * Submit latency threshold in ms. Only consulted when readbackMode === "auto".
+   * When the GPU submit probe roundtrip exceeds this value, auto resolves to
+   * "overlapped"; otherwise resolves to "sequential".
+   *
+   * Set to `null` to disable auto (treat as sequential).
+   */
+  submitLatencyThresholdMs: number | null;
   ringTokens: number | null;
   ringStop: number | null;
   ringStaging: number | null;
@@ -106,14 +117,6 @@ export interface ExecutionV1SessionSchema {
   kvcache: Partial<KVCacheConfigSchema> | null;
   decodeLoop: ExecutionV1DecodeLoopSchema | null;
   speculation: ExecutionV1SelfSpeculationSchema | null;
-  /**
-   * Submit latency threshold in ms. When the GPU submit probe roundtrip
-   * exceeds this value, the session resolver downgrades to batchSize=1
-   * single-token decode to avoid pipeline stall.
-   *
-   * Set to `null` to disable the probe-driven override.
-   */
-  submitLatencyThresholdMs: number | null;
 }
 
 // === Policies ===
@@ -235,6 +238,7 @@ export interface ExecutionV1ExpandedStepSchema {
 // === Constants ===
 
 export declare const EXECUTION_V1_SCHEMA_ID: string;
+export declare const READBACK_MODES: readonly ['sequential', 'overlapped', 'auto'];
 export declare const DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS: ExecutionV1ComputeDefaultsSchema;
 export declare const DEFAULT_EXECUTION_V1_SESSION: ExecutionV1SessionSchema;
 export declare const DEFAULT_EXECUTION_V1_POLICIES: ExecutionV1PoliciesSchema;

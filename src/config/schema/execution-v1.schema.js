@@ -13,6 +13,8 @@ export const DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS = {
   outputDtype: 'f16',
 };
 
+export const READBACK_MODES = Object.freeze(['sequential', 'overlapped', 'auto']);
+
 export const DEFAULT_EXECUTION_V1_SESSION = {
   compute: {
     defaults: { ...DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS },
@@ -20,7 +22,6 @@ export const DEFAULT_EXECUTION_V1_SESSION = {
   kvcache: null,
   decodeLoop: null,
   speculation: null,
-  submitLatencyThresholdMs: 100,
 };
 
 export const DEFAULT_EXECUTION_V1_POLICIES = {

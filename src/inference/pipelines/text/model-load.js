@@ -14,6 +14,7 @@ import { KERNEL_CONFIGS } from '../../../gpu/kernels/kernel-configs.js';
 import { initTokenizer } from './init.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
+import { READBACK_MODES } from '../../../config/schema/execution-v1.schema.js';
 
 function validateKernelWarmupMode(mode) {
   if (mode !== 'parallel' && mode !== 'sequential') {
@@ -117,6 +118,15 @@ function buildResolvedDecodeLoopRuntimePatch(runtimeConfig, manifest) {
     modelId
   );
 
+  const readbackMode = decodeLoop.readbackMode;
+  if (readbackMode !== undefined && readbackMode !== null && !READBACK_MODES.includes(readbackMode)) {
+    throw new Error(
+      `DopplerConfigError: Manifest "${modelId}" inference.session.decodeLoop.readbackMode ` +
+      `must be one of ${READBACK_MODES.join(', ')}; got "${readbackMode}".`
+    );
+  }
+  const submitLatencyThresholdMs = decodeLoop.submitLatencyThresholdMs ?? null;
+
   const batchingPatch = {
     batchSize,
     stopCheckMode,
@@ -155,6 +165,8 @@ function buildResolvedDecodeLoopRuntimePatch(runtimeConfig, manifest) {
         batchSize,
         stopCheckMode,
         readbackInterval,
+        readbackMode: readbackMode ?? 'sequential',
+        submitLatencyThresholdMs,
         ...(ringTokens !== undefined ? { ringTokens } : {}),
         ...(ringStop !== undefined ? { ringStop } : {}),
         ...(ringStaging !== undefined ? { ringStaging } : {}),
@@ -172,32 +184,57 @@ export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, model
     return runtimeConfig;
   }
 
-  // Submit latency probe override: if the GPU submit roundtrip exceeds the
-  // configured threshold, downgrade to batchSize=1 single-token decode to
-  // avoid pipeline stall from high submit/readback latency.
-  const resolvedSession = patch.session;
-  const thresholdMs = resolvedSession.submitLatencyThresholdMs;
-  if (thresholdMs != null && patch.batching.batchSize > 1) {
+  // Resolve readbackMode. "auto" runs the submit probe and resolves to a
+  // concrete mode. Validation runs once here at pipeline init.
+  const dl = patch.session.decodeLoop;
+  let resolvedReadbackMode = dl.readbackMode ?? 'sequential';
+
+  if (resolvedReadbackMode === 'overlapped') {
+    const rs = dl.ringStaging ?? 0;
+    if (rs < 2) {
+      throw new Error(
+        `DopplerConfigError: readbackMode "overlapped" requires ringStaging >= 2, got ${rs}.`
+      );
+    }
+  }
+
+  if (resolvedReadbackMode === 'auto') {
+    const thresholdMs = dl.submitLatencyThresholdMs;
+    if (thresholdMs == null) {
+      throw new Error(
+        'DopplerConfigError: readbackMode "auto" requires submitLatencyThresholdMs to be set.'
+      );
+    }
     let probeMs = null;
     try {
       probeMs = getKernelCapabilities().submitProbeMs;
     } catch {
-      // Device not initialized yet — skip probe override.
+      // Device not initialized yet — fall back to sequential.
     }
     if (probeMs != null && probeMs > thresholdMs) {
-      log.info(
-        'Pipeline',
-        `Submit probe ${probeMs.toFixed(1)}ms > threshold ${thresholdMs}ms; ` +
-        `overriding batchSize ${patch.batching.batchSize} → 1 (single-token decode)`
-      );
-      patch.batching.batchSize = 1;
-      patch.batching.stopCheckMode = 'per-token';
-      patch.batching.readbackInterval = 1;
-      patch.session.decodeLoop.batchSize = 1;
-      patch.session.decodeLoop.stopCheckMode = 'per-token';
-      patch.session.decodeLoop.readbackInterval = 1;
+      const rs = dl.ringStaging ?? 0;
+      if (rs < 2) {
+        log.info(
+          'Pipeline',
+          `readbackMode auto: probe ${probeMs.toFixed(1)}ms > threshold ${thresholdMs}ms ` +
+          `but ringStaging ${rs} < 2; staying sequential`
+        );
+        resolvedReadbackMode = 'sequential';
+      } else {
+        resolvedReadbackMode = 'overlapped';
+      }
+    } else {
+      resolvedReadbackMode = 'sequential';
     }
+    log.info(
+      'Pipeline',
+      `readbackMode resolved to ${resolvedReadbackMode} ` +
+      `(probe: ${probeMs != null ? probeMs.toFixed(1) + 'ms' : 'unavailable'}, threshold: ${thresholdMs}ms)`
+    );
   }
+
+  dl.readbackMode = resolvedReadbackMode;
+  patch.batching.readbackMode = resolvedReadbackMode;
 
   const nextRuntimeConfig = mergeRuntimeValues(runtimeConfig, {
     inference: {

@@ -167,6 +167,7 @@ export async function readSampledTokenFromStagingBuffer(stagingBuffer, options =
   }
 }
 
+
 export async function readMappedBufferCopy(stagingBuffer, options = {}) {
   const ownsStagingBuffer = options.ownsStagingBuffer !== false;
   let mapped = false;
@@ -521,6 +522,15 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       encoder.copyBufferToBuffer(state.finitenessBuffer, 0, stagingBuffer, 4, 16);
     }
 
+    const readbackMode = executionPlan?.readbackMode ?? 'sequential';
+    const isOverlapped = readbackMode === 'overlapped';
+
+    // In overlapped mode, advance ring BEFORE submit so the GPU's next copy
+    // target is a fresh slot while we read the current one.
+    if (isOverlapped) {
+      ring?.advance();
+    }
+
     const submitStart = performance.now();
     recorder.submit();
     const submitWaitMs = performance.now() - submitStart;
@@ -530,15 +540,17 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     }
 
     const readbackStart = performance.now();
-    const { nextToken, finitenessStatus } = await readSampledTokenFromStagingBuffer(stagingBuffer, {
+    const readbackResult = await readSampledTokenFromStagingBuffer(stagingBuffer, {
       ownsStagingBuffer,
       hasFinitenessBuffer: Boolean(state.finitenessBuffer),
-      ring,
+      ring: isOverlapped ? null : ring,  // ring already advanced above in overlapped
     });
     const readbackWaitMs = performance.now() - readbackStart;
 
     state.stats.singleTokenSubmitWaitMs = (state.stats.singleTokenSubmitWaitMs ?? 0) + submitWaitMs;
     state.stats.singleTokenReadbackWaitMs = (state.stats.singleTokenReadbackWaitMs ?? 0) + readbackWaitMs;
+
+    const { nextToken: fusedNextToken, finitenessStatus } = readbackResult;
 
     if (finitenessStatus.triggered) {
       releaseBuffer(logitsBuffer);
@@ -547,13 +559,13 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       throw new FinitenessError(`F16 bounds exceeded during generation${finitenessStatus.metadata}`);
     }
 
-    log.debug('Decode', `Step ${state.decodeStepCount}: token=${nextToken} (vocabSize=${config.vocabSize})`);
+    log.debug('Decode', `Step ${state.decodeStepCount}: token=${fusedNextToken} (vocabSize=${config.vocabSize})`);
 
-    const invalidToken = nextToken >= config.vocabSize
-      || (padTokenId != null && nextToken === padTokenId)
-      || (padTokenId == null && nextToken === 0);
+    const invalidToken = fusedNextToken >= config.vocabSize
+      || (padTokenId != null && fusedNextToken === padTokenId)
+      || (padTokenId == null && fusedNextToken === 0);
     if (invalidToken) {
-      log.warn('Decode', `Suspicious token ${nextToken} (vocabSize=${config.vocabSize}, step=${state.decodeStepCount})`);
+      log.warn('Decode', `Suspicious token ${fusedNextToken} (vocabSize=${config.vocabSize}, step=${state.decodeStepCount})`);
       if (allowReadback('pipeline.decode.debug-logits')) {
         const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsDtype });
         const logitSample = await readBuffer(logitsBuffer, Math.min(config.vocabSize * logitsBytes, 4096));
@@ -638,10 +650,9 @@ export async function decodeStep(state, currentIds, opts, helpers) {
 
     state.currentSeqLen++;
     const stepWallMs = performance.now() - stepWallStart;
-    const gpuMs = state.stats.gpuTimeDecodeMs ?? 0;
     state.stats.singleTokenOrchestrationMs = (state.stats.singleTokenOrchestrationMs ?? 0)
       + Math.max(0, stepWallMs - submitWaitMs - readbackWaitMs);
-    return nextToken;
+    return fusedNextToken;
   }
 
   await submitDecodeRecorderProfile(state, opts, recorder, ' (layers only)');
