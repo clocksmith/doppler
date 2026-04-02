@@ -136,9 +136,9 @@
         }
       },
       "decodeLoop": {
-        "batchSize": 4,
+        "batchSize": 8,
         "stopCheckMode": "batch",
-        "readbackInterval": 32,
+        "readbackInterval": 1,
         "readbackMode": "sequential",
         "submitLatencyThresholdMs": null,
         "ringTokens": 1,
