@@ -7,11 +7,9 @@ import { ALIGNMENT, QUANTIZATION, TILE_SIZES } from './constants.js';
 import { getKernelConfig, hasRequiredFeatures } from './utils.js';
 import { getKernelThresholds } from '../../config/schema/index.js';
 import {
-  getActiveKernelPath,
   getKernelPathMatmulConstants,
   getKernelPathMatmulVariant,
   getKernelPathStrict,
-  isKernelPathFusedQ4K,
 } from '../../config/kernel-path-loader.js';
 import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
@@ -96,19 +94,10 @@ export function isFusedQ4KDisabled(options = {}) {
   if (options.disableFusedQ4K === true) return true;
   const capabilities = getKernelCapabilities();
   const hasSubgroups = capabilities?.hasSubgroups === true;
-
-  if (options.kernelPath !== undefined) {
-    if (!options.kernelPath) {
-      return !hasSubgroups;
-    }
-    return !isKernelPathFusedQ4K(options.kernelPath);
-  }
-
-  const activeKernelPath = getActiveKernelPath();
-  if (activeKernelPath) {
-    return !isKernelPathFusedQ4K(activeKernelPath);
-  }
-
+  // Subgroups are the only hardware gate for fused Q4K. When available,
+  // fused Q4K is always selectable regardless of kernel path contents.
+  // The preferredWeightDtype rule decides whether to route weights to Q4K;
+  // this function only gates whether the fused variant is *allowed*.
   return !hasSubgroups;
 }
 
@@ -255,27 +244,7 @@ export function requiresF32Input(variant) {
 }
 
 function resolveRequiredWeightDtype(config) {
-  const shaderFile = String(config?.shaderFile ?? config?.wgsl ?? '');
-  if (!shaderFile) {
-    return null;
-  }
-  if (shaderFile.startsWith('fused_matmul_q4')) {
-    return 'q4k';
-  }
-  if (
-    shaderFile === 'matmul_f16.wgsl'
-    || shaderFile === 'matmul_f16_tiled.wgsl'
-    || shaderFile === 'matmul_f16w_f32a.wgsl'
-    || shaderFile === 'matmul_f16w_f32a_tiled.wgsl'
-    || shaderFile === 'matmul_gemv_subgroup.wgsl'
-    || shaderFile === 'matmul_gemv_subgroup_f16a.wgsl'
-  ) {
-    return 'f16';
-  }
-  if (shaderFile === 'matmul_f32.wgsl') {
-    return 'f32';
-  }
-  return null;
+  return config?.weightDtype ?? null;
 }
 
 

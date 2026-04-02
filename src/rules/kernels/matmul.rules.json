@@ -53,10 +53,19 @@
     { "match": { "useGemv": true }, "value": { "variant": { "context": "gemvVariant" }, "useQ4KFused": false, "useGemv": true } },
     { "match": {}, "value": { "variant": { "context": "matmulVariant" }, "useQ4KFused": false, "useGemv": false } }
   ],
+  "preferredWeightDtype": [
+    { "match": { "variantWeightDtype": "f16", "hasQ4KMaterialization": true, "hasSubgroups": true }, "value": "q4k" },
+    { "match": {}, "value": { "context": "variantWeightDtype" } }
+  ],
   "weightDtypeMismatchPolicy": [
-    { "match": { "actualWeightDtype": "q4k", "requiredWeightDtype": "f16" }, "value": "fallthrough" },
-    { "match": { "actualWeightDtype": "q4k", "requiredWeightDtype": "f32" }, "value": "fallthrough" },
+    { "match": { "actualWeightDtype": "q4k", "requiredWeightDtype": "f16", "hasSubgroups": true }, "value": "fallthrough" },
+    { "match": { "actualWeightDtype": "q4k", "requiredWeightDtype": "f32", "hasSubgroups": true }, "value": "fallthrough" },
     { "match": {}, "value": "reject" }
+  ],
+  "q4kMaterializationMode": [
+    { "match": { "hasFusedProjections": true, "hasDenseProjections": true }, "value": "mixed" },
+    { "match": { "hasFusedProjections": true }, "value": "fused" },
+    { "match": {}, "value": "dense" }
   ],
   "phase": [
     { "match": { "isDecode": true }, "value": "decode" },

@@ -30,6 +30,7 @@ export const KERNEL_CONFIGS = Object.fromEntries(
             wgslOverrides: resolved.wgslOverrides,
             sharedMemory: resolved.sharedMemory,
             outputDtype: resolved.outputDtype ?? undefined,
+            weightDtype: resolved.weightDtype ?? undefined,
             variantMetadata: resolved.variantMetadata ?? undefined,
           },
         ];

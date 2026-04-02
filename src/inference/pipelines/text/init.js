@@ -235,18 +235,16 @@ function resolveQ4KProjectionMaterializationMode(
   kernelPathSource = 'none'
 ) {
   const summary = summarizeQ4KProjectionKernelKinds(kernelPath);
-  if (summary.denseProjectionKernels.length > 0 && summary.fusedProjectionKernels.length > 0) {
-    debugTrace.loader(
-      `Q4K mixed projection materialization enabled for "${manifest?.modelId ?? 'unknown'}" ` +
-      `(source=${kernelPathSource}, dense=${summary.denseProjectionKernels.length}, ` +
-      `fused=${summary.fusedProjectionKernels.length})`
-    );
-    return 'mixed';
-  }
-  if (summary.fusedProjectionKernels.length > 0) {
-    return 'fused';
-  }
-  return 'dense';
+  const mode = selectKernelRuleValue('matmul', 'q4kMaterializationMode', {
+    hasFusedProjections: summary.fusedProjectionKernels.length > 0,
+    hasDenseProjections: summary.denseProjectionKernels.length > 0,
+  });
+  debugTrace.loader(
+    `Q4K materialization: model=${manifest?.modelId ?? 'unknown'}, mode=${mode}, ` +
+    `source=${kernelPathSource}, dense=${summary.denseProjectionKernels.length}, ` +
+    `fused=${summary.fusedProjectionKernels.length}`
+  );
+  return mode;
 }
 
 export function resolveQ4KConfig(

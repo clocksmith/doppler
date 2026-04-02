@@ -41,6 +41,7 @@ export function resolveKernelConfig(
     wgslOverrides: variantSchema.wgslOverrides ?? {},
     sharedMemory: variantSchema.sharedMemory ?? 0,
     outputDtype: variantSchema.outputDtype ?? null,
+    weightDtype: variantSchema.weightDtype ?? null,
     variantMetadata: variantSchema.variantMetadata ?? null,
   };
 }

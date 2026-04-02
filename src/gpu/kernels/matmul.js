@@ -4,6 +4,7 @@ import {
   getBuffer,
   getLayout,
   getWeightDtype,
+  isWeightBuffer,
   resolveWeightBufferMaterialization,
 } from '../weight-buffer.js';
 import { log, trace, isTraceEnabled } from '../../debug/index.js';
@@ -26,6 +27,7 @@ import {
   resolveMatmulOutput,
   selectMatmulKernel,
 } from './matmul-selection.js';
+import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 import {
   MatmulKernel,
   calculateMatmulDispatch,
@@ -129,7 +131,7 @@ function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuff
   return entries;
 }
 
-function resolvePreferredWeightDtypeForVariant(variant) {
+function resolvePreferredWeightDtype(variant, hasQ4KMaterialization) {
   if (typeof variant !== 'string' || variant.length === 0) {
     return null;
   }
@@ -141,20 +143,15 @@ function resolvePreferredWeightDtypeForVariant(variant) {
     return null;
   }
 
-  const shaderFile = String(config?.shaderFile ?? config?.wgsl ?? '');
-  if (!shaderFile) {
+  const variantWeightDtype = config?.weightDtype ?? null;
+  if (!variantWeightDtype) {
     return null;
   }
-  if (shaderFile.startsWith('fused_matmul_q4')) {
-    return 'q4k';
-  }
-  if (shaderFile === 'matmul_f32.wgsl' || shaderFile === 'matmul_gemv.wgsl') {
-    return 'f32';
-  }
-  if (shaderFile.startsWith('matmul_')) {
-    return 'f16';
-  }
-  return null;
+
+  return selectKernelRuleValue('matmul', 'preferredWeightDtype', {
+    variantWeightDtype,
+    hasQ4KMaterialization,
+  });
 }
 
 async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
@@ -175,7 +172,8 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
 
   const phase = resolveMatmulPhase(M, options.phaseOverride ?? null);
   const pathVariant = getKernelPathMatmulVariant(options.role, phase, options.layerIdx, options.kernelPath);
-  const preferredWeightDtype = resolvePreferredWeightDtypeForVariant(pathVariant);
+  const hasQ4KMat = isWeightBuffer(B) && B.materializations?.q4k?.buffer != null;
+  const preferredWeightDtype = resolvePreferredWeightDtype(pathVariant, hasQ4KMat);
   const resolvedWeight = resolveWeightBufferMaterialization(B, preferredWeightDtype);
   const bBuffer = getBuffer(resolvedWeight);
   const weightDtype = getWeightDtype(resolvedWeight);
