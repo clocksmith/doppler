@@ -98,6 +98,13 @@
                       </span>
                     </div>
                   </div>
+                  <div class="pulse-inline-bar" id="pulse-inline-bar" hidden>
+                    <span class="pulse-inline-stat"><span class="pulse-inline-label" id="pulse-inline-tps-label">Tokens/sec</span> <span class="pulse-inline-value" id="pulse-inline-tps">--</span></span>
+                    <span class="pulse-inline-stat"><span class="pulse-inline-label" id="pulse-inline-ttft-label">TTFT</span> <span class="pulse-inline-value" id="pulse-inline-ttft">--</span></span>
+                    <span class="pulse-inline-stat"><span class="pulse-inline-label" id="pulse-inline-prefill-label">Prefill</span> <span class="pulse-inline-value" id="pulse-inline-prefill">--</span></span>
+                    <span class="pulse-inline-stat"><span class="pulse-inline-label" id="pulse-inline-decode-label">Decode</span> <span class="pulse-inline-value" id="pulse-inline-decode">--</span></span>
+                    <span class="pulse-inline-stat"><span class="pulse-inline-label" id="pulse-inline-e2e-label">E2E</span> <span class="pulse-inline-value" id="pulse-inline-e2e">--</span></span>
+                  </div>
                 </div>
                 <section class="translate-compare-shell" id="translate-compare-shell" data-modes="translate" aria-label="Translation compare console">
                   <div class="translate-compare-heading">
@@ -886,79 +893,81 @@
               </div>
             </section>
 
-            <section class="panel live-panel keyvalue-panel" data-modes="run translate embedding diffusion">
-              <div class="pulse-header">
-                <h2 class="type-label">Inference Pulse</h2>
+            <details class="pulse-drawer" id="pulse-drawer" data-modes="run translate embedding diffusion">
+              <summary class="pulse-drawer-toggle">
+                <span class="pulse-drawer-toggle-label type-caption">Inference Pulse</span>
                 <button id="pulse-reset-btn" class="btn btn-small" type="button">Reset</button>
-              </div>
-              <div class="panel-subsection pulse-section">
-                <h3 class="pulse-subheader">Performance</h3>
-                <div class="stats-grid" id="stats-performance">
-                  <div class="stat-item" id="stat-tps-item">
-                    <span class="stat-label" id="stat-tps-label">Tokens/sec</span>
-                    <span class="stat-value" id="stat-tps">--</span>
+              </summary>
+              <div class="pulse-drawer-body">
+                <div class="panel-subsection pulse-section">
+                  <h3 class="pulse-subheader">Performance</h3>
+                  <div class="stats-grid" id="stats-performance">
+                    <div class="stat-item" id="stat-tps-item">
+                      <span class="stat-label" id="stat-tps-label">Tokens/sec</span>
+                      <span class="stat-value" id="stat-tps">--</span>
+                    </div>
+                    <div class="stat-item" id="stat-ttft-item">
+                      <span class="stat-label" id="stat-ttft-label">TTFT</span>
+                      <span class="stat-value" id="stat-ttft">--</span>
+                    </div>
+                    <div class="stat-item" id="stat-prefill-item">
+                      <span class="stat-label" id="stat-prefill-label">Prefill</span>
+                      <span class="stat-value" id="stat-prefill">--</span>
+                    </div>
+                    <div class="stat-item" id="stat-e2e-item">
+                      <span class="stat-label" id="stat-e2e-label">End-to-end</span>
+                      <span class="stat-value" id="stat-e2e">--</span>
+                    </div>
+                    <div class="stat-item" id="stat-decode-item">
+                      <span class="stat-label" id="stat-decode-label">Decode</span>
+                      <span class="stat-value" id="stat-decode">--</span>
+                    </div>
+                    <div class="stat-item" id="stat-tokens-item">
+                      <span class="stat-label" id="stat-tokens-label">Prompt / Gen</span>
+                      <span class="stat-value" id="stat-tokens">--</span>
+                    </div>
                   </div>
-                  <div class="stat-item" id="stat-ttft-item">
-                    <span class="stat-label" id="stat-ttft-label">TTFT</span>
-                    <span class="stat-value" id="stat-ttft">--</span>
+                </div>
+                <div class="panel-subsection pulse-section">
+                  <h3 class="pulse-subheader">Recent Runs</h3>
+                  <div class="run-log">
+                    <div class="run-log-row run-log-header">
+                      <span id="run-log-label">Run</span>
+                      <span id="run-log-ttft-label">TTFT</span>
+                      <span id="run-log-prefill-label">Prefill</span>
+                      <span id="run-log-decode-label">Decode</span>
+                      <span id="run-log-e2e-label">E2E</span>
+                    </div>
+                    <div id="run-log-rows"></div>
                   </div>
-                  <div class="stat-item" id="stat-prefill-item">
-                    <span class="stat-label" id="stat-prefill-label">Prefill</span>
-                    <span class="stat-value" id="stat-prefill">--</span>
-                  </div>
-                  <div class="stat-item" id="stat-e2e-item">
-                    <span class="stat-label" id="stat-e2e-label">End-to-end</span>
-                    <span class="stat-value" id="stat-e2e">--</span>
-                  </div>
-                  <div class="stat-item" id="stat-decode-item">
-                    <span class="stat-label" id="stat-decode-label">Decode</span>
-                    <span class="stat-value" id="stat-decode">--</span>
-                  </div>
-                  <div class="stat-item" id="stat-tokens-item">
-                    <span class="stat-label" id="stat-tokens-label">Prompt / Gen</span>
-                    <span class="stat-value" id="stat-tokens">--</span>
+                </div>
+                <div class="panel-subsection pulse-section" data-modes="run translate">
+                  <h3 class="pulse-subheader">KV Cache</h3>
+                  <div class="stats-grid" id="stats-kv">
+                    <div class="stat-item">
+                      <span class="stat-label">Allocated</span>
+                      <span class="stat-value" id="stat-kv-allocated">--</span>
+                    </div>
+                    <div class="stat-item">
+                      <span class="stat-label">Used</span>
+                      <span class="stat-value" id="stat-kv-used">--</span>
+                    </div>
+                    <div class="stat-item">
+                      <span class="stat-label">Efficiency</span>
+                      <span class="stat-value" id="stat-kv-eff">--</span>
+                    </div>
+                    <div class="stat-item">
+                      <span class="stat-label">Seq / Max</span>
+                      <span class="stat-value" id="stat-kv-seq">--</span>
+                    </div>
+                    <div class="stat-item">
+                      <span class="stat-label">Layout</span>
+                      <span class="stat-value" id="stat-kv-layout">--</span>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div class="panel-subsection pulse-section">
-                <h3 class="pulse-subheader">Recent Runs</h3>
-                <div class="run-log">
-                  <div class="run-log-row run-log-header">
-                    <span id="run-log-label">Run</span>
-                    <span id="run-log-ttft-label">TTFT</span>
-                    <span id="run-log-prefill-label">Prefill</span>
-                    <span id="run-log-decode-label">Decode</span>
-                    <span id="run-log-e2e-label">E2E</span>
-                  </div>
-                  <div id="run-log-rows"></div>
-                </div>
-              </div>
-              <div class="panel-subsection pulse-section" data-modes="run translate">
-                <h3 class="pulse-subheader">KV Cache</h3>
-                <div class="stats-grid" id="stats-kv">
-                  <div class="stat-item">
-                    <span class="stat-label">Allocated</span>
-                    <span class="stat-value" id="stat-kv-allocated">--</span>
-                  </div>
-                  <div class="stat-item">
-                    <span class="stat-label">Used</span>
-                    <span class="stat-value" id="stat-kv-used">--</span>
-                  </div>
-                  <div class="stat-item">
-                    <span class="stat-label">Efficiency</span>
-                    <span class="stat-value" id="stat-kv-eff">--</span>
-                  </div>
-                  <div class="stat-item">
-                    <span class="stat-label">Seq / Max</span>
-                    <span class="stat-value" id="stat-kv-seq">--</span>
-                  </div>
-                  <div class="stat-item">
-                    <span class="stat-label">Layout</span>
-                    <span class="stat-value" id="stat-kv-layout">--</span>
-                  </div>
-                </div>
-              </div>
-            </section>
+            </details>
 
         </div>
       </div>
