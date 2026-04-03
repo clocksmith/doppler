@@ -37,6 +37,40 @@ function normalizeRoPEType(value) {
   return normalized;
 }
 
+function normalizePositiveEvenInt(value, label) {
+  const parsed = asFiniteNumber(value);
+  if (parsed == null) {
+    return null;
+  }
+  const normalized = Math.trunc(parsed);
+  if (normalized <= 0 || (normalized % 2) !== 0) {
+    throw new Error(`${label} must be a positive even integer; got ${value}.`);
+  }
+  return normalized;
+}
+
+function resolveFrequencyBaseDim(configuredValue, ropeParameters, headDim, fieldName, sourceLabel) {
+  const configured = normalizePositiveEvenInt(configuredValue, `${fieldName} (converter config)`);
+  const ropeType = normalizeRoPEType(ropeParameters?.rope_type ?? ropeParameters?.type);
+  if (ropeType !== 'proportional') {
+    return configured ?? null;
+  }
+
+  const derived = normalizePositiveEvenInt(headDim, `${sourceLabel} head dimension`);
+  if (derived == null) {
+    throw new Error(
+      `${sourceLabel} uses proportional RoPE, but the attention head dimension is missing. ` +
+      `Set ${fieldName} explicitly in the conversion config or provide the required HF config fields.`
+    );
+  }
+  if (configured != null && configured !== derived) {
+    throw new Error(
+      `${fieldName}=${configured} conflicts with ${sourceLabel} proportional RoPE head dimension ${derived}.`
+    );
+  }
+  return derived;
+}
+
 function resolveScalingConfig(ropeScalingConfig, options = {}) {
   const { strictMissingTypeAndFactor = false, sourceLabel = 'HF config' } = options;
   const scalingTypeRaw = ropeScalingConfig.type ?? ropeScalingConfig.rope_type;
@@ -157,6 +191,14 @@ export function buildRoPEConfig(converterInference, config) {
   const slidingAttentionRoPE = asObject(ropeParameters?.sliding_attention);
   const configuredRoPE = converterInference.rope ?? {};
   const configuredAttention = converterInference.attention;
+  const fullAttentionHeadDim = normalizePositiveEvenInt(
+    resolvedConfig.global_head_dim ?? resolvedConfig.head_dim,
+    'HF config full-attention head dimension'
+  );
+  const localAttentionHeadDim = normalizePositiveEvenInt(
+    resolvedConfig.head_dim,
+    'HF config local-attention head dimension'
+  );
 
   let globalScaling = {
     ropeScalingType: configuredRoPE.ropeScalingType
@@ -248,6 +290,20 @@ export function buildRoPEConfig(converterInference, config) {
   const ropeLocalPartialRotaryFactor = asFiniteNumber(slidingAttentionRoPE?.partial_rotary_factor)
     ?? asFiniteNumber(converterInference.rope?.ropeLocalPartialRotaryFactor)
     ?? DEFAULT_MANIFEST_INFERENCE.rope.ropeLocalPartialRotaryFactor;
+  const ropeFrequencyBaseDim = resolveFrequencyBaseDim(
+    configuredRoPE.ropeFrequencyBaseDim,
+    fullAttentionRoPE ?? flatRoPEParameters,
+    fullAttentionHeadDim,
+    'rope.ropeFrequencyBaseDim',
+    fullAttentionRoPE ? 'HF config rope_parameters.full_attention' : 'HF config rope_parameters'
+  );
+  const ropeLocalFrequencyBaseDim = resolveFrequencyBaseDim(
+    configuredRoPE.ropeLocalFrequencyBaseDim,
+    slidingAttentionRoPE,
+    localAttentionHeadDim,
+    'rope.ropeLocalFrequencyBaseDim',
+    'HF config rope_parameters.sliding_attention'
+  );
 
   return {
     ropeTheta,
@@ -256,6 +312,8 @@ export function buildRoPEConfig(converterInference, config) {
     mropeSection,
     partialRotaryFactor,
     ropeLocalPartialRotaryFactor,
+    ropeFrequencyBaseDim,
+    ropeLocalFrequencyBaseDim,
     ropeScalingType: globalScaling.ropeScalingType,
     ropeScalingFactor: globalScaling.ropeScalingFactor,
     yarnBetaFast: globalScaling.yarnBetaFast,

@@ -309,13 +309,21 @@ export function resolveQ4KConfig(
 // ============================================================================
 
 
-function computeRoPEFreqsForTheta(theta, headDim, maxSeqLen, ropeScale, ropeScalingType, ropeScaling) {
-  const halfDim = headDim / 2;
+function computeRoPEFreqsForTheta(
+  theta,
+  rotaryDim,
+  frequencyBaseDim,
+  maxSeqLen,
+  ropeScale,
+  ropeScalingType,
+  ropeScaling
+) {
+  const halfDim = rotaryDim / 2;
 
   // Compute base frequencies: theta_i = 1 / (base^(2i/d))
   const freqs = new Float32Array(halfDim);
   for (let i = 0; i < halfDim; i++) {
-    freqs[i] = 1.0 / Math.pow(theta, (2 * i) / headDim);
+    freqs[i] = 1.0 / Math.pow(theta, (2 * i) / frequencyBaseDim);
   }
 
   // Compute per-dimension scaling factors
@@ -429,6 +437,20 @@ function resolveRotaryDim(headDim, rotaryDim, partialRotaryFactor) {
   return resolved;
 }
 
+function resolveFrequencyBaseDim(rotaryDim, frequencyBaseDim, label) {
+  if (frequencyBaseDim == null) {
+    return rotaryDim;
+  }
+  if (!Number.isFinite(frequencyBaseDim) || frequencyBaseDim <= 0 || (Math.trunc(frequencyBaseDim) % 2) !== 0) {
+    throw new Error(`${label} must be a positive even integer; got "${frequencyBaseDim}".`);
+  }
+  const resolved = Math.trunc(frequencyBaseDim);
+  if (resolved < rotaryDim) {
+    throw new Error(`${label} ${resolved} cannot be smaller than rotaryDim ${rotaryDim}.`);
+  }
+  return resolved;
+}
+
 
 export async function initRoPEFrequencies(config, useGPU) {
   const {
@@ -436,6 +458,8 @@ export async function initRoPEFrequencies(config, useGPU) {
     localHeadDim,
     rotaryDim,
     ropeLocalRotaryDim,
+    ropeFrequencyBaseDim,
+    ropeLocalFrequencyBaseDim,
     maxSeqLen,
     ropeTheta,
     ropeLocalTheta,
@@ -475,6 +499,16 @@ export async function initRoPEFrequencies(config, useGPU) {
     ropeLocalRotaryDim,
     ropeLocalPartialRotaryFactor
   );
+  const resolvedFrequencyBaseDim = resolveFrequencyBaseDim(
+    resolvedRotaryDim,
+    ropeFrequencyBaseDim,
+    'RoPE frequency base dim'
+  );
+  const resolvedLocalFrequencyBaseDim = resolveFrequencyBaseDim(
+    resolvedLocalRotaryDim,
+    ropeLocalFrequencyBaseDim,
+    'Local RoPE frequency base dim'
+  );
   const halfDim = resolvedRotaryDim / 2;
   if (mropeInterleaved === true && Array.isArray(mropeSection)) {
     const expandedDim = mropeSection.reduce((sum, entry) => sum + entry, 0) * 2;
@@ -490,7 +524,13 @@ export async function initRoPEFrequencies(config, useGPU) {
 
   // Compute global (full_attention) frequencies
   const globalFreqs = computeRoPEFreqsForTheta(
-    ropeTheta, resolvedRotaryDim, maxSeqLen, ropeScale, ropeScalingType, ropeScaling
+    ropeTheta,
+    resolvedRotaryDim,
+    resolvedFrequencyBaseDim,
+    maxSeqLen,
+    ropeScale,
+    ropeScalingType,
+    ropeScaling
   );
 
   // Compute local (sliding_attention) frequencies if different from global.
@@ -511,6 +551,7 @@ export async function initRoPEFrequencies(config, useGPU) {
     localFreqs = computeRoPEFreqsForTheta(
       resolvedLocalTheta,
       resolvedLocalRotaryDim,
+      resolvedLocalFrequencyBaseDim,
       maxSeqLen,
       resolvedLocalScale,
       resolvedLocalScalingType,
@@ -520,6 +561,7 @@ export async function initRoPEFrequencies(config, useGPU) {
       'Pipeline',
       `Dual RoPE: local theta=${resolvedLocalTheta}, global theta=${ropeTheta}, ` +
       `localRotaryDim=${resolvedLocalRotaryDim}, globalRotaryDim=${resolvedRotaryDim}, ` +
+      `localFrequencyBaseDim=${resolvedLocalFrequencyBaseDim}, globalFrequencyBaseDim=${resolvedFrequencyBaseDim}, ` +
       `localScaling=${resolvedLocalScalingType ?? 'none'}:${resolvedLocalScale}, ` +
       `globalScaling=${ropeScalingType ?? 'none'}:${ropeScale}`
     );
