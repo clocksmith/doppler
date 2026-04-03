@@ -7,6 +7,8 @@ import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text
   const freqs = await initRoPEFrequencies({
     headDim: 256,
     rotaryDim: 64,
+    ropeFrequencyBaseDim: 64,
+    ropeLocalFrequencyBaseDim: 256,
     maxSeqLen: 8,
     ropeTheta: 10000000,
     ropeLocalTheta: null,
@@ -30,6 +32,8 @@ import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text
     initRoPEFrequencies({
       headDim: 256,
       rotaryDim: 64,
+      ropeFrequencyBaseDim: 64,
+      ropeLocalFrequencyBaseDim: 256,
       maxSeqLen: 8,
       ropeTheta: 10000000,
       ropeLocalTheta: null,
@@ -52,6 +56,8 @@ import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text
   const freqs = await initRoPEFrequencies({
     headDim: 256,
     rotaryDim: undefined,
+    ropeFrequencyBaseDim: 256,
+    ropeLocalFrequencyBaseDim: 256,
     maxSeqLen: 8,
     ropeTheta: 10000000,
     ropeLocalTheta: null,
@@ -75,6 +81,8 @@ import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text
   const freqs = await initRoPEFrequencies({
     headDim: 8,
     rotaryDim: undefined,
+    ropeFrequencyBaseDim: 8,
+    ropeLocalFrequencyBaseDim: 8,
     maxSeqLen: 4,
     ropeTheta: 10000,
     ropeLocalTheta: 10000,
@@ -149,6 +157,8 @@ import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text
         ropeLocalTheta: null,
         ropeScalingType: null,
         ropeScalingFactor: 1,
+        ropeFrequencyBaseDim: null,
+        ropeLocalFrequencyBaseDim: null,
         yarnBetaFast: null,
         yarnBetaSlow: null,
         yarnOriginalMaxPos: null,
@@ -160,6 +170,7 @@ import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text
         mropeInterleaved: true,
         mropeSection: [11, 11, 10],
         partialRotaryFactor: 0.25,
+        ropeLocalPartialRotaryFactor: null,
       },
       output: {
         finalLogitSoftcapping: null,
@@ -194,6 +205,8 @@ import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text
   });
 
   assert.equal(parsed.mropeInterleaved, true);
+  assert.equal(parsed.ropeFrequencyBaseDim, 64);
+  assert.equal(parsed.ropeLocalFrequencyBaseDim, 256);
   assert.equal(
     parsed.ropeInterleaved,
     false,

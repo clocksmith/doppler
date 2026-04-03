@@ -46,6 +46,47 @@ function resolveAttentionHeadDim(config, layerType) {
   return config.globalHeadDim ?? config.headDim;
 }
 
+function resolveAttentionKVSharing(config, layerIdx, layerType) {
+  if (config?.decodeStrategy !== 'incremental') {
+    return { sharedKVSourceLayerIdx: null, storeSharedKV: false };
+  }
+  const layerTypes = Array.isArray(config?.layerTypes) ? config.layerTypes : null;
+  const numKvSharedLayers = Number(config?.numKvSharedLayers ?? 0);
+  if (!layerTypes || layerTypes.length === 0 || !Number.isFinite(numKvSharedLayers) || numKvSharedLayers <= 0) {
+    return { sharedKVSourceLayerIdx: null, storeSharedKV: false };
+  }
+
+  const firstKvSharedLayerIdx = layerTypes.length - Math.trunc(numKvSharedLayers);
+  if (firstKvSharedLayerIdx <= 0 || layerIdx < 0 || layerIdx >= layerTypes.length) {
+    return { sharedKVSourceLayerIdx: null, storeSharedKV: false };
+  }
+
+  const normalizedLayerType = normalizeLayerType(layerType);
+  if (!normalizedLayerType) {
+    return { sharedKVSourceLayerIdx: null, storeSharedKV: false };
+  }
+
+  let sourceLayerIdx = null;
+  for (let index = firstKvSharedLayerIdx - 1; index >= 0; index -= 1) {
+    if (normalizeLayerType(layerTypes[index]) === normalizedLayerType) {
+      sourceLayerIdx = index;
+      break;
+    }
+  }
+  if (sourceLayerIdx == null) {
+    return { sharedKVSourceLayerIdx: null, storeSharedKV: false };
+  }
+
+  if (layerIdx >= firstKvSharedLayerIdx) {
+    return { sharedKVSourceLayerIdx: sourceLayerIdx, storeSharedKV: false };
+  }
+
+  return {
+    sharedKVSourceLayerIdx: null,
+    storeSharedKV: layerIdx === sourceLayerIdx,
+  };
+}
+
 // === isLinearLayerType classification ===
 
 {
@@ -292,6 +333,33 @@ function resolveAttentionHeadDim(config, layerType) {
   assert.equal(resolveAttentionHeadDim(config, 'sliding_attention'), 256);
   assert.equal(resolveAttentionHeadDim(config, 'full_attention'), 512);
   assert.equal(resolveAttentionHeadDim({ headDim: 128, globalHeadDim: null }, 'full_attention'), 128);
+}
+
+{
+  const layerTypes = Array.from({ length: 35 }, (_, index) => index % 5 === 4 ? 'full_attention' : 'sliding_attention');
+  const replayConfig = {
+    decodeStrategy: 'replay_prefill',
+    layerTypes,
+    numKvSharedLayers: 20,
+  };
+  const incrementalConfig = {
+    decodeStrategy: 'incremental',
+    layerTypes,
+    numKvSharedLayers: 20,
+  };
+
+  assert.deepEqual(
+    resolveAttentionKVSharing(replayConfig, 19, 'full_attention'),
+    { sharedKVSourceLayerIdx: null, storeSharedKV: false }
+  );
+  assert.deepEqual(
+    resolveAttentionKVSharing(incrementalConfig, 14, 'full_attention'),
+    { sharedKVSourceLayerIdx: null, storeSharedKV: true }
+  );
+  assert.deepEqual(
+    resolveAttentionKVSharing(incrementalConfig, 19, 'full_attention'),
+    { sharedKVSourceLayerIdx: 14, storeSharedKV: false }
+  );
 }
 
 console.log('layer-dispatch-routing.test: ok');

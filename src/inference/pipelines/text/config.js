@@ -441,6 +441,15 @@ export function validateRequiredInferenceFields(inf, modelId) {
   if (inf.rope.yarnOriginalMaxPos === undefined) {
     errors.push('rope.yarnOriginalMaxPos must be explicitly set (null if not YARN)');
   }
+  if (inf.rope.ropeLocalYarnBetaFast === undefined) {
+    errors.push('rope.ropeLocalYarnBetaFast must be explicitly set (null if not local YARN)');
+  }
+  if (inf.rope.ropeLocalYarnBetaSlow === undefined) {
+    errors.push('rope.ropeLocalYarnBetaSlow must be explicitly set (null if not local YARN)');
+  }
+  if (inf.rope.ropeLocalYarnOriginalMaxPos === undefined) {
+    errors.push('rope.ropeLocalYarnOriginalMaxPos must be explicitly set (null if not local YARN)');
+  }
 
   if (errors.length > 0) {
     throw new Error(

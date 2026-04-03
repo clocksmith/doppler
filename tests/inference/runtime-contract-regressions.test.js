@@ -206,6 +206,8 @@ try {
             mropeSection: null,
             partialRotaryFactor: null,
             ropeLocalPartialRotaryFactor: null,
+            ropeFrequencyBaseDim: null,
+            ropeLocalFrequencyBaseDim: null,
             yarnBetaFast: null,
             yarnBetaSlow: null,
             yarnOriginalMaxPos: null,
@@ -290,6 +292,8 @@ try {
           mropeSection: null,
           partialRotaryFactor: 0.25,
           ropeLocalPartialRotaryFactor: null,
+          ropeFrequencyBaseDim: 512,
+          ropeLocalFrequencyBaseDim: null,
           yarnBetaFast: null,
           yarnBetaSlow: null,
           yarnOriginalMaxPos: null,
@@ -324,6 +328,8 @@ try {
     assert.equal(parsed.numKvSharedLayers, 20);
     assert.equal(parsed.ropeRotaryDim, 128);
     assert.equal(parsed.ropeLocalRotaryDim, 256);
+    assert.equal(parsed.ropeFrequencyBaseDim, 512);
+    assert.equal(parsed.ropeLocalFrequencyBaseDim, 256);
     assert.equal(parsed.decodeStrategy, 'replay_prefill');
     assert.equal(parsed.vocabSizePerLayerInput, 262144);
   }

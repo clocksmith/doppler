@@ -187,6 +187,8 @@ function assertPoolIsClean() {
     () => initRoPEFrequencies({
       headDim: 256,
       rotaryDim: 64,
+      ropeFrequencyBaseDim: 64,
+      ropeLocalFrequencyBaseDim: 256,
       maxSeqLen: 8,
       ropeTheta: 10000000,
       ropeLocalTheta: null,

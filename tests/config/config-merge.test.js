@@ -43,6 +43,9 @@ function createManifest(overrides = {}) {
         mropeInterleaved: false,
         mropeSection: null,
         partialRotaryFactor: 1.0,
+        ropeLocalPartialRotaryFactor: null,
+        ropeFrequencyBaseDim: null,
+        ropeLocalFrequencyBaseDim: null,
         ropeScalingType: null,
         ropeScalingFactor: null,
         ropeLocalScalingType: null,
@@ -177,6 +180,7 @@ function createManifest(overrides = {}) {
     rope: {
       ropeTheta: 1000000,
       ropeLocalTheta: 50000,
+      ropeFrequencyBaseDim: 256,
       yarnBetaFast: 32,
       yarnBetaSlow: 1,
       yarnOriginalMaxPos: 8192,
@@ -185,6 +189,7 @@ function createManifest(overrides = {}) {
 
   assert.equal(merged.inference.rope.ropeTheta, 1000000);
   assert.equal(merged.inference.rope.ropeLocalTheta, 50000);
+  assert.equal(merged.inference.rope.ropeFrequencyBaseDim, 256);
   assert.equal(merged.inference.rope.yarnBetaFast, 32);
   assert.equal(merged.inference.rope.yarnBetaSlow, 1);
   assert.equal(merged.inference.rope.yarnOriginalMaxPos, 8192);

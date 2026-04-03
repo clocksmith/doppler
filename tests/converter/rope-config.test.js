@@ -18,6 +18,8 @@ const converterInference = {
 {
   const rope = buildRoPEConfig(converterInference, {
     text_config: {
+      head_dim: 256,
+      global_head_dim: 512,
       rope_parameters: {
         full_attention: {
           partial_rotary_factor: 0.25,
@@ -33,6 +35,8 @@ const converterInference = {
   });
   assert.equal(rope.partialRotaryFactor, 0.25);
   assert.equal(rope.ropeLocalPartialRotaryFactor, null);
+  assert.equal(rope.ropeFrequencyBaseDim, 512);
+  assert.equal(rope.ropeLocalFrequencyBaseDim, null);
 }
 
 {
@@ -51,6 +55,8 @@ const converterInference = {
   });
   assert.equal(rope.ropeTheta, 1000000);
   assert.equal(rope.ropeLocalTheta, 10000);
+  assert.equal(rope.ropeFrequencyBaseDim, null);
+  assert.equal(rope.ropeLocalFrequencyBaseDim, null);
   assert.equal(rope.ropeScalingType, 'linear');
   assert.equal(rope.ropeScalingFactor, 8.0);
   assert.equal(rope.ropeLocalScalingType, null);
@@ -74,6 +80,8 @@ const converterInference = {
   });
   assert.equal(rope.ropeScalingType, 'linear');
   assert.equal(rope.ropeScalingFactor, 8.0);
+  assert.equal(rope.ropeFrequencyBaseDim, null);
+  assert.equal(rope.ropeLocalFrequencyBaseDim, null);
   assert.equal(rope.ropeLocalScalingType, 'linear');
   assert.equal(rope.ropeLocalScalingFactor, 4.0);
 }
