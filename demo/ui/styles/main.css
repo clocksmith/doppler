@@ -463,12 +463,12 @@
       order: 2;
     }
 
-    /* Main tabs: 3-column shell with Inference Pulse in right rail */
+    /* Main tabs: 2-column shell — controls + output (pulse is inline + drawer) */
     #app[data-mode="run"] .panel-grid,
     #app[data-mode="translate"] .panel-grid,
     #app[data-mode="embedding"] .panel-grid,
     #app[data-mode="diffusion"] .panel-grid {
-      grid-template-columns: minmax(0, var(--panel-side-width)) minmax(0, 1fr) minmax(0, var(--panel-rail-width));
+      grid-template-columns: minmax(0, var(--panel-side-width)) minmax(0, 1fr);
       align-items: stretch;
     }
 
@@ -484,7 +484,7 @@
     #app[data-mode="translate"] .panel-stack-primary,
     #app[data-mode="embedding"] .panel-stack-primary,
     #app[data-mode="diffusion"] .panel-stack-primary {
-      grid-column: 2 / 3;
+      grid-column: 2 / -1;
       order: 2;
     }
 
@@ -492,8 +492,7 @@
     #app[data-mode="translate"] .panel-stack-rail,
     #app[data-mode="embedding"] .panel-stack-rail,
     #app[data-mode="diffusion"] .panel-stack-rail {
-      grid-column: 3 / 4;
-      order: 3;
+      display: none;
     }
 
     .panel-stack {
@@ -2549,45 +2548,134 @@
       text-align: right;
     }
 
-    /* Inference Pulse: emphasize section headers and key/value contrast. */
-    .live-panel .pulse-header {
+    /* Pulse inline stats bar — compact row below output */
+    .pulse-inline-bar {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-md);
+      padding: 6px 0;
+      border-top: var(--border-sm) dotted var(--fg);
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .pulse-inline-bar[hidden] {
+      display: none;
+    }
+
+    .pulse-inline-stat {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .pulse-inline-label {
+      font-family: var(--demo-label-family);
+      font-size: var(--demo-label-size);
+      font-weight: var(--demo-label-weight);
+      letter-spacing: var(--demo-label-tracking);
+      text-transform: uppercase;
+      line-height: var(--demo-label-line-height);
+      opacity: 0.7;
+    }
+
+    .pulse-inline-value {
+      font-family: var(--demo-value-family);
+      font-size: var(--demo-value-size);
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+      line-height: var(--demo-value-line-height);
+    }
+
+    /* Pulse drawer — expandable details panel below output */
+    .pulse-drawer {
+      border-top: var(--border-sm) solid var(--fg);
+      margin-top: var(--space-sm);
+    }
+
+    .pulse-drawer-toggle {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: var(--space-sm);
-      margin-bottom: 2px;
+      cursor: pointer;
+      padding: 6px 0;
+      list-style: none;
+      user-select: none;
     }
 
-    .live-panel .pulse-header .type-label {
-      margin: 0;
+    .pulse-drawer-toggle::-webkit-details-marker { display: none; }
+    .pulse-drawer-toggle::marker { display: none; }
+
+    .pulse-drawer-toggle-label {
+      font-family: var(--demo-label-family);
+      font-size: var(--demo-label-size);
+      font-weight: var(--demo-label-weight);
+      letter-spacing: var(--demo-label-tracking);
+      text-transform: uppercase;
     }
 
-    .live-panel .pulse-header .btn {
-      flex: 0 0 auto;
+    .pulse-drawer-toggle-label::before {
+      content: '\25B6';
+      font-size: 8px;
+      display: inline-block;
+      margin-right: 6px;
+      transition: transform var(--transition-fast) ease;
+    }
+
+    .pulse-drawer[open] .pulse-drawer-toggle-label::before {
+      transform: rotate(90deg);
+    }
+
+    .pulse-drawer-body {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-bottom: var(--space-md);
+    }
+
+    .pulse-drawer .panel-subsection {
+      gap: 6px;
+    }
+
+    .pulse-drawer .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 4px var(--space-md);
+    }
+
+    .pulse-drawer .stat-label {
+      font-family: var(--demo-label-family);
+      font-size: var(--demo-label-size);
+      font-weight: var(--demo-label-weight);
+      letter-spacing: var(--demo-label-tracking);
+      text-transform: uppercase;
+      line-height: var(--demo-label-line-height);
+      opacity: 0.8;
+    }
+
+    .pulse-drawer .stat-value {
+      font-family: var(--demo-value-family);
+      font-size: var(--demo-value-size);
+      font-weight: 500;
+      line-height: var(--demo-value-line-height);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .pulse-drawer .pulse-subheader {
+      padding-bottom: 3px;
+      border-bottom: var(--border-sm) dotted var(--fg);
+    }
+
+    .pulse-drawer .run-log {
+      gap: 4px;
+    }
+
+    .pulse-drawer .run-log-row {
+      grid-template-columns: 50px repeat(4, minmax(0, 1fr));
     }
 
     .keyvalue-panel .pulse-section {
       gap: var(--space-xs);
-    }
-
-    .live-panel {
-      gap: 10px;
-    }
-
-    .live-panel .panel-subsection {
-      gap: 6px;
-    }
-
-    .live-panel .stats-grid {
-      gap: 4px var(--space-sm);
-    }
-
-    .live-panel .run-log {
-      gap: 4px;
-    }
-
-    .live-panel .run-log-row {
-      grid-template-columns: 40px 0.72fr 1.18fr 1.18fr 0.66fr;
     }
 
     .keyvalue-panel .pulse-subheader {
@@ -2613,12 +2701,12 @@
       font-variant-numeric: tabular-nums;
     }
 
-    .live-panel .run-log-row > span {
+    .pulse-drawer .run-log-row > span {
       line-height: var(--demo-value-line-height);
       font-variant-numeric: tabular-nums;
     }
 
-    .live-panel .run-log-row > span:first-child {
+    .pulse-drawer .run-log-row > span:first-child {
       font-family: var(--demo-label-family);
       font-size: var(--demo-label-size);
       font-weight: var(--demo-label-weight);
@@ -2626,13 +2714,13 @@
       text-transform: uppercase;
     }
 
-    .live-panel .run-log-row > span:not(:first-child) {
+    .pulse-drawer .run-log-row > span:not(:first-child) {
       font-family: var(--demo-value-family);
       font-size: var(--demo-value-size);
       font-weight: 500;
     }
 
-    .live-panel .run-log-header > span {
+    .pulse-drawer .run-log-header > span {
       font-family: var(--demo-label-family);
       font-size: 9px;
       font-weight: 700;
@@ -3187,10 +3275,6 @@
         grid-column: 1 / -1;
       }
 
-      #app[data-mode="run"] .panel-stack-rail,
-      #app[data-mode="translate"] .panel-stack-rail,
-      #app[data-mode="embedding"] .panel-stack-rail,
-      #app[data-mode="diffusion"] .panel-stack-rail,
       #app[data-mode="diagnostics"] .panel-stack-rail,
       #app[data-mode="models"] .panel-stack-rail {
         order: 3;
