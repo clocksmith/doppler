@@ -4174,6 +4174,26 @@
             "wgslOnDisk": true
           }
         },
+        "default_f16": {
+          "wgsl": "scale_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "scale.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
         "inplace": {
           "wgsl": "scale.wgsl",
           "entryPoint": "main_inplace",
@@ -4183,6 +4203,26 @@
             1
           ],
           "requires": [],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "scale.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "inplace_f16": {
+          "wgsl": "scale_f16.wgsl",
+          "entryPoint": "main_inplace",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],

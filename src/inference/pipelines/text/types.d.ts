@@ -76,6 +76,13 @@ export interface LayerContext {
   /** Local RoPE frequency buffers for sliding_attention layers (Gemma 3: 10K theta) */
   ropeLocalCos?: GPUBuffer | Float32Array | null;
   ropeLocalSin?: GPUBuffer | Float32Array | null;
+  /** Per-pass shared K/V state for architectures that reuse K/V across later layers. */
+  sharedAttentionState?: Map<number, {
+    kTensor: unknown;
+    vTensor: unknown;
+    headDim: number;
+    numKVHeads: number;
+  }>;
   /** Weight buffer config */
   weightConfig: WeightBufferConfig;
   /** Debug flags (mutable) */

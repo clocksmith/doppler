@@ -26,6 +26,7 @@ import { shouldRunFinitenessGuard } from './finiteness-policy.js';
 import { runLinearAttentionLayer } from './linear-attention.js';
 import { validateAttnConfig } from './attention/attn-config.js';
 import { createPerLayerInputTensor } from './per-layer-inputs.js';
+import { isGpuBufferInstance } from '../../../gpu/weight-buffer.js';
 
 // ============================================================================
 // Architecture Detection
@@ -122,6 +123,58 @@ function isLinearLayerType(layerType) {
     || normalized === 'linear'
     || normalized === 'gated_delta'
     || normalized === 'gated_delta_net';
+}
+
+function resolveAttentionRotaryDim(config, layerType) {
+  if (isSlidingLayerType(layerType)) {
+    return config.ropeLocalRotaryDim ?? config.ropeRotaryDim;
+  }
+  return config.ropeRotaryDim;
+}
+
+function resolveAttentionHeadDim(config, layerType) {
+  if (isSlidingLayerType(layerType)) {
+    return config.headDim;
+  }
+  return config.globalHeadDim ?? config.headDim;
+}
+
+function resolveAttentionKVSharing(config, layerIdx, layerType) {
+  const layerTypes = Array.isArray(config?.layerTypes) ? config.layerTypes : null;
+  const numKvSharedLayers = Number(config?.numKvSharedLayers ?? 0);
+  if (!layerTypes || layerTypes.length === 0 || !Number.isFinite(numKvSharedLayers) || numKvSharedLayers <= 0) {
+    return { sharedKVSourceLayerIdx: null, storeSharedKV: false };
+  }
+
+  const firstKvSharedLayerIdx = layerTypes.length - Math.trunc(numKvSharedLayers);
+  if (firstKvSharedLayerIdx <= 0 || layerIdx < 0 || layerIdx >= layerTypes.length) {
+    return { sharedKVSourceLayerIdx: null, storeSharedKV: false };
+  }
+
+  const normalizedLayerType = normalizeLayerType(layerType);
+  if (!normalizedLayerType) {
+    return { sharedKVSourceLayerIdx: null, storeSharedKV: false };
+  }
+
+  let sourceLayerIdx = null;
+  for (let index = firstKvSharedLayerIdx - 1; index >= 0; index -= 1) {
+    if (normalizeLayerType(layerTypes[index]) === normalizedLayerType) {
+      sourceLayerIdx = index;
+      break;
+    }
+  }
+  if (sourceLayerIdx == null) {
+    return { sharedKVSourceLayerIdx: null, storeSharedKV: false };
+  }
+
+  if (layerIdx >= firstKvSharedLayerIdx) {
+    return { sharedKVSourceLayerIdx: sourceLayerIdx, storeSharedKV: false };
+  }
+
+  return {
+    sharedKVSourceLayerIdx: null,
+    storeSharedKV: layerIdx === sourceLayerIdx,
+  };
 }
 
 function hasPerLayerInputBlock(config) {
@@ -236,15 +289,15 @@ async function applyPerLayerInputBlock(layerIdx, hiddenTensor, numTokens, size, 
 
     const layerScalar = resolveLayerScalarValue(layerWeights.layerScalar);
     if (layerScalar !== 1) {
-      outputTensor = recorder
+      const scaledOutputTensor = recorder
         ? await recordScale(recorder, outputTensor, layerScalar, {
           count: size,
-          inplace: true,
         })
         : await runScale(outputTensor, layerScalar, {
           count: size,
-          inplace: true,
         });
+      releaseOrTrack(recorder, outputTensor.buffer, decodeBuffers);
+      outputTensor = scaledOutputTensor;
     }
 
     return outputTensor;
@@ -454,9 +507,10 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   } else {
     let attentionNumHeads = numHeads;
     let attentionNumKVHeads = numKVHeads;
-    let attentionHeadDim = headDim;
+    let attentionHeadDim = resolveAttentionHeadDim(config, layerType);
     let disableRoPE = false;
     let queryKeyNorm = config.queryKeyNorm;
+    const { sharedKVSourceLayerIdx, storeSharedKV } = resolveAttentionKVSharing(config, layerIdx, layerType);
 
     const attnConfig = {
       layerIdx,
@@ -480,11 +534,13 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       attentionOutputGate: config.attentionOutputGate,
       causalAttention: config.causalAttention,
       rmsNormWeightOffset: config.rmsNormWeightOffset,
-      ropeRotaryDim: config.ropeRotaryDim,
+      ropeRotaryDim: resolveAttentionRotaryDim(config, layerType),
       ropeInterleaved: config.ropeInterleaved,
       tokenIds: context.currentTokenIds ?? null,
       kernelPath: context.kernelPath ?? null,
       disableRoPE,
+      sharedKVSourceLayerIdx,
+      storeSharedKV,
     };
 
     validateAttnConfig(attnConfig, `L${layerIdx}`);
@@ -496,6 +552,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       ropeFreqsSin: (isLocalLayer && context.ropeLocalSin)
         ? (context.ropeLocalSin)
         : (ropeFreqsSin),
+      sharedAttentionState: context.sharedAttentionState ?? null,
       kvCache: ((kvCache)),
       stats: context.stats,
       debugProbes: context.debugProbes,
@@ -753,6 +810,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
     ropeFreqsSin: (isLocalLayer && context.ropeLocalSin)
       ? (context.ropeLocalSin)
       : (ropeFreqsSin),
+    sharedAttentionState: context.sharedAttentionState ?? null,
     kvCache: ((kvCache)),
     linearRuntime: context.linearAttentionRuntime ?? null,
     operatorDiagnostics: context.operatorDiagnostics,
@@ -903,7 +961,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
             isPrefill,
             numHeads,
             numKVHeads,
-            headDim,
+            headDim: resolveAttentionHeadDim(config, layerType),
             hiddenSize,
             rmsNormEps,
             currentSeqLen: context.currentSeqLen,
@@ -916,12 +974,13 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
             attentionOutputGate: config.attentionOutputGate,
             causalAttention: config.causalAttention,
             rmsNormWeightOffset: config.rmsNormWeightOffset,
-            ropeRotaryDim: config.ropeRotaryDim,
+            ropeRotaryDim: resolveAttentionRotaryDim(config, layerType),
             ropeInterleaved: config.ropeInterleaved,
             tokenIds: context.currentTokenIds ?? null,
             skipInputNorm: step.skipInputNorm === true,
             activationDtype,
             kernelPath: context.kernelPath ?? null,
+            ...resolveAttentionKVSharing(config, layerIdx, layerType),
           };
 
           const result = await doAttention(

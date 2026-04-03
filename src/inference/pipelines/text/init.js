@@ -433,13 +433,16 @@ function resolveRotaryDim(headDim, rotaryDim, partialRotaryFactor) {
 export async function initRoPEFrequencies(config, useGPU) {
   const {
     headDim,
+    localHeadDim,
     rotaryDim,
+    ropeLocalRotaryDim,
     maxSeqLen,
     ropeTheta,
     ropeLocalTheta,
     mropeInterleaved,
     mropeSection,
     partialRotaryFactor,
+    ropeLocalPartialRotaryFactor,
     ropeScale,
     ropeLocalScale,
     ropeScalingType,
@@ -465,7 +468,13 @@ export async function initRoPEFrequencies(config, useGPU) {
       ? ropeScaling
       : ropeLocalScaling
   );
+  const resolvedLocalHeadDim = localHeadDim ?? headDim;
   const resolvedRotaryDim = resolveRotaryDim(headDim, rotaryDim, partialRotaryFactor);
+  const resolvedLocalRotaryDim = resolveRotaryDim(
+    resolvedLocalHeadDim,
+    ropeLocalRotaryDim,
+    ropeLocalPartialRotaryFactor
+  );
   const halfDim = resolvedRotaryDim / 2;
   if (mropeInterleaved === true && Array.isArray(mropeSection)) {
     const expandedDim = mropeSection.reduce((sum, entry) => sum + entry, 0) * 2;
@@ -489,6 +498,7 @@ export async function initRoPEFrequencies(config, useGPU) {
   
   let localFreqs = null;
   const hasDistinctLocalTheta = resolvedLocalTheta !== ropeTheta;
+  const hasDistinctLocalDim = resolvedLocalRotaryDim !== resolvedRotaryDim;
   const hasDistinctLocalScaling = !isSameRoPEScalingConfig(
     ropeScalingType,
     ropeScale,
@@ -497,10 +507,10 @@ export async function initRoPEFrequencies(config, useGPU) {
     resolvedLocalScale,
     resolvedLocalScaling
   );
-  if (hasDistinctLocalTheta || hasDistinctLocalScaling) {
+  if (hasDistinctLocalTheta || hasDistinctLocalScaling || hasDistinctLocalDim) {
     localFreqs = computeRoPEFreqsForTheta(
       resolvedLocalTheta,
-      resolvedRotaryDim,
+      resolvedLocalRotaryDim,
       maxSeqLen,
       resolvedLocalScale,
       resolvedLocalScalingType,
@@ -509,6 +519,7 @@ export async function initRoPEFrequencies(config, useGPU) {
     log.debug(
       'Pipeline',
       `Dual RoPE: local theta=${resolvedLocalTheta}, global theta=${ropeTheta}, ` +
+      `localRotaryDim=${resolvedLocalRotaryDim}, globalRotaryDim=${resolvedRotaryDim}, ` +
       `localScaling=${resolvedLocalScalingType ?? 'none'}:${resolvedLocalScale}, ` +
       `globalScaling=${ropeScalingType ?? 'none'}:${ropeScale}`
     );
@@ -558,6 +569,7 @@ export async function initRoPEFrequencies(config, useGPU) {
       'Pipeline',
       `RoPE frequencies initialized (GPU): ${maxSeqLen} positions, dim=${halfDim}, headDim=${headDim}, rotaryDim=${resolvedRotaryDim}, ` +
       `theta=${ropeTheta}${hasDistinctLocalTheta ? `, localTheta=${resolvedLocalTheta}` : ''}, ` +
+      `${hasDistinctLocalDim ? `localRotaryDim=${resolvedLocalRotaryDim}, ` : ''}` +
       `scaling=${ropeScalingType ?? 'none'}:${ropeScale}${hasDistinctLocalScaling ? `, localScaling=${resolvedLocalScalingType ?? 'none'}:${resolvedLocalScale}` : ''}, ` +
       `interleaved=${mropeInterleaved === true}`
     );
@@ -574,6 +586,7 @@ export async function initRoPEFrequencies(config, useGPU) {
     'Pipeline',
     `RoPE frequencies initialized (CPU): ${maxSeqLen} positions, dim=${halfDim}, headDim=${headDim}, rotaryDim=${resolvedRotaryDim}, ` +
     `theta=${ropeTheta}${hasDistinctLocalTheta ? `, localTheta=${resolvedLocalTheta}` : ''}, ` +
+    `${hasDistinctLocalDim ? `localRotaryDim=${resolvedLocalRotaryDim}, ` : ''}` +
     `scaling=${ropeScalingType ?? 'none'}:${ropeScale}${hasDistinctLocalScaling ? `, localScaling=${resolvedLocalScalingType ?? 'none'}:${resolvedLocalScale}` : ''}, ` +
     `interleaved=${mropeInterleaved === true}`
   );
@@ -727,6 +740,12 @@ function assertQuantizedKVKernelSupport(modelConfig, cacheLayout, cacheMaxSeqLen
 
 
 export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig) {
+  if (modelConfig?.decodeStrategy === 'replay_prefill') {
+    throw new Error(
+      'Live KV cache creation is not supported for models that require replay-prefill decode. ' +
+      'Skip createKVCache() for mixed-head-dim or shared-KV models until incremental decode support is implemented.'
+    );
+  }
   const runtimeKV = resolveRuntimeKVConfig(runtimeConfig);
   const contiguousKVPolicy = resolveContiguousKVPolicy(modelConfig);
   const forceContiguousKVCache = contiguousKVPolicy.forceContiguousKVCache;
@@ -1262,6 +1281,16 @@ export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null) {
   const device = getDevice();
   if (!device) {
     log.debug('QKV Fusion', 'No GPU device, skipping fusion');
+    return;
+  }
+  if (
+    Number.isFinite(modelConfig?.globalHeadDim)
+    && modelConfig.globalHeadDim !== modelConfig.headDim
+  ) {
+    log.debug(
+      'QKV Fusion',
+      'Skipping QKV fusion for mixed-head-dim model; per-layer attention geometry must stay explicit.'
+    );
     return;
   }
 

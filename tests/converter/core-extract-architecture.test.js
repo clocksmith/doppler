@@ -90,14 +90,18 @@ const { extractArchitecture } = await import('../../src/converter/core.js');
       num_attention_heads: 8,
       num_key_value_heads: 1,
       head_dim: 256,
+      global_head_dim: 512,
       vocab_size: 262144,
       max_position_embeddings: 131072,
       rope_theta: 1000000,
       hidden_size_per_layer_input: 256,
       vocab_size_per_layer_input: 262144,
+      num_kv_shared_layers: 20,
     },
   });
+  assert.equal(architecture.globalHeadDim, 512);
   assert.equal(architecture.hiddenSizePerLayerInput, 256);
+  assert.equal(architecture.numKvSharedLayers, 20);
   assert.equal(architecture.vocabSizePerLayerInput, 262144);
 }
 

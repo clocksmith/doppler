@@ -145,10 +145,12 @@ export interface ArchitectureSchema {
   numAttentionHeads: number;
   numKeyValueHeads: number;
   headDim: number;
+  globalHeadDim?: number;
   vocabSize: number;
   maxSeqLen: number;
   hiddenSizePerLayerInput?: number;
   vocabSizePerLayerInput?: number;
+  numKvSharedLayers?: number;
   ropeTheta?: number;
   rmsNormEps?: number;
   linearNumKeyHeads?: number;
@@ -226,6 +228,8 @@ export interface ManifestRoPESchema {
   mropeSection: number[] | null;
   /** Fraction of the head dimension that participates in rotary embedding. */
   partialRotaryFactor: number | null;
+  /** Fraction of the local/sliding head dimension that participates in rotary embedding. */
+  ropeLocalPartialRotaryFactor: number | null;
   /** RoPE scaling type (null = no scaling, 'linear', 'dynamic', 'yarn') */
   ropeScalingType: string | null;
   /** RoPE scaling factor (1.0 if no scaling) */

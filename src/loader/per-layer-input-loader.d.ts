@@ -15,6 +15,11 @@ export interface PerLayerInputLoaderContext {
     loc: TensorLocation,
     label: string
   ) => boolean;
+  loadShardRange?: (
+    index: number,
+    offset: number,
+    length: number
+  ) => Promise<ArrayBuffer>;
   resolveWeightLayout: (loc: TensorLocation) => WeightLayout;
 }
 

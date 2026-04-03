@@ -27,6 +27,9 @@ export interface RoPEConfigSchema {
   /** Fraction of the head dimension that participates in rotary embedding. */
   partialRotaryFactor?: number | null;
 
+  /** Fraction of the local/sliding head dimension that participates in rotary embedding. */
+  ropeLocalPartialRotaryFactor?: number | null;
+
   /** RoPE scaling type */
   ropeScalingType?: 'linear' | 'dynamic' | 'yarn' | null;
 

@@ -164,8 +164,8 @@ try {
         architecture: {
           hiddenSize: 4,
           numLayers: 1,
-          numHeads: 1,
-          numKVHeads: 1,
+          numAttentionHeads: 1,
+          numKeyValueHeads: 1,
           headDim: 4,
           intermediateSize: 8,
           vocabSize: 16,
@@ -200,12 +200,18 @@ try {
             ropeScalingFactor: 1,
             ropeScalingType: null,
             ropeLocalTheta: null,
+            ropeLocalScalingType: null,
+            ropeLocalScalingFactor: 1,
             mropeInterleaved: false,
             mropeSection: null,
             partialRotaryFactor: null,
+            ropeLocalPartialRotaryFactor: null,
             yarnBetaFast: null,
             yarnBetaSlow: null,
             yarnOriginalMaxPos: null,
+            ropeLocalYarnBetaFast: null,
+            ropeLocalYarnBetaSlow: null,
+            ropeLocalYarnOriginalMaxPos: null,
           },
           output: {
             tieWordEmbeddings: false,
@@ -239,20 +245,22 @@ try {
       architecture: {
         hiddenSize: 1536,
         numLayers: 35,
-        numHeads: 8,
-        numKVHeads: 1,
+        numAttentionHeads: 8,
+        numKeyValueHeads: 1,
         headDim: 256,
+        globalHeadDim: 512,
         intermediateSize: 6144,
         vocabSize: 262144,
         maxSeqLen: 131072,
         ropeTheta: 1000000,
         hiddenSizePerLayerInput: 256,
         vocabSizePerLayerInput: 262144,
+        numKvSharedLayers: 20,
       },
       eos_token_id: 1,
       inference: {
         attention: {
-          queryPreAttnScalar: 256,
+          queryPreAttnScalar: 1,
           queryKeyNorm: true,
           attentionBias: false,
           causal: true,
@@ -281,6 +289,7 @@ try {
           mropeInterleaved: false,
           mropeSection: null,
           partialRotaryFactor: 0.25,
+          ropeLocalPartialRotaryFactor: null,
           yarnBetaFast: null,
           yarnBetaSlow: null,
           yarnOriginalMaxPos: null,
@@ -310,8 +319,30 @@ try {
       },
     });
 
+    assert.equal(parsed.globalHeadDim, 512);
     assert.equal(parsed.hiddenSizePerLayerInput, 256);
+    assert.equal(parsed.numKvSharedLayers, 20);
+    assert.equal(parsed.ropeRotaryDim, 128);
+    assert.equal(parsed.ropeLocalRotaryDim, 256);
+    assert.equal(parsed.decodeStrategy, 'replay_prefill');
     assert.equal(parsed.vocabSizePerLayerInput, 262144);
+  }
+
+  {
+    assert.throws(
+      () => createKVCache({
+        numLayers: 35,
+        numKVHeads: 1,
+        headDim: 256,
+        globalHeadDim: 512,
+        maxSeqLen: 131072,
+        slidingWindow: 512,
+        attnLogitSoftcapping: null,
+        layerTypes: Array.from({ length: 35 }, (_, index) => index % 5 === 4 ? 'full_attention' : 'sliding_attention'),
+        decodeStrategy: 'replay_prefill',
+      }, false, false, DEFAULT_KVCACHE_CONFIG),
+      /replay-prefill decode/
+    );
   }
 
   {

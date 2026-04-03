@@ -34,5 +34,7 @@ fn main_inplace(@builtin(global_invocation_id) gid: vec3<u32>) {
     if (idx >= u.count) {
         return;
     }
-    output[idx] = output[idx] * u.scale;
+    // Keep both bindings live so the auto pipeline layout matches the registry
+    // contract even when input/output alias the same buffer.
+    output[idx] = input[idx] * u.scale;
 }

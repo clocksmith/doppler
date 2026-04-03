@@ -3638,17 +3638,26 @@ function renderQuickModelList(listEl, catalogEntries) {
 
   // OPFS-only orphans first (in storage but not in catalog)
   const orphans = storageEntries.filter((e) => !e.missingStorage && !catalogIds.has(e.modelId));
-  // Catalog entries: OPFS models first, then not-in-OPFS
-  const catalogSorted = [
-    ...catalogEntries.filter((e) => storageByModelId.has(e.modelId)),
-    ...catalogEntries.filter((e) => !storageByModelId.has(e.modelId)),
-  ];
+  // Catalog entries split: imported (in OPFS) vs available (not yet fetched)
+  const catalogImported = catalogEntries.filter((e) => storageByModelId.has(e.modelId));
+  const catalogAvailable = catalogEntries.filter((e) => !storageByModelId.has(e.modelId));
 
   function appendCard(card) {
     listEl.appendChild(card);
   }
 
+  function appendGroupHeader(label) {
+    const header = document.createElement('div');
+    header.className = 'quick-model-group-header';
+    header.textContent = label;
+    listEl.appendChild(header);
+  }
+
   // Render orphan OPFS cards
+  const hasImported = orphans.length > 0 || catalogImported.length > 0;
+  if (hasImported) {
+    appendGroupHeader('Imported');
+  }
   for (const storageEntry of orphans) {
     const card = document.createElement('article');
     card.className = 'quick-model-card';
@@ -3701,8 +3710,96 @@ function renderQuickModelList(listEl, catalogEntries) {
     appendCard(card);
   }
 
-  // Render catalog cards (OPFS first, then available)
-  for (const entry of catalogSorted) {
+  // Render imported catalog cards
+  for (const entry of catalogImported) {
+    const isBusy = hasBusyAction && busyId === entry.modelId;
+    const storageEntry = storageByModelId.get(entry.modelId);
+    const isInOpfs = isRunnableStorageEntry(storageEntry);
+
+    const card = document.createElement('article');
+    card.className = entry.recommended ? 'quick-model-card is-recommended' : 'quick-model-card';
+
+    const row = document.createElement('div');
+    row.className = 'quick-model-row';
+
+    const main = document.createElement('div');
+    main.className = 'quick-model-main';
+
+    const title = document.createElement('div');
+    title.className = 'quick-model-title';
+    title.textContent = entry.label;
+    main.appendChild(title);
+
+    const modelId = document.createElement('div');
+    modelId.className = 'quick-model-id type-caption';
+    modelId.textContent = entry.modelId;
+    main.appendChild(modelId);
+
+    const meta = document.createElement('div');
+    meta.className = 'quick-model-meta';
+    if (entry.recommended) {
+      meta.appendChild(createQuickModelBadge('recommended'));
+    }
+    meta.appendChild(createQuickModelBadge(formatQuickModelModeBadge(entry.modes)));
+    meta.appendChild(createQuickModelBadge(formatQuickModelBytes(entry.sizeBytes)));
+    if (isInOpfs && storageEntry.modelId === state.activeModelId) {
+      meta.appendChild(createQuickModelBadge('active'));
+    }
+    main.appendChild(meta);
+
+    if (isBusy) {
+      const dlProgress = resolveDownloadProgressForModel(entry.modelId);
+      const pct = dlProgress?.percent ?? 0;
+      const bar = document.createElement('div');
+      bar.className = 'quick-model-progress';
+      const fill = document.createElement('div');
+      fill.className = 'quick-model-progress-fill';
+      fill.style.width = `${pct}%`;
+      bar.appendChild(fill);
+      main.appendChild(bar);
+    }
+
+    row.appendChild(main);
+
+    const actions = document.createElement('div');
+    actions.className = 'quick-model-actions';
+    if (isInOpfs) {
+      const tryBtn = document.createElement('button');
+      tryBtn.type = 'button';
+      tryBtn.className = 'btn btn-small btn-primary';
+      tryBtn.textContent = 'Try It';
+      tryBtn.disabled = isDownloadActive;
+      tryBtn.addEventListener('click', () => handleStorageTryModel(entry.modelId));
+      actions.appendChild(tryBtn);
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'btn btn-small';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.disabled = isDownloadActive;
+      deleteBtn.addEventListener('click', () => deleteStorageModel(storageEntry, storageDeleteCallbacks));
+      actions.appendChild(deleteBtn);
+    } else {
+      const buttonLabel = isBusy
+        ? formatQuickModelDownloadLabel(resolveDownloadProgressForModel(entry.modelId)) || 'Fetching...'
+        : 'Fetch';
+      actions.appendChild(createQuickModelActionButton({
+        label: buttonLabel,
+        action: 'download',
+        modelId: entry.modelId,
+        disabled: isBusy || hasBusyAction || isDownloadActive,
+      }));
+    }
+
+    row.appendChild(actions);
+    card.appendChild(row);
+    appendCard(card);
+  }
+
+  // Render available catalog cards
+  if (catalogAvailable.length > 0) {
+    appendGroupHeader('Available');
+  }
+  for (const entry of catalogAvailable) {
     const isBusy = hasBusyAction && busyId === entry.modelId;
     const storageEntry = storageByModelId.get(entry.modelId);
     const isInOpfs = isRunnableStorageEntry(storageEntry);

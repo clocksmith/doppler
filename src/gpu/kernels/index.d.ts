@@ -136,6 +136,7 @@ export {
 
 // Scale (Element-wise Multiply by Scalar)
 export {
+  selectScaleKernel,
   runScale,
   recordScale,
   type ScaleOptions,

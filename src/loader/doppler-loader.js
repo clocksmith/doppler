@@ -804,9 +804,26 @@ export class DopplerLoader {
 
     try {
       let dstOffset = 0;
-      const uploadChunk = (bytes) => {
+      let pendingBytes = null;
+      const writeAlignedChunk = (bytes) => {
+        if (bytes.byteLength === 0) return;
         device.queue.writeBuffer(raw, dstOffset, bytes, bytes.byteOffset, bytes.byteLength);
         dstOffset += bytes.byteLength;
+      };
+      const uploadChunk = (bytes) => {
+        let merged = bytes;
+        if (pendingBytes && pendingBytes.byteLength > 0) {
+          merged = new Uint8Array(pendingBytes.byteLength + bytes.byteLength);
+          merged.set(pendingBytes, 0);
+          merged.set(bytes, pendingBytes.byteLength);
+          pendingBytes = null;
+        }
+        const alignedLength = merged.byteLength - (merged.byteLength % 4);
+        if (alignedLength > 0) {
+          writeAlignedChunk(merged.subarray(0, alignedLength));
+        }
+        const remainder = merged.byteLength - alignedLength;
+        pendingBytes = remainder > 0 ? merged.slice(alignedLength) : null;
       };
       const streamRange = (idx, offset, length) => this.shardCache.streamRange(idx, offset, length, { chunkBytes });
 
@@ -820,6 +837,14 @@ export class DopplerLoader {
         for await (const chunk of streamRange(location.shardIndex, location.offset, location.size)) {
           uploadChunk(chunk);
         }
+      }
+
+      if (pendingBytes && pendingBytes.byteLength > 0) {
+        const padded = new Uint8Array(4);
+        padded.set(pendingBytes, 0);
+        writeAlignedChunk(padded);
+        dstOffset -= (4 - pendingBytes.byteLength);
+        pendingBytes = null;
       }
 
       if (dstOffset !== location.size) {
@@ -866,6 +891,7 @@ export class DopplerLoader {
       tensorLocations: this.tensorLocations,
       loadTensor: (name, toGPU, silent) => this.#loadTensor(name, toGPU, silent),
       shouldStreamLargeWeight: (name, loc, label) => this.#shouldStreamLargeWeight(name, loc, label),
+      loadShardRange: (index, offset, length) => this.shardCache.loadRange(index, offset, length),
       resolveWeightLayout: (loc) => this.#resolveWeightLayout(loc),
     }, this.manifest?.architecture ?? null);
   }

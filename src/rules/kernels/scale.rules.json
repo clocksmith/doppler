@@ -1,5 +1,7 @@
 {
   "variant": [
+    { "match": { "isF16": true, "inplace": true }, "value": "inplace_f16" },
+    { "match": { "isF16": true }, "value": "default_f16" },
     { "match": { "inplace": true }, "value": "inplace" },
     { "match": {}, "value": "default" }
   ]

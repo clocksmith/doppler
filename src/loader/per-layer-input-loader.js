@@ -6,6 +6,7 @@ import {
 } from '../gpu/weight-buffer.js';
 import { log } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
+import { loadTensorRange } from './tensors/tensor-reader.js';
 
 const EMBED_TENSOR_CANDIDATES = [
   'model.language_model.embed_tokens_per_layer.weight',
@@ -52,9 +53,47 @@ function wrapRawTensorAsWeightBuffer(ctx, tensor, name) {
   return createWeightBuffer(tensor, dtype, layout, location.shape, name);
 }
 
+function createRangeBackedTensorSource(ctx, name, location) {
+  if (typeof ctx.loadShardRange !== 'function') {
+    return null;
+  }
+  const normalizedLocationDtype = typeof location?.dtype === 'string'
+    ? location.dtype.toLowerCase()
+    : 'f32';
+  return {
+    kind: 'tensor_range_source',
+    sourceDtype: normalizedLocationDtype,
+    async loadRange(byteOffset, byteLength) {
+      return loadTensorRange(location, name, byteOffset, byteLength, ctx.loadShardRange);
+    },
+  };
+}
+
+function createRangeBackedWeightBuffer(ctx, name, location) {
+  const source = createRangeBackedTensorSource(ctx, name, location);
+  if (!source || !location?.shape || location.shape.length !== 2) {
+    return null;
+  }
+  const layout = ctx.resolveWeightLayout(location);
+  const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
+    locationDtype: location.dtype,
+  });
+  return createCpuWeightBuffer(source, dtype, layout, location.shape, name);
+}
+
 async function loadOptionalTensor(ctx, candidates, label) {
   for (const name of candidates) {
     const location = ctx.tensorLocations.get(name) ?? null;
+    if (label === 'embedTokensPerLayer') {
+      const rangeBacked = createRangeBackedWeightBuffer(ctx, name, location);
+      if (rangeBacked) {
+        log.info('Loader', `Per-layer input tensor loaded: ${label} <- ${name} (range-backed CPU source)`);
+        return {
+          name,
+          tensor: rangeBacked,
+        };
+      }
+    }
     const shouldStream = location && typeof ctx.shouldStreamLargeWeight === 'function'
       ? ctx.shouldStreamLargeWeight(name, location, label)
       : false;

@@ -976,6 +976,8 @@ export function extractArchitecture(config, ggufConfig) {
     const linearConvKernelDim = fromConfig('linear_conv_kernel_dim');
     const hiddenSizePerLayerInput = fromConfig('hidden_size_per_layer_input');
     const vocabSizePerLayerInput = fromConfig('vocab_size_per_layer_input');
+    const globalHeadDim = fromConfig('global_head_dim');
+    const numKvSharedLayers = fromConfig('num_kv_shared_layers');
     const linearNormModeConfigured = normalizeLinearNormMode(
       fromConfigValue('linear_norm_mode'),
       fromConfigValue('linear_norm_shared')
@@ -1011,6 +1013,8 @@ export function extractArchitecture(config, ggufConfig) {
       linearConvKernelDim,
       hiddenSizePerLayerInput,
       vocabSizePerLayerInput,
+      globalHeadDim,
+      numKvSharedLayers,
       linearNormMode,
     };
   }

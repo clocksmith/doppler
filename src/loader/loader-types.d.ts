@@ -6,7 +6,7 @@
  * @module loader/loader-types
  */
 
-import type { WeightBuffer } from '../gpu/weight-buffer.js';
+import type { CpuWeightBuffer, WeightBuffer } from '../gpu/weight-buffer.js';
 import type { TensorRole } from '../config/schema/index.js';
 
 /**
@@ -77,7 +77,7 @@ export interface LayerWeights {
 }
 
 export interface PerLayerInputWeights {
-  embedTokensPerLayer: GPUBuffer | WeightBuffer | Float32Array | null;
+  embedTokensPerLayer: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
   perLayerModelProjection: GPUBuffer | WeightBuffer | Float32Array | null;
   perLayerProjectionNorm: GPUBuffer | Float32Array | null;
 }

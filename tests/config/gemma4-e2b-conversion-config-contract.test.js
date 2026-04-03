@@ -24,15 +24,18 @@ assert.equal(config.quantization?.lmHead, 'f16');
 assert.equal(config.quantization?.computePrecision, 'f32');
 assert.equal(config.quantization?.q4kLayout, 'row');
 
+assert.equal(config.inference?.attention?.queryPreAttnScalar, 1);
 assert.equal(config.inference?.attention?.slidingWindow, 512);
 assert.equal(config.inference?.rope?.partialRotaryFactor, 0.25);
+assert.equal(config.inference?.rope?.ropeLocalPartialRotaryFactor, null);
 assert.equal(config.inference?.rope?.ropeScalingType, null);
 assert.equal(config.inference?.output?.finalLogitSoftcapping, 30);
+assert.equal(config.inference?.output?.embeddingPostprocessor, null);
 
 const expanded = expandExecutionV1(config.execution);
 assert.ok(expanded.length > 0, 'execution must expand to at least one step');
 
 assert.equal(config.session?.compute?.defaults?.activationDtype, 'f32');
-assert.equal(config.session?.kvcache?.kvDtype, 'f16');
+assert.equal(config.session?.kvcache?.kvDtype, 'f32');
 
 console.log('gemma4-e2b-conversion-config-contract.test: ok');

@@ -17,6 +17,26 @@ const converterInference = {
 
 {
   const rope = buildRoPEConfig(converterInference, {
+    text_config: {
+      rope_parameters: {
+        full_attention: {
+          partial_rotary_factor: 0.25,
+          rope_theta: 1000000,
+          rope_type: 'proportional',
+        },
+        sliding_attention: {
+          rope_theta: 10000,
+          rope_type: 'default',
+        },
+      },
+    },
+  });
+  assert.equal(rope.partialRotaryFactor, 0.25);
+  assert.equal(rope.ropeLocalPartialRotaryFactor, null);
+}
+
+{
+  const rope = buildRoPEConfig(converterInference, {
     rope_parameters: {
       full_attention: {
         rope_type: 'linear',

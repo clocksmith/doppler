@@ -67,10 +67,12 @@ export interface LayerConfig {
   numAttentionHeads: number;
   numKeyValueHeads?: number;
   headDim?: number;
+  globalHeadDim?: number;
   vocabSize: number;
   maxSeqLen: number;
   hiddenSizePerLayerInput?: number;
   vocabSizePerLayerInput?: number;
+  numKvSharedLayers?: number;
 }
 
 export interface ComponentGroup extends ComponentGroupSchema {}

@@ -275,7 +275,16 @@ export class InferencePipeline extends PipelineState {
     }
 
     // Initialize KV cache
-    this.kvCache = createKVCache(this.modelConfig, this.useGPU, this.debug, this.runtimeConfig.inference);
+    if (this.modelConfig.decodeStrategy === 'replay_prefill') {
+      this.kvCache = null;
+      log.warn(
+        'Pipeline',
+        'Replay-prefill decode enabled for this model. Incremental KV-cache decode is disabled ' +
+        'until mixed-head-dim/shared-KV support is implemented.'
+      );
+    } else {
+      this.kvCache = createKVCache(this.modelConfig, this.useGPU, this.debug, this.runtimeConfig.inference);
+    }
     this.executionPlanState = compileExecutionPlanState({
       runtimeConfig: this.runtimeConfig,
       resolvedKernelPath: this.resolvedKernelPath,
@@ -428,14 +437,17 @@ export class InferencePipeline extends PipelineState {
     const config = (this.modelConfig);
     const maxSeqLen = config.maxSeqLen;
     const ropeBuffers = await initRoPEFrequencies({
-      headDim: config.headDim,
+      headDim: config.globalHeadDim ?? config.headDim,
+      localHeadDim: config.headDim,
       rotaryDim: config.ropeRotaryDim,
+      ropeLocalRotaryDim: config.ropeLocalRotaryDim,
       maxSeqLen,
       ropeTheta: config.ropeTheta,
       ropeLocalTheta: config.ropeLocalTheta,
       mropeInterleaved: config.mropeInterleaved,
       mropeSection: config.mropeSection,
       partialRotaryFactor: config.partialRotaryFactor,
+      ropeLocalPartialRotaryFactor: config.ropeLocalPartialRotaryFactor,
       ropeScale: config.ropeScale,
       ropeLocalScale: config.ropeLocalScale,
       ropeScalingType: config.ropeScalingType,

@@ -501,28 +501,30 @@
                 </div>
                 <span id="convert-message" class="type-caption">Ready</span>
               </div>
-              <div class="convert-actions">
-                <button id="convert-btn" class="btn btn-primary w-full">Select Folder</button>
-              </div>
-              <div class="convert-field">
-                <label class="type-caption" for="convert-url-input">Import from URL(s) (GGUF/safetensors, one per line)</label>
-                <textarea id="convert-url-input" class="convert-url-input w-full" placeholder="https://host/model.safetensors"></textarea>
-              </div>
-              <div class="convert-actions">
-                <button id="convert-url-btn" class="btn w-full">Import URL(s)</button>
-              </div>
-              <div class="convert-field">
-                <span class="type-caption">Import pre-converted RDRR from base URL</span>
-              </div>
-              <div class="download-field">
-                <label class="type-caption" for="download-base-url">RDRR base URL</label>
-                <input id="download-base-url" class="w-full" type="text" placeholder="https://host/model" />
-              </div>
-              <div class="convert-actions">
-                <button id="download-start-btn" class="btn btn-primary w-full">Import RDRR URL</button>
-              </div>
+
+              <details class="diagnostics-accordion" open>
+                <summary class="type-caption">Local Import</summary>
+                <div class="convert-actions">
+                  <button id="convert-btn" class="btn btn-primary w-full">Select Folder</button>
+                </div>
+                <div class="convert-field">
+                  <label class="type-caption" for="convert-url-input">Import from URL(s) (GGUF/safetensors, one per line)</label>
+                  <textarea id="convert-url-input" class="convert-url-input w-full" placeholder="https://host/model.safetensors"></textarea>
+                </div>
+                <div class="convert-actions">
+                  <button id="convert-url-btn" class="btn w-full">Import URL(s)</button>
+                </div>
+              </details>
+
               <details class="diagnostics-accordion">
-                <summary class="type-caption">Advanced</summary>
+                <summary class="type-caption">Remote RDRR Import</summary>
+                <div class="download-field">
+                  <label class="type-caption" for="download-base-url">RDRR base URL</label>
+                  <input id="download-base-url" class="w-full" type="text" placeholder="https://host/model" />
+                </div>
+                <div class="convert-actions">
+                  <button id="download-start-btn" class="btn btn-primary w-full">Import RDRR URL</button>
+                </div>
                 <div class="download-field">
                   <label class="type-caption" for="download-model-id">Model ID override (optional)</label>
                   <input id="download-model-id" class="w-full" type="text" placeholder="override-model-id" />
@@ -540,8 +542,10 @@
                   <span id="download-message" class="type-caption">Idle</span>
                 </div>
                 <div id="download-list" class="download-list type-caption"></div>
-                <div class="convert-field">
-                </div>
+              </details>
+
+              <details class="diagnostics-accordion">
+                <summary class="type-caption">Advanced</summary>
                 <div class="convert-field">
                   <label class="type-caption" for="convert-weight-dtype">Weight dtype override (optional)</label>
                   <select id="convert-weight-dtype" class="w-full">

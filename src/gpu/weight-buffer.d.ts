@@ -13,12 +13,18 @@
 export type WeightDtype = 'f16' | 'f32' | 'bf16' | 'q4k' | 'q8';
 export type WeightLayout = 'row' | 'column';
 
+export interface CpuTensorRangeSource {
+  readonly kind: 'tensor_range_source';
+  readonly sourceDtype: string;
+  loadRange(byteOffset: number, byteLength: number): Promise<ArrayBuffer | Uint8Array | ArrayBufferView>;
+}
+
 /**
  * CPU-resident weight buffer with layout metadata.
  * Used for oversized weights that cannot be bound as a single GPU buffer.
  */
 export interface CpuWeightBuffer {
-  readonly data: Float32Array;
+  readonly data: Float32Array | Uint16Array | CpuTensorRangeSource;
   readonly dtype: WeightDtype;
   readonly layout: WeightLayout;
   readonly shape: readonly number[];
@@ -88,7 +94,7 @@ export function createWeightBuffer(
  * Create a CPU-resident weight buffer with explicit metadata.
  */
 export function createCpuWeightBuffer(
-  data: Float32Array,
+  data: Float32Array | Uint16Array | CpuTensorRangeSource,
   dtype: WeightDtype,
   layout: WeightLayout,
   shape: number[],

@@ -39,6 +39,9 @@ export function classifyTensor(name, modelType) {
   }
 
   // Embeddings
+  if (lower.includes('embed_tokens_per_layer.weight')) {
+    return 'per_layer_input';
+  }
   if (lower.includes('embed_tokens') || lower.includes('token_embd') ||
       lower.includes('wte.weight') || lower.includes('word_embeddings')) {
     return 'embed';
@@ -263,6 +266,7 @@ export function getGroupType(groupId, modelType) {
   if (groupId === 'vision') return 'vision';
   if (groupId === 'projector') return 'projector';
   if (groupId === 'audio') return 'audio';
+  if (groupId === 'per_layer_input') return 'layer';
   if (groupId === 'other') return 'layer';
 
   if (groupId.includes('.expert.')) return 'expert';

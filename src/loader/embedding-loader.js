@@ -23,6 +23,10 @@ import { releaseBuffer } from '../memory/buffer-pool.js';
 const EMBEDDING_ROLE = 'embedding';
 const EMBEDDING_GROUP = 'embed';
 
+function isPerLayerEmbeddingTensor(name) {
+  return String(name ?? '').toLowerCase().includes('embed_tokens_per_layer.weight');
+}
+
 function isGpuBufferInstance(value) {
   return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
 }
@@ -34,9 +38,11 @@ function isGpuBufferInstance(value) {
 
 export async function loadEmbeddings(ctx) {
   const embeddingNames = getTensorNamesByRole(ctx.tensorLocations, EMBEDDING_ROLE, EMBEDDING_GROUP);
-  const candidates = embeddingNames.length > 0
+  const groupedCandidates = embeddingNames.length > 0
     ? embeddingNames
     : getTensorNamesByRole(ctx.tensorLocations, EMBEDDING_ROLE);
+  const filteredCandidates = groupedCandidates.filter((name) => !isPerLayerEmbeddingTensor(name));
+  const candidates = filteredCandidates.length > 0 ? filteredCandidates : groupedCandidates;
 
   if (candidates.length === 0) {
     throw new Error(

@@ -172,6 +172,20 @@ function resolveTokenText(tokenizer, tokenIds, fallbackText = '?', renderTokenTe
   return fallbackText;
 }
 
+function usesReplayPrefillDecode(state) {
+  return state?.modelConfig?.decodeStrategy === 'replay_prefill';
+}
+
+function assertIncrementalDecodeSupport(state, operation) {
+  if (!usesReplayPrefillDecode(state)) {
+    return;
+  }
+  throw new Error(
+    `[Pipeline] ${operation} is not supported for models that require replay-prefill decode. ` +
+    'Incremental KV-cache decode and prefix snapshots are disabled until mixed-head-dim/shared-KV support is implemented.'
+  );
+}
+
 function summarizeExecutionPlan(plan) {
   if (!plan) {
     return null;
@@ -259,6 +273,25 @@ export class PipelineGenerator {
 
   _hasFinitenessFallbackWindow() {
     return this.#finitenessFallbackWindow !== null;
+  }
+
+  _resetReplayPrefillRuntimeState() {
+    this.#state.kvCache?.clear?.();
+    this.#state.linearAttentionRuntime = resetLinearAttentionRuntime(this.#state.linearAttentionRuntime);
+    this.#state.currentSeqLen = 0;
+  }
+
+  async _replayPrefillDecodeLogits(currentIds, opts) {
+    this.#state.decodeStepCount++;
+    this._resetReplayPrefillRuntimeState();
+    const logits = await this._prefill(currentIds, opts);
+    return {
+      logits,
+      logitsBuffer: null,
+      logitsDtype: null,
+      rawVocabSize: this.#state.modelConfig.vocabSize,
+      vocabSize: this.#state.modelConfig.vocabSize,
+    };
   }
 
   _shouldUseFinitenessFallback(error, contextLabel) {
@@ -407,6 +440,9 @@ export class PipelineGenerator {
   }
 
   async _decodeStepToLogits(currentIds, opts) {
+    if (usesReplayPrefillDecode(this.#state)) {
+      return this._replayPrefillDecodeLogits(currentIds, opts);
+    }
     const debugCheckBuffer = this.#state.debug
       ? (buffer, label, numTokens, expectedDim) =>
         debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)
@@ -856,6 +892,7 @@ export class PipelineGenerator {
     if (this.#state.isGenerating && options.__internalGenerate !== true) {
       throw new Error('Generation already in progress');
     }
+    assertIncrementalDecodeSupport(this.#state, 'prefillKVOnly');
     this._resetDecodeRuntimeState();
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.prefillProfileSteps = [];
@@ -921,6 +958,7 @@ export class PipelineGenerator {
     if (this.#state.isGenerating && options.__internalGenerate !== true) {
       throw new Error('Generation already in progress');
     }
+    assertIncrementalDecodeSupport(this.#state, 'prefillWithEmbedding');
     this._resetDecodeRuntimeState();
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.prefillProfileSteps = [];
@@ -1016,6 +1054,7 @@ export class PipelineGenerator {
     if (this.#state.isGenerating && options.__internalGenerate !== true) {
       throw new Error('Generation already in progress');
     }
+    assertIncrementalDecodeSupport(this.#state, 'prefillWithLogits');
     this._resetDecodeRuntimeState();
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.prefillProfileSteps = [];
@@ -1040,6 +1079,7 @@ export class PipelineGenerator {
   async *generateWithPrefixKV(prefix, prompt, options = {}) {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
     if (this.#state.isGenerating) throw new Error('Generation already in progress');
+    assertIncrementalDecodeSupport(this.#state, 'generateWithPrefixKV');
 
     validateCallTimeOptions(options);
 
@@ -1157,20 +1197,24 @@ export class PipelineGenerator {
       || lmHead instanceof Float32Array
       || embedBuffer instanceof Float32Array;
     const hasLinearLayers = hasLinearAttentionLayers(this.#state.modelConfig.layerTypes);
+    const replayPrefillDecode = usesReplayPrefillDecode(this.#state);
     const gpuSamplingAvailable = isGPUSamplingAvailable() && !hasCpuWeights;
     const executionPlan = opts.executionPlan;
-    let useBatchPath = shouldUseBatchDecode({
-      batchSize: executionPlan.batchSize,
-      useGPU: this.#state.useGPU,
-      gpuSamplingAvailable,
-      disableMultiTokenDecode: executionPlan.disableMultiTokenDecode,
-      disableCommandBatching: executionPlan.disableCommandBatching,
-      isBdpaPagedLayout: this.#state.kvCache?.layout === 'bdpa_paged',
-      finitenessFallbackWindowOpen: this._hasFinitenessFallbackWindow(),
-    });
+    let useBatchPath = replayPrefillDecode
+      ? false
+      : shouldUseBatchDecode({
+          batchSize: executionPlan.batchSize,
+          useGPU: this.#state.useGPU,
+          gpuSamplingAvailable,
+          disableMultiTokenDecode: executionPlan.disableMultiTokenDecode,
+          disableCommandBatching: executionPlan.disableCommandBatching,
+          isBdpaPagedLayout: this.#state.kvCache?.layout === 'bdpa_paged',
+          finitenessFallbackWindowOpen: this._hasFinitenessFallbackWindow(),
+        });
     if (!useBatchPath) {
       let reason = null;
-      if (hasCpuWeights) reason = 'cpu_weights';
+      if (replayPrefillDecode) reason = 'replay_prefill_decode';
+      else if (hasCpuWeights) reason = 'cpu_weights';
       else if (!this.#state.useGPU) reason = 'no_gpu';
       else if (!gpuSamplingAvailable) reason = 'no_gpu_sampling';
       else if (executionPlan.disableCommandBatching) reason = 'command_batching_disabled';
@@ -1178,7 +1222,9 @@ export class PipelineGenerator {
       else if (executionPlan.batchSize <= 1) reason = 'batch_size_1';
       else if (this.#state.kvCache?.layout === 'bdpa_paged') reason = 'bdpa_paged_layout';
       else if (this._hasFinitenessFallbackWindow()) reason = 'finiteness_fallback_window';
-      this.#state.stats.decodeMode = opts.speculation?.mode === 'self' ? 'self_speculation' : 'single_token';
+      this.#state.stats.decodeMode = replayPrefillDecode
+        ? 'replay_prefill'
+        : (opts.speculation?.mode === 'self' ? 'self_speculation' : 'single_token');
       this.#state.stats.batchGuardReason = reason;
     } else {
       this.#state.stats.decodeMode = 'batched_gpu';
@@ -1792,6 +1838,10 @@ export class PipelineGenerator {
 
 
   async _decodeStep(currentIds, opts) {
+    if (usesReplayPrefillDecode(this.#state)) {
+      const stepResult = await this._decodeStepToLogits(currentIds, opts);
+      return this._sampleNextTokenFromLogits(stepResult.logits, currentIds, opts);
+    }
     const debugCheckBuffer = this.#state.debug
       ? (buffer, label, numTokens, expectedDim) =>
         debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)
@@ -1816,6 +1866,7 @@ export class PipelineGenerator {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
     if (this.#state.isGenerating) throw new Error('Generation already in progress');
     resetActiveExecutionPlan(this.#state);
+    assertIncrementalDecodeSupport(this.#state, 'advanceWithToken');
 
     validateCallTimeOptions(options);
 
@@ -1833,6 +1884,7 @@ export class PipelineGenerator {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
     if (this.#state.isGenerating) throw new Error('Generation already in progress');
     resetActiveExecutionPlan(this.#state);
+    assertIncrementalDecodeSupport(this.#state, 'advanceWithTokenAndEmbedding');
 
     validateCallTimeOptions(options);
 

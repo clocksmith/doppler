@@ -46,6 +46,7 @@ export interface RawConfig {
   num_key_value_heads?: number;
   attentionHeadCountKV?: number;
   head_dim?: number;
+  global_head_dim?: number;
   intermediate_size?: number;
   n_inner?: number;
   feedForwardLength?: number;
@@ -69,6 +70,7 @@ export interface RawConfig {
   num_experts_per_tok?: number;
   top_k?: number;
   layer_types?: string[];
+  num_kv_shared_layers?: number;
   linear_num_key_heads?: number;
   linear_num_value_heads?: number;
   linear_key_head_dim?: number;
@@ -142,9 +144,11 @@ export interface ParsedModelConfig {
   numHeads: number;
   numKVHeads: number;
   headDim: number;
+  globalHeadDim: number | null;
   vocabSize: number;
   hiddenSizePerLayerInput: number | null;
   vocabSizePerLayerInput: number | null;
+  numKvSharedLayers: number;
   maxSeqLen: number;
   useMoE: boolean;
   numExperts: number;
@@ -154,10 +158,12 @@ export interface ParsedModelConfig {
   ropeTheta: number;
   ropeLocalTheta: number | null;
   ropeRotaryDim: number;
+  ropeLocalRotaryDim: number;
   ropeInterleaved: boolean;
   mropeInterleaved: boolean;
   mropeSection: number[] | null;
   partialRotaryFactor: number | null;
+  ropeLocalPartialRotaryFactor: number | null;
   ropeScale: number;
   ropeLocalScale: number;
   ropeScalingType: string | null;
@@ -197,6 +203,7 @@ export interface ParsedModelConfig {
   layerPipeline?: LayerPipelineSchema | null;
   chatTemplateType?: string | null;
   chatTemplateEnabled: boolean;
+  decodeStrategy: 'incremental' | 'replay_prefill';
   kernelPath?: KernelPathRef;
 }
 

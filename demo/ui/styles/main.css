@@ -759,19 +759,21 @@
     }
 
     .quick-models-list {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
       align-items: stretch;
+      max-height: 60vh;
+      overflow-y: auto;
+      padding-right: var(--space-xs);
     }
 
     .quick-model-card {
       display: flex;
       flex-direction: row;
-      padding: 6px 8px;
+      padding: var(--space-sm) 12px;
       border: var(--border-sm) dotted var(--fg);
       background: var(--bg);
-      height: 100%;
       box-sizing: border-box;
     }
 
@@ -792,7 +794,7 @@
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      gap: 2px;
+      gap: var(--space-xs);
       min-width: 0;
       overflow: hidden;
     }
@@ -826,7 +828,7 @@
     .quick-model-meta {
       display: flex;
       flex-wrap: nowrap;
-      gap: var(--space-xs);
+      gap: var(--space-sm);
       overflow: hidden;
     }
 
@@ -842,6 +844,23 @@
       letter-spacing: var(--demo-label-tracking);
       line-height: var(--demo-label-line-height);
       white-space: nowrap;
+    }
+
+    .quick-model-group-header {
+      font-family: var(--demo-label-family);
+      font-size: var(--demo-label-size);
+      font-weight: var(--demo-label-weight);
+      text-transform: uppercase;
+      letter-spacing: var(--demo-label-tracking);
+      line-height: var(--demo-label-line-height);
+      opacity: 0.6;
+      padding-top: var(--space-sm);
+      border-top: var(--border-sm) dashed var(--fg);
+    }
+
+    .quick-model-group-header:first-child {
+      padding-top: 0;
+      border-top: none;
     }
 
     .quick-model-actions {
@@ -1970,7 +1989,9 @@
     }
 
     .storage-info {
-      margin-top: var(--space-sm);
+      margin-top: var(--space-lg);
+      padding-top: var(--space-md);
+      border-top: var(--border-md) dashed var(--fg);
     }
 
     .storage-inspector {
@@ -2895,6 +2916,12 @@
 
     .diagnostics-accordion > summary {
       cursor: pointer;
+    }
+
+    .convert-panel > .diagnostics-accordion {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
     }
 
     .diagnostics-output {

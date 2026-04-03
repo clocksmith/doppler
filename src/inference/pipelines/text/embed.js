@@ -2,7 +2,7 @@
 
 import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
-import { runGather, recordGather } from '../../../gpu/kernel-selector.js';
+import { runGather, recordGather, runScale, recordScale } from '../../../gpu/kernel-selector.js';
 import { log, trace } from '../../../debug/index.js';
 import { runProbes } from './probes.js';
 import { decodeReadback } from './debug-utils/index.js';
@@ -12,165 +12,56 @@ import { isCpuWeightBuffer, isGpuBufferInstance } from '../../../gpu/weight-buff
 import { f16ToF32 } from '../../../loader/dtype-utils.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 
-const scaleShaderCode = `
-  struct Uniforms { scale: f32, count: u32 }
-  @group(0) @binding(0) var<uniform> uniforms: Uniforms;
-  @group(0) @binding(1) var<storage, read> input: array<f32>;
-  @group(0) @binding(2) var<storage, read_write> output: array<f32>;
+const bf16ScratchU32 = new Uint32Array(1);
+const bf16ScratchF32 = new Float32Array(bf16ScratchU32.buffer);
 
-  @compute @workgroup_size(256)
-  fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-    if (gid.x >= uniforms.count) { return; }
-    output[gid.x] = input[gid.x] * uniforms.scale;
-  }
-`;
-
-// F16 scale shader: F16 input -> F16 output (for F16 activation mode)
-const scaleShaderCodeF16 = `
-  enable f16;
-
-  struct Uniforms { scale: f32, count: u32 }
-  @group(0) @binding(0) var<uniform> uniforms: Uniforms;
-  @group(0) @binding(1) var<storage, read> input: array<f16>;
-  @group(0) @binding(2) var<storage, read_write> output: array<f16>;
-
-  @compute @workgroup_size(256)
-  fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-    if (gid.x >= uniforms.count) { return; }
-    // Read F16, compute in F32 for precision, write F16
-    output[gid.x] = f16(f32(input[gid.x]) * uniforms.scale);
-  }
-`;
-
-
-let scalePipeline = null;
-
-let scalePipelineF16 = null;
-
-
-export function recordScale(recorder, inputBuffer, scale, count, useF16 = false) {
-  const device = recorder.device;
-  const bytesPerElement = useF16 ? 2 : 4;
-  const outputBuffer = acquireBuffer(count * bytesPerElement, undefined, 'scaled_embed');
-
-  const uniformData = new ArrayBuffer(8);
-  const uniformView = new DataView(uniformData);
-  uniformView.setFloat32(0, scale, true);
-  uniformView.setUint32(4, count, true);
-
-  const uniformBuffer = recorder.createUniformBuffer(uniformData, 'scale_uniforms');
-
-  // Select and cache appropriate pipeline
-  
-  let pipeline;
-  if (useF16) {
-    if (!scalePipelineF16) {
-      const shaderModule = device.createShaderModule({ code: scaleShaderCodeF16 });
-      scalePipelineF16 = device.createComputePipeline({
-        layout: 'auto',
-        compute: { module: shaderModule, entryPoint: 'main' },
-      });
-    }
-    pipeline = scalePipelineF16;
-  } else {
-    if (!scalePipeline) {
-      const shaderModule = device.createShaderModule({ code: scaleShaderCode });
-      scalePipeline = device.createComputePipeline({
-        layout: 'auto',
-        compute: { module: shaderModule, entryPoint: 'main' },
-      });
-    }
-    pipeline = scalePipeline;
-  }
-
-  const bindGroup = device.createBindGroup({
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: inputBuffer } },
-      { binding: 2, resource: { buffer: outputBuffer } },
-    ],
-  });
-
-  const pass = recorder.beginComputePass('scale');
-  pass.setPipeline(pipeline);
-  pass.setBindGroup(0, bindGroup);
-  pass.dispatchWorkgroups(Math.ceil(count / 256));
-  pass.end();
-
-  return outputBuffer;
+function bf16ToF32(value) {
+  bf16ScratchU32[0] = (value & 0xffff) << 16;
+  return bf16ScratchF32[0];
 }
 
-
-export async function scaleGPUBuffer(inputBuffer, scale, count, useF16 = false) {
-  const device = getDevice();
-  if (!device) throw new Error('GPU device not available');
-
-  const bytesPerElement = useF16 ? 2 : 4;
-  const outputBuffer = acquireBuffer(count * bytesPerElement, undefined, 'scaled_embed');
-
-  const uniformData = new ArrayBuffer(8);
-  const uniformView = new DataView(uniformData);
-  uniformView.setFloat32(0, scale, true);
-  uniformView.setUint32(4, count, true);
-
-  const uniformBuffer = device.createBuffer({
-    label: 'scale_uniforms',
-    size: 16,
-    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-  });
-  device.queue.writeBuffer(uniformBuffer, 0, uniformData);
-
-  // Select and cache appropriate pipeline
-  
-  let pipeline;
-  if (useF16) {
-    if (!scalePipelineF16) {
-      const shaderModule = device.createShaderModule({ code: scaleShaderCodeF16 });
-      scalePipelineF16 = device.createComputePipeline({
-        layout: 'auto',
-        compute: { module: shaderModule, entryPoint: 'main' },
-      });
-    }
-    pipeline = scalePipelineF16;
-  } else {
-    if (!scalePipeline) {
-      const shaderModule = device.createShaderModule({ code: scaleShaderCode });
-      scalePipeline = device.createComputePipeline({
-        layout: 'auto',
-        compute: { module: shaderModule, entryPoint: 'main' },
-      });
-    }
-    pipeline = scalePipeline;
-  }
-
-  const bindGroup = device.createBindGroup({
-    layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: inputBuffer } },
-      { binding: 2, resource: { buffer: outputBuffer } },
-    ],
-  });
-
-  const encoder = device.createCommandEncoder();
-  const pass = encoder.beginComputePass();
-  pass.setPipeline(pipeline);
-  pass.setBindGroup(0, bindGroup);
-  pass.dispatchWorkgroups(Math.ceil(count / 256));
-  pass.end();
-
-  device.queue.submit([encoder.finish()]);
-
-  // CRITICAL: Wait for GPU to complete scale operation before returning
-  // Without this, the caller may read stale data from outputBuffer
-  await device.queue.onSubmittedWorkDone();
-
-  uniformBuffer.destroy();
-
-  return outputBuffer;
+function isRangeBackedCpuEmbeddingSource(value) {
+  return (
+    typeof value === 'object'
+    && value !== null
+    && value.kind === 'tensor_range_source'
+    && typeof value.loadRange === 'function'
+  );
 }
 
+function normalizeRangeBytes(value, label) {
+  if (value instanceof Uint8Array) return value;
+  if (value instanceof ArrayBuffer) return new Uint8Array(value);
+  if (ArrayBuffer.isView(value)) {
+    return new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+  }
+  throw new Error(`[Embed] ${label} returned unsupported byte payload type "${value?.constructor?.name ?? typeof value}".`);
+}
+
+function decodeRangeChunkIntoOutput(bytes, sourceDtype, output, dstOffset, hiddenSize) {
+  if (sourceDtype === 'f16') {
+    const values = new Uint16Array(bytes.buffer, bytes.byteOffset, hiddenSize);
+    for (let i = 0; i < hiddenSize; i++) {
+      output[dstOffset + i] = f16ToF32(values[i]);
+    }
+    return;
+  }
+  if (sourceDtype === 'bf16') {
+    const values = new Uint16Array(bytes.buffer, bytes.byteOffset, hiddenSize);
+    for (let i = 0; i < hiddenSize; i++) {
+      output[dstOffset + i] = bf16ToF32(values[i]);
+    }
+    return;
+  }
+  if (((bytes.byteOffset % 4) === 0) && ((bytes.byteLength % 4) === 0)) {
+    output.set(new Float32Array(bytes.buffer, bytes.byteOffset, hiddenSize), dstOffset);
+    return;
+  }
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  for (let i = 0; i < hiddenSize; i++) {
+    output[dstOffset + i] = view.getFloat32(i * 4, true);
+  }
+}
 
 export async function embed(tokenIds, embedBuffer, config) {
   const {
@@ -258,28 +149,68 @@ export async function embed(tokenIds, embedBuffer, config) {
     }
 
     const output = new Float32Array(numTokens * hiddenSize);
-    // Check actual data type: loader's f16_to_f32 CPU path already decodes F16 into Float32Array,
-    // so dtype='f16' does not reliably indicate raw F16 bytes. Only Uint16Array needs per-element decoding.
-    const isF16Cpu = cpuEmbeddings instanceof Uint16Array;
-    if (!transpose) {
-      for (let t = 0; t < numTokens; t++) {
-        const tokenId =  (tokenIdArray)[t];
-        const srcOffset = tokenId * inputHiddenSize + hiddenOffset;
-        if (isF16Cpu) {
-          for (let h = 0; h < hiddenSize; h++) {
-            output[t * hiddenSize + h] = f16ToF32(cpuEmbeddings[srcOffset + h]);
+    const rangeBackedSource = isRangeBackedCpuEmbeddingSource(cpuEmbeddings)
+      ? cpuEmbeddings
+      : null;
+    if (rangeBackedSource) {
+      const sourceDtype = String(rangeBackedSource.sourceDtype ?? embedBuffer.dtype ?? 'f32').toLowerCase();
+      const bytesPerElement = sourceDtype === 'f16' || sourceDtype === 'bf16' ? 2 : 4;
+      if (!transpose) {
+        for (let t = 0; t < numTokens; t++) {
+          const tokenId = (tokenIdArray)[t];
+          const srcOffset = tokenId * inputHiddenSize + hiddenOffset;
+          const chunk = normalizeRangeBytes(
+            await rangeBackedSource.loadRange(srcOffset * bytesPerElement, hiddenSize * bytesPerElement),
+            'CPU embedding range source'
+          );
+          if (chunk.byteLength !== hiddenSize * bytesPerElement) {
+            throw new Error(
+              `[Embed] CPU embedding range source returned ${chunk.byteLength} bytes, ` +
+              `expected ${hiddenSize * bytesPerElement}.`
+            );
           }
-        } else {
-          output.set(cpuEmbeddings.subarray(srcOffset, srcOffset + hiddenSize), t * hiddenSize);
+          decodeRangeChunkIntoOutput(chunk, sourceDtype, output, t * hiddenSize, hiddenSize);
+        }
+      } else {
+        for (let t = 0; t < numTokens; t++) {
+          const tokenId = (tokenIdArray)[t];
+          const dstOffset = t * hiddenSize;
+          for (let h = 0; h < hiddenSize; h++) {
+            const chunk = normalizeRangeBytes(
+              await rangeBackedSource.loadRange(
+                ((hiddenOffset + h) * vocabSize + tokenId) * bytesPerElement,
+                bytesPerElement
+              ),
+              'CPU embedding range source'
+            );
+            decodeRangeChunkIntoOutput(chunk, sourceDtype, output, dstOffset + h, 1);
+          }
         }
       }
     } else {
-      for (let t = 0; t < numTokens; t++) {
-        const tokenId =  (tokenIdArray)[t];
-        const dstOffset = t * hiddenSize;
-        for (let h = 0; h < hiddenSize; h++) {
-          const raw = cpuEmbeddings[(hiddenOffset + h) * vocabSize + tokenId];
-          output[dstOffset + h] = isF16Cpu ? f16ToF32(raw) : raw;
+    // Check actual data type: loader's f16_to_f32 CPU path already decodes F16 into Float32Array,
+    // so dtype='f16' does not reliably indicate raw F16 bytes. Only Uint16Array needs per-element decoding.
+      const isF16Cpu = cpuEmbeddings instanceof Uint16Array;
+      if (!transpose) {
+        for (let t = 0; t < numTokens; t++) {
+          const tokenId =  (tokenIdArray)[t];
+          const srcOffset = tokenId * inputHiddenSize + hiddenOffset;
+          if (isF16Cpu) {
+            for (let h = 0; h < hiddenSize; h++) {
+              output[t * hiddenSize + h] = f16ToF32(cpuEmbeddings[srcOffset + h]);
+            }
+          } else {
+            output.set(cpuEmbeddings.subarray(srcOffset, srcOffset + hiddenSize), t * hiddenSize);
+          }
+        }
+      } else {
+        for (let t = 0; t < numTokens; t++) {
+          const tokenId =  (tokenIdArray)[t];
+          const dstOffset = t * hiddenSize;
+          for (let h = 0; h < hiddenSize; h++) {
+            const raw = cpuEmbeddings[(hiddenOffset + h) * vocabSize + tokenId];
+            output[dstOffset + h] = isF16Cpu ? f16ToF32(raw) : raw;
+          }
         }
       }
     }
@@ -419,9 +350,20 @@ export async function embed(tokenIds, embedBuffer, config) {
     trace.embed(`RAW (before scale): maxAbs=${maxAbs.toFixed(4)}, scaleFactor=${scaleFactor.toFixed(4)}`);
   }
 
-  const scaledBuffer = recorder
-    ? recordScale(recorder, gatherOutput.buffer, scaleFactor, numTokens * hiddenSize, useF16)
-    : await scaleGPUBuffer(gatherOutput.buffer, scaleFactor, numTokens * hiddenSize, useF16);
+  const gatheredTensor = createTensor(
+    gatherOutput.buffer,
+    gatherOptions.outputDtype,
+    [numTokens, hiddenSize],
+    'embed_gather_output'
+  );
+  const scaledTensor = recorder
+    ? await recordScale(recorder, gatheredTensor, scaleFactor, {
+      count: numTokens * hiddenSize,
+    })
+    : await runScale(gatheredTensor, scaleFactor, {
+      count: numTokens * hiddenSize,
+    });
+  const scaledBuffer = scaledTensor.buffer;
   if (recorder) {
     // Only track if we created this buffer (not pre-allocated)
     // Pre-allocated buffers are managed by the caller (e.g., DecodeBufferManager)

@@ -20,3 +20,11 @@ export declare function assembleShardData(
   loadShard: (index: number, options?: ShardLoadOptions) => Promise<ArrayBuffer>,
   loadShardRange?: (index: number, offset: number, length: number) => Promise<ArrayBuffer>
 ): Promise<Uint8Array>;
+
+export declare function loadTensorRange(
+  location: TensorLocation,
+  name: string,
+  byteOffset: number,
+  byteLength: number,
+  loadShardRange: (index: number, offset: number, length: number) => Promise<ArrayBuffer>
+): Promise<Uint8Array>;

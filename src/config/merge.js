@@ -171,6 +171,12 @@ function mergeRoPE(
       runtime?.partialRotaryFactor,
       sources
     ),
+    ropeLocalPartialRotaryFactor: overlay(
+      `${prefix}.ropeLocalPartialRotaryFactor`,
+      manifest.ropeLocalPartialRotaryFactor,
+      runtime?.ropeLocalPartialRotaryFactor,
+      sources
+    ),
     ropeScalingType: overlay(
       `${prefix}.ropeScalingType`,
       manifest.ropeScalingType,

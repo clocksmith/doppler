@@ -15,6 +15,11 @@ export interface ScaleOptions extends OutputBufferOptions {
   inplace?: boolean;
 }
 
+export declare function selectScaleKernel(
+  options?: ScaleOptions,
+  isF16?: boolean
+): string;
+
 /**
  * Run scale operation: output = input * scale
  */

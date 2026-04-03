@@ -39,6 +39,13 @@ function isLinearLayerType(layerType) {
     || normalized === 'gated_delta_net';
 }
 
+function resolveAttentionHeadDim(config, layerType) {
+  if (isSlidingLayerType(layerType)) {
+    return config.headDim;
+  }
+  return config.globalHeadDim ?? config.headDim;
+}
+
 // === isLinearLayerType classification ===
 
 {
@@ -275,6 +282,16 @@ function isLinearLayerType(layerType) {
 
   assert.deepEqual(standardLayers, [0, 5]);
   assert.deepEqual(linearLayers, [1, 2, 4]);
+}
+
+{
+  const config = {
+    headDim: 256,
+    globalHeadDim: 512,
+  };
+  assert.equal(resolveAttentionHeadDim(config, 'sliding_attention'), 256);
+  assert.equal(resolveAttentionHeadDim(config, 'full_attention'), 512);
+  assert.equal(resolveAttentionHeadDim({ headDim: 128, globalHeadDim: null }, 'full_attention'), 128);
 }
 
 console.log('layer-dispatch-routing.test: ok');

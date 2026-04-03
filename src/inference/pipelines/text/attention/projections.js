@@ -15,6 +15,7 @@ import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { QK_K, Q4K_BLOCK_BYTES } from '../../../../config/schema/index.js';
 import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
+import { getQKNormOnesBuffer } from './types.js';
 
 function getMatmulRunner(recorder) {
   if (!recorder) {
@@ -343,15 +344,21 @@ export async function projectAttentionQKV({
   releaseTemporary,
   onFusedQKV = null,
   attentionOutputGate = false,
+  sharedKTensor = null,
+  sharedVTensor = null,
 }) {
   const runMatmulForMode = getMatmulRunner(recorder);
   const runSplitForMode = getSplitRunner(recorder);
+  const reuseSharedKV = sharedKTensor != null || sharedVTensor != null;
+  if (reuseSharedKV && (!sharedKTensor || !sharedVTensor)) {
+    throw new Error('projectAttentionQKV requires both sharedKTensor and sharedVTensor when reusing shared KV.');
+  }
 
   const hasLoRA = getLoRAModule(lora, layerIdx, 'q_proj')
     || getLoRAModule(lora, layerIdx, 'k_proj')
     || getLoRAModule(lora, layerIdx, 'v_proj');
   const forceSplitQKV = Boolean(matmulDebug?.enabled) && matmulDebug?.forceSplitQKV === true;
-  const useFusedQKV = !forceSplitQKV && selectRuleValue('inference', 'attention', 'useFusedQkv', {
+  const useFusedQKV = !reuseSharedKV && !forceSplitQKV && selectRuleValue('inference', 'attention', 'useFusedQkv', {
     hasQkvProj: Boolean(layerWeights.qkvProj),
     hasQkvSizes: Boolean(layerWeights.qkvSizes),
     hasLoRA: Boolean(hasLoRA),
@@ -412,6 +419,16 @@ export async function projectAttentionQKV({
       attentionOutputGate,
     }));
 
+    if (reuseSharedKV) {
+      return {
+        qTensor,
+        qGateTensor,
+        kTensor: sharedKTensor,
+        vTensor: sharedVTensor,
+        usedFusedQKV: false,
+      };
+    }
+
     kTensor = await projectSingleQkvTensor({
       recorder,
       normed,
@@ -454,13 +471,42 @@ export async function projectAttentionQKV({
 
     return { qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV: false };
   } catch (error) {
-    for (const tensor of [qTensor, qGateTensor, kTensor, vTensor]) {
+    for (const tensor of [qTensor, qGateTensor]) {
       if (tensor?.buffer) {
+        releaseTemporary(tensor.buffer);
+      }
+    }
+    for (const tensor of [kTensor, vTensor]) {
+      if (tensor?.buffer && tensor !== sharedKTensor && tensor !== sharedVTensor) {
         releaseTemporary(tensor.buffer);
       }
     }
     throw error;
   }
+}
+
+export async function applyAttentionValueNorm({
+  recorder = null,
+  vTensor,
+  rmsNormEps,
+  numTokens,
+  numKVHeads,
+  headDim,
+  releaseTemporary,
+  onVNormApplied = null,
+}) {
+  const runRmsNormForMode = getRmsNormRunner(recorder);
+  const vNormBuf = getQKNormOnesBuffer(headDim);
+  const nextV = await runRmsNormForMode(vTensor, vNormBuf, rmsNormEps, {
+    batchSize: numTokens * numKVHeads,
+    hiddenSize: headDim,
+    rmsNormWeightOffset: false,
+  });
+  releaseTemporary(vTensor.buffer);
+  if (onVNormApplied) {
+    await onVNormApplied(nextV);
+  }
+  return nextV;
 }
 
 export async function applyAttentionQKNorm({
@@ -478,6 +524,7 @@ export async function applyAttentionQKNorm({
   releaseTemporary,
   onQNormApplied = null,
   onKNormApplied = null,
+  skipKNorm = false,
 }) {
   const runRmsNormForMode = getRmsNormRunner(recorder);
   let nextQ = qTensor;
@@ -505,7 +552,7 @@ export async function applyAttentionQKNorm({
     }
   }
 
-  if (layerWeights.kNorm && getNormWeightBuffer) {
+  if (!skipKNorm && layerWeights.kNorm && getNormWeightBuffer) {
     const kNormBuf = getNormWeightBuffer(layerWeights.kNorm, 'k_norm');
     const kElemsF32 = kNormBuf.size / 4;
     const kElemsF16 = kNormBuf.size / 2;

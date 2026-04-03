@@ -141,8 +141,11 @@ function failOnConflictingScaling(sourceLabel, canonicalScaling, candidateScalin
 }
 
 export function buildRoPEConfig(converterInference, config) {
-  const ropeScaling = asObject(config.rope_scaling);
-  const ropeParameters = asObject(config.rope_parameters);
+  const configObject = asObject(config) ?? {};
+  const textConfig = asObject(configObject.text_config) ?? asObject(configObject.language_config);
+  const resolvedConfig = textConfig ?? configObject;
+  const ropeScaling = asObject(resolvedConfig.rope_scaling);
+  const ropeParameters = asObject(resolvedConfig.rope_parameters);
   const flatRoPEParameters = (
     ropeParameters
       && !asObject(ropeParameters.full_attention)
@@ -223,7 +226,7 @@ export function buildRoPEConfig(converterInference, config) {
   // prefer rope_parameters.full_attention.rope_theta, then rope_theta.
   const ropeTheta = asFiniteNumber(fullAttentionRoPE?.rope_theta)
     ?? asFiniteNumber(flatRoPEParameters?.rope_theta)
-    ?? asFiniteNumber(config.rope_theta)
+    ?? asFiniteNumber(resolvedConfig.rope_theta)
     ?? converterInference.rope?.ropeTheta
     ?? DEFAULT_MANIFEST_INFERENCE.rope.ropeTheta;
 
@@ -238,9 +241,13 @@ export function buildRoPEConfig(converterInference, config) {
   const mropeSection = asNumberArray(flatRoPEParameters?.mrope_section)
     ?? converterInference.rope?.mropeSection
     ?? null;
-  const partialRotaryFactor = asFiniteNumber(flatRoPEParameters?.partial_rotary_factor)
+  const partialRotaryFactor = asFiniteNumber(fullAttentionRoPE?.partial_rotary_factor)
+    ?? asFiniteNumber(flatRoPEParameters?.partial_rotary_factor)
     ?? asFiniteNumber(converterInference.rope?.partialRotaryFactor)
-    ?? null;
+    ?? DEFAULT_MANIFEST_INFERENCE.rope.partialRotaryFactor;
+  const ropeLocalPartialRotaryFactor = asFiniteNumber(slidingAttentionRoPE?.partial_rotary_factor)
+    ?? asFiniteNumber(converterInference.rope?.ropeLocalPartialRotaryFactor)
+    ?? DEFAULT_MANIFEST_INFERENCE.rope.ropeLocalPartialRotaryFactor;
 
   return {
     ropeTheta,
@@ -248,6 +255,7 @@ export function buildRoPEConfig(converterInference, config) {
     mropeInterleaved,
     mropeSection,
     partialRotaryFactor,
+    ropeLocalPartialRotaryFactor,
     ropeScalingType: globalScaling.ropeScalingType,
     ropeScalingFactor: globalScaling.ropeScalingFactor,
     yarnBetaFast: globalScaling.yarnBetaFast,

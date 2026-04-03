@@ -26,6 +26,7 @@ const { runSoftmax, runSoftmaxTopK } = await import('../../src/gpu/kernels/softm
 const { runRoPE } = await import('../../src/gpu/kernels/rope.js');
 const { runSiLU } = await import('../../src/gpu/kernels/silu.js');
 const { runMatmul } = await import('../../src/gpu/kernels/matmul.js');
+const { runScale, selectScaleKernel } = await import('../../src/gpu/kernels/scale.js');
 const { destroyBufferPool, getBufferPool, releaseBuffer } = await import('../../src/memory/buffer-pool.js');
 
 class FakeBuffer {
@@ -158,6 +159,13 @@ try {
     );
   }
 
+  {
+    const scaleF16Config = getKernelConfig('scale', 'default_f16');
+    assert.deepEqual(scaleF16Config.requires, ['shader-f16']);
+    assert.equal(selectScaleKernel({ inplace: false }, true), 'default_f16');
+    assert.equal(selectScaleKernel({ inplace: true }, true), 'inplace_f16');
+  }
+
   assert.equal(hasRequiredFeatures(['subgroups-f16'], {
     hasF16: true,
     hasSubgroups: true,
@@ -196,6 +204,17 @@ try {
     await assert.rejects(
       () => dequantize(quantized, 1, { outputDtype: 'f16' }),
       /f16 output requires shader-f16 support/
+    );
+    resetRuntime();
+  }
+
+  {
+    const device = createFakeDevice();
+    resetRuntime(device);
+    const input = createExternalTensor(8, 'f16', 'scale_input_f16');
+    await assert.rejects(
+      () => runScale(input, 0.5),
+      /shader-f16 support/
     );
     resetRuntime();
   }

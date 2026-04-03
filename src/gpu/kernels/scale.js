@@ -4,13 +4,18 @@ import { WORKGROUP_SIZES } from './constants.js';
 import { unifiedKernelWrapper } from './utils.js';
 import { selectRuleValue } from './rule-registry.js';
 
+export function selectScaleKernel(options = {}, isF16 = false) {
+  const { inplace = false } = options;
+  return selectRuleValue('scale', 'variant', { inplace, isF16 });
+}
+
 async function _scale(target, input, scale, options = {}) {
   const { count, outputBuffer = null, inplace = false } = options;
   const ownsOutput = !inplace && outputBuffer == null;
 
   const bytesPerElement = dtypeBytes(input.dtype);
   const inferredCount = count ?? Math.floor(input.buffer.size / bytesPerElement);
-  const variant = selectRuleValue('scale', 'variant', { inplace });
+  const variant = selectScaleKernel(options, input.dtype === 'f16');
 
   const outputSize = inferredCount * bytesPerElement;
   const outputBuf = inplace ? input.buffer : (outputBuffer || acquireBuffer(outputSize, undefined, 'scale_output'));

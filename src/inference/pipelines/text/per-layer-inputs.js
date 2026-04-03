@@ -141,24 +141,24 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
         },
         recorder
       );
-      projectedTensor = recorder
+      const scaledProjectionTensor = recorder
         ? await recordScale(recorder, projectedTensor, projectionScale, {
           count: numTokens * hiddenSizePerLayerInput,
-          inplace: true,
         })
         : await runScale(projectedTensor, projectionScale, {
           count: numTokens * hiddenSizePerLayerInput,
-          inplace: true,
         });
+      releaseOrTrack(recorder, projectedTensor.buffer, decodeBuffers);
+      projectedTensor = null;
 
-      const normalizedTensor = await doRMSNorm(projectedTensor, projectionNormWeight, config.rmsNormEps, {
+      const normalizedTensor = await doRMSNorm(scaledProjectionTensor, projectionNormWeight, config.rmsNormEps, {
         batchSize: numTokens,
         hiddenSize: hiddenSizePerLayerInput,
         label: `L${layerIdx}.per_layer_projection_norm`,
         layerIdx,
         rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
       }, recorder);
-      releaseOrTrack(recorder, projectedTensor.buffer, decodeBuffers);
+      releaseOrTrack(recorder, scaledProjectionTensor.buffer, decodeBuffers);
 
       const combinedTensor = await doResidualAdd(
         normalizedTensor,
@@ -176,12 +176,11 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
       const scaledTensor = recorder
         ? await recordScale(recorder, combinedTensor, combineScale, {
           count: numTokens * hiddenSizePerLayerInput,
-          inplace: true,
         })
         : await runScale(combinedTensor, combineScale, {
           count: numTokens * hiddenSizePerLayerInput,
-          inplace: true,
         });
+      releaseOrTrack(recorder, combinedTensor.buffer, decodeBuffers);
       perLayerBuffers[layerIdx] = scaledTensor.buffer;
     }
   } catch (error) {

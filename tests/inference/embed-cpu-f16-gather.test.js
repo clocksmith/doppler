@@ -236,6 +236,41 @@ const embData = new Uint16Array([
   assert.ok(Math.abs(written[1] - 0.5 * scaleFactor) < 1e-3, `scaled token0[1]: expected ${0.5 * scaleFactor}, got ${written[1]}`);
 }
 
+// === Test 6: Range-backed CPU gather reads only the requested F16 rows ===
+{
+  const embedBytes = new Uint8Array(embData.buffer.slice(0));
+  const rangeCalls = [];
+  const embedBuffer = createCpuWeightBuffer({
+    kind: 'tensor_range_source',
+    sourceDtype: 'f16',
+    async loadRange(byteOffset, byteLength) {
+      rangeCalls.push([byteOffset, byteLength]);
+      return embedBytes.slice(byteOffset, byteOffset + byteLength);
+    },
+  }, 'f16', 'row', [vocabSize, hiddenSize], 'test_f16_range_embed');
+  writeCalls.length = 0;
+
+  await embed([1, 0], embedBuffer, {
+    hiddenSize,
+    vocabSize,
+    scaleEmbeddings: false,
+    debug: false,
+    activationDtype: 'f32',
+    embeddingDtype: 'f16',
+  });
+
+  const written = writeCalls[writeCalls.length - 1].data;
+  assert.ok(written instanceof Float32Array, 'range-backed embed output should be Float32Array');
+  assert.deepEqual(rangeCalls, [
+    [8, 8],
+    [0, 8],
+  ]);
+  assert.ok(Math.abs(written[0] - 0.5) < 1e-3, `range token1[0]: expected 0.5, got ${written[0]}`);
+  assert.ok(Math.abs(written[1] - 1.0) < 1e-3, `range token1[1]: expected 1.0, got ${written[1]}`);
+  assert.ok(Math.abs(written[4] - 1.0) < 1e-3, `range token0[0]: expected 1.0, got ${written[4]}`);
+  assert.ok(Math.abs(written[5] - 0.5) < 1e-3, `range token0[1]: expected 0.5, got ${written[5]}`);
+}
+
 setDevice(null, { platformConfig: null });
 
 console.log('embed-cpu-f16-gather.test: ok');

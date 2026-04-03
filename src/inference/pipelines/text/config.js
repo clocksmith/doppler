@@ -292,6 +292,14 @@ export function validateRequiredInferenceFields(inf, modelId) {
       errors.push('rope.partialRotaryFactor must be a number in (0, 1] or null');
     }
   }
+  if (inf.rope.ropeLocalPartialRotaryFactor === undefined) {
+    errors.push('rope.ropeLocalPartialRotaryFactor must be explicitly set (null when unused, or a number in (0, 1])');
+  } else {
+    const factor = inf.rope.ropeLocalPartialRotaryFactor;
+    if (factor !== null && (typeof factor !== 'number' || Number.isNaN(factor) || factor <= 0 || factor > 1)) {
+      errors.push('rope.ropeLocalPartialRotaryFactor must be a number in (0, 1] or null');
+    }
+  }
 
   // Output fields - non-nullable required
   if (inf.output.tieWordEmbeddings == null) {
@@ -533,6 +541,23 @@ export function toParsedConfigFromMerged(merged, manifest) {
     );
   }
   const resolvedIntermediateSize = resolveIntermediateSizeForRuntime(manifest, inf, arch, merged.modelId);
+  const archNumHeads = Number(arch.numAttentionHeads ?? arch.numHeads);
+  const archNumKVHeads = Number(arch.numKeyValueHeads ?? arch.numKVHeads);
+  const archHeadDim = Number(arch.headDim);
+  const archGlobalHeadDimRaw = arch.globalHeadDim ?? null;
+  const archGlobalHeadDim = (
+    typeof archGlobalHeadDimRaw === 'number' && Number.isFinite(archGlobalHeadDimRaw) && archGlobalHeadDimRaw > 0
+  )
+    ? Math.trunc(archGlobalHeadDimRaw)
+    : null;
+  const archNumKvSharedLayersRaw = arch.numKvSharedLayers ?? 0;
+  const archNumKvSharedLayers = (
+    typeof archNumKvSharedLayersRaw === 'number'
+      && Number.isFinite(archNumKvSharedLayersRaw)
+      && archNumKvSharedLayersRaw >= 0
+  )
+    ? Math.trunc(archNumKvSharedLayersRaw)
+    : 0;
 
   // Compute layer types from layerPattern
   
@@ -596,13 +621,13 @@ export function toParsedConfigFromMerged(merged, manifest) {
 
   // Compute queryPreAttnScalar from manifest inference (NOT from family detection)
   // Manifest-first: queryPreAttnScalar is required in ManifestAttentionSchema
-  const headDim = arch.headDim;
+  const headDim = archHeadDim;
   const queryPreAttnScalar = inf.attention.queryPreAttnScalar;
   const causalAttention = inf.attention.causal;
 
-  // Cross-field sanity: queryPreAttnScalar should typically equal headDim.
-  // A value of sqrt(headDim) indicates a known converter bug that produces
-  // attnScale = 1/sqrt(sqrt(headDim)) instead of the correct 1/sqrt(headDim).
+  // Preserve the manifest scalar exactly. Gemma-family models legitimately use
+  // queryPreAttnScalar=1, but sqrt(headDim) is still a known converter bug that
+  // produces attnScale = 1/sqrt(sqrt(headDim)) instead of the intended value.
   if (queryPreAttnScalar != null && headDim != null
       && queryPreAttnScalar !== headDim
       && Math.abs(queryPreAttnScalar - Math.sqrt(headDim)) < 0.01) {
@@ -653,6 +678,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
   const ropeLocalScale = inf.rope.ropeLocalScalingFactor;
   const ropeLocalScalingType = inf.rope.ropeLocalScalingType;
   const partialRotaryFactor = inf.rope.partialRotaryFactor;
+  const ropeLocalPartialRotaryFactor = inf.rope.ropeLocalPartialRotaryFactor;
   const mropeInterleaved = inf.rope.mropeInterleaved === true;
   const ropeInterleaved = false;
 
@@ -665,7 +691,8 @@ export function toParsedConfigFromMerged(merged, manifest) {
   const mropeSection = Array.isArray(inf.rope.mropeSection)
     ? inf.rope.mropeSection.map((entry) => Math.trunc(Number(entry)))
     : null;
-  const ropeRotaryDim = resolveRotaryDim(arch.headDim, partialRotaryFactor, merged.modelId);
+  const ropeRotaryDim = resolveRotaryDim(archGlobalHeadDim ?? archHeadDim, partialRotaryFactor, merged.modelId);
+  const ropeLocalRotaryDim = resolveRotaryDim(archHeadDim, ropeLocalPartialRotaryFactor, merged.modelId);
   if (mropeSection && mropeSection.some((entry) => !Number.isFinite(entry) || entry <= 0)) {
     throw new Error(
       `Manifest "${merged.modelId}" has invalid rope.mropeSection; expected positive integers.`
@@ -738,17 +765,25 @@ export function toParsedConfigFromMerged(merged, manifest) {
     config.linear_norm_shared,
     merged.modelId
   );
+  const decodeStrategy = (
+    (archGlobalHeadDim != null && archGlobalHeadDim !== archHeadDim)
+      || archNumKvSharedLayers > 0
+  )
+    ? 'replay_prefill'
+    : 'incremental';
 
   return {
     numLayers: arch.numLayers,
     hiddenSize: arch.hiddenSize,
     intermediateSize: resolvedIntermediateSize,
-    numHeads: arch.numAttentionHeads,
-    numKVHeads: arch.numKeyValueHeads,
-    headDim: arch.headDim,
+    numHeads: archNumHeads,
+    numKVHeads: archNumKVHeads,
+    headDim: archHeadDim,
+    globalHeadDim: archGlobalHeadDim,
     vocabSize: arch.vocabSize,
     hiddenSizePerLayerInput: arch.hiddenSizePerLayerInput ?? null,
     vocabSizePerLayerInput: arch.vocabSizePerLayerInput ?? null,
+    numKvSharedLayers: archNumKvSharedLayers,
     maxSeqLen: arch.maxSeqLen,
     useMoE,
     numExperts,
@@ -758,10 +793,12 @@ export function toParsedConfigFromMerged(merged, manifest) {
     ropeTheta: inf.rope.ropeTheta,
     ropeLocalTheta: inf.rope.ropeLocalTheta,
     ropeRotaryDim,
+    ropeLocalRotaryDim,
     ropeInterleaved,
     mropeInterleaved,
     mropeSection,
     partialRotaryFactor,
+    ropeLocalPartialRotaryFactor,
     ropeScale,
     ropeLocalScale,
     ropeScalingType,
@@ -800,6 +837,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
     layerPipeline: inf.pipeline ?? null,
     chatTemplateType,
     chatTemplateEnabled,
+    decodeStrategy,
     kernelPath: null,
     visionConfig: resolveVisionConfig(config, manifest),
   };

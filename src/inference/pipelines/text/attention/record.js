@@ -28,6 +28,7 @@ import {
   resolveAttentionProjectionOutputDtype,
   projectAttentionQKV,
   applyAttentionQKNorm,
+  applyAttentionValueNorm,
 } from './projections.js';
 import { prepareAttentionProjectionInput } from './output-projection.js';
 
@@ -78,6 +79,8 @@ export async function recordLayerAttentionGPU(
     tokenIds = null,
     kernelPath = null,
     disableRoPE = false,
+    sharedKVSourceLayerIdx = null,
+    storeSharedKV = false,
   } = config;
 
   const desiredOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', {
@@ -154,6 +157,26 @@ export async function recordLayerAttentionGPU(
     }),
   });
   let usedFusedQKV = false;
+  const sharedKVEntry = sharedKVSourceLayerIdx == null
+    ? null
+    : (state.sharedAttentionState?.get(sharedKVSourceLayerIdx) ?? null);
+  if (sharedKVSourceLayerIdx != null && !sharedKVEntry) {
+    throw new Error(
+      `Layer ${layerIdx} requires shared K/V from layer ${sharedKVSourceLayerIdx}, ` +
+      'but no shared K/V state was stored for that source layer.'
+    );
+  }
+  if (sharedKVEntry && (
+    sharedKVEntry.headDim !== headDim
+      || sharedKVEntry.numKVHeads !== numKVHeads
+  )) {
+    throw new Error(
+      `Layer ${layerIdx} shared K/V geometry mismatch. ` +
+      `Expected numKVHeads=${numKVHeads}, headDim=${headDim}; ` +
+      `got numKVHeads=${sharedKVEntry.numKVHeads}, headDim=${sharedKVEntry.headDim}.`
+    );
+  }
+  const reusesSharedKV = sharedKVEntry != null;
   ({ qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV } = await projectAttentionQKV({
     recorder,
     normed,
@@ -170,6 +193,8 @@ export async function recordLayerAttentionGPU(
     lora,
     matmulDebug: state.runtimeConfig?.shared?.debug?.matmul ?? null,
     attentionOutputGate: config.attentionOutputGate === true,
+    sharedKTensor: sharedKVEntry?.kTensor ?? null,
+    sharedVTensor: sharedKVEntry?.vTensor ?? null,
     releaseTemporary: (buffer) => releaseOrTrack(recorder, buffer),
     onFusedQKV: layerIdx === 0 && isPrefill
       ? ({ qSize: qSizeFused, kSize: kSizeFused, vSize: vSizeFused, totalSize }) => {
@@ -197,7 +222,20 @@ export async function recordLayerAttentionGPU(
     headDim,
     rmsNormWeightOffset: config.rmsNormWeightOffset,
     releaseTemporary: (buffer) => releaseOrTrack(recorder, buffer),
+    skipKNorm: reusesSharedKV,
   }));
+
+  if (!reusesSharedKV) {
+    vTensor = await applyAttentionValueNorm({
+      recorder,
+      vTensor,
+      rmsNormEps,
+      numTokens,
+      numKVHeads,
+      headDim,
+      releaseTemporary: (buffer) => releaseOrTrack(recorder, buffer),
+    });
+  }
 
   if (normed !== attentionInput) releaseOrTrack(recorder, normed.buffer);
   if (attentionInputTemp) recorder.trackTemporaryBuffer(attentionInput.buffer);
@@ -211,12 +249,23 @@ export async function recordLayerAttentionGPU(
       interleaved: config.ropeInterleaved,
       startPos: currentSeqLen,
     });
-    await recordRoPE(recorder, kTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
-      numHeads: numKVHeads,
+    if (!reusesSharedKV) {
+      await recordRoPE(recorder, kTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
+        numHeads: numKVHeads,
+        headDim,
+        rotaryDim: config.ropeRotaryDim,
+        interleaved: config.ropeInterleaved,
+        startPos: currentSeqLen,
+      });
+    }
+  }
+
+  if (storeSharedKV && state.sharedAttentionState) {
+    state.sharedAttentionState.set(layerIdx, {
+      kTensor,
+      vTensor,
       headDim,
-      rotaryDim: config.ropeRotaryDim,
-      interleaved: config.ropeInterleaved,
-      startPos: currentSeqLen,
+      numKVHeads,
     });
   }
 
