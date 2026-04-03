@@ -28,6 +28,8 @@ assert.equal(config.inference?.attention?.queryPreAttnScalar, 1);
 assert.equal(config.inference?.attention?.slidingWindow, 512);
 assert.equal(config.inference?.rope?.partialRotaryFactor, 0.25);
 assert.equal(config.inference?.rope?.ropeLocalPartialRotaryFactor, null);
+assert.equal(config.inference?.rope?.ropeFrequencyBaseDim, 512);
+assert.equal(config.inference?.rope?.ropeLocalFrequencyBaseDim, null);
 assert.equal(config.inference?.rope?.ropeScalingType, null);
 assert.equal(config.inference?.output?.finalLogitSoftcapping, 30);
 assert.equal(config.inference?.output?.embeddingPostprocessor, null);

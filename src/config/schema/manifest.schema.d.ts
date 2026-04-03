@@ -230,6 +230,10 @@ export interface ManifestRoPESchema {
   partialRotaryFactor: number | null;
   /** Fraction of the local/sliding head dimension that participates in rotary embedding. */
   ropeLocalPartialRotaryFactor: number | null;
+  /** Frequency exponent base dimension for full/global attention RoPE (null = use rotary dim). */
+  ropeFrequencyBaseDim: number | null;
+  /** Frequency exponent base dimension for local/sliding attention RoPE (null = use local rotary dim). */
+  ropeLocalFrequencyBaseDim: number | null;
   /** RoPE scaling type (null = no scaling, 'linear', 'dynamic', 'yarn') */
   ropeScalingType: string | null;
   /** RoPE scaling factor (1.0 if no scaling) */

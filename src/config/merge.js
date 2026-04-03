@@ -177,6 +177,18 @@ function mergeRoPE(
       runtime?.ropeLocalPartialRotaryFactor,
       sources
     ),
+    ropeFrequencyBaseDim: overlay(
+      `${prefix}.ropeFrequencyBaseDim`,
+      manifest.ropeFrequencyBaseDim,
+      runtime?.ropeFrequencyBaseDim,
+      sources
+    ),
+    ropeLocalFrequencyBaseDim: overlay(
+      `${prefix}.ropeLocalFrequencyBaseDim`,
+      manifest.ropeLocalFrequencyBaseDim,
+      runtime?.ropeLocalFrequencyBaseDim,
+      sources
+    ),
     ropeScalingType: overlay(
       `${prefix}.ropeScalingType`,
       manifest.ropeScalingType,

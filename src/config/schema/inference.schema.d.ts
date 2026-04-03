@@ -30,6 +30,12 @@ export interface RoPEConfigSchema {
   /** Fraction of the local/sliding head dimension that participates in rotary embedding. */
   ropeLocalPartialRotaryFactor?: number | null;
 
+  /** Frequency exponent base dimension for full/global attention RoPE (null = use rotary dim). */
+  ropeFrequencyBaseDim?: number | null;
+
+  /** Frequency exponent base dimension for local/sliding attention RoPE (null = use local rotary dim). */
+  ropeLocalFrequencyBaseDim?: number | null;
+
   /** RoPE scaling type */
   ropeScalingType?: 'linear' | 'dynamic' | 'yarn' | null;
 

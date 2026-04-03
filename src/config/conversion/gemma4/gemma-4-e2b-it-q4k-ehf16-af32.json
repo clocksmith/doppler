@@ -40,6 +40,8 @@
       "mropeSection": null,
       "partialRotaryFactor": 0.25,
       "ropeLocalPartialRotaryFactor": null,
+      "ropeFrequencyBaseDim": 512,
+      "ropeLocalFrequencyBaseDim": null,
       "ropeScalingType": null,
       "ropeScalingFactor": 1,
       "ropeLocalScalingType": null,

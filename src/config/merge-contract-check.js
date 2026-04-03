@@ -36,6 +36,8 @@ function buildWitnessMergeManifest() {
       rope: {
         ropeTheta: 1000000,
         ropeLocalTheta: null,
+        ropeFrequencyBaseDim: null,
+        ropeLocalFrequencyBaseDim: null,
         ropeScalingType: null,
         ropeScalingFactor: null,
         ropeLocalScalingType: null,

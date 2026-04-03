@@ -77,6 +77,8 @@ export interface RoPEConfig {
   localHeadDim?: number;
   rotaryDim?: number;
   ropeLocalRotaryDim?: number;
+  ropeFrequencyBaseDim?: number | null;
+  ropeLocalFrequencyBaseDim?: number | null;
   maxSeqLen: number;
   ropeTheta: number;
   ropeLocalTheta?: number | null;

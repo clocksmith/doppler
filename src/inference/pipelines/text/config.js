@@ -78,6 +78,32 @@ function resolveRotaryDim(headDim, partialRotaryFactor, modelId) {
   return rotaryDim;
 }
 
+function resolveFrequencyBaseDim(headDim, rotaryDim, frequencyBaseDim, modelId, fieldName) {
+  if (frequencyBaseDim == null) {
+    return rotaryDim;
+  }
+  if (typeof frequencyBaseDim !== 'number' || Number.isNaN(frequencyBaseDim)) {
+    throw new Error(`Manifest "${modelId}" has invalid ${fieldName}.`);
+  }
+  const resolved = Math.trunc(frequencyBaseDim);
+  if (resolved <= 0 || (resolved % 2) !== 0) {
+    throw new Error(
+      `Manifest "${modelId}" requires ${fieldName} to be a positive even integer; got ${frequencyBaseDim}.`
+    );
+  }
+  if (resolved < rotaryDim) {
+    throw new Error(
+      `Manifest "${modelId}" requires ${fieldName} (${resolved}) to be >= rotary dim (${rotaryDim}).`
+    );
+  }
+  if (resolved > headDim) {
+    throw new Error(
+      `Manifest "${modelId}" requires ${fieldName} (${resolved}) to be <= attention head dim (${headDim}).`
+    );
+  }
+  return resolved;
+}
+
 export function getStopTokenIds(manifest) {
   const eosTokenId = manifest?.eos_token_id;
   if (Array.isArray(eosTokenId)) return eosTokenId;
@@ -298,6 +324,22 @@ export function validateRequiredInferenceFields(inf, modelId) {
     const factor = inf.rope.ropeLocalPartialRotaryFactor;
     if (factor !== null && (typeof factor !== 'number' || Number.isNaN(factor) || factor <= 0 || factor > 1)) {
       errors.push('rope.ropeLocalPartialRotaryFactor must be a number in (0, 1] or null');
+    }
+  }
+  if (inf.rope.ropeFrequencyBaseDim === undefined) {
+    errors.push('rope.ropeFrequencyBaseDim must be explicitly set (null when using rotary dim, or a positive even integer)');
+  } else {
+    const dim = inf.rope.ropeFrequencyBaseDim;
+    if (dim !== null && (typeof dim !== 'number' || Number.isNaN(dim) || dim <= 0 || (Math.trunc(dim) % 2) !== 0)) {
+      errors.push('rope.ropeFrequencyBaseDim must be a positive even integer or null');
+    }
+  }
+  if (inf.rope.ropeLocalFrequencyBaseDim === undefined) {
+    errors.push('rope.ropeLocalFrequencyBaseDim must be explicitly set (null when using local rotary dim, or a positive even integer)');
+  } else {
+    const dim = inf.rope.ropeLocalFrequencyBaseDim;
+    if (dim !== null && (typeof dim !== 'number' || Number.isNaN(dim) || dim <= 0 || (Math.trunc(dim) % 2) !== 0)) {
+      errors.push('rope.ropeLocalFrequencyBaseDim must be a positive even integer or null');
     }
   }
 
@@ -693,6 +735,20 @@ export function toParsedConfigFromMerged(merged, manifest) {
     : null;
   const ropeRotaryDim = resolveRotaryDim(archGlobalHeadDim ?? archHeadDim, partialRotaryFactor, merged.modelId);
   const ropeLocalRotaryDim = resolveRotaryDim(archHeadDim, ropeLocalPartialRotaryFactor, merged.modelId);
+  const ropeFrequencyBaseDim = resolveFrequencyBaseDim(
+    archGlobalHeadDim ?? archHeadDim,
+    ropeRotaryDim,
+    inf.rope.ropeFrequencyBaseDim,
+    merged.modelId,
+    'rope.ropeFrequencyBaseDim'
+  );
+  const ropeLocalFrequencyBaseDim = resolveFrequencyBaseDim(
+    archHeadDim,
+    ropeLocalRotaryDim,
+    inf.rope.ropeLocalFrequencyBaseDim,
+    merged.modelId,
+    'rope.ropeLocalFrequencyBaseDim'
+  );
   if (mropeSection && mropeSection.some((entry) => !Number.isFinite(entry) || entry <= 0)) {
     throw new Error(
       `Manifest "${merged.modelId}" has invalid rope.mropeSection; expected positive integers.`
@@ -794,6 +850,8 @@ export function toParsedConfigFromMerged(merged, manifest) {
     ropeLocalTheta: inf.rope.ropeLocalTheta,
     ropeRotaryDim,
     ropeLocalRotaryDim,
+    ropeFrequencyBaseDim,
+    ropeLocalFrequencyBaseDim,
     ropeInterleaved,
     mropeInterleaved,
     mropeSection,

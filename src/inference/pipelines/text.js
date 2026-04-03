@@ -441,6 +441,8 @@ export class InferencePipeline extends PipelineState {
       localHeadDim: config.headDim,
       rotaryDim: config.ropeRotaryDim,
       ropeLocalRotaryDim: config.ropeLocalRotaryDim,
+      ropeFrequencyBaseDim: config.ropeFrequencyBaseDim,
+      ropeLocalFrequencyBaseDim: config.ropeLocalFrequencyBaseDim,
       maxSeqLen,
       ropeTheta: config.ropeTheta,
       ropeLocalTheta: config.ropeLocalTheta,

@@ -159,6 +159,8 @@ export interface ParsedModelConfig {
   ropeLocalTheta: number | null;
   ropeRotaryDim: number;
   ropeLocalRotaryDim: number;
+  ropeFrequencyBaseDim: number;
+  ropeLocalFrequencyBaseDim: number;
   ropeInterleaved: boolean;
   mropeInterleaved: boolean;
   mropeSection: number[] | null;

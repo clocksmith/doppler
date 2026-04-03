@@ -871,6 +871,8 @@ async function runGemma2TextEncoder(tokens, weightsEntry, config, runtime, optio
 
   const ropeFreqs = await initRoPEFrequencies({
     headDim: resolved.headDim,
+    ropeFrequencyBaseDim: resolved.headDim,
+    ropeLocalFrequencyBaseDim: resolved.headDim,
     maxSeqLen: resolved.maxPositionEmbeddings,
     ropeTheta: resolved.ropeTheta,
     ropeLocalTheta: null,
