@@ -27,6 +27,11 @@ export function setStatLabels(labels) {
   setText($('stat-e2e-label'), labels.e2e);
   setText($('stat-decode-label'), labels.decode);
   setText($('stat-tokens-label'), labels.tokens);
+  setText($('pulse-inline-tps-label'), labels.tps);
+  setText($('pulse-inline-ttft-label'), labels.ttft);
+  setText($('pulse-inline-prefill-label'), labels.prefill);
+  setText($('pulse-inline-decode-label'), labels.decode);
+  setText($('pulse-inline-e2e-label'), labels.e2e);
 }
 
 export function setRunLogLabels(labels) {
@@ -37,6 +42,11 @@ export function setRunLogLabels(labels) {
 }
 
 export function updatePerformancePanel(snapshot) {
+  updatePerformancePanelInner();
+  syncInlineBar();
+}
+
+function updatePerformancePanelInner() {
   const tpsEl = $('stat-tps');
   const ttftEl = $('stat-ttft');
   const e2eEl = $('stat-e2e');
@@ -449,6 +459,29 @@ export function recordRunLog(stats, label, modeOverride) {
   state.runLog.unshift(entry);
   state.runLog = state.runLog.slice(0, 8);
   renderRunLog();
+}
+
+const INLINE_MIRRORS = [
+  ['stat-tps', 'pulse-inline-tps'],
+  ['stat-ttft', 'pulse-inline-ttft'],
+  ['stat-prefill', 'pulse-inline-prefill'],
+  ['stat-decode', 'pulse-inline-decode'],
+  ['stat-e2e', 'pulse-inline-e2e'],
+];
+
+function syncInlineBar() {
+  const bar = $('pulse-inline-bar');
+  if (!bar) return;
+  let hasData = false;
+  for (const [srcId, destId] of INLINE_MIRRORS) {
+    const src = $(srcId);
+    const dest = $(destId);
+    if (src && dest) {
+      dest.textContent = src.textContent;
+      if (src.textContent !== '--') hasData = true;
+    }
+  }
+  bar.hidden = !hasData;
 }
 
 function normalizeModelType(value) {
