@@ -17,6 +17,7 @@
       "attnLogitSoftcapping": null,
       "slidingWindow": 512,
       "queryKeyNorm": true,
+      "valueNorm": true,
       "causal": true,
       "attentionBias": false,
       "attentionOutputGate": false

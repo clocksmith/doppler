@@ -32,6 +32,7 @@ import {
   resolveAttentionProjectionOutputDtype,
   projectAttentionQKV,
   applyAttentionQKNorm,
+  applyAttentionValueNorm,
 } from './projections.js';
 import { prepareAttentionProjectionInput } from './output-projection.js';
 
@@ -349,6 +350,18 @@ export async function runLayerAttentionGPU(
       }
     : null,
   }));
+
+  if (config.valueNorm === true) {
+    vTensor = await applyAttentionValueNorm({
+      recorder: null,
+      vTensor,
+      rmsNormEps,
+      numTokens,
+      numKVHeads,
+      headDim,
+      releaseTemporary: (buffer) => releaseBuffer(buffer),
+    });
+  }
 
   await runProbes('q_norm', qTensor.buffer, {
     layerIdx,

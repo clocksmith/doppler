@@ -536,6 +536,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       attnSoftcap: config.attnLogitSoftcapping === null ? 0 : config.attnLogitSoftcapping,
       queryPreAttnScalar: config.queryPreAttnScalar,
       queryKeyNorm,
+      valueNorm: config.valueNorm,
       attentionOutputGate: config.attentionOutputGate,
       causalAttention: config.causalAttention,
       rmsNormWeightOffset: config.rmsNormWeightOffset,
@@ -649,16 +650,20 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     }
   } else if (sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm && layerWeights?.postAttentionNorm) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.postAttentionNorm, 'post_attention_norm', weightConfig, debugFlags);
-    postAttn = await doRMSNorm(attnOutput, normWeightBuf, rmsNormEps, {
+    const normalizedAttn = await doRMSNorm(attnOutput, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
       hiddenSize,
-      residual: inputTensor,
       label: `L${layerIdx}.post_attn_norm`,
       layerIdx,
       rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
     }, recorder);
+    postAttn = await doResidualAdd(normalizedAttn, inputTensor, size, recorder, {
+      label: `L${layerIdx}.post_attn_residual`,
+      layerIdx,
+    });
 
     if (!(layerWeights.postAttentionNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
+    releaseOrTrack(recorder, normalizedAttn.buffer, context.decodeBuffers);
     if (recorder) {
       recorder.trackTemporaryBuffer(attnOutput.buffer);
     } else {
@@ -976,6 +981,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
             attnSoftcap: config.attnLogitSoftcapping === null ? 0 : config.attnLogitSoftcapping,
             queryPreAttnScalar: config.queryPreAttnScalar,
             queryKeyNorm: config.queryKeyNorm,
+            valueNorm: config.valueNorm,
             attentionOutputGate: config.attentionOutputGate,
             causalAttention: config.causalAttention,
             rmsNormWeightOffset: config.rmsNormWeightOffset,

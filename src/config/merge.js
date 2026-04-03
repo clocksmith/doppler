@@ -51,6 +51,12 @@ function mergeAttention(
       runtime?.queryKeyNorm,
       sources
     ),
+    valueNorm: overlay(
+      `${prefix}.valueNorm`,
+      manifest.valueNorm,
+      runtime?.valueNorm,
+      sources
+    ),
     attentionOutputGate: overlay(
       `${prefix}.attentionOutputGate`,
       manifest.attentionOutputGate,

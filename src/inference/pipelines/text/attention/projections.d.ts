@@ -112,3 +112,18 @@ export interface ApplyAttentionQKNormOptions {
 export function applyAttentionQKNorm(
   options: ApplyAttentionQKNormOptions
 ): Promise<{ qTensor: Tensor; kTensor: Tensor }>;
+
+export interface ApplyAttentionValueNormOptions {
+  recorder?: CommandRecorder | null;
+  vTensor: Tensor;
+  rmsNormEps: number;
+  numTokens: number;
+  numKVHeads: number;
+  headDim: number;
+  releaseTemporary: (buffer: GPUBuffer) => void;
+  onVNormApplied?: ((tensor: Tensor) => Promise<void> | void) | null;
+}
+
+export function applyAttentionValueNorm(
+  options: ApplyAttentionValueNormOptions
+): Promise<Tensor>;

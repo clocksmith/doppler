@@ -18,6 +18,7 @@ function buildWitnessMergeManifest() {
         attnLogitSoftcapping: null,
         slidingWindow: 4096,
         queryKeyNorm: false,
+        valueNorm: false,
         attentionOutputGate: false,
         causal: true,
       },

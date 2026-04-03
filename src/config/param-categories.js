@@ -20,6 +20,7 @@ export const PARAM_CATEGORIES = Object.freeze({
   attnLogitSoftcapping: ParamCategory.MODEL,
   queryPreAttnScalar: ParamCategory.MODEL,
   queryKeyNorm: ParamCategory.MODEL,
+  valueNorm: ParamCategory.MODEL,
   attentionOutputGate: ParamCategory.MODEL,
   causal: ParamCategory.MODEL,
   ropeTheta: ParamCategory.MODEL,

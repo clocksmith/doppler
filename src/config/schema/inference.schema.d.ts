@@ -78,6 +78,8 @@ export interface AttentionSchema {
   attnLogitSoftcapping?: number | null;
   /** Use query-key normalization */
   queryKeyNorm?: boolean;
+  /** Apply unit-scale RMSNorm to values before attention */
+  valueNorm?: boolean;
   /** Apply sigmoid gate from q_proj split to attention output */
   attentionOutputGate?: boolean;
   /** @deprecated Use RoPEConfigSchema.ropeScalingType instead */

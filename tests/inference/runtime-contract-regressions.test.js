@@ -178,6 +178,7 @@ try {
           attention: {
             queryPreAttnScalar: 4,
             queryKeyNorm: false,
+            valueNorm: false,
             attentionBias: false,
             causal: true,
             slidingWindow: null,
@@ -264,6 +265,7 @@ try {
         attention: {
           queryPreAttnScalar: 1,
           queryKeyNorm: true,
+          valueNorm: true,
           attentionBias: false,
           causal: true,
           slidingWindow: 512,

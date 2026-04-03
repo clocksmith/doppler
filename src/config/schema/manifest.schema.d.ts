@@ -175,6 +175,8 @@ export interface ManifestAttentionSchema {
   slidingWindow: number | null;
   /** Query-key normalization */
   queryKeyNorm: boolean;
+  /** Value RMSNorm with implicit unit scale (Gemma 4 text attention) */
+  valueNorm: boolean;
   /** Whether attention mask is causal (false = bidirectional attention) */
   causal: boolean;
   /** Attention bias mask enabled */

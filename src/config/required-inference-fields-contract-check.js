@@ -28,6 +28,7 @@ function createValidInferenceFixture() {
     attention: {
       queryPreAttnScalar: 256,
       queryKeyNorm: true,
+      valueNorm: false,
       attentionBias: false,
       causal: true,
       slidingWindow: null,
@@ -87,6 +88,7 @@ function createValidInferenceFixture() {
 const FIELD_CASES = Object.freeze([
   { kind: 'nonNullable', path: ['attention', 'queryPreAttnScalar'], message: 'attention.queryPreAttnScalar is required' },
   { kind: 'nonNullable', path: ['attention', 'queryKeyNorm'], message: 'attention.queryKeyNorm is required' },
+  { kind: 'nonNullable', path: ['attention', 'valueNorm'], message: 'attention.valueNorm is required' },
   { kind: 'nonNullable', path: ['attention', 'attentionBias'], message: 'attention.attentionBias is required' },
   { kind: 'nonNullable', path: ['attention', 'causal'], message: 'attention.causal is required' },
   { kind: 'nullable', path: ['attention', 'slidingWindow'], message: 'attention.slidingWindow must be explicitly set' },

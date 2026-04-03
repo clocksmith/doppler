@@ -43,6 +43,7 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     attnLogitSoftcapping: null,  // No softcapping (null = disabled)
     slidingWindow: null,  // Full attention (null = no sliding window)
     queryKeyNorm: false,
+    valueNorm: false,
     causal: true,  // Causal mask enabled by default (decoder-style attention)
     attentionBias: false,
     attentionOutputGate: false,

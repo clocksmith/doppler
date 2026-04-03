@@ -225,7 +225,7 @@ export async function recordLayerAttentionGPU(
     skipKNorm: reusesSharedKV,
   }));
 
-  if (!reusesSharedKV) {
+  if (config.valueNorm === true && !reusesSharedKV) {
     vTensor = await applyAttentionValueNorm({
       recorder,
       vTensor,

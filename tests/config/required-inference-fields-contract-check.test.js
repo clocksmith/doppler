@@ -16,6 +16,7 @@ const manifestArtifact = buildManifestRequiredInferenceFieldsArtifact({
   attention: {
     queryPreAttnScalar: 256,
     queryKeyNorm: true,
+    valueNorm: false,
     attentionBias: false,
     causal: true,
     slidingWindow: null,

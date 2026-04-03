@@ -244,6 +244,9 @@ export function validateRequiredInferenceFields(inf, modelId) {
   if (inf.attention.queryKeyNorm == null) {
     errors.push('attention.queryKeyNorm is required');
   }
+  if (inf.attention.valueNorm == null) {
+    errors.push('attention.valueNorm is required');
+  }
   if (inf.attention.attentionBias == null) {
     errors.push('attention.attentionBias is required');
   }
@@ -907,6 +910,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
     finalLogitSoftcapping: inf.output.finalLogitSoftcapping,
     attnLogitSoftcapping: inf.attention.attnLogitSoftcapping,
     queryKeyNorm: inf.attention.queryKeyNorm,
+    valueNorm: inf.attention.valueNorm,
     attentionOutputGate: inf.attention.attentionOutputGate === true,
     queryPreAttnScalar,
     layerPipeline: inf.pipeline ?? null,

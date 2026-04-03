@@ -38,6 +38,8 @@ export interface AttentionConfig {
   queryPreAttnScalar?: number;
   /** Apply query/key RMSNorm even when per-head weights are absent. */
   queryKeyNorm?: boolean;
+  /** Apply unit-scale value RMSNorm before attention. */
+  valueNorm?: boolean;
   /** Apply sigmoid gate from q_proj split to attention output before o_proj. */
   attentionOutputGate?: boolean;
   /** Gemma 2 RMS scaling: (1+w)*x */

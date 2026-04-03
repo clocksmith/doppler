@@ -200,6 +200,7 @@ export interface ParsedModelConfig {
   finalLogitSoftcapping: number | null;
   attnLogitSoftcapping: number | null;
   queryKeyNorm: boolean;
+  valueNorm: boolean;
   attentionOutputGate: boolean;
   queryPreAttnScalar: number;
   layerPipeline?: LayerPipelineSchema | null;
