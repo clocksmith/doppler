@@ -129,7 +129,7 @@ const converterConfig = createConverterConfig();
       },
       normalization: {
         rmsNormEps: 1e-6,
-        rmsNormWeightOffset: true,
+        rmsNormWeightOffset: false,
         postAttentionNorm: true,
         preFeedforwardNorm: true,
         postFeedforwardNorm: true,
@@ -171,7 +171,7 @@ const converterConfig = createConverterConfig();
         layerTypes: null,
       },
       chatTemplate: {
-        type: 'gemma',
+        type: 'gemma4',
         enabled: true,
       },
     },

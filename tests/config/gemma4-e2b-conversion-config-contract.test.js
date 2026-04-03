@@ -26,8 +26,11 @@ assert.equal(config.quantization?.q4kLayout, 'row');
 
 assert.equal(config.inference?.attention?.queryPreAttnScalar, 1);
 assert.equal(config.inference?.attention?.slidingWindow, 512);
+assert.equal(config.inference?.normalization?.rmsNormWeightOffset, false);
+assert.equal(config.inference?.chatTemplate?.type, 'gemma4');
 assert.equal(config.inference?.rope?.partialRotaryFactor, 0.25);
 assert.equal(config.inference?.rope?.ropeLocalPartialRotaryFactor, null);
+assert.equal(config.inference?.rope?.ropeInterleaved, false);
 assert.equal(config.inference?.rope?.ropeFrequencyBaseDim, 512);
 assert.equal(config.inference?.rope?.ropeLocalFrequencyBaseDim, null);
 assert.equal(config.inference?.rope?.ropeScalingType, null);

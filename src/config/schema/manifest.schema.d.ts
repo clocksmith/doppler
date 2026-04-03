@@ -222,7 +222,9 @@ export interface ManifestRoPESchema {
   ropeTheta: number;
   /** Local theta for sliding window layers (null = same as ropeTheta) */
   ropeLocalTheta: number | null;
-  /** Use adjacent-pair rotary layout instead of rotate-half layout. */
+  /** Use adjacent-pair rotary layout instead of rotate-half layout for standard RoPE. */
+  ropeInterleaved: boolean;
+  /** Use adjacent-pair rotary layout for mRoPE section pairing. */
   mropeInterleaved: boolean;
   /** mRoPE section sizes before the Qwen doubling step. */
   mropeSection: number[] | null;
@@ -312,7 +314,7 @@ export interface ManifestLayerPatternSchema {
  */
 export interface ManifestChatTemplateSchema {
   /** Chat template type (null = no chat template) */
-  type: 'gemma' | 'llama3' | 'gpt-oss' | 'chatml' | 'qwen' | 'translategemma' | null;
+  type: 'gemma' | 'gemma4' | 'llama3' | 'gpt-oss' | 'chatml' | 'qwen' | 'translategemma' | null;
   /** Whether chat template is enabled */
   enabled: boolean;
 }

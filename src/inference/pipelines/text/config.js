@@ -11,6 +11,7 @@ const UNSUPPORTED_RUNTIME_MODEL_TYPES = new Set(['mamba', 'rwkv']);
  */
 const KNOWN_CHAT_TEMPLATE_TYPES = new Set([
   'gemma',
+  'gemma4',
   'llama3',
   'gpt-oss',
   'chatml',
@@ -303,6 +304,13 @@ export function validateRequiredInferenceFields(inf, modelId) {
   }
   if (inf.rope.ropeLocalTheta === undefined) {
     errors.push('rope.ropeLocalTheta must be explicitly set (null for no local theta, or number)');
+  }
+  if (
+    inf.rope.ropeInterleaved !== undefined
+    && inf.rope.ropeInterleaved != null
+    && typeof inf.rope.ropeInterleaved !== 'boolean'
+  ) {
+    errors.push('rope.ropeInterleaved must be boolean when provided');
   }
   if (inf.rope.mropeInterleaved == null) {
     errors.push('rope.mropeInterleaved is required');
@@ -731,7 +739,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
   const partialRotaryFactor = inf.rope.partialRotaryFactor;
   const ropeLocalPartialRotaryFactor = inf.rope.ropeLocalPartialRotaryFactor;
   const mropeInterleaved = inf.rope.mropeInterleaved === true;
-  const ropeInterleaved = false;
+  const ropeInterleaved = inf.rope.ropeInterleaved === true;
 
   if (ropeLocalScale == null && (inf.rope.ropeLocalTheta != null || inf.rope.mropeSection != null)) {
     throw new Error(

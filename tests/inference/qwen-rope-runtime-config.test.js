@@ -132,7 +132,7 @@ import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text
     inference: {
       schema: null,
       attention: {
-        queryPreAttnScalar: 256,
+        queryPreAttnScalar: 1,
         attnLogitSoftcapping: null,
         slidingWindow: null,
         queryKeyNorm: true,
@@ -212,6 +212,98 @@ import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text
     false,
     'Qwen mRoPE interleaving must not force adjacent-pair RoPE rotation.'
   );
+}
+
+{
+  const parsed = parseModelConfigFromManifest({
+    modelId: 'gemma4-rope-interleaved-fixture',
+    modelType: 'transformer',
+    eos_token_id: [1],
+    architecture: {
+      numLayers: 1,
+      hiddenSize: 1536,
+      intermediateSize: 6144,
+      numAttentionHeads: 8,
+      numKeyValueHeads: 1,
+      headDim: 256,
+      globalHeadDim: 512,
+      vocabSize: 262144,
+      maxSeqLen: 131072,
+      numKvSharedLayers: 20,
+    },
+    inference: {
+      schema: null,
+      attention: {
+        queryPreAttnScalar: 256,
+        attnLogitSoftcapping: null,
+        slidingWindow: 512,
+        queryKeyNorm: true,
+        attentionOutputGate: false,
+        causal: true,
+        attentionBias: false,
+      },
+      normalization: {
+        rmsNormEps: 1e-6,
+        rmsNormWeightOffset: false,
+        postAttentionNorm: true,
+        preFeedforwardNorm: true,
+        postFeedforwardNorm: true,
+      },
+      ffn: {
+        activation: 'gelu',
+        gatedActivation: true,
+        swigluLimit: null,
+      },
+      rope: {
+        ropeTheta: 1000000,
+        ropeLocalTheta: 10000,
+        ropeInterleaved: false,
+        mropeInterleaved: false,
+        mropeSection: null,
+        partialRotaryFactor: 0.25,
+        ropeLocalPartialRotaryFactor: null,
+        ropeFrequencyBaseDim: 512,
+        ropeLocalFrequencyBaseDim: null,
+        ropeScalingType: null,
+        ropeScalingFactor: 1,
+        ropeLocalScalingType: null,
+        ropeLocalScalingFactor: 1,
+        yarnBetaFast: null,
+        yarnBetaSlow: null,
+        yarnOriginalMaxPos: null,
+        ropeLocalYarnBetaFast: null,
+        ropeLocalYarnBetaSlow: null,
+        ropeLocalYarnOriginalMaxPos: null,
+      },
+      output: {
+        finalLogitSoftcapping: 30,
+        tieWordEmbeddings: true,
+        scaleEmbeddings: true,
+        embeddingTranspose: false,
+        embeddingVocabSize: null,
+        embeddingPostprocessor: null,
+      },
+      layerPattern: {
+        type: 'every_n',
+        globalPattern: null,
+        period: 5,
+        offset: 4,
+        layerTypes: null,
+      },
+      chatTemplate: {
+        type: 'gemma4',
+        enabled: true,
+      },
+      session: null,
+      execution: null,
+      defaultKernelPath: null,
+      pipeline: null,
+    },
+    quantization: 'Q4_K_M',
+  });
+
+  assert.equal(parsed.ropeInterleaved, false);
+  assert.equal(parsed.mropeInterleaved, false);
 }
 
 console.log('qwen-rope-runtime-config.test: ok');

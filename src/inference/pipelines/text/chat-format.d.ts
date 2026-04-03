@@ -28,6 +28,7 @@ export interface ChatMessage {
 
 export type ChatTemplateType =
   | 'gemma'
+  | 'gemma4'
   | 'llama3'
   | 'gpt-oss'
   | 'chatml'
@@ -36,6 +37,8 @@ export type ChatTemplateType =
   | null;
 
 export declare function formatGemmaChat(messages: ChatMessage[]): string;
+
+export declare function formatGemma4Chat(messages: ChatMessage[]): string;
 
 export declare function formatLlama3Chat(messages: ChatMessage[]): string;
 

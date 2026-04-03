@@ -24,6 +24,7 @@ export const PARAM_CATEGORIES = Object.freeze({
   causal: ParamCategory.MODEL,
   ropeTheta: ParamCategory.MODEL,
   ropeLocalTheta: ParamCategory.MODEL,
+  ropeInterleaved: ParamCategory.MODEL,
   ropeFrequencyBaseDim: ParamCategory.MODEL,
   ropeLocalFrequencyBaseDim: ParamCategory.MODEL,
   ropeScalingType: ParamCategory.MODEL,

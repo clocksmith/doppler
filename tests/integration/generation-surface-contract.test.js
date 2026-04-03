@@ -120,6 +120,13 @@ import { applyChatTemplate } from '../../src/inference/pipelines/text/init.js';
   assert.ok(gemmaResult.includes('<start_of_turn>model'), 'gemma template must include <start_of_turn>model');
   assert.ok(gemmaResult.includes(prompt), 'gemma template must include the original prompt');
 
+  // gemma4 → Gemma 4 turn format
+  const gemma4Result = applyChatTemplate(prompt, 'gemma4');
+  assert.ok(gemma4Result.startsWith('<bos><|turn>user'), 'gemma4 template must start with <bos><|turn>user');
+  assert.ok(gemma4Result.includes('<turn|>'), 'gemma4 template must include <turn|>');
+  assert.ok(gemma4Result.includes('<|turn>model'), 'gemma4 template must include <|turn>model');
+  assert.ok(gemma4Result.includes(prompt), 'gemma4 template must include the original prompt');
+
   // llama3 → header-based format
   const llama3Result = applyChatTemplate(prompt, 'llama3');
   assert.ok(llama3Result.includes('<|begin_of_text|>'), 'llama3 template must include <|begin_of_text|>');
@@ -172,6 +179,19 @@ import { applyChatTemplate } from '../../src/inference/pipelines/text/init.js';
     result,
     '<start_of_turn>user\nHello<end_of_turn>\n<start_of_turn>model\n',
     'gemma template must produce exact turn-based format'
+  );
+}
+
+// =============================================================================
+// applyChatTemplate gemma4 output format contract (exact structure)
+// =============================================================================
+
+{
+  const result = applyChatTemplate('Hello', 'gemma4');
+  assert.equal(
+    result,
+    '<bos><|turn>user\nHello<turn|>\n<|turn>model\n',
+    'gemma4 template must produce exact turn-based format'
   );
 }
 

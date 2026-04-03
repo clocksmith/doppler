@@ -1188,6 +1188,10 @@ function applyQwenTemplate(prompt) {
   return `<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n`;
 }
 
+function applyGemma4Template(prompt) {
+  return `<bos><|turn>user\n${prompt}<turn|>\n<|turn>model\n`;
+}
+
 function applyTranslateGemmaTemplate() {
   throw new Error(
     'TranslateGemma template requires structured messages. ' +
@@ -1199,6 +1203,7 @@ function applyTranslateGemmaTemplate() {
 // Add new template types here rather than adding switch cases.
 const PROMPT_TEMPLATES = {
   'gemma': applyTurnBasedTemplate,
+  'gemma4': applyGemma4Template,
   'llama3': applyHeaderBasedTemplate,
   'gpt-oss': applyChannelBasedTemplate,
   'chatml': applyChatMLTemplate,
@@ -1219,6 +1224,7 @@ export function applyChatTemplate(prompt, templateType) {
 
 // Exports preserved for existing external imports.
 export const applyGemmaChatTemplate = applyTurnBasedTemplate;
+export const applyGemma4ChatTemplate = applyGemma4Template;
 export const applyLlama3ChatTemplate = applyHeaderBasedTemplate;
 export const applyGptOssChatTemplate = applyChannelBasedTemplate;
 export const applyQwenChatTemplate = applyQwenTemplate;

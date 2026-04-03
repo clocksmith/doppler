@@ -18,7 +18,10 @@ export interface RoPEConfigSchema {
   /** Local RoPE theta for sliding window layers (Gemma 3 uses 10000) */
   ropeLocalTheta?: number;
 
-  /** Apply adjacent-pair rotary layout instead of rotate-half layout. */
+  /** Apply adjacent-pair rotary layout instead of rotate-half layout for standard RoPE. */
+  ropeInterleaved?: boolean;
+
+  /** Apply adjacent-pair rotary layout for mRoPE section pairing. */
   mropeInterleaved?: boolean;
 
   /** mRoPE section sizes before the Qwen doubling step. */
@@ -110,6 +113,7 @@ export interface FFNSchema {
 /** Built-in chat template types */
 export type ChatTemplateType =
   | 'gemma'
+  | 'gemma4'
   | 'llama3'
   | 'gpt-oss'
   | 'chatml'
@@ -119,7 +123,7 @@ export type ChatTemplateType =
 
 /** Chat template configuration for instruct models */
 export interface ChatTemplateSchema {
-  /** Template type identifier (gemma, llama3, gpt-oss, chatml, qwen, translategemma) */
+  /** Template type identifier (gemma, gemma4, llama3, gpt-oss, chatml, qwen, translategemma) */
   type?: ChatTemplateType;
 
   /** Whether to apply chat template by default (instruct models should set true) */

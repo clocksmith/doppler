@@ -161,6 +161,17 @@ function formatTurnBased(messages) {
   return parts.join('');
 }
 
+function formatGemma4(messages) {
+  return formatMessagesWithRoleWrap(messages, 'Gemma 4', {
+    system: (c) => `<|turn>system\n${c}<turn|>\n`,
+    user: (c) => `<|turn>user\n${c}<turn|>\n`,
+    assistant: (c) => `<|turn>model\n${c}<turn|>\n`,
+  }, {
+    prefix: '<bos>',
+    suffix: '<|turn>model\n',
+  });
+}
+
 function formatMessagesWithRoleWrap(messages, templateName, roleWrappers, options = {}) {
   const { prefix = '', suffix = '', beforeMessage = null } = options;
   const parts = prefix ? [prefix] : [];
@@ -340,6 +351,7 @@ function formatPlaintext(messages) {
 // Add new template types here rather than adding switch cases.
 const CHAT_FORMATTERS = {
   'gemma': formatTurnBased,
+  'gemma4': formatGemma4,
   'llama3': formatHeaderBased,
   'gpt-oss': formatChannelBased,
   'chatml': formatChatML,
@@ -359,6 +371,7 @@ export function formatChatMessages(messages, templateType) {
 }
 
 export const formatGemmaChat = formatTurnBased;
+export const formatGemma4Chat = formatGemma4;
 export const formatLlama3Chat = formatHeaderBased;
 export const formatGptOssChat = formatChannelBased;
 export const formatQwenChat = formatQwen;

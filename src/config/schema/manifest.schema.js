@@ -62,6 +62,7 @@ export const DEFAULT_MANIFEST_INFERENCE = {
   rope: {
     ropeTheta: 10000,
     ropeLocalTheta: null,  // Same as ropeTheta (null = use ropeTheta)
+    ropeInterleaved: false,
     mropeInterleaved: false,
     mropeSection: null,
     partialRotaryFactor: null,

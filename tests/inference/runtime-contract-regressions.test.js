@@ -270,7 +270,7 @@ try {
           attnLogitSoftcapping: null,
         },
         normalization: {
-          rmsNormWeightOffset: true,
+          rmsNormWeightOffset: false,
           rmsNormEps: 1e-6,
           postAttentionNorm: true,
           preFeedforwardNorm: true,
@@ -317,7 +317,7 @@ try {
           layerTypes: Array.from({ length: 35 }, (_, index) => index % 5 === 4 ? 'full_attention' : 'sliding_attention'),
         },
         chatTemplate: {
-          type: 'gemma',
+          type: 'gemma4',
           enabled: true,
         },
       },

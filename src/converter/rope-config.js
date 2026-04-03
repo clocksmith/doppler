@@ -276,6 +276,9 @@ export function buildRoPEConfig(converterInference, config) {
   const ropeLocalTheta = asFiniteNumber(slidingAttentionRoPE?.rope_theta)
     ?? converterInference.rope?.ropeLocalTheta
     ?? null;
+  const ropeInterleaved = asBoolean(flatRoPEParameters?.rope_interleaved)
+    ?? converterInference.rope?.ropeInterleaved
+    ?? DEFAULT_MANIFEST_INFERENCE.rope.ropeInterleaved;
 
   const mropeInterleaved = asBoolean(flatRoPEParameters?.mrope_interleaved)
     ?? converterInference.rope?.mropeInterleaved
@@ -308,6 +311,7 @@ export function buildRoPEConfig(converterInference, config) {
   return {
     ropeTheta,
     ropeLocalTheta,
+    ropeInterleaved,
     mropeInterleaved,
     mropeSection,
     partialRotaryFactor,

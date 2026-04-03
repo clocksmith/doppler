@@ -153,6 +153,12 @@ function mergeRoPE(
       runtime?.ropeLocalTheta,
       sources
     ),
+    ropeInterleaved: overlay(
+      `${prefix}.ropeInterleaved`,
+      manifest.ropeInterleaved,
+      runtime?.ropeInterleaved,
+      sources
+    ),
     mropeInterleaved: overlay(
       `${prefix}.mropeInterleaved`,
       manifest.mropeInterleaved,

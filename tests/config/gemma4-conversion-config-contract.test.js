@@ -74,6 +74,8 @@ const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
 
 {
   assert.equal(config.inference.attention.slidingWindow, 1024);
+  assert.equal(config.inference.normalization.rmsNormWeightOffset, false);
+  assert.equal(config.inference.chatTemplate.type, 'gemma4');
   assert.equal(config.inference.rope.ropeScalingType, 'yarn');
   assert.equal(config.inference.rope.ropeScalingFactor, 8);
 }

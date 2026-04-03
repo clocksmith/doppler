@@ -7,6 +7,7 @@ const converterInference = {
   rope: {
     ropeTheta: 1000000,
     ropeLocalTheta: 10000,
+    ropeInterleaved: false,
     mropeInterleaved: false,
     mropeSection: null,
     partialRotaryFactor: null,
@@ -35,8 +36,36 @@ const converterInference = {
   });
   assert.equal(rope.partialRotaryFactor, 0.25);
   assert.equal(rope.ropeLocalPartialRotaryFactor, null);
+  assert.equal(rope.ropeInterleaved, false);
   assert.equal(rope.ropeFrequencyBaseDim, 512);
   assert.equal(rope.ropeLocalFrequencyBaseDim, null);
+}
+
+{
+  const rope = buildRoPEConfig({
+    ...converterInference,
+    rope: {
+      ...converterInference.rope,
+      ropeInterleaved: true,
+    },
+  }, {
+    text_config: {
+      head_dim: 256,
+      global_head_dim: 512,
+      rope_parameters: {
+        full_attention: {
+          partial_rotary_factor: 0.25,
+          rope_theta: 1000000,
+          rope_type: 'proportional',
+        },
+        sliding_attention: {
+          rope_theta: 10000,
+          rope_type: 'default',
+        },
+      },
+    },
+  });
+  assert.equal(rope.ropeInterleaved, true);
 }
 
 {
@@ -152,6 +181,7 @@ const converterInference = {
   const rope = buildRoPEConfig(converterInference, {});
   assert.equal(rope.ropeTheta, 1000000);
   assert.equal(rope.ropeLocalTheta, 10000);
+  assert.equal(rope.ropeInterleaved, false);
   assert.equal(rope.mropeInterleaved, false);
   assert.equal(rope.mropeSection, null);
   assert.equal(rope.partialRotaryFactor, null);
