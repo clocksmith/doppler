@@ -909,7 +909,7 @@
         }
       ],
       "baseUniforms": {
-        "size": 32,
+      "size": 36,
         "fields": [
           {
             "name": "M",
@@ -1140,7 +1140,7 @@
         }
       ],
       "baseUniforms": {
-        "size": 32,
+        "size": 36,
         "fields": [
           {
             "name": "seq_len",
@@ -4853,7 +4853,7 @@
         }
       ],
       "baseUniforms": {
-        "size": 32,
+        "size": 36,
         "fields": [
           {
             "name": "num_tokens",
@@ -4881,19 +4881,24 @@
             "offset": 16
           },
           {
-            "name": "_pad0",
+            "name": "input_hidden_size",
             "type": "u32",
             "offset": 20
           },
           {
-            "name": "_pad1",
+            "name": "hidden_offset",
             "type": "u32",
             "offset": 24
           },
           {
-            "name": "_pad2",
+            "name": "_pad0",
             "type": "u32",
             "offset": 28
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 32
           }
         ]
       },

@@ -20,6 +20,8 @@ export interface EmbedConfig {
   transpose?: boolean;
   activationDtype?: 'f16' | 'f32';
   embeddingDtype?: 'f16' | 'f32';
+  inputHiddenSize?: number;
+  hiddenOffset?: number;
 }
 
 export interface ValidationResult {

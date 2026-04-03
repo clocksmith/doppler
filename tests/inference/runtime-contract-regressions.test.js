@@ -232,6 +232,89 @@ try {
   }
 
   {
+    const parsed = parseModelConfigFromManifest({
+      modelId: 'gemma4-e2b-contract',
+      modelType: 'text',
+      quantization: 'f16',
+      architecture: {
+        hiddenSize: 1536,
+        numLayers: 35,
+        numHeads: 8,
+        numKVHeads: 1,
+        headDim: 256,
+        intermediateSize: 6144,
+        vocabSize: 262144,
+        maxSeqLen: 131072,
+        ropeTheta: 1000000,
+        hiddenSizePerLayerInput: 256,
+        vocabSizePerLayerInput: 262144,
+      },
+      eos_token_id: 1,
+      inference: {
+        attention: {
+          queryPreAttnScalar: 256,
+          queryKeyNorm: true,
+          attentionBias: false,
+          causal: true,
+          slidingWindow: 512,
+          attnLogitSoftcapping: null,
+        },
+        normalization: {
+          rmsNormWeightOffset: true,
+          rmsNormEps: 1e-6,
+          postAttentionNorm: true,
+          preFeedforwardNorm: true,
+          postFeedforwardNorm: true,
+        },
+        ffn: {
+          activation: 'gelu',
+          gatedActivation: true,
+          swigluLimit: null,
+        },
+        rope: {
+          ropeTheta: 1000000,
+          ropeScalingFactor: 1,
+          ropeScalingType: null,
+          ropeLocalTheta: 10000,
+          ropeLocalScalingType: null,
+          ropeLocalScalingFactor: 1,
+          mropeInterleaved: false,
+          mropeSection: null,
+          partialRotaryFactor: 0.25,
+          yarnBetaFast: null,
+          yarnBetaSlow: null,
+          yarnOriginalMaxPos: null,
+          ropeLocalYarnBetaFast: null,
+          ropeLocalYarnBetaSlow: null,
+          ropeLocalYarnOriginalMaxPos: null,
+        },
+        output: {
+          tieWordEmbeddings: true,
+          scaleEmbeddings: true,
+          embeddingTranspose: false,
+          finalLogitSoftcapping: 30,
+          embeddingVocabSize: null,
+          embeddingPostprocessor: null,
+        },
+        layerPattern: {
+          type: 'custom',
+          globalPattern: null,
+          period: null,
+          offset: null,
+          layerTypes: Array.from({ length: 35 }, (_, index) => index % 5 === 4 ? 'full_attention' : 'sliding_attention'),
+        },
+        chatTemplate: {
+          type: 'gemma',
+          enabled: true,
+        },
+      },
+    });
+
+    assert.equal(parsed.hiddenSizePerLayerInput, 256);
+    assert.equal(parsed.vocabSizePerLayerInput, 262144);
+  }
+
+  {
     setDevice(createKernelCapsOnlyDevice(), { platformConfig: null });
     try {
       const runtimeKV = {

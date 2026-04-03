@@ -104,4 +104,114 @@ const converterConfig = createConverterConfig();
   assert.ok(modelId.includes('flux-2-klein-4b'));
 }
 
+{
+  const gemma4Config = createConverterConfig({
+    quantization: {
+      weights: 'f16',
+      embeddings: 'f16',
+      projector: 'f16',
+      computePrecision: 'f16',
+      q4kLayout: 'row',
+    },
+    output: {
+      modelBaseId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+      textOnly: false,
+    },
+    inference: {
+      attention: {
+        queryPreAttnScalar: 256,
+        attnLogitSoftcapping: null,
+        slidingWindow: 512,
+        queryKeyNorm: true,
+        causal: true,
+        attentionBias: false,
+        attentionOutputGate: false,
+      },
+      normalization: {
+        rmsNormEps: 1e-6,
+        rmsNormWeightOffset: true,
+        postAttentionNorm: true,
+        preFeedforwardNorm: true,
+        postFeedforwardNorm: true,
+      },
+      ffn: {
+        activation: 'gelu',
+        gatedActivation: true,
+        swigluLimit: null,
+      },
+      rope: {
+        ropeTheta: 1000000,
+        ropeLocalTheta: 10000,
+        mropeInterleaved: false,
+        mropeSection: null,
+        partialRotaryFactor: 0.25,
+        ropeScalingType: null,
+        ropeScalingFactor: 1,
+        ropeLocalScalingType: null,
+        ropeLocalScalingFactor: 1,
+        yarnBetaFast: null,
+        yarnBetaSlow: null,
+        yarnOriginalMaxPos: null,
+        ropeLocalYarnBetaFast: null,
+        ropeLocalYarnBetaSlow: null,
+        ropeLocalYarnOriginalMaxPos: null,
+      },
+      output: {
+        finalLogitSoftcapping: 30,
+        tieWordEmbeddings: true,
+        scaleEmbeddings: true,
+        embeddingTranspose: false,
+        embeddingVocabSize: null,
+      },
+      layerPattern: {
+        type: 'every_n',
+        globalPattern: null,
+        period: 5,
+        offset: 4,
+        layerTypes: null,
+      },
+      chatTemplate: {
+        type: 'gemma',
+        enabled: true,
+      },
+    },
+    session: {
+      compute: {
+        defaults: {
+          activationDtype: 'f16',
+          mathDtype: 'f16',
+          accumDtype: 'f16',
+          outputDtype: 'f16',
+        },
+      },
+      kvcache: null,
+      decodeLoop: null,
+    },
+    execution: {
+      kernels: {
+        embed: { kernel: 'gather_f16.wgsl', entry: 'main', digest: 'sha256:0000000000000000000000000000000000000000000000000000000000000000' },
+      },
+      preLayer: [],
+      decode: [],
+      prefill: [],
+      postLayer: [],
+      policies: {
+        unsupportedPrecision: 'error',
+        dtypeTransition: 'require_cast_step',
+        unresolvedKernel: 'error',
+      },
+    },
+  });
+
+  const plan = resolveConversionPlan({
+    rawConfig: { model_type: 'gemma4' },
+    tensors: [
+      { name: 'model.language_model.embed_tokens.weight', dtype: 'F16' },
+      { name: 'model.embed_vision.embedding_projection.weight', dtype: 'F16' },
+    ],
+    converterConfig: gemma4Config,
+  });
+  assert.equal(plan.quantizationInfo?.projector, 'f16');
+}
+
 console.log('conversion-plan.test: ok');

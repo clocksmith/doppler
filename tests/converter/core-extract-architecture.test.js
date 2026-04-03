@@ -81,6 +81,28 @@ const { extractArchitecture } = await import('../../src/converter/core.js');
 
 {
   const architecture = extractArchitecture({
+    model_type: 'gemma4',
+    text_config: {
+      model_type: 'gemma4_text',
+      num_hidden_layers: 35,
+      hidden_size: 1536,
+      intermediate_size: 6144,
+      num_attention_heads: 8,
+      num_key_value_heads: 1,
+      head_dim: 256,
+      vocab_size: 262144,
+      max_position_embeddings: 131072,
+      rope_theta: 1000000,
+      hidden_size_per_layer_input: 256,
+      vocab_size_per_layer_input: 262144,
+    },
+  });
+  assert.equal(architecture.hiddenSizePerLayerInput, 256);
+  assert.equal(architecture.vocabSizePerLayerInput, 262144);
+}
+
+{
+  const architecture = extractArchitecture({
     model_type: 'qwen2',
     num_hidden_layers: 4,
     hidden_size: 512,

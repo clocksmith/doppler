@@ -147,6 +147,8 @@ export interface ArchitectureSchema {
   headDim: number;
   vocabSize: number;
   maxSeqLen: number;
+  hiddenSizePerLayerInput?: number;
+  vocabSizePerLayerInput?: number;
   ropeTheta?: number;
   rmsNormEps?: number;
   linearNumKeyHeads?: number;
@@ -459,6 +461,9 @@ export interface ManifestSchema {
   hashAlgorithm: HashAlgorithm;
   totalSize: number;
   eos_token_id: number | number[] | null;
+  image_token_id?: number;
+  audio_token_id?: number;
+  video_token_id?: number;
 
   // Architecture (required)
   architecture: ArchitectureSchema | string;

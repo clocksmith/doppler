@@ -62,6 +62,7 @@ export {
 export {
   createUniformBufferFromData,
   createUniformBufferWithView,
+  getUniformByteLength,
   writeUniformsFromObject,
 } from './uniform-utils.js';
 
@@ -74,6 +75,7 @@ import { getPipelineFast } from './pipeline-cache.js';
 import { getDevice } from '../device.js';
 import { dispatchKernel, dispatchIndirect, recordDispatchIndirect } from './dispatch.js';
 import { createUniformBufferWithView as createUniformBuffer } from './uniform-utils.js';
+import { getUniformByteLength } from './uniform-utils.js';
 import { writeUniformsFromObject } from './uniform-utils.js';
 
 export async function unifiedKernelWrapper(opName, target, variant, bindings, uniforms, workgroups, constants = null, extraBindings = null) {
@@ -84,7 +86,7 @@ export async function unifiedKernelWrapper(opName, target, variant, bindings, un
 
   const uniformBuffer = createUniformBuffer(
     `${opName}_uniforms`,
-    config.uniforms.size,
+    getUniformByteLength(config),
     (view) => writeUniformsFromObject(view, config, uniforms),
     recorder,
     device

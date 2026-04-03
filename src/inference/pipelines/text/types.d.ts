@@ -21,6 +21,7 @@ import type { WeightBufferConfig, WeightDebugFlags } from './weights.js';
 import type { KVCache, SlidingWindowKVCache, TieredKVCache, BasisDecomposedPagedCache } from '../../kv-cache.js';
 import type { DecodeRingStats } from '../../decode-ring.js';
 import type { LinearAttentionRuntime } from './linear-attention.js';
+import type { PerLayerInputWeights } from '../../../loader/loader-types.js';
 
 // ============================================================================
 // Core Context Types
@@ -46,7 +47,7 @@ export interface LayerContext {
   /** Model configuration */
   config: ParsedModelConfig;
   /** Layer weights map */
-  weights: Map<string, LayerWeights | Float32Array | GPUBuffer | WeightBuffer | CpuWeightBuffer>;
+  weights: Map<string, LayerWeights | Float32Array | GPUBuffer | WeightBuffer | CpuWeightBuffer | PerLayerInputWeights | null>;
   /** KV cache instance */
   kvCache: KVCache | SlidingWindowKVCache | TieredKVCache | BasisDecomposedPagedCache;
   /** Recurrent runtime state for linear_attention layers */
@@ -65,6 +66,8 @@ export interface LayerContext {
   debugLayers?: number[] | null;
   /** Optional GPU buffer readback helper for debug checks */
   debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>;
+  /** Gemma 4 per-layer input buffer for the active decoder layer. */
+  perLayerInputBuffer?: GPUBuffer | null;
   /** Optional layer pipeline plan (JSON-configured) */
   pipelinePlan?: CompiledLayerPipeline | null;
   /** RoPE frequency buffers (global for full_attention layers) */
@@ -165,7 +168,7 @@ export interface PipelineContext {
   config: ParsedModelConfig;
 
   /** Weight buffers map (name -> GPUBuffer | WeightBuffer | Float32Array) */
-  weights: Map<string, GPUBuffer | WeightBuffer | Float32Array>;
+  weights: Map<string, GPUBuffer | WeightBuffer | Float32Array | PerLayerInputWeights | null>;
 
   /** KV cache instance */
   kvCache: KVCacheInterface;

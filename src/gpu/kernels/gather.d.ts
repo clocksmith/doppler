@@ -25,6 +25,10 @@ export interface GatherOptions extends OutputBufferOptions {
   transpose?: boolean;
   /** Optional index offset into the token indices buffer. */
   indexOffset?: number;
+  /** Total hidden size stored in the source embedding table (defaults to hiddenSize). */
+  inputHiddenSize?: number;
+  /** Hidden-dimension offset inside the source embedding row (defaults to 0). */
+  hiddenOffset?: number;
   /** Optional indirect dispatch buffer for GPU-driven workgroup counts. */
   indirectBuffer?: GPUBuffer | null;
   /** Byte offset into indirect dispatch buffer (default: 0). */

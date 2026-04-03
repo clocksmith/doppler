@@ -370,6 +370,7 @@ export class InferencePipeline extends PipelineState {
     this.weights.set('embed', result.embeddings);
     this.weights.set('lm_head', result.lmHead);
     this.weights.set('final_norm', result.finalNorm);
+    this.weights.set('per_layer_inputs', result.perLayerInputWeights);
     this.embeddingPostprocessor = result.embeddingPostprocessor;
 
     this.layerRouterWeights = result.layerRouterWeights;
@@ -812,6 +813,7 @@ async function createTransformerPipeline(manifest, contexts = {}) {
 }
 
 registerPipeline('transformer', createTransformerPipeline);
+registerPipeline('gemma4', createTransformerPipeline);
 
 export class EmbeddingPipeline extends InferencePipeline {
   async *generate() {

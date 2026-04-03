@@ -40,6 +40,32 @@ export function writeUniformsFromObject(view, config, values) {
   }
 }
 
+export function getUniformByteLength(config) {
+  const uniforms = config?.uniforms;
+  if (!uniforms) {
+    return 0;
+  }
+
+  const declaredSize = Number.isFinite(uniforms.size) ? uniforms.size : 0;
+  let requiredSize = 0;
+  for (const field of uniforms.fields ?? []) {
+    if (!Number.isFinite(field?.offset)) {
+      continue;
+    }
+    switch (field.type) {
+      case 'u32':
+      case 'i32':
+      case 'f32':
+        requiredSize = Math.max(requiredSize, field.offset + 4);
+        break;
+      default:
+        break;
+    }
+  }
+
+  return Math.max(declaredSize, requiredSize);
+}
+
 
 export function createUniformBufferFromData(
   label,

@@ -20,9 +20,10 @@ struct Uniforms {
     vocab_size: u32,      // Vocabulary size (for bounds checking)
     transpose: u32,       // 1 if embeddings are [hidden_size, vocab_size] (GGUF layout), 0 otherwise
     index_offset: u32,    // Starting index into indices buffer
+    input_hidden_size: u32, // Source embedding row width before hidden slicing
+    hidden_offset: u32,   // Starting hidden dimension inside each embedding row
     _pad0: u32,
     _pad1: u32,
-    _pad2: u32,
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -56,10 +57,11 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     // For GGUF layout [hidden_size, vocab_size]: offset = dim_idx * vocab_size + token_id
     // For standard layout [vocab_size, hidden_size]: offset = token_id * hidden_size + dim_idx
     var embed_offset: u32;
+    let source_dim = u.hidden_offset + dim_idx;
     if (u.transpose == 1u) {
-        embed_offset = dim_idx * u.vocab_size + token_id;
+        embed_offset = source_dim * u.vocab_size + token_id;
     } else {
-        embed_offset = token_id * u.hidden_size + dim_idx;
+        embed_offset = token_id * u.input_hidden_size + source_dim;
     }
     output[tid] = f32(embeddings[embed_offset]);
 }

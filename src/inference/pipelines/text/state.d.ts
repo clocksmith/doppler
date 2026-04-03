@@ -31,6 +31,7 @@ import type { KernelPathSource } from '../../../config/kernel-path-loader.js';
 import type { EmulationContext } from '/proto/simulator/index.js';
 import type { PipelineStorageContext } from './init.js';
 import type { LinearAttentionRuntime } from './linear-attention.js';
+import type { PerLayerInputWeights } from '../../../loader/loader-types.js';
 
 export class PipelineState {
   // Components
@@ -58,7 +59,7 @@ export class PipelineState {
   // Model state
   manifest: Manifest | null;
   modelConfig: ParsedModelConfig | null;
-  weights: Map<string, LayerWeights | GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null>;
+  weights: Map<string, LayerWeights | GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | PerLayerInputWeights | null>;
   expertWeights: Map<string, ExpertWeights>;
 
   // Runtime state

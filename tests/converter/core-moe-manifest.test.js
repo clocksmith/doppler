@@ -87,6 +87,40 @@ const BASE_MANIFEST_OPTIONS = {
 }
 
 {
+  const manifest = createManifest(
+    'gemma4-moe-test',
+    {
+      name: 'gemma4-moe-test',
+      modelId: 'gemma4-moe-test',
+      quantization: 'F16',
+      tensors: [{ name: 'model.layers.0.mlp.experts.gate_up_proj_blocks', shape: [1], dtype: 'F16', size: 2 }],
+      config: {
+        model_type: 'gemma4',
+        text_config: {
+          model_type: 'gemma4_text',
+          num_experts: 128,
+          top_k_experts: 8,
+          eos_token_id: 1,
+        },
+      },
+      architecture: BASE_ARCH,
+    },
+    SHARDS,
+    MOE_TENSOR_LOCATIONS,
+    {
+      ...BASE_MANIFEST_OPTIONS,
+      modelType: 'transformer',
+    }
+  );
+
+  assert.deepEqual(
+    manifest.moeConfig,
+    { numExperts: 128, numExpertsPerToken: 8, expertFormat: 'mixtral' },
+    'manifest should derive Gemma 4 moeConfig from top_k_experts'
+  );
+}
+
+{
   assert.throws(
     () => createManifest(
       'gpt-oss-moe-missing-topk',

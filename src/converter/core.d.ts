@@ -64,6 +64,42 @@ export type ConvertProgress = ConversionProgressSchema;
 /** @deprecated Use ConversionOptionsSchema from config/schema */
 export type ConvertOptions = ConversionOptionsSchema;
 
+export interface ConvertTensorTransformInput {
+  tensor: {
+    name: string;
+    shape: number[];
+    dtype: string;
+    size?: number;
+    offset?: number;
+    sourcePath?: string | null;
+    role?: TensorRole | null;
+  };
+  tensorData: Uint8Array;
+  transformContext?: Record<string, unknown> | null;
+  reportProgress?: ((currentBytes: number, totalBytes: number) => void) | null;
+}
+
+export interface ConvertTensorTransformResult {
+  tensorData: Uint8Array;
+  outDtype?: string | null;
+  outLayout?: string | null;
+}
+
+export interface ConvertLargeTensorTransformInput {
+  tensor: {
+    name: string;
+    shape: number[];
+    dtype: string;
+    size?: number;
+    offset?: number;
+    sourcePath?: string | null;
+    role?: TensorRole | null;
+  };
+  transformContext?: Record<string, unknown> | null;
+  reportProgress?: ((currentBytes: number, totalBytes: number) => void) | null;
+  writeChunk: (result: ConvertTensorTransformResult) => Promise<void>;
+}
+
 /** @deprecated Use ShardSchema from config/schema */
 export type ShardInfo = ShardSchema;
 
@@ -118,6 +154,9 @@ export interface RDRRManifest {
   totalSize: number;
   hashAlgorithm: string;
   eos_token_id: number | number[] | null;
+  image_token_id?: number;
+  audio_token_id?: number;
+  video_token_id?: number;
   conversion?: ConversionInfoSchema;
   tokenizer?: TokenizerInfo;
   metadata: {
@@ -259,5 +298,11 @@ export declare function createManifest(
 export declare function convertModel(
   model: ParsedModel,
   io: ConvertIO,
-  options?: ConvertOptions
+  options?: ConvertOptions & {
+    tensorTransformer?: ((input: ConvertTensorTransformInput) => Promise<ConvertTensorTransformResult> | ConvertTensorTransformResult) | null;
+    largeTensorTransformer?: ((input: ConvertLargeTensorTransformInput) => Promise<{
+      outDtype?: string | null;
+      outLayout?: string | null;
+    } | void>) | null;
+  }
 ): Promise<ConvertResult>;

@@ -26,6 +26,7 @@ import { getFinalNormWeights, extractEmbeddingFromHidden } from './generator-run
 import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
 import { hasLinearAttentionLayers } from './linear-attention.js';
 import { hasConvLayers } from './layer.js';
+import { preparePerLayerInputs } from './per-layer-inputs.js';
 
 const UNKNOWN_TOKEN_TEXT = '<unknown>';
 
@@ -69,6 +70,21 @@ function isOwnedDecodeBuffer(candidate, decodeHiddenBuffer, decodeAltBuffer) {
     return true;
   }
   return candidate === decodeAltBuffer;
+}
+
+function releasePerLayerInputBuffer(buffer, recorder, decodeBuffers) {
+  if (!buffer) {
+    return;
+  }
+  const ownsBuffer = decodeBuffers?.ownsBuffer(buffer) ?? false;
+  if (ownsBuffer) {
+    return;
+  }
+  if (recorder) {
+    recorder.trackTemporaryBuffer(buffer);
+    return;
+  }
+  releaseBuffer(buffer);
 }
 
 export class FinitenessError extends Error {
@@ -287,14 +303,33 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
 
   let hiddenStates = embedTensor.buffer;
 
-  for (let l = 0; l < config.numLayers; l++) {
-    const prevStates = hiddenStates;
-    hiddenStates = (await processLayer(l, hiddenStates, 1, false, context));
-    state.decodeBuffers.swapPingPong();
-    if (isGpuBufferInstance(prevStates) && prevStates !== hiddenStates) {
-      const isPreAllocated = isOwnedDecodeBuffer(prevStates, decodeHiddenBuffer, decodeAltBuffer);
-      if (!isPreAllocated) {
-        releaseBuffer(prevStates);
+  const perLayerInputs = await preparePerLayerInputs([tokenId], embedTensor, context, {
+    numTokens: 1,
+  });
+
+  try {
+    for (let l = 0; l < config.numLayers; l++) {
+      context.perLayerInputBuffer = perLayerInputs?.[l] ?? null;
+      const prevStates = hiddenStates;
+      hiddenStates = (await processLayer(l, hiddenStates, 1, false, context));
+      state.decodeBuffers.swapPingPong();
+      releasePerLayerInputBuffer(context.perLayerInputBuffer, null, context.decodeBuffers);
+      if (perLayerInputs) {
+        perLayerInputs[l] = null;
+      }
+      context.perLayerInputBuffer = null;
+      if (isGpuBufferInstance(prevStates) && prevStates !== hiddenStates) {
+        const isPreAllocated = isOwnedDecodeBuffer(prevStates, decodeHiddenBuffer, decodeAltBuffer);
+        if (!isPreAllocated) {
+          releaseBuffer(prevStates);
+        }
+      }
+    }
+  } finally {
+    context.perLayerInputBuffer = null;
+    if (perLayerInputs) {
+      for (const buffer of perLayerInputs) {
+        releasePerLayerInputBuffer(buffer, null, context.decodeBuffers);
       }
     }
   }
@@ -407,6 +442,9 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   });
 
   let hiddenStates = embedTensor.buffer;
+  const perLayerInputs = await preparePerLayerInputs([lastToken], embedTensor, context, {
+    numTokens: 1,
+  });
 
   if (opts.debug && state.decodeStepCount === 1) {
     const validSize = config.hiddenSize * activationBytes;
@@ -429,20 +467,35 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     log.debug('Decode', `KV cache check: hasGPUCache=${hasGPUCache}, currentSeqLen=${context.currentSeqLen}`);
   }
 
-  for (let l = 0; l < config.numLayers; l++) {
-    const prevStates = hiddenStates;
-    hiddenStates = (await processLayer(l, hiddenStates, numTokens, false, context));
+  try {
+    for (let l = 0; l < config.numLayers; l++) {
+      context.perLayerInputBuffer = perLayerInputs?.[l] ?? null;
+      const prevStates = hiddenStates;
+      hiddenStates = (await processLayer(l, hiddenStates, numTokens, false, context));
 
-    state.decodeBuffers.swapPingPong();
+      state.decodeBuffers.swapPingPong();
+      releasePerLayerInputBuffer(context.perLayerInputBuffer, recorder, context.decodeBuffers);
+      if (perLayerInputs) {
+        perLayerInputs[l] = null;
+      }
+      context.perLayerInputBuffer = null;
 
-    if (isGpuBufferInstance(prevStates) && prevStates !== hiddenStates) {
-      const isPreAllocated = isOwnedDecodeBuffer(prevStates, decodeHiddenBuffer, decodeAltBuffer);
-      if (!isPreAllocated) {
-        if (recorder) {
-          recorder.trackTemporaryBuffer(prevStates);
-        } else {
-          releaseBuffer(prevStates);
+      if (isGpuBufferInstance(prevStates) && prevStates !== hiddenStates) {
+        const isPreAllocated = isOwnedDecodeBuffer(prevStates, decodeHiddenBuffer, decodeAltBuffer);
+        if (!isPreAllocated) {
+          if (recorder) {
+            recorder.trackTemporaryBuffer(prevStates);
+          } else {
+            releaseBuffer(prevStates);
+          }
         }
+      }
+    }
+  } finally {
+    context.perLayerInputBuffer = null;
+    if (perLayerInputs) {
+      for (const buffer of perLayerInputs) {
+        releasePerLayerInputBuffer(buffer, recorder, context.decodeBuffers);
       }
     }
   }
@@ -1137,14 +1190,33 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
       });
 
       let hiddenStatesBuffer = hiddenTensor.buffer;
-      for (let l = 0; l < config.numLayers; l++) {
-        const prevStates = hiddenStatesBuffer;
-        hiddenStatesBuffer = (await processLayer(l, hiddenStatesBuffer, 1, false, context));
-        context.decodeBuffers?.swapPingPong();
-        if (isGpuBufferInstance(prevStates) && prevStates !== hiddenStatesBuffer) {
-          const ownsBuffer = context.decodeBuffers?.ownsBuffer(prevStates);
-          if (!ownsBuffer) {
-            recorder.trackTemporaryBuffer(prevStates);
+      const perLayerInputs = await preparePerLayerInputs(tokensBuffer, hiddenTensor, context, {
+        numTokens: 1,
+        indexOffset: i,
+      });
+      try {
+        for (let l = 0; l < config.numLayers; l++) {
+          context.perLayerInputBuffer = perLayerInputs?.[l] ?? null;
+          const prevStates = hiddenStatesBuffer;
+          hiddenStatesBuffer = (await processLayer(l, hiddenStatesBuffer, 1, false, context));
+          context.decodeBuffers?.swapPingPong();
+          releasePerLayerInputBuffer(context.perLayerInputBuffer, recorder, context.decodeBuffers);
+          if (perLayerInputs) {
+            perLayerInputs[l] = null;
+          }
+          context.perLayerInputBuffer = null;
+          if (isGpuBufferInstance(prevStates) && prevStates !== hiddenStatesBuffer) {
+            const ownsBuffer = context.decodeBuffers?.ownsBuffer(prevStates);
+            if (!ownsBuffer) {
+              recorder.trackTemporaryBuffer(prevStates);
+            }
+          }
+        }
+      } finally {
+        context.perLayerInputBuffer = null;
+        if (perLayerInputs) {
+          for (const buffer of perLayerInputs) {
+            releasePerLayerInputBuffer(buffer, recorder, context.decodeBuffers);
           }
         }
       }

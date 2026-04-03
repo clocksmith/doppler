@@ -109,6 +109,7 @@ export function classifyTensorRole(name) {
 
   const embeddingPatterns = [
     'embed_tokens.weight',
+    'embed_tokens_per_layer.weight',
     'token_embd.weight',
     'token_embedding.weight',
     'position_embedding.weight',
@@ -123,6 +124,13 @@ export function classifyTensorRole(name) {
 
   if (lower.includes('lm_head')) return 'lm_head';
   if (lower.endsWith('output.weight') && !lower.includes('attn_')) return 'lm_head';
+
+  // Multimodal: projector tensors
+  if (lower.startsWith('multi_modal_projector.') || lower.startsWith('model.multi_modal_projector.')
+    || lower.startsWith('mm_projector.') || lower.startsWith('model.mm_projector.')
+    || lower.startsWith('embed_vision.') || lower.startsWith('model.embed_vision.')) {
+    return 'projector';
+  }
 
   // Multimodal: vision encoder tensors
   if (lower.startsWith('vision_tower.') || lower.startsWith('vision_model.')
@@ -139,12 +147,6 @@ export function classifyTensorRole(name) {
     || lower.startsWith('audio.') || lower.startsWith('model.audio.')
     || lower.startsWith('audio_encoder.')) {
     return 'audio';
-  }
-
-  // Multimodal: projector tensors
-  if (lower.startsWith('multi_modal_projector.') || lower.startsWith('model.multi_modal_projector.')
-    || lower.startsWith('mm_projector.') || lower.startsWith('model.mm_projector.')) {
-    return 'projector';
   }
 
   if (lower.includes('shared_expert') || /experts?[._]/.test(lower)) {

@@ -79,6 +79,8 @@ export interface RawConfig {
   attention_bias?: boolean;
   quantization_config?: { quant_method?: string };
   scale_embeddings?: boolean;
+  hidden_size_per_layer_input?: number;
+  vocab_size_per_layer_input?: number;
   rms_norm_weight_offset?: boolean;
   final_logit_softcapping?: number;
   attn_logit_softcapping?: number;
@@ -141,6 +143,8 @@ export interface ParsedModelConfig {
   numKVHeads: number;
   headDim: number;
   vocabSize: number;
+  hiddenSizePerLayerInput: number | null;
+  vocabSizePerLayerInput: number | null;
   maxSeqLen: number;
   useMoE: boolean;
   numExperts: number;

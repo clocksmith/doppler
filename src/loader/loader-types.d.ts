@@ -70,6 +70,16 @@ export interface LayerWeights {
   routerWeight?: GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | Float32Array | null;
   routerBias?: GPUBuffer | Float32Array | null;
   attentionSinks?: GPUBuffer | Float32Array | null;
+  perLayerInputGate?: GPUBuffer | WeightBuffer | Float32Array | null;
+  perLayerProjection?: GPUBuffer | WeightBuffer | Float32Array | null;
+  postPerLayerInputNorm?: GPUBuffer | Float32Array | null;
+  layerScalar?: GPUBuffer | Float32Array | null;
+}
+
+export interface PerLayerInputWeights {
+  embedTokensPerLayer: GPUBuffer | WeightBuffer | Float32Array | null;
+  perLayerModelProjection: GPUBuffer | WeightBuffer | Float32Array | null;
+  perLayerProjectionNorm: GPUBuffer | Float32Array | null;
 }
 
 /**

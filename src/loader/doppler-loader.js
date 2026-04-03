@@ -35,6 +35,7 @@ import {
   loadTensorToCPU,
 } from './tensors/tensor-loader.js';
 import { loadEmbeddings } from './embedding-loader.js';
+import { loadPerLayerInputWeights } from './per-layer-input-loader.js';
 import { loadLayer } from './layer-loader.js';
 import { loadFinalWeights } from './final-weights-loader.js';
 import {
@@ -112,6 +113,8 @@ export class DopplerLoader {
   finalNorm = null;
 
   embeddingPostprocessor = null;
+
+  perLayerInputWeights = null;
 
   // Memory management
   
@@ -858,6 +861,13 @@ export class DopplerLoader {
     };
 
     this.embeddings = await loadEmbeddings(ctx);
+    this.perLayerInputWeights = await loadPerLayerInputWeights({
+      modelId: this.manifest?.modelId ?? null,
+      tensorLocations: this.tensorLocations,
+      loadTensor: (name, toGPU, silent) => this.#loadTensor(name, toGPU, silent),
+      shouldStreamLargeWeight: (name, loc, label) => this.#shouldStreamLargeWeight(name, loc, label),
+      resolveWeightLayout: (loc) => this.#resolveWeightLayout(loc),
+    }, this.manifest?.architecture ?? null);
   }
 
   
@@ -1059,6 +1069,7 @@ export class DopplerLoader {
     this.lmHead = null;
     this.finalNorm = null;
     this.embeddingPostprocessor = null;
+    this.perLayerInputWeights = null;
     this.manifest = null;
     clearManifest();
     this.modelId = null;

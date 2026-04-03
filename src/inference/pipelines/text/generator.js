@@ -67,6 +67,7 @@ import {
   resetLinearAttentionRuntime,
   restoreLinearAttentionRuntime,
 } from './linear-attention.js';
+import { preparePerLayerInputs } from './per-layer-inputs.js';
 
 function isStructuredChatRequest(prompt) {
   return prompt != null
@@ -113,6 +114,21 @@ function resolvePromptInput(state, prompt, useChatTemplate, contextLabel) {
   }
   const templateType = useChatTemplate ? state.modelConfig.chatTemplateType : null;
   return formatChatMessages(messages, templateType);
+}
+
+function releasePerLayerInputBuffer(buffer, recorder, decodeBuffers) {
+  if (!buffer) {
+    return;
+  }
+  const ownsBuffer = decodeBuffers?.ownsBuffer(buffer) ?? false;
+  if (ownsBuffer) {
+    return;
+  }
+  if (recorder) {
+    recorder.trackTemporaryBuffer(buffer);
+    return;
+  }
+  releaseBuffer(buffer);
 }
 
 /**
@@ -1487,6 +1503,9 @@ export class PipelineGenerator {
       activationDtype,
       embeddingDtype: selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype }),
     });
+    const perLayerInputs = await preparePerLayerInputs(inputIds, hiddenStates, context, {
+      numTokens,
+    });
 
     if (opts.debug && isGpuBufferInstance(hiddenStates)) {
       if (recorder) {
@@ -1521,60 +1540,75 @@ export class PipelineGenerator {
     let currentRecorder = recorder;
 
     let currentHiddenBuffer = hiddenStates.buffer;
-    for (let l = 0; l < config.numLayers; l++) {
-      context.recorder = currentRecorder;
+    try {
+      for (let l = 0; l < config.numLayers; l++) {
+        context.recorder = currentRecorder;
+        context.perLayerInputBuffer = perLayerInputs?.[l] ?? null;
 
-      const prevBuffer = currentHiddenBuffer;
-      const layerOutput = await processLayer(l, currentHiddenBuffer, numTokens, true, context);
-      if (!isGpuBufferInstance(layerOutput)) throw new Error('Expected GPUBuffer from processLayer');
-      currentHiddenBuffer = layerOutput;
+        const prevBuffer = currentHiddenBuffer;
+        const layerOutput = await processLayer(l, currentHiddenBuffer, numTokens, true, context);
+        if (!isGpuBufferInstance(layerOutput)) throw new Error('Expected GPUBuffer from processLayer');
+        currentHiddenBuffer = layerOutput;
+        releasePerLayerInputBuffer(context.perLayerInputBuffer, currentRecorder, context.decodeBuffers);
+        if (perLayerInputs) {
+          perLayerInputs[l] = null;
+        }
+        context.perLayerInputBuffer = null;
 
-      const isCheckpoint = useCheckpoints && opts.debugLayers?.includes(l);
+        const isCheckpoint = useCheckpoints && opts.debugLayers?.includes(l);
 
-      if (isCheckpoint && currentRecorder) {
-        await currentRecorder.submitAndWait();
-        await recordProfile(currentRecorder);
-        currentRecorder = undefined;
-      }
+        if (isCheckpoint && currentRecorder) {
+          await currentRecorder.submitAndWait();
+          await recordProfile(currentRecorder);
+          currentRecorder = undefined;
+        }
 
-      const shouldDebug = opts.debug && currentHiddenBuffer && (!recorder || isCheckpoint);
-      if (shouldDebug && !currentRecorder) {
-        const device = getDevice();
-        if (device) {
-          if (allowReadback(`pipeline.prefill.layer-${l}`)) {
-            try {
-              const sampleSize = config.hiddenSize * activationBytes;
-              const lastTokenOffset = (numTokens - 1) * config.hiddenSize * activationBytes;
-              const readback = await readBufferSlice(currentHiddenBuffer, lastTokenOffset, sampleSize);
-              const data = decodeReadback(readback, activationDtype);
-              let min = Infinity;
-              let max = -Infinity;
-              let maxAbs = 0;
-              for (const v of data) {
-                if (!Number.isFinite(v)) continue;
-                if (v < min) min = v;
-                if (v > max) max = v;
-                const av = Math.abs(v);
-                if (av > maxAbs) maxAbs = av;
+        const shouldDebug = opts.debug && currentHiddenBuffer && (!recorder || isCheckpoint);
+        if (shouldDebug && !currentRecorder) {
+          const device = getDevice();
+          if (device) {
+            if (allowReadback(`pipeline.prefill.layer-${l}`)) {
+              try {
+                const sampleSize = config.hiddenSize * activationBytes;
+                const lastTokenOffset = (numTokens - 1) * config.hiddenSize * activationBytes;
+                const readback = await readBufferSlice(currentHiddenBuffer, lastTokenOffset, sampleSize);
+                const data = decodeReadback(readback, activationDtype);
+                let min = Infinity;
+                let max = -Infinity;
+                let maxAbs = 0;
+                for (const v of data) {
+                  if (!Number.isFinite(v)) continue;
+                  if (v < min) min = v;
+                  if (v > max) max = v;
+                  const av = Math.abs(v);
+                  if (av > maxAbs) maxAbs = av;
+                }
+                const sample = Array.from(data).slice(0, 3).map(x => x.toFixed(3)).join(', ');
+                log.debug('Pipeline', `LAYER_${l}_LAST[pos=${numTokens - 1}]: min=${min.toFixed(3)}, max=${max.toFixed(3)}, maxAbs=${maxAbs.toFixed(2)}, sample=[${sample}]`);
+              } catch (e) {
+                log.debug('Pipeline', `LAYER_${l}_LAST: error reading buffer: ${e}`);
               }
-              const sample = Array.from(data).slice(0, 3).map(x => x.toFixed(3)).join(', ');
-              log.debug('Pipeline', `LAYER_${l}_LAST[pos=${numTokens - 1}]: min=${min.toFixed(3)}, max=${max.toFixed(3)}, maxAbs=${maxAbs.toFixed(2)}, sample=[${sample}]`);
-            } catch (e) {
-              log.debug('Pipeline', `LAYER_${l}_LAST: error reading buffer: ${e}`);
             }
           }
         }
-      }
 
-      if (isCheckpoint && useCheckpoints && l < config.numLayers - 1) {
-        currentRecorder = createRecorder('prefill-cont');
-      }
+        if (isCheckpoint && useCheckpoints && l < config.numLayers - 1) {
+          currentRecorder = createRecorder('prefill-cont');
+        }
 
-      if (prevBuffer !== currentHiddenBuffer) {
-        if (currentRecorder) {
-          currentRecorder.trackTemporaryBuffer(prevBuffer);
-        } else {
-          releaseBuffer(prevBuffer);
+        if (prevBuffer !== currentHiddenBuffer) {
+          if (currentRecorder) {
+            currentRecorder.trackTemporaryBuffer(prevBuffer);
+          } else {
+            releaseBuffer(prevBuffer);
+          }
+        }
+      }
+    } finally {
+      context.perLayerInputBuffer = null;
+      if (perLayerInputs) {
+        for (const buffer of perLayerInputs) {
+          releasePerLayerInputBuffer(buffer, currentRecorder, context.decodeBuffers);
         }
       }
     }

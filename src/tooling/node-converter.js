@@ -162,6 +162,88 @@ function normalizeWorkerTransformResult(result, tensor) {
   };
 }
 
+const MAX_NODE_CONVERT_BUFFER_BYTES = 0xffff_ffff;
+
+function resolveRowChunkTransformPlan(input) {
+  const tensor = input?.tensor;
+  const execution = input?.execution;
+  const transformContext = input?.transformContext ?? {};
+  const resolveTensorTargetQuant = input?.resolveTensorTargetQuant;
+  const normalizeStorageQuant = input?.normalizeStorageQuant;
+  const shouldQuantize = input?.shouldQuantize;
+  const tensorByteLength = Number(input?.tensorByteLength ?? 0);
+
+  if (!tensor || !execution) {
+    throw new Error('node convert: row chunk transform plan requires tensor and execution.');
+  }
+  if (typeof resolveTensorTargetQuant !== 'function' || typeof normalizeStorageQuant !== 'function') {
+    throw new Error('node convert: row chunk transform plan requires quantization helpers.');
+  }
+  if (typeof shouldQuantize !== 'function') {
+    throw new Error('node convert: row chunk transform plan requires shouldQuantize().');
+  }
+
+  const sourceDtype = String(tensor.dtype || '').toUpperCase();
+  const sourceQuant = normalizeStorageQuant(sourceDtype);
+  const tensorTargetQuant = resolveTensorTargetQuant(
+    tensor.name,
+    transformContext.targetQuant,
+    transformContext.quantizationInfo ?? null
+  );
+  const is2D = Array.isArray(tensor.shape) && tensor.shape.length === 2;
+  const rows = is2D ? tensor.shape[0] : 0;
+  const cols = is2D ? tensor.shape[1] : 0;
+  const sourceBytesPerElement = getDtypeBytes(sourceDtype);
+  const q4kLayout = String(transformContext.q4kLayout || 'row').trim().toLowerCase() === 'col'
+    ? 'col'
+    : 'row';
+  const canChunkRows = (
+    is2D
+    && rows > 0
+    && cols > 0
+    && sourceBytesPerElement != null
+    && sourceQuant !== 'q4k'
+    && tensorByteLength >= execution.rowChunkMinTensorBytes
+    && !(tensorTargetQuant === 'q4k' && q4kLayout === 'col')
+  );
+  const jobMode = selectRuleValue('converter', 'execution', 'jobMode', {
+    workers: execution.effectiveWorkers,
+    canChunkRows,
+  });
+  if (jobMode !== 'row_chunks' || !canChunkRows) {
+    return null;
+  }
+
+  const rowChunkRows = execution.rowChunkRows
+    ?? selectRuleValue('converter', 'execution', 'rowChunkRows', {
+      workers: execution.effectiveWorkers,
+      canChunkRows,
+    });
+  if (!Number.isInteger(rowChunkRows) || rowChunkRows < 1) {
+    return null;
+  }
+
+  const rowSourceBytes = cols * sourceBytesPerElement;
+  if (!Number.isInteger(rowSourceBytes) || rowSourceBytes < 1) {
+    return null;
+  }
+
+  const forceQuantizeDecision = tensorTargetQuant === 'q4k'
+    ? shouldQuantize(tensor.name, tensor.shape, {
+      quantizeEmbeddings: Boolean(transformContext.quantizeEmbeddings),
+      modulesToNotConvert: transformContext.modulesToNotConvert ?? null,
+    })
+    : null;
+
+  return {
+    rows,
+    cols,
+    rowChunkRows,
+    rowSourceBytes,
+    forceQuantizeDecision,
+  };
+}
+
 async function mapWithConcurrency(items, concurrency, mapper) {
   if (!Array.isArray(items) || items.length === 0) return [];
   const workerCount = Math.max(1, Math.min(concurrency, items.length));
@@ -679,76 +761,28 @@ function createNodeTensorTransformer(options) {
     if (!tensor || !(tensorData instanceof Uint8Array)) {
       throw new Error('node convert: invalid tensor transform input.');
     }
-
-    const sourceDtype = String(tensor.dtype || '').toUpperCase();
-    const sourceQuant = normalizeStorageQuant(sourceDtype);
-    const tensorTargetQuant = resolveTensorTargetQuant(
-      tensor.name,
-      transformContext.targetQuant,
-      transformContext.quantizationInfo ?? null
-    );
-
-    const is2D = Array.isArray(tensor.shape) && tensor.shape.length === 2;
-    const rows = is2D ? tensor.shape[0] : 0;
-    const cols = is2D ? tensor.shape[1] : 0;
-    const sourceBytesPerElement = getDtypeBytes(sourceDtype);
-    const q4kLayout = String(transformContext.q4kLayout || 'row').trim().toLowerCase() === 'col'
-      ? 'col'
-      : 'row';
-    const canChunkRows = (
-      is2D
-      && rows > 0
-      && cols > 0
-      && sourceBytesPerElement != null
-      && sourceQuant !== 'q4k'
-      && tensorData.byteLength >= execution.rowChunkMinTensorBytes
-      && !(tensorTargetQuant === 'q4k' && q4kLayout === 'col')
-    );
-
-    const jobMode = selectRuleValue('converter', 'execution', 'jobMode', {
-      workers: execution.effectiveWorkers,
-      canChunkRows,
+    const chunkPlan = resolveRowChunkTransformPlan({
+      tensor,
+      tensorByteLength: tensorData.byteLength,
+      execution,
+      transformContext,
+      resolveTensorTargetQuant,
+      normalizeStorageQuant,
+      shouldQuantize,
     });
 
-    if (jobMode !== 'row_chunks' || !canChunkRows) {
+    if (!chunkPlan) {
       const transformed = await pool.transformTensor(tensor, tensorData, transformContext);
       const normalized = normalizeWorkerTransformResult(transformed, tensor);
       reportProgress?.(tensorData.byteLength, tensorData.byteLength);
       return normalized;
     }
-
-    const rowChunkRows = execution.rowChunkRows
-      ?? selectRuleValue('converter', 'execution', 'rowChunkRows', {
-        workers: execution.effectiveWorkers,
-        canChunkRows,
-      });
-    if (!Number.isInteger(rowChunkRows) || rowChunkRows < 1) {
-      const transformed = await pool.transformTensor(tensor, tensorData, transformContext);
-      const normalized = normalizeWorkerTransformResult(transformed, tensor);
-      reportProgress?.(tensorData.byteLength, tensorData.byteLength);
-      return normalized;
-    }
-
-    const rowSourceBytes = cols * sourceBytesPerElement;
-    if (!Number.isInteger(rowSourceBytes) || rowSourceBytes < 1) {
-      const transformed = await pool.transformTensor(tensor, tensorData, transformContext);
-      const normalized = normalizeWorkerTransformResult(transformed, tensor);
-      reportProgress?.(tensorData.byteLength, tensorData.byteLength);
-      return normalized;
-    }
-
-    const forceQuantizeDecision = tensorTargetQuant === 'q4k'
-      ? shouldQuantize(tensor.name, tensor.shape, {
-        quantizeEmbeddings: Boolean(transformContext.quantizeEmbeddings),
-        modulesToNotConvert: transformContext.modulesToNotConvert ?? null,
-      })
-      : null;
 
     const chunks = [];
-    for (let rowStart = 0; rowStart < rows; rowStart += rowChunkRows) {
-      const rowCount = Math.min(rowChunkRows, rows - rowStart);
-      const start = rowStart * rowSourceBytes;
-      const end = start + (rowCount * rowSourceBytes);
+    for (let rowStart = 0; rowStart < chunkPlan.rows; rowStart += chunkPlan.rowChunkRows) {
+      const rowCount = Math.min(chunkPlan.rowChunkRows, chunkPlan.rows - rowStart);
+      const start = rowStart * chunkPlan.rowSourceBytes;
+      const end = start + (rowCount * chunkPlan.rowSourceBytes);
       chunks.push({ rowStart, rowCount, start, end });
     }
 
@@ -765,11 +799,11 @@ function createNodeTensorTransformer(options) {
       const chunkTensorData = tensorData.subarray(chunk.start, chunk.end);
       const chunkTensor = {
         ...tensor,
-        shape: [chunk.rowCount, cols],
+        shape: [chunk.rowCount, chunkPlan.cols],
       };
       const transformed = await pool.transformTensor(chunkTensor, chunkTensorData, {
         ...transformContext,
-        forceQuantizeDecision,
+        forceQuantizeDecision: chunkPlan.forceQuantizeDecision,
       });
       const normalized = normalizeWorkerTransformResult(transformed, chunkTensor);
       processedBytes += chunkTensorData.byteLength;
@@ -809,6 +843,120 @@ function createNodeTensorTransformer(options) {
       tensorData: combined,
       outDtype,
       outLayout,
+    };
+  };
+}
+
+function createNodeLargeTensorTransformer(options) {
+  const pool = options?.pool;
+  const execution = options?.execution;
+  const readRange = options?.readRange;
+  const resolveTensorTargetQuant = options?.resolveTensorTargetQuant;
+  const normalizeStorageQuant = options?.normalizeStorageQuant;
+  const shouldQuantize = options?.shouldQuantize;
+
+  if (!pool || typeof pool.transformTensor !== 'function' || !execution || typeof readRange !== 'function') {
+    throw new Error('node convert: invalid large tensor transformer setup.');
+  }
+
+  return async function largeTensorTransformer(input) {
+    const tensor = input?.tensor;
+    const transformContext = input?.transformContext ?? {};
+    const reportProgress = typeof input?.reportProgress === 'function'
+      ? input.reportProgress
+      : null;
+    const writeChunk = typeof input?.writeChunk === 'function'
+      ? input.writeChunk
+      : null;
+
+    if (!tensor || typeof tensor !== 'object') {
+      throw new Error('node convert: invalid large tensor transform input.');
+    }
+    if (!writeChunk) {
+      throw new Error('node convert: large tensor transform requires writeChunk().');
+    }
+
+    const tensorByteLength = Number(tensor?.size ?? 0);
+    const chunkPlan = resolveRowChunkTransformPlan({
+      tensor,
+      tensorByteLength,
+      execution,
+      transformContext,
+      resolveTensorTargetQuant,
+      normalizeStorageQuant,
+      shouldQuantize,
+    });
+    if (!chunkPlan) {
+      throw new Error(
+        `node convert: tensor "${tensor.name}" is ${tensorByteLength} bytes and exceeds the single-buffer limit, ` +
+        'but it is not eligible for row-chunked conversion.'
+      );
+    }
+    if (chunkPlan.rowSourceBytes > MAX_NODE_CONVERT_BUFFER_BYTES) {
+      throw new Error(
+        `node convert: tensor "${tensor.name}" cannot be row-chunked because each source row is ` +
+        `${chunkPlan.rowSourceBytes} bytes, above the single-buffer limit ${MAX_NODE_CONVERT_BUFFER_BYTES}.`
+      );
+    }
+    const maxRowsPerRead = Math.floor(MAX_NODE_CONVERT_BUFFER_BYTES / chunkPlan.rowSourceBytes);
+    if (maxRowsPerRead < 1) {
+      throw new Error(
+        `node convert: tensor "${tensor.name}" cannot be row-chunked under the current single-buffer limit.`
+      );
+    }
+    if (chunkPlan.rowChunkRows > maxRowsPerRead) {
+      throw new Error(
+        `node convert: execution.rowChunkRows=${chunkPlan.rowChunkRows} is too large for tensor "${tensor.name}". ` +
+        `Use ${maxRowsPerRead} rows or fewer for streamed conversion.`
+      );
+    }
+
+    let processedBytes = 0;
+    let outDtype = null;
+    let outLayout = null;
+
+    for (let rowStart = 0; rowStart < chunkPlan.rows; rowStart += chunkPlan.rowChunkRows) {
+      const rowCount = Math.min(chunkPlan.rowChunkRows, chunkPlan.rows - rowStart);
+      const chunkOffset = rowStart * chunkPlan.rowSourceBytes;
+      const chunkLength = rowCount * chunkPlan.rowSourceBytes;
+      const chunkTensor = {
+        ...tensor,
+        shape: [rowCount, chunkPlan.cols],
+        size: chunkLength,
+      };
+      const rawChunk = await readRange(
+        tensor.sourcePath,
+        tensor.offset + chunkOffset,
+        chunkLength
+      );
+      const chunkTensorData = new Uint8Array(rawChunk);
+      const transformed = await pool.transformTensor(chunkTensor, chunkTensorData, {
+        ...transformContext,
+        forceQuantizeDecision: chunkPlan.forceQuantizeDecision,
+      });
+      const normalized = normalizeWorkerTransformResult(transformed, chunkTensor);
+      if (outDtype == null) {
+        outDtype = normalized.outDtype ?? tensor.dtype;
+        outLayout = normalized.outLayout ?? null;
+      } else {
+        if ((normalized.outDtype ?? tensor.dtype) !== outDtype) {
+          throw new Error(`node convert: inconsistent streamed chunk dtype for ${tensor.name}.`);
+        }
+        if ((normalized.outLayout ?? null) !== outLayout) {
+          throw new Error(`node convert: inconsistent streamed chunk layout for ${tensor.name}.`);
+        }
+      }
+      await writeChunk(normalized);
+      processedBytes += chunkLength;
+      reportProgress?.(
+        Math.min(processedBytes, tensorByteLength),
+        tensorByteLength
+      );
+    }
+
+    return {
+      outDtype: outDtype ?? tensor.dtype,
+      outLayout: outLayout ?? null,
     };
   };
 }
@@ -1200,6 +1348,7 @@ export async function convertSafetensorsDirectory(options) {
   let workerTensorTransformer = null;
   let gpuTensorTransformer = null;
   let tensorTransformer = null;
+  let largeTensorTransformer = null;
   let result = null;
   try {
     if (executionPlan.useGpuCast) {
@@ -1230,6 +1379,19 @@ export async function convertSafetensorsDirectory(options) {
         shouldQuantize,
       });
     }
+    const chunkTransformPool = workerPool ?? {
+      async transformTensor(tensor, tensorData, transformContext) {
+        return transformTensorBytes(tensor, tensorData, transformContext);
+      },
+    };
+    largeTensorTransformer = createNodeLargeTensorTransformer({
+      pool: chunkTransformPool,
+      execution: executionPlan,
+      readRange: fileRangeReader.readRange,
+      resolveTensorTargetQuant,
+      normalizeStorageQuant,
+      shouldQuantize,
+    });
     if (gpuTensorTransformer || workerTensorTransformer) {
       tensorTransformer = async (input) => {
         if (gpuTensorTransformer) {
@@ -1268,6 +1430,7 @@ export async function convertSafetensorsDirectory(options) {
       inference,
       converterConfig,
       tensorTransformer,
+      largeTensorTransformer,
       onProgress(update) {
         onProgress?.(toNodeProgress(update));
       },

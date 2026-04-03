@@ -21,6 +21,7 @@ import type { LoadedEmbeddingPostprocessor } from './final-weights-loader.js';
 import type {
   TensorLocation,
   LayerWeights,
+  PerLayerInputWeights,
   LoadProgress,
   LoadOptions,
   CustomShardLoader,
@@ -71,6 +72,7 @@ export declare class DopplerLoader {
   lmHead: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
   finalNorm: GPUBuffer | Float32Array | null;
   embeddingPostprocessor: LoadedEmbeddingPostprocessor | null;
+  perLayerInputWeights: PerLayerInputWeights | null;
 
   // Memory management
   heapManager: HeapManager | null;

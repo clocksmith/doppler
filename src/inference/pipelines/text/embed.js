@@ -184,6 +184,8 @@ export async function embed(tokenIds, embedBuffer, config) {
     activationDtype,
     embeddingDtype,
     operatorDiagnostics,
+    inputHiddenSize = hiddenSize,
+    hiddenOffset = 0,
   } = config;
   const device = getDevice();
   const tokenBufferInput = isGpuBufferInstance(tokenIds);
@@ -219,7 +221,11 @@ export async function embed(tokenIds, embedBuffer, config) {
   }
 
   if (debug) {
-    trace.embed(`tokens=${numTokens}, hidden=${hiddenSize}, vocab=${vocabSize}, scaleEmbeddings=${scaleEmbeddings}, transpose=${transpose}, indexOffset=${indexOffset}, activationDtype=${activationDtype}, useF16=${useF16}`);
+    trace.embed(
+      `tokens=${numTokens}, hidden=${hiddenSize}, vocab=${vocabSize}, scaleEmbeddings=${scaleEmbeddings}, ` +
+      `transpose=${transpose}, indexOffset=${indexOffset}, inputHiddenSize=${inputHiddenSize}, ` +
+      `hiddenOffset=${hiddenOffset}, activationDtype=${activationDtype}, useF16=${useF16}`
+    );
     if (tokenBufferInput) {
       trace.embed('TOKEN_IDS: [gpu-buffer]');
     } else {
@@ -258,7 +264,7 @@ export async function embed(tokenIds, embedBuffer, config) {
     if (!transpose) {
       for (let t = 0; t < numTokens; t++) {
         const tokenId =  (tokenIdArray)[t];
-        const srcOffset = tokenId * hiddenSize;
+        const srcOffset = tokenId * inputHiddenSize + hiddenOffset;
         if (isF16Cpu) {
           for (let h = 0; h < hiddenSize; h++) {
             output[t * hiddenSize + h] = f16ToF32(cpuEmbeddings[srcOffset + h]);
@@ -272,7 +278,7 @@ export async function embed(tokenIds, embedBuffer, config) {
         const tokenId =  (tokenIdArray)[t];
         const dstOffset = t * hiddenSize;
         for (let h = 0; h < hiddenSize; h++) {
-          const raw = cpuEmbeddings[h * vocabSize + tokenId];
+          const raw = cpuEmbeddings[(hiddenOffset + h) * vocabSize + tokenId];
           output[dstOffset + h] = isF16Cpu ? f16ToF32(raw) : raw;
         }
       }
@@ -344,6 +350,8 @@ export async function embed(tokenIds, embedBuffer, config) {
     outputDtype: selectRuleValue('shared', 'dtype', 'f16OrF32', { useF16 }),
     embeddingDtype,
     indexOffset,
+    inputHiddenSize,
+    hiddenOffset,
   };
   if (!isGpuBufferInstance(embedBuffer)) {
     throw new Error('[Embed] GPU embeddings required for gather path.');

@@ -69,6 +69,8 @@ export interface LayerConfig {
   headDim?: number;
   vocabSize: number;
   maxSeqLen: number;
+  hiddenSizePerLayerInput?: number;
+  vocabSizePerLayerInput?: number;
 }
 
 export interface ComponentGroup extends ComponentGroupSchema {}
@@ -115,6 +117,9 @@ export interface RDRRManifest {
   quantizationInfo?: QuantizationInfo;
   hashAlgorithm: HashAlgorithm;
   eos_token_id: number | number[] | null;
+  image_token_id?: number;
+  audio_token_id?: number;
+  video_token_id?: number;
   architecture: LayerConfig | string;
   groups?: Record<string, ComponentGroup>;
   shards: ShardInfo[];

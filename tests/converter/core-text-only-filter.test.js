@@ -17,6 +17,7 @@ const sourceBytes = new Uint8Array(sourceTensor.buffer);
 const languageTensorName = 'language_model.model.embed_tokens.weight';
 const visionTensorName = 'vision_tower.vision_model.encoder.layers.0.self_attn.q_proj.weight';
 const projectorTensorName = 'multi_modal_projector.mm_input_projection_weight';
+const embedVisionTensorName = 'model.embed_vision.embedding_projection.weight';
 
 const model = {
   name: 'text-only-filter-test',
@@ -43,6 +44,13 @@ const model = {
       dtype: 'F32',
       size: 16,
       offset: 32,
+    },
+    {
+      name: embedVisionTensorName,
+      shape: [2, 2],
+      dtype: 'F32',
+      size: 16,
+      offset: 48,
     },
   ],
   config: {
@@ -114,6 +122,7 @@ assert.ok(capturedManifest, 'manifest should be written');
 assert.ok(capturedManifest.tensors?.[languageTensorName], 'language tensor should be in manifest');
 assert.equal(capturedManifest.tensors?.[visionTensorName], undefined);
 assert.equal(capturedManifest.tensors?.[projectorTensorName], undefined);
+assert.equal(capturedManifest.tensors?.[embedVisionTensorName], undefined);
 assert.equal(Object.keys(capturedManifest.tensors ?? {}).length, 1);
 
 console.log('core-text-only-filter.test: ok');

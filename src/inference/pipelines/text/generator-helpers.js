@@ -116,6 +116,7 @@ export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, de
     debugFlags: state.debugFlags,
     debugProbes: state.runtimeConfig.shared.debug.probes,
     debugCheckBuffer: debugCheckBufferFn,
+    perLayerInputBuffer: null,
     pipelinePlan: state.layerPipelinePlan,
     expertWeights: state.expertWeights,
     expertLoader: state.dopplerLoader,

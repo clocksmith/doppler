@@ -5,8 +5,9 @@ import { getDevice } from '../../../gpu/device.js';
 import { releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { allowReadback } from '../../../gpu/perf-guards.js';
 import { createTensor } from '../../../gpu/tensor.js';
+import { recordScale, runScale } from '../../../gpu/kernel-selector.js';
 import {
-  doAttention, doRMSNorm, doResidualAdd,
+  doAttention, doRMSNorm, doResidualAdd, doMatmul, doGeLU,
   doConv,
   doCast,
   releaseOrTrack
@@ -24,6 +25,7 @@ import { recordCheckFiniteness } from '../../../gpu/kernels/check-finiteness.js'
 import { shouldRunFinitenessGuard } from './finiteness-policy.js';
 import { runLinearAttentionLayer } from './linear-attention.js';
 import { validateAttnConfig } from './attention/attn-config.js';
+import { createPerLayerInputTensor } from './per-layer-inputs.js';
 
 // ============================================================================
 // Architecture Detection
@@ -120,6 +122,191 @@ function isLinearLayerType(layerType) {
     || normalized === 'linear'
     || normalized === 'gated_delta'
     || normalized === 'gated_delta_net';
+}
+
+function hasPerLayerInputBlock(config) {
+  const hiddenSizePerLayerInput = Number(config?.hiddenSizePerLayerInput ?? 0);
+  return Number.isFinite(hiddenSizePerLayerInput) && hiddenSizePerLayerInput > 0;
+}
+
+function resolveLayerScalarValue(layerScalar) {
+  if (layerScalar == null) {
+    return 1;
+  }
+  if (!(layerScalar instanceof Float32Array) || layerScalar.length === 0) {
+    throw new Error(
+      'Gemma 4 per-layer input layer_scalar must be CPU-resident Float32Array data. ' +
+      'Re-convert or reload the model with the updated loader.'
+    );
+  }
+  const value = Number(layerScalar[0]);
+  if (!Number.isFinite(value)) {
+    throw new Error(`Gemma 4 layer_scalar must be finite; got "${String(layerScalar[0])}".`);
+  }
+  return value;
+}
+
+async function applyPerLayerInputBlock(layerIdx, hiddenTensor, numTokens, size, context, layerWeights) {
+  const { config, weightConfig, debugFlags, recorder, decodeBuffers } = context;
+  if (!hasPerLayerInputBlock(config)) {
+    return hiddenTensor;
+  }
+
+  const hiddenSizePerLayerInput = Number(config.hiddenSizePerLayerInput);
+  const perLayerInputBuffer = context.perLayerInputBuffer ?? null;
+  if (!perLayerInputBuffer) {
+    throw new Error(
+      `Gemma 4 layer ${layerIdx} requires a per-layer input buffer, but context.perLayerInputBuffer was not set.`
+    );
+  }
+  if (!layerWeights?.perLayerInputGate || !layerWeights?.perLayerProjection || !layerWeights?.postPerLayerInputNorm) {
+    throw new Error(
+      `Gemma 4 layer ${layerIdx} is missing per-layer input weights. ` +
+      'Expected per_layer_input_gate.weight, per_layer_projection.weight, and post_per_layer_input_norm.weight.'
+    );
+  }
+
+  const residualTensor = hiddenTensor;
+  let gateTensor = null;
+  let activatedTensor = null;
+  let projectedTensor = null;
+  let normalizedTensor = null;
+  let outputTensor = null;
+
+  try {
+    gateTensor = await processLayerPerLayerInputGate(
+      layerIdx,
+      hiddenTensor,
+      numTokens,
+      hiddenSizePerLayerInput,
+      context,
+      layerWeights
+    );
+
+    const perLayerInputTensor = createPerLayerInputTensor(
+      perLayerInputBuffer,
+      numTokens,
+      hiddenSizePerLayerInput,
+      hiddenTensor.dtype
+    );
+    activatedTensor = await doGeLU(perLayerInputTensor, {
+      size: numTokens * hiddenSizePerLayerInput,
+      gate: gateTensor,
+      label: `L${layerIdx}.per_layer_input_activation`,
+      layerIdx,
+    }, recorder);
+    releaseOrTrack(recorder, gateTensor.buffer, decodeBuffers);
+    gateTensor = null;
+
+    projectedTensor = await processLayerPerLayerInputProjection(
+      layerIdx,
+      activatedTensor,
+      numTokens,
+      context,
+      layerWeights
+    );
+    releaseOrTrack(recorder, activatedTensor.buffer, decodeBuffers);
+    activatedTensor = null;
+
+    const postNormWeight = getNormWeightBuffer(
+      layerWeights.postPerLayerInputNorm,
+      `L${layerIdx}.post_per_layer_input_norm`,
+      weightConfig,
+      debugFlags
+    );
+    normalizedTensor = await doRMSNorm(projectedTensor, postNormWeight, config.rmsNormEps, {
+      batchSize: numTokens,
+      hiddenSize: config.hiddenSize,
+      label: `L${layerIdx}.post_per_layer_input_norm`,
+      layerIdx,
+      rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+    }, recorder);
+    if (!isGpuBufferInstance(layerWeights.postPerLayerInputNorm)) {
+      releaseOrTrack(recorder, postNormWeight, decodeBuffers);
+    }
+    releaseOrTrack(recorder, projectedTensor.buffer, decodeBuffers);
+    projectedTensor = null;
+
+    outputTensor = await doResidualAdd(normalizedTensor, residualTensor, size, recorder, {
+      label: `L${layerIdx}.per_layer_input_residual`,
+      layerIdx,
+    });
+    releaseOrTrack(recorder, normalizedTensor.buffer, decodeBuffers);
+    normalizedTensor = null;
+
+    const layerScalar = resolveLayerScalarValue(layerWeights.layerScalar);
+    if (layerScalar !== 1) {
+      outputTensor = recorder
+        ? await recordScale(recorder, outputTensor, layerScalar, {
+          count: size,
+          inplace: true,
+        })
+        : await runScale(outputTensor, layerScalar, {
+          count: size,
+          inplace: true,
+        });
+    }
+
+    return outputTensor;
+  } catch (error) {
+    if (outputTensor?.buffer) releaseOrTrack(recorder, outputTensor.buffer, decodeBuffers);
+    if (normalizedTensor?.buffer) releaseOrTrack(recorder, normalizedTensor.buffer, decodeBuffers);
+    if (projectedTensor?.buffer) releaseOrTrack(recorder, projectedTensor.buffer, decodeBuffers);
+    if (activatedTensor?.buffer) releaseOrTrack(recorder, activatedTensor.buffer, decodeBuffers);
+    if (gateTensor?.buffer) releaseOrTrack(recorder, gateTensor.buffer, decodeBuffers);
+    throw error;
+  }
+}
+
+async function processLayerPerLayerInputGate(
+  layerIdx,
+  hiddenTensor,
+  numTokens,
+  hiddenSizePerLayerInput,
+  context,
+  layerWeights
+) {
+  return doMatmul(
+    hiddenTensor,
+    getWeightBuffer(layerWeights.perLayerInputGate, `L${layerIdx}.per_layer_input_gate`),
+    numTokens,
+    hiddenSizePerLayerInput,
+    context.config.hiddenSize,
+    {
+      transposeB: 'auto',
+      label: `L${layerIdx}.per_layer_input_gate`,
+      layerIdx,
+      kernelPath: context.kernelPath ?? null,
+      role: 'per_layer_input_gate',
+      outputDtype: hiddenTensor.dtype,
+    },
+    context.recorder
+  );
+}
+
+async function processLayerPerLayerInputProjection(
+  layerIdx,
+  inputTensor,
+  numTokens,
+  context,
+  layerWeights
+) {
+  return doMatmul(
+    inputTensor,
+    getWeightBuffer(layerWeights.perLayerProjection, `L${layerIdx}.per_layer_projection`),
+    numTokens,
+    context.config.hiddenSize,
+    context.config.hiddenSizePerLayerInput,
+    {
+      transposeB: 'auto',
+      label: `L${layerIdx}.per_layer_projection`,
+      layerIdx,
+      kernelPath: context.kernelPath ?? null,
+      role: 'per_layer_projection',
+      outputDtype: inputTensor.dtype,
+    },
+    context.recorder
+  );
 }
 
 // ============================================================================
@@ -456,6 +643,21 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     outputTensor = await processFFNWithSandwichNorm(layerIdx, postAttn, numTokens, size, context, layerWeights, sandwichNorm);
   } else {
     outputTensor = await processFFNStandard(layerIdx, postAttn, numTokens, size, context, layerWeights, fusedResidualForFFN);
+  }
+
+  if (hasPerLayerInputBlock(config)) {
+    const outputWithPerLayerInput = await applyPerLayerInputBlock(
+      layerIdx,
+      outputTensor,
+      numTokens,
+      size,
+      context,
+      layerWeights
+    );
+    if (outputWithPerLayerInput.buffer !== outputTensor.buffer) {
+      releaseOrTrack(recorder, outputTensor.buffer, context.decodeBuffers);
+    }
+    outputTensor = outputWithPerLayerInput;
   }
 
   // Keep activation dtype consistent across layers. Some FFN paths can emit f32
@@ -935,6 +1137,22 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
       if (name !== 'state') {
         clearSlot(name);
       }
+    }
+
+    if (hasPerLayerInputBlock(config)) {
+      const stateBuffer = getSlot('state');
+      const stateDtype = getSlotDtype('state') ?? activationDtype;
+      const stateTensor = createTensor(stateBuffer, stateDtype, [numTokens, hiddenSize], 'plan_state');
+      const outputTensor = await applyPerLayerInputBlock(
+        layerIdx,
+        stateTensor,
+        numTokens,
+        size,
+        context,
+        layerWeights
+      );
+      const outputDtype = resolveActivationDtype(outputTensor.dtype);
+      setSlot('state', outputTensor.buffer, outputDtype);
     }
   } catch (err) {
     cleanupSlots();

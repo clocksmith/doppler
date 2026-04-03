@@ -214,6 +214,8 @@ function shouldExcludeTextOnlyTensor(name) {
     || lower.startsWith('vision_model.')
     || lower.startsWith('visual.')
     || lower.startsWith('model.visual.')
+    || lower.startsWith('embed_vision.')
+    || lower.startsWith('model.embed_vision.')
     || lower.startsWith('vision.')
     || lower.startsWith('model.vision.')
     || lower.startsWith('vision_encoder.')
@@ -497,6 +499,7 @@ function resolveManifestMoEConfig(model, options, rawConfig, resolvedModelType) 
 
   const numExpertsPerToken = resolveMoEConfigNumber(
     rawConfig,
+    'top_k_experts',
     'num_experts_per_tok',
     'num_experts_per_token',
     'experts_per_token',
@@ -506,7 +509,7 @@ function resolveManifestMoEConfig(model, options, rawConfig, resolvedModelType) 
   if (!numExpertsPerToken) {
     throw new Error(
       `MoE model "${options?.modelId ?? 'model'}" missing experts-per-token config ` +
-      '(expected num_experts_per_tok/num_experts_per_token/experts_per_token)'
+      '(expected top_k_experts/num_experts_per_tok/num_experts_per_token/experts_per_token)'
     );
   }
 
@@ -971,6 +974,8 @@ export function extractArchitecture(config, ggufConfig) {
     const linearKeyHeadDim = fromConfig('linear_key_head_dim');
     const linearValueHeadDim = fromConfig('linear_value_head_dim');
     const linearConvKernelDim = fromConfig('linear_conv_kernel_dim');
+    const hiddenSizePerLayerInput = fromConfig('hidden_size_per_layer_input');
+    const vocabSizePerLayerInput = fromConfig('vocab_size_per_layer_input');
     const linearNormModeConfigured = normalizeLinearNormMode(
       fromConfigValue('linear_norm_mode'),
       fromConfigValue('linear_norm_shared')
@@ -1004,6 +1009,8 @@ export function extractArchitecture(config, ggufConfig) {
       linearKeyHeadDim,
       linearValueHeadDim,
       linearConvKernelDim,
+      hiddenSizePerLayerInput,
+      vocabSizePerLayerInput,
       linearNormMode,
     };
   }
@@ -1063,6 +1070,86 @@ function getNestedTextConfig(config) {
     return config.language_config;
   }
   return null;
+}
+
+function resolveGemma4TextConfig(rawConfig) {
+  const textConfig = getNestedTextConfig(rawConfig);
+  const modelType = String(textConfig?.model_type ?? rawConfig?.model_type ?? '').trim().toLowerCase();
+  if (modelType !== 'gemma4' && modelType !== 'gemma4_text') {
+    return null;
+  }
+  return textConfig ?? rawConfig ?? null;
+}
+
+function collectGemma4UnsupportedTensorFlags(tensors) {
+  const names = Array.isArray(tensors) ? tensors.map((tensor) => normalizeTensorName(tensor).toLowerCase()) : [];
+  const flags = [];
+  if (names.some((name) => name.includes('.experts.gate_up_proj'))) {
+    flags.push('experts.gate_up_proj');
+  }
+  if (names.some((name) => name.includes('.experts.down_proj'))) {
+    flags.push('experts.down_proj');
+  }
+  if (names.some((name) => name.includes('.router.per_expert_scale'))) {
+    flags.push('router.per_expert_scale');
+  }
+  if (names.some((name) => name.includes('.router.scale'))) {
+    flags.push('router.scale');
+  }
+  if (names.some((name) => name.includes('.post_feedforward_layernorm_1.'))) {
+    flags.push('post_feedforward_layernorm_1');
+  }
+  if (names.some((name) => name.includes('.post_feedforward_layernorm_2.'))) {
+    flags.push('post_feedforward_layernorm_2');
+  }
+  if (names.some((name) => name.includes('.pre_feedforward_layernorm_2.'))) {
+    flags.push('pre_feedforward_layernorm_2');
+  }
+  return flags;
+}
+
+function assertSupportedGemma4Conversion(model, tensors, modelId) {
+  const rawConfig = model?.config ?? null;
+  const textConfig = resolveGemma4TextConfig(rawConfig);
+  if (!textConfig) return;
+
+  const hiddenSizePerLayerInput = Number(textConfig.hidden_size_per_layer_input ?? 0);
+  if (Number.isFinite(hiddenSizePerLayerInput) && hiddenSizePerLayerInput > 0) {
+    const names = Array.isArray(tensors)
+      ? tensors.map((tensor) => String(tensor?.name ?? '').trim())
+      : [];
+    const requiredNames = [
+      'embed_tokens_per_layer.weight',
+      'per_layer_input_gate.weight',
+      'per_layer_projection.weight',
+      'post_per_layer_input_norm.weight',
+      'per_layer_model_projection.weight',
+      'per_layer_projection_norm.weight',
+    ];
+    const missing = requiredNames.filter((suffix) => !names.some((name) => name.endsWith(suffix)));
+    if (missing.length > 0) {
+      throw new Error(
+        `Gemma 4 model "${modelId}" declares hidden_size_per_layer_input=${hiddenSizePerLayerInput}, ` +
+        `but the checkpoint is missing required per-layer input tensors: ${missing.join(', ')}.`
+      );
+    }
+  }
+
+  if (textConfig.enable_moe_block !== true) {
+    return;
+  }
+
+  const unsupportedFlags = collectGemma4UnsupportedTensorFlags(tensors);
+  if (unsupportedFlags.length === 0 && !modelHasMoETensors({ tensors })) {
+    return;
+  }
+
+  throw new Error(
+    `Gemma 4 model "${modelId}" is not supported yet: Gemma 4 MoE decoder blocks require ` +
+    'Gemma-specific router scaling and dual dense+MoE FFN execution, but current Doppler MoE runtime ' +
+    'only supports Mixtral/GPT-OSS semantics. ' +
+    `Detected: ${unsupportedFlags.length > 0 ? unsupportedFlags.join(', ') : 'Gemma 4 MoE tensors'}.`
+  );
 }
 
 
@@ -1213,6 +1300,13 @@ export function createManifest(
     throw new Error('Missing hashAlgorithm for manifest');
   }
 
+  const manifestConfig = isDiffusion
+    ? rawConfig
+    : {
+        ...(rawConfig.vision_config ? { vision_config: rawConfig.vision_config } : {}),
+        ...(rawConfig.audio_config ? { audio_config: rawConfig.audio_config } : {}),
+      };
+
   const manifest = {
     version: RDRR_VERSION,
     modelId,
@@ -1227,7 +1321,10 @@ export function createManifest(
     totalSize: shards.reduce((sum, s) => sum + s.size, 0),
     hashAlgorithm,
     eos_token_id: eosTokenId,
-    config: isDiffusion ? rawConfig : (rawConfig.vision_config ? { vision_config: rawConfig.vision_config } : undefined),
+    ...(rawConfig.image_token_id !== undefined ? { image_token_id: rawConfig.image_token_id } : {}),
+    ...(rawConfig.audio_token_id !== undefined ? { audio_token_id: rawConfig.audio_token_id } : {}),
+    ...(rawConfig.video_token_id !== undefined ? { video_token_id: rawConfig.video_token_id } : {}),
+    config: Object.keys(manifestConfig).length > 0 ? manifestConfig : undefined,
     conversion: options.conversionInfo,
     metadata: {
       source,
@@ -1266,6 +1363,7 @@ export function createManifest(
 // Main Converter (uses I/O adapter)
 // ============================================================================
 
+const MAX_TENSOR_TYPED_ARRAY_BYTES = 0xffff_ffff;
 
 export async function convertModel(model, io, options = {}) {
   const { onProgress, signal } = options;
@@ -1295,6 +1393,7 @@ export async function convertModel(model, io, options = {}) {
     }
     throw new Error('Missing tensors for conversion');
   }
+  assertSupportedGemma4Conversion(model, tensors, modelId);
   const totalTensors = tensors.length;
   const targetQuant = String(options.quantization ?? model.quantization ?? '').trim().toLowerCase();
   const tensorGroupModelType = String(options.modelType ?? model.modelType ?? 'transformer');
@@ -1335,68 +1434,11 @@ export async function convertModel(model, io, options = {}) {
     currentShardSize = 0;
   };
 
-  // Process tensors
-  for (let i = 0; i < tensors.length; i++) {
-    if (signal?.aborted) {
-      throw new DOMException('Conversion cancelled', 'AbortError');
-    }
-
-    const tensor = tensors[i];
-
-    onProgress?.({
-      stage: ConvertStage.WRITING,
-      message: `Processing ${tensor.name}`,
-      current: i + 1,
-      total: totalTensors,
-      percent: Math.round(((i + 1) / totalTensors) * 100),
-    });
-
-    // Read tensor data
-    const data = await io.readTensorData(tensor);
-    const tensorDataInput = new Uint8Array(data);
-    const transformContext = {
-      targetQuant,
-      q4kLayout,
-      quantizationInfo: options.quantizationInfo ?? null,
-      quantizeEmbeddings,
-      modulesToNotConvert,
-    };
-    const transformResult = (
-      typeof options.tensorTransformer === 'function'
-        ? await options.tensorTransformer({
-          tensor,
-          tensorData: tensorDataInput,
-          transformContext,
-          reportProgress(currentBytes, totalBytes) {
-            if (!Number.isFinite(currentBytes) || !Number.isFinite(totalBytes)) return;
-            onProgress?.({
-              stage: ConvertStage.WRITING,
-              message: `Processing ${tensor.name}`,
-              current: i + 1,
-              total: totalTensors,
-              percent: Math.round(((i + 1) / totalTensors) * 100),
-              tensorName: tensor.name,
-              tensorBytesCurrent: currentBytes,
-              tensorBytesTotal: totalBytes,
-            });
-          },
-        })
-        : transformTensorBytes(tensor, tensorDataInput, transformContext)
-    );
-
-    let tensorData = transformResult?.tensorData;
+  const appendTensorBytes = async (tensorData, tensorSpans) => {
     if (!(tensorData instanceof Uint8Array)) {
-      throw new Error(`Tensor transformer must return Uint8Array data for ${tensor.name}.`);
+      throw new Error('appendTensorBytes requires Uint8Array data.');
     }
-    const outDtype = transformResult?.outDtype ?? tensor.dtype;
-    const outLayout = transformResult?.outLayout ?? null;
 
-    const tensorSize = tensorData.byteLength;
-
-    // Track tensor location
-    const tensorSpans = [];
-
-    // Add to current shard, splitting if necessary
     let remainingOffset = 0;
     while (remainingOffset < tensorData.length) {
       const availableInShard = shardSize - currentShardSize;
@@ -1417,10 +1459,119 @@ export async function convertModel(model, io, options = {}) {
 
       remainingOffset += chunkSize;
 
-      // Flush shard if full
       if (currentShardSize >= shardSize) {
         await flushShard();
       }
+    }
+  };
+
+  // Process tensors
+  for (let i = 0; i < tensors.length; i++) {
+    if (signal?.aborted) {
+      throw new DOMException('Conversion cancelled', 'AbortError');
+    }
+
+    const tensor = tensors[i];
+
+    onProgress?.({
+      stage: ConvertStage.WRITING,
+      message: `Processing ${tensor.name}`,
+      current: i + 1,
+      total: totalTensors,
+      percent: Math.round(((i + 1) / totalTensors) * 100),
+    });
+
+    const transformContext = {
+      targetQuant,
+      q4kLayout,
+      quantizationInfo: options.quantizationInfo ?? null,
+      quantizeEmbeddings,
+      modulesToNotConvert,
+    };
+    const reportTensorProgress = (currentBytes, totalBytes) => {
+      if (!Number.isFinite(currentBytes) || !Number.isFinite(totalBytes)) return;
+      onProgress?.({
+        stage: ConvertStage.WRITING,
+        message: `Processing ${tensor.name}`,
+        current: i + 1,
+        total: totalTensors,
+        percent: Math.round(((i + 1) / totalTensors) * 100),
+        tensorName: tensor.name,
+        tensorBytesCurrent: currentBytes,
+        tensorBytesTotal: totalBytes,
+      });
+    };
+    const tensorSpans = [];
+    const sourceTensorSize = Number.isFinite(tensor?.size) ? Number(tensor.size) : null;
+    let outDtype = tensor.dtype;
+    let outLayout = null;
+    let tensorSize = 0;
+
+    if (
+      sourceTensorSize != null
+      && sourceTensorSize > MAX_TENSOR_TYPED_ARRAY_BYTES
+    ) {
+      if (typeof options.largeTensorTransformer !== 'function') {
+        throw new Error(
+          `Tensor "${tensor.name}" is ${formatBytes(sourceTensorSize)} and exceeds the single-buffer conversion limit ` +
+          `(${formatBytes(MAX_TENSOR_TYPED_ARRAY_BYTES)}). Provide a largeTensorTransformer for streamed conversion.`
+        );
+      }
+
+      let emittedChunk = false;
+      await options.largeTensorTransformer({
+        tensor,
+        transformContext,
+        reportProgress: reportTensorProgress,
+        async writeChunk(result) {
+          const tensorData = result?.tensorData;
+          if (!(tensorData instanceof Uint8Array)) {
+            throw new Error(`Large tensor transformer must return Uint8Array data for ${tensor.name}.`);
+          }
+          const chunkOutDtype = result?.outDtype ?? tensor.dtype;
+          const chunkOutLayout = result?.outLayout ?? null;
+          if (!emittedChunk) {
+            outDtype = chunkOutDtype;
+            outLayout = chunkOutLayout;
+            emittedChunk = true;
+          } else {
+            if (chunkOutDtype !== outDtype) {
+              throw new Error(`Large tensor transformer returned inconsistent dtype for ${tensor.name}.`);
+            }
+            if (chunkOutLayout !== outLayout) {
+              throw new Error(`Large tensor transformer returned inconsistent layout for ${tensor.name}.`);
+            }
+          }
+          tensorSize += tensorData.byteLength;
+          await appendTensorBytes(tensorData, tensorSpans);
+        },
+      });
+
+      if (!emittedChunk) {
+        throw new Error(`Large tensor transformer did not emit any bytes for ${tensor.name}.`);
+      }
+    } else {
+      const data = await io.readTensorData(tensor);
+      const tensorDataInput = new Uint8Array(data);
+      const transformResult = (
+        typeof options.tensorTransformer === 'function'
+          ? await options.tensorTransformer({
+            tensor,
+            tensorData: tensorDataInput,
+            transformContext,
+            reportProgress: reportTensorProgress,
+          })
+          : transformTensorBytes(tensor, tensorDataInput, transformContext)
+      );
+
+      const tensorData = transformResult?.tensorData;
+      if (!(tensorData instanceof Uint8Array)) {
+        throw new Error(`Tensor transformer must return Uint8Array data for ${tensor.name}.`);
+      }
+      outDtype = transformResult?.outDtype ?? tensor.dtype;
+      outLayout = transformResult?.outLayout ?? null;
+      tensorSize = tensorData.byteLength;
+      await appendTensorBytes(tensorData, tensorSpans);
     }
 
     // Record tensor location

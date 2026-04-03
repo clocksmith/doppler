@@ -747,6 +747,8 @@ export function toParsedConfigFromMerged(merged, manifest) {
     numKVHeads: arch.numKeyValueHeads,
     headDim: arch.headDim,
     vocabSize: arch.vocabSize,
+    hiddenSizePerLayerInput: arch.hiddenSizePerLayerInput ?? null,
+    vocabSizePerLayerInput: arch.vocabSizePerLayerInput ?? null,
     maxSeqLen: arch.maxSeqLen,
     useMoE,
     numExperts,

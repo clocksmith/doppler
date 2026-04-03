@@ -31,6 +31,8 @@ async function _gather(
     outputDtype,
     transpose = false,
     indexOffset = 0,
+    inputHiddenSize = hiddenSize,
+    hiddenOffset = 0,
     indirectBuffer = null,
     indirectOffset = 0,
   } = options;
@@ -49,10 +51,17 @@ async function _gather(
     throw new Error('[Gather] outputDtype=f16 requires shader-f16 support.');
   }
 
-  const requestedVec4 = options.useVec4;
+  const usesHiddenSlice = inputHiddenSize !== hiddenSize || hiddenOffset !== 0;
+  const requestedVec4 = usesHiddenSlice ? false : options.useVec4;
   const wantsVec4 = requestedVec4 ?? true;
   if (requestedVec4 === true && hiddenSize % 4 !== 0) {
     throw new Error('[Gather] useVec4=true requires hiddenSize to be divisible by 4.');
+  }
+  if (!Number.isFinite(inputHiddenSize) || inputHiddenSize < hiddenSize) {
+    throw new Error('[Gather] inputHiddenSize must be >= hiddenSize.');
+  }
+  if (!Number.isFinite(hiddenOffset) || hiddenOffset < 0 || (hiddenOffset + hiddenSize) > inputHiddenSize) {
+    throw new Error('[Gather] hiddenOffset must select a valid hidden slice inside inputHiddenSize.');
   }
 
   const useF16Input = embeddingDtype === 'f16';
@@ -62,6 +71,7 @@ async function _gather(
   trace.embed(
     `Gather: numTokens=${numTokens}, hiddenSize=${hiddenSize}, vocabSize=${vocabSize}, ` +
     `transpose=${transpose}, indexOffset=${indexOffset}, ` +
+    `inputHiddenSize=${inputHiddenSize}, hiddenOffset=${hiddenOffset}, ` +
     `embeddingDtype=${embeddingDtype}, outputDtype=${outputDtype}, ` +
     `useF16Input=${useF16Input}, useF16Output=${useF16Output}`
   );
@@ -84,9 +94,10 @@ async function _gather(
     vocab_size: vocabSize,
     transpose: transpose ? 1 : 0,
     index_offset: indexOffset,
+    input_hidden_size: inputHiddenSize,
+    hidden_offset: hiddenOffset,
     _pad0: 0,
     _pad1: 0,
-    _pad2: 0,
   };
 
   const workgroups = indirectBuffer

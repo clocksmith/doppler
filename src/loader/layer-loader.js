@@ -34,6 +34,8 @@ const ATTN_SUFFIXES = {
   postAttentionNorm: ['post_attention_layernorm.weight', 'post_attention_norm.weight', 'ffn_norm.weight'],
   preFeedforwardNorm: ['pre_feedforward_layernorm.weight'],
   postFeedforwardNorm: ['post_feedforward_layernorm.weight', 'post_ffw_norm.weight'],
+  postPerLayerInputNorm: ['post_per_layer_input_norm.weight'],
+  layerScalar: ['layer_scalar'],
 };
 
 const LINEAR_ATTN_SUFFIXES = {
@@ -60,6 +62,8 @@ const FFN_SUFFIXES = {
   ffnGate: ['mlp.gate_proj.weight', 'feed_forward.w1.weight', 'ffn_gate.weight'],
   ffnUp: ['mlp.up_proj.weight', 'feed_forward.w3.weight', 'ffn_up.weight'],
   ffnDown: ['mlp.down_proj.weight', 'feed_forward.w2.weight', 'ffn_down.weight'],
+  perLayerInputGate: ['per_layer_input_gate.weight'],
+  perLayerProjection: ['per_layer_projection.weight'],
 };
 
 
@@ -77,6 +81,7 @@ const MATMUL_KEYS = [
   'qkvProj',
   'linearInProjZ', 'linearInProjA', 'linearInProjB',
   'ffnGate', 'ffnUp', 'ffnDown', 'ffnGateUp',
+  'perLayerInputGate', 'perLayerProjection',
   'convInProj', 'convOutProj',
   'routerWeight',
 ];
@@ -206,6 +211,10 @@ export async function loadLayer(ctx, layerIdx) {
     ffnUp: null,
     ffnDown: null,
     ffnGateUp: null,
+    perLayerInputGate: null,
+    perLayerProjection: null,
+    postPerLayerInputNorm: null,
+    layerScalar: null,
   };
 
   // Create helper functions bound to this context
@@ -273,6 +282,18 @@ function createTryLoadNorm(ctx, prefixes, tryLoad) {
 
 
 async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm) {
+  const tryLoadCpu = async (suffixes) => {
+    for (const prefix of LAYER_PREFIXES(layerIdx)) {
+      for (const suffix of suffixes) {
+        const tensor = await ctx.loadTensor(`${prefix}.${suffix}`, false, true);
+        if (tensor instanceof Float32Array) {
+          return tensor;
+        }
+      }
+    }
+    return null;
+  };
+
   const [
     inputNorm,
     qProj,
@@ -284,6 +305,8 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
     postAttentionNorm,
     preFeedforwardNorm,
     postFeedforwardNorm,
+    postPerLayerInputNorm,
+    layerScalar,
     convInProj,
     convKernel,
     convOutProj,
@@ -308,6 +331,8 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
     tryLoadNorm(ATTN_SUFFIXES.postAttentionNorm),
     tryLoadNorm(ATTN_SUFFIXES.preFeedforwardNorm),
     tryLoadNorm(ATTN_SUFFIXES.postFeedforwardNorm),
+    tryLoadNorm(ATTN_SUFFIXES.postPerLayerInputNorm),
+    tryLoadCpu(ATTN_SUFFIXES.layerScalar),
     tryLoad(CONV_SUFFIXES.convInProj),
     tryLoad(CONV_SUFFIXES.convKernel),
     tryLoad(CONV_SUFFIXES.convOutProj),
@@ -342,6 +367,8 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
   weights.postAttentionNorm = postAttentionNorm;
   weights.preFeedforwardNorm = preFeedforwardNorm;
   weights.postFeedforwardNorm = postFeedforwardNorm;
+  weights.postPerLayerInputNorm = postPerLayerInputNorm;
+  weights.layerScalar = layerScalar;
   weights.postNorm = weights.postAttentionNorm || weights.preFeedforwardNorm;
   weights.postAttnNorm = weights.postNorm;
   weights.convInProj = convInProj;
@@ -378,11 +405,13 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
 
 
 async function loadFfnWeights(weights, layerIdx, tryLoad) {
-  const [ffnGateUp, ffnGate, ffnUp, ffnDown] = await Promise.all([
+  const [ffnGateUp, ffnGate, ffnUp, ffnDown, perLayerInputGate, perLayerProjection] = await Promise.all([
     tryLoad(FFN_SUFFIXES.ffnGateUp),
     tryLoad(FFN_SUFFIXES.ffnGate),
     tryLoad(FFN_SUFFIXES.ffnUp),
     tryLoad(FFN_SUFFIXES.ffnDown),
+    tryLoad(FFN_SUFFIXES.perLayerInputGate),
+    tryLoad(FFN_SUFFIXES.perLayerProjection),
   ]);
 
   if (ffnGateUp) {
@@ -398,6 +427,8 @@ async function loadFfnWeights(weights, layerIdx, tryLoad) {
   }
 
   weights.ffnDown = ffnDown;
+  weights.perLayerInputGate = perLayerInputGate;
+  weights.perLayerProjection = perLayerProjection;
 
   // Set aliases for pipeline compatibility
   weights.gate = weights.ffnGate;
