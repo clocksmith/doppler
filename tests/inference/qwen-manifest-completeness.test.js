@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
+import { validateRequiredInferenceFields } from '../../src/inference/pipelines/text/config.js';
 
 const { inferLinearNormMode } = await import(
   '../../src/inference/pipelines/text/linear-attention.js'
@@ -40,6 +41,8 @@ const EXPECTED_QWEN_DECODE_LOOPS = Object.freeze({
     batchSize: 4,
     stopCheckMode: 'batch',
     readbackInterval: 32,
+    readbackMode: 'sequential',
+    submitLatencyThresholdMs: null,
     ringTokens: 1,
     ringStop: 1,
     ringStaging: 1,
@@ -49,6 +52,8 @@ const EXPECTED_QWEN_DECODE_LOOPS = Object.freeze({
     batchSize: 8,
     stopCheckMode: 'batch',
     readbackInterval: 32,
+    readbackMode: 'sequential',
+    submitLatencyThresholdMs: null,
     ringTokens: 1,
     ringStop: 1,
     ringStaging: 1,
@@ -75,7 +80,12 @@ function assertQwenComputeDefaults(computeDefaults, label) {
 
 function assertQwenConversionConfig(config) {
   assert.equal(config.inference.normalization.rmsNormWeightOffset, true);
+  assert.equal(config.inference.attention.valueNorm, false);
   assert.equal(config.inference.rope.mropeInterleaved, true);
+  assert.equal(config.inference.ffn.useDoubleWideMlp, false);
+  assert.equal(config.inference.rope.ropeLocalPartialRotaryFactor, null);
+  assert.equal(config.inference.rope.ropeFrequencyBaseDim, null);
+  assert.equal(config.inference.rope.ropeLocalFrequencyBaseDim, null);
   assert.equal(config.inference.output.tieWordEmbeddings, true);
   assert.equal(config.inference.layerPattern.type, 'custom');
   assert.equal(config.inference.layerPattern.globalPattern, null);
@@ -89,6 +99,10 @@ function assertQwenConversionConfig(config) {
   );
   assert.ok(config.execution && typeof config.execution === 'object', 'qwen execution config must be present');
   assert.equal(config.execution.inlineKernelPath, true, 'qwen execution.inlineKernelPath');
+  assert.doesNotThrow(
+    () => validateRequiredInferenceFields(config.inference, config.output?.modelBaseId ?? 'qwen'),
+    `${config.output?.modelBaseId ?? 'qwen'} conversion config must satisfy required inference-field validation`
+  );
 }
 
 function hasTensor(manifest, tensorName) {
@@ -118,6 +132,18 @@ if (!hasExactLocalManifests) {
   for (const manifest of [f16Manifest, q4kManifest]) {
     assert.equal(manifest.inference.defaultKernelPath, null);
   }
+}
+
+{
+  assert.equal(q4kManifest.inference.attention.valueNorm, false);
+  assert.equal(q4kManifest.inference.ffn.useDoubleWideMlp, false);
+  assert.equal(q4kManifest.inference.rope.ropeLocalPartialRotaryFactor, null);
+  assert.equal(q4kManifest.inference.rope.ropeFrequencyBaseDim, null);
+  assert.equal(q4kManifest.inference.rope.ropeLocalFrequencyBaseDim, null);
+  assert.doesNotThrow(
+    () => validateRequiredInferenceFields(q4kManifest.inference, q4kManifest.modelId),
+    `${q4kManifest.modelId} manifest must satisfy required inference-field validation`
+  );
 }
 
 // --- Manifest: execution v1 is present with inline kernel-path lowering enabled ---

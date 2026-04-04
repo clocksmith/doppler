@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 import { DEFAULT_MANIFEST_INFERENCE } from '../../src/config/schema/index.js';
 import { setRuntimeConfig, resetRuntimeConfig } from '../../src/config/runtime.js';
-import { cleanup, openModelStore, saveManifest } from '../../src/storage/shard-manager.js';
+import { cleanup, loadManifestFromStore, openModelStore, saveManifest } from '../../src/storage/shard-manager.js';
 import { ensureModelCached } from '../../src/tooling/opfs-cache.js';
 
 function clone(value) {
@@ -35,6 +35,33 @@ function createManifest(modelId) {
     },
     inference: {
       ...clone(DEFAULT_MANIFEST_INFERENCE),
+      session: {
+        compute: {
+          defaults: {
+            activationDtype: 'f16',
+            mathDtype: 'f16',
+            accumDtype: 'f32',
+            outputDtype: 'f16',
+          },
+        },
+        kvcache: {
+          layout: 'contiguous',
+          kvDtype: 'f16',
+          pageSize: 256,
+          tiering: {
+            mode: 'off',
+          },
+        },
+        decodeLoop: {
+          batchSize: 4,
+          stopCheckMode: 'batch',
+          readbackInterval: 1,
+          ringTokens: 1,
+          ringStop: 1,
+          ringStaging: 1,
+          disableCommandBatching: false,
+        },
+      },
     },
     eos_token_id: 1,
     shards: [
@@ -95,6 +122,26 @@ try {
   assert.equal(failed.cached, false);
   assert.equal(failed.fromCache, false);
   assert.match(String(failed.error || ''), /network unavailable/);
+
+  const cachedManifest = createManifest('opfs-cache-contract-model');
+  const remoteManifest = clone(cachedManifest);
+  remoteManifest.inference.attention.valueNorm = true;
+  remoteManifest.inference.ffn.useDoubleWideMlp = true;
+  const remoteManifestText = JSON.stringify(remoteManifest);
+
+  await saveManifest(JSON.stringify(cachedManifest));
+  globalThis.fetch = async () => new Response(remoteManifestText, { status: 200 });
+
+  const refreshed = await ensureModelCached(
+    'opfs-cache-contract-model',
+    'https://example.test/model'
+  );
+  assert.equal(refreshed.cached, true);
+  assert.equal(refreshed.fromCache, false);
+  assert.equal(refreshed.cacheState, 'manifest-refresh');
+
+  const storedManifestText = await loadManifestFromStore();
+  assert.equal(storedManifestText, remoteManifestText);
 } finally {
   globalThis.fetch = originalFetch;
   if (originalNavigator === undefined) {

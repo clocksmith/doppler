@@ -34,6 +34,7 @@
       "attnLogitSoftcapping": null,
       "slidingWindow": null,
       "queryKeyNorm": true,
+      "valueNorm": false,
       "causal": false,
       "attentionBias": false,
       "attentionOutputGate": false
@@ -48,6 +49,7 @@
     "ffn": {
       "activation": "gelu",
       "gatedActivation": true,
+      "useDoubleWideMlp": false,
       "swigluLimit": null
     },
     "rope": {
@@ -56,6 +58,9 @@
       "mropeInterleaved": false,
       "mropeSection": null,
       "partialRotaryFactor": null,
+      "ropeLocalPartialRotaryFactor": null,
+      "ropeFrequencyBaseDim": null,
+      "ropeLocalFrequencyBaseDim": null,
       "ropeScalingType": null,
       "ropeScalingFactor": 1,
       "ropeLocalScalingType": null,

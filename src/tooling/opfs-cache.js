@@ -63,7 +63,8 @@ function hasSameShardSet(aManifest, bManifest) {
 //     manifest.inference.execution, manifest.tokenizer, manifest.moeConfig,
 //     manifest.inference.attention, manifest.inference.output
 // This partial match avoids spurious re-downloads when only non-shard-affecting
-// metadata changes (e.g., tokenizer config tweaks, output config updates).
+// metadata changes. Cache hits still require exact manifest-text equality below;
+// when text changes but shards do not, we refresh only the cached manifest.
 function buildManifestFingerprint(manifest) {
   const sourceArtifactFingerprint = resolveSourceArtifact(manifest)?.fingerprint ?? null;
   const inference = manifest?.inference ?? {};
@@ -209,7 +210,8 @@ export async function ensureModelCached(modelId, modelBaseUrl, onProgress = null
           }
           const cachedFingerprint = buildManifestFingerprint(cachedManifest);
           const remoteFingerprint = buildManifestFingerprint(remoteManifest);
-          if (sourceIntegrityValid && cachedFingerprint === remoteFingerprint) {
+          const manifestTextMatches = cachedManifestText === remoteManifestText;
+          if (sourceIntegrityValid && manifestTextMatches && cachedFingerprint === remoteFingerprint) {
             log.info(MODULE, `Cache hit: "${modelId}"`);
             onProgress?.({ stage: 'cache-hit', modelId, message: `OPFS cache hit: ${modelId}`, percent: 100 });
             return {
