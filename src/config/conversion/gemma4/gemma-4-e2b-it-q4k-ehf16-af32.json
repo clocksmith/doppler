@@ -107,7 +107,7 @@
       "embed": { "kernel": "gather_f16.wgsl", "entry": "main", "digest": "sha256:a4829f4067091c98ad6ebbc9b0744cdd5bbcd4fbf6092b2f7cc7f1098695860f" },
       "rmsnorm": { "kernel": "rmsnorm.wgsl", "entry": "main", "digest": "sha256:f516b3e4bde2015f2a207c3ca5b8c9820c7809fa8f8d0786f90c568e0f1ac077" },
       "gemv": { "kernel": "matmul_gemv_subgroup.wgsl", "entry": "main_vec4", "digest": "sha256:3cee3bed453b40c5564a751d2a917649e10ad52f5268e77cbfecfcee34780457" },
-      "rope": { "kernel": "rope.wgsl", "entry": "main", "digest": "sha256:4c803ad5e0dd065d5572c7aecc1def277c43884dcc02f22a9676914c10111400" },
+      "rope": { "kernel": "rope.wgsl", "entry": "main", "digest": "sha256:238e989aad7da731046cd54d7bb3c80a6f26daf5d7a8e435607161de902e5882" },
       "attn_decode": { "kernel": "attention_decode.wgsl", "entry": "attention_decode", "digest": "sha256:14cbf16eebe643d2cb0c957d5f125f6f69ea34957f2daa19488ee8985f81db1b" },
       "residual": { "kernel": "residual.wgsl", "entry": "main", "digest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7" },
       "gelu": { "kernel": "gelu.wgsl", "entry": "main", "digest": "sha256:a9007ea08aaff98f9be08f1e0490a6bcf252883eac5513de876ab9ce918865e6", "constants": { "HAS_GATE": true } },

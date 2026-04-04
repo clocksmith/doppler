@@ -476,6 +476,7 @@ export interface ManifestSchema {
   image_token_id?: number;
   audio_token_id?: number;
   video_token_id?: number;
+  visionArchitecture?: 'qwen3vl' | 'gemma4' | 'siglip' | (string & {});
 
   // Architecture (required)
   architecture: ArchitectureSchema | string;

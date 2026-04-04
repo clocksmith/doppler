@@ -1,5 +1,7 @@
 // AUTO-GENERATED from src/gpu/kernels/rope.wgsl.
 // Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
+// AUTO-GENERATED from src/gpu/kernels/rope.wgsl.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
 // Rotary Position Embeddings (RoPE) Kernel (F16)
 //
 // Applies rotary position embeddings to Q and K tensors.

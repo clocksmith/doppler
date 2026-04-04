@@ -1328,6 +1328,7 @@ export function createManifest(
     ...(rawConfig.image_token_id !== undefined ? { image_token_id: rawConfig.image_token_id } : {}),
     ...(rawConfig.audio_token_id !== undefined ? { audio_token_id: rawConfig.audio_token_id } : {}),
     ...(rawConfig.video_token_id !== undefined ? { video_token_id: rawConfig.video_token_id } : {}),
+    ...(rawConfig.vision_config?.vision_architecture ? { visionArchitecture: rawConfig.vision_config.vision_architecture } : {}),
     config: Object.keys(manifestConfig).length > 0 ? manifestConfig : undefined,
     conversion: options.conversionInfo,
     metadata: {

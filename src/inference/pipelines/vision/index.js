@@ -8,7 +8,10 @@ import { patchEmbed } from './patch-embed.js';
 import { runVisionEncoder } from './encoder.js';
 
 /**
- * Encode an image through the Qwen3-VL vision pipeline.
+ * Encode an image through the vision pipeline.
+ *
+ * Routes to architecture-specific preprocessing based on visionConfig.visionArchitecture.
+ * Currently supported: 'qwen3vl' (default for backward compatibility).
  *
  * Full flow:
  *   raw pixels -> preprocess -> patch embed -> ViT blocks -> spatial merge -> visual tokens
@@ -24,10 +27,21 @@ import { runVisionEncoder } from './encoder.js';
 export async function encodeImage(params) {
   const { pixels, width, height, visionConfig, weights } = params;
 
-  trace('vision', `encodeImage: ${width}x${height} input`);
+  const arch = visionConfig.visionArchitecture ?? 'qwen3vl';
+  trace('vision', `encodeImage: ${width}x${height} input, arch=${arch}`);
 
-  // Step 1: Preprocess — resize, normalize, compute grid.
-  const preprocessed = preprocessImage(pixels, width, height, visionConfig);
+  // Architecture-specific preprocessing dispatch
+  let preprocessed;
+  switch (arch) {
+    case 'qwen3vl':
+      preprocessed = preprocessImage(pixels, width, height, visionConfig);
+      break;
+    default:
+      throw new Error(
+        `Unsupported vision architecture "${arch}". ` +
+        'Supported: qwen3vl. Check manifest.visionArchitecture or vision_config.vision_architecture.'
+      );
+  }
 
   // Step 2: Patch embedding — conv2d patches -> [numPatches, hiddenSize].
   const { patchBuffer, numPatches } = await patchEmbed({

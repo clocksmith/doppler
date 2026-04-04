@@ -534,6 +534,7 @@ function resolveVisionConfig(rawConfig, manifest) {
     eps: vc.eps ?? 1e-6,
     deepstackVisualIndexes: Array.isArray(vc.deepstack_visual_indexes) ? vc.deepstack_visual_indexes : [],
     imageTokenId: rawConfig?.image_token_id ?? manifest?.image_token_id ?? null,
+    visionArchitecture: vc.vision_architecture ?? manifest?.visionArchitecture ?? null,
   };
 }
 

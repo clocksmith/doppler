@@ -214,6 +214,24 @@ export class InferencePipeline extends PipelineState {
     this.embeddingVocabSize = this.modelConfig.embeddingVocabSize;
     this.embeddingTranspose = this.modelConfig.embeddingTranspose;
 
+    // Vision capability detection — gated by manifest fields
+    const imageTokenId = manifest.image_token_id;
+    const hasVisionQuant = manifest.quantizationInfo?.vision != null;
+    if (Number.isInteger(imageTokenId) && imageTokenId > 0 && hasVisionQuant) {
+      this.visionCapable = true;
+      this.imageTokenId = imageTokenId;
+      this.visionConfig = this.modelConfig.visionConfig;
+      if (!this.visionConfig) {
+        throw new Error(
+          `Manifest declares image_token_id=${imageTokenId} and quantizationInfo.vision ` +
+          'but no vision_config was resolved. Check conversion config.'
+        );
+      }
+      log.info('Pipeline', `Vision capable: imageTokenId=${imageTokenId}`);
+    } else {
+      this.visionCapable = false;
+    }
+
     await runKernelWarmup({
       useGPU: this.useGPU,
       kernelWarmup: this.runtimeConfig.shared?.kernelWarmup,
@@ -332,6 +350,11 @@ export class InferencePipeline extends PipelineState {
 
     // Load weights
     await this._loadWeights();
+
+    // Load vision weights (conditional on manifest)
+    if (this.visionCapable) {
+      await this._loadVisionWeights();
+    }
 
     // Initialize RoPE frequencies
     await this._initRoPE();
@@ -506,6 +529,156 @@ export class InferencePipeline extends PipelineState {
       this.convLayerStates = convStates;
       log.info('Pipeline', `Initialized ${convStates.size} conv layer states (kernelSize=${convStates.values().next().value?.kernelSize})`);
     }
+  }
+
+
+  async _loadVisionWeights() {
+    const loader = getDopplerLoader(this.runtimeConfig.loading);
+    const vc = this.visionConfig;
+    const depth = vc.depth;
+
+    const visionWeights = {};
+
+    // Patch embedding weights
+    const patchProjName = 'visual.patch_embed.proj.weight';
+    const patchProjBiasName = 'visual.patch_embed.proj.bias';
+    visionWeights.patchProjWeight = await loader.loadTensor(patchProjName, true, true);
+    visionWeights.patchProjBias = await loader.loadTensor(patchProjBiasName, true, true);
+
+    // Vision encoder layer weights
+    visionWeights.layers = [];
+    for (let i = 0; i < depth; i++) {
+      const prefix = `visual.blocks.${i}`;
+      const layerW = {
+        norm1Weight: await loader.loadTensor(`${prefix}.norm1.weight`, true, true),
+        norm2Weight: await loader.loadTensor(`${prefix}.norm2.weight`, true, true),
+        qkvWeight: await loader.loadTensor(`${prefix}.attn.qkv.weight`, true, true),
+        qkvBias: await loader.loadTensor(`${prefix}.attn.qkv.bias`, true, true),
+        projWeight: await loader.loadTensor(`${prefix}.attn.proj.weight`, true, true),
+        projBias: await loader.loadTensor(`${prefix}.attn.proj.bias`, true, true),
+        fc1Weight: await loader.loadTensor(`${prefix}.mlp.fc1.weight`, true, true),
+        fc1Bias: await loader.loadTensor(`${prefix}.mlp.fc1.bias`, true, true),
+        fc2Weight: await loader.loadTensor(`${prefix}.mlp.fc2.weight`, true, true),
+        fc2Bias: await loader.loadTensor(`${prefix}.mlp.fc2.bias`, true, true),
+      };
+      visionWeights.layers.push(layerW);
+    }
+
+    // Spatial merge projection
+    visionWeights.mergerLnWeight = await loader.loadTensor('visual.merger.ln_q.weight', true, true);
+    visionWeights.mergerMlp0Weight = await loader.loadTensor('visual.merger.mlp.0.weight', true, true);
+    visionWeights.mergerMlp0Bias = await loader.loadTensor('visual.merger.mlp.0.bias', true, true);
+    visionWeights.mergerMlp2Weight = await loader.loadTensor('visual.merger.mlp.2.weight', true, true);
+    visionWeights.mergerMlp2Bias = await loader.loadTensor('visual.merger.mlp.2.bias', true, true);
+
+    this.visionWeights = visionWeights;
+    log.info('Pipeline', `Vision weights loaded (${depth} encoder layers)`);
+  }
+
+
+  // ==========================================================================
+  // Vision: transcribeImage
+  // ==========================================================================
+
+  /**
+   * Transcribe text from an image using the vision encoder and text decoder.
+   *
+   * @param {object} params
+   * @param {Uint8Array|Float32Array} params.imageBytes  Raw image pixel data
+   * @param {number}                  params.width       Image width
+   * @param {number}                  params.height      Image height
+   * @param {string}                  [params.prompt]    Custom transcription prompt
+   * @param {number}                  [params.maxTokens] Max tokens to generate
+   * @returns {Promise<{ text: string, tokens: number[] }>}
+   */
+  async transcribeImage({ imageBytes, width, height, prompt, maxTokens }) {
+    if (!this.visionCapable) {
+      throw new Error(
+        'Pipeline does not support image transcription (no image_token_id in manifest).'
+      );
+    }
+    if (!this.visionWeights) {
+      throw new Error(
+        'Vision weights not loaded. Ensure the model was loaded with a vision-capable manifest.'
+      );
+    }
+
+    this.reset();
+
+    // Lazy-load vision module (avoids GPU kernel dependency for text-only pipelines)
+    const { encodeImage, mergeVisualTokens } = await import('./vision/index.js');
+
+    // Step 1: Encode image through vision pipeline
+    const encodeResult = await encodeImage({
+      pixels: imageBytes,
+      width,
+      height,
+      visionConfig: this.visionConfig,
+      weights: this.visionWeights,
+    });
+
+    // Step 2: Build prompt token sequence with image placeholders
+    const textPrompt = prompt ?? 'Transcribe the text in this image.';
+    const imagePlaceholders = new Array(encodeResult.numTokens).fill(this.imageTokenId);
+    const promptTokenIds = this.tokenizer.encode(textPrompt);
+    const fullTokenIds = new Int32Array([...imagePlaceholders, ...promptTokenIds]);
+
+    // Step 3: Get text embeddings for the full token sequence
+    const embeddings = this.weights.get('embed');
+    const hiddenSize = this.modelConfig.hiddenSize;
+    const textEmbeddings = new Float32Array(fullTokenIds.length * hiddenSize);
+
+    // Read embedding vectors for each token
+    // This uses CPU-side embedding lookup for the merged sequence.
+    // The actual GPU prefill happens after merging.
+    for (let i = 0; i < fullTokenIds.length; i++) {
+      const tokenId = fullTokenIds[i];
+      const offset = tokenId * hiddenSize;
+      for (let d = 0; d < hiddenSize; d++) {
+        textEmbeddings[i * hiddenSize + d] = embeddings[offset + d] ?? 0;
+      }
+    }
+
+    // Step 4: Merge visual tokens into embedding sequence
+    const { mergedEmbeddings, mergedLength } = mergeVisualTokens({
+      textEmbeddings,
+      tokenIds: fullTokenIds,
+      visualFeatures: encodeResult.features,
+      numVisualTokens: encodeResult.numTokens,
+      imageTokenId: this.imageTokenId,
+      hiddenSize,
+    });
+
+    // Step 5: Prefill with merged embeddings and generate
+    await this.generator.prefillWithEmbedding(
+      mergedEmbeddings.slice(0, mergedLength * hiddenSize),
+      { seqLen: mergedLength }
+    );
+
+    const tokens = [];
+    const maxGen = maxTokens ?? 512;
+    const eosTokenId = this.modelConfig.eosTokenId;
+
+    for await (const token of this.generator.generateTokenIds({ maxTokens: maxGen })) {
+      tokens.push(token);
+      if (token === eosTokenId) break;
+      if (Array.isArray(eosTokenId) && eosTokenId.includes(token)) break;
+    }
+
+    const text = this.tokenizer.decode(tokens);
+    return { text, tokens };
+  }
+
+
+  // ==========================================================================
+  // Capability Detection
+  // ==========================================================================
+
+  get capabilities() {
+    const caps = ['generation'];
+    if (typeof this.prefillWithEmbedding === 'function') caps.push('embedding');
+    if (this.visionCapable) caps.push('multimodal');
+    return Object.freeze(caps);
   }
 
 

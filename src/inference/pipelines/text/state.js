@@ -162,5 +162,15 @@ export class PipelineState {
     // LoRA adapter (optional)
 
     this.lora = null;
+
+    // Vision state (manifest-gated)
+
+    this.visionCapable = false;
+
+    this.imageTokenId = null;
+
+    this.visionConfig = null;
+
+    this.visionWeights = null;
   }
 }

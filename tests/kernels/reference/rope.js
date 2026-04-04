@@ -19,9 +19,11 @@ export function computeRopeFreqs(dim, maxSeqLen, base = 10000) {
 }
 
 
-export function ropeRef(x, cos, sin, seqLen, numHeads, headDim, startPos = 0) {
-  const output = new Float32Array(x.length);
-  const halfDim = headDim / 2;
+export function ropeRef(x, cos, sin, seqLen, numHeads, headDim, startPos = 0, options = {}) {
+  const { rotaryDim = headDim } = options;
+  const output = new Float32Array(x);
+  const halfDim = rotaryDim / 2;
+  const rotateHalfOffset = headDim / 2;
 
   for (let s = 0; s < seqLen; s++) {
     const pos = s + startPos;
@@ -31,14 +33,14 @@ export function ropeRef(x, cos, sin, seqLen, numHeads, headDim, startPos = 0) {
 
       for (let i = 0; i < halfDim; i++) {
         const x0 = x[offset + i];
-        const x1 = x[offset + i + halfDim];
+        const x1 = x[offset + i + rotateHalfOffset];
 
         const cosVal = cos[pos * halfDim + i];
         const sinVal = sin[pos * halfDim + i];
 
         // Apply rotation
         output[offset + i] = x0 * cosVal - x1 * sinVal;
-        output[offset + i + halfDim] = x0 * sinVal + x1 * cosVal;
+        output[offset + i + rotateHalfOffset] = x0 * sinVal + x1 * cosVal;
       }
     }
   }
@@ -47,9 +49,10 @@ export function ropeRef(x, cos, sin, seqLen, numHeads, headDim, startPos = 0) {
 }
 
 
-export function ropeInterleavedRef(x, cos, sin, seqLen, numHeads, headDim, startPos = 0) {
-  const output = new Float32Array(x.length);
-  const halfDim = headDim / 2;
+export function ropeInterleavedRef(x, cos, sin, seqLen, numHeads, headDim, startPos = 0, options = {}) {
+  const { rotaryDim = headDim } = options;
+  const output = new Float32Array(x);
+  const halfDim = rotaryDim / 2;
 
   for (let s = 0; s < seqLen; s++) {
     const pos = s + startPos;

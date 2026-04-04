@@ -21,7 +21,8 @@
     "q4kLayout": "row"
   },
   "manifest": {
-    "hashAlgorithm": "blake3"
+    "hashAlgorithm": "blake3",
+    "visionArchitecture": "qwen3vl"
   },
   "inference": {
     "attention": {
@@ -169,7 +170,7 @@
       "rope": {
         "kernel": "rope.wgsl",
         "entry": "main",
-        "digest": "sha256:4c803ad5e0dd065d5572c7aecc1def277c43884dcc02f22a9676914c10111400"
+        "digest": "sha256:238e989aad7da731046cd54d7bb3c80a6f26daf5d7a8e435607161de902e5882"
       },
       "attn_decode": {
         "kernel": "attention_decode_online_f16kv.wgsl",

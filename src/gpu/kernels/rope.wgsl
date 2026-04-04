@@ -35,6 +35,20 @@ struct Uniforms {
 @group(0) @binding(2) var<storage, read_write> freqs_cos: array<f32>;  // Precomputed cos [max_seq_len, head_dim/2]
 @group(0) @binding(3) var<storage, read_write> freqs_sin: array<f32>;  // Precomputed sin [max_seq_len, head_dim/2]
 
+fn get_first_rotary_idx(pair_idx: u32) -> u32 {
+    if (u.interleaved == 1u) {
+        return pair_idx * 2u;
+    }
+    return pair_idx;
+}
+
+fn get_second_rotary_idx(pair_idx: u32, head_dim: u32) -> u32 {
+    if (u.interleaved == 1u) {
+        return pair_idx * 2u + 1u;
+    }
+    return pair_idx + (head_dim / 2u);
+}
+
 // Apply RoPE using precomputed frequencies
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
@@ -67,10 +81,9 @@ fn main(
     let cos_val = freqs_cos[freq_idx];
     let sin_val = freqs_sin[freq_idx];
 
-    // Apply "rotate-half" layout: pair (x[i], x[i + half_dim])
     let base_idx = pos * num_heads * head_dim + head_idx * head_dim;
-    let first_idx = select(pair_idx, pair_idx * 2u, u.interleaved == 1u);
-    let second_idx = select(pair_idx + half_dim, pair_idx * 2u + 1u, u.interleaved == 1u);
+    let first_idx = get_first_rotary_idx(pair_idx);
+    let second_idx = get_second_rotary_idx(pair_idx, head_dim);
     let x0 = input[base_idx + first_idx];
     let x1 = input[base_idx + second_idx];
 
@@ -120,10 +133,9 @@ fn rope_compute_freqs(
     let cos_val = cos(theta);
     let sin_val = sin(theta);
 
-    // Apply "rotate-half" layout: pair (x[i], x[i + half_dim])
     let base_idx = pos * num_heads * head_dim + head_idx * head_dim;
-    let first_idx = select(pair_idx, pair_idx * 2u, u.interleaved == 1u);
-    let second_idx = select(pair_idx + half_dim, pair_idx * 2u + 1u, u.interleaved == 1u);
+    let first_idx = get_first_rotary_idx(pair_idx);
+    let second_idx = get_second_rotary_idx(pair_idx, head_dim);
     let x0 = input[base_idx + first_idx];
     let x1 = input[base_idx + second_idx];
 
@@ -175,8 +187,8 @@ fn rope_qk(
     let k_base_idx = q_base_idx + head_dim;  // K starts after Q
 
     // Process Q
-    let first_idx = select(pair_idx, pair_idx * 2u, u.interleaved == 1u);
-    let second_idx = select(pair_idx + half_dim, pair_idx * 2u + 1u, u.interleaved == 1u);
+    let first_idx = get_first_rotary_idx(pair_idx);
+    let second_idx = get_second_rotary_idx(pair_idx, head_dim);
     let q0 = input[q_base_idx + first_idx];
     let q1 = input[q_base_idx + second_idx];
     input[q_base_idx + first_idx] = q0 * cos_val - q1 * sin_val;
@@ -262,8 +274,8 @@ fn rope_ntk_scaled(
     let sin_val = sin(theta);
 
     let base_idx = pos * num_heads * head_dim + head_idx * head_dim;
-    let first_idx = select(pair_idx, pair_idx * 2u, u.interleaved == 1u);
-    let second_idx = select(pair_idx + half_dim, pair_idx * 2u + 1u, u.interleaved == 1u);
+    let first_idx = get_first_rotary_idx(pair_idx);
+    let second_idx = get_second_rotary_idx(pair_idx, head_dim);
     let x0 = input[base_idx + first_idx];
     let x1 = input[base_idx + second_idx];
 
@@ -334,8 +346,8 @@ fn rope_yarn(
     let sin_val = sin(theta);
 
     let base_idx = pos * num_heads * head_dim + head_idx * head_dim;
-    let first_idx = select(pair_idx, pair_idx * 2u, u.interleaved == 1u);
-    let second_idx = select(pair_idx + half_dim, pair_idx * 2u + 1u, u.interleaved == 1u);
+    let first_idx = get_first_rotary_idx(pair_idx);
+    let second_idx = get_second_rotary_idx(pair_idx, head_dim);
     let x0 = input[base_idx + first_idx];
     let x1 = input[base_idx + second_idx];
 

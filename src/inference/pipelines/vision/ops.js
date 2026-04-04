@@ -2,10 +2,11 @@
 
 import { getDevice } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
+import { createTensor } from '../../../gpu/tensor.js';
 import { runLayerNorm } from '../../../gpu/kernels/layernorm.js';
-import { dispatchMatmul } from '../../../gpu/kernels/matmul-dispatch.js';
+import { runMatmul } from '../../../gpu/kernels/matmul.js';
 import { runGelu } from '../../../gpu/kernels/gelu.js';
-import { runResidualAdd } from '../../../gpu/kernels/residual.js';
+import { runBiasAdd, runResidualAdd } from '../../../gpu/kernels/residual.js';
 
 /**
  * Layer norm on GPU.
@@ -40,14 +41,17 @@ export async function doLayerNorm(input, weight, bias, opts) {
  */
 export async function doMatmul(a, b, opts) {
   const { M, K, N, bias } = opts;
-  const outputSize = M * N * 4;
-  const output = acquireBuffer(outputSize, 'vision-matmul');
-  await dispatchMatmul({
-    a, b, output,
-    M, K, N,
-    bias: bias || null,
+  const inputTensor = createTensor(a, 'f32', [M, K], 'vision_matmul_input');
+  const projected = await runMatmul(inputTensor, b, M, N, K, {
+    outputDtype: 'f32',
   });
-  return output;
+  if (!bias) {
+    return projected.buffer;
+  }
+
+  const biasTensor = createTensor(bias, 'f32', [N], 'vision_matmul_bias');
+  const biased = await runBiasAdd(projected, biasTensor, M, N);
+  return biased.buffer;
 }
 
 /**
