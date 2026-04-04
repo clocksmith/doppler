@@ -216,6 +216,170 @@ function resolveIntermediateSizeForRuntime(manifest, inf, arch, modelId) {
   );
 }
 
+function buildPerLayerIntermediateSizes({
+  baseIntermediateSize,
+  numLayers,
+  numKvSharedLayers,
+  useDoubleWideMlp,
+  modelId,
+}) {
+  if (!Number.isFinite(baseIntermediateSize) || baseIntermediateSize <= 0) {
+    throw new Error(
+      `Manifest "${modelId}" has invalid architecture.intermediateSize (${String(baseIntermediateSize)}).`
+    );
+  }
+  if (!Number.isFinite(numLayers) || numLayers <= 0) {
+    throw new Error(
+      `Manifest "${modelId}" has invalid architecture.numLayers (${String(numLayers)}).`
+    );
+  }
+
+  const resolvedBaseIntermediateSize = Math.trunc(baseIntermediateSize);
+  const resolvedNumLayers = Math.trunc(numLayers);
+  const intermediateSizes = new Array(resolvedNumLayers).fill(resolvedBaseIntermediateSize);
+
+  if (!useDoubleWideMlp) {
+    return intermediateSizes;
+  }
+
+  if (!Number.isFinite(numKvSharedLayers) || numKvSharedLayers <= 0 || numKvSharedLayers >= resolvedNumLayers) {
+    throw new Error(
+      `Manifest "${modelId}" enables ffn.useDoubleWideMlp, but architecture.numKvSharedLayers=${String(numKvSharedLayers)} ` +
+      `must be a positive integer smaller than numLayers=${resolvedNumLayers}.`
+    );
+  }
+
+  const firstKvSharedLayerIdx = resolvedNumLayers - Math.trunc(numKvSharedLayers);
+  if (firstKvSharedLayerIdx <= 0 || firstKvSharedLayerIdx >= resolvedNumLayers) {
+    throw new Error(
+      `Manifest "${modelId}" enables ffn.useDoubleWideMlp, but the derived first KV-shared layer index ` +
+      `(${firstKvSharedLayerIdx}) is invalid for numLayers=${resolvedNumLayers}.`
+    );
+  }
+
+  const widenedIntermediateSize = resolvedBaseIntermediateSize * 2;
+  for (let layerIdx = firstKvSharedLayerIdx; layerIdx < resolvedNumLayers; layerIdx += 1) {
+    intermediateSizes[layerIdx] = widenedIntermediateSize;
+  }
+
+  return intermediateSizes;
+}
+
+function getDenseFfnTensorShape(tensors, names) {
+  if (!tensors || typeof tensors !== 'object') return null;
+  for (const name of names) {
+    const shape = normalizeFfnTensorShape(tensors[name]?.shape);
+    if (shape) return shape;
+  }
+  return null;
+}
+
+function assertDenseFfnTensorShape(modelId, layerIdx, label, actualShape, expectedShape) {
+  if (!actualShape) return;
+  if (actualShape[0] === expectedShape[0] && actualShape[1] === expectedShape[1]) {
+    return;
+  }
+  throw new Error(
+    `Manifest "${modelId}" layer ${layerIdx} ${label} shape [${actualShape.join(', ')}] does not match ` +
+    `the resolved FFN contract [${expectedShape.join(', ')}]. Re-convert the model so manifest inference ` +
+    'and FFN tensor shapes agree.'
+  );
+}
+
+function validateLayerIntermediateSizesAgainstManifest(manifest, hiddenSize, layerIntermediateSizes, modelId) {
+  const tensors = manifest?.tensors;
+  if (!tensors || typeof tensors !== 'object' || !Array.isArray(layerIntermediateSizes)) {
+    return;
+  }
+
+  for (let layerIdx = 0; layerIdx < layerIntermediateSizes.length; layerIdx += 1) {
+    const intermediateSize = Number(layerIntermediateSizes[layerIdx]);
+    if (!Number.isFinite(intermediateSize) || intermediateSize <= 0) {
+      throw new Error(
+        `Manifest "${modelId}" resolved an invalid FFN intermediate size (${String(layerIntermediateSizes[layerIdx])}) ` +
+        `for layer ${layerIdx}.`
+      );
+    }
+
+    const expectedIntermediateSize = Math.trunc(intermediateSize);
+    const languagePrefix = `model.language_model.layers.${layerIdx}`;
+    const genericPrefix = `model.layers.${layerIdx}`;
+    const gateShape = getDenseFfnTensorShape(tensors, [
+      `${languagePrefix}.mlp.gate_proj.weight`,
+      `${genericPrefix}.mlp.gate_proj.weight`,
+      `${languagePrefix}.ffn.gate_proj.weight`,
+      `${languagePrefix}.ffn_gate.weight`,
+      `layers.${layerIdx}.feed_forward.w1.weight`,
+    ]);
+    const upShape = getDenseFfnTensorShape(tensors, [
+      `${languagePrefix}.mlp.up_proj.weight`,
+      `${genericPrefix}.mlp.up_proj.weight`,
+      `${languagePrefix}.ffn.up_proj.weight`,
+      `${languagePrefix}.ffn_up.weight`,
+      `layers.${layerIdx}.feed_forward.w3.weight`,
+    ]);
+    const downShape = getDenseFfnTensorShape(tensors, [
+      `${languagePrefix}.mlp.down_proj.weight`,
+      `${genericPrefix}.mlp.down_proj.weight`,
+      `${languagePrefix}.ffn.down_proj.weight`,
+      `${languagePrefix}.ffn_down.weight`,
+      `layers.${layerIdx}.feed_forward.w2.weight`,
+    ]);
+    const gateUpShape = getDenseFfnTensorShape(tensors, [
+      `${languagePrefix}.mlp.gate_up_proj.weight`,
+      `${genericPrefix}.mlp.gate_up_proj.weight`,
+      `${languagePrefix}.ffn.gate_up_proj.weight`,
+      `${languagePrefix}.ffn_gate_up.weight`,
+      `layers.${layerIdx}.feed_forward.w1_w3.weight`,
+    ]);
+
+    assertDenseFfnTensorShape(
+      modelId,
+      layerIdx,
+      'gate weight',
+      gateShape,
+      [expectedIntermediateSize, hiddenSize]
+    );
+    assertDenseFfnTensorShape(
+      modelId,
+      layerIdx,
+      'up weight',
+      upShape,
+      [expectedIntermediateSize, hiddenSize]
+    );
+    assertDenseFfnTensorShape(
+      modelId,
+      layerIdx,
+      'down weight',
+      downShape,
+      [hiddenSize, expectedIntermediateSize]
+    );
+    assertDenseFfnTensorShape(
+      modelId,
+      layerIdx,
+      'gate_up weight',
+      gateUpShape,
+      [expectedIntermediateSize * 2, hiddenSize]
+    );
+  }
+}
+
+export function resolveLayerIntermediateSize(config, layerIdx) {
+  const intermediateSizes = Array.isArray(config?.intermediateSizes) ? config.intermediateSizes : null;
+  if (Number.isFinite(layerIdx) && intermediateSizes) {
+    const resolved = intermediateSizes[Math.trunc(layerIdx)];
+    if (Number.isFinite(resolved) && resolved > 0) {
+      return Math.trunc(resolved);
+    }
+  }
+
+  const fallback = Number(config?.intermediateSize);
+  if (!Number.isFinite(fallback) || fallback <= 0) {
+    throw new Error(`Invalid modelConfig.intermediateSize: ${String(config?.intermediateSize)}`);
+  }
+  return Math.trunc(fallback);
+}
+
 // =============================================================================
 // Manifest-First Config Resolution (NEW)
 // =============================================================================
@@ -284,6 +448,9 @@ export function validateRequiredInferenceFields(inf, modelId) {
   }
   if (inf.ffn.gatedActivation == null) {
     errors.push('ffn.gatedActivation is required');
+  }
+  if (inf.ffn.useDoubleWideMlp == null) {
+    errors.push('ffn.useDoubleWideMlp is required');
   }
   if (inf.ffn.swigluLimit === undefined) {
     errors.push('ffn.swigluLimit must be explicitly set (null for no limit, or number)');
@@ -621,6 +788,20 @@ export function toParsedConfigFromMerged(merged, manifest) {
   )
     ? Math.trunc(archNumKvSharedLayersRaw)
     : 0;
+  const intermediateSizes = buildPerLayerIntermediateSizes({
+    baseIntermediateSize: resolvedIntermediateSize,
+    numLayers: arch.numLayers,
+    numKvSharedLayers: archNumKvSharedLayers,
+    useDoubleWideMlp: inf.ffn.useDoubleWideMlp,
+    modelId: merged.modelId,
+  });
+  const maxIntermediateSize = Math.max(...intermediateSizes);
+  validateLayerIntermediateSizesAgainstManifest(
+    manifest,
+    arch.hiddenSize,
+    intermediateSizes,
+    merged.modelId
+  );
 
   // Compute layer types from layerPattern
   
@@ -853,6 +1034,8 @@ export function toParsedConfigFromMerged(merged, manifest) {
     numLayers: arch.numLayers,
     hiddenSize: arch.hiddenSize,
     intermediateSize: resolvedIntermediateSize,
+    intermediateSizes,
+    maxIntermediateSize,
     numHeads: archNumHeads,
     numKVHeads: archNumKVHeads,
     headDim: archHeadDim,
@@ -897,6 +1080,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
     embeddingVocabSize: inf.output.embeddingVocabSize,
     embeddingPostprocessor,
     hiddenActivation,
+    useDoubleWideMlp: inf.ffn.useDoubleWideMlp,
     swigluLimit: inf.ffn.swigluLimit,
     stopTokenIds,
     layerTypes,

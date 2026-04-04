@@ -58,6 +58,7 @@ export const DEFAULT_MANIFEST_INFERENCE = {
   ffn: {
     activation: 'silu',
     gatedActivation: true,
+    useDoubleWideMlp: false,
     swigluLimit: null,
   },
   rope: {

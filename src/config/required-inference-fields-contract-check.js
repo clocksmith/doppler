@@ -44,6 +44,7 @@ function createValidInferenceFixture() {
     ffn: {
       activation: 'gelu',
       gatedActivation: true,
+      useDoubleWideMlp: false,
       swigluLimit: null,
     },
     rope: {
@@ -100,6 +101,7 @@ const FIELD_CASES = Object.freeze([
   { kind: 'nonNullable', path: ['normalization', 'postFeedforwardNorm'], message: 'normalization.postFeedforwardNorm is required' },
   { kind: 'nonNullable', path: ['ffn', 'activation'], message: 'ffn.activation is required' },
   { kind: 'nonNullable', path: ['ffn', 'gatedActivation'], message: 'ffn.gatedActivation is required' },
+  { kind: 'nonNullable', path: ['ffn', 'useDoubleWideMlp'], message: 'ffn.useDoubleWideMlp is required' },
   { kind: 'nullable', path: ['ffn', 'swigluLimit'], message: 'ffn.swigluLimit must be explicitly set' },
   { kind: 'nonNullable', path: ['rope', 'ropeTheta'], message: 'rope.ropeTheta is required' },
   { kind: 'nonNullable', path: ['rope', 'ropeScalingFactor'], message: 'rope.ropeScalingFactor is required' },

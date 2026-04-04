@@ -131,6 +131,12 @@ function mergeFFN(
       runtime?.gatedActivation,
       sources
     ),
+    useDoubleWideMlp: overlay(
+      `${prefix}.useDoubleWideMlp`,
+      manifest.useDoubleWideMlp,
+      runtime?.useDoubleWideMlp,
+      sources
+    ),
     swigluLimit: overlay(
       `${prefix}.swigluLimit`,
       manifest.swigluLimit,

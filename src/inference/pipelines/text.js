@@ -426,7 +426,7 @@ export class InferencePipeline extends PipelineState {
       try {
         this.decodeBuffers?.ensureBuffers({
           hiddenSize: this.modelConfig.hiddenSize,
-          intermediateSize: this.modelConfig.intermediateSize,
+          intermediateSize: this.modelConfig.maxIntermediateSize,
           activationDtype: activeExecutionPlan.activationDtype,
           enablePingPong: true,
         });

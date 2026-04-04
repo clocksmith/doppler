@@ -671,12 +671,12 @@ export class PipelineGenerator {
       `${originalPlan.kernelPathId ?? 'none'} -> ${fallbackPlan.kernelPathId ?? 'none'}`
     );
 
-    this.#state.decodeBuffers?.ensureBuffers({
-      hiddenSize: this.#state.modelConfig.hiddenSize,
-      intermediateSize: this.#state.modelConfig.intermediateSize,
-      activationDtype: fallbackPlan.activationDtype,
-      enablePingPong: true,
-    });
+        this.#state.decodeBuffers?.ensureBuffers({
+          hiddenSize: this.#state.modelConfig.hiddenSize,
+          intermediateSize: this.#state.modelConfig.maxIntermediateSize,
+          activationDtype: fallbackPlan.activationDtype,
+          enablePingPong: true,
+        });
 
     if (opts.seed == null) {
       const fallbackSeedBase = (this.#state.decodeStepCount + this.#state.currentSeqLen + 1) >>> 0;
@@ -725,7 +725,7 @@ export class PipelineGenerator {
     const nextActivationDtype = this._getEffectiveActivationDtype();
     this.#state.decodeBuffers?.ensureBuffers({
       hiddenSize: this.#state.modelConfig.hiddenSize,
-      intermediateSize: this.#state.modelConfig.intermediateSize,
+      intermediateSize: this.#state.modelConfig.maxIntermediateSize,
       activationDtype: nextActivationDtype,
       enablePingPong: true,
     });

@@ -9,6 +9,7 @@ import { runProbes } from '../probes.js';
 import { isMoELayerLocal, hasLoggedFusedDownNorm, setLoggedFusedDownNorm } from './types.js';
 import { runDenseFFNGPU, runDenseFFNWithFusedPostNormGPU } from './dense.js';
 import { runMoEFFNGPU } from './moe.js';
+import { resolveLayerIntermediateSize } from '../config.js';
 
 
 export async function processFFNWithSandwichNorm(
@@ -91,7 +92,7 @@ export async function processFFNWithSandwichNorm(
     canUseFusedDownNorm = (await import('../../../../gpu/kernel-selector.js')).shouldUseFusedMatmulRMSNorm(
       numTokens,
       hiddenSize,
-      config.intermediateSize
+      resolveLayerIntermediateSize(config, layerIdx)
     );
   }
 

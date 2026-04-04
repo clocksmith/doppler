@@ -48,6 +48,7 @@ export interface RawConfig {
   head_dim?: number;
   global_head_dim?: number;
   intermediate_size?: number;
+  use_double_wide_mlp?: boolean;
   n_inner?: number;
   feedForwardLength?: number;
   vocab_size?: number;
@@ -141,6 +142,8 @@ export interface ParsedModelConfig {
   numLayers: number;
   hiddenSize: number;
   intermediateSize: number;
+  intermediateSizes: number[];
+  maxIntermediateSize: number;
   numHeads: number;
   numKVHeads: number;
   headDim: number;
@@ -185,6 +188,7 @@ export interface ParsedModelConfig {
   embeddingVocabSize: number | null;
   embeddingPostprocessor: ManifestEmbeddingPostprocessorSchema | null;
   hiddenActivation: ActivationType;
+  useDoubleWideMlp: boolean;
   swigluLimit: number | null;
   stopTokenIds: number[];
   layerTypes: ParsedLayerType[] | null;
@@ -211,6 +215,7 @@ export interface ParsedModelConfig {
 }
 
 export function getStopTokenIds(manifest: Manifest): number[];
+export function resolveLayerIntermediateSize(config: ParsedModelConfig, layerIdx: number): number;
 
 /**
  * Validate that a chatTemplate.type is a known formatter type.

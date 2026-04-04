@@ -45,6 +45,7 @@ export const PARAM_CATEGORIES = Object.freeze({
   postFeedforwardNorm: ParamCategory.MODEL,
   activation: ParamCategory.MODEL,
   gatedActivation: ParamCategory.MODEL,
+  useDoubleWideMlp: ParamCategory.MODEL,
   finalLogitSoftcapping: ParamCategory.MODEL,
   tieWordEmbeddings: ParamCategory.MODEL,
   scaleEmbeddings: ParamCategory.MODEL,

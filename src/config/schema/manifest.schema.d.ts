@@ -210,6 +210,8 @@ export interface ManifestFFNSchema {
   activation: 'silu' | 'gelu' | 'geglu' | 'swiglu' | 'relu';
   /** Whether activation is gated (e.g., SwiGLU, GeGLU) */
   gatedActivation: boolean;
+  /** Double the FFN intermediate width on KV-shared layers. */
+  useDoubleWideMlp: boolean;
   /** Clamp SwiGLU output (null = disabled) */
   swigluLimit: number | null;
 }

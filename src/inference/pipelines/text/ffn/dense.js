@@ -31,6 +31,7 @@ import {
   getKernelPathMatmulPrecision,
   getKernelPathMatmulVariant,
 } from '../../../../config/kernel-path-loader.js';
+import { resolveLayerIntermediateSize } from '../config.js';
 
 const ACTIVATION_FN_MAP = {
   gelu: doGeLU,
@@ -205,7 +206,8 @@ export async function runDenseFFNGPU(
   if (!device) throw new Error('No GPU device');
 
   const { config, recorder } = context;
-  const { hiddenSize, intermediateSize, hiddenActivation, swigluLimit } = config;
+  const { hiddenSize, hiddenActivation, swigluLimit } = config;
+  const intermediateSize = resolveLayerIntermediateSize(config, layerIdx);
   const lastTokenIdx = Math.max(0, numTokens - 1);
   const lora = context.lora || null;
   const kernelPath = context.kernelPath ?? null;
@@ -728,7 +730,8 @@ export async function runDenseFFNWithFusedPostNormGPU(
   if (!device) throw new Error('No GPU device');
 
   const { config, weightConfig, debugFlags, recorder } = context;
-  const { hiddenSize, intermediateSize, hiddenActivation, swigluLimit } = config;
+  const { hiddenSize, hiddenActivation, swigluLimit } = config;
+  const intermediateSize = resolveLayerIntermediateSize(config, layerIdx);
   const lora = context.lora || null;
   const kernelPath = context.kernelPath ?? null;
   const phase = context.phase ?? (numTokens === 1 ? 'decode' : 'prefill');
