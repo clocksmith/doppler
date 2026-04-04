@@ -27,11 +27,12 @@
     "attention": {
       "queryPreAttnScalar": 256,
       "attnLogitSoftcapping": null,
-      "slidingWindow": null,
+      "slidingWindow": 512,
       "queryKeyNorm": true,
       "causal": true,
       "attentionBias": false,
-      "attentionOutputGate": false
+      "attentionOutputGate": false,
+      "valueNorm": false
     },
     "normalization": {
       "rmsNormEps": 0.000001,
@@ -43,11 +44,12 @@
     "ffn": {
       "activation": "gelu",
       "gatedActivation": true,
-      "swigluLimit": null
+      "swigluLimit": null,
+      "useDoubleWideMlp": false
     },
     "rope": {
       "ropeTheta": 1000000,
-      "ropeLocalTheta": null,
+      "ropeLocalTheta": 10000,
       "mropeInterleaved": false,
       "mropeSection": null,
       "partialRotaryFactor": null,
@@ -60,7 +62,10 @@
       "yarnOriginalMaxPos": null,
       "ropeLocalYarnBetaFast": null,
       "ropeLocalYarnBetaSlow": null,
-      "ropeLocalYarnOriginalMaxPos": null
+      "ropeLocalYarnOriginalMaxPos": null,
+      "ropeLocalPartialRotaryFactor": null,
+      "ropeFrequencyBaseDim": null,
+      "ropeLocalFrequencyBaseDim": null
     },
     "output": {
       "finalLogitSoftcapping": null,
@@ -71,9 +76,9 @@
       "embeddingPostprocessor": null
     },
     "layerPattern": {
-      "type": "uniform",
+      "type": "every_n",
       "globalPattern": null,
-      "period": null,
+      "period": 6,
       "offset": null,
       "layerTypes": null
     },
@@ -129,7 +134,7 @@
         "rope": {
           "kernel": "rope.wgsl",
           "entry": "main",
-          "digest": "sha256:4c803ad5e0dd065d5572c7aecc1def277c43884dcc02f22a9676914c10111400"
+          "digest": "sha256:238e989aad7da731046cd54d7bb3c80a6f26daf5d7a8e435607161de902e5882"
         },
         "attn_decode": {
           "kernel": "attention_decode_online_f16kv.wgsl",
@@ -157,7 +162,7 @@
         "attn_stream": {
           "kernel": "attention_streaming_f16kv.wgsl",
           "entry": "main",
-          "digest": "sha256:b337a2dcf7b40431a733d1726eee8bf23504136fd5f915bec057fb59f3ea7480"
+          "digest": "sha256:5976eef417cebf648f52aeebb47ed1dc6b03c3c541122290c5cead19238fdc24"
         },
         "lm_head_gemv": {
           "kernel": "matmul_gemv_subgroup.wgsl",
@@ -6463,13 +6468,14 @@
     "convertedAt": "2026-03-15T21:32:57.224Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-03-26T12:13:29.545Z",
+      "at": "2026-04-04T21:40:22.605Z",
       "config": "translategemma-4b-it-q4k-ehf16-af32.json"
     }
   },
   "tokenizer": {
     "type": "bundled",
     "vocabSize": 262144,
-    "file": "tokenizer.json"
+    "file": "tokenizer.json",
+    "addBosToken": true
   }
 }

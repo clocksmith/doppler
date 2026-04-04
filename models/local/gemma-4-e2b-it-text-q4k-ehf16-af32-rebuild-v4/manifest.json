@@ -37,13 +37,14 @@
       "attnLogitSoftcapping": null,
       "slidingWindow": 512,
       "queryKeyNorm": true,
+      "valueNorm": true,
       "causal": true,
       "attentionBias": false,
       "attentionOutputGate": false
     },
     "normalization": {
       "rmsNormEps": 0.000001,
-      "rmsNormWeightOffset": true,
+      "rmsNormWeightOffset": false,
       "postAttentionNorm": true,
       "preFeedforwardNorm": true,
       "postFeedforwardNorm": true
@@ -51,15 +52,19 @@
     "ffn": {
       "activation": "gelu",
       "gatedActivation": true,
+      "useDoubleWideMlp": true,
       "swigluLimit": null
     },
     "rope": {
       "ropeTheta": 1000000,
       "ropeLocalTheta": 10000,
+      "ropeInterleaved": false,
       "mropeInterleaved": false,
       "mropeSection": null,
       "partialRotaryFactor": 0.25,
       "ropeLocalPartialRotaryFactor": null,
+      "ropeFrequencyBaseDim": 512,
+      "ropeLocalFrequencyBaseDim": null,
       "ropeScalingType": null,
       "ropeScalingFactor": 1,
       "ropeLocalScalingType": null,
@@ -76,7 +81,7 @@
       "tieWordEmbeddings": true,
       "scaleEmbeddings": true,
       "embeddingTranspose": false,
-      "embeddingVocabSize": 262144,
+      "embeddingVocabSize": null,
       "embeddingPostprocessor": null
     },
     "layerPattern": {
@@ -87,7 +92,7 @@
       "layerTypes": null
     },
     "chatTemplate": {
-      "type": "gemma",
+      "type": "gemma4",
       "enabled": true
     },
     "pipeline": null,
@@ -138,12 +143,12 @@
         "rope": {
           "kernel": "rope.wgsl",
           "entry": "main",
-          "digest": "sha256:4c803ad5e0dd065d5572c7aecc1def277c43884dcc02f22a9676914c10111400"
+          "digest": "sha256:238e989aad7da731046cd54d7bb3c80a6f26daf5d7a8e435607161de902e5882"
         },
         "attn_decode": {
           "kernel": "attention_decode.wgsl",
-          "entry": "main",
-          "digest": "sha256:e8c103074d1ab64e9408343c66e3392518474998382d125faeb49658fb58c549"
+          "entry": "attention_decode",
+          "digest": "sha256:14cbf16eebe643d2cb0c957d5f125f6f69ea34957f2daa19488ee8985f81db1b"
         },
         "residual": {
           "kernel": "residual.wgsl",
@@ -166,7 +171,7 @@
         "attn_stream": {
           "kernel": "attention_streaming.wgsl",
           "entry": "main",
-          "digest": "sha256:ccd3e730c4faa185404f749b9fa1a0a0b2169246254f5a7f4ab691b5df4c06e2"
+          "digest": "sha256:565fd02cc3a6d3fb0838194a70f56ce9b52f6ca858429516ab19b69b776396a6"
         },
         "lm_head_gemv": {
           "kernel": "matmul_gemv_subgroup.wgsl",
@@ -331,6 +336,7 @@
       "filename": "shard_00000.bin",
       "size": 67108864,
       "hash": "32418c4d2e8b59d5aa1365083830ec3394426ef1c4fcc664f1682059a0f268eb",
+      "blake3": "32418c4d2e8b59d5aa1365083830ec3394426ef1c4fcc664f1682059a0f268eb",
       "offset": 0
     },
     {
@@ -338,6 +344,7 @@
       "filename": "shard_00001.bin",
       "size": 67108864,
       "hash": "0df8f3372be11f23e2ddcca96af043ca1efec457a1d7a38cf41efa921fcfdaa4",
+      "blake3": "0df8f3372be11f23e2ddcca96af043ca1efec457a1d7a38cf41efa921fcfdaa4",
       "offset": 67108864
     },
     {
@@ -345,6 +352,7 @@
       "filename": "shard_00002.bin",
       "size": 67108864,
       "hash": "f1c602484e286edb485a779d72e57d70e17062e342ece73aeacad6f70927bf9f",
+      "blake3": "f1c602484e286edb485a779d72e57d70e17062e342ece73aeacad6f70927bf9f",
       "offset": 134217728
     },
     {
@@ -352,6 +360,7 @@
       "filename": "shard_00003.bin",
       "size": 67108864,
       "hash": "9321a249a97315d114d63e858f3ba0a1162e37282174a0632ebdd5e0b9d15f46",
+      "blake3": "9321a249a97315d114d63e858f3ba0a1162e37282174a0632ebdd5e0b9d15f46",
       "offset": 201326592
     },
     {
@@ -359,6 +368,7 @@
       "filename": "shard_00004.bin",
       "size": 67108864,
       "hash": "0c5b93618875f15b53a20ae9647eacf7e6592a14c3fe02a990c8bfb133444527",
+      "blake3": "0c5b93618875f15b53a20ae9647eacf7e6592a14c3fe02a990c8bfb133444527",
       "offset": 268435456
     },
     {
@@ -366,6 +376,7 @@
       "filename": "shard_00005.bin",
       "size": 67108864,
       "hash": "6f0ef572d8217fd6a241bf015a592277906b0d2fe6e40a5d1eddd0829fde89fb",
+      "blake3": "6f0ef572d8217fd6a241bf015a592277906b0d2fe6e40a5d1eddd0829fde89fb",
       "offset": 335544320
     },
     {
@@ -373,6 +384,7 @@
       "filename": "shard_00006.bin",
       "size": 67108864,
       "hash": "b52c70d6ec6bcd801ed1f9668b369041c48bfc692ceb6fc2c7dd634b0f08e9c8",
+      "blake3": "b52c70d6ec6bcd801ed1f9668b369041c48bfc692ceb6fc2c7dd634b0f08e9c8",
       "offset": 402653184
     },
     {
@@ -380,6 +392,7 @@
       "filename": "shard_00007.bin",
       "size": 67108864,
       "hash": "e0f316cc8059f8ee94cb952db564080e62522213fea475773a7d1097dbc4fb9d",
+      "blake3": "e0f316cc8059f8ee94cb952db564080e62522213fea475773a7d1097dbc4fb9d",
       "offset": 469762048
     },
     {
@@ -387,6 +400,7 @@
       "filename": "shard_00008.bin",
       "size": 67108864,
       "hash": "1e98046855a7796b020cea5e0b70f1da2415f8d4c992eedf2c17c0500af9485b",
+      "blake3": "1e98046855a7796b020cea5e0b70f1da2415f8d4c992eedf2c17c0500af9485b",
       "offset": 536870912
     },
     {
@@ -394,6 +408,7 @@
       "filename": "shard_00009.bin",
       "size": 67108864,
       "hash": "1016feee329b713de2e28cc7924a2a27d11eeece5325993ca223c9eb1e532ddc",
+      "blake3": "1016feee329b713de2e28cc7924a2a27d11eeece5325993ca223c9eb1e532ddc",
       "offset": 603979776
     },
     {
@@ -401,6 +416,7 @@
       "filename": "shard_00010.bin",
       "size": 67108864,
       "hash": "542189bc09328fe6250444b643df4dabe3b068a81139b9fcd7af993c61af6e05",
+      "blake3": "542189bc09328fe6250444b643df4dabe3b068a81139b9fcd7af993c61af6e05",
       "offset": 671088640
     },
     {
@@ -408,6 +424,7 @@
       "filename": "shard_00011.bin",
       "size": 67108864,
       "hash": "e30c035eadbb75c22d98e3d470e89fa548cb18993d9a3e87ebb35c3c0164d740",
+      "blake3": "e30c035eadbb75c22d98e3d470e89fa548cb18993d9a3e87ebb35c3c0164d740",
       "offset": 738197504
     },
     {
@@ -415,6 +432,7 @@
       "filename": "shard_00012.bin",
       "size": 67108864,
       "hash": "8d57145a40004356988999e4ec5ede779708d15b56a986414bc5ff1d001b7ef2",
+      "blake3": "8d57145a40004356988999e4ec5ede779708d15b56a986414bc5ff1d001b7ef2",
       "offset": 805306368
     },
     {
@@ -422,6 +440,7 @@
       "filename": "shard_00013.bin",
       "size": 67108864,
       "hash": "5a9b1dda4242f277d6e9e0c3687b630f7b0bc6c0faf09c7b5f8ff368d1aa14c8",
+      "blake3": "5a9b1dda4242f277d6e9e0c3687b630f7b0bc6c0faf09c7b5f8ff368d1aa14c8",
       "offset": 872415232
     },
     {
@@ -429,6 +448,7 @@
       "filename": "shard_00014.bin",
       "size": 67108864,
       "hash": "4b86c7475c0af8ae06f57ac074cfb9200a2bcadad9a40fba249e32bb0c4f2a30",
+      "blake3": "4b86c7475c0af8ae06f57ac074cfb9200a2bcadad9a40fba249e32bb0c4f2a30",
       "offset": 939524096
     },
     {
@@ -436,6 +456,7 @@
       "filename": "shard_00015.bin",
       "size": 67108864,
       "hash": "05601f2d402589242520a9092e48ff70318fb995e0025c7c20ff2d69c8d19402",
+      "blake3": "05601f2d402589242520a9092e48ff70318fb995e0025c7c20ff2d69c8d19402",
       "offset": 1006632960
     },
     {
@@ -443,6 +464,7 @@
       "filename": "shard_00016.bin",
       "size": 67108864,
       "hash": "85e35ec6d0cbd3dc01d9a8869c66787a2fcd1110cafc120a653f37590605a985",
+      "blake3": "85e35ec6d0cbd3dc01d9a8869c66787a2fcd1110cafc120a653f37590605a985",
       "offset": 1073741824
     },
     {
@@ -450,6 +472,7 @@
       "filename": "shard_00017.bin",
       "size": 67108864,
       "hash": "d6530584853e885f1ccf4bee98fe0209128de86179ed11c6acb8408fa21acc49",
+      "blake3": "d6530584853e885f1ccf4bee98fe0209128de86179ed11c6acb8408fa21acc49",
       "offset": 1140850688
     },
     {
@@ -457,6 +480,7 @@
       "filename": "shard_00018.bin",
       "size": 67108864,
       "hash": "06456f8fa179820bd476a80645ab0d5b5bb0af9cc8f227883f55ca3a0f01cbd1",
+      "blake3": "06456f8fa179820bd476a80645ab0d5b5bb0af9cc8f227883f55ca3a0f01cbd1",
       "offset": 1207959552
     },
     {
@@ -464,6 +488,7 @@
       "filename": "shard_00019.bin",
       "size": 67108864,
       "hash": "d7f3b7d72a0fa556bb50eb865b173c97d43bad04c842d276686e25223a3643f5",
+      "blake3": "d7f3b7d72a0fa556bb50eb865b173c97d43bad04c842d276686e25223a3643f5",
       "offset": 1275068416
     },
     {
@@ -471,6 +496,7 @@
       "filename": "shard_00020.bin",
       "size": 67108864,
       "hash": "34e0c6d6e072fa3af5d17c71ccefaee56fbccc0769ec068044dcd70246bc0619",
+      "blake3": "34e0c6d6e072fa3af5d17c71ccefaee56fbccc0769ec068044dcd70246bc0619",
       "offset": 1342177280
     },
     {
@@ -478,6 +504,7 @@
       "filename": "shard_00021.bin",
       "size": 67108864,
       "hash": "e9dc428dcb94daf5db48c83082d380f318d0c86c504fbc88b4a780385e93546d",
+      "blake3": "e9dc428dcb94daf5db48c83082d380f318d0c86c504fbc88b4a780385e93546d",
       "offset": 1409286144
     },
     {
@@ -485,6 +512,7 @@
       "filename": "shard_00022.bin",
       "size": 67108864,
       "hash": "cca6928d29d5ec6c5981cc901980592c1673ebf025143895e63597c4023bf863",
+      "blake3": "cca6928d29d5ec6c5981cc901980592c1673ebf025143895e63597c4023bf863",
       "offset": 1476395008
     },
     {
@@ -492,6 +520,7 @@
       "filename": "shard_00023.bin",
       "size": 67108864,
       "hash": "15fb75de807ecded82754d6b55a634ce46afccf4088a651ab61e3efe3ef39962",
+      "blake3": "15fb75de807ecded82754d6b55a634ce46afccf4088a651ab61e3efe3ef39962",
       "offset": 1543503872
     },
     {
@@ -499,6 +528,7 @@
       "filename": "shard_00024.bin",
       "size": 67108864,
       "hash": "fe5f641c202ca8498aa152b71e6d93f561ce745147f32fbbd398a1dabd88ac57",
+      "blake3": "fe5f641c202ca8498aa152b71e6d93f561ce745147f32fbbd398a1dabd88ac57",
       "offset": 1610612736
     },
     {
@@ -506,6 +536,7 @@
       "filename": "shard_00025.bin",
       "size": 67108864,
       "hash": "9c3843780274266e92527ae6cca8ba9b3703c2e1faa981256effb5ba2e5d2cff",
+      "blake3": "9c3843780274266e92527ae6cca8ba9b3703c2e1faa981256effb5ba2e5d2cff",
       "offset": 1677721600
     },
     {
@@ -513,6 +544,7 @@
       "filename": "shard_00026.bin",
       "size": 67108864,
       "hash": "be798ff94c624b0285d3fdf9f74971509e53db6e4fd8177353d644952c26b28d",
+      "blake3": "be798ff94c624b0285d3fdf9f74971509e53db6e4fd8177353d644952c26b28d",
       "offset": 1744830464
     },
     {
@@ -520,6 +552,7 @@
       "filename": "shard_00027.bin",
       "size": 67108864,
       "hash": "770b50fe62426b873300c58a7801a9aca62a6fdc01f36d6a214ff188441f898d",
+      "blake3": "770b50fe62426b873300c58a7801a9aca62a6fdc01f36d6a214ff188441f898d",
       "offset": 1811939328
     },
     {
@@ -527,6 +560,7 @@
       "filename": "shard_00028.bin",
       "size": 67108864,
       "hash": "1417b206bf390e39be9999cb1d17299140bcf9e92399fd6542489627fc69a23b",
+      "blake3": "1417b206bf390e39be9999cb1d17299140bcf9e92399fd6542489627fc69a23b",
       "offset": 1879048192
     },
     {
@@ -534,6 +568,7 @@
       "filename": "shard_00029.bin",
       "size": 67108864,
       "hash": "7ef13d6492c60b1846eb5fcdd9e5fbe70c96e23a38371e20b0a020948b15d6eb",
+      "blake3": "7ef13d6492c60b1846eb5fcdd9e5fbe70c96e23a38371e20b0a020948b15d6eb",
       "offset": 1946157056
     },
     {
@@ -541,6 +576,7 @@
       "filename": "shard_00030.bin",
       "size": 67108864,
       "hash": "4678f9d83fbce0c8e92c97ee715528e343dcb48ab5dbb20d0627877cdb85d4b9",
+      "blake3": "4678f9d83fbce0c8e92c97ee715528e343dcb48ab5dbb20d0627877cdb85d4b9",
       "offset": 2013265920
     },
     {
@@ -548,6 +584,7 @@
       "filename": "shard_00031.bin",
       "size": 67108864,
       "hash": "fa8f8cd8ca426676da3112cf792e1ee35ae9e0edacc4d8b8e36d99e3d37017c4",
+      "blake3": "fa8f8cd8ca426676da3112cf792e1ee35ae9e0edacc4d8b8e36d99e3d37017c4",
       "offset": 2080374784
     },
     {
@@ -555,6 +592,7 @@
       "filename": "shard_00032.bin",
       "size": 67108864,
       "hash": "9b12a9cac23dba12f35ca7f188e4d8d4c18a5c68849f02a8bb5f11372d0e2f1f",
+      "blake3": "9b12a9cac23dba12f35ca7f188e4d8d4c18a5c68849f02a8bb5f11372d0e2f1f",
       "offset": 2147483648
     },
     {
@@ -562,6 +600,7 @@
       "filename": "shard_00033.bin",
       "size": 67108864,
       "hash": "e185c1281f67eb03345ab78d4308caf27b526f45b18720b526aa87fa45d12d66",
+      "blake3": "e185c1281f67eb03345ab78d4308caf27b526f45b18720b526aa87fa45d12d66",
       "offset": 2214592512
     },
     {
@@ -569,6 +608,7 @@
       "filename": "shard_00034.bin",
       "size": 67108864,
       "hash": "67bf88c8dcf1a29057cfe4ca70b350340088847db677105f3e2c1321f21cfb2f",
+      "blake3": "67bf88c8dcf1a29057cfe4ca70b350340088847db677105f3e2c1321f21cfb2f",
       "offset": 2281701376
     },
     {
@@ -576,6 +616,7 @@
       "filename": "shard_00035.bin",
       "size": 67108864,
       "hash": "1c1edf18073a3722e29961b97d99d672bf32035d5f0d7588154ad3a35eb02e2e",
+      "blake3": "1c1edf18073a3722e29961b97d99d672bf32035d5f0d7588154ad3a35eb02e2e",
       "offset": 2348810240
     },
     {
@@ -583,6 +624,7 @@
       "filename": "shard_00036.bin",
       "size": 67108864,
       "hash": "66c8fe51513dc59eb7e281ed4a92d7af7669e99cf8c84e31665a714f666a8f87",
+      "blake3": "66c8fe51513dc59eb7e281ed4a92d7af7669e99cf8c84e31665a714f666a8f87",
       "offset": 2415919104
     },
     {
@@ -590,6 +632,7 @@
       "filename": "shard_00037.bin",
       "size": 67108864,
       "hash": "67f5aad09a8b5b209ad6091c789899d750adae6bef672200f25222ee06ba1a41",
+      "blake3": "67f5aad09a8b5b209ad6091c789899d750adae6bef672200f25222ee06ba1a41",
       "offset": 2483027968
     },
     {
@@ -597,6 +640,7 @@
       "filename": "shard_00038.bin",
       "size": 67108864,
       "hash": "26ac32729e7b4c3089a63c0d0ce98a6203139f0e3ab759ca3af95747d2152ce5",
+      "blake3": "26ac32729e7b4c3089a63c0d0ce98a6203139f0e3ab759ca3af95747d2152ce5",
       "offset": 2550136832
     },
     {
@@ -604,6 +648,7 @@
       "filename": "shard_00039.bin",
       "size": 67108864,
       "hash": "6f61b6d1b45b71121348d7dd00df99820e926e732f280e542a6c29b2c8722b75",
+      "blake3": "6f61b6d1b45b71121348d7dd00df99820e926e732f280e542a6c29b2c8722b75",
       "offset": 2617245696
     },
     {
@@ -611,6 +656,7 @@
       "filename": "shard_00040.bin",
       "size": 67108864,
       "hash": "7056cd8ad881db8d3311cd9d5cb617efb24050ef5f513973f29759a92d1fc0e3",
+      "blake3": "7056cd8ad881db8d3311cd9d5cb617efb24050ef5f513973f29759a92d1fc0e3",
       "offset": 2684354560
     },
     {
@@ -618,6 +664,7 @@
       "filename": "shard_00041.bin",
       "size": 67108864,
       "hash": "751a24b7b1f6727418c3b87f5ac4db0c82ac76a5c0e89bcc2f60b1d65874964b",
+      "blake3": "751a24b7b1f6727418c3b87f5ac4db0c82ac76a5c0e89bcc2f60b1d65874964b",
       "offset": 2751463424
     },
     {
@@ -625,6 +672,7 @@
       "filename": "shard_00042.bin",
       "size": 67108864,
       "hash": "e965d809e3b01a2af7f164f85dd8562ab85bcaee59710b47835af1eb3e9e46b2",
+      "blake3": "e965d809e3b01a2af7f164f85dd8562ab85bcaee59710b47835af1eb3e9e46b2",
       "offset": 2818572288
     },
     {
@@ -632,6 +680,7 @@
       "filename": "shard_00043.bin",
       "size": 67108864,
       "hash": "bc21ff5a82d57d2ea5630fd1b0d5fba81f14c13e2cd20ec14fababca7917b411",
+      "blake3": "bc21ff5a82d57d2ea5630fd1b0d5fba81f14c13e2cd20ec14fababca7917b411",
       "offset": 2885681152
     },
     {
@@ -639,6 +688,7 @@
       "filename": "shard_00044.bin",
       "size": 67108864,
       "hash": "3773f4c6f7126916f775ad008c16f4ed449b493ccdd962dc4f2bf5b6f9a1fba8",
+      "blake3": "3773f4c6f7126916f775ad008c16f4ed449b493ccdd962dc4f2bf5b6f9a1fba8",
       "offset": 2952790016
     },
     {
@@ -646,6 +696,7 @@
       "filename": "shard_00045.bin",
       "size": 67108864,
       "hash": "7d6a4e06e13123ddfcf063bdd3718de6a761e4fc2602a967bcb39b967d149110",
+      "blake3": "7d6a4e06e13123ddfcf063bdd3718de6a761e4fc2602a967bcb39b967d149110",
       "offset": 3019898880
     },
     {
@@ -653,6 +704,7 @@
       "filename": "shard_00046.bin",
       "size": 67108864,
       "hash": "011486a320325e9721bb4e730228f24ade0ca4f2dce72a01b8645ed1b3caf893",
+      "blake3": "011486a320325e9721bb4e730228f24ade0ca4f2dce72a01b8645ed1b3caf893",
       "offset": 3087007744
     },
     {
@@ -660,6 +712,7 @@
       "filename": "shard_00047.bin",
       "size": 67108864,
       "hash": "9a29ea8c923635cd7d7298249013744b8a65c7f0dda66d9a246ff471bdb59f6e",
+      "blake3": "9a29ea8c923635cd7d7298249013744b8a65c7f0dda66d9a246ff471bdb59f6e",
       "offset": 3154116608
     },
     {
@@ -667,6 +720,7 @@
       "filename": "shard_00048.bin",
       "size": 67108864,
       "hash": "3b858adf0bff1ba5a5f7c53ca7345baae2b9157d903ccfbd63bdf4dcd4e758db",
+      "blake3": "3b858adf0bff1ba5a5f7c53ca7345baae2b9157d903ccfbd63bdf4dcd4e758db",
       "offset": 3221225472
     },
     {
@@ -674,6 +728,7 @@
       "filename": "shard_00049.bin",
       "size": 67108864,
       "hash": "847b80736d874da583ba16b70ca72be529e1547addd4ed261c70934fb9739afd",
+      "blake3": "847b80736d874da583ba16b70ca72be529e1547addd4ed261c70934fb9739afd",
       "offset": 3288334336
     },
     {
@@ -681,6 +736,7 @@
       "filename": "shard_00050.bin",
       "size": 67108864,
       "hash": "6023db83eff71d2281256b4c9e6897a11558fa1d08950d8058eebad1c9bd6932",
+      "blake3": "6023db83eff71d2281256b4c9e6897a11558fa1d08950d8058eebad1c9bd6932",
       "offset": 3355443200
     },
     {
@@ -688,6 +744,7 @@
       "filename": "shard_00051.bin",
       "size": 67108864,
       "hash": "ce9f00ec65cad9f8f6cf9b21db5674e2d5968f2608e64197fdaf9ec8686f5748",
+      "blake3": "ce9f00ec65cad9f8f6cf9b21db5674e2d5968f2608e64197fdaf9ec8686f5748",
       "offset": 3422552064
     },
     {
@@ -695,6 +752,7 @@
       "filename": "shard_00052.bin",
       "size": 67108864,
       "hash": "412e31e0e97062199218fc040e54468da80bb55899ac6fd2cbd973c035023848",
+      "blake3": "412e31e0e97062199218fc040e54468da80bb55899ac6fd2cbd973c035023848",
       "offset": 3489660928
     },
     {
@@ -702,6 +760,7 @@
       "filename": "shard_00053.bin",
       "size": 67108864,
       "hash": "5d5933d43328be83a2aad362e0ca0104ed9a3ad4c8c8fd7f07f4df604b67eda5",
+      "blake3": "5d5933d43328be83a2aad362e0ca0104ed9a3ad4c8c8fd7f07f4df604b67eda5",
       "offset": 3556769792
     },
     {
@@ -709,6 +768,7 @@
       "filename": "shard_00054.bin",
       "size": 67108864,
       "hash": "4ef600ac4b9aaa0b6f92a64fcdc7194f2d4108e9a57f8436901a43202c2dc4d9",
+      "blake3": "4ef600ac4b9aaa0b6f92a64fcdc7194f2d4108e9a57f8436901a43202c2dc4d9",
       "offset": 3623878656
     },
     {
@@ -716,6 +776,7 @@
       "filename": "shard_00055.bin",
       "size": 67108864,
       "hash": "fe2a89f3c0bf910e98d9be3f95de3ce05397ea512ad8a427c0abd210fd884a6c",
+      "blake3": "fe2a89f3c0bf910e98d9be3f95de3ce05397ea512ad8a427c0abd210fd884a6c",
       "offset": 3690987520
     },
     {
@@ -723,6 +784,7 @@
       "filename": "shard_00056.bin",
       "size": 67108864,
       "hash": "3087fdcae66ff3cd9d0c9d05e63e562dd5fc101427a8507aeae5ba40bd7cf253",
+      "blake3": "3087fdcae66ff3cd9d0c9d05e63e562dd5fc101427a8507aeae5ba40bd7cf253",
       "offset": 3758096384
     },
     {
@@ -730,6 +792,7 @@
       "filename": "shard_00057.bin",
       "size": 67108864,
       "hash": "0340a547c7af0c9fbdf0ac6e85d0b6d38687592e3db5504d0379a2d7bbbef9f2",
+      "blake3": "0340a547c7af0c9fbdf0ac6e85d0b6d38687592e3db5504d0379a2d7bbbef9f2",
       "offset": 3825205248
     },
     {
@@ -737,6 +800,7 @@
       "filename": "shard_00058.bin",
       "size": 67108864,
       "hash": "9555c35fd2b1ac0f997da9b432ff63403d032fc6463787585e73c5e56917d0ef",
+      "blake3": "9555c35fd2b1ac0f997da9b432ff63403d032fc6463787585e73c5e56917d0ef",
       "offset": 3892314112
     },
     {
@@ -744,6 +808,7 @@
       "filename": "shard_00059.bin",
       "size": 67108864,
       "hash": "6d103ddb6646639578eca432e00cfa29ddda2660a2af0b088f49ca629ee9df8f",
+      "blake3": "6d103ddb6646639578eca432e00cfa29ddda2660a2af0b088f49ca629ee9df8f",
       "offset": 3959422976
     },
     {
@@ -751,6 +816,7 @@
       "filename": "shard_00060.bin",
       "size": 67108864,
       "hash": "39bb970c25aec318f50da0956b392571b8bc3ace95cc822c40fb5bdf1f117e60",
+      "blake3": "39bb970c25aec318f50da0956b392571b8bc3ace95cc822c40fb5bdf1f117e60",
       "offset": 4026531840
     },
     {
@@ -758,6 +824,7 @@
       "filename": "shard_00061.bin",
       "size": 67108864,
       "hash": "beb224f99898b2d327801038e4f280853804141d4dbe5e46d7754b55ca05b79b",
+      "blake3": "beb224f99898b2d327801038e4f280853804141d4dbe5e46d7754b55ca05b79b",
       "offset": 4093640704
     },
     {
@@ -765,6 +832,7 @@
       "filename": "shard_00062.bin",
       "size": 67108864,
       "hash": "b4dc88f0be2a61a6d5eea25048f917fa2423dd31768f4ed3a74fc7938ef7c335",
+      "blake3": "b4dc88f0be2a61a6d5eea25048f917fa2423dd31768f4ed3a74fc7938ef7c335",
       "offset": 4160749568
     },
     {
@@ -772,6 +840,7 @@
       "filename": "shard_00063.bin",
       "size": 67108864,
       "hash": "9567dee5f6111b4527e1f13d4a6f0a4ac878b391f980e28a7a84d4231ed23534",
+      "blake3": "9567dee5f6111b4527e1f13d4a6f0a4ac878b391f980e28a7a84d4231ed23534",
       "offset": 4227858432
     },
     {
@@ -779,6 +848,7 @@
       "filename": "shard_00064.bin",
       "size": 67108864,
       "hash": "bd67a0954b6c9fe395bf855b2b1d3bee43242ef0be6e0f0c86ead72b98d3f0d6",
+      "blake3": "bd67a0954b6c9fe395bf855b2b1d3bee43242ef0be6e0f0c86ead72b98d3f0d6",
       "offset": 4294967296
     },
     {
@@ -786,6 +856,7 @@
       "filename": "shard_00065.bin",
       "size": 67108864,
       "hash": "633cd4db963a16a46fe9da082b3c910e3a2951bd515b476a58224ad2554eaa70",
+      "blake3": "633cd4db963a16a46fe9da082b3c910e3a2951bd515b476a58224ad2554eaa70",
       "offset": 4362076160
     },
     {
@@ -793,6 +864,7 @@
       "filename": "shard_00066.bin",
       "size": 67108864,
       "hash": "60f2da572fff993aa27a011af53c36c54da833895ee01ce4264ef72723e8cdb4",
+      "blake3": "60f2da572fff993aa27a011af53c36c54da833895ee01ce4264ef72723e8cdb4",
       "offset": 4429185024
     },
     {
@@ -800,6 +872,7 @@
       "filename": "shard_00067.bin",
       "size": 67108864,
       "hash": "660595beaed870cf87bd5e2064db8e7a08e03f3f58bdafd077f710be65ec1d91",
+      "blake3": "660595beaed870cf87bd5e2064db8e7a08e03f3f58bdafd077f710be65ec1d91",
       "offset": 4496293888
     },
     {
@@ -807,6 +880,7 @@
       "filename": "shard_00068.bin",
       "size": 67108864,
       "hash": "81a085fe792325af2d1e473cced7d81bcb3a34134b6e7245d7c17120567e924f",
+      "blake3": "81a085fe792325af2d1e473cced7d81bcb3a34134b6e7245d7c17120567e924f",
       "offset": 4563402752
     },
     {
@@ -814,6 +888,7 @@
       "filename": "shard_00069.bin",
       "size": 67108864,
       "hash": "a848c68537aabbb8da83e979750a68a6e55f36f69162e677615990e214a9c2b7",
+      "blake3": "a848c68537aabbb8da83e979750a68a6e55f36f69162e677615990e214a9c2b7",
       "offset": 4630511616
     },
     {
@@ -821,6 +896,7 @@
       "filename": "shard_00070.bin",
       "size": 67108864,
       "hash": "a76a1e24093e354f711666c5500e3c513b91d190b2a552fa115be1b3f4145fdd",
+      "blake3": "a76a1e24093e354f711666c5500e3c513b91d190b2a552fa115be1b3f4145fdd",
       "offset": 4697620480
     },
     {
@@ -828,6 +904,7 @@
       "filename": "shard_00071.bin",
       "size": 67108864,
       "hash": "a2848ee599cdb3ade23deb571e46bd8b20188fe1aa81a31d147aa9a857586689",
+      "blake3": "a2848ee599cdb3ade23deb571e46bd8b20188fe1aa81a31d147aa9a857586689",
       "offset": 4764729344
     },
     {
@@ -835,6 +912,7 @@
       "filename": "shard_00072.bin",
       "size": 67108864,
       "hash": "e7c59161d9b9a5a88d84a5efb9d630224252378896b161967dd07fc6cdb1af2e",
+      "blake3": "e7c59161d9b9a5a88d84a5efb9d630224252378896b161967dd07fc6cdb1af2e",
       "offset": 4831838208
     },
     {
@@ -842,6 +920,7 @@
       "filename": "shard_00073.bin",
       "size": 67108864,
       "hash": "faaaa8e0c2d1d662777879896b95c039e4863a4e31fb8836eb9cefbf8306db7c",
+      "blake3": "faaaa8e0c2d1d662777879896b95c039e4863a4e31fb8836eb9cefbf8306db7c",
       "offset": 4898947072
     },
     {
@@ -849,6 +928,7 @@
       "filename": "shard_00074.bin",
       "size": 67108864,
       "hash": "90ecfd584cead6724240079d058f53b443e0785de02cca0d6227326a19305191",
+      "blake3": "90ecfd584cead6724240079d058f53b443e0785de02cca0d6227326a19305191",
       "offset": 4966055936
     },
     {
@@ -856,6 +936,7 @@
       "filename": "shard_00075.bin",
       "size": 67108864,
       "hash": "0e8538839c561c4f8d4883cbde3789756a81a1bf61217d9ddc8f8e6f2a6ca9cb",
+      "blake3": "0e8538839c561c4f8d4883cbde3789756a81a1bf61217d9ddc8f8e6f2a6ca9cb",
       "offset": 5033164800
     },
     {
@@ -863,6 +944,7 @@
       "filename": "shard_00076.bin",
       "size": 67108864,
       "hash": "03568832dcebd3e4551b3d192bf8a30b6c2287d161e6993dfa26d75b08d5c5a9",
+      "blake3": "03568832dcebd3e4551b3d192bf8a30b6c2287d161e6993dfa26d75b08d5c5a9",
       "offset": 5100273664
     },
     {
@@ -870,6 +952,7 @@
       "filename": "shard_00077.bin",
       "size": 67108864,
       "hash": "385d1d6924a606b200147c5cc57fb33e2a81142d11b62d5bfc212fb0fc7f288d",
+      "blake3": "385d1d6924a606b200147c5cc57fb33e2a81142d11b62d5bfc212fb0fc7f288d",
       "offset": 5167382528
     },
     {
@@ -877,6 +960,7 @@
       "filename": "shard_00078.bin",
       "size": 67108864,
       "hash": "9443906a284137f53f27f7a55f1302d6b52d852e0db766cd7b76b87a679754d1",
+      "blake3": "9443906a284137f53f27f7a55f1302d6b52d852e0db766cd7b76b87a679754d1",
       "offset": 5234491392
     },
     {
@@ -884,6 +968,7 @@
       "filename": "shard_00079.bin",
       "size": 67108864,
       "hash": "8601f9b462a76af311cf8a3881f984dcb756f1c08282b837bc1b228861642f0a",
+      "blake3": "8601f9b462a76af311cf8a3881f984dcb756f1c08282b837bc1b228861642f0a",
       "offset": 5301600256
     },
     {
@@ -891,6 +976,7 @@
       "filename": "shard_00080.bin",
       "size": 67108864,
       "hash": "da649f93d0d8c670ad83580a2bfefd6a480da20a302c625d851331fca986727c",
+      "blake3": "da649f93d0d8c670ad83580a2bfefd6a480da20a302c625d851331fca986727c",
       "offset": 5368709120
     },
     {
@@ -898,6 +984,7 @@
       "filename": "shard_00081.bin",
       "size": 67108864,
       "hash": "7eb1b0dc81e909dcdf083b3562583c493d437a523a182cba0c40a9b21fcc9e5b",
+      "blake3": "7eb1b0dc81e909dcdf083b3562583c493d437a523a182cba0c40a9b21fcc9e5b",
       "offset": 5435817984
     },
     {
@@ -905,6 +992,7 @@
       "filename": "shard_00082.bin",
       "size": 67108864,
       "hash": "5b8bfb6daab769c6b2367c4dfc7ff767af7692aed12a104120d5a86d9ed5ee0f",
+      "blake3": "5b8bfb6daab769c6b2367c4dfc7ff767af7692aed12a104120d5a86d9ed5ee0f",
       "offset": 5502926848
     },
     {
@@ -912,6 +1000,7 @@
       "filename": "shard_00083.bin",
       "size": 67108864,
       "hash": "96785e6ff0068d095f547420b3f7414f7fb95ce9a40dc561f3a4690d2f103c2d",
+      "blake3": "96785e6ff0068d095f547420b3f7414f7fb95ce9a40dc561f3a4690d2f103c2d",
       "offset": 5570035712
     },
     {
@@ -919,6 +1008,7 @@
       "filename": "shard_00084.bin",
       "size": 67108864,
       "hash": "f4640a1fd0a3e5dafa805a8f66033ef0f9266728b127b837cb1021e985cc6061",
+      "blake3": "f4640a1fd0a3e5dafa805a8f66033ef0f9266728b127b837cb1021e985cc6061",
       "offset": 5637144576
     },
     {
@@ -926,6 +1016,7 @@
       "filename": "shard_00085.bin",
       "size": 67108864,
       "hash": "24cb2b19f82f43d6217dfe2fb8d629ed92cef31624fb04990578d6e2b35efae0",
+      "blake3": "24cb2b19f82f43d6217dfe2fb8d629ed92cef31624fb04990578d6e2b35efae0",
       "offset": 5704253440
     },
     {
@@ -933,6 +1024,7 @@
       "filename": "shard_00086.bin",
       "size": 67108864,
       "hash": "7635332ff888824fa26bef94ae3f1642c5d1db32190d97e823ed1c0987634473",
+      "blake3": "7635332ff888824fa26bef94ae3f1642c5d1db32190d97e823ed1c0987634473",
       "offset": 5771362304
     },
     {
@@ -940,6 +1032,7 @@
       "filename": "shard_00087.bin",
       "size": 67108864,
       "hash": "59e49aba14c00860ac519d48b19a863deca861e7ee6f54a5a91456ca00c2264e",
+      "blake3": "59e49aba14c00860ac519d48b19a863deca861e7ee6f54a5a91456ca00c2264e",
       "offset": 5838471168
     },
     {
@@ -947,6 +1040,7 @@
       "filename": "shard_00088.bin",
       "size": 67108864,
       "hash": "a6e2a216a70726343f093f63fd1ea9c7c3ad093b67be53b55c867d96ad019342",
+      "blake3": "a6e2a216a70726343f093f63fd1ea9c7c3ad093b67be53b55c867d96ad019342",
       "offset": 5905580032
     },
     {
@@ -954,6 +1048,7 @@
       "filename": "shard_00089.bin",
       "size": 67108864,
       "hash": "654be1d9533f483e1e6279bf434adbb35540f6e3d68e13689b91110443e7c52e",
+      "blake3": "654be1d9533f483e1e6279bf434adbb35540f6e3d68e13689b91110443e7c52e",
       "offset": 5972688896
     },
     {
@@ -961,6 +1056,7 @@
       "filename": "shard_00090.bin",
       "size": 67108864,
       "hash": "c21cb22d20fcb7e6f2f1daa2a9388dd669d9f9f56aea6e3c65a584a519df58d3",
+      "blake3": "c21cb22d20fcb7e6f2f1daa2a9388dd669d9f9f56aea6e3c65a584a519df58d3",
       "offset": 6039797760
     },
     {
@@ -968,6 +1064,7 @@
       "filename": "shard_00091.bin",
       "size": 67108864,
       "hash": "d02882070f94d907172657629f9a87f7ee10ad2e08a8a7f651c4b6f4b0dd5062",
+      "blake3": "d02882070f94d907172657629f9a87f7ee10ad2e08a8a7f651c4b6f4b0dd5062",
       "offset": 6106906624
     },
     {
@@ -975,6 +1072,7 @@
       "filename": "shard_00092.bin",
       "size": 67108864,
       "hash": "3578de58781ade161cc6018ba42e3d70ca3dd4013fb9b43b780cf7a02841a9ab",
+      "blake3": "3578de58781ade161cc6018ba42e3d70ca3dd4013fb9b43b780cf7a02841a9ab",
       "offset": 6174015488
     },
     {
@@ -982,6 +1080,7 @@
       "filename": "shard_00093.bin",
       "size": 67108864,
       "hash": "ec919e1b46f98c96e2915f0141254e85bf5a8a31d206cbb3650f33582abb007c",
+      "blake3": "ec919e1b46f98c96e2915f0141254e85bf5a8a31d206cbb3650f33582abb007c",
       "offset": 6241124352
     },
     {
@@ -989,6 +1088,7 @@
       "filename": "shard_00094.bin",
       "size": 67108864,
       "hash": "91dd340a7eb1e975aedd91bc100482f5d314f6208b5a31753458dd5c77428d7a",
+      "blake3": "91dd340a7eb1e975aedd91bc100482f5d314f6208b5a31753458dd5c77428d7a",
       "offset": 6308233216
     },
     {
@@ -996,6 +1096,7 @@
       "filename": "shard_00095.bin",
       "size": 67108864,
       "hash": "28a979ab958415f8452f1cc7d6cadc133f4fdce9c3206413b7da97660f55f028",
+      "blake3": "28a979ab958415f8452f1cc7d6cadc133f4fdce9c3206413b7da97660f55f028",
       "offset": 6375342080
     },
     {
@@ -1003,6 +1104,7 @@
       "filename": "shard_00096.bin",
       "size": 67108864,
       "hash": "42daf3a6f1f48997f35971b356ca180e82e35914cbfece6cf112a02fe16d8761",
+      "blake3": "42daf3a6f1f48997f35971b356ca180e82e35914cbfece6cf112a02fe16d8761",
       "offset": 6442450944
     },
     {
@@ -1010,6 +1112,7 @@
       "filename": "shard_00097.bin",
       "size": 60279366,
       "hash": "28d47e9948e06cbc1b270bee2f1dd6a59fa82a9b68ee55d1e858f2a57c8b70ad",
+      "blake3": "28d47e9948e06cbc1b270bee2f1dd6a59fa82a9b68ee55d1e858f2a57c8b70ad",
       "offset": 6509559808
     }
   ],
@@ -11458,7 +11561,11 @@
   "metadata": {
     "source": "convert-core",
     "convertedAt": "2026-04-03T17:47:28.199Z",
-    "hasTokenizer": true
+    "hasTokenizer": true,
+    "manifestRefresh": {
+      "at": "2026-04-04T21:40:23.311Z",
+      "config": "gemma-4-e2b-it-q4k-ehf16-af32.json"
+    }
   },
   "tokenizer": {
     "type": "bundled",

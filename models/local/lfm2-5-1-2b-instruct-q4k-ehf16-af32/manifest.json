@@ -31,7 +31,8 @@
       "queryKeyNorm": true,
       "causal": true,
       "attentionBias": false,
-      "attentionOutputGate": false
+      "attentionOutputGate": false,
+      "valueNorm": false
     },
     "normalization": {
       "rmsNormEps": 0.00001,
@@ -43,7 +44,8 @@
     "ffn": {
       "activation": "silu",
       "gatedActivation": true,
-      "swigluLimit": null
+      "swigluLimit": null,
+      "useDoubleWideMlp": false
     },
     "rope": {
       "ropeTheta": 1000000,
@@ -60,7 +62,10 @@
       "yarnOriginalMaxPos": null,
       "ropeLocalYarnBetaFast": null,
       "ropeLocalYarnBetaSlow": null,
-      "ropeLocalYarnOriginalMaxPos": null
+      "ropeLocalYarnOriginalMaxPos": null,
+      "ropeLocalPartialRotaryFactor": null,
+      "ropeFrequencyBaseDim": null,
+      "ropeLocalFrequencyBaseDim": null
     },
     "output": {
       "finalLogitSoftcapping": null,
@@ -146,7 +151,7 @@
         "rope": {
           "kernel": "rope.wgsl",
           "entry": "main",
-          "digest": "sha256:4c803ad5e0dd065d5572c7aecc1def277c43884dcc02f22a9676914c10111400"
+          "digest": "sha256:238e989aad7da731046cd54d7bb3c80a6f26daf5d7a8e435607161de902e5882"
         },
         "attn_decode": {
           "kernel": "attention_decode_online_f16kv.wgsl",
@@ -2412,7 +2417,7 @@
     "convertedAt": "2026-03-14T20:13:06.599Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-03-26T12:13:28.877Z",
+      "at": "2026-04-04T21:40:23.037Z",
       "config": "lfm2.5-1.2b-instruct-q4k-ehf16-af32.json"
     }
   },

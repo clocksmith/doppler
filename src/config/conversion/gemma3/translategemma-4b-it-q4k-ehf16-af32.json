@@ -19,7 +19,8 @@
       "queryKeyNorm": true,
       "causal": true,
       "attentionBias": false,
-      "attentionOutputGate": false
+      "attentionOutputGate": false,
+      "valueNorm": false
     },
     "normalization": {
       "rmsNormEps": 0.000001,
@@ -31,7 +32,8 @@
     "ffn": {
       "activation": "gelu",
       "gatedActivation": true,
-      "swigluLimit": null
+      "swigluLimit": null,
+      "useDoubleWideMlp": false
     },
     "rope": {
       "ropeTheta": 1000000,
@@ -48,7 +50,10 @@
       "yarnOriginalMaxPos": null,
       "ropeLocalYarnBetaFast": null,
       "ropeLocalYarnBetaSlow": null,
-      "ropeLocalYarnOriginalMaxPos": null
+      "ropeLocalYarnOriginalMaxPos": null,
+      "ropeLocalPartialRotaryFactor": null,
+      "ropeFrequencyBaseDim": null,
+      "ropeLocalFrequencyBaseDim": null
     },
     "output": {
       "finalLogitSoftcapping": null,

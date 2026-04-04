@@ -20,7 +20,8 @@
       "queryKeyNorm": false,
       "causal": false,
       "attentionBias": false,
-      "attentionOutputGate": false
+      "attentionOutputGate": false,
+      "valueNorm": false
     },
     "normalization": {
       "rmsNormEps": 0.00001,
@@ -32,7 +33,8 @@
     "ffn": {
       "activation": "silu",
       "gatedActivation": false,
-      "swigluLimit": null
+      "swigluLimit": null,
+      "useDoubleWideMlp": false
     },
     "rope": {
       "ropeTheta": null,
@@ -49,7 +51,10 @@
       "yarnOriginalMaxPos": null,
       "ropeLocalYarnBetaFast": null,
       "ropeLocalYarnBetaSlow": null,
-      "ropeLocalYarnOriginalMaxPos": null
+      "ropeLocalYarnOriginalMaxPos": null,
+      "ropeLocalPartialRotaryFactor": null,
+      "ropeFrequencyBaseDim": null,
+      "ropeLocalFrequencyBaseDim": null
     },
     "output": {
       "finalLogitSoftcapping": null,
@@ -70,7 +75,7 @@
       "enabled": false
     },
     "pipeline": "diffusion",
-    "sessionDefaults": {
+    "session": {
       "compute": {
         "defaults": {
           "activationDtype": "f16",
@@ -18003,7 +18008,7 @@
     "source": "convert-core",
     "convertedAt": "2026-03-06T15:40:39.962Z",
     "manifestRefresh": {
-      "at": "2026-03-20T14:12:31.643Z",
+      "at": "2026-04-04T21:40:23.193Z",
       "config": "sana-sprint-0.6b-f16.json"
     }
   }
