@@ -534,6 +534,9 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       valueNorm: config.valueNorm,
       attentionOutputGate: config.attentionOutputGate,
       causalAttention: config.causalAttention,
+      multimodalBidirectionalSpan: isSlidingLayerType(layerType)
+        ? (context.multimodalBidirectionalSpan ?? null)
+        : null,
       rmsNormWeightOffset: config.rmsNormWeightOffset,
       ropeRotaryDim: resolveAttentionRotaryDim(config, layerType),
       ropeInterleaved: config.ropeInterleaved,

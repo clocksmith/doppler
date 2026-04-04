@@ -8021,6 +8021,75 @@
         }
       }
     },
+    "depthwise_conv1d": {
+      "description": "Depthwise Conv1D (channels-first, same-padded)",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "input",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "weight",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "output",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          {
+            "name": "channels",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "length",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "kernel_size",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 12
+          }
+        ]
+      },
+      "variants": {
+        "depthwise_conv1d": {
+          "wgsl": "depthwise_conv1d.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [],
+          "outputDtype": "f32",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
     "grouped_pointwise_conv2d": {
       "description": "Grouped Pointwise Conv2D (NCHW)",
       "baseBindings": [

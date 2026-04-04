@@ -210,8 +210,57 @@ export interface ParsedModelConfig {
   layerPipeline?: LayerPipelineSchema | null;
   chatTemplateType?: string | null;
   chatTemplateEnabled: boolean;
+  chatTemplateThinking: boolean | null;
   decodeStrategy: 'incremental' | 'replay_prefill';
   kernelPath?: KernelPathRef;
+  visionConfig?: VisionConfig | null;
+  audioConfig?: AudioEncoderConfig | null;
+}
+
+export interface VisionConfig {
+  depth: number;
+  hiddenSize: number;
+  intermediateSize: number;
+  numHeads: number;
+  numKeyValueHeads: number;
+  headDim: number;
+  outHiddenSize: number | null;
+  patchSize: number;
+  poolingKernelSize: number;
+  spatialMergeSize: number | null;
+  temporalPatchSize: number | null;
+  positionEmbeddingSize: number | null;
+  defaultOutputLength: number | null;
+  ropeTheta: number | null;
+  eps: number;
+  hiddenActivation: string;
+  standardize: boolean;
+  useClippedLinears: boolean;
+  deepstackVisualIndexes: number[];
+  imageTokenId: number | null;
+  visionArchitecture: string | null;
+  softTokenBudgetTiers?: number[];
+}
+
+export interface AudioEncoderConfig {
+  audioArchitecture: 'gemma4';
+  depth: number;
+  hiddenSize: number;
+  numAttentionHeads: number;
+  headDim: number;
+  convKernelSize: number;
+  subsamplingConvChannels: number[];
+  outputProjDims: number;
+  attentionContextLeft: number;
+  attentionContextRight: number;
+  attentionChunkSize: number;
+  attentionLogitCap: number;
+  attentionInvalidLogitsValue: number;
+  residualWeight: number;
+  rmsNormEps: number;
+  hiddenAct: string;
+  useClippedLinears: boolean;
+  audioTokenId: number | null;
 }
 
 export function getStopTokenIds(manifest: Manifest): number[];

@@ -680,7 +680,7 @@ function createAttentionUniformBuffer(
 ) {
   return createUniformBufferWithView(
     'attention_uniforms',
-    64, // 60 bytes used + 4 padding for 16-byte alignment
+    80,
     (view) => {
       view.setUint32(0, params.numHeads, true);
       view.setUint32(4, params.numKVHeads, true);
@@ -696,7 +696,11 @@ function createAttentionUniformBuffer(
       view.setUint32(44, params.kvStart ?? 0, true);
       view.setUint32(48, params.pageSize ?? 0, true);
       view.setUint32(52, params.kvLayout ?? 0, true);
-      view.setUint32(56, 0, true);
+      view.setUint32(56, params.bidirectionalSpanStart ?? 0, true);
+      view.setUint32(60, params.bidirectionalSpanLength ?? 0, true);
+      view.setUint32(64, 0, true);
+      view.setUint32(68, 0, true);
+      view.setUint32(72, 0, true);
     },
     recorder,
     device
@@ -1005,6 +1009,8 @@ async function executeAttention(
     numKVHeads = numHeads,
     scale = 1.0 / Math.sqrt(headDim),
     causal = true,
+    bidirectionalSpanStart = 0,
+    bidirectionalSpanLength = 0,
     startPos = 0,
     layerIdx,
     outputBuffer = null,
@@ -1019,6 +1025,18 @@ async function executeAttention(
     kvPageSize = 0,
     kernelPath = null,
   } = options;
+  if (!Number.isFinite(bidirectionalSpanStart) || Math.floor(bidirectionalSpanStart) !== bidirectionalSpanStart || bidirectionalSpanStart < 0) {
+    throw new Error(`Attention bidirectionalSpanStart must be a non-negative integer, got ${bidirectionalSpanStart}.`);
+  }
+  if (!Number.isFinite(bidirectionalSpanLength) || Math.floor(bidirectionalSpanLength) !== bidirectionalSpanLength || bidirectionalSpanLength < 0) {
+    throw new Error(`Attention bidirectionalSpanLength must be a non-negative integer, got ${bidirectionalSpanLength}.`);
+  }
+  if (bidirectionalSpanLength > 0 && (bidirectionalSpanStart + bidirectionalSpanLength) > (kvStart + kvLen)) {
+    throw new Error(
+      `Attention bidirectional span [${bidirectionalSpanStart}, ${bidirectionalSpanStart + bidirectionalSpanLength}) ` +
+      `exceeds KV extent [${kvStart}, ${kvStart + kvLen}).`
+    );
+  }
 
   const limits = getDeviceLimits();
   const sharedLimit = limits?.maxComputeWorkgroupStorageSize ?? Infinity;
@@ -1076,6 +1094,8 @@ async function executeAttention(
     kvStart,
     pageSize: kvPageSize,
     kvLayout: kvLayout === 'paged' ? 2 : (kvLayout === 'ring' ? 1 : 0),
+    bidirectionalSpanStart,
+    bidirectionalSpanLength,
   });
 
   const kvLenBinding = kvLenBuffer || getKvLenFallbackBuffer(execution.device);

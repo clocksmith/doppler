@@ -137,6 +137,20 @@ await assert.rejects(
 }
 
 {
+  const missingInputDir = path.join(tmpdir(), `doppler-missing-convert-input-null-options-${Date.now()}`);
+  await assert.rejects(
+    () => runNodeCommand({
+      command: 'convert',
+      inputDir: missingInputDir,
+      convertPayload: {
+        converterConfig: {},
+      },
+    }, null),
+    /node convert: inputDir does not exist:/
+  );
+}
+
+{
   const inputDir = mkdtempSync(path.join(tmpdir(), 'doppler-convert-empty-input-'));
   const outputDir = mkdtempSync(path.join(tmpdir(), 'doppler-convert-empty-output-'));
   try {

@@ -8,6 +8,7 @@ const repoRoot = path.resolve(testDir, '..', '..');
 const tiersDir = path.join(repoRoot, 'src/config/runtime/tiers');
 
 const TIER_FILES = [
+  'gemma4-128gb.json',
   'gemma4-32gb.json',
   'gemma4-24gb.json',
   'gemma4-16gb.json',
@@ -87,37 +88,43 @@ for (const [file, tier] of Object.entries(tiers)) {
   assertTierPinsFields(file, tier);
 }
 
-// === Budget ordering: 16gb < 24gb < 32gb ===
+// === Budget ordering: 16gb < 24gb < 32gb < 128gb ===
 
 {
   const budget16 = tiers['gemma4-16gb.json'].runtime.shared.bufferPool.budget.maxTotalBytes;
   const budget24 = tiers['gemma4-24gb.json'].runtime.shared.bufferPool.budget.maxTotalBytes;
   const budget32 = tiers['gemma4-32gb.json'].runtime.shared.bufferPool.budget.maxTotalBytes;
+  const budget128 = tiers['gemma4-128gb.json'].runtime.shared.bufferPool.budget.maxTotalBytes;
 
   assert.ok(budget16 < budget24, `16gb budget (${budget16}) must be < 24gb budget (${budget24})`);
   assert.ok(budget24 < budget32, `24gb budget (${budget24}) must be < 32gb budget (${budget32})`);
+  assert.ok(budget32 < budget128, `32gb budget (${budget32}) must be < 128gb budget (${budget128})`);
 }
 
-// === Expert cache ordering: 16gb < 24gb < 32gb ===
+// === Expert cache ordering: 16gb < 24gb < 32gb <= 128gb ===
 
 {
   const cache16 = tiers['gemma4-16gb.json'].runtime.loading.expertCache.defaultSizeBytes;
   const cache24 = tiers['gemma4-24gb.json'].runtime.loading.expertCache.defaultSizeBytes;
   const cache32 = tiers['gemma4-32gb.json'].runtime.loading.expertCache.defaultSizeBytes;
+  const cache128 = tiers['gemma4-128gb.json'].runtime.loading.expertCache.defaultSizeBytes;
 
   assert.ok(cache16 < cache24, `16gb expert cache (${cache16}) must be < 24gb (${cache24})`);
   assert.ok(cache24 < cache32, `24gb expert cache (${cache24}) must be < 32gb (${cache32})`);
+  assert.ok(cache32 <= cache128, `32gb expert cache (${cache32}) must be <= 128gb (${cache128})`);
 }
 
-// === KV cache maxSeqLen ordering: 16gb <= 24gb <= 32gb ===
+// === KV cache maxSeqLen ordering: 16gb <= 24gb <= 32gb <= 128gb ===
 
 {
   const seq16 = tiers['gemma4-16gb.json'].runtime.inference.kvcache.maxSeqLen;
   const seq24 = tiers['gemma4-24gb.json'].runtime.inference.kvcache.maxSeqLen;
   const seq32 = tiers['gemma4-32gb.json'].runtime.inference.kvcache.maxSeqLen;
+  const seq128 = tiers['gemma4-128gb.json'].runtime.inference.kvcache.maxSeqLen;
 
   assert.ok(seq16 <= seq24, `16gb maxSeqLen (${seq16}) must be <= 24gb (${seq24})`);
   assert.ok(seq24 <= seq32, `24gb maxSeqLen (${seq24}) must be <= 32gb (${seq32})`);
+  assert.ok(seq32 <= seq128, `32gb maxSeqLen (${seq32}) must be <= 128gb (${seq128})`);
 }
 
 // === 16gb tier is explicitly constrained ===
@@ -168,6 +175,29 @@ for (const [file, tier] of Object.entries(tiers)) {
   // Full context
   assert.ok(kvcache.maxSeqLen >= 8192,
     `32gb tier maxSeqLen (${kvcache.maxSeqLen}) must be >= 8192`);
+}
+
+// === 128gb tier has large allocations ===
+
+{
+  const tier128 = tiers['gemma4-128gb.json'];
+  const budget = tier128.runtime.shared.bufferPool.budget;
+  const expertCache = tier128.runtime.loading.expertCache;
+  const kvcache = tier128.runtime.inference.kvcache;
+
+  // Budget must be > 32 GB but < 128 GB (leave headroom for system)
+  assert.ok(budget.maxTotalBytes > 32 * GB,
+    `128gb tier budget (${budget.maxTotalBytes}) must be > 32 GB`);
+  assert.ok(budget.maxTotalBytes < 128 * GB,
+    `128gb tier budget (${budget.maxTotalBytes}) must be < 128 GB`);
+
+  // Expert cache >= 4 GB
+  assert.ok(expertCache.defaultSizeBytes >= 4 * GB,
+    `128gb tier expert cache (${expertCache.defaultSizeBytes}) must be >= 4 GB`);
+
+  // Extended context
+  assert.ok(kvcache.maxSeqLen >= 8192,
+    `128gb tier maxSeqLen (${kvcache.maxSeqLen}) must be >= 8192`);
 }
 
 // === All tiers pin hard budget enforcement ===

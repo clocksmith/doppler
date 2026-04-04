@@ -146,6 +146,11 @@ export {
 } from './depthwise_conv2d.js';
 
 export {
+  runDepthwiseConv1D,
+  recordDepthwiseConv1D,
+} from './depthwise_conv1d.js';
+
+export {
   runGroupedPointwiseConv2D,
   recordGroupedPointwiseConv2D,
 } from './grouped_pointwise_conv2d.js';

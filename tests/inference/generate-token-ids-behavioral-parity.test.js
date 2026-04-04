@@ -210,6 +210,31 @@ function stubGenerator(gen, tokenSequence) {
 }
 console.log('  ok: EOS stop parity');
 
+// === Test 1b: immediate EOS on first sampled token must not decode one extra token ===
+{
+  const immediateStopSeq = [EOS_TOKEN, 19, 20];
+  const state1 = createMinimalState({ maxTokens: 20 });
+  const gen1 = new PipelineGenerator(state1);
+  stubGenerator(gen1, immediateStopSeq);
+  const result1 = await gen1.generateTokenIds('test', { useChatTemplate: false });
+  assert.deepStrictEqual(
+    result1.tokenIds,
+    [EOS_TOKEN],
+    'generateTokenIds must stop immediately when the first sampled token is EOS'
+  );
+
+  const state2 = createMinimalState({ maxTokens: 20 });
+  const gen2 = new PipelineGenerator(state2);
+  let yieldedCount = 0;
+  stubGenerator(gen2, immediateStopSeq);
+  for await (const _ of gen2.generate('test', { useChatTemplate: false })) {
+    yieldedCount++;
+  }
+  assert.equal(yieldedCount, 1, 'generate() must emit only the immediate EOS token');
+  assert.equal(state2.stats.tokensGenerated, 1, 'generate() must not decode past an immediate EOS token');
+}
+console.log('  ok: immediate EOS first-token parity');
+
 // === Test 2: maxTokens cap — both paths respect the limit ===
 {
   const neverEnds = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19];

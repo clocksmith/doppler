@@ -217,6 +217,14 @@ import { formatChatMessages } from '../../src/inference/pipelines/text/chat-form
   );
 }
 
+{
+  assert.throws(
+    () => formatChatMessages([{ role: 'user', content: 'Hi' }], 'unknown-template'),
+    /Unrecognized chat template type: unknown-template/,
+    'formatChatMessages must fail fast for unknown template types'
+  );
+}
+
 // =============================================================================
 // applyChatTemplate qwen output format contract (think block)
 // =============================================================================

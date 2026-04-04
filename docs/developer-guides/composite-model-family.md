@@ -23,14 +23,15 @@ Onboard a new model family that still fits an existing Doppler pipeline family.
 
 ## Recommended Order
 
-1. Confirm the family really fits an existing pipeline. If not, stop and use [composite-pipeline-family.md](composite-pipeline-family.md).
-2. Start with [03-model-family-config.md](03-model-family-config.md).
-3. Add the initial conversion recipe with [04-conversion-config.md](04-conversion-config.md).
-4. Choose either [02-assign-chat-template.md](02-assign-chat-template.md) or [08-chat-template-formatter.md](08-chat-template-formatter.md).
-5. Add [06-kernel-path-config.md](06-kernel-path-config.md) if the family needs different execution identity.
-6. Add [07-manifest-runtime-field.md](07-manifest-runtime-field.md), [10-activation-implementation.md](10-activation-implementation.md), [11-wgsl-kernel.md](11-wgsl-kernel.md), [13-attention-variant.md](13-attention-variant.md), or [14-quantization-format.md](14-quantization-format.md) only when the family genuinely needs them.
-7. Run convert, verify, debug, and browser verification before any promotion.
-8. If the artifact is going to be reused or published, finish with [05-promote-model-artifact.md](05-promote-model-artifact.md).
+1. Start with [model-onboarding-playbook.md](model-onboarding-playbook.md) so the research packet, ownership split, and verification plan are explicit before implementation.
+2. Confirm the family really fits an existing pipeline. If not, stop and use [composite-pipeline-family.md](composite-pipeline-family.md).
+3. Continue with [03-model-family-config.md](03-model-family-config.md).
+4. Add the initial conversion recipe with [04-conversion-config.md](04-conversion-config.md).
+5. Choose either [02-assign-chat-template.md](02-assign-chat-template.md) or [08-chat-template-formatter.md](08-chat-template-formatter.md).
+6. Add [06-kernel-path-config.md](06-kernel-path-config.md) if the family needs different execution identity.
+7. Add [07-manifest-runtime-field.md](07-manifest-runtime-field.md), [10-activation-implementation.md](10-activation-implementation.md), [11-wgsl-kernel.md](11-wgsl-kernel.md), [13-attention-variant.md](13-attention-variant.md), or [14-quantization-format.md](14-quantization-format.md) only when the family genuinely needs them.
+8. Run convert, verify, debug, and browser verification before any promotion.
+9. If the artifact is going to be reused or published, finish with [05-promote-model-artifact.md](05-promote-model-artifact.md).
 
 ## Verification
 
@@ -49,6 +50,7 @@ Onboard a new model family that still fits an existing Doppler pipeline family.
 
 ## Related Guides
 
+- [model-onboarding-playbook.md](model-onboarding-playbook.md)
 - [03-model-family-config.md](03-model-family-config.md)
 - [04-conversion-config.md](04-conversion-config.md)
 - [05-promote-model-artifact.md](05-promote-model-artifact.md)

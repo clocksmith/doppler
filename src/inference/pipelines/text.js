@@ -133,7 +133,6 @@ function expandImagePlaceholderTokenIds(tokenIds, imageTokenId, numImageTokens, 
   };
 }
 
-
 // ============================================================================
 // Main Inference Pipeline Class
 // ============================================================================
@@ -312,6 +311,24 @@ export class InferencePipeline extends PipelineState {
       this.visionCapable = false;
     }
 
+    // Audio capability detection — gated by manifest fields
+    const audioTokenId = manifest.audio_token_id;
+    const hasAudioQuant = manifest.quantizationInfo?.audio != null;
+    if (Number.isInteger(audioTokenId) && audioTokenId > 0 && hasAudioQuant) {
+      this.audioCapable = true;
+      this.audioTokenId = audioTokenId;
+      this.audioConfig = this.modelConfig.audioConfig;
+      if (!this.audioConfig) {
+        throw new Error(
+          `Manifest declares audio_token_id=${audioTokenId} and quantizationInfo.audio ` +
+          'but no audio_config was resolved. Check conversion config.'
+        );
+      }
+      log.info('Pipeline', `Audio capable: audioTokenId=${audioTokenId}`);
+    } else {
+      this.audioCapable = false;
+    }
+
     await runKernelWarmup({
       useGPU: this.useGPU,
       kernelWarmup: this.runtimeConfig.shared?.kernelWarmup,
@@ -434,6 +451,11 @@ export class InferencePipeline extends PipelineState {
     // Load vision weights (conditional on manifest)
     if (this.visionCapable) {
       await this._loadVisionWeights();
+    }
+
+    // Load audio weights (conditional on manifest)
+    if (this.audioCapable) {
+      await this._loadAudioWeights();
     }
 
     // Initialize RoPE frequencies
@@ -738,6 +760,111 @@ export class InferencePipeline extends PipelineState {
   }
 
 
+  async _loadAudioWeights() {
+    const loader = this.dopplerLoader ?? getDopplerLoader(this.runtimeConfig.loading);
+    const ac = this.audioConfig;
+    const depth = ac.depth;
+
+    const loadRequiredTensor = async (name, toGPU = true) => {
+      const tensor = await loader.loadTensor(name, toGPU, true);
+      if (!tensor) {
+        throw new Error(`Audio tensor "${name}" is missing from the converted artifact.`);
+      }
+      return tensor;
+    };
+    const loadScalar = async (name) => {
+      const tensor = await loadRequiredTensor(name, false);
+      if (tensor instanceof Float32Array) {
+        if (tensor.length !== 1) {
+          throw new Error(`Audio scalar "${name}" must be a single-element tensor, got length=${tensor.length}.`);
+        }
+        return tensor[0];
+      }
+      if (ArrayBuffer.isView(tensor) && tensor.length === 1) {
+        return Number(tensor[0]);
+      }
+      if (typeof tensor === 'number') {
+        return tensor;
+      }
+      throw new Error(
+        `Audio scalar "${name}" must decode to a single numeric value, ` +
+        `got ${tensor?.constructor?.name ?? typeof tensor} length=${tensor?.length ?? 'N/A'}.`
+      );
+    };
+    const loadClipRange = async (prefix) => ({
+      inputMin: await loadScalar(`${prefix}.input_min`),
+      inputMax: await loadScalar(`${prefix}.input_max`),
+      outputMin: await loadScalar(`${prefix}.output_min`),
+      outputMax: await loadScalar(`${prefix}.output_max`),
+    });
+
+    const audioWeights = {
+      // Subsampling
+      subsampleConv0Weight: await loadRequiredTensor('model.audio_tower.subsample_conv_projection.layer0.conv.weight'),
+      subsampleNorm0Weight: await loadRequiredTensor('model.audio_tower.subsample_conv_projection.layer0.norm.weight'),
+      subsampleConv1Weight: await loadRequiredTensor('model.audio_tower.subsample_conv_projection.layer1.conv.weight'),
+      subsampleNorm1Weight: await loadRequiredTensor('model.audio_tower.subsample_conv_projection.layer1.norm.weight'),
+      subsampleInputProjWeight: await loadRequiredTensor('model.audio_tower.subsample_conv_projection.input_proj_linear.weight'),
+      // Output
+      outputProjWeight: await loadRequiredTensor('model.audio_tower.output_proj.weight'),
+      outputProjBias: await loadRequiredTensor('model.audio_tower.output_proj.bias'),
+      audioEmbeddingProjWeight: await loadRequiredTensor('model.embed_audio.embedding_projection.weight'),
+      layers: [],
+    };
+
+    for (let i = 0; i < depth; i++) {
+      const prefix = `model.audio_tower.layers.${i}`;
+      const layer = {
+        // Feed-forward 1 (Macaron half-step)
+        feedForward1: {
+          preLayerNorm: await loadRequiredTensor(`${prefix}.feed_forward1.pre_layer_norm.weight`),
+          ffwLayer1Weight: await loadRequiredTensor(`${prefix}.feed_forward1.ffw_layer_1.linear.weight`),
+          ffwLayer1Clip: await loadClipRange(`${prefix}.feed_forward1.ffw_layer_1`),
+          ffwLayer2Weight: await loadRequiredTensor(`${prefix}.feed_forward1.ffw_layer_2.linear.weight`),
+          ffwLayer2Clip: await loadClipRange(`${prefix}.feed_forward1.ffw_layer_2`),
+          postLayerNorm: await loadRequiredTensor(`${prefix}.feed_forward1.post_layer_norm.weight`),
+        },
+        // Self-attention
+        normPreAttn: await loadRequiredTensor(`${prefix}.norm_pre_attn.weight`),
+        qProj: await loadRequiredTensor(`${prefix}.self_attn.q_proj.linear.weight`),
+        qProjClip: await loadClipRange(`${prefix}.self_attn.q_proj`),
+        kProj: await loadRequiredTensor(`${prefix}.self_attn.k_proj.linear.weight`),
+        kProjClip: await loadClipRange(`${prefix}.self_attn.k_proj`),
+        vProj: await loadRequiredTensor(`${prefix}.self_attn.v_proj.linear.weight`),
+        vProjClip: await loadClipRange(`${prefix}.self_attn.v_proj`),
+        perDimScale: await loadRequiredTensor(`${prefix}.self_attn.per_dim_scale`),
+        relativeKProj: await loadRequiredTensor(`${prefix}.self_attn.relative_k_proj.weight`),
+        postProj: await loadRequiredTensor(`${prefix}.self_attn.post.linear.weight`),
+        postProjClip: await loadClipRange(`${prefix}.self_attn.post`),
+        normPostAttn: await loadRequiredTensor(`${prefix}.norm_post_attn.weight`),
+        // Convolution module (LConv1D)
+        lconvPreLayerNorm: await loadRequiredTensor(`${prefix}.lconv1d.pre_layer_norm.weight`),
+        lconvLinearStartWeight: await loadRequiredTensor(`${prefix}.lconv1d.linear_start.linear.weight`),
+        lconvLinearStartClip: await loadClipRange(`${prefix}.lconv1d.linear_start`),
+        lconvDepthwiseWeight: await loadRequiredTensor(`${prefix}.lconv1d.depthwise_conv1d.weight`),
+        lconvConvNorm: await loadRequiredTensor(`${prefix}.lconv1d.conv_norm.weight`),
+        lconvLinearEndWeight: await loadRequiredTensor(`${prefix}.lconv1d.linear_end.linear.weight`),
+        lconvLinearEndClip: await loadClipRange(`${prefix}.lconv1d.linear_end`),
+        // Feed-forward 2 (Macaron half-step)
+        feedForward2: {
+          preLayerNorm: await loadRequiredTensor(`${prefix}.feed_forward2.pre_layer_norm.weight`),
+          ffwLayer1Weight: await loadRequiredTensor(`${prefix}.feed_forward2.ffw_layer_1.linear.weight`),
+          ffwLayer1Clip: await loadClipRange(`${prefix}.feed_forward2.ffw_layer_1`),
+          ffwLayer2Weight: await loadRequiredTensor(`${prefix}.feed_forward2.ffw_layer_2.linear.weight`),
+          ffwLayer2Clip: await loadClipRange(`${prefix}.feed_forward2.ffw_layer_2`),
+          postLayerNorm: await loadRequiredTensor(`${prefix}.feed_forward2.post_layer_norm.weight`),
+        },
+        // Final layer norm
+        normOut: await loadRequiredTensor(`${prefix}.norm_out.weight`),
+      };
+      audioWeights.layers.push(layer);
+    }
+
+    this.audioWeights = audioWeights;
+    log.info('Pipeline', `Audio weights loaded (${depth} conformer layers)`);
+  }
+
+
   // ==========================================================================
   // Vision: transcribeImage
   // ==========================================================================
@@ -751,9 +878,10 @@ export class InferencePipeline extends PipelineState {
    * @param {number}                  params.height      Image height
    * @param {string}                  [params.prompt]    Custom transcription prompt
    * @param {number}                  [params.maxTokens] Max tokens to generate
+   * @param {number}                  [params.softTokenBudget] Per-request soft token budget (Gemma 4 tiers: 70/140/280/560/1120)
    * @returns {Promise<{ text: string, tokens: number[] }>}
    */
-  async transcribeImage({ imageBytes, width, height, prompt, maxTokens }) {
+  async transcribeImage({ imageBytes, width, height, prompt, maxTokens, softTokenBudget }) {
     if (!this.visionCapable) {
       throw new Error(
         'Pipeline does not support image transcription (no image_token_id in manifest).'
@@ -777,6 +905,7 @@ export class InferencePipeline extends PipelineState {
       height,
       visionConfig: this.visionConfig,
       weights: this.visionWeights,
+      softTokenBudget,
     });
 
     // Step 2: Build the multimodal prompt from the model's chat template and
@@ -795,6 +924,7 @@ export class InferencePipeline extends PipelineState {
       );
     }
     const templateType = this.modelConfig?.chatTemplateType ?? 'gemma4';
+    const chatOptions = this.modelConfig?.chatTemplateThinking === true ? { thinking: true } : undefined;
     const multimodalPrompt = formatChatMessages([
       {
         role: 'user',
@@ -803,17 +933,21 @@ export class InferencePipeline extends PipelineState {
           { type: 'text', text: requestedPrompt },
         ],
       },
-    ], templateType);
+    ], templateType, chatOptions);
     const promptTokenIds = this.tokenizer.encode(multimodalPrompt);
-    const imageTokenSpanLength = Number(this.visionConfig?.defaultOutputLength ?? encodeResult.numTokens);
-    if (
-      !Number.isFinite(imageTokenSpanLength)
-      || Math.floor(imageTokenSpanLength) !== imageTokenSpanLength
-      || imageTokenSpanLength < encodeResult.numTokens
-    ) {
+    const imageTokenSpanLength = encodeResult.numTokens;
+    const effectiveBudget = softTokenBudget ?? this.visionConfig?.defaultOutputLength;
+    const maxImageTokenSpanLength = Number(effectiveBudget);
+    if (!Number.isFinite(maxImageTokenSpanLength) || maxImageTokenSpanLength < 1 || Math.floor(maxImageTokenSpanLength) !== maxImageTokenSpanLength) {
       throw new Error(
-        `[Pipeline] transcribeImage: invalid Gemma 4 image token span length ${imageTokenSpanLength}. ` +
-        `Expected an integer >= encoded image token count ${encodeResult.numTokens}.`
+        `[Pipeline] transcribeImage: invalid soft token budget ${effectiveBudget}. ` +
+        'Expected a positive integer from the resolved vision config or softTokenBudget parameter.'
+      );
+    }
+    if (imageTokenSpanLength > maxImageTokenSpanLength) {
+      throw new Error(
+        `[Pipeline] transcribeImage: encoded Gemma 4 image produced ${imageTokenSpanLength} soft tokens, ` +
+        `which exceeds the effective soft token budget=${maxImageTokenSpanLength}.`
       );
     }
     const boiTokenId = resolveSingleSpecialTokenId(this.tokenizer, '<|image>', 'Gemma 4 BOI token');
@@ -824,6 +958,12 @@ export class InferencePipeline extends PipelineState {
       imageTokenSpanLength,
       { boiTokenId, eoiTokenId }
     );
+    const padTokenId = this.tokenizer?.getSpecialTokens?.()?.pad;
+    if (!Number.isFinite(padTokenId) || Math.floor(padTokenId) !== padTokenId || padTokenId < 0) {
+      throw new Error(
+        `[Pipeline] transcribeImage: Gemma 4 multimodal prefill requires a tokenizer pad token ID, got ${padTokenId}.`
+      );
+    }
 
     // Step 3: Generate with embedding override at the image token offset.
     const tokens = [];
@@ -837,6 +977,15 @@ export class InferencePipeline extends PipelineState {
           prefixLength: encodeResult.numTokens,
           offset: imageStartOffset,
           embeddings: encodeResult.features,
+        },
+        __internalEmbeddingInputSpan: {
+          offset: imageStartOffset,
+          length: encodeResult.numTokens,
+          tokenId: padTokenId,
+        },
+        __internalMultimodalBidirectionalSpan: {
+          offset: imageStartOffset,
+          length: encodeResult.numTokens,
         },
         maxTokens: maxGen,
         temperature: 0,
@@ -866,6 +1015,271 @@ export class InferencePipeline extends PipelineState {
 
 
   // ==========================================================================
+  // Video: transcribeVideo
+  // ==========================================================================
+
+  /**
+   * Transcribe text from video using the vision encoder (per-frame) and text decoder.
+   *
+   * Video is processed as sampled frames through the existing vision encoder.
+   * Each frame is encoded independently and the visual tokens are concatenated.
+   *
+   * @param {object} params
+   * @param {Array<{ pixels: Uint8Array|Float32Array, width: number, height: number }>} params.frames  Decoded video frames
+   * @param {string}  [params.prompt]    Custom transcription prompt
+   * @param {number}  [params.maxTokens] Max tokens to generate
+   * @param {number}  [params.maxFrames=8] Maximum frames to sample
+   * @param {number}  [params.perFrameSoftTokenBudget] Soft token budget per frame
+   * @returns {Promise<{ text: string, tokens: number[] }>}
+   */
+  async transcribeVideo({ frames, prompt, maxTokens, maxFrames, perFrameSoftTokenBudget }) {
+    if (!this.visionCapable) {
+      throw new Error(
+        'Pipeline does not support video transcription (no image_token_id in manifest for vision encoder).'
+      );
+    }
+    if (!this.visionWeights) {
+      throw new Error(
+        'Vision weights not loaded. Ensure the model was loaded with a vision-capable manifest.'
+      );
+    }
+
+    this.reset();
+
+    // Lazy-load video module
+    const { encodeVideo } = await import('./video/index.js');
+
+    // Step 1: Encode video frames through vision pipeline
+    const encodeResult = await encodeVideo({
+      frames,
+      visionConfig: this.visionConfig,
+      weights: this.visionWeights,
+      maxFrames: maxFrames ?? 8,
+      perFrameSoftTokenBudget,
+    });
+
+    // Step 2: Build the multimodal prompt with <|video|> placeholder
+    const requestedPrompt = prompt ?? 'Describe the video in one short sentence.';
+    const videoTokenId = this.tokenizer?.model?.tokenToId?.('<|video_token|>')
+      ?? this.tokenizer?.encode?.('<|video|>')?.find?.((id) => id !== undefined)
+      ?? null;
+    // Fall back to image token ID for video placeholder expansion
+    const placeholderTokenId = videoTokenId ?? this.visionConfig?.imageTokenId ?? this.imageTokenId;
+    if (placeholderTokenId == null) {
+      throw new Error(
+        'Pipeline missing video/image token ID for video placeholder expansion.'
+      );
+    }
+
+    const templateType = this.modelConfig?.chatTemplateType ?? 'gemma4';
+    const chatOptions = this.modelConfig?.chatTemplateThinking === true ? { thinking: true } : undefined;
+    const multimodalPrompt = formatChatMessages([
+      {
+        role: 'user',
+        content: [
+          { type: 'video' },
+          { type: 'text', text: requestedPrompt },
+        ],
+      },
+    ], templateType, chatOptions);
+    const promptTokenIds = this.tokenizer.encode(multimodalPrompt);
+    const videoTokenSpanLength = encodeResult.numTokens;
+
+    // Resolve BOV/EOV tokens (reuse image BOI/EOI if video-specific ones don't exist)
+    const bovTokenId = resolveSingleSpecialTokenId(this.tokenizer, '<|video|>', 'Gemma 4 BOV token');
+    const eovTokenId = resolveSingleSpecialTokenId(this.tokenizer, '<video|>', 'Gemma 4 EOV token');
+
+    const { inputIds: fullTokenIds, imageStartOffset: videoStartOffset } = expandImagePlaceholderTokenIds(
+      promptTokenIds,
+      placeholderTokenId,
+      videoTokenSpanLength,
+      { boiTokenId: bovTokenId, eoiTokenId: eovTokenId }
+    );
+
+    const padTokenId = this.tokenizer?.getSpecialTokens?.()?.pad;
+    if (!Number.isFinite(padTokenId) || Math.floor(padTokenId) !== padTokenId || padTokenId < 0) {
+      throw new Error(
+        `[Pipeline] transcribeVideo: Gemma 4 multimodal prefill requires a tokenizer pad token ID, got ${padTokenId}.`
+      );
+    }
+
+    // Step 3: Generate with embedding override at the video token offset
+    const tokens = [];
+    const maxGen = maxTokens ?? 512;
+    const stopTokenIds = this.modelConfig.stopTokenIds;
+
+    try {
+      const generation = await this.generator.generateTokenIds('', {
+        inputIds: fullTokenIds,
+        embeddingOverrides: {
+          prefixLength: encodeResult.numTokens,
+          offset: videoStartOffset,
+          embeddings: encodeResult.features,
+        },
+        __internalEmbeddingInputSpan: {
+          offset: videoStartOffset,
+          length: encodeResult.numTokens,
+          tokenId: padTokenId,
+        },
+        __internalMultimodalBidirectionalSpan: {
+          offset: videoStartOffset,
+          length: encodeResult.numTokens,
+        },
+        maxTokens: maxGen,
+        temperature: 0,
+        topK: 1,
+        topP: 1,
+        repetitionPenalty: 1,
+        disableCommandBatching: true,
+        disableMultiTokenDecode: true,
+        stopCheckMode: 'per-token',
+      });
+      for (const token of generation.tokenIds ?? []) {
+        if (Array.isArray(stopTokenIds) && stopTokenIds.includes(token)) break;
+        tokens.push(token);
+      }
+    } finally {
+      if (encodeResult.features) {
+        releaseBuffer(encodeResult.features);
+      }
+    }
+
+    const text = this.tokenizer.decode(tokens);
+    return { text, tokens };
+  }
+
+
+  // ==========================================================================
+  // Audio: transcribeAudio
+  // ==========================================================================
+
+  /**
+   * Transcribe text from audio using the audio encoder and text decoder.
+   *
+   * @param {object} params
+   * @param {Float32Array}             params.audio     Raw audio PCM (mono, 16kHz)
+   * @param {string}                   [params.prompt]  Custom transcription prompt
+   * @param {number}                   [params.maxTokens] Max tokens to generate
+   * @returns {Promise<{ text: string, tokens: number[] }>}
+   */
+  async transcribeAudio({ audio, prompt, maxTokens }) {
+    if (!this.audioCapable) {
+      throw new Error(
+        'Pipeline does not support audio transcription (no audio_token_id in manifest).'
+      );
+    }
+    if (!this.audioWeights) {
+      throw new Error(
+        'Audio weights not loaded. Ensure the model was loaded with an audio-capable manifest.'
+      );
+    }
+
+    this.reset();
+
+    // Lazy-load audio modules
+    const { extractLogMelSpectrogram } = await import('./audio/mel.js');
+    const { encodeAudio } = await import('./audio/index.js');
+
+    // Step 1: Extract mel spectrogram
+    const { features: melFeatures, numFrames, nMels } = extractLogMelSpectrogram(audio);
+
+    // Step 2: Encode audio through conformer pipeline
+    const encodeResult = await encodeAudio({
+      melFeatures,
+      numFrames,
+      nMels,
+      audioConfig: this.audioConfig,
+      weights: this.audioWeights,
+    });
+
+    // Step 3: Build the multimodal prompt with <|audio|> placeholder
+    const requestedPrompt = prompt ?? 'Transcribe the audio.';
+    const audioTokenId = this.audioConfig?.audioTokenId ?? this.audioTokenId;
+    if (audioTokenId == null) {
+      throw new Error(
+        'Pipeline missing audio_token_id. Re-convert the model with audio token metadata.'
+      );
+    }
+    const templateType = this.modelConfig?.chatTemplateType ?? 'gemma4';
+    const chatOptions = this.modelConfig?.chatTemplateThinking === true ? { thinking: true } : undefined;
+    const multimodalPrompt = formatChatMessages([
+      {
+        role: 'user',
+        content: [
+          { type: 'audio' },
+          { type: 'text', text: requestedPrompt },
+        ],
+      },
+    ], templateType, chatOptions);
+    const promptTokenIds = this.tokenizer.encode(multimodalPrompt);
+    const audioTokenSpanLength = encodeResult.numTokens;
+
+    // Resolve BOA/EOA tokens
+    const boaTokenId = resolveSingleSpecialTokenId(this.tokenizer, '<|audio|>', 'Gemma 4 BOA token');
+    const eoaTokenId = resolveSingleSpecialTokenId(this.tokenizer, '<audio|>', 'Gemma 4 EOA token');
+
+    // Expand single audio placeholder token into the full audio token span
+    const { inputIds: fullTokenIds, imageStartOffset: audioStartOffset } = expandImagePlaceholderTokenIds(
+      promptTokenIds,
+      audioTokenId,
+      audioTokenSpanLength,
+      { boiTokenId: boaTokenId, eoiTokenId: eoaTokenId }
+    );
+
+    const padTokenId = this.tokenizer?.getSpecialTokens?.()?.pad;
+    if (!Number.isFinite(padTokenId) || Math.floor(padTokenId) !== padTokenId || padTokenId < 0) {
+      throw new Error(
+        `[Pipeline] transcribeAudio: Gemma 4 multimodal prefill requires a tokenizer pad token ID, got ${padTokenId}.`
+      );
+    }
+
+    // Step 4: Generate with embedding override at the audio token offset
+    const tokens = [];
+    const maxGen = maxTokens ?? 512;
+    const stopTokenIds = this.modelConfig.stopTokenIds;
+
+    try {
+      const generation = await this.generator.generateTokenIds('', {
+        inputIds: fullTokenIds,
+        embeddingOverrides: {
+          prefixLength: encodeResult.numTokens,
+          offset: audioStartOffset,
+          embeddings: encodeResult.features,
+        },
+        __internalEmbeddingInputSpan: {
+          offset: audioStartOffset,
+          length: encodeResult.numTokens,
+          tokenId: padTokenId,
+        },
+        __internalMultimodalBidirectionalSpan: {
+          offset: audioStartOffset,
+          length: encodeResult.numTokens,
+        },
+        maxTokens: maxGen,
+        temperature: 0,
+        topK: 1,
+        topP: 1,
+        repetitionPenalty: 1,
+        disableCommandBatching: true,
+        disableMultiTokenDecode: true,
+        stopCheckMode: 'per-token',
+      });
+      for (const token of generation.tokenIds ?? []) {
+        if (Array.isArray(stopTokenIds) && stopTokenIds.includes(token)) break;
+        tokens.push(token);
+      }
+    } finally {
+      if (encodeResult.features) {
+        releaseBuffer(encodeResult.features);
+      }
+    }
+
+    const text = this.tokenizer.decode(tokens);
+    return { text, tokens };
+  }
+
+
+  // ==========================================================================
   // Capability Detection
   // ==========================================================================
 
@@ -873,6 +1287,8 @@ export class InferencePipeline extends PipelineState {
     const caps = ['generation'];
     if (typeof this.prefillWithEmbedding === 'function') caps.push('embedding');
     if (this.visionCapable) caps.push('multimodal');
+    if (this.audioCapable) caps.push('audio');
+    if (this.visionCapable) caps.push('video');
     return Object.freeze(caps);
   }
 

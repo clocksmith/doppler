@@ -4,11 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Doppler — Browser-Native Inference Engine</title>
+  <title>Doppler</title>
   <link rel="icon" type="image/svg+xml" href="/demo/favicon.svg">
   <link rel="manifest" href="/demo/pwa-manifest.json">
   <link rel="stylesheet" href="/demo/styles/rd.css">
-  <link rel="stylesheet" href="/demo/ui/styles/main.css">
+  <link rel="stylesheet" href="/demo/ui/styles/app.css">
   <link rel="stylesheet" href="/demo/ui/token-press/styles.css">
   <link rel="stylesheet" href="/demo/ui/xray/styles.css">
   <script type="importmap">
@@ -20,1010 +20,157 @@
   </script>
 </head>
 
-<body class="app-booting">
-  <div id="app-bootstrap-overlay" class="app-bootstrap-overlay">
-    <div class="app-bootstrap-panel">
-      <span id="app-bootstrap-d4" class="status-d4-loading" aria-hidden="true">
-        <span class="status-d4-a">D</span>
-        <span class="status-d4-b">4</span>
-        <span class="status-d4-c">D</span>
-        <span class="status-d4-d">A</span>
-      </span>
-      <div id="app-bootstrap-message" class="type-label app-bootstrap-message">Loading...</div>
-    </div>
+<body>
+  <!-- Boot overlay -->
+  <div id="boot-overlay" class="boot-overlay">
+    <div class="boot-title">Doppler</div>
+    <div id="boot-status" class="boot-status">Checking WebGPU...</div>
+    <div id="boot-error" class="boot-error" hidden></div>
   </div>
 
-  <div id="app" data-mode="run" data-surface="demo">
-    <div class="page-shell">
-      <!-- Header -->
-      <div class="panel header app-header" role="region" aria-label="App controls">
-        <div class="header-top-row">
-          <div class="brand-block">
-            <div class="brand-row">
-              <h1 class="type-display brand-title">
-                <a class="brand-link" href="https://simulatte.world" target="_blank" rel="noopener">Doppler</a>
-              </h1>
-              <div class="brand-subtitle type-caption">
-                <span>Browser-native inference engine</span>
-                <span class="brand-separator" aria-hidden="true">·</span>
-                <code class="brand-install">npm i doppler-gpu</code>
-              </div>
-            </div>
-          </div>
-          <div class="header-end">
-            <div class="header-status">
-              <div id="status-indicator" class="status-indicator">
-                <span class="status-marker" aria-hidden="true">○</span>
-                <span class="status-text type-caption">Initializing...</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="header-controls-row">
-          <div class="segmented-control header-tabs">
-            <button class="btn segmented-btn mode-subtab" data-mode="run" type="button">Text</button>
-            <!-- Hidden: no fetchable embedding model (HF manifest needs republish with queryPreAttnScalar fix) -->
-            <!-- <button class="btn segmented-btn mode-subtab" data-mode="embedding" type="button">Embed</button> -->
-            <button class="btn segmented-btn mode-subtab" data-mode="translate" type="button">Translate</button>
-            <!-- Hidden: no diffusion models in catalog -->
-            <!-- <button class="btn segmented-btn mode-subtab" data-mode="diffusion" type="button">Images</button> -->
-            <button class="btn segmented-btn mode-subtab" data-mode="diagnostics" type="button">Verify</button>
-            <button class="btn segmented-btn mode-subtab" data-mode="models" type="button">Models</button>
-          </div>
-          <div class="header-model" hidden></div>
+  <!-- App shell -->
+  <div id="app" class="app-shell" hidden>
+    <!-- Header -->
+    <header class="app-header">
+      <h1 class="type-h2">Doppler</h1>
+      <div class="app-header-end">
+        <div id="status" class="status-chip">
+          <span id="status-dot" class="status-dot"></span>
+          <span id="status-text">Ready</span>
         </div>
       </div>
+    </header>
 
-      <!-- Main Layout -->
-      <main class="main-layout io-dotted">
-        <div class="panel-grid" id="panel-grid" data-layout="empty">
-          <div class="panel-stack panel-stack-primary">
-            <section class="panel run-panel" data-modes="run translate embedding">
-              <h2 class="type-label" id="run-panel-title">Text Generation</h2>
-              <div class="primary-stack">
-                <div class="playground-output">
-                  <div class="type-caption">Output</div>
-                  <div id="runtime-notice" class="type-caption runtime-notice" hidden></div>
-                  <pre id="run-output" class="playground-output-box border-dotted"></pre>
-                  <div id="tp-controls" hidden></div>
-                  <div class="run-output-status-row">
-                    <div id="run-output-status" class="type-caption run-output-status-text">Idle</div>
-                    <div class="run-output-ppl-legend" role="img" aria-label="Relative perplexity scale: blue low, purple medium, red high">
-                      <span class="run-output-ppl-legend-title type-caption">Relative perplexity</span>
-                      <span class="run-output-ppl-legend-bar" aria-hidden="true"></span>
-                      <span class="run-output-ppl-legend-labels">
-                        <span>low</span>
-                        <span>med</span>
-                        <span>high</span>
-                      </span>
-                    </div>
-                  </div>
-                  <div class="pulse-inline-bar" id="pulse-inline-bar" hidden>
-                    <span class="pulse-inline-stat"><span class="pulse-inline-label" id="pulse-inline-tps-label">Tokens/sec</span> <span class="pulse-inline-value" id="pulse-inline-tps">--</span></span>
-                    <span class="pulse-inline-stat"><span class="pulse-inline-label" id="pulse-inline-ttft-label">TTFT</span> <span class="pulse-inline-value" id="pulse-inline-ttft">--</span></span>
-                    <span class="pulse-inline-stat"><span class="pulse-inline-label" id="pulse-inline-prefill-label">Prefill</span> <span class="pulse-inline-value" id="pulse-inline-prefill">--</span></span>
-                    <span class="pulse-inline-stat"><span class="pulse-inline-label" id="pulse-inline-decode-label">Decode</span> <span class="pulse-inline-value" id="pulse-inline-decode">--</span></span>
-                    <span class="pulse-inline-stat"><span class="pulse-inline-label" id="pulse-inline-e2e-label">E2E</span> <span class="pulse-inline-value" id="pulse-inline-e2e">--</span></span>
-                  </div>
-                </div>
-                <section class="translate-compare-shell" id="translate-compare-shell" data-modes="translate" aria-label="Translation compare console">
-                  <div class="translate-compare-heading">
-                    <div class="translate-compare-heading-copy">
-                      <div class="translate-compare-kicker type-caption">Proof Console</div>
-                      <h3 class="type-label">Side-by-side translation compare</h3>
-                      <p class="type-caption">Same source, different models and engines. Compare quality and latency.</p>
-                    </div>
-                    <div class="segmented-control translate-compare-view-toggle" role="tablist" aria-label="Translate view">
-                      <button id="translate-view-single-btn" class="btn segmented-btn is-active" type="button" data-translate-view="single">Single</button>
-                      <button id="translate-view-compare-btn" class="btn segmented-btn" type="button" data-translate-view="compare" hidden aria-hidden="true">Compare</button>
-                    </div>
-                  </div>
-
-                  <div class="translate-proof-strip" id="translate-proof-strip">
-                    <article class="translate-proof-card">
-                      <span class="translate-proof-label type-caption">Evidence bundle</span>
-                      <strong id="translate-proof-bundle" class="translate-proof-value">Awaiting frozen scoreboard</strong>
-                      <span class="translate-proof-detail type-caption">Artifacts attach after run.</span>
-                    </article>
-                    <article class="translate-proof-card">
-                      <span class="translate-proof-label type-caption">Teacher vs student</span>
-                      <strong id="translate-proof-delta" class="translate-proof-value">Delta pending</strong>
-                      <span class="translate-proof-detail type-caption">BLEU / chrF / size deltas appear after evidence loads.</span>
-                    </article>
-                    <article class="translate-proof-card">
-                      <span class="translate-proof-label type-caption">Public claim</span>
-                      <strong id="translate-proof-claim" class="translate-proof-value">Practical EN/ES parity test</strong>
-                      <span class="translate-proof-detail type-caption">Scoped claim, explicit caveats.</span>
-                    </article>
-                  </div>
-
-                  <div class="translate-compare-layout">
-                    <div class="translate-compare-main">
-                      <div class="translate-compare-toolbar">
-                        <div class="playground-field">
-                          <label class="type-caption" for="translate-compare-layout">Curated layout</label>
-                          <select id="translate-compare-layout" class="w-full">
-                            <option value="proof">Proof layout</option>
-                            <option value="engine-parity">Engine parity</option>
-                            <option value="student-parity">Student parity</option>
-                            <option value="model-parity">Model parity</option>
-                            <option value="custom">Custom compare</option>
-                          </select>
-                          <div id="translate-compare-layout-note" class="type-caption">Teacher vs student on the same console.</div>
-                        </div>
-                        <div class="translate-compare-toolbar-actions">
-                          <button id="translate-compare-run-btn" class="btn btn-primary" type="button">Run compare</button>
-                          <button id="translate-compare-export-btn" class="btn" type="button">Export compare JSON</button>
-                          <button id="translate-compare-share-btn" class="btn" type="button">Copy share link</button>
-                        </div>
-                      </div>
-
-                      <details class="translate-compare-receipts" id="translate-compare-receipts">
-                        <summary class="type-caption">Show benchmark receipts</summary>
-                        <div class="translate-compare-receipts-body">
-                          <div class="translate-receipts-grid">
-                            <div class="translate-receipt-card">
-                              <span class="translate-proof-label type-caption">Artifact id</span>
-                              <strong id="translate-compare-artifact-id" class="translate-proof-value">Pending</strong>
-                            </div>
-                            <div class="translate-receipt-card">
-                              <span class="translate-proof-label type-caption">Browser / device</span>
-                              <strong id="translate-compare-artifact-env" class="translate-proof-value">Awaiting run</strong>
-                            </div>
-                            <div class="translate-receipt-card">
-                              <span class="translate-proof-label type-caption">Saved receipts</span>
-                              <strong id="translate-compare-receipt-count" class="translate-proof-value">0</strong>
-                            </div>
-                          </div>
-                          <div class="translate-compare-receipt-actions">
-                            <button id="translate-compare-export-latest-btn" class="btn btn-small" type="button">Export latest JSON</button>
-                          </div>
-                          <div id="translate-compare-receipts-links" class="translate-compare-receipts-links">
-                            <span class="type-caption">No benchmark receipts linked yet.</span>
-                          </div>
-                        </div>
-                      </details>
-
-                      <div class="translate-evidence-summary" id="translate-evidence-summary">
-                        <div class="translate-evidence-summary-header">
-                          <span class="type-caption">Evidence snapshot</span>
-                          <span id="translate-proof-source" class="type-caption">No receipt loaded</span>
-                        </div>
-                        <div class="translate-evidence-summary-grid">
-                          <div class="translate-evidence-metric">
-                            <span class="translate-evidence-label type-caption">Teacher BLEU</span>
-                            <span id="translate-evidence-teacher-bleu" class="translate-evidence-value">--</span>
-                          </div>
-                          <div class="translate-evidence-metric">
-                            <span class="translate-evidence-label type-caption">Student BLEU</span>
-                            <span id="translate-evidence-student-bleu" class="translate-evidence-value">--</span>
-                          </div>
-                          <div class="translate-evidence-metric">
-                            <span class="translate-evidence-label type-caption">Teacher chrF</span>
-                            <span id="translate-evidence-teacher-chrf" class="translate-evidence-value">--</span>
-                          </div>
-                          <div class="translate-evidence-metric">
-                            <span class="translate-evidence-label type-caption">Student chrF</span>
-                            <span id="translate-evidence-student-chrf" class="translate-evidence-value">--</span>
-                          </div>
-                          <div class="translate-evidence-metric">
-                            <span class="translate-evidence-label type-caption">Size delta</span>
-                            <span id="translate-evidence-size-delta" class="translate-evidence-value">--</span>
-                          </div>
-                          <div class="translate-evidence-metric">
-                            <span class="translate-evidence-label type-caption">Artifact link</span>
-                            <span id="translate-evidence-artifact" class="translate-evidence-value">Pending</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <section class="translate-smoke-panel" id="translate-smoke-panel" aria-label="Deterministic translation smoke panel">
-                        <div class="translate-smoke-header">
-                          <div>
-                            <div class="translate-compare-kicker type-caption">Sample panel</div>
-                            <h4 class="type-label">Deterministic smoke panel</h4>
-                          </div>
-                          <span class="type-caption">10 samples: easy, nuanced, domain, and edge cases</span>
-                        </div>
-                        <div id="translate-smoke-grid" class="translate-smoke-grid"></div>
-                      </section>
-
-                      <div class="translate-lane-grid">
-                        <article class="translate-lane" id="translate-compare-left-lane" data-lane="left">
-                          <div class="translate-lane-header">
-                            <div class="translate-lane-title-group">
-                              <span class="translate-lane-chip">Left</span>
-                              <div>
-                                <h4 class="type-label">Reference lane</h4>
-                                <div class="type-caption">Pinned baseline.</div>
-                              </div>
-                            </div>
-                            <span id="translate-left-badge" class="translate-lane-badge type-caption">baseline</span>
-                          </div>
-                          <div class="translate-lane-controls">
-                            <div class="playground-field">
-                              <label class="type-caption" for="translate-left-engine">Engine</label>
-                              <select id="translate-left-engine" class="w-full">
-                                <option value="doppler">Doppler.js</option>
-                                <option value="transformersjs">Transformers.js v4</option>
-                              </select>
-                            </div>
-                            <div class="playground-field">
-                              <label class="type-caption" for="translate-left-model">Model</label>
-                              <select id="translate-left-model" class="w-full">
-                                <option value="">Select model</option>
-                              </select>
-                            </div>
-                          </div>
-                          <div class="translate-lane-status-row">
-                            <span class="type-caption">Status</span>
-                            <span id="translate-left-status" class="translate-lane-status">Idle</span>
-                          </div>
-                          <div class="translate-lane-metrics">
-                            <div class="translate-lane-metric"><span class="type-caption">Model size</span><strong id="translate-left-size">--</strong></div>
-                            <div class="translate-lane-metric"><span class="type-caption">Load</span><strong id="translate-left-load-ms">--</strong></div>
-                            <div class="translate-lane-metric"><span class="type-caption">First token</span><strong id="translate-left-ttft">--</strong></div>
-                            <div class="translate-lane-metric"><span class="type-caption">Decode</span><strong id="translate-left-decode-rate">--</strong></div>
-                            <div class="translate-lane-metric"><span class="type-caption">Total</span><strong id="translate-left-total-ms">--</strong></div>
-                            <div class="translate-lane-metric"><span class="type-caption">Device</span><strong id="translate-left-device">WebGPU</strong></div>
-                          </div>
-                          <div class="translate-lane-output">
-                            <div class="translate-lane-output-header">
-                              <span class="type-caption">Output</span>
-                              <span id="translate-left-meta" class="type-caption">No run yet</span>
-                            </div>
-                            <pre id="translate-left-output" class="playground-output-box translate-lane-output-box">Awaiting compare run.</pre>
-                          </div>
-                        </article>
-
-                        <article class="translate-lane translate-lane-right" id="translate-compare-right-lane" data-lane="right">
-                          <div class="translate-lane-header">
-                            <div class="translate-lane-title-group">
-                              <span class="translate-lane-chip">Right</span>
-                              <div>
-                                <h4 class="type-label">Challenger lane</h4>
-                                <div class="type-caption">Swap engine or model.</div>
-                              </div>
-                            </div>
-                            <span id="translate-right-badge" class="translate-lane-badge type-caption">student</span>
-                          </div>
-                          <div class="translate-lane-controls">
-                            <div class="playground-field">
-                              <label class="type-caption" for="translate-right-engine">Engine</label>
-                              <select id="translate-right-engine" class="w-full">
-                                <option value="doppler">Doppler.js</option>
-                                <option value="transformersjs">Transformers.js v4</option>
-                              </select>
-                            </div>
-                            <div class="playground-field">
-                              <label class="type-caption" for="translate-right-model">Model</label>
-                              <select id="translate-right-model" class="w-full">
-                                <option value="">Select model</option>
-                              </select>
-                            </div>
-                          </div>
-                          <div class="translate-lane-status-row">
-                            <span class="type-caption">Status</span>
-                            <span id="translate-right-status" class="translate-lane-status">Idle</span>
-                          </div>
-                          <div class="translate-lane-metrics">
-                            <div class="translate-lane-metric"><span class="type-caption">Model size</span><strong id="translate-right-size">--</strong></div>
-                            <div class="translate-lane-metric"><span class="type-caption">Load</span><strong id="translate-right-load-ms">--</strong></div>
-                            <div class="translate-lane-metric"><span class="type-caption">First token</span><strong id="translate-right-ttft">--</strong></div>
-                            <div class="translate-lane-metric"><span class="type-caption">Decode</span><strong id="translate-right-decode-rate">--</strong></div>
-                            <div class="translate-lane-metric"><span class="type-caption">Total</span><strong id="translate-right-total-ms">--</strong></div>
-                            <div class="translate-lane-metric"><span class="type-caption">Device</span><strong id="translate-right-device">WebGPU</strong></div>
-                          </div>
-                          <div class="translate-lane-output">
-                            <div class="translate-lane-output-header">
-                              <span class="type-caption">Output</span>
-                              <span id="translate-right-meta" class="type-caption">No run yet</span>
-                            </div>
-                            <pre id="translate-right-output" class="playground-output-box translate-lane-output-box">Awaiting compare run.</pre>
-                          </div>
-                        </article>
-                      </div>
-                    </div>
-
-                    <aside class="translate-history-panel" id="translate-history-panel" aria-label="Compare history">
-                      <div class="translate-history-header">
-                        <div>
-                          <div class="translate-compare-kicker type-caption">Stacked history</div>
-                          <h4 class="type-label">Live proof log</h4>
-                        </div>
-                        <div class="translate-history-tools">
-                          <div class="segmented-control translate-history-filters" id="translate-history-filters" role="tablist" aria-label="History filter">
-                            <button class="btn segmented-btn is-active" type="button" data-compare-history-filter="all">All</button>
-                            <button class="btn segmented-btn" type="button" data-compare-history-filter="same-model">Same model</button>
-                            <button class="btn segmented-btn" type="button" data-compare-history-filter="same-engine">Same engine</button>
-                            <button class="btn segmented-btn" type="button" data-compare-history-filter="proof">Proof layout</button>
-                          </div>
-                          <button id="translate-history-clear-btn" class="btn btn-small" type="button">Clear</button>
-                        </div>
-                      </div>
-                      <div class="translate-history-list" id="translate-history-list">
-                        <article class="translate-history-card is-placeholder">
-                          <div class="translate-history-card-top">
-                            <span class="translate-history-time type-caption">Pending</span>
-                            <span class="translate-history-badge type-caption">sample</span>
-                          </div>
-                          <p class="translate-history-snippet">Receipts stack here after each run.</p>
-                          <div class="translate-history-meta">
-                            <span class="type-caption">en -> es</span>
-                            <span class="type-caption">No run captured</span>
-                          </div>
-                        </article>
-                        <article class="translate-history-card is-placeholder">
-                          <div class="translate-history-card-top">
-                            <span class="translate-history-time type-caption">Awaiting</span>
-                            <span class="translate-history-badge type-caption">artifact</span>
-                          </div>
-                          <p class="translate-history-snippet">Share links and lane results appear as badges.</p>
-                          <div class="translate-history-meta">
-                            <span class="type-caption">TTFT / decode / total</span>
-                            <span class="type-caption">Transparent first</span>
-                          </div>
-                        </article>
-                      </div>
-                    </aside>
-                  </div>
-                </section>
-              </div>
-            </section>
-
-            <section class="panel diffusion-panel" data-modes="diffusion">
-              <h2 class="type-label">Image Generation</h2>
-              <div id="diffusion-empty-notice" class="model-empty-notice" hidden>
-                <div class="model-empty-notice-copy">
-                  <div id="diffusion-empty-notice-kicker" class="model-empty-notice-kicker">Setup required</div>
-                  <div id="diffusion-empty-notice-text" class="model-empty-notice-title"></div>
-                  <div id="diffusion-empty-notice-detail" class="model-empty-notice-detail"></div>
-                </div>
-                <button id="diffusion-empty-notice-btn" class="btn btn-small model-empty-notice-action" type="button">Browse models</button>
-              </div>
-              <div class="primary-stack">
-                <div class="playground-output">
-                  <div class="type-caption">Output</div>
-                  <canvas id="diffusion-canvas" class="playground-output-canvas" width="256" height="256"></canvas>
-                  <div id="diffusion-output-status" class="type-caption">Idle</div>
-                </div>
-              </div>
-            </section>
-
-            <section class="panel diagnostics-panel" data-modes="diagnostics kernels">
-              <div class="diagnostics-heading">
-                <h2 class="type-label" id="diagnostics-title">Verify</h2>
-                <div class="diagnostics-mode-tabs segmented-control" id="diagnostics-mode-tabs">
-                  <button class="btn segmented-btn diagnostics-mode-tab" data-diagnostics-mode="diagnostics" type="button">Inference</button>
-                  <button class="btn segmented-btn diagnostics-mode-tab" data-diagnostics-mode="kernels" type="button">Kernels</button>
-                  <button class="btn segmented-btn diagnostics-mode-tab" data-diagnostics-mode="execution" type="button">Execution</button>
-                </div>
-              </div>
-              <div class="diagnostics-field">
-                <label class="type-caption" for="diagnostics-model">Model</label>
-                <select id="diagnostics-model" class="w-full" aria-label="Active Model"></select>
-              </div>
-              <div id="diagnostics-empty-notice" class="model-empty-notice" hidden>
-                <div class="model-empty-notice-copy">
-                  <div id="diagnostics-empty-notice-kicker" class="model-empty-notice-kicker">Setup required</div>
-                  <div id="diagnostics-empty-notice-text" class="model-empty-notice-title"></div>
-                  <div id="diagnostics-empty-notice-detail" class="model-empty-notice-detail"></div>
-                </div>
-                <button id="diagnostics-empty-notice-btn" class="btn btn-small model-empty-notice-action" type="button">Browse models</button>
-              </div>
-              <!-- Inference / Kernels content -->
-              <div id="diagnostics-run-content">
-                <div class="type-caption diagnostics-summary" id="diagnostics-summary"></div>
-                <div class="diagnostics-actions">
-                  <button id="diagnostics-run-btn" class="btn btn-primary">Run</button>
-                  <button id="diagnostics-verify-btn" class="btn">Verify Config</button>
-                  <button id="diagnostics-export-btn" class="btn">Export JSON</button>
-                </div>
-                <div class="diagnostics-field" id="diagnostics-suite-field">
-                  <label class="type-caption" for="diagnostics-profile">Profile</label>
-                  <select id="diagnostics-profile" class="w-full"></select>
-                  <div class="type-caption" id="diagnostics-suite-help"></div>
-                  <div class="type-caption" id="diagnostics-profile-help"></div>
-                </div>
-                <div class="type-caption diagnostics-requirements" id="diagnostics-requirements"></div>
-                <div class="diagnostics-output" id="diagnostics-output">
-                  <div class="diagnostics-output-header">
-                    <span id="diagnostics-status" class="diagnostics-status type-caption">Idle</span>
-                    <span class="diagnostics-report type-caption" id="diagnostics-report"></span>
-                  </div>
-                  <pre id="diagnostics-output-text" class="diagnostics-output-text">No output yet.</pre>
-                  <canvas id="diagnostics-output-canvas" class="diagnostics-output-canvas" width="256" height="256" hidden></canvas>
-                  <details class="diagnostics-output-json" id="diagnostics-output-json-wrap" hidden>
-                    <summary class="type-caption">Raw JSON</summary>
-                    <pre id="diagnostics-output-json" class="diagnostics-output-json-text">No JSON yet.</pre>
-                  </details>
-                </div>
-                <details class="diagnostics-accordion" id="diagnostics-advanced">
-                  <summary class="type-caption">Advanced</summary>
-                  <div class="panel-subsection">
-                    <div class="diagnostics-field">
-                      <label class="type-caption" for="runtime-profile">Runtime profile override</label>
-                      <select id="runtime-profile" class="w-full"></select>
-                    </div>
-                    <div class="diagnostics-field">
-                      <label class="type-caption" for="runtime-config-file">Config override (JSON)</label>
-                      <div class="diagnostics-config-row">
-                        <input id="runtime-config-file" class="w-full" type="file" accept=".json,application/json" />
-                        <button id="runtime-config-clear" class="btn">Reset</button>
-                      </div>
-                      <div class="type-caption" id="runtime-config-status">Profile: profiles/verbose-trace</div>
-                    </div>
-                    <div class="diagnostics-field">
-                      <label class="type-caption" for="runtime-config-profile">Override profile</label>
-                      <select id="runtime-config-profile" class="w-full"></select>
-                    </div>
-                    <div class="diagnostics-field">
-                      <div class="type-caption">Intent</div>
-                      <div class="type-caption" id="diagnostics-intent">--</div>
-                    </div>
-                  </div>
-                </details>
-              </div>
-              <!-- Execution graph content -->
-              <div id="diagnostics-execution-content" hidden>
-                <div class="diagnostics-actions">
-                  <button id="kernel-builder-refresh-btn" class="btn btn-primary" type="button">Refresh</button>
-                  <button id="kernel-builder-use-report-btn" class="btn" type="button">Use Latest Report</button>
-                  <label class="btn" for="kernel-builder-report-file">Load Report</label>
-                  <input id="kernel-builder-report-file" type="file" accept="application/json,.json" hidden />
-                  <button id="kernel-builder-clear-report-btn" class="btn" type="button">Clear Overlay</button>
-                </div>
-                <div id="kernel-builder-status" class="type-caption kernel-builder-status"></div>
-                <div id="kernel-builder-summary" class="kernel-builder-summary-grid"></div>
-                <div class="kernel-builder-layout">
-                  <div class="kernel-builder-column">
-                    <section class="kernel-builder-block">
-                      <h3 class="type-caption">Resolved Graph</h3>
-                      <div id="kernel-builder-execution"></div>
-                    </section>
-                    <section class="kernel-builder-block">
-                      <h3 class="type-caption">Candidate Matches</h3>
-                      <div id="kernel-builder-matches"></div>
-                    </section>
-                  </div>
-                  <div class="kernel-builder-column">
-                    <section class="kernel-builder-block">
-                      <h3 class="type-caption">Proposal JSON</h3>
-                      <pre id="kernel-builder-proposal-json" class="kernel-builder-code">No proposal loaded.</pre>
-                    </section>
-                    <section class="kernel-builder-block">
-                      <h3 class="type-caption">Runtime Overlay</h3>
-                      <div id="kernel-builder-overlay"></div>
-                    </section>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section class="panel convert-panel" data-modes="models">
-              <h2 class="type-label">Model Intake</h2>
-              <div id="convert-status" class="convert-status">
-                <div class="progress progress-sm">
-                  <div id="convert-progress" class="progress-fill"></div>
-                </div>
-                <span id="convert-message" class="type-caption">Ready</span>
-              </div>
-
-              <details class="diagnostics-accordion" open>
-                <summary class="type-caption">Local Import</summary>
-                <div class="convert-actions">
-                  <button id="convert-btn" class="btn btn-primary w-full">Select Folder</button>
-                </div>
-                <div class="convert-field">
-                  <label class="type-caption" for="convert-url-input">Import from URL(s) (GGUF/safetensors, one per line)</label>
-                  <textarea id="convert-url-input" class="convert-url-input w-full" placeholder="https://host/model.safetensors"></textarea>
-                </div>
-                <div class="convert-actions">
-                  <button id="convert-url-btn" class="btn w-full">Import URL(s)</button>
-                </div>
-              </details>
-
-              <details class="diagnostics-accordion">
-                <summary class="type-caption">Remote RDRR Import</summary>
-                <div class="download-field">
-                  <label class="type-caption" for="download-base-url">RDRR base URL</label>
-                  <input id="download-base-url" class="w-full" type="text" placeholder="https://host/model" />
-                </div>
-                <div class="convert-actions">
-                  <button id="download-start-btn" class="btn btn-primary w-full">Import RDRR URL</button>
-                </div>
-                <div class="download-field">
-                  <label class="type-caption" for="download-model-id">Model ID override (optional)</label>
-                  <input id="download-model-id" class="w-full" type="text" placeholder="override-model-id" />
-                </div>
-                <div class="download-actions">
-                  <button id="download-pause-btn" class="btn">Pause</button>
-                  <button id="download-resume-btn" class="btn">Resume</button>
-                  <button id="download-cancel-btn" class="btn">Cancel</button>
-                  <button id="download-refresh-btn" class="btn">Sync</button>
-                </div>
-                <div id="download-status" class="download-status" hidden>
-                  <div class="progress progress-sm">
-                    <div id="download-progress" class="progress-fill"></div>
-                  </div>
-                  <span id="download-message" class="type-caption">Idle</span>
-                </div>
-                <div id="download-list" class="download-list type-caption"></div>
-              </details>
-
-              <details class="diagnostics-accordion">
-                <summary class="type-caption">Advanced</summary>
-                <div class="convert-field">
-                  <label class="type-caption" for="convert-weight-dtype">Weight dtype override (optional)</label>
-                  <select id="convert-weight-dtype" class="w-full">
-                    <option value="">auto</option>
-                    <option value="f16">f16</option>
-                    <option value="bf16">bf16</option>
-                  </select>
-                </div>
-                <div class="convert-actions">
-                  <button id="regen-manifest-btn" class="btn w-full">Regenerate stored manifest</button>
-                </div>
-              </details>
-            </section>
-
-
-          </div>
-          <div class="panel-stack panel-stack-rail">
-            <section class="panel storage-panel keyvalue-panel" data-modes="models">
-              <h2 class="type-label">Models &amp; Storage</h2>
-              <div id="models-quick-models-status" class="type-caption"></div>
-              <div id="storage-inspector-status" class="type-caption" hidden></div>
-              <div id="models-list" class="quick-models-list"></div>
-              <div id="storage-inspector-list" hidden></div>
-              <div class="panel-subsection pulse-section storage-info" id="storage-info">
-                <h3 class="pulse-subheader">Storage</h3>
-                <div class="stats-grid stats-grid-compact">
-                  <div class="stat-item">
-                    <span class="stat-label">OPFS usage</span>
-                    <span class="stat-value" id="storage-used">-- / --</span>
-                  </div>
-                </div>
-                <button class="btn btn-small" type="button" id="clear-opfs-btn">Clear OPFS</button>
-              </div>
-              <div class="panel-subsection pulse-section model-field">
-                <h3 class="pulse-subheader">GPU Info</h3>
-                <div class="stats-grid stats-grid-compact gpu-info" id="gpu-info">
-                  <div class="stat-item gpu-row">
-                    <span class="stat-label">Device</span>
-                    <span class="stat-value stat-value-wrap" id="gpu-device">--</span>
-                  </div>
-                  <div class="stat-item gpu-row" id="gpu-ram-row" hidden>
-                    <span class="stat-label">System RAM</span>
-                    <span class="stat-value" id="gpu-ram">--</span>
-                  </div>
-                  <div class="stat-item gpu-row">
-                    <span class="stat-label" id="gpu-vram-label">Buffer Limit</span>
-                    <span class="stat-value" id="gpu-vram">--</span>
-                  </div>
-                  <div class="stat-item gpu-row">
-                    <span class="stat-label">Features</span>
-                    <span class="stat-value stat-value-wrap" id="gpu-features">--</span>
-                  </div>
-                </div>
-                <div class="gpu-note" id="gpu-unified-note" hidden>
-                  Unified memory: GPU shares system RAM
-                </div>
-              </div>
-            </section>
-
-            <section class="panel diagnostics-stats-panel keyvalue-panel" data-modes="diagnostics kernels">
-              <h2 class="type-label">Diagnostics Stats</h2>
-              <div class="panel-subsection pulse-section">
-                <h3 class="pulse-subheader">GPU Memory (tracked)</h3>
-                <div class="stats-grid" id="stats-gpu">
-                  <div class="stat-item">
-                    <span class="stat-label">Tracked GPU</span>
-                    <span class="stat-value" id="stat-gpu-tracked">--</span>
-                  </div>
-                  <div class="stat-item">
-                    <span class="stat-label">Peak GPU</span>
-                    <span class="stat-value" id="stat-gpu-peak">--</span>
-                  </div>
-                  <div class="stat-item">
-                    <span class="stat-label">Buffers</span>
-                    <span class="stat-value" id="stat-gpu-buffers">--</span>
-                  </div>
-                  <div class="stat-item">
-                    <span class="stat-label">Requested</span>
-                    <span class="stat-value" id="stat-gpu-requested">--</span>
-                  </div>
-                  <div class="stat-item">
-                    <span class="stat-label">Pool hit rate</span>
-                    <span class="stat-value" id="stat-gpu-hit">--</span>
-                  </div>
-                  <div class="stat-item">
-                    <span class="stat-label">Max buffer</span>
-                    <span class="stat-value" id="stat-gpu-limit">--</span>
-                  </div>
-                </div>
-                <div class="stats-breakdown">
-                  <div class="stats-breakdown-header">
-                    Top buffers (tracked)
-                    <span
-                      class="stats-help-tip type-caption"
-                      title="Only buffers allocated via BufferPool are tracked. Direct GPU buffers are not yet accounted."
-                      aria-label="Only buffers allocated via BufferPool are tracked. Direct GPU buffers are not yet accounted."
-                    >[?]</span>
-                  </div>
-                  <div class="stats-breakdown-list" id="gpu-label-list">
-                    <div class="type-caption">No tracked buffers yet.</div>
-                  </div>
-                </div>
-              </div>
-              <div class="panel-subsection pulse-section">
-                <h3
-                  class="pulse-subheader"
-                  title="Browsers do not expose OS swap or true VRAM totals. Values here are estimates or tracked allocations only."
-                  aria-label="JS and CPU memory info. Browsers do not expose OS swap or true VRAM totals. Values here are estimates or tracked allocations only."
-                >JS / CPU</h3>
-                <div class="stats-grid" id="stats-cpu">
-                  <div class="stat-item">
-                    <span class="stat-label">JS Heap</span>
-                    <span class="stat-value" id="stat-heap">--</span>
-                  </div>
-                  <div class="stat-item">
-                    <span class="stat-label">System RAM (est)</span>
-                    <span class="stat-value" id="stat-ram-est">--</span>
-                  </div>
-                  <div class="stat-item">
-                    <span class="stat-label">Swap</span>
-                    <span class="stat-value" id="stat-swap">Not available</span>
-                  </div>
-                </div>
-              </div>
-              <div class="panel-subsection pulse-section">
-                <h3 class="pulse-subheader">Storage (OPFS)</h3>
-                <div class="stats-grid" id="stats-storage">
-                  <div class="stat-item">
-                    <span class="stat-label">OPFS usage</span>
-                    <span class="stat-value" id="stat-opfs">--</span>
-                  </div>
-                  <div class="stat-item">
-                    <span class="stat-label">Active model</span>
-                    <span class="stat-value" id="stat-active-model">--</span>
-                  </div>
-                </div>
-              </div>
-              <div class="panel-subsection pulse-section">
-                <h3 class="pulse-subheader">Memory Control</h3>
-                <div class="memory-actions">
-                  <button id="unload-model-btn" class="btn" disabled title="Unload current model from GPU memory">
-                    Unload Model
-                  </button>
-                  <button id="clear-memory-btn" class="btn" title="Clear all GPU buffers and caches">
-                    Clear All Memory
-                  </button>
-                </div>
-              </div>
-            </section>
-
-            <section class="panel run-controls-panel" data-modes="run translate embedding">
-              <div class="panel-title-row">
-                <h2 class="type-label" id="run-controls-title">Run Controls</h2>
-              </div>
-              <div class="playground-field run-model-field" data-modes="run embedding">
-                <label class="type-caption" for="run-model-select">Model</label>
-                <select id="run-model-select" class="w-full" aria-label="Model"></select>
-              </div>
-              <div class="playground-field translate-model-field" data-modes="translate">
-                <label class="type-caption" for="translate-model-select">Model</label>
-                <select id="translate-model-select" class="w-full" aria-label="Model"></select>
-              </div>
-              <div id="run-empty-notice" class="model-empty-notice" hidden>
-                <div class="model-empty-notice-copy">
-                  <div id="run-empty-notice-kicker" class="model-empty-notice-kicker">Setup required</div>
-                  <div id="run-empty-notice-text" class="model-empty-notice-title"></div>
-                  <div id="run-empty-notice-detail" class="model-empty-notice-detail"></div>
-                </div>
-                <button id="run-empty-notice-btn" class="btn btn-small model-empty-notice-action" type="button">Browse models</button>
-              </div>
-              <div class="panel-subsection" id="translate-controls" hidden>
-                <div class="translate-control-banner" id="translate-compare-banner" hidden>
-                  <div class="translate-control-banner-copy">
-                    <span class="translate-compare-kicker type-caption">Compare setup</span>
-                    <div class="type-caption">Shared prompt and language direction drive both lanes when compare mode is active.</div>
-                  </div>
-                  <div class="segmented-control translate-control-layout-toggle" role="tablist" aria-label="Translate layout" hidden>
-                    <button id="translate-layout-single-btn" class="btn segmented-btn is-active" type="button" data-translate-layout="single">Single</button>
-                    <button id="translate-layout-compare-btn" class="btn segmented-btn" type="button" data-translate-layout="compare">Compare</button>
-                  </div>
-                </div>
-                <div class="playground-row translate-lang-row">
-                  <div class="playground-field">
-                    <label class="type-caption" for="translate-source-language">Source language</label>
-                    <select id="translate-source-language" class="w-full"></select>
-                  </div>
-                  <div class="playground-field translate-swap-field">
-                    <label class="type-caption" for="translate-swap-btn">Direction</label>
-                    <button id="translate-swap-btn" class="btn btn-small" type="button">Swap</button>
-                  </div>
-                  <div class="playground-field">
-                    <label class="type-caption" for="translate-target-language">Target language</label>
-                    <select id="translate-target-language" class="w-full"></select>
-                  </div>
-                </div>
-              </div>
-              <div class="playground-field">
-                <div class="playground-label-row">
-                  <label class="type-caption" for="run-prompt" id="run-prompt-label">Prompt</label>
-                  <button class="btn btn-small" id="run-prompt-shuffle" type="button">Shuffle</button>
-                </div>
-                <textarea id="run-prompt" class="w-full" rows="7" placeholder="Ask a question or provide a prompt..."></textarea>
-              </div>
-              <div class="panel-subsection" id="run-embedding-docs" hidden>
-                <div class="playground-label-row">
-                  <span class="type-caption">Reference docs — 3 of 9 sampled each run</span>
-                  <span class="type-caption">Ranked by cosine similarity to your query.</span>
-                </div>
-                <div id="run-embedding-docs-list" class="embedding-doc-list"></div>
-              </div>
-              <details class="mobile-advanced" id="run-sampling-controls">
-                <summary class="mobile-advanced-toggle type-caption">Generation settings</summary>
-                <div class="playground-row">
-                  <div class="playground-field">
-                    <label class="type-caption" for="temperature-input">Temperature</label>
-                    <input id="temperature-input" class="w-full" type="number" min="0" step="0.05" placeholder="auto" />
-                    <div class="type-caption" id="temperature-auto">auto: --</div>
-                  </div>
-                  <div class="playground-field">
-                    <label class="type-caption" for="top-p-input">Top P</label>
-                    <input id="top-p-input" class="w-full" type="number" min="0" max="1" step="0.01" placeholder="auto" />
-                    <div class="type-caption" id="top-p-auto">auto: --</div>
-                  </div>
-                </div>
-                <div class="playground-row">
-                  <div class="playground-field">
-                    <label class="type-caption" for="top-k-input">Top K</label>
-                    <input id="top-k-input" class="w-full" type="number" min="0" step="1" placeholder="auto" />
-                    <div class="type-caption" id="top-k-auto">auto: --</div>
-                  </div>
-                  <div class="playground-field">
-                    <label class="type-caption" for="max-tokens-input">Max tokens</label>
-                    <input id="max-tokens-input" class="w-full" type="number" min="1" step="1" placeholder="auto" />
-                    <div class="type-caption" id="max-tokens-auto">auto: --</div>
-                  </div>
-                </div>
-                <div class="playground-field">
-                  <label
-                    class="check-field type-caption"
-                    for="run-reset-kv-toggle"
-                    title="Clears KV cache before Generate so each run is independent."
-                    aria-label="Reset context each run. Clears KV cache before Generate so each run is independent."
-                  >
-                    <input id="run-reset-kv-toggle" type="checkbox" checked />
-                    Reset context each run
-                  </label>
-                </div>
-                <div class="playground-field">
-                  <label
-                    class="check-field type-caption"
-                    for="run-token-press-toggle"
-                    title="Step through generation one token at a time with confidence colors and top-k alternatives."
-                    aria-label="Token Press mode. Step through generation one token at a time."
-                  >
-                    <input id="run-token-press-toggle" type="checkbox" checked />
-                    Token Press
-                  </label>
-                </div>
-                <div class="playground-field">
-                  <span class="type-caption" style="opacity:0.6">Xray panels</span>
-                  <div class="xray-checkbox-groups">
-                    <div class="xray-checkbox-group">
-                      <span class="xray-group-label type-caption">Profiling</span>
-                      <label class="check-field type-caption" for="xray-toggle-decode"><input id="xray-toggle-decode" type="checkbox" /> Decode</label>
-                      <label class="check-field type-caption" for="xray-toggle-kernel"><input id="xray-toggle-kernel" type="checkbox" /> Kernel</label>
-                      <label class="check-field type-caption" for="xray-toggle-gpu"><input id="xray-toggle-gpu" type="checkbox" /> GPU</label>
-                    </div>
-                    <div class="xray-checkbox-group">
-                      <span class="xray-group-label type-caption">Runtime</span>
-                      <label class="check-field type-caption" for="xray-toggle-kv"><input id="xray-toggle-kv" type="checkbox" /> KV Cache</label>
-                      <label class="check-field type-caption" for="xray-toggle-exec"><input id="xray-toggle-exec" type="checkbox" /> Exec Plan</label>
-                      <label class="check-field type-caption" for="xray-toggle-mem"><input id="xray-toggle-mem" type="checkbox" /> Memory</label>
-                      <label class="check-field type-caption" for="xray-toggle-batch"><input id="xray-toggle-batch" type="checkbox" /> Batching</label>
-                    </div>
-                  </div>
-                </div>
-              </details>
-              <div class="playground-actions">
-                <button id="run-generate-btn" class="btn btn-primary" type="button">Generate</button>
-                <button id="run-stop-btn" class="btn" type="button" hidden>Stop</button>
-                <button id="run-clear-btn" class="btn" type="button">Clear</button>
-              </div>
-            </section>
-
-            <section class="panel diffusion-controls-panel" data-modes="diffusion">
-              <div class="panel-title-row">
-                <h2 class="type-label">Diffusion Controls</h2>
-                <button class="btn btn-small" id="diffusion-prompt-shuffle" type="button">Shuffle</button>
-              </div>
-              <div class="playground-field">
-                <label class="type-caption" for="diffusion-model-select">Model</label>
-                <select id="diffusion-model-select" class="w-full" aria-label="Model"></select>
-              </div>
-              <div class="playground-field">
-                <div class="playground-label-row">
-                  <label class="type-caption" for="diffusion-prompt">Prompt</label>
-                </div>
-                <textarea id="diffusion-prompt" class="w-full" rows="3" maxlength="2048" placeholder="Describe the image..."></textarea>
-                <div class="type-caption" id="diffusion-prompt-count">0/2048</div>
-              </div>
-              <details class="mobile-advanced">
-                <summary class="mobile-advanced-toggle type-caption">Advanced</summary>
-                <div class="playground-field">
-                  <div class="playground-label-row">
-                    <label class="type-caption" for="diffusion-negative">Negative prompt</label>
-                  </div>
-                  <textarea id="diffusion-negative" class="w-full" rows="2" maxlength="1024" placeholder="What to avoid..."></textarea>
-                  <div class="type-caption" id="diffusion-negative-count">0/1024</div>
-                </div>
-                <div class="playground-row">
-                  <div class="playground-field">
-                    <label class="type-caption" for="diffusion-steps">Steps</label>
-                    <input id="diffusion-steps" class="w-full" type="number" min="1" max="100" value="20" />
-                  </div>
-                  <div class="playground-field">
-                    <label class="type-caption" for="diffusion-guidance">Guidance</label>
-                    <input id="diffusion-guidance" class="w-full" type="number" min="0" max="20" step="0.5" value="7.5" />
-                  </div>
-                  <div class="playground-field">
-                    <label class="type-caption" for="diffusion-seed">Seed</label>
-                    <input id="diffusion-seed" class="w-full" type="number" min="0" step="1" placeholder="random" />
-                  </div>
-                </div>
-                <div class="playground-row">
-                  <div class="playground-field">
-                    <label class="type-caption" for="diffusion-width">Width</label>
-                    <input id="diffusion-width" class="w-full" type="number" min="256" step="64" value="256" />
-                  </div>
-                  <div class="playground-field">
-                    <label class="type-caption" for="diffusion-height">Height</label>
-                    <input id="diffusion-height" class="w-full" type="number" min="256" step="64" value="256" />
-                  </div>
-                </div>
-              </details>
-              <div class="playground-actions">
-                <button class="btn btn-primary" id="diffusion-run-btn" type="button">Generate</button>
-                <button class="btn" id="diffusion-clear-btn" type="button">Clear</button>
-              </div>
-            </section>
-
-            <details class="pulse-drawer" id="pulse-drawer" data-modes="run translate embedding diffusion">
-              <summary class="pulse-drawer-toggle">
-                <span class="pulse-drawer-toggle-label type-caption">Inference Pulse</span>
-                <button id="pulse-reset-btn" class="btn btn-small" type="button">Reset</button>
-              </summary>
-              <div class="pulse-drawer-body">
-                <div class="panel-subsection pulse-section">
-                  <h3 class="pulse-subheader">Performance</h3>
-                  <div class="stats-grid" id="stats-performance">
-                    <div class="stat-item" id="stat-tps-item">
-                      <span class="stat-label" id="stat-tps-label">Tokens/sec</span>
-                      <span class="stat-value" id="stat-tps">--</span>
-                    </div>
-                    <div class="stat-item" id="stat-ttft-item">
-                      <span class="stat-label" id="stat-ttft-label">TTFT</span>
-                      <span class="stat-value" id="stat-ttft">--</span>
-                    </div>
-                    <div class="stat-item" id="stat-prefill-item">
-                      <span class="stat-label" id="stat-prefill-label">Prefill</span>
-                      <span class="stat-value" id="stat-prefill">--</span>
-                    </div>
-                    <div class="stat-item" id="stat-e2e-item">
-                      <span class="stat-label" id="stat-e2e-label">End-to-end</span>
-                      <span class="stat-value" id="stat-e2e">--</span>
-                    </div>
-                    <div class="stat-item" id="stat-decode-item">
-                      <span class="stat-label" id="stat-decode-label">Decode</span>
-                      <span class="stat-value" id="stat-decode">--</span>
-                    </div>
-                    <div class="stat-item" id="stat-tokens-item">
-                      <span class="stat-label" id="stat-tokens-label">Prompt / Gen</span>
-                      <span class="stat-value" id="stat-tokens">--</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="panel-subsection pulse-section">
-                  <h3 class="pulse-subheader">Recent Runs</h3>
-                  <div class="run-log">
-                    <div class="run-log-row run-log-header">
-                      <span id="run-log-label">Run</span>
-                      <span id="run-log-ttft-label">TTFT</span>
-                      <span id="run-log-prefill-label">Prefill</span>
-                      <span id="run-log-decode-label">Decode</span>
-                      <span id="run-log-e2e-label">E2E</span>
-                    </div>
-                    <div id="run-log-rows"></div>
-                  </div>
-                </div>
-                <div class="panel-subsection pulse-section" data-modes="run translate">
-                  <h3 class="pulse-subheader">KV Cache</h3>
-                  <div class="stats-grid" id="stats-kv">
-                    <div class="stat-item">
-                      <span class="stat-label">Allocated</span>
-                      <span class="stat-value" id="stat-kv-allocated">--</span>
-                    </div>
-                    <div class="stat-item">
-                      <span class="stat-label">Used</span>
-                      <span class="stat-value" id="stat-kv-used">--</span>
-                    </div>
-                    <div class="stat-item">
-                      <span class="stat-label">Efficiency</span>
-                      <span class="stat-value" id="stat-kv-eff">--</span>
-                    </div>
-                    <div class="stat-item">
-                      <span class="stat-label">Seq / Max</span>
-                      <span class="stat-value" id="stat-kv-seq">--</span>
-                    </div>
-                    <div class="stat-item">
-                      <span class="stat-label">Layout</span>
-                      <span class="stat-value" id="stat-kv-layout">--</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </details>
-
-        </div>
-      </div>
-    </main>
-    <section class="panel xray-panel keyvalue-panel" id="xray-container" data-modes="run translate embedding" hidden>
-      <h2 class="type-label">Xray</h2>
+    <!-- Model picker -->
+    <section id="model-picker" class="model-picker">
+      <div class="type-label">Model</div>
+      <div id="model-cards" class="model-cards"></div>
     </section>
-    <footer class="page-footer">
-      <a class="link-secondary type-caption" href="https://www.npmjs.com/package/doppler-gpu" target="_blank" rel="noopener">npm</a>
-      <span class="type-caption" aria-hidden="true">·</span>
-      <a class="link-secondary type-caption" href="https://github.com/clocksmith/doppler" target="_blank" rel="noopener">GitHub</a>
-      <span class="type-caption" aria-hidden="true">·</span>
-      <a class="link-secondary type-caption" href="https://simulatte.world" target="_blank" rel="noopener">simulatte.world</a>
-    </footer>
-    </div>
 
-    <!-- Progress Dialog -->
-    <div class="modal-overlay progress-overlay" id="progress-overlay" hidden>
-      <div class="modal-content progress-content" role="dialog" aria-modal="true" aria-labelledby="progress-title">
-        <div class="progress-heading">
-          <h3 class="modal-title progress-title" id="progress-title">Preparing Local Model</h3>
-          <div class="progress-model-label type-caption">Model</div>
-          <p id="progress-model" class="progress-model type-caption"></p>
+    <!-- Input -->
+    <section id="input-area" class="input-area">
+      <div class="input-row">
+        <textarea id="prompt-input" placeholder="Ask anything..." rows="3"></textarea>
+        <div class="input-actions">
+          <button id="shuffle-btn" class="btn btn-ghost" title="Random example">&#x21BB;</button>
+          <button id="run-btn" class="btn btn-primary" disabled>Run</button>
+          <button id="stop-btn" class="btn" hidden>Stop</button>
         </div>
-        <div class="progress-phases" id="progress-phases">
-          <div class="progress-phase-row" data-phase="storage">
-            <span class="progress-phase-label">Local files</span>
-            <div class="progress">
-              <div class="progress-fill"></div>
-            </div>
-            <span class="progress-phase-value">--</span>
-          </div>
-          <span id="progress-shard" class="progress-shard type-caption"></span>
-          <div class="progress-phase-row" data-phase="gpu">
-            <span class="progress-phase-label">GPU setup</span>
-            <div class="progress">
-              <div class="progress-fill"></div>
-            </div>
-            <span class="progress-phase-value">--</span>
-          </div>
-        </div>
-        <p id="progress-detail" class="progress-detail type-caption"></p>
       </div>
-    </div>
+      <div id="image-drop" class="image-drop-zone">Drop image here</div>
+    </section>
 
-    <!-- Error Modal -->
-    <div class="modal-overlay" id="error-modal" hidden>
-      <div class="modal-content">
-        <h3 class="modal-title">Error</h3>
-        <p class="modal-message" id="error-message"></p>
-        <button class="btn" id="error-close">Close</button>
+    <!-- Output -->
+    <section id="output-area" class="output-area">
+      <div class="output-header">
+        <span id="output-phase" class="output-phase"></span>
+        <span id="output-toks" class="output-toks"></span>
       </div>
+      <div id="output-prefill-bar" class="output-prefill-bar" style="width: 0%"></div>
+      <div id="output-text" class="output-text"></div>
+      <!-- Token press container (optional) -->
+      <div id="token-press-output" hidden></div>
+      <div id="token-press-controls" hidden></div>
+    </section>
+
+    <!-- Settings -->
+    <section class="settings-area">
+      <button id="settings-toggle" class="btn btn-ghost">Settings</button>
+      <div id="settings-panel" class="settings-panel">
+        <!-- Profile — loads a full runtime config, populates fields below -->
+        <div class="setting-field">
+          <label for="set-profile" title="Runtime profile. Loads batching, KV cache, debug, and tracing defaults. Fields below override the profile.">Profile</label>
+          <select id="set-profile">
+            <option value="profiles/default">default</option>
+            <option value="profiles/throughput">throughput</option>
+            <option value="profiles/verbose-trace">verbose-trace</option>
+            <option value="profiles/production">production</option>
+            <option value="profiles/low-memory">low-memory</option>
+            <option value="profiles/trace-layers">trace-layers</option>
+          </select>
+        </div>
+
+        <!-- All fields are runtime config. Profile sets them; you override here. -->
+        <div class="settings-grid">
+          <div class="setting-field">
+            <label for="set-temperature" title="inference.sampling.temperature — 0 = greedy. Higher = more random.">Temperature</label>
+            <input id="set-temperature" type="number" min="0" max="2" step="0.1" value="1.0">
+          </div>
+          <div class="setting-field">
+            <label for="set-top-k" title="inference.sampling.topK — 0 = disabled. Limits to K most probable tokens.">Top K</label>
+            <input id="set-top-k" type="number" min="0" step="1" value="50">
+          </div>
+          <div class="setting-field">
+            <label for="set-top-p" title="inference.sampling.topP — 1.0 = disabled. Nucleus sampling threshold.">Top P</label>
+            <input id="set-top-p" type="number" min="0" max="1" step="0.05" value="0.95">
+          </div>
+          <div class="setting-field">
+            <label for="set-max-tokens" title="inference.generation.maxTokens — Stop after N tokens. Also stops on EOS.">Max Tokens</label>
+            <input id="set-max-tokens" type="number" min="1" step="1" value="256">
+          </div>
+          <div class="setting-field">
+            <label for="set-batch-max-tokens" title="inference.batching.maxTokens — Tokens per GPU dispatch. Higher = throughput, more VRAM.">Batch Size</label>
+            <input id="set-batch-max-tokens" type="number" min="1" step="1" value="64">
+          </div>
+          <div class="setting-field">
+            <label for="set-readback" title="inference.batching.readbackInterval — Steps between GPU readbacks. 0 = end-only.">Readback</label>
+            <input id="set-readback" type="number" min="0" step="1" value="0" placeholder="0 = end only">
+          </div>
+          <div class="setting-field">
+            <label for="set-kv-dtype" title="inference.kvcache.kvDtype — f16 halves memory. f32 is full precision.">KV Dtype</label>
+            <select id="set-kv-dtype">
+              <option value="">profile default</option>
+              <option value="f16">f16</option>
+              <option value="f32">f32</option>
+            </select>
+          </div>
+          <div class="setting-field">
+            <label for="set-kv-max-seq" title="inference.kvcache.maxSeqLen — Pre-allocated cache length. 0 = model default.">KV Max Seq</label>
+            <input id="set-kv-max-seq" type="number" min="0" step="256" value="0">
+          </div>
+          <div class="setting-field">
+            <label for="set-log-level" title="shared.debug.logLevel.defaultLogLevel — Console verbosity.">Log Level</label>
+            <select id="set-log-level">
+              <option value="silent">silent</option>
+              <option value="error">error</option>
+              <option value="info" selected>info</option>
+              <option value="verbose">verbose</option>
+            </select>
+          </div>
+        </div>
+        <div class="settings-checkboxes">
+          <label class="checkbox-label" title="Capture per-kernel and per-layer timing. Required for X-Ray decode/kernel panels. Adds overhead.">
+            <input id="set-trace" type="checkbox"> Trace
+          </label>
+          <label class="checkbox-label" title="Step-by-step token visualization with top-K candidates and confidence underline.">
+            <input id="set-token-press" type="checkbox"> Token Press
+          </label>
+          <label class="checkbox-label" title="Show tokens-per-second during decode. Needs Readback > 0 for real-time updates.">
+            <input id="set-live-toks" type="checkbox" checked> Live tok/s
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Xray -->
+    <section class="xray-toggle-row">
+      <span class="type-label" title="Debug visualization panels for inference internals.">X-Ray</span>
+      <label class="checkbox-label" title="Decode waterfall: per-step timing breakdown."><input id="xray-toggle-decode" type="checkbox"> Decode</label>
+      <label class="checkbox-label" title="KV cache occupancy, layout, and eviction stats."><input id="xray-toggle-kv" type="checkbox"> KV Cache</label>
+      <label class="checkbox-label" title="Per-kernel dispatch timing and workgroup counts."><input id="xray-toggle-kernel" type="checkbox"> Kernel</label>
+      <label class="checkbox-label" title="GPU pipeline state, submit latency, and device info."><input id="xray-toggle-gpu" type="checkbox"> GPU</label>
+      <label class="checkbox-label" title="Execution plan: resolved op graph and step order."><input id="xray-toggle-exec" type="checkbox"> Exec</label>
+      <label class="checkbox-label" title="Memory breakdown: buffer pool, heap, and tensor sizes."><input id="xray-toggle-mem" type="checkbox"> Memory</label>
+      <label class="checkbox-label" title="Batching stats: batch sizes, guard reasons, and throughput."><input id="xray-toggle-batch" type="checkbox"> Batch</label>
+    </section>
+    <div id="xray-container" hidden></div>
+
+    <!-- Report -->
+    <div class="report-bar">
+      <button id="export-btn" class="btn btn-ghost" disabled>Export JSON</button>
     </div>
   </div>
 
-  <!-- Demo entry -->
   <script type="module" src="/demo/demo.js"></script>
 </body>
 

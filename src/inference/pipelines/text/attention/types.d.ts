@@ -46,6 +46,11 @@ export interface AttentionConfig {
   rmsNormWeightOffset?: boolean;
   /** Whether causal masking is enabled (default true). */
   causalAttention?: boolean;
+  /** Absolute-position multimodal span that should remain bidirectional during causal prefill. */
+  multimodalBidirectionalSpan?: {
+    start: number;
+    length: number;
+  } | null;
   /** RoPE rotary dimension (may differ from headDim with partial rotary). */
   ropeRotaryDim?: number;
   /** Whether RoPE uses interleaved layout. */

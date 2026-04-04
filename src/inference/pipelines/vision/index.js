@@ -23,10 +23,11 @@ import { encodeGemma4Image } from './gemma4.js';
  * @param {number}                  params.height   Image height
  * @param {object}                  params.visionConfig  Vision config from manifest
  * @param {object}                  params.weights  Vision encoder weight buffers
+ * @param {number}                  [params.softTokenBudget]  Per-request soft token budget override (Gemma 4 tiers: 70/140/280/560/1120)
  * @returns {Promise<VisionEncodeResult>}
  */
 export async function encodeImage(params) {
-  const { pixels, width, height, visionConfig, weights } = params;
+  const { pixels, width, height, visionConfig, weights, softTokenBudget } = params;
 
   const arch = visionConfig.visionArchitecture ?? 'qwen3vl';
   log.debug('Vision', `encodeImage: ${width}x${height} input, arch=${arch}`);

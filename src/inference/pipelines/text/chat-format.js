@@ -131,6 +131,8 @@ function stripThinking(content) {
   return content
     .replace(/<think>[\s\S]*?<\/think>/g, '')
     .replace(/<thinking>[\s\S]*?<\/thinking>/g, '')
+    .replace(/<\|think\|>[\s\S]*?<\|\/think\|>/g, '')
+    .replace(/<\|think\|>[\s\S]*$/g, '')
     .trim();
 }
 
@@ -206,7 +208,7 @@ function formatTurnBased(messages) {
   return parts.join('');
 }
 
-function formatGemma4(messages) {
+function formatGemma4(messages, options) {
   const parts = ['<bos>'];
   for (const [index, message] of messages.entries()) {
     const role = normalizeChatRole(message?.role);
@@ -224,7 +226,11 @@ function formatGemma4(messages) {
       parts.push(`<|turn>model\n${content}<turn|>\n`);
     }
   }
-  parts.push('<|turn>model\n');
+  if (options?.thinking === true) {
+    parts.push('<|turn>model\n<|think|>\n');
+  } else {
+    parts.push('<|turn>model\n');
+  }
   return parts.join('');
 }
 
@@ -415,13 +421,16 @@ const CHAT_FORMATTERS = {
   'translategemma': formatTranslateGemma,
 };
 
-export function formatChatMessages(messages, templateType) {
+export function formatChatMessages(messages, templateType, options) {
   if (!Array.isArray(messages)) {
     throw new Error('formatChatMessages expects an array of messages.');
   }
+  if (templateType == null) {
+    return formatPlaintext(messages);
+  }
   const formatter = CHAT_FORMATTERS[templateType];
   if (formatter) {
-    return formatter(messages);
+    return formatter(messages, options);
   }
   return formatPlaintext(messages);
 }

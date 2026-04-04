@@ -120,7 +120,8 @@ function resolvePromptInput(state, prompt, useChatTemplate, contextLabel) {
     );
   }
   const templateType = useChatTemplate ? state.modelConfig.chatTemplateType : null;
-  return formatChatMessages(messages, templateType);
+  const chatOptions = state.modelConfig.chatTemplateThinking === true ? { thinking: true } : undefined;
+  return formatChatMessages(messages, templateType, chatOptions);
 }
 
 function releasePerLayerInputBuffer(buffer, recorder, decodeBuffers) {
@@ -203,6 +204,62 @@ function normalizePrefixEmbeddingOverride(override, hiddenSize, numTokens, conte
     byteLength: expectedLength * Float32Array.BYTES_PER_ELEMENT,
     byteOffset: offset * hiddenSize * Float32Array.BYTES_PER_ELEMENT,
   };
+}
+
+function resolvePrefillEmbeddingInputIds(inputIds, embeddingInputSpan, contextLabel) {
+  if (embeddingInputSpan == null) {
+    return inputIds;
+  }
+  if (typeof embeddingInputSpan !== 'object') {
+    throw new Error(`[Pipeline] ${contextLabel}: embeddingInputSpan must be an object when provided.`);
+  }
+
+  const offset = Number(embeddingInputSpan.offset);
+  const length = Number(embeddingInputSpan.length);
+  const tokenId = Number(embeddingInputSpan.tokenId);
+  if (!Number.isFinite(offset) || Math.floor(offset) !== offset || offset < 0) {
+    throw new Error(`[Pipeline] ${contextLabel}: embeddingInputSpan.offset must be a non-negative integer.`);
+  }
+  if (!Number.isFinite(length) || Math.floor(length) !== length || length < 0) {
+    throw new Error(`[Pipeline] ${contextLabel}: embeddingInputSpan.length must be a non-negative integer.`);
+  }
+  if (!Number.isFinite(tokenId) || Math.floor(tokenId) !== tokenId || tokenId < 0) {
+    throw new Error(`[Pipeline] ${contextLabel}: embeddingInputSpan.tokenId must be a non-negative integer.`);
+  }
+  if (offset + length > inputIds.length) {
+    throw new Error(
+      `[Pipeline] ${contextLabel}: embeddingInputSpan offset=${offset} + length=${length} ` +
+      `exceeds inputIds length ${inputIds.length}.`
+    );
+  }
+  const replacedInputIds = Array.from(inputIds);
+  replacedInputIds.fill(tokenId, offset, offset + length);
+  return replacedInputIds;
+}
+
+function resolvePrefillMultimodalBidirectionalSpan(inputIds, bidirectionalSpan, contextLabel) {
+  if (bidirectionalSpan == null) {
+    return null;
+  }
+  if (typeof bidirectionalSpan !== 'object') {
+    throw new Error(`[Pipeline] ${contextLabel}: multimodalBidirectionalSpan must be an object when provided.`);
+  }
+
+  const offset = Number(bidirectionalSpan.offset);
+  const length = Number(bidirectionalSpan.length);
+  if (!Number.isFinite(offset) || Math.floor(offset) !== offset || offset < 0) {
+    throw new Error(`[Pipeline] ${contextLabel}: multimodalBidirectionalSpan.offset must be a non-negative integer.`);
+  }
+  if (!Number.isFinite(length) || Math.floor(length) !== length || length < 1) {
+    throw new Error(`[Pipeline] ${contextLabel}: multimodalBidirectionalSpan.length must be a positive integer.`);
+  }
+  if ((offset + length) > inputIds.length) {
+    throw new Error(
+      `[Pipeline] ${contextLabel}: multimodalBidirectionalSpan offset=${offset} + length=${length} ` +
+      `exceeds inputIds length ${inputIds.length}.`
+    );
+  }
+  return { offset, length };
 }
 
 async function applyPrefixEmbeddingOverride(baseTensor, override, contextLabel) {
@@ -389,6 +446,17 @@ export class PipelineGenerator {
   }
 
   async _replayPrefillDecodeLogits(currentIds, opts) {
+    // Guard: cap replay-prefill sequence length to the config-owned maxSeqLen.
+    // Without KV cache creation, this bound is not enforced elsewhere.
+    const kvConfig = this.#state.runtimeConfig?.inference?.session?.kvcache;
+    const replayMaxSeqLen = kvConfig?.maxSeqLen;
+    if (Number.isFinite(replayMaxSeqLen) && replayMaxSeqLen > 0 && currentIds.length > replayMaxSeqLen) {
+      throw new Error(
+        `[Pipeline] Replay-prefill sequence length ${currentIds.length} exceeds ` +
+        `runtime.inference.session.kvcache.maxSeqLen (${replayMaxSeqLen}). ` +
+        'Increase maxSeqLen in a tier profile or runtime config to allow longer sequences.'
+      );
+    }
     this.#state.decodeStepCount++;
     this._resetReplayPrefillRuntimeState();
     const logits = await this._prefill(currentIds, opts);
@@ -571,6 +639,21 @@ export class PipelineGenerator {
     return this._sampleNextTokenFromLogits(stepResult.logits, currentIds, opts);
   }
 
+  _matchesStopSequence(generatedIds, stopSequenceStart, stopSequences) {
+    if (!Array.isArray(stopSequences) || stopSequences.length === 0) {
+      return false;
+    }
+    const fullText = this.#state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
+    return stopSequences.some((sequence) => fullText.endsWith(sequence));
+  }
+
+  _shouldStopAfterAppendedToken(generatedIds, tokenId, opts, runtime) {
+    if (isStopToken(tokenId, runtime.stopTokenIds, runtime.eosToken)) {
+      return true;
+    }
+    return this._matchesStopSequence(generatedIds, runtime.stopSequenceStart, opts.stopSequences);
+  }
+
   async *_generateTokensInternal(prompt, options = {}, mode = 'text') {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
     if (this.#state.isGenerating) throw new Error('Generation already in progress');
@@ -707,6 +790,9 @@ export class PipelineGenerator {
         log.debug('Pipeline', `First token sampled: id=${firstToken} text="${firstTokenText}"`);
       }
 
+      const stopTokenIds = this.#state.modelConfig.stopTokenIds;
+      const eosToken = this.#state.tokenizer.getSpecialTokens?.()?.eos;
+      const stopSequenceStart = inputIds.length;
       generatedIds.push(firstToken);
       this.#state.stats.ttftMs = performance.now() - startTime;
 
@@ -717,18 +803,25 @@ export class PipelineGenerator {
         (tokens) => this.#state.tokenizer?.decode?.(tokens, true, false),
         (tokens) => this.#state.tokenizer?.decode?.(tokens, false, false)
       );
-
-      yield* emitToken(this, firstToken, decodeToken);
-
-      yield* this._runDecodeLoop(generatedIds, opts, options, {
-        stopTokenIds: this.#state.modelConfig.stopTokenIds,
-        eosToken: this.#state.tokenizer.getSpecialTokens?.()?.eos,
-        stopSequenceStart: inputIds.length,
+      const decodeRuntime = {
+        stopTokenIds,
+        eosToken,
+        stopSequenceStart,
         decodeToken,
         logBatchPath: opts.debug,
         emitMode: mode,
-      });
-      const tokensGenerated = this.#state.stats.decodeTokens;
+      };
+
+      yield* emitToken(this, firstToken, decodeToken);
+
+      if (this._shouldStopAfterAppendedToken(generatedIds, firstToken, opts, decodeRuntime)) {
+        this.#state.stats.decodeTimeMs = 0;
+        this.#state.stats.tokensGenerated = 1;
+        this.#state.stats.decodeTokens = 1;
+      } else {
+        yield* this._runDecodeLoop(generatedIds, opts, options, decodeRuntime);
+      }
+      const tokensGenerated = this.#state.stats.decodeTokens ?? 1;
       this.#state.stats.totalTimeMs = performance.now() - startTime;
 
       if (opts.debug) {
@@ -945,41 +1038,46 @@ export class PipelineGenerator {
         firstToken = this._sampleNextTokenFromLogits(prefillLogits, generatedIds, opts);
       }
 
-      generatedIds.push(firstToken);
-      const tokenIds = [firstToken];
-      this.#state.stats.ttftMs = performance.now() - startTime;
-
       const stopTokenIds = this.#state.modelConfig.stopTokenIds;
       const eosToken = this.#state.tokenizer.getSpecialTokens?.()?.eos;
       const stopSequenceStart = inputIds.length;
+      generatedIds.push(firstToken);
+      const tokenIds = [firstToken];
+      this.#state.stats.ttftMs = performance.now() - startTime;
       markKernelCacheWarmed();
       const decodeStart = performance.now();
 
-      while (tokenIds.length < opts.maxTokens) {
-        if (options.signal?.aborted) break;
-        let nextToken;
-        try {
-          nextToken = await this._decodeNextTokenViaLogits(generatedIds, opts);
-        } catch (error) {
-          if (this._shouldUseFinitenessFallback(error, `decode-step-${tokenIds.length}`)) {
-            nextToken = await this._retryDecodeStepWithFinitenessWindow(
-              generatedIds,
-              opts,
-              `decode-step-${tokenIds.length}`
-            );
-          } else {
-            throw error;
+      if (!this._shouldStopAfterAppendedToken(generatedIds, firstToken, opts, {
+        stopTokenIds,
+        eosToken,
+        stopSequenceStart,
+      })) {
+        while (tokenIds.length < opts.maxTokens) {
+          if (options.signal?.aborted) break;
+          let nextToken;
+          try {
+            nextToken = await this._decodeNextTokenViaLogits(generatedIds, opts);
+          } catch (error) {
+            if (this._shouldUseFinitenessFallback(error, `decode-step-${tokenIds.length}`)) {
+              nextToken = await this._retryDecodeStepWithFinitenessWindow(
+                generatedIds,
+                opts,
+                `decode-step-${tokenIds.length}`
+              );
+            } else {
+              throw error;
+            }
           }
-        }
-        generatedIds.push(nextToken);
-        tokenIds.push(nextToken);
-        this._consumeFinitenessFallbackToken(opts);
-        if (isStopToken(nextToken, stopTokenIds, eosToken)) {
-          break;
-        }
-        if (opts.stopSequences.length > 0) {
-          const fullText = this.#state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
-          if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) break;
+          generatedIds.push(nextToken);
+          tokenIds.push(nextToken);
+          this._consumeFinitenessFallbackToken(opts);
+          if (this._shouldStopAfterAppendedToken(generatedIds, nextToken, opts, {
+            stopTokenIds,
+            eosToken,
+            stopSequenceStart,
+          })) {
+            break;
+          }
         }
       }
 
@@ -1260,9 +1358,15 @@ export class PipelineGenerator {
         seed: opts.seed,
       });
 
+      const decodeRuntime = {
+        stopTokenIds: this.#state.modelConfig.stopTokenIds,
+        eosToken: this.#state.tokenizer.getSpecialTokens?.()?.eos,
+        stopSequenceStart: promptTokenCount,
+        decodeToken: (tokenId) => this.#state.tokenizer.decode([tokenId], true, false),
+        logBatchPath: false,
+      };
       generatedIds.push(firstToken);
       this.#state.stats.ttftMs = performance.now() - startTime;
-
       const firstText = resolveTokenText(
         this.#state.tokenizer,
         [firstToken],
@@ -1273,13 +1377,13 @@ export class PipelineGenerator {
       yield firstText;
       if (options.onToken) options.onToken(firstToken, firstText);
 
-      yield* this._runDecodeLoop(generatedIds, opts, options, {
-        stopTokenIds: this.#state.modelConfig.stopTokenIds,
-        eosToken: this.#state.tokenizer.getSpecialTokens?.()?.eos,
-        stopSequenceStart: promptTokenCount,
-        decodeToken: (tokenId) => this.#state.tokenizer.decode([tokenId], true, false),
-        logBatchPath: false,
-      });
+      if (this._shouldStopAfterAppendedToken(generatedIds, firstToken, opts, decodeRuntime)) {
+        this.#state.stats.decodeTimeMs = 0;
+        this.#state.stats.tokensGenerated = 1;
+        this.#state.stats.decodeTokens = 1;
+      } else {
+        yield* this._runDecodeLoop(generatedIds, opts, options, decodeRuntime);
+      }
       this.#state.stats.totalTimeMs = performance.now() - startTime;
     } finally {
       this._closeFinitenessFallbackWindow(opts);
@@ -1574,6 +1678,19 @@ export class PipelineGenerator {
     const config = this.#state.modelConfig;
     const startPos = this.#state.currentSeqLen;
     const returnHidden = opts?._returnHidden === true;
+    const embeddingInputIds = resolvePrefillEmbeddingInputIds(
+      inputIds,
+      opts?.embeddingInputSpan ?? null,
+      '_prefill'
+    );
+    const multimodalBidirectionalSpan = resolvePrefillMultimodalBidirectionalSpan(
+      inputIds,
+      opts?.multimodalBidirectionalSpan ?? null,
+      '_prefill'
+    );
+    if (embeddingInputIds !== inputIds) {
+      this._assertTokenIdsInRange(embeddingInputIds, '_prefill.embeddingInputIds');
+    }
     const embeddingOverride = normalizePrefixEmbeddingOverride(
       opts?.embeddingOverrides ?? null,
       config.hiddenSize,
@@ -1630,6 +1747,12 @@ export class PipelineGenerator {
       opts.executionPlan
     );
     context.currentTokenIds = inputIds;
+    context.multimodalBidirectionalSpan = multimodalBidirectionalSpan == null
+      ? null
+      : {
+        start: startPos + multimodalBidirectionalSpan.offset,
+        length: multimodalBidirectionalSpan.length,
+      };
     let gpuTimePrefillMs = 0;
     let hasGpuTimePrefill = false;
     const recordProfile = async (rec) => {
@@ -1659,7 +1782,7 @@ export class PipelineGenerator {
 
     const activationDtype = opts.executionPlan?.activationDtype ?? this._getEffectiveActivationDtype();
     const activationBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
-    let baseEmbeddings = await embed(inputIds, embedBuffer, {
+    let baseEmbeddings = await embed(embeddingInputIds, embedBuffer, {
       hiddenSize: config.hiddenSize,
       vocabSize: config.vocabSize,
       scaleEmbeddings: config.scaleEmbeddings,
@@ -1675,9 +1798,14 @@ export class PipelineGenerator {
     let perLayerInputs = null;
     try {
       hiddenStates = await applyPrefixEmbeddingOverride(baseEmbeddings, embeddingOverride, '_prefill');
-      perLayerInputs = await preparePerLayerInputs(inputIds, baseEmbeddings, context, {
-        numTokens,
-      });
+      perLayerInputs = await preparePerLayerInputs(
+        embeddingInputIds,
+        embeddingInputIds === inputIds ? hiddenStates : baseEmbeddings,
+        context,
+        {
+          numTokens,
+        }
+      );
     } catch (error) {
       if (isGpuBufferInstance(hiddenStates?.buffer)) {
         releaseBuffer(hiddenStates.buffer);
@@ -1726,6 +1854,11 @@ export class PipelineGenerator {
 
     let currentRecorder = recorder;
 
+    // Chunked recorder submission: submit every N layers to release tracked intermediate
+    // buffers, preventing unbounded memory growth during large prefills. Critical for
+    // replay_prefill models (e.g., Gemma 4) where every decode step re-runs full prefill.
+    const PREFILL_RECORDER_CHUNK_LAYERS = 4;
+
     let currentHiddenBuffer = hiddenStates.buffer;
     try {
       for (let l = 0; l < config.numLayers; l++) {
@@ -1743,6 +1876,10 @@ export class PipelineGenerator {
         context.perLayerInputBuffer = null;
 
         const isCheckpoint = useCheckpoints && opts.debugLayers?.includes(l);
+        const isChunkBoundary = !isCheckpoint
+          && currentRecorder
+          && l < config.numLayers - 1
+          && (l + 1) % PREFILL_RECORDER_CHUNK_LAYERS === 0;
 
         if (isCheckpoint && currentRecorder) {
           await currentRecorder.submitAndWait();
@@ -1789,6 +1926,12 @@ export class PipelineGenerator {
           } else {
             releaseBuffer(prevBuffer);
           }
+        }
+
+        if (isChunkBoundary) {
+          await currentRecorder.submitAndWait();
+          await recordProfile(currentRecorder);
+          currentRecorder = createRecorder('prefill-chunk');
         }
       }
     } finally {

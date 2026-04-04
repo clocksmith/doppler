@@ -79,6 +79,7 @@ export async function recordLayerAttentionGPU(
     tokenIds = null,
     kernelPath = null,
     disableRoPE = false,
+    multimodalBidirectionalSpan = null,
     sharedKVSourceLayerIdx = null,
     storeSharedKV = false,
   } = config;
@@ -452,6 +453,8 @@ export async function recordLayerAttentionGPU(
         kvLen: kvState.kvLenForAttention,
         numKVHeads,
         causal: causalForAttention,
+        bidirectionalSpanStart: multimodalBidirectionalSpan?.start ?? 0,
+        bidirectionalSpanLength: multimodalBidirectionalSpan?.length ?? 0,
         startPos: kvState.startPosForMask,
         layerIdx,
         slidingWindow: effectiveSlidingWindow,

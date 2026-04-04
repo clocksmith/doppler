@@ -1,15 +1,41 @@
 import { log } from 'doppler-gpu';
+import { boot } from './boot.js';
+import { setModelCallbacks } from './models.js';
+import { initInput, setRunHandler } from './input.js';
+import { initSettings } from './settings.js';
+import { initReport } from './report.js';
+import { onModelLoaded, runGeneration, stopGeneration } from './core.js';
+import { initXray } from './ui/xray/index.js';
 
-import './demo-utils.js';
-import './demo-routing.js';
-import './demo-translate.js';
-import './demo-storage.js';
-import './demo-generation.js';
-import './demo-diagnostics.js';
-import { initDemo } from './demo-core.js';
+function $(id) { return document.getElementById(id); }
 
-export * from './demo-core.js';
+async function init() {
+  // Wire model callbacks
+  setModelCallbacks({
+    onLoaded: onModelLoaded,
+    onDownloadProgress: null,
+  });
 
-initDemo().catch((error) => {
-  log.error('DopplerDemo', `Demo init failed: ${error.message}`);
+  // Init UI modules
+  initSettings();
+  initReport();
+  await initInput();
+
+  // Wire run/stop
+  setRunHandler(runGeneration);
+  $('stop-btn')?.addEventListener('click', stopGeneration);
+
+  // Init xray (reads URL ?xray= flags, wires per-panel checkboxes)
+  try {
+    initXray({ onChange: () => {} });
+  } catch {
+    // xray init is optional
+  }
+
+  // Boot sequence
+  await boot();
+}
+
+init().catch((err) => {
+  log.error('Demo', `Init failed: ${err.message}`);
 });

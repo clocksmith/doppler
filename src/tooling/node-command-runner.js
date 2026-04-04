@@ -117,7 +117,7 @@ export async function runNodeCommand(commandRequest, options = {}) {
         outputDir: request.outputDir,
         converterConfig,
         execution,
-        onProgress: options.onProgress,
+        onProgress: validatedOptions.onProgress,
       });
       return createToolingSuccessEnvelope({
         surface: 'node',
@@ -142,7 +142,7 @@ export async function runNodeCommand(commandRequest, options = {}) {
     }
 
     if (request.command === 'diagnose') {
-      const result = await runDiagnoseCommand(request, options);
+      const result = await runDiagnoseCommand(request, validatedOptions);
       return createToolingSuccessEnvelope({
         surface: 'node',
         request,
@@ -165,7 +165,7 @@ export async function runNodeCommand(commandRequest, options = {}) {
     };
 
     return runWithRuntimeIsolation(runtimeBridge, async () => {
-      await applyRuntimeInputs(request, runtimeBridge, options.runtimeLoadOptions || {});
+      await applyRuntimeInputs(request, runtimeBridge, validatedOptions.runtimeLoadOptions || {});
       const result = await modules.harness.runBrowserSuite(buildSuiteOptions(request, 'node'));
 
       return createToolingSuccessEnvelope({

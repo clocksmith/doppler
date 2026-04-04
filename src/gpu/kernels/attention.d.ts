@@ -21,6 +21,8 @@ export interface AttentionOptions extends OutputBufferOptions {
   numKVHeads?: number;
   scale?: number;
   causal?: boolean;
+  bidirectionalSpanStart?: number;
+  bidirectionalSpanLength?: number;
   startPos?: number;
   slidingWindow?: number;
   /** Layer index for kernel path layer overrides */

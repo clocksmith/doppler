@@ -21,8 +21,7 @@ const KNOWN_CHAT_TEMPLATE_TYPES = new Set([
 
 /**
  * Validate that a chatTemplate.type value is either null (disabled) or a known
- * formatter type. Logs a warning for unknown types so callers get early feedback
- * without a breaking throw.
+ * formatter type.
  *
  * @param {string | null} type - The chatTemplate.type from manifest inference.
  * @param {string} modelId - Model identifier for diagnostic messages.
@@ -31,13 +30,10 @@ const KNOWN_CHAT_TEMPLATE_TYPES = new Set([
 export function validateChatTemplateType(type, modelId) {
   if (type === null || type === undefined) return true;
   if (KNOWN_CHAT_TEMPLATE_TYPES.has(type)) return true;
-  log.warn(
-    'Config',
-    `Manifest "${modelId}" declares chatTemplate.type="${type}" which is not a known ` +
-    `formatter type. Known types: ${[...KNOWN_CHAT_TEMPLATE_TYPES].join(', ')}. ` +
-    `The formatter will fall back to plaintext at generation time.`
+  throw new Error(
+    `Manifest "${modelId}" declares chatTemplate.type="${type}" which is not a known formatter type. ` +
+    `Known types: ${[...KNOWN_CHAT_TEMPLATE_TYPES].join(', ')}. Re-convert the model or fix the manifest.`
   );
-  return false;
 }
 
 // =============================================================================
@@ -780,6 +776,9 @@ function resolveVisionConfig(rawConfig, manifest) {
       deepstackVisualIndexes: [],
       imageTokenId: rawConfig?.image_token_id ?? manifest?.image_token_id ?? null,
       visionArchitecture,
+      softTokenBudgetTiers: Array.isArray(vc.soft_token_budget_tiers)
+        ? vc.soft_token_budget_tiers.map(Number).filter((n) => Number.isFinite(n) && n > 0)
+        : [70, 140, 280, 560, 1120],
     };
   }
 
@@ -807,6 +806,78 @@ function resolveVisionConfig(rawConfig, manifest) {
     deepstackVisualIndexes: Array.isArray(vc.deepstack_visual_indexes) ? vc.deepstack_visual_indexes : [],
     imageTokenId: rawConfig?.image_token_id ?? manifest?.image_token_id ?? null,
     visionArchitecture,
+  };
+}
+
+function resolveAudioConfig(rawConfig, manifest) {
+  const ac = rawConfig?.audio_config ?? manifest?.config?.audio_config;
+  if (!ac || typeof ac !== 'object') {
+    log.debug(
+      'Config',
+      `Audio config not present for model "${manifest?.modelId ?? 'unknown'}"; audio pipeline disabled.`
+    );
+    return null;
+  }
+  const modelId = manifest?.modelId ?? 'unknown';
+  const resolveRequiredPositiveInteger = (value, label) => {
+    const number = Number(value);
+    if (!Number.isFinite(number) || number <= 0 || Math.floor(number) !== number) {
+      throw new Error(
+        `Manifest "${modelId}" has invalid audio_config.${label}=${JSON.stringify(value)}. ` +
+        'Expected a positive integer.'
+      );
+    }
+    return Math.trunc(number);
+  };
+  const resolveRequiredPositiveNumber = (value, label) => {
+    const number = Number(value);
+    if (!Number.isFinite(number) || number <= 0) {
+      throw new Error(
+        `Manifest "${modelId}" has invalid audio_config.${label}=${JSON.stringify(value)}. ` +
+        'Expected a positive number.'
+      );
+    }
+    return number;
+  };
+
+  const rawModelType = typeof ac.model_type === 'string' ? ac.model_type.trim().toLowerCase() : '';
+  const audioArchitecture = rawModelType === 'gemma4_audio' ? 'gemma4' : null;
+  if (!audioArchitecture) {
+    throw new Error(
+      `Manifest "${modelId}" has unsupported audio_config.model_type="${ac.model_type}". ` +
+      'Supported: "gemma4_audio".'
+    );
+  }
+
+  const hiddenSize = resolveRequiredPositiveInteger(ac.hidden_size, 'hidden_size');
+  const numAttentionHeads = resolveRequiredPositiveInteger(ac.num_attention_heads, 'num_attention_heads');
+  const headDim = Math.trunc(hiddenSize / numAttentionHeads);
+
+  if (!Array.isArray(ac.subsampling_conv_channels) || ac.subsampling_conv_channels.length < 1) {
+    throw new Error(
+      `Manifest "${modelId}" is missing audio_config.subsampling_conv_channels array.`
+    );
+  }
+
+  return {
+    audioArchitecture,
+    depth: resolveRequiredPositiveInteger(ac.num_hidden_layers, 'num_hidden_layers'),
+    hiddenSize,
+    numAttentionHeads,
+    headDim,
+    convKernelSize: resolveRequiredPositiveInteger(ac.conv_kernel_size, 'conv_kernel_size'),
+    subsamplingConvChannels: ac.subsampling_conv_channels.map(Number),
+    outputProjDims: resolveRequiredPositiveInteger(ac.output_proj_dims, 'output_proj_dims'),
+    attentionContextLeft: resolveRequiredPositiveInteger(ac.attention_context_left, 'attention_context_left'),
+    attentionContextRight: Number(ac.attention_context_right ?? 0),
+    attentionChunkSize: resolveRequiredPositiveInteger(ac.attention_chunk_size, 'attention_chunk_size'),
+    attentionLogitCap: resolveRequiredPositiveNumber(ac.attention_logit_cap, 'attention_logit_cap'),
+    attentionInvalidLogitsValue: Number(ac.attention_invalid_logits_value ?? -1e9),
+    residualWeight: resolveRequiredPositiveNumber(ac.residual_weight, 'residual_weight'),
+    rmsNormEps: resolveRequiredPositiveNumber(ac.rms_norm_eps ?? 1e-6, 'rms_norm_eps'),
+    hiddenAct: String(ac.hidden_act ?? 'silu').trim(),
+    useClippedLinears: ac.use_clipped_linears === true,
+    audioTokenId: rawConfig?.audio_token_id ?? manifest?.audio_token_id ?? null,
   };
 }
 
@@ -1112,6 +1183,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
   const chatTemplateType = inf.chatTemplate.type;
   validateChatTemplateType(chatTemplateType, merged.modelId);
   const chatTemplateEnabled = inf.chatTemplate.enabled;
+  const chatTemplateThinking = inf.chatTemplate.thinking ?? null;
   const parsePositiveInt = (value) => {
     const num = Number(value);
     if (!Number.isFinite(num) || num <= 0) return null;
@@ -1206,9 +1278,11 @@ export function toParsedConfigFromMerged(merged, manifest) {
     layerPipeline: inf.pipeline ?? null,
     chatTemplateType,
     chatTemplateEnabled,
+    chatTemplateThinking,
     decodeStrategy,
     kernelPath: null,
     visionConfig: resolveVisionConfig(config, manifest),
+    audioConfig: resolveAudioConfig(config, manifest),
   };
 }
 

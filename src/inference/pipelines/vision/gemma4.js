@@ -1,7 +1,6 @@
 import { log } from '../../../debug/index.js';
 import { getDevice } from '../../../gpu/device.js';
 import { createTensor } from '../../../gpu/tensor.js';
-import { runClamp } from '../../../gpu/kernels/clamp.js';
 import {
   runAttention,
   runGeLU,
@@ -11,6 +10,7 @@ import {
 } from '../../../gpu/kernel-selector.js';
 import { acquireBuffer, readBuffer, releaseBuffer, uploadData } from '../../../memory/buffer-pool.js';
 import { getQKNormOnesBuffer } from '../text/attention/types.js';
+import { shouldClamp, runClippableLinear } from '../shared/clipped-linear.js';
 
 function createTensorFromBuffer(buffer, shape, label) {
   return createTensor(buffer, 'f32', shape, label);
@@ -45,6 +45,24 @@ function getPixelValue(pixels, srcChannels, index) {
   return Number(value) / 255.0;
 }
 
+function clamp01(value) {
+  if (value <= 0) return 0;
+  if (value >= 1) return 1;
+  return value;
+}
+
+function cubicWeight(distance) {
+  const a = -0.5;
+  const x = Math.abs(distance);
+  if (x <= 1) {
+    return ((a + 2) * x * x * x) - ((a + 3) * x * x) + 1;
+  }
+  if (x < 2) {
+    return (a * x * x * x) - (5 * a * x * x) + (8 * a * x) - (4 * a);
+  }
+  return 0;
+}
+
 function resizeImageToRgbFloat32(pixels, width, height, targetWidth, targetHeight) {
   const srcChannels = resolveSourceChannels(pixels, width, height);
   const out = new Float32Array(targetWidth * targetHeight * 3);
@@ -52,27 +70,44 @@ function resizeImageToRgbFloat32(pixels, width, height, targetWidth, targetHeigh
   const scaleY = height / targetHeight;
 
   for (let y = 0; y < targetHeight; y++) {
-    const srcY = y * scaleY;
-    const y0 = Math.min(Math.floor(srcY), height - 1);
-    const y1 = Math.min(y0 + 1, height - 1);
-    const fy = srcY - y0;
+    const srcY = ((y + 0.5) * scaleY) - 0.5;
+    const yBase = Math.floor(srcY);
 
     for (let x = 0; x < targetWidth; x++) {
-      const srcX = x * scaleX;
-      const x0 = Math.min(Math.floor(srcX), width - 1);
-      const x1 = Math.min(x0 + 1, width - 1);
-      const fx = srcX - x0;
+      const srcX = ((x + 0.5) * scaleX) - 0.5;
+      const xBase = Math.floor(srcX);
 
       for (let c = 0; c < 3; c++) {
-        const idx00 = (y0 * width + x0) * srcChannels + c;
-        const idx01 = (y0 * width + x1) * srcChannels + c;
-        const idx10 = (y1 * width + x0) * srcChannels + c;
-        const idx11 = (y1 * width + x1) * srcChannels + c;
-        const top = getPixelValue(pixels, srcChannels, idx00)
-          + (getPixelValue(pixels, srcChannels, idx01) - getPixelValue(pixels, srcChannels, idx00)) * fx;
-        const bottom = getPixelValue(pixels, srcChannels, idx10)
-          + (getPixelValue(pixels, srcChannels, idx11) - getPixelValue(pixels, srcChannels, idx10)) * fx;
-        out[(y * targetWidth + x) * 3 + c] = top + (bottom - top) * fy;
+        let weightedValue = 0;
+        let weightSum = 0;
+
+        for (let sampleY = -1; sampleY <= 2; sampleY++) {
+          const srcSampleY = yBase + sampleY;
+          const clampedY = Math.max(0, Math.min(srcSampleY, height - 1));
+          const yWeight = cubicWeight(srcY - srcSampleY);
+          if (yWeight === 0) continue;
+
+          for (let sampleX = -1; sampleX <= 2; sampleX++) {
+            const srcSampleX = xBase + sampleX;
+            const clampedX = Math.max(0, Math.min(srcSampleX, width - 1));
+            const xWeight = cubicWeight(srcX - srcSampleX);
+            if (xWeight === 0) continue;
+
+            const weight = xWeight * yWeight;
+            const idx = (clampedY * width + clampedX) * srcChannels + c;
+            weightedValue += getPixelValue(pixels, srcChannels, idx) * weight;
+            weightSum += weight;
+          }
+        }
+
+        const outputValue = weightSum === 0
+          ? getPixelValue(
+            pixels,
+            srcChannels,
+            (Math.max(0, Math.min(yBase, height - 1)) * width + Math.max(0, Math.min(xBase, width - 1))) * srcChannels + c
+          )
+          : (weightedValue / weightSum);
+        out[(y * targetWidth + x) * 3 + c] = clamp01(outputValue);
       }
     }
   }
@@ -115,7 +150,7 @@ function getAspectRatioPreservingSize(height, width, patchSize, maxPatches, pool
   return { targetHeight, targetWidth };
 }
 
-function preprocessGemma4Image(pixels, width, height, visionConfig) {
+export function preprocessGemma4Image(pixels, width, height, visionConfig, softTokenBudget) {
   const patchSize = Number(visionConfig.patchSize);
   const poolingKernelSize = Number(visionConfig.poolingKernelSize);
   if (!Number.isFinite(poolingKernelSize) || poolingKernelSize < 1) {
@@ -123,7 +158,21 @@ function preprocessGemma4Image(pixels, width, height, visionConfig) {
       `[Vision] Gemma 4 requires vision_config.pooling_kernel_size to be a positive integer, got ${visionConfig.poolingKernelSize}.`
     );
   }
-  const maxSoftTokens = Number(visionConfig.defaultOutputLength ?? 280);
+  const effectiveBudget = softTokenBudget ?? visionConfig.defaultOutputLength;
+  if (softTokenBudget != null) {
+    const tiers = visionConfig.softTokenBudgetTiers;
+    if (Array.isArray(tiers) && tiers.length > 0 && !tiers.includes(softTokenBudget)) {
+      throw new Error(
+        `[Vision] softTokenBudget=${softTokenBudget} is not in the allowed tiers [${tiers.join(', ')}].`
+      );
+    }
+  }
+  const maxSoftTokens = Number(effectiveBudget);
+  if (!Number.isFinite(maxSoftTokens) || maxSoftTokens < 1 || Math.floor(maxSoftTokens) !== maxSoftTokens) {
+    throw new Error(
+      `[Vision] Gemma 4 requires a positive integer soft token budget, got ${effectiveBudget}.`
+    );
+  }
   const maxPatches = maxSoftTokens * (poolingKernelSize ** 2);
   const { targetHeight, targetWidth } = getAspectRatioPreservingSize(
     height,
@@ -151,9 +200,10 @@ function preprocessGemma4Image(pixels, width, height, visionConfig) {
       for (let localY = 0; localY < patchSize; localY++) {
         for (let localX = 0; localX < patchSize; localX++) {
           const srcPixelOffset = ((patchY * patchSize + localY) * targetWidth + (patchX * patchSize + localX)) * 3;
-          patches[dstOffset++] = 2.0 * (resized[srcPixelOffset] - 0.5);
-          patches[dstOffset++] = 2.0 * (resized[srcPixelOffset + 1] - 0.5);
-          patches[dstOffset++] = 2.0 * (resized[srcPixelOffset + 2] - 0.5);
+          // Gemma 4 vision preprocessing rescales pixels to [0, 1] without extra normalization.
+          patches[dstOffset++] = resized[srcPixelOffset];
+          patches[dstOffset++] = resized[srcPixelOffset + 1];
+          patches[dstOffset++] = resized[srcPixelOffset + 2];
         }
       }
     }
@@ -191,49 +241,6 @@ function buildPatchPositionEmbeddings(positionTable, positions, positionEmbeddin
   }
 
   return output;
-}
-
-function shouldClamp(minValue, maxValue) {
-  return Number.isFinite(minValue) || Number.isFinite(maxValue);
-}
-
-async function cloneTensorBuffer(tensor, label) {
-  const device = getDevice();
-  if (!device) {
-    throw new Error(`[Vision] ${label}: GPU device is required.`);
-  }
-  const buffer = acquireBuffer(tensor.buffer.size, undefined, label);
-  try {
-    const encoder = device.createCommandEncoder();
-    encoder.copyBufferToBuffer(tensor.buffer, 0, buffer, 0, tensor.buffer.size);
-    device.queue.submit([encoder.finish()]);
-    return createTensor(buffer, tensor.dtype, [...tensor.shape], label);
-  } catch (error) {
-    releaseBuffer(buffer);
-    throw error;
-  }
-}
-
-async function runClippableLinear(inputTensor, weight, M, N, K, clip, label) {
-  let matmulInput = inputTensor;
-  try {
-    if (shouldClamp(clip?.inputMin, clip?.inputMax)) {
-      matmulInput = await cloneTensorBuffer(inputTensor, `${label}_input`);
-      await runClamp(matmulInput, clip.inputMin, clip.inputMax, { count: M * K });
-    }
-    const output = await runMatmul(matmulInput, weight, M, N, K, {
-      outputDtype: 'f32',
-      transposeB: 'auto',
-    });
-    if (shouldClamp(clip?.outputMin, clip?.outputMax)) {
-      await runClamp(output, clip.outputMin, clip.outputMax, { count: M * N });
-    }
-    return output;
-  } finally {
-    if (matmulInput !== inputTensor) {
-      releaseBuffer(matmulInput.buffer);
-    }
-  }
 }
 
 async function readTensorF32(tensor, expectedLength, label) {
@@ -455,6 +462,7 @@ async function runVisionAttention(hiddenTensor, layerWeights, visionConfig, rope
         seqLen: numTokens,
         kvLen: numTokens,
         numKVHeads,
+        scale: 1.0,
         causal: false,
       }
     );
@@ -514,9 +522,9 @@ async function runVisionMlp(hiddenTensor, layerWeights, visionConfig, numTokens,
       layerWeights.upProjClip,
       'gemma4_vision_up_proj'
     );
-    activatedTensor = await runGeLU(upTensor, {
+    activatedTensor = await runGeLU(gateTensor, {
       size: numTokens * intermediateSize,
-      gate: gateTensor,
+      gate: upTensor,
     });
     releaseBuffer(gateTensor.buffer);
     releaseBuffer(upTensor.buffer);
@@ -544,7 +552,7 @@ async function runVisionMlp(hiddenTensor, layerWeights, visionConfig, numTokens,
 }
 
 export async function encodeGemma4Image(params) {
-  const { pixels, width, height, visionConfig, weights } = params;
+  const { pixels, width, height, visionConfig, weights, softTokenBudget } = params;
   const hiddenActivation = String(visionConfig.hiddenActivation ?? '').trim();
   if (hiddenActivation !== 'gelu' && hiddenActivation !== 'gelu_pytorch_tanh') {
     throw new Error(
@@ -567,18 +575,22 @@ export async function encodeGemma4Image(params) {
     );
   }
 
-  const preprocessed = preprocessGemma4Image(pixels, width, height, visionConfig);
+  const preprocessed = preprocessGemma4Image(pixels, width, height, visionConfig, softTokenBudget);
   log.debug(
     'Vision',
     `gemma4 encode: ${width}x${height} -> ${preprocessed.gridWidth}x${preprocessed.gridHeight} patches=${preprocessed.numPatches}`
   );
+  const scaledPatches = new Float32Array(preprocessed.patches.length);
+  for (let index = 0; index < preprocessed.patches.length; index++) {
+    scaledPatches[index] = 2.0 * (preprocessed.patches[index] - 0.5);
+  }
 
   const patchTensor = createTensorFromBuffer(
-    acquireBuffer(preprocessed.patches.byteLength, undefined, 'gemma4_vision_patches'),
+    acquireBuffer(scaledPatches.byteLength, undefined, 'gemma4_vision_patches'),
     [preprocessed.numPatches, 3 * patchSize * patchSize],
     'gemma4_vision_patches'
   );
-  uploadData(patchTensor.buffer, preprocessed.patches, 0);
+  uploadData(patchTensor.buffer, scaledPatches, 0);
 
   const positionEmbeddings = buildPatchPositionEmbeddings(
     weights.patchPositionEmbeddingTable,

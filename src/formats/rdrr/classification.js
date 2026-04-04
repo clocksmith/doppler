@@ -147,7 +147,8 @@ export function classifyTensorRole(name) {
   }
 
   // Multimodal: audio encoder tensors
-  if (lower.startsWith('audio_tower.') || lower.startsWith('audio_model.')
+  if (lower.startsWith('audio_tower.') || lower.startsWith('model.audio_tower.')
+    || lower.startsWith('audio_model.') || lower.startsWith('model.audio_model.')
     || lower.startsWith('audio.') || lower.startsWith('model.audio.')
     || lower.startsWith('audio_encoder.')) {
     return 'audio';

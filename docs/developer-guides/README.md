@@ -32,6 +32,7 @@ Every guide in this directory should answer the same four questions:
 
 | Goal | Start with | Notes |
 | --- | --- | --- |
+| Add a model end to end with research, debug, verify, and bench discipline | [model-onboarding-playbook.md](model-onboarding-playbook.md) | Use this before picking the smaller atomic/composite guides |
 | Tune runtime behavior without code changes | [01-runtime-profile.md](01-runtime-profile.md) | JSON-only runtime profile work |
 | Put an existing chat format on a model | [02-assign-chat-template.md](02-assign-chat-template.md) | Uses an existing built-in formatter |
 | Add a new model family contract | [03-model-family-config.md](03-model-family-config.md) | Explicit conversion config, no family registry |
@@ -54,6 +55,7 @@ Every guide in this directory should answer the same four questions:
 
 | Guide | Kind | Blast Radius |
 | --- | --- | --- |
+| [model-onboarding-playbook.md](model-onboarding-playbook.md) | composite | end-to-end planning across conversion, runtime, debug, verify, and bench |
 | [01-runtime-profile.md](01-runtime-profile.md) | atomic | JSON only |
 | [02-assign-chat-template.md](02-assign-chat-template.md) | atomic | JSON only |
 | [03-model-family-config.md](03-model-family-config.md) | atomic | migration note |
@@ -110,6 +112,22 @@ These are the numbered guides. Each should describe one extension point.
 ## Composite Guides
 
 These are not numbered because they compose multiple atomic guides.
+
+### [model-onboarding-playbook.md](model-onboarding-playbook.md)
+
+Use when adding a model and you need the full plan before implementation:
+
+- source research
+- conversion/runtime ownership split
+- execution-graph strategy
+- deterministic verify/debug ladder
+- benchmark discipline
+- promotion gate
+
+This is the front door for model onboarding. After it narrows the scope, switch
+to [composite-model-family.md](composite-model-family.md) or
+[composite-pipeline-family.md](composite-pipeline-family.md) plus the atomic
+guides that match the concrete work.
 
 ### [composite-model-family.md](composite-model-family.md)
 

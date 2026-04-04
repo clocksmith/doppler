@@ -73,15 +73,19 @@ try {
     },
   }), 'utf8');
 
-  await assert.rejects(
-    () => resolveNodeSourceRuntimeBundle({
-      inputPath: fixtureDir,
-      modelId: 'node-source-runtime-test',
-      verifyHashes: true,
-    }),
-    /execution\.kernels object \(v1 format\)|legacy conversion \(v0\) is no longer supported/i,
-    'node source runtime must fail closed when no explicit v1 execution graph is available'
-  );
+  const bundle = await resolveNodeSourceRuntimeBundle({
+    inputPath: fixtureDir,
+    modelId: 'node-source-runtime-test',
+    verifyHashes: true,
+  });
+  assert.ok(bundle, 'node source runtime should synthesize a direct-source bundle');
+  assert.equal(bundle.sourceKind, 'safetensors');
+  assert.equal(bundle.manifest.modelId, 'node-source-runtime-test');
+  assert.equal(bundle.manifest.inference?.execution?.kernels?.embed?.kernel, 'gather_f16.wgsl');
+  assert.ok(bundle.storageContext, 'node source runtime should create a storage context');
+
+  const shard = await bundle.storageContext.loadShard(0);
+  assert.ok(new Uint8Array(shard).byteLength > 0, 'source-runtime storage context should load shard bytes');
 } finally {
   rmSync(fixtureDir, { recursive: true, force: true });
 }

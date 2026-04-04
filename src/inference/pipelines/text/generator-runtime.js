@@ -185,6 +185,8 @@ export function resolveStepOptions(state, options = {}) {
     executionPlan,
     inputIds: resolveExplicitInputIds(options.inputIds, 'options.inputIds'),
     embeddingOverrides: options.embeddingOverrides ?? null,
+    embeddingInputSpan: options.__internalEmbeddingInputSpan ?? null,
+    multimodalBidirectionalSpan: options.__internalMultimodalBidirectionalSpan ?? null,
   };
 }
 
@@ -231,6 +233,8 @@ export function resolveGenerateOptions(state, options = {}) {
     speculation: resolveSpeculationConfig(state, options),
     inputIds: resolveExplicitInputIds(options.inputIds, 'options.inputIds'),
     embeddingOverrides: options.embeddingOverrides ?? null,
+    embeddingInputSpan: options.__internalEmbeddingInputSpan ?? null,
+    multimodalBidirectionalSpan: options.__internalMultimodalBidirectionalSpan ?? null,
   };
 }
 
@@ -261,6 +265,8 @@ export function resolvePrefillOptions(state, options = {}) {
     images: options.images ?? null,
     inputIds: resolveExplicitInputIds(options.inputIds, 'options.inputIds'),
     embeddingOverrides: options.embeddingOverrides ?? null,
+    embeddingInputSpan: options.__internalEmbeddingInputSpan ?? null,
+    multimodalBidirectionalSpan: options.__internalMultimodalBidirectionalSpan ?? null,
   };
 }
 

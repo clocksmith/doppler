@@ -22,6 +22,22 @@ await assert.rejects(
   /browser command convert requires options\.convertHandler\(request\) to be provided\./
 );
 
+await assert.rejects(
+  () => runBrowserCommand({
+    command: 'convert',
+    inputDir: '/tmp/in',
+    outputDir: '/tmp/out',
+    convertPayload: {
+      converterConfig: {
+        output: {
+          modelBaseId: 'gemma-3-270m-it-f16-af32',
+        },
+      },
+    },
+  }, null),
+  /browser command convert requires options\.convertHandler\(request\) to be provided\./
+);
+
 {
   const rawRequest = {
     command: 'convert',

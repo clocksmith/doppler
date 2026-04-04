@@ -371,6 +371,16 @@ input[type="radio"] {
   cursor: pointer;
 }
 
+input[type="checkbox"]:checked {
+  background: var(--fg);
+  border-color: var(--fg);
+}
+
+input[type="radio"]:checked {
+  background: var(--fg);
+  border-color: var(--fg);
+}
+
 /* === PROGRESS BAR === */
 
 .progress {

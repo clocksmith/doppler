@@ -1,8 +1,6 @@
 import {
-  createConverterConfig,
   HEADER_READ_SIZE,
 } from '../../config/schema/index.js';
-import { DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS } from '../../config/schema/execution-v1.schema.js';
 import { extractArchitecture } from '../../converter/core.js';
 import {
   inferSourceWeightQuantization,
@@ -20,6 +18,7 @@ import {
   createSourceStorageContext,
   getSourceRuntimeMetadata,
 } from '../../tooling/source-runtime-bundle.js';
+import { createSourceRuntimeConverterConfig } from '../../tooling/source-runtime-converter-config.js';
 
 const SUPPORTED_SOURCE_DTYPES = new Set([
   'F32',
@@ -29,65 +28,6 @@ const SUPPORTED_SOURCE_DTYPES = new Set([
   'Q4_K_M',
   'Q6_K',
 ]);
-
-const ZERO_DIGEST = 'sha256:' + '0'.repeat(64);
-
-const SOURCE_RUNTIME_SESSION_DEFAULTS = {
-  compute: {
-    defaults: { ...DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS },
-  },
-  kvcache: null,
-  decodeLoop: null,
-};
-
-const SOURCE_RUNTIME_EXECUTION = {
-  kernels: {
-    embed: { kernel: 'gather_f16.wgsl', entry: 'main', digest: ZERO_DIGEST },
-  },
-  preLayer: [['embed', 'embed', 'embed_tokens']],
-  decode: [],
-  prefill: [],
-  postLayer: [],
-  policies: {
-    unsupportedPrecision: 'error',
-    dtypeTransition: 'require_cast_step',
-    unresolvedKernel: 'error',
-  },
-};
-
-const SOURCE_RUNTIME_INFERENCE = {
-  attention: {
-    slidingWindow: null,
-    attnLogitSoftcapping: null,
-    queryKeyNorm: false,
-    attentionOutputGate: false,
-    causal: true,
-    attentionBias: false,
-  },
-  normalization: {
-    rmsNormWeightOffset: false,
-    rmsNormEps: 1e-6,
-  },
-  ffn: {
-    activation: 'gelu',
-    gatedActivation: true,
-    swigluLimit: null,
-  },
-  rope: {
-    ropeTheta: 10000,
-    partialRotaryFactor: 1.0,
-    ropeInterleaved: false,
-  },
-  output: {
-    scaleEmbeddings: false,
-    tieWordEmbeddings: false,
-    embeddingTranspose: false,
-    embeddingVocabSize: null,
-    finalLogitSoftcapping: null,
-  },
-  chatTemplate: { type: 'none' },
-  layerPattern: { type: 'uniform' },
-};
 
 function normalizeRelativePath(value) {
   return String(value || '')
@@ -598,13 +538,9 @@ export async function resolveBridgeSourceRuntimeBundle(options = {}) {
 
   assertSupportedSourceDtypes(parsed.tensors, parsed.sourceKind);
 
-  const converterConfig = createConverterConfig({
-    output: {
-      modelBaseId: requestedModelId || null,
-    },
-    inference: SOURCE_RUNTIME_INFERENCE,
-    session: SOURCE_RUNTIME_SESSION_DEFAULTS,
-    execution: SOURCE_RUNTIME_EXECUTION,
+  const converterConfig = createSourceRuntimeConverterConfig({
+    modelId: requestedModelId || null,
+    rawConfig: parsed.config,
   });
   const plan = resolveConversionPlan({
     rawConfig: parsed.config,

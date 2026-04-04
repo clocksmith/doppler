@@ -56,6 +56,11 @@ export interface LayerContext {
   currentSeqLen: number;
   /** Token IDs for the current micro-batch (required by BDPA ingestion). */
   currentTokenIds?: number[] | null;
+  /** Absolute-position multimodal span that should remain bidirectional during causal prefill. */
+  multimodalBidirectionalSpan?: {
+    start: number;
+    length: number;
+  } | null;
   /** Whether to use GPU */
   useGPU: boolean;
   /** Debug mode */
@@ -399,6 +404,12 @@ export interface GenerateOptions {
 
   /** @category prefill Replace a contiguous input span with explicit embedding activations. */
   embeddingOverrides?: PrefixEmbeddingOverride | null;
+
+  /** @internal Preserve a multimodal span that must remain bidirectional within causal prefill attention. */
+  __internalMultimodalBidirectionalSpan?: {
+    offset: number;
+    length: number;
+  } | null;
 }
 
 /**

@@ -314,7 +314,11 @@ function normalizeBaseUrl(value) {
 }
 
 function resolveLocalFileModelPath(modelUrl) {
-  const normalized = asNonEmptyString(modelUrl);
+  return resolveLocalFileUrlPath(modelUrl, 'request.modelUrl');
+}
+
+function resolveLocalFileUrlPath(urlValue, fieldLabel) {
+  const normalized = asNonEmptyString(urlValue);
   if (!normalized || !normalized.startsWith('file://')) {
     return null;
   }
@@ -322,58 +326,115 @@ function resolveLocalFileModelPath(modelUrl) {
     return fileURLToPath(normalized);
   } catch (error) {
     throw new Error(
-      `browser command: request.modelUrl must be a valid file:// URL when provided explicitly; got ${JSON.stringify(modelUrl)} (${error?.message || error}).`
+      `browser command: ${fieldLabel} must be a valid file:// URL when provided explicitly; ` +
+      `got ${JSON.stringify(urlValue)} (${error?.message || error}).`
     );
   }
 }
 
-export async function resolveLocalFileModelUrlForBrowserRelay(request, options = {}) {
-  const localModelPath = resolveLocalFileModelPath(request?.modelUrl);
-  if (options.staticMounts != null && !Array.isArray(options.staticMounts)) {
-    throw new Error('browser command: staticMounts must be an array.');
-  }
-  const staticMounts = Array.isArray(options.staticMounts) ? [...options.staticMounts] : [];
-  if (!localModelPath) {
-    return {
-      relayRequest: request,
-      staticMounts,
-    };
-  }
+async function createLocalFileRelayMount(filePath, fieldLabel, urlPrefixRoot, options = {}) {
   if (options.baseUrl) {
     throw new Error(
-      'browser command: explicit local file:// modelUrl requires the relay-owned static server. ' +
-      'Remove run.browser.baseUrl or use modelId.'
+      `browser command: explicit local file:// ${fieldLabel} requires the relay-owned static server. ` +
+      'Remove run.browser.baseUrl or use a hosted URL instead.'
     );
   }
 
   let stats;
   try {
-    stats = await fs.stat(localModelPath);
+    stats = await fs.stat(filePath);
   } catch (error) {
     throw new Error(
-      `browser command: explicit local modelUrl "${request.modelUrl}" is not accessible: ${error?.message || error}.`
-    );
-  }
-  if (!stats.isDirectory()) {
-    throw new Error(
-      `browser command: explicit local file:// modelUrl must point to a model directory; got "${request.modelUrl}".`
+      `browser command: explicit local ${fieldLabel} "${options.originalUrl}" is not accessible: ${error?.message || error}.`
     );
   }
 
-  const mountName = encodeURIComponent(path.basename(localModelPath) || 'model');
-  const urlPrefix = `/__doppler_local_model/${mountName}-${process.pid}-${Date.now()}`;
-  return {
-    relayRequest: {
-      ...request,
-      modelUrl: urlPrefix,
-    },
-    staticMounts: [
-      ...staticMounts,
-      {
-        urlPrefix,
-        rootDir: localModelPath,
+  const expectDirectory = options.kind === 'directory';
+  if (expectDirectory && !stats.isDirectory()) {
+    throw new Error(
+      `browser command: explicit local file:// ${fieldLabel} must point to a directory; got "${options.originalUrl}".`
+    );
+  }
+  if (!expectDirectory && !stats.isFile()) {
+    throw new Error(
+      `browser command: explicit local file:// ${fieldLabel} must point to a file; got "${options.originalUrl}".`
+    );
+  }
+
+  const fileName = path.basename(filePath) || options.fallbackName || 'asset';
+  const mountName = encodeURIComponent(fileName);
+  const mountPrefix = `${urlPrefixRoot}/${mountName}-${process.pid}-${Date.now()}`;
+  if (expectDirectory) {
+    return {
+      url: mountPrefix,
+      staticMount: {
+        urlPrefix: mountPrefix,
+        rootDir: filePath,
       },
-    ],
+    };
+  }
+
+  return {
+    url: `${mountPrefix}/${encodeURIComponent(fileName)}`,
+    staticMount: {
+      urlPrefix: mountPrefix,
+      rootDir: path.dirname(filePath),
+    },
+  };
+}
+
+export async function resolveLocalFileModelUrlForBrowserRelay(request, options = {}) {
+  const localModelPath = resolveLocalFileModelPath(request?.modelUrl);
+  const localRuntimeConfigPath = resolveLocalFileUrlPath(request?.runtimeConfigUrl, 'request.runtimeConfigUrl');
+  if (options.staticMounts != null && !Array.isArray(options.staticMounts)) {
+    throw new Error('browser command: staticMounts must be an array.');
+  }
+  const staticMounts = Array.isArray(options.staticMounts) ? [...options.staticMounts] : [];
+  if (!localModelPath && !localRuntimeConfigPath) {
+    return {
+      relayRequest: request,
+      staticMounts,
+    };
+  }
+  let relayRequest = request;
+  const relayStaticMounts = [...staticMounts];
+
+  if (localModelPath) {
+    const modelRelayMount = await createLocalFileRelayMount(localModelPath, 'modelUrl', '/__doppler_local_model', {
+      ...options,
+      originalUrl: request.modelUrl,
+      kind: 'directory',
+      fallbackName: 'model',
+    });
+    relayRequest = {
+      ...relayRequest,
+      modelUrl: modelRelayMount.url,
+    };
+    relayStaticMounts.push(modelRelayMount.staticMount);
+  }
+
+  if (localRuntimeConfigPath) {
+    const runtimeConfigRelayMount = await createLocalFileRelayMount(
+      localRuntimeConfigPath,
+      'runtimeConfigUrl',
+      '/__doppler_local_runtime_config',
+      {
+        ...options,
+        originalUrl: request.runtimeConfigUrl,
+        kind: 'file',
+        fallbackName: 'runtime-config.json',
+      }
+    );
+    relayRequest = {
+      ...relayRequest,
+      runtimeConfigUrl: runtimeConfigRelayMount.url,
+    };
+    relayStaticMounts.push(runtimeConfigRelayMount.staticMount);
+  }
+
+  return {
+    relayRequest,
+    staticMounts: relayStaticMounts,
   };
 }
 

@@ -4,8 +4,6 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import {
   HEADER_READ_SIZE,
-  createConverterConfig,
-  DEFAULT_EXECUTION_V1_SESSION,
 } from '../config/schema/index.js';
 import { extractArchitecture } from '../converter/core.js';
 import {
@@ -22,6 +20,7 @@ import {
   buildSourceRuntimeBundle,
   createSourceStorageContext,
 } from './source-runtime-bundle.js';
+import { createSourceRuntimeConverterConfig } from './source-runtime-converter-config.js';
 
 const SUPPORTED_SOURCE_DTYPES = new Set([
   'F32',
@@ -31,17 +30,6 @@ const SUPPORTED_SOURCE_DTYPES = new Set([
   'Q4_K_M',
   'Q6_K',
 ]);
-
-const SOURCE_RUNTIME_EXECUTION_OVERRIDE = {
-  steps: [],
-};
-
-function cloneExecutionSession() {
-  if (typeof structuredClone === 'function') {
-    return structuredClone(DEFAULT_EXECUTION_V1_SESSION);
-  }
-  return JSON.parse(JSON.stringify(DEFAULT_EXECUTION_V1_SESSION));
-}
 
 function toArrayBuffer(value, label) {
   if (value instanceof ArrayBuffer) {
@@ -531,15 +519,12 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
 
   assertSupportedSourceDtypes(parsed.tensors, parsed.sourceKind);
 
-  const converterConfig = createConverterConfig({
+  const converterConfig = createSourceRuntimeConverterConfig({
+    modelId: options.modelId || null,
+    rawConfig: parsed.config,
     quantization: {
       computePrecision: resolveSourceRuntimeComputePrecision(parsed.tensors, parsed.sourceQuantization),
     },
-    output: {
-      modelBaseId: options.modelId || null,
-    },
-    session: cloneExecutionSession(),
-    execution: SOURCE_RUNTIME_EXECUTION_OVERRIDE,
   });
   const plan = resolveConversionPlan({
     rawConfig: parsed.config,

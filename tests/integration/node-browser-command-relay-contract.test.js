@@ -103,6 +103,51 @@ const KERNELS_REQUEST = {
   }
 }
 
+{
+  const runtimeDir = await fs.mkdtemp(path.join(tmpdir(), 'doppler-browser-relay-runtime-config-'));
+  const runtimeConfigPath = path.join(runtimeDir, 'runtime-config.json');
+  await fs.writeFile(runtimeConfigPath, JSON.stringify({
+    extends: './base.json',
+    runtime: {
+      shared: {
+        tooling: {
+          intent: 'verify',
+        },
+      },
+    },
+  }), 'utf8');
+  await fs.writeFile(path.join(runtimeDir, 'base.json'), JSON.stringify({
+    runtime: {
+      shared: {
+        harness: {
+          mode: 'verify',
+        },
+      },
+    },
+  }), 'utf8');
+  try {
+    const resolution = await resolveLocalFileModelUrlForBrowserRelay({
+      ...KERNELS_REQUEST,
+      runtimeConfigUrl: pathToFileURL(runtimeConfigPath).href,
+    });
+    assert.ok(
+      resolution.relayRequest.runtimeConfigUrl.startsWith('/__doppler_local_runtime_config/'),
+      `expected relay runtimeConfigUrl mount, got ${resolution.relayRequest.runtimeConfigUrl}`
+    );
+    assert.equal(resolution.staticMounts.length, 1);
+    assert.equal(
+      resolution.staticMounts[0].rootDir,
+      runtimeDir
+    );
+    assert.ok(
+      resolution.relayRequest.runtimeConfigUrl.endsWith('/runtime-config.json'),
+      `expected runtime config relay URL to keep the filename, got ${resolution.relayRequest.runtimeConfigUrl}`
+    );
+  } finally {
+    await fs.rm(runtimeDir, { recursive: true, force: true });
+  }
+}
+
 await assert.rejects(
   () => runBrowserCommandInNode({ ...KERNELS_REQUEST, keepPipeline: true }),
   /browser command relay does not support keepPipeline=true/
@@ -202,6 +247,25 @@ await assert.rejects(
     );
   } finally {
     await fs.rm(modelDir, { recursive: true, force: true });
+  }
+}
+
+{
+  const runtimeDir = await fs.mkdtemp(path.join(tmpdir(), 'doppler-browser-relay-runtime-config-'));
+  const runtimeConfigPath = path.join(runtimeDir, 'runtime-config.json');
+  await fs.writeFile(runtimeConfigPath, JSON.stringify({ runtime: {} }), 'utf8');
+  try {
+    await assert.rejects(
+      () => runBrowserCommandInNode({
+        ...KERNELS_REQUEST,
+        runtimeConfigUrl: pathToFileURL(runtimeConfigPath).href,
+      }, {
+        baseUrl: 'http://127.0.0.1:1',
+      }),
+      /browser command: explicit local file:\/\/ runtimeConfigUrl requires the relay-owned static server/
+    );
+  } finally {
+    await fs.rm(runtimeDir, { recursive: true, force: true });
   }
 }
 

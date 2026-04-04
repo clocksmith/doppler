@@ -242,6 +242,89 @@ try {
   }
 
   {
+    assert.throws(
+      () => parseModelConfigFromManifest({
+        modelId: 'unknown-chat-template',
+        modelType: 'text',
+        quantization: 'f16',
+        architecture: {
+          hiddenSize: 4,
+          numLayers: 1,
+          numAttentionHeads: 1,
+          numKeyValueHeads: 1,
+          headDim: 4,
+          intermediateSize: 8,
+          vocabSize: 16,
+        },
+        eos_token_id: 1,
+        inference: {
+          attention: {
+            queryPreAttnScalar: 4,
+            queryKeyNorm: false,
+            valueNorm: false,
+            attentionBias: false,
+            causal: true,
+            slidingWindow: null,
+            attnLogitSoftcapping: null,
+          },
+          normalization: {
+            rmsNormWeightOffset: false,
+            rmsNormEps: 1e-6,
+            postAttentionNorm: false,
+            preFeedforwardNorm: false,
+            postFeedforwardNorm: false,
+          },
+          ffn: {
+            activation: 'silu',
+            gatedActivation: true,
+            useDoubleWideMlp: false,
+            swigluLimit: null,
+          },
+          rope: {
+            ropeTheta: 10000,
+            ropeScalingFactor: 1,
+            ropeScalingType: null,
+            ropeLocalTheta: null,
+            ropeLocalScalingType: null,
+            ropeLocalScalingFactor: 1,
+            mropeInterleaved: false,
+            mropeSection: null,
+            partialRotaryFactor: null,
+            ropeLocalPartialRotaryFactor: null,
+            ropeFrequencyBaseDim: null,
+            ropeLocalFrequencyBaseDim: null,
+            yarnBetaFast: null,
+            yarnBetaSlow: null,
+            yarnOriginalMaxPos: null,
+            ropeLocalYarnBetaFast: null,
+            ropeLocalYarnBetaSlow: null,
+            ropeLocalYarnOriginalMaxPos: null,
+          },
+          output: {
+            tieWordEmbeddings: false,
+            scaleEmbeddings: false,
+            embeddingTranspose: false,
+            finalLogitSoftcapping: null,
+            embeddingVocabSize: null,
+            embeddingPostprocessor: null,
+          },
+          layerPattern: {
+            type: 'global',
+            globalPattern: null,
+            period: null,
+            offset: null,
+          },
+          chatTemplate: {
+            type: 'mystery-template',
+            enabled: true,
+          },
+        },
+      }),
+      /not a known formatter type/
+    );
+  }
+
+  {
     const parsed = parseModelConfigFromManifest({
       modelId: 'gemma4-e2b-contract',
       modelType: 'text',

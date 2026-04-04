@@ -1,0 +1,66 @@
+{
+  "id": "tiers/gemma4-128gb",
+  "name": "Gemma 4 — 128 GB tier (unified memory APU)",
+  "description": "Gemma 4 MoE runtime tier for 128 GB unified memory systems (e.g., Ryzen AI MAX+ 395). Generous expert cache, contiguous KV, extended context. Budget leaves headroom for system and replay-prefill intermediates.",
+  "intent": "investigate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-04-04T00:00:00Z",
+  "extends": "default",
+  "runtime": {
+    "shared": {
+      "bufferPool": {
+        "budget": {
+          "maxTotalBytes": 107374182400,
+          "highWatermarkRatio": 0.9,
+          "emergencyTrimTargetRatio": 0.75,
+          "hardFailOnBudgetExceeded": true
+        }
+      }
+    },
+    "loading": {
+      "expertCache": {
+        "defaultSizeBytes": 8589934592,
+        "maxBufferPercentage": 0.25,
+        "evictionHighWatermark": 0.9,
+        "emergencyTrimToRatio": 0.75
+      },
+      "prefetch": {
+        "enabled": true,
+        "layersAhead": 2,
+        "maxShards": 16
+      },
+      "memoryManagement": {
+        "flushIntervalLayers": 4,
+        "flushThresholdBytes": 536870912
+      }
+    },
+    "inference": {
+      "kvcache": {
+        "layout": "contiguous",
+        "maxSeqLen": 16384,
+        "kvDtype": "f16",
+        "pageSize": 256,
+        "tiering": {
+          "mode": "off"
+        }
+      },
+      "moe": {
+        "routing": {
+          "routerDtype": "f32"
+        },
+        "cache": {
+          "dequantCacheMaxEntries": 128
+        }
+      },
+      "compute": {
+        "activationDtype": "f32"
+      },
+      "session": {
+        "kvcache": {
+          "kvDtype": "f16"
+        }
+      }
+    }
+  }
+}

@@ -37,12 +37,12 @@ export async function runBrowserCommand(commandRequest, options = {}) {
     ({ request } = ensureCommandSupportedOnSurface(commandRequest, 'browser'));
 
     if (request.command === 'convert') {
-      if (typeof options.convertHandler !== 'function') {
+      if (typeof validatedOptions.convertHandler !== 'function') {
         throw new Error(
           'browser command convert requires options.convertHandler(request) to be provided.'
         );
       }
-      const result = await options.convertHandler(request);
+      const result = await validatedOptions.convertHandler(request);
       return createToolingSuccessEnvelope({
         surface: 'browser',
         request,
@@ -63,7 +63,7 @@ export async function runBrowserCommand(commandRequest, options = {}) {
     };
 
     const result = await runWithRuntimeIsolation(runtimeBridge, async () => {
-      await applyRuntimeInputs(request, runtimeBridge, options.runtimeLoadOptions || {});
+      await applyRuntimeInputs(request, runtimeBridge, validatedOptions.runtimeLoadOptions || {});
       return runBrowserSuite(buildSuiteOptions(request, 'browser'));
     });
 

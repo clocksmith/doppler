@@ -133,6 +133,9 @@ export interface ChatTemplateSchema {
   /** Whether to apply chat template by default (instruct models should set true) */
   enabled?: boolean;
 
+  /** Enable thinking/reasoning mode (null = disabled, true = enabled). Gemma 4 uses <|think|> control token. */
+  thinking?: boolean | null;
+
   /** Custom template with {prompt} placeholder (overrides type) */
   custom?: string;
 }
