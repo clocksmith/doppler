@@ -42,6 +42,32 @@ assert.equal(conversionConfig.inference?.ffn?.useDoubleWideMlp, false);
 assert.equal(conversionConfig.inference?.rope?.ropeLocalPartialRotaryFactor, null);
 assert.equal(conversionConfig.inference?.rope?.ropeFrequencyBaseDim, null);
 assert.equal(conversionConfig.inference?.rope?.ropeLocalFrequencyBaseDim, null);
+assert.deepEqual(conversionConfig.session, {
+  compute: {
+    defaults: {
+      activationDtype: 'f32',
+      mathDtype: 'f32',
+      accumDtype: 'f32',
+      outputDtype: 'f32',
+    },
+  },
+  kvcache: {
+    kvDtype: 'f32',
+    layout: 'contiguous',
+    pageSize: 256,
+    tiering: { mode: 'off' },
+  },
+  decodeLoop: {
+    batchSize: 4,
+    stopCheckMode: 'batch',
+    readbackInterval: 1,
+    ringTokens: 1,
+    ringStop: 1,
+    ringStaging: 1,
+    disableCommandBatching: false,
+  },
+});
+assert.deepEqual(localManifest.inference?.session, conversionConfig.session);
 
 assert.doesNotThrow(
   () => validateRequiredInferenceFields(conversionConfig.inference, conversionConfig.output.modelBaseId),
