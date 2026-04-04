@@ -1,6 +1,6 @@
 
 
-import { trace } from '../../../debug/index.js';
+import { log } from '../../../debug/index.js';
 import { getDevice } from '../../../gpu/device.js';
 import { acquireBuffer } from '../../../memory/buffer-pool.js';
 
@@ -41,7 +41,7 @@ export async function patchEmbed(params) {
   const gridW = Math.floor(width / patchSize);
   const numPatches = gridH * gridW;
 
-  trace('vision', `patchEmbed: ${height}x${width} -> ${gridH}x${gridW} = ${numPatches} patches (${hiddenSize}d)`);
+  log.debug('Vision', `patchEmbed: ${height}x${width} -> ${gridH}x${gridW} = ${numPatches} patches (${hiddenSize}d)`);
 
   // Read conv weight from GPU to CPU for the embedding computation.
   // Weight shape: [hiddenSize, channels * temporalPatchSize * patchSize * patchSize]

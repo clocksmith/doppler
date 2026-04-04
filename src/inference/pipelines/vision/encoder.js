@@ -1,10 +1,10 @@
 
 
-import { trace } from '../../../debug/index.js';
+import { log } from '../../../debug/index.js';
 import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import {
-  doLayerNorm, doMatmul, doGelu, doResidualAdd, doCast,
+  doLayerNorm, doMatmul, doGelu, doResidualAdd,
 } from './ops.js';
 
 /**
@@ -49,7 +49,7 @@ export async function runVisionEncoder(params) {
   const headDim = Math.floor(hiddenSize / numHeads);
   const device = getDevice();
 
-  trace('vision', `encoder: depth=${depth} hidden=${hiddenSize} heads=${numHeads} patches=${numPatches}`);
+  log.debug('Vision', `encoder: depth=${depth} hidden=${hiddenSize} heads=${numHeads} patches=${numPatches}`);
 
   let hidden = patchBuffer;
 
@@ -106,7 +106,7 @@ export async function runVisionEncoder(params) {
     releaseBuffer(residual1);
     releaseBuffer(ffnOut);
 
-    trace('vision', `  block ${i}/${depth} done`);
+    log.debug('Vision', `block ${i}/${depth} done`);
   }
 
   // Spatial merge projector: merge 2x2 patches -> outHiddenSize.
@@ -122,7 +122,7 @@ export async function runVisionEncoder(params) {
 
   releaseBuffer(hidden);
 
-  trace('vision', `encoder done: ${numPatches} patches -> ${mergedTokens} tokens (${outHiddenSize}d)`);
+  log.debug('Vision', `encoder done: ${numPatches} patches -> ${mergedTokens} tokens (${outHiddenSize}d)`);
 
   return { features: merged, numTokens: mergedTokens };
 }

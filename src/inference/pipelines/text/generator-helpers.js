@@ -1,5 +1,5 @@
 
-import { readBuffer } from '../../../memory/buffer-pool.js';
+import { readBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { allowReadback } from '../../../gpu/perf-guards.js';
 import { log } from '../../../debug/index.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
@@ -7,8 +7,6 @@ import { decodeReadback } from './debug-utils/index.js';
 import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance } from '../../../gpu/weight-buffer.js';
 import { resolveRangeAwareSelectiveWideningConfig } from './finiteness-policy.js';
 import { resolveActiveExecutionPlan } from './execution-plan.js';
-
-
 export async function debugCheckBuffer(state, buffer, label, numTokens, expectedDim) {
   if (!allowReadback(`pipeline.debug.${label}`)) return;
 
@@ -137,6 +135,32 @@ export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, de
     phase: isDecodeMode ? 'decode' : 'prefill',
     operatorDiagnostics: state.operatorDiagnostics,
   };
+}
+
+export function releaseSharedAttentionState(sharedAttentionState, recorder = null) {
+  if (!(sharedAttentionState instanceof Map) || sharedAttentionState.size === 0) {
+    return;
+  }
+
+  const released = new Set();
+  const releaseOnce = (buffer) => {
+    if (!buffer || released.has(buffer)) {
+      return;
+    }
+    released.add(buffer);
+    if (recorder) {
+      recorder.trackTemporaryBuffer(buffer);
+      return;
+    }
+    releaseBuffer(buffer);
+  };
+
+  for (const entry of sharedAttentionState.values()) {
+    releaseOnce(entry?.kTensor?.buffer ?? null);
+    releaseOnce(entry?.vTensor?.buffer ?? null);
+  }
+
+  sharedAttentionState.clear();
 }
 
 

@@ -47,9 +47,6 @@ function resolveAttentionHeadDim(config, layerType) {
 }
 
 function resolveAttentionKVSharing(config, layerIdx, layerType) {
-  if (config?.decodeStrategy !== 'incremental') {
-    return { sharedKVSourceLayerIdx: null, storeSharedKV: false };
-  }
   const layerTypes = Array.isArray(config?.layerTypes) ? config.layerTypes : null;
   const numKvSharedLayers = Number(config?.numKvSharedLayers ?? 0);
   if (!layerTypes || layerTypes.length === 0 || !Number.isFinite(numKvSharedLayers) || numKvSharedLayers <= 0) {
@@ -350,6 +347,18 @@ function resolveAttentionKVSharing(config, layerIdx, layerType) {
 
   assert.deepEqual(
     resolveAttentionKVSharing(replayConfig, 19, 'full_attention'),
+    { sharedKVSourceLayerIdx: 14, storeSharedKV: false }
+  );
+  assert.deepEqual(
+    resolveAttentionKVSharing(replayConfig, 14, 'full_attention'),
+    { sharedKVSourceLayerIdx: null, storeSharedKV: true }
+  );
+  assert.deepEqual(
+    resolveAttentionKVSharing(replayConfig, 18, 'sliding_attention'),
+    { sharedKVSourceLayerIdx: 13, storeSharedKV: false }
+  );
+  assert.deepEqual(
+    resolveAttentionKVSharing({ decodeStrategy: 'replay_prefill', layerTypes, numKvSharedLayers: 0 }, 19, 'full_attention'),
     { sharedKVSourceLayerIdx: null, storeSharedKV: false }
   );
   assert.deepEqual(

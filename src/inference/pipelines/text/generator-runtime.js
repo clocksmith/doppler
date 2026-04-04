@@ -21,6 +21,28 @@ function resolveConfiguredValue(value, defaultValue, context, validate) {
   return value;
 }
 
+function resolveExplicitInputIds(inputIds, context) {
+  if (inputIds === undefined) {
+    return null;
+  }
+  if (inputIds === null) {
+    throw new Error(`[Pipeline] ${context}: null is unsupported; omit the key or pass explicit token IDs.`);
+  }
+  if (!Array.isArray(inputIds) && !ArrayBuffer.isView(inputIds)) {
+    throw new Error(
+      `[Pipeline] ${context}: expected an array or typed array of token IDs, got ${typeof inputIds}.`
+    );
+  }
+  return Array.from(inputIds, (value, index) => {
+    if (!Number.isFinite(value) || Math.floor(value) !== value || value < 0) {
+      throw new Error(
+        `[Pipeline] ${context}[${index}]: expected a non-negative integer token ID, got ${value}.`
+      );
+    }
+    return value;
+  });
+}
+
 function readTokenizerVocabSize(tok) {
   const tokenizerVocabSize = tok?.getVocabSize?.();
   return typeof tokenizerVocabSize === 'number' && Number.isFinite(tokenizerVocabSize)
@@ -161,6 +183,8 @@ export function resolveStepOptions(state, options = {}) {
     batchSize: executionPlan.batchSize,
     stopCheckMode: executionPlan.stopCheckMode,
     executionPlan,
+    inputIds: resolveExplicitInputIds(options.inputIds, 'options.inputIds'),
+    embeddingOverrides: options.embeddingOverrides ?? null,
   };
 }
 
@@ -205,6 +229,8 @@ export function resolveGenerateOptions(state, options = {}) {
     executionPlan,
     images: options.images ?? null,
     speculation: resolveSpeculationConfig(state, options),
+    inputIds: resolveExplicitInputIds(options.inputIds, 'options.inputIds'),
+    embeddingOverrides: options.embeddingOverrides ?? null,
   };
 }
 
@@ -233,6 +259,8 @@ export function resolvePrefillOptions(state, options = {}) {
     disableMultiTokenDecode: executionPlan.disableMultiTokenDecode,
     executionPlan,
     images: options.images ?? null,
+    inputIds: resolveExplicitInputIds(options.inputIds, 'options.inputIds'),
+    embeddingOverrides: options.embeddingOverrides ?? null,
   };
 }
 

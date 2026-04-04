@@ -111,6 +111,7 @@ const minimalV1Inference = {
     slidingWindow: null,
     attnLogitSoftcapping: null,
     queryKeyNorm: false,
+    valueNorm: false,
     attentionOutputGate: false,
     causal: true,
     attentionBias: false,
@@ -127,8 +128,24 @@ const minimalV1Inference = {
   },
   rope: {
     ropeTheta: 10000,
+    ropeScalingFactor: 1,
+    ropeScalingType: null,
+    ropeLocalTheta: null,
+    mropeInterleaved: false,
+    mropeSection: null,
     partialRotaryFactor: 1.0,
+    ropeLocalPartialRotaryFactor: null,
+    ropeFrequencyBaseDim: null,
+    ropeLocalFrequencyBaseDim: null,
+    ropeLocalScalingType: null,
+    ropeLocalScalingFactor: 1,
     ropeInterleaved: false,
+    yarnBetaFast: null,
+    yarnBetaSlow: null,
+    yarnOriginalMaxPos: null,
+    ropeLocalYarnBetaFast: null,
+    ropeLocalYarnBetaSlow: null,
+    ropeLocalYarnOriginalMaxPos: null,
   },
   output: {
     scaleEmbeddings: false,
@@ -138,8 +155,8 @@ const minimalV1Inference = {
     finalLogitSoftcapping: null,
     embeddingPostprocessor: null,
   },
-  chatTemplate: { type: 'none' },
-  layerPattern: { type: 'uniform' },
+  chatTemplate: { type: 'none', enabled: true },
+  layerPattern: { type: 'uniform', globalPattern: null, period: null, offset: null },
 };
 
 await assert.rejects(

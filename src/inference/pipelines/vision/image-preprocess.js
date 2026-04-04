@@ -1,6 +1,6 @@
 
 
-import { trace } from '../../../debug/index.js';
+import { log } from '../../../debug/index.js';
 
 /**
  * Preprocess an image for Qwen3-VL vision encoder.
@@ -43,7 +43,7 @@ export function preprocessImage(pixels, width, height, config) {
     width, height, minPixels, maxPixels, mergedPatch,
   );
 
-  trace('vision', `preprocess: ${width}x${height} -> ${targetWidth}x${targetHeight} (patch=${patchSize}, merge=${spatialMergeSize})`);
+  log.debug('Vision', `preprocess: ${width}x${height} -> ${targetWidth}x${targetHeight} (patch=${patchSize}, merge=${spatialMergeSize})`);
 
   // Step 2: Resize to target dimensions (bilinear interpolation on CPU).
   const channels = 3;

@@ -680,6 +680,10 @@ export class DopplerLoader {
   #prefetchLayerShards(layerIdx) {
     const prefetch = this.#loadingConfig.prefetch;
     if (!prefetch?.enabled) return;
+    // Range-capable custom loaders are expected to serve fine-grained tensor reads.
+    // Whole-shard prefetch defeats that contract and can force invalid >4 GiB reads
+    // for direct-source SafeTensors bundles.
+    if (this.shardCache.hasCustomLoader && this.shardCache.canStreamRanges) return;
 
     const layersAhead = prefetch.layersAhead;
     if (!Number.isFinite(layersAhead) || layersAhead <= 0) return;

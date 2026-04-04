@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
 
-import { resolveNodeSourceRuntimeBundle } from '../../src/tooling/node-source-runtime.js';
+import { DEFAULT_MANIFEST_INFERENCE } from '../../src/config/schema/index.js';
+import { buildSourceRuntimeBundle } from '../../src/tooling/source-runtime-bundle.js';
 import { materializeSourceRuntimeManifest } from '../../src/tooling/source-runtime-materializer.js';
 import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.js';
 
@@ -11,7 +13,11 @@ function encodeJson(value) {
   return new TextEncoder().encode(JSON.stringify(value));
 }
 
-function buildSafetensorsBytes() {
+function computeSha256(bytes) {
+  return createHash('sha256').update(bytes).digest('hex');
+}
+
+function buildSafetensorsFixture() {
   const tensorNames = [
     'model.embed_tokens.weight',
     'model.layers.0.input_layernorm.weight',
@@ -31,14 +37,25 @@ function buildSafetensorsBytes() {
     'lm_head.weight',
   ];
   const header = {};
+  const tensors = [];
   let offset = 0;
   for (const name of tensorNames) {
+    const isMatrix = name.includes('embed_tokens') || name === 'lm_head.weight';
+    const shape = isMatrix ? [4, 2] : [2];
+    const size = isMatrix ? 16 : 4;
     header[name] = {
       dtype: 'F16',
-      shape: name.includes('embed_tokens') || name === 'lm_head.weight' ? [4, 2] : [2],
-      data_offsets: [offset, offset + (name.includes('embed_tokens') || name === 'lm_head.weight' ? 16 : 4)],
+      shape,
+      data_offsets: [offset, offset + size],
     };
-    offset += name.includes('embed_tokens') || name === 'lm_head.weight' ? 16 : 4;
+    tensors.push({
+      name,
+      dtype: 'F16',
+      shape,
+      size,
+      offset,
+    });
+    offset += size;
   }
   const headerBytes = encodeJson(header);
   const prefix = new ArrayBuffer(8);
@@ -51,12 +68,15 @@ function buildSafetensorsBytes() {
   out.set(new Uint8Array(prefix), 0);
   out.set(headerBytes, 8);
   out.set(payload, 8 + headerBytes.byteLength);
-  return out;
+  return {
+    bytes: out,
+    tensors,
+  };
 }
 
 const fixtureDir = mkdtempSync(path.join(tmpdir(), 'doppler-direct-source-artifact-'));
 try {
-  writeFileSync(path.join(fixtureDir, 'config.json'), JSON.stringify({
+  const config = {
     architectures: ['Gemma3ForCausalLM'],
     model_type: 'gemma3_text',
     num_hidden_layers: 1,
@@ -70,9 +90,8 @@ try {
     bos_token_id: 1,
     eos_token_id: 2,
     rms_norm_eps: 1e-6,
-  }), 'utf8');
-  writeFileSync(path.join(fixtureDir, 'model.safetensors'), buildSafetensorsBytes());
-  writeFileSync(path.join(fixtureDir, 'tokenizer.json'), JSON.stringify({
+  };
+  const tokenizerJson = {
     version: '1.0',
     model: {
       vocab: {
@@ -89,13 +108,50 @@ try {
     added_tokens_decoder: {
       '2': { content: '<eos>' },
     },
+  };
+  const modelPath = path.join(fixtureDir, 'model.safetensors');
+  const tokenizerPath = path.join(fixtureDir, 'tokenizer.json');
+  const { bytes, tensors } = buildSafetensorsFixture();
+
+  writeFileSync(path.join(fixtureDir, 'config.json'), JSON.stringify({
+    ...config,
   }), 'utf8');
+  writeFileSync(modelPath, bytes);
+  writeFileSync(tokenizerPath, JSON.stringify(tokenizerJson), 'utf8');
 
   const manifestPath = path.join(fixtureDir, 'manifest.json');
-  const bundle = await resolveNodeSourceRuntimeBundle({
-    inputPath: fixtureDir,
+  const bundle = await buildSourceRuntimeBundle({
     modelId: 'gemma-3-direct-source-artifact-test',
-    verifyHashes: true,
+    modelType: 'transformer',
+    architecture: {
+      numLayers: 1,
+      hiddenSize: 2,
+      intermediateSize: 2,
+      numAttentionHeads: 1,
+      numKeyValueHeads: 1,
+      headDim: 2,
+      vocabSize: 4,
+      maxSeqLen: 8,
+      ropeTheta: 10000,
+    },
+    architectureHint: 'gemma3',
+    rawConfig: config,
+    inference: JSON.parse(JSON.stringify(DEFAULT_MANIFEST_INFERENCE)),
+    tensors: tensors.map((tensor) => ({
+      ...tensor,
+      sourcePath: modelPath,
+    })),
+    sourceFiles: [
+      {
+        path: modelPath,
+        size: bytes.byteLength,
+        hash: computeSha256(bytes),
+        hashAlgorithm: 'sha256',
+      },
+    ],
+    sourceQuantization: 'f16',
+    tokenizerJson,
+    tokenizerJsonPath: tokenizerPath,
   });
   assert.ok(bundle);
   writeFileSync(

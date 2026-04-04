@@ -140,11 +140,6 @@ function resolveAttentionHeadDim(config, layerType) {
 }
 
 function resolveAttentionKVSharing(config, layerIdx, layerType) {
-  if (config?.decodeStrategy !== 'incremental') {
-    // Shared-K/V is a live-cache behavior. Replay-prefill runs without a KV
-    // cache, so shared layers must recompute fresh K/V like HF's no-cache path.
-    return { sharedKVSourceLayerIdx: null, storeSharedKV: false };
-  }
   const layerTypes = Array.isArray(config?.layerTypes) ? config.layerTypes : null;
   const numKvSharedLayers = Number(config?.numKvSharedLayers ?? 0);
   if (!layerTypes || layerTypes.length === 0 || !Number.isFinite(numKvSharedLayers) || numKvSharedLayers <= 0) {

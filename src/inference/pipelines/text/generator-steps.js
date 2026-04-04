@@ -332,6 +332,7 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
         releasePerLayerInputBuffer(buffer, null, context.decodeBuffers);
       }
     }
+    helpers.releaseSharedAttentionState?.(context.sharedAttentionState, null);
   }
 
   return { hiddenStates, decodeHiddenBuffer, decodeAltBuffer, debugCheckBuffer, context };
@@ -498,6 +499,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
         releasePerLayerInputBuffer(buffer, recorder, context.decodeBuffers);
       }
     }
+    helpers.releaseSharedAttentionState?.(context.sharedAttentionState, recorder);
   }
 
   const logitSoftcap = config.finalLogitSoftcapping === null
@@ -1219,6 +1221,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
             releasePerLayerInputBuffer(buffer, recorder, context.decodeBuffers);
           }
         }
+        helpers.releaseSharedAttentionState?.(context.sharedAttentionState, recorder);
       }
 
       const logits = await recordLogitsGPU(

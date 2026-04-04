@@ -1,6 +1,6 @@
 
 import { getDevice, initDevice, getKernelCapabilities } from '../../gpu/device.js';
-import { getBufferPool as getGlobalBufferPool } from '../../memory/buffer-pool.js';
+import { getBufferPool as getGlobalBufferPool, releaseBuffer } from '../../memory/buffer-pool.js';
 import { log } from '../../debug/index.js';
 import { configurePerfGuards } from '../../gpu/perf-guards.js';
 import { MoERouter } from '../moe-router.js';
@@ -23,6 +23,7 @@ import {
   initEmulation,
   destroyEmulation,
 } from './text/init.js';
+import { formatChatMessages } from './text/chat-format.js';
 import {
   runKernelWarmup,
   applyModelBatchingRuntimeDefaults,
@@ -51,6 +52,85 @@ function destroyMoERouter(router) {
   if (router && typeof router.destroy === 'function') {
     router.destroy();
   }
+}
+
+function resolveSingleSpecialTokenId(tokenizer, tokenText, label) {
+  const rawTokenIds = tokenizer?.encode?.(tokenText);
+  const tokenIds = Array.isArray(rawTokenIds)
+    ? rawTokenIds
+    : (ArrayBuffer.isView(rawTokenIds) ? Array.from(rawTokenIds) : null);
+  if (!Array.isArray(tokenIds) || tokenIds.length !== 1) {
+    throw new Error(
+      `[Pipeline] transcribeImage: tokenizer must encode ${label} "${tokenText}" as exactly one token.`
+    );
+  }
+  const tokenId = Number(tokenIds[0]);
+  if (!Number.isFinite(tokenId) || Math.floor(tokenId) !== tokenId || tokenId < 0) {
+    throw new Error(
+      `[Pipeline] transcribeImage: tokenizer returned invalid ${label} token id "${tokenIds[0]}".`
+    );
+  }
+  return tokenId;
+}
+
+function expandImagePlaceholderTokenIds(tokenIds, imageTokenId, numImageTokens, options = {}) {
+  const normalizedTokenIds = Array.isArray(tokenIds)
+    ? Int32Array.from(tokenIds)
+    : (ArrayBuffer.isView(tokenIds) ? Int32Array.from(tokenIds) : null);
+  if (!(normalizedTokenIds instanceof Int32Array)) {
+    throw new Error(
+      '[Pipeline] transcribeImage: tokenizer.encode() must return an array or typed array of token IDs.'
+    );
+  }
+  if (!Number.isFinite(numImageTokens) || Math.floor(numImageTokens) !== numImageTokens || numImageTokens < 1) {
+    throw new Error(
+      `[Pipeline] transcribeImage: image token span must be a positive integer, got ${numImageTokens}.`
+    );
+  }
+
+  let placeholderIndex = -1;
+  let placeholderCount = 0;
+  for (let i = 0; i < normalizedTokenIds.length; i++) {
+    if (normalizedTokenIds[i] !== imageTokenId) continue;
+    if (placeholderIndex < 0) {
+      placeholderIndex = i;
+    }
+    placeholderCount++;
+  }
+
+  if (placeholderCount !== 1) {
+    throw new Error(
+      `[Pipeline] transcribeImage: expected exactly one image_token_id (${imageTokenId}) placeholder ` +
+      `from the chat template, got ${placeholderCount}.`
+    );
+  }
+
+  const boiTokenId = Number.isInteger(options.boiTokenId) ? options.boiTokenId : null;
+  const eoiTokenId = Number.isInteger(options.eoiTokenId) ? options.eoiTokenId : null;
+  const prefixExtra = boiTokenId == null ? 0 : 1;
+  const suffixExtra = eoiTokenId == null ? 0 : 1;
+  const expandedLength = normalizedTokenIds.length - 1 + prefixExtra + numImageTokens + suffixExtra;
+  const expanded = new Int32Array(expandedLength);
+  expanded.set(normalizedTokenIds.subarray(0, placeholderIndex), 0);
+  let writeOffset = placeholderIndex;
+  if (boiTokenId != null) {
+    expanded[writeOffset++] = boiTokenId;
+  }
+  expanded.fill(imageTokenId, writeOffset, writeOffset + numImageTokens);
+  const imageStartOffset = writeOffset;
+  writeOffset += numImageTokens;
+  if (eoiTokenId != null) {
+    expanded[writeOffset++] = eoiTokenId;
+  }
+  expanded.set(
+    normalizedTokenIds.subarray(placeholderIndex + 1),
+    writeOffset
+  );
+
+  return {
+    inputIds: expanded,
+    imageStartOffset,
+  };
 }
 
 
@@ -533,9 +613,91 @@ export class InferencePipeline extends PipelineState {
 
 
   async _loadVisionWeights() {
-    const loader = getDopplerLoader(this.runtimeConfig.loading);
+    const loader = this.dopplerLoader ?? getDopplerLoader(this.runtimeConfig.loading);
     const vc = this.visionConfig;
     const depth = vc.depth;
+
+    const loadRequiredTensor = async (name, toGPU = true) => {
+      const tensor = await loader.loadTensor(name, toGPU, true);
+      if (!tensor) {
+        throw new Error(`Vision tensor "${name}" is missing from the converted artifact.`);
+      }
+      return tensor;
+    };
+    const loadScalar = async (name) => {
+      const tensor = await loadRequiredTensor(name, false);
+      if (tensor instanceof Float32Array) {
+        if (tensor.length !== 1) {
+          throw new Error(`Vision scalar "${name}" must be a single-element tensor, got length=${tensor.length}.`);
+        }
+        return tensor[0];
+      }
+      if (ArrayBuffer.isView(tensor) && tensor.length === 1) {
+        return Number(tensor[0]);
+      }
+      if (typeof tensor === 'number') {
+        return tensor;
+      }
+      throw new Error(
+        `Vision scalar "${name}" must decode to a single numeric value, ` +
+        `got ${tensor?.constructor?.name ?? typeof tensor} length=${tensor?.length ?? 'N/A'}.`
+      );
+    };
+    const loadClipRange = async (prefix) => ({
+      inputMin: await loadScalar(`${prefix}.input_min`),
+      inputMax: await loadScalar(`${prefix}.input_max`),
+      outputMin: await loadScalar(`${prefix}.output_min`),
+      outputMax: await loadScalar(`${prefix}.output_max`),
+    });
+
+    if (vc.visionArchitecture === 'gemma4') {
+      const visionWeights = {
+        textHiddenSize: this.modelConfig.hiddenSize,
+        patchInputProj: await loadRequiredTensor('model.vision_tower.patch_embedder.input_proj.weight'),
+        patchPositionEmbeddingTable: await loadRequiredTensor('model.vision_tower.patch_embedder.position_embedding_table', false),
+        projector: await loadRequiredTensor('model.embed_vision.embedding_projection.weight'),
+        layers: [],
+      };
+
+      if (!(visionWeights.patchPositionEmbeddingTable instanceof Float32Array)) {
+        throw new Error(
+          'Gemma 4 vision position_embedding_table must decode to Float32Array on CPU. ' +
+          'Re-convert the artifact if this tensor was quantized incorrectly.'
+        );
+      }
+
+      for (let i = 0; i < depth; i++) {
+        const prefix = `model.vision_tower.encoder.layers.${i}`;
+        const attnPrefix = `${prefix}.self_attn`;
+        const mlpPrefix = `${prefix}.mlp`;
+        visionWeights.layers.push({
+          inputLayerNorm: await loadRequiredTensor(`${prefix}.input_layernorm.weight`),
+          postAttentionLayerNorm: await loadRequiredTensor(`${prefix}.post_attention_layernorm.weight`),
+          preFeedforwardLayerNorm: await loadRequiredTensor(`${prefix}.pre_feedforward_layernorm.weight`),
+          postFeedforwardLayerNorm: await loadRequiredTensor(`${prefix}.post_feedforward_layernorm.weight`),
+          qNorm: await loadRequiredTensor(`${attnPrefix}.q_norm.weight`),
+          kNorm: await loadRequiredTensor(`${attnPrefix}.k_norm.weight`),
+          qProj: await loadRequiredTensor(`${attnPrefix}.q_proj.linear.weight`),
+          kProj: await loadRequiredTensor(`${attnPrefix}.k_proj.linear.weight`),
+          vProj: await loadRequiredTensor(`${attnPrefix}.v_proj.linear.weight`),
+          oProj: await loadRequiredTensor(`${attnPrefix}.o_proj.linear.weight`),
+          qProjClip: await loadClipRange(`${attnPrefix}.q_proj`),
+          kProjClip: await loadClipRange(`${attnPrefix}.k_proj`),
+          vProjClip: await loadClipRange(`${attnPrefix}.v_proj`),
+          oProjClip: await loadClipRange(`${attnPrefix}.o_proj`),
+          gateProj: await loadRequiredTensor(`${mlpPrefix}.gate_proj.linear.weight`),
+          upProj: await loadRequiredTensor(`${mlpPrefix}.up_proj.linear.weight`),
+          downProj: await loadRequiredTensor(`${mlpPrefix}.down_proj.linear.weight`),
+          gateProjClip: await loadClipRange(`${mlpPrefix}.gate_proj`),
+          upProjClip: await loadClipRange(`${mlpPrefix}.up_proj`),
+          downProjClip: await loadClipRange(`${mlpPrefix}.down_proj`),
+        });
+      }
+
+      this.visionWeights = visionWeights;
+      log.info('Pipeline', `Vision weights loaded (${depth} Gemma 4 encoder layers)`);
+      return;
+    }
 
     const visionWeights = {};
 
@@ -606,7 +768,7 @@ export class InferencePipeline extends PipelineState {
     this.reset();
 
     // Lazy-load vision module (avoids GPU kernel dependency for text-only pipelines)
-    const { encodeImage, mergeVisualTokens } = await import('./vision/index.js');
+    const { encodeImage } = await import('./vision/index.js');
 
     // Step 1: Encode image through vision pipeline
     const encodeResult = await encodeImage({
@@ -617,52 +779,85 @@ export class InferencePipeline extends PipelineState {
       weights: this.visionWeights,
     });
 
-    // Step 2: Build prompt token sequence with image placeholders
-    const textPrompt = prompt ?? 'Transcribe the text in this image.';
-    const imagePlaceholders = new Array(encodeResult.numTokens).fill(this.imageTokenId);
-    const promptTokenIds = this.tokenizer.encode(textPrompt);
-    const fullTokenIds = new Int32Array([...imagePlaceholders, ...promptTokenIds]);
-
-    // Step 3: Get text embeddings for the full token sequence
-    const embeddings = this.weights.get('embed');
-    const hiddenSize = this.modelConfig.hiddenSize;
-    const textEmbeddings = new Float32Array(fullTokenIds.length * hiddenSize);
-
-    // Read embedding vectors for each token
-    // This uses CPU-side embedding lookup for the merged sequence.
-    // The actual GPU prefill happens after merging.
-    for (let i = 0; i < fullTokenIds.length; i++) {
-      const tokenId = fullTokenIds[i];
-      const offset = tokenId * hiddenSize;
-      for (let d = 0; d < hiddenSize; d++) {
-        textEmbeddings[i * hiddenSize + d] = embeddings[offset + d] ?? 0;
-      }
+    // Step 2: Build the multimodal prompt from the model's chat template and
+    // expand the single <|image|> placeholder into the exact visual-token span.
+    const requestedPrompt = prompt ?? 'Describe the image in one short sentence.';
+    const imageTokenId = this.visionConfig?.imageTokenId ?? this.modelConfig?.imageTokenId;
+    if (imageTokenId == null) {
+      throw new Error(
+        'Pipeline missing image_token_id. Re-convert the model with image token metadata.'
+      );
     }
-
-    // Step 4: Merge visual tokens into embedding sequence
-    const { mergedEmbeddings, mergedLength } = mergeVisualTokens({
-      textEmbeddings,
-      tokenIds: fullTokenIds,
-      visualFeatures: encodeResult.features,
-      numVisualTokens: encodeResult.numTokens,
-      imageTokenId: this.imageTokenId,
-      hiddenSize,
-    });
-
-    // Step 5: Prefill with merged embeddings and generate
-    await this.generator.prefillWithEmbedding(
-      mergedEmbeddings.slice(0, mergedLength * hiddenSize),
-      { seqLen: mergedLength }
+    if (this.visionConfig?.visionArchitecture !== 'gemma4') {
+      throw new Error(
+        `[Pipeline] transcribeImage: unsupported vision architecture "${this.visionConfig?.visionArchitecture ?? 'unknown'}". ` +
+        'This runtime path currently requires Gemma 4 multimodal prompt expansion.'
+      );
+    }
+    const templateType = this.modelConfig?.chatTemplateType ?? 'gemma4';
+    const multimodalPrompt = formatChatMessages([
+      {
+        role: 'user',
+        content: [
+          { type: 'image' },
+          { type: 'text', text: requestedPrompt },
+        ],
+      },
+    ], templateType);
+    const promptTokenIds = this.tokenizer.encode(multimodalPrompt);
+    const imageTokenSpanLength = Number(this.visionConfig?.defaultOutputLength ?? encodeResult.numTokens);
+    if (
+      !Number.isFinite(imageTokenSpanLength)
+      || Math.floor(imageTokenSpanLength) !== imageTokenSpanLength
+      || imageTokenSpanLength < encodeResult.numTokens
+    ) {
+      throw new Error(
+        `[Pipeline] transcribeImage: invalid Gemma 4 image token span length ${imageTokenSpanLength}. ` +
+        `Expected an integer >= encoded image token count ${encodeResult.numTokens}.`
+      );
+    }
+    const boiTokenId = resolveSingleSpecialTokenId(this.tokenizer, '<|image>', 'Gemma 4 BOI token');
+    const eoiTokenId = resolveSingleSpecialTokenId(this.tokenizer, '<image|>', 'Gemma 4 EOI token');
+    const { inputIds: fullTokenIds, imageStartOffset } = expandImagePlaceholderTokenIds(
+      promptTokenIds,
+      imageTokenId,
+      imageTokenSpanLength,
+      { boiTokenId, eoiTokenId }
     );
 
+    // Step 3: Generate with embedding override at the image token offset.
     const tokens = [];
     const maxGen = maxTokens ?? 512;
-    const eosTokenId = this.modelConfig.eosTokenId;
+    const stopTokenIds = this.modelConfig.stopTokenIds;
 
-    for await (const token of this.generator.generateTokenIds({ maxTokens: maxGen })) {
-      tokens.push(token);
-      if (token === eosTokenId) break;
-      if (Array.isArray(eosTokenId) && eosTokenId.includes(token)) break;
+    try {
+      const generation = await this.generator.generateTokenIds('', {
+        inputIds: fullTokenIds,
+        embeddingOverrides: {
+          prefixLength: encodeResult.numTokens,
+          offset: imageStartOffset,
+          embeddings: encodeResult.features,
+        },
+        maxTokens: maxGen,
+        temperature: 0,
+        topK: 1,
+        topP: 1,
+        repetitionPenalty: 1,
+        // Gemma 4 multimodal replay-prefill is currently stable on constrained GPUs
+        // only in the conservative decode path. Keep the text-generation defaults
+        // unchanged and scope the safer execution mode to transcribeImage().
+        disableCommandBatching: true,
+        disableMultiTokenDecode: true,
+        stopCheckMode: 'per-token',
+      });
+      for (const token of generation.tokenIds ?? []) {
+        if (Array.isArray(stopTokenIds) && stopTokenIds.includes(token)) break;
+        tokens.push(token);
+      }
+    } finally {
+      if (encodeResult.features) {
+        releaseBuffer(encodeResult.features);
+      }
     }
 
     const text = this.tokenizer.decode(tokens);

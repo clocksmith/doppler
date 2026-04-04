@@ -124,6 +124,51 @@ function normalizeChatMessageContent(content) {
   return String(content ?? '');
 }
 
+function stripThinking(content) {
+  if (typeof content !== 'string') {
+    return String(content ?? '');
+  }
+  return content
+    .replace(/<think>[\s\S]*?<\/think>/g, '')
+    .replace(/<thinking>[\s\S]*?<\/thinking>/g, '')
+    .trim();
+}
+
+function renderGemma4ContentPart(part, role) {
+  if (part == null) {
+    return '';
+  }
+  if (typeof part === 'string') {
+    return role === 'assistant' ? stripThinking(part) : part.trim();
+  }
+  if (typeof part !== 'object' || Array.isArray(part)) {
+    return String(part);
+  }
+
+  if (part.type === 'text') {
+    return role === 'assistant'
+      ? stripThinking(String(part.text ?? ''))
+      : String(part.text ?? '').trim();
+  }
+  if (part.type === 'image') {
+    return '\n\n<|image|>\n\n';
+  }
+  if (part.type === 'audio') {
+    return '<|audio|>';
+  }
+  if (part.type === 'video') {
+    return '\n\n<|video|>\n\n';
+  }
+  return String(part.text ?? part.content ?? '');
+}
+
+function renderGemma4MessageContent(content, role) {
+  if (Array.isArray(content)) {
+    return content.map((part) => renderGemma4ContentPart(part, role)).join('');
+  }
+  return renderGemma4ContentPart(content, role);
+}
+
 function formatTurnBased(messages) {
   // Turn-based format: <start_of_turn>role\ncontent<end_of_turn>
   const parts = [];
@@ -162,14 +207,25 @@ function formatTurnBased(messages) {
 }
 
 function formatGemma4(messages) {
-  return formatMessagesWithRoleWrap(messages, 'Gemma 4', {
-    system: (c) => `<|turn>system\n${c}<turn|>\n`,
-    user: (c) => `<|turn>user\n${c}<turn|>\n`,
-    assistant: (c) => `<|turn>model\n${c}<turn|>\n`,
-  }, {
-    prefix: '<bos>',
-    suffix: '<|turn>model\n',
-  });
+  const parts = ['<bos>'];
+  for (const [index, message] of messages.entries()) {
+    const role = normalizeChatRole(message?.role);
+    assertSupportedChatRole(role, 'Gemma 4', index);
+    const content = renderGemma4MessageContent(message?.content, role);
+    if (role === 'system') {
+      parts.push(`<|turn>system\n${content}<turn|>\n`);
+      continue;
+    }
+    if (role === 'user') {
+      parts.push(`<|turn>user\n${content}<turn|>\n`);
+      continue;
+    }
+    if (role === 'assistant') {
+      parts.push(`<|turn>model\n${content}<turn|>\n`);
+    }
+  }
+  parts.push('<|turn>model\n');
+  return parts.join('');
 }
 
 function formatMessagesWithRoleWrap(messages, templateName, roleWrappers, options = {}) {

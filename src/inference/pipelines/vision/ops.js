@@ -5,7 +5,7 @@ import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { runLayerNorm } from '../../../gpu/kernels/layernorm.js';
 import { runMatmul } from '../../../gpu/kernels/matmul.js';
-import { runGelu } from '../../../gpu/kernels/gelu.js';
+import { runGeLU } from '../../../gpu/kernels/gelu.js';
 import { runBiasAdd, runResidualAdd } from '../../../gpu/kernels/residual.js';
 
 /**
@@ -18,18 +18,18 @@ import { runBiasAdd, runResidualAdd } from '../../../gpu/kernels/residual.js';
  */
 export async function doLayerNorm(input, weight, bias, opts) {
   const { seqLen, hiddenSize, eps } = opts;
-  const outputSize = seqLen * hiddenSize * 4;
-  const output = acquireBuffer(outputSize, 'vision-layernorm');
-  await runLayerNorm({
-    input,
+  const inputTensor = createTensor(input, 'f32', [seqLen, hiddenSize], 'vision_layernorm_input');
+  const outputTensor = await runLayerNorm(
+    inputTensor,
     weight,
-    bias: bias || null,
-    output,
-    seqLen,
-    hiddenSize,
+    bias || null,
     eps,
-  });
-  return output;
+    {
+      batchSize: seqLen,
+      hiddenSize,
+    }
+  );
+  return outputTensor.buffer;
 }
 
 /**
@@ -62,9 +62,9 @@ export async function doMatmul(a, b, opts) {
  */
 export async function doGelu(input, opts) {
   const { count } = opts;
-  const output = acquireBuffer(count * 4, 'vision-gelu');
-  await runGelu({ input, output, count });
-  return output;
+  const inputTensor = createTensor(input, 'f32', [count], 'vision_gelu_input');
+  const outputTensor = await runGeLU(inputTensor, { size: count });
+  return outputTensor.buffer;
 }
 
 /**
@@ -76,7 +76,8 @@ export async function doGelu(input, opts) {
  */
 export async function doResidualAdd(a, b, opts) {
   const { count } = opts;
-  const output = acquireBuffer(count * 4, 'vision-residual');
-  await runResidualAdd({ a, b, output, count });
-  return output;
+  const aTensor = createTensor(a, 'f32', [count], 'vision_residual_a');
+  const bTensor = createTensor(b, 'f32', [count], 'vision_residual_b');
+  const outputTensor = await runResidualAdd(aTensor, bTensor, count);
+  return outputTensor.buffer;
 }

@@ -19,6 +19,7 @@ import {
 } from '../../src/generation/index.js';
 
 import { applyChatTemplate } from '../../src/inference/pipelines/text/init.js';
+import { formatChatMessages } from '../../src/inference/pipelines/text/chat-format.js';
 
 // =============================================================================
 // Public API shape
@@ -192,6 +193,27 @@ import { applyChatTemplate } from '../../src/inference/pipelines/text/init.js';
     result,
     '<bos><|turn>user\nHello<turn|>\n<|turn>model\n',
     'gemma4 template must produce exact turn-based format'
+  );
+}
+
+// =============================================================================
+// formatChatMessages gemma4 multimodal contract (exact structure)
+// =============================================================================
+
+{
+  const result = formatChatMessages([
+    {
+      role: 'user',
+      content: [
+        { type: 'image' },
+        { type: 'text', text: 'Describe the image.' },
+      ],
+    },
+  ], 'gemma4');
+  assert.equal(
+    result,
+    '<bos><|turn>user\n\n\n<|image|>\n\nDescribe the image.<turn|>\n<|turn>model\n',
+    'gemma4 multimodal chat format must use a single <|image|> placeholder inside the user turn'
   );
 }
 

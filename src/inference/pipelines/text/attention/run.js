@@ -84,6 +84,8 @@ export async function runLayerAttentionGPU(
     tokenIds = null,
     kernelPath = null,
     disableRoPE = false,
+    sharedKVSourceLayerIdx = null,
+    storeSharedKV = false,
   } = config;
 
   const device = getDevice();
@@ -132,6 +134,26 @@ export async function runLayerAttentionGPU(
 
   const qSize = numTokens * numHeads * headDim;
   const kvSize = numTokens * numKVHeads * headDim;
+  const sharedKVEntry = sharedKVSourceLayerIdx == null
+    ? null
+    : (state.sharedAttentionState?.get(sharedKVSourceLayerIdx) ?? null);
+  if (sharedKVSourceLayerIdx != null && !sharedKVEntry) {
+    throw new Error(
+      `Layer ${layerIdx} requires shared K/V from layer ${sharedKVSourceLayerIdx}, ` +
+      'but no shared K/V state was stored for that source layer.'
+    );
+  }
+  if (sharedKVEntry && (
+    sharedKVEntry.headDim !== headDim
+      || sharedKVEntry.numKVHeads !== numKVHeads
+  )) {
+    throw new Error(
+      `Layer ${layerIdx} shared K/V geometry mismatch. ` +
+      `Expected numKVHeads=${numKVHeads}, headDim=${headDim}; ` +
+      `got numKVHeads=${sharedKVEntry.numKVHeads}, headDim=${sharedKVEntry.headDim}.`
+    );
+  }
+  const reusesSharedKV = sharedKVEntry != null;
 
   // 1. Input norm
   
@@ -233,6 +255,8 @@ export async function runLayerAttentionGPU(
     lora,
     matmulDebug: state.runtimeConfig?.shared?.debug?.matmul ?? null,
     attentionOutputGate: config.attentionOutputGate === true,
+    sharedKTensor: sharedKVEntry?.kTensor ?? null,
+    sharedVTensor: sharedKVEntry?.vTensor ?? null,
     releaseTemporary: (buffer) => releaseBuffer(buffer),
     onFusedQKV: layerIdx === 0 && isPrefill
       ? ({ qSize: qSizeFused, kSize: kSizeFused, vSize: vSizeFused, totalSize }) => {
@@ -255,22 +279,24 @@ export async function runLayerAttentionGPU(
     operatorDiagnostics: state.operatorDiagnostics,
     dtype: qTensor.dtype,
   });
-  await runProbes('k_proj', kTensor.buffer, {
-    layerIdx,
-    numTokens,
-    hiddenSize: numKVHeads * headDim,
-    probes: state.debugProbes,
-    operatorDiagnostics: state.operatorDiagnostics,
-    dtype: kTensor.dtype,
-  });
-  await runProbes('v_proj', vTensor.buffer, {
-    layerIdx,
-    numTokens,
-    hiddenSize: numKVHeads * headDim,
-    probes: state.debugProbes,
-    operatorDiagnostics: state.operatorDiagnostics,
-    dtype: vTensor.dtype,
-  });
+  if (!reusesSharedKV) {
+    await runProbes('k_proj', kTensor.buffer, {
+      layerIdx,
+      numTokens,
+      hiddenSize: numKVHeads * headDim,
+      probes: state.debugProbes,
+      operatorDiagnostics: state.operatorDiagnostics,
+      dtype: kTensor.dtype,
+    });
+    await runProbes('v_proj', vTensor.buffer, {
+      layerIdx,
+      numTokens,
+      hiddenSize: numKVHeads * headDim,
+      probes: state.debugProbes,
+      operatorDiagnostics: state.operatorDiagnostics,
+      dtype: vTensor.dtype,
+    });
+  }
 
   // Kernel step debug: Q/K/V projections
   if (isKernelDebugEnabled(layerIdx)) {
@@ -329,6 +355,7 @@ export async function runLayerAttentionGPU(
     headDim,
     rmsNormWeightOffset: config.rmsNormWeightOffset,
     releaseTemporary: (buffer) => releaseBuffer(buffer),
+    skipKNorm: reusesSharedKV,
     onQNormApplied: isKernelDebugEnabled(layerIdx)
       ? async (tensor) => {
         await dumpTokenVector(tensor.buffer, 'Q_norm', {
@@ -351,7 +378,7 @@ export async function runLayerAttentionGPU(
     : null,
   }));
 
-  if (config.valueNorm === true) {
+  if (config.valueNorm === true && !reusesSharedKV) {
     vTensor = await applyAttentionValueNorm({
       recorder: null,
       vTensor,
@@ -371,14 +398,16 @@ export async function runLayerAttentionGPU(
     operatorDiagnostics: state.operatorDiagnostics,
     dtype: qTensor.dtype,
   });
-  await runProbes('k_norm', kTensor.buffer, {
-    layerIdx,
-    numTokens,
-    hiddenSize: numKVHeads * headDim,
-    probes: state.debugProbes,
-    operatorDiagnostics: state.operatorDiagnostics,
-    dtype: kTensor.dtype,
-  });
+  if (!reusesSharedKV) {
+    await runProbes('k_norm', kTensor.buffer, {
+      layerIdx,
+      numTokens,
+      hiddenSize: numKVHeads * headDim,
+      probes: state.debugProbes,
+      operatorDiagnostics: state.operatorDiagnostics,
+      dtype: kTensor.dtype,
+    });
+  }
 
   if (normed !== attentionInput) releaseBuffer(normed.buffer);
   if (attentionInputTemp) releaseBuffer(attentionInput.buffer);
@@ -393,18 +422,22 @@ export async function runLayerAttentionGPU(
       interleaved: config.ropeInterleaved,
       startPos: currentSeqLen,
     });
-    await runRoPE(kTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
-      numHeads: numKVHeads,
-      headDim,
-      rotaryDim: config.ropeRotaryDim,
-      interleaved: config.ropeInterleaved,
-      startPos: currentSeqLen,
-    });
+    if (!reusesSharedKV) {
+      await runRoPE(kTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
+        numHeads: numKVHeads,
+        headDim,
+        rotaryDim: config.ropeRotaryDim,
+        interleaved: config.ropeInterleaved,
+        startPos: currentSeqLen,
+      });
+    }
 
     // Trace RoPE outputs
     if (kernelTrace.enabled) {
       await traceStep('rope', `L${layerIdx}.q_rope`, layerIdx, qTensor.buffer, [numTokens, numHeads * headDim]);
-      await traceStep('rope', `L${layerIdx}.k_rope`, layerIdx, kTensor.buffer, [numTokens, numKVHeads * headDim]);
+      if (!reusesSharedKV) {
+        await traceStep('rope', `L${layerIdx}.k_rope`, layerIdx, kTensor.buffer, [numTokens, numKVHeads * headDim]);
+      }
     }
   }
   await runProbes('q_rope', qTensor.buffer, {
@@ -436,6 +469,15 @@ export async function runLayerAttentionGPU(
       tokenIdx: Math.max(0, numTokens - 1),
       rowSize: numKVHeads * headDim,
       dtype: kTensor.dtype,
+    });
+  }
+
+  if (storeSharedKV && state.sharedAttentionState) {
+    state.sharedAttentionState.set(layerIdx, {
+      kTensor,
+      vTensor,
+      headDim,
+      numKVHeads,
     });
   }
 
@@ -850,8 +892,10 @@ export async function runLayerAttentionGPU(
   if (qGateTensor) {
     releaseBuffer(qGateTensor.buffer);
   }
-  releaseBuffer(kTensor.buffer);
-  releaseBuffer(vTensor.buffer);
+  if (!reusesSharedKV && !storeSharedKV) {
+    releaseBuffer(kTensor.buffer);
+    releaseBuffer(vTensor.buffer);
+  }
   for (const buffer of buffersToRelease) {
     releaseBuffer(buffer);
   }
@@ -885,10 +929,10 @@ export async function runLayerAttentionGPU(
     if (qTensor?.buffer) {
       releaseOnce(qTensor.buffer);
     }
-    if (kTensor?.buffer) {
+    if (kTensor?.buffer && !reusesSharedKV && !storeSharedKV) {
       releaseOnce(kTensor.buffer);
     }
-    if (vTensor?.buffer) {
+    if (vTensor?.buffer && !reusesSharedKV && !storeSharedKV) {
       releaseOnce(vTensor.buffer);
     }
     if (normed?.buffer && normed.buffer !== attentionInput?.buffer) {

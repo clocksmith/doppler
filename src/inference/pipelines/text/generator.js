@@ -1,7 +1,7 @@
 
 
 import { getDevice, setTrackSubmits } from '../../../gpu/device.js';
-import { releaseBuffer, readBuffer, readBufferSlice, uploadData } from '../../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer, readBuffer, readBufferSlice, uploadData } from '../../../memory/buffer-pool.js';
 import { isGPUSamplingAvailable } from '../../../gpu/kernels/sample.js';
 import { markWarmed as markKernelCacheWarmed } from '../../../gpu/kernel-selection-cache.js';
 import { resetSubmitStats, logSubmitStats } from '../../../gpu/submit-tracker.js';
@@ -36,7 +36,13 @@ import {
   FinitenessError,
   advanceWithTokenAndEmbedding as runAdvanceWithTokenAndEmbedding,
 } from './generator-steps.js';
-import { buildLayerContext, debugCheckBuffer as debugCheckBufferHelper, getLogitsConfig, getLogitsWeights } from './generator-helpers.js';
+import {
+  buildLayerContext,
+  debugCheckBuffer as debugCheckBufferHelper,
+  getLogitsConfig,
+  getLogitsWeights,
+  releaseSharedAttentionState,
+} from './generator-helpers.js';
 import {
   assertTokenIdsInRange,
   assertTokenIdInRange,
@@ -68,6 +74,7 @@ import {
   restoreLinearAttentionRuntime,
 } from './linear-attention.js';
 import { preparePerLayerInputs } from './per-layer-inputs.js';
+import { createTensor } from '../../../gpu/tensor.js';
 
 function isStructuredChatRequest(prompt) {
   return prompt != null
@@ -129,6 +136,106 @@ function releasePerLayerInputBuffer(buffer, recorder, decodeBuffers) {
     return;
   }
   releaseBuffer(buffer);
+}
+
+function normalizePrefixEmbeddingOverride(override, hiddenSize, numTokens, contextLabel) {
+  if (override == null) {
+    return null;
+  }
+  if (typeof override !== 'object') {
+    throw new Error(`[Pipeline] ${contextLabel}: embeddingOverrides must be an object when provided.`);
+  }
+
+  const prefixLength = Number(override.prefixLength);
+  if (!Number.isFinite(prefixLength) || prefixLength < 0 || Math.floor(prefixLength) !== prefixLength) {
+    throw new Error(
+      `[Pipeline] ${contextLabel}: embeddingOverrides.prefixLength must be a non-negative integer.`
+    );
+  }
+  if (prefixLength === 0) {
+    return null;
+  }
+
+  const offset = Number(override.offset ?? 0);
+  if (!Number.isFinite(offset) || offset < 0 || Math.floor(offset) !== offset) {
+    throw new Error(
+      `[Pipeline] ${contextLabel}: embeddingOverrides.offset must be a non-negative integer.`
+    );
+  }
+  if (offset + prefixLength > numTokens) {
+    throw new Error(
+      `[Pipeline] ${contextLabel}: embedding override offset=${offset} + prefixLength=${prefixLength} exceeds numTokens=${numTokens}.`
+    );
+  }
+
+  const embeddings = override.embeddings ?? null;
+  if (!embeddings) {
+    throw new Error(`[Pipeline] ${contextLabel}: embeddingOverrides.embeddings is required when prefixLength > 0.`);
+  }
+
+  const expectedLength = prefixLength * hiddenSize;
+  if (embeddings instanceof Float32Array) {
+    if (embeddings.length !== expectedLength) {
+      throw new Error(
+        `[Pipeline] ${contextLabel}: embedding override length mismatch ` +
+        `(expected=${expectedLength}, got=${embeddings.length}).`
+      );
+    }
+  } else if (isGpuBufferInstance(embeddings)) {
+    const expectedBytes = expectedLength * Float32Array.BYTES_PER_ELEMENT;
+    if (embeddings.size < expectedBytes) {
+      throw new Error(
+        `[Pipeline] ${contextLabel}: embedding override GPUBuffer too small ` +
+        `(expected>=${expectedBytes} bytes, got=${embeddings.size}).`
+      );
+    }
+  } else {
+    throw new Error(
+      `[Pipeline] ${contextLabel}: embeddingOverrides.embeddings must be a Float32Array or GPUBuffer.`
+    );
+  }
+
+  return {
+    prefixLength,
+    offset,
+    embeddings,
+    expectedLength,
+    byteLength: expectedLength * Float32Array.BYTES_PER_ELEMENT,
+    byteOffset: offset * hiddenSize * Float32Array.BYTES_PER_ELEMENT,
+  };
+}
+
+async function applyPrefixEmbeddingOverride(baseTensor, override, contextLabel) {
+  if (!override) {
+    return baseTensor;
+  }
+  if (baseTensor.dtype !== 'f32') {
+    throw new Error(
+      `[Pipeline] ${contextLabel}: embedding overrides currently require f32 activations, got ${baseTensor.dtype}.`
+    );
+  }
+
+  const device = getDevice();
+  if (!device) {
+    throw new Error(`[Pipeline] ${contextLabel}: GPU device is required for embedding overrides.`);
+  }
+
+  const outputBuffer = acquireBuffer(baseTensor.buffer.size, undefined, 'prefill_embedding_override');
+  try {
+    const encoder = device.createCommandEncoder();
+    encoder.copyBufferToBuffer(baseTensor.buffer, 0, outputBuffer, 0, baseTensor.buffer.size);
+    if (isGpuBufferInstance(override.embeddings)) {
+      encoder.copyBufferToBuffer(override.embeddings, 0, outputBuffer, override.byteOffset, override.byteLength);
+      device.queue.submit([encoder.finish()]);
+    } else {
+      device.queue.submit([encoder.finish()]);
+      uploadData(outputBuffer, override.embeddings, override.byteOffset);
+    }
+    return createTensor(outputBuffer, baseTensor.dtype, [...baseTensor.shape], 'prefill_embedding_override');
+  } catch (error) {
+    releaseBuffer(outputBuffer);
+    throw error;
+  }
 }
 
 /**
@@ -375,6 +482,7 @@ export class PipelineGenerator {
         buildLayerContext(this.#state, recorder, isDecodeMode, debugLayers, debugCheckBuffer, executionPlan),
       getLogitsWeights: () => getLogitsWeights(this.#state),
       getLogitsConfig: () => getLogitsConfig(this.#state),
+      releaseSharedAttentionState,
       debugCheckBuffer,
     };
   }
@@ -402,6 +510,14 @@ export class PipelineGenerator {
     return inputIds;
   }
 
+  _resolvePromptOrInputIds(prompt, useChatTemplate, contextLabel, explicitInputIds = null) {
+    if (Array.isArray(explicitInputIds)) {
+      this._assertTokenIdsInRange(explicitInputIds, `${contextLabel}.inputIds`);
+      return explicitInputIds;
+    }
+    return this._resolvePromptTokenIds(prompt, useChatTemplate, contextLabel);
+  }
+
   _sampleNextTokenFromLogits(logits, generatedIds, opts) {
     const sampledLogits = Float32Array.from(logits);
     applyRepetitionPenalty(sampledLogits, generatedIds, opts.repetitionPenalty);
@@ -416,7 +532,7 @@ export class PipelineGenerator {
   }
 
   async _prefillPromptToLogits(prompt, opts, contextLabel) {
-    const inputIds = this._resolvePromptTokenIds(prompt, opts.useChatTemplate, contextLabel);
+    const inputIds = this._resolvePromptOrInputIds(prompt, opts.useChatTemplate, contextLabel, opts.inputIds);
     if (opts.debug) {
       log.debug('Pipeline', `${contextLabel}: ${inputIds.length} tokens`);
     }
@@ -897,7 +1013,7 @@ export class PipelineGenerator {
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.prefillProfileSteps = [];
     const opts = resolvePrefillOptions(this.#state, options);
-    const inputIds = this._resolvePromptTokenIds(prompt, opts.useChatTemplate, 'prefillKVOnly');
+    const inputIds = this._resolvePromptOrInputIds(prompt, opts.useChatTemplate, 'prefillKVOnly', opts.inputIds);
     if (opts.debug) {
       log.debug('Pipeline', `PrefillKVOnly: ${inputIds.length} tokens`);
     }
@@ -963,7 +1079,7 @@ export class PipelineGenerator {
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.prefillProfileSteps = [];
     const opts = resolvePrefillEmbeddingOptions(this.#state, options);
-    const inputIds = this._resolvePromptTokenIds(prompt, opts.useChatTemplate, 'prefillWithEmbedding');
+    const inputIds = this._resolvePromptOrInputIds(prompt, opts.useChatTemplate, 'prefillWithEmbedding', opts.inputIds);
     if (opts.debug) {
       log.debug('Pipeline', `PrefillWithEmbedding: ${inputIds.length} tokens (mode=${opts.embeddingMode})`);
     }
@@ -1458,6 +1574,12 @@ export class PipelineGenerator {
     const config = this.#state.modelConfig;
     const startPos = this.#state.currentSeqLen;
     const returnHidden = opts?._returnHidden === true;
+    const embeddingOverride = normalizePrefixEmbeddingOverride(
+      opts?.embeddingOverrides ?? null,
+      config.hiddenSize,
+      numTokens,
+      '_prefill'
+    );
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.prefillProfileSteps = [];
 
@@ -1537,7 +1659,7 @@ export class PipelineGenerator {
 
     const activationDtype = opts.executionPlan?.activationDtype ?? this._getEffectiveActivationDtype();
     const activationBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
-    let hiddenStates = await embed(inputIds, embedBuffer, {
+    let baseEmbeddings = await embed(inputIds, embedBuffer, {
       hiddenSize: config.hiddenSize,
       vocabSize: config.vocabSize,
       scaleEmbeddings: config.scaleEmbeddings,
@@ -1549,9 +1671,28 @@ export class PipelineGenerator {
       activationDtype,
       embeddingDtype: selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype }),
     });
-    const perLayerInputs = await preparePerLayerInputs(inputIds, hiddenStates, context, {
-      numTokens,
-    });
+    let hiddenStates = baseEmbeddings;
+    let perLayerInputs = null;
+    try {
+      hiddenStates = await applyPrefixEmbeddingOverride(baseEmbeddings, embeddingOverride, '_prefill');
+      perLayerInputs = await preparePerLayerInputs(inputIds, baseEmbeddings, context, {
+        numTokens,
+      });
+    } catch (error) {
+      if (isGpuBufferInstance(hiddenStates?.buffer)) {
+        releaseBuffer(hiddenStates.buffer);
+      }
+      if (hiddenStates === baseEmbeddings) {
+        baseEmbeddings = null;
+      }
+      hiddenStates = null;
+      throw error;
+    } finally {
+      if (hiddenStates !== baseEmbeddings && isGpuBufferInstance(baseEmbeddings?.buffer)) {
+        releaseBuffer(baseEmbeddings.buffer);
+      }
+      baseEmbeddings = null;
+    }
 
     if (opts.debug && isGpuBufferInstance(hiddenStates)) {
       if (recorder) {
@@ -1657,6 +1798,7 @@ export class PipelineGenerator {
           releasePerLayerInputBuffer(buffer, currentRecorder, context.decodeBuffers);
         }
       }
+      releaseSharedAttentionState(context.sharedAttentionState, currentRecorder);
     }
 
     if (this.#state.finitenessBuffer) {

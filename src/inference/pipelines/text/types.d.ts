@@ -312,6 +312,17 @@ export interface TokenizerInterface {
 /**
  * Options for text generation.
  */
+export interface PrefixEmbeddingOverride {
+  /** Number of token embeddings to replace. */
+  prefixLength: number;
+
+  /** Token offset where the replacement span starts. Defaults to 0. */
+  offset?: number;
+
+  /** Replacement embeddings as packed f32 activations. */
+  embeddings: Float32Array | GPUBuffer;
+}
+
 export interface GenerateOptions {
   /** @category generation Maximum tokens to generate (default: 512) */
   maxTokens?: number;
@@ -382,6 +393,12 @@ export interface GenerateOptions {
    * - 'mean': mean-pooled token hidden states (slower; requires extra readback)
    */
   embeddingMode?: 'last' | 'mean';
+
+  /** @category prefill Explicit token IDs to use instead of encoding the prompt string. */
+  inputIds?: readonly number[] | Int32Array | Uint32Array;
+
+  /** @category prefill Replace a contiguous input span with explicit embedding activations. */
+  embeddingOverrides?: PrefixEmbeddingOverride | null;
 }
 
 /**

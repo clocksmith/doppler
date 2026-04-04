@@ -91,6 +91,13 @@ function acquireAlignedBuffer(size, label) {
   return acquireBuffer(alignTo4(size), undefined, label);
 }
 
+function getShapeElementCount(shape) {
+  if (!Array.isArray(shape)) {
+    throw new Error('Tensor shape must be an array.');
+  }
+  return shape.reduce((product, value) => product * value, 1);
+}
+
 
 export function isPackedQ4K(location) {
   if (!Array.isArray(location.shape) || location.shape.length !== 2) {
@@ -602,7 +609,7 @@ export async function loadFloat(shardData, location, name, config) {
           allocatedBuffers: [buffer],
         };
       }
-      const numElements = location.shape.reduce((a, b) => a * b, 1);
+      const numElements = getShapeElementCount(location.shape);
       logF32UpcastNonMatmul(name, numElements, buffer.size);
       debugTrace.loader(`F16->F32 upcast for non-matmul: ${name} (${numElements} elements, bufSize=${buffer.size})`);
       const inputTensor = createTensor(buffer, 'f16', [numElements], `${name}_f16`);

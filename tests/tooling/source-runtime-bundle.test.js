@@ -33,11 +33,19 @@ const tensors = [
     offset: 0,
     sourcePath: 'weights_b.safetensors',
   },
+  {
+    name: 'model.layers.0.self_attn.q_proj.input_max',
+    shape: [],
+    dtype: 'BF16',
+    size: 2,
+    offset: 32,
+    sourcePath: 'weights_b.safetensors',
+  },
 ];
 
 const sourceFiles = [
   { path: 'weights_a.safetensors', size: 64 },
-  { path: 'weights_b.safetensors', size: 32 },
+  { path: 'weights_b.safetensors', size: 34 },
 ];
 
 const bundle = await buildSourceRuntimeBundle({
@@ -91,6 +99,7 @@ assert.equal(bundle.manifest.hashAlgorithm, 'sha256');
 assert.equal(bundle.manifest.tensors['model.embed_tokens.weight'].group, 'embed');
 assert.equal(bundle.manifest.tensors['model.layers.0.self_attn.q_proj.weight'].group, 'layer.0');
 assert.equal(bundle.manifest.tensors['lm_head.weight'].group, 'head');
+assert.deepEqual(bundle.manifest.tensors['model.layers.0.self_attn.q_proj.input_max'].shape, []);
 assert.equal(bundle.manifest.quantizationInfo.weights, 'f16');
 assert.equal(bundle.manifest.quantization, 'F16');
 assert.ok(bundle.manifest.groups?.embed);

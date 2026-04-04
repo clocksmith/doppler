@@ -27,6 +27,13 @@ export declare function buildLayerContext(
   executionPlan?: ExecutionSessionPlan | null
 ): LayerContext;
 
+export declare function releaseSharedAttentionState(
+  sharedAttentionState: LayerContext['sharedAttentionState'],
+  recorder?: {
+    trackTemporaryBuffer(buffer: GPUBuffer): void;
+  } | null
+): void;
+
 export declare function getWeightBufferConfig(state: PipelineState): WeightBufferConfig;
 
 export declare function getLogitsWeights(state: PipelineState): LogitsWeights;

@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 // Import the pipeline module to trigger registration
 await import('../../src/inference/pipelines/text.js');
 const { InferencePipeline } = await import('../../src/inference/pipelines/text.js');
+const visionModule = await import('../../src/inference/pipelines/vision/index.js');
+
+assert.equal(typeof visionModule.encodeImage, 'function', 'Vision module must import cleanly and export encodeImage');
 
 // ==========================================================================
 // Test 1: Text-only pipeline — visionCapable must be false

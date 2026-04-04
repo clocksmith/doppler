@@ -74,7 +74,7 @@ function normalizePositiveInteger(value, label) {
 }
 
 function resolveTensorShape(shape, tensorName) {
-  if (!Array.isArray(shape) || shape.length === 0) {
+  if (!Array.isArray(shape)) {
     throw new Error(`Source tensor "${tensorName}" is missing shape.`);
   }
   return shape.map((dim, index) => {

@@ -136,7 +136,8 @@ export function classifyTensorRole(name) {
   }
 
   // Multimodal: vision encoder tensors
-  if (lower.startsWith('vision_tower.') || lower.startsWith('vision_model.')
+  if (lower.startsWith('vision_tower.') || lower.startsWith('model.vision_tower.')
+    || lower.startsWith('vision_model.') || lower.startsWith('model.vision_model.')
     || lower.startsWith('visual.') || lower.startsWith('model.visual.')
     || lower.startsWith('vision.') || lower.startsWith('model.vision.')
     || lower.startsWith('vision_encoder.') || lower.startsWith('image_encoder.')

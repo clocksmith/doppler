@@ -124,8 +124,19 @@ const minimalV1SessionDefaults = {
       outputDtype: 'f16',
     },
   },
-  kvcache: null,
-  decodeLoop: null,
+  kvcache: {
+    layout: 'contiguous',
+    kvDtype: 'f16',
+    tiering: {
+      mode: 'off',
+    },
+  },
+  decodeLoop: {
+    batchSize: 1,
+    stopCheckMode: 'batch',
+    readbackInterval: 1,
+    disableCommandBatching: false,
+  },
 };
 
 const minimalV1Inference = {
@@ -134,6 +145,7 @@ const minimalV1Inference = {
     slidingWindow: null,
     attnLogitSoftcapping: null,
     queryKeyNorm: false,
+    valueNorm: false,
     attentionOutputGate: false,
     causal: true,
     attentionBias: false,
@@ -159,10 +171,18 @@ const minimalV1Inference = {
     mropeInterleaved: false,
     mropeSection: null,
     partialRotaryFactor: null,
+    ropeLocalPartialRotaryFactor: null,
+    ropeFrequencyBaseDim: null,
+    ropeLocalFrequencyBaseDim: null,
+    ropeLocalScalingType: null,
+    ropeLocalScalingFactor: 1,
     ropeInterleaved: false,
     yarnBetaFast: null,
     yarnBetaSlow: null,
     yarnOriginalMaxPos: null,
+    ropeLocalYarnBetaFast: null,
+    ropeLocalYarnBetaSlow: null,
+    ropeLocalYarnOriginalMaxPos: null,
   },
   output: {
     scaleEmbeddings: false,

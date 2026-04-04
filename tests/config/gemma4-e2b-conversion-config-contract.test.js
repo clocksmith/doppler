@@ -16,7 +16,7 @@ const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
 
 assert.equal(config.output?.baseDir, 'models/local');
 assert.equal(config.output?.modelBaseId, 'gemma-4-e2b-it-q4k-ehf16-af32');
-assert.equal(config.output?.textOnly, true);
+assert.equal(config.output?.textOnly, false);
 
 assert.equal(config.quantization?.weights, 'q4k');
 assert.equal(config.quantization?.embeddings, 'f16');

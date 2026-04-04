@@ -211,7 +211,9 @@ function normalizeTensorName(tensor) {
 function shouldExcludeTextOnlyTensor(name) {
   const lower = name.toLowerCase();
   return lower.startsWith('vision_tower.')
+    || lower.startsWith('model.vision_tower.')
     || lower.startsWith('vision_model.')
+    || lower.startsWith('model.vision_model.')
     || lower.startsWith('visual.')
     || lower.startsWith('model.visual.')
     || lower.startsWith('embed_vision.')
@@ -224,7 +226,9 @@ function shouldExcludeTextOnlyTensor(name) {
     || lower.startsWith('image.')
     || lower.startsWith('model.image.')
     || lower.startsWith('audio_tower.')
+    || lower.startsWith('model.audio_tower.')
     || lower.startsWith('audio_model.')
+    || lower.startsWith('model.audio_model.')
     || lower.startsWith('audio.')
     || lower.startsWith('model.audio.')
     || lower.startsWith('audio_encoder.')

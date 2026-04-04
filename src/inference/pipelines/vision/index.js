@@ -1,11 +1,12 @@
 
 
-import { trace } from '../../../debug/index.js';
+import { log } from '../../../debug/index.js';
 import { getDevice } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { preprocessImage } from './image-preprocess.js';
 import { patchEmbed } from './patch-embed.js';
 import { runVisionEncoder } from './encoder.js';
+import { encodeGemma4Image } from './gemma4.js';
 
 /**
  * Encode an image through the vision pipeline.
@@ -28,18 +29,20 @@ export async function encodeImage(params) {
   const { pixels, width, height, visionConfig, weights } = params;
 
   const arch = visionConfig.visionArchitecture ?? 'qwen3vl';
-  trace('vision', `encodeImage: ${width}x${height} input, arch=${arch}`);
+  log.debug('Vision', `encodeImage: ${width}x${height} input, arch=${arch}`);
 
   // Architecture-specific preprocessing dispatch
   let preprocessed;
   switch (arch) {
+    case 'gemma4':
+      return encodeGemma4Image(params);
     case 'qwen3vl':
       preprocessed = preprocessImage(pixels, width, height, visionConfig);
       break;
     default:
       throw new Error(
         `Unsupported vision architecture "${arch}". ` +
-        'Supported: qwen3vl. Check manifest.visionArchitecture or vision_config.vision_architecture.'
+        'Supported: gemma4, qwen3vl. Check manifest.visionArchitecture or vision_config.vision_architecture.'
       );
   }
 
@@ -105,11 +108,11 @@ export function mergeVisualTokens(params) {
   }
 
   if (imagePositions.length === 0) {
-    trace('vision', 'mergeVisualTokens: no image tokens found, returning text-only');
+    log.debug('Vision', 'mergeVisualTokens: no image tokens found, returning text-only');
     return { mergedEmbeddings: textEmbeddings, mergedLength: tokenIds.length };
   }
 
-  trace('vision', `mergeVisualTokens: replacing ${imagePositions.length} image tokens with ${numVisualTokens} visual tokens`);
+  log.debug('Vision', `mergeVisualTokens: replacing ${imagePositions.length} image tokens with ${numVisualTokens} visual tokens`);
 
   // The merged sequence replaces contiguous image_token_id runs with visual features.
   // For Qwen3-VL: image tokens appear as a block between vision_start and vision_end tokens.

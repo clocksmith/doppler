@@ -21,11 +21,16 @@ function buildSafetensorsBytes() {
       shape: [2, 2],
       data_offsets: [8, 16],
     },
+    'model.layers.0.self_attn.q_proj.input_max': {
+      dtype: 'BF16',
+      shape: [],
+      data_offsets: [16, 18],
+    },
   };
   const headerBytes = encodeJson(header);
   const prefix = new ArrayBuffer(8);
   new DataView(prefix).setBigUint64(0, BigInt(headerBytes.byteLength), true);
-  const data = new Uint8Array(16);
+  const data = new Uint8Array(18);
   for (let i = 0; i < data.byteLength; i++) {
     data[i] = i;
   }
@@ -68,24 +73,15 @@ try {
     },
   }), 'utf8');
 
-  const bundle = await resolveNodeSourceRuntimeBundle({
-    inputPath: fixtureDir,
-    modelId: 'node-source-runtime-test',
-    verifyHashes: true,
-  });
-  assert.ok(bundle);
-  assert.equal(bundle.sourceKind, 'safetensors');
-  assert.equal(bundle.manifest.modelId, 'node-source-runtime-test');
-  assert.equal(bundle.storageContext.verifyHashes, true);
-  assert.equal(bundle.storageContext.loadShardRange, null);
-  assert.equal(bundle.manifest.quantizationInfo.compute, 'f32');
-  assert.equal(bundle.manifest.inference.defaultKernelPath, 'gemma3-f16-fused-f32a-online');
-
-  const shard = await bundle.storageContext.loadShard(0);
-  assert.ok(new Uint8Array(shard).byteLength > 0);
-
-  const tokenizer = await bundle.storageContext.loadTokenizerJson();
-  assert.equal(typeof tokenizer, 'object');
+  await assert.rejects(
+    () => resolveNodeSourceRuntimeBundle({
+      inputPath: fixtureDir,
+      modelId: 'node-source-runtime-test',
+      verifyHashes: true,
+    }),
+    /execution\.kernels object \(v1 format\)|legacy conversion \(v0\) is no longer supported/i,
+    'node source runtime must fail closed when no explicit v1 execution graph is available'
+  );
 } finally {
   rmSync(fixtureDir, { recursive: true, force: true });
 }

@@ -689,19 +689,124 @@ function resolveVisionConfig(rawConfig, manifest) {
     );
     return null;
   }
+  const rawVisionArchitecture = vc.vision_architecture ?? manifest?.visionArchitecture ?? null;
+  const rawModelType = typeof vc.model_type === 'string' ? vc.model_type.trim().toLowerCase() : '';
+  const visionArchitecture = rawVisionArchitecture
+    ?? (rawModelType === 'gemma4_vision' ? 'gemma4' : null);
+  const modelId = manifest?.modelId ?? 'unknown';
+  const resolveRequiredVisionField = (keys, label) => {
+    for (const key of keys) {
+      if (vc[key] !== undefined) {
+        return vc[key];
+      }
+    }
+    throw new Error(
+      `Manifest "${modelId}" is missing vision_config.${label}. ` +
+      'Re-convert the model with explicit vision config metadata.'
+    );
+  };
+  const resolveRequiredPositiveInteger = (keys, label) => {
+    const value = resolveRequiredVisionField(keys, label);
+    const number = Number(value);
+    if (!Number.isFinite(number) || number <= 0 || Math.floor(number) !== number) {
+      throw new Error(
+        `Manifest "${modelId}" has invalid vision_config.${label}=${JSON.stringify(value)}. ` +
+        'Expected a positive integer.'
+      );
+    }
+    return Math.trunc(number);
+  };
+  const resolveRequiredPositiveNumber = (value, label) => {
+    const number = Number(value);
+    if (!Number.isFinite(number) || number <= 0) {
+      throw new Error(
+        `Manifest "${modelId}" has invalid ${label}=${JSON.stringify(value)}. ` +
+        'Expected a positive number.'
+      );
+    }
+    return number;
+  };
+
+  if (visionArchitecture === 'gemma4') {
+    const hiddenSize = resolveRequiredPositiveInteger(['hidden_size'], 'hidden_size');
+    const numHeads = resolveRequiredPositiveInteger(['num_heads', 'num_attention_heads'], 'num_attention_heads');
+    const ropeParameters = vc.rope_parameters;
+    if (!ropeParameters || typeof ropeParameters !== 'object') {
+      throw new Error(
+        `Manifest "${modelId}" is missing vision_config.rope_parameters. ` +
+        'Re-convert the model with explicit Gemma 4 vision RoPE metadata.'
+      );
+    }
+    const hiddenActivation = String(resolveRequiredVisionField(['hidden_activation'], 'hidden_activation')).trim();
+    if (hiddenActivation !== 'gelu' && hiddenActivation !== 'gelu_pytorch_tanh') {
+      throw new Error(
+        `Manifest "${modelId}" has unsupported Gemma 4 vision hidden_activation="${hiddenActivation}". ` +
+        'Supported values: "gelu", "gelu_pytorch_tanh".'
+      );
+    }
+    if (vc.standardize === true) {
+      throw new Error(
+        `Manifest "${modelId}" enables vision_config.standardize, but Gemma 4 runtime preprocessing does not support it yet.`
+      );
+    }
+    if (vc.use_clipped_linears !== true) {
+      throw new Error(
+        `Manifest "${modelId}" requires vision_config.use_clipped_linears=true for Gemma 4 vision weights.`
+      );
+    }
+
+    return {
+      depth: resolveRequiredPositiveInteger(['depth', 'num_hidden_layers'], 'num_hidden_layers'),
+      hiddenSize,
+      intermediateSize: resolveRequiredPositiveInteger(['intermediate_size'], 'intermediate_size'),
+      numHeads,
+      numKeyValueHeads: resolveRequiredPositiveInteger(['num_key_value_heads'], 'num_key_value_heads'),
+      headDim: resolveRequiredPositiveInteger(['head_dim', 'global_head_dim'], 'head_dim'),
+      outHiddenSize: vc.out_hidden_size ?? vc.output_proj_dims ?? null,
+      patchSize: resolveRequiredPositiveInteger(['patch_size'], 'patch_size'),
+      poolingKernelSize: resolveRequiredPositiveInteger(['pooling_kernel_size'], 'pooling_kernel_size'),
+      spatialMergeSize: vc.spatial_merge_size ?? null,
+      temporalPatchSize: vc.temporal_patch_size ?? null,
+      positionEmbeddingSize: resolveRequiredPositiveInteger(['position_embedding_size'], 'position_embedding_size'),
+      defaultOutputLength: resolveRequiredPositiveInteger(['default_output_length'], 'default_output_length'),
+      ropeTheta: resolveRequiredPositiveNumber(ropeParameters.rope_theta, 'vision_config.rope_parameters.rope_theta'),
+      eps: resolveRequiredPositiveNumber(
+        resolveRequiredVisionField(['eps', 'rms_norm_eps'], 'rms_norm_eps'),
+        'vision_config.rms_norm_eps'
+      ),
+      hiddenActivation,
+      standardize: false,
+      useClippedLinears: true,
+      deepstackVisualIndexes: [],
+      imageTokenId: rawConfig?.image_token_id ?? manifest?.image_token_id ?? null,
+      visionArchitecture,
+    };
+  }
+
+  const hiddenSize = vc.hidden_size ?? 1024;
+  const numHeads = vc.num_heads ?? vc.num_attention_heads ?? 16;
   return {
-    depth: vc.depth ?? 24,
-    hiddenSize: vc.hidden_size ?? 1024,
+    depth: vc.depth ?? vc.num_hidden_layers ?? 24,
+    hiddenSize,
     intermediateSize: vc.intermediate_size ?? 4096,
-    numHeads: vc.num_heads ?? 16,
-    outHiddenSize: vc.out_hidden_size ?? vc.hidden_size ?? 1024,
+    numHeads,
+    numKeyValueHeads: vc.num_key_value_heads ?? numHeads,
+    headDim: vc.head_dim ?? vc.global_head_dim ?? Math.floor(hiddenSize / numHeads),
+    outHiddenSize: vc.out_hidden_size ?? vc.output_proj_dims ?? hiddenSize,
     patchSize: vc.patch_size ?? 16,
+    poolingKernelSize: vc.pooling_kernel_size ?? vc.spatial_merge_size ?? 2,
     spatialMergeSize: vc.spatial_merge_size ?? 2,
     temporalPatchSize: vc.temporal_patch_size ?? 2,
-    eps: vc.eps ?? 1e-6,
+    positionEmbeddingSize: vc.position_embedding_size ?? null,
+    defaultOutputLength: vc.default_output_length ?? null,
+    ropeTheta: vc.rope_parameters?.rope_theta ?? null,
+    eps: vc.eps ?? vc.rms_norm_eps ?? 1e-6,
+    hiddenActivation: vc.hidden_activation ?? 'gelu',
+    standardize: vc.standardize === true,
+    useClippedLinears: vc.use_clipped_linears === true,
     deepstackVisualIndexes: Array.isArray(vc.deepstack_visual_indexes) ? vc.deepstack_visual_indexes : [],
     imageTokenId: rawConfig?.image_token_id ?? manifest?.image_token_id ?? null,
-    visionArchitecture: vc.vision_architecture ?? manifest?.visionArchitecture ?? null,
+    visionArchitecture,
   };
 }
 

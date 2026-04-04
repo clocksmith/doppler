@@ -2,12 +2,15 @@
   "output": {
     "baseDir": "models/local",
     "modelBaseId": "gemma-4-e2b-it-q4k-ehf16-af32",
-    "textOnly": true
+    "textOnly": false
   },
   "quantization": {
     "weights": "q4k",
     "embeddings": "f16",
     "lmHead": "f16",
+    "vision": "f16",
+    "projector": "f16",
+    "audio": "f16",
     "computePrecision": "f32",
     "q4kLayout": "row"
   },
