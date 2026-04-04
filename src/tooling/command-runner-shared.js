@@ -148,6 +148,7 @@ export function buildSuiteOptions(request, surface = null) {
     command: request.command,
     surface: normalizedSurface,
     ...(expectedModelType ? { expectedModelType } : {}),
+    inferenceInput: request.inferenceInput ?? undefined,
     modelId: request.modelId ?? undefined,
     trainingTests: request.trainingTests ?? undefined,
     trainingStage: request.trainingStage ?? undefined,

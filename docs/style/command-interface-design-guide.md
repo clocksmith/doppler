@@ -59,6 +59,8 @@ Rules:
 - `verify` is valid for `kernels`, `inference`, `embedding`, `training`, `diffusion`, and `energy`.
 - `convert`, `lora`, and `distill` do not use workload-locked harness execution.
 - `workloadType` is reserved for submodes inside a workload family when a family needs it, such as training stage selection or diffusion lane selection.
+- `request.inferenceInput` is reserved for request-owned inference payloads such as prompt overrides and multimodal image inputs.
+- `request.inferenceInput` is workload data, not runtime tuning; sampling, kernel, and cache policy still belong in runtime config.
 - Runtime profile names must be orthogonal to command and workload names. Do not use `profiles/debug`, `profiles/bench`, or `profiles/embedding` as profile IDs.
 
 ---

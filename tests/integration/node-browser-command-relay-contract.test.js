@@ -148,6 +148,37 @@ const KERNELS_REQUEST = {
   }
 }
 
+{
+  const imageDir = await fs.mkdtemp(path.join(tmpdir(), 'doppler-browser-relay-input-image-'));
+  const imagePath = path.join(imageDir, 'input.png');
+  await fs.writeFile(imagePath, Buffer.from([137, 80, 78, 71]), 'binary');
+  try {
+    const resolution = await resolveLocalFileModelUrlForBrowserRelay({
+      command: 'verify',
+      workload: 'inference',
+      modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+      inferenceInput: {
+        prompt: 'Describe the image.',
+        image: {
+          url: pathToFileURL(imagePath).href,
+        },
+      },
+    });
+    assert.ok(
+      resolution.relayRequest.inferenceInput.image.url.startsWith('/__doppler_local_input_image/'),
+      `expected relay image mount, got ${resolution.relayRequest.inferenceInput.image.url}`
+    );
+    assert.equal(resolution.staticMounts.length, 1);
+    assert.equal(resolution.staticMounts[0].rootDir, imageDir);
+    assert.ok(
+      resolution.relayRequest.inferenceInput.image.url.endsWith('/input.png'),
+      `expected image relay URL to keep the filename, got ${resolution.relayRequest.inferenceInput.image.url}`
+    );
+  } finally {
+    await fs.rm(imageDir, { recursive: true, force: true });
+  }
+}
+
 await assert.rejects(
   () => runBrowserCommandInNode({ ...KERNELS_REQUEST, keepPipeline: true }),
   /browser command relay does not support keepPipeline=true/
@@ -266,6 +297,32 @@ await assert.rejects(
     );
   } finally {
     await fs.rm(runtimeDir, { recursive: true, force: true });
+  }
+}
+
+{
+  const imageDir = await fs.mkdtemp(path.join(tmpdir(), 'doppler-browser-relay-input-image-'));
+  const imagePath = path.join(imageDir, 'input.png');
+  await fs.writeFile(imagePath, Buffer.from([137, 80, 78, 71]), 'binary');
+  try {
+    await assert.rejects(
+      () => runBrowserCommandInNode({
+        command: 'verify',
+        workload: 'inference',
+        modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+        inferenceInput: {
+          prompt: 'Describe the image.',
+          image: {
+            url: pathToFileURL(imagePath).href,
+          },
+        },
+      }, {
+        baseUrl: 'http://127.0.0.1:1',
+      }),
+      /browser command: explicit local file:\/\/ inferenceInput\.image\.url requires the relay-owned static server/
+    );
+  } finally {
+    await fs.rm(imageDir, { recursive: true, force: true });
   }
 }
 

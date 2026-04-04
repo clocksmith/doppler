@@ -25,10 +25,41 @@ export interface ToolingConvertPayload {
   [key: string]: unknown;
 }
 
+export interface ToolingInferenceImageInput {
+  url?: string | null;
+  width?: number | null;
+  height?: number | null;
+  pixels?: number[] | ArrayBufferView | null;
+  pixelDataBase64?: string | null;
+}
+
+export interface ToolingNormalizedInferenceImageInput {
+  url: string | null;
+  width: number | null;
+  height: number | null;
+  pixels: number[] | null;
+  pixelDataBase64: string | null;
+}
+
+export interface ToolingInferenceInput {
+  prompt?: string | Record<string, unknown> | unknown[] | null;
+  image?: ToolingInferenceImageInput | null;
+  maxTokens?: number | null;
+  softTokenBudget?: number | null;
+}
+
+export interface ToolingNormalizedInferenceInput {
+  prompt: string | Record<string, unknown> | unknown[] | null;
+  image: ToolingNormalizedInferenceImageInput | null;
+  maxTokens: number | null;
+  softTokenBudget: number | null;
+}
+
 export interface ToolingCommandRequestInput {
   command: ToolingCommand;
   action?: ToolingDistillAction | ToolingLoraAction;
   workload?: ToolingWorkload;
+  inferenceInput?: ToolingInferenceInput | null;
   modelId?: string;
   trainingTests?: string[];
   trainingStage?: ToolingTrainingStage;
@@ -93,6 +124,7 @@ export interface ToolingCommandRequest {
   workload: ToolingWorkload | null;
   intent: ToolingIntent;
   action: ToolingDistillAction | ToolingLoraAction | null;
+  inferenceInput: ToolingNormalizedInferenceInput | null;
   modelId: string | null;
   trainingTests: string[] | null;
   trainingStage: ToolingTrainingStage | null;

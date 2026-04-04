@@ -47,7 +47,7 @@ import {
   resolveBenchmarkRunSettings,
   runEmbeddingSemanticChecks,
   isCoherentOutput,
-  runGeneration,
+  runTextInference,
   runEmbedding,
 } from './browser-harness-text-helpers.js';
 import { buildSuiteContractMetrics } from './browser-harness-contract-helpers.js';
@@ -435,7 +435,11 @@ async function runInferenceSuite(options = {}) {
       embeddingPreview: run.preview,
     };
   } else {
-    const run = await runGeneration(harness.pipeline, runtimeConfig);
+    const run = await runTextInference(
+      harness.pipeline,
+      runtimeConfig,
+      options.inferenceInput ?? null
+    );
     const coherent = isCoherentOutput(run.tokens, run.output);
     results = [
       {
@@ -780,7 +784,10 @@ async function runBenchSuite(options = {}) {
     let lastBatchGuardReason = null;
     for (let i = 0; i < warmupRuns + timedRuns; i++) {
       harness.pipeline.reset?.();
-      const run = await runGeneration(harness.pipeline, runtimeConfig, benchRun);
+      const run = await runTextInference(harness.pipeline, runtimeConfig, {
+        ...benchRun,
+        ...(options.inferenceInput ?? {}),
+      });
       if (i === warmupRuns + timedRuns - 1) {
         generatedText = run?.output ?? null;
         generatedPromptInput = run?.promptInput ?? null;

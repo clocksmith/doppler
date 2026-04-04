@@ -73,9 +73,9 @@ Important surface rules:
 | Command | Required request fields | Notes |
 | --- | --- | --- |
 | `convert` | `request.inputDir`, `request.convertPayload.converterConfig` | CLI/browser relay: Node-only. Direct `runBrowserCommand(...)`: supported with injected `convertHandler` |
-| `verify` | `request.workload` plus `request.modelId` except `kernels` | `request.workload` is required and may be `embedding` for embedding-model correctness checks; `request.modelUrl` is optional when `request.modelId` is present |
-| `debug` | `request.workload` plus `request.modelId` | `request.workload` is required and may be `inference` or `embedding` |
-| `bench` | `request.workload` plus `request.modelId` | `request.workload` is required and may be `inference`, `embedding`, `training`, `diffusion`, or `energy`; `workload="training"` intentionally allows `modelId: null` |
+| `verify` | `request.workload` plus `request.modelId` except `kernels` | `request.workload` is required and may be `embedding` for embedding-model correctness checks; `request.modelUrl` is optional when `request.modelId` is present; `request.inferenceInput` is available for request-owned inference payloads when `workload="inference"` |
+| `debug` | `request.workload` plus `request.modelId` | `request.workload` is required and may be `inference` or `embedding`; `request.inferenceInput` is available when `workload="inference"` |
+| `bench` | `request.workload` plus `request.modelId` | `request.workload` is required and may be `inference`, `embedding`, `training`, `diffusion`, or `energy`; `workload="training"` intentionally allows `modelId: null`; `request.inferenceInput` is available when `workload="inference"` |
 | `distill` | `request.action` plus `request.workloadPath` or `request.runRoot` | Node-only today; browser fails closed |
 | `lora` | `request.action` plus `request.workloadPath` or `request.runRoot` | Node-only today; browser fails closed |
 
@@ -103,6 +103,13 @@ CLI notes:
 - `convert` rejects `runtimeProfile`, `runtimeConfigUrl`, `runtimeConfig`, and `configChain` because the convert runner does not consume runtime config
 - explicit `convertPayload.execution.useGpuCast=true` is fail-closed; if Node WebGPU is unavailable or GPU casting fails, conversion errors instead of silently falling back to CPU
 - `loadMode="memory"` is Node-only and requires local filesystem model data; direct-source loads now default to hash verification when `runtime.loading.shardCache.verifyHashes` is not overridden
+- `request.inferenceInput` is the shared request-owned inference payload. It currently supports:
+  - `prompt`: string or structured prompt object/array for text inference
+  - `maxTokens`: request-local max token override
+  - `image`: one of `url`, `pixels`, or `pixelDataBase64` for image-to-text flows
+  - `softTokenBudget`: per-request visual token budget when `image` is present
+- raw image payloads require `image.width` and `image.height`; `image.pixels` / `image.pixelDataBase64` must contain RGB or RGBA bytes
+- browser relay can rewrite a local `file://` `request.inferenceInput.image.url` onto the relay-owned static server; direct browser/Node surfaces otherwise require a decodable URL in the active runtime
 - a persisted direct-source manifest can be written with `node tools/materialize-source-manifest.js <source-dir-or-gguf>` and then loaded through `loadMode="http"` from a `file://` or hosted manifest root
 - in browser runs, a persisted direct-source artifact can now be cache-primed into OPFS and later reopened with `loadMode="opfs"` when the request includes `modelId` plus the explicit hosted `modelUrl`
 - debug runs and any run with active investigation instrumentation persist a `debugSnapshot` in the run result/report so probe and trace logs survive beyond live console output
@@ -170,6 +177,26 @@ const embeddingDebug = normalizeToolingCommandRequest({
   command: 'debug',
   workload: 'embedding',
   modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
+});
+```
+
+## Image-to-Text Example
+
+```js
+const imageVerify = normalizeToolingCommandRequest({
+  command: 'verify',
+  workload: 'inference',
+  modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+  inferenceInput: {
+    prompt: 'Describe the image in one short sentence.',
+    maxTokens: 16,
+    softTokenBudget: 140,
+    image: {
+      width: 1,
+      height: 1,
+      pixels: [255, 255, 255, 255],
+    },
+  },
 });
 ```
 

@@ -204,6 +204,7 @@ export function createCommandRequestBase(raw, command) {
     workload: null,
     intent: null,
     action: null,
+    inferenceInput: null,
     modelId: null,
     trainingTests: null,
     trainingStage: null,

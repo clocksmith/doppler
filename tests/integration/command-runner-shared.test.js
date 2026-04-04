@@ -157,6 +157,18 @@ function mergeRuntime(base, patch) {
   const suiteOptions = buildSuiteOptions({
     command: 'verify',
     workload: 'inference',
+    inferenceInput: {
+      prompt: 'Describe the image.',
+      maxTokens: 8,
+      softTokenBudget: 70,
+      image: {
+        url: null,
+        width: 1,
+        height: 1,
+        pixels: [255, 255, 255, 255],
+        pixelDataBase64: null,
+      },
+    },
     modelId: 'gemma-3-270m-it-f16-af32',
     workloadType: null,
     trainingTests: null,
@@ -194,6 +206,18 @@ function mergeRuntime(base, patch) {
     workload: 'inference',
     command: 'verify',
     surface: 'node',
+    inferenceInput: {
+      prompt: 'Describe the image.',
+      maxTokens: 8,
+      softTokenBudget: 70,
+      image: {
+        url: null,
+        width: 1,
+        height: 1,
+        pixels: [255, 255, 255, 255],
+        pixelDataBase64: null,
+      },
+    },
     modelId: 'gemma-3-270m-it-f16-af32',
     workloadType: undefined,
     trainingTests: undefined,
@@ -240,6 +264,7 @@ function mergeRuntime(base, patch) {
   const suiteOptions = buildSuiteOptions({
     command: 'bench',
     workload: 'embedding',
+    inferenceInput: null,
     modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
     workloadType: null,
     trainingTests: null,
@@ -276,6 +301,7 @@ function mergeRuntime(base, patch) {
   assert.equal(suiteOptions.workload, 'embedding');
   assert.equal(suiteOptions.command, 'bench');
   assert.equal(suiteOptions.expectedModelType, 'embedding');
+  assert.equal(suiteOptions.inferenceInput, undefined);
   assert.equal(suiteOptions.runtimeProfile, 'profiles/vector-throughput');
 }
 
@@ -283,6 +309,7 @@ function mergeRuntime(base, patch) {
   const trainingSuiteOptions = buildSuiteOptions({
     command: 'verify',
     workload: 'training',
+    inferenceInput: null,
     modelId: null,
     workloadType: 'training',
     trainingTests: ['ul-stage1'],
@@ -324,6 +351,7 @@ function mergeRuntime(base, patch) {
     workload: 'training',
     command: 'verify',
     surface: 'node',
+    inferenceInput: undefined,
     modelId: undefined,
     workloadType: 'training',
     trainingTests: ['ul-stage1'],

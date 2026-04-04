@@ -1,3 +1,4 @@
+import { isPlainObject } from '../utils/plain-object.js';
 import {
   DISTILL_ACTION_SET,
   LORA_ACTION_SET,
@@ -34,6 +35,147 @@ function resolveDebugRequestWorkload(raw) {
     );
   }
   return workload;
+}
+
+function cloneCommandValue(value) {
+  if (typeof structuredClone === 'function') {
+    return structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value));
+}
+
+function normalizeInferencePrompt(value, label) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      throw new Error(`tooling command: ${label} must not be empty when provided.`);
+    }
+    return trimmed;
+  }
+  if (Array.isArray(value) || isPlainObject(value)) {
+    return cloneCommandValue(value);
+  }
+  throw new Error(`tooling command: ${label} must be a string, array, or object when provided.`);
+}
+
+function normalizeInferenceImagePixels(value, label) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  const bytes = ArrayBuffer.isView(value)
+    ? Array.from(new Uint8Array(value.buffer, value.byteOffset, value.byteLength))
+    : (Array.isArray(value) ? value : null);
+  if (!Array.isArray(bytes)) {
+    throw new Error(`tooling command: ${label} must be an array or typed array when provided.`);
+  }
+  return bytes.map((entry, index) => {
+    const parsed = Number(entry);
+    if (!Number.isInteger(parsed) || parsed < 0 || parsed > 255) {
+      throw new Error(`tooling command: ${label}[${index}] must be an integer in [0, 255].`);
+    }
+    return parsed;
+  });
+}
+
+function normalizeInferenceImage(value, label) {
+  const image = asOptionalObject(value, label);
+  if (!image) {
+    return null;
+  }
+
+  const allowedKeys = new Set(['url', 'width', 'height', 'pixels', 'pixelDataBase64']);
+  for (const key of Object.keys(image)) {
+    if (!allowedKeys.has(key)) {
+      throw new Error(`tooling command: ${label}.${key} is not supported.`);
+    }
+  }
+
+  const url = asOptionalString(image.url, `${label}.url`);
+  const width = asOptionalPositiveInteger(image.width, `${label}.width`);
+  const height = asOptionalPositiveInteger(image.height, `${label}.height`);
+  const pixelDataBase64 = asOptionalString(image.pixelDataBase64, `${label}.pixelDataBase64`);
+  const pixels = normalizeInferenceImagePixels(image.pixels, `${label}.pixels`);
+  const sourceCount = [url, pixelDataBase64, pixels].filter((entry) => entry != null).length;
+  if (sourceCount !== 1) {
+    throw new Error(
+      `tooling command: ${label} requires exactly one source: url, pixelDataBase64, or pixels.`
+    );
+  }
+  if (url) {
+    if (width != null || height != null) {
+      throw new Error(
+        `tooling command: ${label}.width and ${label}.height are only valid for raw pixel inputs.`
+      );
+    }
+    return {
+      url,
+      width: null,
+      height: null,
+      pixels: null,
+      pixelDataBase64: null,
+    };
+  }
+  if (width == null || height == null) {
+    throw new Error(
+      `tooling command: ${label}.width and ${label}.height are required for raw pixel inputs.`
+    );
+  }
+  return {
+    url: null,
+    width,
+    height,
+    pixels,
+    pixelDataBase64,
+  };
+}
+
+function normalizeInferenceInput(value, workload) {
+  const inferenceInput = asOptionalObject(value, 'inferenceInput');
+  if (!inferenceInput) {
+    return null;
+  }
+  if (workload !== 'inference') {
+    throw new Error('tooling command: inferenceInput requires workload="inference".');
+  }
+
+  const allowedKeys = new Set(['prompt', 'image', 'maxTokens', 'softTokenBudget']);
+  for (const key of Object.keys(inferenceInput)) {
+    if (!allowedKeys.has(key)) {
+      throw new Error(`tooling command: inferenceInput.${key} is not supported.`);
+    }
+  }
+
+  const prompt = normalizeInferencePrompt(inferenceInput.prompt, 'inferenceInput.prompt');
+  const image = normalizeInferenceImage(inferenceInput.image, 'inferenceInput.image');
+  const maxTokens = asOptionalPositiveInteger(inferenceInput.maxTokens, 'inferenceInput.maxTokens');
+  const softTokenBudget = asOptionalPositiveInteger(
+    inferenceInput.softTokenBudget,
+    'inferenceInput.softTokenBudget'
+  );
+
+  if (softTokenBudget != null && image == null) {
+    throw new Error('tooling command: inferenceInput.softTokenBudget requires inferenceInput.image.');
+  }
+  if (image && prompt != null && typeof prompt !== 'string') {
+    throw new Error(
+      'tooling command: inferenceInput.prompt must be a string when inferenceInput.image is provided.'
+    );
+  }
+  if (prompt == null && image == null && maxTokens == null && softTokenBudget == null) {
+    throw new Error(
+      'tooling command: inferenceInput must specify prompt, image, maxTokens, or softTokenBudget.'
+    );
+  }
+
+  return {
+    prompt,
+    image,
+    maxTokens,
+    softTokenBudget,
+  };
 }
 
 function resolveBenchRequestWorkload(raw) {
@@ -252,6 +394,7 @@ export function normalizeSuiteCommand(raw, command) {
   );
   const trainingBenchSteps = asOptionalPositiveInteger(raw.trainingBenchSteps, 'trainingBenchSteps');
   const checkpointEvery = asOptionalPositiveInteger(raw.checkpointEvery, 'checkpointEvery');
+  const inferenceInput = normalizeInferenceInput(raw.inferenceInput, workload);
   const inputWorkloadType = asOptionalString(raw.workloadType, 'workloadType');
   if (
     inputWorkloadType
@@ -356,6 +499,7 @@ export function normalizeSuiteCommand(raw, command) {
     ...createCommandRequestBase(raw, command),
     workload,
     intent: runtimeContract.intent,
+    inferenceInput,
     modelId,
     trainingTests,
     trainingStage,

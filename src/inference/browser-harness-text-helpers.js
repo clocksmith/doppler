@@ -38,6 +38,7 @@ const DEFAULT_TRANSLATEGEMMA_PROMPT = Object.freeze({
     }),
   ]),
 });
+const DEFAULT_IMAGE_TRANSCRIPTION_PROMPT = 'Describe the image in one short sentence.';
 const DEFAULT_HARNESS_MAX_TOKENS = 32;
 const EMBEDDING_PREVIEW_LENGTH = 16;
 const GENERATION_TOKEN_DIAGNOSTIC_LIMIT = 32;
@@ -348,6 +349,12 @@ function describePromptInput(promptInput) {
   if (typeof promptInput === 'string') {
     return promptInput.trim() || DEFAULT_HARNESS_PROMPT;
   }
+  if (isPlainObject(promptInput?.image) && typeof promptInput?.prompt === 'string') {
+    const width = Number.isFinite(promptInput.image.width) ? promptInput.image.width : '?';
+    const height = Number.isFinite(promptInput.image.height) ? promptInput.image.height : '?';
+    const source = asText(promptInput.image.source) ?? 'image';
+    return `${source} ${width}x${height}: ${promptInput.prompt}`;
+  }
   const firstMessage = Array.isArray(promptInput?.messages)
     ? promptInput.messages[0]
     : null;
@@ -370,6 +377,175 @@ function describePromptInput(promptInput) {
   } catch {
     return '[structured prompt]';
   }
+}
+
+function decodeBase64ToBytes(base64, label) {
+  const normalized = asText(base64);
+  if (!normalized) {
+    throw new Error(`${label} must be a non-empty base64 string.`);
+  }
+  if (typeof Buffer !== 'undefined') {
+    return new Uint8Array(Buffer.from(normalized, 'base64'));
+  }
+  if (typeof atob === 'function') {
+    const binary = atob(normalized);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+  }
+  throw new Error(`${label} requires a base64 decoder in this runtime.`);
+}
+
+function assertRawImageByteLength(bytes, width, height, label) {
+  const expectedRgb = width * height * 3;
+  const expectedRgba = width * height * 4;
+  if (bytes.length !== expectedRgb && bytes.length !== expectedRgba) {
+    throw new Error(
+      `${label} must contain width*height*3 or width*height*4 bytes. ` +
+      `Got ${bytes.length} for ${width}x${height}.`
+    );
+  }
+}
+
+function normalizeRawImageBytes(value, width, height, label) {
+  let bytes = null;
+  if (ArrayBuffer.isView(value)) {
+    bytes = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+  } else if (Array.isArray(value)) {
+    const normalized = new Uint8Array(value.length);
+    for (let i = 0; i < value.length; i++) {
+      const parsed = Number(value[i]);
+      if (!Number.isInteger(parsed) || parsed < 0 || parsed > 255) {
+        throw new Error(`${label}[${i}] must be an integer in [0, 255].`);
+      }
+      normalized[i] = parsed;
+    }
+    bytes = normalized;
+  }
+  if (!(bytes instanceof Uint8Array)) {
+    throw new Error(`${label} must be an array or typed array.`);
+  }
+  assertRawImageByteLength(bytes, width, height, label);
+  return new Uint8Array(bytes);
+}
+
+function createCanvasForImageDecode(width, height) {
+  if (typeof OffscreenCanvas === 'function') {
+    return new OffscreenCanvas(width, height);
+  }
+  if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    return canvas;
+  }
+  return null;
+}
+
+async function decodeImageUrlToPixels(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`image fetch failed: HTTP ${response.status}`);
+  }
+  if (typeof createImageBitmap !== 'function') {
+    throw new Error(
+      'URL-backed inferenceInput.image.url requires createImageBitmap support. ' +
+      'Use raw pixels or run on a browser-capable surface.'
+    );
+  }
+
+  const imageBlob = await response.blob();
+  const imageBitmap = await createImageBitmap(imageBlob);
+  try {
+    const canvas = createCanvasForImageDecode(imageBitmap.width, imageBitmap.height);
+    if (!canvas) {
+      throw new Error(
+        'URL-backed inferenceInput.image.url requires OffscreenCanvas or a DOM canvas in this runtime. ' +
+        'Use raw pixels or run on a browser-capable surface.'
+      );
+    }
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    if (!context || typeof context.getImageData !== 'function') {
+      throw new Error('Image decode canvas did not provide a readable 2D context.');
+    }
+    context.drawImage(imageBitmap, 0, 0);
+    const imageData = context.getImageData(0, 0, imageBitmap.width, imageBitmap.height);
+    return {
+      imageBytes: new Uint8Array(imageData.data),
+      width: imageBitmap.width,
+      height: imageBitmap.height,
+    };
+  } finally {
+    imageBitmap.close?.();
+  }
+}
+
+async function resolveInferenceImagePayload(imageInput) {
+  if (!isPlainObject(imageInput)) {
+    throw new Error('inference image input must be an object.');
+  }
+
+  if (typeof imageInput.url === 'string' && imageInput.url.trim()) {
+    const decoded = await decodeImageUrlToPixels(imageInput.url.trim());
+    return {
+      imageBytes: decoded.imageBytes,
+      width: decoded.width,
+      height: decoded.height,
+      descriptor: {
+        source: 'url',
+        width: decoded.width,
+        height: decoded.height,
+        url: imageInput.url.trim(),
+      },
+    };
+  }
+
+  const width = Math.max(1, Math.floor(Number(imageInput.width)));
+  const height = Math.max(1, Math.floor(Number(imageInput.height)));
+  if (!Number.isFinite(width) || !Number.isFinite(height)) {
+    throw new Error('Raw inference image input requires positive integer width and height.');
+  }
+
+  if (typeof imageInput.pixelDataBase64 === 'string' && imageInput.pixelDataBase64.trim()) {
+    const decodedBytes = decodeBase64ToBytes(
+      imageInput.pixelDataBase64,
+      'inferenceInput.image.pixelDataBase64'
+    );
+    assertRawImageByteLength(
+      decodedBytes,
+      width,
+      height,
+      'inferenceInput.image.pixelDataBase64'
+    );
+    return {
+      imageBytes: decodedBytes,
+      width,
+      height,
+      descriptor: {
+        source: 'pixelDataBase64',
+        width,
+        height,
+      },
+    };
+  }
+
+  return {
+    imageBytes: normalizeRawImageBytes(
+      imageInput.pixels,
+      width,
+      height,
+      'inferenceInput.image.pixels'
+    ),
+    width,
+    height,
+    descriptor: {
+      source: 'pixels',
+      width,
+      height,
+    },
+  };
 }
 
 function resolveGenerationPromptInput(runtimeConfig, runOverrides = null, source = null) {
@@ -762,6 +938,65 @@ function summarizeGenerationTokens(tokenRecords) {
   };
 }
 
+function buildGenerationPhaseFromStats(pipeline, durationMs, tokenCount) {
+  const stats = typeof pipeline?.getStats === 'function'
+    ? (pipeline.getStats() || {})
+    : {};
+  const prefillMs = Number.isFinite(stats.prefillTimeMs) ? stats.prefillTimeMs : 0;
+  const ttftMs = Number.isFinite(stats.ttftMs) ? stats.ttftMs : prefillMs;
+  const decodeMs = Number.isFinite(stats.decodeTimeMs) ? stats.decodeTimeMs : 0;
+  const prefillTokens = Number.isFinite(stats.prefillTokens) ? stats.prefillTokens : 0;
+  const decodeTokens = Number.isFinite(stats.decodeTokens)
+    ? stats.decodeTokens
+    : Math.max(0, tokenCount - 1);
+  const decodeTokensPerSec = decodeMs > 0
+    ? (decodeTokens / decodeMs) * 1000
+    : 0;
+  const prefillTokensPerSec = prefillMs > 0
+    ? (prefillTokens / prefillMs) * 1000
+    : 0;
+  const prefillTokensPerSecTtft = ttftMs > 0
+    ? (prefillTokens / ttftMs) * 1000
+    : 0;
+  const gpu = {};
+  if (Number.isFinite(stats.gpuTimePrefillMs)) gpu.prefillMs = stats.gpuTimePrefillMs;
+  if (Number.isFinite(stats.gpuTimeDecodeMs)) gpu.decodeMs = stats.gpuTimeDecodeMs;
+  if (Number.isFinite(stats.decodeRecordMs)) gpu.decodeRecordMs = stats.decodeRecordMs;
+  if (Number.isFinite(stats.decodeSubmitWaitMs)) gpu.decodeSubmitWaitMs = stats.decodeSubmitWaitMs;
+  if (Number.isFinite(stats.decodeReadbackWaitMs)) gpu.decodeReadbackWaitMs = stats.decodeReadbackWaitMs;
+  if (Number.isFinite(stats.singleTokenSubmitWaitMs)) gpu.singleTokenSubmitWaitMs = stats.singleTokenSubmitWaitMs;
+  if (Number.isFinite(stats.singleTokenReadbackWaitMs)) gpu.singleTokenReadbackWaitMs = stats.singleTokenReadbackWaitMs;
+  if (Number.isFinite(stats.singleTokenOrchestrationMs)) gpu.singleTokenOrchestrationMs = stats.singleTokenOrchestrationMs;
+  const gpuPhase = Object.keys(gpu).length > 0 ? gpu : null;
+
+  return {
+    phase: {
+      totalMs: Number.isFinite(stats.totalTimeMs) ? stats.totalTimeMs : durationMs,
+      ttftMs,
+      prefillMs,
+      decodeMs,
+      prefillTokens,
+      decodeTokens,
+      prefillTokensPerSec,
+      prefillTokensPerSecTtft,
+      decodeTokensPerSec,
+      gpu: gpuPhase,
+      prefillProfileSteps: Array.isArray(stats.prefillProfileSteps)
+        ? stats.prefillProfileSteps
+        : null,
+      decodeProfileSteps: Array.isArray(stats.decodeProfileSteps)
+        ? stats.decodeProfileSteps
+        : null,
+      decodeMode: stats.decodeMode ?? null,
+      batchGuardReason: stats.batchGuardReason ?? null,
+      executionPlan: stats.executionPlan ?? null,
+      kernelPathId: stats.kernelPathId ?? null,
+      operatorDiagnostics: stats.operatorDiagnostics ?? null,
+      kernelPathSource: stats.kernelPathSource ?? null,
+    },
+  };
+}
+
 export function isCoherentOutput(tokens, output) {
   if (tokens.length === 0) return false;
   const specialTokenCount = tokens.filter((t) => SPECIAL_TOKEN_RE.test(String(t).trim())).length;
@@ -827,41 +1062,7 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
 
   const durationMs = Math.max(1, performance.now() - start);
   const tokensPerSec = (tokens.length / durationMs) * 1000;
-  const stats = typeof pipeline?.getStats === 'function'
-    ? (pipeline.getStats() || {})
-    : {};
-  const prefillMs = Number.isFinite(stats.prefillTimeMs) ? stats.prefillTimeMs : 0;
-  const ttftMs = Number.isFinite(stats.ttftMs) ? stats.ttftMs : prefillMs;
-  const decodeMs = Number.isFinite(stats.decodeTimeMs) ? stats.decodeTimeMs : 0;
-  const prefillTokens = Number.isFinite(stats.prefillTokens) ? stats.prefillTokens : 0;
-  const decodeTokens = Number.isFinite(stats.decodeTokens)
-    ? stats.decodeTokens
-    : Math.max(0, tokens.length - 1);
-  const decodeTokensPerSec = decodeMs > 0
-    ? (decodeTokens / decodeMs) * 1000
-    : 0;
-  const prefillTokensPerSec = prefillMs > 0
-    ? (prefillTokens / prefillMs) * 1000
-    : 0;
-  const prefillTokensPerSecTtft = ttftMs > 0
-    ? (prefillTokens / ttftMs) * 1000
-    : 0;
-  const gpu = {};
-  if (Number.isFinite(stats.gpuTimePrefillMs)) gpu.prefillMs = stats.gpuTimePrefillMs;
-  if (Number.isFinite(stats.gpuTimeDecodeMs)) gpu.decodeMs = stats.gpuTimeDecodeMs;
-  if (Number.isFinite(stats.decodeRecordMs)) gpu.decodeRecordMs = stats.decodeRecordMs;
-  if (Number.isFinite(stats.decodeSubmitWaitMs)) gpu.decodeSubmitWaitMs = stats.decodeSubmitWaitMs;
-  if (Number.isFinite(stats.decodeReadbackWaitMs)) gpu.decodeReadbackWaitMs = stats.decodeReadbackWaitMs;
-  if (Number.isFinite(stats.singleTokenSubmitWaitMs)) gpu.singleTokenSubmitWaitMs = stats.singleTokenSubmitWaitMs;
-  if (Number.isFinite(stats.singleTokenReadbackWaitMs)) gpu.singleTokenReadbackWaitMs = stats.singleTokenReadbackWaitMs;
-  if (Number.isFinite(stats.singleTokenOrchestrationMs)) gpu.singleTokenOrchestrationMs = stats.singleTokenOrchestrationMs;
-  const gpuPhase = Object.keys(gpu).length > 0 ? gpu : null;
-  const decodeProfileSteps = Array.isArray(stats.decodeProfileSteps)
-    ? stats.decodeProfileSteps
-    : null;
-  const prefillProfileSteps = Array.isArray(stats.prefillProfileSteps)
-    ? stats.prefillProfileSteps
-    : null;
+  const { phase } = buildGenerationPhaseFromStats(pipeline, durationMs, tokenIds.length);
 
   return {
     prompt: promptLabel,
@@ -873,27 +1074,75 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     output: tokens.join(''),
     durationMs,
     tokensPerSec,
-    phase: {
-      totalMs: Number.isFinite(stats.totalTimeMs) ? stats.totalTimeMs : durationMs,
-      ttftMs,
-      prefillMs,
-      decodeMs,
-      prefillTokens,
-      decodeTokens,
-      prefillTokensPerSec,
-      prefillTokensPerSecTtft,
-      decodeTokensPerSec,
-      gpu: gpuPhase,
-      prefillProfileSteps,
-      decodeProfileSteps,
-      decodeMode: stats.decodeMode ?? null,
-      batchGuardReason: stats.batchGuardReason ?? null,
-      executionPlan: stats.executionPlan ?? null,
-      kernelPathId: stats.kernelPathId ?? null,
-      operatorDiagnostics: stats.operatorDiagnostics ?? null,
-      kernelPathSource: stats.kernelPathSource ?? null,
-    },
+    phase,
   };
+}
+
+export async function runImageTranscription(pipeline, runtimeConfig, runOverrides = null) {
+  const imageInput = runOverrides?.image;
+  if (!isPlainObject(imageInput)) {
+    throw new Error('Image transcription requires inferenceInput.image.');
+  }
+  const prompt = typeof runOverrides?.prompt === 'string' && runOverrides.prompt.trim()
+    ? runOverrides.prompt.trim()
+    : DEFAULT_IMAGE_TRANSCRIPTION_PROMPT;
+  const maxTokens = Number.isFinite(runOverrides?.maxTokens)
+    ? Math.max(1, Math.floor(runOverrides.maxTokens))
+    : resolveMaxTokens(runtimeConfig);
+  const softTokenBudget = Number.isFinite(runOverrides?.softTokenBudget)
+    ? Math.max(1, Math.floor(runOverrides.softTokenBudget))
+    : undefined;
+  const {
+    imageBytes,
+    width,
+    height,
+    descriptor,
+  } = await resolveInferenceImagePayload(imageInput);
+  const start = performance.now();
+  const result = await pipeline.transcribeImage({
+    imageBytes,
+    width,
+    height,
+    prompt,
+    maxTokens,
+    softTokenBudget,
+  });
+  const durationMs = Math.max(1, performance.now() - start);
+  const tokenIds = Array.isArray(result?.tokens)
+    ? result.tokens.map((value) => Number(value)).filter((value) => Number.isInteger(value))
+    : [];
+  const tokenRecords = tokenIds.map((tokenId) => {
+    const decoded = pipeline?.tokenizer?.decode?.([tokenId], false, false) ?? '';
+    return {
+      id: tokenId,
+      text: decoded,
+      fallbackText: decoded,
+    };
+  });
+  const { phase } = buildGenerationPhaseFromStats(pipeline, durationMs, tokenIds.length);
+  return {
+    inputMode: 'image_to_text',
+    prompt: `image ${width}x${height}: ${prompt}`,
+    promptInput: {
+      prompt,
+      image: descriptor,
+    },
+    maxTokens,
+    tokens: tokenRecords.map((record) => record.text),
+    tokenIds,
+    tokenDiagnostics: summarizeGenerationTokens(tokenRecords),
+    output: typeof result?.text === 'string' ? result.text : tokenRecords.map((record) => record.text).join(''),
+    durationMs,
+    tokensPerSec: tokenIds.length > 0 ? (tokenIds.length / durationMs) * 1000 : 0,
+    phase,
+  };
+}
+
+export async function runTextInference(pipeline, runtimeConfig, runOverrides = null) {
+  if (isPlainObject(runOverrides?.image)) {
+    return runImageTranscription(pipeline, runtimeConfig, runOverrides);
+  }
+  return runGeneration(pipeline, runtimeConfig, runOverrides);
 }
 
 export async function runEmbedding(pipeline, runtimeConfig, runOverrides = null) {

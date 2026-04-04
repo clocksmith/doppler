@@ -95,6 +95,67 @@ import {
 
 {
   const request = normalizeToolingCommandRequest({
+    command: 'verify',
+    workload: 'inference',
+    modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+    inferenceInput: {
+      prompt: 'Describe the image.',
+      maxTokens: 12,
+      softTokenBudget: 140,
+      image: {
+        width: 1,
+        height: 1,
+        pixels: [255, 255, 255, 255],
+      },
+    },
+  });
+  assert.equal(request.inferenceInput.prompt, 'Describe the image.');
+  assert.equal(request.inferenceInput.maxTokens, 12);
+  assert.equal(request.inferenceInput.softTokenBudget, 140);
+  assert.deepEqual(request.inferenceInput.image, {
+    url: null,
+    width: 1,
+    height: 1,
+    pixels: [255, 255, 255, 255],
+    pixelDataBase64: null,
+  });
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'verify',
+      workload: 'embedding',
+      modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
+      inferenceInput: {
+        prompt: 'hello',
+      },
+    }),
+    /inferenceInput requires workload="inference"/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'verify',
+      workload: 'inference',
+      modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+      inferenceInput: {
+        prompt: { messages: [{ role: 'user', content: 'Describe the image.' }] },
+        image: {
+          width: 1,
+          height: 1,
+          pixels: [255, 255, 255, 255],
+        },
+      },
+    }),
+    /inferenceInput\.prompt must be a string when inferenceInput\.image is provided/
+  );
+}
+
+{
+  const request = normalizeToolingCommandRequest({
     command: 'diagnose',
     modelId: 'gemma-3-1b-it-f16-af32',
     baselineProvider: 'webgpu',

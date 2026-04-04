@@ -386,11 +386,15 @@ async function createLocalFileRelayMount(filePath, fieldLabel, urlPrefixRoot, op
 export async function resolveLocalFileModelUrlForBrowserRelay(request, options = {}) {
   const localModelPath = resolveLocalFileModelPath(request?.modelUrl);
   const localRuntimeConfigPath = resolveLocalFileUrlPath(request?.runtimeConfigUrl, 'request.runtimeConfigUrl');
+  const localInferenceImagePath = resolveLocalFileUrlPath(
+    request?.inferenceInput?.image?.url,
+    'request.inferenceInput.image.url'
+  );
   if (options.staticMounts != null && !Array.isArray(options.staticMounts)) {
     throw new Error('browser command: staticMounts must be an array.');
   }
   const staticMounts = Array.isArray(options.staticMounts) ? [...options.staticMounts] : [];
-  if (!localModelPath && !localRuntimeConfigPath) {
+  if (!localModelPath && !localRuntimeConfigPath && !localInferenceImagePath) {
     return {
       relayRequest: request,
       staticMounts,
@@ -430,6 +434,31 @@ export async function resolveLocalFileModelUrlForBrowserRelay(request, options =
       runtimeConfigUrl: runtimeConfigRelayMount.url,
     };
     relayStaticMounts.push(runtimeConfigRelayMount.staticMount);
+  }
+
+  if (localInferenceImagePath) {
+    const imageRelayMount = await createLocalFileRelayMount(
+      localInferenceImagePath,
+      'inferenceInput.image.url',
+      '/__doppler_local_input_image',
+      {
+        ...options,
+        originalUrl: request.inferenceInput.image.url,
+        kind: 'file',
+        fallbackName: 'input-image',
+      }
+    );
+    relayRequest = {
+      ...relayRequest,
+      inferenceInput: {
+        ...(relayRequest.inferenceInput || {}),
+        image: {
+          ...(relayRequest.inferenceInput?.image || {}),
+          url: imageRelayMount.url,
+        },
+      },
+    };
+    relayStaticMounts.push(imageRelayMount.staticMount);
   }
 
   return {
