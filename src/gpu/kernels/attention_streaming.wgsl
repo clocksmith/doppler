@@ -5,7 +5,7 @@
 // reads K/V directly from storage. Slower but compatible.
 
 override WORKGROUP_SIZE: u32 = 1u;
-const MAX_HEAD_DIM: u32 = 256u;
+const MAX_HEAD_DIM: u32 = 512u;
 
 struct Uniforms {
     num_heads: u32,

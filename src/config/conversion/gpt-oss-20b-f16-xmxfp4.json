@@ -122,7 +122,7 @@
       "residual":           { "kernel": "residual.wgsl",                        "entry": "main",              "digest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7" },
       "silu":               { "kernel": "gelu.wgsl",                            "entry": "main",              "digest": "sha256:a9007ea08aaff98f9be08f1e0490a6bcf252883eac5513de876ab9ce918865e6", "constants": { "HAS_GATE": true } },
       "tiled":              { "kernel": "matmul_f16w_f32a.wgsl",               "entry": "main",              "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc" },
-      "attn_stream":        { "kernel": "attention_streaming_f16kv.wgsl",       "entry": "main",              "digest": "sha256:b337a2dcf7b40431a733d1726eee8bf23504136fd5f915bec057fb59f3ea7480" },
+      "attn_stream":        { "kernel": "attention_streaming_f16kv.wgsl",       "entry": "main",              "digest": "sha256:5976eef417cebf648f52aeebb47ed1dc6b03c3c541122290c5cead19238fdc24" },
       "router_topk":        { "kernel": "gptoss_router_topk.wgsl",             "entry": "main",  "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000001" },
       "mxfp4_expert_fused": { "kernel": "gptoss_mxfp4_expert_fused.wgsl",      "entry": "main",  "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000002" },
       "lm_head_gemv":       { "kernel": "matmul_gemv_subgroup.wgsl",           "entry": "main_multicol",     "digest": "sha256:96c38c15e6fed0d7efdc5cd094db5843a8e8ddfe01eee3bc7322fa555dacf3d0", "constants": { "MULTICOL_COLS_PER_WG": 64, "MULTICOL_THREADS_PER_COL": 4 } },

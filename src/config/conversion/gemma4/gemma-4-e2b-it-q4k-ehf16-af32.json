@@ -112,7 +112,7 @@
       "residual": { "kernel": "residual.wgsl", "entry": "main", "digest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7" },
       "gelu": { "kernel": "gelu.wgsl", "entry": "main", "digest": "sha256:a9007ea08aaff98f9be08f1e0490a6bcf252883eac5513de876ab9ce918865e6", "constants": { "HAS_GATE": true } },
       "tiled": { "kernel": "matmul_f16w_f32a.wgsl", "entry": "main", "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc" },
-      "attn_stream": { "kernel": "attention_streaming.wgsl", "entry": "main", "digest": "sha256:8dfc44cd633f0fd22d3a30b5699f2877c75ef3244bed04f71012245fe53a9e0a" },
+      "attn_stream": { "kernel": "attention_streaming.wgsl", "entry": "main", "digest": "sha256:565fd02cc3a6d3fb0838194a70f56ce9b52f6ca858429516ab19b69b776396a6" },
       "lm_head_gemv": { "kernel": "matmul_gemv_subgroup.wgsl", "entry": "main_multicol", "digest": "sha256:96c38c15e6fed0d7efdc5cd094db5843a8e8ddfe01eee3bc7322fa555dacf3d0", "constants": { "MULTICOL_COLS_PER_WG": 64, "MULTICOL_THREADS_PER_COL": 4 } },
       "sample": { "kernel": "sample.wgsl", "entry": "sample_single_pass", "digest": "sha256:4412357e84113ee2f1bc0dc8bf89e314c2ab482c89c14ca016ea9949d16a9d0c" }
     },

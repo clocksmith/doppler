@@ -12,7 +12,7 @@
 +enable f16;
  
  override WORKGROUP_SIZE: u32 = 1u;
- const MAX_HEAD_DIM: u32 = 256u;
+ const MAX_HEAD_DIM: u32 = 512u;
 @@ -15,10 +15,10 @@
      query_len: u32,
      scale: f32,
