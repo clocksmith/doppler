@@ -28,7 +28,7 @@ try {
     inference: {
       attention: { slidingWindow: null, attnLogitSoftcapping: null, queryKeyNorm: false, attentionOutputGate: false, causal: true, attentionBias: false },
       normalization: { rmsNormWeightOffset: true, rmsNormEps: 1e-6 },
-      ffn: { activation: 'gelu', gatedActivation: true, swigluLimit: null },
+      ffn: { activation: 'gelu', gatedActivation: true, useDoubleWideMlp: false, swigluLimit: null },
       rope: { ropeTheta: 1000000, partialRotaryFactor: 1.0, ropeInterleaved: false },
       output: {
         scaleEmbeddings: true,

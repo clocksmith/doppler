@@ -151,6 +151,7 @@ import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text
       ffn: {
         activation: 'silu',
         gatedActivation: false,
+        useDoubleWideMlp: false,
         swigluLimit: null,
       },
       rope: {
@@ -254,6 +255,7 @@ import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text
       ffn: {
         activation: 'gelu',
         gatedActivation: true,
+        useDoubleWideMlp: false,
         swigluLimit: null,
       },
       rope: {

@@ -194,6 +194,7 @@ try {
           ffn: {
             activation: 'silu',
             gatedActivation: true,
+            useDoubleWideMlp: false,
             swigluLimit: null,
           },
           rope: {
@@ -281,6 +282,7 @@ try {
         ffn: {
           activation: 'gelu',
           gatedActivation: true,
+          useDoubleWideMlp: true,
           swigluLimit: null,
         },
         rope: {
@@ -334,6 +336,9 @@ try {
     assert.equal(parsed.ropeLocalFrequencyBaseDim, 256);
     assert.equal(parsed.decodeStrategy, 'replay_prefill');
     assert.equal(parsed.vocabSizePerLayerInput, 262144);
+    assert.equal(parsed.maxIntermediateSize, 12288);
+    assert.equal(parsed.intermediateSizes[14], 6144);
+    assert.equal(parsed.intermediateSizes[15], 12288);
   }
 
   {

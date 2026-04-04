@@ -137,6 +137,7 @@ const converterConfig = createConverterConfig();
       ffn: {
         activation: 'gelu',
         gatedActivation: true,
+        useDoubleWideMlp: true,
         swigluLimit: null,
       },
       rope: {

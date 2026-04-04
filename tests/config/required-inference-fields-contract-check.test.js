@@ -32,6 +32,7 @@ const manifestArtifact = buildManifestRequiredInferenceFieldsArtifact({
   ffn: {
     activation: 'gelu',
     gatedActivation: true,
+    useDoubleWideMlp: false,
     swigluLimit: null,
   },
   rope: {

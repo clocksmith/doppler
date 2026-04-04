@@ -28,6 +28,7 @@ assert.equal(config.inference?.attention?.queryPreAttnScalar, 1);
 assert.equal(config.inference?.attention?.slidingWindow, 512);
 assert.equal(config.inference?.attention?.valueNorm, true);
 assert.equal(config.inference?.normalization?.rmsNormWeightOffset, false);
+assert.equal(config.inference?.ffn?.useDoubleWideMlp, true);
 assert.equal(config.inference?.chatTemplate?.type, 'gemma4');
 assert.equal(config.inference?.rope?.partialRotaryFactor, 0.25);
 assert.equal(config.inference?.rope?.ropeLocalPartialRotaryFactor, null);

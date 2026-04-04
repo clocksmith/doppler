@@ -40,6 +40,7 @@ const manifest = {
     ffn: {
       activation: 'gelu',
       gatedActivation: true,
+      useDoubleWideMlp: false,
       swigluLimit: null,
     },
     rope: {

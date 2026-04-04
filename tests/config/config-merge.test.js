@@ -35,6 +35,7 @@ function createManifest(overrides = {}) {
       ffn: {
         activation: 'gelu',
         gatedActivation: true,
+        useDoubleWideMlp: false,
         swigluLimit: null,
       },
       rope: {
@@ -102,7 +103,7 @@ function createManifest(overrides = {}) {
     pipeline: 'embedding',
     attention: { causal: false, slidingWindow: 512 },
     normalization: { rmsNormEps: 1e-5 },
-    ffn: { activation: 'silu' },
+    ffn: { activation: 'silu', useDoubleWideMlp: true },
     rope: { ropeTheta: 500000 },
     output: {
       tieWordEmbeddings: true,
@@ -122,6 +123,7 @@ function createManifest(overrides = {}) {
   assert.equal(merged.inference.attention.slidingWindow, 512);
   assert.equal(merged.inference.normalization.rmsNormEps, 1e-5);
   assert.equal(merged.inference.ffn.activation, 'silu');
+  assert.equal(merged.inference.ffn.useDoubleWideMlp, true);
   assert.equal(merged.inference.rope.ropeTheta, 500000);
   assert.equal(merged.inference.output.tieWordEmbeddings, true);
   assert.equal(merged.inference.output.embeddingPostprocessor?.poolingMode, 'mean');
@@ -134,6 +136,7 @@ function createManifest(overrides = {}) {
   assert.equal(merged._sources.get('inference.normalization.rmsNormEps'), 'runtime');
   assert.equal(merged._sources.get('inference.rope.ropeTheta'), 'runtime');
   assert.equal(merged._sources.get('inference.output.embeddingPostprocessor'), 'runtime');
+  assert.equal(merged._sources.get('inference.ffn.useDoubleWideMlp'), 'runtime');
 
   // Non-overridden fields should remain 'manifest'
   assert.equal(merged._sources.get('inference.attention.queryPreAttnScalar'), 'manifest');
