@@ -7,6 +7,56 @@ function readJson(relativePath) {
   return JSON.parse(readFileSync(path.join(process.cwd(), relativePath), 'utf8'));
 }
 
+const expectedEmbeddingPostprocessor = {
+  poolingMode: 'mean',
+  includePrompt: true,
+  projections: [
+    {
+      weightTensor: 'embedding_postprocessor.projections.0.weight',
+      biasTensor: null,
+      inputSize: 768,
+      outputSize: 3072,
+      activation: 'identity',
+    },
+    {
+      weightTensor: 'embedding_postprocessor.projections.1.weight',
+      biasTensor: null,
+      inputSize: 3072,
+      outputSize: 768,
+      activation: 'identity',
+    },
+  ],
+  normalize: 'l2',
+};
+
+const expectedSession = {
+  compute: {
+    defaults: {
+      activationDtype: 'f32',
+      mathDtype: 'f32',
+      accumDtype: 'f32',
+      outputDtype: 'f32',
+    },
+  },
+  kvcache: {
+    kvDtype: 'f32',
+    layout: 'contiguous',
+    pageSize: 256,
+    tiering: {
+      mode: 'off',
+    },
+  },
+  decodeLoop: {
+    batchSize: 4,
+    stopCheckMode: 'batch',
+    readbackInterval: 1,
+    ringTokens: 1,
+    ringStop: 1,
+    ringStaging: 1,
+    disableCommandBatching: false,
+  },
+};
+
 const conversionConfig = readJson(
   'src/config/conversion/embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32.json'
 );
@@ -42,32 +92,10 @@ assert.equal(conversionConfig.inference?.ffn?.useDoubleWideMlp, false);
 assert.equal(conversionConfig.inference?.rope?.ropeLocalPartialRotaryFactor, null);
 assert.equal(conversionConfig.inference?.rope?.ropeFrequencyBaseDim, null);
 assert.equal(conversionConfig.inference?.rope?.ropeLocalFrequencyBaseDim, null);
-assert.deepEqual(conversionConfig.session, {
-  compute: {
-    defaults: {
-      activationDtype: 'f32',
-      mathDtype: 'f32',
-      accumDtype: 'f32',
-      outputDtype: 'f32',
-    },
-  },
-  kvcache: {
-    kvDtype: 'f32',
-    layout: 'contiguous',
-    pageSize: 256,
-    tiering: { mode: 'off' },
-  },
-  decodeLoop: {
-    batchSize: 4,
-    stopCheckMode: 'batch',
-    readbackInterval: 1,
-    ringTokens: 1,
-    ringStop: 1,
-    ringStaging: 1,
-    disableCommandBatching: false,
-  },
-});
-assert.deepEqual(localManifest.inference?.session, conversionConfig.session);
+assert.deepEqual(conversionConfig.inference?.output?.embeddingPostprocessor, expectedEmbeddingPostprocessor);
+assert.deepEqual(localManifest.inference?.output?.embeddingPostprocessor, expectedEmbeddingPostprocessor);
+assert.deepEqual(conversionConfig.session, expectedSession);
+assert.deepEqual(localManifest.inference?.session, expectedSession);
 
 assert.doesNotThrow(
   () => validateRequiredInferenceFields(conversionConfig.inference, conversionConfig.output.modelBaseId),

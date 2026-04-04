@@ -78,7 +78,27 @@
       "scaleEmbeddings": true,
       "embeddingTranspose": false,
       "embeddingVocabSize": null,
-      "embeddingPostprocessor": null
+      "embeddingPostprocessor": {
+        "poolingMode": "mean",
+        "includePrompt": true,
+        "projections": [
+          {
+            "weightTensor": "embedding_postprocessor.projections.0.weight",
+            "biasTensor": null,
+            "inputSize": 768,
+            "outputSize": 3072,
+            "activation": "identity"
+          },
+          {
+            "weightTensor": "embedding_postprocessor.projections.1.weight",
+            "biasTensor": null,
+            "inputSize": 3072,
+            "outputSize": 768,
+            "activation": "identity"
+          }
+        ],
+        "normalize": "l2"
+      }
     },
     "layerPattern": {
       "type": "every_n",
@@ -139,7 +159,7 @@
         "rope": {
           "kernel": "rope.wgsl",
           "entry": "main",
-          "digest": "sha256:4c803ad5e0dd065d5572c7aecc1def277c43884dcc02f22a9676914c10111400"
+          "digest": "sha256:238e989aad7da731046cd54d7bb3c80a6f26daf5d7a8e435607161de902e5882"
         },
         "attn_small": {
           "kernel": "attention_small.wgsl",
@@ -4259,7 +4279,7 @@
       "config": "google-embeddinggemma-300m-q4k-ehf16-af32.json"
     },
     "manifestRefresh": {
-      "at": "2026-03-26T12:13:28.588Z",
+      "at": "2026-04-04T21:02:52.696Z",
       "config": "google-embeddinggemma-300m-q4k-ehf16-af32.json"
     }
   },

@@ -61,7 +61,27 @@
       "scaleEmbeddings": true,
       "embeddingTranspose": false,
       "embeddingVocabSize": null,
-      "embeddingPostprocessor": null
+      "embeddingPostprocessor": {
+        "poolingMode": "mean",
+        "includePrompt": true,
+        "projections": [
+          {
+            "weightTensor": "embedding_postprocessor.projections.0.weight",
+            "biasTensor": null,
+            "inputSize": 768,
+            "outputSize": 3072,
+            "activation": "identity"
+          },
+          {
+            "weightTensor": "embedding_postprocessor.projections.1.weight",
+            "biasTensor": null,
+            "inputSize": 3072,
+            "outputSize": 768,
+            "activation": "identity"
+          }
+        ],
+        "normalize": "l2"
+      }
     },
     "layerPattern": {
       "type": "every_n",

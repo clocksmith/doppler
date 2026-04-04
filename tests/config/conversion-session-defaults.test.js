@@ -257,6 +257,30 @@ const EXPLICIT_TEXT_DEFAULTS = [
     },
   },
   {
+    path: 'src/config/conversion/embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32.json',
+    computeDefaults: {
+      activationDtype: 'f32',
+      mathDtype: 'f32',
+      accumDtype: 'f32',
+      outputDtype: 'f32',
+    },
+    kvcache: {
+      kvDtype: 'f32',
+      layout: 'contiguous',
+      pageSize: 256,
+      tiering: { mode: 'off' },
+    },
+    decodeLoop: {
+      batchSize: 4,
+      stopCheckMode: 'batch',
+      readbackInterval: 1,
+      ringTokens: 1,
+      ringStop: 1,
+      ringStaging: 1,
+      disableCommandBatching: false,
+    },
+  },
+  {
     path: 'src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json',
     computeDefaults: {
       activationDtype: 'f32',
@@ -294,32 +318,6 @@ const EXPLICIT_TEXT_DEFAULTS = [
 
 const EXPLICIT_NULL_OR_DISABLED = [
   {
-    path: 'src/config/conversion/embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32.json',
-    session: {
-      computeDefaults: {
-        activationDtype: 'f32',
-        mathDtype: 'f32',
-        accumDtype: 'f32',
-        outputDtype: 'f32',
-      },
-      kvcache: {
-        kvDtype: 'f32',
-        layout: 'contiguous',
-        pageSize: 256,
-        tiering: { mode: 'off' },
-      },
-      decodeLoop: {
-        batchSize: 4,
-        stopCheckMode: 'batch',
-        readbackInterval: 1,
-        ringTokens: 1,
-        ringStop: 1,
-        ringStaging: 1,
-        disableCommandBatching: false,
-      },
-    },
-  },
-  {
     path: 'src/config/conversion/sana/sana-sprint-0.6b-f16.json',
     session: {
       computeDefaults: {
@@ -354,7 +352,7 @@ for (const fixture of EXPLICIT_NULL_OR_DISABLED) {
   assert.ok(config.session && typeof config.session === 'object', `${fixture.path} session`);
   assert.deepEqual(config.session.compute?.defaults, fixture.session.computeDefaults, `${fixture.path} compute.defaults`);
   assert.deepEqual(config.session.kvcache, fixture.session.kvcache, `${fixture.path} kvcache`);
-  assert.deepEqual(config.session.decodeLoop, fixture.session.decodeLoop, `${fixture.path} decodeLoop`);
+  assert.equal(config.session.decodeLoop, fixture.session.decodeLoop, `${fixture.path} decodeLoop`);
 }
 
 console.log('conversion-session.test: ok');

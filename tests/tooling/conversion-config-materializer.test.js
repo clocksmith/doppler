@@ -71,6 +71,8 @@ if (!fs.existsSync(qwenManifestPath)) {
     batchSize: 4,
     stopCheckMode: 'batch',
     readbackInterval: 32,
+    readbackMode: 'sequential',
+    submitLatencyThresholdMs: null,
     ringTokens: 1,
     ringStop: 1,
     ringStaging: 1,
@@ -107,6 +109,68 @@ if (!fs.existsSync(gemma1bManifestPath)) {
   const attnPrefill = materialized.inference?.execution?.prefill?.find((step) => step[0] === 'attention');
   assert.ok(attnPrefill, 'gemma 1b materialized prefill attention step missing');
   assert.equal(attnPrefill[1], 'attn_head256');
+}
+
+const embeddingManifestPath = path.join('models/local/google-embeddinggemma-300m-q4k-ehf16-af32', 'manifest.json');
+if (!fs.existsSync(embeddingManifestPath)) {
+  console.log('conversion-config-materializer.test: skipped embedding fixture (local model missing)');
+} else {
+  const conversionConfig = readJson('src/config/conversion/embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32.json');
+  const manifest = readJson(embeddingManifestPath);
+  const materialized = resolveMaterializedManifestFromConversionConfig(conversionConfig, manifest);
+
+  assert.equal(
+    inferConversionConfigModelId(
+      'src/config/conversion/embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32.json',
+      conversionConfig
+    ),
+    'google-embeddinggemma-300m-q4k-ehf16-af32'
+  );
+  assert.equal(materialized.modelId, manifest.modelId);
+  assert.equal(materialized.modelType, 'embedding');
+  assert.equal(materialized.inference?.schema, 'doppler.execution/v1');
+  assert.deepEqual(materialized.inference?.session?.compute?.defaults, {
+    activationDtype: 'f32',
+    mathDtype: 'f32',
+    accumDtype: 'f32',
+    outputDtype: 'f32',
+  });
+  assert.deepEqual(materialized.inference?.session?.kvcache, {
+    kvDtype: 'f32',
+    layout: 'contiguous',
+    pageSize: 256,
+    tiering: { mode: 'off' },
+  });
+  assert.deepEqual(materialized.inference?.session?.decodeLoop, {
+    batchSize: 4,
+    stopCheckMode: 'batch',
+    readbackInterval: 1,
+    ringTokens: 1,
+    ringStop: 1,
+    ringStaging: 1,
+    disableCommandBatching: false,
+  });
+  assert.deepEqual(materialized.inference?.output?.embeddingPostprocessor, {
+    poolingMode: 'mean',
+    includePrompt: true,
+    projections: [
+      {
+        weightTensor: 'embedding_postprocessor.projections.0.weight',
+        biasTensor: null,
+        inputSize: 768,
+        outputSize: 3072,
+        activation: 'identity',
+      },
+      {
+        weightTensor: 'embedding_postprocessor.projections.1.weight',
+        biasTensor: null,
+        inputSize: 3072,
+        outputSize: 768,
+        activation: 'identity',
+      },
+    ],
+    normalize: 'l2',
+  });
 }
 
 console.log('conversion-config-materializer.test: ok');
