@@ -35,7 +35,7 @@
       "valueNorm": false
     },
     "normalization": {
-      "rmsNormEps": 0.000001,
+      "rmsNormEps": 1e-06,
       "rmsNormWeightOffset": true,
       "postAttentionNorm": true,
       "preFeedforwardNorm": true,
