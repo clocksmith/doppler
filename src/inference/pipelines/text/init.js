@@ -3,7 +3,14 @@
 import { parseModelConfig } from './config.js';
 import { getDevice, getDeviceLimits, getKernelCapabilities } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
-import { KVCache, SlidingWindowKVCache, TieredKVCache, BasisDecomposedPagedCache, QuantizedKVCache } from '../../kv-cache.js';
+import {
+  KVCache,
+  SlidingWindowKVCache,
+  TieredKVCache,
+  BasisDecomposedPagedCache,
+  QuantizedKVCache,
+  MixedGeometryKVCache,
+} from '../../kv-cache.js';
 import {
   retainTurboQuantSharedBuffers,
 } from '../../../gpu/kernels/turboquant-codebook.js';
@@ -686,6 +693,20 @@ function resolveContiguousKVPolicy(modelConfig) {
   };
 }
 
+function usesMixedGeometryKVCache(modelConfig) {
+  if (!modelConfig || typeof modelConfig !== 'object') {
+    return false;
+  }
+  const hasMixedAttentionGeometry = Number.isFinite(modelConfig.globalHeadDim)
+    && modelConfig.globalHeadDim > 0
+    && modelConfig.globalHeadDim !== modelConfig.headDim;
+  const hasSharedKvLayers = Number.isFinite(modelConfig.numKvSharedLayers)
+    && modelConfig.numKvSharedLayers > 0;
+  const hasExplicitLayerTypes = Array.isArray(modelConfig.layerTypes)
+    && modelConfig.layerTypes.length === modelConfig.numLayers;
+  return hasExplicitLayerTypes && (hasMixedAttentionGeometry || hasSharedKvLayers);
+}
+
 function getRequiredKernelMaxKVLen(operation, variant, label) {
   const config = getKernelConfig(operation, variant);
   const maxKVLen = config.variantMetadata?.maxKVLen;
@@ -789,6 +810,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
     );
   }
   const runtimeKV = resolveRuntimeKVConfig(runtimeConfig);
+  const requiresMixedGeometryKVCache = usesMixedGeometryKVCache(modelConfig);
   const contiguousKVPolicy = resolveContiguousKVPolicy(modelConfig);
   const forceContiguousKVCache = contiguousKVPolicy.forceContiguousKVCache;
   const modelMaxSeqLen = modelConfig.maxSeqLen;
@@ -837,6 +859,31 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
       'Set runtime.inference.session.kvcache.layout to "contiguous" instead.'
     );
   }
+  if (requiresMixedGeometryKVCache) {
+    if (cacheLayout !== 'contiguous') {
+      throw new Error(
+        `Mixed-geometry incremental KV cache requires layout="contiguous"; got "${cacheLayout}". ` +
+        'Disable tiering and quantized KV cache for this model.'
+      );
+    }
+    if (runtimeKV.tiering?.mode != null && runtimeKV.tiering.mode !== 'off') {
+      throw new Error(
+        `Mixed-geometry incremental KV cache requires tiering.mode="off"; got "${runtimeKV.tiering.mode}".`
+      );
+    }
+    if (resolveContiguousRequestedQuantMode(runtimeKV) !== 'none') {
+      throw new Error(
+        'Mixed-geometry incremental KV cache does not support contiguous quantization yet. ' +
+        'Set runtime.inference.session.kvcache.quantization.mode="none".'
+      );
+    }
+    if (!useGPU) {
+      throw new Error(
+        'Mixed-geometry incremental KV cache requires GPU execution. ' +
+        'Use a WebGPU-capable surface.'
+      );
+    }
+  }
   if (debug && cacheLayout !== runtimeKV.layout) {
     log.debug('Pipeline', `KV cache layout override: ${runtimeKV.layout} -> ${cacheLayout} (${layoutSource})`);
   }
@@ -884,7 +931,13 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   if (useGPU && (cacheLayout === 'paged' || cacheLayout === 'tiered' || cacheLayout === 'bdpa' || cacheLayout === 'contiguous_quantized')) {
     const limits = getDeviceLimits();
     if (limits) {
-      const bytesPerToken = modelConfig.numKVHeads * modelConfig.headDim * (kvDtype === 'f16' ? 2 : 4);
+      const maxLayerHeadDim = Math.max(
+        modelConfig.headDim,
+        Number.isFinite(modelConfig.globalHeadDim) && modelConfig.globalHeadDim > 0
+          ? modelConfig.globalHeadDim
+          : modelConfig.headDim
+      );
+      const bytesPerToken = modelConfig.numKVHeads * maxLayerHeadDim * (kvDtype === 'f16' ? 2 : 4);
       const maxByBinding = Math.floor(limits.maxStorageBufferBindingSize / bytesPerToken);
       const maxByBuffer = Math.floor(limits.maxBufferSize / bytesPerToken);
       const fallbackMax = Number.isFinite(runtimeKV.gpuPagedFallbackMaxSeqLen) && runtimeKV.gpuPagedFallbackMaxSeqLen > 0
@@ -922,7 +975,15 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   
   let kvCache;
 
-  if (modelConfig.slidingWindow && !forceContiguousKVCache && cacheLayout !== 'paged' && cacheLayout !== 'tiered' && cacheLayout !== 'bdpa') {
+  if (requiresMixedGeometryKVCache) {
+    kvCache = new MixedGeometryKVCache({
+      ...cacheConfig,
+      numHeads: modelConfig.numKVHeads,
+      globalHeadDim: modelConfig.globalHeadDim ?? null,
+      slidingWindow,
+      layerTypes: modelConfig.layerTypes,
+    });
+  } else if (modelConfig.slidingWindow && !forceContiguousKVCache && cacheLayout !== 'paged' && cacheLayout !== 'tiered' && cacheLayout !== 'bdpa') {
     kvCache = new SlidingWindowKVCache({
       ...cacheConfig,
       windowSize: slidingWindow ?? modelConfig.slidingWindow,

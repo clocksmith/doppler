@@ -146,9 +146,9 @@
           "digest": "sha256:238e989aad7da731046cd54d7bb3c80a6f26daf5d7a8e435607161de902e5882"
         },
         "attn_decode": {
-          "kernel": "attention_decode.wgsl",
-          "entry": "attention_decode",
-          "digest": "sha256:14cbf16eebe643d2cb0c957d5f125f6f69ea34957f2daa19488ee8985f81db1b"
+          "kernel": "attention_streaming.wgsl",
+          "entry": "main",
+          "digest": "sha256:565fd02cc3a6d3fb0838194a70f56ce9b52f6ca858429516ab19b69b776396a6"
         },
         "residual": {
           "kernel": "residual.wgsl",

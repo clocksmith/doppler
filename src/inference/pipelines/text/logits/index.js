@@ -26,9 +26,18 @@ import { getKernelPathMatmulPrecision } from '../../../../config/kernel-path-loa
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 
 function shouldForceStableF32Logits(config, inputDtype) {
-  // Small Gemma-family checkpoints can overflow in pure F16 logits path after RMSNorm offset.
-  return inputDtype === 'f16'
-    && config.rmsNormWeightOffset === true
+  if (inputDtype !== 'f16') {
+    return false;
+  }
+  // Softcapped output heads are numerically sensitive in pure F16 on the
+  // final RMSNorm + LM-head path. Widen only the logits tail so the main
+  // layer stack and KV cache can stay on the faster F16 lane.
+  if (Number.isFinite(config.finalLogitSoftcapping) && config.finalLogitSoftcapping > 0) {
+    return true;
+  }
+  // Small Gemma-family checkpoints can also overflow in pure F16 logits path
+  // after RMSNorm offset even without output softcapping.
+  return config.rmsNormWeightOffset === true
     && Number.isFinite(config.hiddenSize)
     && config.hiddenSize <= 768;
 }
@@ -53,6 +62,40 @@ async function coerceTensorDtype(tensor, targetDtype) {
     return castF16ToF32(tensor);
   }
   throw new Error(`Unsupported logits matmul dtype coercion: ${tensor.dtype} -> ${targetDtype}`);
+}
+
+const STABLE_F32_LOGITS_KERNEL_MAP = new Map([
+  ['matmul_gemv_subgroup_f16a.wgsl', 'matmul_gemv_subgroup.wgsl'],
+  ['matmul_f16.wgsl', 'matmul_f16w_f32a.wgsl'],
+  ['matmul_f16_tiled.wgsl', 'matmul_f16w_f32a_tiled.wgsl'],
+]);
+
+function createStableF32LogitsKernelPath(kernelPath) {
+  if (!kernelPath?.postLayer) {
+    return kernelPath;
+  }
+  let changed = false;
+  const postLayer = kernelPath.postLayer.map((step) => {
+    if (step?.op !== 'lm_head' && step?.op !== 'lm_head_prefill') {
+      return step;
+    }
+    const replacement = STABLE_F32_LOGITS_KERNEL_MAP.get(step.kernel);
+    if (!replacement || replacement === step.kernel) {
+      return step;
+    }
+    changed = true;
+    return {
+      ...step,
+      kernel: replacement,
+    };
+  });
+  if (!changed) {
+    return kernelPath;
+  }
+  return {
+    ...kernelPath,
+    postLayer,
+  };
 }
 
 export function resolveLmHeadMatmulConfig(numTokens, options = null) {
@@ -217,6 +260,9 @@ export async function computeLogits(
   // Wrap input buffer as Tensor for RMSNorm
   const inputTensor = createTensor(inputBuffer, inputDtype, [numTokens, hiddenSize], 'logits_input');
   const forceStableF32Logits = shouldForceStableF32Logits(config, inputDtype);
+  const stableKernelPath = forceStableF32Logits
+    ? createStableF32LogitsKernelPath(config.kernelPath ?? null)
+    : (config.kernelPath ?? null);
   let normInputTensor = inputTensor;
   let normInputBufferOwned = false;
   if (forceStableF32Logits) {
@@ -264,7 +310,7 @@ export async function computeLogits(
       debugProbes,
       operatorDiagnostics,
       largeWeights,
-      config.kernelPath ?? null
+      stableKernelPath
     );
 
     if (inputBufferOwned) releaseBuffer(inputBuffer);
@@ -321,10 +367,10 @@ export async function computeLogits(
   }
   const lmHeadInputDtype = forceStableF32Logits
     ? matmulInputTensor.dtype
-    : resolveMatmulStepDtype('lm_head', lmHeadPhase, config.kernelPath ?? null, matmulInputTensor.dtype, 'inputDtype');
+    : resolveMatmulStepDtype('lm_head', lmHeadPhase, stableKernelPath, matmulInputTensor.dtype, 'inputDtype');
   const lmHeadOutputDtype = forceStableF32Logits
     ? matmulInputTensor.dtype
-    : resolveMatmulStepDtype('lm_head', lmHeadPhase, config.kernelPath ?? null, matmulInputTensor.dtype, 'outputDtype');
+    : resolveMatmulStepDtype('lm_head', lmHeadPhase, stableKernelPath, matmulInputTensor.dtype, 'outputDtype');
   if (lmHeadInputDtype !== matmulInputTensor.dtype) {
     const coercedInput = await coerceTensorDtype(matmulInputTensor, lmHeadInputDtype);
     if (matmulInputOwned) {
@@ -339,7 +385,7 @@ export async function computeLogits(
     transposeB: 'auto',
     role: 'lm_head',
     phaseOverride: matmulPhaseOverride,
-    kernelPath: config.kernelPath ?? null,
+    kernelPath: stableKernelPath,
     outputDtype: lmHeadOutputDtype,
   });
   await runProbes('logits', logitsTensor.buffer, {

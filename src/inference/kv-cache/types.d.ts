@@ -104,6 +104,7 @@ export interface StandardGPUBuffersResult {
   keysGPU: GPUBuffer;
   valuesGPU: GPUBuffer;
   seqLen: number;
+  layout?: 'contiguous' | 'ring' | 'paged';
   pageTableGPU?: GPUBuffer;
   pageSize?: number;
 }

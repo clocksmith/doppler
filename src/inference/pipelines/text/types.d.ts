@@ -218,7 +218,7 @@ export interface GPUBuffersResult {
   keysGPU?: GPUBuffer;
   valuesGPU?: GPUBuffer;
   seqLen: number;
-  layout?: 'contiguous' | 'paged' | 'tiered' | 'bdpa';
+  layout?: 'contiguous' | 'ring' | 'paged' | 'tiered' | 'bdpa';
   pageTableGPU?: GPUBuffer;
   pageSize?: number;
   hotKeysGPU?: GPUBuffer;

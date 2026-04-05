@@ -414,6 +414,32 @@ const F16_TO_F32_ACTIVATION_MAP = new Map([
 ]);
 
 /**
+ * Correctness fallback: preserve f16 weights where possible, but widen both
+ * activations and KV-cache interactions onto the stable f32 execution lane.
+ * Used for alternate-plan recovery after finiteness failure.
+ * @type {ReadonlyMap<string, string>}
+ */
+const F16_TO_F32_CORRECTNESS_FALLBACK_MAP = new Map([
+  ['rmsnorm_f16.wgsl', 'rmsnorm.wgsl'],
+  ['rope_f16.wgsl', 'rope.wgsl'],
+  ['residual_f16.wgsl', 'residual.wgsl'],
+  ['gelu_f16.wgsl', 'gelu.wgsl'],
+  ['sample_f16.wgsl', 'sample.wgsl'],
+  ['gather_f16.wgsl', 'gather.wgsl'],
+  ['matmul_gemv_subgroup_f16a.wgsl', 'matmul_gemv_subgroup.wgsl'],
+  ['matmul_f16.wgsl', 'matmul_f16w_f32a.wgsl'],
+  ['matmul_f16_tiled.wgsl', 'matmul_f16w_f32a_tiled.wgsl'],
+  ['attention_decode_online_f16.wgsl', 'attention_decode.wgsl'],
+  ['attention_decode_chunked_f16.wgsl', 'attention_decode.wgsl'],
+  ['attention_small_f16.wgsl', 'attention_small.wgsl'],
+  ['attention_streaming_f16.wgsl', 'attention_streaming.wgsl'],
+  ['attention_decode_online_f16kv.wgsl', 'attention_decode.wgsl'],
+  ['attention_decode_chunked_f16kv.wgsl', 'attention_decode.wgsl'],
+  ['attention_small_f16kv.wgsl', 'attention_small.wgsl'],
+  ['attention_streaming_f16kv.wgsl', 'attention_streaming.wgsl'],
+]);
+
+/**
  * Full f32 widening: every shader that uses `enable f16;` is replaced with a
  * pure-f32 equivalent. Used when the GPU cannot compile any f16 WGSL at all.
  * Covers f16-activation, f16-weight (f16w), and f16-KV (f16kv) kernels.
@@ -490,6 +516,36 @@ export function widenToF32Activations(graph, ctx) {
     }
   }
 
+  return result;
+}
+
+/**
+ * Widen an f16 execution graph onto the stable f32 correctness lane used for
+ * alternate-plan recovery after finiteness failure.
+ *
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {import('./execution-graph-transforms.js').TransformContext} ctx
+ * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
+ */
+export function widenToF32CorrectnessFallback(graph, ctx) {
+  if (hasKernelFile(graph, 'fused_ffn_f16.wgsl')) {
+    return null;
+  }
+
+  const hasTargetShader = Object.values(graph.kernels).some(
+    (entry) => F16_TO_F32_CORRECTNESS_FALLBACK_MAP.has(entry.kernel)
+  );
+  if (!hasTargetShader) {
+    return null;
+  }
+
+  const result = cloneGraph(graph);
+  for (const [key, entry] of Object.entries(result.kernels)) {
+    const replacement = F16_TO_F32_CORRECTNESS_FALLBACK_MAP.get(entry.kernel);
+    if (replacement !== undefined) {
+      result.kernels[key] = deriveKernelEntry(entry, replacement, entry.entry);
+    }
+  }
   return result;
 }
 
@@ -1283,6 +1339,7 @@ export function composeTransforms(...transforms) {
 export const TRANSFORMS = Object.freeze({
   removeSubgroups,
   widenToF32Activations,
+  widenToF32CorrectnessFallback,
   swapPrefillAttention,
   useHead256PrefillAttention,
   widenProjectionWeightsToF32,

@@ -35,6 +35,10 @@ export interface ChatRequestInput {
 
 export type PromptInput = string | ChatMessage[] | ChatRequestInput;
 
+export declare function buildConservativeMultimodalGenerationOptions(
+  options?: GenerateOptions
+): GenerateOptions;
+
 // ============================================================================
 // Main Inference Pipeline Class
 // ============================================================================

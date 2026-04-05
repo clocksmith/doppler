@@ -417,7 +417,7 @@ try {
     assert.equal(parsed.ropeLocalRotaryDim, 256);
     assert.equal(parsed.ropeFrequencyBaseDim, 512);
     assert.equal(parsed.ropeLocalFrequencyBaseDim, 256);
-    assert.equal(parsed.decodeStrategy, 'replay_prefill');
+    assert.equal(parsed.decodeStrategy, 'incremental');
     assert.equal(parsed.vocabSizePerLayerInput, 262144);
     assert.equal(parsed.maxIntermediateSize, 12288);
     assert.equal(parsed.intermediateSizes[14], 6144);
@@ -658,9 +658,10 @@ try {
         slidingWindow: 512,
         attnLogitSoftcapping: null,
         layerTypes: Array.from({ length: 35 }, (_, index) => index % 5 === 4 ? 'full_attention' : 'sliding_attention'),
-        decodeStrategy: 'replay_prefill',
+        numKvSharedLayers: 20,
+        decodeStrategy: 'incremental',
       }, false, false, DEFAULT_KVCACHE_CONFIG),
-      /replay-prefill decode/
+      /requires GPU execution/
     );
   }
 

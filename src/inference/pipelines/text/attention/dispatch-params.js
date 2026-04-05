@@ -131,7 +131,7 @@ export function resolveKVCacheState(state, layerIdx, kTensor, vTensor, currentSe
     kvState.kvLenForAttention = gpuBuffers.seqLen;
     kvState.kvPageTable = gpuBuffers.pageTableGPU ?? null;
     kvState.kvPageSize = gpuBuffers.pageSize ?? state.kvCache.pageSize ?? 0;
-    if (state.kvCache instanceof SlidingWindowKVCache) {
+    if (gpuBuffers?.layout === 'ring' || state.kvCache instanceof SlidingWindowKVCache) {
       kvState.kvLayout = 'ring';
     } else if (state.kvCache.layout === 'paged') {
       kvState.kvLayout = 'paged';

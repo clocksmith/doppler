@@ -76,8 +76,8 @@ export function resolveCapabilityTransforms(capabilities, platform, graphContext
 export function resolveFinitenessFallbackTransform(graphContext) {
   if (graphContext.activationDtype === 'f16') {
     return {
-      transform: TRANSFORMS.widenToF32Activations,
-      name: 'widenToF32Activations',
+      transform: TRANSFORMS.widenToF32CorrectnessFallback,
+      name: 'widenToF32CorrectnessFallback',
     };
   }
   return null;

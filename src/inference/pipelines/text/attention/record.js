@@ -104,6 +104,7 @@ export async function recordLayerAttentionGPU(
   let output = null;
   let finalOutput = null;
   let oProjInputTemp = null;
+  let retainSharedKvBuffers = false;
   if (wantsF16Output && !allowF16Attention) {
     attentionInput = await recordCastF16ToF32(recorder, input);
     attentionInputTemp = true;
@@ -178,6 +179,7 @@ export async function recordLayerAttentionGPU(
     );
   }
   const reusesSharedKV = sharedKVEntry != null;
+  retainSharedKvBuffers = reusesSharedKV || storeSharedKV;
   ({ qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV } = await projectAttentionQKV({
     recorder,
     normed,
@@ -583,8 +585,10 @@ export async function recordLayerAttentionGPU(
   if (qGateTensor) {
     recorder.trackTemporaryBuffer(qGateTensor.buffer);
   }
-  recorder.trackTemporaryBuffer(kTensor.buffer);
-  recorder.trackTemporaryBuffer(vTensor.buffer);
+  if (!retainSharedKvBuffers) {
+    recorder.trackTemporaryBuffer(kTensor.buffer);
+    recorder.trackTemporaryBuffer(vTensor.buffer);
+  }
   for (const buffer of buffersToTrack) {
     recorder.trackTemporaryBuffer(buffer);
   }
@@ -618,10 +622,10 @@ export async function recordLayerAttentionGPU(
     if (qTensor?.buffer) {
       trackOnce(qTensor.buffer);
     }
-    if (kTensor?.buffer) {
+    if (kTensor?.buffer && !retainSharedKvBuffers) {
       trackOnce(kTensor.buffer);
     }
-    if (vTensor?.buffer) {
+    if (vTensor?.buffer && !retainSharedKvBuffers) {
       trackOnce(vTensor.buffer);
     }
     if (normed?.buffer && normed.buffer !== attentionInput?.buffer) {

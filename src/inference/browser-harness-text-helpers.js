@@ -39,6 +39,7 @@ const DEFAULT_TRANSLATEGEMMA_PROMPT = Object.freeze({
   ]),
 });
 const DEFAULT_IMAGE_TRANSCRIPTION_PROMPT = 'Describe the image in one short sentence.';
+const DEFAULT_IMAGE_TRANSCRIPTION_SOFT_TOKEN_BUDGET = 70;
 const DEFAULT_HARNESS_MAX_TOKENS = 32;
 const EMBEDDING_PREVIEW_LENGTH = 16;
 const GENERATION_TOKEN_DIAGNOSTIC_LIMIT = 32;
@@ -1091,7 +1092,7 @@ export async function runImageTranscription(pipeline, runtimeConfig, runOverride
     : resolveMaxTokens(runtimeConfig);
   const softTokenBudget = Number.isFinite(runOverrides?.softTokenBudget)
     ? Math.max(1, Math.floor(runOverrides.softTokenBudget))
-    : undefined;
+    : DEFAULT_IMAGE_TRANSCRIPTION_SOFT_TOKEN_BUDGET;
   const {
     imageBytes,
     width,

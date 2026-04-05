@@ -83,4 +83,26 @@ function createHarnessOverride(calls) {
   assert.equal(calls[1], 'unload');
 }
 
+{
+  const calls = [];
+  await runBrowserSuite({
+    command: 'verify',
+    workload: 'inference',
+    surface: 'browser',
+    modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+    harnessOverride: createHarnessOverride(calls),
+    inferenceInput: {
+      prompt: 'Describe the image precisely.',
+      maxTokens: 8,
+      image: {
+        width: 1,
+        height: 1,
+        pixels: [255, 255, 255, 255],
+      },
+    },
+  });
+
+  assert.equal(calls[0].softTokenBudget, 70);
+}
+
 console.log('browser-harness-image-transcription.test: ok');

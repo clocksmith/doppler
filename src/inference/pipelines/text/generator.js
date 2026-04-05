@@ -14,12 +14,15 @@ import {
   validateCaptureConfig,
 } from '../../../debug/index.js';
 import { validateCallTimeOptions } from '../../../config/param-validator.js';
+import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import { castF32ToF16 } from '../../../gpu/kernels/cast.js';
+import { f32ToF16Array } from '../../kv-cache/types.js';
 
 // Pipeline sub-modules
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from './sampling.js';
 import { enforceLogitDrift } from '../../../hotswap/intent-bundle.js';
-import { applyChatTemplate, isStopToken } from './init.js';
+import { applyChatTemplate, createKVCache, isStopToken } from './init.js';
 import { formatChatMessages } from './chat-format.js';
 import { embed } from './embed.js';
 import { processLayer } from './layer.js';
@@ -262,13 +265,13 @@ function resolvePrefillMultimodalBidirectionalSpan(inputIds, bidirectionalSpan, 
   return { offset, length };
 }
 
-async function applyPrefixEmbeddingOverride(baseTensor, override, contextLabel) {
+async function applyPrefixEmbeddingOverride(baseTensor, override, hiddenSize, contextLabel) {
   if (!override) {
     return baseTensor;
   }
-  if (baseTensor.dtype !== 'f32') {
+  if (baseTensor.dtype !== 'f32' && baseTensor.dtype !== 'f16') {
     throw new Error(
-      `[Pipeline] ${contextLabel}: embedding overrides currently require f32 activations, got ${baseTensor.dtype}.`
+      `[Pipeline] ${contextLabel}: embedding overrides require f32 or f16 activations, got ${baseTensor.dtype}.`
     );
   }
 
@@ -278,15 +281,46 @@ async function applyPrefixEmbeddingOverride(baseTensor, override, contextLabel) 
   }
 
   const outputBuffer = acquireBuffer(baseTensor.buffer.size, undefined, 'prefill_embedding_override');
+  const targetElementOffset = override.offset * hiddenSize;
+  const targetByteOffset = targetElementOffset * (baseTensor.dtype === 'f16' ? 2 : 4);
   try {
     const encoder = device.createCommandEncoder();
     encoder.copyBufferToBuffer(baseTensor.buffer, 0, outputBuffer, 0, baseTensor.buffer.size);
+    if (baseTensor.dtype === 'f32') {
+      if (isGpuBufferInstance(override.embeddings)) {
+        encoder.copyBufferToBuffer(override.embeddings, 0, outputBuffer, override.byteOffset, override.byteLength);
+        device.queue.submit([encoder.finish()]);
+      } else {
+        device.queue.submit([encoder.finish()]);
+        uploadData(outputBuffer, override.embeddings, override.byteOffset);
+      }
+      return createTensor(outputBuffer, baseTensor.dtype, [...baseTensor.shape], 'prefill_embedding_override');
+    }
+
     if (isGpuBufferInstance(override.embeddings)) {
-      encoder.copyBufferToBuffer(override.embeddings, 0, outputBuffer, override.byteOffset, override.byteLength);
-      device.queue.submit([encoder.finish()]);
+      const overrideTensor = createTensor(
+        override.embeddings,
+        'f32',
+        [override.prefixLength, hiddenSize],
+        'prefill_embedding_override_f32'
+      );
+      const castedOverride = await castF32ToF16(overrideTensor);
+      try {
+        encoder.copyBufferToBuffer(
+          castedOverride.buffer,
+          0,
+          outputBuffer,
+          targetByteOffset,
+          castedOverride.buffer.size
+        );
+        device.queue.submit([encoder.finish()]);
+      } finally {
+        releaseBuffer(castedOverride.buffer);
+      }
     } else {
+      const packedOverride = f32ToF16Array(override.embeddings);
       device.queue.submit([encoder.finish()]);
-      uploadData(outputBuffer, override.embeddings, override.byteOffset);
+      uploadData(outputBuffer, packedOverride, targetByteOffset);
     }
     return createTensor(outputBuffer, baseTensor.dtype, [...baseTensor.shape], 'prefill_embedding_override');
   } catch (error) {
@@ -338,6 +372,25 @@ function resolveTokenText(tokenizer, tokenIds, fallbackText = '?', renderTokenTe
 
 function usesReplayPrefillDecode(state) {
   return state?.modelConfig?.decodeStrategy === 'replay_prefill';
+}
+
+export function shouldDisablePrefillCommandBatching(state, opts, multimodalBidirectionalSpan) {
+  if (opts?.disableCommandBatching === true || opts?.debug === true) {
+    return true;
+  }
+  if (state?.kvCache?.layout === 'bdpa_paged') {
+    return true;
+  }
+  if (multimodalBidirectionalSpan == null) {
+    return false;
+  }
+  if (state?.kvCache?.hasGPUCache?.() !== true) {
+    return false;
+  }
+  // WORKAROUND: recorded prefill with live KV-cache writes regresses Gemma 4
+  // multimodal logits on the first generated token. Keep this lane fail-closed
+  // until the recorder/cache interaction is numerically matched to the direct path.
+  return true;
 }
 
 function assertIncrementalDecodeSupport(state, operation) {
@@ -404,6 +457,50 @@ function createUnhandledFinitenessPolicyError(state, contextLabel, error) {
   );
   wrapped.name = error?.name === 'FinitenessError' ? error.name : 'FinitenessError';
   return wrapped;
+}
+
+function assertResolvedKVDtype(kvDtype, contextLabel) {
+  if (kvDtype === 'f16' || kvDtype === 'f32') {
+    return kvDtype;
+  }
+  throw new Error(
+    `[Pipeline] ${contextLabel}: expected execution-plan kvDtype to resolve to "f16" or "f32", ` +
+    `got ${JSON.stringify(kvDtype)}.`
+  );
+}
+
+function resolveTargetPlanKVDtype(plan, contextLabel) {
+  return assertResolvedKVDtype(
+    plan?.kernelPath?.kvDtype ?? plan?.activationDtype ?? null,
+    contextLabel
+  );
+}
+
+function resolveCurrentKVCacheDtype(state, plan, contextLabel) {
+  return assertResolvedKVDtype(
+    state?.kvCache?.kvDtype
+      ?? plan?.kernelPath?.kvDtype
+      ?? state?.runtimeConfig?.inference?.session?.kvcache?.kvDtype
+      ?? plan?.activationDtype
+      ?? null,
+    contextLabel
+  );
+}
+
+function cloneRuntimeInferenceWithKVDtype(state, kvDtype) {
+  const runtimeInference = state?.runtimeConfig?.inference;
+  if (!runtimeInference?.session?.kvcache) {
+    throw new Error(
+      '[Pipeline] runtime.inference.session.kvcache is required for finiteness fallback KV-cache recovery.'
+    );
+  }
+  return mergeRuntimeValues(runtimeInference, {
+    session: {
+      kvcache: {
+        kvDtype,
+      },
+    },
+  });
 }
 
 export class PipelineGenerator {
@@ -479,7 +576,22 @@ export class PipelineGenerator {
     return true;
   }
 
-  _openFinitenessFallbackWindow(opts, reasonLabel, tokenCount) {
+  _recreateKVCacheForExecutionPlan(plan, reasonLabel) {
+    const kvDtype = resolveTargetPlanKVDtype(plan, `${reasonLabel}: target plan`);
+    const runtimeInference = cloneRuntimeInferenceWithKVDtype(this.#state, kvDtype);
+    this.#state.kvCache?.destroy?.();
+    this.#state.kvCache = createKVCache(
+      this.#state.modelConfig,
+      this.#state.useGPU,
+      this.#state.debug,
+      runtimeInference
+    );
+    this.#state.linearAttentionRuntime = resetLinearAttentionRuntime(this.#state.linearAttentionRuntime);
+    this.#state.currentSeqLen = 0;
+    return kvDtype;
+  }
+
+  _openFinitenessFallbackWindow(opts, reasonLabel, tokenCount, rollbackSeqLen = undefined) {
     const normalizedCount = Number.isFinite(tokenCount)
       ? Math.max(1, Math.floor(tokenCount))
       : 1;
@@ -490,7 +602,7 @@ export class PipelineGenerator {
       );
       return;
     }
-    const original = this._beginFinitenessFallback(opts, reasonLabel);
+    const original = this._beginFinitenessFallback(opts, reasonLabel, rollbackSeqLen);
     this.#finitenessFallbackWindow = {
       original,
       remainingTokens: normalizedCount,
@@ -600,6 +712,7 @@ export class PipelineGenerator {
   }
 
   async _prefillPromptToLogits(prompt, opts, contextLabel) {
+    const prefillStartSeqLen = this.#state.currentSeqLen;
     const inputIds = this._resolvePromptOrInputIds(prompt, opts.useChatTemplate, contextLabel, opts.inputIds);
     if (opts.debug) {
       log.debug('Pipeline', `${contextLabel}: ${inputIds.length} tokens`);
@@ -613,10 +726,12 @@ export class PipelineGenerator {
         throw error;
       }
       log.warn('Pipeline', `FinitenessGuard caught NaN/Inf during ${contextLabel}. Retrying with F32 precision.`);
-      logits = await this._retryWithFinitenessFallback(
+      logits = await this._retryWithPersistentFinitenessFallback(
         opts,
         contextLabel,
-        () => this._prefill(inputIds, opts)
+        opts.maxTokens ?? 1,
+        () => this._prefill(inputIds, opts),
+        prefillStartSeqLen
       );
     }
 
@@ -729,6 +844,7 @@ export class PipelineGenerator {
     };
 
     try {
+      const prefillStartSeqLen = this.#state.currentSeqLen;
       const prefillStart = performance.now();
       const { inputIds, logits: initialPrefillLogits } = await this._prefillPromptToLogits(prompt, opts, 'generate');
       let prefillLogits = initialPrefillLogits;
@@ -777,10 +893,12 @@ export class PipelineGenerator {
           throw error;
         }
         log.warn('Pipeline', 'FinitenessGuard caught non-finite prefill logits at sampling. Retrying with F32 precision.');
-        prefillLogits = await this._retryWithFinitenessFallback(
+        prefillLogits = await this._retryWithPersistentFinitenessFallback(
           opts,
           'prefill-sample',
-          () => this._prefill(inputIds, opts)
+          opts.maxTokens,
+          () => this._prefill(inputIds, opts),
+          prefillStartSeqLen
         );
         firstToken = this._sampleNextTokenFromLogits(prefillLogits, generatedIds, opts);
       }
@@ -861,11 +979,17 @@ export class PipelineGenerator {
     }
   }
 
-  _beginFinitenessFallback(opts, reasonLabel) {
+  _beginFinitenessFallback(opts, reasonLabel, rollbackSeqLen = undefined) {
     const originalPlan = resolveActiveExecutionPlan(this.#state);
+    const currentKvDtype = resolveCurrentKVCacheDtype(
+      this.#state,
+      originalPlan,
+      `${reasonLabel}: current plan`
+    );
     const original = {
       activePlanId: this.#state.executionPlanState?.activePlanId ?? 'primary',
       seed: opts.seed,
+      restoreKVCachePlan: null,
     };
 
     const fallbackPlan = activateFallbackExecutionPlan(this.#state);
@@ -879,13 +1003,57 @@ export class PipelineGenerator {
       `FinitenessGuard fallback (${reasonLabel}): ` +
       `${originalPlan.kernelPathId ?? 'none'} -> ${fallbackPlan.kernelPathId ?? 'none'}`
     );
+    const fallbackKvDtype = resolveTargetPlanKVDtype(
+      fallbackPlan,
+      `${reasonLabel}: fallback plan`
+    );
 
-        this.#state.decodeBuffers?.ensureBuffers({
-          hiddenSize: this.#state.modelConfig.hiddenSize,
-          intermediateSize: this.#state.modelConfig.maxIntermediateSize,
-          activationDtype: fallbackPlan.activationDtype,
-          enablePingPong: true,
-        });
+    if (Number.isInteger(rollbackSeqLen) && rollbackSeqLen < 0) {
+      setActiveExecutionPlan(this.#state, original.activePlanId);
+      throw new Error(
+        `[Pipeline] ${reasonLabel}: rollbackSeqLen must be a non-negative integer when provided.`
+      );
+    }
+
+    if (fallbackKvDtype !== currentKvDtype) {
+      if (rollbackSeqLen !== 0) {
+        setActiveExecutionPlan(this.#state, original.activePlanId);
+        throw new Error(
+          `[Pipeline] ${reasonLabel}: finiteness fallback requires rebuilding the KV cache ` +
+          `${currentKvDtype} -> ${fallbackKvDtype}, which is only supported from a fresh prefill (rollbackSeqLen=0).`
+        );
+      }
+      try {
+        this._recreateKVCacheForExecutionPlan(fallbackPlan, reasonLabel);
+        original.restoreKVCachePlan = originalPlan;
+      } catch (error) {
+        setActiveExecutionPlan(this.#state, original.activePlanId);
+        try {
+          this._recreateKVCacheForExecutionPlan(originalPlan, `${reasonLabel}: restore primary`);
+        } catch (restoreError) {
+          log.warn(
+            'Pipeline',
+            `Failed to restore primary KV cache after fallback activation error: ${restoreError}`
+          );
+        }
+        throw error;
+      }
+    } else if (Number.isInteger(rollbackSeqLen)) {
+      this.#state.kvCache?.truncate(rollbackSeqLen);
+      this.#state.currentSeqLen = rollbackSeqLen;
+      if (rollbackSeqLen === 0) {
+        this.#state.linearAttentionRuntime = resetLinearAttentionRuntime(this.#state.linearAttentionRuntime);
+      }
+    } else {
+      this.#state.kvCache?.truncate(this.#state.currentSeqLen);
+    }
+
+    this.#state.decodeBuffers?.ensureBuffers({
+      hiddenSize: this.#state.modelConfig.hiddenSize,
+      intermediateSize: this.#state.modelConfig.maxIntermediateSize,
+      activationDtype: fallbackPlan.activationDtype,
+      enablePingPong: true,
+    });
 
     if (opts.seed == null) {
       const fallbackSeedBase = (this.#state.decodeStepCount + this.#state.currentSeqLen + 1) >>> 0;
@@ -916,6 +1084,9 @@ export class PipelineGenerator {
     setActiveExecutionPlan(this.#state, original.activePlanId);
     opts.executionPlan = rebaseExecutionSessionPlan(this.#state, opts.executionPlan);
     const restoredPlan = resolveActiveExecutionPlan(this.#state);
+    if (original.restoreKVCachePlan) {
+      this._recreateKVCacheForExecutionPlan(restoredPlan, 'restore-primary-plan');
+    }
     if (this.#state.stats.executionPlan) {
       this.#state.stats.executionPlan.finalActivePlanId = restoredPlan.id;
       this.#state.stats.executionPlan.transitions.push({
@@ -940,16 +1111,28 @@ export class PipelineGenerator {
     });
   }
 
-  async _retryWithFinitenessFallback(opts, reasonLabel, retryFn) {
+  async _retryWithFinitenessFallback(opts, reasonLabel, retryFn, rollbackSeqLen = undefined) {
     if (this._hasFinitenessFallbackWindow()) {
       return retryFn();
     }
-    this.#state.kvCache?.truncate(this.#state.currentSeqLen);
-    const original = this._beginFinitenessFallback(opts, reasonLabel);
+    const original = this._beginFinitenessFallback(opts, reasonLabel, rollbackSeqLen);
     try {
       return await retryFn();
     } finally {
       this._endFinitenessFallback(opts, original);
+    }
+  }
+
+  async _retryWithPersistentFinitenessFallback(opts, reasonLabel, tokenBudget, retryFn, rollbackSeqLen = undefined) {
+    if (this._hasFinitenessFallbackWindow()) {
+      return retryFn();
+    }
+    this._openFinitenessFallbackWindow(opts, reasonLabel, tokenBudget, rollbackSeqLen);
+    try {
+      return await retryFn();
+    } catch (error) {
+      this._closeFinitenessFallbackWindow(opts);
+      throw error;
     }
   }
 
@@ -963,7 +1146,6 @@ export class PipelineGenerator {
       );
     }
 
-    this.#state.kvCache?.truncate(this.#state.currentSeqLen);
     this._openFinitenessFallbackWindow(opts, reasonLabel, windowTokens);
     try {
       return await this._decodeStep(generatedIds, opts);
@@ -1015,6 +1197,7 @@ export class PipelineGenerator {
     opts.repetitionPenalty = samplingConfig.repetitionPenalty;
 
     try {
+      const prefillStartSeqLen = this.#state.currentSeqLen;
       const prefillStart = performance.now();
       const { inputIds, logits: initialPrefillLogits } = await this._prefillPromptToLogits(prompt, opts, 'generateTokenIds');
       let prefillLogits = initialPrefillLogits;
@@ -1030,10 +1213,12 @@ export class PipelineGenerator {
         if (!this._shouldUseFinitenessFallback(error, 'prefill-sample')) {
           throw error;
         }
-        prefillLogits = await this._retryWithFinitenessFallback(
+        prefillLogits = await this._retryWithPersistentFinitenessFallback(
           opts,
           'prefill-sample',
-          () => this._prefill(inputIds, opts)
+          opts.maxTokens,
+          () => this._prefill(inputIds, opts),
+          prefillStartSeqLen
         );
         firstToken = this._sampleNextTokenFromLogits(prefillLogits, generatedIds, opts);
       }
@@ -1111,60 +1296,67 @@ export class PipelineGenerator {
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.prefillProfileSteps = [];
     const opts = resolvePrefillOptions(this.#state, options);
+    const prefillStartSeqLen = this.#state.currentSeqLen;
     const inputIds = this._resolvePromptOrInputIds(prompt, opts.useChatTemplate, 'prefillKVOnly', opts.inputIds);
     if (opts.debug) {
       log.debug('Pipeline', `PrefillKVOnly: ${inputIds.length} tokens`);
     }
 
-    let prefillResult;
     try {
-      prefillResult = await this._prefillToHidden(inputIds, opts);
-    } catch (error) {
-      if (this._shouldUseFinitenessFallback(error, 'prefillKVOnly')) {
-        log.warn('Pipeline', `FinitenessGuard caught NaN/Inf during prefillKVOnly. Retrying with F32 precision.`);
-        prefillResult = await this._retryWithFinitenessFallback(
-          opts,
-          'prefillKVOnly',
-          () => this._prefillToHidden(inputIds, opts)
-        );
+      let prefillResult;
+      try {
+        prefillResult = await this._prefillToHidden(inputIds, opts);
+      } catch (error) {
+        if (this._shouldUseFinitenessFallback(error, 'prefillKVOnly')) {
+          log.warn('Pipeline', `FinitenessGuard caught NaN/Inf during prefillKVOnly. Retrying with F32 precision.`);
+          prefillResult = await this._retryWithPersistentFinitenessFallback(
+            opts,
+            'prefillKVOnly',
+            1,
+            () => this._prefillToHidden(inputIds, opts),
+            prefillStartSeqLen
+          );
+        } else {
+          throw error;
+        }
+      }
+
+      const {
+        numTokens,
+        startPos,
+        currentRecorder,
+        recordProfile,
+        currentHiddenBuffer,
+      } = prefillResult;
+
+      // Ensure prefill work completes before returning a usable snapshot.
+      if (currentRecorder) {
+        await currentRecorder.submitAndWait();
+        await recordProfile(currentRecorder);
       } else {
-        throw error;
+        const device = getDevice();
+        if (device) {
+          await device.queue.onSubmittedWorkDone();
+        }
       }
-    }
 
-    const {
-      numTokens,
-      startPos,
-      currentRecorder,
-      recordProfile,
-      currentHiddenBuffer,
-    } = prefillResult;
+      this.#state.currentSeqLen = startPos + numTokens;
+      releaseBuffer(currentHiddenBuffer);
 
-    // Ensure prefill work completes before returning a usable snapshot.
-    if (currentRecorder) {
-      await currentRecorder.submitAndWait();
-      await recordProfile(currentRecorder);
-    } else {
-      const device = getDevice();
-      if (device) {
-        await device.queue.onSubmittedWorkDone();
+      const snapshot = this.#state.kvCache?.clone();
+      if (!snapshot) {
+        throw new Error('KV cache unavailable after prefill');
       }
+
+      return {
+        cache: snapshot,
+        seqLen: this.#state.currentSeqLen,
+        tokens: inputIds,
+        linearAttention: await cloneLinearAttentionRuntime(this.#state.linearAttentionRuntime),
+      };
+    } finally {
+      this._closeFinitenessFallbackWindow(opts);
     }
-
-    this.#state.currentSeqLen = startPos + numTokens;
-    releaseBuffer(currentHiddenBuffer);
-
-    const snapshot = this.#state.kvCache?.clone();
-    if (!snapshot) {
-      throw new Error('KV cache unavailable after prefill');
-    }
-
-    return {
-      cache: snapshot,
-      seqLen: this.#state.currentSeqLen,
-      tokens: inputIds,
-      linearAttention: await cloneLinearAttentionRuntime(this.#state.linearAttentionRuntime),
-    };
   }
 
   async prefillWithEmbedding(prompt, options = {}) {
@@ -1177,90 +1369,97 @@ export class PipelineGenerator {
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.prefillProfileSteps = [];
     const opts = resolvePrefillEmbeddingOptions(this.#state, options);
+    const prefillStartSeqLen = this.#state.currentSeqLen;
     const inputIds = this._resolvePromptOrInputIds(prompt, opts.useChatTemplate, 'prefillWithEmbedding', opts.inputIds);
     if (opts.debug) {
       log.debug('Pipeline', `PrefillWithEmbedding: ${inputIds.length} tokens (mode=${opts.embeddingMode})`);
     }
 
-    let prefillResult;
     try {
-      prefillResult = await this._prefillToHidden(inputIds, opts);
-    } catch (error) {
-      if (shouldRetryWithFinitenessFallback(error)) {
-        log.warn('Pipeline', `FinitenessGuard caught NaN/Inf during prefillWithEmbedding. Retrying with F32 precision.`);
-        prefillResult = await this._retryWithFinitenessFallback(
-          opts,
-          'prefillWithEmbedding',
-          () => this._prefillToHidden(inputIds, opts)
-        );
+      let prefillResult;
+      try {
+        prefillResult = await this._prefillToHidden(inputIds, opts);
+      } catch (error) {
+        if (shouldRetryWithFinitenessFallback(error)) {
+          log.warn('Pipeline', `FinitenessGuard caught NaN/Inf during prefillWithEmbedding. Retrying with F32 precision.`);
+          prefillResult = await this._retryWithPersistentFinitenessFallback(
+            opts,
+            'prefillWithEmbedding',
+            1,
+            () => this._prefillToHidden(inputIds, opts),
+            prefillStartSeqLen
+          );
+        } else {
+          throw error;
+        }
+      }
+
+      const {
+        numTokens,
+        config,
+        startPos,
+        activationDtype,
+        activationBytes,
+        currentRecorder,
+        recordProfile,
+        currentHiddenBuffer,
+      } = prefillResult;
+
+      // Ensure prefill work completes before readback.
+      if (currentRecorder) {
+        await currentRecorder.submitAndWait();
+        await recordProfile(currentRecorder);
       } else {
-        throw error;
+        const device = getDevice();
+        if (device) {
+          await device.queue.onSubmittedWorkDone();
+        }
       }
-    }
 
-    const {
-      numTokens,
-      config,
-      startPos,
-      activationDtype,
-      activationBytes,
-      currentRecorder,
-      recordProfile,
-      currentHiddenBuffer,
-    } = prefillResult;
-
-    // Ensure prefill work completes before readback.
-    if (currentRecorder) {
-      await currentRecorder.submitAndWait();
-      await recordProfile(currentRecorder);
-    } else {
-      const device = getDevice();
-      if (device) {
-        await device.queue.onSubmittedWorkDone();
-      }
-    }
-
-    if (!allowReadback('pipeline.prefill.embedding')) {
-      throw new Error('GPU readback disabled; cannot return embedding');
-    }
-
-    let embedding;
-    try {
-      const hiddenSize = config.hiddenSize;
-      const hiddenBytes = numTokens * hiddenSize * activationBytes;
-      const hiddenData = await readBuffer(currentHiddenBuffer, hiddenBytes);
-      if (hiddenData.byteLength === 0) {
+      if (!allowReadback('pipeline.prefill.embedding')) {
         throw new Error('GPU readback disabled; cannot return embedding');
       }
-      const hiddenStates = decodeReadback(hiddenData, activationDtype);
-      const finalNormWeights = await this._getFinalNormWeights();
-      embedding = this._extractEmbeddingFromHidden(
-        hiddenStates,
-        numTokens,
-        hiddenSize,
-        opts.embeddingMode,
-        finalNormWeights,
-        config
-      );
+
+      let embedding;
+      try {
+        const hiddenSize = config.hiddenSize;
+        const hiddenBytes = numTokens * hiddenSize * activationBytes;
+        const hiddenData = await readBuffer(currentHiddenBuffer, hiddenBytes);
+        if (hiddenData.byteLength === 0) {
+          throw new Error('GPU readback disabled; cannot return embedding');
+        }
+        const hiddenStates = decodeReadback(hiddenData, activationDtype);
+        const finalNormWeights = await this._getFinalNormWeights();
+        embedding = this._extractEmbeddingFromHidden(
+          hiddenStates,
+          numTokens,
+          hiddenSize,
+          opts.embeddingMode,
+          finalNormWeights,
+          config
+        );
+      } finally {
+        releaseBuffer(currentHiddenBuffer);
+      }
+
+      this.#state.currentSeqLen = startPos + numTokens;
+
+      const snapshot = this.#state.kvCache?.clone();
+      if (!snapshot) {
+        throw new Error('KV cache unavailable after prefill');
+      }
+
+      return {
+        cache: snapshot,
+        seqLen: this.#state.currentSeqLen,
+        tokens: inputIds,
+        embedding,
+        embeddingMode: opts.embeddingMode,
+        linearAttention: await cloneLinearAttentionRuntime(this.#state.linearAttentionRuntime),
+      };
     } finally {
-      releaseBuffer(currentHiddenBuffer);
+      this._closeFinitenessFallbackWindow(opts);
     }
-
-    this.#state.currentSeqLen = startPos + numTokens;
-
-    const snapshot = this.#state.kvCache?.clone();
-    if (!snapshot) {
-      throw new Error('KV cache unavailable after prefill');
-    }
-
-    return {
-      cache: snapshot,
-      seqLen: this.#state.currentSeqLen,
-      tokens: inputIds,
-      embedding,
-      embeddingMode: opts.embeddingMode,
-      linearAttention: await cloneLinearAttentionRuntime(this.#state.linearAttentionRuntime),
-    };
   }
 
   async prefillWithLogits(prompt, options = {}) {
@@ -1273,20 +1472,24 @@ export class PipelineGenerator {
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.prefillProfileSteps = [];
     const opts = resolvePrefillOptions(this.#state, options);
-    const { inputIds, logits } = await this._prefillPromptToLogits(prompt, opts, 'prefillWithLogits');
+    try {
+      const { inputIds, logits } = await this._prefillPromptToLogits(prompt, opts, 'prefillWithLogits');
 
-    const snapshot = this.#state.kvCache?.clone();
-    if (!snapshot) {
-      throw new Error('KV cache unavailable after prefill');
+      const snapshot = this.#state.kvCache?.clone();
+      if (!snapshot) {
+        throw new Error('KV cache unavailable after prefill');
+      }
+
+      return {
+        cache: snapshot,
+        seqLen: this.#state.currentSeqLen,
+        tokens: inputIds,
+        logits,
+        linearAttention: await cloneLinearAttentionRuntime(this.#state.linearAttentionRuntime),
+      };
+    } finally {
+      this._closeFinitenessFallbackWindow(opts);
     }
-
-    return {
-      cache: snapshot,
-      seqLen: this.#state.currentSeqLen,
-      tokens: inputIds,
-      logits,
-      linearAttention: await cloneLinearAttentionRuntime(this.#state.linearAttentionRuntime),
-    };
   }
 
 
@@ -1726,9 +1929,11 @@ export class PipelineGenerator {
 
     const device = getDevice();
     const useCheckpoints = opts.debugLayers && opts.debugLayers.length > 0;
-    const disableCommandBatching = opts.disableCommandBatching === true
-      || opts.debug === true
-      || this.#state.kvCache?.layout === 'bdpa_paged';
+    const disableCommandBatching = shouldDisablePrefillCommandBatching(
+      this.#state,
+      opts,
+      multimodalBidirectionalSpan
+    );
     const createRecorder = (label) => {
       if (!device || disableCommandBatching) return undefined;
       return opts.profile ? createProfilingRecorder(label) : createCommandRecorder(label);
@@ -1780,6 +1985,20 @@ export class PipelineGenerator {
       resetSubmitStats();
     }
 
+    const preserveBufferAcrossRecorderSubmit = (buffer, activeRecorder, label) => {
+      if (!activeRecorder || !isGpuBufferInstance(buffer)) {
+        return buffer;
+      }
+      const carryBuffer = acquireBuffer(
+        buffer.size,
+        typeof buffer.usage === 'number' ? buffer.usage : undefined,
+        label
+      );
+      activeRecorder.getEncoder().copyBufferToBuffer(buffer, 0, carryBuffer, 0, buffer.size);
+      activeRecorder.trackTemporaryBuffer(buffer);
+      return carryBuffer;
+    };
+
     const activationDtype = opts.executionPlan?.activationDtype ?? this._getEffectiveActivationDtype();
     const activationBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
     let baseEmbeddings = await embed(embeddingInputIds, embedBuffer, {
@@ -1797,7 +2016,12 @@ export class PipelineGenerator {
     let hiddenStates = baseEmbeddings;
     let perLayerInputs = null;
     try {
-      hiddenStates = await applyPrefixEmbeddingOverride(baseEmbeddings, embeddingOverride, '_prefill');
+      hiddenStates = await applyPrefixEmbeddingOverride(
+        baseEmbeddings,
+        embeddingOverride,
+        config.hiddenSize,
+        '_prefill'
+      );
       perLayerInputs = await preparePerLayerInputs(
         embeddingInputIds,
         embeddingInputIds === inputIds ? hiddenStates : baseEmbeddings,
@@ -1824,6 +2048,12 @@ export class PipelineGenerator {
 
     if (opts.debug && isGpuBufferInstance(hiddenStates)) {
       if (recorder) {
+        hiddenStates = createTensor(
+          preserveBufferAcrossRecorderSubmit(hiddenStates.buffer, recorder, 'prefill_embed_carry'),
+          hiddenStates.dtype,
+          hiddenStates.shape,
+          hiddenStates.label
+        );
         await recorder.submitAndWait();
         await recordProfile(recorder);
       }
@@ -1882,6 +2112,11 @@ export class PipelineGenerator {
           && (l + 1) % PREFILL_RECORDER_CHUNK_LAYERS === 0;
 
         if (isCheckpoint && currentRecorder) {
+          currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
+            currentHiddenBuffer,
+            currentRecorder,
+            'prefill_checkpoint_carry'
+          );
           await currentRecorder.submitAndWait();
           await recordProfile(currentRecorder);
           currentRecorder = undefined;
@@ -1929,6 +2164,11 @@ export class PipelineGenerator {
         }
 
         if (isChunkBoundary) {
+          currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
+            currentHiddenBuffer,
+            currentRecorder,
+            'prefill_chunk_carry'
+          );
           await currentRecorder.submitAndWait();
           await recordProfile(currentRecorder);
           currentRecorder = createRecorder('prefill-chunk');
@@ -1946,6 +2186,11 @@ export class PipelineGenerator {
 
     if (this.#state.finitenessBuffer) {
       if (currentRecorder) {
+        currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
+          currentHiddenBuffer,
+          currentRecorder,
+          'prefill_finiteness_carry'
+        );
         await currentRecorder.submitAndWait();
         await recordProfile(currentRecorder);
         currentRecorder = undefined;
@@ -1986,6 +2231,13 @@ export class PipelineGenerator {
     }
 
     if (returnHidden) {
+      if (currentRecorder) {
+        currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
+          currentHiddenBuffer,
+          currentRecorder,
+          'prefill_return_hidden_carry'
+        );
+      }
       return {
         numTokens,
         config,
@@ -2069,6 +2321,11 @@ export class PipelineGenerator {
       releaseBuffer(currentHiddenBuffer);
     } else {
       if (currentRecorder) {
+        currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
+          currentHiddenBuffer,
+          currentRecorder,
+          'prefill_logits_carry'
+        );
         await currentRecorder.submitAndWait();
         await recordProfile(currentRecorder);
       }

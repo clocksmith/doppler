@@ -1200,10 +1200,10 @@ export function toParsedConfigFromMerged(merged, manifest) {
     config.linear_norm_shared,
     merged.modelId
   );
-  const decodeStrategy = (
-    (archGlobalHeadDim != null && archGlobalHeadDim !== archHeadDim)
-      || archNumKvSharedLayers > 0
-  )
+  const hasMixedAttentionGeometry = archGlobalHeadDim != null && archGlobalHeadDim !== archHeadDim;
+  const hasSharedKvLayers = archNumKvSharedLayers > 0;
+  const hasExplicitLayerTypes = Array.isArray(layerTypes) && layerTypes.length === arch.numLayers;
+  const decodeStrategy = (hasMixedAttentionGeometry || hasSharedKvLayers) && !hasExplicitLayerTypes
     ? 'replay_prefill'
     : 'incremental';
 

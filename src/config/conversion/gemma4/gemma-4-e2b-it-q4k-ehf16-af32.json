@@ -82,14 +82,14 @@
   "session": {
     "compute": {
       "defaults": {
-        "activationDtype": "f32",
-        "mathDtype": "f32",
+        "activationDtype": "f16",
+        "mathDtype": "f16",
         "accumDtype": "f32",
-        "outputDtype": "f32"
+        "outputDtype": "f16"
       }
     },
     "kvcache": {
-      "kvDtype": "f32",
+      "kvDtype": "f16",
       "layout": "contiguous",
       "pageSize": 256,
       "tiering": {
@@ -109,16 +109,16 @@
   "execution": {
     "kernels": {
       "embed": { "kernel": "gather_f16.wgsl", "entry": "main", "digest": "sha256:a4829f4067091c98ad6ebbc9b0744cdd5bbcd4fbf6092b2f7cc7f1098695860f" },
-      "rmsnorm": { "kernel": "rmsnorm.wgsl", "entry": "main", "digest": "sha256:f516b3e4bde2015f2a207c3ca5b8c9820c7809fa8f8d0786f90c568e0f1ac077" },
-      "gemv": { "kernel": "matmul_gemv_subgroup.wgsl", "entry": "main_vec4", "digest": "sha256:3cee3bed453b40c5564a751d2a917649e10ad52f5268e77cbfecfcee34780457" },
-      "rope": { "kernel": "rope.wgsl", "entry": "main", "digest": "sha256:238e989aad7da731046cd54d7bb3c80a6f26daf5d7a8e435607161de902e5882" },
-      "attn_decode": { "kernel": "attention_decode.wgsl", "entry": "attention_decode", "digest": "sha256:14cbf16eebe643d2cb0c957d5f125f6f69ea34957f2daa19488ee8985f81db1b" },
-      "residual": { "kernel": "residual.wgsl", "entry": "main", "digest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7" },
-      "gelu": { "kernel": "gelu.wgsl", "entry": "main", "digest": "sha256:a9007ea08aaff98f9be08f1e0490a6bcf252883eac5513de876ab9ce918865e6", "constants": { "HAS_GATE": true } },
-      "tiled": { "kernel": "matmul_f16w_f32a.wgsl", "entry": "main", "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc" },
-      "attn_stream": { "kernel": "attention_streaming.wgsl", "entry": "main", "digest": "sha256:565fd02cc3a6d3fb0838194a70f56ce9b52f6ca858429516ab19b69b776396a6" },
-      "lm_head_gemv": { "kernel": "matmul_gemv_subgroup.wgsl", "entry": "main_multicol", "digest": "sha256:96c38c15e6fed0d7efdc5cd094db5843a8e8ddfe01eee3bc7322fa555dacf3d0", "constants": { "MULTICOL_COLS_PER_WG": 64, "MULTICOL_THREADS_PER_COL": 4 } },
-      "sample": { "kernel": "sample.wgsl", "entry": "sample_single_pass", "digest": "sha256:4412357e84113ee2f1bc0dc8bf89e314c2ab482c89c14ca016ea9949d16a9d0c" }
+      "rmsnorm": { "kernel": "rmsnorm_f16.wgsl", "entry": "main", "digest": "sha256:cfe1e7f3c28fef53d560ad2f03f5f6ef2d51f832c53ef6f37bfc17ca205cc8ce" },
+      "gemv": { "kernel": "matmul_gemv_subgroup_f16a.wgsl", "entry": "main_vec4", "digest": "sha256:ca7d81ec4f8c4a6d253262c769d76fe072c1d6812750c2fb3c823f4694f073ea" },
+      "rope": { "kernel": "rope_f16.wgsl", "entry": "main", "digest": "sha256:0ea35ea1b5386932f44cb67a93f6c34aaee106babfd5ee3408593356fc2f1d46" },
+      "attn_decode": { "kernel": "attention_streaming_f16.wgsl", "entry": "main", "digest": "sha256:27505156863c480bc5f6e6b29824bbc93bdf45189a661b46eb8d7867db3f40e1" },
+      "residual": { "kernel": "residual_f16.wgsl", "entry": "main", "digest": "sha256:a7cd61f541945bf7a79f80dd931e842dd9fbffaef7a42a4a40e8e066351ed58d" },
+      "gelu": { "kernel": "gelu_f16.wgsl", "entry": "main", "digest": "sha256:cbde3f4bc051085d9d66ddef146f16d88e438f19ef1be3312473350e38b7ca5c", "constants": { "HAS_GATE": true } },
+      "tiled": { "kernel": "matmul_f16.wgsl", "entry": "main", "digest": "sha256:44bf68e327e82ace86c386899a28cf3e8f4f702f3f118819de460290db8fe1c7" },
+      "attn_stream": { "kernel": "attention_streaming_f16.wgsl", "entry": "main", "digest": "sha256:27505156863c480bc5f6e6b29824bbc93bdf45189a661b46eb8d7867db3f40e1" },
+      "lm_head_gemv": { "kernel": "matmul_gemv_subgroup_f16a.wgsl", "entry": "main_multicol", "digest": "sha256:2d36dd0584c36665cb55c3558baa4f270a50c4510b91838e4b1633c157f14c79", "constants": { "MULTICOL_COLS_PER_WG": 64, "MULTICOL_THREADS_PER_COL": 4 } },
+      "sample": { "kernel": "sample_f16.wgsl", "entry": "sample_single_pass", "digest": "sha256:31fd7f1b0d0725985e8ecaec9656d030e9188bf4f95ff5f93da4ca9269e82f65" }
     },
     "preLayer": [
       ["embed", "embed", "embed_tokens"]

@@ -133,6 +133,15 @@ function expandImagePlaceholderTokenIds(tokenIds, imageTokenId, numImageTokens, 
   };
 }
 
+export function buildConservativeMultimodalGenerationOptions(options = {}) {
+  return {
+    ...options,
+    disableCommandBatching: true,
+    disableMultiTokenDecode: true,
+    stopCheckMode: 'per-token',
+  };
+}
+
 // ============================================================================
 // Main Inference Pipeline Class
 // ============================================================================
@@ -971,7 +980,7 @@ export class InferencePipeline extends PipelineState {
     const stopTokenIds = this.modelConfig.stopTokenIds;
 
     try {
-      const generation = await this.generator.generateTokenIds('', {
+      const generation = await this.generator.generateTokenIds('', buildConservativeMultimodalGenerationOptions({
         inputIds: fullTokenIds,
         embeddingOverrides: {
           prefixLength: encodeResult.numTokens,
@@ -992,13 +1001,7 @@ export class InferencePipeline extends PipelineState {
         topK: 1,
         topP: 1,
         repetitionPenalty: 1,
-        // Gemma 4 multimodal replay-prefill is currently stable on constrained GPUs
-        // only in the conservative decode path. Keep the text-generation defaults
-        // unchanged and scope the safer execution mode to transcribeImage().
-        disableCommandBatching: true,
-        disableMultiTokenDecode: true,
-        stopCheckMode: 'per-token',
-      });
+      }));
       for (const token of generation.tokenIds ?? []) {
         if (Array.isArray(stopTokenIds) && stopTokenIds.includes(token)) break;
         tokens.push(token);
@@ -1109,7 +1112,7 @@ export class InferencePipeline extends PipelineState {
     const stopTokenIds = this.modelConfig.stopTokenIds;
 
     try {
-      const generation = await this.generator.generateTokenIds('', {
+      const generation = await this.generator.generateTokenIds('', buildConservativeMultimodalGenerationOptions({
         inputIds: fullTokenIds,
         embeddingOverrides: {
           prefixLength: encodeResult.numTokens,
@@ -1130,10 +1133,7 @@ export class InferencePipeline extends PipelineState {
         topK: 1,
         topP: 1,
         repetitionPenalty: 1,
-        disableCommandBatching: true,
-        disableMultiTokenDecode: true,
-        stopCheckMode: 'per-token',
-      });
+      }));
       for (const token of generation.tokenIds ?? []) {
         if (Array.isArray(stopTokenIds) && stopTokenIds.includes(token)) break;
         tokens.push(token);
@@ -1239,7 +1239,7 @@ export class InferencePipeline extends PipelineState {
     const stopTokenIds = this.modelConfig.stopTokenIds;
 
     try {
-      const generation = await this.generator.generateTokenIds('', {
+      const generation = await this.generator.generateTokenIds('', buildConservativeMultimodalGenerationOptions({
         inputIds: fullTokenIds,
         embeddingOverrides: {
           prefixLength: encodeResult.numTokens,
@@ -1260,10 +1260,7 @@ export class InferencePipeline extends PipelineState {
         topK: 1,
         topP: 1,
         repetitionPenalty: 1,
-        disableCommandBatching: true,
-        disableMultiTokenDecode: true,
-        stopCheckMode: 'per-token',
-      });
+      }));
       for (const token of generation.tokenIds ?? []) {
         if (Array.isArray(stopTokenIds) && stopTokenIds.includes(token)) break;
         tokens.push(token);

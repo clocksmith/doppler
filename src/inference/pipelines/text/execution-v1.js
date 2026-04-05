@@ -318,7 +318,14 @@ export function compileExecutionV1(options = {}) {
         defaults: {
           ...session.compute.defaults,
           activationDtype: 'f32',
+          mathDtype: 'f32',
+          accumDtype: 'f32',
+          outputDtype: 'f32',
         },
+      },
+      kvcache: {
+        ...session.kvcache,
+        kvDtype: 'f32',
       },
     };
     fallbackKernelPath = buildInlineKernelPath(
@@ -329,6 +336,11 @@ export function compileExecutionV1(options = {}) {
       null
     );
     if (fallbackKernelPath) {
+      fallbackKernelPath = {
+        ...fallbackKernelPath,
+        id: `${fallbackKernelPath.id}-finiteness-fallback`,
+        name: 'Execution inline kernel path (finiteness fallback)',
+      };
       log.info(
         'ExecutionV1',
         `Finiteness fallback inline kernel path built (${fallbackKernelPath.id})`

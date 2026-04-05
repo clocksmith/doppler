@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { expandExecutionV1 } from '../../src/config/schema/execution-v1.schema.js';
+import { compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(testDir, '..', '..');
@@ -41,8 +42,133 @@ assert.equal(config.inference?.output?.embeddingPostprocessor, null);
 
 const expanded = expandExecutionV1(config.execution);
 assert.ok(expanded.length > 0, 'execution must expand to at least one step');
+assert.equal(config.execution?.kernels?.attn_decode?.kernel, 'attention_streaming_f16.wgsl');
+assert.equal(config.execution?.kernels?.attn_decode?.entry, 'main');
+assert.equal(config.execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16.wgsl');
+assert.equal(config.execution?.kernels?.gemv?.kernel, 'matmul_gemv_subgroup_f16a.wgsl');
+assert.equal(config.execution?.kernels?.tiled?.kernel, 'matmul_f16.wgsl');
+assert.equal(config.execution?.kernels?.sample?.kernel, 'sample_f16.wgsl');
 
-assert.equal(config.session?.compute?.defaults?.activationDtype, 'f32');
-assert.equal(config.session?.kvcache?.kvDtype, 'f32');
+assert.equal(config.session?.compute?.defaults?.activationDtype, 'f16');
+assert.equal(config.session?.compute?.defaults?.mathDtype, 'f16');
+assert.equal(config.session?.compute?.defaults?.accumDtype, 'f32');
+assert.equal(config.session?.compute?.defaults?.outputDtype, 'f16');
+assert.equal(config.session?.kvcache?.kvDtype, 'f16');
+
+const manifestInference = {
+  schema: 'doppler.execution/v1',
+  ...config.inference,
+  session: config.session,
+  execution: config.execution,
+};
+
+const f16Primary = compileExecutionV1({
+  manifestInference,
+  modelId: config.output.modelBaseId,
+  numLayers: 35,
+  capabilities: {
+    hasSubgroups: true,
+    hasF16: true,
+    hasSubgroupsF16: true,
+  },
+  platform: {
+    id: 'test-f16',
+    vendor: 'test',
+    architecture: 'test',
+  },
+  runtimeCompute: {
+    rangeAwareSelectiveWidening: {
+      enabled: true,
+      includeNonFinite: true,
+      onTrigger: 'error',
+      absThreshold: 65500,
+    },
+  },
+  kernelPathPolicy: {
+    mode: 'capability-aware',
+    sourceScope: ['manifest', 'model', 'config'],
+    onIncompatible: 'remap',
+  },
+});
+
+assert.equal(f16Primary.session.compute.defaults.activationDtype, 'f16');
+assert.equal(f16Primary.session.kvcache.kvDtype, 'f16');
+assert.equal(
+  f16Primary.runtimeInferencePatch?.kernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.kernel,
+  'attention_streaming_f16.wgsl'
+);
+
+const finitenessFallback = compileExecutionV1({
+  manifestInference,
+  modelId: config.output.modelBaseId,
+  numLayers: 35,
+  capabilities: {
+    hasSubgroups: true,
+    hasF16: true,
+    hasSubgroupsF16: true,
+  },
+  platform: {
+    id: 'test-f16-fallback',
+    vendor: 'test',
+    architecture: 'test',
+  },
+  runtimeCompute: {
+    rangeAwareSelectiveWidening: {
+      enabled: true,
+      includeNonFinite: true,
+      onTrigger: 'fallback-plan',
+      absThreshold: 65500,
+    },
+  },
+  kernelPathPolicy: {
+    mode: 'capability-aware',
+    sourceScope: ['manifest', 'model', 'config'],
+    onIncompatible: 'remap',
+  },
+});
+
+assert.equal(finitenessFallback.fallbackKernelPath?.activationDtype, 'f32');
+assert.equal(finitenessFallback.fallbackKernelPath?.kvDtype, 'f32');
+assert.equal(
+  finitenessFallback.fallbackKernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.kernel,
+  'attention_streaming.wgsl'
+);
+
+const widenedFallback = compileExecutionV1({
+  manifestInference,
+  modelId: config.output.modelBaseId,
+  numLayers: 35,
+  capabilities: {
+    hasSubgroups: true,
+    hasF16: false,
+    hasSubgroupsF16: false,
+  },
+  platform: {
+    id: 'test-f32-fallback',
+    vendor: 'test',
+    architecture: 'test',
+  },
+  runtimeCompute: {
+    rangeAwareSelectiveWidening: {
+      enabled: true,
+      includeNonFinite: true,
+      onTrigger: 'error',
+      absThreshold: 65500,
+    },
+  },
+  kernelPathPolicy: {
+    mode: 'capability-aware',
+    sourceScope: ['manifest', 'model', 'config'],
+    onIncompatible: 'remap',
+  },
+});
+
+assert.deepEqual(widenedFallback.appliedTransforms, ['widenToF32Activations']);
+assert.equal(widenedFallback.session.compute.defaults.activationDtype, 'f32');
+assert.equal(widenedFallback.session.kvcache.kvDtype, 'f32');
+assert.equal(
+  widenedFallback.runtimeInferencePatch?.kernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.kernel,
+  'attention_streaming.wgsl'
+);
 
 console.log('gemma4-e2b-conversion-config-contract.test: ok');

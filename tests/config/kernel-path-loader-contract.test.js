@@ -139,6 +139,23 @@ try {
     ],
   };
 
+  const streamingDecodePath = {
+    id: 'streaming-decode-path',
+    name: 'Streaming Decode Path',
+    activationDtype: 'f32',
+    decode: {
+      steps: [
+        { op: 'attention', kernel: 'attention_streaming.wgsl', entry: 'main' },
+      ],
+    },
+    prefill: {
+      steps: [
+        { op: 'attention', kernel: 'attention_streaming.wgsl', entry: 'main' },
+      ],
+    },
+    postLayer: [],
+  };
+
   const qwenLinearPath = {
     id: 'qwen-linear-prefill-q4',
     name: 'Qwen Linear Prefill Q4',
@@ -239,6 +256,8 @@ try {
   assert.equal(getKernelPathMatmulConstants('missing_role', 'decode', 0, overridePath), null);
 
   assert.equal(getKernelPathAttentionVariant('decode', 0, { decode: { steps: [] } }), null);
+  assert.equal(getKernelPathAttentionVariant('decode', 0, streamingDecodePath), 'decode_streaming');
+  assert.equal(getKernelPathAttentionVariant('prefill', 0, streamingDecodePath), 'prefill_streaming');
   assert.equal(getKernelPathMatmulVariant('missing_role', 'decode', 0, { decode: { steps: [] } }), null);
   assert.equal(
     getKernelPathMatmulVariant('linear_qkv_proj', 'prefill', 0, qwenLinearPath),

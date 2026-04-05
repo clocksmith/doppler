@@ -22,9 +22,18 @@ import { f16BufferToF32 } from './cpu.js';
 import { readBufferWithCleanup } from './utils.js';
 
 function shouldForceStableF32Logits(config, inputDtype) {
-  // Small Gemma-family checkpoints can overflow in pure F16 logits path after RMSNorm offset.
-  return inputDtype === 'f16'
-    && config.rmsNormWeightOffset === true
+  if (inputDtype !== 'f16') {
+    return false;
+  }
+  // Softcapped output heads are numerically sensitive in pure F16 on the
+  // final RMSNorm + LM-head path. Widen only the logits tail so the main
+  // layer stack and KV cache can stay on the faster F16 lane.
+  if (Number.isFinite(config.finalLogitSoftcapping) && config.finalLogitSoftcapping > 0) {
+    return true;
+  }
+  // Small Gemma-family checkpoints can also overflow in pure F16 logits path
+  // after RMSNorm offset even without output softcapping.
+  return config.rmsNormWeightOffset === true
     && Number.isFinite(config.hiddenSize)
     && config.hiddenSize <= 768;
 }
@@ -49,6 +58,40 @@ async function coerceTensorDtype(tensor, targetDtype, recorder = null) {
     return recorder ? await recordCastF16ToF32(recorder, tensor) : await castF16ToF32(tensor);
   }
   throw new Error(`Unsupported logits matmul dtype coercion: ${tensor.dtype} -> ${targetDtype}`);
+}
+
+const STABLE_F32_LOGITS_KERNEL_MAP = new Map([
+  ['matmul_gemv_subgroup_f16a.wgsl', 'matmul_gemv_subgroup.wgsl'],
+  ['matmul_f16.wgsl', 'matmul_f16w_f32a.wgsl'],
+  ['matmul_f16_tiled.wgsl', 'matmul_f16w_f32a_tiled.wgsl'],
+]);
+
+function createStableF32LogitsKernelPath(kernelPath) {
+  if (!kernelPath?.postLayer) {
+    return kernelPath;
+  }
+  let changed = false;
+  const postLayer = kernelPath.postLayer.map((step) => {
+    if (step?.op !== 'lm_head' && step?.op !== 'lm_head_prefill') {
+      return step;
+    }
+    const replacement = STABLE_F32_LOGITS_KERNEL_MAP.get(step.kernel);
+    if (!replacement || replacement === step.kernel) {
+      return step;
+    }
+    changed = true;
+    return {
+      ...step,
+      kernel: replacement,
+    };
+  });
+  if (!changed) {
+    return kernelPath;
+  }
+  return {
+    ...kernelPath,
+    postLayer,
+  };
 }
 
 
@@ -323,6 +366,9 @@ export async function computeLogitsGPU(
       dtype: inputDtype,
     });
     const forceStableF32Logits = shouldForceStableF32Logits(config, inputDtype);
+    const stableKernelPath = forceStableF32Logits
+      ? createStableF32LogitsKernelPath(config.kernelPath ?? null)
+      : (config.kernelPath ?? null);
     normInputTensor = inputTensor;
     if (forceStableF32Logits) {
       normInputTensor = await castF16ToF32(inputTensor);
@@ -346,10 +392,10 @@ export async function computeLogitsGPU(
     const phase = numTokens === 1 ? 'decode' : 'prefill';
     const lmHeadInputDtype = forceStableF32Logits
       ? normedTensor.dtype
-      : resolveMatmulStepDtype('lm_head', phase, config.kernelPath ?? null, normedTensor.dtype, 'inputDtype');
+      : resolveMatmulStepDtype('lm_head', phase, stableKernelPath, normedTensor.dtype, 'inputDtype');
     const lmHeadOutputDtype = forceStableF32Logits
       ? normedTensor.dtype
-      : resolveMatmulStepDtype('lm_head', phase, config.kernelPath ?? null, normedTensor.dtype, 'outputDtype');
+      : resolveMatmulStepDtype('lm_head', phase, stableKernelPath, normedTensor.dtype, 'outputDtype');
     lmHeadInputTensor = lmHeadInputDtype !== normedTensor.dtype
       ? await coerceTensorDtype(normedTensor, lmHeadInputDtype)
       : normedTensor;
@@ -374,7 +420,7 @@ export async function computeLogitsGPU(
     const logitsTensor = await runMatmul(lmHeadInputTensor, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
       transposeB: 'auto',
       role: 'lm_head',
-      kernelPath: config.kernelPath ?? null,
+      kernelPath: stableKernelPath,
       outputDtype: lmHeadOutputDtype,
     });
     await runProbes('logits', logitsTensor.buffer, {
@@ -453,6 +499,9 @@ export async function recordLogitsGPU(
     dtype: inputDtype,
   });
   const forceStableF32Logits = shouldForceStableF32Logits(config, inputDtype);
+  const stableKernelPath = forceStableF32Logits
+    ? createStableF32LogitsKernelPath(config.kernelPath ?? null)
+    : (config.kernelPath ?? null);
   let normInputTensor = inputTensor;
   let normInputOwned = false;
   if (forceStableF32Logits) {
@@ -475,10 +524,10 @@ export async function recordLogitsGPU(
   const phase = numTokens === 1 ? 'decode' : 'prefill';
   const lmHeadInputDtype = forceStableF32Logits
     ? normedTensor.dtype
-    : resolveMatmulStepDtype('lm_head', phase, config.kernelPath ?? null, normedTensor.dtype, 'inputDtype');
+    : resolveMatmulStepDtype('lm_head', phase, stableKernelPath, normedTensor.dtype, 'inputDtype');
   const lmHeadOutputDtype = forceStableF32Logits
     ? normedTensor.dtype
-    : resolveMatmulStepDtype('lm_head', phase, config.kernelPath ?? null, normedTensor.dtype, 'outputDtype');
+    : resolveMatmulStepDtype('lm_head', phase, stableKernelPath, normedTensor.dtype, 'outputDtype');
   const lmHeadInputTensor = lmHeadInputDtype !== normedTensor.dtype
     ? await coerceTensorDtype(normedTensor, lmHeadInputDtype, recorder)
     : normedTensor;
@@ -502,7 +551,7 @@ export async function recordLogitsGPU(
   const logitsTensor = await recordMatmul(recorder, lmHeadInputTensor, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
     transposeB: 'auto',
     role: 'lm_head',
-    kernelPath: config.kernelPath ?? null,
+    kernelPath: stableKernelPath,
     outputDtype: lmHeadOutputDtype,
   });
   await runProbes('logits', logitsTensor.buffer, {
