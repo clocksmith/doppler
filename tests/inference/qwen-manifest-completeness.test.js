@@ -274,15 +274,15 @@ for (const config of convConfigs) {
   assert.equal(config.inference.defaultKernelPath, null);
 }
 
-// --- Conversion configs: Qwen keeps an explicit execution graph with GEMV decode as primary path ---
+// --- Conversion configs: Qwen keeps an explicit execution graph with fused Q4 decode/prefill as primary path ---
 
 for (const config of convConfigs) {
   assert.ok(config.execution && typeof config.execution === 'object');
   assert.equal(config.execution.inlineKernelPath, true);
   if ((config.output?.modelBaseId ?? '') === 'qwen-3-5-0-8b-q4k-ehaf16') {
-    assert.equal(config.execution.kernels.gemv_decode.kernel, 'matmul_gemv_subgroup.wgsl');
+    assert.equal(config.execution.kernels.q4_decode.kernel, 'fused_matmul_q4.wgsl');
     assert.equal(config.execution.kernels.tiled.kernel, 'matmul_f16w_f32a.wgsl');
-    assert.equal(config.execution.kernels.attn_head256.kernel, 'attention_head256_f16kv.wgsl');
+    assert.equal(config.execution.kernels.q4_prefill.kernel, 'fused_matmul_q4_batched.wgsl');
   }
 }
 

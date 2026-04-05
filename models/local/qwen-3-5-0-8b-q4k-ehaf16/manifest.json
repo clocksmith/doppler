@@ -25,6 +25,10 @@
     "linearKeyHeadDim": 128,
     "linearValueHeadDim": 128,
     "linearConvKernelDim": 4,
+    "hiddenSizePerLayerInput": null,
+    "vocabSizePerLayerInput": null,
+    "globalHeadDim": null,
+    "numKvSharedLayers": null,
     "linearNormMode": "shared"
   },
   "moeConfig": null,
@@ -141,9 +145,9 @@
         }
       },
       "decodeLoop": {
-        "batchSize": 8,
+        "batchSize": 4,
         "stopCheckMode": "batch",
-        "readbackInterval": 1,
+        "readbackInterval": 32,
         "readbackMode": "sequential",
         "submitLatencyThresholdMs": null,
         "ringTokens": 1,
@@ -172,10 +176,10 @@
           "entry": "main",
           "digest": "sha256:f516b3e4bde2015f2a207c3ca5b8c9820c7809fa8f8d0786f90c568e0f1ac077"
         },
-        "gemv_decode": {
-          "kernel": "matmul_gemv_subgroup.wgsl",
+        "q4_decode": {
+          "kernel": "fused_matmul_q4.wgsl",
           "entry": "main_multicol",
-          "digest": "sha256:f4d392b7f1e97e5bd63044ce09bdeb77ed7e77f6080181d483b8f1553e844ec4"
+          "digest": "sha256:86a9d548c8d653d001d3165f10c535d6fd1bb6c5f76f8d51a1f09aff9753068c"
         },
         "rope": {
           "kernel": "rope.wgsl",
@@ -200,10 +204,10 @@
             "HAS_GATE": true
           }
         },
-        "attn_head256": {
-          "kernel": "attention_head256_f16kv.wgsl",
-          "entry": "main",
-          "digest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a"
+        "q4_prefill": {
+          "kernel": "fused_matmul_q4_batched.wgsl",
+          "entry": "main_batched",
+          "digest": "sha256:a513e4170792aaf2f1c22b73f34288721541acf5954756993a0001a412c91209"
         },
         "tiled": {
           "kernel": "matmul_f16w_f32a.wgsl",
@@ -244,17 +248,17 @@
         ],
         [
           "q_proj",
-          "gemv_decode",
+          "q4_decode",
           "layer.{L}.self_attn.q_proj"
         ],
         [
           "k_proj",
-          "gemv_decode",
+          "q4_decode",
           "layer.{L}.self_attn.k_proj"
         ],
         [
           "v_proj",
-          "gemv_decode",
+          "q4_decode",
           "layer.{L}.self_attn.v_proj"
         ],
         [
@@ -271,7 +275,7 @@
         ],
         [
           "o_proj",
-          "gemv_decode",
+          "q4_decode",
           "layer.{L}.self_attn.o_proj"
         ],
         [
@@ -284,12 +288,12 @@
         ],
         [
           "gate_proj",
-          "gemv_decode",
+          "q4_decode",
           "layer.{L}.mlp.gate_proj"
         ],
         [
           "up_proj",
-          "gemv_decode",
+          "q4_decode",
           "layer.{L}.mlp.up_proj"
         ],
         [
@@ -298,7 +302,7 @@
         ],
         [
           "down_proj",
-          "gemv_decode",
+          "q4_decode",
           "layer.{L}.mlp.down_proj"
         ],
         [
@@ -313,17 +317,17 @@
         ],
         [
           "q_proj",
-          "tiled",
+          "q4_prefill",
           "layer.{L}.self_attn.q_proj"
         ],
         [
           "k_proj",
-          "tiled",
+          "q4_prefill",
           "layer.{L}.self_attn.k_proj"
         ],
         [
           "v_proj",
-          "tiled",
+          "q4_prefill",
           "layer.{L}.self_attn.v_proj"
         ],
         [
@@ -336,11 +340,11 @@
         ],
         [
           "attention",
-          "attn_head256"
+          "attn_stream"
         ],
         [
           "o_proj",
-          "tiled",
+          "q4_prefill",
           "layer.{L}.self_attn.o_proj"
         ],
         [
@@ -353,12 +357,12 @@
         ],
         [
           "gate_proj",
-          "tiled",
+          "q4_prefill",
           "layer.{L}.mlp.gate_proj"
         ],
         [
           "up_proj",
-          "tiled",
+          "q4_prefill",
           "layer.{L}.mlp.up_proj"
         ],
         [
@@ -367,7 +371,7 @@
         ],
         [
           "down_proj",
-          "tiled",
+          "q4_prefill",
           "layer.{L}.mlp.down_proj"
         ],
         [
@@ -6450,10 +6454,9 @@
   },
   "totalSize": 1003016384,
   "hashAlgorithm": "blake3",
-  "eos_token_id": [
-    248046,
-    248069
-  ],
+  "eos_token_id": 248044,
+  "image_token_id": 248056,
+  "video_token_id": 248057,
   "config": {
     "vision_config": {
       "deepstack_visual_indexes": [],
@@ -6475,10 +6478,10 @@
   "conversion": null,
   "metadata": {
     "source": "convert-core",
-    "convertedAt": "2026-03-24T15:00:03.514Z",
+    "convertedAt": "2026-04-05T00:56:06.572Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-03-26T12:13:29.194Z",
+      "at": "2026-04-05T01:12:54.213Z",
       "config": "qwen-3-5-0-8b-q4k-ehaf16.json"
     }
   },

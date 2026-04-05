@@ -166,15 +166,15 @@
         "entry": "main",
         "digest": "sha256:f516b3e4bde2015f2a207c3ca5b8c9820c7809fa8f8d0786f90c568e0f1ac077"
       },
-      "gemv_decode": {
-        "kernel": "matmul_gemv_subgroup.wgsl",
+      "q4_decode": {
+        "kernel": "fused_matmul_q4.wgsl",
         "entry": "main_multicol",
-        "digest": "sha256:f4d392b7f1e97e5bd63044ce09bdeb77ed7e77f6080181d483b8f1553e844ec4"
+        "digest": "sha256:c0262226752914e863e8b5dc34479b523f9c93e2cef69c9057dcbde2b82854ef"
       },
       "rope": {
         "kernel": "rope.wgsl",
         "entry": "main",
-        "digest": "sha256:238e989aad7da731046cd54d7bb3c80a6f26daf5d7a8e435607161de902e5882"
+        "digest": "sha256:4c803ad5e0dd065d5572c7aecc1def277c43884dcc02f22a9676914c10111400"
       },
       "attn_decode": {
         "kernel": "attention_decode_online_f16kv.wgsl",
@@ -194,10 +194,10 @@
           "HAS_GATE": true
         }
       },
-      "attn_head256": {
-        "kernel": "attention_head256_f16kv.wgsl",
-        "entry": "main",
-        "digest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a"
+      "q4_prefill": {
+        "kernel": "fused_matmul_q4_batched.wgsl",
+        "entry": "main_batched",
+        "digest": "sha256:a513e4170792aaf2f1c22b73f34288721541acf5954756993a0001a412c91209"
       },
       "tiled": {
         "kernel": "matmul_f16w_f32a.wgsl",
@@ -207,7 +207,7 @@
       "attn_stream": {
         "kernel": "attention_streaming_f16kv.wgsl",
         "entry": "main",
-        "digest": "sha256:5976eef417cebf648f52aeebb47ed1dc6b03c3c541122290c5cead19238fdc24"
+        "digest": "sha256:b337a2dcf7b40431a733d1726eee8bf23504136fd5f915bec057fb59f3ea7480"
       },
       "lm_head_gemv": {
         "kernel": "matmul_gemv_subgroup.wgsl",
@@ -238,17 +238,17 @@
       ],
       [
         "q_proj",
-        "gemv_decode",
+        "q4_decode",
         "layer.{L}.self_attn.q_proj"
       ],
       [
         "k_proj",
-        "gemv_decode",
+        "q4_decode",
         "layer.{L}.self_attn.k_proj"
       ],
       [
         "v_proj",
-        "gemv_decode",
+        "q4_decode",
         "layer.{L}.self_attn.v_proj"
       ],
       [
@@ -265,7 +265,7 @@
       ],
       [
         "o_proj",
-        "gemv_decode",
+        "q4_decode",
         "layer.{L}.self_attn.o_proj"
       ],
       [
@@ -278,12 +278,12 @@
       ],
       [
         "gate_proj",
-        "gemv_decode",
+        "q4_decode",
         "layer.{L}.mlp.gate_proj"
       ],
       [
         "up_proj",
-        "gemv_decode",
+        "q4_decode",
         "layer.{L}.mlp.up_proj"
       ],
       [
@@ -292,7 +292,7 @@
       ],
       [
         "down_proj",
-        "gemv_decode",
+        "q4_decode",
         "layer.{L}.mlp.down_proj"
       ],
       [
@@ -307,17 +307,17 @@
       ],
       [
         "q_proj",
-        "tiled",
+        "q4_prefill",
         "layer.{L}.self_attn.q_proj"
       ],
       [
         "k_proj",
-        "tiled",
+        "q4_prefill",
         "layer.{L}.self_attn.k_proj"
       ],
       [
         "v_proj",
-        "tiled",
+        "q4_prefill",
         "layer.{L}.self_attn.v_proj"
       ],
       [
@@ -330,11 +330,11 @@
       ],
       [
         "attention",
-        "attn_head256"
+        "attn_stream"
       ],
       [
         "o_proj",
-        "tiled",
+        "q4_prefill",
         "layer.{L}.self_attn.o_proj"
       ],
       [
@@ -347,12 +347,12 @@
       ],
       [
         "gate_proj",
-        "tiled",
+        "q4_prefill",
         "layer.{L}.mlp.gate_proj"
       ],
       [
         "up_proj",
-        "tiled",
+        "q4_prefill",
         "layer.{L}.mlp.up_proj"
       ],
       [
@@ -361,7 +361,7 @@
       ],
       [
         "down_proj",
-        "tiled",
+        "q4_prefill",
         "layer.{L}.mlp.down_proj"
       ],
       [

@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import {
   removeSubgroups,
   widenToF32Activations,
+  widenToF32CorrectnessFallback,
   swapPrefillAttention,
   useHead256PrefillAttention,
   widenProjectionWeightsToF32,
@@ -538,27 +539,26 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
-// Test 9: remapQ4KPrefillToDense — no-op on Qwen (prefill is already dense)
+// Test 9: remapQ4KPrefillToDense — explicit diagnostic transform on Qwen
 // ===========================================================================
 {
   const graph = structuredClone(QWEN_REAL_GRAPH);
   const frozen = structuredClone(graph);
   const result = remapQ4KPrefillToDense(graph, { ...CTX_F32, modelId: 'qwen-3-5-0-8b-q4k-ehaf16' });
 
-  equal(result, null, 'remapQ4KPrefillToDense should return null on Qwen graph (prefill already uses dense tiled kernels)');
+  ok(result, 'remapQ4KPrefillToDense should return a dense-prefill diagnostic graph on Qwen');
 
-  // Verify the Qwen graph already has dense prefill as the primary path
-  const prefillProjectionFiles = collectKernelFilesForPhase(graph, 'prefill');
+  const prefillProjectionFiles = collectKernelFilesForPhase(result, 'prefill');
   ok(prefillProjectionFiles.has('matmul_f16w_f32a.wgsl'),
-    'Qwen primary graph should already have matmul_f16w_f32a.wgsl in prefill');
+    'remapped Qwen prefill should have matmul_f16w_f32a.wgsl');
   ok(!prefillProjectionFiles.has('fused_matmul_q4_batched.wgsl'),
-    'Qwen primary graph should not have fused_matmul_q4_batched.wgsl in prefill');
+    'remapped Qwen prefill should no longer have fused_matmul_q4_batched.wgsl');
 
   deepEqual(graph, frozen, 'remapQ4KPrefillToDense must not mutate the input graph');
 }
 
 // ===========================================================================
-// Test 10: useLinearDecodeProjectionF16 — no-op on Qwen (decode uses GEMV)
+// Test 10: useLinearDecodeProjectionF16 — explicit diagnostic transform on Qwen
 // ===========================================================================
 {
   const graph = structuredClone(QWEN_REAL_GRAPH);
@@ -569,20 +569,18 @@ function buildF16WeightProjectionGraph() {
     layerTypes: qwenConversionConfig.inference.layerPattern.layerTypes,
   });
 
-  equal(result, null, 'useLinearDecodeProjectionF16 should return null on Qwen GEMV graph (no fused Q4K decode to split)');
+  ok(result, 'useLinearDecodeProjectionF16 should return a linear-layer f16 diagnostic graph on Qwen');
 
-  // Verify the Qwen graph already has GEMV decode as the primary path
-  const decodeFiles = collectKernelFilesForPhase(graph, 'decode');
-  ok(decodeFiles.has('matmul_gemv_subgroup.wgsl'),
-    'Qwen primary graph should already have matmul_gemv_subgroup.wgsl in decode');
-  ok(!decodeFiles.has('fused_matmul_q4.wgsl'),
-    'Qwen primary graph should not have fused_matmul_q4.wgsl in decode');
+  ok(
+    Object.values(result.kernels).some((entry) => entry?.kernel === 'fused_matmul_q4_multicol_f16a.wgsl'),
+    'useLinearDecodeProjectionF16 should derive fused_matmul_q4_multicol_f16a.wgsl for linear decode'
+  );
 
   deepEqual(graph, frozen, 'useLinearDecodeProjectionF16 must not mutate the input graph');
 }
 
 // ===========================================================================
-// Test 10b: useQwenDecodeF16Matmuls — partial on Qwen GEMV graph
+// Test 10b: useQwenDecodeF16Matmuls — partial on fused-Q4 Qwen graph
 // ===========================================================================
 {
   const graph = structuredClone(QWEN_REAL_GRAPH);
@@ -592,20 +590,24 @@ function buildF16WeightProjectionGraph() {
     modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
   });
 
-  // gate/up_proj are already GEMV (not fused Q4K), so deriveLinearDecodeF16KernelEntry returns null.
-  // Only lm_head rewrite may apply (GEMV -> f16a GEMV).
-  const gateStep = (result || graph).decode.find((entry) => Array.isArray(entry) && entry[0] === 'gate_proj');
+  ok(result, 'useQwenDecodeF16Matmuls should derive explicit f16 decode kernels on Qwen');
+  const gateStep = result.decode.find((entry) => Array.isArray(entry) && entry[0] === 'gate_proj');
   equal(
-    (result || graph).kernels[gateStep[1]].kernel,
-    'matmul_gemv_subgroup.wgsl',
-    'useQwenDecodeF16Matmuls should leave GEMV gate_proj unchanged (not fused Q4K)'
+    result.kernels[gateStep[1]].kernel,
+    'fused_matmul_q4_multicol_f16a.wgsl',
+    'useQwenDecodeF16Matmuls should rewrite gate_proj onto fused_matmul_q4_multicol_f16a.wgsl'
+  );
+  equal(
+    result.kernels[result.postLayer.find((entry) => Array.isArray(entry) && entry[0] === 'lm_head')[1]].kernel,
+    'matmul_gemv_subgroup_f16a.wgsl',
+    'useQwenDecodeF16Matmuls should rewrite lm_head onto matmul_gemv_subgroup_f16a.wgsl'
   );
 
   deepEqual(graph, frozen, 'useQwenDecodeF16Matmuls must not mutate the input graph');
 }
 
 // ===========================================================================
-// Test 10c: remapQ4KDecodeToGemv — no-op on Qwen (decode is already GEMV)
+// Test 10c: remapQ4KDecodeToGemv — explicit diagnostic transform on Qwen
 // ===========================================================================
 {
   const graph = structuredClone(QWEN_REAL_GRAPH);
@@ -615,30 +617,29 @@ function buildF16WeightProjectionGraph() {
     modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
   });
 
-  equal(result, null, 'remapQ4KDecodeToGemv should return null on Qwen graph (decode already uses GEMV)');
+  ok(result, 'remapQ4KDecodeToGemv should return a GEMV diagnostic graph on Qwen');
 
-  // Verify the Qwen graph already has GEMV decode as the primary path
-  const decodeFiles = collectKernelFilesForPhase(graph, 'decode');
+  const decodeFiles = collectKernelFilesForPhase(result, 'decode');
   ok(decodeFiles.has('matmul_gemv_subgroup.wgsl'),
-    'Qwen primary graph should already have matmul_gemv_subgroup.wgsl in decode');
+    'remapped Qwen decode should have matmul_gemv_subgroup.wgsl');
   ok(!decodeFiles.has('fused_matmul_q4.wgsl'),
-    'Qwen primary graph should not have fused_matmul_q4.wgsl in decode');
+    'remapped Qwen decode should no longer have fused_matmul_q4.wgsl');
 
-  // Verify all projection ops already use the GEMV kernel
+  // Verify all projection ops now use the GEMV kernel
   for (const op of ['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj']) {
-    const step = graph.decode.find((entry) => Array.isArray(entry) && entry[0] === op);
-    ok(step, `Qwen primary graph: ${op} step should exist in decode`);
-    const entry = graph.kernels[step[1]];
+    const step = result.decode.find((entry) => Array.isArray(entry) && entry[0] === op);
+    ok(step, `Remapped Qwen graph: ${op} step should exist in decode`);
+    const entry = result.kernels[step[1]];
     equal(entry.kernel, 'matmul_gemv_subgroup.wgsl',
-      `Qwen primary graph: ${op} should use matmul_gemv_subgroup.wgsl, got ${entry.kernel}`);
+      `Remapped Qwen graph: ${op} should use matmul_gemv_subgroup.wgsl, got ${entry.kernel}`);
   }
 
-  // Verify prefill uses dense tiled and head256 attention
-  const prefillFiles = collectKernelFilesForPhase(graph, 'prefill');
-  ok(prefillFiles.has('matmul_f16w_f32a.wgsl'),
-    'Qwen primary graph should have matmul_f16w_f32a.wgsl in prefill');
-  ok(prefillFiles.has('attention_head256_f16kv.wgsl'),
-    'Qwen primary graph should have attention_head256_f16kv.wgsl in prefill');
+  // Verify prefill keeps the fused-Q4 primary path.
+  const prefillFiles = collectKernelFilesForPhase(result, 'prefill');
+  ok(prefillFiles.has('fused_matmul_q4_batched.wgsl'),
+    'Remapped Qwen graph should keep fused_matmul_q4_batched.wgsl in prefill');
+  ok(prefillFiles.has('attention_streaming_f16kv.wgsl'),
+    'Remapped Qwen graph should keep attention_streaming_f16kv.wgsl in prefill');
 
   deepEqual(graph, frozen, 'remapQ4KDecodeToGemv must not mutate the input graph');
 }
@@ -842,8 +843,16 @@ function buildF16WeightProjectionGraph() {
   {
     const r = resolveFinitenessFallbackTransform({ activationDtype: 'f16' });
     ok(r !== null, 'f16 activationDtype: should return a transform');
-    equal(r.name, 'widenToF32Activations', 'f16 activationDtype: name is widenToF32Activations');
-    equal(r.transform, widenToF32Activations, 'f16 activationDtype: transform is widenToF32Activations');
+    equal(
+      r.name,
+      'widenToF32CorrectnessFallback',
+      'f16 activationDtype: name is widenToF32CorrectnessFallback'
+    );
+    equal(
+      r.transform,
+      widenToF32CorrectnessFallback,
+      'f16 activationDtype: transform is widenToF32CorrectnessFallback'
+    );
   }
 
   // activationDtype 'f32' => returns null

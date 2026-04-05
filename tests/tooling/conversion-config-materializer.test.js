@@ -78,9 +78,9 @@ if (!fs.existsSync(qwenManifestPath)) {
     ringStaging: 1,
     disableCommandBatching: false,
   });
-  assert.equal(materialized.inference?.execution?.kernels?.gemv_decode?.kernel, 'matmul_gemv_subgroup.wgsl');
+  assert.equal(materialized.inference?.execution?.kernels?.q4_decode?.kernel, 'fused_matmul_q4.wgsl');
   assert.equal(materialized.inference?.execution?.kernels?.tiled?.kernel, 'matmul_f16w_f32a.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.attn_head256?.kernel, 'attention_head256_f16kv.wgsl');
+  assert.equal(materialized.inference?.execution?.kernels?.q4_prefill?.kernel, 'fused_matmul_q4_batched.wgsl');
 }
 
 const gemma1bManifestPath = path.join('models/local/gemma-3-1b-it-q4k-ehf16-af32', 'manifest.json');
