@@ -31,6 +31,18 @@ function assertOptionalBoolean(value, label) {
   return value;
 }
 
+const VALID_READBACK_MODES = ['sequential', 'overlapped', 'auto'];
+
+function assertReadbackMode(value) {
+  if (!value || !VALID_READBACK_MODES.includes(value)) {
+    throw new Error(
+      `[ExecutionPlan] decodeLoop.readbackMode is required and must be one of ${VALID_READBACK_MODES.join(', ')}; ` +
+      `got ${JSON.stringify(value)}. Set it explicitly in the manifest session.decodeLoop.`
+    );
+  }
+  return value;
+}
+
 function assertOptionalPositiveInt(value, label) {
   if (value === undefined) {
     return undefined;
