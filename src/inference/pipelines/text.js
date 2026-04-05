@@ -47,6 +47,7 @@ import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { registerPipeline, getPipelineFactory } from './registry.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
 import { initConvLayerState } from './text/ops.js';
+import { destroyPleBufferCache, destroyPleRuntimeCache } from './text/per-layer-inputs.js';
 
 function destroyMoERouter(router) {
   if (router && typeof router.destroy === 'function') {
@@ -404,7 +405,7 @@ export class InferencePipeline extends PipelineState {
       log.warn(
         'Pipeline',
         'Replay-prefill decode enabled for this model. Incremental KV-cache decode is disabled ' +
-        'until mixed-head-dim/shared-KV support is implemented.'
+        'because the model config did not resolve explicit layerTypes for mixed-geometry/shared-KV decode.'
       );
     } else {
       this.kvCache = createKVCache(this.modelConfig, this.useGPU, this.debug, this.runtimeConfig.inference);
@@ -1381,10 +1382,11 @@ export class InferencePipeline extends PipelineState {
     if (!Array.isArray(prompts)) {
       throw new Error('embedBatch expects an array of prompts');
     }
+    const batchOptions = { ...options, __skipStateSnapshot: true };
     const outputs = [];
     for (const prompt of prompts) {
-      outputs.push(await this.embed(prompt, options));
-      this.reset();
+      outputs.push(await this.embed(prompt, batchOptions));
+      this.resetForBatch();
     }
     return outputs;
   }
@@ -1535,6 +1537,10 @@ export class InferencePipeline extends PipelineState {
     this.emulation = null;
     this.decodeRing?.release();
     this.kvCache?.clear();
+    destroyPleRuntimeCache(this.weights.get('per_layer_inputs'));
+    destroyPleBufferCache(this.pleCache);
+    this.pleCache = null;
+    this.plePrefetchPending = null;
     this.weights.clear();
     this.expertWeights.clear();
     this.linearAttentionRuntime = resetLinearAttentionRuntime(this.linearAttentionRuntime);
@@ -1585,12 +1591,29 @@ export class InferencePipeline extends PipelineState {
     this.stats.attentionInputs = [];
   }
 
+  /**
+   * Lightweight reset for batch embedding: clears KV cache and sequence state
+   * without resetting stats or debug flags (they are overwritten on each prefill).
+   */
+  resetForBatch() {
+    this.kvCache?.clear();
+    this.linearAttentionRuntime = resetLinearAttentionRuntime(this.linearAttentionRuntime);
+    this.currentSeqLen = 0;
+    this.decodeStepCount = 0;
+    this.decodeBuffers?.resetPingPong();
+    this.decodeRing?.reset();
+  }
+
 
   releaseGPUResources() {
     this.decodeBuffers?.release();
     this.decodeRing?.release();
     destroyMoERouter(this.moeRouter);
     this.moeRouter = null;
+    destroyPleRuntimeCache(this.weights.get('per_layer_inputs'));
+    destroyPleBufferCache(this.pleCache);
+    this.pleCache = null;
+    this.plePrefetchPending = null;
     if (this.finitenessBuffer) {
       this.finitenessBuffer.destroy();
       this.finitenessBuffer = null;

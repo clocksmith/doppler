@@ -806,7 +806,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   if (modelConfig?.decodeStrategy === 'replay_prefill') {
     throw new Error(
       'Live KV cache creation is not supported for models that require replay-prefill decode. ' +
-      'Skip createKVCache() for mixed-head-dim or shared-KV models until incremental decode support is implemented.'
+      'Skip createKVCache() when the model config does not resolve explicit layerTypes for mixed-geometry/shared-KV decode.'
     );
   }
   const runtimeKV = resolveRuntimeKVConfig(runtimeConfig);

@@ -425,6 +425,100 @@ try {
   }
 
   {
+    const parsed = parseModelConfigFromManifest({
+      modelId: 'gemma4-every-n-contract',
+      modelType: 'text',
+      quantization: 'f16',
+      architecture: {
+        hiddenSize: 1536,
+        numLayers: 35,
+        numAttentionHeads: 8,
+        numKeyValueHeads: 1,
+        headDim: 256,
+        globalHeadDim: 512,
+        intermediateSize: 6144,
+        intermediateSizes: Array.from({ length: 35 }, (_, index) => index % 15 === 14 ? 12288 : 6144),
+        vocabSize: 262144,
+        maxSeqLen: 131072,
+        ropeTheta: 1000000,
+        hiddenSizePerLayerInput: 256,
+        vocabSizePerLayerInput: 262144,
+        numKvSharedLayers: 20,
+      },
+      eos_token_id: 1,
+      inference: {
+        attention: {
+          queryPreAttnScalar: 1,
+          queryKeyNorm: true,
+          valueNorm: true,
+          attentionBias: false,
+          causal: true,
+          slidingWindow: 512,
+          attnLogitSoftcapping: null,
+        },
+        normalization: {
+          rmsNormWeightOffset: false,
+          rmsNormEps: 1e-6,
+          postAttentionNorm: true,
+          preFeedforwardNorm: true,
+          postFeedforwardNorm: true,
+        },
+        ffn: {
+          activation: 'gelu',
+          gatedActivation: true,
+          useDoubleWideMlp: true,
+          swigluLimit: null,
+        },
+        rope: {
+          ropeTheta: 1000000,
+          ropeScalingFactor: 1,
+          ropeScalingType: null,
+          ropeLocalTheta: 10000,
+          ropeLocalScalingType: null,
+          ropeLocalScalingFactor: 1,
+          mropeInterleaved: false,
+          mropeSection: null,
+          partialRotaryFactor: 0.25,
+          ropeLocalPartialRotaryFactor: null,
+          ropeFrequencyBaseDim: 512,
+          ropeLocalFrequencyBaseDim: null,
+          yarnBetaFast: null,
+          yarnBetaSlow: null,
+          yarnOriginalMaxPos: null,
+          ropeLocalYarnBetaFast: null,
+          ropeLocalYarnBetaSlow: null,
+          ropeLocalYarnOriginalMaxPos: null,
+        },
+        output: {
+          tieWordEmbeddings: true,
+          scaleEmbeddings: true,
+          embeddingTranspose: false,
+          finalLogitSoftcapping: 30,
+          embeddingVocabSize: null,
+          embeddingPostprocessor: null,
+        },
+        layerPattern: {
+          type: 'every_n',
+          globalPattern: null,
+          period: 5,
+          offset: 4,
+          layerTypes: null,
+        },
+        chatTemplate: {
+          type: 'gemma4',
+          enabled: true,
+        },
+      },
+    });
+
+    assert.equal(parsed.layerTypes.length, 35);
+    assert.equal(parsed.layerTypes[0], 'sliding_attention');
+    assert.equal(parsed.layerTypes[4], 'full_attention');
+    assert.equal(parsed.layerTypes[9], 'full_attention');
+    assert.equal(parsed.decodeStrategy, 'incremental');
+  }
+
+  {
     assert.throws(
       () => parseModelConfigFromManifest({
         modelId: 'gemma4-missing-pooling-kernel',

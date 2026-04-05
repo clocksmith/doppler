@@ -17,7 +17,14 @@ import type { KernelCapabilities } from '../../../gpu/device.js';
 import type { WeightBuffer, CpuWeightBuffer } from '../../../gpu/weight-buffer.js';
 import type { LoadedEmbeddingPostprocessor } from '../../../loader/final-weights-loader.js';
 import type { PerLayerInputWeights } from '../../../loader/loader-types.js';
-import { KVCache, SlidingWindowKVCache, TieredKVCache, BasisDecomposedPagedCache, QuantizedKVCache } from '../../kv-cache.js';
+import {
+  KVCache,
+  SlidingWindowKVCache,
+  TieredKVCache,
+  BasisDecomposedPagedCache,
+  QuantizedKVCache,
+  MixedGeometryKVCache,
+} from '../../kv-cache.js';
 import { Tokenizer, type ModelManifest as TokenizerManifest } from '../../tokenizer.js';
 import { MoERouter } from '../../moe-router.js';
 import { SpeculativeDecoder } from '../../speculative.js';
@@ -157,7 +164,12 @@ export function createKVCache(
   useGPU: boolean,
   debug?: boolean,
   runtimeConfig?: KVCacheConfigSchema | RuntimeConfigSchema['inference']
-): KVCache | SlidingWindowKVCache | TieredKVCache | BasisDecomposedPagedCache | QuantizedKVCache;
+): KVCache
+  | SlidingWindowKVCache
+  | TieredKVCache
+  | BasisDecomposedPagedCache
+  | QuantizedKVCache
+  | MixedGeometryKVCache;
 
 /**
  * Options for tokenizer initialization.

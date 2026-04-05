@@ -119,10 +119,11 @@ function buildResolvedDecodeLoopRuntimePatch(runtimeConfig, manifest) {
   );
 
   const readbackMode = decodeLoop.readbackMode;
-  if (readbackMode !== undefined && readbackMode !== null && !READBACK_MODES.includes(readbackMode)) {
+  if (!readbackMode || !READBACK_MODES.includes(readbackMode)) {
     throw new Error(
       `DopplerConfigError: Manifest "${modelId}" inference.session.decodeLoop.readbackMode ` +
-      `must be one of ${READBACK_MODES.join(', ')}; got "${readbackMode}".`
+      `is required and must be one of ${READBACK_MODES.join(', ')}; got ${JSON.stringify(readbackMode)}. ` +
+      'Set it explicitly in the manifest session.decodeLoop.'
     );
   }
   const submitLatencyThresholdMs = decodeLoop.submitLatencyThresholdMs ?? null;
@@ -165,7 +166,7 @@ function buildResolvedDecodeLoopRuntimePatch(runtimeConfig, manifest) {
         batchSize,
         stopCheckMode,
         readbackInterval,
-        readbackMode: readbackMode ?? 'sequential',
+        readbackMode,
         submitLatencyThresholdMs,
         ...(ringTokens !== undefined ? { ringTokens } : {}),
         ...(ringStop !== undefined ? { ringStop } : {}),
@@ -187,7 +188,7 @@ export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, model
   // Resolve readbackMode. "auto" runs the submit probe and resolves to a
   // concrete mode. Validation runs once here at pipeline init.
   const dl = patch.session.decodeLoop;
-  let resolvedReadbackMode = dl.readbackMode ?? 'sequential';
+  let resolvedReadbackMode = dl.readbackMode;
 
   if (resolvedReadbackMode === 'overlapped') {
     const rs = dl.ringStaging ?? 0;

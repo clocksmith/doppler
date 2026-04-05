@@ -6,10 +6,10 @@ import { READBACK_MODES } from '../../src/config/schema/execution-v1.schema.js';
 // Inline minimal session resolution logic to test validation without
 // requiring a full GPU device or pipeline init.
 function resolveReadbackMode(decodeLoop, probeMs) {
-  const readbackMode = decodeLoop.readbackMode ?? 'sequential';
-  if (!READBACK_MODES.includes(readbackMode)) {
+  const readbackMode = decodeLoop.readbackMode;
+  if (!readbackMode || !READBACK_MODES.includes(readbackMode)) {
     throw new Error(
-      `DopplerConfigError: readbackMode must be one of ${READBACK_MODES.join(', ')}; got "${readbackMode}".`
+      `DopplerConfigError: readbackMode must be one of ${READBACK_MODES.join(', ')}; got ${JSON.stringify(readbackMode)}.`
     );
   }
 

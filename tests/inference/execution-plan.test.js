@@ -48,6 +48,7 @@ function createRuntimeConfig(activationDtype = 'f16', maxTokens = 256) {
     batchSize: 4,
     stopCheckMode: 'batch',
     readbackInterval: 1,
+    readbackMode: 'sequential',
     disableCommandBatching: false,
   };
   return runtimeConfig;

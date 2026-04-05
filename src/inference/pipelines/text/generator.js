@@ -76,7 +76,12 @@ import {
   resetLinearAttentionRuntime,
   restoreLinearAttentionRuntime,
 } from './linear-attention.js';
-import { preparePerLayerInputs } from './per-layer-inputs.js';
+import {
+  preparePerLayerInputs,
+  createPleBufferCache,
+  prefetchPerLayerRow,
+  ensurePleScaledProjectionNormWeight,
+} from './per-layer-inputs.js';
 import { createTensor } from '../../../gpu/tensor.js';
 
 function isStructuredChatRequest(prompt) {
@@ -84,6 +89,17 @@ function isStructuredChatRequest(prompt) {
     && typeof prompt === 'object'
     && !Array.isArray(prompt)
     && Array.isArray(prompt.messages);
+}
+
+async function primePleDecodeRuntimeCache(state) {
+  await ensurePleScaledProjectionNormWeight({
+    config: state.modelConfig,
+    weights: state.weights,
+    weightConfig: {
+      rmsNormWeightOffset: state.modelConfig?.rmsNormWeightOffset ?? false,
+    },
+    debugFlags: state.debugFlags,
+  });
 }
 
 function recordPrefillProfileStep(state, entry) {
@@ -399,7 +415,8 @@ function assertIncrementalDecodeSupport(state, operation) {
   }
   throw new Error(
     `[Pipeline] ${operation} is not supported for models that require replay-prefill decode. ` +
-    'Incremental KV-cache decode and prefix snapshots are disabled until mixed-head-dim/shared-KV support is implemented.'
+    'Incremental KV-cache decode and prefix snapshots stay disabled when the model config does not resolve ' +
+    'explicit layerTypes for mixed-geometry/shared-KV decode.'
   );
 }
 
@@ -1230,6 +1247,29 @@ export class PipelineGenerator {
       const tokenIds = [firstToken];
       this.#state.stats.ttftMs = performance.now() - startTime;
       markKernelCacheWarmed();
+
+      // Step 4/5: PLE cache + prefetch for generateTokenIds decode loop.
+      const pleHiddenSizeTid = Number(this.#state.modelConfig.hiddenSizePerLayerInput ?? 0);
+      if (pleHiddenSizeTid > 0 && !this.#state.pleCache) {
+        const actDtype = resolveActiveExecutionPlan(this.#state).activationDtype;
+        const bpe = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: actDtype });
+        this.#state.pleCache = createPleBufferCache(
+          this.#state.modelConfig.numLayers,
+          pleHiddenSizeTid * bpe,
+        );
+      }
+      if (pleHiddenSizeTid > 0) {
+        await primePleDecodeRuntimeCache(this.#state);
+        const pleW = this.#state.weights.get('per_layer_inputs');
+        if (pleW?.embedTokensPerLayer) {
+          this.#state.plePrefetchPending = prefetchPerLayerRow(
+            firstToken,
+            pleW.embedTokensPerLayer,
+            this.#state.modelConfig.numLayers * pleHiddenSizeTid,
+          );
+        }
+      }
+
       const decodeStart = performance.now();
 
       if (!this._shouldStopAfterAppendedToken(generatedIds, firstToken, opts, {
@@ -1255,6 +1295,16 @@ export class PipelineGenerator {
           }
           generatedIds.push(nextToken);
           tokenIds.push(nextToken);
+          if (pleHiddenSizeTid > 0) {
+            const pleW = this.#state.weights.get('per_layer_inputs');
+            if (pleW?.embedTokensPerLayer) {
+              this.#state.plePrefetchPending = prefetchPerLayerRow(
+                nextToken,
+                pleW.embedTokensPerLayer,
+                this.#state.modelConfig.numLayers * pleHiddenSizeTid,
+              );
+            }
+          }
           this._consumeFinitenessFallbackToken(opts);
           if (this._shouldStopAfterAppendedToken(generatedIds, nextToken, opts, {
             stopTokenIds,
@@ -1444,6 +1494,19 @@ export class PipelineGenerator {
 
       this.#state.currentSeqLen = startPos + numTokens;
 
+      // Batch embedding skips expensive KV cache clone and linear attention clone
+      // since the caller will reset immediately after extracting the embedding.
+      if (options.__skipStateSnapshot) {
+        return {
+          cache: null,
+          seqLen: this.#state.currentSeqLen,
+          tokens: inputIds,
+          embedding,
+          embeddingMode: opts.embeddingMode,
+          linearAttention: null,
+        };
+      }
+
       const snapshot = this.#state.kvCache?.clone();
       if (!snapshot) {
         throw new Error('KV cache unavailable after prefill');
@@ -1611,6 +1674,20 @@ export class PipelineGenerator {
 
     let tokensGenerated = 1;
     markKernelCacheWarmed();
+
+    // Step 4: Lazily initialise PLE buffer cache for decode-path slice reuse.
+    const pleHiddenSize = Number(this.#state.modelConfig.hiddenSizePerLayerInput ?? 0);
+    if (pleHiddenSize > 0 && !this.#state.pleCache) {
+      const activationDtype = resolveActiveExecutionPlan(this.#state).activationDtype;
+      const bpe = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
+      this.#state.pleCache = createPleBufferCache(
+        this.#state.modelConfig.numLayers,
+        pleHiddenSize * bpe,
+      );
+    }
+    if (pleHiddenSize > 0) {
+      await primePleDecodeRuntimeCache(this.#state);
+    }
 
     const decodeStart = performance.now();
     const lmHead = this.#state.weights.get('lm_head');
@@ -1841,6 +1918,19 @@ export class PipelineGenerator {
         const tokenTime = performance.now() - tokenStart;
         generatedIds.push(nextToken);
         tokensGenerated++;
+
+        // Step 5: Fire-and-forget prefetch of next token's PLE row.
+        if (pleHiddenSize > 0) {
+          const pleWeights = this.#state.weights.get('per_layer_inputs');
+          if (pleWeights?.embedTokensPerLayer) {
+            this.#state.plePrefetchPending = prefetchPerLayerRow(
+              nextToken,
+              pleWeights.embedTokensPerLayer,
+              this.#state.modelConfig.numLayers * pleHiddenSize,
+            );
+          }
+        }
+
         const tokenText = emitMode === 'token' ? '' : decodeToken(nextToken);
         if (emitMode === 'token') {
           yield nextToken;
@@ -2086,7 +2176,7 @@ export class PipelineGenerator {
 
     // Chunked recorder submission: submit every N layers to release tracked intermediate
     // buffers, preventing unbounded memory growth during large prefills. Critical for
-    // replay_prefill models (e.g., Gemma 4) where every decode step re-runs full prefill.
+    // replay_prefill models where each decode step re-runs a prefill-style layer pass.
     const PREFILL_RECORDER_CHUNK_LAYERS = 4;
 
     let currentHiddenBuffer = hiddenStates.buffer;

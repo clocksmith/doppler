@@ -26,7 +26,7 @@ import { getFinalNormWeights, extractEmbeddingFromHidden } from './generator-run
 import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
 import { hasLinearAttentionLayers } from './linear-attention.js';
 import { hasConvLayers } from './layer.js';
-import { preparePerLayerInputs } from './per-layer-inputs.js';
+import { preparePerLayerInputs, createPleBufferCache, prefetchPerLayerRow } from './per-layer-inputs.js';
 
 const UNKNOWN_TOKEN_TEXT = '<unknown>';
 
@@ -303,8 +303,17 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
 
   let hiddenStates = embedTensor.buffer;
 
+  // Resolve pending PLE prefetch from previous decode step
+  let plePrefetchResult = null;
+  if (state.plePrefetchPending) {
+    plePrefetchResult = await state.plePrefetchPending;
+    state.plePrefetchPending = null;
+  }
+
   const perLayerInputs = await preparePerLayerInputs([tokenId], embedTensor, context, {
     numTokens: 1,
+    pleCache: state.pleCache ?? null,
+    prefetchedRow: plePrefetchResult,
   });
 
   try {
@@ -443,8 +452,18 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   });
 
   let hiddenStates = embedTensor.buffer;
+
+  // Resolve pending PLE prefetch from previous decode step
+  let plePrefetchResult = null;
+  if (state.plePrefetchPending) {
+    plePrefetchResult = await state.plePrefetchPending;
+    state.plePrefetchPending = null;
+  }
+
   const perLayerInputs = await preparePerLayerInputs([lastToken], embedTensor, context, {
     numTokens: 1,
+    pleCache: state.pleCache ?? null,
+    prefetchedRow: plePrefetchResult,
   });
 
   if (opts.debug && state.decodeStepCount === 1) {
@@ -577,7 +596,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       encoder.copyBufferToBuffer(state.finitenessBuffer, 0, stagingBuffer, 4, 16);
     }
 
-    const readbackMode = executionPlan?.readbackMode ?? 'sequential';
+    const readbackMode = executionPlan?.readbackMode;
     const isOverlapped = readbackMode === 'overlapped';
 
     // In overlapped mode, advance ring BEFORE submit so the GPU's next copy
@@ -1195,6 +1214,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
       const perLayerInputs = await preparePerLayerInputs(tokensBuffer, hiddenTensor, context, {
         numTokens: 1,
         indexOffset: i,
+        pleCache: state.pleCache ?? null,
       });
       try {
         for (let l = 0; l < config.numLayers; l++) {

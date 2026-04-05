@@ -10,7 +10,13 @@
  */
 
 import { Tokenizer } from '../../tokenizer.js';
-import { KVCache, SlidingWindowKVCache, TieredKVCache, BasisDecomposedPagedCache } from '../../kv-cache.js';
+import {
+  KVCache,
+  SlidingWindowKVCache,
+  TieredKVCache,
+  BasisDecomposedPagedCache,
+  MixedGeometryKVCache,
+} from '../../kv-cache.js';
 import { MoERouter } from '../../moe-router.js';
 import { SpeculativeDecoder } from '../../speculative.js';
 import { DecodeBufferManager } from '../../decode-buffers.js';
@@ -36,7 +42,7 @@ import type { PerLayerInputWeights } from '../../../loader/loader-types.js';
 export class PipelineState {
   // Components
   tokenizer: Tokenizer | null;
-  kvCache: KVCache | SlidingWindowKVCache | TieredKVCache | BasisDecomposedPagedCache | null;
+  kvCache: KVCache | SlidingWindowKVCache | TieredKVCache | BasisDecomposedPagedCache | MixedGeometryKVCache | null;
   linearAttentionRuntime: LinearAttentionRuntime | null;
   moeRouter: MoERouter | null;
   speculativeDecoder: SpeculativeDecoder | null;

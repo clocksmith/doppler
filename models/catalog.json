@@ -1,7 +1,7 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-04-04",
+  "updatedAt": "2026-04-05",
   "models": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
@@ -24,7 +24,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "96dd1a4fdb1f3e93082128b84a409b7c565a9b33",
+        "revision": "f242e44c9a35e72186aa61e4cc0c9873f0596741",
         "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -84,7 +84,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "970284bc8e118958e3a253575e56121e6ba37b04",
+        "revision": "f242e44c9a35e72186aa61e4cc0c9873f0596741",
         "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -144,7 +144,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "96dd1a4fdb1f3e93082128b84a409b7c565a9b33",
+        "revision": "f242e44c9a35e72186aa61e4cc0c9873f0596741",
         "path": "models/gemma-3-1b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -202,7 +202,11 @@
       "artifact": {
         "format": "rdrr"
       },
-      "hf": null,
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "f242e44c9a35e72186aa61e4cc0c9873f0596741",
+        "path": "models/gemma-4-e2b-it-q4k-ehf16-af32"
+      },
       "baseUrl": null,
       "quickstart": false,
       "sizeBytes": 7094076955,
@@ -212,7 +216,7 @@
         "availability": {
           "curated": false,
           "local": true,
-          "hf": false
+          "hf": true
         },
         "status": {
           "runtime": "experimental",
@@ -279,7 +283,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "96dd1a4fdb1f3e93082128b84a409b7c565a9b33",
+        "revision": "f242e44c9a35e72186aa61e4cc0c9873f0596741",
         "path": "models/translategemma-4b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -340,7 +344,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "96dd1a4fdb1f3e93082128b84a409b7c565a9b33",
+        "revision": "f242e44c9a35e72186aa61e4cc0c9873f0596741",
         "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
       },
       "baseUrl": null,
@@ -402,7 +406,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "96dd1a4fdb1f3e93082128b84a409b7c565a9b33",
+        "revision": "f242e44c9a35e72186aa61e4cc0c9873f0596741",
         "path": "models/qwen-3-5-2b-q4k-ehaf16"
       },
       "baseUrl": null,
@@ -463,7 +467,7 @@
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "path": "models/lfm2-5-1-2b-instruct-q4k-ehf16-af32",
-        "revision": "96dd1a4fdb1f3e93082128b84a409b7c565a9b33"
+        "revision": "f242e44c9a35e72186aa61e4cc0c9873f0596741"
       },
       "baseUrl": null,
       "quickstart": false,

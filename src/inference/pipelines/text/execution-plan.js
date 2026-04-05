@@ -9,6 +9,18 @@ export const PRIMARY_EXECUTION_PLAN_ID = 'primary';
 export const FINITENESS_FALLBACK_EXECUTION_PLAN_ID = 'finiteness_fallback';
 const DEFAULT_MAX_TOKENS = 256;
 
+const VALID_READBACK_MODES = ['sequential', 'overlapped', 'auto'];
+
+function assertReadbackMode(value) {
+  if (!value || !VALID_READBACK_MODES.includes(value)) {
+    throw new Error(
+      `[ExecutionPlan] decodeLoop.readbackMode is required and must be one of ${VALID_READBACK_MODES.join(', ')}; ` +
+      `got ${JSON.stringify(value)}. Set it explicitly in the manifest session.decodeLoop.`
+    );
+  }
+  return value;
+}
+
 function assertOptionalBoolean(value, label) {
   if (value === undefined) {
     return undefined;
@@ -85,7 +97,7 @@ function createStaticExecutionPlan({
     defaultStopCheckMode: batchingConfig.stopCheckMode,
     defaultMaxTokens: batchingConfig.maxTokens,
     readbackInterval: batchingConfig.readbackInterval,
-    readbackMode: batchingConfig.readbackMode ?? 'sequential',
+    readbackMode: batchingConfig.readbackMode,
     ringTokens: batchingConfig.ringTokens,
     ringStop: batchingConfig.ringStop,
     ringStaging: batchingConfig.ringStaging,
@@ -180,7 +192,7 @@ export function compileExecutionPlanState(options) {
     stopCheckMode: decodeLoopConfig.stopCheckMode,
     maxTokens: generationConfig.maxTokens ?? DEFAULT_MAX_TOKENS,
     readbackInterval: decodeLoopConfig.readbackInterval,
-    readbackMode: decodeLoopConfig.readbackMode ?? 'sequential',
+    readbackMode: assertReadbackMode(decodeLoopConfig.readbackMode),
     ringTokens: decodeLoopConfig.ringTokens,
     ringStop: decodeLoopConfig.ringStop,
     ringStaging: decodeLoopConfig.ringStaging,

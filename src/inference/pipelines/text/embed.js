@@ -20,7 +20,7 @@ function bf16ToF32(value) {
   return bf16ScratchF32[0];
 }
 
-function isRangeBackedCpuEmbeddingSource(value) {
+export function isRangeBackedCpuEmbeddingSource(value) {
   return (
     typeof value === 'object'
     && value !== null
@@ -29,7 +29,7 @@ function isRangeBackedCpuEmbeddingSource(value) {
   );
 }
 
-function normalizeRangeBytes(value, label) {
+export function normalizeRangeBytes(value, label) {
   if (value instanceof Uint8Array) return value;
   if (value instanceof ArrayBuffer) return new Uint8Array(value);
   if (ArrayBuffer.isView(value)) {
@@ -38,7 +38,7 @@ function normalizeRangeBytes(value, label) {
   throw new Error(`[Embed] ${label} returned unsupported byte payload type "${value?.constructor?.name ?? typeof value}".`);
 }
 
-function decodeRangeChunkIntoOutput(bytes, sourceDtype, output, dstOffset, hiddenSize) {
+export function decodeRangeChunkIntoOutput(bytes, sourceDtype, output, dstOffset, hiddenSize) {
   if (sourceDtype === 'f16') {
     const values = new Uint16Array(bytes.buffer, bytes.byteOffset, hiddenSize);
     for (let i = 0; i < hiddenSize; i++) {
@@ -149,6 +149,30 @@ export async function embed(tokenIds, embedBuffer, config) {
     }
 
     const output = new Float32Array(numTokens * hiddenSize);
+
+    // Step 6: Batched prefill rows — per-token pre-decoded PLE data for all layers.
+    // Layout: Float32Array[numTokens × inputHiddenSize], indexed by
+    // [t * inputHiddenSize + hiddenOffset] to select each token's layer slice.
+    if (config.preloadedCpuBatchedRows) {
+      for (let t = 0; t < numTokens; t++) {
+        const srcOffset = t * inputHiddenSize + hiddenOffset;
+        const dstOffset = t * hiddenSize;
+        output.set(config.preloadedCpuBatchedRows.subarray(srcOffset, srcOffset + hiddenSize), dstOffset);
+      }
+    } else
+
+    // Fast path: use pre-loaded and pre-decoded PLE row (coalesced read optimization).
+    // preloadedCpuRow is a Float32Array containing the full PLE row for the token,
+    // indexed by hiddenOffset to select the correct layer's slice.
+    if (config.preloadedCpuRow) {
+      const rowSlice = config.preloadedCpuRow.subarray(hiddenOffset, hiddenOffset + hiddenSize);
+      for (let t = 0; t < numTokens; t++) {
+        output.set(rowSlice, t * hiddenSize);
+      }
+    } else
+
+    // Range-backed path: per-element loadRange calls (original path)
+    {
     const rangeBackedSource = isRangeBackedCpuEmbeddingSource(cpuEmbeddings)
       ? cpuEmbeddings
       : null;
@@ -214,6 +238,7 @@ export async function embed(tokenIds, embedBuffer, config) {
         }
       }
     }
+    } // end else (non-preloaded path)
 
     if (scaleEmbeddings) {
       const scaleFactor = Math.sqrt(hiddenSize);

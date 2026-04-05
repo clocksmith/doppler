@@ -18,7 +18,13 @@ import type { DecodeBufferManager } from '../../decode-buffers.js';
 import type { CommandRecorder } from '../../../gpu/kernel-selector.js';
 import type { CompiledLayerPipeline } from './layer-plan.js';
 import type { WeightBufferConfig, WeightDebugFlags } from './weights.js';
-import type { KVCache, SlidingWindowKVCache, TieredKVCache, BasisDecomposedPagedCache } from '../../kv-cache.js';
+import type {
+  KVCache,
+  SlidingWindowKVCache,
+  TieredKVCache,
+  BasisDecomposedPagedCache,
+  MixedGeometryKVCache,
+} from '../../kv-cache.js';
 import type { DecodeRingStats } from '../../decode-ring.js';
 import type { LinearAttentionRuntime } from './linear-attention.js';
 import type { PerLayerInputWeights } from '../../../loader/loader-types.js';
@@ -28,7 +34,7 @@ import type { PerLayerInputWeights } from '../../../loader/loader-types.js';
 // ============================================================================
 
 export interface KVCacheSnapshot {
-  cache: KVCache;
+  cache: KVCache | SlidingWindowKVCache | TieredKVCache | BasisDecomposedPagedCache | MixedGeometryKVCache;
   seqLen: number;
   tokens: number[];
   linearAttention?: LinearAttentionRuntime | null;
@@ -49,7 +55,7 @@ export interface LayerContext {
   /** Layer weights map */
   weights: Map<string, LayerWeights | Float32Array | GPUBuffer | WeightBuffer | CpuWeightBuffer | PerLayerInputWeights | null>;
   /** KV cache instance */
-  kvCache: KVCache | SlidingWindowKVCache | TieredKVCache | BasisDecomposedPagedCache;
+  kvCache: KVCache | SlidingWindowKVCache | TieredKVCache | BasisDecomposedPagedCache | MixedGeometryKVCache;
   /** Recurrent runtime state for linear_attention layers */
   linearAttentionRuntime?: LinearAttentionRuntime | null;
   /** Current sequence length */

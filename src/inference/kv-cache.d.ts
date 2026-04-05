@@ -33,6 +33,7 @@ export {
   TieredKVCache,
   BasisDecomposedPagedCache,
   QuantizedKVCache,
+  MixedGeometryKVCache,
   // Default
   KVCache as default,
 } from './kv-cache/index.js';

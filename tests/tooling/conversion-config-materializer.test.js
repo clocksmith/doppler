@@ -36,9 +36,10 @@ if (!fs.existsSync(gemmaManifestPath)) {
   assert.equal(materialized.inference?.layerPattern?.type, 'every_n');
   assert.equal(materialized.inference?.layerPattern?.period, 6);
   assert.deepEqual(materialized.inference?.session?.decodeLoop, {
-    batchSize: 4,
+    batchSize: 1,
     stopCheckMode: 'batch',
     readbackInterval: 1,
+    readbackMode: 'sequential',
     ringTokens: 1,
     ringStop: 1,
     ringStaging: 1,
@@ -145,6 +146,7 @@ if (!fs.existsSync(embeddingManifestPath)) {
     batchSize: 4,
     stopCheckMode: 'batch',
     readbackInterval: 1,
+    readbackMode: 'sequential',
     ringTokens: 1,
     ringStop: 1,
     ringStaging: 1,
