@@ -236,9 +236,15 @@ export interface VisionConfig {
   hiddenActivation: string;
   standardize: boolean;
   useClippedLinears: boolean;
+  minPixels: number;
+  maxPixels: number;
+  normalization: {
+    mean: number[];
+    std: number[];
+  };
   deepstackVisualIndexes: number[];
   imageTokenId: number | null;
-  visionArchitecture: string | null;
+  visionArchitecture: 'gemma4' | 'qwen3vl';
   softTokenBudgetTiers?: number[];
 }
 

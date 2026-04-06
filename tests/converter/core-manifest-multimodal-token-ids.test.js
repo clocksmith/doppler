@@ -70,6 +70,16 @@ const manifest = createManifest(
     quantization: 'F16',
     hashAlgorithm: 'sha256',
     inference: { ...DEFAULT_MANIFEST_INFERENCE },
+    manifestConfig: {
+      visionConfig: {
+        vision_architecture: 'gemma4',
+        hidden_size: 768,
+      },
+      audioConfig: {
+        audio_architecture: 'gemma4',
+        hidden_size: 1024,
+      },
+    },
   }
 );
 
@@ -78,9 +88,11 @@ assert.equal(manifest.audio_token_id, 258881);
 assert.equal(manifest.video_token_id, 258884);
 assert.deepEqual(manifest.config, {
   vision_config: {
+    vision_architecture: 'gemma4',
     hidden_size: 768,
   },
   audio_config: {
+    audio_architecture: 'gemma4',
     hidden_size: 1024,
   },
 });

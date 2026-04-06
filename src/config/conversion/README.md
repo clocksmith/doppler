@@ -119,6 +119,7 @@ Current config intent:
   - Output base: `models/local/qwen-3-5-0-8b-q4k-ehaf16`
   - Resolved modelId: `qwen-3-5-0-8b-q4k-ehaf16`
   - Output mode: `textOnly: false` (keep multimodal-compatible artifact layout; text path uses the language tower)
+  - Manifest multimodal contract: explicit canonical `manifest.visionConfig`
   - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
   - Compute: `f16`
   - Kernel path: `null` (no explicit manifest kernel-path contract)
@@ -128,7 +129,7 @@ Current config intent:
 - `src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json`
   - Output base: `models/local/qwen-3-5-2b-q4k-ehaf16`
   - Resolved modelId: `qwen-3-5-2b-q4k-ehaf16`
-  - Output mode: `textOnly: false` (keep multimodal-compatible artifact layout; text path uses the language tower)
+  - Output mode: `textOnly: true`
   - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
   - Compute: `f16`
   - Kernel path: `null` (no explicit manifest kernel-path contract)

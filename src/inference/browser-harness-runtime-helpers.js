@@ -80,7 +80,7 @@ function normalizeProfilePath(value) {
 
 function resolveProfileBaseUrl() {
   try {
-    return new URL('../config/runtime/', import.meta.url).toString().replace(/\/$/, '');
+    return new URL('../config/runtime', import.meta.url).toString().replace(/\/$/, '');
   } catch {
     if (typeof globalThis.location !== 'undefined' && globalThis.location?.href) {
       return new URL('/src/config/runtime/', globalThis.location.href).toString().replace(/\/$/, '');

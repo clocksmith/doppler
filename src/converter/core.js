@@ -1229,6 +1229,25 @@ function resolveConvertedAt(value) {
   return new Date(parsed).toISOString();
 }
 
+function cloneJsonValue(value) {
+  if (value == null) return value;
+  if (typeof structuredClone === 'function') {
+    return structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value));
+}
+
+function resolveManifestMultimodalConfig(rawConfig, manifestConfig = null) {
+  const explicitVisionConfig = manifestConfig?.visionConfig;
+  const explicitAudioConfig = manifestConfig?.audioConfig;
+  const visionConfig = explicitVisionConfig ?? rawConfig?.vision_config ?? null;
+  const audioConfig = explicitAudioConfig ?? rawConfig?.audio_config ?? null;
+  return {
+    vision_config: visionConfig ? cloneJsonValue(visionConfig) : null,
+    audio_config: audioConfig ? cloneJsonValue(audioConfig) : null,
+  };
+}
+
 
 export function createManifest(
   modelId,
@@ -1259,6 +1278,7 @@ export function createManifest(
   );
   const rawConfig = model.config || {};
   const generationConfig = model.generationConfig ?? null;
+  const manifestPolicy = options.manifestConfig ?? null;
   const resolvedArchitecture = isDiffusion
     ? architecture
     : resolveIntermediateSizeFromTensors(architecture, model, tensorLocations, rawConfig, modelId);
@@ -1308,11 +1328,14 @@ export function createManifest(
     throw new Error('Missing hashAlgorithm for manifest');
   }
 
+  const multimodalConfig = isDiffusion
+    ? { vision_config: null, audio_config: null }
+    : resolveManifestMultimodalConfig(rawConfig, manifestPolicy);
   const manifestConfig = isDiffusion
     ? rawConfig
     : {
-        ...(rawConfig.vision_config ? { vision_config: rawConfig.vision_config } : {}),
-        ...(rawConfig.audio_config ? { audio_config: rawConfig.audio_config } : {}),
+        ...(multimodalConfig.vision_config ? { vision_config: multimodalConfig.vision_config } : {}),
+        ...(multimodalConfig.audio_config ? { audio_config: multimodalConfig.audio_config } : {}),
       };
 
   const manifest = {
@@ -1332,7 +1355,6 @@ export function createManifest(
     ...(rawConfig.image_token_id !== undefined ? { image_token_id: rawConfig.image_token_id } : {}),
     ...(rawConfig.audio_token_id !== undefined ? { audio_token_id: rawConfig.audio_token_id } : {}),
     ...(rawConfig.video_token_id !== undefined ? { video_token_id: rawConfig.video_token_id } : {}),
-    ...(rawConfig.vision_config?.vision_architecture ? { visionArchitecture: rawConfig.vision_config.vision_architecture } : {}),
     config: Object.keys(manifestConfig).length > 0 ? manifestConfig : undefined,
     conversion: options.conversionInfo,
     metadata: {
@@ -1651,6 +1673,7 @@ export async function convertModel(model, io, options = {}) {
     eosTokenId: options.eosTokenId,
     convertedAt: converterConfig?.manifest?.conversion?.convertedAt ?? null,
     conversionInfo: converterConfig?.manifest?.conversion ?? null,
+    manifestConfig: converterConfig?.manifest ?? null,
   });
 
   // Write manifest

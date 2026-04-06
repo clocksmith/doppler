@@ -20,13 +20,28 @@ import { log } from '../../../debug/index.js';
  */
 export function preprocessImage(pixels, width, height, config) {
   const {
-    patchSize = 16,
-    spatialMergeSize = 2,
-    temporalPatchSize = 2,
-    minPixels = 3136,
-    maxPixels = 1003520,
+    patchSize,
+    spatialMergeSize,
+    temporalPatchSize,
+    minPixels,
+    maxPixels,
     normalization = {},
   } = config;
+  if (!Number.isFinite(patchSize) || patchSize <= 0 || Math.floor(patchSize) !== patchSize) {
+    throw new Error('Vision config patchSize must be a positive integer.');
+  }
+  if (!Number.isFinite(spatialMergeSize) || spatialMergeSize <= 0 || Math.floor(spatialMergeSize) !== spatialMergeSize) {
+    throw new Error('Vision config spatialMergeSize must be a positive integer.');
+  }
+  if (!Number.isFinite(temporalPatchSize) || temporalPatchSize <= 0 || Math.floor(temporalPatchSize) !== temporalPatchSize) {
+    throw new Error('Vision config temporalPatchSize must be a positive integer.');
+  }
+  if (!Number.isFinite(minPixels) || minPixels <= 0 || Math.floor(minPixels) !== minPixels) {
+    throw new Error('Vision config minPixels must be a positive integer.');
+  }
+  if (!Number.isFinite(maxPixels) || maxPixels <= 0 || Math.floor(maxPixels) !== maxPixels) {
+    throw new Error('Vision config maxPixels must be a positive integer.');
+  }
 
   if (!Array.isArray(normalization.mean) || normalization.mean.length !== 3) {
     throw new Error('Vision config normalization.mean is required (array of 3 channel means)');

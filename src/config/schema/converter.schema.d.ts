@@ -56,6 +56,8 @@ export interface ConverterManifestConfigSchema {
   hashAlgorithm: HashAlgorithm;
   optimizations: RuntimeOptimizationsSchema | null;
   conversion: ConversionInfoSchema | null;
+  visionConfig?: Record<string, unknown> | null;
+  audioConfig?: Record<string, unknown> | null;
 }
 
 export interface ConverterInferenceConfigSchema {

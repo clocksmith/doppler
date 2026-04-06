@@ -25633,11 +25633,11 @@
       "return_dict": true,
       "rms_norm_eps": 0.000001,
       "rope_parameters": {
-        "rope_theta": 100,
-        "rope_type": "default"
+        "rope_theta": 100
       },
       "standardize": false,
-      "use_clipped_linears": true
+      "use_clipped_linears": true,
+      "vision_architecture": "gemma4"
     },
     "audio_config": {
       "_name_or_path": "",
@@ -25677,7 +25677,8 @@
         128,
         32
       ],
-      "use_clipped_linears": true
+      "use_clipped_linears": true,
+      "audio_architecture": "gemma4"
     }
   },
   "conversion": null,

@@ -2,10 +2,9 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, isAbsolute, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const DEFAULT_DOE_PROVIDER_CREATE_ARGS = 'enable-dawn-features=allow_unsafe_apis';
-const DOE_PROVIDER_CREATE_ARGS_ENV = 'FAWN_WEBGPU_CREATE_ARGS';
-const DOE_PROVIDER_SPECIFIERS = Object.freeze([
-  '@doe-gpu/webgpu',
+const DEFAULT_PROVIDER_CREATE_ARGS = 'enable-dawn-features=allow_unsafe_apis';
+const DEFAULT_WEBGPU_PROVIDER_SPECIFIERS = Object.freeze([
+  'webgpu',
 ]);
 const ADAPTER_PROBE_OPTIONS = Object.freeze([
   { powerPreference: 'high-performance' },
@@ -59,7 +58,7 @@ function resolveCandidateModuleSpecifier(candidate) {
 }
 
 function resolveDefaultWebgpuModuleSpecifiers() {
-  return [...DOE_PROVIDER_SPECIFIERS, 'webgpu'];
+  return [...DEFAULT_WEBGPU_PROVIDER_SPECIFIERS];
 }
 
 function resolveExplicitWebgpuModuleSpecifier() {
@@ -70,27 +69,8 @@ function resolveExplicitWebgpuModuleSpecifier() {
   return null;
 }
 
-function isDoeWebgpuSpecifier(specifier) {
-  if (DOE_PROVIDER_SPECIFIERS.includes(specifier)) {
-    return true;
-  }
-  return typeof specifier === 'string'
-    && specifier.startsWith('file://')
-    && DOE_PROVIDER_SPECIFIERS.some((candidate) => specifier.includes(candidate));
-}
-
 async function importWithProviderOverride(specifier) {
-  const shouldApplyCreateArgsDefault = isDoeWebgpuSpecifier(specifier)
-    && !(typeof process.env[DOE_PROVIDER_CREATE_ARGS_ENV] === 'string' && process.env[DOE_PROVIDER_CREATE_ARGS_ENV].trim().length > 0);
-  if (!shouldApplyCreateArgsDefault) {
-    return import(specifier);
-  }
-  process.env[DOE_PROVIDER_CREATE_ARGS_ENV] = DEFAULT_DOE_PROVIDER_CREATE_ARGS;
-  try {
-    return await import(specifier);
-  } finally {
-    delete process.env[DOE_PROVIDER_CREATE_ARGS_ENV];
-  }
+  return import(specifier);
 }
 
 function resolveNodeModuleFilePath(candidatePath) {
@@ -203,7 +183,7 @@ function resolveGpuFromModule(mod) {
     return fromModule;
   }
 
-  const defaultCreateArgs = DEFAULT_DOE_PROVIDER_CREATE_ARGS.split(',').filter(Boolean);
+  const defaultCreateArgs = DEFAULT_PROVIDER_CREATE_ARGS.split(',').filter(Boolean);
 
   const tryCreateFactory = (factory) => {
     if (typeof factory !== 'function') {
@@ -378,8 +358,7 @@ export async function bootstrapNodeWebGPUProvider(providerSpecifier, options = {
  *    (e.g., a WebGPU-enabled Node build or prior bootstrap), no module is loaded.
  *
  * 3. **Default candidates** — tried in order:
- *    a. `'@doe-gpu/webgpu'` (current Doe package name)
- *    b. `'webgpu'` (community Dawn bindings)
+ *    a. `'webgpu'` (community Dawn bindings)
  *    The first one that imports, installs, and passes an adapter probe wins.
  *
  * @returns {Promise<{ ok: boolean, provider: string | null }>}

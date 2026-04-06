@@ -43,8 +43,29 @@ export async function runVisionEncoder(params) {
     numHeads,
     outHiddenSize,
     spatialMergeSize,
-    eps = 1e-6,
+    eps,
   } = visionConfig;
+  if (!Number.isFinite(depth) || depth <= 0 || Math.floor(depth) !== depth) {
+    throw new Error('Vision config depth must be a positive integer.');
+  }
+  if (!Number.isFinite(hiddenSize) || hiddenSize <= 0 || Math.floor(hiddenSize) !== hiddenSize) {
+    throw new Error('Vision config hiddenSize must be a positive integer.');
+  }
+  if (!Number.isFinite(intermediateSize) || intermediateSize <= 0 || Math.floor(intermediateSize) !== intermediateSize) {
+    throw new Error('Vision config intermediateSize must be a positive integer.');
+  }
+  if (!Number.isFinite(numHeads) || numHeads <= 0 || Math.floor(numHeads) !== numHeads) {
+    throw new Error('Vision config numHeads must be a positive integer.');
+  }
+  if (!Number.isFinite(outHiddenSize) || outHiddenSize <= 0 || Math.floor(outHiddenSize) !== outHiddenSize) {
+    throw new Error('Vision config outHiddenSize must be a positive integer.');
+  }
+  if (!Number.isFinite(spatialMergeSize) || spatialMergeSize <= 0 || Math.floor(spatialMergeSize) !== spatialMergeSize) {
+    throw new Error('Vision config spatialMergeSize must be a positive integer.');
+  }
+  if (!Number.isFinite(eps) || eps <= 0) {
+    throw new Error('Vision config eps must be a positive number.');
+  }
 
   const headDim = Math.floor(hiddenSize / numHeads);
   const device = getDevice();

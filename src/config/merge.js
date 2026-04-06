@@ -390,6 +390,10 @@ export function mergeConfig(
     modelId: manifest.modelId,
     inference,
     architecture: manifest.architecture,
+    config: manifest.config ?? null,
+    quantization_config: manifest.quantization_config ?? null,
+    vision_config: runtimeOverrides?.vision_config ?? null,
+    audio_config: runtimeOverrides?.audio_config ?? null,
     _sources: sources,
   };
 }

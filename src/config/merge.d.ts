@@ -39,10 +39,15 @@ export interface ManifestInput {
   modelId: string;
   inference: ManifestInferenceSchema;
   architecture: ArchitectureSchema;
+  config?: Record<string, unknown> | null;
+  quantization_config?: Record<string, unknown> | null;
 }
 
 /** Runtime inference overrides */
-export type RuntimeInferenceOverrides = DeepPartial<ManifestInferenceSchema>;
+export type RuntimeInferenceOverrides = DeepPartial<ManifestInferenceSchema> & {
+  vision_config?: Record<string, unknown> | null;
+  audio_config?: Record<string, unknown> | null;
+};
 
 /**
  * Merged inference config with all values resolved.
@@ -71,6 +76,16 @@ export interface MergedConfig {
 
   /** Architecture info (if available) */
   architecture: ArchitectureSchema;
+
+  /** Raw model config mirror used by manifest-first parsers */
+  config?: Record<string, unknown> | null;
+
+  /** Raw quantization config mirror used by manifest-first parsers */
+  quantization_config?: Record<string, unknown> | null;
+
+  /** Explicit runtime multimodal overrides */
+  vision_config?: Record<string, unknown> | null;
+  audio_config?: Record<string, unknown> | null;
 
   /**
    * Source tracking - dot-path to source.

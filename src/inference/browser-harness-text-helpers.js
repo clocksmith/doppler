@@ -445,7 +445,46 @@ function createCanvasForImageDecode(width, height) {
   return null;
 }
 
+function isNodeRuntime() {
+  return typeof process !== 'undefined' && !!process.versions?.node;
+}
+
+async function decodeImageUrlToPixelsOnNode(url) {
+  let sharpModule = null;
+  try {
+    sharpModule = await import('sharp');
+  } catch (error) {
+    throw new Error(
+      `URL-backed inferenceInput.image.url on the node surface requires the optional "sharp" decoder. ${error?.message || error}`
+    );
+  }
+  const sharp = typeof sharpModule?.default === 'function'
+    ? sharpModule.default
+    : sharpModule;
+  if (typeof sharp !== 'function') {
+    throw new Error('Node image decode requires sharp to export a callable default.');
+  }
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`image fetch failed: HTTP ${response.status}`);
+  }
+  const sourceBytes = new Uint8Array(await response.arrayBuffer());
+  const decoded = await sharp(sourceBytes)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  return {
+    imageBytes: new Uint8Array(decoded.data),
+    width: decoded.info.width,
+    height: decoded.info.height,
+  };
+}
+
 async function decodeImageUrlToPixels(url) {
+  if (isNodeRuntime()) {
+    return decodeImageUrlToPixelsOnNode(url);
+  }
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`image fetch failed: HTTP ${response.status}`);

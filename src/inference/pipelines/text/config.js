@@ -685,10 +685,6 @@ function resolveVisionConfig(rawConfig, manifest) {
     );
     return null;
   }
-  const rawVisionArchitecture = vc.vision_architecture ?? manifest?.visionArchitecture ?? null;
-  const rawModelType = typeof vc.model_type === 'string' ? vc.model_type.trim().toLowerCase() : '';
-  const visionArchitecture = rawVisionArchitecture
-    ?? (rawModelType === 'gemma4_vision' ? 'gemma4' : null);
   const modelId = manifest?.modelId ?? 'unknown';
   const resolveRequiredVisionField = (keys, label) => {
     for (const key of keys) {
@@ -722,6 +718,13 @@ function resolveVisionConfig(rawConfig, manifest) {
     }
     return number;
   };
+  const visionArchitecture = String(resolveRequiredVisionField(['vision_architecture'], 'vision_architecture')).trim();
+  if (visionArchitecture !== 'gemma4' && visionArchitecture !== 'qwen3vl') {
+    throw new Error(
+      `Manifest "${modelId}" has unsupported vision_config.vision_architecture="${visionArchitecture}". ` +
+      'Supported: "gemma4", "qwen3vl".'
+    );
+  }
 
   if (visionArchitecture === 'gemma4') {
     const hiddenSize = resolveRequiredPositiveInteger(['hidden_size'], 'hidden_size');
@@ -782,27 +785,61 @@ function resolveVisionConfig(rawConfig, manifest) {
     };
   }
 
-  const hiddenSize = vc.hidden_size ?? 1024;
-  const numHeads = vc.num_heads ?? vc.num_attention_heads ?? 16;
+  const hiddenSize = resolveRequiredPositiveInteger(['hidden_size'], 'hidden_size');
+  const intermediateSize = resolveRequiredPositiveInteger(['intermediate_size'], 'intermediate_size');
+  const numHeads = resolveRequiredPositiveInteger(['num_heads', 'num_attention_heads'], 'num_heads');
+  const outHiddenSize = resolveRequiredPositiveInteger(['out_hidden_size', 'output_proj_dims'], 'out_hidden_size');
+  const patchSize = resolveRequiredPositiveInteger(['patch_size'], 'patch_size');
+  const spatialMergeSize = resolveRequiredPositiveInteger(['spatial_merge_size', 'merge_size'], 'spatial_merge_size');
+  const temporalPatchSize = resolveRequiredPositiveInteger(['temporal_patch_size'], 'temporal_patch_size');
+  const eps = resolveRequiredPositiveNumber(
+    resolveRequiredVisionField(['eps', 'rms_norm_eps'], 'eps'),
+    'vision_config.eps'
+  );
+  const hiddenActivation = String(
+    resolveRequiredVisionField(['hidden_activation', 'hidden_act'], 'hidden_activation')
+  ).trim();
+  const minPixels = resolveRequiredPositiveInteger(['min_pixels'], 'min_pixels');
+  const maxPixels = resolveRequiredPositiveInteger(['max_pixels'], 'max_pixels');
+  const normalization = vc.normalization;
+  if (!normalization || typeof normalization !== 'object') {
+    throw new Error(
+      `Manifest "${modelId}" is missing vision_config.normalization. ` +
+      'Re-convert the model with explicit normalization metadata.'
+    );
+  }
+  if (!Array.isArray(normalization.mean) || normalization.mean.length !== 3) {
+    throw new Error(
+      `Manifest "${modelId}" requires vision_config.normalization.mean to contain exactly 3 values.`
+    );
+  }
+  if (!Array.isArray(normalization.std) || normalization.std.length !== 3) {
+    throw new Error(
+      `Manifest "${modelId}" requires vision_config.normalization.std to contain exactly 3 values.`
+    );
+  }
   return {
-    depth: vc.depth ?? vc.num_hidden_layers ?? 24,
+    depth: resolveRequiredPositiveInteger(['depth', 'num_hidden_layers'], 'depth'),
     hiddenSize,
-    intermediateSize: vc.intermediate_size ?? 4096,
+    intermediateSize,
     numHeads,
-    numKeyValueHeads: vc.num_key_value_heads ?? numHeads,
-    headDim: vc.head_dim ?? vc.global_head_dim ?? Math.floor(hiddenSize / numHeads),
-    outHiddenSize: vc.out_hidden_size ?? vc.output_proj_dims ?? hiddenSize,
-    patchSize: vc.patch_size ?? 16,
-    poolingKernelSize: vc.pooling_kernel_size ?? vc.spatial_merge_size ?? 2,
-    spatialMergeSize: vc.spatial_merge_size ?? 2,
-    temporalPatchSize: vc.temporal_patch_size ?? 2,
+    numKeyValueHeads: resolveRequiredPositiveInteger(['num_key_value_heads'], 'num_key_value_heads'),
+    headDim: resolveRequiredPositiveInteger(['head_dim'], 'head_dim'),
+    outHiddenSize,
+    patchSize,
+    poolingKernelSize: resolveRequiredPositiveInteger(['pooling_kernel_size'], 'pooling_kernel_size'),
+    spatialMergeSize,
+    temporalPatchSize,
     positionEmbeddingSize: vc.position_embedding_size ?? null,
     defaultOutputLength: vc.default_output_length ?? null,
     ropeTheta: vc.rope_parameters?.rope_theta ?? null,
-    eps: vc.eps ?? vc.rms_norm_eps ?? 1e-6,
-    hiddenActivation: vc.hidden_activation ?? 'gelu',
+    eps,
+    hiddenActivation,
     standardize: vc.standardize === true,
     useClippedLinears: vc.use_clipped_linears === true,
+    minPixels,
+    maxPixels,
+    normalization,
     deepstackVisualIndexes: Array.isArray(vc.deepstack_visual_indexes) ? vc.deepstack_visual_indexes : [],
     imageTokenId: rawConfig?.image_token_id ?? manifest?.image_token_id ?? null,
     visionArchitecture,
@@ -839,13 +876,11 @@ function resolveAudioConfig(rawConfig, manifest) {
     }
     return number;
   };
-
-  const rawModelType = typeof ac.model_type === 'string' ? ac.model_type.trim().toLowerCase() : '';
-  const audioArchitecture = rawModelType === 'gemma4_audio' ? 'gemma4' : null;
-  if (!audioArchitecture) {
+  const audioArchitecture = String(ac.audio_architecture ?? '').trim();
+  if (audioArchitecture !== 'gemma4') {
     throw new Error(
-      `Manifest "${modelId}" has unsupported audio_config.model_type="${ac.model_type}". ` +
-      'Supported: "gemma4_audio".'
+      `Manifest "${modelId}" has unsupported audio_config.audio_architecture="${audioArchitecture}". ` +
+      'Supported: "gemma4".'
     );
   }
 
@@ -926,8 +961,20 @@ function parseLinearNormMode(value, sharedFlag = null, modelId = 'unknown') {
 
 
 export function toParsedConfigFromMerged(merged, manifest) {
-  const rawConfig = manifest.config ?? {};
-  const config = rawConfig.text_config ?? rawConfig;
+  const mergedConfig = merged?.config ?? manifest.config ?? {};
+  const rawConfig = mergedConfig.text_config ?? mergedConfig;
+  const config = {
+    ...rawConfig,
+    ...(merged?.vision_config !== null && merged?.vision_config !== undefined
+      ? { vision_config: merged.vision_config }
+      : {}),
+    ...(merged?.audio_config !== null && merged?.audio_config !== undefined
+      ? { audio_config: merged.audio_config }
+      : {}),
+    ...(merged?.quantization_config !== null && merged?.quantization_config !== undefined
+      ? { quantization_config: merged.quantization_config }
+      : {}),
+  };
   const inf = merged.inference;
 
   // Validate required fields are present (fail fast on incomplete manifests)
@@ -1296,6 +1343,8 @@ export function parseModelConfigFromManifest(manifest, runtimeOverrides) {
       modelId: manifest.modelId ?? 'unknown',
       inference: manifest.inference,
       architecture: manifest.architecture,
+      config: manifest.config ?? null,
+      quantization_config: manifest.quantization_config ?? null,
     },
     runtimeOverrides
   );

@@ -27,7 +27,7 @@ export async function encodeAudio(params) {
     default:
       throw new Error(
         `Unsupported audio architecture "${arch}". ` +
-        'Supported: gemma4. Check manifest audio_config.model_type.'
+        'Supported: gemma4. Check audio_config.audio_architecture.'
       );
   }
 }

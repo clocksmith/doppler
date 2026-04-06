@@ -146,7 +146,7 @@ function rmsnormBackwardCpu(input, weight, gradOutput, rows, cols, eps) {
 async function initGPU() {
   const platformsBaseUrl = typeof globalThis.location !== 'undefined' && globalThis.location?.href
     ? '/src/config/platforms/'
-    : new URL('../../../src/config/platforms/', import.meta.url).toString();
+    : new URL('../../../src/config/platforms', import.meta.url).toString();
   const registryUrl = typeof globalThis.location !== 'undefined' && globalThis.location?.href
     ? '/src/config/kernels/registry.json'
     : new URL('../../../src/config/kernels/registry.json', import.meta.url).toString();

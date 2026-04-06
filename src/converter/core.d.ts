@@ -26,6 +26,7 @@ import type {
   QuantizationInfoSchema,
   MoEConfigSchema,
   ConversionInfoSchema,
+  ConverterManifestConfigSchema,
 } from '../config/schema/index.js';
 import type { ExecutionContractArtifact } from '../config/execution-contract-check.js';
 import type {
@@ -178,6 +179,7 @@ export interface CreateManifestOptions {
   eosTokenId?: number | number[] | null;
   convertedAt?: string | null;
   conversionInfo?: ConversionInfoSchema | null;
+  manifestConfig?: ConverterManifestConfigSchema | null;
 }
 
 /**

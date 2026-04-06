@@ -12,7 +12,6 @@ import { encodeGemma4Image } from './gemma4.js';
  * Encode an image through the vision pipeline.
  *
  * Routes to architecture-specific preprocessing based on visionConfig.visionArchitecture.
- * Currently supported: 'qwen3vl' (default for backward compatibility).
  *
  * Full flow:
  *   raw pixels -> preprocess -> patch embed -> ViT blocks -> spatial merge -> visual tokens
@@ -29,7 +28,15 @@ import { encodeGemma4Image } from './gemma4.js';
 export async function encodeImage(params) {
   const { pixels, width, height, visionConfig, weights, softTokenBudget } = params;
 
-  const arch = visionConfig.visionArchitecture ?? 'qwen3vl';
+  const arch = typeof visionConfig?.visionArchitecture === 'string'
+    ? visionConfig.visionArchitecture.trim()
+    : '';
+  if (!arch) {
+    throw new Error(
+      'Vision encode requires visionConfig.visionArchitecture. ' +
+      'Re-convert the model with explicit vision_config.vision_architecture.'
+    );
+  }
   log.debug('Vision', `encodeImage: ${width}x${height} input, arch=${arch}`);
 
   // Architecture-specific preprocessing dispatch
@@ -43,7 +50,7 @@ export async function encodeImage(params) {
     default:
       throw new Error(
         `Unsupported vision architecture "${arch}". ` +
-        'Supported: gemma4, qwen3vl. Check manifest.visionArchitecture or vision_config.vision_architecture.'
+        'Supported: gemma4, qwen3vl. Check vision_config.vision_architecture.'
       );
   }
 

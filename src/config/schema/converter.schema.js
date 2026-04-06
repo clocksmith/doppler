@@ -41,6 +41,8 @@ export const DEFAULT_CONVERTER_MANIFEST_CONFIG = {
   hashAlgorithm: 'sha256',
   optimizations: null,
   conversion: null,
+  visionConfig: null,
+  audioConfig: null,
 };
 
 export const DEFAULT_CONVERTER_INFERENCE_CONFIG = {

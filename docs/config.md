@@ -42,6 +42,21 @@ merge implementation.
 Behavior-changing choices must be present in resolved config before execution.
 No hidden runtime fallbacks for command semantics.
 
+## Multimodal config contract
+
+Multimodal encoder behavior is config-owned, not runtime-inferred.
+
+- `config.vision_config.vision_architecture` is required for image/video-capable models.
+- `config.audio_config.audio_architecture` is required for audio-capable models.
+- Vision preprocessing fields such as normalization, pixel limits, patch sizing,
+  and merge sizing must be present explicitly in config or explicit runtime
+  model overrides.
+- Runtime does not infer multimodal architecture from `model_type`, mirrored
+  top-level manifest fields, or missing tunables.
+
+If a multimodal manifest is missing those fields, the runtime must fail fast and
+the converter/config must be fixed instead of patching around the artifact.
+
 ## Kernel path contract
 
 Kernel paths are explicit execution plans selected by ID.

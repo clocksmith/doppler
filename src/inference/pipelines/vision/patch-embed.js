@@ -32,10 +32,19 @@ export async function patchEmbed(params) {
   } = params;
 
   const {
-    patchSize = 16,
-    hiddenSize = 1024,
-    temporalPatchSize = 2,
+    patchSize,
+    hiddenSize,
+    temporalPatchSize,
   } = visionConfig;
+  if (!Number.isFinite(patchSize) || patchSize <= 0 || Math.floor(patchSize) !== patchSize) {
+    throw new Error('Vision config patchSize must be a positive integer.');
+  }
+  if (!Number.isFinite(hiddenSize) || hiddenSize <= 0 || Math.floor(hiddenSize) !== hiddenSize) {
+    throw new Error('Vision config hiddenSize must be a positive integer.');
+  }
+  if (!Number.isFinite(temporalPatchSize) || temporalPatchSize <= 0 || Math.floor(temporalPatchSize) !== temporalPatchSize) {
+    throw new Error('Vision config temporalPatchSize must be a positive integer.');
+  }
 
   const gridH = Math.floor(height / patchSize);
   const gridW = Math.floor(width / patchSize);
@@ -78,11 +87,14 @@ export async function patchEmbed(params) {
   // The weight tensor name is visual.patch_embed.proj.weight with shape [hiddenSize, C, tpp, pp, pp].
   // For temporal_patch_size=2 and a single frame, we need to handle the temporal dimension.
   // In practice for a single image, we sum over the temporal kernel dimension.
-  const weightKey = 'visual.patch_embed.proj.weight';
-  const biasKey = 'visual.patch_embed.proj.bias';
-
-  const weightBuffer = weights[weightKey];
-  const biasBuffer = weights[biasKey] || null;
+  const weightBuffer = weights.patchProjWeight ?? weights['visual.patch_embed.proj.weight'];
+  const biasBuffer = weights.patchProjBias ?? weights['visual.patch_embed.proj.bias'] ?? null;
+  if (!weightBuffer) {
+    throw new Error(
+      'Vision patch embedding weight buffer is missing. ' +
+      'Expected weights.patchProjWeight or weights["visual.patch_embed.proj.weight"].'
+    );
+  }
 
   // Full conv weight size: hiddenSize * channels * temporalPatchSize * patchSize * patchSize
   const fullWeightSize = hiddenSize * channels * temporalPatchSize * patchSize * patchSize;

@@ -39,8 +39,6 @@ CLI entrypoint: `src/cli/doppler-cli.js`.
 Node WebGPU provider resolution order:
 - `DOPPLER_NODE_WEBGPU_MODULE` if set
 - otherwise pre-installed WebGPU when `navigator.gpu.requestAdapter` and the core GPU enums are present, and adapter probing succeeds
-- otherwise `@doe-gpu/webgpu`
-- otherwise `@simulatte/webgpu` (legacy package name during transition)
 - otherwise `webgpu`
 - otherwise fail explicitly
 
