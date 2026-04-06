@@ -61,10 +61,6 @@ function mergeRuntime(base, patch) {
 
 {
   const runtime = createRuntimeBridge({
-    shared: {
-      harness: { mode: 'bench', modelId: null },
-      tooling: { intent: 'calibrate' },
-    },
     inference: {
       prompt: 'initial',
       generation: { maxTokens: 16 },
@@ -122,10 +118,6 @@ function mergeRuntime(base, patch) {
   assert.equal(runtime.getRuntime().inference.generation.maxTokens, 8);
   assert.equal(runtime.getRuntime().inference.batching.batchSize, 6);
   assert.equal(runtime.getRuntime().inference.batching.readbackInterval, 3);
-  assert.equal(runtime.getRuntime().shared.harness.mode, 'verify');
-  assert.equal(runtime.getRuntime().shared.harness.workload, 'inference');
-  assert.equal(runtime.getRuntime().shared.harness.modelId, 'gemma-3-270m-it-f16-af32');
-  assert.equal(runtime.getRuntime().shared.tooling.intent, 'verify');
 }
 
 {

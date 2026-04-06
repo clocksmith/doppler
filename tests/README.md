@@ -9,10 +9,16 @@ The same command contract is available through Node CLI and browser relay.
 
 **URL:** `http://localhost:8080/tests/harness.html` (serve repo root with a static server)
 
-Runtime config payloads use top-level `shared.harness` and `shared.tooling.intent`.
-After normalization, these resolve into `runtime.shared.harness` and
-`runtime.shared.tooling.intent` inside the command/runtime contract.
-The harness does not accept per-field query overrides.
+Runtime inputs stay runtime-only on the harness page:
+- `runtimeProfile`
+- `runtimeConfig`
+- `runtimeConfigUrl`
+- `configChain`
+
+Command/run context is separate from runtime config. When driving `tests/harness.html`
+manually, pass `mode`, `workload`, `modelId`, `autorun`, and `skipLoad` as page
+context instead of encoding them under `runtime.shared.harness` or
+`runtime.shared.tooling`.
 
 | Mode | Purpose |
 |------|---------|
@@ -51,10 +57,10 @@ Browser relay options are configured under `run.browser` in `--config`
 python3 -m http.server 8080
 ```
 
-Example runtime config payload:
+Example harness URL:
 
-```json
-{"shared":{"tooling":{"intent":"verify"},"harness":{"mode":"verify","workload":"inference","autorun":true,"skipLoad":false,"modelId":"gemma-3-270m-it-q4k-ehf16-af32"}}}
+```text
+http://localhost:8080/tests/harness.html?mode=verify&workload=inference&modelId=gemma-3-270m-it-q4k-ehf16-af32&autorun=true
 ```
 
 ## Shared Utilities

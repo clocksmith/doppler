@@ -1,4 +1,5 @@
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import { READBACK_MODES } from '../../../config/schema/execution-v1.schema.js';
 import {
   resolveDeferredRoundingWindowTokens,
   resolveRangeAwareSelectiveWideningConfig,
@@ -36,6 +37,15 @@ function assertOptionalStopCheckMode(value) {
   if (value !== 'batch' && value !== 'per-token') {
     throw new Error(
       `[ExecutionPlan] stopCheckMode must be "batch" or "per-token" when provided; got ${JSON.stringify(value)}.`
+    );
+  }
+  return value;
+}
+
+function assertReadbackMode(value) {
+  if (!value || !READBACK_MODES.includes(value)) {
+    throw new Error(
+      `[ExecutionPlan] readbackMode must be one of ${READBACK_MODES.join(', ')}; got ${JSON.stringify(value)}.`
     );
   }
   return value;

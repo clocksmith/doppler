@@ -54,6 +54,14 @@ assert.equal(config.session?.compute?.defaults?.mathDtype, 'f16');
 assert.equal(config.session?.compute?.defaults?.accumDtype, 'f32');
 assert.equal(config.session?.compute?.defaults?.outputDtype, 'f16');
 assert.equal(config.session?.kvcache?.kvDtype, 'f16');
+assert.equal(config.session?.decodeLoop?.batchSize, 8);
+assert.equal(config.session?.decodeLoop?.stopCheckMode, 'batch');
+assert.equal(config.session?.decodeLoop?.readbackInterval, 1);
+assert.equal(config.session?.decodeLoop?.readbackMode, 'sequential');
+assert.equal(config.session?.decodeLoop?.ringTokens, 1);
+assert.equal(config.session?.decodeLoop?.ringStop, 1);
+assert.equal(config.session?.decodeLoop?.ringStaging, 1);
+assert.equal(config.session?.decodeLoop?.disableCommandBatching, false);
 
 const manifestInference = {
   schema: 'doppler.execution/v1',

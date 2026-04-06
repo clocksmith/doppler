@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import {
   normalizeToolingCommandRequest,
-  buildRuntimeContractPatch,
   ensureCommandSupportedOnSurface,
 } from '../../src/tooling/command-api.js';
 
@@ -384,47 +383,6 @@ import {
     }),
     /distillShardIndex must be <= distillShardCount/
   );
-}
-
-{
-  const patch = buildRuntimeContractPatch({
-    command: 'verify',
-    workload: 'training',
-    modelId: 'gemma-3-1b-it-f16-af32',
-  });
-  assert.deepEqual(patch, {
-    shared: {
-      harness: {
-        mode: 'verify',
-        workload: 'training',
-        modelId: 'gemma-3-1b-it-f16-af32',
-      },
-      tooling: {
-        intent: 'verify',
-      },
-    },
-  });
-}
-
-{
-  const normalized = normalizeToolingCommandRequest({
-    command: 'verify',
-    workload: 'inference',
-    modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
-  });
-  const patch = buildRuntimeContractPatch(normalized);
-  assert.deepEqual(patch, {
-    shared: {
-      harness: {
-        mode: 'verify',
-        workload: 'inference',
-        modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
-      },
-      tooling: {
-        intent: 'verify',
-      },
-    },
-  });
 }
 
 {

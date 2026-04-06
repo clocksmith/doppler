@@ -78,6 +78,7 @@ const container = { executionPlanState: planState };
   assert.equal(active.kernelPathId, 'gemma3-f16-fused-f16a-online');
   assert.equal(active.finitenessGuardEnabled, true);
   assert.equal(active.finitenessOnTrigger, 'fallback-plan');
+  assert.equal(active.readbackMode, 'sequential');
 }
 
 {
@@ -351,6 +352,21 @@ const container = { executionPlanState: planState };
   assert.throws(
     () => resolveExecutionSessionPlan(container, { ringStaging: 0 }),
     /ringStaging must be a positive integer/
+  );
+}
+
+{
+  const runtimeConfigInvalidReadbackMode = createRuntimeConfig('f16');
+  runtimeConfigInvalidReadbackMode.inference.session.decodeLoop.readbackMode = 'invalid';
+
+  assert.throws(
+    () => compileExecutionPlanState({
+      runtimeConfig: runtimeConfigInvalidReadbackMode,
+      resolvedKernelPath: minimalKernelPath,
+      kernelPathSource: 'model',
+      fallbackKernelPath: minimalFallbackKernelPath,
+    }),
+    /readbackMode must be one of sequential, overlapped, auto/
   );
 }
 

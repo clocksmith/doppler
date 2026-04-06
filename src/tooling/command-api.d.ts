@@ -194,15 +194,6 @@ export declare function normalizeToolingCommandRequest(
   input: ToolingCommandRequestInput
 ): ToolingCommandRequest;
 
-export declare function buildRuntimeContractPatch(
-  commandRequest: ToolingCommandRequestInput
-): {
-  shared: {
-    harness: { mode: ToolingCommand; workload: ToolingWorkload; modelId: string | null };
-    tooling: { intent: Exclude<ToolingIntent, null> };
-  };
-} | null;
-
 export declare function ensureCommandSupportedOnSurface(
   commandRequest: ToolingCommandRequestInput,
   surface: ToolingSurface

@@ -137,7 +137,7 @@
       }
     },
     "decodeLoop": {
-      "batchSize": 4,
+      "batchSize": 8,
       "stopCheckMode": "batch",
       "readbackInterval": 1,
       "readbackMode": "sequential",

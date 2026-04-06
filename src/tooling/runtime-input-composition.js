@@ -82,9 +82,4 @@ export async function applyOrderedRuntimeInputs(runtimeBridge, inputs = {}, hand
     }
     mergeRuntimePatch(runtimeBridge, runtime);
   }
-
-  const runtimeContractPatch = typeof inputs.runtimeContractPatch === 'function'
-    ? inputs.runtimeContractPatch()
-    : (inputs.runtimeContractPatch ?? null);
-  mergeRuntimePatch(runtimeBridge, runtimeContractPatch);
 }

@@ -113,10 +113,6 @@ try {
 
   const runtimeConfig = getRuntimeConfig();
   assert.equal(runtimeConfig.shared.tooling.baseline, true);
-  assert.equal(runtimeConfig.shared.tooling.intent, 'verify');
-  assert.equal(runtimeConfig.shared.harness.mode, 'verify');
-  assert.equal(runtimeConfig.shared.harness.workload, 'inference');
-  assert.equal(runtimeConfig.shared.harness.modelId, 'gemma3-270m');
   assert.equal(runtimeConfig.inference.prompt, 'inline');
   assert.equal(runtimeConfig.inference.generation.maxTokens, 8);
   assert.equal(runtimeConfig.inference.batching.batchSize, 6);
@@ -172,10 +168,6 @@ try {
     },
   });
 
-  assert.equal(getRuntimeConfig().shared.tooling.intent, 'verify');
-  assert.equal(getRuntimeConfig().shared.harness.mode, 'verify');
-  assert.equal(getRuntimeConfig().shared.harness.workload, 'inference');
-  assert.equal(getRuntimeConfig().shared.harness.modelId, 'gemma3-270m');
   assert.equal(getRuntimeConfig().inference.kernelPath, null);
 
   setRuntimeConfig({

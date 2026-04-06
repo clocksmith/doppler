@@ -44,24 +44,18 @@ Node WebGPU provider resolution order:
 
 `DOPPLER_NODE_WEBGPU_MODULE` is fail-closed: when it is set, Doppler does not continue to later providers.
 
-## Runtime patching
+## Runtime input composition
 
-For harnessed runs, apply `buildRuntimeContractPatch()` before execution.
-The patch fields are:
-- `shared.harness.mode`
-- `shared.harness.workload`
-- `shared.harness.modelId` (except kernel-only flows and training calibration via `bench + workload="training"`)
-- `shared.tooling.intent`
-
-Harness runtime-input composition must preserve shared command semantics:
+Harness runtime-input composition must preserve explicit runtime semantics:
 
 - apply `configChain` first when supported
 - then `runtimeProfile`
 - then `runtimeConfigUrl`
 - then `runtimeConfig`
-- then the runtime contract patch
 
 Do not short-circuit after the first provided input. Do not silently ignore a supported field on one surface.
+Command metadata must remain outside runtime config and travel through the
+explicit request/suite context.
 
 ## Explicit Source Selection
 

@@ -265,7 +265,7 @@ When a manifest-based runtime error occurs (dtype mismatch, missing field, kerne
 
 - Runtime tunables are configured via runtime config only; harness/UI controls must not override tunables.
 - Forbidden overrides include: prompt selection, max tokens, sampling (temperature/topK/topP), trace categories, log levels, warmup/timed runs.
-- Command intent and harness options must live in config (`runtime.shared.harness`, `runtime.shared.tooling.intent`).
+- Command intent and harness selection must stay in explicit command/suite context, not in `runtime.shared.*`.
 - Harnesses must not accept per-field URL overrides; only `runtimeProfile`, `runtimeConfig`, `runtimeConfigUrl`, and `configChain` are allowed.
 - If a developer needs to tweak a tunable, they should create a runtime profile or pass `--config` with a runtime config file.
 See `config-style-guide.md` for merge order and category rules.

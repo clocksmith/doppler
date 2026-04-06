@@ -292,8 +292,8 @@ DOPPLER's structure can be understood through multiple lenses. Each view serves 
 ### Debug Infrastructure Layers
 
 ```
-Browser harness (config-only)
-  runtime.shared.harness.mode / runtime.shared.harness.modelId
+Browser harness (explicit suite context + runtime config)
+  mode / workload / modelId
         |
 Runtime Config (runtime.shared.tooling, runtime.shared.debug, runtime.shared.benchmark)
         |

@@ -69,7 +69,6 @@ export {
   TOOLING_VERIFY_WORKLOADS,
   TOOLING_TRAINING_COMMAND_SCHEMA_VERSION,
   normalizeToolingCommandRequest,
-  buildRuntimeContractPatch,
   ensureCommandSupportedOnSurface,
 } from './tooling/command-api.js';
 export { runBrowserCommand, normalizeBrowserCommand } from './tooling/browser-command-runner.js';

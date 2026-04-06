@@ -132,6 +132,31 @@ const EXPLICIT_TEXT_DEFAULTS = [
     },
   },
   {
+    path: 'src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32.json',
+    computeDefaults: {
+      activationDtype: 'f16',
+      mathDtype: 'f16',
+      accumDtype: 'f32',
+      outputDtype: 'f16',
+    },
+    kvcache: {
+      kvDtype: 'f16',
+      layout: 'contiguous',
+      pageSize: 256,
+      tiering: { mode: 'off' },
+    },
+    decodeLoop: {
+      batchSize: 8,
+      stopCheckMode: 'batch',
+      readbackInterval: 1,
+      readbackMode: 'sequential',
+      ringTokens: 1,
+      ringStop: 1,
+      ringStaging: 1,
+      disableCommandBatching: false,
+    },
+  },
+  {
     path: 'src/config/conversion/gemma4/gemma-4-moe-q4k-ehf16-af32.json',
     computeDefaults: {
       activationDtype: 'f32',

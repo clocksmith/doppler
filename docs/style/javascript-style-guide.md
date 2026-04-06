@@ -72,7 +72,7 @@ Kernel path overrides are config-only; harness/UI surfaces must not set kernel s
 
 ## Harness Override Rules
 
-- Harness options must live in config (`runtime.shared.harness`).
+- Harness selection must stay in explicit command/suite context, separate from runtime config.
 - Per-field URL overrides are forbidden; use `runtimeProfile`, `runtimeConfig`, `runtimeConfigUrl`, or `configChain`.
 - Harness/UI controls must not override runtime tunables (prompt, max tokens, sampling, trace/log levels, warmup/timed runs).
 See `config-style-guide.md` for merge order and category rules.

@@ -107,7 +107,7 @@ Rules:
 - **Intent**: none (operator lifecycle is workload-driven, not harness-driven)
 - **Exit**: workload-locked run root plus checkpoint/eval/scoreboard/compare/quality-gate artifacts
 - **Commands**: `lora`, `distill`
-- These commands normalize through the same command API but do not inject `runtime.shared.harness.*`.
+- These commands normalize through the same command API but do not rewrite runtime config with harness metadata.
 - `lora.action` is:
   `run|eval|watch|export|compare|quality-gate|activate`
 - `distill.action` is:
@@ -119,12 +119,13 @@ Rules:
 
 ## Runtime Contract
 
-For harnessed commands (`debug`, `bench`, `verify`), runners must apply:
+For harnessed commands (`debug`, `bench`, `verify`), runners must preserve
+explicit command context outside runtime config:
 
-- `runtime.shared.harness.mode`
-- `runtime.shared.harness.workload`
-- `runtime.shared.harness.modelId` (required except `kernels` and training-calibration flows where `bench + workload="training"` intentionally patches `modelId: null`)
-- `runtime.shared.tooling.intent`
+- `command`
+- `workload`
+- `modelId` (required except `kernels` and training-calibration flows where `bench + workload="training"` allows `modelId: null`)
+- normalized command intent
 
 `verify` workloads are: `kernels`, `inference`, `embedding`, `training`, `diffusion`, and `energy`.
 
@@ -135,21 +136,19 @@ Diffusion command contracts:
 - Runtime backend contract: `runtime.inference.diffusion.backend.pipeline="gpu"` only.
 - Both paths must emit timing diagnostics and diffusion stage metrics as contract artifacts.
 
-Use `buildRuntimeContractPatch()` and merge into runtime config before execution.
-
 Runtime inputs must compose identically across Node, browser, CLI, and harnessed manifest flows:
 
 - `configChain` (when supported by the surface)
 - `runtimeProfile`
 - `runtimeConfigUrl`
 - `runtimeConfig`
-- runtime contract patch
 
 Rules:
 
 - Preserve that order exactly.
 - `configChain` support must not exist on one harness surface and silently disappear on another.
 - If a surface cannot support one of these fields, it must reject the request explicitly instead of dropping or rewriting it.
+- Command metadata must remain in the request/suite context; do not rewrite `runtime.shared.*` to carry command semantics.
 
 For cross-engine benchmarks, maintain a two-layer contract:
 

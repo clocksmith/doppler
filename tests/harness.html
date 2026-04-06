@@ -160,6 +160,20 @@
     let harnessConfig = null;
     const manifestUrl = params.get('manifestUrl') || params.get('autorunManifestUrl');
 
+    function parseHarnessBoolean(value, fallback = false) {
+      if (value == null) {
+        return fallback;
+      }
+      const normalized = String(value).trim().toLowerCase();
+      if (normalized === '1' || normalized === 'true' || normalized === 'yes' || normalized === 'on') {
+        return true;
+      }
+      if (normalized === '0' || normalized === 'false' || normalized === 'no' || normalized === 'off') {
+        return false;
+      }
+      return fallback;
+    }
+
     function renderManifestResults(report) {
       const container = document.getElementById('results');
       container.innerHTML = '';
@@ -213,24 +227,19 @@
       const runtimeProfile = params.get('runtimeProfile') || null;
       const runtimeConfigUrl = params.get('runtimeConfigUrl') || null;
       await applyRuntimeForRun({
-        command: 'verify',
-        workload: 'kernels',
-        modelId: null,
         configChain: Array.isArray(runtimeOverrides.configChain) ? runtimeOverrides.configChain : null,
         runtimeProfile,
         runtimeConfigUrl,
         runtimeConfig: runtimeOverrides.runtimeConfig || null,
       });
-      const resolved = getRuntimeConfig();
-      const harness = resolved.shared?.harness;
-      if (!harness) {
-        throw new Error('runtime.shared.harness is required for the harness.');
-      }
-      if (!resolved.shared?.tooling?.intent) {
-        throw new Error('runtime.shared.tooling.intent is required for the harness.');
-      }
-      runtimeConfig = resolved;
-      harnessConfig = harness;
+      runtimeConfig = getRuntimeConfig();
+      harnessConfig = {
+        mode: params.get('mode') || 'verify',
+        workload: params.get('workload') || 'kernels',
+        autorun: parseHarnessBoolean(params.get('autorun')),
+        skipLoad: parseHarnessBoolean(params.get('skipLoad')),
+        modelId: params.get('modelId') || null,
+      };
     }
 
     // ==========================================================================
@@ -350,12 +359,11 @@
       const { SIGNALS } = await import('../src/debug/index.js');
 
       const runtimeConfig = getRuntimeConfig();
-      const harnessConfig = runtimeConfig.shared.harness;
       const paramModel = harnessConfig.modelId;
       const paramAutorun = harnessConfig.autorun;
       const paramSkipLoad = harnessConfig.skipLoad;
       if (!paramModel) {
-        throw new Error('runtime.shared.harness.modelId must be set for inference mode.');
+        throw new Error('harness modelId must be set for inference mode.');
       }
 
       const baseUrl = new URL('../models', window.location.href).toString().replace(/\/$/, '');
@@ -533,12 +541,11 @@
       const { SIGNALS } = await import('../src/debug/index.js');
 
       const runtimeConfig = getRuntimeConfig();
-      const harnessConfig = runtimeConfig.shared.harness;
       const paramModel = harnessConfig.modelId;
       const paramAutorun = harnessConfig.autorun;
       const paramSkipLoad = harnessConfig.skipLoad;
       if (!paramModel) {
-        throw new Error('runtime.shared.harness.modelId must be set for energy mode.');
+        throw new Error('harness modelId must be set for energy mode.');
       }
 
       const baseUrl = new URL('../models', window.location.href).toString().replace(/\/$/, '');

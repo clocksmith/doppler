@@ -1,4 +1,3 @@
-import { buildRuntimeContractPatch } from './command-api.js';
 import { applyOrderedRuntimeInputs } from './runtime-input-composition.js';
 
 function cloneRuntimeConfig(runtimeConfig) {
@@ -120,7 +119,6 @@ export async function applyRuntimeInputs(request, runtimeBridge, options = {}) {
     runtimeProfile: request.runtimeProfile ?? null,
     runtimeConfigUrl: request.runtimeConfigUrl ?? null,
     runtimeConfig: request.runtimeConfig ?? null,
-    runtimeContractPatch: buildRuntimeContractPatch(request),
   }, {
     applyRuntimeProfile: runtimeBridge.applyRuntimeProfile?.bind(runtimeBridge),
     applyRuntimeConfigFromUrl: runtimeBridge.applyRuntimeConfigFromUrl?.bind(runtimeBridge),

@@ -122,25 +122,7 @@ await assert.rejects(
   /does not support runtimeConfigUrl/
 );
 
-// runtimeContractPatch as function
-{
-  const bridge = createRuntimeBridge();
-  await applyOrderedRuntimeInputs(bridge, {
-    runtimeContractPatch: () => ({ shared: { tooling: { intent: 'calibrate' } } }),
-  });
-  assert.equal(bridge.current.shared?.tooling?.intent, 'calibrate');
-}
-
-// runtimeContractPatch as object
-{
-  const bridge = createRuntimeBridge();
-  await applyOrderedRuntimeInputs(bridge, {
-    runtimeContractPatch: { shared: { tooling: { intent: 'investigate' } } },
-  });
-  assert.equal(bridge.current.shared?.tooling?.intent, 'investigate');
-}
-
-// Order: configChain -> runtimeProfile -> runtimeConfigUrl -> runtimeConfig -> runtimeContractPatch
+// Order: configChain -> runtimeProfile -> runtimeConfigUrl -> runtimeConfig
 {
   const order = [];
   const bridge = createRuntimeBridge();
@@ -149,13 +131,13 @@ await assert.rejects(
     runtimeProfile: 'profiles/default',
     runtimeConfigUrl: 'https://example.com',
     runtimeConfig: { inference: { prompt: 'test' } },
-    runtimeContractPatch: { shared: { tooling: { intent: 'calibrate' } } },
   }, {
     loadRuntimeConfigFromRef: async () => { order.push('configChain'); return { inference: {} }; },
     applyRuntimeProfile: async () => { order.push('runtimeProfile'); },
     applyRuntimeConfigFromUrl: async () => { order.push('runtimeConfigUrl'); },
   });
   assert.deepEqual(order, ['configChain', 'runtimeProfile', 'runtimeConfigUrl']);
+  assert.equal(bridge.current.inference?.prompt, 'test');
 }
 
 console.log('runtime-input-composition.test: ok');

@@ -23,7 +23,6 @@ export interface OrderedRuntimeInputs {
   runtimeProfile?: string | null;
   runtimeConfigUrl?: string | null;
   runtimeConfig?: Record<string, unknown> | null;
-  runtimeContractPatch?: Record<string, unknown> | null | (() => Record<string, unknown> | null);
 }
 
 export declare function resolveRuntimeFromConfig(

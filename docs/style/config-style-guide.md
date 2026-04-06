@@ -118,13 +118,13 @@ InferenceConfigSchema (runtime.inference)
 
 Runtime tunables are config-only when using the browser harness:
 
-- Command intent and harness options live in config (`runtime.shared.harness` and `runtime.shared.tooling.intent`).
+- Command intent and harness selection must stay in explicit command/suite context, not in `runtime.shared.*`.
 - `calibrate` intent forbids tracing, profiling, probes, and debug-only benchmarks.
 - Harness URLs accept only `runtimeProfile`, `runtimeConfig`, `runtimeConfigUrl`, or `configChain`. No per-field URL overrides.
 - Kernel selection overrides are config-only via `runtime.inference.kernelPath`.
 - Capability remap policy is config-only via `runtime.inference.kernelPathPolicy`.
 - Runtime-input precedence is normative, not surface-local:
-  `configChain -> runtimeProfile -> runtimeConfigUrl -> runtimeConfig -> runtime contract patch`.
+  `configChain -> runtimeProfile -> runtimeConfigUrl -> runtimeConfig`.
 - If a harness or runtime surface cannot support one of those inputs, it must fail closed instead of silently skipping it.
 
 When you need a change, create a profile or pass a runtime config file via `runtimeConfigUrl`.

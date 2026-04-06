@@ -150,4 +150,4 @@ includes kernel numerics, gradient checks, parity fixtures, and leak/perf checks
 
 ## Training Harness
 
-Open the unified harness in the browser with `runtime.shared.harness.mode = "training"` to run a toy training loop.
+Open the unified harness in the browser with `mode=verify&workload=training` to run a toy training loop.

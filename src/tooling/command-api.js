@@ -22,10 +22,6 @@ export const TOOLING_WORKLOADS = Object.freeze([...TOOLING_WORKLOAD_SET]);
 export const TOOLING_VERIFY_WORKLOADS = Object.freeze([...VERIFY_WORKLOADS]);
 export const TOOLING_TRAINING_COMMAND_SCHEMA_VERSION = TRAINING_COMMAND_SCHEMA_VERSION;
 
-function resolveHarnessMode(request) {
-  return request.command;
-}
-
 export function normalizeToolingCommandRequest(input) {
   if (!isPlainObject(input)) {
     throw new Error('tooling command: request must be an object.');
@@ -38,27 +34,6 @@ export function normalizeToolingCommandRequest(input) {
     return normalizeTrainingOperatorCommand(input, command);
   }
   return normalizeSuiteCommand(input, command);
-}
-
-export function buildRuntimeContractPatch(commandRequest) {
-  const request = normalizeToolingCommandRequest(commandRequest);
-  if (!request.workload || !request.intent) {
-    return null;
-  }
-  const harnessMode = resolveHarnessMode(request);
-
-  return {
-    shared: {
-      harness: {
-        mode: harnessMode,
-        workload: request.workload,
-        modelId: request.modelId ?? null,
-      },
-      tooling: {
-        intent: request.intent,
-      },
-    },
-  };
 }
 
 export function ensureCommandSupportedOnSurface(commandRequest, surface) {

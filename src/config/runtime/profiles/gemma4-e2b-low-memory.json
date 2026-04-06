@@ -1,0 +1,40 @@
+{
+  "id": "profiles/gemma4-e2b-low-memory",
+  "name": "gemma4-e2b-low-memory",
+  "description": "Model-scoped Gemma 4 E2B low-memory profile with explicit contiguous TurboQuant KV compression and shorter context.",
+  "intent": "investigate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-04-06T00:00:00Z",
+  "extends": "profiles/low-memory",
+  "model": "gemma-4-e2b-it-q4k-ehf16-af32",
+  "runtime": {
+    "inference": {
+      "kvcache": {
+        "maxSeqLen": 2048,
+        "layout": "contiguous",
+        "kvDtype": "f16",
+        "pageSize": 128,
+        "tiering": {
+          "mode": "off"
+        }
+      },
+      "session": {
+        "kvcache": {
+          "maxSeqLen": 2048,
+          "layout": "contiguous",
+          "kvDtype": "f16",
+          "pageSize": 128,
+          "tiering": {
+            "mode": "off"
+          },
+          "quantization": {
+            "mode": "turboquant_prod",
+            "bitWidth": 4,
+            "prodMode": true
+          }
+        }
+      }
+    }
+  }
+}

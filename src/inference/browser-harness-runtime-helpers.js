@@ -7,7 +7,6 @@ import {
   getActiveKernelPathPolicy,
 } from '../config/kernel-path-loader.js';
 import { mergeRuntimeValues } from '../config/runtime-merge.js';
-import { buildRuntimeContractPatch } from '../tooling/command-api.js';
 import {
   applyOrderedRuntimeInputs,
   resolveRuntimeFromConfig,
@@ -351,13 +350,6 @@ export async function applyRuntimeForRun(run, options = {}) {
     runtimeProfile: run.runtimeProfile ?? null,
     runtimeConfigUrl: run.runtimeConfigUrl ?? null,
     runtimeConfig: run.runtimeConfig ?? null,
-    runtimeContractPatch: typeof run.command === 'string' && run.command.trim()
-      ? () => buildRuntimeContractPatch({
-        ...run,
-        configChain: undefined,
-        modelId: run.modelId ?? null,
-      })
-      : null,
   }, {
     loadRuntimeConfigFromRef: (ref, runtimeOptions) => loadRuntimeConfigFromRef(ref, runtimeOptions),
     applyRuntimeProfile,

@@ -1,9 +1,0 @@
-{
-  "sourceModel": "gemma-3-1b-it",
-  "sourceRepo": "google/gemma-3-1b-it",
-  "sourceFormat": "safetensors",
-  "sourceRevision": "dcc83ea841ab6100d6b47a070329e1ba4cf78752",
-  "variant": "q4k-ehf16-af32",
-  "convertedAt": "2026-03-11T16:00:00.000Z",
-  "notes": "Canonical artifact synced from repo-local models/local/gemma-3-1b-it-q4k-ehf16-af32 to replace the older non-canonical wq4k alias."
-}

@@ -101,6 +101,14 @@ Current config intent:
   - Compute: `f32`
   - Session: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=false`
 
+- `src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32.json`
+  - Output base: `models/local/gemma-4-e2b-it-q4k-ehf16-af32`
+  - Resolved modelId: `gemma-4-e2b-it-q4k-ehf16-af32`
+  - Weights: `q4k` (row layout), embeddings/lmHead/vision/projector/audio: `f16`
+  - Compute defaults: `activation=f16`, `math=f16`, `accum=f32`, `output=f16`
+  - Execution-v1: explicit decode/prefill graph with pinned WGSL kernels
+  - Session: decode loop `batchSize=8`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=false`
+
 - `src/config/conversion/gpt-oss-20b-f16-xmxfp4.json`
   - Output base: `models/local/gpt-oss-20b-f16-xmxfp4`
   - Resolved modelId: `gpt-oss-20b-f16-xmxfp4`
