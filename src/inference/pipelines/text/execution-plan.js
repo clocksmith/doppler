@@ -9,18 +9,6 @@ export const PRIMARY_EXECUTION_PLAN_ID = 'primary';
 export const FINITENESS_FALLBACK_EXECUTION_PLAN_ID = 'finiteness_fallback';
 const DEFAULT_MAX_TOKENS = 256;
 
-const VALID_READBACK_MODES = ['sequential', 'overlapped', 'auto'];
-
-function assertReadbackMode(value) {
-  if (!value || !VALID_READBACK_MODES.includes(value)) {
-    throw new Error(
-      `[ExecutionPlan] decodeLoop.readbackMode is required and must be one of ${VALID_READBACK_MODES.join(', ')}; ` +
-      `got ${JSON.stringify(value)}. Set it explicitly in the manifest session.decodeLoop.`
-    );
-  }
-  return value;
-}
-
 function assertOptionalBoolean(value, label) {
   if (value === undefined) {
     return undefined;
