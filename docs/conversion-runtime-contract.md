@@ -33,6 +33,7 @@ re-conversion or can be changed per-run.
 | `quantization.computePrecision` | Conversion-authored runtime default | Yes (`quantizationInfo.compute`) | Yes (through runtime/session policy) | No (for runtime behavior) |
 | `inference.defaultKernelPath` | Conversion-authored runtime default | Yes | Yes (`runtime.inference.kernelPath`) | No (for runtime behavior) |
 | `inference.session.decodeLoop.*` | Conversion-authored batching policy | Yes | Via `runtime.inference.session` | No (for runtime behavior) |
+| `inference.session.perLayerInputs.*` | Conversion-authored PLE materialization/cache policy | Yes | Via `runtime.inference.session` | No (for runtime behavior) |
 | `output.fast` | Reserved converter config flag | No active effect in current converter path | n/a | n/a |
 
 Notes:
@@ -40,6 +41,13 @@ Notes:
 - Model ID suffixes are naming only; runtime policy is driven by manifest/runtime config.
 - Storage dtype changes always require re-conversion.
 - Runtime overlay for execution is strict: only `runtime.inference.session` is accepted.
+- `session.perLayerInputs` is the contract surface for PLE runtime policy:
+  - `materialization`: `auto | range_backed | cpu_resident | gpu_resident | gpu_split_tables`
+  - `rowCache.mode`: `off | lru`
+  - `prefetch.mode`: `off | next_token`
+  - `gpuUpload.mode`: `per_step_slices | per_batch_slices`
+  - `hotCache.mode`: `off | prepared_tokens | tokenizer_scores`
+  - Converter authors the baseline policy in the manifest; runtime may override it per run.
 
 ## Runtime Precedence
 

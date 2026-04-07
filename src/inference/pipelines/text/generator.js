@@ -81,6 +81,9 @@ import {
   createPleBufferCache,
   prefetchPerLayerRow,
   ensurePleScaledProjectionNormWeight,
+  ensurePleGpuHotVocabularyRuntime,
+  ensurePleGpuSplitTablesRuntime,
+  hasRangeBackedPerLayerInputEmbeddings,
 } from './per-layer-inputs.js';
 import { createTensor } from '../../../gpu/tensor.js';
 
@@ -92,6 +95,19 @@ function isStructuredChatRequest(prompt) {
 }
 
 async function primePleDecodeRuntimeCache(state) {
+  await ensurePleGpuHotVocabularyRuntime({
+    config: state.modelConfig,
+    weights: state.weights,
+    perLayerInputsSession: state.runtimeConfig.inference.session?.perLayerInputs ?? state.modelConfig?.perLayerInputsSession ?? null,
+    debugFlags: state.debugFlags,
+    tokenizer: state.tokenizer ?? null,
+  });
+  await ensurePleGpuSplitTablesRuntime({
+    config: state.modelConfig,
+    weights: state.weights,
+    perLayerInputsSession: state.runtimeConfig.inference.session?.perLayerInputs ?? state.modelConfig?.perLayerInputsSession ?? null,
+    debugFlags: state.debugFlags,
+  });
   await ensurePleScaledProjectionNormWeight({
     config: state.modelConfig,
     weights: state.weights,
@@ -143,12 +159,16 @@ function resolvePromptInput(state, prompt, useChatTemplate, contextLabel) {
   return formatChatMessages(messages, templateType, chatOptions);
 }
 
-function releasePerLayerInputBuffer(buffer, recorder, decodeBuffers) {
+function releasePerLayerInputBuffer(buffer, recorder, decodeBuffers, pleCache = null) {
   if (!buffer) {
     return;
   }
   const ownsBuffer = decodeBuffers?.ownsBuffer(buffer) ?? false;
   if (ownsBuffer) {
+    return;
+  }
+  const cachedPleBuffer = pleCache?.ownedBuffers instanceof Set && pleCache.ownedBuffers.has(buffer);
+  if (cachedPleBuffer) {
     return;
   }
   if (recorder) {
@@ -802,6 +822,12 @@ export class PipelineGenerator {
     this.#state.stats.singleTokenSubmitWaitMs = 0;
     this.#state.stats.singleTokenReadbackWaitMs = 0;
     this.#state.stats.singleTokenOrchestrationMs = 0;
+    this.#state.stats.pleHotVocabularyHits = 0;
+    this.#state.stats.pleHotVocabularyMisses = 0;
+    this.#state.stats.plePreparedTokenCacheHits = 0;
+    this.#state.stats.plePreparedTokenCacheMisses = 0;
+    this.#state.stats.plePreparedTokenCacheEntries = 0;
+    this.#state.stats.plePreparedTokenCacheBytes = 0;
     this.#state.stats.decodeMode = null;
     this.#state.stats.batchGuardReason = null;
     this.#state.stats.ttftMs = 0;
@@ -1201,6 +1227,12 @@ export class PipelineGenerator {
     this.#state.stats.singleTokenSubmitWaitMs = 0;
     this.#state.stats.singleTokenReadbackWaitMs = 0;
     this.#state.stats.singleTokenOrchestrationMs = 0;
+    this.#state.stats.pleHotVocabularyHits = 0;
+    this.#state.stats.pleHotVocabularyMisses = 0;
+    this.#state.stats.plePreparedTokenCacheHits = 0;
+    this.#state.stats.plePreparedTokenCacheMisses = 0;
+    this.#state.stats.plePreparedTokenCacheEntries = 0;
+    this.#state.stats.plePreparedTokenCacheBytes = 0;
     this.#state.stats.decodeMode = null;
     this.#state.stats.batchGuardReason = null;
     this.#state.stats.ttftMs = 0;
@@ -1266,6 +1298,7 @@ export class PipelineGenerator {
             firstToken,
             pleW.embedTokensPerLayer,
             this.#state.modelConfig.numLayers * pleHiddenSizeTid,
+            this.#state.runtimeConfig.inference.session?.perLayerInputs ?? this.#state.modelConfig.perLayerInputsSession,
           );
         }
       }
@@ -1302,6 +1335,7 @@ export class PipelineGenerator {
                 nextToken,
                 pleW.embedTokensPerLayer,
                 this.#state.modelConfig.numLayers * pleHiddenSizeTid,
+                this.#state.runtimeConfig.inference.session?.perLayerInputs ?? this.#state.modelConfig.perLayerInputsSession,
               );
             }
           }
@@ -1699,6 +1733,10 @@ export class PipelineGenerator {
     const hasLinearLayers = hasLinearAttentionLayers(this.#state.modelConfig.layerTypes);
     const replayPrefillDecode = usesReplayPrefillDecode(this.#state);
     const gpuSamplingAvailable = isGPUSamplingAvailable() && !hasCpuWeights;
+    const hasRangeBackedPerLayerInputs = hasRangeBackedPerLayerInputEmbeddings({
+      config: this.#state.modelConfig,
+      weights: this.#state.weights,
+    });
     const executionPlan = opts.executionPlan;
     let useBatchPath = replayPrefillDecode
       ? false
@@ -1710,6 +1748,7 @@ export class PipelineGenerator {
           disableCommandBatching: executionPlan.disableCommandBatching,
           isBdpaPagedLayout: this.#state.kvCache?.layout === 'bdpa_paged',
           finitenessFallbackWindowOpen: this._hasFinitenessFallbackWindow(),
+          hasRangeBackedPerLayerInputs,
         });
     if (!useBatchPath) {
       let reason = null;
@@ -1727,7 +1766,9 @@ export class PipelineGenerator {
         : (opts.speculation?.mode === 'self' ? 'self_speculation' : 'single_token');
       this.#state.stats.batchGuardReason = reason;
     } else {
-      this.#state.stats.decodeMode = 'batched_gpu';
+      this.#state.stats.decodeMode = hasRangeBackedPerLayerInputs
+        ? 'batched_gpu_stepwise_ple'
+        : 'batched_gpu';
       this.#state.stats.batchGuardReason = null;
     }
 
@@ -1927,6 +1968,7 @@ export class PipelineGenerator {
               nextToken,
               pleWeights.embedTokensPerLayer,
               this.#state.modelConfig.numLayers * pleHiddenSize,
+              this.#state.runtimeConfig.inference.session?.perLayerInputs ?? this.#state.modelConfig.perLayerInputsSession,
             );
           }
         }
@@ -2189,7 +2231,12 @@ export class PipelineGenerator {
         const layerOutput = await processLayer(l, currentHiddenBuffer, numTokens, true, context);
         if (!isGpuBufferInstance(layerOutput)) throw new Error('Expected GPUBuffer from processLayer');
         currentHiddenBuffer = layerOutput;
-        releasePerLayerInputBuffer(context.perLayerInputBuffer, currentRecorder, context.decodeBuffers);
+        releasePerLayerInputBuffer(
+          context.perLayerInputBuffer,
+          currentRecorder,
+          context.decodeBuffers,
+          this.#state.pleCache ?? null
+        );
         if (perLayerInputs) {
           perLayerInputs[l] = null;
         }
@@ -2268,7 +2315,12 @@ export class PipelineGenerator {
       context.perLayerInputBuffer = null;
       if (perLayerInputs) {
         for (const buffer of perLayerInputs) {
-          releasePerLayerInputBuffer(buffer, currentRecorder, context.decodeBuffers);
+          releasePerLayerInputBuffer(
+            buffer,
+            currentRecorder,
+            context.decodeBuffers,
+            this.#state.pleCache ?? null
+          );
         }
       }
       releaseSharedAttentionState(context.sharedAttentionState, currentRecorder);

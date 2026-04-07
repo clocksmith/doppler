@@ -12,7 +12,7 @@ import {
   assert.equal(artifact.ok, true);
   assert.equal(artifact.stats.decodeRecorderContexts, 24);
   assert.equal(artifact.stats.profileDecodeRecorderContexts, 24);
-  assert.equal(artifact.stats.batchDecodeContexts, 128);
+  assert.equal(artifact.stats.batchDecodeContexts, 256);
   assert.ok(
     artifact.checks.some((entry) => entry.id === 'inference.execution.decodeRecorderEnabled.semantics' && entry.ok)
   );
@@ -59,6 +59,7 @@ import {
           disableCommandBatching: false,
           isBdpaPagedLayout: false,
           finitenessFallbackWindowOpen: false,
+          hasRangeBackedPerLayerInputs: false,
         },
         value: true,
       },
@@ -109,6 +110,7 @@ import {
           disableCommandBatching: false,
           isBdpaPagedLayout: false,
           finitenessFallbackWindowOpen: true,
+          hasRangeBackedPerLayerInputs: false,
         },
         value: true,
       },

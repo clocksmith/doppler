@@ -100,15 +100,18 @@ function enumerateBatchDecodeContexts() {
           for (const disableCommandBatching of values) {
             for (const isBdpaPagedLayout of values) {
               for (const finitenessFallbackWindowOpen of values) {
-                contexts.push({
-                  batchSize,
-                  useGPU,
-                  gpuSamplingAvailable,
-                  disableMultiTokenDecode,
-                  disableCommandBatching,
-                  isBdpaPagedLayout,
-                  finitenessFallbackWindowOpen,
-                });
+                for (const hasRangeBackedPerLayerInputs of values) {
+                  contexts.push({
+                    batchSize,
+                    useGPU,
+                    gpuSamplingAvailable,
+                    disableMultiTokenDecode,
+                    disableCommandBatching,
+                    isBdpaPagedLayout,
+                    finitenessFallbackWindowOpen,
+                    hasRangeBackedPerLayerInputs,
+                  });
+                }
               }
             }
           }

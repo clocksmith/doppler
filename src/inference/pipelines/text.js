@@ -209,6 +209,10 @@ export class InferencePipeline extends PipelineState {
     const loadStart = performance.now();
     this.manifest = manifest;
     this.decodeRing?.release();
+    if (this.sampleReadbackBuffer) {
+      this.sampleReadbackBuffer.destroy();
+      this.sampleReadbackBuffer = null;
+    }
     this.linearAttentionRuntime = resetLinearAttentionRuntime(this.linearAttentionRuntime);
     destroyMoERouter(this.moeRouter);
     this.moeRouter = null;
@@ -493,6 +497,8 @@ export class InferencePipeline extends PipelineState {
         kernelPathSource: this.kernelPathSource,
         keepF32Weights: this.runtimeConfig.inference.compute.keepF32Weights === true,
         loaderDebug: this.runtimeConfig?.shared?.debug?.loader ?? null,
+        perLayerInputSession:
+          this.runtimeConfig.inference.session?.perLayerInputs ?? this.modelConfig.perLayerInputsSession,
         onProgress: (info) => {
           if (info.stage !== 'layers' && info.stage !== 'shards') {
             log.verbose('Loader', `${info.stage}: ${Math.round(info.progress * 100)}%${info.message ? ` - ${info.message}` : ''}`);
@@ -1551,6 +1557,10 @@ export class InferencePipeline extends PipelineState {
       this.finitenessBuffer.destroy();
       this.finitenessBuffer = null;
     }
+    if (this.sampleReadbackBuffer) {
+      this.sampleReadbackBuffer.destroy();
+      this.sampleReadbackBuffer = null;
+    }
     this.isLoaded = false;
     this.currentSeqLen = 0;
     restorePipelineContexts(this);
@@ -1617,6 +1627,10 @@ export class InferencePipeline extends PipelineState {
     if (this.finitenessBuffer) {
       this.finitenessBuffer.destroy();
       this.finitenessBuffer = null;
+    }
+    if (this.sampleReadbackBuffer) {
+      this.sampleReadbackBuffer.destroy();
+      this.sampleReadbackBuffer = null;
     }
   }
 }

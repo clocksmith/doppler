@@ -18,6 +18,7 @@ import type { DecodeBufferManager } from '../../decode-buffers.js';
 import type { CommandRecorder } from '../../../gpu/kernel-selector.js';
 import type { CompiledLayerPipeline } from './layer-plan.js';
 import type { WeightBufferConfig, WeightDebugFlags } from './weights.js';
+import type { ExecutionV1PerLayerInputsSessionSchema } from '../../../config/schema/execution-v1.schema.js';
 import type {
   KVCache,
   SlidingWindowKVCache,
@@ -79,6 +80,10 @@ export interface LayerContext {
   debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>;
   /** Gemma 4 per-layer input buffer for the active decoder layer. */
   perLayerInputBuffer?: GPUBuffer | null;
+  /** Resolved session policy for Gemma 4 per-layer input materialization/caching. */
+  perLayerInputsSession?: ExecutionV1PerLayerInputsSessionSchema | null;
+  /** Pipeline stats surface for cache hit/miss accounting. */
+  stats?: PipelineStats;
   /** Optional layer pipeline plan (JSON-configured) */
   pipelinePlan?: CompiledLayerPipeline | null;
   /** RoPE frequency buffers (global for full_attention layers) */
@@ -610,11 +615,17 @@ export interface PipelineStats {
   decodeRecordMs?: number;
   decodeSubmitWaitMs?: number;
   decodeReadbackWaitMs?: number;
-  decodeMode?: 'single_token' | 'batched_gpu' | null;
+  decodeMode?: 'single_token' | 'batched_gpu' | 'batched_gpu_stepwise_ple' | null;
   batchGuardReason?: string | null;
   singleTokenSubmitWaitMs?: number;
   singleTokenReadbackWaitMs?: number;
   singleTokenOrchestrationMs?: number;
+  plePreparedTokenCacheHits?: number;
+  plePreparedTokenCacheMisses?: number;
+  plePreparedTokenCacheEntries?: number;
+  plePreparedTokenCacheBytes?: number;
+  pleHotVocabularyHits?: number;
+  pleHotVocabularyMisses?: number;
   decodeRing?: DecodeRingStats | null;
   executionPlan?: {
     primary: {

@@ -48,6 +48,8 @@ export class PipelineState {
   speculativeDecoder: SpeculativeDecoder | null;
   decodeBuffers: DecodeBufferManager | null;
   decodeRing: DecodeRing | null;
+  finitenessBuffer: GPUBuffer | null;
+  sampleReadbackBuffer: GPUBuffer | null;
 
   // Emulation context (null when emulation is disabled)
   emulation: EmulationContext | null;

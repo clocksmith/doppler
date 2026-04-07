@@ -39,6 +39,8 @@ export declare class TransformersTokenizer extends BaseTokenizer {
    * Batch encode multiple texts
    */
   batchEncode(texts: string[]): number[][];
+
+  getHotTokenIds(limit: number): number[] | null;
 }
 
 /**
@@ -60,4 +62,6 @@ export declare class BundledTokenizer extends BaseTokenizer {
   encode(text: string): number[];
 
   decode(ids: number[], skipSpecialTokens?: boolean, trim?: boolean): string;
+
+  getHotTokenIds(limit: number): number[] | null;
 }

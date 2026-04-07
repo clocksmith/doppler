@@ -34,6 +34,7 @@ import type {
 import type { ShardCache } from './shard-cache.js';
 import type { LoadingConfigSchema } from '../config/schema/loading.schema.js';
 import type { LoaderDebugConfigSchema } from '../config/schema/debug.schema.js';
+import type { ExecutionV1PerLayerInputsSessionSchema } from '../config/schema/execution-v1.schema.js';
 
 // Re-export types for backward compatibility
 export type {
@@ -103,6 +104,8 @@ export declare class DopplerLoader {
   setQ4KConfig(config: Q4KConfig): void;
 
   setLoaderDebugConfig(loaderDebug: LoaderDebugConfigSchema | null): void;
+
+  setPerLayerInputSession(sessionConfig: ExecutionV1PerLayerInputsSessionSchema | null): void;
 
   setCustomShardLoader(loadShardFn: CustomShardLoader, options?: CustomShardLoaderOptions): void;
 

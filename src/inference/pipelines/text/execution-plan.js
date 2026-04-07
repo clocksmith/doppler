@@ -392,6 +392,7 @@ export function isBatchDecodeEnabled(config) {
     disableCommandBatching: config.disableCommandBatching,
     isBdpaPagedLayout: config.isBdpaPagedLayout === true,
     finitenessFallbackWindowOpen: config.finitenessFallbackWindowOpen === true,
+    hasRangeBackedPerLayerInputs: config.hasRangeBackedPerLayerInputs === true,
   });
 }
 

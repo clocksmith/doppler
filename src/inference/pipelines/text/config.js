@@ -1,6 +1,13 @@
 import { log } from '../../../debug/index.js';
 import { mergeConfig, dumpConfigSources } from '../../../config/merge.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import {
+  PER_LAYER_INPUT_MATERIALIZATION_MODES,
+  PER_LAYER_INPUT_ROW_CACHE_MODES,
+  PER_LAYER_INPUT_PREFETCH_MODES,
+  PER_LAYER_INPUT_GPU_UPLOAD_MODES,
+  PER_LAYER_INPUT_HOT_CACHE_MODES,
+} from '../../../config/schema/execution-v1.schema.js';
 
 const UNSUPPORTED_RUNTIME_MODEL_TYPES = new Set(['mamba', 'rwkv']);
 
@@ -34,6 +41,159 @@ export function validateChatTemplateType(type, modelId) {
     `Manifest "${modelId}" declares chatTemplate.type="${type}" which is not a known formatter type. ` +
     `Known types: ${[...KNOWN_CHAT_TEMPLATE_TYPES].join(', ')}. Re-convert the model or fix the manifest.`
   );
+}
+
+function resolvePerLayerInputsSession(inferenceConfig, modelId) {
+  const sessionConfig = inferenceConfig?.session?.perLayerInputs;
+  if (sessionConfig === undefined) {
+    throw new Error(
+      `Manifest "${modelId}" is missing inference.session.perLayerInputs. ` +
+      'Re-convert the model so per-layer input materialization policy is explicit.'
+    );
+  }
+  if (!sessionConfig || typeof sessionConfig !== 'object' || Array.isArray(sessionConfig)) {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.perLayerInputs.`);
+  }
+
+  const materialization = sessionConfig.materialization;
+  if (!PER_LAYER_INPUT_MATERIALIZATION_MODES.includes(materialization)) {
+    throw new Error(
+      `Manifest "${modelId}" has invalid inference.session.perLayerInputs.materialization ` +
+      `"${String(materialization)}".`
+    );
+  }
+
+  const rowCache = sessionConfig.rowCache;
+  if (!rowCache || typeof rowCache !== 'object' || Array.isArray(rowCache)) {
+    throw new Error(`Manifest "${modelId}" is missing inference.session.perLayerInputs.rowCache.`);
+  }
+  if (!PER_LAYER_INPUT_ROW_CACHE_MODES.includes(rowCache.mode)) {
+    throw new Error(
+      `Manifest "${modelId}" has invalid inference.session.perLayerInputs.rowCache.mode ` +
+      `"${String(rowCache.mode)}".`
+    );
+  }
+
+  const maxRows = Math.trunc(Number(rowCache.maxRows));
+  if (!Number.isFinite(maxRows) || maxRows <= 0) {
+    throw new Error(
+      `Manifest "${modelId}" requires inference.session.perLayerInputs.rowCache.maxRows ` +
+      `to be a positive integer; got ${String(rowCache.maxRows)}.`
+    );
+  }
+
+  const maxBytes = Math.trunc(Number(rowCache.maxBytes));
+  if (!Number.isFinite(maxBytes) || maxBytes <= 0) {
+    throw new Error(
+      `Manifest "${modelId}" requires inference.session.perLayerInputs.rowCache.maxBytes ` +
+      `to be a positive integer; got ${String(rowCache.maxBytes)}.`
+    );
+  }
+
+  const decodedDtype = String(rowCache.decodedDtype ?? '').toLowerCase();
+  if (decodedDtype !== 'f16' && decodedDtype !== 'f32') {
+    throw new Error(
+      `Manifest "${modelId}" has invalid inference.session.perLayerInputs.rowCache.decodedDtype ` +
+      `"${String(rowCache.decodedDtype)}".`
+    );
+  }
+
+  const prefetch = sessionConfig.prefetch;
+  if (!prefetch || typeof prefetch !== 'object' || Array.isArray(prefetch)) {
+    throw new Error(`Manifest "${modelId}" is missing inference.session.perLayerInputs.prefetch.`);
+  }
+  if (!PER_LAYER_INPUT_PREFETCH_MODES.includes(prefetch.mode)) {
+    throw new Error(
+      `Manifest "${modelId}" has invalid inference.session.perLayerInputs.prefetch.mode ` +
+      `"${String(prefetch.mode)}".`
+    );
+  }
+
+  const rowsAhead = Math.trunc(Number(prefetch.rowsAhead));
+  if (!Number.isFinite(rowsAhead) || rowsAhead <= 0) {
+    throw new Error(
+      `Manifest "${modelId}" requires inference.session.perLayerInputs.prefetch.rowsAhead ` +
+      `to be a positive integer; got ${String(prefetch.rowsAhead)}.`
+    );
+  }
+
+  const gpuUpload = sessionConfig.gpuUpload;
+  if (!gpuUpload || typeof gpuUpload !== 'object' || Array.isArray(gpuUpload)) {
+    throw new Error(`Manifest "${modelId}" is missing inference.session.perLayerInputs.gpuUpload.`);
+  }
+  if (!PER_LAYER_INPUT_GPU_UPLOAD_MODES.includes(gpuUpload.mode)) {
+    throw new Error(
+      `Manifest "${modelId}" has invalid inference.session.perLayerInputs.gpuUpload.mode ` +
+      `"${String(gpuUpload.mode)}".`
+    );
+  }
+
+  const stagingRows = Math.trunc(Number(gpuUpload.stagingRows));
+  if (!Number.isFinite(stagingRows) || stagingRows <= 0) {
+    throw new Error(
+      `Manifest "${modelId}" requires inference.session.perLayerInputs.gpuUpload.stagingRows ` +
+      `to be a positive integer; got ${String(gpuUpload.stagingRows)}.`
+    );
+  }
+
+  const hotCache = sessionConfig.hotCache;
+  if (!hotCache || typeof hotCache !== 'object' || Array.isArray(hotCache)) {
+    throw new Error(`Manifest "${modelId}" is missing inference.session.perLayerInputs.hotCache.`);
+  }
+  if (!PER_LAYER_INPUT_HOT_CACHE_MODES.includes(hotCache.mode)) {
+    throw new Error(
+      `Manifest "${modelId}" has invalid inference.session.perLayerInputs.hotCache.mode ` +
+      `"${String(hotCache.mode)}".`
+    );
+  }
+
+  const hotMaxTokens = Math.trunc(Number(hotCache.maxTokens));
+  if (!Number.isFinite(hotMaxTokens) || hotMaxTokens <= 0) {
+    throw new Error(
+      `Manifest "${modelId}" requires inference.session.perLayerInputs.hotCache.maxTokens ` +
+      `to be a positive integer; got ${String(hotCache.maxTokens)}.`
+    );
+  }
+
+  const hotMaxBytes = Math.trunc(Number(hotCache.maxBytes));
+  if (!Number.isFinite(hotMaxBytes) || hotMaxBytes <= 0) {
+    throw new Error(
+      `Manifest "${modelId}" requires inference.session.perLayerInputs.hotCache.maxBytes ` +
+      `to be a positive integer; got ${String(hotCache.maxBytes)}.`
+    );
+  }
+
+  const hotOutputDtype = String(hotCache.outputDtype ?? '').toLowerCase();
+  if (hotOutputDtype !== 'f16' && hotOutputDtype !== 'f32') {
+    throw new Error(
+      `Manifest "${modelId}" has invalid inference.session.perLayerInputs.hotCache.outputDtype ` +
+      `"${String(hotCache.outputDtype)}".`
+    );
+  }
+
+  return {
+    materialization,
+    rowCache: {
+      mode: rowCache.mode,
+      maxRows,
+      maxBytes,
+      decodedDtype,
+    },
+    prefetch: {
+      mode: prefetch.mode,
+      rowsAhead,
+    },
+    gpuUpload: {
+      mode: gpuUpload.mode,
+      stagingRows,
+    },
+    hotCache: {
+      mode: hotCache.mode,
+      maxTokens: hotMaxTokens,
+      maxBytes: hotMaxBytes,
+      outputDtype: hotOutputDtype,
+    },
+  };
 }
 
 // =============================================================================
@@ -1253,6 +1413,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
   const decodeStrategy = (hasMixedAttentionGeometry || hasSharedKvLayers) && !hasExplicitLayerTypes
     ? 'replay_prefill'
     : 'incremental';
+  const perLayerInputsSession = resolvePerLayerInputsSession(inf, merged.modelId);
 
   return {
     numLayers: arch.numLayers,
@@ -1327,6 +1488,7 @@ export function toParsedConfigFromMerged(merged, manifest) {
     chatTemplateEnabled,
     chatTemplateThinking,
     decodeStrategy,
+    perLayerInputsSession,
     kernelPath: null,
     visionConfig: resolveVisionConfig(config, manifest),
     audioConfig: resolveAudioConfig(config, manifest),

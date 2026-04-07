@@ -58,6 +58,22 @@ export class SentencePieceTokenizer extends BaseTokenizer {
     }
   }
 
+  getHotTokenIds(limit) {
+    const resolvedLimit = Math.trunc(Number(limit));
+    if (!Number.isFinite(resolvedLimit) || resolvedLimit <= 0) {
+      return [];
+    }
+    const ranked = [];
+    for (const piece of this.#pieces.values()) {
+      if (!piece || this.isSpecialToken(piece.id)) {
+        continue;
+      }
+      ranked.push({ id: piece.id, score: Number(piece.score ?? 0) });
+    }
+    ranked.sort((a, b) => b.score - a.score || a.id - b.id);
+    return ranked.slice(0, resolvedLimit).map((entry) => entry.id);
+  }
+
   
   async #parseModelProto(buffer) {
     const view = new DataView(buffer);

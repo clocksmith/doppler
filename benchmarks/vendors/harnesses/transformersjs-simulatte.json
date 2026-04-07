@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "id": "transformersjs-simulatte",
-  "name": "Transformers.js v4 (@simulatte/webgpu) Harness",
+  "name": "Transformers.js v4 (webgpu) Harness",
   "parentHarness": "transformersjs",
   "backend": {
     "runtime": "node",
-    "webgpuModule": "@simulatte/webgpu",
+    "webgpuModule": "webgpu",
     "tjsVersion": 4,
     "env": {
-      "DOPPLER_NODE_WEBGPU_MODULE": "@simulatte/webgpu"
+      "DOPPLER_NODE_WEBGPU_MODULE": "webgpu"
     },
     "notes": "TJS v4 uses ONNX Runtime Web with WebGPU backend. The WebGPU polyfill must be loaded before ONNX Runtime initializes."
   },
@@ -17,7 +17,7 @@
     "stdoutFormat": "json",
     "defaultCommand": null,
     "examples": [
-      "DOPPLER_NODE_WEBGPU_MODULE=@simulatte/webgpu node benchmarks/runners/transformersjs-bench.js --tjs-version 4 --workload p064-d064-t0-k1 --json"
+      "DOPPLER_NODE_WEBGPU_MODULE=webgpu node benchmarks/runners/transformersjs-bench.js --tjs-version 4 --workload p064-d064-t0-k1 --json"
     ]
   },
   "normalization": {

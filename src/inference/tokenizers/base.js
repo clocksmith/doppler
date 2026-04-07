@@ -62,6 +62,11 @@ export class BaseTokenizer {
     return this.vocabSize;
   }
 
+  getHotTokenIds(limit) {
+    void limit;
+    return null;
+  }
+
   
   isSpecialToken(tokenId) {
     return Object.values(this.specialTokens).includes(tokenId);

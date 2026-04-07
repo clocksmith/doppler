@@ -122,10 +122,10 @@
   "session": {
     "compute": {
       "defaults": {
-        "activationDtype": "f16",
-        "mathDtype": "f16",
+        "activationDtype": "f32",
+        "mathDtype": "f32",
         "accumDtype": "f32",
-        "outputDtype": "f16"
+        "outputDtype": "f32"
       }
     },
     "kvcache": {
@@ -139,27 +139,50 @@
     "decodeLoop": {
       "batchSize": 8,
       "stopCheckMode": "batch",
-      "readbackInterval": 1,
-      "readbackMode": "sequential",
-      "ringTokens": 1,
+      "readbackInterval": 8,
+      "readbackMode": "overlapped",
+      "ringTokens": 2,
       "ringStop": 1,
-      "ringStaging": 1,
+      "ringStaging": 2,
       "disableCommandBatching": false
+    },
+    "perLayerInputs": {
+      "materialization": "range_backed",
+      "rowCache": {
+        "mode": "lru",
+        "maxRows": 512,
+        "maxBytes": 268435456,
+        "decodedDtype": "f32"
+      },
+      "prefetch": {
+        "mode": "next_token",
+        "rowsAhead": 1
+      },
+      "gpuUpload": {
+        "mode": "per_step_slices",
+        "stagingRows": 2
+      },
+      "hotCache": {
+        "mode": "tokenizer_scores",
+        "maxTokens": 4096,
+        "maxBytes": 268435456,
+        "outputDtype": "f16"
+      }
     }
   },
   "execution": {
     "kernels": {
-      "embed": { "kernel": "gather_f16.wgsl", "entry": "main", "digest": "sha256:a4829f4067091c98ad6ebbc9b0744cdd5bbcd4fbf6092b2f7cc7f1098695860f" },
-      "rmsnorm": { "kernel": "rmsnorm_f16.wgsl", "entry": "main", "digest": "sha256:cfe1e7f3c28fef53d560ad2f03f5f6ef2d51f832c53ef6f37bfc17ca205cc8ce" },
-      "gemv": { "kernel": "matmul_gemv_subgroup_f16a.wgsl", "entry": "main_vec4", "digest": "sha256:ca7d81ec4f8c4a6d253262c769d76fe072c1d6812750c2fb3c823f4694f073ea" },
-      "rope": { "kernel": "rope_f16.wgsl", "entry": "main", "digest": "sha256:0ea35ea1b5386932f44cb67a93f6c34aaee106babfd5ee3408593356fc2f1d46" },
-      "attn_decode": { "kernel": "attention_streaming_f16.wgsl", "entry": "main", "digest": "sha256:27505156863c480bc5f6e6b29824bbc93bdf45189a661b46eb8d7867db3f40e1" },
-      "residual": { "kernel": "residual_f16.wgsl", "entry": "main", "digest": "sha256:a7cd61f541945bf7a79f80dd931e842dd9fbffaef7a42a4a40e8e066351ed58d" },
-      "gelu": { "kernel": "gelu_f16.wgsl", "entry": "main", "digest": "sha256:cbde3f4bc051085d9d66ddef146f16d88e438f19ef1be3312473350e38b7ca5c", "constants": { "HAS_GATE": true } },
-      "tiled": { "kernel": "matmul_f16.wgsl", "entry": "main", "digest": "sha256:44bf68e327e82ace86c386899a28cf3e8f4f702f3f118819de460290db8fe1c7" },
-      "attn_stream": { "kernel": "attention_streaming_f16.wgsl", "entry": "main", "digest": "sha256:27505156863c480bc5f6e6b29824bbc93bdf45189a661b46eb8d7867db3f40e1" },
-      "lm_head_gemv": { "kernel": "matmul_gemv_subgroup_f16a.wgsl", "entry": "main_multicol", "digest": "sha256:2d36dd0584c36665cb55c3558baa4f270a50c4510b91838e4b1633c157f14c79", "constants": { "MULTICOL_COLS_PER_WG": 64, "MULTICOL_THREADS_PER_COL": 4 } },
-      "sample": { "kernel": "sample_f16.wgsl", "entry": "sample_single_pass", "digest": "sha256:31fd7f1b0d0725985e8ecaec9656d030e9188bf4f95ff5f93da4ca9269e82f65" }
+      "embed": { "kernel": "gather.wgsl", "entry": "main", "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6" },
+      "rmsnorm": { "kernel": "rmsnorm.wgsl", "entry": "main", "digest": "sha256:989f2e7ef2ce27c187062ffa913dd6ed785ec01531fa9cea4879d2b8168a8ad3" },
+      "gemv": { "kernel": "matmul_gemv_subgroup.wgsl", "entry": "main_vec4", "digest": "sha256:5c71b5a60a672187d45f9783dbd1721f94b207a2b6cd0724130ce11aadd8fe66" },
+      "rope": { "kernel": "rope.wgsl", "entry": "main", "digest": "sha256:238e989aad7da731046cd54d7bb3c80a6f26daf5d7a8e435607161de902e5882" },
+      "attn_decode": { "kernel": "attention_streaming_f16kv.wgsl", "entry": "main", "digest": "sha256:5976eef417cebf648f52aeebb47ed1dc6b03c3c541122290c5cead19238fdc24" },
+      "residual": { "kernel": "residual.wgsl", "entry": "main", "digest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7" },
+      "gelu": { "kernel": "gelu.wgsl", "entry": "main", "digest": "sha256:a9007ea08aaff98f9be08f1e0490a6bcf252883eac5513de876ab9ce918865e6", "constants": { "HAS_GATE": true } },
+      "tiled": { "kernel": "matmul_f16w_f32a.wgsl", "entry": "main", "digest": "sha256:78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888" },
+      "attn_stream": { "kernel": "attention_streaming_f16kv.wgsl", "entry": "main", "digest": "sha256:5976eef417cebf648f52aeebb47ed1dc6b03c3c541122290c5cead19238fdc24" },
+      "lm_head_gemv": { "kernel": "matmul_gemv_subgroup.wgsl", "entry": "main_multicol", "digest": "sha256:f4d392b7f1e97e5bd63044ce09bdeb77ed7e77f6080181d483b8f1553e844ec4", "constants": { "MULTICOL_COLS_PER_WG": 64, "MULTICOL_THREADS_PER_COL": 4 } },
+      "sample": { "kernel": "sample.wgsl", "entry": "sample_single_pass", "digest": "sha256:91c5c30bbc3e034457c1521c1ad576ce798c0868a1fe16e02be5f92706614096" }
     },
     "preLayer": [
       ["embed", "embed", "embed_tokens"]

@@ -30,8 +30,11 @@
       <div class="muted">Ready for Node relay execution.</div>
     </main>
     <script type="module">
-      import { runBrowserCommand } from './browser-command-runner.js';
-      import { ensureModelCached } from './opfs-cache.js';
+      const cacheKey = new URLSearchParams(globalThis.location.search).get('_dopplerRunner') || `${Date.now()}`;
+      const [{ runBrowserCommand }, { ensureModelCached }] = await Promise.all([
+        import(`./browser-command-runner.js?_dopplerRunner=${encodeURIComponent(cacheKey)}`),
+        import(`./opfs-cache.js?_dopplerRunner=${encodeURIComponent(cacheKey)}`),
+      ]);
 
       window.__dopplerRunBrowserCommand = async (request, options = {}) => {
         return runBrowserCommand(request, options || {});

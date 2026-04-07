@@ -116,6 +116,7 @@ export declare function isBatchDecodeEnabled(config: {
   disableCommandBatching: boolean;
   isBdpaPagedLayout?: boolean;
   finitenessFallbackWindowOpen?: boolean;
+  hasRangeBackedPerLayerInputs?: boolean;
 }): boolean;
 
 export declare function isDecodeRecorderEnabled(config: {

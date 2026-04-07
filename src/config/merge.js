@@ -338,6 +338,21 @@ function mergeChatTemplate(
   };
 }
 
+function mergeSession(
+  manifest,
+  runtime,
+  sources
+) {
+  const prefix = 'inference.session';
+  const session = overlay(
+    prefix,
+    manifest,
+    runtime,
+    sources
+  );
+  return session ?? null;
+}
+
 // =============================================================================
 // Main Merge Function
 // =============================================================================
@@ -381,6 +396,7 @@ export function mergeConfig(
     ffn: mergeFFN(manifestInf.ffn, runtimeOverrides?.ffn, sources),
     rope: mergeRoPE(manifestInf.rope, runtimeOverrides?.rope, sources),
     output: mergeOutput(manifestInf.output, runtimeOverrides?.output, sources),
+    session: mergeSession(manifestInf.session, runtimeOverrides?.session, sources),
     pipeline,
     layerPattern,
     chatTemplate,

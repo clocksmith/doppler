@@ -8,13 +8,13 @@ Release: channel=main-snapshot, version=0.2.0, commit=10bbbc94819fd5924456d94b87
 | Target | Status | Browser WebGPU | Node WebGPU | Headless Harness | Cache Mode Control | Bench Features | Profile Features |
 |---|---|---|---|---|---|---:|---:|
 | Doppler (`doppler`) | active | yes | yes | yes | yes | 19/21 | 7/8 |
-| Doppler (@simulatte/webgpu) (`doppler-simulatte`) | active | no | yes | no | no | 16/21 | 7/8 |
+| Doppler (webgpu) (`doppler-simulatte`) | active | no | yes | no | no | 16/21 | 7/8 |
 | Doppler (webgpu npm) (`doppler-webgpu-npm`) | active | no | yes | no | no | 16/21 | 7/8 |
 | Doppler (Bun WebGPU) (`doppler-bun`) | experimental | no | no | no | no | 14/21 | 0/8 |
 | Doppler (Deno WebGPU) (`doppler-deno`) | experimental | no | no | no | no | 14/21 | 0/8 |
 | WebLLM (`webllm`) | active | yes | no | no | no | 5/21 | 0/8 |
 | Transformers.js (`transformersjs`) | active | yes | no | yes | yes | 17/21 | 2/8 |
-| Transformers.js v4 (@simulatte/webgpu) (`transformersjs-simulatte`) | experimental | no | yes | no | no | 14/21 | 0/8 |
+| Transformers.js v4 (webgpu) (`transformersjs-simulatte`) | experimental | no | yes | no | no | 14/21 | 0/8 |
 | Transformers.js v4 (webgpu npm) (`transformersjs-webgpu-npm`) | experimental | no | yes | no | no | 14/21 | 0/8 |
 | Transformers.js v4 (Bun WebGPU) (`transformersjs-bun`) | experimental | no | no | no | no | 14/21 | 0/8 |
 | Transformers.js v4 (Deno WebGPU) (`transformersjs-deno`) | experimental | no | no | no | no | 14/21 | 0/8 |

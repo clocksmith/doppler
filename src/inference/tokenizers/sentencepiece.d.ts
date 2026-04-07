@@ -25,4 +25,6 @@ export declare class SentencePieceTokenizer extends BaseTokenizer {
   encode(text: string): number[];
 
   decode(ids: number[], skipSpecialTokens?: boolean, trim?: boolean): string;
+
+  getHotTokenIds(limit: number): number[] | null;
 }

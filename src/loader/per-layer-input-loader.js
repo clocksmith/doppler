@@ -81,18 +81,72 @@ function createRangeBackedWeightBuffer(ctx, name, location) {
   return createCpuWeightBuffer(source, dtype, layout, location.shape, name);
 }
 
+function resolvePerLayerInputMaterializationMode(ctx, label, name, location) {
+  if (label !== 'embedTokensPerLayer') {
+    return null;
+  }
+  const sessionConfig = ctx.perLayerInputSession;
+  if (!sessionConfig || typeof sessionConfig !== 'object') {
+    throw new Error(
+      `Manifest "${ctx.modelId ?? 'unknown'}" requires per-layer input session policy ` +
+      'before loading embedTokensPerLayer.'
+    );
+  }
+
+  const mode = sessionConfig.materialization;
+  if (mode === 'auto') {
+    const shouldStream = location && typeof ctx.shouldStreamLargeWeight === 'function'
+      ? ctx.shouldStreamLargeWeight(name, location, label)
+      : false;
+    return shouldStream ? 'range_backed' : 'gpu_resident';
+  }
+  if (
+    mode === 'range_backed'
+    || mode === 'cpu_resident'
+    || mode === 'gpu_resident'
+    || mode === 'gpu_split_tables'
+  ) {
+    return mode;
+  }
+  throw new Error(
+    `Manifest "${ctx.modelId ?? 'unknown'}" has unsupported per-layer input materialization ` +
+    `"${String(mode)}".`
+  );
+}
+
 async function loadOptionalTensor(ctx, candidates, label) {
   for (const name of candidates) {
     const location = ctx.tensorLocations.get(name) ?? null;
     if (label === 'embedTokensPerLayer') {
-      const rangeBacked = createRangeBackedWeightBuffer(ctx, name, location);
-      if (rangeBacked) {
-        log.info('Loader', `Per-layer input tensor loaded: ${label} <- ${name} (range-backed CPU source)`);
-        return {
-          name,
-          tensor: rangeBacked,
-        };
+      const materializationMode = resolvePerLayerInputMaterializationMode(ctx, label, name, location);
+      if (materializationMode === 'range_backed' || materializationMode === 'gpu_split_tables') {
+        const rangeBacked = createRangeBackedWeightBuffer(ctx, name, location);
+        if (rangeBacked) {
+          log.info(
+            'Loader',
+            `Per-layer input tensor loaded: ${label} <- ${name} ` +
+            `(${materializationMode === 'gpu_split_tables' ? 'range-backed CPU source for split GPU tables' : 'range-backed CPU source'})`
+          );
+          return {
+            name,
+            tensor: rangeBacked,
+          };
+        }
+        throw new Error(
+          `Manifest "${ctx.modelId ?? 'unknown'}" requires range-backed per-layer inputs for ${name}, ` +
+          'but shard range loading is unavailable.'
+        );
       }
+      const toGPU = materializationMode === 'gpu_resident';
+      const tensor = await ctx.loadTensor(name, toGPU, true);
+      if (!tensor) {
+        continue;
+      }
+      log.info('Loader', `Per-layer input tensor loaded: ${label} <- ${name} (${materializationMode})`);
+      return {
+        name,
+        tensor: wrapRawTensorAsWeightBuffer(ctx, tensor, name),
+      };
     }
     const shouldStream = location && typeof ctx.shouldStreamLargeWeight === 'function'
       ? ctx.shouldStreamLargeWeight(name, location, label)

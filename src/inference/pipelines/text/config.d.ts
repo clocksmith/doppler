@@ -19,6 +19,7 @@ import type {
   LinearNormMode,
 } from '../../../config/schema/index.js';
 import type { MergedConfig, RuntimeInferenceOverrides } from '../../../config/merge.js';
+import type { ExecutionV1PerLayerInputsSessionSchema } from '../../../config/schema/execution-v1.schema.js';
 
 export type ActivationType = 'silu' | 'gelu';
 export type ParsedLayerType =
@@ -212,6 +213,7 @@ export interface ParsedModelConfig {
   chatTemplateEnabled: boolean;
   chatTemplateThinking: boolean | null;
   decodeStrategy: 'incremental' | 'replay_prefill';
+  perLayerInputsSession: ExecutionV1PerLayerInputsSessionSchema;
   kernelPath?: KernelPathRef;
   visionConfig?: VisionConfig | null;
   audioConfig?: AudioEncoderConfig | null;

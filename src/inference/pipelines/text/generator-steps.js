@@ -3,6 +3,7 @@ import { releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { recordArgmax, recordGPUSample, isGPUSamplingAvailable } from '../../../gpu/kernels/sample.js';
 import { recordRepPenalty } from '../../../gpu/kernels/rep-penalty.js';
 import { recordCheckStop } from '../../../gpu/kernels/check-stop.js';
+import { recordCheckHotVocabStop } from '../../../gpu/kernels/check-hot-vocab-stop.js';
 import { resetSubmitStats, logSubmitStats } from '../../../gpu/submit-tracker.js';
 import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from '../../../gpu/command-recorder.js';
 import { allowReadback } from '../../../gpu/perf-guards.js';
@@ -26,7 +27,13 @@ import { getFinalNormWeights, extractEmbeddingFromHidden } from './generator-run
 import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
 import { hasLinearAttentionLayers } from './linear-attention.js';
 import { hasConvLayers } from './layer.js';
-import { preparePerLayerInputs, createPleBufferCache, prefetchPerLayerRow } from './per-layer-inputs.js';
+import {
+  preparePerLayerInputs,
+  createPleBufferCache,
+  prefetchPerLayerRow,
+  hasRangeBackedPerLayerInputEmbeddings,
+  getPleHotVocabularyRuntime,
+} from './per-layer-inputs.js';
 
 const UNKNOWN_TOKEN_TEXT = '<unknown>';
 
@@ -72,7 +79,7 @@ function isOwnedDecodeBuffer(candidate, decodeHiddenBuffer, decodeAltBuffer) {
   return candidate === decodeAltBuffer;
 }
 
-function releasePerLayerInputBuffer(buffer, recorder, decodeBuffers) {
+function releasePerLayerInputBuffer(buffer, recorder, decodeBuffers, pleCache = null) {
   if (!buffer) {
     return;
   }
@@ -80,11 +87,54 @@ function releasePerLayerInputBuffer(buffer, recorder, decodeBuffers) {
   if (ownsBuffer) {
     return;
   }
+  const cachedPleBuffer = pleCache?.ownedBuffers instanceof Set && pleCache.ownedBuffers.has(buffer);
+  if (cachedPleBuffer) {
+    return;
+  }
   if (recorder) {
     recorder.trackTemporaryBuffer(buffer);
     return;
   }
   releaseBuffer(buffer);
+}
+
+function schedulePlePrefetchForToken(state, tokenId) {
+  if (state?.prefetchPleNextToken !== true) {
+    return;
+  }
+  const config = state.modelConfig;
+  const pleHiddenSize = Number(config?.hiddenSizePerLayerInput ?? 0);
+  if (!Number.isFinite(pleHiddenSize) || pleHiddenSize <= 0) {
+    return;
+  }
+  const pleWeights = state.weights.get('per_layer_inputs');
+  if (!pleWeights?.embedTokensPerLayer) {
+    return;
+  }
+  const perLayerInputsSession = state.runtimeConfig.inference.session?.perLayerInputs ?? config.perLayerInputsSession;
+  state.plePrefetchPending = prefetchPerLayerRow(
+    tokenId,
+    pleWeights.embedTokensPerLayer,
+    config.numLayers * pleHiddenSize,
+    perLayerInputsSession
+  );
+}
+
+function getReusableSampleReadbackBuffer(state, device, size) {
+  const existing = state.sampleReadbackBuffer;
+  if (existing && existing.size >= size) {
+    return existing;
+  }
+  if (existing) {
+    existing.destroy();
+  }
+  const buffer = device.createBuffer({
+    label: 'sample_staging_reuse',
+    size,
+    usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+  });
+  state.sampleReadbackBuffer = buffer;
+  return buffer;
 }
 
 export class FinitenessError extends Error {
@@ -322,7 +372,7 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
       const prevStates = hiddenStates;
       hiddenStates = (await processLayer(l, hiddenStates, 1, false, context));
       state.decodeBuffers.swapPingPong();
-      releasePerLayerInputBuffer(context.perLayerInputBuffer, null, context.decodeBuffers);
+      releasePerLayerInputBuffer(context.perLayerInputBuffer, null, context.decodeBuffers, state.pleCache ?? null);
       if (perLayerInputs) {
         perLayerInputs[l] = null;
       }
@@ -338,7 +388,7 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
     context.perLayerInputBuffer = null;
     if (perLayerInputs) {
       for (const buffer of perLayerInputs) {
-        releasePerLayerInputBuffer(buffer, null, context.decodeBuffers);
+        releasePerLayerInputBuffer(buffer, null, context.decodeBuffers, state.pleCache ?? null);
       }
     }
     helpers.releaseSharedAttentionState?.(context.sharedAttentionState, null);
@@ -494,7 +544,12 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       hiddenStates = (await processLayer(l, hiddenStates, numTokens, false, context));
 
       state.decodeBuffers.swapPingPong();
-      releasePerLayerInputBuffer(context.perLayerInputBuffer, recorder, context.decodeBuffers);
+      releasePerLayerInputBuffer(
+        context.perLayerInputBuffer,
+        recorder,
+        context.decodeBuffers,
+        state.pleCache ?? null
+      );
       if (perLayerInputs) {
         perLayerInputs[l] = null;
       }
@@ -515,7 +570,12 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     context.perLayerInputBuffer = null;
     if (perLayerInputs) {
       for (const buffer of perLayerInputs) {
-        releasePerLayerInputBuffer(buffer, recorder, context.decodeBuffers);
+        releasePerLayerInputBuffer(
+          buffer,
+          recorder,
+          context.decodeBuffers,
+          state.pleCache ?? null
+        );
       }
     }
     helpers.releaseSharedAttentionState?.(context.sharedAttentionState, recorder);
@@ -581,12 +641,10 @@ export async function decodeStep(state, currentIds, opts, helpers) {
 
     const ringStagingBuffer = ringSlot?.stagingTokens ?? null;
     const stagingSize = state.finitenessBuffer ? 20 : 4;
-    const stagingBuffer = (ringStagingBuffer && !state.finitenessBuffer) ? ringStagingBuffer : device.createBuffer({
-      label: 'sample_staging',
-      size: stagingSize,
-      usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
-    });
-    const ownsStagingBuffer = stagingBuffer !== ringStagingBuffer;
+    const stagingBuffer = ringStagingBuffer && ringStagingBuffer.size >= stagingSize
+      ? ringStagingBuffer
+      : getReusableSampleReadbackBuffer(state, device, stagingSize);
+    const ownsStagingBuffer = false;
     const ownsSampleOutputBuffer = !ringTokensBuffer || sampleOutputBuffer !== ringTokensBuffer;
 
     const isPreAllocated = isOwnedDecodeBuffer(hiddenStates, decodeHiddenBuffer, decodeAltBuffer);
@@ -638,6 +696,9 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     const invalidToken = fusedNextToken >= config.vocabSize
       || (padTokenId != null && fusedNextToken === padTokenId)
       || (padTokenId == null && fusedNextToken === 0);
+    if (!invalidToken) {
+      schedulePlePrefetchForToken(state, fusedNextToken);
+    }
     if (invalidToken) {
       log.warn('Decode', `Suspicious token ${fusedNextToken} (vocabSize=${config.vocabSize}, step=${state.decodeStepCount})`);
       if (allowReadback('pipeline.decode.debug-logits')) {
@@ -711,6 +772,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
         padTokenId,
         seed: opts.seed,
       });
+      schedulePlePrefetchForToken(state, fallbackToken);
       if (!isPreAllocated) {
         releaseBuffer(hiddenStates);
       }
@@ -1038,6 +1100,61 @@ export async function advanceWithTokenAndEmbedding(state, tokenId, opts, helpers
   };
 }
 
+async function generateNTokensGPUStepwiseRangeBackedPle(state, N, currentIds, opts, helpers) {
+  const config = state.modelConfig;
+  const batchStart = performance.now();
+  state.batchingStats.batchedForwardCalls += 1;
+
+  const stopTokenIds = config.stopTokenIds;
+  const eosToken = state.tokenizer?.getSpecialTokens?.()?.eos;
+  const pleHiddenSize = Number(config.hiddenSizePerLayerInput ?? 0);
+  const totalPerLayerHiddenSize = pleHiddenSize > 0
+    ? config.numLayers * pleHiddenSize
+    : 0;
+  const pleWeights = state.weights.get('per_layer_inputs');
+  const pleSession = state.runtimeConfig.inference.session?.perLayerInputs ?? config.perLayerInputsSession;
+  const generatedTokens = [];
+  const rollingIds = Array.isArray(currentIds) ? currentIds.slice() : Array.from(currentIds ?? []);
+  let gpuSubmissions = 0;
+
+  try {
+    state.prefetchPleNextToken = true;
+    if (
+      totalPerLayerHiddenSize > 0
+      && pleWeights?.embedTokensPerLayer
+      && !state.plePrefetchPending
+      && rollingIds.length > 0
+    ) {
+      state.plePrefetchPending = prefetchPerLayerRow(
+        rollingIds[rollingIds.length - 1],
+        pleWeights.embedTokensPerLayer,
+        totalPerLayerHiddenSize,
+        pleSession
+      );
+    }
+
+    for (let i = 0; i < N; i += 1) {
+      const nextToken = await decodeStep(state, rollingIds, opts, helpers);
+      gpuSubmissions += 1;
+      generatedTokens.push(nextToken);
+      rollingIds.push(nextToken);
+
+      if (isStopToken(nextToken, stopTokenIds, eosToken)) {
+        break;
+      }
+    }
+
+    return {
+      tokens: generatedTokens,
+      actualCount: generatedTokens.length,
+    };
+  } finally {
+    state.prefetchPleNextToken = false;
+    state.batchingStats.totalBatchedTimeMs += Math.max(0, performance.now() - batchStart);
+    state.batchingStats.gpuSubmissions += gpuSubmissions;
+  }
+}
+
 export async function generateNTokensGPU(state, startToken, N, currentIds, opts, helpers) {
   const device = getDevice();
   const config = state.modelConfig;
@@ -1055,8 +1172,8 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   // GPU stop-flag checks are only useful when we read back every token.
   // With deferred readback, we already scan sampled tokens on CPU to find the
   // earliest stop token, so extra stop buffers/kernels are redundant overhead.
-  const useGpuStopFlags = stopCheckMode === 'per-token' && readbackInterval <= 1;
-  const effectiveStopCheckMode = useGpuStopFlags ? 'per-token' : 'batch';
+  let useGpuStopFlags = stopCheckMode === 'per-token' && readbackInterval <= 1;
+  let effectiveStopCheckMode = useGpuStopFlags ? 'per-token' : 'batch';
   const batchStart = performance.now();
 
   state.batchingStats.batchedForwardCalls += 1;
@@ -1074,6 +1191,30 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   }
   if (N > tokensPerInterval) {
     throw new Error('[Pipeline] Batch size exceeds decode ring capacity.');
+  }
+
+  const hasRangeBackedPerLayerInputs = hasRangeBackedPerLayerInputEmbeddings({
+    config,
+    weights: state.weights,
+  });
+  const pleHotVocabularyRuntime = getPleHotVocabularyRuntime({ weights: state.weights });
+  const hotStartTokenIndex = pleHotVocabularyRuntime?.hotTokenIndexMap?.[startToken] ?? null;
+  const canUseHotVocabularyBatchDecode = hasRangeBackedPerLayerInputs
+    && pleHotVocabularyRuntime
+    && hotStartTokenIndex != null
+    && hotStartTokenIndex !== pleHotVocabularyRuntime.sentinelIndex;
+  if (hasRangeBackedPerLayerInputs && !canUseHotVocabularyBatchDecode) {
+    return generateNTokensGPUStepwiseRangeBackedPle(
+      state,
+      N,
+      currentIds,
+      opts,
+      helpers
+    );
+  }
+  if (canUseHotVocabularyBatchDecode) {
+    useGpuStopFlags = true;
+    effectiveStopCheckMode = 'per-token';
   }
 
   const stopTokenIds = config.stopTokenIds;
@@ -1125,6 +1266,13 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     })
     : null;
   const ownsStopBuffer = useGpuStopFlags && !ringSlot?.stop;
+  const pleInputTokensBuffer = canUseHotVocabularyBatchDecode
+    ? device.createBuffer({
+      size: (tokenCapacity + 1) * 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      label: 'ple_hot_input_tokens',
+    })
+    : null;
 
   const tokensStagingBuffer = ringSlot?.stagingTokens ?? device.createBuffer({
     size: N * 4,
@@ -1149,6 +1297,9 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     }
 
     device.queue.writeBuffer(tokensBuffer, 0, new Uint32Array([startToken]));
+    if (pleInputTokensBuffer) {
+      device.queue.writeBuffer(pleInputTokensBuffer, 0, new Uint32Array([hotStartTokenIndex]));
+    }
     if (stopBuffer) {
       const stopElements = stopBuffer.size / 4;
       const zeroStopData = ringSlot?.zeroStopData;
@@ -1214,6 +1365,8 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
       const perLayerInputs = await preparePerLayerInputs(tokensBuffer, hiddenTensor, context, {
         numTokens: 1,
         indexOffset: i,
+        perLayerTokenIds: pleInputTokensBuffer,
+        perLayerIndexOffset: i,
         pleCache: state.pleCache ?? null,
       });
       try {
@@ -1222,7 +1375,12 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
           const prevStates = hiddenStatesBuffer;
           hiddenStatesBuffer = (await processLayer(l, hiddenStatesBuffer, 1, false, context));
           context.decodeBuffers?.swapPingPong();
-          releasePerLayerInputBuffer(context.perLayerInputBuffer, recorder, context.decodeBuffers);
+          releasePerLayerInputBuffer(
+            context.perLayerInputBuffer,
+            recorder,
+            context.decodeBuffers,
+            state.pleCache ?? null
+          );
           if (perLayerInputs) {
             perLayerInputs[l] = null;
           }
@@ -1238,7 +1396,12 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
         context.perLayerInputBuffer = null;
         if (perLayerInputs) {
           for (const buffer of perLayerInputs) {
-            releasePerLayerInputBuffer(buffer, recorder, context.decodeBuffers);
+            releasePerLayerInputBuffer(
+              buffer,
+              recorder,
+              context.decodeBuffers,
+              state.pleCache ?? null
+            );
           }
         }
         helpers.releaseSharedAttentionState?.(context.sharedAttentionState, recorder);
@@ -1288,7 +1451,19 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
         });
       }
 
-      const stopCheck = useGpuStopFlags
+      const stopCheck = canUseHotVocabularyBatchDecode
+        ? recordCheckHotVocabStop(recorder, {
+          sampledTokenBuffer: tokensBuffer,
+          nextInputTokenBuffer: pleInputTokensBuffer,
+          hotTokenIndexMapBuffer: pleHotVocabularyRuntime.hotTokenIndexMapBuffer,
+          hotTokenSentinel: pleHotVocabularyRuntime.sentinelIndex,
+          shouldStopBuffer: stopBuffer,
+          tokenIndex: outputIndex,
+          eosTokenId,
+          maxTokens: maxSeqLen,
+          currentPos,
+        })
+        : useGpuStopFlags
         ? recordCheckStop(recorder, {
           sampledTokenBuffer: tokensBuffer,
           shouldStopBuffer: stopBuffer,
@@ -1417,6 +1592,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     }
     if (ownsTokensBuffer) tokensBuffer.destroy();
     if (ownsStopBuffer) stopBuffer?.destroy();
+    pleInputTokensBuffer?.destroy();
     if (repHistoryBuffer) repHistoryBuffer.destroy();
   }
 }

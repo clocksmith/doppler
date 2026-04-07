@@ -33,6 +33,11 @@ export declare abstract class BaseTokenizer implements TokenizerBackend {
   getVocabSize(): number;
 
   /**
+   * Get high-priority token IDs for bounded runtime hot caches, or null when unavailable
+   */
+  getHotTokenIds(limit: number): number[] | null;
+
+  /**
    * Check if token is special
    */
   isSpecialToken(tokenId: number): boolean;

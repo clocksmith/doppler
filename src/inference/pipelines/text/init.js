@@ -1088,6 +1088,7 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
     loadingConfig,
     baseUrl,
     loaderDebug,
+    perLayerInputSession,
   } = options;
   const runtimeStorageContext = options.storageContext
     ?? createRemoteStorageContext(baseUrl, manifest);
@@ -1111,6 +1112,7 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
     )
   );
   dopplerLoader.setLoaderDebugConfig(loaderDebug ?? null);
+  dopplerLoader.setPerLayerInputSession(perLayerInputSession ?? modelConfig.perLayerInputsSession);
 
   const tensorsFile = isRDRRManifest(manifest) ? manifest.tensorsFile : null;
   if (baseUrl && tensorsFile) {

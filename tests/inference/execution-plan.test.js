@@ -138,6 +138,7 @@ const container = { executionPlanState: planState };
     disableCommandBatching: false,
     isBdpaPagedLayout: false,
     finitenessFallbackWindowOpen: false,
+    hasRangeBackedPerLayerInputs: false,
   };
   const enabled = isBatchDecodeEnabled(enabledConfig);
   assert.equal(enabled, true);
@@ -150,6 +151,7 @@ const container = { executionPlanState: planState };
   assert.equal(isBatchDecodeEnabled({ ...enabledConfig, disableCommandBatching: true }), false);
   assert.equal(isBatchDecodeEnabled({ ...enabledConfig, isBdpaPagedLayout: true }), false);
   assert.equal(isBatchDecodeEnabled({ ...enabledConfig, finitenessFallbackWindowOpen: true }), false);
+  assert.equal(isBatchDecodeEnabled({ ...enabledConfig, hasRangeBackedPerLayerInputs: true }), false);
 }
 
 {

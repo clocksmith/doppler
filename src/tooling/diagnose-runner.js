@@ -291,7 +291,7 @@ export async function runDiagnoseCommand(request, _options = {}) {
     || 'webgpu';
   const observedProvider = request.observedProvider
     || process.env.DOPPLER_DIAGNOSE_OBSERVED_PROVIDER
-    || '@simulatte/webgpu';
+    || 'webgpu';
 
   const baselineRun = await runSingleDiagnostic(modules, request, baselineProvider, 'baseline');
   const observedRun = await runSingleDiagnostic(modules, request, observedProvider, 'observed');

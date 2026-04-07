@@ -1,7 +1,7 @@
 {
   "id": "profiles/gemma4-e2b-throughput",
   "name": "gemma4-e2b-throughput",
-  "description": "Model-scoped Gemma 4 E2B throughput profile with larger decode bursts to reduce readback overhead.",
+  "description": "Model-scoped Gemma 4 E2B throughput profile with larger decode bursts and overlapped readback.",
   "intent": "calibrate",
   "stability": "experimental",
   "owner": "doppler-core",
@@ -14,20 +14,20 @@
         "batchSize": 8,
         "stopCheckMode": "batch",
         "readbackInterval": 8,
-        "readbackMode": "sequential",
-        "ringTokens": 1,
+        "readbackMode": "overlapped",
+        "ringTokens": 2,
         "ringStop": 1,
-        "ringStaging": 1
+        "ringStaging": 2
       },
       "session": {
         "decodeLoop": {
           "batchSize": 8,
           "stopCheckMode": "batch",
           "readbackInterval": 8,
-          "readbackMode": "sequential",
-          "ringTokens": 1,
+          "readbackMode": "overlapped",
+          "ringTokens": 2,
           "ringStop": 1,
-          "ringStaging": 1,
+          "ringStaging": 2,
           "disableCommandBatching": false
         }
       }

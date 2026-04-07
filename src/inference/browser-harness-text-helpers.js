@@ -1008,6 +1008,22 @@ function buildGenerationPhaseFromStats(pipeline, durationMs, tokenCount) {
   if (Number.isFinite(stats.singleTokenReadbackWaitMs)) gpu.singleTokenReadbackWaitMs = stats.singleTokenReadbackWaitMs;
   if (Number.isFinite(stats.singleTokenOrchestrationMs)) gpu.singleTokenOrchestrationMs = stats.singleTokenOrchestrationMs;
   const gpuPhase = Object.keys(gpu).length > 0 ? gpu : null;
+  const plePreparedTokenCache = {};
+  if (Number.isFinite(stats.plePreparedTokenCacheHits)) {
+    plePreparedTokenCache.hits = stats.plePreparedTokenCacheHits;
+  }
+  if (Number.isFinite(stats.plePreparedTokenCacheMisses)) {
+    plePreparedTokenCache.misses = stats.plePreparedTokenCacheMisses;
+  }
+  if (Number.isFinite(stats.plePreparedTokenCacheEntries)) {
+    plePreparedTokenCache.entries = stats.plePreparedTokenCacheEntries;
+  }
+  if (Number.isFinite(stats.plePreparedTokenCacheBytes)) {
+    plePreparedTokenCache.bytes = stats.plePreparedTokenCacheBytes;
+  }
+  const plePreparedTokenCachePhase = Object.keys(plePreparedTokenCache).length > 0
+    ? plePreparedTokenCache
+    : null;
 
   return {
     phase: {
@@ -1029,6 +1045,7 @@ function buildGenerationPhaseFromStats(pipeline, durationMs, tokenCount) {
         : null,
       decodeMode: stats.decodeMode ?? null,
       batchGuardReason: stats.batchGuardReason ?? null,
+      plePreparedTokenCache: plePreparedTokenCachePhase,
       executionPlan: stats.executionPlan ?? null,
       kernelPathId: stats.kernelPathId ?? null,
       operatorDiagnostics: stats.operatorDiagnostics ?? null,

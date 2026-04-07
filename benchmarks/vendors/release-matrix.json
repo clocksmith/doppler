@@ -221,7 +221,7 @@
     },
     {
       "id": "doppler-simulatte",
-      "name": "Doppler (@simulatte/webgpu)",
+      "name": "Doppler (webgpu)",
       "status": "active",
       "category": "node-webgpu-backend",
       "website": "https://github.com/nicolo-ribaudo/simulatte-webgpu",
@@ -566,7 +566,7 @@
     },
     {
       "id": "transformersjs-simulatte",
-      "name": "Transformers.js v4 (@simulatte/webgpu)",
+      "name": "Transformers.js v4 (webgpu)",
       "status": "experimental",
       "category": "node-webgpu-backend",
       "website": "https://huggingface.co/docs/transformers.js/",

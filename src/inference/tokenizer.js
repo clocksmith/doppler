@@ -246,6 +246,13 @@ export class Tokenizer {
   getVocabSize() {
     return this.backend?.getVocabSize() || 0;
   }
+
+  getHotTokenIds(limit) {
+    if (!this.backend || typeof this.backend.getHotTokenIds !== 'function') {
+      return null;
+    }
+    return this.backend.getHotTokenIds(limit);
+  }
 }
 
 export default Tokenizer;

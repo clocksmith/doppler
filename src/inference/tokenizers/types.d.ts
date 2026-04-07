@@ -67,6 +67,8 @@ export interface TokenizerBackend {
   decode(tokens: number[], skipSpecial?: boolean, trim?: boolean): string;
   /** Get vocabulary size */
   getVocabSize(): number;
+  /** Get high-priority token IDs for bounded runtime hot caches, or null when unavailable */
+  getHotTokenIds?(limit: number): number[] | null;
   /** Get special token IDs */
   specialTokens: SpecialTokens;
 }

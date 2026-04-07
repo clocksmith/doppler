@@ -14,6 +14,48 @@ export const DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS = {
 };
 
 export const READBACK_MODES = Object.freeze(['sequential', 'overlapped', 'auto']);
+export const PER_LAYER_INPUT_MATERIALIZATION_MODES = Object.freeze([
+  'auto',
+  'range_backed',
+  'cpu_resident',
+  'gpu_resident',
+  'gpu_split_tables',
+]);
+export const PER_LAYER_INPUT_ROW_CACHE_MODES = Object.freeze(['off', 'lru']);
+export const PER_LAYER_INPUT_PREFETCH_MODES = Object.freeze(['off', 'next_token']);
+export const PER_LAYER_INPUT_GPU_UPLOAD_MODES = Object.freeze([
+  'per_step_slices',
+  'per_batch_slices',
+]);
+export const PER_LAYER_INPUT_HOT_CACHE_MODES = Object.freeze([
+  'off',
+  'prepared_tokens',
+  'tokenizer_scores',
+]);
+
+export const DEFAULT_EXECUTION_V1_PER_LAYER_INPUTS_SESSION = {
+  materialization: 'auto',
+  rowCache: {
+    mode: 'lru',
+    maxRows: 256,
+    maxBytes: 134217728,
+    decodedDtype: 'f32',
+  },
+  prefetch: {
+    mode: 'next_token',
+    rowsAhead: 1,
+  },
+  gpuUpload: {
+    mode: 'per_step_slices',
+    stagingRows: 2,
+  },
+  hotCache: {
+    mode: 'prepared_tokens',
+    maxTokens: 1024,
+    maxBytes: 134217728,
+    outputDtype: 'f32',
+  },
+};
 
 export const DEFAULT_EXECUTION_V1_SESSION = {
   compute: {
@@ -21,6 +63,7 @@ export const DEFAULT_EXECUTION_V1_SESSION = {
   },
   kvcache: null,
   decodeLoop: null,
+  perLayerInputs: { ...DEFAULT_EXECUTION_V1_PER_LAYER_INPUTS_SESSION },
   speculation: null,
 };
 

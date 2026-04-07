@@ -190,7 +190,6 @@
     "playwright": "^1.58.2"
   },
   "optionalDependencies": {
-    "@simulatte/webgpu": "0.x.x",
     "webgpu": "^0.4.0"
   }
 }

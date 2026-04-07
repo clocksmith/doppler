@@ -67,6 +67,11 @@ export declare class Tokenizer {
    * Get vocabulary size
    */
   getVocabSize(): number;
+
+  /**
+   * Get high-priority token IDs for bounded runtime hot caches, or null when unavailable
+   */
+  getHotTokenIds(limit: number): number[] | null;
 }
 
 export default Tokenizer;

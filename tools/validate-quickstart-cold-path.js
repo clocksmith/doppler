@@ -219,7 +219,7 @@ step('HF manifest reachability (network probe)', async () => {
 
 // Step 8: WebGPU provider availability check
 step('WebGPU provider packages on npm', async () => {
-  pass('@simulatte/webgpu and webgpu are in optionalDependencies');
+  pass('webgpu is present in optionalDependencies');
   pass('npx install attempts optionalDependencies (will succeed where prebuilds exist)');
   pass('If no provider installs, error message should guide user');
 

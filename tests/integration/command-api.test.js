@@ -158,13 +158,13 @@ import {
     command: 'diagnose',
     modelId: 'gemma-3-1b-it-f16-af32',
     baselineProvider: 'webgpu',
-    observedProvider: '@simulatte/webgpu',
+    observedProvider: 'webgpu',
   });
   assert.equal(request.command, 'diagnose');
   assert.equal(request.workload, 'inference');
   assert.equal(request.intent, 'investigate');
   assert.equal(request.baselineProvider, 'webgpu');
-  assert.equal(request.observedProvider, '@simulatte/webgpu');
+  assert.equal(request.observedProvider, 'webgpu');
 }
 
 {

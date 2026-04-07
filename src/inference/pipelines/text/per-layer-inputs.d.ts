@@ -1,8 +1,10 @@
 import type { Tensor } from '../../../gpu/tensor.js';
 import type { LayerContext } from './types.js';
+import type { ExecutionV1PerLayerInputsSessionSchema } from '../../../config/schema/execution-v1.schema.js';
 
 export interface PleBufferCache {
   sliceBuffers: (GPUBuffer | null)[] | null;
+  gatherSliceBuffers?: (GPUBuffer | null)[] | null;
 }
 
 export interface PrefetchedPleRow {
@@ -17,6 +19,8 @@ export declare function preparePerLayerInputs(
   options?: {
     numTokens?: number;
     indexOffset?: number;
+    perLayerTokenIds?: number[] | Uint32Array | GPUBuffer | null;
+    perLayerIndexOffset?: number;
     pleCache?: PleBufferCache | null;
     prefetchedRow?: PrefetchedPleRow | null;
   }
@@ -31,8 +35,13 @@ export declare function destroyPleRuntimeCache(perLayerInputWeights: object | nu
 export declare function prefetchPerLayerRow(
   tokenId: number,
   embedTokensPerLayer: unknown,
-  totalPerLayerHiddenSize: number
+  totalPerLayerHiddenSize: number,
+  sessionConfig?: ExecutionV1PerLayerInputsSessionSchema | null
 ): Promise<PrefetchedPleRow | null> | null;
+
+export declare function hasRangeBackedPerLayerInputEmbeddings(
+  context: Pick<LayerContext, 'config' | 'weights'>
+): boolean;
 
 export declare function scalePerLayerProjectionNormWeights(
   weight: unknown,
@@ -49,6 +58,20 @@ export declare function ensurePleScaledProjectionNormWeight(
   context: Pick<LayerContext, 'config' | 'weights' | 'weightConfig' | 'debugFlags'>,
   combineScale?: number
 ): Promise<Tensor | null>;
+
+export declare function ensurePleGpuSplitTablesRuntime(
+  context: Pick<LayerContext, 'config' | 'weights' | 'perLayerInputsSession' | 'debugFlags'>
+): Promise<unknown[] | null>;
+
+export declare function ensurePleGpuHotVocabularyRuntime(
+  context: Pick<LayerContext, 'config' | 'weights' | 'perLayerInputsSession' | 'debugFlags'> & {
+    tokenizer?: { getHotTokenIds?(limit: number): number[] | null } | null;
+  }
+): Promise<object | null>;
+
+export declare function getPleHotVocabularyRuntime(
+  context: Pick<LayerContext, 'weights'>
+): object | null;
 
 export declare function createPerLayerInputTensor(
   buffer: GPUBuffer,

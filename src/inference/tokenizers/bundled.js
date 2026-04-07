@@ -188,6 +188,11 @@ export class TransformersTokenizer extends BaseTokenizer {
   batchEncode(texts) {
     return texts.map(t => this.encode(t));
   }
+
+  getHotTokenIds(limit) {
+    void limit;
+    return null;
+  }
 }
 
 
@@ -1012,5 +1017,24 @@ export class BundledTokenizer extends BaseTokenizer {
 
     // Only trim when requested (not during streaming where spaces matter)
     return trim ? result.trim() : result;
+  }
+
+  getHotTokenIds(limit) {
+    const resolvedLimit = Math.trunc(Number(limit));
+    if (!Number.isFinite(resolvedLimit) || resolvedLimit <= 0) {
+      return [];
+    }
+    if (!Array.isArray(this.#scores) || this.#scores.length === 0) {
+      return null;
+    }
+    const ranked = [];
+    for (let id = 0; id < this.#scores.length; id += 1) {
+      if (this.isSpecialToken(id)) {
+        continue;
+      }
+      ranked.push({ id, score: Number(this.#scores[id] ?? 0) });
+    }
+    ranked.sort((a, b) => b.score - a.score || a.id - b.id);
+    return ranked.slice(0, resolvedLimit).map((entry) => entry.id);
   }
 }

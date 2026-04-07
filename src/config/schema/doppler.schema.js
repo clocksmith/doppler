@@ -297,6 +297,7 @@ function mergeInferenceConfig(
       },
       kvcache: replaceSubtree(overrideSession.kvcache, baseSession.kvcache),
       decodeLoop: replaceSubtree(overrideSession.decodeLoop, baseSession.decodeLoop),
+      perLayerInputs: replaceSubtree(overrideSession.perLayerInputs, baseSession.perLayerInputs),
     },
     executionPatch: mergeExecutionPatchLists(baseExecutionPatch, overrideExecutionPatch),
     // Model-specific inference overrides (merged with manifest.inference at load time)

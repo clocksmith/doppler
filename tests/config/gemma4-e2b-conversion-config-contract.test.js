@@ -42,21 +42,21 @@ assert.equal(config.inference?.output?.embeddingPostprocessor, null);
 
 const expanded = expandExecutionV1(config.execution);
 assert.ok(expanded.length > 0, 'execution must expand to at least one step');
-assert.equal(config.execution?.kernels?.attn_decode?.kernel, 'attention_streaming_f16.wgsl');
+assert.equal(config.execution?.kernels?.attn_decode?.kernel, 'attention_streaming_f16kv.wgsl');
 assert.equal(config.execution?.kernels?.attn_decode?.entry, 'main');
-assert.equal(config.execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16.wgsl');
-assert.equal(config.execution?.kernels?.gemv?.kernel, 'matmul_gemv_subgroup_f16a.wgsl');
-assert.equal(config.execution?.kernels?.tiled?.kernel, 'matmul_f16.wgsl');
-assert.equal(config.execution?.kernels?.sample?.kernel, 'sample_f16.wgsl');
+assert.equal(config.execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16kv.wgsl');
+assert.equal(config.execution?.kernels?.gemv?.kernel, 'matmul_gemv_subgroup.wgsl');
+assert.equal(config.execution?.kernels?.tiled?.kernel, 'matmul_f16w_f32a.wgsl');
+assert.equal(config.execution?.kernels?.sample?.kernel, 'sample.wgsl');
 
-assert.equal(config.session?.compute?.defaults?.activationDtype, 'f16');
-assert.equal(config.session?.compute?.defaults?.mathDtype, 'f16');
+assert.equal(config.session?.compute?.defaults?.activationDtype, 'f32');
+assert.equal(config.session?.compute?.defaults?.mathDtype, 'f32');
 assert.equal(config.session?.compute?.defaults?.accumDtype, 'f32');
-assert.equal(config.session?.compute?.defaults?.outputDtype, 'f16');
+assert.equal(config.session?.compute?.defaults?.outputDtype, 'f32');
 assert.equal(config.session?.kvcache?.kvDtype, 'f16');
 assert.equal(config.session?.decodeLoop?.batchSize, 8);
 assert.equal(config.session?.decodeLoop?.stopCheckMode, 'batch');
-assert.equal(config.session?.decodeLoop?.readbackInterval, 1);
+assert.equal(config.session?.decodeLoop?.readbackInterval, 8);
 assert.equal(config.session?.decodeLoop?.readbackMode, 'sequential');
 assert.equal(config.session?.decodeLoop?.ringTokens, 1);
 assert.equal(config.session?.decodeLoop?.ringStop, 1);
@@ -99,11 +99,11 @@ const f16Primary = compileExecutionV1({
   },
 });
 
-assert.equal(f16Primary.session.compute.defaults.activationDtype, 'f16');
+assert.equal(f16Primary.session.compute.defaults.activationDtype, 'f32');
 assert.equal(f16Primary.session.kvcache.kvDtype, 'f16');
 assert.equal(
   f16Primary.runtimeInferencePatch?.kernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.kernel,
-  'attention_streaming_f16.wgsl'
+  'attention_streaming_f16kv.wgsl'
 );
 
 const finitenessFallback = compileExecutionV1({
@@ -135,12 +135,7 @@ const finitenessFallback = compileExecutionV1({
   },
 });
 
-assert.equal(finitenessFallback.fallbackKernelPath?.activationDtype, 'f32');
-assert.equal(finitenessFallback.fallbackKernelPath?.kvDtype, 'f32');
-assert.equal(
-  finitenessFallback.fallbackKernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.kernel,
-  'attention_streaming.wgsl'
-);
+assert.equal(finitenessFallback.fallbackKernelPath, null);
 
 const widenedFallback = compileExecutionV1({
   manifestInference,

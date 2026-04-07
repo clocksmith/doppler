@@ -18,7 +18,7 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 - Aligned catalog, HF registry, and quickstart registry to the canonical
   external support registry as single source of truth for HF revisions.
 - Renamed all `.mjs` tool scripts to `.js` to match `"type": "module"` convention.
-- Switched WebGPU optional dependency from `@simulatte/webgpu` to `webgpu ^0.3.8`.
+- Switched WebGPU optional dependency to `webgpu@^0.4.0`.
 - Pruned unused `verify:*` npm scripts for models no longer in the active set.
 - Updated release-claim policy with newly verified models (LFM2, Qwen 3.5,
   TranslateGemma variants).

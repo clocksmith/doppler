@@ -23,6 +23,7 @@ import {
   type ManifestOutputSchema,
   type ManifestLayerPatternSchema,
   type ManifestChatTemplateSchema,
+  type ExecutionV1SessionSchema,
   type ArchitectureSchema,
 } from './schema/index.js';
 
@@ -59,6 +60,7 @@ export interface MergedInferenceConfig {
   ffn: ManifestFFNSchema;
   rope: ManifestRoPESchema;
   output: ManifestOutputSchema;
+  session: ExecutionV1SessionSchema | null;
   pipeline: ManifestInferenceSchema['pipeline'];
   layerPattern: ManifestLayerPatternSchema | null;
   chatTemplate: ManifestChatTemplateSchema;

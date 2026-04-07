@@ -102,6 +102,52 @@ export interface ExecutionV1DecodeLoopSchema {
   disableCommandBatching?: boolean;
 }
 
+export type PerLayerInputMaterializationMode =
+  'auto'
+  | 'range_backed'
+  | 'cpu_resident'
+  | 'gpu_resident'
+  | 'gpu_split_tables';
+
+export type PerLayerInputRowCacheMode = 'off' | 'lru';
+
+export type PerLayerInputPrefetchMode = 'off' | 'next_token';
+
+export type PerLayerInputGpuUploadMode = 'per_step_slices' | 'per_batch_slices';
+export type PerLayerInputHotCacheMode = 'off' | 'prepared_tokens' | 'tokenizer_scores';
+
+export interface ExecutionV1PerLayerInputsRowCacheSchema {
+  mode: PerLayerInputRowCacheMode;
+  maxRows: number;
+  maxBytes: number;
+  decodedDtype: ExecutionV1Dtype;
+}
+
+export interface ExecutionV1PerLayerInputsPrefetchSchema {
+  mode: PerLayerInputPrefetchMode;
+  rowsAhead: number;
+}
+
+export interface ExecutionV1PerLayerInputsGpuUploadSchema {
+  mode: PerLayerInputGpuUploadMode;
+  stagingRows: number;
+}
+
+export interface ExecutionV1PerLayerInputsHotCacheSchema {
+  mode: PerLayerInputHotCacheMode;
+  maxTokens: number;
+  maxBytes: number;
+  outputDtype: ExecutionV1Dtype;
+}
+
+export interface ExecutionV1PerLayerInputsSessionSchema {
+  materialization: PerLayerInputMaterializationMode;
+  rowCache: ExecutionV1PerLayerInputsRowCacheSchema;
+  prefetch: ExecutionV1PerLayerInputsPrefetchSchema;
+  gpuUpload: ExecutionV1PerLayerInputsGpuUploadSchema;
+  hotCache: ExecutionV1PerLayerInputsHotCacheSchema;
+}
+
 export interface ExecutionV1SelfSpeculationSchema {
   mode: 'none' | 'self' | 'draft' | 'medusa';
   tokens: number;
@@ -116,6 +162,7 @@ export interface ExecutionV1SessionSchema {
   };
   kvcache: Partial<KVCacheConfigSchema> | null;
   decodeLoop: ExecutionV1DecodeLoopSchema | null;
+  perLayerInputs: ExecutionV1PerLayerInputsSessionSchema;
   speculation: ExecutionV1SelfSpeculationSchema | null;
 }
 
@@ -239,7 +286,12 @@ export interface ExecutionV1ExpandedStepSchema {
 
 export declare const EXECUTION_V1_SCHEMA_ID: string;
 export declare const READBACK_MODES: readonly ['sequential', 'overlapped', 'auto'];
+export declare const PER_LAYER_INPUT_MATERIALIZATION_MODES: readonly ['auto', 'range_backed', 'cpu_resident', 'gpu_resident'];
+export declare const PER_LAYER_INPUT_ROW_CACHE_MODES: readonly ['off', 'lru'];
+export declare const PER_LAYER_INPUT_PREFETCH_MODES: readonly ['off', 'next_token'];
+export declare const PER_LAYER_INPUT_GPU_UPLOAD_MODES: readonly ['per_step_slices', 'per_batch_slices'];
 export declare const DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS: ExecutionV1ComputeDefaultsSchema;
+export declare const DEFAULT_EXECUTION_V1_PER_LAYER_INPUTS_SESSION: ExecutionV1PerLayerInputsSessionSchema;
 export declare const DEFAULT_EXECUTION_V1_SESSION: ExecutionV1SessionSchema;
 export declare const DEFAULT_EXECUTION_V1_POLICIES: ExecutionV1PoliciesSchema;
 export declare const DEFAULT_EXECUTION_V1_PATCH: ExecutionV1PatchSchema;

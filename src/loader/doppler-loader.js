@@ -141,6 +141,8 @@ export class DopplerLoader {
   #loadingConfig;
   #loaderDebug = null;
 
+  #perLayerInputSession = null;
+
   // Fused Q4_K matmul: skip dequantization for matmul weights, use fused kernel
   
   useFusedQ4K = false;
@@ -196,6 +198,10 @@ export class DopplerLoader {
 
   setLoaderDebugConfig(loaderDebug) {
     this.#loaderDebug = loaderDebug ?? null;
+  }
+
+  setPerLayerInputSession(sessionConfig) {
+    this.#perLayerInputSession = sessionConfig ?? null;
   }
 
   
@@ -897,6 +903,7 @@ export class DopplerLoader {
       shouldStreamLargeWeight: (name, loc, label) => this.#shouldStreamLargeWeight(name, loc, label),
       loadShardRange: (index, offset, length) => this.shardCache.loadRange(index, offset, length),
       resolveWeightLayout: (loc) => this.#resolveWeightLayout(loc),
+      perLayerInputSession: this.#perLayerInputSession,
     }, this.manifest?.architecture ?? null);
   }
 

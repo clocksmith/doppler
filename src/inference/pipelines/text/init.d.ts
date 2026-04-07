@@ -39,6 +39,7 @@ import type {
 } from '../../../config/schema/index.js';
 import type { LoaderDebugConfigSchema } from '../../../config/schema/debug.schema.js';
 import type { KernelPathSource } from '../../../config/kernel-path-loader.js';
+import type { ExecutionV1PerLayerInputsSessionSchema } from '../../../config/schema/execution-v1.schema.js';
 
 export interface PipelineStorageContext {
   loadShard?: (index: number) => Promise<ArrayBuffer | Uint8Array>;
@@ -230,6 +231,7 @@ export interface LoadWeightsOptions {
   kernelPathSource?: KernelPathSource;
   keepF32Weights?: boolean;
   loaderDebug?: LoaderDebugConfigSchema | null;
+  perLayerInputSession?: ExecutionV1PerLayerInputsSessionSchema | null;
 }
 
 /**

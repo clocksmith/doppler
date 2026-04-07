@@ -134,10 +134,10 @@ const EXPLICIT_TEXT_DEFAULTS = [
   {
     path: 'src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32.json',
     computeDefaults: {
-      activationDtype: 'f16',
-      mathDtype: 'f16',
+      activationDtype: 'f32',
+      mathDtype: 'f32',
       accumDtype: 'f32',
-      outputDtype: 'f16',
+      outputDtype: 'f32',
     },
     kvcache: {
       kvDtype: 'f16',
@@ -148,7 +148,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
     decodeLoop: {
       batchSize: 8,
       stopCheckMode: 'batch',
-      readbackInterval: 1,
+      readbackInterval: 8,
       readbackMode: 'sequential',
       ringTokens: 1,
       ringStop: 1,

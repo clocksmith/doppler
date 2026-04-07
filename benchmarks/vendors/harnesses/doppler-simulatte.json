@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "id": "doppler-simulatte",
-  "name": "Doppler (@simulatte/webgpu) Harness",
+  "name": "Doppler (webgpu) Harness",
   "parentHarness": "doppler",
   "backend": {
     "runtime": "node",
-    "webgpuModule": "@simulatte/webgpu",
+    "webgpuModule": "webgpu",
     "env": {
-      "DOPPLER_NODE_WEBGPU_MODULE": "@simulatte/webgpu"
+      "DOPPLER_NODE_WEBGPU_MODULE": "webgpu"
     }
   },
   "execution": {
@@ -15,7 +15,7 @@
     "stdoutFormat": "json",
     "defaultCommand": null,
     "examples": [
-      "DOPPLER_NODE_WEBGPU_MODULE=@simulatte/webgpu node src/cli/doppler-cli.js bench --config '{\"request\":{\"modelId\":\"gemma-3-270m-it-q4k-ehf16-af32\"}}' --json"
+      "DOPPLER_NODE_WEBGPU_MODULE=webgpu node src/cli/doppler-cli.js bench --config '{\"request\":{\"modelId\":\"gemma-3-270m-it-q4k-ehf16-af32\"}}' --json"
     ]
   },
   "normalization": {

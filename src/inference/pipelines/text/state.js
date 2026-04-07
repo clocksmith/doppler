@@ -27,6 +27,8 @@ export class PipelineState {
 
     this.finitenessBuffer = null;
 
+    this.sampleReadbackBuffer = null;
+
     // Emulation context (null when emulation is disabled).
 
     this.emulation = null;
@@ -112,6 +114,12 @@ export class PipelineState {
       singleTokenSubmitWaitMs: 0,
       singleTokenReadbackWaitMs: 0,
       singleTokenOrchestrationMs: 0,
+      plePreparedTokenCacheHits: 0,
+      plePreparedTokenCacheMisses: 0,
+      plePreparedTokenCacheEntries: 0,
+      plePreparedTokenCacheBytes: 0,
+      pleHotVocabularyHits: 0,
+      pleHotVocabularyMisses: 0,
     };
 
 
