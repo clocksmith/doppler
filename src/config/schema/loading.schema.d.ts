@@ -51,6 +51,31 @@ export declare const DEFAULT_SHARD_CACHE_CONFIG: ShardCacheConfigSchema;
  *
  * Controls when to flush caches and GPU queues to manage memory pressure.
  */
+export interface LoaderMemoryBudgetConfigSchema {
+  /** Enable resident-memory fail-closed protection during loading */
+  enabled: boolean;
+
+  /** Absolute resident-memory cap in bytes (null = derive from system memory) */
+  maxResidentBytes: number | null;
+
+  /** Fraction of system memory to allow when deriving maxResidentBytes (null = disabled) */
+  systemMemoryFraction: number | null;
+
+  /** Bytes to reserve for the OS and sibling processes when deriving maxResidentBytes */
+  reserveBytes: number;
+
+  /** Minimum derived resident-memory budget in bytes */
+  minimumBudgetBytes: number;
+}
+
+/** Default loader memory budget configuration */
+export declare const DEFAULT_LOADER_MEMORY_BUDGET_CONFIG: LoaderMemoryBudgetConfigSchema;
+
+/**
+ * Configuration for memory management during model loading.
+ *
+ * Controls when to flush caches and GPU queues to manage memory pressure.
+ */
 export interface MemoryManagementConfigSchema {
   /** Flush shard cache every N layers during loading */
   flushIntervalLayers: number;
@@ -63,6 +88,9 @@ export interface MemoryManagementConfigSchema {
 
   /** Log memory stats every N milliseconds during loading */
   logIntervalMs: number;
+
+  /** Resident-memory admission and fail-closed budget */
+  budget: LoaderMemoryBudgetConfigSchema;
 }
 
 /** Default memory management configuration */

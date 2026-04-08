@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-const { MemoryMonitor, MemoryTimeSeries } = await import('../../src/loader/memory-monitor.js');
+const { MemoryMonitor, MemoryTimeSeries, captureMemorySnapshot } = await import('../../src/loader/memory-monitor.js');
 
 const originalSetInterval = globalThis.setInterval;
 const originalClearInterval = globalThis.clearInterval;
@@ -13,6 +13,12 @@ globalThis.clearInterval = ((handle) => {
 });
 
 try {
+  {
+    const snapshot = captureMemorySnapshot();
+    assert.ok(snapshot.process, 'memory snapshot should expose Node process stats under Node');
+    assert.ok(typeof snapshot.process.rss === 'number' && snapshot.process.rss > 0);
+  }
+
   {
     const monitor = new MemoryMonitor(1000, false);
     const getState = () => ({

@@ -68,6 +68,12 @@ function assertTierPinsFields(file, tier) {
   assert.ok(memMgmt, `${file}: must pin loading.memoryManagement`);
   assert.ok(typeof memMgmt.flushIntervalLayers === 'number',
     `${file}: flushIntervalLayers must be a number`);
+  assert.equal(memMgmt.budget?.enabled, true,
+    `${file}: loading.memoryManagement.budget.enabled must be true`);
+  assert.equal(memMgmt.budget?.systemMemoryFraction, 0.5,
+    `${file}: loading.memoryManagement.budget.systemMemoryFraction must be 0.5`);
+  assert.equal(memMgmt.budget?.maxResidentBytes, null,
+    `${file}: loading.memoryManagement.budget.maxResidentBytes must be explicit null`);
 
   // KV cache
   const kvcache = rt.inference?.kvcache;

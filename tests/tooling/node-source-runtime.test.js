@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
+import { totalmem } from 'node:os';
 
 const { resolveNodeSourceRuntimeBundle } = await import('../../src/tooling/node-source-runtime.js');
 
@@ -77,15 +78,76 @@ try {
     inputPath: fixtureDir,
     modelId: 'node-source-runtime-test',
     verifyHashes: true,
+    runtimeConfig: {
+      loading: {
+        shardCache: {
+          verifyHashes: true,
+        },
+        storage: {
+          backend: {
+            streaming: {
+              readChunkBytes: 1024,
+              maxInFlightBytes: 2048,
+            },
+          },
+        },
+        memoryManagement: {
+          budget: {
+            enabled: true,
+            maxResidentBytes: null,
+            systemMemoryFraction: 0.5,
+            reserveBytes: 2 * 1024 * 1024 * 1024,
+            minimumBudgetBytes: 512 * 1024 * 1024,
+          },
+        },
+      },
+    },
   });
   assert.ok(bundle, 'node source runtime should synthesize a direct-source bundle');
   assert.equal(bundle.sourceKind, 'safetensors');
   assert.equal(bundle.manifest.modelId, 'node-source-runtime-test');
   assert.equal(bundle.manifest.inference?.execution?.kernels?.embed?.kernel, 'gather_f16.wgsl');
   assert.ok(bundle.storageContext, 'node source runtime should create a storage context');
+  assert.ok(
+    Number.isFinite(bundle.resolvedMemoryBudgetBytes) && bundle.resolvedMemoryBudgetBytes > 0,
+    'node source runtime should resolve an absolute resident memory budget'
+  );
 
   const shard = await bundle.storageContext.loadShard(0);
   assert.ok(new Uint8Array(shard).byteLength > 0, 'source-runtime storage context should load shard bytes');
+
+  await assert.rejects(
+    () => resolveNodeSourceRuntimeBundle({
+      inputPath: fixtureDir,
+      modelId: 'node-source-runtime-test-budget-reject',
+      verifyHashes: true,
+      runtimeConfig: {
+        loading: {
+          shardCache: {
+            verifyHashes: true,
+          },
+          storage: {
+            backend: {
+              streaming: {
+                readChunkBytes: 1024,
+                maxInFlightBytes: 2048,
+              },
+            },
+          },
+          memoryManagement: {
+            budget: {
+              enabled: true,
+              maxResidentBytes: Math.max(1, Math.floor(totalmem() * 0.000001)),
+              systemMemoryFraction: null,
+              reserveBytes: 0,
+              minimumBudgetBytes: 1,
+            },
+          },
+        },
+      },
+    }),
+    /direct-source load exceeds resident memory budget/
+  );
 } finally {
   rmSync(fixtureDir, { recursive: true, force: true });
 }

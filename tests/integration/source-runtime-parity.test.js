@@ -4,18 +4,20 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 const { probeNodeGPU } = await import('../helpers/gpu-probe.js');
+const { DEFAULT_MANIFEST_INFERENCE } = await import('../../src/config/schema/index.js');
 const { convertSafetensorsDirectory } = await import('../../src/tooling/node-converter.js');
 const { resolveNodeSourceRuntimeBundle } = await import('../../src/tooling/node-source-runtime.js');
 const { parseManifest } = await import('../../src/formats/rdrr/index.js');
 const { createPipeline } = await import('../../src/inference/pipelines/text.js');
 const { restorePipelineContexts } = await import('../../src/inference/pipelines/context.js');
 const { initDevice } = await import('../../src/gpu/device.js');
+const { createExecutionContractSession } = await import('../helpers/execution-v1-fixtures.js');
 
 const PROMPT = 'doppler';
 const MODEL_ID = 'llama-3-source-parity-fixture';
 const LOGITS_TOLERANCE = 1e-3;
 
-const executionSessionDefaults = {
+const executionSessionDefaults = createExecutionContractSession({
   compute: {
     defaults: {
       activationDtype: 'f32',
@@ -25,23 +27,65 @@ const executionSessionDefaults = {
     },
     kernelProfiles: [],
   },
-  kvcache: null,
-  decodeLoop: null,
+  kvcache: {
+    kvDtype: 'f32',
+    layout: 'contiguous',
+    pageSize: 256,
+    tiering: {
+      mode: 'off',
+    },
+    quantization: {
+      mode: 'none',
+    },
+  },
+});
+
+const parityInference = {
+  ...DEFAULT_MANIFEST_INFERENCE,
+  output: {
+    ...DEFAULT_MANIFEST_INFERENCE.output,
+    tieWordEmbeddings: false,
+    scaleEmbeddings: false,
+  },
+  chatTemplate: {
+    type: 'llama3',
+    enabled: false,
+  },
 };
 
-const castOnlyExecution = {
-  steps: [
-    {
-      id: 'cast.layer.identity',
-      op: 'cast',
-      phase: 'both',
-      section: 'layer',
-      src: 'state',
-      dst: 'state',
-      layers: 'all',
-      toDtype: 'f32',
+const parityExecution = {
+  kernels: {
+    embed: {
+      kernel: 'gather.wgsl',
+      entry: 'main',
+      digest: 'sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6',
     },
+    rmsnorm: {
+      kernel: 'rmsnorm.wgsl',
+      entry: 'main',
+      digest: 'sha256:f516b3e4bde2015f2a207c3ca5b8c9820c7809fa8f8d0786f90c568e0f1ac077',
+    },
+    lm_head: {
+      kernel: 'matmul_f32.wgsl',
+      entry: 'main',
+      digest: 'sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8',
+    },
+  },
+  preLayer: [
+    ['embed', 'embed', 'embed_tokens'],
   ],
+  decode: [],
+  prefill: [],
+  postLayer: [
+    ['final_norm', 'rmsnorm'],
+    ['lm_head', 'lm_head', 'lm_head'],
+    ['lm_head_prefill', 'lm_head', 'lm_head'],
+  ],
+  policies: {
+    unsupportedPrecision: 'error',
+    dtypeTransition: 'require_cast_step',
+    unresolvedKernel: 'error',
+  },
 };
 
 function encodeJson(value) {
@@ -132,23 +176,69 @@ function snapshotPrefillResult(result, label) {
 }
 
 function buildLlama3SafetensorsFixtureBytes() {
-  const tensorShapes = new Map([
-    ['model.embed_tokens.weight', [5, 2]],
-    ['model.layers.0.input_layernorm.weight', [2]],
-    ['model.layers.0.self_attn.q_proj.weight', [2, 2]],
-    ['model.layers.0.self_attn.k_proj.weight', [2, 2]],
-    ['model.layers.0.self_attn.v_proj.weight', [2, 2]],
-    ['model.layers.0.self_attn.o_proj.weight', [2, 2]],
-    ['model.layers.0.mlp.gate_proj.weight', [2, 2]],
-    ['model.layers.0.mlp.up_proj.weight', [2, 2]],
-    ['model.layers.0.mlp.down_proj.weight', [2, 2]],
-    ['model.norm.weight', [2]],
-    ['lm_head.weight', [5, 2]],
+  const tensorValues = new Map([
+    ['model.embed_tokens.weight', {
+      shape: [5, 2],
+      values: [
+        -0.50, 0.25,
+        0.75, -0.125,
+        0.50, 0.375,
+        -0.25, 0.625,
+        0.125, -0.75,
+      ],
+    }],
+    ['model.layers.0.input_layernorm.weight', {
+      shape: [2],
+      values: [1.0, 0.875],
+    }],
+    ['model.layers.0.self_attn.q_proj.weight', {
+      shape: [2, 2],
+      values: [0.125, -0.25, 0.375, -0.50],
+    }],
+    ['model.layers.0.self_attn.k_proj.weight', {
+      shape: [2, 2],
+      values: [0.50, -0.125, -0.375, 0.25],
+    }],
+    ['model.layers.0.self_attn.v_proj.weight', {
+      shape: [2, 2],
+      values: [-0.25, 0.50, 0.125, -0.375],
+    }],
+    ['model.layers.0.self_attn.o_proj.weight', {
+      shape: [2, 2],
+      values: [0.375, 0.125, -0.50, 0.25],
+    }],
+    ['model.layers.0.mlp.gate_proj.weight', {
+      shape: [2, 2],
+      values: [0.25, -0.375, 0.50, -0.125],
+    }],
+    ['model.layers.0.mlp.up_proj.weight', {
+      shape: [2, 2],
+      values: [-0.125, 0.50, -0.25, 0.375],
+    }],
+    ['model.layers.0.mlp.down_proj.weight', {
+      shape: [2, 2],
+      values: [0.50, 0.25, -0.125, -0.375],
+    }],
+    ['model.norm.weight', {
+      shape: [2],
+      values: [1.0, 1.125],
+    }],
+    ['lm_head.weight', {
+      shape: [5, 2],
+      values: [
+        0.25, -0.50,
+        -0.75, 0.375,
+        0.50, 0.125,
+        -0.25, 0.75,
+        0.625, -0.125,
+      ],
+    }],
   ]);
 
   const header = {};
   let offset = 0;
-  for (const [name, shape] of tensorShapes.entries()) {
+  for (const [name, tensor] of tensorValues.entries()) {
+    const shape = tensor.shape;
     const elements = shape.reduce((product, value) => product * value, 1);
     const bytes = elements * 4;
     header[name] = {
@@ -163,8 +253,13 @@ function buildLlama3SafetensorsFixtureBytes() {
   const prefix = new ArrayBuffer(8);
   new DataView(prefix).setBigUint64(0, BigInt(headerBytes.byteLength), true);
   const payload = new Uint8Array(offset);
-  for (let i = 0; i < payload.byteLength; i += 1) {
-    payload[i] = (i * 17) % 251;
+  const payloadView = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
+  let writeOffset = 0;
+  for (const tensor of tensorValues.values()) {
+    for (const value of tensor.values) {
+      payloadView.setFloat32(writeOffset, value, true);
+      writeOffset += 4;
+    }
   }
   const out = new Uint8Array(8 + headerBytes.byteLength + payload.byteLength);
   out.set(new Uint8Array(prefix), 0);
@@ -175,8 +270,8 @@ function buildLlama3SafetensorsFixtureBytes() {
 
 function writeLlama3SourceFixture(fixtureDir) {
   writeFileSync(path.join(fixtureDir, 'config.json'), JSON.stringify({
-    architectures: ['LlamaForCausalLM'],
-    model_type: 'llama',
+    architectures: ['TransformerForCausalLM'],
+    model_type: 'transformer',
     num_hidden_layers: 1,
     hidden_size: 2,
     num_attention_heads: 1,
@@ -230,10 +325,9 @@ try {
       quantization: {
         weights: 'f32',
       },
-      inference: {
-        session: executionSessionDefaults,
-        execution: castOnlyExecution,
-      },
+      inference: parityInference,
+      session: executionSessionDefaults,
+      execution: parityExecution,
     },
     execution: {
       workers: 1,

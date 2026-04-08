@@ -1,6 +1,16 @@
 {
   "capabilityTransforms": [
     {
+      "match": { "activationDtype": "f16", "hasSubgroups": false, "hasF16": true },
+      "transforms": ["narrowToF16Activations", "removeSubgroups"],
+      "reason": "Runtime requested f16 activations on a non-subgroup shader-f16 GPU"
+    },
+    {
+      "match": { "activationDtype": "f16", "hasSubgroups": true, "hasF16": true },
+      "transforms": ["narrowToF16Activations"],
+      "reason": "Runtime requested f16 activations on a shader-f16 GPU"
+    },
+    {
       "match": { "hasSubgroups": false, "hasF16": false },
       "transforms": ["removeSubgroups", "widenToF32Activations"],
       "reason": "GPU lacks subgroups and shader-f16"

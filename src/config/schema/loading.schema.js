@@ -27,11 +27,20 @@ export const DEFAULT_SHARD_CACHE_CONFIG = {
 // Memory Management Config
 // =============================================================================
 
+export const DEFAULT_LOADER_MEMORY_BUDGET_CONFIG = {
+  enabled: true,
+  maxResidentBytes: null,
+  systemMemoryFraction: 0.5,
+  reserveBytes: 2 * GB,
+  minimumBudgetBytes: 1 * GB,
+};
+
 export const DEFAULT_MEMORY_MANAGEMENT_CONFIG = {
   flushIntervalLayers: 4,
   flushThresholdBytes: 256 * MB,
   gpuQueueFlushLayers: 4,
   logIntervalMs: 30000, // 30 seconds
+  budget: DEFAULT_LOADER_MEMORY_BUDGET_CONFIG,
 };
 
 // =============================================================================

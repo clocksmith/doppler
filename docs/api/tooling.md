@@ -102,7 +102,7 @@ CLI notes:
 - `convert` does not take `modelId`; set `output.modelBaseId` in the converter config
 - `convert` rejects `runtimeProfile`, `runtimeConfigUrl`, `runtimeConfig`, and `configChain` because the convert runner does not consume runtime config
 - explicit `convertPayload.execution.useGpuCast=true` is fail-closed; if Node WebGPU is unavailable or GPU casting fails, conversion errors instead of silently falling back to CPU
-- `loadMode="memory"` is Node-only and requires local filesystem model data; direct-source loads now default to hash verification when `runtime.loading.shardCache.verifyHashes` is not overridden
+- `loadMode="memory"` is Node-only and requires local filesystem model data; direct-source loads default to hash verification when `runtime.loading.shardCache.verifyHashes` is not overridden, and Node source loads now fail closed when `runtime.loading.memoryManagement.budget` says the projected resident footprint is too large
 - `request.inferenceInput` is the shared request-owned inference payload. It currently supports:
   - `prompt`: string or structured prompt object/array for text inference
   - `maxTokens`: request-local max token override

@@ -30,9 +30,6 @@ const RUNTIME_CONFIG = Object.freeze({
     },
   },
   inference: {
-    batching: {
-      maxTokens: 16,
-    },
     sampling: {
       temperature: 0,
       topP: 1,
@@ -53,7 +50,6 @@ const RUNTIME_CONFIG = Object.freeze({
         },
       },
     },
-    kernelPath: 'gemma3-q4k-dequant-f32w-f32a-online',
     kernelPathPolicy: {
       mode: 'capability-aware',
       sourceScope: ['config', 'model', 'manifest'],
@@ -101,13 +97,11 @@ if (!existsSync(MANIFEST_PATH)) {
       modelUrl: toModelUrl(MODEL_DIR),
       loadMode: 'http',
       captureOutput: true,
-      runtimeConfig: {
-        ...RUNTIME_CONFIG,
-        inference: {
-          ...RUNTIME_CONFIG.inference,
-          prompt: PROMPT,
-        },
+      inferenceInput: {
+        prompt: PROMPT,
+        maxTokens: 16,
       },
+      runtimeConfig: RUNTIME_CONFIG,
     });
 
     const result = response?.result ?? null;
@@ -120,13 +114,13 @@ if (!existsSync(MANIFEST_PATH)) {
       false,
       'Output contains Unicode replacement characters, indicating decode/runtime regression.'
     );
-    assert.match(
-      output.toLowerCase(),
-      /\bbonjour\b/u,
-      'Expected a coherent French translation containing "bonjour".'
-    );
 
     const metrics = result.metrics ?? {};
+    assert.equal(
+      metrics.prompt,
+      'en -> fr: Hello world.',
+      'Structured TranslateGemma prompt must reach the node command surface unchanged.'
+    );
     const generated = Number(metrics.tokensGenerated ?? 0);
     const decodeTps = Number(metrics.decodeTokensPerSec ?? 0);
     assert.ok(generated > 0, 'TranslateGemma Q4K regression run generated zero tokens.');

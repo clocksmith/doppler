@@ -6,7 +6,7 @@ import { parseModelConfigFromManifest } from './pipelines/text/config.js';
 import { resolveKernelPathState, activateKernelPathState } from './pipelines/text/model-load.js';
 import { openModelStore, loadManifestFromStore } from '../storage/shard-manager.js';
 import { parseManifest } from '../formats/rdrr/index.js';
-import { resolveRuntime } from './browser-harness-runtime-helpers.js';
+import { cloneRuntimeConfig, resolveRuntime } from './browser-harness-runtime-helpers.js';
 import { normalizeLoadMode } from './browser-harness-suite-helpers.js';
 import { buildSourceArtifactFingerprint, createStoredSourceArtifactContext } from '../storage/source-artifact-store.js';
 
@@ -22,6 +22,23 @@ function resolveSourceVerifyHashes(options = {}) {
     return true;
   }
   return explicit === true;
+}
+
+function applyResolvedResidentBudget(runtime, maxResidentBytes) {
+  if (!runtime || !runtime.runtimeConfig || !Number.isFinite(maxResidentBytes) || maxResidentBytes <= 0) {
+    return runtime;
+  }
+  const runtimeConfig = cloneRuntimeConfig(runtime.runtimeConfig);
+  if (!runtimeConfig?.loading?.memoryManagement?.budget) {
+    throw new Error(
+      'loadMode=memory requires runtime.loading.memoryManagement.budget to resolve the resident memory budget.'
+    );
+  }
+  runtimeConfig.loading.memoryManagement.budget.maxResidentBytes = Math.floor(maxResidentBytes);
+  return {
+    ...runtime,
+    runtimeConfig,
+  };
 }
 
 export function resolveDeviceInfo() {
@@ -115,22 +132,26 @@ export async function initializeInferenceFromSourcePath(sourcePath, options = {}
     );
   }
 
-  if (options.runtime?.runtimeConfig) {
-    setRuntimeConfig(options.runtime.runtimeConfig);
-  }
-
   onProgress?.('source', 0.05, 'Preparing source runtime bundle...');
   const { resolveNodeSourceRuntimeBundle } = await import(NODE_SOURCE_RUNTIME_MODULE_PATH);
   const sourceBundle = await resolveNodeSourceRuntimeBundle({
     inputPath: sourcePath,
     modelId: options.modelId || null,
     verifyHashes: resolveSourceVerifyHashes(options),
+    runtimeConfig: options.runtime?.runtimeConfig ?? null,
   });
   if (!sourceBundle) {
     throw new Error(
       `No source-runtime model detected at "${sourcePath}". ` +
       'Expected a Safetensors directory or a .gguf file path.'
     );
+  }
+  const effectiveRuntime = applyResolvedResidentBudget(
+    options.runtime,
+    sourceBundle.resolvedMemoryBudgetBytes
+  );
+  if (effectiveRuntime?.runtimeConfig) {
+    setRuntimeConfig(effectiveRuntime.runtimeConfig);
   }
 
   onProgress?.('gpu', 0.2, 'Initializing WebGPU...');
@@ -141,7 +162,7 @@ export async function initializeInferenceFromSourcePath(sourcePath, options = {}
   onProgress?.('pipeline', 0.3, 'Creating pipeline...');
   const pipeline = await createPipeline(sourceBundle.manifest, {
     gpu: { device },
-    runtime: options.runtime,
+    runtime: effectiveRuntime,
     storage: sourceBundle.storageContext,
     onProgress,
   });

@@ -13,6 +13,18 @@ export function captureMemorySnapshot() {
   
   const snapshot = {};
 
+  // Node process memory (available in Node, including direct-source runs)
+  if (typeof process !== 'undefined' && typeof process.memoryUsage === 'function') {
+    const processMemory = process.memoryUsage();
+    snapshot.process = {
+      rss: processMemory.rss ?? 0,
+      heapUsed: processMemory.heapUsed ?? 0,
+      heapTotal: processMemory.heapTotal ?? 0,
+      external: processMemory.external ?? 0,
+      arrayBuffers: processMemory.arrayBuffers ?? 0,
+    };
+  }
+
   // JS Heap (Chrome only)
   const perfMemory =  (performance).memory;
 
@@ -53,6 +65,15 @@ export function formatMemoryStats(
 ) {
   
   const stats = [`[${elapsed.toFixed(1)}s] Memory (${phase}):`];
+
+  if (snapshot.process) {
+    stats.push(
+      `RSS=${formatBytes(snapshot.process.rss)} ` +
+      `(heap=${formatBytes(snapshot.process.heapUsed)}/${formatBytes(snapshot.process.heapTotal)}, ` +
+      `external=${formatBytes(snapshot.process.external)}, ` +
+      `arrayBuffers=${formatBytes(snapshot.process.arrayBuffers)})`
+    );
+  }
 
   if (snapshot.jsHeapUsed !== undefined) {
     stats.push(

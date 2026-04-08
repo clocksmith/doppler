@@ -62,6 +62,10 @@ export interface BuildSourceRuntimeBundleOptions {
   architecture: Record<string, unknown> | string | null;
   architectureHint?: string | null;
   rawConfig?: Record<string, unknown> | null;
+  manifestConfig?: {
+    visionConfig?: Record<string, unknown> | null;
+    audioConfig?: Record<string, unknown> | null;
+  } | null;
   inference: Record<string, unknown>;
   tensors: SourceRuntimeTensor[];
   embeddingPostprocessor?: ManifestEmbeddingPostprocessorSchema | null;
@@ -116,6 +120,7 @@ export interface CreateSourceStorageContextOptions {
   tokenizerConfigPath?: string | null;
   tokenizerModelPath?: string | null;
   verifyHashes?: boolean;
+  sourceHashesTrusted?: boolean;
 }
 
 export interface SourceStorageContext {

@@ -3,6 +3,7 @@ import {
   DEFAULT_EXECUTION_V1_SESSION,
   DEFAULT_MANIFEST_INFERENCE,
 } from '../config/schema/index.js';
+import { buildRoPEConfig } from '../converter/rope-config.js';
 
 const ZERO_DIGEST = 'sha256:' + '0'.repeat(64);
 
@@ -17,14 +18,15 @@ function readRawConfigField(rawConfig, key) {
   if (!rawConfig || typeof rawConfig !== 'object') {
     return undefined;
   }
-  if (rawConfig[key] !== undefined) {
-    return rawConfig[key];
-  }
+  const topLevelValue = rawConfig[key];
   const textConfig = rawConfig.text_config;
+  if (topLevelValue !== undefined && topLevelValue !== null) {
+    return topLevelValue;
+  }
   if (textConfig && typeof textConfig === 'object' && textConfig[key] !== undefined) {
     return textConfig[key];
   }
-  return undefined;
+  return topLevelValue;
 }
 
 function asFinitePositiveNumber(value) {
@@ -59,20 +61,142 @@ function normalizeActivation(value) {
   return null;
 }
 
+function normalizeModelFamily(rawConfig) {
+  const rawModelType = String(readRawConfigField(rawConfig, 'model_type') ?? rawConfig?.model_type ?? '').trim().toLowerCase();
+  if (rawModelType === 'gemma3' || rawModelType === 'gemma3_text') {
+    return 'gemma3';
+  }
+  if (rawModelType === 'gemma4' || rawModelType === 'gemma4_text') {
+    return 'gemma4';
+  }
+  return rawModelType;
+}
+
+function applyFamilyDefaults(inference, rawConfig) {
+  const family = normalizeModelFamily(rawConfig);
+  if (family === 'gemma3') {
+    inference.attention.queryPreAttnScalar = 256;
+    inference.attention.queryKeyNorm = true;
+    inference.attention.valueNorm = false;
+    inference.normalization.rmsNormWeightOffset = true;
+    inference.normalization.postAttentionNorm = true;
+    inference.normalization.preFeedforwardNorm = true;
+    inference.normalization.postFeedforwardNorm = true;
+    inference.output.scaleEmbeddings = true;
+    inference.chatTemplate.type = 'gemma';
+    inference.chatTemplate.enabled = true;
+    return family;
+  }
+  if (family === 'gemma4') {
+    inference.attention.queryPreAttnScalar = 1;
+    inference.attention.queryKeyNorm = true;
+    inference.attention.valueNorm = true;
+    inference.normalization.rmsNormWeightOffset = false;
+    inference.normalization.postAttentionNorm = true;
+    inference.normalization.preFeedforwardNorm = true;
+    inference.normalization.postFeedforwardNorm = true;
+    inference.output.scaleEmbeddings = true;
+    inference.chatTemplate.type = 'gemma4';
+    inference.chatTemplate.enabled = true;
+    return family;
+  }
+  return family;
+}
+
+function applyExplicitAttentionConfig(inference, rawConfig) {
+  const attentionBias = asOptionalBoolean(readRawConfigField(rawConfig, 'attention_bias'));
+  if (attentionBias != null) {
+    inference.attention.attentionBias = attentionBias;
+  }
+
+  const queryPreAttnScalar = asFinitePositiveNumber(readRawConfigField(rawConfig, 'query_pre_attn_scalar'));
+  if (queryPreAttnScalar != null) {
+    inference.attention.queryPreAttnScalar = queryPreAttnScalar;
+  }
+
+  const queryKeyNorm = asOptionalBoolean(readRawConfigField(rawConfig, 'query_key_norm'));
+  if (queryKeyNorm != null) {
+    inference.attention.queryKeyNorm = queryKeyNorm;
+  }
+
+  const valueNorm = asOptionalBoolean(readRawConfigField(rawConfig, 'value_norm'));
+  if (valueNorm != null) {
+    inference.attention.valueNorm = valueNorm;
+  }
+
+  const finalLogitSoftcapping = asFinitePositiveNumber(readRawConfigField(rawConfig, 'final_logit_softcapping'));
+  if (finalLogitSoftcapping != null) {
+    inference.output.finalLogitSoftcapping = finalLogitSoftcapping;
+  }
+}
+
+function applyExplicitFfnConfig(inference, rawConfig) {
+  const useDoubleWideMlp = asOptionalBoolean(readRawConfigField(rawConfig, 'use_double_wide_mlp'));
+  if (useDoubleWideMlp != null) {
+    inference.ffn.useDoubleWideMlp = useDoubleWideMlp;
+  }
+}
+
+function applyLayerPatternConfig(inference, rawConfig) {
+  const rawLayerTypes = readRawConfigField(rawConfig, 'layer_types');
+  if (Array.isArray(rawLayerTypes) && rawLayerTypes.length > 0) {
+    inference.layerPattern.type = 'custom';
+    inference.layerPattern.globalPattern = null;
+    inference.layerPattern.period = null;
+    inference.layerPattern.offset = null;
+    inference.layerPattern.layerTypes = [...rawLayerTypes];
+    return;
+  }
+
+  const slidingWindowPattern = asFinitePositiveNumber(readRawConfigField(rawConfig, 'sliding_window_pattern'));
+  if (slidingWindowPattern != null) {
+    inference.layerPattern.type = 'every_n';
+    inference.layerPattern.globalPattern = null;
+    inference.layerPattern.period = Math.trunc(slidingWindowPattern);
+    inference.layerPattern.offset = null;
+    inference.layerPattern.layerTypes = null;
+  }
+}
+
+function resolveSourceRuntimeVisionConfig(rawConfig) {
+  const visionConfig = rawConfig?.vision_config;
+  if (!visionConfig || typeof visionConfig !== 'object' || Array.isArray(visionConfig)) {
+    return null;
+  }
+  const modelType = String(visionConfig.model_type ?? '').trim().toLowerCase();
+  const visionArchitecture = String(visionConfig.vision_architecture ?? '').trim()
+    || (modelType === 'gemma4_vision' ? 'gemma4' : '')
+    || (modelType === 'qwen3_vl' || modelType === 'qwen3vl' ? 'qwen3vl' : '');
+  return {
+    ...cloneJsonValue(visionConfig),
+    ...(visionArchitecture ? { vision_architecture: visionArchitecture } : {}),
+  };
+}
+
+function resolveSourceRuntimeAudioConfig(rawConfig) {
+  const audioConfig = rawConfig?.audio_config;
+  if (!audioConfig || typeof audioConfig !== 'object' || Array.isArray(audioConfig)) {
+    return null;
+  }
+  const modelType = String(audioConfig.model_type ?? '').trim().toLowerCase();
+  const audioArchitecture = String(audioConfig.audio_architecture ?? '').trim()
+    || (modelType === 'gemma4_audio' ? 'gemma4' : '');
+  return {
+    ...cloneJsonValue(audioConfig),
+    ...(audioArchitecture ? { audio_architecture: audioArchitecture } : {}),
+  };
+}
+
 export function createSourceRuntimeInference(rawConfig = null) {
   const inference = cloneJsonValue(DEFAULT_MANIFEST_INFERENCE);
+  applyFamilyDefaults(inference, rawConfig);
 
   const rmsNormEps = asFinitePositiveNumber(readRawConfigField(rawConfig, 'rms_norm_eps'));
   if (rmsNormEps != null) {
     inference.normalization.rmsNormEps = rmsNormEps;
   }
 
-  const ropeTheta = asFinitePositiveNumber(
-    readRawConfigField(rawConfig, 'rope_theta') ?? readRawConfigField(rawConfig, 'rope_freq_base')
-  );
-  if (ropeTheta != null) {
-    inference.rope.ropeTheta = ropeTheta;
-  }
+  Object.assign(inference.rope, buildRoPEConfig(inference, rawConfig));
 
   const slidingWindow = readRawConfigField(rawConfig, 'sliding_window');
   if (slidingWindow === null) {
@@ -100,6 +224,10 @@ export function createSourceRuntimeInference(rawConfig = null) {
   if (scaleEmbeddings != null) {
     inference.output.scaleEmbeddings = scaleEmbeddings;
   }
+
+  applyExplicitAttentionConfig(inference, rawConfig);
+  applyExplicitFfnConfig(inference, rawConfig);
+  applyLayerPatternConfig(inference, rawConfig);
 
   return inference;
 }
@@ -132,6 +260,10 @@ export function createSourceRuntimeSession() {
 export function createSourceRuntimeConverterConfig(options = {}) {
   return createConverterConfig({
     quantization: options.quantization ?? undefined,
+    manifest: {
+      visionConfig: resolveSourceRuntimeVisionConfig(options.rawConfig ?? null),
+      audioConfig: resolveSourceRuntimeAudioConfig(options.rawConfig ?? null),
+    },
     output: {
       modelBaseId: options.modelId ?? null,
     },

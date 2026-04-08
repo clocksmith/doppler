@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 
 const { DEFAULT_MANIFEST_INFERENCE } = await import('../../src/config/schema/index.js');
 const {
@@ -13,7 +14,7 @@ const tensors = [
     name: 'model.embed_tokens.weight',
     shape: [4, 4],
     dtype: 'F16',
-    size: 32,
+    size: 4,
     offset: 0,
     sourcePath: 'weights_a.safetensors',
   },
@@ -21,15 +22,15 @@ const tensors = [
     name: 'model.layers.0.self_attn.q_proj.weight',
     shape: [4, 4],
     dtype: 'F16',
-    size: 32,
-    offset: 32,
+    size: 4,
+    offset: 4,
     sourcePath: 'weights_a.safetensors',
   },
   {
     name: 'lm_head.weight',
     shape: [4, 4],
     dtype: 'F16',
-    size: 32,
+    size: 4,
     offset: 0,
     sourcePath: 'weights_b.safetensors',
   },
@@ -38,14 +39,33 @@ const tensors = [
     shape: [],
     dtype: 'BF16',
     size: 2,
-    offset: 32,
+    offset: 4,
     sourcePath: 'weights_b.safetensors',
   },
 ];
 
+const shardData = new Map([
+  ['weights_a.safetensors', new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7])],
+  ['weights_b.safetensors', new Uint8Array([8, 9, 10, 11, 12, 13])],
+]);
+
+function sha256Hex(bytes) {
+  return createHash('sha256').update(bytes).digest('hex');
+}
+
 const sourceFiles = [
-  { path: 'weights_a.safetensors', size: 64 },
-  { path: 'weights_b.safetensors', size: 34 },
+  {
+    path: 'weights_a.safetensors',
+    size: shardData.get('weights_a.safetensors').byteLength,
+    hash: sha256Hex(shardData.get('weights_a.safetensors')),
+    hashAlgorithm: 'sha256',
+  },
+  {
+    path: 'weights_b.safetensors',
+    size: shardData.get('weights_b.safetensors').byteLength,
+    hash: sha256Hex(shardData.get('weights_b.safetensors')),
+    hashAlgorithm: 'sha256',
+  },
 ];
 
 const bundle = await buildSourceRuntimeBundle({
@@ -109,11 +129,6 @@ assert.equal(bundle.manifest.metadata?.sourceRuntime?.schema, 'direct-source/v1'
 assert.equal(bundle.manifest.metadata?.sourceRuntime?.schemaVersion, 1);
 assert.equal(bundle.manifest.metadata?.sourceRuntime?.pathSemantics, 'runtime-local');
 
-const shardData = new Map([
-  ['weights_a.safetensors', new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7])],
-  ['weights_b.safetensors', new Uint8Array([8, 9, 10, 11])],
-]);
-
 const storageContext = createSourceStorageContext({
   manifest: bundle.manifest,
   shardSources: bundle.shardSources,
@@ -170,12 +185,36 @@ await assert.rejects(
 const verifyContext = createSourceStorageContext({
   manifest: bundle.manifest,
   shardSources: bundle.shardSources,
-  readRange: async () => new Uint8Array([1, 2, 3, 4]),
+  readRange: async (path, offset, length) => {
+    const bytes = shardData.get(path);
+    if (!bytes) {
+      throw new Error(`missing shard ${path}`);
+    }
+    return bytes.slice(offset, offset + length);
+  },
   verifyHashes: true,
 });
 assert.equal(verifyContext.verifyHashes, true);
-assert.equal(verifyContext.loadShardRange, null);
-assert.equal(verifyContext.streamShardRange, null);
+assert.equal(typeof verifyContext.loadShardRange, 'function');
+assert.equal(typeof verifyContext.streamShardRange, 'function');
+assert.deepEqual(Array.from(new Uint8Array(await verifyContext.loadShardRange(0, 2, 3))), [2, 3, 4]);
+
+const verifiedStreamed = [];
+for await (const chunk of verifyContext.streamShardRange(1, 1, 4, { chunkBytes: 2 })) {
+  verifiedStreamed.push(...chunk);
+}
+assert.deepEqual(verifiedStreamed, [9, 10, 11, 12]);
+
+const corruptVerifyContext = createSourceStorageContext({
+  manifest: bundle.manifest,
+  shardSources: bundle.shardSources,
+  readRange: async (_path, _offset, length) => new Uint8Array(Math.max(0, length)),
+  verifyHashes: true,
+});
+await assert.rejects(
+  () => corruptVerifyContext.loadShardRange(0, 0, 2),
+  /Source file hash mismatch/
+);
 
 const malformedRangeContext = createSourceStorageContext({
   manifest: bundle.manifest,

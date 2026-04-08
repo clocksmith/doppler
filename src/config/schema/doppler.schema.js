@@ -199,7 +199,16 @@ function mergeLoadingConfig(
       : { ...base.storage },
     distribution: { ...base.distribution, ...overrides.distribution },
     shardCache: { ...base.shardCache, ...overrides.shardCache },
-    memoryManagement: { ...base.memoryManagement, ...overrides.memoryManagement },
+    memoryManagement: overrides.memoryManagement
+      ? {
+          ...base.memoryManagement,
+          ...overrides.memoryManagement,
+          budget: {
+            ...base.memoryManagement.budget,
+            ...overrides.memoryManagement.budget,
+          },
+        }
+      : { ...base.memoryManagement },
     prefetch: { ...base.prefetch, ...overrides.prefetch },
     opfsPath: { ...base.opfsPath, ...overrides.opfsPath },
     expertCache: { ...base.expertCache, ...overrides.expertCache },

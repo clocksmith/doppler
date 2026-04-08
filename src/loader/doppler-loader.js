@@ -228,6 +228,29 @@ export class DopplerLoader {
     this.#memoryMonitor.start(() => this.#getMemoryState());
   }
 
+  #assertResidentBudget(phase) {
+    const budgetConfig = this.#loadingConfig?.memoryManagement?.budget;
+    if (!budgetConfig || budgetConfig.enabled !== true) {
+      return;
+    }
+    const maxResidentBytes = Number(budgetConfig.maxResidentBytes);
+    if (!Number.isFinite(maxResidentBytes) || maxResidentBytes <= 0) {
+      return;
+    }
+    if (typeof process === 'undefined' || typeof process.memoryUsage !== 'function') {
+      return;
+    }
+    const rssBytes = process.memoryUsage().rss;
+    if (rssBytes <= maxResidentBytes) {
+      return;
+    }
+    throw new Error(
+      `Loader resident memory budget exceeded during ${phase}: ` +
+      `rss=${formatBytes(rssBytes)}, max=${formatBytes(maxResidentBytes)}. ` +
+      'Lower the model working set or raise runtime.loading.memoryManagement.budget.maxResidentBytes.'
+    );
+  }
+
   
   #stopMemoryLogging(phase = 'complete') {
     if (this.#memoryMonitor) {
@@ -375,6 +398,7 @@ export class DopplerLoader {
     this.modelId = modelId;
 
     this.#startMemoryLogging();
+    this.#assertResidentBudget('load start');
 
     if (!this.shardCache.hasCustomLoader) {
       await openModelStore(modelId);
@@ -504,6 +528,7 @@ export class DopplerLoader {
     try {
       reportProgress('shards', 0.1, 'Loading embeddings...');
       await this.#loadEmbeddings(onProgress);
+      this.#assertResidentBudget('embeddings');
 
       const resolveNumLayers = (value) => {
         const normalized = Number(value);
@@ -577,6 +602,7 @@ export class DopplerLoader {
             message: `Layer ${l + 1}/${numLayers}`,
           });
         }
+        this.#assertResidentBudget(`layer ${l + 1}`);
       }
 
       const layersTotalTime = ((performance.now() - layersStartTime) / 1000).toFixed(2);
@@ -584,6 +610,7 @@ export class DopplerLoader {
 
       reportProgress('gpu_transfer', 0.85, 'Loading final weights...');
       await this.#loadFinalWeights(onProgress);
+      this.#assertResidentBudget('final weights');
 
       if (onProgress) {
         onProgress({ stage: 'complete', progress: 1.0 });

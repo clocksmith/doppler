@@ -414,6 +414,19 @@ const F16_TO_F32_ACTIVATION_MAP = new Map([
 ]);
 
 /**
+ * Activation-only narrowing: f32-activation shaders that still consume f16
+ * weights/KV are rewritten onto the matching f16-activation lane.
+ *
+ * This is the inverse of `F16_TO_F32_ACTIVATION_MAP` and is used when a
+ * runtime session explicitly requests f16 activations for an execution-v1
+ * graph that was authored with conservative f32 activation defaults.
+ * @type {ReadonlyMap<string, string>}
+ */
+const F32_TO_F16_ACTIVATION_MAP = new Map(
+  Array.from(F16_TO_F32_ACTIVATION_MAP.entries(), ([from, to]) => [to, from])
+);
+
+/**
  * Correctness fallback: preserve f16 weights where possible, but widen both
  * activations and KV-cache interactions onto the stable f32 execution lane.
  * Used for alternate-plan recovery after finiteness failure.
@@ -542,6 +555,39 @@ export function widenToF32CorrectnessFallback(graph, ctx) {
   const result = cloneGraph(graph);
   for (const [key, entry] of Object.entries(result.kernels)) {
     const replacement = F16_TO_F32_CORRECTNESS_FALLBACK_MAP.get(entry.kernel);
+    if (replacement !== undefined) {
+      result.kernels[key] = deriveKernelEntry(entry, replacement, entry.entry);
+    }
+  }
+  return result;
+}
+
+/**
+ * Narrow f32-activation shaders back onto their f16-activation equivalents.
+ *
+ * Returns null if the graph has no supported f32-activation kernels to swap or
+ * if the runtime did not explicitly request f16 activations on an f16-capable
+ * GPU.
+ *
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {import('./execution-graph-transforms.js').TransformContext} ctx
+ * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
+ */
+export function narrowToF16Activations(graph, ctx) {
+  if (ctx.activationDtype !== 'f16' || ctx.capabilities?.hasF16 !== true) {
+    return null;
+  }
+
+  const hasTargetShader = Object.values(graph.kernels).some(
+    (entry) => F32_TO_F16_ACTIVATION_MAP.has(entry.kernel)
+  );
+  if (!hasTargetShader) {
+    return null;
+  }
+
+  const result = cloneGraph(graph);
+  for (const [key, entry] of Object.entries(result.kernels)) {
+    const replacement = F32_TO_F16_ACTIVATION_MAP.get(entry.kernel);
     if (replacement !== undefined) {
       result.kernels[key] = deriveKernelEntry(entry, replacement, entry.entry);
     }
@@ -1337,6 +1383,7 @@ export function composeTransforms(...transforms) {
 
 /** @type {Readonly<Record<string, Function>>} */
 export const TRANSFORMS = Object.freeze({
+  narrowToF16Activations,
   removeSubgroups,
   widenToF32Activations,
   widenToF32CorrectnessFallback,

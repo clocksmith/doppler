@@ -32,7 +32,14 @@
       },
       "memoryManagement": {
         "flushIntervalLayers": 1,
-        "flushThresholdBytes": 134217728
+        "flushThresholdBytes": 134217728,
+        "budget": {
+          "enabled": true,
+          "maxResidentBytes": null,
+          "systemMemoryFraction": 0.5,
+          "reserveBytes": 4294967296,
+          "minimumBudgetBytes": 2147483648
+        }
       }
     },
     "inference": {

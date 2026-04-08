@@ -23,49 +23,10 @@ export function hasExecutionV1(manifestInference) {
 }
 
 function mergeExecutionV1Session(manifestSession, runtimeSession) {
-  const session = mergeRuntimeValues(
+  return mergeRuntimeValues(
     manifestSession ?? {},
     runtimeSession ?? {}
   );
-  const manifestDefaults = manifestSession?.compute?.defaults ?? null;
-  const manifestKvCache = manifestSession?.kvcache ?? null;
-  const lockedDefaults = {};
-
-  if (manifestDefaults?.activationDtype != null) {
-    lockedDefaults.activationDtype = manifestDefaults.activationDtype;
-  }
-  if (manifestDefaults?.mathDtype != null) {
-    lockedDefaults.mathDtype = manifestDefaults.mathDtype;
-  }
-  if (manifestDefaults?.accumDtype != null) {
-    lockedDefaults.accumDtype = manifestDefaults.accumDtype;
-  }
-  if (manifestDefaults?.outputDtype != null) {
-    lockedDefaults.outputDtype = manifestDefaults.outputDtype;
-  }
-
-  return {
-    ...session,
-    ...(Object.keys(lockedDefaults).length > 0
-      ? {
-        compute: {
-          ...session.compute,
-          defaults: {
-            ...session.compute?.defaults,
-            ...lockedDefaults,
-          },
-        },
-      }
-      : {}),
-    ...(manifestKvCache?.kvDtype != null
-      ? {
-        kvcache: {
-          ...session.kvcache,
-          kvDtype: manifestKvCache.kvDtype,
-        },
-      }
-      : {}),
-  };
 }
 
 const EXECUTION_V1_PROJECTION_OPS = new Set([

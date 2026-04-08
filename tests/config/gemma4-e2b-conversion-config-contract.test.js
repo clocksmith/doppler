@@ -106,6 +106,63 @@ assert.equal(
   'attention_streaming_f16kv.wgsl'
 );
 
+const runtimeF16Primary = compileExecutionV1({
+  manifestInference,
+  modelId: config.output.modelBaseId,
+  numLayers: 35,
+  runtimeSession: {
+    ...config.session,
+    compute: {
+      ...config.session.compute,
+      defaults: {
+        ...config.session.compute.defaults,
+        activationDtype: 'f16',
+        mathDtype: 'f16',
+        outputDtype: 'f16',
+      },
+    },
+  },
+  capabilities: {
+    hasSubgroups: true,
+    hasF16: true,
+    hasSubgroupsF16: true,
+  },
+  platform: {
+    id: 'test-f16-runtime',
+    vendor: 'test',
+    architecture: 'test',
+  },
+  runtimeCompute: {
+    rangeAwareSelectiveWidening: {
+      enabled: true,
+      includeNonFinite: true,
+      onTrigger: 'fallback-plan',
+      absThreshold: 65500,
+    },
+  },
+  kernelPathPolicy: {
+    mode: 'capability-aware',
+    sourceScope: ['manifest', 'model', 'config'],
+    onIncompatible: 'remap',
+  },
+});
+
+assert.deepEqual(runtimeF16Primary.appliedTransforms, ['narrowToF16Activations']);
+assert.equal(runtimeF16Primary.session.compute.defaults.activationDtype, 'f16');
+assert.equal(runtimeF16Primary.session.kvcache.kvDtype, 'f16');
+assert.equal(
+  runtimeF16Primary.runtimeInferencePatch?.kernelPath?.decode?.steps?.find((step) => step.op === 'q_proj')?.kernel,
+  'matmul_gemv_subgroup_f16a.wgsl'
+);
+assert.equal(
+  runtimeF16Primary.runtimeInferencePatch?.kernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.kernel,
+  'attention_streaming_f16.wgsl'
+);
+assert.equal(
+  runtimeF16Primary.runtimeInferencePatch?.kernelPath?.prefill?.steps?.find((step) => step.op === 'q_proj')?.kernel,
+  'matmul_f16.wgsl'
+);
+
 const finitenessFallback = compileExecutionV1({
   manifestInference,
   modelId: config.output.modelBaseId,

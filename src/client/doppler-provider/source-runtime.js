@@ -571,6 +571,7 @@ export async function resolveBridgeSourceRuntimeBundle(options = {}) {
     architecture: parsed.architecture,
     architectureHint: parsed.architectureHint,
     rawConfig: parsed.config,
+    manifestConfig: converterConfig.manifest ?? null,
     inference: plan.manifestInference,
     tensors: parsed.tensors,
     embeddingPostprocessor: parsed.embeddingPostprocessor ?? null,

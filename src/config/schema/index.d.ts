@@ -285,6 +285,7 @@ export {
 export {
   // Types
   type ShardCacheConfigSchema,
+  type LoaderMemoryBudgetConfigSchema,
   type MemoryManagementConfigSchema,
   type PrefetchConfigSchema,
   type OpfsPathConfigSchema,
@@ -294,6 +295,7 @@ export {
   // Defaults
   DEFAULT_Q4K_LAYOUT,
   DEFAULT_SHARD_CACHE_CONFIG,
+  DEFAULT_LOADER_MEMORY_BUDGET_CONFIG,
   DEFAULT_MEMORY_MANAGEMENT_CONFIG,
   DEFAULT_PREFETCH_CONFIG,
   DEFAULT_OPFS_PATH_CONFIG,

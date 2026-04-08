@@ -359,16 +359,37 @@ const compiledWithRuntimeSessionDefaults = compileExecutionV1({
   },
   capabilities: { hasF16: true, hasSubgroups: true },
   platform: { id: 'test', vendor: 'test', architecture: 'test' },
+  kernelPathPolicy: {
+    mode: 'capability-aware',
+    sourceScope: ['manifest', 'model', 'config'],
+    allowSources: ['manifest', 'model', 'config'],
+    onIncompatible: 'remap',
+  },
 });
 
-if (compiledWithRuntimeSessionDefaults.session?.compute?.defaults?.activationDtype !== 'f32') {
-  throw new Error('Execution-v1 must preserve manifest activationDtype over runtime session defaults');
+if (compiledWithRuntimeSessionDefaults.session?.compute?.defaults?.activationDtype !== 'f16') {
+  throw new Error('Execution-v1 must let runtime session activationDtype override manifest defaults');
 }
 if (compiledWithRuntimeSessionDefaults.session?.kvcache?.kvDtype !== 'f16') {
-  throw new Error('Execution-v1 must preserve manifest kvDtype over runtime session defaults');
+  throw new Error('Execution-v1 must retain the runtime-overridden kvDtype');
 }
-if (compiledWithRuntimeSessionDefaults.runtimeInferencePatch.kernelPath?.activationDtype !== 'f32') {
-  throw new Error('Execution-v1 inline kernel path must retain manifest activationDtype');
+if (compiledWithRuntimeSessionDefaults.runtimeInferencePatch.kernelPath?.activationDtype !== 'f16') {
+  throw new Error('Execution-v1 inline kernel path must reflect the runtime activationDtype');
+}
+if (!compiledWithRuntimeSessionDefaults.appliedTransforms?.includes('narrowToF16Activations')) {
+  throw new Error('Execution-v1 must remap the graph onto f16 kernels when runtime requests f16 activations');
+}
+if (
+  compiledWithRuntimeSessionDefaults.runtimeInferencePatch.kernelPath?.decode?.steps?.find((step) => step.op === 'q_proj')?.kernel
+  !== 'matmul_gemv_subgroup_f16a.wgsl'
+) {
+  throw new Error('Execution-v1 f16 runtime path must remap decode projections onto f16 GEMV kernels');
+}
+if (
+  compiledWithRuntimeSessionDefaults.runtimeInferencePatch.kernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.kernel
+  !== 'attention_decode_online_f16.wgsl'
+) {
+  throw new Error('Execution-v1 f16 runtime path must remap attention onto f16 kernels');
 }
 if (compiledWithRuntimeSessionDefaults.runtimeInferencePatch.session?.kvcache?.maxSeqLen !== 4096) {
   throw new Error('Execution-v1 session merge must still retain non-dtype runtime session fields');

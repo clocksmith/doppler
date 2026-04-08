@@ -45,6 +45,11 @@ for (const [file, profile] of Object.entries(profiles)) {
   const lowMemory = profiles['gemma4-e2b-low-memory.json'];
   assert.equal(lowMemory.extends, 'profiles/low-memory');
   assert.equal(lowMemory.intent, 'investigate');
+  assert.equal(lowMemory.runtime.shared?.bufferPool?.budget?.hardFailOnBudgetExceeded, true);
+  assert.ok(lowMemory.runtime.shared?.bufferPool?.budget?.maxTotalBytes > 0);
+  assert.equal(lowMemory.runtime.loading?.memoryManagement?.budget?.enabled, true);
+  assert.equal(lowMemory.runtime.loading?.memoryManagement?.budget?.systemMemoryFraction, 0.5);
+  assert.equal(lowMemory.runtime.loading?.memoryManagement?.budget?.maxResidentBytes, null);
   assert.equal(lowMemory.runtime.inference?.kvcache?.maxSeqLen, 2048);
   assert.equal(lowMemory.runtime.inference?.kvcache?.layout, 'contiguous');
   assert.equal(lowMemory.runtime.inference?.session?.kvcache?.maxSeqLen, 2048);

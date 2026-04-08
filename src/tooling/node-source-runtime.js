@@ -1,10 +1,12 @@
 import { createReadStream } from 'node:fs';
 import fs from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { totalmem } from 'node:os';
 import path from 'node:path';
 import {
   HEADER_READ_SIZE,
 } from '../config/schema/index.js';
+import { getRuntimeConfig } from '../config/runtime.js';
 import { extractArchitecture } from '../converter/core.js';
 import {
   inferSourceWeightQuantization,
@@ -16,6 +18,7 @@ import { parseTransformerModel } from '../converter/parsers/transformer.js';
 import { parseGGUFHeader } from '../formats/gguf/types.js';
 import { parseSafetensorsHeader } from '../formats/safetensors/types.js';
 import { log } from '../debug/index.js';
+import { formatBytes } from '../storage/quota.js';
 import {
   buildSourceRuntimeBundle,
   createSourceStorageContext,
@@ -30,6 +33,7 @@ const SUPPORTED_SOURCE_DTYPES = new Set([
   'Q4_K_M',
   'Q6_K',
 ]);
+const MAX_NODE_READ_BYTES = 64 * 1024 * 1024;
 
 function toArrayBuffer(value, label) {
   if (value instanceof ArrayBuffer) {
@@ -128,7 +132,8 @@ async function readRange(filePath, offset, length) {
     const out = Buffer.allocUnsafe(end - start);
     let pos = 0;
     while (pos < out.length) {
-      const { bytesRead } = await handle.read(out, pos, out.length - pos, start + pos);
+      const nextChunkBytes = Math.min(out.length - pos, MAX_NODE_READ_BYTES);
+      const { bytesRead } = await handle.read(out, pos, nextChunkBytes, start + pos);
       if (bytesRead === 0) break;
       pos += bytesRead;
     }
@@ -386,6 +391,29 @@ function inferSourceQuantizationForSourceRuntime(tensors, sourceKind) {
 
 function buildNodeFileReaders() {
   const readRangeFromFile = async (filePath, offset, length) => readRange(filePath, offset, length);
+  const streamRange = async function* (filePath, offset, length, options = {}) {
+    if (!Number.isFinite(offset) || !Number.isFinite(length) || length <= 0) {
+      return;
+    }
+    const stats = await getPathStats(filePath, `stream source asset (${filePath})`);
+    const start = Math.max(0, Math.floor(offset));
+    const end = Math.min(Number(stats.size), start + Math.floor(length));
+    if (end <= start) {
+      return;
+    }
+    const chunkBytesRaw = Number(options?.chunkBytes);
+    const highWaterMark = Number.isFinite(chunkBytesRaw) && chunkBytesRaw > 0
+      ? Math.floor(chunkBytesRaw)
+      : MAX_NODE_READ_BYTES;
+    const stream = createReadStream(filePath, {
+      start,
+      end: end - 1,
+      highWaterMark,
+    });
+    for await (const chunk of stream) {
+      yield chunk;
+    }
+  };
   const readText = async (filePath) => {
     try {
       return await fs.readFile(filePath, 'utf8');
@@ -402,6 +430,7 @@ function buildNodeFileReaders() {
   };
   return {
     readRange: readRangeFromFile,
+    streamRange,
     readText,
     readBinary,
   };
@@ -475,6 +504,115 @@ async function computeFileHash(filePath, hashAlgorithm) {
   });
 }
 
+function resolveLoadingConfig(runtimeConfig) {
+  const loadingConfig = runtimeConfig?.loading ?? getRuntimeConfig().loading;
+  if (!loadingConfig || typeof loadingConfig !== 'object') {
+    throw new Error('node source runtime: runtime.loading is required.');
+  }
+  return loadingConfig;
+}
+
+function resolveMemoryBudgetConfig(loadingConfig) {
+  const budget = loadingConfig?.memoryManagement?.budget;
+  if (!budget || typeof budget !== 'object') {
+    throw new Error('node source runtime: runtime.loading.memoryManagement.budget is required.');
+  }
+  return budget;
+}
+
+function resolveResidentBudgetBytes(loadingConfig) {
+  const budget = resolveMemoryBudgetConfig(loadingConfig);
+  if (budget.enabled !== true) {
+    return null;
+  }
+
+  const explicitMaxResidentBytes = budget.maxResidentBytes;
+  if (explicitMaxResidentBytes != null) {
+    const normalized = Number(explicitMaxResidentBytes);
+    if (!Number.isFinite(normalized) || normalized <= 0) {
+      throw new Error(
+        'node source runtime: runtime.loading.memoryManagement.budget.maxResidentBytes ' +
+        'must be a positive number or null.'
+      );
+    }
+    return Math.floor(normalized);
+  }
+
+  const systemMemoryFraction = Number(budget.systemMemoryFraction);
+  const reserveBytes = Number(budget.reserveBytes);
+  const minimumBudgetBytes = Number(budget.minimumBudgetBytes);
+  if (!Number.isFinite(systemMemoryFraction) || systemMemoryFraction <= 0 || systemMemoryFraction > 1) {
+    throw new Error(
+      'node source runtime: runtime.loading.memoryManagement.budget.systemMemoryFraction ' +
+      'must be within (0, 1].'
+    );
+  }
+  if (!Number.isFinite(reserveBytes) || reserveBytes < 0) {
+    throw new Error(
+      'node source runtime: runtime.loading.memoryManagement.budget.reserveBytes ' +
+      'must be a non-negative number.'
+    );
+  }
+  if (!Number.isFinite(minimumBudgetBytes) || minimumBudgetBytes <= 0) {
+    throw new Error(
+      'node source runtime: runtime.loading.memoryManagement.budget.minimumBudgetBytes ' +
+      'must be a positive number.'
+    );
+  }
+
+  const derived = Math.floor(totalmem() * systemMemoryFraction) - Math.floor(reserveBytes);
+  return Math.max(Math.floor(minimumBudgetBytes), derived);
+}
+
+function estimateSourceRuntimeTransientBytes(parsed, loadingConfig) {
+  const maxTensorBytes = (Array.isArray(parsed?.tensors) ? parsed.tensors : []).reduce((maxBytes, tensor) => {
+    const size = Number(tensor?.size);
+    return Number.isFinite(size) && size > maxBytes ? Math.floor(size) : maxBytes;
+  }, 0);
+  const streamConfig = loadingConfig?.storage?.backend?.streaming ?? {};
+  const readChunkBytes = Number(streamConfig.readChunkBytes);
+  const maxInFlightBytes = Number(streamConfig.maxInFlightBytes);
+  const streamWindowBytes = Math.max(
+    Number.isFinite(readChunkBytes) && readChunkBytes > 0 ? Math.floor(readChunkBytes) : 0,
+    Number.isFinite(maxInFlightBytes) && maxInFlightBytes > 0 ? Math.floor(maxInFlightBytes) : 0,
+    MAX_NODE_READ_BYTES
+  );
+  return Math.max(maxTensorBytes, streamWindowBytes);
+}
+
+function assertSourceRuntimeFitsResidentBudget(parsed, loadingConfig, residentBudgetBytes) {
+  if (!Number.isFinite(residentBudgetBytes) || residentBudgetBytes <= 0) {
+    return;
+  }
+
+  const currentRssBytes = typeof process !== 'undefined' && typeof process.memoryUsage === 'function'
+    ? process.memoryUsage().rss
+    : 0;
+  const estimatedTransientBytes = estimateSourceRuntimeTransientBytes(parsed, loadingConfig);
+  const projectedResidentBytes = currentRssBytes + estimatedTransientBytes;
+  if (projectedResidentBytes <= residentBudgetBytes) {
+    return;
+  }
+
+  const sourceFiles = Array.isArray(parsed?.sourceFiles) ? parsed.sourceFiles : [];
+  const totalSourceBytes = sourceFiles.reduce((totalBytes, entry) => {
+    const size = Number(entry?.size);
+    return Number.isFinite(size) ? totalBytes + Math.max(0, Math.floor(size)) : totalBytes;
+  }, 0);
+  const largestSourceBytes = sourceFiles.reduce((maxBytes, entry) => {
+    const size = Number(entry?.size);
+    return Number.isFinite(size) && size > maxBytes ? Math.floor(size) : maxBytes;
+  }, 0);
+
+  throw new Error(
+    'node source runtime: direct-source load exceeds resident memory budget. ' +
+    `rss=${formatBytes(currentRssBytes)}, transient=${formatBytes(estimatedTransientBytes)}, ` +
+    `projected=${formatBytes(projectedResidentBytes)}, budget=${formatBytes(residentBudgetBytes)}, ` +
+    `largestSource=${formatBytes(largestSourceBytes)}, totalSource=${formatBytes(totalSourceBytes)}. ` +
+    'Lower the model working set or adjust runtime.loading.memoryManagement.budget.'
+  );
+}
+
 export async function resolveNodeSourceRuntimeBundle(options = {}) {
   const inputPath = normalizePath(options.inputPath);
   if (!inputPath) {
@@ -517,6 +655,10 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
     return null;
   }
 
+  const loadingConfig = resolveLoadingConfig(options.runtimeConfig ?? null);
+  const resolvedMemoryBudgetBytes = resolveResidentBudgetBytes(loadingConfig);
+  assertSourceRuntimeFitsResidentBudget(parsed, loadingConfig, resolvedMemoryBudgetBytes);
+
   assertSupportedSourceDtypes(parsed.tensors, parsed.sourceKind);
 
   const converterConfig = createSourceRuntimeConverterConfig({
@@ -553,6 +695,7 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
     architecture: parsed.architecture,
     architectureHint: parsed.architectureHint,
     rawConfig: parsed.config,
+    manifestConfig: converterConfig.manifest ?? null,
     inference: plan.manifestInference,
     tensors: parsed.tensors,
     embeddingPostprocessor: parsed.embeddingPostprocessor ?? null,
@@ -574,11 +717,13 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
     manifest,
     shardSources,
     readRange: readers.readRange,
+    streamRange: readers.streamRange,
     readText: readers.readText,
     readBinary: readers.readBinary,
     tokenizerJsonPath: parsed.tokenizerJsonPath,
     tokenizerModelPath: parsed.tokenizerModelPath,
     verifyHashes,
+    sourceHashesTrusted: true,
   });
 
   log.info(
@@ -591,5 +736,6 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
     storageContext,
     sourceKind: parsed.sourceKind,
     sourceRoot: parsed.sourceRoot,
+    resolvedMemoryBudgetBytes,
   };
 }

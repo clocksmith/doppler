@@ -12,6 +12,14 @@
 // ============================================================================
 
 export interface MemorySnapshot {
+  /** Node process memory (Node only) */
+  process?: {
+    rss: number;
+    heapUsed: number;
+    heapTotal: number;
+    external: number;
+    arrayBuffers: number;
+  };
   /** JS heap used (Chrome only) */
   jsHeapUsed?: number;
   /** JS heap total (Chrome only) */

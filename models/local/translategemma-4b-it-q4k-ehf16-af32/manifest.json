@@ -113,6 +113,29 @@
         "ringStop": 1,
         "ringStaging": 1,
         "disableCommandBatching": false
+      },
+      "perLayerInputs": {
+        "materialization": "auto",
+        "rowCache": {
+          "mode": "lru",
+          "maxRows": 256,
+          "maxBytes": 134217728,
+          "decodedDtype": "f32"
+        },
+        "prefetch": {
+          "mode": "next_token",
+          "rowsAhead": 1
+        },
+        "gpuUpload": {
+          "mode": "per_step_slices",
+          "stagingRows": 2
+        },
+        "hotCache": {
+          "mode": "prepared_tokens",
+          "maxTokens": 1024,
+          "maxBytes": 134217728,
+          "outputDtype": "f32"
+        }
       }
     },
     "execution": {
@@ -128,9 +151,9 @@
           "digest": "sha256:f516b3e4bde2015f2a207c3ca5b8c9820c7809fa8f8d0786f90c568e0f1ac077"
         },
         "gemv": {
-          "kernel": "matmul_gemv_subgroup.wgsl",
-          "entry": "main_vec4",
-          "digest": "sha256:3cee3bed453b40c5564a751d2a917649e10ad52f5268e77cbfecfcee34780457"
+          "kernel": "matmul_f32.wgsl",
+          "entry": "main",
+          "digest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8"
         },
         "rope": {
           "kernel": "rope.wgsl",
@@ -156,9 +179,9 @@
           }
         },
         "tiled": {
-          "kernel": "matmul_f16w_f32a.wgsl",
+          "kernel": "matmul_f32.wgsl",
           "entry": "main",
-          "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
+          "digest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8"
         },
         "attn_stream": {
           "kernel": "attention_streaming_f16kv.wgsl",

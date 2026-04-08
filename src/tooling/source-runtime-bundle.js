@@ -14,13 +14,14 @@ import {
   resolveTensorRole,
   sortGroupIds,
 } from '../formats/rdrr/index.js';
-import { computeHash } from '../storage/shard-manager.js';
+import { computeHash, createStreamingHasher } from '../storage/shard-manager.js';
 
 export const DIRECT_SOURCE_RUNTIME_MODE = 'direct-source';
 export const DIRECT_SOURCE_RUNTIME_SCHEMA_VERSION = 1;
 export const DIRECT_SOURCE_RUNTIME_SCHEMA = `direct-source/v${DIRECT_SOURCE_RUNTIME_SCHEMA_VERSION}`;
 export const DIRECT_SOURCE_PATH_RUNTIME_LOCAL = 'runtime-local';
 export const DIRECT_SOURCE_PATH_ARTIFACT_RELATIVE = 'artifact-relative';
+const SOURCE_VERIFY_CHUNK_BYTES = 4 * 1024 * 1024;
 
 function toPathKey(value) {
   return String(value || '').trim().replace(/\\/g, '/');
@@ -42,6 +43,12 @@ function toUint8Chunk(value, label) {
 
 function encodeUtf8(value) {
   return new TextEncoder().encode(String(value ?? ''));
+}
+
+function bytesToHex(bytes) {
+  return Array.from(bytes)
+    .map((value) => value.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 function normalizeHashAlgorithm(value) {
@@ -506,6 +513,7 @@ export async function buildSourceRuntimeBundle(options = {}) {
     quantizationInfo,
     hashAlgorithm,
     architecture: options.architecture,
+    manifestConfig: options.manifestConfig ?? null,
     inference,
     eosTokenId: options.eosTokenId,
     convertedAt: options.convertedAt ?? null,
@@ -573,15 +581,80 @@ export function createSourceStorageContext(options = {}) {
   const readBinary = typeof options.readBinary === 'function'
     ? options.readBinary
     : null;
+  const sourceFileMap = new Map(
+    shardSources.map((entry) => [entry.path, entry])
+  );
   const auxiliaryFileMap = new Map(
     (sourceRuntime?.auxiliaryFiles ?? []).map((entry) => [entry.path, entry])
   );
   const tokenizerJsonPath = options.tokenizerJsonPath ?? sourceRuntime?.tokenizer?.jsonPath ?? null;
   const tokenizerModelPath = options.tokenizerModelPath ?? sourceRuntime?.tokenizer?.modelPath ?? null;
   const verifyHashes = options.verifyHashes === true;
-  const allowRangeFastPath = verifyHashes !== true;
+  const sourceHashesTrusted = options.sourceHashesTrusted === true;
+  const verifiedSourceTasks = new Map();
 
-  const loadShardRange = allowRangeFastPath ? async (index, offset = 0, length = null) => {
+  async function ensureVerifiedSource(sourcePath) {
+    if (!verifyHashes || sourceHashesTrusted) {
+      return;
+    }
+    let task = verifiedSourceTasks.get(sourcePath);
+    if (!task) {
+      task = (async () => {
+        const descriptor = sourceFileMap.get(sourcePath);
+        if (!descriptor) {
+          throw new Error(`Missing source descriptor for ${sourcePath}.`);
+        }
+        const expectedHash = normalizeHashString(descriptor.hash, `source file hash (${sourcePath})`);
+        if (!expectedHash) {
+          throw new Error(
+            `Source file "${sourcePath}" is missing a hash digest. ` +
+            'Persist a materialized direct-source manifest or rebuild the synthetic bundle.'
+          );
+        }
+        const hasher = await createStreamingHasher(descriptor.hashAlgorithm);
+        const totalBytes = normalizePositiveInteger(descriptor.size, `source file size (${sourcePath})`);
+        if (streamRange) {
+          for await (const chunk of streamRange(sourcePath, 0, totalBytes, { chunkBytes: SOURCE_VERIFY_CHUNK_BYTES })) {
+            hasher.update(toUint8Chunk(chunk, `streamRange(${sourcePath})`));
+          }
+        } else {
+          let produced = 0;
+          while (produced < totalBytes) {
+            const nextLength = Math.min(SOURCE_VERIFY_CHUNK_BYTES, totalBytes - produced);
+            const payload = await readRange(sourcePath, produced, nextLength);
+            const bytes = toUint8Chunk(payload, `readRange(${sourcePath})`);
+            if (bytes.byteLength <= 0) {
+              break;
+            }
+            produced += bytes.byteLength;
+            hasher.update(bytes);
+          }
+          if (produced !== totalBytes) {
+            throw new Error(
+              `Source file short read for verification (${sourcePath}): ` +
+              `expected=${totalBytes}, got=${produced}.`
+            );
+          }
+        }
+        const computedHash = bytesToHex(await hasher.finalize());
+        if (computedHash !== expectedHash) {
+          throw new Error(
+            `Source file hash mismatch for ${sourcePath}. ` +
+            `Expected ${expectedHash}, got ${computedHash}.`
+          );
+        }
+      })();
+      verifiedSourceTasks.set(sourcePath, task);
+      task.catch(() => {
+        if (verifiedSourceTasks.get(sourcePath) === task) {
+          verifiedSourceTasks.delete(sourcePath);
+        }
+      });
+    }
+    await task;
+  }
+
+  const loadShardRange = async (index, offset = 0, length = null) => {
     const { sourcePath, shardSize } = resolveSourceEntry(index, manifest, shardSources);
     const start = normalizePositiveInteger(offset, `shard offset (${index})`);
     const maxLength = Math.max(0, shardSize - start);
@@ -591,21 +664,17 @@ export function createSourceStorageContext(options = {}) {
     if (requested <= 0) {
       return new ArrayBuffer(0);
     }
+    await ensureVerifiedSource(sourcePath);
     const payload = await readRange(sourcePath, start, requested);
-    return toArrayBuffer(payload, `readRange(${sourcePath})`);
-  } : null;
-
-  const loadShard = async (index) => {
-    const { shardSize } = resolveSourceEntry(index, manifest, shardSources);
-    if (loadShardRange) {
-      return loadShardRange(index, 0, shardSize);
-    }
-    const { sourcePath } = resolveSourceEntry(index, manifest, shardSources);
-    const payload = await readRange(sourcePath, 0, shardSize);
     return toArrayBuffer(payload, `readRange(${sourcePath})`);
   };
 
-  const streamShardRange = allowRangeFastPath ? async function* (index, offset = 0, length = null, streamOptions = {}) {
+  const loadShard = async (index) => {
+    const { shardSize } = resolveSourceEntry(index, manifest, shardSources);
+    return loadShardRange(index, 0, shardSize);
+  };
+
+  const streamShardRange = async function* (index, offset = 0, length = null, streamOptions = {}) {
     const { sourcePath, shardSize } = resolveSourceEntry(index, manifest, shardSources);
     const start = normalizePositiveInteger(offset, `shard stream offset (${index})`);
     const maxLength = Math.max(0, shardSize - start);
@@ -615,6 +684,7 @@ export function createSourceStorageContext(options = {}) {
     if (requested <= 0) {
       return;
     }
+    await ensureVerifiedSource(sourcePath);
 
     if (streamRange) {
       for await (const chunk of streamRange(sourcePath, start, requested, streamOptions)) {
@@ -641,7 +711,7 @@ export function createSourceStorageContext(options = {}) {
         break;
       }
     }
-  } : null;
+  };
 
   const loadTokenizerJson = readText && tokenizerJsonPath
     ? async () => {
