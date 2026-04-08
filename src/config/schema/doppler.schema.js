@@ -19,7 +19,7 @@ import {
 // =============================================================================
 
 export const DEFAULT_CHAT_TEMPLATE_CONFIG = Object.freeze({
-  enabled: false,
+  enabled: null,
   type: null,
   thinking: false,
 });

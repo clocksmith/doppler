@@ -65,7 +65,11 @@ export declare function ensurePleGpuSplitTablesRuntime(
 
 export declare function ensurePleGpuHotVocabularyRuntime(
   context: Pick<LayerContext, 'config' | 'weights' | 'perLayerInputsSession' | 'debugFlags'> & {
-    tokenizer?: { getHotTokenIds?(limit: number): number[] | null } | null;
+    tokenizer?: {
+      getHotTokenIds?(limit: number): number[] | null;
+      getSpecialTokens?(): Record<string, number | null | undefined>;
+    } | null;
+    seedTokenIds?: number[] | null;
   }
 ): Promise<object | null>;
 

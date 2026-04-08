@@ -95,6 +95,78 @@ function resolveByteLevelPretokenizerConfig(preTokenizer) {
   };
 }
 
+function isSpecialLikeHotTokenCandidate(token) {
+  if (typeof token !== 'string' || token.length === 0) {
+    return true;
+  }
+  if ((token.startsWith('<') && token.endsWith('>')) || (token.startsWith('[') && token.endsWith(']'))) {
+    return true;
+  }
+  return /unused|reserved|multimodal|image|video|audio/i.test(token);
+}
+
+function normalizeBpeHotTokenCandidate(token) {
+  if (typeof token !== 'string') {
+    return '';
+  }
+  return token
+    .replace(/^[▁Ġ]+/, '')
+    .replace(/Ċ/g, '\n');
+}
+
+function scoreBpeHotTokenCandidate(token, id) {
+  if (isSpecialLikeHotTokenCandidate(token)) {
+    return Number.NEGATIVE_INFINITY;
+  }
+  const normalized = normalizeBpeHotTokenCandidate(token);
+  if (normalized.length === 0) {
+    return Number.NEGATIVE_INFINITY;
+  }
+
+  const hasBoundaryMarker = token.startsWith('▁') || token.startsWith('Ġ');
+  const isAscii = /^[\x00-\x7F]+$/.test(normalized);
+  const isLowerAlpha = /^[a-z]+$/.test(normalized);
+  const isTitleAlpha = /^[A-Z][a-z]+$/.test(normalized);
+  const isAlpha = /^[A-Za-z]+$/.test(normalized);
+  const isPunctuation = /^[.,!?;:'"()%-]+$/.test(normalized);
+  const isDigits = /^\d+$/.test(normalized);
+  const length = normalized.length;
+
+  let score = 0;
+  if (hasBoundaryMarker) score += 40;
+  if (isLowerAlpha) score += 32;
+  else if (isTitleAlpha) score += 24;
+  else if (isAlpha) score += 20;
+  if (isPunctuation) score += 20;
+  if (isDigits) score += 8;
+  if (isAscii) score += 12;
+
+  if (length === 1) score += hasBoundaryMarker ? 8 : 2;
+  else if (length <= 4) score += 18 - (length * 2);
+  else if (length <= 8) score += 12 - (length - 4);
+  else if (length <= 12) score += 4 - (length - 8);
+  else score -= Math.min(12, length - 12);
+
+  score -= id / 1e7;
+  return score;
+}
+
+function rankFallbackBpeHotTokenIds(reverseVocab, limit, isSpecialToken) {
+  const ranked = [];
+  for (const [id, token] of reverseVocab.entries()) {
+    if (typeof isSpecialToken === 'function' && isSpecialToken(id)) {
+      continue;
+    }
+    const score = scoreBpeHotTokenCandidate(token, id);
+    if (!Number.isFinite(score)) {
+      continue;
+    }
+    ranked.push({ id, score });
+  }
+  ranked.sort((a, b) => b.score - a.score || a.id - b.id);
+  return ranked.slice(0, limit).map((entry) => entry.id);
+}
+
 function registerAddedTokens(addedTokens, vocab, reverseVocab, patterns, specialTokenIds, derivedSpecialTokens = null) {
   let maxId = -1;
   for (const token of addedTokens) {
@@ -1023,6 +1095,13 @@ export class BundledTokenizer extends BaseTokenizer {
     const resolvedLimit = Math.trunc(Number(limit));
     if (!Number.isFinite(resolvedLimit) || resolvedLimit <= 0) {
       return [];
+    }
+    if (this.#type === 'bpe' && (!Array.isArray(this.#scores) || this.#scores.length === 0)) {
+      return rankFallbackBpeHotTokenIds(
+        this.#reverseVocab,
+        resolvedLimit,
+        (tokenId) => this.isSpecialToken(tokenId)
+      );
     }
     if (!Array.isArray(this.#scores) || this.#scores.length === 0) {
       return null;

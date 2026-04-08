@@ -32,6 +32,7 @@ export interface AdapterInfo {
  */
 export interface KernelCapabilities {
   hasSubgroups: boolean;
+  /** Derived convenience bit: true when both `subgroups` and `shader-f16` are available. */
   hasSubgroupsF16: boolean;
   hasF16: boolean;
   hasTimestampQuery: boolean;
@@ -66,7 +67,6 @@ export interface DeviceLimits {
 export declare const FEATURES: {
   readonly SHADER_F16: 'shader-f16';
   readonly SUBGROUPS: 'subgroups';
-  readonly SUBGROUPS_F16: 'subgroups-f16';
   readonly TIMESTAMP_QUERY: 'timestamp-query';
 };
 

@@ -40,10 +40,6 @@
             "type": ["string", "null"],
             "minLength": 1
           },
-          "defaultKernelPath": {
-            "type": ["string", "null"],
-            "minLength": 1
-          },
           "defaultDopplerSource": {
             "type": ["string", "null"],
             "enum": ["local", "quickstart-registry", null]

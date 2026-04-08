@@ -94,7 +94,6 @@ function createGemma4E2BManifest(useDoubleWideMlp) {
       pipeline: null,
       session: createExecutionV1Session(),
       execution: null,
-      defaultKernelPath: null,
     },
     tensors: {
       'model.language_model.layers.0.mlp.gate_proj.weight': { shape: [6144, 1536] },

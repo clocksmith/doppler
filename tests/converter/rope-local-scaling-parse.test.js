@@ -85,7 +85,6 @@ const manifest = {
     },
     pipeline: null,
     session: createExecutionV1Session(),
-    defaultKernelPath: null,
   },
   config: {
     model_type: 'gemma3_text',

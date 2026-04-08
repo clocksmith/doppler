@@ -83,7 +83,7 @@ Current config intent:
   - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
   - Compute: `f16`
   - Kernel path: `gemma3-q4k-dequant-f16a-online`
-  - Execution: explicit `session` + full `execution.steps` mirrored from `gemma3-q4k-dequant-f16a-online`
+  - Execution: explicit `session` + `execution.kernels`, `preLayer`, `decode`, `prefill`, `postLayer`, and `policies`
   - Session: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=1`, `disableCommandBatching=false`
 
 - `src/config/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json`

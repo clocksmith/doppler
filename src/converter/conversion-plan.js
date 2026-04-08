@@ -2,6 +2,7 @@ import {
   EXECUTION_V1_SCHEMA_ID,
   expandExecutionV1,
 } from '../config/schema/index.js';
+import { validateRequiredInferenceFields } from '../inference/pipelines/text/config.js';
 import {
   buildQuantizationInfo,
   resolveManifestQuantization,
@@ -101,6 +102,13 @@ function isV1Config(converterConfig) {
   return exec && typeof exec === 'object' && exec.kernels && typeof exec.kernels === 'object';
 }
 
+function cloneJsonValue(value) {
+  if (value == null) return value;
+  if (typeof structuredClone === 'function') {
+    return structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value));
+}
 
 function validateV1InferenceFields(inference, modelId) {
   const required = ['attention', 'normalization', 'ffn', 'rope', 'output', 'chatTemplate'];
@@ -112,6 +120,10 @@ function validateV1InferenceFields(inference, modelId) {
       );
     }
   }
+  validateRequiredInferenceFields(
+    cloneJsonValue(inference),
+    modelId
+  );
 }
 
 

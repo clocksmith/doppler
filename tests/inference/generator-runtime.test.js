@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { installNodeFileFetchShim } from '../../src/tooling/node-file-fetch.js';
+import { createDopplerConfig } from '../../src/config/schema/index.js';
 
 installNodeFileFetchShim();
 
@@ -154,6 +155,19 @@ function createTestPlanState(maxTokens = 128) {
         session: {},
       },
     },
+    modelConfig: { chatTemplateEnabled: true },
+    manifest: { modelType: 'transformer' },
+    ...createTestPlanState(),
+  };
+
+  const opts = resolveGenerateOptions(state, {});
+  assert.equal(opts.useChatTemplate, true);
+}
+
+{
+  const state = {
+    debug: false,
+    runtimeConfig: createDopplerConfig().runtime,
     modelConfig: { chatTemplateEnabled: true },
     manifest: { modelType: 'transformer' },
     ...createTestPlanState(),

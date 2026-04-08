@@ -107,6 +107,17 @@ export function getKernelPathAttentionVariant(
   path?: KernelPathSchema | null
 ): string | null;
 
+export function getKernelPathAttentionPrecision(
+  phase: KernelPathPhase,
+  layerIndex?: number,
+  path?: KernelPathSchema | null
+): {
+  activationDtype?: 'f16' | 'f32';
+  kvDtype?: 'f16' | 'f32';
+  inputDtype?: 'f16' | 'f32';
+  outputDtype?: 'f16' | 'f32';
+} | null;
+
 /**
  * Set the active kernel path for the current pipeline.
  * Called by Pipeline when resolving kernel path.

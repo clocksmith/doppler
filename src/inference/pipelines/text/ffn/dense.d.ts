@@ -36,6 +36,19 @@ export declare function resolveFusedGateUpWeights(
   hasQ4KMaterialization: boolean;
 };
 
+export declare function resolveDenseFFNMatmulStepDtype(options?: {
+  role?: string | null;
+  phase?: 'prefill' | 'decode' | null;
+  layerIdx?: number;
+  kernelPath?: Record<string, unknown> | null;
+  fallback?: 'f16' | 'f32' | null;
+  field?: 'inputDtype' | 'outputDtype';
+  ffnStepPrecision?: {
+    inputDtype?: 'f16' | 'f32' | null;
+    outputDtype?: 'f16' | 'f32' | null;
+  } | null;
+}): 'f16' | 'f32' | null;
+
 /**
  * Run dense (non-MoE) FFN on GPU.
  */

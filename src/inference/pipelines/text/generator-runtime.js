@@ -132,12 +132,15 @@ function resolveChatTemplateEnabled(state, options) {
     return fromOptions;
   }
 
-  const fromRuntime = resolveConfiguredValue(
-    state.runtimeConfig.inference.chatTemplate?.enabled,
-    undefined,
-    'state.runtimeConfig.inference.chatTemplate.enabled',
-    (value) => typeof value === 'boolean'
-  );
+  const runtimeOverride = state.runtimeConfig.inference.chatTemplate?.enabled;
+  const fromRuntime = runtimeOverride == null
+    ? undefined
+    : resolveConfiguredValue(
+      runtimeOverride,
+      undefined,
+      'state.runtimeConfig.inference.chatTemplate.enabled',
+      (value) => typeof value === 'boolean'
+    );
   if (fromRuntime !== undefined) {
     return fromRuntime;
   }

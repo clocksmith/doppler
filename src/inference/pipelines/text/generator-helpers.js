@@ -128,6 +128,7 @@ export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, de
     runtimeComputeConfig: effectiveComputeConfig,
     activationDtype: effectiveActivationDtype,
     kernelPath: activeKernelPath,
+    executionPolicies: state.executionV1State?.policies ?? null,
     debugLayers: resolvedDebugLayers,
     finitenessBuffer: state.finitenessBuffer,
     finitenessGuardEnabled,
@@ -201,5 +202,6 @@ export function getLogitsConfig(state) {
     largeWeights: state.runtimeConfig.inference.largeWeights,
     activationDtype: effectiveActivationDtype,
     kernelPath: activeKernelPath,
+    executionPolicies: state.executionV1State?.policies ?? null,
   };
 }

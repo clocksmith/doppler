@@ -127,24 +127,14 @@ function validatePlanAgainstManifest(plan, manifest) {
   const manifestInf = manifest.inference ?? manifest;
   const warnings = [];
 
-  const manifestActivationDtype = manifestInf.compute?.activationDtype
+  const manifestActivationDtype = manifestInf.session?.compute?.defaults?.activationDtype
+    ?? manifestInf.compute?.activationDtype
     ?? manifestInf.quantizationInfo?.compute
     ?? null;
   if (manifestActivationDtype && plan.activationDtype
     && plan.activationDtype !== manifestActivationDtype) {
     warnings.push(
       `activationDtype: plan="${plan.activationDtype}" vs manifest="${manifestActivationDtype}"`
-    );
-  }
-
-  const manifestKernelPathId = manifestInf.execution?.kernelPathId
-    ?? manifestInf.defaultKernelPath
-    ?? null;
-  if (manifestKernelPathId && plan.kernelPathId
-    && plan.kernelPathId !== manifestKernelPathId
-    && plan.kernelPathSource !== 'config') {
-    warnings.push(
-      `kernelPathId: plan="${plan.kernelPathId}" vs manifest="${manifestKernelPathId}"`
     );
   }
 

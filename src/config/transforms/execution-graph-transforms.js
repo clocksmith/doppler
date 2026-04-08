@@ -87,7 +87,31 @@ function deriveKernelEntry(base, newFile, newEntry, constants) {
   } else if (constants !== undefined) {
     derived.constants = { ...constants };
   }
+  const precision = deriveKernelPrecision(base, newFile);
+  if (precision) {
+    derived.precision = precision;
+  } else {
+    delete derived.precision;
+  }
   return derived;
+}
+
+function deriveKernelPrecision(base, newFile) {
+  if (!base.precision) {
+    return null;
+  }
+  const precision = { ...base.precision };
+  if (!String(newFile).startsWith('attention')) {
+    return precision;
+  }
+  if (newFile.includes('_f16kv') || newFile.includes('_f16')) {
+    precision.kvDtype = 'f16';
+    return precision;
+  }
+  if (precision.kvDtype !== undefined) {
+    precision.kvDtype = 'f32';
+  }
+  return precision;
 }
 
 /**

@@ -65,12 +65,14 @@ function compileStep(step, index) {
   const phase = normalizePhase(step.phase, index);
   const inputDtype = normalizeOptionalDtype(step.inputDtype, `inputDtype@${index}`);
   const outputDtype = normalizeOptionalDtype(step.outputDtype, `outputDtype@${index}`);
+  const kvDtype = normalizeOptionalDtype(step.kvDtype, `kvDtype@${index}`);
 
   const withCommon = (payload) => ({
     ...payload,
     phase,
     inputDtype,
     outputDtype,
+    kvDtype,
   });
 
   switch (op) {

@@ -44,7 +44,9 @@ const expanded = expandExecutionV1(config.execution);
 assert.ok(expanded.length > 0, 'execution must expand to at least one step');
 assert.equal(config.execution?.kernels?.attn_decode?.kernel, 'attention_streaming_f16kv.wgsl');
 assert.equal(config.execution?.kernels?.attn_decode?.entry, 'main');
+assert.equal(config.execution?.kernels?.attn_decode?.precision?.kvDtype, 'f16');
 assert.equal(config.execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16kv.wgsl');
+assert.equal(config.execution?.kernels?.attn_stream?.precision?.kvDtype, 'f16');
 assert.equal(config.execution?.kernels?.gemv?.kernel, 'matmul_gemv_subgroup.wgsl');
 assert.equal(config.execution?.kernels?.tiled?.kernel, 'matmul_f16w_f32a.wgsl');
 assert.equal(config.execution?.kernels?.sample?.kernel, 'sample.wgsl');
@@ -62,6 +64,11 @@ assert.equal(config.session?.decodeLoop?.ringTokens, 2);
 assert.equal(config.session?.decodeLoop?.ringStop, 1);
 assert.equal(config.session?.decodeLoop?.ringStaging, 2);
 assert.equal(config.session?.decodeLoop?.disableCommandBatching, false);
+assert.equal(config.session?.perLayerInputs?.materialization, 'range_backed');
+assert.equal(config.session?.perLayerInputs?.hotCache?.mode, 'prepared_tokens');
+assert.equal(config.session?.perLayerInputs?.hotCache?.maxTokens, 4096);
+assert.equal(config.session?.perLayerInputs?.hotCache?.maxBytes, 268435456);
+assert.equal(config.session?.perLayerInputs?.hotCache?.outputDtype, 'f32');
 
 const manifestInference = {
   schema: 'doppler.execution/v1',
@@ -104,6 +111,14 @@ assert.equal(f16Primary.session.kvcache.kvDtype, 'f16');
 assert.equal(
   f16Primary.runtimeInferencePatch?.kernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.kernel,
   'attention_streaming_f16kv.wgsl'
+);
+assert.equal(
+  f16Primary.runtimeInferencePatch?.kernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.precision?.kvDtype,
+  'f16'
+);
+assert.equal(
+  f16Primary.runtimeInferencePatch?.kernelPath?.prefill?.steps?.find((step) => step.op === 'attention')?.precision?.kvDtype,
+  'f16'
 );
 
 const runtimeF16Primary = compileExecutionV1({
@@ -157,6 +172,10 @@ assert.equal(
 assert.equal(
   runtimeF16Primary.runtimeInferencePatch?.kernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.kernel,
   'attention_streaming_f16.wgsl'
+);
+assert.equal(
+  runtimeF16Primary.runtimeInferencePatch?.kernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.precision?.kvDtype,
+  'f16'
 );
 assert.equal(
   runtimeF16Primary.runtimeInferencePatch?.kernelPath?.prefill?.steps?.find((step) => step.op === 'q_proj')?.kernel,

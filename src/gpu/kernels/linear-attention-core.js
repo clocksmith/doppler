@@ -10,6 +10,7 @@ import {
 } from './utils.js';
 import { recordDispatch } from './dispatch.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
+import { assertImplicitDtypeTransitionAllowed } from '../../inference/pipelines/text/dtype-contract.js';
 
 const CONV_WORKGROUP_SIZE = WORKGROUP_SIZES.DEFAULT;
 const HEAD_WORKGROUP_SIZE = 128;
@@ -514,6 +515,13 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
         `L${options.layerIdx ?? 0}.linear_attention_core`
       );
       if (outputDtype === 'f16') {
+        assertImplicitDtypeTransitionAllowed({
+          executionPolicies: options.executionPolicies ?? null,
+          fromDtype: output.dtype,
+          toDtype: 'f16',
+          op: 'linear_attention_core',
+          detail: 'Linear attention core would narrow activations implicitly.',
+        });
         const casted = await recordCastF32ToF16(recorder, output);
         recorder.trackTemporaryBuffer(outputBuffer);
         return casted;
@@ -608,6 +616,13 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
       `L${options.layerIdx ?? 0}.linear_attention_core`
     );
     if (outputDtype === 'f16') {
+      assertImplicitDtypeTransitionAllowed({
+        executionPolicies: options.executionPolicies ?? null,
+        fromDtype: output.dtype,
+        toDtype: 'f16',
+        op: 'linear_attention_core',
+        detail: 'Linear attention core would narrow activations implicitly.',
+      });
       const casted = await castF32ToF16(output);
       releaseBuffer(outputBuffer);
       return casted;

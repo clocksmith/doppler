@@ -31,7 +31,6 @@ re-conversion or can be changed per-run.
 | `output.textOnly` | Conversion | Indirect (tensor set emitted) | No | Yes |
 | `manifest.hashAlgorithm` | Conversion | Yes (`hashAlgorithm`, shard hashes) | No | Yes |
 | `quantization.computePrecision` | Conversion-authored runtime default | Yes (`quantizationInfo.compute`) | Yes (through runtime/session policy) | No (for runtime behavior) |
-| `inference.defaultKernelPath` | Conversion-authored runtime default | Yes | Yes (`runtime.inference.kernelPath`) | No (for runtime behavior) |
 | `inference.session.decodeLoop.*` | Conversion-authored batching policy | Yes | Via `runtime.inference.session` | No (for runtime behavior) |
 | `inference.session.perLayerInputs.*` | Conversion-authored PLE materialization/cache policy | Yes | Via `runtime.inference.session` | No (for runtime behavior) |
 | `output.fast` | Reserved converter config flag | No active effect in current converter path | n/a | n/a |
@@ -53,9 +52,8 @@ Notes:
 
 Kernel-path resolution (low to high):
 
-1. `manifest.inference.defaultKernelPath`
-2. `runtime.inference.kernelPath`
-3. per-run pipeline context override (internal runner context)
+1. `runtime.inference.kernelPath`
+2. per-run pipeline context override (internal runner context)
 
 `null` is a valid "no explicit kernel path" result. Runtime must not invent an
 implicit `'auto'` kernel path.

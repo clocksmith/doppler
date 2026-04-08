@@ -131,6 +131,12 @@ const MATMUL_PRECISION_ROLE_ALIASES = {
   linear_a_proj: { section: 'layer', ops: ['q_proj'] },
   linear_b_proj: { section: 'layer', ops: ['q_proj'] },
 };
+const FUSED_FFN_PRECISION_FALLBACK_ROLES = new Set([
+  'ffn_gate',
+  'ffn_up',
+  'ffn_down',
+  'ffn_gate_up',
+]);
 
 function normalizeKernelFile(kernel) {
   const trimmed = kernel.trim();
@@ -269,7 +275,14 @@ export function getKernelPathMatmulPrecision(
   path = undefined
 ) {
   const step = getKernelPathMatmulStep(role, phase, layerIndex, path, MATMUL_PRECISION_ROLE_ALIASES);
-  return step?.precision ?? null;
+  if (step?.precision) {
+    return step.precision;
+  }
+  if (!FUSED_FFN_PRECISION_FALLBACK_ROLES.has(role)) {
+    return null;
+  }
+  const fusedStep = getKernelPathMatmulStep('ffn', phase, layerIndex, path);
+  return fusedStep?.precision ?? null;
 }
 
 function getKernelPathMatmulStep(
@@ -309,6 +322,18 @@ export function getKernelPathAttentionVariant(
   const step = findStepByOp(steps, 'attention');
   if (!step) return null;
   return findKernelVariant('attention', step.kernel, step.entry, phase, step.constants);
+}
+
+export function getKernelPathAttentionPrecision(
+  phase,
+  layerIndex,
+  path = undefined
+) {
+  const lookupPath = path === undefined ? activeKernelPath : path;
+  if (!lookupPath) return null;
+  const steps = getKernelPathStepsForSection(lookupPath, 'layer', phase, layerIndex ?? 0);
+  const step = findStepByOp(steps, 'attention');
+  return step?.precision ?? null;
 }
 
 // =============================================================================

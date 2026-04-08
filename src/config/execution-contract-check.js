@@ -1,5 +1,6 @@
 import { getKernelConfig } from '../gpu/kernels/kernel-configs.js';
 import { selectRuleValue as selectKernelRuleValue } from '../gpu/kernels/rule-registry.js';
+import { EXECUTION_V1_SCHEMA_ID, expandExecutionV1 } from './schema/index.js';
 
 const KV_LAYOUTS = new Set(['contiguous', 'paged', 'tiered', 'bdpa']);
 const PHASES = new Set(['prefill', 'decode', 'both']);
@@ -216,8 +217,9 @@ export function extractExecutionContractFacts(manifest) {
     ? session.decodeLoop
     : {};
 
-  const steps = Array.isArray(execution.steps)
-    ? execution.steps.map((step, index) => {
+  let steps = [];
+  if (Array.isArray(execution.steps)) {
+    steps = execution.steps.map((step, index) => {
       if (!isPlainObject(step)) {
         throw new Error(`execution contract: execution.steps[${index}] must be an object.`);
       }
@@ -230,8 +232,18 @@ export function extractExecutionContractFacts(manifest) {
         phase: normalizePhase(step.phase, `execution.steps[${index}].phase`),
         opClass: classifyOp(step.op),
       };
-    })
-    : [];
+    });
+  } else if (
+    inference.schema === EXECUTION_V1_SCHEMA_ID
+    && isPlainObject(execution.kernels)
+  ) {
+    const expanded = expandExecutionV1(execution);
+    steps = expanded.map((step, index) => ({
+      id: `${step.section}_${step.phase}_${index}_${step.op}`,
+      phase: normalizePhase(step.phase, `execution graph step ${index} phase`),
+      opClass: classifyOp(step.op),
+    }));
+  }
 
   return {
     modelId,

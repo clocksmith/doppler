@@ -93,7 +93,11 @@ export async function embed(tokenIds, embedBuffer, config) {
 
   // Check if F16 output is requested and supported
   const caps = getKernelCapabilities();
-  const useF16 = activationDtype === 'f16' && caps.hasF16;
+  const requiresF16Output = activationDtype === 'f16';
+  if (requiresF16Output && !caps.hasF16) {
+    throw new Error('[Embed] activationDtype="f16" requires shader-f16 support.');
+  }
+  const useF16 = requiresF16Output;
   
   const dtype = selectRuleValue('inference', 'dtype', 'f16OrF32', { useF16 });
 

@@ -149,6 +149,7 @@ export function buildAttentionDispatchParams(config, state, kTensor, vTensor, kv
   const {
     numTokens, slidingWindow, layerType, headDim, queryPreAttnScalar, numKVHeads,
   } = config;
+  const resolvedKvCacheDtype = config.kvCacheDtype ?? state.kvCache?.kvDtype ?? null;
 
   // Tiered prefill fallback: tiered layout does not support prefill (numTokens > 1)
   let prefillFallbackNeedsCast = false;
@@ -221,11 +222,11 @@ export function buildAttentionDispatchParams(config, state, kTensor, vTensor, kv
 
   // Cached K/V dtypes
   const cachedKDtype = selectRuleValue('inference', 'dtype', 'f16OrFallback', {
-    kvDtype: state.kvCache?.kvDtype,
+    kvDtype: resolvedKvCacheDtype,
     fallback: kTensor.dtype,
   });
   const cachedVDtype = selectRuleValue('inference', 'dtype', 'f16OrFallback', {
-    kvDtype: state.kvCache?.kvDtype,
+    kvDtype: resolvedKvCacheDtype,
     fallback: vTensor.dtype,
   });
 

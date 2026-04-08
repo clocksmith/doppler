@@ -28,6 +28,8 @@ export declare function assertKernelPathSessionCompatibility(
 export interface BuildLayerPipelineOptions {
   /** When true, throws on incompatible ops instead of returning a degraded result. */
   strict?: boolean;
+  /** When set, fused `ffn` steps inherit this dtype when they do not declare per-step precision. */
+  ffnDtypeFallback?: 'f16' | 'f32' | null;
 }
 
 export declare function buildLayerPipelineFromExecution(

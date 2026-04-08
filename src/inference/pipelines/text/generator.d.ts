@@ -20,6 +20,12 @@ export interface ChatRequestInput {
 
 export type PromptInput = string | ChatMessage[] | ChatRequestInput;
 
+export declare function shouldDisableBatchDecodeAfterShortBatch(options: {
+  hitStop: boolean;
+  actualCount: number;
+  requestedCount: number;
+}): boolean;
+
 export declare class PipelineGenerator {
   constructor(state: PipelineState);
 

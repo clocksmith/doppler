@@ -365,8 +365,6 @@ function findKernelPathUnsupportedFeatureUsages(kernelPath, capabilities) {
       let supported = true;
       if (requirement === 'subgroups') {
         supported = hasSubgroups;
-      } else if (requirement === 'subgroups-f16') {
-        supported = hasSubgroups && hasF16;
       } else if (requirement === 'shader-f16') {
         supported = hasF16;
       } else {
@@ -665,55 +663,14 @@ function applyKernelPathRuntimeDtypeContract(
     );
   }
 
-  const nextInference = {
-    ...runtimeConfig.inference,
-    compute: { ...runtimeConfig.inference.compute },
-    kvcache: { ...runtimeConfig.inference.kvcache },
-    session: {
-      ...(runtimeConfig.inference.session ?? {}),
-      compute: {
-        ...(runtimeConfig.inference.session?.compute ?? {}),
-        defaults: {
-          ...(runtimeConfig.inference.session?.compute?.defaults ?? {}),
-        },
-      },
-      kvcache: {
-        ...(runtimeConfig.inference.session?.kvcache ?? {}),
-      },
-    },
-  };
-  const dtypeChanges = [];
-
-  if (contract.activationDtype && current.activationDtype !== contract.activationDtype) {
-    nextInference.compute.activationDtype = contract.activationDtype;
-    nextInference.session.compute.defaults.activationDtype = contract.activationDtype;
-    dtypeChanges.push(`activation=${current.activationDtype ?? 'unset'}->${contract.activationDtype}`);
-  }
-
-  if (contract.kvDtype && current.kvDtype !== contract.kvDtype) {
-    nextInference.session.kvcache.kvDtype = contract.kvDtype;
-    dtypeChanges.push(`kv=${current.kvDtype ?? 'unset'}->${contract.kvDtype}`);
-  }
-
-  if (contract.outputDtype && current.outputDtype !== contract.outputDtype) {
-    nextInference.session = {
-      ...(nextInference.session ?? {}),
-      compute: {
-        ...(nextInference.session?.compute ?? {}),
-        defaults: {
-          ...(nextInference.session?.compute?.defaults ?? {}),
-          outputDtype: contract.outputDtype,
-        },
-      },
-    };
-    dtypeChanges.push(`session.outputDtype=${current.outputDtype ?? 'unset'}->${contract.outputDtype}`);
-  }
-
-  log.info(
-    'Pipeline',
-    `KernelPath ${resolvedKernelPath?.id ?? 'unknown'} applied manifest/model runtime dtype defaults: ${dtypeChanges.join(', ')}`
+  throw new Error(
+    `Manifest/model kernelPath "${resolvedKernelPath?.id ?? 'unknown'}" for "${modelId}" ` +
+    `requires matching runtime dtypes. Mismatches: ${mismatches.join('; ')}. ` +
+    'Set runtime.inference.session.compute.defaults.activationDtype, ' +
+    'runtime.inference.session.kvcache.kvDtype, and ' +
+    'runtime.inference.session.compute.defaults.outputDtype to match the kernel path. ' +
+    'Runtime dtype auto-rewrites are not allowed.'
   );
-  return { ...runtimeConfig, inference: nextInference };
 }
 
 export function resolveKernelPathState(options) {

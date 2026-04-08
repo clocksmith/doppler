@@ -71,7 +71,6 @@ const manifestArtifact = buildManifestRequiredInferenceFieldsArtifact({
     type: null,
     enabled: true,
   },
-  defaultKernelPath: 'unit-test',
 }, 'fixture.inference');
 
 assert.equal(manifestArtifact.scope, 'manifest');

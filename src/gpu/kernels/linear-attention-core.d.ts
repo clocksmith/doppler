@@ -1,5 +1,6 @@
 import type { Tensor } from '../tensor.js';
 import type { CommandRecorder } from '../command-recorder.js';
+import type { ExecutionV1PoliciesSchema } from '../../config/schema/execution-v1.schema.js';
 
 export interface LinearAttentionCoreLayerState {
   convDim: number;
@@ -28,6 +29,7 @@ export interface RunLinearAttentionCoreGPUOptions {
   qkL2NormEps?: number;
   recorder?: CommandRecorder | null;
   outputDtype?: 'f16' | 'f32';
+  executionPolicies?: ExecutionV1PoliciesSchema | null;
 }
 
 export declare function runLinearAttentionCoreGPU(

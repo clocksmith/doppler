@@ -769,6 +769,70 @@ export async function ensurePleGpuSplitTablesRuntime(context) {
   return splitTables;
 }
 
+function resolvePleHotVocabularySeedTokenIds(context, maxTokens, vocabSizePerLayerInput) {
+  const rawSeedTokenIds = Array.isArray(context?.seedTokenIds) ? context.seedTokenIds : null;
+  if (!rawSeedTokenIds || rawSeedTokenIds.length === 0) {
+    return [];
+  }
+
+  const specialTokenIds = new Set();
+  const tokenizerSpecialTokens = context?.tokenizer?.getSpecialTokens?.() ?? null;
+  if (tokenizerSpecialTokens && typeof tokenizerSpecialTokens === 'object') {
+    for (const value of Object.values(tokenizerSpecialTokens)) {
+      if (Number.isInteger(value)) {
+        specialTokenIds.add(value);
+      }
+    }
+  }
+
+  const seeded = [];
+  const seen = new Set();
+  for (let i = rawSeedTokenIds.length - 1; i >= 0; i -= 1) {
+    const tokenId = rawSeedTokenIds[i];
+    if (!Number.isInteger(tokenId) || tokenId < 0 || tokenId >= vocabSizePerLayerInput) {
+      continue;
+    }
+    if (specialTokenIds.has(tokenId) || seen.has(tokenId)) {
+      continue;
+    }
+    seeded.push(tokenId);
+    seen.add(tokenId);
+    if (seeded.length >= maxTokens) {
+      break;
+    }
+  }
+  return seeded;
+}
+
+function mergePleHotVocabularyTokenIds(seedTokenIds, tokenizerHotTokenIds, maxTokens, vocabSizePerLayerInput) {
+  const merged = [];
+  const seen = new Set();
+
+  for (const tokenId of seedTokenIds ?? []) {
+    if (!Number.isInteger(tokenId) || tokenId < 0 || tokenId >= vocabSizePerLayerInput || seen.has(tokenId)) {
+      continue;
+    }
+    merged.push(tokenId);
+    seen.add(tokenId);
+    if (merged.length >= maxTokens) {
+      return merged;
+    }
+  }
+
+  for (const tokenId of tokenizerHotTokenIds ?? []) {
+    if (!Number.isInteger(tokenId) || tokenId < 0 || tokenId >= vocabSizePerLayerInput || seen.has(tokenId)) {
+      continue;
+    }
+    merged.push(tokenId);
+    seen.add(tokenId);
+    if (merged.length >= maxTokens) {
+      break;
+    }
+  }
+
+  return merged;
+}
+
 export async function ensurePleGpuHotVocabularyRuntime(context) {
   const policy = getPleHotCachePolicy(context?.perLayerInputsSession ?? null);
   if (!policy || policy.mode !== 'tokenizer_scores') {
@@ -790,12 +854,24 @@ export async function ensurePleGpuHotVocabularyRuntime(context) {
   }
 
   const tokenizer = context?.tokenizer ?? null;
-  const hotTokenIds = typeof tokenizer?.getHotTokenIds === 'function'
+  const tokenizerHotTokenIds = typeof tokenizer?.getHotTokenIds === 'function'
     ? tokenizer.getHotTokenIds(policy.maxTokens)
     : null;
-  if (!Array.isArray(hotTokenIds) || hotTokenIds.length === 0) {
+  const seedTokenIds = resolvePleHotVocabularySeedTokenIds(
+    context,
+    policy.maxTokens,
+    vocabSizePerLayerInput
+  );
+  const hotTokenIds = mergePleHotVocabularyTokenIds(
+    seedTokenIds,
+    tokenizerHotTokenIds,
+    policy.maxTokens,
+    vocabSizePerLayerInput
+  );
+  if (hotTokenIds.length === 0) {
     return null;
   }
+  const hotTokenIdsSignature = hotTokenIds.join(',');
 
   const perLayerInputWeights = getPerLayerInputWeights(context);
   const cached = perLayerInputWeights.embedTokensPerLayerHotRuntime ?? null;
@@ -805,6 +881,7 @@ export async function ensurePleGpuHotVocabularyRuntime(context) {
     && cached.outputDtype === policy.outputDtype
     && cached.vocabSize === vocabSizePerLayerInput
     && cached.numLayers === numLayers
+    && cached.hotTokenIdsSignature === hotTokenIdsSignature
   ) {
     return cached;
   }
@@ -916,6 +993,7 @@ export async function ensurePleGpuHotVocabularyRuntime(context) {
     outputDtype: policy.outputDtype,
     vocabSize: vocabSizePerLayerInput,
     numLayers,
+    hotTokenIdsSignature,
     hotTokenIds: Uint32Array.from(hotTokenIds),
     hotTokenIndexMap,
     hotTokenIndexMapBuffer,
@@ -1185,6 +1263,7 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
           operatorDiagnostics: context.operatorDiagnostics,
           activationDtype,
           embeddingDtype: embedDtypeResolved,
+          executionPolicies: context.executionPolicies ?? null,
           inputHiddenSize: (hasSplitEmbeddingTables || hasHotVocabularyTables) ? hiddenSizePerLayerInput : totalPerLayerHiddenSize,
           hiddenOffset: (hasSplitEmbeddingTables || hasHotVocabularyTables) ? 0 : hiddenOffset,
           preloadedCpuRow,

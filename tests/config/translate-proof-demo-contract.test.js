@@ -24,7 +24,6 @@ const translategemmaProfile = (Array.isArray(compareConfig.modelProfiles) ? comp
 
 assert.ok(translategemmaProfile, 'compare profiles must include the TranslateGemma baseline mapping');
 assert.equal(translategemmaProfile.defaultTjsModelId, 'onnx-community/translategemma-text-4b-it-ONNX');
-assert.equal(translategemmaProfile.defaultKernelPath, null);
 assert.equal(translategemmaProfile.defaultDopplerSurface, 'auto');
 
 console.log('translate-proof-demo-contract.test: ok');

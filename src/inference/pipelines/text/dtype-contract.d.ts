@@ -17,6 +17,16 @@ export interface DtypeConsistencyResult {
   };
 }
 
+export interface ImplicitDtypeTransitionOptions {
+  executionPolicies?: {
+    dtypeTransition?: 'require_cast_step' | null;
+  } | null;
+  fromDtype?: 'f16' | 'f32' | null;
+  toDtype?: 'f16' | 'f32' | null;
+  op?: string | null;
+  detail?: string | null;
+}
+
 /**
  * Resolve activation dtype from all available sources.
  * Returns { activationDtype, source, allSources } for diagnostics.
@@ -36,3 +46,7 @@ export declare function assertDtypeConsistency(
   runtimeConfig: Record<string, unknown> | null,
   layerContext: Record<string, unknown> | null
 ): DtypeConsistencyResult;
+
+export declare function assertImplicitDtypeTransitionAllowed(
+  options?: ImplicitDtypeTransitionOptions
+): void;

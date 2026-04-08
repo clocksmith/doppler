@@ -76,7 +76,7 @@ async function readExpectedReleaseClaimableModelIds() {
   );
   assert.match(markdownPayload, /^# Release Matrix/m);
   assert.match(markdownPayload, /Generated: 2026-03-05T00:00:00.000Z/);
-  assert.match(markdownPayload, /\| Doppler Model \| In Catalog \| Catalog Modes \| TJS Mapping \| Kernel Path \| Surface \| Source \| Compare Lane \| Notes \|/);
+  assert.match(markdownPayload, /\| Doppler Model \| In Catalog \| Catalog Modes \| TJS Mapping \| Surface \| Source \| Compare Lane \| Notes \|/);
 }
 
 {

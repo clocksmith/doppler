@@ -66,6 +66,22 @@ function toKernelPathStep(step) {
   };
 }
 
+function applyFusedFfnKernelPathPrecision(step, activationDtype) {
+  if (!step || step.op !== 'ffn') {
+    return step;
+  }
+  const inputDtype = step.precision?.inputDtype ?? activationDtype;
+  const outputDtype = step.precision?.outputDtype ?? activationDtype;
+  return {
+    ...step,
+    precision: {
+      ...(step.precision ?? {}),
+      inputDtype,
+      outputDtype,
+    },
+  };
+}
+
 function getSectionSteps(steps, section, phase = null) {
   return steps
     .filter((step) => step.section === section)
@@ -197,12 +213,16 @@ export function buildInlineKernelPath(
       steps: prefillSteps.length > 0 ? prefillSteps : decodeSteps,
     },
   };
+  path.decode.steps = path.decode.steps.map((step) => applyFusedFfnKernelPathPrecision(step, activationDtype));
+  path.prefill.steps = path.prefill.steps.map((step) => applyFusedFfnKernelPathPrecision(step, activationDtype));
 
   if (numLayers > 0) {
     const overrides = [];
     for (let layerIdx = 0; layerIdx < numLayers; layerIdx++) {
-      const decodeLayerSteps = buildLayerPhaseSteps(steps, 'decode', layerIdx);
-      const prefillLayerSteps = buildLayerPhaseSteps(steps, 'prefill', layerIdx);
+      const decodeLayerSteps = buildLayerPhaseSteps(steps, 'decode', layerIdx)
+        .map((step) => applyFusedFfnKernelPathPrecision(step, activationDtype));
+      const prefillLayerSteps = buildLayerPhaseSteps(steps, 'prefill', layerIdx)
+        .map((step) => applyFusedFfnKernelPathPrecision(step, activationDtype));
       const hasCustomDecode = JSON.stringify(decodeLayerSteps) !== JSON.stringify(path.decode.steps);
       const hasCustomPrefill = JSON.stringify(prefillLayerSteps) !== JSON.stringify(path.prefill.steps);
       if (!hasCustomDecode && !hasCustomPrefill) continue;
@@ -256,6 +276,9 @@ export function buildInlineKernelPath(
  */
 export function buildLayerPipelineFromExecution(steps, options = {}) {
   const { strict = false } = options;
+  const ffnDtypeFallback = options.ffnDtypeFallback == null
+    ? null
+    : normalizeDtype(options.ffnDtypeFallback, 'buildLayerPipelineFromExecution.options.ffnDtypeFallback');
   const layerSectionSteps = steps.filter((step) => step.section === 'layer');
   if (layerSectionSteps.length === 0) {
     return null;
@@ -289,8 +312,13 @@ export function buildLayerPipelineFromExecution(steps, options = {}) {
       ...(step.b !== undefined ? { b: step.b } : {}),
       ...(step.variant !== undefined ? { variant: step.variant } : {}),
       ...(step.skipInputNorm !== undefined ? { skipInputNorm: step.skipInputNorm } : {}),
-      ...(step.precision?.inputDtype ? { inputDtype: step.precision.inputDtype } : {}),
-      ...(step.precision?.outputDtype ? { outputDtype: step.precision.outputDtype } : {}),
+      ...(step.precision?.inputDtype
+        ? { inputDtype: step.precision.inputDtype }
+        : (step.op === 'ffn' && ffnDtypeFallback ? { inputDtype: ffnDtypeFallback } : {})),
+      ...(step.precision?.outputDtype
+        ? { outputDtype: step.precision.outputDtype }
+        : (step.op === 'ffn' && ffnDtypeFallback ? { outputDtype: ffnDtypeFallback } : {})),
+      ...(step.precision?.kvDtype ? { kvDtype: step.precision.kvDtype } : {}),
       ...(step.fromDtype ? { fromDtype: step.fromDtype } : {}),
       ...(step.toDtype ? { toDtype: step.toDtype } : {}),
       ...(step.probeStage ? { probeStage: step.probeStage } : {}),

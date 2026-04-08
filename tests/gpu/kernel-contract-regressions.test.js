@@ -44,7 +44,7 @@ class FakeBuffer {
 const ORIGINAL_GPU_BUFFER = globalThis.GPUBuffer;
 globalThis.GPUBuffer = FakeBuffer;
 
-function createFakeDevice({ createBindGroupThrowAt = null } = {}) {
+function createFakeDevice({ createBindGroupThrowAt = null, features = [] } = {}) {
   const createdBuffers = [];
   let createBindGroupCount = 0;
 
@@ -58,7 +58,7 @@ function createFakeDevice({ createBindGroupThrowAt = null } = {}) {
         return Promise.resolve();
       },
     },
-    features: new Set(),
+    features: new Set(features),
     limits: {
       maxStorageBufferBindingSize: 1 << 20,
       maxBufferSize: 1 << 20,
@@ -166,11 +166,11 @@ try {
     assert.equal(selectScaleKernel({ inplace: true }, true), 'inplace_f16');
   }
 
-  assert.equal(hasRequiredFeatures(['subgroups-f16'], {
+  assert.equal(hasRequiredFeatures(['subgroups', 'shader-f16'], {
     hasF16: true,
     hasSubgroups: true,
     hasSubgroupsF16: false,
-  }), false);
+  }), true);
 
   {
     const input = createExternalTensor(4, 'f16', 'softmax_f16');
@@ -181,17 +181,20 @@ try {
   }
 
   {
+    const device = createFakeDevice({ features: ['shader-f16'] });
+    resetRuntime(device);
     const input = createExternalTensor(8, 'f16', 'rope_input');
-    const freqsCos = createExternalTensor(8, 'f16', 'rope_cos');
-    const freqsSin = createExternalTensor(8, 'f16', 'rope_sin');
-    await assert.rejects(
+    const freqsCos = createExternalTensor(4, 'f32', 'rope_cos');
+    const freqsSin = createExternalTensor(4, 'f32', 'rope_sin');
+    await assert.doesNotReject(
       () => runRoPE(input, freqsCos, freqsSin, 1, {
         numHeads: 1,
         headDim: 8,
         rotaryDim: 4,
-      }),
-      /RoPE f16 kernel requires rotaryDim === headDim and interleaved === false/
+        executionPolicies: { dtypeTransition: 'require_cast_step' },
+      })
     );
+    resetRuntime();
   }
 
   {
@@ -214,7 +217,7 @@ try {
     const input = createExternalTensor(8, 'f16', 'scale_input_f16');
     await assert.rejects(
       () => runScale(input, 0.5),
-      /shader-f16 support/
+      /requires features: shader-f16/
     );
     resetRuntime();
   }

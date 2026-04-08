@@ -92,6 +92,7 @@ export async function processFFNStandard(
     label: `L${layerIdx}.ffn_residual`,
     layerIdx,
     outputBuffer: decodeOutputBuffer,
+    executionPolicies: context.executionPolicies ?? null,
   });
   await runProbes('layer_out', output.buffer, {
     layerIdx,

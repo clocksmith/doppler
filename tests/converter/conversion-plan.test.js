@@ -123,6 +123,7 @@ const converterConfig = createConverterConfig();
         attnLogitSoftcapping: null,
         slidingWindow: 512,
         queryKeyNorm: true,
+        valueNorm: false,
         causal: true,
         attentionBias: false,
         attentionOutputGate: false,
@@ -143,9 +144,13 @@ const converterConfig = createConverterConfig();
       rope: {
         ropeTheta: 1000000,
         ropeLocalTheta: 10000,
+        ropeInterleaved: false,
         mropeInterleaved: false,
         mropeSection: null,
         partialRotaryFactor: 0.25,
+        ropeLocalPartialRotaryFactor: null,
+        ropeFrequencyBaseDim: null,
+        ropeLocalFrequencyBaseDim: null,
         ropeScalingType: null,
         ropeScalingFactor: 1,
         ropeLocalScalingType: null,
@@ -163,6 +168,7 @@ const converterConfig = createConverterConfig();
         scaleEmbeddings: true,
         embeddingTranspose: false,
         embeddingVocabSize: null,
+        embeddingPostprocessor: null,
       },
       layerPattern: {
         type: 'every_n',
@@ -213,6 +219,20 @@ const converterConfig = createConverterConfig();
     converterConfig: gemma4Config,
   });
   assert.equal(plan.quantizationInfo?.projector, 'f16');
+
+  const invalidGemma4Config = structuredClone(gemma4Config);
+  delete invalidGemma4Config.inference.attention.valueNorm;
+  assert.throws(
+    () => resolveConversionPlan({
+      rawConfig: { model_type: 'gemma4' },
+      tensors: [
+        { name: 'model.language_model.embed_tokens.weight', dtype: 'F16' },
+        { name: 'model.embed_vision.embedding_projection.weight', dtype: 'F16' },
+      ],
+      converterConfig: invalidGemma4Config,
+    }),
+    /attention\.valueNorm is required/
+  );
 }
 
 console.log('conversion-plan.test: ok');

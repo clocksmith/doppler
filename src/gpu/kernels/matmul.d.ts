@@ -14,6 +14,7 @@ import type { CommandRecorder } from '../command-recorder.js';
 import type { OutputBufferOptions, OutputDtypeOptions, Vec4Options } from './types.js';
 import type { KernelPathSchema } from '../../config/schema/index.js';
 import type { MatmulDebugConfigSchema } from '../../config/schema/debug.schema.js';
+import type { ExecutionV1PoliciesSchema } from '../../config/schema/execution-v1.schema.js';
 
 /** Matmul kernel options */
 export interface MatmulOptions extends OutputBufferOptions, OutputDtypeOptions, Vec4Options {
@@ -43,6 +44,8 @@ export interface MatmulOptions extends OutputBufferOptions, OutputDtypeOptions, 
   constants?: Record<string, number | boolean>;
   /** Runtime debug controls for attention projection diagnostics. */
   matmulDebug?: MatmulDebugConfigSchema | null;
+  /** Execution-v1 fail-fast policies for implicit dtype transitions. */
+  executionPolicies?: ExecutionV1PoliciesSchema | null;
 }
 
 /** Context for base matmul kernel selection rules. */

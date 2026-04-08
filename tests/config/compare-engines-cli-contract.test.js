@@ -79,13 +79,6 @@ function runCompareEngines(args) {
     }
     if (manifest) {
       assert.equal(manifest.modelId, profile.dopplerModelId);
-      if (profile.defaultKernelPath != null) {
-        assert.equal(
-          manifest?.inference?.defaultKernelPath ?? null,
-          profile.defaultKernelPath,
-          `${profile.dopplerModelId}: compare profile defaultKernelPath must match the local manifest defaultKernelPath`
-        );
-      }
       continue;
     }
     assert.equal(typeof profile.dopplerModelId, 'string');
@@ -237,7 +230,6 @@ function runCompareEngines(args) {
       {
         dopplerModelId: 'gemma-3-270m-it-f16-af32',
         defaultTjsModelId: 'onnx-community/gemma-3-270m-it-ONNX',
-        defaultKernelPath: null,
         defaultDopplerSource: 'local',
         modelBaseDir: 'local',
         defaultDopplerSurface: 'unsupported',
@@ -263,7 +255,6 @@ function runCompareEngines(args) {
       {
         dopplerModelId: 'unit-capability-model',
         defaultTjsModelId: null,
-        defaultKernelPath: null,
         defaultDopplerSource: 'local',
         modelBaseDir: 'local',
         defaultDopplerSurface: 'auto',

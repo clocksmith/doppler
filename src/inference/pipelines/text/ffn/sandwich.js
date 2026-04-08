@@ -171,6 +171,7 @@ export async function processFFNWithSandwichNorm(
       label: `L${layerIdx}.post_ffn_residual`,
       layerIdx,
       outputBuffer: decodeOutputBuffer,
+      executionPolicies: context.executionPolicies ?? null,
     });
     releaseOrTrack(recorder, ffnOutput.buffer, decodeBuffers);
   }

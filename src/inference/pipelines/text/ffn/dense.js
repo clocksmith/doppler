@@ -32,6 +32,7 @@ import {
   getKernelPathMatmulVariant,
 } from '../../../../config/kernel-path-loader.js';
 import { resolveLayerIntermediateSize } from '../config.js';
+import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
 
 const ACTIVATION_FN_MAP = {
   gelu: doGeLU,
@@ -50,13 +51,32 @@ function isQ4KMatmulVariant(variant) {
   return typeof variant === 'string' && variant.startsWith('q4_');
 }
 
-function resolveMatmulStepDtype(role, phase, layerIdx, kernelPath, fallback, field) {
-  const precision = getKernelPathMatmulPrecision(role, phase, layerIdx, kernelPath);
-  const requested = precision?.[field] ?? fallback;
+export function resolveDenseFFNMatmulStepDtype(options = {}) {
+  const precision = getKernelPathMatmulPrecision(
+    options.role,
+    options.phase,
+    options.layerIdx,
+    options.kernelPath
+  );
+  const requested = precision?.[options.field]
+    ?? options.ffnStepPrecision?.[options.field]
+    ?? options.fallback;
   if (requested == null) {
-    return fallback;
+    return options.fallback;
   }
   return selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: requested });
+}
+
+function resolveMatmulStepDtype(role, phase, layerIdx, kernelPath, fallback, field, ffnStepPrecision = null) {
+  return resolveDenseFFNMatmulStepDtype({
+    role,
+    phase,
+    layerIdx,
+    kernelPath,
+    fallback,
+    field,
+    ffnStepPrecision,
+  });
 }
 
 function hasExplicitMatmulPrecision(role, phase, layerIdx, kernelPath) {
@@ -64,10 +84,17 @@ function hasExplicitMatmulPrecision(role, phase, layerIdx, kernelPath) {
   return precision?.inputDtype != null || precision?.outputDtype != null;
 }
 
-async function coerceTensorDtype(tensor, targetDtype, recorder) {
+async function coerceTensorDtype(tensor, targetDtype, recorder, options = {}) {
   if (!targetDtype || tensor.dtype === targetDtype) {
     return tensor;
   }
+  assertImplicitDtypeTransitionAllowed({
+    executionPolicies: options.executionPolicies ?? null,
+    fromDtype: tensor.dtype,
+    toDtype: targetDtype,
+    op: options.op ?? 'ffn',
+    detail: 'The execution graph must declare this cast explicitly.',
+  });
   if (tensor.dtype === 'f32' && targetDtype === 'f16') {
     return recorder ? await recordCastF32ToF16(recorder, tensor) : await castF32ToF16(tensor);
   }
@@ -164,11 +191,22 @@ async function dispatchFusedGateUp({
   hiddenActivation,
   swigluLimit,
   recorder,
+  executionPolicies = null,
 }) {
   const useNativeF16Fused = inputTensor.dtype === 'f16' && gateDtype === 'f16' && getKernelCapabilities().hasF16;
-  const fusedInput = (!useNativeF16Fused && inputTensor.dtype === 'f16')
-    ? (recorder ? await recordCastF16ToF32(recorder, inputTensor) : await castF16ToF32(inputTensor))
-    : inputTensor;
+  let fusedInput = inputTensor;
+  if (!useNativeF16Fused && inputTensor.dtype === 'f16') {
+    assertImplicitDtypeTransitionAllowed({
+      executionPolicies,
+      fromDtype: 'f16',
+      toDtype: 'f32',
+      op: 'ffn_gate_up',
+      detail: 'The fused FFN kernel would widen activations internally.',
+    });
+    fusedInput = recorder
+      ? await recordCastF16ToF32(recorder, inputTensor)
+      : await castF16ToF32(inputTensor);
+  }
 
   if (recorder && fusedInput !== inputTensor) {
     recorder.trackTemporaryBuffer(fusedInput.buffer);
@@ -210,6 +248,7 @@ export async function runDenseFFNGPU(
   const intermediateSize = resolveLayerIntermediateSize(config, layerIdx);
   const lastTokenIdx = Math.max(0, numTokens - 1);
   const lora = context.lora || null;
+  const ffnStepPrecision = context.ffnStepPrecision ?? null;
   const kernelPath = context.kernelPath ?? null;
   const phase = context.phase ?? (numTokens === 1 ? 'decode' : 'prefill');
   const gateUpPathMode = resolveGateUpPathMode({ kernelPath, phase, layerIdx });
@@ -219,11 +258,28 @@ export async function runDenseFFNGPU(
     const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
 
     const useF16 = inputTensor.dtype === 'f16';
-    const matmulOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
+    const defaultMatmulOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
       useF16,
       fallback: inputTensor.dtype,
     });
-    const downOutputDtype = resolveMatmulStepDtype('ffn_down', phase, layerIdx, kernelPath, 'f32', 'outputDtype');
+    const matmulOutputDtype = resolveMatmulStepDtype(
+      'ffn_gate_up',
+      phase,
+      layerIdx,
+      kernelPath,
+      defaultMatmulOutputDtype,
+      'outputDtype',
+      ffnStepPrecision
+    );
+    const downOutputDtype = resolveMatmulStepDtype(
+      'ffn_down',
+      phase,
+      layerIdx,
+      kernelPath,
+      'f32',
+      'outputDtype',
+      ffnStepPrecision
+    );
     let gateUpOutput = await doMatmul(
       inputTensor, gateUpWeight,
       numTokens, intermediateSize * 2, hiddenSize,
@@ -234,6 +290,7 @@ export async function runDenseFFNGPU(
         kernelPath,
         outputDtype: matmulOutputDtype,
         role: 'ffn_gate_up',
+        executionPolicies: context.executionPolicies ?? null,
       },
       recorder
     );
@@ -306,6 +363,7 @@ export async function runDenseFFNGPU(
         kernelPath,
         outputDtype: downOutputDtype,
         role: 'ffn_down',
+        executionPolicies: context.executionPolicies ?? null,
       },
       recorder
     );
@@ -410,22 +468,41 @@ export async function runDenseFFNGPU(
     const upWeight = getWeightBuffer(fusedGateUpWeights.up ?? layerWeights.up, 'ffn_up');
     const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
     const useF16 = inputTensor.dtype === 'f16';
-    const matmulOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
+    const defaultMatmulOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
       useF16,
       fallback: inputTensor.dtype,
     });
-    const fusedDownOutputDtype = resolveMatmulStepDtype('ffn_down', phase, layerIdx, kernelPath, 'f32', 'outputDtype');
+    const matmulOutputDtype = resolveMatmulStepDtype(
+      'ffn_gate_up',
+      phase,
+      layerIdx,
+      kernelPath,
+      defaultMatmulOutputDtype,
+      'outputDtype',
+      ffnStepPrecision
+    );
+    const fusedDownOutputDtype = resolveMatmulStepDtype(
+      'ffn_down',
+      phase,
+      layerIdx,
+      kernelPath,
+      'f32',
+      'outputDtype',
+      ffnStepPrecision
+    );
     const fusedOutput = await dispatchFusedGateUp({
       inputTensor, gateWeight, upWeight, gateDtype,
       hiddenSize, intermediateSize, numTokens,
       hiddenActivation, swigluLimit, recorder,
+      executionPolicies: context.executionPolicies ?? null,
     });
 
     let downInput = fusedOutput;
     if (matmulOutputDtype === 'f16' && fusedOutput.dtype !== 'f16') {
-      downInput = recorder
-        ? await recordCastF32ToF16(recorder, fusedOutput)
-        : await castF32ToF16(fusedOutput);
+      downInput = await coerceTensorDtype(fusedOutput, 'f16', recorder, {
+        executionPolicies: context.executionPolicies ?? null,
+        op: 'ffn_down_input',
+      });
       if (recorder) {
         recorder.trackTemporaryBuffer(downInput.buffer);
       }
@@ -451,6 +528,7 @@ export async function runDenseFFNGPU(
         kernelPath,
         outputDtype: fusedDownOutputDtype,
         role: 'ffn_down',
+        executionPolicies: context.executionPolicies ?? null,
       },
       recorder
     );
@@ -511,16 +589,59 @@ export async function runDenseFFNGPU(
     useF16,
     fallback: inputTensor.dtype,
   });
-  const gateInputDtype = resolveMatmulStepDtype('ffn_gate', phase, layerIdx, kernelPath, inputTensor.dtype, 'inputDtype');
-  const gateOutputDtype = resolveMatmulStepDtype('ffn_gate', phase, layerIdx, kernelPath, defaultMatmulOutputDtype, 'outputDtype');
-  const upInputDtype = resolveMatmulStepDtype('ffn_up', phase, layerIdx, kernelPath, inputTensor.dtype, 'inputDtype');
-  const upOutputDtype = resolveMatmulStepDtype('ffn_up', phase, layerIdx, kernelPath, defaultMatmulOutputDtype, 'outputDtype');
-  const downOutputDtype = resolveMatmulStepDtype('ffn_down', phase, layerIdx, kernelPath, 'f32', 'outputDtype');
+  const gateInputDtype = resolveMatmulStepDtype(
+    'ffn_gate',
+    phase,
+    layerIdx,
+    kernelPath,
+    inputTensor.dtype,
+    'inputDtype',
+    ffnStepPrecision
+  );
+  const gateOutputDtype = resolveMatmulStepDtype(
+    'ffn_gate',
+    phase,
+    layerIdx,
+    kernelPath,
+    defaultMatmulOutputDtype,
+    'outputDtype',
+    ffnStepPrecision
+  );
+  const upInputDtype = resolveMatmulStepDtype(
+    'ffn_up',
+    phase,
+    layerIdx,
+    kernelPath,
+    inputTensor.dtype,
+    'inputDtype',
+    ffnStepPrecision
+  );
+  const upOutputDtype = resolveMatmulStepDtype(
+    'ffn_up',
+    phase,
+    layerIdx,
+    kernelPath,
+    defaultMatmulOutputDtype,
+    'outputDtype',
+    ffnStepPrecision
+  );
+  const downOutputDtype = resolveMatmulStepDtype(
+    'ffn_down',
+    phase,
+    layerIdx,
+    kernelPath,
+    'f32',
+    'outputDtype',
+    ffnStepPrecision
+  );
   const sharedInputDtype = gateInputDtype === upInputDtype ? gateInputDtype : null;
   let sharedInputTensor = inputTensor;
   let sharedInputOwned = false;
   if (sharedInputDtype && sharedInputDtype !== inputTensor.dtype) {
-    sharedInputTensor = await coerceTensorDtype(inputTensor, sharedInputDtype, recorder);
+    sharedInputTensor = await coerceTensorDtype(inputTensor, sharedInputDtype, recorder, {
+      executionPolicies: context.executionPolicies ?? null,
+      op: 'ffn_shared_input',
+    });
     sharedInputOwned = sharedInputTensor !== inputTensor;
   }
   const gateWeight = getWeightBuffer(layerWeights.gate, 'ffn_gate');
@@ -537,6 +658,7 @@ export async function runDenseFFNGPU(
       kernelPath,
       outputDtype: gateOutputDtype,
       role: 'ffn_gate',
+      executionPolicies: context.executionPolicies ?? null,
     },
     recorder
   );
@@ -579,6 +701,7 @@ export async function runDenseFFNGPU(
       kernelPath,
       outputDtype: upOutputDtype,
       role: 'ffn_up',
+      executionPolicies: context.executionPolicies ?? null,
     },
     recorder
   );
@@ -668,6 +791,7 @@ export async function runDenseFFNGPU(
       kernelPath,
       outputDtype: downOutputDtype,
       role: 'ffn_down',
+      executionPolicies: context.executionPolicies ?? null,
     },
     recorder
   );
@@ -733,6 +857,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
   const { hiddenSize, hiddenActivation, swigluLimit } = config;
   const intermediateSize = resolveLayerIntermediateSize(config, layerIdx);
   const lora = context.lora || null;
+  const ffnStepPrecision = context.ffnStepPrecision ?? null;
   const kernelPath = context.kernelPath ?? null;
   const phase = context.phase ?? (numTokens === 1 ? 'decode' : 'prefill');
   const gateUpPathMode = resolveGateUpPathMode({ kernelPath, phase, layerIdx });
@@ -747,10 +872,19 @@ export async function runDenseFFNWithFusedPostNormGPU(
   
   let activatedOutput;
   const useF16 = inputTensor.dtype === 'f16';
-  const matmulOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
+  const defaultMatmulOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
     useF16,
     fallback: inputTensor.dtype,
   });
+  const matmulOutputDtype = resolveMatmulStepDtype(
+    'ffn_gate_up',
+    phase,
+    layerIdx,
+    kernelPath,
+    defaultMatmulOutputDtype,
+    'outputDtype',
+    ffnStepPrecision
+  );
 
   if (layerWeights.gateUp) {
     const gateUpWeight = getWeightBuffer(layerWeights.gateUp, 'ffn_gate_up');
@@ -764,6 +898,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
           label: `L${layerIdx}.ffn_gate_up`,
           layerIdx,
           kernelPath,
+          executionPolicies: context.executionPolicies ?? null,
         },
         recorder
       );
@@ -864,6 +999,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
         inputTensor, gateWeight, upWeight, gateDtype,
         hiddenSize, intermediateSize, numTokens,
         hiddenActivation, swigluLimit, recorder,
+        executionPolicies: context.executionPolicies ?? null,
       });
     } else {
       const gateOutput = await doMatmul(
@@ -876,6 +1012,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
           label: `L${layerIdx}.ffn_gate`,
           layerIdx,
           kernelPath,
+          executionPolicies: context.executionPolicies ?? null,
         },
         recorder
       );
@@ -890,6 +1027,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
           label: `L${layerIdx}.ffn_up`,
           layerIdx,
           kernelPath,
+          executionPolicies: context.executionPolicies ?? null,
         },
         recorder
       );

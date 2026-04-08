@@ -20,6 +20,13 @@ import type { KVCacheConfigSchema } from './kvcache.schema.js';
 
 export type ExecutionV1Dtype = 'f16' | 'f32';
 
+export interface ExecutionV1PrecisionSchema {
+  activationDtype?: ExecutionV1Dtype;
+  kvDtype?: ExecutionV1Dtype;
+  inputDtype?: ExecutionV1Dtype;
+  outputDtype?: ExecutionV1Dtype;
+}
+
 // === Kernel Declarations ===
 
 /** A kernel declaration — defines a shader + entry + pinned digest. */
@@ -32,6 +39,8 @@ export interface ExecutionV1KernelSchema {
   digest: string;
   /** Pipeline override constants (optional, baked at pipeline creation) */
   constants?: Record<string, number | boolean>;
+  /** Explicit per-step precision contract carried into inline kernel paths. */
+  precision?: ExecutionV1PrecisionSchema;
 }
 
 /** Map of kernel key → kernel declaration. */

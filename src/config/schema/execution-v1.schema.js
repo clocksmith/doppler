@@ -5,6 +5,7 @@
 export const EXECUTION_V1_SCHEMA_ID = 'doppler.execution/v1';
 
 const DIGEST_PATTERN = /^sha256:[0-9a-f]{64}$/;
+const EXECUTION_V1_DTYPE_SET = new Set(['f16', 'f32']);
 
 export const DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS = {
   activationDtype: 'f16',
@@ -108,6 +109,21 @@ function validateKernelMap(kernels, options = {}) {
     }
     if (decl.constants != null && typeof decl.constants !== 'object') {
       throw new Error(`execution.kernels["${key}"].constants must be an object or null.`);
+    }
+    if (decl.precision != null) {
+      if (typeof decl.precision !== 'object' || Array.isArray(decl.precision)) {
+        throw new Error(`execution.kernels["${key}"].precision must be an object or null.`);
+      }
+      for (const field of ['activationDtype', 'kvDtype', 'inputDtype', 'outputDtype']) {
+        const value = decl.precision[field];
+        if (value === undefined) continue;
+        const normalized = String(value).trim().toLowerCase();
+        if (!EXECUTION_V1_DTYPE_SET.has(normalized)) {
+          throw new Error(
+            `execution.kernels["${key}"].precision.${field} must be "f16" or "f32"; got "${value}".`
+          );
+        }
+      }
     }
   }
 }

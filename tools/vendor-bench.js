@@ -2407,14 +2407,13 @@ function renderReleaseMatrixMarkdown(matrix, options = {}) {
   lines.push('');
   lines.push('## Model Coverage');
   lines.push('');
-  lines.push('| Doppler Model | In Catalog | Catalog Modes | TJS Mapping | Kernel Path | Surface | Source | Compare Lane | Notes |');
-  lines.push('|---|---|---|---|---|---|---|---|---|');
+  lines.push('| Doppler Model | In Catalog | Catalog Modes | TJS Mapping | Surface | Source | Compare Lane | Notes |');
+  lines.push('|---|---|---|---|---|---|---|---|');
   for (const row of matrix.modelCoverage) {
     lines.push(
       `| \`${markdownTableCell(row.dopplerModelId)}\` | ${row.inCatalog ? 'yes' : 'no'} | `
       + `${markdownTableCell(row.catalogModes.join(', '))} | `
       + `${row.defaultTjsModelId ? `\`${markdownTableCell(row.defaultTjsModelId)}\`` : ''} | `
-      + `${row.defaultKernelPath ? `\`${markdownTableCell(row.defaultKernelPath)}\`` : ''} | `
       + `${markdownTableCell(row.defaultDopplerSurface || '')} | `
       + `${markdownTableCell(row.dopplerSource || '')} | `
       + `${markdownTableCell(row.compareLane || '')} | `
@@ -2557,7 +2556,6 @@ async function doMatrix(flags, timestamp = null) {
       dopplerModelBaseDir: profile.modelBaseDir || null,
       dopplerSource: profile.defaultDopplerSource || 'local',
       defaultTjsModelId: profile.defaultTjsModelId || null,
-      defaultKernelPath: profile.defaultKernelPath || null,
       defaultDopplerSurface: profile.defaultDopplerSurface || 'auto',
       compareLane: profile.compareLane || 'performance_comparable',
       compareLaneReason: profile.compareLaneReason || null,
@@ -2575,7 +2573,6 @@ async function doMatrix(flags, timestamp = null) {
       dopplerModelBaseDir: null,
       dopplerSource: null,
       defaultTjsModelId: null,
-      defaultKernelPath: null,
       defaultDopplerSurface: 'auto',
       compareLane: null,
       compareLaneReason: null,

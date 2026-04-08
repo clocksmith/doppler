@@ -11,6 +11,7 @@ import type { SiLURowSplitOptions, CommandRecorder } from '../../../gpu/kernel-s
 import type { Tensor } from '../../../gpu/tensor.js';
 import type { WeightBuffer, CpuWeightBuffer } from '../../../gpu/weight-buffer.js';
 import type { DecodeBufferManager } from '../../decode-buffers.js';
+import type { ExecutionV1PoliciesSchema } from '../../../config/schema/execution-v1.schema.js';
 import type {
   AttentionConfig,
   AttentionState,
@@ -49,7 +50,12 @@ export function doResidualAdd(
   b: Tensor,
   size: number,
   recorder?: CommandRecorder,
-  traceOptions?: { label?: string; layerIdx?: number; outputBuffer?: GPUBuffer | null }
+  traceOptions?: {
+    label?: string;
+    layerIdx?: number;
+    outputBuffer?: GPUBuffer | null;
+    executionPolicies?: ExecutionV1PoliciesSchema | null;
+  }
 ): Promise<Tensor>;
 
 /**
@@ -62,7 +68,14 @@ export function doMatmul(
   M: number,
   N: number,
   K: number,
-  options?: { transposeB?: boolean | 'auto'; label?: string; layerIdx?: number; outputDtype?: 'f16' | 'f32'; role?: string },
+  options?: {
+    transposeB?: boolean | 'auto';
+    label?: string;
+    layerIdx?: number;
+    outputDtype?: 'f16' | 'f32';
+    role?: string;
+    executionPolicies?: ExecutionV1PoliciesSchema | null;
+  },
   recorder?: CommandRecorder
 ): Promise<Tensor>;
 
@@ -135,6 +148,7 @@ export function doConv(
       stride?: number;
       pad?: number;
     } | null;
+    executionPolicies?: ExecutionV1PoliciesSchema | null;
   },
   recorder?: CommandRecorder
 ): Promise<Tensor>;

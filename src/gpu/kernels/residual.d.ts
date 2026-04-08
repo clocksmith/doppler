@@ -9,12 +9,14 @@
 import type { Tensor } from '../tensor.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import type { OutputBufferOptions } from './types.js';
+import type { ExecutionV1PoliciesSchema } from '../../config/schema/execution-v1.schema.js';
 
 /** Residual kernel options */
 export interface ResidualOptions extends OutputBufferOptions {
   useVec4?: boolean;
   dataOffset?: number;
   biasOffset?: number;
+  executionPolicies?: ExecutionV1PoliciesSchema | null;
 }
 
 /** Context for residual variant selection rules. */

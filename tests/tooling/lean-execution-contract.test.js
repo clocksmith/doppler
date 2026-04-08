@@ -7,43 +7,66 @@ import {
   renderExecutionContractLeanModule,
   sanitizeLeanModuleName,
 } from '../../src/tooling/lean-execution-contract.js';
+import { EXECUTION_V1_SCHEMA_ID } from '../../src/config/schema/index.js';
+import { createExecutionContractSession } from '../helpers/execution-v1-fixtures.js';
 
-{
-  const manifest = {
-    modelId: 'bdpa-prefill-contract-mismatch',
+function createExecutionV1ContractManifest(overrides = {}) {
+  return {
+    modelId: 'lean-execution-contract-test',
     architecture: {
       headDim: 256,
       maxSeqLen: 131072,
+      ...(overrides.architecture ?? {}),
     },
     inference: {
-      session: {
-        kvcache: {
-          layout: 'bdpa',
-          tiering: {
-            mode: 'off',
-          },
-        },
-        decodeLoop: {
-          batchSize: 16,
-          disableCommandBatching: false,
-        },
-      },
+      schema: EXECUTION_V1_SCHEMA_ID,
+      session: createExecutionContractSession(overrides.session ?? {}),
       execution: {
-        steps: [
-          {
-            id: 'prefill_attention',
-            phase: 'prefill',
-            op: 'attention',
+        kernels: {
+          attn: {
+            kernel: 'attention_streaming_f16kv.wgsl',
+            entry: 'main',
+            digest: `sha256:${'a'.repeat(64)}`,
           },
-          {
-            id: 'decode_attention',
-            phase: 'decode',
-            op: 'attention',
-          },
+        },
+        preLayer: [],
+        decode: [
+          ['attention', 'attn'],
         ],
+        prefill: [
+          ['attention', 'attn'],
+        ],
+        postLayer: [],
+        policies: {
+          unsupportedPrecision: 'error',
+          dtypeTransition: 'require_cast_step',
+          unresolvedKernel: 'error',
+        },
+        ...(overrides.execution ?? {}),
       },
     },
   };
+}
+
+{
+  const manifest = createExecutionV1ContractManifest({
+    modelId: 'bdpa-prefill-contract-mismatch',
+    session: {
+      kvcache: {
+        layout: 'bdpa',
+        tiering: {
+          mode: 'off',
+        },
+        quantization: {
+          mode: 'none',
+        },
+      },
+      decodeLoop: {
+        batchSize: 16,
+        disableCommandBatching: false,
+      },
+    },
+  });
 
   const facts = extractExecutionContractFacts(manifest);
   assert.deepEqual(facts.session, {
@@ -53,10 +76,11 @@ import {
     headDim: 256,
     kvLen: 131072,
     coldQuantMode: 'none',
+    contiguousQuantMode: 'none',
   });
   assert.deepEqual(facts.steps, [
-    { id: 'prefill_attention', phase: 'prefill', opClass: 'attention' },
-    { id: 'decode_attention', phase: 'decode', opClass: 'attention' },
+    { id: 'layer_decode_0_attention', phase: 'decode', opClass: 'attention' },
+    { id: 'layer_prefill_1_attention', phase: 'prefill', opClass: 'attention' },
   ]);
 
   const rendered = renderExecutionContractLeanModule(facts, {
@@ -69,51 +93,47 @@ import {
 }
 
 {
-  const manifest = {
-    modelId: 'bdpa-paged-runtime-contract',
+  const manifest = createExecutionV1ContractManifest({
+    modelId: 'paged-runtime-contract',
     architecture: {
       headDim: 128,
       maxSeqLen: 4096,
     },
-    inference: {
-      session: {
-        kvcache: {
-          layout: 'bdpa_paged',
-          tiering: {
-            mode: 'off',
-          },
+    session: {
+      kvcache: {
+        layout: 'paged',
+        tiering: {
+          mode: 'off',
         },
-        decodeLoop: {
-          batchSize: 1,
-          disableCommandBatching: true,
+        quantization: {
+          mode: 'none',
         },
       },
-      execution: {
-        steps: [
-          {
-            id: 'decode_attention',
-            phase: 'decode',
-            op: 'attention',
-          },
-        ],
+      decodeLoop: {
+        batchSize: 1,
+        disableCommandBatching: true,
       },
     },
-  };
+    execution: {
+      prefill: [],
+    },
+  });
 
   const facts = extractExecutionContractFacts(manifest);
   assert.deepEqual(facts.session, {
-    layout: 'bdpa_paged',
+    layout: 'paged',
     disableCommandBatching: true,
     decodeBatchSize: 1,
     headDim: 128,
     kvLen: 4096,
     coldQuantMode: 'none',
+    contiguousQuantMode: 'none',
   });
 
   const rendered = renderExecutionContractLeanModule(facts, {
-    moduleName: 'BDPAPagedRuntimeContract',
+    moduleName: 'PagedRuntimeContract',
   });
-  assert.match(rendered, /layout := \.bdpa_paged/);
+  assert.match(rendered, /layout := \.paged/);
   assert.match(rendered, /disableCommandBatching := true/);
 }
 
@@ -130,9 +150,10 @@ import {
       console.log('lean-execution-contract.test: skipped (local model fixture has stale session contract)');
     } else {
       const facts = extractExecutionContractFacts(manifest);
+      const manifestBatchSize = manifest.inference.session.decodeLoop.batchSize;
       assert.equal(facts.modelId, 'translategemma-4b-it-q4k-ehf16-af32');
-      assert.equal(facts.session.layout, 'paged');
-      assert.equal(facts.session.decodeBatchSize, 1);
+      assert.ok(['contiguous', 'paged', 'tiered', 'bdpa'].includes(facts.session.layout));
+      assert.equal(facts.session.decodeBatchSize, manifestBatchSize);
       assert.equal(
         facts.steps.some((step) => step.phase === 'prefill' && step.opClass === 'attention'),
         true
@@ -141,7 +162,8 @@ import {
       const rendered = renderExecutionContractLeanModule(facts, {
         moduleName: sanitizeLeanModuleName(facts.modelId),
       });
-      assert.match(rendered, /layout := \.paged/);
+      assert.match(rendered, new RegExp(`layout := \\.${facts.session.layout}`));
+      assert.match(rendered, new RegExp(`decodeBatchSize := ${manifestBatchSize}`));
       assert.match(rendered, /translategemma-4b-it-q4k-ehf16-af32\.steps/);
     }
   }

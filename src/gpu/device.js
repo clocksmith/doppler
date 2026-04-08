@@ -188,7 +188,6 @@ function registerDeviceLostHandler(device) {
 export const FEATURES =  ({
   SHADER_F16: 'shader-f16',
   SUBGROUPS: 'subgroups',
-  SUBGROUPS_F16: 'subgroups-f16',
   TIMESTAMP_QUERY: 'timestamp-query',
 });
 
@@ -265,11 +264,6 @@ function buildFeatureRequests(available) {
   // Request subgroups for efficient dequantization
   if (available.has(FEATURES.SUBGROUPS)) {
     requested.push( (FEATURES.SUBGROUPS));
-  }
-
-  // Request subgroups-f16 if available (for combined f16 + subgroup ops)
-  if (available.has(FEATURES.SUBGROUPS_F16)) {
-    requested.push( (FEATURES.SUBGROUPS_F16));
   }
 
   // Request timestamp query for profiling (optional)
@@ -391,10 +385,12 @@ export async function initDevice() {
   if (hasF16) {
     hasF16 = probeShaderF16(gpuDevice);
   }
+  const hasSubgroups = gpuDevice.features.has(FEATURES.SUBGROUPS);
 
   kernelCapabilities = {
-    hasSubgroups: gpuDevice.features.has(FEATURES.SUBGROUPS),
-    hasSubgroupsF16: gpuDevice.features.has(FEATURES.SUBGROUPS_F16),
+    hasSubgroups,
+    // This is a derived compatibility bit, not a distinct WebGPU feature.
+    hasSubgroupsF16: hasSubgroups && hasF16,
     hasF16,
     hasTimestampQuery: gpuDevice.features.has(FEATURES.TIMESTAMP_QUERY),
     maxBufferSize: gpuDevice.limits.maxStorageBufferBindingSize,
@@ -447,12 +443,13 @@ export function setDevice(device, options = {}) {
   if (setDeviceHasF16) {
     setDeviceHasF16 = probeShaderF16(gpuDevice);
   }
+  const setDeviceHasSubgroups = gpuDevice.features.has(FEATURES.SUBGROUPS);
 
   const previousSubmitProbeMs = kernelCapabilities?.submitProbeMs ?? null;
 
   kernelCapabilities = {
-    hasSubgroups: gpuDevice.features.has(FEATURES.SUBGROUPS),
-    hasSubgroupsF16: gpuDevice.features.has(FEATURES.SUBGROUPS_F16),
+    hasSubgroups: setDeviceHasSubgroups,
+    hasSubgroupsF16: setDeviceHasSubgroups && setDeviceHasF16,
     hasF16: setDeviceHasF16,
     hasTimestampQuery: gpuDevice.features.has(FEATURES.TIMESTAMP_QUERY),
     maxBufferSize: gpuDevice.limits.maxStorageBufferBindingSize,

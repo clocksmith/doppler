@@ -9,7 +9,6 @@
         {
             "dopplerModelId": "gemma-3-270m-it-q4k-ehf16-af32",
             "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
-            "defaultKernelPath": null,
             "defaultDopplerSource": "quickstart-registry",
             "modelBaseDir": null,
             "defaultDopplerSurface": "auto",
@@ -22,7 +21,6 @@
         {
             "dopplerModelId": "gemma-3-270m-it-f16-af32",
             "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
-            "defaultKernelPath": null,
             "defaultDopplerSource": "local",
             "modelBaseDir": "local",
             "defaultDopplerSurface": "auto",
@@ -35,7 +33,6 @@
         {
             "dopplerModelId": "gemma-3-1b-it-q4k-ehf16-af32",
             "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
-            "defaultKernelPath": null,
             "defaultDopplerSource": "quickstart-registry",
             "modelBaseDir": null,
             "defaultDopplerSurface": "auto",
@@ -48,7 +45,6 @@
         {
             "dopplerModelId": "gemma-3-1b-it-f16-af32",
             "defaultTjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
-            "defaultKernelPath": null,
             "defaultDopplerSource": "local",
             "modelBaseDir": "local",
             "defaultDopplerSurface": "auto",
@@ -61,7 +57,6 @@
         {
             "dopplerModelId": "translategemma-4b-it-q4k-ehf16-af32",
             "defaultTjsModelId": "onnx-community/translategemma-text-4b-it-ONNX",
-            "defaultKernelPath": null,
             "defaultDopplerSource": "local",
             "modelBaseDir": "local",
             "defaultDopplerSurface": "auto",
@@ -74,7 +69,6 @@
         {
             "dopplerModelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
             "defaultTjsModelId": null,
-            "defaultKernelPath": null,
             "defaultDopplerSource": "local",
             "modelBaseDir": "local",
             "defaultDopplerSurface": "auto",
@@ -87,7 +81,6 @@
         {
             "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
             "defaultTjsModelId": "onnx-community/Qwen3.5-0.8B-ONNX",
-            "defaultKernelPath": null,
             "defaultDopplerSource": "quickstart-registry",
             "modelBaseDir": null,
             "defaultDopplerSurface": "browser",
@@ -100,7 +93,6 @@
         {
             "dopplerModelId": "qwen-3-5-2b-q4k-ehaf16",
             "defaultTjsModelId": "onnx-community/Qwen3.5-2B-ONNX",
-            "defaultKernelPath": null,
             "defaultDopplerSource": "quickstart-registry",
             "modelBaseDir": null,
             "defaultDopplerSurface": "auto",
@@ -113,7 +105,6 @@
         {
             "dopplerModelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
             "defaultTjsModelId": "LiquidAI/LFM2.5-1.2B-Instruct-ONNX",
-            "defaultKernelPath": null,
             "defaultDopplerSource": "local",
             "modelBaseDir": "local",
             "defaultDopplerSurface": "auto",
@@ -126,7 +117,6 @@
         {
             "dopplerModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
             "defaultTjsModelId": "onnx-community/embeddinggemma-300m-ONNX",
-            "defaultKernelPath": null,
             "defaultDopplerSource": "quickstart-registry",
             "modelBaseDir": null,
             "defaultDopplerSurface": "auto",

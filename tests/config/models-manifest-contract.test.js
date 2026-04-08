@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { EXECUTION_V1_SCHEMA_ID } from '../../src/config/schema/index.js';
 
 // Kernels that read weight buffers as raw array<f16> — NOT compatible with Q4K
 // block-quantized weights. Q4K packs 4-bit quantized values + scale factors in
@@ -46,29 +47,33 @@ for (const manifestPath of collectManifestPaths(path.join(process.cwd(), 'models
   const inference = manifest?.inference;
   assert.ok(inference && typeof inference === 'object', `${label}: inference is required`);
 
-  if (!Array.isArray(inference.execution?.steps)) {
+  const hasLegacySteps = Array.isArray(inference.execution?.steps);
+  const hasExecutionV1Graph = inference.schema === EXECUTION_V1_SCHEMA_ID
+    && inference.execution
+    && typeof inference.execution === 'object'
+    && !Array.isArray(inference.execution)
+    && inference.execution.kernels
+    && typeof inference.execution.kernels === 'object';
+
+  if (!hasLegacySteps && !hasExecutionV1Graph) {
     continue;
   }
 
   const session = inference.session;
-  assert.ok(session && typeof session === 'object', `${label}: manifests with execution steps require session`);
+  assert.ok(session && typeof session === 'object', `${label}: manifests with execution metadata require session`);
   assert.ok(
     session.compute?.defaults && typeof session.compute.defaults === 'object',
-    `${label}: manifests with execution steps require session.compute.defaults`
+    `${label}: manifests with execution metadata require session.compute.defaults`
   );
   assert.notEqual(
     session.kvcache,
     undefined,
-    `${label}: manifests with execution steps require explicit session.kvcache`
+    `${label}: manifests with execution metadata require explicit session.kvcache`
   );
   assert.notEqual(
     session.decodeLoop,
     undefined,
-    `${label}: manifests with execution steps require explicit session.decodeLoop`
-  );
-  assert.ok(
-    Array.isArray(inference.execution?.steps),
-    `${label}: manifests with execution steps require execution.steps`
+    `${label}: manifests with execution metadata require explicit session.decodeLoop`
   );
 
   // Guard: Q4K manifests using fused Q4K kernels must not assign an F16-only weight kernel
@@ -77,9 +82,12 @@ for (const manifestPath of collectManifestPaths(path.join(process.cwd(), 'models
   //
   // Exception: "dequant" kernel paths dequantize Q4K weights to F16 during loading, so
   // F16 matmul kernels are correct in that pipeline — the weights are already F16 in GPU memory.
+  //
+  // V1 manifests do not carry canonical `defaultKernelPath` metadata, so this legacy
+  // guard remains scoped to manifests that still declare `execution.steps`.
   const kernelPathId = typeof inference.defaultKernelPath === 'string' ? inference.defaultKernelPath : '';
   const isDequantPipeline = kernelPathId.includes('dequant');
-  if (manifest.quantizationInfo?.weights === 'q4k' && !isDequantPipeline) {
+  if (manifest.quantizationInfo?.weights === 'q4k' && hasLegacySteps && !isDequantPipeline) {
     for (const step of inference.execution.steps) {
       if (step.phase !== 'prefill' && step.phase !== 'both') continue;
       if (!WEIGHT_READ_OPS.has(step.op)) continue;

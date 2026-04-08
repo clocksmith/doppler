@@ -10,6 +10,7 @@ import type { CommandRecorder } from '../../../../gpu/kernel-selector.js';
 import type { KVCacheInterface } from '../types.js';
 import type { Tensor } from '../../../../gpu/tensor.js';
 import type { LinearAttentionRuntime } from '../linear-attention.js';
+import type { ExecutionV1PoliciesSchema } from '../../../../config/schema/execution-v1.schema.js';
 
 /**
  * Attention configuration for a layer.
@@ -26,6 +27,8 @@ export interface AttentionConfig {
   currentSeqLen: number;
   /** Expected activation dtype from runtime config. */
   activationDtype?: 'f16' | 'f32';
+  /** Explicit KV-cache target dtype for this attention step. */
+  kvDtype?: 'f16' | 'f32';
   slidingWindow?: number | null;
   layerType?: string;
   /** Residual tensor for fused o_proj + residual add (decode only) */
@@ -71,6 +74,7 @@ export interface AttentionState {
   ropeFreqsSin: GPUBuffer | null;
   kvCache: KVCacheInterface;
   linearRuntime?: LinearAttentionRuntime | null;
+  executionPolicies?: ExecutionV1PoliciesSchema | null;
 }
 
 /**

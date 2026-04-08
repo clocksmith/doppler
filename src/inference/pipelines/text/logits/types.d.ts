@@ -8,6 +8,7 @@
  */
 
 import type { LargeWeightConfigSchema, KernelPathSchema } from '../../../../config/schema/index.js';
+import type { ExecutionV1PoliciesSchema } from '../../../../config/schema/execution-v1.schema.js';
 import type { WeightBuffer, CpuWeightBuffer } from '../../../../gpu/weight-buffer.js';
 
 /**
@@ -25,6 +26,8 @@ export interface LogitsConfig {
   activationDtype?: 'f16' | 'f32';
   /** Explicit kernel-path context for variant selection. */
   kernelPath?: KernelPathSchema | null;
+  /** Execution-v1 fail-fast policies for dtype transitions. */
+  executionPolicies?: ExecutionV1PoliciesSchema | null;
   /** Gemma 2 RMS scaling: (1+w)*x */
   rmsNormWeightOffset?: boolean;
 }

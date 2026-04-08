@@ -12,6 +12,7 @@ import { releaseBuffer } from '../../memory/buffer-pool.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import { castF16ToF32, recordCastF16ToF32 } from './cast.js';
 import { getKernelPathMatmulVariant } from '../../config/kernel-path-loader.js';
+import { assertImplicitDtypeTransitionAllowed } from '../../inference/pipelines/text/dtype-contract.js';
 import {
   resolveMatmulPhase,
   resolveMatmulConstants,
@@ -231,6 +232,13 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   let matmulADtype = aDtype;
   let castedInput = null;
   if (matmulADtype === 'f16' && requiresF32Input(variant)) {
+    assertImplicitDtypeTransitionAllowed({
+      executionPolicies: options.executionPolicies ?? null,
+      fromDtype: 'f16',
+      toDtype: 'f32',
+      op: options.role ? `matmul(${options.role})` : 'matmul',
+      detail: `Variant "${variant}" would widen activations internally.`,
+    });
     if (isTraceEnabled('kernels')) {
       trace.kernels(`Matmul: casting f16 activations to f32 for variant=${variant}`);
     }

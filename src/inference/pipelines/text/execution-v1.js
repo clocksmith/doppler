@@ -4,6 +4,7 @@ import {
   buildLayerPipelineFromExecution,
   buildSessionRuntimePatch,
   PIPELINE_COMPATIBLE_OPS,
+  requireSessionActivationDtype,
 } from './execution-runtime-builders.js';
 import { mergeKernelPathPolicy } from '../../../config/merge-helpers.js';
 import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
@@ -309,7 +310,9 @@ export function compileExecutionV1(options = {}) {
     }
   }
 
-  const layerPipelineResult = buildLayerPipelineFromExecution(resolvedSteps);
+  const layerPipelineResult = buildLayerPipelineFromExecution(resolvedSteps, {
+    ffnDtypeFallback: requireSessionActivationDtype(effectiveSession),
+  });
   if (layerPipelineResult?.incompatibleOps && !kernelPath && inlineKernelPathEnabled) {
     throw new Error(
       `[ExecutionV1] execution contains layer ops not compatible with the JS layer pipeline ` +

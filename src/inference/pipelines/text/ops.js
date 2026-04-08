@@ -58,7 +58,13 @@ export async function doRMSNorm(input, weight, eps, options, recorder) {
 
 
 export async function doResidualAdd(a, b, size, recorder, traceOptions) {
-  const options = traceOptions?.outputBuffer ? { outputBuffer: traceOptions.outputBuffer } : {};
+  const options = {};
+  if (traceOptions?.outputBuffer) {
+    options.outputBuffer = traceOptions.outputBuffer;
+  }
+  if (traceOptions?.executionPolicies) {
+    options.executionPolicies = traceOptions.executionPolicies;
+  }
   const result = recorder
     ? await recordResidualAdd(recorder, a, b, size, options)
     : await runResidualAdd(a, b, size, options);
@@ -198,6 +204,7 @@ export async function doConv(
         layerIdx,
         kernelPath,
         role: 'conv_in_proj',
+        executionPolicies: options.executionPolicies ?? null,
       },
       recorder
     );
@@ -237,6 +244,7 @@ export async function doConv(
         layerIdx,
         kernelPath,
         role: 'conv_out_proj',
+        executionPolicies: options.executionPolicies ?? null,
       },
       recorder
     );

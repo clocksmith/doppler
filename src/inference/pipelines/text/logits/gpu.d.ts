@@ -67,7 +67,8 @@ export function computeChunkedLogitsGPU(
   weightVocabSize: number,
   debugProbes?: ProbeConfigSchema[] | null,
   largeWeightConfig: LargeWeightConfigSchema,
-  kernelPath?: KernelPathSchema | null
+  kernelPath?: KernelPathSchema | null,
+  executionPolicies?: import('../../../../config/schema/execution-v1.schema.js').ExecutionV1PoliciesSchema | null
 ): Promise<Float32Array>;
 
 /**

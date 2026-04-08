@@ -31,7 +31,6 @@ ManifestInferenceSchema (embedded in manifest.json)
 - chatTemplate
 - session
 - execution
-- defaultKernelPath
 
 ### Runtime Subschemas
 

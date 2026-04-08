@@ -25,6 +25,7 @@ import {
   resolveGptOssKernelPathProfile,
   resolveMixtralKernelPathProfile,
 } from './moe-shape-validator.js';
+import { assertImplicitDtypeTransitionAllowed } from './dtype-contract.js';
 
 export async function moeFeedForwardGPU(
   inputBuffer,
@@ -528,6 +529,13 @@ async function runGptOssExpert(
   let biasTensor = createTensor(weights.gateUpBias, gateUpBiasDtype, [biasElements], 'moe_gate_up_bias');
   let biasTemp = null;
   if (biasTensor.dtype !== activationDtype) {
+    assertImplicitDtypeTransitionAllowed({
+      executionPolicies: config.executionPolicies ?? null,
+      fromDtype: biasTensor.dtype,
+      toDtype: activationDtype,
+      op: 'moe_gate_up_bias',
+      detail: `Expert ${expertIdx} gate/up bias would be repacked to match activation dtype.`,
+    });
     biasTemp = activationDtype === 'f16'
       ? await castF32ToF16(biasTensor)
       : await castF16ToF32(biasTensor);

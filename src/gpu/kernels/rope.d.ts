@@ -10,6 +10,7 @@
 import type { Tensor } from '../tensor.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import type { OutputBufferOptions } from './types.js';
+import type { ExecutionV1PoliciesSchema } from '../../config/schema/execution-v1.schema.js';
 
 /** RoPE kernel options */
 export interface RoPEOptions extends OutputBufferOptions {
@@ -19,6 +20,7 @@ export interface RoPEOptions extends OutputBufferOptions {
   interleaved?: boolean;
   ropeTheta?: number;
   startPos?: number;
+  executionPolicies?: ExecutionV1PoliciesSchema | null;
 }
 
 /** Context for RoPE variant selection rules. */

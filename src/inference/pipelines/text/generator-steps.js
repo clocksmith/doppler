@@ -349,6 +349,7 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
     operatorDiagnostics: state.operatorDiagnostics,
     activationDtype,
     embeddingDtype: selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype }),
+    executionPolicies: state.executionV1State?.policies ?? null,
   });
 
   let hiddenStates = embedTensor.buffer;
@@ -499,6 +500,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     operatorDiagnostics: state.operatorDiagnostics,
     activationDtype,
     embeddingDtype: selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype }),
+    executionPolicies: state.executionV1State?.policies ?? null,
   });
 
   let hiddenStates = embedTensor.buffer;
@@ -1357,6 +1359,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
         operatorDiagnostics: state.operatorDiagnostics,
         activationDtype,
         embeddingDtype,
+        executionPolicies: state.executionV1State?.policies ?? null,
         numTokens: 1,
         indexOffset: i,
       });

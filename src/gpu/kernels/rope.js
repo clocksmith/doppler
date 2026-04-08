@@ -7,6 +7,7 @@ import { getKernelThresholds } from '../../config/schema/index.js';
 import { selectRuleValue } from './rule-registry.js';
 import { castF16ToF32, castF32ToF16, recordCastF16ToF32, recordCastF32ToF16 } from './cast.js';
 import { releaseBuffer } from '../../memory/buffer-pool.js';
+import { assertImplicitDtypeTransitionAllowed } from '../../inference/pipelines/text/dtype-contract.js';
 
 const getRopeDefaults = () => getKernelThresholds().rope;
 
@@ -30,22 +31,27 @@ async function _rope(target, input, freqsCos, freqsSin, seqLen, options = {}) {
     throw new Error(`RoPE rotaryDim must be in (0, headDim]; got ${rotaryDim} for headDim ${headDim}`);
   }
 
-  // F16 RoPE kernel does not support interleaved or partial rotation.
-  // When the execution graph pairs f16 projections with f32 RoPE, bridge
-  // with a cast round-trip: f16→f32, run f32 variant, f32→f16 back into
-  // the original buffer to preserve the in-place contract.
-  const needsF32Cast = input.dtype === 'f16' && (rotaryDim !== headDim || interleaved);
+  const caps = getKernelCapabilities();
+  const needsF32Cast = input.dtype === 'f16'
+    && caps.hasF16 !== true
+    && (rotaryDim !== headDim || interleaved);
   let ropeInput = input;
   let f32TempBuffer = null;
 
   if (needsF32Cast) {
+    assertImplicitDtypeTransitionAllowed({
+      executionPolicies: options.executionPolicies ?? null,
+      fromDtype: input.dtype,
+      toDtype: 'f32',
+      op: 'rope',
+      detail: 'RoPE would widen activations implicitly for interleaved or partial rotary mode.',
+    });
     ropeInput = target
       ? await recordCastF16ToF32(target, input)
       : await castF16ToF32(input);
     f32TempBuffer = ropeInput.buffer;
   }
 
-  const caps = getKernelCapabilities();
   const useF16 = ropeInput.dtype === 'f16' && caps.hasF16;
   const variant = selectRuleValue('rope', 'variant', { useF16 });
 
@@ -69,6 +75,13 @@ async function _rope(target, input, freqsCos, freqsSin, seqLen, options = {}) {
   );
 
   if (needsF32Cast) {
+    assertImplicitDtypeTransitionAllowed({
+      executionPolicies: options.executionPolicies ?? null,
+      fromDtype: ropeInput.dtype,
+      toDtype: 'f16',
+      op: 'rope',
+      detail: 'RoPE would narrow activations implicitly when restoring the original buffer dtype.',
+    });
     target
       ? await recordCastF32ToF16(target, ropeInput, { outputBuffer: input.buffer })
       : await castF32ToF16(ropeInput, { outputBuffer: input.buffer });

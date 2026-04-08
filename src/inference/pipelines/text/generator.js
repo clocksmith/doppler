@@ -86,6 +86,7 @@ import {
   hasRangeBackedPerLayerInputEmbeddings,
 } from './per-layer-inputs.js';
 import { createTensor } from '../../../gpu/tensor.js';
+import { assertImplicitDtypeTransitionAllowed } from './dtype-contract.js';
 
 function isStructuredChatRequest(prompt) {
   return prompt != null
@@ -94,13 +95,22 @@ function isStructuredChatRequest(prompt) {
     && Array.isArray(prompt.messages);
 }
 
-async function primePleDecodeRuntimeCache(state) {
+export function shouldDisableBatchDecodeAfterShortBatch({ hitStop, actualCount, requestedCount }) {
+  return hitStop !== true
+    && Number.isInteger(actualCount)
+    && Number.isInteger(requestedCount)
+    && actualCount > 0
+    && actualCount < requestedCount;
+}
+
+async function primePleDecodeRuntimeCache(state, seedTokenIds = null) {
   await ensurePleGpuHotVocabularyRuntime({
     config: state.modelConfig,
     weights: state.weights,
     perLayerInputsSession: state.runtimeConfig.inference.session?.perLayerInputs ?? state.modelConfig?.perLayerInputsSession ?? null,
     debugFlags: state.debugFlags,
     tokenizer: state.tokenizer ?? null,
+    seedTokenIds: Array.isArray(seedTokenIds) ? seedTokenIds : null,
   });
   await ensurePleGpuSplitTablesRuntime({
     config: state.modelConfig,
@@ -301,7 +311,7 @@ function resolvePrefillMultimodalBidirectionalSpan(inputIds, bidirectionalSpan, 
   return { offset, length };
 }
 
-async function applyPrefixEmbeddingOverride(baseTensor, override, hiddenSize, contextLabel) {
+async function applyPrefixEmbeddingOverride(baseTensor, override, hiddenSize, contextLabel, executionPolicies = null) {
   if (!override) {
     return baseTensor;
   }
@@ -340,6 +350,13 @@ async function applyPrefixEmbeddingOverride(baseTensor, override, hiddenSize, co
         [override.prefixLength, hiddenSize],
         'prefill_embedding_override_f32'
       );
+      assertImplicitDtypeTransitionAllowed({
+        executionPolicies,
+        fromDtype: 'f32',
+        toDtype: 'f16',
+        op: 'prefill_embedding_override',
+        detail: 'Prefix embedding override would pack GPU-provided f32 features into an f16 activation buffer.',
+      });
       const castedOverride = await castF32ToF16(overrideTensor);
       try {
         encoder.copyBufferToBuffer(
@@ -354,6 +371,13 @@ async function applyPrefixEmbeddingOverride(baseTensor, override, hiddenSize, co
         releaseBuffer(castedOverride.buffer);
       }
     } else {
+      assertImplicitDtypeTransitionAllowed({
+        executionPolicies,
+        fromDtype: 'f32',
+        toDtype: 'f16',
+        op: 'prefill_embedding_override',
+        detail: 'Prefix embedding override would pack CPU-provided f32 features into an f16 activation buffer.',
+      });
       const packedOverride = f32ToF16Array(override.embeddings);
       device.queue.submit([encoder.finish()]);
       uploadData(outputBuffer, packedOverride, targetByteOffset);
@@ -1291,7 +1315,7 @@ export class PipelineGenerator {
         );
       }
       if (pleHiddenSizeTid > 0) {
-        await primePleDecodeRuntimeCache(this.#state);
+        await primePleDecodeRuntimeCache(this.#state, generatedIds);
         const pleW = this.#state.weights.get('per_layer_inputs');
         if (pleW?.embedTokensPerLayer) {
           this.#state.plePrefetchPending = prefetchPerLayerRow(
@@ -1720,7 +1744,7 @@ export class PipelineGenerator {
       );
     }
     if (pleHiddenSize > 0) {
-      await primePleDecodeRuntimeCache(this.#state);
+      await primePleDecodeRuntimeCache(this.#state, generatedIds);
     }
 
     const decodeStart = performance.now();
@@ -1823,10 +1847,18 @@ export class PipelineGenerator {
             }
           }
           if (batchTokens.length > 0 && options.onBatch) options.onBatch(batchTokens);
-          if (hitStop || batchResult.actualCount < thisBatchSize) break;
           if (opts.stopSequences.length > 0) {
             const fullText = this.#state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
             if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) break;
+          }
+          if (hitStop) break;
+          if (shouldDisableBatchDecodeAfterShortBatch({
+            hitStop,
+            actualCount: batchResult.actualCount,
+            requestedCount: thisBatchSize,
+          })) {
+            useBatchPath = false;
+            continue;
           }
         } catch (error) {
           log.warn('Pipeline', `Batch decode failed, falling back to single-token: ${error}`);
@@ -2144,6 +2176,7 @@ export class PipelineGenerator {
       operatorDiagnostics: this.#state.operatorDiagnostics,
       activationDtype,
       embeddingDtype: selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype }),
+      executionPolicies: this.#state.executionV1State?.policies ?? null,
     });
     let hiddenStates = baseEmbeddings;
     let perLayerInputs = null;
@@ -2152,7 +2185,8 @@ export class PipelineGenerator {
         baseEmbeddings,
         embeddingOverride,
         config.hiddenSize,
-        '_prefill'
+        '_prefill',
+        this.#state.executionV1State?.policies ?? null
       );
       perLayerInputs = await preparePerLayerInputs(
         embeddingInputIds,

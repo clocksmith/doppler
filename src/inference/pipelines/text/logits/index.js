@@ -24,6 +24,7 @@ import { finalizeLogits, readBufferWithCleanup } from './utils.js';
 import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { getKernelPathMatmulPrecision } from '../../../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
+import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
 
 function shouldForceStableF32Logits(config, inputDtype) {
   if (inputDtype !== 'f16') {
@@ -51,10 +52,17 @@ function resolveMatmulStepDtype(role, phase, kernelPath, fallback, field) {
   return selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: requested });
 }
 
-async function coerceTensorDtype(tensor, targetDtype) {
+async function coerceTensorDtype(tensor, targetDtype, options = {}) {
   if (!targetDtype || tensor.dtype === targetDtype) {
     return tensor;
   }
+  assertImplicitDtypeTransitionAllowed({
+    executionPolicies: options.executionPolicies ?? null,
+    fromDtype: tensor.dtype,
+    toDtype: targetDtype,
+    op: options.op ?? 'logits',
+    detail: 'The execution graph must declare this cast explicitly.',
+  });
   if (tensor.dtype === 'f32' && targetDtype === 'f16') {
     return castF32ToF16(tensor);
   }
@@ -266,6 +274,13 @@ export async function computeLogits(
   let normInputTensor = inputTensor;
   let normInputBufferOwned = false;
   if (forceStableF32Logits) {
+    assertImplicitDtypeTransitionAllowed({
+      executionPolicies: config.executionPolicies ?? null,
+      fromDtype: inputTensor.dtype,
+      toDtype: 'f32',
+      op: 'logits_final_norm',
+      detail: 'Stable logits mode would widen activations implicitly before final RMSNorm.',
+    });
     normInputTensor = await castF16ToF32(inputTensor);
     normInputBufferOwned = true;
   }
@@ -310,7 +325,8 @@ export async function computeLogits(
       debugProbes,
       operatorDiagnostics,
       largeWeights,
-      stableKernelPath
+      stableKernelPath,
+      config.executionPolicies ?? null
     );
 
     if (inputBufferOwned) releaseBuffer(inputBuffer);
@@ -372,7 +388,10 @@ export async function computeLogits(
     ? matmulInputTensor.dtype
     : resolveMatmulStepDtype('lm_head', lmHeadPhase, stableKernelPath, matmulInputTensor.dtype, 'outputDtype');
   if (lmHeadInputDtype !== matmulInputTensor.dtype) {
-    const coercedInput = await coerceTensorDtype(matmulInputTensor, lmHeadInputDtype);
+    const coercedInput = await coerceTensorDtype(matmulInputTensor, lmHeadInputDtype, {
+      executionPolicies: config.executionPolicies ?? null,
+      op: 'lm_head',
+    });
     if (matmulInputOwned) {
       releaseBuffer(matmulInputTensor.buffer);
     }
@@ -387,6 +406,7 @@ export async function computeLogits(
     phaseOverride: matmulPhaseOverride,
     kernelPath: stableKernelPath,
     outputDtype: lmHeadOutputDtype,
+    executionPolicies: config.executionPolicies ?? null,
   });
   await runProbes('logits', logitsTensor.buffer, {
     numTokens: matmulRows,

@@ -9,6 +9,7 @@ import { QK_K, Q4K_BLOCK_BYTES } from '../../../config/schema/index.js';
 import { dequantizeQ4KM } from '../../../converter/quantizer.js';
 import { getKernelPathMatmulPrecision } from '../../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import { assertImplicitDtypeTransitionAllowed } from './dtype-contract.js';
 
 const LINEAR_RUNTIME_SCHEMA_VERSION = 1;
 const QK_L2NORM_EPS = 1e-6;
@@ -616,6 +617,7 @@ async function projectLinearTensor({
   outputDtype,
   getWeightBuffer,
   recorder,
+  executionPolicies = null,
 }) {
   const resolvedWeight = getWeightBuffer(sourceWeight, role);
   const resolvedInputDtype = resolveMatmulStepDtype(
@@ -635,9 +637,19 @@ async function projectLinearTensor({
     'outputDtype'
   );
   const wantsF16Input = inputTensor.dtype === 'f32' && resolvedInputDtype === 'f16';
-  const matmulInput = wantsF16Input
-    ? (recorder ? await recordCastF32ToF16(recorder, inputTensor) : await castF32ToF16(inputTensor))
-    : inputTensor;
+  let matmulInput = inputTensor;
+  if (wantsF16Input) {
+    assertImplicitDtypeTransitionAllowed({
+      executionPolicies,
+      fromDtype: inputTensor.dtype,
+      toDtype: 'f16',
+      op: role,
+      detail: 'Linear attention projection would narrow activations implicitly.',
+    });
+    matmulInput = recorder
+      ? await recordCastF32ToF16(recorder, inputTensor)
+      : await castF32ToF16(inputTensor);
+  }
   try {
     if (recorder) {
       return await recordMatmul(recorder, matmulInput, resolvedWeight, numTokens, outDim, hiddenSize, {
@@ -646,6 +658,7 @@ async function projectLinearTensor({
         layerIdx,
         kernelPath,
         outputDtype: resolvedOutputDtype,
+        executionPolicies,
       });
     }
     return await runMatmul(matmulInput, resolvedWeight, numTokens, outDim, hiddenSize, {
@@ -654,6 +667,7 @@ async function projectLinearTensor({
       layerIdx,
       kernelPath,
       outputDtype: resolvedOutputDtype,
+      executionPolicies,
     });
   } finally {
     if (matmulInput !== inputTensor) {
@@ -750,6 +764,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     getWeightBuffer,
     getNormWeightBuffer,
     recorder,
+    executionPolicies = null,
   } = options;
 
   if (!layerWeights) {
@@ -820,6 +835,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     outputDtype: projectionDtype,
     getWeightBuffer,
     recorder,
+    executionPolicies,
   });
   const zTensor = await projectLinearTensor({
     inputTensor: normedTensor,
@@ -834,6 +850,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     outputDtype: projectionDtype,
     getWeightBuffer,
     recorder,
+    executionPolicies,
   });
   const aTensor = await projectLinearTensor({
     inputTensor: normedTensor,
@@ -848,6 +865,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     outputDtype: projectionDtype,
     getWeightBuffer,
     recorder,
+    executionPolicies,
   });
   const bTensor = await projectLinearTensor({
     inputTensor: normedTensor,
@@ -862,6 +880,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     outputDtype: projectionDtype,
     getWeightBuffer,
     recorder,
+    executionPolicies,
   });
 
   const outProjInputDtype = resolveMatmulStepDtype(
@@ -930,6 +949,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
         layerIdx,
         qkL2NormEps: QK_L2NORM_EPS,
         recorder,
+        executionPolicies,
       }
     );
     await runProbes('linear_core_out', coreTensor.buffer, {
@@ -952,6 +972,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
           layerIdx,
           kernelPath,
           outputDtype: outProjOutputDtype,
+          executionPolicies,
         });
       } else {
         result = await runMatmul(coreTensor, outProjWeight, numTokens, hiddenSize, projectionLayout.valueDim, {
@@ -960,9 +981,17 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
           layerIdx,
           kernelPath,
           outputDtype: outProjOutputDtype,
+          executionPolicies,
         });
       }
       if (outputDtype === 'f16' && result.dtype !== 'f16') {
+        assertImplicitDtypeTransitionAllowed({
+          executionPolicies,
+          fromDtype: result.dtype,
+          toDtype: 'f16',
+          op: 'linear_out_proj',
+          detail: 'Linear attention output would narrow implicitly before leaving the layer.',
+        });
         const casted = recorder
           ? await recordCastF32ToF16(recorder, result)
           : await castF32ToF16(result);

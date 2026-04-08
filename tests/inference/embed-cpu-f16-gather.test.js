@@ -32,10 +32,11 @@ const { createCpuWeightBuffer } = await import('../../src/gpu/weight-buffer.js')
 
 // Capture writeBuffer calls to inspect what data was uploaded
 const writeCalls = [];
-function createFakeDevice() {
+function createFakeDevice(options = {}) {
+  const hasF16 = options.hasF16 === true;
   return {
     lost: new Promise(() => {}),
-    features: new Set(), // no shader-f16 → useF16=false
+    features: hasF16 ? new Set(['shader-f16']) : new Set(),
     limits: {
       maxStorageBufferBindingSize: 1 << 30,
       maxBufferSize: 1 << 30,
@@ -63,6 +64,9 @@ function createFakeDevice() {
     createBindGroup() { return {}; },
     createShaderModule() { return {}; },
     createComputePipeline() { return { getBindGroupLayout() { return {}; } }; },
+    createComputePipelineAsync() {
+      return Promise.resolve({ getBindGroupLayout() { return {}; } });
+    },
     createCommandEncoder() {
       return {
         beginComputePass() {
@@ -236,7 +240,24 @@ const embData = new Uint16Array([
   assert.ok(Math.abs(written[1] - 0.5 * scaleFactor) < 1e-3, `scaled token0[1]: expected ${0.5 * scaleFactor}, got ${written[1]}`);
 }
 
-// === Test 6: Range-backed CPU gather reads only the requested F16 rows ===
+// === Test 6: F16 activation requests fail fast when shader-f16 is unavailable ===
+{
+  const embedBuffer = createCpuWeightBuffer(embData, 'f16', 'row', [vocabSize, hiddenSize], 'test_f16_requires_feature');
+
+  await assert.rejects(
+    () => embed([0], embedBuffer, {
+      hiddenSize,
+      vocabSize,
+      scaleEmbeddings: false,
+      debug: false,
+      activationDtype: 'f16',
+      embeddingDtype: 'f16',
+    }),
+    /activationDtype="f16" requires shader-f16 support/
+  );
+}
+
+// === Test 7: Range-backed CPU gather reads only the requested F16 rows ===
 {
   const embedBytes = new Uint8Array(embData.buffer.slice(0));
   const rangeCalls = [];
@@ -269,6 +290,28 @@ const embData = new Uint16Array([
   assert.ok(Math.abs(written[1] - 1.0) < 1e-3, `range token1[1]: expected 1.0, got ${written[1]}`);
   assert.ok(Math.abs(written[4] - 1.0) < 1e-3, `range token0[0]: expected 1.0, got ${written[4]}`);
   assert.ok(Math.abs(written[5] - 0.5) < 1e-3, `range token0[1]: expected 0.5, got ${written[5]}`);
+}
+
+// === Test 8: Explicit CPU gather cast is allowed under require_cast_step ===
+{
+  const fakeF16Device = createFakeDevice({ hasF16: true });
+  setDevice(fakeF16Device, { platformConfig: null });
+  const embedBuffer = createCpuWeightBuffer(embData, 'f16', 'row', [vocabSize, hiddenSize], 'test_f16_explicit_cast');
+
+  const result = await embed([0], embedBuffer, {
+    hiddenSize,
+    vocabSize,
+    scaleEmbeddings: false,
+    debug: false,
+    activationDtype: 'f16',
+    embeddingDtype: 'f16',
+    executionPolicies: {
+      dtypeTransition: 'require_cast_step',
+    },
+  });
+
+  assert.equal(result.dtype, 'f16');
+  setDevice(fakeDevice, { platformConfig: null });
 }
 
 setDevice(null, { platformConfig: null });

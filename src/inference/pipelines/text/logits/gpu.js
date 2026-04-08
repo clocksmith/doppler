@@ -18,6 +18,7 @@ import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { getKernelPathMatmulPrecision } from '../../../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { runProbes } from '../probes.js';
+import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
 import { f16BufferToF32 } from './cpu.js';
 import { readBufferWithCleanup } from './utils.js';
 
@@ -47,10 +48,17 @@ function resolveMatmulStepDtype(role, phase, kernelPath, fallback, field) {
   return selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: requested });
 }
 
-async function coerceTensorDtype(tensor, targetDtype, recorder = null) {
+async function coerceTensorDtype(tensor, targetDtype, recorder = null, options = {}) {
   if (!targetDtype || tensor.dtype === targetDtype) {
     return tensor;
   }
+  assertImplicitDtypeTransitionAllowed({
+    executionPolicies: options.executionPolicies ?? null,
+    fromDtype: tensor.dtype,
+    toDtype: targetDtype,
+    op: options.op ?? 'logits',
+    detail: 'The execution graph must declare this cast explicitly.',
+  });
   if (tensor.dtype === 'f32' && targetDtype === 'f16') {
     return recorder ? await recordCastF32ToF16(recorder, tensor) : await castF32ToF16(tensor);
   }
@@ -187,7 +195,8 @@ export async function computeChunkedLogitsGPU(
   debugProbes,
   operatorDiagnostics,
   largeWeightConfig,
-  kernelPath = null
+  kernelPath = null,
+  executionPolicies = null
 ) {
   const device = getDevice();
   if (!device) {
@@ -215,7 +224,10 @@ export async function computeChunkedLogitsGPU(
   }
 
   const matmulInput = lmHeadInputDtype !== normedTensor.dtype
-    ? await coerceTensorDtype(normedTensor, lmHeadInputDtype)
+    ? await coerceTensorDtype(normedTensor, lmHeadInputDtype, null, {
+      executionPolicies,
+      op: 'lm_head',
+    })
     : normedTensor;
 
   for (let rowOffset = 0; rowOffset < vocabSize; rowOffset += chunkRows) {
@@ -256,6 +268,7 @@ export async function computeChunkedLogitsGPU(
       role: 'lm_head',
       kernelPath,
       outputDtype: lmHeadOutputDtype,
+      executionPolicies,
     });
 
     if (debugProbes?.length || operatorDiagnostics?.enabled) {
@@ -371,6 +384,13 @@ export async function computeLogitsGPU(
       : (config.kernelPath ?? null);
     normInputTensor = inputTensor;
     if (forceStableF32Logits) {
+      assertImplicitDtypeTransitionAllowed({
+        executionPolicies: config.executionPolicies ?? null,
+        fromDtype: inputTensor.dtype,
+        toDtype: 'f32',
+        op: 'logits_final_norm',
+        detail: 'Stable logits mode would widen activations implicitly before final RMSNorm.',
+      });
       normInputTensor = await castF16ToF32(inputTensor);
       normInputOwned = true;
     }
@@ -397,7 +417,10 @@ export async function computeLogitsGPU(
       ? normedTensor.dtype
       : resolveMatmulStepDtype('lm_head', phase, stableKernelPath, normedTensor.dtype, 'outputDtype');
     lmHeadInputTensor = lmHeadInputDtype !== normedTensor.dtype
-      ? await coerceTensorDtype(normedTensor, lmHeadInputDtype)
+      ? await coerceTensorDtype(normedTensor, lmHeadInputDtype, null, {
+        executionPolicies: config.executionPolicies ?? null,
+        op: 'lm_head',
+      })
       : normedTensor;
     lmHeadInputOwned = lmHeadInputTensor !== normedTensor;
 
@@ -422,6 +445,7 @@ export async function computeLogitsGPU(
       role: 'lm_head',
       kernelPath: stableKernelPath,
       outputDtype: lmHeadOutputDtype,
+      executionPolicies: config.executionPolicies ?? null,
     });
     await runProbes('logits', logitsTensor.buffer, {
       numTokens,
@@ -505,6 +529,13 @@ export async function recordLogitsGPU(
   let normInputTensor = inputTensor;
   let normInputOwned = false;
   if (forceStableF32Logits) {
+    assertImplicitDtypeTransitionAllowed({
+      executionPolicies: config.executionPolicies ?? null,
+      fromDtype: inputTensor.dtype,
+      toDtype: 'f32',
+      op: 'logits_final_norm',
+      detail: 'Stable logits mode would widen activations implicitly before final RMSNorm.',
+    });
     normInputTensor = await recordCastF16ToF32(recorder, inputTensor);
     normInputOwned = true;
   }
@@ -529,7 +560,10 @@ export async function recordLogitsGPU(
     ? normedTensor.dtype
     : resolveMatmulStepDtype('lm_head', phase, stableKernelPath, normedTensor.dtype, 'outputDtype');
   const lmHeadInputTensor = lmHeadInputDtype !== normedTensor.dtype
-    ? await coerceTensorDtype(normedTensor, lmHeadInputDtype, recorder)
+    ? await coerceTensorDtype(normedTensor, lmHeadInputDtype, recorder, {
+      executionPolicies: config.executionPolicies ?? null,
+      op: 'lm_head',
+    })
     : normedTensor;
 
   // Get LM head buffer
@@ -553,6 +587,7 @@ export async function recordLogitsGPU(
     role: 'lm_head',
     kernelPath: stableKernelPath,
     outputDtype: lmHeadOutputDtype,
+    executionPolicies: config.executionPolicies ?? null,
   });
   await runProbes('logits', logitsTensor.buffer, {
     numTokens,

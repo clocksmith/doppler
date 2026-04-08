@@ -6,12 +6,10 @@ import {
   validateExecutionContractFacts,
   validateManifestExecutionContract,
 } from '../../src/config/execution-contract-check.js';
-import { buildKernelRefFromKernelEntry } from '../../src/config/kernels/kernel-ref.js';
+import { EXECUTION_V1_SCHEMA_ID } from '../../src/config/schema/index.js';
 import { validateManifest } from '../../src/formats/rdrr/validation.js';
 
-function kernelRef(kernel, entry = 'main') {
-  return buildKernelRefFromKernelEntry(kernel, entry);
-}
+const D = (char) => `sha256:${char.repeat(64)}`;
 
 function buildExecutionContractFixtureManifest() {
   return {
@@ -47,12 +45,69 @@ function buildExecutionContractFixtureManifest() {
     },
     tensors: {},
     inference: {
-      schema: null,
-      defaultKernelPath: 'gemma3-q4k-dequant-f32a-online',
+      schema: EXECUTION_V1_SCHEMA_ID,
+      attention: {
+        queryPreAttnScalar: 256,
+        attnLogitSoftcapping: null,
+        slidingWindow: null,
+        queryKeyNorm: false,
+        valueNorm: false,
+        causal: true,
+        attentionBias: false,
+        attentionOutputGate: false,
+      },
+      normalization: {
+        rmsNormEps: 1e-6,
+        rmsNormWeightOffset: false,
+        postAttentionNorm: false,
+        preFeedforwardNorm: false,
+        postFeedforwardNorm: false,
+      },
+      ffn: {
+        activation: 'gelu',
+        gatedActivation: true,
+        useDoubleWideMlp: false,
+        swigluLimit: null,
+      },
+      rope: {
+        ropeTheta: 1000000,
+        ropeLocalTheta: null,
+        ropeInterleaved: false,
+        mropeInterleaved: false,
+        mropeSection: null,
+        partialRotaryFactor: null,
+        ropeLocalPartialRotaryFactor: null,
+        ropeFrequencyBaseDim: null,
+        ropeLocalFrequencyBaseDim: null,
+        ropeScalingType: null,
+        ropeScalingFactor: 1,
+        ropeLocalScalingType: null,
+        ropeLocalScalingFactor: 1,
+        yarnBetaFast: null,
+        yarnBetaSlow: null,
+        yarnOriginalMaxPos: null,
+        ropeLocalYarnBetaFast: null,
+        ropeLocalYarnBetaSlow: null,
+        ropeLocalYarnOriginalMaxPos: null,
+      },
+      output: {
+        finalLogitSoftcapping: null,
+        tieWordEmbeddings: true,
+        scaleEmbeddings: false,
+        embeddingTranspose: false,
+        embeddingVocabSize: null,
+        embeddingPostprocessor: null,
+      },
       layerPattern: {
         type: 'every_n',
+        globalPattern: null,
         period: 6,
         offset: 0,
+        layerTypes: null,
+      },
+      chatTemplate: {
+        type: 'gemma',
+        enabled: true,
       },
       session: {
         compute: {
@@ -62,11 +117,6 @@ function buildExecutionContractFixtureManifest() {
             accumDtype: 'f32',
             outputDtype: 'f32',
           },
-          kernelProfiles: [
-            {
-              kernelRef: kernelRef('attention_streaming_f16kv.wgsl', 'main'),
-            },
-          ],
         },
         kvcache: {
           layout: 'paged',
@@ -83,20 +133,26 @@ function buildExecutionContractFixtureManifest() {
         },
       },
       execution: {
-        steps: [
-          {
-            id: 'attn',
-            phase: 'both',
-            section: 'layer',
-            op: 'attention',
-            src: 'state',
-            dst: 'state',
-            layers: 'all',
+        kernels: {
+          attn: {
             kernel: 'attention_streaming_f16kv.wgsl',
             entry: 'main',
-            kernelRef: kernelRef('attention_streaming_f16kv.wgsl', 'main'),
+            digest: D('a'),
           },
+        },
+        preLayer: [],
+        decode: [
+          ['attention', 'attn'],
         ],
+        prefill: [
+          ['attention', 'attn'],
+        ],
+        postLayer: [],
+        policies: {
+          unsupportedPrecision: 'error',
+          dtypeTransition: 'require_cast_step',
+          unresolvedKernel: 'error',
+        },
       },
     },
   };
@@ -130,7 +186,7 @@ const translateGemmaManifest = buildExecutionContractFixtureManifest();
   assert.equal(executionContract.ok, false);
   assert.ok(
     executionContract.errors.some((message) =>
-      message.includes('decode-only') && message.includes('both attention')
+      message.includes('decode-only') && message.includes('prefill attention')
     )
   );
   assert.ok(
@@ -153,7 +209,7 @@ const translateGemmaManifest = buildExecutionContractFixtureManifest();
   assert.equal(validation.valid, false);
   assert.ok(
     validation.errors.some((message) =>
-      message.includes('decode-only') && message.includes('both attention')
+      message.includes('decode-only') && message.includes('prefill attention')
     )
   );
 }
@@ -261,60 +317,24 @@ const translateGemmaManifest = buildExecutionContractFixtureManifest();
 }
 
 {
-  const executionContractManifest = {
-    modelId: 'execution-contract-artifact',
-    modelType: 'transformer',
-    architecture: {
-      headDim: 128,
-      maxSeqLen: 4096,
-      numLayers: 2,
-    },
-    inference: {
-      session: {
-        compute: {
-          defaults: {
-            activationDtype: 'f16',
-            mathDtype: 'f16',
-            accumDtype: 'f32',
-            outputDtype: 'f16',
-          },
-          kernelProfiles: [
-            {
-              kernelRef: kernelRef('attention_streaming_f16.wgsl', 'main'),
-            },
-          ],
-        },
-        kvcache: {
-          layout: 'paged',
-          kvDtype: 'f16',
-          tiering: {
-            mode: 'off',
-          },
-        },
-        decodeLoop: {
-          batchSize: 4,
-          stopCheckMode: 'batch',
-          readbackInterval: 1,
-          disableCommandBatching: false,
-        },
-      },
-      execution: {
-        steps: [
-          {
-            id: 'attn',
-            phase: 'both',
-            section: 'layer',
-            op: 'attention',
-            src: 'state',
-            dst: 'state',
-            layers: 'all',
-            kernel: 'attention_streaming_f16.wgsl',
-            entry: 'main',
-            kernelRef: kernelRef('attention_streaming_f16.wgsl', 'main'),
-          },
-        ],
-      },
-    },
+  const executionContractManifest = buildExecutionContractFixtureManifest();
+  executionContractManifest.modelId = 'execution-contract-artifact';
+  executionContractManifest.inference.session.compute.defaults = {
+    activationDtype: 'f16',
+    mathDtype: 'f16',
+    accumDtype: 'f32',
+    outputDtype: 'f16',
+  };
+  executionContractManifest.inference.session.decodeLoop = {
+    batchSize: 4,
+    stopCheckMode: 'batch',
+    readbackInterval: 1,
+    disableCommandBatching: false,
+  };
+  executionContractManifest.inference.execution.kernels.attn = {
+    kernel: 'attention_streaming_f16.wgsl',
+    entry: 'main',
+    digest: D('b'),
   };
 
   const artifact = buildExecutionContractArtifact(executionContractManifest);

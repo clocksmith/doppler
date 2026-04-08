@@ -13,6 +13,7 @@ const rules = await loadJson(
  * determine which transforms need to be applied.
  *
  * @param {Object} capabilities - { hasSubgroups, hasF16, hasSubgroupsF16, maxWorkgroupSize, maxBufferSize }
+ * `hasSubgroupsF16` is a derived convenience bit (`hasSubgroups && hasF16`), not a separate WebGPU feature.
  * @param {Object} platform - { id, vendor, architecture }
  * @param {Object} graphContext - execution-v1 graph/dtype summary
  *   { activationDtype, kvDtype, modelId?, layerTypes?,

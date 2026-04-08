@@ -21,4 +21,10 @@ assert.match(
   'Gemma 4 multimodal prefix overrides must convert visual features into f16 when the text prefill path runs f16'
 );
 
+assert.match(
+  generatorSource,
+  /assertImplicitDtypeTransitionAllowed\(\{[\s\S]*op: 'prefill_embedding_override'/,
+  'Gemma 4 multimodal prefix overrides must fail fast when execution-v1 requires explicit cast steps'
+);
+
 console.log('gemma4-multimodal-f16-override-contract.test: ok');

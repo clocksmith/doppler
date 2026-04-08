@@ -13,7 +13,7 @@ function makeKernels() {
   return {
     rmsnorm: { kernel: 'rmsnorm.wgsl', entry: 'main', digest: D('a') },
     gemv: { kernel: 'matmul_gemv_subgroup.wgsl', entry: 'main_vec4', digest: D('b') },
-    attn: { kernel: 'attention_decode_online_f16kv.wgsl', entry: 'main', digest: D('c') },
+    attn: { kernel: 'attention_decode_online_f16kv.wgsl', entry: 'main', digest: D('c'), precision: { kvDtype: 'f16' } },
     gelu: { kernel: 'gelu.wgsl', entry: 'main', digest: D('d'), constants: { HAS_GATE: true } },
     residual: { kernel: 'residual.wgsl', entry: 'main', digest: D('e') },
     rope: { kernel: 'rope.wgsl', entry: 'main', digest: D('f') },
@@ -94,6 +94,12 @@ if (qProj.kernel !== 'matmul_gemv_subgroup.wgsl') throw new Error('Wrong kernel 
 if (qProj.entry !== 'main_vec4') throw new Error('Wrong entry for q_proj');
 if (qProj.weights !== 'layer.{L}.self_attn.q_proj') throw new Error('Wrong weights for q_proj');
 
+const decodeAttention = expanded.find((s) => s.phase === 'decode' && s.op === 'attention');
+if (!decodeAttention) throw new Error('Missing decode attention');
+if (decodeAttention.precision?.kvDtype !== 'f16') {
+  throw new Error(`Expected attention precision.kvDtype=f16, got ${JSON.stringify(decodeAttention.precision)}`);
+}
+
 // Constants propagation (gelu has HAS_GATE)
 const activation = expanded.find((s) => s.phase === 'decode' && s.op === 'activation');
 if (!activation) throw new Error('Missing decode activation');
@@ -169,6 +175,29 @@ try {
 }
 if (!threw) throw new Error('Should throw on bad digest');
 
+// === Validation: bad precision dtype ===
+threw = false;
+try {
+  expandExecutionV1({
+    kernels: {
+      bad: {
+        kernel: 'attention_decode_online_f16kv.wgsl',
+        entry: 'main',
+        digest: D('d'),
+        precision: { kvDtype: 'bf16' },
+      },
+    },
+    preLayer: [],
+    decode: [['attention', 'bad']],
+    prefill: [],
+    postLayer: [],
+    policies: { ...DEFAULT_EXECUTION_V1_POLICIES },
+  });
+} catch {
+  threw = true;
+}
+if (!threw) throw new Error('Should throw on invalid precision dtype');
+
 // === Validation: bad inlineKernelPath ===
 threw = false;
 try {
@@ -219,6 +248,9 @@ if (!compiled.runtimeInferencePatch.compute?.activationDtype) {
 }
 if (!compiled.runtimeInferencePatch.session?.kvcache?.kvDtype) {
   throw new Error('Expected session.kvcache.kvDtype in patch');
+}
+if (compiled.runtimeInferencePatch.kernelPath.decode.steps.find((step) => step.op === 'attention')?.precision?.kvDtype !== 'f16') {
+  throw new Error('Expected inline kernelPath attention precision.kvDtype to survive compileExecutionV1');
 }
 if (compiled.runtimeInferencePatch.kvcache) {
   throw new Error('Execution-v1 runtime patch must not mirror session.kvcache to top-level kvcache');
@@ -393,6 +425,40 @@ if (
 }
 if (compiledWithRuntimeSessionDefaults.runtimeInferencePatch.session?.kvcache?.maxSeqLen !== 4096) {
   throw new Error('Execution-v1 session merge must still retain non-dtype runtime session fields');
+}
+
+const compiledPipeline = compileExecutionV1({
+  manifestInference: {
+    schema: EXECUTION_V1_SCHEMA_ID,
+    execution: {
+      kernels: {
+        attn: {
+          kernel: 'attention_streaming_f16kv.wgsl',
+          entry: 'main',
+          digest: D('9'),
+          precision: { kvDtype: 'f16' },
+        },
+      },
+      preLayer: [],
+      decode: [['attention', 'attn']],
+      prefill: [['attention', 'attn']],
+      postLayer: [],
+      policies: { ...DEFAULT_EXECUTION_V1_POLICIES },
+    },
+    session: {
+      compute: {
+        defaults: { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' },
+      },
+      kvcache: { kvDtype: 'f16' },
+      decodeLoop: null,
+    },
+  },
+  modelId: 'test-pipeline-precision',
+  numLayers: 2,
+});
+
+if (compiledPipeline.runtimeInferencePatch?.pipeline?.steps?.find((step) => step.op === 'attention')?.kvDtype !== 'f16') {
+  throw new Error('Expected layer pipeline attention step to preserve kvDtype precision');
 }
 
 // === Real config file ===

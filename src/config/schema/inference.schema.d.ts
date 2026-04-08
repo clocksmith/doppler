@@ -130,8 +130,8 @@ export interface ChatTemplateSchema {
   /** Template type identifier (gemma, gemma4, llama3, gpt-oss, chatml, qwen, translategemma) */
   type?: ChatTemplateType;
 
-  /** Whether to apply chat template by default (instruct models should set true) */
-  enabled?: boolean;
+  /** Whether to apply chat template by default (null = no runtime override, instruct manifests should set true) */
+  enabled?: boolean | null;
 
   /** Enable thinking/reasoning mode (null = disabled, true = enabled). Gemma 4 uses <|think|> control token. */
   thinking?: boolean | null;
@@ -188,6 +188,8 @@ export interface LayerPipelineStepSchema {
   inputDtype?: LayerPipelineDtype;
   /** Explicit output dtype contract for this step */
   outputDtype?: LayerPipelineDtype;
+  /** Explicit KV-cache dtype contract for attention steps */
+  kvDtype?: LayerPipelineDtype;
   /** Cast source dtype (cast op only) */
   fromDtype?: LayerPipelineDtype;
   /** Cast target dtype (cast op only) */

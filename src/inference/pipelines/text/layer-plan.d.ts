@@ -32,6 +32,7 @@ export interface CompiledLayerPipelineStep {
   toDtype?: LayerPipelineDtype;
   inputDtype?: LayerPipelineDtype;
   outputDtype?: LayerPipelineDtype;
+  kvDtype?: LayerPipelineDtype;
   probeStage?: ProbeStage;
 }
 

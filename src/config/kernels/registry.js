@@ -66,7 +66,6 @@ export function isVariantAvailable(operation, variant, capabilities) {
   for (const req of requires) {
     if (req === 'shader-f16' && !capabilities.hasF16) return false;
     if (req === 'subgroups' && !capabilities.hasSubgroups) return false;
-    if (req === 'subgroups-f16' && (!capabilities.hasSubgroups || !capabilities.hasF16)) return false;
   }
   return true;
 }

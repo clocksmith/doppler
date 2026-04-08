@@ -4,6 +4,7 @@ import type { WeightBuffer } from '../../../gpu/weight-buffer.js';
 import type { CommandRecorder } from '../../../gpu/command-recorder.js';
 import type { LinearNormMode } from '../../../config/schema/index.js';
 import type { ProbeConfigSchema } from '../../../config/schema/index.js';
+import type { ExecutionV1PoliciesSchema } from '../../../config/schema/execution-v1.schema.js';
 
 export interface LinearLayerRuntimeState {
   layerIdx: number;
@@ -59,6 +60,7 @@ export interface RunLinearAttentionLayerOptions {
   currentSeqLen: number;
   activationDtype?: 'f16' | 'f32';
   kernelPath?: string | null;
+  executionPolicies?: ExecutionV1PoliciesSchema | null;
   linearRuntime?: LinearAttentionRuntime | null;
   getWeightBuffer: (
     weight: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer,

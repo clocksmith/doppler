@@ -18,7 +18,10 @@ import type { DecodeBufferManager } from '../../decode-buffers.js';
 import type { CommandRecorder } from '../../../gpu/kernel-selector.js';
 import type { CompiledLayerPipeline } from './layer-plan.js';
 import type { WeightBufferConfig, WeightDebugFlags } from './weights.js';
-import type { ExecutionV1PerLayerInputsSessionSchema } from '../../../config/schema/execution-v1.schema.js';
+import type {
+  ExecutionV1PerLayerInputsSessionSchema,
+  ExecutionV1PoliciesSchema,
+} from '../../../config/schema/execution-v1.schema.js';
 import type {
   KVCache,
   SlidingWindowKVCache,
@@ -130,8 +133,15 @@ export interface LayerContext {
   };
   /** Activation dtype for hidden states (default: 'f32', experimental: 'f16') */
   activationDtype?: 'f16' | 'f32';
+  /** Execution-v1 fused-FFN step precision propagated from the active layer-pipeline step. */
+  ffnStepPrecision?: {
+    inputDtype?: 'f16' | 'f32' | null;
+    outputDtype?: 'f16' | 'f32' | null;
+  } | null;
   /** Explicit kernel-path context for kernel variant selection. */
   kernelPath?: KernelPathSchema | null;
+  /** Execution-v1 fail-fast policies when the runtime is driven by an execution graph. */
+  executionPolicies?: ExecutionV1PoliciesSchema | null;
   /** Shared finiteness status buffer for always-on guard checks */
   finitenessBuffer?: GPUBuffer | null;
   /** Enable/disable guard dispatch for this layer context */

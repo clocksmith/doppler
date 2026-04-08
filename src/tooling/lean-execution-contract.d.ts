@@ -11,6 +11,6 @@ export declare function extractExecutionContractFacts(
 ): ExecutionContractFacts;
 
 export declare function renderExecutionContractLeanModule(
-  facts: LeanExecutionContractFacts,
+  facts: ExecutionContractFacts,
   options?: RenderLeanExecutionContractOptions
 ): string;

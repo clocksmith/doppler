@@ -169,7 +169,7 @@ inference). Document the merge chain per domain:
 - Loader/runtime slices (loading/storage/etc):
   `loadingConfig = merge(runtimeDefaultConfig.loading, runtimeProfileConfig.loading, runtimeOverrideConfig.loading)`
 - Kernel path resolution:
-  `kernelPath = runtimeConfig.inference.kernelPath ?? manifestInference.defaultKernelPath`
+  `kernelPath = runtimeConfig.inference.kernelPath`
   `null` remains a valid "no explicit kernel path" result; do not invent `'auto'` or any implicit string in JS.
 
 ### No Runtime Defaults in Code

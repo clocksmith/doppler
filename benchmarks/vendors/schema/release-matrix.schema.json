@@ -250,7 +250,6 @@
           "dopplerModelBaseDir",
           "dopplerSource",
           "defaultTjsModelId",
-          "defaultKernelPath",
           "defaultDopplerSurface",
           "compareLane",
           "compareLaneReason",
@@ -277,12 +276,6 @@
             ]
           },
           "defaultTjsModelId": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "defaultKernelPath": {
             "type": [
               "string",
               "null"

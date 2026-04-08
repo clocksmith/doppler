@@ -84,7 +84,6 @@ const manifest = {
       enabled: true,
     },
     session: createExecutionV1Session(),
-    defaultKernelPath: 'gemma3-f16-fused-f16a-online',
   },
   config: {
     model_type: 'gemma3_text',

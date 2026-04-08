@@ -180,6 +180,33 @@ try {
     postLayer: [],
   };
 
+  const gemma4FusedFfnPath = {
+    id: 'gemma4-fused-ffn-inline',
+    name: 'Gemma 4 Fused FFN Inline',
+    activationDtype: 'f16',
+    decode: {
+      steps: [
+        {
+          op: 'ffn',
+          kernel: 'gelu.wgsl',
+          entry: 'main',
+          precision: { inputDtype: 'f16', outputDtype: 'f16' },
+        },
+      ],
+    },
+    prefill: {
+      steps: [
+        {
+          op: 'ffn',
+          kernel: 'gelu.wgsl',
+          entry: 'main',
+          precision: { inputDtype: 'f16', outputDtype: 'f16' },
+        },
+      ],
+    },
+    postLayer: [],
+  };
+
   assert.equal(getKernelPathActivationDtype({ activationDtype: 'f16' }), 'f16');
   assert.equal(getKernelPathActivationDtype({}), null);
   assert.equal(getKernelPathOutputDtype({ outputDtype: 'f32' }), 'f32');
@@ -281,6 +308,10 @@ try {
   );
   assert.equal(
     getKernelPathMatmulPrecision('linear_qkv_proj', 'decode', 0, qwenLinearPath)?.outputDtype,
+    'f16'
+  );
+  assert.equal(
+    getKernelPathMatmulPrecision('ffn_down', 'decode', 0, gemma4FusedFfnPath)?.outputDtype,
     'f16'
   );
   assert.equal(

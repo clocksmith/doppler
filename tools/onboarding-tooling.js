@@ -162,7 +162,6 @@ function usage() {
     '  --output <path>             Custom output path.',
     '  --family <name>             Conversion family folder (conversion only).',
     '  --base-dir <path>           Conversion output base dir (conversion only).',
-    '  --default-kernel-path <id>   Conversion default kernel path.',
     '  --status <status>           Kernel registry status hint.',
     '  --status-reason <text>      Optional status reason.',
     '  --scope <dir>               Runtime profile scope directory.',
@@ -345,7 +344,7 @@ function toRuntimeProfileId(runtimeProfileRoot, filePath) {
 const KNOWN_BOOLEAN_FLAGS = new Set(['strict', 'json', 'force']);
 const KNOWN_VALUE_FLAGS = new Set([
   'root', 'kind', 'id', 'output', 'family',
-  'base-dir', 'default-kernel-path', 'status', 'status-reason', 'scope',
+  'base-dir', 'status', 'status-reason', 'scope',
 ]);
 
 function parseCommandLine(argv) {
@@ -901,14 +900,12 @@ async function validateConversionConfigs(root, issues, context, policy = getActi
       issues.push(toIssue(WARN, 'CONVERSION_BASEDIR', filePath, 'output.baseDir should be a non-empty string'));
     }
 
-    const kernelId = config.inference?.defaultKernelPath;
-    const normalizedKernelId = resolveText(kernelId);
-    if (kernelId != null && normalizedKernelId && !context.kernelPathIds.has(normalizedKernelId)) {
+    if (config.inference?.defaultKernelPath !== undefined) {
       issues.push(toIssue(
         ERROR,
-        'CONVERSION_KERNEL_MISSING',
+        'CONVERSION_DEFAULT_KERNEL_REMOVED',
         filePath,
-        `inference.defaultKernelPath "${kernelId}" is not a registered kernel path`
+        'inference.defaultKernelPath has been removed. Use inference.execution as the sole dispatch contract.'
       ));
     }
   }
@@ -1095,13 +1092,12 @@ async function validateCompareConfigs(root, issues, context) {
         `compare profile "${modelId}" has no matching conversion config or loader-owned config`
       ));
     }
-    if (profile.defaultKernelPath != null
-      && !context.kernelPathIds.has(String(profile.defaultKernelPath).trim())) {
+    if (Object.prototype.hasOwnProperty.call(profile, 'defaultKernelPath')) {
       issues.push(toIssue(
         ERROR,
-        'COMPARE_PROFILE_KERNEL_MISSING',
+        'COMPARE_PROFILE_DEFAULT_KERNEL_REMOVED',
         `${compareConfigPath}::${modelId}`,
-        `defaultKernelPath "${profile.defaultKernelPath}" is not registered`
+        'compare profiles must not declare defaultKernelPath. Use manifest execution or an explicit CLI override.'
       ));
     }
   }
@@ -1361,9 +1357,6 @@ function renderConversionTemplate(id, options = {}, policy = getActivePolicy()) 
       lmHead,
       computePrecision: 'f16',
     },
-    inference: options.defaultKernelPath ? {
-      defaultKernelPath: String(options.defaultKernelPath),
-    } : undefined,
   };
 }
 
@@ -1648,7 +1641,6 @@ async function main() {
       outputOverride: args.flags.output,
       family: args.flags.family,
       baseDir: args.flags['base-dir'],
-      defaultKernelPath: args.flags['default-kernel-path'],
       status: args.flags.status,
       statusReason: args.flags['status-reason'],
       scope: args.flags.scope,

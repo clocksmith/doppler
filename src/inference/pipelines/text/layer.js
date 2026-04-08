@@ -283,6 +283,7 @@ async function applyPerLayerInputBlock(layerIdx, hiddenTensor, numTokens, size, 
     outputTensor = await doResidualAdd(normalizedTensor, residualTensor, size, recorder, {
       label: `L${layerIdx}.per_layer_input_residual`,
       layerIdx,
+      executionPolicies: context.executionPolicies ?? null,
     });
     releaseOrTrack(recorder, normalizedTensor.buffer, decodeBuffers);
     normalizedTensor = null;
@@ -562,6 +563,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       debugProbes: context.debugProbes,
       operatorDiagnostics: context.operatorDiagnostics,
       linearRuntime: context.linearAttentionRuntime ?? null,
+      executionPolicies: context.executionPolicies ?? null,
     };
 
     const attnResult = await doAttention(
@@ -658,6 +660,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     postAttn = await doResidualAdd(normalizedAttn, inputTensor, size, recorder, {
       label: `L${layerIdx}.post_attn_residual`,
       layerIdx,
+      executionPolicies: context.executionPolicies ?? null,
     });
 
     if (!(layerWeights.postAttentionNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
@@ -674,7 +677,11 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     postAttn = attnOutput;
     fusedResidualForFFN = inputTensor;
   } else {
-    postAttn = await doResidualAdd(attnOutput, inputTensor, size, recorder, { label: `L${layerIdx}.post_attn_residual`, layerIdx });
+    postAttn = await doResidualAdd(attnOutput, inputTensor, size, recorder, {
+      label: `L${layerIdx}.post_attn_residual`,
+      layerIdx,
+      executionPolicies: context.executionPolicies ?? null,
+    });
     if (recorder) {
       recorder.trackTemporaryBuffer(attnOutput.buffer);
     } else {
@@ -822,6 +829,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
     kvCache: ((kvCache)),
     linearRuntime: context.linearAttentionRuntime ?? null,
     operatorDiagnostics: context.operatorDiagnostics,
+    executionPolicies: context.executionPolicies ?? null,
   };
 
   const allowResidualFuse = numTokens === 1 && !(sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm);
@@ -988,6 +996,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
             tokenIds: context.currentTokenIds ?? null,
             skipInputNorm: step.skipInputNorm === true,
             activationDtype,
+            kvDtype: step.kvDtype ?? undefined,
             kernelPath: context.kernelPath ?? null,
             ...resolveAttentionKVSharing(config, layerIdx, layerType),
           };
@@ -1048,6 +1057,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
               label: `L${layerIdx}.plan_conv`,
               swigluLimit: config.swigluLimit,
               kernelPath: context.kernelPath ?? null,
+              executionPolicies: context.executionPolicies ?? null,
               convState: getConvLayerState(context.convLayerStates, layerIdx),
             },
             recorder
@@ -1108,6 +1118,15 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
 
           const activationDtype = resolveStepInputDtype(step, step.src);
           const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_ffn_src');
+          const ffnContext = step.inputDtype || step.outputDtype
+            ? {
+              ...context,
+              ffnStepPrecision: {
+                inputDtype: step.inputDtype ?? null,
+                outputDtype: step.outputDtype ?? null,
+              },
+            }
+            : context;
 
           let outputTensor;
           const { runMoEFFNGPU, runDenseFFNGPU } = await import('./ffn/index.js');
@@ -1120,9 +1139,9 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
             { variant: step.variant, canAutoMoe }
           );
           if (useMoe) {
-            outputTensor = await runMoEFFNGPU(layerIdx, srcTensor, numTokens, context);
+            outputTensor = await runMoEFFNGPU(layerIdx, srcTensor, numTokens, ffnContext);
           } else {
-            outputTensor = await runDenseFFNGPU(layerIdx, srcTensor, numTokens, context, layerWeights);
+            outputTensor = await runDenseFFNGPU(layerIdx, srcTensor, numTokens, ffnContext, layerWeights);
           }
           const outputDtype = resolveStepOutputDtype(step, resolveActivationDtype(outputTensor.dtype));
           setSlot(step.dst, outputTensor.buffer, outputDtype);
@@ -1149,6 +1168,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
           const outputTensor = await doResidualAdd(aTensor, bTensor, size, recorder, {
             label: `L${layerIdx}.residual_add`,
             layerIdx,
+            executionPolicies: context.executionPolicies ?? null,
           });
           const outputDtype = resolveStepOutputDtype(step, resolveActivationDtype(outputTensor.dtype));
           setSlot(step.dst, outputTensor.buffer, outputDtype);

@@ -43,8 +43,23 @@ import {
   buildTieredQuantAttentionOptions,
   buildContiguousQuantAttentionOptions,
 } from './quant-options.js';
+import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
+import {
+  resolveAttentionPrecisionContract,
+  isAttentionKvDtypeExplicit,
+} from './precision-contract.js';
 
 const ATTENTION_DTYPE_LOGGED = new Set();
+
+function assertAttentionDtypeTransitionAllowed(state, fromDtype, toDtype, detail) {
+  assertImplicitDtypeTransitionAllowed({
+    executionPolicies: state?.executionPolicies ?? null,
+    fromDtype,
+    toDtype,
+    op: 'attention',
+    detail,
+  });
+}
 
 
 export async function recordLayerAttentionGPU(
@@ -90,7 +105,8 @@ export async function recordLayerAttentionGPU(
   const wantsF16Output = desiredOutputDtype === 'f16';
   const useF16Activations = wantsF16Output;
   const kvCacheFallback = selectRuleValue('inference', 'dtype', 'f16OrF32', { useF16: wantsF16Output });
-  const kvCacheDtype = state.kvCache?.kvDtype ?? kvCacheFallback;
+  const attentionPrecisionContract = resolveAttentionPrecisionContract(config, state);
+  const kvCacheDtype = attentionPrecisionContract.resolvedKvCacheDtype ?? state.kvCache?.kvDtype ?? kvCacheFallback;
   const allowF16Attention = wantsF16Output && kvCacheDtype === 'f16';
   let attentionInput = input;
   let attentionInputTemp = false;
@@ -106,6 +122,12 @@ export async function recordLayerAttentionGPU(
   let oProjInputTemp = null;
   let retainSharedKvBuffers = false;
   if (wantsF16Output && !allowF16Attention) {
+    assertAttentionDtypeTransitionAllowed(
+      state,
+      input.dtype,
+      'f32',
+      'The attention kernel selection would widen the input implicitly.'
+    );
     attentionInput = await recordCastF16ToF32(recorder, input);
     attentionInputTemp = true;
     normed = attentionInput;
@@ -198,6 +220,7 @@ export async function recordLayerAttentionGPU(
     attentionOutputGate: config.attentionOutputGate === true,
     sharedKTensor: sharedKVEntry?.kTensor ?? null,
     sharedVTensor: sharedKVEntry?.vTensor ?? null,
+    executionPolicies: state.executionPolicies ?? null,
     releaseTemporary: (buffer) => releaseOrTrack(recorder, buffer),
     onFusedQKV: layerIdx === 0 && isPrefill
       ? ({ qSize: qSizeFused, kSize: kSizeFused, vSize: vSizeFused, totalSize }) => {
@@ -251,6 +274,7 @@ export async function recordLayerAttentionGPU(
       rotaryDim: config.ropeRotaryDim,
       interleaved: config.ropeInterleaved,
       startPos: currentSeqLen,
+      executionPolicies: state.executionPolicies ?? null,
     });
     if (!reusesSharedKV) {
       await recordRoPE(recorder, kTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
@@ -259,6 +283,7 @@ export async function recordLayerAttentionGPU(
         rotaryDim: config.ropeRotaryDim,
         interleaved: config.ropeInterleaved,
         startPos: currentSeqLen,
+        executionPolicies: state.executionPolicies ?? null,
       });
     }
   }
@@ -277,6 +302,13 @@ export async function recordLayerAttentionGPU(
     // Use recordUpdateFromGPU to record copy operations to the recorder's encoder
     // This ensures K/V buffers are populated before copying (all ops submitted together)
     if (state.kvCache.kvDtype === 'f16') {
+      const hasExplicitF16KvContract = isAttentionKvDtypeExplicit(attentionPrecisionContract, 'f16');
+      if (kTensor.dtype !== 'f16' && !hasExplicitF16KvContract) {
+        assertAttentionDtypeTransitionAllowed(state, kTensor.dtype, 'f16', 'K would be narrowed implicitly for KV cache storage.');
+      }
+      if (vTensor.dtype !== 'f16' && !hasExplicitF16KvContract) {
+        assertAttentionDtypeTransitionAllowed(state, vTensor.dtype, 'f16', 'V would be narrowed implicitly for KV cache storage.');
+      }
       const kCasted = kTensor.dtype === 'f16' ? kTensor : await recordCastF32ToF16(recorder, kTensor);
       const vCasted = vTensor.dtype === 'f16' ? vTensor : await recordCastF32ToF16(recorder, vTensor);
 
@@ -296,7 +328,7 @@ export async function recordLayerAttentionGPU(
     slidingWindow, layerType, layerTypes: config.layerTypes,
     queryPreAttnScalar, causalAttention: config.causalAttention,
     activationDtype: config.activationDtype,
-    kvCacheDtype: state.kvCache?.kvDtype ?? null,
+    kvCacheDtype: attentionPrecisionContract.resolvedKvCacheDtype ?? state.kvCache?.kvDtype ?? null,
   };
   const dispatchParams = buildAttentionDispatchParams(dispatchConfig, state, kTensor, vTensor, kvState);
   const {
@@ -323,6 +355,7 @@ export async function recordLayerAttentionGPU(
 
       let qForBDPA = qTensor;
       if (qForBDPA.dtype !== 'f16') {
+        assertAttentionDtypeTransitionAllowed(state, qForBDPA.dtype, 'f16', 'BDPA attention would narrow Q implicitly.');
         qForBDPA = await recordCastF32ToF16(recorder, qTensor);
         recorder.trackTemporaryBuffer(qForBDPA.buffer);
       }
@@ -344,6 +377,7 @@ export async function recordLayerAttentionGPU(
     tieredQuant: async () => {
       let qForAttention = qTensor;
       if (kvState.coldQuantMode !== 'none' && qTensor.dtype !== 'f32') {
+        assertAttentionDtypeTransitionAllowed(state, qTensor.dtype, 'f32', 'Tiered quant attention would widen Q implicitly.');
         qForAttention = await recordCastF16ToF32(recorder, qTensor);
         recorder.trackTemporaryBuffer(qForAttention.buffer);
       }
@@ -381,6 +415,7 @@ export async function recordLayerAttentionGPU(
     contiguousQuant: async () => {
       let qForAttention = qTensor;
       if (qTensor.dtype !== 'f32') {
+        assertAttentionDtypeTransitionAllowed(state, qTensor.dtype, 'f32', 'Contiguous quant attention would widen Q implicitly.');
         qForAttention = await recordCastF16ToF32(recorder, qTensor);
         recorder.trackTemporaryBuffer(qForAttention.buffer);
       }
@@ -441,6 +476,13 @@ export async function recordLayerAttentionGPU(
       let kForAttn = cachedKTensor;
       let vForAttn = cachedVTensor;
       if (prefillFallbackNeedsCast) {
+        const hasExplicitF16KvContract = isAttentionKvDtypeExplicit(attentionPrecisionContract, 'f16');
+        if (cachedKDtype === 'f16' && kTensor.dtype !== 'f16' && !hasExplicitF16KvContract) {
+          assertAttentionDtypeTransitionAllowed(state, kTensor.dtype, 'f16', 'Prefill fallback attention would narrow K implicitly.');
+        }
+        if (cachedVDtype === 'f16' && vTensor.dtype !== 'f16' && !hasExplicitF16KvContract) {
+          assertAttentionDtypeTransitionAllowed(state, vTensor.dtype, 'f16', 'Prefill fallback attention would narrow V implicitly.');
+        }
         const kCasted = cachedKDtype === 'f16' && kTensor.dtype !== 'f16'
           ? await recordCastF32ToF16(recorder, kTensor) : kTensor;
         const vCasted = cachedVDtype === 'f16' && vTensor.dtype !== 'f16'
@@ -499,7 +541,10 @@ export async function recordLayerAttentionGPU(
     ({ oProjInput, oProjInputTemp } = await prepareAttentionProjectionInput(
       attnForProjection,
       matmulOutputDtype,
-      (tensor) => recordCastF32ToF16(recorder, tensor)
+      (tensor) => {
+        assertAttentionDtypeTransitionAllowed(state, tensor.dtype, 'f16', 'Attention output projection would narrow activations implicitly.');
+        return recordCastF32ToF16(recorder, tensor);
+      }
     ));
     const oProjBuf = getWeightBuffer(layerWeights.oProj, 'o_proj');
     const loraO = getLoRAModule(lora, layerIdx, 'o_proj');
@@ -532,6 +577,7 @@ export async function recordLayerAttentionGPU(
         layerIdx,
         kernelPath,
         outputDtype: matmulOutputDtype,
+        executionPolicies: state.executionPolicies ?? null,
       });
     }
     // Release temporary buffer if we created it (original was not already on GPU)
@@ -572,6 +618,7 @@ export async function recordLayerAttentionGPU(
     buffersToTrack.push(oProjInputTemp.buffer);
   }
   if (wantsF16Output && output.dtype !== 'f16') {
+    assertAttentionDtypeTransitionAllowed(state, output.dtype, 'f16', 'Attention output would narrow implicitly before leaving the layer.');
     const f16Output = await recordCastF32ToF16(recorder, output);
     buffersToTrack.push(output.buffer);
     finalOutput = f16Output;

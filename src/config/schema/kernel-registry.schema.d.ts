@@ -11,7 +11,7 @@
  * GPU features that a kernel variant may require.
  * These map to WebGPU adapter features.
  */
-export type GpuFeature = 'shader-f16' | 'subgroups' | 'subgroups-f16';
+export type GpuFeature = 'shader-f16' | 'subgroups';
 
 /**
  * WebGPU buffer binding types.

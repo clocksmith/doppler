@@ -151,7 +151,10 @@
       "attn_decode": {
         "kernel": "attention_decode_online_f16kv.wgsl",
         "entry": "main",
-        "digest": "sha256:4c5d8c92a0a111af716d6b46b9559446807c086027445c7fefa150202f43dae4"
+        "digest": "sha256:4c5d8c92a0a111af716d6b46b9559446807c086027445c7fefa150202f43dae4",
+        "precision": {
+          "kvDtype": "f16"
+        }
       },
       "residual": {
         "kernel": "residual.wgsl",
@@ -174,7 +177,10 @@
       "attn_stream": {
         "kernel": "attention_streaming_f16kv.wgsl",
         "entry": "main",
-        "digest": "sha256:5976eef417cebf648f52aeebb47ed1dc6b03c3c541122290c5cead19238fdc24"
+        "digest": "sha256:5976eef417cebf648f52aeebb47ed1dc6b03c3c541122290c5cead19238fdc24",
+        "precision": {
+          "kvDtype": "f16"
+        }
       },
       "lm_head_gemv": {
         "kernel": "matmul_gemv_subgroup.wgsl",

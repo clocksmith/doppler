@@ -74,6 +74,7 @@ async function projectSingleQkvTensor({
   lora,
   matmulDebug,
   releaseTemporary,
+  executionPolicies = null,
 }) {
     const runMatmulForMode = getMatmulRunner(recorder);
   const layerWeight = layerWeights?.[weightKey];
@@ -94,6 +95,7 @@ async function projectSingleQkvTensor({
       kernelPath,
       outputDtype: matmulOutputDtype,
       matmulDebug,
+      executionPolicies,
     });
   } finally {
     releaseOwnedWeightBuffer(layerWeight, projBuffer, releaseTemporary);
@@ -184,6 +186,7 @@ async function projectQueryWithOptionalGate({
   matmulDebug,
   releaseTemporary,
   attentionOutputGate,
+  executionPolicies = null,
 }) {
   const qSize = numHeads * headDim;
   const qWeight = layerWeights?.qProj;
@@ -232,6 +235,7 @@ async function projectQueryWithOptionalGate({
       kernelPath,
       outputDtype: matmulOutputDtype,
       matmulDebug,
+      executionPolicies,
     });
 
     const split = await runSplitQGForMode(fullQGTensor, {
@@ -346,6 +350,7 @@ export async function projectAttentionQKV({
   attentionOutputGate = false,
   sharedKTensor = null,
   sharedVTensor = null,
+  executionPolicies = null,
 }) {
   const runMatmulForMode = getMatmulRunner(recorder);
   const runSplitForMode = getSplitRunner(recorder);
@@ -376,6 +381,7 @@ export async function projectAttentionQKV({
         kernelPath,
         outputDtype: matmulOutputDtype,
         matmulDebug,
+        executionPolicies,
       });
       const split = await runSplitForMode(qkvTensor, {
         numTokens,
@@ -417,6 +423,7 @@ export async function projectAttentionQKV({
       matmulDebug,
       releaseTemporary,
       attentionOutputGate,
+      executionPolicies,
     }));
 
     if (reuseSharedKV) {
@@ -447,6 +454,7 @@ export async function projectAttentionQKV({
       lora,
       matmulDebug,
       releaseTemporary,
+      executionPolicies,
     });
 
     vTensor = await projectSingleQkvTensor({
@@ -467,6 +475,7 @@ export async function projectAttentionQKV({
       lora,
       matmulDebug,
       releaseTemporary,
+      executionPolicies,
     });
 
     return { qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV: false };

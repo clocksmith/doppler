@@ -1076,9 +1076,6 @@ async function loadCompareEnginesConfig(rawPath) {
     if (row.defaultTjsModelId != null && (typeof row.defaultTjsModelId !== 'string' || row.defaultTjsModelId.trim() === '')) {
       throw new Error(`compare-engines.config.json defaultTjsModelId for ${row.dopplerModelId} must be a non-empty string or null`);
     }
-    if (row.defaultKernelPath != null && (typeof row.defaultKernelPath !== 'string' || row.defaultKernelPath.trim() === '')) {
-      throw new Error(`compare-engines.config.json defaultKernelPath for ${row.dopplerModelId} must be a non-empty string or null`);
-    }
     if (row.modelBaseDir != null && (typeof row.modelBaseDir !== 'string' || row.modelBaseDir.trim() === '')) {
       throw new Error(`compare-engines.config.json modelBaseDir for ${row.dopplerModelId} must be a non-empty string or null`);
     }
@@ -1133,7 +1130,6 @@ function resolveCompareProfile(compareConfig, modelId) {
     defaultDopplerSource: profile?.defaultDopplerSource || DEFAULT_DOPPLER_MODEL_SOURCE,
     modelBaseDir: profile?.modelBaseDir ?? null,
     defaultTjsModelId: profile?.defaultTjsModelId || null,
-    defaultKernelPath: profile?.defaultKernelPath || null,
     defaultDopplerSurface: profile?.defaultDopplerSurface || 'auto',
     defaultDopplerFormat: profile?.defaultDopplerFormat || DEFAULT_DOPPLER_FORMAT,
     defaultTjsFormat: profile?.defaultTjsFormat || DEFAULT_TJS_FORMAT,
@@ -1584,13 +1580,6 @@ function resolveDopplerKernelPath(profile, kernelPathOverride) {
     return {
       kernelPath: String(kernelPathOverride),
       source: 'cli',
-    };
-  }
-  const configuredKernelPath = profile?.defaultKernelPath ?? null;
-  if (configuredKernelPath) {
-    return {
-      kernelPath: configuredKernelPath,
-      source: 'compare-config',
     };
   }
   return {
@@ -2507,7 +2496,7 @@ async function main() {
   console.error(
     `[compare] model-profile source: ${compareProfile.source}`
     + ` (dopplerSource=${dopplerModelSource.source}, locator=${dopplerModelSource.locator ?? 'n/a'}, `
-    + `defaultKernelPath=${dopplerKernelResolution.kernelPath ?? 'manifest-default'}, compareLane=${compareProfile.compareLane})`
+    + `compareLane=${compareProfile.compareLane})`
   );
   if (compareProfile.compareLaneReason) {
     console.error(`[compare] compare-lane note: ${compareProfile.compareLaneReason}`);
