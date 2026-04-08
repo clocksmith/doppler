@@ -177,8 +177,8 @@ assert.equal(nativeF16.up.buffer.label, 'up_q4k');
     hiddenSize: 1152,
     kernelPath: denseKernelPath,
   });
-  assert.equal(densePath.gateDtype, 'f16');
-  assert.equal(densePath.upDtype, 'f16');
+  assert.equal(densePath.gateDtype, 'q4k');
+  assert.equal(densePath.upDtype, 'q4k');
 
   const mixedPrefill = resolveFusedGateUpWeights(mixedWeights, {
     activationDtype: 'f32',

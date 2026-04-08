@@ -3295,7 +3295,7 @@
     "convertedAt": "2026-03-19T16:33:03.316Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-04-04T21:40:22.166Z",
+      "at": "2026-04-08T01:20:32.234Z",
       "config": "gemma-3-270m-it-q4k-ehf16-af32.json"
     }
   },

@@ -24,6 +24,7 @@ const { createKVCache } = await import('../../src/inference/pipelines/text/init.
 const { PipelineGenerator } = await import('../../src/inference/pipelines/text/generator.js');
 const { compileExecutionPlanState } = await import('../../src/inference/pipelines/text/execution-plan.js');
 const { MixedGeometryKVCache } = await import('../../src/inference/kv-cache/mixed-geometry.js');
+import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
 
 let nextBufferId = 0;
 
@@ -197,6 +198,7 @@ function createGemma4EveryNManifest() {
         type: 'gemma4',
         enabled: true,
       },
+      session: createExecutionV1Session(),
     },
   };
 }

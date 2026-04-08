@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
 
 const {
   parseModelConfigFromManifest,
@@ -91,7 +92,7 @@ function createGemma4E2BManifest(useDoubleWideMlp) {
         enabled: true,
       },
       pipeline: null,
-      session: null,
+      session: createExecutionV1Session(),
       execution: null,
       defaultKernelPath: null,
     },

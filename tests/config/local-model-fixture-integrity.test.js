@@ -12,7 +12,7 @@ for (const entry of fixtures) {
   if (!fs.existsSync(entry.manifestPath)) {
     continue;
   }
-  assertManifestArtifactIntegrity(entry.manifestPath);
+  await assertManifestArtifactIntegrity(entry.manifestPath);
   checked += 1;
 }
 

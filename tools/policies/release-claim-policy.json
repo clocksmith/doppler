@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-03-23",
+  "updatedAt": "2026-04-04",
   "claims": [
     {
       "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
@@ -31,7 +31,7 @@
       "mode": "embedding",
       "surface": ["node"],
       "verificationSource": "runtime-verify",
-      "lastVerifiedAt": "2026-03-21",
+      "lastVerifiedAt": "2026-04-04",
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "runtime-verify"
@@ -51,9 +51,9 @@
     {
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "mode": "text",
-      "surface": ["node"],
+      "surface": ["browser", "node"],
       "verificationSource": "runtime-verify",
-      "lastVerifiedAt": "2026-03-20",
+      "lastVerifiedAt": "2026-03-31",
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "runtime-verify"
@@ -62,9 +62,9 @@
     {
       "modelId": "qwen-3-5-2b-q4k-ehaf16",
       "mode": "text",
-      "surface": ["node"],
+      "surface": ["browser", "node"],
       "verificationSource": "runtime-verify",
-      "lastVerifiedAt": "2026-03-20",
+      "lastVerifiedAt": "2026-03-31",
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "runtime-verify"

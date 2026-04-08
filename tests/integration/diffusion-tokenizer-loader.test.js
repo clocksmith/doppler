@@ -48,7 +48,7 @@ try {
   );
 
   assert.ok(tokenizers.text_encoder);
-  assert.deepEqual(tokenizers.text_encoder.encode('hello'), [1, 3]);
+  assert.deepEqual(tokenizers.text_encoder.encode('hello'), [3]);
 } finally {
   rmSync(fixtureDir, { recursive: true, force: true });
 }

@@ -1,23 +1,23 @@
 import assert from 'node:assert/strict';
-import crypto from 'node:crypto';
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
+import { computeHash } from '../../src/storage/shard-manager.js';
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
 function normalizeHash(value) {
-  return typeof value === 'string' ? value.trim().replace(/^sha256:/i, '') : '';
+  return typeof value === 'string' ? value.trim().replace(/^(sha256|blake3):/i, '') : '';
 }
 
 function normalizeRelativeArtifactPath(value) {
   return typeof value === 'string' ? value.trim().replace(/\\/g, '/') : '';
 }
 
-function computeFileSha256(filePath) {
-  return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+async function computeFileHash(filePath, algorithm) {
+  return computeHash(fs.readFileSync(filePath), algorithm);
 }
 
 export function readLocalFixtureMap(fixtureMapPath = path.join(process.cwd(), 'tests/fixtures/lean-execution-contract-fixtures.json')) {
@@ -39,11 +39,12 @@ export function resolveTokenizerVocabSize(tokenizerPath) {
   return Object.keys(tokenizer?.model?.vocab || {}).length;
 }
 
-export function assertManifestArtifactIntegrity(manifestPath) {
+export async function assertManifestArtifactIntegrity(manifestPath) {
   const manifest = readJson(manifestPath);
   const manifestDir = path.dirname(manifestPath);
   const modelId = String(manifest?.modelId ?? path.basename(manifestDir));
   const shards = Array.isArray(manifest?.shards) ? manifest.shards : [];
+  const manifestHashAlgorithm = String(manifest?.hashAlgorithm || 'sha256').trim().toLowerCase();
   const sourceRuntime = (
     manifest?.metadata?.sourceRuntime
     && typeof manifest.metadata.sourceRuntime === 'object'
@@ -77,7 +78,7 @@ export function assertManifestArtifactIntegrity(manifestPath) {
       const expectedHash = normalizeHash(entry?.hash);
       assert.ok(expectedHash, `${modelId}: direct-source file ${relativePath} must declare a hash`);
       assert.equal(
-        computeFileSha256(absolutePath),
+        await computeFileHash(absolutePath, entry?.hashAlgorithm || sourceRuntime.hashAlgorithm || manifestHashAlgorithm),
         expectedHash,
         `${modelId}: direct-source hash mismatch for ${relativePath}`
       );
@@ -97,7 +98,7 @@ export function assertManifestArtifactIntegrity(manifestPath) {
       const expectedHash = normalizeHash(entry?.hash);
       assert.ok(expectedHash, `${modelId}: auxiliary asset ${relativePath} must declare a hash`);
       assert.equal(
-        computeFileSha256(absolutePath),
+        await computeFileHash(absolutePath, entry?.hashAlgorithm || sourceRuntime.hashAlgorithm || manifestHashAlgorithm),
         expectedHash,
         `${modelId}: auxiliary asset hash mismatch for ${relativePath}`
       );
@@ -126,7 +127,7 @@ export function assertManifestArtifactIntegrity(manifestPath) {
     const expectedHash = normalizeHash(shard?.hash ?? shard?.sha256 ?? shard?.digest);
     assert.ok(expectedHash, `${modelId}: shard ${shardFile} must declare a hash`);
     if (fs.existsSync(shardPath)) {
-      const actualHash = computeFileSha256(shardPath);
+      const actualHash = await computeFileHash(shardPath, shard?.hashAlgorithm || manifestHashAlgorithm);
       assert.equal(
         actualHash,
         expectedHash,

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 
 const { parseModelConfig } = await import('../../src/inference/pipelines/text/config.js');
 const { DEFAULT_MANIFEST_INFERENCE } = await import('../../src/config/schema/index.js');
+import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
 
 const baseManifest = {
   version: 1,
@@ -20,6 +21,7 @@ const baseManifest = {
   },
   inference: {
     ...DEFAULT_MANIFEST_INFERENCE,
+    session: createExecutionV1Session(),
   },
   eos_token_id: 7,
   tensors: {

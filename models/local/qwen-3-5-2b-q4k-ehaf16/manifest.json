@@ -144,7 +144,7 @@
         }
       },
       "decodeLoop": {
-        "batchSize": 4,
+        "batchSize": 8,
         "stopCheckMode": "batch",
         "readbackInterval": 32,
         "readbackMode": "sequential",
@@ -4718,7 +4718,7 @@
     "convertedAt": "2026-04-05T01:30:03.550Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-04-05T01:30:22.378Z",
+      "at": "2026-04-08T01:20:32.365Z",
       "config": "qwen-3-5-2b-q4k-ehaf16.json"
     }
   },

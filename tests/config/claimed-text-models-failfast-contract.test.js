@@ -161,7 +161,7 @@ for (const modelId of CLAIMED_TEXT_MODEL_IDS) {
     `${modelId}: claimed verified base execution graphs must not pin mixed dense and fused projection steps in the same compiled manifest phase`
   );
   const remapExpected = graphSummary.hasDensePrefillProjectionKernel
-    && graphSummary.hasAvailableQ4PrefillProjectionKernel
+    && graphSummary.hasQ4DecodeProjectionKernel
     && !graphSummary.hasQ4PrefillProjectionKernel;
   const remapApplied = compiled.executionV1State?.appliedTransforms?.includes('remapDenseQ4KPrefillToQ4Native') === true;
   assert.equal(

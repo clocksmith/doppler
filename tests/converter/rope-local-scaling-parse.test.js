@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { installNodeFileFetchShim } from '../../src/tooling/node-file-fetch.js';
+import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
 
 installNodeFileFetchShim();
 
@@ -83,6 +84,7 @@ const manifest = {
       enabled: true,
     },
     pipeline: null,
+    session: createExecutionV1Session(),
     defaultKernelPath: null,
   },
   config: {

@@ -49,6 +49,9 @@ function createRuntimeConfig(activationDtype = 'f16', maxTokens = 256) {
     stopCheckMode: 'batch',
     readbackInterval: 1,
     readbackMode: 'sequential',
+    ringTokens: 1,
+    ringStop: 1,
+    ringStaging: 1,
     disableCommandBatching: false,
   };
   return runtimeConfig;
@@ -151,7 +154,7 @@ const container = { executionPlanState: planState };
   assert.equal(isBatchDecodeEnabled({ ...enabledConfig, disableCommandBatching: true }), false);
   assert.equal(isBatchDecodeEnabled({ ...enabledConfig, isBdpaPagedLayout: true }), false);
   assert.equal(isBatchDecodeEnabled({ ...enabledConfig, finitenessFallbackWindowOpen: true }), false);
-  assert.equal(isBatchDecodeEnabled({ ...enabledConfig, hasRangeBackedPerLayerInputs: true }), false);
+  assert.equal(isBatchDecodeEnabled({ ...enabledConfig, hasRangeBackedPerLayerInputs: true }), true);
 }
 
 {

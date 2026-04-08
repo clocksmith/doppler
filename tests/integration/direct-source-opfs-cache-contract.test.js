@@ -16,6 +16,7 @@ import {
 } from '../../src/storage/source-artifact-store.js';
 import { ensureModelCached } from '../../src/tooling/opfs-cache.js';
 import { buildSourceRuntimeBundle, DIRECT_SOURCE_PATH_ARTIFACT_RELATIVE } from '../../src/tooling/source-runtime-bundle.js';
+import { createExecutionContractSession } from '../helpers/execution-v1-fixtures.js';
 
 const originalFetch = globalThis.fetch;
 const originalNavigator = globalThis.navigator;
@@ -52,6 +53,7 @@ async function createDirectSourceManifest() {
     },
     inference: {
       ...DEFAULT_MANIFEST_INFERENCE,
+      session: createExecutionContractSession(),
     },
     tensors: [
       {

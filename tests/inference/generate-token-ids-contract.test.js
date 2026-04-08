@@ -68,32 +68,38 @@ const DECODE_CONTRACT = [
   {
     id: 'abort-signal',
     description: 'Abort signal checked in decode loop',
-    pattern: 'signal?.aborted',
+    generateTokenIdsPattern: 'signal?.aborted',
+    runDecodeLoopPattern: 'signal?.aborted',
   },
   {
     id: 'eos-stop-token',
     description: 'EOS / stop token ID check',
-    pattern: 'isStopToken(',
+    generateTokenIdsPattern: 'stopTokenIds',
+    runDecodeLoopPattern: 'isStopToken(',
   },
   {
     id: 'stop-sequences',
     description: 'String-based stop sequence check',
-    pattern: 'stopSequences',
+    generateTokenIdsPattern: '_shouldStopAfterAppendedToken(',
+    runDecodeLoopPattern: 'stopSequences',
   },
   {
     id: 'finiteness-retry',
     description: 'Finiteness fallback retry on decode error',
-    pattern: 'shouldRetryWithFinitenessFallback',
+    generateTokenIdsPattern: '_shouldUseFinitenessFallback',
+    runDecodeLoopPattern: '_shouldUseFinitenessFallback',
   },
   {
     id: 'finiteness-consume',
     description: 'Finiteness fallback token consumed each iteration',
-    pattern: '_consumeFinitenessFallbackToken',
+    generateTokenIdsPattern: '_consumeFinitenessFallbackToken',
+    runDecodeLoopPattern: '_consumeFinitenessFallbackToken',
   },
   {
     id: 'kernel-cache-warmed',
     description: 'Kernel cache marked warmed at decode entry',
-    pattern: 'markKernelCacheWarmed',
+    generateTokenIdsPattern: 'markKernelCacheWarmed',
+    runDecodeLoopPattern: 'markKernelCacheWarmed',
   },
 ];
 
@@ -113,18 +119,18 @@ const CLEANUP_CONTRACT = [
 
 // === 1. generateTokenIds has all decode contract points ===
 
-for (const { id, description, pattern } of DECODE_CONTRACT) {
+for (const { id, description, generateTokenIdsPattern } of DECODE_CONTRACT) {
   assert.ok(
-    generateTokenIdsBody.includes(pattern),
+    generateTokenIdsBody.includes(generateTokenIdsPattern),
     `generateTokenIds missing contract: ${id} (${description})`
   );
 }
 
 // === 2. _runDecodeLoop has all decode contract points ===
 
-for (const { id, description, pattern } of DECODE_CONTRACT) {
+for (const { id, description, runDecodeLoopPattern } of DECODE_CONTRACT) {
   assert.ok(
-    runDecodeLoopBody.includes(pattern),
+    runDecodeLoopBody.includes(runDecodeLoopPattern),
     `_runDecodeLoop missing contract: ${id} (${description})`
   );
 }

@@ -3,6 +3,11 @@ export const state = {
   phase: 'booting', // booting | ready | loading | generating | error
   bootError: null,
 
+  // Legacy compare/demo state kept explicit for archive-contract surfaces.
+  compareHistoryFilter: 'all',
+  activeCompareSmokeSampleId: null,
+  lastCompareArtifact: null,
+
   // Model
   modelId: null,
   modelStatus: {}, // { [modelId]: 'available' | 'downloading' | 'stored' | 'loaded' }

@@ -41,6 +41,7 @@ const MERGES = [
 
 function makeTokenizer(overrides = {}) {
   const tok = new BPETokenizer({
+    vocabSize: Object.keys(VOCAB).length,
     specialTokens: {
       eos: VOCAB['<eos>'],
       bos: VOCAB['<bos>'],
@@ -176,6 +177,7 @@ function makeTokenizer(overrides = {}) {
 {
   const extendedVocab = { ...VOCAB, 'Ġworld': 19 };
   const tok = new BPETokenizer({
+    vocabSize: Object.keys(extendedVocab).length,
     specialTokens: { eos: 15, bos: 16, unk: 17, pad: 18 },
     addBosToken: false,
     addEosToken: false,
@@ -190,6 +192,7 @@ function makeTokenizer(overrides = {}) {
 {
   const extendedVocab = { ...VOCAB, 'Ċ': 19 };
   const tok = new BPETokenizer({
+    vocabSize: Object.keys(extendedVocab).length,
     specialTokens: { eos: 15, bos: 16, unk: 17, pad: 18 },
     addBosToken: false,
     addEosToken: false,
@@ -261,6 +264,7 @@ function makeTokenizer(overrides = {}) {
 
 {
   const tok = new BPETokenizer({
+    vocabSize: Object.keys(VOCAB).length,
     specialTokens: { eos: 15, unk: null },
     addBosToken: false,
     addEosToken: false,

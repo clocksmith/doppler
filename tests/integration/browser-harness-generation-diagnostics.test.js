@@ -164,7 +164,7 @@ function createHarnessOverride(records) {
     },
   });
 
-  assert.equal(observed.useChatTemplate, undefined);
+  assert.equal(observed.useChatTemplate, false);
 }
 
 {

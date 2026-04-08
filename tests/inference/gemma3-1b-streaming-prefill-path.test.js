@@ -1,9 +1,18 @@
 import assert from 'node:assert/strict';
 
 import { resolveAttentionPlanForTest } from '../../src/gpu/kernels/attention.js';
-import { resolveKernelPath } from '../../src/config/kernel-path-loader.js';
 
-const kernelPath = resolveKernelPath('gemma3-f16-fused-f32a-online-streamingprefill');
+const kernelPath = {
+  id: 'gemma3-inline-streaming-prefill',
+  prefill: {
+    steps: [
+      { op: 'attention', kernel: 'attention_streaming_f16kv.wgsl', entry: 'main' },
+    ],
+  },
+  decode: {
+    steps: [],
+  },
+};
 
 const plan = resolveAttentionPlanForTest(
   15,

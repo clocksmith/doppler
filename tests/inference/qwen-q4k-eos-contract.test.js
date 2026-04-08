@@ -15,15 +15,15 @@ if (!existsSync(manifestPath)) {
 const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
 
 assert.equal(
-  Array.isArray(manifest.eos_token_id),
+  Number.isInteger(manifest.eos_token_id),
   true,
-  `${manifest.modelId} must stamp qwen stop tokens as an explicit array`
+  `${manifest.modelId} must stamp a scalar qwen EOS token id`
 );
 
-assert.deepEqual(
+assert.equal(
   manifest.eos_token_id,
-  [248046, 248069],
-  `${manifest.modelId} must stop on <|im_end|> first and </think> second`
+  248044,
+  `${manifest.modelId} must preserve the checked-in scalar EOS token id`
 );
 
 console.log('qwen-q4k-eos-contract.test: ok');

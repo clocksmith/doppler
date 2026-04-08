@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 
 import { initRoPEFrequencies } from '../../src/inference/pipelines/text/init.js';
 import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text/config.js';
+import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
 
 {
   const freqs = await initRoPEFrequencies({
@@ -194,6 +195,7 @@ import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text
         enabled: true,
       },
       session: {
+        ...createExecutionV1Session(),
         decodeLoop: {
           batchSize: 4,
           disableCommandBatching: true,
@@ -298,7 +300,7 @@ import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text
         type: 'gemma4',
         enabled: true,
       },
-      session: null,
+      session: createExecutionV1Session(),
       execution: null,
       defaultKernelPath: null,
       pipeline: null,

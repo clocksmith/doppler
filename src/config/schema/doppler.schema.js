@@ -1,6 +1,9 @@
 import { DEFAULT_LOADING_CONFIG } from './loading.schema.js';
 import { DEFAULT_SHARED_RUNTIME_CONFIG } from './shared-runtime.schema.js';
 import { DEFAULT_EMULATION_CONFIG, createEmulationConfig } from './emulation.schema.js';
+import { DEFAULT_KVCACHE_CONFIG } from './kvcache.schema.js';
+import { DEFAULT_MOE_RUNTIME_CONFIG } from './moe.schema.js';
+import { DEFAULT_SPECULATIVE_CONFIG } from './speculative.schema.js';
 import { mergeEcosystemConfig } from './ecosystem.schema.js';
 import {
   chooseNullish,
@@ -14,6 +17,12 @@ import {
 // =============================================================================
 // Runtime Config (all non-model-specific settings)
 // =============================================================================
+
+export const DEFAULT_CHAT_TEMPLATE_CONFIG = Object.freeze({
+  enabled: false,
+  type: null,
+  thinking: false,
+});
 
 export const DEFAULT_RUNTIME_CONFIG = {
   shared: DEFAULT_SHARED_RUNTIME_CONFIG,
@@ -31,15 +40,15 @@ export const DEFAULT_RUNTIME_CONFIG = {
     compute: {},
     tokenizer: {},
     largeWeights: {},
-    kvcache: {},
+    kvcache: DEFAULT_KVCACHE_CONFIG,
     diffusion: {},
     energy: {},
-    moe: {},
-    speculative: {},
+    moe: DEFAULT_MOE_RUNTIME_CONFIG,
+    speculative: DEFAULT_SPECULATIVE_CONFIG,
     generation: {
       disableMultiTokenDecode: false,
     },
-    chatTemplate: {},
+    chatTemplate: DEFAULT_CHAT_TEMPLATE_CONFIG,
     session: {},
     executionPatch: {},
   },

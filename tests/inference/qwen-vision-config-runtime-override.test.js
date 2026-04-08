@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 
 import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text/config.js';
+import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
 
 const manifest = {
   modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
@@ -84,6 +85,7 @@ const manifest = {
       enabled: true,
     },
     pipeline: null,
+    session: createExecutionV1Session(),
   },
 };
 

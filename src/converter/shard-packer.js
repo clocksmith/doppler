@@ -404,8 +404,8 @@ export function sortTensorsByGroup(tensors, modelType) {
     throw new Error('sortTensorsByGroup requires an explicit modelType.');
   }
   return [...tensors].sort((a, b) => {
-    const groupA = classifyTensor(a.name, modelType);
-    const groupB = classifyTensor(b.name, modelType);
+    const groupA = resolveTensorGroup(a, modelType);
+    const groupB = resolveTensorGroup(b, modelType);
 
     // Use sortGroupIds logic for consistent ordering
     const sorted = sortGroupIds([groupA, groupB]);

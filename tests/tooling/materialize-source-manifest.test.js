@@ -164,7 +164,7 @@ try {
   assert.equal(manifest.metadata?.sourceRuntime?.pathSemantics, 'artifact-relative');
   assert.equal(manifest.metadata?.sourceRuntime?.tokenizer?.jsonPath, 'tokenizer.json');
   assert.equal(manifest.metadata?.sourceRuntime?.sourceFiles?.[0]?.path, 'model.safetensors');
-  assertManifestArtifactIntegrity(manifestPath);
+  await assertManifestArtifactIntegrity(manifestPath);
 } finally {
   rmSync(fixtureDir, { recursive: true, force: true });
 }

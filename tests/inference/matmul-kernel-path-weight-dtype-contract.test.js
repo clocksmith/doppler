@@ -189,7 +189,7 @@ try {
       kernelPath,
     }
   );
-  assert.equal(selectedQ4KPrefill.variant, 'f16w_f32a');
+  assert.equal(selectedQ4KPrefill.variant, 'q4_fused_batched');
 
   const selectedQ4KDecode = selectMatmulVariantAndFlags(
     'run',
@@ -206,7 +206,7 @@ try {
       kernelPath,
     }
   );
-  assert.equal(selectedQ4KDecode.variant, 'gemv_subgroup_vec4');
+  assert.equal(selectedQ4KDecode.variant, 'q4_fused_multicol');
 
   assert.throws(
     () => selectMatmulVariantAndFlags(
@@ -227,24 +227,22 @@ try {
     /requires f32 weights but B dtype is f16/
   );
 
-  assert.throws(
-    () => selectMatmulVariantAndFlags(
-      'run',
-      8,
-      16,
-      32,
-      'f32',
-      'q4k',
-      true,
-      'f32',
-      {
-        role: 'q_proj',
-        layerIdx: 0,
-        kernelPath: f32WeightKernelPath,
-      }
-    ),
-    /requires f32 weights but B dtype is q4k/
+  const selectedF32WeightsQ4K = selectMatmulVariantAndFlags(
+    'run',
+    8,
+    16,
+    32,
+    'f32',
+    'q4k',
+    true,
+    'f32',
+    {
+      role: 'q_proj',
+      layerIdx: 0,
+      kernelPath: f32WeightKernelPath,
+    }
   );
+  assert.equal(selectedF32WeightsQ4K.variant, 'q4_fused_batched');
 
   const selectedF32Weights = selectMatmulVariantAndFlags(
     'run',

@@ -34,7 +34,7 @@ export const QUICKSTART_MODELS = {
     baseUrl: null,
     hf: {
       repoId: 'Clocksmith/rdrr',
-      revision: 'f5698592e69b97c38f21c68e01db2216c2f40965',
+      revision: 'f242e44c9a35e72186aa61e4cc0c9873f0596741',
       path: 'models/gemma-3-270m-it-q4k-ehf16-af32',
     },
     requirements: MODEL_REQUIREMENTS['gemma-3-270m-it-q4k-ehf16-af32'],
@@ -45,10 +45,43 @@ export const QUICKSTART_MODELS = {
     baseUrl: null,
     hf: {
       repoId: 'Clocksmith/rdrr',
-      revision: '9e4ef13a43ed47eda17bdc271ae90632eb22b9c7',
+      revision: 'f242e44c9a35e72186aa61e4cc0c9873f0596741',
       path: 'models/google-embeddinggemma-300m-q4k-ehf16-af32',
     },
     requirements: MODEL_REQUIREMENTS['google-embeddinggemma-300m-q4k-ehf16-af32'],
+  },
+  'gemma-3-1b-it-q4k-ehf16-af32': {
+    modelId: 'gemma-3-1b-it-q4k-ehf16-af32',
+    displayName: 'Gemma 3 1B IT (Q4K)',
+    baseUrl: null,
+    hf: {
+      repoId: 'Clocksmith/rdrr',
+      revision: 'f242e44c9a35e72186aa61e4cc0c9873f0596741',
+      path: 'models/gemma-3-1b-it-q4k-ehf16-af32',
+    },
+    requirements: MODEL_REQUIREMENTS['gemma-3-1b-it-q4k-ehf16-af32'],
+  },
+  'qwen-3-5-0-8b-q4k-ehaf16': {
+    modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+    displayName: 'Qwen 3.5 0.8B (Q4K)',
+    baseUrl: null,
+    hf: {
+      repoId: 'Clocksmith/rdrr',
+      revision: 'f242e44c9a35e72186aa61e4cc0c9873f0596741',
+      path: 'models/qwen-3-5-0-8b-q4k-ehaf16',
+    },
+    requirements: MODEL_REQUIREMENTS['qwen-3-5-0-8b-q4k-ehaf16'],
+  },
+  'qwen-3-5-2b-q4k-ehaf16': {
+    modelId: 'qwen-3-5-2b-q4k-ehaf16',
+    displayName: 'Qwen 3.5 2B (Q4K)',
+    baseUrl: null,
+    hf: {
+      repoId: 'Clocksmith/rdrr',
+      revision: 'f242e44c9a35e72186aa61e4cc0c9873f0596741',
+      path: 'models/qwen-3-5-2b-q4k-ehaf16',
+    },
+    requirements: MODEL_REQUIREMENTS['qwen-3-5-2b-q4k-ehaf16'],
   },
 };
 

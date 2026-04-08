@@ -4,6 +4,7 @@ import { DEFAULT_MANIFEST_INFERENCE } from '../../src/config/schema/index.js';
 import { setRuntimeConfig, resetRuntimeConfig } from '../../src/config/runtime.js';
 import { computeHash, cleanup } from '../../src/storage/shard-manager.js';
 import { downloadModel } from '../../src/storage/downloader.js';
+import { createExecutionContractSession } from '../helpers/execution-v1-fixtures.js';
 
 function clone(value) {
   if (typeof structuredClone === 'function') {
@@ -39,6 +40,7 @@ function createManifest(hashAlgorithm = 'sha256') {
     },
     inference: {
       ...clone(DEFAULT_MANIFEST_INFERENCE),
+      session: createExecutionContractSession(),
     },
     eos_token_id: 1,
     tokenizer: {

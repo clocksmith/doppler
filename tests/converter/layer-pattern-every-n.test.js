@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { installNodeFileFetchShim } from '../../src/tooling/node-file-fetch.js';
+import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
 
 installNodeFileFetchShim();
 
@@ -82,6 +83,7 @@ const manifest = {
       type: 'gemma',
       enabled: true,
     },
+    session: createExecutionV1Session(),
     defaultKernelPath: 'gemma3-f16-fused-f16a-online',
   },
   config: {

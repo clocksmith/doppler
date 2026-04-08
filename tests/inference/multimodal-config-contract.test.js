@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 
 import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text/config.js';
+import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
 
 function createBaseManifest() {
   return {
@@ -83,6 +84,7 @@ function createBaseManifest() {
         enabled: false,
       },
       pipeline: null,
+      session: createExecutionV1Session(),
     },
   };
 }

@@ -169,6 +169,23 @@
     <div class="report-bar">
       <button id="export-btn" class="btn btn-ghost" disabled>Export JSON</button>
     </div>
+
+    <section id="translate-compare-shell" hidden>
+      <div id="translate-compare-layout"></div>
+      <button id="translate-compare-run-btn" type="button">Run Compare</button>
+      <button id="translate-compare-export-btn" type="button">Export Compare</button>
+      <button id="translate-compare-export-latest-btn" type="button">Export Latest Compare</button>
+      <div id="translate-history-list"></div>
+      <div id="translate-left-engine"></div>
+      <div id="translate-right-engine"></div>
+      <div id="translate-compare-receipts"></div>
+      <div id="translate-smoke-panel"></div>
+      <div id="translate-smoke-grid"></div>
+      <button data-compare-history-filter="all" type="button">All</button>
+      <button data-compare-history-filter="same-model" type="button">Same Model</button>
+      <button data-compare-history-filter="same-engine" type="button">Same Engine</button>
+      <button data-compare-history-filter="proof" type="button">Proof</button>
+    </section>
   </div>
 
   <script type="module" src="/demo/demo.js"></script>

@@ -432,7 +432,7 @@ export function formatChatMessages(messages, templateType, options) {
   if (formatter) {
     return formatter(messages, options);
   }
-  return formatPlaintext(messages);
+  throw new Error(`Unrecognized chat template type: ${templateType}`);
 }
 
 export const formatGemmaChat = formatTurnBased;

@@ -34,10 +34,10 @@ for (const [file, profile] of Object.entries(profiles)) {
   assert.equal(throughput.intent, 'calibrate');
   assert.equal(throughput.runtime.inference?.batching?.batchSize, 8);
   assert.equal(throughput.runtime.inference?.batching?.readbackInterval, 8);
-  assert.equal(throughput.runtime.inference?.batching?.readbackMode, 'sequential');
+  assert.equal(throughput.runtime.inference?.batching?.readbackMode, 'overlapped');
   assert.equal(throughput.runtime.inference?.session?.decodeLoop?.batchSize, 8);
   assert.equal(throughput.runtime.inference?.session?.decodeLoop?.readbackInterval, 8);
-  assert.equal(throughput.runtime.inference?.session?.decodeLoop?.readbackMode, 'sequential');
+  assert.equal(throughput.runtime.inference?.session?.decodeLoop?.readbackMode, 'overlapped');
   assert.equal(throughput.runtime.inference?.session?.decodeLoop?.disableCommandBatching, false);
 }
 

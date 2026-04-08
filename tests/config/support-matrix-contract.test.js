@@ -121,7 +121,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
     }
     const shards = Array.isArray(manifest?.shards) ? manifest.shards : [];
     assert.ok(shards.length > 0, `${entry.modelId}: local artifact must define at least one shard`);
-    assertManifestArtifactIntegrity(manifestPath);
+    await assertManifestArtifactIntegrity(manifestPath);
   }
 }
 

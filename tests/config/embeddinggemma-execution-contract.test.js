@@ -50,6 +50,7 @@ const expectedSession = {
     batchSize: 4,
     stopCheckMode: 'batch',
     readbackInterval: 1,
+    readbackMode: 'sequential',
     ringTokens: 1,
     ringStop: 1,
     ringStaging: 1,

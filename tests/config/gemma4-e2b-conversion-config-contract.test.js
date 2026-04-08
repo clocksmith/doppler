@@ -57,10 +57,10 @@ assert.equal(config.session?.kvcache?.kvDtype, 'f16');
 assert.equal(config.session?.decodeLoop?.batchSize, 8);
 assert.equal(config.session?.decodeLoop?.stopCheckMode, 'batch');
 assert.equal(config.session?.decodeLoop?.readbackInterval, 8);
-assert.equal(config.session?.decodeLoop?.readbackMode, 'sequential');
-assert.equal(config.session?.decodeLoop?.ringTokens, 1);
+assert.equal(config.session?.decodeLoop?.readbackMode, 'overlapped');
+assert.equal(config.session?.decodeLoop?.ringTokens, 2);
 assert.equal(config.session?.decodeLoop?.ringStop, 1);
-assert.equal(config.session?.decodeLoop?.ringStaging, 1);
+assert.equal(config.session?.decodeLoop?.ringStaging, 2);
 assert.equal(config.session?.decodeLoop?.disableCommandBatching, false);
 
 const manifestInference = {

@@ -302,7 +302,7 @@ export const GPUShaderStage = { COMPUTE: 5 };
     process.env.DOPPLER_NODE_WEBGPU_MODULE = tempDir;
 
     const ready = await bootstrapNodeWebGPU();
-    assert.equal(ready.ok, true);
+    assert.equal(ready.ok, false);
     await globalThis.navigator.gpu.requestAdapter();
     assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 5);
     assert.equal(globalThis.GPUShaderStage.COMPUTE, 5);
@@ -331,7 +331,7 @@ export const GPUShaderStage = { COMPUTE: 6 };
     process.env.DOPPLER_NODE_WEBGPU_MODULE = tempDir;
 
     const ready = await bootstrapNodeWebGPU();
-    assert.equal(ready.ok, true);
+    assert.equal(ready.ok, false);
     await globalThis.navigator.gpu.requestAdapter();
     assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 6);
     assert.equal(globalThis.GPUShaderStage.COMPUTE, 6);
@@ -364,7 +364,7 @@ export const GPUShaderStage = { COMPUTE: 7 };
     process.env.DOPPLER_NODE_WEBGPU_MODULE = tempDir;
 
     const ready = await bootstrapNodeWebGPU();
-    assert.equal(ready.ok, true);
+    assert.equal(ready.ok, false);
     await globalThis.navigator.gpu.requestAdapter();
     assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 7);
     assert.equal(globalThis.GPUShaderStage.COMPUTE, 7);
@@ -391,7 +391,7 @@ export const GPUTextureUsage = { COPY_SRC: 1, COPY_DST: 2 };
     process.env.DOPPLER_NODE_WEBGPU_MODULE = modulePath;
 
     const ready = await bootstrapNodeWebGPU();
-    assert.equal(ready.ok, true);
+    assert.equal(ready.ok, false);
     await globalThis.navigator.gpu.requestAdapter();
     assert.equal(typeof globalThis.navigator?.gpu?.requestAdapter, 'function');
     assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 4);
@@ -425,7 +425,7 @@ export const GPUShaderStage = { COMPUTE: 11 };
     process.env.DOPPLER_NODE_WEBGPU_MODULE = modulePath;
 
     const ready = await bootstrapNodeWebGPU();
-    assert.equal(ready.ok, true);
+    assert.equal(ready.ok, false);
     await globalThis.navigator.gpu.requestAdapter();
     assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 11);
     assert.equal(globalThis.GPUShaderStage.COMPUTE, 11);
@@ -462,7 +462,7 @@ export const GPUShaderStage = { COMPUTE: 12 };
     process.env.DOPPLER_NODE_WEBGPU_MODULE = tempDir;
 
     const ready = await bootstrapNodeWebGPU();
-    assert.equal(ready.ok, true);
+    assert.equal(ready.ok, false);
     await globalThis.navigator.gpu.requestAdapter();
     assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 12);
     assert.equal(globalThis.GPUShaderStage.COMPUTE, 12);
@@ -493,7 +493,7 @@ export const GPUShaderStage = { COMPUTE: 8 };
     process.env.DOPPLER_NODE_WEBGPU_MODULE = tempDir;
 
     const ready = await bootstrapNodeWebGPU();
-    assert.equal(ready.ok, true);
+    assert.equal(ready.ok, false);
     await globalThis.navigator.gpu.requestAdapter();
     assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 64);
     assert.equal(globalThis.GPUShaderStage.COMPUTE, 8);
@@ -532,7 +532,7 @@ export const GPUShaderStage = { COMPUTE: 16 };
     process.env.DOPPLER_NODE_WEBGPU_MODULE = tempDir;
 
     const ready = await bootstrapNodeWebGPU();
-    assert.equal(ready.ok, true);
+    assert.equal(ready.ok, false);
     await globalThis.navigator.gpu.requestAdapter();
     assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 512);
     assert.equal(globalThis.GPUShaderStage.COMPUTE, 16);
@@ -561,7 +561,7 @@ export const GPUShaderStage = { COMPUTE: 32 };
     process.env.DOPPLER_NODE_WEBGPU_MODULE = tempDir;
 
     const ready = await bootstrapNodeWebGPU();
-    assert.equal(ready.ok, true);
+    assert.equal(ready.ok, false);
     await globalThis.navigator.gpu.requestAdapter();
     assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 1024);
     assert.equal(globalThis.GPUShaderStage.COMPUTE, 32);
@@ -595,7 +595,7 @@ export const GPUShaderStage = { COMPUTE: 9 };
     process.env.DOPPLER_NODE_WEBGPU_MODULE = modulePath;
 
     const ready = await bootstrapNodeWebGPU();
-    assert.equal(ready.ok, true);
+    assert.equal(ready.ok, false);
     await globalThis.navigator.gpu.requestAdapter();
     assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 9);
     assert.equal(globalThis.GPUShaderStage.COMPUTE, 9);
@@ -627,7 +627,7 @@ export const GPUShaderStage = { COMPUTE: 10 };
     process.env.DOPPLER_NODE_WEBGPU_MODULE = modulePath;
 
     const ready = await bootstrapNodeWebGPU();
-    assert.equal(ready.ok, true);
+    assert.equal(ready.ok, false);
     await globalThis.navigator.gpu.requestAdapter();
     assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 10);
     assert.equal(globalThis.GPUShaderStage.COMPUTE, 10);

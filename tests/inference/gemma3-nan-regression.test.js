@@ -120,7 +120,7 @@ async function runTest() {
     return;
   }
 
-  assertManifestArtifactIntegrity(manifestPath);
+  await assertManifestArtifactIntegrity(manifestPath);
   const { server, origin } = await startLocalFixtureServer();
   const modelUrl = `${origin}/${modelId}`;
   const cliConfig = JSON.stringify({

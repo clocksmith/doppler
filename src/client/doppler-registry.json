@@ -17,7 +17,7 @@
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "e62fb338bbbd110264d2687a2daaba720023483c",
+        "revision": "f242e44c9a35e72186aa61e4cc0c9873f0596741",
         "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
       }
     },
@@ -33,7 +33,7 @@
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "e62fb338bbbd110264d2687a2daaba720023483c",
+        "revision": "f242e44c9a35e72186aa61e4cc0c9873f0596741",
         "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32"
       }
     },
@@ -50,7 +50,7 @@
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "e62fb338bbbd110264d2687a2daaba720023483c",
+        "revision": "f242e44c9a35e72186aa61e4cc0c9873f0596741",
         "path": "models/gemma-3-1b-it-q4k-ehf16-af32"
       }
     },
@@ -68,7 +68,7 @@
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "e62fb338bbbd110264d2687a2daaba720023483c",
+        "revision": "f242e44c9a35e72186aa61e4cc0c9873f0596741",
         "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
       }
     },
@@ -86,7 +86,7 @@
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "e62fb338bbbd110264d2687a2daaba720023483c",
+        "revision": "f242e44c9a35e72186aa61e4cc0c9873f0596741",
         "path": "models/qwen-3-5-2b-q4k-ehaf16"
       }
     }

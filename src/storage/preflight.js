@@ -41,11 +41,33 @@ const EMBEDDINGGEMMA_300M_REQUIREMENTS = {
   architecture: 'EmbeddingGemmaForEmbedding',
 };
 
+const QWEN_08B_REQUIREMENTS = {
+  modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+  displayName: 'Qwen 3.5 0.8B (Q4K)',
+  downloadSize: 641394123,
+  vramRequired: 1.5 * GB,
+  paramCount: '0.8B',
+  quantization: 'Q4K',
+  architecture: 'Qwen3ForCausalLM',
+};
+
+const QWEN_2B_REQUIREMENTS = {
+  modelId: 'qwen-3-5-2b-q4k-ehaf16',
+  displayName: 'Qwen 3.5 2B (Q4K)',
+  downloadSize: 1641596329,
+  vramRequired: 2.5 * GB,
+  paramCount: '2B',
+  quantization: 'Q4K',
+  architecture: 'Qwen3ForCausalLM',
+};
+
 
 export const MODEL_REQUIREMENTS = {
   'gemma-3-270m-it-q4k-ehf16-af32': GEMMA_270M_REQUIREMENTS,
   'google-embeddinggemma-300m-q4k-ehf16-af32': EMBEDDINGGEMMA_300M_REQUIREMENTS,
   'gemma-3-1b-it-q4k-ehf16-af32': GEMMA_1B_REQUIREMENTS,
+  'qwen-3-5-0-8b-q4k-ehaf16': QWEN_08B_REQUIREMENTS,
+  'qwen-3-5-2b-q4k-ehaf16': QWEN_2B_REQUIREMENTS,
 };
 
 // ============================================================================

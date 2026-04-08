@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
 
 const originalFetch = globalThis.fetch;
 
@@ -314,12 +315,13 @@ try {
             period: null,
             offset: null,
           },
-          chatTemplate: {
-            type: 'mystery-template',
-            enabled: true,
-          },
+        chatTemplate: {
+          type: 'mystery-template',
+          enabled: true,
         },
-      }),
+        session: createExecutionV1Session(),
+      },
+    }),
       /not a known formatter type/
     );
   }
@@ -407,6 +409,7 @@ try {
           type: 'gemma4',
           enabled: true,
         },
+        session: createExecutionV1Session(),
       },
     });
 
@@ -508,6 +511,7 @@ try {
           type: 'gemma4',
           enabled: true,
         },
+        session: createExecutionV1Session(),
       },
     });
 
@@ -542,6 +546,7 @@ try {
         eos_token_id: 1,
         config: {
           vision_config: {
+            vision_architecture: 'gemma4',
             model_type: 'gemma4_vision',
             hidden_size: 768,
             intermediate_size: 3072,
@@ -623,6 +628,7 @@ try {
             type: 'gemma4',
             enabled: true,
           },
+          session: createExecutionV1Session(),
         },
       }),
       /vision_config\.pooling_kernel_size/
@@ -653,6 +659,7 @@ try {
         eos_token_id: 1,
         config: {
           vision_config: {
+            vision_architecture: 'gemma4',
             model_type: 'gemma4_vision',
             hidden_size: 768,
             intermediate_size: 3072,
@@ -735,6 +742,7 @@ try {
             type: 'gemma4',
             enabled: true,
           },
+          session: createExecutionV1Session(),
         },
       }),
       /unsupported Gemma 4 vision hidden_activation/
