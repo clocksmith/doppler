@@ -102,6 +102,9 @@ export function assertImplicitDtypeTransitionAllowed(options = {}) {
   if (policy !== 'require_cast_step') {
     return;
   }
+  if (options.transitionDeclaredBy === 'step_precision') {
+    return;
+  }
 
   const fromDtype = normalizeDtype(options.fromDtype, 'fromDtype');
   const toDtype = normalizeDtype(options.toDtype, 'toDtype');

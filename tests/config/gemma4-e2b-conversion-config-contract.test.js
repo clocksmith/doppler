@@ -49,6 +49,15 @@ assert.equal(config.execution?.kernels?.attn_stream?.kernel, 'attention_streamin
 assert.equal(config.execution?.kernels?.attn_stream?.precision?.kvDtype, 'f16');
 assert.equal(config.execution?.kernels?.gemv?.kernel, 'matmul_gemv_subgroup.wgsl');
 assert.equal(config.execution?.kernels?.tiled?.kernel, 'matmul_f16w_f32a.wgsl');
+assert.equal(config.execution?.kernels?.final_norm_stable?.kernel, 'rmsnorm.wgsl');
+assert.equal(config.execution?.kernels?.final_norm_stable?.precision?.inputDtype, 'f32');
+assert.equal(config.execution?.kernels?.final_norm_stable?.precision?.outputDtype, 'f32');
+assert.equal(config.execution?.kernels?.lm_head_gemv_stable?.kernel, 'matmul_gemv_subgroup.wgsl');
+assert.equal(config.execution?.kernels?.lm_head_gemv_stable?.precision?.inputDtype, 'f32');
+assert.equal(config.execution?.kernels?.lm_head_gemv_stable?.precision?.outputDtype, 'f32');
+assert.equal(config.execution?.kernels?.lm_head_prefill_stable?.kernel, 'matmul_f16w_f32a.wgsl');
+assert.equal(config.execution?.kernels?.lm_head_prefill_stable?.precision?.inputDtype, 'f32');
+assert.equal(config.execution?.kernels?.lm_head_prefill_stable?.precision?.outputDtype, 'f32');
 assert.equal(config.execution?.kernels?.sample?.kernel, 'sample.wgsl');
 
 assert.equal(config.session?.compute?.defaults?.activationDtype, 'f32');
@@ -180,6 +189,30 @@ assert.equal(
 assert.equal(
   runtimeF16Primary.runtimeInferencePatch?.kernelPath?.prefill?.steps?.find((step) => step.op === 'q_proj')?.kernel,
   'matmul_f16.wgsl'
+);
+assert.equal(
+  runtimeF16Primary.runtimeInferencePatch?.kernelPath?.postLayer?.find((step) => step.op === 'final_norm')?.kernel,
+  'rmsnorm.wgsl'
+);
+assert.equal(
+  runtimeF16Primary.runtimeInferencePatch?.kernelPath?.postLayer?.find((step) => step.op === 'final_norm')?.precision?.inputDtype,
+  'f32'
+);
+assert.equal(
+  runtimeF16Primary.runtimeInferencePatch?.kernelPath?.postLayer?.find((step) => step.op === 'final_norm')?.precision?.outputDtype,
+  'f32'
+);
+assert.equal(
+  runtimeF16Primary.runtimeInferencePatch?.kernelPath?.postLayer?.find((step) => step.op === 'lm_head')?.kernel,
+  'matmul_gemv_subgroup.wgsl'
+);
+assert.equal(
+  runtimeF16Primary.runtimeInferencePatch?.kernelPath?.postLayer?.find((step) => step.op === 'lm_head')?.precision?.inputDtype,
+  'f32'
+);
+assert.equal(
+  runtimeF16Primary.runtimeInferencePatch?.kernelPath?.postLayer?.find((step) => step.op === 'lm_head_prefill')?.kernel,
+  'matmul_f16w_f32a.wgsl'
 );
 
 const finitenessFallback = compileExecutionV1({

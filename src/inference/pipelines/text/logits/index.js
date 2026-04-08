@@ -22,7 +22,7 @@ import { rmsNormCPU, matmulCPU, f16BufferToF32 } from './cpu.js';
 import { resolveCpuWeightDims, computeChunkedLogitsGPU } from './gpu.js';
 import { finalizeLogits, readBufferWithCleanup } from './utils.js';
 import { getRuntimeConfig } from '../../../../config/runtime.js';
-import { getKernelPathMatmulPrecision } from '../../../../config/kernel-path-loader.js';
+import { getKernelPathMatmulPrecision, getKernelPathStepPrecision } from '../../../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
 
@@ -43,13 +43,22 @@ function shouldForceStableF32Logits(config, inputDtype) {
     && config.hiddenSize <= 768;
 }
 
-function resolveMatmulStepDtype(role, phase, kernelPath, fallback, field) {
-  const precision = getKernelPathMatmulPrecision(role, phase, 0, kernelPath);
+function resolvePrecisionFieldDtype(precision, fallback, field) {
   const requested = precision?.[field] ?? fallback;
   if (requested == null) {
     return fallback;
   }
   return selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: requested });
+}
+
+function resolveMatmulStepDtype(role, phase, kernelPath, fallback, field) {
+  const precision = getKernelPathMatmulPrecision(role, phase, 0, kernelPath);
+  return resolvePrecisionFieldDtype(precision, fallback, field);
+}
+
+function resolvePostLayerStepDtype(op, phase, kernelPath, fallback, field) {
+  const precision = getKernelPathStepPrecision(op, 'postLayer', phase, 0, kernelPath);
+  return resolvePrecisionFieldDtype(precision, fallback, field);
 }
 
 async function coerceTensorDtype(tensor, targetDtype, options = {}) {
@@ -62,6 +71,7 @@ async function coerceTensorDtype(tensor, targetDtype, options = {}) {
     toDtype: targetDtype,
     op: options.op ?? 'logits',
     detail: 'The execution graph must declare this cast explicitly.',
+    transitionDeclaredBy: options.transitionDeclaredBy ?? null,
   });
   if (tensor.dtype === 'f32' && targetDtype === 'f16') {
     return castF32ToF16(tensor);
@@ -84,17 +94,45 @@ function createStableF32LogitsKernelPath(kernelPath) {
   }
   let changed = false;
   const postLayer = kernelPath.postLayer.map((step) => {
+    if (step?.op === 'final_norm') {
+      const precision = {
+        ...(step.precision ?? {}),
+        inputDtype: 'f32',
+        outputDtype: 'f32',
+      };
+      if (
+        step.precision?.inputDtype === precision.inputDtype
+        && step.precision?.outputDtype === precision.outputDtype
+      ) {
+        return step;
+      }
+      changed = true;
+      return {
+        ...step,
+        precision,
+      };
+    }
     if (step?.op !== 'lm_head' && step?.op !== 'lm_head_prefill') {
       return step;
     }
-    const replacement = STABLE_F32_LOGITS_KERNEL_MAP.get(step.kernel);
-    if (!replacement || replacement === step.kernel) {
+    const replacement = STABLE_F32_LOGITS_KERNEL_MAP.get(step.kernel) ?? step.kernel;
+    const precision = {
+      ...(step.precision ?? {}),
+      inputDtype: 'f32',
+      outputDtype: 'f32',
+    };
+    if (
+      replacement === step.kernel
+      && step.precision?.inputDtype === precision.inputDtype
+      && step.precision?.outputDtype === precision.outputDtype
+    ) {
       return step;
     }
     changed = true;
     return {
       ...step,
       kernel: replacement,
+      precision,
     };
   });
   if (!changed) {
@@ -267,10 +305,14 @@ export async function computeLogits(
 
   // Wrap input buffer as Tensor for RMSNorm
   const inputTensor = createTensor(inputBuffer, inputDtype, [numTokens, hiddenSize], 'logits_input');
-  const forceStableF32Logits = shouldForceStableF32Logits(config, inputDtype);
+  const phase = numTokens === 1 ? 'decode' : 'prefill';
+  const kernelPath = config.kernelPath ?? null;
+  const finalNormPrecision = getKernelPathStepPrecision('final_norm', 'postLayer', phase, 0, kernelPath);
+  const hasExplicitFinalNormPrecision = finalNormPrecision?.inputDtype != null || finalNormPrecision?.outputDtype != null;
+  const forceStableF32Logits = !hasExplicitFinalNormPrecision && shouldForceStableF32Logits(config, inputDtype);
   const stableKernelPath = forceStableF32Logits
-    ? createStableF32LogitsKernelPath(config.kernelPath ?? null)
-    : (config.kernelPath ?? null);
+    ? createStableF32LogitsKernelPath(kernelPath)
+    : kernelPath;
   let normInputTensor = inputTensor;
   let normInputBufferOwned = false;
   if (forceStableF32Logits) {
@@ -283,8 +325,18 @@ export async function computeLogits(
     });
     normInputTensor = await castF16ToF32(inputTensor);
     normInputBufferOwned = true;
+  } else {
+    const finalNormInputDtype = resolvePostLayerStepDtype('final_norm', phase, stableKernelPath, inputTensor.dtype, 'inputDtype');
+    normInputTensor = finalNormInputDtype !== inputTensor.dtype
+      ? await coerceTensorDtype(inputTensor, finalNormInputDtype, {
+        executionPolicies: config.executionPolicies ?? null,
+        op: 'final_norm',
+        transitionDeclaredBy: 'step_precision',
+      })
+      : inputTensor;
+    normInputBufferOwned = normInputTensor !== inputTensor;
   }
-  const normedTensor = await runRMSNorm(normInputTensor, normWeightBuffer, rmsNormEps, {
+  let normedTensor = await runRMSNorm(normInputTensor, normWeightBuffer, rmsNormEps, {
     batchSize: numTokens,
     hiddenSize,
     rmsNormWeightOffset: config.rmsNormWeightOffset,
@@ -292,23 +344,44 @@ export async function computeLogits(
   if (normInputBufferOwned) {
     releaseBuffer(normInputTensor.buffer);
   }
-  await runProbes('final_norm', normedTensor.buffer, {
+  let finalNormTensor = normedTensor;
+  if (!forceStableF32Logits) {
+    const finalNormOutputDtype = resolvePostLayerStepDtype(
+      'final_norm',
+      phase,
+      stableKernelPath,
+      normedTensor.dtype,
+      'outputDtype'
+    );
+    finalNormTensor = finalNormOutputDtype !== normedTensor.dtype
+      ? await coerceTensorDtype(normedTensor, finalNormOutputDtype, {
+        executionPolicies: config.executionPolicies ?? null,
+        op: 'final_norm',
+        transitionDeclaredBy: 'step_precision',
+      })
+      : normedTensor;
+  }
+  if (finalNormTensor !== normedTensor) {
+    releaseBuffer(normedTensor.buffer);
+    normedTensor = null;
+  }
+  await runProbes('final_norm', finalNormTensor.buffer, {
     numTokens,
     hiddenSize,
     probes: debugProbes,
     operatorDiagnostics,
-    dtype: normedTensor.dtype,
+    dtype: finalNormTensor.dtype,
   });
 
   // Trace final norm output
   if (kernelTrace.enabled) {
-    await traceStep('rmsnorm', 'final_norm', -1, normedTensor.buffer, [numTokens, hiddenSize]);
+    await traceStep('rmsnorm', 'final_norm', -1, finalNormTensor.buffer, [numTokens, hiddenSize]);
   }
 
   // Debug: Check hidden state after final norm
   if (!debugFlags.afterFinalNormDebugDone && debugCheckBuffer) {
     debugFlags.afterFinalNormDebugDone = true;
-    await debugCheckBuffer(normedTensor.buffer, 'After final norm', numTokens, hiddenSize);
+    await debugCheckBuffer(finalNormTensor.buffer, 'After final norm', numTokens, hiddenSize);
   }
 
   if (isCpuWeightBuffer(lmHead)) {
@@ -316,7 +389,7 @@ export async function computeLogits(
       throw new Error('LM head CPU weight is missing vocabSize metadata.');
     }
     const rawLogits = await computeChunkedLogitsGPU(
-      normedTensor,
+      finalNormTensor,
       lmHead,
       numTokens,
       hiddenSize,
@@ -330,7 +403,7 @@ export async function computeLogits(
     );
 
     if (inputBufferOwned) releaseBuffer(inputBuffer);
-    releaseBuffer(normedTensor.buffer);
+    releaseBuffer(finalNormTensor.buffer);
     if (!getNormWeightBuffer && !isGpuBufferInstance(finalNorm)) releaseBuffer(normWeightBuffer);
 
     return finalizeLogits(rawLogits, numTokens, matmulVocabSize, vocabSize, config, debugProbes, operatorDiagnostics);
@@ -359,7 +432,7 @@ export async function computeLogits(
   // Debug: Log buffer info for lm_head matmul
   const lmHeadGPU = isWeightBuffer(lmHeadBuffer) ? lmHeadBuffer.buffer : lmHeadBuffer;
   const lmHeadDtype = getWeightDtype(lmHeadBuffer);
-  const normedDtype = normedTensor.dtype;
+  const normedDtype = finalNormTensor.dtype;
   if (isTraceEnabled('logits')) {
     trace.logits(
       `LM_HEAD_MATMUL: M=${matmulRows}, N=${matmulVocabSize}, K=${hiddenSize}, ` +
@@ -368,17 +441,17 @@ export async function computeLogits(
     );
   }
 
-  let matmulInputTensor = normedTensor;
+  let matmulInputTensor = finalNormTensor;
   let matmulInputOwned = false;
   if (lastPositionOnly) {
-    const inputBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: normedTensor.dtype });
+    const inputBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: finalNormTensor.dtype });
     const rowSize = hiddenSize * inputBytes;
     const rowOffset = (numTokens - 1) * rowSize;
     const lastInputBuffer = acquireBuffer(rowSize, undefined, 'logits_input_last');
     const encoder = device.createCommandEncoder();
-    encoder.copyBufferToBuffer(normedTensor.buffer, rowOffset, lastInputBuffer, 0, rowSize);
+    encoder.copyBufferToBuffer(finalNormTensor.buffer, rowOffset, lastInputBuffer, 0, rowSize);
     device.queue.submit([encoder.finish()]);
-    matmulInputTensor = createTensor(lastInputBuffer, normedTensor.dtype, [1, hiddenSize], 'logits_input_last');
+    matmulInputTensor = createTensor(lastInputBuffer, finalNormTensor.dtype, [1, hiddenSize], 'logits_input_last');
     matmulInputOwned = true;
   }
   const lmHeadInputDtype = forceStableF32Logits
@@ -391,6 +464,7 @@ export async function computeLogits(
     const coercedInput = await coerceTensorDtype(matmulInputTensor, lmHeadInputDtype, {
       executionPolicies: config.executionPolicies ?? null,
       op: 'lm_head',
+      transitionDeclaredBy: 'step_precision',
     });
     if (matmulInputOwned) {
       releaseBuffer(matmulInputTensor.buffer);
@@ -426,7 +500,7 @@ export async function computeLogits(
   const logitsReadSize = matmulRows * matmulVocabSize * logitsBytes;
   const logitsData = await readBufferWithCleanup(logitsTensor.buffer, logitsReadSize, () => {
     if (inputBufferOwned) releaseBuffer(inputBuffer);
-    releaseBuffer(normedTensor.buffer);
+    releaseBuffer(finalNormTensor.buffer);
     if (matmulInputOwned) releaseBuffer(matmulInputTensor.buffer);
     releaseBuffer(logitsTensor.buffer);
     if (!getNormWeightBuffer && !isGpuBufferInstance(finalNorm)) releaseBuffer(normWeightBuffer);

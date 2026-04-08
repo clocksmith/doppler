@@ -25,6 +25,7 @@ export interface ImplicitDtypeTransitionOptions {
   toDtype?: 'f16' | 'f32' | null;
   op?: string | null;
   detail?: string | null;
+  transitionDeclaredBy?: 'step_precision' | null;
 }
 
 /**

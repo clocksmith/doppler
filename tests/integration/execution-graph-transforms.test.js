@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
+  narrowToF16Activations,
   removeSubgroups,
   widenToF32Activations,
   widenToF32CorrectnessFallback,
@@ -965,7 +966,50 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
-// Test 17: digest is nulled on modified kernels
+// Test 17: narrowToF16Activations preserves explicit f32 tail precision
+// ===========================================================================
+{
+  const graph = {
+    kernels: {
+      q_proj: { kernel: 'matmul_gemv_subgroup.wgsl', entry: 'main_vec4', digest: 'sha256:aaa' },
+      final_norm: {
+        kernel: 'rmsnorm.wgsl',
+        entry: 'main',
+        digest: 'sha256:bbb',
+        precision: { inputDtype: 'f32', outputDtype: 'f32' },
+      },
+      lm_head: {
+        kernel: 'matmul_gemv_subgroup.wgsl',
+        entry: 'main_multicol',
+        digest: 'sha256:ccc',
+        precision: { inputDtype: 'f32', outputDtype: 'f32' },
+      },
+    },
+    decode: [
+      ['q_proj', 'q_proj', 'layer.{L}.self_attn.q_proj'],
+    ],
+    prefill: [
+      ['q_proj', 'q_proj', 'layer.{L}.self_attn.q_proj'],
+    ],
+    postLayer: [
+      ['final_norm', 'final_norm'],
+      ['lm_head', 'lm_head', 'lm_head'],
+    ],
+    policies: { unsupportedPrecision: 'error' },
+  };
+
+  const result = narrowToF16Activations(graph, { ...CTX_F16, capabilities: { hasF16: true } });
+  ok(result !== null, 'explicit stable tail: narrowToF16Activations should still remap eligible kernels');
+  equal(result.kernels.q_proj.kernel, 'matmul_gemv_subgroup_f16a.wgsl',
+    'explicit stable tail: layer matmul should narrow to f16 activation');
+  equal(result.kernels.final_norm.kernel, 'rmsnorm.wgsl',
+    'explicit stable tail: final_norm should preserve explicit f32 kernel');
+  equal(result.kernels.lm_head.kernel, 'matmul_gemv_subgroup.wgsl',
+    'explicit stable tail: lm_head should preserve explicit f32 kernel');
+}
+
+// ===========================================================================
+// Test 18: digest is nulled on modified kernels
 // ===========================================================================
 {
   const input = structuredClone(REAL_GRAPH);

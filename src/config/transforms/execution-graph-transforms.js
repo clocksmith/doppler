@@ -450,6 +450,16 @@ const F32_TO_F16_ACTIVATION_MAP = new Map(
   Array.from(F16_TO_F32_ACTIVATION_MAP.entries(), ([from, to]) => [to, from])
 );
 
+function hasExplicitF32ActivationContract(entry) {
+  const precision = entry?.precision;
+  if (!precision || typeof precision !== 'object') {
+    return false;
+  }
+  return precision.activationDtype === 'f32'
+    || precision.inputDtype === 'f32'
+    || precision.outputDtype === 'f32';
+}
+
 /**
  * Correctness fallback: preserve f16 weights where possible, but widen both
  * activations and KV-cache interactions onto the stable f32 execution lane.
@@ -603,7 +613,7 @@ export function narrowToF16Activations(graph, ctx) {
   }
 
   const hasTargetShader = Object.values(graph.kernels).some(
-    (entry) => F32_TO_F16_ACTIVATION_MAP.has(entry.kernel)
+    (entry) => !hasExplicitF32ActivationContract(entry) && F32_TO_F16_ACTIVATION_MAP.has(entry.kernel)
   );
   if (!hasTargetShader) {
     return null;
@@ -611,6 +621,9 @@ export function narrowToF16Activations(graph, ctx) {
 
   const result = cloneGraph(graph);
   for (const [key, entry] of Object.entries(result.kernels)) {
+    if (hasExplicitF32ActivationContract(entry)) {
+      continue;
+    }
     const replacement = F32_TO_F16_ACTIVATION_MAP.get(entry.kernel);
     if (replacement !== undefined) {
       result.kernels[key] = deriveKernelEntry(entry, replacement, entry.entry);

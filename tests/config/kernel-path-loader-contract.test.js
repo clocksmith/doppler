@@ -10,6 +10,7 @@ import {
   getKernelPathKVDtype,
   getKernelPathMatmulConstants,
   getKernelPathMatmulPrecision,
+  getKernelPathStepPrecision,
   getKernelPathMatmulVariant,
   getKernelPathOutputDtype,
   getKernelPathStats,
@@ -313,6 +314,28 @@ try {
   assert.equal(
     getKernelPathMatmulPrecision('ffn_down', 'decode', 0, gemma4FusedFfnPath)?.outputDtype,
     'f16'
+  );
+  assert.deepEqual(
+    getKernelPathStepPrecision(
+      'final_norm',
+      'postLayer',
+      'decode',
+      0,
+      {
+        id: 'stable-logits-tail',
+        name: 'Stable Logits Tail',
+        activationDtype: 'f16',
+        decode: { steps: [] },
+        postLayer: [
+          {
+            op: 'final_norm',
+            kernel: 'rmsnorm.wgsl',
+            precision: { inputDtype: 'f32', outputDtype: 'f32' },
+          },
+        ],
+      }
+    ),
+    { inputDtype: 'f32', outputDtype: 'f32' }
   );
   assert.equal(
     getKernelPathMatmulVariant('linear_qkv_proj', 'decode', 0, qwenLinearPath),

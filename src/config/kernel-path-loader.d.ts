@@ -101,6 +101,19 @@ export function getKernelPathMatmulPrecision(
   outputDtype?: 'f16' | 'f32';
 } | null;
 
+export function getKernelPathStepPrecision(
+  op: string | undefined,
+  section: KernelPathSection,
+  phase: KernelPathPhase,
+  layerIndex?: number,
+  path?: KernelPathSchema | null
+): {
+  activationDtype?: 'f16' | 'f32';
+  kvDtype?: 'f16' | 'f32';
+  inputDtype?: 'f16' | 'f32';
+  outputDtype?: 'f16' | 'f32';
+} | null;
+
 export function getKernelPathAttentionVariant(
   phase: KernelPathPhase,
   layerIndex?: number,

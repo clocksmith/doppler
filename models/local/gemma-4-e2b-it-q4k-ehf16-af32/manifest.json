@@ -193,6 +193,15 @@
             "HAS_GATE": true
           }
         },
+        "final_norm_stable": {
+          "kernel": "rmsnorm.wgsl",
+          "entry": "main",
+          "digest": "sha256:989f2e7ef2ce27c187062ffa913dd6ed785ec01531fa9cea4879d2b8168a8ad3",
+          "precision": {
+            "inputDtype": "f32",
+            "outputDtype": "f32"
+          }
+        },
         "tiled": {
           "kernel": "matmul_f16w_f32a.wgsl",
           "entry": "main",
@@ -213,6 +222,28 @@
           "constants": {
             "MULTICOL_COLS_PER_WG": 64,
             "MULTICOL_THREADS_PER_COL": 4
+          }
+        },
+        "lm_head_gemv_stable": {
+          "kernel": "matmul_gemv_subgroup.wgsl",
+          "entry": "main_multicol",
+          "digest": "sha256:f4d392b7f1e97e5bd63044ce09bdeb77ed7e77f6080181d483b8f1553e844ec4",
+          "constants": {
+            "MULTICOL_COLS_PER_WG": 64,
+            "MULTICOL_THREADS_PER_COL": 4
+          },
+          "precision": {
+            "inputDtype": "f32",
+            "outputDtype": "f32"
+          }
+        },
+        "lm_head_prefill_stable": {
+          "kernel": "matmul_f16w_f32a.wgsl",
+          "entry": "main",
+          "digest": "sha256:78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888",
+          "precision": {
+            "inputDtype": "f32",
+            "outputDtype": "f32"
           }
         },
         "sample": {
@@ -339,16 +370,16 @@
       "postLayer": [
         [
           "final_norm",
-          "rmsnorm"
+          "final_norm_stable"
         ],
         [
           "lm_head",
-          "lm_head_gemv",
+          "lm_head_gemv_stable",
           "lm_head"
         ],
         [
           "lm_head_prefill",
-          "tiled",
+          "lm_head_prefill_stable",
           "lm_head"
         ],
         [

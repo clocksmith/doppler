@@ -285,6 +285,20 @@ export function getKernelPathMatmulPrecision(
   return fusedStep?.precision ?? null;
 }
 
+export function getKernelPathStepPrecision(
+  op,
+  section,
+  phase,
+  layerIndex,
+  path = undefined
+) {
+  const lookupPath = path === undefined ? activeKernelPath : path;
+  if (!lookupPath || !op || !section) return null;
+  const steps = getKernelPathStepsForSection(lookupPath, section, phase, layerIndex ?? 0);
+  const step = findStepByOp(steps, op);
+  return step?.precision ?? null;
+}
+
 function getKernelPathMatmulStep(
   role,
   phase,
