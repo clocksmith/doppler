@@ -202,6 +202,12 @@ const Q4K_LAYOUT_ALLOWLIST = new Set(['row', 'col']);
 const Q4K_PROJECTION_OPS = new Set([
   'q_proj', 'k_proj', 'v_proj', 'o_proj',
   'gate_proj', 'up_proj', 'down_proj',
+  'qkv_proj',
+  'linear_qkv_proj',
+  'linear_z_proj',
+  'linear_a_proj',
+  'linear_b_proj',
+  'linear_out_proj',
 ]);
 
 function summarizeQ4KProjectionKernelKinds(kernelPath) {

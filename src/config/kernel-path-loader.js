@@ -115,10 +115,10 @@ const MATMUL_STEP_ROLE_ALIASES = {
   k_proj: { section: 'layer', ops: ['k_proj'] },
   v_proj: { section: 'layer', ops: ['v_proj'] },
   qkv_proj: { section: 'layer', ops: ['qkv_proj', 'q_proj'] },
-  linear_qkv_proj: { section: 'layer', ops: ['qkv_proj', 'q_proj'] },
-  linear_z_proj: { section: 'layer', ops: ['q_proj'] },
+  linear_qkv_proj: { section: 'layer', ops: ['linear_qkv_proj', 'qkv_proj', 'q_proj'] },
+  linear_z_proj: { section: 'layer', ops: ['linear_z_proj', 'linear_qkv_proj', 'qkv_proj', 'q_proj'] },
   o_proj: { section: 'layer', ops: ['o_proj'] },
-  linear_out_proj: { section: 'layer', ops: ['o_proj'] },
+  linear_out_proj: { section: 'layer', ops: ['linear_out_proj', 'o_proj'] },
   ffn_gate: { section: 'layer', ops: ['ffn_gate', 'gate_proj'] },
   ffn_up: { section: 'layer', ops: ['ffn_up', 'up_proj'] },
   ffn_down: { section: 'layer', ops: ['ffn_down', 'down_proj'] },
@@ -128,8 +128,8 @@ const MATMUL_STEP_ROLE_ALIASES = {
 
 const MATMUL_PRECISION_ROLE_ALIASES = {
   ...MATMUL_STEP_ROLE_ALIASES,
-  linear_a_proj: { section: 'layer', ops: ['q_proj'] },
-  linear_b_proj: { section: 'layer', ops: ['q_proj'] },
+  linear_a_proj: { section: 'layer', ops: ['linear_a_proj', 'linear_qkv_proj', 'qkv_proj', 'q_proj'] },
+  linear_b_proj: { section: 'layer', ops: ['linear_b_proj', 'linear_qkv_proj', 'qkv_proj', 'q_proj'] },
 };
 const FUSED_FFN_PRECISION_FALLBACK_ROLES = new Set([
   'ffn_gate',

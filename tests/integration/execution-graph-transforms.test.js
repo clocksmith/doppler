@@ -794,9 +794,9 @@ function buildF16WeightProjectionGraph() {
     equal(r.transforms.length, 0, 'Gemma 3 1B: zero transform functions');
   }
 
-  // Qwen models — GEMV decode and dense prefill are now the primary execution
+  // Qwen models — fused-Q4 decode/prefill remains the primary execution
   // graph path (baked into conversion config/manifest). Capability transforms
-  // should resolve to the empty catch-all (no transforms needed).
+  // still resolve to the empty catch-all on capable GPUs.
   {
     const r = resolveCapabilityTransforms(
       {

@@ -11,19 +11,21 @@ async function loadJson(path) {
   return JSON.parse(await readFile(new URL(path, import.meta.url), 'utf8'));
 }
 
-const f16ManifestPath = new URL('../../models/local/qwen-3-5-0-8b-f16/manifest.json', import.meta.url);
 const q4kManifestPath = new URL('../../models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json', import.meta.url);
-const hasExactLocalManifests = existsSync(f16ManifestPath) && existsSync(q4kManifestPath);
-const f16Manifest = hasExactLocalManifests
-  ? JSON.parse(await readFile(f16ManifestPath, 'utf8'))
-  : null;
-const q4kManifest = hasExactLocalManifests
+const f16ManifestPath = new URL('../../models/local/qwen-3-5-0-8b-f16/manifest.json', import.meta.url);
+const hasLocalQ4KManifest = existsSync(q4kManifestPath);
+const hasOptionalLocalF16Manifest = existsSync(f16ManifestPath);
+const q4kManifest = hasLocalQ4KManifest
   ? JSON.parse(await readFile(q4kManifestPath, 'utf8'))
+  : null;
+const f16Manifest = hasOptionalLocalF16Manifest
+  ? JSON.parse(await readFile(f16ManifestPath, 'utf8'))
   : null;
 const convConfigs = await Promise.all([
   loadJson('../../src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json'),
   loadJson('../../src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json'),
 ]);
+const availableLocalManifests = [q4kManifest, f16Manifest].filter(Boolean);
 
 const EXPECTED_QWEN_LAYER_TYPES = Array.from(
   { length: 24 },
@@ -35,7 +37,30 @@ const EXPECTED_QWEN_COMPUTE_DEFAULTS = Object.freeze({
   accumDtype: 'f32',
   outputDtype: 'f32',
 });
-const EXPECTED_QWEN_EOS_TOKEN_ID = 248046;
+const EXPECTED_QWEN_PER_LAYER_INPUTS = Object.freeze({
+  materialization: 'auto',
+  rowCache: {
+    mode: 'lru',
+    maxRows: 256,
+    maxBytes: 134217728,
+    decodedDtype: 'f32',
+  },
+  prefetch: {
+    mode: 'next_token',
+    rowsAhead: 1,
+  },
+  gpuUpload: {
+    mode: 'per_step_slices',
+    stagingRows: 2,
+  },
+  hotCache: {
+    mode: 'prepared_tokens',
+    maxTokens: 1024,
+    maxBytes: 134217728,
+    outputDtype: 'f32',
+  },
+});
+const EXPECTED_QWEN_EOS_TOKEN_ID = 248044;
 const EXPECTED_QWEN_DECODE_LOOPS = Object.freeze({
   'qwen-3-5-0-8b-q4k-ehaf16': {
     batchSize: 4,
@@ -78,6 +103,11 @@ function assertQwenComputeDefaults(computeDefaults, label) {
   assert.deepEqual(computeDefaults, EXPECTED_QWEN_COMPUTE_DEFAULTS, `${label} compute defaults`);
 }
 
+function assertQwenPerLayerInputs(perLayerInputs, label) {
+  assert.ok(perLayerInputs && typeof perLayerInputs === 'object', `${label} perLayerInputs must be present`);
+  assert.deepEqual(perLayerInputs, EXPECTED_QWEN_PER_LAYER_INPUTS, `${label} perLayerInputs`);
+}
+
 function assertQwenConversionConfig(config) {
   assert.equal(config.inference.normalization.rmsNormWeightOffset, true);
   assert.equal(config.inference.attention.valueNorm, false);
@@ -116,21 +146,22 @@ function getLinearProjectionLayout(manifest) {
   };
 }
 
-if (!hasExactLocalManifests) {
-  for (const config of convConfigs) {
-    // V1 configs have explicit inference and no legacy family-indirection field
-    assert.ok(config.inference?.attention, 'v1 config must have explicit inference.attention');
-    assertQwenConversionConfig(config);
-  }
-  console.log('qwen-manifest-completeness.test: skipped (missing exact local manifests)');
+for (const config of convConfigs) {
+  // V1 configs have explicit inference and no legacy family-indirection field
+  assert.ok(config.inference?.attention, 'v1 config must have explicit inference.attention');
+  assertQwenConversionConfig(config);
+}
+
+if (!hasLocalQ4KManifest) {
+  console.log('qwen-manifest-completeness.test: ok (conversion-config contract only; local q4k manifest unavailable)');
   process.exit(0);
 }
 
 // --- Manifest: intentional null fields ---
 
 {
-  for (const manifest of [f16Manifest, q4kManifest]) {
-    assert.equal(manifest.inference.defaultKernelPath, null);
+  for (const manifest of availableLocalManifests) {
+    assert.equal(manifest.inference.defaultKernelPath, undefined);
   }
 }
 
@@ -149,7 +180,7 @@ if (!hasExactLocalManifests) {
 // --- Manifest: execution v1 is present with inline kernel-path lowering enabled ---
 
 {
-  for (const manifest of [f16Manifest, q4kManifest]) {
+  for (const manifest of availableLocalManifests) {
     assert.equal(manifest.inference.schema, 'doppler.execution/v1');
     assert.ok(manifest.inference.execution && typeof manifest.inference.execution === 'object');
     assert.equal(manifest.inference.execution.inlineKernelPath, true);
@@ -159,7 +190,7 @@ if (!hasExactLocalManifests) {
 // --- Manifest: session keep explicit compute/kvcache + Qwen decode loop ---
 
 {
-  for (const manifest of [f16Manifest, q4kManifest]) {
+  for (const manifest of availableLocalManifests) {
     const sd = manifest.inference.session;
     assert.ok(sd != null);
     assertQwenDecodeLoop(sd.decodeLoop, `${manifest.modelId}.inference.session`);
@@ -167,12 +198,13 @@ if (!hasExactLocalManifests) {
     assertQwenComputeDefaults(sd.compute?.defaults, `${manifest.modelId}.inference.session`);
     assert.equal(sd.execution, undefined);
   }
+  assertQwenPerLayerInputs(q4kManifest.inference.session?.perLayerInputs, `${q4kManifest.modelId}.inference.session`);
 }
 
 // --- Manifest: Qwen hybrid layer pattern ---
 
 {
-  for (const manifest of [f16Manifest, q4kManifest]) {
+  for (const manifest of availableLocalManifests) {
     const lp = manifest.inference.layerPattern;
     assert.equal(lp.type, 'custom');
     assert.equal(lp.layerTypes.length, manifest.architecture.numLayers);
@@ -192,7 +224,7 @@ if (!hasExactLocalManifests) {
 // --- Manifest: linear attention architecture fields present ---
 
 {
-  for (const manifest of [f16Manifest, q4kManifest]) {
+  for (const manifest of availableLocalManifests) {
     const arch = manifest.architecture;
     assert.equal(arch.linearNumKeyHeads, 16);
     assert.equal(arch.linearNumValueHeads, 16);
@@ -215,10 +247,12 @@ if (!hasExactLocalManifests) {
 // --- Qwen linear-attention layers use linear-attn norm weights, not self-attn q/k norm ---
 
 {
-  assert.equal(f16Manifest.architecture.linearNormMode, undefined);
   assert.equal(q4kManifest.architecture.linearNormMode, 'shared');
+  if (f16Manifest != null) {
+    assert.equal(f16Manifest.architecture.linearNormMode, undefined);
+  }
 
-  for (const manifest of [f16Manifest, q4kManifest]) {
+  for (const manifest of availableLocalManifests) {
     const projectionLayout = getLinearProjectionLayout(manifest);
     for (let layerIdx = 0; layerIdx < manifest.inference.layerPattern.layerTypes.length; layerIdx++) {
       const layerType = manifest.inference.layerPattern.layerTypes[layerIdx];
@@ -249,14 +283,15 @@ if (!hasExactLocalManifests) {
 // --- Manifest: rmsNormWeightOffset = true (from the explicit conversion config) ---
 
 {
-  assert.equal(f16Manifest.inference.normalization.rmsNormWeightOffset, true);
-  assert.equal(q4kManifest.inference.normalization.rmsNormWeightOffset, true);
+  for (const manifest of availableLocalManifests) {
+    assert.equal(manifest.inference.normalization.rmsNormWeightOffset, true);
+  }
 }
 
 // --- Manifest: mRoPE fields ---
 
 {
-  for (const manifest of [f16Manifest, q4kManifest]) {
+  for (const manifest of availableLocalManifests) {
     const rope = manifest.inference.rope;
     assert.deepEqual(rope.mropeSection, [11, 11, 10]);
     assert.equal(rope.mropeInterleaved, true);
@@ -268,10 +303,10 @@ if (!hasExactLocalManifests) {
   }
 }
 
-// --- Conversion configs: all set defaultKernelPath: null ---
+// --- Conversion configs: execution-v1 omits legacy defaultKernelPath ---
 
 for (const config of convConfigs) {
-  assert.equal(config.inference.defaultKernelPath, null);
+  assert.equal(config.inference.defaultKernelPath, undefined);
 }
 
 // --- Conversion configs: Qwen keeps an explicit execution graph with fused Q4 decode/prefill as primary path ---
@@ -296,6 +331,7 @@ for (const config of convConfigs) {
 
 for (const config of convConfigs) {
   assertQwenDecodeLoop(config.session?.decodeLoop, config.output?.modelBaseId ?? 'qwen');
+  assertQwenPerLayerInputs(config.session?.perLayerInputs, config.output?.modelBaseId ?? 'qwen');
 }
 
 console.log('qwen-manifest-completeness.test: ok');

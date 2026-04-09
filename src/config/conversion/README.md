@@ -131,7 +131,8 @@ Current config intent:
   - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
   - Compute: `f16`
   - Kernel path: `null` (no explicit manifest kernel-path contract)
-  - Execution-v1: explicit execution graph with `inlineKernelPath: false`
+  - Execution-v1: explicit execution graph with `inlineKernelPath: true`
+  - Hybrid contract: fused-Q4 projections stay primary for the shared linear-attention path
   - Session: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=32`, `disableCommandBatching=false`
 
 - `src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json`
@@ -141,7 +142,8 @@ Current config intent:
   - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
   - Compute: `f16`
   - Kernel path: `null` (no explicit manifest kernel-path contract)
-  - Execution-v1: explicit execution graph with `inlineKernelPath: false`
+  - Execution-v1: explicit execution graph with `inlineKernelPath: true`
+  - Hybrid contract: fused-Q4 projections stay primary for the shared linear-attention path
   - Session: decode loop `batchSize=8`, `stopCheckMode=batch`, `readbackInterval=32`, `disableCommandBatching=false`
 
 - `src/config/conversion/sana/sana-sprint-0.6b-f16.json`

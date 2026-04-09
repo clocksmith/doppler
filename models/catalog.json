@@ -337,7 +337,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-03-31",
           "source": "runtime-verify",
-          "notes": "Node/WebGPU on Apple M3 verified 2026-04-01: GEMV decode + head256 prefill as primary execution graph (zero capability transforms on capable GPU). 21.5 tok/s decode, 69 tok/s prefill. execution.inlineKernelPath=true.",
+          "notes": "Node/WebGPU verification uses execution-v1 with fused-Q4 decode/prefill projections as the primary hybrid Qwen path and execution.inlineKernelPath=true. The earlier GEMV/head256 note was rolled back after correctness regressions on the linear-attention path.",
           "contracts": {
             "executionContractOk": true
           }
@@ -399,7 +399,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-03-31",
           "source": "runtime-verify",
-          "notes": "Node/WebGPU on Apple M3 verified 2026-04-01: GEMV decode + head256 prefill as primary execution graph (zero capability transforms on capable GPU). execution.inlineKernelPath=true.",
+          "notes": "Node/WebGPU verification uses execution-v1 with fused-Q4 decode/prefill projections as the primary hybrid Qwen path and execution.inlineKernelPath=true. The earlier GEMV/head256 note was rolled back after correctness regressions on the linear-attention path.",
           "contracts": {
             "executionContractOk": true
           }

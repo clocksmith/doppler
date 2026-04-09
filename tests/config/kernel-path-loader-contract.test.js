@@ -181,6 +181,63 @@ try {
     postLayer: [],
   };
 
+  const qwenExplicitLinearPath = {
+    id: 'qwen-explicit-linear-q4',
+    name: 'Qwen Explicit Linear Q4',
+    activationDtype: 'f32',
+    decode: {
+      steps: [
+        {
+          op: 'q_proj',
+          kernel: 'matmul_gemv_subgroup.wgsl',
+          entry: 'main_multicol',
+        },
+        {
+          op: 'linear_qkv_proj',
+          kernel: 'fused_matmul_q4.wgsl',
+          entry: 'main_multicol',
+          precision: { inputDtype: 'f32', outputDtype: 'f32' },
+        },
+        {
+          op: 'linear_z_proj',
+          kernel: 'fused_matmul_q4.wgsl',
+          entry: 'main_multicol',
+          precision: { inputDtype: 'f32', outputDtype: 'f32' },
+        },
+        {
+          op: 'linear_a_proj',
+          kernel: 'fused_matmul_q4_multicol_f16a.wgsl',
+          entry: 'main_multicol_f16a',
+          precision: { inputDtype: 'f16', outputDtype: 'f16' },
+        },
+        {
+          op: 'linear_b_proj',
+          kernel: 'fused_matmul_q4_multicol_f16a.wgsl',
+          entry: 'main_multicol_f16a',
+          precision: { inputDtype: 'f16', outputDtype: 'f16' },
+        },
+        {
+          op: 'o_proj',
+          kernel: 'matmul_gemv_subgroup.wgsl',
+          entry: 'main_multicol',
+        },
+        {
+          op: 'linear_out_proj',
+          kernel: 'fused_matmul_q4.wgsl',
+          entry: 'main_multicol',
+        },
+      ],
+    },
+    prefill: {
+      steps: [
+        { op: 'q_proj', kernel: 'matmul_f16w_f32a.wgsl', entry: 'main' },
+        { op: 'linear_qkv_proj', kernel: 'fused_matmul_q4_batched.wgsl', entry: 'main' },
+        { op: 'linear_out_proj', kernel: 'fused_matmul_q4_batched.wgsl', entry: 'main' },
+      ],
+    },
+    postLayer: [],
+  };
+
   const gemma4FusedFfnPath = {
     id: 'gemma4-fused-ffn-inline',
     name: 'Gemma 4 Fused FFN Inline',
@@ -309,6 +366,26 @@ try {
   );
   assert.equal(
     getKernelPathMatmulPrecision('linear_qkv_proj', 'decode', 0, qwenLinearPath)?.outputDtype,
+    'f16'
+  );
+  assert.equal(
+    getKernelPathMatmulVariant('linear_qkv_proj', 'decode', 0, qwenExplicitLinearPath),
+    'q4_fused_multicol'
+  );
+  assert.equal(
+    getKernelPathMatmulVariant('linear_z_proj', 'decode', 0, qwenExplicitLinearPath),
+    'q4_fused_multicol'
+  );
+  assert.equal(
+    getKernelPathMatmulVariant('linear_out_proj', 'decode', 0, qwenExplicitLinearPath),
+    'q4_fused_multicol'
+  );
+  assert.equal(
+    getKernelPathMatmulPrecision('linear_a_proj', 'decode', 0, qwenExplicitLinearPath)?.outputDtype,
+    'f16'
+  );
+  assert.equal(
+    getKernelPathMatmulPrecision('linear_b_proj', 'decode', 0, qwenExplicitLinearPath)?.outputDtype,
     'f16'
   );
   assert.equal(

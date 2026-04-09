@@ -96,6 +96,21 @@ const mixedPath = {
   postLayer: [],
   preLayer: [],
 };
+const linearMixedPath = {
+  id: 'unit-q4k-linear-mixed',
+  decode: {
+    steps: [
+      { op: 'linear_qkv_proj', kernel: 'fused_matmul_q4.wgsl', entry: 'main_multicol' },
+    ],
+  },
+  prefill: {
+    steps: [
+      { op: 'linear_out_proj', kernel: 'matmul_f16w_f32a_tiled.wgsl', entry: 'main' },
+    ],
+  },
+  postLayer: [],
+  preLayer: [],
+};
 
 setDevice(createFakeDevice(), { platformConfig: null });
 
@@ -122,6 +137,13 @@ try {
   });
 
   assert.deepEqual(resolveQ4KConfig(manifest, mixedPath, 'execution-v1', false), {
+    useFusedQ4K: true,
+    q4kLayout: 'row',
+    keepF32Weights: false,
+    q4kMaterializationMode: 'mixed',
+  });
+
+  assert.deepEqual(resolveQ4KConfig(manifest, linearMixedPath, 'execution-v1', false), {
     useFusedQ4K: true,
     q4kLayout: 'row',
     keepF32Weights: false,
