@@ -399,6 +399,194 @@
   border-top: var(--border-sm) dotted var(--fg);
 }
 
+/* --- Precision replay --- */
+
+.precision-replay-area {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: var(--border-sm) dotted var(--fg);
+}
+
+.precision-replay-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.precision-replay-status {
+  font-size: var(--font-size-sm);
+  opacity: var(--opacity-soft);
+}
+
+.precision-replay-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border: var(--border-sm) dotted var(--fg);
+}
+
+.precision-replay-note {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  opacity: var(--opacity-soft);
+}
+
+.precision-replay-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-sm);
+}
+
+.precision-replay-stat-card,
+.precision-replay-card,
+.precision-replay-mini-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  border: var(--border-sm) solid var(--fg);
+}
+
+.precision-replay-stat-value {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.precision-replay-stat-detail,
+.precision-replay-mini-line,
+.precision-replay-branch-meta,
+.precision-replay-winner-score,
+.precision-replay-winner-gap,
+.precision-replay-watch-line {
+  font-size: var(--font-size-sm);
+  opacity: var(--opacity-soft);
+}
+
+.precision-replay-controls {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.3fr) minmax(220px, 1fr) auto;
+  gap: var(--space-sm);
+  align-items: end;
+}
+
+.precision-replay-mode-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.precision-replay-mode-btn {
+  appearance: none;
+  background: transparent;
+  color: inherit;
+  border: var(--border-sm) solid var(--fg);
+  padding: var(--space-xs) var(--space-sm);
+  cursor: pointer;
+}
+
+.precision-replay-mode-btn.is-active {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.precision-replay-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.2fr) minmax(320px, 1fr);
+  gap: var(--space-sm);
+}
+
+.precision-replay-prompt {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  line-height: var(--font-read-leading);
+}
+
+.precision-replay-winners,
+.precision-replay-watch-pairs,
+.precision-replay-broad-flips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-sm);
+}
+
+.precision-replay-winner-card.is-selected-mode {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.precision-replay-winner-token {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.precision-replay-watch-title,
+.precision-replay-mini-id {
+  font-weight: var(--font-weight-bold);
+}
+
+.precision-replay-mini-text {
+  font-size: var(--font-size-sm);
+  line-height: var(--font-read-leading);
+}
+
+.precision-replay-branch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-sm);
+}
+
+.precision-replay-branch-text {
+  margin: 0;
+  padding: var(--space-sm);
+  border: var(--border-sm) dotted currentColor;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  line-height: var(--font-read-leading);
+}
+
+.precision-replay-table-shell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.precision-replay-table-wrap {
+  overflow-x: auto;
+  border: var(--border-sm) solid var(--fg);
+}
+
+.precision-replay-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.precision-replay-table th,
+.precision-replay-table td {
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: var(--border-sm) dotted var(--fg);
+  text-align: left;
+  vertical-align: top;
+}
+
+.precision-replay-table tbody tr.is-selected-mode {
+  background: color-mix(in srgb, var(--fg) 8%, transparent);
+}
+
+.precision-replay-table tbody tr.is-f32-winner td:nth-child(4),
+.precision-replay-table tbody tr.is-f16-winner td:nth-child(5) {
+  font-weight: var(--font-weight-bold);
+}
+
 /* --- Responsive --- */
 
 @media (max-width: 600px) {
@@ -419,6 +607,11 @@
   }
 
   .settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .precision-replay-controls,
+  .precision-replay-layout {
     grid-template-columns: 1fr;
   }
 }

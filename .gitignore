@@ -78,6 +78,10 @@ benchmarks/.tjs-bench-profile/
 # Generated report artifacts
 bench/out/
 reports/**
+!reports/f16-precision-collapse/
+reports/f16-precision-collapse/**
+!reports/f16-precision-collapse/stable/
+!reports/f16-precision-collapse/stable/**
 
 # Test artifacts
 test-results/

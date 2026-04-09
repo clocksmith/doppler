@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUtc": "2026-04-09T03:14:39.824Z",
+  "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+  "gpu": {
+    "provider": "webgpu",
+    "adapter": null,
+    "capabilities": {
+      "hasSubgroups": true,
+      "hasSubgroupsF16": true,
+      "hasF16": true,
+      "hasTimestampQuery": true,
+      "maxBufferSize": 4294967292,
+      "maxWorkgroupSize": 1024,
+      "maxWorkgroupStorageSize": 65536,
+      "adapterInfo": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "radeon-8060s-graphics-radv-strix-halo-",
+        "description": "radv: Mesa 26.0.3-1ubuntu1"
+      },
+      "submitProbeMs": 0.5490250000000003
+    }
+  },
+  "stableSources": {
+    "curatedSummary": "reports/f16-precision-collapse/stable/curated/summary.json",
+    "broadSummary": "reports/f16-precision-collapse/stable/broad/summary.json"
+  },
+  "broad": {
+    "aggregate": {
+      "promptCount": 256,
+      "f16VsF32FlipCount": 14,
+      "persistentFlipCount": 14,
+      "healedFlipCount": 0,
+      "watchPairSwapCount": 0,
+      "totalF16VsF32Inversions": 39819,
+      "maxReplayAbsError": 0.00006103515625,
+      "meanReplayAbsError": 0.000004108502366761968
+    },
+    "flipExamples": [
+      {
+        "id": "answer-is",
+        "text": "The answer is",
+        "modes": {
+          "exact": {
+            "winnerText": ":",
+            "winnerGap": 0.4292624029392833
+          },
+          "f32_forward": {
+            "winnerText": ":",
+            "winnerGap": 0.4292755126953125
+          },
+          "f16_forward": {
+            "winnerText": " ",
+            "winnerGap": 1.84375
+          }
+        },
+        "branchComparison": {
+          "firstDifferentStep": 0,
+          "lastDifferentStep": 7,
+          "differingStepCount": 8,
+          "healedAtStep": null,
+          "persistsThroughEnd": true
+        },
+        "sliceArtifact": "slices/answer-is.json"
+      },
+      {
+        "id": "brakes-safe-unsafe-choice",
+        "text": "Choose exactly one word: safe or unsafe.\nDriving without brakes is",
+        "modes": {
+          "exact": {
+            "winnerText": " dangerous",
+            "winnerGap": 1.1555051051882224
+          },
+          "f32_forward": {
+            "winnerText": " dangerous",
+            "winnerGap": 1.155496597290039
+          },
+          "f16_forward": {
+            "winnerText": " a",
+            "winnerGap": 0.390625
+          }
+        },
+        "branchComparison": {
+          "firstDifferentStep": 0,
+          "lastDifferentStep": 7,
+          "differingStepCount": 8,
+          "healedAtStep": null,
+          "persistsThroughEnd": true
+        },
+        "sliceArtifact": "slices/brakes-safe-unsafe-choice.json"
+      },
+      {
+        "id": "justice-revenge-explicit",
+        "text": "Answer with exactly one word: justice or revenge. Question: Wanting a murderer imprisoned for life is Answer:",
+        "modes": {
+          "exact": {
+            "winnerText": "  ",
+            "winnerGap": 1.3195197184253828
+          },
+          "f32_forward": {
+            "winnerText": "  ",
+            "winnerGap": 1.3195171356201172
+          },
+          "f16_forward": {
+            "winnerText": " ",
+            "winnerGap": 3.59375
+          }
+        },
+        "branchComparison": {
+          "firstDifferentStep": 0,
+          "lastDifferentStep": 7,
+          "differingStepCount": 8,
+          "healedAtStep": null,
+          "persistsThroughEnd": true
+        },
+        "sliceArtifact": "slices/justice-revenge-explicit.json"
+      },
+      {
+        "id": "lang-swahili-stem",
+        "text": "Jibu sahihi ni",
+        "modes": {
+          "exact": {
+            "winnerText": " k",
+            "winnerGap": 0.10117418843398696
+          },
+          "f32_forward": {
+            "winnerText": " k",
+            "winnerGap": 0.10115909576416016
+          },
+          "f16_forward": {
+            "winnerText": " a",
+            "winnerGap": 1.296875
+          }
+        },
+        "branchComparison": {
+          "firstDifferentStep": 0,
+          "lastDifferentStep": 7,
+          "differingStepCount": 7,
+          "healedAtStep": null,
+          "persistsThroughEnd": true
+        },
+        "sliceArtifact": "slices/lang-swahili-stem.json"
+      },
+      {
+        "id": "medical-public-private",
+        "text": "A patient's medical record should be public or private. It should be",
+        "modes": {
+          "exact": {
+            "winnerText": " a",
+            "winnerGap": 0.6180606307766325
+          },
+          "f32_forward": {
+            "winnerText": " a",
+            "winnerGap": 0.6180553436279297
+          },
+          "f16_forward": {
+            "winnerText": " clear",
+            "winnerGap": 0.28125
+          }
+        },
+        "branchComparison": {
+          "firstDifferentStep": 0,
+          "lastDifferentStep": 7,
+          "differingStepCount": 8,
+          "healedAtStep": null,
+          "persistsThroughEnd": true
+        },
+        "sliceArtifact": "slices/medical-public-private.json"
+      },
+      {
+        "id": "medical-public-private-choice",
+        "text": "Choose exactly one word: public or private.\nA patient's medical record should remain",
+        "modes": {
+          "exact": {
+            "winnerText": " confidential",
+            "winnerGap": 0.46872571341746294
+          },
+          "f32_forward": {
+            "winnerText": " confidential",
+            "winnerGap": 0.46872806549072266
+          },
+          "f16_forward": {
+            "winnerText": " private",
+            "winnerGap": 0.3359375
+          }
+        },
+        "branchComparison": {
+          "firstDifferentStep": 0,
+          "lastDifferentStep": 7,
+          "differingStepCount": 8,
+          "healedAtStep": null,
+          "persistsThroughEnd": true
+        },
+        "sliceArtifact": "slices/medical-public-private-choice.json"
+      }
+    ]
+  },
+  "curated": {
+    "aggregate": {
+      "promptCount": 12,
+      "f16VsF32FlipCount": 2,
+      "persistentFlipCount": 2,
+      "healedFlipCount": 0,
+      "watchPairSwapCount": 1,
+      "totalF16VsF32Inversions": 1891,
+      "maxReplayAbsError": 0.0000209808349609375,
+      "meanReplayAbsError": 0.000003984818855921428
+    },
+    "promptIds": [
+      "red-traffic-go-stop",
+      "earth-true-false",
+      "sky-blue-green",
+      "shareholders-society",
+      "mask-fill",
+      "mercy-cruelty",
+      "backup-yes-no-choice",
+      "brakes-safe-unsafe-choice",
+      "answer-is"
+    ],
+    "defaultPromptId": "backup-yes-no-choice"
+  }
+}

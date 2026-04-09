@@ -5,6 +5,7 @@ import { initInput, setRunHandler } from './input.js';
 import { initSettings } from './settings.js';
 import { initReport } from './report.js';
 import { onModelLoaded, runGeneration, stopGeneration } from './core.js';
+import { initPrecisionReplay } from './ui/precision-replay/index.js';
 import { initXray } from './ui/xray/index.js';
 
 function $(id) { return document.getElementById(id); }
@@ -30,6 +31,12 @@ async function init() {
     initXray({ onChange: () => {} });
   } catch {
     // xray init is optional
+  }
+
+  try {
+    await initPrecisionReplay();
+  } catch {
+    // precision replay is optional
   }
 
   // Boot sequence

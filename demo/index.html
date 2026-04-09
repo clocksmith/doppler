@@ -165,6 +165,62 @@
     </section>
     <div id="xray-container" hidden></div>
 
+    <section class="precision-replay-area">
+      <div class="precision-replay-toggle-row">
+        <span class="type-label" title="Checked-in Gemma 3 270M slice replay showing how accumulator precision changes the final token ranking.">Precision replay</span>
+        <label class="checkbox-label" title="Show the precision-collapse replay panel.">
+          <input id="precision-replay-toggle" type="checkbox"> Demo
+        </label>
+        <span id="precision-replay-status" class="precision-replay-status">Loading checked-in evidence...</span>
+      </div>
+      <div id="precision-replay-panel" class="precision-replay-panel" hidden>
+        <p class="precision-replay-note">This panel replays checked-in Gemma 3 270M slices from the stable Doppler report. It does not need a live model load to reproduce the accumulator cliff.</p>
+        <div id="precision-replay-stats" class="precision-replay-stats"></div>
+        <div class="precision-replay-controls">
+          <div class="setting-field">
+            <label for="precision-replay-prompt-select">Curated prompt</label>
+            <select id="precision-replay-prompt-select"></select>
+          </div>
+          <div class="setting-field">
+            <label>Score table sort</label>
+            <div id="precision-replay-mode-group" class="precision-replay-mode-group"></div>
+          </div>
+          <button id="precision-replay-use-prompt" class="btn btn-ghost" type="button">Use prompt</button>
+        </div>
+        <div class="precision-replay-layout">
+          <article class="precision-replay-card">
+            <div class="type-label">Prompt</div>
+            <pre id="precision-replay-prompt" class="precision-replay-prompt"></pre>
+          </article>
+          <div id="precision-replay-winners" class="precision-replay-winners"></div>
+        </div>
+        <div id="precision-replay-watch-pairs" class="precision-replay-watch-pairs"></div>
+        <div id="precision-replay-branch" class="precision-replay-branch"></div>
+        <div class="precision-replay-broad">
+          <div class="type-label">Broad flip examples</div>
+          <div id="precision-replay-broad-flips" class="precision-replay-broad-flips"></div>
+        </div>
+        <div class="precision-replay-table-shell">
+          <div class="type-label">Candidate scores</div>
+          <div class="precision-replay-table-wrap">
+            <table class="precision-replay-table">
+              <thead>
+                <tr>
+                  <th scope="col">Rank</th>
+                  <th scope="col">Token</th>
+                  <th scope="col">Exact</th>
+                  <th scope="col">F32</th>
+                  <th scope="col">F16</th>
+                  <th scope="col">F16-F32</th>
+                </tr>
+              </thead>
+              <tbody id="precision-replay-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Report -->
     <div class="report-bar">
       <button id="export-btn" class="btn btn-ghost" disabled>Export JSON</button>
