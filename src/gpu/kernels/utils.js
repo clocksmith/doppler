@@ -250,10 +250,13 @@ import { validateAttentionLimits } from './feature-check.js';
 // This avoids circular dependencies between configs and validation
 setKernelValidator('attention', 'prefill', validateAttentionLimits);
 setKernelValidator('attention', 'prefill_small', validateAttentionLimits);
+setKernelValidator('attention', 'decode_small', validateAttentionLimits);
 setKernelValidator('attention', 'prefill_streaming', validateAttentionLimits);
 setKernelValidator('attention', 'prefill_f16', validateAttentionLimits);
 setKernelValidator('attention', 'prefill_small_f16', validateAttentionLimits);
+setKernelValidator('attention', 'decode_small_f16', validateAttentionLimits);
 setKernelValidator('attention', 'prefill_streaming_f16', validateAttentionLimits);
 setKernelValidator('attention', 'prefill_f16kv', validateAttentionLimits);
 setKernelValidator('attention', 'prefill_small_f16kv', validateAttentionLimits);
+setKernelValidator('attention', 'decode_small_f16kv', validateAttentionLimits);
 setKernelValidator('attention', 'prefill_streaming_f16kv', validateAttentionLimits);

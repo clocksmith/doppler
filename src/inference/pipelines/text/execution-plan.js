@@ -382,8 +382,27 @@ export function isBatchDecodeEnabled(config) {
     disableCommandBatching: config.disableCommandBatching,
     isBdpaPagedLayout: config.isBdpaPagedLayout === true,
     finitenessFallbackWindowOpen: config.finitenessFallbackWindowOpen === true,
+    hasLinearAttentionLayers: config.hasLinearAttentionLayers === true,
+    selfSpeculationEnabled: config.selfSpeculationEnabled === true,
     hasRangeBackedPerLayerInputs: config.hasRangeBackedPerLayerInputs === true,
   });
+}
+
+export function resolveMaxBatchDecodeTokens(config) {
+  const value = selectRuleValue('inference', 'execution', 'maxBatchDecodeTokens', {
+    hasHotVocabularyBatchDecode: config.hasHotVocabularyBatchDecode === true,
+    hasGpuSplitPerLayerInputs: config.hasGpuSplitPerLayerInputs === true,
+    hasLinearAttentionLayers: config.hasLinearAttentionLayers === true,
+  });
+  if (value == null) {
+    return null;
+  }
+  if (!Number.isInteger(value) || value < 1) {
+    throw new Error(
+      `[ExecutionPlan] maxBatchDecodeTokens must be null or a positive integer; got ${JSON.stringify(value)}.`
+    );
+  }
+  return value;
 }
 
 export function isDecodeRecorderEnabled(config) {

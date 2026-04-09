@@ -458,11 +458,12 @@ function validateAttentionVariant(
   }
 
   if (normalized.startsWith('decode_online')) {
+    const maxHeadDim = config.variantMetadata?.maxHeadDim ?? thresholds.subgroupMaxHeadDim;
     if (!caps.hasSubgroups) {
       throw new Error(`Attention kernel "${variant}" requires subgroup support.`);
     }
-    if (headDim > thresholds.subgroupMaxHeadDim) {
-      throw new Error(`Attention kernel "${variant}" requires headDim <= ${thresholds.subgroupMaxHeadDim} but got ${headDim}.`);
+    if (headDim > maxHeadDim) {
+      throw new Error(`Attention kernel "${variant}" requires headDim <= ${maxHeadDim} but got ${headDim}.`);
     }
     if (sharedLimit < thresholds.subgroupShared) {
       throw new Error(`Attention kernel "${variant}" requires shared >= ${thresholds.subgroupShared} but got ${sharedLimit}.`);

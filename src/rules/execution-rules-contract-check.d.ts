@@ -6,9 +6,13 @@ export interface InferenceExecutionRulesContractArtifact {
   errors: string[];
   stats: {
     decodeRecorderRules: number;
+    profileDecodeRecorderRules: number;
     batchDecodeRules: number;
+    maxBatchDecodeTokenRules: number;
     decodeRecorderContexts: number;
+    profileDecodeRecorderContexts: number;
     batchDecodeContexts: number;
+    maxBatchDecodeTokenContexts: number;
   };
 }
 

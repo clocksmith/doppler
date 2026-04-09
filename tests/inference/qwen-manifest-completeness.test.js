@@ -12,11 +12,16 @@ async function loadJson(path) {
 }
 
 const q4kManifestPath = new URL('../../models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json', import.meta.url);
+const q4k2bManifestPath = new URL('../../models/local/qwen-3-5-2b-q4k-ehaf16/manifest.json', import.meta.url);
 const f16ManifestPath = new URL('../../models/local/qwen-3-5-0-8b-f16/manifest.json', import.meta.url);
 const hasLocalQ4KManifest = existsSync(q4kManifestPath);
+const hasOptionalLocalQ4K2BManifest = existsSync(q4k2bManifestPath);
 const hasOptionalLocalF16Manifest = existsSync(f16ManifestPath);
 const q4kManifest = hasLocalQ4KManifest
   ? JSON.parse(await readFile(q4kManifestPath, 'utf8'))
+  : null;
+const q4k2bManifest = hasOptionalLocalQ4K2BManifest
+  ? JSON.parse(await readFile(q4k2bManifestPath, 'utf8'))
   : null;
 const f16Manifest = hasOptionalLocalF16Manifest
   ? JSON.parse(await readFile(f16ManifestPath, 'utf8'))
@@ -25,17 +30,17 @@ const convConfigs = await Promise.all([
   loadJson('../../src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json'),
   loadJson('../../src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json'),
 ]);
-const availableLocalManifests = [q4kManifest, f16Manifest].filter(Boolean);
+const availableLocalManifests = [q4kManifest, q4k2bManifest, f16Manifest].filter(Boolean);
 
 const EXPECTED_QWEN_LAYER_TYPES = Array.from(
   { length: 24 },
   (_, index) => ((index + 1) % 4 === 0 ? 'full_attention' : 'linear_attention')
 );
 const EXPECTED_QWEN_COMPUTE_DEFAULTS = Object.freeze({
-  activationDtype: 'f32',
-  mathDtype: 'f32',
-  accumDtype: 'f32',
-  outputDtype: 'f32',
+  activationDtype: 'f16',
+  mathDtype: 'f16',
+  accumDtype: 'f16',
+  outputDtype: 'f16',
 });
 const EXPECTED_QWEN_PER_LAYER_INPUTS = Object.freeze({
   materialization: 'auto',
@@ -146,6 +151,39 @@ function getLinearProjectionLayout(manifest) {
   };
 }
 
+function assertF16KvAttentionPrecision(execution, label) {
+  const kernels = execution?.kernels ?? {};
+  for (const [kernelKey, decl] of Object.entries(kernels)) {
+    if (
+      typeof decl?.kernel === 'string'
+      && decl.kernel.startsWith('attention_')
+      && decl.kernel.includes('f16kv')
+    ) {
+      assert.equal(
+        decl.precision?.kvDtype,
+        'f16',
+        `${label} execution.kernels.${kernelKey} must declare precision.kvDtype="f16"`
+      );
+    }
+  }
+}
+
+function assertQwenF16UtilityKernels(execution, label) {
+  assert.equal(execution?.kernels?.rmsnorm?.kernel, 'rmsnorm_f16.wgsl', `${label} rmsnorm kernel`);
+  assert.deepEqual(execution?.kernels?.q4_decode?.precision, {
+    inputDtype: 'f16',
+    outputDtype: 'f16',
+  }, `${label} q4_decode precision`);
+  assert.equal(execution?.kernels?.rope?.kernel, 'rope_f16.wgsl', `${label} rope kernel`);
+  assert.equal(execution?.kernels?.residual?.kernel, 'residual_f16.wgsl', `${label} residual kernel`);
+  assert.equal(execution?.kernels?.silu?.kernel, 'silu_f16.wgsl', `${label} silu kernel`);
+  assert.deepEqual(execution?.kernels?.q4_prefill?.precision, {
+    inputDtype: 'f16',
+    outputDtype: 'f16',
+  }, `${label} q4_prefill precision`);
+  assert.equal(execution?.kernels?.sample?.kernel, 'sample_f16.wgsl', `${label} sample kernel`);
+}
+
 for (const config of convConfigs) {
   // V1 configs have explicit inference and no legacy family-indirection field
   assert.ok(config.inference?.attention, 'v1 config must have explicit inference.attention');
@@ -184,6 +222,8 @@ if (!hasLocalQ4KManifest) {
     assert.equal(manifest.inference.schema, 'doppler.execution/v1');
     assert.ok(manifest.inference.execution && typeof manifest.inference.execution === 'object');
     assert.equal(manifest.inference.execution.inlineKernelPath, true);
+    assertF16KvAttentionPrecision(manifest.inference.execution, manifest.modelId);
+    assertQwenF16UtilityKernels(manifest.inference.execution, manifest.modelId);
   }
 }
 
@@ -314,10 +354,21 @@ for (const config of convConfigs) {
 for (const config of convConfigs) {
   assert.ok(config.execution && typeof config.execution === 'object');
   assert.equal(config.execution.inlineKernelPath, true);
-  if ((config.output?.modelBaseId ?? '') === 'qwen-3-5-0-8b-q4k-ehaf16') {
-    assert.equal(config.execution.kernels.q4_decode.kernel, 'fused_matmul_q4.wgsl');
-    assert.equal(config.execution.kernels.tiled.kernel, 'matmul_f16w_f32a.wgsl');
-    assert.equal(config.execution.kernels.q4_prefill.kernel, 'fused_matmul_q4_batched.wgsl');
+  if (
+    (config.output?.modelBaseId ?? '') === 'qwen-3-5-0-8b-q4k-ehaf16'
+    || (config.output?.modelBaseId ?? '') === 'qwen-3-5-2b-q4k-ehaf16'
+  ) {
+    assert.equal(config.execution.kernels.rmsnorm.kernel, 'rmsnorm_f16.wgsl');
+    assert.equal(config.execution.kernels.q4_decode.kernel, 'fused_matmul_q4_multicol_f16a.wgsl');
+    assert.equal(config.execution.kernels.rope.kernel, 'rope_f16.wgsl');
+    assert.equal(config.execution.kernels.residual.kernel, 'residual_f16.wgsl');
+    assert.equal(config.execution.kernels.silu.kernel, 'silu_f16.wgsl');
+    assert.equal(config.execution.kernels.tiled.kernel, 'matmul_f16.wgsl');
+    assert.equal(config.execution.kernels.q4_prefill.kernel, 'fused_matmul_q4_batched_f16a.wgsl');
+    assert.equal(config.execution.kernels.attn_decode.kernel, 'attention_decode_online_f16.wgsl');
+    assert.equal(config.execution.kernels.attn_stream.kernel, 'attention_small_f16.wgsl');
+    assert.equal(config.execution.kernels.lm_head_gemv.kernel, 'matmul_gemv_subgroup_f16a.wgsl');
+    assert.equal(config.execution.kernels.sample.kernel, 'sample_f16.wgsl');
   }
 }
 

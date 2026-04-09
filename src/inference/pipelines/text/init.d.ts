@@ -59,6 +59,11 @@ export interface PipelineStorageContext {
   verifyHashes?: boolean;
 }
 
+export function createNodeFileShardStorageContext(
+  baseUrl: string | null | undefined,
+  manifest: Manifest
+): PipelineStorageContext | null;
+
 /**
  * External contexts that can be injected into the pipeline.
  */
@@ -273,12 +278,16 @@ export function applyChatMLTemplate(prompt: string): string;
 /**
  * Apply Qwen chat template to a prompt.
  */
-export function applyQwenChatTemplate(prompt: string): string;
+export function applyQwenChatTemplate(prompt: string, options?: { thinking?: boolean }): string;
 
 /**
  * Apply chat template based on template type from config.
  */
-export function applyChatTemplate(prompt: string, templateType: string | null | undefined): string;
+export function applyChatTemplate(
+  prompt: string,
+  templateType: string | null | undefined,
+  options?: { thinking?: boolean }
+): string;
 
 /**
  * Check if a token is a stop token.

@@ -79,9 +79,26 @@ if (!fs.existsSync(qwenManifestPath)) {
     ringStaging: 1,
     disableCommandBatching: false,
   });
-  assert.equal(materialized.inference?.execution?.kernels?.q4_decode?.kernel, 'fused_matmul_q4.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.tiled?.kernel, 'matmul_f16w_f32a.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.q4_prefill?.kernel, 'fused_matmul_q4_batched.wgsl');
+  assert.equal(materialized.inference?.session?.compute?.defaults?.activationDtype, 'f16');
+  assert.equal(materialized.inference?.execution?.kernels?.rmsnorm?.kernel, 'rmsnorm_f16.wgsl');
+  assert.equal(materialized.inference?.execution?.kernels?.q4_decode?.kernel, 'fused_matmul_q4_multicol_f16a.wgsl');
+  assert.deepEqual(materialized.inference?.execution?.kernels?.q4_decode?.precision, {
+    inputDtype: 'f16',
+    outputDtype: 'f16',
+  });
+  assert.equal(materialized.inference?.execution?.kernels?.rope?.kernel, 'rope_f16.wgsl');
+  assert.equal(materialized.inference?.execution?.kernels?.residual?.kernel, 'residual_f16.wgsl');
+  assert.equal(materialized.inference?.execution?.kernels?.silu?.kernel, 'silu_f16.wgsl');
+  assert.equal(materialized.inference?.execution?.kernels?.tiled?.kernel, 'matmul_f16.wgsl');
+  assert.equal(materialized.inference?.execution?.kernels?.q4_prefill?.kernel, 'fused_matmul_q4_batched_f16a.wgsl');
+  assert.deepEqual(materialized.inference?.execution?.kernels?.q4_prefill?.precision, {
+    inputDtype: 'f16',
+    outputDtype: 'f16',
+  });
+  assert.equal(materialized.inference?.execution?.kernels?.attn_decode?.kernel, 'attention_decode_online_f16.wgsl');
+  assert.equal(materialized.inference?.execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16.wgsl');
+  assert.equal(materialized.inference?.execution?.kernels?.lm_head_gemv?.kernel, 'matmul_gemv_subgroup_f16a.wgsl');
+  assert.equal(materialized.inference?.execution?.kernels?.sample?.kernel, 'sample_f16.wgsl');
 }
 
 const gemma1bManifestPath = path.join('models/local/gemma-3-1b-it-q4k-ehf16-af32', 'manifest.json');

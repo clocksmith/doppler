@@ -275,7 +275,7 @@ export function buildInlineKernelPath(
  *   | { incompatibleOps: string[]; hasIncompatibleOps: true } | null}
  */
 export function buildLayerPipelineFromExecution(steps, options = {}) {
-  const { strict = false } = options;
+  const { strict = false, logIncompatibleOps = true } = options;
   const ffnDtypeFallback = options.ffnDtypeFallback == null
     ? null
     : normalizeDtype(options.ffnDtypeFallback, 'buildLayerPipelineFromExecution.options.ffnDtypeFallback');
@@ -291,13 +291,21 @@ export function buildLayerPipelineFromExecution(steps, options = {}) {
     ),
   ];
   if (incompatibleOps.length > 0) {
-    const message =
+    const degradedMessage =
       `[Execution] Layer pipeline contains ops not in PIPELINE_COMPATIBLE_OPS: ` +
       `${incompatibleOps.join(', ')}. Pipeline will be degraded.`;
     if (strict) {
-      throw new Error(message);
+      throw new Error(degradedMessage);
     }
-    log.error('ExecutionRuntime', message);
+    if (logIncompatibleOps) {
+      log.error('ExecutionRuntime', degradedMessage);
+    } else {
+      log.debug(
+        'ExecutionRuntime',
+        `[Execution] Layer pipeline contains ops not in PIPELINE_COMPATIBLE_OPS: ` +
+        `${incompatibleOps.join(', ')}. Inline kernel path remains active; JS layer pipeline disabled.`
+      );
+    }
     return { incompatibleOps, hasIncompatibleOps: true };
   }
 

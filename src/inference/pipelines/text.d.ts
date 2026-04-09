@@ -61,6 +61,8 @@ export declare class InferencePipeline extends PipelineState {
   loadModel(manifest: Manifest): Promise<void>;
 
   private _loadWeights(): Promise<void>;
+  private _ensureVisionWeightsLoaded(): Promise<void>;
+  private _ensureAudioWeightsLoaded(): Promise<void>;
 
   setPreloadedWeights(weights: WeightLoadResult): void;
 

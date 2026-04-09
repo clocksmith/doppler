@@ -19,6 +19,26 @@ assert.equal(
   selectRuleValue('inference', 'ffn', 'useFusedGateUp', {
     ...BASE_FUSED_GATE_UP_CONTEXT,
     weightDtype: 'f16',
+    activationDtype: 'f16',
+  }),
+  true,
+  'Native f16 FFN weights should keep the f16 fused gate/up path enabled'
+);
+
+assert.equal(
+  selectRuleValue('inference', 'ffn', 'useFusedGateUp', {
+    ...BASE_FUSED_GATE_UP_CONTEXT,
+    weightDtype: 'q4k',
+    activationDtype: 'f16',
+  }),
+  false,
+  'Q4K FFN weights must not enable the fused gate/up path on an f16 activation contract'
+);
+
+assert.equal(
+  selectRuleValue('inference', 'ffn', 'useFusedGateUp', {
+    ...BASE_FUSED_GATE_UP_CONTEXT,
+    weightDtype: 'f16',
     activationDtype: 'f32',
   }),
   false,

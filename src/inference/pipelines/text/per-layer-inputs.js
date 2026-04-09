@@ -654,6 +654,21 @@ export function hasRangeBackedPerLayerInputEmbeddings(context) {
     && isRangeBackedCpuEmbeddingSource(embedTokensPerLayer.data);
 }
 
+export function hasGpuSplitPerLayerInputEmbeddings(context) {
+  const hiddenSizePerLayerInput = Number(context?.config?.hiddenSizePerLayerInput ?? 0);
+  if (!Number.isFinite(hiddenSizePerLayerInput) || hiddenSizePerLayerInput <= 0) {
+    return false;
+  }
+
+  const perLayerInputWeights = context?.weights?.get?.('per_layer_inputs');
+  if (!perLayerInputWeights || typeof perLayerInputWeights !== 'object') {
+    return false;
+  }
+
+  return Array.isArray(perLayerInputWeights.embedTokensPerLayerSplit)
+    && perLayerInputWeights.embedTokensPerLayerSplit.length > 0;
+}
+
 export async function ensurePleGpuSplitTablesRuntime(context) {
   const policy = getPleSplitTablePolicy(context?.perLayerInputsSession ?? null);
   if (!policy) {
@@ -1072,13 +1087,14 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
     }
   }
   const perLayerTokenIds = perLayerTokenIdsOption ?? hotLocalTokenIds;
+  const useHotVocabularyTables = hasHotVocabularyTables && perLayerTokenIds != null;
 
-  const perLayerEmbeddingDtype = hasHotVocabularyTables
+  const perLayerEmbeddingDtype = useHotVocabularyTables
     ? hotVocabularyRuntime.outputDtype
     : hasSplitEmbeddingTables
     ? getEmbeddingDtype(embedTokensPerLayerSplit[0])
     : getEmbeddingDtype(embedTokensPerLayer);
-  const embedSource = hasSplitEmbeddingTables || hasHotVocabularyTables
+  const embedSource = hasSplitEmbeddingTables || useHotVocabularyTables
     ? null
     : getEmbeddingSource(embedTokensPerLayer, 'embedTokensPerLayer');
   const totalPerLayerHiddenSize = numLayers * hiddenSizePerLayerInput;
@@ -1115,7 +1131,7 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
   // Gated on numTokens === 1 (decode) and row-major embeddings (non-transpose).
   // For numTokens > 1 (prefill), the fused matmul output is strided per-layer,
   // so we fall back to the per-layer path.
-  const embedTranspose = (hasSplitEmbeddingTables || hasHotVocabularyTables) ? false : getEmbeddingTranspose(embedTokensPerLayer);
+  const embedTranspose = (hasSplitEmbeddingTables || useHotVocabularyTables) ? false : getEmbeddingTranspose(embedTokensPerLayer);
   const canFuseDecodeOps = numTokens === 1 && !embedTranspose;
   const tokenIdsAreGpuBuffer = isGpuBufferInstance(tokenIds);
   const decodeTokenId = canFuseDecodeOps && !tokenIdsAreGpuBuffer
@@ -1242,7 +1258,7 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
   try {
     for (let layerIdx = 0; layerIdx < numLayers; layerIdx++) {
       const hiddenOffset = layerIdx * hiddenSizePerLayerInput;
-      const layerEmbedSource = hasHotVocabularyTables
+      const layerEmbedSource = useHotVocabularyTables
         ? getEmbeddingSource(hotVocabularyRuntime.splitTables[layerIdx], `embedTokensPerLayerHot[L${layerIdx}]`)
         : hasSplitEmbeddingTables
         ? getEmbeddingSource(embedTokensPerLayerSplit[layerIdx], `embedTokensPerLayerSplit[L${layerIdx}]`)
@@ -1253,7 +1269,7 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
       try {
         gatheredTensor = await embed(perLayerTokenIds ?? tokenIds, layerEmbedSource, {
           hiddenSize: hiddenSizePerLayerInput,
-          vocabSize: hasHotVocabularyTables ? (hotVocabularyRuntime.sentinelIndex + 1) : vocabSizePerLayerInput,
+          vocabSize: useHotVocabularyTables ? (hotVocabularyRuntime.sentinelIndex + 1) : vocabSizePerLayerInput,
           scaleEmbeddings: true,
           recorder,
           numTokens,
@@ -1264,8 +1280,8 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
           activationDtype,
           embeddingDtype: embedDtypeResolved,
           executionPolicies: context.executionPolicies ?? null,
-          inputHiddenSize: (hasSplitEmbeddingTables || hasHotVocabularyTables) ? hiddenSizePerLayerInput : totalPerLayerHiddenSize,
-          hiddenOffset: (hasSplitEmbeddingTables || hasHotVocabularyTables) ? 0 : hiddenOffset,
+          inputHiddenSize: (hasSplitEmbeddingTables || useHotVocabularyTables) ? hiddenSizePerLayerInput : totalPerLayerHiddenSize,
+          hiddenOffset: (hasSplitEmbeddingTables || useHotVocabularyTables) ? 0 : hiddenOffset,
           preloadedCpuRow,
           preloadedCpuBatchedRows: prefillBatchedRows,
           outputBuffer: canFuseDecodeOps

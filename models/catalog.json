@@ -1,7 +1,7 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-04-08",
+  "updatedAt": "2026-04-09",
   "models": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
@@ -219,14 +219,31 @@
           "hf": true
         },
         "status": {
-          "runtime": "experimental",
+          "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "none"
+          "tested": "verified"
         },
-        "tested": null
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-04-09",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU on AMD RDNA-3 re-verified on 2026-04-09 after repinning Gemma 4 E2B text decode to attention_decode_online_f16kv and splitting prefill attention between sliding-window and full-attention layers. Produces coherent sky-color answers on simple prompts and now outpaces the local Transformers.js q4f16 WebGPU baseline on the matched text prompt. The local artifact is ready for Clocksmith/rdrr republish; the currently pinned HF revision predates these fixes and must be refreshed before the hosted registry entry is regenerated.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
       },
-      "vendorBenchmark": null
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/gemma-4-E2B-it-ONNX",
+          "dtype": "q4f16"
+        }
+      }
     },
     {
       "modelId": "translategemma-4b-it-q4k-ehf16-af32",

@@ -116,8 +116,16 @@ export declare function isBatchDecodeEnabled(config: {
   disableCommandBatching: boolean;
   isBdpaPagedLayout?: boolean;
   finitenessFallbackWindowOpen?: boolean;
+  hasLinearAttentionLayers?: boolean;
+  selfSpeculationEnabled?: boolean;
   hasRangeBackedPerLayerInputs?: boolean;
 }): boolean;
+
+export declare function resolveMaxBatchDecodeTokens(config: {
+  hasHotVocabularyBatchDecode?: boolean;
+  hasGpuSplitPerLayerInputs?: boolean;
+  hasLinearAttentionLayers?: boolean;
+}): number | null;
 
 export declare function isDecodeRecorderEnabled(config: {
   hasDevice: boolean;

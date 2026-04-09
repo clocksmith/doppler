@@ -258,6 +258,80 @@ if (compiled.runtimeInferencePatch.kvcache) {
 if (compiled.runtimeInferencePatch.batching) {
   throw new Error('Execution-v1 runtime patch must not pre-apply decodeLoop batching defaults');
 }
+
+const f16Graph = makeGraph();
+f16Graph.kernels.attn = {
+  kernel: 'attention_streaming_f16.wgsl',
+  entry: 'main',
+  digest: D('9'),
+  precision: { kvDtype: 'f16' },
+};
+
+const runtimeComputeActivationOverride = compileExecutionV1({
+  manifestInference: {
+    schema: EXECUTION_V1_SCHEMA_ID,
+    execution: f16Graph,
+    session: {
+      compute: {
+        defaults: { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' },
+      },
+      kvcache: { kvDtype: 'f16' },
+      decodeLoop: null,
+    },
+  },
+  modelId: 'test-model-f16-runtime-compute',
+  numLayers: 26,
+  runtimeCompute: {
+    activationDtype: 'f16',
+  },
+});
+
+if (runtimeComputeActivationOverride.session.compute.defaults.activationDtype !== 'f16') {
+  throw new Error('Expected runtimeCompute activation override to update execution-v1 session activationDtype');
+}
+if (runtimeComputeActivationOverride.session.compute.defaults.outputDtype !== 'f16') {
+  throw new Error('Expected runtimeCompute activation override to update execution-v1 session outputDtype');
+}
+if (runtimeComputeActivationOverride.runtimeInferencePatch.compute?.activationDtype !== 'f16') {
+  throw new Error('Expected runtimeInferencePatch.compute.activationDtype=f16 after runtimeCompute override');
+}
+
+threw = false;
+try {
+  compileExecutionV1({
+    manifestInference: {
+      schema: EXECUTION_V1_SCHEMA_ID,
+      execution: f16Graph,
+      session: {
+        compute: {
+          defaults: { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' },
+        },
+        kvcache: { kvDtype: 'f16' },
+        decodeLoop: null,
+      },
+    },
+    modelId: 'test-model-runtime-conflict',
+    numLayers: 26,
+    runtimeSession: {
+      compute: {
+        defaults: {
+          activationDtype: 'f16',
+          outputDtype: 'f32',
+        },
+      },
+    },
+    runtimeCompute: {
+      activationDtype: 'f16',
+    },
+  });
+} catch (error) {
+  threw = /runtime\.inference\.compute\.activationDtype conflicts with runtime\.inference\.session\.compute\.defaults\.outputDtype/.test(
+    String(error?.message ?? error)
+  );
+}
+if (!threw) {
+  throw new Error('Expected compileExecutionV1 to fail fast on conflicting runtime compute/session dtype overrides');
+}
 if (compiled.runtimeInferencePatch.generation) {
   throw new Error('Execution-v1 runtime patch must not pre-apply decodeLoop generation defaults');
 }

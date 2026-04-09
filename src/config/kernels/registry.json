@@ -1814,6 +1814,26 @@
             "wgslOnDisk": true
           }
         },
+        "decode_small": {
+          "wgsl": "attention_small.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            32,
+            1,
+            1
+          ],
+          "requires": [],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "tier": "tiled_small"
+          },
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
         "prefill_streaming": {
           "wgsl": "attention_streaming.wgsl",
           "entryPoint": "main",
@@ -1917,6 +1937,28 @@
           },
           "reachability": {
             "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
+        "decode_small_f16": {
+          "wgsl": "attention_small_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            32,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f16",
+          "variantMetadata": {
+            "tier": "tiled_small"
+          },
+          "reachability": {
+            "status": "model-selectable",
             "inlineConfigs": [],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2036,6 +2078,28 @@
             "wgslOnDisk": true
           }
         },
+        "decode_small_f16kv": {
+          "wgsl": "attention_small_f16kv.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            32,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "tier": "tiled_small"
+          },
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
         "prefill_head256_f16kv": {
           "wgsl": "attention_head256_f16kv.wgsl",
           "entryPoint": "main",
@@ -2128,7 +2192,8 @@
           ],
           "outputDtype": "f16",
           "variantMetadata": {
-            "tier": "subgroup"
+            "tier": "subgroup",
+            "maxHeadDim": 512
           },
           "description": "Online decode kernel - f16 QKV with subgroup reductions",
           "reachability": {
@@ -2154,7 +2219,8 @@
           ],
           "outputDtype": "f32",
           "variantMetadata": {
-            "tier": "subgroup"
+            "tier": "subgroup",
+            "maxHeadDim": 512
           },
           "description": "Online decode kernel - f32 Q with f16 KV and subgroup reductions",
           "reachability": {
@@ -2165,6 +2231,7 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",

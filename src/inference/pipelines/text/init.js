@@ -122,6 +122,149 @@ function normalizeBaseUrl(baseUrl) {
   return baseUrl.replace(/\/$/, '');
 }
 
+function isNodeRuntime() {
+  return typeof process !== 'undefined'
+    && process != null
+    && typeof process === 'object'
+    && process.versions != null
+    && typeof process.versions.node === 'string';
+}
+
+function isFileUrlBaseUrl(baseUrl) {
+  if (typeof baseUrl !== 'string' || !baseUrl) {
+    return false;
+  }
+  try {
+    return new URL(baseUrl).protocol === 'file:';
+  } catch {
+    return false;
+  }
+}
+
+function isNodeFilesystemPathBaseUrl(baseUrl) {
+  if (typeof baseUrl !== 'string' || !baseUrl || isFileUrlBaseUrl(baseUrl)) {
+    return false;
+  }
+  return baseUrl.startsWith('/') || /^[a-zA-Z]:[\\/]/.test(baseUrl);
+}
+
+async function resolveShardFileReference(root, filename, index) {
+  const normalizedFilename = String(filename || '').replace(/^\/+/, '');
+  if (!normalizedFilename) {
+    throw new Error(`Manifest shard ${index} is missing filename.`);
+  }
+  if (isFileUrlBaseUrl(root)) {
+    return new URL(normalizedFilename, `${root}/`);
+  }
+  if (isNodeFilesystemPathBaseUrl(root)) {
+    const path = await import('node:path');
+    return path.join(root, normalizedFilename);
+  }
+  throw new Error(`Unsupported local shard root "${root}".`);
+}
+
+async function readNodeFileRange(fileRef, offset = 0, length = null) {
+  const fs = await import('node:fs/promises');
+  const handle = await fs.open(fileRef, 'r');
+  try {
+    const stats = await handle.stat();
+    const start = Math.max(0, Math.floor(Number(offset) || 0));
+    const fileSize = Number(stats.size);
+    const end = length == null
+      ? fileSize
+      : Math.min(fileSize, start + Math.max(0, Math.floor(Number(length) || 0)));
+    if (end <= start) {
+      return new ArrayBuffer(0);
+    }
+    const out = Buffer.allocUnsafe(end - start);
+    let position = 0;
+    while (position < out.length) {
+      const { bytesRead } = await handle.read(out, position, out.length - position, start + position);
+      if (bytesRead === 0) {
+        break;
+      }
+      position += bytesRead;
+    }
+    return out.buffer.slice(out.byteOffset, out.byteOffset + position);
+  } finally {
+    await handle.close();
+  }
+}
+
+export function createNodeFileShardStorageContext(baseUrl, manifest) {
+  const root = normalizeBaseUrl(baseUrl);
+  if (
+    !root
+    || !isRDRRManifest(manifest)
+    || !isNodeRuntime()
+    || (!isFileUrlBaseUrl(root) && !isNodeFilesystemPathBaseUrl(root))
+  ) {
+    return null;
+  }
+
+  return {
+    async loadShard(index) {
+      const shard = manifest.shards[index];
+      const fileRef = await resolveShardFileReference(root, shard?.filename, index);
+      return readNodeFileRange(fileRef, 0, null);
+    },
+    async loadShardRange(index, offset = 0, length = null) {
+      const shard = manifest.shards[index];
+      const fileRef = await resolveShardFileReference(root, shard?.filename, index);
+      return readNodeFileRange(fileRef, offset, length);
+    },
+    async *streamShardRange(index, offset = 0, length = null, options = {}) {
+      const shard = manifest.shards[index];
+      const fileRef = await resolveShardFileReference(root, shard?.filename, index);
+      const fs = await import('node:fs/promises');
+      const handle = await fs.open(fileRef, 'r');
+      try {
+        const stats = await handle.stat();
+        const start = Math.max(0, Math.floor(Number(offset) || 0));
+        const fileSize = Number(stats.size);
+        const end = length == null
+          ? fileSize
+          : Math.min(fileSize, start + Math.max(0, Math.floor(Number(length) || 0)));
+        if (end <= start) {
+          return;
+        }
+        const chunkBytesRaw = Number(options?.chunkBytes);
+        const chunkBytes = Number.isFinite(chunkBytesRaw) && chunkBytesRaw > 0
+          ? Math.floor(chunkBytesRaw)
+          : 4 * 1024 * 1024;
+        let position = start;
+        while (position < end) {
+          const nextLength = Math.min(chunkBytes, end - position);
+          const out = Buffer.allocUnsafe(nextLength);
+          let bytesReadTotal = 0;
+          while (bytesReadTotal < nextLength) {
+            const { bytesRead } = await handle.read(
+              out,
+              bytesReadTotal,
+              nextLength - bytesReadTotal,
+              position + bytesReadTotal
+            );
+            if (bytesRead === 0) {
+              break;
+            }
+            bytesReadTotal += bytesRead;
+          }
+          if (bytesReadTotal <= 0) {
+            break;
+          }
+          position += bytesReadTotal;
+          yield new Uint8Array(out.buffer, out.byteOffset, bytesReadTotal);
+          if (bytesReadTotal < nextLength) {
+            break;
+          }
+        }
+      } finally {
+        await handle.close();
+      }
+    },
+  };
+}
+
 async function fetchBytes(url, offset = null, length = null) {
   const headers = {};
   if (Number.isFinite(offset) && Number.isFinite(length) && length > 0) {
@@ -182,6 +325,11 @@ function createRemoteStorageContext(baseUrl, manifest) {
       readBinary,
       verifyHashes: true,
     });
+  }
+
+  const nodeFileStorageContext = createNodeFileShardStorageContext(root, manifest);
+  if (nodeFileStorageContext) {
+    return nodeFileStorageContext;
   }
 
   return {
@@ -1253,8 +1401,14 @@ function applyChatMLTemplate(prompt) {
   return `<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n`;
 }
 
-function applyQwenTemplate(prompt) {
-  return `<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n`;
+function getQwenAssistantPrefix(options) {
+  return options?.thinking === true
+    ? '<|im_start|>assistant\n<think>\n'
+    : '<|im_start|>assistant\n<think>\n\n</think>\n\n';
+}
+
+function applyQwenTemplate(prompt, options) {
+  return `<|im_start|>user\n${prompt}<|im_end|>\n${getQwenAssistantPrefix(options)}`;
 }
 
 function applyGemma4Template(prompt) {
@@ -1280,13 +1434,13 @@ const PROMPT_TEMPLATES = {
   'translategemma': applyTranslateGemmaTemplate,
 };
 
-export function applyChatTemplate(prompt, templateType) {
+export function applyChatTemplate(prompt, templateType, options = undefined) {
   if (templateType == null) {
     return prompt;
   }
   const formatter = PROMPT_TEMPLATES[templateType];
   if (formatter) {
-    return formatter(prompt);
+    return formatter(prompt, options);
   }
   throw new Error(`Unrecognized chat template type: ${templateType}`);
 }

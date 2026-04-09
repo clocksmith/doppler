@@ -3,6 +3,7 @@
 import { initDevice, getDevice, getKernelCapabilities } from '../gpu/device.js';
 import { parseManifest, getExpectedShardHash } from '../formats/rdrr/index.js';
 import { createPipeline } from './pipelines/text.js';
+import { createNodeFileShardStorageContext } from './pipelines/text/init.js';
 import { log as debugLog } from '../debug/index.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
 import { downloadShard as downloadShardFromDistribution } from '../distribution/shard-delivery.js';
@@ -201,6 +202,16 @@ export function createHttpShardLoader(baseUrl, manifest, log) {
   };
 }
 
+export function createHarnessShardStorageContext(modelUrl, manifest, log) {
+  const nodeFileStorageContext = createNodeFileShardStorageContext(modelUrl, manifest);
+  if (nodeFileStorageContext) {
+    return nodeFileStorageContext;
+  }
+  return {
+    loadShard: createHttpShardLoader(modelUrl, manifest, log),
+  };
+}
+
 // ============================================================================
 // Pipeline Initialization
 // ============================================================================
@@ -305,7 +316,7 @@ export async function initializeInference(modelUrl, options = {}) {
   log(`Model: ${modelLabel}`);
 
   // 3. Create shard loader
-  const loadShard = createHttpShardLoader(modelUrl, manifest, log);
+  const storageContext = createHarnessShardStorageContext(modelUrl, manifest, log);
 
   // 4. Build runtime options
   
@@ -318,7 +329,7 @@ export async function initializeInference(modelUrl, options = {}) {
   log('Creating pipeline...');
 
   const pipeline = await createPipeline( ( (manifest)), {
-    storage: { loadShard },
+    storage: storageContext,
     gpu: { device },
     runtime,
     baseUrl: modelUrl,

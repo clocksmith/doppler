@@ -4,6 +4,7 @@ import {
   buildLayerPipelineFromExecution,
   buildSessionRuntimePatch,
   PIPELINE_COMPATIBLE_OPS,
+  normalizeDtype,
   requireSessionActivationDtype,
 } from './execution-runtime-builders.js';
 import { mergeKernelPathPolicy } from '../../../config/merge-helpers.js';
@@ -30,6 +31,59 @@ function mergeExecutionV1Session(manifestSession, runtimeSession) {
   );
 }
 
+function applyExecutionV1RuntimeComputeOverrides(session, runtimeSession, runtimeCompute) {
+  const activationOverrideRaw = runtimeCompute?.activationDtype;
+  if (activationOverrideRaw == null) {
+    return session;
+  }
+
+  const activationOverride = normalizeDtype(
+    activationOverrideRaw,
+    'runtime.inference.compute.activationDtype'
+  );
+  const runtimeSessionActivation = runtimeSession?.compute?.defaults?.activationDtype;
+  if (
+    runtimeSessionActivation != null
+    && normalizeDtype(
+      runtimeSessionActivation,
+      'runtime.inference.session.compute.defaults.activationDtype'
+    ) !== activationOverride
+  ) {
+    throw new Error(
+      '[ExecutionV1] runtime.inference.compute.activationDtype conflicts with ' +
+      'runtime.inference.session.compute.defaults.activationDtype. ' +
+      'Set both to the same dtype or remove one override.'
+    );
+  }
+
+  const runtimeSessionOutput = runtimeSession?.compute?.defaults?.outputDtype;
+  if (
+    runtimeSessionOutput != null
+    && normalizeDtype(
+      runtimeSessionOutput,
+      'runtime.inference.session.compute.defaults.outputDtype'
+    ) !== activationOverride
+  ) {
+    throw new Error(
+      '[ExecutionV1] runtime.inference.compute.activationDtype conflicts with ' +
+      'runtime.inference.session.compute.defaults.outputDtype. ' +
+      'Set both to the same dtype or remove one override.'
+    );
+  }
+
+  return {
+    ...session,
+    compute: {
+      ...(session?.compute ?? {}),
+      defaults: {
+        ...(session?.compute?.defaults ?? {}),
+        activationDtype: activationOverride,
+        outputDtype: activationOverride,
+      },
+    },
+  };
+}
+
 const EXECUTION_V1_PROJECTION_OPS = new Set([
   'q_proj', 'k_proj', 'v_proj', 'o_proj',
   'gate_proj', 'up_proj', 'down_proj',
@@ -42,12 +96,33 @@ const EXECUTION_V1_DENSE_Q4_PREFILL_FILES = new Set([
   'matmul_f16_tiled.wgsl',
 ]);
 
+const EXECUTION_V1_F32_ACTIVATION_NARROWING_FILES = new Set([
+  'rmsnorm.wgsl',
+  'rope.wgsl',
+  'residual.wgsl',
+  'gelu.wgsl',
+  'sample.wgsl',
+  'gather.wgsl',
+  'matmul_gemv_subgroup.wgsl',
+  'matmul_f16w_f32a.wgsl',
+  'matmul_f16w_f32a_tiled.wgsl',
+  'attention_decode_online_f16kv.wgsl',
+  'attention_decode_chunked_f16kv.wgsl',
+  'attention_small_f16kv.wgsl',
+  'attention_streaming_f16kv.wgsl',
+  'attention_decode.wgsl',
+  'attention_small.wgsl',
+  'attention_streaming.wgsl',
+  'silu.wgsl',
+]);
+
 function summarizeExecutionGraphContext(execution) {
   const summary = {
     hasDensePrefillProjectionKernel: false,
     hasQ4DecodeProjectionKernel: false,
     hasQ4PrefillProjectionKernel: false,
     hasAvailableQ4PrefillProjectionKernel: false,
+    requiresF16ActivationNarrowing: false,
   };
   const phases = [
     ['decode', execution?.decode ?? []],
@@ -78,6 +153,9 @@ function summarizeExecutionGraphContext(execution) {
   summary.hasAvailableQ4PrefillProjectionKernel = Object.values(execution?.kernels ?? {}).some(
     (entry) => entry?.kernel === 'fused_matmul_q4_batched_multicol_shared.wgsl'
       || entry?.kernel === 'fused_matmul_q4_batched.wgsl'
+  );
+  summary.requiresF16ActivationNarrowing = Object.values(execution?.kernels ?? {}).some(
+    (entry) => EXECUTION_V1_F32_ACTIVATION_NARROWING_FILES.has(entry?.kernel)
   );
 
   return summary;
@@ -277,9 +355,14 @@ export function compileExecutionV1(options = {}) {
   }
 
   let execution = manifestInference.execution;
-  const session = mergeExecutionV1Session(
+  const mergedSession = mergeExecutionV1Session(
     manifestInference.session ?? {},
     runtimeSession ?? {}
+  );
+  const session = applyExecutionV1RuntimeComputeOverrides(
+    mergedSession,
+    runtimeSession,
+    runtimeCompute
   );
 
   if (!session?.compute?.defaults?.activationDtype) {
@@ -463,6 +546,7 @@ export function compileExecutionV1(options = {}) {
   }
 
   const layerPipelineResult = buildLayerPipelineFromExecution(resolvedSteps, {
+    logIncompatibleOps: !(kernelPath && inlineKernelPathEnabled),
     ffnDtypeFallback: requireSessionActivationDtype(effectiveSession),
   });
   if (layerPipelineResult?.incompatibleOps && !kernelPath && inlineKernelPathEnabled) {

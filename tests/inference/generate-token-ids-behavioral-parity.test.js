@@ -348,6 +348,42 @@ console.log('  ok: stop sequence parity');
 }
 console.log('  ok: stats fields');
 
+// === Test 5b: self-speculation honors configured burst tokens ===
+{
+  const tokenSeq = [10, 11, 12, 13, 14, 15];
+  const state = createMinimalState({ maxTokens: 5, stopTokenIds: [] });
+  const gen = new PipelineGenerator(state);
+  let decodeCallCount = 0;
+  gen._prefillPromptToLogits = async function () {
+    return { inputIds: [1, 5, 7], logits: makeLogitsForToken(tokenSeq[0]) };
+  };
+  gen._decodeNextTokenViaLogits = async function () {
+    decodeCallCount += 1;
+    return tokenSeq[decodeCallCount] ?? EOS_TOKEN;
+  };
+
+  const result = await gen.generateTokenIds('test', {
+    useChatTemplate: false,
+    speculation: {
+      mode: 'self',
+      tokens: 3,
+      verify: 'greedy',
+      threshold: null,
+      rollbackOnReject: true,
+    },
+  });
+
+  assert.deepStrictEqual(
+    result.tokenIds,
+    [10, 11, 12, 13, 14],
+    'self-speculation must emit one base token plus the configured speculative burst'
+  );
+  assert.equal(decodeCallCount, 4, 'self-speculation must decode one base token plus three speculative tokens');
+  assert.equal(result.stats.speculationAttempts, 3, 'self-speculation must record one attempt per speculative token');
+  assert.equal(result.stats.speculationAccepted, 3, 'self-speculation must record one accept per speculative token');
+}
+console.log('  ok: self-speculation burst honors configured tokens');
+
 // === Test 6: Cleanup — isGenerating is false after success and after error ===
 {
   const state1 = createMinimalState({ maxTokens: 5 });

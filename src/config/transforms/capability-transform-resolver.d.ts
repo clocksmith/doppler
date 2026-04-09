@@ -31,6 +31,7 @@ export declare function resolveCapabilityTransforms(
     hasQ4DecodeProjectionKernel?: boolean;
     hasQ4PrefillProjectionKernel?: boolean;
     hasAvailableQ4PrefillProjectionKernel?: boolean;
+    requiresF16ActivationNarrowing?: boolean;
   }
 ): ResolvedTransforms;
 

@@ -280,13 +280,19 @@ function formatChatML(messages) {
   });
 }
 
-function formatQwen(messages) {
+function getQwenAssistantSuffix(options) {
+  return options?.thinking === true
+    ? '<|im_start|>assistant\n<think>\n'
+    : '<|im_start|>assistant\n<think>\n\n</think>\n\n';
+}
+
+function formatQwen(messages, options) {
   return formatMessagesWithRoleWrap(messages, 'Qwen', {
     system: (c) => `<|im_start|>system\n${c}<|im_end|>\n`,
     user: (c) => `<|im_start|>user\n${c}<|im_end|>\n`,
     assistant: (c) => `<|im_start|>assistant\n${c}<|im_end|>\n`,
   }, {
-    suffix: '<|im_start|>assistant\n<think>\n\n</think>\n\n',
+    suffix: getQwenAssistantSuffix(options),
     beforeMessage: (role, index) => {
       if (role === 'system' && index !== 0) {
         throw new Error('Qwen template requires any system message to appear first.');

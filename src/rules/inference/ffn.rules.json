@@ -22,6 +22,7 @@
         "hasLoRA": false,
         "dtypeMatches": true,
         "dtypeSupported": true,
+        "weightDtype": "f16",
         "activationDtype": "f16",
         "f16BatchSupported": true
       },

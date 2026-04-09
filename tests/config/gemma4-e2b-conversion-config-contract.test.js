@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 import { expandExecutionV1 } from '../../src/config/schema/execution-v1.schema.js';
 import { compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
+import { getLayerSteps } from '../../src/config/kernel-path-loader.js';
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(testDir, '..', '..');
@@ -42,9 +43,11 @@ assert.equal(config.inference?.output?.embeddingPostprocessor, null);
 
 const expanded = expandExecutionV1(config.execution);
 assert.ok(expanded.length > 0, 'execution must expand to at least one step');
-assert.equal(config.execution?.kernels?.attn_decode?.kernel, 'attention_streaming_f16kv.wgsl');
+assert.equal(config.execution?.kernels?.attn_decode?.kernel, 'attention_decode_online_f16kv.wgsl');
 assert.equal(config.execution?.kernels?.attn_decode?.entry, 'main');
 assert.equal(config.execution?.kernels?.attn_decode?.precision?.kvDtype, 'f16');
+assert.equal(config.execution?.kernels?.attn_small?.kernel, 'attention_small_f16kv.wgsl');
+assert.equal(config.execution?.kernels?.attn_small?.precision?.kvDtype, 'f16');
 assert.equal(config.execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16kv.wgsl');
 assert.equal(config.execution?.kernels?.attn_stream?.precision?.kvDtype, 'f16');
 assert.equal(config.execution?.kernels?.gemv?.kernel, 'matmul_gemv_subgroup.wgsl');
@@ -119,7 +122,7 @@ assert.equal(f16Primary.session.compute.defaults.activationDtype, 'f32');
 assert.equal(f16Primary.session.kvcache.kvDtype, 'f16');
 assert.equal(
   f16Primary.runtimeInferencePatch?.kernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.kernel,
-  'attention_streaming_f16kv.wgsl'
+  'attention_decode_online_f16kv.wgsl'
 );
 assert.equal(
   f16Primary.runtimeInferencePatch?.kernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.precision?.kvDtype,
@@ -128,6 +131,16 @@ assert.equal(
 assert.equal(
   f16Primary.runtimeInferencePatch?.kernelPath?.prefill?.steps?.find((step) => step.op === 'attention')?.precision?.kvDtype,
   'f16'
+);
+assert.equal(
+  getLayerSteps(f16Primary.runtimeInferencePatch?.kernelPath, 0, 'prefill')
+    .find((step) => step.op === 'attention')?.kernel,
+  'attention_small_f16kv.wgsl'
+);
+assert.equal(
+  getLayerSteps(f16Primary.runtimeInferencePatch?.kernelPath, 4, 'prefill')
+    .find((step) => step.op === 'attention')?.kernel,
+  'attention_streaming_f16kv.wgsl'
 );
 
 const runtimeF16Primary = compileExecutionV1({
@@ -180,7 +193,7 @@ assert.equal(
 );
 assert.equal(
   runtimeF16Primary.runtimeInferencePatch?.kernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.kernel,
-  'attention_streaming_f16.wgsl'
+  'attention_decode_online_f16.wgsl'
 );
 assert.equal(
   runtimeF16Primary.runtimeInferencePatch?.kernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.precision?.kvDtype,
@@ -213,6 +226,16 @@ assert.equal(
 assert.equal(
   runtimeF16Primary.runtimeInferencePatch?.kernelPath?.postLayer?.find((step) => step.op === 'lm_head_prefill')?.kernel,
   'matmul_f16w_f32a.wgsl'
+);
+assert.equal(
+  getLayerSteps(runtimeF16Primary.runtimeInferencePatch?.kernelPath, 0, 'prefill')
+    .find((step) => step.op === 'attention')?.kernel,
+  'attention_small_f16.wgsl'
+);
+assert.equal(
+  getLayerSteps(runtimeF16Primary.runtimeInferencePatch?.kernelPath, 4, 'prefill')
+    .find((step) => step.op === 'attention')?.kernel,
+  'attention_streaming_f16.wgsl'
 );
 
 const finitenessFallback = compileExecutionV1({
@@ -280,7 +303,7 @@ assert.equal(widenedFallback.session.compute.defaults.activationDtype, 'f32');
 assert.equal(widenedFallback.session.kvcache.kvDtype, 'f32');
 assert.equal(
   widenedFallback.runtimeInferencePatch?.kernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.kernel,
-  'attention_streaming.wgsl'
+  'attention_decode.wgsl'
 );
 
 console.log('gemma4-e2b-conversion-config-contract.test: ok');

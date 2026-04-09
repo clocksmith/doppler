@@ -16,6 +16,7 @@ const {
   isBatchDecodeEnabled,
   isDecodeRecorderEnabled,
   isProfileDecodeRecorderEnabled,
+  resolveMaxBatchDecodeTokens,
 } = await import('../../src/inference/pipelines/text/execution-plan.js');
 
 const minimalKernelPath = {
@@ -141,6 +142,8 @@ const container = { executionPlanState: planState };
     disableCommandBatching: false,
     isBdpaPagedLayout: false,
     finitenessFallbackWindowOpen: false,
+    hasLinearAttentionLayers: false,
+    selfSpeculationEnabled: false,
     hasRangeBackedPerLayerInputs: false,
   };
   const enabled = isBatchDecodeEnabled(enabledConfig);
@@ -154,7 +157,37 @@ const container = { executionPlanState: planState };
   assert.equal(isBatchDecodeEnabled({ ...enabledConfig, disableCommandBatching: true }), false);
   assert.equal(isBatchDecodeEnabled({ ...enabledConfig, isBdpaPagedLayout: true }), false);
   assert.equal(isBatchDecodeEnabled({ ...enabledConfig, finitenessFallbackWindowOpen: true }), false);
+  assert.equal(
+    isBatchDecodeEnabled({
+      ...enabledConfig,
+      hasLinearAttentionLayers: true,
+      selfSpeculationEnabled: false,
+      hasRangeBackedPerLayerInputs: false,
+    }),
+    true
+  );
+  assert.equal(
+    isBatchDecodeEnabled({
+      ...enabledConfig,
+      hasLinearAttentionLayers: true,
+      selfSpeculationEnabled: true,
+      hasRangeBackedPerLayerInputs: false,
+    }),
+    true
+  );
   assert.equal(isBatchDecodeEnabled({ ...enabledConfig, hasRangeBackedPerLayerInputs: true }), true);
+  assert.equal(
+    isBatchDecodeEnabled({
+      ...enabledConfig,
+      hasRangeBackedPerLayerInputs: true,
+      selfSpeculationEnabled: true,
+    }),
+    false
+  );
+  assert.equal(resolveMaxBatchDecodeTokens({ hasHotVocabularyBatchDecode: true }), 1);
+  assert.equal(resolveMaxBatchDecodeTokens({ hasLinearAttentionLayers: true }), 32);
+  assert.equal(resolveMaxBatchDecodeTokens({ hasGpuSplitPerLayerInputs: false }), null);
+  assert.equal(resolveMaxBatchDecodeTokens({ hasGpuSplitPerLayerInputs: true }), 4);
 }
 
 {

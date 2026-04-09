@@ -47,22 +47,33 @@ let defaultsWarningEmitted = false;
 
 function warnIfUsingDefaults(runtimeConfig) {
   if (defaultsWarningEmitted) return;
-  const hasPrompt = typeof runtimeConfig?.inference?.prompt === 'string'
-    && runtimeConfig.inference.prompt.trim().length > 0;
+  const promptOverride = runtimeConfig?.inference?.prompt;
+  const hasPrompt = (typeof promptOverride === 'string' && promptOverride.trim().length > 0)
+    || (Array.isArray(promptOverride) && promptOverride.length > 0)
+    || isStructuredPromptInput(promptOverride);
   const hasSampling = isPlainObject(runtimeConfig?.inference?.sampling)
     && Object.keys(runtimeConfig.inference.sampling).length > 0;
   const hasMaxTokens = Number.isFinite(runtimeConfig?.inference?.generation?.maxTokens);
   if (hasPrompt && hasSampling && hasMaxTokens) return;
   defaultsWarningEmitted = true;
-  const defaults = [
-    `  prompt: "${DEFAULT_HARNESS_PROMPT}"`,
-    `  maxTokens: ${DEFAULT_HARNESS_MAX_TOKENS}`,
-    `  temperature: ${DEFAULT_SAMPLING_DEFAULTS.temperature}`,
-    `  topK: ${DEFAULT_SAMPLING_DEFAULTS.topK}`,
-    `  topP: ${DEFAULT_SAMPLING_DEFAULTS.topP}`,
-  ];
+  const missingFields = [];
+  const defaults = [];
+  if (!hasPrompt) {
+    missingFields.push('prompt');
+    defaults.push(`  prompt: "${DEFAULT_HARNESS_PROMPT}"`);
+  }
+  if (!hasMaxTokens) {
+    missingFields.push('generation.maxTokens');
+    defaults.push(`  maxTokens: ${DEFAULT_HARNESS_MAX_TOKENS}`);
+  }
+  if (!hasSampling) {
+    missingFields.push('sampling');
+    defaults.push(`  temperature: ${DEFAULT_SAMPLING_DEFAULTS.temperature}`);
+    defaults.push(`  topK: ${DEFAULT_SAMPLING_DEFAULTS.topK}`);
+    defaults.push(`  topP: ${DEFAULT_SAMPLING_DEFAULTS.topP}`);
+  }
   debugLog.warn('Harness',
-    'Running with default inference parameters (no runtime config override):\n'
+    `Running with default inference parameters for missing fields: ${missingFields.join(', ')}.\n`
     + defaults.join('\n')
     + '\n  Provide explicit runtime.inference.sampling and generation.maxTokens if you want harness-stable settings.'
   );

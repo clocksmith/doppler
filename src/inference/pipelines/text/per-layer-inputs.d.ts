@@ -43,6 +43,10 @@ export declare function hasRangeBackedPerLayerInputEmbeddings(
   context: Pick<LayerContext, 'config' | 'weights'>
 ): boolean;
 
+export declare function hasGpuSplitPerLayerInputEmbeddings(
+  context: Pick<LayerContext, 'config' | 'weights'>
+): boolean;
+
 export declare function scalePerLayerProjectionNormWeights(
   weight: unknown,
   combineScale: number,

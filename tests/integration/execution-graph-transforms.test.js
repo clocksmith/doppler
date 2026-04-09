@@ -552,8 +552,8 @@ function buildF16WeightProjectionGraph() {
   const prefillProjectionFiles = collectKernelFilesForPhase(result, 'prefill');
   ok(prefillProjectionFiles.has('matmul_f16w_f32a.wgsl'),
     'remapped Qwen prefill should have matmul_f16w_f32a.wgsl');
-  ok(!prefillProjectionFiles.has('fused_matmul_q4_batched.wgsl'),
-    'remapped Qwen prefill should no longer have fused_matmul_q4_batched.wgsl');
+  ok(!prefillProjectionFiles.has('fused_matmul_q4_batched_f16a.wgsl'),
+    'remapped Qwen prefill should no longer have fused_matmul_q4_batched_f16a.wgsl');
 
   deepEqual(graph, frozen, 'remapQ4KPrefillToDense must not mutate the input graph');
 }
@@ -637,10 +637,10 @@ function buildF16WeightProjectionGraph() {
 
   // Verify prefill keeps the fused-Q4 primary path.
   const prefillFiles = collectKernelFilesForPhase(result, 'prefill');
-  ok(prefillFiles.has('fused_matmul_q4_batched.wgsl'),
-    'Remapped Qwen graph should keep fused_matmul_q4_batched.wgsl in prefill');
-  ok(prefillFiles.has('attention_streaming_f16kv.wgsl'),
-    'Remapped Qwen graph should keep attention_streaming_f16kv.wgsl in prefill');
+  ok(prefillFiles.has('fused_matmul_q4_batched_f16a.wgsl'),
+    'Remapped Qwen graph should keep fused_matmul_q4_batched_f16a.wgsl in prefill');
+  ok(prefillFiles.has('attention_streaming_f16.wgsl'),
+    'Remapped Qwen graph should keep attention_streaming_f16.wgsl in prefill');
 
   deepEqual(graph, frozen, 'remapQ4KDecodeToGemv must not mutate the input graph');
 }
@@ -734,6 +734,32 @@ function buildF16WeightProjectionGraph() {
     deepEqual(r.transforms, [], 'subgroups+f16: no transform functions');
     ok(r.reason.toLowerCase().includes('all required features') || r.reason.toLowerCase().includes('supports all'),
       `subgroups+f16: reason should mention all required features, got: "${r.reason}"`);
+  }
+
+  // f16 request only resolves the narrowing transform when the graph still
+  // contains f32-activation kernels that can be narrowed.
+  {
+    const r = resolveCapabilityTransforms(
+      { hasSubgroups: true, hasF16: true },
+      platform,
+      { ...graphCtx, activationDtype: 'f16', requiresF16ActivationNarrowing: true }
+    );
+    deepEqual(r.names, ['narrowToF16Activations'],
+      'f16 request with narrowable kernels: should resolve narrowToF16Activations');
+    equal(r.transforms.length, 1, 'f16 request with narrowable kernels: one transform function');
+    equal(r.transforms[0], narrowToF16Activations,
+      'f16 request with narrowable kernels: transform function is narrowToF16Activations');
+  }
+
+  {
+    const r = resolveCapabilityTransforms(
+      { hasSubgroups: true, hasF16: true },
+      platform,
+      { ...graphCtx, activationDtype: 'f16', requiresF16ActivationNarrowing: false }
+    );
+    deepEqual(r.names, [],
+      'f16 request on an already-f16 graph: no capability transforms needed');
+    equal(r.transforms.length, 0, 'f16 request on an already-f16 graph: zero transform functions');
   }
 
   // { hasSubgroups: false, hasF16: true } => ["removeSubgroups"]

@@ -31,11 +31,63 @@
         "disableMultiTokenDecode": { "neq": true },
         "disableCommandBatching": false,
         "isBdpaPagedLayout": false,
-        "finitenessFallbackWindowOpen": false
+        "finitenessFallbackWindowOpen": false,
+        "hasLinearAttentionLayers": false,
+        "hasRangeBackedPerLayerInputs": false
+      },
+      "value": true
+    },
+    {
+      "match": {
+        "batchSize": { "gt": 1 },
+        "useGPU": true,
+        "gpuSamplingAvailable": true,
+        "disableMultiTokenDecode": { "neq": true },
+        "disableCommandBatching": false,
+        "isBdpaPagedLayout": false,
+        "finitenessFallbackWindowOpen": false,
+        "hasLinearAttentionLayers": false,
+        "hasRangeBackedPerLayerInputs": true,
+        "selfSpeculationEnabled": false
+      },
+      "value": true
+    },
+    {
+      "match": {
+        "batchSize": { "gt": 1 },
+        "useGPU": true,
+        "gpuSamplingAvailable": true,
+        "disableMultiTokenDecode": { "neq": true },
+        "disableCommandBatching": false,
+        "isBdpaPagedLayout": false,
+        "finitenessFallbackWindowOpen": false,
+        "hasLinearAttentionLayers": true,
+        "hasRangeBackedPerLayerInputs": false
       },
       "value": true
     },
     { "match": {}, "value": false }
+  ],
+  "maxBatchDecodeTokens": [
+    {
+      "match": {
+        "hasHotVocabularyBatchDecode": true
+      },
+      "value": 1
+    },
+    {
+      "match": {
+        "hasLinearAttentionLayers": true
+      },
+      "value": 32
+    },
+    {
+      "match": {
+        "hasGpuSplitPerLayerInputs": true
+      },
+      "value": 4
+    },
+    { "match": {}, "value": null }
   ],
   "finitenessFallbackActivationDtype": [
     { "match": {}, "value": "f32" }

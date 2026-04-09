@@ -17,6 +17,15 @@ const {
 }
 
 {
+  const prompt = applyChatTemplate('What color is the sky?', 'qwen', { thinking: true });
+  assert.equal(
+    prompt,
+    '<|im_start|>user\nWhat color is the sky?<|im_end|>\n'
+      + '<|im_start|>assistant\n<think>\n'
+  );
+}
+
+{
   const prompt = formatChatMessages([
     { role: 'system', content: 'You are concise.' },
     { role: 'user', content: 'What color is the sky?' },
@@ -31,6 +40,18 @@ const {
       + '<|im_start|>assistant\nThe sky is blue.<|im_end|>\n'
       + '<|im_start|>user\nAnswer again in two words.<|im_end|>\n'
       + '<|im_start|>assistant\n<think>\n\n</think>\n\n'
+  );
+}
+
+{
+  const prompt = formatChatMessages([
+    { role: 'user', content: 'What color is the sky?' },
+  ], 'qwen', { thinking: true });
+
+  assert.equal(
+    prompt,
+    '<|im_start|>user\nWhat color is the sky?<|im_end|>\n'
+      + '<|im_start|>assistant\n<think>\n'
   );
 }
 

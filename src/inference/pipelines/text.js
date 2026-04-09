@@ -462,16 +462,6 @@ export class InferencePipeline extends PipelineState {
     // Load weights
     await this._loadWeights();
 
-    // Load vision weights (conditional on manifest)
-    if (this.visionCapable) {
-      await this._loadVisionWeights();
-    }
-
-    // Load audio weights (conditional on manifest)
-    if (this.audioCapable) {
-      await this._loadAudioWeights();
-    }
-
     // Initialize RoPE frequencies
     await this._initRoPE();
 
@@ -775,6 +765,19 @@ export class InferencePipeline extends PipelineState {
     log.info('Pipeline', `Vision weights loaded (${depth} encoder layers)`);
   }
 
+  async _ensureVisionWeightsLoaded() {
+    if (!this.visionCapable) {
+      throw new Error(
+        'Pipeline does not support vision weights (no image_token_id in manifest).'
+      );
+    }
+    if (this.visionWeights) {
+      return;
+    }
+    log.info('Pipeline', 'Loading vision weights on demand');
+    await this._loadVisionWeights();
+  }
+
 
   async _loadAudioWeights() {
     const loader = this.dopplerLoader ?? getDopplerLoader(this.runtimeConfig.loading);
@@ -880,6 +883,19 @@ export class InferencePipeline extends PipelineState {
     log.info('Pipeline', `Audio weights loaded (${depth} conformer layers)`);
   }
 
+  async _ensureAudioWeightsLoaded() {
+    if (!this.audioCapable) {
+      throw new Error(
+        'Pipeline does not support audio weights (no audio_token_id in manifest).'
+      );
+    }
+    if (this.audioWeights) {
+      return;
+    }
+    log.info('Pipeline', 'Loading audio weights on demand');
+    await this._loadAudioWeights();
+  }
+
 
   // ==========================================================================
   // Vision: transcribeImage
@@ -903,11 +919,7 @@ export class InferencePipeline extends PipelineState {
         'Pipeline does not support image transcription (no image_token_id in manifest).'
       );
     }
-    if (!this.visionWeights) {
-      throw new Error(
-        'Vision weights not loaded. Ensure the model was loaded with a vision-capable manifest.'
-      );
-    }
+    await this._ensureVisionWeightsLoaded();
 
     this.reset();
 
@@ -1048,11 +1060,7 @@ export class InferencePipeline extends PipelineState {
         'Pipeline does not support video transcription (no image_token_id in manifest for vision encoder).'
       );
     }
-    if (!this.visionWeights) {
-      throw new Error(
-        'Vision weights not loaded. Ensure the model was loaded with a vision-capable manifest.'
-      );
-    }
+    await this._ensureVisionWeightsLoaded();
 
     this.reset();
 
@@ -1175,11 +1183,7 @@ export class InferencePipeline extends PipelineState {
         'Pipeline does not support audio transcription (no audio_token_id in manifest).'
       );
     }
-    if (!this.audioWeights) {
-      throw new Error(
-        'Audio weights not loaded. Ensure the model was loaded with an audio-capable manifest.'
-      );
-    }
+    await this._ensureAudioWeightsLoaded();
 
     this.reset();
 

@@ -5,6 +5,30 @@ function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
+const DEFAULT_PER_LAYER_INPUTS = {
+  materialization: 'auto',
+  rowCache: {
+    mode: 'lru',
+    maxRows: 256,
+    maxBytes: 134217728,
+    decodedDtype: 'f32',
+  },
+  prefetch: {
+    mode: 'next_token',
+    rowsAhead: 1,
+  },
+  gpuUpload: {
+    mode: 'per_step_slices',
+    stagingRows: 2,
+  },
+  hotCache: {
+    mode: 'prepared_tokens',
+    maxTokens: 1024,
+    maxBytes: 134217728,
+    outputDtype: 'f32',
+  },
+};
+
 const EXPLICIT_TEXT_DEFAULTS = [
   {
     path: 'src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json',
@@ -30,6 +54,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       ringStaging: 1,
       disableCommandBatching: false,
     },
+    perLayerInputs: DEFAULT_PER_LAYER_INPUTS,
   },
   {
     path: 'src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json',
@@ -55,6 +80,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       ringStaging: 1,
       disableCommandBatching: false,
     },
+    perLayerInputs: DEFAULT_PER_LAYER_INPUTS,
   },
   {
     path: 'src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json',
@@ -80,6 +106,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       ringStaging: 1,
       disableCommandBatching: false,
     },
+    perLayerInputs: DEFAULT_PER_LAYER_INPUTS,
   },
   {
     path: 'src/config/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json',
@@ -105,6 +132,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       ringStaging: 1,
       disableCommandBatching: false,
     },
+    perLayerInputs: DEFAULT_PER_LAYER_INPUTS,
   },
   {
     path: 'src/config/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json',
@@ -130,6 +158,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       ringStaging: 1,
       disableCommandBatching: false,
     },
+    perLayerInputs: DEFAULT_PER_LAYER_INPUTS,
   },
   {
     path: 'src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32.json',
@@ -154,6 +183,29 @@ const EXPLICIT_TEXT_DEFAULTS = [
       ringStop: 1,
       ringStaging: 2,
       disableCommandBatching: false,
+    },
+    perLayerInputs: {
+      materialization: 'range_backed',
+      rowCache: {
+        mode: 'lru',
+        maxRows: 512,
+        maxBytes: 268435456,
+        decodedDtype: 'f32',
+      },
+      prefetch: {
+        mode: 'next_token',
+        rowsAhead: 1,
+      },
+      gpuUpload: {
+        mode: 'per_step_slices',
+        stagingRows: 2,
+      },
+      hotCache: {
+        mode: 'prepared_tokens',
+        maxTokens: 4096,
+        maxBytes: 268435456,
+        outputDtype: 'f32',
+      },
     },
   },
   {
@@ -180,6 +232,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       ringStaging: 1,
       disableCommandBatching: false,
     },
+    perLayerInputs: DEFAULT_PER_LAYER_INPUTS,
   },
   {
     path: 'src/config/conversion/gpt-oss-20b-f16-xmxfp4.json',
@@ -205,6 +258,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       ringStaging: 1,
       disableCommandBatching: false,
     },
+    perLayerInputs: DEFAULT_PER_LAYER_INPUTS,
   },
   {
     path: 'src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json',
@@ -230,6 +284,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       ringStaging: 1,
       disableCommandBatching: false,
     },
+    perLayerInputs: DEFAULT_PER_LAYER_INPUTS,
   },
   {
     path: 'src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json',
@@ -255,14 +310,15 @@ const EXPLICIT_TEXT_DEFAULTS = [
       ringStaging: 1,
       disableCommandBatching: false,
     },
+    perLayerInputs: DEFAULT_PER_LAYER_INPUTS,
   },
   {
     path: 'src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json',
     computeDefaults: {
-      activationDtype: 'f32',
-      mathDtype: 'f32',
-      accumDtype: 'f32',
-      outputDtype: 'f32',
+      activationDtype: 'f16',
+      mathDtype: 'f16',
+      accumDtype: 'f16',
+      outputDtype: 'f16',
     },
     kvcache: {
       kvDtype: 'f16',
@@ -282,6 +338,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       ringStaging: 1,
       disableCommandBatching: false,
     },
+    perLayerInputs: DEFAULT_PER_LAYER_INPUTS,
     speculation: {
       mode: 'self',
       tokens: 1,
@@ -314,14 +371,15 @@ const EXPLICIT_TEXT_DEFAULTS = [
       ringStaging: 1,
       disableCommandBatching: false,
     },
+    perLayerInputs: DEFAULT_PER_LAYER_INPUTS,
   },
   {
     path: 'src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json',
     computeDefaults: {
-      activationDtype: 'f32',
-      mathDtype: 'f32',
-      accumDtype: 'f32',
-      outputDtype: 'f32',
+      activationDtype: 'f16',
+      mathDtype: 'f16',
+      accumDtype: 'f16',
+      outputDtype: 'f16',
     },
     kvcache: {
       kvDtype: 'f16',
@@ -341,6 +399,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       ringStaging: 1,
       disableCommandBatching: false,
     },
+    perLayerInputs: DEFAULT_PER_LAYER_INPUTS,
     speculation: {
       mode: 'self',
       tokens: 1,
@@ -373,6 +432,7 @@ for (const fixture of EXPLICIT_TEXT_DEFAULTS) {
   assert.deepEqual(config.session.compute?.defaults, fixture.computeDefaults, `${fixture.path} compute.defaults`);
   assert.deepEqual(config.session.kvcache, fixture.kvcache, `${fixture.path} kvcache`);
   assert.deepEqual(config.session.decodeLoop, fixture.decodeLoop, `${fixture.path} decodeLoop`);
+  assert.deepEqual(config.session.perLayerInputs, fixture.perLayerInputs, `${fixture.path} perLayerInputs`);
   if (fixture.speculation) {
     assert.deepEqual(config.session.speculation, fixture.speculation, `${fixture.path} speculation`);
   }

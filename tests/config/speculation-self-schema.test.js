@@ -54,11 +54,8 @@ describe('speculation-self schema', () => {
     );
   });
 
-  it('rejects tokens > 1 for self mode', () => {
-    assert.throws(
-      () => validateSelfSpeculationConfig({ mode: 'self', tokens: 2, verify: 'greedy', threshold: null, rollbackOnReject: true }),
-      /Only tokens=1/
-    );
+  it('validates tokens > 1 for self mode', () => {
+    validateSelfSpeculationConfig({ mode: 'self', tokens: 4, verify: 'greedy', threshold: null, rollbackOnReject: true });
   });
 
   it('rejects tokens=0 for self mode', () => {

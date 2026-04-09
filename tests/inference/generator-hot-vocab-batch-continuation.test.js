@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 
-const { shouldDisableBatchDecodeAfterShortBatch } = await import('../../src/inference/pipelines/text/generator.js');
+const {
+  shouldDisableBatchDecodeAfterShortBatch,
+  resolveHotVocabularyBatchDecodeAvailability,
+} = await import('../../src/inference/pipelines/text/generator.js');
 
 assert.equal(
   shouldDisableBatchDecodeAfterShortBatch({
@@ -31,5 +34,38 @@ assert.equal(
   false,
   'full batches must not disable batch decode'
 );
+
+{
+  const hotTokenIndexMap = new Uint32Array(8);
+  hotTokenIndexMap.fill(2);
+  hotTokenIndexMap[3] = 0;
+  hotTokenIndexMap[5] = 1;
+
+  assert.equal(
+    resolveHotVocabularyBatchDecodeAvailability({
+      hasRangeBackedPerLayerInputs: true,
+      pleHotVocabularyRuntime: {
+        sentinelIndex: 2,
+        hotTokenIndexMap,
+      },
+      tokenId: 3,
+    }),
+    true,
+    'current hot token should keep tokenizer_scores batch decode enabled'
+  );
+
+  assert.equal(
+    resolveHotVocabularyBatchDecodeAvailability({
+      hasRangeBackedPerLayerInputs: true,
+      pleHotVocabularyRuntime: {
+        sentinelIndex: 2,
+        hotTokenIndexMap,
+      },
+      tokenId: 4,
+    }),
+    false,
+    'current non-hot token must disable tokenizer_scores batch decode regardless of earlier hits'
+  );
+}
 
 console.log('generator-hot-vocab-batch-continuation.test: ok');

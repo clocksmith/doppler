@@ -16,6 +16,7 @@ import { type KernelCapabilities } from '../gpu/device.js';
 import { type RDRRManifest } from '../formats/rdrr/index.js';
 import { type Pipeline } from './pipelines/text.js';
 import type { RuntimeConfigSchema } from '../config/schema/index.js';
+import type { PipelineStorageContext } from './pipelines/text/init.js';
 
 // ============================================================================
 // Types
@@ -116,6 +117,12 @@ export declare function createHttpShardLoader(
   manifest: RDRRManifest,
   log?: (msg: string, level?: string) => void
 ): (idx: number) => Promise<Uint8Array>;
+
+export declare function createHarnessShardStorageContext(
+  modelUrl: string,
+  manifest: RDRRManifest,
+  log?: (msg: string, level?: string) => void
+): PipelineStorageContext;
 
 // ============================================================================
 // Pipeline Initialization

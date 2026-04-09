@@ -22,6 +22,13 @@ const PLATFORM_FILES = [
   'generic',
 ];
 
+function normalizeDetectionValue(value) {
+  if (value == null) {
+    return '';
+  }
+  return String(value).toLowerCase().replace(/[^a-z0-9]+/g, '');
+}
+
 export function setPlatformsBaseUrl(baseUrl) {
   platformsBaseUrl = baseUrl;
   platformCache.clear();
@@ -47,10 +54,10 @@ async function loadPlatformConfig(platformId) {
 }
 
 export async function detectPlatform(adapterInfo) {
-  const vendor = adapterInfo.vendor?.toLowerCase() || '';
-  const architecture = adapterInfo.architecture?.toLowerCase() || '';
-  const device = adapterInfo.device?.toLowerCase() || '';
-  const description = adapterInfo.description?.toLowerCase() || '';
+  const vendor = normalizeDetectionValue(adapterInfo.vendor);
+  const architecture = normalizeDetectionValue(adapterInfo.architecture);
+  const device = normalizeDetectionValue(adapterInfo.device);
+  const description = normalizeDetectionValue(adapterInfo.description);
 
   for (const platformId of PLATFORM_FILES) {
     const config = await loadPlatformConfig(platformId);
@@ -59,16 +66,16 @@ export async function detectPlatform(adapterInfo) {
     const detection = config.detection;
     let matches = true;
 
-    if (detection.vendor && !vendor.includes(detection.vendor.toLowerCase())) {
+    if (detection.vendor && !vendor.includes(normalizeDetectionValue(detection.vendor))) {
       matches = false;
     }
-    if (detection.architecture && !architecture.includes(detection.architecture.toLowerCase())) {
+    if (detection.architecture && !architecture.includes(normalizeDetectionValue(detection.architecture))) {
       matches = false;
     }
-    if (detection.device && !device.includes(detection.device.toLowerCase())) {
+    if (detection.device && !device.includes(normalizeDetectionValue(detection.device))) {
       matches = false;
     }
-    if (detection.description && !description.includes(detection.description.toLowerCase())) {
+    if (detection.description && !description.includes(normalizeDetectionValue(detection.description))) {
       matches = false;
     }
 

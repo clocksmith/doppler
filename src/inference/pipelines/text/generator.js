@@ -67,6 +67,7 @@ import {
   hasFallbackExecutionPlan,
   rebaseExecutionSessionPlan,
   resetActiveExecutionPlan,
+  resolveMaxBatchDecodeTokens,
   resolveActiveExecutionPlan,
   setActiveExecutionPlan,
 } from './execution-plan.js';
@@ -83,6 +84,8 @@ import {
   ensurePleScaledProjectionNormWeight,
   ensurePleGpuHotVocabularyRuntime,
   ensurePleGpuSplitTablesRuntime,
+  getPleHotVocabularyRuntime,
+  hasGpuSplitPerLayerInputEmbeddings,
   hasRangeBackedPerLayerInputEmbeddings,
 } from './per-layer-inputs.js';
 import { createTensor } from '../../../gpu/tensor.js';
@@ -101,6 +104,28 @@ export function shouldDisableBatchDecodeAfterShortBatch({ hitStop, actualCount, 
     && Number.isInteger(requestedCount)
     && actualCount > 0
     && actualCount < requestedCount;
+}
+
+export function resolveHotVocabularyBatchDecodeAvailability({
+  hasRangeBackedPerLayerInputs,
+  pleHotVocabularyRuntime,
+  tokenId,
+}) {
+  if (hasRangeBackedPerLayerInputs !== true) {
+    return false;
+  }
+  if (!pleHotVocabularyRuntime || typeof pleHotVocabularyRuntime !== 'object') {
+    return false;
+  }
+  const sentinelIndex = pleHotVocabularyRuntime.sentinelIndex;
+  if (!Number.isInteger(sentinelIndex)) {
+    return false;
+  }
+  if (!Number.isInteger(tokenId)) {
+    return false;
+  }
+  const hotTokenIndex = pleHotVocabularyRuntime.hotTokenIndexMap?.[tokenId] ?? sentinelIndex;
+  return hotTokenIndex !== sentinelIndex;
 }
 
 async function primePleDecodeRuntimeCache(state, seedTokenIds = null) {
@@ -137,6 +162,7 @@ function recordPrefillProfileStep(state, entry) {
 }
 
 function resolvePromptInput(state, prompt, useChatTemplate, contextLabel) {
+  const chatOptions = state.modelConfig.chatTemplateThinking === true ? { thinking: true } : undefined;
   if (typeof prompt === 'string') {
     if (useChatTemplate && state.modelConfig.chatTemplateType) {
       if (state.modelConfig.chatTemplateType === 'translategemma') {
@@ -145,7 +171,7 @@ function resolvePromptInput(state, prompt, useChatTemplate, contextLabel) {
           'Pass { messages: [...] } instead of a plain string prompt.'
         );
       }
-      return applyChatTemplate(prompt, state.modelConfig.chatTemplateType);
+      return applyChatTemplate(prompt, state.modelConfig.chatTemplateType, chatOptions);
     }
     return prompt;
   }
@@ -165,7 +191,6 @@ function resolvePromptInput(state, prompt, useChatTemplate, contextLabel) {
     );
   }
   const templateType = useChatTemplate ? state.modelConfig.chatTemplateType : null;
-  const chatOptions = state.modelConfig.chatTemplateThinking === true ? { thinking: true } : undefined;
   return formatChatMessages(messages, templateType, chatOptions);
 }
 
@@ -1304,79 +1329,24 @@ export class PipelineGenerator {
       this.#state.stats.ttftMs = performance.now() - startTime;
       markKernelCacheWarmed();
 
-      // Step 4/5: PLE cache + prefetch for generateTokenIds decode loop.
-      const pleHiddenSizeTid = Number(this.#state.modelConfig.hiddenSizePerLayerInput ?? 0);
-      if (pleHiddenSizeTid > 0 && !this.#state.pleCache) {
-        const actDtype = resolveActiveExecutionPlan(this.#state).activationDtype;
-        const bpe = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: actDtype });
-        this.#state.pleCache = createPleBufferCache(
-          this.#state.modelConfig.numLayers,
-          pleHiddenSizeTid * bpe,
-        );
-      }
-      if (pleHiddenSizeTid > 0) {
-        await primePleDecodeRuntimeCache(this.#state, generatedIds);
-        const pleW = this.#state.weights.get('per_layer_inputs');
-        if (pleW?.embedTokensPerLayer) {
-          this.#state.plePrefetchPending = prefetchPerLayerRow(
-            firstToken,
-            pleW.embedTokensPerLayer,
-            this.#state.modelConfig.numLayers * pleHiddenSizeTid,
-            this.#state.runtimeConfig.inference.session?.perLayerInputs ?? this.#state.modelConfig.perLayerInputsSession,
-          );
-        }
-      }
-
-      const decodeStart = performance.now();
-
-      if (!this._shouldStopAfterAppendedToken(generatedIds, firstToken, opts, {
+      const decodeRuntime = {
         stopTokenIds,
         eosToken,
         stopSequenceStart,
-      })) {
-        while (tokenIds.length < opts.maxTokens) {
-          if (options.signal?.aborted) break;
-          let nextToken;
-          try {
-            nextToken = await this._decodeNextTokenViaLogits(generatedIds, opts);
-          } catch (error) {
-            if (this._shouldUseFinitenessFallback(error, `decode-step-${tokenIds.length}`)) {
-              nextToken = await this._retryDecodeStepWithFinitenessWindow(
-                generatedIds,
-                opts,
-                `decode-step-${tokenIds.length}`
-              );
-            } else {
-              throw error;
-            }
-          }
-          generatedIds.push(nextToken);
-          tokenIds.push(nextToken);
-          if (pleHiddenSizeTid > 0) {
-            const pleW = this.#state.weights.get('per_layer_inputs');
-            if (pleW?.embedTokensPerLayer) {
-              this.#state.plePrefetchPending = prefetchPerLayerRow(
-                nextToken,
-                pleW.embedTokensPerLayer,
-                this.#state.modelConfig.numLayers * pleHiddenSizeTid,
-                this.#state.runtimeConfig.inference.session?.perLayerInputs ?? this.#state.modelConfig.perLayerInputsSession,
-              );
-            }
-          }
-          this._consumeFinitenessFallbackToken(opts);
-          if (this._shouldStopAfterAppendedToken(generatedIds, nextToken, opts, {
-            stopTokenIds,
-            eosToken,
-            stopSequenceStart,
-          })) {
-            break;
-          }
+        decodeToken: () => '',
+        emitMode: 'token',
+      };
+
+      if (!this._shouldStopAfterAppendedToken(generatedIds, firstToken, opts, decodeRuntime)) {
+        for await (const tokenId of this._runDecodeLoop(generatedIds, opts, options, decodeRuntime)) {
+          tokenIds.push(tokenId);
         }
+      } else {
+        this.#state.stats.decodeTimeMs = 0;
+        this.#state.stats.tokensGenerated = 1;
+        this.#state.stats.decodeTokens = 1;
       }
 
-      this.#state.stats.decodeTimeMs = performance.now() - decodeStart;
-      this.#state.stats.tokensGenerated = tokenIds.length;
-      this.#state.stats.decodeTokens = tokenIds.length;
       this.#state.stats.totalTimeMs = performance.now() - startTime;
 
       return {
@@ -1761,10 +1731,21 @@ export class PipelineGenerator {
       config: this.#state.modelConfig,
       weights: this.#state.weights,
     });
+    const hasGpuSplitPerLayerInputs = hasGpuSplitPerLayerInputEmbeddings({
+      config: this.#state.modelConfig,
+      weights: this.#state.weights,
+    });
+    const pleHotVocabularyRuntime = getPleHotVocabularyRuntime({ weights: this.#state.weights });
+    const resolveCurrentHotVocabularyBatchDecodeAvailable = () => resolveHotVocabularyBatchDecodeAvailability({
+      hasRangeBackedPerLayerInputs,
+      pleHotVocabularyRuntime,
+      tokenId: generatedIds[generatedIds.length - 1] ?? null,
+    });
+    const initialHotVocabularyBatchDecodeAvailable = resolveCurrentHotVocabularyBatchDecodeAvailable();
     const executionPlan = opts.executionPlan;
     let useBatchPath = replayPrefillDecode
       ? false
-      : shouldUseBatchDecode({
+        : shouldUseBatchDecode({
           batchSize: executionPlan.batchSize,
           useGPU: this.#state.useGPU,
           gpuSamplingAvailable,
@@ -1772,6 +1753,8 @@ export class PipelineGenerator {
           disableCommandBatching: executionPlan.disableCommandBatching,
           isBdpaPagedLayout: this.#state.kvCache?.layout === 'bdpa_paged',
           finitenessFallbackWindowOpen: this._hasFinitenessFallbackWindow(),
+          hasLinearAttentionLayers: hasLinearLayers,
+          selfSpeculationEnabled: opts.speculation?.mode === 'self' && !initialHotVocabularyBatchDecodeAvailable,
           hasRangeBackedPerLayerInputs,
         });
     if (!useBatchPath) {
@@ -1785,6 +1768,7 @@ export class PipelineGenerator {
       else if (executionPlan.batchSize <= 1) reason = 'batch_size_1';
       else if (this.#state.kvCache?.layout === 'bdpa_paged') reason = 'bdpa_paged_layout';
       else if (this._hasFinitenessFallbackWindow()) reason = 'finiteness_fallback_window';
+      else if (hasLinearLayers) reason = 'linear_attention_layers';
       this.#state.stats.decodeMode = replayPrefillDecode
         ? 'replay_prefill'
         : (opts.speculation?.mode === 'self' ? 'self_speculation' : 'single_token');
@@ -1814,10 +1798,20 @@ export class PipelineGenerator {
       if (this._hasFinitenessFallbackWindow() && useBatchPath) {
         useBatchPath = false;
       }
+      const hotVocabularyBatchDecodeAvailable = resolveCurrentHotVocabularyBatchDecodeAvailable();
 
       if (useBatchPath) {
         const remaining = opts.maxTokens - tokensGenerated;
-        const thisBatchSize = Math.min(executionPlan.batchSize * intervalBatches, remaining);
+        const maxBatchDecodeTokens = resolveMaxBatchDecodeTokens({
+          hasHotVocabularyBatchDecode: hotVocabularyBatchDecodeAvailable,
+          hasGpuSplitPerLayerInputs,
+          hasLinearAttentionLayers: hasLinearLayers,
+        });
+        const requestedBatchTokens = executionPlan.batchSize * intervalBatches;
+        const boundedBatchTokens = maxBatchDecodeTokens == null
+          ? requestedBatchTokens
+          : Math.min(requestedBatchTokens, maxBatchDecodeTokens);
+        const thisBatchSize = Math.min(boundedBatchTokens, remaining);
         const lastToken = generatedIds[generatedIds.length - 1];
 
         try {
@@ -1892,11 +1886,13 @@ export class PipelineGenerator {
           if (isStopToken(nextToken, stopTokenIds, eosToken)) break;
         }
       } else if (opts.speculation?.mode === 'self') {
-        // Self-speculation: decode 2 tokens per iteration (base + speculative).
-        // Same-model speculation always accepts under greedy because the model
-        // is deterministic — both base and speculative use the same weights and
-        // state. The benefit is amortizing per-iteration overhead for models
-        // where batch decode is disabled (e.g., linear attention).
+        // Self-speculation: decode one base token plus a configurable burst of
+        // speculative tokens per iteration. Same-model speculation always
+        // accepts under greedy because the model is deterministic — both base
+        // and speculative use the same weights and state. The benefit is
+        // amortizing per-iteration overhead for models where batch decode is
+        // disabled (e.g., linear attention).
+        const speculativeBurstTokens = Math.max(1, Math.trunc(opts.speculation?.tokens ?? 1));
         const doSpecDecode = hasLinearLayers
           ? () => this._decodeStep(generatedIds, opts)
           : decodeSingleTokenViaLogits;
@@ -1932,39 +1928,52 @@ export class PipelineGenerator {
           if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) break;
         }
 
-        // Speculative decode (tokens=1)
-        let specToken;
-        try {
-          specToken = await doSpecDecode();
-        } catch (error) {
-          if (this._shouldUseFinitenessFallback(error, `spec-extra-${tokensGenerated}`)) {
-            log.warn('Pipeline', `FinitenessGuard caught NaN/Inf at step ${tokensGenerated} (speculation:spec). Retrying.`);
-            specToken = await this._retryDecodeStepWithFinitenessWindow(generatedIds, opts, `spec-extra-${tokensGenerated}`);
+        for (let specIndex = 0; specIndex < speculativeBurstTokens; specIndex += 1) {
+          if (tokensGenerated >= opts.maxTokens) {
+            break;
+          }
+          let specToken;
+          try {
+            specToken = await doSpecDecode();
+          } catch (error) {
+            if (this._shouldUseFinitenessFallback(error, `spec-extra-${tokensGenerated}`)) {
+              log.warn('Pipeline', `FinitenessGuard caught NaN/Inf at step ${tokensGenerated} (speculation:spec). Retrying.`);
+              specToken = await this._retryDecodeStepWithFinitenessWindow(generatedIds, opts, `spec-extra-${tokensGenerated}`);
+            } else {
+              throw error;
+            }
+          }
+          generatedIds.push(specToken);
+          tokensGenerated++;
+          this.#state.stats.speculationAttempts = (this.#state.stats.speculationAttempts ?? 0) + 1;
+          this.#state.stats.speculationAccepted = (this.#state.stats.speculationAccepted ?? 0) + 1;
+          if (emitMode === 'token') {
+            yield specToken;
+            if (options.onToken) options.onToken(specToken, '');
           } else {
-            throw error;
+            const text = decodeToken(specToken);
+            yield text;
+            if (options.onToken) options.onToken(specToken, text);
+          }
+          this._consumeFinitenessFallbackToken(opts);
+
+          if (opts.debug || opts.benchmark) {
+            const elapsedMs = performance.now() - decodeStart;
+            const tokPerSec = (tokensGenerated / elapsedMs) * 1000;
+            log.debug('Decode', `#${tokensGenerated} speculation:self (${tokPerSec.toFixed(2)} tok/s avg)`);
+          }
+
+          if (isStopToken(specToken, stopTokenIds, eosToken)) {
+            break;
+          }
+          if (opts.stopSequences.length > 0) {
+            const fullText = this.#state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
+            if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) {
+              break;
+            }
           }
         }
-        generatedIds.push(specToken);
-        tokensGenerated++;
-        this.#state.stats.speculationAttempts = (this.#state.stats.speculationAttempts ?? 0) + 1;
-        this.#state.stats.speculationAccepted = (this.#state.stats.speculationAccepted ?? 0) + 1;
-        if (emitMode === 'token') {
-          yield specToken;
-          if (options.onToken) options.onToken(specToken, '');
-        } else {
-          const text = decodeToken(specToken);
-          yield text;
-          if (options.onToken) options.onToken(specToken, text);
-        }
-        this._consumeFinitenessFallbackToken(opts);
-
-        if (opts.debug || opts.benchmark) {
-          const elapsedMs = performance.now() - decodeStart;
-          const tokPerSec = (tokensGenerated / elapsedMs) * 1000;
-          log.debug('Decode', `#${tokensGenerated} speculation:self (${tokPerSec.toFixed(2)} tok/s avg)`);
-        }
-
-        if (isStopToken(specToken, stopTokenIds, eosToken)) break;
+        if (isStopToken(generatedIds[generatedIds.length - 1], stopTokenIds, eosToken)) break;
         if (opts.stopSequences.length > 0) {
           const fullText = this.#state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
           if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) break;

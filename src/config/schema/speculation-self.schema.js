@@ -40,11 +40,6 @@ export function validateSelfSpeculationConfig(config) {
     if (!Number.isInteger(config.tokens) || config.tokens < 1) {
       throw new Error('[Speculation] tokens must be a positive integer.');
     }
-    if (config.tokens !== 1) {
-      throw new Error(
-        `[Speculation] Only tokens=1 (batch-2) is currently supported for self-speculation. Got tokens=${config.tokens}.`
-      );
-    }
     if (!SPECULATION_VERIFY_MODES.includes(config.verify)) {
       throw new Error(
         `[Speculation] verify="${config.verify}" is not supported. Expected one of: ${SPECULATION_VERIFY_MODES.join(', ')}.`

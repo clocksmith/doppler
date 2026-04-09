@@ -17,7 +17,7 @@
       "linear_attn.in_proj_a.weight",
       "linear_attn.in_proj_b.weight"
     ],
-    "computePrecision": "f32",
+    "computePrecision": "f16",
     "q4kLayout": "row"
   },
   "manifest": {
@@ -142,10 +142,10 @@
     "session": {
     "compute": {
       "defaults": {
-        "activationDtype": "f32",
-        "mathDtype": "f32",
-        "accumDtype": "f32",
-        "outputDtype": "f32"
+        "activationDtype": "f16",
+        "mathDtype": "f16",
+        "accumDtype": "f16",
+        "outputDtype": "f16"
       }
     },
     "kvcache": {
@@ -208,72 +208,80 @@
         "digest": "sha256:257973dd762541d8a2c4b16ad8ad1d071199199e81e477ab644dce915961a989"
       },
       "rmsnorm": {
-        "kernel": "rmsnorm.wgsl",
+        "kernel": "rmsnorm_f16.wgsl",
         "entry": "main",
-        "digest": "sha256:f516b3e4bde2015f2a207c3ca5b8c9820c7809fa8f8d0786f90c568e0f1ac077"
+        "digest": "sha256:6ff712c215fa8ea07b653ad51666620854b4ed03b2371b1e97ba2322efdfa665"
       },
       "q4_decode": {
-        "kernel": "fused_matmul_q4.wgsl",
-        "entry": "main_multicol",
-        "digest": "sha256:86a9d548c8d653d001d3165f10c535d6fd1bb6c5f76f8d51a1f09aff9753068c"
+        "kernel": "fused_matmul_q4_multicol_f16a.wgsl",
+        "entry": "main_multicol_f16a",
+        "digest": "sha256:eb13c120d8c9829adc8bbd45cc44774e9be9f8f14c5e37ea68d747ad41e2eb4b",
+        "precision": {
+          "inputDtype": "f16",
+          "outputDtype": "f16"
+        }
       },
       "rope": {
-        "kernel": "rope.wgsl",
+        "kernel": "rope_f16.wgsl",
         "entry": "main",
-        "digest": "sha256:4c803ad5e0dd065d5572c7aecc1def277c43884dcc02f22a9676914c10111400"
+        "digest": "sha256:26ab977df73442f99f3a70c8eb45681bfa12b3f8c4303313207aeb9c668ac044"
       },
       "attn_decode": {
-        "kernel": "attention_decode_online_f16kv.wgsl",
+        "kernel": "attention_decode_online_f16.wgsl",
         "entry": "main",
-        "digest": "sha256:4c5d8c92a0a111af716d6b46b9559446807c086027445c7fefa150202f43dae4",
+        "digest": "sha256:23ac23b33e1ca30bc6a0ebb90d1bcde0236604bf57217c1763186046e0fe03de",
         "precision": {
           "kvDtype": "f16"
         }
       },
       "residual": {
-        "kernel": "residual.wgsl",
+        "kernel": "residual_f16.wgsl",
         "entry": "main",
-        "digest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7"
+        "digest": "sha256:5e843d5336d093da3c1bc042c39a570562e2744fce8e394bd57c3705076122c7"
       },
       "silu": {
-        "kernel": "silu.wgsl",
+        "kernel": "silu_f16.wgsl",
         "entry": "main",
-        "digest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
+        "digest": "sha256:24ce5e7aba948b074b57953e8d9279196231d9d26732f30bc1199ce979d39941",
         "constants": {
           "HAS_GATE": true
         }
       },
       "q4_prefill": {
-        "kernel": "fused_matmul_q4_batched.wgsl",
-        "entry": "main_batched",
-        "digest": "sha256:a513e4170792aaf2f1c22b73f34288721541acf5954756993a0001a412c91209"
+        "kernel": "fused_matmul_q4_batched_f16a.wgsl",
+        "entry": "main_batched_f16a",
+        "digest": "sha256:6f63a9c3b7c8b2ae8570987fb3314c1d8e5ab0b629c1ae1695ed2c45137c8564",
+        "precision": {
+          "inputDtype": "f16",
+          "outputDtype": "f16"
+        }
       },
       "tiled": {
-        "kernel": "matmul_f16w_f32a.wgsl",
+        "kernel": "matmul_f16.wgsl",
         "entry": "main",
-        "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
+        "digest": "sha256:7e9f23f326b5750fc7783a1959334c237aff4a23da6f87176608c5c4eb4fc278"
       },
       "attn_stream": {
-        "kernel": "attention_streaming_f16kv.wgsl",
+        "kernel": "attention_small_f16.wgsl",
         "entry": "main",
-        "digest": "sha256:b337a2dcf7b40431a733d1726eee8bf23504136fd5f915bec057fb59f3ea7480",
+        "digest": "sha256:83f15e3d360f6425c13fc9fa9d0aab04c1de3616447de576eb0c5a6c89cfc4d0",
         "precision": {
           "kvDtype": "f16"
         }
       },
       "lm_head_gemv": {
-        "kernel": "matmul_gemv_subgroup.wgsl",
+        "kernel": "matmul_gemv_subgroup_f16a.wgsl",
         "entry": "main_multicol",
-        "digest": "sha256:96c38c15e6fed0d7efdc5cd094db5843a8e8ddfe01eee3bc7322fa555dacf3d0",
+        "digest": "sha256:cc31df534551ba5dd7feebbddb2822d1c53f7d6a98fd0d772c294620602b51e5",
         "constants": {
           "MULTICOL_COLS_PER_WG": 64,
           "MULTICOL_THREADS_PER_COL": 4
         }
       },
       "sample": {
-        "kernel": "sample.wgsl",
+        "kernel": "sample_f16.wgsl",
         "entry": "sample_single_pass",
-        "digest": "sha256:4412357e84113ee2f1bc0dc8bf89e314c2ab482c89c14ca016ea9949d16a9d0c"
+        "digest": "sha256:ac0bacc17b3efb877b8b69a21a529f2ef2b21dd3307e3a7ce12f8cc0f785e275"
       }
     },
     "preLayer": [
