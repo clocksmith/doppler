@@ -561,34 +561,44 @@ export async function resolveNodeModelUrl(request, options = {}) {
   }
 
   const modelId = String(request.modelId);
+  const staticRootDir = resolveStaticRootDir(options);
   const rdrrRoot = resolveRdrrRoot(options);
   const externalModel = await resolveExternalModelDirectory(rdrrRoot, modelId);
+  const localCandidates = [
+    {
+      modelDir: path.join(staticRootDir, 'models', 'local', modelId),
+      manifestPath: path.join(staticRootDir, 'models', 'local', modelId, 'manifest.json'),
+    },
+    {
+      modelDir: path.join(staticRootDir, 'models', modelId),
+      manifestPath: path.join(staticRootDir, 'models', modelId, 'manifest.json'),
+    },
+  ];
+  const candidates = [
+    ...localCandidates,
+    {
+      modelDir: externalModel?.modelDir || path.join(rdrrRoot, modelId),
+      manifestPath: externalModel?.manifestPath || path.join(rdrrRoot, modelId, 'manifest.json'),
+    },
+  ];
+  const { candidate, discoveredManifestCandidates } =
+    await findResolvableModelCandidate(candidates);
 
-  if (externalModel) {
-    const modelDir = externalModel.modelDir;
-    try {
-      const files = await fs.readdir(modelDir, { withFileTypes: true });
-      const hasShards = files.some((entry) =>
-        entry.isFile() && /^shard_\d+\.bin$/u.test(entry.name)
-      );
-      if (!hasShards) {
-        throw new Error(
-          `Model "${modelId}" found at ${modelDir} but no shard files (shard_*.bin) are present. `
-          + 'Add shard files beside the manifest, or set request.modelUrl to a complete model directory.'
-        );
-      }
-    } catch (err) {
-      if (err.code === 'ENOENT' || err.code === 'EACCES') {
-        throw new Error(
-          `Model "${modelId}" resolved to ${modelDir} but the directory is not accessible: ${err.message}`
-        );
-      }
-      throw err;
-    }
+  if (candidate) {
     return {
       ...request,
-      modelUrl: pathToFileURL(modelDir).href.replace(/\/$/, ''),
+      modelUrl: pathToFileURL(candidate.modelDir).href.replace(/\/$/, ''),
     };
+  }
+
+  if (discoveredManifestCandidates.length > 0) {
+    const paths = discoveredManifestCandidates
+      .map((candidate) => candidate.modelDir)
+      .join(', ');
+    throw new Error(
+      `Model "${modelId}" was found, but no shard files (shard_*.bin) are present. ` +
+      `Checked: ${paths}. Add shard files beside the manifest, or set request.modelUrl to a complete model directory.`
+    );
   }
 
   const catalogEntry = await resolveCatalogEntry(modelId);

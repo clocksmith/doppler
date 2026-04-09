@@ -14,6 +14,22 @@ const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-cli-external-'
 try {
   const rdrrRoot = path.join(tempRoot, 'rdrr');
   const modelId = 'translategemma-4b-it-q4k-ehf16-af32';
+  const staticRoot = path.join(tempRoot, 'app');
+  await fs.mkdir(staticRoot, { recursive: true });
+
+  const localModelId = 'qwen-3-5-0-8b-q4k-ehaf16';
+  const localModelDir = path.join(staticRoot, 'models', 'local', localModelId);
+  await fs.mkdir(localModelDir, { recursive: true });
+  await fs.writeFile(path.join(localModelDir, 'manifest.json'), '{}', 'utf8');
+  await fs.writeFile(path.join(localModelDir, 'shard_0.bin'), '');
+
+  const localResolved = await resolveNodeModelUrl(
+    { modelId: localModelId },
+    { staticRootDir: staticRoot, rdrrRoot }
+  );
+  assert.equal(localResolved.modelId, localModelId);
+  assert.equal(localResolved.modelUrl, pathToFileURL(localModelDir).href.replace(/\/$/, ''));
+
   const modelDir = path.join(rdrrRoot, modelId);
   await fs.mkdir(modelDir, { recursive: true });
   await fs.writeFile(path.join(modelDir, 'manifest.json'), '{}', 'utf8');
@@ -26,6 +42,26 @@ try {
 
   assert.equal(resolved.modelId, modelId);
   assert.equal(resolved.modelUrl, pathToFileURL(modelDir).href.replace(/\/$/, ''));
+
+  const incompleteLocalModelId = 'translategemma-4b-1b-enes-q4k-ehf16-af32';
+  const incompleteLocalModelDir = path.join(staticRoot, 'models', 'local', incompleteLocalModelId);
+  await fs.mkdir(incompleteLocalModelDir, { recursive: true });
+  await fs.writeFile(path.join(incompleteLocalModelDir, 'manifest.json'), '{}', 'utf8');
+
+  const externalFallbackDir = path.join(rdrrRoot, incompleteLocalModelId);
+  await fs.mkdir(externalFallbackDir, { recursive: true });
+  await fs.writeFile(path.join(externalFallbackDir, 'manifest.json'), '{}', 'utf8');
+  await fs.writeFile(path.join(externalFallbackDir, 'shard_0.bin'), '');
+
+  const externalFallbackResolved = await resolveNodeModelUrl(
+    { modelId: incompleteLocalModelId },
+    { staticRootDir: staticRoot, rdrrRoot }
+  );
+  assert.equal(externalFallbackResolved.modelId, incompleteLocalModelId);
+  assert.equal(
+    externalFallbackResolved.modelUrl,
+    pathToFileURL(externalFallbackDir).href.replace(/\/$/, '')
+  );
 
   await assert.rejects(
     () => resolveNodeModelUrl({ modelId: 'missing-model' }, { rdrrRoot }),
@@ -51,9 +87,6 @@ try {
     catalogResolved.modelUrl.includes('gemma-3-270m-it-q4k-ehf16-af32'),
     `Expected model path in URL, got: ${catalogResolved.modelUrl}`
   );
-
-  const staticRoot = path.join(tempRoot, 'app');
-  await fs.mkdir(staticRoot, { recursive: true });
 
   const browserResolved = await resolveBrowserModelUrl(
     { modelId },
