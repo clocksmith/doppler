@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-03-30T13:46:53.823Z
-Release: channel=main-snapshot, version=0.2.0, commit=10bbbc94819fd5924456d94b879beffaca210105, dirty=yes
+Generated: 2026-04-10T00:29:38.093Z
+Release: channel=main-snapshot, version=0.2.0, commit=9d156c5ae3f802a467f442a4b211b084be520ad2, dirty=no
 
 ## Engine Matrix
 
@@ -26,15 +26,16 @@ Release: channel=main-snapshot, version=0.2.0, commit=10bbbc94819fd5924456d94b87
 
 ## Model Coverage
 
-| Doppler Model | In Catalog | Catalog Modes | TJS Mapping | Kernel Path | Surface | Source | Compare Lane | Notes |
-|---|---|---|---|---|---|---|---|---|
-| `gemma-3-1b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-1b-it-ONNX-GQA` |  | auto | quickstart-registry | performance_comparable |  |
-| `gemma-3-270m-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` |  | auto | quickstart-registry | performance_comparable |  |
-| `google-embeddinggemma-300m-q4k-ehf16-af32` | yes | embedding | `onnx-community/embeddinggemma-300m-ONNX` |  | auto | quickstart-registry | capability_only | Embedding models use a separate workload contract and are not part of the text-generation compare lane. |
-| `lfm2-5-1-2b-instruct-q4k-ehf16-af32` | yes | run, translate | `LiquidAI/LFM2.5-1.2B-Instruct-ONNX` |  | auto | local | performance_comparable |  |
-| `qwen-3-5-0-8b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-0.8B-ONNX` |  | browser | quickstart-registry | performance_comparable |  |
-| `qwen-3-5-2b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-2B-ONNX` |  | auto | quickstart-registry | capability_only | Qwen3.5 2B has the direct Transformers.js WebGPU runner path but is not yet promoted to a claimable compare lane. |
-| `translategemma-4b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/translategemma-text-4b-it-ONNX` |  | auto | local | performance_comparable |  |
+| Doppler Model | In Catalog | Catalog Modes | TJS Mapping | Surface | Source | Compare Lane | Notes |
+|---|---|---|---|---|---|---|---|
+| `gemma-3-1b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-1b-it-ONNX-GQA` | auto | quickstart-registry | performance_comparable |  |
+| `gemma-3-270m-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` | auto | quickstart-registry | performance_comparable |  |
+| `gemma-4-e2b-it-q4k-ehf16-af32` | yes | run, translate |  | auto |  |  |  |
+| `google-embeddinggemma-300m-q4k-ehf16-af32` | yes | embedding | `onnx-community/embeddinggemma-300m-ONNX` | auto | quickstart-registry | capability_only | Embedding models use a separate workload contract and are not part of the text-generation compare lane. |
+| `lfm2-5-1-2b-instruct-q4k-ehf16-af32` | yes | run, translate | `LiquidAI/LFM2.5-1.2B-Instruct-ONNX` | auto | local | performance_comparable |  |
+| `qwen-3-5-0-8b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-0.8B-ONNX` | browser | quickstart-registry | performance_comparable |  |
+| `qwen-3-5-2b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-2B-ONNX` | auto | quickstart-registry | capability_only | Qwen3.5 2B has the direct Transformers.js WebGPU runner path but is not yet promoted to a claimable compare lane. |
+| `translategemma-4b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/translategemma-text-4b-it-ONNX` | auto | local | performance_comparable |  |
 
 ## Workloads
 

@@ -10,6 +10,7 @@ import {
   buildSharedBenchmarkContract,
   parseArgs as parseCompareArgs,
   parseOnOff as parseCompareOnOff,
+  resolveCompareProfile,
 } from '../../tools/compare-engines.js';
 
 function runCompareEngines(args) {
@@ -38,6 +39,7 @@ function runCompareEngines(args) {
   );
   const qwen08Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'qwen-3-5-0-8b-q4k-ehaf16') || null;
   const qwen2Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'qwen-3-5-2b-q4k-ehaf16') || null;
+  const gemma4Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'gemma-4-e2b-it-q4k-ehf16-af32') || null;
 
   assert.ok(qwen08Profile, 'compare config must include qwen-3-5-0-8b-q4k-ehaf16');
   assert.equal(qwen08Profile.defaultDopplerSurface, 'browser');
@@ -47,6 +49,12 @@ function runCompareEngines(args) {
   assert.ok(qwen2Profile, 'compare config must include qwen-3-5-2b-q4k-ehaf16');
   assert.equal(qwen2Profile.compareLane, 'capability_only');
   assert.match(qwen2Profile.compareLaneReason, /not yet promoted to a claimable compare lane/i);
+
+  assert.ok(gemma4Profile, 'compare config must include gemma-4-e2b-it-q4k-ehf16-af32');
+  assert.equal(gemma4Profile.defaultDopplerSurface, 'browser');
+  assert.equal(gemma4Profile.defaultUseChatTemplate, true);
+  assert.equal(gemma4Profile.compareLane, 'capability_only');
+  assert.match(gemma4Profile.compareLaneReason, /not yet promoted/i);
 
   for (const profile of compareConfig.modelProfiles) {
     assert.ok(['performance_comparable', 'capability_only'].includes(profile.compareLane));
@@ -137,6 +145,33 @@ function runCompareEngines(args) {
   assert.equal(sharedContract.useChatTemplate, false);
   assert.equal(sharedContract.sampling.repetitionPenalty, 1);
   assert.equal(sharedContract.sampling.greedyThreshold, 0.01);
+}
+
+{
+  const compareConfig = {
+    modelProfileById: new Map([
+      ['gemma-4-e2b-it-q4k-ehf16-af32', {
+        dopplerModelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+        defaultUseChatTemplate: true,
+      }],
+    ]),
+  };
+  const compareProfile = resolveCompareProfile(compareConfig, 'gemma-4-e2b-it-q4k-ehf16-af32');
+  const sharedContract = buildSharedBenchmarkContract({
+    prompt: 'unit prompt',
+    maxTokens: 4,
+    warmupRuns: 0,
+    timedRuns: 1,
+    seed: 7,
+    sampling: {
+      temperature: 0,
+      topK: 1,
+      topP: 1,
+    },
+    useChatTemplate: parseCompareOnOff(undefined, compareProfile.defaultUseChatTemplate ?? false, '--use-chat-template'),
+  });
+  assert.equal(compareProfile.defaultUseChatTemplate, true);
+  assert.equal(sharedContract.useChatTemplate, true);
 }
 
 {
@@ -243,6 +278,37 @@ function runCompareEngines(args) {
     '--json',
   ]);
   assert.notEqual(result.status, 0);
+}
+
+{
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-compare-config-'));
+  const badConfigPath = path.join(tempDir, 'bad-compare-config-chat-template.json');
+  const badConfig = {
+    schemaVersion: 1,
+    updated: '2026-04-09',
+    modelProfiles: [
+      {
+        dopplerModelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+        defaultTjsModelId: 'onnx-community/gemma-4-E2B-it-ONNX',
+        defaultDopplerSource: 'local',
+        modelBaseDir: 'local',
+        defaultDopplerSurface: 'browser',
+        defaultUseChatTemplate: 'yes',
+        compareLane: 'capability_only',
+        compareLaneReason: 'unit-test invalid chat template default',
+      },
+    ],
+  };
+  await fs.writeFile(badConfigPath, `${JSON.stringify(badConfig, null, 2)}\n`, 'utf8');
+  const result = runCompareEngines([
+    '--compare-config', badConfigPath,
+    '--model-id', 'gemma-4-e2b-it-q4k-ehf16-af32',
+    '--allow-non-comparable-lane',
+    '--json',
+  ]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /defaultUseChatTemplate/i);
+  assert.match(result.stderr, /boolean(?:\s+\|\s+null| or null)/i);
 }
 
 {

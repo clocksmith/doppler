@@ -52,6 +52,9 @@
             "type": ["string", "null"],
             "enum": ["auto", "node", "browser", null]
           },
+          "defaultUseChatTemplate": {
+            "type": ["boolean", "null"]
+          },
           "defaultDopplerFormat": {
             "type": ["string", "null"],
             "enum": ["rdrr", "safetensors", null]

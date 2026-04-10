@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-03-30T13:46:53.823Z",
+  "generatedAt": "2026-04-10T00:29:38.093Z",
   "release": {
     "channel": "main-snapshot",
     "version": "0.2.0",
-    "commitSha": "10bbbc94819fd5924456d94b879beffaca210105",
-    "dirty": true
+    "commitSha": "9d156c5ae3f802a467f442a4b211b084be520ad2",
+    "dirty": false
   },
   "sources": {
     "registry": {
       "path": "benchmarks/vendors/registry.json",
-      "sha256": "47dca1cbd6ff582ae60aac6a023becba7a48ec78f87955092170373579113fe1",
-      "bytes": 3411,
+      "sha256": "d6e327b35c54cecd54434dab833aa683d28d2ca45ee21970a763050e8dcc9536",
+      "bytes": 3389,
       "updated": "2026-03-19"
     },
     "workloads": {
@@ -22,14 +22,14 @@
     },
     "capabilities": {
       "path": "benchmarks/vendors/capabilities.json",
-      "sha256": "ea014f997458ffb5f7bdecb2a9ddab03f7073ef58858e12366aee5f3bb833d4c",
-      "bytes": 21806,
+      "sha256": "6e741b4fceea5f3fa9848efdf111f584a62f7ce7eb646bc35ef0697fe9cd99d5",
+      "bytes": 21784,
       "updated": "2026-03-19"
     },
     "compareConfig": {
       "path": "benchmarks/vendors/compare-engines.config.json",
-      "sha256": "2b15e70eece6bcf555a55d40e4862b05159bb35ec6184783a1a938814c6f1855",
-      "bytes": 4316,
+      "sha256": "520748b46f60e6c383765b66deaf1d3940dbbb9c991451c5cd0fe5a21e2df89d",
+      "bytes": 4066,
       "updated": "2026-03-29"
     },
     "compareMetricContract": {
@@ -46,9 +46,9 @@
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "7dd984d0c8a0960eaecb4b923aafa8307663ce9b3275603452a9ec990bbac39a",
-      "bytes": 10192,
-      "updated": "2026-03-24"
+      "sha256": "038fea5b1bbd389e8cb74a92fc48c32fa67e01b231448ced44414b6868cbd9dd",
+      "bytes": 11733,
+      "updated": "2026-04-09"
     },
     "harness:doppler": {
       "path": "benchmarks/vendors/harnesses/doppler.json",
@@ -58,8 +58,8 @@
     },
     "harness:doppler-simulatte": {
       "path": "benchmarks/vendors/harnesses/doppler-simulatte.json",
-      "sha256": "f13adf60fa084c24ff8b04452159779e527ea34d9ebf59c8d3332980aec0497b",
-      "bytes": 1746,
+      "sha256": "8c686874d37def16948b8b428b6bf1f3350bfd35fb196f316ca212649c2d55b2",
+      "bytes": 1702,
       "updated": null
     },
     "harness:doppler-webgpu-npm": {
@@ -94,8 +94,8 @@
     },
     "harness:transformersjs-simulatte": {
       "path": "benchmarks/vendors/harnesses/transformersjs-simulatte.json",
-      "sha256": "ae9f115f3444f93bbf34653c8edd93526e9f31ea8144b32c3639dc872adaacdf",
-      "bytes": 1887,
+      "sha256": "6c904bc4a9ce85442304c1242b1c1b35c8f8f75839469732faefab3455cbb89e",
+      "bytes": 1843,
       "updated": null
     },
     "harness:transformersjs-webgpu-npm": {
@@ -149,9 +149,9 @@
   },
   "summary": {
     "targetCount": 16,
-    "modelCoverageCount": 7,
+    "modelCoverageCount": 8,
     "compareProfileCount": 10,
-    "catalogModelCount": 8,
+    "catalogModelCount": 9,
     "workloadCount": 5,
     "committedChartCount": 1,
     "hasLatestCompareResult": true
@@ -1112,6 +1112,23 @@
       ],
       "catalogBaseUrl": null,
       "catalogSizeBytes": 418518521
+    },
+    {
+      "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "Gemma 4 E2B Instruct (Q4K/F32a)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 7094076955
     },
     {
       "dopplerModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",

@@ -1104,6 +1104,11 @@ async function loadCompareEnginesConfig(rawPath) {
       }
       row.defaultDopplerSurface = normalizedSurface;
     }
+    if (row.defaultUseChatTemplate != null && typeof row.defaultUseChatTemplate !== 'boolean') {
+      throw new Error(
+        `compare-engines.config.json defaultUseChatTemplate for ${row.dopplerModelId} must be a boolean or null`
+      );
+    }
     if (row.defaultDopplerSource === 'quickstart-registry' && row.modelBaseDir != null) {
       throw new Error(
         `compare-engines.config.json modelBaseDir for ${row.dopplerModelId} must be null when defaultDopplerSource is "quickstart-registry"`
@@ -1131,6 +1136,7 @@ function resolveCompareProfile(compareConfig, modelId) {
     modelBaseDir: profile?.modelBaseDir ?? null,
     defaultTjsModelId: profile?.defaultTjsModelId || null,
     defaultDopplerSurface: profile?.defaultDopplerSurface || 'auto',
+    defaultUseChatTemplate: profile?.defaultUseChatTemplate ?? null,
     defaultDopplerFormat: profile?.defaultDopplerFormat || DEFAULT_DOPPLER_FORMAT,
     defaultTjsFormat: profile?.defaultTjsFormat || DEFAULT_TJS_FORMAT,
     safetensorsSourceId: profile?.safetensorsSourceId || null,
@@ -2389,7 +2395,11 @@ async function main() {
     seed: flags.seed,
     loadMode: parseLoadMode(flags['load-mode'], '--load-mode', null),
     sampling,
-    useChatTemplate: parseOnOff(flags['use-chat-template'], false, '--use-chat-template'),
+    useChatTemplate: parseOnOff(
+      flags['use-chat-template'],
+      compareProfile.defaultUseChatTemplate ?? false,
+      '--use-chat-template'
+    ),
   });
   const prompt = sharedContract.prompt;
   const maxTokens = sharedContract.maxTokens;
@@ -3009,4 +3019,5 @@ export {
   buildSharedBenchmarkContract,
   parseArgs,
   parseOnOff,
+  resolveCompareProfile,
 };

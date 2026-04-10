@@ -55,6 +55,19 @@
             "compareLaneReason": null
         },
         {
+            "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+            "defaultTjsModelId": "onnx-community/gemma-4-E2B-it-ONNX",
+            "defaultDopplerSource": "local",
+            "modelBaseDir": "local",
+            "defaultDopplerSurface": "browser",
+            "defaultUseChatTemplate": true,
+            "defaultDopplerFormat": "rdrr",
+            "defaultTjsFormat": "onnx",
+            "safetensorsSourceId": "google/gemma-4-e2b-it",
+            "compareLane": "capability_only",
+            "compareLaneReason": "Gemma 4 E2B compare runs should use the model chat template by default, but the lane is not yet promoted to claimable performance evidence."
+        },
+        {
             "dopplerModelId": "translategemma-4b-it-q4k-ehf16-af32",
             "defaultTjsModelId": "onnx-community/translategemma-text-4b-it-ONNX",
             "defaultDopplerSource": "local",
