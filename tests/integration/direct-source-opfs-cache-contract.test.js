@@ -12,6 +12,7 @@ import { setRuntimeConfig, resetRuntimeConfig } from '../../src/config/runtime.j
 import { downloadModel } from '../../src/storage/downloader.js';
 import {
   createStoredSourceArtifactContext,
+  resolveSourceArtifact,
   verifyStoredSourceArtifact,
 } from '../../src/storage/source-artifact-store.js';
 import { ensureModelCached } from '../../src/tooling/opfs-cache.js';
@@ -168,8 +169,8 @@ try {
   const storageContext = createStoredSourceArtifactContext(storedManifest, { verifyHashes: true });
   const shardBuffer = await storageContext.loadShard(0);
   assert.deepEqual(new Uint8Array(shardBuffer), fixture.sourceBytes);
-  assert.equal(storageContext.loadShardRange, null);
-  assert.equal(storageContext.streamShardRange, null);
+  assert.equal(typeof storageContext.loadShardRange, 'function');
+  assert.equal(typeof storageContext.streamShardRange, 'function');
   const fastStorageContext = createStoredSourceArtifactContext(storedManifest, { verifyHashes: false });
   const shardRange = await fastStorageContext.loadShardRange(0, 1, 2);
   assert.deepEqual(Array.from(new Uint8Array(shardRange)), [0, 128]);
@@ -183,6 +184,53 @@ try {
   const cached = await ensureModelCached(fixture.manifest.modelId, baseUrl);
   assert.equal(cached.cached, true);
   assert.equal(cached.fromCache, true);
+
+  const strippedManifest = structuredClone(fixture.manifest);
+  delete strippedManifest.metadata.sourceRuntime;
+  globalThis.fetch = async (url) => {
+    const href = String(url);
+    if (href === `${baseUrl}/manifest.json`) {
+      return new Response(JSON.stringify(strippedManifest), { status: 200 });
+    }
+    if (href === `${baseUrl}/weights/model.safetensors`) {
+      return new Response(fixture.sourceBytes, { status: 200 });
+    }
+    if (href === `${baseUrl}/config.json`) {
+      return new Response(fixture.configText, { status: 200 });
+    }
+    if (href === `${baseUrl}/tokenizer.json`) {
+      return new Response(fixture.tokenizerText, { status: 200 });
+    }
+    throw new Error(`Unexpected fetch: ${href}`);
+  };
+
+  const preserved = await ensureModelCached(fixture.manifest.modelId, baseUrl);
+  assert.equal(preserved.cached, true);
+  assert.equal(preserved.fromCache, false);
+  assert.equal(preserved.cacheState, 'manifest-refresh');
+
+  await openModelStore(fixture.manifest.modelId);
+  const preservedManifestText = await loadManifestFromStore();
+  assert.ok(preservedManifestText);
+  const preservedManifest = JSON.parse(preservedManifestText);
+  assert.ok(resolveSourceArtifact(preservedManifest), 'manifest refresh should preserve cached direct-source metadata');
+
+  globalThis.fetch = async (url) => {
+    const href = String(url);
+    if (href === `${baseUrl}/manifest.json`) {
+      return new Response(JSON.stringify(fixture.manifest), { status: 200 });
+    }
+    if (href === `${baseUrl}/weights/model.safetensors`) {
+      return new Response(fixture.sourceBytes, { status: 200 });
+    }
+    if (href === `${baseUrl}/config.json`) {
+      return new Response(fixture.configText, { status: 200 });
+    }
+    if (href === `${baseUrl}/tokenizer.json`) {
+      return new Response(fixture.tokenizerText, { status: 200 });
+    }
+    throw new Error(`Unexpected fetch: ${href}`);
+  };
 
   await deleteFileFromStore('tokenizer.json');
   const missing = await ensureModelCached(fixture.manifest.modelId, baseUrl);

@@ -69,6 +69,7 @@ function createFakeDevice(options = {}) {
   const throwCreateBufferAt = options.throwCreateBufferAt ?? null;
   const features = new Set(options.features ?? []);
   let createBufferCount = 0;
+  let submittedWorkDoneCount = 0;
 
   const queue = {
     submit() {
@@ -78,6 +79,7 @@ function createFakeDevice(options = {}) {
     },
     writeBuffer() {},
     onSubmittedWorkDone() {
+      submittedWorkDoneCount += 1;
       if (rejectSubmitted) {
         return Promise.reject(new Error('device lost'));
       }
@@ -135,6 +137,9 @@ function createFakeDevice(options = {}) {
         },
       };
     },
+    getSubmittedWorkDoneCount() {
+      return submittedWorkDoneCount;
+    },
   };
 }
 
@@ -159,6 +164,23 @@ configurePerfGuards({
   await flushMicrotasks();
 
   assert.equal(temp.destroyed, true);
+}
+
+{
+  const device = createFakeDevice();
+  const recorder = new CommandRecorder(device, 'deferred_cleanup');
+  const temp = recorder.createTempBuffer(64, GPUBufferUsage.STORAGE, 'temp');
+
+  recorder.submit({ cleanup: 'deferred' });
+
+  assert.equal(temp.destroyed, false);
+  assert.equal(device.getSubmittedWorkDoneCount(), 0);
+
+  recorder.completeDeferredCleanup();
+
+  assert.equal(temp.destroyed, true);
+  assert.equal(device.getSubmittedWorkDoneCount(), 0);
+  assert.equal(typeof recorder.getSubmitLatencyMs(), 'number');
 }
 
 {

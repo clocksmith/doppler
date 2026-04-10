@@ -11,6 +11,7 @@ import {
   parseArgs as parseCompareArgs,
   parseOnOff as parseCompareOnOff,
   resolveCompareProfile,
+  resolveDopplerModelSource,
 } from '../../tools/compare-engines.js';
 
 function runCompareEngines(args) {
@@ -53,8 +54,8 @@ function runCompareEngines(args) {
   assert.ok(gemma4Profile, 'compare config must include gemma-4-e2b-it-q4k-ehf16-af32');
   assert.equal(gemma4Profile.defaultDopplerSurface, 'browser');
   assert.equal(gemma4Profile.defaultUseChatTemplate, true);
-  assert.equal(gemma4Profile.compareLane, 'capability_only');
-  assert.match(gemma4Profile.compareLaneReason, /not yet promoted/i);
+  assert.equal(gemma4Profile.compareLane, 'performance_comparable');
+  assert.equal(gemma4Profile.compareLaneReason, null);
 
   for (const profile of compareConfig.modelProfiles) {
     assert.ok(['performance_comparable', 'capability_only'].includes(profile.compareLane));
@@ -172,6 +173,25 @@ function runCompareEngines(args) {
   });
   assert.equal(compareProfile.defaultUseChatTemplate, true);
   assert.equal(sharedContract.useChatTemplate, true);
+}
+
+{
+  const compareProfile = resolveCompareProfile({
+    modelProfileById: new Map([
+      ['gemma-4-e2b-it-q4k-ehf16-af32', {
+        dopplerModelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+        modelBaseDir: 'local',
+      }],
+    ]),
+  }, 'gemma-4-e2b-it-q4k-ehf16-af32');
+  const source = await resolveDopplerModelSource(
+    compareProfile,
+    'gemma-4-e2b-it-q4k-ehf16-af32',
+    null
+  );
+  assert.equal(source.source, 'local');
+  assert.match(source.modelUrl, /^file:\/\//);
+  assert.match(source.manifestSource, /models[\\/]+local[\\/]+gemma-4-e2b-it-q4k-ehf16-af32[\\/]manifest\.json$/);
 }
 
 {

@@ -8,7 +8,11 @@ import { openModelStore, loadManifestFromStore } from '../storage/shard-manager.
 import { parseManifest } from '../formats/rdrr/index.js';
 import { cloneRuntimeConfig, resolveRuntime } from './browser-harness-runtime-helpers.js';
 import { normalizeLoadMode } from './browser-harness-suite-helpers.js';
-import { buildSourceArtifactFingerprint, createStoredSourceArtifactContext } from '../storage/source-artifact-store.js';
+import {
+  buildSourceArtifactFingerprint,
+  createStoredSourceArtifactContext,
+  synthesizeStoredSourceArtifactManifest,
+} from '../storage/source-artifact-store.js';
 
 const NODE_SOURCE_RUNTIME_MODULE_PATH = '../tooling/node-source-runtime.js';
 
@@ -97,7 +101,7 @@ export async function initializeInferenceFromStorage(modelId, options = {}) {
   if (!manifestText) {
     throw new Error('Manifest not found in storage');
   }
-  const manifest = parseManifest(manifestText);
+  const manifest = synthesizeStoredSourceArtifactManifest(parseManifest(manifestText)).manifest;
 
   onProgress?.('gpu', 0.2, 'Initializing WebGPU...');
   await initDevice();

@@ -20,6 +20,7 @@ export interface DecodeRingSlot {
   stop: GPUBuffer | null;
   stagingTokens: GPUBuffer | null;
   stagingStop: GPUBuffer | null;
+  stagingFiniteness: GPUBuffer | null;
   tokensPerInterval: number;
   zeroStopData: Uint32Array | null;
 }
@@ -35,6 +36,7 @@ export interface DecodeRingStats {
   stop: DecodeRingSlotStats;
   stagingTokens: DecodeRingSlotStats;
   stagingStop: DecodeRingSlotStats;
+  stagingFiniteness: DecodeRingSlotStats;
   acquires: number;
   advances: number;
   resets: number;

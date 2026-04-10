@@ -479,17 +479,36 @@ export async function loadShardSync(shardIndex, offset = 0, length) {
   return new Uint8Array(ab);
 }
 
+export async function checkFileExistsInBackend(storageBackend, filename) {
+  if (!storageBackend || typeof storageBackend !== 'object') {
+    throw new Error('checkFileExistsInBackend requires a storage backend object.');
+  }
+  if (!filename || typeof filename !== 'string') {
+    throw new Error('checkFileExistsInBackend requires a filename.');
+  }
+
+  try {
+    if (typeof storageBackend.getFileSize === 'function') {
+      await storageBackend.getFileSize(filename);
+      return true;
+    }
+    await storageBackend.readFile(filename);
+    return true;
+  } catch (error) {
+    const message = String(error?.message || '');
+    if (error?.name === 'NotFoundError' || message.toLowerCase().includes('not found')) {
+      return false;
+    }
+    throw error;
+  }
+}
+
 export async function shardExists(shardIndex) {
   await ensureBackend();
   requireModel();
   const shardInfo = getShardInfo(shardIndex);
   if (!shardInfo) return false;
-  try {
-    await backend.readFile(shardInfo.filename);
-    return true;
-  } catch {
-    return false;
-  }
+  return checkFileExistsInBackend(backend, shardInfo.filename);
 }
 
 export async function getShardStoredSize(shardIndex) {

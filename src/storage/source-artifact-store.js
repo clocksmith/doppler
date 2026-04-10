@@ -1,5 +1,9 @@
 import {
   createSourceStorageContext,
+  DIRECT_SOURCE_PATH_RUNTIME_LOCAL,
+  DIRECT_SOURCE_RUNTIME_MODE,
+  DIRECT_SOURCE_RUNTIME_SCHEMA,
+  DIRECT_SOURCE_RUNTIME_SCHEMA_VERSION,
   getSourceRuntimeMetadata,
 } from '../tooling/source-runtime-bundle.js';
 import {
@@ -16,6 +20,133 @@ export function normalizeSourceArtifactPath(value) {
 
 function encodeUtf8(value) {
   return new TextEncoder().encode(String(value ?? ''));
+}
+
+function cloneJsonValue(value) {
+  return value == null ? value : JSON.parse(JSON.stringify(value));
+}
+
+function normalizeStoredHash(value) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const normalized = value.trim().toLowerCase();
+  return normalized || null;
+}
+
+function normalizeStoredHashAlgorithm(value, fallbackAlgorithm = null) {
+  const normalized = typeof value === 'string' ? value.trim().toLowerCase() : '';
+  if (normalized) {
+    return normalized;
+  }
+  if (typeof fallbackAlgorithm === 'string' && fallbackAlgorithm.trim()) {
+    return fallbackAlgorithm.trim().toLowerCase();
+  }
+  return null;
+}
+
+function resolveStoredTokenizerPaths(manifest) {
+  const tokenizer = manifest?.tokenizer;
+  if (!tokenizer || typeof tokenizer !== 'object') {
+    return {
+      jsonPath: null,
+      configPath: null,
+      modelPath: null,
+    };
+  }
+  const tokenizerType = typeof tokenizer.type === 'string' ? tokenizer.type.trim().toLowerCase() : '';
+  const hasBundledTokenizerJson = (
+    (tokenizerType === 'bundled' || tokenizerType === 'huggingface')
+    && typeof tokenizer.file === 'string'
+    && tokenizer.file.trim().length > 0
+  );
+  const sentencepieceModel = typeof tokenizer.sentencepieceModel === 'string'
+    ? tokenizer.sentencepieceModel.trim()
+    : '';
+  const hasTokenizerModel = tokenizerType === 'sentencepiece' || sentencepieceModel.length > 0;
+  return {
+    // ShardManager persists tokenizer assets under canonical store-local filenames.
+    jsonPath: hasBundledTokenizerJson ? 'tokenizer.json' : null,
+    configPath: null,
+    modelPath: hasTokenizerModel ? 'tokenizer.model' : null,
+  };
+}
+
+export function synthesizeStoredSourceArtifactManifest(manifest) {
+  if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) {
+    return {
+      manifest,
+      changed: false,
+    };
+  }
+  if (getSourceRuntimeMetadata(manifest)) {
+    return {
+      manifest,
+      changed: false,
+    };
+  }
+
+  const shards = Array.isArray(manifest.shards) ? manifest.shards : [];
+  const manifestHashAlgorithm = normalizeStoredHashAlgorithm(manifest.hashAlgorithm);
+  if (!manifestHashAlgorithm || shards.length === 0) {
+    return {
+      manifest,
+      changed: false,
+    };
+  }
+
+  const sourceFiles = [];
+  for (let index = 0; index < shards.length; index += 1) {
+    const shard = shards[index];
+    const filename = normalizeSourceArtifactPath(shard?.filename);
+    if (!filename || !Number.isFinite(shard?.size)) {
+      return {
+        manifest,
+        changed: false,
+      };
+    }
+    sourceFiles.push({
+      index,
+      path: filename,
+      filename,
+      size: Math.max(0, Math.floor(Number(shard.size))),
+      hash: normalizeStoredHash(shard?.hash ?? shard?.blake3 ?? shard?.sha256 ?? shard?.digest),
+      hashAlgorithm: normalizeStoredHashAlgorithm(shard?.hashAlgorithm, manifestHashAlgorithm),
+    });
+  }
+
+  const tokenizerPaths = resolveStoredTokenizerPaths(manifest);
+  const nextManifest = cloneJsonValue(manifest);
+  if (!nextManifest.metadata || typeof nextManifest.metadata !== 'object' || Array.isArray(nextManifest.metadata)) {
+    nextManifest.metadata = {};
+  }
+  nextManifest.metadata.sourceRuntime = {
+    mode: DIRECT_SOURCE_RUNTIME_MODE,
+    schema: DIRECT_SOURCE_RUNTIME_SCHEMA,
+    schemaVersion: DIRECT_SOURCE_RUNTIME_SCHEMA_VERSION,
+    sourceKind: 'rdrr',
+    hashAlgorithm: manifestHashAlgorithm,
+    pathSemantics: DIRECT_SOURCE_PATH_RUNTIME_LOCAL,
+    sourceFileCount: sourceFiles.length,
+    auxiliaryFileCount: 0,
+    sourceFiles,
+    auxiliaryFiles: [],
+    tokenizer: tokenizerPaths,
+    invariants: {
+      tensorIdentity: 'manifest.tensors',
+      shardIdentity: 'manifest.shards[index].filename',
+      byteOffsets: 'shard-relative bytes',
+      hashSemantics: 'sourceFiles[*].hash mirrors stored shard digests validated at import time',
+      cacheKeying: 'path:size:hash',
+      tokenizerAssetsCovered: Boolean(tokenizerPaths.jsonPath || tokenizerPaths.modelPath),
+      manifestFamily: manifest?.modelType ?? null,
+    },
+  };
+
+  return {
+    manifest: nextManifest,
+    changed: true,
+  };
 }
 
 function normalizeArtifactFile(entry, kind) {
@@ -230,5 +361,8 @@ export function createStoredSourceArtifactContext(manifest, options = {}) {
     readText,
     readBinary,
     verifyHashes: options.verifyHashes !== false,
+    // Stored shard/source assets were already hash-verified at import time. Warm loads
+    // should not re-stream the full files just to re-prove the same digest.
+    sourceHashesTrusted: true,
   });
 }

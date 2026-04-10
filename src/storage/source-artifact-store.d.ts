@@ -31,6 +31,11 @@ export interface StoredSourceArtifactIntegrity {
   corruptFiles: string[];
 }
 
+export interface StoredSourceArtifactManifestSynthesisResult {
+  manifest: RDRRManifest;
+  changed: boolean;
+}
+
 export declare function normalizeSourceArtifactPath(value: unknown): string;
 
 export declare function listSourceArtifactFiles(manifest: RDRRManifest): StoredSourceArtifactFile[];
@@ -40,6 +45,10 @@ export declare function resolveSourceArtifact(
 ): StoredSourceArtifactDescriptor | null;
 
 export declare function buildSourceArtifactFingerprint(manifest: RDRRManifest): string | null;
+
+export declare function synthesizeStoredSourceArtifactManifest(
+  manifest: RDRRManifest
+): StoredSourceArtifactManifestSynthesisResult;
 
 export declare function verifyStoredSourceArtifact(
   manifest: RDRRManifest,

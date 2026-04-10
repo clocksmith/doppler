@@ -24,6 +24,7 @@ import { getRuntimeConfig } from '../../config/runtime.js';
 import {
   buildSourceArtifactFingerprint,
   createStoredSourceArtifactContext,
+  synthesizeStoredSourceArtifactManifest,
   verifyStoredSourceArtifact,
 } from '../../storage/source-artifact-store.js';
 
@@ -387,6 +388,15 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
 
     if (!manifest) {
       throw new Error('Failed to load model manifest');
+    }
+
+    const runtimeManifest = synthesizeStoredSourceArtifactManifest(manifest);
+    if (runtimeManifest.changed) {
+      log.info(
+        'DopplerProvider',
+        `Enabled stored-shard source runtime for "${manifest.modelId ?? modelId}" warm loads`
+      );
+      manifest = runtimeManifest.manifest;
     }
 
     try {

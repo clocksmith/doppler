@@ -19,6 +19,16 @@ export interface RecorderOptions {
   profile?: boolean;
 }
 
+export interface RecorderSubmitOptions {
+  /** Use `deferred` when another readback wait already proves command completion. */
+  cleanup?: 'queue' | 'deferred';
+}
+
+export interface RecorderDeferredCleanupOptions {
+  /** Discard pooled buffers instead of returning them to the pool. */
+  discardPooled?: boolean;
+}
+
 /** Profiling result - maps kernel label to time in milliseconds */
 export type ProfileTimings = Record<string, number>;
 
@@ -107,7 +117,13 @@ export declare class CommandRecorder {
    * Submit all recorded commands and clean up temporary buffers.
    * After calling this, the recorder cannot be reused.
    */
-  submit(): void;
+  submit(options?: RecorderSubmitOptions): void;
+
+  /**
+   * Finalize a deferred-cleanup submit after another wait condition
+   * has already established GPU completion.
+   */
+  completeDeferredCleanup(options?: RecorderDeferredCleanupOptions): void;
 
   /**
    * Submit and wait for GPU to complete (useful for debugging/profiling).

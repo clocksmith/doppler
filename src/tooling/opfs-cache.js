@@ -47,6 +47,49 @@ function hasSameShardSet(aManifest, bManifest) {
   return true;
 }
 
+function cloneJsonValue(value) {
+  return value == null ? value : JSON.parse(JSON.stringify(value));
+}
+
+function preserveCachedSourceRuntimeMetadata(remoteManifest, cachedManifest) {
+  const cachedSourceRuntime = cachedManifest?.metadata?.sourceRuntime;
+  if (!cachedSourceRuntime || typeof cachedSourceRuntime !== 'object') {
+    return {
+      manifest: remoteManifest,
+      changed: false,
+    };
+  }
+  if (resolveSourceArtifact(remoteManifest)) {
+    return {
+      manifest: remoteManifest,
+      changed: false,
+    };
+  }
+
+  const mergedManifest = cloneJsonValue(remoteManifest);
+  if (!mergedManifest || typeof mergedManifest !== 'object' || Array.isArray(mergedManifest)) {
+    return {
+      manifest: remoteManifest,
+      changed: false,
+    };
+  }
+
+  const metadata = (
+    mergedManifest.metadata
+    && typeof mergedManifest.metadata === 'object'
+    && !Array.isArray(mergedManifest.metadata)
+  )
+    ? cloneJsonValue(mergedManifest.metadata)
+    : {};
+  metadata.sourceRuntime = cloneJsonValue(cachedSourceRuntime);
+  mergedManifest.metadata = metadata;
+
+  return {
+    manifest: mergedManifest,
+    changed: true,
+  };
+}
+
 // buildManifestFingerprint compares a deliberate subset of manifest fields.
 // Compared fields (partial match by design):
 //   - modelId, modelHash, hashAlgorithm: identity and integrity algorithm
@@ -226,10 +269,17 @@ export async function ensureModelCached(modelId, modelBaseUrl, onProgress = null
           const sameShards = hasSameShardSet(cachedManifest, remoteManifest);
           const sameHashAlgorithm = (cachedManifest?.hashAlgorithm ?? null) === (remoteManifest?.hashAlgorithm ?? null);
           if (sourceIntegrityValid && sameShards && sameHashAlgorithm) {
+            const preservedManifest = preserveCachedSourceRuntimeMetadata(remoteManifest, cachedManifest);
+            const manifestTextToSave = preservedManifest.changed
+              ? JSON.stringify(preservedManifest.manifest)
+              : remoteManifestText;
             await openModelStore(modelId);
-            await saveManifest(remoteManifestText);
-            log.info(MODULE, `Cache manifest refreshed: "${modelId}" (shards unchanged)`);
-            onProgress?.({ stage: 'cache-refresh', modelId, message: `Manifest refreshed: ${modelId} (shards unchanged)`, percent: 100 });
+            await saveManifest(manifestTextToSave);
+            const refreshMessage = preservedManifest.changed
+              ? `Manifest refreshed: ${modelId} (shards unchanged, preserved direct-source metadata)`
+              : `Manifest refreshed: ${modelId} (shards unchanged)`;
+            log.info(MODULE, `Cache manifest refreshed: "${modelId}"${preservedManifest.changed ? ' (preserved direct-source metadata)' : ' (shards unchanged)'}`);
+            onProgress?.({ stage: 'cache-refresh', modelId, message: refreshMessage, percent: 100 });
             return {
               cached: true,
               fromCache: false,

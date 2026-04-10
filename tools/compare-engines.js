@@ -6,7 +6,7 @@ import crypto from 'node:crypto';
 import fsSync from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { buildExecutionContractArtifact } from '../src/config/execution-contract-check.js';
 import { buildManifestRequiredInferenceFieldsArtifact } from '../src/config/required-inference-fields-contract-check.js';
 import { mergeKernelPathPolicy } from '../src/config/merge-helpers.js';
@@ -1250,14 +1250,15 @@ async function resolveDopplerModelSource(compareProfile, dopplerModelId, explici
   }
 
   const modelBaseDir = compareProfile.modelBaseDir || 'local';
+  const localModelDir = path.join(DOPPLER_ROOT, 'models', modelBaseDir, dopplerModelId);
   return {
     source: 'local',
-    modelUrl: `/models/${modelBaseDir}/${dopplerModelId}`,
+    modelUrl: pathToFileURL(localModelDir).href,
     locator: dopplerModelId,
     registrySource: null,
     modelBaseDir,
     manifestSourceType: 'local',
-    manifestSource: path.join(DOPPLER_ROOT, 'models', modelBaseDir, dopplerModelId, 'manifest.json'),
+    manifestSource: path.join(localModelDir, 'manifest.json'),
   };
 }
 
@@ -3020,4 +3021,5 @@ export {
   parseArgs,
   parseOnOff,
   resolveCompareProfile,
+  resolveDopplerModelSource,
 };

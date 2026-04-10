@@ -34,6 +34,8 @@ export class CommandRecorder {
 
   #cleanupPromise = null;
 
+  #deferredCleanup = null;
+
   
   #submitted;
 
@@ -77,6 +79,7 @@ export class CommandRecorder {
     this.#tempBufferSet = new Set();
     this.#pooledBufferSet = new Set();
     this.#cleanupPromise = null;
+    this.#deferredCleanup = null;
 
     // Track if already submitted
     this.#submitted = false;
@@ -310,10 +313,24 @@ export class CommandRecorder {
     return { buffersToDestroy, buffersToRelease };
   }
 
+  #finalizeDeferredCleanup(discardPooled = false) {
+    if (!this.#deferredCleanup) {
+      return;
+    }
+    const { buffersToDestroy, buffersToRelease, submitStart } = this.#deferredCleanup;
+    this.#deferredCleanup = null;
+    this.#submitLatencyMs = performance.now() - submitStart;
+    this.#finalizeTrackedBuffers(buffersToDestroy, buffersToRelease, discardPooled);
+  }
+
   
-  submit() {
+  submit(options = {}) {
     if (this.#submitted) {
       throw new Error('[CommandRecorder] Already submitted');
+    }
+    const cleanup = options.cleanup ?? 'queue';
+    if (cleanup !== 'queue' && cleanup !== 'deferred') {
+      throw new Error('[CommandRecorder] submit cleanup must be "queue" or "deferred".');
     }
 
     const submitStart = performance.now();
@@ -330,6 +347,16 @@ export class CommandRecorder {
 
     this.#submitted = true;
     this.#submitStartMs = submitStart;
+    this.#cleanupPromise = null;
+
+    if (cleanup === 'deferred') {
+      this.#deferredCleanup = {
+        buffersToDestroy,
+        buffersToRelease,
+        submitStart,
+      };
+      return;
+    }
 
     this.#cleanupPromise = this.device.queue.onSubmittedWorkDone().then(() => {
       this.#submitLatencyMs = performance.now() - submitStart;
@@ -338,6 +365,11 @@ export class CommandRecorder {
       log.warn('CommandRecorder', `Deferred cleanup failed: ${ (err).message}`);
       this.#finalizeTrackedBuffers(buffersToDestroy, buffersToRelease, true);
     });
+  }
+
+  completeDeferredCleanup(options = {}) {
+    const discardPooled = options.discardPooled === true;
+    this.#finalizeDeferredCleanup(discardPooled);
   }
 
   
@@ -397,6 +429,7 @@ export class CommandRecorder {
     }
 
     if (this.#profileEntries.length === 0) {
+      this.#finalizeDeferredCleanup(false);
       this.#destroyProfilingResources();
       return {};
     }
@@ -405,6 +438,7 @@ export class CommandRecorder {
 
     try {
       await this.device.queue.onSubmittedWorkDone();
+      this.#finalizeDeferredCleanup(false);
 
       const maxIndex = Math.max(...this.#profileEntries.map(e => e.endQueryIndex)) + 1;
       const resolveEncoder = this.device.createCommandEncoder({ label: 'profile_resolve' });

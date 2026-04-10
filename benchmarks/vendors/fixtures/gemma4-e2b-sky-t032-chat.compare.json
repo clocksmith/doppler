@@ -1,0 +1,2492 @@
+{
+  "timestamp": "2026-04-10T01:26:49.765Z",
+  "benchmarkPolicy": {
+    "source": "/home/x/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+    "schemaVersion": 1,
+    "sourceSha256": "798ec52be7d53b74f144f99e2db4e7085ad277caa16c26f64adce4a66ae0ced3",
+    "updated": "2026-03-29"
+  },
+  "compareConfig": {
+    "source": "benchmarks/vendors/compare-engines.config.json",
+    "schemaVersion": 1,
+    "sourceSha256": "ba4a907d07ddbce14f2c936d35d97fb80e7b219c3d306066f9984c4c5a75a6e6",
+    "profileSource": "config",
+    "updated": "2026-03-29"
+  },
+  "metricContract": {
+    "source": "benchmarks/vendors/compare-metrics.json",
+    "schemaVersion": 1,
+    "sourceSha256": "872666196ffdbbcfd44d7e67fedcd16eef85907b8231e3d54e9cdeecfbe77d44",
+    "updated": "2026-02-23",
+    "metrics": [
+      {
+        "id": "decodeTokensPerSec",
+        "label": "decode tok/s",
+        "unit": "tok/s",
+        "higherBetter": true,
+        "required": true
+      },
+      {
+        "id": "promptTokensPerSecToFirstToken",
+        "label": "prompt tok/s to first token",
+        "unit": "tok/s",
+        "higherBetter": true,
+        "required": true
+      },
+      {
+        "id": "firstTokenMs",
+        "label": "first token (TTFT)",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "firstResponseMs",
+        "label": "first response (first token + load)",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "decodeMs",
+        "label": "decode ms",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "totalRunMs",
+        "label": "total run ms",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "modelLoadMs",
+        "label": "model load",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "decodeMsPerTokenP50",
+        "label": "decode p50 ms/token",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "decodeMsPerTokenP95",
+        "label": "decode p95 ms/token",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      },
+      {
+        "id": "decodeMsPerTokenP99",
+        "label": "decode p99 ms/token",
+        "unit": "ms",
+        "higherBetter": false,
+        "required": true
+      }
+    ]
+  },
+  "harnesses": {
+    "doppler": {
+      "source": "benchmarks/vendors/harnesses/doppler.json",
+      "sourceSha256": "eb0baf78a49a70da8008200ee128d51b1554187659100abe425b9c822e8b8c1f",
+      "requiredMetrics": [
+        "decodeTokensPerSec",
+        "promptTokensPerSecToFirstToken",
+        "firstTokenMs",
+        "firstResponseMs",
+        "decodeMs",
+        "totalRunMs",
+        "modelLoadMs",
+        "decodeMsPerTokenP50",
+        "decodeMsPerTokenP95",
+        "decodeMsPerTokenP99"
+      ]
+    },
+    "transformersjs": {
+      "source": "benchmarks/vendors/harnesses/transformersjs.json",
+      "sourceSha256": "d4b4a4065403ade86bfd3636618bd9fd7e390a382e622b78b545c310a5f0ac52",
+      "requiredMetrics": [
+        "decodeTokensPerSec",
+        "promptTokensPerSecToFirstToken",
+        "firstTokenMs",
+        "firstResponseMs",
+        "decodeMs",
+        "totalRunMs",
+        "modelLoadMs",
+        "decodeMsPerTokenP50",
+        "decodeMsPerTokenP95",
+        "decodeMsPerTokenP99"
+      ]
+    }
+  },
+  "runtimeConfig": {
+    "overrideProvided": false,
+    "runtimeConfigSha256": null,
+    "compareProfileSchemaVersion": 1
+  },
+  "compareLane": {
+    "declared": "performance_comparable",
+    "reason": null,
+    "allowNonComparableLane": false
+  },
+  "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+  "dopplerDtype": null,
+  "dopplerModelSource": {
+    "source": "local",
+    "locator": "gemma-4-e2b-it-q4k-ehf16-af32",
+    "modelUrl": "file:///home/x/deco/doppler/models/local/gemma-4-e2b-it-q4k-ehf16-af32",
+    "modelBaseDir": "local",
+    "manifestSource": "models/local/gemma-4-e2b-it-q4k-ehf16-af32/manifest.json",
+    "manifestSha256": "522524905444942470ec190747b7e050d2d6506b935dfbbb6a3e54f9669dd724",
+    "registrySource": null
+  },
+  "dopplerManifestPreflight": {
+    "manifestSource": "models/local/gemma-4-e2b-it-q4k-ehf16-af32/manifest.json",
+    "manifestSha256": "522524905444942470ec190747b7e050d2d6506b935dfbbb6a3e54f9669dd724",
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "gemma-4-e2b-it-q4k-ehf16-af32.manifest.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "gemma-4-e2b-it-q4k-ehf16-af32.manifest.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 44,
+        "nullableCases": 23,
+        "nonNullableCases": 21
+      }
+    },
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "gemma-4-e2b-it-q4k-ehf16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "gemma-4-e2b-it-q4k-ehf16-af32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 8,
+        "headDim": 256,
+        "kvLen": 131072,
+        "coldQuantMode": "none",
+        "contiguousQuantMode": "none"
+      },
+      "steps": {
+        "total": 41,
+        "attention": 3,
+        "attentionPhases": {
+          "prefill": 2,
+          "decode": 1,
+          "both": 0
+        }
+      }
+    },
+    "ok": true,
+    "errors": []
+  },
+  "dopplerSurface": "browser",
+  "dopplerKernelPath": "manifest-default",
+  "dopplerKernelPathSource": "manifest-default",
+  "decodeProfile": "parity",
+  "dopplerBatchSize": 1,
+  "dopplerReadbackInterval": 1,
+  "dopplerTokensPerReadback": 1,
+  "tjsModelId": "onnx-community/gemma-4-E2B-it-ONNX",
+  "transformersjsDtype": "q4f16",
+  "mode": "compute",
+  "prompt": "The color of the sky is",
+  "maxTokens": 32,
+  "warmupRuns": 1,
+  "runs": 3,
+  "seed": 0,
+  "workload": {
+    "id": null,
+    "prefillTokenTarget": null,
+    "decodeTokenTarget": 32
+  },
+  "environment": {
+    "host": {
+      "platform": "linux",
+      "arch": "x64",
+      "nodeVersion": "v22.22.1"
+    },
+    "browser": {
+      "executable": null,
+      "baseUrl": null,
+      "channel": "chromium"
+    }
+  },
+  "comparatorStack": {
+    "transformersjs": {
+      "requestedMajor": "4",
+      "runner": {
+        "source": "benchmarks/runners/transformersjs-runner.html",
+        "sourceSha256": "35f619ac184bd98e7fbf8a1f46178c6c20cd85ac321047f8a98052bb7ad84217"
+      },
+      "library": {
+        "packageName": "@huggingface/transformers",
+        "version": "4.0.1",
+        "source": "node_modules/@huggingface/transformers/package.json",
+        "sourceSha256": "09376637271b647f70c2c7115fd8066b93619663ed3529af2f87034816b7deeb"
+      },
+      "onnxruntime": {
+        "web": {
+          "version": "1.25.0-dev.20260327-722743c0e2",
+          "dependencyOnCommon": "1.24.0-dev.20251116-b39e144322",
+          "source": "node_modules/@huggingface/transformers/node_modules/onnxruntime-web/package.json",
+          "sourceSha256": "ce0d5c5019f48e407af3bf52eabb1eb61a6b82b7b7e7fe3467efafe88411a694",
+          "importPath": "/node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist/ort.webgpu.min.mjs"
+        },
+        "common": {
+          "version": "1.24.0-dev.20251116-b39e144322",
+          "source": "node_modules/@huggingface/transformers/node_modules/onnxruntime-common/package.json",
+          "sourceSha256": "0b2e5d9ae190f993bb898c752ca0168a97124d980fa66e77738944bc37989106",
+          "importPath": "/node_modules/@huggingface/transformers/node_modules/onnxruntime-common/dist/esm/index.js"
+        }
+      }
+    }
+  },
+  "timeoutMs": 600000,
+  "dopplerTimeoutMs": 600000,
+  "tjsTimeoutMs": 600000,
+  "methodology": {
+    "promptTokensPerSecToFirstToken": "prompt_tokens / firstTokenMs",
+    "prefillPhaseMs": {
+      "doppler": "available inside Doppler payload timing.prefillMs as internal_prefill_phase",
+      "transformersjs": "excluded from compare contract because runner prefillMs is a ttft_proxy"
+    },
+    "deterministicDecoding": {
+      "seed": 0,
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "repetitionPenalty": 1,
+      "greedyThreshold": 0.01
+    },
+    "promptParity": {
+      "dopplerChatTemplateEnabled": true,
+      "transformersChatTemplateEquivalent": "model-chat-template"
+    },
+    "cacheSemantics": {
+      "warm": "Prime engine cache before timed run, then run from local persistent cache only (Doppler OPFS; TJS persistent browser cache).",
+      "cold": "Wipe engine-specific persistent cache state before run (Doppler OPFS/profile wipe; TJS profile wipe)."
+    },
+    "formats": {
+      "doppler": "rdrr",
+      "transformersjs": "onnx",
+      "safetensorsSourceId": "google/gemma-4-e2b-it"
+    },
+    "dopplerDecodeCadence": {
+      "batchSize": 1,
+      "readbackInterval": 1,
+      "stopCheckMode": "per-token",
+      "disableMultiTokenDecode": true,
+      "speculationMode": "none",
+      "tokensPerReadback": 1
+    },
+    "transformersjsDecodeCadence": {
+      "streamerCallbackGranularityTokens": 1,
+      "readbackControl": "runtime-internal"
+    }
+  },
+  "sections": {
+    "compute": {
+      "parity": {
+        "doppler": {
+          "ok": true,
+          "schemaVersion": 1,
+          "surface": "browser",
+          "request": {
+            "command": "bench",
+            "workload": "inference",
+            "intent": "calibrate",
+            "action": null,
+            "inferenceInput": null,
+            "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+            "trainingTests": null,
+            "trainingStage": null,
+            "trainingConfig": null,
+            "stage1Artifact": null,
+            "stage1ArtifactHash": null,
+            "ulArtifactDir": null,
+            "stageAArtifact": null,
+            "stageAArtifactHash": null,
+            "distillArtifactDir": null,
+            "teacherModelId": null,
+            "studentModelId": null,
+            "distillDatasetId": null,
+            "distillDatasetPath": null,
+            "distillLanguagePair": null,
+            "distillSourceLangs": null,
+            "distillTargetLangs": null,
+            "distillPairAllowlist": null,
+            "strictPairContract": null,
+            "distillShardIndex": null,
+            "distillShardCount": null,
+            "resumeFrom": null,
+            "forceResume": null,
+            "forceResumeReason": null,
+            "forceResumeSource": null,
+            "checkpointOperator": null,
+            "trainingSchemaVersion": null,
+            "trainingBenchSteps": null,
+            "checkpointEvery": null,
+            "workloadType": null,
+            "modelUrl": "file:///home/x/deco/doppler/models/local/gemma-4-e2b-it-q4k-ehf16-af32",
+            "cacheMode": "warm",
+            "loadMode": "opfs",
+            "runtimeProfile": null,
+            "runtimeConfigUrl": null,
+            "runtimeConfig": {
+              "shared": {
+                "benchmark": {
+                  "run": {
+                    "customPrompt": "The color of the sky is",
+                    "maxNewTokens": 32,
+                    "warmupRuns": 1,
+                    "timedRuns": 3,
+                    "useChatTemplate": true,
+                    "loadMode": null,
+                    "sampling": {
+                      "temperature": 0,
+                      "topK": 1,
+                      "topP": 1,
+                      "repetitionPenalty": 1,
+                      "greedyThreshold": 0.01
+                    }
+                  }
+                }
+              },
+              "inference": {
+                "kernelPathPolicy": {
+                  "mode": "capability-aware",
+                  "sourceScope": [
+                    "model",
+                    "manifest",
+                    "config"
+                  ],
+                  "allowSources": [
+                    "model",
+                    "manifest",
+                    "config"
+                  ],
+                  "onIncompatible": "remap"
+                },
+                "prompt": "The color of the sky is",
+                "chatTemplate": {
+                  "enabled": true
+                },
+                "generation": {
+                  "disableMultiTokenDecode": true
+                },
+                "batching": {
+                  "maxTokens": 32,
+                  "batchSize": 1,
+                  "readbackInterval": 1,
+                  "stopCheckMode": "per-token"
+                },
+                "session": {
+                  "decodeLoop": {
+                    "batchSize": 1,
+                    "stopCheckMode": "per-token",
+                    "readbackInterval": 1,
+                    "disableCommandBatching": false
+                  },
+                  "speculation": {
+                    "mode": "none",
+                    "tokens": 1,
+                    "verify": "greedy",
+                    "threshold": null,
+                    "rollbackOnReject": true
+                  }
+                },
+                "sampling": {
+                  "temperature": 0,
+                  "topK": 1,
+                  "topP": 1,
+                  "repetitionPenalty": 1,
+                  "greedyThreshold": 0.01
+                }
+              }
+            },
+            "inputDir": null,
+            "outputDir": null,
+            "convertPayload": null,
+            "workloadPath": null,
+            "runRoot": null,
+            "checkpointPath": null,
+            "checkpointId": null,
+            "checkpointStep": null,
+            "stageId": null,
+            "stageArtifact": null,
+            "subsetManifest": null,
+            "evalDatasetId": null,
+            "pollIntervalMs": null,
+            "stopWhenIdle": null,
+            "captureOutput": false,
+            "keepPipeline": false,
+            "report": null,
+            "timestamp": null,
+            "searchParams": null,
+            "baselineProvider": null,
+            "observedProvider": null
+          },
+          "result": {
+            "suite": "bench",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0,
+            "duration": 15876.199999988079,
+            "results": [
+              {
+                "name": "benchmark",
+                "passed": true,
+                "duration": 7691
+              }
+            ],
+            "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+            "cacheMode": "warm",
+            "loadMode": "opfs",
+            "env": {
+              "library": "doppler",
+              "runtime": "browser",
+              "device": "webgpu",
+              "browserUserAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.0.0 Safari/537.36",
+              "browserPlatform": "Linux x86_64",
+              "browserLanguage": "en-US",
+              "browserVendor": "Google Inc."
+            },
+            "timing": {
+              "modelLoadMs": 5159,
+              "firstTokenMs": 237.6,
+              "firstResponseMs": 5396.6,
+              "prefillMs": 236.2,
+              "decodeMs": 2358.3,
+              "decodeMsPerTokenP50": 73.7,
+              "decodeMsPerTokenP95": 73.78,
+              "decodeMsPerTokenP99": 73.79,
+              "decodeTokensPerSec": 13.57,
+              "prefillTokensPerSec": 63.51,
+              "totalRunMs": 2594.8,
+              "cacheMode": "warm",
+              "loadMode": "opfs"
+            },
+            "timingDiagnostics": {
+              "schemaVersion": 1,
+              "source": "doppler",
+              "semantics": {
+                "modelLoadMs": "model initialization/load before generation",
+                "firstTokenMs": "ttft from generation start",
+                "firstResponseMs": "modelLoadMs + firstTokenMs",
+                "prefillMs": "internal_prefill_phase",
+                "decodeMs": "time after first token",
+                "totalRunMs": "prefillMs + decodeMs"
+              },
+              "componentsMs": {
+                "modelLoadMs": 5159,
+                "firstTokenMs": 237.6,
+                "firstResponseMs": 5396.6,
+                "prefillMs": 236.2,
+                "decodeMs": 2358.3,
+                "totalRunMs": 2594.8
+              },
+              "sumsMs": {
+                "firstResponseFromLoadAndFirstTokenMs": 5396.6,
+                "runFromPrefillAndDecodeMs": 2594.5
+              },
+              "residualsMs": {
+                "firstResponseResidualMs": 0,
+                "runResidualMs": 0.3
+              },
+              "consistent": {
+                "firstResponse": true,
+                "totalRun": true
+              }
+            },
+            "output": null,
+            "metrics": {
+              "warmupRuns": 1,
+              "timedRuns": 3,
+              "prompt": "The color of the sky is",
+              "maxTokens": 32,
+              "decodeTokensPerSec": 13.57,
+              "avgTokensGenerated": 32,
+              "avgPrefillTokens": 15,
+              "avgDecodeTokens": 32,
+              "medianPrefillTokensPerSec": 63.51,
+              "avgPrefillTokensPerSec": 59.4,
+              "medianPrefillTokensPerSecTtft": 63.13,
+              "avgPrefillTokensPerSecTtft": 59.13,
+              "avgDecodeTokensPerSec": 13.89,
+              "firstTokenMs": 237.6,
+              "firstResponseMs": 5396.6,
+              "prefillMs": 236.2,
+              "decodeMs": 2358.3,
+              "totalRunMs": 2594.8,
+              "decodeMsPerTokenP50": 73.7,
+              "decodeMsPerTokenP95": 73.78,
+              "decodeMsPerTokenP99": 73.79,
+              "avgPrefillMs": 255.3,
+              "modelLoadMs": 5159,
+              "throughput": {
+                "tokensPerSec": {
+                  "mean": 12.486431740032671,
+                  "median": 12.332357021679123,
+                  "min": 12.310533200082137,
+                  "max": 12.816404998336758,
+                  "p95": 12.768000200670993,
+                  "p99": 12.806724038803605,
+                  "stdDev": 0.2859734833758808,
+                  "ci95": 0.4953206028244793,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "prefillTokensPerSec": {
+                  "mean": 59.40166568693214,
+                  "median": 63.50550381353533,
+                  "min": 50.95108696064799,
+                  "max": 63.74840628661309,
+                  "p95": 63.724116039305315,
+                  "p99": 63.743548237151536,
+                  "stdDev": 7.31942354353821,
+                  "ci95": 12.67761345952401,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "prefillTokensPerSecTtft": {
+                  "mean": 59.133524768301974,
+                  "median": 63.13131312497824,
+                  "min": 50.70993914602938,
+                  "max": 63.559322033898304,
+                  "p95": 63.5165211430063,
+                  "p99": 63.550761855719905,
+                  "stdDev": 7.298177440864736,
+                  "ci95": 12.640814130230728,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "decodeTokensPerSec": {
+                  "mean": 13.88789228714163,
+                  "median": 13.569096382919156,
+                  "min": 13.552430967031071,
+                  "max": 14.542149511474666,
+                  "p95": 14.444844198619114,
+                  "p99": 14.522688448903555,
+                  "stdDev": 0.5666646457258965,
+                  "ci95": 0.9814919572502707,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                }
+              },
+              "latency": {
+                "totalMs": {
+                  "mean": 2563.6666666666665,
+                  "median": 2594.800000011921,
+                  "min": 2496.800000011921,
+                  "max": 2599.399999976158,
+                  "p95": 2598.9399999797342,
+                  "p99": 2599.3079999768734,
+                  "stdDev": 57.9538897060017,
+                  "ci95": 100.3790814670379,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "prefillMs": {
+                  "mean": 255.2999999920527,
+                  "median": 236.19999998807907,
+                  "min": 235.30000001192093,
+                  "max": 294.39999997615814,
+                  "p95": 288.5799999773502,
+                  "p99": 293.23599997639656,
+                  "stdDev": 33.86458325532819,
+                  "ci95": 58.65517877537468,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "decodeMs": {
+                  "mean": 2306.666666686535,
+                  "median": 2358.300000011921,
+                  "min": 2200.5,
+                  "max": 2361.2000000476837,
+                  "p95": 2360.9100000441076,
+                  "p99": 2361.1420000469684,
+                  "stdDev": 91.95446338568456,
+                  "ci95": 159.26980256673772,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "firstTokenMs": {
+                  "mean": 256.4666666785876,
+                  "median": 237.60000002384186,
+                  "min": 236,
+                  "max": 295.80000001192093,
+                  "p95": 289.980000013113,
+                  "p99": 294.63600001215934,
+                  "stdDev": 34.0730587613206,
+                  "ci95": 59.01626894388716,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                }
+              },
+              "tokens": {
+                "generated": {
+                  "mean": 32,
+                  "median": 32,
+                  "min": 32,
+                  "max": 32,
+                  "p95": 32,
+                  "p99": 32,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "prefill": {
+                  "mean": 15,
+                  "median": 15,
+                  "min": 15,
+                  "max": 15,
+                  "p95": 15,
+                  "p99": 15,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "decode": {
+                  "mean": 32,
+                  "median": 32,
+                  "min": 32,
+                  "max": 32,
+                  "p95": 32,
+                  "p99": 32,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                }
+              },
+              "gpu": {
+                "prefillMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 0,
+                  "samplesAfterOutlierRemoval": 0,
+                  "outliersRemoved": 0
+                },
+                "decodeMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 0,
+                  "samplesAfterOutlierRemoval": 0,
+                  "outliersRemoved": 0
+                },
+                "decodeRecordMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "decodeSubmitWaitMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "decodeReadbackWaitMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "singleTokenSubmitWaitMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "singleTokenReadbackWaitMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "singleTokenOrchestrationMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                }
+              },
+              "plePreparedTokenCache": {
+                "hits": {
+                  "mean": 31,
+                  "median": 31,
+                  "min": 31,
+                  "max": 31,
+                  "p95": 31,
+                  "p99": 31,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "misses": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "entries": {
+                  "mean": 24,
+                  "median": 24,
+                  "min": 24,
+                  "max": 24,
+                  "p95": 24,
+                  "p99": 24,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "bytes": {
+                  "mean": 860160,
+                  "median": 860160,
+                  "min": 860160,
+                  "max": 860160,
+                  "p95": 860160,
+                  "p99": 860160,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                }
+              },
+              "decodeMode": "single_token",
+              "batchGuardReason": "multi_token_decode_disabled",
+              "generatedText": "The color of the sky is **usually blue** during the daytime on a clear day.\n\nHowever, the color of the sky can change depending on several factors",
+              "promptInput": "The color of the sky is",
+              "schemaVersion": 1,
+              "source": "doppler",
+              "suite": "bench",
+              "executionContractArtifact": {
+                "schemaVersion": 1,
+                "source": "doppler",
+                "ok": true,
+                "checks": [
+                  {
+                    "id": "gemma-4-e2b-it-q4k-ehf16-af32.steps",
+                    "ok": true
+                  },
+                  {
+                    "id": "gemma-4-e2b-it-q4k-ehf16-af32.session",
+                    "ok": true
+                  }
+                ],
+                "errors": [],
+                "session": {
+                  "layout": "contiguous",
+                  "disableCommandBatching": false,
+                  "decodeBatchSize": 8,
+                  "headDim": 256,
+                  "kvLen": 131072,
+                  "coldQuantMode": "none",
+                  "contiguousQuantMode": "none"
+                },
+                "steps": {
+                  "total": 41,
+                  "attention": 3,
+                  "attentionPhases": {
+                    "prefill": 2,
+                    "decode": 1,
+                    "both": 0
+                  }
+                }
+              },
+              "layerPatternContractArtifact": {
+                "schemaVersion": 1,
+                "source": "doppler",
+                "ok": true,
+                "checks": [
+                  {
+                    "id": "inference.layerPattern.patternKind.shape",
+                    "ok": true
+                  },
+                  {
+                    "id": "inference.layerPattern.patternKind.semantics",
+                    "ok": true
+                  },
+                  {
+                    "id": "inference.layerPattern.layerType.shape",
+                    "ok": true
+                  },
+                  {
+                    "id": "inference.layerPattern.layerType.semantics",
+                    "ok": true
+                  },
+                  {
+                    "id": "inference.layerPattern.computeGlobalLayers.even",
+                    "ok": true
+                  },
+                  {
+                    "id": "inference.layerPattern.computeGlobalLayers.odd",
+                    "ok": true
+                  },
+                  {
+                    "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+                    "ok": true
+                  },
+                  {
+                    "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+                    "ok": true
+                  }
+                ],
+                "errors": [],
+                "stats": {
+                  "patternKindRules": 4,
+                  "layerTypeRules": 6,
+                  "patternKindContexts": 16,
+                  "layerTypeContexts": 12
+                }
+              },
+              "requiredInferenceFieldsArtifact": null
+            },
+            "memoryStats": {
+              "used": 8712603392,
+              "pool": {
+                "allocations": 89991,
+                "reuses": 42383,
+                "totalBytesAllocated": 8327903488,
+                "peakBytesAllocated": 6826665728,
+                "currentBytesAllocated": 6818875136,
+                "totalBytesRequested": 6229776640,
+                "peakBytesRequested": 5065899008,
+                "currentBytesRequested": 5059724288,
+                "activeBuffers": 1619,
+                "pooledBuffers": 64,
+                "budgetMaxBytes": 0,
+                "budgetUtilization": 0,
+                "hitRate": "32.0%"
+              },
+              "kvCache": {
+                "theoretical": 1893728256,
+                "allocated": 1893728256,
+                "used": 1978368,
+                "efficiency": 0.0010446947674418604,
+                "seqLen": 46,
+                "maxSeqLen": 131072,
+                "layout": "contiguous"
+              }
+            },
+            "deviceInfo": {
+              "hasSubgroups": true,
+              "hasSubgroupsF16": true,
+              "hasF16": true,
+              "hasTimestampQuery": true,
+              "maxBufferSize": 2147483648,
+              "maxWorkgroupSize": 1024,
+              "maxWorkgroupStorageSize": 65536,
+              "adapterInfo": {
+                "vendor": "amd",
+                "architecture": "rdna-3",
+                "device": "0x1586",
+                "description": "Radeon 8060S Graphics (RADV STRIX_HALO)"
+              },
+              "submitProbeMs": 1.9000000357627869
+            },
+            "pipeline": null,
+            "mode": "bench",
+            "workload": "inference",
+            "debugSnapshot": null,
+            "reportInfo": {
+              "backend": "opfs",
+              "path": "reports/gemma-4-e2b-it-q4k-ehf16-af32/2026-04-10T01-27-46.289Z.json"
+            }
+          }
+        },
+        "transformersjs": {
+          "modelId": "onnx-community/gemma-4-E2B-it-ONNX",
+          "seed": 0,
+          "generatedText": "The color of the sky is **blue**.\n\nHowever, the sky can appear a **variety of colors** depending on several factors:\n\n* **Time of",
+          "modelLoadMs": 2357.024999976158,
+          "warmupRuns": 1,
+          "timedRuns": 3,
+          "prompt": "The color of the sky is",
+          "promptRendered": "<bos><|turn>user\nThe color of the sky is<turn|>\n<|turn>model\n",
+          "useChatTemplate": true,
+          "maxNewTokens": 32,
+          "sampling": {
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "doSample": false
+          },
+          "cacheMode": "warm",
+          "loadMode": "opfs",
+          "timing": {
+            "modelLoadMs": 2357.024999976158,
+            "firstTokenMs": 147.03500002622604,
+            "firstResponseMs": 2504.060000002384,
+            "prefillMs": 147.03500002622604,
+            "decodeMs": 2721.914999961853,
+            "totalRunMs": 2868.949999988079,
+            "decodeTokensPerSec": 11.389040436763992,
+            "promptTokensPerSecToFirstToken": 102.01652665912545,
+            "prefillTokensPerSec": 102.01652665912545,
+            "prefillTokensPerSecTtft": 102.01652665912545,
+            "decodeMsPerTokenP50": 88.2049999833107,
+            "decodeMsPerTokenP95": 93.8369999885559,
+            "decodeMsPerTokenP99": 95.15959998369216,
+            "cacheMode": "warm",
+            "loadMode": "opfs"
+          },
+          "timingDiagnostics": {
+            "schemaVersion": 1,
+            "source": "transformers.js",
+            "semantics": {
+              "modelLoadMs": "model initialization/load before generation",
+              "firstTokenMs": "ttft from generation start",
+              "firstResponseMs": "modelLoadMs + firstTokenMs",
+              "prefillMs": "ttft_proxy",
+              "decodeMs": "time after first token",
+              "totalRunMs": "prefillMs + decodeMs"
+            },
+            "componentsMs": {
+              "modelLoadMs": 2357.02,
+              "firstTokenMs": 147.04,
+              "firstResponseMs": 2504.06,
+              "prefillMs": 147.04,
+              "decodeMs": 2721.91,
+              "totalRunMs": 2868.95
+            },
+            "sumsMs": {
+              "firstResponseFromLoadAndFirstTokenMs": 2504.06,
+              "runFromPrefillAndDecodeMs": 2868.95
+            },
+            "residualsMs": {
+              "firstResponseResidualMs": 0,
+              "runResidualMs": 0
+            },
+            "consistent": {
+              "firstResponse": true,
+              "totalRun": true
+            }
+          },
+          "deviceInfo": {
+            "vendor": "amd",
+            "architecture": "rdna-3",
+            "device": "0x1586",
+            "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+            "hasF16": true,
+            "hasSubgroups": true,
+            "hasTimestampQuery": true
+          },
+          "metrics": {
+            "decodeTokensPerSec": 11.389040436763992,
+            "promptTokensPerSecToFirstToken": 102.01652665912545,
+            "prefillTokensPerSec": 102.01652665912545,
+            "firstTokenMs": 147.03500002622604,
+            "firstResponseMs": 2504.060000002384,
+            "prefillMs": 147.03500002622604,
+            "decodeMs": 2721.914999961853,
+            "totalRunMs": 2868.949999988079,
+            "modelLoadMs": 2357.024999976158,
+            "decodeMsPerTokenP50": 88.2049999833107,
+            "decodeMsPerTokenP95": 93.8369999885559,
+            "decodeMsPerTokenP99": 95.15959998369216,
+            "ort_profiled_total_ms": 0,
+            "ort_profiled_event_count": 0,
+            "ort_top_op_total_ms": null
+          },
+          "runs": [
+            {
+              "ttftMs": 147.03500002622604,
+              "totalMs": 2868.949999988079,
+              "decodeMs": 2721.914999961853,
+              "newTokens": 32,
+              "decodeTokens": 31,
+              "prefillTokens": 15,
+              "tokensPerSec": 11.15390648151169,
+              "decodeTokensPerSec": 11.389040436763992,
+              "prefillTokensPerSecTtft": 102.01652665912545,
+              "prefillTokensPerSec": 102.01652665912545,
+              "perTokenMs": [
+                90.27999997138977,
+                89.74000000953674,
+                85.27999997138977,
+                92.72000002861023,
+                89.2049999833107,
+                87.18000000715256,
+                76.65500003099442,
+                91.60999995470047,
+                82.65000003576279,
+                83.83499997854233,
+                84.9549999833107,
+                93.31499999761581,
+                89.66000002622604,
+                93.45999997854233,
+                81.48000001907349,
+                86.2049999833107,
+                86.85000002384186,
+                94.26999998092651,
+                85.68999999761581,
+                92.56999999284744,
+                90.81000000238419,
+                87.12000000476837,
+                88.58500003814697,
+                93.2049999833107,
+                85.89499998092651,
+                92.49000000953674,
+                85.26499998569489,
+                89.35000002384186,
+                80.2049999833107,
+                83.57499998807907,
+                87.58500003814697
+              ]
+            },
+            {
+              "ttftMs": 152.45500004291534,
+              "totalMs": 2861.3300000429153,
+              "decodeMs": 2708.875,
+              "newTokens": 32,
+              "decodeTokens": 31,
+              "prefillTokens": 15,
+              "tokensPerSec": 11.18361041876332,
+              "decodeTokensPerSec": 11.443865073139218,
+              "prefillTokensPerSecTtft": 98.38968873292167,
+              "prefillTokensPerSec": 98.38968873292167,
+              "perTokenMs": [
+                84.19999998807907,
+                86.50999999046326,
+                87.58499997854233,
+                89.84500002861023,
+                83.89999997615814,
+                84.90000003576279,
+                86.06999999284744,
+                82.4099999666214,
+                84.29000002145767,
+                89.1700000166893,
+                82.17500001192093,
+                82.30500000715256,
+                89.52999997138977,
+                86.96499997377396,
+                84.81000000238419,
+                86.16500002145767,
+                93.32499998807907,
+                89.24500000476837,
+                93.94499999284744,
+                93.07499998807907,
+                84.94500005245209,
+                91.58499997854233,
+                88.60500001907349,
+                90.26999998092651,
+                91.58499997854233,
+                89.43000000715256,
+                86.13999998569489,
+                90.60500001907349,
+                83.44499999284744,
+                86.91000002622604,
+                84.72999995946884
+              ]
+            },
+            {
+              "ttftMs": 145.8299999833107,
+              "totalMs": 2896.1949999928474,
+              "decodeMs": 2750.3650000095367,
+              "newTokens": 32,
+              "decodeTokens": 31,
+              "prefillTokens": 15,
+              "tokensPerSec": 11.04897978212069,
+              "decodeTokensPerSec": 11.271231272901055,
+              "prefillTokensPerSecTtft": 102.85949394306147,
+              "prefillTokensPerSec": 102.85949394306147,
+              "perTokenMs": [
+                95.0799999833107,
+                85.24500000476837,
+                86.32500004768372,
+                87.00999999046326,
+                81.79499995708466,
+                81.7600000500679,
+                89.625,
+                90.43500000238419,
+                92.8299999833107,
+                88.03999996185303,
+                91.75500005483627,
+                85.60999995470047,
+                89.25499999523163,
+                91.09500002861023,
+                92.76499998569489,
+                88.36000001430511,
+                90.4099999666214,
+                88.99000000953674,
+                90.4650000333786,
+                88.2049999833107,
+                88.18500000238419,
+                83.61500000953674,
+                75.09499996900558,
+                92.74000000953674,
+                93.76499998569489,
+                91.1700000166893,
+                87.31499999761581,
+                91.68999999761581,
+                81.06499999761581,
+                94.40000003576279,
+                96.07499998807907
+              ]
+            }
+          ],
+          "env": {
+            "library": "transformers.js",
+            "version": "4.x",
+            "device": "webgpu",
+            "browserUserAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+            "browserPlatform": "Linux x86_64",
+            "browserLanguage": "en-US",
+            "browserVendor": "Google Inc.",
+            "dtype": "q4f16",
+            "requestedDtype": "q4f16",
+            "dtypeFallbackUsed": false,
+            "executionProviderMode": "webgpu-only",
+            "executionProviderFallbackUsed": false,
+            "ortProxyMode": "off",
+            "ortProxyFallbackUsed": false,
+            "runnerKind": "pipeline_text_generation",
+            "modelArchitecture": null,
+            "webgpuBackend": "vulkan",
+            "browserExecutable": null
+          },
+          "profiling": {
+            "enabled": false,
+            "topN": 20,
+            "ort": {
+              "sessionCount": 0,
+              "endedCount": 0,
+              "sessions": []
+            },
+            "ortConsole": {
+              "eventCount": 0,
+              "durationEventCount": 0,
+              "totalDurationMs": 0,
+              "topOperations": [],
+              "categories": [],
+              "parseErrorCount": 0,
+              "rawLogCount": 0,
+              "enabled": false,
+              "topN": 20
+            }
+          },
+          "generationConfig": {
+            "strictDeterministicGreedy": true,
+            "modelDefaults": {
+              "do_sample": true,
+              "temperature": 1,
+              "top_k": 64,
+              "top_p": 0.95
+            }
+          },
+          "memoryInfo": {
+            "before": {
+              "usedJSHeapSize": 3140000000,
+              "totalJSHeapSize": 3140000000,
+              "jsHeapSizeLimit": 3760000000
+            },
+            "after": {
+              "usedJSHeapSize": 3140000000,
+              "totalJSHeapSize": 3140000000,
+              "jsHeapSizeLimit": 3760000000
+            }
+          },
+          "benchmarkPolicy": {
+            "source": "/home/x/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+            "schemaVersion": 1,
+            "updated": "2026-03-29"
+          },
+          "determinism": {
+            "seed": 0,
+            "decoding": {
+              "do_sample": false,
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1
+            }
+          },
+          "cachePrime": {
+            "enabled": true,
+            "primed": true,
+            "primeMs": 40126.035000026226
+          },
+          "firstLoad": {
+            "schemaVersion": 1,
+            "semantics": {
+              "browserLaunchMs": "node launch request -> browser/context ready",
+              "pageReadyMs": "runner navigation + startup",
+              "cachePrimeMs": "untimed warm-opfs prefetch/load pass",
+              "modelLoadMs": "model initialization/load before generation",
+              "firstTokenMs": "ttft from generation start",
+              "firstResponseMs": "modelLoadMs + firstTokenMs",
+              "harnessWarmStartToFirstResponseMs": "pageReadyMs + cachePrimeMs + firstResponseMs",
+              "endToEndFirstResponseMs": "browserLaunchMs + pageReadyMs + cachePrimeMs + firstResponseMs"
+            },
+            "componentsMs": {
+              "browserLaunchMs": 71,
+              "pageReadyMs": 85.09,
+              "cachePrimeMs": 40126.04,
+              "modelLoadMs": 2357.02,
+              "firstTokenMs": 147.04,
+              "firstResponseMs": 2504.06
+            },
+            "sumsMs": {
+              "firstResponseFromLoadAndFirstTokenMs": 2504.06,
+              "harnessWarmStartToFirstResponseMs": 42715.19,
+              "endToEndFirstResponseMs": 42786.19
+            },
+            "residualsMs": {
+              "firstResponseResidualMs": 0
+            },
+            "consistent": {
+              "firstResponse": true
+            },
+            "mode": {
+              "cachePrimeEnabled": true,
+              "cachePrimePrimed": true,
+              "strictWarmOpfs": true
+            }
+          },
+          "environment": {
+            "host": {
+              "platform": "linux",
+              "arch": "x64",
+              "nodeVersion": "v22.22.1",
+              "osRelease": "7.0.0-10-generic",
+              "cpuModel": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S"
+            },
+            "browser": {
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+              "platform": "Linux x86_64",
+              "language": "en-US",
+              "vendor": "Google Inc.",
+              "executable": null,
+              "channel": null
+            },
+            "gpu": {
+              "api": "webgpu",
+              "backend": "vulkan",
+              "vendor": "amd",
+              "architecture": "rdna-3",
+              "device": "0x1586",
+              "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+              "hasF16": true,
+              "hasSubgroups": true,
+              "hasTimestampQuery": true
+            },
+            "runtime": {
+              "library": "transformers.js",
+              "version": "4.x",
+              "surface": "browser",
+              "device": "webgpu",
+              "dtype": "q4f16",
+              "requestedDtype": "q4f16",
+              "executionProviderMode": "webgpu-only",
+              "cacheMode": "warm",
+              "loadMode": "opfs",
+              "persistentContextRequired": true,
+              "persistentContextUsed": true,
+              "crashRecoveryArgsUsed": false
+            }
+          }
+        }
+      },
+      "throughput": {
+        "doppler": {
+          "ok": true,
+          "schemaVersion": 1,
+          "surface": "browser",
+          "request": {
+            "command": "bench",
+            "workload": "inference",
+            "intent": "calibrate",
+            "action": null,
+            "inferenceInput": null,
+            "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+            "trainingTests": null,
+            "trainingStage": null,
+            "trainingConfig": null,
+            "stage1Artifact": null,
+            "stage1ArtifactHash": null,
+            "ulArtifactDir": null,
+            "stageAArtifact": null,
+            "stageAArtifactHash": null,
+            "distillArtifactDir": null,
+            "teacherModelId": null,
+            "studentModelId": null,
+            "distillDatasetId": null,
+            "distillDatasetPath": null,
+            "distillLanguagePair": null,
+            "distillSourceLangs": null,
+            "distillTargetLangs": null,
+            "distillPairAllowlist": null,
+            "strictPairContract": null,
+            "distillShardIndex": null,
+            "distillShardCount": null,
+            "resumeFrom": null,
+            "forceResume": null,
+            "forceResumeReason": null,
+            "forceResumeSource": null,
+            "checkpointOperator": null,
+            "trainingSchemaVersion": null,
+            "trainingBenchSteps": null,
+            "checkpointEvery": null,
+            "workloadType": null,
+            "modelUrl": "file:///home/x/deco/doppler/models/local/gemma-4-e2b-it-q4k-ehf16-af32",
+            "cacheMode": "warm",
+            "loadMode": "opfs",
+            "runtimeProfile": null,
+            "runtimeConfigUrl": null,
+            "runtimeConfig": {
+              "shared": {
+                "benchmark": {
+                  "run": {
+                    "customPrompt": "The color of the sky is",
+                    "maxNewTokens": 32,
+                    "warmupRuns": 1,
+                    "timedRuns": 3,
+                    "useChatTemplate": true,
+                    "loadMode": null,
+                    "sampling": {
+                      "temperature": 0,
+                      "topK": 1,
+                      "topP": 1,
+                      "repetitionPenalty": 1,
+                      "greedyThreshold": 0.01
+                    }
+                  }
+                }
+              },
+              "inference": {
+                "kernelPathPolicy": {
+                  "mode": "capability-aware",
+                  "sourceScope": [
+                    "model",
+                    "manifest",
+                    "config"
+                  ],
+                  "allowSources": [
+                    "model",
+                    "manifest",
+                    "config"
+                  ],
+                  "onIncompatible": "remap"
+                },
+                "prompt": "The color of the sky is",
+                "chatTemplate": {
+                  "enabled": true
+                },
+                "generation": {
+                  "disableMultiTokenDecode": false
+                },
+                "batching": {
+                  "maxTokens": 32,
+                  "batchSize": 4,
+                  "readbackInterval": 4,
+                  "stopCheckMode": "per-token"
+                },
+                "session": {
+                  "decodeLoop": {
+                    "batchSize": 4,
+                    "stopCheckMode": "per-token",
+                    "readbackInterval": 4,
+                    "disableCommandBatching": false
+                  },
+                  "speculation": {
+                    "mode": "none",
+                    "tokens": 1,
+                    "verify": "greedy",
+                    "threshold": null,
+                    "rollbackOnReject": true
+                  }
+                },
+                "sampling": {
+                  "temperature": 0,
+                  "topK": 1,
+                  "topP": 1,
+                  "repetitionPenalty": 1,
+                  "greedyThreshold": 0.01
+                }
+              }
+            },
+            "inputDir": null,
+            "outputDir": null,
+            "convertPayload": null,
+            "workloadPath": null,
+            "runRoot": null,
+            "checkpointPath": null,
+            "checkpointId": null,
+            "checkpointStep": null,
+            "stageId": null,
+            "stageArtifact": null,
+            "subsetManifest": null,
+            "evalDatasetId": null,
+            "pollIntervalMs": null,
+            "stopWhenIdle": null,
+            "captureOutput": false,
+            "keepPipeline": false,
+            "report": null,
+            "timestamp": null,
+            "searchParams": null,
+            "baselineProvider": null,
+            "observedProvider": null
+          },
+          "result": {
+            "suite": "bench",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0,
+            "duration": 15458.800000011921,
+            "results": [
+              {
+                "name": "benchmark",
+                "passed": true,
+                "duration": 6409.100000023842
+              }
+            ],
+            "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+            "cacheMode": "warm",
+            "loadMode": "opfs",
+            "env": {
+              "library": "doppler",
+              "runtime": "browser",
+              "device": "webgpu",
+              "browserUserAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.0.0 Safari/537.36",
+              "browserPlatform": "Linux x86_64",
+              "browserLanguage": "en-US",
+              "browserVendor": "Google Inc."
+            },
+            "timing": {
+              "modelLoadMs": 6296.2,
+              "firstTokenMs": 238.6,
+              "firstResponseMs": 6534.8,
+              "prefillMs": 234.2,
+              "decodeMs": 1885.2,
+              "decodeMsPerTokenP50": 58.91,
+              "decodeMsPerTokenP95": 60.13,
+              "decodeMsPerTokenP99": 60.24,
+              "decodeTokensPerSec": 16.97,
+              "prefillTokensPerSec": 64.05,
+              "totalRunMs": 2129.4,
+              "cacheMode": "warm",
+              "loadMode": "opfs"
+            },
+            "timingDiagnostics": {
+              "schemaVersion": 1,
+              "source": "doppler",
+              "semantics": {
+                "modelLoadMs": "model initialization/load before generation",
+                "firstTokenMs": "ttft from generation start",
+                "firstResponseMs": "modelLoadMs + firstTokenMs",
+                "prefillMs": "internal_prefill_phase",
+                "decodeMs": "time after first token",
+                "totalRunMs": "prefillMs + decodeMs"
+              },
+              "componentsMs": {
+                "modelLoadMs": 6296.2,
+                "firstTokenMs": 238.6,
+                "firstResponseMs": 6534.8,
+                "prefillMs": 234.2,
+                "decodeMs": 1885.2,
+                "totalRunMs": 2129.4
+              },
+              "sumsMs": {
+                "firstResponseFromLoadAndFirstTokenMs": 6534.8,
+                "runFromPrefillAndDecodeMs": 2119.4
+              },
+              "residualsMs": {
+                "firstResponseResidualMs": 0,
+                "runResidualMs": 10
+              },
+              "consistent": {
+                "firstResponse": true,
+                "totalRun": false
+              }
+            },
+            "output": null,
+            "metrics": {
+              "warmupRuns": 1,
+              "timedRuns": 3,
+              "prompt": "The color of the sky is",
+              "maxTokens": 32,
+              "decodeTokensPerSec": 16.97,
+              "avgTokensGenerated": 32,
+              "avgPrefillTokens": 15,
+              "avgDecodeTokens": 32,
+              "medianPrefillTokensPerSec": 64.05,
+              "avgPrefillTokensPerSec": 63.84,
+              "medianPrefillTokensPerSecTtft": 62.87,
+              "avgPrefillTokensPerSecTtft": 62.41,
+              "avgDecodeTokensPerSec": 16.88,
+              "firstTokenMs": 238.6,
+              "firstResponseMs": 6534.8,
+              "prefillMs": 234.2,
+              "decodeMs": 1885.2,
+              "totalRunMs": 2129.4,
+              "decodeMsPerTokenP50": 58.91,
+              "decodeMsPerTokenP95": 60.13,
+              "decodeMsPerTokenP99": 60.24,
+              "avgPrefillMs": 234.97,
+              "modelLoadMs": 6296.2,
+              "throughput": {
+                "tokensPerSec": {
+                  "mean": 14.980458832632914,
+                  "median": 15.027707335147257,
+                  "min": 14.762871378726684,
+                  "max": 15.1507977840248,
+                  "p95": 15.138488739137046,
+                  "p99": 15.14833597504725,
+                  "stdDev": 0.19823228729010148,
+                  "ci95": 0.34334839328704597,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "prefillTokensPerSec": {
+                  "mean": 63.84209990246476,
+                  "median": 64.04782237729937,
+                  "min": 63.21112515485236,
+                  "max": 64.26735217524258,
+                  "p95": 64.24539919544826,
+                  "p99": 64.26296157928371,
+                  "stdDev": 0.5573555257998735,
+                  "ci95": 0.9653680885646471,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "prefillTokensPerSecTtft": {
+                  "mean": 62.41135337580107,
+                  "median": 62.866722557620655,
+                  "min": 61.5006150121619,
+                  "max": 62.866722557620655,
+                  "p95": 62.866722557620655,
+                  "p99": 62.866722557620655,
+                  "stdDev": 0.7887225591125901,
+                  "ci95": 1.3661075454587535,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "decodeTokensPerSec": {
+                  "mean": 16.883854553764518,
+                  "median": 16.974326331531056,
+                  "min": 16.592346779842583,
+                  "max": 17.084890549919912,
+                  "p95": 17.073834128081025,
+                  "p99": 17.082679265552134,
+                  "stdDev": 0.2584350949265131,
+                  "ci95": 0.44762271487160654,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                }
+              },
+              "latency": {
+                "totalMs": {
+                  "mean": 2136.366666674614,
+                  "median": 2129.400000035763,
+                  "min": 2112.100000023842,
+                  "max": 2167.599999964237,
+                  "p95": 2163.7799999713898,
+                  "p99": 2166.8359999656677,
+                  "stdDev": 28.398298036830173,
+                  "ci95": 49.18729504827337,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "prefillMs": {
+                  "mean": 234.9666666785876,
+                  "median": 234.19999998807907,
+                  "min": 233.4000000357628,
+                  "max": 237.30000001192093,
+                  "p95": 236.99000000953674,
+                  "p99": 237.2380000114441,
+                  "stdDev": 2.059935269434418,
+                  "ci95": 3.567912546963497,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "decodeMs": {
+                  "mean": 1895.6000000039737,
+                  "median": 1885.199999988079,
+                  "min": 1873,
+                  "max": 1928.6000000238419,
+                  "p95": 1924.2600000202656,
+                  "p99": 1927.7320000231266,
+                  "stdDev": 29.22259401406314,
+                  "ci95": 50.615017561315504,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "firstTokenMs": {
+                  "mean": 240.36666663487753,
+                  "median": 238.5999999642372,
+                  "min": 238.5999999642372,
+                  "max": 243.89999997615814,
+                  "p95": 243.36999997496605,
+                  "p99": 243.79399997591972,
+                  "stdDev": 3.0599564335875677,
+                  "ci95": 5.300000011920929,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                }
+              },
+              "tokens": {
+                "generated": {
+                  "mean": 32,
+                  "median": 32,
+                  "min": 32,
+                  "max": 32,
+                  "p95": 32,
+                  "p99": 32,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "prefill": {
+                  "mean": 15,
+                  "median": 15,
+                  "min": 15,
+                  "max": 15,
+                  "p95": 15,
+                  "p99": 15,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "decode": {
+                  "mean": 32,
+                  "median": 32,
+                  "min": 32,
+                  "max": 32,
+                  "p95": 32,
+                  "p99": 32,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                }
+              },
+              "gpu": {
+                "prefillMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 0,
+                  "samplesAfterOutlierRemoval": 0,
+                  "outliersRemoved": 0
+                },
+                "decodeMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 0,
+                  "samplesAfterOutlierRemoval": 0,
+                  "outliersRemoved": 0
+                },
+                "decodeRecordMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "decodeSubmitWaitMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "decodeReadbackWaitMs": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "singleTokenSubmitWaitMs": {
+                  "mean": 1.9666666587193806,
+                  "median": 1.9999998807907104,
+                  "min": 1.9000000357627869,
+                  "max": 2.0000000596046448,
+                  "p95": 2.0000000417232515,
+                  "p99": 2.000000056028366,
+                  "stdDev": 0.05773498906499833,
+                  "ci95": 0.09999993443501067,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "singleTokenReadbackWaitMs": {
+                  "mean": 1439.9666666587193,
+                  "median": 1421.0999999642372,
+                  "min": 1408.6000000834465,
+                  "max": 1490.1999999284744,
+                  "p95": 1483.2899999320507,
+                  "p99": 1488.8179999291897,
+                  "stdDev": 43.950009417492176,
+                  "ci95": 76.12364930422709,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "singleTokenOrchestrationMs": {
+                  "mean": 452.56666672229767,
+                  "median": 449.00000005960464,
+                  "min": 435.10000002384186,
+                  "max": 473.6000000834465,
+                  "p95": 471.14000008106234,
+                  "p99": 473.1080000829697,
+                  "stdDev": 19.496238982415655,
+                  "ci95": 33.76847647404886,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                }
+              },
+              "plePreparedTokenCache": {
+                "hits": {
+                  "mean": 31,
+                  "median": 31,
+                  "min": 31,
+                  "max": 31,
+                  "p95": 31,
+                  "p99": 31,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "misses": {
+                  "mean": 0,
+                  "median": 0,
+                  "min": 0,
+                  "max": 0,
+                  "p95": 0,
+                  "p99": 0,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "entries": {
+                  "mean": 24,
+                  "median": 24,
+                  "min": 24,
+                  "max": 24,
+                  "p95": 24,
+                  "p99": 24,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                },
+                "bytes": {
+                  "mean": 860160,
+                  "median": 860160,
+                  "min": 860160,
+                  "max": 860160,
+                  "p95": 860160,
+                  "p99": 860160,
+                  "stdDev": 0,
+                  "ci95": 0,
+                  "samples": 3,
+                  "samplesAfterOutlierRemoval": 3,
+                  "outliersRemoved": 0
+                }
+              },
+              "decodeMode": "batched_gpu_stepwise_ple",
+              "batchGuardReason": null,
+              "generatedText": "The color of the sky is **usually blue** during the daytime on a clear day.\n\nHowever, the color of the sky can change depending on several factors",
+              "promptInput": "The color of the sky is",
+              "schemaVersion": 1,
+              "source": "doppler",
+              "suite": "bench",
+              "executionContractArtifact": {
+                "schemaVersion": 1,
+                "source": "doppler",
+                "ok": true,
+                "checks": [
+                  {
+                    "id": "gemma-4-e2b-it-q4k-ehf16-af32.steps",
+                    "ok": true
+                  },
+                  {
+                    "id": "gemma-4-e2b-it-q4k-ehf16-af32.session",
+                    "ok": true
+                  }
+                ],
+                "errors": [],
+                "session": {
+                  "layout": "contiguous",
+                  "disableCommandBatching": false,
+                  "decodeBatchSize": 8,
+                  "headDim": 256,
+                  "kvLen": 131072,
+                  "coldQuantMode": "none",
+                  "contiguousQuantMode": "none"
+                },
+                "steps": {
+                  "total": 41,
+                  "attention": 3,
+                  "attentionPhases": {
+                    "prefill": 2,
+                    "decode": 1,
+                    "both": 0
+                  }
+                }
+              },
+              "layerPatternContractArtifact": {
+                "schemaVersion": 1,
+                "source": "doppler",
+                "ok": true,
+                "checks": [
+                  {
+                    "id": "inference.layerPattern.patternKind.shape",
+                    "ok": true
+                  },
+                  {
+                    "id": "inference.layerPattern.patternKind.semantics",
+                    "ok": true
+                  },
+                  {
+                    "id": "inference.layerPattern.layerType.shape",
+                    "ok": true
+                  },
+                  {
+                    "id": "inference.layerPattern.layerType.semantics",
+                    "ok": true
+                  },
+                  {
+                    "id": "inference.layerPattern.computeGlobalLayers.even",
+                    "ok": true
+                  },
+                  {
+                    "id": "inference.layerPattern.computeGlobalLayers.odd",
+                    "ok": true
+                  },
+                  {
+                    "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+                    "ok": true
+                  },
+                  {
+                    "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+                    "ok": true
+                  }
+                ],
+                "errors": [],
+                "stats": {
+                  "patternKindRules": 4,
+                  "layerTypeRules": 6,
+                  "patternKindContexts": 16,
+                  "layerTypeContexts": 12
+                }
+              },
+              "requiredInferenceFieldsArtifact": null
+            },
+            "memoryStats": {
+              "used": 8544880384,
+              "pool": {
+                "allocations": 94218,
+                "reuses": 38280,
+                "totalBytesAllocated": 8300435712,
+                "peakBytesAllocated": 6672262912,
+                "currentBytesAllocated": 6651152128,
+                "totalBytesRequested": 6212920064,
+                "peakBytesRequested": 4945292288,
+                "currentBytesRequested": 4929700864,
+                "activeBuffers": 1495,
+                "pooledBuffers": 64,
+                "budgetMaxBytes": 0,
+                "budgetUtilization": 0,
+                "hitRate": "28.9%"
+              },
+              "kvCache": {
+                "theoretical": 1893728256,
+                "allocated": 1893728256,
+                "used": 1978368,
+                "efficiency": 0.0010446947674418604,
+                "seqLen": 46,
+                "maxSeqLen": 131072,
+                "layout": "contiguous"
+              }
+            },
+            "deviceInfo": {
+              "hasSubgroups": true,
+              "hasSubgroupsF16": true,
+              "hasF16": true,
+              "hasTimestampQuery": true,
+              "maxBufferSize": 2147483648,
+              "maxWorkgroupSize": 1024,
+              "maxWorkgroupStorageSize": 65536,
+              "adapterInfo": {
+                "vendor": "amd",
+                "architecture": "rdna-3",
+                "device": "0x1586",
+                "description": "Radeon 8060S Graphics (RADV STRIX_HALO)"
+              },
+              "submitProbeMs": 4.5
+            },
+            "pipeline": null,
+            "mode": "bench",
+            "workload": "inference",
+            "debugSnapshot": null,
+            "reportInfo": {
+              "backend": "opfs",
+              "path": "reports/gemma-4-e2b-it-q4k-ehf16-af32/2026-04-10T01-28-03.392Z.json"
+            }
+          }
+        },
+        "transformersjs": {
+          "modelId": "onnx-community/gemma-4-E2B-it-ONNX",
+          "seed": 0,
+          "generatedText": "The color of the sky is **blue**.\n\nHowever, the sky can appear a **variety of colors** depending on several factors:\n\n* **Time of",
+          "modelLoadMs": 2357.024999976158,
+          "warmupRuns": 1,
+          "timedRuns": 3,
+          "prompt": "The color of the sky is",
+          "promptRendered": "<bos><|turn>user\nThe color of the sky is<turn|>\n<|turn>model\n",
+          "useChatTemplate": true,
+          "maxNewTokens": 32,
+          "sampling": {
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "doSample": false
+          },
+          "cacheMode": "warm",
+          "loadMode": "opfs",
+          "timing": {
+            "modelLoadMs": 2357.024999976158,
+            "firstTokenMs": 147.03500002622604,
+            "firstResponseMs": 2504.060000002384,
+            "prefillMs": 147.03500002622604,
+            "decodeMs": 2721.914999961853,
+            "totalRunMs": 2868.949999988079,
+            "decodeTokensPerSec": 11.389040436763992,
+            "promptTokensPerSecToFirstToken": 102.01652665912545,
+            "prefillTokensPerSec": 102.01652665912545,
+            "prefillTokensPerSecTtft": 102.01652665912545,
+            "decodeMsPerTokenP50": 88.2049999833107,
+            "decodeMsPerTokenP95": 93.8369999885559,
+            "decodeMsPerTokenP99": 95.15959998369216,
+            "cacheMode": "warm",
+            "loadMode": "opfs"
+          },
+          "timingDiagnostics": {
+            "schemaVersion": 1,
+            "source": "transformers.js",
+            "semantics": {
+              "modelLoadMs": "model initialization/load before generation",
+              "firstTokenMs": "ttft from generation start",
+              "firstResponseMs": "modelLoadMs + firstTokenMs",
+              "prefillMs": "ttft_proxy",
+              "decodeMs": "time after first token",
+              "totalRunMs": "prefillMs + decodeMs"
+            },
+            "componentsMs": {
+              "modelLoadMs": 2357.02,
+              "firstTokenMs": 147.04,
+              "firstResponseMs": 2504.06,
+              "prefillMs": 147.04,
+              "decodeMs": 2721.91,
+              "totalRunMs": 2868.95
+            },
+            "sumsMs": {
+              "firstResponseFromLoadAndFirstTokenMs": 2504.06,
+              "runFromPrefillAndDecodeMs": 2868.95
+            },
+            "residualsMs": {
+              "firstResponseResidualMs": 0,
+              "runResidualMs": 0
+            },
+            "consistent": {
+              "firstResponse": true,
+              "totalRun": true
+            }
+          },
+          "deviceInfo": {
+            "vendor": "amd",
+            "architecture": "rdna-3",
+            "device": "0x1586",
+            "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+            "hasF16": true,
+            "hasSubgroups": true,
+            "hasTimestampQuery": true
+          },
+          "metrics": {
+            "decodeTokensPerSec": 11.389040436763992,
+            "promptTokensPerSecToFirstToken": 102.01652665912545,
+            "prefillTokensPerSec": 102.01652665912545,
+            "firstTokenMs": 147.03500002622604,
+            "firstResponseMs": 2504.060000002384,
+            "prefillMs": 147.03500002622604,
+            "decodeMs": 2721.914999961853,
+            "totalRunMs": 2868.949999988079,
+            "modelLoadMs": 2357.024999976158,
+            "decodeMsPerTokenP50": 88.2049999833107,
+            "decodeMsPerTokenP95": 93.8369999885559,
+            "decodeMsPerTokenP99": 95.15959998369216,
+            "ort_profiled_total_ms": 0,
+            "ort_profiled_event_count": 0,
+            "ort_top_op_total_ms": null
+          },
+          "runs": [
+            {
+              "ttftMs": 147.03500002622604,
+              "totalMs": 2868.949999988079,
+              "decodeMs": 2721.914999961853,
+              "newTokens": 32,
+              "decodeTokens": 31,
+              "prefillTokens": 15,
+              "tokensPerSec": 11.15390648151169,
+              "decodeTokensPerSec": 11.389040436763992,
+              "prefillTokensPerSecTtft": 102.01652665912545,
+              "prefillTokensPerSec": 102.01652665912545,
+              "perTokenMs": [
+                90.27999997138977,
+                89.74000000953674,
+                85.27999997138977,
+                92.72000002861023,
+                89.2049999833107,
+                87.18000000715256,
+                76.65500003099442,
+                91.60999995470047,
+                82.65000003576279,
+                83.83499997854233,
+                84.9549999833107,
+                93.31499999761581,
+                89.66000002622604,
+                93.45999997854233,
+                81.48000001907349,
+                86.2049999833107,
+                86.85000002384186,
+                94.26999998092651,
+                85.68999999761581,
+                92.56999999284744,
+                90.81000000238419,
+                87.12000000476837,
+                88.58500003814697,
+                93.2049999833107,
+                85.89499998092651,
+                92.49000000953674,
+                85.26499998569489,
+                89.35000002384186,
+                80.2049999833107,
+                83.57499998807907,
+                87.58500003814697
+              ]
+            },
+            {
+              "ttftMs": 152.45500004291534,
+              "totalMs": 2861.3300000429153,
+              "decodeMs": 2708.875,
+              "newTokens": 32,
+              "decodeTokens": 31,
+              "prefillTokens": 15,
+              "tokensPerSec": 11.18361041876332,
+              "decodeTokensPerSec": 11.443865073139218,
+              "prefillTokensPerSecTtft": 98.38968873292167,
+              "prefillTokensPerSec": 98.38968873292167,
+              "perTokenMs": [
+                84.19999998807907,
+                86.50999999046326,
+                87.58499997854233,
+                89.84500002861023,
+                83.89999997615814,
+                84.90000003576279,
+                86.06999999284744,
+                82.4099999666214,
+                84.29000002145767,
+                89.1700000166893,
+                82.17500001192093,
+                82.30500000715256,
+                89.52999997138977,
+                86.96499997377396,
+                84.81000000238419,
+                86.16500002145767,
+                93.32499998807907,
+                89.24500000476837,
+                93.94499999284744,
+                93.07499998807907,
+                84.94500005245209,
+                91.58499997854233,
+                88.60500001907349,
+                90.26999998092651,
+                91.58499997854233,
+                89.43000000715256,
+                86.13999998569489,
+                90.60500001907349,
+                83.44499999284744,
+                86.91000002622604,
+                84.72999995946884
+              ]
+            },
+            {
+              "ttftMs": 145.8299999833107,
+              "totalMs": 2896.1949999928474,
+              "decodeMs": 2750.3650000095367,
+              "newTokens": 32,
+              "decodeTokens": 31,
+              "prefillTokens": 15,
+              "tokensPerSec": 11.04897978212069,
+              "decodeTokensPerSec": 11.271231272901055,
+              "prefillTokensPerSecTtft": 102.85949394306147,
+              "prefillTokensPerSec": 102.85949394306147,
+              "perTokenMs": [
+                95.0799999833107,
+                85.24500000476837,
+                86.32500004768372,
+                87.00999999046326,
+                81.79499995708466,
+                81.7600000500679,
+                89.625,
+                90.43500000238419,
+                92.8299999833107,
+                88.03999996185303,
+                91.75500005483627,
+                85.60999995470047,
+                89.25499999523163,
+                91.09500002861023,
+                92.76499998569489,
+                88.36000001430511,
+                90.4099999666214,
+                88.99000000953674,
+                90.4650000333786,
+                88.2049999833107,
+                88.18500000238419,
+                83.61500000953674,
+                75.09499996900558,
+                92.74000000953674,
+                93.76499998569489,
+                91.1700000166893,
+                87.31499999761581,
+                91.68999999761581,
+                81.06499999761581,
+                94.40000003576279,
+                96.07499998807907
+              ]
+            }
+          ],
+          "env": {
+            "library": "transformers.js",
+            "version": "4.x",
+            "device": "webgpu",
+            "browserUserAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+            "browserPlatform": "Linux x86_64",
+            "browserLanguage": "en-US",
+            "browserVendor": "Google Inc.",
+            "dtype": "q4f16",
+            "requestedDtype": "q4f16",
+            "dtypeFallbackUsed": false,
+            "executionProviderMode": "webgpu-only",
+            "executionProviderFallbackUsed": false,
+            "ortProxyMode": "off",
+            "ortProxyFallbackUsed": false,
+            "runnerKind": "pipeline_text_generation",
+            "modelArchitecture": null,
+            "webgpuBackend": "vulkan",
+            "browserExecutable": null
+          },
+          "profiling": {
+            "enabled": false,
+            "topN": 20,
+            "ort": {
+              "sessionCount": 0,
+              "endedCount": 0,
+              "sessions": []
+            },
+            "ortConsole": {
+              "eventCount": 0,
+              "durationEventCount": 0,
+              "totalDurationMs": 0,
+              "topOperations": [],
+              "categories": [],
+              "parseErrorCount": 0,
+              "rawLogCount": 0,
+              "enabled": false,
+              "topN": 20
+            }
+          },
+          "generationConfig": {
+            "strictDeterministicGreedy": true,
+            "modelDefaults": {
+              "do_sample": true,
+              "temperature": 1,
+              "top_k": 64,
+              "top_p": 0.95
+            }
+          },
+          "memoryInfo": {
+            "before": {
+              "usedJSHeapSize": 3140000000,
+              "totalJSHeapSize": 3140000000,
+              "jsHeapSizeLimit": 3760000000
+            },
+            "after": {
+              "usedJSHeapSize": 3140000000,
+              "totalJSHeapSize": 3140000000,
+              "jsHeapSizeLimit": 3760000000
+            }
+          },
+          "benchmarkPolicy": {
+            "source": "/home/x/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+            "schemaVersion": 1,
+            "updated": "2026-03-29"
+          },
+          "determinism": {
+            "seed": 0,
+            "decoding": {
+              "do_sample": false,
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1
+            }
+          },
+          "cachePrime": {
+            "enabled": true,
+            "primed": true,
+            "primeMs": 40126.035000026226
+          },
+          "firstLoad": {
+            "schemaVersion": 1,
+            "semantics": {
+              "browserLaunchMs": "node launch request -> browser/context ready",
+              "pageReadyMs": "runner navigation + startup",
+              "cachePrimeMs": "untimed warm-opfs prefetch/load pass",
+              "modelLoadMs": "model initialization/load before generation",
+              "firstTokenMs": "ttft from generation start",
+              "firstResponseMs": "modelLoadMs + firstTokenMs",
+              "harnessWarmStartToFirstResponseMs": "pageReadyMs + cachePrimeMs + firstResponseMs",
+              "endToEndFirstResponseMs": "browserLaunchMs + pageReadyMs + cachePrimeMs + firstResponseMs"
+            },
+            "componentsMs": {
+              "browserLaunchMs": 71,
+              "pageReadyMs": 85.09,
+              "cachePrimeMs": 40126.04,
+              "modelLoadMs": 2357.02,
+              "firstTokenMs": 147.04,
+              "firstResponseMs": 2504.06
+            },
+            "sumsMs": {
+              "firstResponseFromLoadAndFirstTokenMs": 2504.06,
+              "harnessWarmStartToFirstResponseMs": 42715.19,
+              "endToEndFirstResponseMs": 42786.19
+            },
+            "residualsMs": {
+              "firstResponseResidualMs": 0
+            },
+            "consistent": {
+              "firstResponse": true
+            },
+            "mode": {
+              "cachePrimeEnabled": true,
+              "cachePrimePrimed": true,
+              "strictWarmOpfs": true
+            }
+          },
+          "environment": {
+            "host": {
+              "platform": "linux",
+              "arch": "x64",
+              "nodeVersion": "v22.22.1",
+              "osRelease": "7.0.0-10-generic",
+              "cpuModel": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S"
+            },
+            "browser": {
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+              "platform": "Linux x86_64",
+              "language": "en-US",
+              "vendor": "Google Inc.",
+              "executable": null,
+              "channel": null
+            },
+            "gpu": {
+              "api": "webgpu",
+              "backend": "vulkan",
+              "vendor": "amd",
+              "architecture": "rdna-3",
+              "device": "0x1586",
+              "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+              "hasF16": true,
+              "hasSubgroups": true,
+              "hasTimestampQuery": true
+            },
+            "runtime": {
+              "library": "transformers.js",
+              "version": "4.x",
+              "surface": "browser",
+              "device": "webgpu",
+              "dtype": "q4f16",
+              "requestedDtype": "q4f16",
+              "executionProviderMode": "webgpu-only",
+              "cacheMode": "warm",
+              "loadMode": "opfs",
+              "persistentContextRequired": true,
+              "persistentContextUsed": true,
+              "crashRecoveryArgsUsed": false
+            }
+          }
+        }
+      }
+    }
+  },
+  "correctness": {
+    "prompt": "The color of the sky is",
+    "status": "mismatch",
+    "doppler": "The color of the sky is **usually blue** during the daytime on a clear day.\n\nHowever, the color of the sky can change depending on several factors",
+    "transformersjs": "The color of the sky is **blue**.\n\nHowever, the sky can appear a **variety of colors** depending on several factors:\n\n* **Time of",
+    "exactMatch": false,
+    "normalizedMatch": false,
+    "charMismatchIndex": 26,
+    "tokenMatch": {
+      "leftTokenCount": 27,
+      "rightTokenCount": 23,
+      "matchingPrefixTokens": 6,
+      "firstMismatchTokenIndex": 6
+    }
+  }
+}

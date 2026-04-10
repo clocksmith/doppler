@@ -21,6 +21,15 @@ function createRingTracker() {
   };
 }
 
+function createCleanupRecorder() {
+  return {
+    calls: [],
+    completeDeferredCleanup(options = {}) {
+      this.calls.push({ discardPooled: options.discardPooled === true });
+    },
+  };
+}
+
 function createStagingBuffer(words, options = {}) {
   const array = words instanceof Uint32Array ? words : new Uint32Array(words);
   return {
@@ -50,6 +59,7 @@ function createStagingBuffer(words, options = {}) {
 
 {
   const ring = createRingTracker();
+  const cleanupRecorder = createCleanupRecorder();
   const stagingBuffer = createStagingBuffer([0], {
     mapAsyncError: new Error('mapAsync failed'),
   });
@@ -57,6 +67,7 @@ function createStagingBuffer(words, options = {}) {
   await assert.rejects(
     () => readSampledTokenFromStagingBuffer(stagingBuffer, {
       ownsStagingBuffer: true,
+      cleanupRecorder,
       ring,
     }),
     /mapAsync failed/
@@ -66,15 +77,18 @@ function createStagingBuffer(words, options = {}) {
   assert.equal(stagingBuffer.unmapCount, 0);
   assert.equal(stagingBuffer.destroyCount, 1);
   assert.equal(ring.advanceCount, 1);
+  assert.deepEqual(cleanupRecorder.calls, [{ discardPooled: true }]);
 }
 
 {
   const ring = createRingTracker();
+  const cleanupRecorder = createCleanupRecorder();
   const stagingBuffer = createStagingBuffer([42, 1, 7, 9, 0]);
 
   const result = await readSampledTokenFromStagingBuffer(stagingBuffer, {
     ownsStagingBuffer: false,
     hasFinitenessBuffer: true,
+    cleanupRecorder,
     ring,
   });
 
@@ -84,10 +98,12 @@ function createStagingBuffer(words, options = {}) {
   assert.equal(stagingBuffer.unmapCount, 1);
   assert.equal(stagingBuffer.destroyCount, 0);
   assert.equal(ring.advanceCount, 1);
+  assert.deepEqual(cleanupRecorder.calls, [{ discardPooled: false }]);
 }
 
 {
   const ring = createRingTracker();
+  const cleanupRecorder = createCleanupRecorder();
   const stagingBuffer = createStagingBuffer([17], {
     getMappedRangeError: new Error('mapped range failed'),
   });
@@ -95,6 +111,7 @@ function createStagingBuffer(words, options = {}) {
   await assert.rejects(
     () => readSampledTokenFromStagingBuffer(stagingBuffer, {
       ownsStagingBuffer: true,
+      cleanupRecorder,
       ring,
     }),
     /mapped range failed/
@@ -103,6 +120,7 @@ function createStagingBuffer(words, options = {}) {
   assert.equal(stagingBuffer.unmapCount, 1);
   assert.equal(stagingBuffer.destroyCount, 1);
   assert.equal(ring.advanceCount, 1);
+  assert.deepEqual(cleanupRecorder.calls, [{ discardPooled: false }]);
 }
 
 {
@@ -135,6 +153,7 @@ function createStagingBuffer(words, options = {}) {
 
 {
   const ring = createRingTracker();
+  const cleanupRecorder = createCleanupRecorder();
   const tokensStagingBuffer = createStagingBuffer([5, 6, 7]);
   const stopStagingBuffer = createStagingBuffer([0, 1, 0]);
   const finitenessStagingBuffer = createStagingBuffer([1, 3, 4, 0]);
@@ -146,6 +165,7 @@ function createStagingBuffer(words, options = {}) {
     tokenCount: 3,
     ownsTokensStaging: true,
     ownsStopStaging: true,
+    cleanupRecorder,
     ring,
   });
 
@@ -158,10 +178,12 @@ function createStagingBuffer(words, options = {}) {
   assert.equal(stopStagingBuffer.destroyCount, 1);
   assert.equal(finitenessStagingBuffer.destroyCount, 1);
   assert.equal(ring.advanceCount, 1);
+  assert.deepEqual(cleanupRecorder.calls, [{ discardPooled: false }]);
 }
 
 {
   const ring = createRingTracker();
+  const cleanupRecorder = createCleanupRecorder();
   const tokensStagingBuffer = createStagingBuffer([1, 2], {
     mapAsyncError: new Error('batch map failed'),
   });
@@ -174,6 +196,7 @@ function createStagingBuffer(words, options = {}) {
       tokenCount: 2,
       ownsTokensStaging: true,
       ownsStopStaging: true,
+      cleanupRecorder,
       ring,
     }),
     /batch map failed/
@@ -182,10 +205,12 @@ function createStagingBuffer(words, options = {}) {
   assert.equal(tokensStagingBuffer.destroyCount, 1);
   assert.equal(stopStagingBuffer.destroyCount, 1);
   assert.equal(ring.advanceCount, 1);
+  assert.deepEqual(cleanupRecorder.calls, [{ discardPooled: true }]);
 }
 
 {
   const ring = createRingTracker();
+  const cleanupRecorder = createCleanupRecorder();
   const tokensStagingBuffer = createStagingBuffer([1, 2]);
   const stopStagingBuffer = createStagingBuffer([0, 0], {
     getMappedRangeError: new Error('batch range failed'),
@@ -198,6 +223,7 @@ function createStagingBuffer(words, options = {}) {
       tokenCount: 2,
       ownsTokensStaging: true,
       ownsStopStaging: true,
+      cleanupRecorder,
       ring,
     }),
     /batch range failed/
@@ -207,6 +233,27 @@ function createStagingBuffer(words, options = {}) {
   assert.equal(stopStagingBuffer.unmapCount, 1);
   assert.equal(tokensStagingBuffer.destroyCount, 1);
   assert.equal(stopStagingBuffer.destroyCount, 1);
+  assert.equal(ring.advanceCount, 1);
+  assert.deepEqual(cleanupRecorder.calls, [{ discardPooled: false }]);
+}
+
+{
+  const ring = createRingTracker();
+  const tokensStagingBuffer = createStagingBuffer([5, 6, 7]);
+  const finitenessStagingBuffer = createStagingBuffer([0, 0, 0, 0]);
+
+  const result = await readBatchTokensFromStagingBuffers({
+    tokensStagingBuffer,
+    finitenessStagingBuffer,
+    tokenCount: 3,
+    ownsTokensStaging: true,
+    ownsFinitenessStaging: false,
+    ring,
+  });
+
+  assert.deepEqual(result.tokens, [5, 6, 7]);
+  assert.equal(finitenessStagingBuffer.destroyCount, 0);
+  assert.equal(finitenessStagingBuffer.unmapCount, 1);
   assert.equal(ring.advanceCount, 1);
 }
 

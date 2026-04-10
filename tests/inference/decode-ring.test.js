@@ -174,6 +174,7 @@ function makeConfig(overrides = {}) {
   assert.equal(ring.buffers.stop.length, 2);
   assert.equal(ring.buffers.stagingTokens.length, 2);
   assert.equal(ring.buffers.stagingStop.length, 2);
+  assert.equal(ring.buffers.stagingFiniteness.length, 2);
   assert.equal(ring.index, 0);
   assert.equal(ring.ringSize, 2);
   assert.ok(ring.zeroStopData instanceof Uint32Array);
@@ -196,6 +197,7 @@ function makeConfig(overrides = {}) {
   assert.equal(ring.buffers.stop, null);
   assert.equal(ring.buffers.stagingTokens.length, 2);
   assert.equal(ring.buffers.stagingStop, null);
+  assert.equal(ring.buffers.stagingFiniteness.length, 2);
   assert.equal(ring.zeroStopData, null);
 
   ring.release();
@@ -214,6 +216,7 @@ function makeConfig(overrides = {}) {
   assert.equal(ring.buffers.stop, null);
   assert.equal(ring.buffers.stagingTokens, null);
   assert.equal(ring.buffers.stagingStop, null);
+  assert.equal(ring.buffers.stagingFiniteness, null);
   assert.equal(ring.ringSize, 1);
 
   ring.release();
@@ -275,6 +278,7 @@ function makeConfig(overrides = {}) {
   assert.ok(slot.stop);
   assert.ok(slot.stagingTokens);
   assert.ok(slot.stagingStop);
+  assert.ok(slot.stagingFiniteness);
   assert.equal(slot.tokensPerInterval, 4);
   assert.ok(slot.zeroStopData instanceof Uint32Array);
 
@@ -416,6 +420,9 @@ function makeConfig(overrides = {}) {
   assert.equal(stats.tokens.uses, 3);
   assert.equal(stats.tokens.allocated, 2);
   assert.equal(stats.tokens.reuses, 1);
+  assert.equal(stats.stagingFiniteness.allocated, 2);
+  assert.equal(stats.stagingFiniteness.uses, 3);
+  assert.equal(stats.stagingFiniteness.reuses, 1);
 
   ring.release();
 }
@@ -433,6 +440,7 @@ function makeConfig(overrides = {}) {
     ...ring.buffers.stop,
     ...ring.buffers.stagingTokens,
     ...ring.buffers.stagingStop,
+    ...ring.buffers.stagingFiniteness,
   ];
 
   ring.release();

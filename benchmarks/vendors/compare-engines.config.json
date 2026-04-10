@@ -64,8 +64,8 @@
             "defaultDopplerFormat": "rdrr",
             "defaultTjsFormat": "onnx",
             "safetensorsSourceId": "google/gemma-4-e2b-it",
-            "compareLane": "capability_only",
-            "compareLaneReason": "Gemma 4 E2B compare runs should use the model chat template by default, but the lane is not yet promoted to claimable performance evidence."
+            "compareLane": "performance_comparable",
+            "compareLaneReason": null
         },
         {
             "dopplerModelId": "translategemma-4b-it-q4k-ehf16-af32",

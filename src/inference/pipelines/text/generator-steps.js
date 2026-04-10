@@ -210,11 +210,15 @@ export async function readSampledTokenFromStagingBuffer(stagingBuffer, options =
   const ownsStagingBuffer = options.ownsStagingBuffer === true;
   const hasFinitenessBuffer = options.hasFinitenessBuffer === true;
   const ring = options.ring ?? null;
+  const cleanupRecorder = options.cleanupRecorder ?? null;
   let mapped = false;
+  let cleanupCompleted = false;
 
   try {
     await stagingBuffer.mapAsync(GPUMapMode.READ);
     mapped = true;
+    cleanupRecorder?.completeDeferredCleanup();
+    cleanupCompleted = true;
     const mappedWords = new Uint32Array(stagingBuffer.getMappedRange());
     return {
       nextToken: mappedWords[0],
@@ -225,6 +229,9 @@ export async function readSampledTokenFromStagingBuffer(stagingBuffer, options =
   } finally {
     if (mapped) {
       stagingBuffer.unmap();
+    }
+    if (!cleanupCompleted) {
+      cleanupRecorder?.completeDeferredCleanup({ discardPooled: true });
     }
     if (ownsStagingBuffer) {
       stagingBuffer.destroy();
@@ -260,11 +267,14 @@ export async function readBatchTokensFromStagingBuffers(options) {
     tokenCount,
     ownsTokensStaging = false,
     ownsStopStaging = false,
+    ownsFinitenessStaging = Boolean(finitenessStagingBuffer),
     ring = null,
+    cleanupRecorder = null,
   } = options;
   let tokensMapped = false;
   let stopMapped = false;
   let finitenessMapped = false;
+  let cleanupCompleted = false;
 
   try {
     const mapPromises = [tokensStagingBuffer.mapAsync(GPUMapMode.READ)];
@@ -274,10 +284,17 @@ export async function readBatchTokensFromStagingBuffers(options) {
     if (finitenessStagingBuffer) {
       mapPromises.push(finitenessStagingBuffer.mapAsync(GPUMapMode.READ));
     }
-    await Promise.all(mapPromises);
-    tokensMapped = true;
-    stopMapped = Boolean(stopStagingBuffer);
-    finitenessMapped = Boolean(finitenessStagingBuffer);
+    const mapResults = await Promise.allSettled(mapPromises);
+    tokensMapped = mapResults[0]?.status === 'fulfilled';
+    stopMapped = Boolean(stopStagingBuffer) && mapResults[1]?.status === 'fulfilled';
+    finitenessMapped = Boolean(finitenessStagingBuffer)
+      && mapResults[stopStagingBuffer ? 2 : 1]?.status === 'fulfilled';
+    const mapFailure = mapResults.find((result) => result.status === 'rejected');
+    if (mapFailure) {
+      throw mapFailure.reason;
+    }
+    cleanupRecorder?.completeDeferredCleanup();
+    cleanupCompleted = true;
 
     const tokens = Array.from(
       new Uint32Array(tokensStagingBuffer.getMappedRange()).subarray(0, tokenCount)
@@ -304,7 +321,10 @@ export async function readBatchTokensFromStagingBuffers(options) {
     if (stopMapped) {
       stopStagingBuffer.unmap();
     }
-    if (finitenessStagingBuffer) {
+    if (!cleanupCompleted) {
+      cleanupRecorder?.completeDeferredCleanup({ discardPooled: true });
+    }
+    if (ownsFinitenessStaging) {
       finitenessStagingBuffer.destroy();
     }
     if (ownsTokensStaging) {
@@ -665,19 +685,20 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       ring?.advance();
     }
 
-    const submitStart = performance.now();
-    recorder.submit();
-    const submitWaitMs = performance.now() - submitStart;
-
     if (!allowReadback('pipeline.decode.sample')) {
       throw new Error('[Pipeline] GPU readback disabled for sampling');
     }
+
+    const submitStart = performance.now();
+    recorder.submit({ cleanup: 'deferred' });
+    const submitWaitMs = performance.now() - submitStart;
 
     const readbackStart = performance.now();
     const readbackResult = await readSampledTokenFromStagingBuffer(stagingBuffer, {
       ownsStagingBuffer,
       hasFinitenessBuffer: Boolean(state.finitenessBuffer),
-      ring: isOverlapped ? null : ring,  // ring already advanced above in overlapped
+      ring: isOverlapped ? null : ring,
+      cleanupRecorder: recorder,
     });
     const readbackWaitMs = performance.now() - readbackStart;
 
@@ -1289,7 +1310,13 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     })
     : null;
   const ownsStopStaging = useGpuStopFlags && !ringSlot?.stagingStop;
-  let finitenessStagingBuffer = null;
+  const finitenessStagingBuffer = state.finitenessBuffer
+    ? ringSlot?.stagingFiniteness ?? device.createBuffer({
+      size: 16,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+    })
+    : null;
+  const ownsFinitenessStaging = Boolean(state.finitenessBuffer) && !ringSlot?.stagingFiniteness;
   let readbackCleanupDelegated = false;
   let repHistoryBuffer = null;
   let repHistoryCount = 0;
@@ -1497,19 +1524,15 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
       encoder.copyBufferToBuffer(stopBuffer, 4, stopStagingBuffer, 0, N * 4);
     }
 
-    if (state.finitenessBuffer) {
-      finitenessStagingBuffer = device.createBuffer({
-        size: 16,
-        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
-      });
+    if (state.finitenessBuffer && finitenessStagingBuffer) {
       encoder.copyBufferToBuffer(state.finitenessBuffer, 0, finitenessStagingBuffer, 0, 16);
     }
-
-    recorder.submit();
 
     if (!allowReadback('pipeline.decode.sample')) {
       throw new Error('[Pipeline] GPU readback disabled for sampling');
     }
+
+    recorder.submit({ cleanup: 'deferred' });
 
     const readbackStart = performance.now();
     readbackCleanupDelegated = true;
@@ -1520,7 +1543,9 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
       tokenCount: N,
       ownsTokensStaging,
       ownsStopStaging,
+      ownsFinitenessStaging,
       ring,
+      cleanupRecorder: recorder,
     });
     const readbackWaitMs = performance.now() - readbackStart;
     state.stats.decodeReadbackWaitMs = (state.stats.decodeReadbackWaitMs ?? 0) + readbackWaitMs;
@@ -1586,7 +1611,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     state.batchingStats.gpuSubmissions += 1;
 
     if (!readbackCleanupDelegated) {
-      if (finitenessStagingBuffer) {
+      if (ownsFinitenessStaging) {
         finitenessStagingBuffer.destroy();
       }
       if (ownsTokensStaging) tokensStagingBuffer.destroy();

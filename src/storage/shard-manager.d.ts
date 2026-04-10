@@ -114,6 +114,10 @@ export function loadShardSync(
   length?: number
 ): Promise<Uint8Array>;
 
+export function checkFileExistsInBackend(
+  storageBackend: Record<string, unknown>,
+  filename: string
+): Promise<boolean>;
 export function shardExists(shardIndex: number): Promise<boolean>;
 export function getShardStoredSize(shardIndex: number): Promise<number>;
 export function verifyIntegrity(options?: { checkHashes?: boolean }): Promise<IntegrityResult>;

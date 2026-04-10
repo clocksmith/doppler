@@ -32,6 +32,7 @@ function createRingStats(buffers, config, ringSize) {
     stop: createSlotStats(buffers.stop?.length ?? 0),
     stagingTokens: createSlotStats(buffers.stagingTokens?.length ?? 0),
     stagingStop: createSlotStats(buffers.stagingStop?.length ?? 0),
+    stagingFiniteness: createSlotStats(buffers.stagingFiniteness?.length ?? 0),
     acquires: 0,
     advances: 0,
     resets: 0,
@@ -49,6 +50,7 @@ function resetRingUsage(stats) {
   resetSlotStats(stats.stop);
   resetSlotStats(stats.stagingTokens);
   resetSlotStats(stats.stagingStop);
+  resetSlotStats(stats.stagingFiniteness);
 }
 
 function assertBufferFits(label, size, isStorage, limits) {
@@ -136,6 +138,7 @@ export class DecodeRing {
       stop: null,
       stagingTokens: null,
       stagingStop: null,
+      stagingFiniteness: null,
     };
 
     if (normalized.ringTokens > 0) {
@@ -178,6 +181,16 @@ export class DecodeRing {
       ));
     }
 
+    if (normalized.ringStaging > 0) {
+      buffers.stagingFiniteness = Array.from({ length: normalized.ringStaging }, (_, i) => (
+        device.createBuffer({
+          label: `decode_ring_staging_finiteness_${i}`,
+          size: 16,
+          usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+        })
+      ));
+    }
+
     this.buffers = buffers;
     this.config = normalized;
     this.index = 0;
@@ -208,6 +221,9 @@ export class DecodeRing {
     const stagingStop = this.buffers.stagingStop
       ? this.buffers.stagingStop[idx % this.buffers.stagingStop.length]
       : null;
+    const stagingFiniteness = this.buffers.stagingFiniteness
+      ? this.buffers.stagingFiniteness[idx % this.buffers.stagingFiniteness.length]
+      : null;
 
     if (this.stats) {
       this.stats.acquires += 1;
@@ -215,6 +231,7 @@ export class DecodeRing {
       if (stop) trackSlotUse(this.stats.stop);
       if (stagingTokens) trackSlotUse(this.stats.stagingTokens);
       if (stagingStop) trackSlotUse(this.stats.stagingStop);
+      if (stagingFiniteness) trackSlotUse(this.stats.stagingFiniteness);
     }
 
     return {
@@ -223,6 +240,7 @@ export class DecodeRing {
       stop,
       stagingTokens,
       stagingStop,
+      stagingFiniteness,
       tokensPerInterval: this.config.tokensPerInterval,
       zeroStopData: this.zeroStopData,
     };
@@ -248,6 +266,7 @@ export class DecodeRing {
       stop: { ...this.stats.stop },
       stagingTokens: { ...this.stats.stagingTokens },
       stagingStop: { ...this.stats.stagingStop },
+      stagingFiniteness: { ...this.stats.stagingFiniteness },
       acquires: this.stats.acquires,
       advances: this.stats.advances,
       resets: this.stats.resets,
@@ -262,6 +281,7 @@ export class DecodeRing {
       this.buffers.stop?.forEach((buffer) => buffer.destroy());
       this.buffers.stagingTokens?.forEach((buffer) => buffer.destroy());
       this.buffers.stagingStop?.forEach((buffer) => buffer.destroy());
+      this.buffers.stagingFiniteness?.forEach((buffer) => buffer.destroy());
     }
     this.buffers = null;
     this.config = null;
