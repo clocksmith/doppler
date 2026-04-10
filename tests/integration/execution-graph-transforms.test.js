@@ -559,7 +559,7 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
-// Test 10: useLinearDecodeProjectionF16 — explicit diagnostic transform on Qwen
+// Test 10: useLinearDecodeProjectionF16 — no-op on the promoted Qwen primary graph
 // ===========================================================================
 {
   const graph = structuredClone(QWEN_REAL_GRAPH);
@@ -570,18 +570,14 @@ function buildF16WeightProjectionGraph() {
     layerTypes: qwenConversionConfig.inference.layerPattern.layerTypes,
   });
 
-  ok(result, 'useLinearDecodeProjectionF16 should return a linear-layer f16 diagnostic graph on Qwen');
-
-  ok(
-    Object.values(result.kernels).some((entry) => entry?.kernel === 'fused_matmul_q4_multicol_f16a.wgsl'),
-    'useLinearDecodeProjectionF16 should derive fused_matmul_q4_multicol_f16a.wgsl for linear decode'
-  );
+  equal(result, null,
+    'useLinearDecodeProjectionF16 should be a no-op when the promoted Qwen graph is already specialized');
 
   deepEqual(graph, frozen, 'useLinearDecodeProjectionF16 must not mutate the input graph');
 }
 
 // ===========================================================================
-// Test 10b: useQwenDecodeF16Matmuls — partial on fused-Q4 Qwen graph
+// Test 10b: useQwenDecodeF16Matmuls — partial on the promoted Qwen graph
 // ===========================================================================
 {
   const graph = structuredClone(QWEN_REAL_GRAPH);
@@ -592,11 +588,22 @@ function buildF16WeightProjectionGraph() {
   });
 
   ok(result, 'useQwenDecodeF16Matmuls should derive explicit f16 decode kernels on Qwen');
+  const qProjStep = result.decode.find((entry) => Array.isArray(entry) && entry[0] === 'q_proj');
+  equal(
+    result.kernels[qProjStep[1]].kernel,
+    'fused_matmul_q4.wgsl',
+    'useQwenDecodeF16Matmuls should keep attention projections on fused_matmul_q4.wgsl'
+  );
+  equal(
+    result.kernels[qProjStep[1]].entry,
+    'main_gemv',
+    'useQwenDecodeF16Matmuls should keep attention projections on fused_matmul_q4.wgsl#main_gemv'
+  );
   const gateStep = result.decode.find((entry) => Array.isArray(entry) && entry[0] === 'gate_proj');
   equal(
     result.kernels[gateStep[1]].kernel,
-    'fused_matmul_q4_multicol_f16a.wgsl',
-    'useQwenDecodeF16Matmuls should rewrite gate_proj onto fused_matmul_q4_multicol_f16a.wgsl'
+    'matmul_gemv_subgroup.wgsl',
+    'useQwenDecodeF16Matmuls should keep FFN decode on matmul_gemv_subgroup.wgsl'
   );
   equal(
     result.kernels[result.postLayer.find((entry) => Array.isArray(entry) && entry[0] === 'lm_head')[1]].kernel,
@@ -635,12 +642,12 @@ function buildF16WeightProjectionGraph() {
       `Remapped Qwen graph: ${op} should use matmul_gemv_subgroup.wgsl, got ${entry.kernel}`);
   }
 
-  // Verify prefill keeps the fused-Q4 primary path.
+  // Verify prefill keeps the promoted fused-Q4/streaming primary path.
   const prefillFiles = collectKernelFilesForPhase(result, 'prefill');
-  ok(prefillFiles.has('fused_matmul_q4_batched_f16a.wgsl'),
-    'Remapped Qwen graph should keep fused_matmul_q4_batched_f16a.wgsl in prefill');
-  ok(prefillFiles.has('attention_streaming_f16.wgsl'),
-    'Remapped Qwen graph should keep attention_streaming_f16.wgsl in prefill');
+  ok(prefillFiles.has('fused_matmul_q4_batched.wgsl'),
+    'Remapped Qwen graph should keep fused_matmul_q4_batched.wgsl in prefill');
+  ok(prefillFiles.has('attention_streaming_f16kv.wgsl'),
+    'Remapped Qwen graph should keep attention_streaming_f16kv.wgsl in prefill');
 
   deepEqual(graph, frozen, 'remapQ4KDecodeToGemv must not mutate the input graph');
 }

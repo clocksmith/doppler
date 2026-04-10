@@ -315,10 +315,10 @@ const EXPLICIT_TEXT_DEFAULTS = [
   {
     path: 'src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json',
     computeDefaults: {
-      activationDtype: 'f16',
-      mathDtype: 'f16',
-      accumDtype: 'f16',
-      outputDtype: 'f16',
+      activationDtype: 'f32',
+      mathDtype: 'f32',
+      accumDtype: 'f32',
+      outputDtype: 'f32',
     },
     kvcache: {
       kvDtype: 'f16',
@@ -328,9 +328,9 @@ const EXPLICIT_TEXT_DEFAULTS = [
       tiering: { mode: 'off' },
     },
     decodeLoop: {
-      batchSize: 4,
+      batchSize: 32,
       stopCheckMode: 'batch',
-      readbackInterval: 32,
+      readbackInterval: 1,
       readbackMode: 'sequential',
       submitLatencyThresholdMs: null,
       ringTokens: 1,

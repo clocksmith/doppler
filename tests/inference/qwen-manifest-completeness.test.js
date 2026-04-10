@@ -37,10 +37,18 @@ const EXPECTED_QWEN_LAYER_TYPES = Array.from(
   (_, index) => ((index + 1) % 4 === 0 ? 'full_attention' : 'linear_attention')
 );
 const EXPECTED_QWEN_COMPUTE_DEFAULTS = Object.freeze({
-  activationDtype: 'f16',
-  mathDtype: 'f16',
-  accumDtype: 'f16',
-  outputDtype: 'f16',
+  'qwen-3-5-0-8b-q4k-ehaf16': {
+    activationDtype: 'f32',
+    mathDtype: 'f32',
+    accumDtype: 'f32',
+    outputDtype: 'f32',
+  },
+  'qwen-3-5-2b-q4k-ehaf16': {
+    activationDtype: 'f16',
+    mathDtype: 'f16',
+    accumDtype: 'f16',
+    outputDtype: 'f16',
+  },
 });
 const EXPECTED_QWEN_PER_LAYER_INPUTS = Object.freeze({
   materialization: 'auto',
@@ -68,9 +76,9 @@ const EXPECTED_QWEN_PER_LAYER_INPUTS = Object.freeze({
 const EXPECTED_QWEN_EOS_TOKEN_ID = 248044;
 const EXPECTED_QWEN_DECODE_LOOPS = Object.freeze({
   'qwen-3-5-0-8b-q4k-ehaf16': {
-    batchSize: 4,
+    batchSize: 32,
     stopCheckMode: 'batch',
-    readbackInterval: 32,
+    readbackInterval: 1,
     readbackMode: 'sequential',
     submitLatencyThresholdMs: null,
     ringTokens: 1,
@@ -104,8 +112,11 @@ function assertQwenDecodeLoop(decodeLoop, label) {
 }
 
 function assertQwenComputeDefaults(computeDefaults, label) {
+  const modelLabel = String(label ?? '');
+  const matchedKey = Object.keys(EXPECTED_QWEN_COMPUTE_DEFAULTS).find((key) => modelLabel.includes(key));
+  assert.ok(matchedKey, `missing expected qwen compute defaults for ${modelLabel}`);
   assert.ok(computeDefaults && typeof computeDefaults === 'object', `${label} compute defaults must be present`);
-  assert.deepEqual(computeDefaults, EXPECTED_QWEN_COMPUTE_DEFAULTS, `${label} compute defaults`);
+  assert.deepEqual(computeDefaults, EXPECTED_QWEN_COMPUTE_DEFAULTS[matchedKey], `${label} compute defaults`);
 }
 
 function assertQwenPerLayerInputs(perLayerInputs, label) {
@@ -169,6 +180,19 @@ function assertF16KvAttentionPrecision(execution, label) {
 }
 
 function assertQwenF16UtilityKernels(execution, label) {
+  if (String(label).includes('qwen-3-5-0-8b-q4k-ehaf16')) {
+    assert.equal(execution?.kernels?.rmsnorm?.kernel, 'rmsnorm.wgsl', `${label} rmsnorm kernel`);
+    assert.equal(execution?.kernels?.q4_decode?.kernel, 'fused_matmul_q4.wgsl', `${label} q4_decode kernel`);
+    assert.equal(execution?.kernels?.q4_decode_gemv?.kernel, 'fused_matmul_q4.wgsl', `${label} q4_decode_gemv kernel`);
+    assert.equal(execution?.kernels?.q4_decode_gemv?.entry, 'main_gemv', `${label} q4_decode_gemv entry`);
+    assert.equal(execution?.kernels?.q4_decode_ffn_gemv?.kernel, 'matmul_gemv_subgroup.wgsl', `${label} q4_decode_ffn_gemv kernel`);
+    assert.equal(execution?.kernels?.rope?.kernel, 'rope.wgsl', `${label} rope kernel`);
+    assert.equal(execution?.kernels?.residual?.kernel, 'residual.wgsl', `${label} residual kernel`);
+    assert.equal(execution?.kernels?.silu?.kernel, 'silu.wgsl', `${label} silu kernel`);
+    assert.equal(execution?.kernels?.q4_prefill?.kernel, 'fused_matmul_q4_batched.wgsl', `${label} q4_prefill kernel`);
+    assert.equal(execution?.kernels?.sample?.kernel, 'sample.wgsl', `${label} sample kernel`);
+    return;
+  }
   assert.equal(execution?.kernels?.rmsnorm?.kernel, 'rmsnorm_f16.wgsl', `${label} rmsnorm kernel`);
   assert.deepEqual(execution?.kernels?.q4_decode?.precision, {
     inputDtype: 'f16',
@@ -354,10 +378,23 @@ for (const config of convConfigs) {
 for (const config of convConfigs) {
   assert.ok(config.execution && typeof config.execution === 'object');
   assert.equal(config.execution.inlineKernelPath, true);
-  if (
-    (config.output?.modelBaseId ?? '') === 'qwen-3-5-0-8b-q4k-ehaf16'
-    || (config.output?.modelBaseId ?? '') === 'qwen-3-5-2b-q4k-ehaf16'
-  ) {
+  if ((config.output?.modelBaseId ?? '') === 'qwen-3-5-0-8b-q4k-ehaf16') {
+    assert.equal(config.execution.kernels.rmsnorm.kernel, 'rmsnorm.wgsl');
+    assert.equal(config.execution.kernels.q4_decode.kernel, 'fused_matmul_q4.wgsl');
+    assert.equal(config.execution.kernels.q4_decode.entry, 'main_multicol');
+    assert.equal(config.execution.kernels.q4_decode_gemv.kernel, 'fused_matmul_q4.wgsl');
+    assert.equal(config.execution.kernels.q4_decode_gemv.entry, 'main_gemv');
+    assert.equal(config.execution.kernels.q4_decode_ffn_gemv.kernel, 'matmul_gemv_subgroup.wgsl');
+    assert.equal(config.execution.kernels.rope.kernel, 'rope.wgsl');
+    assert.equal(config.execution.kernels.residual.kernel, 'residual.wgsl');
+    assert.equal(config.execution.kernels.silu.kernel, 'silu.wgsl');
+    assert.equal(config.execution.kernels.tiled.kernel, 'matmul_f16w_f32a.wgsl');
+    assert.equal(config.execution.kernels.q4_prefill.kernel, 'fused_matmul_q4_batched.wgsl');
+    assert.equal(config.execution.kernels.attn_decode.kernel, 'attention_decode_online_f16kv.wgsl');
+    assert.equal(config.execution.kernels.attn_stream.kernel, 'attention_streaming_f16kv.wgsl');
+    assert.equal(config.execution.kernels.lm_head_gemv.kernel, 'matmul_gemv_subgroup.wgsl');
+    assert.equal(config.execution.kernels.sample.kernel, 'sample.wgsl');
+  } else if ((config.output?.modelBaseId ?? '') === 'qwen-3-5-2b-q4k-ehaf16') {
     assert.equal(config.execution.kernels.rmsnorm.kernel, 'rmsnorm_f16.wgsl');
     assert.equal(config.execution.kernels.q4_decode.kernel, 'fused_matmul_q4_multicol_f16a.wgsl');
     assert.equal(config.execution.kernels.rope.kernel, 'rope_f16.wgsl');
