@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
+  <title id="title">New prompt shortcut icon</title>
+  <rect width="96" height="96" rx="24" fill="#0d1117"/>
+  <path d="M48 24v48M24 48h48" stroke="#ffffff" stroke-linecap="round" stroke-width="10"/>
+</svg>

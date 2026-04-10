@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">Doppler desktop screenshot</title>
+  <desc id="desc">A desktop window mockup of the Doppler demo with model cards, prompt input, output, and settings.</desc>
+  <rect width="1440" height="900" fill="#eef3f7"/>
+  <rect x="60" y="48" width="1320" height="804" rx="32" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="60" y="48" width="1320" height="56" rx="32" fill="#f7f9fb"/>
+  <circle cx="108" cy="76" r="8" fill="#111111"/>
+  <text x="136" y="83" fill="#111111" font-family="SF Mono, Menlo, monospace" font-size="20" letter-spacing="3">DOPPLER</text>
+  <text x="1190" y="83" fill="#55606c" font-family="SF Mono, Menlo, monospace" font-size="16" letter-spacing="2">LOCAL WEBGPU INFERENCE</text>
+
+  <rect x="112" y="136" width="1216" height="72" rx="16" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="148" y="179" fill="#111111" font-family="SF Mono, Menlo, monospace" font-size="28" letter-spacing="2">Doppler</text>
+  <rect x="1104" y="154" width="188" height="34" rx="17" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="1132" cy="171" r="6" fill="#111111"/>
+  <text x="1150" y="177" fill="#111111" font-family="SF Mono, Menlo, monospace" font-size="14" letter-spacing="2">READY</text>
+
+  <text x="112" y="252" fill="#6a727b" font-family="SF Mono, Menlo, monospace" font-size="16" letter-spacing="4">MODEL</text>
+  <rect x="112" y="272" width="388" height="140" rx="20" fill="#ffffff" stroke="#111111" stroke-width="2" stroke-dasharray="4 6"/>
+  <rect x="526" y="272" width="388" height="140" rx="20" fill="#111111"/>
+  <rect x="940" y="272" width="388" height="140" rx="20" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text x="148" y="320" fill="#111111" font-family="SF Mono, Menlo, monospace" font-size="22" letter-spacing="2">Gemma 3 1B</text>
+  <text x="148" y="352" fill="#6a727b" font-family="SF Mono, Menlo, monospace" font-size="15">Stored in OPFS</text>
+  <text x="562" y="320" fill="#ffffff" font-family="SF Mono, Menlo, monospace" font-size="22" letter-spacing="2">Qwen 3.5 0.8B</text>
+  <text x="562" y="352" fill="#b5bec7" font-family="SF Mono, Menlo, monospace" font-size="15">Loaded to GPU</text>
+  <text x="976" y="320" fill="#111111" font-family="SF Mono, Menlo, monospace" font-size="22" letter-spacing="2">TranslateGemma</text>
+  <text x="976" y="352" fill="#6a727b" font-family="SF Mono, Menlo, monospace" font-size="15">Available remotely</text>
+
+  <rect x="112" y="452" width="1216" height="108" rx="20" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="148" y="508" fill="#111111" font-family="SF Mono, Menlo, monospace" font-size="24">Explain the current decode hotspots for this model.</text>
+  <rect x="1096" y="470" width="92" height="38" rx="19" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="1120" y="494" fill="#111111" font-family="SF Mono, Menlo, monospace" font-size="14" letter-spacing="2">RUN</text>
+  <rect x="1202" y="470" width="92" height="38" rx="19" fill="#111111"/>
+  <text x="1224" y="494" fill="#ffffff" font-family="SF Mono, Menlo, monospace" font-size="14" letter-spacing="2">STOP</text>
+
+  <rect x="112" y="590" width="1216" height="156" rx="20" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="148" y="630" fill="#6a727b" font-family="SF Mono, Menlo, monospace" font-size="16" letter-spacing="3">DECODE · 53.03 TOK/S</text>
+  <rect x="148" y="654" width="414" height="4" fill="#111111"/>
+  <text x="148" y="694" fill="#111111" font-family="SF Mono, Menlo, monospace" font-size="22">Submit and readback are no longer double-waiting per decode batch.</text>
+  <text x="148" y="728" fill="#111111" font-family="SF Mono, Menlo, monospace" font-size="22">The reusable finiteness staging slot removes a tiny but repeated allocation.</text>
+
+  <rect x="112" y="772" width="312" height="42" rx="21" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="136" y="798" fill="#111111" font-family="SF Mono, Menlo, monospace" font-size="14" letter-spacing="2">SETTINGS · XRAY · EXPORT JSON</text>
+</svg>

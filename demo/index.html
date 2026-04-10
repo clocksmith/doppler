@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
   <title>Doppler</title>
   <link rel="icon" type="image/svg+xml" href="/demo/favicon.svg">
   <link rel="manifest" href="/demo/pwa-manifest.json">
@@ -21,6 +22,11 @@
 </head>
 
 <body>
+  <div id="desktop-titlebar" class="desktop-titlebar" hidden>
+    <div class="desktop-titlebar-brand">Doppler</div>
+    <div id="desktop-titlebar-phase" class="desktop-titlebar-phase">Ready</div>
+  </div>
+
   <!-- Boot overlay -->
   <div id="boot-overlay" class="boot-overlay">
     <div class="boot-title">Doppler</div>
@@ -34,6 +40,7 @@
     <header class="app-header">
       <h1 class="type-h2">Doppler</h1>
       <div class="app-header-end">
+        <button id="install-btn" class="btn btn-ghost" hidden>Install</button>
         <div id="status" class="status-chip">
           <span id="status-dot" class="status-dot"></span>
           <span id="status-text">Ready</span>

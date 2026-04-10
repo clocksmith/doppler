@@ -1,17 +1,89 @@
 {
-  "name": "Doppler",
+  "id": "/demo/",
+  "name": "Doppler Demo",
   "short_name": "Doppler",
   "description": "Browser-native inference engine for local AI workloads",
+  "lang": "en-US",
   "start_url": "/demo/index.html",
   "scope": "/demo/",
   "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone"
+  ],
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
   "icons": [
     {
-      "src": "/demo/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
+      "src": "/demo/assets/pwa/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/demo/assets/pwa/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/demo/assets/pwa/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/demo/assets/pwa/screenshot-desktop.png",
+      "sizes": "1440x900",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Prompt",
+      "short_name": "Prompt",
+      "description": "Open a clean desktop prompt window.",
+      "url": "/demo/index.html?shortcut=new",
+      "icons": [
+        {
+          "src": "/demo/assets/pwa/shortcut-new-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Kernel X-Ray",
+      "short_name": "X-Ray",
+      "description": "Launch with decode and GPU x-ray panels enabled.",
+      "url": "/demo/index.html?shortcut=xray&xray=decode,kernel,gpu,batch&prompt=Explain%20the%20current%20decode%20hotspots.",
+      "icons": [
+        {
+          "src": "/demo/assets/pwa/shortcut-xray-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/demo/index.html?launch=file",
+      "accept": {
+        "text/plain": [
+          ".txt"
+        ],
+        "text/markdown": [
+          ".md"
+        ],
+        "application/json": [
+          ".json"
+        ]
+      }
     }
   ]
 }

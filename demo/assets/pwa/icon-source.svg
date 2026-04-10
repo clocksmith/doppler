@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Doppler desktop app icon</title>
+  <desc id="desc">A rounded dark square with a white Doppler glyph and cyan signal pulse.</desc>
+  <rect width="512" height="512" rx="120" fill="#ffffff"/>
+  <rect x="48" y="48" width="416" height="416" rx="104" fill="#0d1117"/>
+  <path d="M152 136h90c76 0 122 46 122 120s-46 120-122 120h-90z" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" stroke-width="48"/>
+  <path d="M264 176c48 0 78 30 78 80s-30 80-78 80" fill="none" stroke="#57c7ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="26"/>
+  <circle cx="360" cy="176" r="18" fill="#57c7ff"/>
+</svg>

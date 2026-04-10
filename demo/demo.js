@@ -6,10 +6,13 @@ import { initSettings } from './settings.js';
 import { initReport } from './report.js';
 import { onModelLoaded, runGeneration, stopGeneration } from './core.js';
 import { initXray } from './ui/xray/index.js';
+import { flushPwaLaunchState, initPwa } from './pwa.js';
 
 function $(id) { return document.getElementById(id); }
 
 async function init() {
+  initPwa();
+
   // Wire model callbacks
   setModelCallbacks({
     onLoaded: onModelLoaded,
@@ -20,6 +23,7 @@ async function init() {
   initSettings();
   initReport();
   await initInput();
+  flushPwaLaunchState();
 
   // Wire run/stop
   setRunHandler(runGeneration);

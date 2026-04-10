@@ -8,6 +8,8 @@
   --doppler-blue: #3b82f6;
   --doppler-purple: #8b5cf6;
   --doppler-red: #ef4444;
+  --doppler-titlebar-bg: rgba(255, 255, 255, 0.9);
+  --doppler-titlebar-border: rgba(0, 0, 0, 0.14);
 }
 
 /* --- Boot overlay --- */
@@ -68,6 +70,10 @@
   gap: var(--space-md);
 }
 
+body.pwa-window-controls .app-shell {
+  padding-top: calc(var(--space-md) + max(env(titlebar-area-height, 0px), 40px));
+}
+
 .app-header {
   display: flex;
   align-items: baseline;
@@ -81,6 +87,39 @@
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+}
+
+.desktop-titlebar {
+  position: fixed;
+  left: env(titlebar-area-x, 0px);
+  top: env(titlebar-area-y, 0px);
+  width: env(titlebar-area-width, 100vw);
+  height: max(env(titlebar-area-height, 0px), 40px);
+  padding: 0 var(--space-md);
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  background: var(--doppler-titlebar-bg);
+  border-bottom: var(--border-sm) solid var(--doppler-titlebar-border);
+  backdrop-filter: blur(12px);
+  z-index: calc(var(--z-dropdown) + 1);
+  -webkit-app-region: drag;
+}
+
+body.pwa-window-controls .desktop-titlebar:not([hidden]) {
+  display: flex;
+}
+
+.desktop-titlebar-brand,
+.desktop-titlebar-phase {
+  font-size: var(--font-size-sm);
+  letter-spacing: var(--font-tracking-label);
+  text-transform: uppercase;
+}
+
+.desktop-titlebar-phase {
+  opacity: var(--opacity-soft);
 }
 
 /* --- Model picker --- */
@@ -404,6 +443,10 @@
 @media (max-width: 600px) {
   .app-shell {
     padding: var(--space-sm);
+  }
+
+  body.pwa-window-controls .app-shell {
+    padding-top: calc(var(--space-sm) + max(env(titlebar-area-height, 0px), 40px));
   }
 
   .model-cards {
