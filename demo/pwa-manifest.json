@@ -39,7 +39,8 @@
       "src": "/demo/assets/pwa/screenshot-desktop.png",
       "sizes": "1440x900",
       "type": "image/png",
-      "form_factor": "wide"
+      "form_factor": "wide",
+      "label": "Doppler desktop workspace with model controls, prompt runner, output stream, and X-Ray panels."
     }
   ],
   "shortcuts": [

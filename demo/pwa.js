@@ -23,7 +23,8 @@ function createDisplayModeQuery(mode) {
 
 function isStandaloneModeActive() {
   return createDisplayModeQuery('standalone').matches
-    || createDisplayModeQuery('window-controls-overlay').matches;
+    || createDisplayModeQuery('window-controls-overlay').matches
+    || navigator.standalone === true;
 }
 
 function isWindowControlsOverlayActive() {
