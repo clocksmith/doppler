@@ -1,5 +1,6 @@
 import { initializeInference } from './test-harness.js';
 import { setRuntimeConfig } from '../config/runtime.js';
+import { log } from '../debug/index.js';
 import { initDevice, getKernelCapabilities, getDevice } from '../gpu/device.js';
 import { createPipeline } from './pipelines/text.js';
 import { parseModelConfigFromManifest } from './pipelines/text/config.js';
@@ -101,7 +102,11 @@ export async function initializeInferenceFromStorage(modelId, options = {}) {
   if (!manifestText) {
     throw new Error('Manifest not found in storage');
   }
-  const manifest = synthesizeStoredSourceArtifactManifest(parseManifest(manifestText)).manifest;
+  const synthesizedManifest = synthesizeStoredSourceArtifactManifest(parseManifest(manifestText));
+  const manifest = synthesizedManifest.manifest;
+  if (synthesizedManifest.changed) {
+    log.info('Harness', `Synthesized stored-shard source runtime for "${modelId}"`);
+  }
 
   onProgress?.('gpu', 0.2, 'Initializing WebGPU...');
   await initDevice();
@@ -112,6 +117,12 @@ export async function initializeInferenceFromStorage(modelId, options = {}) {
   const storage = buildSourceArtifactFingerprint(manifest)
     ? createStoredSourceArtifactContext(manifest, { verifyHashes: true })
     : null;
+  log.info(
+    'Harness',
+    storage
+      ? `Using stored source artifact context for "${modelId}"`
+      : `Using default shard-store context for "${modelId}"`
+  );
   const pipeline = await createPipeline(manifest, {
     gpu: { device },
     runtime: options.runtime,
@@ -219,6 +230,10 @@ export async function initializeSuiteModel(options = {}) {
   const loadStart = performance.now();
   const runtime = resolveRuntime(options);
   const loadMode = normalizeLoadMode(options.loadMode, !!options.modelUrl, options.modelUrl);
+  log.info(
+    'Harness',
+    `Suite model init: loadMode=${loadMode}, modelId=${options.modelId ?? 'unset'}, hasModelUrl=${options.modelUrl ? 'yes' : 'no'}`
+  );
   let harness;
   if (loadMode === 'memory') {
     if (!options.modelUrl) {

@@ -81,6 +81,7 @@
           }
         },
         "kvcache": {
+          "maxSeqLen": 8192,
           "layout": "contiguous",
           "kvDtype": "f16",
           "pageSize": 256

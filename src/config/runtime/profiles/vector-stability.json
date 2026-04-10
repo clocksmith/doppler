@@ -46,6 +46,7 @@
           }
         },
         "kvcache": {
+          "maxSeqLen": 1024,
           "kvDtype": "f32"
         }
       }

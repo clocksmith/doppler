@@ -570,6 +570,33 @@ function isSameRoPEScalingConfig(
       === (rightScaling?.original_max_position_embeddings ?? null);
 }
 
+const GPU_ROPE_BUFFER_CACHE = new WeakMap();
+const CPU_ROPE_BUFFER_CACHE = new Map();
+
+function buildRoPECacheKey(config) {
+  return JSON.stringify({
+    headDim: config.headDim,
+    localHeadDim: config.localHeadDim ?? null,
+    rotaryDim: config.rotaryDim ?? null,
+    ropeLocalRotaryDim: config.ropeLocalRotaryDim ?? null,
+    ropeFrequencyBaseDim: config.ropeFrequencyBaseDim ?? null,
+    ropeLocalFrequencyBaseDim: config.ropeLocalFrequencyBaseDim ?? null,
+    maxSeqLen: config.maxSeqLen,
+    ropeTheta: config.ropeTheta,
+    ropeLocalTheta: config.ropeLocalTheta ?? null,
+    mropeInterleaved: config.mropeInterleaved === true,
+    mropeSection: Array.isArray(config.mropeSection) ? [...config.mropeSection] : null,
+    partialRotaryFactor: config.partialRotaryFactor ?? null,
+    ropeLocalPartialRotaryFactor: config.ropeLocalPartialRotaryFactor ?? null,
+    ropeScale: config.ropeScale,
+    ropeLocalScale: config.ropeLocalScale ?? null,
+    ropeScalingType: config.ropeScalingType ?? null,
+    ropeLocalScalingType: config.ropeLocalScalingType ?? null,
+    ropeScaling: config.ropeScaling ?? null,
+    ropeLocalScaling: config.ropeLocalScaling ?? null,
+  });
+}
+
 function resolveRotaryDim(headDim, rotaryDim, partialRotaryFactor) {
   if (rotaryDim != null) {
     if (!Number.isFinite(rotaryDim) || rotaryDim <= 0 || (rotaryDim % 2) !== 0) {
@@ -614,6 +641,7 @@ function resolveFrequencyBaseDim(rotaryDim, frequencyBaseDim, label) {
 
 
 export async function initRoPEFrequencies(config, useGPU) {
+  const cacheKey = buildRoPECacheKey(config);
   const {
     headDim,
     localHeadDim,
@@ -743,6 +771,15 @@ export async function initRoPEFrequencies(config, useGPU) {
   // Upload to GPU if available
   const device = getDevice();
   if (device && useGPU) {
+    let perDeviceCache = GPU_ROPE_BUFFER_CACHE.get(device);
+    if (!perDeviceCache) {
+      perDeviceCache = new Map();
+      GPU_ROPE_BUFFER_CACHE.set(device, perDeviceCache);
+    }
+    const cachedBuffers = perDeviceCache.get(cacheKey);
+    if (cachedBuffers) {
+      return cachedBuffers;
+    }
     let cosBuffer = null;
     let sinBuffer = null;
     let localCosBuffer = null;
@@ -777,12 +814,19 @@ export async function initRoPEFrequencies(config, useGPU) {
       `interleaved=${mropeInterleaved === true}`
     );
 
-    return {
+    const buffers = {
       cos: cosBuffer,
       sin: sinBuffer,
       localCos: localCosBuffer,
       localSin: localSinBuffer,
     };
+    perDeviceCache.set(cacheKey, buffers);
+    return buffers;
+  }
+
+  const cachedCpuBuffers = CPU_ROPE_BUFFER_CACHE.get(cacheKey);
+  if (cachedCpuBuffers) {
+    return cachedCpuBuffers;
   }
 
   log.debug(
@@ -794,12 +838,14 @@ export async function initRoPEFrequencies(config, useGPU) {
     `interleaved=${mropeInterleaved === true}`
   );
 
-  return {
+  const buffers = {
     cos: globalFreqs.cos,
     sin: globalFreqs.sin,
     localCos: localFreqs?.cos,
     localSin: localFreqs?.sin,
   };
+  CPU_ROPE_BUFFER_CACHE.set(cacheKey, buffers);
+  return buffers;
 }
 
 

@@ -49,7 +49,9 @@ export const DEFAULT_RUNTIME_CONFIG = {
       disableMultiTokenDecode: false,
     },
     chatTemplate: DEFAULT_CHAT_TEMPLATE_CONFIG,
-    session: {},
+    session: {
+      kvcache: DEFAULT_KVCACHE_CONFIG,
+    },
     executionPatch: {},
   },
   emulation: DEFAULT_EMULATION_CONFIG,

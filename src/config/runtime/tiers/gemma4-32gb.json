@@ -65,7 +65,13 @@
       },
       "session": {
         "kvcache": {
-          "kvDtype": "f16"
+          "layout": "contiguous",
+          "maxSeqLen": 8192,
+          "kvDtype": "f16",
+          "pageSize": 256,
+          "tiering": {
+            "mode": "off"
+          }
         }
       }
     }

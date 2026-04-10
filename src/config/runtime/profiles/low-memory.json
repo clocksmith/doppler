@@ -31,6 +31,7 @@
       },
       "session": {
         "kvcache": {
+          "maxSeqLen": 2048,
           "kvDtype": "f16",
           "pageSize": 128
         }

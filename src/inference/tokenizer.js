@@ -6,6 +6,8 @@ import { TransformersTokenizer, BundledTokenizer } from './tokenizers/bundled.js
 import { SentencePieceTokenizer } from './tokenizers/sentencepiece.js';
 import { BPETokenizer } from './tokenizers/bpe.js';
 
+const BUNDLED_TOKENIZER_CACHE = new Map();
+
 function hasScheme(value) {
   return /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(value);
 }
@@ -31,6 +33,28 @@ function parseTokenizerJsonPayload(value) {
     return value;
   }
   throw new Error('Tokenizer JSON loader must return an object, JSON string, or null.');
+}
+
+function buildBundledTokenizerCacheKey(modelId, tokenizerConfig) {
+  const tokenizerType = typeof tokenizerConfig?.type === 'string'
+    ? tokenizerConfig.type.trim().toLowerCase()
+    : '';
+  const tokenizerFile = typeof tokenizerConfig?.file === 'string'
+    ? tokenizerConfig.file.trim()
+    : '';
+  if (!tokenizerType || !tokenizerFile) {
+    return null;
+  }
+  return JSON.stringify({
+    modelId: String(modelId || '').trim() || 'unknown',
+    tokenizerType,
+    tokenizerFile,
+    vocabSize: Number.isFinite(tokenizerConfig?.vocabSize) ? tokenizerConfig.vocabSize : null,
+    eosToken: tokenizerConfig?.eosToken ?? null,
+    bosToken: tokenizerConfig?.bosToken ?? null,
+    padToken: tokenizerConfig?.padToken ?? null,
+    unkToken: tokenizerConfig?.unkToken ?? null,
+  });
 }
 
 export class Tokenizer {
@@ -71,6 +95,15 @@ export class Tokenizer {
     if (isBundled && tokenizerConfig.file) {
       tokenizerConfig.deferSpecialTokens = true;
       log.info('Tokenizer', `Loading ${tokenizerConfig.type} tokenizer from ${tokenizerConfig.file}`);
+      const cacheKey = buildBundledTokenizerCacheKey(modelId, tokenizerConfig);
+      const cachedBackend = cacheKey ? BUNDLED_TOKENIZER_CACHE.get(cacheKey) : null;
+      if (cachedBackend) {
+        log.info('Tokenizer', `Bundled tokenizer cache hit: ${tokenizerConfig.file}`);
+        this.backend = cachedBackend;
+        this.config = tokenizerConfig;
+        return;
+      }
+
       this.backend = new BundledTokenizer(tokenizerConfig);
 
       const baseUrl = options.baseUrl;
@@ -121,6 +154,9 @@ export class Tokenizer {
 
       if (tokenizerJson) {
          (this.backend).load(tokenizerJson);
+        if (cacheKey) {
+          BUNDLED_TOKENIZER_CACHE.set(cacheKey, this.backend);
+        }
         this.config = tokenizerConfig;
         return;
       }
