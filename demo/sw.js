@@ -1,4 +1,4 @@
-const CACHE_NAME = 'doppler-demo-shell-v2';
+const CACHE_NAME = 'doppler-demo-shell-v3';
 const APP_SHELL = [
   '/demo/index.html',
   '/demo/pwa-manifest.json',
@@ -19,6 +19,7 @@ const APP_SHELL = [
   '/demo/pwa.js',
   '/demo/report.js',
   '/demo/settings.js',
+  '/demo/ui/token-press/metrics.js',
   '/demo/examples.json',
   '/demo/assets/pwa/icon-192.png',
   '/demo/assets/pwa/icon-512.png',

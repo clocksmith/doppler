@@ -1331,6 +1331,12 @@ function printDeviceInfo(result) {
 }
 
 function printGpuPhases(metrics) {
+  if (typeof metrics?.decodeMode === 'string' && metrics.decodeMode.length > 0) {
+    const reason = typeof metrics?.batchGuardReason === 'string' && metrics.batchGuardReason.length > 0
+      ? ` guard=${metrics.batchGuardReason}`
+      : '';
+    console.log(`[decode] mode=${metrics.decodeMode}${reason}`);
+  }
   const gpu = metrics?.gpu;
   if (!gpu) return;
   const rm = gpu.decodeRecordMs?.median;
@@ -1343,6 +1349,34 @@ function printGpuPhases(metrics) {
   const dm = gpu.decodeMs?.median;
   if (Number.isFinite(pm) || Number.isFinite(dm)) {
     console.log(`[gpu] prefill=${formatMs(pm)} decode=${formatMs(dm)} (median gpu time)`);
+  }
+  const sts = gpu.singleTokenSubmitWaitMs?.median;
+  const str = gpu.singleTokenReadbackWaitMs?.median;
+  const sto = gpu.singleTokenOrchestrationMs?.median;
+  if (Number.isFinite(sts) || Number.isFinite(str) || Number.isFinite(sto)) {
+    console.log(
+      `[gpu] single-token submit=${formatMs(sts)} readback=${formatMs(str)} ` +
+      `orchestration=${formatMs(sto)} (median)`
+    );
+  }
+  const batching = metrics?.batching;
+  const batchedCalls = batching?.batchedForwardCalls?.median;
+  const unbatchedCalls = batching?.unbatchedForwardCalls?.median;
+  const batchedTime = batching?.totalBatchedTimeMs?.median;
+  const unbatchedTime = batching?.totalUnbatchedTimeMs?.median;
+  const submissions = batching?.gpuSubmissions?.median;
+  if (
+    Number.isFinite(batchedCalls)
+    || Number.isFinite(unbatchedCalls)
+    || Number.isFinite(batchedTime)
+    || Number.isFinite(unbatchedTime)
+    || Number.isFinite(submissions)
+  ) {
+    console.log(
+      `[batching] batched_calls=${formatNumber(batchedCalls)} unbatched_calls=${formatNumber(unbatchedCalls)} ` +
+      `batched_time=${formatMs(batchedTime)} unbatched_time=${formatMs(unbatchedTime)} ` +
+      `gpu_submissions=${formatNumber(submissions)}`
+    );
   }
 }
 

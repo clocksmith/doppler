@@ -873,19 +873,45 @@ function buildF16WeightProjectionGraph() {
 // Test 14: resolveFinitenessFallbackTransform
 // ===========================================================================
 {
-  // activationDtype 'f16' => returns transform
+  // Large-head f16 decode should keep KV on the f16 lane when widening.
   {
-    const r = resolveFinitenessFallbackTransform({ activationDtype: 'f16' });
+    const r = resolveFinitenessFallbackTransform({ activationDtype: 'f16', headDim: 256 });
     ok(r !== null, 'f16 activationDtype: should return a transform');
     equal(
       r.name,
+      'widenToF32Activations',
+      'large-head f16 activationDtype: name is widenToF32Activations'
+    );
+    equal(
+      r.transform,
+      widenToF32Activations,
+      'large-head f16 activationDtype: transform is widenToF32Activations'
+    );
+    equal(
+      r.fallbackKvDtype,
+      'f16',
+      'large-head f16 activationDtype: fallback kvDtype stays on f16'
+    );
+  }
+
+  // Small-head f16 decode can still use the full correctness fallback.
+  {
+    const r = resolveFinitenessFallbackTransform({ activationDtype: 'f16', headDim: 64 });
+    ok(r !== null, 'small-head f16 activationDtype: should return a transform');
+    equal(
+      r.name,
       'widenToF32CorrectnessFallback',
-      'f16 activationDtype: name is widenToF32CorrectnessFallback'
+      'small-head f16 activationDtype: name is widenToF32CorrectnessFallback'
     );
     equal(
       r.transform,
       widenToF32CorrectnessFallback,
-      'f16 activationDtype: transform is widenToF32CorrectnessFallback'
+      'small-head f16 activationDtype: transform is widenToF32CorrectnessFallback'
+    );
+    equal(
+      r.fallbackKvDtype,
+      'f32',
+      'small-head f16 activationDtype: fallback kvDtype widens to f32'
     );
   }
 

@@ -109,6 +109,7 @@ function setOrtProxyMode(enabled) {
 
 
 window.__tfjsReady = true;
+const LOCAL_CHAT_TEMPLATE_CACHE = new Map();
 
 async function finalizeSessionProfiling(generator) {
   const sessions = generator?.model?.sessions || {};
@@ -473,7 +474,7 @@ function normalizePromptPackEntry(entry, index) {
   };
 }
 
-async function renderGenerationPrompt(generator, prompt, useChatTemplate) {
+async function renderGenerationPrompt(generator, modelId, prompt, useChatTemplate) {
   let generationPrompt = String(prompt ?? '');
   if (!useChatTemplate) {
     return generationPrompt;
@@ -481,9 +482,34 @@ async function renderGenerationPrompt(generator, prompt, useChatTemplate) {
   if (typeof generator?.tokenizer?.apply_chat_template !== 'function') {
     throw new Error('chat template requested but tokenizer.apply_chat_template is unavailable');
   }
+  const tokenizer = generator.tokenizer;
+  const existingChatTemplate = typeof tokenizer?.chat_template === 'string'
+    ? tokenizer.chat_template.trim()
+    : (typeof tokenizer?.chatTemplate === 'string' ? tokenizer.chatTemplate.trim() : '');
+  let chatTemplateOverride = existingChatTemplate || LOCAL_CHAT_TEMPLATE_CACHE.get(modelId) || null;
+  if (!existingChatTemplate && localModelPath && modelId) {
+    const chatTemplateUrl = `${localModelPath.replace(/\/$/, '')}/${modelId}/chat_template.jinja`;
+    try {
+      const response = await fetch(chatTemplateUrl, { cache: 'no-store' });
+      if (response.ok) {
+        const loadedChatTemplate = String(await response.text()).trim();
+        if (loadedChatTemplate) {
+          chatTemplateOverride = loadedChatTemplate;
+          LOCAL_CHAT_TEMPLATE_CACHE.set(modelId, loadedChatTemplate);
+          console.log(`[tjs-bench] loaded local chat template: ${chatTemplateUrl}`);
+        }
+      }
+    } catch {
+      // Fall through to the normal apply_chat_template error if the local template is unavailable.
+    }
+  }
   const templatedPrompt = await generator.tokenizer.apply_chat_template(
     [{ role: 'user', content: generationPrompt }],
-    { tokenize: false, add_generation_prompt: true }
+    {
+      tokenize: false,
+      add_generation_prompt: true,
+      ...(chatTemplateOverride ? { chat_template: chatTemplateOverride } : {}),
+    }
   );
   if (typeof templatedPrompt !== 'string' || templatedPrompt.length === 0) {
     throw new Error('chat template requested but prompt rendering returned empty content');
@@ -559,16 +585,45 @@ window.__primeBenchModel = async (config = {}) => {
   const modelId = String(config?.modelId || '').trim();
   const requestedDtype = String(config?.dtype || 'fp16').trim() || 'fp16';
   const requestedFormat = String(config?.format || 'onnx').trim() || 'onnx';
+  const prompt = typeof config?.prompt === 'string' ? config.prompt : '';
+  const useChatTemplate = config?.useChatTemplate === true;
+  const primeMaxNewTokens = Number.isFinite(Number(config?.maxNewTokens))
+    ? Math.max(1, Math.floor(Number(config.maxNewTokens)))
+    : 1;
   if (!modelId) {
     throw new Error('modelId is required for cache priming');
   }
   const start = performance.now();
   const load = await loadGenerator(modelId, false, requestedDtype, requestedFormat);
-  await releaseGenerator(load.generator);
+  let generationPrimed = false;
+  try {
+    if (prompt.length > 0) {
+      const generationPrompt = await renderGenerationPrompt(load.generator, modelId, prompt, useChatTemplate);
+      const streamer = new TextStreamer(load.generator.tokenizer, {
+        skip_prompt: true,
+        callback_function: () => {},
+        token_callback_function: () => {},
+      });
+      const primeGenerationSettings = buildGenerationSettings(
+        null,
+        primeMaxNewTokens,
+        { temperature: 0, topK: 1, topP: 1 }
+      );
+      await load.generator(generationPrompt, {
+        ...primeGenerationSettings.generationOptions,
+        streamer,
+      });
+      generationPrimed = true;
+    }
+  } finally {
+    await releaseGenerator(load.generator);
+  }
   return {
     ok: true,
     modelId,
     primeMs: Math.max(0, performance.now() - start),
+    primeMode: generationPrimed ? 'load-and-generate' : 'load-only',
+    generationPrimed,
     requestedDtype: load.requestedDtype,
     effectiveDtype: load.effectiveDtype,
     fallbackUsed: load.fallbackUsed === true,
@@ -656,7 +711,7 @@ window.__runBench = async (config) => {
   const generationConfigSnapshot = pickGenerationConfigSnapshot(rawGenerationConfig);
   const resolvedGenerationSettings = buildGenerationSettings(rawGenerationConfig, maxNewTokens, sampling);
 
-  const generationPrompt = await renderGenerationPrompt(generator, prompt, useChatTemplate);
+  const generationPrompt = await renderGenerationPrompt(generator, modelId, prompt, useChatTemplate);
   if (useChatTemplate) {
     console.log(`[tjs-bench] chat template applied (${generationPrompt.length} chars)`);
   }

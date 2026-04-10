@@ -68,17 +68,29 @@ export function resolveCapabilityTransforms(capabilities, platform, graphContext
 }
 
 /**
- * Returns widenToF32Activations when current activationDtype is f16,
- * or null when already f32 (no fallback available).
+ * Returns the safest alternate-plan widening transform for an f16 primary plan.
  *
- * @param {Object} graphContext - { activationDtype, kvDtype, modelId?, layerTypes? }
- * @returns {{ transform: Function, name: string } | null}
+ * Large-head models such as Gemma 4 E2B use decode attention geometry that the
+ * generic full-f32 decode kernel cannot execute. On shader-f16 hardware, keep
+ * KV on the f16 lane and widen activations only so the fallback plan stays
+ * executable for headDim > 64.
+ *
+ * @param {Object} graphContext - { activationDtype, kvDtype, headDim?, modelId?, layerTypes? }
+ * @returns {{ transform: Function, name: string, fallbackKvDtype: 'f16' | 'f32' } | null}
  */
 export function resolveFinitenessFallbackTransform(graphContext) {
   if (graphContext.activationDtype === 'f16') {
+    if (Number.isFinite(graphContext.headDim) && graphContext.headDim > 64) {
+      return {
+        transform: TRANSFORMS.widenToF32Activations,
+        name: 'widenToF32Activations',
+        fallbackKvDtype: 'f16',
+      };
+    }
     return {
       transform: TRANSFORMS.widenToF32CorrectnessFallback,
       name: 'widenToF32CorrectnessFallback',
+      fallbackKvDtype: 'f32',
     };
   }
   return null;

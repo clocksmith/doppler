@@ -676,12 +676,14 @@ function buildComparabilityRecord(entry) {
     runs: normalizeComparableValue(report.runs ?? null),
     seed: normalizeComparableValue(report.seed ?? null),
     loadMode: normalizeComparableValue(firstNonNull(
+      sectionPayload.loadMode,
       report.methodology?.loadMode,
       dopplerRequest.loadMode,
       tjsPayload.loadMode,
       report.loadMode,
     )),
     cacheMode: normalizeComparableValue(firstNonNull(
+      sectionPayload.cacheMode,
       dopplerRequest.cacheMode,
       report.cacheMode,
     )),

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Compare Engines Config",
   "type": "object",
-  "required": ["schemaVersion", "modelProfiles"],
+  "required": ["schemaVersion", "defaults", "modelProfiles"],
   "properties": {
     "schemaVersion": {
       "type": "integer",
@@ -10,6 +10,21 @@
     },
     "updated": {
       "type": "string"
+    },
+    "defaults": {
+      "type": "object",
+      "required": ["warmLoadMode", "coldLoadMode"],
+      "properties": {
+        "warmLoadMode": {
+          "type": "string",
+          "enum": ["opfs", "http", "memory"]
+        },
+        "coldLoadMode": {
+          "type": "string",
+          "enum": ["opfs", "http", "memory"]
+        }
+      },
+      "additionalProperties": false
     },
     "formatMatrix": {
       "type": "object",
@@ -74,6 +89,20 @@
           "compareLaneReason": {
             "type": ["string", "null"],
             "minLength": 1
+          },
+          "dopplerRuntimeProfileByDecodeProfile": {
+            "type": ["object", "null"],
+            "properties": {
+              "parity": {
+                "type": ["string", "null"],
+                "minLength": 1
+              },
+              "throughput": {
+                "type": ["string", "null"],
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
           }
         },
         "additionalProperties": false

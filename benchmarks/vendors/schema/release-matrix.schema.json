@@ -462,6 +462,27 @@
                 "null"
               ]
             },
+            "cacheMode": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "loadMode": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "pairedComparable": {
+              "type": "boolean"
+            },
+            "invalidReason": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "decodeProfile": {
               "type": [
                 "string",

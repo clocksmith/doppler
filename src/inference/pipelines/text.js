@@ -1442,6 +1442,7 @@ export class InferencePipeline extends PipelineState {
 
   getStats() {
     const stats = { ...this.stats };
+    stats.batching ??= { ...this.batchingStats };
     if (this.executionPlanState) {
       const activeExecutionPlan = resolveActiveExecutionPlan(this);
       stats.executionPlan ??= {

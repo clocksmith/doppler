@@ -161,7 +161,7 @@
   },
   "compareConfig": {
     "source": "benchmarks/vendors/compare-engines.config.json",
-    "sourceSha256": "709cb12b04354430b05f69e11fbd4e6a8832c4f4bbc9e36030bd7d316befcd2a"
+    "sourceSha256": "faa4ea51b207b67f82d16688b34e99ad268bd6e73ace9ec60584ace010439c63"
   },
   "harnesses": {
     "doppler": {

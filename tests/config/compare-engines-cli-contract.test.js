@@ -6,13 +6,19 @@ import process from 'node:process';
 import { spawnSync } from 'node:child_process';
 import { mergeKernelPathPolicy } from '../../src/config/merge-helpers.js';
 import {
+  buildCompareSection,
   buildDopplerRuntimeConfig,
   buildSharedBenchmarkContract,
+  loadModelCatalogBundle,
+  normalizeCompareLoadModeDefaults,
   parseArgs as parseCompareArgs,
   parseOnOff as parseCompareOnOff,
+  resolveCatalogTransformersjsBenchmarkTarget,
   resolveCompareProfile,
+  resolveCompareLoadModes,
   resolveDopplerModelSource,
 } from '../../tools/compare-engines.js';
+import { buildTokenAccurateSyntheticPrompt } from '../../benchmarks/vendors/workload-prompt.js';
 
 function runCompareEngines(args) {
   return spawnSync(process.execPath, ['tools/compare-engines.js', ...args], {
@@ -41,7 +47,13 @@ function runCompareEngines(args) {
   const qwen08Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'qwen-3-5-0-8b-q4k-ehaf16') || null;
   const qwen2Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'qwen-3-5-2b-q4k-ehaf16') || null;
   const gemma4Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'gemma-4-e2b-it-q4k-ehf16-af32') || null;
+  const gemma4Catalog = (Array.isArray(catalog.models) ? catalog.models : [])
+    .find((entry) => entry?.modelId === 'gemma-4-e2b-it-q4k-ehf16-af32') || null;
 
+  assert.deepEqual(compareConfig.defaults, {
+    warmLoadMode: 'opfs',
+    coldLoadMode: 'http',
+  });
   assert.ok(qwen08Profile, 'compare config must include qwen-3-5-0-8b-q4k-ehaf16');
   assert.equal(qwen08Profile.defaultDopplerSurface, 'browser');
   assert.equal(qwen08Profile.compareLane, 'performance_comparable');
@@ -54,8 +66,15 @@ function runCompareEngines(args) {
   assert.ok(gemma4Profile, 'compare config must include gemma-4-e2b-it-q4k-ehf16-af32');
   assert.equal(gemma4Profile.defaultDopplerSurface, 'browser');
   assert.equal(gemma4Profile.defaultUseChatTemplate, true);
+  assert.equal(
+    gemma4Profile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
+    'profiles/gemma4-e2b-throughput'
+  );
   assert.equal(gemma4Profile.compareLane, 'performance_comparable');
   assert.equal(gemma4Profile.compareLaneReason, null);
+  assert.ok(gemma4Catalog, 'models/catalog.json must include gemma-4-e2b-it-q4k-ehf16-af32');
+  assert.equal(gemma4Catalog?.vendorBenchmark?.transformersjs?.repoId, gemma4Profile.defaultTjsModelId);
+  assert.equal(gemma4Catalog?.vendorBenchmark?.transformersjs?.dtype, 'q4f16');
 
   for (const profile of compareConfig.modelProfiles) {
     assert.ok(['performance_comparable', 'capability_only'].includes(profile.compareLane));
@@ -123,8 +142,48 @@ function runCompareEngines(args) {
 }
 
 {
+  const catalogBundle = await loadModelCatalogBundle();
+  const gemma4Benchmark = resolveCatalogTransformersjsBenchmarkTarget(
+    catalogBundle,
+    'gemma-4-e2b-it-q4k-ehf16-af32',
+    null
+  );
+  assert.equal(gemma4Benchmark?.repoId, 'onnx-community/gemma-4-E2B-it-ONNX');
+  assert.equal(gemma4Benchmark?.dtype, 'q4f16');
+  assert.equal(gemma4Benchmark?.source, 'catalog-model');
+
+  const repoOverrideBenchmark = resolveCatalogTransformersjsBenchmarkTarget(
+    catalogBundle,
+    'unit-missing-model',
+    'onnx-community/gemma-4-E2B-it-ONNX'
+  );
+  assert.equal(repoOverrideBenchmark?.repoId, 'onnx-community/gemma-4-E2B-it-ONNX');
+  assert.equal(repoOverrideBenchmark?.dtype, 'q4f16');
+  assert.equal(repoOverrideBenchmark?.source, 'catalog-repo');
+}
+
+{
   const result = runCompareEngines(['--help']);
   assert.equal(result.status, 0, result.stderr);
+}
+
+{
+  const defaults = normalizeCompareLoadModeDefaults({
+    warmLoadMode: 'opfs',
+    coldLoadMode: 'http',
+  });
+  assert.deepEqual(defaults, {
+    warm: 'opfs',
+    cold: 'http',
+  });
+  assert.deepEqual(resolveCompareLoadModes(null, defaults), {
+    warm: 'opfs',
+    cold: 'http',
+  });
+  assert.deepEqual(resolveCompareLoadModes('memory', defaults), {
+    warm: 'memory',
+    cold: 'memory',
+  });
 }
 
 {
@@ -146,6 +205,88 @@ function runCompareEngines(args) {
   assert.equal(sharedContract.useChatTemplate, false);
   assert.equal(sharedContract.sampling.repetitionPenalty, 1);
   assert.equal(sharedContract.sampling.greedyThreshold, 0.01);
+}
+
+{
+  const section = buildCompareSection({
+    cacheMode: 'warm',
+    loadMode: 'opfs',
+    doppler: { result: { timing: { decodeTokensPerSec: 1 } } },
+    transformersjs: {
+      failed: true,
+      error: {
+        message: 'fetch failed',
+      },
+    },
+  });
+  assert.equal(section.cacheMode, 'warm');
+  assert.equal(section.loadMode, 'opfs');
+  assert.equal(section.pairedComparable, false);
+  assert.equal(section.invalidReason, 'transformersjs-failed');
+}
+
+{
+  const resolved = await buildTokenAccurateSyntheticPrompt({
+    prefillTokens: 8,
+    countPromptTokens: async (prompt) => {
+      const words = String(prompt || '').trim();
+      if (words.length === 0) {
+        return 2;
+      }
+      return 2 + words.split(/\s+/).length;
+    },
+  });
+  assert.equal(resolved.prefillTokens, 8);
+  assert.match(resolved.prompt, /\w/);
+}
+
+{
+  await assert.rejects(
+    () => buildTokenAccurateSyntheticPrompt({
+      prefillTokens: 5,
+      countPromptTokens: async (prompt) => {
+        const words = String(prompt || '').trim();
+        if (words.length === 0) {
+          return 2;
+        }
+        return 2 + (words.split(/\s+/).length * 2);
+      },
+    }),
+    /Could not synthesize an exact 5-token prompt/i
+  );
+}
+
+{
+  const section = buildCompareSection({
+    cacheMode: 'warm',
+    loadMode: 'opfs',
+    prefillTokenTarget: 64,
+    doppler: {
+      result: {
+        result: {
+          metrics: {
+            avgPrefillTokens: 70,
+          },
+        },
+      },
+    },
+    transformersjs: {
+      runs: [
+        {
+          prefillTokens: 64,
+        },
+      ],
+    },
+  });
+  assert.equal(section.pairedComparable, false);
+  assert.equal(section.invalidReason, 'prompt-token-count-mismatch');
+  assert.deepEqual(section.promptTokens, {
+    target: 64,
+    doppler: 70,
+    transformersjs: 64,
+    ok: false,
+    invalidReason: 'prompt-token-count-mismatch',
+  });
 }
 
 {
@@ -221,6 +362,30 @@ function runCompareEngines(args) {
       allowSources: ['model', 'manifest', 'config'],
       onIncompatible: 'remap',
     },
+    runtimeBaseConfigJson: {
+      inference: {
+        batching: {
+          batchSize: 99,
+          readbackInterval: 99,
+        },
+        session: {
+          decodeLoop: {
+            batchSize: 99,
+            readbackInterval: 99,
+          },
+          perLayerInputs: {
+            materialization: 'gpu_split_tables',
+          },
+        },
+      },
+      shared: {
+        bufferPool: {
+          budget: {
+            maxTotalBytes: 1234,
+          },
+        },
+      },
+    },
     runtimeConfigJson: null,
   });
   assert.equal(runtimeConfig.inference.generation.disableMultiTokenDecode, true);
@@ -239,6 +404,10 @@ function runCompareEngines(args) {
   });
   assert.equal(runtimeConfig.inference.batching.batchSize, 4);
   assert.equal(runtimeConfig.inference.batching.readbackInterval, 4);
+  assert.equal(runtimeConfig.inference.session.decodeLoop.batchSize, 4);
+  assert.equal(runtimeConfig.inference.session.decodeLoop.readbackInterval, 4);
+  assert.equal(runtimeConfig.inference.session.perLayerInputs.materialization, 'gpu_split_tables');
+  assert.equal(runtimeConfig.shared.bufferPool.budget.maxTotalBytes, 1234);
 }
 
 {
@@ -281,6 +450,10 @@ function runCompareEngines(args) {
   const badConfig = {
     schemaVersion: 1,
     updated: '2026-03-05',
+    defaults: {
+      warmLoadMode: 'opfs',
+      coldLoadMode: 'http',
+    },
     modelProfiles: [
       {
         dopplerModelId: 'gemma-3-270m-it-f16-af32',
@@ -302,10 +475,49 @@ function runCompareEngines(args) {
 
 {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-compare-config-'));
+  const badConfigPath = path.join(tempDir, 'bad-compare-config-runtime-profile.json');
+  const badConfig = {
+    schemaVersion: 1,
+    updated: '2026-04-10',
+    defaults: {
+      warmLoadMode: 'opfs',
+      coldLoadMode: 'http',
+    },
+    modelProfiles: [
+      {
+        dopplerModelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+        defaultTjsModelId: 'onnx-community/gemma-4-E2B-it-ONNX',
+        defaultDopplerSource: 'local',
+        modelBaseDir: 'local',
+        defaultDopplerSurface: 'browser',
+        compareLane: 'performance_comparable',
+        dopplerRuntimeProfileByDecodeProfile: {
+          throughput: true,
+        },
+      },
+    ],
+  };
+  await fs.writeFile(badConfigPath, `${JSON.stringify(badConfig, null, 2)}\n`, 'utf8');
+  const result = runCompareEngines([
+    '--compare-config', badConfigPath,
+    '--model-id', 'gemma-4-e2b-it-q4k-ehf16-af32',
+    '--json',
+  ]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /dopplerRuntimeProfileByDecodeProfile/i);
+  assert.match(result.stderr, /string\s+\|\s+null/i);
+}
+
+{
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-compare-config-'));
   const badConfigPath = path.join(tempDir, 'bad-compare-config-chat-template.json');
   const badConfig = {
     schemaVersion: 1,
     updated: '2026-04-09',
+    defaults: {
+      warmLoadMode: 'opfs',
+      coldLoadMode: 'http',
+    },
     modelProfiles: [
       {
         dopplerModelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
@@ -337,6 +549,10 @@ function runCompareEngines(args) {
   const nonComparableConfig = {
     schemaVersion: 1,
     updated: '2026-03-27',
+    defaults: {
+      warmLoadMode: 'opfs',
+      coldLoadMode: 'http',
+    },
     modelProfiles: [
       {
         dopplerModelId: 'unit-capability-model',
@@ -360,6 +576,32 @@ function runCompareEngines(args) {
   ]);
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /allow-non-comparable-lane/);
+}
+
+{
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-compare-config-'));
+  const missingDefaultsPath = path.join(tempDir, 'missing-defaults-compare-config.json');
+  const payload = {
+    schemaVersion: 1,
+    updated: '2026-04-10',
+    modelProfiles: [
+      {
+        dopplerModelId: 'gemma-3-270m-it-f16-af32',
+        defaultTjsModelId: 'onnx-community/gemma-3-270m-it-ONNX',
+        defaultDopplerSource: 'local',
+        modelBaseDir: 'local',
+        defaultDopplerSurface: 'auto',
+        compareLane: 'performance_comparable',
+      },
+    ],
+  };
+  await fs.writeFile(missingDefaultsPath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+  const result = runCompareEngines([
+    '--compare-config', missingDefaultsPath,
+    '--json',
+  ]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /defaults/i);
 }
 
 console.log('compare-engines-cli-contract.test: ok');

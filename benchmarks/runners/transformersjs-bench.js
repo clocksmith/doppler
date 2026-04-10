@@ -42,6 +42,7 @@ import path from 'node:path';
 import http from 'node:http';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { resolveSyntheticPromptForModel } from '../vendors/workload-prompt.js';
 import {
   DEFAULT_CACHE_MODE,
   DEFAULT_TJS_FORMAT,
@@ -468,9 +469,13 @@ async function saveResult(result, saveDir, timestamp = null) {
 
 const DEFAULT_SERVER_PORT = 0;
 const SERVER_HOSTS = Object.freeze(['127.0.0.1', 'localhost', '0.0.0.0']);
+const LOCAL_MODEL_RELAY_PATH = '/__tjs_local_models';
 
-async function createStaticServer(root, preferredPort) {
+async function createStaticServer(root, preferredPort, options = {}) {
   const listenPort = Number.isFinite(preferredPort) ? preferredPort : DEFAULT_SERVER_PORT;
+  const localModelRoot = typeof options.localModelPath === 'string' && options.localModelPath.trim() !== ''
+    ? path.resolve(options.localModelPath)
+    : null;
 
   const mimeTypes = {
     '.html': 'text/html',
@@ -481,16 +486,14 @@ async function createStaticServer(root, preferredPort) {
     '.onnx': 'application/octet-stream',
   };
 
-  const serveRequest = async (req, res) => {
-    const url = new URL(req.url, `http://${req.headers.host}`);
-    const urlPath = decodeURIComponent(url.pathname);
-    const safePath = urlPath.replace(/^\/+/, '') || EMPTY_STRING;
-    const filePath = path.resolve(root, safePath);
-    const rootPath = path.resolve(root);
-    const normalizedRoot = rootPath.endsWith(path.sep) ? rootPath : `${rootPath}${path.sep}`;
+  const serveFileFromRoot = async (rootDir, requestPath, res) => {
+    const safePath = String(requestPath || '').replace(/^\/+/, '') || EMPTY_STRING;
+    const resolvedRoot = path.resolve(rootDir);
+    const filePath = path.resolve(resolvedRoot, safePath);
+    const normalizedRoot = resolvedRoot.endsWith(path.sep) ? resolvedRoot : `${resolvedRoot}${path.sep}`;
 
     try {
-      const isAllowed = filePath.startsWith(normalizedRoot);
+      const isAllowed = filePath === resolvedRoot || filePath.startsWith(normalizedRoot);
       if (!isAllowed) {
         res.writeHead(403);
         res.end('Forbidden');
@@ -520,6 +523,20 @@ async function createStaticServer(root, preferredPort) {
       res.writeHead(404);
       res.end('Not found');
     }
+  };
+
+  const serveRequest = async (req, res) => {
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const urlPath = decodeURIComponent(url.pathname);
+    if (
+      localModelRoot != null
+      && (urlPath === LOCAL_MODEL_RELAY_PATH || urlPath.startsWith(`${LOCAL_MODEL_RELAY_PATH}/`))
+    ) {
+      const localRequestPath = urlPath.slice(LOCAL_MODEL_RELAY_PATH.length);
+      await serveFileFromRoot(localModelRoot, localRequestPath, res);
+      return;
+    }
+    await serveFileFromRoot(root, urlPath, res);
   };
 
   const tryListen = (host) => new Promise((resolve, reject) => {
@@ -779,6 +796,11 @@ async function main() {
   const seed = parseNonNegativeInt(flags.seed, '--seed', DEFAULT_SEED);
   const localModelPath = flags['local-model-path'] || null;
   const browserBaseUrl = flags['browser-base-url'] || null;
+  if (browserBaseUrl && localModelPath) {
+    throw new Error(
+      '--local-model-path cannot be combined with --browser-base-url because the benchmark server cannot mount local files on an external base URL.'
+    );
+  }
   // Auto-read HF token from flags or the cached credential file (for gated models).
   let hfToken = flags['hf-token'] || null;
   if (!hfToken) {
@@ -801,11 +823,18 @@ async function main() {
       topP = parseProbability(wl.sampling.topP, '--workload.sampling.topP', topP);
     }
     if (!flags.prompt) {
-      const words = [];
-      for (let i = 0; i < wl.prefillTokens; i++) {
-        words.push(`word${i}`);
-      }
-      prompt = words.join(' ');
+      const resolvedPrompt = await resolveSyntheticPromptForModel({
+        prefillTokens: wl.prefillTokens,
+        modelId,
+        localModelPath,
+        useChatTemplate,
+      });
+      prompt = resolvedPrompt.prompt;
+      console.error(
+        `[tjs-bench] workload prompt resolved to ${resolvedPrompt.prefillTokens} model-input tokens ` +
+        `(source=${resolvedPrompt.promptSource}, tokenizer=${resolvedPrompt.tokenizerLocator}, ` +
+        `tokenizerSource=${resolvedPrompt.tokenizerResolutionSource})`
+      );
     }
   }
 
@@ -836,7 +865,7 @@ async function main() {
 
   const baseServer = browserBaseUrl
     ? null
-    : await createStaticServer(REPO_ROOT, serverPort).catch((error) => {
+    : await createStaticServer(REPO_ROOT, serverPort, { localModelPath }).catch((error) => {
       throw new Error(`failed to start static server (${error.message}). Pass --browser-base-url to reuse an existing server.`);
     });
   const baseUrl = browserBaseUrl || baseServer.baseUrl;
@@ -950,10 +979,15 @@ async function main() {
     console.error(`[browser:error] ${error.message}`);
   });
 
+  page.on('requestfailed', (request) => {
+    const failure = request.failure()?.errorText || 'unknown failure';
+    console.error(`[browser:requestfailed] ${request.method()} ${request.url()} (${failure})`);
+  });
+
   try {
     const navStart = performance.now();
     const runnerParams = new URLSearchParams({ v: tjsVersion });
-    if (localModelPath) runnerParams.set('localModelPath', localModelPath);
+    if (localModelPath) runnerParams.set('localModelPath', LOCAL_MODEL_RELAY_PATH);
     if (hfToken) runnerParams.set('hfToken', hfToken);
     const runnerUrl = new URL('/benchmarks/runners/transformersjs-runner.html', baseUrl);
     runnerUrl.search = runnerParams.toString();
@@ -975,7 +1009,14 @@ async function main() {
           throw new Error('__primeBenchModel is not available in runner page');
         }
         return window.__primeBenchModel(primeConfig);
-      }, { modelId, dtype: tjsDtype, format: tjsFormat });
+      }, {
+        modelId,
+        dtype: tjsDtype,
+        format: tjsFormat,
+        prompt,
+        useChatTemplate,
+        maxNewTokens: 1,
+      });
       const reportedPrimeMs = Number(primeResult?.primeMs);
       cachePrime.primed = primeResult?.ok === true;
       cachePrime.primeMs = Number.isFinite(reportedPrimeMs) ? reportedPrimeMs : 0;

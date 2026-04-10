@@ -1,7 +1,7 @@
 {
   "timestamp": "2026-04-10T01:26:49.765Z",
   "benchmarkPolicy": {
-    "source": "/home/x/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+    "source": "benchmarks/vendors/benchmark-policy.json",
     "schemaVersion": 1,
     "sourceSha256": "798ec52be7d53b74f144f99e2db4e7085ad277caa16c26f64adce4a66ae0ced3",
     "updated": "2026-03-29"
@@ -9,7 +9,7 @@
   "compareConfig": {
     "source": "benchmarks/vendors/compare-engines.config.json",
     "schemaVersion": 1,
-    "sourceSha256": "ba4a907d07ddbce14f2c936d35d97fb80e7b219c3d306066f9984c4c5a75a6e6",
+    "sourceSha256": "faa4ea51b207b67f82d16688b34e99ad268bd6e73ace9ec60584ace010439c63",
     "profileSource": "config",
     "updated": "2026-03-29"
   },

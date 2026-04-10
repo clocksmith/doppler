@@ -344,6 +344,7 @@ export function compileExecutionV1(options = {}) {
   const manifestInference = options.manifestInference;
   const modelId = options.modelId ?? 'model';
   const numLayers = options.numLayers ?? 0;
+  const headDim = Number.isFinite(options.headDim) ? Math.floor(options.headDim) : null;
   const capabilities = options.capabilities ?? null;
   const platform = options.platform ?? null;
   const runtimeSession = options.runtimeSession ?? null;
@@ -382,12 +383,14 @@ export function compileExecutionV1(options = {}) {
   // -------------------------------------------------------------------------
   let appliedTransformNames = [];
   let fallbackExecution = null;
+  let fallbackTransformResult = null;
   let graphWasTransformed = false;
 
   if (capabilities) {
     const graphContext = {
       activationDtype,
       kvDtype,
+      headDim,
       modelId,
       layerTypes,
       ...summarizeExecutionGraphContext(execution),
@@ -430,22 +433,23 @@ export function compileExecutionV1(options = {}) {
 
     // Build explicit finiteness fallback only when the runtime opted into
     // alternate-plan recovery. The default policy is fail-fast.
-    const fallbackResult = finitenessPolicy.onTrigger === 'fallback-plan'
+    fallbackTransformResult = finitenessPolicy.onTrigger === 'fallback-plan'
       ? resolveFinitenessFallbackTransform(graphContext)
       : null;
-    if (fallbackResult) {
-      const fallbackGraph = fallbackResult.transform(execution, {
+    if (fallbackTransformResult) {
+      const fallbackGraph = fallbackTransformResult.transform(execution, {
         capabilities,
         platform: platform ?? { id: 'unknown', vendor: 'unknown', architecture: 'unknown' },
         activationDtype,
         kvDtype,
+        headDim,
         modelId,
       });
       if (fallbackGraph) {
         fallbackExecution = fallbackGraph;
         log.info(
           'ExecutionV1',
-          `Finiteness fallback transform resolved: ${fallbackResult.name}`
+          `Finiteness fallback transform resolved: ${fallbackTransformResult.name}`
         );
       }
     }
@@ -508,6 +512,7 @@ export function compileExecutionV1(options = {}) {
   let fallbackKernelPath = null;
   if (fallbackExecution && inlineKernelPathEnabled) {
     const fallbackSteps = expandV1ToResolvedSteps(fallbackExecution, { skipDigestValidation: true });
+    const fallbackKvDtype = fallbackTransformResult?.fallbackKvDtype ?? 'f32';
     const fallbackSession = {
       ...session,
       compute: {
@@ -521,8 +526,8 @@ export function compileExecutionV1(options = {}) {
         },
       },
       kvcache: {
-        ...session.kvcache,
-        kvDtype: 'f32',
+        ...(session.kvcache ?? {}),
+        kvDtype: fallbackKvDtype,
       },
     };
     fallbackKernelPath = buildInlineKernelPath(
@@ -615,6 +620,7 @@ export function applyExecutionV1RuntimeConfig(options = {}) {
     manifestInference: manifest.inference,
     modelId: manifest.modelId ?? options.modelId,
     numLayers: options.numLayers ?? manifest.architecture?.numLayers ?? 0,
+    headDim: options.headDim ?? manifest.architecture?.headDim ?? null,
     capabilities: options.capabilities ?? null,
     platform: options.platform ?? null,
     runtimeSession: runtimeConfig.inference?.session ?? null,

@@ -21,6 +21,8 @@ export const state = {
   prefilling: false,
   abortController: null,
   lastRun: null, // { prefillMs, decodeMs, totalTokens, tokPerSec, tokens: [], config }
+  lastInferenceStats: null,
+  lastMemoryStats: null,
 
   // Settings
   preset: 'fast', // 'fast' | 'trace'

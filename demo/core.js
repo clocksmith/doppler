@@ -1,10 +1,10 @@
 import { getRuntimeConfig, captureMemorySnapshot } from 'doppler-gpu';
-import { sample } from '../src/inference/pipelines/text/sampling.js';
 import { state } from './ui/state.js';
 import { getSettings } from './settings.js';
-import { getPrompt, getImage, setGenerating, setRunEnabled } from './input.js';
+import { getPrompt, setGenerating, setRunEnabled } from './input.js';
 import {
   clearOutput,
+  clearTokSec,
   setPhase,
   setTokSec,
   appendToken,
@@ -15,7 +15,13 @@ import {
 import { setExportEnabled } from './report.js';
 import { createTokenPress } from './ui/token-press/index.js';
 import { createTokenPressSession } from './ui/token-press/bridge.js';
-import { updateXrayPanels, isXrayEnabled } from './ui/xray/index.js';
+import { buildTokenTraceRecord, summarizePerplexityRecords } from './ui/token-press/metrics.js';
+import {
+  updateXrayPanels,
+  isXrayEnabled,
+  isXrayProfilingNeeded,
+  resetXray,
+} from './ui/xray/index.js';
 
 let tokenPress = null;
 let tokenPressSession = null;
@@ -30,6 +36,27 @@ function setStatus(text, busy) {
     dot.classList.toggle('is-busy', busy);
   }
   if (txt) txt.textContent = text;
+}
+
+function resetGenerationTelemetry() {
+  state.lastRun = null;
+  state.lastInferenceStats = null;
+  state.lastMemoryStats = null;
+  if (isXrayEnabled()) {
+    resetXray();
+  }
+}
+
+function updateTelemetry(pipeline, overrides = {}) {
+  const pipelineStats = pipeline?.getStats?.() ?? null;
+  state.lastInferenceStats = {
+    ...(pipelineStats || state.lastInferenceStats || {}),
+    ...overrides,
+  };
+  state.lastMemoryStats = pipeline?.getMemoryStats?.() ?? state.lastMemoryStats;
+  if (isXrayEnabled()) {
+    updateXrayPanels(pipeline);
+  }
 }
 
 export function onModelLoaded(pipeline, modelId) {
@@ -57,13 +84,13 @@ export async function runGeneration() {
   state.generating = true;
   state.prefilling = true;
   state.abortController = new AbortController();
+  resetGenerationTelemetry();
+  clearTokSec();
 
   const useTokenPress = state.tokenPressEnabled;
   showTokenPress(useTokenPress);
 
   const tokens = [];
-  let prefillMs = 0;
-  let decodeStartTime = 0;
 
   try {
     if (useTokenPress) {
@@ -100,64 +127,87 @@ export async function runGeneration() {
 }
 
 async function runPlainGeneration(pipeline, prompt, settings, tokens) {
-  // Prefill
   setPhase('Prefill');
-  setPrefillProgress(50);
-  const prefillStart = performance.now();
-  const prefillResult = await pipeline.prefillWithLogits(prompt, {
+  setPrefillProgress(10);
+  const runStart = performance.now();
+  const generationOptions = {
+    temperature: settings.temperature,
+    topK: settings.topK,
+    topP: settings.topP,
+    maxTokens: settings.maxTokens,
+    signal: state.abortController?.signal,
     useChatTemplate: true,
-  });
-  const prefillMs = performance.now() - prefillStart;
-  setPrefillProgress(100);
-
-  // Decode
-  setPhase('Decode');
-  const decodeStart = performance.now();
-  let logits = prefillResult.logits;
-  const generatedIds = [...(prefillResult.tokens ?? [])];
-  const stopTokenIds = pipeline.modelConfig?.stopTokenIds ?? [];
-  const maxTokens = settings.maxTokens || 256;
+  };
+  if (isXrayProfilingNeeded()) {
+    generationOptions.profile = true;
+  }
+  let firstTokenAt = 0;
   let stepCount = 0;
-
-  while (stepCount < maxTokens) {
+  for await (const text of pipeline.generate(prompt, generationOptions)) {
     if (state.abortController?.signal?.aborted) break;
-
-    const tokenId = sampleToken(logits, settings);
-    if (stopTokenIds.includes(tokenId)) break;
-
-    generatedIds.push(tokenId);
-    const text = decodeToken(pipeline, [tokenId]);
-    tokens.push({ tokenId, text });
+    const now = performance.now();
+    if (!firstTokenAt) {
+      firstTokenAt = now;
+      state.prefilling = false;
+      setPrefillProgress(100);
+      setPhase('Decode');
+    }
+    tokens.push({ text });
     appendToken(text);
-    stepCount++;
-
-    // Live tok/s
-    if (state.liveTokSec && stepCount % 4 === 0) {
-      const elapsed = performance.now() - decodeStart;
+    stepCount += 1;
+    if (state.liveTokSec && firstTokenAt) {
+      const elapsed = Math.max(1, now - firstTokenAt);
       setTokSec(stepCount / (elapsed / 1000));
     }
-
-    // Next step
-    try {
-      const result = await pipeline.decodeStepLogits([tokenId]);
-      logits = result.logits;
-    } catch {
-      break;
-    }
+    const prefillMs = firstTokenAt ? Math.max(0, firstTokenAt - runStart) : 0;
+    const decodeMs = firstTokenAt ? Math.max(0, now - firstTokenAt) : 0;
+    updateTelemetry(pipeline, {
+      prefillTimeMs: prefillMs,
+      ttftMs: prefillMs,
+      decodeTimeMs: decodeMs,
+      decodeTokens: stepCount,
+      totalTimeMs: prefillMs + decodeMs,
+      tokensGenerated: stepCount,
+    });
   }
-
-  const decodeMs = performance.now() - decodeStart;
-  const tokPerSec = stepCount > 0 ? stepCount / (decodeMs / 1000) : 0;
+  const runEnd = performance.now();
+  if (!firstTokenAt) {
+    setPrefillProgress(100);
+  }
+  const fallbackPrefillMs = firstTokenAt
+    ? Math.max(0, firstTokenAt - runStart)
+    : Math.max(0, runEnd - runStart);
+  const fallbackDecodeMs = firstTokenAt ? Math.max(0, runEnd - firstTokenAt) : 0;
+  updateTelemetry(pipeline, {
+    prefillTimeMs: fallbackPrefillMs,
+    ttftMs: fallbackPrefillMs,
+    decodeTimeMs: fallbackDecodeMs,
+    decodeTokens: stepCount,
+    totalTimeMs: fallbackPrefillMs + fallbackDecodeMs,
+    tokensGenerated: stepCount,
+  });
+  const stats = state.lastInferenceStats || {};
+  const prefillMs = Number.isFinite(stats.prefillTimeMs) ? stats.prefillTimeMs : fallbackPrefillMs;
+  const decodeMs = Number.isFinite(stats.decodeTimeMs) ? stats.decodeTimeMs : fallbackDecodeMs;
+  const totalTokens = Number.isFinite(stats.tokensGenerated) ? stats.tokensGenerated : stepCount;
+  const tokPerSec = decodeMs > 0 ? totalTokens / (decodeMs / 1000) : 0;
 
   state.lastRun = {
+    mode: 'plain',
     prefillMs,
     decodeMs,
-    totalTokens: stepCount,
+    totalTokens,
     tokPerSec,
     tokens,
     config: { ...settings },
     kernelPath: getRuntimeConfig()?.kernelPath ?? null,
     memorySnapshot: captureMemorySnapshot(),
+    perplexity: null,
+    tokenPress: {
+      enabled: false,
+      topKSize: 0,
+      tooltipRecords: 0,
+    },
   };
 }
 
@@ -191,6 +241,16 @@ async function runWithTokenPress(pipeline, prompt, settings, tokens) {
   await tokenPressSession.prefill();
   const prefillMs = performance.now() - prefillStart;
   setPrefillProgress(100);
+  state.prefilling = false;
+  updateTelemetry(pipeline, {
+    prefillTimeMs: prefillMs,
+    prefillTokens: tokenPressSession.prefillTokenIds.length,
+    ttftMs: prefillMs,
+    decodeTimeMs: 0,
+    decodeTokens: 0,
+    totalTimeMs: prefillMs,
+    tokensGenerated: 0,
+  });
 
   setPhase('Decode');
   const decodeStart = performance.now();
@@ -198,60 +258,64 @@ async function runWithTokenPress(pipeline, prompt, settings, tokens) {
 
   // Wait for generation to finish
   await new Promise((resolve) => {
+    let firstTokenAt = 0;
     const check = setInterval(() => {
       if (tokenPressSession.finished || state.abortController?.signal?.aborted) {
         clearInterval(check);
         tokenPress.pause();
         resolve();
+        return;
       }
+      const currentTokens = tokenPressSession.tokenCount;
+      if (currentTokens > 0 && !firstTokenAt) {
+        firstTokenAt = performance.now();
+      }
+      const now = performance.now();
+      const decodeMs = Math.max(0, now - decodeStart);
+      updateTelemetry(pipeline, {
+        prefillTimeMs: prefillMs,
+        prefillTokens: tokenPressSession.prefillTokenIds.length,
+        ttftMs: firstTokenAt ? Math.max(0, firstTokenAt - decodeStart) : prefillMs,
+        decodeTimeMs: decodeMs,
+        decodeTokens: currentTokens,
+        totalTimeMs: prefillMs + decodeMs,
+        tokensGenerated: currentTokens,
+      });
     }, 50);
   });
 
   const decodeMs = performance.now() - decodeStart;
   const totalTokens = tokenPressSession.tokenCount;
   const tokPerSec = totalTokens > 0 ? totalTokens / (decodeMs / 1000) : 0;
+  updateTelemetry(pipeline, {
+    prefillTimeMs: prefillMs,
+    prefillTokens: tokenPressSession.prefillTokenIds.length,
+    ttftMs: prefillMs,
+    decodeTimeMs: decodeMs,
+    decodeTokens: totalTokens,
+    totalTimeMs: prefillMs + decodeMs,
+    tokensGenerated: totalTokens,
+  });
+  const tokenTrace = tokenPress.queue.committed.map((record, index) => buildTokenTraceRecord(record, index));
+  const perplexity = summarizePerplexityRecords(tokenTrace);
 
   state.lastRun = {
+    mode: 'token-press',
     prefillMs,
     decodeMs,
     totalTokens,
     tokPerSec,
-    tokens,
+    tokens: tokenTrace,
     config: { ...settings },
     kernelPath: getRuntimeConfig()?.kernelPath ?? null,
     memorySnapshot: captureMemorySnapshot(),
+    perplexity,
+    tokenPress: {
+      enabled: true,
+      topKSize: 10,
+      tooltipRecords: tokenTrace.length,
+    },
   };
-}
-
-function sampleToken(logits, settings) {
-  if (!logits || logits.length === 0) return 0;
-
-  const temp = settings.temperature ?? 0;
-  if (temp === 0) {
-    let maxIdx = 0;
-    let maxVal = logits[0];
-    for (let i = 1; i < logits.length; i++) {
-      if (logits[i] > maxVal) {
-        maxVal = logits[i];
-        maxIdx = i;
-      }
-    }
-    return maxIdx;
-  }
-
-  return sample(Float32Array.from(logits), {
-    temperature: temp,
-    topP: settings.topP ?? 1.0,
-    topK: settings.topK ?? 0,
-  });
-}
-
-function decodeToken(pipeline, ids) {
-  try {
-    return pipeline.tokenizer?.decode?.(ids, true, false) ?? `[${ids[0]}]`;
-  } catch {
-    return `[${ids[0]}]`;
-  }
 }
 
 export function stopGeneration() {

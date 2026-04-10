@@ -15,6 +15,7 @@ import {
   DEFAULT_EXTERNAL_MODELS_ROOT,
   buildEntryRemoteBaseUrl,
 } from '../src/tooling/hf-registry-utils.js';
+import { resolveSyntheticPromptForModel } from '../benchmarks/vendors/workload-prompt.js';
 
 const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -39,6 +40,11 @@ const COMPARE_METRIC_CONTRACT_PATH = path.join(
   'benchmarks',
   'vendors',
   'compare-metrics.json',
+);
+const MODEL_CATALOG_PATH = path.join(
+  DOPPLER_ROOT,
+  'models',
+  'catalog.json',
 );
 const BENCHMARK_POLICY_PATH = path.join(
   DOPPLER_ROOT,
@@ -135,6 +141,7 @@ const DEFAULT_SHARED_SAMPLING = Object.freeze({
 });
 const DOPPLER_MODEL_SOURCES = Object.freeze(['local', 'quickstart-registry']);
 const COMPARE_LANES = Object.freeze(['performance_comparable', 'capability_only']);
+const COMPARE_PROFILE_RUNTIME_DECODE_PROFILES = Object.freeze(['parity', 'throughput']);
 const DEFAULT_COMPARE_LANE = 'performance_comparable';
 const DEFAULT_DOPPLER_MODEL_SOURCE = 'local';
 const DEFAULT_BENCHMARK_POLICY = Object.freeze({
@@ -459,8 +466,10 @@ const DECODE_PROFILE_CONFIGS = BENCHMARK_POLICY.decodeProfiles.profiles;
 const DOPPLER_SURFACES = Object.freeze(['auto', 'node', 'browser']);
 const DOPPLER_FORMATS = Object.freeze(['rdrr', 'safetensors']);
 const TJS_FORMATS = Object.freeze(['onnx', 'safetensors']);
+const TJS_DTYPES = Object.freeze(['fp16', 'q4', 'q4f16']);
 const DEFAULT_DOPPLER_FORMAT = 'rdrr';
 const DEFAULT_TJS_FORMAT = 'onnx';
+const DEFAULT_TJS_DTYPE = 'fp16';
 
 function loadModelIndex() {
   if (!fsSync.existsSync(MODEL_INDEX_PATH)) return null;
@@ -570,10 +579,10 @@ function usage() {
     '  --model-url <url>             Doppler model base URL override (default: compare profile source resolution)',
     '  --tjs-model <id>              Transformers.js model ID (default: profile mapping in compare-engines.config.json)',
     '  --tjs-version <3|4>           Transformers.js version (default: 4)',
-    '  --tjs-dtype <fp16|q4|q4f16>   Transformers.js dtype (default: fp16)',
+    '  --tjs-dtype <fp16|q4|q4f16>   Transformers.js dtype (default: catalog benchmark dtype or fp16)',
     '  --workload <id>               Shared workload id from benchmarks/vendors/workloads.json',
     '  --prompt <text>               Prompt used for both engines (overrides workload prompt)',
-    '  --prefill-tokens <n>          Synthetic prompt token target when --prompt is omitted',
+    '  --prefill-tokens <n>          Model-input prompt token target when --prompt is omitted',
     '  --mode <compute|cold|warm|all> Run mode',
     '  --max-tokens <n>              Max new tokens',
     '  --temperature <n>             Sampling temperature',
@@ -592,7 +601,7 @@ function usage() {
     '  --doppler-no-opfs-cache        Disable Doppler OPFS cache for browser runs',
     '  --use-chat-template <on|off>   Enable/disable chat template handling',
     '  --tjs-local-model-path <path>   Path override for local TJS model files',
-    '  --load-mode <opfs|http|memory>  Asset-load mode for both engines (default depends on cache-mode)',
+    '  --load-mode <opfs|http|memory>  Asset-load mode override for both engines (default: compare config defaults)',
   '  --doppler-browser-user-data <path> Doppler Chromium profile dir',
   '  --doppler-browser-port <n>      Doppler browser relay static port (0 = random)',
   '  --doppler-browser-channel <id>   Doppler browser channel override (default: benchmark policy)',
@@ -606,7 +615,7 @@ function usage() {
   '  --tjs-timeout-ms <ms>             TJS-only benchmark timeout',
     '  --allow-non-comparable-lane      Allow capability-only diagnostic lanes from compare-engines.config.json',
     '  --tjs-server-port <n>             TJS server port (0 = random)',
-    '  --tjs-browser-console             Stream browser console on TJS failures/retries',
+    '  --tjs-browser-console             Stream browser console on TJS failures',
     '  --save                           Save results to benchmarks/vendors/results/',
     '  --save-dir <dir>                 Directory for saved results (default: ./benchmarks/vendors/results)',
     '  --skip-matrix-update             Skip automatic vendor release-matrix refresh when --save is enabled',
@@ -998,14 +1007,6 @@ function toRepoRelativeSourcePath(sourcePath) {
   return sourcePath;
 }
 
-function buildSyntheticPrompt(prefillTokens) {
-  const words = [];
-  for (let i = 0; i < prefillTokens; i++) {
-    words.push(`word${i}`);
-  }
-  return words.join(' ');
-}
-
 async function loadWorkloadCatalog() {
   const raw = await fs.readFile(WORKLOADS_PATH, 'utf-8');
   const payload = JSON.parse(raw);
@@ -1042,6 +1043,24 @@ function resolveDefaultDopplerModelId(compareConfig) {
   return modelId;
 }
 
+function normalizeCompareLoadModeDefaults(value, label = 'compare-engines.config.json defaults') {
+  if (value == null || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`${label} must be an object`);
+  }
+  const warm = parseLoadMode(value.warmLoadMode, `${label}.warmLoadMode`, null);
+  const cold = parseLoadMode(value.coldLoadMode, `${label}.coldLoadMode`, null);
+  if (warm == null) {
+    throw new Error(`${label}.warmLoadMode is required`);
+  }
+  if (cold == null) {
+    throw new Error(`${label}.coldLoadMode is required`);
+  }
+  return {
+    warm,
+    cold,
+  };
+}
+
 async function loadCompareEnginesConfig(rawPath) {
   const resolvedPath = resolveCompareEnginesConfigPath(rawPath);
   const raw = await fs.readFile(resolvedPath, 'utf-8');
@@ -1059,6 +1078,38 @@ async function loadCompareEnginesConfig(rawPath) {
       `compare profile config at ${resolvedPath} schemaVersion must be ${DEFAULT_COMPARE_CONFIG_SCHEMA_VERSION}, got ${payload.schemaVersion}`
     );
   }
+  const defaults = normalizeCompareLoadModeDefaults(
+    payload.defaults,
+    `compare profile config at ${resolvedPath} defaults`
+  );
+
+  const normalizeDopplerRuntimeProfileByDecodeProfile = (value, label) => {
+    if (value == null) {
+      return Object.freeze({});
+    }
+    if (typeof value !== 'object' || Array.isArray(value)) {
+      throw new Error(`${label} must be an object or null`);
+    }
+    const normalized = {};
+    for (const [decodeProfile, runtimeProfileId] of Object.entries(value)) {
+      const normalizedDecodeProfile = String(decodeProfile ?? '').trim().toLowerCase();
+      if (!COMPARE_PROFILE_RUNTIME_DECODE_PROFILES.includes(normalizedDecodeProfile)) {
+        throw new Error(
+          `${label} key "${decodeProfile}" must be one of: ${COMPARE_PROFILE_RUNTIME_DECODE_PROFILES.join(', ')}`
+        );
+      }
+      if (
+        runtimeProfileId != null
+        && (typeof runtimeProfileId !== 'string' || runtimeProfileId.trim() === '')
+      ) {
+        throw new Error(`${label}.${decodeProfile} must be a non-empty string or null`);
+      }
+      if (runtimeProfileId != null) {
+        normalized[normalizedDecodeProfile] = runtimeProfileId.trim();
+      }
+    }
+    return Object.freeze(normalized);
+  };
 
   const seen = new Set();
   for (const row of rows) {
@@ -1109,6 +1160,10 @@ async function loadCompareEnginesConfig(rawPath) {
         `compare-engines.config.json defaultUseChatTemplate for ${row.dopplerModelId} must be a boolean or null`
       );
     }
+    row.dopplerRuntimeProfileByDecodeProfile = normalizeDopplerRuntimeProfileByDecodeProfile(
+      row.dopplerRuntimeProfileByDecodeProfile ?? null,
+      `compare-engines.config.json dopplerRuntimeProfileByDecodeProfile for ${row.dopplerModelId}`
+    );
     if (row.defaultDopplerSource === 'quickstart-registry' && row.modelBaseDir != null) {
       throw new Error(
         `compare-engines.config.json modelBaseDir for ${row.dopplerModelId} must be null when defaultDopplerSource is "quickstart-registry"`
@@ -1122,6 +1177,7 @@ async function loadCompareEnginesConfig(rawPath) {
     schemaVersion: payload.schemaVersion,
     updated: payload.updated || null,
     sourceSha256,
+    defaults,
     modelProfileById,
     profiles: rows,
   };
@@ -1140,9 +1196,145 @@ function resolveCompareProfile(compareConfig, modelId) {
     defaultDopplerFormat: profile?.defaultDopplerFormat || DEFAULT_DOPPLER_FORMAT,
     defaultTjsFormat: profile?.defaultTjsFormat || DEFAULT_TJS_FORMAT,
     safetensorsSourceId: profile?.safetensorsSourceId || null,
+    dopplerRuntimeProfileByDecodeProfile: profile?.dopplerRuntimeProfileByDecodeProfile || Object.freeze({}),
     compareLane: profile?.compareLane || DEFAULT_COMPARE_LANE,
     compareLaneReason: profile?.compareLaneReason || null,
   };
+}
+
+function resolveRuntimeProfilePath(profileId) {
+  const normalized = String(profileId ?? '').trim().replace(/\.json$/u, '');
+  if (!normalized) {
+    throw new Error('runtime profile id is required');
+  }
+  return path.join(DOPPLER_ROOT, 'src', 'config', 'runtime', `${normalized}.json`);
+}
+
+async function loadResolvedRuntimeProfileBundle(profileId, stack = []) {
+  const resolvedPath = path.resolve(resolveRuntimeProfilePath(profileId));
+  if (stack.includes(resolvedPath)) {
+    throw new Error(`Runtime profile extends cycle: ${[...stack, resolvedPath].join(' -> ')}`);
+  }
+  const raw = await fs.readFile(resolvedPath, 'utf-8');
+  const payload = JSON.parse(raw);
+  const runtime = payload?.runtime;
+  if (!runtime || typeof runtime !== 'object' || Array.isArray(runtime)) {
+    throw new Error(`Runtime profile "${profileId}" is missing runtime.`);
+  }
+  const extendsRefs = Array.isArray(payload.extends)
+    ? payload.extends
+    : (typeof payload.extends === 'string' ? [payload.extends] : []);
+  let mergedRuntime = null;
+  for (const ref of extendsRefs) {
+    const baseBundle = await loadResolvedRuntimeProfileBundle(ref, [...stack, resolvedPath]);
+    mergedRuntime = mergedRuntime == null
+      ? baseBundle.runtime
+      : mergeRuntimeValues(mergedRuntime, baseBundle.runtime);
+  }
+  const resolvedRuntime = mergedRuntime == null
+    ? runtime
+    : mergeRuntimeValues(mergedRuntime, runtime);
+  return {
+    profileId,
+    source: resolvedPath,
+    sourceSha256: hashText(raw),
+    resolvedRuntime,
+    resolvedRuntimeSha256: hashJsonPayload(resolvedRuntime),
+  };
+}
+
+async function loadCompareProfileRuntimeBundles(compareProfile) {
+  const entries = Object.entries(compareProfile?.dopplerRuntimeProfileByDecodeProfile || {});
+  if (entries.length === 0) {
+    return new Map();
+  }
+  const bundles = await Promise.all(entries.map(async ([decodeProfile, profileId]) => [
+    decodeProfile,
+    await loadResolvedRuntimeProfileBundle(profileId),
+  ]));
+  return new Map(bundles);
+}
+
+async function loadModelCatalogBundle(catalogPath = MODEL_CATALOG_PATH) {
+  const raw = await fs.readFile(catalogPath, 'utf-8');
+  const payload = JSON.parse(raw);
+  const rows = Array.isArray(payload?.models) ? payload.models : [];
+  const byModelId = new Map();
+  const transformersjsBenchmarkByRepoId = new Map();
+  for (const row of rows) {
+    if (!row || typeof row !== 'object' || Array.isArray(row)) {
+      continue;
+    }
+    const modelId = typeof row.modelId === 'string' ? row.modelId.trim() : '';
+    if (!modelId) {
+      continue;
+    }
+    byModelId.set(modelId.toLowerCase(), row);
+    const vendorBenchmark = row.vendorBenchmark?.transformersjs;
+    const repoId = typeof vendorBenchmark?.repoId === 'string' ? vendorBenchmark.repoId.trim() : '';
+    const dtype = typeof vendorBenchmark?.dtype === 'string' ? vendorBenchmark.dtype.trim().toLowerCase() : '';
+    if (!repoId || !dtype) {
+      continue;
+    }
+    if (!TJS_DTYPES.includes(dtype)) {
+      throw new Error(
+        `models/catalog.json vendorBenchmark.transformersjs.dtype for ${modelId} `
+        + `must be one of: ${TJS_DTYPES.join(', ')}`
+      );
+    }
+    const existing = transformersjsBenchmarkByRepoId.get(repoId.toLowerCase()) || null;
+    if (existing && existing.dtype !== dtype) {
+      throw new Error(
+        `models/catalog.json has conflicting vendorBenchmark.transformersjs dtype values for `
+        + `"${repoId}": ${existing.dtype} vs ${dtype}`
+      );
+    }
+    if (!existing) {
+      transformersjsBenchmarkByRepoId.set(repoId.toLowerCase(), {
+        repoId,
+        dtype,
+        sourceModelId: modelId,
+      });
+    }
+  }
+  return {
+    source: catalogPath,
+    sourceSha256: hashText(raw),
+    updatedAt: typeof payload?.updatedAt === 'string' ? payload.updatedAt : null,
+    byModelId,
+    transformersjsBenchmarkByRepoId,
+  };
+}
+
+function resolveCatalogTransformersjsBenchmarkTarget(catalogBundle, dopplerModelId, repoId = null) {
+  const normalizedModelId = typeof dopplerModelId === 'string' ? dopplerModelId.trim().toLowerCase() : '';
+  const normalizedRepoId = typeof repoId === 'string' ? repoId.trim().toLowerCase() : '';
+  if (normalizedModelId) {
+    const entry = catalogBundle?.byModelId?.get(normalizedModelId) || null;
+    const vendorBenchmark = entry?.vendorBenchmark?.transformersjs || null;
+    const benchmarkRepoId = typeof vendorBenchmark?.repoId === 'string' ? vendorBenchmark.repoId.trim() : '';
+    const benchmarkDtype = typeof vendorBenchmark?.dtype === 'string' ? vendorBenchmark.dtype.trim().toLowerCase() : '';
+    if (benchmarkRepoId && benchmarkDtype && TJS_DTYPES.includes(benchmarkDtype)) {
+      return {
+        repoId: benchmarkRepoId,
+        dtype: benchmarkDtype,
+        source: 'catalog-model',
+        sourceModelId: entry.modelId,
+      };
+    }
+  }
+  if (normalizedRepoId) {
+    const benchmark = catalogBundle?.transformersjsBenchmarkByRepoId?.get(normalizedRepoId) || null;
+    if (benchmark) {
+      return {
+        repoId: benchmark.repoId,
+        dtype: benchmark.dtype,
+        source: 'catalog-repo',
+        sourceModelId: benchmark.sourceModelId,
+      };
+    }
+  }
+  return null;
 }
 
 async function loadQuickstartRegistry() {
@@ -1699,9 +1891,27 @@ function buildSharedBenchmarkContract({
   };
 }
 
-function resolveRunLoadMode(cacheMode, sharedLoadMode) {
+function resolveRunLoadMode(cacheMode, sharedLoadMode, compareLoadModeDefaults) {
   if (sharedLoadMode != null) return sharedLoadMode;
-  return cacheMode === 'cold' ? 'http' : 'opfs';
+  if (cacheMode !== 'warm' && cacheMode !== 'cold') {
+    throw new Error(`cacheMode must be "warm" or "cold"; got ${String(cacheMode)}`);
+  }
+  const defaults = compareLoadModeDefaults ?? null;
+  const resolved = defaults?.[cacheMode] ?? null;
+  if (resolved != null) {
+    return resolved;
+  }
+  throw new Error(
+    `No explicit ${cacheMode} load mode is configured. `
+    + 'Set compare-engines.config.json defaults or pass --load-mode.'
+  );
+}
+
+function resolveCompareLoadModes(sharedLoadMode, compareLoadModeDefaults) {
+  return {
+    warm: resolveRunLoadMode('warm', sharedLoadMode, compareLoadModeDefaults),
+    cold: resolveRunLoadMode('cold', sharedLoadMode, compareLoadModeDefaults),
+  };
 }
 
 function buildDopplerRuntimeConfig(sharedContract, engineOverlay) {
@@ -1712,7 +1922,7 @@ function buildDopplerRuntimeConfig(sharedContract, engineOverlay) {
     repetitionPenalty: sharedContract.sampling.repetitionPenalty,
     greedyThreshold: sharedContract.sampling.greedyThreshold,
   };
-  const runtimeConfig = {
+  const compareManagedRuntimeConfig = {
     shared: {
       benchmark: {
         run: {
@@ -1764,7 +1974,19 @@ function buildDopplerRuntimeConfig(sharedContract, engineOverlay) {
     },
   };
   if (engineOverlay.kernelPath) {
-    runtimeConfig.inference.kernelPath = engineOverlay.kernelPath;
+    compareManagedRuntimeConfig.inference.kernelPath = engineOverlay.kernelPath;
+  }
+
+  let runtimeConfig = compareManagedRuntimeConfig;
+  if (engineOverlay.runtimeBaseConfigJson != null) {
+    if (
+      typeof engineOverlay.runtimeBaseConfigJson !== 'object'
+      || engineOverlay.runtimeBaseConfigJson == null
+      || Array.isArray(engineOverlay.runtimeBaseConfigJson)
+    ) {
+      throw new Error('compare profile runtime base override is expected to be a parsed JSON object');
+    }
+    runtimeConfig = mergeRuntimeValues(engineOverlay.runtimeBaseConfigJson, compareManagedRuntimeConfig);
   }
 
   if (engineOverlay.runtimeConfigJson) {
@@ -1828,6 +2050,7 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
     disableMultiTokenDecode: resolvedDisableMultiTokenDecode,
     speculationMode: resolvedSpeculationMode || null,
     stopCheckMode: resolvedStopCheckMode,
+    runtimeBaseConfigJson: options.runtimeBaseConfigJson ?? null,
     runtimeConfigJson: options.runtimeConfigJson,
   });
   const stableBrowserArgs = appendBrowserArgs([], STABLE_BROWSER_ARGS);
@@ -1895,7 +2118,7 @@ async function runTjs(modelId, sharedContract, cacheMode, tjsVersion, localModel
   const resolvedLoadMode = options.loadMode ?? null;
   const resolvedTimeoutMs = parsePositiveInt(options.timeoutMs, DEFAULT_TJS_TIMEOUT_MS, '--tjs-timeout-ms');
   const resolvedServerPort = parseNonNegativeInt(options.serverPort, DEFAULT_TJS_SERVER_PORT, '--tjs-server-port');
-  const resolvedTjsDtype = parseChoice(options.tjsDtype, ['fp16', 'q4', 'q4f16'], '--tjs-dtype', 'fp16');
+  const resolvedTjsDtype = parseChoice(options.tjsDtype, TJS_DTYPES, '--tjs-dtype', DEFAULT_TJS_DTYPE);
   const resolvedTjsFormat = parseChoice(options.tjsFormat, TJS_FORMATS, '--tjs-format', DEFAULT_TJS_FORMAT);
   const resolvedBrowserBaseUrl = options.browserBaseUrl || null;
   const resolvedBrowserExecutable = options.browserExecutable || null;
@@ -1934,8 +2157,8 @@ async function runTjs(modelId, sharedContract, cacheMode, tjsVersion, localModel
   if (options.browserConsole === true) args.push('--browser-console');
 
   console.error(`[compare] running TJS v${tjsVersion} (${cacheMode})...`);
-  const runOnce = async (overrideArgs = []) => {
-    const { stdout } = await execFileAsync('node', [...args, ...overrideArgs], {
+  const runOnce = async () => {
+    const { stdout } = await execFileAsync('node', args, {
       cwd: DOPPLER_ROOT,
       timeout: resolvedTimeoutMs,
       maxBuffer: 10 * 1024 * 1024,
@@ -1945,22 +2168,6 @@ async function runTjs(modelId, sharedContract, cacheMode, tjsVersion, localModel
   try {
     return await runOnce();
   } catch (error) {
-    const message = String(error?.message || '');
-    const pageClosed = /Target page, context or browser has been closed/i.test(message);
-    if (pageClosed) {
-      const retryArgs = resolvedProfileOps ? ['--profile-ops', 'off'] : [];
-      console.error(
-        resolvedProfileOps
-          ? '[compare] TJS closed page/context during profiled run; retrying with --profile-ops off...'
-          : '[compare] TJS closed page/context; retrying once...'
-      );
-      try {
-        return await runOnce(retryArgs);
-      } catch (retryError) {
-        console.error(`[compare] TJS (${cacheMode}) retry failed: ${retryError.message}`);
-        return toFailurePayload('transformers.js', retryError);
-      }
-    }
     console.error(`[compare] TJS (${cacheMode}) failed: ${error.message}`);
     return toFailurePayload('transformers.js', error);
   }
@@ -2212,6 +2419,95 @@ function formatVal(v, unit) {
   return String(v);
 }
 
+function extractDopplerPrefillTokens(result) {
+  return firstFiniteNumber(result, [
+    'result.result.metrics.avgPrefillTokens',
+    'result.metrics.avgPrefillTokens',
+    'metrics.avgPrefillTokens',
+    'result.result.tokens.prefill.median',
+    'result.tokens.prefill.median',
+    'tokens.prefill.median',
+    'result.result.runs.0.prefillTokens',
+    'result.runs.0.prefillTokens',
+    'runs.0.prefillTokens',
+  ]);
+}
+
+function extractTransformersjsPrefillTokens(result) {
+  return firstFiniteNumber(result, [
+    'runs.0.prefillTokens',
+    'result.runs.0.prefillTokens',
+    'metrics.prefillTokens',
+    'result.metrics.prefillTokens',
+    'timing.prefillTokens',
+    'result.timing.prefillTokens',
+  ]);
+}
+
+function resolvePromptTokenComparison({ prefillTokenTarget, doppler, transformersjs }) {
+  const dopplerPrefillTokens = extractDopplerPrefillTokens(doppler);
+  const transformersjsPrefillTokens = extractTransformersjsPrefillTokens(transformersjs);
+  const target = Number.isFinite(prefillTokenTarget) ? Number(prefillTokenTarget) : null;
+
+  let ok = true;
+  let invalidReason = null;
+  if (dopplerPrefillTokens == null || transformersjsPrefillTokens == null) {
+    ok = false;
+    invalidReason = 'missing-prompt-token-count';
+  } else if (dopplerPrefillTokens !== transformersjsPrefillTokens) {
+    ok = false;
+    invalidReason = 'prompt-token-count-mismatch';
+  } else if (target != null && (dopplerPrefillTokens !== target || transformersjsPrefillTokens !== target)) {
+    ok = false;
+    invalidReason = 'prompt-token-target-mismatch';
+  }
+
+  return {
+    target,
+    doppler: dopplerPrefillTokens,
+    transformersjs: transformersjsPrefillTokens,
+    ok,
+    invalidReason,
+  };
+}
+
+function buildCompareSection({ cacheMode, loadMode, doppler, transformersjs, prefillTokenTarget = null }) {
+  const dopplerFailed = doppler?.failed === true;
+  const tjsFailed = transformersjs?.failed === true;
+  const baseComparable = !dopplerFailed && !tjsFailed && doppler != null && transformersjs != null;
+  const promptTokens = resolvePromptTokenComparison({
+    prefillTokenTarget,
+    doppler,
+    transformersjs,
+  });
+  const pairedComparable = baseComparable && promptTokens.ok === true;
+
+  let invalidReason = null;
+  if (!pairedComparable) {
+    if (!baseComparable && dopplerFailed && tjsFailed) {
+      invalidReason = 'doppler-and-transformersjs-failed';
+    } else if (!baseComparable && dopplerFailed) {
+      invalidReason = 'doppler-failed';
+    } else if (!baseComparable && tjsFailed) {
+      invalidReason = 'transformersjs-failed';
+    } else if (!baseComparable) {
+      invalidReason = 'missing-engine-result';
+    } else {
+      invalidReason = promptTokens.invalidReason || 'prompt-token-contract-invalid';
+    }
+  }
+
+  return {
+    cacheMode,
+    loadMode,
+    pairedComparable,
+    invalidReason,
+    promptTokens,
+    doppler: doppler ?? null,
+    transformersjs: transformersjs ?? null,
+  };
+}
+
 function formatDelta(dopplerVal, tjsVal, higherBetter) {
   if (dopplerVal == null || tjsVal == null || !Number.isFinite(dopplerVal) || !Number.isFinite(tjsVal)) return '-';
   if (tjsVal === 0 && dopplerVal === 0) return 'same';
@@ -2231,8 +2527,25 @@ function printRow(label, dopplerVal, tjsVal, unit, higherBetter) {
   console.log(`  ${label.padEnd(20)} ${dStr.padStart(14)} ${tStr.padStart(14)} ${delta.padStart(18)}`);
 }
 
-function printSection(title, dopplerResult, tjsResult, rows) {
+function printSection(title, section, rows) {
+  const dopplerResult = section?.doppler ?? null;
+  const tjsResult = section?.transformersjs ?? section?.tjs ?? null;
   console.log(`\n=== ${title} ===`);
+  if (section?.cacheMode || section?.loadMode) {
+    console.log(
+      `  mode: ${section?.cacheMode ?? '-'}`
+      + `, load: ${section?.loadMode ?? '-'}`
+    );
+  }
+  if (section?.pairedComparable === false) {
+    console.log(`  note: paired comparison invalid (${section.invalidReason || 'unknown'})`);
+  }
+  if (dopplerResult?.failed === true) {
+    console.log(`  Doppler failed: ${dopplerResult?.error?.message || 'failed'}`);
+  }
+  if (tjsResult?.failed === true) {
+    console.log(`  TJS failed:     ${tjsResult?.error?.message || 'failed'}`);
+  }
   console.log(`  ${''.padEnd(20)} ${'Doppler'.padStart(14)} ${'TJS'.padStart(14)} ${'delta'.padStart(18)}`);
   for (const row of rows) {
     const dVal = resolveMetric(dopplerResult, row, 'doppler');
@@ -2283,14 +2596,27 @@ async function main() {
       ? Number(workloadSampling.greedyThreshold)
       : DEFAULT_SHARED_SAMPLING.greedyThreshold,
   };
-  const promptInput = flags.prompt
-    || (Number.isFinite(prefillTokenTarget) ? buildSyntheticPrompt(prefillTokenTarget) : DEFAULT_PROMPT);
+  let promptInput = flags.prompt || null;
   const maxTokensInput = flags['max-tokens'] ?? workload?.decodeTokens ?? DEFAULT_MAX_TOKENS;
 
   const compareProfileConfig = await loadCompareEnginesConfig(flags['compare-config']);
   const defaultDopplerModelId = resolveDefaultDopplerModelId(compareProfileConfig);
   const dopplerModelId = flags['model-id'] || defaultDopplerModelId;
   const compareProfile = resolveCompareProfile(compareProfileConfig, dopplerModelId);
+  const compareProfileRuntimeBundles = await loadCompareProfileRuntimeBundles(compareProfile);
+  const modelCatalog = await loadModelCatalogBundle();
+  const catalogCompareBenchmark = resolveCatalogTransformersjsBenchmarkTarget(modelCatalog, dopplerModelId, null);
+  if (
+    compareProfile.defaultTjsModelId
+    && catalogCompareBenchmark?.repoId
+    && compareProfile.defaultTjsModelId !== catalogCompareBenchmark.repoId
+  ) {
+    throw new Error(
+      `compare-engines.config.json defaultTjsModelId for "${dopplerModelId}" `
+      + `(${compareProfile.defaultTjsModelId}) does not match models/catalog.json vendorBenchmark `
+      + `(${catalogCompareBenchmark.repoId})`
+    );
+  }
   const allowNonComparableLane = flags['allow-non-comparable-lane'] === true;
   if (compareProfile.compareLane !== 'performance_comparable' && !allowNonComparableLane) {
     throw new Error(
@@ -2373,20 +2699,67 @@ async function main() {
       + formatPreflightErrors(dopplerManifestPreflight.errors)
     );
   }
-  const resolvedDefaultTjsModel = compareProfile.defaultTjsModelId || null;
+  const resolvedDefaultTjsModel = compareProfile.defaultTjsModelId || catalogCompareBenchmark?.repoId || null;
   const tjsModelOverridden = flags['tjs-model'] != null;
   const tjsModelId = flags['tjs-model']
     || (tjsFormat === 'safetensors' ? safetensorsSourceId : resolvedDefaultTjsModel);
   if (!tjsModelId) {
     throw new Error(
       `No default Transformers.js model mapping for "${dopplerModelId}". `
-      + 'Set defaultTjsModelId in compare-engines.config.json or pass --tjs-model.'
+      + 'Set defaultTjsModelId in compare-engines.config.json, add vendorBenchmark.transformersjs.repoId '
+      + 'to models/catalog.json, or pass --tjs-model.'
     );
   }
   const tjsLocalModelPath = flags['tjs-local-model-path'] || null;
   const tjsVersion = flags['tjs-version'] || '4';
   const tjsRuntimeStack = await resolveTransformersjsRuntimeStack(tjsVersion);
-  const tjsDtype = parseChoice(flags['tjs-dtype'], ['fp16', 'q4', 'q4f16'], '--tjs-dtype', 'fp16');
+  const catalogResolvedTjsBenchmark = resolveCatalogTransformersjsBenchmarkTarget(
+    modelCatalog,
+    dopplerModelId,
+    tjsFormat === 'onnx' ? tjsModelId : null
+  );
+  const tjsModelSource = tjsModelOverridden === true
+    ? 'flag'
+    : (compareProfile.defaultTjsModelId ? 'compare-profile' : (catalogCompareBenchmark?.source || 'fallback'));
+  const tjsDtype = parseChoice(
+    flags['tjs-dtype'],
+    TJS_DTYPES,
+    '--tjs-dtype',
+    catalogResolvedTjsBenchmark?.dtype || DEFAULT_TJS_DTYPE
+  );
+  const tjsDtypeSource = flags['tjs-dtype'] != null
+    ? 'flag'
+    : (catalogResolvedTjsBenchmark?.source || 'fallback');
+  const useChatTemplate = parseOnOff(
+    flags['use-chat-template'],
+    compareProfile.defaultUseChatTemplate ?? false,
+    '--use-chat-template'
+  );
+  let promptContract = null;
+  if (promptInput == null) {
+    if (Number.isFinite(prefillTokenTarget)) {
+      promptContract = await resolveSyntheticPromptForModel({
+        prefillTokens: prefillTokenTarget,
+        modelId: tjsModelId,
+        localModelPath: tjsLocalModelPath,
+        useChatTemplate,
+      });
+      promptInput = promptContract.prompt;
+    } else {
+      promptInput = DEFAULT_PROMPT;
+    }
+  } else if (Number.isFinite(prefillTokenTarget)) {
+    promptContract = {
+      prompt: promptInput,
+      prefillTokens: prefillTokenTarget,
+      promptSource: 'explicit-prompt',
+      tokenizerLocator: null,
+      tokenizerResolutionSource: null,
+    };
+  }
+  const effectivePrefillTokenTarget = promptContract?.promptSource === 'tokenizer-accurate-synthetic'
+    ? promptContract.prefillTokens
+    : null;
   const mode = flags.mode || 'all';
   const sharedContract = buildSharedBenchmarkContract({
     prompt: promptInput,
@@ -2396,18 +2769,27 @@ async function main() {
     seed: flags.seed,
     loadMode: parseLoadMode(flags['load-mode'], '--load-mode', null),
     sampling,
-    useChatTemplate: parseOnOff(
-      flags['use-chat-template'],
-      compareProfile.defaultUseChatTemplate ?? false,
-      '--use-chat-template'
-    ),
+    useChatTemplate,
   });
+  const resolvedLoadModes = resolveCompareLoadModes(sharedContract.loadMode, compareProfileConfig.defaults);
   const prompt = sharedContract.prompt;
   const maxTokens = sharedContract.maxTokens;
   const warmupRuns = sharedContract.warmupRuns;
   const runs = sharedContract.timedRuns;
   const seed = sharedContract.seed;
   const decodeProfile = parseDecodeProfile(flags['decode-profile']);
+  const resolveCompareProfileRuntimeBundle = (profileId) => compareProfileRuntimeBundles.get(profileId) || null;
+  const compareProfileRuntimeBundleMetadata = Object.fromEntries(
+    [...compareProfileRuntimeBundles.entries()].map(([profileId, bundle]) => [
+      profileId,
+      {
+        runtimeProfileId: bundle.profileId,
+        source: toRepoRelativeSourcePath(bundle.source),
+        sourceSha256: bundle.sourceSha256,
+        resolvedRuntimeSha256: bundle.resolvedRuntimeSha256,
+      },
+    ])
+  );
   const tjsProfileOps = parseOnOff(flags['tjs-profile-ops'], DEFAULT_TJS_PROFILE_OPS, '--tjs-profile-ops');
   const compareSharedTimeoutMs = flags['timeout-ms'] != null
     ? parsePositiveInt(flags['timeout-ms'], DEFAULT_COMPARE_TIMEOUT_MS, '--timeout-ms')
@@ -2529,6 +2911,8 @@ async function main() {
     + `decodeProfile: ${decodeProfile}, workload=${workloadId ?? 'none'}, `
     + `dopplerSurface: ${dopplerSurface}, `
     + `dopplerBrowserChannel: ${dopplerBrowserChannel ?? 'default'}, `
+    + `loadModes: warm=${resolvedLoadModes.warm}, cold=${resolvedLoadModes.cold}, `
+    + `loadModeOverride: ${sharedContract.loadMode ?? 'none'}, `
     + `sampling=(temp=${sharedContract.sampling.temperature}, topK=${sharedContract.sampling.topK}, topP=${sharedContract.sampling.topP}), `
     + `useChatTemplate: ${sharedContract.useChatTemplate === true ? 'on' : 'off'}, `
     + `dopplerBatchSize: ${dopplerBatchSize}, `
@@ -2536,8 +2920,17 @@ async function main() {
     + `dopplerTokensPerReadback: ${dopplerTokensPerReadback}, `
     + `dopplerTimeoutMs: ${compareDopplerTimeoutMs}, `
     + `tjsTimeoutMs: ${compareTjsTimeoutMs}, `
-    + `tjsDtype: ${tjsDtype}`
+    + `tjsDtype: ${tjsDtype} (${tjsDtypeSource}), `
+    + `tjsModelSource: ${tjsModelSource}`
   );
+  if (effectivePrefillTokenTarget != null) {
+    console.error(
+      `[compare] prompt target: ${effectivePrefillTokenTarget} model-input tokens `
+      + `(source=${promptContract?.promptSource ?? 'unknown'}, `
+      + `tokenizer=${promptContract?.tokenizerLocator ?? 'n/a'}, `
+      + `tokenizerSource=${promptContract?.tokenizerResolutionSource ?? 'n/a'})`
+    );
+  }
 
   const report = {
     timestamp: runTimestamp ?? new Date().toISOString(),
@@ -2553,6 +2946,10 @@ async function main() {
       sourceSha256: compareProfileConfig.sourceSha256,
       profileSource: compareProfile.source,
       updated: compareProfileConfig.updated,
+      defaults: {
+        warmLoadMode: compareProfileConfig.defaults.warm,
+        coldLoadMode: compareProfileConfig.defaults.cold,
+      },
     },
     metricContract: {
       source: toRepoRelativeSourcePath(compareMetricContractConfig.source || 'benchmarks/vendors/compare-metrics.json'),
@@ -2580,6 +2977,7 @@ async function main() {
       },
     },
     runtimeConfig: {
+      compareProfileRuntimeProfiles: compareProfileRuntimeBundleMetadata,
       overrideProvided: runtimeConfigOverride !== null,
       runtimeConfigSha256: runtimeConfigOverrideHash,
       compareProfileSchemaVersion: compareProfileConfig.schemaVersion ?? DEFAULT_COMPARE_CONFIG_SCHEMA_VERSION,
@@ -2610,6 +3008,14 @@ async function main() {
     dopplerTokensPerReadback,
     tjsModelId,
     transformersjsDtype: tjsDtype,
+    transformersjsModelSource: tjsModelSource,
+    transformersjsDtypeSource: tjsDtypeSource,
+    transformersjsBenchmarkCatalog: {
+      source: toRepoRelativeSourcePath(modelCatalog.source || 'models/catalog.json'),
+      sourceSha256: modelCatalog.sourceSha256,
+      updatedAt: modelCatalog.updatedAt,
+      sourceModelId: catalogResolvedTjsBenchmark?.sourceModelId ?? null,
+    },
     mode,
     prompt,
     maxTokens,
@@ -2618,7 +3024,11 @@ async function main() {
     seed,
     workload: {
       id: workloadId,
-      prefillTokenTarget: prefillTokenTarget ?? null,
+      prefillTokenTarget: effectivePrefillTokenTarget,
+      prefillTokenSource: promptContract?.promptSource ?? (flags.prompt ? 'explicit-prompt' : 'default-prompt'),
+      prefillTokenSemantics: 'model_input_tokens',
+      promptTokenizerLocator: promptContract?.tokenizerLocator ?? null,
+      promptTokenizerResolutionSource: promptContract?.tokenizerResolutionSource ?? null,
       decodeTokenTarget: maxTokens,
     },
     environment: {
@@ -2639,6 +3049,11 @@ async function main() {
     timeoutMs: compareSharedTimeoutMs ?? compareDopplerTimeoutMs,
     dopplerTimeoutMs: compareDopplerTimeoutMs,
     tjsTimeoutMs: compareTjsTimeoutMs,
+    loadModeResolution: {
+      sharedOverride: sharedContract.loadMode,
+      warm: resolvedLoadModes.warm,
+      cold: resolvedLoadModes.cold,
+    },
     methodology: {
       promptTokensPerSecToFirstToken: 'prompt_tokens / firstTokenMs',
       prefillPhaseMs: {
@@ -2659,13 +3074,14 @@ async function main() {
           ? 'model-chat-template'
           : 'raw-prompt',
       },
+      loadMode: sharedContract.loadMode,
       cacheSemantics: {
         warm: dopplerSurface === 'node'
-          ? 'Prime engine cache before timed run, then run from local persistent cache only (Doppler node runtime cache; TJS persistent browser cache).'
-          : 'Prime engine cache before timed run, then run from local persistent cache only (Doppler OPFS; TJS persistent browser cache).',
+          ? `Prime engine cache before timed run, then run from local persistent cache only (loadMode=${resolvedLoadModes.warm}; Doppler node runtime cache; TJS persistent browser cache).`
+          : `Prime engine cache before timed run, then run from local persistent cache only (loadMode=${resolvedLoadModes.warm}; Doppler OPFS; TJS persistent browser cache).`,
         cold: dopplerSurface === 'node'
-          ? 'Wipe engine-specific persistent cache state before run (Doppler node runtime cache/profile wipe; TJS profile wipe).'
-          : 'Wipe engine-specific persistent cache state before run (Doppler OPFS/profile wipe; TJS profile wipe).',
+          ? `Wipe engine-specific persistent cache state before run (loadMode=${resolvedLoadModes.cold}; Doppler node runtime cache/profile wipe; TJS profile wipe).`
+          : `Wipe engine-specific persistent cache state before run (loadMode=${resolvedLoadModes.cold}; Doppler OPFS/profile wipe; TJS profile wipe).`,
       },
       formats: {
         doppler: dopplerFormat,
@@ -2700,6 +3116,9 @@ async function main() {
   let tjsWarm = null;
   let dopplerCold = null;
   let tjsCold = null;
+  const parityRuntimeBaseConfig = resolveCompareProfileRuntimeBundle('parity')?.resolvedRuntime ?? null;
+  const throughputRuntimeBaseConfig = resolveCompareProfileRuntimeBundle('throughput')?.resolvedRuntime ?? null;
+  const selectedRuntimeBaseConfig = resolveCompareProfileRuntimeBundle(decodeProfile)?.resolvedRuntime ?? null;
 
   if (needCompute) {
     tjsCompute = await runTjs(
@@ -2717,7 +3136,7 @@ async function main() {
         browserExecutable,
         browserConsole: tjsBrowserConsole,
         browserBaseUrl,
-        loadMode: resolveRunLoadMode('warm', sharedContract.loadMode),
+        loadMode: resolvedLoadModes.warm,
       }
     );
     dopplerComputeParity = await runDoppler(
@@ -2738,11 +3157,12 @@ async function main() {
         browserExecutable,
         browserBaseUrl,
         timeoutMs: compareDopplerTimeoutMs,
+        runtimeBaseConfigJson: parityRuntimeBaseConfig,
         runtimeConfigJson: runtimeConfigOverride,
         surface: dopplerSurface,
         format: dopplerFormat,
         safetensorsSourcePath,
-        loadMode: resolveRunLoadMode('warm', sharedContract.loadMode),
+        loadMode: resolvedLoadModes.warm,
       }
     );
 
@@ -2778,11 +3198,12 @@ async function main() {
         browserExecutable,
         browserBaseUrl,
         timeoutMs: compareDopplerTimeoutMs,
+        runtimeBaseConfigJson: throughputRuntimeBaseConfig,
         runtimeConfigJson: runtimeConfigOverride,
         surface: dopplerSurface,
         format: dopplerFormat,
         safetensorsSourcePath,
-        loadMode: resolveRunLoadMode('warm', sharedContract.loadMode),
+        loadMode: resolvedLoadModes.warm,
       }
     );
 
@@ -2794,8 +3215,20 @@ async function main() {
     );
 
     report.sections.compute = {
-      parity: { doppler: dopplerComputeParity, transformersjs: tjsCompute },
-      throughput: { doppler: dopplerComputeThroughput, transformersjs: tjsCompute },
+      parity: buildCompareSection({
+        cacheMode: 'warm',
+        loadMode: resolvedLoadModes.warm,
+        doppler: dopplerComputeParity,
+        transformersjs: tjsCompute,
+        prefillTokenTarget: effectivePrefillTokenTarget,
+      }),
+      throughput: buildCompareSection({
+        cacheMode: 'warm',
+        loadMode: resolvedLoadModes.warm,
+        doppler: dopplerComputeThroughput,
+        transformersjs: tjsCompute,
+        prefillTokenTarget: effectivePrefillTokenTarget,
+      }),
     };
     report.correctness = buildCorrectnessReport(dopplerComputeParity, tjsCompute, sharedContract.prompt);
   }
@@ -2819,11 +3252,12 @@ async function main() {
         browserExecutable,
         browserBaseUrl,
         timeoutMs: compareDopplerTimeoutMs,
+        runtimeBaseConfigJson: selectedRuntimeBaseConfig,
         runtimeConfigJson: runtimeConfigOverride,
         surface: dopplerSurface,
         format: dopplerFormat,
         safetensorsSourcePath,
-        loadMode: resolveRunLoadMode('warm', sharedContract.loadMode),
+        loadMode: resolvedLoadModes.warm,
       }
     );
     assertRequiredHarnessMetrics(
@@ -2848,7 +3282,7 @@ async function main() {
         browserExecutable,
         browserConsole: tjsBrowserConsole,
         browserBaseUrl,
-        loadMode: resolveRunLoadMode('warm', sharedContract.loadMode),
+        loadMode: resolvedLoadModes.warm,
       }
     );
     assertDeterministicParityContract(sharedContract, tjsWarm, 'warm');
@@ -2859,7 +3293,13 @@ async function main() {
       'TJS'
     );
 
-    report.sections.warm = { doppler: dopplerWarm, transformersjs: tjsWarm };
+    report.sections.warm = buildCompareSection({
+      cacheMode: 'warm',
+      loadMode: resolvedLoadModes.warm,
+      doppler: dopplerWarm,
+      transformersjs: tjsWarm,
+      prefillTokenTarget: effectivePrefillTokenTarget,
+    });
   }
 
   if (needCold) {
@@ -2881,11 +3321,12 @@ async function main() {
         browserExecutable,
         browserBaseUrl,
         timeoutMs: compareDopplerTimeoutMs,
+        runtimeBaseConfigJson: selectedRuntimeBaseConfig,
         runtimeConfigJson: runtimeConfigOverride,
         surface: dopplerSurface,
         format: dopplerFormat,
         safetensorsSourcePath,
-        loadMode: resolveRunLoadMode('cold', sharedContract.loadMode),
+        loadMode: resolvedLoadModes.cold,
       }
     );
     assertRequiredHarnessMetrics(
@@ -2910,7 +3351,7 @@ async function main() {
         browserExecutable,
         browserConsole: tjsBrowserConsole,
         browserBaseUrl,
-        loadMode: resolveRunLoadMode('cold', sharedContract.loadMode),
+        loadMode: resolvedLoadModes.cold,
       }
     );
     assertDeterministicParityContract(sharedContract, tjsCold, 'cold');
@@ -2921,7 +3362,13 @@ async function main() {
       'TJS'
     );
 
-    report.sections.cold = { doppler: dopplerCold, transformersjs: tjsCold };
+    report.sections.cold = buildCompareSection({
+      cacheMode: 'cold',
+      loadMode: resolvedLoadModes.cold,
+      doppler: dopplerCold,
+      transformersjs: tjsCold,
+      prefillTokenTarget: effectivePrefillTokenTarget,
+    });
   }
 
   if (jsonOutput) {
@@ -2935,14 +3382,14 @@ async function main() {
     const computeRows = compareMetricContract;
 
     if (mode === 'compute' || mode === 'all') {
-      printSection('COMPUTE (PARITY)', dopplerComputeParity, tjsCompute, computeRows);
-      printSection('COMPUTE (THROUGHPUT)', dopplerComputeThroughput, tjsCompute, computeRows);
+      printSection('COMPUTE (PARITY)', report.sections.compute?.parity, computeRows);
+      printSection('COMPUTE (THROUGHPUT)', report.sections.compute?.throughput, computeRows);
     }
     if (mode === 'warm' || mode === 'all') {
-      printSection('WARM START', dopplerWarm, tjsWarm, computeRows);
+      printSection('WARM START', report.sections.warm, computeRows);
     }
     if (mode === 'cold' || mode === 'all') {
-      printSection('COLD START', dopplerCold, tjsCold, computeRows);
+      printSection('COLD START', report.sections.cold, computeRows);
     }
     if (report.correctness) {
       const c = report.correctness;
@@ -3016,10 +3463,16 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 }
 
 export {
+  buildCompareSection,
   buildDopplerRuntimeConfig,
   buildSharedBenchmarkContract,
+  loadModelCatalogBundle,
+  normalizeCompareLoadModeDefaults,
   parseArgs,
   parseOnOff,
+  resolveCatalogTransformersjsBenchmarkTarget,
   resolveCompareProfile,
+  resolveCompareLoadModes,
   resolveDopplerModelSource,
+  resolveRunLoadMode,
 };

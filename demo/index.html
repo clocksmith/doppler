@@ -10,6 +10,120 @@
   <link rel="icon" type="image/svg+xml" href="/demo/favicon.svg">
   <link rel="apple-touch-icon" href="/demo/assets/pwa/icon-192.png">
   <link rel="manifest" href="/demo/pwa-manifest.json">
+  <style>
+    /* Critical boot styles are inline so the first HTML response animates even
+       if the service worker serves a stale app.css during update turnover. */
+    .boot-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: var(--bg, #ffffff);
+      color: var(--fg, #111111);
+      display: grid;
+      place-items: center;
+      align-content: center;
+      justify-content: center;
+      gap: 16px;
+      transition: opacity 240ms ease;
+    }
+
+    .boot-overlay[hidden] {
+      display: none !important;
+    }
+
+    .boot-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      text-align: center;
+      width: max-content;
+    }
+
+    .boot-d4-loading {
+      position: relative;
+      display: inline-flex;
+      flex-shrink: 0;
+      width: 64px;
+      height: 64px;
+      line-height: 1;
+      isolation: isolate;
+      perspective: 1200px;
+    }
+
+    .boot-d4-a,
+    .boot-d4-b,
+    .boot-d4-c,
+    .boot-d4-d {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 64px;
+      text-align: center;
+      color: inherit;
+      font-size: 38px;
+      line-height: 1;
+      font-weight: 500;
+      will-change: transform, opacity;
+      transform-origin: center center;
+      opacity: 1;
+    }
+
+    .boot-d4-a { animation: doppler-d4-overlay-a 4.444s ease-in-out infinite; }
+    .boot-d4-b { animation: doppler-d4-overlay-b 4.444s ease-in-out infinite; }
+    .boot-d4-c { animation: doppler-d4-overlay-c 4.444s ease-in-out infinite; }
+    .boot-d4-d { animation: doppler-d4-overlay-d 4.444s ease-in-out infinite; }
+
+    .boot-status {
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.72;
+      padding-top: 2px;
+    }
+
+    .boot-error {
+      max-width: 480px;
+      padding: 16px;
+      border: 3px double currentColor;
+      font-size: 16px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    @keyframes doppler-d4-overlay-a {
+      0%, 3% { transform: scale(1) translate(0px, 0px); opacity: 1; }
+      22%, 28% { transform: scale(0.45) translate(-31px, -18px); opacity: 0.5; }
+      47%, 53% { transform: scale(0.45) translate(31px, -18px); opacity: 0.5; }
+      72%, 78% { transform: scale(0.45) translate(0px, 35px); opacity: 0.5; }
+      97%, 100% { transform: scale(1) translate(0px, 0px); opacity: 1; }
+    }
+
+    @keyframes doppler-d4-overlay-b {
+      0%, 3% { transform: scale(0.45) translate(-31px, -18px); opacity: 0.5; }
+      22%, 28% { transform: scale(0.45) translate(31px, -18px); opacity: 0.5; }
+      47%, 53% { transform: scale(0.45) translate(0px, 35px); opacity: 0.5; }
+      72%, 78% { transform: scale(1) translate(0px, 0px); opacity: 1; }
+      97%, 100% { transform: scale(0.45) translate(-31px, -18px); opacity: 0.5; }
+    }
+
+    @keyframes doppler-d4-overlay-c {
+      0%, 3% { transform: scale(0.45) translate(31px, -18px); opacity: 0.5; }
+      22%, 28% { transform: scale(0.45) translate(0px, 35px); opacity: 0.5; }
+      47%, 53% { transform: scale(1) translate(0px, 0px); opacity: 1; }
+      72%, 78% { transform: scale(0.45) translate(-31px, -18px); opacity: 0.5; }
+      97%, 100% { transform: scale(0.45) translate(31px, -18px); opacity: 0.5; }
+    }
+
+    @keyframes doppler-d4-overlay-d {
+      0%, 3% { transform: scale(0.45) translate(0px, 35px); opacity: 0.5; }
+      22%, 28% { transform: scale(1) translate(0px, 0px); opacity: 1; }
+      47%, 53% { transform: scale(0.45) translate(-31px, -18px); opacity: 0.5; }
+      72%, 78% { transform: scale(0.45) translate(31px, -18px); opacity: 0.5; }
+      97%, 100% { transform: scale(0.45) translate(0px, 35px); opacity: 0.5; }
+    }
+  </style>
   <link rel="stylesheet" href="/demo/styles/rd.css">
   <link rel="stylesheet" href="/demo/ui/styles/app.css">
   <link rel="stylesheet" href="/demo/ui/token-press/styles.css">
@@ -31,8 +145,15 @@
 
   <!-- Boot overlay -->
   <div id="boot-overlay" class="boot-overlay">
-    <div class="boot-title">Doppler</div>
-    <div id="boot-status" class="boot-status">Checking WebGPU...</div>
+    <div class="boot-panel">
+      <span id="boot-d4" class="boot-d4-loading" aria-hidden="true">
+        <span class="boot-d4-a">D</span>
+        <span class="boot-d4-b">4</span>
+        <span class="boot-d4-c">D</span>
+        <span class="boot-d4-d">A</span>
+      </span>
+      <div id="boot-status" class="boot-status">Checking WebGPU...</div>
+    </div>
     <div id="boot-error" class="boot-error" hidden></div>
   </div>
 
@@ -148,13 +269,13 @@
           </div>
         </div>
         <div class="settings-checkboxes">
-          <label class="checkbox-label" title="Capture per-kernel and per-layer timing. Required for X-Ray decode/kernel panels. Adds overhead.">
+          <label class="checkbox-label checkbox-label--inline" title="Capture per-kernel and per-layer timing. Required for X-Ray decode/kernel panels. Adds overhead.">
             <input id="set-trace" type="checkbox"> Trace
           </label>
-          <label class="checkbox-label" title="Step-by-step token visualization with top-K candidates and confidence underline.">
+          <label class="checkbox-label checkbox-label--inline" title="Step-by-step token visualization with top-K candidates and confidence underline.">
             <input id="set-token-press" type="checkbox"> Token Press
           </label>
-          <label class="checkbox-label" title="Show tokens-per-second during decode. Needs Readback > 0 for real-time updates.">
+          <label class="checkbox-label checkbox-label--inline" title="Show tokens-per-second during decode. Needs Readback > 0 for real-time updates.">
             <input id="set-live-toks" type="checkbox" checked> Live tok/s
           </label>
         </div>
@@ -162,15 +283,20 @@
     </section>
 
     <!-- Xray -->
-    <section class="xray-toggle-row">
-      <span class="type-label" title="Debug visualization panels for inference internals.">X-Ray</span>
-      <label class="checkbox-label" title="Decode waterfall: per-step timing breakdown."><input id="xray-toggle-decode" type="checkbox"> Decode</label>
-      <label class="checkbox-label" title="KV cache occupancy, layout, and eviction stats."><input id="xray-toggle-kv" type="checkbox"> KV Cache</label>
-      <label class="checkbox-label" title="Per-kernel dispatch timing and workgroup counts."><input id="xray-toggle-kernel" type="checkbox"> Kernel</label>
-      <label class="checkbox-label" title="GPU pipeline state, submit latency, and device info."><input id="xray-toggle-gpu" type="checkbox"> GPU</label>
-      <label class="checkbox-label" title="Execution plan: resolved op graph and step order."><input id="xray-toggle-exec" type="checkbox"> Exec</label>
-      <label class="checkbox-label" title="Memory breakdown: buffer pool, heap, and tensor sizes."><input id="xray-toggle-mem" type="checkbox"> Memory</label>
-      <label class="checkbox-label" title="Batching stats: batch sizes, guard reasons, and throughput."><input id="xray-toggle-batch" type="checkbox"> Batch</label>
+    <section class="xray-area">
+      <div class="xray-toggle-row">
+        <span class="type-label" title="Debug visualization panels for inference internals.">X-Ray</span>
+        <div class="xray-toggle-list">
+          <label class="checkbox-label checkbox-label--inline" title="Decode waterfall: per-step timing breakdown."><input id="xray-toggle-decode" type="checkbox"> Decode</label>
+          <label class="checkbox-label checkbox-label--inline" title="KV cache occupancy, layout, and eviction stats."><input id="xray-toggle-kv" type="checkbox"> KV Cache</label>
+          <label class="checkbox-label checkbox-label--inline" title="Per-kernel dispatch timing and workgroup counts."><input id="xray-toggle-kernel" type="checkbox"> Kernel</label>
+          <label class="checkbox-label checkbox-label--inline" title="GPU pipeline state, submit latency, and device info."><input id="xray-toggle-gpu" type="checkbox"> GPU</label>
+          <label class="checkbox-label checkbox-label--inline" title="Execution plan: resolved op graph and step order."><input id="xray-toggle-exec" type="checkbox"> Exec</label>
+          <label class="checkbox-label checkbox-label--inline" title="Memory breakdown: buffer pool, heap, and tensor sizes."><input id="xray-toggle-mem" type="checkbox"> Memory</label>
+          <label class="checkbox-label checkbox-label--inline" title="Batching stats: batch sizes, guard reasons, and throughput."><input id="xray-toggle-batch" type="checkbox"> Batch</label>
+        </div>
+      </div>
+      <div id="runtime-notice" class="runtime-notice" hidden></div>
     </section>
     <div id="xray-container" hidden></div>
 
@@ -196,6 +322,18 @@
       <button data-compare-history-filter="proof" type="button">Proof</button>
     </section>
   </div>
+
+  <dialog id="remove-model-dialog" class="confirm-dialog">
+    <form method="dialog" class="confirm-dialog-panel">
+      <div class="type-label">Remove model</div>
+      <p id="remove-model-message" class="confirm-dialog-message"></p>
+      <p id="remove-model-detail" class="confirm-dialog-detail"></p>
+      <div class="confirm-dialog-actions">
+        <button type="submit" value="cancel" class="btn btn-ghost">Cancel</button>
+        <button id="remove-model-confirm-btn" type="submit" value="confirm" class="btn">Remove</button>
+      </div>
+    </form>
+  </dialog>
 
   <script type="module" src="/demo/demo.js"></script>
 </body>

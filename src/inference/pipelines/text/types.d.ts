@@ -630,6 +630,7 @@ export interface PipelineStats {
   singleTokenSubmitWaitMs?: number;
   singleTokenReadbackWaitMs?: number;
   singleTokenOrchestrationMs?: number;
+  batching?: BatchingStats | null;
   plePreparedTokenCacheHits?: number;
   plePreparedTokenCacheMisses?: number;
   plePreparedTokenCacheEntries?: number;

@@ -5,10 +5,22 @@ import { initInput, setRunHandler } from './input.js';
 import { initSettings } from './settings.js';
 import { initReport } from './report.js';
 import { onModelLoaded, runGeneration, stopGeneration } from './core.js';
-import { initXray } from './ui/xray/index.js';
+import { initXray, getXrayRuntimeNoticeText, isXrayProfilingNeeded } from './ui/xray/index.js';
 import { flushPwaLaunchState, initPwa } from './pwa.js';
 
 function $(id) { return document.getElementById(id); }
+
+function refreshRuntimeNotice() {
+  const el = $('runtime-notice');
+  if (!el) return;
+  const text = getXrayRuntimeNoticeText({
+    tokenPressEnabled: $('set-token-press')?.checked === true,
+    traceEnabled: $('set-trace')?.checked === true,
+    profilingEnabled: isXrayProfilingNeeded(),
+  });
+  el.textContent = text ?? '';
+  el.hidden = !text;
+}
 
 async function init() {
   initPwa();
@@ -31,10 +43,13 @@ async function init() {
 
   // Init xray (reads URL ?xray= flags, wires per-panel checkboxes)
   try {
-    initXray({ onChange: () => {} });
+    initXray({ onChange: refreshRuntimeNotice });
   } catch {
     // xray init is optional
   }
+  $('set-token-press')?.addEventListener('change', refreshRuntimeNotice);
+  $('set-trace')?.addEventListener('change', refreshRuntimeNotice);
+  refreshRuntimeNotice();
 
   // Boot sequence
   await boot();

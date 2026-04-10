@@ -289,8 +289,30 @@ function normalizeTimingLabel(value) {
 }
 
 function isTokenPressMode() {
-  const toggle = $(`run-token-press-toggle`);
-  return state.uiMode === 'run' && toggle?.checked === true;
+  if (state.generating) {
+    const toggle = $('set-token-press');
+    return toggle?.checked === true;
+  }
+  return state.lastRun?.mode === 'token-press';
+}
+
+export function getXrayRuntimeNoticeText(options = {}) {
+  const tokenPressEnabled = options.tokenPressEnabled === true;
+  const traceEnabled = options.traceEnabled === true;
+  const profilingEnabled = options.profilingEnabled === true;
+  if (tokenPressEnabled && profilingEnabled) {
+    return 'Token Press is active. Decode, Kernel, and GPU X-Ray panels add per-step profiling; Batch stays unavailable.';
+  }
+  if (tokenPressEnabled) {
+    return 'Token Press is a separate generation mode. It runs step-by-step decode, so Batch stats stay unavailable.';
+  }
+  if (profilingEnabled) {
+    return 'Decode, Kernel, and GPU X-Ray panels request extra profiling. Trace logging is separate.';
+  }
+  if (traceEnabled) {
+    return 'Trace logging is active. It affects runtime logs, not X-Ray panel selection.';
+  }
+  return null;
 }
 
 function formatBatchGuardReason(reason) {

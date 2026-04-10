@@ -33,6 +33,7 @@
     "bench:chart": "node ./benchmarks/vendors/compare-chart.js",
     "bench:chart:readme": "node ./benchmarks/vendors/compare-chart.js --scenario readme-evidence",
     "bench:architecture:chart": "node ./benchmarks/vendors/generate-architecture-overview-svg.js",
+    "bench:tjs:stage": "node tools/stage-tjs-model.js",
     "ci:diffusion:contract": "node tools/ci-diffusion-contract-gates.js",
     "ci:diffusion:contract:list": "node tools/ci-diffusion-contract-gates.js --list",
     "ci:training:contract": "node tools/ci-training-contract-gates.js",

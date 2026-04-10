@@ -1019,6 +1019,23 @@ function buildGenerationPhaseFromStats(pipeline, durationMs, tokenCount) {
   if (Number.isFinite(stats.singleTokenReadbackWaitMs)) gpu.singleTokenReadbackWaitMs = stats.singleTokenReadbackWaitMs;
   if (Number.isFinite(stats.singleTokenOrchestrationMs)) gpu.singleTokenOrchestrationMs = stats.singleTokenOrchestrationMs;
   const gpuPhase = Object.keys(gpu).length > 0 ? gpu : null;
+  const batching = {};
+  if (Number.isFinite(stats.batching?.batchedForwardCalls)) {
+    batching.batchedForwardCalls = stats.batching.batchedForwardCalls;
+  }
+  if (Number.isFinite(stats.batching?.unbatchedForwardCalls)) {
+    batching.unbatchedForwardCalls = stats.batching.unbatchedForwardCalls;
+  }
+  if (Number.isFinite(stats.batching?.totalBatchedTimeMs)) {
+    batching.totalBatchedTimeMs = stats.batching.totalBatchedTimeMs;
+  }
+  if (Number.isFinite(stats.batching?.totalUnbatchedTimeMs)) {
+    batching.totalUnbatchedTimeMs = stats.batching.totalUnbatchedTimeMs;
+  }
+  if (Number.isFinite(stats.batching?.gpuSubmissions)) {
+    batching.gpuSubmissions = stats.batching.gpuSubmissions;
+  }
+  const batchingPhase = Object.keys(batching).length > 0 ? batching : null;
   const plePreparedTokenCache = {};
   if (Number.isFinite(stats.plePreparedTokenCacheHits)) {
     plePreparedTokenCache.hits = stats.plePreparedTokenCacheHits;
@@ -1056,6 +1073,7 @@ function buildGenerationPhaseFromStats(pipeline, durationMs, tokenCount) {
         : null,
       decodeMode: stats.decodeMode ?? null,
       batchGuardReason: stats.batchGuardReason ?? null,
+      batching: batchingPhase,
       plePreparedTokenCache: plePreparedTokenCachePhase,
       executionPlan: stats.executionPlan ?? null,
       kernelPathId: stats.kernelPathId ?? null,

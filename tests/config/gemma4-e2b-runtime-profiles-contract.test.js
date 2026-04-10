@@ -39,6 +39,7 @@ for (const [file, profile] of Object.entries(profiles)) {
   assert.equal(throughput.runtime.inference?.session?.decodeLoop?.readbackInterval, 8);
   assert.equal(throughput.runtime.inference?.session?.decodeLoop?.readbackMode, 'overlapped');
   assert.equal(throughput.runtime.inference?.session?.decodeLoop?.disableCommandBatching, false);
+  assert.equal(throughput.runtime.inference?.session?.perLayerInputs?.materialization, 'gpu_split_tables');
 }
 
 {

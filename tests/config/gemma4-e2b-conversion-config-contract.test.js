@@ -88,11 +88,13 @@ const manifestInference = {
   session: config.session,
   execution: config.execution,
 };
+const modelHeadDim = 256;
 
 const f16Primary = compileExecutionV1({
   manifestInference,
   modelId: config.output.modelBaseId,
   numLayers: 35,
+  headDim: modelHeadDim,
   capabilities: {
     hasSubgroups: true,
     hasF16: true,
@@ -147,6 +149,7 @@ const runtimeF16Primary = compileExecutionV1({
   manifestInference,
   modelId: config.output.modelBaseId,
   numLayers: 35,
+  headDim: modelHeadDim,
   runtimeSession: {
     ...config.session,
     compute: {
@@ -237,11 +240,24 @@ assert.equal(
     .find((step) => step.op === 'attention')?.kernel,
   'attention_streaming_f16.wgsl'
 );
+assert.equal(
+  runtimeF16Primary.fallbackKernelPath?.kvDtype,
+  'f16'
+);
+assert.equal(
+  runtimeF16Primary.fallbackKernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.kernel,
+  'attention_decode_online_f16kv.wgsl'
+);
+assert.equal(
+  runtimeF16Primary.fallbackKernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.precision?.kvDtype,
+  'f16'
+);
 
 const finitenessFallback = compileExecutionV1({
   manifestInference,
   modelId: config.output.modelBaseId,
   numLayers: 35,
+  headDim: modelHeadDim,
   capabilities: {
     hasSubgroups: true,
     hasF16: true,
@@ -273,6 +289,7 @@ const widenedFallback = compileExecutionV1({
   manifestInference,
   modelId: config.output.modelBaseId,
   numLayers: 35,
+  headDim: modelHeadDim,
   capabilities: {
     hasSubgroups: true,
     hasF16: false,

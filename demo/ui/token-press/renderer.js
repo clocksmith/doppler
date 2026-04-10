@@ -6,21 +6,15 @@
 //   - Settled zone: append-only on forward steps, only rebuilt on back steps
 //   - Trail zone: rebuilt every flush (small fixed-size window)
 //
-// Color scale: perplexity (1/p) normalized to the observed min/max range.
+// Color scale: perplexity normalized to a clipped display range so single
+// outliers do not flatten the rest of the run.
 // As new tokens stream in, all existing spans re-color via CSS transitions.
 
-// Perplexity from probability
-function probToPpl(prob) {
-  return 1 / Math.max(1e-10, Math.min(1, prob));
-}
-
-// Normalize t ∈ [0,1] from log-perplexity within observed range
-function normalizePpl(ppl, minPpl, maxPpl) {
-  const logMin = Math.log(Math.max(1, minPpl));
-  const logMax = Math.log(Math.max(1, maxPpl));
-  if (logMax <= logMin) return 0;
-  return Math.min(1, Math.max(0, (Math.log(ppl) - logMin) / (logMax - logMin)));
-}
+import {
+  normalizePerplexity,
+  probToPerplexity,
+  summarizePerplexityRecords,
+} from './metrics.js';
 
 function tToColor(t) {
   if (t <= 0.5) {
@@ -32,21 +26,29 @@ function tToColor(t) {
 }
 
 function confidenceToColor(prob, minPpl, maxPpl) {
-  const ppl = probToPpl(prob);
-  const t = normalizePpl(ppl, minPpl, maxPpl);
+  const ppl = probToPerplexity(prob);
+  const t = normalizePerplexity(ppl, minPpl, maxPpl);
   return tToColor(t);
 }
 
-function createAlternativesTooltip(topK, confidence) {
+function createAlternativesTooltip(topK, confidence, perplexityStats) {
   const tooltip = document.createElement('div');
   tooltip.className = 'tp-alternatives';
 
-  // Perplexity header
-  const ppl = probToPpl(confidence);
+  const perplexity = probToPerplexity(confidence);
   const header = document.createElement('div');
   header.className = 'tp-alt-header';
-  header.textContent = `ppl ${ppl.toFixed(1)}`;
+  header.textContent = `Perplexity ${perplexity.toFixed(1)}`;
   tooltip.append(header);
+
+  if ((perplexityStats?.extremeLowCount ?? 0) > 0 || (perplexityStats?.extremeHighCount ?? 0) > 0) {
+    const summary = document.createElement('div');
+    summary.className = 'tp-alt-summary';
+    summary.textContent =
+      `Display range ${perplexityStats.displayMin.toFixed(1)}-${perplexityStats.displayMax.toFixed(1)}`
+      + `, extremes ${perplexityStats.extremeLowCount + perplexityStats.extremeHighCount}`;
+    tooltip.append(summary);
+  }
 
   for (const alt of topK) {
     const row = document.createElement('div');
@@ -56,6 +58,10 @@ function createAlternativesTooltip(topK, confidence) {
     text.className = 'tp-alt-text';
     text.textContent = alt.text;
 
+    const logit = document.createElement('span');
+    logit.className = 'tp-alt-logit';
+    logit.textContent = Number.isFinite(alt.logit) ? alt.logit.toFixed(2) : 'n/a';
+
     const bar = document.createElement('span');
     bar.className = 'tp-alt-bar';
     bar.style.setProperty('--alt-prob', alt.prob.toFixed(3));
@@ -64,10 +70,40 @@ function createAlternativesTooltip(topK, confidence) {
     pct.className = 'tp-alt-pct';
     pct.textContent = `${(alt.prob * 100).toFixed(1)}%`;
 
-    row.append(text, bar, pct);
+    row.append(text, logit, bar, pct);
     tooltip.append(row);
   }
   return tooltip;
+}
+
+function syncAlternativesTooltip(tooltip, confidence, perplexityStats) {
+  if (!tooltip) {
+    return;
+  }
+  const perplexity = probToPerplexity(confidence);
+  const header = tooltip.querySelector('.tp-alt-header');
+  if (header) {
+    header.textContent = `Perplexity ${perplexity.toFixed(1)}`;
+  }
+  let summary = tooltip.querySelector('.tp-alt-summary');
+  const hasExtremes = (perplexityStats?.extremeLowCount ?? 0) > 0 || (perplexityStats?.extremeHighCount ?? 0) > 0;
+  if (hasExtremes) {
+    if (!summary) {
+      summary = document.createElement('div');
+      summary.className = 'tp-alt-summary';
+      const headerNode = tooltip.querySelector('.tp-alt-header');
+      if (headerNode?.nextSibling) {
+        tooltip.insertBefore(summary, headerNode.nextSibling);
+      } else {
+        tooltip.append(summary);
+      }
+    }
+    summary.textContent =
+      `Display range ${perplexityStats.displayMin.toFixed(1)}-${perplexityStats.displayMax.toFixed(1)}`
+      + `, extremes ${perplexityStats.extremeLowCount + perplexityStats.extremeHighCount}`;
+  } else if (summary) {
+    summary.remove();
+  }
 }
 
 function applyColor(span, prob, minPpl, maxPpl) {
@@ -75,7 +111,7 @@ function applyColor(span, prob, minPpl, maxPpl) {
   span.style.setProperty('--conf-color', color);
 }
 
-function createTokenSpan(record, cssClass, trailFade, minPpl, maxPpl) {
+function createTokenSpan(record, cssClass, trailFade, minPpl, maxPpl, perplexityStats) {
   const span = document.createElement('span');
   span.className = `tp-token ${cssClass}`;
   span.textContent = record.text;
@@ -88,8 +124,23 @@ function createTokenSpan(record, cssClass, trailFade, minPpl, maxPpl) {
   }
 
   if (record.topK && record.topK.length > 1) {
-    span.append(createAlternativesTooltip(record.topK, record.confidence));
+    span.tabIndex = 0;
+    span.setAttribute('role', 'button');
+    span.setAttribute('aria-label', `Token details for ${record.text || 'token'}`);
+    span.append(createAlternativesTooltip(record.topK, record.confidence, perplexityStats));
     span.classList.add('tp-has-alts');
+    span.addEventListener('pointerenter', () => {
+      span.dataset.tooltipOpen = 'true';
+    });
+    span.addEventListener('pointerleave', () => {
+      delete span.dataset.tooltipOpen;
+    });
+    span.addEventListener('focus', () => {
+      span.dataset.tooltipOpen = 'true';
+    });
+    span.addEventListener('blur', () => {
+      delete span.dataset.tooltipOpen;
+    });
   }
 
   return span;
@@ -110,8 +161,9 @@ export function createTokenPressRenderer(container, options = {}) {
 
   let settledCount = 0;
   let lastCursor = 0;
-  let currentMinPpl = Infinity;
-  let currentMaxPpl = 0;
+  let currentMinPpl = 1;
+  let currentMaxPpl = 1;
+  let currentPerplexityStats = summarizePerplexityRecords([]);
 
   // Recolor all existing spans when the range changes
   function recolorAll(committed, cursor) {
@@ -120,27 +172,34 @@ export function createTokenPressRenderer(container, options = {}) {
       const span = settledZone.children[i];
       if (span) {
         const prob = parseFloat(span.dataset.confidence);
-        if (Number.isFinite(prob)) applyColor(span, prob, currentMinPpl, currentMaxPpl);
+        if (Number.isFinite(prob)) {
+          applyColor(span, prob, currentMinPpl, currentMaxPpl);
+          syncAlternativesTooltip(span.querySelector('.tp-alternatives'), prob, currentPerplexityStats);
+        }
       }
     }
     // Trail zone
     for (const span of trailZone.children) {
       const prob = parseFloat(span.dataset.confidence);
-      if (Number.isFinite(prob)) applyColor(span, prob, currentMinPpl, currentMaxPpl);
+      if (Number.isFinite(prob)) {
+        applyColor(span, prob, currentMinPpl, currentMaxPpl);
+        syncAlternativesTooltip(span.querySelector('.tp-alternatives'), prob, currentPerplexityStats);
+      }
     }
   }
 
   function updateRange(committed, cursor) {
-    let min = currentMinPpl;
-    let max = currentMaxPpl;
-    for (let i = 0; i < cursor; i++) {
-      const ppl = probToPpl(committed[i].confidence);
-      if (ppl < min) min = ppl;
-      if (ppl > max) max = ppl;
-    }
+    const summary = summarizePerplexityRecords(
+      committed.slice(0, cursor).map((record) => ({
+        perplexity: probToPerplexity(record.confidence),
+      }))
+    );
+    const min = summary.displayMin ?? 1;
+    const max = summary.displayMax ?? min;
     const changed = min !== currentMinPpl || max !== currentMaxPpl;
     currentMinPpl = min;
     currentMaxPpl = max;
+    currentPerplexityStats = summary;
     return changed;
   }
 
@@ -159,7 +218,7 @@ export function createTokenPressRenderer(container, options = {}) {
     span.classList.remove('tp-has-alts');
     // Rebuild tooltip from current record
     if (record.topK && record.topK.length > 1) {
-      span.append(createAlternativesTooltip(record.topK, record.confidence));
+      span.append(createAlternativesTooltip(record.topK, record.confidence, currentPerplexityStats));
       span.classList.add('tp-has-alts');
     }
     span.dataset.confidence = record.confidence.toFixed(6);
@@ -196,6 +255,17 @@ export function createTokenPressRenderer(container, options = {}) {
     }
   }
 
+  function buildSpan(record, cssClass, trailFade = null) {
+    return createTokenSpan(
+      record,
+      cssClass,
+      trailFade,
+      currentMinPpl,
+      currentMaxPpl,
+      currentPerplexityStats
+    );
+  }
+
   function render(state) {
     const { committed, cursor } = state;
     const trailStart = Math.max(0, cursor - trailSize);
@@ -210,9 +280,7 @@ export function createTokenPressRenderer(container, options = {}) {
       }
     } else {
       while (settledCount < trailStart) {
-        settledZone.append(
-          createTokenSpan(committed[settledCount], 'tp-settled', null, currentMinPpl, currentMaxPpl)
-        );
+        settledZone.append(buildSpan(committed[settledCount], 'tp-settled'));
         settledCount++;
       }
     }
@@ -229,12 +297,11 @@ export function createTokenPressRenderer(container, options = {}) {
 
   function finalize(state) {
     const { committed, cursor } = state;
+    updateRange(committed, cursor);
     // Promote all remaining trail tokens into the settled zone so they get
     // full tooltip-bearing spans and consistent settled styling.
     while (settledCount < cursor) {
-      settledZone.append(
-        createTokenSpan(committed[settledCount], 'tp-settled', null, currentMinPpl, currentMaxPpl)
-      );
+      settledZone.append(buildSpan(committed[settledCount], 'tp-settled'));
       settledCount++;
     }
     trailZone.innerHTML = '';
@@ -246,8 +313,9 @@ export function createTokenPressRenderer(container, options = {}) {
     trailZone.innerHTML = '';
     settledCount = 0;
     lastCursor = 0;
-    currentMinPpl = Infinity;
-    currentMaxPpl = 0;
+    currentMinPpl = 1;
+    currentMaxPpl = 1;
+    currentPerplexityStats = summarizePerplexityRecords([]);
   }
 
   function dispose() {

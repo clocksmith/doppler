@@ -778,6 +778,11 @@ async function runBenchSuite(options = {}) {
     const singleTokenSubmitWaitMs = [];
     const singleTokenReadbackWaitMs = [];
     const singleTokenOrchestrationMs = [];
+    const batchedForwardCalls = [];
+    const unbatchedForwardCalls = [];
+    const totalBatchedTimeMs = [];
+    const totalUnbatchedTimeMs = [];
+    const gpuSubmissions = [];
     const plePreparedTokenCacheHits = [];
     const plePreparedTokenCacheMisses = [];
     const plePreparedTokenCacheEntries = [];
@@ -803,6 +808,7 @@ async function runBenchSuite(options = {}) {
         const phase = run?.phase ?? {};
         const phaseTokens = Array.isArray(run?.tokens) ? run.tokens : [];
         const phaseGpu = phase.gpu;
+        const phaseBatching = phase.batching;
         const phasePlePreparedTokenCache = phase.plePreparedTokenCache;
         tokensPerSec.push(run?.tokensPerSec);
         durations.push(run?.durationMs);
@@ -826,6 +832,11 @@ async function runBenchSuite(options = {}) {
         if (Number.isFinite(phaseGpu?.singleTokenSubmitWaitMs)) singleTokenSubmitWaitMs.push(phaseGpu.singleTokenSubmitWaitMs);
         if (Number.isFinite(phaseGpu?.singleTokenReadbackWaitMs)) singleTokenReadbackWaitMs.push(phaseGpu.singleTokenReadbackWaitMs);
         if (Number.isFinite(phaseGpu?.singleTokenOrchestrationMs)) singleTokenOrchestrationMs.push(phaseGpu.singleTokenOrchestrationMs);
+        if (Number.isFinite(phaseBatching?.batchedForwardCalls)) batchedForwardCalls.push(phaseBatching.batchedForwardCalls);
+        if (Number.isFinite(phaseBatching?.unbatchedForwardCalls)) unbatchedForwardCalls.push(phaseBatching.unbatchedForwardCalls);
+        if (Number.isFinite(phaseBatching?.totalBatchedTimeMs)) totalBatchedTimeMs.push(phaseBatching.totalBatchedTimeMs);
+        if (Number.isFinite(phaseBatching?.totalUnbatchedTimeMs)) totalUnbatchedTimeMs.push(phaseBatching.totalUnbatchedTimeMs);
+        if (Number.isFinite(phaseBatching?.gpuSubmissions)) gpuSubmissions.push(phaseBatching.gpuSubmissions);
         if (Number.isFinite(phasePlePreparedTokenCache?.hits)) plePreparedTokenCacheHits.push(phasePlePreparedTokenCache.hits);
         if (Number.isFinite(phasePlePreparedTokenCache?.misses)) plePreparedTokenCacheMisses.push(phasePlePreparedTokenCache.misses);
         if (Number.isFinite(phasePlePreparedTokenCache?.entries)) plePreparedTokenCacheEntries.push(phasePlePreparedTokenCache.entries);
@@ -859,6 +870,20 @@ async function runBenchSuite(options = {}) {
         singleTokenSubmitWaitMs: computeSampleStats(singleTokenSubmitWaitMs),
         singleTokenReadbackWaitMs: computeSampleStats(singleTokenReadbackWaitMs),
         singleTokenOrchestrationMs: computeSampleStats(singleTokenOrchestrationMs),
+      }
+      : null;
+    const hasBatchingStats = batchedForwardCalls.length > 0
+      || unbatchedForwardCalls.length > 0
+      || totalBatchedTimeMs.length > 0
+      || totalUnbatchedTimeMs.length > 0
+      || gpuSubmissions.length > 0;
+    const batchingPhaseStats = hasBatchingStats
+      ? {
+        batchedForwardCalls: computeSampleStats(batchedForwardCalls),
+        unbatchedForwardCalls: computeSampleStats(unbatchedForwardCalls),
+        totalBatchedTimeMs: computeSampleStats(totalBatchedTimeMs),
+        totalUnbatchedTimeMs: computeSampleStats(totalUnbatchedTimeMs),
+        gpuSubmissions: computeSampleStats(gpuSubmissions),
       }
       : null;
     const hasPlePreparedTokenCacheStats = plePreparedTokenCacheHits.length > 0
@@ -927,6 +952,7 @@ async function runBenchSuite(options = {}) {
         decode: decodeTokensStats,
       },
       gpu: gpuPhaseStats,
+      batching: batchingPhaseStats,
       plePreparedTokenCache: plePreparedTokenCacheStats,
       decodeMode: lastDecodeMode,
       batchGuardReason: lastBatchGuardReason,

@@ -17,6 +17,10 @@ import {
   const report = {
     sections: {
       warm: {
+        cacheMode: 'warm',
+        loadMode: 'opfs',
+        pairedComparable: false,
+        invalidReason: 'transformersjs-failed',
         doppler: { result: { timing: { decodeTokensPerSec: 1 } } },
         transformersjs: { result: { timing: { decodeTokensPerSec: 1 } } },
       },

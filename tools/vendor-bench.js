@@ -1492,6 +1492,7 @@ function resolveCompareSection(report) {
     ['warm'],
     ['cold'],
   ];
+  let fallback = null;
   for (const chain of candidates) {
     let cursor = sections;
     for (const segment of chain) {
@@ -1502,13 +1503,19 @@ function resolveCompareSection(report) {
       cursor = cursor[segment];
     }
     if (hasComparableSectionPayload(cursor)) {
-      return {
+      const section = {
         id: chain.join('/'),
         payload: cursor,
       };
+      if (cursor?.pairedComparable !== false) {
+        return section;
+      }
+      if (fallback == null) {
+        fallback = section;
+      }
     }
   }
-  return null;
+  return fallback;
 }
 
 function resolveCompareEnginePayload(section, engineId) {
@@ -1887,6 +1894,12 @@ async function maybeLoadCompareResultSummary(compareResultPath, compareMetricIds
     timestamp: typeof report.timestamp === 'string' ? report.timestamp : null,
     mode: typeof report.mode === 'string' ? report.mode : null,
     section: section?.id ?? null,
+    cacheMode: asNonEmptyString(section?.payload?.cacheMode),
+    loadMode: asNonEmptyString(section?.payload?.loadMode),
+    pairedComparable: section?.payload?.pairedComparable !== false,
+    invalidReason: typeof section?.payload?.invalidReason === 'string'
+      ? section.payload.invalidReason
+      : null,
     decodeProfile: typeof report.decodeProfile === 'string' ? report.decodeProfile : null,
     dopplerModelId: typeof report.dopplerModelId === 'string' ? report.dopplerModelId : null,
     dopplerModelSource: typeof report?.dopplerModelSource?.source === 'string'
@@ -2587,7 +2600,11 @@ async function doMatrix(flags, timestamp = null) {
   const coveredModelIdSet = new Set(modelCoverage.map((entry) => entry.dopplerModelId));
   const releaseCompareResults = compareResults.filter((entry) => {
     const modelId = asNonEmptyString(entry?.dopplerModelId);
-    return modelId != null && coveredModelIdSet.has(modelId);
+    const comparableLane = entry?.compareLane == null || entry.compareLane === 'performance_comparable';
+    return modelId != null
+      && coveredModelIdSet.has(modelId)
+      && comparableLane
+      && entry?.pairedComparable !== false;
   });
   const latestReleaseCompareResult = selectLatestCompareResult(releaseCompareResults);
 

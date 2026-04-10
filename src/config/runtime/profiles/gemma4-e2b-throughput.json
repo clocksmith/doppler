@@ -1,7 +1,7 @@
 {
   "id": "profiles/gemma4-e2b-throughput",
   "name": "gemma4-e2b-throughput",
-  "description": "Model-scoped Gemma 4 E2B throughput profile with larger decode bursts and overlapped readback.",
+  "description": "Model-scoped Gemma 4 E2B throughput profile with GPU split-table PLE materialization, larger decode bursts, and overlapped readback.",
   "intent": "calibrate",
   "stability": "experimental",
   "owner": "doppler-core",
@@ -20,6 +20,9 @@
         "ringStaging": 2
       },
       "session": {
+        "perLayerInputs": {
+          "materialization": "gpu_split_tables"
+        },
         "decodeLoop": {
           "batchSize": 8,
           "stopCheckMode": "batch",

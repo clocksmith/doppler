@@ -59,6 +59,7 @@ Use these before turning a compare result into README copy, a chart, or a releas
 - [registry.json](./registry.json): canonical list of vendor products and harness links.
 - [workloads.json](./workloads.json): shared workload IDs used for apples-to-apples comparisons.
   - includes `defaults.compareEngines`, used by `tools/compare-engines.js` when no explicit workload/prompt/token lengths are passed.
+  - `prefillTokens` is an enforced model-input token target, not a raw word-count hint.
 - [capabilities.json](./capabilities.json): capability matrix for bench/profiling coverage by target.
   Feature values are tri-state: `supported`, `unsupported`, `unknown`.
 - [harnesses/](./harnesses): one harness definition per vendor.
@@ -174,11 +175,19 @@ node tools/compare-engines.js --model-id gemma-3-1b-it-q4k-ehf16-af32 \
 ```
 
 Config in [compare-engines.config.json](./compare-engines.config.json):
+the root `defaults` block defines:
+- `warmLoadMode` and `coldLoadMode`, so warm/cold compare lanes have explicit load semantics even without `--load-mode`
+
 each model profile has:
 - `defaultDopplerSource` (`quickstart-registry|local`) so compare runs resolve the same artifact source on every machine
 - `compareLane` (`performance_comparable|capability_only`) so support-only rows do not turn into accidental speed claims
+- `dopplerRuntimeProfileByDecodeProfile` so model-scoped Doppler tuning is explicit for parity/throughput lanes
 - `defaultDopplerFormat`, `defaultTjsFormat`, and `safetensorsSourceId`
   (the HF repo with the original F16/BF16 weights)
+
+Canonical Transformers.js compare metadata comes from [models/catalog.json](../../models/catalog.json):
+- `vendorBenchmark.transformersjs.repoId` is the canonical repo mapping fallback when a compare profile omits `defaultTjsModelId`
+- `vendorBenchmark.transformersjs.dtype` is the canonical default `--tjs-dtype` for claim lanes unless the caller overrides it explicitly
 
 `tools/compare-engines.js` resolves the Doppler model from that declared source
 and preflights the selected manifest before timing. Hosted quickstart models
@@ -251,6 +260,8 @@ When `--compare-result` is provided, matrix generation also captures host/browse
   - `decodeMsPerTokenP99`
 - Compare artifacts rename prompt throughput to `promptTokensPerSecToFirstToken` and exclude raw `prefillMs` from the compare contract when engines expose different prefill semantics.
 - Capability matrices expose `promptTokensPerSecToFirstToken` separately from raw `prefillTokensPerSec` so compare-contract coverage stays explicit.
+- Shared synthetic workload prompts are resolved against the selected tokenizer before timing, so `prefillTokens` means actual model-input prompt tokens after any enabled chat template.
+- Compare sections are invalid when prompt-token counts are missing, differ between engines, or miss the shared `prefillTokens` target.
 - `cacheMode` and `loadMode` are required under each run's `timing` object (`cacheMode`: `cold|warm`, `loadMode`: `opfs|http|memory`).
 - Normalized result records now require a canonical `environment` block (`host`, `browser`, `gpu`, `runtime`) so platform/hardware context is always captured in benchmark JSON.
 - For `vendor-bench run`, missing core environment capture fields fail normalization (`host`, browser identity, GPU identity, backend, runtime device/library).
@@ -258,9 +269,15 @@ When `--compare-result` is provided, matrix generation also captures host/browse
 - Path order is canonicalized in harness files and validated before comparison.
 - Metric paths are canonicalized through [harnesses/](./harnesses) and validated as required before any comparison.
 - [tools/compare-engines.js](../../tools/compare-engines.js) defaults to `--decode-profile parity` (Doppler `batchSize=1`, `readbackInterval=1`, `disableMultiTokenDecode=true`, `session.speculation.mode=none`) for closer Transformers.js decode cadence matching; use `--decode-profile throughput` for Doppler-tuned runs.
+- When a compare model profile declares `dopplerRuntimeProfileByDecodeProfile`, [tools/compare-engines.js](../../tools/compare-engines.js) loads that runtime profile first and then reapplies compare-managed prompt/sampling/cadence fields on top, so model-specific tuning stays explicit without silently changing the lane contract.
 - [tools/compare-engines.js](../../tools/compare-engines.js) records the exact installed Transformers.js / ONNX Runtime stack in each compare artifact and validates that the v4 runner is pinned to the same nested ORT modules before timing starts.
 - [tools/compare-engines.js](../../tools/compare-engines.js) applies the explicit Doppler compare-lane `runtime.inference.kernelPathPolicy` from [benchmark-policy.json](./benchmark-policy.json); capability-aware remaps used for known platform/runtime constraints are therefore part of the recorded engine overlay, not a hidden runtime fallback.
 - [tools/compare-engines.js](../../tools/compare-engines.js) also applies the explicit Doppler browser channel from [benchmark-policy.json](./benchmark-policy.json) unless `--doppler-browser-channel` overrides it, so compare runs do not silently drift across locally installed browser channels.
+- [tools/compare-engines.js](../../tools/compare-engines.js) resolves warm/cold load modes from one explicit contract only: `--load-mode` or the root `defaults` block in [compare-engines.config.json](./compare-engines.config.json). It does not derive load mode from `cacheMode`.
+- [tools/compare-engines.js](../../tools/compare-engines.js) resolves the default Transformers.js repo/dtype from [models/catalog.json](../../models/catalog.json) vendor-benchmark metadata before falling back to generic defaults, so claim lanes stay pinned to the cataloged comparable baseline.
+- The Transformers.js warm `opfs` lane now performs an untimed one-token generation prime, not just a bare model load, before the offline timed pass. This is required for models that lazily fetch generation assets on first decode.
+- For large browser-side Transformers.js compare lanes, prefer a staged local snapshot over live HF/Xet fetches. Use [tools/stage-tjs-model.js](../../tools/stage-tjs-model.js) and pass the snapshot root with `--tjs-local-model-path`. The staging helper now validates the required decoder/embed shards for the selected dtype and fails closed when the local snapshot is incomplete.
+- [tools/compare-engines.js](../../tools/compare-engines.js) does not mutate compare-lane semantics on retry. If an engine fails, the section is recorded with `pairedComparable: false` and an `invalidReason`.
 - Compare artifacts pin harness + metric-contract hashes; stale compare JSON is dropped from `vendor-bench matrix` unless you refresh it.
 - Doppler surface is now explicit in compare runs: `--doppler-surface auto|node|browser` (default from `compare-engines.config.json` per model profile via `defaultDopplerSurface`, fallback `auto`).
 
