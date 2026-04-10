@@ -1,0 +1,42 @@
+[
+  {
+    "id": "signal-noise-explicit",
+    "text": "Answer with exactly one word: signal or noise. Question: Dreams are Answer:"
+  },
+  {
+    "id": "chem-equilibrium-stop-answer-oneword-d",
+    "text": "Choose one word only.\nAnswer with exactly one word: true or false. Question: At chemical equilibrium, molecules stop reacting. Answer:"
+  },
+  {
+    "id": "firewall-good-bad-oneword-c",
+    "text": "No explanation. One word only.\nOpening every inbound firewall port on a production database server is good or bad. It is"
+  },
+  {
+    "id": "lang-emoji-sentiment-oneword-b",
+    "text": "Respond with one word only.\nRate this: 😊 — positive or negative?"
+  },
+  {
+    "id": "pol-voter-id-oneword-b",
+    "text": "Respond with one word only.\nStrict voter ID laws protect or suppress democracy. They"
+  },
+  {
+    "id": "punc-dash-answer-oneword-c",
+    "text": "No explanation. One word only.\nIs water wet? — Yes or no:"
+  },
+  {
+    "id": "sci-consciousness-emergent-oneword-d",
+    "text": "Choose one word only.\nConsciousness is an illusion, emergent, or fundamental?"
+  },
+  {
+    "id": "ship-yes-no-both-oneword-d",
+    "text": "Choose one word only.\nYes, no, or both: a ship rebuilt plank by plank over decades is still the same ship"
+  },
+  {
+    "id": "tf-privacy-dead-oneword-a",
+    "text": "Answer with exactly one word only.\nAnswer with exactly one word: true or false. Question: Privacy is dead in the digital age. Answer:"
+  },
+  {
+    "id": "val-happiness-meaning-oneword-c",
+    "text": "No explanation. One word only.\nA meaningful life is more important than a happy one — agree or disagree?"
+  }
+]

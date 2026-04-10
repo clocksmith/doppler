@@ -457,6 +457,104 @@ async function releaseGenerator(generator) {
   }
 }
 
+function normalizePromptPackEntry(entry, index) {
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+    throw new Error(`promptPack[${index}] must be an object`);
+  }
+  const id = typeof entry.id === 'string' && entry.id.trim() !== ''
+    ? entry.id.trim()
+    : `prompt-${index + 1}`;
+  if (typeof entry.text !== 'string' || entry.text.length === 0) {
+    throw new Error(`promptPack[${index}] is missing non-empty text`);
+  }
+  return {
+    id,
+    text: entry.text,
+  };
+}
+
+async function renderGenerationPrompt(generator, prompt, useChatTemplate) {
+  let generationPrompt = String(prompt ?? '');
+  if (!useChatTemplate) {
+    return generationPrompt;
+  }
+  if (typeof generator?.tokenizer?.apply_chat_template !== 'function') {
+    throw new Error('chat template requested but tokenizer.apply_chat_template is unavailable');
+  }
+  const templatedPrompt = await generator.tokenizer.apply_chat_template(
+    [{ role: 'user', content: generationPrompt }],
+    { tokenize: false, add_generation_prompt: true }
+  );
+  if (typeof templatedPrompt !== 'string' || templatedPrompt.length === 0) {
+    throw new Error('chat template requested but prompt rendering returned empty content');
+  }
+  generationPrompt = templatedPrompt;
+  return generationPrompt;
+}
+
+function buildGenerationSettings(rawGenerationConfig, maxNewTokens, sampling = {}) {
+  const temperature = Number.isFinite(Number(sampling.temperature)) ? Number(sampling.temperature) : 0;
+  const topK = Number.isFinite(Number(sampling.topK)) ? Math.max(1, Math.floor(Number(sampling.topK))) : 32;
+  const topPRaw = Number.isFinite(Number(sampling.topP)) ? Number(sampling.topP) : 1;
+  const topP = Math.min(1, Math.max(topPRaw, Number.EPSILON));
+  const doSample = temperature > 0;
+  const strictDeterministicGreedy = !doSample;
+
+  const generationOptions = {
+    max_new_tokens: maxNewTokens,
+    do_sample: doSample,
+    num_beams: 1,
+    num_beam_groups: 1,
+  };
+  if (doSample) {
+    generationOptions.temperature = temperature;
+    generationOptions.top_k = topK;
+    generationOptions.top_p = topP;
+  } else {
+    generationOptions.temperature = 1;
+    generationOptions.top_k = 1;
+    generationOptions.top_p = 1;
+  }
+
+  const deterministicParityOverrides = {
+    repetition_penalty: 1,
+    no_repeat_ngram_size: 0,
+    length_penalty: 1,
+    diversity_penalty: 0,
+    renormalize_logits: false,
+    bad_words_ids: null,
+    force_words_ids: null,
+    suppress_tokens: [],
+    begin_suppress_tokens: [],
+    forced_bos_token_id: null,
+    forced_eos_token_id: null,
+  };
+  if (!doSample && rawGenerationConfig && typeof rawGenerationConfig === 'object') {
+    for (const [key, value] of Object.entries(deterministicParityOverrides)) {
+      if (Object.prototype.hasOwnProperty.call(rawGenerationConfig, key)) {
+        generationOptions[key] = value;
+      }
+    }
+  }
+
+  return {
+    temperature,
+    topK,
+    topP,
+    doSample,
+    strictDeterministicGreedy,
+    generationOptions,
+  };
+}
+
+function normalizeGeneratedTokenIds(tokens) {
+  if (Array.isArray(tokens)) {
+    return tokens.map((token) => Number(token)).filter((token) => Number.isInteger(token));
+  }
+  const tokenId = Number(tokens);
+  return Number.isInteger(tokenId) ? [tokenId] : [];
+}
+
 window.__primeBenchModel = async (config = {}) => {
   const modelId = String(config?.modelId || '').trim();
   const requestedDtype = String(config?.dtype || 'fp16').trim() || 'fp16';
@@ -500,12 +598,8 @@ window.__runBench = async (config) => {
     format = 'onnx',
   } = config;
   const enableOrtProfiling = profileOps !== false;
-  const temperature = Number.isFinite(Number(sampling.temperature)) ? Number(sampling.temperature) : 0;
-  const topK = Number.isFinite(Number(sampling.topK)) ? Math.max(1, Math.floor(Number(sampling.topK))) : 32;
-  const topPRaw = Number.isFinite(Number(sampling.topP)) ? Number(sampling.topP) : 1;
-  const topP = Math.min(1, Math.max(topPRaw, Number.EPSILON));
-  const doSample = temperature > 0;
-  const strictDeterministicGreedy = !doSample;
+  const initialGenerationSettings = buildGenerationSettings(null, maxNewTokens, sampling);
+  const { temperature, topK, topP, doSample, strictDeterministicGreedy } = initialGenerationSettings;
 
   // Capture WebGPU device info before model load
   let deviceInfo = null;
@@ -560,20 +654,10 @@ window.__runBench = async (config) => {
     ?? null
   );
   const generationConfigSnapshot = pickGenerationConfigSnapshot(rawGenerationConfig);
+  const resolvedGenerationSettings = buildGenerationSettings(rawGenerationConfig, maxNewTokens, sampling);
 
-  let generationPrompt = String(prompt ?? '');
+  const generationPrompt = await renderGenerationPrompt(generator, prompt, useChatTemplate);
   if (useChatTemplate) {
-    if (typeof generator?.tokenizer?.apply_chat_template !== 'function') {
-      throw new Error('chat template requested but tokenizer.apply_chat_template is unavailable');
-    }
-    const templatedPrompt = await generator.tokenizer.apply_chat_template(
-      [{ role: 'user', content: generationPrompt }],
-      { tokenize: false, add_generation_prompt: true }
-    );
-    if (typeof templatedPrompt !== 'string' || templatedPrompt.length === 0) {
-      throw new Error('chat template requested but prompt rendering returned empty content');
-    }
-    generationPrompt = templatedPrompt;
     console.log(`[tjs-bench] chat template applied (${generationPrompt.length} chars)`);
   }
 
@@ -629,42 +713,9 @@ window.__runBench = async (config) => {
     const genStart = performance.now();
 
     const generationOptions = {
-      max_new_tokens: maxNewTokens,
+      ...resolvedGenerationSettings.generationOptions,
       streamer,
-      do_sample: doSample,
-      num_beams: 1,
-      num_beam_groups: 1,
     };
-    if (doSample) {
-      generationOptions.temperature = temperature;
-      generationOptions.top_k = topK;
-      generationOptions.top_p = topP;
-    } else {
-      generationOptions.temperature = 1;
-      generationOptions.top_k = 1;
-      generationOptions.top_p = 1;
-    }
-
-    const deterministicParityOverrides = {
-      repetition_penalty: 1,
-      no_repeat_ngram_size: 0,
-      length_penalty: 1,
-      diversity_penalty: 0,
-      renormalize_logits: false,
-      bad_words_ids: null,
-      force_words_ids: null,
-      suppress_tokens: [],
-      begin_suppress_tokens: [],
-      forced_bos_token_id: null,
-      forced_eos_token_id: null,
-    };
-    if (!doSample && rawGenerationConfig && typeof rawGenerationConfig === 'object') {
-      for (const [key, value] of Object.entries(deterministicParityOverrides)) {
-        if (Object.prototype.hasOwnProperty.call(rawGenerationConfig, key)) {
-          generationOptions[key] = value;
-        }
-      }
-    }
 
     await generator(generationPrompt, generationOptions);
 
@@ -857,6 +908,104 @@ window.__runBench = async (config) => {
     },
     memoryInfo: memoryBefore || memoryAfter ? { before: memoryBefore, after: memoryAfter } : null,
   };
+};
+
+window.__runGreedyPromptPack = async (config = {}) => {
+  const modelId = String(config?.modelId || '').trim();
+  if (!modelId) {
+    throw new Error('modelId is required');
+  }
+  const promptPackRaw = Array.isArray(config?.promptPack) ? config.promptPack : null;
+  if (!promptPackRaw || promptPackRaw.length < 1) {
+    throw new Error('promptPack must be a non-empty array');
+  }
+  const maxNewTokens = Number.isFinite(Number(config?.maxNewTokens))
+    ? Math.max(1, Math.floor(Number(config.maxNewTokens)))
+    : 1;
+  const useChatTemplate = config?.useChatTemplate === true;
+  const requestedDtype = normalizePreferredDtype(config?.dtype || 'fp16');
+  const requestedFormat = String(config?.format || 'onnx').trim() || 'onnx';
+  const load = await loadGenerator(modelId, false, requestedDtype, requestedFormat);
+  const generator = load.generator;
+
+  try {
+    const rawGenerationConfig = (
+      generator?.model?.generation_config
+      ?? generator?.model?.generationConfig
+      ?? generator?.generation_config
+      ?? generator?.generationConfig
+      ?? null
+    );
+    const generationSettings = buildGenerationSettings(
+      rawGenerationConfig,
+      maxNewTokens,
+      config?.sampling ?? { temperature: 0, topK: 1, topP: 1 }
+    );
+    const promptPack = promptPackRaw.map(normalizePromptPackEntry);
+    const results = [];
+
+    for (let index = 0; index < promptPack.length; index += 1) {
+      const promptEntry = promptPack[index];
+      const generationPrompt = await renderGenerationPrompt(generator, promptEntry.text, useChatTemplate);
+      const generatedParts = [];
+      const generatedTokenIds = [];
+      const streamer = new TextStreamer(generator.tokenizer, {
+        skip_prompt: true,
+        callback_function: (text) => {
+          generatedParts.push(String(text ?? ''));
+        },
+        token_callback_function: (tokens) => {
+          generatedTokenIds.push(...normalizeGeneratedTokenIds(tokens));
+        },
+      });
+      await generator(generationPrompt, {
+        ...generationSettings.generationOptions,
+        streamer,
+      });
+      results.push({
+        id: promptEntry.id,
+        text: promptEntry.text,
+        promptRendered: generationPrompt,
+        generatedTokenIds,
+        firstTokenId: generatedTokenIds[0] ?? null,
+        generatedText: generatedParts.join(''),
+      });
+    }
+
+    return {
+      modelId,
+      promptCount: results.length,
+      maxNewTokens,
+      useChatTemplate,
+      sampling: {
+        temperature: generationSettings.temperature,
+        topK: generationSettings.topK,
+        topP: generationSettings.topP,
+        doSample: generationSettings.doSample,
+      },
+      generationConfig: {
+        strictDeterministicGreedy: generationSettings.strictDeterministicGreedy,
+        modelDefaults: pickGenerationConfigSnapshot(rawGenerationConfig),
+      },
+      env: {
+        library: 'transformers.js',
+        version: loadedVersion || (tjsVersion === '4' ? '4.x' : '3.x'),
+        device: 'webgpu',
+        dtype: load.effectiveDtype || requestedDtype,
+        requestedDtype,
+        dtypeFallbackUsed: load.effectiveDtype !== requestedDtype,
+        executionProviderMode: load.executionProviderMode || 'webgpu-only',
+        executionProviderFallbackUsed: load.executionProviderFallbackUsed === true,
+        ortProxyMode: load.effectiveOrtProxy ? 'on' : 'off',
+        ortProxyFallbackUsed: load.ortProxyFallbackUsed === true,
+        runnerKind: load.runnerKind || 'pipeline_text_generation',
+        modelArchitecture: load.modelArchitecture || null,
+      },
+      results,
+    };
+  } finally {
+    await releaseGenerator(generator);
+  }
 };
 </script>
 </body>

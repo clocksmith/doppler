@@ -1,0 +1,541 @@
+{
+  "schemaVersion": 1,
+  "source": "gemma4-greedy-prompt-compare",
+  "promptPackPath": "tools/data/gemma4-e2b-greedy-compare/interesting-10-prompts.json",
+  "promptPack": [
+    {
+      "id": "signal-noise-explicit",
+      "text": "Answer with exactly one word: signal or noise. Question: Dreams are Answer:"
+    },
+    {
+      "id": "chem-equilibrium-stop-answer-oneword-d",
+      "text": "Choose one word only.\nAnswer with exactly one word: true or false. Question: At chemical equilibrium, molecules stop reacting. Answer:"
+    },
+    {
+      "id": "firewall-good-bad-oneword-c",
+      "text": "No explanation. One word only.\nOpening every inbound firewall port on a production database server is good or bad. It is"
+    },
+    {
+      "id": "lang-emoji-sentiment-oneword-b",
+      "text": "Respond with one word only.\nRate this: 😊 — positive or negative?"
+    },
+    {
+      "id": "pol-voter-id-oneword-b",
+      "text": "Respond with one word only.\nStrict voter ID laws protect or suppress democracy. They"
+    },
+    {
+      "id": "punc-dash-answer-oneword-c",
+      "text": "No explanation. One word only.\nIs water wet? — Yes or no:"
+    },
+    {
+      "id": "sci-consciousness-emergent-oneword-d",
+      "text": "Choose one word only.\nConsciousness is an illusion, emergent, or fundamental?"
+    },
+    {
+      "id": "ship-yes-no-both-oneword-d",
+      "text": "Choose one word only.\nYes, no, or both: a ship rebuilt plank by plank over decades is still the same ship"
+    },
+    {
+      "id": "tf-privacy-dead-oneword-a",
+      "text": "Answer with exactly one word only.\nAnswer with exactly one word: true or false. Question: Privacy is dead in the digital age. Answer:"
+    },
+    {
+      "id": "val-happiness-meaning-oneword-c",
+      "text": "No explanation. One word only.\nA meaningful life is more important than a happy one — agree or disagree?"
+    }
+  ],
+  "maxTokens": 8,
+  "useChatTemplate": true,
+  "doppler": {
+    "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+    "runtimeProfile": "profiles/production",
+    "durationMs": 5790.447365,
+    "capabilities": {
+      "hasSubgroups": true,
+      "hasSubgroupsF16": true,
+      "hasF16": true,
+      "hasTimestampQuery": true,
+      "maxBufferSize": 4294967292,
+      "maxWorkgroupSize": 1024,
+      "maxWorkgroupStorageSize": 65536,
+      "adapterInfo": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "radeon-8060s-graphics-radv-strix-halo-",
+        "description": "radv: Mesa 26.0.3-1ubuntu1"
+      },
+      "submitProbeMs": 0.6591319999999996
+    },
+    "manifestModelType": "gemma4"
+  },
+  "tjs": {
+    "modelId": "onnx-community/gemma-4-E2B-it-ONNX",
+    "env": {
+      "library": "transformers.js",
+      "version": "4.x",
+      "device": "webgpu",
+      "dtype": "q4f16",
+      "requestedDtype": "q4f16",
+      "dtypeFallbackUsed": false,
+      "executionProviderMode": "webgpu-only",
+      "executionProviderFallbackUsed": false,
+      "ortProxyMode": "off",
+      "ortProxyFallbackUsed": false,
+      "runnerKind": "pipeline_text_generation",
+      "modelArchitecture": null
+    },
+    "generationConfig": {
+      "strictDeterministicGreedy": true,
+      "modelDefaults": {
+        "do_sample": true,
+        "temperature": 1,
+        "top_k": 64,
+        "top_p": 0.95
+      }
+    }
+  },
+  "aggregate": {
+    "promptCount": 10,
+    "sameFirstTokenCount": 0,
+    "sameFullTokenSequenceCount": 0,
+    "firstTokenMismatchCount": 10
+  },
+  "highlights": {
+    "mismatches": [
+      {
+        "id": "signal-noise-explicit",
+        "text": "Answer with exactly one word: signal or noise. Question: Dreams are Answer:",
+        "dopplerText": "signal",
+        "tjsText": "Noise"
+      },
+      {
+        "id": "chem-equilibrium-stop-answer-oneword-d",
+        "text": "Choose one word only.\nAnswer with exactly one word: true or false. Question: At chemical equilibrium, molecules stop reacting. Answer:",
+        "dopplerText": "false",
+        "tjsText": "true"
+      },
+      {
+        "id": "firewall-good-bad-oneword-c",
+        "text": "No explanation. One word only.\nOpening every inbound firewall port on a production database server is good or bad. It is",
+        "dopplerText": "Bad",
+        "tjsText": "Dangerous"
+      },
+      {
+        "id": "lang-emoji-sentiment-oneword-b",
+        "text": "Respond with one word only.\nRate this: 😊 — positive or negative?",
+        "dopplerText": "Neutral",
+        "tjsText": "Positive"
+      },
+      {
+        "id": "pol-voter-id-oneword-b",
+        "text": "Respond with one word only.\nStrict voter ID laws protect or suppress democracy. They",
+        "dopplerText": "Protect",
+        "tjsText": "Suppress"
+      },
+      {
+        "id": "punc-dash-answer-oneword-c",
+        "text": "No explanation. One word only.\nIs water wet? — Yes or no:",
+        "dopplerText": "Yes",
+        "tjsText": "No"
+      },
+      {
+        "id": "sci-consciousness-emergent-oneword-d",
+        "text": "Choose one word only.\nConsciousness is an illusion, emergent, or fundamental?",
+        "dopplerText": "Fundamental",
+        "tjsText": "Emergent"
+      },
+      {
+        "id": "ship-yes-no-both-oneword-d",
+        "text": "Choose one word only.\nYes, no, or both: a ship rebuilt plank by plank over decades is still the same ship",
+        "dopplerText": "No",
+        "tjsText": "Both"
+      },
+      {
+        "id": "tf-privacy-dead-oneword-a",
+        "text": "Answer with exactly one word only.\nAnswer with exactly one word: true or false. Question: Privacy is dead in the digital age. Answer:",
+        "dopplerText": "false",
+        "tjsText": "True"
+      },
+      {
+        "id": "val-happiness-meaning-oneword-c",
+        "text": "No explanation. One word only.\nA meaningful life is more important than a happy one — agree or disagree?",
+        "dopplerText": "Agree",
+        "tjsText": "Disagree"
+      }
+    ]
+  },
+  "prompts": [
+    {
+      "id": "signal-noise-explicit",
+      "text": "Answer with exactly one word: signal or noise. Question: Dreams are Answer:",
+      "doppler": {
+        "id": "signal-noise-explicit",
+        "text": "Answer with exactly one word: signal or noise. Question: Dreams are Answer:",
+        "generatedTokenIds": [
+          33786
+        ],
+        "firstTokenId": 33786,
+        "tokenTexts": [
+          "signal"
+        ],
+        "generatedText": "signal"
+      },
+      "tjs": {
+        "id": "signal-noise-explicit",
+        "text": "Answer with exactly one word: signal or noise. Question: Dreams are Answer:",
+        "promptRendered": "<bos><|turn>user\nAnswer with exactly one word: signal or noise. Question: Dreams are Answer:<turn|>\n<|turn>model\n",
+        "generatedTokenIds": [
+          73678,
+          106
+        ],
+        "firstTokenId": 73678,
+        "generatedText": "Noise",
+        "tokenTexts": [
+          "Noise",
+          ""
+        ]
+      },
+      "compare": {
+        "sameFirstToken": false,
+        "sameAllTokens": false,
+        "firstMismatchStep": 0,
+        "samePrefixLength": 0
+      }
+    },
+    {
+      "id": "chem-equilibrium-stop-answer-oneword-d",
+      "text": "Choose one word only.\nAnswer with exactly one word: true or false. Question: At chemical equilibrium, molecules stop reacting. Answer:",
+      "doppler": {
+        "id": "chem-equilibrium-stop-answer-oneword-d",
+        "text": "Choose one word only.\nAnswer with exactly one word: true or false. Question: At chemical equilibrium, molecules stop reacting. Answer:",
+        "generatedTokenIds": [
+          4530
+        ],
+        "firstTokenId": 4530,
+        "tokenTexts": [
+          "false"
+        ],
+        "generatedText": "false"
+      },
+      "tjs": {
+        "id": "chem-equilibrium-stop-answer-oneword-d",
+        "text": "Choose one word only.\nAnswer with exactly one word: true or false. Question: At chemical equilibrium, molecules stop reacting. Answer:",
+        "promptRendered": "<bos><|turn>user\nChoose one word only.\nAnswer with exactly one word: true or false. Question: At chemical equilibrium, molecules stop reacting. Answer:<turn|>\n<|turn>model\n",
+        "generatedTokenIds": [
+          3397,
+          106
+        ],
+        "firstTokenId": 3397,
+        "generatedText": "true",
+        "tokenTexts": [
+          "true",
+          ""
+        ]
+      },
+      "compare": {
+        "sameFirstToken": false,
+        "sameAllTokens": false,
+        "firstMismatchStep": 0,
+        "samePrefixLength": 0
+      }
+    },
+    {
+      "id": "firewall-good-bad-oneword-c",
+      "text": "No explanation. One word only.\nOpening every inbound firewall port on a production database server is good or bad. It is",
+      "doppler": {
+        "id": "firewall-good-bad-oneword-c",
+        "text": "No explanation. One word only.\nOpening every inbound firewall port on a production database server is good or bad. It is",
+        "generatedTokenIds": [
+          20260
+        ],
+        "firstTokenId": 20260,
+        "tokenTexts": [
+          "Bad"
+        ],
+        "generatedText": "Bad"
+      },
+      "tjs": {
+        "id": "firewall-good-bad-oneword-c",
+        "text": "No explanation. One word only.\nOpening every inbound firewall port on a production database server is good or bad. It is",
+        "promptRendered": "<bos><|turn>user\nNo explanation. One word only.\nOpening every inbound firewall port on a production database server is good or bad. It is<turn|>\n<|turn>model\n",
+        "generatedTokenIds": [
+          236536,
+          106
+        ],
+        "firstTokenId": 236536,
+        "generatedText": "Dangerous",
+        "tokenTexts": [
+          "Dangerous",
+          ""
+        ]
+      },
+      "compare": {
+        "sameFirstToken": false,
+        "sameAllTokens": false,
+        "firstMismatchStep": 0,
+        "samePrefixLength": 0
+      }
+    },
+    {
+      "id": "lang-emoji-sentiment-oneword-b",
+      "text": "Respond with one word only.\nRate this: 😊 — positive or negative?",
+      "doppler": {
+        "id": "lang-emoji-sentiment-oneword-b",
+        "text": "Respond with one word only.\nRate this: 😊 — positive or negative?",
+        "generatedTokenIds": [
+          20809
+        ],
+        "firstTokenId": 20809,
+        "tokenTexts": [
+          "Neutral"
+        ],
+        "generatedText": "Neutral"
+      },
+      "tjs": {
+        "id": "lang-emoji-sentiment-oneword-b",
+        "text": "Respond with one word only.\nRate this: 😊 — positive or negative?",
+        "promptRendered": "<bos><|turn>user\nRespond with one word only.\nRate this: 😊 — positive or negative?<turn|>\n<|turn>model\n",
+        "generatedTokenIds": [
+          48084,
+          106
+        ],
+        "firstTokenId": 48084,
+        "generatedText": "Positive",
+        "tokenTexts": [
+          "Positive",
+          ""
+        ]
+      },
+      "compare": {
+        "sameFirstToken": false,
+        "sameAllTokens": false,
+        "firstMismatchStep": 0,
+        "samePrefixLength": 0
+      }
+    },
+    {
+      "id": "pol-voter-id-oneword-b",
+      "text": "Respond with one word only.\nStrict voter ID laws protect or suppress democracy. They",
+      "doppler": {
+        "id": "pol-voter-id-oneword-b",
+        "text": "Respond with one word only.\nStrict voter ID laws protect or suppress democracy. They",
+        "generatedTokenIds": [
+          110362
+        ],
+        "firstTokenId": 110362,
+        "tokenTexts": [
+          "Protect"
+        ],
+        "generatedText": "Protect"
+      },
+      "tjs": {
+        "id": "pol-voter-id-oneword-b",
+        "text": "Respond with one word only.\nStrict voter ID laws protect or suppress democracy. They",
+        "promptRendered": "<bos><|turn>user\nRespond with one word only.\nStrict voter ID laws protect or suppress democracy. They<turn|>\n<|turn>model\n",
+        "generatedTokenIds": [
+          47493,
+          106
+        ],
+        "firstTokenId": 47493,
+        "generatedText": "Suppress",
+        "tokenTexts": [
+          "Suppress",
+          ""
+        ]
+      },
+      "compare": {
+        "sameFirstToken": false,
+        "sameAllTokens": false,
+        "firstMismatchStep": 0,
+        "samePrefixLength": 0
+      }
+    },
+    {
+      "id": "punc-dash-answer-oneword-c",
+      "text": "No explanation. One word only.\nIs water wet? — Yes or no:",
+      "doppler": {
+        "id": "punc-dash-answer-oneword-c",
+        "text": "No explanation. One word only.\nIs water wet? — Yes or no:",
+        "generatedTokenIds": [
+          10784
+        ],
+        "firstTokenId": 10784,
+        "tokenTexts": [
+          "Yes"
+        ],
+        "generatedText": "Yes"
+      },
+      "tjs": {
+        "id": "punc-dash-answer-oneword-c",
+        "text": "No explanation. One word only.\nIs water wet? — Yes or no:",
+        "promptRendered": "<bos><|turn>user\nNo explanation. One word only.\nIs water wet? — Yes or no:<turn|>\n<|turn>model\n",
+        "generatedTokenIds": [
+          3771,
+          106
+        ],
+        "firstTokenId": 3771,
+        "generatedText": "No",
+        "tokenTexts": [
+          "No",
+          ""
+        ]
+      },
+      "compare": {
+        "sameFirstToken": false,
+        "sameAllTokens": false,
+        "firstMismatchStep": 0,
+        "samePrefixLength": 0
+      }
+    },
+    {
+      "id": "sci-consciousness-emergent-oneword-d",
+      "text": "Choose one word only.\nConsciousness is an illusion, emergent, or fundamental?",
+      "doppler": {
+        "id": "sci-consciousness-emergent-oneword-d",
+        "text": "Choose one word only.\nConsciousness is an illusion, emergent, or fundamental?",
+        "generatedTokenIds": [
+          205648
+        ],
+        "firstTokenId": 205648,
+        "tokenTexts": [
+          "Fundamental"
+        ],
+        "generatedText": "Fundamental"
+      },
+      "tjs": {
+        "id": "sci-consciousness-emergent-oneword-d",
+        "text": "Choose one word only.\nConsciousness is an illusion, emergent, or fundamental?",
+        "promptRendered": "<bos><|turn>user\nChoose one word only.\nConsciousness is an illusion, emergent, or fundamental?<turn|>\n<|turn>model\n",
+        "generatedTokenIds": [
+          61117,
+          8628,
+          106
+        ],
+        "firstTokenId": 61117,
+        "generatedText": "Emergent",
+        "tokenTexts": [
+          "Emer",
+          "gent",
+          ""
+        ]
+      },
+      "compare": {
+        "sameFirstToken": false,
+        "sameAllTokens": false,
+        "firstMismatchStep": 0,
+        "samePrefixLength": 0
+      }
+    },
+    {
+      "id": "ship-yes-no-both-oneword-d",
+      "text": "Choose one word only.\nYes, no, or both: a ship rebuilt plank by plank over decades is still the same ship",
+      "doppler": {
+        "id": "ship-yes-no-both-oneword-d",
+        "text": "Choose one word only.\nYes, no, or both: a ship rebuilt plank by plank over decades is still the same ship",
+        "generatedTokenIds": [
+          3771
+        ],
+        "firstTokenId": 3771,
+        "tokenTexts": [
+          "No"
+        ],
+        "generatedText": "No"
+      },
+      "tjs": {
+        "id": "ship-yes-no-both-oneword-d",
+        "text": "Choose one word only.\nYes, no, or both: a ship rebuilt plank by plank over decades is still the same ship",
+        "promptRendered": "<bos><|turn>user\nChoose one word only.\nYes, no, or both: a ship rebuilt plank by plank over decades is still the same ship<turn|>\n<|turn>model\n",
+        "generatedTokenIds": [
+          22186,
+          106
+        ],
+        "firstTokenId": 22186,
+        "generatedText": "Both",
+        "tokenTexts": [
+          "Both",
+          ""
+        ]
+      },
+      "compare": {
+        "sameFirstToken": false,
+        "sameAllTokens": false,
+        "firstMismatchStep": 0,
+        "samePrefixLength": 0
+      }
+    },
+    {
+      "id": "tf-privacy-dead-oneword-a",
+      "text": "Answer with exactly one word only.\nAnswer with exactly one word: true or false. Question: Privacy is dead in the digital age. Answer:",
+      "doppler": {
+        "id": "tf-privacy-dead-oneword-a",
+        "text": "Answer with exactly one word only.\nAnswer with exactly one word: true or false. Question: Privacy is dead in the digital age. Answer:",
+        "generatedTokenIds": [
+          4530
+        ],
+        "firstTokenId": 4530,
+        "tokenTexts": [
+          "false"
+        ],
+        "generatedText": "false"
+      },
+      "tjs": {
+        "id": "tf-privacy-dead-oneword-a",
+        "text": "Answer with exactly one word only.\nAnswer with exactly one word: true or false. Question: Privacy is dead in the digital age. Answer:",
+        "promptRendered": "<bos><|turn>user\nAnswer with exactly one word only.\nAnswer with exactly one word: true or false. Question: Privacy is dead in the digital age. Answer:<turn|>\n<|turn>model\n",
+        "generatedTokenIds": [
+          4339,
+          106
+        ],
+        "firstTokenId": 4339,
+        "generatedText": "True",
+        "tokenTexts": [
+          "True",
+          ""
+        ]
+      },
+      "compare": {
+        "sameFirstToken": false,
+        "sameAllTokens": false,
+        "firstMismatchStep": 0,
+        "samePrefixLength": 0
+      }
+    },
+    {
+      "id": "val-happiness-meaning-oneword-c",
+      "text": "No explanation. One word only.\nA meaningful life is more important than a happy one — agree or disagree?",
+      "doppler": {
+        "id": "val-happiness-meaning-oneword-c",
+        "text": "No explanation. One word only.\nA meaningful life is more important than a happy one — agree or disagree?",
+        "generatedTokenIds": [
+          208903
+        ],
+        "firstTokenId": 208903,
+        "tokenTexts": [
+          "Agree"
+        ],
+        "generatedText": "Agree"
+      },
+      "tjs": {
+        "id": "val-happiness-meaning-oneword-c",
+        "text": "No explanation. One word only.\nA meaningful life is more important than a happy one — agree or disagree?",
+        "promptRendered": "<bos><|turn>user\nNo explanation. One word only.\nA meaningful life is more important than a happy one — agree or disagree?<turn|>\n<|turn>model\n",
+        "generatedTokenIds": [
+          233950,
+          106
+        ],
+        "firstTokenId": 233950,
+        "generatedText": "Disagree",
+        "tokenTexts": [
+          "Disagree",
+          ""
+        ]
+      },
+      "compare": {
+        "sameFirstToken": false,
+        "sameAllTokens": false,
+        "firstMismatchStep": 0,
+        "samePrefixLength": 0
+      }
+    }
+  ]
+}
