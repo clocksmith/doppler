@@ -1,6 +1,6 @@
 
 
-import { doRMSNorm, doResidualAdd, releaseOrTrack } from '../ops.js';
+import { doCast, doRMSNorm, doResidualAdd, releaseOrTrack } from '../ops.js';
 import { getNormWeightBuffer } from '../weights.js';
 import { runProbes } from '../probes.js';
 import { isMoELayerLocal } from './types.js';
