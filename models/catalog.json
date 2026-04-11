@@ -204,7 +204,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "f242e44c9a35e72186aa61e4cc0c9873f0596741",
+        "revision": "88fa42770918e0c61bfcd67c6a54952e079b5d36",
         "path": "models/gemma-4-e2b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -232,7 +232,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-04-09",
           "source": "runtime-verify",
-          "notes": "Node/WebGPU on AMD RDNA-3 re-verified on 2026-04-09 after repinning Gemma 4 E2B text decode to attention_decode_online_f16kv and splitting prefill attention between sliding-window and full-attention layers. Produces coherent sky-color answers on simple prompts and now outpaces the local Transformers.js q4f16 WebGPU baseline on the matched text prompt. The local artifact is ready for Clocksmith/rdrr republish; the currently pinned HF revision predates these fixes and must be refreshed before the hosted registry entry is regenerated.",
+          "notes": "Node/WebGPU on AMD RDNA-3 re-verified on 2026-04-09 after repinning Gemma 4 E2B text decode to attention_decode_online_f16kv and splitting prefill attention between sliding-window and full-attention layers. Produces coherent sky-color answers on simple prompts and now outpaces the local Transformers.js q4f16 WebGPU baseline on the matched text prompt. Republished to HF 2026-04-11.",
           "contracts": {
             "executionContractOk": true
           }
