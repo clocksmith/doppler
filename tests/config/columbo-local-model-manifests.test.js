@@ -19,6 +19,12 @@ for (const manifestPath of manifestPaths) {
     () => validateManifestInference(manifest),
     `${manifest.modelId} must satisfy required inference-field validation`
   );
+  if (manifest.modelId === 'google-embeddinggemma-300m-q4k-ehf16-af32') {
+    assert.ok(
+      manifest.inference?.session?.perLayerInputs,
+      'google-embeddinggemma-300m-q4k-ehf16-af32 must stamp inference.session.perLayerInputs for Columbo retrieval'
+    );
+  }
 }
 
 console.log('columbo-local-model-manifests.test: ok');

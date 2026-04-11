@@ -3,7 +3,7 @@
 import { getDevice, hasFeature, FEATURES } from './device.js';
 import { allowReadback, trackAllocation } from './perf-guards.js';
 import { getUniformCache } from './uniform-cache.js';
-import { isBufferActive, releaseBuffer, discardBuffer } from '../memory/buffer-pool.js';
+import { isBufferActive, isPersistentBuffer, releaseBuffer, discardBuffer } from '../memory/buffer-pool.js';
 import { log } from '../debug/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 
@@ -276,17 +276,20 @@ export class CommandRecorder {
     if (this.#submitted) {
       throw new Error('[CommandRecorder] Cannot track buffers after submit');
     }
-    if (isBufferActive(buffer)) {
-      if (!this.#pooledBufferSet.has(buffer)) {
-        this.#pooledBufferSet.add(buffer);
-        this.#pooledBuffers.push(buffer);
-      }
+    if (this.#tempBufferSet.has(buffer) || this.#pooledBufferSet.has(buffer)) {
       return;
     }
-    if (!this.#tempBufferSet.has(buffer)) {
-      this.#tempBufferSet.add(buffer);
-      this.#tempBuffers.push(buffer);
+    if (isPersistentBuffer(buffer)) {
+      return;
     }
+    if (isBufferActive(buffer)) {
+      this.#pooledBufferSet.add(buffer);
+      this.#pooledBuffers.push(buffer);
+      return;
+    }
+    // Recorder cleanup owns only recorder-created buffers and pooled buffers that are
+    // still active. External raw GPUBuffer instances may be persistent model weights.
+    // Treating them as temporary would destroy weights at submit time.
   }
 
   #finalizeTrackedBuffers(buffersToDestroy, buffersToRelease, discardPooled) {

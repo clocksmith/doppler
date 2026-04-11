@@ -71,6 +71,10 @@ export function getNormWeightBuffer(weight, label, config, debugFlags) {
     log.debug('Weights', `getNormWeightBuffer: weight is GPUBuffer=${isGpuBufferInstance(weight)}, label=${label}`);
   }
 
+  if (isWeightBuffer(weight)) {
+    return weight.buffer;
+  }
+
   if (isGpuBufferInstance(weight)) {
     // If already a GPUBuffer, we can't modify it - assume it was preprocessed
     return weight;

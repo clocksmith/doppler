@@ -556,7 +556,7 @@ export async function applyAttentionQKNorm({
         await onQNormApplied(nextQ);
       }
     }
-    if (!(layerWeights.qNorm instanceof GPUBuffer)) {
+    if (!(layerWeights.qNorm instanceof GPUBuffer) && !isWeightBuffer(layerWeights.qNorm)) {
       releaseTemporary(qNormBuf);
     }
   }
@@ -578,7 +578,7 @@ export async function applyAttentionQKNorm({
         await onKNormApplied(nextK);
       }
     }
-    if (!(layerWeights.kNorm instanceof GPUBuffer)) {
+    if (!(layerWeights.kNorm instanceof GPUBuffer) && !isWeightBuffer(layerWeights.kNorm)) {
       releaseTemporary(kNormBuf);
     }
   }

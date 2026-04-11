@@ -66,7 +66,7 @@ export function getWeightBuffer(
  * Get or create GPU buffer for RMSNorm weight tensor.
  */
 export function getNormWeightBuffer(
-  weight: GPUBuffer | Float32Array | ArrayBuffer | { buffer: ArrayBuffer; byteOffset: number; byteLength: number } | CpuWeightBuffer,
+  weight: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer | { buffer: ArrayBuffer; byteOffset: number; byteLength: number } | CpuWeightBuffer,
   label: string,
   config: WeightBufferConfig,
   debugFlags?: WeightDebugFlags
@@ -92,7 +92,7 @@ export function createWeightBufferHelpers(
   debugFlags?: WeightDebugFlags
 ): {
   getWeightBuffer: (weight: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer | WeightBuffer;
-  getNormWeightBuffer: (weight: GPUBuffer | Float32Array | ArrayBuffer | CpuWeightBuffer, label: string) => GPUBuffer;
+  getNormWeightBuffer: (weight: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer | CpuWeightBuffer, label: string) => GPUBuffer;
   getGPUWeightBuffer: (weight: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer;
 };
 

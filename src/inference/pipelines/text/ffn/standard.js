@@ -7,6 +7,7 @@ import { isMoELayerLocal } from './types.js';
 import { runDenseFFNGPU } from './dense.js';
 import { runMoEFFNGPU } from './moe.js';
 import { acquireBuffer } from '../../../../memory/buffer-pool.js';
+import { isWeightBuffer } from '../../../../gpu/weight-buffer.js';
 
 
 export async function processFFNStandard(
@@ -54,7 +55,7 @@ export async function processFFNStandard(
       }, recorder);
     }
 
-    if (!(layerWeights.postAttnNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
+    if (!(layerWeights.postAttnNorm instanceof GPUBuffer) && !isWeightBuffer(layerWeights.postAttnNorm)) releaseOrTrack(recorder, normWeightBuf);
   }
   await runProbes('ffn_in', normedTensor.buffer, {
     layerIdx,

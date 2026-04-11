@@ -778,6 +778,7 @@ export class BufferPool {
 
 let globalPool = null;
 let globalPoolEpoch = -1;
+const persistentBuffers = new WeakSet();
 
 
 export function getBufferPool() {
@@ -835,6 +836,41 @@ export const discardBuffer = (buffer) => getBufferPool().discard(buffer);
 
 export const isBufferActive = (buffer) =>
   getBufferPool().isActiveBuffer(buffer);
+
+export function markPersistentBuffer(buffer) {
+  if (buffer && typeof buffer === 'object') {
+    persistentBuffers.add(buffer);
+  }
+}
+
+export function unmarkPersistentBuffer(buffer) {
+  if (buffer && typeof buffer === 'object') {
+    persistentBuffers.delete(buffer);
+  }
+}
+
+export function isPersistentBuffer(buffer) {
+  return !!buffer && typeof buffer === 'object' && persistentBuffers.has(buffer);
+}
+
+export class PersistentBufferSet extends Set {
+  add(buffer) {
+    markPersistentBuffer(buffer);
+    return super.add(buffer);
+  }
+
+  delete(buffer) {
+    unmarkPersistentBuffer(buffer);
+    return super.delete(buffer);
+  }
+
+  clear() {
+    for (const buffer of this) {
+      unmarkPersistentBuffer(buffer);
+    }
+    return super.clear();
+  }
+}
 
 export const getBufferRequestedSize = (buffer) =>
   getBufferPool().getRequestedSize(buffer);

@@ -1,7 +1,7 @@
 
 
 import { doRMSNorm, doResidualAdd, releaseOrTrack } from '../ops.js';
-import { getLayout, getWeightDtype, isCpuWeightBuffer } from '../../../../gpu/weight-buffer.js';
+import { getLayout, getWeightDtype, isCpuWeightBuffer, isWeightBuffer } from '../../../../gpu/weight-buffer.js';
 import { trace } from '../../../../debug/index.js';
 import { isKernelDebugEnabled, dumpTokenVector, logFFN, getBufferStats } from '../debug-utils.js';
 import { getNormWeightBuffer } from '../weights.js';
@@ -42,7 +42,7 @@ export async function processFFNWithSandwichNorm(
       layerIdx,
       rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
     }, recorder);
-    if (!(layerWeights.preFeedforwardNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
+    if (!(layerWeights.preFeedforwardNorm instanceof GPUBuffer) && !isWeightBuffer(layerWeights.preFeedforwardNorm)) releaseOrTrack(recorder, normWeightBuf);
   }
 
   await runProbes('ffn_in', ffnInput.buffer, {
@@ -164,7 +164,7 @@ export async function processFFNWithSandwichNorm(
       rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
     }, recorder);
 
-    if (!(layerWeights.postFeedforwardNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
+    if (!(layerWeights.postFeedforwardNorm instanceof GPUBuffer) && !isWeightBuffer(layerWeights.postFeedforwardNorm)) releaseOrTrack(recorder, normWeightBuf);
     releaseOrTrack(recorder, ffnOutput.buffer, decodeBuffers);
   } else {
     output = await doResidualAdd(ffnOutput, postAttn, size, recorder, {

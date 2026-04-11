@@ -1,4 +1,4 @@
-import { releaseBuffer } from '../memory/buffer-pool.js';
+import { PersistentBufferSet, releaseBuffer } from '../memory/buffer-pool.js';
 import { isWeightBuffer, isCpuWeightBuffer } from '../gpu/weight-buffer.js';
 import { trace as debugTrace } from '../debug/index.js';
 
@@ -8,7 +8,7 @@ export class LoaderState {
   finalNorm = null;
   layers = new Map();
   experts = new Map();
-  gpuBuffers = new Set();
+  gpuBuffers = new PersistentBufferSet();
   isLoaded = false;
 
   setLayer(layerIndex, weights) {

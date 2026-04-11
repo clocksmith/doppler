@@ -11,7 +11,13 @@ import {
 } from '../storage/shard-manager.js';
 import { clearManifest, parseManifest, setManifest as setCurrentManifest } from '../formats/rdrr/index.js';
 import { initDevice, getDevice, getKernelCapabilities } from '../gpu/device.js';
-import { acquireBuffer, isBufferActive, releaseBuffer, forceBufferPoolReclaim } from '../memory/buffer-pool.js';
+import {
+  PersistentBufferSet,
+  acquireBuffer,
+  isBufferActive,
+  releaseBuffer,
+  forceBufferPoolReclaim,
+} from '../memory/buffer-pool.js';
 import { getExpertCache } from './experts/expert-cache.js';
 import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
@@ -120,7 +126,7 @@ export class DopplerLoader {
   
   heapManager = null;
   
-  gpuBuffers = new Set();
+  gpuBuffers = new PersistentBufferSet();
 
   // Expert cache for MoE models (LRU eviction)
   

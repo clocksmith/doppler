@@ -26,7 +26,7 @@ import { shouldRunFinitenessGuard } from './finiteness-policy.js';
 import { runLinearAttentionLayer } from './linear-attention.js';
 import { validateAttnConfig } from './attention/attn-config.js';
 import { createPerLayerInputTensor } from './per-layer-inputs.js';
-import { isGpuBufferInstance } from '../../../gpu/weight-buffer.js';
+import { isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 
 // ============================================================================
 // Architecture Detection
@@ -468,7 +468,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
         label: `L${layerIdx}.conv_input_norm`,
         layerIdx,
       }, recorder);
-      if (!(inputNormWeight instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
+      if (!(inputNormWeight instanceof GPUBuffer) && !isWeightBuffer(inputNormWeight)) releaseOrTrack(recorder, normWeightBuf);
     }
     attnOutput = await doConv(
       normedTensor,
@@ -641,7 +641,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
         layerIdx,
         rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
       }, recorder);
-      if (!(layerWeights.postAttentionNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
+      if (!(layerWeights.postAttentionNorm instanceof GPUBuffer) && !isWeightBuffer(layerWeights.postAttentionNorm)) releaseOrTrack(recorder, normWeightBuf);
       if (recorder) {
         recorder.trackTemporaryBuffer(attnOutput.buffer);
       } else {
@@ -663,7 +663,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       executionPolicies: context.executionPolicies ?? null,
     });
 
-    if (!(layerWeights.postAttentionNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
+    if (!(layerWeights.postAttentionNorm instanceof GPUBuffer) && !isWeightBuffer(layerWeights.postAttentionNorm)) releaseOrTrack(recorder, normWeightBuf);
     releaseOrTrack(recorder, normalizedAttn.buffer, context.decodeBuffers);
     if (recorder) {
       recorder.trackTemporaryBuffer(attnOutput.buffer);
@@ -1097,7 +1097,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
             layerIdx,
             rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
           }, recorder);
-          if (!(weight instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
+          if (!(weight instanceof GPUBuffer) && !isWeightBuffer(weight)) releaseOrTrack(recorder, normWeightBuf);
           const outputDtype = resolveStepOutputDtype(step, resolveActivationDtype(outputTensor.dtype));
           setSlot(step.dst, outputTensor.buffer, outputDtype);
           if (step.probeStage) {

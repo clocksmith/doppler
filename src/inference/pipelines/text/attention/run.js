@@ -195,7 +195,7 @@ export async function runLayerAttentionGPU(
         rmsNormWeightOffset: config.rmsNormWeightOffset,
       });
     } finally {
-      if (!(layerWeights.inputNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+      if (!(layerWeights.inputNorm instanceof GPUBuffer) && !isWeightBuffer(layerWeights.inputNorm)) releaseBuffer(normWeightBuf);
     }
 
     // Trace input norm output

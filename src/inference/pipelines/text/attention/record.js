@@ -154,7 +154,7 @@ export async function recordLayerAttentionGPU(
       hiddenSize,
       rmsNormWeightOffset: config.rmsNormWeightOffset,
     });
-    if (!(layerWeights.inputNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
+    if (!(layerWeights.inputNorm instanceof GPUBuffer) && !isWeightBuffer(layerWeights.inputNorm)) releaseOrTrack(recorder, normWeightBuf);
   }
 
   const debugLayers = debugFlags.debugLayers;

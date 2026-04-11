@@ -23,6 +23,13 @@ const { FEATURES, setDevice } = await import('../../src/gpu/device.js');
 const { configurePerfGuards } = await import('../../src/gpu/perf-guards.js');
 const { resetUniformCache } = await import('../../src/gpu/uniform-cache.js');
 const { setRuntimeConfig, resetRuntimeConfig } = await import('../../src/config/runtime.js');
+const {
+  acquireBuffer,
+  destroyBufferPool,
+  getBufferPool,
+  markPersistentBuffer,
+  releaseBuffer,
+} = await import('../../src/memory/buffer-pool.js');
 
 class FakeBuffer {
   constructor({ size, usage, mapReject = false }) {
@@ -184,6 +191,37 @@ configurePerfGuards({
 }
 
 {
+  const device = createFakeDevice();
+  const recorder = new CommandRecorder(device, 'external_buffer_preserved');
+  const external = new FakeBuffer({ size: 64, usage: GPUBufferUsage.STORAGE });
+
+  recorder.trackTemporaryBuffer(external);
+  recorder.submit();
+  await flushMicrotasks();
+
+  assert.equal(external.destroyed, false);
+}
+
+{
+  const device = createFakeDevice();
+  setDevice(device, { platformConfig: null });
+  getBufferPool().configure({ enablePooling: false });
+
+  const recorder = new CommandRecorder(device, 'persistent_pooled_buffer_preserved');
+  const persistent = acquireBuffer(64, GPUBufferUsage.STORAGE, 'persistent_weight');
+  markPersistentBuffer(persistent);
+
+  recorder.trackTemporaryBuffer(persistent);
+  recorder.submit();
+  await flushMicrotasks();
+
+  assert.equal(persistent.destroyed, false);
+  releaseBuffer(persistent);
+  destroyBufferPool();
+  setDevice(null);
+}
+
+{
   const device = createFakeDevice({ submitThrows: true });
   const recorder = new CommandRecorder(device, 'submit_throw_cleanup');
   const temp = recorder.createTempBuffer(64, GPUBufferUsage.STORAGE, 'temp');
@@ -255,6 +293,7 @@ configurePerfGuards({
 }
 
 resetUniformCache();
+destroyBufferPool();
 resetRuntimeConfig();
 setDevice(null);
 console.log('command-recorder-cleanup.test: ok');

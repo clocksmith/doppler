@@ -1080,7 +1080,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
   if (!(layerWeights.down instanceof GPUBuffer) && !isWeightBuffer(layerWeights.down)) {
     releaseOrTrack(recorder, isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
   }
-  if (!(layerWeights.postFeedforwardNorm instanceof GPUBuffer)) releaseOrTrack(recorder, normWeightBuf);
+  if (!(layerWeights.postFeedforwardNorm instanceof GPUBuffer) && !isWeightBuffer(layerWeights.postFeedforwardNorm)) releaseOrTrack(recorder, normWeightBuf);
   if (recorder) {
     recorder.trackTemporaryBuffer(activatedOutput.buffer);
   } else {
