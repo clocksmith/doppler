@@ -31,6 +31,18 @@ const SUBGROUP_REQUIRING_FILES = new Set([
   'attention_decode_online_f16.wgsl',
 ]);
 
+const KERNEL_FILE_PRECISION_PATCHES = new Map([
+  ['matmul_gemv_subgroup_f16a.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
+  ['matmul_f16.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
+  ['matmul_f16_tiled.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
+  ['fused_matmul_q4_multicol_f16.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
+  ['fused_matmul_q4_multicol_f16a.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
+  ['matmul_gemv_subgroup.wgsl', { inputDtype: 'f32', outputDtype: 'f32' }],
+  ['matmul_f16w_f32a.wgsl', { inputDtype: 'f32', outputDtype: 'f32' }],
+  ['matmul_f16w_f32a_tiled.wgsl', { inputDtype: 'f32', outputDtype: 'f32' }],
+  ['matmul_f32.wgsl', { inputDtype: 'f32', outputDtype: 'f32' }],
+]);
+
 /**
  * Check whether a kernel entry requires subgroup support.
  * @param {{ kernel: string }} kernelEntry
@@ -97,12 +109,13 @@ function deriveKernelEntry(base, newFile, newEntry, constants) {
 }
 
 function deriveKernelPrecision(base, newFile) {
-  if (!base.precision) {
-    return null;
+  const precision = base.precision ? { ...base.precision } : {};
+  const precisionPatch = KERNEL_FILE_PRECISION_PATCHES.get(newFile);
+  if (precisionPatch) {
+    Object.assign(precision, precisionPatch);
   }
-  const precision = { ...base.precision };
   if (!String(newFile).startsWith('attention')) {
-    return precision;
+    return Object.keys(precision).length > 0 ? precision : null;
   }
   if (newFile.includes('_f16kv') || newFile.includes('_f16')) {
     precision.kvDtype = 'f16';

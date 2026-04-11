@@ -1132,6 +1132,8 @@ function buildF16WeightProjectionGraph() {
   ok(result !== null, 'explicit stable tail: narrowToF16Activations should still remap eligible kernels');
   equal(result.kernels.q_proj.kernel, 'matmul_gemv_subgroup_f16a.wgsl',
     'explicit stable tail: layer matmul should narrow to f16 activation');
+  deepEqual(result.kernels.q_proj.precision, { inputDtype: 'f16', outputDtype: 'f16' },
+    'explicit stable tail: narrowed matmul should declare f16 input/output precision');
   equal(result.kernels.final_norm.kernel, 'rmsnorm.wgsl',
     'explicit stable tail: final_norm should preserve explicit f32 kernel');
   equal(result.kernels.lm_head.kernel, 'matmul_gemv_subgroup.wgsl',
