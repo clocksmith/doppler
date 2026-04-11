@@ -90,10 +90,10 @@ if (!fs.existsSync(qwenManifestPath)) {
   assert.equal(materialized.inference?.execution?.kernels?.residual?.kernel, 'residual.wgsl');
   assert.equal(materialized.inference?.execution?.kernels?.silu?.kernel, 'silu.wgsl');
   assert.equal(materialized.inference?.execution?.kernels?.tiled?.kernel, 'matmul_f16w_f32a.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.q4_prefill?.kernel, 'fused_matmul_q4_batched.wgsl');
+  assert.equal(materialized.inference?.execution?.kernels?.q4_prefill?.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl');
   assert.equal(materialized.inference?.execution?.kernels?.attn_decode?.kernel, 'attention_decode_online_f16kv.wgsl');
   assert.equal(materialized.inference?.execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16kv.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.lm_head_gemv?.kernel, 'matmul_gemv_subgroup.wgsl');
+  assert.equal(materialized.inference?.execution?.kernels?.lm_head_gemv?.kernel, 'matmul_gemv_subgroup_f16a.wgsl');
   assert.equal(materialized.inference?.execution?.kernels?.sample?.kernel, 'sample.wgsl');
 }
 

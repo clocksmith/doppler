@@ -28,7 +28,12 @@ npx doppler-gpu --model qwen3-0.8b --prompt "Write a haiku about GPUs"
 npx doppler-gpu --list-models
 ```
 
-### API
+### Root API
+
+The `doppler` facade is the primary app-facing API.
+The root package intentionally stays small: it exports `doppler` and `DOPPLER_VERSION`.
+Advanced surfaces now live on explicit subpaths such as `doppler-gpu/tooling`,
+`doppler-gpu/loaders`, `doppler-gpu/orchestration`, and `doppler-gpu/generation`.
 
 ```js
 import { doppler } from 'doppler-gpu';

@@ -17,6 +17,7 @@ import {
   remapQ4KDecodeToGemv,
   remapQ4KDecodeAttentionToFusedQ4KGemv,
   remapQ4KDecodeFFNToGemv,
+  useQwenF16PrimaryMatmuls,
   useQwenDecodeF16Matmuls,
   composeTransforms,
 } from '../../src/config/transforms/execution-graph-transforms.js';
@@ -577,7 +578,7 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
-// Test 10b: useQwenDecodeF16Matmuls — partial on the promoted Qwen graph
+// Test 10b: useQwenDecodeF16Matmuls — legacy selective narrow on the promoted Qwen graph
 // ===========================================================================
 {
   const graph = structuredClone(QWEN_REAL_GRAPH);
@@ -587,7 +588,7 @@ function buildF16WeightProjectionGraph() {
     modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
   });
 
-  ok(result, 'useQwenDecodeF16Matmuls should derive explicit f16 decode kernels on Qwen');
+  ok(result, 'useQwenDecodeF16Matmuls should still derive an lm_head-focused f16 decode tweak on Qwen');
   const qProjStep = result.decode.find((entry) => Array.isArray(entry) && entry[0] === 'q_proj');
   equal(
     result.kernels[qProjStep[1]].kernel,
@@ -603,7 +604,7 @@ function buildF16WeightProjectionGraph() {
   equal(
     result.kernels[gateStep[1]].kernel,
     'matmul_gemv_subgroup.wgsl',
-    'useQwenDecodeF16Matmuls should keep FFN decode on matmul_gemv_subgroup.wgsl'
+    'useQwenDecodeF16Matmuls should leave promoted FFN decode kernels unchanged'
   );
   equal(
     result.kernels[result.postLayer.find((entry) => Array.isArray(entry) && entry[0] === 'lm_head')[1]].kernel,
@@ -615,7 +616,49 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
-// Test 10c: remapQ4KDecodeToGemv — explicit diagnostic transform on Qwen
+// Test 10c: useQwenF16PrimaryMatmuls — promoted Qwen runtime-requested f16 lane
+// ===========================================================================
+{
+  const graph = narrowToF16Activations(structuredClone(QWEN_REAL_GRAPH), {
+    ...CTX_F16,
+    capabilities: { hasF16: true },
+  });
+  const frozen = structuredClone(graph);
+  const result = useQwenF16PrimaryMatmuls(graph, {
+    ...CTX_F16,
+    modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+    capabilities: { hasF16: true },
+    layerTypes: qwenConversionConfig.inference.layerPattern.layerTypes,
+  });
+
+  ok(result, 'useQwenF16PrimaryMatmuls should derive the promoted Qwen f16 primary graph');
+
+  const decodeFiles = collectKernelFilesForPhase(result, 'decode');
+  ok(decodeFiles.has('fused_matmul_q4_multicol_f16a.wgsl'),
+    'promoted Qwen f16 graph should use fused_matmul_q4_multicol_f16a.wgsl in decode');
+  ok(decodeFiles.has('matmul_gemv_subgroup_f16a.wgsl'),
+    'promoted Qwen f16 graph should use matmul_gemv_subgroup_f16a.wgsl in decode');
+
+  const prefillFiles = collectKernelFilesForPhase(result, 'prefill');
+  ok(prefillFiles.has('fused_matmul_q4_batched_f16a.wgsl'),
+    'promoted Qwen f16 graph should use fused_matmul_q4_batched_f16a.wgsl in prefill');
+  ok(prefillFiles.has('attention_streaming_f16.wgsl'),
+    'promoted Qwen f16 graph should keep the narrowed streaming attention kernel');
+
+  const linearDecodeOProj = result.decode.find(
+    (entry) => entry && typeof entry === 'object' && Array.isArray(entry.layers) && entry.layers.includes(0)
+  )?.steps?.find((step) => Array.isArray(step) && step[0] === 'o_proj');
+  ok(linearDecodeOProj, 'promoted Qwen f16 graph should split linear-layer decode o_proj');
+  equal(result.kernels[linearDecodeOProj[1]].precision?.inputDtype, 'f32',
+    'promoted Qwen f16 graph should keep linear decode o_proj input on f32');
+  equal(result.kernels[linearDecodeOProj[1]].precision?.outputDtype, 'f32',
+    'promoted Qwen f16 graph should keep linear decode o_proj output on f32');
+
+  deepEqual(graph, frozen, 'useQwenF16PrimaryMatmuls must not mutate the input graph');
+}
+
+// ===========================================================================
+// Test 10d: remapQ4KDecodeToGemv — explicit diagnostic transform on Qwen
 // ===========================================================================
 {
   const graph = structuredClone(QWEN_REAL_GRAPH);
@@ -644,8 +687,8 @@ function buildF16WeightProjectionGraph() {
 
   // Verify prefill keeps the promoted fused-Q4/streaming primary path.
   const prefillFiles = collectKernelFilesForPhase(result, 'prefill');
-  ok(prefillFiles.has('fused_matmul_q4_batched.wgsl'),
-    'Remapped Qwen graph should keep fused_matmul_q4_batched.wgsl in prefill');
+  ok(prefillFiles.has('fused_matmul_q4_batched_multicol_shared.wgsl'),
+    'Remapped Qwen graph should keep fused_matmul_q4_batched_multicol_shared.wgsl in prefill');
   ok(prefillFiles.has('attention_streaming_f16kv.wgsl'),
     'Remapped Qwen graph should keep attention_streaming_f16kv.wgsl in prefill');
 
@@ -847,6 +890,34 @@ function buildF16WeightProjectionGraph() {
     );
     deepEqual(r.names, [], 'Qwen 3.5 0.8B on capable GPU: no capability transforms needed');
     equal(r.transforms.length, 0, 'Qwen 3.5 0.8B on capable GPU: zero transform functions');
+  }
+
+  {
+    const r = resolveCapabilityTransforms(
+      {
+        hasSubgroups: true,
+        hasF16: true,
+        maxWorkgroupStorageSize: 32768,
+        adapterInfo: { vendor: 'apple', architecture: 'metal-3' },
+      },
+      { id: 'apple-m3', vendor: 'apple', architecture: 'm-series' },
+      {
+        activationDtype: 'f16',
+        kvDtype: 'f16',
+        modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+        requiresF16ActivationNarrowing: true,
+      }
+    );
+    deepEqual(
+      r.names,
+      ['narrowToF16Activations', 'useQwenF16PrimaryMatmuls'],
+      'Qwen 3.5 0.8B on capable GPU with runtime f16 request: should resolve promoted f16 transforms'
+    );
+    equal(r.transforms.length, 2, 'Qwen 3.5 0.8B runtime f16 request: two transform functions');
+    equal(r.transforms[0], narrowToF16Activations,
+      'Qwen 3.5 0.8B runtime f16 request: first transform is narrowToF16Activations');
+    equal(r.transforms[1], useQwenF16PrimaryMatmuls,
+      'Qwen 3.5 0.8B runtime f16 request: second transform is useQwenF16PrimaryMatmuls');
   }
 
   {

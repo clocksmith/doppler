@@ -792,8 +792,12 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     projectionLayout
   );
 
-  const outputDtype = activationDtype === 'f16' ? 'f16' : 'f32';
-  const projectionDtype = activationDtype === 'f16' ? 'f16' : 'f32';
+  const projectionDtype = selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', {
+    dtype: config?.inputDtype ?? activationDtype,
+  });
+  const layerOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', {
+    dtype: config?.outputDtype ?? activationDtype,
+  });
   const phase = numTokens === 1 ? 'decode' : 'prefill';
   let normedTensor = inputTensor;
   let normedCreated = false;
@@ -896,7 +900,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     phase,
     layerIdx,
     kernelPath,
-    outputDtype,
+    layerOutputDtype,
     'outputDtype'
   );
 
@@ -984,17 +988,17 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
           executionPolicies,
         });
       }
-      if (outputDtype === 'f16' && result.dtype !== 'f16') {
+      if (result.dtype !== outProjOutputDtype) {
         assertImplicitDtypeTransitionAllowed({
           executionPolicies,
           fromDtype: result.dtype,
-          toDtype: 'f16',
+          toDtype: outProjOutputDtype,
           op: 'linear_out_proj',
-          detail: 'Linear attention output would narrow implicitly before leaving the layer.',
+          detail: 'Linear attention output would change dtype implicitly before leaving the layer.',
         });
-        const casted = recorder
-          ? await recordCastF32ToF16(recorder, result)
-          : await castF32ToF16(result);
+        const casted = outProjOutputDtype === 'f16'
+          ? (recorder ? await recordCastF32ToF16(recorder, result) : await castF32ToF16(result))
+          : (recorder ? await recordCastF16ToF32(recorder, result) : await castF16ToF32(result));
         releaseOrTrackBuffer(recorder, result.buffer);
         return casted;
       }

@@ -1,4 +1,4 @@
-import { log, openModelStore, loadManifestFromStore } from 'doppler-gpu';
+import { log, openModelStore, loadManifestFromStore } from 'doppler-gpu/tooling';
 import { state } from '../state.js';
 
 const modelTypeInflight = new Map();

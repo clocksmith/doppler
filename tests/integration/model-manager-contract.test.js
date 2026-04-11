@@ -4,7 +4,7 @@ const {
   extractTextModelConfig,
   shouldAutoTuneKernels,
   verifyExplicitModelUrlMatch,
-} = await import('../../src/client/doppler-provider/model-manager.js');
+} = await import('../../src/client/runtime/model-manager.js');
 
 {
   const config = extractTextModelConfig({

@@ -18,10 +18,10 @@ Add a new built-in chat template type that can be referenced by `manifest.infere
 - `src/inference/pipelines/text/chat-format.js`
 - `src/inference/pipelines/text/chat-format.d.ts`
 - If you expose a named helper on the provider surface:
-  `src/client/doppler-provider/generation.js`
-  `src/client/doppler-provider/generation.d.ts`
-  `src/client/doppler-provider.js`
-  `src/client/doppler-provider.d.ts`
+  `src/client/runtime/model-session.js`
+  `src/client/runtime/model-session.d.ts`
+  `src/client/doppler-api.js`
+  `src/client/doppler-api.d.ts`
 - A conversion config or test fixture that uses the new template key
 - A targeted test under `tests/`
 

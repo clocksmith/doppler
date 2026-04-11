@@ -73,10 +73,10 @@ This comparison is about architecture and control surfaces, not blanket speed cl
 
 | Axis | Doppler | Transformers.js (v4) |
 |------|---------|----------------------|
-| Model/runtime contract | Manifest + runtime config merged explicitly | ONNX model graph + runtime provider config |
-| Kernel-path control | Explicit `kernelPath` in config | Kernel execution is selected through runtime/provider coverage |
+| Model/runtime contract | Manifest + runtime config merged explicitly | ONNX model graph + runtime backend config |
+| Kernel-path control | Explicit `kernelPath` in config | Kernel execution is selected through runtime/backend coverage |
 | Fallback visibility | Config + trace categories map directly to execution choices | Requires graph/runtime-level inspection to attribute node placement |
-| Iteration loop | Edit config or WGSL kernel and rerun | Export/runtime/provider alignment is often part of tuning |
+| Iteration loop | Edit config or WGSL kernel and rerun | Export/runtime/backend alignment is often part of tuning |
 | Auditability of claims | Compare command + normalized JSON + SVG map directly to config knobs | Same benchmark harness works, but knob-to-kernel mapping is less direct |
 
 For public claims, tie statements to benchmark artifacts in `benchmarks/vendors/results/` and the exact compare command used.
@@ -210,7 +210,7 @@ policy layer (for example Reploid) with
 | `memory/` | Heap manager + Memory64/unified detection for loader/preflight |
 | `adapters/` | LoRA adapter loading/management |
 | `hotswap/` | Runtime update and manifest-driven component remap |
-| `client/` | Public API (doppler-provider) |
+| `client/` | Root facade and runtime coordination |
 | `bridge/` | Browser extension bridge client/protocol and relay integration |
 | `browser/` | Browser import, parsing, and conversion helpers |
 | `debug/` | Logging, trace categories, probes |
@@ -232,7 +232,7 @@ DOPPLER's structure can be understood through multiple lenses. Each view serves 
 | **Domain Grouping** | Mental model | Day-to-day orientation |
 | **Dependency Graph** | True import relationships | Refactoring, circular dep analysis |
 | **Pipeline View** | Runtime data flow | Debugging, performance tuning |
-| **Build Layers** | Compilation order | Onboarding, build configuration |
+| **Client/API Layers** | Public entry to runtime orchestration | Onboarding, facade boundaries |
 
 ### Domain Grouping (Primary Mental Model)
 
@@ -380,47 +380,20 @@ Use this view when debugging inference or optimizing performance.
 5. **Sample**: GPU or CPU sampling path (execution-plan/runtime dependent) → next token ID
 6. **Decode**: `src/inference/tokenizer.js` → output text
 
-### Build Layers (Onboarding View)
+### Client/API Layering (Preferred View)
 
-Use this for understanding build order and what can be tested independently.
+Use this to reason about the public facade, runtime orchestration, and domain subsystems without implying a pure foundation tier.
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ LAYER 6: INFERENCE                                                          │
-│ inference/pipelines/text.js, inference/kv-cache, inference/tokenizer.js     │
-│ Entry point for generation. Depends on everything below.                    │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ LAYER 5: LOADER                                                             │
-│ loader/doppler-loader, loader/final-weights-loader, loader/shard-cache      │
-│ Model loading and weight dequantization.                                    │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ LAYER 4: GPU + STORAGE                                                      │
-│ gpu/device, memory/buffer-pool, gpu/kernels/* | storage/shard-manager       │
-│ Orthogonal infrastructure: compute vs persistence.                          │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ LAYER 3: FORMATS                                                            │
-│ formats/gguf, formats/safetensors, formats/rdrr, formats/tokenizer          │
-│ File format parsing. Pure functions, no side effects.                       │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ LAYER 2: CONFIG                                                             │
-│ config/schema/*, config/runtime/*, config/kernel-paths/*                    │
-│ All DEFAULT_* exports. Source of truth for tunables.                        │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ LAYER 1: FOUNDATION                                                         │
-│ types/* | memory/* | debug/*                                                │
-│ No internal dependencies. Can be tested in isolation.                       │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+- `client/api`: the root `doppler` facade, convenience cache, load/chat/text helpers, and surface normalization.
+- `client/runtime`: source resolution and materialization, device initialization, pipeline/session assembly, adapter lifecycle, and browser/Node adaptation.
+- `domain subsystems`: `gpu`, `loader`, `storage`, `formats`, `memory`, `inference`, `adapters`, `hotswap`, `rules`, `config`, `debug`, `bridge`, `browser`, `training`, `diffusion`, and `energy`.
 
-**Caveats (why strict layering is approximate):**
-- `inference` imports `gpu` directly for kernel dispatch (skips `loader`)
-- `loader` imports `config` for manifest validation (skips `formats`)
-- `gpu/kernels` contains both JS orchestration modules and WGSL shader modules. WGSL files do not import; JS kernel modules do.
+Layering is directional, not a promise of zero internal dependencies. Shared low-level helpers may depend on `config`, `debug`, or `gpu` when that is their owning contract.
 
 **Testing implications:**
-- Layers 1-3 can be unit tested without WebGPU
-- Layer 4+ requires WebGPU adapter (browser or Dawn)
-- Layer 6 requires full model for integration tests
+- `client/api` and most `client/runtime` flows can be exercised with mocked runtime inputs.
+- `gpu` and `inference` integration paths require a WebGPU adapter.
+- Full model-load flows require the relevant model artifacts and manifest/config inputs.
 
 ---
 
@@ -977,32 +950,25 @@ remain the primary interactive diagnostics surfaces.
 
 ---
 
-## 10. Provider API (`client/`)
+## 10. Client API (`client/api`)
 
-Public API for LLM client integration:
+Primary application-facing API for model loading and generation via the root facade:
 
 ```javascript
-import {
-  initDoppler,
-  loadModel,
-  generate,
-  dopplerChat,
-} from 'doppler-gpu/provider';
+import { doppler } from 'doppler-gpu';
 
-// Initialize
-await initDoppler();
+const model = await doppler.load('gemma3-270m');
 
-// Load model
-await loadModel('gemma-3-1b-q4', modelUrl, onProgress);
-
-// Generate (streaming)
-for await (const token of generate(prompt, options)) {
+for await (const token of model.generate('Hello')) {
   console.log(token);
 }
 
-// Chat interface
-const response = await dopplerChat(messages, options);
+const response = await model.chatText([
+  { role: 'user', content: 'Write one sentence about WebGPU.' },
+]);
 ```
+
+This layer owns convenience caching, facade normalization, and public call-shape validation. It does not expose the legacy singleton surface as the primary entry point.
 
 For runtime capability classes and sizing guidance, use the canonical doc:
 `docs/performance-sizing.md`.
@@ -1141,8 +1107,8 @@ See `config.md` for kernel selection rules and runtime overrides.
 
 | File | Purpose |
 |------|---------|
-| `src/client/doppler-provider.js` | Public API entry point |
-| `src/client/doppler-provider/provider.js` | Provider implementation |
+| `src/client/doppler-api.js` | Root facade implementation |
+| `src/client/doppler-api.d.ts` | Root facade types |
 | `src/inference/pipelines/text.js` | Main inference orchestration |
 | `src/inference/pipelines/text/generator.js` | Generation loop |
 | `src/inference/kv-cache/index.js` | KV cache management |

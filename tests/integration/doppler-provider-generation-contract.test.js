@@ -1,14 +1,7 @@
 import assert from 'node:assert/strict';
 
-import { generate } from '../../src/client/doppler-provider/generation.js';
+import { assertSupportedGenerationOptions } from '../../src/client/runtime/model-session.js';
 
-await assert.rejects(
-  async () => {
-    for await (const _token of generate('hello', { stopTokens: [1, 2] })) {
-      // no-op
-    }
-  },
-  /do not support stopTokens/
-);
+assert.throws(() => assertSupportedGenerationOptions({ stopTokens: [1, 2] }), /do not support stopTokens/);
 
-console.log('doppler-provider-generation-contract.test: ok');
+console.log('doppler-generation-contract.test: ok');

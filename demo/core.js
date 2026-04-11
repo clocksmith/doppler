@@ -1,4 +1,4 @@
-import { getRuntimeConfig, captureMemorySnapshot } from 'doppler-gpu';
+import { getRuntimeConfig, captureMemorySnapshot } from 'doppler-gpu/tooling';
 import { state } from './ui/state.js';
 import { getSettings } from './settings.js';
 import { getPrompt, setGenerating, setRunEnabled } from './input.js';

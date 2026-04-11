@@ -12,127 +12,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Implementation: [src/index.js](../../../src/index.js)
 - Notes: Primary application-facing surface. Prefer this over lower-level exports.
 - Exported symbols:
-  - `*`
-  - `ADAPTER_MANIFEST_SCHEMA`
-  - `AdapterManager`
-  - `AdapterManagerEvents`
-  - `AdapterManifest`
-  - `AdapterMetadata`
-  - `AdapterQueryOptions`
-  - `AdapterRegistry`
-  - `AdapterRegistryEntry`
-  - `AdapterSource`
-  - `AdapterStackOptions`
-  - `AdapterState`
-  - `AdapterTensorSpec`
-  - `computeLoRAScale`
-  - `createAdapterManifest`
-  - `createDopplerLoader`
-  - `createDreamEnergyHeadPipeline`
-  - `createDreamStructuredPipeline`
-  - `createEnergyRowHeadPipeline`
-  - `createMemoryRegistry`
-  - `createPipeline`
-  - `createStructuredJsonHeadPipeline`
   - `doppler`
   - `DOPPLER_VERSION`
-  - `DopplerLoader`
-  - `DreamEnergyHeadPipeline`
-  - `DreamStructuredPipeline`
-  - `EmbeddingPipeline`
-  - `EnableAdapterOptions`
-  - `EnergyRowHeadPipeline`
-  - `ExpertNode`
-  - `ExpertRouter`
-  - `ExpertTask`
-  - `ExpertWeights`
-  - `GenerateOptions`
-  - `GenerationResult`
-  - `getAdapterManager`
-  - `getAdapterRegistry`
-  - `getDopplerLoader`
-  - `getLogitMergeKernel`
-  - `InferencePipeline`
-  - `isDreamStructuredModelType`
-  - `isStructuredJsonHeadModelType`
-  - `KVCache`
-  - `KVCacheSnapshot`
-  - `LayerWeights`
-  - `LoaderStats`
-  - `loadLoRAFromManifest`
-  - `loadLoRAFromSafetensors`
-  - `loadLoRAFromUrl`
-  - `loadLoRAWeights`
-  - `LoadOptions`
-  - `LoadProgress`
-  - `LogitMergeKernel`
-  - `LoRAAdapter`
-  - `LoRALoadOptions`
-  - `LoRAModuleName`
-  - `LoRAWeightsResult`
-  - `mergeLogits`
-  - `mergeMultipleLogits`
-  - `MoERouter`
-  - `MultiModelLoader`
-  - `MultiModelNetwork`
-  - `MultiPipelinePool`
-  - `parseAdapterManifest`
-  - `ParsedModelConfig`
-  - `RDRRManifest`
-  - `resetAdapterManager`
-  - `resetAdapterRegistry`
-  - `RouterWeights`
-  - `SamplingOptions`
-  - `serializeAdapterManifest`
-  - `ShardInfo`
-  - `SpeculativeDecoder`
-  - `StructuredJsonHeadPipeline`
-  - `TensorLocation`
-  - `Tokenizer`
-  - `validateAdapterManifest`
-
-## `doppler-gpu/provider`
-
-- Audience: advanced/demo integrations
-- Stability: public advanced
-- Manual guide: [docs/api/provider.md](../provider.md)
-- Types: [src/client/doppler-provider.d.ts](../../../src/client/doppler-provider.d.ts)
-- Implementation: [src/client/doppler-provider.js](../../../src/client/doppler-provider.js)
-- Notes: Legacy/demo-oriented singleton provider surface.
-- Exported symbols:
-  - `activateLoRAFromTrainingOutput`
-  - `buildChatPrompt`
-  - `ChatMessage`
-  - `ChatResponse`
-  - `default`
-  - `destroyDoppler`
-  - `DOPPLER_PROVIDER_VERSION`
-  - `DopplerCapabilities`
-  - `DopplerCapabilitiesType`
-  - `dopplerChat`
-  - `DopplerProvider`
-  - `DopplerProviderInterface`
-  - `formatChatMessages`
-  - `formatGemmaChat`
-  - `formatGptOssChat`
-  - `formatLlama3Chat`
-  - `generate`
-  - `GenerateOptions`
-  - `generateWithPrefixKV`
-  - `getActiveLoRA`
-  - `getAvailableModels`
-  - `getCurrentModelId`
-  - `getPipeline`
-  - `InferredAttentionParams`
-  - `initDoppler`
-  - `loadLoRAAdapter`
-  - `loadModel`
-  - `LoadProgressEvent`
-  - `ModelEstimate`
-  - `prefillKV`
-  - `TextModelConfig`
-  - `unloadLoRAAdapter`
-  - `unloadModel`
 
 ## `doppler-gpu/tooling`
 
@@ -153,15 +34,28 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `runBrowserCommandInNode`
   - `runNodeCommand`
 
-## `doppler-gpu/internal`
+## `doppler-gpu/loaders`
 
-- Audience: internal/advanced
-- Stability: exposed internal
-- Types: [src/index-internal.d.ts](../../../src/index-internal.d.ts)
-- Implementation: [src/index-internal.js](../../../src/index-internal.js)
-- Notes: Reachable compatibility surface, not a primary public-doc target.
+- Audience: advanced loader consumers
+- Stability: public advanced
+- Manual guide: [docs/api/loaders.md](../loaders.md)
+- Types: [src/loaders/index.d.ts](../../../src/loaders/index.d.ts)
+- Implementation: [src/loaders/index.js](../../../src/loaders/index.js)
+- Notes: Explicit loader and manifest/bootstrap helpers.
 - Exported symbols:
   - `*`
+
+## `doppler-gpu/orchestration`
+
+- Audience: advanced runtime consumers
+- Stability: public advanced
+- Manual guide: [docs/api/orchestration.md](../orchestration.md)
+- Types: [src/orchestration/index.d.ts](../../../src/orchestration/index.d.ts)
+- Implementation: [src/orchestration/index.js](../../../src/orchestration/index.js)
+- Notes: Tokenizer, KV cache, router, adapter, and logit-merge orchestration helpers.
+- Exported symbols:
+  - `*`
+  - `buildConservativeMultimodalGenerationOptions`
 
 ## `doppler-gpu/generation`
 
@@ -170,34 +64,29 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Manual guide: [docs/api/generation.md](../generation.md)
 - Types: [src/generation/index.d.ts](../../../src/generation/index.d.ts)
 - Implementation: [src/generation/index.js](../../../src/generation/index.js)
-- Notes: Lower-level text pipeline access.
+- Notes: Lower-level text pipeline construction and pipeline types.
 - Exported symbols:
-  - `createDreamStructuredPipeline`
+  - `AdvanceEmbeddingResult`
+  - `BatchingStats`
   - `createPipeline`
-  - `createStructuredJsonHeadPipeline`
-  - `DreamStructuredPipeline`
   - `EmbeddingPipeline`
   - `ExpertWeights`
   - `GenerateOptions`
   - `GenerationResult`
   - `InferencePipeline`
-  - `initTokenizer`
-  - `initTokenizerFromManifest`
-  - `isDreamStructuredModelType`
-  - `isStopToken`
-  - `isStructuredJsonHeadModelType`
   - `KVCacheSnapshot`
   - `LayerWeights`
-  - `loadWeights`
+  - `LogitsStepResult`
   - `LoRAAdapter`
   - `LoRAModuleName`
   - `ParsedModelConfig`
-  - `parseModelConfig`
-  - `parseModelConfigFromManifest`
   - `PipelineContexts`
+  - `PipelineStats`
+  - `PrefillEmbeddingResult`
+  - `PrefillResult`
+  - `PromptInput`
   - `RouterWeights`
   - `SamplingOptions`
-  - `StructuredJsonHeadPipeline`
 
 ## `doppler-gpu/diffusion`
 

@@ -12,7 +12,7 @@ import { createPipeline, InferencePipeline } from 'doppler-gpu/generation';
 
 ## Audience
 
-Advanced runtime consumers, internal integrations, and experiments that need direct pipeline objects and manifest parsing helpers.
+Advanced runtime consumers and experiments that need direct pipeline objects.
 
 ## Stability
 
@@ -23,10 +23,7 @@ Public, but advanced. Prefer the root facade unless you need direct pipeline con
 - `createPipeline(manifest, contexts?)`
 - `InferencePipeline`
 - `EmbeddingPipeline`
-- `parseModelConfig(...)`
-- `parseModelConfigFromManifest(...)`
-- `loadWeights(...)`
-- `initTokenizer(...)`
+- core text-pipeline option/result/types from the shipped `.d.ts`
 
 ## Core Behaviors
 
@@ -36,24 +33,18 @@ Public, but advanced. Prefer the root facade unless you need direct pipeline con
 
 ## Symbol Notes
 
-### Construction and parsing
+### Construction
 
 - `createPipeline(...)`
-- `parseModelConfig(...)`
-- `parseModelConfigFromManifest(...)`
-
-### Loading and tokenizer helpers
-
-- `loadWeights(...)`
-- `initTokenizer(...)`
-- `initTokenizerFromManifest(...)`
-- `isStopToken(...)`
 
 ### Pipeline classes and advanced types
 
 - `InferencePipeline`
 - `EmbeddingPipeline`
-- structured pipeline exports re-exported from the generation surface
+- `GenerateOptions`
+- `GenerationResult`
+- `PipelineContexts`
+- `KVCacheSnapshot`
 
 ## Minimal Example
 
@@ -67,18 +58,6 @@ console.log(text);
 
 ## Advanced Example
 
-```js
-import {
-  createPipeline,
-  parseModelConfigFromManifest,
-  initTokenizerFromManifest,
-} from 'doppler-gpu/generation';
-
-const parsed = parseModelConfigFromManifest(manifest);
-const tokenizer = await initTokenizerFromManifest(manifest, parsed);
-const pipeline = await createPipeline(manifest, { tokenizer });
-```
-
 ## Code Pointers
 
 - generation export surface: [src/generation/index.js](../../src/generation/index.js)
@@ -88,4 +67,6 @@ const pipeline = await createPipeline(manifest, { tokenizer });
 ## Related Surfaces
 
 - [Root API](root.md)
+- [Loaders API](loaders.md)
+- [Orchestration API](orchestration.md)
 - [Generated export inventory](reference/exports.md)

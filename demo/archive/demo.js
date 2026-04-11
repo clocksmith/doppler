@@ -1,4 +1,4 @@
-import { log } from 'doppler-gpu';
+import { log } from 'doppler-gpu/tooling';
 
 import './demo-utils.js';
 import './demo-routing.js';

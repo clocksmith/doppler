@@ -30,7 +30,6 @@ import {
   inferEmbeddingOutputConfig,
   pickModelDirectory,
   pickModelFiles,
-  createPipeline,
   initDevice,
   getDevice,
   getKernelCapabilities,
@@ -38,7 +37,8 @@ import {
   isWebGPUAvailable,
   captureMemorySnapshot,
   destroyBufferPool,
-} from 'doppler-gpu';
+} from 'doppler-gpu/tooling';
+import { createPipeline } from 'doppler-gpu/generation';
 import { DiagnosticsController } from './diagnostics-controller.js';
 import { state } from './ui/state.js';
 import { $, setText, setHidden } from './ui/dom.js';

@@ -8,9 +8,9 @@ const browserChat = readFileSync(new URL('../../examples/browser-chat.html', imp
 
 assert.doesNotMatch(downloadsModule, /from '@doppler\/core'/);
 assert.match(downloadsModule, /from '@simulatte\/doppler'/);
-assert.match(minimalChat, /from '@simulatte\/doppler\/provider'/);
-assert.match(piiRedaction, /from '@simulatte\/doppler\/provider'/);
-assert.match(browserChat, /"@simulatte\/doppler\/provider": "https:\/\/d4da\.com\/src\/client\/doppler-provider\.js"/);
-assert.match(browserChat, /import \{ DopplerProvider \} from '@simulatte\/doppler\/provider'/);
+assert.match(minimalChat, /from '@simulatte\/doppler'/);
+assert.match(piiRedaction, /from '@simulatte\/doppler'/);
+assert.match(browserChat, /"@simulatte\/doppler": "https:\/\/d4da\.com\/src\/index-browser\.js"/);
+assert.match(browserChat, /import \{ doppler \} from '@simulatte\/doppler'/);
 
 console.log('demo-import-surface.test: ok');

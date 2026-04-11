@@ -8,7 +8,7 @@ import {
   listStorageInventory,
   deleteStorageEntry,
   exportModelToDirectory,
-} from 'doppler-gpu';
+} from 'doppler-gpu/tooling';
 import { state } from '../state.js';
 import { $, setText } from '../dom.js';
 import { showErrorModal } from '../ui.js';

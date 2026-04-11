@@ -29,8 +29,9 @@ Preferred public surface.
 - `doppler.evictAll()`
 - `doppler.listModels()`
 
-The root package also re-exports advanced loaders, pipelines, and adapter helpers.
-Those advanced exports are documented separately in [Advanced Root Exports](advanced-root-exports.md), not as the primary quick-start contract.
+Advanced runtime helpers now live on dedicated subpaths such as
+`doppler-gpu/loaders`, `doppler-gpu/orchestration`, `doppler-gpu/generation`,
+and `doppler-gpu/tooling`.
 
 ## Model Inputs
 
@@ -165,7 +166,7 @@ await model.unload();
 
 ## Related Surfaces
 
-- [Advanced Root Exports](advanced-root-exports.md)
-- [Provider API](provider.md)
+- [Loaders API](loaders.md)
+- [Orchestration API](orchestration.md)
 - [Generation API](generation.md)
 - [Generated export inventory](reference/exports.md)

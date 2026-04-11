@@ -1,4 +1,4 @@
-import { getRuntimeConfig, setRuntimeConfig, loadRuntimeProfile } from 'doppler-gpu';
+import { getRuntimeConfig, setRuntimeConfig, loadRuntimeProfile } from 'doppler-gpu/tooling';
 import { state } from '../state.js';
 import { $, setHidden, setText } from '../dom.js';
 import {

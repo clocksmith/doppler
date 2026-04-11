@@ -16,7 +16,7 @@ const kernelPath = {
         op: 'attention',
         kernel: 'attention_decode_online_f16kv.wgsl',
         entry: 'main',
-        precision: { kvDtype: 'f16' },
+        precision: { activationDtype: 'f32', kvDtype: 'f16', outputDtype: 'f32' },
       },
     ],
   },
@@ -37,7 +37,11 @@ const contract = resolveAttentionPrecisionContract(
   { kvCache: { kvDtype: 'f16' } }
 );
 
+assert.equal(contract.explicitInputDtype, 'f32');
+assert.equal(contract.explicitOutputDtype, 'f32');
 assert.equal(contract.explicitKvDtype, 'f16');
+assert.equal(contract.resolvedActivationDtype, 'f32');
+assert.equal(contract.resolvedOutputDtype, 'f32');
 assert.equal(contract.resolvedKvCacheDtype, 'f16');
 assert.equal(isAttentionKvDtypeExplicit(contract, 'f16'), true);
 assert.equal(isAttentionKvDtypeExplicit(contract, 'f32'), false);
@@ -47,6 +51,7 @@ const explicitConfigContract = resolveAttentionPrecisionContract(
   { kvCache: { kvDtype: 'f16' } }
 );
 assert.equal(explicitConfigContract.explicitKvDtype, 'f16');
+assert.equal(explicitConfigContract.resolvedActivationDtype, null);
 
 assert.throws(
   () => resolveAttentionPrecisionContract(

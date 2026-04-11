@@ -1,4 +1,4 @@
-import { isWebGPUAvailable, initDevice } from 'doppler-gpu';
+import { isWebGPUAvailable, initDevice } from 'doppler-gpu/tooling';
 import { state } from './ui/state.js';
 import { loadCatalog, checkStoredModels, renderModelCards } from './models.js';
 

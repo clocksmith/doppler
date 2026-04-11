@@ -40,7 +40,10 @@ import {
   shouldDebugLayer,
   markStageLogged,
 } from './types.js';
-import { getKernelPathMatmulVariant } from '../../../../config/kernel-path-loader.js';
+import {
+  getKernelPathMatmulPrecision,
+  getKernelPathMatmulVariant,
+} from '../../../../config/kernel-path-loader.js';
 import {
   resolveKVCacheState,
   buildAttentionDispatchParams,
@@ -105,16 +108,25 @@ export async function runLayerAttentionGPU(
   } = config;
 
   const device = getDevice();
-
-  const desiredOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', {
-    dtype: config.activationDtype,
-  });
-  const wantsF16Output = desiredOutputDtype === 'f16';
-  const useF16Activations = wantsF16Output;
-  const kvCacheFallback = selectRuleValue('inference', 'dtype', 'f16OrF32', { useF16: wantsF16Output });
+  const phase = isPrefill ? 'prefill' : 'decode';
   const attentionPrecisionContract = resolveAttentionPrecisionContract(config, state);
+  const attentionActivationDtype = selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', {
+    dtype: attentionPrecisionContract.resolvedActivationDtype ?? config.activationDtype,
+  });
+  const oProjPrecision = getKernelPathMatmulPrecision('o_proj', phase, layerIdx, kernelPath);
+  const oProjInputDtype = selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', {
+    dtype: oProjPrecision?.inputDtype ?? attentionActivationDtype,
+  });
+  const oProjOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', {
+    dtype: oProjPrecision?.outputDtype
+      ?? attentionPrecisionContract.resolvedOutputDtype
+      ?? config.activationDtype,
+  });
+  const wantsF16Output = oProjOutputDtype === 'f16';
+  const useF16Activations = attentionActivationDtype === 'f16';
+  const kvCacheFallback = selectRuleValue('inference', 'dtype', 'f16OrF32', { useF16: useF16Activations });
   const kvCacheDtype = attentionPrecisionContract.resolvedKvCacheDtype ?? state.kvCache?.kvDtype ?? kvCacheFallback;
-  const allowF16Attention = wantsF16Output && kvCacheDtype === 'f16';
+  const allowF16Attention = useF16Activations && kvCacheDtype === 'f16';
   let attentionInput = input;
   let attentionInputTemp = false;
   let normed = attentionInput;
@@ -127,14 +139,16 @@ export async function runLayerAttentionGPU(
   let output = null;
   let finalOutput = null;
   let oProjInputTemp = null;
-  if (wantsF16Output && !allowF16Attention) {
+  if (!allowF16Attention && input.dtype !== attentionActivationDtype) {
     assertAttentionDtypeTransitionAllowed(
       state,
       input.dtype,
-      'f32',
+      attentionActivationDtype,
       'The attention kernel selection would widen the input implicitly.'
     );
-    attentionInput = await castF16ToF32(input);
+    attentionInput = attentionActivationDtype === 'f16'
+      ? await castF32ToF16(input)
+      : await castF16ToF32(input);
     attentionInputTemp = true;
     normed = attentionInput;
   }
@@ -147,11 +161,9 @@ export async function runLayerAttentionGPU(
   // Debug logging moved to debug-utils.ts (enable via setDebugConfig)
 
   if (!layerWeights) {
-    // Return zeros if no weights
     const bytesPerElement = wantsF16Output ? 2 : 4;
     const outputBuf = acquireBuffer(numTokens * hiddenSize * bytesPerElement, undefined, 'attn_output');
-    const outputDtype = selectRuleValue('inference', 'dtype', 'f16OrF32', { useF16: wantsF16Output });
-    const output = createTensor(outputBuf, outputDtype, [numTokens, hiddenSize], 'attn_output');
+    const output = createTensor(outputBuf, oProjOutputDtype, [numTokens, hiddenSize], 'attn_output');
     return { output, residualFused: false };
   }
 
@@ -236,7 +248,7 @@ export async function runLayerAttentionGPU(
     const logKey = `L${layerIdx}_${phase}_dtypes`;
     if (!ATTENTION_DTYPE_LOGGED.has(logKey)) {
       ATTENTION_DTYPE_LOGGED.add(logKey);
-      trace.attn(layerIdx, `dtypes: activation=${config.activationDtype ?? 'unknown'}, input=${input.dtype}, normed=${normed.dtype}`);
+      trace.attn(layerIdx, `dtypes: activation=${attentionActivationDtype}, input=${input.dtype}, normed=${normed.dtype}`);
     }
   }
 
@@ -250,11 +262,11 @@ export async function runLayerAttentionGPU(
   }
 
   // 2. Q/K/V projections
-  const qProjVariant = getKernelPathMatmulVariant('q_proj', isPrefill ? 'prefill' : 'decode', layerIdx, kernelPath);
+  const qProjVariant = getKernelPathMatmulVariant('q_proj', phase, layerIdx, kernelPath);
   const kernelPathIsF16 = qProjVariant != null && qProjVariant.includes('f16') && !qProjVariant.includes('f32');
-  const matmulOutputDtype = resolveAttentionProjectionOutputDtype(desiredOutputDtype, {
+  const matmulOutputDtype = resolveAttentionProjectionOutputDtype(attentionActivationDtype, {
     forceF32: shouldForceF32AttentionProjectionForRoPE({
-      attentionInputDtype: desiredOutputDtype,
+      attentionInputDtype: attentionActivationDtype,
       headDim,
       rotaryDim: config.ropeRotaryDim,
       interleaved: config.ropeInterleaved,
@@ -549,7 +561,7 @@ export async function runLayerAttentionGPU(
     layerIdx, numTokens, isPrefill, numHeads, numKVHeads, headDim, hiddenSize,
     slidingWindow, layerType, layerTypes: config.layerTypes,
     queryPreAttnScalar, causalAttention: config.causalAttention,
-    activationDtype: config.activationDtype,
+    activationDtype: attentionActivationDtype,
     kvCacheDtype: attentionPrecisionContract.resolvedKvCacheDtype ?? state.kvCache?.kvDtype ?? null,
   };
   const dispatchParams = buildAttentionDispatchParams(dispatchConfig, state, kTensor, vTensor, kvState);
@@ -825,10 +837,12 @@ export async function runLayerAttentionGPU(
   if (layerWeights.oProj && getWeightBuffer) {
     ({ oProjInput, oProjInputTemp } = await prepareAttentionProjectionInput(
       attnForProjection,
-      matmulOutputDtype,
+      oProjInputDtype,
       async (tensor) => {
-        assertAttentionDtypeTransitionAllowed(state, tensor.dtype, 'f16', 'o_proj input would be narrowed implicitly.');
-        return castF32ToF16(tensor);
+        assertAttentionDtypeTransitionAllowed(state, tensor.dtype, oProjInputDtype, 'o_proj input would change dtype implicitly.');
+        return oProjInputDtype === 'f16'
+          ? castF32ToF16(tensor)
+          : castF16ToF32(tensor);
       }
     ));
     const oProjBuf = getWeightBuffer(layerWeights.oProj, 'o_proj');
@@ -865,7 +879,7 @@ export async function runLayerAttentionGPU(
         role: 'o_proj',
         layerIdx,
         kernelPath,
-        outputDtype: matmulOutputDtype,
+        outputDtype: oProjOutputDtype,
         executionPolicies: state.executionPolicies ?? null,
       });
     }
@@ -930,11 +944,13 @@ export async function runLayerAttentionGPU(
     buffersToRelease.push(attnForProjection.buffer);
   }
 
-  if (wantsF16Output && output.dtype !== 'f16') {
-    assertAttentionDtypeTransitionAllowed(state, output.dtype, 'f16', 'Attention output would be narrowed implicitly at the end of the op.');
-    const f16Output = await castF32ToF16(output);
+  if (output.dtype !== oProjOutputDtype) {
+    assertAttentionDtypeTransitionAllowed(state, output.dtype, oProjOutputDtype, 'Attention output would change dtype implicitly at the end of the op.');
+    const coercedOutput = oProjOutputDtype === 'f16'
+      ? await castF32ToF16(output)
+      : await castF16ToF32(output);
     buffersToRelease.push(output.buffer);
-    finalOutput = f16Output;
+    finalOutput = coercedOutput;
   }
 
   // Cleanup

@@ -1092,7 +1092,7 @@ async function tryActivateAdapterPayload(payload) {
       reason: 'no_adapter_payload',
     };
   }
-  const { activateLoRAFromTrainingOutput } = await import('../client/doppler-provider/model-manager.js');
+  const { activateLoRAFromTrainingOutput } = await import('../client/runtime/model-manager.js');
   try {
     return await activateLoRAFromTrainingOutput(payload);
   } catch (error) {

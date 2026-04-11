@@ -15,11 +15,11 @@ import {
   registerModel,
   removeRegisteredModel,
   deleteModel,
-  createPipeline,
   initDevice,
   formatBytes,
   DEFAULT_MANIFEST_INFERENCE,
-} from 'doppler-gpu';
+} from 'doppler-gpu/tooling';
+import { createPipeline } from 'doppler-gpu/generation';
 import {
   DEFAULT_EXECUTION_V1_SESSION,
   EXECUTION_V1_SCHEMA_ID,

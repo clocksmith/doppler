@@ -215,6 +215,14 @@ function isLinearAttentionLayerType(layerType) {
     || normalized === 'gated_delta_net';
 }
 
+function isFullAttentionLayerType(layerType) {
+  const normalized = normalizeLayerType(layerType);
+  return normalized === 'full_attention'
+    || normalized === 'full'
+    || normalized === 'global'
+    || normalized === 'standard';
+}
+
 function buildGroupedLayerEntries(baseStep, targetLayers, replacementKernelKey) {
   const groupedEntries = [];
   if (!Array.isArray(baseStep) || baseStep.length < 2) {
@@ -314,6 +322,70 @@ function deriveLmHeadDecodeF16KernelEntry(base) {
     return deriveKernelEntryWithPrecision(base, precision);
   }
   return null;
+}
+
+function deriveQ4DecodeF16KernelEntry(base) {
+  if (typeof base?.kernel !== 'string') {
+    return null;
+  }
+  const precision = {
+    inputDtype: 'f16',
+    outputDtype: 'f16',
+  };
+  if (base.kernel === 'fused_matmul_q4.wgsl') {
+    return {
+      ...deriveKernelEntry(base, 'fused_matmul_q4_multicol_f16a.wgsl', 'main_multicol_f16a', null),
+      precision: {
+        ...(base.precision ?? {}),
+        ...precision,
+      },
+    };
+  }
+  if (
+    base.kernel === 'fused_matmul_q4_multicol_f16.wgsl'
+    || base.kernel === 'fused_matmul_q4_multicol_f16a.wgsl'
+  ) {
+    return deriveKernelEntryWithPrecision(base, precision);
+  }
+  return null;
+}
+
+function deriveQ4PrefillF16KernelEntry(base) {
+  if (typeof base?.kernel !== 'string') {
+    return null;
+  }
+  const precision = {
+    inputDtype: 'f16',
+    outputDtype: 'f16',
+  };
+  if (base.kernel.startsWith('fused_matmul_q4_batched')) {
+    return {
+      ...deriveKernelEntry(base, 'fused_matmul_q4_batched_f16a.wgsl', 'main_batched_f16a', null),
+      precision: {
+        ...(base.precision ?? {}),
+        ...precision,
+      },
+    };
+  }
+  return null;
+}
+
+function replacePhaseStepEntries(steps, op, replacementEntries) {
+  if (!Array.isArray(steps) || steps.length === 0 || !Array.isArray(replacementEntries) || replacementEntries.length === 0) {
+    return { steps, changed: false };
+  }
+  const stepIndex = steps.findIndex((entry) => Array.isArray(entry) && entry[0] === op);
+  if (stepIndex === -1) {
+    return { steps, changed: false };
+  }
+  return {
+    steps: [
+      ...steps.slice(0, stepIndex),
+      ...replacementEntries,
+      ...steps.slice(stepIndex + 1),
+    ],
+    changed: true,
+  };
 }
 
 // =============================================================================
@@ -1389,6 +1461,162 @@ export function useQwenDecodeF16Matmuls(graph, ctx) {
 }
 
 // =============================================================================
+// Transform: useQwenF16PrimaryMatmuls
+// =============================================================================
+
+/**
+ * Promote the Qwen 3.5 0.8B execution graph onto its fast f16 primary lane
+ * when the runtime explicitly requests f16 activations.
+ *
+ * This transform narrows the hot matmul path while keeping linear-attention
+ * `o_proj` on the stable f32-output kernel. That preserves decode quality
+ * while still moving the rest of the prefill/decode path onto the available
+ * f16 kernels.
+ *
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {import('./execution-graph-transforms.js').TransformContext} ctx
+ * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
+ */
+export function useQwenF16PrimaryMatmuls(graph, ctx) {
+  const modelId = typeof ctx.modelId === 'string' ? ctx.modelId.trim() : '';
+  if (modelId !== 'qwen-3-5-0-8b-q4k-ehaf16' || ctx.activationDtype !== 'f16' || ctx.capabilities?.hasF16 !== true) {
+    return null;
+  }
+
+  const layerTypes = Array.isArray(ctx.layerTypes) ? ctx.layerTypes : null;
+  if (!layerTypes || layerTypes.length === 0) {
+    return null;
+  }
+
+  const fullAttentionLayers = layerTypes
+    .map((layerType, layerIdx) => ({ layerType, layerIdx }))
+    .filter(({ layerType }) => isFullAttentionLayerType(layerType))
+    .map(({ layerIdx }) => layerIdx);
+  const linearLayers = layerTypes
+    .map((layerType, layerIdx) => ({ layerType, layerIdx }))
+    .filter(({ layerType }) => isLinearAttentionLayerType(layerType))
+    .map(({ layerIdx }) => layerIdx);
+  if (layerTypes.length === 0) {
+    return null;
+  }
+
+  const result = cloneGraph(graph);
+  let changed = false;
+
+  const decodeProjectionStep = (result.decode || []).find((entry) => Array.isArray(entry) && entry[0] === 'q_proj');
+  const decodeProjectionKernel = decodeProjectionStep ? result.kernels[decodeProjectionStep[1]] : null;
+  const decodeProjectionEntry = deriveQ4DecodeF16KernelEntry(decodeProjectionKernel);
+  if (decodeProjectionStep && decodeProjectionEntry) {
+    const decodeProjectionKey = deriveKernelKey(result.kernels, decodeProjectionStep[1], '_primary_f16');
+    result.kernels[decodeProjectionKey] = decodeProjectionEntry;
+    for (const op of ['q_proj', 'k_proj', 'v_proj']) {
+      const phaseResult = replacePhaseStepKernelKey(result.decode, op, decodeProjectionKey);
+      if (phaseResult.changed) {
+        result.decode = phaseResult.steps;
+        changed = true;
+      }
+    }
+    if (fullAttentionLayers.length > 0) {
+      const oProjStep = (result.decode || []).find((entry) => Array.isArray(entry) && entry[0] === 'o_proj');
+      if (oProjStep) {
+        const linearStableKey = deriveKernelKey(result.kernels, oProjStep[1], '_linear_f32io');
+        result.kernels[linearStableKey] = deriveKernelEntryWithPrecision(
+          result.kernels[oProjStep[1]],
+          { inputDtype: 'f32', outputDtype: 'f32' }
+        );
+        const groupedEntries = [];
+        if (linearLayers.length > 0) {
+          const linearStep = [...oProjStep];
+          linearStep[1] = linearStableKey;
+          groupedEntries.push({ layers: linearLayers, steps: [linearStep] });
+        }
+        if (fullAttentionLayers.length > 0) {
+          const fullStep = [...oProjStep];
+          fullStep[1] = decodeProjectionKey;
+          groupedEntries.push({ layers: fullAttentionLayers, steps: [fullStep] });
+        }
+        const phaseResult = replacePhaseStepEntries(result.decode, 'o_proj', groupedEntries);
+        if (phaseResult.changed) {
+          result.decode = phaseResult.steps;
+          changed = true;
+        }
+      }
+    }
+  }
+
+  const prefillProjectionStep = (result.prefill || []).find((entry) => Array.isArray(entry) && entry[0] === 'q_proj');
+  const prefillProjectionKernel = prefillProjectionStep ? result.kernels[prefillProjectionStep[1]] : null;
+  const prefillProjectionEntry = deriveQ4PrefillF16KernelEntry(prefillProjectionKernel);
+  if (prefillProjectionStep && prefillProjectionEntry) {
+    const prefillProjectionKey = deriveKernelKey(result.kernels, prefillProjectionStep[1], '_primary_f16');
+    result.kernels[prefillProjectionKey] = prefillProjectionEntry;
+    for (const op of ['q_proj', 'k_proj', 'v_proj', 'gate_proj', 'up_proj', 'down_proj']) {
+      const phaseResult = replacePhaseStepKernelKey(result.prefill, op, prefillProjectionKey);
+      if (phaseResult.changed) {
+        result.prefill = phaseResult.steps;
+        changed = true;
+      }
+    }
+    if (fullAttentionLayers.length > 0) {
+      const oProjStep = (result.prefill || []).find((entry) => Array.isArray(entry) && entry[0] === 'o_proj');
+      if (oProjStep) {
+        const linearStableKey = deriveKernelKey(result.kernels, oProjStep[1], '_linear_f32io');
+        result.kernels[linearStableKey] = deriveKernelEntryWithPrecision(
+          result.kernels[oProjStep[1]],
+          { inputDtype: 'f32', outputDtype: 'f32' }
+        );
+        const groupedEntries = [];
+        if (linearLayers.length > 0) {
+          const linearStep = [...oProjStep];
+          linearStep[1] = linearStableKey;
+          groupedEntries.push({ layers: linearLayers, steps: [linearStep] });
+        }
+        if (fullAttentionLayers.length > 0) {
+          const fullStep = [...oProjStep];
+          fullStep[1] = prefillProjectionKey;
+          groupedEntries.push({ layers: fullAttentionLayers, steps: [fullStep] });
+        }
+        const phaseResult = replacePhaseStepEntries(result.prefill, 'o_proj', groupedEntries);
+        if (phaseResult.changed) {
+          result.prefill = phaseResult.steps;
+          changed = true;
+        }
+      }
+    }
+  }
+
+  const decodeFfnStep = (result.decode || []).find((entry) => Array.isArray(entry) && entry[0] === 'gate_proj');
+  const decodeFfnKernel = decodeFfnStep ? result.kernels[decodeFfnStep[1]] : null;
+  const decodeFfnEntry = deriveLmHeadDecodeF16KernelEntry(decodeFfnKernel);
+  if (decodeFfnStep && decodeFfnEntry) {
+    const decodeFfnKey = deriveKernelKey(result.kernels, decodeFfnStep[1], '_primary_f16');
+    result.kernels[decodeFfnKey] = decodeFfnEntry;
+    for (const op of ['gate_proj', 'up_proj']) {
+      const phaseResult = replacePhaseStepKernelKey(result.decode, op, decodeFfnKey);
+      if (phaseResult.changed) {
+        result.decode = phaseResult.steps;
+        changed = true;
+      }
+    }
+  }
+
+  const lmHeadStep = (result.postLayer || []).find((entry) => Array.isArray(entry) && entry[0] === 'lm_head');
+  const lmHeadKernel = lmHeadStep ? result.kernels[lmHeadStep[1]] : null;
+  const lmHeadEntry = deriveLmHeadDecodeF16KernelEntry(lmHeadKernel);
+  if (lmHeadStep && lmHeadEntry) {
+    const lmHeadKey = deriveKernelKey(result.kernels, lmHeadStep[1], '_primary_f16');
+    result.kernels[lmHeadKey] = lmHeadEntry;
+    const phaseResult = replacePhaseStepKernelKey(result.postLayer, 'lm_head', lmHeadKey);
+    if (phaseResult.changed) {
+      result.postLayer = phaseResult.steps;
+      changed = true;
+    }
+  }
+
+  return changed ? result : null;
+}
+
+// =============================================================================
 // Composition
 // =============================================================================
 
@@ -1434,6 +1662,7 @@ export const TRANSFORMS = Object.freeze({
   remapQ4KDecodeAttentionToGemv,
   remapQ4KDecodeAttentionToFusedQ4KGemv,
   remapQ4KDecodeFFNToGemv,
+  useQwenF16PrimaryMatmuls,
   useQwenDecodeF16Matmuls,
   composeTransforms,
 });

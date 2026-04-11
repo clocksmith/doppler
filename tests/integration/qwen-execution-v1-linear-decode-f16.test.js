@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const { compileExecutionV1 } = await import('../../src/inference/pipelines/text/execution-v1.js');
+const { getLayerSteps } = await import('../../src/config/kernel-path-loader.js');
 
 const conversionConfig = JSON.parse(
   fs.readFileSync(
@@ -21,9 +22,8 @@ const compiled = compileExecutionV1({
   manifestInference,
   modelId: conversionConfig.output.modelBaseId,
   numLayers: conversionConfig.inference.layerPattern.layerTypes.length,
-  runtimeSession: conversionConfig.session,
   runtimeCompute: {
-    activationDtype: 'f32',
+    activationDtype: 'f16',
   },
   kernelPathPolicy: {
     mode: 'capability-aware',
@@ -43,85 +43,64 @@ const compiled = compileExecutionV1({
   },
 });
 
-// Fused Q4 decode and prefill are now the primary execution graph —
-// no capability transforms needed on a capable GPU.
-assert.deepEqual(compiled.appliedTransforms, []);
+assert.deepEqual(
+  compiled.appliedTransforms,
+  ['narrowToF16Activations', 'useQwenF16PrimaryMatmuls']
+);
 
 const kernelPath = compiled.runtimeInferencePatch.kernelPath;
 assert.ok(kernelPath, 'execution-v1 compile should build an inline kernel path');
+assert.equal(kernelPath.activationDtype, 'f16');
+assert.equal(kernelPath.kvDtype, 'f16');
 
-// Attention decode projections should use the fused Q4 GEMV variant.
-for (const op of ['q_proj', 'k_proj', 'v_proj', 'o_proj']) {
-  assert.equal(
-    kernelPath.decode.steps.find((step) => step.op === op)?.kernel,
-    'fused_matmul_q4.wgsl',
-    `decode ${op} should use fused_matmul_q4.wgsl`
-  );
-  assert.equal(
-    kernelPath.decode.steps.find((step) => step.op === op)?.entry,
-    'main_gemv',
-    `decode ${op} should use fused_matmul_q4.wgsl#main_gemv`
-  );
-}
-
-// Decode FFN projections should use the GEMV subgroup path.
-for (const op of ['gate_proj', 'up_proj', 'down_proj']) {
-  assert.equal(
-    kernelPath.decode.steps.find((step) => step.op === op)?.kernel,
-    'matmul_gemv_subgroup.wgsl',
-    `decode ${op} should use matmul_gemv_subgroup.wgsl`
-  );
-}
-
-// Prefill projections should use fused batched Q4 matmul (primary path).
+assert.equal(
+  kernelPath.decode.steps.find((step) => step.op === 'q_proj')?.kernel,
+  'fused_matmul_q4_multicol_f16a.wgsl'
+);
+assert.equal(
+  kernelPath.decode.steps.find((step) => step.op === 'gate_proj')?.kernel,
+  'matmul_gemv_subgroup_f16a.wgsl'
+);
+assert.equal(
+  kernelPath.decode.steps.find((step) => step.op === 'down_proj')?.kernel,
+  'matmul_gemv_subgroup_f16a.wgsl'
+);
 assert.equal(
   kernelPath.prefill.steps.find((step) => step.op === 'q_proj')?.kernel,
-  'fused_matmul_q4_batched.wgsl'
+  'fused_matmul_q4_batched_f16a.wgsl'
 );
-
-// Prefill attention should use the streaming f16kv path (primary path).
 assert.equal(
   kernelPath.prefill.steps.find((step) => step.op === 'attention')?.kernel,
-  'attention_streaming_f16kv.wgsl'
+  'attention_streaming_f16.wgsl'
 );
-
-// lm_head should remain as manifest-original GEMV subgroup
 assert.equal(
   kernelPath.postLayer.find((step) => step.op === 'lm_head')?.kernel,
-  'matmul_gemv_subgroup.wgsl'
+  'matmul_gemv_subgroup_f16a.wgsl'
 );
 
-// AMD Vulkan should also resolve the same kernel path (no platform-specific transforms)
-const compiledAmd = compileExecutionV1({
-  manifestInference,
-  modelId: conversionConfig.output.modelBaseId,
-  numLayers: conversionConfig.inference.layerPattern.layerTypes.length,
-  runtimeSession: conversionConfig.session,
-  runtimeCompute: { activationDtype: 'f32' },
-  kernelPathPolicy: {
-    mode: 'capability-aware',
-    sourceScope: ['model', 'manifest', 'config'],
-    allowSources: ['model', 'manifest', 'config'],
-    onIncompatible: 'remap',
-  },
-  capabilities: {
-    hasSubgroups: true,
-    hasF16: true,
-    maxWorkgroupStorageSize: 32768,
-  },
-  platform: {
-    id: 'vulkan',
-    vendor: 'amd',
-    architecture: 'rdna3',
-  },
-});
+const linearDecodeSteps = getLayerSteps(kernelPath, 0, 'decode');
+const linearDecodeOProj = linearDecodeSteps.find((step) => step.op === 'o_proj');
+assert.equal(linearDecodeOProj?.kernel, 'fused_matmul_q4.wgsl');
+assert.equal(linearDecodeOProj?.entry, 'main_gemv');
+assert.equal(linearDecodeOProj?.precision?.inputDtype, 'f32');
+assert.equal(linearDecodeOProj?.precision?.outputDtype, 'f32');
 
-assert.deepEqual(compiledAmd.appliedTransforms, [],
-  'AMD Vulkan should also get zero transforms (fused Q4 is the primary path)');
-assert.equal(
-  compiledAmd.runtimeInferencePatch.kernelPath.decode.steps.find((s) => s.op === 'q_proj')?.kernel,
-  'fused_matmul_q4.wgsl',
-  'AMD Vulkan decode q_proj should use fused_matmul_q4.wgsl'
-);
+const fullDecodeSteps = getLayerSteps(kernelPath, 3, 'decode');
+const fullDecodeOProj = fullDecodeSteps.find((step) => step.op === 'o_proj');
+assert.equal(fullDecodeOProj?.kernel, 'fused_matmul_q4_multicol_f16a.wgsl');
+assert.equal(fullDecodeOProj?.precision?.inputDtype, 'f16');
+assert.equal(fullDecodeOProj?.precision?.outputDtype, 'f16');
+
+const linearPrefillSteps = getLayerSteps(kernelPath, 0, 'prefill');
+const linearPrefillOProj = linearPrefillSteps.find((step) => step.op === 'o_proj');
+assert.equal(linearPrefillOProj?.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl');
+assert.equal(linearPrefillOProj?.precision?.inputDtype, 'f32');
+assert.equal(linearPrefillOProj?.precision?.outputDtype, 'f32');
+
+const fullPrefillSteps = getLayerSteps(kernelPath, 3, 'prefill');
+const fullPrefillOProj = fullPrefillSteps.find((step) => step.op === 'o_proj');
+assert.equal(fullPrefillOProj?.kernel, 'fused_matmul_q4_batched_f16a.wgsl');
+assert.equal(fullPrefillOProj?.precision?.inputDtype, 'f16');
+assert.equal(fullPrefillOProj?.precision?.outputDtype, 'f16');
 
 console.log('qwen-execution-v1-linear-decode-f16.test: ok');

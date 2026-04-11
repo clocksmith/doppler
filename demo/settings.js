@@ -1,4 +1,4 @@
-import { applyRuntimeProfile, getRuntimeConfig, setRuntimeConfig } from 'doppler-gpu';
+import { applyRuntimeProfile, getRuntimeConfig, setRuntimeConfig } from 'doppler-gpu/tooling';
 import { state } from './ui/state.js';
 
 function $(id) { return document.getElementById(id); }

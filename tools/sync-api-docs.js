@@ -16,29 +16,29 @@ const EXPORT_META = {
     docPath: 'docs/api/root.md',
     notes: 'Primary application-facing surface. Prefer this over lower-level exports.',
   },
-  './provider': {
-    audience: 'advanced/demo integrations',
-    stability: 'public advanced',
-    docPath: 'docs/api/provider.md',
-    notes: 'Legacy/demo-oriented singleton provider surface.',
-  },
   './tooling': {
     audience: 'tool builders',
     stability: 'public advanced',
     docPath: 'docs/api/tooling.md',
     notes: 'Tooling and command-runner surface, not the main app-facing API.',
   },
-  './internal': {
-    audience: 'internal/advanced',
-    stability: 'exposed internal',
-    docPath: '',
-    notes: 'Reachable compatibility surface, not a primary public-doc target.',
+  './loaders': {
+    audience: 'advanced loader consumers',
+    stability: 'public advanced',
+    docPath: 'docs/api/loaders.md',
+    notes: 'Explicit loader and manifest/bootstrap helpers.',
+  },
+  './orchestration': {
+    audience: 'advanced runtime consumers',
+    stability: 'public advanced',
+    docPath: 'docs/api/orchestration.md',
+    notes: 'Tokenizer, KV cache, router, adapter, and logit-merge orchestration helpers.',
   },
   './generation': {
     audience: 'advanced runtime consumers',
     stability: 'public advanced',
     docPath: 'docs/api/generation.md',
-    notes: 'Lower-level text pipeline access.',
+    notes: 'Lower-level text pipeline construction and pipeline types.',
   },
   './diffusion': {
     audience: 'advanced diffusion consumers',
@@ -184,7 +184,6 @@ async function buildReferenceMarkdown() {
     }
   }
 
-  lines.push('');
   return `${lines.join('\n')}\n`;
 }
 

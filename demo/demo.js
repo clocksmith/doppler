@@ -1,4 +1,4 @@
-import { log } from 'doppler-gpu';
+import { log } from 'doppler-gpu/tooling';
 import { boot } from './boot.js';
 import { setModelCallbacks } from './models.js';
 import { initInput, setRunHandler } from './input.js';

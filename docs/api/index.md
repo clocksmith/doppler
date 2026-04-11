@@ -13,19 +13,13 @@ The generated export inventory lives under [reference/exports.md](reference/expo
 
 ### Advanced public surfaces
 
-- [Advanced Root Exports](advanced-root-exports.md) - root-level loaders, pipelines, adapters, and compatibility re-exports
-- [Provider API](provider.md) - `doppler-gpu/provider`
+- [Advanced Export Map](advanced-root-exports.md) - migration map from the old broad root surface to dedicated advanced subpaths
+- [Loaders API](loaders.md) - `doppler-gpu/loaders`
+- [Orchestration API](orchestration.md) - `doppler-gpu/orchestration`
 - [Generation API](generation.md) - `doppler-gpu/generation`
 - [Diffusion API](diffusion.md) - `doppler-gpu/diffusion`
 - [Energy API](energy.md) - `doppler-gpu/energy`
-- [Tooling API](tooling.md) - `doppler-gpu/tooling`, including the shared `convert|debug|bench|verify|lora|distill` command contract
-
-### Exposed but not primary doc targets
-
-- `doppler-gpu/internal`
-
-This surface is reachable through the package export map, but it is not the primary stability story for application developers.
-Use it only when you deliberately want lower-level or internal source access.
+- [Tooling API](tooling.md) - `doppler-gpu/tooling`, including the shared `convert|debug|bench|verify|diagnose|lora|distill` command contract
 
 ## Documentation Form
 
@@ -60,13 +54,9 @@ Generated reference pages provide:
 
 ### Public but advanced
 
-- root-level advanced exports documented in [advanced-root-exports.md](advanced-root-exports.md)
-- `doppler-gpu/provider`
+- `doppler-gpu/loaders`
+- `doppler-gpu/orchestration`
 - `doppler-gpu/generation`
 - `doppler-gpu/diffusion`
 - `doppler-gpu/energy`
 - `doppler-gpu/tooling`
-
-### Publicly reachable but not recommended as the main contract
-
-- `doppler-gpu/internal`

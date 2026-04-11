@@ -189,7 +189,7 @@ function assertQwenF16UtilityKernels(execution, label) {
     assert.equal(execution?.kernels?.rope?.kernel, 'rope.wgsl', `${label} rope kernel`);
     assert.equal(execution?.kernels?.residual?.kernel, 'residual.wgsl', `${label} residual kernel`);
     assert.equal(execution?.kernels?.silu?.kernel, 'silu.wgsl', `${label} silu kernel`);
-    assert.equal(execution?.kernels?.q4_prefill?.kernel, 'fused_matmul_q4_batched.wgsl', `${label} q4_prefill kernel`);
+    assert.equal(execution?.kernels?.q4_prefill?.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl', `${label} q4_prefill kernel`);
     assert.equal(execution?.kernels?.sample?.kernel, 'sample.wgsl', `${label} sample kernel`);
     return;
   }
@@ -389,10 +389,10 @@ for (const config of convConfigs) {
     assert.equal(config.execution.kernels.residual.kernel, 'residual.wgsl');
     assert.equal(config.execution.kernels.silu.kernel, 'silu.wgsl');
     assert.equal(config.execution.kernels.tiled.kernel, 'matmul_f16w_f32a.wgsl');
-    assert.equal(config.execution.kernels.q4_prefill.kernel, 'fused_matmul_q4_batched.wgsl');
+    assert.equal(config.execution.kernels.q4_prefill.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl');
     assert.equal(config.execution.kernels.attn_decode.kernel, 'attention_decode_online_f16kv.wgsl');
     assert.equal(config.execution.kernels.attn_stream.kernel, 'attention_streaming_f16kv.wgsl');
-    assert.equal(config.execution.kernels.lm_head_gemv.kernel, 'matmul_gemv_subgroup.wgsl');
+    assert.equal(config.execution.kernels.lm_head_gemv.kernel, 'matmul_gemv_subgroup_f16a.wgsl');
     assert.equal(config.execution.kernels.sample.kernel, 'sample.wgsl');
   } else if ((config.output?.modelBaseId ?? '') === 'qwen-3-5-2b-q4k-ehaf16') {
     assert.equal(config.execution.kernels.rmsnorm.kernel, 'rmsnorm_f16.wgsl');

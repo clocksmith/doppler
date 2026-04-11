@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-const { resolveBridgeSourceRuntimeBundle } = await import('../../src/client/doppler-provider/source-runtime.js');
+const { resolveBridgeSourceRuntimeBundle } = await import('../../src/client/runtime/source-runtime.js');
 
 function encodeJson(value) {
   return new TextEncoder().encode(JSON.stringify(value));
@@ -108,7 +108,10 @@ assert.equal(bundle.storageContext.verifyHashes, true);
 
 const shard = await bundle.storageContext.loadShard(0);
 assert.ok(new Uint8Array(shard).byteLength > 0);
-assert.equal(bundle.storageContext.loadShardRange, null);
+assert.equal(typeof bundle.storageContext.loadShardRange, 'function');
+
+const shardSlice = await bundle.storageContext.loadShardRange(0, 2, 4);
+assert.equal(new Uint8Array(shardSlice).byteLength, 4);
 
 const tokenizer = await bundle.storageContext.loadTokenizerJson();
 assert.equal(typeof tokenizer, 'object');

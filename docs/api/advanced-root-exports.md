@@ -1,39 +1,38 @@
-# Advanced Root Exports
+# Advanced Export Map
 
 ## Purpose
 
-Reference for advanced symbols exported from `doppler-gpu` in addition to the primary `doppler` facade.
+Map the older broad root surface to the current dedicated advanced subpaths.
 
-## Import Path
+## Current Shape
 
 ```js
-import { createPipeline, DopplerLoader, KVCache } from 'doppler-gpu';
+import { doppler } from 'doppler-gpu';
+import { DopplerLoader } from 'doppler-gpu/loaders';
+import { KVCache } from 'doppler-gpu/orchestration';
+import { createPipeline } from 'doppler-gpu/generation';
 ```
 
 ## Audience
 
-Advanced consumers who intentionally want root-level access to loaders, pipelines, adapter infrastructure, or low-level helpers.
+Advanced consumers migrating from the older catch-all root barrel or choosing the right dedicated subpath for new code.
 
 ## Stability
 
-Public, but secondary to the root `doppler` facade. Prefer subpath docs when a dedicated subpath exists.
+Public guidance only. The root facade is intentionally minimal now.
 
-## Export Groups
+## Subpath Split
 
-### Loaders
+### `doppler-gpu/loaders`
 
 - `DopplerLoader`
 - `getDopplerLoader()`
 - `createDopplerLoader()`
 - `MultiModelLoader`
+- manifest/config bootstrap helpers used during explicit loader setup
 
-Use these when you want explicit loader control rather than `doppler.load()`.
+### `doppler-gpu/orchestration`
 
-### Text pipeline and orchestration
-
-- `createPipeline(...)`
-- `InferencePipeline`
-- `EmbeddingPipeline`
 - `KVCache`
 - `Tokenizer`
 - `SpeculativeDecoder`
@@ -41,11 +40,6 @@ Use these when you want explicit loader control rather than `doppler.load()`.
 - `MoERouter`
 - `MultiModelNetwork`
 - `MultiPipelinePool`
-
-These map more naturally to the [Generation API](generation.md), but are still exported from the root package.
-
-### Structured / energy heads
-
 - `StructuredJsonHeadPipeline`
 - `createStructuredJsonHeadPipeline(...)`
 - `DreamStructuredPipeline`
@@ -54,9 +48,6 @@ These map more naturally to the [Generation API](generation.md), but are still e
 - `createEnergyRowHeadPipeline(...)`
 - `DreamEnergyHeadPipeline`
 - `createDreamEnergyHeadPipeline(...)`
-
-### LoRA adapter infrastructure
-
 - `ADAPTER_MANIFEST_SCHEMA`
 - `validateAdapterManifest(...)`
 - `parseAdapterManifest(...)`
@@ -82,21 +73,40 @@ These map more naturally to the [Generation API](generation.md), but are still e
 - `mergeLogits(...)`
 - `mergeMultipleLogits(...)`
 
-### Tooling compatibility re-exports
+### `doppler-gpu/generation`
 
-The root package still re-exports the shared tooling surface for backward compatibility.
-Tooling-only consumers should prefer [`doppler-gpu/tooling`](tooling.md).
+- `createPipeline(...)`
+- `InferencePipeline`
+- `EmbeddingPipeline`
+- core text-pipeline types and generation option types
+
+### `doppler-gpu/tooling`
+
+- runtime config/profile helpers
+- storage and manifest tooling
+- browser/Node command runners
+- diagnostics harness helpers
+
+## Migration Rule
+
+- Application code should import `doppler` from `doppler-gpu`.
+- Explicit loader work should import from `doppler-gpu/loaders`.
+- KV cache, routers, adapters, and logit-merge helpers should import from `doppler-gpu/orchestration`.
+- Direct pipeline construction should import from `doppler-gpu/generation`.
+- Tooling and command helpers should import from `doppler-gpu/tooling`.
 
 ## Code Pointers
 
 - root export surface: [src/index.js](../../src/index.js)
 - root type surface: [src/index.d.ts](../../src/index.d.ts)
+- loaders subpath: [src/loaders/index.js](../../src/loaders/index.js)
+- orchestration subpath: [src/orchestration/index.js](../../src/orchestration/index.js)
 - generation subpath: [docs/api/generation.md](generation.md)
-- tooling subpath: [docs/api/tooling.md](tooling.md)
 
 ## Related Surfaces
 
 - [Root API](root.md)
+- [Loaders API](loaders.md)
+- [Orchestration API](orchestration.md)
 - [Generation API](generation.md)
-- [Tooling API](tooling.md)
 - [Generated export inventory](reference/exports.md)

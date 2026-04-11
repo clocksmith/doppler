@@ -58,6 +58,7 @@
     "imports:check:browser": "node tools/check-browser-import-graph.js",
     "api:docs:sync": "node tools/sync-api-docs.js",
     "api:docs:check": "node tools/sync-api-docs.js --check",
+    "public:boundaries:check": "node tools/check-public-boundaries.js",
     "verify:model": "node src/cli/doppler-cli.js verify",
     "quickstart:sync": "node tools/sync-quickstart-registry.js",
     "quickstart:check": "node tools/sync-quickstart-registry.js --check",
@@ -121,18 +122,18 @@
       "types": "./src/index.d.ts",
       "import": "./src/index.js"
     },
-    "./provider": {
-      "types": "./src/client/doppler-provider.d.ts",
-      "import": "./src/client/doppler-provider.js"
-    },
     "./tooling": {
       "types": "./src/tooling-exports.d.ts",
       "browser": "./src/tooling-exports.browser.js",
       "import": "./src/tooling-exports.js"
     },
-    "./internal": {
-      "types": "./src/index-internal.d.ts",
-      "import": "./src/index-internal.js"
+    "./loaders": {
+      "types": "./src/loaders/index.d.ts",
+      "import": "./src/loaders/index.js"
+    },
+    "./orchestration": {
+      "types": "./src/orchestration/index.d.ts",
+      "import": "./src/orchestration/index.js"
     },
     "./generation": {
       "types": "./src/generation/index.d.ts",

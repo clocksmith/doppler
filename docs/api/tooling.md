@@ -49,6 +49,7 @@ Canonical tooling commands:
 - `debug`
 - `bench`
 - `verify`
+- `diagnose`
 - `lora`
 - `distill`
 
@@ -59,11 +60,11 @@ Operator command families:
 
 Important surface rules:
 
-- `lora` and `distill` normalize through the same command API as the harnessed commands
-- browser surfaces currently reject `lora` and `distill`
+- `diagnose`, `lora`, and `distill` normalize through the same command API as the harnessed commands
+- browser surfaces currently reject `diagnose`, `lora`, and `distill`
 - `runBrowserCommand(...)` is appropriate for browser-safe commands such as `verify`, `debug`, and `bench`
 - `runBrowserCommand(...)` also supports `convert` when the caller injects `options.convertHandler(request)`; CLI browser relay still rejects `convert`
-- `runNodeCommand(...)` is the canonical operator execution path for `lora` and `distill`
+- `runNodeCommand(...)` is the canonical operator execution path for `diagnose`, `lora`, and `distill`
 - current Node operator surfaces reject `runtimeProfile`, `runtimeConfigUrl`, and `runtimeConfig` because those runtime inputs are not consumed by `lora`/`distill`
 - `configChain` is a harness/browser-URL runtime input, not part of the normalized tooling command request contract
 - browser-conditioned imports of `doppler-gpu/tooling` resolve the browser-safe shared tooling entry and do not expose `runNodeCommand(...)` or `runBrowserCommandInNode(...)`
@@ -76,6 +77,7 @@ Important surface rules:
 | `verify` | `request.workload` plus `request.modelId` except `kernels` | `request.workload` is required and may be `embedding` for embedding-model correctness checks; `request.modelUrl` is optional when `request.modelId` is present; `request.inferenceInput` is available for request-owned inference payloads when `workload="inference"` |
 | `debug` | `request.workload` plus `request.modelId` | `request.workload` is required and may be `inference` or `embedding`; `request.inferenceInput` is available when `workload="inference"` |
 | `bench` | `request.workload` plus `request.modelId` | `request.workload` is required and may be `inference`, `embedding`, `training`, `diffusion`, or `energy`; `workload="training"` intentionally allows `modelId: null`; `request.inferenceInput` is available when `workload="inference"` |
+| `diagnose` | `request.workload` plus `request.modelId` | Node-only. Uses the same workload family as `debug` and fails closed on browser |
 | `distill` | `request.action` plus `request.workloadPath` or `request.runRoot` | Node-only today; browser fails closed |
 | `lora` | `request.action` plus `request.workloadPath` or `request.runRoot` | Node-only today; browser fails closed |
 
@@ -84,18 +86,19 @@ Operator-action notes:
 - `distill.eval` accepts `checkpointPath` or replays finalized checkpoints already present in the run root
 - `lora.watch`, `lora.compare`, `lora.quality-gate` require `runRoot`
 - `lora.eval` and `lora.export` accept `checkpointPath` or reuse finalized checkpoints in the run root
-- `lora.activate` is part of the command contract, but the current Node runner rejects it and points activation to the browser provider/runtime surface
+- `lora.activate` is part of the command contract, but the current Node runner rejects it and points activation to the browser runtime surface
 
 Supported surfaces:
 - `convert`: `--surface auto|node`
 - `debug`, `bench`, `verify`: `--surface auto|node|browser`
-- `lora`, `distill`: `--surface auto|node` in practice; `--surface browser` is rejected
+- `diagnose`, `lora`, `distill`: `--surface auto|node` in practice; `--surface browser` is rejected
 
 CLI notes:
 - operator runs are workload-first; prefer `workloadPath` over ad hoc request fields
 - `--surface auto` for `lora` and `distill` does not downgrade to browser
 - `--config` accepts inline JSON, file path, or URL for all commands
 - `--runtime-config` supports inline JSON, file path, or URL for `verify`, `debug`, and `bench`
+- `diagnose` is Node-only and uses the same normalized request contract as `debug`
 - `lora` and `distill` reject `runtimeProfile`, `runtimeConfigUrl`, and `runtimeConfig` on the current Node operator surface
 - run-root artifacts live under `reports/training/<kind>/<workload-id>/<timestamp>/`
 - `run_contract.json` and `workload.lock.json` are written for every operator run

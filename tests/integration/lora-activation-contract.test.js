@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-const { activateLoRAFromTrainingOutput } = await import('../../src/client/doppler-provider/model-manager.js');
+const { activateLoRAFromTrainingOutput } = await import('../../src/client/runtime/model-manager.js');
 
 {
   const result = await activateLoRAFromTrainingOutput({

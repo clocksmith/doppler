@@ -129,15 +129,15 @@ const diagnosticTransformCtx = {
     }
   }
 
-  // Prefill: all projections use fused batched Q4.
+  // Prefill: all projections use the shared-A fused batched Q4 path.
   for (const step of execution.prefill) {
     if (!Array.isArray(step)) continue;
     const op = step[0];
     if (['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'].includes(op)) {
       const entry = execution.kernels[step[1]];
       assert.equal(
-        entry.kernel, 'fused_matmul_q4_batched.wgsl',
-        `Primary graph: prefill ${op} should use fused_matmul_q4_batched.wgsl`
+        entry.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl',
+        `Primary graph: prefill ${op} should use fused_matmul_q4_batched_multicol_shared.wgsl`
       );
     }
   }
@@ -154,14 +154,14 @@ const diagnosticTransformCtx = {
     }
   }
 
-  // Post-layer lm_head: GEMV subgroup
+  // Post-layer lm_head: f16a GEMV subgroup
   for (const step of execution.postLayer) {
     if (!Array.isArray(step)) continue;
     if (step[0] === 'lm_head') {
       const entry = execution.kernels[step[1]];
       assert.equal(
-        entry.kernel, 'matmul_gemv_subgroup.wgsl',
-        'Primary graph: lm_head should use GEMV subgroup'
+        entry.kernel, 'matmul_gemv_subgroup_f16a.wgsl',
+        'Primary graph: lm_head should use the f16a GEMV subgroup path'
       );
     }
   }
@@ -214,8 +214,8 @@ const diagnosticTransformCtx = {
   );
   assert.equal(
     kp.prefill.steps.find((s) => s.op === 'q_proj')?.kernel,
-    'fused_matmul_q4_batched.wgsl',
-    'compileExecutionV1: prefill q_proj uses fused batched Q4'
+    'fused_matmul_q4_batched_multicol_shared.wgsl',
+    'compileExecutionV1: prefill q_proj uses shared fused batched Q4'
   );
   assert.equal(
     kp.prefill.steps.find((s) => s.op === 'attention')?.kernel,

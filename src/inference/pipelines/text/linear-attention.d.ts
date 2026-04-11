@@ -56,6 +56,8 @@ export interface RunLinearAttentionLayerOptions {
     linearNormMode?: LinearNormMode | null;
     rmsNormEps: number;
     rmsNormWeightOffset: boolean;
+    inputDtype?: 'f16' | 'f32' | null;
+    outputDtype?: 'f16' | 'f32' | null;
   };
   currentSeqLen: number;
   activationDtype?: 'f16' | 'f32';

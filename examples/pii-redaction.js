@@ -6,9 +6,8 @@
  * All inference runs locally — no data leaves the browser.
  */
 
-import { DopplerProvider } from '@simulatte/doppler/provider';
+import { doppler } from '@simulatte/doppler';
 
-const MODEL_ID = 'gemma-3-270m-it-wq4k-ef16';
 const MODEL_URL =
   'https://huggingface.co/Clocksmith/rdrr/resolve/HEAD/models/gemma-3-270m-it-wq4k-ef16';
 
@@ -22,12 +21,11 @@ Now redact the following text:
 
 `;
 
-async function redact(text) {
-  const pipeline = DopplerProvider.getPipeline();
+async function redact(model, text) {
   const prompt = REDACTION_PROMPT + text;
 
   let result = '';
-  for await (const token of pipeline.generate(prompt, {
+  for await (const token of model.generate(prompt, {
     maxTokens: 512,
     temperature: 0.1,
     topP: 0.9,
@@ -38,14 +36,13 @@ async function redact(text) {
 }
 
 async function main() {
-  console.log('Initializing Doppler...');
-  await DopplerProvider.init();
-
   console.log('Loading model (cached after first download)...');
-  await DopplerProvider.loadModel(MODEL_ID, MODEL_URL, (progress) => {
+  const model = await doppler.load({ url: MODEL_URL }, {
+    onProgress(progress) {
     if (progress.percent != null) {
       console.log(`  ${progress.stage}: ${Math.round(progress.percent)}%`);
     }
+    },
   });
 
   // Example clinical note with PII.
@@ -60,10 +57,10 @@ async function main() {
   console.log(note);
 
   console.log('\n--- Redacted ---');
-  const redacted = await redact(note);
+  const redacted = await redact(model, note);
   console.log(redacted);
 
-  await DopplerProvider.destroy();
+  await model.unload();
 }
 
 main().catch(console.error);

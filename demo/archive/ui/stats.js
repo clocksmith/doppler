@@ -1,4 +1,4 @@
-import { formatBytes } from 'doppler-gpu';
+import { formatBytes } from 'doppler-gpu/tooling';
 import { state } from './state.js';
 import { $ , setText } from './dom.js';
 import { formatRate, formatMs, formatScalar } from './format.js';

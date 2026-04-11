@@ -13,7 +13,7 @@
 // Each panel reads from state.lastInferenceStats / state.lastMemoryStats
 // and pipeline.getBatchingStats() / pipeline.getBufferPool().getLabelStats().
 
-import { formatBytes } from 'doppler-gpu';
+import { formatBytes } from 'doppler-gpu/tooling';
 import { buildKernelPathBuilderRuntimeOverlay } from '../../../src/tooling/kernel-path-builder/runtime-overlay.js';
 import { loadKernelPathBuilderIndex } from '../kernel-path-builder/index.js';
 import { state } from '../state.js';
