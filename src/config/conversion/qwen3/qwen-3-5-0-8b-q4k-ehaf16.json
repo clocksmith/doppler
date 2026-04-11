@@ -244,9 +244,9 @@
         }
       },
       "q4_prefill": {
-        "kernel": "fused_matmul_q4_batched.wgsl",
-        "entry": "main_batched",
-        "digest": "sha256:a513e4170792aaf2f1c22b73f34288721541acf5954756993a0001a412c91209"
+        "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+        "entry": "main",
+        "digest": "sha256:142817adcacb28750a92793996cd15c2d9fe13d03e0c2d0aadf3e674dc7a35d6"
       },
       "tiled": {
         "kernel": "matmul_f16w_f32a.wgsl",
@@ -262,12 +262,16 @@
         }
       },
       "lm_head_gemv": {
-        "kernel": "matmul_gemv_subgroup.wgsl",
+        "kernel": "matmul_gemv_subgroup_f16a.wgsl",
         "entry": "main_multicol",
-        "digest": "sha256:f4d392b7f1e97e5bd63044ce09bdeb77ed7e77f6080181d483b8f1553e844ec4",
+        "digest": "sha256:cc31df534551ba5dd7feebbddb2822d1c53f7d6a98fd0d772c294620602b51e5",
         "constants": {
           "MULTICOL_COLS_PER_WG": 64,
           "MULTICOL_THREADS_PER_COL": 4
+        },
+        "precision": {
+          "inputDtype": "f16",
+          "outputDtype": "f16"
         }
       },
       "sample": {
