@@ -1564,10 +1564,11 @@ export function useQwenDecodeF16Matmuls(graph, ctx) {
  * Promote the Qwen 3.5 0.8B execution graph onto its fast f16 primary lane
  * when the runtime explicitly requests f16 activations.
  *
- * This transform narrows the hot matmul path while keeping linear-attention
- * `o_proj` on the stable f32-output kernel. That preserves decode quality
- * while still moving the rest of the prefill/decode path onto the available
- * f16 kernels.
+ * This transform narrows the hot matmul path while keeping `o_proj` on the
+ * stable manifest-owned f32-output kernel. The residual stream feeds directly
+ * into the next RMSNorm, and the Qwen 3.5 0.8B promoted f16 lane becomes
+ * numerically unstable when `o_proj` writes f16 there (observed first at the
+ * first full-attention block's post-attention RMSNorm).
  *
  * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
  * @param {import('./execution-graph-transforms.js').TransformContext} ctx
@@ -1581,18 +1582,6 @@ export function useQwenF16PrimaryMatmuls(graph, ctx) {
 
   const layerTypes = Array.isArray(ctx.layerTypes) ? ctx.layerTypes : null;
   if (!layerTypes || layerTypes.length === 0) {
-    return null;
-  }
-
-  const fullAttentionLayers = layerTypes
-    .map((layerType, layerIdx) => ({ layerType, layerIdx }))
-    .filter(({ layerType }) => isFullAttentionLayerType(layerType))
-    .map(({ layerIdx }) => layerIdx);
-  const linearLayers = layerTypes
-    .map((layerType, layerIdx) => ({ layerType, layerIdx }))
-    .filter(({ layerType }) => isLinearAttentionLayerType(layerType))
-    .map(({ layerIdx }) => layerIdx);
-  if (layerTypes.length === 0) {
     return null;
   }
 
@@ -1630,32 +1619,6 @@ export function useQwenF16PrimaryMatmuls(graph, ctx) {
         changed = true;
       }
     }
-    if (fullAttentionLayers.length > 0) {
-      const oProjStep = (result.decode || []).find((entry) => Array.isArray(entry) && entry[0] === 'o_proj');
-      if (oProjStep) {
-        const linearStableKey = deriveKernelKey(result.kernels, oProjStep[1], '_linear_f32io');
-        result.kernels[linearStableKey] = deriveKernelEntryWithPrecision(
-          result.kernels[oProjStep[1]],
-          { inputDtype: 'f32', outputDtype: 'f32' }
-        );
-        const groupedEntries = [];
-        if (linearLayers.length > 0) {
-          const linearStep = [...oProjStep];
-          linearStep[1] = linearStableKey;
-          groupedEntries.push({ layers: linearLayers, steps: [linearStep] });
-        }
-        if (fullAttentionLayers.length > 0) {
-          const fullStep = [...oProjStep];
-          fullStep[1] = decodeProjectionKey;
-          groupedEntries.push({ layers: fullAttentionLayers, steps: [fullStep] });
-        }
-        const phaseResult = replacePhaseStepEntries(result.decode, 'o_proj', groupedEntries);
-        if (phaseResult.changed) {
-          result.decode = phaseResult.steps;
-          changed = true;
-        }
-      }
-    }
   }
 
   const prefillProjectionStep = (result.prefill || []).find((entry) => Array.isArray(entry) && entry[0] === 'q_proj');
@@ -1669,32 +1632,6 @@ export function useQwenF16PrimaryMatmuls(graph, ctx) {
       if (phaseResult.changed) {
         result.prefill = phaseResult.steps;
         changed = true;
-      }
-    }
-    if (fullAttentionLayers.length > 0) {
-      const oProjStep = (result.prefill || []).find((entry) => Array.isArray(entry) && entry[0] === 'o_proj');
-      if (oProjStep) {
-        const linearStableKey = deriveKernelKey(result.kernels, oProjStep[1], '_linear_f32io');
-        result.kernels[linearStableKey] = deriveKernelEntryWithPrecision(
-          result.kernels[oProjStep[1]],
-          { inputDtype: 'f32', outputDtype: 'f32' }
-        );
-        const groupedEntries = [];
-        if (linearLayers.length > 0) {
-          const linearStep = [...oProjStep];
-          linearStep[1] = linearStableKey;
-          groupedEntries.push({ layers: linearLayers, steps: [linearStep] });
-        }
-        if (fullAttentionLayers.length > 0) {
-          const fullStep = [...oProjStep];
-          fullStep[1] = prefillProjectionKey;
-          groupedEntries.push({ layers: fullAttentionLayers, steps: [fullStep] });
-        }
-        const phaseResult = replacePhaseStepEntries(result.prefill, 'o_proj', groupedEntries);
-        if (phaseResult.changed) {
-          result.prefill = phaseResult.steps;
-          changed = true;
-        }
       }
     }
   }

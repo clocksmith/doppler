@@ -39,4 +39,23 @@ import { prepareAttentionProjectionInput } from '../../src/inference/pipelines/t
   assert.equal(result.oProjInputTemp, null);
 }
 
+{
+  const attnForProjection = { dtype: 'f16', label: 'needs_f32' };
+  let castSource = null;
+  const castedTensor = { dtype: 'f32', label: 'casted_to_f32' };
+
+  const result = await prepareAttentionProjectionInput(
+    attnForProjection,
+    'f32',
+    async (tensor) => {
+      castSource = tensor;
+      return castedTensor;
+    }
+  );
+
+  assert.equal(castSource, attnForProjection);
+  assert.equal(result.oProjInput, castedTensor);
+  assert.equal(result.oProjInputTemp, castedTensor);
+}
+
 console.log('attention-output-projection.test: ok');

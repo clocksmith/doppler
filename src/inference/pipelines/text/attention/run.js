@@ -61,13 +61,14 @@ import {
 
 const ATTENTION_DTYPE_LOGGED = new Set();
 
-function assertAttentionDtypeTransitionAllowed(state, fromDtype, toDtype, detail) {
+function assertAttentionDtypeTransitionAllowed(state, fromDtype, toDtype, detail, transitionDeclaredBy = null) {
   assertImplicitDtypeTransitionAllowed({
     executionPolicies: state?.executionPolicies ?? null,
     fromDtype,
     toDtype,
     op: 'attention',
     detail,
+    transitionDeclaredBy,
   });
 }
 
@@ -839,7 +840,13 @@ export async function runLayerAttentionGPU(
       attnForProjection,
       oProjInputDtype,
       async (tensor) => {
-        assertAttentionDtypeTransitionAllowed(state, tensor.dtype, oProjInputDtype, 'o_proj input would change dtype implicitly.');
+        assertAttentionDtypeTransitionAllowed(
+          state,
+          tensor.dtype,
+          oProjInputDtype,
+          'o_proj input would change dtype implicitly.',
+          'step_precision'
+        );
         return oProjInputDtype === 'f16'
           ? castF32ToF16(tensor)
           : castF16ToF32(tensor);
@@ -945,7 +952,13 @@ export async function runLayerAttentionGPU(
   }
 
   if (output.dtype !== oProjOutputDtype) {
-    assertAttentionDtypeTransitionAllowed(state, output.dtype, oProjOutputDtype, 'Attention output would change dtype implicitly at the end of the op.');
+    assertAttentionDtypeTransitionAllowed(
+      state,
+      output.dtype,
+      oProjOutputDtype,
+      'Attention output would change dtype implicitly at the end of the op.',
+      'step_precision'
+    );
     const coercedOutput = oProjOutputDtype === 'f16'
       ? await castF32ToF16(output)
       : await castF16ToF32(output);

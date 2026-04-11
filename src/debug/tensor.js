@@ -23,6 +23,18 @@ function f16ToF32(h) {
   return (sign ? -1 : 1) * Math.pow(2, exp - 15) * (1 + mant / 1024);
 }
 
+function decodeSnapshotData(data, dtype) {
+  if (dtype === 'f16') {
+    const src = new Uint16Array(data);
+    const decoded = new Float32Array(src.length);
+    for (let i = 0; i < src.length; i++) {
+      decoded[i] = f16ToF32(src[i]);
+    }
+    return decoded;
+  }
+  return new Float32Array(data);
+}
+
 // ============================================================================
 // Tensor Inspection Interface
 // ============================================================================
@@ -228,7 +240,7 @@ export async function snapshotTensor(buffer, shape, dtype = 'f32') {
     const data = staging.getMappedRange().slice(0);
     staging.unmap();
     staging.destroy();
-    const arr = new Float32Array(data);
+    const arr = decodeSnapshotData(data, dtype);
     return snapshotFromArray(arr, shape ?? [arr.length], dtype);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

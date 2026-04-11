@@ -1,6 +1,6 @@
-export async function prepareAttentionProjectionInput(attnForProjection, matmulOutputDtype, castToF16) {
-  if (matmulOutputDtype === 'f16' && attnForProjection.dtype !== 'f16') {
-    const casted = await castToF16(attnForProjection);
+export async function prepareAttentionProjectionInput(attnForProjection, matmulOutputDtype, castTensor) {
+  if (matmulOutputDtype && attnForProjection.dtype !== matmulOutputDtype) {
+    const casted = await castTensor(attnForProjection);
     return { oProjInput: casted, oProjInputTemp: casted };
   }
 

@@ -657,14 +657,19 @@ function buildF16WeightProjectionGraph() {
   ok(prefillFiles.has('attention_streaming_f16.wgsl'),
     'promoted Qwen f16 graph should keep the narrowed streaming attention kernel');
 
-  const linearDecodeOProj = result.decode.find(
-    (entry) => entry && typeof entry === 'object' && Array.isArray(entry.layers) && entry.layers.includes(0)
-  )?.steps?.find((step) => Array.isArray(step) && step[0] === 'o_proj');
-  ok(linearDecodeOProj, 'promoted Qwen f16 graph should split linear-layer decode o_proj');
-  equal(result.kernels[linearDecodeOProj[1]].precision?.inputDtype, 'f32',
-    'promoted Qwen f16 graph should keep linear decode o_proj input on f32');
-  equal(result.kernels[linearDecodeOProj[1]].precision?.outputDtype, 'f32',
-    'promoted Qwen f16 graph should keep linear decode o_proj output on f32');
+  const decodeOProj = result.decode.find((entry) => Array.isArray(entry) && entry[0] === 'o_proj');
+  ok(decodeOProj, 'promoted Qwen f16 graph should keep the decode o_proj step');
+  equal(result.kernels[decodeOProj[1]].kernel, 'fused_matmul_q4.wgsl',
+    'promoted Qwen f16 graph should keep decode o_proj on the original fused q4 kernel');
+  equal(result.kernels[decodeOProj[1]].precision, undefined,
+    'promoted Qwen f16 graph should keep decode o_proj on the manifest-owned f32 contract');
+
+  const prefillOProj = result.prefill.find((entry) => Array.isArray(entry) && entry[0] === 'o_proj');
+  ok(prefillOProj, 'promoted Qwen f16 graph should keep the prefill o_proj step');
+  equal(result.kernels[prefillOProj[1]].kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl',
+    'promoted Qwen f16 graph should keep prefill o_proj on the original fused q4 prefill kernel');
+  equal(result.kernels[prefillOProj[1]].precision, undefined,
+    'promoted Qwen f16 graph should keep prefill o_proj on the manifest-owned f32 contract');
 
   deepEqual(graph, frozen, 'useQwenF16PrimaryMatmuls must not mutate the input graph');
 }
