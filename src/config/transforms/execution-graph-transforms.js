@@ -449,6 +449,7 @@ const F16_TO_F32_ACTIVATION_MAP = new Map([
 const F32_TO_F16_ACTIVATION_MAP = new Map(
   Array.from(F16_TO_F32_ACTIVATION_MAP.entries(), ([from, to]) => [to, from])
 );
+F32_TO_F16_ACTIVATION_MAP.set('attention_head256_f16kv.wgsl', 'attention_small_f16.wgsl');
 
 function hasExplicitF32ActivationContract(entry) {
   const precision = entry?.precision;
@@ -644,6 +645,26 @@ const PREFILL_ATTENTION_PAIRS = new Map([
   ['attention_small_f16.wgsl', 'attention_streaming_f16.wgsl'],
 ]);
 
+function graphUsesKernelKeyInPrefill(graph, kernelKey) {
+  for (const entry of graph.prefill || []) {
+    if (Array.isArray(entry)) {
+      if (entry[1] === kernelKey) {
+        return true;
+      }
+      continue;
+    }
+    if (!entry || typeof entry !== 'object' || !Array.isArray(entry.steps)) {
+      continue;
+    }
+    for (const step of entry.steps) {
+      if (Array.isArray(step) && step[1] === kernelKey) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 /**
  * Swap prefill attention kernel between streaming and small variants.
  *
@@ -679,8 +700,7 @@ export function swapPrefillAttention(graph, ctx, opts) {
     }
 
     if (target !== undefined) {
-      // Verify this kernel is actually used in a prefill step
-      const usedInPrefill = (graph.prefill || []).some((step) => step[1] === key);
+      const usedInPrefill = graphUsesKernelKeyInPrefill(graph, key);
       if (usedInPrefill) {
         result.kernels[key] = deriveKernelEntry(entry, target, entry.entry);
         changed = true;
@@ -696,6 +716,20 @@ export function swapPrefillAttention(graph, ctx, opts) {
 // =============================================================================
 
 /**
+ * Promote small-tile prefill attention onto the fixed 256-dim shared-block kernel.
+ *
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {import('./execution-graph-transforms.js').TransformContext} ctx
+ * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
+ */
+export function useHead256SmallPrefillAttention(graph, ctx) {
+  return swapPrefillAttention(graph, ctx, {
+    from: 'attention_small_f16kv.wgsl',
+    to: 'attention_head256_f16kv.wgsl',
+  });
+}
+
+/**
  * Promote prefill attention onto the fixed 256-dim shared-block kernel.
  *
  * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
@@ -703,16 +737,25 @@ export function swapPrefillAttention(graph, ctx, opts) {
  * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function useHead256PrefillAttention(graph, ctx) {
-  return (
-    swapPrefillAttention(graph, ctx, {
-      from: 'attention_small_f16kv.wgsl',
-      to: 'attention_head256_f16kv.wgsl',
-    })
-    || swapPrefillAttention(graph, ctx, {
-      from: 'attention_streaming_f16kv.wgsl',
-      to: 'attention_head256_f16kv.wgsl',
-    })
-  );
+  let current = graph;
+  let changed = false;
+
+  const smallRemap = useHead256SmallPrefillAttention(current, ctx);
+  if (smallRemap) {
+    current = smallRemap;
+    changed = true;
+  }
+
+  const streamingRemap = swapPrefillAttention(current, ctx, {
+    from: 'attention_streaming_f16kv.wgsl',
+    to: 'attention_head256_f16kv.wgsl',
+  });
+  if (streamingRemap) {
+    current = streamingRemap;
+    changed = true;
+  }
+
+  return changed ? current : null;
 }
 
 // =============================================================================
@@ -1425,6 +1468,7 @@ export const TRANSFORMS = Object.freeze({
   widenToF32Activations,
   widenToF32CorrectnessFallback,
   swapPrefillAttention,
+  useHead256SmallPrefillAttention,
   useHead256PrefillAttention,
   widenProjectionWeightsToF32,
   remapDenseQ4KPrefillToQ4Native,

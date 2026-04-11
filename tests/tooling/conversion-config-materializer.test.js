@@ -125,6 +125,29 @@ if (!fs.existsSync(gemma1bManifestPath)) {
   assert.equal(attnPrefill[1], 'attn_head256');
 }
 
+const gemma4ManifestPath = path.join('models/local/gemma-4-e2b-it-q4k-ehf16-af32', 'manifest.json');
+if (!fs.existsSync(gemma4ManifestPath)) {
+  console.log('conversion-config-materializer.test: skipped gemma 4 fixture (local model missing)');
+} else {
+  const conversionConfig = readJson('src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32.json');
+  const manifest = readJson(gemma4ManifestPath);
+  const materialized = resolveMaterializedManifestFromConversionConfig(conversionConfig, manifest);
+
+  assert.equal(materialized.modelId, manifest.modelId);
+  assert.equal(materialized.inference?.execution?.kernels?.attn_head256?.kernel, 'attention_head256_f16kv.wgsl');
+  assert.equal(materialized.inference?.execution?.kernels?.attn_head256?.precision?.kvDtype, 'f16');
+  const groupedSmallPrefill = materialized.inference?.execution?.prefill?.[0]?.steps?.find((step) => step[0] === 'attention');
+  assert.ok(groupedSmallPrefill, 'gemma 4 materialized grouped small prefill attention step missing');
+  assert.equal(groupedSmallPrefill[1], 'attn_head256');
+  const groupedStreamPrefill = materialized.inference?.execution?.prefill?.[1]?.steps?.find((step) => step[0] === 'attention');
+  assert.ok(groupedStreamPrefill, 'gemma 4 materialized grouped streaming prefill attention step missing');
+  assert.equal(groupedStreamPrefill[1], 'attn_stream');
+  assert.equal(manifest.inference?.execution?.kernels?.attn_head256?.kernel, 'attention_head256_f16kv.wgsl');
+  const manifestGroupedSmallPrefill = manifest.inference?.execution?.prefill?.[0]?.steps?.find((step) => step[0] === 'attention');
+  assert.ok(manifestGroupedSmallPrefill, 'gemma 4 manifest grouped small prefill attention step missing');
+  assert.equal(manifestGroupedSmallPrefill[1], 'attn_head256');
+}
+
 const embeddingManifestPath = path.join('models/local/google-embeddinggemma-300m-q4k-ehf16-af32', 'manifest.json');
 if (!fs.existsSync(embeddingManifestPath)) {
   console.log('conversion-config-materializer.test: skipped embedding fixture (local model missing)');

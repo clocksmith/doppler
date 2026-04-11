@@ -2119,8 +2119,12 @@
             "requiredShared": 16384
           },
           "reachability": {
-            "status": "experimental",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma3/gemma-3-1b-it-f16-af32",
+              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }

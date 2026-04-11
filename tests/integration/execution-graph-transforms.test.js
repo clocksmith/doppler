@@ -9,6 +9,7 @@ import {
   widenToF32Activations,
   widenToF32CorrectnessFallback,
   swapPrefillAttention,
+  useHead256SmallPrefillAttention,
   useHead256PrefillAttention,
   widenProjectionWeightsToF32,
   remapDenseQ4KPrefillToQ4Native,
@@ -46,9 +47,17 @@ const qwenConversionConfig = JSON.parse(
   )
 );
 
+const gemma4ConversionConfig = JSON.parse(
+  readFileSync(
+    path.resolve(__dirname, '../../src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32.json'),
+    'utf-8'
+  )
+);
+
 /** The real execution graph from the gemma3-1b-q4k conversion config. */
 const REAL_GRAPH = conversionConfig.execution;
 const QWEN_REAL_GRAPH = qwenConversionConfig.execution;
+const GEMMA4_REAL_GRAPH = gemma4ConversionConfig.execution;
 
 /** Default transform context matching the conversion config. */
 const CTX_F32 = { activationDtype: 'f32', kvDtype: 'f16' };
@@ -498,6 +507,49 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
+// Test 6d: grouped prefill graphs support streaming -> small remap
+// ===========================================================================
+{
+  const graph = structuredClone(GEMMA4_REAL_GRAPH);
+  const frozen = structuredClone(graph);
+
+  const result = swapPrefillAttention(graph, CTX_F32, {
+    from: 'attention_streaming_f16kv.wgsl',
+    to: 'attention_small_f16kv.wgsl',
+  });
+
+  ok(result !== null, 'swapPrefillAttention should remap grouped Gemma 4 prefill graphs');
+  equal(result.kernels.attn_stream.kernel, 'attention_small_f16kv.wgsl',
+    'grouped Gemma 4 prefill streaming attention should be swapped to attention_small_f16kv.wgsl');
+  equal(result.kernels.attn_small.kernel, 'attention_small_f16kv.wgsl',
+    'existing small attention should remain small');
+  deepEqual(graph, frozen, 'swapPrefillAttention must not mutate grouped Gemma 4 graphs');
+}
+
+// ===========================================================================
+// Test 6e: useHead256SmallPrefillAttention remaps grouped Gemma 4 small prefill attention only
+// ===========================================================================
+{
+  const graph = structuredClone(GEMMA4_REAL_GRAPH);
+  delete graph.kernels.attn_head256;
+  graph.prefill[0].steps[6][1] = 'attn_small';
+  const frozen = structuredClone(graph);
+
+  const result = useHead256SmallPrefillAttention(graph, { ...CTX_F32, modelId: 'gemma-4-e2b-it-q4k-ehf16-af32' });
+
+  ok(result !== null, 'useHead256SmallPrefillAttention should remap grouped Gemma 4 small prefill attention');
+  equal(result.kernels.attn_small.kernel, 'attention_head256_f16kv.wgsl',
+    'grouped Gemma 4 small prefill attention should be remapped to head256');
+  equal(result.kernels.attn_stream.kernel, 'attention_streaming_f16kv.wgsl',
+    'grouped Gemma 4 streaming prefill attention should remain on the streaming kernel');
+  equal(result.kernels.attn_small.digest, null,
+    'grouped Gemma 4 head256 prefill remap should clear the small digest');
+  equal(result.kernels.attn_stream.digest, graph.kernels.attn_stream.digest,
+    'grouped Gemma 4 streaming prefill attention should preserve its digest');
+  deepEqual(graph, frozen, 'useHead256SmallPrefillAttention must not mutate grouped Gemma 4 graphs');
+}
+
+// ===========================================================================
 // Test 7: widenProjectionWeightsToF32 transform
 // ===========================================================================
 {
@@ -855,6 +907,36 @@ function buildF16WeightProjectionGraph() {
         hasSubgroups: true,
         hasF16: true,
         maxWorkgroupStorageSize: 32768,
+        adapterInfo: { vendor: 'amd', architecture: 'rdna-3' },
+      },
+      { id: 'amd-rdna3', vendor: 'amd', architecture: 'rdna-3' },
+      {
+        activationDtype: 'f32',
+        kvDtype: 'f16',
+        headDim: 256,
+        modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+        hasDensePrefillProjectionKernel: false,
+        hasQ4DecodeProjectionKernel: false,
+        hasQ4PrefillProjectionKernel: false,
+        hasAvailableQ4PrefillProjectionKernel: false,
+      }
+    );
+    deepEqual(
+      r.names,
+      ['useHead256SmallPrefillAttention'],
+      'Gemma 4 E2B on a capable GPU should resolve the small-tile head256 prefill remap'
+    );
+    equal(r.transforms.length, 1, 'Gemma 4 E2B on a capable GPU: one transform function');
+    equal(r.transforms[0], useHead256SmallPrefillAttention,
+      'Gemma 4 E2B on a capable GPU: transform function is useHead256SmallPrefillAttention');
+  }
+
+  {
+    const r = resolveCapabilityTransforms(
+      {
+        hasSubgroups: true,
+        hasF16: true,
+        maxWorkgroupStorageSize: 32768,
         adapterInfo: { vendor: 'amd', architecture: 'rdna3' },
       },
       { id: 'amd-rdna3', vendor: 'amd', architecture: 'rdna3' },
@@ -1065,6 +1147,35 @@ function buildF16WeightProjectionGraph() {
     'explicit stable tail: final_norm should preserve explicit f32 kernel');
   equal(result.kernels.lm_head.kernel, 'matmul_gemv_subgroup.wgsl',
     'explicit stable tail: lm_head should preserve explicit f32 kernel');
+}
+
+// ===========================================================================
+// Test 17b: narrowToF16Activations remaps head256 prefill attention onto the f16 small kernel
+// ===========================================================================
+{
+  const graph = {
+    kernels: {
+      attn_small: {
+        kernel: 'attention_head256_f16kv.wgsl',
+        entry: 'main',
+        digest: 'sha256:aaa',
+        precision: { kvDtype: 'f16' },
+      },
+    },
+    decode: [],
+    prefill: [
+      ['attention', 'attn_small'],
+    ],
+    postLayer: [],
+    policies: { unsupportedPrecision: 'error' },
+  };
+
+  const result = narrowToF16Activations(graph, { ...CTX_F16, capabilities: { hasF16: true } });
+  ok(result !== null, 'head256 prefill: narrowToF16Activations should remap the baked head256 kernel');
+  equal(result.kernels.attn_small.kernel, 'attention_small_f16.wgsl',
+    'head256 prefill: narrowToF16Activations should remap to attention_small_f16.wgsl');
+  equal(result.kernels.attn_small.digest, null,
+    'head256 prefill: remapped kernel digest should be cleared');
 }
 
 // ===========================================================================

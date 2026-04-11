@@ -85,9 +85,19 @@
       "match": {
         "hasGpuSplitPerLayerInputs": true
       },
-      "value": 4
+      "value": 8
     },
     { "match": {}, "value": null }
+  ],
+  "prefillRecorderChunkLayers": [
+    {
+      "match": {
+        "hasGpuSplitPerLayerInputs": true,
+        "numTokens": { "lte": 32 }
+      },
+      "value": 8
+    },
+    { "match": {}, "value": 4 }
   ],
   "finitenessFallbackActivationDtype": [
     { "match": {}, "value": "f32" }

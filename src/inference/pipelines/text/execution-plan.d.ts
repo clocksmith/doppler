@@ -127,6 +127,11 @@ export declare function resolveMaxBatchDecodeTokens(config: {
   hasLinearAttentionLayers?: boolean;
 }): number | null;
 
+export declare function resolvePrefillRecorderChunkLayers(config: {
+  hasGpuSplitPerLayerInputs?: boolean;
+  numTokens: number;
+}): number;
+
 export declare function isDecodeRecorderEnabled(config: {
   hasDevice: boolean;
   debug: boolean;
