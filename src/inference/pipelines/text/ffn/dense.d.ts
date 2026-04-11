@@ -49,6 +49,22 @@ export declare function resolveDenseFFNMatmulStepDtype(options?: {
   } | null;
 }): 'f16' | 'f32' | null;
 
+export declare function resolveDenseFFNFusedPathDtypes(options?: {
+  phase?: 'prefill' | 'decode' | null;
+  layerIdx?: number;
+  kernelPath?: Record<string, unknown> | null;
+  fallbackInputDtype?: 'f16' | 'f32' | null;
+  fallbackOutputDtype?: 'f16' | 'f32' | null;
+  ffnStepPrecision?: {
+    inputDtype?: 'f16' | 'f32' | null;
+    outputDtype?: 'f16' | 'f32' | null;
+  } | null;
+}): {
+  fusedGateUpInputDtype: 'f16' | 'f32' | null;
+  fusedGateUpOutputDtype: 'f16' | 'f32' | null;
+  downInputDtype: 'f16' | 'f32' | null;
+};
+
 /**
  * Run dense (non-MoE) FFN on GPU.
  */

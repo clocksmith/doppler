@@ -5,7 +5,11 @@ const {
   buildLayerPipelineFromExecution,
 } = await import('../../src/inference/pipelines/text/execution-runtime-builders.js');
 const { getKernelPathMatmulPrecision } = await import('../../src/config/kernel-path-loader.js');
-const { resolveDenseFFNMatmulStepDtype } = await import('../../src/inference/pipelines/text/ffn/dense.js');
+const {
+  resolveGateUpPathMode,
+  resolveDenseFFNMatmulStepDtype,
+  resolveDenseFFNFusedPathDtypes,
+} = await import('../../src/inference/pipelines/text/ffn/dense.js');
 
 {
   const pipeline = buildLayerPipelineFromExecution(
@@ -147,6 +151,99 @@ const { resolveDenseFFNMatmulStepDtype } = await import('../../src/inference/pip
     }),
     'f32',
     'explicit role precision must override the fused ffn step fallback'
+  );
+}
+
+{
+  const fusedQwenLikeKernelPath = {
+    id: 'fused-qwen-like',
+    decode: {
+      steps: [
+        {
+          op: 'gate_proj',
+          kernel: 'matmul_gemv_subgroup_f16a.wgsl',
+          entry: 'main_multicol',
+          precision: {
+            inputDtype: 'f16',
+            outputDtype: 'f16',
+          },
+        },
+        {
+          op: 'up_proj',
+          kernel: 'matmul_gemv_subgroup_f16a.wgsl',
+          entry: 'main_multicol',
+          precision: {
+            inputDtype: 'f16',
+            outputDtype: 'f16',
+          },
+        },
+        {
+          op: 'down_proj',
+          kernel: 'matmul_gemv_subgroup_f16a.wgsl',
+          entry: 'main_multicol',
+          precision: {
+            inputDtype: 'f16',
+            outputDtype: 'f16',
+          },
+        },
+      ],
+    },
+    prefill: {
+      steps: [
+        {
+          op: 'gate_proj',
+          kernel: 'fused_matmul_q4_batched_f16a.wgsl',
+          entry: 'main_batched_f16a',
+          precision: {
+            inputDtype: 'f16',
+            outputDtype: 'f16',
+          },
+        },
+        {
+          op: 'up_proj',
+          kernel: 'fused_matmul_q4_batched_f16a.wgsl',
+          entry: 'main_batched_f16a',
+          precision: {
+            inputDtype: 'f16',
+            outputDtype: 'f16',
+          },
+        },
+        {
+          op: 'down_proj',
+          kernel: 'fused_matmul_q4_batched_f16a.wgsl',
+          entry: 'main_batched_f16a',
+          precision: {
+            inputDtype: 'f16',
+            outputDtype: 'f16',
+          },
+        },
+      ],
+    },
+  };
+
+  assert.deepEqual(
+    resolveDenseFFNFusedPathDtypes({
+      phase: 'prefill',
+      layerIdx: 0,
+      kernelPath: fusedQwenLikeKernelPath,
+      fallbackInputDtype: 'f32',
+      fallbackOutputDtype: 'f32',
+    }),
+    {
+      fusedGateUpInputDtype: 'f16',
+      fusedGateUpOutputDtype: 'f32',
+      downInputDtype: 'f16',
+    },
+    'fused FFN path should infer f16 gate/up input and f16 down input even when ffn_gate_up precision is implicit'
+  );
+  assert.equal(
+    resolveGateUpPathMode({
+      phase: 'prefill',
+      layerIdx: 0,
+      kernelPath: fusedQwenLikeKernelPath,
+    }),
+    'split',
+    'explicit FFN step precision should force the split gate/up path'
   );
 }
 

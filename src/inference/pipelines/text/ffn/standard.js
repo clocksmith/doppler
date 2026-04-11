@@ -89,7 +89,12 @@ export async function processFFNStandard(
   const residualTensor = prenormSumBuffer
     ? { buffer: prenormSumBuffer, dtype: postAttn.dtype, shape: postAttn.shape }
     : postAttn;
-  const output = await doResidualAdd(ffnOutput, residualTensor, size, recorder, {
+  let residualInput = ffnOutput;
+  const residualInputOwned = ffnOutput.dtype !== residualTensor.dtype;
+  if (residualInputOwned) {
+    residualInput = await doCast(ffnOutput, residualTensor.dtype, recorder);
+  }
+  const output = await doResidualAdd(residualInput, residualTensor, size, recorder, {
     label: `L${layerIdx}.ffn_residual`,
     layerIdx,
     outputBuffer: decodeOutputBuffer,
@@ -111,6 +116,9 @@ export async function processFFNStandard(
   releaseOrTrack(recorder, postAttn.buffer, decodeBuffers);
   if (prenormSumBuffer) {
     releaseOrTrack(recorder, prenormSumBuffer, decodeBuffers);
+  }
+  if (residualInputOwned) {
+    releaseOrTrack(recorder, residualInput.buffer, decodeBuffers);
   }
   releaseOrTrack(recorder, ffnOutput.buffer, decodeBuffers);
 
