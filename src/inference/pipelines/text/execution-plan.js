@@ -66,6 +66,36 @@ function resolveFallbackActivationDtype(primaryActivationDtype) {
   return fallbackActivationDtype;
 }
 
+function stepUsesF16Execution(step) {
+  if (!step || typeof step !== 'object') {
+    return false;
+  }
+  const precision = step.precision ?? null;
+  if (
+    precision?.activationDtype === 'f16'
+    || precision?.inputDtype === 'f16'
+    || precision?.outputDtype === 'f16'
+    || precision?.kvDtype === 'f16'
+  ) {
+    return true;
+  }
+  return String(step.kernel ?? '').includes('_f16');
+}
+
+function kernelPathUsesF16Execution(kernelPath) {
+  const stepLists = [
+    kernelPath?.decode?.steps,
+    kernelPath?.prefill?.steps,
+    kernelPath?.preLayer,
+    kernelPath?.postLayer,
+    kernelPath?.sampling,
+  ];
+  for (const override of kernelPath?.layerOverrides ?? []) {
+    stepLists.push(override?.steps, override?.decode?.steps, override?.prefill?.steps);
+  }
+  return stepLists.some((steps) => Array.isArray(steps) && steps.some((step) => stepUsesF16Execution(step)));
+}
+
 function createStaticExecutionPlan({
   id,
   source,
@@ -201,9 +231,11 @@ export function compileExecutionPlanState(options) {
     generationConfig,
     batchingConfig,
   });
+  const primaryUsesF16Execution = primaryPlan.activationDtype === 'f16'
+    || kernelPathUsesF16Execution(resolvedKernelPath);
 
   let fallbackPlan = null;
-  if (primaryPlan.finitenessGuardEnabled && primaryPlan.finitenessOnTrigger === 'fallback-plan') {
+  if (primaryUsesF16Execution && primaryPlan.finitenessOnTrigger === 'fallback-plan') {
     const fallbackActivationDtype = resolveFallbackActivationDtype(primaryPlan.activationDtype);
     if (fallbackActivationDtype !== 'f32') {
       throw new Error(

@@ -58,6 +58,14 @@ export function resolveAttentionProjectionOutputDtype(
   attentionInputDtype: string,
   options?: { forceF32?: boolean }
 ): 'f16' | 'f32' | string;
+export function resolveProjectionMatmulDtype(options: {
+  useFusedQKV: boolean;
+  phase: 'prefill' | 'decode';
+  layerIdx: number;
+  kernelPath: Record<string, unknown> | null | undefined;
+  precisionField: 'inputDtype' | 'outputDtype';
+  fallbackDtype: 'f16' | 'f32' | string | null | undefined;
+}): 'f16' | 'f32' | string | null | undefined;
 export function resolveProjectionSliceOffsetBytes(
   weightBuffer: WeightBuffer | Tensor | GPUBuffer | null | undefined,
   outputRows: number,

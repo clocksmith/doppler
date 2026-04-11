@@ -471,11 +471,16 @@ export function compileExecutionV1(options = {}) {
   // KV cache and all compute dtypes must also be f32.
   const activationWidened = appliedTransformNames.includes('widenToF32Activations');
   const fullF32 = activationWidened && capabilities?.hasF16 === false;
+  const useQwenSelectiveF16Primary =
+    appliedTransformNames.includes('useQwenF16PrimaryMatmuls')
+    && !appliedTransformNames.includes('narrowToF16Activations');
   let effectiveSession = session;
-  if (activationWidened) {
+  if (activationWidened || useQwenSelectiveF16Primary) {
     const f32Defaults = fullF32
       ? { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' }
-      : { activationDtype: 'f32' };
+      : useQwenSelectiveF16Primary
+        ? { activationDtype: 'f32', outputDtype: 'f32' }
+        : { activationDtype: 'f32' };
     effectiveSession = {
       ...session,
       compute: {

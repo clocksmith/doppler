@@ -5,10 +5,9 @@
         "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
         "activationDtype": "f16",
         "hasSubgroups": true,
-        "hasF16": true,
-        "requiresF16ActivationNarrowing": true
+        "hasF16": true
       },
-      "transforms": ["narrowToF16Activations", "useQwenF16PrimaryMatmuls"],
+      "transforms": ["useQwenF16PrimaryMatmuls"],
       "reason": "Runtime requested the promoted f16 primary lane for Qwen 3.5 0.8B"
     },
     {

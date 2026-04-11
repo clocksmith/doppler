@@ -35,6 +35,25 @@ const minimalFallbackKernelPath = {
   prefill: { steps: [{ op: 'noop', kernel: 'noop.wgsl' }] },
 };
 
+const mixedPrecisionKernelPath = {
+  id: 'qwen-selective-f16-primary',
+  name: 'qwen-selective-f16-primary',
+  activationDtype: 'f32',
+  kvDtype: 'f16',
+  decode: {
+    steps: [
+      { op: 'q_proj', kernel: 'fused_matmul_q4_multicol_f16a.wgsl', precision: { inputDtype: 'f16', outputDtype: 'f16' } },
+      { op: 'attention', kernel: 'attention_decode_online_f16.wgsl', precision: { activationDtype: 'f16', kvDtype: 'f16' } },
+    ],
+  },
+  prefill: {
+    steps: [
+      { op: 'q_proj', kernel: 'fused_matmul_q4_batched_f16a.wgsl', precision: { inputDtype: 'f16', outputDtype: 'f16' } },
+      { op: 'attention', kernel: 'attention_streaming_f16.wgsl', precision: { activationDtype: 'f16', kvDtype: 'f16' } },
+    ],
+  },
+};
+
 function createRuntimeConfig(activationDtype = 'f16', maxTokens = 256) {
   const runtimeConfig = createDopplerConfig().runtime;
   runtimeConfig.inference.compute.activationDtype = activationDtype;
@@ -280,6 +299,22 @@ const container = { executionPlanState: planState };
   assert.equal(hasFallbackExecutionPlan(noFallbackPlanState), false);
   assert.equal(activateFallbackExecutionPlan(noFallbackPlanState), null);
   assert.equal(resolveActiveExecutionPlan(noFallbackPlanState).id, 'primary');
+}
+
+{
+  const runtimeConfigSelectiveF16 = createRuntimeConfig('f32');
+  runtimeConfigSelectiveF16.inference.compute.rangeAwareSelectiveWidening.onTrigger = 'fallback-plan';
+  const selectivePlanState = compileExecutionPlanState({
+    runtimeConfig: runtimeConfigSelectiveF16,
+    resolvedKernelPath: mixedPrecisionKernelPath,
+    fallbackKernelPath: minimalFallbackKernelPath,
+    kernelPathSource: 'execution-v1',
+  });
+
+  assert.equal(selectivePlanState.primaryPlan.activationDtype, 'f32');
+  assert.equal(selectivePlanState.primaryPlan.finitenessGuardEnabled, false);
+  assert.equal(hasFallbackExecutionPlan(selectivePlanState), true);
+  assert.equal(selectivePlanState.fallbackPlan?.kernelPathId, minimalFallbackKernelPath.id);
 }
 
 {

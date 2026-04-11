@@ -708,6 +708,15 @@ export async function runDenseFFNGPU(
     'outputDtype',
     ffnStepPrecision
   );
+  const downInputDtype = resolveMatmulStepDtype(
+    'ffn_down',
+    phase,
+    layerIdx,
+    kernelPath,
+    downOutputDtype,
+    'inputDtype',
+    ffnStepPrecision
+  );
   const sharedInputDtype = gateInputDtype === upInputDtype ? gateInputDtype : null;
   let sharedInputTensor = inputTensor;
   let sharedInputOwned = false;
@@ -853,8 +862,18 @@ export async function runDenseFFNGPU(
   }
 
   const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
+  let downInputTensor = activatedOutput;
+  let downInputOwned = false;
+  if (downInputDtype && activatedOutput.dtype !== downInputDtype) {
+    downInputTensor = await coerceTensorDtype(activatedOutput, downInputDtype, recorder, {
+      executionPolicies: context.executionPolicies ?? null,
+      op: 'ffn_down_input',
+      transitionDeclaredBy: 'step_precision',
+    });
+    downInputOwned = downInputTensor !== activatedOutput;
+  }
   let output = await doMatmul(
-    activatedOutput,
+    downInputTensor,
     downWeight,
     numTokens,
     hiddenSize,
@@ -874,7 +893,7 @@ export async function runDenseFFNGPU(
   const loraDown = getLoRAModule(lora, layerIdx, 'down_proj');
   if (loraDown) {
     const combined = await applyLoRA(
-      activatedOutput,
+      downInputTensor,
       output,
       loraDown,
       { M: numTokens, N: hiddenSize, K: intermediateSize },
@@ -903,6 +922,13 @@ export async function runDenseFFNGPU(
 
   if (!(layerWeights.down instanceof GPUBuffer) && !isWeightBuffer(layerWeights.down)) {
     releaseOrTrack(recorder, isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
+  }
+  if (downInputOwned) {
+    if (recorder) {
+      recorder.trackTemporaryBuffer(downInputTensor.buffer);
+    } else {
+      releaseBuffer(downInputTensor.buffer);
+    }
   }
   if (recorder) {
     recorder.trackTemporaryBuffer(activatedOutput.buffer);

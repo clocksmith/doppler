@@ -9,10 +9,15 @@ import {
   recordSplitQG,
   runRMSNorm,
   recordRMSNorm,
+  castF16ToF32,
+  castF32ToF16,
+  recordCastF16ToF32,
+  recordCastF32ToF16,
 } from '../../../../gpu/kernel-selector.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { QK_K, Q4K_BLOCK_BYTES } from '../../../../config/schema/index.js';
+import { getKernelPathMatmulPrecision } from '../../../../config/kernel-path-loader.js';
 import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
 import { getQKNormOnesBuffer } from './types.js';
@@ -54,6 +59,83 @@ function releaseOwnedWeightBuffer(layerWeight, resolvedWeightBuffer, releaseTemp
   }
   const buffer = isWeightBuffer(resolvedWeightBuffer) ? resolvedWeightBuffer.buffer : resolvedWeightBuffer;
   releaseTemporary(buffer);
+}
+
+function normalizeProjectionMatmulDtype(value, precisionField = 'dtype') {
+  if (value == null || value === '') {
+    return null;
+  }
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized !== 'f16' && normalized !== 'f32') {
+    throw new Error(
+      `[ExecutionV1] attention projection ${precisionField} must be "f16" or "f32"; got "${value}".`
+    );
+  }
+  return normalized;
+}
+
+async function coerceProjectionInputTensor(recorder, tensor, targetDtype) {
+  if (!targetDtype || tensor.dtype === targetDtype) {
+    return tensor;
+  }
+  if (targetDtype === 'f16') {
+    return recorder
+      ? recordCastF32ToF16(recorder, tensor)
+      : castF32ToF16(tensor);
+  }
+  return recorder
+    ? recordCastF16ToF32(recorder, tensor)
+    : castF16ToF32(tensor);
+}
+
+export function resolveProjectionMatmulDtype({
+  useFusedQKV,
+  phase,
+  layerIdx,
+  kernelPath,
+  precisionField,
+  fallbackDtype,
+}) {
+  const roles = useFusedQKV ? ['qkv_proj'] : ['q_proj', 'k_proj', 'v_proj'];
+  const explicitInputDtypes = roles
+    .map((role) => normalizeProjectionMatmulDtype(
+      getKernelPathMatmulPrecision(role, phase, layerIdx, kernelPath)?.[precisionField] ?? null,
+      precisionField
+    ))
+    .filter(Boolean);
+  if (explicitInputDtypes.length === 0) {
+    return fallbackDtype;
+  }
+  const [resolvedInputDtype] = explicitInputDtypes;
+  if (explicitInputDtypes.some((dtype) => dtype !== resolvedInputDtype)) {
+    throw new Error(
+      `[ExecutionV1] attention projection steps resolved conflicting ${precisionField} values at layer ${layerIdx}: ` +
+      `${explicitInputDtypes.join(', ')}.`
+    );
+  }
+  return resolvedInputDtype;
+}
+
+function resolveProjectionInputDtype({ useFusedQKV, phase, layerIdx, kernelPath, fallbackDtype }) {
+  return resolveProjectionMatmulDtype({
+    useFusedQKV,
+    phase,
+    layerIdx,
+    kernelPath,
+    precisionField: 'inputDtype',
+    fallbackDtype,
+  });
+}
+
+function resolveProjectionOutputDtype({ useFusedQKV, phase, layerIdx, kernelPath, fallbackDtype }) {
+  return resolveProjectionMatmulDtype({
+    useFusedQKV,
+    phase,
+    layerIdx,
+    kernelPath,
+    precisionField: 'outputDtype',
+    fallbackDtype,
+  });
 }
 
 async function projectSingleQkvTensor({
@@ -368,18 +450,39 @@ export async function projectAttentionQKV({
     hasQkvSizes: Boolean(layerWeights.qkvSizes),
     hasLoRA: Boolean(hasLoRA),
   });
+  const phase = numTokens === 1 ? 'decode' : 'prefill';
+  const projectionInputDtype = resolveProjectionInputDtype({
+    useFusedQKV,
+    phase,
+    layerIdx,
+    kernelPath,
+    fallbackDtype: normed.dtype,
+  });
+  const projectionOutputDtype = resolveProjectionOutputDtype({
+    useFusedQKV,
+    phase,
+    layerIdx,
+    kernelPath,
+    fallbackDtype: matmulOutputDtype,
+  });
+  let projectionInput = normed;
+  let projectionInputOwned = false;
+  if (projectionInputDtype && projectionInputDtype !== normed.dtype) {
+    projectionInput = await coerceProjectionInputTensor(recorder, normed, projectionInputDtype);
+    projectionInputOwned = projectionInput !== normed;
+  }
 
   if (useFusedQKV && layerWeights.qkvProj && layerWeights.qkvSizes) {
     const [qSizeFused, kSizeFused, vSizeFused] = layerWeights.qkvSizes;
     const qkvSizeTotal = qSizeFused + kSizeFused + vSizeFused;
     let qkvTensor = null;
     try {
-      qkvTensor = await runMatmulForMode(normed, layerWeights.qkvProj, numTokens, qkvSizeTotal, hiddenSize, {
+      qkvTensor = await runMatmulForMode(projectionInput, layerWeights.qkvProj, numTokens, qkvSizeTotal, hiddenSize, {
         transposeB: 'auto',
         role: 'qkv_proj',
         layerIdx,
         kernelPath,
-        outputDtype: matmulOutputDtype,
+        outputDtype: projectionOutputDtype,
         matmulDebug,
         executionPolicies,
       });
@@ -399,6 +502,10 @@ export async function projectAttentionQKV({
         releaseTemporary(qkvTensor.buffer);
       }
       throw error;
+    } finally {
+      if (projectionInputOwned) {
+        releaseTemporary(projectionInput.buffer);
+      }
     }
   }
 
@@ -409,7 +516,7 @@ export async function projectAttentionQKV({
   try {
     ({ qTensor, qGateTensor } = await projectQueryWithOptionalGate({
       recorder,
-      normed,
+      normed: projectionInput,
       layerWeights,
       numTokens,
       numHeads,
@@ -417,7 +524,7 @@ export async function projectAttentionQKV({
       hiddenSize,
       layerIdx,
       kernelPath,
-      matmulOutputDtype,
+      matmulOutputDtype: projectionOutputDtype,
       getWeightBuffer,
       lora,
       matmulDebug,
@@ -438,7 +545,7 @@ export async function projectAttentionQKV({
 
     kTensor = await projectSingleQkvTensor({
       recorder,
-      normed,
+      normed: projectionInput,
       layerWeights,
       weightKey: 'kProj',
       role: 'k_proj',
@@ -449,7 +556,7 @@ export async function projectAttentionQKV({
       hiddenSize,
       layerIdx,
       kernelPath,
-      matmulOutputDtype,
+      matmulOutputDtype: projectionOutputDtype,
       getWeightBuffer,
       lora,
       matmulDebug,
@@ -459,7 +566,7 @@ export async function projectAttentionQKV({
 
     vTensor = await projectSingleQkvTensor({
       recorder,
-      normed,
+      normed: projectionInput,
       layerWeights,
       weightKey: 'vProj',
       role: 'v_proj',
@@ -470,7 +577,7 @@ export async function projectAttentionQKV({
       hiddenSize,
       layerIdx,
       kernelPath,
-      matmulOutputDtype,
+      matmulOutputDtype: projectionOutputDtype,
       getWeightBuffer,
       lora,
       matmulDebug,
@@ -491,6 +598,10 @@ export async function projectAttentionQKV({
       }
     }
     throw error;
+  } finally {
+    if (projectionInputOwned) {
+      releaseTemporary(projectionInput.buffer);
+    }
   }
 }
 

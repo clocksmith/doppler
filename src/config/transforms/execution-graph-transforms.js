@@ -37,6 +37,9 @@ const KERNEL_FILE_PRECISION_PATCHES = new Map([
   ['matmul_f16_tiled.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
   ['fused_matmul_q4_multicol_f16.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
   ['fused_matmul_q4_multicol_f16a.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
+  ['fused_matmul_q4.wgsl', { inputDtype: 'f32', outputDtype: 'f32' }],
+  ['fused_matmul_q4_batched.wgsl', { inputDtype: 'f32', outputDtype: 'f32' }],
+  ['fused_matmul_q4_batched_multicol_shared.wgsl', { inputDtype: 'f32', outputDtype: 'f32' }],
   ['matmul_gemv_subgroup.wgsl', { inputDtype: 'f32', outputDtype: 'f32' }],
   ['matmul_f16w_f32a.wgsl', { inputDtype: 'f32', outputDtype: 'f32' }],
   ['matmul_f16w_f32a_tiled.wgsl', { inputDtype: 'f32', outputDtype: 'f32' }],
@@ -117,13 +120,18 @@ function deriveKernelPrecision(base, newFile) {
   if (!String(newFile).startsWith('attention')) {
     return Object.keys(precision).length > 0 ? precision : null;
   }
-  if (newFile.includes('_f16kv') || newFile.includes('_f16')) {
+  if (newFile.includes('_f16kv')) {
+    precision.activationDtype = 'f32';
     precision.kvDtype = 'f16';
     return precision;
   }
-  if (precision.kvDtype !== undefined) {
-    precision.kvDtype = 'f32';
+  if (newFile.includes('_f16')) {
+    precision.activationDtype = 'f16';
+    precision.kvDtype = 'f16';
+    return precision;
   }
+  precision.activationDtype = 'f32';
+  precision.kvDtype = 'f32';
   return precision;
 }
 
@@ -294,6 +302,27 @@ function deriveKernelEntryWithPrecision(base, precision) {
   };
 }
 
+const ATTENTION_F16KV_TO_F16_MAP = new Map([
+  ['attention_decode_online_f16kv.wgsl', 'attention_decode_online_f16.wgsl'],
+  ['attention_decode_chunked_f16kv.wgsl', 'attention_decode_chunked_f16.wgsl'],
+  ['attention_small_f16kv.wgsl', 'attention_small_f16.wgsl'],
+  ['attention_streaming_f16kv.wgsl', 'attention_streaming_f16.wgsl'],
+]);
+
+function deriveF16AttentionKernelEntry(base) {
+  if (typeof base?.kernel !== 'string') {
+    return null;
+  }
+  const replacement = ATTENTION_F16KV_TO_F16_MAP.get(base.kernel);
+  if (!replacement) {
+    return null;
+  }
+  return deriveKernelEntryWithPrecision(
+    deriveKernelEntry(base, replacement, base.entry),
+    { activationDtype: 'f16', kvDtype: 'f16' }
+  );
+}
+
 function deriveLinearDecodeF16KernelEntry(base) {
   const precision = {
     inputDtype: 'f16',
@@ -381,6 +410,48 @@ function deriveQ4PrefillF16KernelEntry(base) {
     };
   }
   return null;
+}
+
+function deriveQ4DecodeF32ActivationKernelEntry(base) {
+  if (typeof base?.kernel !== 'string') {
+    return null;
+  }
+  const precision = {
+    inputDtype: 'f32',
+    outputDtype: 'f32',
+  };
+  if (
+    base.kernel === 'fused_matmul_q4_multicol_f16.wgsl'
+    || base.kernel === 'fused_matmul_q4_multicol_f16a.wgsl'
+  ) {
+    return deriveKernelEntryWithPrecision(
+      deriveKernelEntry(base, 'fused_matmul_q4.wgsl', 'main_multicol', null),
+      precision
+    );
+  }
+  if (base.kernel === 'fused_matmul_q4_f16a.wgsl') {
+    return deriveKernelEntryWithPrecision(
+      deriveKernelEntry(base, 'fused_matmul_q4.wgsl', 'main', null),
+      precision
+    );
+  }
+  return null;
+}
+
+function deriveQ4PrefillF32ActivationKernelEntry(base) {
+  if (typeof base?.kernel !== 'string') {
+    return null;
+  }
+  if (
+    base.kernel !== 'fused_matmul_q4_batched_f16.wgsl'
+    && base.kernel !== 'fused_matmul_q4_batched_f16a.wgsl'
+  ) {
+    return null;
+  }
+  return deriveKernelEntryWithPrecision(
+    deriveKernelEntry(base, 'fused_matmul_q4_batched.wgsl', 'main_batched', null),
+    { inputDtype: 'f32', outputDtype: 'f32' }
+  );
 }
 
 function replacePhaseStepEntries(steps, op, replacementEntries) {
@@ -642,6 +713,12 @@ export function widenToF32Activations(graph, ctx) {
   const result = cloneGraph(graph);
 
   for (const [key, entry] of Object.entries(result.kernels)) {
+    const q4FallbackEntry = deriveQ4DecodeF32ActivationKernelEntry(entry)
+      ?? deriveQ4PrefillF32ActivationKernelEntry(entry);
+    if (q4FallbackEntry) {
+      result.kernels[key] = q4FallbackEntry;
+      continue;
+    }
     const replacement = shaderMap.get(entry.kernel);
     if (replacement !== undefined) {
       result.kernels[key] = deriveKernelEntry(entry, replacement, entry.entry);
@@ -673,6 +750,12 @@ export function widenToF32CorrectnessFallback(graph, ctx) {
 
   const result = cloneGraph(graph);
   for (const [key, entry] of Object.entries(result.kernels)) {
+    const q4FallbackEntry = deriveQ4DecodeF32ActivationKernelEntry(entry)
+      ?? deriveQ4PrefillF32ActivationKernelEntry(entry);
+    if (q4FallbackEntry) {
+      result.kernels[key] = q4FallbackEntry;
+      continue;
+    }
     const replacement = F16_TO_F32_CORRECTNESS_FALLBACK_MAP.get(entry.kernel);
     if (replacement !== undefined) {
       result.kernels[key] = deriveKernelEntry(entry, replacement, entry.entry);
@@ -1515,6 +1598,24 @@ export function useQwenF16PrimaryMatmuls(graph, ctx) {
 
   const result = cloneGraph(graph);
   let changed = false;
+
+  for (const [phaseName, op] of [['decode', 'attention'], ['prefill', 'attention']]) {
+    const phaseSteps = result[phaseName] || [];
+    const step = phaseSteps.find((entry) => Array.isArray(entry) && entry[0] === op);
+    const kernelKey = step?.[1];
+    const kernelEntry = kernelKey ? result.kernels[kernelKey] : null;
+    const derivedEntry = deriveF16AttentionKernelEntry(kernelEntry);
+    if (!step || !kernelKey || !derivedEntry) {
+      continue;
+    }
+    const derivedKey = deriveKernelKey(result.kernels, kernelKey, '_primary_f16');
+    result.kernels[derivedKey] = derivedEntry;
+    const phaseResult = replacePhaseStepKernelKey(phaseSteps, op, derivedKey);
+    if (phaseResult.changed) {
+      result[phaseName] = phaseResult.steps;
+      changed = true;
+    }
+  }
 
   const decodeProjectionStep = (result.decode || []).find((entry) => Array.isArray(entry) && entry[0] === 'q_proj');
   const decodeProjectionKernel = decodeProjectionStep ? result.kernels[decodeProjectionStep[1]] : null;

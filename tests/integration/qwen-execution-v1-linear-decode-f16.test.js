@@ -45,12 +45,13 @@ const compiled = compileExecutionV1({
 
 assert.deepEqual(
   compiled.appliedTransforms,
-  ['narrowToF16Activations', 'useQwenF16PrimaryMatmuls']
+  ['useQwenF16PrimaryMatmuls']
 );
 
 const kernelPath = compiled.runtimeInferencePatch.kernelPath;
 assert.ok(kernelPath, 'execution-v1 compile should build an inline kernel path');
-assert.equal(kernelPath.activationDtype, 'f16');
+assert.equal(compiled.runtimeInferencePatch.compute?.activationDtype, 'f32');
+assert.equal(kernelPath.activationDtype, 'f32');
 assert.equal(kernelPath.kvDtype, 'f16');
 
 assert.equal(
@@ -63,7 +64,7 @@ assert.equal(
 );
 assert.equal(
   kernelPath.decode.steps.find((step) => step.op === 'down_proj')?.kernel,
-  'matmul_gemv_subgroup_f16a.wgsl'
+  'matmul_gemv_subgroup.wgsl'
 );
 assert.equal(
   kernelPath.prefill.steps.find((step) => step.op === 'q_proj')?.kernel,
@@ -72,6 +73,10 @@ assert.equal(
 assert.equal(
   kernelPath.prefill.steps.find((step) => step.op === 'attention')?.kernel,
   'attention_streaming_f16.wgsl'
+);
+assert.equal(
+  kernelPath.prefill.steps.find((step) => step.op === 'attention')?.precision?.activationDtype,
+  'f16'
 );
 assert.equal(
   kernelPath.postLayer.find((step) => step.op === 'lm_head')?.kernel,
@@ -102,5 +107,46 @@ const fullPrefillOProj = fullPrefillSteps.find((step) => step.op === 'o_proj');
 assert.equal(fullPrefillOProj?.kernel, 'fused_matmul_q4_batched_f16a.wgsl');
 assert.equal(fullPrefillOProj?.precision?.inputDtype, 'f16');
 assert.equal(fullPrefillOProj?.precision?.outputDtype, 'f16');
+
+const compiledWithFallbackPlan = compileExecutionV1({
+  manifestInference,
+  modelId: conversionConfig.output.modelBaseId,
+  numLayers: conversionConfig.inference.layerPattern.layerTypes.length,
+  runtimeCompute: {
+    activationDtype: 'f16',
+    rangeAwareSelectiveWidening: {
+      enabled: true,
+      includeNonFinite: true,
+      absThreshold: 65500,
+      onTrigger: 'fallback-plan',
+    },
+  },
+  kernelPathPolicy: {
+    mode: 'capability-aware',
+    sourceScope: ['model', 'manifest', 'config'],
+    allowSources: ['model', 'manifest', 'config'],
+    onIncompatible: 'remap',
+  },
+  capabilities: {
+    hasSubgroups: true,
+    hasF16: true,
+    maxWorkgroupStorageSize: 32768,
+  },
+  platform: {
+    id: 'metal',
+    vendor: 'apple',
+    architecture: 'metal-3',
+  },
+});
+
+assert.ok(compiledWithFallbackPlan.fallbackKernelPath, 'f16 Qwen compile should build a finiteness fallback kernel path');
+assert.equal(compiledWithFallbackPlan.runtimeInferencePatch.compute?.activationDtype, 'f32');
+assert.equal(compiledWithFallbackPlan.fallbackKernelPath.activationDtype, 'f32');
+const fallbackDecodeAttention = compiledWithFallbackPlan.fallbackKernelPath.decode.steps.find((step) => step.op === 'attention');
+assert.ok(fallbackDecodeAttention, 'fallback kernel path should include decode attention');
+if (fallbackDecodeAttention.kernel.includes('_f16kv')) {
+  assert.equal(fallbackDecodeAttention.precision?.activationDtype, 'f32');
+  assert.equal(compiledWithFallbackPlan.fallbackKernelPath.kvDtype, 'f16');
+}
 
 console.log('qwen-execution-v1-linear-decode-f16.test: ok');

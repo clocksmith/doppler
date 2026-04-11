@@ -356,6 +356,8 @@ function buildF16WeightProjectionGraph() {
 // ===========================================================================
 {
   const graph = buildF16ActivationGraph();
+  graph.kernels.attn_decode.precision = { activationDtype: 'f16', kvDtype: 'f16' };
+  graph.kernels.attn_stream.precision = { activationDtype: 'f16', kvDtype: 'f16' };
   const frozen = structuredClone(graph);
   const result = widenToF32Activations(graph, CTX_F16);
 
@@ -384,6 +386,16 @@ function buildF16WeightProjectionGraph() {
     'attention_decode_chunked_f16 -> attention_decode_chunked_f16kv');
   equal(result.kernels.attn_stream.kernel, 'attention_streaming_f16kv.wgsl',
     'attention_streaming_f16 -> attention_streaming_f16kv');
+  deepEqual(
+    result.kernels.attn_decode.precision,
+    { activationDtype: 'f32', kvDtype: 'f16' },
+    'attention_decode_chunked_f16 -> attention_decode_chunked_f16kv should rewrite activation precision to f32'
+  );
+  deepEqual(
+    result.kernels.attn_stream.precision,
+    { activationDtype: 'f32', kvDtype: 'f16' },
+    'attention_streaming_f16 -> attention_streaming_f16kv should rewrite activation precision to f32'
+  );
 
   // Original must not be mutated
   deepEqual(graph, frozen, 'widenToF32Activations must not mutate the input graph');
@@ -910,14 +922,12 @@ function buildF16WeightProjectionGraph() {
     );
     deepEqual(
       r.names,
-      ['narrowToF16Activations', 'useQwenF16PrimaryMatmuls'],
+      ['useQwenF16PrimaryMatmuls'],
       'Qwen 3.5 0.8B on capable GPU with runtime f16 request: should resolve promoted f16 transforms'
     );
-    equal(r.transforms.length, 2, 'Qwen 3.5 0.8B runtime f16 request: two transform functions');
-    equal(r.transforms[0], narrowToF16Activations,
-      'Qwen 3.5 0.8B runtime f16 request: first transform is narrowToF16Activations');
-    equal(r.transforms[1], useQwenF16PrimaryMatmuls,
-      'Qwen 3.5 0.8B runtime f16 request: second transform is useQwenF16PrimaryMatmuls');
+    equal(r.transforms.length, 1, 'Qwen 3.5 0.8B runtime f16 request: one transform function');
+    equal(r.transforms[0], useQwenF16PrimaryMatmuls,
+      'Qwen 3.5 0.8B runtime f16 request: transform is useQwenF16PrimaryMatmuls');
   }
 
   {
@@ -1142,6 +1152,57 @@ function buildF16WeightProjectionGraph() {
 
 // ===========================================================================
 // Test 18: digest is nulled on modified kernels
+// ===========================================================================
+{
+  const graph = {
+    kernels: {
+      q_decode: {
+        kernel: 'fused_matmul_q4_multicol_f16a.wgsl',
+        entry: 'main_multicol_f16a',
+        digest: 'sha256:qdec',
+        precision: { inputDtype: 'f16', outputDtype: 'f16' },
+      },
+      q_prefill: {
+        kernel: 'fused_matmul_q4_batched_f16a.wgsl',
+        entry: 'main_batched_f16a',
+        digest: 'sha256:qpref',
+        precision: { inputDtype: 'f16', outputDtype: 'f16' },
+      },
+      attn_decode: {
+        kernel: 'attention_decode_chunked_f16.wgsl',
+        entry: 'main',
+        digest: 'sha256:attn',
+        precision: { activationDtype: 'f16', kvDtype: 'f16' },
+      },
+    },
+    decode: [
+      ['q_proj', 'q_decode'],
+      ['attention', 'attn_decode'],
+    ],
+    prefill: [
+      ['q_proj', 'q_prefill'],
+    ],
+    policies: { unsupportedPrecision: 'error' },
+  };
+
+  const result = widenToF32Activations(graph, CTX_F16);
+  ok(result !== null, 'q4 widening: widenToF32Activations should widen fused q4 f16a kernels');
+  equal(result.kernels.q_decode.kernel, 'fused_matmul_q4.wgsl',
+    'q4 widening: decode fused q4 f16a should widen back to fused_matmul_q4.wgsl');
+  equal(result.kernels.q_decode.entry, 'main_multicol',
+    'q4 widening: decode fused q4 f16a should restore main_multicol entry');
+  deepEqual(result.kernels.q_decode.precision, { inputDtype: 'f32', outputDtype: 'f32' },
+    'q4 widening: decode fused q4 fallback should declare f32 input/output');
+  equal(result.kernels.q_prefill.kernel, 'fused_matmul_q4_batched.wgsl',
+    'q4 widening: prefill fused q4 f16a should widen back to fused_matmul_q4_batched.wgsl');
+  equal(result.kernels.q_prefill.entry, 'main_batched',
+    'q4 widening: prefill fused q4 f16a should restore main_batched entry');
+  deepEqual(result.kernels.q_prefill.precision, { inputDtype: 'f32', outputDtype: 'f32' },
+    'q4 widening: prefill fused q4 fallback should declare f32 input/output');
+}
+
+// ===========================================================================
+// Test 19: digest is nulled on modified kernels
 // ===========================================================================
 {
   const input = structuredClone(REAL_GRAPH);
