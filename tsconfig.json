@@ -44,6 +44,7 @@
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": ".",
+    "ignoreDeprecations": "6.0",
 
     // Path aliases
     "baseUrl": ".",
@@ -69,8 +70,10 @@
   },
 
   "include": [
-    "./**/*.ts",
-    "./**/*.js",
+    "./src/**/*.js",
+    "./src/**/*.d.ts",
+    "./demo/**/*.js",
+    "./demo/**/*.d.ts",
     "./types/**/*.d.ts"
   ],
 
@@ -78,8 +81,12 @@
     "node_modules",
     "dist",
     "**/node_modules",
+    "benchmarks/**/*",
+    "demo/archive/**/*",
     "**/*.spec.js",
     "**/*.test.js",
-    "tests/**/*"
+    "tests/**/*",
+    "tmp/**/*",
+    "tools/**/*"
   ]
 }

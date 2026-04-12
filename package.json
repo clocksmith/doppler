@@ -46,6 +46,7 @@
     "p2p:observability": "node tools/p2p-delivery-observability.js",
     "p2p:drill": "node tools/p2p-resilience-drill.js",
     "test": "npm run test:unit",
+    "typecheck:source-runtime": "tsc -p tsconfig.source-runtime.json --noEmit",
     "test:unit": "node tools/run-node-tests.js --suite unit",
     "test:gpu": "node tools/run-node-tests.js --suite gpu",
     "test:coverage": "node tools/run-node-coverage.js",
@@ -187,9 +188,12 @@
   ],
   "devDependencies": {
     "@huggingface/transformers": "^4.0.1",
+    "@types/node": "^25.6.0",
+    "@webgpu/types": "^0.1.69",
     "jest": "^30.2.0",
     "onnxruntime-web": "^1.24.1",
-    "playwright": "^1.58.2"
+    "playwright": "^1.58.2",
+    "typescript": "^6.0.2"
   },
   "optionalDependencies": {
     "webgpu": "^0.4.0"

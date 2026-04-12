@@ -38,6 +38,18 @@ const SHARED_INPUT_SIZE_VARIANTS = new Set([
   'f16_native_batched',
 ]);
 
+const F16_INPUT_VARIANTS = new Set([
+  'f16_native',
+  'f16_native_batched',
+  'q4k_f16a',
+  'q4k_batched_f16a',
+]);
+
+const F16_OUTPUT_VARIANTS = new Set([
+  'f16_native',
+  'f16_native_batched',
+]);
+
 
 function selectFFNVariant(batchSize, weightDtype, intermediateSize, hiddenSize, inputDtype) {
   const { multiOutputThreshold } = getKernelThresholds().ffn;
@@ -102,9 +114,14 @@ function calculateFFNDispatch(variant, batchSize, intermediateSize) {
 
   if (variant === 'multi') {
     workgroupsX = Math.ceil(intermediateSize / FFN_DISPATCH.MULTI_OUTPUTS_PER_WG);
-  } else if (variant === 'q4k' || variant === 'q4k_batched') {
+  } else if (
+    variant === 'q4k'
+    || variant === 'q4k_batched'
+    || variant === 'q4k_f16a'
+    || variant === 'q4k_batched_f16a'
+  ) {
     workgroupsX = Math.ceil(intermediateSize / FFN_DISPATCH.Q4K_COLS_PER_WG);
-    workgroupsY = variant === 'q4k_batched' ? batchSize : 1;
+    workgroupsY = (variant === 'q4k_batched' || variant === 'q4k_batched_f16a') ? batchSize : 1;
   } else if (variant === 'batched' || variant === 'f16_native_batched') {
     workgroupsX = intermediateSize;
     workgroupsY = batchSize;
@@ -170,11 +187,12 @@ export async function runFusedFFN(
 
   const isQ4K = gateDtype === 'q4k';
   const variant = selectFFNVariant(batchSize, gateDtype, intermediateSize, hiddenSize, input.dtype);
-  const isF16Native = variant === 'f16_native' || variant === 'f16_native_batched';
+  const requiresF16Input = F16_INPUT_VARIANTS.has(variant);
+  const usesF16Output = F16_OUTPUT_VARIANTS.has(variant);
 
-  if (isF16Native) {
+  if (requiresF16Input) {
     if (input.dtype !== 'f16') {
-      throw new Error('f16_native FFN variant requires f16 activations');
+      throw new Error(`Fused FFN variant ${variant} requires f16 activations`);
     }
   } else if (input.dtype !== 'f32') {
     throw new Error('Fused FFN requires f32 activations');
@@ -186,9 +204,11 @@ export async function runFusedFFN(
   const constants = resolveFusedFFNPipelineConstants(variant, hiddenSize);
   const pipeline = await kernel.getPipeline(variant, constants);
 
-  // Create output buffer: f16_native outputs f16 (2 bytes), others output f32 (4 bytes)
-  const outputBytesPerElement = isF16Native ? 2 : 4;
-  const outputDtype = isF16Native ? 'f16' : 'f32';
+  // Native f16 weight kernels narrow back to f16 output. Q4K f16-activation
+  // variants keep the existing f32 output contract so downstream precision is
+  // still controlled explicitly by the caller/kernel path.
+  const outputBytesPerElement = usesF16Output ? 2 : 4;
+  const outputDtype = usesF16Output ? 'f16' : 'f32';
   const outputSize = batchSize * intermediateSize * outputBytesPerElement;
   const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'fused_ffn_output');
   const output = outputBuffer || ownedOutput;
@@ -263,11 +283,12 @@ export async function recordFusedFFN(
 
   const isQ4K = gateDtype === 'q4k';
   const variant = selectFFNVariant(batchSize, gateDtype, intermediateSize, hiddenSize, input.dtype);
-  const isF16Native = variant === 'f16_native' || variant === 'f16_native_batched';
+  const requiresF16Input = F16_INPUT_VARIANTS.has(variant);
+  const usesF16Output = F16_OUTPUT_VARIANTS.has(variant);
 
-  if (isF16Native) {
+  if (requiresF16Input) {
     if (input.dtype !== 'f16') {
-      throw new Error('f16_native FFN variant requires f16 activations');
+      throw new Error(`Fused FFN variant ${variant} requires f16 activations`);
     }
   } else if (input.dtype !== 'f32') {
     throw new Error('Fused FFN requires f32 activations');
@@ -279,8 +300,8 @@ export async function recordFusedFFN(
   const constants = resolveFusedFFNPipelineConstants(variant, hiddenSize);
   const pipeline = await kernel.getPipeline(variant, constants);
 
-  const outputBytesPerElement = isF16Native ? 2 : 4;
-  const outputDtype = isF16Native ? 'f16' : 'f32';
+  const outputBytesPerElement = usesF16Output ? 2 : 4;
+  const outputDtype = usesF16Output ? 'f16' : 'f32';
   const outputSize = batchSize * intermediateSize * outputBytesPerElement;
   const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'fused_ffn_output');
   const output = outputBuffer || ownedOutput;

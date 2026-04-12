@@ -14,7 +14,7 @@ function buildSafetensorsFixture() {
       data_offsets: [0, 8],
     },
     'model.layers.0.self_attn.q_proj.weight': {
-      dtype: 'F16',
+      dtype: 'BF16',
       shape: [2, 2],
       data_offsets: [8, 16],
     },
@@ -68,11 +68,17 @@ const files = new Map([
   [`${rootPath}/config.json`, configBytes],
   [`${rootPath}/model.safetensors`, safetensorsBytes],
   [`${rootPath}/tokenizer.json`, tokenizerBytes],
+  ['/tflite-root/model.tflite', new Uint8Array([1, 2, 3, 4])],
 ]);
 
 const bridgeClient = {
   async list(path) {
     if (path !== rootPath) {
+      if (path === '/tflite-root') {
+        return [
+          { name: 'model.tflite', isDir: false, size: 4 },
+        ];
+      }
       throw new Error(`Unexpected list path: ${path}`);
     }
     return [
@@ -115,5 +121,14 @@ assert.equal(new Uint8Array(shardSlice).byteLength, 4);
 
 const tokenizer = await bundle.storageContext.loadTokenizerJson();
 assert.equal(typeof tokenizer, 'object');
+
+await assert.rejects(
+  () => resolveBridgeSourceRuntimeBundle({
+    bridgeClient,
+    localPath: '/tflite-root',
+    onProgress() {},
+  }),
+  /.tflite direct-source artifacts are not implemented yet/
+);
 
 console.log('bridge-source-runtime.test: ok');

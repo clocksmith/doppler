@@ -1083,6 +1083,28 @@
             "wgslOnDisk": true
           }
         },
+        "q4k_f16a": {
+          "wgsl": "fused_ffn_q4k_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16",
+            "subgroups"
+          ],
+          "description": "Q4K fused FFN with f16 activation reads and f32 output",
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "fused-ffn.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
         "q4k_batched": {
           "wgsl": "fused_ffn_q4k.wgsl",
           "entryPoint": "main_batched",
@@ -1094,6 +1116,28 @@
           "requires": [
             "subgroups"
           ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "fused-ffn.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "q4k_batched_f16a": {
+          "wgsl": "fused_ffn_q4k_f16.wgsl",
+          "entryPoint": "main_batched",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16",
+            "subgroups"
+          ],
+          "description": "Q4K fused FFN batched path with f16 activation reads and f32 output",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],

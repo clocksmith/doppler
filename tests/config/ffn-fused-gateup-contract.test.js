@@ -98,6 +98,36 @@ assert.equal(
     weightDtype: 'q4k',
     useMultiOutput: false,
     hasF16: true,
+    useF16Input: true,
+  }),
+  'q4k_batched_f16a',
+  'Q4K fused FFN kernel should use the f16-activation batched variant when available'
+);
+
+assert.equal(
+  selectRuleValue('kernels', 'fusedFfn', 'variant', {
+    isQ4K: true,
+    fusedAllowed: true,
+    hiddenSubblockAligned: true,
+    batchSize: 1,
+    weightDtype: 'q4k',
+    useMultiOutput: false,
+    hasF16: true,
+    useF16Input: true,
+  }),
+  'q4k_f16a',
+  'Q4K fused FFN kernel should use the f16-activation decode variant when available'
+);
+
+assert.equal(
+  selectRuleValue('kernels', 'fusedFfn', 'variant', {
+    isQ4K: true,
+    fusedAllowed: true,
+    hiddenSubblockAligned: true,
+    batchSize: 4,
+    weightDtype: 'q4k',
+    useMultiOutput: false,
+    hasF16: true,
     useF16Input: false,
   }),
   'q4k_batched',

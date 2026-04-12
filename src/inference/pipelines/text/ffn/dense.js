@@ -148,6 +148,13 @@ function hasExplicitMatmulPrecision(role, phase, layerIdx, kernelPath) {
   return precision?.inputDtype != null || precision?.outputDtype != null;
 }
 
+export function canUseNativeF16FusedGateUp(options = {}) {
+  if (options.inputDtype !== 'f16' || options.hasF16 !== true) {
+    return false;
+  }
+  return options.gateDtype === 'f16' || options.gateDtype === 'q4k';
+}
+
 async function coerceTensorDtype(tensor, targetDtype, recorder, options = {}) {
   if (!targetDtype || tensor.dtype === targetDtype) {
     return tensor;
@@ -184,11 +191,19 @@ export function resolveGateUpPathMode(options = {}) {
 
   const gateVariant = getKernelPathMatmulVariant('ffn_gate', phase, layerIdx, kernelPath);
   const upVariant = getKernelPathMatmulVariant('ffn_up', phase, layerIdx, kernelPath);
-  const hasExplicitSplitPrecision = hasExplicitMatmulPrecision('ffn_gate', phase, layerIdx, kernelPath)
-    || hasExplicitMatmulPrecision('ffn_up', phase, layerIdx, kernelPath)
-    || hasExplicitMatmulPrecision('ffn_down', phase, layerIdx, kernelPath);
+  const hasExplicitGatePrecision = hasExplicitMatmulPrecision('ffn_gate', phase, layerIdx, kernelPath);
+  const hasExplicitUpPrecision = hasExplicitMatmulPrecision('ffn_up', phase, layerIdx, kernelPath);
+  const hasExplicitDownPrecision = hasExplicitMatmulPrecision('ffn_down', phase, layerIdx, kernelPath);
+  const hasExplicitSplitPrecision = hasExplicitGatePrecision || hasExplicitUpPrecision || hasExplicitDownPrecision;
   if (hasExplicitSplitPrecision) {
-    return 'split';
+    const decodeQ4PrecisionCanStayFused = phase === 'decode'
+      && !hasExplicitDownPrecision
+      && isQ4KMatmulVariant(gateVariant)
+      && gateVariant === upVariant
+      && (hasExplicitGatePrecision || hasExplicitUpPrecision);
+    if (!decodeQ4PrecisionCanStayFused) {
+      return 'split';
+    }
   }
   if (
     gateVariant != null
@@ -254,7 +269,11 @@ async function dispatchFusedGateUp({
   recorder,
   executionPolicies = null,
 }) {
-  const useNativeF16Fused = inputTensor.dtype === 'f16' && gateDtype === 'f16' && getKernelCapabilities().hasF16;
+  const useNativeF16Fused = canUseNativeF16FusedGateUp({
+    inputDtype: inputTensor.dtype,
+    gateDtype,
+    hasF16: getKernelCapabilities().hasF16,
+  });
   let fusedInput = inputTensor;
   if (!useNativeF16Fused && inputTensor.dtype === 'f16') {
     assertImplicitDtypeTransitionAllowed({

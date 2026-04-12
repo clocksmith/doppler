@@ -54,13 +54,14 @@ import {
 
 const ATTENTION_DTYPE_LOGGED = new Set();
 
-function assertAttentionDtypeTransitionAllowed(state, fromDtype, toDtype, detail) {
+function assertAttentionDtypeTransitionAllowed(state, fromDtype, toDtype, detail, transitionDeclaredBy = null) {
   assertImplicitDtypeTransitionAllowed({
     executionPolicies: state?.executionPolicies ?? null,
     fromDtype,
     toDtype,
     op: 'attention',
     detail,
+    transitionDeclaredBy,
   });
 }
 
@@ -556,7 +557,13 @@ export async function recordLayerAttentionGPU(
       attnForProjection,
       oProjInputDtype,
       (tensor) => {
-        assertAttentionDtypeTransitionAllowed(state, tensor.dtype, oProjInputDtype, 'Attention output projection would change activations implicitly.');
+        assertAttentionDtypeTransitionAllowed(
+          state,
+          tensor.dtype,
+          oProjInputDtype,
+          'Attention output projection would change activations implicitly.',
+          'step_precision'
+        );
         return oProjInputDtype === 'f16'
           ? recordCastF32ToF16(recorder, tensor)
           : recordCastF16ToF32(recorder, tensor);

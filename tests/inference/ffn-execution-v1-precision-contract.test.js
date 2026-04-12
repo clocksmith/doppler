@@ -9,6 +9,7 @@ const {
   resolveGateUpPathMode,
   resolveDenseFFNMatmulStepDtype,
   resolveDenseFFNFusedPathDtypes,
+  canUseNativeF16FusedGateUp,
 } = await import('../../src/inference/pipelines/text/ffn/dense.js');
 
 {
@@ -151,6 +152,36 @@ const {
     }),
     'f32',
     'explicit role precision must override the fused ffn step fallback'
+  );
+}
+
+{
+  assert.equal(
+    canUseNativeF16FusedGateUp({
+      inputDtype: 'f16',
+      gateDtype: 'q4k',
+      hasF16: true,
+    }),
+    true,
+    'Q4K f16-activation fused FFN should consume the explicit f16 gate/up input without an extra widening cast'
+  );
+  assert.equal(
+    canUseNativeF16FusedGateUp({
+      inputDtype: 'f16',
+      gateDtype: 'q4k',
+      hasF16: false,
+    }),
+    false,
+    'Q4K f16-activation fused FFN still requires shader-f16 support'
+  );
+  assert.equal(
+    canUseNativeF16FusedGateUp({
+      inputDtype: 'f32',
+      gateDtype: 'q4k',
+      hasF16: true,
+    }),
+    false,
+    'Q4K fused FFN should only stay native on the f16 lane when the declared gate/up input is already f16'
   );
 }
 

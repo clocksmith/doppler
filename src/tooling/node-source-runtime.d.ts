@@ -1,6 +1,7 @@
 import type { RDRRManifest } from '../formats/rdrr/index.js';
 import type { RuntimeConfigSchema } from '../config/schema/index.js';
 import type { PipelineStorageContext } from '../inference/pipelines/text/init.js';
+import type { DirectSourceRuntimeKind } from './source-artifact-adapter.js';
 
 export interface ResolveNodeSourceRuntimeBundleOptions {
   inputPath: string;
@@ -12,7 +13,7 @@ export interface ResolveNodeSourceRuntimeBundleOptions {
 export interface NodeSourceRuntimeBundle {
   manifest: RDRRManifest;
   storageContext: PipelineStorageContext;
-  sourceKind: 'safetensors' | 'gguf';
+  sourceKind: DirectSourceRuntimeKind;
   sourceRoot: string;
   resolvedMemoryBudgetBytes: number | null;
 }

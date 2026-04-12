@@ -65,6 +65,12 @@ export declare function resolveDenseFFNFusedPathDtypes(options?: {
   downInputDtype: 'f16' | 'f32' | null;
 };
 
+export declare function canUseNativeF16FusedGateUp(options?: {
+  inputDtype?: 'f16' | 'f32' | null;
+  gateDtype?: string | null;
+  hasF16?: boolean;
+}): boolean;
+
 /**
  * Run dense (non-MoE) FFN on GPU.
  */

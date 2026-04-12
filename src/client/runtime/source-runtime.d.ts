@@ -1,6 +1,7 @@
 import type { ExtensionBridgeClient } from '../../bridge/extension-client.js';
 import type { RDRRManifest } from '../../formats/rdrr/index.js';
 import type { PipelineStorageContext } from '../../inference/pipelines/text/init.js';
+import type { DirectSourceRuntimeKind } from '../../tooling/source-artifact-adapter.js';
 
 export interface ResolveBridgeSourceRuntimeBundleOptions {
   bridgeClient: ExtensionBridgeClient;
@@ -14,7 +15,7 @@ export interface ResolveBridgeSourceRuntimeBundleOptions {
 export interface BridgeSourceRuntimeBundle {
   manifest: RDRRManifest;
   storageContext: PipelineStorageContext;
-  sourceKind: 'safetensors' | 'gguf';
+  sourceKind: DirectSourceRuntimeKind | 'rdrr';
   sourceRoot: string;
 }
 

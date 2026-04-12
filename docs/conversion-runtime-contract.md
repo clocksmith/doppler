@@ -39,6 +39,7 @@ Notes:
 
 - Model ID suffixes are naming only; runtime policy is driven by manifest/runtime config.
 - Storage dtype changes always require re-conversion.
+- Direct-source runtime adaptation currently synthesizes manifests only for `safetensors` and `gguf`. `.tflite` is detected explicitly and must fail closed until it has its own adapter/runtime contract.
 - Runtime overlay for execution is strict: only `runtime.inference.session` is accepted.
 - `session.perLayerInputs` is the contract surface for PLE runtime policy:
   - `materialization`: `auto | range_backed | cpu_resident | gpu_resident | gpu_split_tables`

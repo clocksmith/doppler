@@ -2,11 +2,6 @@ import {
   HEADER_READ_SIZE,
 } from '../../config/schema/index.js';
 import { extractArchitecture } from '../../converter/core.js';
-import {
-  inferSourceWeightQuantization,
-  resolveConversionPlan,
-  resolveConvertedModelId,
-} from '../../converter/conversion-plan.js';
 import { parseGGUFModel } from '../../converter/parsers/gguf.js';
 import { parseTransformerModel } from '../../converter/parsers/transformer.js';
 import { parseGGUFHeader } from '../../formats/gguf/types.js';
@@ -14,20 +9,15 @@ import { parseSafetensorsHeader } from '../../formats/safetensors/types.js';
 import { log } from '../../debug/index.js';
 import { computeHash } from '../../storage/shard-manager.js';
 import {
-  buildSourceRuntimeBundle,
   createSourceStorageContext,
   getSourceRuntimeMetadata,
 } from '../../tooling/source-runtime-bundle.js';
-import { createSourceRuntimeConverterConfig } from '../../tooling/source-runtime-converter-config.js';
-
-const SUPPORTED_SOURCE_DTYPES = new Set([
-  'F32',
-  'F16',
-  'BF16',
-  'Q4_K',
-  'Q4_K_M',
-  'Q6_K',
-]);
+import {
+  assertDirectSourceRuntimeSupportedKind,
+  inferSourceQuantizationForSourceRuntime,
+  resolveSourceRuntimeBundleFromParsedArtifact,
+  SOURCE_ARTIFACT_KIND_TFLITE,
+} from '../../tooling/source-artifact-adapter.js';
 
 function normalizeRelativePath(value) {
   return String(value || '')
@@ -125,28 +115,12 @@ function detectBridgeSourceFormat(fileIndex) {
     return { kind: 'safetensors', ggufPath: null };
   }
 
-  return null;
-}
+  const tfliteFiles = relativePaths.filter((path) => path.toLowerCase().endsWith('.tflite'));
+  if (tfliteFiles.length === 1) {
+    return { kind: 'tflite', ggufPath: null };
+  }
 
-function assertSupportedSourceDtypes(tensors, sourceKind) {
-  const unsupported = new Set();
-  for (const tensor of tensors) {
-    const dtype = String(tensor?.dtype || '').trim().toUpperCase();
-    if (!dtype) {
-      unsupported.add('(empty)');
-      continue;
-    }
-    if (!SUPPORTED_SOURCE_DTYPES.has(dtype)) {
-      unsupported.add(dtype);
-    }
-  }
-  if (unsupported.size > 0) {
-    throw new Error(
-      `Unsupported ${sourceKind} tensor dtypes for direct-source runtime: ` +
-      `${Array.from(unsupported).sort((a, b) => a.localeCompare(b)).join(', ')}. ` +
-      'Convert to RDRR first for this model.'
-    );
-  }
+  return null;
 }
 
 async function readBridgeRange(bridgeClient, fileEntry, offset, length) {
@@ -259,7 +233,9 @@ async function parseBridgeSafetensorsModel(bridgeClient, fileIndex) {
     architectureHint,
     embeddingPostprocessor,
     architecture,
-    sourceQuantization: inferSourceWeightQuantization(tensors),
+    sourceQuantization: inferSourceQuantizationForSourceRuntime(tensors, 'safetensors', {
+      logCategory: 'DopplerProvider',
+    }),
     tokenizerJson,
     tokenizerConfig,
     tokenizerModelName,
@@ -363,7 +339,9 @@ async function parseBridgeGGUFModel(bridgeClient, fileIndex, ggufRelativePath) {
     tensors,
     architectureHint: parsedGGUF.architecture,
     architecture,
-    sourceQuantization: parsedGGUF.quantization ?? inferSourceWeightQuantization(tensors),
+    sourceQuantization: parsedGGUF.quantization ?? inferSourceQuantizationForSourceRuntime(tensors, 'gguf', {
+      logCategory: 'DopplerProvider',
+    }),
     tokenizerJson: null,
     tokenizerConfig: null,
     tokenizerModelName: null,
@@ -387,30 +365,17 @@ async function parseBridgeSourceModel(bridgeClient, localPath) {
     return null;
   }
 
+  if (detected.kind === 'tflite') {
+    assertDirectSourceRuntimeSupportedKind(
+      SOURCE_ARTIFACT_KIND_TFLITE,
+      'bridge source runtime'
+    );
+  }
   if (detected.kind === 'gguf') {
     return parseBridgeGGUFModel(bridgeClient, fileIndex, detected.ggufPath);
   }
 
   return parseBridgeSafetensorsModel(bridgeClient, fileIndex);
-}
-
-function resolveModelIdHint(requestedModelId, plan, sourceKind) {
-  const explicit = String(requestedModelId || '').trim();
-  if (explicit) {
-    return resolveConvertedModelId({
-      explicitModelId: explicit,
-      converterConfig: null,
-      detectedModelId: explicit,
-      quantizationInfo: plan.quantizationInfo,
-    }) || explicit;
-  }
-  const sourcePrefix = sourceKind === 'gguf' ? 'gguf' : 'safetensors';
-  return resolveConvertedModelId({
-    explicitModelId: `${sourcePrefix}-runtime`,
-    converterConfig: null,
-    detectedModelId: `${sourcePrefix}-runtime`,
-    quantizationInfo: plan.quantizationInfo,
-  }) || `${sourcePrefix}-runtime`;
 }
 
 function createBridgeFileReaders(bridgeClient, fileMap, rootPath) {
@@ -535,57 +500,20 @@ export async function resolveBridgeSourceRuntimeBundle(options = {}) {
   if (!parsed) {
     return null;
   }
-
-  assertSupportedSourceDtypes(parsed.tensors, parsed.sourceKind);
-
-  const converterConfig = createSourceRuntimeConverterConfig({
-    modelId: requestedModelId || null,
-    rawConfig: parsed.config,
-  });
-  const plan = resolveConversionPlan({
-    rawConfig: parsed.config,
-    tensors: parsed.tensors,
-    converterConfig,
-    sourceQuantization: parsed.sourceQuantization,
-    modelKind: 'transformer',
-    architectureHint: parsed.architectureHint,
-    architectureConfig: parsed.architecture,
-  });
-
-  const modelId = resolveModelIdHint(requestedModelId, plan, parsed.sourceKind);
-  const hashAlgorithm = converterConfig.manifest.hashAlgorithm;
   const files = await listBridgeFilesRecursive(bridgeClient, localPath);
   const fileMap = indexBridgeFiles(files);
-  const sourceFiles = await addHashesToBridgeFiles(bridgeClient, fileMap, parsed.sourceFiles, hashAlgorithm);
-  const auxiliaryFiles = await addHashesToBridgeFiles(
-    bridgeClient,
-    fileMap,
-    parsed.auxiliaryFiles,
-    hashAlgorithm
-  );
-  const { manifest, shardSources } = await buildSourceRuntimeBundle({
-    modelId,
-    modelName: modelId,
-    modelType: plan.modelType,
-    sourceKind: parsed.sourceKind,
-    architecture: parsed.architecture,
-    architectureHint: parsed.architectureHint,
-    rawConfig: parsed.config,
-    manifestConfig: converterConfig.manifest ?? null,
-    inference: plan.manifestInference,
-    tensors: parsed.tensors,
-    embeddingPostprocessor: parsed.embeddingPostprocessor ?? null,
-    sourceFiles,
-    auxiliaryFiles,
-    sourceQuantization: parsed.sourceQuantization,
-    quantizationInfo: plan.quantizationInfo,
-    hashAlgorithm,
-    tokenizerJson: parsed.tokenizerJson,
-    tokenizerConfig: parsed.tokenizerConfig,
-    tokenizerModelName: parsed.tokenizerModelName,
-    tokenizerJsonPath: parsed.tokenizerJsonPath,
-    tokenizerConfigPath: parsed.tokenizerConfigPath,
-    tokenizerModelPath: parsed.tokenizerModelPath,
+  const {
+    manifest,
+    shardSources,
+    sourceKind,
+  } = await resolveSourceRuntimeBundleFromParsedArtifact({
+    parsedArtifact: parsed,
+    requestedModelId,
+    runtimeLabel: 'bridge source runtime',
+    logCategory: 'DopplerProvider',
+    hashFileEntries(entries, hashAlgorithm) {
+      return addHashesToBridgeFiles(bridgeClient, fileMap, entries, hashAlgorithm);
+    },
   });
 
   const readers = createBridgeFileReaders(bridgeClient, fileMap, localPath);
@@ -602,13 +530,13 @@ export async function resolveBridgeSourceRuntimeBundle(options = {}) {
 
   log.info(
     'DopplerProvider',
-    `Bridge source runtime ready: ${manifest.modelId} (${parsed.sourceKind}, ${parsed.tensors.length} tensors)`
+    `Bridge source runtime ready: ${manifest.modelId} (${sourceKind}, ${parsed.tensors.length} tensors)`
   );
 
   return {
     manifest,
     storageContext,
-    sourceKind: parsed.sourceKind,
+    sourceKind,
     sourceRoot: localPath,
   };
 }

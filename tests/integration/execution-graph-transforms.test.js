@@ -661,15 +661,21 @@ function buildF16WeightProjectionGraph() {
   ok(decodeOProj, 'promoted Qwen f16 graph should keep the decode o_proj step');
   equal(result.kernels[decodeOProj[1]].kernel, 'fused_matmul_q4.wgsl',
     'promoted Qwen f16 graph should keep decode o_proj on the original fused q4 kernel');
-  equal(result.kernels[decodeOProj[1]].precision, undefined,
-    'promoted Qwen f16 graph should keep decode o_proj on the manifest-owned f32 contract');
+  deepEqual(
+    result.kernels[decodeOProj[1]].precision,
+    { inputDtype: 'f32', outputDtype: 'f32' },
+    'promoted Qwen f16 graph should declare the decode o_proj f32 boundary explicitly'
+  );
 
   const prefillOProj = result.prefill.find((entry) => Array.isArray(entry) && entry[0] === 'o_proj');
   ok(prefillOProj, 'promoted Qwen f16 graph should keep the prefill o_proj step');
   equal(result.kernels[prefillOProj[1]].kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl',
     'promoted Qwen f16 graph should keep prefill o_proj on the original fused q4 prefill kernel');
-  equal(result.kernels[prefillOProj[1]].precision, undefined,
-    'promoted Qwen f16 graph should keep prefill o_proj on the manifest-owned f32 contract');
+  deepEqual(
+    result.kernels[prefillOProj[1]].precision,
+    { inputDtype: 'f32', outputDtype: 'f32' },
+    'promoted Qwen f16 graph should declare the prefill o_proj f32 boundary explicitly'
+  );
 
   deepEqual(graph, frozen, 'useQwenF16PrimaryMatmuls must not mutate the input graph');
 }

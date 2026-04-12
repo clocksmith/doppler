@@ -221,6 +221,11 @@ policy layer (for example Reploid) with
 
 See private wrapper docs for optional wrapper-level architecture notes.
 
+Direct-source artifact adaptation sits between `formats/` and the text runtime:
+- `src/tooling/source-artifact-adapter.js` normalizes raw-source kind handling, dtype policy, and synthetic-manifest bundle construction.
+- `src/storage/artifact-storage-context.js` owns file/HTTP artifact loading once a manifest contract exists.
+- Today the direct-source runtime path supports `safetensors` and `gguf`; `.tflite` is detected explicitly and fails closed until a dedicated adapter/runtime path exists.
+
 ---
 
 ## Architectural Views
@@ -747,6 +752,9 @@ Custom model format optimized for browser streaming:
 
 Note: RDRR helpers are canonically exported from `src/formats/rdrr/index.js`.
 `src/storage/shard-manager.js` keeps a limited compatibility re-export (`getManifest`) for existing callers.
+Shared file/HTTP artifact loading for both `rdrr` and persisted direct-source manifests lives in
+`src/storage/artifact-storage-context.js`; manifest validation and tensor-map semantics still come
+from the format layer.
 
 ```
 model-directory/

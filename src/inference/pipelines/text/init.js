@@ -30,9 +30,9 @@ import {
 import { createWeightBuffer, getWeightDtype, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import {
-  createSourceStorageContext,
-  getSourceRuntimeMetadata,
-} from '../../../tooling/source-runtime-bundle.js';
+  createHttpArtifactStorageContext,
+  createNodeFileArtifactStorageContext,
+} from '../../../storage/artifact-storage-context.js';
 
 function resolveErrorMessage(error) {
   if (error && typeof error === 'object' && typeof error.message === 'string') {
@@ -110,238 +110,16 @@ function isRDRRManifest(manifest) {
   return manifest !== null && typeof manifest === 'object' && Array.isArray( (manifest).shards);
 }
 
-// NOTE: This normalizeBaseUrl is duplicated in src/inference/pipelines/diffusion/weights.js
-// (simpler variant) and src/tooling/node-browser-command-runner.js (URL-validating variant).
-// This copy in text/init.js is the canonical version for inference pipeline shard loading.
-// The duplication is intentional to avoid cross-pipeline imports; do not merge without a
-// coordinated refactor of both pipeline families.
-function normalizeBaseUrl(baseUrl) {
-  if (typeof baseUrl !== 'string' || baseUrl.trim().length === 0) {
-    return null;
-  }
-  return baseUrl.replace(/\/$/, '');
-}
-
-function isNodeRuntime() {
-  return typeof process !== 'undefined'
-    && process != null
-    && typeof process === 'object'
-    && process.versions != null
-    && typeof process.versions.node === 'string';
-}
-
-function isFileUrlBaseUrl(baseUrl) {
-  if (typeof baseUrl !== 'string' || !baseUrl) {
-    return false;
-  }
-  try {
-    return new URL(baseUrl).protocol === 'file:';
-  } catch {
-    return false;
-  }
-}
-
-function isNodeFilesystemPathBaseUrl(baseUrl) {
-  if (typeof baseUrl !== 'string' || !baseUrl || isFileUrlBaseUrl(baseUrl)) {
-    return false;
-  }
-  return baseUrl.startsWith('/') || /^[a-zA-Z]:[\\/]/.test(baseUrl);
-}
-
-async function resolveShardFileReference(root, filename, index) {
-  const normalizedFilename = String(filename || '').replace(/^\/+/, '');
-  if (!normalizedFilename) {
-    throw new Error(`Manifest shard ${index} is missing filename.`);
-  }
-  if (isFileUrlBaseUrl(root)) {
-    return new URL(normalizedFilename, `${root}/`);
-  }
-  if (isNodeFilesystemPathBaseUrl(root)) {
-    const path = await import('node:path');
-    return path.join(root, normalizedFilename);
-  }
-  throw new Error(`Unsupported local shard root "${root}".`);
-}
-
-async function readNodeFileRange(fileRef, offset = 0, length = null) {
-  const fs = await import('node:fs/promises');
-  const handle = await fs.open(fileRef, 'r');
-  try {
-    const stats = await handle.stat();
-    const start = Math.max(0, Math.floor(Number(offset) || 0));
-    const fileSize = Number(stats.size);
-    const end = length == null
-      ? fileSize
-      : Math.min(fileSize, start + Math.max(0, Math.floor(Number(length) || 0)));
-    if (end <= start) {
-      return new ArrayBuffer(0);
-    }
-    const out = Buffer.allocUnsafe(end - start);
-    let position = 0;
-    while (position < out.length) {
-      const { bytesRead } = await handle.read(out, position, out.length - position, start + position);
-      if (bytesRead === 0) {
-        break;
-      }
-      position += bytesRead;
-    }
-    return out.buffer.slice(out.byteOffset, out.byteOffset + position);
-  } finally {
-    await handle.close();
-  }
-}
-
 export function createNodeFileShardStorageContext(baseUrl, manifest) {
-  const root = normalizeBaseUrl(baseUrl);
-  if (
-    !root
-    || !isRDRRManifest(manifest)
-    || !isNodeRuntime()
-    || (!isFileUrlBaseUrl(root) && !isNodeFilesystemPathBaseUrl(root))
-  ) {
-    return null;
-  }
-
-  return {
-    async loadShard(index) {
-      const shard = manifest.shards[index];
-      const fileRef = await resolveShardFileReference(root, shard?.filename, index);
-      return readNodeFileRange(fileRef, 0, null);
-    },
-    async loadShardRange(index, offset = 0, length = null) {
-      const shard = manifest.shards[index];
-      const fileRef = await resolveShardFileReference(root, shard?.filename, index);
-      return readNodeFileRange(fileRef, offset, length);
-    },
-    async *streamShardRange(index, offset = 0, length = null, options = {}) {
-      const shard = manifest.shards[index];
-      const fileRef = await resolveShardFileReference(root, shard?.filename, index);
-      const fs = await import('node:fs/promises');
-      const handle = await fs.open(fileRef, 'r');
-      try {
-        const stats = await handle.stat();
-        const start = Math.max(0, Math.floor(Number(offset) || 0));
-        const fileSize = Number(stats.size);
-        const end = length == null
-          ? fileSize
-          : Math.min(fileSize, start + Math.max(0, Math.floor(Number(length) || 0)));
-        if (end <= start) {
-          return;
-        }
-        const chunkBytesRaw = Number(options?.chunkBytes);
-        const chunkBytes = Number.isFinite(chunkBytesRaw) && chunkBytesRaw > 0
-          ? Math.floor(chunkBytesRaw)
-          : 4 * 1024 * 1024;
-        let position = start;
-        while (position < end) {
-          const nextLength = Math.min(chunkBytes, end - position);
-          const out = Buffer.allocUnsafe(nextLength);
-          let bytesReadTotal = 0;
-          while (bytesReadTotal < nextLength) {
-            const { bytesRead } = await handle.read(
-              out,
-              bytesReadTotal,
-              nextLength - bytesReadTotal,
-              position + bytesReadTotal
-            );
-            if (bytesRead === 0) {
-              break;
-            }
-            bytesReadTotal += bytesRead;
-          }
-          if (bytesReadTotal <= 0) {
-            break;
-          }
-          position += bytesReadTotal;
-          yield new Uint8Array(out.buffer, out.byteOffset, bytesReadTotal);
-          if (bytesReadTotal < nextLength) {
-            break;
-          }
-        }
-      } finally {
-        await handle.close();
-      }
-    },
-  };
-}
-
-async function fetchBytes(url, offset = null, length = null) {
-  const headers = {};
-  if (Number.isFinite(offset) && Number.isFinite(length) && length > 0) {
-    const start = Math.max(0, Math.floor(offset));
-    const end = start + Math.max(0, Math.floor(length)) - 1;
-    headers.Range = `bytes=${start}-${end}`;
-  }
-  const response = await fetch(url, { headers });
-  if (!response.ok) {
-    throw new Error(`Failed to fetch ${url}: ${response.status}`);
-  }
-  return new Uint8Array(await response.arrayBuffer());
+  return createNodeFileArtifactStorageContext(baseUrl, manifest);
 }
 
 function createRemoteStorageContext(baseUrl, manifest) {
-  const root = normalizeBaseUrl(baseUrl);
-  if (!root || !isRDRRManifest(manifest)) {
-    return null;
-  }
-
-  if (!Array.isArray(manifest.shards) || manifest.shards.length === 0) {
-    throw new Error(
-      `Manifest "${manifest?.modelId ?? 'unknown'}" is missing or has empty shards array. ` +
-      'Re-convert the model to produce a valid manifest with shard entries.'
-    );
-  }
-
-  const sourceRuntime = getSourceRuntimeMetadata(manifest);
-  if (sourceRuntime) {
-    const readRange = async (relativePath, offset, length) => {
-      const filename = String(relativePath || '').replace(/^\/+/, '');
-      if (!filename) {
-        throw new Error('Direct-source artifact path is required.');
-      }
-      const url = `${root}/${filename}`;
-      return fetchBytes(url, offset, length);
-    };
-    const readText = async (relativePath) => {
-      const filename = String(relativePath || '').replace(/^\/+/, '');
-      if (!filename) return null;
-      const response = await fetch(`${root}/${filename}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch ${filename} from ${root}: ${response.status}`);
-      }
-      return response.text();
-    };
-    const readBinary = async (relativePath) => {
-      const filename = String(relativePath || '').replace(/^\/+/, '');
-      if (!filename) {
-        throw new Error('Direct-source binary asset path is required.');
-      }
-      return fetchBytes(`${root}/${filename}`);
-    };
-    return createSourceStorageContext({
-      manifest,
-      readRange,
-      readText,
-      readBinary,
-      verifyHashes: true,
-    });
-  }
-
-  const nodeFileStorageContext = createNodeFileShardStorageContext(root, manifest);
+  const nodeFileStorageContext = createNodeFileArtifactStorageContext(baseUrl, manifest);
   if (nodeFileStorageContext) {
     return nodeFileStorageContext;
   }
-
-  return {
-    async loadShard(index) {
-      const shard = manifest.shards[index];
-      const filename = shard?.filename;
-      if (!filename) {
-        throw new Error(`Manifest shard ${index} is missing filename.`);
-      }
-      return fetchBytes(`${root}/${filename.replace(/^\/+/, '')}`);
-    },
-  };
+  return createHttpArtifactStorageContext(baseUrl, manifest);
 }
 
 

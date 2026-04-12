@@ -1612,7 +1612,7 @@ export function useQwenF16PrimaryMatmuls(graph, ctx) {
   if (decodeProjectionStep && decodeProjectionEntry) {
     const decodeProjectionKey = deriveKernelKey(result.kernels, decodeProjectionStep[1], '_primary_f16');
     result.kernels[decodeProjectionKey] = decodeProjectionEntry;
-    for (const op of ['q_proj', 'k_proj', 'v_proj']) {
+    for (const op of ['q_proj', 'k_proj', 'v_proj', 'gate_proj', 'up_proj']) {
       const phaseResult = replacePhaseStepKernelKey(result.decode, op, decodeProjectionKey);
       if (phaseResult.changed) {
         result.decode = phaseResult.steps;
@@ -1627,7 +1627,7 @@ export function useQwenF16PrimaryMatmuls(graph, ctx) {
   if (prefillProjectionStep && prefillProjectionEntry) {
     const prefillProjectionKey = deriveKernelKey(result.kernels, prefillProjectionStep[1], '_primary_f16');
     result.kernels[prefillProjectionKey] = prefillProjectionEntry;
-    for (const op of ['q_proj', 'k_proj', 'v_proj', 'gate_proj', 'up_proj', 'down_proj']) {
+    for (const op of ['q_proj', 'k_proj', 'v_proj']) {
       const phaseResult = replacePhaseStepKernelKey(result.prefill, op, prefillProjectionKey);
       if (phaseResult.changed) {
         result.prefill = phaseResult.steps;
@@ -1636,18 +1636,23 @@ export function useQwenF16PrimaryMatmuls(graph, ctx) {
     }
   }
 
-  const decodeFfnStep = (result.decode || []).find((entry) => Array.isArray(entry) && entry[0] === 'gate_proj');
-  const decodeFfnKernel = decodeFfnStep ? result.kernels[decodeFfnStep[1]] : null;
-  const decodeFfnEntry = deriveLmHeadDecodeF16KernelEntry(decodeFfnKernel);
-  if (decodeFfnStep && decodeFfnEntry) {
-    const decodeFfnKey = deriveKernelKey(result.kernels, decodeFfnStep[1], '_primary_f16');
-    result.kernels[decodeFfnKey] = decodeFfnEntry;
-    for (const op of ['gate_proj', 'up_proj']) {
-      const phaseResult = replacePhaseStepKernelKey(result.decode, op, decodeFfnKey);
-      if (phaseResult.changed) {
-        result.decode = phaseResult.steps;
-        changed = true;
-      }
+  for (const [phaseName, op] of [['decode', 'o_proj'], ['prefill', 'o_proj']]) {
+    const phaseSteps = result[phaseName] || [];
+    const step = phaseSteps.find((entry) => Array.isArray(entry) && entry[0] === op);
+    const kernelKey = step?.[1];
+    const kernelEntry = kernelKey ? result.kernels[kernelKey] : null;
+    if (!step || !kernelKey || !kernelEntry) {
+      continue;
+    }
+    const boundaryKey = deriveKernelKey(result.kernels, kernelKey, '_primary_f32_boundary');
+    result.kernels[boundaryKey] = deriveKernelEntryWithPrecision(kernelEntry, {
+      inputDtype: 'f32',
+      outputDtype: 'f32',
+    });
+    const phaseResult = replacePhaseStepKernelKey(phaseSteps, op, boundaryKey);
+    if (phaseResult.changed) {
+      result[phaseName] = phaseResult.steps;
+      changed = true;
     }
   }
 

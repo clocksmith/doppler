@@ -8,11 +8,6 @@ import {
 } from '../config/schema/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 import { extractArchitecture } from '../converter/core.js';
-import {
-  inferSourceWeightQuantization,
-  resolveConversionPlan,
-  resolveConvertedModelId,
-} from '../converter/conversion-plan.js';
 import { parseGGUFModel } from '../converter/parsers/gguf.js';
 import { parseTransformerModel } from '../converter/parsers/transformer.js';
 import { parseGGUFHeader } from '../formats/gguf/types.js';
@@ -20,19 +15,15 @@ import { parseSafetensorsHeader } from '../formats/safetensors/types.js';
 import { log } from '../debug/index.js';
 import { formatBytes } from '../storage/quota.js';
 import {
-  buildSourceRuntimeBundle,
   createSourceStorageContext,
 } from './source-runtime-bundle.js';
-import { createSourceRuntimeConverterConfig } from './source-runtime-converter-config.js';
-
-const SUPPORTED_SOURCE_DTYPES = new Set([
-  'F32',
-  'F16',
-  'BF16',
-  'Q4_K',
-  'Q4_K_M',
-  'Q6_K',
-]);
+import {
+  assertDirectSourceRuntimeSupportedKind,
+  inferSourceQuantizationForSourceRuntime,
+  resolveSourceRuntimeBundleFromParsedArtifact,
+  resolveSourceRuntimeComputePrecision,
+  SOURCE_ARTIFACT_KIND_TFLITE,
+} from './source-artifact-adapter.js';
 const MAX_NODE_READ_BYTES = 64 * 1024 * 1024;
 
 function toArrayBuffer(value, label) {
@@ -53,23 +44,8 @@ function isGgufPath(filePath) {
   return String(filePath || '').toLowerCase().endsWith('.gguf');
 }
 
-function resolveModelIdHint(requestedModelId, plan, sourceKind, sourcePath) {
-  const explicit = String(requestedModelId || '').trim();
-  if (explicit) {
-    return resolveConvertedModelId({
-      explicitModelId: explicit,
-      converterConfig: null,
-      detectedModelId: explicit,
-      quantizationInfo: plan.quantizationInfo,
-    }) || explicit;
-  }
-  const basename = path.basename(sourcePath, path.extname(sourcePath)) || sourceKind;
-  return resolveConvertedModelId({
-    explicitModelId: basename,
-    converterConfig: null,
-    detectedModelId: basename,
-    quantizationInfo: plan.quantizationInfo,
-  }) || basename;
+function isTflitePath(filePath) {
+  return String(filePath || '').toLowerCase().endsWith('.tflite');
 }
 
 async function getPathStats(targetPath, label) {
@@ -266,7 +242,9 @@ async function parseSafetensorsInput(inputDir) {
     architectureHint,
     embeddingPostprocessor,
     architecture,
-    sourceQuantization: inferSourceQuantizationForSourceRuntime(tensors, 'safetensors'),
+    sourceQuantization: inferSourceQuantizationForSourceRuntime(tensors, 'safetensors', {
+      logCategory: 'NodeSourceRuntime',
+    }),
     tokenizerJson,
     tokenizerConfig,
     tokenizerModelName: hasTokenizerModel ? 'tokenizer.model' : null,
@@ -331,7 +309,9 @@ async function parseGgufInput(ggufPath) {
     tensors,
     architectureHint: parsed.architecture,
     architecture: extractArchitecture({}, parsed.config || {}),
-    sourceQuantization: parsed.quantization ?? inferSourceQuantizationForSourceRuntime(tensors, 'gguf'),
+    sourceQuantization: parsed.quantization ?? inferSourceQuantizationForSourceRuntime(tensors, 'gguf', {
+      logCategory: 'NodeSourceRuntime',
+    }),
     tokenizerJson: null,
     tokenizerConfig: null,
     tokenizerModelName: null,
@@ -341,52 +321,6 @@ async function parseGgufInput(ggufPath) {
     sourceFiles: [{ path: ggufPath, size: fileSize }],
     auxiliaryFiles: [],
   };
-}
-
-function assertSupportedSourceDtypes(tensors, sourceKind) {
-  const unsupported = new Set();
-  for (const tensor of tensors) {
-    const dtype = String(tensor?.dtype || '').trim().toUpperCase();
-    if (!dtype) {
-      unsupported.add('(empty)');
-      continue;
-    }
-    if (!SUPPORTED_SOURCE_DTYPES.has(dtype)) {
-      unsupported.add(dtype);
-    }
-  }
-  if (unsupported.size > 0) {
-    throw new Error(
-      `Unsupported ${sourceKind} tensor dtypes for direct-source runtime: ` +
-      `${Array.from(unsupported).sort((a, b) => a.localeCompare(b)).join(', ')}. ` +
-      'Convert to RDRR first for this model.'
-    );
-  }
-}
-
-function inferSourceQuantizationForSourceRuntime(tensors, sourceKind) {
-  try {
-    return inferSourceWeightQuantization(tensors);
-  } catch (error) {
-    const dtypes = new Set();
-    for (const tensor of tensors) {
-      const dtype = String(tensor?.dtype || '').trim().toUpperCase();
-      if (dtype) dtypes.add(dtype);
-    }
-    const hasLowPrecision = dtypes.has('F16') || dtypes.has('BF16');
-    const onlyLowAndF32 = dtypes.size > 0 && Array.from(dtypes).every(
-      (dtype) => dtype === 'F16' || dtype === 'BF16' || dtype === 'F32'
-    );
-    if (hasLowPrecision && onlyLowAndF32) {
-      log.warn(
-        'NodeSourceRuntime',
-        `Mixed ${sourceKind} tensor dtypes detected (${Array.from(dtypes).sort((a, b) => a.localeCompare(b)).join(', ')}). ` +
-        'Using F32 source quantization for direct-source parity.'
-      );
-      return 'F32';
-    }
-    throw error;
-  }
 }
 
 function buildNodeFileReaders() {
@@ -434,39 +368,6 @@ function buildNodeFileReaders() {
     readText,
     readBinary,
   };
-}
-
-// Source dtype → compute precision mapping for source-runtime inference.
-// BF16/F32 sources require f32 compute (BF16 has no native WebGPU support).
-// Quantized formats require f32 compute for dequantization accuracy.
-// F16 sources can use f16 compute directly.
-const SOURCE_QUANT_COMPUTE_MAP = {
-  'F16': 'f16',
-  'BF16': 'f32',
-  'F32': 'f32',
-  'Q4_K': 'f32',
-  'Q4_K_M': 'f32',
-  'Q6_K': 'f32',
-};
-const SOURCE_COMPUTE_DEFAULT = 'f16';
-
-function resolveSourceRuntimeComputePrecision(tensors, sourceQuantization) {
-  const dtypes = new Set();
-  for (const tensor of Array.isArray(tensors) ? tensors : []) {
-    const dtype = String(tensor?.dtype || '').trim().toUpperCase();
-    if (dtype) {
-      dtypes.add(dtype);
-    }
-  }
-  // If any tensor requires f32 compute, use f32 for all.
-  for (const dtype of dtypes) {
-    if (SOURCE_QUANT_COMPUTE_MAP[dtype] === 'f32') {
-      return 'f32';
-    }
-  }
-
-  const normalized = String(sourceQuantization || '').trim().toUpperCase();
-  return SOURCE_QUANT_COMPUTE_MAP[normalized] ?? SOURCE_COMPUTE_DEFAULT;
 }
 
 async function addHashesToFileEntries(entries, hashAlgorithm) {
@@ -624,6 +525,12 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
 
   let parsed = null;
   if (stats.isFile()) {
+    if (isTflitePath(resolvedInputPath)) {
+      assertDirectSourceRuntimeSupportedKind(
+        SOURCE_ARTIFACT_KIND_TFLITE,
+        'node source runtime'
+      );
+    }
     if (!isGgufPath(resolvedInputPath)) {
       return null;
     }
@@ -646,6 +553,18 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
           `node source runtime: multiple GGUF files found in "${resolvedInputPath}": ${ggufFiles.join(', ')}.`
         );
       }
+      if (!parsed) {
+        const tfliteFiles = entries
+          .filter((entry) => entry.isFile() && isTflitePath(entry.name))
+          .map((entry) => entry.name)
+          .sort((left, right) => left.localeCompare(right));
+        if (tfliteFiles.length === 1) {
+          assertDirectSourceRuntimeSupportedKind(
+            SOURCE_ARTIFACT_KIND_TFLITE,
+            'node source runtime'
+          );
+        }
+      }
     }
   } else {
     return null;
@@ -658,58 +577,19 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
   const loadingConfig = resolveLoadingConfig(options.runtimeConfig ?? null);
   const resolvedMemoryBudgetBytes = resolveResidentBudgetBytes(loadingConfig);
   assertSourceRuntimeFitsResidentBudget(parsed, loadingConfig, resolvedMemoryBudgetBytes);
-
-  assertSupportedSourceDtypes(parsed.tensors, parsed.sourceKind);
-
-  const converterConfig = createSourceRuntimeConverterConfig({
-    modelId: options.modelId || null,
-    rawConfig: parsed.config,
+  const {
+    manifest,
+    shardSources,
+    sourceKind,
+  } = await resolveSourceRuntimeBundleFromParsedArtifact({
+    parsedArtifact: parsed,
+    requestedModelId: options.modelId || null,
+    runtimeLabel: 'node source runtime',
+    logCategory: 'NodeSourceRuntime',
     quantization: {
       computePrecision: resolveSourceRuntimeComputePrecision(parsed.tensors, parsed.sourceQuantization),
     },
-  });
-  const plan = resolveConversionPlan({
-    rawConfig: parsed.config,
-    tensors: parsed.tensors,
-    converterConfig,
-    sourceQuantization: parsed.sourceQuantization,
-    modelKind: 'transformer',
-    architectureHint: parsed.architectureHint,
-    architectureConfig: parsed.architecture,
-  });
-
-  const modelId = resolveModelIdHint(
-    options.modelId || null,
-    plan,
-    parsed.sourceKind,
-    parsed.sourcePathForModelId
-  );
-  const hashAlgorithm = converterConfig.manifest.hashAlgorithm;
-  const sourceFiles = await addHashesToFileEntries(parsed.sourceFiles, hashAlgorithm);
-  const auxiliaryFiles = await addHashesToFileEntries(parsed.auxiliaryFiles, hashAlgorithm);
-  const { manifest, shardSources } = await buildSourceRuntimeBundle({
-    modelId,
-    modelName: modelId,
-    modelType: plan.modelType,
-    sourceKind: parsed.sourceKind,
-    architecture: parsed.architecture,
-    architectureHint: parsed.architectureHint,
-    rawConfig: parsed.config,
-    manifestConfig: converterConfig.manifest ?? null,
-    inference: plan.manifestInference,
-    tensors: parsed.tensors,
-    embeddingPostprocessor: parsed.embeddingPostprocessor ?? null,
-    sourceFiles,
-    auxiliaryFiles,
-    sourceQuantization: parsed.sourceQuantization,
-    quantizationInfo: plan.quantizationInfo,
-    hashAlgorithm,
-    tokenizerJson: parsed.tokenizerJson,
-    tokenizerConfig: parsed.tokenizerConfig,
-    tokenizerModelName: parsed.tokenizerModelName,
-    tokenizerJsonPath: parsed.tokenizerJsonPath,
-    tokenizerConfigPath: parsed.tokenizerConfigPath,
-    tokenizerModelPath: parsed.tokenizerModelPath,
+    hashFileEntries: addHashesToFileEntries,
   });
 
   const readers = buildNodeFileReaders();
@@ -728,13 +608,13 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
 
   log.info(
     'NodeSourceRuntime',
-    `Source runtime ready: ${manifest.modelId} (${parsed.sourceKind}, ${parsed.tensors.length} tensors)`
+    `Source runtime ready: ${manifest.modelId} (${sourceKind}, ${parsed.tensors.length} tensors)`
   );
 
   return {
     manifest,
     storageContext,
-    sourceKind: parsed.sourceKind,
+    sourceKind,
     sourceRoot: parsed.sourceRoot,
     resolvedMemoryBudgetBytes,
   };

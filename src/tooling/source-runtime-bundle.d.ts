@@ -1,5 +1,6 @@
 import type { RDRRManifest, TensorRole } from '../formats/rdrr/index.js';
 import type { ManifestEmbeddingPostprocessorSchema } from '../config/schema/index.js';
+import type { SourceArtifactKind } from './source-artifact-adapter.js';
 
 export declare const DIRECT_SOURCE_RUNTIME_MODE: 'direct-source';
 export declare const DIRECT_SOURCE_RUNTIME_SCHEMA_VERSION: 1;
@@ -46,7 +47,7 @@ export interface SourceRuntimeMetadata {
   mode: 'direct-source';
   schema: 'direct-source/v1';
   schemaVersion: 1;
-  sourceKind: string | null;
+  sourceKind: SourceArtifactKind | 'rdrr' | null;
   hashAlgorithm: string;
   pathSemantics: 'runtime-local' | 'artifact-relative';
   sourceFiles: SourceRuntimeShardSource[];
@@ -58,7 +59,7 @@ export interface BuildSourceRuntimeBundleOptions {
   modelId: string;
   modelName?: string | null;
   modelType: string;
-  sourceKind?: string | null;
+  sourceKind?: SourceArtifactKind | 'rdrr' | null;
   architecture: Record<string, unknown> | string | null;
   architectureHint?: string | null;
   rawConfig?: Record<string, unknown> | null;

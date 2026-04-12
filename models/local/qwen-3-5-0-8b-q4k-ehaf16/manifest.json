@@ -6539,7 +6539,7 @@
     "convertedAt": "2026-04-05T00:56:06.572Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-04-08T01:20:32.366Z",
+      "at": "2026-04-11T21:49:39.539Z",
       "config": "qwen-3-5-0-8b-q4k-ehaf16.json"
     }
   },

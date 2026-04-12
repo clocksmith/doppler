@@ -13,6 +13,8 @@ Related specs and contracts:
 
 Non-RDRR note:
 - Materialized direct-source artifacts use `manifest.json` plus raw SafeTensors/GGUF assets and declare `metadata.sourceRuntime.mode="direct-source"`. They are not RDRR shards and use their own digest/path contract.
+- Runtime artifact loading for both `rdrr` and persisted direct-source manifests is unified in `src/storage/artifact-storage-context.js`; the format contract still comes from the manifest.
+- Synthetic direct-source manifests are constructed through `src/tooling/source-artifact-adapter.js` and `src/tooling/source-runtime-bundle.js`. Supported raw-source inputs today are `safetensors` and `gguf`; `.tflite` is not implemented and must fail closed.
 
 ## Core structure
 
@@ -53,6 +55,7 @@ At minimum, manifests must include:
 - `src/formats/rdrr/parsing.js`
 - `src/formats/rdrr/validation.js`
 - `src/formats/rdrr/manifest.js`
+- `src/storage/artifact-storage-context.js`
 - `src/storage/shard-manager.js`
 - `src/storage/downloader.js`
 

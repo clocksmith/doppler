@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node", "@webgpu/types"]
+  },
+  "include": [
+    "./src/client/runtime/source-runtime.js",
+    "./src/client/runtime/source-runtime.d.ts",
+    "./src/inference/pipelines/text/init.js",
+    "./src/inference/pipelines/text/init.d.ts",
+    "./src/storage/artifact-storage-context.js",
+    "./src/storage/artifact-storage-context.d.ts",
+    "./src/tooling/node-source-runtime.js",
+    "./src/tooling/node-source-runtime.d.ts",
+    "./src/tooling/source-artifact-adapter.js",
+    "./src/tooling/source-artifact-adapter.d.ts",
+    "./src/tooling/source-runtime-bundle.js",
+    "./src/tooling/source-runtime-bundle.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "benchmarks/**/*",
+    "demo/**/*",
+    "tests/**/*",
+    "tmp/**/*",
+    "tools/**/*"
+  ]
+}

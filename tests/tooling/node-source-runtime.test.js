@@ -43,6 +43,7 @@ function buildSafetensorsBytes() {
 }
 
 const fixtureDir = mkdtempSync(path.join(tmpdir(), 'doppler-node-source-runtime-'));
+const tfliteFixtureDir = mkdtempSync(path.join(tmpdir(), 'doppler-node-source-runtime-tflite-'));
 try {
   writeFileSync(path.join(fixtureDir, 'config.json'), JSON.stringify({
     architectures: ['Gemma3ForCausalLM'],
@@ -148,8 +149,18 @@ try {
     }),
     /direct-source load exceeds resident memory budget/
   );
+
+  writeFileSync(path.join(tfliteFixtureDir, 'model.tflite'), new Uint8Array([1, 2, 3, 4]));
+  await assert.rejects(
+    () => resolveNodeSourceRuntimeBundle({
+      inputPath: path.join(tfliteFixtureDir, 'model.tflite'),
+      modelId: 'node-source-runtime-test-tflite',
+    }),
+    /.tflite direct-source artifacts are not implemented yet/
+  );
 } finally {
   rmSync(fixtureDir, { recursive: true, force: true });
+  rmSync(tfliteFixtureDir, { recursive: true, force: true });
 }
 
 console.log('node-source-runtime.test: ok');

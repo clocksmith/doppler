@@ -111,6 +111,19 @@ export {
 } from './downloader.js';
 
 // ============================================================================
+// Artifact Runtime
+// ============================================================================
+
+export {
+  ARTIFACT_FORMAT_RDRR,
+  ARTIFACT_FORMAT_DIRECT_SOURCE,
+  getArtifactFormat,
+  createArtifactStorageContext,
+  createNodeFileArtifactStorageContext,
+  createHttpArtifactStorageContext,
+} from './artifact-storage-context.js';
+
+// ============================================================================
 // Quickstart Downloader
 // ============================================================================
 

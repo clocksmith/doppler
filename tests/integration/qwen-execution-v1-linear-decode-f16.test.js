@@ -60,7 +60,15 @@ assert.equal(
 );
 assert.equal(
   kernelPath.decode.steps.find((step) => step.op === 'gate_proj')?.kernel,
-  'matmul_gemv_subgroup_f16a.wgsl'
+  'fused_matmul_q4_multicol_f16a.wgsl'
+);
+assert.equal(
+  kernelPath.decode.steps.find((step) => step.op === 'gate_proj')?.precision?.inputDtype,
+  'f16'
+);
+assert.equal(
+  kernelPath.decode.steps.find((step) => step.op === 'gate_proj')?.precision?.outputDtype,
+  'f16'
 );
 assert.equal(
   kernelPath.decode.steps.find((step) => step.op === 'down_proj')?.kernel,
@@ -92,9 +100,9 @@ assert.equal(linearDecodeOProj?.precision?.outputDtype, 'f32');
 
 const fullDecodeSteps = getLayerSteps(kernelPath, 3, 'decode');
 const fullDecodeOProj = fullDecodeSteps.find((step) => step.op === 'o_proj');
-assert.equal(fullDecodeOProj?.kernel, 'fused_matmul_q4_multicol_f16a.wgsl');
-assert.equal(fullDecodeOProj?.precision?.inputDtype, 'f16');
-assert.equal(fullDecodeOProj?.precision?.outputDtype, 'f16');
+assert.equal(fullDecodeOProj?.kernel, 'fused_matmul_q4.wgsl');
+assert.equal(fullDecodeOProj?.precision?.inputDtype, 'f32');
+assert.equal(fullDecodeOProj?.precision?.outputDtype, 'f32');
 
 const linearPrefillSteps = getLayerSteps(kernelPath, 0, 'prefill');
 const linearPrefillOProj = linearPrefillSteps.find((step) => step.op === 'o_proj');
@@ -104,9 +112,9 @@ assert.equal(linearPrefillOProj?.precision?.outputDtype, 'f32');
 
 const fullPrefillSteps = getLayerSteps(kernelPath, 3, 'prefill');
 const fullPrefillOProj = fullPrefillSteps.find((step) => step.op === 'o_proj');
-assert.equal(fullPrefillOProj?.kernel, 'fused_matmul_q4_batched_f16a.wgsl');
-assert.equal(fullPrefillOProj?.precision?.inputDtype, 'f16');
-assert.equal(fullPrefillOProj?.precision?.outputDtype, 'f16');
+assert.equal(fullPrefillOProj?.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl');
+assert.equal(fullPrefillOProj?.precision?.inputDtype, 'f32');
+assert.equal(fullPrefillOProj?.precision?.outputDtype, 'f32');
 
 const compiledWithFallbackPlan = compileExecutionV1({
   manifestInference,

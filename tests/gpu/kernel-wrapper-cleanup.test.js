@@ -165,6 +165,14 @@ function createFakeDevice({
     },
     createCommandEncoder() {
       return {
+        beginComputePass() {
+          return {
+            setPipeline() {},
+            setBindGroup() {},
+            dispatchWorkgroups() {},
+            end() {},
+          };
+        },
         finish() {
           return { ops: [] };
         },
@@ -270,6 +278,26 @@ function assertDeviceBuffersDestroyed(device) {
     undefined,
     'Q4K fused FFN must not pass SHARED_INPUT_SIZE constants to fused_ffn_q4k.wgsl.'
   );
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice({ trackPipelineDescriptors: true });
+  resetRuntimeState(device);
+  const input = createExternalTensor(new Uint16Array(1152), [1, 1152], 'ffn_q4k_f16_input', 'f16');
+  const gate = createWeightLike(144 * 5, 'q4k');
+  const up = createWeightLike(144 * 5, 'q4k');
+  const output = await runFusedFFN(input, gate, up, 1152, 1, { swigluLimit: null });
+  assert.equal(output.dtype, 'f32', 'Q4K f16-activation fused FFN should preserve the f32 output contract.');
+  assert.ok(output.buffer.size >= 4, 'Q4K f16-activation fused FFN should allocate an f32-sized output buffer.');
+  assert.equal(device.pipelineDescriptors.length, 1, 'Q4K f16-activation fused FFN should compile exactly one pipeline.');
+  assert.equal(
+    device.pipelineDescriptors[0].compute.constants,
+    undefined,
+    'Q4K f16-activation fused FFN must not pass SHARED_INPUT_SIZE constants to fused_ffn_q4k_f16.wgsl.'
+  );
+  releaseBuffer(output.buffer);
   assertPoolIsClean();
   resetRuntimeState();
 }
