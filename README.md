@@ -4,7 +4,7 @@ Browser-native inference on raw WebGPU. Pure JS + WGSL.
 
 **[Try the live demo](https://d4da.com/doppler)** | **[npm](https://www.npmjs.com/package/doppler-gpu)** | **[docs](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)**
 
-[![Published phase-latency comparison across Gemma 4 E2B and Gemma 3 1B](./benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
+[![Published phase-latency comparison across Gemma 4 E2B and Gemma 3 1B](https://raw.githubusercontent.com/clocksmith/doppler/main/benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
 
 This chart is scoped to two published warm compare lanes: Gemma 4 E2B and
 Gemma 3 1B. It is no longer the old Gemma 3 + LFM snapshot. Broader model

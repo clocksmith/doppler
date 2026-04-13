@@ -6,6 +6,14 @@ This changelog is package-facing and release-oriented. Entries before `0.1.7`
 were retrofitted from package version history, release commits, and release
 docs so the `0.1.x` line has one conventional npm-visible history surface.
 
+## [0.2.2] - 2026-04-13
+
+### Fixed
+
+- Switched the README benchmark image to an absolute GitHub raw URL so the npm
+  package page renders the current published chart instead of relying on an
+  unpublished local asset path.
+
 ## [0.2.1] - 2026-04-13
 
 ### Changed
