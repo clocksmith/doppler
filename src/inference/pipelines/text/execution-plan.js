@@ -66,7 +66,15 @@ function resolveFallbackActivationDtype(primaryActivationDtype) {
   return fallbackActivationDtype;
 }
 
-function stepUsesF16Execution(step) {
+function kernelUsesF16ActivationExecution(kernel) {
+  const kernelName = String(kernel ?? '');
+  if (!kernelName) {
+    return false;
+  }
+  return /_f16(?!w|kv)/.test(kernelName);
+}
+
+function stepUsesF16ActivationExecution(step) {
   if (!step || typeof step !== 'object') {
     return false;
   }
@@ -75,14 +83,13 @@ function stepUsesF16Execution(step) {
     precision?.activationDtype === 'f16'
     || precision?.inputDtype === 'f16'
     || precision?.outputDtype === 'f16'
-    || precision?.kvDtype === 'f16'
   ) {
     return true;
   }
-  return String(step.kernel ?? '').includes('_f16');
+  return kernelUsesF16ActivationExecution(step.kernel);
 }
 
-function kernelPathUsesF16Execution(kernelPath) {
+function kernelPathUsesF16ActivationExecution(kernelPath) {
   const stepLists = [
     kernelPath?.decode?.steps,
     kernelPath?.prefill?.steps,
@@ -93,7 +100,7 @@ function kernelPathUsesF16Execution(kernelPath) {
   for (const override of kernelPath?.layerOverrides ?? []) {
     stepLists.push(override?.steps, override?.decode?.steps, override?.prefill?.steps);
   }
-  return stepLists.some((steps) => Array.isArray(steps) && steps.some((step) => stepUsesF16Execution(step)));
+  return stepLists.some((steps) => Array.isArray(steps) && steps.some((step) => stepUsesF16ActivationExecution(step)));
 }
 
 function createStaticExecutionPlan({
@@ -231,11 +238,11 @@ export function compileExecutionPlanState(options) {
     generationConfig,
     batchingConfig,
   });
-  const primaryUsesF16Execution = primaryPlan.activationDtype === 'f16'
-    || kernelPathUsesF16Execution(resolvedKernelPath);
+  const primaryUsesF16ActivationExecution = primaryPlan.activationDtype === 'f16'
+    || kernelPathUsesF16ActivationExecution(resolvedKernelPath);
 
   let fallbackPlan = null;
-  if (primaryUsesF16Execution && primaryPlan.finitenessOnTrigger === 'fallback-plan') {
+  if (primaryUsesF16ActivationExecution && primaryPlan.finitenessOnTrigger === 'fallback-plan') {
     const fallbackActivationDtype = resolveFallbackActivationDtype(primaryPlan.activationDtype);
     if (fallbackActivationDtype !== 'f32') {
       throw new Error(

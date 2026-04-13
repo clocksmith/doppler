@@ -560,7 +560,8 @@ function normalizeGemma4LiteRTTensors(parsedTFLite, sourcePath, runtimeProfile) 
       null,
       [hiddenSize, numAttentionHeads * attentionHeadDim],
       {
-        quantAxis: 1,
+        transposeStorage: true,
+        quantAxis: 0,
       }
     );
     addFloat(`${rawLayerPrefix}.post_attention_norm.scale`, `${canonicalLayerPrefix}.post_attention_layernorm.weight`, 'norm');
@@ -596,7 +597,8 @@ function normalizeGemma4LiteRTTensors(parsedTFLite, sourcePath, runtimeProfile) 
       null,
       [hiddenSize, intermediateSize],
       {
-        quantAxis: 1,
+        transposeStorage: true,
+        quantAxis: 0,
       }
     );
     addAxisQuantized(
@@ -617,7 +619,8 @@ function normalizeGemma4LiteRTTensors(parsedTFLite, sourcePath, runtimeProfile) 
       null,
       [hiddenSize, hiddenSizePerLayerInput],
       {
-        quantAxis: 1,
+        transposeStorage: true,
+        quantAxis: 0,
       }
     );
     addAxisQuantized(

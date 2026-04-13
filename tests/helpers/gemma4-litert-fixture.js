@@ -85,11 +85,35 @@ export function buildGemma4LiteRTPackedFixture(options = {}) {
     );
     pushRowwiseTensor(
       tensors,
+      'transformer.layer_0.attn.attn_vec_einsum.w',
+      FIXTURE_TFLITE_TENSOR_TYPE.INT4,
+      new Uint8Array((1536 * 2048) / 2),
+      new Float32Array(1536).fill(0.25),
+      new Int32Array(1536).fill(0)
+    );
+    pushRowwiseTensor(
+      tensors,
+      'transformer.layer_0.mlp.linear.w',
+      FIXTURE_TFLITE_TENSOR_TYPE.INT4,
+      new Uint8Array((1536 * 6144) / 2),
+      new Float32Array(1536).fill(0.25),
+      new Int32Array(1536).fill(0)
+    );
+    pushRowwiseTensor(
+      tensors,
       'transformer.layer_0.per_layer_embedding_gate.w',
       FIXTURE_TFLITE_TENSOR_TYPE.INT8,
       new Uint8Array(256 * 1536),
       new Float32Array(256).fill(0.25),
       new Int32Array(256).fill(0)
+    );
+    pushRowwiseTensor(
+      tensors,
+      'transformer.layer_0.per_layer_embedding_projection.w',
+      FIXTURE_TFLITE_TENSOR_TYPE.INT8,
+      new Uint8Array(1536 * 256),
+      new Float32Array(1536).fill(0.25),
+      new Int32Array(1536).fill(0)
     );
     pushRowwiseTensor(
       tensors,

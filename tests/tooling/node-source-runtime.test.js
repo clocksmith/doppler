@@ -257,11 +257,35 @@ try {
   );
   assert.equal(
     litertTaskBundle.manifest.tensors['model.language_model.layers.0.self_attn.q_proj.weight']?.sourceTransform?.kind,
-    'litert_rowwise_dequant'
+    'litert_axis_dequant'
   );
   assert.ok(
-    litertTaskBundle.manifest.tensors['model.language_model.layers.0.self_attn.q_proj.weight']?.sourceTransform?.rowSumSource,
-    'LiteRT task bundle should preserve row-sum companions for packed rowwise tensors'
+    litertTaskBundle.manifest.tensors['model.language_model.layers.0.self_attn.q_proj.weight']?.sourceTransform?.sumSource,
+    'LiteRT task bundle should preserve sum companions for packed axis-dequant tensors'
+  );
+  assert.deepEqual(
+    litertTaskBundle.manifest.tensors['model.language_model.layers.0.self_attn.o_proj.weight']?.sourceTransform?.storageShape,
+    [2048, 1536]
+  );
+  assert.equal(
+    litertTaskBundle.manifest.tensors['model.language_model.layers.0.self_attn.o_proj.weight']?.sourceTransform?.quantAxis,
+    0
+  );
+  assert.deepEqual(
+    litertTaskBundle.manifest.tensors['model.language_model.layers.0.mlp.down_proj.weight']?.sourceTransform?.storageShape,
+    [6144, 1536]
+  );
+  assert.equal(
+    litertTaskBundle.manifest.tensors['model.language_model.layers.0.mlp.down_proj.weight']?.sourceTransform?.quantAxis,
+    0
+  );
+  assert.deepEqual(
+    litertTaskBundle.manifest.tensors['model.language_model.layers.0.per_layer_projection.weight']?.sourceTransform?.storageShape,
+    [256, 1536]
+  );
+  assert.equal(
+    litertTaskBundle.manifest.tensors['model.language_model.layers.0.per_layer_projection.weight']?.sourceTransform?.quantAxis,
+    0
   );
   assert.deepEqual(
     litertTaskBundle.manifest.tensors['model.language_model.layers.0.self_attn.q_proj.weight']?.shape,
@@ -305,7 +329,7 @@ try {
   assert.equal(litertLmBundle.manifest.modelType, 'gemma4');
   assert.equal(
     litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.kind,
-    'litert_rowwise_dequant'
+    'litert_axis_dequant'
   );
   const litertLmTokenizer = await litertLmBundle.storageContext.loadTokenizerModel();
   assert.equal(litertLmTokenizer?.byteLength, 4);

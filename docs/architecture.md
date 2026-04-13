@@ -876,7 +876,7 @@ Manages host-memory allocations for weight staging and conversion:
 
 ---
 
-## 6. Bridge (`bridge/`)
+## 6. Bridge (`experimental/bridge/`)
 
 ### extension-client.js - Extension Bridge Client
 
@@ -902,7 +902,7 @@ Defines framing, commands, and flags for bridge messaging.
 
 ---
 
-## 7. Browser Import (`browser/`)
+## 7. Browser Import (`experimental/browser/`)
 
 ### file-picker.js - Browser File Access
 
@@ -922,7 +922,10 @@ Builds RDRR shards from GGUF inputs in-browser.
 
 ### browser-converter.js - Browser Conversion
 
-Converts source formats into RDRR with progress reporting. Uses shared types and functions from `src/converter/core.js` for consistent manifest generation and architecture extraction.
+Converts source formats into RDRR with progress reporting. This helper now lives
+under `src/experimental/browser/browser-converter.js` and uses shared types and
+functions from `src/converter/core.js` for consistent manifest generation and
+architecture extraction.
 
 ---
 
@@ -935,7 +938,7 @@ Platform-agnostic types and pure functions shared across converter paths:
 - **Functions**: `sanitizeModelId()`, `formatBytes()`, `shouldQuantize()`, `extractArchitecture()`, `buildTensorMap()`, `createManifest()`
 - **I/O Adapter**: `ConvertIO` interface for platform-specific file operations
 
-### browser-converter.js - Model Conversion
+### `experimental/browser/browser-converter.js` - Model Conversion
 
 Converts HuggingFace models to RDRR format in-browser (demo UI or programmatic API).
 

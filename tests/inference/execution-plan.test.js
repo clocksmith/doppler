@@ -54,6 +54,39 @@ const mixedPrecisionKernelPath = {
   },
 };
 
+const kvOnlyF16KernelPath = {
+  id: 'gemma4-f32a-f16kv',
+  name: 'gemma4-f32a-f16kv',
+  activationDtype: 'f32',
+  kvDtype: 'f16',
+  decode: {
+    steps: [
+      {
+        op: 'q_proj',
+        kernel: 'matmul_f16w_f32a.wgsl',
+      },
+      {
+        op: 'attention',
+        kernel: 'attention_decode_online_f16kv.wgsl',
+        precision: { kvDtype: 'f16' },
+      },
+    ],
+  },
+  prefill: {
+    steps: [
+      {
+        op: 'q_proj',
+        kernel: 'matmul_f16w_f32a.wgsl',
+      },
+      {
+        op: 'attention',
+        kernel: 'attention_streaming_f16kv.wgsl',
+        precision: { kvDtype: 'f16' },
+      },
+    ],
+  },
+};
+
 function createRuntimeConfig(activationDtype = 'f16', maxTokens = 256) {
   const runtimeConfig = createDopplerConfig().runtime;
   runtimeConfig.inference.compute.activationDtype = activationDtype;
@@ -315,6 +348,21 @@ const container = { executionPlanState: planState };
   assert.equal(selectivePlanState.primaryPlan.finitenessGuardEnabled, false);
   assert.equal(hasFallbackExecutionPlan(selectivePlanState), true);
   assert.equal(selectivePlanState.fallbackPlan?.kernelPathId, minimalFallbackKernelPath.id);
+}
+
+{
+  const runtimeConfigKvOnlyF16 = createRuntimeConfig('f32');
+  runtimeConfigKvOnlyF16.inference.compute.rangeAwareSelectiveWidening.onTrigger = 'fallback-plan';
+  const kvOnlyPlanState = compileExecutionPlanState({
+    runtimeConfig: runtimeConfigKvOnlyF16,
+    resolvedKernelPath: kvOnlyF16KernelPath,
+    kernelPathSource: 'execution-v1',
+  });
+
+  assert.equal(kvOnlyPlanState.primaryPlan.activationDtype, 'f32');
+  assert.equal(kvOnlyPlanState.primaryPlan.finitenessGuardEnabled, false);
+  assert.equal(hasFallbackExecutionPlan(kvOnlyPlanState), false);
+  assert.equal(activateFallbackExecutionPlan(kvOnlyPlanState), null);
 }
 
 {

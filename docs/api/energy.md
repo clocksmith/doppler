@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Public energy-pipeline surface for energy-specific pipeline creation and Quintel helpers.
+Experimental energy-pipeline surface for energy-specific pipeline creation and Quintel helpers.
 
 ## Import Path
 
@@ -16,7 +16,7 @@ Advanced users working with the energy pipeline family.
 
 ## Stability
 
-Public, but advanced and specialized.
+Exported, but experimental and specialized.
 Current support tier: `experimental`. See [Subsystem Support Matrix](../subsystem-support-matrix.md).
 
 ## Primary Exports

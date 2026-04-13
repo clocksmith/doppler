@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Public diffusion/image pipeline surface for consumers working with diffusion manifests and image regression helpers.
+Experimental diffusion/image pipeline surface for consumers working with diffusion manifests and image regression helpers.
 
 ## Import Path
 
@@ -19,7 +19,7 @@ Advanced users and integrations working with diffusion-specific pipeline flows.
 
 ## Stability
 
-Public, but advanced and narrower than the text root surface.
+Exported, but experimental and narrower than the text root surface.
 Current support tier: `experimental`. See [Subsystem Support Matrix](../subsystem-support-matrix.md).
 
 ## Primary Exports
