@@ -236,14 +236,34 @@ async function resolveLocalCatalogSourceMap(entries, fetchImpl = fetch, origin =
 export function selectDemoCatalogEntries(models, options = {}) {
   const entries = Array.isArray(models) ? models : [];
   const localBaseUrls = options.localBaseUrls instanceof Map ? options.localBaseUrls : new Map();
-  const selected = entries.filter((entry) => (
-    entry?.modes?.includes('text')
-    && (entry.quickstart === true || localBaseUrls.has(entry.modelId))
-  )).map((entry) => ({
+  const selected = entries.filter((entry) => {
+    if (!entry?.modes?.includes('text')) {
+      return false;
+    }
+    if (localBaseUrls.has(entry.modelId)) {
+      return true;
+    }
+    if (normalizeBaseUrl(entry?.baseUrl)) {
+      return true;
+    }
+    try {
+      return normalizeBaseUrl(buildHfModelBaseUrl(entry)) != null;
+    } catch {
+      return false;
+    }
+  }).map((entry) => ({
     ...entry,
     localBaseUrl: localBaseUrls.get(entry.modelId) ?? null,
   }));
-  selected.sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999));
+  selected.sort((a, b) => {
+    if (a.recommended !== b.recommended) {
+      return a.recommended ? -1 : 1;
+    }
+    if ((a.sortOrder ?? 999) !== (b.sortOrder ?? 999)) {
+      return (a.sortOrder ?? 999) - (b.sortOrder ?? 999);
+    }
+    return String(a.label || a.modelId || '').localeCompare(String(b.label || b.modelId || ''));
+  });
   return selected;
 }
 

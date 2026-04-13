@@ -92,12 +92,22 @@ import {
       modelId: 'gemma-3-1b-it-q4k-ehf16-af32',
       quickstart: true,
       modes: ['text'],
+      hf: {
+        repoId: 'Clocksmith/rdrr',
+        revision: 'abc123',
+        path: 'models/gemma-3-1b-it-q4k-ehf16-af32',
+      },
       sortOrder: 12,
     },
     {
       modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
       quickstart: false,
       modes: ['text'],
+      hf: {
+        repoId: 'Clocksmith/rdrr',
+        revision: 'abc123',
+        path: 'models/gemma-4-e2b-it-q4k-ehf16-af32',
+      },
       sortOrder: 13,
     },
     {
@@ -115,11 +125,37 @@ import {
   assert.deepEqual(
     selected.map((entry) => entry.modelId),
     ['gemma-3-1b-it-q4k-ehf16-af32', 'gemma-4-e2b-it-q4k-ehf16-af32'],
-    'demo catalog should include quickstart models and local-only text models'
+    'demo catalog should include downloadable text models regardless of quickstart metadata'
   );
   assert.equal(
     selected[1].localBaseUrl,
     'http://localhost:8080/models/local/gemma-4-e2b-it-q4k-ehf16-af32'
+  );
+}
+
+{
+  const selected = selectDemoCatalogEntries([
+    {
+      modelId: 'missing-source-text-model',
+      modes: ['text'],
+      sortOrder: 20,
+    },
+    {
+      modelId: 'hf-backed-text-model',
+      modes: ['text'],
+      hf: {
+        repoId: 'Clocksmith/rdrr',
+        revision: 'abc123',
+        path: 'models/hf-backed-text-model',
+      },
+      sortOrder: 21,
+    },
+  ]);
+
+  assert.deepEqual(
+    selected.map((entry) => entry.modelId),
+    ['hf-backed-text-model'],
+    'demo catalog should exclude text entries that do not resolve to a downloadable source'
   );
 }
 
