@@ -191,7 +191,7 @@
       "packageExport": "./tooling",
       "command": null,
       "docs": [
-        "docs/api/tooling.md",
+        "docs/api/tooling-experimental.md",
         "docs/api/advanced-root-exports.md"
       ],
       "entrypoints": [
@@ -210,17 +210,17 @@
       "demoDefault": false,
       "exported": true,
       "claimVisibility": "none",
-      "packageExport": "./tooling",
+      "packageExport": "./tooling-experimental",
       "command": null,
       "docs": [
-        "docs/api/tooling.md",
+        "docs/api/tooling-experimental.md",
         "docs/api/advanced-root-exports.md"
       ],
       "entrypoints": [
         "src/tooling-exports.shared.js",
         "src/experimental/browser/browser-converter.js"
       ],
-      "notes": "Browser conversion and file-picker helpers ship on the tooling subpath for advanced workflows, but they are not part of the tier1 quickstart or demo-default contract."
+      "notes": "Browser conversion and file-picker helpers ship on the dedicated tooling-experimental subpath for advanced workflows, but they are not part of the tier1 quickstart or demo-default contract."
     },
     {
       "id": "api.tooling-p2p-helpers",
@@ -232,7 +232,7 @@
       "demoDefault": false,
       "exported": true,
       "claimVisibility": "none",
-      "packageExport": "./tooling",
+      "packageExport": "./tooling-experimental",
       "command": null,
       "docs": [
         "docs/api/tooling.md",
@@ -242,7 +242,7 @@
         "src/tooling-exports.shared.js",
         "src/experimental/distribution/p2p-control-plane.js"
       ],
-      "notes": "P2P and distribution helpers are exported for advanced tooling flows, but they remain outside the current tier1 local text inference story."
+      "notes": "P2P and distribution helpers are exported on the dedicated tooling-experimental subpath for advanced tooling flows, but they remain outside the current tier1 local text inference story."
     },
     {
       "id": "api.tooling-operator-commands",

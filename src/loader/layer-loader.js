@@ -1,12 +1,20 @@
 
 
 import { getKernelCapabilities } from '../gpu/device.js';
-import { isWeightBuffer, createWeightBuffer, getWeightDtype } from '../gpu/weight-buffer.js';
+import {
+  isWeightBuffer,
+  createWeightBuffer,
+  getWeightDtype,
+  resolveWeightBufferMaterialization,
+} from '../gpu/weight-buffer.js';
 import { dequantize, dequantizeRowwise } from '../gpu/kernel-selector.js';
-import { releaseBuffer } from '../memory/buffer-pool.js';
+import { releaseBuffer, acquireBuffer, uploadData } from '../memory/buffer-pool.js';
 import { batchDowncastWeights } from './weight-downcast.js';
-import { QK_K } from './quantization-constants.js';
+import { QK_K, Q4K_BLOCK_BYTES } from './quantization-constants.js';
 import { log, trace as debugTrace } from '../debug/index.js';
+import { createTensor } from '../gpu/tensor.js';
+import { castF16ToF32 } from '../gpu/kernels/cast.js';
+import { dequantizeQ4KM, dequantizeQ4KMRowWise } from '../converter/quantizer.js';
 
 // ============================================================================
 // Constants
@@ -172,6 +180,126 @@ function inferLinearQKVSizes(ctx, linearQkvProj, linearOutProj) {
   return null;
 }
 
+function cloneWeightMaterializations(weight, excludeDtypes = []) {
+  if (!isWeightBuffer(weight) || !weight.materializations || typeof weight.materializations !== 'object') {
+    return null;
+  }
+  const excluded = new Set(excludeDtypes);
+  const cloned = {};
+  for (const [dtype, descriptor] of Object.entries(weight.materializations)) {
+    if (excluded.has(dtype) || !descriptor?.buffer) {
+      continue;
+    }
+    cloned[dtype] = {
+      buffer: descriptor.buffer,
+      layout: descriptor.layout ?? weight.layout,
+    };
+  }
+  return Object.keys(cloned).length > 0 ? cloned : null;
+}
+
+function isQ4KLocationDtype(dtype) {
+  return dtype === 'Q4_K_M' || dtype === 'Q4_K';
+}
+
+function toUint8Array(data) {
+  if (data instanceof Uint8Array) {
+    return data;
+  }
+  if (ArrayBuffer.isView(data)) {
+    return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+  }
+  if (data instanceof ArrayBuffer) {
+    return new Uint8Array(data);
+  }
+  return null;
+}
+
+async function loadPerLayerProjectionReferenceQ4K(ctx, name, location, layerIdx) {
+  if (!location || !isQ4KLocationDtype(String(location.dtype ?? '').toUpperCase())) {
+    return null;
+  }
+  const shape = Array.isArray(location.shape) ? location.shape : null;
+  if (!shape || shape.length !== 2) {
+    return null;
+  }
+
+  const quantizedBytes = toUint8Array(await ctx.loadTensor(name, false, true));
+  if (!quantizedBytes) {
+    return null;
+  }
+
+  const rows = Number(shape[0]);
+  const cols = Number(shape[1]);
+  if (!Number.isFinite(rows) || rows <= 0 || !Number.isFinite(cols) || cols <= 0) {
+    return null;
+  }
+
+  const f32Weights = cols % QK_K === 0
+    ? dequantizeQ4KM(quantizedBytes, Math.ceil(location.size / Q4K_BLOCK_BYTES), shape)
+    : dequantizeQ4KMRowWise(quantizedBytes, shape);
+
+  const buffer = acquireBuffer(f32Weights.byteLength, undefined, `${name}_f32_reference`);
+  uploadData(buffer, f32Weights);
+  ctx.gpuBuffers.add(buffer);
+
+  debugTrace.loader(
+    `Layer ${layerIdx}: loaded perLayerProjection via CPU reference q4k dequant`
+  );
+
+  return createWeightBuffer(buffer, 'f32', location.layout ?? 'row', shape, name);
+}
+
+async function stabilizePerLayerProjectionWeight(ctx, weights, layerIdx) {
+  const originalWeight = weights.perLayerProjection;
+  if (!isWeightBuffer(originalWeight)) {
+    return;
+  }
+
+  const denseWeight = resolveWeightBufferMaterialization(originalWeight, 'f16');
+  const denseDtype = String(getWeightDtype(denseWeight) ?? '').toLowerCase();
+  if (denseDtype === 'f32') {
+    return;
+  }
+  if (denseDtype !== 'f16') {
+    return;
+  }
+
+  const denseShape = Array.isArray(denseWeight.shape) ? denseWeight.shape : null;
+  if (!denseShape || denseShape.length !== 2) {
+    return;
+  }
+
+  const f32Tensor = await castF16ToF32(
+    createTensor(
+      denseWeight.buffer,
+      'f16',
+      denseShape,
+      denseWeight.label ?? `layer_${layerIdx}_per_layer_projection_f16`
+    )
+  );
+  ctx.gpuBuffers.add(f32Tensor.buffer);
+
+  weights.perLayerProjection = createWeightBuffer(
+    f32Tensor.buffer,
+    'f32',
+    denseWeight.layout ?? originalWeight.layout,
+    denseShape,
+    denseWeight.label ?? `layer_${layerIdx}_per_layer_projection_f32`,
+    {
+      ...(cloneWeightMaterializations(originalWeight, ['f32']) ?? {}),
+      f16: {
+        buffer: denseWeight.buffer,
+        layout: denseWeight.layout ?? originalWeight.layout,
+      },
+    }
+  );
+
+  debugTrace.loader(
+    `Layer ${layerIdx}: promoted perLayerProjection to f32 for stable per-layer input projection`
+  );
+}
+
 // ============================================================================
 // Main Function
 // ============================================================================
@@ -226,7 +354,7 @@ export async function loadLayer(ctx, layerIdx) {
 
   // Load FFN weights (unless MoE expert layer)
   if (!ctx.isMoE || !ctx.isExpertLayer(layerIdx)) {
-    await loadFfnWeights(weights, layerIdx, tryLoad);
+    await loadFfnWeights(ctx, weights, layerIdx, tryLoad, prefixes);
   }
 
   // Load MoE router weights
@@ -404,24 +532,22 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
 }
 
 
-async function loadFfnWeights(weights, layerIdx, tryLoad) {
-  const [ffnGateUp, ffnGate, ffnUp, ffnDown, perLayerInputGate, perLayerProjection] = await Promise.all([
+async function loadFfnWeights(ctx, weights, layerIdx, tryLoad, prefixes) {
+  const perLayerProjection = await loadStablePerLayerProjection(ctx, layerIdx, prefixes, tryLoad);
+  const [ffnGateUp, ffnGate, ffnUp, ffnDown, perLayerInputGate] = await Promise.all([
     tryLoad(FFN_SUFFIXES.ffnGateUp),
     tryLoad(FFN_SUFFIXES.ffnGate),
     tryLoad(FFN_SUFFIXES.ffnUp),
     tryLoad(FFN_SUFFIXES.ffnDown),
     tryLoad(FFN_SUFFIXES.perLayerInputGate),
-    tryLoad(FFN_SUFFIXES.perLayerProjection),
   ]);
 
   if (ffnGateUp) {
-    // Fused path: no separate gate/up weights
     weights.ffnGateUp = ffnGateUp;
     weights.ffnGate = null;
     weights.ffnUp = null;
     debugTrace.loader(`Layer ${layerIdx}: Using fused gate_up_proj for 2-pass FFN`);
   } else {
-    // Separate path: use gate and up individually (3-pass FFN)
     weights.ffnGate = ffnGate;
     weights.ffnUp = ffnUp;
   }
@@ -430,11 +556,24 @@ async function loadFfnWeights(weights, layerIdx, tryLoad) {
   weights.perLayerInputGate = perLayerInputGate;
   weights.perLayerProjection = perLayerProjection;
 
-  // Set aliases for pipeline compatibility
   weights.gate = weights.ffnGate;
   weights.up = weights.ffnUp;
   weights.down = weights.ffnDown;
   weights.gateUp = weights.ffnGateUp;
+}
+
+async function loadStablePerLayerProjection(ctx, layerIdx, prefixes, tryLoad) {
+  for (const prefix of prefixes) {
+    const name = `${prefix}.${FFN_SUFFIXES.perLayerProjection[0]}`;
+    const location = ctx.tensorLocations.get(name) ?? null;
+    if (location) {
+      const referenceWeight = await loadPerLayerProjectionReferenceQ4K(ctx, name, location, layerIdx);
+      if (referenceWeight) {
+        return referenceWeight;
+      }
+    }
+  }
+  return tryLoad(FFN_SUFFIXES.perLayerProjection);
 }
 
 
@@ -468,6 +607,7 @@ async function downcastLayerWeights(ctx, weights, layerIdx) {
   );
 
   await dequantConvQ4KWeights(ctx, weights, layerIdx);
+  await stabilizePerLayerProjectionWeight(ctx, weights, layerIdx);
 }
 
 

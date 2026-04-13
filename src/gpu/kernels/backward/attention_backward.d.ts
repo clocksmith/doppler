@@ -1,6 +1,19 @@
 import type { Tensor } from '../../tensor.js';
-import type { AttentionBackwardOptions, AttentionBackwardResult } from '../../../experimental/training/attention-backward.js';
 import type { CommandRecorder } from '../../command-recorder.js';
+
+export interface AttentionBackwardOptions {
+  seqLen: number;
+  numHeads: number;
+  headDim: number;
+  scale?: number;
+  causal?: boolean;
+}
+
+export interface AttentionBackwardResult {
+  gradQ: Tensor;
+  gradK: Tensor;
+  gradV: Tensor;
+}
 
 export declare function runAttentionBackward(
   q: Tensor,

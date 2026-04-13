@@ -1,4 +1,13 @@
-import type { TensorSource } from '../../experimental/browser/tensor-source-file.js';
+export interface TensorSource {
+  sourceType?: string;
+  name?: string | null;
+  size: number;
+  file?: Blob | File;
+  readRange: (offset: number, length: number) => Promise<ArrayBuffer>;
+  readAll?: () => Promise<ArrayBuffer>;
+  close?: () => Promise<void>;
+  getAuxFiles?: () => Promise<Record<string, unknown>> | Record<string, unknown>;
+}
 
 export interface GGUFParserAdapter {
   file: File | TensorSource;

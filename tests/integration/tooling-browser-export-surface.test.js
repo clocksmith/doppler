@@ -20,6 +20,12 @@ function runInline(args, source) {
     if (typeof mod.normalizeToolingCommandRequest !== 'function') {
       throw new Error('expected normalizeToolingCommandRequest on default tooling import');
     }
+    if ('convertModel' in mod) {
+      throw new Error('default tooling import unexpectedly exposed convertModel');
+    }
+    if ('pickModelFiles' in mod) {
+      throw new Error('default tooling import unexpectedly exposed pickModelFiles');
+    }
   `);
   assert.equal(result.status, 0, result.stderr);
 }
@@ -38,6 +44,25 @@ function runInline(args, source) {
     }
     if ('runBrowserCommandInNode' in mod) {
       throw new Error('browser tooling import unexpectedly exposed runBrowserCommandInNode');
+    }
+    if ('convertModel' in mod) {
+      throw new Error('browser tooling import unexpectedly exposed convertModel');
+    }
+    if ('pickModelFiles' in mod) {
+      throw new Error('browser tooling import unexpectedly exposed pickModelFiles');
+    }
+  `);
+  assert.equal(result.status, 0, result.stderr);
+}
+
+{
+  const result = runInline(['--conditions=browser'], `
+    const mod = await import('doppler-gpu/tooling-experimental');
+    if (typeof mod.convertModel !== 'function') {
+      throw new Error('expected convertModel on tooling-experimental import');
+    }
+    if (typeof mod.pickModelFiles !== 'function') {
+      throw new Error('expected pickModelFiles on tooling-experimental import');
     }
   `);
   assert.equal(result.status, 0, result.stderr);

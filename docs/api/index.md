@@ -19,7 +19,8 @@ The generated export inventory lives under [reference/exports.md](reference/expo
 - [Generation API](generation.md) - `doppler-gpu/generation`
 - [Diffusion API](diffusion.md) - `doppler-gpu/diffusion`
 - [Energy API](energy.md) - `doppler-gpu/energy`
-- [Tooling API](tooling.md) - `doppler-gpu/tooling`, with a tier1 command/storage core plus experimental operator and helper groups on the same subpath
+- [Tooling API](tooling.md) - `doppler-gpu/tooling`, with a tier1 command/storage core plus experimental operator flows
+- [Experimental Tooling API](tooling-experimental.md) - `doppler-gpu/tooling-experimental` for browser-conversion and P2P helpers
 
 ## Documentation Form
 
@@ -63,4 +64,5 @@ Generated reference pages provide:
 - `doppler-gpu/orchestration`
 - `doppler-gpu/diffusion`
 - `doppler-gpu/energy`
-- experimental portions of `doppler-gpu/tooling`
+- `doppler-gpu/tooling-experimental`
+- experimental operator portions of `doppler-gpu/tooling`

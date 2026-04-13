@@ -173,6 +173,7 @@ async function validatePackageExports() {
   assert(!exportsField['./provider'], 'package.json exports must not include ./provider.');
   assert(!exportsField['./internal'], 'package.json exports must not include ./internal.');
   assert(exportsField['./tooling'], 'package.json exports must include ./tooling.');
+  assert(exportsField['./tooling-experimental'], 'package.json exports must include ./tooling-experimental.');
   assert(exportsField['./loaders'], 'package.json exports must include ./loaders.');
   assert(exportsField['./orchestration'], 'package.json exports must include ./orchestration.');
   assert(exportsField['./generation'], 'package.json exports must include ./generation.');

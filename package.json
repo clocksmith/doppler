@@ -130,6 +130,11 @@
       "browser": "./src/tooling-exports.browser.js",
       "import": "./src/tooling-exports.js"
     },
+    "./tooling-experimental": {
+      "types": "./src/tooling-experimental-exports.d.ts",
+      "browser": "./src/tooling-experimental-exports.browser.js",
+      "import": "./src/tooling-experimental-exports.js"
+    },
     "./loaders": {
       "types": "./src/loaders/index.d.ts",
       "import": "./src/loaders/index.js"

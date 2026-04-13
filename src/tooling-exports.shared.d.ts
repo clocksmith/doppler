@@ -41,10 +41,6 @@ export {
 } from './storage/shard-manager.js';
 export { exportModelToDirectory } from './storage/export.js';
 export { parseManifest, getManifest, setManifest, clearManifest, classifyTensorRole } from './formats/rdrr/index.js';
-
-// Browser conversion + file pickers
-export { convertModel, createRemoteModelSources, isConversionSupported } from './experimental/browser/browser-converter.js';
-export { pickModelDirectory, pickModelFiles } from './experimental/browser/file-picker.js';
 export { inferEmbeddingOutputConfig } from './converter/core.js';
 
 // GPU init + capabilities
@@ -72,24 +68,6 @@ export {
   ensureCommandSupportedOnSurface,
 } from './tooling/command-api.js';
 export { runBrowserCommand, normalizeBrowserCommand } from './tooling/browser-command-runner.js';
-export {
-  P2P_WEBRTC_DATA_PLANE_CONTRACT_VERSION,
-  isBrowserWebRTCAvailable,
-  createBrowserWebRTCDataPlaneTransport,
-} from './experimental/distribution/p2p-webrtc-browser.js';
-export {
-  P2P_CONTROL_PLANE_CONTRACT_VERSION,
-  normalizeP2PControlPlaneConfig,
-  resolveP2PSessionToken,
-  evaluateP2PPolicyDecision,
-} from './experimental/distribution/p2p-control-plane.js';
-export {
-  P2P_OBSERVABILITY_SCHEMA_VERSION,
-  createP2PDeliveryObservabilityRecord,
-  aggregateP2PDeliveryObservability,
-  buildP2PAlertsFromSummary,
-  buildP2PDashboardSnapshot,
-} from './experimental/distribution/p2p-observability.js';
 
 export type {
   ToolingCommand,

@@ -87,9 +87,12 @@ Subpath support tiers are defined in [Subsystem Support Matrix](../subsystem-sup
 - tier1 storage and manifest tooling
 - tier1 browser/Node command runners for canonical verify/debug/bench flows
 - diagnostics harness helpers
+- experimental Node operator flows (`diagnose`, `lora`, `distill`)
+
+### `doppler-gpu/tooling-experimental`
+
 - experimental browser conversion/file-picker helpers
 - experimental P2P/distribution helpers
-- experimental Node operator flows (`diagnose`, `lora`, `distill`)
 
 ## Migration Rule
 
@@ -98,7 +101,8 @@ Subpath support tiers are defined in [Subsystem Support Matrix](../subsystem-sup
 - KV cache, routers, adapters, and logit-merge helpers should import from `doppler-gpu/orchestration`.
 - Direct pipeline construction should import from `doppler-gpu/generation`.
 - Tooling and command helpers should import from `doppler-gpu/tooling`.
-- Treat `doppler-gpu/tooling` as a mixed-tier export: command/storage/registry helpers are promoted first; browser import, P2P, and operator helpers are still experimental.
+- Browser conversion/file-picker and P2P helpers should import from `doppler-gpu/tooling-experimental`.
+- Treat `doppler-gpu/tooling` as a mixed-tier export mainly because operator command flows remain experimental.
 - Check the subsystem support matrix before treating every exported subpath as equally promoted.
 
 ## Code Pointers

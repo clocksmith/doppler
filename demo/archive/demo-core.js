@@ -24,12 +24,7 @@ import {
   setManifest,
   clearManifest,
   classifyTensorRole,
-  convertModel,
-  createRemoteModelSources,
-  isConversionSupported,
   inferEmbeddingOutputConfig,
-  pickModelDirectory,
-  pickModelFiles,
   initDevice,
   getDevice,
   getKernelCapabilities,
@@ -38,6 +33,13 @@ import {
   captureMemorySnapshot,
   destroyBufferPool,
 } from 'doppler-gpu/tooling';
+import {
+  convertModel,
+  createRemoteModelSources,
+  isConversionSupported,
+  pickModelDirectory,
+  pickModelFiles,
+} from 'doppler-gpu/tooling-experimental';
 import { createPipeline } from 'doppler-gpu/generation';
 import { DiagnosticsController } from './diagnostics-controller.js';
 import { state } from './ui/state.js';

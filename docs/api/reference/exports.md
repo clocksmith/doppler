@@ -19,12 +19,12 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 ## `doppler-gpu/tooling`
 
 - Audience: tool builders
-- Stability: tier1 advanced
+- Stability: experimental export
 - Manual guide: [docs/api/tooling.md](../tooling.md)
 - Types: [src/tooling-exports.d.ts](../../../src/tooling-exports.d.ts)
 - Implementation: [src/tooling-exports.js](../../../src/tooling-exports.js)
 - Notes: Tooling and command-runner surface, not the main app-facing API.
-- Support tier source: `src/config/support-tiers/subsystems.json` (api.tooling-subpath)
+- Support tier source: `src/config/support-tiers/subsystems.json` (api.tooling-operator-commands)
 - Exported symbols:
   - `*`
   - `hasNodeWebGPUSupport`
@@ -35,6 +35,17 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `normalizeNodeCommand`
   - `runBrowserCommandInNode`
   - `runNodeCommand`
+
+## `doppler-gpu/tooling-experimental`
+
+- Audience: unspecified
+- Stability: experimental export
+- Types: [src/tooling-experimental-exports.d.ts](../../../src/tooling-experimental-exports.d.ts)
+- Implementation: [src/tooling-experimental-exports.js](../../../src/tooling-experimental-exports.js)
+- Notes: No manual classification recorded for this export path.
+- Support tier source: `src/config/support-tiers/subsystems.json` (api.tooling-p2p-helpers)
+- Exported symbols:
+  - `*`
 
 ## `doppler-gpu/loaders`
 

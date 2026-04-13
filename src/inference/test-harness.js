@@ -6,17 +6,31 @@ import { createPipeline } from './pipelines/text.js';
 import { createNodeFileShardStorageContext } from './pipelines/text/init.js';
 import { log as debugLog } from '../debug/index.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
-import { downloadShard as downloadShardFromDistribution } from '../experimental/distribution/shard-delivery.js';
-import {
-  fetchHotSwapManifest,
-  verifyHotSwapManifest,
-} from '../experimental/hotswap/manifest.js';
-import { evaluateHotSwapRollout, setHotSwapManifest } from '../experimental/hotswap/runtime.js';
-import {
-  fetchIntentBundle,
-  getKernelRegistryVersion,
-  verifyIntentBundle,
-} from '../experimental/hotswap/intent-bundle.js';
+
+let distributionModulePromise = null;
+let hotSwapManifestModulePromise = null;
+let hotSwapRuntimeModulePromise = null;
+let intentBundleModulePromise = null;
+
+async function loadDistributionModule() {
+  distributionModulePromise ??= import('../experimental/distribution/shard-delivery.js');
+  return distributionModulePromise;
+}
+
+async function loadHotSwapManifestModule() {
+  hotSwapManifestModulePromise ??= import('../experimental/hotswap/manifest.js');
+  return hotSwapManifestModulePromise;
+}
+
+async function loadHotSwapRuntimeModule() {
+  hotSwapRuntimeModulePromise ??= import('../experimental/hotswap/runtime.js');
+  return hotSwapRuntimeModulePromise;
+}
+
+async function loadIntentBundleModule() {
+  intentBundleModulePromise ??= import('../experimental/hotswap/intent-bundle.js');
+  return intentBundleModulePromise;
+}
 
 
 
@@ -167,6 +181,7 @@ export function createHttpShardLoader(baseUrl, manifest, log) {
     // Start new load and track it as pending
     const loadPromise = (async () => {
       try {
+        const { downloadShard: downloadShardFromDistribution } = await loadDistributionModule();
         const result = await downloadShardFromDistribution(baseUrl, idx, shard, {
           distributionConfig,
           algorithm,
@@ -242,7 +257,14 @@ export async function initializeInference(modelUrl, options = {}) {
   const hotSwapConfig = getRuntimeConfig().shared.hotSwap;
   const intentBundleConfig = getRuntimeConfig().shared.intentBundle;
   if (hotSwapConfig.enabled && hotSwapConfig.manifestUrl) {
-    const rolloutDecision = evaluateHotSwapRollout(hotSwapConfig, {
+    const [
+      hotSwapManifestModule,
+      hotSwapRuntimeModule,
+    ] = await Promise.all([
+      loadHotSwapManifestModule(),
+      loadHotSwapRuntimeModule(),
+    ]);
+    const rolloutDecision = hotSwapRuntimeModule.evaluateHotSwapRollout(hotSwapConfig, {
       modelUrl,
       subjectId: options.modelId || null,
       sessionId: options.sessionId || null,
@@ -253,8 +275,8 @@ export async function initializeInference(modelUrl, options = {}) {
     } else {
       onProgress('hotswap', 0.05, 'Loading hot-swap manifest...');
       log(`Hot-swap: loading manifest ${hotSwapConfig.manifestUrl}`);
-      const hotSwapManifest = await fetchHotSwapManifest(hotSwapConfig.manifestUrl);
-      const verification = await verifyHotSwapManifest(hotSwapManifest, hotSwapConfig, {
+      const hotSwapManifest = await hotSwapManifestModule.fetchHotSwapManifest(hotSwapConfig.manifestUrl);
+      const verification = await hotSwapManifestModule.verifyHotSwapManifest(hotSwapManifest, hotSwapConfig, {
         source: {
           kind: 'remote',
           isLocal: false,
@@ -264,7 +286,7 @@ export async function initializeInference(modelUrl, options = {}) {
       if (!verification.ok) {
         throw new Error(`Hot-swap manifest rejected: ${verification.reason}`);
       }
-      setHotSwapManifest(hotSwapManifest);
+      hotSwapRuntimeModule.setHotSwapManifest(hotSwapManifest);
       log(
         `Hot-swap manifest accepted: ${hotSwapManifest.bundleId} (${verification.reason}, rollout=${rolloutDecision.reason})`
       );
@@ -289,13 +311,14 @@ export async function initializeInference(modelUrl, options = {}) {
   const manifest = await fetchManifest(manifestUrl);
 
   if (intentBundleConfig.enabled && intentBundleConfig.bundleUrl) {
+    const intentBundleModule = await loadIntentBundleModule();
     onProgress('intent', 0.12, 'Loading intent bundle...');
     log(`Intent bundle: loading ${intentBundleConfig.bundleUrl}`);
-    const bundle = await fetchIntentBundle(intentBundleConfig.bundleUrl);
+    const bundle = await intentBundleModule.fetchIntentBundle(intentBundleConfig.bundleUrl);
     const kernelRegistryVersion = intentBundleConfig.requireKernelRegistryVersion
-      ? await getKernelRegistryVersion()
+      ? await intentBundleModule.getKernelRegistryVersion()
       : null;
-    const verification = await verifyIntentBundle(bundle, {
+    const verification = await intentBundleModule.verifyIntentBundle(bundle, {
       manifest: intentBundleConfig.requireBaseModelHash ? manifest : null,
       kernelRegistryVersion,
       enforceDeterministicOutput: intentBundleConfig.enforceDeterministicOutput,

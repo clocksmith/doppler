@@ -34,6 +34,7 @@ Primary documentation index.
 - [Diffusion API](api/diffusion.md) - experimental diffusion/image pipeline surface.
 - [Energy API](api/energy.md) - experimental energy pipeline surface.
 - [Tooling API](api/tooling.md) - command-runner and tooling surface.
+- [Experimental Tooling API](api/tooling-experimental.md) - experimental browser-conversion and P2P helper surface.
 - [Generated Export Inventory](api/reference/exports.md) - machine-derived export inventory from package entrypoints.
 
 ## Testing and Benchmarks
