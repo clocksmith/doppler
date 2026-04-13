@@ -1,7 +1,19 @@
-import type { ExtensionBridgeClient } from '../../experimental/bridge/index.js';
 import type { InferencePipeline, KVCacheSnapshot } from '../../inference/pipelines/text.js';
-import type { LoRAManifest } from '../../experimental/adapters/lora-loader.js';
 import type { RDRRManifest } from '../../formats/rdrr/index.js';
+
+export interface ExtensionBridgeClient {
+  read(path: string, offset?: number, length?: number): Promise<ArrayBuffer | Uint8Array>;
+  disconnect?(): void;
+}
+
+export interface LoRAManifest {
+  adapterType?: string;
+  modelType?: string;
+  name?: string;
+  rank?: number;
+  tensors?: unknown;
+  [key: string]: unknown;
+}
 
 export declare const DOPPLER_PROVIDER_VERSION: string;
 

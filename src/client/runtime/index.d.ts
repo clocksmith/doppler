@@ -60,3 +60,4 @@ export type {
 
 export type { DopplerModelHandle } from './model-session.js';
 export type { PrefillResult, LogitsStepResult } from '../../inference/pipelines/text/types.d.ts';
+export type { LoRAManifest, ExtensionBridgeClient } from './types.js';

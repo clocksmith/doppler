@@ -71,6 +71,11 @@ export declare function loadRangeBackedPleProjectionSliceBytes(
   shape: [number, number];
 } | null>;
 
+export declare function resolveDensePleProjectionWeight(
+  weight: unknown,
+  label?: string
+): unknown;
+
 export declare function ensurePleScaledProjectionNormWeight(
   context: Pick<LayerContext, 'config' | 'weights' | 'weightConfig' | 'debugFlags'>,
   combineScale?: number

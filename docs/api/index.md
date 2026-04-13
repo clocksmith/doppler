@@ -11,7 +11,7 @@ The generated export inventory lives under [reference/exports.md](reference/expo
 
 - [Root API](root.md) - `doppler-gpu`
 
-### Advanced public surfaces
+### Exported advanced surfaces
 
 - [Advanced Export Map](advanced-root-exports.md) - migration map from the old broad root surface to dedicated advanced subpaths
 - [Loaders API](loaders.md) - `doppler-gpu/loaders`
@@ -19,7 +19,7 @@ The generated export inventory lives under [reference/exports.md](reference/expo
 - [Generation API](generation.md) - `doppler-gpu/generation`
 - [Diffusion API](diffusion.md) - `doppler-gpu/diffusion`
 - [Energy API](energy.md) - `doppler-gpu/energy`
-- [Tooling API](tooling.md) - `doppler-gpu/tooling`, including the shared `convert|debug|bench|verify|diagnose|lora|distill` command contract
+- [Tooling API](tooling.md) - `doppler-gpu/tooling`, with a tier1 command/storage core plus experimental operator and helper groups on the same subpath
 
 ## Documentation Form
 
@@ -52,11 +52,15 @@ Generated reference pages provide:
 
 - `doppler-gpu`
 
-### Public but advanced
+### Tier1 advanced
 
 - `doppler-gpu/loaders`
-- `doppler-gpu/orchestration`
 - `doppler-gpu/generation`
+- tier1 portions of `doppler-gpu/tooling`
+
+### Exported but experimental
+
+- `doppler-gpu/orchestration`
 - `doppler-gpu/diffusion`
 - `doppler-gpu/energy`
-- `doppler-gpu/tooling`
+- experimental portions of `doppler-gpu/tooling`

@@ -68,6 +68,7 @@ export const STAGES = Object.freeze({
   CONV_OUT_PROJ: 'conv.out_proj',
 
   // FFN stages (per-layer)
+  PER_LAYER_INPUT_OUT: 'per_layer_input.out',
   FFN_NORMED: 'ffn.normed',
   FFN_IN: 'ffn.in',
   FFN_GATE: 'ffn.gate',
@@ -127,6 +128,7 @@ const STAGE_TO_CLASS_MAP = Object.freeze({
   [STAGES.CONV_KERNEL]: OPERATOR_CLASSES.CONV,
   [STAGES.CONV_OUT_PROJ]: OPERATOR_CLASSES.CONV,
 
+  [STAGES.PER_LAYER_INPUT_OUT]: OPERATOR_CLASSES.RESIDUAL,
   [STAGES.FFN_NORMED]: OPERATOR_CLASSES.NORMALIZATION,
   [STAGES.FFN_IN]: OPERATOR_CLASSES.FFN,
   [STAGES.FFN_GATE]: OPERATOR_CLASSES.FFN,
@@ -172,6 +174,7 @@ export const PROBE_TO_CANONICAL = Object.freeze({
   attn_out: STAGES.ATTN_OUT,
   o_proj: STAGES.ATTN_O_PROJ,
   post_attn: STAGES.ATTN_POST_ATTN,
+  per_layer_input: STAGES.PER_LAYER_INPUT_OUT,
   ffn_normed: STAGES.FFN_NORMED,
   ffn_in: STAGES.FFN_IN,
   ffn_gate: STAGES.FFN_GATE,

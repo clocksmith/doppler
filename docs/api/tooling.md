@@ -21,18 +21,22 @@ Tool builders, harness code, demos, and consumers that need browser/CLI command 
 
 ## Stability
 
-Public, but tooling-oriented rather than app-facing.
-Current support tier: `tier1` advanced surface. See [Subsystem Support Matrix](../subsystem-support-matrix.md).
+Public and tooling-oriented rather than app-facing.
+This subpath is mixed-tier: the command/storage/registry core is `tier1`, while
+browser import helpers, P2P helpers, and Node operator flows on the same export
+surface remain `experimental`. See [Subsystem Support Matrix](../subsystem-support-matrix.md).
 
 ## Primary Exports
 
-- shared command contract helpers
-- browser command runner helpers
-- Node command runner helpers
-- storage registry and shard-manager helpers
-- runtime and config inspection helpers
+- tier1 command contract helpers
+- tier1 browser and Node command runners for the canonical verify/debug/bench flows
+- tier1 storage registry and shard-manager helpers
+- tier1 runtime and config inspection helpers
+- experimental browser import helpers
+- experimental P2P/distribution helpers
+- experimental Node operator flows for `diagnose`, `lora`, and `distill`
 
-The generated export inventory is the authoritative symbol list for this surface because the tooling subpath is broad.
+The generated export inventory is the authoritative symbol list for this surface because the tooling subpath is broad and intentionally mixes promoted and experimental helper groups.
 
 ## Core Behaviors
 
@@ -50,6 +54,8 @@ Canonical tooling commands:
 - `debug`
 - `bench`
 - `verify`
+
+Experimental operator commands:
 - `diagnose`
 - `lora`
 - `distill`
@@ -225,6 +231,7 @@ console.log(result.result?.subset?.subsetManifestPath);
 - `watch`, `compare`, and `quality-gate` are run-root-driven actions
 - `eval` and `export` can operate from an explicit checkpoint path or from finalized checkpoints already present in the run root
 - behavior-changing training/eval policy belongs in workload JSON, not in ad hoc command flags
+- browser conversion/file-picker helpers and P2P helpers are exported on this subpath for advanced tooling workflows, but they are not part of the tier1 quickstart/demo claim set
 
 ## Code Pointers
 

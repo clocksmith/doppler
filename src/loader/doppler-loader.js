@@ -49,9 +49,15 @@ import {
   prefetchExperts as prefetchExpertsFromModule,
   predictNextLayerExperts as predictNextLayerExpertsFromModule,
 } from './experts/expert-loader.js';
-import { loadLoRAWeights as loadLoRAWeightsFromModule } from '../experimental/adapters/lora-loader.js';
 import { assembleShardData } from './tensors/tensor-reader.js';
 import { hasSourceTransform } from './tensors/source-transform.js';
+
+let loraModulePromise = null;
+
+async function getExperimentalLoRAModule() {
+  loraModulePromise ??= import('../experimental/adapters/lora-loader.js');
+  return loraModulePromise;
+}
 
 function hasExpertGroups(manifest) {
   if (!manifest?.groups) return false;
@@ -338,12 +344,13 @@ export class DopplerLoader {
     const prevLayerShardMap = new Map(this.#layerShardMap);
 
     try {
+      const { loadLoRAWeights } = await getExperimentalLoRAModule();
       this.manifest = manifest;
       // We must rebuild locations so _loadTensor finds them
       await this.#buildTensorLocations();
       this.#logWeightBreakdown();
 
-      return await loadLoRAWeightsFromModule(
+      return await loadLoRAWeights(
         manifest,
         (name, toGPU, silent) => this.#loadTensor(name, toGPU, silent)
       );

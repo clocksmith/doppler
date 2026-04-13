@@ -1,6 +1,6 @@
-import type { LoRAManifest } from '../../experimental/adapters/lora-loader.js';
 import type { RDRRManifest } from '../../formats/rdrr/index.js';
 import type { InferencePipeline } from '../../inference/pipelines/text.js';
+import type { LoRAManifest } from './types.js';
 
 export declare function loadLoRAAdapterForPipeline(
   pipeline: InferencePipeline | null | undefined,

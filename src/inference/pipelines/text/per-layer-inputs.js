@@ -11,6 +11,7 @@ import { createTensor } from '../../../gpu/tensor.js';
 import { recordScale, runScale } from '../../../gpu/kernel-selector.js';
 import { getNormWeightBuffer, getWeightBuffer } from './weights.js';
 import { doMatmul, doRMSNorm, releaseOrTrack } from './ops.js';
+import { runProbes } from './probes.js';
 import { embed, isRangeBackedCpuEmbeddingSource, normalizeRangeBytes, decodeRangeChunkIntoOutput } from './embed.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { getDevice } from '../../../gpu/device.js';
@@ -56,6 +57,47 @@ function getPleProjectionWeightDtype(weight) {
     return weight.dtype ?? null;
   }
   return getWeightDtype(weight);
+}
+
+function isDensePleProjectionDtype(dtype) {
+  return dtype === 'f16' || dtype === 'f32';
+}
+
+export function resolveDensePleProjectionWeight(
+  weight,
+  label = 'per_layer_model_projection'
+) {
+  if (isWeightBuffer(weight)) {
+    const dtype = String(weight.dtype ?? '').toLowerCase();
+    if (!isDensePleProjectionDtype(dtype)) {
+      throw new Error(
+        'Gemma 4 sliced per-layer projection requires a dense f16/f32 base materialization. ' +
+        `Got dtype="${String(weight.dtype)}" for "${label}".`
+      );
+    }
+    if (!weight.materializations?.q4k?.buffer) {
+      return weight;
+    }
+    return createWeightBuffer(
+      weight.buffer,
+      dtype,
+      weight.layout,
+      [...weight.shape],
+      weight.label ?? label
+    );
+  }
+
+  if (isGpuBufferInstance(weight)) {
+    const dtype = String(getBufferDtype(weight) ?? '').toLowerCase();
+    if (!isDensePleProjectionDtype(dtype)) {
+      throw new Error(
+        'Gemma 4 sliced per-layer projection requires dense f16/f32 GPU weights with runtime dtype metadata. ' +
+        `Got dtype="${String(getBufferDtype(weight) ?? 'unknown')}" for "${label}".`
+      );
+    }
+  }
+
+  return weight;
 }
 
 export async function loadRangeBackedPleProjectionSliceBytes(
@@ -1168,12 +1210,6 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
       `Got layout="${perLayerModelProjection.layout}".`
     );
   }
-  const projectionWeightDtype = selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', {
-    dtype: getPleProjectionWeightDtype(perLayerModelProjection),
-  });
-  const projectionWeightBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', {
-    dtype: projectionWeightDtype,
-  });
   const projectionScale = config.hiddenSize ** -0.5;
   const combineScale = 2 ** -0.5;
   const scaledProjectionNormWeight = await ensurePleScaledProjectionNormWeight(context, combineScale);
@@ -1368,7 +1404,7 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
         } else {
           let projectionWeightForLayer = projectionWeight;
           let projectionWeightBufferForLayer = null;
-          let projectionWeightOffset = hiddenOffset * config.hiddenSize * projectionWeightBytes;
+          let projectionWeightOffset = 0;
           let projectedTensor = null;
           try {
             const rangeBackedProjection = await loadRangeBackedPleProjectionSliceBytes(
@@ -1399,6 +1435,18 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
                 `L${layerIdx}.per_layer_projection_in_weight`
               );
               projectionWeightOffset = 0;
+            } else {
+              projectionWeightForLayer = resolveDensePleProjectionWeight(
+                projectionWeightForLayer,
+                `L${layerIdx}.per_layer_projection_in_weight`
+              );
+              const projectionWeightDtype = selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', {
+                dtype: getPleProjectionWeightDtype(projectionWeightForLayer),
+              });
+              const projectionWeightBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', {
+                dtype: projectionWeightDtype,
+              });
+              projectionWeightOffset = hiddenOffset * config.hiddenSize * projectionWeightBytes;
             }
             projectedTensor = await doMatmul(
               inputEmbedsTensor,
@@ -1453,22 +1501,30 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
         if (usesCachedScaledProjectionNormWeight) {
           perLayerBuffers[layerIdx] = combinedTensor.buffer;
           combinedTensor = null;
-          continue;
+        } else {
+          // Step 8: Inplace scale avoids allocating a separate output buffer.
+          // The combined tensor buffer is reused as the final per-layer output.
+          const scaledTensor = recorder
+            ? await recordScale(recorder, combinedTensor, combineScale, {
+              count: numTokens * hiddenSizePerLayerInput,
+              inplace: true,
+            })
+            : await runScale(combinedTensor, combineScale, {
+              count: numTokens * hiddenSizePerLayerInput,
+              inplace: true,
+            });
+          perLayerBuffers[layerIdx] = scaledTensor.buffer;
+          combinedTensor = null;
         }
-
-        // Step 8: Inplace scale avoids allocating a separate output buffer.
-        // The combined tensor buffer is reused as the final per-layer output.
-        const scaledTensor = recorder
-          ? await recordScale(recorder, combinedTensor, combineScale, {
-            count: numTokens * hiddenSizePerLayerInput,
-            inplace: true,
-          })
-          : await runScale(combinedTensor, combineScale, {
-            count: numTokens * hiddenSizePerLayerInput,
-            inplace: true,
-          });
-        perLayerBuffers[layerIdx] = scaledTensor.buffer;
-        combinedTensor = null;
+        await runProbes('per_layer_input', perLayerBuffers[layerIdx], {
+          layerIdx,
+          numTokens,
+          hiddenSize: hiddenSizePerLayerInput,
+          probes: context.debugProbes,
+          recorder,
+          operatorDiagnostics: context.operatorDiagnostics,
+          dtype: activationDtype,
+        });
       } catch (error) {
         if (combinedTensor) {
           releaseOrTrack(recorder, combinedTensor.buffer, decodeBuffers);

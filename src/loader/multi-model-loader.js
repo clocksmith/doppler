@@ -5,7 +5,13 @@ import { parseModelConfig } from '../inference/pipelines/text/config.js';
 import { InferencePipeline } from '../inference/pipelines/text.js';
 import { getDopplerLoader } from './doppler-loader.js';
 import { getRuntimeConfig } from '../config/runtime.js';
-import { loadLoRAFromManifest, loadLoRAFromUrl } from '../experimental/adapters/lora-loader.js';
+
+let loraModulePromise = null;
+
+async function getExperimentalLoRAModule() {
+  loraModulePromise ??= import('../experimental/adapters/lora-loader.js');
+  return loraModulePromise;
+}
 
 export class MultiModelLoader {
   
@@ -30,6 +36,7 @@ export class MultiModelLoader {
 
   async _resolveAdapterSource(source) {
     if (typeof source === 'string') {
+      const { loadLoRAFromUrl } = await getExperimentalLoRAModule();
       return loadLoRAFromUrl(source);
     }
     if (this.#isRDRRManifest(source)) {
@@ -38,6 +45,7 @@ export class MultiModelLoader {
       return loader.loadLoRAWeights(source);
     }
     if (this.#isLoRAManifest(source)) {
+      const { loadLoRAFromManifest } = await getExperimentalLoRAModule();
       return loadLoRAFromManifest(source);
     }
     return source;

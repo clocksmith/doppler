@@ -198,7 +198,72 @@
         "src/tooling-exports.js",
         "src/tooling/command-api.js"
       ],
-      "notes": "Supported advanced surface for command parity, diagnostics, and registry tooling."
+      "notes": "Supported advanced surface for the tier1 command contract, diagnostics, storage, and registry tooling. Some helper groups exported on the same subpath remain experimental and are classified separately below."
+    },
+    {
+      "id": "api.tooling-browser-import-helpers",
+      "label": "Tooling browser import helpers",
+      "scope": "api",
+      "tier": "experimental",
+      "owner": "model-io",
+      "userFacing": true,
+      "demoDefault": false,
+      "exported": true,
+      "claimVisibility": "none",
+      "packageExport": "./tooling",
+      "command": null,
+      "docs": [
+        "docs/api/tooling.md",
+        "docs/api/advanced-root-exports.md"
+      ],
+      "entrypoints": [
+        "src/tooling-exports.shared.js",
+        "src/experimental/browser/browser-converter.js"
+      ],
+      "notes": "Browser conversion and file-picker helpers ship on the tooling subpath for advanced workflows, but they are not part of the tier1 quickstart or demo-default contract."
+    },
+    {
+      "id": "api.tooling-p2p-helpers",
+      "label": "Tooling P2P helpers",
+      "scope": "api",
+      "tier": "experimental",
+      "owner": "distribution",
+      "userFacing": true,
+      "demoDefault": false,
+      "exported": true,
+      "claimVisibility": "none",
+      "packageExport": "./tooling",
+      "command": null,
+      "docs": [
+        "docs/api/tooling.md",
+        "docs/api/advanced-root-exports.md"
+      ],
+      "entrypoints": [
+        "src/tooling-exports.shared.js",
+        "src/experimental/distribution/p2p-control-plane.js"
+      ],
+      "notes": "P2P and distribution helpers are exported for advanced tooling flows, but they remain outside the current tier1 local text inference story."
+    },
+    {
+      "id": "api.tooling-operator-commands",
+      "label": "Tooling operator commands",
+      "scope": "api",
+      "tier": "experimental",
+      "owner": "research-runtime",
+      "userFacing": true,
+      "demoDefault": false,
+      "exported": true,
+      "claimVisibility": "none",
+      "packageExport": "./tooling",
+      "command": null,
+      "docs": [
+        "docs/api/tooling.md"
+      ],
+      "entrypoints": [
+        "src/tooling/node-command-runner.js",
+        "src/experimental/training/index.js"
+      ],
+      "notes": "Node-only `diagnose`, `lora`, and `distill` operator flows share the tooling contract surface, but they are still experimental research/operator lanes rather than tier1 product behavior."
     },
     {
       "id": "api.generation-subpath",

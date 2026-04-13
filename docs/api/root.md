@@ -78,13 +78,17 @@ Returns a `DopplerModel` instance with:
 - `generateText(...)`
 - `chat(...)`
 - `chatText(...)`
-- `loadLoRA(...)`
-- `unloadLoRA()`
+- experimental `loadLoRA(...)`
+- experimental `unloadLoRA()`
 - `unload()`
 - `advanced.prefillKV(...)`
 - `advanced.prefillWithLogits(...)`
 - `advanced.decodeStepLogits(...)`
 - `advanced.generateWithPrefixKV(...)`
+
+The text generation and `advanced.*` telemetry helpers are part of the promoted
+root-facade story. LoRA instance methods are available on the same model object,
+but remain outside the tier1 proof contract.
 
 ### `doppler(prompt, options)`
 

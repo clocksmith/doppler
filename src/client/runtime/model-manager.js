@@ -13,8 +13,6 @@ import { requestPersistence, getStorageReport } from '../../storage/quota.js';
 import { initDevice, getKernelCapabilities, getDeviceLimits, destroyDevice, getDevice } from '../../gpu/device.js';
 import { prepareKernelRuntime } from '../../gpu/kernel-runtime.js';
 import { createPipeline } from '../../inference/pipelines/text.js';
-import { isBridgeAvailable, createBridgeClient } from '../../experimental/bridge/index.js';
-import { loadLoRAFromManifest, loadLoRAFromUrl } from '../../experimental/adapters/lora-loader.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { log } from '../../debug/index.js';
 import { DopplerCapabilities } from './types.js';
@@ -30,6 +28,18 @@ import {
 
 let pipeline = null;
 let currentModelId = null;
+let bridgeModulePromise = null;
+let loraModulePromise = null;
+
+async function getExperimentalBridgeModule() {
+  bridgeModulePromise ??= import('../../experimental/bridge/index.js');
+  return bridgeModulePromise;
+}
+
+async function getExperimentalLoRAModule() {
+  loraModulePromise ??= import('../../experimental/adapters/lora-loader.js');
+  return loraModulePromise;
+}
 
 function manifestsDiffer(localManifest, remoteManifest) {
   if (!localManifest || !remoteManifest) return true;
@@ -270,7 +280,11 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
     let bridgeStorageContext = null;
     let bridgeSourceMode = false;
 
-    if (localPath && isBridgeAvailable()) {
+    if (localPath) {
+      const { isBridgeAvailable, createBridgeClient } = await getExperimentalBridgeModule();
+      if (!isBridgeAvailable()) {
+        throw new Error('Local path loading requires the experimental bridge surface, but no bridge is available.');
+      }
       log.info('DopplerProvider', `Using Native Bridge for local path: ${localPath}`);
       useBridge = true;
 
@@ -593,12 +607,14 @@ export async function loadLoRAAdapter(adapter) {
 
   let lora;
   if (typeof adapter === 'string') {
+    const { loadLoRAFromUrl } = await getExperimentalLoRAModule();
     lora = await loadLoRAFromUrl(adapter, options);
   } else if (adapter.adapterType === 'lora' || adapter.modelType === 'lora') {
     const loader = pipeline.dopplerLoader || getDopplerLoader();
     await loader.init();
     lora = await loader.loadLoRAWeights(adapter);
   } else {
+    const { loadLoRAFromManifest } = await getExperimentalLoRAModule();
     lora = await loadLoRAFromManifest(adapter, options);
   }
 

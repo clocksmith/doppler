@@ -36,6 +36,12 @@ const STAGE_DEFAULT_CATEGORY = {
   o_proj: 'attn',
   post_attn: 'attn',
   // FFN stages (per-layer)
+  per_layer_input: 'ffn',
+  per_layer_input_gate: 'ffn',
+  per_layer_input_activation: 'ffn',
+  per_layer_input_projection: 'ffn',
+  post_per_layer_input_norm: 'ffn',
+  post_per_layer_input: 'ffn',
   ffn_normed: 'ffn',
   ffn_in: 'ffn',
   ffn_gate: 'ffn',

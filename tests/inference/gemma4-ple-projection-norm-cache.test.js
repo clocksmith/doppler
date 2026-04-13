@@ -15,12 +15,14 @@ globalThis.GPUBufferUsage ??= {
 
 const { setDevice } = await import('../../src/gpu/device.js');
 const { destroyBufferPool, getBufferPool } = await import('../../src/memory/buffer-pool.js');
+const { createWeightBuffer } = await import('../../src/gpu/weight-buffer.js');
 const {
   ensurePleScaledProjectionNormWeight,
   destroyPleRuntimeCache,
   scalePerLayerProjectionNormWeights,
   inferPleProjectionNormDtype,
   loadRangeBackedPleProjectionSliceBytes,
+  resolveDensePleProjectionWeight,
 } = await import('../../src/inference/pipelines/text/per-layer-inputs.js');
 
 class FakeBuffer {
@@ -243,6 +245,58 @@ try {
   assert.equal(projectionSlice.layout, 'row');
   assert.deepEqual(projectionSlice.shape, [2, 4]);
   assert.equal(projectionSlice.bytes.byteLength, 16);
+
+  const denseProjectionBuffer = new FakeBuffer({
+    size: 2 * 4 * 2,
+    usage: GPUBufferUsage.STORAGE,
+    label: 'dense_projection',
+  });
+  const packedProjectionBuffer = new FakeBuffer({
+    size: 8,
+    usage: GPUBufferUsage.STORAGE,
+    label: 'packed_projection',
+  });
+  const slicedProjection = resolveDensePleProjectionWeight(
+    createWeightBuffer(
+      denseProjectionBuffer,
+      'f16',
+      'row',
+      [2, 4],
+      'per_layer_model_projection',
+      {
+        q4k: {
+          buffer: packedProjectionBuffer,
+          layout: 'row',
+        },
+      }
+    ),
+    'per_layer_model_projection'
+  );
+  assert.equal(
+    slicedProjection.buffer,
+    denseProjectionBuffer,
+    'sliced PLE projection must keep the dense base materialization'
+  );
+  assert.equal(slicedProjection.dtype, 'f16');
+  assert.equal(
+    slicedProjection.materializations?.q4k,
+    undefined,
+    'sliced PLE projection must drop packed q4k alternates so bOffset remains dense-logical'
+  );
+
+  assert.throws(
+    () => resolveDensePleProjectionWeight(
+      createWeightBuffer(
+        packedProjectionBuffer,
+        'q4k',
+        'row',
+        [2, 4],
+        'packed_per_layer_model_projection'
+      ),
+      'packed_per_layer_model_projection'
+    ),
+    /dense f16\/f32 base materialization/i
+  );
 } finally {
   destroyBufferPool();
   setDevice(null);

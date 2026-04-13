@@ -44,7 +44,6 @@ import {
   getRequiredContentEncoding,
 } from './download-types.js';
 
-import { downloadShard as downloadShardFromDistribution } from '../experimental/distribution/shard-delivery.js';
 import { resolveSourceArtifact, normalizeSourceArtifactPath } from './source-artifact-store.js';
 
 // ============================================================================
@@ -55,6 +54,12 @@ import { resolveSourceArtifact, normalizeSourceArtifactPath } from './source-art
 let db = null;
 
 const activeDownloads = new Map();
+let distributionModulePromise = null;
+
+async function getExperimentalDistributionModule() {
+  distributionModulePromise ??= import('../experimental/distribution/shard-delivery.js');
+  return distributionModulePromise;
+}
 
 function buildManifestVersionSet(manifest) {
   const sourceArtifact = resolveSourceArtifact(manifest);
@@ -422,6 +427,7 @@ async function downloadShard(
   shardInfo,
   options = {}
 ) {
+  const { downloadShard: downloadShardFromDistribution } = await getExperimentalDistributionModule();
   return downloadShardFromDistribution(baseUrl, shardIndex, shardInfo, {
     ...options,
     distributionConfig: getDistributionConfig(),

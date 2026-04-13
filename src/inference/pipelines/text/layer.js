@@ -25,7 +25,7 @@ import { recordCheckFiniteness } from '../../../gpu/kernels/check-finiteness.js'
 import { shouldRunFinitenessGuard } from './finiteness-policy.js';
 import { runLinearAttentionLayer } from './linear-attention.js';
 import { validateAttnConfig } from './attention/attn-config.js';
-import { createPerLayerInputTensor } from './per-layer-inputs.js';
+import { createPerLayerInputTensor, resolveDensePleProjectionWeight } from './per-layer-inputs.js';
 import { isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 
 // ============================================================================
@@ -235,6 +235,15 @@ async function applyPerLayerInputBlock(layerIdx, hiddenTensor, numTokens, size, 
       context,
       layerWeights
     );
+    await runProbes('per_layer_input_gate', gateTensor.buffer, {
+      layerIdx,
+      numTokens,
+      hiddenSize: hiddenSizePerLayerInput,
+      probes: context.debugProbes,
+      recorder,
+      operatorDiagnostics: context.operatorDiagnostics,
+      dtype: gateTensor.dtype,
+    });
 
     const perLayerInputTensor = createPerLayerInputTensor(
       perLayerInputBuffer,
@@ -248,6 +257,15 @@ async function applyPerLayerInputBlock(layerIdx, hiddenTensor, numTokens, size, 
       label: `L${layerIdx}.per_layer_input_activation`,
       layerIdx,
     }, recorder);
+    await runProbes('per_layer_input_activation', activatedTensor.buffer, {
+      layerIdx,
+      numTokens,
+      hiddenSize: hiddenSizePerLayerInput,
+      probes: context.debugProbes,
+      recorder,
+      operatorDiagnostics: context.operatorDiagnostics,
+      dtype: activatedTensor.dtype,
+    });
     releaseOrTrack(recorder, gateTensor.buffer, decodeBuffers);
     gateTensor = null;
 
@@ -258,6 +276,15 @@ async function applyPerLayerInputBlock(layerIdx, hiddenTensor, numTokens, size, 
       context,
       layerWeights
     );
+    await runProbes('per_layer_input_projection', projectedTensor.buffer, {
+      layerIdx,
+      numTokens,
+      hiddenSize: config.hiddenSize,
+      probes: context.debugProbes,
+      recorder,
+      operatorDiagnostics: context.operatorDiagnostics,
+      dtype: projectedTensor.dtype,
+    });
     releaseOrTrack(recorder, activatedTensor.buffer, decodeBuffers);
     activatedTensor = null;
 
@@ -274,6 +301,15 @@ async function applyPerLayerInputBlock(layerIdx, hiddenTensor, numTokens, size, 
       layerIdx,
       rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
     }, recorder);
+    await runProbes('post_per_layer_input_norm', normalizedTensor.buffer, {
+      layerIdx,
+      numTokens,
+      hiddenSize: config.hiddenSize,
+      probes: context.debugProbes,
+      recorder,
+      operatorDiagnostics: context.operatorDiagnostics,
+      dtype: normalizedTensor.dtype,
+    });
     if (!isGpuBufferInstance(layerWeights.postPerLayerInputNorm)) {
       releaseOrTrack(recorder, postNormWeight, decodeBuffers);
     }
@@ -300,6 +336,16 @@ async function applyPerLayerInputBlock(layerIdx, hiddenTensor, numTokens, size, 
       releaseOrTrack(recorder, outputTensor.buffer, decodeBuffers);
       outputTensor = scaledOutputTensor;
     }
+
+    await runProbes('post_per_layer_input', outputTensor.buffer, {
+      layerIdx,
+      numTokens,
+      hiddenSize: config.hiddenSize,
+      probes: context.debugProbes,
+      recorder,
+      operatorDiagnostics: context.operatorDiagnostics,
+      dtype: outputTensor.dtype,
+    });
 
     return outputTensor;
   } catch (error) {
@@ -345,9 +391,13 @@ async function processLayerPerLayerInputProjection(
   context,
   layerWeights
 ) {
+  const projectionWeight = resolveDensePleProjectionWeight(
+    getWeightBuffer(layerWeights.perLayerProjection, `L${layerIdx}.per_layer_projection`),
+    `L${layerIdx}.per_layer_projection`
+  );
   return doMatmul(
     inputTensor,
-    getWeightBuffer(layerWeights.perLayerProjection, `L${layerIdx}.per_layer_projection`),
+    projectionWeight,
     numTokens,
     context.config.hiddenSize,
     context.config.hiddenSizePerLayerInput,

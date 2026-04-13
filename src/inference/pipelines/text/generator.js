@@ -21,7 +21,6 @@ import { f32ToF16Array } from '../../kv-cache/types.js';
 
 // Pipeline sub-modules
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from './sampling.js';
-import { enforceLogitDrift } from '../../../experimental/hotswap/intent-bundle.js';
 import { applyChatTemplate, createKVCache, isStopToken } from './init.js';
 import { formatChatMessages } from './chat-format.js';
 import { embed } from './embed.js';
@@ -90,6 +89,13 @@ import {
 } from './per-layer-inputs.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { assertImplicitDtypeTransitionAllowed } from './dtype-contract.js';
+
+let intentBundleModulePromise = null;
+
+async function getExperimentalIntentBundleModule() {
+  intentBundleModulePromise ??= import('../../../experimental/hotswap/intent-bundle.js');
+  return intentBundleModulePromise;
+}
 
 function isStructuredChatRequest(prompt) {
   return prompt != null
@@ -957,6 +963,7 @@ export class PipelineGenerator {
         ?? intentBundle?.constraints?.max_drift_threshold;
 
       if (intentBundleConfig?.enabled && Array.isArray(expectedTopK) && expectedTopK.length > 0) {
+        const { enforceLogitDrift } = await getExperimentalIntentBundleModule();
         const actualTopK = getTopK(
           prefillLogits,
           expectedTopK.length,

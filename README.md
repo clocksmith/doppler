@@ -32,8 +32,8 @@ npx doppler-gpu --list-models
 
 The `doppler` facade is the primary app-facing API.
 The root package intentionally stays small: it exports `doppler` and `DOPPLER_VERSION`.
-Advanced surfaces now live on explicit subpaths such as `doppler-gpu/tooling`,
-`doppler-gpu/loaders`, `doppler-gpu/orchestration`, and `doppler-gpu/generation`.
+Advanced surfaces now live on explicit subpaths such as `doppler-gpu/loaders`,
+`doppler-gpu/generation`, `doppler-gpu/tooling`, and `doppler-gpu/orchestration`.
 Support tiers for those subpaths are tracked in the subsystem support matrix rather
 than assumed from export shape alone.
 
@@ -48,9 +48,6 @@ for await (const token of model.generate('Describe WebGPU briefly')) {
 
 // One-shot
 const text = await model.generateText('Explain WebGPU in one sentence');
-
-// Experimental advanced surface: LoRA hot-swap
-await model.loadLoRA('https://example.com/adapter/manifest.json');
 ```
 
 ### OpenAI-compatible server

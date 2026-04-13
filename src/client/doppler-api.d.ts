@@ -1,7 +1,6 @@
 import type { ChatMessage } from '../inference/pipelines/text/chat-format.js';
 import type { GenerateOptions } from '../generation/index.js';
 import type { LogitsStepResult, PrefillResult } from '../inference/pipelines/text/types.d.ts';
-import type { LoRAManifest } from '../experimental/adapters/lora-loader.js';
 import type { RDRRManifest } from '../formats/rdrr/index.js';
 import type {
   DopplerChatResponse,
@@ -9,6 +8,7 @@ import type {
   DopplerLoadProgress,
   DopplerModelHandle,
   DopplerModelSource,
+  LoRAManifest,
 } from './runtime/index.js';
 
 export type DopplerGenerateOptions = Omit<GenerateOptions, 'stopTokens'>;

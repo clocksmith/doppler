@@ -1,7 +1,13 @@
-import { loadLoRAFromManifest, loadLoRAFromUrl } from '../../experimental/adapters/lora-loader.js';
 import { log } from '../../debug/index.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { fetchArrayBuffer, readOPFSFile, writeOPFSFile } from './storage.js';
+
+let loraModulePromise = null;
+
+async function getExperimentalLoRAModule() {
+  loraModulePromise ??= import('../../experimental/adapters/lora-loader.js');
+  return loraModulePromise;
+}
 
 function createLoRALoadOptions() {
   return {
@@ -24,12 +30,14 @@ export async function loadLoRAAdapterForPipeline(pipeline, adapter) {
   const options = createLoRALoadOptions();
   let lora;
   if (typeof adapter === 'string') {
+    const { loadLoRAFromUrl } = await getExperimentalLoRAModule();
     lora = await loadLoRAFromUrl(adapter, options);
   } else if (adapter?.adapterType === 'lora' || adapter?.modelType === 'lora') {
     const loader = pipeline.dopplerLoader || getDopplerLoader();
     await loader.init();
     lora = await loader.loadLoRAWeights(adapter);
   } else {
+    const { loadLoRAFromManifest } = await getExperimentalLoRAModule();
     lora = await loadLoRAFromManifest(adapter, options);
   }
 
