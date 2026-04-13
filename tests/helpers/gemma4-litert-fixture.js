@@ -63,6 +63,16 @@ export function buildGemma4LiteRTPackedFixture(options = {}) {
       new Float32Array(8960).fill(0.25),
       new Int32Array(8960).fill(0)
     );
+    pushFloatTensor(
+      tensors,
+      'transformer.embedder.per_layer_model_projection.input_activation_static_scale',
+      [0.25]
+    );
+    pushFloatTensor(
+      tensors,
+      'transformer.embedder.per_layer_model_projection.output_activation_static_scale',
+      [0.125]
+    );
     tensors.push({
       name: 'transformer.embedder.per_layer_projection_norm.scale',
       shape: [256],
@@ -153,6 +163,16 @@ export function buildGemma4LiteRTPackedFixture(options = {}) {
     int8Bytes,
     rowScales,
     rowSums
+  );
+  pushFloatTensor(
+    tensors,
+    'transformer.embedder.per_layer_model_projection.input_activation_static_scale',
+    [0.25]
+  );
+  pushFloatTensor(
+    tensors,
+    'transformer.embedder.per_layer_model_projection.output_activation_static_scale',
+    [0.125]
   );
   pushFloatTensor(
     tensors,

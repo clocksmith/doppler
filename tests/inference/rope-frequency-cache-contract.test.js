@@ -128,4 +128,28 @@ const ropeConfig = {
   resetRuntimeState();
 }
 
+{
+  const device = createFakeDevice();
+  resetRuntimeState(device);
+  const first = await initRoPEFrequencies(ropeConfig, true);
+  const createdBuffersAfterFirst = device.createdBuffers.length;
+  const writeBufferCountAfterFirst = device.writeBufferCount;
+
+  destroyBufferPool();
+  getBufferPool().configure({ enablePooling: false });
+
+  const second = await initRoPEFrequencies(ropeConfig, true);
+  assert.equal(first.cos.destroyed, true);
+  assert.equal(first.sin.destroyed, true);
+  assert.notEqual(second.cos, first.cos);
+  assert.notEqual(second.sin, first.sin);
+  assert.equal(second.cos.destroyed, false);
+  assert.equal(second.sin.destroyed, false);
+  assert.equal(second.localCos, null);
+  assert.equal(second.localSin, null);
+  assert.ok(device.createdBuffers.length > createdBuffersAfterFirst);
+  assert.ok(device.writeBufferCount > writeBufferCountAfterFirst);
+  resetRuntimeState();
+}
+
 console.log('rope-frequency-cache-contract.test: ok');

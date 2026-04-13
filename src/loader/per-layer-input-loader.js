@@ -45,6 +45,22 @@ const PROJECTION_NORM_TENSOR_CANDIDATES = [
   'per_layer_projection_norm.weight',
 ];
 
+const PROJECTION_INPUT_ACTIVATION_STATIC_SCALE_CANDIDATES = [
+  'model.language_model.per_layer_model_projection.input_activation_static_scale',
+  'language_model.per_layer_model_projection.input_activation_static_scale',
+  'language_model.model.per_layer_model_projection.input_activation_static_scale',
+  'model.per_layer_model_projection.input_activation_static_scale',
+  'per_layer_model_projection.input_activation_static_scale',
+];
+
+const PROJECTION_OUTPUT_ACTIVATION_STATIC_SCALE_CANDIDATES = [
+  'model.language_model.per_layer_model_projection.output_activation_static_scale',
+  'language_model.per_layer_model_projection.output_activation_static_scale',
+  'language_model.model.per_layer_model_projection.output_activation_static_scale',
+  'model.per_layer_model_projection.output_activation_static_scale',
+  'per_layer_model_projection.output_activation_static_scale',
+];
+
 function wrapRawTensorAsWeightBuffer(ctx, tensor, name) {
   if (tensor == null || isWeightBuffer(tensor)) {
     return tensor;
@@ -420,6 +436,80 @@ async function loadOptionalTensor(ctx, candidates, label) {
   return null;
 }
 
+function extractScalarTensorValue(data, name, label) {
+  if (data instanceof Float32Array) {
+    if (data.length !== 1) {
+      throw new Error(`${label} "${name}" must resolve to exactly one float32 value.`);
+    }
+    return data[0];
+  }
+  if (ArrayBuffer.isView(data)) {
+    if (data.byteLength !== Float32Array.BYTES_PER_ELEMENT) {
+      throw new Error(`${label} "${name}" must resolve to exactly one float32 value.`);
+    }
+    return new DataView(data.buffer, data.byteOffset, data.byteLength).getFloat32(0, true);
+  }
+  if (data instanceof ArrayBuffer) {
+    if (data.byteLength !== Float32Array.BYTES_PER_ELEMENT) {
+      throw new Error(`${label} "${name}" must resolve to exactly one float32 value.`);
+    }
+    return new DataView(data).getFloat32(0, true);
+  }
+  throw new Error(
+    `${label} "${name}" must load on CPU as a Float32Array, ArrayBufferView, or ArrayBuffer. ` +
+    `Got "${data?.constructor?.name ?? typeof data}".`
+  );
+}
+
+async function loadNamedScalarTensor(ctx, name, label) {
+  const location = ctx.tensorLocations.get(name) ?? null;
+  if (!location) {
+    return null;
+  }
+  const shape = Array.isArray(location.shape) ? location.shape : null;
+  const elementCount = shape
+    ? shape.reduce((total, dimension) => total * Number(dimension), 1)
+    : NaN;
+  if (!Number.isFinite(elementCount) || elementCount !== 1) {
+    throw new Error(
+      `${label} "${name}" must have exactly one element. ` +
+      `Got shape ${JSON.stringify(location.shape)}.`
+    );
+  }
+  if (String(location.dtype ?? '').toUpperCase() !== 'F32') {
+    throw new Error(
+      `${label} "${name}" must use dtype F32. ` +
+      `Got "${String(location.dtype)}".`
+    );
+  }
+  const tensor = await ctx.loadTensor(name, false, true);
+  if (tensor == null) {
+    return null;
+  }
+  const value = extractScalarTensorValue(tensor, name, label);
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error(
+      `${label} "${name}" must be a finite positive float32 scalar. ` +
+      `Got ${String(value)}.`
+    );
+  }
+  log.info('Loader', `Per-layer input tensor loaded: ${label} <- ${name} (cpu scalar)`);
+  return {
+    name,
+    value,
+  };
+}
+
+async function loadOptionalScalarTensor(ctx, candidates, label) {
+  for (const name of candidates) {
+    const entry = await loadNamedScalarTensor(ctx, name, label);
+    if (entry) {
+      return entry;
+    }
+  }
+  return null;
+}
+
 async function loadSplitEmbedTensors(ctx, numLayers) {
   const tensorNames = resolveSplitPerLayerEmbedTensorNames(ctx.tensorLocations, numLayers);
   if (!tensorNames) {
@@ -446,9 +536,19 @@ export async function loadPerLayerInputWeights(ctx, architecture) {
   const numLayers = Number(architecture?.numLayers ?? 0);
 
   const splitEmbedEntries = await loadSplitEmbedTensors(ctx, numLayers);
-  const [projectionEntry, projectionNormEntry] = await Promise.all([
+  const [projectionEntry, projectionNormEntry, projectionInputScaleEntry, projectionOutputScaleEntry] = await Promise.all([
     loadOptionalTensor(ctx, PROJECTION_TENSOR_CANDIDATES, 'perLayerModelProjection'),
     loadOptionalTensor(ctx, PROJECTION_NORM_TENSOR_CANDIDATES, 'perLayerProjectionNorm'),
+    loadOptionalScalarTensor(
+      ctx,
+      PROJECTION_INPUT_ACTIVATION_STATIC_SCALE_CANDIDATES,
+      'perLayerModelProjectionInputActivationStaticScale'
+    ),
+    loadOptionalScalarTensor(
+      ctx,
+      PROJECTION_OUTPUT_ACTIVATION_STATIC_SCALE_CANDIDATES,
+      'perLayerModelProjectionOutputActivationStaticScale'
+    ),
   ]);
   const embedEntry = splitEmbedEntries?.[0]
     ?? await loadOptionalTensor(ctx, EMBED_TENSOR_CANDIDATES, 'embedTokensPerLayer');
@@ -464,6 +564,13 @@ export async function loadPerLayerInputWeights(ctx, architecture) {
       `but the loader could not resolve: ${missing.join(', ')}.`
     );
   }
+  if ((projectionInputScaleEntry == null) !== (projectionOutputScaleEntry == null)) {
+    throw new Error(
+      `Manifest "${ctx.modelId ?? 'unknown'}" must resolve both per-layer projection activation static scales together. ` +
+      `Got input=${projectionInputScaleEntry?.name ?? 'missing'}, ` +
+      `output=${projectionOutputScaleEntry?.name ?? 'missing'}.`
+    );
+  }
 
   return {
     embedTokensPerLayer: embedEntry.tensor,
@@ -474,5 +581,11 @@ export async function loadPerLayerInputWeights(ctx, architecture) {
       : {}),
     perLayerModelProjection: projectionEntry.tensor,
     perLayerProjectionNorm: projectionNormEntry.tensor,
+    ...(projectionInputScaleEntry && projectionOutputScaleEntry
+      ? {
+        perLayerModelProjectionInputActivationStaticScale: projectionInputScaleEntry.value,
+        perLayerModelProjectionOutputActivationStaticScale: projectionOutputScaleEntry.value,
+      }
+      : {}),
   };
 }

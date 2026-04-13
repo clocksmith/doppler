@@ -84,6 +84,8 @@ export interface PerLayerInputWeights {
   embedTokensPerLayerSplit?: (GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null)[] | null;
   perLayerModelProjection: GPUBuffer | WeightBuffer | Float32Array | null;
   perLayerProjectionNorm: GPUBuffer | Float32Array | null;
+  perLayerModelProjectionInputActivationStaticScale?: number | null;
+  perLayerModelProjectionOutputActivationStaticScale?: number | null;
 }
 
 /**

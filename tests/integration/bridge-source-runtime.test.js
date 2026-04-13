@@ -239,6 +239,14 @@ assert.equal(
   taskBundle.manifest.tensors['model.language_model.per_layer_model_projection.weight']?.sourceTransform?.scaleSemantics,
   'step'
 );
+assert.equal(
+  taskBundle.manifest.tensors['model.language_model.per_layer_model_projection.input_activation_static_scale']?.dtype,
+  'F32'
+);
+assert.equal(
+  taskBundle.manifest.tensors['model.language_model.per_layer_model_projection.output_activation_static_scale']?.dtype,
+  'F32'
+);
 assert.deepEqual(
   taskBundle.manifest.tensors['model.language_model.layers.0.self_attn.o_proj.weight']?.sourceTransform?.storageShape,
   [2048, 1536]

@@ -44,16 +44,21 @@ export function releaseOrTrack(recorder, buffer) {
 // ============================================================================
 
 
-const qkNormOnesCache = new Map();
+const qkNormOnesCache = new WeakMap();
 
 
 export function getQKNormOnesBuffer(headDim) {
-  const cached = qkNormOnesCache.get(headDim);
-  if (cached) return cached;
   const device = getDevice();
   if (!device) {
     throw new Error('No GPU device available for Q/K norm buffer');
   }
+  let perDeviceCache = qkNormOnesCache.get(device);
+  if (!perDeviceCache) {
+    perDeviceCache = new Map();
+    qkNormOnesCache.set(device, perDeviceCache);
+  }
+  const cached = perDeviceCache.get(headDim);
+  if (cached) return cached;
   const data = new Float32Array(headDim);
   data.fill(1);
   const buffer = device.createBuffer({
@@ -62,6 +67,6 @@ export function getQKNormOnesBuffer(headDim) {
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
   });
   device.queue.writeBuffer(buffer, 0, data);
-  qkNormOnesCache.set(headDim, buffer);
+  perDeviceCache.set(headDim, buffer);
   return buffer;
 }

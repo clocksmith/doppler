@@ -549,6 +549,16 @@ function normalizeGemma4LiteRTTensors(parsedTFLite, sourcePath, runtimeProfile) 
     }
   );
   addFloat(
+    'transformer.embedder.per_layer_model_projection.input_activation_static_scale',
+    'model.language_model.per_layer_model_projection.input_activation_static_scale',
+    'other'
+  );
+  addFloat(
+    'transformer.embedder.per_layer_model_projection.output_activation_static_scale',
+    'model.language_model.per_layer_model_projection.output_activation_static_scale',
+    'other'
+  );
+  addFloat(
     'transformer.embedder.per_layer_projection_norm.scale',
     'model.language_model.per_layer_projection_norm.weight',
     'norm'

@@ -8,7 +8,16 @@ import {
   isWeightBuffer,
 } from '../../../gpu/weight-buffer.js';
 import { createTensor } from '../../../gpu/tensor.js';
-import { recordScale, runScale } from '../../../gpu/kernel-selector.js';
+import {
+  castF16ToF32,
+  castF32ToF16,
+  recordActivationStaticQdq,
+  recordCastF16ToF32,
+  recordCastF32ToF16,
+  recordScale,
+  runActivationStaticQdq,
+  runScale,
+} from '../../../gpu/kernel-selector.js';
 import { getNormWeightBuffer, getWeightBuffer } from './weights.js';
 import { doMatmul, doRMSNorm, releaseOrTrack } from './ops.js';
 import { runProbes } from './probes.js';
@@ -19,6 +28,8 @@ import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 
 const pleRuntimeCache = new WeakMap();
 const pleRangeRowCache = new WeakMap();
+const PLE_ACTIVATION_STATIC_QMIN = -128;
+const PLE_ACTIVATION_STATIC_QMAX = 127;
 
 function getPerLayerInputWeights(context) {
   const weights = context.weights.get('per_layer_inputs');
@@ -61,6 +72,106 @@ function getPleProjectionWeightDtype(weight) {
 
 function isDensePleProjectionDtype(dtype) {
   return dtype === 'f16' || dtype === 'f32';
+}
+
+function resolvePleActivationStaticScaleValue(value, label) {
+  if (value == null) {
+    return null;
+  }
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new Error(
+      `Gemma 4 per-layer projection activation static scale "${label}" must be > 0. ` +
+      `Got "${String(value)}".`
+    );
+  }
+  return parsed;
+}
+
+function resolvePleActivationStaticQdqConfig(perLayerInputWeights) {
+  const inputScale = resolvePleActivationStaticScaleValue(
+    perLayerInputWeights?.perLayerModelProjectionInputActivationStaticScale,
+    'input'
+  );
+  const outputScale = resolvePleActivationStaticScaleValue(
+    perLayerInputWeights?.perLayerModelProjectionOutputActivationStaticScale,
+    'output'
+  );
+  if (inputScale == null && outputScale == null) {
+    return null;
+  }
+  if (inputScale == null || outputScale == null) {
+    throw new Error(
+      'Gemma 4 per-layer projection static activation quantization requires both input and output scales.'
+    );
+  }
+  return {
+    inputScale,
+    outputScale,
+  };
+}
+
+function getTensorElementCount(tensor, label) {
+  if (!Array.isArray(tensor?.shape) || tensor.shape.length === 0) {
+    throw new Error(`${label} requires a tensor with an explicit shape.`);
+  }
+  const count = tensor.shape.reduce((total, dimension) => total * Number(dimension), 1);
+  if (!Number.isFinite(count) || count <= 0) {
+    throw new Error(`${label} resolved an invalid tensor element count (${String(count)}).`);
+  }
+  return count;
+}
+
+async function applyPleActivationStaticQdq(tensor, scale, recorder, decodeBuffers, label) {
+  const count = getTensorElementCount(tensor, label);
+  if (tensor.dtype === 'f32') {
+    return recorder
+      ? await recordActivationStaticQdq(recorder, tensor, scale, {
+        count,
+        qmin: PLE_ACTIVATION_STATIC_QMIN,
+        qmax: PLE_ACTIVATION_STATIC_QMAX,
+      })
+      : await runActivationStaticQdq(tensor, scale, {
+        count,
+        qmin: PLE_ACTIVATION_STATIC_QMIN,
+        qmax: PLE_ACTIVATION_STATIC_QMAX,
+      });
+  }
+  if (tensor.dtype !== 'f16') {
+    throw new Error(
+      `${label} requires f16/f32 activations for static activation quantize/dequantize. ` +
+      `Got "${String(tensor.dtype)}".`
+    );
+  }
+
+  let widenedTensor = null;
+  let qdqTensor = null;
+  try {
+    widenedTensor = recorder
+      ? await recordCastF16ToF32(recorder, tensor)
+      : await castF16ToF32(tensor);
+    qdqTensor = recorder
+      ? await recordActivationStaticQdq(recorder, widenedTensor, scale, {
+        count,
+        qmin: PLE_ACTIVATION_STATIC_QMIN,
+        qmax: PLE_ACTIVATION_STATIC_QMAX,
+      })
+      : await runActivationStaticQdq(widenedTensor, scale, {
+        count,
+        qmin: PLE_ACTIVATION_STATIC_QMIN,
+        qmax: PLE_ACTIVATION_STATIC_QMAX,
+      });
+    return recorder
+      ? await recordCastF32ToF16(recorder, qdqTensor)
+      : await castF32ToF16(qdqTensor);
+  } finally {
+    if (qdqTensor) {
+      releaseOrTrack(recorder, qdqTensor.buffer, decodeBuffers);
+    }
+    if (widenedTensor) {
+      releaseOrTrack(recorder, widenedTensor.buffer, decodeBuffers);
+    }
+  }
 }
 
 export function resolveDensePleProjectionWeight(
@@ -1229,6 +1340,8 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
   if (projectionDevice == null) {
     throw new Error('Gemma 4 per-layer input projection requires an initialized GPU device.');
   }
+  const pleActivationStaticQdq = resolvePleActivationStaticQdqConfig(perLayerInputWeights);
+  let projectionInputTensor = inputEmbedsTensor;
 
   // Decode-path optimizations: coalesced PLE read + fused projection matmul.
   // Gated on numTokens === 1 (decode) and row-major embeddings (non-transpose).
@@ -1310,55 +1423,95 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
   // Produces [numTokens × totalPerLayerHiddenSize], then scales the full output and
   // extracts per-layer slices via GPU buffer copies.
   let fusedProjectionSlices = null;
-  if (canFuseDecodeOps) {
-    const fusedProjection = await doMatmul(
-      inputEmbedsTensor,
-      projectionWeight,
-      numTokens,
-      totalPerLayerHiddenSize,
-      config.hiddenSize,
-      {
-        transposeB: 'auto',
-        label: 'per_layer_fused_projection',
-        kernelPath: context.kernelPath ?? null,
-        role: 'per_layer_model_projection',
-        outputDtype: activationDtype,
-      },
-      recorder
-    );
-
-    // One scale dispatch instead of numLayers
-    const scaledFused = recorder
-      ? await recordScale(recorder, fusedProjection, projectionScale, {
-        count: numTokens * totalPerLayerHiddenSize,
-      })
-      : await runScale(fusedProjection, projectionScale, {
-        count: numTokens * totalPerLayerHiddenSize,
-      });
-    releaseOrTrack(recorder, fusedProjection.buffer, decodeBuffers);
-
-    // Step 4: Extract per-layer slices via GPU buffer copies (one encoder, one submit).
-    // Reuse cached slice buffers when available to avoid per-step pool churn.
-    const device = getDevice();
-    const sliceBytes = hiddenSizePerLayerInput * activationBytesPerElement;
-    const encoder = recorder ? recorder.getEncoder() : device.createCommandEncoder();
-    fusedProjectionSlices = new Array(numLayers);
-    for (let l = 0; l < numLayers; l++) {
-      const sliceBuf = pleCache?.sliceBuffers?.[l] ?? acquireBuffer(sliceBytes, undefined, `L${l}.per_layer_proj_slice`);
-      encoder.copyBufferToBuffer(scaledFused.buffer, l * sliceBytes, sliceBuf, 0, sliceBytes);
-      fusedProjectionSlices[l] = sliceBuf;
-    }
-    if (!recorder) {
-      device.queue.submit([encoder.finish()]);
-    }
-    releaseOrTrack(recorder, scaledFused.buffer, decodeBuffers);
-  }
-
   const embedDtypeResolved = selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', {
     dtype: perLayerEmbeddingDtype,
   });
 
   try {
+    if (pleActivationStaticQdq) {
+      projectionInputTensor = await applyPleActivationStaticQdq(
+        inputEmbedsTensor,
+        pleActivationStaticQdq.inputScale,
+        recorder,
+        decodeBuffers,
+        'Gemma 4 per-layer projection input'
+      );
+    }
+
+    if (canFuseDecodeOps) {
+      let fusedProjection = null;
+      let fusedProjectionForScale = null;
+      let scaledFused = null;
+      try {
+        fusedProjection = await doMatmul(
+          projectionInputTensor,
+          projectionWeight,
+          numTokens,
+          totalPerLayerHiddenSize,
+          config.hiddenSize,
+          {
+            transposeB: 'auto',
+            label: 'per_layer_fused_projection',
+            kernelPath: context.kernelPath ?? null,
+            role: 'per_layer_model_projection',
+            outputDtype: activationDtype,
+          },
+          recorder
+        );
+        fusedProjectionForScale = pleActivationStaticQdq
+          ? await applyPleActivationStaticQdq(
+            fusedProjection,
+            pleActivationStaticQdq.outputScale,
+            recorder,
+            decodeBuffers,
+            'Gemma 4 per-layer projection output'
+          )
+          : fusedProjection;
+        if (fusedProjectionForScale !== fusedProjection) {
+          releaseOrTrack(recorder, fusedProjection.buffer, decodeBuffers);
+          fusedProjection = null;
+        }
+
+        scaledFused = recorder
+          ? await recordScale(recorder, fusedProjectionForScale, projectionScale, {
+            count: numTokens * totalPerLayerHiddenSize,
+          })
+          : await runScale(fusedProjectionForScale, projectionScale, {
+            count: numTokens * totalPerLayerHiddenSize,
+          });
+        releaseOrTrack(recorder, fusedProjectionForScale.buffer, decodeBuffers);
+        fusedProjectionForScale = null;
+
+        // Step 4: Extract per-layer slices via GPU buffer copies (one encoder, one submit).
+        // Reuse cached slice buffers when available to avoid per-step pool churn.
+        const device = getDevice();
+        const sliceBytes = hiddenSizePerLayerInput * activationBytesPerElement;
+        const encoder = recorder ? recorder.getEncoder() : device.createCommandEncoder();
+        fusedProjectionSlices = new Array(numLayers);
+        for (let l = 0; l < numLayers; l++) {
+          const sliceBuf = pleCache?.sliceBuffers?.[l] ?? acquireBuffer(sliceBytes, undefined, `L${l}.per_layer_proj_slice`);
+          encoder.copyBufferToBuffer(scaledFused.buffer, l * sliceBytes, sliceBuf, 0, sliceBytes);
+          fusedProjectionSlices[l] = sliceBuf;
+        }
+        if (!recorder) {
+          device.queue.submit([encoder.finish()]);
+        }
+        releaseOrTrack(recorder, scaledFused.buffer, decodeBuffers);
+        scaledFused = null;
+      } catch (error) {
+        if (scaledFused) {
+          releaseOrTrack(recorder, scaledFused.buffer, decodeBuffers);
+        }
+        if (fusedProjectionForScale && fusedProjectionForScale !== fusedProjection) {
+          releaseOrTrack(recorder, fusedProjectionForScale.buffer, decodeBuffers);
+        }
+        if (fusedProjection) {
+          releaseOrTrack(recorder, fusedProjection.buffer, decodeBuffers);
+        }
+        throw error;
+      }
+    }
+
     for (let layerIdx = 0; layerIdx < numLayers; layerIdx++) {
       const hiddenOffset = layerIdx * hiddenSizePerLayerInput;
       const layerEmbedSource = useHotVocabularyTables
@@ -1406,6 +1559,7 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
           let projectionWeightBufferForLayer = null;
           let projectionWeightOffset = 0;
           let projectedTensor = null;
+          let projectionTensorForScale = null;
           try {
             const rangeBackedProjection = await loadRangeBackedPleProjectionSliceBytes(
               perLayerModelProjection,
@@ -1449,7 +1603,7 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
               projectionWeightOffset = hiddenOffset * config.hiddenSize * projectionWeightBytes;
             }
             projectedTensor = await doMatmul(
-              inputEmbedsTensor,
+              projectionInputTensor,
               projectionWeightForLayer,
               numTokens,
               hiddenSizePerLayerInput,
@@ -1465,20 +1619,60 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
               },
               recorder
             );
+            await runProbes('per_layer_projection_in', projectedTensor.buffer, {
+              layerIdx,
+              numTokens,
+              hiddenSize: hiddenSizePerLayerInput,
+              probes: context.debugProbes,
+              recorder,
+              operatorDiagnostics: context.operatorDiagnostics,
+              dtype: activationDtype,
+            });
+            projectionTensorForScale = pleActivationStaticQdq
+              ? await applyPleActivationStaticQdq(
+                projectedTensor,
+                pleActivationStaticQdq.outputScale,
+                recorder,
+                decodeBuffers,
+                `Gemma 4 per-layer projection output L${layerIdx}`
+              )
+              : projectedTensor;
+            if (projectionTensorForScale !== projectedTensor) {
+              releaseOrTrack(recorder, projectedTensor.buffer, decodeBuffers);
+              projectedTensor = null;
+            }
+            scaledProjectionTensor = recorder
+              ? await recordScale(recorder, projectionTensorForScale, projectionScale, {
+                count: numTokens * hiddenSizePerLayerInput,
+              })
+              : await runScale(projectionTensorForScale, projectionScale, {
+                count: numTokens * hiddenSizePerLayerInput,
+              });
+            if (projectionTensorForScale === projectedTensor) {
+              projectedTensor = null;
+            }
+            releaseOrTrack(recorder, projectionTensorForScale.buffer, decodeBuffers);
+            projectionTensorForScale = null;
           } finally {
+            if (projectionTensorForScale && projectionTensorForScale !== projectedTensor) {
+              releaseOrTrack(recorder, projectionTensorForScale.buffer, decodeBuffers);
+            }
+            if (projectedTensor) {
+              releaseOrTrack(recorder, projectedTensor.buffer, decodeBuffers);
+            }
             if (projectionWeightBufferForLayer) {
               releaseOrTrack(recorder, projectionWeightBufferForLayer, decodeBuffers);
             }
           }
-          scaledProjectionTensor = recorder
-            ? await recordScale(recorder, projectedTensor, projectionScale, {
-              count: numTokens * hiddenSizePerLayerInput,
-            })
-            : await runScale(projectedTensor, projectionScale, {
-              count: numTokens * hiddenSizePerLayerInput,
-            });
-          releaseOrTrack(recorder, projectedTensor.buffer, decodeBuffers);
-          projectedTensor = null;
+          await runProbes('per_layer_projection_scaled', scaledProjectionTensor.buffer, {
+            layerIdx,
+            numTokens,
+            hiddenSize: hiddenSizePerLayerInput,
+            probes: context.debugProbes,
+            recorder,
+            operatorDiagnostics: context.operatorDiagnostics,
+            dtype: activationDtype,
+          });
         }
 
         // Fuse the residual add into RMSNorm so Gemma 4 PLE decode avoids an
@@ -1552,6 +1746,9 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
     }
     throw error;
   } finally {
+    if (projectionInputTensor !== inputEmbedsTensor) {
+      releaseOrTrack(recorder, projectionInputTensor.buffer, decodeBuffers);
+    }
     if (!usesCachedScaledProjectionNormWeight && !isGpuBufferInstance(perLayerProjectionNorm)) {
       releaseOrTrack(recorder, projectionNormWeight, decodeBuffers);
     }

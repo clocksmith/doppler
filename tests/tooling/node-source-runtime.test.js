@@ -272,6 +272,22 @@ try {
     'step'
   );
   assert.deepEqual(
+    litertTaskBundle.manifest.tensors['model.language_model.per_layer_model_projection.input_activation_static_scale']?.shape,
+    [1]
+  );
+  assert.equal(
+    litertTaskBundle.manifest.tensors['model.language_model.per_layer_model_projection.input_activation_static_scale']?.dtype,
+    'F32'
+  );
+  assert.deepEqual(
+    litertTaskBundle.manifest.tensors['model.language_model.per_layer_model_projection.output_activation_static_scale']?.shape,
+    [1]
+  );
+  assert.equal(
+    litertTaskBundle.manifest.tensors['model.language_model.per_layer_model_projection.output_activation_static_scale']?.dtype,
+    'F32'
+  );
+  assert.deepEqual(
     litertTaskBundle.manifest.tensors['model.language_model.layers.0.self_attn.o_proj.weight']?.sourceTransform?.storageShape,
     [2048, 1536]
   );

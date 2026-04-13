@@ -120,6 +120,12 @@ export {
   recordClamp,
 } from './clamp.js';
 
+// Static activation quantize/dequantize
+export {
+  runActivationStaticQdq,
+  recordActivationStaticQdq,
+} from './activation-static-qdq.js';
+
 // Energy (EBM helpers)
 export {
   runEnergyEval,

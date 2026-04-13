@@ -91,6 +91,10 @@ getBufferPool().configure({ enablePooling: false });
 const embedName = 'model.language_model.embed_tokens_per_layer.weight';
 const projectionName = 'model.language_model.per_layer_model_projection.weight';
 const projectionNormName = 'model.language_model.per_layer_projection_norm.weight';
+const projectionInputActivationScaleName =
+  'model.language_model.per_layer_model_projection.input_activation_static_scale';
+const projectionOutputActivationScaleName =
+  'model.language_model.per_layer_model_projection.output_activation_static_scale';
 
 const tensorLocations = new Map([
   [embedName, {
@@ -155,6 +159,121 @@ assert.deepEqual(
 assert.ok(isCpuWeightBuffer(weights.embedTokensPerLayer), 'streamed embed tensor should be wrapped as CpuWeightBuffer');
 assert.equal(weights.embedTokensPerLayer.dtype, 'f32');
 assert.equal(weights.embedTokensPerLayer.layout, 'row');
+
+const scalarTensorLocations = new Map([
+  ...tensorLocations,
+  [projectionInputActivationScaleName, {
+    shape: [1],
+    dtype: 'F32',
+    role: 'other',
+    layout: 'row',
+  }],
+  [projectionOutputActivationScaleName, {
+    shape: [1],
+    dtype: 'F32',
+    role: 'other',
+    layout: 'row',
+  }],
+]);
+const scalarLoadCalls = [];
+const scalarWeights = await loadPerLayerInputWeights({
+  modelId: 'gemma4-e2b-static-scale-test',
+  perLayerInputSession: {
+    materialization: 'cpu_resident',
+  },
+  tensorLocations: scalarTensorLocations,
+  async loadTensor(name, toGPU) {
+    scalarLoadCalls.push([name, toGPU]);
+    if (name === embedName) {
+      return new Float32Array(16 * 32);
+    }
+    if (name === projectionName) {
+      return new Float32Array(32 * 64);
+    }
+    if (name === projectionNormName) {
+      return new Float32Array(32);
+    }
+    if (name === projectionInputActivationScaleName) {
+      assert.equal(toGPU, false);
+      return new Float32Array([0.25]);
+    }
+    if (name === projectionOutputActivationScaleName) {
+      assert.equal(toGPU, false);
+      return new Float32Array([0.125]);
+    }
+    return null;
+  },
+  shouldStreamLargeWeight(name) {
+    return name === embedName;
+  },
+  resolveWeightLayout(loc) {
+    return loc.layout ?? 'row';
+  },
+}, {
+  hiddenSizePerLayerInput: 32,
+});
+
+assert.equal(
+  scalarWeights.perLayerModelProjectionInputActivationStaticScale,
+  0.25,
+  'loader should preserve the per-layer projection input activation static scale as a scalar'
+);
+assert.equal(
+  scalarWeights.perLayerModelProjectionOutputActivationStaticScale,
+  0.125,
+  'loader should preserve the per-layer projection output activation static scale as a scalar'
+);
+assert.deepEqual(
+  scalarLoadCalls
+    .filter(([name]) => name === projectionInputActivationScaleName || name === projectionOutputActivationScaleName)
+    .sort(([nameA], [nameB]) => nameA.localeCompare(nameB)),
+  [
+    [projectionInputActivationScaleName, false],
+    [projectionOutputActivationScaleName, false],
+  ]
+);
+
+await assert.rejects(
+  () => loadPerLayerInputWeights({
+    modelId: 'gemma4-e2b-static-scale-missing-pair-test',
+    perLayerInputSession: {
+      materialization: 'cpu_resident',
+    },
+    tensorLocations: new Map([
+      ...tensorLocations,
+      [projectionInputActivationScaleName, {
+        shape: [1],
+        dtype: 'F32',
+        role: 'other',
+        layout: 'row',
+      }],
+    ]),
+    async loadTensor(name) {
+      if (name === embedName) {
+        return new Float32Array(16 * 32);
+      }
+      if (name === projectionName) {
+        return new Float32Array(32 * 64);
+      }
+      if (name === projectionNormName) {
+        return new Float32Array(32);
+      }
+      if (name === projectionInputActivationScaleName) {
+        return new Float32Array([0.25]);
+      }
+      return null;
+    },
+    shouldStreamLargeWeight(name) {
+      return name === embedName;
+    },
+    resolveWeightLayout(loc) {
+      return loc.layout ?? 'row';
+    },
+  }, {
+    hiddenSizePerLayerInput: 32,
+  }),
+  /must resolve both per-layer projection activation static scales together/i
+);
 
 const rangeLocation = {
   shape: [4, 4],

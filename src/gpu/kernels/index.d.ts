@@ -149,6 +149,13 @@ export {
   type ClampOptions,
 } from './clamp.js';
 
+// Static activation quantize/dequantize
+export {
+  runActivationStaticQdq,
+  recordActivationStaticQdq,
+  type ActivationStaticQdqOptions,
+} from './activation-static-qdq.js';
+
 // Energy (EBM helpers)
 export {
   runEnergyEval,

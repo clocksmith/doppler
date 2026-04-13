@@ -2,7 +2,7 @@
 
 import { parseModelConfig } from './config.js';
 import { getDevice, getDeviceLimits, getKernelCapabilities } from '../../../gpu/device.js';
-import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
+import { acquireBuffer, isBufferActive, releaseBuffer } from '../../../memory/buffer-pool.js';
 import {
   KVCache,
   SlidingWindowKVCache,
@@ -351,6 +351,18 @@ function isSameRoPEScalingConfig(
 const GPU_ROPE_BUFFER_CACHE = new WeakMap();
 const CPU_ROPE_BUFFER_CACHE = new Map();
 
+function isLiveCachedRopeBuffer(buffer) {
+  return buffer == null || isBufferActive(buffer);
+}
+
+function hasLiveCachedGpuRopeBuffers(buffers) {
+  return !!buffers
+    && isLiveCachedRopeBuffer(buffers.cos)
+    && isLiveCachedRopeBuffer(buffers.sin)
+    && isLiveCachedRopeBuffer(buffers.localCos)
+    && isLiveCachedRopeBuffer(buffers.localSin);
+}
+
 function buildRoPECacheKey(config) {
   return JSON.stringify({
     headDim: config.headDim,
@@ -556,7 +568,10 @@ export async function initRoPEFrequencies(config, useGPU) {
     }
     const cachedBuffers = perDeviceCache.get(cacheKey);
     if (cachedBuffers) {
-      return cachedBuffers;
+      if (hasLiveCachedGpuRopeBuffers(cachedBuffers)) {
+        return cachedBuffers;
+      }
+      perDeviceCache.delete(cacheKey);
     }
     let cosBuffer = null;
     let sinBuffer = null;

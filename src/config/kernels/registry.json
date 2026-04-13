@@ -4467,6 +4467,79 @@
         }
       }
     },
+    "activation_static_qdq": {
+      "description": "Static activation quantize/dequantize kernels",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "input",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "output",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          {
+            "name": "size",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "offset": 8
+          },
+          {
+            "name": "invScale",
+            "type": "f32",
+            "offset": 12
+          },
+          {
+            "name": "qmin",
+            "type": "f32",
+            "offset": 16
+          },
+          {
+            "name": "qmax",
+            "type": "f32",
+            "offset": 20
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "activation_static_qdq.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
     "energy_eval": {
       "description": "Energy evaluation kernels",
       "baseBindings": [
