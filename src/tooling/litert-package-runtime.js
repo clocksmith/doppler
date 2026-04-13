@@ -107,6 +107,40 @@ function computePackedByteSize(shape, sourceDtype, tensorName) {
 }
 
 function resolveLiteRTScaleContract(sourceDtype, tensorName, options = {}) {
+  const explicitScaleSemantics = normalizeText(options.scaleSemantics).toLowerCase();
+  if (explicitScaleSemantics) {
+    if (explicitScaleSemantics === 'step') {
+      return {
+        scaleSemantics: 'step',
+      };
+    }
+    if (explicitScaleSemantics === 'qmax_abs') {
+      if (sourceDtype === 'INT8' || sourceDtype === 'UINT8') {
+        return {
+          scaleSemantics: 'qmax_abs',
+          scaleDivisor: 128,
+        };
+      }
+      if (sourceDtype === 'INT4') {
+        return {
+          scaleSemantics: 'qmax_abs',
+          scaleDivisor: 8,
+        };
+      }
+      if (sourceDtype === 'INT2') {
+        return {
+          scaleSemantics: 'qmax_abs',
+          scaleDivisor: 2,
+        };
+      }
+      throw new Error(
+        `direct-source runtime: unsupported LiteRT scale contract source dtype "${sourceDtype}" for "${tensorName}".`
+      );
+    }
+    throw new Error(
+      `direct-source runtime: unsupported LiteRT scaleSemantics "${options.scaleSemantics}" for "${tensorName}".`
+    );
+  }
   if (options.hasSumCompanion === true) {
     return {
       scaleSemantics: 'step',
@@ -349,7 +383,8 @@ function createLiteRTAxisTensor(
   group = null,
   logicalShape = null,
   storageShape = null,
-  quantAxis = 1
+  quantAxis = 1,
+  scaleContractOptions = null
 ) {
   if (!rawTensor || typeof rawTensor !== 'object') {
     throw new Error(`direct-source runtime: missing LiteRT tensor "${canonicalName}".`);
@@ -406,6 +441,9 @@ function createLiteRTAxisTensor(
   });
   const scaleContract = resolveLiteRTScaleContract(layout.sourceDtype, canonicalName, {
     hasSumCompanion: Boolean(sumTensor && typeof sumTensor === 'object'),
+    ...(scaleContractOptions && typeof scaleContractOptions === 'object'
+      ? scaleContractOptions
+      : {}),
   });
   const expectedScaleCount = quantAxis === 0 ? storageCols : storageRows;
   const scaleCount = scaleTensor.size / 4;
@@ -521,7 +559,12 @@ function normalizeGemma4LiteRTTensors(parsedTFLite, sourcePath, runtimeProfile) 
         group,
         resolvedLogicalShape,
         resolvedStorageShape,
-        resolvedQuantAxis
+        resolvedQuantAxis,
+        options.scaleSemantics
+          ? {
+            scaleSemantics: options.scaleSemantics,
+          }
+          : null
       )
     );
   };
@@ -691,8 +734,8 @@ function normalizeGemma4LiteRTTensors(parsedTFLite, sourcePath, runtimeProfile) 
       'per_layer_input',
       [vocabSizePerLayerInput, hiddenSizePerLayerInput],
       {
-        transposeStorage: true,
-        quantAxis: 0,
+        quantAxis: 1,
+        scaleSemantics: 'step',
       }
     );
   }

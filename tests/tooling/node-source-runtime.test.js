@@ -332,13 +332,21 @@ try {
     litertTaskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.storageEncoding,
     'signed'
   );
-  assert.equal(
-    litertTaskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.scaleSemantics,
-    'qmax_abs'
+  assert.deepEqual(
+    litertTaskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.storageShape,
+    [262144, 256]
   );
   assert.equal(
-    litertTaskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.scaleDivisor,
-    8
+    litertTaskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.scaleSemantics,
+    'step'
+  );
+  assert.equal(
+    litertTaskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.quantAxis,
+    1
+  );
+  assert.equal(
+    litertTaskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.scaleDivisor ?? null,
+    null
   );
   const litertTaskTokenizer = await litertTaskBundle.storageContext.loadTokenizerJson();
   assert.equal(typeof litertTaskTokenizer, 'object');

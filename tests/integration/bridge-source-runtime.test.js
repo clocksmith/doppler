@@ -284,13 +284,21 @@ assert.equal(
   taskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.storageEncoding,
   'signed'
 );
-assert.equal(
-  taskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.scaleSemantics,
-  'qmax_abs'
+assert.deepEqual(
+  taskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.storageShape,
+  [262144, 256]
 );
 assert.equal(
-  taskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.scaleDivisor,
-  8
+  taskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.scaleSemantics,
+  'step'
+);
+assert.equal(
+  taskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.quantAxis,
+  1
+);
+assert.equal(
+  taskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.scaleDivisor ?? null,
+  null
 );
 const taskTokenizer = await taskBundle.storageContext.loadTokenizerJson();
 assert.equal(typeof taskTokenizer, 'object');
