@@ -5,9 +5,12 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { validateSupportTierRegistry } from '../src/config/schema/support-tiers.schema.js';
+
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PACKAGE_PATH = path.join(REPO_ROOT, 'package.json');
 const OUTPUT_PATH = path.join(REPO_ROOT, 'docs', 'api', 'reference', 'exports.md');
+const SUPPORT_TIER_REGISTRY_PATH = path.join(REPO_ROOT, 'src', 'config', 'support-tiers', 'subsystems.json');
 
 const EXPORT_META = {
   '.': {
@@ -134,8 +137,27 @@ async function readJson(filePath) {
   return JSON.parse(await fs.readFile(filePath, 'utf8'));
 }
 
+function describeExportStability(exportPath, supportEntry, fallback) {
+  if (!supportEntry) {
+    return fallback;
+  }
+  if (supportEntry.tier === 'tier1') {
+    return exportPath === '.' ? 'preferred public (tier1)' : 'tier1 advanced';
+  }
+  if (supportEntry.tier === 'experimental') {
+    return 'experimental export';
+  }
+  return 'internal-only';
+}
+
 async function buildReferenceMarkdown() {
   const packageJson = await readJson(PACKAGE_PATH);
+  const supportRegistry = validateSupportTierRegistry(await readJson(SUPPORT_TIER_REGISTRY_PATH));
+  const supportByExport = new Map(
+    supportRegistry.subsystems
+      .filter((entry) => entry.exported && typeof entry.packageExport === 'string' && entry.packageExport)
+      .map((entry) => [entry.packageExport, entry])
+  );
   const exportsList = normalizeExportMap(packageJson.exports);
   const lines = [];
   lines.push('# Public Export Inventory');
@@ -144,6 +166,7 @@ async function buildReferenceMarkdown() {
   lines.push('This is a reference inventory, not the behavior guide. Manual API guides live one level up in `docs/api/`.');
 
   for (const entry of exportsList) {
+    const supportEntry = supportByExport.get(entry.exportPath) || null;
     const meta = EXPORT_META[entry.exportPath] || {
       audience: 'unspecified',
       stability: 'unspecified',
@@ -164,7 +187,7 @@ async function buildReferenceMarkdown() {
     lines.push(`## \`${importPath}\``);
     lines.push('');
     lines.push(`- Audience: ${meta.audience}`);
-    lines.push(`- Stability: ${meta.stability}`);
+    lines.push(`- Stability: ${describeExportStability(entry.exportPath, supportEntry, meta.stability)}`);
     if (meta.docPath) {
       lines.push(`- Manual guide: [${meta.docPath}](${toDocLink(meta.docPath)})`);
     }
@@ -175,6 +198,9 @@ async function buildReferenceMarkdown() {
       lines.push(`- Implementation: [${relativeFromRepo(entry.importFile)}](${toDocLink(entry.importFile)})`);
     }
     lines.push(`- Notes: ${meta.notes}`);
+    if (supportEntry) {
+      lines.push(`- Support tier source: \`src/config/support-tiers/subsystems.json\` (${supportEntry.id})`);
+    }
 
     if (symbols.length > 0) {
       lines.push('- Exported symbols:');

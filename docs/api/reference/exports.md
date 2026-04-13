@@ -6,11 +6,12 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 ## `doppler-gpu`
 
 - Audience: app authors
-- Stability: preferred public
+- Stability: preferred public (tier1)
 - Manual guide: [docs/api/root.md](../root.md)
 - Types: [src/index.d.ts](../../../src/index.d.ts)
 - Implementation: [src/index.js](../../../src/index.js)
 - Notes: Primary application-facing surface. Prefer this over lower-level exports.
+- Support tier source: `src/config/support-tiers/subsystems.json` (api.root-facade)
 - Exported symbols:
   - `doppler`
   - `DOPPLER_VERSION`
@@ -18,11 +19,12 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 ## `doppler-gpu/tooling`
 
 - Audience: tool builders
-- Stability: public advanced
+- Stability: tier1 advanced
 - Manual guide: [docs/api/tooling.md](../tooling.md)
 - Types: [src/tooling-exports.d.ts](../../../src/tooling-exports.d.ts)
 - Implementation: [src/tooling-exports.js](../../../src/tooling-exports.js)
 - Notes: Tooling and command-runner surface, not the main app-facing API.
+- Support tier source: `src/config/support-tiers/subsystems.json` (api.tooling-subpath)
 - Exported symbols:
   - `*`
   - `hasNodeWebGPUSupport`
@@ -37,22 +39,24 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 ## `doppler-gpu/loaders`
 
 - Audience: advanced loader consumers
-- Stability: public advanced
+- Stability: tier1 advanced
 - Manual guide: [docs/api/loaders.md](../loaders.md)
 - Types: [src/loaders/index.d.ts](../../../src/loaders/index.d.ts)
 - Implementation: [src/loaders/index.js](../../../src/loaders/index.js)
 - Notes: Explicit loader and manifest/bootstrap helpers.
+- Support tier source: `src/config/support-tiers/subsystems.json` (api.loaders-subpath)
 - Exported symbols:
   - `*`
 
 ## `doppler-gpu/orchestration`
 
 - Audience: advanced runtime consumers
-- Stability: public advanced
+- Stability: experimental export
 - Manual guide: [docs/api/orchestration.md](../orchestration.md)
 - Types: [src/orchestration/index.d.ts](../../../src/orchestration/index.d.ts)
 - Implementation: [src/orchestration/index.js](../../../src/orchestration/index.js)
 - Notes: Tokenizer, KV cache, router, adapter, and logit-merge orchestration helpers.
+- Support tier source: `src/config/support-tiers/subsystems.json` (api.orchestration-subpath)
 - Exported symbols:
   - `*`
   - `buildConservativeMultimodalGenerationOptions`
@@ -60,11 +64,12 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 ## `doppler-gpu/generation`
 
 - Audience: advanced runtime consumers
-- Stability: public advanced
+- Stability: tier1 advanced
 - Manual guide: [docs/api/generation.md](../generation.md)
 - Types: [src/generation/index.d.ts](../../../src/generation/index.d.ts)
 - Implementation: [src/generation/index.js](../../../src/generation/index.js)
 - Notes: Lower-level text pipeline construction and pipeline types.
+- Support tier source: `src/config/support-tiers/subsystems.json` (api.generation-subpath)
 - Exported symbols:
   - `AdvanceEmbeddingResult`
   - `BatchingStats`
@@ -91,11 +96,12 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 ## `doppler-gpu/diffusion`
 
 - Audience: advanced diffusion consumers
-- Stability: public advanced
+- Stability: experimental export
 - Manual guide: [docs/api/diffusion.md](../diffusion.md)
 - Types: [src/diffusion/index.d.ts](../../../src/diffusion/index.d.ts)
 - Implementation: [src/diffusion/index.js](../../../src/diffusion/index.js)
 - Notes: Diffusion/image pipeline surface.
+- Support tier source: `src/config/support-tiers/subsystems.json` (api.diffusion-subpath)
 - Exported symbols:
   - `assertImageRegressionWithinTolerance`
   - `computeImageFingerprint`
@@ -109,11 +115,12 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 ## `doppler-gpu/energy`
 
 - Audience: advanced energy consumers
-- Stability: public advanced
+- Stability: experimental export
 - Manual guide: [docs/api/energy.md](../energy.md)
 - Types: [src/energy/index.d.ts](../../../src/energy/index.d.ts)
 - Implementation: [src/energy/index.js](../../../src/energy/index.js)
 - Notes: Energy pipeline surface.
+- Support tier source: `src/config/support-tiers/subsystems.json` (api.energy-subpath)
 - Exported symbols:
   - `computeQuintelEnergy`
   - `createEnergyPipeline`
