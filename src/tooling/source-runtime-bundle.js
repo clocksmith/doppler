@@ -1,11 +1,17 @@
 import {
-  createManifest,
+  buildBundledTokenizer,
+  buildSentencepieceTokenizer,
+  inferEmbeddingOutputConfig,
+  resolveConvertedAt,
+  resolveManifestMoEConfig,
+  resolveManifestMultimodalConfig,
 } from '../converter/core.js';
 import {
   normalizeQuantTag,
   resolveEffectiveQuantizationInfo,
   resolveManifestQuantization,
 } from '../converter/quantization-info.js';
+import { resolveEosTokenId } from '../converter/tokenizer-utils.js';
 import {
   getGroupType,
   parseGroupExpertIndex,
@@ -14,6 +20,7 @@ import {
   resolveTensorRole,
   sortGroupIds,
 } from '../formats/rdrr/index.js';
+import { createRuntimeModelContract } from '../inference/runtime-model.js';
 import { computeHash, createStreamingHasher } from '../storage/shard-manager.js';
 
 export const DIRECT_SOURCE_RUNTIME_MODE = 'direct-source';
@@ -163,6 +170,122 @@ function buildSourceShards(sourceFiles, hashAlgorithm) {
   return { shards, shardSources };
 }
 
+function buildTransformScaleSource(transform, shardIndexByPath, tensorName) {
+  const scaleSourcePath = toPathKey(transform?.scaleSourcePath);
+  if (!scaleSourcePath) {
+    throw new Error(
+      `Source tensor "${tensorName}" sourceTransform is missing scaleSourcePath.`
+    );
+  }
+  const shard = shardIndexByPath.get(scaleSourcePath);
+  if (!Number.isInteger(shard)) {
+    throw new Error(
+      `Source tensor "${tensorName}" references missing scale source "${scaleSourcePath}".`
+    );
+  }
+  return {
+    shard,
+    offset: normalizePositiveInteger(transform.scaleOffset, `tensor scale offset (${tensorName})`),
+    size: normalizePositiveInteger(transform.scaleSize, `tensor scale size (${tensorName})`),
+  };
+}
+
+function buildTransformCompanionSource(
+  transform,
+  shardIndexByPath,
+  tensorName,
+  sourcePathField,
+  offsetField,
+  sizeField,
+  label
+) {
+  const sourcePath = toPathKey(transform?.[sourcePathField]);
+  if (!sourcePath) {
+    return null;
+  }
+  const shard = shardIndexByPath.get(sourcePath);
+  if (!Number.isInteger(shard)) {
+    throw new Error(
+      `Source tensor "${tensorName}" references missing ${label} source "${sourcePath}".`
+    );
+  }
+  return {
+    shard,
+    offset: normalizePositiveInteger(transform[offsetField], `tensor ${label} offset (${tensorName})`),
+    size: normalizePositiveInteger(transform[sizeField], `tensor ${label} size (${tensorName})`),
+  };
+}
+
+function buildSourceTensorTransform(tensor, shardIndexByPath, tensorName) {
+  const transform = tensor?.sourceTransform;
+  if (!transform || typeof transform !== 'object') {
+    return null;
+  }
+  if (transform.kind === 'affine_dequant') {
+    return {
+      kind: transform.kind,
+      scheme: transform.scheme,
+      sourceDtype: transform.sourceDtype,
+      targetDtype: transform.targetDtype,
+      scale: transform.scale,
+      zeroPoint: transform.zeroPoint,
+    };
+  }
+  if (transform.kind === 'litert_rowwise_dequant') {
+    const rowSumSource = buildTransformCompanionSource(
+      transform,
+      shardIndexByPath,
+      tensorName,
+      'rowSumSourcePath',
+      'rowSumOffset',
+      'rowSumSize',
+      'row-sum'
+    );
+    return {
+      kind: transform.kind,
+      scheme: transform.scheme,
+      sourceDtype: transform.sourceDtype,
+      targetDtype: transform.targetDtype,
+      storageEncoding: transform.storageEncoding,
+      scaleSource: buildTransformScaleSource(transform, shardIndexByPath, tensorName),
+      ...(rowSumSource
+        ? {
+          rowSumSource,
+        }
+        : {}),
+    };
+  }
+  if (transform.kind === 'litert_axis_dequant') {
+    const sumSource = buildTransformCompanionSource(
+      transform,
+      shardIndexByPath,
+      tensorName,
+      'sumSourcePath',
+      'sumOffset',
+      'sumSize',
+      'sum'
+    );
+    return {
+      kind: transform.kind,
+      scheme: transform.scheme,
+      sourceDtype: transform.sourceDtype,
+      targetDtype: transform.targetDtype,
+      storageEncoding: transform.storageEncoding,
+      storageShape: transform.storageShape,
+      quantAxis: transform.quantAxis,
+      scaleSource: buildTransformScaleSource(transform, shardIndexByPath, tensorName),
+      ...(sumSource
+        ? {
+          sumSource,
+        }
+        : {}),
+    };
+  }
+  throw new Error(
+    `Source tensor "${tensorName}" uses unsupported sourceTransform.kind "${transform.kind}".`
+  );
+}
+
 function buildSourceTensorLocations(tensors, shardIndexByPath, modelType) {
   const sorted = [...tensors].sort((left, right) => {
     const leftPath = toPathKey(left?.sourcePath);
@@ -198,6 +321,7 @@ function buildSourceTensorLocations(tensors, shardIndexByPath, modelType) {
     const layout = typeof tensor.layout === 'string' && tensor.layout.trim()
       ? tensor.layout.trim()
       : null;
+    const sourceTransform = buildSourceTensorTransform(tensor, shardIndexByPath, name);
 
     locations[name] = {
       shard,
@@ -208,6 +332,7 @@ function buildSourceTensorLocations(tensors, shardIndexByPath, modelType) {
       role,
       group,
       ...(layout ? { layout } : {}),
+      ...(sourceTransform ? { sourceTransform } : {}),
     };
   }
 
@@ -275,6 +400,7 @@ async function assignGroupHashes(groups, tensorLocations, hashAlgorithm) {
           dtype: location?.dtype ?? null,
           shape: Array.isArray(location?.shape) ? location.shape : null,
           layout: location?.layout ?? null,
+          sourceTransform: location?.sourceTransform ?? null,
         };
       }),
     };
@@ -445,6 +571,144 @@ function resolveModelQuantization(options, tensorLocations) {
   };
 }
 
+function cloneJsonValue(value) {
+  if (value == null) return value;
+  if (typeof structuredClone === 'function') {
+    return structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value));
+}
+
+function buildSourceRuntimeInference(options, tensorLocations) {
+  const inference = cloneJsonValue(options.inference);
+  if (!inference || typeof inference !== 'object' || Array.isArray(inference)) {
+    throw new Error('source runtime bundle: inference config is required.');
+  }
+  const embeddingOutput = inferEmbeddingOutputConfig(tensorLocations);
+  const embeddingPostprocessor = options.embeddingPostprocessor ?? null;
+  const hasExplicitEmbeddingPostprocessor = Object.prototype.hasOwnProperty.call(
+    inference?.output ?? {},
+    'embeddingPostprocessor'
+  );
+  if (!embeddingOutput && !embeddingPostprocessor && !hasExplicitEmbeddingPostprocessor) {
+    return inference;
+  }
+  return {
+    ...inference,
+    output: {
+      ...inference.output,
+      ...(embeddingOutput ?? {}),
+      embeddingPostprocessor: hasExplicitEmbeddingPostprocessor
+        ? inference.output.embeddingPostprocessor
+        : embeddingPostprocessor,
+    },
+  };
+}
+
+function resolveSourceRuntimeTokenizer(options, rawConfig, architecture) {
+  if (options.tokenizerJson) {
+    return buildBundledTokenizer(
+      options.tokenizerJson,
+      options.tokenizerConfig ?? null,
+      rawConfig
+    );
+  }
+  if (options.tokenizerModelName || options.tokenizerModelPath) {
+    const tokenizerModel = options.tokenizerModelPath || options.tokenizerModelName;
+    return buildSentencepieceTokenizer(
+      options.tokenizerConfig ?? null,
+      rawConfig,
+      architecture,
+      tokenizerModel
+    );
+  }
+  return null;
+}
+
+function resolveSourceRuntimeMetadata(options, hasTokenizer) {
+  const convertedAt = resolveConvertedAt(
+    options.convertedAt
+    ?? options.conversionInfo?.convertedAt
+    ?? null
+  );
+  return {
+    source: 'source-runtime',
+    convertedAt,
+    ...(hasTokenizer ? { hasTokenizer: true } : {}),
+  };
+}
+
+function buildSourceRuntimeModel(options, shards, tensorLocations, groups, quantizationInfo, manifestQuantization) {
+  const rawConfig = (
+    options.rawConfig
+    && typeof options.rawConfig === 'object'
+    && !Array.isArray(options.rawConfig)
+  )
+    ? options.rawConfig
+    : {};
+  const modelType = String(options.modelType || '').trim();
+  const resolvedArchitecture = options.architecture;
+  const manifestConfig = resolveManifestMultimodalConfig(rawConfig, options.manifestConfig ?? null);
+  const config = {
+    ...(manifestConfig.vision_config ? { vision_config: manifestConfig.vision_config } : {}),
+    ...(manifestConfig.audio_config ? { audio_config: manifestConfig.audio_config } : {}),
+  };
+  const tokenizer = resolveSourceRuntimeTokenizer(options, rawConfig, resolvedArchitecture);
+  const inference = buildSourceRuntimeInference(options, tensorLocations);
+  const eosTokenId = options.eosTokenId !== undefined
+    ? options.eosTokenId
+    : resolveEosTokenId({
+      config: rawConfig,
+      generationConfig: null,
+      tokenizer: options.tokenizerConfig ?? null,
+      tokenizerJson: options.tokenizerJson ?? null,
+    });
+  const metadata = resolveSourceRuntimeMetadata(options, tokenizer != null);
+  const moeConfig = modelType === 'diffusion'
+    ? null
+    : resolveManifestMoEConfig(
+      {
+        tensors: Object.entries(tensorLocations).map(([name, location]) => ({
+          name,
+          role: location?.role ?? null,
+          layout: location?.layout ?? null,
+        })),
+      },
+      {
+        modelId: options.modelId,
+        quantizationInfo,
+      },
+      rawConfig,
+      modelType
+    );
+
+  return createRuntimeModelContract({
+    sourceFormat: options.sourceKind ?? DIRECT_SOURCE_RUNTIME_MODE,
+    version: 1,
+    modelId: options.modelId,
+    modelType,
+    quantization: manifestQuantization,
+    quantizationInfo,
+    hashAlgorithm: normalizeHashAlgorithm(options.hashAlgorithm),
+    architecture: resolvedArchitecture,
+    groups,
+    shards,
+    totalSize: shards.reduce((sum, shard) => sum + shard.size, 0),
+    tensorCount: Object.keys(tensorLocations).length,
+    tensors: tensorLocations,
+    tokenizer: tokenizer ?? undefined,
+    moeConfig: moeConfig ?? undefined,
+    ...(Object.keys(config).length > 0 ? { config } : {}),
+    conversion: options.conversionInfo ?? undefined,
+    inference,
+    eos_token_id: eosTokenId,
+    ...(rawConfig.image_token_id !== undefined ? { image_token_id: rawConfig.image_token_id } : {}),
+    ...(rawConfig.audio_token_id !== undefined ? { audio_token_id: rawConfig.audio_token_id } : {}),
+    ...(rawConfig.video_token_id !== undefined ? { video_token_id: rawConfig.video_token_id } : {}),
+    metadata,
+  });
+}
+
 export async function buildSourceRuntimeBundle(options = {}) {
   const modelId = String(options.modelId || '').trim();
   if (!modelId) {
@@ -485,55 +749,28 @@ export async function buildSourceRuntimeBundle(options = {}) {
   const { quantizationInfo, manifestQuantization } = resolveModelQuantization(options, tensorLocations);
   const auxiliaryFiles = normalizeAuxiliaryFiles(options.auxiliaryFiles, hashAlgorithm);
 
-  const model = {
-    name: options.modelName || modelId,
-    modelId,
-    modelType,
-    tensors: tensors.map((tensor) => ({
-      name: tensor.name,
-      shape: tensor.shape,
-      dtype: tensor.dtype,
-      size: tensor.size,
-      offset: tensor.offset,
-      sourcePath: tensor.sourcePath,
-    })),
-    config: options.rawConfig ?? {},
-    architecture: options.architectureHint ?? modelType,
-    quantization: manifestQuantization,
-    tokenizerJson: options.tokenizerJson ?? null,
-    tokenizerConfig: options.tokenizerConfig ?? null,
-    tokenizerModel: options.tokenizerModelName ?? null,
-    embeddingPostprocessor: options.embeddingPostprocessor ?? null,
-  };
-
-  const manifest = createManifest(modelId, model, shards, tensorLocations, {
-    source: 'source-runtime',
-    modelType,
-    quantization: manifestQuantization,
-    quantizationInfo,
-    hashAlgorithm,
-    architecture: options.architecture,
-    manifestConfig: options.manifestConfig ?? null,
-    inference,
-    eosTokenId: options.eosTokenId,
-    convertedAt: options.convertedAt ?? null,
-    conversionInfo: options.conversionInfo ?? null,
-  });
-
-  manifest.groups = groups;
-  if (!manifest.metadata || typeof manifest.metadata !== 'object') {
-    manifest.metadata = {};
-  }
-  manifest.metadata.sourceRuntime = buildSourceRuntimeMetadata(
+  const model = buildSourceRuntimeModel(
     options,
-    manifest,
+    shards,
+    tensorLocations,
+    groups,
+    quantizationInfo,
+    manifestQuantization
+  );
+  if (!model.metadata || typeof model.metadata !== 'object') {
+    model.metadata = {};
+  }
+  model.metadata.sourceRuntime = buildSourceRuntimeMetadata(
+    options,
+    model,
     shardSources,
     auxiliaryFiles,
     hashAlgorithm
   );
 
   return {
-    manifest,
+    model,
+    manifest: model,
     shardSources,
   };
 }
@@ -554,12 +791,12 @@ function resolveSourceEntry(index, manifest, shardSources) {
 }
 
 export function createSourceStorageContext(options = {}) {
-  const manifest = options.manifest;
-  if (!manifest || typeof manifest !== 'object') {
-    throw new Error('source storage context: manifest is required.');
+  const model = options.model ?? options.manifest;
+  if (!model || typeof model !== 'object') {
+    throw new Error('source storage context: model is required.');
   }
 
-  const sourceRuntime = getSourceRuntimeMetadata(manifest);
+  const sourceRuntime = getSourceRuntimeMetadata(model);
   const shardSources = Array.isArray(options.shardSources) && options.shardSources.length > 0
     ? options.shardSources
     : (sourceRuntime?.sourceFiles ?? null);
@@ -655,7 +892,7 @@ export function createSourceStorageContext(options = {}) {
   }
 
   const loadShardRange = async (index, offset = 0, length = null) => {
-    const { sourcePath, shardSize } = resolveSourceEntry(index, manifest, shardSources);
+    const { sourcePath, shardSize } = resolveSourceEntry(index, model, shardSources);
     const start = normalizePositiveInteger(offset, `shard offset (${index})`);
     const maxLength = Math.max(0, shardSize - start);
     const requested = length == null
@@ -670,12 +907,12 @@ export function createSourceStorageContext(options = {}) {
   };
 
   const loadShard = async (index) => {
-    const { shardSize } = resolveSourceEntry(index, manifest, shardSources);
+    const { shardSize } = resolveSourceEntry(index, model, shardSources);
     return loadShardRange(index, 0, shardSize);
   };
 
   const streamShardRange = async function* (index, offset = 0, length = null, streamOptions = {}) {
-    const { sourcePath, shardSize } = resolveSourceEntry(index, manifest, shardSources);
+    const { sourcePath, shardSize } = resolveSourceEntry(index, model, shardSources);
     const start = normalizePositiveInteger(offset, `shard stream offset (${index})`);
     const maxLength = Math.max(0, shardSize - start);
     const requested = length == null

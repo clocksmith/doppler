@@ -4,7 +4,8 @@ import {
   EXECUTION_V1_SCHEMA_ID,
   DEFAULT_EXECUTION_V1_POLICIES,
 } from '../../src/config/schema/index.js';
-import { compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
+import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
+import { applyExecutionV1RuntimeConfig, compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
 import { readFileSync } from 'fs';
 
 const D = (c) => 'sha256:' + c.repeat(64);
@@ -499,6 +500,64 @@ if (
 }
 if (compiledWithRuntimeSessionDefaults.runtimeInferencePatch.session?.kvcache?.maxSeqLen !== 4096) {
   throw new Error('Execution-v1 session merge must still retain non-dtype runtime session fields');
+}
+
+const f32AttentionGraph = makeGraph();
+f32AttentionGraph.kernels.attn = {
+  kernel: 'attention_decode.wgsl',
+  entry: 'main',
+  digest: D('8'),
+};
+
+const explicitRuntimeOverridesWithoutSession = {
+  inference: {
+    compute: {
+      activationDtype: 'f32',
+    },
+  },
+};
+
+const appliedRuntimeConfig = applyExecutionV1RuntimeConfig({
+  runtimeConfig: createDopplerConfig({
+    runtime: explicitRuntimeOverridesWithoutSession,
+  }).runtime,
+  runtimeOverrides: explicitRuntimeOverridesWithoutSession,
+  manifest: {
+    modelId: 'test-model-explicit-runtime-without-session',
+    architecture: {
+      numLayers: 26,
+      headDim: 128,
+    },
+    inference: {
+      schema: EXECUTION_V1_SCHEMA_ID,
+      execution: f32AttentionGraph,
+      session: {
+        compute: {
+          defaults: { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' },
+        },
+        kvcache: {
+          kvDtype: 'f32',
+          layout: 'contiguous',
+        },
+        decodeLoop: null,
+      },
+    },
+  },
+  modelId: 'test-model-explicit-runtime-without-session',
+  numLayers: 26,
+  capabilities: { hasF16: true, hasSubgroups: true },
+  platform: { id: 'test', vendor: 'test', architecture: 'test' },
+});
+
+if (appliedRuntimeConfig.executionV1State?.session?.kvcache?.kvDtype !== 'f32') {
+  throw new Error(
+    'Execution-v1 must preserve manifest session.kvcache.kvDtype when runtime overrides omit inference.session'
+  );
+}
+if (appliedRuntimeConfig.runtimeConfig.inference?.session?.kvcache?.kvDtype !== 'f32') {
+  throw new Error(
+    'Execution-v1 runtime patch must not let default runtime session.kvcache override manifest session.kvcache'
+  );
 }
 
 const compiledPipeline = compileExecutionV1({

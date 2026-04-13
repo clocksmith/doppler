@@ -22,6 +22,7 @@ Tool builders, harness code, demos, and consumers that need browser/CLI command 
 ## Stability
 
 Public, but tooling-oriented rather than app-facing.
+Current support tier: `tier1` advanced surface. See [Subsystem Support Matrix](../subsystem-support-matrix.md).
 
 ## Primary Exports
 

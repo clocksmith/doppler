@@ -1,5 +1,5 @@
-import type { RDRRManifest } from '../formats/rdrr/index.js';
 import type { ManifestEmbeddingPostprocessorSchema } from '../config/schema/index.js';
+import type { RuntimeModelContract } from '../inference/runtime-model.js';
 import type {
   BuildSourceRuntimeBundleOptions,
   BuildSourceRuntimeBundleResult,
@@ -10,15 +10,22 @@ import type {
 export declare const SOURCE_ARTIFACT_KIND_SAFETENSORS: 'safetensors';
 export declare const SOURCE_ARTIFACT_KIND_GGUF: 'gguf';
 export declare const SOURCE_ARTIFACT_KIND_TFLITE: 'tflite';
+export declare const SOURCE_ARTIFACT_KIND_LITERT_TASK: 'litert-task';
+export declare const SOURCE_ARTIFACT_KIND_LITERTLM: 'litertlm';
 
 export type SourceArtifactKind =
   | typeof SOURCE_ARTIFACT_KIND_SAFETENSORS
   | typeof SOURCE_ARTIFACT_KIND_GGUF
-  | typeof SOURCE_ARTIFACT_KIND_TFLITE;
+  | typeof SOURCE_ARTIFACT_KIND_TFLITE
+  | typeof SOURCE_ARTIFACT_KIND_LITERT_TASK
+  | typeof SOURCE_ARTIFACT_KIND_LITERTLM;
 
 export type DirectSourceRuntimeKind =
   | typeof SOURCE_ARTIFACT_KIND_SAFETENSORS
-  | typeof SOURCE_ARTIFACT_KIND_GGUF;
+  | typeof SOURCE_ARTIFACT_KIND_GGUF
+  | typeof SOURCE_ARTIFACT_KIND_TFLITE
+  | typeof SOURCE_ARTIFACT_KIND_LITERT_TASK
+  | typeof SOURCE_ARTIFACT_KIND_LITERTLM;
 
 export interface ParsedSourceArtifact {
   sourceKind: SourceArtifactKind | string;
@@ -26,7 +33,10 @@ export interface ParsedSourceArtifact {
   tensors: SourceRuntimeTensor[];
   architectureHint?: string | null;
   embeddingPostprocessor?: ManifestEmbeddingPostprocessorSchema | null;
+  modelType?: string | null;
   architecture: Record<string, unknown> | string | null;
+  manifestConfig?: Record<string, unknown> | null;
+  manifestInference?: Record<string, unknown> | null;
   sourceQuantization?: string | null;
   tokenizerJson?: Record<string, unknown> | null;
   tokenizerConfig?: Record<string, unknown> | null;
@@ -45,7 +55,6 @@ export interface ResolveSourceRuntimeBundleFromParsedArtifactOptions {
   modelKind?: string | null;
   runtimeLabel?: string | null;
   logCategory?: string | null;
-  quantization?: Record<string, unknown> | null;
   hashFileEntries: (
     entries: SourceRuntimeFile[] | null | undefined,
     hashAlgorithm: string
@@ -53,7 +62,8 @@ export interface ResolveSourceRuntimeBundleFromParsedArtifactOptions {
 }
 
 export interface ResolvedSourceRuntimeArtifactBundle extends BuildSourceRuntimeBundleResult {
-  manifest: RDRRManifest;
+  model: RuntimeModelContract;
+  manifest: RuntimeModelContract;
   sourceKind: DirectSourceRuntimeKind;
   sourceQuantization: string;
   sourceFiles: SourceRuntimeFile[];
@@ -63,12 +73,13 @@ export interface ResolvedSourceRuntimeArtifactBundle extends BuildSourceRuntimeB
   plan: {
     modelType: string;
     manifestInference: BuildSourceRuntimeBundleOptions['inference'];
+    manifestConfig: NonNullable<BuildSourceRuntimeBundleOptions['manifestConfig']>;
+    manifestQuantization: string;
+    sourceQuantization: string;
     quantizationInfo?: Record<string, unknown> | null;
   } & Record<string, unknown>;
-  converterConfig: {
-    manifest: {
-      hashAlgorithm: string;
-    } & Record<string, unknown>;
+  manifestConfig: {
+    hashAlgorithm: string;
   } & Record<string, unknown>;
 }
 
@@ -102,6 +113,21 @@ export declare function resolveSourceRuntimeModelIdHint(options: {
   sourcePath?: string | null;
   label?: string | null;
 }): string;
+
+export declare function resolveDirectSourceRuntimePlan(options: {
+  parsedArtifact: ParsedSourceArtifact;
+  sourceQuantization?: string | null;
+  modelKind?: string | null;
+  logCategory?: string | null;
+}): {
+  modelType: string;
+  manifestConfig: NonNullable<BuildSourceRuntimeBundleOptions['manifestConfig']>;
+  manifestInference: BuildSourceRuntimeBundleOptions['inference'];
+  sourceQuantization: string;
+  quantizationInfo: Record<string, unknown>;
+  manifestQuantization: string;
+  executionVersion: 'v1';
+};
 
 export declare function resolveSourceRuntimeBundleFromParsedArtifact(
   options: ResolveSourceRuntimeBundleFromParsedArtifactOptions

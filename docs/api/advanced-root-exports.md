@@ -20,6 +20,7 @@ Advanced consumers migrating from the older catch-all root barrel or choosing th
 ## Stability
 
 Public guidance only. The root facade is intentionally minimal now.
+Subpath support tiers are defined in [Subsystem Support Matrix](../subsystem-support-matrix.md).
 
 ## Subpath Split
 
@@ -94,6 +95,7 @@ Public guidance only. The root facade is intentionally minimal now.
 - KV cache, routers, adapters, and logit-merge helpers should import from `doppler-gpu/orchestration`.
 - Direct pipeline construction should import from `doppler-gpu/generation`.
 - Tooling and command helpers should import from `doppler-gpu/tooling`.
+- Check the subsystem support matrix before treating every exported subpath as equally promoted.
 
 ## Code Pointers
 

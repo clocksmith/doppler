@@ -1,3 +1,6 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { initializeInference } from './test-harness.js';
 import { setRuntimeConfig } from '../config/runtime.js';
 import { log } from '../debug/index.js';
@@ -16,9 +19,29 @@ import {
 } from '../storage/source-artifact-store.js';
 
 const NODE_SOURCE_RUNTIME_MODULE_PATH = '../tooling/node-source-runtime.js';
+const DIRECT_SOURCE_FILE_EXTENSIONS = Object.freeze([
+  '.gguf',
+  '.tflite',
+  '.task',
+  '.litertlm',
+]);
 
 function isNodeRuntime() {
   return typeof process !== 'undefined' && !!process.versions?.node;
+}
+
+async function pathExists(targetPath) {
+  try {
+    await fs.access(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function isDirectSourceFilePath(targetPath) {
+  const ext = path.extname(String(targetPath || '')).toLowerCase();
+  return DIRECT_SOURCE_FILE_EXTENSIONS.includes(ext);
 }
 
 function resolveSourceVerifyHashes(options = {}) {
@@ -143,7 +166,8 @@ export async function initializeInferenceFromSourcePath(sourcePath, options = {}
   }
   if (/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(sourcePath)) {
     throw new Error(
-      'loadMode=memory expects a local filesystem path (Safetensors directory or .gguf file), not an URL.'
+      'loadMode=memory expects a local filesystem path (Safetensors directory, .gguf file, .tflite file, ' +
+      '.task file, or .litertlm file), not an URL.'
     );
   }
 
@@ -158,7 +182,7 @@ export async function initializeInferenceFromSourcePath(sourcePath, options = {}
   if (!sourceBundle) {
     throw new Error(
       `No source-runtime model detected at "${sourcePath}". ` +
-      'Expected a Safetensors directory or a .gguf file path.'
+      'Expected a Safetensors directory, .gguf file, .tflite file, .task file, or .litertlm file path.'
     );
   }
   const effectiveRuntime = applyResolvedResidentBudget(
@@ -187,6 +211,61 @@ export async function initializeInferenceFromSourcePath(sourcePath, options = {}
     manifest: sourceBundle.manifest,
     capabilities,
   };
+}
+
+export async function resolveLocalSourceRuntimePathFromModelUrl(modelUrl) {
+  if (!isNodeRuntime()) {
+    return null;
+  }
+  if (typeof modelUrl !== 'string' || !modelUrl.startsWith('file://')) {
+    return null;
+  }
+
+  let localPath;
+  try {
+    localPath = fileURLToPath(modelUrl);
+  } catch {
+    return null;
+  }
+
+  let stats;
+  try {
+    stats = await fs.stat(localPath);
+  } catch {
+    return null;
+  }
+
+  if (stats.isFile()) {
+    return isDirectSourceFilePath(localPath) ? localPath : null;
+  }
+
+  if (!stats.isDirectory()) {
+    return null;
+  }
+
+  if (await pathExists(path.join(localPath, 'manifest.json'))) {
+    return null;
+  }
+
+  const entries = await fs.readdir(localPath, { withFileTypes: true });
+  const fileNames = new Set(
+    entries
+      .filter((entry) => entry.isFile())
+      .map((entry) => entry.name)
+  );
+  const hasSafetensorsShape = fileNames.has('config.json')
+    && (fileNames.has('model.safetensors') || fileNames.has('model.safetensors.index.json'));
+  if (hasSafetensorsShape) {
+    return localPath;
+  }
+
+  for (const fileName of fileNames) {
+    if (isDirectSourceFilePath(fileName)) {
+      return localPath;
+    }
+  }
+
+  return null;
 }
 
 export async function resolveHarnessOverride(options = {}) {
@@ -235,7 +314,11 @@ export async function initializeSuiteModel(options = {}) {
     `Suite model init: loadMode=${loadMode}, modelId=${options.modelId ?? 'unset'}, hasModelUrl=${options.modelUrl ? 'yes' : 'no'}`
   );
   let harness;
-  if (loadMode === 'memory') {
+  const directSourcePath = await resolveLocalSourceRuntimePathFromModelUrl(options.modelUrl);
+  if (directSourcePath) {
+    log.info('Harness', `Using node source runtime for explicit local modelUrl: ${directSourcePath}`);
+    harness = await initializeInferenceFromSourcePath(directSourcePath, { ...options, runtime });
+  } else if (loadMode === 'memory') {
     if (!options.modelUrl) {
       throw new Error('loadMode=memory requires modelUrl to be a local model path.');
     }

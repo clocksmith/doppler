@@ -20,6 +20,7 @@ const {
   destroyPleRuntimeCache,
   scalePerLayerProjectionNormWeights,
   inferPleProjectionNormDtype,
+  loadRangeBackedPleProjectionSliceBytes,
 } = await import('../../src/inference/pipelines/text/per-layer-inputs.js');
 
 class FakeBuffer {
@@ -216,6 +217,32 @@ try {
     null,
     'offset-based RMSNorm models must not activate the folded PLE combine-scale cache'
   );
+
+  const rangeRequests = [];
+  const projectionSlice = await loadRangeBackedPleProjectionSliceBytes(
+    {
+      data: {
+        kind: 'tensor_range_source',
+        async loadRange(offset, length) {
+          rangeRequests.push([offset, length]);
+          return Uint8Array.from({ length }, (_, index) => index & 0xff);
+        },
+      },
+      dtype: 'f16',
+      layout: 'row',
+      shape: Object.freeze([8, 4]),
+      label: 'per_layer_model_projection',
+    },
+    3,
+    2,
+    4,
+    'Range-backed projection test'
+  );
+  assert.deepEqual(rangeRequests, [[48, 16]]);
+  assert.equal(projectionSlice.dtype, 'f16');
+  assert.equal(projectionSlice.layout, 'row');
+  assert.deepEqual(projectionSlice.shape, [2, 4]);
+  assert.equal(projectionSlice.bytes.byteLength, 16);
 } finally {
   destroyBufferPool();
   setDevice(null);

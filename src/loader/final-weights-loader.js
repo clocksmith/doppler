@@ -10,6 +10,7 @@ import { maybeDowncastToF16 } from './weight-downcast.js';
 import { getTensorNamesByRole } from './tensors/tensor-role.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
+import { loadTensorRange } from './tensors/tensor-reader.js';
 
 // ============================================================================
 // Constants
@@ -23,6 +24,34 @@ const EMBEDDING_MODEL_TYPE = 'embedding';
 
 function isGpuBufferInstance(value) {
   return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
+}
+
+function createRangeBackedTensorSource(ctx, name, location) {
+  if (typeof ctx.loadShardRange !== 'function') {
+    return null;
+  }
+  const normalizedLocationDtype = typeof location?.dtype === 'string'
+    ? location.dtype.toLowerCase()
+    : 'f32';
+  return {
+    kind: 'tensor_range_source',
+    sourceDtype: normalizedLocationDtype,
+    async loadRange(byteOffset, byteLength) {
+      return loadTensorRange(location, name, byteOffset, byteLength, ctx.loadShardRange);
+    },
+  };
+}
+
+function createRangeBackedWeightBuffer(ctx, name, location) {
+  const source = createRangeBackedTensorSource(ctx, name, location);
+  if (!source || !location?.shape || location.shape.length !== 2) {
+    return null;
+  }
+  const layout = ctx.resolveWeightLayout(location);
+  const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
+    locationDtype: location.dtype,
+  });
+  return createCpuWeightBuffer(source, dtype, layout, location.shape, name);
 }
 
 function isLikelyFinalNormName(name) {
@@ -157,15 +186,20 @@ async function loadLmHead(ctx) {
     if (!loc) continue;
 
     const shouldStream = ctx.shouldStreamLargeWeight(name, loc, 'LM head');
-    const tensor = await ctx.loadTensor(name, !shouldStream, true);
+    const tensor = shouldStream
+      ? (
+        createRangeBackedWeightBuffer(ctx, name, loc)
+        ?? await ctx.loadTensor(name, false, true)
+      )
+      : await ctx.loadTensor(name, true, true);
 
-    if (shouldStream && tensor && !(tensor instanceof Float32Array)) {
+    if (shouldStream && tensor && !(tensor instanceof Float32Array) && !isCpuWeightBuffer(tensor)) {
       throw new Error(
         `[Loader] LM head "${name}" too large for GPU and cannot be loaded on CPU (dtype=${loc.dtype}).`
       );
     }
 
-    if (tensor && (isGpuBufferInstance(tensor) || isWeightBuffer(tensor) || tensor instanceof Float32Array)) {
+    if (tensor && (isGpuBufferInstance(tensor) || isWeightBuffer(tensor) || isCpuWeightBuffer(tensor) || tensor instanceof Float32Array)) {
       lmHeadName = name;
       lmHeadLoc = loc;
       lmHead = processLmHeadTensor(ctx, tensor, name, loc, shouldStream);
@@ -253,6 +287,11 @@ async function loadCpuFloatTensor(ctx, tensorName, label) {
 
 
 function processLmHeadTensor(ctx, tensor, name, loc, shouldStream) {
+  if (isCpuWeightBuffer(tensor)) {
+    log.warn('Loader', `LM head stored on CPU via range-backed source (layout=${tensor.layout})`);
+    return tensor;
+  }
+
   // Float32Array streaming path
   if (tensor instanceof Float32Array && shouldStream) {
     const layout = ctx.resolveWeightLayout(loc);
@@ -292,8 +331,8 @@ async function maybeDowncastLmHead(ctx, lmHead, lmHeadName, lmHeadLoc) {
     return lmHead;
   }
 
-  // Can't downcast Float32Array
-  if (lmHead instanceof Float32Array) {
+  // Can't downcast Float32Array or CpuWeightBuffer
+  if (lmHead instanceof Float32Array || isCpuWeightBuffer(lmHead)) {
     return lmHead;
   }
 

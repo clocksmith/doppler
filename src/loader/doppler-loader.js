@@ -51,6 +51,7 @@ import {
 } from './experts/expert-loader.js';
 import { loadLoRAWeights as loadLoRAWeightsFromModule } from '../adapters/lora-loader.js';
 import { assembleShardData } from './tensors/tensor-reader.js';
+import { hasSourceTransform } from './tensors/source-transform.js';
 
 function hasExpertGroups(manifest) {
   if (!manifest?.groups) return false;
@@ -817,6 +818,7 @@ export class DopplerLoader {
 
   #shouldStreamUploadToGPU(location) {
     if (!location?.size || location.size <= 0) return false;
+    if (hasSourceTransform(location)) return false;
     if (this.shardCache.hasCustomLoader && !this.shardCache.canStreamRanges) return false;
     const chunkBytes = this.#loadingConfig?.storage?.backend?.streaming?.readChunkBytes ?? 0;
     if (!Number.isFinite(chunkBytes) || chunkBytes <= 0) return false;
@@ -919,6 +921,7 @@ export class DopplerLoader {
     const ctx = {
       tensorLocations: this.tensorLocations,
       loadTensor: (name, toGPU, silent) => this.#loadTensor(name, toGPU, silent),
+      loadShardRange: (index, offset, length) => this.shardCache.loadRange(index, offset, length),
       shouldStreamLargeWeight: (name, loc, label) => this.#shouldStreamLargeWeight(name, loc, label),
       resolveWeightLayout: (loc) => this.#resolveWeightLayout(loc),
       gpuBuffers: this.gpuBuffers,
@@ -1024,6 +1027,7 @@ export class DopplerLoader {
     const ctx = {
       tensorLocations: this.tensorLocations,
       loadTensor: (name, toGPU, silent) => this.#loadTensor(name, toGPU, silent),
+      loadShardRange: (index, offset, length) => this.shardCache.loadRange(index, offset, length),
       needsNormWeightOffset: () => this.#needsNormWeightOffset(),
       shouldStreamLargeWeight: (name, loc, label) => this.#shouldStreamLargeWeight(name, loc, label),
       resolveWeightLayout: (loc) => this.#resolveWeightLayout(loc),

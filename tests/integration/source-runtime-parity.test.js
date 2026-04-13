@@ -398,8 +398,10 @@ try {
     const device = await initDevice();
     const rdrrManifest = parseManifest(readFileSync(path.join(outputDir, 'manifest.json'), 'utf8'));
     const sourceManifestForParity = {
-      ...sourceBundle.manifest,
-      inference: rdrrManifest.inference,
+      ...sourceBundle.model,
+      inference: structuredClone(rdrrManifest.inference),
+      quantization: rdrrManifest.quantization,
+      quantizationInfo: structuredClone(rdrrManifest.quantizationInfo ?? null),
     };
     let rdrrSnapshot = null;
     let sourceSnapshot = null;

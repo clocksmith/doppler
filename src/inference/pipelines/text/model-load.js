@@ -90,10 +90,34 @@ function requireSessionDecodeLoopStopCheckMode(value, modelId) {
   return normalized;
 }
 
-function buildResolvedDecodeLoopRuntimePatch(runtimeConfig, manifest) {
+function resolveDecodeLoopRuntimeSession(runtimeConfig, runtimeOverrides, useExplicitRuntimeOverrides) {
+  if (!useExplicitRuntimeOverrides) {
+    return runtimeConfig?.inference?.session ?? null;
+  }
+  const inferenceOverrides = runtimeOverrides?.inference;
+  if (!inferenceOverrides || typeof inferenceOverrides !== 'object' || Array.isArray(inferenceOverrides)) {
+    return null;
+  }
+  if (!Object.prototype.hasOwnProperty.call(inferenceOverrides, 'session')) {
+    return null;
+  }
+  return inferenceOverrides.session ?? null;
+}
+
+function buildResolvedDecodeLoopRuntimePatch(
+  runtimeConfig,
+  manifest,
+  runtimeOverrides = undefined,
+  useExplicitRuntimeOverrides = false
+) {
+  const runtimeSession = resolveDecodeLoopRuntimeSession(
+    runtimeConfig,
+    runtimeOverrides,
+    useExplicitRuntimeOverrides
+  );
   const resolvedSession = mergeRuntimeValues(
     manifest?.inference?.session ?? {},
-    runtimeConfig?.inference?.session ?? {}
+    runtimeSession ?? {}
   );
   const decodeLoop = resolvedSession?.decodeLoop;
   if (decodeLoop == null) {
@@ -178,9 +202,14 @@ function buildResolvedDecodeLoopRuntimePatch(runtimeConfig, manifest) {
   };
 }
 
-export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, modelConfig) {
+export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, modelConfig, runtimeOverrides = undefined) {
   void modelConfig;
-  const patch = buildResolvedDecodeLoopRuntimePatch(runtimeConfig, manifest);
+  const patch = buildResolvedDecodeLoopRuntimePatch(
+    runtimeConfig,
+    manifest,
+    runtimeOverrides,
+    arguments.length > 3
+  );
   if (!patch) {
     return runtimeConfig;
   }

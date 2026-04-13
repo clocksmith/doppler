@@ -17,6 +17,8 @@ Application authors who want the simplest stable surface.
 ## Stability
 
 Preferred public surface.
+See [Subsystem Support Matrix](../subsystem-support-matrix.md) for how advanced
+instance features such as LoRA loading relate to the tier1 contract.
 
 ## Primary Exports
 

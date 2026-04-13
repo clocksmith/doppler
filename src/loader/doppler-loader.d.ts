@@ -13,6 +13,7 @@
 import type { MemoryCapabilities } from '../memory/capability.js';
 import type { HeapManager } from '../memory/heap-manager.js';
 import type { RDRRManifest } from '../formats/rdrr/index.js';
+import type { RuntimeModelContract } from '../inference/runtime-model.js';
 import type { WeightBuffer, WeightLayout, CpuWeightBuffer } from '../gpu/weight-buffer.js';
 import type { ExpertCache, CacheStats } from './experts/expert-cache.js';
 import type { ExpertWeights } from './weights.js';
@@ -61,7 +62,7 @@ export declare class DopplerLoader {
   isUnifiedMemory: boolean;
 
   // Manifest and model info
-  manifest: RDRRManifest | null;
+  manifest: (RDRRManifest | RuntimeModelContract) | null;
   modelId: string | null;
   isMoE: boolean;
 
@@ -113,9 +114,9 @@ export declare class DopplerLoader {
 
   init(): Promise<void>;
 
-  setManifest(manifest: RDRRManifest): void;
+  setManifest(manifest: RDRRManifest | RuntimeModelContract): void;
 
-  loadLoRAWeights(manifest: RDRRManifest): Promise<LoRAAdapter>;
+  loadLoRAWeights(manifest: RDRRManifest | RuntimeModelContract): Promise<LoRAAdapter>;
 
   load(modelId: string, options?: LoadOptions): Promise<ModelConfig>;
 

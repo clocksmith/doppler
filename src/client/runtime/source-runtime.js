@@ -6,6 +6,7 @@ import { parseGGUFModel } from '../../converter/parsers/gguf.js';
 import { parseTransformerModel } from '../../converter/parsers/transformer.js';
 import { parseGGUFHeader } from '../../formats/gguf/types.js';
 import { parseSafetensorsHeader } from '../../formats/safetensors/types.js';
+import { parseTFLiteFromSource } from '../../formats/tflite/types.js';
 import { log } from '../../debug/index.js';
 import { computeHash } from '../../storage/shard-manager.js';
 import {
@@ -13,11 +14,15 @@ import {
   getSourceRuntimeMetadata,
 } from '../../tooling/source-runtime-bundle.js';
 import {
-  assertDirectSourceRuntimeSupportedKind,
   inferSourceQuantizationForSourceRuntime,
   resolveSourceRuntimeBundleFromParsedArtifact,
-  SOURCE_ARTIFACT_KIND_TFLITE,
 } from '../../tooling/source-artifact-adapter.js';
+import {
+  LITERT_PACKAGE_SOURCE_KIND_LITERTLM,
+  LITERT_PACKAGE_SOURCE_KIND_TASK,
+  appendLiteRTPackageVirtualFiles,
+  resolveLiteRTPackageParsedArtifact,
+} from '../../tooling/litert-package-runtime.js';
 
 function normalizeRelativePath(value) {
   return String(value || '')
@@ -31,6 +36,32 @@ function joinPath(base, relativePath) {
   const root = String(base || '').replace(/\/+$/, '');
   const rel = normalizeRelativePath(relativePath);
   return rel ? `${root}/${rel}` : root;
+}
+
+function isLiteRTTaskPath(value) {
+  return String(value || '').toLowerCase().endsWith('.task');
+}
+
+function isLiteRTLMPath(value) {
+  return String(value || '').toLowerCase().endsWith('.litertlm');
+}
+
+function splitBridgeFilePath(targetPath) {
+  const normalized = String(targetPath || '').replace(/\\/g, '/').replace(/\/+$/, '');
+  const lastSlash = normalized.lastIndexOf('/');
+  if (lastSlash < 0) {
+    return { parentPath: '.', basename: normalized };
+  }
+  if (lastSlash === 0) {
+    return {
+      parentPath: '/',
+      basename: normalized.slice(1),
+    };
+  }
+  return {
+    parentPath: normalized.slice(0, lastSlash),
+    basename: normalized.slice(lastSlash + 1),
+  };
 }
 
 function toArrayBuffer(value, label) {
@@ -120,6 +151,16 @@ function detectBridgeSourceFormat(fileIndex) {
     return { kind: 'tflite', ggufPath: null };
   }
 
+  const taskFiles = relativePaths.filter((path) => path.toLowerCase().endsWith('.task'));
+  if (taskFiles.length === 1) {
+    return { kind: LITERT_PACKAGE_SOURCE_KIND_TASK, ggufPath: null };
+  }
+
+  const litertLmFiles = relativePaths.filter((path) => path.toLowerCase().endsWith('.litertlm'));
+  if (litertLmFiles.length === 1) {
+    return { kind: LITERT_PACKAGE_SOURCE_KIND_LITERTLM, ggufPath: null };
+  }
+
   return null;
 }
 
@@ -166,6 +207,100 @@ async function readSafetensorsHeaderFromBridge(bridgeClient, fileEntry) {
   full.set(prefixBytes, 0);
   full.set(toUint8Array(header), 8);
   return parseSafetensorsHeader(full.buffer);
+}
+
+async function collectBridgeTokenizerAssets(bridgeClient, fileIndex) {
+  return {
+    tokenizerJson: fileIndex.has('tokenizer.json')
+      ? await readBridgeJsonFile(bridgeClient, fileIndex.get('tokenizer.json'), 'tokenizer.json')
+      : null,
+    tokenizerConfig: fileIndex.has('tokenizer_config.json')
+      ? await readBridgeJsonFile(bridgeClient, fileIndex.get('tokenizer_config.json'), 'tokenizer_config.json')
+      : null,
+    tokenizerModelName: fileIndex.has('tokenizer.model') ? 'tokenizer.model' : null,
+    tokenizerJsonPath: fileIndex.has('tokenizer.json') ? 'tokenizer.json' : null,
+    tokenizerConfigPath: fileIndex.has('tokenizer_config.json') ? 'tokenizer_config.json' : null,
+    tokenizerModelPath: fileIndex.has('tokenizer.model') ? 'tokenizer.model' : null,
+  };
+}
+
+function buildBridgeTokenizerAuxiliaryFiles(fileIndex, tokenizerAssets) {
+  const auxiliaryFiles = [];
+  if (tokenizerAssets.tokenizerJsonPath) {
+    auxiliaryFiles.push({
+      path: tokenizerAssets.tokenizerJsonPath,
+      size: Number(fileIndex.get(tokenizerAssets.tokenizerJsonPath)?.size || 0),
+      kind: 'tokenizer_json',
+    });
+  }
+  if (tokenizerAssets.tokenizerConfigPath) {
+    auxiliaryFiles.push({
+      path: tokenizerAssets.tokenizerConfigPath,
+      size: Number(fileIndex.get(tokenizerAssets.tokenizerConfigPath)?.size || 0),
+      kind: 'tokenizer_config',
+    });
+  }
+  if (tokenizerAssets.tokenizerModelPath) {
+    auxiliaryFiles.push({
+      path: tokenizerAssets.tokenizerModelPath,
+      size: Number(fileIndex.get(tokenizerAssets.tokenizerModelPath)?.size || 0),
+      kind: 'tokenizer_model',
+    });
+  }
+  return auxiliaryFiles;
+}
+
+function buildBridgePackageTokenizerVirtualFiles(fileIndex, tokenizerAssets, rootAbsolutePath) {
+  const virtualFiles = [];
+  if (tokenizerAssets.tokenizerJsonPath) {
+    virtualFiles.push({
+      path: 'tokenizer.json',
+      offset: 0,
+      size: Number(fileIndex.get(tokenizerAssets.tokenizerJsonPath)?.size || 0),
+      kind: 'tokenizer_json',
+      externalPath: joinPath(rootAbsolutePath, tokenizerAssets.tokenizerJsonPath),
+    });
+  }
+  if (tokenizerAssets.tokenizerConfigPath) {
+    virtualFiles.push({
+      path: 'tokenizer_config.json',
+      offset: 0,
+      size: Number(fileIndex.get(tokenizerAssets.tokenizerConfigPath)?.size || 0),
+      kind: 'tokenizer_config',
+      externalPath: joinPath(rootAbsolutePath, tokenizerAssets.tokenizerConfigPath),
+    });
+  }
+  if (tokenizerAssets.tokenizerModelPath) {
+    virtualFiles.push({
+      path: 'TOKENIZER_MODEL',
+      offset: 0,
+      size: Number(fileIndex.get(tokenizerAssets.tokenizerModelPath)?.size || 0),
+      kind: 'tokenizer_model',
+      externalPath: joinPath(rootAbsolutePath, tokenizerAssets.tokenizerModelPath),
+    });
+  }
+  return virtualFiles;
+}
+
+function applyBridgePackageTokenizerAssets(parsedArtifact, tokenizerAssets) {
+  const next = {
+    ...parsedArtifact,
+  };
+  if (tokenizerAssets.tokenizerJson && next.tokenizerJson == null) {
+    next.tokenizerJson = tokenizerAssets.tokenizerJson;
+    next.tokenizerJsonPath = 'tokenizer.json';
+  }
+  if (tokenizerAssets.tokenizerConfig && next.tokenizerConfig == null) {
+    next.tokenizerConfig = tokenizerAssets.tokenizerConfig;
+  }
+  if (tokenizerAssets.tokenizerConfigPath && next.tokenizerConfigPath == null) {
+    next.tokenizerConfigPath = 'tokenizer_config.json';
+  }
+  if (tokenizerAssets.tokenizerModelPath && next.tokenizerModelPath == null) {
+    next.tokenizerModelName = 'TOKENIZER_MODEL';
+    next.tokenizerModelPath = 'TOKENIZER_MODEL';
+  }
+  return next;
 }
 
 async function parseBridgeSafetensorsModel(bridgeClient, fileIndex) {
@@ -218,13 +353,7 @@ async function parseBridgeSafetensorsModel(bridgeClient, fileIndex) {
   const architectureHint = parsedTransformer.architectureHint;
   const embeddingPostprocessor = parsedTransformer.embeddingPostprocessor ?? null;
   const architecture = extractArchitecture(config, null);
-  const tokenizerJson = fileIndex.has('tokenizer.json')
-    ? await readBridgeJsonFile(bridgeClient, fileIndex.get('tokenizer.json'), 'tokenizer.json')
-    : null;
-  const tokenizerConfig = fileIndex.has('tokenizer_config.json')
-    ? await readBridgeJsonFile(bridgeClient, fileIndex.get('tokenizer_config.json'), 'tokenizer_config.json')
-    : null;
-  const tokenizerModelName = fileIndex.has('tokenizer.model') ? 'tokenizer.model' : null;
+  const tokenizerAssets = await collectBridgeTokenizerAssets(bridgeClient, fileIndex);
 
   return {
     sourceKind: 'safetensors',
@@ -236,9 +365,9 @@ async function parseBridgeSafetensorsModel(bridgeClient, fileIndex) {
     sourceQuantization: inferSourceQuantizationForSourceRuntime(tensors, 'safetensors', {
       logCategory: 'DopplerProvider',
     }),
-    tokenizerJson,
-    tokenizerConfig,
-    tokenizerModelName,
+    tokenizerJson: tokenizerAssets.tokenizerJson,
+    tokenizerConfig: tokenizerAssets.tokenizerConfig,
+    tokenizerModelName: tokenizerAssets.tokenizerModelName,
     sourceFiles: Array.from(new Set(tensors.map((tensor) => normalizeRelativePath(tensor.sourcePath))))
       .map((path) => {
         const entry = fileIndex.get(path);
@@ -256,31 +385,60 @@ async function parseBridgeSafetensorsModel(bridgeClient, fileIndex) {
           kind: 'safetensors_index',
         }]
         : []),
-      ...(fileIndex.has('tokenizer.json')
-        ? [{
-          path: 'tokenizer.json',
-          size: Number(fileIndex.get('tokenizer.json')?.size || 0),
-          kind: 'tokenizer_json',
-        }]
-        : []),
-      ...(fileIndex.has('tokenizer_config.json')
-        ? [{
-          path: 'tokenizer_config.json',
-          size: Number(fileIndex.get('tokenizer_config.json')?.size || 0),
-          kind: 'tokenizer_config',
-        }]
-        : []),
-      ...(fileIndex.has('tokenizer.model')
-        ? [{
-          path: 'tokenizer.model',
-          size: Number(fileIndex.get('tokenizer.model')?.size || 0),
-          kind: 'tokenizer_model',
-        }]
-        : []),
+      ...buildBridgeTokenizerAuxiliaryFiles(fileIndex, tokenizerAssets),
     ],
-    tokenizerJsonPath: fileIndex.has('tokenizer.json') ? 'tokenizer.json' : null,
-    tokenizerConfigPath: fileIndex.has('tokenizer_config.json') ? 'tokenizer_config.json' : null,
-    tokenizerModelPath: fileIndex.has('tokenizer.model') ? 'tokenizer.model' : null,
+    tokenizerJsonPath: tokenizerAssets.tokenizerJsonPath,
+    tokenizerConfigPath: tokenizerAssets.tokenizerConfigPath,
+    tokenizerModelPath: tokenizerAssets.tokenizerModelPath,
+  };
+}
+
+async function parseBridgeTfliteModel(bridgeClient, fileIndex, tfliteRelativePath) {
+  const tfliteEntry = fileIndex.get(tfliteRelativePath);
+  if (!tfliteEntry) {
+    throw new Error(`Missing TFLite file (${tfliteRelativePath})`);
+  }
+  if (!fileIndex.has('config.json')) {
+    throw new Error(
+      `Bridge source runtime: config.json is required next to TFLite source "${tfliteRelativePath}".`
+    );
+  }
+
+  const parsedTFLite = await parseTFLiteFromSource({
+    name: tfliteRelativePath,
+    size: tfliteEntry.size,
+    async readRange(offset, length) {
+      return readBridgeRange(bridgeClient, tfliteEntry, offset, length);
+    },
+  });
+  const config = await readBridgeJsonFile(bridgeClient, fileIndex.get('config.json'), 'config.json');
+  const tokenizerAssets = await collectBridgeTokenizerAssets(bridgeClient, fileIndex);
+  const tensors = parsedTFLite.tensors.map((tensor) => ({
+    ...tensor,
+    sourcePath: tfliteRelativePath,
+  }));
+  const architecture = extractArchitecture(config, null);
+  const architectureHint = config.architectures?.[0] ?? config.model_type ?? '';
+
+  return {
+    sourceKind: 'tflite',
+    config,
+    tensors,
+    architectureHint,
+    embeddingPostprocessor: null,
+    architecture,
+    sourceQuantization: parsedTFLite.sourceQuantization,
+    tokenizerJson: tokenizerAssets.tokenizerJson,
+    tokenizerConfig: tokenizerAssets.tokenizerConfig,
+    tokenizerModelName: tokenizerAssets.tokenizerModelName,
+    sourceFiles: [{ path: tfliteRelativePath, size: tfliteEntry.size }],
+    auxiliaryFiles: [
+      { path: 'config.json', size: Number(fileIndex.get('config.json')?.size || 0), kind: 'config' },
+      ...buildBridgeTokenizerAuxiliaryFiles(fileIndex, tokenizerAssets),
+    ],
+    tokenizerJsonPath: tokenizerAssets.tokenizerJsonPath,
+    tokenizerConfigPath: tokenizerAssets.tokenizerConfigPath,
+    tokenizerModelPath: tokenizerAssets.tokenizerModelPath,
   };
 }
 
@@ -353,7 +511,158 @@ async function parseBridgeGGUFModel(bridgeClient, fileIndex, ggufRelativePath) {
   };
 }
 
+async function resolveBridgeFileEntry(bridgeClient, absolutePath) {
+  const { parentPath, basename } = splitBridgeFilePath(absolutePath);
+  if (!basename) {
+    throw new Error(`Bridge source runtime: invalid file path "${absolutePath}".`);
+  }
+  const entries = await bridgeClient.list(parentPath);
+  const match = entries.find((entry) => entry?.isDir !== true && String(entry?.name || '') === basename) ?? null;
+  if (!match) {
+    throw new Error(`Bridge source runtime: file "${absolutePath}" does not exist.`);
+  }
+  return {
+    relativePath: basename,
+    absolutePath,
+    size: Number(match?.size) || 0,
+  };
+}
+
+function createBridgeVirtualFileReaders(bridgeClient, packageFileEntry, virtualFiles, rootPath) {
+  const virtualFileMap = new Map(
+    (Array.isArray(virtualFiles) ? virtualFiles : []).map((entry) => [entry.path, entry])
+  );
+
+  const resolveVirtualFile = (pathHint) => {
+    const hint = normalizeRelativePath(pathHint);
+    if (!hint) {
+      return null;
+    }
+    return virtualFileMap.get(hint) ?? null;
+  };
+
+  const readRange = async (virtualPath, offset, length) => {
+    const entry = resolveVirtualFile(virtualPath);
+    if (!entry) {
+      throw new Error(`Missing source shard file: ${virtualPath}`);
+    }
+    if (entry.externalPath) {
+      return bridgeClient.read(entry.externalPath, offset, length);
+    }
+    const start = Math.max(0, Math.floor(Number(offset) || 0));
+    const requested = Math.max(0, Math.floor(Number(length) || 0));
+    const available = Math.max(0, entry.size - start);
+    const readLength = Math.min(available, requested);
+    return bridgeClient.read(packageFileEntry.absolutePath, entry.offset + start, readLength);
+  };
+
+  const readText = async (virtualPath) => {
+    const entry = resolveVirtualFile(virtualPath);
+    if (!entry) {
+      return null;
+    }
+    const bytes = entry.externalPath
+      ? await bridgeClient.read(entry.externalPath, 0, entry.size)
+      : await bridgeClient.read(packageFileEntry.absolutePath, entry.offset, entry.size);
+    return decodeText(bytes);
+  };
+
+  const readBinary = async (virtualPath) => {
+    const entry = resolveVirtualFile(virtualPath);
+    if (!entry) {
+      throw new Error(`Missing source binary file: ${virtualPath}`);
+    }
+    if (entry.externalPath) {
+      return bridgeClient.read(entry.externalPath, 0, entry.size);
+    }
+    return bridgeClient.read(packageFileEntry.absolutePath, entry.offset, entry.size);
+  };
+
+  return {
+    rootPath,
+    virtualFileMap,
+    readRange,
+    readText,
+    readBinary,
+  };
+}
+
+async function addHashesToBridgeVirtualFiles(bridgeClient, packageFileEntry, virtualFiles, entries, hashAlgorithm) {
+  const readers = createBridgeVirtualFileReaders(bridgeClient, packageFileEntry, virtualFiles, packageFileEntry.absolutePath);
+  const hashedEntries = [];
+  for (const entry of Array.isArray(entries) ? entries : []) {
+    const virtualPath = normalizeRelativePath(entry?.path);
+    if (!virtualPath) {
+      continue;
+    }
+    const descriptor = readers.virtualFileMap.get(virtualPath);
+    if (!descriptor) {
+      throw new Error(`Missing bridge package file entry for "${virtualPath}"`);
+    }
+    const bytes = descriptor.externalPath
+      ? await bridgeClient.read(descriptor.externalPath, 0, descriptor.size)
+      : await bridgeClient.read(packageFileEntry.absolutePath, descriptor.offset, descriptor.size);
+    hashedEntries.push({
+      ...entry,
+      path: virtualPath,
+      size: Number.isFinite(entry?.size) ? Math.max(0, Math.floor(Number(entry.size))) : descriptor.size,
+      hash: await computeHash(toUint8Array(bytes), hashAlgorithm),
+      hashAlgorithm,
+    });
+  }
+  return hashedEntries;
+}
+
+async function parseBridgeLiteRTPackageModel(bridgeClient, packageFileEntry, sourceKind) {
+  const resolved = await resolveLiteRTPackageParsedArtifact({
+    sourceKind,
+    sourcePathForModelId: packageFileEntry.absolutePath,
+    source: {
+      name: packageFileEntry.relativePath,
+      size: packageFileEntry.size,
+      async readRange(offset, length) {
+        return readBridgeRange(bridgeClient, packageFileEntry, offset, length);
+      },
+    },
+  });
+  const rootAbsolutePath = splitBridgeFilePath(packageFileEntry.absolutePath).parentPath;
+  const siblingFileIndex = indexBridgeFiles(await listBridgeFilesRecursive(bridgeClient, rootAbsolutePath));
+  const tokenizerAssets = await collectBridgeTokenizerAssets(bridgeClient, siblingFileIndex);
+  const virtualFiles = appendLiteRTPackageVirtualFiles(
+    resolved.virtualFiles,
+    buildBridgePackageTokenizerVirtualFiles(siblingFileIndex, tokenizerAssets, rootAbsolutePath)
+  );
+  const parsedArtifact = applyBridgePackageTokenizerAssets(resolved.parsedArtifact, tokenizerAssets);
+  return {
+    ...parsedArtifact,
+    storageReaders: createBridgeVirtualFileReaders(
+      bridgeClient,
+      packageFileEntry,
+      virtualFiles,
+      packageFileEntry.absolutePath
+    ),
+    async hashFileEntries(entries, hashAlgorithm) {
+      return addHashesToBridgeVirtualFiles(
+        bridgeClient,
+        packageFileEntry,
+        virtualFiles,
+        entries,
+        hashAlgorithm
+      );
+    },
+  };
+}
+
 async function parseBridgeSourceModel(bridgeClient, localPath) {
+  if (isLiteRTTaskPath(localPath)) {
+    const packageFileEntry = await resolveBridgeFileEntry(bridgeClient, localPath);
+    return parseBridgeLiteRTPackageModel(bridgeClient, packageFileEntry, LITERT_PACKAGE_SOURCE_KIND_TASK);
+  }
+  if (isLiteRTLMPath(localPath)) {
+    const packageFileEntry = await resolveBridgeFileEntry(bridgeClient, localPath);
+    return parseBridgeLiteRTPackageModel(bridgeClient, packageFileEntry, LITERT_PACKAGE_SOURCE_KIND_LITERTLM);
+  }
+
   const files = await listBridgeFilesRecursive(bridgeClient, localPath);
   const fileIndex = indexBridgeFiles(files);
   if (hasModelManifest(fileIndex)) {
@@ -366,10 +675,33 @@ async function parseBridgeSourceModel(bridgeClient, localPath) {
   }
 
   if (detected.kind === 'tflite') {
-    assertDirectSourceRuntimeSupportedKind(
-      SOURCE_ARTIFACT_KIND_TFLITE,
-      'bridge source runtime'
-    );
+    const tflitePath = Array.from(fileIndex.keys()).find((path) => path.toLowerCase().endsWith('.tflite')) || null;
+    if (!tflitePath) {
+      throw new Error('Bridge source runtime: failed to resolve the detected TFLite file.');
+    }
+    return parseBridgeTfliteModel(bridgeClient, fileIndex, tflitePath);
+  }
+  if (detected.kind === LITERT_PACKAGE_SOURCE_KIND_TASK) {
+    const taskPath = Array.from(fileIndex.keys()).find((entryPath) => entryPath.toLowerCase().endsWith('.task')) || null;
+    if (!taskPath) {
+      throw new Error('Bridge source runtime: failed to resolve the detected LiteRT task file.');
+    }
+    const packageFileEntry = fileIndex.get(taskPath);
+    if (!packageFileEntry) {
+      throw new Error(`Bridge source runtime: missing bridge file entry for "${taskPath}".`);
+    }
+    return parseBridgeLiteRTPackageModel(bridgeClient, packageFileEntry, LITERT_PACKAGE_SOURCE_KIND_TASK);
+  }
+  if (detected.kind === LITERT_PACKAGE_SOURCE_KIND_LITERTLM) {
+    const litertLmPath = Array.from(fileIndex.keys()).find((entryPath) => entryPath.toLowerCase().endsWith('.litertlm')) || null;
+    if (!litertLmPath) {
+      throw new Error('Bridge source runtime: failed to resolve the detected LiteRT-LM file.');
+    }
+    const packageFileEntry = fileIndex.get(litertLmPath);
+    if (!packageFileEntry) {
+      throw new Error(`Bridge source runtime: missing bridge file entry for "${litertLmPath}".`);
+    }
+    return parseBridgeLiteRTPackageModel(bridgeClient, packageFileEntry, LITERT_PACKAGE_SOURCE_KIND_LITERTLM);
   }
   if (detected.kind === 'gguf') {
     return parseBridgeGGUFModel(bridgeClient, fileIndex, detected.ggufPath);
@@ -445,16 +777,53 @@ async function addHashesToBridgeFiles(bridgeClient, fileIndex, entries, hashAlgo
 async function resolveBridgeStorageContext(options = {}) {
   const bridgeClient = options.bridgeClient;
   const localPath = options.localPath;
-  const manifest = options.manifest;
-  const sourceRuntime = getSourceRuntimeMetadata(manifest);
+  const model = options.model ?? options.manifest;
+  const sourceRuntime = getSourceRuntimeMetadata(model);
   if (!sourceRuntime) {
     return null;
+  }
+  if (
+    sourceRuntime.sourceKind === LITERT_PACKAGE_SOURCE_KIND_TASK
+    || sourceRuntime.sourceKind === LITERT_PACKAGE_SOURCE_KIND_LITERTLM
+  ) {
+    const packageFileEntry = await resolveBridgeFileEntry(bridgeClient, localPath);
+    const resolved = await resolveLiteRTPackageParsedArtifact({
+      sourceKind: sourceRuntime.sourceKind,
+      sourcePathForModelId: localPath,
+      source: {
+        name: packageFileEntry.relativePath,
+        size: packageFileEntry.size,
+        async readRange(offset, length) {
+          return readBridgeRange(bridgeClient, packageFileEntry, offset, length);
+        },
+      },
+    });
+    const rootAbsolutePath = splitBridgeFilePath(packageFileEntry.absolutePath).parentPath;
+    const siblingFileIndex = indexBridgeFiles(await listBridgeFilesRecursive(bridgeClient, rootAbsolutePath));
+    const tokenizerAssets = await collectBridgeTokenizerAssets(bridgeClient, siblingFileIndex);
+    const virtualFiles = appendLiteRTPackageVirtualFiles(
+      resolved.virtualFiles,
+      buildBridgePackageTokenizerVirtualFiles(siblingFileIndex, tokenizerAssets, rootAbsolutePath)
+    );
+    const readers = createBridgeVirtualFileReaders(
+      bridgeClient,
+      packageFileEntry,
+      virtualFiles,
+      localPath
+    );
+    return createSourceStorageContext({
+      model,
+      readRange: readers.readRange,
+      readText: readers.readText,
+      readBinary: readers.readBinary,
+      verifyHashes: options.verifyHashes !== false,
+    });
   }
   const files = await listBridgeFilesRecursive(bridgeClient, localPath);
   const fileMap = indexBridgeFiles(files);
   const readers = createBridgeFileReaders(bridgeClient, fileMap, localPath);
   return createSourceStorageContext({
-    manifest,
+    model,
     readRange: readers.readRange,
     readText: readers.readText,
     readBinary: readers.readBinary,
@@ -467,7 +836,7 @@ export async function resolveBridgeSourceRuntimeBundle(options = {}) {
   const localPath = options.localPath;
   const requestedModelId = options.modelId || null;
   const verifyHashes = options.verifyHashes !== false;
-  const existingManifest = options.manifest ?? null;
+  const existingModel = options.model ?? options.manifest ?? null;
 
   if (!bridgeClient || typeof bridgeClient.read !== 'function' || typeof bridgeClient.list !== 'function') {
     throw new Error('Bridge source runtime requires a connected bridge client with read/list support.');
@@ -476,17 +845,18 @@ export async function resolveBridgeSourceRuntimeBundle(options = {}) {
     throw new Error('Bridge source runtime requires localPath.');
   }
 
-  if (existingManifest && getSourceRuntimeMetadata(existingManifest)) {
+  if (existingModel && getSourceRuntimeMetadata(existingModel)) {
     const storageContext = await resolveBridgeStorageContext({
       bridgeClient,
       localPath,
-      manifest: existingManifest,
+      model: existingModel,
       verifyHashes,
     });
     return {
-      manifest: existingManifest,
+      model: existingModel,
+      manifest: existingModel,
       storageContext,
-      sourceKind: getSourceRuntimeMetadata(existingManifest)?.sourceKind ?? 'safetensors',
+      sourceKind: getSourceRuntimeMetadata(existingModel)?.sourceKind ?? 'safetensors',
       sourceRoot: localPath,
     };
   }
@@ -500,10 +870,8 @@ export async function resolveBridgeSourceRuntimeBundle(options = {}) {
   if (!parsed) {
     return null;
   }
-  const files = await listBridgeFilesRecursive(bridgeClient, localPath);
-  const fileMap = indexBridgeFiles(files);
   const {
-    manifest,
+    model,
     shardSources,
     sourceKind,
   } = await resolveSourceRuntimeBundleFromParsedArtifact({
@@ -511,14 +879,22 @@ export async function resolveBridgeSourceRuntimeBundle(options = {}) {
     requestedModelId,
     runtimeLabel: 'bridge source runtime',
     logCategory: 'DopplerProvider',
-    hashFileEntries(entries, hashAlgorithm) {
-      return addHashesToBridgeFiles(bridgeClient, fileMap, entries, hashAlgorithm);
-    },
+    hashFileEntries: typeof parsed?.hashFileEntries === 'function'
+      ? (entries, hashAlgorithm) => parsed.hashFileEntries(entries, hashAlgorithm)
+      : async (entries, hashAlgorithm) => {
+        const files = await listBridgeFilesRecursive(bridgeClient, localPath);
+        const fileMap = indexBridgeFiles(files);
+        return addHashesToBridgeFiles(bridgeClient, fileMap, entries, hashAlgorithm);
+      },
   });
 
-  const readers = createBridgeFileReaders(bridgeClient, fileMap, localPath);
+  const readers = parsed?.storageReaders ?? createBridgeFileReaders(
+    bridgeClient,
+    indexBridgeFiles(await listBridgeFilesRecursive(bridgeClient, localPath)),
+    localPath
+  );
   const storageContext = createSourceStorageContext({
-    manifest,
+    model,
     shardSources,
     readRange: readers.readRange,
     readText: readers.readText,
@@ -530,11 +906,12 @@ export async function resolveBridgeSourceRuntimeBundle(options = {}) {
 
   log.info(
     'DopplerProvider',
-    `Bridge source runtime ready: ${manifest.modelId} (${sourceKind}, ${parsed.tensors.length} tensors)`
+    `Bridge source runtime ready: ${model.modelId} (${sourceKind}, ${parsed.tensors.length} tensors)`
   );
 
   return {
-    manifest,
+    model,
+    manifest: model,
     storageContext,
     sourceKind,
     sourceRoot: localPath,

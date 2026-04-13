@@ -1,5 +1,6 @@
-import type { RDRRManifest, TensorRole } from '../formats/rdrr/index.js';
+import type { TensorRole, TensorSourceTransform } from '../formats/rdrr/index.js';
 import type { ManifestEmbeddingPostprocessorSchema } from '../config/schema/index.js';
+import type { RuntimeModelContract } from '../inference/runtime-model.js';
 import type { SourceArtifactKind } from './source-artifact-adapter.js';
 
 export declare const DIRECT_SOURCE_RUNTIME_MODE: 'direct-source';
@@ -18,6 +19,33 @@ export interface SourceRuntimeTensor {
   layout?: string | null;
   role?: TensorRole;
   group?: string | null;
+  sourceTransform?: TensorSourceTransform | {
+    kind: 'litert_rowwise_dequant';
+    scheme: 'per_row_affine';
+    sourceDtype: 'INT8' | 'UINT8' | 'INT4' | 'INT2';
+    targetDtype: 'F16';
+    storageEncoding: 'signed' | 'offset_binary';
+    scaleSourcePath: string;
+    scaleOffset: number;
+    scaleSize: number;
+    rowSumSourcePath?: string;
+    rowSumOffset?: number;
+    rowSumSize?: number;
+  } | {
+    kind: 'litert_axis_dequant';
+    scheme: 'per_axis_affine';
+    sourceDtype: 'INT8' | 'UINT8' | 'INT4' | 'INT2';
+    targetDtype: 'F16';
+    storageEncoding: 'signed' | 'offset_binary';
+    storageShape: [number, number];
+    quantAxis: 0 | 1;
+    scaleSourcePath: string;
+    scaleOffset: number;
+    scaleSize: number;
+    sumSourcePath?: string;
+    sumOffset?: number;
+    sumSize?: number;
+  } | null;
 }
 
 export interface SourceRuntimeFile {
@@ -89,7 +117,8 @@ export interface BuildSourceRuntimeBundleOptions {
 }
 
 export interface BuildSourceRuntimeBundleResult {
-  manifest: RDRRManifest;
+  model: RuntimeModelContract;
+  manifest: RuntimeModelContract;
   shardSources: SourceRuntimeShardSource[];
 }
 
@@ -98,11 +127,12 @@ export declare function buildSourceRuntimeBundle(
 ): Promise<BuildSourceRuntimeBundleResult>;
 
 export declare function getSourceRuntimeMetadata(
-  manifest: RDRRManifest | Record<string, unknown> | null | undefined
+  manifest: RuntimeModelContract | Record<string, unknown> | null | undefined
 ): SourceRuntimeMetadata | null;
 
 export interface CreateSourceStorageContextOptions {
-  manifest: RDRRManifest;
+  model?: RuntimeModelContract | null;
+  manifest?: RuntimeModelContract | null;
   shardSources?: SourceRuntimeShardSource[] | null;
   readRange: (
     path: string,

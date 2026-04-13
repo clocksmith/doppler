@@ -1,4 +1,5 @@
 import type { RDRRManifest } from '../formats/rdrr/index.js';
+import type { RuntimeModelContract } from '../inference/runtime-model.js';
 import type { ShardCacheConfigSchema } from '../config/schema/loading.schema.js';
 import type {
   CustomShardLoader,
@@ -15,7 +16,7 @@ export interface ShardCacheConfig {
   customRangeLoader?: CustomShardRangeLoader | null;
   customStreamLoader?: CustomShardStreamLoader | null;
   verifyHashes?: boolean;
-  manifest?: RDRRManifest | null;
+  manifest?: (RDRRManifest | RuntimeModelContract) | null;
   loadingConfig?: ShardCacheConfigSchema;
   maxConcurrentLoads?: number;
 }
@@ -33,7 +34,7 @@ export class ShardCache {
       streamRange?: CustomShardStreamLoader | null;
     }
   ): void;
-  setManifest(manifest: RDRRManifest | null): void;
+  setManifest(manifest: RDRRManifest | RuntimeModelContract | null): void;
   get hasCustomLoader(): boolean;
   get hasCustomRangeLoader(): boolean;
   get hasCustomStreamLoader(): boolean;
@@ -51,7 +52,7 @@ export class ShardCache {
   ): AsyncIterable<Uint8Array>;
   prefetch(shardIndex: number): Promise<ArrayBuffer>;
   clear(): void;
-  configureForModel(manifest: RDRRManifest | null, hasCustomLoader: boolean): void;
+  configureForModel(manifest: RDRRManifest | RuntimeModelContract | null, hasCustomLoader: boolean): void;
 }
 
 export function createShardCache(

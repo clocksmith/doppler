@@ -43,6 +43,29 @@ export type TensorRole = SchemaTensorRole;
 
 export type Q4KLayout = 'row' | 'col' | null;
 
+export interface TensorSourceLocationRef {
+  shard: number;
+  shardIndex?: number;
+  offset: number;
+  size: number;
+  spans?: Array<{ shard?: number; shardIndex?: number; offset: number; size: number }>;
+}
+
+export interface TensorSourceTransform {
+  kind: 'affine_dequant' | 'litert_rowwise_dequant' | 'litert_axis_dequant';
+  scheme: 'per_tensor_affine' | 'per_row_affine' | 'per_axis_affine';
+  sourceDtype: 'INT8' | 'UINT8' | 'INT4' | 'INT2';
+  targetDtype: 'F16';
+  scale?: number;
+  zeroPoint?: number;
+  storageEncoding?: 'signed' | 'offset_binary';
+  storageShape?: number[];
+  quantAxis?: 0 | 1;
+  scaleSource?: TensorSourceLocationRef;
+  rowSumSource?: TensorSourceLocationRef;
+  sumSource?: TensorSourceLocationRef;
+}
+
 // =============================================================================
 // Manifest Types
 // =============================================================================
@@ -89,6 +112,7 @@ export interface TensorLocation {
   spans?: Array<{ shard?: number; shardIndex?: number; offset: number; size: number }>;
   layout?: WeightLayout;
   originalShape?: number[];
+  sourceTransform?: TensorSourceTransform;
 }
 
 export interface ConversionInfo {

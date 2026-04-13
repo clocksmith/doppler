@@ -1,0 +1,437 @@
+{
+  "schemaVersion": 1,
+  "source": "doppler",
+  "updatedAtUtc": "2026-04-13T00:00:00.000Z",
+  "subsystems": [
+    {
+      "id": "api.root-facade",
+      "label": "Root app-facing facade",
+      "scope": "api",
+      "tier": "tier1",
+      "owner": "client-surface",
+      "userFacing": true,
+      "demoDefault": false,
+      "exported": true,
+      "claimVisibility": "primary",
+      "packageExport": ".",
+      "command": null,
+      "docs": [
+        "README.md",
+        "docs/api/root.md"
+      ],
+      "entrypoints": [
+        "src/index.js",
+        "src/client/doppler-api.js"
+      ],
+      "notes": "Preferred public surface for application authors."
+    },
+    {
+      "id": "cli.quickstart",
+      "label": "Quickstart CLI",
+      "scope": "cli",
+      "tier": "tier1",
+      "owner": "client-surface",
+      "userFacing": true,
+      "demoDefault": false,
+      "exported": false,
+      "claimVisibility": "primary",
+      "packageExport": null,
+      "command": "doppler-gpu",
+      "docs": [
+        "README.md",
+        "docs/getting-started.md"
+      ],
+      "entrypoints": [
+        "src/cli/doppler-quickstart.js"
+      ],
+      "notes": "Canonical zero-install proof path for local text inference from the terminal."
+    },
+    {
+      "id": "cli.openai-compatible-server",
+      "label": "OpenAI-compatible localhost server",
+      "scope": "cli",
+      "tier": "tier1",
+      "owner": "tooling",
+      "userFacing": true,
+      "demoDefault": false,
+      "exported": false,
+      "claimVisibility": "primary",
+      "packageExport": null,
+      "command": "doppler-serve",
+      "docs": [
+        "README.md",
+        "docs/cli.md"
+      ],
+      "entrypoints": [
+        "src/cli/doppler-serve.js"
+      ],
+      "notes": "Compatibility bridge for existing OpenAI-style apps and eval workflows."
+    },
+    {
+      "id": "demo.browser-workspace",
+      "label": "Hosted browser demo workspace",
+      "scope": "demo",
+      "tier": "tier1",
+      "owner": "demo",
+      "userFacing": true,
+      "demoDefault": true,
+      "exported": false,
+      "claimVisibility": "primary",
+      "packageExport": null,
+      "command": null,
+      "docs": [
+        "README.md",
+        "docs/getting-started.md"
+      ],
+      "entrypoints": [
+        "demo/index.html",
+        "demo/boot.js"
+      ],
+      "notes": "Canonical hosted proof surface for browser-native local text inference."
+    },
+    {
+      "id": "runtime.text-inference",
+      "label": "Text inference runtime",
+      "scope": "runtime",
+      "tier": "tier1",
+      "owner": "core-runtime",
+      "userFacing": true,
+      "demoDefault": true,
+      "exported": false,
+      "claimVisibility": "primary",
+      "packageExport": null,
+      "command": null,
+      "docs": [
+        "README.md",
+        "docs/architecture.md",
+        "docs/pipeline-contract.md"
+      ],
+      "entrypoints": [
+        "src/inference/pipelines/text.js",
+        "src/inference/pipelines/text/model-load.js"
+      ],
+      "notes": "Mainline runtime contract for verified browser and Node text generation workloads."
+    },
+    {
+      "id": "format.rdrr-runtime",
+      "label": "RDRR artifact runtime",
+      "scope": "format",
+      "tier": "tier1",
+      "owner": "model-io",
+      "userFacing": true,
+      "demoDefault": true,
+      "exported": false,
+      "claimVisibility": "secondary",
+      "packageExport": null,
+      "command": null,
+      "docs": [
+        "docs/rdrr-format.md",
+        "docs/architecture.md"
+      ],
+      "entrypoints": [
+        "src/formats/rdrr/manifest.js",
+        "src/storage/artifact-storage-context.js"
+      ],
+      "notes": "Primary artifact format for the verified quickstart and hosted model path."
+    },
+    {
+      "id": "format.direct-source-runtime",
+      "label": "Direct-source runtime inputs",
+      "scope": "format",
+      "tier": "experimental",
+      "owner": "model-io",
+      "userFacing": true,
+      "demoDefault": false,
+      "exported": false,
+      "claimVisibility": "secondary",
+      "packageExport": null,
+      "command": null,
+      "docs": [
+        "docs/rdrr-format.md",
+        "docs/architecture.md"
+      ],
+      "entrypoints": [
+        "src/tooling/source-artifact-adapter.js",
+        "src/client/runtime/source-runtime.js",
+        "src/tooling/litert-package-runtime.js"
+      ],
+      "notes": "Available direct-source path for safetensors, gguf, .tflite, .task, and .litertlm inputs, but not part of the quickstart or canonical demo proof."
+    },
+    {
+      "id": "api.loaders-subpath",
+      "label": "Loaders subpath",
+      "scope": "api",
+      "tier": "tier1",
+      "owner": "model-io",
+      "userFacing": true,
+      "demoDefault": false,
+      "exported": true,
+      "claimVisibility": "secondary",
+      "packageExport": "./loaders",
+      "command": null,
+      "docs": [
+        "docs/api/loaders.md",
+        "docs/api/advanced-root-exports.md"
+      ],
+      "entrypoints": [
+        "src/loaders/index.js"
+      ],
+      "notes": "Supported advanced surface for explicit loading flows beyond the root facade."
+    },
+    {
+      "id": "api.tooling-subpath",
+      "label": "Tooling subpath",
+      "scope": "api",
+      "tier": "tier1",
+      "owner": "tooling",
+      "userFacing": true,
+      "demoDefault": false,
+      "exported": true,
+      "claimVisibility": "secondary",
+      "packageExport": "./tooling",
+      "command": null,
+      "docs": [
+        "docs/api/tooling.md",
+        "docs/api/advanced-root-exports.md"
+      ],
+      "entrypoints": [
+        "src/tooling-exports.js",
+        "src/tooling/command-api.js"
+      ],
+      "notes": "Supported advanced surface for command parity, diagnostics, and registry tooling."
+    },
+    {
+      "id": "api.generation-subpath",
+      "label": "Generation subpath",
+      "scope": "api",
+      "tier": "tier1",
+      "owner": "core-runtime",
+      "userFacing": true,
+      "demoDefault": false,
+      "exported": true,
+      "claimVisibility": "secondary",
+      "packageExport": "./generation",
+      "command": null,
+      "docs": [
+        "docs/api/generation.md",
+        "docs/api/advanced-root-exports.md"
+      ],
+      "entrypoints": [
+        "src/generation/index.js",
+        "src/inference/pipelines/text.js"
+      ],
+      "notes": "Supported advanced surface for direct text-pipeline construction."
+    },
+    {
+      "id": "api.orchestration-subpath",
+      "label": "Orchestration subpath",
+      "scope": "api",
+      "tier": "experimental",
+      "owner": "client-surface",
+      "userFacing": true,
+      "demoDefault": false,
+      "exported": true,
+      "claimVisibility": "secondary",
+      "packageExport": "./orchestration",
+      "command": null,
+      "docs": [
+        "docs/api/orchestration.md",
+        "docs/api/advanced-root-exports.md"
+      ],
+      "entrypoints": [
+        "src/orchestration/index.js"
+      ],
+      "notes": "Mixed advanced surface for adapters, routers, heads, and multi-model helpers; available, but not part of the mainline proof story."
+    },
+    {
+      "id": "runtime.lora-hot-swap",
+      "label": "LoRA hot-swap",
+      "scope": "runtime",
+      "tier": "experimental",
+      "owner": "client-surface",
+      "userFacing": true,
+      "demoDefault": false,
+      "exported": false,
+      "claimVisibility": "primary",
+      "packageExport": null,
+      "command": null,
+      "docs": [
+        "README.md",
+        "docs/api/root.md"
+      ],
+      "entrypoints": [
+        "src/adapters/lora-loader.js",
+        "src/adapters/adapter-manager.js"
+      ],
+      "notes": "User-visible adapter swap capability that remains outside the canonical quickstart and demo-default proof path."
+    },
+    {
+      "id": "runtime.multi-model-orchestration",
+      "label": "Multi-model orchestration",
+      "scope": "runtime",
+      "tier": "experimental",
+      "owner": "client-surface",
+      "userFacing": true,
+      "demoDefault": false,
+      "exported": false,
+      "claimVisibility": "secondary",
+      "packageExport": null,
+      "command": null,
+      "docs": [
+        "docs/architecture.md",
+        "docs/api/orchestration.md"
+      ],
+      "entrypoints": [
+        "src/inference/multi-model-network.js",
+        "src/orchestration/index.js"
+      ],
+      "notes": "Available for advanced experimentation, but not part of the tier1 demo or quickstart contract."
+    },
+    {
+      "id": "runtime.hotswap-bundles",
+      "label": "Runtime hotswap bundle system",
+      "scope": "runtime",
+      "tier": "experimental",
+      "owner": "runtime-policy",
+      "userFacing": false,
+      "demoDefault": false,
+      "exported": false,
+      "claimVisibility": "none",
+      "packageExport": null,
+      "command": null,
+      "docs": [
+        "docs/architecture.md"
+      ],
+      "entrypoints": [
+        "src/hotswap/runtime.js",
+        "src/hotswap/model-swap.js"
+      ],
+      "notes": "Checked-in experimental runtime machinery, not part of the public package contract."
+    },
+    {
+      "id": "runtime.distribution-p2p",
+      "label": "P2P and shard distribution runtime",
+      "scope": "runtime",
+      "tier": "experimental",
+      "owner": "distribution",
+      "userFacing": false,
+      "demoDefault": false,
+      "exported": false,
+      "claimVisibility": "none",
+      "packageExport": null,
+      "command": null,
+      "docs": [
+        "docs/architecture.md"
+      ],
+      "entrypoints": [
+        "src/distribution/shard-delivery.js",
+        "src/distribution/p2p-control-plane.js"
+      ],
+      "notes": "Strategic distribution lane that exists in the repo but is not part of the public tier1 runtime claim set."
+    },
+    {
+      "id": "api.diffusion-subpath",
+      "label": "Diffusion API subpath",
+      "scope": "api",
+      "tier": "experimental",
+      "owner": "research-runtime",
+      "userFacing": true,
+      "demoDefault": false,
+      "exported": true,
+      "claimVisibility": "none",
+      "packageExport": "./diffusion",
+      "command": null,
+      "docs": [
+        "docs/api/diffusion.md"
+      ],
+      "entrypoints": [
+        "src/diffusion/index.js"
+      ],
+      "notes": "Shipped advanced surface for diffusion/image workflows, outside the main tier1 local text inference story."
+    },
+    {
+      "id": "api.energy-subpath",
+      "label": "Energy API subpath",
+      "scope": "api",
+      "tier": "experimental",
+      "owner": "research-runtime",
+      "userFacing": true,
+      "demoDefault": false,
+      "exported": true,
+      "claimVisibility": "none",
+      "packageExport": "./energy",
+      "command": null,
+      "docs": [
+        "docs/api/energy.md"
+      ],
+      "entrypoints": [
+        "src/energy/index.js"
+      ],
+      "notes": "Shipped specialized surface, but not part of the mainline README or demo-default claim set."
+    },
+    {
+      "id": "runtime.training-and-distillation",
+      "label": "Training and distillation surfaces",
+      "scope": "runtime",
+      "tier": "experimental",
+      "owner": "research-runtime",
+      "userFacing": true,
+      "demoDefault": false,
+      "exported": false,
+      "claimVisibility": "none",
+      "packageExport": null,
+      "command": null,
+      "docs": [
+        "docs/training-handbook.md",
+        "src/training/README.md"
+      ],
+      "entrypoints": [
+        "src/training/index.js",
+        "src/training/distillation/index.js"
+      ],
+      "notes": "Repo-supported research and operator lane, but not part of the current tier1 app/runtime contract."
+    },
+    {
+      "id": "integration.bridge-layer",
+      "label": "Bridge and extension integration layer",
+      "scope": "integration",
+      "tier": "internal-only",
+      "owner": "integration",
+      "userFacing": false,
+      "demoDefault": false,
+      "exported": false,
+      "claimVisibility": "none",
+      "packageExport": null,
+      "command": null,
+      "docs": [
+        "docs/architecture.md"
+      ],
+      "entrypoints": [
+        "src/bridge/index.js",
+        "src/bridge/extension-client.js"
+      ],
+      "notes": "Repo integration machinery, not part of the public package or hosted demo contract."
+    },
+    {
+      "id": "browser.import-helpers",
+      "label": "Browser import and conversion helpers",
+      "scope": "browser",
+      "tier": "internal-only",
+      "owner": "model-io",
+      "userFacing": false,
+      "demoDefault": false,
+      "exported": false,
+      "claimVisibility": "none",
+      "packageExport": null,
+      "command": null,
+      "docs": [
+        "docs/architecture.md"
+      ],
+      "entrypoints": [
+        "src/browser/browser-converter.js",
+        "src/browser/tensor-source-http.js"
+      ],
+      "notes": "Repo-internal browser import plumbing that supports the demo and tooling flows."
+    }
+  ]
+}

@@ -20,6 +20,7 @@ Advanced users and integrations working with diffusion-specific pipeline flows.
 ## Stability
 
 Public, but advanced and narrower than the text root surface.
+Current support tier: `experimental`. See [Subsystem Support Matrix](../subsystem-support-matrix.md).
 
 ## Primary Exports
 

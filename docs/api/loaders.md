@@ -17,6 +17,7 @@ Advanced consumers building explicit loading flows, custom manifest/bootstrap lo
 ## Stability
 
 Public, but advanced. Prefer the root `doppler` facade unless you need explicit loader control.
+Current support tier: `tier1` advanced surface. See [Subsystem Support Matrix](../subsystem-support-matrix.md).
 
 ## Primary Exports
 

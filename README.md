@@ -34,6 +34,8 @@ The `doppler` facade is the primary app-facing API.
 The root package intentionally stays small: it exports `doppler` and `DOPPLER_VERSION`.
 Advanced surfaces now live on explicit subpaths such as `doppler-gpu/tooling`,
 `doppler-gpu/loaders`, `doppler-gpu/orchestration`, and `doppler-gpu/generation`.
+Support tiers for those subpaths are tracked in the subsystem support matrix rather
+than assumed from export shape alone.
 
 ```js
 import { doppler } from 'doppler-gpu';
@@ -47,7 +49,7 @@ for await (const token of model.generate('Describe WebGPU briefly')) {
 // One-shot
 const text = await model.generateText('Explain WebGPU in one sentence');
 
-// LoRA hot-swap
+// Experimental advanced surface: LoRA hot-swap
 await model.loadLoRA('https://example.com/adapter/manifest.json');
 ```
 
@@ -74,6 +76,15 @@ This is a compatibility bridge — the core engine runs identically in the brows
 
 Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default. See the [Root API guide](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
 
+## Support contract
+
+Doppler keeps model support and subsystem support separate:
+
+- [model support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md): which models are verified right now
+- [subsystem support matrix](https://github.com/clocksmith/doppler/blob/main/docs/subsystem-support-matrix.md): which runtime and API surfaces are `tier1`, `experimental`, or `internal-only`
+
+The tier1 proof surface is the hosted browser demo, the root `doppler` API, the quickstart CLI, the OpenAI-compatible localhost server, and the verified text-inference path behind them.
+
 ## Why Doppler
 
 **Browser-native.** Runs in a WebGPU browser tab with OPFS caching, so models stay available offline after the first load.
@@ -84,7 +95,7 @@ Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default.
 
 **`for await` streaming.** Generation uses a native `AsyncGenerator` that fits normal app control flow.
 
-**LoRA hot-swap.** Swap adapters at runtime without reloading the base model.
+**LoRA hot-swap.** Experimental advanced surface for swapping adapters at runtime without reloading the base model.
 
 **Independent model instances.** Run multiple models concurrently. Each owns its pipeline, buffers, and KV cache.
 
@@ -107,6 +118,9 @@ local artifacts rather than the quickstart registry. Conversion configs exist
 for Gemma 4 MoE, Janus, and Sana but are not yet in the quickstart registry.
 See the
 [model support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md).
+Subsystem support tiers for direct-source inputs, advanced subpaths, diffusion,
+energy, and training live in the
+[subsystem support matrix](https://github.com/clocksmith/doppler/blob/main/docs/subsystem-support-matrix.md).
 
 ## Under the hood
 

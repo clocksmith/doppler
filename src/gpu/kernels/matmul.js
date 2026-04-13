@@ -268,35 +268,37 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
       bOffset
     );
   } catch (err) {
+    const detailParts = [];
+    if (options.role) detailParts.push(`role=${options.role}`);
+    if (Number.isFinite(options.layerIdx)) detailParts.push(`layer=${options.layerIdx}`);
+    if (weightLabel) detailParts.push(`label=${weightLabel}`);
+    if (weightDtype) detailParts.push(`weightDtype=${weightDtype}`);
+    if (weightLayout) detailParts.push(`layout=${weightLayout}`);
+    if (weightShape) detailParts.push(`shape=${weightShape}`);
+    if (Number.isFinite(bBuffer?.size)) detailParts.push(`bSize=${bBuffer.size}`);
+    if (Number.isFinite(bOffset) && bOffset > 0) detailParts.push(`bOffset=${bOffset}`);
+    const detail = detailParts.length ? ` (${detailParts.join(', ')})` : '';
     if (shouldValidateAttentionWeightBuffer && isAttnProj && err instanceof Error && err.message.includes('B buffer too small')) {
-      const detailParts = [
+      const probeDetail = [
         `role=${options.role ?? ''}`,
         `layer=${Number.isFinite(options.layerIdx) ? options.layerIdx : '?'}`,
         `M=${M}`,
         `N=${N}`,
         `K=${K}`,
-      ];
-      if (weightDtype) detailParts.push(`weightDtype=${weightDtype}`);
-      if (weightLayout) detailParts.push(`weightLayout=${weightLayout}`);
-      if (weightShape) detailParts.push(`shape=${weightShape}`);
-      if (weightLabel) detailParts.push(`label=${weightLabel}`);
-      if (Number.isFinite(bBuffer?.size)) detailParts.push(`bSize=${bBuffer.size}`);
-      const detail = detailParts.join(' ');
+        ...(weightDtype ? [`weightDtype=${weightDtype}`] : []),
+        ...(weightLayout ? [`weightLayout=${weightLayout}`] : []),
+        ...(weightShape ? [`shape=${weightShape}`] : []),
+        ...(weightLabel ? [`label=${weightLabel}`] : []),
+        ...(Number.isFinite(bBuffer?.size) ? [`bSize=${bBuffer.size}`] : []),
+      ].join(' ');
       if (shouldLogAttentionWeightBuffer) {
-        log.warn('MatmulQKVProbe', `${err.message} | ${detail}`);
+        log.warn('MatmulQKVProbe', `${err.message} | ${probeDetail}`);
       }
       if (shouldFailOnSmallAttentionWeightBuffer) {
-        throw new Error(`${err.message}${detail ? ` (${detail})` : ''}`);
+        throw new Error(`${err.message}${detail}`);
       }
     }
-    if (!isRecord && err instanceof Error && err.message.includes('B buffer too small')) {
-      const detailParts = [];
-      if (weightLabel) detailParts.push(`label=${weightLabel}`);
-      if (weightDtype) detailParts.push(`weightDtype=${weightDtype}`);
-      if (weightLayout) detailParts.push(`layout=${weightLayout}`);
-      if (weightShape) detailParts.push(`shape=${weightShape}`);
-      if (Number.isFinite(bBuffer?.size)) detailParts.push(`bSize=${bBuffer.size}`);
-      const detail = detailParts.length ? ` (${detailParts.join(', ')})` : '';
+    if (err instanceof Error && err.message.includes('B buffer too small')) {
       throw new Error(`${err.message}${detail}`);
     }
     throw err;

@@ -4,7 +4,7 @@
   "name": "Apple M3 Series",
   "detection": {
     "vendor": "apple",
-    "architecture": "gpu-family-apple-9"
+    "architecture": ["gpu-family-apple-9", "metal-3"]
   },
   "memoryHints": {
     "preferUnifiedMemory": true,

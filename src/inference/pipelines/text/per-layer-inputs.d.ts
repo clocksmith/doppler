@@ -58,6 +58,19 @@ export declare function inferPleProjectionNormDtype(
   hiddenSizePerLayerInput: number
 ): 'f16' | 'f32';
 
+export declare function loadRangeBackedPleProjectionSliceBytes(
+  weight: unknown,
+  layerIdx: number,
+  hiddenSizePerLayerInput: number,
+  hiddenSize: number,
+  label?: string
+): Promise<{
+  bytes: Uint8Array;
+  dtype: 'f16' | 'f32';
+  layout: string;
+  shape: [number, number];
+} | null>;
+
 export declare function ensurePleScaledProjectionNormWeight(
   context: Pick<LayerContext, 'config' | 'weights' | 'weightConfig' | 'debugFlags'>,
   combineScale?: number

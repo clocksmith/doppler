@@ -17,6 +17,9 @@ Advanced consumers who need direct access to KV cache management, routers, adapt
 ## Stability
 
 Public, but advanced. Prefer the root facade unless you need direct orchestration primitives.
+Current support tier: `experimental`. This subpath is available, but it is not
+part of the canonical tier1 demo or quickstart proof path. See
+[Subsystem Support Matrix](../subsystem-support-matrix.md).
 
 ## Primary Exports
 

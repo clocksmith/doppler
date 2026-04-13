@@ -22,6 +22,7 @@ src/config/
 ├── kernel-path-loader.js        # kernel-path utility functions for inline paths
 ├── conversion/                  # conversion configs
 ├── runtime/                     # runtime profiles and overlays
+├── support-tiers/               # canonical subsystem support registry
 ├── schema/                      # schemas + defaults
 ├── transforms/                  # execution graph transforms for capability adaptation
 └── platforms/                   # platform config assets
@@ -41,6 +42,7 @@ Validate config integrity:
 ```bash
 npm run kernels:check
 npm run support:matrix:check
+npm run support:subsystems:check
 npm run onboarding:check:strict
 ```
 

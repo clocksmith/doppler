@@ -17,6 +17,7 @@ Advanced runtime consumers and experiments that need direct pipeline objects.
 ## Stability
 
 Public, but advanced. Prefer the root facade unless you need direct pipeline control.
+Current support tier: `tier1` advanced surface. See [Subsystem Support Matrix](../subsystem-support-matrix.md).
 
 ## Primary Exports
 

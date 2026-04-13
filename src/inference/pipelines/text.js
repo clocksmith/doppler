@@ -180,9 +180,11 @@ export class InferencePipeline extends PipelineState {
       assignStorageContext: true,
     });
     this.runtimeConfig = runtimeConfig;
-    this.runtimeOverrides = typeof structuredClone === 'function'
-      ? structuredClone(runtimeConfig)
-      : JSON.parse(JSON.stringify(runtimeConfig));
+    this.runtimeOverrides = contexts.runtimeConfig == null
+      ? null
+      : (typeof structuredClone === 'function'
+        ? structuredClone(contexts.runtimeConfig)
+        : JSON.parse(JSON.stringify(contexts.runtimeConfig)));
     applyPipelineDebugConfig(sharedDebug?.pipeline);
     configurePerfGuards(sharedDebug?.perfGuards);
 
@@ -268,6 +270,7 @@ export class InferencePipeline extends PipelineState {
 
       const executionV1Runtime = applyExecutionV1RuntimeConfig({
         runtimeConfig: this.runtimeConfig,
+        runtimeOverrides: this.runtimeOverrides,
         manifest,
         modelId: manifest.modelId ?? 'model',
         numLayers: Number(manifest.architecture?.numLayers ?? 0),
@@ -301,7 +304,8 @@ export class InferencePipeline extends PipelineState {
     this.runtimeConfig = applyModelBatchingRuntimeDefaults(
       this.runtimeConfig,
       manifest,
-      this.modelConfig
+      this.modelConfig,
+      this.runtimeOverrides
     );
     this.useTiedEmbeddings = this.modelConfig.useTiedEmbeddings;
     this.embeddingVocabSize = this.modelConfig.embeddingVocabSize;

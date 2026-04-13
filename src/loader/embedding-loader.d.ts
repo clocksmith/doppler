@@ -22,7 +22,7 @@ export type TensorLoader = (
   name: string,
   toGPU?: boolean,
   silent?: boolean
-) => Promise<GPUBuffer | WeightBuffer | Float32Array | Uint8Array | null>;
+) => Promise<GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | Uint8Array | null>;
 
 /**
  * Context required for embedding loading.
@@ -34,6 +34,8 @@ export interface EmbeddingLoaderContext {
   loadTensor: TensorLoader;
   /** Check if large weight should stream to CPU */
   shouldStreamLargeWeight: (name: string, loc: TensorLocation, label: string) => boolean;
+  /** Load a shard byte range for range-backed CPU sources */
+  loadShardRange?: (index: number, offset: number, length: number) => Promise<ArrayBuffer>;
   /** Resolve weight layout from location */
   resolveWeightLayout: (loc: TensorLocation) => WeightLayout;
   /** GPU buffers to track for cleanup */

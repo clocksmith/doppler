@@ -1,6 +1,6 @@
-import type { RDRRManifest } from '../formats/rdrr/index.js';
 import type { RuntimeConfigSchema } from '../config/schema/index.js';
 import type { PipelineStorageContext } from '../inference/pipelines/text/init.js';
+import type { RuntimeModelContract } from '../inference/runtime-model.js';
 import type { DirectSourceRuntimeKind } from './source-artifact-adapter.js';
 
 export interface ResolveNodeSourceRuntimeBundleOptions {
@@ -11,7 +11,8 @@ export interface ResolveNodeSourceRuntimeBundleOptions {
 }
 
 export interface NodeSourceRuntimeBundle {
-  manifest: RDRRManifest;
+  model: RuntimeModelContract;
+  manifest: RuntimeModelContract;
   storageContext: PipelineStorageContext;
   sourceKind: DirectSourceRuntimeKind;
   sourceRoot: string;

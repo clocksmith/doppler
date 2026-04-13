@@ -4,6 +4,7 @@ import { installNodeFileFetchShim } from '../../src/tooling/node-file-fetch.js';
 installNodeFileFetchShim();
 
 const { applyModelBatchingRuntimeDefaults } = await import('../../src/inference/pipelines/text/model-load.js');
+const { createDopplerConfig } = await import('../../src/config/schema/index.js');
 
 function createRuntimeConfig(session = {}) {
   return {
@@ -53,6 +54,47 @@ function createRuntimeConfig(session = {}) {
     submitLatencyThresholdMs: null,
   });
   assert.equal(nextRuntime.inference.generation, undefined);
+}
+
+{
+  const explicitRuntimeOverrides = {
+    inference: {
+      compute: {
+        activationDtype: 'f32',
+      },
+    },
+  };
+  const runtimeConfig = createDopplerConfig({
+    runtime: explicitRuntimeOverrides,
+  }).runtime;
+  const manifest = {
+    modelId: 'manifest-session-kvtype-preserved-test',
+    modelType: 'transformer',
+    inference: {
+      session: {
+        kvcache: {
+          kvDtype: 'f32',
+          layout: 'contiguous',
+          pageSize: 256,
+          tiering: {
+            mode: 'off',
+          },
+          quantization: {
+            mode: 'none',
+          },
+        },
+        decodeLoop: {
+          batchSize: 16,
+          stopCheckMode: 'batch',
+          readbackInterval: 4,
+          readbackMode: 'sequential',
+        },
+      },
+    },
+  };
+
+  const nextRuntime = applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null, explicitRuntimeOverrides);
+  assert.equal(nextRuntime.inference.session.kvcache.kvDtype, 'f32');
 }
 
 {

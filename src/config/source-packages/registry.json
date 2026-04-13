@@ -1,0 +1,15 @@
+{
+  "profiles": [
+    {
+      "id": "litert/gemma-4-e2b-it",
+      "sourceKinds": [
+        "litert-task",
+        "litertlm"
+      ],
+      "packageBasenames": [
+        "gemma-4-e2b-it-web.task",
+        "gemma-4-e2b-it.litertlm"
+      ]
+    }
+  ]
+}

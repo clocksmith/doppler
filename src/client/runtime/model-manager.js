@@ -265,7 +265,7 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
   try {
     log.info('DopplerProvider', `Loading model: ${modelId}`);
 
-    let manifest = null;
+    let runtimeModel = null;
     let useBridge = false;
     let bridgeStorageContext = null;
     let bridgeSourceMode = false;
@@ -286,14 +286,14 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
         try {
           const manifestBytes = await bridgeClient.read(manifestPath, 0, HEADER_READ_SIZE);
           const manifestJson = new TextDecoder().decode(manifestBytes);
-          manifest = parseManifest(manifestJson);
-          log.info('DopplerProvider', `Loaded manifest via bridge: ${manifest.modelId}`);
+          runtimeModel = parseManifest(manifestJson);
+          log.info('DopplerProvider', `Loaded manifest via bridge: ${runtimeModel.modelId}`);
           if (onProgress) onProgress({ stage: 'manifest', message: 'Manifest loaded via bridge' });
           const persistedSourceBundle = await resolveBridgeSourceRuntimeBundle({
             bridgeClient,
             localPath,
             modelId,
-            manifest,
+            model: runtimeModel,
             verifyHashes: true,
             onProgress: (progress) => onProgress?.(progress),
           });
@@ -303,7 +303,7 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
             if (onProgress) {
               onProgress({
                 stage: 'manifest',
-                message: `Direct-source manifest ready (${persistedSourceBundle.sourceKind} artifact mode)`,
+                message: `Direct-source runtime model ready (${persistedSourceBundle.sourceKind} artifact mode)`,
               });
             }
           }
@@ -322,13 +322,13 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
           if (!sourceBundle) {
             throw manifestError;
           }
-          manifest = sourceBundle.manifest;
+          runtimeModel = sourceBundle.model ?? sourceBundle.manifest;
           bridgeStorageContext = sourceBundle.storageContext;
           bridgeSourceMode = true;
           if (onProgress) {
             onProgress({
               stage: 'manifest',
-              message: `Synthetic manifest ready (${sourceBundle.sourceKind} direct-source mode)`,
+              message: `Runtime model ready (${sourceBundle.sourceKind} direct-source mode)`,
             });
           }
         }
@@ -344,16 +344,16 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
 
       try {
         const manifestJson = await loadManifestFromStore();
-        manifest = parseManifest(manifestJson);
+        runtimeModel = parseManifest(manifestJson);
       } catch {
-        manifest = null;
+        runtimeModel = null;
       }
 
       let integrity = { valid: false, missingShards: [] };
-      if (manifest) {
-        const sourceArtifactFingerprint = buildSourceArtifactFingerprint(manifest);
+      if (runtimeModel) {
+        const sourceArtifactFingerprint = buildSourceArtifactFingerprint(runtimeModel);
         if (sourceArtifactFingerprint) {
-          const sourceIntegrity = await verifyStoredSourceArtifact(manifest, { checkHashes: false }).catch(() => ({
+          const sourceIntegrity = await verifyStoredSourceArtifact(runtimeModel, { checkHashes: false }).catch(() => ({
             valid: false,
             missingFiles: [],
           }));
@@ -369,8 +369,8 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
         }
       }
 
-      if (integrity.valid && manifest && modelUrl) {
-        await verifyExplicitModelUrlMatch(manifest, modelUrl);
+      if (integrity.valid && runtimeModel && modelUrl) {
+        await verifyExplicitModelUrlMatch(runtimeModel, modelUrl);
       }
 
       if (!integrity.valid && modelUrl) {
@@ -383,26 +383,26 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
         throw new Error(`Model ${modelId} not found and no URL provided`);
       }
 
-      manifest = getManifest();
+      runtimeModel = getManifest();
     }
 
-    if (!manifest) {
+    if (!runtimeModel) {
       throw new Error('Failed to load model manifest');
     }
 
-    const runtimeManifest = synthesizeStoredSourceArtifactManifest(manifest);
-    if (runtimeManifest.changed) {
+    const synthesizedRuntimeModel = synthesizeStoredSourceArtifactManifest(runtimeModel);
+    if (synthesizedRuntimeModel.changed) {
       log.info(
         'DopplerProvider',
-        `Enabled stored-shard source runtime for "${manifest.modelId ?? modelId}" warm loads`
+        `Enabled stored-shard source runtime for "${runtimeModel.modelId ?? modelId}" warm loads`
       );
-      manifest = runtimeManifest.manifest;
+      runtimeModel = synthesizedRuntimeModel.manifest;
     }
 
     try {
-      const mc = extractTextModelConfig(manifest);
+      const mc = extractTextModelConfig(runtimeModel);
       const kvBytes = mc.numLayers * mc.maxSeqLen * mc.numKVHeads * mc.headDim * 4 * 2;
-      const weightBytes = estimateDequantizedWeightsBytes(manifest);
+      const weightBytes = estimateDequantizedWeightsBytes(runtimeModel);
       const estimate = {
         weightsBytes: weightBytes,
         kvCacheBytes: kvBytes,
@@ -424,13 +424,13 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
       log.warn('DopplerProvider', 'Failed to estimate GPU memory', e);
     }
 
-    if (manifest.totalSize > DopplerCapabilities.MAX_MODEL_SIZE) {
+    if (runtimeModel.totalSize > DopplerCapabilities.MAX_MODEL_SIZE) {
       throw new Error(
-        `Model size ${manifest.totalSize} exceeds max ${DopplerCapabilities.MAX_MODEL_SIZE}`
+        `Model size ${runtimeModel.totalSize} exceeds max ${DopplerCapabilities.MAX_MODEL_SIZE}`
       );
     }
 
-    if (!DopplerCapabilities.IS_UNIFIED_MEMORY && !manifest.moeConfig) {
+    if (!DopplerCapabilities.IS_UNIFIED_MEMORY && !runtimeModel.moeConfig) {
       log.warn('DopplerProvider', 'Dense model on discrete GPU - performance will be limited');
     }
 
@@ -446,7 +446,7 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
       && typeof setTimeout !== 'undefined'
     ) {
       DopplerCapabilities.kernelsTuned = true;
-      const tuneConfig = extractTextModelConfig(manifest);
+      const tuneConfig = extractTextModelConfig(runtimeModel);
       setTimeout(() => {
         prepareKernelRuntime({
           prewarm: false,
@@ -468,8 +468,8 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
     const memCaps = await getMemoryCapabilities();
 
     let storageContext = bridgeStorageContext;
-    if (!storageContext && buildSourceArtifactFingerprint(manifest)) {
-      storageContext = createStoredSourceArtifactContext(manifest, { verifyHashes: true });
+    if (!storageContext && buildSourceArtifactFingerprint(runtimeModel)) {
+      storageContext = createStoredSourceArtifactContext(runtimeModel, { verifyHashes: true });
     }
     if (!storageContext && useBridge && DopplerCapabilities.bridgeClient && DopplerCapabilities.localPath) {
       const bridgeClient = DopplerCapabilities.bridgeClient;
@@ -477,9 +477,9 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
         ? DopplerCapabilities.localPath
         : `${DopplerCapabilities.localPath}/`;
 
-      const manifestRef = manifest;
+      const runtimeModelRef = runtimeModel;
       const resolveShard = (idx) => {
-        const shardInfo = manifestRef.shards[idx];
+        const shardInfo = runtimeModelRef.shards[idx];
         if (!shardInfo) throw new Error(`Invalid shard index: ${idx}`);
         return {
           shardInfo,
@@ -556,7 +556,7 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
       pipelineContexts.storage = storageContext;
     }
 
-    pipeline = await createPipeline(manifest, pipelineContexts);
+    pipeline = await createPipeline(runtimeModel, pipelineContexts);
 
     currentModelId = modelId;
     DopplerCapabilities.currentModelId = modelId;

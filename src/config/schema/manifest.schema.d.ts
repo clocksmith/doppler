@@ -398,6 +398,56 @@ export interface TensorSchema {
   spans?: TensorSpanSchema[];
   layout?: WeightLayout;
   originalShape?: number[];
+  sourceTransform?: {
+    kind: 'affine_dequant';
+    scheme: 'per_tensor_affine';
+    sourceDtype: 'INT8' | 'UINT8' | 'INT4' | 'INT2';
+    targetDtype: 'F16';
+    scale: number;
+    zeroPoint: number;
+  } | {
+    kind: 'litert_rowwise_dequant';
+    scheme: 'per_row_affine';
+    sourceDtype: 'INT8' | 'INT4' | 'INT2' | 'UINT8';
+    targetDtype: 'F16';
+    storageEncoding: 'signed' | 'offset_binary';
+    scaleSource: {
+      shard: number;
+      shardIndex?: number;
+      offset: number;
+      size: number;
+      spans?: TensorSpanSchema[];
+    };
+    rowSumSource?: {
+      shard: number;
+      shardIndex?: number;
+      offset: number;
+      size: number;
+      spans?: TensorSpanSchema[];
+    };
+  } | {
+    kind: 'litert_axis_dequant';
+    scheme: 'per_axis_affine';
+    sourceDtype: 'INT8' | 'INT4' | 'INT2' | 'UINT8';
+    targetDtype: 'F16';
+    storageEncoding: 'signed' | 'offset_binary';
+    storageShape: [number, number];
+    quantAxis: 0 | 1;
+    scaleSource: {
+      shard: number;
+      shardIndex?: number;
+      offset: number;
+      size: number;
+      spans?: TensorSpanSchema[];
+    };
+    sumSource?: {
+      shard: number;
+      shardIndex?: number;
+      offset: number;
+      size: number;
+      spans?: TensorSpanSchema[];
+    };
+  };
 }
 
 /** External tensor map (tensors.json) */

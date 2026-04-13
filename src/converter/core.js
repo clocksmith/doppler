@@ -482,7 +482,7 @@ function normalizeMoEConfig(config, contextLabel) {
   };
 }
 
-function resolveManifestMoEConfig(model, options, rawConfig, resolvedModelType) {
+export function resolveManifestMoEConfig(model, options, rawConfig, resolvedModelType) {
   const explicit = normalizeMoEConfig(options?.moeConfig ?? null, options?.modelId ?? 'model');
   if (explicit) return explicit;
 
@@ -530,7 +530,7 @@ function resolveManifestMoEConfig(model, options, rawConfig, resolvedModelType) 
   );
 }
 
-function buildSentencepieceTokenizer(tokenizerConfig, rawConfig, architecture, modelTokenizerModel) {
+export function buildSentencepieceTokenizer(tokenizerConfig, rawConfig, architecture, modelTokenizerModel) {
   if (!modelTokenizerModel) return null;
 
   const vocabSize = resolveTokenizerVocabSize(tokenizerConfig, rawConfig, architecture);
@@ -589,7 +589,7 @@ export function resolveBundledTokenizerVocabSize(tokenizerJson) {
   return 0;
 }
 
-function buildBundledTokenizer(tokenizerJson, tokenizerConfig, rawConfig) {
+export function buildBundledTokenizer(tokenizerJson, tokenizerConfig, rawConfig) {
   const vocabSize = resolveBundledTokenizerVocabSize(tokenizerJson);
   if (!vocabSize) {
     throw new Error('Tokenizer vocab is missing or empty');
@@ -1215,7 +1215,7 @@ export function buildTensorMap(tensors, shardSize) {
   return tensorMap;
 }
 
-function resolveConvertedAt(value) {
+export function resolveConvertedAt(value) {
   if (value === undefined || value === null || value === '') {
     return new Date().toISOString();
   }
@@ -1237,7 +1237,7 @@ function cloneJsonValue(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-function resolveManifestMultimodalConfig(rawConfig, manifestConfig = null) {
+export function resolveManifestMultimodalConfig(rawConfig, manifestConfig = null) {
   const explicitVisionConfig = manifestConfig?.visionConfig;
   const explicitAudioConfig = manifestConfig?.audioConfig;
   const visionConfig = explicitVisionConfig ?? rawConfig?.vision_config ?? null;

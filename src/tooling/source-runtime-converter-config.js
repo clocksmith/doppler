@@ -1,5 +1,6 @@
 import {
   createConverterConfig,
+  EXECUTION_V1_SCHEMA_ID,
   DEFAULT_EXECUTION_V1_SESSION,
   DEFAULT_MANIFEST_INFERENCE,
 } from '../config/schema/index.js';
@@ -257,13 +258,35 @@ export function createSourceRuntimeSession() {
   return cloneJsonValue(DEFAULT_EXECUTION_V1_SESSION);
 }
 
+export function createSourceRuntimeManifestConfig(rawConfig = null) {
+  return {
+    hashAlgorithm: 'sha256',
+    visionConfig: resolveSourceRuntimeVisionConfig(rawConfig),
+    audioConfig: resolveSourceRuntimeAudioConfig(rawConfig),
+  };
+}
+
+export function createSourceRuntimeManifestInference(rawConfig = null) {
+  const inference = createSourceRuntimeInference(rawConfig);
+  return {
+    schema: EXECUTION_V1_SCHEMA_ID,
+    attention: inference.attention,
+    normalization: inference.normalization,
+    ffn: inference.ffn,
+    rope: inference.rope,
+    output: inference.output,
+    layerPattern: inference.layerPattern,
+    chatTemplate: inference.chatTemplate,
+    pipeline: inference.pipeline ?? null,
+    session: createSourceRuntimeSession(),
+    execution: createSourceRuntimeExecution(),
+  };
+}
+
 export function createSourceRuntimeConverterConfig(options = {}) {
   return createConverterConfig({
     quantization: options.quantization ?? undefined,
-    manifest: {
-      visionConfig: resolveSourceRuntimeVisionConfig(options.rawConfig ?? null),
-      audioConfig: resolveSourceRuntimeAudioConfig(options.rawConfig ?? null),
-    },
+    manifest: createSourceRuntimeManifestConfig(options.rawConfig ?? null),
     output: {
       modelBaseId: options.modelId ?? null,
     },

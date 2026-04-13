@@ -13,18 +13,20 @@
 /**
  * Patterns for detecting which platform to use based on GPU adapter info.
  */
+export type PlatformDetectionPattern = string | string[];
+
 export interface PlatformDetectionSchema {
-  /** Vendor string pattern (e.g., "apple", "nvidia", "amd") */
-  vendor?: string;
+  /** Vendor string pattern or patterns (e.g., "apple", "nvidia", "amd") */
+  vendor?: PlatformDetectionPattern;
 
-  /** Architecture pattern (e.g., "gpu-family-apple-9") */
-  architecture?: string;
+  /** Architecture pattern or patterns (e.g., "gpu-family-apple-9") */
+  architecture?: PlatformDetectionPattern;
 
-  /** Device name pattern (e.g., "M3", "RTX 4090") */
-  device?: string;
+  /** Device name pattern or patterns (e.g., "M3", "RTX 4090") */
+  device?: PlatformDetectionPattern;
 
-  /** WebGPU adapter description pattern */
-  description?: string;
+  /** WebGPU adapter description pattern or patterns */
+  description?: PlatformDetectionPattern;
 }
 
 /**

@@ -20,6 +20,7 @@ import type {
 } from '../../../config/schema/index.js';
 import type { MergedConfig, RuntimeInferenceOverrides } from '../../../config/merge.js';
 import type { ExecutionV1PerLayerInputsSessionSchema } from '../../../config/schema/execution-v1.schema.js';
+import type { RuntimeModelContract } from '../../runtime-model.js';
 
 export type ActivationType = 'silu' | 'gelu';
 export type ParsedLayerType =
@@ -106,32 +107,7 @@ export interface TensorInfo {
   dtype?: string;
 }
 
-export interface Manifest {
-  architecture?: ArchitectureSchema;
-  config?: RawConfig | Record<string, unknown>;
-  tensors?: Record<string, TensorInfo>;
-  tokenizer?: Record<string, unknown> & { vocab_size?: number };
-  quantization?: string;
-  eos_token_id?: number | number[];
-  modelId?: string;
-  draftModel?: { numTokens?: number };
-  optimizations?: {
-    useBatching?: boolean;
-    debug?: boolean;
-    kernelPath?: KernelPathRef;
-  };
-  runtime?: {
-    useBatching?: boolean;
-    debug?: boolean;
-  };
-  quantizationInfo?: {
-    weights?: string;
-    embeddings?: string;
-    lmHead?: string;
-    compute?: string;
-  };
-  inference?: ManifestInferenceSchema;
-}
+export type Manifest = RuntimeModelContract;
 
 export interface AttentionParams {
   numHeads: number;

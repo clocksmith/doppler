@@ -12,9 +12,17 @@ Related specs and contracts:
 - [getting-started.md](getting-started.md) for first-run convert/verify flow
 
 Non-RDRR note:
-- Materialized direct-source artifacts use `manifest.json` plus raw SafeTensors/GGUF assets and declare `metadata.sourceRuntime.mode="direct-source"`. They are not RDRR shards and use their own digest/path contract.
-- Runtime artifact loading for both `rdrr` and persisted direct-source manifests is unified in `src/storage/artifact-storage-context.js`; the format contract still comes from the manifest.
-- Synthetic direct-source manifests are constructed through `src/tooling/source-artifact-adapter.js` and `src/tooling/source-runtime-bundle.js`. Supported raw-source inputs today are `safetensors` and `gguf`; `.tflite` is not implemented and must fail closed.
+- Materialized direct-source artifacts use `manifest.json` plus raw SafeTensors/GGUF/TFLite assets and declare `metadata.sourceRuntime.mode="direct-source"`. They are not RDRR shards and use their own digest/path contract.
+- Runtime artifact loading for both `rdrr` and persisted direct-source artifacts is unified in `src/storage/artifact-storage-context.js`.
+- Direct-source runtime bundles are constructed through `src/tooling/source-artifact-adapter.js` and `src/tooling/source-runtime-bundle.js` as runtime-model contracts. `bundle.manifest` remains a compatibility alias for older callers, but `bundle.model` is the source of truth.
+- Supported raw-source inputs today are `safetensors`, `gguf`, `.tflite`, `.task`, and `.litertlm`.
+- Direct-source inputs are currently an experimental subsystem tier. See [subsystem-support-matrix.md](subsystem-support-matrix.md) for the public support contract.
+- Direct-source manifests preserve source artifact storage facts. They do not accept converter-style quantization overrides; requantization requires a real convert step that emits a new RDRR artifact.
+- `.tflite` / raw-TFLite `.task` direct-source support requires sibling `config.json` model metadata.
+- Packed LiteRT-LM companion-tensor quantization still fails closed until a dedicated adapter exists.
+- Float TFLite constants are read directly.
+- Quantized TFLite constants currently support per-tensor affine `INT8`, `UINT8`, and `INT4` source weights, carried through the runtime model as explicit `tensor.sourceTransform` metadata and dequantized at load time to `F16`.
+- Per-channel or otherwise unsupported LiteRT/TFLite quantization must still fail closed.
 
 ## Core structure
 

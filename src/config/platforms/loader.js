@@ -66,18 +66,16 @@ export async function detectPlatform(adapterInfo) {
     const detection = config.detection;
     let matches = true;
 
-    if (detection.vendor && !vendor.includes(normalizeDetectionValue(detection.vendor))) {
-      matches = false;
-    }
-    if (detection.architecture && !architecture.includes(normalizeDetectionValue(detection.architecture))) {
-      matches = false;
-    }
-    if (detection.device && !device.includes(normalizeDetectionValue(detection.device))) {
-      matches = false;
-    }
-    if (detection.description && !description.includes(normalizeDetectionValue(detection.description))) {
-      matches = false;
-    }
+    const checkMatch = (actual, expected) => {
+      if (!expected) return true;
+      const expectedList = Array.isArray(expected) ? expected : [expected];
+      return expectedList.some(exp => actual.includes(normalizeDetectionValue(exp)));
+    };
+
+    if (!checkMatch(vendor, detection.vendor)) matches = false;
+    if (!checkMatch(architecture, detection.architecture)) matches = false;
+    if (!checkMatch(device, detection.device)) matches = false;
+    if (!checkMatch(description, detection.description)) matches = false;
 
     if (matches && !config.isGeneric) {
       currentPlatform = config;

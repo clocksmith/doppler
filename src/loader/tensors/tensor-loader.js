@@ -10,6 +10,7 @@ import { QK_K, Q4K_BLOCK_BYTES, Q6K_BLOCK_BYTES } from '../quantization-constant
 import { log, trace as debugTrace } from '../../debug/index.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
 import { dequantizeQ4KM, dequantizeQ4KMRowWise } from '../../converter/quantizer.js';
+import { hasSourceTransform } from './source-transform.js';
 
 // ============================================================================
 // Q4K Detection
@@ -73,6 +74,14 @@ function toUint8View(data) {
     return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
   }
   return new Uint8Array(data);
+}
+
+function resolveInputByteLength(data, fallbackSize) {
+  if (data instanceof Uint8Array) return data.byteLength;
+  if (ArrayBuffer.isView(data)) return data.byteLength;
+  if (data instanceof ArrayBuffer) return data.byteLength;
+  if (isGpuBufferInstance(data)) return data.size;
+  return fallbackSize;
 }
 
 function writeBufferAligned(device, buffer, data) {
@@ -573,11 +582,18 @@ export async function loadFloat(shardData, location, name, config) {
   if (!config) {
     throw new Error('Tensor load config is required.');
   }
+  if (hasSourceTransform(location) && isGpuBufferInstance(shardData)) {
+    throw new Error(
+      `Tensor "${name}" requires CPU-side sourceTransform materialization before GPU upload. ` +
+      'Disable streaming for this tensor and load from assembled bytes.'
+    );
+  }
   const device = getDevice();
+  const inputByteLength = resolveInputByteLength(shardData, location.size);
   let ownsBuffer = !isGpuBufferInstance(shardData);
   const buffer = isGpuBufferInstance(shardData)
     ? shardData
-    : acquireAlignedBuffer(location.size, name);
+    : acquireAlignedBuffer(inputByteLength, name);
   let resultBuffer = null;
   try {
     if (ownsBuffer) {

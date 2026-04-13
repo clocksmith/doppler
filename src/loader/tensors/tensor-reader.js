@@ -1,6 +1,11 @@
 
 
 import { trace } from '../../debug/index.js';
+import {
+  getSourceTransformSpec,
+  hasSourceTransform,
+  materializeTensorSourceTransform,
+} from './source-transform.js';
 
 function resolveSpanShardIndex(span, name, spanIndex) {
   const shardIndex = typeof span?.shardIndex === 'number'
@@ -64,6 +69,141 @@ function getPhysicalChunks(location, name) {
   }];
 }
 
+async function assembleLocationBytes(location, name, label, loadShard, loadShardRange = null) {
+  const chunks = getPhysicalChunks(location, name);
+  const parts = await Promise.all(chunks.map(async (chunk) => {
+    if (loadShardRange) {
+      const data = await loadShardRange(chunk.shardIndex, chunk.offset, chunk.size);
+      if (chunk.size > data.byteLength) {
+        throw new Error(
+          `[DopplerLoader] Shard ${chunk.shardIndex} too small for tensor "${name}" ${label}.`
+        );
+      }
+      return new Uint8Array(data, 0, chunk.size);
+    }
+    const data = await loadShard(chunk.shardIndex);
+    if (chunk.offset + chunk.size > data.byteLength) {
+      throw new Error(
+        `[DopplerLoader] Shard ${chunk.shardIndex} too small for tensor "${name}" ${label}.`
+      );
+    }
+    return new Uint8Array(data, chunk.offset, chunk.size);
+  }));
+  const totalSize = parts.reduce((sum, part) => sum + part.byteLength, 0);
+  const combined = new Uint8Array(totalSize);
+  let offset = 0;
+  for (const part of parts) {
+    combined.set(part, offset);
+    offset += part.byteLength;
+  }
+  return combined;
+}
+
+async function loadLocationRange(location, name, label, byteOffset, byteLength, loadShardRange) {
+  const chunks = getPhysicalChunks(location, name);
+  const totalSize = chunks.reduce((sum, chunk) => sum + chunk.size, 0);
+  if (byteOffset + byteLength > totalSize) {
+    throw new Error(
+      `[DopplerLoader] Tensor "${name}" ${label} range (${byteOffset}..${byteOffset + byteLength}) exceeds size ${totalSize}.`
+    );
+  }
+
+  const combined = new Uint8Array(byteLength);
+  let logicalOffset = 0;
+  let writeOffset = 0;
+  const rangeEnd = byteOffset + byteLength;
+
+  for (const chunk of chunks) {
+    const chunkStart = logicalOffset;
+    const chunkEnd = chunkStart + chunk.size;
+    logicalOffset = chunkEnd;
+
+    if (rangeEnd <= chunkStart || byteOffset >= chunkEnd) {
+      continue;
+    }
+
+    const start = Math.max(byteOffset, chunkStart);
+    const end = Math.min(rangeEnd, chunkEnd);
+    const localOffset = chunk.offset + (start - chunkStart);
+    const localSize = end - start;
+    const data = await loadShardRange(chunk.shardIndex, localOffset, localSize);
+    if (localSize > data.byteLength) {
+      throw new Error(
+        `[DopplerLoader] Shard ${chunk.shardIndex} too small for tensor "${name}" ${label} range.`
+      );
+    }
+    combined.set(new Uint8Array(data, 0, localSize), writeOffset);
+    writeOffset += localSize;
+
+    if (writeOffset === byteLength) {
+      break;
+    }
+  }
+
+  if (writeOffset !== byteLength) {
+    throw new Error(
+      `[DopplerLoader] Tensor "${name}" short ${label} range read: got ${writeOffset}, expected ${byteLength}.`
+    );
+  }
+
+  return combined;
+}
+
+function getSourceTransformScaleLocation(location, name) {
+  const scaleLocation = location?.sourceTransform?.scaleSource;
+  if (!scaleLocation || typeof scaleLocation !== 'object') {
+    throw new Error(
+      `[DopplerLoader] Tensor "${name}" sourceTransform is missing scaleSource.`
+    );
+  }
+  return scaleLocation;
+}
+
+function getSourceTransformSumLocation(location) {
+  const transform = location?.sourceTransform;
+  const sumLocation = transform?.kind === 'litert_axis_dequant'
+    ? transform?.sumSource
+    : transform?.rowSumSource;
+  if (!sumLocation || typeof sumLocation !== 'object') {
+    return null;
+  }
+  return sumLocation;
+}
+
+async function materializeLocationBytes(rawBytes, location, name, loadShard, loadShardRange = null, options = {}) {
+  if (!hasSourceTransform(location)) {
+    return rawBytes;
+  }
+  if (
+    location.sourceTransform.kind === 'litert_rowwise_dequant'
+    || location.sourceTransform.kind === 'litert_axis_dequant'
+  ) {
+    const scaleLocation = getSourceTransformScaleLocation(location, name);
+    const scaleBytes = options.scaleBytes instanceof Uint8Array
+      ? options.scaleBytes
+      : await assembleLocationBytes(scaleLocation, name, 'scale companion', loadShard, loadShardRange);
+    const sumLocation = getSourceTransformSumLocation(location);
+    const sumBytes = options.sumBytes instanceof Uint8Array
+      ? options.sumBytes
+      : options.rowSumBytes instanceof Uint8Array
+      ? options.rowSumBytes
+      : (
+        sumLocation
+          ? await assembleLocationBytes(sumLocation, name, 'sum companion', loadShard, loadShardRange)
+          : null
+      );
+    return materializeTensorSourceTransform(rawBytes, location, name, {
+      scaleBytes,
+      sumBytes,
+      rowSumBytes: sumBytes,
+      rowStart: options.rowStart ?? null,
+      rowCount: options.rowCount ?? null,
+      storageColumnStart: options.storageColumnStart ?? null,
+    });
+  }
+  return materializeTensorSourceTransform(rawBytes, location, name);
+}
+
 export async function assembleShardData(location, name, loadShard, loadShardRange = null) {
   const spans = getLocationSpans(location);
   if (spans) {
@@ -99,7 +239,7 @@ export async function assembleShardData(location, name, loadShard, loadShardRang
       combined.set(chunk, offset);
       offset += chunk.length;
     }
-    return combined;
+    return materializeLocationBytes(combined, location, name, loadShard, loadShardRange);
   }
 
   // Single shard - use view to avoid copying
@@ -113,7 +253,8 @@ export async function assembleShardData(location, name, loadShard, loadShardRang
         `[DopplerLoader] Shard ${shardIndex} too small for tensor "${name}" (offset=${offset}, size=${size}, shard=${slice.byteLength})`
       );
     }
-    return new Uint8Array(slice, 0, size);
+    const bytes = new Uint8Array(slice, 0, size);
+    return materializeLocationBytes(bytes, location, name, loadShard, loadShardRange);
   }
 
   const fullShard = await loadShard(shardIndex);
@@ -122,7 +263,8 @@ export async function assembleShardData(location, name, loadShard, loadShardRang
       `[DopplerLoader] Shard ${shardIndex} too small for tensor "${name}" (offset=${offset}, size=${size}, shard=${fullShard.byteLength})`
     );
   }
-  return new Uint8Array(fullShard, offset, size);
+  const bytes = new Uint8Array(fullShard, offset, size);
+  return materializeLocationBytes(bytes, location, name, loadShard, loadShardRange);
 }
 
 export async function loadTensorRange(location, name, byteOffset, byteLength, loadShardRange) {
@@ -139,51 +281,101 @@ export async function loadTensorRange(location, name, byteOffset, byteLength, lo
     return new Uint8Array(0);
   }
 
-  const chunks = getPhysicalChunks(location, name);
-  const totalSize = chunks.reduce((sum, chunk) => sum + chunk.size, 0);
-  if (byteOffset + byteLength > totalSize) {
-    throw new Error(
-      `[DopplerLoader] Tensor "${name}" range (${byteOffset}..${byteOffset + byteLength}) exceeds size ${totalSize}.`
-    );
-  }
+  if (hasSourceTransform(location)) {
+    const spec = getSourceTransformSpec(location, name);
+    if (
+      (spec?.kind === 'litert_rowwise_dequant' || spec?.kind === 'litert_axis_dequant')
+      && (byteOffset % spec.targetRowBytes) === 0
+      && (byteLength % spec.targetRowBytes) === 0
+    ) {
+      const rowStart = byteOffset / spec.targetRowBytes;
+      const rowCount = byteLength / spec.targetRowBytes;
+      const scaleBytes = await loadLocationRange(
+        getSourceTransformScaleLocation(location, name),
+        name,
+        'LiteRT transformed scale',
+        rowStart * spec.scaleRowBytes,
+        rowCount * spec.scaleRowBytes,
+        loadShardRange
+      );
+      const sumLocation = getSourceTransformSumLocation(location);
+      const sumBytes = sumLocation
+        ? await loadLocationRange(
+          sumLocation,
+          name,
+          'LiteRT transformed sum',
+          rowStart * 4,
+          rowCount * 4,
+          loadShardRange
+        )
+        : null;
+      if (spec.kind === 'litert_rowwise_dequant') {
+        const raw = await loadLocationRange(
+          location,
+          name,
+          'LiteRT transformed raw',
+          rowStart * spec.rawRowBytes,
+          rowCount * spec.rawRowBytes,
+          loadShardRange
+        );
+        return materializeTensorSourceTransform(raw, location, name, {
+          scaleBytes,
+          rowSumBytes: sumBytes,
+          rowStart,
+          rowCount,
+        });
+      }
 
-  const combined = new Uint8Array(byteLength);
-  let logicalOffset = 0;
-  let writeOffset = 0;
-  const rangeEnd = byteOffset + byteLength;
+      if (spec.quantAxis === 1) {
+        const raw = await loadLocationRange(
+          location,
+          name,
+          'LiteRT transformed raw',
+          rowStart * spec.rawStorageRowBytes,
+          rowCount * spec.rawStorageRowBytes,
+          loadShardRange
+        );
+        return materializeTensorSourceTransform(raw, location, name, {
+          scaleBytes,
+          sumBytes,
+          rowStart,
+          rowCount,
+        });
+      }
 
-  for (const chunk of chunks) {
-    const chunkStart = logicalOffset;
-    const chunkEnd = chunkStart + chunk.size;
-    logicalOffset = chunkEnd;
-
-    if (rangeEnd <= chunkStart || byteOffset >= chunkEnd) {
-      continue;
+      const storageColumnStart = Math.floor(rowStart / spec.storageValuesPerByte) * spec.storageValuesPerByte;
+      const storageColumnEnd = Math.ceil((rowStart + rowCount) / spec.storageValuesPerByte) * spec.storageValuesPerByte;
+      const rawSliceRowBytes = (storageColumnEnd - storageColumnStart) / spec.storageValuesPerByte;
+      const raw = new Uint8Array(spec.storageRows * rawSliceRowBytes);
+      for (let storageRow = 0; storageRow < spec.storageRows; storageRow++) {
+        const rowBytes = await loadLocationRange(
+          location,
+          name,
+          `LiteRT transformed raw storage row ${storageRow}`,
+          storageRow * spec.rawStorageRowBytes + (storageColumnStart / spec.storageValuesPerByte),
+          rawSliceRowBytes,
+          loadShardRange
+        );
+        raw.set(rowBytes, storageRow * rawSliceRowBytes);
+      }
+      return materializeTensorSourceTransform(raw, location, name, {
+        scaleBytes,
+        sumBytes,
+        rowStart,
+        rowCount,
+        storageColumnStart,
+      });
     }
-
-    const start = Math.max(byteOffset, chunkStart);
-    const end = Math.min(rangeEnd, chunkEnd);
-    const localOffset = chunk.offset + (start - chunkStart);
-    const localSize = end - start;
-    const data = await loadShardRange(chunk.shardIndex, localOffset, localSize);
-    if (localSize > data.byteLength) {
+    const raw = await assembleLocationBytes(location, name, 'transformed tensor', null, loadShardRange);
+    const transformed = await materializeLocationBytes(raw, location, name, null, loadShardRange);
+    if (byteOffset + byteLength > transformed.byteLength) {
       throw new Error(
-        `[DopplerLoader] Shard ${chunk.shardIndex} too small for tensor "${name}" range.`
+        `[DopplerLoader] Tensor "${name}" transformed range (${byteOffset}..${byteOffset + byteLength}) ` +
+        `exceeds size ${transformed.byteLength}.`
       );
     }
-    combined.set(new Uint8Array(data, 0, localSize), writeOffset);
-    writeOffset += localSize;
-
-    if (writeOffset === byteLength) {
-      break;
-    }
+    return transformed.slice(byteOffset, byteOffset + byteLength);
   }
 
-  if (writeOffset !== byteLength) {
-    throw new Error(
-      `[DopplerLoader] Tensor "${name}" short range read: got ${writeOffset}, expected ${byteLength}.`
-    );
-  }
-
-  return combined;
+  return loadLocationRange(location, name, 'tensor', byteOffset, byteLength, loadShardRange);
 }

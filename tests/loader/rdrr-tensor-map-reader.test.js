@@ -21,6 +21,18 @@ const { assembleShardData } = await import('../../src/loader/tensors/tensor-read
               { shard: 3, offset: 16, size: 4 },
               { shardIndex: 4, offset: 0, size: 4 },
             ],
+            sourceTransform: {
+              kind: 'litert_rowwise_dequant',
+              scheme: 'per_row_affine',
+              sourceDtype: 'INT8',
+              targetDtype: 'F16',
+              storageEncoding: 'signed',
+              scaleSource: {
+                shard: 5,
+                offset: 32,
+                size: 8,
+              },
+            },
           },
         });
       },
@@ -37,13 +49,25 @@ const { assembleShardData } = await import('../../src/loader/tensors/tensor-read
     const location = locations.get('layers.0.weight');
     assert.ok(location);
     assert.equal(location.shardIndex, 3);
-    assert.deepEqual(
-      location.spans,
-      [
-        { shardIndex: 3, offset: 16, size: 4 },
-        { shardIndex: 4, offset: 0, size: 4 },
-      ]
-    );
+  assert.deepEqual(
+    location.spans,
+    [
+      { shardIndex: 3, offset: 16, size: 4 },
+      { shardIndex: 4, offset: 0, size: 4 },
+    ]
+  );
+  assert.deepEqual(location.sourceTransform, {
+    kind: 'litert_rowwise_dequant',
+    scheme: 'per_row_affine',
+    sourceDtype: 'INT8',
+    targetDtype: 'F16',
+    storageEncoding: 'signed',
+    scaleSource: {
+      shard: 5,
+      offset: 32,
+      size: 8,
+    },
+  });
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -63,6 +87,18 @@ const { assembleShardData } = await import('../../src/loader/tensors/tensor-read
           { shard: 2, offset: 8, size: 4 },
           { shardIndex: 3, offset: 0, size: 4 },
         ],
+        sourceTransform: {
+          kind: 'litert_rowwise_dequant',
+          scheme: 'per_row_affine',
+          sourceDtype: 'INT8',
+          targetDtype: 'F16',
+          storageEncoding: 'signed',
+          scaleSource: {
+            shard: 4,
+            offset: 24,
+            size: 8,
+          },
+        },
       },
     },
   });
@@ -77,6 +113,18 @@ const { assembleShardData } = await import('../../src/loader/tensors/tensor-read
       { shardIndex: 3, offset: 0, size: 4 },
     ]
   );
+  assert.deepEqual(location.sourceTransform, {
+    kind: 'litert_rowwise_dequant',
+    scheme: 'per_row_affine',
+    sourceDtype: 'INT8',
+    targetDtype: 'F16',
+    storageEncoding: 'signed',
+    scaleSource: {
+      shard: 4,
+      offset: 24,
+      size: 8,
+    },
+  });
 }
 
 {

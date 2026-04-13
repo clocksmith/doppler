@@ -144,7 +144,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "f242e44c9a35e72186aa61e4cc0c9873f0596741",
+        "revision": "a6651ea48c5ebc420ebc1c6972979049b72db96e",
         "path": "models/gemma-3-1b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -167,13 +167,12 @@
         "tested": {
           "suite": "inference",
           "surface": [
-            "browser",
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-03-20",
-          "source": "manual-review",
-          "notes": "Browser/WebGPU on Apple M3 and Node/WebGPU on AMD RDNA-3 re-verified through 2026-03-20 with deterministic greedy decoding. Produces correct blue sky-color answers on simple prompts. The lm_head_prefill phase-drop bug was the one confirmed runtime defect (now fixed and regression-covered). Q4K runtime path is functionally correct.",
+          "lastVerifiedAt": "2026-04-13",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU on Apple M3 re-verified on 2026-04-13 after syncing the refreshed manifest-owned session baseline and republishing the hosted artifact. Produces coherent sky-color output on the execution-inline Q4K path, and the hosted manifest now matches the refreshed local artifact. Earlier browser verification remains from the 2026-03-20 review cycle.",
           "contracts": {
             "executionContractOk": true
           }
@@ -325,7 +324,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "05ce7a9c57d29562e743f33c6839462144d73c99",
+        "revision": "0b7e01c70500b78cbe69c66cb5601dd00941f9c9",
         "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
       },
       "baseUrl": null,
@@ -348,13 +347,12 @@
         "tested": {
           "suite": "inference",
           "surface": [
-            "browser",
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-03-31",
+          "lastVerifiedAt": "2026-04-13",
           "source": "runtime-verify",
-          "notes": "Node/WebGPU verification uses execution-v1 with fused-Q4 decode/prefill projections as the primary hybrid Qwen path and execution.inlineKernelPath=true. The earlier GEMV/head256 note was rolled back after correctness regressions on the linear-attention path.",
+          "notes": "Node/WebGPU on Apple M3 re-verified on 2026-04-13 after syncing the refreshed execution-v1 manifest and republishing the hosted artifact. The execution-inline Qwen path now keeps decode batchSize=32 with readbackInterval=1, passes the execution contract gate, and produces coherent sky-color output with the expected Qwen <think> wrapper still present.",
           "contracts": {
             "executionContractOk": true
           }

@@ -8,6 +8,7 @@
 
 import type { CpuWeightBuffer, WeightBuffer } from '../gpu/weight-buffer.js';
 import type { TensorRole } from '../config/schema/index.js';
+import type { TensorSourceTransform } from '../formats/rdrr/index.js';
 
 /**
  * Tensor location in loaded model
@@ -25,6 +26,8 @@ export interface TensorLocation {
   layout?: 'row' | 'column';
   /** Original shape before transpose (if layout is 'column') */
   originalShape?: number[];
+  /** Optional direct-source transform applied before dtype-specific loading */
+  sourceTransform?: TensorSourceTransform;
 }
 
 /**

@@ -1,17 +1,27 @@
 import {
   inferSourceWeightQuantization,
-  resolveConversionPlan,
   resolveConvertedModelId,
 } from '../converter/conversion-plan.js';
+import {
+  normalizeQuantTag,
+  resolveEffectiveQuantizationInfo,
+  resolveManifestQuantization,
+} from '../converter/quantization-info.js';
+import { resolveTensorRole } from '../formats/rdrr/index.js';
 import { log } from '../debug/index.js';
 import {
   buildSourceRuntimeBundle,
 } from './source-runtime-bundle.js';
-import { createSourceRuntimeConverterConfig } from './source-runtime-converter-config.js';
+import {
+  createSourceRuntimeManifestConfig,
+  createSourceRuntimeManifestInference,
+} from './source-runtime-converter-config.js';
 
 export const SOURCE_ARTIFACT_KIND_SAFETENSORS = 'safetensors';
 export const SOURCE_ARTIFACT_KIND_GGUF = 'gguf';
 export const SOURCE_ARTIFACT_KIND_TFLITE = 'tflite';
+export const SOURCE_ARTIFACT_KIND_LITERT_TASK = 'litert-task';
+export const SOURCE_ARTIFACT_KIND_LITERTLM = 'litertlm';
 
 const SUPPORTED_SOURCE_DTYPES = new Set([
   'F32',
@@ -52,6 +62,109 @@ function resolvePathBasename(value, fallback) {
   return basename || fallback;
 }
 
+function normalizeStoredQuantization(value) {
+  const normalized = normalizeText(value).toUpperCase();
+  if (!normalized) {
+    return null;
+  }
+  return normalizeQuantTag(normalized);
+}
+
+function resolveDirectSourceModelType(parsedArtifact, fallbackModelKind) {
+  const rawConfig = parsedArtifact?.config;
+  const explicitModelType = normalizeText(parsedArtifact?.modelType);
+  if (explicitModelType) {
+    return explicitModelType;
+  }
+  const configModelType = normalizeText(
+    rawConfig?.model_type
+    ?? rawConfig?.text_config?.model_type
+  );
+  if (configModelType) {
+    return configModelType;
+  }
+  const fallback = normalizeText(fallbackModelKind);
+  return fallback || 'transformer';
+}
+
+function inferRoleQuantization(tensors, targetRole) {
+  for (const tensor of Array.isArray(tensors) ? tensors : []) {
+    if (resolveTensorRole(tensor) !== targetRole) {
+      continue;
+    }
+    const normalized = normalizeStoredQuantization(tensor?.dtype);
+    if (normalized) {
+      return normalized;
+    }
+  }
+  return null;
+}
+
+export function resolveDirectSourceRuntimePlan(options = {}) {
+  const parsedArtifact = options.parsedArtifact;
+  if (!parsedArtifact || typeof parsedArtifact !== 'object' || Array.isArray(parsedArtifact)) {
+    throw new Error('direct-source runtime: parsedArtifact must be an object.');
+  }
+
+  const sourceQuantization = normalizeText(options.sourceQuantization)
+    || inferSourceQuantizationForSourceRuntime(
+      parsedArtifact.tensors,
+      parsedArtifact.sourceKind || 'direct-source',
+      { logCategory: options.logCategory }
+    );
+  const computePrecision = resolveSourceRuntimeComputePrecision(
+    parsedArtifact.tensors,
+    sourceQuantization
+  );
+  const visionQuantization = inferRoleQuantization(parsedArtifact.tensors, 'vision');
+  const audioQuantization = inferRoleQuantization(parsedArtifact.tensors, 'audio');
+  const projectorQuantization = inferRoleQuantization(parsedArtifact.tensors, 'projector');
+  const baseQuantizationInfo = {
+    compute: computePrecision,
+    ...(visionQuantization ? { vision: visionQuantization } : {}),
+    ...(audioQuantization ? { audio: audioQuantization } : {}),
+    ...(projectorQuantization ? { projector: projectorQuantization } : {}),
+  };
+  const quantizationInfo = resolveEffectiveQuantizationInfo(
+    baseQuantizationInfo,
+    parsedArtifact.tensors
+  );
+  const manifestQuantization = resolveManifestQuantization(
+    quantizationInfo?.weights,
+    normalizeText(sourceQuantization).toUpperCase() || 'F16'
+  );
+  const baseManifestConfig = createSourceRuntimeManifestConfig(parsedArtifact.config ?? null);
+  const explicitManifestConfig = (
+    parsedArtifact?.manifestConfig
+    && typeof parsedArtifact.manifestConfig === 'object'
+    && !Array.isArray(parsedArtifact.manifestConfig)
+  )
+    ? parsedArtifact.manifestConfig
+    : null;
+  const explicitManifestInference = (
+    parsedArtifact?.manifestInference
+    && typeof parsedArtifact.manifestInference === 'object'
+    && !Array.isArray(parsedArtifact.manifestInference)
+  )
+    ? parsedArtifact.manifestInference
+    : null;
+
+  return {
+    modelType: resolveDirectSourceModelType(parsedArtifact, options.modelKind),
+    manifestConfig: explicitManifestConfig
+      ? {
+        ...baseManifestConfig,
+        ...explicitManifestConfig,
+      }
+      : baseManifestConfig,
+    manifestInference: explicitManifestInference ?? createSourceRuntimeManifestInference(parsedArtifact.config ?? null),
+    sourceQuantization,
+    quantizationInfo,
+    manifestQuantization,
+    executionVersion: 'v1',
+  };
+}
+
 export function normalizeSourceArtifactKind(value) {
   const normalized = normalizeText(value).toLowerCase();
   return normalized || null;
@@ -59,11 +172,14 @@ export function normalizeSourceArtifactKind(value) {
 
 export function assertDirectSourceRuntimeSupportedKind(sourceKind, label = 'direct-source runtime') {
   const normalized = normalizeSourceArtifactKind(sourceKind);
-  if (normalized === SOURCE_ARTIFACT_KIND_SAFETENSORS || normalized === SOURCE_ARTIFACT_KIND_GGUF) {
+  if (
+    normalized === SOURCE_ARTIFACT_KIND_SAFETENSORS
+    || normalized === SOURCE_ARTIFACT_KIND_GGUF
+    || normalized === SOURCE_ARTIFACT_KIND_TFLITE
+    || normalized === SOURCE_ARTIFACT_KIND_LITERT_TASK
+    || normalized === SOURCE_ARTIFACT_KIND_LITERTLM
+  ) {
     return normalized;
-  }
-  if (normalized === SOURCE_ARTIFACT_KIND_TFLITE) {
-    throw new Error(`${label}: .tflite direct-source artifacts are not implemented yet. Convert to RDRR first.`);
   }
   if (!normalized) {
     throw new Error(`${label}: sourceKind is required.`);
@@ -178,6 +294,12 @@ export async function resolveSourceRuntimeBundleFromParsedArtifact(options = {})
   if (typeof hashFileEntries !== 'function') {
     throw new Error(`${runtimeLabel}: hashFileEntries(entries, hashAlgorithm) is required.`);
   }
+  if (options.quantization != null) {
+    throw new Error(
+      `${runtimeLabel}: converter-style quantization overrides are not supported for direct-source artifacts. ` +
+      'Use the source artifact as-is, or run convert to emit a new RDRR artifact.'
+    );
+  }
 
   const sourceQuantization = normalizeText(parsedArtifact.sourceQuantization)
     || inferSourceQuantizationForSourceRuntime(parsedArtifact.tensors, sourceKind, {
@@ -186,19 +308,11 @@ export async function resolveSourceRuntimeBundleFromParsedArtifact(options = {})
 
   assertSupportedSourceDtypes(parsedArtifact.tensors, sourceKind);
 
-  const converterConfig = createSourceRuntimeConverterConfig({
-    modelId: options.requestedModelId || null,
-    rawConfig: parsedArtifact.config,
-    ...(options.quantization ? { quantization: options.quantization } : {}),
-  });
-  const plan = resolveConversionPlan({
-    rawConfig: parsedArtifact.config,
-    tensors: parsedArtifact.tensors,
-    converterConfig,
+  const plan = resolveDirectSourceRuntimePlan({
+    parsedArtifact,
     sourceQuantization,
     modelKind: normalizeText(options.modelKind) || 'transformer',
-    architectureHint: parsedArtifact.architectureHint,
-    architectureConfig: parsedArtifact.architecture,
+    logCategory: options.logCategory,
   });
   const modelId = resolveSourceRuntimeModelIdHint({
     requestedModelId: options.requestedModelId,
@@ -207,10 +321,10 @@ export async function resolveSourceRuntimeBundleFromParsedArtifact(options = {})
     sourcePath: parsedArtifact.sourcePathForModelId,
     label: runtimeLabel,
   });
-  const hashAlgorithm = converterConfig.manifest.hashAlgorithm;
+  const hashAlgorithm = plan.manifestConfig.hashAlgorithm;
   const sourceFiles = await hashFileEntries(parsedArtifact.sourceFiles, hashAlgorithm);
   const auxiliaryFiles = await hashFileEntries(parsedArtifact.auxiliaryFiles, hashAlgorithm);
-  const { manifest, shardSources } = await buildSourceRuntimeBundle({
+  const { model, shardSources } = await buildSourceRuntimeBundle({
     modelId,
     modelName: modelId,
     modelType: plan.modelType,
@@ -218,7 +332,7 @@ export async function resolveSourceRuntimeBundleFromParsedArtifact(options = {})
     architecture: parsedArtifact.architecture,
     architectureHint: parsedArtifact.architectureHint,
     rawConfig: parsedArtifact.config,
-    manifestConfig: converterConfig.manifest ?? null,
+    manifestConfig: plan.manifestConfig ?? null,
     inference: plan.manifestInference,
     tensors: parsedArtifact.tensors,
     embeddingPostprocessor: parsedArtifact.embeddingPostprocessor ?? null,
@@ -226,6 +340,7 @@ export async function resolveSourceRuntimeBundleFromParsedArtifact(options = {})
     auxiliaryFiles,
     sourceQuantization,
     quantizationInfo: plan.quantizationInfo,
+    manifestQuantization: plan.manifestQuantization,
     hashAlgorithm,
     tokenizerJson: parsedArtifact.tokenizerJson,
     tokenizerConfig: parsedArtifact.tokenizerConfig,
@@ -236,7 +351,8 @@ export async function resolveSourceRuntimeBundleFromParsedArtifact(options = {})
   });
 
   return {
-    manifest,
+    model,
+    manifest: model,
     shardSources,
     sourceKind,
     sourceQuantization,
@@ -245,6 +361,6 @@ export async function resolveSourceRuntimeBundleFromParsedArtifact(options = {})
     hashAlgorithm,
     modelId,
     plan,
-    converterConfig,
+    manifestConfig: plan.manifestConfig,
   };
 }

@@ -17,6 +17,7 @@ Advanced users working with the energy pipeline family.
 ## Stability
 
 Public, but advanced and specialized.
+Current support tier: `experimental`. See [Subsystem Support Matrix](../subsystem-support-matrix.md).
 
 ## Primary Exports
 

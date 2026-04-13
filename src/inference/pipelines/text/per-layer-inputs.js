@@ -1,4 +1,12 @@
-import { createWeightBuffer, getBufferDtype, getWeightDtype, isCpuWeightBuffer, isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.js';
+import {
+  createWeightBuffer,
+  getBufferDtype,
+  getLayout,
+  getWeightDtype,
+  isCpuWeightBuffer,
+  isGpuBufferInstance,
+  isWeightBuffer,
+} from '../../../gpu/weight-buffer.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { recordScale, runScale } from '../../../gpu/kernel-selector.js';
 import { getNormWeightBuffer, getWeightBuffer } from './weights.js';
@@ -37,6 +45,57 @@ function getPleProjectionNormDtype(weight) {
   return normalizePleProjectionNormDtype(getWeightDtype(weight))
     ?? normalizePleProjectionNormDtype(getBufferDtype(weight))
     ?? null;
+}
+
+function isRangeBackedPleProjectionSource(value) {
+  return isRangeBackedCpuEmbeddingSource(value);
+}
+
+function getPleProjectionWeightDtype(weight) {
+  if (isCpuWeightBuffer(weight)) {
+    return weight.dtype ?? null;
+  }
+  return getWeightDtype(weight);
+}
+
+export async function loadRangeBackedPleProjectionSliceBytes(
+  weight,
+  layerIdx,
+  hiddenSizePerLayerInput,
+  hiddenSize,
+  label = 'Range-backed PLE projection slice'
+) {
+  if (!isCpuWeightBuffer(weight)) {
+    return null;
+  }
+  const cpuData = weight.data;
+  if (!isRangeBackedPleProjectionSource(cpuData)) {
+    return null;
+  }
+
+  const dtype = getPleProjectionWeightDtype(weight);
+  const layout = getLayout(weight) ?? weight.layout ?? 'row';
+  const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', {
+    dtype,
+  });
+  const hiddenOffset = layerIdx * hiddenSizePerLayerInput;
+  const byteOffset = hiddenOffset * hiddenSize * bytesPerElement;
+  const byteLength = hiddenSizePerLayerInput * hiddenSize * bytesPerElement;
+  const bytes = normalizeRangeBytes(
+    await cpuData.loadRange(byteOffset, byteLength),
+    label
+  );
+  if (bytes.byteLength !== byteLength) {
+    throw new Error(
+      `${label} short read for layer ${layerIdx}: expected ${byteLength} bytes, got ${bytes.byteLength}.`
+    );
+  }
+  return {
+    bytes,
+    dtype,
+    layout,
+    shape: [hiddenSizePerLayerInput, hiddenSize],
+  };
 }
 
 export function inferPleProjectionNormDtype(weight, hiddenSizePerLayerInput) {
@@ -1098,7 +1157,11 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
     ? null
     : getEmbeddingSource(embedTokensPerLayer, 'embedTokensPerLayer');
   const totalPerLayerHiddenSize = numLayers * hiddenSizePerLayerInput;
-  const projectionWeight = getWeightBuffer(perLayerModelProjection, 'per_layer_model_projection');
+  const hasRangeBackedProjection = isCpuWeightBuffer(perLayerModelProjection)
+    && isRangeBackedPleProjectionSource(perLayerModelProjection.data);
+  const projectionWeight = hasRangeBackedProjection
+    ? null
+    : getWeightBuffer(perLayerModelProjection, 'per_layer_model_projection');
   if (isWeightBuffer(perLayerModelProjection) && perLayerModelProjection.layout !== 'row') {
     throw new Error(
       'Gemma 4 per-layer input projection requires a row-major per_layer_model_projection weight. ' +
@@ -1106,7 +1169,7 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
     );
   }
   const projectionWeightDtype = selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', {
-    dtype: getWeightDtype(perLayerModelProjection),
+    dtype: getPleProjectionWeightDtype(perLayerModelProjection),
   });
   const projectionWeightBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', {
     dtype: projectionWeightDtype,
@@ -1126,13 +1189,17 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
   const activationBytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', {
     dtype: activationDtype,
   });
+  const projectionDevice = getDevice();
+  if (projectionDevice == null) {
+    throw new Error('Gemma 4 per-layer input projection requires an initialized GPU device.');
+  }
 
   // Decode-path optimizations: coalesced PLE read + fused projection matmul.
   // Gated on numTokens === 1 (decode) and row-major embeddings (non-transpose).
   // For numTokens > 1 (prefill), the fused matmul output is strided per-layer,
   // so we fall back to the per-layer path.
   const embedTranspose = (hasSplitEmbeddingTables || useHotVocabularyTables) ? false : getEmbeddingTranspose(embedTokensPerLayer);
-  const canFuseDecodeOps = numTokens === 1 && !embedTranspose;
+  const canFuseDecodeOps = numTokens === 1 && !embedTranspose && !hasRangeBackedProjection;
   const tokenIdsAreGpuBuffer = isGpuBufferInstance(tokenIds);
   const decodeTokenId = canFuseDecodeOps && !tokenIdsAreGpuBuffer
     ? Number(tokenIds[0])
@@ -1299,23 +1366,62 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
           );
           fusedProjectionSlices[layerIdx] = null;
         } else {
-          let projectedTensor = await doMatmul(
-            inputEmbedsTensor,
-            projectionWeight,
-            numTokens,
-            hiddenSizePerLayerInput,
-            config.hiddenSize,
-            {
-              transposeB: 'auto',
-              bOffset: hiddenOffset * config.hiddenSize * projectionWeightBytes,
-              label: `L${layerIdx}.per_layer_projection_in`,
+          let projectionWeightForLayer = projectionWeight;
+          let projectionWeightBufferForLayer = null;
+          let projectionWeightOffset = hiddenOffset * config.hiddenSize * projectionWeightBytes;
+          let projectedTensor = null;
+          try {
+            const rangeBackedProjection = await loadRangeBackedPleProjectionSliceBytes(
+              perLayerModelProjection,
               layerIdx,
-              kernelPath: context.kernelPath ?? null,
-              role: 'per_layer_model_projection',
-              outputDtype: activationDtype,
-            },
-            recorder
-          );
+              hiddenSizePerLayerInput,
+              config.hiddenSize,
+              `L${layerIdx}.per_layer_projection_in`
+            );
+            if (rangeBackedProjection) {
+              projectionWeightBufferForLayer = acquireBuffer(
+                rangeBackedProjection.bytes.byteLength,
+                undefined,
+                `L${layerIdx}.per_layer_projection_in_weight`
+              );
+              projectionDevice.queue.writeBuffer(
+                projectionWeightBufferForLayer,
+                0,
+                rangeBackedProjection.bytes,
+                rangeBackedProjection.bytes.byteOffset,
+                rangeBackedProjection.bytes.byteLength
+              );
+              projectionWeightForLayer = createWeightBuffer(
+                projectionWeightBufferForLayer,
+                rangeBackedProjection.dtype,
+                rangeBackedProjection.layout,
+                rangeBackedProjection.shape,
+                `L${layerIdx}.per_layer_projection_in_weight`
+              );
+              projectionWeightOffset = 0;
+            }
+            projectedTensor = await doMatmul(
+              inputEmbedsTensor,
+              projectionWeightForLayer,
+              numTokens,
+              hiddenSizePerLayerInput,
+              config.hiddenSize,
+              {
+                transposeB: 'auto',
+                bOffset: projectionWeightOffset,
+                label: `L${layerIdx}.per_layer_projection_in`,
+                layerIdx,
+                kernelPath: context.kernelPath ?? null,
+                role: 'per_layer_model_projection',
+                outputDtype: activationDtype,
+              },
+              recorder
+            );
+          } finally {
+            if (projectionWeightBufferForLayer) {
+              releaseOrTrack(recorder, projectionWeightBufferForLayer, decodeBuffers);
+            }
+          }
           scaledProjectionTensor = recorder
             ? await recordScale(recorder, projectedTensor, projectionScale, {
               count: numTokens * hiddenSizePerLayerInput,

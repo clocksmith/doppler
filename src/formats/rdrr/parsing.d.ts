@@ -5,6 +5,7 @@
  */
 
 import type { RDRRManifest, ShardInfo, TensorMap } from './types.js';
+import type { RuntimeModelContract } from '../../inference/runtime-model.js';
 
 export declare function parseManifest(jsonString: string): RDRRManifest;
 export declare function getExpectedShardHash(
@@ -14,9 +15,9 @@ export declare function getExpectedShardHash(
 
 export declare function parseTensorMap(jsonString: string): TensorMap;
 
-export declare function getManifest(): RDRRManifest | null;
+export declare function getManifest(): (RDRRManifest | RuntimeModelContract) | null;
 
-export declare function setManifest(manifest: RDRRManifest): void;
+export declare function setManifest(manifest: RDRRManifest | RuntimeModelContract): void;
 
 export declare function clearManifest(): void;
 

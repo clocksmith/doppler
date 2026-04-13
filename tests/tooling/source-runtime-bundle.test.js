@@ -71,6 +71,7 @@ const sourceFiles = [
 const bundle = await buildSourceRuntimeBundle({
   modelId: 'source-runtime-unit-test',
   modelType: 'transformer',
+  sourceKind: 'safetensors',
   architecture: {
     numLayers: 1,
     hiddenSize: 4,
@@ -113,6 +114,10 @@ const bundle = await buildSourceRuntimeBundle({
   tokenizerModelName: 'tokenizer.model',
 });
 
+assert.ok(bundle.model, 'source runtime bundle should expose a runtime model contract');
+assert.equal(bundle.model, bundle.manifest, 'manifest should remain a compatibility alias for bundle.model');
+assert.equal(bundle.model.kind, 'runtime-model');
+assert.equal(bundle.model.sourceFormat, 'safetensors');
 assert.equal(bundle.manifest.modelId, 'source-runtime-unit-test');
 assert.equal(bundle.manifest.shards.length, 2);
 assert.equal(bundle.manifest.hashAlgorithm, 'sha256');

@@ -12,18 +12,22 @@ import { parseGGUFModel } from '../converter/parsers/gguf.js';
 import { parseTransformerModel } from '../converter/parsers/transformer.js';
 import { parseGGUFHeader } from '../formats/gguf/types.js';
 import { parseSafetensorsHeader } from '../formats/safetensors/types.js';
+import { parseTFLiteFromSource } from '../formats/tflite/types.js';
 import { log } from '../debug/index.js';
 import { formatBytes } from '../storage/quota.js';
 import {
   createSourceStorageContext,
 } from './source-runtime-bundle.js';
 import {
-  assertDirectSourceRuntimeSupportedKind,
   inferSourceQuantizationForSourceRuntime,
   resolveSourceRuntimeBundleFromParsedArtifact,
-  resolveSourceRuntimeComputePrecision,
-  SOURCE_ARTIFACT_KIND_TFLITE,
 } from './source-artifact-adapter.js';
+import {
+  LITERT_PACKAGE_SOURCE_KIND_LITERTLM,
+  LITERT_PACKAGE_SOURCE_KIND_TASK,
+  appendLiteRTPackageVirtualFiles,
+  resolveLiteRTPackageParsedArtifact,
+} from './litert-package-runtime.js';
 const MAX_NODE_READ_BYTES = 64 * 1024 * 1024;
 
 function toArrayBuffer(value, label) {
@@ -46,6 +50,14 @@ function isGgufPath(filePath) {
 
 function isTflitePath(filePath) {
   return String(filePath || '').toLowerCase().endsWith('.tflite');
+}
+
+function isLiteRTTaskPath(filePath) {
+  return String(filePath || '').toLowerCase().endsWith('.task');
+}
+
+function isLiteRTLMPath(filePath) {
+  return String(filePath || '').toLowerCase().endsWith('.litertlm');
 }
 
 async function getPathStats(targetPath, label) {
@@ -80,16 +92,6 @@ async function readJson(filePath, label) {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Invalid JSON in ${label}: ${message}`);
-  }
-}
-
-async function readFileBytes(filePath, label) {
-  try {
-    const bytes = await fs.readFile(filePath);
-    return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Failed to read ${label} "${filePath}": ${message}`);
   }
 }
 
@@ -133,6 +135,106 @@ async function readSafetensorsHeaderFromFile(filePath) {
   return parseSafetensorsHeader(
     fullHeader.buffer.slice(fullHeader.byteOffset, fullHeader.byteOffset + fullHeader.byteLength)
   );
+}
+
+async function collectTokenizerAssets(inputDir) {
+  const tokenizerJsonPath = path.join(inputDir, 'tokenizer.json');
+  const tokenizerConfigPath = path.join(inputDir, 'tokenizer_config.json');
+  const tokenizerModelPath = path.join(inputDir, 'tokenizer.model');
+  const tokenizerJson = await fileExists(tokenizerJsonPath)
+    ? await readJson(tokenizerJsonPath, 'tokenizer.json')
+    : null;
+  const tokenizerConfig = await fileExists(tokenizerConfigPath)
+    ? await readJson(tokenizerConfigPath, 'tokenizer_config.json')
+    : null;
+  const hasTokenizerModel = await fileExists(tokenizerModelPath);
+  return {
+    tokenizerJson,
+    tokenizerConfig,
+    tokenizerModelName: hasTokenizerModel ? 'tokenizer.model' : null,
+    tokenizerJsonPath,
+    tokenizerConfigPath,
+    tokenizerModelPath: hasTokenizerModel ? tokenizerModelPath : null,
+  };
+}
+
+async function buildTokenizerAuxiliaryFiles(tokenizerAssets) {
+  const auxiliaryFiles = [];
+  if (tokenizerAssets.tokenizerJson) {
+    auxiliaryFiles.push({
+      path: tokenizerAssets.tokenizerJsonPath,
+      size: Number((await getPathStats(tokenizerAssets.tokenizerJsonPath, 'tokenizer.json')).size),
+      kind: 'tokenizer_json',
+    });
+  }
+  if (tokenizerAssets.tokenizerConfig) {
+    auxiliaryFiles.push({
+      path: tokenizerAssets.tokenizerConfigPath,
+      size: Number((await getPathStats(tokenizerAssets.tokenizerConfigPath, 'tokenizer_config.json')).size),
+      kind: 'tokenizer_config',
+    });
+  }
+  if (tokenizerAssets.tokenizerModelPath) {
+    auxiliaryFiles.push({
+      path: tokenizerAssets.tokenizerModelPath,
+      size: Number((await getPathStats(tokenizerAssets.tokenizerModelPath, 'tokenizer.model')).size),
+      kind: 'tokenizer_model',
+    });
+  }
+  return auxiliaryFiles;
+}
+
+function buildPackageTokenizerVirtualFiles(tokenizerAssets) {
+  const virtualFiles = [];
+  if (tokenizerAssets.tokenizerJson) {
+    virtualFiles.push({
+      path: 'tokenizer.json',
+      offset: 0,
+      size: 0,
+      kind: 'tokenizer_json',
+      externalPath: tokenizerAssets.tokenizerJsonPath,
+    });
+  }
+  if (tokenizerAssets.tokenizerConfig) {
+    virtualFiles.push({
+      path: 'tokenizer_config.json',
+      offset: 0,
+      size: 0,
+      kind: 'tokenizer_config',
+      externalPath: tokenizerAssets.tokenizerConfigPath,
+    });
+  }
+  if (tokenizerAssets.tokenizerModelPath) {
+    virtualFiles.push({
+      path: 'TOKENIZER_MODEL',
+      offset: 0,
+      size: 0,
+      kind: 'tokenizer_model',
+      externalPath: tokenizerAssets.tokenizerModelPath,
+    });
+  }
+  return virtualFiles;
+}
+
+function applyPackageTokenizerAssets(parsedArtifact, tokenizerAssets) {
+  const next = {
+    ...parsedArtifact,
+  };
+  if (tokenizerAssets.tokenizerJson && next.tokenizerJson == null) {
+    next.tokenizerJson = tokenizerAssets.tokenizerJson;
+    next.tokenizerJsonPath = 'tokenizer.json';
+  }
+  if (tokenizerAssets.tokenizerConfig && next.tokenizerConfigPath == null) {
+    next.tokenizerConfigPath = 'tokenizer_config.json';
+  }
+  if (tokenizerAssets.tokenizerConfig && next.tokenizerConfig == null) {
+    next.tokenizerConfig = tokenizerAssets.tokenizerConfig;
+  }
+  if (tokenizerAssets.tokenizerModelPath && next.tokenizerModelPath == null) {
+    next.tokenizerModelName = 'TOKENIZER_MODEL';
+    next.tokenizerModelPath = 'TOKENIZER_MODEL';
+  }
+  return next;
 }
 
 async function parseSafetensorsInput(inputDir) {
@@ -183,17 +285,7 @@ async function parseSafetensorsInput(inputDir) {
   const architectureHint = parsedTransformer.architectureHint;
   const embeddingPostprocessor = parsedTransformer.embeddingPostprocessor ?? null;
   const architecture = extractArchitecture(config, null);
-
-  const tokenizerJsonPath = path.join(inputDir, 'tokenizer.json');
-  const tokenizerConfigPath = path.join(inputDir, 'tokenizer_config.json');
-  const tokenizerModelPath = path.join(inputDir, 'tokenizer.model');
-  const tokenizerJson = await fileExists(tokenizerJsonPath)
-    ? await readJson(tokenizerJsonPath, 'tokenizer.json')
-    : null;
-  const tokenizerConfig = await fileExists(tokenizerConfigPath)
-    ? await readJson(tokenizerConfigPath, 'tokenizer_config.json')
-    : null;
-  const hasTokenizerModel = await fileExists(tokenizerModelPath);
+  const tokenizerAssets = await collectTokenizerAssets(inputDir);
 
   const sourceFiles = [];
   const uniquePaths = new Set(tensors.map((tensor) => normalizePath(tensor.sourcePath)));
@@ -210,27 +302,7 @@ async function parseSafetensorsInput(inputDir) {
         kind: 'safetensors_index',
       }]
       : []),
-    ...(tokenizerJson
-      ? [{
-        path: tokenizerJsonPath,
-        size: Number((await getPathStats(tokenizerJsonPath, 'tokenizer.json')).size),
-        kind: 'tokenizer_json',
-      }]
-      : []),
-    ...(tokenizerConfig
-      ? [{
-        path: tokenizerConfigPath,
-        size: Number((await getPathStats(tokenizerConfigPath, 'tokenizer_config.json')).size),
-        kind: 'tokenizer_config',
-      }]
-      : []),
-    ...(hasTokenizerModel
-      ? [{
-        path: tokenizerModelPath,
-        size: Number((await getPathStats(tokenizerModelPath, 'tokenizer.model')).size),
-        kind: 'tokenizer_model',
-      }]
-      : []),
+    ...await buildTokenizerAuxiliaryFiles(tokenizerAssets),
   ];
 
   return {
@@ -245,14 +317,220 @@ async function parseSafetensorsInput(inputDir) {
     sourceQuantization: inferSourceQuantizationForSourceRuntime(tensors, 'safetensors', {
       logCategory: 'NodeSourceRuntime',
     }),
-    tokenizerJson,
-    tokenizerConfig,
-    tokenizerModelName: hasTokenizerModel ? 'tokenizer.model' : null,
-    tokenizerJsonPath: tokenizerJsonPath,
-    tokenizerConfigPath: tokenizerConfigPath,
-    tokenizerModelPath: hasTokenizerModel ? tokenizerModelPath : null,
+    tokenizerJson: tokenizerAssets.tokenizerJson,
+    tokenizerConfig: tokenizerAssets.tokenizerConfig,
+    tokenizerModelName: tokenizerAssets.tokenizerModelName,
+    tokenizerJsonPath: tokenizerAssets.tokenizerJsonPath,
+    tokenizerConfigPath: tokenizerAssets.tokenizerConfigPath,
+    tokenizerModelPath: tokenizerAssets.tokenizerModelPath,
     sourceFiles,
     auxiliaryFiles,
+  };
+}
+
+async function parseTfliteInput(tflitePath) {
+  const tfliteStats = await getPathStats(tflitePath, 'TFLite file');
+  const inputDir = path.dirname(tflitePath);
+  const configPath = path.join(inputDir, 'config.json');
+  if (!(await fileExists(configPath))) {
+    throw new Error(
+      `node source runtime: config.json is required next to TFLite source "${tflitePath}".`
+    );
+  }
+
+  const config = await readJson(configPath, 'config.json');
+  const parsedTFLite = await parseTFLiteFromSource({
+    name: path.basename(tflitePath),
+    size: Number(tfliteStats.size),
+    async readRange(offset, length) {
+      return readRange(tflitePath, offset, length);
+    },
+  });
+  const tokenizerAssets = await collectTokenizerAssets(inputDir);
+  const tensors = parsedTFLite.tensors.map((tensor) => ({
+    ...tensor,
+    sourcePath: tflitePath,
+  }));
+  const architecture = extractArchitecture(config, null);
+  const architectureHint = config.architectures?.[0] ?? config.model_type ?? '';
+  const auxiliaryFiles = [
+    { path: configPath, size: Number((await getPathStats(configPath, 'config.json')).size), kind: 'config' },
+    ...await buildTokenizerAuxiliaryFiles(tokenizerAssets),
+  ];
+
+  return {
+    sourceKind: 'tflite',
+    sourceRoot: inputDir,
+    sourcePathForModelId: tflitePath,
+    config,
+    tensors,
+    architectureHint,
+    embeddingPostprocessor: null,
+    architecture,
+    sourceQuantization: parsedTFLite.sourceQuantization,
+    tokenizerJson: tokenizerAssets.tokenizerJson,
+    tokenizerConfig: tokenizerAssets.tokenizerConfig,
+    tokenizerModelName: tokenizerAssets.tokenizerModelName,
+    tokenizerJsonPath: tokenizerAssets.tokenizerJsonPath,
+    tokenizerConfigPath: tokenizerAssets.tokenizerConfigPath,
+    tokenizerModelPath: tokenizerAssets.tokenizerModelPath,
+    sourceFiles: [{ path: tflitePath, size: Number(tfliteStats.size) }],
+    auxiliaryFiles,
+  };
+}
+
+function createNodeVirtualFileReaders(packagePath, virtualFiles) {
+  const virtualFileMap = new Map(
+    (Array.isArray(virtualFiles) ? virtualFiles : []).map((entry) => [entry.path, entry])
+  );
+
+  const resolveVirtualFile = (virtualPath) => {
+    const normalized = normalizePath(virtualPath);
+    const entry = virtualFileMap.get(normalized);
+    if (!entry) {
+      throw new Error(`node source runtime: missing package asset "${virtualPath}".`);
+    }
+    return entry;
+  };
+
+  const readRangeFromVirtualFile = async (virtualPath, offset, length) => {
+    const entry = resolveVirtualFile(virtualPath);
+    if (entry.externalPath) {
+      return readRange(entry.externalPath, offset, length);
+    }
+    const start = Math.max(0, Math.floor(Number(offset) || 0));
+    const requested = Math.max(0, Math.floor(Number(length) || 0));
+    const available = Math.max(0, entry.size - start);
+    const readLength = Math.min(available, requested);
+    if (readLength <= 0) {
+      return new ArrayBuffer(0);
+    }
+    return readRange(packagePath, entry.offset + start, readLength);
+  };
+
+  const streamRange = async function* (virtualPath, offset, length, options = {}) {
+    const entry = resolveVirtualFile(virtualPath);
+    if (entry.externalPath) {
+      const stats = await getPathStats(entry.externalPath, `package sidecar (${entry.externalPath})`);
+      const start = Math.max(0, Math.floor(Number(offset) || 0));
+      const requested = Math.max(0, Math.floor(Number(length) || 0));
+      const available = Math.max(0, Number(stats.size) - start);
+      const readLength = Math.min(available, requested);
+      if (readLength <= 0) {
+        return;
+      }
+      const chunkBytesRaw = Number(options?.chunkBytes);
+      const highWaterMark = Number.isFinite(chunkBytesRaw) && chunkBytesRaw > 0
+        ? Math.floor(chunkBytesRaw)
+        : MAX_NODE_READ_BYTES;
+      const stream = createReadStream(entry.externalPath, {
+        start,
+        end: start + readLength - 1,
+        highWaterMark,
+      });
+      for await (const chunk of stream) {
+        yield chunk;
+      }
+      return;
+    }
+    const start = Math.max(0, Math.floor(Number(offset) || 0));
+    const requested = Math.max(0, Math.floor(Number(length) || 0));
+    const available = Math.max(0, entry.size - start);
+    const readLength = Math.min(available, requested);
+    if (readLength <= 0) {
+      return;
+    }
+    const chunkBytesRaw = Number(options?.chunkBytes);
+    const highWaterMark = Number.isFinite(chunkBytesRaw) && chunkBytesRaw > 0
+      ? Math.floor(chunkBytesRaw)
+      : MAX_NODE_READ_BYTES;
+    const stream = createReadStream(packagePath, {
+      start: entry.offset + start,
+      end: entry.offset + start + readLength - 1,
+      highWaterMark,
+    });
+    for await (const chunk of stream) {
+      yield chunk;
+    }
+  };
+
+  const readText = async (virtualPath) => {
+    const entry = resolveVirtualFile(virtualPath);
+    const bytes = entry.externalPath
+      ? await fs.readFile(entry.externalPath)
+      : await readRange(packagePath, entry.offset, entry.size);
+    return new TextDecoder().decode(bytes);
+  };
+
+  const readBinary = async (virtualPath) => {
+    const entry = resolveVirtualFile(virtualPath);
+    return entry.externalPath
+      ? fs.readFile(entry.externalPath)
+      : readRange(packagePath, entry.offset, entry.size);
+  };
+
+  return {
+    virtualFileMap,
+    readRange: readRangeFromVirtualFile,
+    streamRange,
+    readText,
+    readBinary,
+  };
+}
+
+async function addHashesToVirtualEntries(packagePath, virtualFiles, entries, hashAlgorithm) {
+  const readers = createNodeVirtualFileReaders(packagePath, virtualFiles);
+  const hashedEntries = [];
+  for (const entry of Array.isArray(entries) ? entries : []) {
+    const virtualPath = normalizePath(entry?.path);
+    if (!virtualPath) {
+      continue;
+    }
+    const descriptor = readers.virtualFileMap.get(virtualPath);
+    if (!descriptor) {
+      throw new Error(`node source runtime: missing virtual package asset "${virtualPath}" for hashing.`);
+    }
+    const hash = createHash(hashAlgorithm);
+    for await (const chunk of readers.streamRange(virtualPath, 0, descriptor.size)) {
+      hash.update(chunk);
+    }
+    hashedEntries.push({
+      ...entry,
+      path: virtualPath,
+      size: Number.isFinite(entry?.size) ? Math.max(0, Math.floor(Number(entry.size))) : descriptor.size,
+      hash: hash.digest('hex'),
+      hashAlgorithm,
+    });
+  }
+  return hashedEntries;
+}
+
+async function parseLiteRTPackageInput(packagePath, sourceKind) {
+  const stats = await getPathStats(packagePath, `LiteRT package (${sourceKind})`);
+  const resolved = await resolveLiteRTPackageParsedArtifact({
+    sourceKind,
+    sourcePathForModelId: packagePath,
+    source: {
+      name: path.basename(packagePath),
+      size: Number(stats.size),
+      async readRange(offset, length) {
+        return readRange(packagePath, offset, length);
+      },
+    },
+  });
+  const tokenizerAssets = await collectTokenizerAssets(path.dirname(packagePath));
+  const virtualFiles = appendLiteRTPackageVirtualFiles(
+    resolved.virtualFiles,
+    buildPackageTokenizerVirtualFiles(tokenizerAssets)
+  );
+  const parsedArtifact = applyPackageTokenizerAssets(resolved.parsedArtifact, tokenizerAssets);
+  return {
+    ...parsedArtifact,
+    sourceRoot: packagePath,
+    storageReaders: createNodeVirtualFileReaders(packagePath, virtualFiles),
+    async hashFileEntries(entries, hashAlgorithm) {
+      return addHashesToVirtualEntries(packagePath, virtualFiles, entries, hashAlgorithm);
+    },
   };
 }
 
@@ -526,15 +804,20 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
   let parsed = null;
   if (stats.isFile()) {
     if (isTflitePath(resolvedInputPath)) {
-      assertDirectSourceRuntimeSupportedKind(
-        SOURCE_ARTIFACT_KIND_TFLITE,
-        'node source runtime'
-      );
+      parsed = await parseTfliteInput(resolvedInputPath);
     }
-    if (!isGgufPath(resolvedInputPath)) {
+    if (!parsed && isLiteRTTaskPath(resolvedInputPath)) {
+      parsed = await parseLiteRTPackageInput(resolvedInputPath, LITERT_PACKAGE_SOURCE_KIND_TASK);
+    }
+    if (!parsed && isLiteRTLMPath(resolvedInputPath)) {
+      parsed = await parseLiteRTPackageInput(resolvedInputPath, LITERT_PACKAGE_SOURCE_KIND_LITERTLM);
+    }
+    if (!parsed && !isGgufPath(resolvedInputPath)) {
       return null;
     }
-    parsed = await parseGgufInput(resolvedInputPath);
+    if (!parsed) {
+      parsed = await parseGgufInput(resolvedInputPath);
+    }
   } else if (stats.isDirectory()) {
     if (await fileExists(path.join(resolvedInputPath, 'manifest.json'))) {
       return null;
@@ -559,9 +842,42 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
           .map((entry) => entry.name)
           .sort((left, right) => left.localeCompare(right));
         if (tfliteFiles.length === 1) {
-          assertDirectSourceRuntimeSupportedKind(
-            SOURCE_ARTIFACT_KIND_TFLITE,
-            'node source runtime'
+          parsed = await parseTfliteInput(path.join(resolvedInputPath, tfliteFiles[0]));
+        } else if (tfliteFiles.length > 1) {
+          throw new Error(
+            `node source runtime: multiple TFLite files found in "${resolvedInputPath}": ${tfliteFiles.join(', ')}.`
+          );
+        }
+      }
+      if (!parsed) {
+        const taskFiles = entries
+          .filter((entry) => entry.isFile() && isLiteRTTaskPath(entry.name))
+          .map((entry) => entry.name)
+          .sort((left, right) => left.localeCompare(right));
+        if (taskFiles.length === 1) {
+          parsed = await parseLiteRTPackageInput(
+            path.join(resolvedInputPath, taskFiles[0]),
+            LITERT_PACKAGE_SOURCE_KIND_TASK
+          );
+        } else if (taskFiles.length > 1) {
+          throw new Error(
+            `node source runtime: multiple LiteRT task files found in "${resolvedInputPath}": ${taskFiles.join(', ')}.`
+          );
+        }
+      }
+      if (!parsed) {
+        const litertLmFiles = entries
+          .filter((entry) => entry.isFile() && isLiteRTLMPath(entry.name))
+          .map((entry) => entry.name)
+          .sort((left, right) => left.localeCompare(right));
+        if (litertLmFiles.length === 1) {
+          parsed = await parseLiteRTPackageInput(
+            path.join(resolvedInputPath, litertLmFiles[0]),
+            LITERT_PACKAGE_SOURCE_KIND_LITERTLM
+          );
+        } else if (litertLmFiles.length > 1) {
+          throw new Error(
+            `node source runtime: multiple LiteRT-LM files found in "${resolvedInputPath}": ${litertLmFiles.join(', ')}.`
           );
         }
       }
@@ -578,7 +894,7 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
   const resolvedMemoryBudgetBytes = resolveResidentBudgetBytes(loadingConfig);
   assertSourceRuntimeFitsResidentBudget(parsed, loadingConfig, resolvedMemoryBudgetBytes);
   const {
-    manifest,
+    model,
     shardSources,
     sourceKind,
   } = await resolveSourceRuntimeBundleFromParsedArtifact({
@@ -586,15 +902,14 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
     requestedModelId: options.modelId || null,
     runtimeLabel: 'node source runtime',
     logCategory: 'NodeSourceRuntime',
-    quantization: {
-      computePrecision: resolveSourceRuntimeComputePrecision(parsed.tensors, parsed.sourceQuantization),
-    },
-    hashFileEntries: addHashesToFileEntries,
+    hashFileEntries: typeof parsed?.hashFileEntries === 'function'
+      ? (entries, hashAlgorithm) => parsed.hashFileEntries(entries, hashAlgorithm)
+      : addHashesToFileEntries,
   });
 
-  const readers = buildNodeFileReaders();
+  const readers = parsed?.storageReaders ?? buildNodeFileReaders();
   const storageContext = createSourceStorageContext({
-    manifest,
+    model,
     shardSources,
     readRange: readers.readRange,
     streamRange: readers.streamRange,
@@ -608,11 +923,12 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
 
   log.info(
     'NodeSourceRuntime',
-    `Source runtime ready: ${manifest.modelId} (${sourceKind}, ${parsed.tensors.length} tensors)`
+    `Source runtime ready: ${model.modelId} (${sourceKind}, ${parsed.tensors.length} tensors)`
   );
 
   return {
-    manifest,
+    model,
+    manifest: model,
     storageContext,
     sourceKind,
     sourceRoot: parsed.sourceRoot,

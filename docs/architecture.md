@@ -2,7 +2,13 @@
 
 ## Architecture Overview
 
-**Doppler** (Deterministic On-device Processing for Prefill, Learning, and Execution Runtime) is a standalone WebGPU-native ML runtime for forward inference, prefill, and backward/training paths in browser and Node environments.
+**Doppler** (Deterministic On-device Processing for Prefill, Learning, and Execution Runtime) is a standalone WebGPU-native ML runtime repo centered on forward inference and prefill in browser and Node environments.
+
+The repo also contains experimental and internal-only subsystem surfaces for
+training, distribution, hotswap, diffusion, energy, bridge integration, and
+direct-source adaptation. The canonical subsystem support contract is generated
+from `src/config/support-tiers/subsystems.json`; see
+[subsystem-support-matrix.md](subsystem-support-matrix.md).
 
 See also: [INDEX.md](INDEX.md)
 
@@ -198,6 +204,9 @@ policy layer (for example Reploid) with
 
 ## Module Structure
 
+Support tier is not implied by directory presence alone. Use the generated
+[Subsystem Support Matrix](subsystem-support-matrix.md) for the public contract.
+
 | Directory | Purpose |
 |-----------|---------|
 | `config/` | Schema, checked-in config assets, runtime config, manifest-first merge |
@@ -222,9 +231,14 @@ policy layer (for example Reploid) with
 See private wrapper docs for optional wrapper-level architecture notes.
 
 Direct-source artifact adaptation sits between `formats/` and the text runtime:
-- `src/tooling/source-artifact-adapter.js` normalizes raw-source kind handling, dtype policy, and synthetic-manifest bundle construction.
-- `src/storage/artifact-storage-context.js` owns file/HTTP artifact loading once a manifest contract exists.
-- Today the direct-source runtime path supports `safetensors` and `gguf`; `.tflite` is detected explicitly and fails closed until a dedicated adapter/runtime path exists.
+- `src/tooling/source-artifact-adapter.js` normalizes raw-source kind handling, dtype policy, and direct-source runtime-model construction.
+- `src/storage/artifact-storage-context.js` owns file/HTTP artifact loading once a runtime model contract exists.
+- Today the direct-source runtime path supports `safetensors`, `gguf`, `.tflite`, `.task`, and `.litertlm`.
+- This direct-source path is part of the experimental subsystem support tier rather than the tier1 quickstart contract.
+- Direct-source runtime planning uses source artifact facts as the storage truth. Converter-style quantization policy is only for actual RDRR conversion and is rejected on direct-source loads.
+- `.tflite` support is currently a weight-container path over the existing transformer runtime: Doppler reads constant tensors directly from the FlatBuffer file, accepts both inline buffer vectors and LiteRT-style external buffer `offset/size` fields, requires sibling `config.json` metadata, and emits explicit `tensor.sourceTransform` metadata when LiteRT weights are per-tensor affine `INT8`, `UINT8`, or `INT4`.
+- Some `.task` artifacts are raw TFLite FlatBuffers rather than ZIP bundles. Doppler detects that shape explicitly instead of assuming every `.task` file is a container archive.
+- Those quantized constants stay compact on disk and are dequantized at load time to `F16`; per-channel, packed LiteRT-LM companion-tensor quantization (for example `*.w` plus `*.w_quantized_scale` / `*.sum_i`), or otherwise unsupported LiteRT quantization still fails closed.
 
 ---
 
@@ -752,9 +766,9 @@ Custom model format optimized for browser streaming:
 
 Note: RDRR helpers are canonically exported from `src/formats/rdrr/index.js`.
 `src/storage/shard-manager.js` keeps a limited compatibility re-export (`getManifest`) for existing callers.
-Shared file/HTTP artifact loading for both `rdrr` and persisted direct-source manifests lives in
-`src/storage/artifact-storage-context.js`; manifest validation and tensor-map semantics still come
-from the format layer.
+Shared file/HTTP artifact loading for both `rdrr` and persisted direct-source artifacts lives in
+`src/storage/artifact-storage-context.js`; direct-source bundles enter the text runtime as
+runtime-model contracts rather than synthetic RDRR manifests.
 
 ```
 model-directory/

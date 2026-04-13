@@ -39,7 +39,14 @@ Notes:
 
 - Model ID suffixes are naming only; runtime policy is driven by manifest/runtime config.
 - Storage dtype changes always require re-conversion.
-- Direct-source runtime adaptation currently synthesizes manifests only for `safetensors` and `gguf`. `.tflite` is detected explicitly and must fail closed until it has its own adapter/runtime contract.
+- Direct-source runtime adaptation builds runtime-model contracts for `safetensors`, `gguf`, and `.tflite`.
+- Direct-source runtime planning is not conversion planning. It derives runtime model/session/execution state from source artifact facts plus source-runtime defaults, and it must reject converter-style quantization overrides.
+- `.tflite` direct-source adaptation requires sibling `config.json` metadata.
+- `.task` direct-source inputs may be either container archives or raw TFLite FlatBuffers. Runtime detection must classify the artifact explicitly and fail closed on unknown task packaging.
+- Float TFLite constants are loaded directly.
+- Quantized TFLite constants currently support per-tensor affine `INT8`, `UINT8`, and `INT4` source weights via explicit `tensor.sourceTransform` runtime-model metadata, dequantized at load time to `F16`.
+- LiteRT/TFLite external buffer `offset/size` tables are supported when the constant tensor contract is otherwise compatible.
+- Per-channel, packed LiteRT-LM companion-tensor quantization (for example `*.w` plus `*.w_quantized_scale` / `*.sum_i`), or otherwise unsupported LiteRT/TFLite quantization must fail closed.
 - Runtime overlay for execution is strict: only `runtime.inference.session` is accepted.
 - `session.perLayerInputs` is the contract surface for PLE runtime policy:
   - `materialization`: `auto | range_backed | cpu_resident | gpu_resident | gpu_split_tables`

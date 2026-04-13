@@ -12,5 +12,8 @@ export declare function initializeInferenceFromSourcePath(
   sourcePath: string,
   options?: Record<string, unknown>
 ): Promise<Record<string, unknown>>;
+export declare function resolveLocalSourceRuntimePathFromModelUrl(
+  modelUrl?: string | null
+): Promise<string | null>;
 export declare function resolveHarnessOverride(options?: Record<string, unknown>): Promise<Record<string, unknown>>;
 export declare function initializeSuiteModel(options?: Record<string, unknown>): Promise<Record<string, unknown>>;

@@ -31,6 +31,21 @@ function mergeExecutionV1Session(manifestSession, runtimeSession) {
   );
 }
 
+function hasOwnProperty(value, key) {
+  return value != null && Object.prototype.hasOwnProperty.call(value, key);
+}
+
+function resolveRuntimeInferenceOverrideSection(runtimeOverrides, key) {
+  const inferenceOverrides = runtimeOverrides?.inference;
+  if (!inferenceOverrides || typeof inferenceOverrides !== 'object' || Array.isArray(inferenceOverrides)) {
+    return null;
+  }
+  if (!hasOwnProperty(inferenceOverrides, key)) {
+    return null;
+  }
+  return inferenceOverrides[key] ?? null;
+}
+
 function applyExecutionV1RuntimeComputeOverrides(session, runtimeSession, runtimeCompute) {
   const activationOverrideRaw = runtimeCompute?.activationDtype;
   if (activationOverrideRaw == null) {
@@ -605,6 +620,7 @@ export function compileExecutionV1(options = {}) {
 // produce incorrect results.
 export function applyExecutionV1RuntimeConfig(options = {}) {
   const runtimeConfig = options.runtimeConfig ?? null;
+  const runtimeOverrides = options.runtimeOverrides;
   const manifest = options.manifest ?? null;
   if (!runtimeConfig || !manifest?.inference) {
     return { runtimeConfig, executionV1State: null };
@@ -628,8 +644,12 @@ export function applyExecutionV1RuntimeConfig(options = {}) {
     headDim: options.headDim ?? manifest.architecture?.headDim ?? null,
     capabilities: options.capabilities ?? null,
     platform: options.platform ?? null,
-    runtimeSession: runtimeConfig.inference?.session ?? null,
-    runtimeCompute: runtimeConfig.inference?.compute ?? null,
+    runtimeSession: hasOwnProperty(options, 'runtimeOverrides')
+      ? resolveRuntimeInferenceOverrideSection(runtimeOverrides, 'session')
+      : (runtimeConfig.inference?.session ?? null),
+    runtimeCompute: hasOwnProperty(options, 'runtimeOverrides')
+      ? resolveRuntimeInferenceOverrideSection(runtimeOverrides, 'compute')
+      : (runtimeConfig.inference?.compute ?? null),
     kernelPathPolicy: runtimeConfig.inference?.kernelPathPolicy ?? null,
   });
 

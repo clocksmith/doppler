@@ -97,6 +97,7 @@ export async function buildTensorLocations(manifest, options = {}) {
           spans: normalizeLocationSpans(info.spans, name, 'tensors.json'),
           layout: info.layout,
           originalShape: info.originalShape,
+          sourceTransform: info.sourceTransform,
         });
       }
       const resolvedSource = trace.find((entry) => entry.outcome === 'resolved')?.source ?? 'unknown';
@@ -136,6 +137,7 @@ export async function buildTensorLocations(manifest, options = {}) {
       spans: normalizeLocationSpans(tensorInfo.spans, name, 'manifest.tensors'),
       layout: tensorInfo.layout,
       originalShape: tensorInfo.originalShape,
+      sourceTransform: tensorInfo.sourceTransform,
     });
   }
   debugTrace.loader(`Tensor map: ${locations.size} tensors (inline)`);

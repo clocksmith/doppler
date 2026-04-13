@@ -36,7 +36,8 @@ export function runKernelWarmup(options: KernelWarmupOptions): Promise<void>;
 export function applyModelBatchingRuntimeDefaults(
   runtimeConfig: RuntimeConfigSchema,
   manifest: Manifest,
-  modelConfig: ParsedModelConfig | null | undefined
+  modelConfig: ParsedModelConfig | null | undefined,
+  runtimeOverrides?: Record<string, unknown> | null
 ): RuntimeConfigSchema;
 
 export function resolveKernelPathState(

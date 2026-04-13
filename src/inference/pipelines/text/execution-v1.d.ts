@@ -50,6 +50,7 @@ export declare function compileExecutionV1(options?: {
 
 export declare function applyExecutionV1RuntimeConfig(options?: {
   runtimeConfig: Record<string, unknown>;
+  runtimeOverrides?: Record<string, unknown> | null;
   manifest: {
     inference?: { schema?: string; execution?: ExecutionV1GraphSchema; session?: ExecutionV1SessionSchema };
     modelId?: string;
