@@ -293,7 +293,7 @@ try {
   );
   assert.equal(
     litertTaskBundle.manifest.tensors['model.language_model.layers.0.per_layer_input_gate.weight']?.role,
-    'other'
+    'matmul'
   );
   assert.ok(
     litertTaskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight'],
@@ -303,6 +303,10 @@ try {
     litertTaskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.rowSumSource ?? null,
     null,
     'LiteRT task per-layer embedding tables should keep the no-row-sum contract'
+  );
+  assert.equal(
+    litertTaskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.storageEncoding,
+    'signed'
   );
   const litertTaskTokenizer = await litertTaskBundle.storageContext.loadTokenizerJson();
   assert.equal(typeof litertTaskTokenizer, 'object');

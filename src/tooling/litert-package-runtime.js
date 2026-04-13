@@ -106,7 +106,12 @@ function computePackedByteSize(shape, sourceDtype, tensorName) {
   );
 }
 
-export function inferLiteRTRowwiseLayout(rawTensor, expectedShape, tensorName = rawTensor?.name ?? 'unknown') {
+export function inferLiteRTRowwiseLayout(
+  rawTensor,
+  expectedShape,
+  tensorName = rawTensor?.name ?? 'unknown',
+  options = {}
+) {
   const dtypeId = Number(rawTensor?.dtypeId);
   const candidates = [];
   if (dtypeId === 17) {
@@ -123,11 +128,12 @@ export function inferLiteRTRowwiseLayout(rawTensor, expectedShape, tensorName = 
 
   for (const sourceDtype of candidates) {
     if (rawTensor.size === computePackedByteSize(expectedShape, sourceDtype, tensorName)) {
+      const preferSignedPacked = options.preferSignedPacked === true;
       return {
         sourceDtype,
         storageEncoding: sourceDtype === 'INT8' || sourceDtype === 'UINT8'
           ? 'signed'
-          : 'offset_binary',
+          : (preferSignedPacked ? 'signed' : 'offset_binary'),
       };
     }
   }
@@ -263,8 +269,12 @@ function createLiteRTRowwiseTensor(
     );
   }
   const layout = resolvedShape
-    ? inferLiteRTRowwiseLayout(rawTensor, resolvedShape, canonicalName)
-    : inferLiteRTRowwiseLayout(rawTensor, [rowsFromScale, rawTensor.size / rowsFromScale], canonicalName);
+    ? inferLiteRTRowwiseLayout(rawTensor, resolvedShape, canonicalName, {
+      preferSignedPacked: !(sumTensor && typeof sumTensor === 'object'),
+    })
+    : inferLiteRTRowwiseLayout(rawTensor, [rowsFromScale, rawTensor.size / rowsFromScale], canonicalName, {
+      preferSignedPacked: !(sumTensor && typeof sumTensor === 'object'),
+    });
   const resolvedCols = resolvedShape ? cols : Math.floor(rawTensor.size / rowsFromScale);
   return {
     name: canonicalName,
@@ -357,7 +367,9 @@ function createLiteRTAxisTensor(
     );
   }
 
-  const layout = inferLiteRTRowwiseLayout(rawTensor, storageShape, canonicalName);
+  const layout = inferLiteRTRowwiseLayout(rawTensor, storageShape, canonicalName, {
+    preferSignedPacked: !(sumTensor && typeof sumTensor === 'object'),
+  });
   const expectedScaleCount = quantAxis === 0 ? storageCols : storageRows;
   const scaleCount = scaleTensor.size / 4;
   if (scaleCount !== expectedScaleCount || scaleCount !== logicalRows) {
@@ -604,7 +616,7 @@ function normalizeGemma4LiteRTTensors(parsedTFLite, sourcePath, runtimeProfile) 
     addAxisQuantized(
       `${rawLayerPrefix}.per_layer_embedding_gate.w`,
       `${canonicalLayerPrefix}.per_layer_input_gate.weight`,
-      'other',
+      'matmul',
       null,
       [hiddenSizePerLayerInput, hiddenSize],
       {

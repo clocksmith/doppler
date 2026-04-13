@@ -199,6 +199,13 @@ function resolveLayerScalarValue(layerScalar) {
   return value;
 }
 
+async function debugLayerTensor(context, layerIdx, label, tensor, numTokens, hiddenSize) {
+  if (!context.debugCheckBuffer) return;
+  if (!shouldDebugLayerOutput(layerIdx, context.debugLayers)) return;
+  if (!isGpuBufferInstance(tensor?.buffer)) return;
+  await context.debugCheckBuffer(tensor.buffer, `L${layerIdx} ${label} (GPU)`, numTokens, hiddenSize);
+}
+
 async function applyPerLayerInputBlock(layerIdx, hiddenTensor, numTokens, size, context, layerWeights) {
   const { config, weightConfig, debugFlags, recorder, decodeBuffers } = context;
   if (!hasPerLayerInputBlock(config)) {
@@ -244,6 +251,7 @@ async function applyPerLayerInputBlock(layerIdx, hiddenTensor, numTokens, size, 
       operatorDiagnostics: context.operatorDiagnostics,
       dtype: gateTensor.dtype,
     });
+    await debugLayerTensor(context, layerIdx, 'per-layer input gate', gateTensor, numTokens, hiddenSizePerLayerInput);
 
     const perLayerInputTensor = createPerLayerInputTensor(
       perLayerInputBuffer,
@@ -266,6 +274,7 @@ async function applyPerLayerInputBlock(layerIdx, hiddenTensor, numTokens, size, 
       operatorDiagnostics: context.operatorDiagnostics,
       dtype: activatedTensor.dtype,
     });
+    await debugLayerTensor(context, layerIdx, 'per-layer input activation', activatedTensor, numTokens, hiddenSizePerLayerInput);
     releaseOrTrack(recorder, gateTensor.buffer, decodeBuffers);
     gateTensor = null;
 
@@ -285,6 +294,7 @@ async function applyPerLayerInputBlock(layerIdx, hiddenTensor, numTokens, size, 
       operatorDiagnostics: context.operatorDiagnostics,
       dtype: projectedTensor.dtype,
     });
+    await debugLayerTensor(context, layerIdx, 'per-layer input projection', projectedTensor, numTokens, config.hiddenSize);
     releaseOrTrack(recorder, activatedTensor.buffer, decodeBuffers);
     activatedTensor = null;
 
@@ -310,6 +320,7 @@ async function applyPerLayerInputBlock(layerIdx, hiddenTensor, numTokens, size, 
       operatorDiagnostics: context.operatorDiagnostics,
       dtype: normalizedTensor.dtype,
     });
+    await debugLayerTensor(context, layerIdx, 'post per-layer input norm', normalizedTensor, numTokens, config.hiddenSize);
     if (!isGpuBufferInstance(layerWeights.postPerLayerInputNorm)) {
       releaseOrTrack(recorder, postNormWeight, decodeBuffers);
     }
@@ -346,6 +357,7 @@ async function applyPerLayerInputBlock(layerIdx, hiddenTensor, numTokens, size, 
       operatorDiagnostics: context.operatorDiagnostics,
       dtype: outputTensor.dtype,
     });
+    await debugLayerTensor(context, layerIdx, 'post per-layer input', outputTensor, numTokens, config.hiddenSize);
 
     return outputTensor;
   } catch (error) {
@@ -794,6 +806,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     );
     releaseOrTrack(recorder, outputTensor.buffer, context.decodeBuffers);
   }
+  await debugLayerTensor(context, layerIdx, 'final layer output', finalOutput, numTokens, hiddenSize);
 
   // Early-stop check for F16 NaN/Infinity bounds
   const computeConfig = context.runtimeComputeConfig ?? null;

@@ -4,6 +4,7 @@ import { createIdbStore } from '../../src/storage/backends/idb-store.js';
 import {
   loadModelRegistry,
   saveModelRegistry,
+  registerModel,
 } from '../../src/storage/registry.js';
 
 function createRequest() {
@@ -190,19 +191,18 @@ try {
     configurable: true,
   });
 
-  const saved = await saveModelRegistry({
-    models: [
-      {
-        modelId: 'registry-contract-model',
-        backend: 'indexeddb',
-      },
-    ],
+  const savedEntry = await registerModel({
+    modelId: 'registry-contract-model',
+    backend: 'indexeddb',
   });
-  assert.equal(saved.backend, 'indexeddb');
+  assert.equal(savedEntry.backend, 'indexeddb');
+  assert.equal(typeof savedEntry.savedAtUtc, 'string');
 
   const loaded = await loadModelRegistry();
   assert.equal(loaded.models.length, 1);
   assert.equal(loaded.models[0].modelId, 'registry-contract-model');
+  assert.equal(typeof loaded.models[0].savedAtUtc, 'string');
+  assert.match(loaded.models[0].savedAtUtc, /^\d{4}-\d{2}-\d{2}T/);
 
   const store = createIdbStore();
   await store.openModel('registry:models', { create: false });
@@ -213,6 +213,25 @@ try {
     () => loadModelRegistry(),
     /Expected property name|Unexpected token|JSON/
   );
+
+  const legacyStore = createIdbStore();
+  await legacyStore.openModel('registry:models', { create: true });
+  await legacyStore.writeFile(
+    'models.json',
+    new TextEncoder().encode(JSON.stringify({
+      models: [
+        {
+          modelId: 'legacy-created-at-only',
+          backend: 'indexeddb',
+          createdAt: '2026-04-13T00:00:00.000Z',
+        },
+      ],
+    }))
+  );
+  await legacyStore.cleanup();
+
+  const legacyLoaded = await loadModelRegistry();
+  assert.equal(legacyLoaded.models[0].savedAtUtc, '2026-04-13T00:00:00.000Z');
 } finally {
   if (originalIndexedDb === undefined) {
     delete globalThis.indexedDB;

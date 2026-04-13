@@ -25,6 +25,16 @@ assert.deepEqual(
   { sourceDtype: 'INT4', storageEncoding: 'offset_binary' }
 );
 
+assert.deepEqual(
+  inferLiteRTRowwiseLayout(
+    { dtypeId: 3, size: 8, name: 'uint8-packed-int4-signed' },
+    [2, 8],
+    'uint8-packed-int4-signed',
+    { preferSignedPacked: true }
+  ),
+  { sourceDtype: 'INT4', storageEncoding: 'signed' }
+);
+
 assert.throws(
   () => inferLiteRTRowwiseLayout({ dtypeId: 9, size: 3, name: 'bad-packed-layout' }, [2, 4]),
   /does not match any supported packed layout/i

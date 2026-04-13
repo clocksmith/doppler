@@ -94,6 +94,12 @@ export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, de
   const resolvedDebugLayers = debugLayers !== undefined
     ? debugLayers
     : state.runtimeConfig.shared.debug.pipeline.layers ?? null;
+  const resolvedDebugFlags = state.debugFlags == null
+    ? { debugLayers: resolvedDebugLayers }
+    : {
+      ...state.debugFlags,
+      debugLayers: resolvedDebugLayers,
+    };
 
   return {
     config,
@@ -112,7 +118,7 @@ export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, de
     linearAttentionRuntime: state.linearAttentionRuntime,
     convLayerStates: state.convLayerStates,
     weightConfig: getWeightBufferConfig(state),
-    debugFlags: state.debugFlags,
+    debugFlags: resolvedDebugFlags,
     debugProbes: state.runtimeConfig.shared.debug.probes,
     debugCheckBuffer: debugCheckBufferFn,
     perLayerInputBuffer: null,

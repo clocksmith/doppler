@@ -215,7 +215,7 @@ function toUint8Array(data) {
   return null;
 }
 
-async function loadPerLayerProjectionReferenceQ4K(ctx, name, location, layerIdx) {
+async function loadPleReferenceQ4K(ctx, name, location, layerIdx, label) {
   if (!location || !isQ4KLocationDtype(String(location.dtype ?? '').toUpperCase())) {
     return null;
   }
@@ -244,14 +244,22 @@ async function loadPerLayerProjectionReferenceQ4K(ctx, name, location, layerIdx)
   ctx.gpuBuffers.add(buffer);
 
   debugTrace.loader(
-    `Layer ${layerIdx}: loaded perLayerProjection via CPU reference q4k dequant`
+    `Layer ${layerIdx}: loaded ${label} via CPU reference q4k dequant`
   );
 
   return createWeightBuffer(buffer, 'f32', location.layout ?? 'row', shape, name);
 }
 
-async function stabilizePerLayerProjectionWeight(ctx, weights, layerIdx) {
-  const originalWeight = weights.perLayerProjection;
+async function loadPerLayerProjectionReferenceQ4K(ctx, name, location, layerIdx) {
+  return loadPleReferenceQ4K(ctx, name, location, layerIdx, 'perLayerProjection');
+}
+
+async function loadPerLayerInputGateReferenceQ4K(ctx, name, location, layerIdx) {
+  return loadPleReferenceQ4K(ctx, name, location, layerIdx, 'perLayerInputGate');
+}
+
+async function stabilizePleWeight(ctx, weights, key, layerIdx, label) {
+  const originalWeight = weights[key];
   if (!isWeightBuffer(originalWeight)) {
     return;
   }
@@ -280,12 +288,12 @@ async function stabilizePerLayerProjectionWeight(ctx, weights, layerIdx) {
   );
   ctx.gpuBuffers.add(f32Tensor.buffer);
 
-  weights.perLayerProjection = createWeightBuffer(
+  weights[key] = createWeightBuffer(
     f32Tensor.buffer,
     'f32',
     denseWeight.layout ?? originalWeight.layout,
     denseShape,
-    denseWeight.label ?? `layer_${layerIdx}_per_layer_projection_f32`,
+    denseWeight.label ?? `layer_${layerIdx}_${label}_f32`,
     {
       ...(cloneWeightMaterializations(originalWeight, ['f32']) ?? {}),
       f16: {
@@ -296,8 +304,16 @@ async function stabilizePerLayerProjectionWeight(ctx, weights, layerIdx) {
   );
 
   debugTrace.loader(
-    `Layer ${layerIdx}: promoted perLayerProjection to f32 for stable per-layer input projection`
+    `Layer ${layerIdx}: promoted ${label} to f32 for stable per-layer input execution`
   );
+}
+
+async function stabilizePerLayerProjectionWeight(ctx, weights, layerIdx) {
+  await stabilizePleWeight(ctx, weights, 'perLayerProjection', layerIdx, 'per_layer_projection');
+}
+
+async function stabilizePerLayerInputGateWeight(ctx, weights, layerIdx) {
+  await stabilizePleWeight(ctx, weights, 'perLayerInputGate', layerIdx, 'per_layer_input_gate');
 }
 
 // ============================================================================
@@ -534,12 +550,12 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
 
 async function loadFfnWeights(ctx, weights, layerIdx, tryLoad, prefixes) {
   const perLayerProjection = await loadStablePerLayerProjection(ctx, layerIdx, prefixes, tryLoad);
-  const [ffnGateUp, ffnGate, ffnUp, ffnDown, perLayerInputGate] = await Promise.all([
+  const stablePerLayerInputGate = await loadStablePerLayerInputGate(ctx, layerIdx, prefixes, tryLoad);
+  const [ffnGateUp, ffnGate, ffnUp, ffnDown] = await Promise.all([
     tryLoad(FFN_SUFFIXES.ffnGateUp),
     tryLoad(FFN_SUFFIXES.ffnGate),
     tryLoad(FFN_SUFFIXES.ffnUp),
     tryLoad(FFN_SUFFIXES.ffnDown),
-    tryLoad(FFN_SUFFIXES.perLayerInputGate),
   ]);
 
   if (ffnGateUp) {
@@ -553,7 +569,7 @@ async function loadFfnWeights(ctx, weights, layerIdx, tryLoad, prefixes) {
   }
 
   weights.ffnDown = ffnDown;
-  weights.perLayerInputGate = perLayerInputGate;
+  weights.perLayerInputGate = stablePerLayerInputGate;
   weights.perLayerProjection = perLayerProjection;
 
   weights.gate = weights.ffnGate;
@@ -574,6 +590,20 @@ async function loadStablePerLayerProjection(ctx, layerIdx, prefixes, tryLoad) {
     }
   }
   return tryLoad(FFN_SUFFIXES.perLayerProjection);
+}
+
+async function loadStablePerLayerInputGate(ctx, layerIdx, prefixes, tryLoad) {
+  for (const prefix of prefixes) {
+    const name = `${prefix}.${FFN_SUFFIXES.perLayerInputGate[0]}`;
+    const location = ctx.tensorLocations.get(name) ?? null;
+    if (location) {
+      const referenceWeight = await loadPerLayerInputGateReferenceQ4K(ctx, name, location, layerIdx);
+      if (referenceWeight) {
+        return referenceWeight;
+      }
+    }
+  }
+  return tryLoad(FFN_SUFFIXES.perLayerInputGate);
 }
 
 
@@ -607,6 +637,7 @@ async function downcastLayerWeights(ctx, weights, layerIdx) {
   );
 
   await dequantConvQ4KWeights(ctx, weights, layerIdx);
+  await stabilizePerLayerInputGateWeight(ctx, weights, layerIdx);
   await stabilizePerLayerProjectionWeight(ctx, weights, layerIdx);
 }
 

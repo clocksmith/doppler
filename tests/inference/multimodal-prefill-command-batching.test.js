@@ -75,4 +75,24 @@ import { shouldDisablePrefillCommandBatching } from '../../src/inference/pipelin
   );
 }
 
+{
+  const disabled = shouldDisablePrefillCommandBatching(
+    {
+      kvCache: {
+        hasGPUCache: () => true,
+      },
+    },
+    {
+      debugLayers: [0, 1],
+    },
+    null
+  );
+
+  assert.equal(
+    disabled,
+    true,
+    'layer-targeted debug prefill must bypass command batching so buffer checks read committed outputs'
+  );
+}
+
 console.log('multimodal-prefill-command-batching.test: ok');

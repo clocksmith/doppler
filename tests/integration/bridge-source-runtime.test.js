@@ -255,10 +255,18 @@ assert.equal(
   taskBundle.manifest.tensors['model.language_model.layers.0.per_layer_projection.weight']?.sourceTransform?.quantAxis,
   0
 );
+assert.equal(
+  taskBundle.manifest.tensors['model.language_model.layers.0.per_layer_input_gate.weight']?.role,
+  'matmul'
+);
 assert.ok(taskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']);
 assert.equal(
   taskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.rowSumSource ?? null,
   null
+);
+assert.equal(
+  taskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.storageEncoding,
+  'signed'
 );
 const taskTokenizer = await taskBundle.storageContext.loadTokenizerJson();
 assert.equal(typeof taskTokenizer, 'object');

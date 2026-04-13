@@ -1,8 +1,7 @@
 import {
-  runBrowserSuite,
   applyRuntimeProfile,
   applyRuntimeConfigFromUrl,
-} from '../inference/browser-harness.js';
+} from '../inference/browser-harness-runtime-helpers.js';
 import {
   getRuntimeConfig,
   setRuntimeConfig,
@@ -28,6 +27,13 @@ import {
   getActiveKernelPathSource,
   setActiveKernelPath,
 } from '../config/kernel-path-loader.js';
+
+let browserHarnessModulePromise = null;
+
+async function loadBrowserHarnessModule() {
+  browserHarnessModulePromise ??= import('../inference/browser-harness.js');
+  return browserHarnessModulePromise;
+}
 
 export async function runBrowserCommand(commandRequest, options = {}) {
   assertCommandRequestIsObject(commandRequest, 'browser');
@@ -63,6 +69,7 @@ export async function runBrowserCommand(commandRequest, options = {}) {
     };
 
     const result = await runWithRuntimeIsolation(runtimeBridge, async () => {
+      const { runBrowserSuite } = await loadBrowserHarnessModule();
       await applyRuntimeInputs(request, runtimeBridge, validatedOptions.runtimeLoadOptions || {});
       return runBrowserSuite(buildSuiteOptions(request, 'browser'));
     });

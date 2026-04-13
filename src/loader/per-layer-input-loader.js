@@ -9,6 +9,9 @@ import {
 import { log } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { loadTensorRange } from './tensors/tensor-reader.js';
+import { acquireBuffer, releaseBuffer, uploadData } from '../memory/buffer-pool.js';
+import { QK_K, Q4K_BLOCK_BYTES } from './quantization-constants.js';
+import { dequantizeQ4KM, dequantizeQ4KMRowWise } from '../converter/quantizer.js';
 
 const EMBED_TENSOR_CANDIDATES = [
   'model.language_model.embed_tokens_per_layer.weight',
@@ -89,6 +92,59 @@ function createRangeBackedWeightBuffer(ctx, name, location) {
     locationDtype: location.dtype,
   });
   return createCpuWeightBuffer(source, dtype, layout, location.shape, name);
+}
+
+function isQ4KLocationDtype(dtype) {
+  return dtype === 'Q4_K_M' || dtype === 'Q4_K';
+}
+
+function toUint8Array(data) {
+  if (data instanceof Uint8Array) {
+    return data;
+  }
+  if (ArrayBuffer.isView(data)) {
+    return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+  }
+  if (data instanceof ArrayBuffer) {
+    return new Uint8Array(data);
+  }
+  return null;
+}
+
+async function loadStablePerLayerModelProjection(ctx, name, location) {
+  if (!location || !isQ4KLocationDtype(String(location.dtype ?? '').toUpperCase())) {
+    return null;
+  }
+  const shape = Array.isArray(location.shape) ? location.shape : null;
+  if (!shape || shape.length !== 2) {
+    return null;
+  }
+
+  const quantizedBytes = toUint8Array(await ctx.loadTensor(name, false, true));
+  if (!quantizedBytes) {
+    return null;
+  }
+
+  const rows = Number(shape[0]);
+  const cols = Number(shape[1]);
+  if (!Number.isFinite(rows) || rows <= 0 || !Number.isFinite(cols) || cols <= 0) {
+    return null;
+  }
+
+  const f32Weights = cols % QK_K === 0
+    ? dequantizeQ4KM(quantizedBytes, Math.ceil(location.size / Q4K_BLOCK_BYTES), shape)
+    : dequantizeQ4KMRowWise(quantizedBytes, shape);
+
+  const buffer = acquireBuffer(f32Weights.byteLength, undefined, `${name}_f32_reference`);
+  try {
+    uploadData(buffer, f32Weights);
+  } catch (error) {
+    releaseBuffer(buffer);
+    throw error;
+  }
+  ctx.gpuBuffers?.add?.(buffer);
+
+  return createWeightBuffer(buffer, 'f32', ctx.resolveWeightLayout(location), shape, name);
 }
 
 function getExpectedTensorLogicalByteLength(location) {
@@ -313,6 +369,19 @@ async function loadNamedTensor(ctx, name, label, options = {}) {
       `Manifest "${ctx.modelId ?? 'unknown'}" requires range-backed per-layer input projection for ${name}, ` +
       'but shard range loading is unavailable.'
     );
+  }
+  if (label === 'perLayerModelProjection') {
+    const stabilizedTensor = await loadStablePerLayerModelProjection(ctx, name, location);
+    if (stabilizedTensor) {
+      log.info(
+        'Loader',
+        `Per-layer input tensor loaded: ${label} <- ${name} (reference q4k -> f32)`
+      );
+      return {
+        name,
+        tensor: stabilizedTensor,
+      };
+    }
   }
   let tensor = await ctx.loadTensor(name, !shouldStream, true);
   if (!tensor) {

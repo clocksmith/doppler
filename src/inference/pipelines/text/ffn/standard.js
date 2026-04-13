@@ -8,6 +8,14 @@ import { runDenseFFNGPU } from './dense.js';
 import { runMoEFFNGPU } from './moe.js';
 import { acquireBuffer } from '../../../../memory/buffer-pool.js';
 import { isGpuBufferInstance, isWeightBuffer } from '../../../../gpu/weight-buffer.js';
+import { shouldDebugLayerOutput } from '../debug-utils/index.js';
+
+async function debugFFNBuffer(context, layerIdx, label, tensor, numTokens, hiddenSize) {
+  if (!context.debugCheckBuffer) return;
+  if (!isGpuBufferInstance(tensor?.buffer)) return;
+  if (!shouldDebugLayerOutput(layerIdx, context.debugLayers)) return;
+  await context.debugCheckBuffer(tensor.buffer, `L${layerIdx} ${label} (GPU)`, numTokens, hiddenSize);
+}
 
 
 export async function processFFNStandard(
@@ -66,6 +74,7 @@ export async function processFFNStandard(
     operatorDiagnostics: context.operatorDiagnostics,
     dtype: normedTensor.dtype,
   });
+  await debugFFNBuffer(context, layerIdx, 'FFN input', normedTensor, numTokens, hiddenSize);
 
   // 2. FFN
 
@@ -84,6 +93,7 @@ export async function processFFNStandard(
     operatorDiagnostics: context.operatorDiagnostics,
     dtype: ffnOutput.dtype,
   });
+  await debugFFNBuffer(context, layerIdx, 'FFN output', ffnOutput, numTokens, hiddenSize);
 
   // 3. Residual add (uses prenorm sum when fused, otherwise postAttn)
   const residualTensor = prenormSumBuffer
@@ -109,6 +119,7 @@ export async function processFFNStandard(
     operatorDiagnostics: context.operatorDiagnostics,
     dtype: output.dtype,
   });
+  await debugFFNBuffer(context, layerIdx, 'layer output', output, numTokens, hiddenSize);
 
   if (normedTensor !== postAttn) {
     releaseOrTrack(recorder, normedTensor.buffer, decodeBuffers);

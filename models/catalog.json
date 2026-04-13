@@ -428,65 +428,6 @@
       }
     },
     {
-      "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
-      "family": "lfm2",
-      "label": "LFM 2.5 1.2B Instruct (Q4K/F32a)",
-      "description": "LiquidAI LFM 2.5 1.2B Instruct. Q4K weights, F16 embeddings/head, F32 accumulation. Hybrid conv/attention architecture.",
-      "modes": [
-        "text"
-      ],
-      "aliases": [
-        "lfm2-1.2b",
-        "lfm2.5-1.2b",
-        "LiquidAI/LFM2.5-1.2B-Instruct"
-      ],
-      "artifact": {
-        "format": "rdrr"
-      },
-      "hf": {
-        "repoId": "Clocksmith/rdrr",
-        "path": "models/lfm2-5-1-2b-instruct-q4k-ehf16-af32",
-        "revision": "f242e44c9a35e72186aa61e4cc0c9873f0596741"
-      },
-      "baseUrl": null,
-      "quickstart": false,
-      "sizeBytes": 853544061,
-      "recommended": false,
-      "sortOrder": 30,
-      "lifecycle": {
-        "availability": {
-          "curated": false,
-          "local": true,
-          "hf": true
-        },
-        "status": {
-          "runtime": "active",
-          "conversion": "ready",
-          "demo": "none",
-          "tested": "verified"
-        },
-        "tested": {
-          "suite": "inference",
-          "surface": [
-            "node"
-          ],
-          "result": "pass",
-          "lastVerifiedAt": "2026-03-20",
-          "source": "runtime-verify",
-          "notes": "Node/WebGPU on AMD RDNA-3 re-verified on 2026-03-20 after the ChatML fix and refreshed manifest sync. One-word sky-color prompts are stable ('Blue'), but short open-ended factual prompts remain prompt-sensitive and weaker than Gemma/Qwen. Runtime path is coherent; the refreshed manifest now includes tokenizer BOS/EOS/PAD IDs and decodeLoop=null.",
-          "contracts": {
-            "executionContractOk": true
-          }
-        }
-      },
-      "vendorBenchmark": {
-        "transformersjs": {
-          "repoId": "LiquidAI/LFM2.5-1.2B-Instruct-ONNX",
-          "dtype": "q4f16"
-        }
-      }
-    },
-    {
       "modelId": "sana-sprint-0-6b-wf16-ef16-hf16-f16",
       "family": "sana",
       "label": "Sana Sprint 0.6B (F16)",

@@ -7,11 +7,30 @@ import { getStorageBackendType } from './shard-manager.js';
 const REGISTRY_FILENAME = 'models.json';
 const REGISTRY_MODEL_ID = 'registry:models';
 
+function normalizeRegistryEntry(entry) {
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+    return null;
+  }
+  const createdAt = typeof entry.createdAt === 'string' && entry.createdAt.trim()
+    ? entry.createdAt
+    : null;
+  const savedAtUtc = typeof entry.savedAtUtc === 'string' && entry.savedAtUtc.trim()
+    ? entry.savedAtUtc
+    : createdAt;
+  return {
+    ...entry,
+    ...(createdAt ? { createdAt } : {}),
+    ...(savedAtUtc ? { savedAtUtc } : {}),
+  };
+}
+
 function normalizeRegistry(registry) {
   if (!registry || typeof registry !== 'object' || Array.isArray(registry)) {
     return { models: [] };
   }
-  const models = Array.isArray(registry.models) ? registry.models : [];
+  const models = Array.isArray(registry.models)
+    ? registry.models.map((entry) => normalizeRegistryEntry(entry)).filter(Boolean)
+    : [];
   return { models };
 }
 
@@ -103,15 +122,18 @@ export async function registerModel(entry) {
   const registry = await loadModelRegistry();
   const now = new Date().toISOString();
   const backend = entry.backend ?? getStorageBackendType() ?? 'unknown';
+  const models = registry.models || [];
+  const index = models.findIndex((model) => model.modelId === entry.modelId);
+  const previous = index >= 0 ? models[index] : null;
 
   const next = {
+    ...(previous || {}),
     ...entry,
-    createdAt: entry.createdAt ?? now,
+    createdAt: entry.createdAt ?? previous?.createdAt ?? now,
+    savedAtUtc: entry.savedAtUtc ?? now,
     backend,
   };
 
-  const models = registry.models || [];
-  const index = models.findIndex((model) => model.modelId === entry.modelId);
   if (index >= 0) {
     models[index] = next;
   } else {

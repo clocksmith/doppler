@@ -28,9 +28,14 @@
   margin-bottom: 2px;
 }
 
-/* Panels */
+/* Panels
+   The live demo mounts X-Ray sections under `.xray-area` and `#xray-container`.
+   Keep the palette and sizing vars on those real containers so the bars and
+   stacked segments render even if no `.xray-panel` wrapper exists.
+*/
 
-.xray-panel {
+.xray-area,
+#xray-container {
   --xray-bar-height: 16px;
   --xray-bar-radius: 3px;
   --xray-gap: var(--space-xs, 4px);
@@ -50,6 +55,9 @@
   --xray-gray-soft: #94a3b8;
   --xray-surface: color-mix(in srgb, var(--bg, #111) 88%, white 12%);
   --xray-surface-soft: color-mix(in srgb, var(--bg, #111) 92%, white 8%);
+}
+
+#xray-container {
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;

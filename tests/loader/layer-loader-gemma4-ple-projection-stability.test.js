@@ -55,8 +55,16 @@ const values = [
   -1.25, 0.5,
   0.125, -0.875,
 ];
+const gateValues = [
+  -0.75, 0.5,
+  1.25, -1.0,
+  0.375, 0.625,
+  -0.25, 0.875,
+];
 const denseF16Buffer = makeF16Buffer(values, 'ple_projection_f16');
 const packedQ4KBuffer = makeQ4KBuffer(values, shape, 'ple_projection_q4k');
+const denseGateF16Buffer = makeF16Buffer(gateValues, 'ple_gate_f16');
+const packedGateQ4KBuffer = makeQ4KBuffer(gateValues, shape, 'ple_gate_q4k');
 const perLayerProjection = createWeightBuffer(
   denseF16Buffer,
   'f16',
@@ -70,8 +78,22 @@ const perLayerProjection = createWeightBuffer(
     },
   }
 );
+const perLayerInputGate = createWeightBuffer(
+  denseGateF16Buffer,
+  'f16',
+  'row',
+  shape,
+  'per_layer_input_gate',
+  {
+    q4k: {
+      buffer: packedGateQ4KBuffer,
+      layout: 'row',
+    },
+  }
+);
 
 const tensors = new Map([
+  ['model.layers.0.per_layer_input_gate.weight', perLayerInputGate],
   ['model.layers.0.per_layer_projection.weight', perLayerProjection],
 ]);
 const gpuBuffers = new Set();
@@ -108,10 +130,33 @@ try {
     packedQ4KBuffer,
     'Gemma 4 per-layer projection should retain the original q4k materialization'
   );
+  assert.ok(isWeightBuffer(layerWeights.perLayerInputGate));
+  assert.equal(
+    layerWeights.perLayerInputGate.dtype,
+    'f32',
+    'Gemma 4 per-layer input gate should promote to a stable f32 base materialization'
+  );
+  assert.notEqual(
+    layerWeights.perLayerInputGate.buffer,
+    denseGateF16Buffer,
+    'Gemma 4 per-layer input gate f32 base should be a new promoted GPU buffer'
+  );
+  assert.equal(
+    layerWeights.perLayerInputGate.materializations?.f16?.buffer,
+    denseGateF16Buffer,
+    'Gemma 4 per-layer input gate should retain the original dense f16 materialization'
+  );
+  assert.equal(
+    layerWeights.perLayerInputGate.materializations?.q4k?.buffer,
+    packedGateQ4KBuffer,
+    'Gemma 4 per-layer input gate should retain the original q4k materialization'
+  );
 } finally {
   releaseTrackedBuffers([
     denseF16Buffer,
     packedQ4KBuffer,
+    denseGateF16Buffer,
+    packedGateQ4KBuffer,
     ...gpuBuffers,
   ]);
 }
@@ -126,6 +171,13 @@ const referenceGpuBuffers = new Set();
 try {
   const referenceLayerWeights = await loadLayer({
     tensorLocations: new Map([
+      ['model.layers.0.per_layer_input_gate.weight', {
+        shape: referenceShape,
+        dtype: 'Q4_K_M',
+        role: 'other',
+        layout: 'row',
+        size: referenceQuantized.byteLength,
+      }],
       ['model.layers.0.per_layer_projection.weight', {
         shape: referenceShape,
         dtype: 'Q4_K_M',
@@ -135,13 +187,13 @@ try {
       }],
     ]),
     async loadTensor(name, toGPU) {
-      if (name !== 'model.layers.0.per_layer_projection.weight') {
+      if (name !== 'model.layers.0.per_layer_projection.weight' && name !== 'model.layers.0.per_layer_input_gate.weight') {
         return null;
       }
       if (toGPU === false) {
         return referenceQuantized;
       }
-      throw new Error('reference path should prefer CPU q4k bytes for per_layer_projection');
+      throw new Error('reference path should prefer CPU q4k bytes for per_layer_input_gate/per_layer_projection');
     },
     needsNormWeightOffset: () => false,
     gpuBuffers: referenceGpuBuffers,
@@ -160,6 +212,17 @@ try {
     referenceLayerWeights.perLayerProjection.buffer.size,
     referenceValues.byteLength,
     'Gemma 4 q4k per-layer projection reference path should upload a dense f32 buffer'
+  );
+  assert.ok(isWeightBuffer(referenceLayerWeights.perLayerInputGate));
+  assert.equal(
+    referenceLayerWeights.perLayerInputGate.dtype,
+    'f32',
+    'Gemma 4 q4k per-layer input gate should use CPU reference dequant before runtime matmul'
+  );
+  assert.equal(
+    referenceLayerWeights.perLayerInputGate.buffer.size,
+    referenceValues.byteLength,
+    'Gemma 4 q4k per-layer input gate reference path should upload a dense f32 buffer'
   );
 } finally {
   releaseTrackedBuffers(referenceGpuBuffers);

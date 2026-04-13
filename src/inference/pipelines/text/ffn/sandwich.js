@@ -4,12 +4,20 @@ import { doRMSNorm, doResidualAdd, releaseOrTrack } from '../ops.js';
 import { getLayout, getWeightDtype, isCpuWeightBuffer, isGpuBufferInstance, isWeightBuffer } from '../../../../gpu/weight-buffer.js';
 import { trace } from '../../../../debug/index.js';
 import { isKernelDebugEnabled, dumpTokenVector, logFFN, getBufferStats } from '../debug-utils.js';
+import { shouldDebugLayerOutput } from '../debug-utils/index.js';
 import { getNormWeightBuffer } from '../weights.js';
 import { runProbes } from '../probes.js';
 import { isMoELayerLocal, hasLoggedFusedDownNorm, setLoggedFusedDownNorm } from './types.js';
 import { runDenseFFNGPU, runDenseFFNWithFusedPostNormGPU } from './dense.js';
 import { runMoEFFNGPU } from './moe.js';
 import { resolveLayerIntermediateSize } from '../config.js';
+
+async function debugFFNBuffer(context, layerIdx, label, tensor, numTokens, hiddenSize) {
+  if (!context.debugCheckBuffer) return;
+  if (!isGpuBufferInstance(tensor?.buffer)) return;
+  if (!shouldDebugLayerOutput(layerIdx, context.debugLayers)) return;
+  await context.debugCheckBuffer(tensor.buffer, `L${layerIdx} ${label} (GPU)`, numTokens, hiddenSize);
+}
 
 
 export async function processFFNWithSandwichNorm(
@@ -54,6 +62,7 @@ export async function processFFNWithSandwichNorm(
     operatorDiagnostics: context.operatorDiagnostics,
     dtype: ffnInput.dtype,
   });
+  await debugFFNBuffer(context, layerIdx, 'FFN input', ffnInput, numTokens, hiddenSize);
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
     await dumpTokenVector(ffnInput.buffer, 'pre_ffn_norm_out', {
@@ -127,6 +136,7 @@ export async function processFFNWithSandwichNorm(
     operatorDiagnostics: context.operatorDiagnostics,
     dtype: ffnOutput.dtype,
   });
+  await debugFFNBuffer(context, layerIdx, 'FFN output', ffnOutput, numTokens, hiddenSize);
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
     await dumpTokenVector(ffnOutput.buffer, 'ffn_out', {
@@ -185,6 +195,7 @@ export async function processFFNWithSandwichNorm(
     operatorDiagnostics: context.operatorDiagnostics,
     dtype: output.dtype,
   });
+  await debugFFNBuffer(context, layerIdx, 'layer output', output, numTokens, hiddenSize);
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
     await dumpTokenVector(output.buffer, 'layer_out', {

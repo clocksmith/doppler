@@ -466,7 +466,11 @@ function usesReplayPrefillDecode(state) {
 }
 
 export function shouldDisablePrefillCommandBatching(state, opts, multimodalBidirectionalSpan) {
-  if (opts?.disableCommandBatching === true || opts?.debug === true) {
+  if (
+    opts?.disableCommandBatching === true
+    || opts?.debug === true
+    || (Array.isArray(opts?.debugLayers) && opts.debugLayers.length > 0)
+  ) {
     return true;
   }
   if (state?.kvCache?.layout === 'bdpa_paged') {

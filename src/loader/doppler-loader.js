@@ -943,6 +943,7 @@ export class DopplerLoader {
     this.perLayerInputWeights = await loadPerLayerInputWeights({
       modelId: this.manifest?.modelId ?? null,
       tensorLocations: this.tensorLocations,
+      gpuBuffers: this.gpuBuffers,
       loadTensor: (name, toGPU, silent) => this.#loadTensor(name, toGPU, silent),
       shouldStreamLargeWeight: (name, loc, label) => this.#shouldStreamLargeWeight(name, loc, label),
       loadShardRange: (index, offset, length) => this.shardCache.loadRange(index, offset, length),

@@ -50,12 +50,13 @@ export { initDevice, getDevice, getKernelCapabilities, getPlatformConfig, isWebG
 export { captureMemorySnapshot } from './loader/memory-monitor.js';
 export { destroyBufferPool } from './memory/buffer-pool.js';
 
-// Diagnostics harness
+// Browser-safe runtime profile helpers
 export {
+  loadRuntimeConfigFromUrl,
+  applyRuntimeConfigFromUrl,
   loadRuntimeProfile,
   applyRuntimeProfile,
-  runBrowserSuite,
-} from './inference/browser-harness.js';
+} from './inference/browser-harness-runtime-helpers.js';
 
 // Shared command contract (browser + CLI parity)
 export {

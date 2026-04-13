@@ -2,6 +2,91 @@ import assert from 'node:assert/strict';
 
 import { loadPerLayerInputWeights } from '../../src/loader/per-layer-input-loader.js';
 import { isCpuWeightBuffer } from '../../src/gpu/weight-buffer.js';
+import { setDevice } from '../../src/gpu/device.js';
+import { destroyBufferPool, getBufferPool } from '../../src/memory/buffer-pool.js';
+
+globalThis.GPUBufferUsage ??= {
+  MAP_READ: 0x0001,
+  MAP_WRITE: 0x0002,
+  COPY_SRC: 0x0004,
+  COPY_DST: 0x0008,
+  INDEX: 0x0010,
+  VERTEX: 0x0020,
+  UNIFORM: 0x0040,
+  STORAGE: 0x0080,
+  INDIRECT: 0x0100,
+  QUERY_RESOLVE: 0x0200,
+};
+
+class FakeBuffer {
+  constructor({ size, usage, label = '' }) {
+    this.size = size;
+    this.usage = usage;
+    this.label = label;
+    this.destroyed = false;
+    this._arrayBuffer = new ArrayBuffer(size);
+  }
+
+  destroy() {
+    this.destroyed = true;
+  }
+}
+
+function writeBytes(targetBuffer, offset, data) {
+  const source = data instanceof ArrayBuffer
+    ? new Uint8Array(data)
+    : new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+  new Uint8Array(targetBuffer._arrayBuffer, offset, source.byteLength).set(source);
+}
+
+function createFakeDevice() {
+  return {
+    lost: new Promise(() => {}),
+    queue: {
+      submit() {},
+      writeBuffer(buffer, offset, data) {
+        writeBytes(buffer, offset, data);
+      },
+      onSubmittedWorkDone() {
+        return Promise.resolve();
+      },
+    },
+    features: new Set(),
+    limits: {
+      maxStorageBufferBindingSize: 1 << 20,
+      maxBufferSize: 1 << 20,
+      maxComputeWorkgroupSizeX: 256,
+      maxComputeWorkgroupSizeY: 1,
+      maxComputeWorkgroupSizeZ: 1,
+      maxComputeInvocationsPerWorkgroup: 256,
+      maxComputeWorkgroupStorageSize: 16384,
+      maxStorageBuffersPerShaderStage: 8,
+      maxUniformBufferBindingSize: 65536,
+      maxComputeWorkgroupsPerDimension: 65535,
+      minStorageBufferOffsetAlignment: 16,
+    },
+    createBuffer({ size, usage, label }) {
+      return new FakeBuffer({ size, usage, label });
+    },
+    createBindGroup() {
+      return {};
+    },
+    createShaderModule() {
+      return {};
+    },
+    createCommandEncoder() {
+      return {
+        finish() {
+          return {};
+        },
+      };
+    },
+  };
+}
+
+destroyBufferPool();
+setDevice(createFakeDevice(), { platformConfig: null });
+getBufferPool().configure({ enablePooling: false });
 
 const embedName = 'model.language_model.embed_tokens_per_layer.weight';
 const projectionName = 'model.language_model.per_layer_model_projection.weight';
@@ -59,11 +144,14 @@ const weights = await loadPerLayerInputWeights({
 });
 
 assert.ok(weights, 'per-layer input weights should load');
-assert.deepEqual(loadCalls, [
-  [projectionName, true],
-  [projectionNormName, true],
-  [embedName, false],
-]);
+assert.deepEqual(
+  [...loadCalls].sort(([nameA], [nameB]) => nameA.localeCompare(nameB)),
+  [
+    [embedName, false],
+    [projectionName, true],
+    [projectionNormName, true],
+  ].sort(([nameA], [nameB]) => nameA.localeCompare(nameB))
+);
 assert.ok(isCpuWeightBuffer(weights.embedTokensPerLayer), 'streamed embed tensor should be wrapped as CpuWeightBuffer');
 assert.equal(weights.embedTokensPerLayer.dtype, 'f32');
 assert.equal(weights.embedTokensPerLayer.layout, 'row');
@@ -237,7 +325,9 @@ const packedProjectionWeights = await loadPerLayerInputWeights({
       return new Float32Array(16 * 32);
     }
     if (name === projectionName) {
-      assert.equal(toGPU, true);
+      if (toGPU === false) {
+        return Uint8Array.from({ length: 2048 }, (_, i) => i % 251);
+      }
       return {
         buffer: { size: 2048 },
         dtype: 'q4k_m',
@@ -272,11 +362,12 @@ const packedProjectionWeights = await loadPerLayerInputWeights({
 
 assert.ok(
   !isCpuWeightBuffer(packedProjectionWeights.perLayerModelProjection),
-  'packed resident projection weights must stay resident instead of falling back to a range-backed CPU source'
+  'packed resident projection weights must stay GPU-resident instead of falling back to a range-backed CPU source'
 );
 assert.equal(
   packedProjectionWeights.perLayerModelProjection.dtype,
-  'q4k_m'
+  'q4k_m',
+  'packed projection weights with non-q4k manifest metadata should preserve the resident materialization'
 );
 
 const packedRawProjectionWeights = await loadPerLayerInputWeights({
@@ -296,7 +387,7 @@ const packedRawProjectionWeights = await loadPerLayerInputWeights({
       dtype: 'Q4_K_M',
       role: 'matmul',
       layout: 'row',
-      size: 2048,
+      size: 4608,
       shardIndex: 0,
       offset: 0,
     }],
@@ -312,10 +403,12 @@ const packedRawProjectionWeights = await loadPerLayerInputWeights({
       return new Float32Array(16 * 32);
     }
     if (name === projectionName) {
-      assert.equal(toGPU, true);
+      if (toGPU === false) {
+        return Uint8Array.from({ length: 4608 }, (_, i) => (i * 7) % 251);
+      }
       return {
         __dopplerFakeGPUBuffer: true,
-        size: 2048,
+        size: 4608,
         usage: 0,
         destroy() {},
         async mapAsync() {},
@@ -346,6 +439,11 @@ const packedRawProjectionWeights = await loadPerLayerInputWeights({
 assert.ok(
   !isCpuWeightBuffer(packedRawProjectionWeights.perLayerModelProjection),
   'packed raw resident projection buffers must stay resident instead of falling back to a range-backed CPU source'
+);
+assert.equal(
+  packedRawProjectionWeights.perLayerModelProjection.dtype,
+  'f32',
+  'packed raw q4k projection weights should stabilize to dense f32'
 );
 
 const splitTensorLocations = new Map([
@@ -405,11 +503,17 @@ const splitWeights = await loadPerLayerInputWeights({
 assert.ok(splitWeights, 'split per-layer input weights should load');
 assert.equal(splitWeights.embedTokensPerLayerSplit?.length, 2);
 assert.ok(isCpuWeightBuffer(splitWeights.embedTokensPerLayer) || splitWeights.embedTokensPerLayer);
-assert.deepEqual(splitLoadCalls, [
-  ['model.language_model.layers.0.embed_tokens_per_layer.weight', true],
-  ['model.language_model.layers.1.embed_tokens_per_layer.weight', true],
-  [projectionName, true],
-  [projectionNormName, true],
-]);
+assert.deepEqual(
+  [...splitLoadCalls].sort(([nameA], [nameB]) => nameA.localeCompare(nameB)),
+  [
+    ['model.language_model.layers.0.embed_tokens_per_layer.weight', true],
+    ['model.language_model.layers.1.embed_tokens_per_layer.weight', true],
+    [projectionName, true],
+    [projectionNormName, true],
+  ].sort(([nameA], [nameB]) => nameA.localeCompare(nameB))
+);
 
 console.log('per-layer-input-loader.test: ok');
+
+destroyBufferPool();
+setDevice(null, { platformConfig: null });

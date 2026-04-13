@@ -5,6 +5,7 @@ export interface ModelRegistryEntry {
   hashAlgorithm?: string;
   backend?: string;
   createdAt?: string;
+  savedAtUtc?: string;
   [key: string]: unknown;
 }
 

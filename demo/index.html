@@ -131,7 +131,10 @@
   <script type="importmap">
     {
       "imports": {
-        "doppler-gpu": "/src/index-browser.js"
+        "doppler-gpu": "/src/index-browser.js",
+        "doppler-gpu/tooling": "/src/tooling-exports.browser.js",
+        "doppler-gpu/tooling-experimental": "/src/tooling-experimental-exports.browser.js",
+        "doppler-gpu/generation": "/src/generation/index.js"
       }
     }
   </script>
@@ -276,7 +279,7 @@
             <input id="set-token-press" type="checkbox"> Token Press
           </label>
           <label class="checkbox-label checkbox-label--inline" title="Show tokens-per-second during decode. Needs Readback > 0 for real-time updates.">
-            <input id="set-live-toks" type="checkbox" checked> Live tok/s
+            <input id="set-live-toks" type="checkbox"> Live tok/s
           </label>
         </div>
       </div>

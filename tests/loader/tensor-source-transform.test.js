@@ -130,6 +130,50 @@ const litertRowRangeCpu = loadTensorToCPU(litertRowRange, {
 assert.ok(litertRowRangeCpu instanceof Float32Array);
 assertApproxArray(Array.from(litertRowRangeCpu), [0, 1]);
 
+const litertAxisSignedNoSumLocation = {
+  shardIndex: 0,
+  offset: 0,
+  size: 4,
+  shape: [2, 4],
+  dtype: 'F16',
+  role: 'embedding',
+  sourceTransform: {
+    kind: 'litert_axis_dequant',
+    scheme: 'per_axis_affine',
+    sourceDtype: 'INT4',
+    targetDtype: 'F16',
+    storageEncoding: 'signed',
+    storageShape: [2, 4],
+    quantAxis: 1,
+    scaleSource: {
+      shard: 1,
+      offset: 0,
+      size: 8,
+    },
+  },
+};
+const litertAxisSignedNoSumRawBytes = Uint8Array.from([0x10, 0x2f, 0xe3, 0x10]);
+const litertAxisSignedNoSumScaleBytes = new Uint8Array(Float32Array.from([0.5, 0.25]).buffer);
+const litertAxisSignedNoSumShards = new Map([
+  [0, litertAxisSignedNoSumRawBytes],
+  [1, litertAxisSignedNoSumScaleBytes],
+]);
+const litertAxisSignedNoSumDequantized = await assembleShardData(
+  litertAxisSignedNoSumLocation,
+  'model.language_model.layers.0.embed_tokens_per_layer.weight',
+  async (index) => litertAxisSignedNoSumShards.get(index).buffer.slice(0),
+  async (index, offset, length) => litertAxisSignedNoSumShards.get(index).slice(offset, offset + length).buffer
+);
+const litertAxisSignedNoSumCpu = loadTensorToCPU(
+  litertAxisSignedNoSumDequantized,
+  litertAxisSignedNoSumLocation
+);
+assert.ok(litertAxisSignedNoSumCpu instanceof Float32Array);
+assertApproxArray(
+  Array.from(litertAxisSignedNoSumCpu),
+  [0, 0.5, -0.5, 1, 0.75, -0.5, 0, 0.25]
+);
+
 const litertInt2Location = {
   shardIndex: 0,
   offset: 0,

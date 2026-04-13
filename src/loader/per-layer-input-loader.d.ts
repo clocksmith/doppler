@@ -5,6 +5,7 @@ import type { TensorLocation, PerLayerInputWeights } from './loader-types.js';
 export interface PerLayerInputLoaderContext {
   modelId?: string | null;
   tensorLocations: Map<string, TensorLocation>;
+  gpuBuffers?: Set<GPUBuffer> | null;
   loadTensor: (
     name: string,
     toGPU?: boolean,
