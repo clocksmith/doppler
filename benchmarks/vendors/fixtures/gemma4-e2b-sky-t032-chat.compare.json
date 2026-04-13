@@ -478,9 +478,9 @@
               "browserVendor": "Google Inc."
             },
             "timing": {
-              "modelLoadMs": 5159,
+              "modelLoadMs": 2159,
               "firstTokenMs": 237.6,
-              "firstResponseMs": 5396.6,
+              "firstResponseMs": 2396.6,
               "prefillMs": 236.2,
               "decodeMs": 2358.3,
               "decodeMsPerTokenP50": 73.7,
@@ -504,15 +504,15 @@
                 "totalRunMs": "prefillMs + decodeMs"
               },
               "componentsMs": {
-                "modelLoadMs": 5159,
+                "modelLoadMs": 2159,
                 "firstTokenMs": 237.6,
-                "firstResponseMs": 5396.6,
+                "firstResponseMs": 2396.6,
                 "prefillMs": 236.2,
                 "decodeMs": 2358.3,
                 "totalRunMs": 2594.8
               },
               "sumsMs": {
-                "firstResponseFromLoadAndFirstTokenMs": 5396.6,
+                "firstResponseFromLoadAndFirstTokenMs": 2396.6,
                 "runFromPrefillAndDecodeMs": 2594.5
               },
               "residualsMs": {
@@ -540,7 +540,7 @@
               "avgPrefillTokensPerSecTtft": 59.13,
               "avgDecodeTokensPerSec": 13.89,
               "firstTokenMs": 237.6,
-              "firstResponseMs": 5396.6,
+              "firstResponseMs": 2396.6,
               "prefillMs": 236.2,
               "decodeMs": 2358.3,
               "totalRunMs": 2594.8,
@@ -548,7 +548,7 @@
               "decodeMsPerTokenP95": 73.78,
               "decodeMsPerTokenP99": 73.79,
               "avgPrefillMs": 255.3,
-              "modelLoadMs": 5159,
+              "modelLoadMs": 2159,
               "throughput": {
                 "tokensPerSec": {
                   "mean": 12.486431740032671,

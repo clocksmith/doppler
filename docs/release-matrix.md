@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-04-10T00:29:38.093Z
-Release: channel=main-snapshot, version=0.2.0, commit=9d156c5ae3f802a467f442a4b211b084be520ad2, dirty=no
+Generated: 2026-04-13T00:00:00.000Z
+Release: channel=main-snapshot, version=0.2.1, commit=ba57ea16750d426627f53efceb549a78d9063c0b, dirty=yes
 
 ## Engine Matrix
 
@@ -30,7 +30,7 @@ Release: channel=main-snapshot, version=0.2.0, commit=9d156c5ae3f802a467f442a4b2
 |---|---|---|---|---|---|---|---|
 | `gemma-3-1b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-1b-it-ONNX-GQA` | auto | quickstart-registry | performance_comparable |  |
 | `gemma-3-270m-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` | auto | quickstart-registry | performance_comparable |  |
-| `gemma-4-e2b-it-q4k-ehf16-af32` | yes | run, translate |  | auto |  |  |  |
+| `gemma-4-e2b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-4-E2B-it-ONNX` | browser | local | performance_comparable |  |
 | `google-embeddinggemma-300m-q4k-ehf16-af32` | yes | embedding | `onnx-community/embeddinggemma-300m-ONNX` | auto | quickstart-registry | capability_only | Embedding models use a separate workload contract and are not part of the text-generation compare lane. |
 | `lfm2-5-1-2b-instruct-q4k-ehf16-af32` | yes | run, translate | `LiquidAI/LFM2.5-1.2B-Instruct-ONNX` | auto | local | performance_comparable |  |
 | `qwen-3-5-0-8b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-0.8B-ONNX` | browser | quickstart-registry | performance_comparable |  |
@@ -52,4 +52,3 @@ Release: channel=main-snapshot, version=0.2.0, commit=9d156c5ae3f802a467f442a4b2
 ## Charts
 
 - [compare_1b_multi-workload_favorable_phases.svg](../benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
-

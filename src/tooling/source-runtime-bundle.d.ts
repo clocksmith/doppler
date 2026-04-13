@@ -25,6 +25,8 @@ export interface SourceRuntimeTensor {
     sourceDtype: 'INT8' | 'UINT8' | 'INT4' | 'INT2';
     targetDtype: 'F16';
     storageEncoding: 'signed' | 'offset_binary';
+    scaleSemantics: 'step' | 'qmax_abs';
+    scaleDivisor?: number;
     scaleSourcePath: string;
     scaleOffset: number;
     scaleSize: number;
@@ -37,6 +39,8 @@ export interface SourceRuntimeTensor {
     sourceDtype: 'INT8' | 'UINT8' | 'INT4' | 'INT2';
     targetDtype: 'F16';
     storageEncoding: 'signed' | 'offset_binary';
+    scaleSemantics: 'step' | 'qmax_abs';
+    scaleDivisor?: number;
     storageShape: [number, number];
     quantAxis: 0 | 1;
     scaleSourcePath: string;

@@ -106,6 +106,35 @@ function computePackedByteSize(shape, sourceDtype, tensorName) {
   );
 }
 
+function resolveLiteRTScaleContract(sourceDtype, tensorName, options = {}) {
+  if (options.hasSumCompanion === true) {
+    return {
+      scaleSemantics: 'step',
+    };
+  }
+  if (sourceDtype === 'INT8' || sourceDtype === 'UINT8') {
+    return {
+      scaleSemantics: 'qmax_abs',
+      scaleDivisor: 128,
+    };
+  }
+  if (sourceDtype === 'INT4') {
+    return {
+      scaleSemantics: 'qmax_abs',
+      scaleDivisor: 8,
+    };
+  }
+  if (sourceDtype === 'INT2') {
+    return {
+      scaleSemantics: 'qmax_abs',
+      scaleDivisor: 2,
+    };
+  }
+  throw new Error(
+    `direct-source runtime: unsupported LiteRT scale contract source dtype "${sourceDtype}" for "${tensorName}".`
+  );
+}
+
 export function inferLiteRTRowwiseLayout(
   rawTensor,
   expectedShape,
@@ -276,6 +305,9 @@ function createLiteRTRowwiseTensor(
       preferSignedPacked: !(sumTensor && typeof sumTensor === 'object'),
     });
   const resolvedCols = resolvedShape ? cols : Math.floor(rawTensor.size / rowsFromScale);
+  const scaleContract = resolveLiteRTScaleContract(layout.sourceDtype, canonicalName, {
+    hasSumCompanion: Boolean(sumTensor && typeof sumTensor === 'object'),
+  });
   return {
     name: canonicalName,
     shape: [rows, resolvedCols],
@@ -291,6 +323,8 @@ function createLiteRTRowwiseTensor(
       sourceDtype: layout.sourceDtype,
       targetDtype: 'F16',
       storageEncoding: layout.storageEncoding,
+      scaleSemantics: scaleContract.scaleSemantics,
+      scaleDivisor: scaleContract.scaleDivisor,
       scaleSourcePath: sourcePath,
       scaleOffset: scaleTensor.offset,
       scaleSize: scaleTensor.size,
@@ -370,6 +404,9 @@ function createLiteRTAxisTensor(
   const layout = inferLiteRTRowwiseLayout(rawTensor, storageShape, canonicalName, {
     preferSignedPacked: !(sumTensor && typeof sumTensor === 'object'),
   });
+  const scaleContract = resolveLiteRTScaleContract(layout.sourceDtype, canonicalName, {
+    hasSumCompanion: Boolean(sumTensor && typeof sumTensor === 'object'),
+  });
   const expectedScaleCount = quantAxis === 0 ? storageCols : storageRows;
   const scaleCount = scaleTensor.size / 4;
   if (scaleCount !== expectedScaleCount || scaleCount !== logicalRows) {
@@ -409,6 +446,8 @@ function createLiteRTAxisTensor(
       sourceDtype: layout.sourceDtype,
       targetDtype: 'F16',
       storageEncoding: layout.storageEncoding,
+      scaleSemantics: scaleContract.scaleSemantics,
+      scaleDivisor: scaleContract.scaleDivisor,
       storageShape: [storageRows, storageCols],
       quantAxis,
       scaleSourcePath: sourcePath,

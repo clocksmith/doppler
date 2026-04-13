@@ -6,6 +6,26 @@ This changelog is package-facing and release-oriented. Entries before `0.1.7`
 were retrofitted from package version history, release commits, and release
 docs so the `0.1.x` line has one conventional npm-visible history surface.
 
+## [0.2.1] - 2026-04-13
+
+### Changed
+
+- Bumped the package version past the already-published `0.2.0` release.
+- Pointed the README demo CTA at the canonical public demo URL:
+  `https://d4da.com/doppler`.
+- Clarified the README benchmark image scope so the hero chart stays tied to the
+  published MacBook Air M3 warm-cache lanes instead of implying whole-catalog
+  coverage.
+- Expanded the README verified-model note to include Gemma 4 E2B alongside the
+  other verified local-artifact models outside the quickstart registry.
+- Refreshed release-facing metadata so the release matrix now surfaces the
+  Gemma 4 E2B compare lane and current package version.
+
+### Fixed
+
+- Synced the public quickstart registry revisions with the canonical catalog for
+  `gemma-3-1b-it-q4k-ehf16-af32` and `qwen-3-5-0-8b-q4k-ehaf16`.
+
 ## [0.1.8] - 2026-03-18
 
 ### Changed

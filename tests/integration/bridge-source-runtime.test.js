@@ -227,9 +227,17 @@ assert.equal(
   taskBundle.manifest.tensors['model.language_model.layers.0.self_attn.q_proj.weight']?.sourceTransform?.kind,
   'litert_axis_dequant'
 );
+assert.equal(
+  taskBundle.manifest.tensors['model.language_model.layers.0.self_attn.q_proj.weight']?.sourceTransform?.scaleSemantics,
+  'step'
+);
 assert.ok(
   taskBundle.manifest.tensors['model.language_model.layers.0.self_attn.q_proj.weight']?.sourceTransform?.sumSource,
   'bridge LiteRT task bundle should preserve sum companions for packed axis-dequant tensors'
+);
+assert.equal(
+  taskBundle.manifest.tensors['model.language_model.per_layer_model_projection.weight']?.sourceTransform?.scaleSemantics,
+  'step'
 );
 assert.deepEqual(
   taskBundle.manifest.tensors['model.language_model.layers.0.self_attn.o_proj.weight']?.sourceTransform?.storageShape,
@@ -268,6 +276,14 @@ assert.equal(
   taskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.storageEncoding,
   'signed'
 );
+assert.equal(
+  taskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.scaleSemantics,
+  'qmax_abs'
+);
+assert.equal(
+  taskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.scaleDivisor,
+  8
+);
 const taskTokenizer = await taskBundle.storageContext.loadTokenizerJson();
 assert.equal(typeof taskTokenizer, 'object');
 
@@ -284,6 +300,10 @@ assert.equal(litertLmBundle.manifest.modelType, 'gemma4');
 assert.equal(
   litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.kind,
   'litert_axis_dequant'
+);
+assert.equal(
+  litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.scaleSemantics,
+  'step'
 );
 const litertLmTokenizer = await litertLmBundle.storageContext.loadTokenizerModel();
 assert.equal(litertLmTokenizer?.byteLength, 4);

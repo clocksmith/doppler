@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-04-10T00:29:38.093Z",
+  "generatedAt": "2026-04-13T00:00:00.000Z",
   "release": {
     "channel": "main-snapshot",
-    "version": "0.2.0",
-    "commitSha": "9d156c5ae3f802a467f442a4b211b084be520ad2",
-    "dirty": false
+    "version": "0.2.1",
+    "commitSha": "ba57ea16750d426627f53efceb549a78d9063c0b",
+    "dirty": true
   },
   "sources": {
     "registry": {
@@ -1115,11 +1115,11 @@
     },
     {
       "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af32",
-      "dopplerModelBaseDir": null,
-      "dopplerSource": null,
-      "defaultTjsModelId": null,
-      "defaultDopplerSurface": "auto",
-      "compareLane": null,
+      "dopplerModelBaseDir": "local",
+      "dopplerSource": "local",
+      "defaultTjsModelId": "onnx-community/gemma-4-E2B-it-ONNX",
+      "defaultDopplerSurface": "browser",
+      "compareLane": "performance_comparable",
       "compareLaneReason": null,
       "inCatalog": true,
       "catalogLabel": "Gemma 4 E2B Instruct (Q4K/F32a)",

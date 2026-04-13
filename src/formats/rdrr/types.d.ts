@@ -59,6 +59,8 @@ export interface TensorSourceTransform {
   scale?: number;
   zeroPoint?: number;
   storageEncoding?: 'signed' | 'offset_binary';
+  scaleSemantics?: 'step' | 'qmax_abs';
+  scaleDivisor?: number;
   storageShape?: number[];
   quantAxis?: 0 | 1;
   scaleSource?: TensorSourceLocationRef;

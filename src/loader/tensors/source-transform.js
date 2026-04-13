@@ -211,6 +211,25 @@ function validateLiteRTStorageEncoding(storageEncoding, tensorName) {
   }
 }
 
+function resolveLiteRTScaleValue(storedScale, transform, tensorName, rowLabel) {
+  const scaleSemantics = String(transform?.scaleSemantics || '').trim().toLowerCase();
+  if (scaleSemantics === 'step') {
+    return storedScale;
+  }
+  if (scaleSemantics === 'qmax_abs') {
+    const scaleDivisor = Number(transform?.scaleDivisor);
+    if (!Number.isFinite(scaleDivisor) || scaleDivisor <= 0) {
+      throw new Error(
+        `[DopplerLoader] Tensor "${tensorName}" ${rowLabel} is missing a valid LiteRT scaleDivisor for scaleSemantics="qmax_abs".`
+      );
+    }
+    return storedScale / scaleDivisor;
+  }
+  throw new Error(
+    `[DopplerLoader] Tensor "${tensorName}" ${rowLabel} has unsupported LiteRT scaleSemantics "${transform?.scaleSemantics}".`
+  );
+}
+
 function getLiteRTCompanionByteLength(companionSource, tensorName, label, expectedByteLength) {
   if (!companionSource || typeof companionSource !== 'object') {
     return null;
@@ -280,6 +299,19 @@ export function getSourceTransformSpec(location, tensorName) {
     }
     if (transform.rowSumSource != null) {
       getLiteRTCompanionByteLength(transform.rowSumSource, tensorName, 'row-wise row-sum', rows * 4);
+    }
+    if (transform.scaleSemantics !== 'step' && transform.scaleSemantics !== 'qmax_abs') {
+      throw new Error(
+        `[DopplerLoader] Tensor "${tensorName}" LiteRT row-wise transform has unsupported scaleSemantics "${transform.scaleSemantics}".`
+      );
+    }
+    if (transform.scaleSemantics === 'qmax_abs') {
+      const scaleDivisor = Number(transform.scaleDivisor);
+      if (!Number.isFinite(scaleDivisor) || scaleDivisor <= 0) {
+        throw new Error(
+          `[DopplerLoader] Tensor "${tensorName}" LiteRT row-wise transform requires scaleDivisor > 0 for scaleSemantics="qmax_abs".`
+        );
+      }
     }
     return {
       kind: 'litert_rowwise_dequant',
@@ -351,6 +383,19 @@ export function getSourceTransformSpec(location, tensorName) {
     }
     if (transform.sumSource != null) {
       getLiteRTCompanionByteLength(transform.sumSource, tensorName, 'axis sum', rows * 4);
+    }
+    if (transform.scaleSemantics !== 'step' && transform.scaleSemantics !== 'qmax_abs') {
+      throw new Error(
+        `[DopplerLoader] Tensor "${tensorName}" LiteRT axis transform has unsupported scaleSemantics "${transform.scaleSemantics}".`
+      );
+    }
+    if (transform.scaleSemantics === 'qmax_abs') {
+      const scaleDivisor = Number(transform.scaleDivisor);
+      if (!Number.isFinite(scaleDivisor) || scaleDivisor <= 0) {
+        throw new Error(
+          `[DopplerLoader] Tensor "${tensorName}" LiteRT axis transform requires scaleDivisor > 0 for scaleSemantics="qmax_abs".`
+        );
+      }
     }
     const rawStorageRowBytes = computeSourceByteLength(storageCols, transform.sourceDtype, tensorName);
     const sourceByteLength = computeSourceByteLength(
@@ -458,6 +503,12 @@ export function materializeTensorSourceTransform(rawBytes, location, tensorName,
           `[DopplerLoader] Tensor "${tensorName}" LiteRT row ${rowStart + row} has invalid scale ${scale}.`
         );
       }
+      const resolvedScale = resolveLiteRTScaleValue(
+        scale,
+        transform,
+        tensorName,
+        `LiteRT row ${rowStart + row}`
+      );
       const rawRowOffset = row * spec.rawRowBytes;
       const outRowOffset = row * spec.cols;
       const rowBytes = rawBytes.subarray(rawRowOffset, rawRowOffset + spec.rawRowBytes);
@@ -490,8 +541,8 @@ export function materializeTensorSourceTransform(rawBytes, location, tensorName,
               transform.sourceDtype,
               transform.storageEncoding
             ) - rowZeroPoint
-          );
-        out[outRowOffset + col] = float32ToFloat16(quantized * scale);
+            );
+        out[outRowOffset + col] = float32ToFloat16(quantized * resolvedScale);
       }
     }
     return new Uint8Array(out.buffer, out.byteOffset, out.byteLength);
@@ -563,6 +614,12 @@ export function materializeTensorSourceTransform(rawBytes, location, tensorName,
             `[DopplerLoader] Tensor "${tensorName}" LiteRT axis row ${rowStart + row} has invalid scale ${scale}.`
           );
         }
+        const resolvedScale = resolveLiteRTScaleValue(
+          scale,
+          transform,
+          tensorName,
+          `LiteRT axis row ${rowStart + row}`
+        );
         const rawRowOffset = row * spec.rawStorageRowBytes;
         const rowBytes = rawBytes.subarray(rawRowOffset, rawRowOffset + spec.rawStorageRowBytes);
         const storedRowSum = hasSumSource
@@ -599,7 +656,7 @@ export function materializeTensorSourceTransform(rawBytes, location, tensorName,
                 transform.storageEncoding
               ) - rowZeroPoint
             );
-          out[outRowOffset + col] = float32ToFloat16(quantized * scale);
+          out[outRowOffset + col] = float32ToFloat16(quantized * resolvedScale);
         }
       }
       return new Uint8Array(out.buffer, out.byteOffset, out.byteLength);
@@ -646,6 +703,12 @@ export function materializeTensorSourceTransform(rawBytes, location, tensorName,
           `[DopplerLoader] Tensor "${tensorName}" LiteRT axis row ${logicalRow} has invalid scale ${scale}.`
         );
       }
+      const resolvedScale = resolveLiteRTScaleValue(
+        scale,
+        transform,
+        tensorName,
+        `LiteRT axis row ${logicalRow}`
+      );
 
       const storedValues = new Array(spec.cols);
       let storedSum = 0;
@@ -682,7 +745,7 @@ export function materializeTensorSourceTransform(rawBytes, location, tensorName,
             transform.storageEncoding
           )
           : (storedValues[col] - rowZeroPoint);
-        out[outRowOffset + col] = float32ToFloat16(quantized * scale);
+        out[outRowOffset + col] = float32ToFloat16(quantized * resolvedScale);
       }
     }
     return new Uint8Array(out.buffer, out.byteOffset, out.byteLength);

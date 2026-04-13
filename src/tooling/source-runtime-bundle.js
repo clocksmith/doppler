@@ -247,6 +247,8 @@ function buildSourceTensorTransform(tensor, shardIndexByPath, tensorName) {
       sourceDtype: transform.sourceDtype,
       targetDtype: transform.targetDtype,
       storageEncoding: transform.storageEncoding,
+      scaleSemantics: transform.scaleSemantics,
+      scaleDivisor: transform.scaleDivisor,
       scaleSource: buildTransformScaleSource(transform, shardIndexByPath, tensorName),
       ...(rowSumSource
         ? {
@@ -271,6 +273,8 @@ function buildSourceTensorTransform(tensor, shardIndexByPath, tensorName) {
       sourceDtype: transform.sourceDtype,
       targetDtype: transform.targetDtype,
       storageEncoding: transform.storageEncoding,
+      scaleSemantics: transform.scaleSemantics,
+      scaleDivisor: transform.scaleDivisor,
       storageShape: transform.storageShape,
       quantAxis: transform.quantAxis,
       scaleSource: buildTransformScaleSource(transform, shardIndexByPath, tensorName),

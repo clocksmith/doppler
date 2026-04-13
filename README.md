@@ -2,17 +2,21 @@
 
 Browser-native inference on raw WebGPU. Pure JS + WGSL.
 
-**[Try the live demo](https://d4da.com)** | **[npm](https://www.npmjs.com/package/doppler-gpu)** | **[docs](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)**
+**[Try the live demo](https://d4da.com/doppler)** | **[npm](https://www.npmjs.com/package/doppler-gpu)** | **[docs](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)**
 
-[![Warm-cache phase-latency comparison across Gemma 3 1B and LFM 2.5 1.2B](./benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
+[![Published phase-latency comparison across Gemma 4 E2B and Gemma 3 1B](./benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
 
+This chart is scoped to two published warm compare lanes: Gemma 4 E2B and
+Gemma 3 1B. It is no longer the old Gemma 3 + LFM snapshot. Broader model
+status and the surrounding compare evidence live in the support and release
+matrices.
 See the [benchmark methodology](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md).
 
 ## Quick start
 
 ### Browser
 
-Open the [live demo](https://d4da.com) — runs entirely in the browser with no server required. Models load into the browser cache and work offline after first download.
+Use the live demo link above — it runs entirely in the browser with no server required. Models load into the browser cache and work offline after first download.
 
 ### CLI
 
@@ -110,9 +114,9 @@ These registry IDs resolve to hosted RDRR artifacts automatically from the brows
 | Qwen 3.5 0.8B | `qwen3-0.8b` | Q4K | 0.8B | Qwen |
 | Qwen 3.5 2B | `qwen3-2b` | Q4K | 2B | Qwen |
 
-Additional verified models (TranslateGemma 4B, LFM2.5 1.2B) are available with
-local artifacts rather than the quickstart registry. Conversion configs exist
-for Gemma 4 MoE, Janus, and Sana but are not yet in the quickstart registry.
+Additional verified local-artifact models (TranslateGemma 4B, LFM2.5 1.2B) are
+available outside the quickstart registry. Conversion configs exist for Gemma 4
+MoE, Janus, and Sana but are not yet in the quickstart registry.
 See the
 [model support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md).
 Subsystem support tiers for direct-source inputs, advanced subpaths, diffusion,

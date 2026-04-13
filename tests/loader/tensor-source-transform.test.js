@@ -83,6 +83,7 @@ const litertRowwiseLocation = {
     sourceDtype: 'INT4',
     targetDtype: 'F16',
     storageEncoding: 'offset_binary',
+    scaleSemantics: 'step',
     scaleSource: {
       shard: 1,
       offset: 0,
@@ -143,6 +144,7 @@ const litertAxisSignedNoSumLocation = {
     sourceDtype: 'INT4',
     targetDtype: 'F16',
     storageEncoding: 'signed',
+    scaleSemantics: 'step',
     storageShape: [2, 4],
     quantAxis: 1,
     scaleSource: {
@@ -187,6 +189,7 @@ const litertInt2Location = {
     sourceDtype: 'INT2',
     targetDtype: 'F16',
     storageEncoding: 'offset_binary',
+    scaleSemantics: 'step',
     scaleSource: {
       shard: 1,
       offset: 0,
@@ -216,5 +219,50 @@ const litertInt2Dequantized = await assembleShardData(
 const litertInt2Cpu = loadTensorToCPU(litertInt2Dequantized, litertInt2Location);
 assert.ok(litertInt2Cpu instanceof Float32Array);
 assertApproxArray(Array.from(litertInt2Cpu), [-0.75, -0.25, 0.25, 0.75, 1.5, 0.5, -0.5, -1.5]);
+
+const litertQmaxAbsLocation = {
+  shardIndex: 0,
+  offset: 0,
+  size: 2,
+  shape: [2, 2],
+  dtype: 'F16',
+  role: 'matmul',
+  sourceTransform: {
+    kind: 'litert_rowwise_dequant',
+    scheme: 'per_row_affine',
+    sourceDtype: 'INT4',
+    targetDtype: 'F16',
+    storageEncoding: 'offset_binary',
+    scaleSemantics: 'qmax_abs',
+    scaleDivisor: 8,
+    scaleSource: {
+      shard: 1,
+      offset: 0,
+      size: 8,
+    },
+    rowSumSource: {
+      shard: 2,
+      offset: 0,
+      size: 8,
+    },
+  },
+};
+const litertQmaxAbsRawBytes = Uint8Array.from([0x98, 0xba]);
+const litertQmaxAbsScaleBytes = new Uint8Array(Float32Array.from([0.5, 1.0]).buffer);
+const litertQmaxAbsRowSumBytes = new Uint8Array(Int32Array.from([1, 1]).buffer);
+const litertQmaxAbsShards = new Map([
+  [0, litertQmaxAbsRawBytes],
+  [1, litertQmaxAbsScaleBytes],
+  [2, litertQmaxAbsRowSumBytes],
+]);
+const litertQmaxAbsDequantized = await assembleShardData(
+  litertQmaxAbsLocation,
+  'model.language_model.layers.0.self_attn.k_proj.weight',
+  async (index) => litertQmaxAbsShards.get(index).buffer.slice(0),
+  async (index, offset, length) => litertQmaxAbsShards.get(index).slice(offset, offset + length).buffer
+);
+const litertQmaxAbsCpu = loadTensorToCPU(litertQmaxAbsDequantized, litertQmaxAbsLocation);
+assert.ok(litertQmaxAbsCpu instanceof Float32Array);
+assertApproxArray(Array.from(litertQmaxAbsCpu), [0, 0.0625, 0, 0.125]);
 
 console.log('tensor-source-transform.test: ok');
