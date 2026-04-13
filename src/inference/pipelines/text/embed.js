@@ -63,6 +63,15 @@ export function decodeRangeChunkIntoOutput(bytes, sourceDtype, output, dstOffset
   }
 }
 
+async function readGpuTokenIdsForCpuEmbeddingGather(tokenIds, numTokens, indexOffset) {
+  if (numTokens <= 0) {
+    throw new Error('[Embed] numTokens must be provided when tokenIds is a GPUBuffer.');
+  }
+  const totalTokenCount = indexOffset + numTokens;
+  const readback = await readBuffer(tokenIds, totalTokenCount * Uint32Array.BYTES_PER_ELEMENT);
+  return new Uint32Array(readback).subarray(indexOffset, totalTokenCount);
+}
+
 export async function embed(tokenIds, embedBuffer, config) {
   const {
     hiddenSize,
@@ -80,7 +89,7 @@ export async function embed(tokenIds, embedBuffer, config) {
   } = config;
   const device = getDevice();
   const tokenBufferInput = isGpuBufferInstance(tokenIds);
-  const tokenIdArray = tokenBufferInput ? null :  (tokenIds);
+  let tokenIdArray = tokenBufferInput ? null :  (tokenIds);
   const numTokens = tokenBufferInput
     ? (config.numTokens ?? 0)
     : (tokenIdArray?.length ?? 0);
@@ -130,7 +139,7 @@ export async function embed(tokenIds, embedBuffer, config) {
 
   if (cpuEmbeddings) {
     if (tokenBufferInput) {
-      throw new Error('[Embed] GPU token buffer requires GPU-resident embeddings.');
+      tokenIdArray = await readGpuTokenIdsForCpuEmbeddingGather(tokenIds, numTokens, indexOffset);
     }
     if (debug) {
       trace.embed('Using CPU embedding gather (oversized embedding)');

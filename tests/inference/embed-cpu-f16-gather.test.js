@@ -14,15 +14,27 @@ globalThis.GPUBufferUsage = {
 };
 
 class FakeBuffer {
-  constructor({ size, label = null }) {
+  constructor({ size, usage = 0, label = null }) {
     this.size = size;
+    this.usage = usage;
     this.label = label;
     this.destroyed = false;
+    this._arrayBuffer = new ArrayBuffer(size);
   }
 
   destroy() {
     this.destroyed = true;
   }
+
+  async mapAsync() {
+    return Promise.resolve();
+  }
+
+  getMappedRange(offset = 0, size = this.size - offset) {
+    return this._arrayBuffer.slice(offset, offset + size);
+  }
+
+  unmap() {}
 }
 
 globalThis.GPUBuffer = FakeBuffer;
@@ -47,8 +59,20 @@ function createFakeDevice(options = {}) {
       maxComputeWorkgroupSizeZ: 1,
     },
     queue: {
-      submit() {},
+      submit(commandBuffers) {
+        for (const commandBuffer of commandBuffers) {
+          for (const op of commandBuffer.ops ?? []) {
+            const src = new Uint8Array(op.src._arrayBuffer, op.srcOffset, op.size);
+            const dst = new Uint8Array(op.dst._arrayBuffer, op.dstOffset, op.size);
+            dst.set(src);
+          }
+        }
+      },
       writeBuffer(buffer, offset, data) {
+        const bytes = data instanceof ArrayBuffer
+          ? new Uint8Array(data)
+          : new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+        new Uint8Array(buffer._arrayBuffer, offset, bytes.byteLength).set(bytes);
         writeCalls.push({
           buffer,
           offset,
@@ -68,7 +92,11 @@ function createFakeDevice(options = {}) {
       return Promise.resolve({ getBindGroupLayout() { return {}; } });
     },
     createCommandEncoder() {
+      const ops = [];
       return {
+        copyBufferToBuffer(src, srcOffset, dst, dstOffset, size) {
+          ops.push({ src, srcOffset, dst, dstOffset, size });
+        },
         beginComputePass() {
           return {
             setPipeline() {},
@@ -77,7 +105,7 @@ function createFakeDevice(options = {}) {
             end() {},
           };
         },
-        finish() { return {}; },
+        finish() { return { ops }; },
       };
     },
   };
@@ -292,7 +320,38 @@ const embData = new Uint16Array([
   assert.ok(Math.abs(written[5] - 0.5) < 1e-3, `range token0[1]: expected 0.5, got ${written[5]}`);
 }
 
-// === Test 8: Explicit CPU gather cast is allowed under require_cast_step ===
+// === Test 8: GPU token buffers can drive CPU embedding gather via readback ===
+{
+  const embedBuffer = createCpuWeightBuffer(embData, 'f16', 'row', [vocabSize, hiddenSize], 'test_f16_gpu_tokens');
+  const tokenBuffer = fakeDevice.createBuffer({
+    size: 3 * Uint32Array.BYTES_PER_ELEMENT,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
+    label: 'test_token_ids',
+  });
+  fakeDevice.queue.writeBuffer(tokenBuffer, 0, new Uint32Array([2, 1, 0]));
+  writeCalls.length = 0;
+
+  await embed(tokenBuffer, embedBuffer, {
+    hiddenSize,
+    vocabSize,
+    numTokens: 2,
+    indexOffset: 1,
+    scaleEmbeddings: false,
+    debug: false,
+    activationDtype: 'f32',
+    embeddingDtype: 'f16',
+  });
+
+  const written = writeCalls[writeCalls.length - 1].data;
+  assert.ok(written instanceof Float32Array);
+  assert.equal(written.length, 2 * hiddenSize);
+  assert.ok(Math.abs(written[0] - 0.5) < 1e-3, `gpu-token token1[0]: expected 0.5, got ${written[0]}`);
+  assert.ok(Math.abs(written[1] - 1.0) < 1e-3, `gpu-token token1[1]: expected 1.0, got ${written[1]}`);
+  assert.ok(Math.abs(written[4] - 1.0) < 1e-3, `gpu-token token0[0]: expected 1.0, got ${written[4]}`);
+  assert.ok(Math.abs(written[5] - 0.5) < 1e-3, `gpu-token token0[1]: expected 0.5, got ${written[5]}`);
+}
+
+// === Test 9: Explicit CPU gather cast is allowed under require_cast_step ===
 {
   const fakeF16Device = createFakeDevice({ hasF16: true });
   setDevice(fakeF16Device, { platformConfig: null });

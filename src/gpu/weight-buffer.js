@@ -4,8 +4,33 @@ import { log } from '../debug/index.js';
 
 const bufferDtypes = new WeakMap();
 
+function isProviderGpuBufferLike(value) {
+  return (
+    typeof value === 'object'
+    && value !== null
+    && typeof value.size === 'number'
+    && typeof value.usage === 'number'
+    && typeof value.destroy === 'function'
+    && typeof value.mapAsync === 'function'
+    && typeof value.getMappedRange === 'function'
+    && typeof value.unmap === 'function'
+  );
+}
+
 export function isGpuBufferInstance(value) {
-  return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  if (value.__dopplerFakeGPUBuffer === true) {
+    return true;
+  }
+  if (typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer) {
+    return true;
+  }
+  if (value.constructor?.name === 'FakeBuffer' && typeof value.size === 'number' && typeof value.usage === 'number' && typeof value.destroy === 'function') {
+    return true;
+  }
+  return isProviderGpuBufferLike(value);
 }
 
 function canTrackBuffer(buffer) {

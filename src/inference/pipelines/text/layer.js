@@ -378,11 +378,11 @@ export async function processLayer(layerIdx, hiddenStates, numTokens, isPrefill,
 
   // Debug: check path being taken for layer 0
   if (context.debug && layerIdx === 0) {
-    trace.ffn(0, `routing: useGPU=${useGPU}, isGPUBuffer=${hiddenStates instanceof GPUBuffer}, constructor=${hiddenStates?.constructor?.name}`);
+    trace.ffn(0, `routing: useGPU=${useGPU}, isGPUBuffer=${isGpuBufferInstance(hiddenStates)}, constructor=${hiddenStates?.constructor?.name}`);
   }
 
   // GPU-native path
-  if (useGPU && hiddenStates instanceof GPUBuffer) {
+  if (useGPU && isGpuBufferInstance(hiddenStates)) {
     return processLayerGPU(layerIdx, hiddenStates, numTokens, isPrefill, numTokens * hiddenSize, context);
   }
 
@@ -468,7 +468,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
         label: `L${layerIdx}.conv_input_norm`,
         layerIdx,
       }, recorder);
-      if (!(inputNormWeight instanceof GPUBuffer) && !isWeightBuffer(inputNormWeight)) releaseOrTrack(recorder, normWeightBuf);
+      if (!isGpuBufferInstance(inputNormWeight) && !isWeightBuffer(inputNormWeight)) releaseOrTrack(recorder, normWeightBuf);
     }
     attnOutput = await doConv(
       normedTensor,
@@ -597,8 +597,8 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     const stats = await getBufferStats(attnOutput.buffer);
     if (stats) logAttn(layerIdx, isPrefill, { numTokens, kvLen: context.currentSeqLen + (isPrefill ? numTokens : 1), maxAbsOut: stats.maxAbs });
 
-    trace.attn(layerIdx, `attnOutput type check: isGPU=${attnOutput.buffer instanceof GPUBuffer}, type=${typeof attnOutput.buffer}, constructor=${attnOutput.buffer?.constructor?.name}, isPrefill=${isPrefill}`);
-    if (shouldDebugLayerOutput(layerIdx, context.debugLayers) && attnOutput.buffer instanceof GPUBuffer && !recorder) {
+    trace.attn(layerIdx, `attnOutput type check: isGPU=${isGpuBufferInstance(attnOutput.buffer)}, type=${typeof attnOutput.buffer}, constructor=${attnOutput.buffer?.constructor?.name}, isPrefill=${isPrefill}`);
+    if (shouldDebugLayerOutput(layerIdx, context.debugLayers) && isGpuBufferInstance(attnOutput.buffer) && !recorder) {
       if (allowReadback(`layer.attn-out.${layerIdx}`)) {
         try {
           const sampleSize = Math.min(128, attnOutput.buffer.size);
@@ -614,7 +614,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
           trace.attn(layerIdx, `ATTN_OUT error: ${e}`);
         }
       }
-    } else if (shouldDebugLayerOutput(layerIdx, context.debugLayers) && attnOutput.buffer instanceof GPUBuffer && recorder) {
+    } else if (shouldDebugLayerOutput(layerIdx, context.debugLayers) && isGpuBufferInstance(attnOutput.buffer) && recorder) {
       trace.attn(layerIdx, `ATTN_OUT: (skipped - using batched recorder, values not available until submit)`);
     }
   }
@@ -641,7 +641,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
         layerIdx,
         rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
       }, recorder);
-      if (!(layerWeights.postAttentionNorm instanceof GPUBuffer) && !isWeightBuffer(layerWeights.postAttentionNorm)) releaseOrTrack(recorder, normWeightBuf);
+      if (!isGpuBufferInstance(layerWeights.postAttentionNorm) && !isWeightBuffer(layerWeights.postAttentionNorm)) releaseOrTrack(recorder, normWeightBuf);
       if (recorder) {
         recorder.trackTemporaryBuffer(attnOutput.buffer);
       } else {
@@ -663,7 +663,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       executionPolicies: context.executionPolicies ?? null,
     });
 
-    if (!(layerWeights.postAttentionNorm instanceof GPUBuffer) && !isWeightBuffer(layerWeights.postAttentionNorm)) releaseOrTrack(recorder, normWeightBuf);
+    if (!isGpuBufferInstance(layerWeights.postAttentionNorm) && !isWeightBuffer(layerWeights.postAttentionNorm)) releaseOrTrack(recorder, normWeightBuf);
     releaseOrTrack(recorder, normalizedAttn.buffer, context.decodeBuffers);
     if (recorder) {
       recorder.trackTemporaryBuffer(attnOutput.buffer);
@@ -1099,7 +1099,7 @@ async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, 
             layerIdx,
             rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
           }, recorder);
-          if (!(weight instanceof GPUBuffer) && !isWeightBuffer(weight)) releaseOrTrack(recorder, normWeightBuf);
+          if (!isGpuBufferInstance(weight) && !isWeightBuffer(weight)) releaseOrTrack(recorder, normWeightBuf);
           const outputDtype = resolveStepOutputDtype(step, resolveActivationDtype(outputTensor.dtype));
           setSlot(step.dst, outputTensor.buffer, outputDtype);
           if (step.probeStage) {

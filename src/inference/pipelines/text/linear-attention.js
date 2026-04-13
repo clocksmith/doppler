@@ -1,4 +1,4 @@
-import { getBufferDtype, isWeightBuffer } from '../../../gpu/weight-buffer.js';
+import { getBufferDtype, isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { recordMatmul, recordRMSNorm, runMatmul, runRMSNorm, castF32ToF16, recordCastF32ToF16 } from '../../../gpu/kernel-selector.js';
 import { readBuffer, releaseBuffer, uploadData, acquireBuffer } from '../../../memory/buffer-pool.js';
 import { log } from '../../../debug/index.js';
@@ -15,7 +15,7 @@ const LINEAR_RUNTIME_SCHEMA_VERSION = 1;
 const QK_L2NORM_EPS = 1e-6;
 
 function isGpuBuffer(value) {
-  return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
+  return isGpuBufferInstance(value);
 }
 
 function toPositiveInt(value) {

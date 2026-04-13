@@ -53,7 +53,11 @@ export async function loadEmbeddings(ctx) {
 
   for (const name of candidates) {
     const loc = ctx.tensorLocations.get(name);
-    const shouldStream = loc ? ctx.shouldStreamLargeWeight(name, loc, 'Embedding') : false;
+    const requiresCpuFloatFallback = loc
+      && String(loc.dtype ?? '').toUpperCase() === 'F16'
+      && ctx.hostHasShaderF16 === false;
+    const shouldStream = requiresCpuFloatFallback
+      || (loc ? ctx.shouldStreamLargeWeight(name, loc, 'Embedding') : false);
 
     // Load tensor (to CPU if streaming, to GPU otherwise)
     const tensor = await ctx.loadTensor(name, !shouldStream, true);

@@ -1,6 +1,6 @@
 
 
-import { isWeightBuffer, getWeightDtype } from '../../../../gpu/weight-buffer.js';
+import { isGpuBufferInstance, isWeightBuffer, getWeightDtype } from '../../../../gpu/weight-buffer.js';
 import { acquireBuffer } from '../../../../memory/buffer-pool.js';
 import {
   recordMatmul,
@@ -169,7 +169,7 @@ export async function recordLayerAttentionGPU(
       hiddenSize,
       rmsNormWeightOffset: config.rmsNormWeightOffset,
     });
-    if (!(layerWeights.inputNorm instanceof GPUBuffer) && !isWeightBuffer(layerWeights.inputNorm)) releaseOrTrack(recorder, normWeightBuf);
+    if (!isGpuBufferInstance(layerWeights.inputNorm) && !isWeightBuffer(layerWeights.inputNorm)) releaseOrTrack(recorder, normWeightBuf);
   }
 
   const debugLayers = debugFlags.debugLayers;
@@ -604,7 +604,7 @@ export async function recordLayerAttentionGPU(
       });
     }
     // Release temporary buffer if we created it (original was not already on GPU)
-    if (!(layerWeights.oProj instanceof GPUBuffer) && !isWeightBuffer(layerWeights.oProj)) {
+    if (!isGpuBufferInstance(layerWeights.oProj) && !isWeightBuffer(layerWeights.oProj)) {
       releaseOrTrack(recorder, isWeightBuffer(oProjBuf) ? oProjBuf.buffer : oProjBuf);
     }
   } else {

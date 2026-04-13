@@ -1,5 +1,5 @@
 import { releaseBuffer } from '../../../../memory/buffer-pool.js';
-import { isWeightBuffer, getLayout, getWeightDtype } from '../../../../gpu/weight-buffer.js';
+import { isGpuBufferInstance, isWeightBuffer, getLayout, getWeightDtype } from '../../../../gpu/weight-buffer.js';
 import {
   runMatmul,
   recordMatmul,
@@ -51,7 +51,7 @@ function getRmsNormRunner(recorder) {
 }
 
 function releaseOwnedWeightBuffer(layerWeight, resolvedWeightBuffer, releaseTemporary) {
-  if ((typeof GPUBuffer !== 'undefined' && layerWeight instanceof GPUBuffer) || isWeightBuffer(layerWeight)) {
+  if (isGpuBufferInstance(layerWeight) || isWeightBuffer(layerWeight)) {
     return;
   }
   if (!resolvedWeightBuffer) {
@@ -667,7 +667,7 @@ export async function applyAttentionQKNorm({
         await onQNormApplied(nextQ);
       }
     }
-    if (!(layerWeights.qNorm instanceof GPUBuffer) && !isWeightBuffer(layerWeights.qNorm)) {
+    if (!isGpuBufferInstance(layerWeights.qNorm) && !isWeightBuffer(layerWeights.qNorm)) {
       releaseTemporary(qNormBuf);
     }
   }
@@ -689,7 +689,7 @@ export async function applyAttentionQKNorm({
         await onKNormApplied(nextK);
       }
     }
-    if (!(layerWeights.kNorm instanceof GPUBuffer) && !isWeightBuffer(layerWeights.kNorm)) {
+    if (!isGpuBufferInstance(layerWeights.kNorm) && !isWeightBuffer(layerWeights.kNorm)) {
       releaseTemporary(kNormBuf);
     }
   }

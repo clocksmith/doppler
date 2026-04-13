@@ -926,6 +926,7 @@ export class DopplerLoader {
       // Keep embedding weights in F32 when manifest quantization requires it.
       // gather.wgsl reads embeddings as f32; downcasting here corrupts reads.
       preserveF32Embeddings: String(this.manifest?.quantizationInfo?.embeddings ?? '').toLowerCase() === 'f32',
+      hostHasShaderF16: this.gpuCapabilities?.hasF16 ?? null,
     };
 
     this.embeddings = await loadEmbeddings(ctx);

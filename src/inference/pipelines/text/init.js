@@ -27,7 +27,7 @@ import {
   getKernelPathMatmulVariant,
   kernelPathRequiresF32MatmulWeights,
 } from '../../../config/kernel-path-loader.js';
-import { createWeightBuffer, getWeightDtype, isWeightBuffer } from '../../../gpu/weight-buffer.js';
+import { createWeightBuffer, getWeightDtype, isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import {
   createHttpArtifactStorageContext,
@@ -629,7 +629,7 @@ export async function initRoPEFrequencies(config, useGPU) {
 
 export function isGPURoPEBuffers(buffers) {
   if (typeof GPUBuffer === 'undefined') return false;
-  return !!buffers?.cos && buffers.cos instanceof GPUBuffer;
+  return !!buffers?.cos && isGpuBufferInstance(buffers.cos);
 }
 
 
@@ -1404,7 +1404,7 @@ export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null) {
         shape: Array.isArray(value.shape) ? value.shape : null,
       };
     }
-    if (value instanceof GPUBuffer) {
+    if (isGpuBufferInstance(value)) {
       return {
         buffer: value,
         dtype: getWeightDtype(value),

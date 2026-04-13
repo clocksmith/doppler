@@ -1,6 +1,6 @@
 import { readBuffer } from '../../../memory/buffer-pool.js';
 import { matmulCPU, rmsNormCPU } from './logits/index.js';
-import { isWeightBuffer, isCpuWeightBuffer } from '../../../gpu/weight-buffer.js';
+import { isGpuBufferInstance, isWeightBuffer, isCpuWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { resolveExecutionSessionPlan } from './execution-plan.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
@@ -392,7 +392,7 @@ export async function getFinalNormWeights(state) {
       throw new Error('[Pipeline] final_norm readback returned empty buffer.');
     }
     weights = decodeFloatWeights(data, dtype, hiddenSize, 'final_norm');
-  } else if (finalNorm instanceof GPUBuffer) {
+  } else if (isGpuBufferInstance(finalNorm)) {
     const dtype = resolveFloatDtypeFromByteSize(finalNorm.size, hiddenSize);
     const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
     const readSize = hiddenSize * bytesPerElement;

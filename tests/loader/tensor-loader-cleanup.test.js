@@ -266,6 +266,32 @@ const PIPELINE_FAILURE = /shader-f16|createShaderModule|createComputePipeline|cr
   delete globalThis.GPUBuffer;
 
   const tensorLocations = new Map([
+    ['embed.weight', { role: 'embedding', group: 'embed', shape: [2, 2], dtype: 'F16' }],
+  ]);
+  const toGpuCalls = [];
+  const embeddings = await loadEmbeddings({
+    tensorLocations,
+    loadTensor: async (_name, toGPU) => {
+      toGpuCalls.push(toGPU);
+      return new Float32Array([1, 2, 3, 4]);
+    },
+    shouldStreamLargeWeight: () => false,
+    resolveWeightLayout: () => 'row',
+    gpuBuffers: new Set(),
+    keepF32Weights: false,
+    preserveF32Embeddings: false,
+    hostHasShaderF16: false,
+  });
+  assert.deepEqual(toGpuCalls, [false]);
+  assert.equal(embeddings.dtype, 'f16');
+  assert.ok(embeddings.data instanceof Float32Array);
+}
+
+{
+  resetRuntimeState(null);
+  delete globalThis.GPUBuffer;
+
+  const tensorLocations = new Map([
     ['norm.weight', { role: 'norm', group: 'head', shape: [2], dtype: 'F32' }],
     ['lm_head.weight', { role: 'lm_head', group: 'head', shape: [2, 2], dtype: 'F32' }],
   ]);

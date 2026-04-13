@@ -1,7 +1,7 @@
 
 
 import { releaseBuffer } from '../../../memory/buffer-pool.js';
-import { isWeightBuffer } from '../../../gpu/weight-buffer.js';
+import { isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { runMatmul, recordMatmul } from '../../../gpu/kernel-selector.js';
 import { runResidualAdd, recordResidualAdd } from '../../../gpu/kernels/residual.js';
 import { runScale, recordScale } from '../../../gpu/kernels/scale.js';
@@ -17,8 +17,8 @@ export async function applyLoRA(input, baseOutput, lora, dims, getWeightBuffer, 
 
   const aBuf = getWeightBuffer(lora.a, 'lora_a');
   const bBuf = getWeightBuffer(lora.b, 'lora_b');
-  const ownsA = !(typeof GPUBuffer !== 'undefined' && lora.a instanceof GPUBuffer) && !isWeightBuffer(lora.a);
-  const ownsB = !(typeof GPUBuffer !== 'undefined' && lora.b instanceof GPUBuffer) && !isWeightBuffer(lora.b);
+  const ownsA = !isGpuBufferInstance(lora.a) && !isWeightBuffer(lora.a);
+  const ownsB = !isGpuBufferInstance(lora.b) && !isWeightBuffer(lora.b);
   // Extract underlying GPUBuffer for WeightBuffers
   const aBufGPU = isWeightBuffer(aBuf) ? aBuf.buffer : aBuf;
   const bBufGPU = isWeightBuffer(bBuf) ? bBuf.buffer : bBuf;

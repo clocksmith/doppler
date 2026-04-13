@@ -7,6 +7,7 @@ import {
 import { createTensor } from '../../../../gpu/tensor.js';
 import {
   getWeightDtype,
+  isGpuBufferInstance,
   isWeightBuffer,
   resolveWeightBufferMaterialization,
 } from '../../../../gpu/weight-buffer.js';
@@ -405,7 +406,7 @@ export async function runDenseFFNGPU(
       });
     }
 
-    if (!(layerWeights.gateUp instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gateUp)) {
+    if (!isGpuBufferInstance(layerWeights.gateUp) && !isWeightBuffer(layerWeights.gateUp)) {
       releaseOrTrack(recorder, isWeightBuffer(gateUpWeight) ? gateUpWeight.buffer : gateUpWeight);
     }
 
@@ -478,7 +479,7 @@ export async function runDenseFFNGPU(
       });
     }
 
-    if (!(layerWeights.down instanceof GPUBuffer) && !isWeightBuffer(layerWeights.down)) {
+    if (!isGpuBufferInstance(layerWeights.down) && !isWeightBuffer(layerWeights.down)) {
       releaseOrTrack(recorder, isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
     }
     if (recorder) {
@@ -600,10 +601,10 @@ export async function runDenseFFNGPU(
       }
     }
 
-    if (!(layerWeights.gate instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gate)) {
+    if (!isGpuBufferInstance(layerWeights.gate) && !isWeightBuffer(layerWeights.gate)) {
       releaseOrTrack(recorder, isWeightBuffer(gateWeight) ? gateWeight.buffer : gateWeight);
     }
-    if (!(layerWeights.up instanceof GPUBuffer) && !isWeightBuffer(layerWeights.up)) {
+    if (!isGpuBufferInstance(layerWeights.up) && !isWeightBuffer(layerWeights.up)) {
       releaseOrTrack(recorder, isWeightBuffer(upWeight) ? upWeight.buffer : upWeight);
     }
 
@@ -646,7 +647,7 @@ export async function runDenseFFNGPU(
       }
     }
 
-    if (!(layerWeights.down instanceof GPUBuffer) && !isWeightBuffer(layerWeights.down)) {
+    if (!isGpuBufferInstance(layerWeights.down) && !isWeightBuffer(layerWeights.down)) {
       releaseOrTrack(recorder, isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
     }
 
@@ -765,7 +766,7 @@ export async function runDenseFFNGPU(
     },
     recorder
   );
-  if (!(layerWeights.gate instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gate)) {
+  if (!isGpuBufferInstance(layerWeights.gate) && !isWeightBuffer(layerWeights.gate)) {
     releaseOrTrack(recorder, isWeightBuffer(gateWeight) ? gateWeight.buffer : gateWeight);
   }
 
@@ -808,7 +809,7 @@ export async function runDenseFFNGPU(
     },
     recorder
   );
-  if (!(layerWeights.up instanceof GPUBuffer) && !isWeightBuffer(layerWeights.up)) {
+  if (!isGpuBufferInstance(layerWeights.up) && !isWeightBuffer(layerWeights.up)) {
     releaseOrTrack(recorder, isWeightBuffer(upWeight) ? upWeight.buffer : upWeight);
   }
 
@@ -939,7 +940,7 @@ export async function runDenseFFNGPU(
     });
   }
 
-  if (!(layerWeights.down instanceof GPUBuffer) && !isWeightBuffer(layerWeights.down)) {
+  if (!isGpuBufferInstance(layerWeights.down) && !isWeightBuffer(layerWeights.down)) {
     releaseOrTrack(recorder, isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
   }
   if (downInputOwned) {
@@ -1064,7 +1065,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
       }
     }
 
-    if (!(layerWeights.gateUp instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gateUp)) {
+    if (!isGpuBufferInstance(layerWeights.gateUp) && !isWeightBuffer(layerWeights.gateUp)) {
       releaseOrTrack(recorder, isWeightBuffer(gateUpWeight) ? gateUpWeight.buffer : gateUpWeight);
     }
 
@@ -1220,10 +1221,10 @@ export async function runDenseFFNWithFusedPostNormGPU(
       }
     }
 
-    if (!(layerWeights.gate instanceof GPUBuffer) && !isWeightBuffer(layerWeights.gate)) {
+    if (!isGpuBufferInstance(layerWeights.gate) && !isWeightBuffer(layerWeights.gate)) {
       releaseOrTrack(recorder, isWeightBuffer(gateWeight) ? gateWeight.buffer : gateWeight);
     }
-    if (!(layerWeights.up instanceof GPUBuffer) && !isWeightBuffer(layerWeights.up)) {
+    if (!isGpuBufferInstance(layerWeights.up) && !isWeightBuffer(layerWeights.up)) {
       releaseOrTrack(recorder, isWeightBuffer(upWeight) ? upWeight.buffer : upWeight);
     }
   }
@@ -1250,10 +1251,10 @@ export async function runDenseFFNWithFusedPostNormGPU(
     log.warn('Layer', `L${layerIdx} LoRA down_proj with fused kernel not yet optimized`);
   }
 
-  if (!(layerWeights.down instanceof GPUBuffer) && !isWeightBuffer(layerWeights.down)) {
+  if (!isGpuBufferInstance(layerWeights.down) && !isWeightBuffer(layerWeights.down)) {
     releaseOrTrack(recorder, isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
   }
-  if (!(layerWeights.postFeedforwardNorm instanceof GPUBuffer) && !isWeightBuffer(layerWeights.postFeedforwardNorm)) releaseOrTrack(recorder, normWeightBuf);
+  if (!isGpuBufferInstance(layerWeights.postFeedforwardNorm) && !isWeightBuffer(layerWeights.postFeedforwardNorm)) releaseOrTrack(recorder, normWeightBuf);
   if (recorder) {
     recorder.trackTemporaryBuffer(activatedOutput.buffer);
   } else {

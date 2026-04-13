@@ -42,6 +42,8 @@ export interface EmbeddingLoaderContext {
   keepF32Weights: boolean;
   /** Preserve F32 embeddings when manifest quantization requires F32 embedding weights */
   preserveF32Embeddings?: boolean;
+  /** Host shader-f16 capability, used to choose CPU F16->F32 fallback on no-f16 devices */
+  hostHasShaderF16?: boolean | null;
 }
 
 /** Result of embedding loading */

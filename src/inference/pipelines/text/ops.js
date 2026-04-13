@@ -15,6 +15,7 @@ import {
 } from '../../../gpu/kernels/cast.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { releaseBuffer, readBuffer, acquireBuffer, uploadData } from '../../../memory/buffer-pool.js';
+import { isGpuBufferInstance } from '../../../gpu/weight-buffer.js';
 import { kernelTrace, traceStep } from './kernel-trace.js';
 import {
   runLayerAttentionGPU,
@@ -267,7 +268,7 @@ export async function doConv(
 export async function initConvLayerState(convState, convKernel, convInProj, hiddenSize, label, layerIdx) {
   const { isWeightBuffer } = await import('../../../gpu/weight-buffer.js');
   const isWB = typeof isWeightBuffer === 'function' && isWeightBuffer(convKernel);
-  const kernelBuf = isWB ? convKernel.buffer : (convKernel instanceof GPUBuffer ? convKernel : convKernel.buffer ?? convKernel);
+  const kernelBuf = isWB ? convKernel.buffer : (isGpuBufferInstance(convKernel) ? convKernel : convKernel.buffer ?? convKernel);
   const kernelDtype = isWB ? String(convKernel.dtype ?? '').toLowerCase() : null;
 
   // Determine kernel size from weight shape

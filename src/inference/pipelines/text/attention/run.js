@@ -1,6 +1,6 @@
 
 
-import { isWeightBuffer, getWeightDtype } from '../../../../gpu/weight-buffer.js';
+import { isGpuBufferInstance, isWeightBuffer, getWeightDtype } from '../../../../gpu/weight-buffer.js';
 import { getDevice } from '../../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../../../memory/buffer-pool.js';
 import {
@@ -208,7 +208,7 @@ export async function runLayerAttentionGPU(
         rmsNormWeightOffset: config.rmsNormWeightOffset,
       });
     } finally {
-      if (!(layerWeights.inputNorm instanceof GPUBuffer) && !isWeightBuffer(layerWeights.inputNorm)) releaseBuffer(normWeightBuf);
+      if (!isGpuBufferInstance(layerWeights.inputNorm) && !isWeightBuffer(layerWeights.inputNorm)) releaseBuffer(normWeightBuf);
     }
 
     // Trace input norm output
@@ -891,7 +891,7 @@ export async function runLayerAttentionGPU(
       });
     }
     // Release temporary buffer if we created it (original was not already on GPU)
-    if (!(layerWeights.oProj instanceof GPUBuffer) && !isWeightBuffer(layerWeights.oProj)) {
+    if (!isGpuBufferInstance(layerWeights.oProj) && !isWeightBuffer(layerWeights.oProj)) {
       releaseBuffer(isWeightBuffer(oProjBuf) ? oProjBuf.buffer : oProjBuf);
     }
 
