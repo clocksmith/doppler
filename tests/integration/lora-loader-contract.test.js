@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { loadLoRAFromManifest, loadLoRAWeights } from '../../src/adapters/lora-loader.js';
+import { loadLoRAFromManifest, loadLoRAWeights } from '../../src/experimental/adapters/lora-loader.js';
 
 const originalFetch = globalThis.fetch;
 

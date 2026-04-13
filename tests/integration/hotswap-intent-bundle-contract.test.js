@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   computeManifestHash,
   verifyIntentBundle,
-} from '../../src/hotswap/intent-bundle.js';
+} from '../../src/experimental/hotswap/intent-bundle.js';
 
 const manifest = {
   modelId: 'intent-test',

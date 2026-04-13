@@ -4,12 +4,12 @@ import {
   Command,
   decodeHeader,
   encodeMessage,
-} from '../../src/bridge/protocol.js';
+} from '../../src/experimental/bridge/protocol.js';
 import {
   createBridgeClient,
   getBridgeClient,
   readFileNative,
-} from '../../src/bridge/index.js';
+} from '../../src/experimental/bridge/index.js';
 
 function createEvent() {
   const listeners = [];

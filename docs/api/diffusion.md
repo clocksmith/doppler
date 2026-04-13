@@ -81,8 +81,8 @@ console.log(metrics);
 
 ## Code Pointers
 
-- diffusion export surface: [src/diffusion/index.js](../../src/diffusion/index.js)
-- diffusion types: [src/diffusion/index.d.ts](../../src/diffusion/index.d.ts)
+- diffusion export surface: [src/experimental/diffusion/index.js](../../src/experimental/diffusion/index.js)
+- diffusion types: [src/experimental/diffusion/index.d.ts](../../src/experimental/diffusion/index.d.ts)
 - diffusion pipeline: [src/inference/pipelines/diffusion/pipeline.js](../../src/inference/pipelines/diffusion/pipeline.js)
 
 ## Related Surfaces

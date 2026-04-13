@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { createRemoteTensorSource } from '../../src/browser/tensor-source-download.js';
+import { createRemoteTensorSource } from '../../src/experimental/browser/tensor-source-download.js';
 
 const originalFetch = globalThis.fetch;
 

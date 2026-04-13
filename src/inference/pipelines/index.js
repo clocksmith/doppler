@@ -1,6 +1,6 @@
 export { InferencePipeline, EmbeddingPipeline, createPipeline } from './text.js';
-export { DiffusionPipeline, createDiffusionPipeline } from './diffusion/pipeline.js';
-export { EnergyPipeline, createEnergyPipeline } from './energy/pipeline.js';
+export { DiffusionPipeline, createDiffusionPipeline } from './experimental/diffusion/pipeline.js';
+export { EnergyPipeline, createEnergyPipeline } from './experimental/energy/pipeline.js';
 export {
   StructuredJsonHeadPipeline,
   isStructuredJsonHeadModelType,

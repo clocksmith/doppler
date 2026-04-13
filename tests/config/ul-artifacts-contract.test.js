@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path';
 
 import { sha256Hex } from '../../src/utils/sha256.js';
 import { createTrainingConfig } from '../../src/config/training-defaults.js';
-import { createUlArtifactSession, resolveStage1ArtifactContext } from '../../src/training/artifacts.js';
+import { createUlArtifactSession, resolveStage1ArtifactContext } from '../../src/experimental/training/artifacts.js';
 
 const TEMP_ROOT = await mkdtemp(join(tmpdir(), 'doppler-ul-artifacts-'));
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { createUlStage2BaseObjective } from '../../src/training/objectives/ul_stage2_base.js';
+import { createUlStage2BaseObjective } from '../../src/experimental/training/objectives/ul_stage2_base.js';
 
 const objective = createUlStage2BaseObjective({
   crossEntropyLoss: async () => ({ label: 'loss' }),

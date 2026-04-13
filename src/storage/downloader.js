@@ -44,7 +44,7 @@ import {
   getRequiredContentEncoding,
 } from './download-types.js';
 
-import { downloadShard as downloadShardFromDistribution } from '../distribution/shard-delivery.js';
+import { downloadShard as downloadShardFromDistribution } from '../experimental/distribution/shard-delivery.js';
 import { resolveSourceArtifact, normalizeSourceArtifactPath } from './source-artifact-store.js';
 
 // ============================================================================

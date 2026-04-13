@@ -5,7 +5,7 @@ const {
   normalizeP2PTransportError,
   normalizeP2PTransportResult,
   isP2PTransportRetryable,
-} = await import('../../src/distribution/p2p-transport-contract.js');
+} = await import('../../src/experimental/distribution/p2p-transport-contract.js');
 
 {
   const result = normalizeP2PTransportResult({

@@ -239,7 +239,7 @@
         "docs/api/advanced-root-exports.md"
       ],
       "entrypoints": [
-        "src/orchestration/index.js"
+        "src/experimental/orchestration/index.js"
       ],
       "notes": "Mixed advanced surface for adapters, routers, heads, and multi-model helpers; available, but not part of the mainline proof story."
     },
@@ -260,8 +260,8 @@
         "docs/api/root.md"
       ],
       "entrypoints": [
-        "src/adapters/lora-loader.js",
-        "src/adapters/adapter-manager.js"
+        "src/experimental/adapters/lora-loader.js",
+        "src/experimental/adapters/adapter-manager.js"
       ],
       "notes": "User-visible adapter swap capability that remains outside the canonical quickstart and demo-default proof path."
     },
@@ -283,7 +283,7 @@
       ],
       "entrypoints": [
         "src/inference/multi-model-network.js",
-        "src/orchestration/index.js"
+        "src/experimental/orchestration/index.js"
       ],
       "notes": "Available for advanced experimentation, but not part of the tier1 demo or quickstart contract."
     },
@@ -303,8 +303,8 @@
         "docs/architecture.md"
       ],
       "entrypoints": [
-        "src/hotswap/runtime.js",
-        "src/hotswap/model-swap.js"
+        "src/experimental/hotswap/runtime.js",
+        "src/experimental/hotswap/model-swap.js"
       ],
       "notes": "Checked-in experimental runtime machinery, not part of the public package contract."
     },
@@ -324,8 +324,8 @@
         "docs/architecture.md"
       ],
       "entrypoints": [
-        "src/distribution/shard-delivery.js",
-        "src/distribution/p2p-control-plane.js"
+        "src/experimental/distribution/shard-delivery.js",
+        "src/experimental/distribution/p2p-control-plane.js"
       ],
       "notes": "Strategic distribution lane that exists in the repo but is not part of the public tier1 runtime claim set."
     },
@@ -345,7 +345,7 @@
         "docs/api/diffusion.md"
       ],
       "entrypoints": [
-        "src/diffusion/index.js"
+        "src/experimental/diffusion/index.js"
       ],
       "notes": "Shipped advanced surface for diffusion/image workflows, outside the main tier1 local text inference story."
     },
@@ -365,7 +365,7 @@
         "docs/api/energy.md"
       ],
       "entrypoints": [
-        "src/energy/index.js"
+        "src/experimental/energy/index.js"
       ],
       "notes": "Shipped specialized surface, but not part of the mainline README or demo-default claim set."
     },
@@ -383,11 +383,11 @@
       "command": null,
       "docs": [
         "docs/training-handbook.md",
-        "src/training/README.md"
+        "src/experimental/training/README.md"
       ],
       "entrypoints": [
-        "src/training/index.js",
-        "src/training/distillation/index.js"
+        "src/experimental/training/index.js",
+        "src/experimental/training/distillation/index.js"
       ],
       "notes": "Repo-supported research and operator lane, but not part of the current tier1 app/runtime contract."
     },
@@ -407,8 +407,8 @@
         "docs/architecture.md"
       ],
       "entrypoints": [
-        "src/bridge/index.js",
-        "src/bridge/extension-client.js"
+        "src/experimental/bridge/index.js",
+        "src/experimental/bridge/extension-client.js"
       ],
       "notes": "Repo integration machinery, not part of the public package or hosted demo contract."
     },
@@ -428,8 +428,8 @@
         "docs/architecture.md"
       ],
       "entrypoints": [
-        "src/browser/browser-converter.js",
-        "src/browser/tensor-source-http.js"
+        "src/experimental/browser/browser-converter.js",
+        "src/experimental/browser/tensor-source-http.js"
       ],
       "notes": "Repo-internal browser import plumbing that supports the demo and tooling flows."
     }

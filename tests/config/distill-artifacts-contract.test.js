@@ -8,7 +8,7 @@ import { createTrainingConfig } from '../../src/config/training-defaults.js';
 import {
   createDistillArtifactSession,
   resolveStageAArtifactContext,
-} from '../../src/training/artifacts.js';
+} from '../../src/experimental/training/artifacts.js';
 
 const TEMP_ROOT = await mkdtemp(join(tmpdir(), 'doppler-distill-artifacts-'));
 

@@ -7,7 +7,7 @@ import {
   aggregateP2PDeliveryObservability,
   buildP2PAlertsFromSummary,
   buildP2PDashboardSnapshot,
-} from '../src/distribution/p2p-observability.js';
+} from '../src/experimental/distribution/p2p-observability.js';
 
 function parseRatio(rawValue, flag) {
   const parsed = Number(rawValue);

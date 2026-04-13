@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-const { TrainingRunner } = await import('../../src/training/runner.js');
+const { TrainingRunner } = await import('../../src/experimental/training/runner.js');
 
 const runner = new TrainingRunner(
   {

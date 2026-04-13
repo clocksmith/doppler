@@ -53,8 +53,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Audience: advanced runtime consumers
 - Stability: experimental export
 - Manual guide: [docs/api/orchestration.md](../orchestration.md)
-- Types: [src/orchestration/index.d.ts](../../../src/orchestration/index.d.ts)
-- Implementation: [src/orchestration/index.js](../../../src/orchestration/index.js)
+- Types: [src/experimental/orchestration/index.d.ts](../../../src/experimental/orchestration/index.d.ts)
+- Implementation: [src/experimental/orchestration/index.js](../../../src/experimental/orchestration/index.js)
 - Notes: Tokenizer, KV cache, router, adapter, and logit-merge orchestration helpers.
 - Support tier source: `src/config/support-tiers/subsystems.json` (api.orchestration-subpath)
 - Exported symbols:
@@ -98,8 +98,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Audience: advanced diffusion consumers
 - Stability: experimental export
 - Manual guide: [docs/api/diffusion.md](../diffusion.md)
-- Types: [src/diffusion/index.d.ts](../../../src/diffusion/index.d.ts)
-- Implementation: [src/diffusion/index.js](../../../src/diffusion/index.js)
+- Types: [src/experimental/diffusion/index.d.ts](../../../src/experimental/diffusion/index.d.ts)
+- Implementation: [src/experimental/diffusion/index.js](../../../src/experimental/diffusion/index.js)
 - Notes: Diffusion/image pipeline surface.
 - Support tier source: `src/config/support-tiers/subsystems.json` (api.diffusion-subpath)
 - Exported symbols:
@@ -117,8 +117,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Audience: advanced energy consumers
 - Stability: experimental export
 - Manual guide: [docs/api/energy.md](../energy.md)
-- Types: [src/energy/index.d.ts](../../../src/energy/index.d.ts)
-- Implementation: [src/energy/index.js](../../../src/energy/index.js)
+- Types: [src/experimental/energy/index.d.ts](../../../src/experimental/energy/index.d.ts)
+- Implementation: [src/experimental/energy/index.js](../../../src/experimental/energy/index.js)
 - Notes: Energy pipeline surface.
 - Support tier source: `src/config/support-tiers/subsystems.json` (api.energy-subpath)
 - Exported symbols:

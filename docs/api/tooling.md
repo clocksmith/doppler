@@ -212,7 +212,7 @@ import { normalizeToolingCommandRequest, runNodeCommand } from 'doppler-gpu/tool
 const request = normalizeToolingCommandRequest({
   command: 'distill',
   action: 'subsets',
-  workloadPath: 'src/training/workload-packs/distill-translategemma-tiny.json',
+  workloadPath: 'src/experimental/training/workload-packs/distill-translategemma-tiny.json',
 });
 
 const result = await runNodeCommand(request);

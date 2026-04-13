@@ -1,4 +1,4 @@
-import type { TensorSource } from '../../browser/tensor-source-file.js';
+import type { TensorSource } from '../../experimental/browser/tensor-source-file.js';
 
 export interface GGUFParserAdapter {
   file: File | TensorSource;

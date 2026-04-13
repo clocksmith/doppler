@@ -59,8 +59,8 @@ function buildRuntimeConfigJson(benchRun) {
 
 export async function loadWorkloadConfig(workloadArg) {
   const workloadAliases = {
-    tiny: 'src/training/workload-packs/ul-training-tiny.json',
-    medium: 'src/training/workload-packs/ul-training-medium.json',
+    tiny: 'src/experimental/training/workload-packs/ul-training-tiny.json',
+    medium: 'src/experimental/training/workload-packs/ul-training-medium.json',
   };
   const candidate = workloadAliases[workloadArg] || workloadArg;
   const absolute = resolve(candidate);

@@ -5,7 +5,7 @@ const {
   aggregateP2PDeliveryObservability,
   buildP2PAlertsFromSummary,
   buildP2PDashboardSnapshot,
-} = await import('../../src/distribution/p2p-observability.js');
+} = await import('../../src/experimental/distribution/p2p-observability.js');
 
 const records = [
   {

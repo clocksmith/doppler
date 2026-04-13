@@ -3,7 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
-import { saveCheckpoint, loadCheckpoint } from '../../src/training/checkpoint.js';
+import { saveCheckpoint, loadCheckpoint } from '../../src/experimental/training/checkpoint.js';
 
 const tempDir = await mkdtemp(join(tmpdir(), 'doppler-checkpoint-node-'));
 const checkpointPath = join(tempDir, 'distill.latest.checkpoint.json');

@@ -49,7 +49,7 @@ import {
   prefetchExperts as prefetchExpertsFromModule,
   predictNextLayerExperts as predictNextLayerExpertsFromModule,
 } from './experts/expert-loader.js';
-import { loadLoRAWeights as loadLoRAWeightsFromModule } from '../adapters/lora-loader.js';
+import { loadLoRAWeights as loadLoRAWeightsFromModule } from '../experimental/adapters/lora-loader.js';
 import { assembleShardData } from './tensors/tensor-reader.js';
 import { hasSourceTransform } from './tensors/source-transform.js';
 

@@ -23,7 +23,7 @@ Migration summary for the training command surface, workload-pack schema, and ar
 
 ## Workload-Pack Migration Highlights
 
-- workload packs under `src/training/workload-packs/` are now the canonical source of truth for operator runs
+- workload packs under `src/experimental/training/workload-packs/` are now the canonical source of truth for operator runs
 - shared workload fields include model IDs, dataset IDs and paths, eval datasets, checkpoint cadence, selection policy, surface support, and training policy
 - LoRA workload fields now carry adapter, freeze, export, and activation policy
 - distill workload fields now carry stage plan, KD and triplet parameters, pair-policy filters, and subset policy

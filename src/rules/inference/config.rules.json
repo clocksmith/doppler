@@ -9,8 +9,8 @@
     { "match": {}, "value": "debug-sync" }
   ],
   "pipelineModules": [
-    { "match": { "modelTypeLower": { "in": ["diffusion"] } }, "value": ["./diffusion/pipeline.js"] },
-    { "match": { "modelTypeLower": { "in": ["energy"] } }, "value": ["./energy/pipeline.js"] },
+    { "match": { "modelTypeLower": { "in": ["diffusion"] } }, "value": ["./experimental/diffusion/pipeline.js"] },
+    { "match": { "modelTypeLower": { "in": ["energy"] } }, "value": ["./experimental/energy/pipeline.js"] },
     {
       "match": {
         "modelTypeLower": {

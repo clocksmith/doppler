@@ -1,4 +1,4 @@
-import type { ExtensionBridgeClient } from '../../bridge/extension-client.js';
+import type { ExtensionBridgeClient } from '../../experimental/bridge/extension-client.js';
 import type { PipelineStorageContext } from '../../inference/pipelines/text/init.js';
 import type { RuntimeModelContract } from '../../inference/runtime-model.js';
 import type { DirectSourceRuntimeKind } from '../../tooling/source-artifact-adapter.js';

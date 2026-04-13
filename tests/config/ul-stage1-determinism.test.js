@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { acquireBuffer, uploadData, releaseBuffer } from '../../src/memory/buffer-pool.js';
 import { createTensor } from '../../src/gpu/tensor.js';
 import { initDevice, setDevice } from '../../src/gpu/device.js';
-import { applyUlStage1Batch, cleanupUlPreparedBatch } from '../../src/training/ul_dataset.js';
+import { applyUlStage1Batch, cleanupUlPreparedBatch } from '../../src/experimental/training/ul_dataset.js';
 import { bootstrapNodeWebGPU } from '../../src/tooling/node-webgpu.js';
 
 function createInputTensor(values, shape, label) {

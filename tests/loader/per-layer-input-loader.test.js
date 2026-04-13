@@ -226,6 +226,128 @@ assert.equal(
   'tensor_range_source'
 );
 
+const packedProjectionWeights = await loadPerLayerInputWeights({
+  modelId: 'gemma4-e2b-packed-projection-test',
+  perLayerInputSession: {
+    materialization: 'auto',
+  },
+  tensorLocations: undersizedProjectionLocations,
+  async loadTensor(name, toGPU) {
+    if (name === embedName) {
+      return new Float32Array(16 * 32);
+    }
+    if (name === projectionName) {
+      assert.equal(toGPU, true);
+      return {
+        buffer: { size: 2048 },
+        dtype: 'q4k_m',
+        layout: 'row',
+        shape: Object.freeze([32, 64]),
+        label: projectionName,
+        materializations: Object.freeze({
+          q4k_m: Object.freeze({
+            buffer: { size: 2048 },
+            layout: 'row',
+          }),
+        }),
+      };
+    }
+    if (name === projectionNormName) {
+      return new Float32Array(32);
+    }
+    return null;
+  },
+  shouldStreamLargeWeight() {
+    return false;
+  },
+  async loadShardRange() {
+    throw new Error('packed resident projection should not fall back to range-backed loading');
+  },
+  resolveWeightLayout(loc) {
+    return loc.layout ?? 'row';
+  },
+}, {
+  hiddenSizePerLayerInput: 32,
+});
+
+assert.ok(
+  !isCpuWeightBuffer(packedProjectionWeights.perLayerModelProjection),
+  'packed resident projection weights must stay resident instead of falling back to a range-backed CPU source'
+);
+assert.equal(
+  packedProjectionWeights.perLayerModelProjection.dtype,
+  'q4k_m'
+);
+
+const packedRawProjectionWeights = await loadPerLayerInputWeights({
+  modelId: 'gemma4-e2b-packed-raw-projection-test',
+  perLayerInputSession: {
+    materialization: 'auto',
+  },
+  tensorLocations: new Map([
+    [embedName, {
+      shape: [16, 32],
+      dtype: 'F16',
+      role: 'embedding',
+      layout: 'row',
+    }],
+    [projectionName, {
+      shape: [32, 64],
+      dtype: 'Q4_K_M',
+      role: 'matmul',
+      layout: 'row',
+      size: 2048,
+      shardIndex: 0,
+      offset: 0,
+    }],
+    [projectionNormName, {
+      shape: [32],
+      dtype: 'F32',
+      role: 'norm',
+      layout: 'row',
+    }],
+  ]),
+  async loadTensor(name, toGPU) {
+    if (name === embedName) {
+      return new Float32Array(16 * 32);
+    }
+    if (name === projectionName) {
+      assert.equal(toGPU, true);
+      return {
+        __dopplerFakeGPUBuffer: true,
+        size: 2048,
+        usage: 0,
+        destroy() {},
+        async mapAsync() {},
+        getMappedRange() {
+          return new ArrayBuffer(0);
+        },
+        unmap() {},
+      };
+    }
+    if (name === projectionNormName) {
+      return new Float32Array(32);
+    }
+    return null;
+  },
+  shouldStreamLargeWeight() {
+    return false;
+  },
+  async loadShardRange() {
+    throw new Error('packed raw resident projection should not fall back to range-backed loading');
+  },
+  resolveWeightLayout(loc) {
+    return loc.layout ?? 'row';
+  },
+}, {
+  hiddenSizePerLayerInput: 32,
+});
+
+assert.ok(
+  !isCpuWeightBuffer(packedRawProjectionWeights.perLayerModelProjection),
+  'packed raw resident projection buffers must stay resident instead of falling back to a range-backed CPU source'
+);
+
 const splitTensorLocations = new Map([
   ['model.language_model.layers.0.embed_tokens_per_layer.weight', {
     shape: [16, 32],

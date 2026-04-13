@@ -20,7 +20,6 @@ import {
   getActiveKernelPathSource,
   setActiveKernelPath,
 } from '../config/kernel-path-loader.js';
-import { runTrainingOperatorCommand } from '../training/operator-command.js';
 
 function asOptionalPlainObject(value, label) {
   if (value == null) return null;
@@ -56,6 +55,7 @@ function assertNoUnsupportedRuntimeInputs(request, reason = null) {
 }
 
 let runtimeModulesPromise = null;
+let trainingOperatorModulesPromise = null;
 
 function loadRuntimeModules() {
   if (runtimeModulesPromise) {
@@ -69,6 +69,14 @@ function loadRuntimeModules() {
   ]).then(([harness, runtime]) => ({ harness, runtime }));
 
   return runtimeModulesPromise;
+}
+
+async function loadTrainingOperatorModules() {
+  if (trainingOperatorModulesPromise) {
+    return trainingOperatorModulesPromise;
+  }
+  trainingOperatorModulesPromise = import('../experimental/training/operator-command.js');
+  return trainingOperatorModulesPromise;
 }
 
 export function hasNodeWebGPUSupport() {
@@ -133,7 +141,8 @@ export async function runNodeCommand(commandRequest, options = {}) {
       if (!gpuOptionalActions.has(request.action)) {
         await assertNodeWebGPUSupport();
       }
-      const result = await runTrainingOperatorCommand(request);
+      const training = await loadTrainingOperatorModules();
+      const result = await training.runTrainingOperatorCommand(request);
       return createToolingSuccessEnvelope({
         surface: 'node',
         request,

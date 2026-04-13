@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { parseSafetensorsSharded } from '../../src/browser/safetensors-parser-browser.js';
+import { parseSafetensorsSharded } from '../../src/experimental/browser/safetensors-parser-browser.js';
 
 function createSafetensorsBytes(tensorMap) {
   const headerObject = {};

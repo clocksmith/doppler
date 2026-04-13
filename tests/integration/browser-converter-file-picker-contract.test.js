@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { pickModelFiles } from '../../src/browser/browser-converter.js';
+import { pickModelFiles } from '../../src/experimental/browser/browser-converter.js';
 
 function createFileHandle(name) {
   return {

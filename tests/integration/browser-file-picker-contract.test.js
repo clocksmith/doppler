@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { pickModelDirectory } from '../../src/browser/file-picker.js';
+import { pickModelDirectory } from '../../src/experimental/browser/file-picker.js';
 
 function createFileHandle(name) {
   return {

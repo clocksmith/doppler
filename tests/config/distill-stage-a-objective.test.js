@@ -8,7 +8,7 @@ globalThis.GPUBufferUsage ??= {
 };
 globalThis.GPUMapMode ??= { READ: 1, WRITE: 2 };
 
-const { createDistillKdObjective } = await import('../../src/training/objectives/distill_kd.js');
+const { createDistillKdObjective } = await import('../../src/experimental/training/objectives/distill_kd.js');
 
 const objective = createDistillKdObjective({
   crossEntropyLoss: async () => ({ label: 'loss' }),

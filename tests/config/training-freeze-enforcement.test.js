@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 
 import { createTrainingConfig } from '../../src/config/training-defaults.js';
-import { trainStep } from '../../src/training/trainer.js';
-import { AdamOptimizer } from '../../src/training/optimizer.js';
-import { crossEntropyLoss } from '../../src/training/loss.js';
-import { clipGradients } from '../../src/training/clip.js';
-import { OpType } from '../../src/training/autograd.js';
+import { trainStep } from '../../src/experimental/training/trainer.js';
+import { AdamOptimizer } from '../../src/experimental/training/optimizer.js';
+import { crossEntropyLoss } from '../../src/experimental/training/loss.js';
+import { clipGradients } from '../../src/experimental/training/clip.js';
+import { OpType } from '../../src/experimental/training/autograd.js';
 import { runMatmul } from '../../src/gpu/kernels/index.js';
 import { createTensor } from '../../src/gpu/tensor.js';
 import { acquireBuffer, uploadData, readBuffer, releaseBuffer } from '../../src/memory/buffer-pool.js';

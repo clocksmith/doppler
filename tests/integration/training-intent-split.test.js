@@ -6,7 +6,7 @@ import { join } from 'node:path';
 const {
   runTrainingSuite,
   runTrainingBenchSuite,
-} = await import('../../src/training/suite.js');
+} = await import('../../src/experimental/training/suite.js');
 const { probeNodeGPU } = await import('../helpers/gpu-probe.js');
 
 function isUnavailableNodeWebGPUError(value) {

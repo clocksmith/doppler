@@ -7,7 +7,7 @@ const {
   buildDistillPrompt,
   loadDistillDatasetFromJsonl,
   resolveDistillDataScope,
-} = await import('../../src/training/suite.js');
+} = await import('../../src/experimental/training/suite.js');
 
 const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'doppler-distill-suite-data-'));
 

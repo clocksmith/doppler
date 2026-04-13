@@ -236,7 +236,7 @@ async function ensureEnergyPipeline() {
 }
 
 async function runStandaloneQuintelPipeline(request) {
-  const { EnergyPipeline } = await import('../src/energy/index.js');
+  const { EnergyPipeline } = await import('../src/experimental/energy/index.js');
   const pipeline = new EnergyPipeline();
   await pipeline.initialize({
     runtimeConfig: getRuntimeConfig(),

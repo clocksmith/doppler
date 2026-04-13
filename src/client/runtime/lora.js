@@ -1,4 +1,4 @@
-import { loadLoRAFromManifest, loadLoRAFromUrl } from '../../adapters/lora-loader.js';
+import { loadLoRAFromManifest, loadLoRAFromUrl } from '../../experimental/adapters/lora-loader.js';
 import { log } from '../../debug/index.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { fetchArrayBuffer, readOPFSFile, writeOPFSFile } from './storage.js';

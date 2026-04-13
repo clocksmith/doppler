@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { loadCheckpoint, saveCheckpoint } from '../../src/training/checkpoint.js';
+import { loadCheckpoint, saveCheckpoint } from '../../src/experimental/training/checkpoint.js';
 
 function createFakeIndexedDb() {
   const saved = new Map();

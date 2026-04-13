@@ -14,7 +14,7 @@ Exports:
 - `"."` — `src/index.js` (main library API)
 - `"./tooling"` — `src/tooling-exports.js` (command runners, harness API)
 - `"./loaders"` — `src/loaders/index.js`
-- `"./orchestration"` — `src/orchestration/index.js`
+- `"./orchestration"` — `src/experimental/orchestration/index.js`
 - `"./generation"`, `"./diffusion"`, `"./energy"` — pipeline-specific exports
 
 Binary: `doppler` → `src/cli/doppler-cli.js`

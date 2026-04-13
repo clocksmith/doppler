@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-const { runTrainingBenchSuite } = await import('../../src/training/suite.js');
+const { runTrainingBenchSuite } = await import('../../src/experimental/training/suite.js');
 const { runBrowserSuite } = await import('../../src/inference/browser-harness.js');
 const { probeNodeGPU } = await import('../helpers/gpu-probe.js');
 

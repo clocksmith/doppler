@@ -28,7 +28,7 @@ An RDRR-LoRA adapter is a JSON manifest with optional inline tensors.
 - `metadata`
 
 Schema reference:
-- `src/adapters/adapter-manifest.js`
+- `src/experimental/adapters/adapter-manifest.js`
 
 ## Tensor naming
 
@@ -63,13 +63,13 @@ Doppler currently loads LoRA tensors as `f32`.
 Use training export helper:
 
 ```js
-import { exportLoRAAdapter } from '../src/training/export.js';
+import { exportLoRAAdapter } from '../src/experimental/training/export.js';
 ```
 
 Runtime loader paths:
-- `src/adapters/lora-loader.js`
-- `src/adapters/adapter-manifest.js`
-- `src/training/export.js`
+- `src/experimental/adapters/lora-loader.js`
+- `src/experimental/adapters/adapter-manifest.js`
+- `src/experimental/training/export.js`
 
 ## Interop note
 

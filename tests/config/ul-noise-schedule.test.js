@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createTrainingConfig } from '../../src/config/training-defaults.js';
-import { resolveUlScheduledLambda } from '../../src/training/ul_schedule.js';
+import { resolveUlScheduledLambda } from '../../src/experimental/training/ul_schedule.js';
 
 {
   const config = createTrainingConfig({

@@ -8,7 +8,7 @@ globalThis.GPUBufferUsage ??= {
 };
 globalThis.GPUMapMode ??= { READ: 1, WRITE: 2 };
 
-const { createDistillTripletObjective } = await import('../../src/training/objectives/distill_triplet.js');
+const { createDistillTripletObjective } = await import('../../src/experimental/training/objectives/distill_triplet.js');
 
 const objective = createDistillTripletObjective({
   crossEntropyLoss: async () => ({ label: 'loss' }),

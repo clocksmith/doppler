@@ -132,6 +132,6 @@ Use provenance and workload verification for manifests and reports:
 ```bash
 node tools/verify-training-provenance.js --manifest <manifest.json> [--stage1-manifest <manifest.json>]
 node tools/verify-training-provenance.js --report <report.json>
-node tools/verify-training-workload-packs.js --registry src/training/workload-packs/registry.json
-node tools/publish-training-report-ids.js --registry src/training/workload-packs/registry.json --out reports/training/report-ids/latest.json
+node tools/verify-training-workload-packs.js --registry src/experimental/training/workload-packs/registry.json
+node tools/publish-training-report-ids.js --registry src/experimental/training/workload-packs/registry.json --out reports/training/report-ids/latest.json
 ```

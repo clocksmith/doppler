@@ -28,17 +28,17 @@ const {
   uploadData,
 } = await import('../../src/memory/buffer-pool.js');
 const { createTensor } = await import('../../src/gpu/tensor.js');
-const { AutogradTape } = await import('../../src/training/autograd.js');
+const { AutogradTape } = await import('../../src/experimental/training/autograd.js');
 const {
   attentionBackwardCpu,
   buildAttentionSoftmaxCache,
-} = await import('../../src/training/attention-backward.js');
-const { AdamOptimizer } = await import('../../src/training/optimizer.js');
+} = await import('../../src/experimental/training/attention-backward.js');
+const { AdamOptimizer } = await import('../../src/experimental/training/optimizer.js');
 const { runAdam } = await import('../../src/gpu/kernels/backward/adam.js');
 const { runAttentionBackward } = await import('../../src/gpu/kernels/backward/attention_backward.js');
 const { runMatmul } = await import('../../src/gpu/kernels/matmul.js');
-const { LoraAdapter } = await import('../../src/training/lora.js');
-const { createTokenBatchTensors } = await import('../../src/training/datasets/token-batch.js');
+const { LoraAdapter } = await import('../../src/experimental/training/lora.js');
+const { createTokenBatchTensors } = await import('../../src/experimental/training/datasets/token-batch.js');
 
 class FakeBuffer {
   constructor({ size, usage, initialBytes = null, mapReject = false }) {

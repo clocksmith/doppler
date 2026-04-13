@@ -39,8 +39,8 @@
     "ci:training:contract": "node tools/ci-training-contract-gates.js",
     "ci:training:contract:list": "node tools/ci-training-contract-gates.js --list",
     "training:contract:delta": "node tools/emit-training-contract-delta.js",
-    "training:workloads:verify": "node tools/verify-training-workload-packs.js --registry src/training/workload-packs/registry.json",
-    "training:report-ids:publish": "node tools/publish-training-report-ids.js --registry src/training/workload-packs/registry.json",
+    "training:workloads:verify": "node tools/verify-training-workload-packs.js --registry src/experimental/training/workload-packs/registry.json",
+    "training:report-ids:publish": "node tools/publish-training-report-ids.js --registry src/experimental/training/workload-packs/registry.json",
     "distill:studio:mvp": "node tools/distill-studio-mvp.js",
     "distill:quality-gate": "node tools/distill-studio-quality-gate.js",
     "p2p:observability": "node tools/p2p-delivery-observability.js",
@@ -135,20 +135,20 @@
       "import": "./src/loaders/index.js"
     },
     "./orchestration": {
-      "types": "./src/orchestration/index.d.ts",
-      "import": "./src/orchestration/index.js"
+      "types": "./src/experimental/orchestration/index.d.ts",
+      "import": "./src/experimental/orchestration/index.js"
     },
     "./generation": {
       "types": "./src/generation/index.d.ts",
       "import": "./src/generation/index.js"
     },
     "./diffusion": {
-      "types": "./src/diffusion/index.d.ts",
-      "import": "./src/diffusion/index.js"
+      "types": "./src/experimental/diffusion/index.d.ts",
+      "import": "./src/experimental/diffusion/index.js"
     },
     "./energy": {
-      "types": "./src/energy/index.d.ts",
-      "import": "./src/energy/index.js"
+      "types": "./src/experimental/energy/index.d.ts",
+      "import": "./src/experimental/energy/index.js"
     }
   },
   "repository": {

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 const {
   createBrowserWebRTCDataPlaneTransport,
   isBrowserWebRTCAvailable,
-} = await import('../../src/distribution/p2p-webrtc-browser.js');
+} = await import('../../src/experimental/distribution/p2p-webrtc-browser.js');
 
 function toHex(buffer) {
   return Array.from(new Uint8Array(buffer))

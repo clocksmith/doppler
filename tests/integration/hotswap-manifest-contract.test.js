@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { verifyHotSwapManifest } from '../../src/hotswap/manifest.js';
+import { verifyHotSwapManifest } from '../../src/experimental/hotswap/manifest.js';
 
 const policy = {
   enabled: true,

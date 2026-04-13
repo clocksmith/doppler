@@ -41,7 +41,7 @@ if (typeof globalThis.GPUTextureUsage === 'undefined') {
 }
 
 const { runBrowserSuite, buildSuiteSummary } = await import('../../src/inference/browser-harness.js');
-const { trainingHarness } = await import('../../src/training/suite.js');
+const { trainingHarness } = await import('../../src/experimental/training/suite.js');
 
 {
   const startTime = performance.now() - 5;

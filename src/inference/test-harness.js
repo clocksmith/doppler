@@ -6,17 +6,17 @@ import { createPipeline } from './pipelines/text.js';
 import { createNodeFileShardStorageContext } from './pipelines/text/init.js';
 import { log as debugLog } from '../debug/index.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
-import { downloadShard as downloadShardFromDistribution } from '../distribution/shard-delivery.js';
+import { downloadShard as downloadShardFromDistribution } from '../experimental/distribution/shard-delivery.js';
 import {
   fetchHotSwapManifest,
   verifyHotSwapManifest,
-} from '../hotswap/manifest.js';
-import { evaluateHotSwapRollout, setHotSwapManifest } from '../hotswap/runtime.js';
+} from '../experimental/hotswap/manifest.js';
+import { evaluateHotSwapRollout, setHotSwapManifest } from '../experimental/hotswap/runtime.js';
 import {
   fetchIntentBundle,
   getKernelRegistryVersion,
   verifyIntentBundle,
-} from '../hotswap/intent-bundle.js';
+} from '../experimental/hotswap/intent-bundle.js';
 
 
 

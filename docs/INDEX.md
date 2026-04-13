@@ -59,6 +59,6 @@ Primary documentation index.
 ## Specs and Source Readmes
 
 - [Benchmark Schema](../benchmarks/benchmark-schema.json)
-- [Training Engine](../src/training/README.md)
+- [Training Engine](../src/experimental/training/README.md)
 - [Inference README](../src/inference/README.md)
 - [Kernel Tests](../tests/kernels/README.md)

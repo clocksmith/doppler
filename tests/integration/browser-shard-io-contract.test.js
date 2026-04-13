@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { BrowserShardIO } from '../../src/browser/shard-io-browser.js';
+import { BrowserShardIO } from '../../src/experimental/browser/shard-io-browser.js';
 import { setOpfsPathConfig } from '../../src/storage/shard-manager.js';
 
 const originalNavigator = globalThis.navigator;

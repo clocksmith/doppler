@@ -3,7 +3,7 @@ import { readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
-const { runTrainingSuite } = await import('../../src/training/suite.js');
+const { runTrainingSuite } = await import('../../src/experimental/training/suite.js');
 const { bootstrapNodeWebGPU } = await import('../../src/tooling/node-webgpu.js');
 const { initDevice } = await import('../../src/gpu/device.js');
 

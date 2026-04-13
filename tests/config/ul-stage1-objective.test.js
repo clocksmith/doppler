@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { createUlStage1JointObjective } from '../../src/training/objectives/ul_stage1_joint.js';
+import { createUlStage1JointObjective } from '../../src/experimental/training/objectives/ul_stage1_joint.js';
 
 const objective = createUlStage1JointObjective({
   crossEntropyLoss: async () => ({ label: 'loss' }),

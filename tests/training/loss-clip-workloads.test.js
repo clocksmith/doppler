@@ -27,9 +27,9 @@ const {
   uploadData,
 } = await import('../../src/memory/buffer-pool.js');
 const { createTensor } = await import('../../src/gpu/tensor.js');
-const { AutogradTape } = await import('../../src/training/autograd.js');
-const { clipGradients } = await import('../../src/training/clip.js');
-const { normalizeTrainingWorkloadPack } = await import('../../src/training/workloads.js');
+const { AutogradTape } = await import('../../src/experimental/training/autograd.js');
+const { clipGradients } = await import('../../src/experimental/training/clip.js');
+const { normalizeTrainingWorkloadPack } = await import('../../src/experimental/training/workloads.js');
 
 class FakeBuffer {
   constructor({ size, usage, initialBytes = null }) {

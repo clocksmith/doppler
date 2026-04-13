@@ -5,7 +5,7 @@ import { parseModelConfig } from '../inference/pipelines/text/config.js';
 import { InferencePipeline } from '../inference/pipelines/text.js';
 import { getDopplerLoader } from './doppler-loader.js';
 import { getRuntimeConfig } from '../config/runtime.js';
-import { loadLoRAFromManifest, loadLoRAFromUrl } from '../adapters/lora-loader.js';
+import { loadLoRAFromManifest, loadLoRAFromUrl } from '../experimental/adapters/lora-loader.js';
 
 export class MultiModelLoader {
   

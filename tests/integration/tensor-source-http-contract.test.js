@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   createHttpTensorSource,
   probeHttpRange,
-} from '../../src/browser/tensor-source-http.js';
+} from '../../src/experimental/browser/tensor-source-http.js';
 
 const originalFetch = globalThis.fetch;
 

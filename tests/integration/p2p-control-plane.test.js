@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 
 const {
   downloadShard,
-} = await import('../../src/distribution/shard-delivery.js');
+} = await import('../../src/experimental/distribution/shard-delivery.js');
 const {
   normalizeP2PControlPlaneConfig,
-} = await import('../../src/distribution/p2p-control-plane.js');
+} = await import('../../src/experimental/distribution/p2p-control-plane.js');
 
 const originalFetch = globalThis.fetch;
 

@@ -7,7 +7,7 @@
 import type { WeightLoadResult } from '../inference/pipelines/text/init.js';
 import type { Manifest } from '../inference/pipelines/text/config.js';
 import type { InferencePipeline, PipelineContexts } from '../inference/pipelines/text.js';
-import type { LoRAManifest } from '../adapters/lora-loader.js';
+import type { LoRAManifest } from '../experimental/adapters/lora-loader.js';
 import type { LoRAAdapter } from '../inference/pipelines/text/lora.js';
 import type { RDRRManifest } from '../formats/rdrr/index.js';
 

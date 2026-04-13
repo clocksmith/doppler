@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-const { evaluateHotSwapRollout } = await import('../../src/hotswap/runtime.js');
+const { evaluateHotSwapRollout } = await import('../../src/experimental/hotswap/runtime.js');
 
 {
   const decision = evaluateHotSwapRollout(

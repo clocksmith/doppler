@@ -57,7 +57,7 @@ import {
 } from './browser-harness-diffusion-energy-suites.js';
 import { collectTrainingArtifactsFromSuiteResult } from './browser-harness-report-helpers.js';
 
-const TRAINING_SUITE_MODULE_PATH = '../training/suite.js';
+const TRAINING_SUITE_MODULE_PATH = '../experimental/training/suite.js';
 let trainingSuiteModulePromise = null;
 
 async function loadTrainingSuiteModule() {

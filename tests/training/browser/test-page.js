@@ -26,12 +26,12 @@ import {
   recordAdam,
   createCommandRecorder,
 } from '../../../src/gpu/kernels/index.js';
-import { AutogradTape, OpType } from '../../../src/training/autograd.js';
-import { trainStep } from '../../../src/training/trainer.js';
+import { AutogradTape, OpType } from '../../../src/experimental/training/autograd.js';
+import { trainStep } from '../../../src/experimental/training/trainer.js';
 import { createTrainingConfig } from '../../../src/config/training-defaults.js';
-import { AdamOptimizer } from '../../../src/training/optimizer.js';
-import { crossEntropyLoss } from '../../../src/training/loss.js';
-import { clipGradients } from '../../../src/training/clip.js';
+import { AdamOptimizer } from '../../../src/experimental/training/optimizer.js';
+import { crossEntropyLoss } from '../../../src/experimental/training/loss.js';
+import { clipGradients } from '../../../src/experimental/training/clip.js';
 import { compareArrays, KERNEL_TOLERANCES } from '../../kernels/harness/tolerance.js';
 import { loadBackwardRegistry } from '../../../src/config/backward-registry-loader.js';
 import { releaseBuffer } from '../../../src/memory/buffer-pool.js';

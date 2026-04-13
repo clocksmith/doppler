@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
-import { watchFinalizedCheckpoints } from '../../src/training/checkpoint-watch.js';
+import { watchFinalizedCheckpoints } from '../../src/experimental/training/checkpoint-watch.js';
 
 const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-checkpoint-watch-'));
 try {

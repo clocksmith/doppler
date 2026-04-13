@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 
 import {
   P2P_TRANSPORT_ERROR_CODES,
-} from '../../src/distribution/p2p-transport-contract.js';
+} from '../../src/experimental/distribution/p2p-transport-contract.js';
 import {
   normalizeP2PPolicyDecision,
-} from '../../src/distribution/p2p-control-plane.js';
+} from '../../src/experimental/distribution/p2p-control-plane.js';
 
 for (const value of [undefined, null, {}]) {
   assert.throws(

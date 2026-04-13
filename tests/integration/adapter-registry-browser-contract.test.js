@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   AdapterRegistry,
   createMemoryRegistry,
-} from '../../src/adapters/adapter-registry.js';
+} from '../../src/experimental/adapters/adapter-registry.js';
 
 const originalIndexedDb = globalThis.indexedDB;
 const originalWindow = globalThis.window;

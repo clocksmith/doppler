@@ -5,7 +5,7 @@ import {
   assertImageRegressionWithinTolerance,
   computeImageFingerprint,
   computeImageRegressionMetrics,
-} from '../../src/diffusion/image-regression.js';
+} from '../../src/experimental/diffusion/image-regression.js';
 
 const fixturesPath = resolve(
   process.cwd(),

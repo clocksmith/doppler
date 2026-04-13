@@ -23,7 +23,7 @@ flowchart TD
     CVT["doppler convert"]
     G["src/tooling/node-command-runner.js\nconvert -> src/tooling/node-converter.js"]
     H["src/tooling/browser-command-runner.js\nconvert requires options.convertHandler(request)"]
-    I["caller-provided handler (often src/browser/browser-converter.js)"]
+    I["caller-provided handler (often src/experimental/browser/browser-converter.js)"]
     RA["RDRR artifacts"]
     C -->|if convert| CVT
     CVT --> G --> RA
@@ -55,7 +55,7 @@ to direct `runBrowserCommand()` usage where `options.convertHandler` is injected
 | --- | --- | --- | --- | --- |
 | 1 | Command normalization | raw CLI/web call | `src/cli/doppler-cli.js`, `src/tooling/command-api.js` | canonical request + intent |
 | 2 | Surface dispatch | request + mode | node/browser runners | surface-specific execution |
-| 3 | Conversion path | source path + conversion config | Node: `src/tooling/node-converter.js`; Browser: injected `options.convertHandler` (typically wraps `src/browser/browser-converter.js`) | RDRR artifacts |
+| 3 | Conversion path | source path + conversion config | Node: `src/tooling/node-converter.js`; Browser: injected `options.convertHandler` (typically wraps `src/experimental/browser/browser-converter.js`) | RDRR artifacts |
 | 4 | Artifact resolution | `modelId`/`modelUrl` | storage tooling | manifest URI + shard source |
 | 5 | Config merge | manifest + runtime override | `src/config/**` | resolved config |
 | 6 | Model loading | resolved manifest/config | `src/loader/**` | GPU-ready tensors + cache state |

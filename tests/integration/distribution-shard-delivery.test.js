@@ -5,7 +5,7 @@ const {
   getSourceOrder,
   resolveShardDeliveryPlan,
   getInFlightShardDeliveryCount,
-} = await import('../../src/distribution/shard-delivery.js');
+} = await import('../../src/experimental/distribution/shard-delivery.js');
 const {
   cleanup: cleanupStorage,
   createShardWriter,

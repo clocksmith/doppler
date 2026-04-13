@@ -3,7 +3,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { downloadShard } from '../src/distribution/shard-delivery.js';
+import { downloadShard } from '../src/experimental/distribution/shard-delivery.js';
 
 const HTTP_BYTES = new Uint8Array([1, 2, 3, 4]);
 const P2P_BYTES = new Uint8Array([9, 10, 11, 12]);

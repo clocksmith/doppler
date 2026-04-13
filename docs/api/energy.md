@@ -63,8 +63,8 @@ console.log(score);
 
 ## Code Pointers
 
-- energy export surface: [src/energy/index.js](../../src/energy/index.js)
-- energy types: [src/energy/index.d.ts](../../src/energy/index.d.ts)
+- energy export surface: [src/experimental/energy/index.js](../../src/experimental/energy/index.js)
+- energy types: [src/experimental/energy/index.d.ts](../../src/experimental/energy/index.d.ts)
 - energy pipeline: [src/inference/pipelines/energy/pipeline.js](../../src/inference/pipelines/energy/pipeline.js)
 
 ## Related Surfaces

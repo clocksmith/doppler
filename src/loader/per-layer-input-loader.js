@@ -1,6 +1,7 @@
 import {
   createWeightBuffer,
   createCpuWeightBuffer,
+  getWeightDtype,
   isWeightBuffer,
   isCpuWeightBuffer,
   isGpuBufferInstance,
@@ -135,7 +136,32 @@ function getLoadedTensorResidentByteLength(tensor) {
   return null;
 }
 
+function isPackedResidentWeightTensor(tensor) {
+  if (!isWeightBuffer(tensor)) {
+    return false;
+  }
+  const dtype = String(getWeightDtype(tensor) || '').trim().toLowerCase();
+  if (!dtype) {
+    return false;
+  }
+  return dtype !== 'f16' && dtype !== 'f32' && dtype !== 'bf16';
+}
+
+function isPackedQuantizedLocation(location) {
+  const dtype = String(location?.dtype || '').trim().toLowerCase();
+  if (!dtype) {
+    return false;
+  }
+  return dtype !== 'f16' && dtype !== 'f32' && dtype !== 'bf16';
+}
+
 function validateResidentPerLayerProjectionTensor(ctx, name, location, tensor) {
+  if (
+    isPackedResidentWeightTensor(tensor)
+    || (isPackedQuantizedLocation(location) && (isGpuBufferInstance(tensor) || isWeightBuffer(tensor)))
+  ) {
+    return tensor;
+  }
   const expectedBytes = getExpectedTensorLogicalByteLength(location);
   const residentBytes = getLoadedTensorResidentByteLength(tensor);
   if (

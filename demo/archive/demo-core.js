@@ -156,8 +156,8 @@ const QUICK_MODEL_CATALOG_URLS = buildQuickCatalogCandidateUrls();
 const QUICK_MODEL_HF_HOST = 'huggingface.co';
 const QUICK_MODEL_HF_COMMIT_PATTERN = /^[a-f0-9]{7,64}$/i;
 const DISTILL_WORKLOAD_REGISTRY_URL = typeof window === 'object' && window.location?.origin
-  ? new URL('/src/training/workload-packs/registry.json', window.location.origin).toString()
-  : new URL('../src/training/workload-packs/registry.json', import.meta.url).toString();
+  ? new URL('/src/experimental/training/workload-packs/registry.json', window.location.origin).toString()
+  : new URL('../src/experimental/training/workload-packs/registry.json', import.meta.url).toString();
 const RUN_STARTER_PROMPTS = Object.freeze([
   'compare zig to rust to elvish',
   'eat your cake and have it too',

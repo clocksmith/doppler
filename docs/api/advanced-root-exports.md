@@ -102,7 +102,7 @@ Subpath support tiers are defined in [Subsystem Support Matrix](../subsystem-sup
 - root export surface: [src/index.js](../../src/index.js)
 - root type surface: [src/index.d.ts](../../src/index.d.ts)
 - loaders subpath: [src/loaders/index.js](../../src/loaders/index.js)
-- orchestration subpath: [src/orchestration/index.js](../../src/orchestration/index.js)
+- orchestration subpath: [src/experimental/orchestration/index.js](../../src/experimental/orchestration/index.js)
 - generation subpath: [docs/api/generation.md](generation.md)
 
 ## Related Surfaces

@@ -21,7 +21,7 @@ import { f32ToF16Array } from '../../kv-cache/types.js';
 
 // Pipeline sub-modules
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from './sampling.js';
-import { enforceLogitDrift } from '../../../hotswap/intent-bundle.js';
+import { enforceLogitDrift } from '../../../experimental/hotswap/intent-bundle.js';
 import { applyChatTemplate, createKVCache, isStopToken } from './init.js';
 import { formatChatMessages } from './chat-format.js';
 import { embed } from './embed.js';

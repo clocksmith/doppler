@@ -217,15 +217,11 @@ Support tier is not implied by directory presence alone. Use the generated
 | `loader/` | Weight loading, dequantization |
 | `storage/` | OPFS shard management, download |
 | `memory/` | Heap manager + Memory64/unified detection for loader/preflight |
-| `adapters/` | LoRA adapter loading/management |
-| `hotswap/` | Runtime update and manifest-driven component remap |
 | `client/` | Root facade and runtime coordination |
-| `bridge/` | Browser extension bridge client/protocol and relay integration |
-| `browser/` | Browser import, parsing, and conversion helpers |
 | `debug/` | Logging, trace categories, probes |
 | `errors/` | Error codes and helpers |
 | `rules/` | JSON rule maps for runtime selection |
-| `training/` | Training utilities and optimization primitives |
+| `experimental/` | Quarantined experimental and internal-only subsystem lanes such as adapters, orchestration, training, diffusion, bridge, browser helpers, hotswap, distribution, and energy |
 | `types/` | Shared TypeScript types |
 
 See private wrapper docs for optional wrapper-level architecture notes.
@@ -288,13 +284,13 @@ DOPPLER's structure can be understood through multiple lenses. Each view serves 
 │ types/                                                                       │
 │ (shared TypeScript declarations - no runtime code)                           │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│                             EXTENSIONS                                       │
+│                      CLIENT + EXPERIMENTAL LANES                             │
 ├───────────────────┬────────────────────┬────────────────────────────────────┤
-│ converter/        │ adapters/          │ bridge/                             │
-│ (Node + Browser)  │ (LoRA hot-swap)    │ (Extension IPC)                     │
+│ converter/        │ client/            │ experimental/                       │
+│ (Node + Browser)  │ (Public API)       │ (quarantined advanced subsystems)   │
 ├───────────────────┼────────────────────┼────────────────────────────────────┤
-│ hotswap/          │ client/            │ browser/                            │
-│ (runtime updates) │ (Public API)       │ (Demo harness)                      │
+│ experimental/     │ experimental/      │ experimental/                       │
+│ adapters,hotswap  │ bridge,browser     │ diffusion,energy,training,dist.     │
 └───────────────────┴────────────────────┴────────────────────────────────────┘
 ```
 
@@ -306,7 +302,7 @@ DOPPLER's structure can be understood through multiple lenses. Each view serves 
   - `config/`: Source of truth for all tunables (DEFAULT_* exports)
   - `gpu/kernels`: Selects kernel variants and dispatches work
   - `types/`: TypeScript declarations (compile-time only)
-- **Extensions**: Optional capabilities. Can be removed without breaking core.
+- **Client + experimental lanes**: `client/` is supported runtime coordination; quarantined advanced lanes live under `src/experimental/` and must be treated by the support-tier contract rather than by directory presence alone.
 
 ### Debug Infrastructure Layers
 
@@ -405,7 +401,7 @@ Use this to reason about the public facade, runtime orchestration, and domain su
 
 - `client/api`: the root `doppler` facade, convenience cache, load/chat/text helpers, and surface normalization.
 - `client/runtime`: source resolution and materialization, device initialization, pipeline/session assembly, adapter lifecycle, and browser/Node adaptation.
-- `domain subsystems`: `gpu`, `loader`, `storage`, `formats`, `memory`, `inference`, `adapters`, `hotswap`, `rules`, `config`, `debug`, `bridge`, `browser`, `training`, `diffusion`, and `energy`.
+- `domain subsystems`: `gpu`, `loader`, `storage`, `formats`, `memory`, `inference`, `rules`, `config`, `debug`, plus quarantined advanced lanes under `src/experimental/` such as `adapters`, `hotswap`, `bridge`, `browser`, `training`, `diffusion`, `distribution`, `orchestration`, and `energy`.
 
 Layering is directional, not a promise of zero internal dependencies. Shared low-level helpers may depend on `config`, `debug`, or `gpu` when that is their owning contract.
 
@@ -1145,7 +1141,7 @@ See `config.md` for kernel selection rules and runtime overrides.
 | `src/storage/shard-manager.js` | OPFS shard management |
 | `src/converter/core.js` | Shared conversion types and functions |
 | `src/converter/quantizer.js` | Q4_K quantization |
-| `src/browser/browser-converter.js` | Browser model conversion |
+| `src/experimental/browser/browser-converter.js` | Browser model conversion |
 
 ---
 

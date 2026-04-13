@@ -3,7 +3,7 @@
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
 
-import { loadTrainingWorkloadPack } from '../src/training/workloads.js';
+import { loadTrainingWorkloadPack } from '../src/experimental/training/workloads.js';
 import { sha256Hex } from '../src/utils/sha256.js';
 
 function normalizeString(value) {
@@ -14,8 +14,8 @@ function normalizeString(value) {
 
 function parseArgs(argv) {
   const parsed = {
-    root: 'src/training/workload-packs',
-    registry: 'src/training/workload-packs/registry.json',
+    root: 'src/experimental/training/workload-packs',
+    registry: 'src/experimental/training/workload-packs/registry.json',
     out: null,
     writeRegistry: false,
   };

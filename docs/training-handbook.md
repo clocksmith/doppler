@@ -25,13 +25,13 @@ npm run training:report-ids:publish -- --out ./reports/training/report-ids/lates
 ### First-class operator commands
 
 ```bash
-node src/cli/doppler-cli.js distill --config '{"request":{"action":"subsets","workloadPath":"src/training/workload-packs/distill-translategemma-tiny.json"}}'
+node src/cli/doppler-cli.js distill --config '{"request":{"action":"subsets","workloadPath":"src/experimental/training/workload-packs/distill-translategemma-tiny.json"}}'
 
-node src/cli/doppler-cli.js distill --config '{"request":{"action":"run","workloadPath":"src/training/workload-packs/distill-translategemma-tiny.json"}}'
+node src/cli/doppler-cli.js distill --config '{"request":{"action":"run","workloadPath":"src/experimental/training/workload-packs/distill-translategemma-tiny.json"}}'
 
 node src/cli/doppler-cli.js distill --config '{"request":{"action":"watch","runRoot":"reports/training/distill/distill-translategemma-tiny/2026-03-07T00-00-00.000Z","stopWhenIdle":true}}'
 
-node src/cli/doppler-cli.js lora --config '{"request":{"action":"run","workloadPath":"src/training/workload-packs/lora-toy-tiny.json"}}'
+node src/cli/doppler-cli.js lora --config '{"request":{"action":"run","workloadPath":"src/experimental/training/workload-packs/lora-toy-tiny.json"}}'
 
 node src/cli/doppler-cli.js lora --config '{"request":{"action":"export","runRoot":"reports/training/lora/lora-toy-tiny/2026-03-07T00-00-00.000Z"}}'
 ```
@@ -105,8 +105,8 @@ New operator behavior must be documented under the `distill` surface, not under 
 ## Workload Packs
 
 Canonical workload packs live under:
-- `src/training/workload-packs/lora-*.json`
-- `src/training/workload-packs/distill-*.json`
+- `src/experimental/training/workload-packs/lora-*.json`
+- `src/experimental/training/workload-packs/distill-*.json`
 
 Each pack is the source of truth for:
 - `schemaVersion`, `kind`, `id`, `description`, `claimBoundary`, `seed`

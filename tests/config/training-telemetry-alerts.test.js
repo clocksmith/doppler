@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-const { runTrainingBenchSuite } = await import('../../src/training/suite.js');
+const { runTrainingBenchSuite } = await import('../../src/experimental/training/suite.js');
 const { probeNodeGPU } = await import('../helpers/gpu-probe.js');
 
 const gpuProbe = await probeNodeGPU({ installFileFetchShim: true });

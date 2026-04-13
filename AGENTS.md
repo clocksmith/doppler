@@ -71,29 +71,22 @@ When the task is additive or extension-oriented, open `docs/developer-guides/REA
 ```
 doppler/
 ├── src/
-│   ├── adapters/         # External integration adapters
-│   ├── bridge/           # Browser/Node bridge layer
-│   ├── browser/          # Browser-specific entry points
 │   ├── cli/              # Public CLI entry point and policy
 │   ├── client/           # Client API surface
 │   ├── config/           # Schemas and checked-in config registries
 │   ├── converter/        # SafeTensors/GGUF → RDRR conversion
 │   ├── debug/            # Logging and tracing
-│   ├── diffusion/        # Image diffusion pipeline surface
-│   ├── distribution/     # P2P shard transport (experimental)
 │   ├── errors/           # Error types and handling
+│   ├── experimental/     # Quarantined experimental/internal-only subsystem lanes
 │   ├── formats/          # Format parsing utilities
 │   ├── gpu/              # WebGPU device, buffer pools, kernels
-│   ├── hotswap/          # Live model/adapter swap (experimental)
 │   ├── inference/        # Pipeline, attention, FFN, embeddings
 │   ├── generation/       # Text pipeline surface
 │   ├── loader/           # GGUF parsing, RDRR manifest
 │   ├── memory/           # Heap management, capability detection
 │   ├── rules/            # Validation rules (kernel path, etc.)
-│   ├── energy/           # Energy pipeline tools
 │   ├── storage/          # OPFS shard manager, model loading
 │   ├── tooling/          # Shared command contract + runners
-│   ├── training/         # Backward/training primitives
 │   ├── types/            # Shared type definitions
 │   └── utils/            # General utilities
 ├── benchmarks/           # Vendor benchmark registry + harnesses
@@ -106,6 +99,17 @@ doppler/
     ├── style/            # Style guides + invariant quick-refs
     └── agents/           # Task-specific protocol docs (loaded by skills)
 ```
+
+Current quarantined subsystem lanes under `src/experimental/` include:
+- `adapters/`
+- `bridge/`
+- `browser/`
+- `diffusion/`
+- `distribution/`
+- `energy/`
+- `hotswap/`
+- `orchestration/`
+- `training/`
 
 ### Before Starting
 
