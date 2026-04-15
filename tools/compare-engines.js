@@ -2520,21 +2520,41 @@ function extractTransformersjsPrefillTokens(result) {
   ]);
 }
 
+// Maximum absolute tokenizer divergence between Doppler's tokenizer and the
+// Transformers.js tokenizer on a single compare-rendered prompt that we are
+// willing to tolerate before marking a section non-comparable. Two independent
+// tokenizers on the exact same byte sequence can legitimately disagree by a
+// small amount (leading-space handling, BOS conventions, etc.). Larger deltas
+// point at a real prompt-rendering drift and must stay strict.
+const MAX_TOLERATED_TOKENIZER_DELTA = 1;
+
 function resolvePromptTokenComparison({ prefillTokenTarget, doppler, transformersjs }) {
   const dopplerPrefillTokens = extractDopplerPrefillTokens(doppler);
   const transformersjsPrefillTokens = extractTransformersjsPrefillTokens(transformersjs);
   const target = Number.isFinite(prefillTokenTarget) ? Number(prefillTokenTarget) : null;
 
-  let ok = true;
+  const bothKnown =
+    Number.isFinite(dopplerPrefillTokens) && Number.isFinite(transformersjsPrefillTokens);
+  const tokenizerDelta = bothKnown
+    ? Math.abs(dopplerPrefillTokens - transformersjsPrefillTokens)
+    : null;
+  const dopplerTargetDelta = target != null && Number.isFinite(dopplerPrefillTokens)
+    ? Math.abs(dopplerPrefillTokens - target)
+    : null;
+  const transformersjsTargetDelta = target != null && Number.isFinite(transformersjsPrefillTokens)
+    ? Math.abs(transformersjsPrefillTokens - target)
+    : null;
+
+  let strictOk = true;
   let invalidReason = null;
   if (dopplerPrefillTokens == null || transformersjsPrefillTokens == null) {
-    ok = false;
+    strictOk = false;
     invalidReason = 'missing-prompt-token-count';
-  } else if (dopplerPrefillTokens !== transformersjsPrefillTokens) {
-    ok = false;
+  } else if (tokenizerDelta !== 0) {
+    strictOk = false;
     invalidReason = 'prompt-token-count-mismatch';
-  } else if (target != null && (dopplerPrefillTokens !== target || transformersjsPrefillTokens !== target)) {
-    ok = false;
+  } else if (target != null && dopplerPrefillTokens !== target) {
+    strictOk = false;
     invalidReason = 'prompt-token-target-mismatch';
   }
 
@@ -2542,8 +2562,18 @@ function resolvePromptTokenComparison({ prefillTokenTarget, doppler, transformer
     target,
     doppler: dopplerPrefillTokens,
     transformersjs: transformersjsPrefillTokens,
-    ok,
+    tokenizerDelta,
+    dopplerTargetDelta,
+    transformersjsTargetDelta,
+    ok: strictOk,
     invalidReason,
+    // These fields are populated by buildCompareSection once the prompt
+    // contract and decode validity are known. Strict-ok sections come in with
+    // pairedComparable=true and no toleration record; sections that fail
+    // strictly may still be relaxed to pairedComparable=true if every gate
+    // passes and the delta is within MAX_TOLERATED_TOKENIZER_DELTA.
+    pairedComparable: strictOk,
+    toleratedTokenizerDelta: null,
   };
 }
 
@@ -2669,11 +2699,64 @@ function buildCompareSection({
         doppler: null,
         transformersjs: null,
       };
+
+  // Structured tokenizer-delta tolerance gate.
+  //
+  // When Doppler's tokenizer and Transformers.js's tokenizer produce counts
+  // that differ by <= MAX_TOLERATED_TOKENIZER_DELTA on the same compare-
+  // rendered prompt, the difference is noise in the tokenizer vocabularies,
+  // not evidence of prompt contamination. We only relax the strict
+  // pairedComparable check when every other axis of the compare contract is
+  // already clean: compare-engines owns the rendered prompt (so both engines
+  // received the exact same byte sequence), promptContractValidity passes
+  // (promptRendered is non-empty and enginesReceiveRenderedPrompt=true), and
+  // decodeValidity passes (both sides emitted non-zero decode tokens and
+  // non-empty generated text). The relaxation is recorded on the prompt
+  // tokens object so downstream readers can see exactly what was tolerated
+  // and why.
+  if (
+    baseComparable
+    && promptTokens.ok !== true
+    && promptTokens.invalidReason === 'prompt-token-count-mismatch'
+    && Number.isFinite(promptTokens.tokenizerDelta)
+    && promptTokens.tokenizerDelta <= MAX_TOLERATED_TOKENIZER_DELTA
+    && promptContractValidity.ok === true
+    && promptContract?.enginesReceiveRenderedPrompt === true
+    && decodeValidity.ok === true
+  ) {
+    const targetWithinTolerance =
+      promptTokens.target == null
+      || (
+        Number.isFinite(promptTokens.dopplerTargetDelta)
+        && Number.isFinite(promptTokens.transformersjsTargetDelta)
+        && promptTokens.dopplerTargetDelta <= MAX_TOLERATED_TOKENIZER_DELTA
+        && promptTokens.transformersjsTargetDelta <= MAX_TOLERATED_TOKENIZER_DELTA
+      );
+    if (targetWithinTolerance) {
+      promptTokens.pairedComparable = true;
+      promptTokens.toleratedTokenizerDelta = {
+        delta: promptTokens.tokenizerDelta,
+        maxAllowed: MAX_TOLERATED_TOKENIZER_DELTA,
+        doppler: promptTokens.doppler,
+        transformersjs: promptTokens.transformersjs,
+        rationale: 'Different tokenizers on an identical compare-rendered prompt can disagree by a small amount. Relaxed because promptContract.enginesReceiveRenderedPrompt=true (compare owns rendering, both engines received the exact same promptRendered), promptContract is structurally valid, and decodeValidity is ok (both engines produced non-zero decode tokens and non-empty generated text). Strict invalidReason is preserved on promptTokens for audit.',
+      };
+    }
+  }
+
   const pairedComparable = baseComparable
-    && promptTokens.ok === true
+    && promptTokens.pairedComparable === true
     && promptContractValidity.ok === true
     && decodeValidity.ok === true;
 
+  // invalidReason cascade — report the most evidence-breaking failure first.
+  // Engine failures dominate because they mean the lane never ran. Decode
+  // validity comes next because a zero-decode or empty-text result tells you
+  // the lane is broken before the tokenizer or rendering contract could even
+  // matter. Prompt contract comes next because a non-shared rendered prompt
+  // invalidates any per-engine token-count comparison. The tokenizer delta
+  // comes last because it's the narrowest signal: two known tokenizers
+  // disagreeing by a bounded amount on a shared rendered prompt.
   let invalidReason = null;
   if (!pairedComparable) {
     if (!baseComparable && dopplerFailed && tjsFailed) {
@@ -2684,12 +2767,12 @@ function buildCompareSection({
       invalidReason = 'transformersjs-failed';
     } else if (!baseComparable) {
       invalidReason = 'missing-engine-result';
-    } else if (promptTokens.ok !== true) {
-      invalidReason = promptTokens.invalidReason || 'prompt-token-contract-invalid';
-    } else if (promptContractValidity.ok !== true) {
-      invalidReason = promptContractValidity.invalidReason || 'prompt-contract-invalid';
     } else if (decodeValidity.ok !== true) {
       invalidReason = decodeValidity.invalidReason || 'decode-contract-invalid';
+    } else if (promptContractValidity.ok !== true) {
+      invalidReason = promptContractValidity.invalidReason || 'prompt-contract-invalid';
+    } else if (promptTokens.pairedComparable !== true) {
+      invalidReason = promptTokens.invalidReason || 'prompt-token-contract-invalid';
     } else {
       invalidReason = 'compare-contract-invalid';
     }

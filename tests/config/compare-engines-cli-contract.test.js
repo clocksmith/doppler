@@ -374,13 +374,188 @@ function runCompareEngines(args) {
   });
   assert.equal(section.pairedComparable, false);
   assert.equal(section.invalidReason, 'prompt-token-count-mismatch');
-  assert.deepEqual(section.promptTokens, {
-    target: 64,
-    doppler: 70,
-    transformersjs: 64,
-    ok: false,
-    invalidReason: 'prompt-token-count-mismatch',
+  assert.equal(section.promptTokens.target, 64);
+  assert.equal(section.promptTokens.doppler, 70);
+  assert.equal(section.promptTokens.transformersjs, 64);
+  assert.equal(section.promptTokens.ok, false);
+  assert.equal(section.promptTokens.invalidReason, 'prompt-token-count-mismatch');
+  assert.equal(section.promptTokens.tokenizerDelta, 6);
+  assert.equal(section.promptTokens.pairedComparable, false);
+  assert.equal(section.promptTokens.toleratedTokenizerDelta, null);
+}
+
+// Tokenizer-delta tolerance: ±1 difference between Doppler and Transformers.js
+// tokenizers on an identical compare-rendered prompt is tolerated when the
+// rest of the compare contract is already clean (compare owns rendering,
+// both sides decoded non-zero, both sides produced non-empty text).
+{
+  const promptContract = renderComparePrompt({
+    modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+    prompt: 'the sky is clear',
+    useChatTemplate: true,
   });
+  const section = buildCompareSection({
+    cacheMode: 'warm',
+    loadMode: 'opfs',
+    maxTokens: 64,
+    promptContract,
+    prefillTokenTarget: 64,
+    doppler: {
+      result: {
+        result: {
+          metrics: {
+            avgPrefillTokens: 63,
+            avgDecodeTokens: 64,
+            generatedText: 'Coherent Doppler output.',
+          },
+        },
+      },
+    },
+    transformersjs: {
+      generatedText: 'Coherent TJS output.',
+      runs: [
+        {
+          prefillTokens: 64,
+          decodeTokens: 64,
+        },
+      ],
+    },
+  });
+  assert.equal(section.pairedComparable, true, 'tokenizer delta of 1 must be tolerated when every other gate passes');
+  assert.equal(section.invalidReason, null);
+  assert.equal(section.promptTokens.ok, false, 'strict ok stays false so the evidence is preserved');
+  assert.equal(section.promptTokens.invalidReason, 'prompt-token-count-mismatch');
+  assert.equal(section.promptTokens.tokenizerDelta, 1);
+  assert.equal(section.promptTokens.pairedComparable, true);
+  assert.ok(section.promptTokens.toleratedTokenizerDelta, 'toleration record must be present');
+  assert.equal(section.promptTokens.toleratedTokenizerDelta.delta, 1);
+  assert.equal(section.promptTokens.toleratedTokenizerDelta.maxAllowed, 1);
+  assert.equal(section.promptTokens.toleratedTokenizerDelta.doppler, 63);
+  assert.equal(section.promptTokens.toleratedTokenizerDelta.transformersjs, 64);
+}
+
+// Tolerance gate must NOT fire when decodeValidity fails — zero decode tokens
+// on one side means there's no evidence the prompt path actually executed end
+// to end, so a ±1 tokenizer delta is no longer an innocuous divergence.
+{
+  const promptContract = renderComparePrompt({
+    modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+    prompt: 'the sky is clear',
+    useChatTemplate: true,
+  });
+  const section = buildCompareSection({
+    cacheMode: 'warm',
+    loadMode: 'opfs',
+    maxTokens: 64,
+    promptContract,
+    prefillTokenTarget: 64,
+    doppler: {
+      result: {
+        result: {
+          metrics: {
+            avgPrefillTokens: 63,
+            avgDecodeTokens: 64,
+            generatedText: 'Coherent Doppler output.',
+          },
+        },
+      },
+    },
+    transformersjs: {
+      generatedText: '',
+      runs: [
+        {
+          prefillTokens: 64,
+          decodeTokens: 0,
+        },
+      ],
+    },
+  });
+  assert.equal(section.pairedComparable, false);
+  assert.equal(section.invalidReason, 'transformersjs-invalid-zero-decode-tokens');
+  assert.equal(section.promptTokens.pairedComparable, false, 'gate must not relax when decodeValidity fails');
+  assert.equal(section.promptTokens.toleratedTokenizerDelta, null);
+}
+
+// Tolerance gate must NOT fire when enginesReceiveRenderedPrompt=false, even
+// if the tokenizer delta is within tolerance — compare no longer owns the
+// rendering, so the tokenizer divergence might actually come from a prompt
+// drift rather than tokenizer-vocabulary noise.
+{
+  const section = buildCompareSection({
+    cacheMode: 'warm',
+    loadMode: 'opfs',
+    maxTokens: 64,
+    promptContract: {
+      promptRendered: 'the sky is clear',
+      enginesReceiveRenderedPrompt: false,
+    },
+    prefillTokenTarget: 64,
+    doppler: {
+      result: {
+        result: {
+          metrics: {
+            avgPrefillTokens: 63,
+            avgDecodeTokens: 64,
+            generatedText: 'Coherent Doppler output.',
+          },
+        },
+      },
+    },
+    transformersjs: {
+      generatedText: 'Coherent TJS output.',
+      runs: [
+        {
+          prefillTokens: 64,
+          decodeTokens: 64,
+        },
+      ],
+    },
+  });
+  assert.equal(section.pairedComparable, false);
+  assert.equal(section.promptTokens.pairedComparable, false);
+  assert.equal(section.promptTokens.toleratedTokenizerDelta, null);
+}
+
+// Delta > MAX_TOLERATED_TOKENIZER_DELTA must stay non-comparable even with
+// every other gate clean.
+{
+  const promptContract = renderComparePrompt({
+    modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+    prompt: 'the sky is clear',
+    useChatTemplate: true,
+  });
+  const section = buildCompareSection({
+    cacheMode: 'warm',
+    loadMode: 'opfs',
+    maxTokens: 64,
+    promptContract,
+    prefillTokenTarget: 64,
+    doppler: {
+      result: {
+        result: {
+          metrics: {
+            avgPrefillTokens: 61,
+            avgDecodeTokens: 64,
+            generatedText: 'Coherent Doppler output.',
+          },
+        },
+      },
+    },
+    transformersjs: {
+      generatedText: 'Coherent TJS output.',
+      runs: [
+        {
+          prefillTokens: 64,
+          decodeTokens: 64,
+        },
+      ],
+    },
+  });
+  assert.equal(section.pairedComparable, false);
+  assert.equal(section.invalidReason, 'prompt-token-count-mismatch');
+  assert.equal(section.promptTokens.tokenizerDelta, 3);
+  assert.equal(section.promptTokens.pairedComparable, false);
+  assert.equal(section.promptTokens.toleratedTokenizerDelta, null);
 }
 
 {
