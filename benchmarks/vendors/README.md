@@ -46,10 +46,22 @@ Use these before turning a compare result into README copy, a chart, or a releas
 
 - Correctness must be clean on the promoted lane.
   A mismatch compare artifact is diagnostic evidence, not claimable speed evidence.
+- Prompt rendering must be explicit and shared.
+  `tools/compare-engines.js` records `promptContract` with raw/rendered prompt
+  text and passes the same rendered model-input prompt to both engines whenever
+  compare-owned rendering is used.
+- Zero-decode runs are invalid evidence.
+  If an engine returns no decode tokens or an empty generated text sample for a
+  multi-token benchmark, the compare artifact must mark the lane non-comparable
+  instead of reporting a speed claim.
 - Verify the measured artifact source.
   Published HF artifacts, local manifests, and compare-profile defaults can diverge; claim only from the source the artifact actually used.
 - Use the real performance lane.
   Do not promote timing from a debug-only `f32`, `http`, or otherwise investigation-specific profile as if it were the warmed compare lane.
+- Separate product-engine wins from format-identical wins.
+  A Doppler RDRR or direct-source LiteRT lane may be compared with the best
+  available Transformers.js ONNX/WebGPU lane, but the artifact and claim must
+  say the formats differ.
 - Keep one traceable artifact per claim.
   A claim should point back to one saved compare JSON and one reproducible command.
 - If a chart mixes legacy `warm` fixtures with newer `compute/parity` fixtures, the chart tool must normalize that intentionally and have a regression test covering it.
@@ -198,6 +210,30 @@ artifact is stale. Capability-only lanes are rejected unless you pass
 Capabilities in [capabilities.json](./capabilities.json): the `format`
 feature category tracks `rdrr_runtime`, `onnx_runtime`, `safetensors_runtime`,
 and `format_matrix_compare` per target.
+
+## LiteRT/TFLite Goal Lane
+
+Doppler has an experimental direct-source path for `.tflite`, `.task`, and
+`.litertlm` inputs. Treat that as a capability/best-available-web goal lane,
+not as part of the default claim matrix until the harness produces a saved
+compare artifact.
+
+The useful product claim, if the receipt supports it, is:
+
+> Doppler runs Gemma 4 E2B in the browser faster than the best available
+> Transformers.js WebGPU/ONNX path under the same prompt, token, sampling,
+> cache, and hardware contract.
+
+That claim is valid only if the artifact shows:
+
+- Doppler is running the declared browser artifact path (`rdrr` or direct-source
+  LiteRT/TFLite), not a Node-only surrogate.
+- Transformers.js is running its supported browser path (`onnx` or
+  `safetensors` in this harness), not an unavailable LiteRT surrogate.
+- The `promptContract` is shared and both engines produce non-empty text with
+  non-zero decode tokens.
+- The compare section explicitly records the differing formats and does not
+  imply a format-identical kernel benchmark.
 
 ## Closed Workstream Snapshot (2026-02-22 UTC)
 

@@ -41,6 +41,27 @@ Compare-artifact note:
 - same explicit load-mode contract for the compared lane
 - explicit disclosure of any deviation
 
+Product-engine note:
+- Best-available product comparisons may compare different artifact formats when
+  the artifact formats are the promoted path for each engine.
+- The receipt must state the format for each side, for example Doppler
+  RDRR/direct-source LiteRT vs Transformers.js ONNX/q4f16.
+- Do not describe a product-engine comparison as a format-identical kernel
+  comparison.
+- If one engine has no supported format lane, record that as a capability gap
+  and keep the paired speed claim scoped to the best available supported path.
+
+LiteRT/TFLite note:
+- Doppler direct-source `.tflite`, `.task`, and `.litertlm` support is an
+  experimental capability lane until promoted by a saved compare artifact and
+  the support matrix.
+- Transformers.js compare lanes currently support `onnx` and `safetensors`.
+  LiteRT.js is a separate Google runtime, not a Transformers.js format lane.
+- A Doppler LiteRT result can support a product claim only when the artifact
+  proves browser execution, prompt parity, non-zero decode tokens, sane output,
+  and an explicit disclosure that Transformers.js is using its best available
+  ONNX/WebGPU path.
+
 Prompt-target note:
 - Shared `prefillTokens` workload targets refer to actual model-input prompt tokens.
 - When compare runners synthesize a prompt from `prefillTokens`, they must resolve it with the selected tokenizer first.

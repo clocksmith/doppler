@@ -1506,11 +1506,81 @@ function parseJsonBlock(stdout, label) {
   const direct = asObject(normalized.trim());
   if (direct !== null) return direct;
 
+  // Scan forward from each `\n{` candidate and try to parse.
+  // The first match that yields a valid top-level object wins.
+  // This avoids `lastIndexOf` landing inside a nested `{`.
+  let searchFrom = 0;
+  while (searchFrom < normalized.length) {
+    const objectStart = normalized.indexOf('\n{', searchFrom);
+    if (objectStart < 0) break;
+    const parsed = asObject(normalized.slice(objectStart + 1).trim());
+    if (parsed !== null) return parsed;
+    searchFrom = objectStart + 2;
+  }
+
+  // Also try a leading `{` at position 0 (no preceding newline).
+  if (normalized.trimStart().startsWith('{')) {
+    const parsed = asObject(normalized.trimStart());
+    if (parsed !== null) return parsed;
+  }
+
   throw new Error(`Could not parse strict JSON payload from ${label}. Full output tail:\n${clipTail(normalized, 2000)}`);
 }
 
 function hashText(input) {
   return crypto.createHash('sha256').update(input).digest('hex');
+}
+
+function renderComparePrompt({ modelId, prompt, useChatTemplate }) {
+  const promptRaw = String(prompt ?? DEFAULT_PROMPT);
+  if (useChatTemplate !== true) {
+    return {
+      schemaVersion: 1,
+      promptRaw,
+      promptRendered: promptRaw,
+      promptRenderer: 'raw',
+      chatTemplateSource: 'disabled',
+      promptRenderedSha256: hashText(promptRaw),
+      requestedUseChatTemplate: false,
+      enginesReceiveRenderedPrompt: true,
+    };
+  }
+
+  if (String(modelId || '').startsWith('gemma-4-')) {
+    const promptRendered = `<bos><|turn>user\n${promptRaw}<turn|>\n<|turn>model\n`;
+    return {
+      schemaVersion: 1,
+      promptRaw,
+      promptRendered,
+      promptRenderer: 'gemma4-compare-template',
+      chatTemplateSource: 'compare-engines',
+      promptRenderedSha256: hashText(promptRendered),
+      requestedUseChatTemplate: true,
+      enginesReceiveRenderedPrompt: true,
+    };
+  }
+
+  return {
+    schemaVersion: 1,
+    promptRaw,
+    promptRendered: promptRaw,
+    promptRenderer: 'engine-chat-template',
+    chatTemplateSource: 'engine',
+    promptRenderedSha256: hashText(promptRaw),
+    requestedUseChatTemplate: true,
+    enginesReceiveRenderedPrompt: false,
+  };
+}
+
+function buildComparabilityWarnings({ dopplerSurface }) {
+  const warnings = [];
+  if (dopplerSurface !== 'browser') {
+    warnings.push(
+      `Doppler surface is ${dopplerSurface}; Transformers.js runs in browser. `
+      + 'Do not infer browser-vs-browser regression from this artifact.'
+    );
+  }
+  return warnings;
 }
 
 const DTYPE_PATTERN = /^(f\d+a?|q\d+[a-z]*|bf16|fp16|fp32|int[48])$/i;
@@ -1858,9 +1928,15 @@ function buildSharedBenchmarkContract({
   sampling = DEFAULT_SHARED_SAMPLING,
   useChatTemplate = false,
   loadMode = null,
+  promptContract = null,
 }) {
+  const normalizedPromptContract = promptContract && typeof promptContract === 'object'
+    ? promptContract
+    : null;
   return {
     prompt: String(prompt ?? DEFAULT_PROMPT),
+    promptRaw: normalizedPromptContract?.promptRaw ?? String(prompt ?? DEFAULT_PROMPT),
+    promptContract: normalizedPromptContract,
     maxTokens: parsePositiveInt(maxTokens, DEFAULT_MAX_TOKENS, '--max-tokens'),
     warmupRuns: parseNonNegativeInt(warmupRuns, DEFAULT_WARMUP, '--warmup'),
     timedRuns: parsePositiveInt(timedRuns, DEFAULT_RUNS, '--runs'),
@@ -2471,7 +2547,104 @@ function resolvePromptTokenComparison({ prefillTokenTarget, doppler, transformer
   };
 }
 
-function buildCompareSection({ cacheMode, loadMode, doppler, transformersjs, prefillTokenTarget = null }) {
+function extractDopplerDecodeTokens(result) {
+  return firstFiniteNumber(result, [
+    'result.result.metrics.avgDecodeTokens',
+    'result.metrics.avgDecodeTokens',
+    'metrics.avgDecodeTokens',
+    'result.result.metrics.decodeTokens',
+    'result.metrics.decodeTokens',
+    'metrics.decodeTokens',
+    'result.result.runs.0.phase.decodeTokens',
+    'result.runs.0.phase.decodeTokens',
+    'runs.0.phase.decodeTokens',
+    'result.result.runs.0.decodeTokens',
+    'result.runs.0.decodeTokens',
+    'runs.0.decodeTokens',
+  ]);
+}
+
+function extractTransformersjsDecodeTokens(result) {
+  return firstFiniteNumber(result, [
+    'runs.0.decodeTokens',
+    'result.runs.0.decodeTokens',
+    'metrics.avgDecodeTokens',
+    'result.metrics.avgDecodeTokens',
+    'metrics.decodeTokens',
+    'result.metrics.decodeTokens',
+  ]);
+}
+
+function resolveDecodeValidity({ doppler, transformersjs, maxTokens }) {
+  const requested = Number(maxTokens);
+  if (!Number.isFinite(requested) || requested <= 1) {
+    return {
+      ok: true,
+      invalidReason: null,
+      doppler: null,
+      transformersjs: null,
+    };
+  }
+
+  const dopplerDecodeTokens = extractDopplerDecodeTokens(doppler);
+  const transformersjsDecodeTokens = extractTransformersjsDecodeTokens(transformersjs);
+  const dopplerText = getDopplerGeneratedText(doppler);
+  const transformersjsText = getTjsGeneratedText(transformersjs);
+  let invalidReason = null;
+
+  if (Number.isFinite(dopplerDecodeTokens) && dopplerDecodeTokens <= 0) {
+    invalidReason = 'doppler-invalid-zero-decode-tokens';
+  } else if (Number.isFinite(transformersjsDecodeTokens) && transformersjsDecodeTokens <= 0) {
+    invalidReason = 'transformersjs-invalid-zero-decode-tokens';
+  } else if (typeof dopplerText === 'string' && dopplerText.trim() === '') {
+    invalidReason = 'doppler-invalid-empty-generated-text';
+  } else if (typeof transformersjsText === 'string' && transformersjsText.trim() === '') {
+    invalidReason = 'transformersjs-invalid-empty-generated-text';
+  }
+
+  return {
+    ok: invalidReason == null,
+    invalidReason,
+    code: invalidReason == null ? null : 'INVALID_BENCHMARK_ZERO_DECODE_TOKENS',
+    doppler: {
+      decodeTokens: dopplerDecodeTokens,
+      generatedTextEmpty: typeof dopplerText === 'string' ? dopplerText.trim() === '' : null,
+    },
+    transformersjs: {
+      decodeTokens: transformersjsDecodeTokens,
+      generatedTextEmpty: typeof transformersjsText === 'string' ? transformersjsText.trim() === '' : null,
+    },
+  };
+}
+
+function resolvePromptContractValidity(promptContract) {
+  if (!promptContract) {
+    return { ok: true, invalidReason: null };
+  }
+  if (promptContract.enginesReceiveRenderedPrompt !== true) {
+    return {
+      ok: false,
+      invalidReason: 'prompt-rendering-not-shared',
+    };
+  }
+  if (typeof promptContract.promptRendered !== 'string' || promptContract.promptRendered.length === 0) {
+    return {
+      ok: false,
+      invalidReason: 'prompt-rendered-empty',
+    };
+  }
+  return { ok: true, invalidReason: null };
+}
+
+function buildCompareSection({
+  cacheMode,
+  loadMode,
+  doppler,
+  transformersjs,
+  prefillTokenTarget = null,
+  maxTokens = null,
+  promptContract = null,
+}) {
   const dopplerFailed = doppler?.failed === true;
   const tjsFailed = transformersjs?.failed === true;
   const baseComparable = !dopplerFailed && !tjsFailed && doppler != null && transformersjs != null;
@@ -2480,7 +2653,26 @@ function buildCompareSection({ cacheMode, loadMode, doppler, transformersjs, pre
     doppler,
     transformersjs,
   });
-  const pairedComparable = baseComparable && promptTokens.ok === true;
+  const promptContractEvidence = promptContract
+    ? {
+        ...promptContract,
+        promptTokenCount: promptTokens.ok === true ? promptTokens.doppler : null,
+        promptTokenCountSource: promptTokens.ok === true ? 'paired-engine-prefill-tokens' : null,
+      }
+    : null;
+  const promptContractValidity = resolvePromptContractValidity(promptContractEvidence);
+  const decodeValidity = baseComparable
+    ? resolveDecodeValidity({ doppler, transformersjs, maxTokens })
+    : {
+        ok: true,
+        invalidReason: null,
+        doppler: null,
+        transformersjs: null,
+      };
+  const pairedComparable = baseComparable
+    && promptTokens.ok === true
+    && promptContractValidity.ok === true
+    && decodeValidity.ok === true;
 
   let invalidReason = null;
   if (!pairedComparable) {
@@ -2492,8 +2684,14 @@ function buildCompareSection({ cacheMode, loadMode, doppler, transformersjs, pre
       invalidReason = 'transformersjs-failed';
     } else if (!baseComparable) {
       invalidReason = 'missing-engine-result';
-    } else {
+    } else if (promptTokens.ok !== true) {
       invalidReason = promptTokens.invalidReason || 'prompt-token-contract-invalid';
+    } else if (promptContractValidity.ok !== true) {
+      invalidReason = promptContractValidity.invalidReason || 'prompt-contract-invalid';
+    } else if (decodeValidity.ok !== true) {
+      invalidReason = decodeValidity.invalidReason || 'decode-contract-invalid';
+    } else {
+      invalidReason = 'compare-contract-invalid';
     }
   }
 
@@ -2503,6 +2701,8 @@ function buildCompareSection({ cacheMode, loadMode, doppler, transformersjs, pre
     pairedComparable,
     invalidReason,
     promptTokens,
+    promptContract: promptContractEvidence,
+    decodeValidity,
     doppler: doppler ?? null,
     transformersjs: transformersjs ?? null,
   };
@@ -2761,18 +2961,24 @@ async function main() {
     ? promptContract.prefillTokens
     : null;
   const mode = flags.mode || 'all';
-  const sharedContract = buildSharedBenchmarkContract({
+  const promptRenderContract = renderComparePrompt({
+    modelId: dopplerModelId,
     prompt: promptInput,
+    useChatTemplate,
+  });
+  const sharedContract = buildSharedBenchmarkContract({
+    prompt: promptRenderContract.promptRendered,
     maxTokens: maxTokensInput,
     warmupRuns: flags.warmup,
     timedRuns: flags.runs,
     seed: flags.seed,
     loadMode: parseLoadMode(flags['load-mode'], '--load-mode', null),
     sampling,
-    useChatTemplate,
+    useChatTemplate: promptRenderContract.enginesReceiveRenderedPrompt ? false : useChatTemplate,
+    promptContract: promptRenderContract,
   });
   const resolvedLoadModes = resolveCompareLoadModes(sharedContract.loadMode, compareProfileConfig.defaults);
-  const prompt = sharedContract.prompt;
+  const prompt = sharedContract.promptRaw;
   const maxTokens = sharedContract.maxTokens;
   const warmupRuns = sharedContract.warmupRuns;
   const runs = sharedContract.timedRuns;
@@ -2914,7 +3120,8 @@ async function main() {
     + `loadModes: warm=${resolvedLoadModes.warm}, cold=${resolvedLoadModes.cold}, `
     + `loadModeOverride: ${sharedContract.loadMode ?? 'none'}, `
     + `sampling=(temp=${sharedContract.sampling.temperature}, topK=${sharedContract.sampling.topK}, topP=${sharedContract.sampling.topP}), `
-    + `useChatTemplate: ${sharedContract.useChatTemplate === true ? 'on' : 'off'}, `
+    + `useChatTemplate: requested=${sharedContract.promptContract?.requestedUseChatTemplate === true ? 'on' : 'off'} `
+    + `engine=${sharedContract.useChatTemplate === true ? 'on' : 'off'}, `
     + `dopplerBatchSize: ${dopplerBatchSize}, `
     + `dopplerReadbackInterval: ${dopplerReadbackInterval}, `
     + `dopplerTokensPerReadback: ${dopplerTokensPerReadback}, `
@@ -3018,6 +3225,7 @@ async function main() {
     },
     mode,
     prompt,
+    promptContract: sharedContract.promptContract,
     maxTokens,
     warmupRuns,
     runs,
@@ -3069,10 +3277,13 @@ async function main() {
         greedyThreshold: sharedContract.sampling.greedyThreshold,
       },
       promptParity: {
+        promptRenderer: sharedContract.promptContract?.promptRenderer ?? 'unknown',
+        chatTemplateSource: sharedContract.promptContract?.chatTemplateSource ?? 'unknown',
+        enginesReceiveRenderedPrompt: sharedContract.promptContract?.enginesReceiveRenderedPrompt === true,
         dopplerChatTemplateEnabled: sharedContract.useChatTemplate,
         transformersChatTemplateEquivalent: sharedContract.useChatTemplate
           ? 'model-chat-template'
-          : 'raw-prompt',
+          : 'pre-rendered-or-raw-prompt',
       },
       loadMode: sharedContract.loadMode,
       cacheSemantics: {
@@ -3100,6 +3311,7 @@ async function main() {
         streamerCallbackGranularityTokens: 1,
         readbackControl: 'runtime-internal',
       },
+      comparabilityWarnings: buildComparabilityWarnings({ dopplerSurface }),
     },
     sections: {},
   };
@@ -3221,6 +3433,8 @@ async function main() {
         doppler: dopplerComputeParity,
         transformersjs: tjsCompute,
         prefillTokenTarget: effectivePrefillTokenTarget,
+        maxTokens,
+        promptContract: sharedContract.promptContract,
       }),
       throughput: buildCompareSection({
         cacheMode: 'warm',
@@ -3228,9 +3442,11 @@ async function main() {
         doppler: dopplerComputeThroughput,
         transformersjs: tjsCompute,
         prefillTokenTarget: effectivePrefillTokenTarget,
+        maxTokens,
+        promptContract: sharedContract.promptContract,
       }),
     };
-    report.correctness = buildCorrectnessReport(dopplerComputeParity, tjsCompute, sharedContract.prompt);
+    report.correctness = buildCorrectnessReport(dopplerComputeParity, tjsCompute, sharedContract.promptRaw);
   }
 
   if (needWarm) {
@@ -3299,6 +3515,8 @@ async function main() {
       doppler: dopplerWarm,
       transformersjs: tjsWarm,
       prefillTokenTarget: effectivePrefillTokenTarget,
+      maxTokens,
+      promptContract: sharedContract.promptContract,
     });
   }
 
@@ -3368,6 +3586,8 @@ async function main() {
       doppler: dopplerCold,
       transformersjs: tjsCold,
       prefillTokenTarget: effectivePrefillTokenTarget,
+      maxTokens,
+      promptContract: sharedContract.promptContract,
     });
   }
 
@@ -3469,8 +3689,10 @@ export {
   loadModelCatalogBundle,
   normalizeCompareLoadModeDefaults,
   parseArgs,
+  parseJsonBlock,
   parseOnOff,
   resolveCatalogTransformersjsBenchmarkTarget,
+  renderComparePrompt,
   resolveCompareProfile,
   resolveCompareLoadModes,
   resolveDopplerModelSource,

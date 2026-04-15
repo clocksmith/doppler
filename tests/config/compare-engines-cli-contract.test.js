@@ -12,7 +12,9 @@ import {
   loadModelCatalogBundle,
   normalizeCompareLoadModeDefaults,
   parseArgs as parseCompareArgs,
+  parseJsonBlock,
   parseOnOff as parseCompareOnOff,
+  renderComparePrompt,
   resolveCatalogTransformersjsBenchmarkTarget,
   resolveCompareProfile,
   resolveCompareLoadModes,
@@ -189,8 +191,18 @@ function runCompareEngines(args) {
 {
   const flags = parseCompareArgs(['--use-chat-template', 'off']);
   assert.equal(flags['use-chat-template'], 'off');
+  const promptContract = renderComparePrompt({
+    modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+    prompt: 'The sky is clear.',
+    useChatTemplate: true,
+  });
+  assert.equal(promptContract.promptRaw, 'The sky is clear.');
+  assert.equal(promptContract.promptRenderer, 'gemma4-compare-template');
+  assert.equal(promptContract.chatTemplateSource, 'compare-engines');
+  assert.match(promptContract.promptRendered, /^<bos><\|turn\>user\nThe sky is clear\.<turn\|>\n<\|turn\>model\n$/);
+  assert.equal(promptContract.enginesReceiveRenderedPrompt, true);
   const sharedContract = buildSharedBenchmarkContract({
-    prompt: 'unit prompt',
+    prompt: promptContract.promptRendered,
     maxTokens: 4,
     warmupRuns: 0,
     timedRuns: 1,
@@ -201,10 +213,18 @@ function runCompareEngines(args) {
       topP: 1,
     },
     useChatTemplate: parseCompareOnOff(flags['use-chat-template'], false, '--use-chat-template'),
+    promptContract,
   });
   assert.equal(sharedContract.useChatTemplate, false);
+  assert.equal(sharedContract.promptRaw, 'The sky is clear.');
+  assert.equal(sharedContract.promptContract.promptRendered, promptContract.promptRendered);
   assert.equal(sharedContract.sampling.repetitionPenalty, 1);
   assert.equal(sharedContract.sampling.greedyThreshold, 0.01);
+}
+
+{
+  const parsed = parseJsonBlock('[info] noisy line\n{\n  "ok": true,\n  "value": 3\n}\n', 'unit-json');
+  assert.deepEqual(parsed, { ok: true, value: 3 });
 }
 
 {
@@ -223,6 +243,80 @@ function runCompareEngines(args) {
   assert.equal(section.loadMode, 'opfs');
   assert.equal(section.pairedComparable, false);
   assert.equal(section.invalidReason, 'transformersjs-failed');
+}
+
+{
+  const promptContract = renderComparePrompt({
+    modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+    prompt: 'unit prompt',
+    useChatTemplate: true,
+  });
+  const section = buildCompareSection({
+    cacheMode: 'warm',
+    loadMode: 'opfs',
+    maxTokens: 64,
+    promptContract,
+    doppler: {
+      result: {
+        result: {
+          metrics: {
+            avgPrefillTokens: 64,
+            avgDecodeTokens: 64,
+            generatedText: 'That sounds lovely.',
+          },
+        },
+      },
+    },
+    transformersjs: {
+      generatedText: '',
+      runs: [
+        {
+          prefillTokens: 64,
+          decodeTokens: 0,
+        },
+      ],
+    },
+    prefillTokenTarget: 64,
+  });
+  assert.equal(section.pairedComparable, false);
+  assert.equal(section.invalidReason, 'transformersjs-invalid-zero-decode-tokens');
+  assert.equal(section.promptContract.promptTokenCount, 64);
+  assert.equal(section.decodeValidity.code, 'INVALID_BENCHMARK_ZERO_DECODE_TOKENS');
+}
+
+{
+  const section = buildCompareSection({
+    cacheMode: 'warm',
+    loadMode: 'opfs',
+    maxTokens: 64,
+    promptContract: {
+      promptRendered: 'unit prompt',
+      enginesReceiveRenderedPrompt: false,
+    },
+    doppler: {
+      result: {
+        result: {
+          metrics: {
+            avgPrefillTokens: 64,
+            avgDecodeTokens: 64,
+            generatedText: 'ok',
+          },
+        },
+      },
+    },
+    transformersjs: {
+      generatedText: 'ok',
+      runs: [
+        {
+          prefillTokens: 64,
+          decodeTokens: 64,
+        },
+      ],
+    },
+    prefillTokenTarget: 64,
+  });
+  assert.equal(section.pairedComparable, false);
+  assert.equal(section.invalidReason, 'prompt-rendering-not-shared');
 }
 
 {
