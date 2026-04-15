@@ -40,6 +40,8 @@ override WORKGROUP_SIZE: u32 = 256u;
 
 // Chunk size for KV cache processing (matches workgroup size)
 override CHUNK_SIZE: u32 = 256u;
+override HEADS_PER_WG: u32 = 4u;
+const NEG_INF: f32 = -3.402823e+38;
 const MAX_CHUNK_SIZE: u32 = 256u;
 const MAX_HEAD_DIM: u32 = 256u;
 const MAX_SUBGROUPS: u32 = 256u;
@@ -94,7 +96,7 @@ fn main(
     workgroupBarrier();
 
     // Initialize accumulators for online softmax
-    var running_max: f32 = -1e38;
+    var running_max: f32 = NEG_INF;
     var running_sum: f32 = 0.0;
 
     // Initialize output accumulator (one per thread, covering headDim)
@@ -136,7 +138,7 @@ fn main(
             }
             score *= scale;
         } else {
-            score = -1e38;  // Mask invalid positions
+            score = NEG_INF;  // Mask invalid positions
         }
 
         // Store score in shared memory
@@ -151,7 +153,7 @@ fn main(
         workgroupBarrier();
 
         if (tid == 0u) {
-            var m = -1e38;
+            var m = NEG_INF;
             for (var s = 0u; s < num_subgroups; s++) {
                 m = max(m, sg_max[s]);
             }
@@ -232,7 +234,7 @@ fn main_multihead(
     @builtin(subgroup_invocation_id) sg_tid: u32,
 ) {
     // For models with many heads (32+), process 4 heads per workgroup
-    let heads_per_wg = 4u;
+    let heads_per_wg = HEADS_PER_WG;
     let threads_per_head = WORKGROUP_SIZE / heads_per_wg;  // 64 threads per head
 
     let base_head = workgroup_id.x * heads_per_wg;
@@ -243,14 +245,14 @@ fn main_multihead(
     let head_dim = u.head_dim;
     let kv_len = get_kv_len();
     let active_head = head_idx < u.num_heads;
-    let valid_dim = head_dim <= 64u;
+    let valid_dim = head_dim <= threads_per_head;
 
     let heads_per_kv = u.num_heads / u.num_kv_heads;
     let kv_head_idx = head_idx / heads_per_kv;
     let scale = 1.0 / sqrt(f32(head_dim));
 
-    // Each head gets a slice of shared memory
-    let q_base = head_in_wg * 64u;
+    // Each head gets a slice of shared memory (stride = threads_per_head)
+    let q_base = head_in_wg * threads_per_head;
 
     // Load Q vector for this head
     if (active_head && valid_dim && tid_in_head < head_dim) {
@@ -272,7 +274,7 @@ fn main_multihead(
     }
 
     // Online softmax accumulators
-    var running_max: f32 = -1e38;
+    var running_max: f32 = NEG_INF;
     var running_sum: f32 = 0.0;
     var out_accum: f32 = 0.0;
 
@@ -284,7 +286,7 @@ fn main_multihead(
         let valid_k = k_pos < kv_len;
 
         // Compute attention score
-        var score: f32 = -1e38;
+        var score: f32 = NEG_INF;
         if (valid_k) {
             let k_base = k_pos * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
             var dot: f32 = 0.0;
@@ -350,7 +352,7 @@ fn main_f16kv(
     }
     workgroupBarrier();
 
-    var running_max: f32 = -1e38;
+    var running_max: f32 = NEG_INF;
     var running_sum: f32 = 0.0;
     var out_accum: f32 = 0.0;
 
@@ -359,7 +361,7 @@ fn main_f16kv(
         let k_pos = k_start + tid;
         let valid_k = k_pos < kv_len;
 
-        var score: f32 = -1e38;
+        var score: f32 = NEG_INF;
         if (valid_k) {
             let k_base = k_pos * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
             var dot: f32 = 0.0;
@@ -387,7 +389,7 @@ fn main_f16kv(
         workgroupBarrier();
 
         if (tid == 0u) {
-            var m = -1e38;
+            var m = NEG_INF;
             for (var s = 0u; s < num_subgroups; s++) {
                 m = max(m, sg_max[s]);
             }

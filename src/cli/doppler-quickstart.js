@@ -306,7 +306,9 @@ function isMainModule(metaUrl) {
 }
 
 if (isMainModule(import.meta.url)) {
-  main().catch((error) => {
+  main().then(() => {
+    process.exit(0);
+  }).catch((error) => {
     console.error(`[doppler-gpu] ${error?.message || String(error)}`);
     process.exit(1);
   });

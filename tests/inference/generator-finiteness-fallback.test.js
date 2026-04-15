@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { shouldRetryWithFinitenessFallback } from '../../src/inference/pipelines/text/generator.js';
+import { shouldRetryWithFinitenessFallback } from '../../src/inference/pipelines/text/generator-decode-policy.js';
 
 assert.equal(
   shouldRetryWithFinitenessFallback({ name: 'FinitenessError', message: 'bounds exceeded' }),

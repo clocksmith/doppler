@@ -16,6 +16,11 @@
 
 override WORKGROUP_SIZE: u32 = 256u;
 
+// YaRN parameters (model-family-specific, config-driven)
+override YARN_BETA_FAST: f32 = 32.0;
+override YARN_BETA_SLOW: f32 = 1.0;
+override YARN_ALPHA: f32 = 1.0;
+
 // Mathematical constant
 const PI: f32 = 3.14159265359;
 
@@ -312,10 +317,10 @@ fn rope_yarn(
 
     let actual_pos = f32(start_pos + pos);
 
-    // YaRN parameters
-    let beta_fast: f32 = 32.0;
-    let beta_slow: f32 = 1.0;
-    let alpha: f32 = 1.0;
+    // YaRN parameters (from override constants)
+    let beta_fast: f32 = YARN_BETA_FAST;
+    let beta_slow: f32 = YARN_BETA_SLOW;
+    let alpha: f32 = YARN_ALPHA;
 
     // Compute original frequency
     let exponent = f32(pair_idx * 2u) / f32(rotary_dim);

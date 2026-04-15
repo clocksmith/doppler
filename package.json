@@ -124,6 +124,10 @@
       "types": "./src/index.d.ts",
       "import": "./src/index.js"
     },
+    "./provider": {
+      "types": "./src/client/provider.d.ts",
+      "import": "./src/client/provider.js"
+    },
     "./tooling": {
       "types": "./src/tooling-exports.d.ts",
       "browser": "./src/tooling-exports.browser.js",

@@ -10,6 +10,8 @@ const {
   buildRequest,
   createCliToolingErrorEnvelope,
   finalizeCliCommandResponse,
+  resolveBrowserModelUrl,
+  resolveNodeModelUrl,
 } = await import('../../src/cli/doppler-cli.js');
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));

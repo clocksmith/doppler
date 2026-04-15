@@ -5,7 +5,6 @@ import {
   saveTensorsToStore,
   saveTokenizer,
   saveTokenizerModel,
-  saveAuxFile,
   writeShard,
   loadManifestFromStore,
   loadTensorsFromStore,
@@ -30,7 +29,6 @@ import { clearOutput } from './output.js';
 import { setExportEnabled } from './report.js';
 
 const HF_RESOLVE_BASE = 'https://huggingface.co';
-const AUX_FILENAMES = ['config.json', 'generation_config.json', 'tokenizer_config.json', 'special_tokens_map.json'];
 const CATALOG_URL = typeof window === 'object' && window.location?.origin
   ? new URL('/models/catalog.json', window.location.origin).toString()
   : new URL('../models/catalog.json', import.meta.url).toString();
@@ -408,7 +406,11 @@ export function renderModelCards() {
       card.appendChild(bar);
     }
 
-    card.addEventListener('click', () => handleCardClick(entry));
+    card.addEventListener('click', () => {
+      void handleCardClick(entry).catch((error) => {
+        console.error(`Failed to load model ${entry.modelId}:`, error);
+      });
+    });
     container.appendChild(card);
   }
 }
@@ -467,16 +469,6 @@ async function downloadAndLoad(entry) {
     if (manifest.tensorsFile) {
       const text = await fetchText(buildArtifactUrl(resolvedSource.baseUrl, manifest.tensorsFile), signal);
       await saveTensorsToStore(text);
-    }
-
-    // Aux files
-    for (const name of AUX_FILENAMES) {
-      try {
-        const bytes = await fetchBytes(buildArtifactUrl(resolvedSource.baseUrl, name), signal);
-        await saveAuxFile(name, bytes.buffer);
-      } catch (e) {
-        if (!String(e?.message).includes('404')) throw e;
-      }
     }
 
     // Shards

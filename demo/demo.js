@@ -32,7 +32,7 @@ async function init() {
   });
 
   // Init UI modules
-  initSettings();
+  await initSettings({ requireDefaultProfile: true });
   initReport();
   await initInput();
   flushPwaLaunchState();
@@ -55,6 +55,19 @@ async function init() {
   await boot();
 }
 
+function showInitError(message) {
+  const statusEl = $('boot-status');
+  const errorEl = $('boot-error');
+  if (statusEl) {
+    statusEl.textContent = 'Initialization failed';
+  }
+  if (errorEl) {
+    errorEl.textContent = message || 'Unable to initialize demo runtime.';
+    errorEl.hidden = false;
+  }
+}
+
 init().catch((err) => {
   log.error('Demo', `Init failed: ${err.message}`);
+  showInitError(err?.message || String(err));
 });

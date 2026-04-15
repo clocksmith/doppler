@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { shouldDisablePrefillCommandBatching } from '../../src/inference/pipelines/text/generator.js';
+import { shouldDisablePrefillCommandBatching } from '../../src/inference/pipelines/text/generator-prefill-helpers.js';
 
 {
   const disabled = shouldDisablePrefillCommandBatching(

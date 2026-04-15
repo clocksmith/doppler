@@ -102,15 +102,39 @@ function syncUIToConfig() {
 // Profile
 // ---------------------------------------------------------------------------
 
-async function applyProfile(profileId) {
-  state.settings.runtimeProfile = profileId;
-  try {
-    await applyRuntimeProfile(profileId);
-  } catch {
-    // Profile load failed — keep current config
+async function applyProfile(profileId, { required = false } = {}) {
+  const targetProfile = typeof profileId === 'string'
+    ? profileId.trim()
+    : '';
+  if (!targetProfile) {
+    if (required) {
+      throw new Error('Runtime profile id is required.');
+    }
+    return false;
   }
+
+  const previousProfile = state.settings.runtimeProfile || 'profiles/default';
+  try {
+    await applyRuntimeProfile(targetProfile);
+  } catch (error) {
+    if (required) {
+      throw new Error(
+        `Failed to load default runtime profile "${targetProfile}": ${error?.message ?? String(error)}`
+      );
+    }
+    const profileSelect = $('set-profile');
+    if (profileSelect) {
+      profileSelect.value = previousProfile;
+    }
+    state.settings.runtimeProfile = previousProfile;
+    console.warn('[DemoSettings] Failed to load runtime profile:', error?.message || error);
+    return false;
+  }
+
+  state.settings.runtimeProfile = targetProfile;
   // Read the resolved (profile-merged) config back into UI
   populateUIFromConfig();
+  return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -137,7 +161,7 @@ export function getSettings() {
   };
 }
 
-export function initSettings() {
+export async function initSettings({ requireDefaultProfile = false } = {}) {
   // Toggle panel visibility
   const toggle = $('settings-toggle');
   const panel = $('settings-panel');
@@ -146,7 +170,9 @@ export function initSettings() {
   }
 
   // Profile select → load profile, merge into engine, repopulate UI
-  $('set-profile')?.addEventListener('change', (e) => applyProfile(e.target.value));
+  $('set-profile')?.addEventListener('change', (e) => {
+    void applyProfile(e.target.value);
+  });
 
   // Any field change → sync to engine
   if (panel) {
@@ -158,6 +184,9 @@ export function initSettings() {
     panel.addEventListener('input', syncHandler);
   }
 
-  // Apply default profile and populate UI from schema defaults
-  applyProfile('profiles/default');
+  // Apply default profile and populate UI from schema defaults.
+  // Default profile load is required in normal demo mode so GPU capability policy
+  // is initialized deterministically before any model can be compiled.
+  const defaultProfile = $('set-profile')?.value || 'profiles/default';
+  return applyProfile(defaultProfile, { required: requireDefaultProfile });
 }

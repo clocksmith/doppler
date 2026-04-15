@@ -7,7 +7,7 @@ import { pathToFileURL } from 'node:url';
 const {
   resolveBrowserModelUrl,
   resolveNodeModelUrl,
-} = await import('../../src/cli/doppler-cli.js');
+} = await import('../../src/cli/cli-model-resolution.js');
 
 const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-cli-external-'));
 

@@ -17,6 +17,7 @@ enable subgroups;
 const QK_K: u32 = 256u;           // Elements per super-block
 const BLOCK_SIZE: u32 = 144u;     // Bytes per Q4_K block
 const SUBBLOCK_SIZE: u32 = 32u;   // Elements per sub-block
+const NUM_SUBBLOCKS: u32 = QK_K / SUBBLOCK_SIZE;  // 8 sub-blocks per super-block
 
 override WORKGROUP_SIZE: u32 = 256u;
 const MAX_WORKGROUP_SIZE: u32 = 256u;
@@ -135,7 +136,7 @@ fn main(
             let dmin = unpack_f16_hi(block.d_dmin);
             let k_base = b * QK_K;
 
-            for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+            for (var sb: u32 = 0u; sb < NUM_SUBBLOCKS; sb = sb + 1u) {
                 let sm = get_scale_min_k4(block.scales, sb);
                 let scale = d * f32(sm.x);
                 let min_val = dmin * f32(sm.y);
@@ -181,7 +182,7 @@ fn main(
                 let dmin = unpack_f16_hi(block.d_dmin);
                 let k_base = tail_block * QK_K;
 
-                for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+                for (var sb: u32 = 0u; sb < NUM_SUBBLOCKS; sb = sb + 1u) {
                     let sb_base = sb * SUBBLOCK_SIZE;
                     if (sb_base >= tail_size) {
                         break;
@@ -305,7 +306,7 @@ fn main_multicol(
             let k_base = b * QK_K;
 
             // Process all 8 sub-blocks
-            for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+            for (var sb: u32 = 0u; sb < NUM_SUBBLOCKS; sb = sb + 1u) {
                 let sm = get_scale_min_k4(block.scales, sb);
                 let scale = d * f32(sm.x);
                 let min_val = dmin * f32(sm.y);
@@ -346,7 +347,7 @@ fn main_multicol(
                 let dmin = unpack_f16_hi(block.d_dmin);
                 let k_base = tail_block * QK_K;
 
-                for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+                for (var sb: u32 = 0u; sb < NUM_SUBBLOCKS; sb = sb + 1u) {
                     let sb_base = sb * SUBBLOCK_SIZE;
                     if (sb_base >= tail_size) {
                         break;
@@ -440,7 +441,7 @@ fn main_multicol_fast(
             let dmin = unpack_f16_hi(block.d_dmin);
             let k_base = b * QK_K;
 
-            for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+            for (var sb: u32 = 0u; sb < NUM_SUBBLOCKS; sb = sb + 1u) {
                 let sm = get_scale_min_k4(block.scales, sb);
                 let scale = d * f32(sm.x);
                 let min_val = dmin * f32(sm.y);
@@ -483,7 +484,7 @@ fn main_multicol_fast(
                 let dmin = unpack_f16_hi(block.d_dmin);
                 let k_base = tail_block * QK_K;
 
-                for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+                for (var sb: u32 = 0u; sb < NUM_SUBBLOCKS; sb = sb + 1u) {
                     let sb_base = sb * SUBBLOCK_SIZE;
                     if (sb_base >= tail_size) {
                         break;
@@ -560,7 +561,7 @@ fn main_multicol_shared(
     let local_id = lid.x;
 
     // Cooperative load: all 256 threads fill shared_A_buf from global A
-    for (var idx: u32 = local_id; idx < u.K; idx = idx + WORKGROUP_SIZE) {
+    for (var idx: u32 = local_id; idx < min(u.K, SHARED_A_MAX); idx = idx + WORKGROUP_SIZE) {
         shared_A_buf[idx] = A[idx];
     }
     workgroupBarrier();
@@ -589,7 +590,7 @@ fn main_multicol_shared(
             let dmin = unpack_f16_hi(block.d_dmin);
             let k_base = b * QK_K;
 
-            for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+            for (var sb: u32 = 0u; sb < NUM_SUBBLOCKS; sb = sb + 1u) {
                 let sm = get_scale_min_k4(block.scales, sb);
                 let scale = d * f32(sm.x);
                 let min_val = dmin * f32(sm.y);
@@ -626,7 +627,7 @@ fn main_multicol_shared(
                 let dmin = unpack_f16_hi(block.d_dmin);
                 let k_base = tail_block * QK_K;
 
-                for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+                for (var sb: u32 = 0u; sb < NUM_SUBBLOCKS; sb = sb + 1u) {
                     let sb_base = sb * SUBBLOCK_SIZE;
                     if (sb_base >= tail_size) {
                         break;
@@ -697,7 +698,7 @@ fn main_gemv(
     let local_id = lid.x;
 
     // Cooperative load: all 256 threads fill shared A from global memory once.
-    for (var idx: u32 = local_id; idx < u.K; idx = idx + WORKGROUP_SIZE) {
+    for (var idx: u32 = local_id; idx < min(u.K, SHARED_A_MAX); idx = idx + WORKGROUP_SIZE) {
         gemv_shared_A[idx] = A[idx];
     }
     workgroupBarrier();
@@ -720,7 +721,7 @@ fn main_gemv(
             let dmin = unpack_f16_hi(block.d_dmin);
             let k_base = b * QK_K;
 
-            for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+            for (var sb: u32 = 0u; sb < NUM_SUBBLOCKS; sb = sb + 1u) {
                 let sm = get_scale_min_k4(block.scales, sb);
                 let scale = d * f32(sm.x);
                 let min_val = dmin * f32(sm.y);
@@ -764,7 +765,7 @@ fn main_gemv(
                 let dmin = unpack_f16_hi(block.d_dmin);
                 let k_base = tail_block * QK_K;
 
-                for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+                for (var sb: u32 = 0u; sb < NUM_SUBBLOCKS; sb = sb + 1u) {
                     let sb_base = sb * SUBBLOCK_SIZE;
                     if (sb_base >= tail_size) {
                         break;

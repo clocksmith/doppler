@@ -3,7 +3,7 @@ import { createPipeline } from '../../generation/index.js';
 import { listQuickstartModels } from '../doppler-registry.js';
 import {
   createDefaultNodeLoadProgressLogger,
-  fetchManifestFromBaseUrl,
+  fetchManifestPayloadFromBaseUrl,
   resolveLoadProgressHandlers,
   resolveModelSource,
 } from './model-source.js';
@@ -27,6 +27,32 @@ function assertDopplerOptions(options, apiName) {
       `${apiName} does not accept load-affecting options. Use doppler.load(model, options) instead.`
     );
   }
+}
+
+function isNodeRuntime() {
+  return typeof process !== 'undefined'
+    && process != null
+    && typeof process === 'object'
+    && process.versions != null
+    && typeof process.versions.node === 'string';
+}
+
+async function resolveCachedNodeQuickstartSource(resolved, manifestPayload, onProgress) {
+  if (!isNodeRuntime()) {
+    return null;
+  }
+  const { resolveNodeQuickstartCachedSource } = await import('./node-quickstart-cache.js');
+  return resolveNodeQuickstartCachedSource(resolved, manifestPayload, {
+    onProgress,
+  });
+}
+
+async function resolveNodeArtifactStorageContext(loadSource) {
+  if (!isNodeRuntime() || !loadSource?.cache || !loadSource?.baseUrl || !loadSource?.manifest) {
+    return null;
+  }
+  const { createNodeFileArtifactStorageContext } = await import('../../storage/artifact-storage-context.js');
+  return createNodeFileArtifactStorageContext(loadSource.baseUrl, loadSource.manifest);
 }
 
 export function createDopplerRuntimeService({
@@ -54,11 +80,24 @@ export function createDopplerRuntimeService({
     await ensureWebGPUAvailable();
 
     emitLoadProgress(userProgress, 'manifest', 15, 'Fetching manifest');
-    const manifest = resolved.manifest ?? await fetchManifestFromBaseUrl(resolved.baseUrl);
+    const manifestPayload = resolved.manifest
+      ? { text: JSON.stringify(resolved.manifest), manifest: resolved.manifest }
+      : await fetchManifestPayloadFromBaseUrl(resolved.baseUrl);
+    const cachedResolved = await resolveCachedNodeQuickstartSource(
+      resolved,
+      manifestPayload,
+      userProgress
+    );
+    const loadSource = cachedResolved ?? {
+      ...resolved,
+      manifest: manifestPayload.manifest,
+    };
+    const storageContext = await resolveNodeArtifactStorageContext(loadSource);
 
     emitLoadProgress(userProgress, 'load', 25, 'Loading weights');
-    const pipeline = await createPipeline(manifest, {
-      baseUrl: resolved.baseUrl ?? undefined,
+    const pipeline = await createPipeline(loadSource.manifest, {
+      baseUrl: loadSource.baseUrl ?? undefined,
+      storage: storageContext ?? undefined,
       runtimeConfig: options.runtimeConfig,
       onProgress: pipelineProgress
         ? (progress) => emitLoadProgress(

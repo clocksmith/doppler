@@ -20,15 +20,15 @@ enable subgroups;
 
 override WORKGROUP_SIZE: u32 = 256u;
 const MAX_WORKGROUP_SIZE: u32 = 256u;
-const COLS_PER_WG: u32 = 4u;  // Each workgroup computes 4 output columns
-const THREADS_PER_COL: u32 = 64u;  // 256 / 4 = 64 threads per column
-const MAX_SUBGROUPS_PER_COL: u32 = 16u;  // Support sg_size >= 4 (64/4 = 16)
+override COLS_PER_WG: u32 = 4u;  // Each workgroup computes 4 output columns
+override THREADS_PER_COL: u32 = 64u;  // 256 / 4 = 64 threads per column
+override MAX_SUBGROUPS_PER_COL: u32 = 16u;  // Support sg_size >= 4 (64/4 = 16)
 
 // Alternative layout: more columns per workgroup, fewer threads per column.
 // This reduces workgroup count and improves occupancy for mid-sized K.
-const COLS_PER_WG_COLS8: u32 = 8u;  // 256 / 8 = 32 threads per column
-const THREADS_PER_COL_COLS8: u32 = 32u;
-const MAX_SUBGROUPS_PER_COL_COLS8: u32 = 8u;  // Support sg_size >= 4 (32/4 = 8)
+override COLS_PER_WG_COLS8: u32 = 8u;  // 256 / 8 = 32 threads per column
+override THREADS_PER_COL_COLS8: u32 = 32u;
+override MAX_SUBGROUPS_PER_COL_COLS8: u32 = 8u;  // Support sg_size >= 4 (32/4 = 8)
 var<workgroup> wg_sums_cols8: array<f32, 64>;
 
 struct Uniforms {
@@ -166,7 +166,7 @@ fn main(
 // Tune-time overrides can retile this without changing entry points.
 override MULTICOL_COLS_PER_WG: u32 = 32u;
 override MULTICOL_THREADS_PER_COL: u32 = 8u;
-const MULTICOL_MAX_SUBGROUPS: u32 = 8u;    // Support sg_size >= 1 (unlikely but safe)
+override MULTICOL_MAX_SUBGROUPS: u32 = 8u;    // Support sg_size >= 1 (unlikely but safe)
 
 // Shared memory for reduction (one slot per thread)
 var<workgroup> multicol_wg_sums: array<f32, MAX_WORKGROUP_SIZE>;
@@ -442,8 +442,8 @@ fn main_cols8(
 // giving large contiguous reads for better cache utilization.
 // Ideal for standard projections (N=1536..8960) where K is moderate.
 
-const COLS_PER_WG_4T: u32 = 64u;
-const THREADS_PER_COL_4T: u32 = 4u;
+override COLS_PER_WG_4T: u32 = 64u;
+override THREADS_PER_COL_4T: u32 = 4u;
 var<workgroup> wg_sums_4t: array<f32, MAX_WORKGROUP_SIZE>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)

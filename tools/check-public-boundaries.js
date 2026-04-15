@@ -11,7 +11,7 @@ const ROOT_DIR = path.resolve(__dirname, '..');
 const FILE_RULES = [
   {
     file: 'src/index.js',
-    allowed: new Set(['./version.js', './client/doppler-api.js']),
+    allowed: new Set(['./version.js', './client/doppler-api.js', './client/provider.js']),
     forbidden: [
       'export * from',
       './tooling-exports',
@@ -29,7 +29,7 @@ const FILE_RULES = [
   },
   {
     file: 'src/index.d.ts',
-    allowed: new Set(['./version.js', './client/doppler-api.js']),
+    allowed: new Set(['./version.js', './client/doppler-api.js', './client/provider.js']),
     forbidden: [
       'export * from',
       './tooling-exports',
@@ -170,7 +170,7 @@ async function validatePackageExports() {
   const exportsField = packageJson.exports || {};
 
   assert(exportsField['.'], 'package.json exports is missing the root entry.');
-  assert(!exportsField['./provider'], 'package.json exports must not include ./provider.');
+  assert(exportsField['./provider'], 'package.json exports must include ./provider.');
   assert(!exportsField['./internal'], 'package.json exports must not include ./internal.');
   assert(exportsField['./tooling'], 'package.json exports must include ./tooling.');
   assert(exportsField['./tooling-experimental'], 'package.json exports must include ./tooling-experimental.');
@@ -182,6 +182,12 @@ async function validatePackageExports() {
   assert(
     rootExport?.import === './src/index.js' && rootExport?.types === './src/index.d.ts',
     'package.json root export must point to src/index.js and src/index.d.ts.'
+  );
+
+  const providerExport = exportsField['./provider'];
+  assert(
+    providerExport?.import === './src/client/provider.js' && providerExport?.types === './src/client/provider.d.ts',
+    'package.json ./provider export must point to src/client/provider.js and src/client/provider.d.ts.'
   );
 }
 

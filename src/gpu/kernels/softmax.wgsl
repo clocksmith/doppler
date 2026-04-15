@@ -10,6 +10,7 @@
 
 override WORKGROUP_SIZE: u32 = 256u;
 const MAX_WORKGROUP_SIZE: u32 = 256u;
+const NEG_INF: f32 = -3.402823e+38;
 
 struct Uniforms {
     inner_size: u32,    // Size of dimension to softmax over
@@ -45,7 +46,7 @@ fn main(
     let elements_per_thread = (inner_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
 
     // Pass 1: Find maximum (for numerical stability)
-    var local_max: f32 = -3.402823e+38;
+    var local_max: f32 = NEG_INF;
 
     for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
         let idx = thread_idx * elements_per_thread + i;
@@ -127,7 +128,7 @@ fn softmax_small(
     let base_offset = row_idx * inner_size;
 
     // Load and scale value
-    var val: f32 = -3.402823e+38;
+    var val: f32 = NEG_INF;
     if (thread_idx < inner_size) {
         val = input[base_offset + thread_idx] / temperature;
     }
@@ -191,7 +192,7 @@ fn softmax_online(
     let elements_per_thread = (inner_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
 
     // Online algorithm: track max and sum simultaneously
-    var m: f32 = -3.402823e+38;  // Running max
+    var m: f32 = NEG_INF;  // Running max
     var d: f32 = 0.0;            // Running sum of exp(x - m)
 
     for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
@@ -264,7 +265,7 @@ fn softmax_inplace(
     let elements_per_thread = (inner_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
 
     // Pass 1: Find max
-    var local_max: f32 = -3.402823e+38;
+    var local_max: f32 = NEG_INF;
     for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
         let idx = thread_idx * elements_per_thread + i;
         if (idx < inner_size) {
@@ -336,7 +337,7 @@ fn log_softmax(
     let elements_per_thread = (inner_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
 
     // Pass 1: Find max
-    var local_max: f32 = -3.402823e+38;
+    var local_max: f32 = NEG_INF;
     for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
         let idx = thread_idx * elements_per_thread + i;
         if (idx < inner_size) {

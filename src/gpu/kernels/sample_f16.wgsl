@@ -17,6 +17,7 @@ enable f16;
 override WORKGROUP_SIZE: u32 = 256u;
 const MAX_WORKGROUP_SIZE: u32 = 256u;
 const MAX_TOP_K: u32 = 128u;
+const NEG_INF: f32 = -3.402823e+38;
 
 struct Uniforms {
     vocab_size: u32,
@@ -70,7 +71,7 @@ fn find_topk_phase1(
     let softcap = u.logit_softcap;
 
     if (num_wg.x == 1u) {
-        var val: f32 = -3.402823e+38;
+        var val: f32 = NEG_INF;
         if (global_idx < vocab_size && global_idx != pad_id) {
             val = apply_softcap(f32(logits[global_idx]), softcap) / temperature;
         }
@@ -79,7 +80,7 @@ fn find_topk_phase1(
         return;
     }
 
-    var local_max: f32 = -3.402823e+38;
+    var local_max: f32 = NEG_INF;
     var local_max_idx: u32 = 0u;
 
     var idx = global_idx;
@@ -135,7 +136,7 @@ fn find_topk_phase2(
             shared_values[thread_idx] = topk_logits[thread_idx];
             shared_indices[thread_idx] = topk_indices[thread_idx];
         } else {
-            shared_values[thread_idx] = -3.402823e+38;
+            shared_values[thread_idx] = NEG_INF;
             shared_indices[thread_idx] = 0u;
         }
     }
@@ -228,7 +229,7 @@ fn sample_single_pass(
     let pad_id = u.pad_token_id;
     let softcap = u.logit_softcap;
 
-    var local_max: f32 = -3.402823e+38;
+    var local_max: f32 = NEG_INF;
     var local_max_idx: u32 = 0u;
 
     var idx = gid.x;
@@ -282,7 +283,7 @@ fn argmax(
     let pad_id = u.pad_token_id;
     let softcap = u.logit_softcap;
 
-    var local_max: f32 = -3.402823e+38;
+    var local_max: f32 = NEG_INF;
     var local_max_idx: u32 = 0u;
 
     var idx = global_idx;
@@ -335,7 +336,7 @@ fn argmax_reduce(
         shared_values[thread_idx] = topk_logits[thread_idx];
         shared_indices[thread_idx] = topk_indices[thread_idx];
     } else {
-        shared_values[thread_idx] = -3.402823e+38;
+        shared_values[thread_idx] = NEG_INF;
         shared_indices[thread_idx] = 0u;
     }
     workgroupBarrier();

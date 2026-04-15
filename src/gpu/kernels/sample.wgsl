@@ -19,6 +19,7 @@
 override WORKGROUP_SIZE: u32 = 256u;
 const MAX_WORKGROUP_SIZE: u32 = 256u;
 const MAX_TOP_K: u32 = 128u;  // Max top-k supported
+const NEG_INF: f32 = -3.402823e+38;
 
 struct Uniforms {
     vocab_size: u32,
@@ -78,7 +79,7 @@ fn find_topk_phase1(
 
     // Single workgroup: write all logits directly for exact top-k
     if (num_wg.x == 1u) {
-        var val: f32 = -3.402823e+38;
+        var val: f32 = NEG_INF;
         if (global_idx < vocab_size && global_idx != pad_id) {
             val = apply_softcap(logits[global_idx], softcap) / temperature;
         }
@@ -88,7 +89,7 @@ fn find_topk_phase1(
     }
 
     // Each thread finds max in its assigned range
-    var local_max: f32 = -3.402823e+38;  // -FLT_MAX
+    var local_max: f32 = NEG_INF;  // -FLT_MAX
     var local_max_idx: u32 = 0u;
 
     // Stride through vocabulary
@@ -152,7 +153,7 @@ fn find_topk_phase2(
             shared_values[thread_idx] = topk_logits[thread_idx];
             shared_indices[thread_idx] = topk_indices[thread_idx];
         } else {
-            shared_values[thread_idx] = -3.402823e+38;
+            shared_values[thread_idx] = NEG_INF;
             shared_indices[thread_idx] = 0u;
         }
     }
@@ -256,7 +257,7 @@ fn sample_single_pass(
     let softcap = u.logit_softcap;
 
     // Phase 1: Find global max
-    var local_max: f32 = -3.402823e+38;
+    var local_max: f32 = NEG_INF;
     var local_max_idx: u32 = 0u;
 
     var idx = gid.x;
@@ -320,7 +321,7 @@ fn argmax(
     let softcap = u.logit_softcap;
 
     // Each thread finds max in its chunk
-    var local_max: f32 = -3.402823e+38;
+    var local_max: f32 = NEG_INF;
     var local_max_idx: u32 = 0u;
 
     var idx = global_idx;
@@ -378,7 +379,7 @@ fn argmax_reduce(
         shared_values[thread_idx] = topk_logits[thread_idx];
         shared_indices[thread_idx] = topk_indices[thread_idx];
     } else {
-        shared_values[thread_idx] = -3.402823e+38;
+        shared_values[thread_idx] = NEG_INF;
         shared_indices[thread_idx] = 0u;
     }
     workgroupBarrier();

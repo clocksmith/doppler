@@ -1,0 +1,6 @@
+[418.3ms][NodeSourceRuntime] Mixed litert-task tensor dtypes detected (F16, F32). Using F32 source quantization for direct-source parity.
+[2160.3ms][Pipeline] KV cache kvDtype from execution-v1 resolution (f16) differs from manifest quantizationInfo.compute hint (f32). The kernel path dtype contract takes precedence.
+[2333.4ms][Loader] Embeddings stored on CPU via range-backed source (layout=row)
+[59836.4ms][Harness] Running with default inference parameters for missing fields: generation.maxTokens.
+  maxTokens: 32
+  Provide explicit runtime.inference.sampling and generation.maxTokens if you want harness-stable settings.

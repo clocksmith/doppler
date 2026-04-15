@@ -1,0 +1,190 @@
+[140.4ms][Harness] Suite model init: loadMode=memory, modelId=gemma-4-e2b-it-q4k-ehf16-af32, hasModelUrl=yes
+[140.8ms][Harness] Using node source runtime for explicit local modelUrl: /Users/xyz/deco/doppler/models/source/litert/gemma-4-e2b-it/gemma-4-E2B-it-web.task
+[1508.0ms][NodeSourceRuntime] Source runtime ready: gemma-4-e2b-it-q4k-ehf16-af32 (litert-task, 576 tensors)
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 4.4ms
+[1526.0ms][Pipeline] Execution v1 enabled (steps=41, kernelPathInline=yes, pipelineInline=no)
+[1526.1ms][Config] Using manifest-first config (source of truth)
+[1530.8ms][Pipeline] Resolved session applied (gemma-4-e2b-it-q4k-ehf16-af32): batchSize=8, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[1531.3ms][Pipeline] KernelPath: gemma-4-e2b-it-q4k-ehf16-af32-execution-inline (12 decode steps, 10 kernels, source=execution-v1)
+[1531.5ms][Pipeline] 35L/1536H/8heads (256dim), kernelPath=gemma-4-e2b-it-q4k-ehf16-af32-execution-inline
+[1531.7ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[1806.7ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[2160.2ms][Tokenizer] Loaded HuggingFace 262144 tokens (bpe), 24 special patterns, 514906 merges
+[2161.4ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=131072, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[2161.8ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=gemma-4-e2b-it-q4k-ehf16-af32-execution-inline
+[2162.4ms][ShardCache] Custom shard loader configured
+[2162.6ms][Loader] Initializing...
+[2330.6ms][HeapManager] Allocated segment 0: 1024MB
+[2330.7ms][HeapManager] Segmented heap: 1GB per segment
+[2330.7ms][HeapManager] Initialized with strategy: SEGMENTED
+[2330.8ms][Loader] Initialized (f16, subgroups, unified)
+[2331.1ms][Loader] Loading: gemma-4-e2b-it-q4k-ehf16-af32
+[2331.4ms][Loader] [0.0s] Memory (start): | RSS=1.94 GB (heap=70.92 MB/107.20 MB, external=1.00 GB, arrayBuffers=1.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[2333.2ms][Loader] Embedding "model.language_model.embed_tokens.weight" uses sourceTransform.kind="litert_axis_blocked_dequant". Using range-backed CPU source to avoid eager full materialization.
+[2333.3ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[262144,1536], isWeightBuffer=false
+[2333.9ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.0.embed_tokens_per_layer.weight (range-backed CPU source)
+[2333.9ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.1.embed_tokens_per_layer.weight (range-backed CPU source)
+[2333.9ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.2.embed_tokens_per_layer.weight (range-backed CPU source)
+[2333.9ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.3.embed_tokens_per_layer.weight (range-backed CPU source)
+[2333.9ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.4.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.0ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.5.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.0ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.6.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.0ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.7.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.0ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.8.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.0ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.9.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.0ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.10.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.1ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.11.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.1ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.12.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.1ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.13.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.1ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.14.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.1ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.15.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.2ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.16.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.2ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.17.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.2ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.18.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.2ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.19.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.2ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.20.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.2ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.21.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.2ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.22.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.2ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.23.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.2ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.24.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.2ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.25.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.2ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.26.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.3ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.27.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.3ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.28.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.3ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.29.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.3ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.30.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.3ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.31.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.3ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.32.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.3ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.33.embed_tokens_per_layer.weight (range-backed CPU source)
+[2334.3ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.34.embed_tokens_per_layer.weight (range-backed CPU source)
+[2336.4ms][Loader] Per-layer input tensor loaded: perLayerProjectionNorm <- model.language_model.per_layer_projection_norm.weight
+[2336.7ms][Loader] Per-layer input tensor loaded: perLayerModelProjectionInputActivationStaticScale <- model.language_model.per_layer_model_projection.input_activation_static_scale (cpu scalar)
+[2336.8ms][Loader] Per-layer input tensor loaded: perLayerModelProjectionOutputActivationStaticScale <- model.language_model.per_layer_model_projection.output_activation_static_scale (cpu scalar)
+[3074.5ms][Loader] Per-layer input tensor loaded: perLayerModelProjection <- model.language_model.per_layer_model_projection.weight
+[3074.8ms][Loader] Layers: 0-34
+[34289.0ms][Loader] [32.0s] Memory (loading): | RSS=1.88 GB (heap=80.14 MB/106.95 MB, external=1.05 GB, arrayBuffers=1.04 GB) | GPU=2.94 GB (374 active, 0 pooled, peak=2.94 GB) | ShardCache=0 B (0 shards) | Layers=21, GPUBuffers=374
+[59082.2ms][Loader] Layers: 35 complete (56.01s)
+[59084.9ms][Loader] Complete: 0 B in 56.75s (0 B/s)
+[59085.2ms][Loader] [56.8s] Memory (complete): | RSS=1.88 GB (heap=74.86 MB/107.45 MB, external=1.04 GB, arrayBuffers=1.04 GB) | GPU=5.15 GB (573 active, 0 pooled, peak=5.15 GB) | ShardCache=0 B (0 shards) | Layers=35, GPUBuffers=573
+[59835.9ms][Pipeline] Model loaded successfully (58313ms)
+[59994.3ms][KernelSelect] matmul variant=gemv_subgroup reason=gemv
+{
+  "ok": false,
+  "schemaVersion": 1,
+  "surface": "node",
+  "request": {
+    "command": "bench",
+    "workload": "inference",
+    "intent": "calibrate",
+    "action": null,
+    "inferenceInput": null,
+    "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+    "trainingTests": null,
+    "trainingStage": null,
+    "trainingConfig": null,
+    "stage1Artifact": null,
+    "stage1ArtifactHash": null,
+    "ulArtifactDir": null,
+    "stageAArtifact": null,
+    "stageAArtifactHash": null,
+    "distillArtifactDir": null,
+    "teacherModelId": null,
+    "studentModelId": null,
+    "distillDatasetId": null,
+    "distillDatasetPath": null,
+    "distillLanguagePair": null,
+    "distillSourceLangs": null,
+    "distillTargetLangs": null,
+    "distillPairAllowlist": null,
+    "strictPairContract": null,
+    "distillShardIndex": null,
+    "distillShardCount": null,
+    "resumeFrom": null,
+    "forceResume": null,
+    "forceResumeReason": null,
+    "forceResumeSource": null,
+    "checkpointOperator": null,
+    "trainingSchemaVersion": null,
+    "trainingBenchSteps": null,
+    "checkpointEvery": null,
+    "workloadType": null,
+    "modelUrl": "file:///Users/xyz/deco/doppler/models/source/litert/gemma-4-e2b-it/gemma-4-E2B-it-web.task",
+    "cacheMode": "warm",
+    "loadMode": "memory",
+    "runtimeProfile": null,
+    "runtimeConfigUrl": null,
+    "runtimeConfig": {
+      "inference": {
+        "batching": {
+          "batchSize": 8,
+          "readbackInterval": 8,
+          "maxTokens": 16
+        },
+        "session": {
+          "decodeLoop": {
+            "batchSize": 8,
+            "readbackInterval": 8
+          }
+        },
+        "prompt": "Hello",
+        "chatTemplate": {
+          "enabled": false
+        },
+        "sampling": {
+          "temperature": 0,
+          "topK": 1,
+          "topP": 1
+        }
+      },
+      "shared": {
+        "benchmark": {
+          "run": {
+            "customPrompt": "Hello",
+            "maxNewTokens": 16,
+            "warmupRuns": 0,
+            "timedRuns": 1,
+            "useChatTemplate": false,
+            "sampling": {
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1
+            }
+          }
+        }
+      }
+    },
+    "inputDir": null,
+    "outputDir": null,
+    "convertPayload": null,
+    "workloadPath": null,
+    "runRoot": null,
+    "checkpointPath": null,
+    "checkpointId": null,
+    "checkpointStep": null,
+    "stageId": null,
+    "stageArtifact": null,
+    "subsetManifest": null,
+    "evalDatasetId": null,
+    "pollIntervalMs": null,
+    "stopWhenIdle": null,
+    "captureOutput": false,
+    "keepPipeline": false,
+    "report": null,
+    "timestamp": null,
+    "searchParams": null,
+    "baselineProvider": null,
+    "observedProvider": null
+  },
+  "error": {
+    "code": "tooling_error",
+    "message": "Offset is outside the bounds of the DataView",
+    "details": {
+      "surface": "node",
+      "command": "bench",
+      "workload": "inference",
+      "workloadType": null,
+      "modelId": "gemma-4-e2b-it-q4k-ehf16-af32"
+    },
+    "retryable": null
+  }
+}

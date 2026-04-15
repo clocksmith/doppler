@@ -10,7 +10,7 @@
 //
 // Uses override constants for compile-time feature selection:
 // - RMS_NORM_OFFSET: Use (1 + weight) pattern (Gemma models)
-// - HAS_RESIDUAL: Enable post-norm residual addition
+// - HAS_RESIDUAL: Compile-time override (reserved for codegen patches, not used by JS dispatch)
 // - OUTPUT_PRENORM: Output pre-normalized values (before weight multiplication)
 
 enable subgroups;
@@ -30,6 +30,7 @@ override OUTPUT_PRENORM: bool = false;    // Write pre-norm sum to residual_sum_
 override WEIGHT_IS_F16: bool = false;     // Weight buffer packed as f16 pairs
 
 const MAX_SUBGROUPS: u32 = 32u;  // Support up to 32 subgroups per workgroup
+const MAX_CACHE_SIZE: u32 = 4608u;  // Supports hiddenSize up to 1152 with 4 elements/thread
 
 // =============================================================================
 // Uniforms (per-dispatch)
@@ -81,11 +82,9 @@ fn load_weight(idx: u32) -> f32 {
     return bitcast<f32>(weight[idx]);
 }
 
-// Check if residual should be added (compile-time OR runtime flag)
+// Check if residual should be added (runtime uniform only — JS dispatch controls this)
 fn should_add_residual() -> bool {
-    // HAS_RESIDUAL is compile-time override (for optimized paths)
-    // u.has_residual is runtime flag (for flexibility)
-    return HAS_RESIDUAL || (u.has_residual != 0u);
+    return u.has_residual != 0u;
 }
 
 // Load input value, fusing residual add when PRE_RESIDUAL is active
@@ -242,7 +241,7 @@ fn main_small(
 
 // OPTIMIZED: Caches input to avoid double loads
 // Uses shared memory to store input values between passes
-var<workgroup> shared_cache: array<f32, 4608>;  // Max for hiddenSize=1152 × 4 elements/thread
+var<workgroup> shared_cache: array<f32, MAX_CACHE_SIZE>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_cached(

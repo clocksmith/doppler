@@ -32,11 +32,19 @@ export function resolveLoadProgressHandlers(options = {}, defaultLoadProgressLog
 }
 
 export async function fetchManifestFromBaseUrl(baseUrl) {
+  return (await fetchManifestPayloadFromBaseUrl(baseUrl)).manifest;
+}
+
+export async function fetchManifestPayloadFromBaseUrl(baseUrl) {
   const response = await fetch(getManifestUrl(baseUrl));
   if (!response.ok) {
     throw new Error(`Failed to fetch manifest from ${baseUrl}: ${response.status}`);
   }
-  return parseManifest(await response.text());
+  const text = await response.text();
+  return {
+    text,
+    manifest: parseManifest(text),
+  };
 }
 
 export async function resolveModelSource(model) {
