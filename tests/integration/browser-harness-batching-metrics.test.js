@@ -20,6 +20,9 @@ const { runGeneration } = await import('../../src/inference/browser-harness-text
         batchGuardReason: null,
         singleTokenReadbackWaitMs: 7,
         singleTokenOrchestrationMs: 8,
+        decodeRecordMs: 1,
+        decodeSubmitWaitMs: 1,
+        decodeReadbackWaitMs: 1,
         batching: {
           batchedForwardCalls: 9,
           unbatchedForwardCalls: 10,
@@ -59,6 +62,7 @@ const { runGeneration } = await import('../../src/inference/browser-harness-text
   assert.equal(result.phase.batching?.gpuSubmissions, 13);
   assert.equal(result.phase.gpu?.singleTokenReadbackWaitMs, 7);
   assert.equal(result.phase.gpu?.singleTokenOrchestrationMs, 8);
+  assert.equal(result.phase.gpu?.decodeOrchestrationMs, 1);
 }
 
 {
@@ -108,6 +112,9 @@ const { runGeneration } = await import('../../src/inference/browser-harness-text
             batchGuardReason: null,
             singleTokenReadbackWaitMs: 4,
             singleTokenOrchestrationMs: 2,
+            decodeRecordMs: 3,
+            decodeSubmitWaitMs: 2,
+            decodeReadbackWaitMs: 2,
             batching: {
               batchedForwardCalls: 3,
               unbatchedForwardCalls: 0,
@@ -131,6 +138,43 @@ const { runGeneration } = await import('../../src/inference/browser-harness-text
   assert.equal(result.metrics.batching?.gpuSubmissions?.median, 1);
   assert.equal(result.metrics.gpu?.singleTokenReadbackWaitMs?.median, 4);
   assert.equal(result.metrics.gpu?.singleTokenOrchestrationMs?.median, 2);
+  assert.equal(result.metrics.gpu?.decodeOrchestrationMs?.median, 3);
+}
+
+{
+  // decodeOrchestrationMs is a derived residual: when component timings sum exceeds
+  // decodeMs (scope drift), the residual is negative. It must surface as-is, not clamp to 0.
+  const pipeline = {
+    async *generate(_promptInput, options = {}) {
+      options.onToken?.(1, 'Blue');
+      yield 'Blue';
+    },
+    getStats() {
+      return {
+        prefillTimeMs: 2,
+        ttftMs: 3,
+        decodeTimeMs: 5,
+        prefillTokens: 1,
+        decodeTokens: 1,
+        decodeRecordMs: 3,
+        decodeSubmitWaitMs: 2,
+        decodeReadbackWaitMs: 2,
+        decodeProfileSteps: [],
+      };
+    },
+  };
+
+  const result = await runGeneration(pipeline, {
+    inference: {
+      prompt: 'The sky is',
+      generation: { maxTokens: 1 },
+      sampling: { temperature: 0, topK: 1, topP: 1 },
+    },
+    shared: { tooling: { intent: 'calibrate' } },
+  });
+
+  // 5 - 3 - 2 - 2 = -2: scope drift must be visible, not hidden as 0
+  assert.equal(result.phase.gpu?.decodeOrchestrationMs, -2);
 }
 
 console.log('browser-harness-batching-metrics.test: ok');

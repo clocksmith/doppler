@@ -14,6 +14,7 @@ export const DEFAULT_BENCHMARK_RUN_CONFIG = {
   promptName: 'medium',
   customPrompt: null,
   maxNewTokens: 128,
+  seed: null,
   runType: 'warm',
   warmupRuns: 2,
   timedRuns: 3,

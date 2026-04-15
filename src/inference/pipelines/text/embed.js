@@ -84,8 +84,10 @@ export async function embed(tokenIds, embedBuffer, config) {
     activationDtype,
     embeddingDtype,
     operatorDiagnostics,
+    probeStage = 'embed_out',
     inputHiddenSize = hiddenSize,
     hiddenOffset = 0,
+    stats = null,
   } = config;
   const device = getDevice();
   const tokenBufferInput = isGpuBufferInstance(tokenIds);
@@ -274,7 +276,7 @@ export async function embed(tokenIds, embedBuffer, config) {
       } else {
         releaseBuffer(f32Buffer);
       }
-      await runProbes('embed_out', f16Tensor.buffer, {
+      await runProbes(probeStage, f16Tensor.buffer, {
         numTokens,
         hiddenSize,
         probes: config.debugProbes,
@@ -290,7 +292,11 @@ export async function embed(tokenIds, embedBuffer, config) {
       ? preAllocatedOutput
       : acquireBuffer(outputBytes, undefined, 'embed_cpu_f32_out');
     device.queue.writeBuffer(outputBuffer, 0, output);
-    await runProbes('embed_out', outputBuffer, {
+    if (stats) {
+      stats.pleWriteBufferCount = (stats.pleWriteBufferCount ?? 0) + 1;
+      stats.pleWriteBufferBytes = (stats.pleWriteBufferBytes ?? 0) + outputBytes;
+    }
+    await runProbes(probeStage, outputBuffer, {
       numTokens,
       hiddenSize,
       probes: config.debugProbes,
@@ -360,7 +366,7 @@ export async function embed(tokenIds, embedBuffer, config) {
   }
 
   if (!scaleEmbeddings) {
-    await runProbes('embed_out', gatherOutput.buffer, {
+    await runProbes(probeStage, gatherOutput.buffer, {
       numTokens,
       hiddenSize,
       probes: config.debugProbes,
@@ -431,7 +437,7 @@ export async function embed(tokenIds, embedBuffer, config) {
       throw new Error('[Embed] Scaled embedding contains NaN/Inf');
     }
   }
-  await runProbes('embed_out', scaledBuffer, {
+  await runProbes(probeStage, scaledBuffer, {
     numTokens,
     hiddenSize,
     probes: config.debugProbes,

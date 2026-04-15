@@ -1,0 +1,32 @@
+{
+  "id": "experiments/bench/gemma4-bench-q4k",
+  "name": "gemma4-bench-q4k",
+  "description": "Benchmark run for Gemma 4 E2B Q4K with deterministic generation settings.",
+  "intent": "calibrate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-04-14T00:00:00Z",
+  "model": "gemma-4-e2b-it-q4k-ehf16-af32",
+  "extends": "profiles/gemma4-e2b-throughput",
+  "runtime": {
+    "shared": {
+      "benchmark": {
+        "run": {
+          "promptName": "xs",
+          "customPrompt": "The sky is clear and beautiful.",
+          "maxNewTokens": 256,
+          "warmupRuns": 1,
+          "timedRuns": 3,
+          "sampling": {
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "seed": 12345
+          },
+          "profile": false,
+          "captureMemoryTimeSeries": false
+        }
+      }
+    }
+  }
+}

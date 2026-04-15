@@ -6,6 +6,7 @@ export interface BenchmarkRunConfig {
   promptName: string;
   customPrompt: string | null;
   maxNewTokens: number;
+  seed: number | null;
   runType: string;
   warmupRuns: number;
   timedRuns: number;
@@ -13,6 +14,7 @@ export interface BenchmarkRunConfig {
     temperature: number;
     topK: number;
     topP: number;
+    seed?: number;
   };
   debug: boolean;
   profile: boolean;

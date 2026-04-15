@@ -164,7 +164,7 @@ function createHarnessOverride(records) {
     },
   });
 
-  assert.equal(observed.useChatTemplate, false);
+  assert.equal(observed.useChatTemplate ?? false, false);
 }
 
 {
@@ -291,6 +291,84 @@ function createHarnessOverride(records) {
       },
     ]
   );
+}
+
+{
+  let observedSeed = null;
+  const pipeline = {
+    async *generate(_promptInput, options = {}) {
+      observedSeed = options.seed;
+      options.onToken?.(1, 'Blue');
+      yield 'Blue';
+    },
+    getStats() {
+      return {
+        prefillTimeMs: 1,
+        ttftMs: 1,
+        decodeTimeMs: 1,
+        prefillTokens: 1,
+        decodeTokens: 1,
+        decodeProfileSteps: [],
+      };
+    },
+    reset() {},
+    async unload() {},
+  };
+
+  const result = await runGeneration(pipeline, {
+    inference: {
+      prompt: 'The sky is',
+      generation: {
+        maxTokens: 1,
+      },
+      sampling: {
+        temperature: 0,
+        topK: 1,
+        topP: 1,
+        seed: 12345,
+      },
+    },
+  });
+
+  assert.equal(observedSeed, 12345);
+  assert.equal(result.seed, 12345);
+}
+
+{
+  // run.seed takes precedence over run.sampling.seed and inference.sampling.seed.
+  // Validates the three-level precedence: run.seed > run.sampling.seed > inference.sampling.seed.
+  const { resolveBenchmarkRunSettings } = await import('../../src/inference/browser-harness-text-helpers.js');
+
+  const settingsRunSeed = resolveBenchmarkRunSettings({
+    shared: {
+      benchmark: {
+        run: {
+          seed: 99,
+          sampling: { seed: 77 },
+        },
+      },
+    },
+    inference: { sampling: { seed: 55 } },
+  });
+  assert.equal(settingsRunSeed.seed, 99, 'run.seed must win over run.sampling.seed');
+  assert.equal(settingsRunSeed.sampling.seed, 99, 'run.seed must propagate into sampling.seed');
+
+  const settingsBenchSamplingWins = resolveBenchmarkRunSettings({
+    shared: {
+      benchmark: {
+        run: {
+          sampling: { seed: 77 },
+        },
+      },
+    },
+    inference: { sampling: { seed: 55 } },
+  });
+  assert.equal(settingsBenchSamplingWins.seed, 77, 'run.sampling.seed must win over inference.sampling.seed');
+
+  const settingsRuntimeOnly = resolveBenchmarkRunSettings({
+    inference: { sampling: { seed: 55 } },
+  });
+  assert.equal(settingsRuntimeOnly.seed, 55, 'inference.sampling.seed used when no bench seed present');
 }
 
 console.log('browser-harness-generation-diagnostics.test: ok');

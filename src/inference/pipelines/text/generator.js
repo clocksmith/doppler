@@ -1304,6 +1304,26 @@ export class PipelineGenerator {
     opts.topP = samplingConfig.topP;
     opts.topK = samplingConfig.topK;
     opts.repetitionPenalty = samplingConfig.repetitionPenalty;
+    const diagnosticsEnabled = options?.diagnostics?.enabled === true
+      || this.#state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
+    if (diagnosticsEnabled) {
+      const captureConfig = {
+        ...createDefaultCaptureConfig(),
+        enabled: true,
+        defaultLevel: CAPTURE_LEVELS.SLICE,
+        ...(options?.diagnostics?.captureConfig ?? {}),
+      };
+      validateCaptureConfig(captureConfig);
+      this.#state.operatorDiagnostics = {
+        enabled: true,
+        captureConfig,
+        emitter: new OperatorEventEmitter({
+          modelHash: this.#state.manifest?.modelId ?? null,
+          runtimeConfigHash: this.#state.resolvedKernelPath?.id ?? null,
+          executionPlanHash: opts.executionPlan?.id ?? null,
+        }),
+      };
+    }
 
     try {
       const prefillStartSeqLen = this.#state.currentSeqLen;
@@ -1370,6 +1390,14 @@ export class PipelineGenerator {
         this.#state.stats.executionPlan.finalActivePlanId = this.#state.executionPlanState?.activePlanId ?? null;
       }
       resetActiveExecutionPlan(this.#state);
+      this.#state.stats.operatorDiagnostics = this.#state.operatorDiagnostics?.emitter
+        ? {
+          enabled: true,
+          timeline: this.#state.operatorDiagnostics.emitter.getTimeline(),
+          recordCount: this.#state.operatorDiagnostics.emitter.length,
+        }
+        : null;
+      this.#state.operatorDiagnostics = null;
       this.#state.isGenerating = false;
     }
   }
@@ -2214,6 +2242,7 @@ export class PipelineGenerator {
         context,
         {
           numTokens,
+          pleCache: this.#state.pleCache ?? null,
         }
       );
     } catch (error) {

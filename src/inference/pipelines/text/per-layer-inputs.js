@@ -1527,6 +1527,7 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
           hiddenSize: hiddenSizePerLayerInput,
           vocabSize: useHotVocabularyTables ? (hotVocabularyRuntime.sentinelIndex + 1) : vocabSizePerLayerInput,
           scaleEmbeddings: true,
+          probeStage: 'per_layer_embed_out',
           recorder,
           numTokens,
           indexOffset: perLayerTokenIds ? perLayerIndexOffset : indexOffset,
@@ -1543,6 +1544,7 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
           outputBuffer: canFuseDecodeOps
             ? (pleCache?.gatherSliceBuffers?.[layerIdx] ?? undefined)
             : undefined,
+          stats: context.stats ?? null,
         });
 
         if (fusedProjectionSlices) {
@@ -1763,6 +1765,66 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
       activationDtype,
       context.stats ?? null
     );
+  }
+
+  // Prefill hot-cache seeding: when we computed a multi-token batch and pleCache is
+  // provided, extract per-token row slices and store unique token IDs in the cache.
+  // Copies are recorded via the active recorder (if any) so they execute after the
+  // batch computation and before the first decode step reads from the cache.
+  // Without a recorder, the batch buffers are already populated so copies are safe
+  // to submit immediately.
+  if (pleCache) {
+    const plePolicy = getPleHotCachePolicy(context.perLayerInputsSession ?? null);
+    if (plePolicy && plePolicy.mode === 'prepared_tokens'
+        && pleCache.preparedTokenEntries instanceof Map
+        && !tokenIdsAreGpuBuffer
+        && numTokens > 0
+    ) {
+      const tokenIdArray = Array.isArray(tokenIds) ? tokenIds : Array.from(tokenIds);
+      const sliceBytes = hiddenSizePerLayerInput * activationBytesPerElement;
+      const seen = new Set();
+      const device = getDevice();
+      let pendingEncoder = null;
+      for (let tokenPos = 0; tokenPos < tokenIdArray.length; tokenPos++) {
+        const tid = tokenIdArray[tokenPos];
+        if (seen.has(tid) || pleCache.preparedTokenEntries.has(tid)) continue;
+        if (pleCache.preparedTokenEntries.size >= plePolicy.maxTokens) break;
+        seen.add(tid);
+        const srcOffset = tokenPos * sliceBytes;
+        const sliceBuffers = new Array(numLayers).fill(null);
+        let allValid = true;
+        for (let layerIdx = 0; layerIdx < numLayers; layerIdx++) {
+          const srcBuffer = perLayerBuffers[layerIdx];
+          if (!srcBuffer || srcBuffer.size < srcOffset + sliceBytes) {
+            allValid = false;
+            break;
+          }
+          const dstBuffer = acquireBuffer(sliceBytes, undefined, `ple_seed_L${layerIdx}`);
+          if (recorder) {
+            recorder.getEncoder().copyBufferToBuffer(srcBuffer, srcOffset, dstBuffer, 0, sliceBytes);
+          } else {
+            if (!pendingEncoder) pendingEncoder = device.createCommandEncoder();
+            pendingEncoder.copyBufferToBuffer(srcBuffer, srcOffset, dstBuffer, 0, sliceBytes);
+          }
+          sliceBuffers[layerIdx] = dstBuffer;
+        }
+        if (!allValid) {
+          for (const buf of sliceBuffers) {
+            if (buf) releaseBuffer(buf);
+          }
+          continue;
+        }
+        storePreparedTokenEntry(
+          pleCache, tid, sliceBuffers,
+          context.perLayerInputsSession ?? null,
+          activationDtype,
+          context.stats ?? null
+        );
+      }
+      if (pendingEncoder && device) {
+        device.queue.submit([pendingEncoder.finish()]);
+      }
+    }
   }
 
   return perLayerBuffers;

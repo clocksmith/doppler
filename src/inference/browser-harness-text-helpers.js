@@ -662,23 +662,42 @@ export function resolveBenchmarkRunSettings(runtimeConfig, source = null) {
   const benchSampling = isPlainObject(benchConfig?.sampling)
     ? benchConfig.sampling
     : {};
+  const runSeed = Number.isFinite(benchConfig.seed)
+    ? Math.max(0, Math.floor(benchConfig.seed))
+    : null;
+  const runtimeSeed = Number.isFinite(runtimeSampling.seed)
+    ? Math.max(0, Math.floor(runtimeSampling.seed))
+    : null;
+  const benchSeed = Number.isFinite(benchSampling.seed)
+    ? Math.max(0, Math.floor(benchSampling.seed))
+    : null;
+  const mergedSeed = runSeed != null
+    ? runSeed
+    : benchSeed != null
+      ? benchSeed
+      : runtimeSeed;
   const promptInput = typeof benchConfig.customPrompt === 'string' && benchConfig.customPrompt.trim()
     ? benchConfig.customPrompt.trim()
     : resolveGenerationPromptInput(runtimeConfig, null, source);
   const maxTokens = Number.isFinite(benchConfig.maxNewTokens)
     ? Math.max(1, Math.floor(benchConfig.maxNewTokens))
     : resolveMaxTokens(runtimeConfig);
+  const sampling = {
+    ...runtimeSampling,
+    ...benchSampling,
+  };
+  if (Number.isFinite(mergedSeed)) {
+    sampling.seed = mergedSeed;
+  }
 
   return {
     warmupRuns: Math.max(0, Math.floor(benchConfig.warmupRuns ?? 0)),
     timedRuns: Math.max(1, Math.floor(benchConfig.timedRuns ?? 1)),
+    ...(Number.isFinite(mergedSeed) ? { seed: mergedSeed } : {}),
     prompt: promptInput,
     promptLabel: describePromptInput(promptInput),
     maxTokens,
-    sampling: {
-      ...runtimeSampling,
-      ...benchSampling,
-    },
+    sampling,
   };
 }
 
@@ -1015,6 +1034,14 @@ function buildGenerationPhaseFromStats(pipeline, durationMs, tokenCount) {
   if (Number.isFinite(stats.decodeRecordMs)) gpu.decodeRecordMs = stats.decodeRecordMs;
   if (Number.isFinite(stats.decodeSubmitWaitMs)) gpu.decodeSubmitWaitMs = stats.decodeSubmitWaitMs;
   if (Number.isFinite(stats.decodeReadbackWaitMs)) gpu.decodeReadbackWaitMs = stats.decodeReadbackWaitMs;
+  if (
+    Number.isFinite(decodeMs) &&
+    Number.isFinite(stats.decodeRecordMs) &&
+    Number.isFinite(stats.decodeSubmitWaitMs) &&
+    Number.isFinite(stats.decodeReadbackWaitMs)
+  ) {
+    gpu.decodeOrchestrationMs = decodeMs - stats.decodeRecordMs - stats.decodeSubmitWaitMs - stats.decodeReadbackWaitMs;
+  }
   if (Number.isFinite(stats.singleTokenSubmitWaitMs)) gpu.singleTokenSubmitWaitMs = stats.singleTokenSubmitWaitMs;
   if (Number.isFinite(stats.singleTokenReadbackWaitMs)) gpu.singleTokenReadbackWaitMs = stats.singleTokenReadbackWaitMs;
   if (Number.isFinite(stats.singleTokenOrchestrationMs)) gpu.singleTokenOrchestrationMs = stats.singleTokenOrchestrationMs;
@@ -1048,6 +1075,12 @@ function buildGenerationPhaseFromStats(pipeline, durationMs, tokenCount) {
   }
   if (Number.isFinite(stats.plePreparedTokenCacheBytes)) {
     plePreparedTokenCache.bytes = stats.plePreparedTokenCacheBytes;
+  }
+  if (Number.isFinite(stats.pleWriteBufferCount)) {
+    plePreparedTokenCache.writeBufferCount = stats.pleWriteBufferCount;
+  }
+  if (Number.isFinite(stats.pleWriteBufferBytes)) {
+    plePreparedTokenCache.writeBufferBytes = stats.pleWriteBufferBytes;
   }
   const plePreparedTokenCachePhase = Object.keys(plePreparedTokenCache).length > 0
     ? plePreparedTokenCache
@@ -1112,6 +1145,11 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     ...(runtimeConfig.inference?.sampling || {}),
     ...(isPlainObject(runOverrides?.sampling) ? runOverrides.sampling : {}),
   };
+  const seed = Number.isFinite(runOverrides?.seed)
+    ? Math.max(0, Math.floor(runOverrides.seed))
+    : Number.isFinite(sampling.seed)
+      ? Math.max(0, Math.floor(sampling.seed))
+      : null;
   const debugProbes = runtimeConfig.shared?.debug?.probes || [];
   const profile = runtimeConfig.shared?.debug?.profiler?.enabled === true;
   const explicitDiagnosticsEnabled = runtimeConfig.shared?.harness?.mode === 'diagnose'
@@ -1123,6 +1161,7 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
 
   for await (const tokenText of pipeline.generate(promptInput, {
     maxTokens,
+    ...(Number.isFinite(seed) ? { seed } : {}),
     temperature: sampling.temperature,
     topP: sampling.topP,
     topK: sampling.topK,
@@ -1151,6 +1190,7 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
   const { phase } = buildGenerationPhaseFromStats(pipeline, durationMs, tokenIds.length);
 
   return {
+    ...(Number.isFinite(seed) ? { seed } : {}),
     prompt: promptLabel,
     promptInput,
     maxTokens,
