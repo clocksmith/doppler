@@ -1,6 +1,3 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { initializeInference } from './test-harness.js';
 import { setRuntimeConfig } from '../config/runtime.js';
 import { log } from '../debug/index.js';
@@ -30,18 +27,27 @@ function isNodeRuntime() {
   return typeof process !== 'undefined' && !!process.versions?.node;
 }
 
-async function pathExists(targetPath) {
+async function pathExists(nodeFs, targetPath) {
   try {
-    await fs.access(targetPath);
+    await nodeFs.access(targetPath);
     return true;
   } catch {
     return false;
   }
 }
 
-function isDirectSourceFilePath(targetPath) {
-  const ext = path.extname(String(targetPath || '')).toLowerCase();
+function isDirectSourceFilePath(nodePath, targetPath) {
+  const ext = nodePath.extname(String(targetPath || '')).toLowerCase();
   return DIRECT_SOURCE_FILE_EXTENSIONS.includes(ext);
+}
+
+async function loadNodeFsHelpers() {
+  const [{ default: fs }, { default: path }, { fileURLToPath }] = await Promise.all([
+    import('node:fs/promises'),
+    import('node:path'),
+    import('node:url'),
+  ]);
+  return { fs, path, fileURLToPath };
 }
 
 function resolveSourceVerifyHashes(options = {}) {
@@ -221,6 +227,8 @@ export async function resolveLocalSourceRuntimePathFromModelUrl(modelUrl) {
     return null;
   }
 
+  const { fs, path, fileURLToPath } = await loadNodeFsHelpers();
+
   let localPath;
   try {
     localPath = fileURLToPath(modelUrl);
@@ -236,14 +244,14 @@ export async function resolveLocalSourceRuntimePathFromModelUrl(modelUrl) {
   }
 
   if (stats.isFile()) {
-    return isDirectSourceFilePath(localPath) ? localPath : null;
+    return isDirectSourceFilePath(path, localPath) ? localPath : null;
   }
 
   if (!stats.isDirectory()) {
     return null;
   }
 
-  if (await pathExists(path.join(localPath, 'manifest.json'))) {
+  if (await pathExists(fs, path.join(localPath, 'manifest.json'))) {
     return null;
   }
 
@@ -260,7 +268,7 @@ export async function resolveLocalSourceRuntimePathFromModelUrl(modelUrl) {
   }
 
   for (const fileName of fileNames) {
-    if (isDirectSourceFilePath(fileName)) {
+    if (isDirectSourceFilePath(path, fileName)) {
       return localPath;
     }
   }
