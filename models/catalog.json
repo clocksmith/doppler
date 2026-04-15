@@ -231,7 +231,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-04-09",
           "source": "runtime-verify",
-          "notes": "Node/WebGPU on AMD RDNA-3 re-verified on 2026-04-09 after repinning Gemma 4 E2B text decode to attention_decode_online_f16kv and splitting prefill attention between sliding-window and full-attention layers. Produces coherent sky-color answers on simple prompts and now outpaces the local Transformers.js q4f16 WebGPU baseline on the matched text prompt. Republished to HF 2026-04-11.",
+          "notes": "Node/WebGPU on AMD RDNA-3 re-verified on 2026-04-09 after repinning Gemma 4 E2B text decode to attention_decode_online_f16kv and splitting prefill attention between sliding-window and full-attention layers. Produces coherent sky-color answers on simple prompts. Apple M3 browser compare (2026-04-15, receipt benchmarks/vendors/results/compare_20260415T170108.json): Doppler RDRR wins cold model load ~3.4x (16.97s vs 57.48s) and ties warm load; Transformers.js ONNX/q4f16 wins warm decode throughput ~2.6x (29.3 tok/s vs 11.45 tok/s) and TTFT ~5.5x (208ms vs 1143ms). Product-engine comparison across different artifact formats, not a format-identical kernel benchmark. Republished to HF 2026-04-11.",
           "contracts": {
             "executionContractOk": true
           }

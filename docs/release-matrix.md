@@ -51,4 +51,4 @@ Release: channel=main-snapshot, version=0.2.1, commit=ba57ea16750d426627f53efceb
 
 ## Charts
 
-- [compare_1b_multi-workload_favorable_phases.svg](../benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
+- [compare_1b_multi-workload_favorable_phases.svg](../benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg) — **stale**; numbers predate the 2026-04-15 Apple M3 browser re-capture and are not consistent with the current canonical receipt `benchmarks/vendors/results/compare_20260415T170108.json`. Pending regeneration from the new receipt via `benchmarks/vendors/compare-chart.js`.

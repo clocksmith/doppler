@@ -6,13 +6,18 @@ Browser-native inference on raw WebGPU. Pure JS + WGSL.
 
 **[Try the live demo](https://d4da.com/doppler)** | **[npm](https://www.npmjs.com/package/doppler-gpu)** | **[docs](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)**
 
-[![Published phase-latency comparison across Gemma 4 E2B and Gemma 3 1B](https://raw.githubusercontent.com/clocksmith/doppler/main/benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
+**Gemma 4 E2B on Apple M3 browser (2026-04-15):** Doppler (RDRR q4k/ehf16/af32)
+loads cold ~3.4× faster than Transformers.js (ONNX q4f16) from http — 17.0s vs
+57.5s. Warm model load is effectively tied. Transformers.js wins warm decode
+throughput (~29 tok/s vs ~11 tok/s) and TTFT (~210ms vs ~1143ms) on this
+hardware. This is a product-engine comparison across different artifact formats,
+not a format-identical kernel benchmark. Receipt:
+[`benchmarks/vendors/results/compare_20260415T170108.json`](./benchmarks/vendors/results/compare_20260415T170108.json).
 
-This chart is scoped to two published warm compare lanes: Gemma 4 E2B and
-Gemma 3 1B. It is no longer the old Gemma 3 + LFM snapshot. Broader model
-status and the surrounding compare evidence live in the support and release
-matrices.
-See the [benchmark methodology](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md).
+Broader model status and the surrounding compare evidence live in the support
+and release matrices. See the
+[benchmark methodology](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
+for the receipt contract and disclosure rules.
 
 ## New in 0.4.2
 
@@ -32,6 +37,9 @@ npx doppler-gpu
 ```
 
 Downloads the default quickstart model, runs a local prompt, and prints the answer.
+Node quickstart artifacts are cached in `~/.cache/doppler-gpu/models` after the
+first run; set `DOPPLER_QUICKSTART_CACHE_DIR` to move the cache or
+`DOPPLER_QUICKSTART_CACHE=0` to disable it.
 
 ```bash
 npx doppler-gpu "Summarize WebGPU in one sentence"
