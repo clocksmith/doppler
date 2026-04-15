@@ -1378,7 +1378,12 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     const currentTokenIdsArray = [startToken];
 
     for (let i = 0; i < N; i++) {
-      currentTokenIdsArray[0] = rollingIds[i];
+      // In the GPU batch path, only the start token (i=0) is known on the CPU.
+      // Subsequent tokens (i>0) are sampled on the GPU and not read back until
+      // after the full batch completes.  Set currentTokenIds to null for those
+      // iterations so downstream code (PLE cache, KV-cache update) gracefully
+      // skips CPU-side token-dependent optimizations.
+      currentTokenIdsArray[0] = i === 0 ? startToken : null;
       const currentPos = state.currentSeqLen + i;
       context.currentSeqLen = currentPos;
       context.currentTokenIds = currentTokenIdsArray;
@@ -1405,7 +1410,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
         indexOffset: i,
         perLayerTokenIds: pleInputTokensBuffer,
         perLayerIndexOffset: i,
-        tokenIdHint: Number.isInteger(rollingIds[i]) ? rollingIds[i] : null,
+        tokenIdHint: i === 0 ? startToken : null,
         pleCache: state.pleCache ?? null,
       });
       try {
