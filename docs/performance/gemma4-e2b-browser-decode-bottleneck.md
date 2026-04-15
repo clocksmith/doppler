@@ -158,3 +158,49 @@ lane on Apple M3 is ~2.6× behind Transformers.js ONNX/q4f16 for Gemma 4
 E2B. The honest public claim is still the cold-load advantage; see
 [`docs/model-support-matrix.md`](../model-support-matrix.md) and the
 README summary for the current phrasing.
+
+## LiteRT/TFLite lane status (2026-04-15)
+
+Goal 2 (the stronger "Doppler LiteRT beats both RDRR and TJS ONNX" claim)
+is **parked until reference data exists**. Summary of what we learned and
+why it is not the next engineering task:
+
+- The Gemma 4 E2B `.task` (`gemma-4-E2B-it-web.task`) PLE scale companion
+  layout is partially understood: the `_quantized_scale` bytes are packed
+  F32 row-scales (one F32 per row, 262144 rows per layer) stored inside a
+  UINT8 tensor container. A local experiment that auto-detected this and
+  bypassed the UINT8 affine-dequant gate *did* load the model end-to-end
+  — 576 tensors, all 35 per-layer-input weights resolved, execution
+  contract validated — and ran the prefill+decode loop to completion.
+- **But real inference produced incoherent output** across two prompts:
+  `"Hello"` → `"蔗izmiFCO🥥"`, `"The color of the sky is"` →
+  `"Цена性别砾 लोहा"`. Both outputs bias toward high-vocabulary-ID
+  characters (CJK/Cyrillic/Devanagari), the signature of a dequant
+  whose magnitude is wrong or whose sign/axis convention is mismatched.
+- The pre-existing `resolveScale` absolute-vs-local row offset bug that
+  fell out of that experiment is real and worth keeping. Commit
+  [`8f222a8`](../../commits) ships it in isolation. No current path
+  actively exercises it, but it would have stopped any future LiteRT
+  partial-load work dead on the same `RangeError` regardless of the PLE
+  convention question.
+- The PLE auto-detection itself is **not committed**. Landing more
+  heuristics without a reference would violate Doppler's
+  config-first/runtime-contract rules because it can silently produce
+  plausible-but-wrong tokens — the worst possible regression surface.
+- Performance was also unusable in that loads-but-wrong state:
+  `decodeTokensPerSec: 0.04` on Node surface, ~25 seconds per token.
+  Even if correctness were solved, the decode path was orders of
+  magnitude below TJS ONNX and would not support any speed claim.
+
+**What unblocks the lane:** either (a) ground-truth F16 intermediate
+values from a reference LiteRT-LM runner for the same `.task` file and
+the same prompt, diffed against Doppler's intermediates at the first
+point of divergence, or (b) a published LiteRT-LM packing spec that
+names the PLE scale-companion convention (byte layout, scale semantics,
+storage encoding, quant axis) so Doppler's dequant rules can be written
+from the spec instead of guessed.
+
+Until one of those is in hand, the LiteRT lane stays experimental and
+non-claimable. Goal 1 (Doppler RDRR vs TJS ONNX/q4f16 on the same
+hardware) is the active engineering path; the next slice is the on-GPU
+greedy sampling work described in this file, not more LiteRT variants.
