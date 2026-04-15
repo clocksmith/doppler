@@ -1,0 +1,10 @@
+[compare] Doppler model: gemma-4-e2b-it-q4k-ehf16-af32 (format=rdrr)
+[compare] TJS model:     onnx-community/gemma-4-E2B-it-ONNX (v4, format=onnx)
+[compare] model-profile source: config (dopplerSource=local, locator=gemma-4-e2b-it-q4k-ehf16-af32, compareLane=performance_comparable)
+[compare] Doppler kernel path: manifest-default (manifest-default)
+[compare] Doppler manifest: models/local/gemma-4-e2b-it-q4k-ehf16-af32/manifest.json (sha256=7e871ae19680…, requiredInference=ok, executionContract=ok)
+[compare] mode: all, maxTokens: 64, warmupRuns: 1, runs: 2, decodeProfile: custom, workload=p064-d064-t0-k1, dopplerSurface: browser, dopplerBrowserChannel: chromium, loadModes: warm=opfs, cold=http, loadModeOverride: none, sampling=(temp=0, topK=1, topP=1), useChatTemplate: requested=on engine=off, dopplerBatchSize: 8, dopplerReadbackInterval: 8, dopplerTokensPerReadback: 64, dopplerTimeoutMs: 600000, tjsTimeoutMs: 600000, tjsDtype: q4f16 (catalog-model), tjsModelSource: compare-profile
+[compare] prompt target: 64 model-input tokens (source=tokenizer-accurate-synthetic, tokenizer=onnx-community/gemma-4-E2B-it-ONNX, tokenizerSource=model-id)
+[compare] running TJS v4 (warm)...
+[compare] running Doppler (warm)...
+[compare] running Doppler (warm)...
