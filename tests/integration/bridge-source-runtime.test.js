@@ -126,7 +126,6 @@ const files = new Map([
   ['/tflite-root/tokenizer.json', tokenizerBytes],
   ['/tflite-root/model.tflite', tfliteBytes],
   ['/task-root/gemma-4-e2b-it-web.task', litertPackedBytes],
-  ['/task-root/tokenizer.json', tokenizerBytes],
   ['/litertlm-root/gemma-4-e2b-it.litertlm', litertLmBytes],
 ]);
 
@@ -143,7 +142,6 @@ const bridgeClient = {
       if (path === '/task-root') {
         return [
           { name: 'gemma-4-e2b-it-web.task', isDir: false, size: litertPackedBytes.byteLength },
-          { name: 'tokenizer.json', isDir: false, size: tokenizerBytes.byteLength },
         ];
       }
       if (path === '/litertlm-root') {
@@ -223,6 +221,16 @@ assert.ok(taskBundle);
 assert.equal(taskBundle.sourceKind, 'litert-task');
 assert.equal(taskBundle.model, taskBundle.manifest);
 assert.equal(taskBundle.manifest.modelType, 'gemma4');
+assert.equal(taskBundle.manifest.tokenizer?.type, 'sentencepiece');
+assert.equal(taskBundle.manifest.tokenizer?.sentencepieceModel, 'TOKENIZER_MODEL');
+assert.equal(
+  taskBundle.manifest.metadata?.sourceRuntime?.tokenizer?.modelPath,
+  'TOKENIZER_MODEL'
+);
+assert.equal(
+  taskBundle.manifest.metadata?.sourceRuntime?.auxiliaryFiles?.some((entry) => entry.kind === 'litert_metadata' && entry.path === 'METADATA'),
+  true
+);
 assert.equal(
   taskBundle.manifest.tensors['model.language_model.layers.0.self_attn.q_proj.weight']?.sourceTransform?.kind,
   'litert_axis_dequant'
@@ -300,8 +308,9 @@ assert.equal(
   taskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.scaleDivisor ?? null,
   null
 );
-const taskTokenizer = await taskBundle.storageContext.loadTokenizerJson();
-assert.equal(typeof taskTokenizer, 'object');
+const taskTokenizer = await taskBundle.storageContext.loadTokenizerModel();
+assert.ok(taskTokenizer instanceof ArrayBuffer);
+assert.ok(taskTokenizer.byteLength > 0);
 
 const litertLmBundle = await resolveBridgeSourceRuntimeBundle({
   bridgeClient,
@@ -315,11 +324,27 @@ assert.equal(litertLmBundle.model, litertLmBundle.manifest);
 assert.equal(litertLmBundle.manifest.modelType, 'gemma4');
 assert.equal(
   litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.kind,
-  'litert_axis_dequant'
+  'litert_axis_blocked_dequant'
 );
 assert.equal(
   litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.scaleSemantics,
-  'step'
+  'qmax_abs'
+);
+assert.equal(
+  litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.scaleDivisor,
+  3
+);
+assert.deepEqual(
+  litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.storageShape,
+  [384, 262144]
+);
+assert.equal(
+  litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.storageBlockSize,
+  4
+);
+assert.deepEqual(
+  litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.storageLaneOrder,
+  [0, 1, 2, 3]
 );
 const litertLmTokenizer = await litertLmBundle.storageContext.loadTokenizerModel();
 assert.equal(litertLmTokenizer?.byteLength, 4);

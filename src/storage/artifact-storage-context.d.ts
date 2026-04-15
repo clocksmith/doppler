@@ -23,6 +23,7 @@ export interface CreateArtifactStorageContextOptions {
   ) => AsyncIterable<ArrayBuffer | Uint8Array>;
   readText?: (path: string) => Promise<string | Record<string, unknown> | null | undefined>;
   readBinary?: (path: string) => Promise<ArrayBuffer | Uint8Array | null | undefined>;
+  close?: (() => Promise<void>) | null;
   tokenizerJsonPath?: string | null;
   tokenizerModelPath?: string | null;
   verifyHashes?: boolean;

@@ -165,6 +165,42 @@ try {
   assert.equal(manifest.metadata?.sourceRuntime?.tokenizer?.jsonPath, 'tokenizer.json');
   assert.equal(manifest.metadata?.sourceRuntime?.sourceFiles?.[0]?.path, 'model.safetensors');
   await assertManifestArtifactIntegrity(manifestPath);
+
+  const relativeManifest = materializeSourceRuntimeManifest(
+    {
+      ...bundle.manifest,
+      metadata: {
+        ...bundle.manifest.metadata,
+        sourceRuntime: {
+          ...bundle.manifest.metadata.sourceRuntime,
+          sourceFiles: [
+            {
+              ...bundle.manifest.metadata.sourceRuntime.sourceFiles[0],
+              path: 'model.safetensors',
+            },
+          ],
+          auxiliaryFiles: [
+            {
+              path: 'tokenizer.json',
+              size: encodeJson(tokenizerJson).byteLength,
+              hash: computeSha256(encodeJson(tokenizerJson)),
+              hashAlgorithm: 'sha256',
+              kind: 'tokenizer_json',
+            },
+          ],
+          tokenizer: {
+            jsonPath: 'tokenizer.json',
+            configPath: null,
+            modelPath: null,
+          },
+        },
+      },
+    },
+    fixtureDir
+  );
+  assert.equal(relativeManifest.metadata?.sourceRuntime?.sourceFiles?.[0]?.path, 'model.safetensors');
+  assert.equal(relativeManifest.metadata?.sourceRuntime?.auxiliaryFiles?.[0]?.path, 'tokenizer.json');
+  assert.equal(relativeManifest.metadata?.sourceRuntime?.tokenizer?.jsonPath, 'tokenizer.json');
 } finally {
   rmSync(fixtureDir, { recursive: true, force: true });
 }

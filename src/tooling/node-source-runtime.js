@@ -121,14 +121,107 @@ async function readRange(filePath, offset, length) {
   }
 }
 
-async function readSafetensorsHeaderFromFile(filePath) {
-  const headerPrefixBuffer = await readRange(filePath, 0, 8);
+function createNodeFileAccess() {
+  const readers = new Map();
+
+  const getReader = (filePath) => {
+    const normalizedPath = normalizePath(filePath);
+    if (!normalizedPath) {
+      throw new Error('node source runtime: filePath is required.');
+    }
+    let reader = readers.get(normalizedPath);
+    if (reader) {
+      return reader;
+    }
+    let handlePromise = null;
+    let sizePromise = null;
+    let closed = false;
+    const ensureHandle = async () => {
+      if (closed) {
+        throw new Error(`node source runtime: file reader already closed for "${normalizedPath}".`);
+      }
+      if (!handlePromise) {
+        handlePromise = fs.open(normalizedPath, 'r').catch((error) => {
+          handlePromise = null;
+          throw error;
+        });
+      }
+      return handlePromise;
+    };
+    const getSize = async () => {
+      if (!sizePromise) {
+        sizePromise = (async () => {
+          const handle = await ensureHandle();
+          const stats = await handle.stat();
+          return Number(stats.size);
+        })().catch((error) => {
+          sizePromise = null;
+          throw error;
+        });
+      }
+      return sizePromise;
+    };
+    reader = {
+      async readRange(offset, length) {
+        if (!Number.isFinite(offset) || !Number.isFinite(length) || length <= 0) {
+          return new ArrayBuffer(0);
+        }
+        const start = Math.max(0, Math.floor(offset));
+        const fileSize = await getSize();
+        const end = Math.min(fileSize, start + Math.floor(length));
+        if (end <= start) {
+          return new ArrayBuffer(0);
+        }
+        const handle = await ensureHandle();
+        const out = Buffer.allocUnsafe(end - start);
+        let pos = 0;
+        while (pos < out.length) {
+          const nextChunkBytes = Math.min(out.length - pos, MAX_NODE_READ_BYTES);
+          const { bytesRead } = await handle.read(out, pos, nextChunkBytes, start + pos);
+          if (bytesRead === 0) break;
+          pos += bytesRead;
+        }
+        return out.buffer.slice(out.byteOffset, out.byteOffset + out.byteLength);
+      },
+      async getSize() {
+        return getSize();
+      },
+      async close() {
+        closed = true;
+        const handle = await handlePromise;
+        handlePromise = null;
+        if (handle) {
+          await handle.close();
+        }
+      },
+    };
+    readers.set(normalizedPath, reader);
+    return reader;
+  };
+
+  return {
+    async readRange(filePath, offset, length) {
+      return getReader(filePath).readRange(offset, length);
+    },
+    async getSize(filePath) {
+      return getReader(filePath).getSize();
+    },
+    async close() {
+      const pending = Array.from(readers.values(), (reader) => reader.close());
+      readers.clear();
+      await Promise.all(pending);
+    },
+  };
+}
+
+async function readSafetensorsHeaderFromFile(filePath, fileAccess) {
+  const headerPrefixBuffer = await fileAccess.readRange(filePath, 0, 8);
   const prefixBytes = new Uint8Array(headerPrefixBuffer);
   if (prefixBytes.byteLength < 8) {
     throw new Error(`Invalid safetensors header prefix for "${filePath}"`);
   }
   const headerSize = Number(new DataView(headerPrefixBuffer).getBigUint64(0, true));
-  const headerBuffer = await readRange(filePath, 8, headerSize);
+  const headerBuffer = await fileAccess.readRange(filePath, 8, headerSize);
   const fullHeader = new Uint8Array(8 + headerSize);
   fullHeader.set(prefixBytes, 0);
   fullHeader.set(new Uint8Array(headerBuffer), 8);
@@ -237,7 +330,7 @@ function applyPackageTokenizerAssets(parsedArtifact, tokenizerAssets) {
   return next;
 }
 
-async function parseSafetensorsInput(inputDir) {
+async function parseSafetensorsInput(inputDir, fileAccess) {
   const configPath = path.join(inputDir, 'config.json');
   if (!(await fileExists(configPath))) {
     return null;
@@ -257,7 +350,7 @@ async function parseSafetensorsInput(inputDir) {
     },
     async loadSingleSafetensors(suffix) {
       const filePath = path.join(inputDir, suffix);
-      const parsed = await readSafetensorsHeaderFromFile(filePath);
+      const parsed = await readSafetensorsHeaderFromFile(filePath, fileAccess);
       return parsed.tensors.map((tensor) => ({
         ...tensor,
         sourcePath: filePath,
@@ -268,7 +361,7 @@ async function parseSafetensorsInput(inputDir) {
       const tensors = [];
       for (const shardFile of shardFiles) {
         const shardPath = path.join(inputDir, shardFile);
-        const parsed = await readSafetensorsHeaderFromFile(shardPath);
+        const parsed = await readSafetensorsHeaderFromFile(shardPath, fileAccess);
         for (const tensor of parsed.tensors) {
           tensors.push({
             ...tensor,
@@ -328,7 +421,7 @@ async function parseSafetensorsInput(inputDir) {
   };
 }
 
-async function parseTfliteInput(tflitePath) {
+async function parseTfliteInput(tflitePath, fileAccess) {
   const tfliteStats = await getPathStats(tflitePath, 'TFLite file');
   const inputDir = path.dirname(tflitePath);
   const configPath = path.join(inputDir, 'config.json');
@@ -343,7 +436,7 @@ async function parseTfliteInput(tflitePath) {
     name: path.basename(tflitePath),
     size: Number(tfliteStats.size),
     async readRange(offset, length) {
-      return readRange(tflitePath, offset, length);
+      return fileAccess.readRange(tflitePath, offset, length);
     },
   });
   const tokenizerAssets = await collectTokenizerAssets(inputDir);
@@ -379,7 +472,7 @@ async function parseTfliteInput(tflitePath) {
   };
 }
 
-function createNodeVirtualFileReaders(packagePath, virtualFiles) {
+function createNodeVirtualFileReaders(packagePath, virtualFiles, fileAccess) {
   const virtualFileMap = new Map(
     (Array.isArray(virtualFiles) ? virtualFiles : []).map((entry) => [entry.path, entry])
   );
@@ -396,7 +489,7 @@ function createNodeVirtualFileReaders(packagePath, virtualFiles) {
   const readRangeFromVirtualFile = async (virtualPath, offset, length) => {
     const entry = resolveVirtualFile(virtualPath);
     if (entry.externalPath) {
-      return readRange(entry.externalPath, offset, length);
+      return fileAccess.readRange(entry.externalPath, offset, length);
     }
     const start = Math.max(0, Math.floor(Number(offset) || 0));
     const requested = Math.max(0, Math.floor(Number(length) || 0));
@@ -405,7 +498,7 @@ function createNodeVirtualFileReaders(packagePath, virtualFiles) {
     if (readLength <= 0) {
       return new ArrayBuffer(0);
     }
-    return readRange(packagePath, entry.offset + start, readLength);
+    return fileAccess.readRange(packagePath, entry.offset + start, readLength);
   };
 
   const streamRange = async function* (virtualPath, offset, length, options = {}) {
@@ -458,7 +551,7 @@ function createNodeVirtualFileReaders(packagePath, virtualFiles) {
     const entry = resolveVirtualFile(virtualPath);
     const bytes = entry.externalPath
       ? await fs.readFile(entry.externalPath)
-      : await readRange(packagePath, entry.offset, entry.size);
+      : await fileAccess.readRange(packagePath, entry.offset, entry.size);
     return new TextDecoder().decode(bytes);
   };
 
@@ -466,7 +559,7 @@ function createNodeVirtualFileReaders(packagePath, virtualFiles) {
     const entry = resolveVirtualFile(virtualPath);
     return entry.externalPath
       ? fs.readFile(entry.externalPath)
-      : readRange(packagePath, entry.offset, entry.size);
+      : fileAccess.readRange(packagePath, entry.offset, entry.size);
   };
 
   return {
@@ -475,11 +568,12 @@ function createNodeVirtualFileReaders(packagePath, virtualFiles) {
     streamRange,
     readText,
     readBinary,
+    close: fileAccess.close,
   };
 }
 
-async function addHashesToVirtualEntries(packagePath, virtualFiles, entries, hashAlgorithm) {
-  const readers = createNodeVirtualFileReaders(packagePath, virtualFiles);
+async function addHashesToVirtualEntries(packagePath, virtualFiles, fileAccess, entries, hashAlgorithm) {
+  const readers = createNodeVirtualFileReaders(packagePath, virtualFiles, fileAccess);
   const hashedEntries = [];
   for (const entry of Array.isArray(entries) ? entries : []) {
     const virtualPath = normalizePath(entry?.path);
@@ -505,7 +599,7 @@ async function addHashesToVirtualEntries(packagePath, virtualFiles, entries, has
   return hashedEntries;
 }
 
-async function parseLiteRTPackageInput(packagePath, sourceKind) {
+async function parseLiteRTPackageInput(packagePath, sourceKind, fileAccess) {
   const stats = await getPathStats(packagePath, `LiteRT package (${sourceKind})`);
   const resolved = await resolveLiteRTPackageParsedArtifact({
     sourceKind,
@@ -514,7 +608,7 @@ async function parseLiteRTPackageInput(packagePath, sourceKind) {
       name: path.basename(packagePath),
       size: Number(stats.size),
       async readRange(offset, length) {
-        return readRange(packagePath, offset, length);
+        return fileAccess.readRange(packagePath, offset, length);
       },
     },
   });
@@ -527,14 +621,14 @@ async function parseLiteRTPackageInput(packagePath, sourceKind) {
   return {
     ...parsedArtifact,
     sourceRoot: packagePath,
-    storageReaders: createNodeVirtualFileReaders(packagePath, virtualFiles),
+    storageReaders: createNodeVirtualFileReaders(packagePath, virtualFiles, fileAccess),
     async hashFileEntries(entries, hashAlgorithm) {
-      return addHashesToVirtualEntries(packagePath, virtualFiles, entries, hashAlgorithm);
+      return addHashesToVirtualEntries(packagePath, virtualFiles, fileAccess, entries, hashAlgorithm);
     },
   };
 }
 
-async function parseGgufInput(ggufPath) {
+async function parseGgufInput(ggufPath, fileAccess) {
   const ggufStats = await getPathStats(ggufPath, 'GGUF file');
   const fileSize = Number(ggufStats.size);
   const ggufSource = {
@@ -546,7 +640,7 @@ async function parseGgufInput(ggufPath) {
       size: fileSize,
     },
     async readRange(offset, length) {
-      return readRange(ggufPath, offset, length);
+      return fileAccess.readRange(ggufPath, offset, length);
     },
   };
 
@@ -601,15 +695,15 @@ async function parseGgufInput(ggufPath) {
   };
 }
 
-function buildNodeFileReaders() {
-  const readRangeFromFile = async (filePath, offset, length) => readRange(filePath, offset, length);
+function buildNodeFileReaders(fileAccess) {
+  const readRangeFromFile = async (filePath, offset, length) => fileAccess.readRange(filePath, offset, length);
   const streamRange = async function* (filePath, offset, length, options = {}) {
     if (!Number.isFinite(offset) || !Number.isFinite(length) || length <= 0) {
       return;
     }
-    const stats = await getPathStats(filePath, `stream source asset (${filePath})`);
+    const fileSize = await fileAccess.getSize(filePath);
     const start = Math.max(0, Math.floor(offset));
-    const end = Math.min(Number(stats.size), start + Math.floor(length));
+    const end = Math.min(fileSize, start + Math.floor(length));
     if (end <= start) {
       return;
     }
@@ -645,6 +739,7 @@ function buildNodeFileReaders() {
     streamRange,
     readText,
     readBinary,
+    close: fileAccess.close,
   };
 }
 
@@ -800,138 +895,159 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
   const verifyHashes = options.verifyHashes === true;
   const resolvedInputPath = path.resolve(inputPath);
   const stats = await getPathStats(resolvedInputPath, 'inputPath');
+  const fileAccess = createNodeFileAccess();
 
-  let parsed = null;
-  if (stats.isFile()) {
-    if (isTflitePath(resolvedInputPath)) {
-      parsed = await parseTfliteInput(resolvedInputPath);
-    }
-    if (!parsed && isLiteRTTaskPath(resolvedInputPath)) {
-      parsed = await parseLiteRTPackageInput(resolvedInputPath, LITERT_PACKAGE_SOURCE_KIND_TASK);
-    }
-    if (!parsed && isLiteRTLMPath(resolvedInputPath)) {
-      parsed = await parseLiteRTPackageInput(resolvedInputPath, LITERT_PACKAGE_SOURCE_KIND_LITERTLM);
-    }
-    if (!parsed && !isGgufPath(resolvedInputPath)) {
-      return null;
-    }
-    if (!parsed) {
-      parsed = await parseGgufInput(resolvedInputPath);
-    }
-  } else if (stats.isDirectory()) {
-    if (await fileExists(path.join(resolvedInputPath, 'manifest.json'))) {
-      return null;
-    }
-    parsed = await parseSafetensorsInput(resolvedInputPath);
-    if (!parsed) {
-      const entries = await fs.readdir(resolvedInputPath, { withFileTypes: true });
-      const ggufFiles = entries
-        .filter((entry) => entry.isFile() && isGgufPath(entry.name))
-        .map((entry) => entry.name)
-        .sort((left, right) => left.localeCompare(right));
-      if (ggufFiles.length === 1) {
-        parsed = await parseGgufInput(path.join(resolvedInputPath, ggufFiles[0]));
-      } else if (ggufFiles.length > 1) {
-        throw new Error(
-          `node source runtime: multiple GGUF files found in "${resolvedInputPath}": ${ggufFiles.join(', ')}.`
+  try {
+    let parsed = null;
+    if (stats.isFile()) {
+      if (isTflitePath(resolvedInputPath)) {
+        parsed = await parseTfliteInput(resolvedInputPath, fileAccess);
+      }
+      if (!parsed && isLiteRTTaskPath(resolvedInputPath)) {
+        parsed = await parseLiteRTPackageInput(
+          resolvedInputPath,
+          LITERT_PACKAGE_SOURCE_KIND_TASK,
+          fileAccess
         );
       }
-      if (!parsed) {
-        const tfliteFiles = entries
-          .filter((entry) => entry.isFile() && isTflitePath(entry.name))
-          .map((entry) => entry.name)
-          .sort((left, right) => left.localeCompare(right));
-        if (tfliteFiles.length === 1) {
-          parsed = await parseTfliteInput(path.join(resolvedInputPath, tfliteFiles[0]));
-        } else if (tfliteFiles.length > 1) {
-          throw new Error(
-            `node source runtime: multiple TFLite files found in "${resolvedInputPath}": ${tfliteFiles.join(', ')}.`
-          );
-        }
+      if (!parsed && isLiteRTLMPath(resolvedInputPath)) {
+        parsed = await parseLiteRTPackageInput(
+          resolvedInputPath,
+          LITERT_PACKAGE_SOURCE_KIND_LITERTLM,
+          fileAccess
+        );
+      }
+      if (!parsed && !isGgufPath(resolvedInputPath)) {
+        await fileAccess.close();
+        return null;
       }
       if (!parsed) {
-        const taskFiles = entries
-          .filter((entry) => entry.isFile() && isLiteRTTaskPath(entry.name))
-          .map((entry) => entry.name)
-          .sort((left, right) => left.localeCompare(right));
-        if (taskFiles.length === 1) {
-          parsed = await parseLiteRTPackageInput(
-            path.join(resolvedInputPath, taskFiles[0]),
-            LITERT_PACKAGE_SOURCE_KIND_TASK
-          );
-        } else if (taskFiles.length > 1) {
-          throw new Error(
-            `node source runtime: multiple LiteRT task files found in "${resolvedInputPath}": ${taskFiles.join(', ')}.`
-          );
-        }
+        parsed = await parseGgufInput(resolvedInputPath, fileAccess);
       }
+    } else if (stats.isDirectory()) {
+      if (await fileExists(path.join(resolvedInputPath, 'manifest.json'))) {
+        await fileAccess.close();
+        return null;
+      }
+      parsed = await parseSafetensorsInput(resolvedInputPath, fileAccess);
       if (!parsed) {
-        const litertLmFiles = entries
-          .filter((entry) => entry.isFile() && isLiteRTLMPath(entry.name))
+        const entries = await fs.readdir(resolvedInputPath, { withFileTypes: true });
+        const ggufFiles = entries
+          .filter((entry) => entry.isFile() && isGgufPath(entry.name))
           .map((entry) => entry.name)
           .sort((left, right) => left.localeCompare(right));
-        if (litertLmFiles.length === 1) {
-          parsed = await parseLiteRTPackageInput(
-            path.join(resolvedInputPath, litertLmFiles[0]),
-            LITERT_PACKAGE_SOURCE_KIND_LITERTLM
-          );
-        } else if (litertLmFiles.length > 1) {
+        if (ggufFiles.length === 1) {
+          parsed = await parseGgufInput(path.join(resolvedInputPath, ggufFiles[0]), fileAccess);
+        } else if (ggufFiles.length > 1) {
           throw new Error(
-            `node source runtime: multiple LiteRT-LM files found in "${resolvedInputPath}": ${litertLmFiles.join(', ')}.`
+            `node source runtime: multiple GGUF files found in "${resolvedInputPath}": ${ggufFiles.join(', ')}.`
           );
         }
+        if (!parsed) {
+          const tfliteFiles = entries
+            .filter((entry) => entry.isFile() && isTflitePath(entry.name))
+            .map((entry) => entry.name)
+            .sort((left, right) => left.localeCompare(right));
+          if (tfliteFiles.length === 1) {
+            parsed = await parseTfliteInput(path.join(resolvedInputPath, tfliteFiles[0]), fileAccess);
+          } else if (tfliteFiles.length > 1) {
+            throw new Error(
+              `node source runtime: multiple TFLite files found in "${resolvedInputPath}": ${tfliteFiles.join(', ')}.`
+            );
+          }
+        }
+        if (!parsed) {
+          const taskFiles = entries
+            .filter((entry) => entry.isFile() && isLiteRTTaskPath(entry.name))
+            .map((entry) => entry.name)
+            .sort((left, right) => left.localeCompare(right));
+          if (taskFiles.length === 1) {
+            parsed = await parseLiteRTPackageInput(
+              path.join(resolvedInputPath, taskFiles[0]),
+              LITERT_PACKAGE_SOURCE_KIND_TASK,
+              fileAccess
+            );
+          } else if (taskFiles.length > 1) {
+            throw new Error(
+              `node source runtime: multiple LiteRT task files found in "${resolvedInputPath}": ${taskFiles.join(', ')}.`
+            );
+          }
+        }
+        if (!parsed) {
+          const litertLmFiles = entries
+            .filter((entry) => entry.isFile() && isLiteRTLMPath(entry.name))
+            .map((entry) => entry.name)
+            .sort((left, right) => left.localeCompare(right));
+          if (litertLmFiles.length === 1) {
+            parsed = await parseLiteRTPackageInput(
+              path.join(resolvedInputPath, litertLmFiles[0]),
+              LITERT_PACKAGE_SOURCE_KIND_LITERTLM,
+              fileAccess
+            );
+          } else if (litertLmFiles.length > 1) {
+            throw new Error(
+              `node source runtime: multiple LiteRT-LM files found in "${resolvedInputPath}": ${litertLmFiles.join(', ')}.`
+            );
+          }
+        }
       }
+    } else {
+      await fileAccess.close();
+      return null;
     }
-  } else {
-    return null;
+
+    if (!parsed) {
+      await fileAccess.close();
+      return null;
+    }
+
+    const loadingConfig = resolveLoadingConfig(options.runtimeConfig ?? null);
+    const resolvedMemoryBudgetBytes = resolveResidentBudgetBytes(loadingConfig);
+    assertSourceRuntimeFitsResidentBudget(parsed, loadingConfig, resolvedMemoryBudgetBytes);
+    const {
+      model,
+      shardSources,
+      sourceKind,
+    } = await resolveSourceRuntimeBundleFromParsedArtifact({
+      parsedArtifact: parsed,
+      requestedModelId: options.modelId || null,
+      runtimeLabel: 'node source runtime',
+      logCategory: 'NodeSourceRuntime',
+      hashFileEntries: typeof parsed?.hashFileEntries === 'function'
+        ? (entries, hashAlgorithm) => parsed.hashFileEntries(entries, hashAlgorithm)
+        : addHashesToFileEntries,
+    });
+
+    const readers = parsed?.storageReaders ?? buildNodeFileReaders(fileAccess);
+    const storageContext = createSourceStorageContext({
+      model,
+      shardSources,
+      readRange: readers.readRange,
+      streamRange: readers.streamRange,
+      readText: readers.readText,
+      readBinary: readers.readBinary,
+      close: readers.close,
+      tokenizerJsonPath: parsed.tokenizerJsonPath,
+      tokenizerModelPath: parsed.tokenizerModelPath,
+      verifyHashes,
+      sourceHashesTrusted: true,
+    });
+
+    log.info(
+      'NodeSourceRuntime',
+      `Source runtime ready: ${model.modelId} (${sourceKind}, ${parsed.tensors.length} tensors)`
+    );
+
+    return {
+      model,
+      manifest: model,
+      storageContext,
+      sourceKind,
+      sourceRoot: parsed.sourceRoot,
+      resolvedMemoryBudgetBytes,
+    };
+  } catch (error) {
+    await fileAccess.close();
+    throw error;
   }
-
-  if (!parsed) {
-    return null;
-  }
-
-  const loadingConfig = resolveLoadingConfig(options.runtimeConfig ?? null);
-  const resolvedMemoryBudgetBytes = resolveResidentBudgetBytes(loadingConfig);
-  assertSourceRuntimeFitsResidentBudget(parsed, loadingConfig, resolvedMemoryBudgetBytes);
-  const {
-    model,
-    shardSources,
-    sourceKind,
-  } = await resolveSourceRuntimeBundleFromParsedArtifact({
-    parsedArtifact: parsed,
-    requestedModelId: options.modelId || null,
-    runtimeLabel: 'node source runtime',
-    logCategory: 'NodeSourceRuntime',
-    hashFileEntries: typeof parsed?.hashFileEntries === 'function'
-      ? (entries, hashAlgorithm) => parsed.hashFileEntries(entries, hashAlgorithm)
-      : addHashesToFileEntries,
-  });
-
-  const readers = parsed?.storageReaders ?? buildNodeFileReaders();
-  const storageContext = createSourceStorageContext({
-    model,
-    shardSources,
-    readRange: readers.readRange,
-    streamRange: readers.streamRange,
-    readText: readers.readText,
-    readBinary: readers.readBinary,
-    tokenizerJsonPath: parsed.tokenizerJsonPath,
-    tokenizerModelPath: parsed.tokenizerModelPath,
-    verifyHashes,
-    sourceHashesTrusted: true,
-  });
-
-  log.info(
-    'NodeSourceRuntime',
-    `Source runtime ready: ${model.modelId} (${sourceKind}, ${parsed.tensors.length} tensors)`
-  );
-
-  return {
-    model,
-    manifest: model,
-    storageContext,
-    sourceKind,
-    sourceRoot: parsed.sourceRoot,
-    resolvedMemoryBudgetBytes,
-  };
 }

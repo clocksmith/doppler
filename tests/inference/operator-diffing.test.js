@@ -18,6 +18,7 @@ import assert from 'node:assert/strict';
   assert.ok(Object.keys(STAGES).length >= 40, 'STAGES must have at least 40 entries');
 
   assert.equal(STAGES.EMBED_OUT, 'embed.out');
+  assert.equal(STAGES.PER_LAYER_EMBED_OUT, 'per_layer_embed.out');
   assert.equal(STAGES.ATTN_Q_PROJ, 'attn.q_proj');
   assert.equal(STAGES.FFN_OUT, 'ffn.out');
   assert.equal(STAGES.LOGITS_OUT, 'logits.out');
@@ -31,6 +32,7 @@ import assert from 'node:assert/strict';
   assert.ok(Object.isFrozen(PROBE_TO_CANONICAL), 'PROBE_TO_CANONICAL must be frozen');
   assert.equal(PROBE_TO_CANONICAL.q_proj, 'attn.q_proj');
   assert.equal(PROBE_TO_CANONICAL.embed_out, 'embed.out');
+  assert.equal(PROBE_TO_CANONICAL.per_layer_embed_out, 'per_layer_embed.out');
   assert.equal(PROBE_TO_CANONICAL.logits, 'logits.out');
   assert.equal(PROBE_TO_CANONICAL.ffn_gate, 'ffn.gate');
   assert.equal(PROBE_TO_CANONICAL.layer_out, 'layer.out');
@@ -42,9 +44,11 @@ import assert from 'node:assert/strict';
   assert.equal(getOperatorClass('ffn.normed'), 'normalization');
   assert.equal(getOperatorClass('logits.out'), 'logits');
   assert.equal(getOperatorClass('embed.out'), 'embedding');
+  assert.equal(getOperatorClass('per_layer_embed.out'), 'embedding');
   assert.equal(getOperatorClass('nonexistent'), null);
 
   assert.equal(canonicalizeProbeStage('q_proj'), 'attn.q_proj');
+  assert.equal(canonicalizeProbeStage('per_layer_embed_out'), 'per_layer_embed.out');
   assert.equal(canonicalizeProbeStage('q_norm'), 'attn.q_norm');
   assert.equal(canonicalizeProbeStage('k_norm'), 'attn.k_norm');
   assert.equal(canonicalizeProbeStage('logits'), 'logits.out');
@@ -76,6 +80,7 @@ import assert from 'node:assert/strict';
   assert.equal(buildOpId('embed.out'), 'embed.out');
 
   assert.equal(buildOpIdFromProbeStage('q_proj', 5), 'layer.5.attn.q_proj');
+  assert.equal(buildOpIdFromProbeStage('per_layer_embed_out', 2), 'layer.2.per_layer_embed.out');
   assert.equal(buildOpIdFromProbeStage('q_norm', 3), 'layer.3.attn.q_norm');
   assert.equal(buildOpIdFromProbeStage('k_norm', 3), 'layer.3.attn.k_norm');
   assert.equal(buildOpIdFromProbeStage('logits'), 'logits.out');

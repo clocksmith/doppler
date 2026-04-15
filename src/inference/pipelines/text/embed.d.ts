@@ -22,6 +22,7 @@ export interface EmbedConfig {
   activationDtype?: 'f16' | 'f32';
   embeddingDtype?: 'f16' | 'f32';
   executionPolicies?: ExecutionV1PoliciesSchema | null;
+  probeStage?: string;
   inputHiddenSize?: number;
   hiddenOffset?: number;
 }

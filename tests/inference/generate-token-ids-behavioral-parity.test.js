@@ -180,6 +180,38 @@ function stubGenerator(gen, tokenSequence) {
   };
 }
 
+// === Test 0: generateTokenIds emits operator diagnostics when requested ===
+{
+  const state = createMinimalState({ maxTokens: 4 });
+  const gen = new PipelineGenerator(state);
+  gen._prefillPromptToLogits = async function (_prompt, _opts, _label) {
+    state.operatorDiagnostics?.emitter?.emitRecord('embed.out', {
+      phase: 'prefill',
+      dtype: 'f32',
+      shapeSignature: '1x64',
+      captureArtifactIds: [],
+    });
+    return {
+      inputIds: [1, 5, 7],
+      logits: makeLogitsForToken(EOS_TOKEN),
+    };
+  };
+  const result = await gen.generateTokenIds('test', {
+    useChatTemplate: false,
+    diagnostics: {
+      enabled: true,
+    },
+  });
+  assert.equal(result.tokenIds.length, 1, 'generateTokenIds diagnostics test must stop after first EOS token');
+  assert.equal(result.stats.operatorDiagnostics?.recordCount, 1);
+  assert.deepStrictEqual(
+    result.stats.operatorDiagnostics?.timeline?.map((record) => record.opId),
+    ['embed.out']
+  );
+  assert.equal(state.operatorDiagnostics, null, 'generateTokenIds must clear operatorDiagnostics in finally');
+}
+console.log('  ok: generateTokenIds diagnostics');
+
 // === Test 1: EOS stop behavior — both paths stop at EOS ===
 {
   const tokenSeq = [10, 11, EOS_TOKEN, 99];

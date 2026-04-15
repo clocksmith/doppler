@@ -36,6 +36,7 @@ export const OPERATOR_CLASSES = Object.freeze({
 export const STAGES = Object.freeze({
   // Embedding
   EMBED_OUT: 'embed.out',
+  PER_LAYER_EMBED_OUT: 'per_layer_embed.out',
 
   // Attention stages (per-layer, prefixed with attn.)
   ATTN_INPUT: 'attn.input',
@@ -102,6 +103,7 @@ export const STAGES = Object.freeze({
 
 const STAGE_TO_CLASS_MAP = Object.freeze({
   [STAGES.EMBED_OUT]: OPERATOR_CLASSES.EMBEDDING,
+  [STAGES.PER_LAYER_EMBED_OUT]: OPERATOR_CLASSES.EMBEDDING,
 
   [STAGES.ATTN_INPUT]: OPERATOR_CLASSES.NORMALIZATION,
   [STAGES.ATTN_POST_INPUT_NORM]: OPERATOR_CLASSES.NORMALIZATION,
@@ -159,6 +161,7 @@ const STAGE_TO_CLASS_MAP = Object.freeze({
 
 export const PROBE_TO_CANONICAL = Object.freeze({
   embed_out: STAGES.EMBED_OUT,
+  per_layer_embed_out: STAGES.PER_LAYER_EMBED_OUT,
   attn_input: STAGES.ATTN_INPUT,
   post_input_norm: STAGES.ATTN_POST_INPUT_NORM,
   attn_normed: STAGES.ATTN_NORMED,

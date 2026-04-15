@@ -183,11 +183,27 @@ configurePerfGuards({
   assert.equal(temp.destroyed, false);
   assert.equal(device.getSubmittedWorkDoneCount(), 0);
 
-  recorder.completeDeferredCleanup();
+  await recorder.completeDeferredCleanup();
 
   assert.equal(temp.destroyed, true);
   assert.equal(device.getSubmittedWorkDoneCount(), 0);
   assert.equal(typeof recorder.getSubmitLatencyMs(), 'number');
+}
+
+{
+  const device = createFakeDevice();
+  const recorder = new CommandRecorder(device, 'deferred_completion_task');
+  let completed = false;
+
+  recorder.enqueueCompletionTask(async () => {
+    completed = true;
+  });
+  recorder.submit({ cleanup: 'deferred' });
+
+  assert.equal(completed, false);
+  await recorder.completeDeferredCleanup();
+  assert.equal(completed, true);
+  assert.equal(device.getSubmittedWorkDoneCount(), 1);
 }
 
 {

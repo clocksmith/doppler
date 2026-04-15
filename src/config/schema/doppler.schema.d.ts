@@ -19,6 +19,13 @@ import type { ExecutionV1PatchSchema, ExecutionV1SessionSchema } from './executi
 import type { SharedRuntimeConfigSchema } from './shared-runtime.schema.js';
 import type { EmulationConfigSchema } from './emulation.schema.js';
 
+export interface LargeWeightConfigSchema {
+  enabled: boolean;
+  safetyRatio: number;
+  preferF16: boolean;
+  lmHeadChunkRows: number | null;
+}
+
 export interface RuntimeInferenceConfigSchema {
   prompt?: string | null;
   debugTokens?: boolean;
@@ -26,7 +33,7 @@ export interface RuntimeInferenceConfigSchema {
   sampling: Record<string, unknown>;
   compute: Record<string, unknown>;
   tokenizer: Record<string, unknown>;
-  largeWeights: Record<string, unknown>;
+  largeWeights: LargeWeightConfigSchema;
   kvcache: Record<string, unknown>;
   diffusion: Record<string, unknown>;
   energy: Record<string, unknown>;
@@ -64,6 +71,7 @@ export interface RuntimeConfigSchema {
 }
 
 /** Default runtime configuration */
+export declare const DEFAULT_LARGE_WEIGHT_CONFIG: LargeWeightConfigSchema;
 export declare const DEFAULT_RUNTIME_CONFIG: RuntimeConfigSchema;
 
 /**

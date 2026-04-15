@@ -161,7 +161,7 @@ function getSourceTransformScaleLocation(location, name) {
 
 function getSourceTransformSumLocation(location) {
   const transform = location?.sourceTransform;
-  const sumLocation = transform?.kind === 'litert_axis_dequant'
+  const sumLocation = transform?.kind === 'litert_axis_dequant' || transform?.kind === 'litert_axis_blocked_dequant'
     ? transform?.sumSource
     : transform?.rowSumSource;
   if (!sumLocation || typeof sumLocation !== 'object') {
@@ -177,6 +177,7 @@ async function materializeLocationBytes(rawBytes, location, name, loadShard, loa
   if (
     location.sourceTransform.kind === 'litert_rowwise_dequant'
     || location.sourceTransform.kind === 'litert_axis_dequant'
+    || location.sourceTransform.kind === 'litert_axis_blocked_dequant'
   ) {
     const scaleLocation = getSourceTransformScaleLocation(location, name);
     const scaleBytes = options.scaleBytes instanceof Uint8Array
@@ -284,7 +285,11 @@ export async function loadTensorRange(location, name, byteOffset, byteLength, lo
   if (hasSourceTransform(location)) {
     const spec = getSourceTransformSpec(location, name);
     if (
-      (spec?.kind === 'litert_rowwise_dequant' || spec?.kind === 'litert_axis_dequant')
+      (
+        spec?.kind === 'litert_rowwise_dequant'
+        || spec?.kind === 'litert_axis_dequant'
+        || spec?.kind === 'litert_axis_blocked_dequant'
+      )
       && (byteOffset % spec.targetRowBytes) === 0
       && (byteLength % spec.targetRowBytes) === 0
     ) {
@@ -335,6 +340,27 @@ export async function loadTensorRange(location, name, byteOffset, byteLength, lo
           rowCount * spec.rawStorageRowBytes,
           loadShardRange
         );
+        return materializeTensorSourceTransform(raw, location, name, {
+          scaleBytes,
+          sumBytes,
+          rowStart,
+          rowCount,
+        });
+      }
+
+      if (spec.kind === 'litert_axis_blocked_dequant') {
+        const raw = new Uint8Array(spec.storageRows * rowCount * spec.storageElementBytes);
+        for (let storageRow = 0; storageRow < spec.storageRows; storageRow++) {
+          const rowBytes = await loadLocationRange(
+            location,
+            name,
+            `LiteRT blocked axis raw storage row ${storageRow}`,
+            storageRow * spec.rawStorageRowBytes + rowStart * spec.storageElementBytes,
+            rowCount * spec.storageElementBytes,
+            loadShardRange
+          );
+          raw.set(rowBytes, storageRow * rowCount * spec.storageElementBytes);
+        }
         return materializeTensorSourceTransform(raw, location, name, {
           scaleBytes,
           sumBytes,

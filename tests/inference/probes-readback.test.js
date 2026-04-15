@@ -21,6 +21,7 @@ globalThis.GPUMapMode = {
 const { runProbes } = await import('../../src/inference/pipelines/text/probes.js');
 const { OperatorEventEmitter } = await import('../../src/inference/pipelines/text/operator-events.js');
 const { createDefaultCaptureConfig } = await import('../../src/debug/capture-policy.js');
+const { CommandRecorder } = await import('../../src/gpu/command-recorder.js');
 const { setDevice } = await import('../../src/gpu/device.js');
 const { configurePerfGuards } = await import('../../src/gpu/perf-guards.js');
 const { destroyBufferPool } = await import('../../src/memory/buffer-pool.js');
@@ -206,7 +207,17 @@ try {
     phase: 'decode',
   });
 
-  assert.equal(diagnostics.emitter.length, 2);
+  await runProbes('per_layer_embed_out', cpuBuffer, {
+    numTokens: 1,
+    hiddenSize: 2,
+    probes: [],
+    operatorDiagnostics: diagnostics,
+    dtype: 'f32',
+    phase: 'prefill',
+    layerIdx: 3,
+  });
+
+  assert.equal(diagnostics.emitter.length, 3);
   assert.deepEqual(
     diagnostics.emitter.getTimeline().map((record) => ({
       opId: record.opId,
@@ -224,7 +235,47 @@ try {
         phase: 'decode',
         capturePolicy: 'none',
       },
+      {
+        opId: 'layer.3.per_layer_embed.out',
+        phase: 'prefill',
+        capturePolicy: 'none',
+      },
     ]
+  );
+
+  const recorderDiagnostics = {
+    enabled: true,
+    captureConfig: {
+      ...createDefaultCaptureConfig(),
+      enabled: true,
+      defaultLevel: 'slice',
+    },
+    emitter: new OperatorEventEmitter({
+      modelHash: 'probe-readback-test',
+      runtimeConfigHash: 'runtime',
+      executionPlanHash: 'plan',
+    }),
+  };
+  const recorder = new CommandRecorder(device, 'probe_capture');
+
+  await runProbes('embed_out', buffer, {
+    numTokens: 1,
+    hiddenSize: 2,
+    probes: [],
+    recorder,
+    operatorDiagnostics: recorderDiagnostics,
+    dtype: 'f32',
+    phase: 'decode',
+  });
+
+  assert.equal(recorderDiagnostics.emitter.length, 1);
+  assert.equal(recorderDiagnostics.emitter.getTimeline()[0].capture.sample, null);
+
+  await recorder.submitAndWait();
+
+  assert.deepEqual(
+    recorderDiagnostics.emitter.getTimeline()[0].capture.sample,
+    [1.5, 2.5]
   );
 } finally {
   trace.embed = originalEmbed;

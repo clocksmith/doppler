@@ -36,6 +36,8 @@ export class CommandRecorder {
 
   #deferredCleanup = null;
 
+  #completionTasks;
+
   
   #submitted;
 
@@ -80,6 +82,7 @@ export class CommandRecorder {
     this.#pooledBufferSet = new Set();
     this.#cleanupPromise = null;
     this.#deferredCleanup = null;
+    this.#completionTasks = [];
 
     // Track if already submitted
     this.#submitted = false;
@@ -292,6 +295,31 @@ export class CommandRecorder {
     // Treating them as temporary would destroy weights at submit time.
   }
 
+  enqueueCompletionTask(task) {
+    if (this.#submitted) {
+      throw new Error('[CommandRecorder] Cannot enqueue completion tasks after submit');
+    }
+    if (typeof task !== 'function') {
+      throw new Error('[CommandRecorder] completion task must be a function');
+    }
+    this.#completionTasks.push(task);
+  }
+
+  async #runCompletionTasks() {
+    if (this.#completionTasks.length === 0) {
+      return;
+    }
+    const tasks = this.#completionTasks;
+    this.#completionTasks = [];
+    for (const task of tasks) {
+      try {
+        await task();
+      } catch (error) {
+        log.warn('CommandRecorder', `Completion task failed: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+  }
+
   #finalizeTrackedBuffers(buffersToDestroy, buffersToRelease, discardPooled) {
     for (const buffer of buffersToDestroy) {
       buffer.destroy();
@@ -353,6 +381,13 @@ export class CommandRecorder {
     this.#cleanupPromise = null;
 
     if (cleanup === 'deferred') {
+      if (this.#completionTasks.length > 0) {
+        this.#cleanupPromise = this.device.queue.onSubmittedWorkDone().then(async () => {
+          await this.#runCompletionTasks();
+        }).catch((err) => {
+          log.warn('CommandRecorder', `Completion tasks failed: ${ (err).message}`);
+        });
+      }
       this.#deferredCleanup = {
         buffersToDestroy,
         buffersToRelease,
@@ -361,7 +396,8 @@ export class CommandRecorder {
       return;
     }
 
-    this.#cleanupPromise = this.device.queue.onSubmittedWorkDone().then(() => {
+    this.#cleanupPromise = this.device.queue.onSubmittedWorkDone().then(async () => {
+      await this.#runCompletionTasks();
       this.#submitLatencyMs = performance.now() - submitStart;
       this.#finalizeTrackedBuffers(buffersToDestroy, buffersToRelease, false);
     }).catch((err) => {
@@ -370,8 +406,11 @@ export class CommandRecorder {
     });
   }
 
-  completeDeferredCleanup(options = {}) {
+  async completeDeferredCleanup(options = {}) {
     const discardPooled = options.discardPooled === true;
+    if (this.#cleanupPromise) {
+      await this.#cleanupPromise;
+    }
     this.#finalizeDeferredCleanup(discardPooled);
   }
 

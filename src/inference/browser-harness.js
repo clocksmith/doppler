@@ -775,6 +775,7 @@ async function runBenchSuite(options = {}) {
     const gpuDecodeRecordMs = [];
     const gpuDecodeSubmitWaitMs = [];
     const gpuDecodeReadbackWaitMs = [];
+    const gpuDecodeOrchestrationMs = [];
     const singleTokenSubmitWaitMs = [];
     const singleTokenReadbackWaitMs = [];
     const singleTokenOrchestrationMs = [];
@@ -829,6 +830,9 @@ async function runBenchSuite(options = {}) {
         if (Number.isFinite(phaseGpu?.decodeRecordMs)) gpuDecodeRecordMs.push(phaseGpu.decodeRecordMs);
         if (Number.isFinite(phaseGpu?.decodeSubmitWaitMs)) gpuDecodeSubmitWaitMs.push(phaseGpu.decodeSubmitWaitMs);
         if (Number.isFinite(phaseGpu?.decodeReadbackWaitMs)) gpuDecodeReadbackWaitMs.push(phaseGpu.decodeReadbackWaitMs);
+        if (Number.isFinite(phaseGpu?.decodeOrchestrationMs)) {
+          gpuDecodeOrchestrationMs.push(phaseGpu.decodeOrchestrationMs);
+        }
         if (Number.isFinite(phaseGpu?.singleTokenSubmitWaitMs)) singleTokenSubmitWaitMs.push(phaseGpu.singleTokenSubmitWaitMs);
         if (Number.isFinite(phaseGpu?.singleTokenReadbackWaitMs)) singleTokenReadbackWaitMs.push(phaseGpu.singleTokenReadbackWaitMs);
         if (Number.isFinite(phaseGpu?.singleTokenOrchestrationMs)) singleTokenOrchestrationMs.push(phaseGpu.singleTokenOrchestrationMs);
@@ -858,6 +862,7 @@ async function runBenchSuite(options = {}) {
     const decodeTokensStats = computeSampleStats(decodeTokens);
     const hasGpuStats = gpuPrefillMs.length > 0 || gpuDecodeMs.length > 0 || gpuDecodeRecordMs.length > 0
       || gpuDecodeSubmitWaitMs.length > 0 || gpuDecodeReadbackWaitMs.length > 0
+      || gpuDecodeOrchestrationMs.length > 0
       || singleTokenSubmitWaitMs.length > 0 || singleTokenReadbackWaitMs.length > 0
       || singleTokenOrchestrationMs.length > 0;
     const gpuPhaseStats = hasGpuStats
@@ -867,6 +872,7 @@ async function runBenchSuite(options = {}) {
         decodeRecordMs: computeSampleStats(gpuDecodeRecordMs),
         decodeSubmitWaitMs: computeSampleStats(gpuDecodeSubmitWaitMs),
         decodeReadbackWaitMs: computeSampleStats(gpuDecodeReadbackWaitMs),
+        decodeOrchestrationMs: computeSampleStats(gpuDecodeOrchestrationMs),
         singleTokenSubmitWaitMs: computeSampleStats(singleTokenSubmitWaitMs),
         singleTokenReadbackWaitMs: computeSampleStats(singleTokenReadbackWaitMs),
         singleTokenOrchestrationMs: computeSampleStats(singleTokenOrchestrationMs),
@@ -913,6 +919,7 @@ async function runBenchSuite(options = {}) {
     metrics = {
       warmupRuns,
       timedRuns,
+      ...(Number.isFinite(benchRun?.seed) ? { seed: benchRun.seed } : {}),
       prompt: benchRun.promptLabel,
       maxTokens: benchRun.maxTokens,
       decodeTokensPerSec: sampleTimingNumber(decodeTokensPerSecStats, 'median'),

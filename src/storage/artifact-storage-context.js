@@ -64,6 +64,16 @@ function bytesToHex(bytes) {
     .join('');
 }
 
+function getNodeFileCacheKey(fileRef) {
+  if (typeof fileRef === 'string') {
+    return fileRef;
+  }
+  if (fileRef instanceof URL) {
+    return fileRef.href;
+  }
+  return String(fileRef);
+}
+
 function getSourceRuntimeMetadata(manifest) {
   const metadata = manifest?.metadata?.sourceRuntime;
   if (!metadata || typeof metadata !== 'object') {
@@ -157,6 +167,9 @@ function createPathBackedStorageContext(options) {
     : null;
   const readBinary = typeof options?.readBinary === 'function'
     ? options.readBinary
+    : null;
+  const close = typeof options?.close === 'function'
+    ? options.close
     : null;
   const tokenizerJsonPath = options?.tokenizerJsonPath ?? null;
   const tokenizerModelPath = options?.tokenizerModelPath ?? null;
@@ -323,6 +336,7 @@ function createPathBackedStorageContext(options) {
       }
       : null,
     verifyHashes,
+    close,
   };
 }
 
@@ -358,6 +372,7 @@ export function createArtifactStorageContext(options = {}) {
     streamRange: options.streamRange,
     readText: options.readText,
     readBinary: options.readBinary,
+    close: options.close,
     tokenizerJsonPath: options.tokenizerJsonPath ?? tokenizerPaths.jsonPath,
     tokenizerModelPath: options.tokenizerModelPath ?? tokenizerPaths.modelPath,
     verifyHashes: options.verifyHashes === true,
@@ -413,32 +428,96 @@ async function resolveArtifactFileReference(root, relativePath) {
   throw new Error(`Unsupported local artifact root "${root}".`);
 }
 
-async function readNodeFileRange(fileRef, offset = 0, length = null) {
-  const fs = await import('node:fs/promises');
-  const handle = await fs.open(fileRef, 'r');
-  try {
-    const stats = await handle.stat();
-    const start = Math.max(0, Math.floor(Number(offset) || 0));
-    const fileSize = Number(stats.size);
-    const end = length == null
-      ? fileSize
-      : Math.min(fileSize, start + Math.max(0, Math.floor(Number(length) || 0)));
-    if (end <= start) {
-      return new ArrayBuffer(0);
+function createNodeFileAccess() {
+  const readers = new Map();
+
+  const getReader = (fileRef) => {
+    const cacheKey = getNodeFileCacheKey(fileRef);
+    let reader = readers.get(cacheKey);
+    if (reader) {
+      return reader;
     }
-    const out = Buffer.allocUnsafe(end - start);
-    let position = 0;
-    while (position < out.length) {
-      const { bytesRead } = await handle.read(out, position, out.length - position, start + position);
-      if (bytesRead === 0) {
-        break;
+    let handlePromise = null;
+    let sizePromise = null;
+    let closed = false;
+    const ensureHandle = async () => {
+      if (closed) {
+        throw new Error(`artifact storage context: file reader already closed for "${cacheKey}".`);
       }
-      position += bytesRead;
-    }
-    return out.buffer.slice(out.byteOffset, out.byteOffset + position);
-  } finally {
-    await handle.close();
-  }
+      if (!handlePromise) {
+        handlePromise = import('node:fs/promises')
+          .then((fs) => fs.open(fileRef, 'r'))
+          .catch((error) => {
+            handlePromise = null;
+            throw error;
+          });
+      }
+      return handlePromise;
+    };
+    const getSize = async () => {
+      if (!sizePromise) {
+        sizePromise = (async () => {
+          const handle = await ensureHandle();
+          const stats = await handle.stat();
+          return Number(stats.size);
+        })().catch((error) => {
+          sizePromise = null;
+          throw error;
+        });
+      }
+      return sizePromise;
+    };
+    reader = {
+      async readRange(offset = 0, length = null) {
+        const start = Math.max(0, Math.floor(Number(offset) || 0));
+        const fileSize = await getSize();
+        const end = length == null
+          ? fileSize
+          : Math.min(fileSize, start + Math.max(0, Math.floor(Number(length) || 0)));
+        if (end <= start) {
+          return new ArrayBuffer(0);
+        }
+        const handle = await ensureHandle();
+        const out = Buffer.allocUnsafe(end - start);
+        let position = 0;
+        while (position < out.length) {
+          const { bytesRead } = await handle.read(out, position, out.length - position, start + position);
+          if (bytesRead === 0) {
+            break;
+          }
+          position += bytesRead;
+        }
+        return out.buffer.slice(out.byteOffset, out.byteOffset + position);
+      },
+      async getSize() {
+        return getSize();
+      },
+      async close() {
+        closed = true;
+        const handle = await handlePromise;
+        handlePromise = null;
+        if (handle) {
+          await handle.close();
+        }
+      },
+    };
+    readers.set(cacheKey, reader);
+    return reader;
+  };
+
+  return {
+    async readRange(fileRef, offset = 0, length = null) {
+      return getReader(fileRef).readRange(offset, length);
+    },
+    async getSize(fileRef) {
+      return getReader(fileRef).getSize();
+    },
+    async close() {
+      const pending = Array.from(readers.values(), (reader) => reader.close());
+      readers.clear();
+      await Promise.all(pending);
+    },
+  };
 }
 
 export function createNodeFileArtifactStorageContext(baseUrl, manifest) {
@@ -452,55 +531,62 @@ export function createNodeFileArtifactStorageContext(baseUrl, manifest) {
     return null;
   }
 
-  const readRange = async (relativePath, offset = 0, length = null) => {
-    const fileRef = await resolveArtifactFileReference(root, relativePath);
-    return readNodeFileRange(fileRef, offset, length);
-  };
-  const streamRange = async function* (relativePath, offset = 0, length = null, options = {}) {
-    if (!Number.isFinite(offset) || !Number.isFinite(length) || length <= 0) {
-      return;
-    }
-    const fileRef = await resolveArtifactFileReference(root, relativePath);
-    const fs = await import('node:fs/promises');
-    const { createReadStream } = await import('node:fs');
-    const stats = await fs.stat(fileRef);
-    const start = Math.max(0, Math.floor(offset));
-    const end = Math.min(Number(stats.size), start + Math.floor(length));
-    if (end <= start) {
-      return;
-    }
-    const chunkBytesRaw = Number(options?.chunkBytes);
-    const highWaterMark = Number.isFinite(chunkBytesRaw) && chunkBytesRaw > 0
-      ? Math.floor(chunkBytesRaw)
-      : SOURCE_VERIFY_CHUNK_BYTES;
-    const stream = createReadStream(fileRef, {
-      start,
-      end: end - 1,
-      highWaterMark,
-    });
-    for await (const chunk of stream) {
-      yield chunk;
-    }
-  };
-  const readText = async (relativePath) => {
-    const fileRef = await resolveArtifactFileReference(root, relativePath);
-    const fs = await import('node:fs/promises');
-    return fs.readFile(fileRef, 'utf8');
-  };
-  const readBinary = async (relativePath) => {
-    const fileRef = await resolveArtifactFileReference(root, relativePath);
-    const fs = await import('node:fs/promises');
-    return fs.readFile(fileRef);
-  };
+  const fileAccess = createNodeFileAccess();
 
-  return createArtifactStorageContext({
-    manifest,
-    readRange,
-    streamRange,
-    readText,
-    readBinary,
-    verifyHashes: false,
-  });
+  try {
+    const readRange = async (relativePath, offset = 0, length = null) => {
+      const fileRef = await resolveArtifactFileReference(root, relativePath);
+      return fileAccess.readRange(fileRef, offset, length);
+    };
+    const streamRange = async function* (relativePath, offset = 0, length = null, options = {}) {
+      if (!Number.isFinite(offset) || !Number.isFinite(length) || length <= 0) {
+        return;
+      }
+      const fileRef = await resolveArtifactFileReference(root, relativePath);
+      const { createReadStream } = await import('node:fs');
+      const fileSize = await fileAccess.getSize(fileRef);
+      const start = Math.max(0, Math.floor(offset));
+      const end = Math.min(fileSize, start + Math.floor(length));
+      if (end <= start) {
+        return;
+      }
+      const chunkBytesRaw = Number(options?.chunkBytes);
+      const highWaterMark = Number.isFinite(chunkBytesRaw) && chunkBytesRaw > 0
+        ? Math.floor(chunkBytesRaw)
+        : SOURCE_VERIFY_CHUNK_BYTES;
+      const stream = createReadStream(fileRef, {
+        start,
+        end: end - 1,
+        highWaterMark,
+      });
+      for await (const chunk of stream) {
+        yield chunk;
+      }
+    };
+    const readText = async (relativePath) => {
+      const fileRef = await resolveArtifactFileReference(root, relativePath);
+      const fs = await import('node:fs/promises');
+      return fs.readFile(fileRef, 'utf8');
+    };
+    const readBinary = async (relativePath) => {
+      const fileRef = await resolveArtifactFileReference(root, relativePath);
+      const fs = await import('node:fs/promises');
+      return fs.readFile(fileRef);
+    };
+
+    return createArtifactStorageContext({
+      manifest,
+      readRange,
+      streamRange,
+      readText,
+      readBinary,
+      close: fileAccess.close,
+      verifyHashes: false,
+    });
+  } catch (error) {
+    fileAccess.close().catch(() => {});
+    throw error;
+  }
 }
 
 async function fetchBytes(url, offset = null, length = null) {

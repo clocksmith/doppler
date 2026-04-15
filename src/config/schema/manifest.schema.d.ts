@@ -437,6 +437,11 @@ export interface TensorSchema {
     scaleDivisor?: number;
     storageShape: [number, number];
     quantAxis: 0 | 1;
+    scaleCompanionDtype?: 'UINT8';
+    scaleCompanionDequant?: {
+      scale: number;
+      zeroPoint: number;
+    };
     scaleSource: {
       shard: number;
       shardIndex?: number;

@@ -16,6 +16,7 @@ import { createTensor } from '../gpu/tensor.js';
 import { castF16ToF32 } from '../gpu/kernel-selector.js';
 import { releaseBuffer } from '../memory/buffer-pool.js';
 import { loadTensorRange } from './tensors/tensor-reader.js';
+import { hasSourceTransform } from './tensors/source-transform.js';
 
 // ============================================================================
 // Constants
@@ -61,6 +62,24 @@ function createRangeBackedWeightBuffer(ctx, name, location) {
   return createCpuWeightBuffer(source, dtype, layout, location.shape, name);
 }
 
+function shouldUseRangeBackedEmbeddingSource(ctx, name, location) {
+  if (!location) {
+    return false;
+  }
+  if (String(location.dtype ?? '').toUpperCase() === 'F16' && ctx.hostHasShaderF16 === false) {
+    return true;
+  }
+  if (hasSourceTransform(location) && typeof ctx.loadShardRange === 'function') {
+    log.info(
+      'Loader',
+      `Embedding "${name}" uses sourceTransform.kind="${location.sourceTransform.kind}". ` +
+      'Using range-backed CPU source to avoid eager full materialization.'
+    );
+    return true;
+  }
+  return ctx.shouldStreamLargeWeight(name, location, 'Embedding');
+}
+
 // ============================================================================
 // Main Function
 // ============================================================================
@@ -83,11 +102,7 @@ export async function loadEmbeddings(ctx) {
 
   for (const name of candidates) {
     const loc = ctx.tensorLocations.get(name);
-    const requiresCpuFloatFallback = loc
-      && String(loc.dtype ?? '').toUpperCase() === 'F16'
-      && ctx.hostHasShaderF16 === false;
-    const shouldStream = requiresCpuFloatFallback
-      || (loc ? ctx.shouldStreamLargeWeight(name, loc, 'Embedding') : false);
+    const shouldStream = shouldUseRangeBackedEmbeddingSource(ctx, name, loc);
 
     // Load tensor (to CPU if streaming, to GPU otherwise)
     const tensor = shouldStream

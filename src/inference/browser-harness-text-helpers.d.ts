@@ -16,6 +16,7 @@ export declare function resolveBenchmarkRunSettings(
   promptLabel: string;
   maxTokens: number;
   sampling: Record<string, unknown>;
+  seed?: number;
 };
 export declare function runEmbeddingSemanticChecks(
   pipeline: Record<string, unknown>,

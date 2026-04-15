@@ -135,10 +135,23 @@ export function resolveHotVocabularyBatchDecodeAvailability({
 }
 
 async function primePleDecodeRuntimeCache(state, seedTokenIds = null) {
+  const perLayerInputsSession = state.runtimeConfig.inference.session?.perLayerInputs
+    ?? state.modelConfig?.perLayerInputsSession
+    ?? null;
+  const materialization = perLayerInputsSession?.materialization;
+  if (state.debug) {
+    log.debug(
+      'Pipeline',
+      `PLE materialization session=${materialization ?? 'null'} ` +
+      `modelId=${state.modelConfig?.modelId ?? 'unknown'} ` +
+      `runtimePerLayerInputs=${Boolean(state.runtimeConfig.inference.session?.perLayerInputs)} ` +
+      `manifestPerLayerInputs=${Boolean(state.modelConfig?.perLayerInputsSession)}`
+    );
+  }
   await ensurePleGpuHotVocabularyRuntime({
     config: state.modelConfig,
     weights: state.weights,
-    perLayerInputsSession: state.runtimeConfig.inference.session?.perLayerInputs ?? state.modelConfig?.perLayerInputsSession ?? null,
+    perLayerInputsSession,
     debugFlags: state.debugFlags,
     tokenizer: state.tokenizer ?? null,
     seedTokenIds: Array.isArray(seedTokenIds) ? seedTokenIds : null,
@@ -146,7 +159,7 @@ async function primePleDecodeRuntimeCache(state, seedTokenIds = null) {
   await ensurePleGpuSplitTablesRuntime({
     config: state.modelConfig,
     weights: state.weights,
-    perLayerInputsSession: state.runtimeConfig.inference.session?.perLayerInputs ?? state.modelConfig?.perLayerInputsSession ?? null,
+    perLayerInputsSession,
     debugFlags: state.debugFlags,
   });
   await ensurePleScaledProjectionNormWeight({

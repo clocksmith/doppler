@@ -24,6 +24,13 @@ export const DEFAULT_CHAT_TEMPLATE_CONFIG = Object.freeze({
   thinking: false,
 });
 
+export const DEFAULT_LARGE_WEIGHT_CONFIG = Object.freeze({
+  enabled: true,
+  safetyRatio: 0.9,
+  preferF16: true,
+  lmHeadChunkRows: null,
+});
+
 export const DEFAULT_RUNTIME_CONFIG = {
   shared: DEFAULT_SHARED_RUNTIME_CONFIG,
   loading: DEFAULT_LOADING_CONFIG,
@@ -39,7 +46,7 @@ export const DEFAULT_RUNTIME_CONFIG = {
     },
     compute: {},
     tokenizer: {},
-    largeWeights: {},
+    largeWeights: DEFAULT_LARGE_WEIGHT_CONFIG,
     kvcache: DEFAULT_KVCACHE_CONFIG,
     diffusion: {},
     energy: {},

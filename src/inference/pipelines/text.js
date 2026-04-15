@@ -1548,6 +1548,8 @@ export class InferencePipeline extends PipelineState {
 
 
   async unload() {
+    const storageContext = this.storageContext;
+    this.storageContext = null;
     await destroyEmulation(this.emulation);
     this.emulation = null;
     this.decodeRing?.release();
@@ -1569,6 +1571,9 @@ export class InferencePipeline extends PipelineState {
     if (this.sampleReadbackBuffer) {
       this.sampleReadbackBuffer.destroy();
       this.sampleReadbackBuffer = null;
+    }
+    if (typeof storageContext?.close === 'function') {
+      await storageContext.close();
     }
     this.isLoaded = false;
     this.currentSeqLen = 0;

@@ -15,6 +15,7 @@ import { getDriftPolicyId } from './drift-policy.js';
 
 const STAGE_DEFAULT_CATEGORY = {
   embed_out: 'embed',
+  per_layer_embed_out: 'embed',
   // Attention stages (per-layer)
   attn_input: 'attn',
   post_input_norm: 'attn',
@@ -129,6 +130,7 @@ export async function runProbes(stage, buffer, options) {
       isCpuBuffer,
       shape: [numTokens, hiddenSize],
       dtype,
+      recorder,
     });
     diagnostics.emitter.emitRecord(canonicalStage, {
       layerIdx,
@@ -221,7 +223,14 @@ export function getCanonicalStageName(probeStageName) {
 async function buildDiagnosticCapture(level, buffer, options) {
   if (level === 'none') return null;
 
-  const { isCpuBuffer, shape, dtype } = options;
+  const { isCpuBuffer, shape, dtype, recorder } = options;
+  if (!isCpuBuffer && recorder) {
+    return createDeferredDiagnosticCapture(level, buffer, {
+      recorder,
+      shape,
+      dtype,
+    });
+  }
   const snapshot = isCpuBuffer
     ? snapshotFromArray(buffer, shape, dtype)
     : await snapshotTensor(buffer, shape, dtype);
@@ -245,4 +254,71 @@ async function buildDiagnosticCapture(level, buffer, options) {
     hasNaN: snapshot.hasNaN === true,
     hasInf: snapshot.hasInf === true,
   };
+}
+
+function createDeferredDiagnosticCapture(level, buffer, options) {
+  const { recorder, shape, dtype } = options;
+  const elementSize = dtype === 'f16' ? 2 : 4;
+  const numElements = (shape ?? []).reduce((a, b) => a * b, 1);
+  const readSize = numElements > 0
+    ? Math.min(buffer.size, numElements * elementSize)
+    : buffer.size;
+  const staging = recorder.device.createBuffer({
+    label: `${recorder.label}_diagnostic_capture`,
+    size: readSize,
+    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+  });
+  recorder.getEncoder().copyBufferToBuffer(buffer, 0, staging, 0, readSize);
+
+  const capture = {
+    level,
+    shape,
+    dtype,
+    sample: null,
+    stats: null,
+    hasNaN: false,
+    hasInf: false,
+  };
+
+  recorder.enqueueCompletionTask(async () => {
+    let mapped = false;
+    try {
+      await staging.mapAsync(GPUMapMode.READ);
+      mapped = true;
+      const snapshot = snapshotFromArray(
+        decodeSnapshotBytes(staging.getMappedRange().slice(0), dtype),
+        shape,
+        dtype
+      );
+      capture.shape = snapshot.shape;
+      capture.dtype = snapshot.dtype;
+      capture.sample = Array.isArray(snapshot.sample) ? snapshot.sample : null;
+      capture.stats = snapshot.stats ?? null;
+      capture.hasNaN = snapshot.hasNaN === true;
+      capture.hasInf = snapshot.hasInf === true;
+    } catch (error) {
+      capture.error = error instanceof Error ? error.message : String(error);
+      capture.sample = null;
+      capture.stats = null;
+    } finally {
+      if (mapped) {
+        staging.unmap();
+      }
+      staging.destroy();
+    }
+  });
+
+  return capture;
+}
+
+function decodeSnapshotBytes(data, dtype) {
+  if (dtype === 'f16') {
+    const src = new Uint16Array(data);
+    const decoded = new Float32Array(src.length);
+    for (let i = 0; i < src.length; i++) {
+      decoded[i] = f16ToF32(src[i]);
+    }
+    return decoded;
+  }
+  return new Float32Array(data);
 }

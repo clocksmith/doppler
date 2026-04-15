@@ -469,6 +469,49 @@ async function readBufferLocation(reader, bufferPos, tensorName) {
   return size > 0 ? { offset, size } : null;
 }
 
+async function readMetadataEntries(reader, modelPos, bufferCount) {
+  const metadataCount = await reader.readTableVectorLength(modelPos, 6);
+  const metadataEntries = [];
+  for (let index = 0; index < metadataCount; index++) {
+    const metadataPos = await reader.readTableVectorEntry(modelPos, 6, index);
+    if (metadataPos == null) {
+      continue;
+    }
+    const name = await reader.readStringAtField(metadataPos, 0);
+    if (!name) {
+      continue;
+    }
+    const bufferFieldPos = await reader.getTableFieldPos(metadataPos, 1);
+    const bufferIndex = bufferFieldPos == null ? 0 : await reader.readUint32(bufferFieldPos);
+    if (bufferIndex === 0) {
+      continue;
+    }
+    if (bufferIndex >= bufferCount) {
+      throw new Error(
+        `TFLite parser: metadata "${name}" references buffer ${bufferIndex}, ` +
+        `but the model only has ${bufferCount} buffers.`
+      );
+    }
+    const bufferPos = await reader.readTableVectorEntry(modelPos, 4, bufferIndex);
+    if (bufferPos == null) {
+      throw new Error(
+        `TFLite parser: missing buffer table entry ${bufferIndex} for metadata "${name}".`
+      );
+    }
+    const dataLocation = await readBufferLocation(reader, bufferPos, `metadata "${name}"`);
+    if (!dataLocation || dataLocation.size <= 0) {
+      continue;
+    }
+    metadataEntries.push({
+      name,
+      buffer: bufferIndex,
+      offset: dataLocation.offset,
+      size: dataLocation.size,
+    });
+  }
+  return metadataEntries;
+}
+
 async function parseTFLiteReader(reader, options = {}) {
   const parseOptions = normalizeParseOptions(options);
   const rootOffset = await reader.readInt32(0);
@@ -610,6 +653,7 @@ async function parseTFLiteReader(reader, options = {}) {
       'TFLite parser: no supported constant tensors were found in the main subgraph.'
     );
   }
+  const metadataEntries = await readMetadataEntries(reader, modelPos, bufferCount);
 
   return {
     schemaVersion,
@@ -617,6 +661,7 @@ async function parseTFLiteReader(reader, options = {}) {
     subgraphCount,
     mainSubgraphName: mainSubgraphName || null,
     tensors,
+    metadataEntries,
     sourceQuantization: resolveDirectSourceQuantization(tensors),
   };
 }

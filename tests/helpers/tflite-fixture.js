@@ -107,6 +107,14 @@ function createTensor(builder, options) {
   return builder.endObject();
 }
 
+function createMetadataEntry(builder, options) {
+  const nameOffset = builder.createString(options.name);
+  builder.startObject(2);
+  builder.addFieldOffset(0, nameOffset, 0);
+  builder.addFieldInt32(1, options.buffer, 0);
+  return builder.endObject();
+}
+
 function createSubGraph(builder, options) {
   const tensorsOffset = createOffsetVector(builder, options.tensorOffsets);
   const inputsOffset = options.inputs.length > 0 ? createInt32Vector(builder, options.inputs) : 0;
@@ -127,12 +135,19 @@ function createSubGraph(builder, options) {
 function createModel(builder, options) {
   const subgraphsOffset = createOffsetVector(builder, [options.subgraphOffset]);
   const buffersOffset = createOffsetVector(builder, options.bufferOffsets);
+  const metadataOffsets = Array.isArray(options.metadataOffsets) ? options.metadataOffsets : [];
+  const metadataVectorOffset = metadataOffsets.length > 0
+    ? createOffsetVector(builder, metadataOffsets)
+    : 0;
   const descriptionOffset = builder.createString(options.description);
-  builder.startObject(8);
+  builder.startObject(9);
   builder.addFieldInt32(0, options.version, 0);
   builder.addFieldOffset(2, subgraphsOffset, 0);
   builder.addFieldOffset(3, descriptionOffset, 0);
   builder.addFieldOffset(4, buffersOffset, 0);
+  if (metadataVectorOffset) {
+    builder.addFieldOffset(6, metadataVectorOffset, 0);
+  }
   return builder.endObject();
 }
 
@@ -196,6 +211,7 @@ function applyExternalBufferLocations(bytes, tensorBuffers) {
 
 export function buildTfliteFixture(options = {}) {
   const tensors = Array.isArray(options.tensors) ? options.tensors : [];
+  const metadata = Array.isArray(options.metadata) ? options.metadata : [];
   if (tensors.length === 0) {
     throw new Error('buildTfliteFixture requires at least one tensor.');
   }
@@ -203,18 +219,30 @@ export function buildTfliteFixture(options = {}) {
 
   const builder = new Builder(1024);
   const bufferOffsets = [createBuffer(builder, null, { external: false })];
+  const tensorBufferIndexes = [];
   for (const tensor of tensors) {
+    tensorBufferIndexes.push(bufferOffsets.length);
     bufferOffsets.push(createBuffer(builder, tensor.data, { external: externalBuffers }));
+  }
+  const metadataBufferIndexes = [];
+  for (const entry of metadata) {
+    const data = entry?.data instanceof Uint8Array ? entry.data : new Uint8Array(entry?.data ?? []);
+    metadataBufferIndexes.push(bufferOffsets.length);
+    bufferOffsets.push(createBuffer(builder, data, { external: externalBuffers }));
   }
 
   const tensorOffsets = tensors.map((tensor, index) => createTensor(builder, {
     name: tensor.name,
     shape: tensor.shape,
     type: tensor.type,
-    buffer: index + 1,
+    buffer: tensorBufferIndexes[index],
     omitTypeField: tensor.omitTypeField === true,
     isVariable: tensor.isVariable === true,
     quantization: tensor.quantization ?? null,
+  }));
+  const metadataOffsets = metadata.map((entry, index) => createMetadataEntry(builder, {
+    name: String(entry?.name || ''),
+    buffer: metadataBufferIndexes[index],
   }));
   const subgraphOffset = createSubGraph(builder, {
     tensorOffsets,
@@ -226,6 +254,7 @@ export function buildTfliteFixture(options = {}) {
     version: Number.isFinite(options.version) ? Math.floor(options.version) : 3,
     subgraphOffset,
     bufferOffsets,
+    metadataOffsets,
     description: options.description || 'fixture',
   });
   builder.finish(modelOffset, 'TFL3');
@@ -234,14 +263,29 @@ export function buildTfliteFixture(options = {}) {
     return modelBytes;
   }
 
-  applyExternalBufferLocations(modelBytes, tensors.map((tensor) => tensor.data));
+  applyExternalBufferLocations(
+    modelBytes,
+    [
+      ...tensors.map((tensor) => tensor.data),
+      ...metadata.map((entry) => (entry?.data instanceof Uint8Array ? entry.data : new Uint8Array(entry?.data ?? []))),
+    ]
+  );
   const totalDataBytes = tensors.reduce((sum, tensor) => sum + tensor.data.byteLength, 0);
-  const out = new Uint8Array(modelBytes.byteLength + totalDataBytes);
+  const totalMetadataBytes = metadata.reduce((sum, entry) => {
+    const data = entry?.data instanceof Uint8Array ? entry.data : new Uint8Array(entry?.data ?? []);
+    return sum + data.byteLength;
+  }, 0);
+  const out = new Uint8Array(modelBytes.byteLength + totalDataBytes + totalMetadataBytes);
   out.set(modelBytes, 0);
   let cursor = modelBytes.byteLength;
   for (const tensor of tensors) {
     out.set(tensor.data, cursor);
     cursor += tensor.data.byteLength;
+  }
+  for (const entry of metadata) {
+    const data = entry?.data instanceof Uint8Array ? entry.data : new Uint8Array(entry?.data ?? []);
+    out.set(data, cursor);
+    cursor += data.byteLength;
   }
   return out;
 }

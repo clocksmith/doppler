@@ -145,8 +145,10 @@ export function applyPipelineContexts(target, contexts = {}, options = {}) {
   if (options.assignMemoryContext && contexts.memory) {
     target.memoryContext = contexts.memory;
   }
-  if (options.assignStorageContext && contexts.storage) {
-    target.storageContext = contexts.storage;
+
+  const requestedStorageContext = contexts.storage ?? contexts.storageContext;
+  if (options.assignStorageContext && requestedStorageContext) {
+    target.storageContext = requestedStorageContext;
   }
   if (options.assignBaseUrl !== false && contexts.baseUrl) {
     target.baseUrl = contexts.baseUrl;

@@ -52,7 +52,7 @@ export interface TensorSourceLocationRef {
 }
 
 export interface TensorSourceTransform {
-  kind: 'affine_dequant' | 'litert_rowwise_dequant' | 'litert_axis_dequant';
+  kind: 'affine_dequant' | 'litert_rowwise_dequant' | 'litert_axis_dequant' | 'litert_axis_blocked_dequant';
   scheme: 'per_tensor_affine' | 'per_row_affine' | 'per_axis_affine';
   sourceDtype: 'INT8' | 'UINT8' | 'INT4' | 'INT2';
   targetDtype: 'F16';
@@ -63,9 +63,16 @@ export interface TensorSourceTransform {
   scaleDivisor?: number;
   storageShape?: number[];
   quantAxis?: 0 | 1;
+  storageBlockSize?: number;
+  storageLaneOrder?: number[];
   scaleSource?: TensorSourceLocationRef;
   rowSumSource?: TensorSourceLocationRef;
   sumSource?: TensorSourceLocationRef;
+  scaleCompanionDtype?: 'UINT8';
+  scaleCompanionDequant?: {
+    scale: number;
+    zeroPoint: number;
+  };
 }
 
 // =============================================================================

@@ -114,6 +114,12 @@ export declare class CommandRecorder {
   trackTemporaryBuffer(buffer: GPUBuffer): void;
 
   /**
+   * Schedule async work that must run after GPU submission completes but before
+   * recorder-owned cleanup makes the captured data unavailable.
+   */
+  enqueueCompletionTask(task: () => Promise<void> | void): void;
+
+  /**
    * Submit all recorded commands and clean up temporary buffers.
    * After calling this, the recorder cannot be reused.
    */
@@ -123,7 +129,7 @@ export declare class CommandRecorder {
    * Finalize a deferred-cleanup submit after another wait condition
    * has already established GPU completion.
    */
-  completeDeferredCleanup(options?: RecorderDeferredCleanupOptions): void;
+  completeDeferredCleanup(options?: RecorderDeferredCleanupOptions): Promise<void>;
 
   /**
    * Submit and wait for GPU to complete (useful for debugging/profiling).

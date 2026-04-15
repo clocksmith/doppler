@@ -43,6 +43,29 @@ export interface SourceRuntimeTensor {
     scaleDivisor?: number;
     storageShape: [number, number];
     quantAxis: 0 | 1;
+    scaleCompanionDtype?: 'UINT8';
+    scaleCompanionDequant?: {
+      scale: number;
+      zeroPoint: number;
+    };
+    scaleSourcePath: string;
+    scaleOffset: number;
+    scaleSize: number;
+    sumSourcePath?: string;
+    sumOffset?: number;
+    sumSize?: number;
+  } | {
+    kind: 'litert_axis_blocked_dequant';
+    scheme: 'per_axis_affine';
+    sourceDtype: 'INT8' | 'UINT8' | 'INT4' | 'INT2';
+    targetDtype: 'F16';
+    storageEncoding: 'signed' | 'offset_binary';
+    scaleSemantics: 'step' | 'qmax_abs';
+    scaleDivisor?: number;
+    storageShape: [number, number];
+    quantAxis: 0;
+    storageBlockSize: number;
+    storageLaneOrder: number[];
     scaleSourcePath: string;
     scaleOffset: number;
     scaleSize: number;
@@ -151,6 +174,7 @@ export interface CreateSourceStorageContextOptions {
   ) => AsyncIterable<ArrayBuffer | Uint8Array>;
   readText?: (path: string) => Promise<string | Record<string, unknown> | null | undefined>;
   readBinary?: (path: string) => Promise<ArrayBuffer | Uint8Array>;
+  close?: (() => Promise<void>) | null;
   tokenizerJsonPath?: string | null;
   tokenizerConfigPath?: string | null;
   tokenizerModelPath?: string | null;
@@ -174,6 +198,7 @@ export interface SourceStorageContext {
   loadTokenizerJson: (() => Promise<Record<string, unknown> | null>) | null;
   loadTokenizerModel: ((pathHint?: string) => Promise<ArrayBuffer | null>) | null;
   verifyHashes: boolean;
+  close?: (() => Promise<void>) | null;
 }
 
 export declare function createSourceStorageContext(

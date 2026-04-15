@@ -292,6 +292,43 @@ const PIPELINE_FAILURE = /shader-f16|createShaderModule|createComputePipeline|cr
   delete globalThis.GPUBuffer;
 
   const tensorLocations = new Map([
+    ['embed.weight', {
+      role: 'embedding',
+      group: 'embed',
+      shape: [4, 4],
+      dtype: 'F16',
+      sourceTransform: {
+        kind: 'litert_axis_blocked_dequant',
+        sourceDtype: 'INT2',
+        targetDtype: 'F16',
+      },
+    }],
+  ]);
+  const toGpuCalls = [];
+  const embeddings = await loadEmbeddings({
+    tensorLocations,
+    loadTensor: async (_name, toGPU) => {
+      toGpuCalls.push(toGPU);
+      return new Float32Array(16);
+    },
+    shouldStreamLargeWeight: () => false,
+    loadShardRange: async () => new ArrayBuffer(0),
+    resolveWeightLayout: () => 'row',
+    gpuBuffers: new Set(),
+    keepF32Weights: false,
+    preserveF32Embeddings: false,
+    hostHasShaderF16: true,
+  });
+  assert.deepEqual(toGpuCalls, [], 'source-transformed embeddings should stay range-backed');
+  assert.equal(embeddings.dtype, 'f16');
+  assert.equal(embeddings.data.kind, 'tensor_range_source');
+}
+
+{
+  resetRuntimeState(null);
+  delete globalThis.GPUBuffer;
+
+  const tensorLocations = new Map([
     ['norm.weight', { role: 'norm', group: 'head', shape: [2], dtype: 'F32' }],
     ['lm_head.weight', { role: 'lm_head', group: 'head', shape: [2, 2], dtype: 'F32' }],
   ]);

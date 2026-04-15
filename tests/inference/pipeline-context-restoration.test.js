@@ -216,4 +216,18 @@ function createFakeDevice(label) {
   setDevice(null);
 }
 
+{
+  const target = {};
+  const storageContextAlias = { id: 'storage-alias' };
+  const applied = applyPipelineContexts(target, {
+    storageContext: storageContextAlias,
+  }, {
+    assignStorageContext: true,
+  });
+
+  assert.deepEqual(target.storageContext, storageContextAlias);
+  applied.restore();
+  assert.equal(target.storageContext, undefined);
+}
+
 console.log('pipeline-context-restoration.test: ok');

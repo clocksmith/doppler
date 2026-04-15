@@ -850,10 +850,12 @@ export {
 // =============================================================================
 export {
   // Types
+  type LargeWeightConfigSchema,
   type RuntimeConfigSchema,
   type DopplerConfigSchema,
 
   // Defaults
+  DEFAULT_LARGE_WEIGHT_CONFIG,
   DEFAULT_RUNTIME_CONFIG,
   DEFAULT_DOPPLER_CONFIG,
 

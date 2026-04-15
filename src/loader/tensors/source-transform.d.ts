@@ -33,6 +33,21 @@ export declare function getSourceTransformSpec(
   sourceByteLength: number;
   quantAxis: 0 | 1;
   storageValuesPerByte: number;
+} | {
+  kind: 'litert_axis_blocked_dequant';
+  rows: number;
+  cols: number;
+  storageRows: number;
+  storageCols: number;
+  rawStorageRowBytes: number;
+  storageElementBytes: number;
+  scaleRowBytes: number;
+  targetRowBytes: number;
+  outputByteLength: number;
+  sourceByteLength: number;
+  quantAxis: 0;
+  storageBlockSize: number;
+  storageLaneOrder: number[];
 } | null);
 
 export declare function materializeTensorSourceTransform(

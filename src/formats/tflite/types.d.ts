@@ -54,12 +54,20 @@ export interface TFLiteTensor {
   sourceTransform?: TFLiteSourceTransform;
 }
 
+export interface TFLiteMetadataEntry {
+  name: string;
+  buffer: number;
+  offset: number;
+  size: number;
+}
+
 export interface ParsedTFLite {
   schemaVersion: number;
   description: string | null;
   subgraphCount: number;
   mainSubgraphName: string | null;
   tensors: TFLiteTensor[];
+  metadataEntries: TFLiteMetadataEntry[];
   sourceQuantization: 'F32' | 'F16' | 'BF16' | null;
 }
 

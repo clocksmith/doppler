@@ -9,11 +9,12 @@ import {
 // Re-export for backward compatibility
 export { QK_K, K_SCALE_SIZE, QK4_K_BLOCK_SIZE };
 
+const f32ToF16ScratchF32 = new Float32Array(1);
+const f32ToF16ScratchU32 = new Uint32Array(f32ToF16ScratchF32.buffer);
+
 export function float32ToFloat16(value) {
-  const floatView = new Float32Array(1);
-  const int32View = new Int32Array(floatView.buffer);
-  floatView[0] = value;
-  const f = int32View[0];
+  f32ToF16ScratchF32[0] = value;
+  const f = f32ToF16ScratchU32[0];
 
   const sign = (f >> 31) & 0x1;
   let exp = (f >> 23) & 0xff;

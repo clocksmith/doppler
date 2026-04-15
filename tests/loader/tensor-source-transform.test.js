@@ -176,6 +176,65 @@ assertApproxArray(
   [0, 0.5, -0.5, 1, 0.75, -0.5, 0, 0.25]
 );
 
+const litertAxisUint8CompanionLocation = {
+  shardIndex: 0,
+  offset: 0,
+  size: 8,
+  shape: [2, 4],
+  dtype: 'F16',
+  role: 'embedding',
+  sourceTransform: {
+    kind: 'litert_axis_dequant',
+    scheme: 'per_axis_affine',
+    sourceDtype: 'UINT8',
+    targetDtype: 'F16',
+    storageEncoding: 'signed',
+    scaleSemantics: 'step',
+    storageShape: [2, 4],
+    quantAxis: 1,
+    scaleCompanionDtype: 'UINT8',
+    scaleCompanionDequant: {
+      scale: 0.01,
+      zeroPoint: 0,
+    },
+    scaleSource: {
+      shard: 1,
+      offset: 0,
+      size: 8,
+    },
+  },
+};
+const litertAxisUint8CompanionRawBytes = Uint8Array.from([0, 1, 2, 3, 4, 3, 2, 1]);
+const litertAxisUint8CompanionScaleBytes = Uint8Array.from([1, 2, 3, 4, 4, 3, 2, 1]);
+const litertAxisUint8CompanionShards = new Map([
+  [0, litertAxisUint8CompanionRawBytes],
+  [1, litertAxisUint8CompanionScaleBytes],
+]);
+const litertAxisUint8CompanionDequantized = await assembleShardData(
+  litertAxisUint8CompanionLocation,
+  'model.language_model.layers.0.embed_tokens_per_layer.weight',
+  async (index) => litertAxisUint8CompanionShards.get(index).buffer.slice(0),
+  async (index, offset, length) => litertAxisUint8CompanionShards.get(index).slice(offset, offset + length).buffer
+);
+const litertAxisUint8CompanionCpu = loadTensorToCPU(
+  litertAxisUint8CompanionDequantized,
+  litertAxisUint8CompanionLocation
+);
+assert.ok(litertAxisUint8CompanionCpu instanceof Float32Array);
+assertApproxArray(
+  Array.from(litertAxisUint8CompanionCpu),
+  [
+    0,
+    0.019989013671875,
+    0.05999755859375,
+    0.1199951171875,
+    0.159912109375,
+    0.0899658203125,
+    0.03997802734375,
+    0.0099945068359375,
+  ]
+);
+
 const litertInt2Location = {
   shardIndex: 0,
   offset: 0,
@@ -264,5 +323,105 @@ const litertQmaxAbsDequantized = await assembleShardData(
 const litertQmaxAbsCpu = loadTensorToCPU(litertQmaxAbsDequantized, litertQmaxAbsLocation);
 assert.ok(litertQmaxAbsCpu instanceof Float32Array);
 assertApproxArray(Array.from(litertQmaxAbsCpu), [0, 0.0625, 0, 0.125]);
+
+const litertBlockedAxisLocation = {
+  shardIndex: 0,
+  offset: 0,
+  size: 4,
+  shape: [2, 8],
+  dtype: 'F16',
+  role: 'embedding',
+  sourceTransform: {
+    kind: 'litert_axis_blocked_dequant',
+    scheme: 'per_axis_affine',
+    sourceDtype: 'INT2',
+    targetDtype: 'F16',
+    storageEncoding: 'offset_binary',
+    scaleSemantics: 'step',
+    storageShape: [2, 2],
+    quantAxis: 0,
+    storageBlockSize: 4,
+    storageLaneOrder: [0, 1, 2, 3],
+    scaleSource: {
+      shard: 1,
+      offset: 0,
+      size: 8,
+    },
+    sumSource: {
+      shard: 2,
+      offset: 0,
+      size: 8,
+    },
+  },
+};
+const litertBlockedAxisRawBytes = Uint8Array.from([0xe4, 0x1b, 0x1b, 0xe4]);
+const litertBlockedAxisScaleBytes = new Uint8Array(Float32Array.from([0.5, 1.0]).buffer);
+const litertBlockedAxisSumBytes = new Uint8Array(Int32Array.from([0, 0]).buffer);
+const litertBlockedAxisShards = new Map([
+  [0, litertBlockedAxisRawBytes],
+  [1, litertBlockedAxisScaleBytes],
+  [2, litertBlockedAxisSumBytes],
+]);
+const litertBlockedAxisDequantized = await assembleShardData(
+  litertBlockedAxisLocation,
+  'model.language_model.embed_tokens.weight',
+  async (index) => litertBlockedAxisShards.get(index).buffer.slice(0),
+  async (index, offset, length) => litertBlockedAxisShards.get(index).slice(offset, offset + length).buffer
+);
+const litertBlockedAxisCpu = loadTensorToCPU(litertBlockedAxisDequantized, litertBlockedAxisLocation);
+assert.ok(litertBlockedAxisCpu instanceof Float32Array);
+assertApproxArray(
+  Array.from(litertBlockedAxisCpu),
+  [
+    -0.75, -0.25, 0.25, 0.75, 0.75, 0.25, -0.25, -0.75,
+    1.5, 0.5, -0.5, -1.5, -1.5, -0.5, 0.5, 1.5,
+  ]
+);
+
+const litertBlockedAxisRowRange = await loadTensorRange(
+  litertBlockedAxisLocation,
+  'model.language_model.embed_tokens.weight',
+  16,
+  16,
+  async (index, offset, length) => litertBlockedAxisShards.get(index).slice(offset, offset + length).buffer
+);
+const litertBlockedAxisRowRangeCpu = loadTensorToCPU(litertBlockedAxisRowRange, {
+  ...litertBlockedAxisLocation,
+  shape: [8],
+  size: 16,
+  sourceTransform: undefined,
+  dtype: 'F16',
+});
+assert.ok(litertBlockedAxisRowRangeCpu instanceof Float32Array);
+assertApproxArray(Array.from(litertBlockedAxisRowRangeCpu), [1.5, 0.5, -0.5, -1.5, -1.5, -0.5, 0.5, 1.5]);
+
+const litertBlockedAxisQmaxAbsLocation = {
+  ...litertBlockedAxisLocation,
+  sourceTransform: {
+    ...litertBlockedAxisLocation.sourceTransform,
+    scaleSemantics: 'qmax_abs',
+    scaleDivisor: 3,
+  },
+};
+const litertBlockedAxisQmaxAbsDequantized = await assembleShardData(
+  litertBlockedAxisQmaxAbsLocation,
+  'model.language_model.embed_tokens.weight',
+  async (index) => litertBlockedAxisShards.get(index).buffer.slice(0),
+  async (index, offset, length) => litertBlockedAxisShards.get(index).slice(offset, offset + length).buffer
+);
+const litertBlockedAxisQmaxAbsCpu = loadTensorToCPU(
+  litertBlockedAxisQmaxAbsDequantized,
+  litertBlockedAxisQmaxAbsLocation
+);
+assert.ok(litertBlockedAxisQmaxAbsCpu instanceof Float32Array);
+assertApproxArray(
+  Array.from(litertBlockedAxisQmaxAbsCpu),
+  [
+    -0.25, -0.08331298828125, 0.08331298828125, 0.25,
+    0.25, 0.08331298828125, -0.08331298828125, -0.25,
+    0.5, 0.1666259765625, -0.1666259765625, -0.5,
+    -0.5, -0.1666259765625, 0.1666259765625, 0.5,
+  ]
+);
 
 console.log('tensor-source-transform.test: ok');

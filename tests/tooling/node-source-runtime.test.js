@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
 import { totalmem } from 'node:os';
@@ -53,6 +54,7 @@ const tfliteFixtureDir = mkdtempSync(path.join(tmpdir(), 'doppler-node-source-ru
 const litertTaskFixtureDir = mkdtempSync(path.join(tmpdir(), 'doppler-node-source-runtime-task-'));
 const litertLmFixtureDir = mkdtempSync(path.join(tmpdir(), 'doppler-node-source-runtime-litertlm-'));
 const litertPackedBytes = buildGemma4LiteRTPackedFixture({ profileAligned: true });
+const createdBundles = [];
 try {
   writeFileSync(path.join(fixtureDir, 'config.json'), JSON.stringify({
     architectures: ['Gemma3ForCausalLM'],
@@ -113,6 +115,7 @@ try {
       },
     },
   });
+  createdBundles.push(bundle);
   assert.ok(bundle, 'node source runtime should synthesize a direct-source bundle');
   assert.equal(bundle.sourceKind, 'safetensors');
   assert.equal(bundle.model, bundle.manifest);
@@ -216,6 +219,7 @@ try {
     inputPath: path.join(tfliteFixtureDir, 'model.tflite'),
     modelId: 'node-source-runtime-test-tflite',
   });
+  createdBundles.push(tfliteBundle);
   assert.ok(tfliteBundle, 'node source runtime should synthesize a TFLite direct-source bundle');
   assert.equal(tfliteBundle.sourceKind, 'tflite');
   assert.equal(tfliteBundle.model, tfliteBundle.manifest);
@@ -228,29 +232,26 @@ try {
   assert.equal(typeof tfliteTokenizer, 'object');
 
   writeFileSync(path.join(litertTaskFixtureDir, 'gemma-4-e2b-it-web.task'), litertPackedBytes);
-  writeFileSync(path.join(litertTaskFixtureDir, 'tokenizer.json'), JSON.stringify({
-    model: {
-      vocab: {
-        '<bos>': 0,
-        '<eos>': 1,
-      },
-    },
-    special_tokens: {
-      eos_token: '<eos>',
-    },
-    added_tokens_decoder: {
-      '1': { content: '<eos>' },
-    },
-  }), 'utf8');
   const litertTaskBundle = await resolveNodeSourceRuntimeBundle({
     inputPath: path.join(litertTaskFixtureDir, 'gemma-4-e2b-it-web.task'),
     modelId: 'node-source-runtime-test-litert-task',
   });
+  createdBundles.push(litertTaskBundle);
   assert.ok(litertTaskBundle, 'node source runtime should synthesize a LiteRT task direct-source bundle');
   assert.equal(litertTaskBundle.sourceKind, 'litert-task');
   assert.equal(litertTaskBundle.model, litertTaskBundle.manifest);
   assert.equal(litertTaskBundle.manifest.modelId, 'node-source-runtime-test-litert-task');
   assert.equal(litertTaskBundle.manifest.modelType, 'gemma4');
+  assert.equal(litertTaskBundle.manifest.tokenizer?.type, 'sentencepiece');
+  assert.equal(litertTaskBundle.manifest.tokenizer?.sentencepieceModel, 'TOKENIZER_MODEL');
+  assert.equal(
+    litertTaskBundle.manifest.metadata?.sourceRuntime?.tokenizer?.modelPath,
+    'TOKENIZER_MODEL'
+  );
+  assert.equal(
+    litertTaskBundle.manifest.metadata?.sourceRuntime?.auxiliaryFiles?.some((entry) => entry.kind === 'litert_metadata' && entry.path === 'METADATA'),
+    true
+  );
   assert.equal(
     litertTaskBundle.manifest.inference?.execution?.kernels?.attn_decode?.kernel,
     'attention_decode_online_f16kv.wgsl'
@@ -348,8 +349,50 @@ try {
     litertTaskBundle.manifest.tensors['model.language_model.layers.34.embed_tokens_per_layer.weight']?.sourceTransform?.scaleDivisor ?? null,
     null
   );
-  const litertTaskTokenizer = await litertTaskBundle.storageContext.loadTokenizerJson();
-  assert.equal(typeof litertTaskTokenizer, 'object');
+  const litertTaskTokenizerModel = await litertTaskBundle.storageContext.loadTokenizerModel();
+  assert.ok(
+    litertTaskTokenizerModel instanceof ArrayBuffer && litertTaskTokenizerModel.byteLength > 0,
+    'LiteRT task bundle should expose embedded tokenizer model bytes'
+  );
+
+  const originalOpen = fs.open;
+  const openCounts = new Map();
+  const closeCounts = new Map();
+  fs.open = async function patchedOpen(filePath, flags, ...rest) {
+    const normalizedPath = String(filePath);
+    openCounts.set(normalizedPath, (openCounts.get(normalizedPath) ?? 0) + 1);
+    const handle = await originalOpen.call(this, filePath, flags, ...rest);
+    const originalClose = handle.close.bind(handle);
+    handle.close = async function patchedClose(...args) {
+      closeCounts.set(normalizedPath, (closeCounts.get(normalizedPath) ?? 0) + 1);
+      return originalClose(...args);
+    };
+    return handle;
+  };
+  try {
+    const cachedTaskBundle = await resolveNodeSourceRuntimeBundle({
+      inputPath: path.join(litertTaskFixtureDir, 'gemma-4-e2b-it-web.task'),
+      modelId: 'node-source-runtime-test-litert-task-cached',
+    });
+    createdBundles.push(cachedTaskBundle);
+    const taskPath = path.join(litertTaskFixtureDir, 'gemma-4-e2b-it-web.task');
+    const openCountAfterResolve = openCounts.get(taskPath) ?? 0;
+    await cachedTaskBundle.storageContext.loadShardRange(0, 0, 16);
+    await cachedTaskBundle.storageContext.loadShardRange(0, 16, 16);
+    assert.equal(
+      openCounts.get(taskPath) ?? 0,
+      openCountAfterResolve,
+      'node source runtime should reuse the package file handle across repeated source reads'
+    );
+    await cachedTaskBundle.storageContext.close?.();
+    assert.equal(
+      closeCounts.get(taskPath) ?? 0,
+      openCountAfterResolve,
+      'node source runtime should close cached package handles when the storage context closes'
+    );
+  } finally {
+    fs.open = originalOpen;
+  }
 
   writeFileSync(path.join(litertLmFixtureDir, 'gemma-4-e2b-it.litertlm'), buildLiteRTLmFixture({
     sections: [
@@ -367,17 +410,34 @@ try {
     inputPath: path.join(litertLmFixtureDir, 'gemma-4-e2b-it.litertlm'),
     modelId: 'node-source-runtime-test-litertlm',
   });
+  createdBundles.push(litertLmBundle);
   assert.ok(litertLmBundle, 'node source runtime should synthesize a LiteRT-LM direct-source bundle');
   assert.equal(litertLmBundle.sourceKind, 'litertlm');
   assert.equal(litertLmBundle.model, litertLmBundle.manifest);
   assert.equal(litertLmBundle.manifest.modelType, 'gemma4');
   assert.equal(
     litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.kind,
-    'litert_axis_dequant'
+    'litert_axis_blocked_dequant'
   );
   assert.equal(
     litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.scaleSemantics,
-    'step'
+    'qmax_abs'
+  );
+  assert.equal(
+    litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.scaleDivisor,
+    3
+  );
+  assert.deepEqual(
+    litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.storageShape,
+    [384, 262144]
+  );
+  assert.equal(
+    litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.storageBlockSize,
+    4
+  );
+  assert.deepEqual(
+    litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.storageLaneOrder,
+    [0, 1, 2, 3]
   );
   const litertLmTokenizer = await litertLmBundle.storageContext.loadTokenizerModel();
   assert.equal(litertLmTokenizer?.byteLength, 4);
@@ -402,6 +462,9 @@ try {
     /External-weight LiteRT-LM packages are not supported yet/
   );
 } finally {
+  await Promise.allSettled(
+    createdBundles.map((bundle) => bundle?.storageContext?.close?.())
+  );
   rmSync(fixtureDir, { recursive: true, force: true });
   rmSync(tfliteFixtureDir, { recursive: true, force: true });
   rmSync(litertTaskFixtureDir, { recursive: true, force: true });

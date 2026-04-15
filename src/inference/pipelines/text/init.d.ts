@@ -57,6 +57,7 @@ export interface PipelineStorageContext {
   loadTokenizerJson?: () => Promise<Record<string, unknown> | string | null | undefined>;
   loadTokenizerModel?: (path?: string) => Promise<ArrayBuffer | Uint8Array | null | undefined>;
   verifyHashes?: boolean;
+  close?: () => Promise<void>;
 }
 
 export function createNodeFileShardStorageContext(
@@ -74,6 +75,8 @@ export interface PipelineContexts {
   memory?: Record<string, unknown>;
   /** Storage context for custom shard loading */
   storage?: PipelineStorageContext;
+  /** Storage context alias used by several public call sites */
+  storageContext?: PipelineStorageContext;
   /** Base URL for loading model files */
   baseUrl?: string;
   /** Full runtime config (merged with defaults) */

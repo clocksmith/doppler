@@ -20,6 +20,7 @@ import {
   resolveTensorRole,
   sortGroupIds,
 } from '../formats/rdrr/index.js';
+import { normalizeTensorSourceTransform } from '../formats/rdrr/source-transform-contract.js';
 import { createRuntimeModelContract } from '../inference/runtime-model.js';
 import { computeHash, createStreamingHasher } from '../storage/shard-manager.js';
 
@@ -278,6 +279,49 @@ function buildSourceTensorTransform(tensor, shardIndexByPath, tensorName) {
       storageShape: transform.storageShape,
       quantAxis: transform.quantAxis,
       scaleSource: buildTransformScaleSource(transform, shardIndexByPath, tensorName),
+      ...(typeof transform.scaleCompanionDtype === 'string'
+        ? {
+          scaleCompanionDtype: transform.scaleCompanionDtype,
+        }
+        : {}),
+      ...(transform.scaleCompanionDequant && typeof transform.scaleCompanionDequant === 'object'
+        ? {
+          scaleCompanionDequant: {
+            scale: transform.scaleCompanionDequant.scale,
+            zeroPoint: transform.scaleCompanionDequant.zeroPoint,
+          },
+        }
+        : {}),
+      ...(sumSource
+        ? {
+          sumSource,
+        }
+        : {}),
+    };
+  }
+  if (transform.kind === 'litert_axis_blocked_dequant') {
+    const sumSource = buildTransformCompanionSource(
+      transform,
+      shardIndexByPath,
+      tensorName,
+      'sumSourcePath',
+      'sumOffset',
+      'sumSize',
+      'sum'
+    );
+    return {
+      kind: transform.kind,
+      scheme: transform.scheme,
+      sourceDtype: transform.sourceDtype,
+      targetDtype: transform.targetDtype,
+      storageEncoding: transform.storageEncoding,
+      scaleSemantics: transform.scaleSemantics,
+      scaleDivisor: transform.scaleDivisor,
+      storageShape: transform.storageShape,
+      quantAxis: transform.quantAxis,
+      storageBlockSize: transform.storageBlockSize,
+      storageLaneOrder: transform.storageLaneOrder,
+      scaleSource: buildTransformScaleSource(transform, shardIndexByPath, tensorName),
       ...(sumSource
         ? {
           sumSource,
@@ -327,7 +371,7 @@ function buildSourceTensorLocations(tensors, shardIndexByPath, modelType) {
       : null;
     const sourceTransform = buildSourceTensorTransform(tensor, shardIndexByPath, name);
 
-    locations[name] = {
+    const location = {
       shard,
       offset,
       size,
@@ -338,6 +382,10 @@ function buildSourceTensorLocations(tensors, shardIndexByPath, modelType) {
       ...(layout ? { layout } : {}),
       ...(sourceTransform ? { sourceTransform } : {}),
     };
+    if (sourceTransform) {
+      normalizeTensorSourceTransform(location, name, { errorPrefix: '[SourceRuntime]' });
+    }
+    locations[name] = location;
   }
 
   return locations;
@@ -822,6 +870,9 @@ export function createSourceStorageContext(options = {}) {
   const readBinary = typeof options.readBinary === 'function'
     ? options.readBinary
     : null;
+  const close = typeof options.close === 'function'
+    ? options.close
+    : null;
   const sourceFileMap = new Map(
     shardSources.map((entry) => [entry.path, entry])
   );
@@ -1019,5 +1070,6 @@ export function createSourceStorageContext(options = {}) {
     loadTokenizerJson,
     loadTokenizerModel,
     verifyHashes,
+    close,
   };
 }

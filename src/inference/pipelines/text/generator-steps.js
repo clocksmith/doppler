@@ -217,7 +217,7 @@ export async function readSampledTokenFromStagingBuffer(stagingBuffer, options =
   try {
     await stagingBuffer.mapAsync(GPUMapMode.READ);
     mapped = true;
-    cleanupRecorder?.completeDeferredCleanup();
+    await cleanupRecorder?.completeDeferredCleanup();
     cleanupCompleted = true;
     const mappedWords = new Uint32Array(stagingBuffer.getMappedRange());
     return {
@@ -231,7 +231,7 @@ export async function readSampledTokenFromStagingBuffer(stagingBuffer, options =
       stagingBuffer.unmap();
     }
     if (!cleanupCompleted) {
-      cleanupRecorder?.completeDeferredCleanup({ discardPooled: true });
+      await cleanupRecorder?.completeDeferredCleanup({ discardPooled: true });
     }
     if (ownsStagingBuffer) {
       stagingBuffer.destroy();
@@ -293,7 +293,7 @@ export async function readBatchTokensFromStagingBuffers(options) {
     if (mapFailure) {
       throw mapFailure.reason;
     }
-    cleanupRecorder?.completeDeferredCleanup();
+    await cleanupRecorder?.completeDeferredCleanup();
     cleanupCompleted = true;
 
     const tokens = Array.from(
@@ -322,7 +322,7 @@ export async function readBatchTokensFromStagingBuffers(options) {
       stopStagingBuffer.unmap();
     }
     if (!cleanupCompleted) {
-      cleanupRecorder?.completeDeferredCleanup({ discardPooled: true });
+      await cleanupRecorder?.completeDeferredCleanup({ discardPooled: true });
     }
     if (ownsFinitenessStaging) {
       finitenessStagingBuffer.destroy();
@@ -1371,6 +1371,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     const currentTokenIdsArray = [startToken];
 
     for (let i = 0; i < N; i++) {
+      currentTokenIdsArray[0] = rollingIds[i];
       const currentPos = state.currentSeqLen + i;
       context.currentSeqLen = currentPos;
       context.currentTokenIds = currentTokenIdsArray;
@@ -1397,6 +1398,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
         indexOffset: i,
         perLayerTokenIds: pleInputTokensBuffer,
         perLayerIndexOffset: i,
+        tokenIdHint: Number.isInteger(rollingIds[i]) ? rollingIds[i] : null,
         pleCache: state.pleCache ?? null,
       });
       try {

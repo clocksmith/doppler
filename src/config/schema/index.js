@@ -487,6 +487,7 @@ export {
 // =============================================================================
 export {
   // Defaults
+  DEFAULT_LARGE_WEIGHT_CONFIG,
   DEFAULT_CHAT_TEMPLATE_CONFIG,
   DEFAULT_RUNTIME_CONFIG,
   DEFAULT_DOPPLER_CONFIG,

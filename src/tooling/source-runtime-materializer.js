@@ -21,7 +21,9 @@ function toRelativeArtifactPath(value, artifactDir, label) {
     throw new Error(`${label} path is required.`);
   }
   const resolvedArtifactDir = path.resolve(artifactDir);
-  const resolvedTarget = path.resolve(raw);
+  const resolvedTarget = path.isAbsolute(raw)
+    ? path.resolve(raw)
+    : path.resolve(resolvedArtifactDir, raw);
   const relativePath = path.relative(resolvedArtifactDir, resolvedTarget).replace(/\\/g, '/');
   if (!relativePath || relativePath.startsWith('../') || relativePath === '..') {
     throw new Error(

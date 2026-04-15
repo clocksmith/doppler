@@ -1350,8 +1350,12 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
   const embedTranspose = (hasSplitEmbeddingTables || useHotVocabularyTables) ? false : getEmbeddingTranspose(embedTokensPerLayer);
   const canFuseDecodeOps = numTokens === 1 && !embedTranspose && !hasRangeBackedProjection;
   const tokenIdsAreGpuBuffer = isGpuBufferInstance(tokenIds);
-  const decodeTokenId = canFuseDecodeOps && !tokenIdsAreGpuBuffer
-    ? Number(tokenIds[0])
+
+  const tokenIdHint = Number.isInteger(options.tokenIdHint) ? Number(options.tokenIdHint) : null;
+  const decodeTokenId = canFuseDecodeOps
+    ? (tokenIdsAreGpuBuffer
+      ? (Number.isInteger(tokenIdHint) ? tokenIdHint : null)
+      : Number(tokenIds[0]))
     : null;
 
   if (decodeTokenId != null) {

@@ -12,6 +12,41 @@ function encodeRepeatedInt32(length, value) {
   return new Uint8Array(Int32Array.from({ length }, () => value).buffer);
 }
 
+function encodeUint8(values) {
+  if (values instanceof Uint8Array) {
+    return values;
+  }
+  return Uint8Array.from(Array.isArray(values) ? values : [...values], (value) => Number(value) & 0xff);
+}
+
+function computeShapeElementCount(shape) {
+  if (!Array.isArray(shape) || shape.length === 0) {
+    return 0;
+  }
+  return shape.reduce((acc, value) => acc * Math.max(0, Number(value) || 0), 1);
+}
+
+function repeatUint8Pattern(patternBytes, targetLength) {
+  if (!(patternBytes instanceof Uint8Array)) {
+    throw new Error('gemma4-litert-fixture: scale companion pattern must be Uint8Array.');
+  }
+  if (!Number.isInteger(targetLength) || targetLength <= 0) {
+    return new Uint8Array(0);
+  }
+  if (patternBytes.length === 0) {
+    throw new Error('gemma4-litert-fixture: scale companion pattern cannot be empty.');
+  }
+  const bytes = new Uint8Array(targetLength);
+  for (let index = 0; index < targetLength; index += 1) {
+    bytes[index] = patternBytes[index % patternBytes.length];
+  }
+  return bytes;
+}
+
+function encodeUtf8(value) {
+  return new TextEncoder().encode(String(value ?? ''));
+}
+
 function pushFloatTensor(tensors, name, values) {
   tensors.push({
     name,
@@ -21,7 +56,46 @@ function pushFloatTensor(tensors, name, values) {
   });
 }
 
-function pushRowwiseTensor(tensors, name, type, dataBytes, rowScales, rowSums = null) {
+function pushRowwiseTensor(tensors, name, type, dataBytes, rowScales, rowSums = null, options = {}) {
+  const scaleCompanionType = Number.isInteger(options.scaleCompanionType)
+    ? options.scaleCompanionType
+    : FIXTURE_TFLITE_TENSOR_TYPE.FLOAT32;
+  const scaleElementCount = Array.isArray(rowScales)
+    ? rowScales.length
+    : rowScales instanceof Uint8Array || rowScales instanceof Float32Array || rowScales instanceof Int32Array
+      ? rowScales.length
+      : 0;
+  const scaleShape = Array.isArray(options.scaleCompanionShape)
+    ? options.scaleCompanionShape
+    : (
+      scaleCompanionType === FIXTURE_TFLITE_TENSOR_TYPE.UINT8 && scaleElementCount > 0 && scaleElementCount % 4 === 0
+        ? [scaleElementCount / 4, 4]
+        : [scaleElementCount]
+    );
+  const scaleBytes = scaleCompanionType === FIXTURE_TFLITE_TENSOR_TYPE.UINT8
+    ? (() => {
+      const explicitScaleBytes = options.scaleCompanionData instanceof Uint8Array
+        ? options.scaleCompanionData
+        : encodeUint8(rowScales);
+      const requiredScaleElements = computeShapeElementCount(scaleShape);
+      if (!Number.isInteger(requiredScaleElements) || requiredScaleElements < 0) {
+        return explicitScaleBytes;
+      }
+      if (requiredScaleElements === explicitScaleBytes.length) {
+        return explicitScaleBytes;
+      }
+      if (
+        requiredScaleElements < explicitScaleBytes.length
+        || explicitScaleBytes.length === 0
+        || requiredScaleElements % explicitScaleBytes.length !== 0
+      ) {
+        throw new Error(
+          `gemma4-litert-fixture: UINT8 scale companion bytes (${explicitScaleBytes.length}) cannot target shape ${JSON.stringify(scaleShape)}.`
+        );
+      }
+      return repeatUint8Pattern(explicitScaleBytes, requiredScaleElements);
+    })()
+    : encodeFloat32(rowScales);
   tensors.push({
     name,
     shape: [dataBytes.byteLength],
@@ -30,9 +104,14 @@ function pushRowwiseTensor(tensors, name, type, dataBytes, rowScales, rowSums = 
   });
   tensors.push({
     name: `${name}_quantized_scale`,
-    shape: [rowScales.length],
-    type: FIXTURE_TFLITE_TENSOR_TYPE.FLOAT32,
-    data: encodeFloat32(rowScales),
+    shape: scaleShape,
+    type: scaleCompanionType,
+    data: scaleBytes,
+    ...(scaleCompanionType === FIXTURE_TFLITE_TENSOR_TYPE.UINT8 && options.scaleCompanionQuantization
+      ? {
+        quantization: options.scaleCompanionQuantization,
+      }
+      : {}),
   });
   if (Array.isArray(rowSums) || ArrayBuffer.isView(rowSums)) {
     tensors.push({
@@ -130,11 +209,35 @@ export function buildGemma4LiteRTPackedFixture(options = {}) {
       'transformer.layer_34.per_layer_embeddings.w',
       FIXTURE_TFLITE_TENSOR_TYPE.UINT8,
       new Uint8Array((262144 * 256) / 2),
-      new Float32Array(262144).fill(0.25)
+      Uint8Array.from([1, 2, 3, 4]),
+      null,
+      {
+        scaleCompanionType: FIXTURE_TFLITE_TENSOR_TYPE.UINT8,
+        scaleCompanionShape: [262144, 4],
+        scaleCompanionQuantization: {
+          scales: [0.01],
+          zeroPoints: [0],
+        },
+        scaleCompanionData: repeatUint8Pattern(Uint8Array.from([1, 2, 3, 4]), 262144 * 4),
+      }
     );
     return buildTfliteFixture({
       description: options.description || 'gemma4-litert-profile-aligned-fixture',
       tensors,
+      metadata: [
+        {
+          name: 'odml.infra.proto.LlmParameters',
+          data: Uint8Array.from([0x08, 0x01, 0x10, 0x02]),
+        },
+        {
+          name: 'spm_vocab_model',
+          data: encodeUtf8('<pad><eos><bos>'),
+        },
+        {
+          name: 'backend',
+          data: encodeUtf8('gpu'),
+        },
+      ],
     });
   }
 
@@ -208,12 +311,36 @@ export function buildGemma4LiteRTPackedFixture(options = {}) {
       `${prefix}.per_layer_embeddings.w`,
       FIXTURE_TFLITE_TENSOR_TYPE.UINT8,
       perLayerEmbeddingBytes,
-      rowScales
+      Uint8Array.from([1, 2, 3, 4]),
+      null,
+      {
+        scaleCompanionType: FIXTURE_TFLITE_TENSOR_TYPE.UINT8,
+        scaleCompanionShape: [262144, 4],
+        scaleCompanionData: repeatUint8Pattern(Uint8Array.from([1, 2, 3, 4]), 262144 * 4),
+        scaleCompanionQuantization: {
+          scales: [0.01],
+          zeroPoints: [0],
+        },
+      }
     );
   }
 
   return buildTfliteFixture({
     description: options.description || 'gemma4-litert-packed-fixture',
     tensors,
+    metadata: [
+      {
+        name: 'odml.infra.proto.LlmParameters',
+        data: Uint8Array.from([0x08, 0x01, 0x10, 0x02]),
+      },
+      {
+        name: 'spm_vocab_model',
+        data: encodeUtf8('<pad><eos><bos>'),
+      },
+      {
+        name: 'backend',
+        data: encodeUtf8('gpu'),
+      },
+    ],
   });
 }

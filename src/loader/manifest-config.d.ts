@@ -12,6 +12,7 @@
 import type { RDRRManifest } from '../formats/rdrr/index.js';
 import type { TensorLocation, KernelCapabilities } from './loader-types.js';
 import type { WeightLayout, WeightDtype } from '../gpu/weight-buffer.js';
+import type { LargeWeightConfigSchema } from '../config/schema/index.js';
 
 /**
  * Check if model requires (1 + weight) offset for RMSNorm weights.
@@ -24,16 +25,10 @@ import type { WeightLayout, WeightDtype } from '../gpu/weight-buffer.js';
  */
 export declare function needsNormWeightOffset(manifest: RDRRManifest | null): boolean;
 
-export interface LargeWeightConfig {
-  enabled: boolean;
-  safetyRatio: number;
-  preferF16: boolean;
-}
-
 /**
  * Get large weight handling configuration from runtime config.
  */
-export declare function getLargeWeightConfig(): LargeWeightConfig;
+export declare function getLargeWeightConfig(): LargeWeightConfigSchema;
 
 /**
  * Get maximum bytes for a single GPU buffer binding.

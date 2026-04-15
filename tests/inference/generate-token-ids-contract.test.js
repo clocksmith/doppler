@@ -67,8 +67,8 @@ assert.ok(generateTokensInternalBody.length > 500, `_generateTokensInternal body
 const DECODE_CONTRACT = [
   {
     id: 'abort-signal',
-    description: 'Abort signal checked in decode loop',
-    generateTokenIdsPattern: 'signal?.aborted',
+    description: 'Abort signal checked in delegated decode loop',
+    generateTokenIdsPattern: '_runDecodeLoop(',
     runDecodeLoopPattern: 'signal?.aborted',
   },
   {
@@ -91,8 +91,8 @@ const DECODE_CONTRACT = [
   },
   {
     id: 'finiteness-consume',
-    description: 'Finiteness fallback token consumed each iteration',
-    generateTokenIdsPattern: '_consumeFinitenessFallbackToken',
+    description: 'Finiteness fallback token consumed in delegated decode loop',
+    generateTokenIdsPattern: '_runDecodeLoop(',
     runDecodeLoopPattern: '_consumeFinitenessFallbackToken',
   },
   {
@@ -115,6 +115,14 @@ const CLEANUP_CONTRACT = [
   'resetActiveExecutionPlan',
   'isGenerating = false',
   '_closeFinitenessFallbackWindow',
+];
+
+const DIAGNOSTICS_CONTRACT = [
+  'options?.diagnostics?.enabled === true',
+  'new OperatorEventEmitter(',
+  'stats.operatorDiagnostics',
+  'operatorDiagnostics.emitter.getTimeline()',
+  'operatorDiagnostics.emitter.length',
 ];
 
 // === 1. generateTokenIds has all decode contract points ===
@@ -166,6 +174,15 @@ for (const cleanup of CLEANUP_CONTRACT) {
   );
 }
 
+// === 5b. Diagnostics wiring in generateTokenIds ===
+
+for (const marker of DIAGNOSTICS_CONTRACT) {
+  assert.ok(
+    generateTokenIdsBody.includes(marker),
+    `generateTokenIds must include diagnostics contract marker ${marker}`
+  );
+}
+
 // === 6. Cleanup in _generateTokensInternal finally block ===
 
 const internalFinallyIdx = generateTokensInternalBody.lastIndexOf('finally');
@@ -214,13 +231,9 @@ assert.ok(
 );
 
 // === 9. Abort signal is inside the while loop, not before it ===
-
-const tokenIdsWhileIdx = generateTokenIdsBody.indexOf('while (tokenIds.length');
-assert.ok(tokenIdsWhileIdx !== -1, 'generateTokenIds must have a while loop');
-const tokenIdsAbortIdx = generateTokenIdsBody.indexOf('signal?.aborted');
 assert.ok(
-  tokenIdsAbortIdx > tokenIdsWhileIdx,
-  'Abort signal check must be inside the while loop, not before it'
+  generateTokenIdsBody.includes('_runDecodeLoop('),
+  'generateTokenIds must delegate iterative decode to _runDecodeLoop'
 );
 
 // === 10. _resetDecodeRuntimeState called at entry in both surfaces ===

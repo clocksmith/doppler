@@ -8,7 +8,7 @@
  */
 
 import type { Tensor } from '../../../../gpu/tensor.js';
-import type { CpuWeightBuffer } from '../../../../gpu/weight-buffer.js';
+import type { CpuWeightBuffer, CpuTensorRangeSource } from '../../../../gpu/weight-buffer.js';
 import type { CommandRecorder } from '../../../../gpu/command-recorder.js';
 import type { LargeWeightConfigSchema, ProbeConfigSchema, KernelPathSchema } from '../../../../config/schema/index.js';
 import type { LogitsConfig, LogitsWeights, LogitsDebugFlags } from './types.js';
@@ -32,13 +32,14 @@ export function resolveLmHeadChunkRows(
  * Extract a chunk of the LM head weight matrix.
  */
 export function extractLmHeadChunk(
-  data: Float32Array,
+  data: Float32Array | Uint16Array | CpuTensorRangeSource,
   layout: 'row' | 'column',
   hiddenSize: number,
   vocabSize: number,
   rowOffset: number,
-  rowCount: number
-): Float32Array;
+  rowCount: number,
+  sourceDtype?: 'f16' | 'f32' | 'bf16'
+): Promise<Float32Array>;
 
 /**
  * Write chunk logits to the full logits buffer.
