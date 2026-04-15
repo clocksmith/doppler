@@ -6,13 +6,14 @@ Browser-native inference on raw WebGPU. Pure JS + WGSL.
 
 **[Try the live demo](https://d4da.com/doppler)** | **[npm](https://www.npmjs.com/package/doppler-gpu)** | **[docs](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)**
 
-**Gemma 4 E2B on Apple M3 browser (2026-04-15):** Doppler (RDRR q4k/ehf16/af32)
-loads cold ~3.4× faster than Transformers.js (ONNX q4f16) from http — 17.0s vs
-57.5s. Warm model load is effectively tied. Transformers.js wins warm decode
-throughput (~29 tok/s vs ~11 tok/s) and TTFT (~210ms vs ~1143ms) on this
-hardware. This is a product-engine comparison across different artifact formats,
-not a format-identical kernel benchmark. Receipt:
-[`benchmarks/vendors/results/compare_20260415T170108.json`](./benchmarks/vendors/results/compare_20260415T170108.json).
+[![Gemma 4 E2B warm vs cold phase latency](https://raw.githubusercontent.com/clocksmith/doppler/main/benchmarks/vendors/results/compare_gemma4_e2b_warm_cold_phases.svg)](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
+
+Gemma 4 E2B on Apple M3 browser (2026-04-15). Cold load: Doppler 2.5× faster
+(17.0s vs 57.5s). Warm E2E: Transformers.js 40% faster (6.7s vs 11.2s) —
+better TTFT (~210ms vs ~1143ms) and decode (~29 tok/s vs ~11 tok/s). Warm model
+load is tied (~4.4s). This is a product-engine comparison across different
+artifact formats, not a format-identical kernel benchmark. Receipt:
+[`compare_20260415T170108.json`](./benchmarks/vendors/results/compare_20260415T170108.json).
 
 Broader model status and the surrounding compare evidence live in the support
 and release matrices. See the

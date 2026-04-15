@@ -1,0 +1,180 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="606" viewBox="0 0 1200 606" role="img" aria-labelledby="chart-title-1 chart-desc-1">
+  <title id="chart-title-1">Gemma 4 E2B — Warm vs Cold phase latency</title>
+  <desc id="chart-desc-1">Doppler RDRR q4k vs Transformers.js ONNX q4f16 on Apple M3 browser • 2026-04-15</desc>
+  <defs><style>
+  text { paint-order: stroke fill; stroke: #000000; stroke-width: 2px; stroke-linejoin: round; }
+</style></defs>
+  <rect x="0" y="0" width="1200" height="606" fill="#020617" />
+  <rect x="14" y="14" width="1172" height="578" rx="0" fill="#020817" fill-opacity="0.50" stroke="none" />
+  <defs>
+  <linearGradient id="phase-canvas-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#7c3aed18" />
+    <stop offset="45%" stop-color="#ef444410" />
+    <stop offset="100%" stop-color="#2563eb12" />
+  </linearGradient>
+  <linearGradient id="phase-workload-panel" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#081121" />
+    <stop offset="55%" stop-color="#0b1325" />
+    <stop offset="100%" stop-color="#0c1630" />
+  </linearGradient>
+  <linearGradient id="phase-workload-stroke" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#ef4444" />
+    <stop offset="48%" stop-color="#7c3aed" />
+    <stop offset="100%" stop-color="#2563eb" />
+  </linearGradient>
+  <linearGradient id="phase-track-fill" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#0c1528" />
+    <stop offset="100%" stop-color="#111b31" />
+  </linearGradient>
+  <linearGradient id="phase-track-stroke" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#ffffff1d" />
+    <stop offset="100%" stop-color="#ffffff08" />
+  </linearGradient>
+  <linearGradient id="phase-load-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#f87171" />
+    <stop offset="100%" stop-color="#ef4444" />
+  </linearGradient>
+  <linearGradient id="phase-prefill-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#a855f7" />
+    <stop offset="100%" stop-color="#7c3aed" />
+  </linearGradient>
+  <linearGradient id="phase-decode-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#60a5fa" />
+    <stop offset="100%" stop-color="#3b82f6" />
+  </linearGradient>
+  <linearGradient id="phase-doppler-chip" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#7c3aed33" />
+    <stop offset="100%" stop-color="#ef444422" />
+  </linearGradient>
+  <linearGradient id="phase-transformers-chip" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#1d4ed833" />
+    <stop offset="100%" stop-color="#ffbd4522" />
+  </linearGradient>
+  <linearGradient id="phase-total-pill" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#0f172a" />
+    <stop offset="100%" stop-color="#172554" />
+  </linearGradient>
+  <linearGradient id="phase-winner-pill" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#7c3aed33" />
+    <stop offset="100%" stop-color="#2563eb33" />
+  </linearGradient>
+  </defs><rect x="14" y="14" width="1172" height="578" fill="url(#phase-canvas-glow)" stroke="none" />
+<text x="36" y="48" fill="#7c3aed" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="bold" letter-spacing="1.2" stroke="none">TIMELINE</text>
+<text x="36" y="86" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="28" font-weight="bold" stroke="none">Gemma 4 E2B — Warm vs Cold phase latency</text>
+<text x="36" y="110" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13" stroke="none">Apple M3 browser • Doppler RDRR q4k/ehf16/af32 vs Transformers.js ONNX q4f16 • 64 prefill + 64 decode tokens</text>
+<rect x="896" y="36" width="268" height="34" rx="17" fill="url(#phase-winner-pill)" stroke="#3b82f6" stroke-width="1.1" />
+<text x="1030" y="57" text-anchor="middle" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="bold" stroke="none">SHORTER BAR = FASTER</text>
+
+<!-- ========== WARM SECTION ========== -->
+<rect x="24" y="128" width="1152" height="190" rx="26" fill="url(#phase-workload-panel)" stroke="url(#phase-workload-stroke)" stroke-width="1.4" />
+<line x1="48" y1="174" x2="1152" y2="174" stroke="#ffffff14" stroke-width="1" />
+<text x="50" y="160" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="bold" stroke="none">Warm (OPFS cache)</text>
+<!-- Winner badge: TJS wins warm E2E by 40% -->
+<rect x="932" y="146" width="220" height="28" rx="14" fill="#ffbd45" stroke="none" />
+<text x="1042" y="165" text-anchor="middle" fill="#000000" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="bold" stroke="none">TJS 40% faster E2E</text>
+
+<!-- Doppler warm row -->
+<rect x="48" y="194" width="128" height="28" rx="14" fill="url(#phase-doppler-chip)" stroke="#9d4edd" stroke-width="1.5" />
+<text x="62" y="213" fill="#9d4edd" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="bold" stroke="none">Doppler.js</text>
+<text x="62" y="236" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" stroke="none">OPFS → VRAM</text>
+<!-- Track -->
+<rect x="250" y="182" width="766" height="56" rx="18" fill="url(#phase-track-fill)" stroke="url(#phase-track-stroke)" stroke-width="1.2" />
+<!-- Load bar: 4452.6ms → 301.65px -->
+<rect x="254" y="186" width="301.65" height="48" fill="url(#phase-load-grad)" />
+<text x="264" y="210" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">Warm load</text>
+<text x="264" y="224" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">4.45 s</text>
+<!-- Prefill bar: 1141.65ms → 77.39px -->
+<rect x="555.65" y="186" width="77.39" height="48" fill="url(#phase-prefill-grad)" />
+<text x="594.35" y="180" text-anchor="middle" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="9">1142 ms • 55.2 tok/s</text>
+<!-- Decode bar: 5588.15ms → 378.66px -->
+<rect x="633.04" y="186" width="378.66" height="48" fill="url(#phase-decode-grad)" />
+<text x="643" y="210" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">Decode</text>
+<text x="643" y="224" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">5.59 s • 11.5 tok/s</text>
+<!-- Total pill -->
+<rect x="1034" y="191" width="118" height="38" rx="19" fill="url(#phase-total-pill)" stroke="#ffffff1f" stroke-width="1.1" />
+<text x="1093" y="207" text-anchor="middle" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="10" font-weight="bold" stroke="none">TOTAL</text>
+<text x="1093" y="221" text-anchor="middle" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="13">11.2 s</text>
+
+<!-- TJS warm row -->
+<rect x="48" y="266" width="188" height="28" rx="14" fill="url(#phase-transformers-chip)" stroke="#ffbd45" stroke-width="1.5" />
+<text x="62" y="285" fill="#ffbd45" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="bold" stroke="none">Transformers.js (v4)</text>
+<text x="62" y="308" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" stroke="none">OPFS → ORT → VRAM</text>
+<!-- Track -->
+<rect x="250" y="254" width="766" height="56" rx="18" fill="url(#phase-track-fill)" stroke="url(#phase-track-stroke)" stroke-width="1.2" />
+<!-- Load bar: 4358.29ms → 295.26px -->
+<rect x="254" y="258" width="295.26" height="48" fill="url(#phase-load-grad)" />
+<text x="264" y="282" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">Warm load</text>
+<text x="264" y="296" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">4.36 s</text>
+<!-- Prefill bar: 207.97ms → 14.10px -->
+<rect x="549.26" y="258" width="14.10" height="48" fill="url(#phase-prefill-grad)" />
+<text x="556.31" y="252" text-anchor="middle" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="9">208 ms • 307.8 tok/s</text>
+<!-- Decode bar: 2150.05ms → 145.72px -->
+<rect x="563.36" y="258" width="145.72" height="48" fill="url(#phase-decode-grad)" />
+<text x="573" y="282" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">Decode</text>
+<text x="573" y="296" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">2.15 s • 29.3 tok/s</text>
+<!-- Total pill -->
+<rect x="1034" y="263" width="118" height="38" rx="19" fill="url(#phase-total-pill)" stroke="#ffffff1f" stroke-width="1.1" />
+<text x="1093" y="279" text-anchor="middle" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="10" font-weight="bold" stroke="none">TOTAL</text>
+<text x="1093" y="293" text-anchor="middle" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="13">6.72 s</text>
+
+<!-- ========== COLD SECTION ========== -->
+<rect x="24" y="340" width="1152" height="190" rx="26" fill="url(#phase-workload-panel)" stroke="url(#phase-workload-stroke)" stroke-width="1.4" />
+<line x1="48" y1="386" x2="1152" y2="386" stroke="#ffffff14" stroke-width="1" />
+<text x="50" y="372" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="bold" stroke="none">Cold (HTTP download)</text>
+<!-- Winner badge: Doppler wins cold E2E by 60% / 2.5× -->
+<rect x="932" y="358" width="220" height="28" rx="14" fill="#22c55e" stroke="none" />
+<text x="1042" y="377" text-anchor="middle" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="bold" stroke="none">Doppler 2.5× faster E2E</text>
+
+<!-- Doppler cold row -->
+<rect x="48" y="406" width="128" height="28" rx="14" fill="url(#phase-doppler-chip)" stroke="#9d4edd" stroke-width="1.5" />
+<text x="62" y="425" fill="#9d4edd" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="bold" stroke="none">Doppler.js</text>
+<text x="62" y="448" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" stroke="none">HTTP → VRAM</text>
+<!-- Track -->
+<rect x="250" y="394" width="766" height="56" rx="18" fill="url(#phase-track-fill)" stroke="url(#phase-track-stroke)" stroke-width="1.2" />
+<!-- Load bar: 16967.1ms → 214.94px -->
+<rect x="254" y="398" width="214.94" height="48" fill="url(#phase-load-grad)" />
+<text x="264" y="422" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">Cold load</text>
+<text x="264" y="436" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">17.0 s</text>
+<!-- Prefill bar: 1343.05ms → 17.02px -->
+<rect x="468.94" y="398" width="17.02" height="48" fill="url(#phase-prefill-grad)" />
+<text x="477.45" y="392" text-anchor="middle" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="9">1343 ms • 48.0 tok/s</text>
+<!-- Decode bar: 5739.75ms → 72.74px -->
+<rect x="485.96" y="398" width="72.74" height="48" fill="url(#phase-decode-grad)" />
+<text x="496" y="422" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">Decode</text>
+<text x="496" y="436" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">5.74 s • 11.2 tok/s</text>
+<!-- Total pill -->
+<rect x="1034" y="403" width="118" height="38" rx="19" fill="url(#phase-total-pill)" stroke="#ffffff1f" stroke-width="1.1" />
+<text x="1093" y="419" text-anchor="middle" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="10" font-weight="bold" stroke="none">TOTAL</text>
+<text x="1093" y="433" text-anchor="middle" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="13">24.1 s</text>
+
+<!-- TJS cold row -->
+<rect x="48" y="478" width="188" height="28" rx="14" fill="url(#phase-transformers-chip)" stroke="#ffbd45" stroke-width="1.5" />
+<text x="62" y="497" fill="#ffbd45" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="bold" stroke="none">Transformers.js (v4)</text>
+<text x="62" y="520" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" stroke="none">HTTP → ORT → VRAM</text>
+<!-- Track -->
+<rect x="250" y="466" width="766" height="56" rx="18" fill="url(#phase-track-fill)" stroke="url(#phase-track-stroke)" stroke-width="1.2" />
+<!-- Load bar: 57476.82ms → 728.25px -->
+<rect x="254" y="470" width="728.25" height="48" fill="url(#phase-load-grad)" />
+<text x="264" y="494" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold">Cold load</text>
+<text x="264" y="508" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="10">57.5 s</text>
+<!-- Prefill bar: 210.19ms → 2.66px -->
+<rect x="982.25" y="470" width="2.66" height="48" fill="url(#phase-prefill-grad)" />
+<!-- Decode bar: 2144.81ms → 27.18px -->
+<rect x="984.91" y="470" width="27.09" height="48" fill="url(#phase-decode-grad)" />
+<!-- Combined annotation for narrow prefill+decode -->
+<text x="998" y="464" text-anchor="middle" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="9">210 ms TTFT → 2.14 s • 29.4 tok/s</text>
+<!-- Total pill -->
+<rect x="1034" y="475" width="118" height="38" rx="19" fill="url(#phase-total-pill)" stroke="#ffffff1f" stroke-width="1.1" />
+<text x="1093" y="491" text-anchor="middle" fill="#cbd5e1" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="10" font-weight="bold" stroke="none">TOTAL</text>
+<text x="1093" y="505" text-anchor="middle" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="13">59.8 s</text>
+
+<!-- ========== LEGEND ========== -->
+<rect x="36" y="556" width="18" height="18" rx="6" fill="url(#phase-load-grad)" />
+<text x="64" y="569" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13" stroke="none">Load</text>
+<rect x="150" y="556" width="18" height="18" rx="6" fill="url(#phase-prefill-grad)" />
+<text x="178" y="569" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13" stroke="none">TTFT / Prefill</text>
+<rect x="334" y="556" width="18" height="18" rx="6" fill="url(#phase-decode-grad)" />
+<text x="362" y="569" fill="#ffffff" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13" stroke="none">Decode</text>
+<text x="1152" y="569" text-anchor="end" fill="#475569" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="9" stroke="none">Receipt: compare_20260415T170108.json</text>
+
+</svg>
