@@ -2,11 +2,26 @@
 import { readBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { allowReadback } from '../../../gpu/perf-guards.js';
 import { log } from '../../../debug/index.js';
+import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance } from '../../../gpu/weight-buffer.js';
 import { resolveRangeAwareSelectiveWideningConfig } from './finiteness-policy.js';
 import { resolveActiveExecutionPlan } from './execution-plan.js';
+
+function isPlainObject(value) {
+  return value != null && typeof value === 'object' && !Array.isArray(value);
+}
+
+export function resolvePerLayerInputsSession(manifestSession, runtimeSession) {
+  if (!isPlainObject(runtimeSession)) {
+    return runtimeSession ?? (manifestSession ?? null);
+  }
+  if (!isPlainObject(manifestSession)) {
+    return runtimeSession;
+  }
+  return mergeRuntimeValues(manifestSession, runtimeSession);
+}
 export async function debugCheckBuffer(state, buffer, label, numTokens, expectedDim) {
   if (!allowReadback(`pipeline.debug.${label}`)) return;
 
@@ -83,6 +98,10 @@ export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, de
   const activeExecutionPlan = executionPlan ?? resolveActiveExecutionPlan(state);
   const activeKernelPath = activeExecutionPlan.kernelPath ?? state.resolvedKernelPath ?? null;
   const effectiveActivationDtype = activeExecutionPlan.activationDtype;
+  const perLayerInputsSession = resolvePerLayerInputsSession(
+    config.perLayerInputsSession ?? null,
+    state.runtimeConfig?.inference?.session?.perLayerInputs ?? null
+  );
   const effectiveComputeConfig = {
     ...computeConfig,
     activationDtype: effectiveActivationDtype,
@@ -122,7 +141,7 @@ export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, de
     debugProbes: state.runtimeConfig.shared.debug.probes,
     debugCheckBuffer: debugCheckBufferFn,
     perLayerInputBuffer: null,
-    perLayerInputsSession: state.runtimeConfig.inference.session?.perLayerInputs ?? config.perLayerInputsSession,
+    perLayerInputsSession,
     pipelinePlan: state.layerPipelinePlan,
     expertWeights: state.expertWeights,
     expertLoader: state.dopplerLoader,

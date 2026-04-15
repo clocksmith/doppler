@@ -43,6 +43,7 @@ import {
   debugCheckBuffer as debugCheckBufferHelper,
   getLogitsConfig,
   getLogitsWeights,
+  resolvePerLayerInputsSession,
   releaseSharedAttentionState,
 } from './generator-helpers.js';
 import {
@@ -135,9 +136,10 @@ export function resolveHotVocabularyBatchDecodeAvailability({
 }
 
 async function primePleDecodeRuntimeCache(state, seedTokenIds = null) {
-  const perLayerInputsSession = state.runtimeConfig.inference.session?.perLayerInputs
-    ?? state.modelConfig?.perLayerInputsSession
-    ?? null;
+  const perLayerInputsSession = resolvePerLayerInputsSession(
+    state.modelConfig?.perLayerInputsSession ?? null,
+    state.runtimeConfig?.inference?.session?.perLayerInputs ?? null
+  );
   const materialization = perLayerInputsSession?.materialization;
   if (state.debug) {
     log.debug(
@@ -2056,12 +2058,15 @@ export class PipelineGenerator {
         // Step 5: Fire-and-forget prefetch of next token's PLE row.
         if (pleHiddenSize > 0) {
           const pleWeights = this.#state.weights.get('per_layer_inputs');
-          if (pleWeights?.embedTokensPerLayer) {
+        if (pleWeights?.embedTokensPerLayer) {
             this.#state.plePrefetchPending = prefetchPerLayerRow(
               nextToken,
               pleWeights.embedTokensPerLayer,
               this.#state.modelConfig.numLayers * pleHiddenSize,
-              this.#state.runtimeConfig.inference.session?.perLayerInputs ?? this.#state.modelConfig.perLayerInputsSession,
+              resolvePerLayerInputsSession(
+                this.#state.modelConfig.perLayerInputsSession ?? null,
+                this.#state.runtimeConfig?.inference?.session?.perLayerInputs ?? null
+              ),
             );
           }
         }
