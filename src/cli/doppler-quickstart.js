@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { realpathSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
@@ -201,6 +202,18 @@ function formatDeviceSummary(deviceInfo) {
   return parts.length > 0 ? parts.join(' / ') : 'unknown-device';
 }
 
+export function requireQuickstartContent(result) {
+  const content = asStringOrNull(result?.content);
+  if (content === null) {
+    const modelId = asStringOrNull(result?.modelId) ?? 'unknown';
+    throw new Error(
+      `Quickstart model "${modelId}" returned empty output. `
+      + 'Treat this as a runtime failure and inspect the preceding load/generation error.'
+    );
+  }
+  return content;
+}
+
 export async function runQuickstart(settings) {
   const entry = await resolveQuickstartModel(settings.model);
   if (!entry.modes.includes('text')) {
@@ -257,7 +270,8 @@ async function printModelList(jsonOutput) {
 }
 
 function printQuickstartResult(result) {
-  console.log(result.content);
+  const content = requireQuickstartContent(result);
+  console.log(content);
   console.error(
     `[doppler-gpu] model=${result.modelId} elapsed=${result.elapsedMs}ms device=${formatDeviceSummary(result.deviceInfo)}`
   );
@@ -288,7 +302,7 @@ function isMainModule(metaUrl) {
   if (!entryPath) {
     return false;
   }
-  return path.resolve(fileURLToPath(metaUrl)) === path.resolve(entryPath);
+  return realpathSync(path.resolve(fileURLToPath(metaUrl))) === realpathSync(path.resolve(entryPath));
 }
 
 if (isMainModule(import.meta.url)) {

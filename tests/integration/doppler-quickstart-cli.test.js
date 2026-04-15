@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, symlinkSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -11,6 +12,7 @@ const PACKAGE_JSON_PATH = path.join(ROOT_DIR, 'package.json');
 
 const {
   parseQuickstartArgs,
+  requireQuickstartContent,
   readQuickstartConfig,
   resolveQuickstartSettings,
 } = await import('../../src/cli/doppler-quickstart.js');
@@ -41,6 +43,17 @@ const {
 }
 
 {
+  assert.equal(
+    requireQuickstartContent({ modelId: 'gemma-3-270m-it-q4k-ehf16-af32', content: 'WebGPU exposes GPU compute in the browser and modern JS runtimes.' }),
+    'WebGPU exposes GPU compute in the browser and modern JS runtimes.'
+  );
+  assert.throws(
+    () => requireQuickstartContent({ modelId: 'gemma-3-270m-it-q4k-ehf16-af32', content: '' }),
+    /returned empty output/
+  );
+}
+
+{
   const result = spawnSync(process.execPath, [QUICKSTART_CLI_PATH, '--help'], {
     cwd: ROOT_DIR,
     encoding: 'utf8',
@@ -48,6 +61,22 @@ const {
   assert.equal(result.status, 0);
   assert.match(result.stdout, /npx doppler-gpu/);
   assert.match(result.stdout, /--list-models/);
+}
+
+{
+  const tempDir = mkdtempSync(path.join(os.tmpdir(), 'doppler-quickstart-link-'));
+  const linkedPath = path.join(tempDir, 'doppler-gpu');
+  symlinkSync(QUICKSTART_CLI_PATH, linkedPath);
+  try {
+    const result = spawnSync(process.execPath, [linkedPath, '--help'], {
+      cwd: ROOT_DIR,
+      encoding: 'utf8',
+    });
+    assert.equal(result.status, 0);
+    assert.match(result.stdout, /npx doppler-gpu/);
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+  }
 }
 
 {

@@ -7,13 +7,14 @@ import {
 const BROKEN_GEMMA_1B_QUICKSTART_REVISION = 'dfbe333a262f00050eebb6704827cad4839c6825';
 const models = await listQuickstartModels();
 
-// Registry should have 5 models after adding Gemma 3 1B, Qwen 3.5 0.8B, Qwen 3.5 2B
-assert.equal(models.length, 5, `Expected 5 quickstart models, got ${models.length}`);
+// Registry should have 6 models after adding Gemma 4 E2B to quickstart support.
+assert.equal(models.length, 6, `Expected 6 quickstart models, got ${models.length}`);
 
 const modelIds = models.map((m) => m.modelId);
 assert.ok(modelIds.includes('gemma-3-270m-it-q4k-ehf16-af32'), 'Gemma 3 270M missing');
 assert.ok(modelIds.includes('google-embeddinggemma-300m-q4k-ehf16-af32'), 'EmbeddingGemma 300M missing');
 assert.ok(modelIds.includes('gemma-3-1b-it-q4k-ehf16-af32'), 'Gemma 3 1B missing');
+assert.ok(modelIds.includes('gemma-4-e2b-it-q4k-ehf16-af32'), 'Gemma 4 E2B missing');
 assert.ok(modelIds.includes('qwen-3-5-0-8b-q4k-ehaf16'), 'Qwen 3.5 0.8B missing');
 assert.ok(modelIds.includes('qwen-3-5-2b-q4k-ehaf16'), 'Qwen 3.5 2B missing');
 
@@ -28,6 +29,13 @@ assert.ok(modelIds.includes('qwen-3-5-2b-q4k-ehaf16'), 'Qwen 3.5 2B missing');
     BROKEN_GEMMA_1B_QUICKSTART_REVISION,
     'gemma3-1b quickstart registry must not point at the broken HF revision'
   );
+}
+
+{
+  const entry = await resolveQuickstartModel('gemma4-e2b');
+  assert.equal(entry.modelId, 'gemma-4-e2b-it-q4k-ehf16-af32');
+  assert.ok(entry.modes.includes('text'));
+  assert.ok(entry.modes.includes('vision'));
 }
 
 {

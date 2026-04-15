@@ -12,6 +12,11 @@ status and the surrounding compare evidence live in the support and release
 matrices.
 See the [benchmark methodology](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md).
 
+## New in 0.4.2
+
+- `Gemma 4 E2B` support for Doppler-native `RDRR` artifacts and direct-source `TFLite` / LiteRT workflows.
+- Experimental direct-source loading for `TFLite`, `GGUF`, and `SafeTensors`, alongside native `RDRR` artifacts.
+
 ## Quick start
 
 ### Browser
@@ -110,6 +115,7 @@ These registry IDs resolve to hosted RDRR artifacts automatically from the brows
 | --- | --- | --- | --- | --- |
 | Gemma 3 270M IT | `gemma3-270m` | Q4K | 270M | Gemma |
 | Gemma 3 1B IT | `gemma3-1b` | Q4K | 1B | Gemma |
+| Gemma 4 E2B IT | `gemma4-e2b` | Q4K | E2B | Gemma |
 | EmbeddingGemma 300M | `embeddinggemma-300m` | Q4K | 300M | Gemma |
 | Qwen 3.5 0.8B | `qwen3-0.8b` | Q4K | 0.8B | Qwen |
 | Qwen 3.5 2B | `qwen3-2b` | Q4K | 2B | Qwen |

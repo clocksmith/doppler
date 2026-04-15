@@ -1,6 +1,6 @@
 {
   "name": "doppler-gpu",
-  "version": "0.2.2",
+  "version": "0.4.2",
   "description": "Browser-native WebGPU inference engine for local intent and inference loops",
   "main": "src/index.js",
   "types": "src/index.d.ts",
@@ -93,18 +93,17 @@
     "verify:gemma-3-270m-it-wq4k-ef16": "node tools/run-registry-verify.js gemma-3-270m-it-wq4k-ef16",
     "verify:gemma-3-270m-it-wq4k-ef16-hf16": "node tools/run-registry-verify.js gemma-3-270m-it-wq4k-ef16-hf16",
     "verify:gemma-3-270m-it-wq4k-ef16-hf16-f32": "node tools/run-registry-verify.js gemma-3-270m-it-wq4k-ef16-hf16-f32",
+    "verify:gemma-4-e2b-it-q4k-ehf16-af32": "node tools/run-registry-verify.js gemma-4-e2b-it-q4k-ehf16-af32",
     "verify:gemma3-1b": "node tools/run-registry-verify.js gemma3-1b",
     "verify:gemma3-270m": "node tools/run-registry-verify.js gemma3-270m",
+    "verify:gemma4-e2b": "node tools/run-registry-verify.js gemma4-e2b",
     "verify:google-embeddinggemma-300m": "node tools/run-registry-verify.js google-embeddinggemma-300m",
     "verify:google-embeddinggemma-300m-q4k-ehf16-af32": "node tools/run-registry-verify.js google-embeddinggemma-300m-q4k-ehf16-af32",
     "verify:google-embeddinggemma-300m-wq4k-ef16": "node tools/run-registry-verify.js google-embeddinggemma-300m-wq4k-ef16",
     "verify:google-gemma-3-1b-it": "node tools/run-registry-verify.js google-gemma-3-1b-it",
     "verify:google-gemma-3-270m-it": "node tools/run-registry-verify.js google-gemma-3-270m-it",
+    "verify:google-gemma-4-e2b-it": "node tools/run-registry-verify.js google-gemma-4-e2b-it",
     "verify:google-translategemma-4b-it": "node tools/run-registry-verify.js google-translategemma-4b-it",
-    "verify:lfm2-1.2b": "node tools/run-registry-verify.js lfm2-1.2b",
-    "verify:lfm2-5-1-2b-instruct-q4k-ehf16-af32": "node tools/run-registry-verify.js lfm2-5-1-2b-instruct-q4k-ehf16-af32",
-    "verify:lfm2.5-1.2b": "node tools/run-registry-verify.js lfm2.5-1.2b",
-    "verify:liquidai-lfm2.5-1.2b-instruct": "node tools/run-registry-verify.js liquidai-lfm2.5-1.2b-instruct",
     "verify:qwen-3-5-0-8b": "node tools/run-registry-verify.js qwen-3-5-0-8b",
     "verify:qwen-3-5-0-8b-q4k-ehaf16": "node tools/run-registry-verify.js qwen-3-5-0-8b-q4k-ehaf16",
     "verify:qwen-3-5-0-8b-wq4k-ef16-hf16-f16": "node tools/run-registry-verify.js qwen-3-5-0-8b-wq4k-ef16-hf16-f16",
@@ -203,6 +202,7 @@
     "typescript": "^6.0.2"
   },
   "optionalDependencies": {
+    "doe-gpu": "^0.4.2",
     "webgpu": "^0.4.0"
   }
 }

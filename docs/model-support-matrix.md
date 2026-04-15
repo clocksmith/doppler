@@ -3,7 +3,7 @@
 Auto-generated from conversion configs (`src/config/conversion/**`) and `models/catalog.json`.
 Run `npm run support:matrix:sync` after editing `models/catalog.json` or changing conversion configs.
 
-Updated at: 2026-04-09
+Updated at: 2026-04-14
 
 ## Current Inference Status
 
@@ -20,7 +20,6 @@ This section answers "which models work now?" from `models/catalog.json` lifecyc
 | translategemma-4b-it-q4k-ehf16-af32 | translategemma | translate | 2026-03-20 | browser, node | Browser/WebGPU on Apple M3 and Node/WebGPU on AMD RDNA-3 verified through 2026-03-20 with structured TranslateGemma requests. en->fr 'Hello world.' -> 'Bonjour le monde.' The working Q4K path is gemma3-q4k-dequant-f32w-f32a-online; the prior failure remained isolated to the older q4k_dequant F16-weight path. |
 | qwen-3-5-0-8b-q4k-ehaf16 | qwen3 | text, vision | 2026-04-13 | node | Node/WebGPU on Apple M3 re-verified on 2026-04-13 after syncing the refreshed execution-v1 manifest and republishing the hosted artifact. The execution-inline Qwen path now keeps decode batchSize=32 with readbackInterval=1, passes the execution contract gate, and produces coherent sky-color output with the expected Qwen <think> wrapper still present. |
 | qwen-3-5-2b-q4k-ehaf16 | qwen3 | text, vision | 2026-03-31 | browser, node | Node/WebGPU verification uses execution-v1 with fused-Q4 decode/prefill projections as the primary hybrid Qwen path and execution.inlineKernelPath=true. The earlier GEMV/head256 note was rolled back after correctness regressions on the linear-attention path. |
-| lfm2-5-1-2b-instruct-q4k-ehf16-af32 | lfm2 | text | 2026-03-20 | node | Node/WebGPU on AMD RDNA-3 re-verified on 2026-03-20 after the ChatML fix and refreshed manifest sync. One-word sky-color prompts are stable ('Blue'), but short open-ended factual prompts remain prompt-sensitive and weaker than Gemma/Qwen. Runtime path is coherent; the refreshed manifest now includes tokenizer BOS/EOS/PAD IDs and decodeLoop=null. |
 
 ### 2. Loads But Unverified
 
@@ -39,6 +38,7 @@ None right now.
 | Entry | Type | Status | Notes |
 | --- | --- | --- | --- |
 | sana-sprint-0-6b-wf16-ef16-hf16-f16 | catalog model | experimental | Cataloged model without a verified or failing inference lifecycle result. |
+| lfm2 | model family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
 | gpt_oss | model family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
 | janus_text | model family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
 
@@ -51,7 +51,7 @@ None right now.
 | translategemma | transformer | active | 2 (src/config/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json, src/config/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json) | 1 (translategemma-4b-it-q4k-ehf16-af32) | yes | none | verified (2026-03-20) | verified | catalog verification applies only to cataloged models (1/2 conversion configs cataloged) |
 | gemma4 | transformer | active | 2 (src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32.json, src/config/conversion/gemma4/gemma-4-moe-q4k-ehf16-af32.json) | 1 (gemma-4-e2b-it-q4k-ehf16-af32) | yes | none | verified (2026-04-09) | verified | catalog verification applies only to cataloged models (1/2 conversion configs cataloged) |
 | qwen3 | transformer | active | 2 (src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json, src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json) | 2 (qwen-3-5-0-8b-q4k-ehaf16, qwen-3-5-2b-q4k-ehaf16) | yes | none | verified (2026-04-13) | verified | - |
-| lfm2 | transformer | active | 1 (src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json) | 1 (lfm2-5-1-2b-instruct-q4k-ehf16-af32) | yes | none | verified (2026-03-20) | verified | - |
+| lfm2 | transformer | active | 1 (src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | gpt_oss | transformer | active | 1 (src/config/conversion/gpt-oss-20b-f16-xmxfp4.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | janus_text | transformer | active | 1 (src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | sana | diffusion | active | 1 (src/config/conversion/sana/sana-sprint-0.6b-f16.json) | 1 (sana-sprint-0-6b-wf16-ef16-hf16-f16) | no | none | unknown | verification-pending | not verified in catalog lifecycle |
@@ -60,12 +60,12 @@ None right now.
 
 - Families tracked: 9
 - Families with conversion configs: 9
-- Families present in catalog: 7
-- Verified families (active runtime + conversion + catalog + passing verification): 6
+- Families present in catalog: 6
+- Verified families (active runtime + conversion + catalog + passing verification): 5
 - Cataloged families pending verification: 1
-- Families with HF-hosted catalog entries: 6
-- Families with verified catalog lifecycle: 6
+- Families with HF-hosted catalog entries: 5
+- Families with verified catalog lifecycle: 5
 - Families with failed catalog verification: 0
 - Blocked runtime families: 0
-- Catalog entries: 9
+- Catalog entries: 8
 
