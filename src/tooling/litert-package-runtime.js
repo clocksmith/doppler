@@ -509,9 +509,30 @@ function createLiteRTAxisTensor(
     : null;
   if (hasUint8ScaleCompanion) {
     if (!scaleTensorSourceTransform || scaleTensorSourceTransform.kind !== 'affine_dequant') {
+      // Known gap, 2026-04-15: Gemma 4 E2B `.task` files (e.g.
+      // `gemma-4-E2B-it-web.task`) expose `per_layer_embeddings.w` and
+      // `per_layer_embeddings.w_quantized_scale` as UINT8 tensors with no
+      // quantization params in the TFLite FlatBuffer and no sibling
+      // min/max/range metadata tensors. The LiteRT-LM scale-of-scale
+      // convention for this specific PLE tensor family is not yet recorded
+      // anywhere we can consume here, so loading blocks at this throw.
+      //
+      // To close this gap we need either (a) the LiteRT-LM spec for the
+      // PLE scale-companion affine-dequant convention (scale/zero_point
+      // derivation rule), or (b) ground-truth F16 values from a reference
+      // tokenizer/runtime so the convention can be recovered empirically
+      // and added to the parser (probably in
+      // `src/formats/tflite/types.js:readTensorQuantization`).
+      //
+      // Diagnostic test:
+      // `tests/integration/litert-gemma4-task-ple-scale.test.js`
+      // exercises the exact failure shape and is skipped when the local
+      // `.task` artifact is not available.
       throw new Error(
         `direct-source runtime: LiteRT tensor "${rawTensor.name}" has UINT8 scale companion "${rawTensor.name}_quantized_scale" ` +
-        'without affine_dequant metadata.'
+        'without affine_dequant metadata. This is a known LiteRT-LM direct-source gap for Gemma 4 E2B per-layer-embedding tensors; '
+        + 'see tests/integration/litert-gemma4-task-ple-scale.test.js and '
+        + 'src/tooling/litert-package-runtime.js:createLiteRTAxisTensor for the scope of the missing scale-of-scale convention.'
       );
     }
     if (!Number.isFinite(scaleCompanionDequant.scale) || scaleCompanionDequant.scale <= 0) {
