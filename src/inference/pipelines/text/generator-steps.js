@@ -19,6 +19,7 @@ import {
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from './sampling.js';
 import { isStopToken } from './init.js';
 import { embed } from './embed.js';
+import { resolvePerLayerInputsSession } from './generator-helpers.js';
 import { processLayer } from './layer.js';
 import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, finalizeLogits, applySoftcapping } from './logits/index.js';
 import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, getWeightDtype } from '../../../gpu/weight-buffer.js';
@@ -111,12 +112,15 @@ function schedulePlePrefetchForToken(state, tokenId) {
   if (!pleWeights?.embedTokensPerLayer) {
     return;
   }
-  const perLayerInputsSession = state.runtimeConfig.inference.session?.perLayerInputs ?? config.perLayerInputsSession;
+  const resolvedPerLayerInputsSession = resolvePerLayerInputsSession(
+    config.perLayerInputsSession ?? null,
+    state.runtimeConfig?.inference?.session?.perLayerInputs ?? null
+  );
   state.plePrefetchPending = prefetchPerLayerRow(
     tokenId,
     pleWeights.embedTokensPerLayer,
     config.numLayers * pleHiddenSize,
-    perLayerInputsSession
+    resolvedPerLayerInputsSession
   );
 }
 
@@ -1135,7 +1139,10 @@ async function generateNTokensGPUStepwiseRangeBackedPle(state, N, currentIds, op
     ? config.numLayers * pleHiddenSize
     : 0;
   const pleWeights = state.weights.get('per_layer_inputs');
-  const pleSession = state.runtimeConfig.inference.session?.perLayerInputs ?? config.perLayerInputsSession;
+  const resolvedPleSession = resolvePerLayerInputsSession(
+    config.perLayerInputsSession ?? null,
+    state.runtimeConfig?.inference?.session?.perLayerInputs ?? null
+  );
   const generatedTokens = [];
   const rollingIds = Array.isArray(currentIds) ? currentIds.slice() : Array.from(currentIds ?? []);
   let gpuSubmissions = 0;
@@ -1152,7 +1159,7 @@ async function generateNTokensGPUStepwiseRangeBackedPle(state, N, currentIds, op
         rollingIds[rollingIds.length - 1],
         pleWeights.embedTokensPerLayer,
         totalPerLayerHiddenSize,
-        pleSession
+        resolvedPleSession
       );
     }
 

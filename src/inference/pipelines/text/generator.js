@@ -1772,6 +1772,10 @@ export class PipelineGenerator {
     }
 
     const decodeStart = performance.now();
+    const resolvedPerLayerInputsSession = resolvePerLayerInputsSession(
+      this.#state.modelConfig.perLayerInputsSession ?? null,
+      this.#state.runtimeConfig?.inference?.session?.perLayerInputs ?? null
+    );
     const lmHead = this.#state.weights.get('lm_head');
     const embedBuffer = this.#state.weights.get('embed');
     const hasCpuWeights = isCpuWeightBuffer(lmHead)
@@ -2058,15 +2062,12 @@ export class PipelineGenerator {
         // Step 5: Fire-and-forget prefetch of next token's PLE row.
         if (pleHiddenSize > 0) {
           const pleWeights = this.#state.weights.get('per_layer_inputs');
-        if (pleWeights?.embedTokensPerLayer) {
+          if (pleWeights?.embedTokensPerLayer) {
             this.#state.plePrefetchPending = prefetchPerLayerRow(
               nextToken,
               pleWeights.embedTokensPerLayer,
               this.#state.modelConfig.numLayers * pleHiddenSize,
-              resolvePerLayerInputsSession(
-                this.#state.modelConfig.perLayerInputsSession ?? null,
-                this.#state.runtimeConfig?.inference?.session?.perLayerInputs ?? null
-              ),
+              resolvedPerLayerInputsSession,
             );
           }
         }

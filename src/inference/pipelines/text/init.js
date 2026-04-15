@@ -29,6 +29,7 @@ import {
 } from '../../../config/kernel-path-loader.js';
 import { createWeightBuffer, getWeightDtype, isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import { resolvePerLayerInputsSession } from './generator-helpers.js';
 import {
   createHttpArtifactStorageContext,
   createNodeFileArtifactStorageContext,
@@ -1105,7 +1106,12 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
     )
   );
   dopplerLoader.setLoaderDebugConfig(loaderDebug ?? null);
-  dopplerLoader.setPerLayerInputSession(perLayerInputSession ?? modelConfig.perLayerInputsSession);
+  dopplerLoader.setPerLayerInputSession(
+    resolvePerLayerInputsSession(
+      modelConfig.perLayerInputsSession ?? null,
+      perLayerInputSession ?? null
+    )
+  );
 
   const tensorsFile = isRDRRManifest(manifest) ? manifest.tensorsFile : null;
   if (baseUrl && tensorsFile) {

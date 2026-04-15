@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 
 import { createDopplerConfig } from '../../src/config/schema/index.js';
-import { buildLayerContext } from '../../src/inference/pipelines/text/generator-helpers.js';
+import {
+  buildLayerContext,
+  resolvePerLayerInputsSession,
+} from '../../src/inference/pipelines/text/generator-helpers.js';
 
 function createMinimalState() {
   const runtimeConfig = createDopplerConfig().runtime;
@@ -50,6 +53,31 @@ const executionPlan = {
   finitenessAbsThreshold: null,
 };
 
+const basePerLayerInputsSession = {
+  materialization: 'range_backed',
+  rowCache: {
+    mode: 'prepared_tokens',
+    maxRows: 8,
+    maxBytes: 1000,
+    decodedDtype: 'f16',
+    outputDtype: 'f16',
+  },
+  prefetch: {
+    mode: 'none',
+    rowsAhead: 1,
+  },
+  gpuUpload: {
+    mode: 'immediate',
+    stagingRows: 1,
+  },
+  hotCache: {
+    mode: 'prepared_tokens',
+    maxTokens: 16,
+    maxBytes: 1024,
+    outputDtype: 'f16',
+  },
+};
+
 {
   const state = createMinimalState();
   const context = buildLayerContext(state, null, false, undefined, undefined, executionPlan);
@@ -67,4 +95,30 @@ const executionPlan = {
 
   assert.deepEqual(context.debugLayers, [2]);
   assert.deepEqual(context.debugFlags?.debugLayers, [2]);
+}
+
+{
+  const state = createMinimalState();
+  state.modelConfig.perLayerInputsSession = basePerLayerInputsSession;
+  state.runtimeConfig.inference.session = state.runtimeConfig.inference.session ?? {};
+  state.runtimeConfig.inference.session.perLayerInputs = {
+    materialization: 'gpu_split_tables',
+  };
+  const context = buildLayerContext(state, null, false, undefined, undefined, executionPlan);
+
+  assert.equal(context.perLayerInputsSession?.materialization, 'gpu_split_tables');
+  assert.equal(context.perLayerInputsSession?.rowCache?.mode, 'prepared_tokens');
+  assert.equal(context.perLayerInputsSession?.prefetch?.mode, 'none');
+}
+
+{
+  const manifestSession = basePerLayerInputsSession;
+  const runtimeSession = {
+    materialization: 'gpu_split_tables',
+  };
+  const resolved = resolvePerLayerInputsSession(manifestSession, runtimeSession);
+
+  assert.equal(resolved?.materialization, 'gpu_split_tables');
+  assert.equal(resolved?.rowCache?.maxRows, 8);
+  assert.equal(resolved?.hotCache?.maxTokens, 16);
 }

@@ -30,6 +30,7 @@ import {
   resolveKernelPathState,
   initTokenizerFromManifest,
 } from './text/model-load.js';
+import { resolvePerLayerInputsSession } from './text/generator-helpers.js';
 import { getKernelPathActivationDtype } from '../../config/kernel-path-loader.js';
 import { applyPipelineDebugConfig } from './text/debug-utils.js';
 import { resolveLayerPipeline } from './text/layer-plan.js';
@@ -491,8 +492,10 @@ export class InferencePipeline extends PipelineState {
         kernelPathSource: this.kernelPathSource,
         keepF32Weights: this.runtimeConfig.inference.compute.keepF32Weights === true,
         loaderDebug: this.runtimeConfig?.shared?.debug?.loader ?? null,
-        perLayerInputSession:
-          this.runtimeConfig.inference.session?.perLayerInputs ?? this.modelConfig.perLayerInputsSession,
+        perLayerInputSession: resolvePerLayerInputsSession(
+          this.modelConfig.perLayerInputsSession ?? null,
+          this.runtimeConfig?.inference?.session?.perLayerInputs ?? null
+        ),
         onProgress: (info) => {
           if (info.stage !== 'layers' && info.stage !== 'shards') {
             log.verbose('Loader', `${info.stage}: ${Math.round(info.progress * 100)}%${info.message ? ` - ${info.message}` : ''}`);
