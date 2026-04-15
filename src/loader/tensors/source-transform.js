@@ -760,8 +760,13 @@ export function materializeTensorSourceTransform(rawBytes, location, tensorName,
       );
     }
 
+    // scaleBytes was loaded for the `[rowStart, rowStart + rowCount)` window,
+    // so its byte offsets are relative to `rowStart`. Subtract `rowStart`
+    // before indexing into scaleView; keep the caller contract of passing
+    // absolute row indices so error messages still name the real row.
     const resolveScale = (logicalRow, col = 0) => {
-      const rowScaleOffset = logicalRow * spec.scaleRowBytes;
+      const localRow = logicalRow - rowStart;
+      const rowScaleOffset = localRow * spec.scaleRowBytes;
       const storedScale = scaleCompanion
         ? (scaleView.getUint8(rowScaleOffset + Math.min(Math.floor(col / scaleSubBlockWidth), scaleSubCount - 1))
           - scaleCompanion.zeroPoint) * scaleCompanion.scale
