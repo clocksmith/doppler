@@ -1,5 +1,7 @@
 # doppler-gpu
 
+![Doppler logo](./assets/doppler.svg)
+
 Browser-native inference on raw WebGPU. Pure JS + WGSL.
 
 **[Try the live demo](https://d4da.com/doppler)** | **[npm](https://www.npmjs.com/package/doppler-gpu)** | **[docs](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)**

@@ -178,6 +178,7 @@
     "access": "public"
   },
   "files": [
+    "assets",
     "src",
     "src/gpu/kernels/*.wgsl",
     "README.md",
