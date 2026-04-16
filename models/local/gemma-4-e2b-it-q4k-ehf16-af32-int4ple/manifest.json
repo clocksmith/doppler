@@ -10,6 +10,7 @@
     "audio": "f16",
     "projector": "f16",
     "compute": "f32",
+    "perLayerEmbeddings": "int4_per_row",
     "layout": "row",
     "variantTag": "q4k-ehf16-af32-vf16-audiof16-pf16"
   },
@@ -25191,7 +25192,7 @@
   "conversion": null,
   "metadata": {
     "source": "convert-core",
-    "convertedAt": "2026-04-16T18:50:46.214Z",
+    "convertedAt": "2026-04-16T22:35:24.693Z",
     "hasTokenizer": true
   },
   "tokenizer": {
