@@ -17,6 +17,8 @@ export declare function buildVariantTag(info: QuantizationInfoSchema): string;
 
 export declare function normalizeQ4KLayout(value: string | null | undefined): string | null;
 
+export declare function normalizePerLayerEmbeddingQuant(value: string | null | undefined): string | null;
+
 export declare function buildQuantizationInfo(
   opts: ConvertOptions | ConverterConfigSchema,
   originalDtype: string,

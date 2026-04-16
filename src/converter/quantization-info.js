@@ -50,6 +50,11 @@ const QUANT_TAG_ALIASES = {
   'int4': 'i4',
 };
 
+const PER_LAYER_EMBEDDING_QUANT_ALIASES = {
+  'int4_per_row': 'int4_per_row',
+  'int4-per-row': 'int4_per_row',
+};
+
 export function normalizeQuantTag(value) {
   if (!value) return DEFAULT_QUANT_TAG;
   const lower = value.toLowerCase();
@@ -74,6 +79,17 @@ export function validateQuantType(value, source) {
   }
 
   throw new Error(`Unknown quantization type: "${value}" (source: ${source})`);
+}
+
+export function normalizePerLayerEmbeddingQuant(value) {
+  if (value == null) return null;
+  const normalized = String(value).trim().toLowerCase().replace(/\s+/g, '_');
+  if (!normalized) return null;
+  const canonical = PER_LAYER_EMBEDDING_QUANT_ALIASES[normalized];
+  if (canonical) return canonical;
+  throw new Error(
+    `converter.quantization.perLayerEmbeddings must be "int4_per_row" or null; got ${JSON.stringify(value)}.`
+  );
 }
 
 
@@ -229,6 +245,7 @@ export function buildQuantizationInfo(
   const audioQuant = quantization.audio ?? null;
   const projectorQuant = quantization.projector ?? null;
   const computePrecision = quantization.computePrecision ?? null;
+  const perLayerEmbeddings = normalizePerLayerEmbeddingQuant(quantization.perLayerEmbeddings ?? null);
 
   validateQuantType(weightQuant, 'converter.quantization.weights');
   validateQuantType(embedQuant, 'converter.quantization.embeddings');
@@ -305,6 +322,9 @@ export function buildQuantizationInfo(
 
   if (computePrecision) {
     info.compute = computePrecision;
+  }
+  if (perLayerEmbeddings) {
+    info.perLayerEmbeddings = perLayerEmbeddings;
   }
 
   // Q4K layout: 'row' (fused kernel compatible) or 'col' (dequant fallback)

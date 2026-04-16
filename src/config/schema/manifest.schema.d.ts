@@ -87,6 +87,7 @@ export interface QuantizationInfoSchema {
   audio?: QuantizationValue;       // Audio encoder (Whisper, wav2vec)
   tts?: QuantizationValue;         // TTS decoder
   projector?: QuantizationValue;   // Cross-modal projection layers
+  perLayerEmbeddings?: 'int4_per_row';
 
   // Runtime hints. `compute` may be included in variantTag when artifact naming
   // treats activation dtype as part of the published variant identity.

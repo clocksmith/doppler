@@ -53,7 +53,15 @@ const tensor = {
   shape: [rows, cols],
   dtype: 'F16',
 };
-const result = transformTensorBytes(tensor, srcBytes, { targetQuant: 'q4k' });
+const defaultResult = transformTensorBytes(tensor, srcBytes, { targetQuant: 'q4k' });
+assert.notEqual(
+  defaultResult.tensorTargetQuant,
+  'int4_per_row_ple',
+  'INT4 PLE must be opt-in through conversion quantization config'
+);
+
+const int4PleOptions = { targetQuant: 'q4k', perLayerEmbeddings: 'int4_per_row' };
+const result = transformTensorBytes(tensor, srcBytes, int4PleOptions);
 
 // Logical (post-dequant) dtype is F16; INT4 is the storage form carried in
 // sourceTransform.sourceDtype. This matches the runtime's location contract
@@ -124,7 +132,7 @@ const oddTensor = {
   dtype: 'F32',
 };
 const oddBytes = new Uint8Array(new Float32Array(rows * 7).buffer);
-const oddResult = transformTensorBytes(oddTensor, oddBytes, { targetQuant: 'q4k' });
+const oddResult = transformTensorBytes(oddTensor, oddBytes, int4PleOptions);
 assert.notEqual(oddResult.outDtype, 'INT4', 'odd-cols PLE tensor should NOT take INT4 path');
 
 // --- 4b. Fallback: GGUF-layout PLE (rows <= cols) is rejected by the guard ---
@@ -137,13 +145,13 @@ const ggufLayoutTensor = {
   dtype: 'F16',
 };
 const ggufBytes = new Uint8Array(new Uint16Array(4 * 262144).buffer);
-const ggufResult = transformTensorBytes(ggufLayoutTensor, ggufBytes, { targetQuant: 'q4k' });
+const ggufResult = transformTensorBytes(ggufLayoutTensor, ggufBytes, int4PleOptions);
 assert.notEqual(ggufResult.sourceDtype && ggufResult.tensorTargetQuant, 'int4_per_row_ple',
   'GGUF-layout PLE (rows<=cols) must NOT take INT4 per-row path');
 
 // --- 5. Fallback: skipInt4PlePerRow option disables the branch ---
 const skipResult = transformTensorBytes(tensor, srcBytes, {
-  targetQuant: 'q4k',
+  ...int4PleOptions,
   skipInt4PlePerRow: true,
 });
 assert.notEqual(skipResult.outDtype, 'INT4', 'skipInt4PlePerRow must disable the INT4 path');
@@ -156,7 +164,7 @@ const chunkTensor = {
 };
 const chunkBytes = srcBytes.slice(0, chunkRows * cols * 2);
 const chunkResult = transformTensorBytes(chunkTensor, chunkBytes, {
-  targetQuant: 'q4k',
+  ...int4PleOptions,
   originalTensorShape: tensor.shape,
 });
 assert.equal(chunkResult.tensorTargetQuant, 'int4_per_row_ple');

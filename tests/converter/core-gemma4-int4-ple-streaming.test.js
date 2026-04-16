@@ -42,7 +42,7 @@ const baseOptions = {
   modelType: 'transformer',
   quantization: 'F16',
   quantizationInfo: {
-    weights: 'f16', embeddings: 'f16', compute: 'f16', variantTag: 'f16',
+    weights: 'f16', embeddings: 'f16', compute: 'f16', perLayerEmbeddings: 'int4_per_row', variantTag: 'f16',
   },
   architecture: {
     numLayers: 35, hiddenSize: 2, intermediateSize: 8, numAttentionHeads: 1,

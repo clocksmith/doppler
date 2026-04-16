@@ -15,6 +15,11 @@ const configPath = path.join(
   'src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32.json'
 );
 const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
+const int4PleConfigPath = path.join(
+  repoRoot,
+  'src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.json'
+);
+const int4PleConfig = JSON.parse(await fs.readFile(int4PleConfigPath, 'utf8'));
 
 assert.equal(config.output?.baseDir, 'models/local');
 assert.equal(config.output?.modelBaseId, 'gemma-4-e2b-it-q4k-ehf16-af32');
@@ -81,6 +86,13 @@ assert.equal(config.session?.perLayerInputs?.hotCache?.mode, 'prepared_tokens');
 assert.equal(config.session?.perLayerInputs?.hotCache?.maxTokens, 4096);
 assert.equal(config.session?.perLayerInputs?.hotCache?.maxBytes, 268435456);
 assert.equal(config.session?.perLayerInputs?.hotCache?.outputDtype, 'f32');
+
+assert.equal(int4PleConfig.output?.baseDir, 'models/local');
+assert.equal(int4PleConfig.output?.modelBaseId, 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple');
+assert.equal(int4PleConfig.quantization?.weights, 'q4k');
+assert.equal(int4PleConfig.quantization?.embeddings, 'f16');
+assert.equal(int4PleConfig.quantization?.perLayerEmbeddings, 'int4_per_row');
+assert.equal(int4PleConfig.session?.perLayerInputs?.materialization, 'range_backed');
 
 const manifestInference = {
   schema: 'doppler.execution/v1',

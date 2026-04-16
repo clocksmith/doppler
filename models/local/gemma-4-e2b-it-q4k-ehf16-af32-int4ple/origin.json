@@ -1,0 +1,9 @@
+{
+  "sourceModel": "google/gemma-4-e2b-it",
+  "sourceRepo": "google/gemma-4-e2b-it",
+  "sourceFormat": "safetensors",
+  "sourceRevision": "unknown-local-snapshot",
+  "variant": "q4k-ehf16-af32-int4ple",
+  "convertedAt": "2026-04-16T18:50:46.214Z",
+  "notes": "Converted from /home/x/model-downloads/gemma4-e2b-it with INT4 per-row symmetric per-layer embedding quantization. The local source directory did not include a Hugging Face snapshot revision."
+}

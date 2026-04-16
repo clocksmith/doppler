@@ -770,8 +770,19 @@ function resolveOriginalTensorShape(options) {
   return [rows, cols];
 }
 
+function resolvePerLayerEmbeddingQuant(options) {
+  const value = (
+    options?.perLayerEmbeddings
+    ?? options?.quantizationInfo?.perLayerEmbeddings
+    ?? null
+  );
+  if (value == null) return null;
+  return String(value).trim().toLowerCase().replace(/\s+/g, '_') || null;
+}
+
 function canInt4QuantizePerRow(tensor, options) {
   if (options?.skipInt4PlePerRow === true) return false;
+  if (resolvePerLayerEmbeddingQuant(options) !== 'int4_per_row') return false;
   if (!Array.isArray(tensor.shape) || tensor.shape.length !== 2) return false;
   const [rows, cols] = tensor.shape;
   if (!Number.isInteger(rows) || rows <= 0) return false;
