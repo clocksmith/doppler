@@ -1,15 +1,19 @@
-# Gemma 4 E2B Browser Decode Bottleneck Diagnostic
+# Gemma 4 E2B Browser Decode Bottleneck
 
-**Status:** diagnosed (2026-04-15), not fixed. Next action is experimental, not code.
+**Status:** diagnosed and fixed (2026-04-15). Validation pending: re-run the
+canonical compare on Apple M3 with the updated `gemma4-e2b-throughput` profile
+to confirm the gap closes.
 
-**Scope:** why `batched_gpu` decode of Gemma 4 E2B on Apple M3 browser is ~11.5
-tok/s regardless of `batchSize` / `readbackInterval`, despite the
+**Scope:** why `batched_gpu` decode of Gemma 4 E2B on Apple M3 browser was
+~11 tok/s regardless of `batchSize` / `readbackInterval`, despite the
 `rollingIds` fix unblocking the batched path.
 
 ## The evidence
 
-Canonical receipt:
-[`benchmarks/vendors/results/compare_20260415T170108.json`](../../benchmarks/vendors/results/compare_20260415T170108.json)
+Canonical receipt: [`compare-goal1.stdout`](../../compare-goal1.stdout)
+(2026-04-15T20:48:31Z, captured with the tokenizerDelta P3 gating active).
+An earlier point in the same investigation lives at
+[`compare_20260415T170108.json`](../../benchmarks/vendors/results/compare_20260415T170108.json).
 
 Hardware: Apple M3 / darwin arm64 / Chromium (`apple-m3` Metal 3).
 Model: `gemma-4-e2b-it-q4k-ehf16-af32` (RDRR q4k/ehf16/af32).
@@ -19,188 +23,238 @@ Workload: `p064-d064-t0-k1`, 2 timed runs, warmup 1, greedy decode.
 
 | Decode profile | batchSize | readbackInterval | decodeMode | decode tok/s |
 | --- | ---: | ---: | --- | ---: |
-| `parity` (warm compute/parity) | 1 | 1 | `single_token` | 11.43 |
-| `custom` (compute/throughput) | 8 | 8 | `batched_gpu` | 11.59 |
+| `parity` (warm compute/parity) | 1 | 1 | `single_token` | 10.72 |
+| `throughput` (warm compute/throughput) | 8 | 8 | `batched_gpu` | 11.13 |
 
-The batched path is demonstrably live — `batchedForwardCalls: 16` for 64
-decode tokens × 2 runs at batch=8, `unbatchedForwardCalls: 0` — but the
-throughput gain is ~1%. Batching the forward passes is not the decode unlock.
+The batched path is demonstrably live —
+`batchedForwardCalls.median: 16` for 64 decode tokens × 2 runs at batch=8,
+`unbatchedForwardCalls.median: 0`. Batching the forward passes is not the
+decode unlock — the gain from batch=1 → batch=8 is ~4%.
 
 ### Per-phase breakdown at batch=8 / readback=8
 
-From `sections.compute.throughput.doppler.result.metrics.gpu`:
+From `sections.compute.throughput.doppler.result.metrics.gpu` in the fresh
+receipt:
 
 | Metric | Value |
 | --- | ---: |
-| `decodeRecordMs` (actual GPU command record) | **944.75 ms** |
-| `decodeSubmitWaitMs` (queue submit stall) | 4559.05 ms |
-| `decodeReadbackWaitMs` (readback stall) | 4576.15 ms |
-| `decodeOrchestrationMs` (overlap credit) | −4556.10 ms |
-| Total `decodeMs` | 5523.85 ms |
+| `decodeRecordMs` (actual GPU command record) | **979.85 ms** |
+| `decodeSubmitWaitMs` (queue submit stall) | 4756.60 ms |
+| `decodeReadbackWaitMs` (readback stall) | 4768.35 ms |
+| Total `decodeMs` | 5750.65 ms |
 
 Interpretation:
 
-- GPU actually doing compute: ~944 ms, i.e. **17%** of decode wall.
-- Submit wait ≈ readback wait ≈ total decode time, and the orchestration
-  metric is a large negative number. That's the shape you get when submit
-  and readback are both waiting on the *same* GPU-completion fence and the
-  counters double-attribute the wait; the two numbers are not two separate
-  4.5-second stalls, they are one 4.5-second stall observed twice.
-- Per-batch wall: 5524 / 16 = **345 ms per 8-token batch**. Per-batch GPU
-  record: 944 / 16 = **59 ms**. The **286 ms / batch** (83%) that is *not*
-  GPU compute is CPU-GPU round-trip overhead: submit, wait for completion,
-  readback sampled tokens, prepare next batch, re-submit.
+- GPU actually doing compute: ~980 ms, i.e. **17%** of decode wall.
+- Submit wait ≈ readback wait ≈ total decode time. Both counters observe
+  the same GPU-completion fence; the two numbers are not two separate
+  ~4.7-second stalls, they are one ~4.7-second stall observed twice.
+- Per-batch wall: 5750 / 8 = **719 ms per 8-token batch**. Per-batch GPU
+  record: 980 / 8 = **122 ms**. The **~600 ms / batch** (83%) that is *not*
+  GPU compute is CPU↔GPU round-trip overhead per batch.
 
-Per-token wall: 86.3 ms (from `decodeMsPerTokenP50`). Per-token GPU work:
-~7.4 ms. Non-compute overhead per token: **~79 ms, ~91%**.
+Per-token wall: ~90 ms. Per-token GPU work: ~15 ms. Non-compute overhead
+per token: **~75 ms, ~83%**.
 
-### Node surface looks the same
+### Node surface looks the same shape
 
-From the 2026-04-15 Node-surface bench (`loadMode=http`, same model,
-batch=8/readback=8, 1 run):
+From the 2026-04-15 Node-surface bench (same model, batch=8/readback=8,
+1 run): `decodeRecordMs ≈ 917 ms`, `decodeSubmitWaitMs ≈ 2893 ms`,
+`decodeReadbackWaitMs ≈ 2721 ms`, total decode ≈ 3831 ms,
+`decodeTokensPerSec ≈ 8.35`. GPU record is ~24% of decode; the rest is
+submit/readback wait. Same fence, slightly different absolute numbers.
 
-| Metric | Value |
-| --- | ---: |
-| `decodeRecordMs` | 917 ms |
-| `decodeSubmitWaitMs` | 2893 ms |
-| `decodeReadbackWaitMs` | 2721 ms |
-| Total decode | 3831 ms |
-| `decodeTokensPerSec` | 8.35 |
+## Root cause — the embed_tokens fence
 
-Same shape: GPU record is ~24% of decode, the rest is submit/readback wait.
-Node is in fact slower than browser (8.35 vs 11.59 tok/s), so the bottleneck
-is not "the browser is adding overhead Node escapes."
+Within the `batched_gpu` decode path, every batch must:
 
-## Hypothesis
+1. Sample 8 tokens on the GPU (`recordArgmax` at
+   `src/inference/pipelines/text/generator-steps.js:1478`, already wired).
+2. Read the sampled token IDs back to the CPU
+   (`readGpuTokenIdsForCpuEmbeddingGather` at
+   `src/inference/pipelines/text/embed.js:144`) **because**
+   `embed_tokens.weight` for Gemma 4 E2B is loaded as a CPU-resident
+   range-backed source.
+3. Run the CPU embedding gather row-by-row using `loadRange` against the
+   OPFS-backed shard (8 sequential awaits per batch, ~24 KB per token at
+   F16, hidden=1536).
+4. Write the gathered embedding rows back to the GPU.
+5. Submit the next batch's forward pass.
 
-The decode wall is dominated by a single CPU↔GPU serial round trip that
-cannot be hidden by the current `readbackMode: "overlapped"` pipeline:
+Steps 2-5 are the per-batch CPU↔GPU sync. Even though `recordArgmax` lives
+entirely on the GPU, the *next* batch's input embedding lookup forces a hop
+back to the CPU and back, because the embedding table is not on the GPU.
+Batching just amortizes that fence over more tokens — it does not eliminate
+it.
 
-1. CPU records a command buffer for the next 8-token batch and submits.
-2. CPU then has to wait for *this* batch to complete before it can stage
-   the next one, because the sampled token from step N becomes the input
-   for step N+1, and sampling currently happens CPU-side after readback.
-3. The "overlap" that the ring buffers (`ringTokens: 2`, `ringStop: 1`,
-   `ringStaging: 2`) were supposed to provide only masks a small part of
-   that round trip; the dominant cost is still the readback→sample→submit
-   chain per batch.
+This explains:
 
-Equivalent framing: each batch's GPU work finishes in ~60 ms, but the next
-batch can't start until the previous batch's output tokens are back on the
-CPU and have been run through the sampler. That's the ~286 ms/batch of
-non-GPU time we see.
-
-This is consistent with:
-
-- Batch=1 and batch=8 producing the same total throughput: the round-trip
-  cost per batch is the bottleneck, so enlarging the batch reduces the
-  number of round trips but not the wall.
+- Batch=1 and batch=8 producing the same throughput: the per-batch
+  round-trip cost is the bottleneck, so enlarging the batch reduces the
+  *number* of round trips but not their wall.
 - `decodeSubmitWaitMs ≈ decodeReadbackWaitMs`: both counters observe the
   same GPU-completion event from different sides.
-- `decodeRecordMs` being small (944 ms of real GPU work in 5524 ms of
-  decode): if compute were the bottleneck, this number would dominate.
+- `decodeRecordMs` being only ~17% of decode wall.
+
+### Why is `embed_tokens.weight` CPU-resident?
+
+`embed_tokens.weight` is `[262144, 1536] F16` ≈ 768 MB
+(`models/local/gemma-4-e2b-it-q4k-ehf16-af32/manifest.json:8991`). It hits
+one of the three branches in `shouldUseRangeBackedEmbeddingSource()` at
+`src/loader/embedding-loader.js:65`:
+
+1. F16 source on a device without shader-f16.
+2. The tensor location has a `sourceTransform` and `loadShardRange` is
+   available, which defers full materialization.
+3. `shouldStreamLargeWeight()` returns true because the estimated weight
+   bytes exceed `maxBufferSize × safetyRatio`.
+
+Diagnostic logging now distinguishes which branch fires for any given
+embedding (added 2026-04-15). On Apple M3 with shader-f16 enabled, the
+third branch is the most likely cause given the ~768 MB size and the
+default 0.9 safety ratio.
 
 ## What the fix is *not*
 
 **Not** tuning `batchSize`. The data already covers 1 and 8; neither helps.
-Tuning up to 16 or 32 will reduce round-trip count linearly but leave the
-per-round-trip cost unchanged, so the asymptote stays near the current
-value. Stop expecting `--doppler-batch-size` alone to close the gap to TJS.
+Larger batches reduce round-trip count linearly but leave the per-round-trip
+cost unchanged.
 
-**Not** another round of the `generator-steps.js` rollingIds path. That
-was a correctness fix that unblocked `batched_gpu` mode; it was not a
-performance fix and the commit message already said so.
+**Not** moving sampling to GPU. The on-GPU sampler
+(`recordArgmax` / `recordGPUSample` in `src/gpu/kernels/sample.js`,
+dispatched from `src/inference/pipelines/text/generator-steps.js` lines
+~649 and 1478) **already ships** in both the single-token fused path and
+the batched `generateNTokensGPU` path. Only 4 bytes of token IDs are read
+back per batch — sampling is not the fence.
+
+**Not** another round of the `generator-steps.js` `rollingIds` path. That
+was a correctness fix that unblocked `batched_gpu` mode; the commit message
+already said so.
 
 **Not** switching to a different kernel path for attention/MLP. The compute
 budget is already under 20% of decode wall. A 2× faster kernel would save
-~470 ms out of 5524 ms — not enough to catch TJS's ~2100 ms decode wall for
+~490 ms out of 5750 ms — not enough to catch TJS's ~2160 ms decode wall for
 the same 64 tokens.
 
-## What the next experiment is
+**Not** the PLE per-layer-input fallback path. Gemma 4 E2B is *not* hitting
+`generateNTokensGPUStepwiseRangeBackedPle` — the throughput profile has
+`session.perLayerInputs.materialization: "gpu_split_tables"`, which routes
+through `ensurePleGpuSplitTablesRuntime()` at
+`src/inference/pipelines/text/per-layer-inputs.js:884` and populates
+`embedTokensPerLayerSplit`. With that populated,
+`hasRangeBackedPerLayerInputEmbeddings()` returns false and the stepwise
+fallback is bypassed. The receipt confirms this: `decodeMode: "batched_gpu"`,
+`batchedForwardCalls=16`, `unbatchedForwardCalls=0`.
 
-In rough priority order:
+## The fix that landed (2026-04-15)
 
-1. **Move sampling to the GPU for batched decode.** If the sampler (argmax
-   at greedy, top-k/top-p at temperature) runs on-device and feeds its
-   output straight into the next batch's token embedding lookup, readback
-   is no longer on the hot path and the `next batch needs previous batch's
-   token` dependency moves from a CPU round trip to a GPU pipeline stage.
-   `src/inference/pipelines/text/sampling.js` + the decode loop in
-   `generator-steps.js` are the two places to touch.
+A new runtime config field
+`runtime.inference.largeWeights.gpuResidentOverrides` (string array | null)
+lets a profile force specific weights to GPU residency, bypassing the
+size-threshold check in `shouldStreamLargeWeight`. The
+`gemma4-e2b-throughput` profile now sets:
 
-2. **Verify the overlapped readback pipeline is actually overlapping.** The
-   runtime profile says `readbackMode: "overlapped"` with ring sizes
-   2/1/2 (see `src/config/runtime/profiles/gemma4-e2b-throughput.json`),
-   but the submit/readback/record timings above look like a serial
-   pipeline. Either the ring is too small to cover the round-trip cost, or
-   the overlap path isn't wired in for Gemma 4. An A/B between
-   `readbackMode: "overlapped"` and a sequential fallback, with the same
-   metric capture, will say which.
+```json
+"largeWeights": {
+  "gpuResidentOverrides": [
+    "model.language_model.embed_tokens.weight"
+  ]
+}
+```
 
-3. **Check whether the CPU sampler is the residual.** If experiment 1 is
-   infeasible, a cheaper probe is to measure CPU-side time between GPU
-   readback of logits and CPU submission of the next token. If that gap is
-   tens of milliseconds, the sampler itself (or its surrounding book-
-   keeping: KV-cache update, PLE lookup, per-layer input preparation) is a
-   target. The KV cache layout is already `contiguous` for Gemma 4 E2B
-   (see memory note in `CLAUDE.md` / `MEMORY.md`) so the usual suspects
-   don't apply, but per-layer input preparation is worth tracing.
+This routes `embed_tokens.weight` through the GPU `recordGather` /
+`runGather` path at `src/inference/pipelines/text/embed.js:309-336` instead
+of the CPU `readGpuTokenIdsForCpuEmbeddingGather` branch. Token IDs stay on
+the GPU; no per-batch CPU↔GPU sync is needed for the embedding lookup.
 
-4. **Don't touch the batch path until 1/2/3 have moved the needle.** The
-   batched forward count is already maxed (16 / 16) and
-   `unbatchedForwardCalls` is zero; there is no room for batching to help
-   until the CPU round-trip cost is smaller than the per-batch GPU work.
+Schema and contract:
+
+- `src/config/schema/doppler.schema.js` —
+  `DEFAULT_LARGE_WEIGHT_CONFIG.gpuResidentOverrides: null`
+- `src/config/schema/doppler.schema.d.ts` —
+  `LargeWeightConfigSchema.gpuResidentOverrides: string[] | null`
+- `src/loader/manifest-config.js` `shouldStreamLargeWeight()` checks the
+  override list before the size estimate
+- `src/loader/embedding-loader.js`
+  `shouldUseRangeBackedEmbeddingSource()` — diagnostic logs for each
+  residency branch
+- `src/config/runtime/profiles/gemma4-e2b-throughput.json` — override
+  populated
+- Contract tests:
+  - `tests/config/runtime-large-weights-defaults-contract.test.js`
+    (default + override merge)
+  - `tests/loader/should-stream-large-weight-overrides.test.js` (behavior)
+  - `tests/config/gemma4-e2b-runtime-profiles-contract.test.js` (profile
+    locks the override in)
+
+Memory cost: ~768 MB extra GPU. Gemma 4 E2B currently uses ~5.15 GB on M3,
+so the M3 budget fits.
+
+## Validation
+
+Re-run the canonical compare workload with the updated throughput profile.
+The fence is closed if:
+
+- Loader logs print
+  `Embedding "model.language_model.embed_tokens.weight" forced GPU-resident via runtime.inference.largeWeights.gpuResidentOverrides.`
+  once at load.
+- `decodeRecordMs / decodeMs` ratio rises substantially (compute is no
+  longer dominated by the round trip).
+- `decodeSubmitWaitMs` and `decodeReadbackWaitMs` shrink toward
+  `decodeRecordMs`.
+- Decode tok/s rises toward the TJS baseline.
+
+If the fence is *not* closed, check the loader logs to see which residency
+branch actually fired. The new diagnostic logs in
+`shouldUseRangeBackedEmbeddingSource` distinguish the F16-without-shader-f16
+case, the sourceTransform case, and the `shouldStreamLargeWeight` case
+explicitly. If branch 1 or 2 fires, the override does not apply and a
+different fix is required.
 
 ## Claim implications
 
-Until the round-trip cost comes down, the `Doppler RDRR` browser decode
-lane on Apple M3 is ~2.6× behind Transformers.js ONNX/q4f16 for Gemma 4
-E2B. The honest public claim is still the cold-load advantage; see
-[`docs/model-support-matrix.md`](../model-support-matrix.md) and the
-README summary for the current phrasing.
+Until validation lands, the public claim should remain anchored to the
+cold-load advantage; see
+[`docs/model-support-matrix.md`](../model-support-matrix.md) and the README
+summary for the current phrasing. Cold load is also noisy between runs
+(2.5× in one receipt, 1.83× in another) and should be re-measured and
+medianed across several runs before being cited.
+
+After validation, the decode tok/s claim can move from "Doppler ~11 vs
+TJS ~29" toward whatever the post-fix receipt shows.
 
 ## LiteRT/TFLite lane status (2026-04-15)
 
 Goal 2 (the stronger "Doppler LiteRT beats both RDRR and TJS ONNX" claim)
-is **parked until reference data exists**. Summary of what we learned and
-why it is not the next engineering task:
+is **parked until reference data exists**.
 
-- The Gemma 4 E2B `.task` (`gemma-4-E2B-it-web.task`) PLE scale companion
-  layout is partially understood: the `_quantized_scale` bytes are packed
-  F32 row-scales (one F32 per row, 262144 rows per layer) stored inside a
-  UINT8 tensor container. A local experiment that auto-detected this and
-  bypassed the UINT8 affine-dequant gate *did* load the model end-to-end
-  — 576 tensors, all 35 per-layer-input weights resolved, execution
-  contract validated — and ran the prefill+decode loop to completion.
+- The Gemma 4 E2B `.task` (`gemma-4-E2B-it-web.task`) PLE scale-companion
+  layout is partially understood: the `_quantized_scale` bytes appear to be
+  packed F32 row-scales (one F32 per row, 262144 rows per layer) stored
+  inside a UINT8 tensor container. A local experiment that auto-detected
+  this and bypassed the UINT8 affine-dequant gate *did* load the model
+  end-to-end and ran prefill+decode to completion.
 - **But real inference produced incoherent output** across two prompts:
   `"Hello"` → `"蔗izmiFCO🥥"`, `"The color of the sky is"` →
   `"Цена性别砾 लोहा"`. Both outputs bias toward high-vocabulary-ID
-  characters (CJK/Cyrillic/Devanagari), the signature of a dequant
-  whose magnitude is wrong or whose sign/axis convention is mismatched.
+  characters, the signature of a dequant whose magnitude is wrong or
+  whose sign/axis convention is mismatched.
 - The pre-existing `resolveScale` absolute-vs-local row offset bug that
   fell out of that experiment is real and worth keeping. Commit
-  [`8f222a8`](../../commits) ships it in isolation. No current path
-  actively exercises it, but it would have stopped any future LiteRT
-  partial-load work dead on the same `RangeError` regardless of the PLE
-  convention question.
+  `8f222a8` ships it in isolation.
 - The PLE auto-detection itself is **not committed**. Landing more
   heuristics without a reference would violate Doppler's
   config-first/runtime-contract rules because it can silently produce
   plausible-but-wrong tokens — the worst possible regression surface.
 - Performance was also unusable in that loads-but-wrong state:
   `decodeTokensPerSec: 0.04` on Node surface, ~25 seconds per token.
-  Even if correctness were solved, the decode path was orders of
-  magnitude below TJS ONNX and would not support any speed claim.
 
 **What unblocks the lane:** either (a) ground-truth F16 intermediate
 values from a reference LiteRT-LM runner for the same `.task` file and
 the same prompt, diffed against Doppler's intermediates at the first
 point of divergence, or (b) a published LiteRT-LM packing spec that
-names the PLE scale-companion convention (byte layout, scale semantics,
-storage encoding, quant axis) so Doppler's dequant rules can be written
-from the spec instead of guessed.
+names the PLE scale-companion convention so Doppler's dequant rules can
+be written from the spec instead of guessed.
 
 Until one of those is in hand, the LiteRT lane stays experimental and
-non-claimable. Goal 1 (Doppler RDRR vs TJS ONNX/q4f16 on the same
-hardware) is the active engineering path; the next slice is the on-GPU
-greedy sampling work described in this file, not more LiteRT variants.
+non-claimable.
