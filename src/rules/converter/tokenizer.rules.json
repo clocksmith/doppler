@@ -1,7 +1,12 @@
 {
   "type": [
+    { "match": { "isLiteRTPieceList": true }, "value": "bpe" },
     { "match": { "hasMerges": true }, "value": "bpe" },
     { "match": { "hasScores": true }, "value": "unigram" },
     { "match": {}, "value": "bpe" }
+  ],
+  "addDummyPrefix": [
+    { "match": { "isLiteRTPieceList": true }, "value": false },
+    { "match": {}, "value": true }
   ]
 }

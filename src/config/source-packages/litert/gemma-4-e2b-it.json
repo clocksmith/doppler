@@ -597,13 +597,34 @@
     },
     "tokenizer": {
       "task": {
-        "type": "bundled",
+        "sentencepieceModel": "TOKENIZER_MODEL",
         "vocabSize": 262144,
-        "file": "tokenizer.json"
+        "padTokenId": 0,
+        "eosTokenId": 1,
+        "eosTokens": [
+          1,
+          106,
+          50
+        ],
+        "bosTokenId": 2,
+        "unkTokenId": 3,
+        "addBosToken": false,
+        "addEosToken": false
       },
       "litertlm": {
         "sentencepieceModel": "TOKENIZER_MODEL",
-        "vocabSize": 262144
+        "vocabSize": 262144,
+        "padTokenId": 0,
+        "eosTokenId": 1,
+        "eosTokens": [
+          1,
+          106,
+          50
+        ],
+        "bosTokenId": 2,
+        "unkTokenId": 3,
+        "addBosToken": false,
+        "addEosToken": false
       }
     }
   },

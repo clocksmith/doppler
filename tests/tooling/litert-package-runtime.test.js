@@ -88,6 +88,14 @@ assert.equal(
   true
 );
 assert.equal(resolvedRawTask.parsedArtifact.tokenizerModelPath, 'TOKENIZER_MODEL');
+assert.equal(resolvedRawTask.parsedArtifact.tokenizerConfig?.sentencepieceModel, 'TOKENIZER_MODEL');
+assert.equal(resolvedRawTask.parsedArtifact.tokenizerConfig?.padTokenId, 0);
+assert.equal(resolvedRawTask.parsedArtifact.tokenizerConfig?.eosTokenId, 1);
+assert.deepEqual(resolvedRawTask.parsedArtifact.tokenizerConfig?.eosTokens, [1, 106, 50]);
+assert.equal(resolvedRawTask.parsedArtifact.tokenizerConfig?.bosTokenId, 2);
+assert.equal(resolvedRawTask.parsedArtifact.tokenizerConfig?.unkTokenId, 3);
+assert.equal(resolvedRawTask.parsedArtifact.tokenizerConfig?.addBosToken, false);
+assert.equal(resolvedRawTask.parsedArtifact.tokenizerConfig?.addEosToken, false);
 assert.equal(
   resolvedRawTask.parsedArtifact.auxiliaryFiles.some((entry) => entry.kind === 'tokenizer_model' && entry.path === 'TOKENIZER_MODEL'),
   true

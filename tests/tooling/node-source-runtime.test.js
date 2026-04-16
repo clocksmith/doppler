@@ -244,6 +244,13 @@ try {
   assert.equal(litertTaskBundle.manifest.modelType, 'gemma4');
   assert.equal(litertTaskBundle.manifest.tokenizer?.type, 'sentencepiece');
   assert.equal(litertTaskBundle.manifest.tokenizer?.sentencepieceModel, 'TOKENIZER_MODEL');
+  assert.equal(litertTaskBundle.manifest.tokenizer?.padTokenId, 0);
+  assert.equal(litertTaskBundle.manifest.tokenizer?.eosTokenId, 1);
+  assert.deepEqual(litertTaskBundle.manifest.tokenizer?.eosTokens, [1, 106, 50]);
+  assert.equal(litertTaskBundle.manifest.tokenizer?.bosTokenId, 2);
+  assert.equal(litertTaskBundle.manifest.tokenizer?.unkTokenId, 3);
+  assert.equal(litertTaskBundle.manifest.tokenizer?.addBosToken, false);
+  assert.equal(litertTaskBundle.manifest.tokenizer?.addEosToken, false);
   assert.equal(
     litertTaskBundle.manifest.metadata?.sourceRuntime?.tokenizer?.modelPath,
     'TOKENIZER_MODEL'
@@ -415,6 +422,15 @@ try {
   assert.equal(litertLmBundle.sourceKind, 'litertlm');
   assert.equal(litertLmBundle.model, litertLmBundle.manifest);
   assert.equal(litertLmBundle.manifest.modelType, 'gemma4');
+  assert.equal(litertLmBundle.manifest.tokenizer?.type, 'sentencepiece');
+  assert.equal(litertLmBundle.manifest.tokenizer?.sentencepieceModel, 'TOKENIZER_MODEL');
+  assert.equal(litertLmBundle.manifest.tokenizer?.padTokenId, 0);
+  assert.equal(litertLmBundle.manifest.tokenizer?.eosTokenId, 1);
+  assert.deepEqual(litertLmBundle.manifest.tokenizer?.eosTokens, [1, 106, 50]);
+  assert.equal(litertLmBundle.manifest.tokenizer?.bosTokenId, 2);
+  assert.equal(litertLmBundle.manifest.tokenizer?.unkTokenId, 3);
+  assert.equal(litertLmBundle.manifest.tokenizer?.addBosToken, false);
+  assert.equal(litertLmBundle.manifest.tokenizer?.addEosToken, false);
   assert.equal(
     litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.kind,
     'litert_axis_blocked_dequant'

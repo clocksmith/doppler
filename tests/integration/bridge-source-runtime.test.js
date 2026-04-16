@@ -223,6 +223,13 @@ assert.equal(taskBundle.model, taskBundle.manifest);
 assert.equal(taskBundle.manifest.modelType, 'gemma4');
 assert.equal(taskBundle.manifest.tokenizer?.type, 'sentencepiece');
 assert.equal(taskBundle.manifest.tokenizer?.sentencepieceModel, 'TOKENIZER_MODEL');
+assert.equal(taskBundle.manifest.tokenizer?.padTokenId, 0);
+assert.equal(taskBundle.manifest.tokenizer?.eosTokenId, 1);
+assert.deepEqual(taskBundle.manifest.tokenizer?.eosTokens, [1, 106, 50]);
+assert.equal(taskBundle.manifest.tokenizer?.bosTokenId, 2);
+assert.equal(taskBundle.manifest.tokenizer?.unkTokenId, 3);
+assert.equal(taskBundle.manifest.tokenizer?.addBosToken, false);
+assert.equal(taskBundle.manifest.tokenizer?.addEosToken, false);
 assert.equal(
   taskBundle.manifest.metadata?.sourceRuntime?.tokenizer?.modelPath,
   'TOKENIZER_MODEL'
@@ -322,17 +329,26 @@ assert.ok(litertLmBundle);
 assert.equal(litertLmBundle.sourceKind, 'litertlm');
 assert.equal(litertLmBundle.model, litertLmBundle.manifest);
 assert.equal(litertLmBundle.manifest.modelType, 'gemma4');
+assert.equal(litertLmBundle.manifest.tokenizer?.type, 'sentencepiece');
+assert.equal(litertLmBundle.manifest.tokenizer?.sentencepieceModel, 'TOKENIZER_MODEL');
+assert.equal(litertLmBundle.manifest.tokenizer?.padTokenId, 0);
+assert.equal(litertLmBundle.manifest.tokenizer?.eosTokenId, 1);
+assert.deepEqual(litertLmBundle.manifest.tokenizer?.eosTokens, [1, 106, 50]);
+assert.equal(litertLmBundle.manifest.tokenizer?.bosTokenId, 2);
+assert.equal(litertLmBundle.manifest.tokenizer?.unkTokenId, 3);
+assert.equal(litertLmBundle.manifest.tokenizer?.addBosToken, false);
+assert.equal(litertLmBundle.manifest.tokenizer?.addEosToken, false);
 assert.equal(
   litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.kind,
   'litert_axis_blocked_dequant'
 );
 assert.equal(
   litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.scaleSemantics,
-  'qmax_abs'
+  'step'
 );
 assert.equal(
-  litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.scaleDivisor,
-  3
+  litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.scaleDivisor ?? null,
+  null
 );
 assert.deepEqual(
   litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.storageShape,

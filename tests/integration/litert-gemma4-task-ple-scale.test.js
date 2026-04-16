@@ -86,6 +86,15 @@ assert.strictEqual(
   576,
   `Expected 576 tensors, got ${bundle.manifest.tensorCount}.`
 );
+assert.strictEqual(bundle.manifest.tokenizer?.type, 'sentencepiece');
+assert.strictEqual(bundle.manifest.tokenizer?.sentencepieceModel, 'TOKENIZER_MODEL');
+assert.strictEqual(bundle.manifest.tokenizer?.padTokenId, 0);
+assert.strictEqual(bundle.manifest.tokenizer?.eosTokenId, 1);
+assert.deepStrictEqual(bundle.manifest.tokenizer?.eosTokens, [1, 106, 50]);
+assert.strictEqual(bundle.manifest.tokenizer?.bosTokenId, 2);
+assert.strictEqual(bundle.manifest.tokenizer?.unkTokenId, 3);
+assert.strictEqual(bundle.manifest.tokenizer?.addBosToken, false);
+assert.strictEqual(bundle.manifest.tokenizer?.addEosToken, false);
 
 const tensors = bundle.manifest.tensors;
 assert.ok(tensors, 'Manifest must have a tensors map.');

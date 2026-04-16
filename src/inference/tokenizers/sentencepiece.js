@@ -23,6 +23,8 @@ export class SentencePieceTokenizer extends BaseTokenizer {
   
   #unkId = 0;
 
+  #addDummyPrefix = true;
+
   
   constructor(config = {}) {
     // SentencePieceTokenizer gets vocabSize from load(), so defer validation
@@ -38,6 +40,7 @@ export class SentencePieceTokenizer extends BaseTokenizer {
     this.#algorithm = 'unigram';
     this.#byteTokens.clear();
     this.vocabSize = 0;
+    this.#addDummyPrefix = true;
   }
 
   
@@ -76,9 +79,10 @@ export class SentencePieceTokenizer extends BaseTokenizer {
 
   
   async #parseModelProto(buffer) {
-    const view = new DataView(buffer);
     const bytes = new Uint8Array(buffer);
     let offset = 0;
+    const standardPieces = [];
+    const liteRTPieceCandidates = [];
 
     // SentencePiece model is a protobuf with:
     // - Field 1: trainer_spec
@@ -94,10 +98,21 @@ export class SentencePieceTokenizer extends BaseTokenizer {
       const wireType = tag & 0x7;
 
       if (fieldNumber === 1 || fieldNumber === 2) {
-        // Skip trainer_spec and normalizer_spec (wire type 2 = length-delimited)
+        // Skip trainer_spec and normalizer_spec in standard ModelProto files.
+        // LiteRT task metadata may store a compact repeated SentencePiece list
+        // at field 1; collect candidates and choose it only if field 3 did not
+        // expose the richer standard piece list.
         if (wireType === 2) {
           const { value: length, newOffset } = this.#readVarint(bytes, offset);
-          offset = newOffset + length;
+          offset = newOffset;
+          if (fieldNumber === 1) {
+            const pieceData = bytes.slice(offset, offset + length);
+            const candidate = this.#decodePiece(pieceData);
+            if (candidate && (candidate.hasScore || candidate.hasType)) {
+              liteRTPieceCandidates.push(candidate);
+            }
+          }
+          offset += length;
         }
       } else if (fieldNumber === 3 && wireType === 2) {
         // SentencePiece entry
@@ -105,7 +120,10 @@ export class SentencePieceTokenizer extends BaseTokenizer {
         offset = newOffset;
 
         const pieceData = bytes.slice(offset, offset + length);
-        this.#parsePiece(pieceData);
+        const piece = this.#decodePiece(pieceData);
+        if (piece) {
+          standardPieces.push(piece);
+        }
         offset += length;
       } else {
         // Skip unknown field
@@ -125,6 +143,12 @@ export class SentencePieceTokenizer extends BaseTokenizer {
       }
     }
 
+    const isLiteRTPieceList = liteRTPieceCandidates.length > standardPieces.length;
+    const selectedPieces = isLiteRTPieceList ? liteRTPieceCandidates : standardPieces;
+    for (const [id, piece] of selectedPieces.entries()) {
+      this.#addPiece(piece, id);
+    }
+
     // Set up special tokens
     if (this.specialTokens.unk == null) {
       throw new Error('[Tokenizer] unk token is required for SentencePiece.');
@@ -134,15 +158,25 @@ export class SentencePieceTokenizer extends BaseTokenizer {
     // Determine algorithm from model characteristics
     // (Unigram has scores, BPE typically doesn't)
     const hasScores = [...this.#pieces.values()].some(p => p.score !== 0);
-    this.#algorithm = selectRuleValue('converter', 'tokenizer', 'type', { hasScores });
+    const tokenizerRuleContext = { hasScores, isLiteRTPieceList };
+    this.#algorithm = selectRuleValue('converter', 'tokenizer', 'type', tokenizerRuleContext);
+    this.#addDummyPrefix = selectRuleValue(
+      'converter',
+      'tokenizer',
+      'addDummyPrefix',
+      tokenizerRuleContext
+    );
   }
 
   
-  #parsePiece(bytes) {
+  #decodePiece(bytes) {
     let offset = 0;
     let piece = '';
+    let hasPiece = false;
     let score = 0;
     let type = 1; // NORMAL by default
+    let hasScore = false;
+    let hasType = false;
 
     while (offset < bytes.length) {
       const { value: tag, newOffset: tagOffset } = this.#readVarint(bytes, offset);
@@ -156,16 +190,19 @@ export class SentencePieceTokenizer extends BaseTokenizer {
         const { value: length, newOffset } = this.#readVarint(bytes, offset);
         offset = newOffset;
         piece = new TextDecoder().decode(bytes.slice(offset, offset + length));
+        hasPiece = true;
         offset += length;
       } else if (fieldNumber === 2 && wireType === 5) {
         // score (float32)
         const view = new DataView(bytes.buffer, bytes.byteOffset + offset, 4);
         score = view.getFloat32(0, true);
+        hasScore = true;
         offset += 4;
       } else if (fieldNumber === 3 && wireType === 0) {
         // type (varint enum)
         const { value, newOffset } = this.#readVarint(bytes, offset);
         type = value;
+        hasType = true;
         offset = newOffset;
       } else {
         // Skip unknown
@@ -181,15 +218,26 @@ export class SentencePieceTokenizer extends BaseTokenizer {
       }
     }
 
-    if (piece) {
-      const id = this.#pieces.size;
-      this.#pieces.set(piece, { id, score, type });
-      this.#reverseVocab.set(id, piece);
-      this.vocabSize = this.#pieces.size;
+    if (!hasPiece) {
+      return null;
+    }
+    return { piece, score, type, hasScore, hasType };
+  }
 
-      // Track byte tokens (▁ prefix tokens and <0xXX> byte tokens)
-      if (piece.match(/^<0x[0-9A-Fa-f]{2}>$/)) {
-        const byteVal = parseInt(piece.slice(3, 5), 16);
+  #addPiece(entry, id) {
+    if (!entry?.piece) {
+      return;
+    }
+    if (!this.#pieces.has(entry.piece)) {
+      this.#pieces.set(entry.piece, { id, score: entry.score, type: entry.type });
+    }
+    this.#reverseVocab.set(id, entry.piece);
+    this.vocabSize = Math.max(this.vocabSize, id + 1);
+
+    // Track byte tokens (▁ prefix tokens and <0xXX> byte tokens)
+    if (entry.piece.match(/^<0x[0-9A-Fa-f]{2}>$/)) {
+      const byteVal = parseInt(entry.piece.slice(3, 5), 16);
+      if (!this.#byteTokens.has(byteVal)) {
         this.#byteTokens.set(byteVal, id);
       }
     }
@@ -255,7 +303,9 @@ export class SentencePieceTokenizer extends BaseTokenizer {
 
     // Normalize: add sentence piece prefix (▁ for word start)
     const normalized = text.replace(/ /g, '▁');
-    const prefixed = (text.startsWith(' ') ? '' : '▁') + normalized;
+    const prefixed = this.#addDummyPrefix && !text.startsWith(' ')
+      ? `▁${normalized}`
+      : normalized;
 
     if (this.#algorithm === 'unigram') {
       ids.push(...this.#encodeUnigram(prefixed));
