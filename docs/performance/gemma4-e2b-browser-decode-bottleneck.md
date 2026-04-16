@@ -1,19 +1,26 @@
 # Gemma 4 E2B Browser Decode Bottleneck
 
-**Status:** diagnosed and fixed (2026-04-15). Validation pending: re-run the
-canonical compare on Apple M3 with the updated `gemma4-e2b-throughput` profile
-to confirm the gap closes.
+**Status:** 2026-04-16. The `gpuResidentOverrides` fix from 2026-04-15 is
+shipped (commit `c3e137f`), fires correctly on Apple M3 browser, and
+`embed_tokens.weight` is now GPU-resident — but the decode gap vs TJS
+**did not close**. The earlier root-cause analysis was wrong. See
+[Corrected diagnosis](#corrected-diagnosis-2026-04-16) below for the actual
+bottleneck.
 
-**Scope:** why `batched_gpu` decode of Gemma 4 E2B on Apple M3 browser was
-~11 tok/s regardless of `batchSize` / `readbackInterval`, despite the
-`rollingIds` fix unblocking the batched path.
+**Scope:** why `batched_gpu` decode of Gemma 4 E2B on Apple M3 browser is
+~11 tok/s (vs TJS ~28.5 tok/s) regardless of `batchSize` /
+`readbackInterval`, despite the `rollingIds` fix unblocking the batched path
+and the `gpuResidentOverrides` fix moving `embed_tokens.weight` to GPU.
 
 ## The evidence
 
-Canonical receipt: [`compare-goal1.stdout`](../../compare-goal1.stdout)
-(2026-04-15T20:48:31Z, captured with the tokenizerDelta P3 gating active).
-An earlier point in the same investigation lives at
-[`compare_20260415T170108.json`](../../benchmarks/vendors/results/compare_20260415T170108.json).
+Canonical post-fix receipt: [`compare-goal1.stdout`](../../compare-goal1.stdout)
+(2026-04-16T00:27:34Z, Apple M3, `gemma4-e2b-throughput` profile with
+`gpuResidentOverrides` active). The corresponding pre-fix receipt is
+preserved in git history at commit
+[`3e1a6f9`](https://github.com/clocksmith/doppler/commit/3e1a6f9fc0711a70a3b55856307e5033b850f34c)
+(`git show 3e1a6f9:compare-goal1.stdout`). Both captured on the same
+M3, same workload (`p064-d064-t0-k1`), tokenizerDelta P3 gating active.
 
 Hardware: Apple M3 / darwin arm64 / Chromium (`apple-m3` Metal 3).
 Model: `gemma-4-e2b-it-q4k-ehf16-af32` (RDRR q4k/ehf16/af32).
@@ -190,38 +197,141 @@ Schema and contract:
 Memory cost: ~768 MB extra GPU. Gemma 4 E2B currently uses ~5.15 GB on M3,
 so the M3 budget fits.
 
-## Validation
+## Corrected diagnosis (2026-04-16)
 
-Re-run the canonical compare workload with the updated throughput profile.
-The fence is closed if:
+The 2026-04-15 root-cause analysis — that `decodeSubmitWaitMs` represents
+per-batch CPU↔GPU round trips caused by CPU-resident `embed_tokens.weight`
+— was **wrong**. Post-fix validation on the same M3 proves it.
 
-- Loader logs print
-  `Embedding "model.language_model.embed_tokens.weight" forced GPU-resident via runtime.inference.largeWeights.gpuResidentOverrides.`
-  once at load.
-- `decodeRecordMs / decodeMs` ratio rises substantially (compute is no
-  longer dominated by the round trip).
-- `decodeSubmitWaitMs` and `decodeReadbackWaitMs` shrink toward
-  `decodeRecordMs`.
-- Decode tok/s rises toward the TJS baseline.
+### What the M3 validation actually showed
 
-If the fence is *not* closed, check the loader logs to see which residency
-branch actually fired. The new diagnostic logs in
-`shouldUseRangeBackedEmbeddingSource` distinguish the F16-without-shader-f16
-case, the sourceTransform case, and the `shouldStreamLargeWeight` case
-explicitly. If branch 1 or 2 fires, the override does not apply and a
-different fix is required.
+Running the canonical compare on the same hardware with
+`gemma4-e2b-throughput` loading correctly:
+
+- Loader logs confirm the override fires:
+  `[Loader] Embedding weight "model.language_model.embed_tokens.weight" forced GPU-resident via runtime.inference.largeWeights.gpuResidentOverrides.`
+- Total GPU memory after load: **6.16 GB** (up from ~5.15 GB pre-fix — the
+  +768 MB lands where expected: on the GPU side of `embed_tokens.weight`).
+- `isWeightBuffer=true` for the embedding, so the CPU gather branch at
+  `embed.js:144` (`readGpuTokenIdsForCpuEmbeddingGather`) no longer fires.
+
+Yet the decode metrics barely moved:
+
+| Metric (throughput, median) | Pre-fix | Post-fix | Δ |
+| --- | ---: | ---: | ---: |
+| decode tok/s | 11.13 | **11.56** | +3.9% |
+| decodeRecordMs | 979.85 | 1030.70 | +5.2% |
+| decodeSubmitWaitMs | 4756.60 | **4477.15** | -5.9% |
+| decodeReadbackWaitMs | 4768.35 | 4499.95 | -5.6% |
+| total decodeMs | 5750.65 | 5534.20 | -3.8% |
+| TJS tok/s (same run) | 29.60 | 28.46 | — |
+
+The same shape under parity (batch=1): **10.72 → 11.24** (+4.9%).
+
+That is **within-noise on a single receipt** and nowhere near closing a
+2.6× gap. Whatever the fence is, moving the main embedding table to the
+GPU did not touch it.
+
+### Why the old interpretation was wrong
+
+`decodeSubmitWaitMs` does not measure "per-batch CPU↔GPU round-trip
+overhead." It measures **wall time from `recorder.submit()` until the
+submit-latency callback fires**, i.e. how long the GPU actually takes to
+drain the submitted command list. `decodeRecordMs` is the CPU-side time
+spent *building* the command encoder before the submit. The two together
+with `decodeReadbackWaitMs` approximate total decode wall:
+
+- `decodeRecordMs` ≈ CPU encoding time (small, ~17–18% of wall)
+- `decodeSubmitWaitMs` ≈ GPU execution wall time (large, ~78% of wall)
+- `decodeReadbackWaitMs` ≈ wall from submit to readback mapAsync resolving
+  (reports ~the same number as submit wait on M3; they are observing the
+  same GPU-completion fence from two sides, plus a small readback tail)
+
+The correct interpretation of the per-batch breakdown is:
+
+- Per batch of 8 tokens at batch=8/readback=8: ~360 ms wall,
+  ~62 ms CPU encoding, ~300 ms GPU executing the recorded command list.
+- Per token: ~45 ms of which ~37 ms is GPU kernel execution.
+- TJS on the same hardware does ~35 ms per token end-to-end.
+
+So Doppler's GPU kernel list is doing roughly **2.6× more GPU-second work
+per token than TJS's ONNX runtime**. That is a kernel/plan issue, not a
+CPU round-trip issue.
+
+### What the override is still good for
+
+Keep it. Without `gpuResidentOverrides`, Doppler's CPU gather branch in
+`embed.js:144` fires for every decode step, and decode mode is forced
+through `generateNTokensGPUStepwiseRangeBackedPle` whenever it runs out of
+hot-vocabulary cache hits. The override is a *prerequisite* for any
+GPU-resident batched decode path on models with ≥ ~400 MB embeddings, and
+the browser behavior breaks in a different and worse way without it. What
+the override is *not* is a TJS-parity unlock for Gemma 4 E2B on its own.
+
+### Where the real decode time is going
+
+The browser kernel-select log for this run shows:
+
+```
+matmul variant=f16w_f32a reason=path_override
+matmul variant=gemv_subgroup_multicol reason=path_override
+matmul variant=gemv_subgroup_vec4 reason=path_override
+matmul variant=gemv_subgroup reason=gemv
+attention variant=decode_online_f16kv reason=path_override:subgroup
+```
+
+Both the matmul and attention paths are running with **f32 activations**
+(`f16w_f32a` and `_f16kv`). That doubles the activation memory bandwidth
+relative to an `f16`-activation plan. `src/config/transforms/execution-graph-transforms.js:114`
+is explicit about it: attention variants whose file name contains
+`_f16kv` resolve to `precision.activationDtype = 'f32'`; only variants
+whose file name contains pure `_f16` resolve to f16 activations. Gemma 4
+E2B is locked to the `_f16kv` attention family by the current kernel-path
+selection.
+
+Pure-f16 attention WGSL kernels already exist in
+`src/gpu/kernels/attention/` (`attention_decode_online_f16.wgsl`,
+`attention_small_f16.wgsl`, `attention_streaming_f16.wgsl`) — they are
+wired and used for Gemma 2 / Gemma 3 on the `_f16a` family of kernel
+paths (see `src/config/runtime/kernels/gemma2-q4k-dequant-f16a.json`).
+Gemma 4 E2B has no equivalent `gemma4-q4k-dequant-f16a` kernel path.
+
+That is the concrete path forward for closing the gap.
+
+### Path forward
+
+1. Add `src/config/runtime/kernels/gemma4-q4k-dequant-f16a.json` modeled
+   on the existing `gemma2-q4k-dequant-f16a.json`, routing Gemma 4 E2B
+   matmul/attention through the pure-f16 variants instead of
+   `f16w_f32a` / `_f16kv`.
+2. Validate numerically on the q4k-ehf16-af32 artifact first — activations
+   becoming f16 has real magnitude implications for the per-layer
+   embeddings (PLE) projection and the final logit softcap. Accept only if
+   decode output stays coherent and logits match the f32 baseline within
+   tolerance.
+3. Re-run the canonical compare. The hypothesis is a roughly 1.5–2×
+   speedup on decode, which would put Doppler within 30% of TJS on the
+   same workload rather than 2.6× behind.
+4. Only then move the public tok/s claim in
+   [`docs/model-support-matrix.md`](../model-support-matrix.md) and the
+   README.
+
+Do *not* attribute the remaining gap back to embedding residency, CPU
+round-trips, or the `gpuResidentOverrides` path — that lane is closed and
+the receipts prove it.
 
 ## Claim implications
 
-Until validation lands, the public claim should remain anchored to the
+The public tok/s claim for Gemma 4 E2B must remain anchored to the
 cold-load advantage; see
 [`docs/model-support-matrix.md`](../model-support-matrix.md) and the README
 summary for the current phrasing. Cold load is also noisy between runs
 (2.5× in one receipt, 1.83× in another) and should be re-measured and
 medianed across several runs before being cited.
 
-After validation, the decode tok/s claim can move from "Doppler ~11 vs
-TJS ~29" toward whatever the post-fix receipt shows.
+A decode-speed claim is not available yet. The pre-fix claim "Doppler ~11
+vs TJS ~29" remains the honest post-fix picture: 11.56 vs 28.46 on M3 with
+the override active. Do not promote this.
 
 ## LiteRT/TFLite lane status (2026-04-15)
 
