@@ -501,40 +501,23 @@ function createLiteRTAxisTensor(
   const scaleTensorSourceTransform = scaleTensor.sourceTransform;
   const scaleCompanionDtype = String(scaleTensor.sourceDtype || '').toUpperCase();
   const hasUint8ScaleCompanion = scaleCompanionDtype === 'UINT8';
-  const scaleCompanionDequant = hasUint8ScaleCompanion
+
+  // When the scale companion is UINT8 without affine_dequant metadata, the
+  // UINT8 container holds packed F32 row-scales (4 bytes per F32 value).
+  // This is the MediaPipe symmetric quantization convention used by LiteRT-LM
+  // .task weight bags (e.g. Gemma 4 E2B per_layer_embeddings): weight bytes
+  // are semantically INT8 (signed, zero_point=0), scale = max(|row|) / 127.
+  // The companion bytes are native F32 — no affine dequant needed.
+  const isPackedF32ScaleCompanion = hasUint8ScaleCompanion
+    && (!scaleTensorSourceTransform || scaleTensorSourceTransform.kind !== 'affine_dequant');
+
+  const scaleCompanionDequant = hasUint8ScaleCompanion && !isPackedF32ScaleCompanion
     ? {
       scale: Number(scaleTensorSourceTransform?.scale),
       zeroPoint: Number(scaleTensorSourceTransform?.zeroPoint),
     }
     : null;
-  if (hasUint8ScaleCompanion) {
-    if (!scaleTensorSourceTransform || scaleTensorSourceTransform.kind !== 'affine_dequant') {
-      // Known gap, 2026-04-15: Gemma 4 E2B `.task` files (e.g.
-      // `gemma-4-E2B-it-web.task`) expose `per_layer_embeddings.w` and
-      // `per_layer_embeddings.w_quantized_scale` as UINT8 tensors with no
-      // quantization params in the TFLite FlatBuffer and no sibling
-      // min/max/range metadata tensors. The LiteRT-LM scale-of-scale
-      // convention for this specific PLE tensor family is not yet recorded
-      // anywhere we can consume here, so loading blocks at this throw.
-      //
-      // To close this gap we need either (a) the LiteRT-LM spec for the
-      // PLE scale-companion affine-dequant convention (scale/zero_point
-      // derivation rule), or (b) ground-truth F16 values from a reference
-      // tokenizer/runtime so the convention can be recovered empirically
-      // and added to the parser (probably in
-      // `src/formats/tflite/types.js:readTensorQuantization`).
-      //
-      // Diagnostic test:
-      // `tests/integration/litert-gemma4-task-ple-scale.test.js`
-      // exercises the exact failure shape and is skipped when the local
-      // `.task` artifact is not available.
-      throw new Error(
-        `direct-source runtime: LiteRT tensor "${rawTensor.name}" has UINT8 scale companion "${rawTensor.name}_quantized_scale" ` +
-        'without affine_dequant metadata. This is a known LiteRT-LM direct-source gap for Gemma 4 E2B per-layer-embedding tensors; '
-        + 'see tests/integration/litert-gemma4-task-ple-scale.test.js and '
-        + 'src/tooling/litert-package-runtime.js:createLiteRTAxisTensor for the scope of the missing scale-of-scale convention.'
-      );
-    }
+  if (hasUint8ScaleCompanion && !isPackedF32ScaleCompanion) {
     if (!Number.isFinite(scaleCompanionDequant.scale) || scaleCompanionDequant.scale <= 0) {
       throw new Error(
         `direct-source runtime: LiteRT tensor "${rawTensor.name}" has invalid scale companion affine_dequant scale ${scaleTensorSourceTransform.scale}.`
@@ -612,7 +595,9 @@ function createLiteRTAxisTensor(
     sourceTransform: {
       kind: 'litert_axis_dequant',
       scheme: 'per_axis_affine',
-      sourceDtype: layout.sourceDtype,
+      sourceDtype: isPackedF32ScaleCompanion && layout.sourceDtype === 'UINT8'
+        ? 'INT8'
+        : layout.sourceDtype,
       targetDtype: 'F16',
       storageEncoding: layout.storageEncoding,
       scaleSemantics: scaleContract.scaleSemantics,
@@ -622,7 +607,7 @@ function createLiteRTAxisTensor(
       scaleSourcePath: sourcePath,
       scaleOffset: scaleTensor.offset,
       scaleSize: scaleTensor.size,
-      ...(hasUint8ScaleCompanion
+      ...(hasUint8ScaleCompanion && !isPackedF32ScaleCompanion
         ? {
           scaleCompanionDtype,
           scaleCompanionDequant,
@@ -852,11 +837,9 @@ function normalizeGemma4LiteRTTensors(parsedTFLite, sourcePath, runtimeProfile) 
         resolvedLogicalShape,
         resolvedStorageShape,
         resolvedQuantAxis,
-        options.scaleSemantics
-          ? {
-            scaleSemantics: options.scaleSemantics,
-          }
-          : null
+        {
+          scaleSemantics: options.scaleSemantics || 'step',
+        }
       )
     );
   };
@@ -876,8 +859,7 @@ function normalizeGemma4LiteRTTensors(parsedTFLite, sourcePath, runtimeProfile) 
       4,
       [0, 1, 2, 3],
       {
-        scaleSemantics: 'qmax_abs',
-        scaleDivisor: 3,
+        scaleSemantics: 'step',
       }
     )
   );
