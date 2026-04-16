@@ -19,8 +19,11 @@ export const TENSORS_FILENAME = 'tensors.json';
 // GGUF/SafeTensors headers typically fit in first 100MB even for huge models.
 export const MAX_HEADER_SIZE = 100 * MB;
 
-// Smaller header read for streaming/browser imports (10MB covers typical headers)
-export const HEADER_READ_SIZE = 10 * MB;
+// Smaller header read for streaming/browser imports. Originally 10 MB covered
+// typical headers, but Gemma 4 E2B GGUF metadata (262144-token vocab stored as
+// inline strings) overflows 10 MB. Bumped to 50 MB to cover large-vocab models
+// while keeping Node-side reads bounded.
+export const HEADER_READ_SIZE = 50 * MB;
 
 // =============================================================================
 // Epsilon Constants

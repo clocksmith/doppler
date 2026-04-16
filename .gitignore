@@ -89,7 +89,5 @@ tests/results/**/Default/
 kernel-tests/results/
 playwright-report/
 
-# Experiments
-experimental/
 
 .firebaserc

@@ -284,6 +284,82 @@ export function quantizeToQ4KMRowWise(data, shape) {
 }
 
 
+// Symmetric per-row INT4 quantization matching the MediaPipe LiteRT-LM
+// per_layer_embedder convention (extracted from gemma-4-E2B-it.litertlm
+// composite0..composite34 PLE tensors). Each row of `data` (shape [rows, cols])
+// gets its own F32 scale = max(|row|) / 7. Values are quantized to signed INT4
+// in [-7, +7], stored as offset_binary uint4 [1, 15] (uint4 = qvar + 8) packed
+// 2 nibbles per byte, low-nibble-first.
+//
+// Returns:
+//   quantized: Uint8Array of length rows * cols / 2 (assumes cols is even)
+//   scales:    Float32Array of length rows
+//
+// The runtime side already handles this convention via `litert_axis_dequant`
+// + `scaleSemantics: 'step'` + `storageEncoding: 'offset_binary'`. Manifest
+// entries for these tensors should set sourceTransform.kind=litert_axis_dequant,
+// sourceDtype=INT4, scaleSemantics=step, storageShape=[cols, rows] (transposed
+// so quantAxis=0 indexes the per-row scales by output row).
+export function quantizeToInt4PerRowSymmetric(f32Data, shape) {
+  if (!Array.isArray(shape) || shape.length !== 2) {
+    throw new Error('quantizeToInt4PerRowSymmetric requires a 2D shape, got ' + JSON.stringify(shape));
+  }
+  const [rows, cols] = shape;
+  if (!Number.isInteger(rows) || rows <= 0 || !Number.isInteger(cols) || cols <= 0) {
+    throw new Error('quantizeToInt4PerRowSymmetric: invalid shape ' + JSON.stringify(shape));
+  }
+  if ((cols & 1) !== 0) {
+    throw new Error('quantizeToInt4PerRowSymmetric: cols must be even for nibble packing, got ' + cols);
+  }
+  if (f32Data.length !== rows * cols) {
+    throw new Error('quantizeToInt4PerRowSymmetric: data length ' + f32Data.length + ' != rows*cols ' + (rows * cols));
+  }
+  const scales = new Float32Array(rows);
+  const quantized = new Uint8Array((rows * cols) >> 1);
+  for (let r = 0; r < rows; r++) {
+    const rowOff = r * cols;
+    let maxAbs = 0;
+    for (let c = 0; c < cols; c++) {
+      const v = Math.abs(f32Data[rowOff + c]);
+      if (v > maxAbs) maxAbs = v;
+    }
+    // Use scale_bound = 7 (signed range -8..+7 reachable, but symmetric uses |max|/7
+    // per MediaPipe quantization_util.reduce_precision symmetric path).
+    const scale = maxAbs > 0 ? maxAbs / 7 : 1;
+    scales[r] = scale;
+    const inv = 1 / scale;
+    for (let c = 0; c < cols; c += 2) {
+      const a = f32Data[rowOff + c];
+      const b = f32Data[rowOff + c + 1];
+      // round-half-to-even via Math.round (good enough for per-row INT4)
+      let qa = Math.round(a * inv);
+      let qb = Math.round(b * inv);
+      if (qa < -8) qa = -8; else if (qa > 7) qa = 7;
+      if (qb < -8) qb = -8; else if (qb > 7) qb = 7;
+      // offset_binary: stored = qvar + 8, range [0, 15]
+      quantized[(rowOff + c) >> 1] = ((qa + 8) & 0xf) | (((qb + 8) & 0xf) << 4);
+    }
+  }
+  return { quantized, scales };
+}
+
+export function dequantizeInt4PerRowSymmetric(quantized, scales, shape) {
+  const [rows, cols] = shape;
+  const out = new Float32Array(rows * cols);
+  for (let r = 0; r < rows; r++) {
+    const scale = scales[r];
+    const rowOff = r * cols;
+    for (let c = 0; c < cols; c += 2) {
+      const byte = quantized[(rowOff + c) >> 1];
+      const lo = (byte & 0xf) - 8;
+      const hi = ((byte >> 4) & 0xf) - 8;
+      out[rowOff + c] = lo * scale;
+      out[rowOff + c + 1] = hi * scale;
+    }
+  }
+  return out;
+}
+
 export function transposeF32(data, shape) {
   const [rows, cols] = shape;
   const transposed = new Float32Array(rows * cols);

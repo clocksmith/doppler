@@ -46,7 +46,8 @@ export const GGMLType = {
   I32: 26,
   I64: 27,
   F64: 28,
-  BF16: 29,
+  IQ1_M: 29,
+  BF16: 30,
 };
 
 export const GGMLTypeName = Object.fromEntries(
@@ -66,8 +67,20 @@ export const GGML_BLOCK_SIZE = {
   [GGMLType.Q5_K]: 256,
   [GGMLType.Q6_K]: 256,
   [GGMLType.Q8_K]: 256,
+  [GGMLType.IQ2_XXS]: 256,
+  [GGMLType.IQ2_XS]: 256,
+  [GGMLType.IQ2_S]: 256,
+  [GGMLType.IQ3_XXS]: 256,
+  [GGMLType.IQ3_S]: 256,
+  [GGMLType.IQ1_S]: 256,
+  [GGMLType.IQ1_M]: 256,
+  [GGMLType.IQ4_NL]: 32,
+  [GGMLType.IQ4_XS]: 256,
 };
 
+// Byte sizes per block (llama.cpp ggml-common.h). Required so the GGUF parser
+// can compute tensor byte extents for I-quants and K-quants used in modern
+// unsloth/ggml-org distributions (Gemma 4, Qwen 3, etc.).
 export const GGML_TYPE_SIZE = {
   [GGMLType.F32]: 4,
   [GGMLType.F16]: 2,
@@ -83,6 +96,15 @@ export const GGML_TYPE_SIZE = {
   [GGMLType.Q5_K]: 176,
   [GGMLType.Q6_K]: 210,
   [GGMLType.Q8_K]: 292,
+  [GGMLType.IQ2_XXS]: 66,
+  [GGMLType.IQ2_XS]: 74,
+  [GGMLType.IQ2_S]: 82,
+  [GGMLType.IQ3_XXS]: 98,
+  [GGMLType.IQ3_S]: 110,
+  [GGMLType.IQ1_S]: 50,
+  [GGMLType.IQ1_M]: 56,
+  [GGMLType.IQ4_NL]: 18,
+  [GGMLType.IQ4_XS]: 136,
   [GGMLType.BF16]: 2,
   [GGMLType.I8]: 1,
   [GGMLType.I16]: 2,
@@ -279,11 +301,28 @@ function extractModelConfig(metadata, architecture) {
 
   return {
     architecture,
-    vocabSize: get(`${prefix}vocab_size`) ?? get('tokenizer.ggml.vocab_size'),
+    vocabSize: (() => {
+      const explicit = get(`${prefix}vocab_size`) ?? get('tokenizer.ggml.vocab_size');
+      if (explicit != null) return explicit;
+      // Unsloth/ggml-org Gemma 4 GGUFs omit the scalar vocab_size; derive it
+      // from the length of the tokenizer tokens array. Match llama.cpp's
+      // fallback behavior in src/llama-vocab.cpp.
+      const tokens = get('tokenizer.ggml.tokens');
+      if (Array.isArray(tokens) && tokens.length > 0) return tokens.length;
+      return undefined;
+    })(),
     contextLength: get(`${prefix}context_length`) ?? DEFAULT_GGUF_CONTEXT_LENGTH,
     embeddingLength: get(`${prefix}embedding_length`),
     blockCount: get(`${prefix}block_count`),
-    feedForwardLength: get(`${prefix}feed_forward_length`),
+    // Gemma 4 stores feed_forward_length as an array (one entry per layer —
+    // values can differ for shared-KV layers with the double-wide MLP). Flatten
+    // to the max, which is the architecturally correct intermediateSize for
+    // the dense/non-shared path. Non-Gemma-4 GGUFs still ship a scalar here.
+    feedForwardLength: (() => {
+      const raw = get(`${prefix}feed_forward_length`);
+      if (Array.isArray(raw)) return raw.length > 0 ? Math.max(...raw) : null;
+      return raw;
+    })(),
     attentionHeadCount: get(`${prefix}attention.head_count`),
     attentionHeadCountKV: get(`${prefix}attention.head_count_kv`),
     attentionLayerNormEpsilon:
@@ -295,6 +334,17 @@ function extractModelConfig(metadata, architecture) {
     ropeScalingFactor: get(`${prefix}rope.scaling.factor`),
     expertCount: get(`${prefix}expert_count`),
     expertUsedCount: get(`${prefix}expert_used_count`),
+    // Gemma 4 (gemma4.*) extra architecture fields used for PLE, mixed-geometry
+    // attention, and KV sharing. Other architectures leave these undefined.
+    numKvSharedLayers: get(`${prefix}attention.shared_kv_layers`),
+    hiddenSizePerLayerInput: get(`${prefix}embedding_length_per_layer_input`),
+    // Gemma 4 uses per-head key/value lengths (512 global, 256 sliding). Global
+    // layers get the longer head_dim.
+    attentionKeyLength: get(`${prefix}attention.key_length`),
+    attentionKeyLengthSwa: get(`${prefix}attention.key_length_swa`),
+    attentionValueLength: get(`${prefix}attention.value_length`),
+    attentionSlidingWindow: get(`${prefix}attention.sliding_window`),
+    attentionSlidingWindowPattern: get(`${prefix}attention.sliding_window_pattern`),
     tokenizer: {
       model: get('tokenizer.ggml.model'),
       tokens: get('tokenizer.ggml.tokens'),

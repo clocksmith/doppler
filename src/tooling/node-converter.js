@@ -159,6 +159,10 @@ function normalizeWorkerTransformResult(result, tensor) {
     tensorData: result.tensorData,
     outDtype: result.outDtype ?? tensor.dtype,
     outLayout: result.outLayout ?? null,
+    ...(result.companionData instanceof Uint8Array
+      ? { companionData: result.companionData }
+      : {}),
+    ...(result.sourceTransform ? { sourceTransform: result.sourceTransform } : {}),
   };
 }
 
@@ -1324,6 +1328,10 @@ export async function convertSafetensorsDirectory(options) {
     quantization: targetQuantization,
     tokenizerJson,
     tokenizerConfig,
+    // GGUF inputs carry the tokenizer (eos/bos/pad IDs, chat template, etc.)
+    // inside config.tokenizer; lift it to model.tokenizer so resolveEosTokenId
+    // and other manifest helpers find it without a GGUF-specific branch.
+    tokenizer: tokenizerConfig ?? config?.tokenizer ?? null,
     generationConfig,
     tokenizerModel: hasTokenizerModel ? 'tokenizer.model' : null,
     embeddingPostprocessor,

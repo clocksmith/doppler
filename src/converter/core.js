@@ -38,6 +38,7 @@ import {
   quantizeToQ4KM,
   quantizeToQ4KMRowWise,
   quantizeToQ4KMColumnWise,
+  quantizeToInt4PerRowSymmetric,
 } from './quantizer.js';
 
 // ============================================================================
@@ -722,6 +723,96 @@ export function shouldQuantize(tensorName, shape, options = {}) {
   return true;
 }
 
+const GEMMA4_PLE_TENSOR_SUFFIXES = [
+  'embed_tokens_per_layer.weight',
+  'per_layer_embeddings.weight',
+  // GGUF (unsloth / ggml-org) naming for Gemma 4's PLE table.
+  'per_layer_token_embd.weight',
+];
+
+export function isGemma4PerLayerEmbedTensor(tensorName) {
+  if (typeof tensorName !== 'string') return false;
+  const normalized = tensorName.trim();
+  return GEMMA4_PLE_TENSOR_SUFFIXES.some((suffix) => normalized.endsWith(suffix));
+}
+
+function canInt4QuantizePerRow(tensor, options) {
+  if (options?.skipInt4PlePerRow === true) return false;
+  if (!Array.isArray(tensor.shape) || tensor.shape.length !== 2) return false;
+  const [rows, cols] = tensor.shape;
+  if (!Number.isInteger(rows) || rows <= 0) return false;
+  if (!Number.isInteger(cols) || cols <= 0) return false;
+  if ((cols & 1) !== 0) return false;
+  // Per-row symmetric INT4 produces one scale per row. PLE semantics require
+  // one scale per VOCAB token (typically 262144 for Gemma 4). HF stores PLE
+  // as [vocab, hidden] (rows = vocab ≫ cols). GGUF stores it transposed as
+  // [hidden, vocab] (rows = hidden ≪ cols). Quantizing the GGUF layout with
+  // per-row would wrongly share a single scale across all vocab tokens.
+  // Require the tensor to already be in [vocab, hidden] layout. Callers that
+  // have a GGUF PLE must transpose before reaching this function.
+  if (rows <= cols) return false;
+  const srcDtype = String(tensor.dtype || '').toUpperCase();
+  return srcDtype === 'F32' || srcDtype === 'F16' || srcDtype === 'BF16';
+}
+
+function toFloat32FromTensor(bytes, sourceDtype, tensorName) {
+  const src = String(sourceDtype || '').toUpperCase();
+  if (src === 'F32') {
+    if (bytes.byteLength % 4 !== 0) {
+      throw new Error(`Invalid F32 tensor byte length for ${tensorName}: ${bytes.byteLength}`);
+    }
+    return new Float32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 4);
+  }
+  if (src === 'F16') {
+    if (bytes.byteLength % 2 !== 0) {
+      throw new Error(`Invalid F16 tensor byte length for ${tensorName}: ${bytes.byteLength}`);
+    }
+    const src16 = new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2);
+    const out = new Float32Array(src16.length);
+    for (let i = 0; i < src16.length; i++) out[i] = float16ToFloat32(src16[i]);
+    return out;
+  }
+  if (src === 'BF16') {
+    if (bytes.byteLength % 2 !== 0) {
+      throw new Error(`Invalid BF16 tensor byte length for ${tensorName}: ${bytes.byteLength}`);
+    }
+    const src16 = new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2);
+    const out = new Float32Array(src16.length);
+    for (let i = 0; i < src16.length; i++) out[i] = bf16ToFloat32(src16[i]);
+    return out;
+  }
+  throw new Error(`Unsupported source dtype "${sourceDtype}" for PLE INT4 quantization of ${tensorName}`);
+}
+
+function buildInt4PerRowPleTransform(tensor, bytes, sourceDtype) {
+  const f32 = toFloat32FromTensor(bytes, sourceDtype, tensor.name);
+  const { quantized, scales } = quantizeToInt4PerRowSymmetric(f32, tensor.shape);
+  const scalesBytes = new Uint8Array(scales.buffer, scales.byteOffset, scales.byteLength);
+  const [rows, cols] = tensor.shape;
+  return {
+    tensorData: quantized,
+    companionData: scalesBytes,
+    // outDtype is the LOGICAL dtype the tensor resolves to after dequant at
+    // load time. Storage dtype (INT4) is carried in sourceTransform.sourceDtype.
+    outDtype: 'F16',
+    outLayout: 'row',
+    sourceDtype: String(sourceDtype || '').toUpperCase(),
+    tensorTargetQuant: 'int4_per_row_ple',
+    sourceTransform: {
+      kind: 'litert_axis_dequant',
+      scheme: 'per_axis_affine',
+      sourceDtype: 'INT4',
+      targetDtype: 'F16',
+      storageEncoding: 'offset_binary',
+      scaleSemantics: 'step',
+      storageShape: [rows, cols],
+      quantAxis: 1,
+      // scaleSource gets filled in by the writer with the scales companion's
+      // shard/offset/size after appendTensorBytes().
+    },
+  };
+}
+
 export function transformTensorBytes(tensor, rawData, options = {}) {
   const tensorDataInput = rawData instanceof Uint8Array ? rawData : new Uint8Array(rawData);
   let tensorData = tensorDataInput;
@@ -749,6 +840,15 @@ export function transformTensorBytes(tensor, rawData, options = {}) {
       ? options.forceQuantizeDecision
       : null
   );
+
+  // Gemma 4 per-layer embeddings use MediaPipe's INT4 per-row symmetric
+  // quantization (verified against gemma-4-E2B-it.litertlm composites:
+  // quantizedDimension=0, one F32 scale per vocab row, zero_point=0). Saves
+  // ~3.5 GB per model vs the default F16 path. Runtime reads via
+  // sourceTransform.kind=litert_axis_dequant with scaleSemantics=step.
+  if (isGemma4PerLayerEmbedTensor(tensor.name) && canInt4QuantizePerRow(tensor, options)) {
+    return buildInt4PerRowPleTransform(tensor, tensorDataInput, sourceDtype);
+  }
 
   if (tensorTargetQuant === 'q4k') {
     const sourceQuant = normalizeStorageQuant(sourceDtype);
@@ -1052,15 +1152,35 @@ export function extractArchitecture(config, ggufConfig) {
       'contextLength'
     );
 
+    // Gemma 4-specific fields (optional — undefined on non-Gemma-4 GGUFs).
+    // key_length is per-head; pick the larger of (key_length, key_length_swa)
+    // for globalHeadDim and the smaller for headDim. Matches the mixed-geometry
+    // KV cache expected by src/inference/pipelines/text/layer.js.
+    const keyLen = firstNumber(c.attentionKeyLength);
+    const keyLenSwa = firstNumber(c.attentionKeyLengthSwa);
+    const headDimFromGguf = keyLenSwa != null && keyLen != null
+      ? Math.min(keyLen, keyLenSwa)
+      : (keyLenSwa ?? Math.floor(hiddenSize / numHeads));
+    const globalHeadDim = (keyLen != null && keyLenSwa != null && keyLen !== keyLenSwa)
+      ? Math.max(keyLen, keyLenSwa)
+      : undefined;
+    const numKvSharedLayers = firstNumber(c.numKvSharedLayers);
+    const hiddenSizePerLayerInput = firstNumber(c.hiddenSizePerLayerInput);
+    const vocabSizePerLayerInput = hiddenSizePerLayerInput != null ? vocabSize : undefined;
+
     return {
       numLayers,
       hiddenSize,
       intermediateSize,
       numAttentionHeads: numHeads,
       numKeyValueHeads: numKVHeads,
-      headDim: Math.floor(hiddenSize / numHeads),
+      headDim: headDimFromGguf,
       vocabSize,
       maxSeqLen,
+      ...(globalHeadDim != null ? { globalHeadDim } : {}),
+      ...(numKvSharedLayers != null ? { numKvSharedLayers } : {}),
+      ...(hiddenSizePerLayerInput != null ? { hiddenSizePerLayerInput } : {}),
+      ...(vocabSizePerLayerInput != null ? { vocabSizePerLayerInput } : {}),
     };
   }
 
@@ -1550,6 +1670,12 @@ export async function convertModel(model, io, options = {}) {
       }
 
       let emittedChunk = false;
+      // For PLE INT4 per-row quantization, each row-chunk returns its own
+      // per-row F32 scale slice via companionData. Accumulate them across
+      // chunks; after the stream completes, write the concatenated scales
+      // blob and attach sourceTransform.scaleSource pointing at it.
+      const companionChunks = [];
+      let accumulatedSourceTransform = null;
       await options.largeTensorTransformer({
         tensor,
         transformContext,
@@ -1575,11 +1701,56 @@ export async function convertModel(model, io, options = {}) {
           }
           tensorSize += tensorData.byteLength;
           await appendTensorBytes(tensorData, tensorSpans);
+
+          if (result?.companionData instanceof Uint8Array && result.companionData.byteLength > 0) {
+            if (!result.sourceTransform) {
+              throw new Error(
+                `Large tensor chunk returned companionData without sourceTransform for ${tensor.name}.`
+              );
+            }
+            companionChunks.push(result.companionData);
+            if (!accumulatedSourceTransform) {
+              accumulatedSourceTransform = { ...result.sourceTransform };
+            }
+          } else if (result?.sourceTransform && !accumulatedSourceTransform) {
+            accumulatedSourceTransform = { ...result.sourceTransform };
+          }
         },
       });
 
       if (!emittedChunk) {
         throw new Error(`Large tensor transformer did not emit any bytes for ${tensor.name}.`);
+      }
+
+      if (accumulatedSourceTransform) {
+        let companionBytes = null;
+        if (companionChunks.length > 0) {
+          let totalCompanionBytes = 0;
+          for (const chunk of companionChunks) totalCompanionBytes += chunk.byteLength;
+          companionBytes = new Uint8Array(totalCompanionBytes);
+          let offset = 0;
+          for (const chunk of companionChunks) {
+            companionBytes.set(chunk, offset);
+            offset += chunk.byteLength;
+          }
+          const companionSpans = [];
+          await appendTensorBytes(companionBytes, companionSpans);
+          if (companionSpans.length !== 1) {
+            throw new Error(
+              `Companion scales for ${tensor.name} must land in a single shard (got ${companionSpans.length}).`
+            );
+          }
+          transformContext._pleSourceTransform = {
+            ...accumulatedSourceTransform,
+            scaleSource: {
+              shard: companionSpans[0].shardIndex,
+              offset: companionSpans[0].offset,
+              size: companionBytes.byteLength,
+            },
+          };
+        } else {
+          transformContext._pleSourceTransform = accumulatedSourceTransform;
+        }
       }
     } else {
       const data = await io.readTensorData(tensor);
@@ -1603,11 +1774,44 @@ export async function convertModel(model, io, options = {}) {
       outLayout = transformResult?.outLayout ?? null;
       tensorSize = tensorData.byteLength;
       await appendTensorBytes(tensorData, tensorSpans);
+
+      // Companion data (e.g., INT4 per-row scales for PLE) writes to its own
+      // spans and is referenced from sourceTransform.scaleSource on the
+      // primary tensor location.
+      const companionData = transformResult?.companionData;
+      if (companionData instanceof Uint8Array && companionData.byteLength > 0) {
+        if (!transformResult?.sourceTransform) {
+          throw new Error(
+            `Tensor transformer returned companionData without sourceTransform for ${tensor.name}.`
+          );
+        }
+        const companionSpans = [];
+        await appendTensorBytes(companionData, companionSpans);
+        if (companionSpans.length !== 1) {
+          throw new Error(
+            `Companion scales for ${tensor.name} must land in a single shard (got ${companionSpans.length}).`
+          );
+        }
+        transformContext._pleSourceTransform = {
+          ...transformResult.sourceTransform,
+          scaleSource: {
+            shard: companionSpans[0].shardIndex,
+            offset: companionSpans[0].offset,
+            size: companionData.byteLength,
+          },
+        };
+      } else if (transformResult?.sourceTransform) {
+        transformContext._pleSourceTransform = transformResult.sourceTransform;
+      } else {
+        transformContext._pleSourceTransform = null;
+      }
     }
 
     // Record tensor location
     const role = resolveTensorRole(tensor);
     const group = resolveTensorGroup(tensor, tensorGroupModelType);
+    const pleSourceTransform = transformContext._pleSourceTransform ?? null;
+    transformContext._pleSourceTransform = null;
 
     if (tensorSpans.length === 1) {
       tensorLocations[tensor.name] = {
@@ -1619,6 +1823,7 @@ export async function convertModel(model, io, options = {}) {
         role,
         group,
         ...(outLayout ? { layout: outLayout } : {}),
+        ...(pleSourceTransform ? { sourceTransform: pleSourceTransform } : {}),
       };
     } else {
       tensorLocations[tensor.name] = {
@@ -1629,6 +1834,7 @@ export async function convertModel(model, io, options = {}) {
         role,
         group,
         ...(outLayout ? { layout: outLayout } : {}),
+        ...(pleSourceTransform ? { sourceTransform: pleSourceTransform } : {}),
       };
     }
 
