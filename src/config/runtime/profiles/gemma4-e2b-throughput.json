@@ -10,6 +10,11 @@
   "model": "gemma-4-e2b-it-q4k-ehf16-af32",
   "runtime": {
     "inference": {
+      "largeWeights": {
+        "gpuResidentOverrides": [
+          "model.language_model.embed_tokens.weight"
+        ]
+      },
       "batching": {
         "batchSize": 8,
         "stopCheckMode": "batch",

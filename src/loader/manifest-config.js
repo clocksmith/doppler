@@ -95,6 +95,15 @@ export function resolveWeightLayout(location) {
 }
 
 export function shouldStreamLargeWeight(name, location, label, gpuCapabilities, keepF32Weights) {
+  const overrides = getLargeWeightConfig().gpuResidentOverrides;
+  if (Array.isArray(overrides) && overrides.includes(name)) {
+    log.info(
+      'Loader',
+      `${label} weight "${name}" forced GPU-resident via runtime.inference.largeWeights.gpuResidentOverrides.`
+    );
+    return false;
+  }
+
   const maxBytes = getLargeWeightMaxBytes();
   if (!maxBytes) return false;
 

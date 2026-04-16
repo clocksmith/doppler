@@ -29,6 +29,7 @@ export const DEFAULT_LARGE_WEIGHT_CONFIG = Object.freeze({
   safetyRatio: 0.9,
   preferF16: true,
   lmHeadChunkRows: null,
+  gpuResidentOverrides: null,
 });
 
 export const DEFAULT_RUNTIME_CONFIG = {

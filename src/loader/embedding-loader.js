@@ -67,17 +67,27 @@ function shouldUseRangeBackedEmbeddingSource(ctx, name, location) {
     return false;
   }
   if (String(location.dtype ?? '').toUpperCase() === 'F16' && ctx.hostHasShaderF16 === false) {
+    log.info(
+      'Loader',
+      `Embedding "${name}" range-backed: F16 source on device without shader-f16 support.`
+    );
     return true;
   }
   if (hasSourceTransform(location) && typeof ctx.loadShardRange === 'function') {
     log.info(
       'Loader',
-      `Embedding "${name}" uses sourceTransform.kind="${location.sourceTransform.kind}". ` +
-      'Using range-backed CPU source to avoid eager full materialization.'
+      `Embedding "${name}" range-backed: sourceTransform.kind="${location.sourceTransform.kind}" defers full materialization.`
     );
     return true;
   }
-  return ctx.shouldStreamLargeWeight(name, location, 'Embedding');
+  const stream = ctx.shouldStreamLargeWeight(name, location, 'Embedding');
+  if (!stream) {
+    log.info(
+      'Loader',
+      `Embedding "${name}" GPU-resident: shouldStreamLargeWeight returned false.`
+    );
+  }
+  return stream;
 }
 
 // ============================================================================

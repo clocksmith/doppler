@@ -24,6 +24,7 @@ export interface LargeWeightConfigSchema {
   safetyRatio: number;
   preferF16: boolean;
   lmHeadChunkRows: number | null;
+  gpuResidentOverrides: string[] | null;
 }
 
 export interface RuntimeInferenceConfigSchema {

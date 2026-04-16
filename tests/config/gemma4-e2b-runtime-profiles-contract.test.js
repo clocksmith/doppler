@@ -40,6 +40,11 @@ for (const [file, profile] of Object.entries(profiles)) {
   assert.equal(throughput.runtime.inference?.session?.decodeLoop?.readbackMode, 'overlapped');
   assert.equal(throughput.runtime.inference?.session?.decodeLoop?.disableCommandBatching, false);
   assert.equal(throughput.runtime.inference?.session?.perLayerInputs?.materialization, 'gpu_split_tables');
+  assert.deepEqual(
+    throughput.runtime.inference?.largeWeights?.gpuResidentOverrides,
+    ['model.language_model.embed_tokens.weight'],
+    'throughput profile must force embed_tokens.weight GPU-resident to bypass per-batch CPU gather fence'
+  );
 }
 
 {
