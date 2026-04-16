@@ -808,6 +808,7 @@ function createNodeTensorTransformer(options) {
       const transformed = await pool.transformTensor(chunkTensor, chunkTensorData, {
         ...transformContext,
         forceQuantizeDecision: chunkPlan.forceQuantizeDecision,
+        originalTensorShape: tensor.shape,
       });
       const normalized = normalizeWorkerTransformResult(transformed, chunkTensor);
       processedBytes += chunkTensorData.byteLength;
@@ -843,10 +844,36 @@ function createNodeTensorTransformer(options) {
       outputOffset += chunkResult.tensorData.byteLength;
     }
 
+    const companionResults = chunkResults.filter((chunkResult) => (
+      chunkResult.companionData instanceof Uint8Array
+    ));
+    let companionData = null;
+    let sourceTransform = null;
+    if (companionResults.length > 0) {
+      if (companionResults.length !== chunkResults.length) {
+        throw new Error(`node convert: inconsistent chunk companion data for ${tensor.name}.`);
+      }
+      sourceTransform = chunkResults[0].sourceTransform ?? null;
+      if (!sourceTransform) {
+        throw new Error(`node convert: chunk companion data is missing sourceTransform for ${tensor.name}.`);
+      }
+      const totalCompanionBytes = companionResults.reduce((sum, chunkResult) => (
+        sum + chunkResult.companionData.byteLength
+      ), 0);
+      companionData = new Uint8Array(totalCompanionBytes);
+      let companionOffset = 0;
+      for (const chunkResult of companionResults) {
+        companionData.set(chunkResult.companionData, companionOffset);
+        companionOffset += chunkResult.companionData.byteLength;
+      }
+    }
+
     return {
       tensorData: combined,
       outDtype,
       outLayout,
+      ...(companionData ? { companionData } : {}),
+      ...(sourceTransform ? { sourceTransform } : {}),
     };
   };
 }
@@ -937,6 +964,7 @@ function createNodeLargeTensorTransformer(options) {
       const transformed = await pool.transformTensor(chunkTensor, chunkTensorData, {
         ...transformContext,
         forceQuantizeDecision: chunkPlan.forceQuantizeDecision,
+        originalTensorShape: tensor.shape,
       });
       const normalized = normalizeWorkerTransformResult(transformed, chunkTensor);
       if (outDtype == null) {

@@ -36,6 +36,13 @@ parentPort.on('message', (message) => {
 
     const transformed = transformTensorBytes(tensor, new Uint8Array(rawData), job.transformContext ?? {});
     const outBytes = toOwnedUint8Array(transformed.tensorData);
+    const companionBytes = transformed.companionData instanceof Uint8Array
+      ? toOwnedUint8Array(transformed.companionData)
+      : null;
+    const transferList = [outBytes.buffer];
+    if (companionBytes && companionBytes.buffer !== outBytes.buffer) {
+      transferList.push(companionBytes.buffer);
+    }
     parentPort.postMessage({
       id,
       ok: true,
@@ -43,8 +50,10 @@ parentPort.on('message', (message) => {
         tensorData: outBytes.buffer,
         outDtype: transformed.outDtype ?? tensor.dtype ?? null,
         outLayout: transformed.outLayout ?? null,
+        ...(companionBytes ? { companionData: companionBytes.buffer } : {}),
+        ...(transformed.sourceTransform ? { sourceTransform: transformed.sourceTransform } : {}),
       },
-    }, [outBytes.buffer]);
+    }, transferList);
   } catch (error) {
     const messageText = error instanceof Error ? error.message : String(error);
     const stack = error instanceof Error ? error.stack : null;

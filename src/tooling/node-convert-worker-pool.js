@@ -150,10 +150,22 @@ export class NodeConvertWorkerPool {
       if (!(resultBytes instanceof ArrayBuffer)) {
         job.reject(new Error('node convert worker returned invalid tensorData.'));
       } else {
+        const companionBytes = message?.result?.companionData;
+        if (companionBytes != null && !(companionBytes instanceof ArrayBuffer)) {
+          job.reject(new Error('node convert worker returned invalid companionData.'));
+          this.#dispatch();
+          return;
+        }
         job.resolve({
           tensorData: new Uint8Array(resultBytes),
           outDtype: message?.result?.outDtype ?? null,
           outLayout: message?.result?.outLayout ?? null,
+          ...(companionBytes instanceof ArrayBuffer
+            ? { companionData: new Uint8Array(companionBytes) }
+            : {}),
+          ...(message?.result?.sourceTransform
+            ? { sourceTransform: message.result.sourceTransform }
+            : {}),
         });
       }
       this.#dispatch();

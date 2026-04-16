@@ -76,6 +76,41 @@ try {
     offset += chunk.tensorData.byteLength;
   }
   assert.deepEqual(combined, direct.tensorData);
+
+  const pleTensor = {
+    name: 'model.language_model.embed_tokens_per_layer.weight',
+    shape: [8, 4],
+    dtype: 'F16',
+  };
+  const pleSourceBytes = buildF16Data(pleTensor.shape[0] * pleTensor.shape[1]);
+  const pleDirect = transformTensorBytes(pleTensor, pleSourceBytes, transformContext);
+  assert.ok(pleDirect.companionData instanceof Uint8Array);
+  assert.ok(pleDirect.sourceTransform);
+
+  const pleWorker = await pool.transformTensor(pleTensor, pleSourceBytes.slice(), transformContext);
+  assert.deepEqual(pleWorker.tensorData, pleDirect.tensorData);
+  assert.equal(pleWorker.outDtype, pleDirect.outDtype);
+  assert.equal(pleWorker.outLayout, pleDirect.outLayout);
+  assert.deepEqual(pleWorker.companionData, pleDirect.companionData);
+  assert.deepEqual(pleWorker.sourceTransform, pleDirect.sourceTransform);
+
+  const pleChunkTensor = {
+    ...pleTensor,
+    shape: [2, pleTensor.shape[1]],
+  };
+  const pleChunkBytes = pleSourceBytes.slice(0, 2 * pleTensor.shape[1] * 2);
+  const pleChunkDirect = transformTensorBytes(pleChunkTensor, pleChunkBytes, {
+    ...transformContext,
+    originalTensorShape: pleTensor.shape,
+  });
+  const pleChunkWorker = await pool.transformTensor(pleChunkTensor, pleChunkBytes.slice(), {
+    ...transformContext,
+    originalTensorShape: pleTensor.shape,
+  });
+  assert.deepEqual(pleChunkWorker.tensorData, pleChunkDirect.tensorData);
+  assert.deepEqual(pleChunkWorker.companionData, pleChunkDirect.companionData);
+  assert.deepEqual(pleChunkWorker.sourceTransform, pleChunkDirect.sourceTransform);
+  assert.deepEqual(pleChunkWorker.sourceTransform.storageShape, pleTensor.shape);
 } finally {
   await pool.close();
 }

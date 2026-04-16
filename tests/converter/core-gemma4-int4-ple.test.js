@@ -148,4 +148,24 @@ const skipResult = transformTensorBytes(tensor, srcBytes, {
 });
 assert.notEqual(skipResult.outDtype, 'INT4', 'skipInt4PlePerRow must disable the INT4 path');
 
+// --- 6. Row-chunked conversion keeps the full tensor transform shape ---
+const chunkRows = 2;
+const chunkTensor = {
+  ...tensor,
+  shape: [chunkRows, cols],
+};
+const chunkBytes = srcBytes.slice(0, chunkRows * cols * 2);
+const chunkResult = transformTensorBytes(chunkTensor, chunkBytes, {
+  targetQuant: 'q4k',
+  originalTensorShape: tensor.shape,
+});
+assert.equal(chunkResult.tensorTargetQuant, 'int4_per_row_ple');
+assert.equal(chunkResult.tensorData.byteLength, (chunkRows * cols) / 2);
+assert.equal(chunkResult.companionData.byteLength, chunkRows * 4);
+assert.deepEqual(
+  chunkResult.sourceTransform.storageShape,
+  tensor.shape,
+  'chunked PLE sourceTransform must describe the full logical tensor'
+);
+
 console.log('core-gemma4-int4-ple.test: ok');

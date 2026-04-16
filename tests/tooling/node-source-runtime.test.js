@@ -421,11 +421,11 @@ try {
   );
   assert.equal(
     litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.scaleSemantics,
-    'qmax_abs'
+    'step'
   );
   assert.equal(
-    litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.scaleDivisor,
-    3
+    litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.scaleDivisor ?? null,
+    null
   );
   assert.deepEqual(
     litertLmBundle.manifest.tensors['model.language_model.embed_tokens.weight']?.sourceTransform?.storageShape,

@@ -732,8 +732,42 @@ const GEMMA4_PLE_TENSOR_SUFFIXES = [
 
 export function isGemma4PerLayerEmbedTensor(tensorName) {
   if (typeof tensorName !== 'string') return false;
-  const normalized = tensorName.trim();
+  const normalized = tensorName.trim().toLowerCase();
   return GEMMA4_PLE_TENSOR_SUFFIXES.some((suffix) => normalized.endsWith(suffix));
+}
+
+function validateInt4PleMaterializationContract(tensorLocations, inference, modelId) {
+  const materialization = inference?.session?.perLayerInputs?.materialization;
+  if (materialization !== 'gpu_split_tables') {
+    return;
+  }
+  for (const [name, location] of Object.entries(tensorLocations ?? {})) {
+    const sourceTransform = location?.sourceTransform ?? null;
+    if (
+      isGemma4PerLayerEmbedTensor(name)
+      && sourceTransform?.kind === 'litert_axis_dequant'
+      && String(sourceTransform?.sourceDtype ?? '').toUpperCase() === 'INT4'
+    ) {
+      throw new Error(
+        `Manifest "${modelId}" Gemma 4 INT4 PLE tensor "${name}" cannot use ` +
+        'inference.session.perLayerInputs.materialization="gpu_split_tables". ' +
+        'Use materialization="range_backed" or disable INT4 PLE quantization.'
+      );
+    }
+  }
+}
+
+function resolveOriginalTensorShape(options) {
+  const shape = options?.originalTensorShape;
+  if (!Array.isArray(shape) || shape.length !== 2) {
+    return null;
+  }
+  const rows = Number(shape[0]);
+  const cols = Number(shape[1]);
+  if (!Number.isInteger(rows) || rows <= 0 || !Number.isInteger(cols) || cols <= 0) {
+    return null;
+  }
+  return [rows, cols];
 }
 
 function canInt4QuantizePerRow(tensor, options) {
@@ -743,6 +777,8 @@ function canInt4QuantizePerRow(tensor, options) {
   if (!Number.isInteger(rows) || rows <= 0) return false;
   if (!Number.isInteger(cols) || cols <= 0) return false;
   if ((cols & 1) !== 0) return false;
+  const originalShape = resolveOriginalTensorShape(options);
+  if (originalShape && originalShape[1] !== cols) return false;
   // Per-row symmetric INT4 produces one scale per row. PLE semantics require
   // one scale per VOCAB token (typically 262144 for Gemma 4). HF stores PLE
   // as [vocab, hidden] (rows = vocab ≫ cols). GGUF stores it transposed as
@@ -750,7 +786,7 @@ function canInt4QuantizePerRow(tensor, options) {
   // per-row would wrongly share a single scale across all vocab tokens.
   // Require the tensor to already be in [vocab, hidden] layout. Callers that
   // have a GGUF PLE must transpose before reaching this function.
-  if (rows <= cols) return false;
+  if (rows <= cols && (!originalShape || originalShape[0] <= originalShape[1])) return false;
   const srcDtype = String(tensor.dtype || '').toUpperCase();
   return srcDtype === 'F32' || srcDtype === 'F16' || srcDtype === 'BF16';
 }
@@ -784,11 +820,11 @@ function toFloat32FromTensor(bytes, sourceDtype, tensorName) {
   throw new Error(`Unsupported source dtype "${sourceDtype}" for PLE INT4 quantization of ${tensorName}`);
 }
 
-function buildInt4PerRowPleTransform(tensor, bytes, sourceDtype) {
+function buildInt4PerRowPleTransform(tensor, bytes, sourceDtype, options = {}) {
   const f32 = toFloat32FromTensor(bytes, sourceDtype, tensor.name);
   const { quantized, scales } = quantizeToInt4PerRowSymmetric(f32, tensor.shape);
   const scalesBytes = new Uint8Array(scales.buffer, scales.byteOffset, scales.byteLength);
-  const [rows, cols] = tensor.shape;
+  const [rows, cols] = resolveOriginalTensorShape(options) ?? tensor.shape;
   return {
     tensorData: quantized,
     companionData: scalesBytes,
@@ -847,7 +883,7 @@ export function transformTensorBytes(tensor, rawData, options = {}) {
   // ~3.5 GB per model vs the default F16 path. Runtime reads via
   // sourceTransform.kind=litert_axis_dequant with scaleSemantics=step.
   if (isGemma4PerLayerEmbedTensor(tensor.name) && canInt4QuantizePerRow(tensor, options)) {
-    return buildInt4PerRowPleTransform(tensor, tensorDataInput, sourceDtype);
+    return buildInt4PerRowPleTransform(tensor, tensorDataInput, sourceDtype, options);
   }
 
   if (tensorTargetQuant === 'q4k') {
@@ -1867,6 +1903,8 @@ export async function convertModel(model, io, options = {}) {
     effectiveQuantizationInfo.weights,
     options.quantization ?? model.quantization
   );
+
+  validateInt4PleMaterializationContract(tensorLocations, options.inference, modelId);
 
   const manifest = createManifest(modelId, model, shards, tensorLocations, {
     source: 'convert-core',

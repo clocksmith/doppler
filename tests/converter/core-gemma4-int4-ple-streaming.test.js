@@ -147,4 +147,48 @@ assert.equal(st.scaleSource.size, EXPECTED_SCALE_BYTES, 'scaleSource.size must e
 const totalWritten = writtenShards.reduce((sum, s) => sum + s.byteLength, 0);
 assert.equal(totalWritten, EXPECTED_INT4_BYTES + EXPECTED_SCALE_BYTES, 'shard byte sum must equal body + companion');
 
+const gpuSplitInference = JSON.parse(JSON.stringify(DEFAULT_MANIFEST_INFERENCE));
+gpuSplitInference.session = gpuSplitInference.session ?? {};
+gpuSplitInference.session.perLayerInputs = gpuSplitInference.session.perLayerInputs ?? {};
+gpuSplitInference.session.perLayerInputs.materialization = 'gpu_split_tables';
+const smallWords = new Uint16Array(8 * 4);
+for (let i = 0; i < smallWords.length; i++) {
+  smallWords[i] = i + 1;
+}
+const smallBytes = new Uint8Array(smallWords.buffer, smallWords.byteOffset, smallWords.byteLength);
+await assert.rejects(
+  () => convertModel({
+    name: 'gemma4-ple-gpu-split-int4-reject-test',
+    modelId: 'gemma4-ple-gpu-split-int4-reject-test',
+    quantization: 'F16',
+    tensors: [
+      {
+        name: 'model.language_model.embed_tokens_per_layer.weight',
+        shape: [8, 4],
+        dtype: 'F16',
+        size: smallBytes.byteLength,
+        offset: 0,
+      },
+    ],
+    config: { model_type: 'gemma4_text' },
+  }, {
+    async readTensorData() { return smallBytes; },
+    async writeShard(index, data) {
+      assert.equal(typeof index, 'number');
+      assert.ok(data instanceof Uint8Array);
+      return `small-hash-${index}`;
+    },
+    async writeManifest() {
+      throw new Error('writeManifest should not run after INT4 PLE materialization contract rejection');
+    },
+  }, {
+    ...baseOptions,
+    modelId: 'gemma4-ple-gpu-split-int4-reject-test',
+    inference: gpuSplitInference,
+    shardSize: 4096,
+  }),
+  /INT4 PLE tensor .*materialization="gpu_split_tables"/,
+  'INT4 PLE conversion must reject gpu_split_tables materialization'
+);
+
 console.log('core-gemma4-int4-ple-streaming.test: ok');
