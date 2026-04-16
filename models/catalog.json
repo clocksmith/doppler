@@ -484,6 +484,44 @@
       }
     },
     {
+      "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
+      "family": "lfm2",
+      "label": "LFM2.5 1.2B Instruct (Q4K/F32a)",
+      "description": "Liquid AI LFM2.5 1.2B Instruct text model. Q4K weights, F16 embeddings/head, F32 accumulation.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "lfm2.5-1.2b-instruct",
+        "lfm2-1.2b-instruct",
+        "LiquidAI/LFM2.5-1.2B-Instruct"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": false,
+      "sizeBytes": 853551378,
+      "recommended": false,
+      "sortOrder": 35,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "experimental",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "none"
+        },
+        "tested": null
+      },
+      "vendorBenchmark": null
+    },
+    {
       "modelId": "sana-sprint-0-6b-wf16-ef16-hf16-f16",
       "family": "sana",
       "label": "Sana Sprint 0.6B (F16)",
