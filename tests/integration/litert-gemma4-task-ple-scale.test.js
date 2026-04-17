@@ -139,4 +139,71 @@ assert.strictEqual(
   'PLE sourceTransform must NOT have scaleCompanionDequant.'
 );
 
-console.log('litert-gemma4-task-ple-scale.test: ok (PLE gap closed, 576 tensors loaded)');
+// Embedding table (blocked-axis INT2) contract. Locks shape/dtype/block/lane so a
+// silent change to `createLiteRTBlockedAxisTensor` or to the embedding call site in
+// `normalizeGemma4LiteRTTensors` cannot introduce numeric divergence without
+// breaking this test. `storageEncoding` is derived from sum-companion presence via
+// `preferSignedPacked = !hasSumCompanion` — the correspondence is asserted below.
+const embedKey = 'model.language_model.embed_tokens.weight';
+const embedTensor = tensors[embedKey];
+assert.ok(embedTensor, `Embedding tensor "${embedKey}" must exist in the manifest.`);
+assert.deepStrictEqual(
+  embedTensor.shape,
+  [262144, 1536],
+  `Embedding shape must be [262144, 1536], got ${JSON.stringify(embedTensor.shape)}.`
+);
+assert.strictEqual(embedTensor.dtype, 'F16', 'Embedding dtype must be F16.');
+assert.strictEqual(
+  embedTensor.sourceTransform?.kind,
+  'litert_axis_blocked_dequant',
+  'Embedding sourceTransform.kind must be litert_axis_blocked_dequant.'
+);
+assert.strictEqual(
+  embedTensor.sourceTransform?.sourceDtype,
+  'INT2',
+  'Embedding sourceTransform.sourceDtype must be INT2.'
+);
+assert.strictEqual(
+  embedTensor.sourceTransform?.quantAxis,
+  0,
+  'Embedding sourceTransform.quantAxis must be 0.'
+);
+assert.strictEqual(
+  embedTensor.sourceTransform?.storageBlockSize,
+  4,
+  'Embedding sourceTransform.storageBlockSize must be 4.'
+);
+assert.deepStrictEqual(
+  embedTensor.sourceTransform?.storageShape,
+  [384, 262144],
+  `Embedding storageShape must be [384, 262144], got ${JSON.stringify(embedTensor.sourceTransform?.storageShape)}.`
+);
+assert.deepStrictEqual(
+  embedTensor.sourceTransform?.storageLaneOrder,
+  [0, 1, 2, 3],
+  `Embedding storageLaneOrder must be [0, 1, 2, 3], got ${JSON.stringify(embedTensor.sourceTransform?.storageLaneOrder)}.`
+);
+assert.strictEqual(
+  embedTensor.sourceTransform?.scaleSemantics,
+  'step',
+  'Embedding sourceTransform.scaleSemantics must be step.'
+);
+// The manifest wraps the sum companion as `sumSource: { shard, offset, size }` (see
+// `buildTransformCompanionSource` in src/tooling/source-runtime-bundle.js). Its
+// presence is the signal `inferLiteRTBlockedAxisLayout` uses to pick
+// `offset_binary` vs `signed` packing, so the two fields must correspond.
+const embedHasSumCompanion = Boolean(
+  embedTensor.sourceTransform?.sumSource
+  && typeof embedTensor.sourceTransform.sumSource === 'object'
+);
+const embedExpectedEncoding = embedHasSumCompanion ? 'offset_binary' : 'signed';
+assert.strictEqual(
+  embedTensor.sourceTransform?.storageEncoding,
+  embedExpectedEncoding,
+  `Embedding storageEncoding must be "${embedExpectedEncoding}" when sumCompanion=${embedHasSumCompanion}.`
+);
+
+console.log(
+  'litert-gemma4-task-ple-scale.test: ok '
+  + `(PLE gap closed, 576 tensors loaded, embed sumCompanion=${embedHasSumCompanion})`
+);

@@ -1,20 +1,15 @@
 {
-  "id": "profiles/gemma4-e2b-throughput",
-  "name": "gemma4-e2b-throughput",
-  "description": "Model-scoped Gemma 4 E2B throughput profile with GPU split-table PLE materialization, larger decode bursts, and overlapped readback.",
+  "id": "profiles/qwen-3-5-0-8b-throughput",
+  "name": "qwen-3-5-0-8b-throughput",
+  "description": "Model-scoped Qwen 3.5 0.8B throughput profile: async prefill chunk submission + larger decode bursts with overlapped readback.",
   "intent": "calibrate",
   "stability": "experimental",
   "owner": "doppler-core",
-  "createdAtUtc": "2026-04-06T00:00:00Z",
+  "createdAtUtc": "2026-04-16T00:00:00Z",
   "extends": "profiles/throughput",
-  "model": "gemma-4-e2b-it-q4k-ehf16-af32",
+  "model": "qwen-3-5-0-8b-q4k-ehaf16",
   "runtime": {
     "inference": {
-      "largeWeights": {
-        "gpuResidentOverrides": [
-          "model.language_model.embed_tokens.weight"
-        ]
-      },
       "batching": {
         "batchSize": 8,
         "stopCheckMode": "batch",
@@ -26,9 +21,6 @@
       },
       "session": {
         "prefillChunkSubmitMode": "async",
-        "perLayerInputs": {
-          "materialization": "gpu_split_tables"
-        },
         "decodeLoop": {
           "batchSize": 8,
           "stopCheckMode": "batch",

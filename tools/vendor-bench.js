@@ -46,10 +46,13 @@ function usage() {
     '  node tools/vendor-bench.js show --target <id>',
     '  node tools/vendor-bench.js import --target <id> --input <raw.json> [--output <result.json>] [--timestamp <iso|ms>] [--workload <id>] [--model <id>] [--notes <text>]',
     '  node tools/vendor-bench.js run --target <id> [--timeout-ms <ms>] [--timestamp <iso|ms>] [--output <result.json>] [--workload <id>] [--model <id>] [--notes <text>] -- <command ...>',
+    '  node tools/vendor-bench.js fixtures-restamp [--check] [--fixture <path>]',
     '  --timeout-ms <ms>           Command timeout in milliseconds (default: 600000)',
     '  --timestamp <iso|ms>         Override deterministic timestamp for generated record/matrix timestamps',
     '  --include-local-results      Include benchmarks/vendors/results/*.json in matrix discovery (default: fixtures only)',
     '  --strict-compare-artifacts   Fail matrix generation on any auto-discovered compare artifact parse error',
+    '  --check                     fixtures-restamp: report compatibility but do not write changes',
+    '  --fixture <path>            fixtures-restamp: process a single fixture (default: every committed fixture)',
     '',
     'Notes:',
     '  - `run` expects command stdout to include a JSON object payload.',
@@ -58,7 +61,7 @@ function usage() {
 }
 
 function parseArgs(argv) {
-  const booleanFlags = new Set(['help', 'h', 'include-local-results', 'strict-compare-artifacts']);
+  const booleanFlags = new Set(['help', 'h', 'include-local-results', 'strict-compare-artifacts', 'check']);
   const asCommandValue = (value) => {
     if (typeof value !== 'string') return null;
     const normalized = value.trim();
@@ -2971,6 +2974,144 @@ async function doRun(flags, passthrough, timestamp = null) {
   console.log(outputPath);
 }
 
+async function doFixturesRestamp(flags) {
+  const checkOnly = parseBooleanFlag(flags.check, false, '--check');
+  const fixtureFlag = typeof flags.fixture === 'string' && flags.fixture.trim() !== ''
+    ? flags.fixture.trim()
+    : null;
+
+  const fixtureAbsPaths = [];
+  if (fixtureFlag) {
+    const abs = path.isAbsolute(fixtureFlag) ? fixtureFlag : path.resolve(ROOT_DIR, fixtureFlag);
+    if (!(await fileExists(abs))) {
+      throw new Error(`fixtures-restamp: fixture not found: ${fixtureFlag}`);
+    }
+    fixtureAbsPaths.push(abs);
+  } else {
+    const entries = await fs.readdir(FIXTURES_DIR, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isFile()) continue;
+      if (!isCommittedCompareFixtureFileName(entry.name)) continue;
+      fixtureAbsPaths.push(path.join(FIXTURES_DIR, entry.name));
+    }
+    fixtureAbsPaths.sort();
+  }
+
+  const compareConfig = JSON.parse(await fs.readFile(COMPARE_CONFIG_PATH, 'utf8'));
+  const profilesByModelId = new Map(
+    (compareConfig.modelProfiles || []).map((profile) => [profile.dopplerModelId, profile])
+  );
+
+  const hashCache = new Map();
+  const hashSourceOnce = async (source) => {
+    if (typeof source !== 'string' || source.trim() === '') return null;
+    if (hashCache.has(source)) return hashCache.get(source);
+    const value = await hashCompareArtifactSource(source);
+    hashCache.set(source, value.sha256);
+    return value.sha256;
+  };
+
+  let updated = 0;
+  let unchanged = 0;
+  let failed = 0;
+
+  for (const abs of fixtureAbsPaths) {
+    const relPath = toPosixRelative(abs);
+    const raw = await fs.readFile(abs, 'utf8');
+    const fixture = JSON.parse(raw);
+
+    const dopplerModelId = asNonEmptyStringValue(fixture?.dopplerModelId);
+    if (!dopplerModelId) {
+      console.error(`[restamp] ${relPath}: fixture is missing dopplerModelId`);
+      failed += 1;
+      continue;
+    }
+    const profile = profilesByModelId.get(dopplerModelId);
+    if (!profile) {
+      console.error(
+        `[restamp] ${relPath}: no current compareConfig profile for dopplerModelId="${dopplerModelId}" — profile may have been removed; fixture must be recaptured or deleted.`
+      );
+      failed += 1;
+      continue;
+    }
+
+    const fixtureTjs = asNonEmptyStringValue(fixture?.tjsModelId);
+    const profileTjs = asNonEmptyStringValue(profile?.defaultTjsModelId);
+    if (fixtureTjs && profileTjs && fixtureTjs !== profileTjs) {
+      console.error(
+        `[restamp] ${relPath}: tjsModelId drift — fixture captured "${fixtureTjs}", current profile default is "${profileTjs}". Recapture required.`
+      );
+      failed += 1;
+      continue;
+    }
+
+    const checks = [
+      { label: 'benchmarkPolicy', block: fixture?.benchmarkPolicy },
+      { label: 'compareConfig', block: fixture?.compareConfig },
+      { label: 'metricContract', block: fixture?.metricContract },
+    ];
+    if (fixture?.harnesses && typeof fixture.harnesses === 'object') {
+      for (const harnessKey of Object.keys(fixture.harnesses)) {
+        checks.push({
+          label: `harnesses.${harnessKey}`,
+          block: fixture.harnesses[harnessKey],
+          harnessKey,
+        });
+      }
+    }
+
+    const drifts = [];
+    let blocked = false;
+    for (const check of checks) {
+      const source = asNonEmptyStringValue(check.block?.source);
+      const declared = asNonEmptyStringValue(check.block?.sourceSha256);
+      if (!source || !declared) continue;
+      let current;
+      try {
+        current = await hashSourceOnce(source);
+      } catch (err) {
+        console.error(`[restamp] ${relPath}: ${check.label} source "${source}" cannot be hashed: ${err.message}`);
+        blocked = true;
+        break;
+      }
+      if (current !== declared) {
+        drifts.push({ label: check.label, block: check.block, from: declared, to: current });
+      }
+    }
+    if (blocked) {
+      failed += 1;
+      continue;
+    }
+
+    if (drifts.length === 0) {
+      console.log(`[restamp] ${relPath}: already up to date`);
+      unchanged += 1;
+      continue;
+    }
+
+    console.log(`[restamp] ${relPath}: ${drifts.length} drift${drifts.length === 1 ? '' : 's'}`);
+    for (const drift of drifts) {
+      console.log(`  ${drift.label}.sourceSha256: ${drift.from} -> ${drift.to}`);
+    }
+
+    if (checkOnly) {
+      continue;
+    }
+
+    for (const drift of drifts) {
+      drift.block.sourceSha256 = drift.to;
+    }
+    const serialized = JSON.stringify(fixture, null, 2) + '\n';
+    await fs.writeFile(abs, serialized, 'utf8');
+    updated += 1;
+  }
+
+  console.log(`\n[restamp] summary: updated=${updated}, unchanged=${unchanged}, failed=${failed}`);
+  if (failed > 0) {
+    process.exitCode = 1;
+  }
+}
+
 async function main() {
   const parsed = parseArgs(process.argv.slice(2));
   const command = parsed.command;
@@ -3013,6 +3154,10 @@ async function main() {
   }
   if (command === 'run') {
     await doRun(parsed.flags, parsed.passthrough, timestamp);
+    return;
+  }
+  if (command === 'fixtures-restamp') {
+    await doFixturesRestamp(parsed.flags);
     return;
   }
 

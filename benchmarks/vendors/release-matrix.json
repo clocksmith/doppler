@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-04-13T00:00:00.000Z",
+  "generatedAt": "2026-04-17T11:30:56.893Z",
   "release": {
     "channel": "main-snapshot",
-    "version": "0.2.1",
-    "commitSha": "ba57ea16750d426627f53efceb549a78d9063c0b",
+    "version": "0.4.2",
+    "commitSha": "50d2c77014793d511a6ec35e5e21346bafb7ddac",
     "dirty": true
   },
   "sources": {
@@ -28,8 +28,8 @@
     },
     "compareConfig": {
       "path": "benchmarks/vendors/compare-engines.config.json",
-      "sha256": "520748b46f60e6c383765b66deaf1d3940dbbb9c991451c5cd0fe5a21e2df89d",
-      "bytes": 4066,
+      "sha256": "11745e50ef8019a003351190dff6f3f5c32dc86b93d56812cb09aa274c73536f",
+      "bytes": 5420,
       "updated": "2026-03-29"
     },
     "compareMetricContract": {
@@ -46,9 +46,9 @@
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "038fea5b1bbd389e8cb74a92fc48c32fa67e01b231448ced44414b6868cbd9dd",
-      "bytes": 11733,
-      "updated": "2026-04-09"
+      "sha256": "fec291635796036584394f2453c9bba64d0571046db93d452e65f6d94c44d0da",
+      "bytes": 12660,
+      "updated": "2026-04-16"
     },
     "harness:doppler": {
       "path": "benchmarks/vendors/harnesses/doppler.json",
@@ -150,10 +150,10 @@
   "summary": {
     "targetCount": 16,
     "modelCoverageCount": 8,
-    "compareProfileCount": 10,
-    "catalogModelCount": 9,
+    "compareProfileCount": 12,
+    "catalogModelCount": 10,
     "workloadCount": 5,
-    "committedChartCount": 1,
+    "committedChartCount": 2,
     "hasLatestCompareResult": true
   },
   "targets": [
@@ -1131,6 +1131,23 @@
       "catalogSizeBytes": 7094076955
     },
     {
+      "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+      "dopplerModelBaseDir": "local",
+      "dopplerSource": "local",
+      "defaultTjsModelId": "onnx-community/gemma-4-E2B-it-ONNX",
+      "defaultDopplerSurface": "browser",
+      "compareLane": "performance_comparable",
+      "compareLaneReason": "Doppler uses INT4 per-row PLE quantization (closer to TFLite shape); TJS uses standard ONNX q4f16. Both produce coherent Gemma 4 output on matching prompts — lane remains performance_comparable as compute-throughput comparison is meaningful.",
+      "inCatalog": true,
+      "catalogLabel": "Gemma 4 E2B Instruct (Q4K/F32a/INT4 PLE)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 4009916310
+    },
+    {
       "dopplerModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
       "dopplerModelBaseDir": null,
       "dopplerSource": "quickstart-registry",
@@ -1145,23 +1162,6 @@
       ],
       "catalogBaseUrl": null,
       "catalogSizeBytes": 480563695
-    },
-    {
-      "dopplerModelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
-      "dopplerModelBaseDir": "local",
-      "dopplerSource": "local",
-      "defaultTjsModelId": "LiquidAI/LFM2.5-1.2B-Instruct-ONNX",
-      "defaultDopplerSurface": "auto",
-      "compareLane": "performance_comparable",
-      "compareLaneReason": null,
-      "inCatalog": true,
-      "catalogLabel": "LFM 2.5 1.2B Instruct (Q4K/F32a)",
-      "catalogModes": [
-        "run",
-        "translate"
-      ],
-      "catalogBaseUrl": null,
-      "catalogSizeBytes": 853544061
     },
     {
       "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
@@ -1274,44 +1274,49 @@
   ],
   "evidence": {
     "committedCharts": [
-      "benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg"
+      "benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg",
+      "benchmarks/vendors/results/compare_gemma4_e2b_warm_cold_phases.svg"
     ],
     "latestCompareResult": {
-      "path": "benchmarks/vendors/fixtures/qwen3-5-0-8b-p064-d064-t0-k1.compare.json",
-      "timestamp": "2026-03-30T01:46:06.985Z",
-      "mode": "all",
+      "path": "benchmarks/vendors/fixtures/gemma4-e2b-sky-t032-chat.compare.json",
+      "timestamp": "2026-04-10T01:26:49.765Z",
+      "mode": "compute",
       "section": "compute/parity",
+      "cacheMode": null,
+      "loadMode": null,
+      "pairedComparable": true,
+      "invalidReason": null,
       "decodeProfile": "parity",
-      "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
-      "dopplerModelSource": "quickstart-registry",
-      "tjsModelId": "onnx-community/Qwen3.5-0.8B-ONNX",
+      "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+      "dopplerModelSource": "local",
+      "tjsModelId": "onnx-community/gemma-4-E2B-it-ONNX",
       "compareLane": "performance_comparable",
       "compareLaneReason": null,
       "dopplerKernelPath": "manifest-default",
-      "workloadId": "p064-d064-t0-k1",
+      "workloadId": null,
       "workload": {
-        "prefillTokenTarget": 64,
-        "decodeTokenTarget": 64
+        "prefillTokenTarget": 0,
+        "decodeTokenTarget": 32
       },
       "environment": {
         "host": {
-          "platform": "darwin",
-          "arch": "arm64",
-          "nodeVersion": "v22.20.0"
+          "platform": "linux",
+          "arch": "x64",
+          "nodeVersion": "v22.22.1"
         },
         "browser": {
-          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
-          "platform": "MacIntel",
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+          "platform": "Linux x86_64",
           "language": "en-US",
           "vendor": "Google Inc.",
           "executable": null
         },
         "gpu": {
-          "backend": "metal",
-          "vendor": "apple",
-          "architecture": "metal-3",
-          "device": null,
-          "description": "Apple M3",
+          "backend": "vulkan",
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "device": "0x1586",
+          "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
           "hasF16": true,
           "hasSubgroups": true,
           "hasTimestampQuery": true
@@ -1328,18 +1333,18 @@
               "executionProviderMode": null
             },
             "browser": {
-              "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.0.0 Safari/537.36",
-              "platform": "MacIntel",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.0.0 Safari/537.36",
+              "platform": "Linux x86_64",
               "language": "en-US",
               "vendor": "Google Inc.",
               "executable": null
             },
             "gpu": {
               "backend": null,
-              "vendor": "apple",
-              "architecture": "metal-3",
-              "device": "0x0000",
-              "description": "Apple M3",
+              "vendor": "amd",
+              "architecture": "rdna-3",
+              "device": "0x1586",
+              "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
               "hasF16": true,
               "hasSubgroups": true,
               "hasTimestampQuery": true
@@ -1351,23 +1356,23 @@
             "surface": null,
             "runtime": {
               "device": "webgpu",
-              "dtype": "fp16",
-              "requestedDtype": "fp16",
+              "dtype": "q4f16",
+              "requestedDtype": "q4f16",
               "executionProviderMode": "webgpu-only"
             },
             "browser": {
-              "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
-              "platform": "MacIntel",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+              "platform": "Linux x86_64",
               "language": "en-US",
               "vendor": "Google Inc.",
               "executable": null
             },
             "gpu": {
-              "backend": "metal",
-              "vendor": "apple",
-              "architecture": "metal-3",
-              "device": "0x0000",
-              "description": "Apple M3",
+              "backend": "vulkan",
+              "vendor": "amd",
+              "architecture": "rdna-3",
+              "device": "0x1586",
+              "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
               "hasF16": true,
               "hasSubgroups": true,
               "hasTimestampQuery": true
@@ -1377,44 +1382,44 @@
       },
       "metrics": {
         "decodeTokensPerSec": {
-          "doppler": 11.15,
-          "transformersjs": 26.08787472892221
+          "doppler": 13.57,
+          "transformersjs": 11.389040436763992
         },
         "promptTokensPerSecToFirstToken": {
           "doppler": null,
-          "transformersjs": 40.59899127009408
+          "transformersjs": 102.01652665912545
         },
         "firstTokenMs": {
-          "doppler": 693.7,
-          "transformersjs": 4482.870000123978
+          "doppler": 237.6,
+          "transformersjs": 147.03500002622604
         },
         "firstResponseMs": {
-          "doppler": 2490.9,
-          "transformersjs": 8169.920000076294
+          "doppler": 2396.6,
+          "transformersjs": 2504.060000002384
         },
         "decodeMs": {
-          "doppler": 5738.9,
-          "transformersjs": 2414.914999961853
+          "doppler": 2358.3,
+          "transformersjs": 2721.914999961853
         },
         "totalRunMs": {
-          "doppler": 6432.9,
-          "transformersjs": 6897.785000085831
+          "doppler": 2594.8,
+          "transformersjs": 2868.949999988079
         },
         "modelLoadMs": {
-          "doppler": 1797.2,
-          "transformersjs": 3687.0499999523163
+          "doppler": 2159,
+          "transformersjs": 2357.024999976158
         },
         "decodeMsPerTokenP50": {
-          "doppler": 89.67,
-          "transformersjs": 37.53499984741211
+          "doppler": 73.7,
+          "transformersjs": 88.2049999833107
         },
         "decodeMsPerTokenP95": {
-          "doppler": 89.67,
-          "transformersjs": 40.62949998378754
+          "doppler": 73.78,
+          "transformersjs": 93.8369999885559
         },
         "decodeMsPerTokenP99": {
-          "doppler": 89.67,
-          "transformersjs": 51.70349997997289
+          "doppler": 73.79,
+          "transformersjs": 95.15959998369216
         }
       },
       "origin": "fixture"

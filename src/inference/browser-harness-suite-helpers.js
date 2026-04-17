@@ -268,3 +268,89 @@ export function buildTimingDiagnostics(timing = {}, options = {}) {
     },
   };
 }
+
+// Mirrors `buildFirstLoadComposition` on the transformers.js runner
+// (benchmarks/runners/transformersjs-bench.js) so Doppler bench receipts expose
+// the same six-field first-load breakdown. Fields Doppler does not yet
+// instrument (browserLaunchMs, pageReadyMs, cachePrimeMs) are `null` —
+// `null` explicitly means "this Doppler surface does not separate that
+// phase" (nullable-required-field convention). Sums and residuals fall back
+// to `null` whenever any dependency is null.
+export function buildFirstLoadComposition(fields = {}) {
+  const browserLaunchMs = Number.isFinite(fields.browserLaunchMs)
+    ? toTimingNumber(fields.browserLaunchMs)
+    : null;
+  const pageReadyMs = Number.isFinite(fields.pageReadyMs)
+    ? toTimingNumber(fields.pageReadyMs)
+    : null;
+  const cachePrimeMs = Number.isFinite(fields.cachePrimeMs)
+    ? toTimingNumber(fields.cachePrimeMs)
+    : null;
+  const modelLoadMs = Number.isFinite(fields.modelLoadMs)
+    ? toTimingNumber(fields.modelLoadMs)
+    : null;
+  const firstTokenMs = Number.isFinite(fields.firstTokenMs)
+    ? toTimingNumber(fields.firstTokenMs)
+    : null;
+  const firstResponseMs = Number.isFinite(fields.firstResponseMs)
+    ? toTimingNumber(fields.firstResponseMs)
+    : null;
+
+  const firstResponseFromLoadAndFirstTokenMs = (
+    Number.isFinite(modelLoadMs) && Number.isFinite(firstTokenMs)
+  )
+    ? toTimingNumber(modelLoadMs + firstTokenMs)
+    : null;
+  const harnessWarmStartToFirstResponseMs = (
+    Number.isFinite(pageReadyMs)
+    && Number.isFinite(cachePrimeMs)
+    && Number.isFinite(firstResponseMs)
+  )
+    ? toTimingNumber(pageReadyMs + cachePrimeMs + firstResponseMs)
+    : null;
+  const endToEndFirstResponseMs = (
+    Number.isFinite(browserLaunchMs) && Number.isFinite(harnessWarmStartToFirstResponseMs)
+  )
+    ? toTimingNumber(browserLaunchMs + harnessWarmStartToFirstResponseMs)
+    : null;
+  const firstResponseResidualMs = (
+    Number.isFinite(firstResponseMs) && Number.isFinite(firstResponseFromLoadAndFirstTokenMs)
+  )
+    ? toTimingNumber(firstResponseMs - firstResponseFromLoadAndFirstTokenMs)
+    : null;
+
+  return {
+    schemaVersion: 1,
+    semantics: {
+      browserLaunchMs: 'node launch request -> browser/context ready',
+      pageReadyMs: 'runner navigation + startup',
+      cachePrimeMs: 'untimed warm-opfs prefetch/load pass',
+      modelLoadMs: 'model initialization/load before generation',
+      firstTokenMs: 'ttft from generation start',
+      firstResponseMs: 'modelLoadMs + firstTokenMs',
+      harnessWarmStartToFirstResponseMs: 'pageReadyMs + cachePrimeMs + firstResponseMs',
+      endToEndFirstResponseMs: 'browserLaunchMs + pageReadyMs + cachePrimeMs + firstResponseMs',
+    },
+    componentsMs: {
+      browserLaunchMs,
+      pageReadyMs,
+      cachePrimeMs,
+      modelLoadMs,
+      firstTokenMs,
+      firstResponseMs,
+    },
+    sumsMs: {
+      firstResponseFromLoadAndFirstTokenMs,
+      harnessWarmStartToFirstResponseMs,
+      endToEndFirstResponseMs,
+    },
+    residualsMs: {
+      firstResponseResidualMs,
+    },
+    consistent: {
+      firstResponse: Number.isFinite(firstResponseResidualMs)
+        ? Math.abs(firstResponseResidualMs) <= 2
+        : null,
+    },
+  };
+}

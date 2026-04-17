@@ -1824,7 +1824,12 @@ export class PipelineGenerator {
     // Chunked recorder submission: submit every N layers to release tracked intermediate
     // buffers, preventing unbounded memory growth during large prefills. Critical for
     // replay_prefill models where each decode step re-runs a prefill-style layer pass.
-    const PREFILL_RECORDER_CHUNK_LAYERS = 4;
+    // Configurable via runtime.inference.session.prefillChunkLayers — falls back to 4
+    // when unset (legacy default). Larger values reduce tracked-buffer churn at the
+    // cost of longer intermediate-buffer lifetime.
+    const PREFILL_RECORDER_CHUNK_LAYERS = Number(
+      this.#state.runtimeConfig?.inference?.session?.prefillChunkLayers ?? 4
+    );
 
     let currentHiddenBuffer = hiddenStates.buffer;
     try {
@@ -1911,8 +1916,21 @@ export class PipelineGenerator {
             currentRecorder,
             'prefill_chunk_carry'
           );
-          await currentRecorder.submitAndWait();
-          await recordProfile(currentRecorder);
+          // Chunk boundary exists only to bound intermediate buffer lifetime.
+          // When the runtime opts into async chunk submit AND profile timings
+          // are not being collected, skip the CPU-GPU wait: queue order is
+          // preserved across submits and deferred cleanup still releases
+          // tracked buffers when GPU work completes. Profile runs keep the
+          // sync path because resolveProfileTimings requires the submitted
+          // work to be done.
+          const chunkSubmitMode = this.#state.runtimeConfig?.inference?.session
+            ?.prefillChunkSubmitMode ?? 'sync';
+          if (chunkSubmitMode === 'async' && !opts.profile) {
+            currentRecorder.submit({ cleanup: 'deferred' });
+          } else {
+            await currentRecorder.submitAndWait();
+            await recordProfile(currentRecorder);
+          }
           currentRecorder = createRecorder('prefill-chunk');
         }
       }

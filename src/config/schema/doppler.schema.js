@@ -59,6 +59,20 @@ export const DEFAULT_RUNTIME_CONFIG = {
     chatTemplate: DEFAULT_CHAT_TEMPLATE_CONFIG,
     session: {
       kvcache: DEFAULT_KVCACHE_CONFIG,
+      // "sync" (default): wait for each prefill chunk to finish on GPU before
+      //   recording the next. Required when profile timings are being
+      //   resolved and when low-memory constraints demand deterministic
+      //   buffer release per chunk.
+      // "async": queue each prefill chunk without waiting — GPU queue ordering
+      //   keeps commands correct and deferred cleanup releases tracked
+      //   buffers when work completes. Reduces CPU-GPU roundtrips; profile
+      //   paths override to sync automatically.
+      prefillChunkSubmitMode: 'sync',
+      // Number of transformer layers recorded per prefill command recorder
+      // before a chunk boundary fires. Larger values → fewer chunk
+      // transitions but longer intermediate-buffer lifetime. Default 4 is
+      // memory-conservative; profiles with known-safe memory can raise it.
+      prefillChunkLayers: 4,
     },
     executionPatch: {},
   },

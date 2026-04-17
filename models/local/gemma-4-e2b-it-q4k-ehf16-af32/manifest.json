@@ -223,6 +223,14 @@
             "kvDtype": "f16"
           }
         },
+        "attn_head256": {
+          "kernel": "attention_head256_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "precision": {
+            "kvDtype": "f16"
+          }
+        },
         "lm_head_gemv": {
           "kernel": "matmul_gemv_subgroup.wgsl",
           "entry": "main_multicol",
@@ -383,7 +391,7 @@
             ],
             [
               "attention",
-              "attn_small"
+              "attn_head256"
             ],
             [
               "o_proj",

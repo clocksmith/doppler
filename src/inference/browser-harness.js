@@ -33,6 +33,7 @@ import {
   normalizeWorkloadType,
   assertDiffusionPerformanceArtifact,
   toTimingNumber,
+  buildFirstLoadComposition,
   safeToFixed,
   sampleTimingNumber,
   buildCanonicalTiming,
@@ -509,6 +510,11 @@ async function runInferenceSuite(options = {}) {
     source: 'doppler',
     prefillSemantics: 'internal_prefill_phase',
   });
+  const firstLoad = buildFirstLoadComposition({
+    modelLoadMs: timing.modelLoadMs,
+    firstTokenMs: timing.firstTokenMs,
+    firstResponseMs: timing.firstResponseMs,
+  });
   const metricsWithContracts = buildSuiteContractMetrics(
     options.suiteName || 'inference',
     metrics,
@@ -530,6 +536,7 @@ async function runInferenceSuite(options = {}) {
     },
     timing,
     timingDiagnostics,
+    firstLoad,
     output,
     metrics: metricsWithContracts,
     memoryStats,
@@ -584,6 +591,11 @@ async function runBenchSuite(options = {}) {
       source: 'doppler',
       prefillSemantics: 'not_applicable_training_workload',
     });
+    const firstLoad = buildFirstLoadComposition({
+      modelLoadMs: timing.modelLoadMs,
+      firstTokenMs: timing.firstTokenMs,
+      firstResponseMs: timing.firstResponseMs,
+    });
     return {
       ...trainingBench,
       modelId: trainingBench.modelId || options.modelId || options.modelUrl || 'training',
@@ -600,6 +612,7 @@ async function runBenchSuite(options = {}) {
       },
       timing,
       timingDiagnostics,
+      firstLoad,
       output: null,
       memoryStats: null,
       deviceInfo: trainingBench.deviceInfo ?? resolveDeviceInfo(),
@@ -1000,6 +1013,11 @@ async function runBenchSuite(options = {}) {
     source: 'doppler',
     prefillSemantics: 'internal_prefill_phase',
   });
+  const firstLoad = buildFirstLoadComposition({
+    modelLoadMs: timing.modelLoadMs,
+    firstTokenMs: timing.firstTokenMs,
+    firstResponseMs: timing.firstResponseMs,
+  });
   const metricsWithContracts = buildSuiteContractMetrics('bench', metrics, harness.manifest);
   return {
     ...summary,
@@ -1017,6 +1035,7 @@ async function runBenchSuite(options = {}) {
     },
     timing,
     timingDiagnostics,
+    firstLoad,
     output,
     metrics: metricsWithContracts,
     memoryStats,
