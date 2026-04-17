@@ -315,6 +315,21 @@ export class PipelineGenerator {
   _sampleNextTokenFromLogits(logits, generatedIds, opts) {
     const sampledLogits = Float32Array.from(logits);
     applyRepetitionPenalty(sampledLogits, generatedIds, opts.repetitionPenalty);
+    // Optional pre-sample logit mask. Callers pass `opts.logitMaskFn` to
+    // implement grammar/schema-constrained decoding. The hook receives the
+    // mutable logit buffer (after repetition penalty) plus the running token
+    // sequence so it can track parse state across decode steps.
+    if (typeof opts?.logitMaskFn === "function") {
+      try {
+        opts.logitMaskFn(sampledLogits, {
+          generatedIds,
+          tokenizer: this.#state.tokenizer ?? null,
+          vocabSize: this.#state.modelConfig?.vocabSize ?? sampledLogits.length,
+        });
+      } catch (maskError) {
+        log.warn("Pipeline", `logitMaskFn threw; continuing without mask: ${maskError}`);
+      }
+    }
     const padTokenId = this.#state.tokenizer?.getSpecialTokens?.()?.pad;
     return sample(sampledLogits, {
       temperature: opts.temperature,
@@ -780,6 +795,31 @@ export class PipelineGenerator {
   // Generation Public API
   // ==========================================================================
 
+  /**
+   * Truncate the KV cache back to `seqLen` tokens and set `currentSeqLen` to
+   * match. Intended for "prefix-reuse" workflows where a caller wants to run
+   * several decodes that share a common prompt prefix: prefill once with the
+   * shared prefix, decode the first tail, then `resetToSeqLen(prefixLen)` to
+   * drop the tail's KV entries and reuse the prefix KV for the next tail.
+   *
+   * Only valid when no decode is in progress.
+   */
+  resetToSeqLen(seqLen) {
+    if (this.#state.isGenerating) {
+      throw new Error('InferencePipeline.resetToSeqLen: cannot reset while generation is in progress');
+    }
+    const target = Math.max(0, Math.floor(Number(seqLen) || 0));
+    if (!Number.isFinite(target)) {
+      throw new Error('InferencePipeline.resetToSeqLen: seqLen must be a finite non-negative integer');
+    }
+    if (target > this.#state.currentSeqLen) {
+      throw new Error(
+        `InferencePipeline.resetToSeqLen: target ${target} exceeds currentSeqLen ${this.#state.currentSeqLen}`
+      );
+    }
+    this.#state.kvCache?.truncate?.(target);
+    this.#state.currentSeqLen = target;
+  }
 
   async *generate(prompt, options = {}) {
     yield* this._generateTokensInternal(prompt, options, 'text');
