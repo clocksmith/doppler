@@ -1,7 +1,7 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-04-16",
+  "updatedAt": "2026-04-17",
   "models": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
@@ -406,9 +406,9 @@
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-04-13",
+          "lastVerifiedAt": "2026-04-17",
           "source": "runtime-verify",
-          "notes": "Node/WebGPU on Apple M3 re-verified on 2026-04-13 after syncing the refreshed execution-v1 manifest and republishing the hosted artifact. The execution-inline Qwen path now keeps decode batchSize=32 with readbackInterval=1, passes the execution contract gate, and produces coherent sky-color output with the expected Qwen <think> wrapper still present.",
+          "notes": "Re-verified 2026-04-17 on AMD Strix Halo / Radeon 8060S (RDNA-3) + RADV Mesa 26.0.3, Node/WebGPU. Produces coherent sky-color output ('Blue') with the expected Qwen <think> wrapper, passes the execution contract gate. Decode 34.5 tok/s and TTFT 156 ms with profiles/qwen-3-5-0-8b-throughput (retuned to batchSize=4 readbackInterval=2 batch stop-check; prior batchSize=8 setting regressed on RADV). Previous 2026-04-13 Apple M3 browser verification still applies to that surface.",
           "contracts": {
             "executionContractOk": true
           }

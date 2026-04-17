@@ -6,6 +6,28 @@ This changelog is package-facing and release-oriented. Entries before `0.1.7`
 were retrofitted from package version history, release commits, and release
 docs so the `0.1.x` line has one conventional npm-visible history surface.
 
+## [Unreleased]
+
+### Changed
+
+- Retuned `profiles/qwen-3-5-0-8b-throughput` for AMD Strix Halo / RADV Mesa 26.
+  Switched from `batchSize=8 readbackInterval=8` to `batchSize=4
+  readbackInterval=2` with batch-level stop-check. On Strix Halo this raises
+  Qwen 3.5 0.8B Q4K decode from ~32.0 to ~34.2 tok/s (+7%), drops TTFT from
+  ~390 ms to ~155 ms (-60%), and lifts prefill from ~41 to ~104 tok/s (+150%).
+  Cross-checked against `gemma-3-1b` to confirm the win is Qwen-specific
+  (linear-attention + larger vocab) and doesn't belong in the global default
+  profile. Receipts under `reports/qwen-3-5-0-8b-q4k-ehaf16/`.
+
+### Added
+
+- Documented the perf-validated kernel-path promotion workflow in
+  `docs/style/benchmark-style-guide.md`. Two-stage flow: runtime override +
+  correctness/perf gates first; promotion to the conversion config and
+  manifest regeneration only after both gates pass on the target hardware.
+- `tools/probes/qwen-decode-sweep.sh` for repeating the Strix Halo sweep when
+  re-tuning the model-scoped profile.
+
 ## [0.2.2] - 2026-04-13
 
 ### Fixed

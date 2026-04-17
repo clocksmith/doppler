@@ -1,7 +1,7 @@
 {
   "id": "profiles/qwen-3-5-0-8b-throughput",
   "name": "qwen-3-5-0-8b-throughput",
-  "description": "Model-scoped Qwen 3.5 0.8B throughput profile: async prefill chunk submission + larger decode bursts with overlapped readback.",
+  "description": "Model-scoped Qwen 3.5 0.8B throughput profile. Tuned 2026-04-17 on AMD Strix Halo / RADV Mesa 26: bs=4 readbackInterval=2 batch stop-check is the local optimum (+6.6% decode vs default). The previously shipped bs=8 setting regressed on this hardware because per-batch record cost exceeded overlap recouped.",
   "intent": "calibrate",
   "stability": "experimental",
   "owner": "doppler-core",
@@ -11,9 +11,9 @@
   "runtime": {
     "inference": {
       "batching": {
-        "batchSize": 8,
+        "batchSize": 4,
         "stopCheckMode": "batch",
-        "readbackInterval": 8,
+        "readbackInterval": 2,
         "readbackMode": "overlapped",
         "ringTokens": 2,
         "ringStop": 1,
@@ -22,9 +22,9 @@
       "session": {
         "prefillChunkSubmitMode": "async",
         "decodeLoop": {
-          "batchSize": 8,
+          "batchSize": 4,
           "stopCheckMode": "batch",
-          "readbackInterval": 8,
+          "readbackInterval": 2,
           "readbackMode": "overlapped",
           "ringTokens": 2,
           "ringStop": 1,
