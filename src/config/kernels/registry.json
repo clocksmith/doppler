@@ -2169,6 +2169,51 @@
             "wgslOnDisk": true
           }
         },
+        "prefill_flash_head256_f16kv": {
+          "wgsl": "attention_prefill_flash_head256_f16kv.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            32,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "tier": "flash_prefill",
+            "exactHeadDim": 256,
+            "maxHeadDim": 256,
+            "requiredShared": 16384
+          },
+          "reachability": {
+            "status": "experimental",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
+        "prefill_flash_reduce": {
+          "wgsl": "attention_prefill_flash_reduce.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            64,
+            1,
+            1
+          ],
+          "requires": [],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "tier": "flash_reduce"
+          },
+          "reachability": {
+            "status": "experimental",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
         "prefill_streaming_f16kv": {
           "wgsl": "attention_streaming_f16kv.wgsl",
           "entryPoint": "main",

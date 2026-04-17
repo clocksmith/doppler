@@ -73,6 +73,12 @@ export const DEFAULT_RUNTIME_CONFIG = {
       // transitions but longer intermediate-buffer lifetime. Default 4 is
       // memory-conservative; profiles with known-safe memory can raise it.
       prefillChunkLayers: 4,
+      // Opt into the flash-attention prefill kernel (head_dim=256, f16 KV,
+      // contiguous layout). Two-pass dispatch raises RDNA3 workgroup
+      // occupancy by KV-axis splitting. The kernel itself enforces head_dim
+      // and layout preconditions at runtime. Default false until parity is
+      // validated on target hardware.
+      useFlashPrefillAttention: false,
     },
     executionPatch: {},
   },
