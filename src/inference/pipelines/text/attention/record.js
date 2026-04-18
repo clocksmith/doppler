@@ -47,6 +47,7 @@ import {
   buildContiguousQuantAttentionOptions,
 } from './quant-options.js';
 import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
+import { getRuntimeConfig } from '../../../../config/runtime.js';
 import {
   resolveAttentionPrecisionContract,
   isAttentionKvDtypeExplicit,
@@ -160,9 +161,32 @@ export async function recordLayerAttentionGPU(
   const kvSize = numTokens * numKVHeads * headDim;
 
   // 1. Input norm
+  // Opt-in fusion: when useFusedRmsnormWideTile is set, defer the standalone
+  // rmsnorm into each q/k/v_proj matmul (fused kernel runs norm internally).
+  let fusedNormWeightRec = null;
+  let fusedNormEpsRec = null;
+  let fusedNormOffsetRec = false;
+  let fusedNormOwnedRec = false;
+  // state.runtimeConfig is a stale snapshot whose inference.session is an empty
+  // object; the live module-level runtime config carries the merged
+  // profile/override session. Read session-level flags from getRuntimeConfig().
+  const rmsNormFusionFlagRec = getRuntimeConfig()?.inference?.session?.useFusedRmsnormWideTile === true;
+  const canFuseInputNormProjRec = rmsNormFusionFlagRec
+    && !skipInputNorm
+    && layerWeights.inputNorm
+    && getNormWeightBuffer
+    && isPrefill
+    && numTokens > 1
+    && attentionInput.dtype === 'f32';
 
   try {
-  if (!skipInputNorm && layerWeights.inputNorm && getNormWeightBuffer) {
+  if (canFuseInputNormProjRec) {
+    fusedNormWeightRec = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
+    fusedNormEpsRec = rmsNormEps;
+    fusedNormOffsetRec = config.rmsNormWeightOffset === true;
+    fusedNormOwnedRec = !isGpuBufferInstance(layerWeights.inputNorm) && !isWeightBuffer(layerWeights.inputNorm);
+    // Keep normed = attentionInput (raw). Each q/k/v_proj matmul runs norm internally.
+  } else if (!skipInputNorm && layerWeights.inputNorm && getNormWeightBuffer) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
     normed = await recordRMSNorm(recorder, attentionInput, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
@@ -242,7 +266,14 @@ export async function recordLayerAttentionGPU(
         trace.attn(layerIdx, `Using fused QKV path: ${qSizeFused}+${kSizeFused}+${vSizeFused}=${totalSize}`);
       }
       : null,
+    fusedNormWeight: fusedNormWeightRec,
+    fusedNormEps: fusedNormEpsRec,
+    fusedNormOffset: fusedNormOffsetRec,
   }));
+  // Deferred release of the norm weight buffer for fused path.
+  if (fusedNormWeightRec && fusedNormOwnedRec) {
+    releaseOrTrack(recorder, fusedNormWeightRec);
+  }
 
   // Optional per-head Q/K normalization.
   // Some models use RMSNorm with (1+weight) offset formula, controlled by rmsNormWeightOffset.

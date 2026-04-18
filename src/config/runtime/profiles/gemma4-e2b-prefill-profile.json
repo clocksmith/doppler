@@ -1,0 +1,35 @@
+{
+  "id": "profiles/gemma4-e2b-prefill-profile",
+  "name": "gemma4-e2b-prefill-profile",
+  "description": "Investigation profile with GPU timestamp-query profiling enabled, longer prompt (prefill≥81), and debug log level so per-kernel timings surface via log.warn('Profile', ...). Used to identify the actual prefill wall.",
+  "intent": "investigate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-04-18T00:00:00Z",
+  "extends": "profiles/gemma4-e2b-throughput",
+  "model": "gemma-4-e2b-it-q4k-ehf16-af32",
+  "runtime": {
+    "shared": {
+      "tooling": {
+        "intent": "investigate"
+      },
+      "debug": {
+        "logLevel": {
+          "defaultLogLevel": "warn"
+        },
+        "profiler": {
+          "enabled": true
+        }
+      }
+    },
+    "inference": {
+      "prompt": "The quick brown fox jumps over the lazy dog. The capital of France is Paris, which is also known as the City of Lights. Tokyo is the capital of Japan, famous for its cherry blossoms and advanced technology. In classical mechanics, Newton's second law states that force equals mass times acceleration. Photosynthesis converts sunlight into chemical energy stored in glucose molecules.",
+      "batching": {
+        "maxTokens": 8
+      },
+      "sampling": {
+        "temperature": 0
+      }
+    }
+  }
+}

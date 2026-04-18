@@ -12,6 +12,7 @@ import {
   resolveWeightBufferMaterialization,
 } from '../../../../gpu/weight-buffer.js';
 import { getDevice, getKernelCapabilities } from '../../../../gpu/device.js';
+import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { acquireBuffer, releaseBuffer } from '../../../../memory/buffer-pool.js';
 import {
   runFusedFFN,
@@ -446,6 +447,21 @@ export async function runDenseFFNGPU(
       releaseBuffer(gateUpOutput.buffer);
     }
 
+    // Opt-in WideTile+residual fusion: if the caller (processFFNStandard)
+    // staged a residual tensor on the context AND no LoRA is present on
+    // down_proj (LoRA requires the pre-residual output for its add), route
+    // this matmul to the q4_fused_widetile_residual variant which produces
+    // (ffn_down_result + residual) in one dispatch. Tell the caller via a
+    // context flag so processFFNStandard skips its downstream doResidualAdd.
+    const pendingResidual = context.__pendingFfnResidualTensor;
+    const downLoraProbe = getLoRAModule(lora, layerIdx, 'down_proj');
+    const tryFuseDownResidual = pendingResidual != null
+      && !downLoraProbe
+      && numTokens > 1
+      && activatedOutput.dtype === 'f32'
+      && downOutputDtype === 'f32'
+      && pendingResidual.dtype === 'f32';
+    let residualFusedHere = false;
     let output = await doMatmul(
       activatedOutput, downWeight,
       numTokens, hiddenSize, intermediateSize,
@@ -457,9 +473,24 @@ export async function runDenseFFNGPU(
         outputDtype: downOutputDtype,
         role: 'ffn_down',
         executionPolicies: context.executionPolicies ?? null,
+        residualTensor: tryFuseDownResidual ? pendingResidual : null,
       },
       recorder
     );
+    // Detect whether the fusion fired: if the selected variant for ffn_down
+    // matmul was q4_fused_widetile_residual, then output IS post-residual.
+    // We infer this cheaply by re-checking the conditions the selector uses.
+    // (A cleaner signal would require a return-shape change across all
+    // dense.js paths; this local signal is enough for correctness.)
+    if (tryFuseDownResidual
+        && getKernelCapabilities().hasF16 === true
+        && getRuntimeConfig().inference?.session?.useWideTileResidualFusion === true
+        && getRuntimeConfig().inference?.session?.useWideTileQ4KPrefill === true
+        && getRuntimeConfig().inference?.session?.retainQ4KMaterialization === true
+    ) {
+      residualFusedHere = true;
+      context.__ffnResidualFusedFired = true;
+    }
 
     const loraDown = getLoRAModule(lora, layerIdx, 'down_proj');
     if (loraDown) {
@@ -620,6 +651,15 @@ export async function runDenseFFNGPU(
       releaseOrTrack(recorder, isWeightBuffer(upWeight) ? upWeight.buffer : upWeight);
     }
 
+    // Opt-in WideTile+residual fusion (fused-gate-up path).
+    const pendingResidualFused = context.__pendingFfnResidualTensor;
+    const downLoraProbeFused = getLoRAModule(lora, layerIdx, 'down_proj');
+    const tryFuseDownResidualFused = pendingResidualFused != null
+      && !downLoraProbeFused
+      && numTokens > 1
+      && downInput.dtype === 'f32'
+      && fusedDownOutputDtype === 'f32'
+      && pendingResidualFused.dtype === 'f32';
     let output = await doMatmul(
       downInput,
       downWeight,
@@ -634,9 +674,18 @@ export async function runDenseFFNGPU(
         outputDtype: fusedDownOutputDtype,
         role: 'ffn_down',
         executionPolicies: context.executionPolicies ?? null,
+        residualTensor: tryFuseDownResidualFused ? pendingResidualFused : null,
       },
       recorder
     );
+    if (tryFuseDownResidualFused
+        && getKernelCapabilities().hasF16 === true
+        && getRuntimeConfig().inference?.session?.useWideTileResidualFusion === true
+        && getRuntimeConfig().inference?.session?.useWideTileQ4KPrefill === true
+        && getRuntimeConfig().inference?.session?.retainQ4KMaterialization === true
+    ) {
+      context.__ffnResidualFusedFired = true;
+    }
 
     const loraDown = getLoRAModule(lora, layerIdx, 'down_proj');
     if (loraDown) {

@@ -96,7 +96,7 @@ export function calculateMatmulDispatch(variant, useQ4KFused, useGemv, M, N, con
 }
 
 
-export function createMatmulUniformBuffer(label, M, N, K, alpha, useQ4KFused, transposeB, uniformWorkgroupsX, recorder, device) {
+export function createMatmulUniformBuffer(label, M, N, K, alpha, useQ4KFused, transposeB, uniformWorkgroupsX, recorder, device, extras = null) {
   // Shader struct is 32 bytes: M, N, K, alpha, transpose_b/num_blocks, workgroups_x/_pad0, _pad1, _pad2
   const uniformSize = 32;
 
@@ -117,6 +117,12 @@ export function createMatmulUniformBuffer(label, M, N, K, alpha, useQ4KFused, tr
       // workgroups_x (or _pad0 if not needed)
       view.setUint32(20, uniformWorkgroupsX ?? 0, true);
       // _pad1, _pad2 - leave as zeros (already zero-initialized)
+      // Extras for fused-rmsnorm WideTile variant: eps f32 overwrites slot 20
+      // (workgroupsX is unused for those variants). rmsNormOffset is a kernel
+      // override constant, not a uniform field.
+      if (extras && Number.isFinite(extras.eps)) {
+        view.setFloat32(20, extras.eps, true);
+      }
     },
     recorder,
     device

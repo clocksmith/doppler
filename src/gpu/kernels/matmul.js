@@ -97,7 +97,7 @@ function assertBindGroupBuffer(kernelName, variant, bindingIndex, bindingLabel, 
   );
 }
 
-function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuffer, outputBuffer, offsets, bindingSizes) {
+function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuffer, outputBuffer, offsets, bindingSizes, residualBuffer = null, normWeightBuffer = null) {
   const isQ4KF16 = variant === 'q4_fused_multicol_f16'
     || variant === 'q4_fused_f16a'
     || variant === 'q4_fused_batched_f16'
@@ -105,6 +105,11 @@ function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuff
     || variant === 'q4_fused_batched_f16a'
     || variant === 'q4_fused_prefill_tiled_f16'
     || variant === 'q4_fused_widetile_f16';
+  // 5-entry WideTile epilogue/prologue variants: output at binding 3 + one
+  // extra read-only buffer at binding 4 (residual for _residual, norm weight
+  // for _rmsnorm). Distinct from isQ4KF16 (which puts output at binding 4).
+  const isWideTileResidual = variant === 'q4_fused_widetile_residual';
+  const isWideTileRmsnorm = variant === 'q4_fused_rmsnorm_widetile';
 
   assertBindGroupBuffer('matmul', variant, 0, 'uniforms', uniformBuffer);
   assertBindGroupBuffer('matmul', variant, 1, 'input', matmulInput?.buffer, [
@@ -113,6 +118,18 @@ function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuff
   ]);
   assertBindGroupBuffer('matmul', variant, 2, 'weights', bBuffer);
   assertBindGroupBuffer('matmul', variant, isQ4KF16 ? 4 : 3, 'output', outputBuffer);
+  if (isWideTileResidual) {
+    if (!residualBuffer) {
+      throw new Error(`[Matmul] variant "${variant}" requires a residual buffer but none was provided.`);
+    }
+    assertBindGroupBuffer('matmul', variant, 4, 'residual', residualBuffer);
+  }
+  if (isWideTileRmsnorm) {
+    if (!normWeightBuffer) {
+      throw new Error(`[Matmul] variant "${variant}" requires a norm weight buffer but none was provided.`);
+    }
+    assertBindGroupBuffer('matmul', variant, 4, 'norm_weight', normWeightBuffer);
+  }
 
   const entries = [
     { binding: 0, resource: { buffer: uniformBuffer } },
@@ -130,6 +147,18 @@ function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuff
       binding: 3,
       resource: { buffer: outputBuffer, offset: offsets.cOffset, size: bindingSizes.cBindingSize },
     });
+    if (isWideTileResidual) {
+      entries.push({
+        binding: 4,
+        resource: { buffer: residualBuffer },
+      });
+    }
+    if (isWideTileRmsnorm) {
+      entries.push({
+        binding: 4,
+        resource: { buffer: normWeightBuffer },
+      });
+    }
   }
 
   return entries;
@@ -218,11 +247,18 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   validateMatmulOffsets(opLabel, aOffset, bOffset, cOffset);
 
   const runtimeSession = getRuntimeConfig().inference?.session;
-  const effectiveOptions = (options.useTiledQ4KPrefill == null || options.useWideTileQ4KPrefill == null)
+  const effectiveOptions = (
+    options.useTiledQ4KPrefill == null
+    || options.useWideTileQ4KPrefill == null
+    || options.useWideTileResidualFusion == null
+    || options.useFusedRmsnormWideTile == null
+  )
     ? {
         ...options,
         useTiledQ4KPrefill: options.useTiledQ4KPrefill ?? (runtimeSession?.useTiledQ4KPrefill === true),
         useWideTileQ4KPrefill: options.useWideTileQ4KPrefill ?? (runtimeSession?.useWideTileQ4KPrefill === true),
+        useWideTileResidualFusion: options.useWideTileResidualFusion ?? (runtimeSession?.useWideTileResidualFusion === true),
+        useFusedRmsnormWideTile: options.useFusedRmsnormWideTile ?? (runtimeSession?.useFusedRmsnormWideTile === true),
       }
     : options;
 
@@ -238,7 +274,21 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
     effectiveOptions
   );
 
-  const constants = resolveMatmulConstants(options, phase);
+  let constants = resolveMatmulConstants(options, phase);
+  // For the rmsnorm-fused WideTile variant, forward the caller's
+  // rmsNormOffset flag as a pipeline override constant. Gemma-family norm
+  // weights encode `(w - 1.0)`; other models encode `w`.
+  // Also forward WEIGHT_IS_F16 based on the norm weight buffer dtype so the
+  // kernel correctly unpacks f16-packed weights (Gemma hidden weights) vs
+  // f32 weights.
+  if (variant === 'q4_fused_rmsnorm_widetile' && options.rmsNormOffset != null) {
+    const normWeightDtype = getWeightDtype(options.normWeight) ?? 'f32';
+    constants = {
+      ...(constants ?? {}),
+      RMS_NORM_OFFSET: options.rmsNormOffset === true,
+      WEIGHT_IS_F16: normWeightDtype === 'f16',
+    };
+  }
 
   let matmulInput = A;
   let matmulADtype = aDtype;
@@ -370,6 +420,9 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   let uniformBuffer = null;
   let completed = false;
   try {
+    const uniformExtras = variant === 'q4_fused_rmsnorm_widetile' && Number.isFinite(options.rmsNormEps)
+      ? { eps: options.rmsNormEps }
+      : null;
     uniformBuffer = createMatmulUniformBuffer(
       'matmul_uniforms',
       M,
@@ -380,9 +433,12 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
       transposeB,
       dispatchPlan.uniformWorkgroupsX,
       recorder || null,
-      device
+      device,
+      uniformExtras
     );
 
+    const residualBuffer = options.residualTensor?.buffer ?? null;
+    const normWeightBuffer = options.normWeight?.buffer ?? options.normWeight ?? null;
     const entries = createMatmulBindGroupEntries(
       variant,
       uniformBuffer,
@@ -394,7 +450,9 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
         aBindingSize: bindingSizes.aBindingSize,
         bBindingSize: bindingSizes.bBindingSize,
         cBindingSize,
-      }
+      },
+      residualBuffer,
+      normWeightBuffer
     );
 
     const bindGroup = device.createBindGroup({

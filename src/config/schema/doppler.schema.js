@@ -115,6 +115,21 @@ export const DEFAULT_RUNTIME_CONFIG = {
       // contiguous KV layout, seqLen > 1. Supersedes useFlashPrefillAttention
       // when both flags are set (this path is picked first). Default false.
       useOrtFlashPrefillAttention: false,
+      // Opt into the WideTile Q4_K matmul + residual fusion at the ffn_down
+      // + ffn_residual call site (dense.js). Eliminates one separate residual
+      // dispatch per layer (~0.85 ms bubble × 35 layers ≈ 30 ms prefill
+      // savings). Requires f32 activations + Q4_K weights retained + prefill.
+      // Default false until correctness + perf validated.
+      useWideTileResidualFusion: false,
+      // Opt into the RMSNorm + WideTile Q4_K matmul fusion at pre-matmul
+      // norm sites (input_norm→q/k/v_proj, pre_feedforward_norm→gate/up).
+      // Each fused call recomputes RMS internally (redundant across q/k/v
+      // but negligible) and skips the standalone rmsnorm dispatch upstream.
+      // Saves ~2 dispatches/layer × 35 layers = 70 dispatches × ~0.85 ms
+      // bubble ≈ 60 ms prefill savings. Requires f32 activations + Q4_K
+      // weights retained + prefill. Default false until wiring lands and
+      // correctness validates.
+      useFusedRmsnormWideTile: false,
     },
     executionPatch: {},
   },

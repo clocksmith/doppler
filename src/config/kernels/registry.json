@@ -937,6 +937,56 @@
             "wgslOnDisk": true
           }
         },
+        "q4_fused_rmsnorm_widetile": {
+          "wgsl": "fused_rmsnorm_q4_widetile.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f32",
+          "weightDtype": "q4k",
+          "variantMetadata": {
+            "tileM": 4,
+            "colsPerWg": 256
+          },
+          "description": "Fused RMSNorm + Q4_K WideTile matmul. Two-pass: pass 1 computes per-row sum-of-squares across all K; pass 2 reloads A, applies normed*weight + matmul in same tileA buffer. Saves 1 standalone rmsnorm dispatch per fusion point. Bind slot 4 = norm_weight (f32).",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
+        "q4_fused_widetile_residual": {
+          "wgsl": "fused_matmul_q4_widetile_residual.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f32",
+          "weightDtype": "q4k",
+          "variantMetadata": {
+            "tileM": 4,
+            "colsPerWg": 256
+          },
+          "description": "WideTile Q4_K matmul fused with residual add in one dispatch. Used at o_proj + attn_residual and ffn_down + ffn_residual call sites to cut 1 dispatch per layer per fusion point (~0.85 ms bubble each).",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
         "f32": {
           "wgsl": "matmul_f32.wgsl",
           "entryPoint": "main",
@@ -2300,6 +2350,32 @@
             "maxHeadDim": 256,
             "requiredShared": 16384
           },
+          "reachability": {
+            "status": "experimental",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
+        "prefill_head512_f16kv": {
+          "wgsl": "attention_head512_f16kv.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            16,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "tier": "tiled_small",
+            "exactHeadDim": 512,
+            "maxHeadDim": 512,
+            "requiredShared": 16384
+          },
+          "description": "head_dim=512 variant of prefill_head256_f16kv for Gemma-4 global attention layers. BLOCK_SIZE=16 (halved) to keep shared_block within 16KB workgroup memory limit (16*128*8=16KB vs 32*128*8=32KB at BLOCK_SIZE=32).",
           "reachability": {
             "status": "experimental",
             "inlineConfigs": [],

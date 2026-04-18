@@ -2,6 +2,7 @@
 
 import { isGpuBufferInstance, isWeightBuffer, getWeightDtype } from '../../../../gpu/weight-buffer.js';
 import { getDevice } from '../../../../gpu/device.js';
+import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { acquireBuffer, releaseBuffer } from '../../../../memory/buffer-pool.js';
 import {
   runMatmul,
@@ -192,9 +193,34 @@ export async function runLayerAttentionGPU(
   const reusesSharedKV = sharedKVEntry != null;
 
   // 1. Input norm
-  
+  // Opt-in fusion: when useFusedRmsnormWideTile is set AND preconditions match,
+  // defer the rmsnorm into each q/k/v_proj matmul via a dedicated WideTile
+  // variant. Saves one standalone rmsnorm dispatch per layer.
+  let fusedNormWeight = null;
+  let fusedNormEps = null;
+  let fusedNormOffset = false;
+  let fusedNormWeightOwned = false;
+  // state.runtimeConfig.inference.session is a stale snapshot ({}); the live
+  // module-level runtime config carries the merged profile/override session.
+  const rmsNormFusionFlag = getRuntimeConfig()?.inference?.session?.useFusedRmsnormWideTile === true;
+  const hasInputNormWeight = layerWeights?.inputNorm != null && getNormWeightBuffer != null;
+  const canFuseInputNormIntoProjections = rmsNormFusionFlag
+    && hasInputNormWeight
+    && !skipInputNorm
+    && isPrefill
+    && numTokens > 1
+    && attentionInput.dtype === 'f32';
+
   try {
-  if (!skipInputNorm && layerWeights.inputNorm && getNormWeightBuffer) {
+  if (canFuseInputNormIntoProjections) {
+    const normWeightBuf = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
+    fusedNormWeight = normWeightBuf;
+    fusedNormEps = rmsNormEps;
+    fusedNormOffset = config.rmsNormWeightOffset === true;
+    fusedNormWeightOwned = !isGpuBufferInstance(layerWeights.inputNorm) && !isWeightBuffer(layerWeights.inputNorm);
+    // Keep normed = attentionInput (raw). Each q/k/v_proj matmul runs the
+    // norm internally via the fused kernel variant.
+  } else if (!skipInputNorm && layerWeights.inputNorm && getNormWeightBuffer) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
     try {
       // Debug: norm weights for configured layers
@@ -300,7 +326,14 @@ export async function runLayerAttentionGPU(
         trace.attn(layerIdx, `Using fused QKV path: ${qSizeFused}+${kSizeFused}+${vSizeFused}=${totalSize}`);
       }
       : null,
+    fusedNormWeight,
+    fusedNormEps,
+    fusedNormOffset,
   }));
+  // Release the in-flight norm weight buffer used by the fused projections.
+  if (fusedNormWeight && fusedNormWeightOwned) {
+    releaseBuffer(fusedNormWeight);
+  }
 
   // Trace Q/K/V projections
   if (kernelTrace.enabled) {

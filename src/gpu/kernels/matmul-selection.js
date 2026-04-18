@@ -488,6 +488,29 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
       q4kVariant = 'q4_fused_widetile';
     }
   }
+  // Residual-fused WideTile override: when the caller passes a residualTensor
+  // and opts into the fusion via useWideTileResidualFusion, route the
+  // f32-output WideTile variant to its residual-epilogue twin. Saves one
+  // downstream doResidualAdd dispatch per fusion point.
+  if (
+    options.useWideTileResidualFusion === true
+    && options.residualTensor != null
+    && q4kVariant === 'q4_fused_widetile'
+  ) {
+    q4kVariant = 'q4_fused_widetile_residual';
+  }
+  // RMSNorm-fused WideTile override: when the caller passes normWeight and
+  // opts into the fusion via useFusedRmsnormWideTile, route the f32-output
+  // WideTile variant to its rmsnorm-prologue twin. Each q/k/v or gate/up
+  // call runs the norm internally; upstream standalone rmsnorm is skipped
+  // by the caller when all downstream matmuls at that site use this variant.
+  if (
+    options.useFusedRmsnormWideTile === true
+    && options.normWeight != null
+    && q4kVariant === 'q4_fused_widetile'
+  ) {
+    q4kVariant = 'q4_fused_rmsnorm_widetile';
+  }
 
   const effectiveBDtype = bDtype === 'q4k' ? 'f32' : bDtype;
   const matmulVariant = selectMatmulKernel({

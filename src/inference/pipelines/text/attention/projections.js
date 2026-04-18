@@ -157,6 +157,9 @@ async function projectSingleQkvTensor({
   matmulDebug,
   releaseTemporary,
   executionPolicies = null,
+  fusedNormWeight = null,
+  fusedNormEps = null,
+  fusedNormOffset = false,
 }) {
     const runMatmulForMode = getMatmulRunner(recorder);
   const layerWeight = layerWeights?.[weightKey];
@@ -178,6 +181,9 @@ async function projectSingleQkvTensor({
       outputDtype: matmulOutputDtype,
       matmulDebug,
       executionPolicies,
+      normWeight: fusedNormWeight,
+      rmsNormEps: fusedNormEps,
+      rmsNormOffset: fusedNormOffset,
     });
   } finally {
     releaseOwnedWeightBuffer(layerWeight, projBuffer, releaseTemporary);
@@ -269,6 +275,9 @@ async function projectQueryWithOptionalGate({
   releaseTemporary,
   attentionOutputGate,
   executionPolicies = null,
+  fusedNormWeight = null,
+  fusedNormEps = null,
+  fusedNormOffset = false,
 }) {
   const qSize = numHeads * headDim;
   const qWeight = layerWeights?.qProj;
@@ -296,6 +305,9 @@ async function projectQueryWithOptionalGate({
       lora,
       matmulDebug,
       releaseTemporary,
+      fusedNormWeight,
+      fusedNormEps,
+      fusedNormOffset,
     });
     return { qTensor, qGateTensor: null };
   }
@@ -433,6 +445,9 @@ export async function projectAttentionQKV({
   sharedKTensor = null,
   sharedVTensor = null,
   executionPolicies = null,
+  fusedNormWeight = null,
+  fusedNormEps = null,
+  fusedNormOffset = false,
 }) {
   const runMatmulForMode = getMatmulRunner(recorder);
   const runSplitForMode = getSplitRunner(recorder);
@@ -485,6 +500,12 @@ export async function projectAttentionQKV({
         outputDtype: projectionOutputDtype,
         matmulDebug,
         executionPolicies,
+        // Forward fused-rmsnorm params so the combined QKV matmul runs the
+        // input_norm prologue internally, eliminating the standalone rmsnorm
+        // dispatch upstream for layers using the useFusedQKV path.
+        normWeight: fusedNormWeight,
+        rmsNormEps: fusedNormEps,
+        rmsNormOffset: fusedNormOffset,
       });
       const split = await runSplitForMode(qkvTensor, {
         numTokens,
@@ -531,6 +552,9 @@ export async function projectAttentionQKV({
       releaseTemporary,
       attentionOutputGate,
       executionPolicies,
+      fusedNormWeight,
+      fusedNormEps,
+      fusedNormOffset,
     }));
 
     if (reuseSharedKV) {
@@ -562,6 +586,9 @@ export async function projectAttentionQKV({
       matmulDebug,
       releaseTemporary,
       executionPolicies,
+      fusedNormWeight,
+      fusedNormEps,
+      fusedNormOffset,
     });
 
     vTensor = await projectSingleQkvTensor({
@@ -583,6 +610,9 @@ export async function projectAttentionQKV({
       matmulDebug,
       releaseTemporary,
       executionPolicies,
+      fusedNormWeight,
+      fusedNormEps,
+      fusedNormOffset,
     });
 
     return { qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV: false };
