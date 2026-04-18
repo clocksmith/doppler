@@ -796,17 +796,15 @@ export async function runLayerAttentionGPU(
         kForAttn = createTensor(kCasted.buffer, kCasted.dtype, [kvState.kvLenForAttention, numKVHeads * headDim], 'cached_K');
         vForAttn = createTensor(vCasted.buffer, vCasted.dtype, [kvState.kvLenForAttention, numKVHeads * headDim], 'cached_V');
       }
-      // Flash-attention prefill opts in via manifest.inference.session.useFlashPrefillAttention
-      // (source-of-truth), with explicit runtime profile as override. The kernel itself enforces
-      // all remaining preconditions (head_dim=256, etc.).
-      const manifestFlash = config?.sessionSettings?.useFlashPrefillAttention;
-      const useFlashPrefill = (
-        (manifestFlash !== null && manifestFlash !== undefined
-          ? manifestFlash
-          : state.runtimeConfig?.inference?.session?.useFlashPrefillAttention) === true
-      ) && numTokens > 1;
-      const useOrtFlashPrefill = state.runtimeConfig?.inference?.session?.useOrtFlashPrefillAttention === true
-        && numTokens > 1;
+      // Session precedence is runtime-over-manifest per config-style-guide
+      // §Category Rules: `resolvedSession = merge(manifest.session, runtime.session)`
+      // with runtime fields winning. getRuntimeConfig() returns that merged
+      // session (state.runtimeConfig.inference.session is a stale snapshot —
+      // see comment above at the rmsNorm fusion check). The kernel itself
+      // enforces remaining preconditions (head_dim=256, etc.).
+      const mergedSession = getRuntimeConfig()?.inference?.session;
+      const useFlashPrefill = mergedSession?.useFlashPrefillAttention === true && numTokens > 1;
+      const useOrtFlashPrefill = mergedSession?.useOrtFlashPrefillAttention === true && numTokens > 1;
       const result = await runAttention(qTensor, kForAttn, vForAttn, null, numHeads, headDim, {
         seqLen: numTokens,
         kvLen: kvState.kvLenForAttention,

@@ -152,7 +152,7 @@
       "prefillChunkSubmitMode": "async",
       "useFlashPrefillAttention": true,
       "useWideTileQ4KPrefill": true,
-      "retainQ4KMaterialization": true
+      "retainQ4KMaterialization": false
     },
     "largeWeights": {
       "gpuResidentOverrides": ["model.language_model.embed_tokens.weight"]

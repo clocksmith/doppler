@@ -6,6 +6,7 @@ import {
 } from '../../gpu/device.js';
 import { applyDebugConfig, setGPUDevice } from '../../debug/index.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../../config/runtime.js';
+import { kernelTrace } from './text/kernel-trace.js';
 import {
   getLogLevel,
   getTrace,
@@ -117,6 +118,23 @@ export function applyPipelineContexts(target, contexts = {}, options = {}) {
 
   if (options.applySharedDebug !== false && sharedDebug) {
     applyDebugConfig(sharedDebug);
+    // Bridge runtime.shared.debug.kernelTrace → kernel-trace singleton.
+    // Schema field has existed since gemma3-debug-q4k; bridging here so any
+    // profile (verbose-trace, experiments/*) that sets it actually enables
+    // the per-step NaN/Inf anomaly detector without a bespoke CLI flag.
+    const kernelTraceCfg = sharedDebug.kernelTrace;
+    console.error('[KT-BRIDGE] sharedDebug keys:', Object.keys(sharedDebug || {}).join(','), 'kernelTraceCfg:', JSON.stringify(kernelTraceCfg));
+    if (kernelTraceCfg && (kernelTraceCfg.enabled === true || kernelTraceCfg.breakOnAnomaly === true)) {
+      kernelTrace.enable({
+        layers: kernelTraceCfg.layers ?? [],
+        breakOnAnomaly: kernelTraceCfg.breakOnAnomaly ?? true,
+        explosionThreshold: kernelTraceCfg.explosionThreshold ?? 10,
+        collapseThreshold: kernelTraceCfg.collapseThreshold ?? 1e-6,
+        maxSteps: kernelTraceCfg.maxSteps ?? 100,
+      });
+    } else if (kernelTrace.enabled && kernelTraceCfg?.enabled === false) {
+      kernelTrace.disable();
+    }
   }
 
   if (contexts.gpu?.device) {

@@ -27,7 +27,7 @@
       "session": {
         "prefillChunkSubmitMode": "async",
         "useFlashPrefillAttention": true,
-        "retainQ4KMaterialization": true,
+        "retainQ4KMaterialization": false,
         "useWideTileQ4KPrefill": true,
         "perLayerInputs": {
           "materialization": "gpu_split_tables"
