@@ -1,0 +1,16 @@
+{
+  "id": "profiles/qwen-3-5-0-8b-throughput-probe",
+  "name": "qwen-3-5-0-8b-throughput-probe",
+  "description": "Qwen 3.5 0.8B throughput profile with a longer-prompt override (~80 tokens) for apples-to-apples measurement.",
+  "intent": "calibrate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-04-18T00:00:00Z",
+  "extends": "profiles/qwen-3-5-0-8b-throughput",
+  "model": "qwen-3-5-0-8b-q4k-ehaf16",
+  "runtime": {
+    "inference": {
+      "prompt": "The quick brown fox jumps over the lazy dog. The capital of France is Paris, which is also known as the City of Lights. Tokyo is the capital of Japan, famous for its cherry blossoms and advanced technology. In classical mechanics, Newton's second law states that force equals mass times acceleration. Photosynthesis converts sunlight into chemical energy stored in glucose molecules."
+    }
+  }
+}

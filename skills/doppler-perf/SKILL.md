@@ -64,6 +64,42 @@ Before changing kernels:
 - For decode, record `decodeMode`, `batchGuardReason`, speculation state, `decodeRecordMs`, `decodeSubmitWaitMs`, `decodeReadbackWaitMs`, `singleTokenReadbackWaitMs`, and `singleTokenOrchestrationMs`.
 - If submit/readback dominates, fix orchestration first; do not assume the math kernel is the main wall.
 
+### 2b) Check Manifest Kernel Routing BEFORE Writing New Kernels
+
+**A fast kernel may already exist but the model's manifest pins a slower variant.** This is the highest-ROI check before writing anything new. Seen twice now — once on Gemma 4 E2B global-attention layers (iter 24–25), once on Qwen 3.5 0.8B full-attention layers + matmuls (2026-04-18). In both cases the fast kernel was sitting in the repo for months; the manifest/conversion config was pinned to older slow choices.
+
+**How to detect (two steps):**
+
+1. Capture a GPU-timestamp receipt with a model-scoped investigate profile that sets `runtime.shared.debug.profiler.enabled: true` and `runtime.shared.tooling.intent: investigate`. Example: `profiles/gemma4-e2b-prefill-profile.json`, `profiles/qwen-3-5-0-8b-prefill-profile.json`. Run via `doppler debug`; per-chunk `log.warn('Profile', ...)` reports list each kernel's wall time.
+2. Raise the profile's `defaultLogLevel` to `info` on one run to capture `KernelSelect` variant lines. Grep for `attention variant=` and `matmul variant=`.
+
+**Red-flag variants (immediate suspicion at prefill):**
+- `prefill_streaming_f16kv` — one-thread-per-workgroup fallback. If fast variants exist for this `head_dim`, the manifest is routing past them.
+- `q4_fused_batched_multicol_shared` — older Q4K matmul, many small workgroups. WideTile (`q4_fused_widetile` / `q4_fused_widetile_f16`) is usually 2×+ faster on M≥4.
+- Any `prefill_small*` on a model whose `architecture.headDim` has a dedicated `*_head{N}_f16kv.wgsl` (e.g. 256 or 512).
+
+**How to fix (manifest-level, no new code):**
+- Add a kernel ref entry to both the conversion config (`src/config/conversion/<family>/<model-id>.json`) AND the runtime manifest (`models/local/<model-id>/manifest.json`). Digest comes from `src/config/kernels/kernel-ref-digests.js` (the normalized content hash, NOT raw `sha256sum` of the `.wgsl` file).
+- Swap the offending `attn_stream` / `q4_prefill` / similar label in the execution-graph steps to the new ref.
+- A reconvert from the updated config must produce the same manifest. Keep both in lockstep (see `general-style-guide.md` §Contracts first).
+
+**Recipe, concise:**
+1. Create/reuse model-scoped `*-prefill-profile.json` with `profiler.enabled: true` + longer prompt (~80 tok).
+2. `node src/cli/doppler-cli.js debug --config '{"request":{"modelId":"<id>","runtimeProfile":"profiles/<id>-prefill-profile"}}' --surface browser | grep -A1 '"module": "Profile"'`
+3. Look at `attention`, `fused_ffn`, `matmul:*:L<i>` lines. Top 1-3 by wall time.
+4. Bump log level to `info`, re-run, `grep "matmul variant=\|attention variant="` — confirm which kernel is actually firing.
+5. Cross-reference against the fast kernels in `src/gpu/kernels/` and registry. If a fast variant matches the op's `head_dim`/`M`/dtype, the fix is a manifest swap, not a new kernel.
+6. Update conversion config + manifest together. Verify MATCH with `doppler verify`. Measure with `doppler bench`.
+
+**When this check does NOT apply:**
+- Per-kernel time under ~0.5 ms (variants all already close to optimal).
+- Kernel selected is already the fastest known variant for that shape (rare; do not assume without cross-checking the registry).
+- The wall is orchestration (submit/readback/encode) — section 2's guidance owns that; don't try to fix it with a kernel swap.
+
+**Session receipts to crib from:**
+- Gemma 4 E2B iter 23–25: `project_gemma4_iter23_attention_is_wall.md` → `project_gemma4_iter25_head512_shipped.md`. Full-attn global layers were streaming; routed to (new) `attention_head512_f16kv.wgsl` for 1.74× prefill at prefill=81.
+- Qwen 3.5 0.8B 2026-04-18: `project_qwen35_08b_attn_and_widetile_shipped_2026_04_18.md`. No new kernel needed — `attention_head256_f16kv.wgsl` + `fused_matmul_q4_widetile.wgsl` already existed; Qwen manifest was just pinned to `attn_stream` + `q4_fused_batched_multicol_shared`. +57.5% prefill at prefill=80.
+
 ### 3) Sweep Runtime Decode Cadence
 
 ```bash

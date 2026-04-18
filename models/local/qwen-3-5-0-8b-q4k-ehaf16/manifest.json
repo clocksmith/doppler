@@ -235,6 +235,11 @@
           "entry": "main",
           "digest": "sha256:142817adcacb28750a92793996cd15c2d9fe13d03e0c2d0aadf3e674dc7a35d6"
         },
+        "q4_widetile": {
+          "kernel": "fused_matmul_q4_widetile.wgsl",
+          "entry": "main",
+          "digest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62"
+        },
         "tiled": {
           "kernel": "matmul_f16w_f32a.wgsl",
           "entry": "main",
@@ -244,6 +249,14 @@
           "kernel": "attention_streaming_f16kv.wgsl",
           "entry": "main",
           "digest": "sha256:5976eef417cebf648f52aeebb47ed1dc6b03c3c541122290c5cead19238fdc24",
+          "precision": {
+            "kvDtype": "f16"
+          }
+        },
+        "attn_head256": {
+          "kernel": "attention_head256_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
           "precision": {
             "kvDtype": "f16"
           }
@@ -360,17 +373,17 @@
         ],
         [
           "q_proj",
-          "q4_prefill",
+          "q4_widetile",
           "layer.{L}.self_attn.q_proj"
         ],
         [
           "k_proj",
-          "q4_prefill",
+          "q4_widetile",
           "layer.{L}.self_attn.k_proj"
         ],
         [
           "v_proj",
-          "q4_prefill",
+          "q4_widetile",
           "layer.{L}.self_attn.v_proj"
         ],
         [
@@ -383,11 +396,11 @@
         ],
         [
           "attention",
-          "attn_stream"
+          "attn_head256"
         ],
         [
           "o_proj",
-          "q4_prefill",
+          "q4_widetile",
           "layer.{L}.self_attn.o_proj"
         ],
         [
@@ -400,12 +413,12 @@
         ],
         [
           "gate_proj",
-          "q4_prefill",
+          "q4_widetile",
           "layer.{L}.mlp.gate_proj"
         ],
         [
           "up_proj",
-          "q4_prefill",
+          "q4_widetile",
           "layer.{L}.mlp.up_proj"
         ],
         [
@@ -414,7 +427,7 @@
         ],
         [
           "down_proj",
-          "q4_prefill",
+          "q4_widetile",
           "layer.{L}.mlp.down_proj"
         ],
         [
