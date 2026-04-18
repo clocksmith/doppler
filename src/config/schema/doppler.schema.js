@@ -99,6 +99,14 @@ export const DEFAULT_RUNTIME_CONFIG = {
       // FFN fusion rule from firing its `hasQ4KMaterialization=true` branch.
       // Memory cost: ~50% extra weight storage for Q4_K matmul weights.
       retainQ4KMaterialization: false,
+      // Opt into the WideTile Q4_K prefill matmul (adapted from ORT
+      // MatMulNBitsWideTile). Register-tiled accumulation, 1 thread per
+      // output column, TILE_M rows accumulated simultaneously. Dramatically
+      // fewer workgroups launched vs q4_fused_batched_f16 at prefill shapes.
+      // Requires f32 activations + Q4_K weights + shader-f16 + M >= TILE_M.
+      // Default false until correctness + perf parity validated on target
+      // hardware.
+      useWideTileQ4KPrefill: false,
     },
     executionPatch: {},
   },

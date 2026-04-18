@@ -883,6 +883,60 @@
             "wgslOnDisk": true
           }
         },
+        "q4_fused_widetile_f16": {
+          "wgsl": "fused_matmul_q4_widetile_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            128,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f16",
+          "weightDtype": "q4k",
+          "variantMetadata": {
+            "tileM": 4,
+            "colsPerWg": 128
+          },
+          "description": "WideTile Q4_K prefill matmul (adapted from ORT MatMulNBitsWideTile, MIT licensed). Each thread owns 1 output column × TILE_M rows; register-tiled accumulation. F32 A, Q4_K B (llama.cpp 256-block), F16 C. ~128x fewer WGs than q4_fused_batched_f16 at Gemma-4 prefill shape.",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#q4kFusedVariant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "q4_fused_widetile": {
+          "wgsl": "fused_matmul_q4_widetile.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            128,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f32",
+          "weightDtype": "q4k",
+          "variantMetadata": {
+            "tileM": 4,
+            "colsPerWg": 128
+          },
+          "description": "F32-output twin of q4_fused_widetile_f16. Same WideTile design, f32 output for callers that need it (e.g. FFN gate/up when activationDtype=f32).",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#q4kFusedVariant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
         "f32": {
           "wgsl": "matmul_f32.wgsl",
           "entryPoint": "main",

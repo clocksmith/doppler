@@ -462,6 +462,32 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
   ) {
     q4kVariant = 'q4_fused_prefill_tiled_f16';
   }
+  // WideTile override (ported from ORT MatMulNBitsWideTile): register-tiled,
+  // 1 thread per output column × TILE_M rows accumulated in registers.
+  // Orthogonal to useTiledQ4KPrefill — if both flags are set, WideTile wins
+  // because it has materially fewer workgroups at Gemma-4-scale prefill.
+  // Routes to the f16-output or f32-output WideTile variant depending on
+  // what the caller asked for (Gemma 4's FFN picks q4_fused_batched with
+  // f32 output; attention projections may want f16).
+  if (
+    options.useWideTileQ4KPrefill === true
+    && phase === 'prefill'
+    && M >= 4
+    && aDtype === 'f32'
+    && capabilities.hasF16 === true
+  ) {
+    if (
+      wantF16Output
+      && (q4kVariant === 'q4_fused_batched_f16' || q4kVariant === 'q4_fused_prefill_tiled_f16')
+    ) {
+      q4kVariant = 'q4_fused_widetile_f16';
+    } else if (
+      !wantF16Output
+      && q4kVariant === 'q4_fused_batched'
+    ) {
+      q4kVariant = 'q4_fused_widetile';
+    }
+  }
 
   const effectiveBDtype = bDtype === 'q4k' ? 'f32' : bDtype;
   const matmulVariant = selectMatmulKernel({
