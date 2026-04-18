@@ -1274,10 +1274,13 @@ function createFlashReduceUniformBuffer(device, recorder, params) {
 }
 
 function chooseFlashNumKvSplits(kvLen) {
-  // Keep at least FLASH_BLOCK_SIZE KV positions per split so each workgroup
-  // has real work; cap at 8 to bound partial-buffer size.
-  if (kvLen <= FLASH_BLOCK_SIZE) return 1;
-  const maxSplits = Math.min(8, Math.floor(kvLen / FLASH_BLOCK_SIZE));
+  // Target roughly 32 workgroups × num_heads × num_kv_splits ≈ 4x RDNA3
+  // compute-unit count. Keep at least 2× FLASH_BLOCK_SIZE KV positions per
+  // split so each workgroup has enough work to amortise dispatch overhead.
+  // Short prefills (kvLen ≤ 2 × BLOCK_SIZE) take the single-split fast path
+  // which skips the reduce pass entirely.
+  if (kvLen <= 2 * FLASH_BLOCK_SIZE) return 1;
+  const maxSplits = Math.min(8, Math.floor(kvLen / (2 * FLASH_BLOCK_SIZE)));
   return Math.max(1, maxSplits);
 }
 
@@ -1310,15 +1313,27 @@ export async function executeFlashAttentionPrefill(recorder, Q, K, V, numHeads, 
   const device = execution.device;
   const numQueryBlocks = Math.max(1, Math.ceil(seqLen / FLASH_BLOCK_SIZE));
   const numKvSplits = chooseFlashNumKvSplits(kvLen);
+  const singleSplit = numKvSplits === 1;
 
-  // Intermediate buffers — sizes derived from dispatch geometry.
-  const partialAccBytes = numQueryBlocks * numHeads * numKvSplits * FLASH_BLOCK_SIZE * FLASH_HEAD_DIM * 4;
-  const partialStatsBytes = numQueryBlocks * numHeads * numKvSplits * FLASH_BLOCK_SIZE * 4;
-  const partialAcc = acquireBuffer(
-    partialAccBytes,
-    GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-    'flash_partial_acc'
-  );
+  // Final output buffer (always allocated; bound to slot 4 on the single-split
+  // fast path where the kernel writes normalised output directly).
+  const paddedHiddenSize = padToQ4KBlock(numHeads * headDim);
+  const outputSize = seqLen * paddedHiddenSize * 4;
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_flash_output');
+
+  // Intermediate buffers for the multi-split path. On the single-split fast
+  // path we bypass the reduce pass entirely and bind the output buffer in
+  // slot 4 (partial_acc slot) while m/l bindings get tiny stub buffers — the
+  // kernel skips writes to them.
+  const partialAccBytes = singleSplit
+    ? 4
+    : numQueryBlocks * numHeads * numKvSplits * FLASH_BLOCK_SIZE * FLASH_HEAD_DIM * 4;
+  const partialStatsBytes = singleSplit
+    ? 4
+    : numQueryBlocks * numHeads * numKvSplits * FLASH_BLOCK_SIZE * 4;
+  const partialAcc = singleSplit
+    ? outputBuf
+    : acquireBuffer(partialAccBytes, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, 'flash_partial_acc');
   const partialM = acquireBuffer(
     partialStatsBytes,
     GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
@@ -1329,11 +1344,6 @@ export async function executeFlashAttentionPrefill(recorder, Q, K, V, numHeads, 
     GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     'flash_partial_l'
   );
-
-  // Final output buffer.
-  const paddedHiddenSize = padToQ4KBlock(numHeads * headDim);
-  const outputSize = seqLen * paddedHiddenSize * 4;
-  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_flash_output');
 
   // Pass 1 uniforms + dispatch.
   const flashUniform = createFlashAttentionUniformBuffer(device, execution.recorder, {
@@ -1384,52 +1394,55 @@ export async function executeFlashAttentionPrefill(recorder, Q, K, V, numHeads, 
   );
   releaseAttentionUniform(execution, flashUniform);
 
-  // Pass 2 — reduce.
-  const reduceUniform = createFlashReduceUniformBuffer(device, execution.recorder, {
-    numHeads,
-    queryLen: seqLen,
-    numKvSplits,
-  });
+  // Pass 2 — reduce. Skipped on the single-split fast path where pass 1
+  // already wrote the final normalised output directly to outputBuf.
+  if (!singleSplit) {
+    const reduceUniform = createFlashReduceUniformBuffer(device, execution.recorder, {
+      numHeads,
+      queryLen: seqLen,
+      numKvSplits,
+    });
 
-  const reduceKernel = getFlashReduceKernel(device);
-  const reducePipeline = await reduceKernel.getPipeline('prefill_flash_reduce');
+    const reduceKernel = getFlashReduceKernel(device);
+    const reducePipeline = await reduceKernel.getPipeline('prefill_flash_reduce');
 
-  const reduceBindGroup = device.createBindGroup({
-    label: 'attention_flash_reduce_bg',
-    layout: reducePipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: reduceUniform } },
-      { binding: 1, resource: { buffer: partialAcc } },
-      { binding: 2, resource: { buffer: partialM } },
-      { binding: 3, resource: { buffer: partialL } },
-      { binding: 4, resource: { buffer: outputBuf } },
-    ],
-  });
+    const reduceBindGroup = device.createBindGroup({
+      label: 'attention_flash_reduce_bg',
+      layout: reducePipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: reduceUniform } },
+        { binding: 1, resource: { buffer: partialAcc } },
+        { binding: 2, resource: { buffer: partialM } },
+        { binding: 3, resource: { buffer: partialL } },
+        { binding: 4, resource: { buffer: outputBuf } },
+      ],
+    });
 
-  const totalQh = seqLen * numHeads;
-  const reduceWgX = Math.ceil(totalQh / FLASH_REDUCE_WG);
-  dispatchAttentionKernel(
-    execution,
-    reduceKernel,
-    reducePipeline,
-    reduceBindGroup,
-    [reduceWgX, FLASH_HEAD_DIM_VECS, 1]
-  );
-  releaseAttentionUniform(execution, reduceUniform);
+    const totalQh = seqLen * numHeads;
+    const reduceWgX = Math.ceil(totalQh / FLASH_REDUCE_WG);
+    dispatchAttentionKernel(
+      execution,
+      reduceKernel,
+      reducePipeline,
+      reduceBindGroup,
+      [reduceWgX, FLASH_HEAD_DIM_VECS, 1]
+    );
+    releaseAttentionUniform(execution, reduceUniform);
+  }
 
   // Release intermediate buffers via the recorder's deferred cleanup so GPU
-  // work completes before they re-enter the pool. Without a recorder, the
-  // pool reclaims them on the next tick via queue.onSubmittedWorkDone.
+  // work completes before they re-enter the pool. On the single-split path
+  // partialAcc IS the output buffer, so we skip it.
+  const intermediates = singleSplit ? [partialM, partialL] : [partialAcc, partialM, partialL];
   if (execution.recorder) {
-    execution.recorder.trackTemporaryBuffer(partialAcc);
-    execution.recorder.trackTemporaryBuffer(partialM);
-    execution.recorder.trackTemporaryBuffer(partialL);
+    for (const buf of intermediates) {
+      execution.recorder.trackTemporaryBuffer(buf);
+    }
   } else {
-    // Direct dispatch path — release after GPU completion.
     device.queue.onSubmittedWorkDone().then(() => {
-      releaseBuffer(partialAcc);
-      releaseBuffer(partialM);
-      releaseBuffer(partialL);
+      for (const buf of intermediates) {
+        releaseBuffer(buf);
+      }
     });
   }
 

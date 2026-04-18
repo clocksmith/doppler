@@ -441,9 +441,27 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
   const fusedAllowed = !fusedQ4KDisabled;
   const isQ4K = bDtype === 'q4k';
   const wantF16Output = requestedOutputDtype === 'f16' && capabilities.hasF16;
-  const q4kVariant = isQ4K && capabilities.hasSubgroups && fusedAllowed
+  let q4kVariant = isQ4K && capabilities.hasSubgroups && fusedAllowed
     ? selectQ4KFusedVariant(M === 1, wantF16Output, aDtype, phase)
     : null;
+  // Opt-in override: when useTiledQ4KPrefill is set on options, replace the
+  // default batched f16-output variant with the register-tiled variant
+  // whenever the shape (Q4_K weights, f16 output, prefill M>=16) and
+  // capability (hasF16) match. Matches both batched_f16 (f32 activations)
+  // and batched_f16a (f16 activations); the tiled kernel takes f32 A and
+  // f16 C per the q4_fused_batched_f16 binding contract. Decoupled from
+  // subgroups because the tiled kernel does not use subgroup reduction.
+  if (
+    q4kVariant === 'q4_fused_batched_f16'
+    && options.useTiledQ4KPrefill === true
+    && phase === 'prefill'
+    && M >= 16
+    && aDtype === 'f32'
+    && wantF16Output
+    && capabilities.hasF16 === true
+  ) {
+    q4kVariant = 'q4_fused_prefill_tiled_f16';
+  }
 
   const effectiveBDtype = bDtype === 'q4k' ? 'f32' : bDtype;
   const matmulVariant = selectMatmulKernel({

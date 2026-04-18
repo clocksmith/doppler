@@ -856,6 +856,33 @@
             "wgslOnDisk": true
           }
         },
+        "q4_fused_prefill_tiled_f16": {
+          "wgsl": "fused_matmul_q4_prefill_tiled_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            16,
+            16,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f16",
+          "weightDtype": "q4k",
+          "variantMetadata": {
+            "tileM": 64,
+            "colsPerWg": 64
+          },
+          "description": "Register-tiled Q4_K prefill matmul: 64x64 outputs per WG via 4x4 register tile per thread, amortizing Q4K dequant across 16x the outputs of q4_fused_batched_f16a.",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#q4kFusedVariant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
         "f32": {
           "wgsl": "matmul_f32.wgsl",
           "entryPoint": "main",
@@ -1144,6 +1171,63 @@
             "ruleChains": [
               "fused-ffn.rules.json#variant"
             ],
+            "wgslOnDisk": true
+          }
+        },
+        "rmsnorm_matmul_tiled_f16": {
+          "wgsl": "fused_rmsnorm_matmul_tiled_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            128,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "description": "Fused RMSNorm + matmul (prefill, M>1) — materialises normed row once in shared, splits output columns across threads",
+          "reachability": {
+            "status": "experimental",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
+        "matmul_residual_tiled_f16": {
+          "wgsl": "fused_matmul_residual_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            128,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "description": "Fused matmul + residual add (prefill, M>1)",
+          "reachability": {
+            "status": "experimental",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
+        "gate_up_gelu_gated_tiled_f16": {
+          "wgsl": "fused_gate_up_gelu_gated_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            128,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "description": "Fused gate + up FFN projections + GeGLU activation (F16 weights, per-layer intermediate_size uniform)",
+          "reachability": {
+            "status": "experimental",
+            "inlineConfigs": [],
+            "ruleChains": [],
             "wgslOnDisk": true
           }
         }

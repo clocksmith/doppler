@@ -29,6 +29,7 @@ import {
   selectMatmulKernel,
 } from './matmul-selection.js';
 import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
+import { getRuntimeConfig } from '../../config/runtime.js';
 import {
   MatmulKernel,
   calculateMatmulDispatch,
@@ -101,7 +102,8 @@ function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuff
     || variant === 'q4_fused_f16a'
     || variant === 'q4_fused_batched_f16'
     || variant === 'q4_fused_multicol_f16a'
-    || variant === 'q4_fused_batched_f16a';
+    || variant === 'q4_fused_batched_f16a'
+    || variant === 'q4_fused_prefill_tiled_f16';
 
   assertBindGroupBuffer('matmul', variant, 0, 'uniforms', uniformBuffer);
   assertBindGroupBuffer('matmul', variant, 1, 'input', matmulInput?.buffer, [
@@ -214,6 +216,10 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
 
   validateMatmulOffsets(opLabel, aOffset, bOffset, cOffset);
 
+  const effectiveOptions = options.useTiledQ4KPrefill == null
+    ? { ...options, useTiledQ4KPrefill: getRuntimeConfig().inference?.session?.useTiledQ4KPrefill === true }
+    : options;
+
   const { variant, useQ4KFused, useGemv } = selectMatmulVariantAndFlags(
     mode,
     M,
@@ -223,7 +229,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
     bDtype,
     transposeB,
     requestedOutputDtype,
-    options
+    effectiveOptions
   );
 
   const constants = resolveMatmulConstants(options, phase);

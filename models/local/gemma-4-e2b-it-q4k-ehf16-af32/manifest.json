@@ -207,6 +207,11 @@
           "entry": "main",
           "digest": "sha256:78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888"
         },
+        "q4_prefill_shared": {
+          "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+          "entry": "main",
+          "digest": "sha256:142817adcacb28750a92793996cd15c2d9fe13d03e0c2d0aadf3e674dc7a35d6"
+        },
         "attn_stream": {
           "kernel": "attention_streaming_f16kv.wgsl",
           "entry": "main",

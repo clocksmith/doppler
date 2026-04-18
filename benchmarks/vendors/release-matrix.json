@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-04-17T11:30:56.893Z",
+  "generatedAt": "2026-04-18T00:05:52.943Z",
   "release": {
     "channel": "main-snapshot",
     "version": "0.4.2",
-    "commitSha": "50d2c77014793d511a6ec35e5e21346bafb7ddac",
+    "commitSha": "d11a69580f71c48047e2354ca846aaa5ac41ce1d",
     "dirty": true
   },
   "sources": {
@@ -46,9 +46,9 @@
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "fec291635796036584394f2453c9bba64d0571046db93d452e65f6d94c44d0da",
-      "bytes": 12660,
-      "updated": "2026-04-16"
+      "sha256": "34f2af354d542c8ebf7b909f799ed62f5ef3d3537303c843aee9ad983a417164",
+      "bytes": 12786,
+      "updated": "2026-04-17"
     },
     "harness:doppler": {
       "path": "benchmarks/vendors/harnesses/doppler.json",

@@ -79,6 +79,26 @@ export const DEFAULT_RUNTIME_CONFIG = {
       // and layout preconditions at runtime. Default false until parity is
       // validated on target hardware.
       useFlashPrefillAttention: false,
+      // Opt into the fused gate + up projection + GeGLU activation prefill
+      // kernel (replaces gate_proj + up_proj + gelu activation dispatches
+      // with a single fused compute pass). Requires f16 weights + gelu
+      // activation + no LoRA on gate/up. Default false until parity is
+      // validated on target hardware.
+      useFusedGateUpGelu: false,
+      // Opt into the register-tiled Q4_K prefill matmul kernel (64x64 outputs
+      // per workgroup via 4x4 register tile per thread). Amortizes Q4_K
+      // dequantization across 16x the outputs of q4_fused_batched_f16a,
+      // replacing ~1024x too many launched workgroups on prefill shapes.
+      // Applied only to Q4_K-weight matmuls with f16 activations, f16 output,
+      // hasSubgroups, M>=16. Default false until parity is validated.
+      useTiledQ4KPrefill: false,
+      // Force the loader to retain Q4_K packed weights alongside the
+      // dequantized dense buffer ("mixed" materialization mode). Without a
+      // fused projection kernel declared in the execution graph, the default
+      // is "dense" which drops the Q4_K buffer after dequant — preventing the
+      // FFN fusion rule from firing its `hasQ4KMaterialization=true` branch.
+      // Memory cost: ~50% extra weight storage for Q4_K matmul weights.
+      retainQ4KMaterialization: false,
     },
     executionPatch: {},
   },

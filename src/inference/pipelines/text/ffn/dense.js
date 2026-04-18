@@ -145,8 +145,20 @@ export function resolveDenseFFNFusedPathDtypes(options = {}) {
 }
 
 function hasExplicitMatmulPrecision(role, phase, layerIdx, kernelPath) {
+  // Only treat precision as "explicit split" when declared on the role's OWN
+  // step. The FUSED_FFN_PRECISION_FALLBACK_ROLES fallback that resolves via
+  // the aggregate `ffn` step's precision applies identically to gate/up/down
+  // and must NOT force the split path — otherwise a manifest-declared `ffn`
+  // precision permanently blocks the fused gate_up_activation kernel.
   const precision = getKernelPathMatmulPrecision(role, phase, layerIdx, kernelPath);
-  return precision?.inputDtype != null || precision?.outputDtype != null;
+  if (!precision) return false;
+  const fallbackPrecision = getKernelPathMatmulPrecision('ffn', phase, layerIdx, kernelPath);
+  const inheritedFromFfn = fallbackPrecision
+    && fallbackPrecision.inputDtype === precision.inputDtype
+    && fallbackPrecision.outputDtype === precision.outputDtype
+    && fallbackPrecision.activationDtype === precision.activationDtype;
+  if (inheritedFromFfn) return false;
+  return precision.inputDtype != null || precision.outputDtype != null;
 }
 
 export function canUseNativeF16FusedGateUp(options = {}) {
@@ -747,6 +759,84 @@ export async function runDenseFFNGPU(
       transitionDeclaredBy: 'step_precision',
     });
     sharedInputOwned = sharedInputTensor !== inputTensor;
+  }
+  // Opt-in fused gate + up + GeGLU path. Replaces 3 separate dispatches
+  // (gate_proj + up_proj + gelu activation) with a single fused kernel when
+  // preconditions match: prefill (M>1), f16-materialisable weights + f16
+  // activations, gelu activation, no LoRA on gate/up. Gated by
+  // runtime.inference.session.useFusedGateUpGelu (default false).
+  const gateF16 = resolveWeightBufferMaterialization(layerWeights.gate, 'f16');
+  const upF16 = resolveWeightBufferMaterialization(layerWeights.up, 'f16');
+  const gateF16Dtype = getWeightDtype(gateF16);
+  const upF16Dtype = getWeightDtype(upF16);
+  const earlyLoraGate = getLoRAModule(lora, layerIdx, 'gate_proj');
+  const earlyLoraUp = getLoRAModule(lora, layerIdx, 'up_proj');
+  const fusedGateUpGeluCandidate = context.useFusedGateUpGelu === true
+    && numTokens > 1
+    && hiddenActivation === 'gelu'
+    && !earlyLoraGate && !earlyLoraUp
+    && sharedInputTensor.dtype === 'f16'
+    && gateF16Dtype === 'f16'
+    && upF16Dtype === 'f16';
+  if (fusedGateUpGeluCandidate) {
+    const { runFusedGateUpGelu, recordFusedGateUpGelu } =
+      await import('../../../../gpu/kernels/fused-gate-up-gelu.js');
+    const fused = recorder
+      ? await recordFusedGateUpGelu(recorder, sharedInputTensor, gateF16, upF16, {
+        M: numTokens,
+        hiddenSize,
+        intermediateSize,
+        transposeB: true,
+      })
+      : await runFusedGateUpGelu(sharedInputTensor, gateF16, upF16, {
+        M: numTokens,
+        hiddenSize,
+        intermediateSize,
+        transposeB: true,
+      });
+    if (sharedInputOwned) {
+      if (recorder) { recorder.trackTemporaryBuffer(sharedInputTensor.buffer); }
+      else { releaseBuffer(sharedInputTensor.buffer); }
+    }
+    // Proceed directly to down_proj with the fused activation output.
+    const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
+    let downInputTensor = fused;
+    let downInputOwned = false;
+    if (downInputDtype && fused.dtype !== downInputDtype) {
+      downInputTensor = await coerceTensorDtype(fused, downInputDtype, recorder, {
+        executionPolicies: context.executionPolicies ?? null,
+        op: 'ffn_down_input',
+        transitionDeclaredBy: 'step_precision',
+      });
+      downInputOwned = downInputTensor !== fused;
+    }
+    let outFused = await doMatmul(
+      downInputTensor,
+      downWeight,
+      numTokens,
+      hiddenSize,
+      intermediateSize,
+      {
+        transposeB: 'auto',
+        label: `L${layerIdx}.ffn_down`,
+        layerIdx,
+        kernelPath,
+        outputDtype: downOutputDtype,
+        role: 'ffn_down',
+        executionPolicies: context.executionPolicies ?? null,
+      },
+      recorder
+    );
+    if (!isGpuBufferInstance(layerWeights.down) && !isWeightBuffer(layerWeights.down)) {
+      releaseOrTrack(recorder, isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
+    }
+    if (downInputOwned) {
+      if (recorder) { recorder.trackTemporaryBuffer(downInputTensor.buffer); }
+      else { releaseBuffer(downInputTensor.buffer); }
+    }
+    if (recorder) { recorder.trackTemporaryBuffer(fused.buffer); }
+    else { releaseBuffer(fused.buffer); }
+    return outFused;
   }
   const gateWeight = getWeightBuffer(layerWeights.gate, 'ffn_gate');
   let gateOutput = await doMatmul(

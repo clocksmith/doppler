@@ -181,6 +181,7 @@
       "residual": { "kernel": "residual.wgsl", "entry": "main", "digest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7" },
       "gelu": { "kernel": "gelu.wgsl", "entry": "main", "digest": "sha256:a9007ea08aaff98f9be08f1e0490a6bcf252883eac5513de876ab9ce918865e6", "constants": { "HAS_GATE": true } },
       "tiled": { "kernel": "matmul_f16w_f32a.wgsl", "entry": "main", "digest": "sha256:78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888" },
+      "q4_prefill_shared": { "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl", "entry": "main", "digest": "sha256:142817adcacb28750a92793996cd15c2d9fe13d03e0c2d0aadf3e674dc7a35d6" },
       "attn_stream": { "kernel": "attention_streaming_f16kv.wgsl", "entry": "main", "digest": "sha256:5976eef417cebf648f52aeebb47ed1dc6b03c3c541122290c5cead19238fdc24", "precision": { "kvDtype": "f16" } },
       "attn_small": { "kernel": "attention_small_f16kv.wgsl", "entry": "main", "digest": "sha256:369aa3b386b4ef89a916ba2717465caa47079f52bbe0f3e5d61bd3220e2ec71e", "precision": { "kvDtype": "f16" } },
       "attn_head256": { "kernel": "attention_head256_f16kv.wgsl", "entry": "main", "digest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a", "precision": { "kvDtype": "f16" } },

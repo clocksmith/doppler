@@ -789,6 +789,8 @@ async function runBenchSuite(options = {}) {
     const gpuDecodeSubmitWaitMs = [];
     const gpuDecodeReadbackWaitMs = [];
     const gpuDecodeOrchestrationMs = [];
+    const gpuPrefillRecordMs = [];
+    const gpuPrefillSubmitWaitMs = [];
     const singleTokenSubmitWaitMs = [];
     const singleTokenReadbackWaitMs = [];
     const singleTokenOrchestrationMs = [];
@@ -843,6 +845,8 @@ async function runBenchSuite(options = {}) {
         if (Number.isFinite(phaseGpu?.decodeRecordMs)) gpuDecodeRecordMs.push(phaseGpu.decodeRecordMs);
         if (Number.isFinite(phaseGpu?.decodeSubmitWaitMs)) gpuDecodeSubmitWaitMs.push(phaseGpu.decodeSubmitWaitMs);
         if (Number.isFinite(phaseGpu?.decodeReadbackWaitMs)) gpuDecodeReadbackWaitMs.push(phaseGpu.decodeReadbackWaitMs);
+        if (Number.isFinite(phaseGpu?.prefillRecordMs)) gpuPrefillRecordMs.push(phaseGpu.prefillRecordMs);
+        if (Number.isFinite(phaseGpu?.prefillSubmitWaitMs)) gpuPrefillSubmitWaitMs.push(phaseGpu.prefillSubmitWaitMs);
         if (Number.isFinite(phaseGpu?.decodeOrchestrationMs)) {
           gpuDecodeOrchestrationMs.push(phaseGpu.decodeOrchestrationMs);
         }
@@ -886,6 +890,8 @@ async function runBenchSuite(options = {}) {
         decodeSubmitWaitMs: computeSampleStats(gpuDecodeSubmitWaitMs),
         decodeReadbackWaitMs: computeSampleStats(gpuDecodeReadbackWaitMs),
         decodeOrchestrationMs: computeSampleStats(gpuDecodeOrchestrationMs),
+        prefillRecordMs: computeSampleStats(gpuPrefillRecordMs),
+        prefillSubmitWaitMs: computeSampleStats(gpuPrefillSubmitWaitMs),
         singleTokenSubmitWaitMs: computeSampleStats(singleTokenSubmitWaitMs),
         singleTokenReadbackWaitMs: computeSampleStats(singleTokenReadbackWaitMs),
         singleTokenOrchestrationMs: computeSampleStats(singleTokenOrchestrationMs),

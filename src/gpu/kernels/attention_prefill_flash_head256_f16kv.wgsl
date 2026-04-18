@@ -44,6 +44,9 @@ struct Uniforms {
 @group(0) @binding(2) var<storage, read> K: array<f16>;
 @group(0) @binding(3) var<storage, read> V: array<f16>;
 // Per-split partials: [num_query_blocks, num_heads, num_kv_splits, BLOCK_SIZE, HEAD_DIM]
+// When num_kv_splits == 1 (single-split fast path), this buffer is bound to the
+// FINAL output buffer and we write normalised output directly — skipping the
+// reduce pass entirely.
 @group(0) @binding(4) var<storage, read_write> partial_acc: array<f32>;
 // Per-split stats: [num_query_blocks, num_heads, num_kv_splits, BLOCK_SIZE]
 @group(0) @binding(5) var<storage, read_write> partial_m: array<f32>;
@@ -51,7 +54,11 @@ struct Uniforms {
 @group(0) @binding(7) var<storage, read> kv_len_buffer: array<u32>;
 @group(0) @binding(8) var<storage, read> page_table: array<u32>;
 
-var<workgroup> shared_block: array<vec4<f16>, BLOCK_SIZE * HEAD_DIM_VECS>;
+// Separate shared tiles for K and V so they can be loaded in parallel within
+// the same loop iteration. Saves a workgroupBarrier per KV block vs the
+// shared-tile-reuse pattern of the non-flash head256 kernel.
+var<workgroup> shared_K: array<vec4<f16>, BLOCK_SIZE * HEAD_DIM_VECS>;
+var<workgroup> shared_V: array<vec4<f16>, BLOCK_SIZE * HEAD_DIM_VECS>;
 
 fn zero_vec4_f16() -> vec4<f16> {
     return vec4<f16>(f16(0.0), f16(0.0), f16(0.0), f16(0.0));
@@ -180,20 +187,29 @@ fn main(
             }
         }
 
+        // Load K and V in parallel into separate shared tiles. A single barrier
+        // synchronises both loads before we score K and accumulate V.
         let key_pos_load = kv_block_start + thread_idx;
         let shared_row = thread_idx * HEAD_DIM_VECS;
         if (key_pos_load < kv_slice_end) {
             let k_idx = get_kv_pos(key_pos_load);
             let k_offset = k_idx * u.num_kv_heads * HEAD_DIM + kv_head_idx * HEAD_DIM;
+            let v_idx = k_idx;
+            let v_offset = v_idx * u.num_kv_heads * HEAD_DIM + kv_head_idx * HEAD_DIM;
             for (var d4: u32 = 0u; d4 < HEAD_DIM_VECS; d4 = d4 + 1u) {
-                let base = k_offset + d4 * 4u;
-                shared_block[shared_row + d4] = vec4<f16>(
-                    K[base], K[base + 1u], K[base + 2u], K[base + 3u]
+                let kb = k_offset + d4 * 4u;
+                let vb = v_offset + d4 * 4u;
+                shared_K[shared_row + d4] = vec4<f16>(
+                    K[kb], K[kb + 1u], K[kb + 2u], K[kb + 3u]
+                );
+                shared_V[shared_row + d4] = vec4<f16>(
+                    V[vb], V[vb + 1u], V[vb + 2u], V[vb + 3u]
                 );
             }
         } else {
             for (var d4: u32 = 0u; d4 < HEAD_DIM_VECS; d4 = d4 + 1u) {
-                shared_block[shared_row + d4] = zero_vec4_f16();
+                shared_K[shared_row + d4] = zero_vec4_f16();
+                shared_V[shared_row + d4] = zero_vec4_f16();
             }
         }
 
@@ -208,7 +224,7 @@ fn main(
                 var dot_partial: f32 = 0.0;
                 for (var d4: u32 = 0u; d4 < HEAD_DIM_VECS; d4 = d4 + 1u) {
                     dot_partial = dot_partial + dot(
-                        q_local[d4], vec4<f32>(shared_block[key_row + d4])
+                        q_local[d4], vec4<f32>(shared_K[key_row + d4])
                     );
                 }
                 var s = dot_partial * scale;
@@ -232,34 +248,14 @@ fn main(
                 probs[k] = p;
                 l_i = l_i + p;
             }
-        }
 
-        workgroupBarrier();
-
-        if (key_pos_load < kv_slice_end) {
-            let v_idx = get_kv_pos(key_pos_load);
-            let v_offset = v_idx * u.num_kv_heads * HEAD_DIM + kv_head_idx * HEAD_DIM;
-            for (var d4: u32 = 0u; d4 < HEAD_DIM_VECS; d4 = d4 + 1u) {
-                let base = v_offset + d4 * 4u;
-                shared_block[shared_row + d4] = vec4<f16>(
-                    V[base], V[base + 1u], V[base + 2u], V[base + 3u]
-                );
-            }
-        } else {
-            for (var d4: u32 = 0u; d4 < HEAD_DIM_VECS; d4 = d4 + 1u) {
-                shared_block[shared_row + d4] = zero_vec4_f16();
-            }
-        }
-
-        workgroupBarrier();
-
-        if (valid_query) {
+            // V is already in shared_V — apply immediately (no reload, no barrier).
             for (var k: u32 = 0u; k < BLOCK_SIZE; k = k + 1u) {
                 let p = probs[k];
                 if (p == 0.0) { continue; }
                 let value_row = k * HEAD_DIM_VECS;
                 for (var d4: u32 = 0u; d4 < HEAD_DIM_VECS; d4 = d4 + 1u) {
-                    acc[d4] = acc[d4] + p * vec4<f32>(shared_block[value_row + d4]);
+                    acc[d4] = acc[d4] + p * vec4<f32>(shared_V[value_row + d4]);
                 }
             }
             m_i = m_new;
@@ -269,22 +265,42 @@ fn main(
     }
 
     if (valid_query) {
-        // Write UN-NORMALISED partial acc and per-query m/l for this split.
-        // Layout: partial_acc[(qb*num_heads + h) * num_kv_splits * BLOCK_SIZE * HEAD_DIM
-        //                     + kv_split * BLOCK_SIZE * HEAD_DIM
-        //                     + thread_idx * HEAD_DIM + d]
         let qh_idx = query_block_idx * num_heads + head_idx;
-        let partial_base = (qh_idx * num_kv_splits + kv_split_idx) * BLOCK_SIZE * HEAD_DIM
-                          + thread_idx * HEAD_DIM;
-        for (var d4: u32 = 0u; d4 < HEAD_DIM_VECS; d4 = d4 + 1u) {
-            let base = partial_base + d4 * 4u;
-            partial_acc[base] = acc[d4].x;
-            partial_acc[base + 1u] = acc[d4].y;
-            partial_acc[base + 2u] = acc[d4].z;
-            partial_acc[base + 3u] = acc[d4].w;
+        if (num_kv_splits == 1u) {
+            // Single-split fast path: skip the reduce pass entirely. Write the
+            // FINAL normalised output directly to the output buffer (which is
+            // bound in slot 4 under the partial_acc name). Layout matches
+            // [query_len, num_heads, head_dim].
+            let inv_l_i = select(0.0, 1.0 / l_i, l_i > 0.0);
+            let out_offset = query_pos * num_heads * HEAD_DIM + head_idx * HEAD_DIM;
+            for (var d4: u32 = 0u; d4 < HEAD_DIM_VECS; d4 = d4 + 1u) {
+                let base = out_offset + d4 * 4u;
+                let normed = acc[d4] * inv_l_i;
+                partial_acc[base] = normed.x;
+                partial_acc[base + 1u] = normed.y;
+                partial_acc[base + 2u] = normed.z;
+                partial_acc[base + 3u] = normed.w;
+            }
+            // m/l buffers are still bound but unused on the single-split path.
+            // Leave them untouched to avoid spurious writes.
+        } else {
+            // Multi-split: write UN-NORMALISED partial acc and per-query m/l for
+            // this split. Layout:
+            //   partial_acc[(qb*num_heads + h) * num_kv_splits * BLOCK_SIZE * HEAD_DIM
+            //               + kv_split * BLOCK_SIZE * HEAD_DIM
+            //               + thread_idx * HEAD_DIM + d]
+            let partial_base = (qh_idx * num_kv_splits + kv_split_idx) * BLOCK_SIZE * HEAD_DIM
+                              + thread_idx * HEAD_DIM;
+            for (var d4: u32 = 0u; d4 < HEAD_DIM_VECS; d4 = d4 + 1u) {
+                let base = partial_base + d4 * 4u;
+                partial_acc[base] = acc[d4].x;
+                partial_acc[base + 1u] = acc[d4].y;
+                partial_acc[base + 2u] = acc[d4].z;
+                partial_acc[base + 3u] = acc[d4].w;
+            }
+            let stats_idx = (qh_idx * num_kv_splits + kv_split_idx) * BLOCK_SIZE + thread_idx;
+            partial_m[stats_idx] = m_i;
+            partial_l[stats_idx] = l_i;
         }
-        let stats_idx = (qh_idx * num_kv_splits + kv_split_idx) * BLOCK_SIZE + thread_idx;
-        partial_m[stats_idx] = m_i;
-        partial_l[stats_idx] = l_i;
     }
 }

@@ -161,6 +161,7 @@ export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, de
     step: state.decodeStepCount,
     phase: isDecodeMode ? 'decode' : 'prefill',
     operatorDiagnostics: state.operatorDiagnostics,
+    useFusedGateUpGelu: state.runtimeConfig?.inference?.session?.useFusedGateUpGelu === true,
   };
 }
 

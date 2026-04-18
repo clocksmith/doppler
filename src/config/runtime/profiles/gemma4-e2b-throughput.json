@@ -26,6 +26,7 @@
       },
       "session": {
         "prefillChunkSubmitMode": "async",
+        "useFlashPrefillAttention": true,
         "perLayerInputs": {
           "materialization": "gpu_split_tables"
         },

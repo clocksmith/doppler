@@ -411,6 +411,8 @@ export class PipelineGenerator {
     this.#state.stats.decodeRecordMs = 0;
     this.#state.stats.decodeSubmitWaitMs = 0;
     this.#state.stats.decodeReadbackWaitMs = 0;
+    this.#state.stats.prefillRecordMs = 0;
+    this.#state.stats.prefillSubmitWaitMs = 0;
     this.#state.stats.singleTokenSubmitWaitMs = 0;
     this.#state.stats.singleTokenReadbackWaitMs = 0;
     this.#state.stats.singleTokenOrchestrationMs = 0;
@@ -842,6 +844,8 @@ export class PipelineGenerator {
     this.#state.stats.decodeRecordMs = 0;
     this.#state.stats.decodeSubmitWaitMs = 0;
     this.#state.stats.decodeReadbackWaitMs = 0;
+    this.#state.stats.prefillRecordMs = 0;
+    this.#state.stats.prefillSubmitWaitMs = 0;
     this.#state.stats.singleTokenSubmitWaitMs = 0;
     this.#state.stats.singleTokenReadbackWaitMs = 0;
     this.#state.stats.singleTokenOrchestrationMs = 0;
@@ -1872,13 +1876,17 @@ export class PipelineGenerator {
     );
 
     let currentHiddenBuffer = hiddenStates.buffer;
+    let prefillRecordMs = 0;
+    let prefillSubmitWaitMs = 0;
     try {
       for (let l = 0; l < config.numLayers; l++) {
         context.recorder = currentRecorder;
         context.perLayerInputBuffer = perLayerInputs?.[l] ?? null;
 
         const prevBuffer = currentHiddenBuffer;
+        const layerRecordStart = performance.now();
         const layerOutput = await processLayer(l, currentHiddenBuffer, numTokens, true, context);
+        prefillRecordMs += performance.now() - layerRecordStart;
         if (!isGpuBufferInstance(layerOutput)) throw new Error('Expected GPUBuffer from processLayer');
         currentHiddenBuffer = layerOutput;
         releasePerLayerInputBuffer(
@@ -1965,12 +1973,14 @@ export class PipelineGenerator {
           // work to be done.
           const chunkSubmitMode = this.#state.runtimeConfig?.inference?.session
             ?.prefillChunkSubmitMode ?? 'sync';
+          const chunkSubmitStart = performance.now();
           if (chunkSubmitMode === 'async' && !opts.profile) {
             currentRecorder.submit({ cleanup: 'deferred' });
           } else {
             await currentRecorder.submitAndWait();
             await recordProfile(currentRecorder);
           }
+          prefillSubmitWaitMs += performance.now() - chunkSubmitStart;
           currentRecorder = createRecorder('prefill-chunk');
         }
       }
@@ -1987,6 +1997,8 @@ export class PipelineGenerator {
         }
       }
       releaseSharedAttentionState(context.sharedAttentionState, currentRecorder);
+      this.#state.stats.prefillRecordMs = (this.#state.stats.prefillRecordMs ?? 0) + prefillRecordMs;
+      this.#state.stats.prefillSubmitWaitMs = (this.#state.stats.prefillSubmitWaitMs ?? 0) + prefillSubmitWaitMs;
     }
 
     if (this.#state.finitenessBuffer) {

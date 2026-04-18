@@ -231,9 +231,22 @@ export function resolveQ4KConfig(
       `Allowed values: ${[...Q4K_LAYOUT_ALLOWLIST].join(', ')}.`
     );
   }
-  const q4kMaterializationMode = isQ4KModel
+  let q4kMaterializationMode = isQ4KModel
     ? resolveQ4KProjectionMaterializationMode(manifest, kernelPath, kernelPathSource)
     : 'dense';
+  // Runtime override: retainQ4KMaterialization forces "mixed" mode so the
+  // loader keeps the Q4_K packed buffer alongside the dequantized dense
+  // buffer. Unlocks `hasQ4KMaterialization=true` in the FFN fusion rule when
+  // the execution graph doesn't declare a fused projection kernel.
+  if (isQ4KModel && hasSubgroups && q4kMaterializationMode === 'dense') {
+    const runtimeRetain = getRuntimeConfig().inference?.session?.retainQ4KMaterialization === true;
+    if (runtimeRetain) {
+      q4kMaterializationMode = 'mixed';
+      debugTrace.loader(
+        `Q4K materialization overridden by runtime flag retainQ4KMaterialization=true: mode=mixed`
+      );
+    }
+  }
   if (isQ4KModel) {
     debugTrace.loader(
       `Q4K projection materialization: model=${manifest?.modelId ?? 'unknown'}, ` +
