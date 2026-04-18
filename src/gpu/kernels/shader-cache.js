@@ -111,11 +111,38 @@ async function loadShaderSourceFromFileUrl(url) {
 // ============================================================================
 
 
+// Consumer-preseeded shader sources. Bundlers that can resolve
+// `import.meta.glob('./kernels/*.wgsl', { as: 'raw', eager: true })` or
+// equivalent should call `registerShaderSources(map)` before any pipeline
+// init; the runtime skips the fetch path entirely when a preseed is present.
+const shaderSourcePreseeds = new Map();
+
+export function registerShaderSources(map) {
+  if (!map) return;
+  const entries = map instanceof Map ? map.entries() : Object.entries(map);
+  for (const [key, value] of entries) {
+    if (typeof value !== 'string') continue;
+    const filename = String(key).split('/').pop();
+    if (!filename) continue;
+    shaderSourcePreseeds.set(filename, value);
+  }
+}
+
+export function hasPreseededShaderSource(filename) {
+  return shaderSourcePreseeds.has(filename);
+}
+
 export async function loadShaderSource(filename) {
   if (shaderSourceCache.has(filename)) {
     const cached = shaderSourceCache.get(filename);
     touchCacheEntry(shaderSourceCache, filename, cached);
     return cached;
+  }
+  const preseeded = shaderSourcePreseeds.get(filename);
+  if (typeof preseeded === 'string') {
+    shaderSourceCache.set(filename, preseeded);
+    evictOldest(shaderSourceCache, MAX_SHADER_SOURCE_CACHE_SIZE);
+    return preseeded;
   }
 
   const url = `${KERNEL_BASE_PATH}/${filename}`;

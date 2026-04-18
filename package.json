@@ -133,6 +133,27 @@
       "browser": "./src/tooling-exports.browser.js",
       "import": "./src/tooling-exports.js"
     },
+    "./tooling/storage": {
+      "import": "./src/tooling-exports/storage.js"
+    },
+    "./tooling/device": {
+      "import": "./src/tooling-exports/device.js"
+    },
+    "./tooling/manifest": {
+      "import": "./src/tooling-exports/manifest.js"
+    },
+    "./models/qwen3": {
+      "import": "./src/models/qwen3.js"
+    },
+    "./models/gemma3": {
+      "import": "./src/models/gemma3.js"
+    },
+    "./models/gemma4": {
+      "import": "./src/models/gemma4.js"
+    },
+    "./models/embeddinggemma": {
+      "import": "./src/models/embeddinggemma.js"
+    },
     "./tooling-experimental": {
       "types": "./src/tooling-experimental-exports.d.ts",
       "browser": "./src/tooling-experimental-exports.browser.js",
@@ -181,6 +202,10 @@
   "publishConfig": {
     "access": "public"
   },
+  "sideEffects": [
+    "**/*.wgsl",
+    "./src/gpu/device.js"
+  ],
   "files": [
     "assets",
     "src",

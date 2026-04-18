@@ -1,7 +1,57 @@
 import { selectByRules } from '../gpu/kernels/rule-matcher.js';
 import { buildInferenceExecutionRulesContractArtifact } from './execution-rules-contract-check.js';
 import { buildLayerPatternContractArtifact } from './layer-pattern-contract-check.js';
-import { loadJson } from '../utils/load-json.js';
+
+// Rule files imported statically (JSON import attributes). Sync at module
+// load time, no top-level await, and bundle-friendly. Requires Node >=22
+// and any bundler with JSON-module support (Vite/Rollup/esbuild/webpack5).
+import attentionRules from './kernels/attention.rules.json' with { type: 'json' };
+import conv2dRules from './kernels/conv2d.rules.json' with { type: 'json' };
+import depthwiseConv2dRules from './kernels/depthwise-conv2d.rules.json' with { type: 'json' };
+import dequantRules from './kernels/dequant.rules.json' with { type: 'json' };
+import energyRules from './kernels/energy.rules.json' with { type: 'json' };
+import fusedFfnRules from './kernels/fused-ffn.rules.json' with { type: 'json' };
+import fusedMatmulResidualRules from './kernels/fused-matmul-residual.rules.json' with { type: 'json' };
+import fusedMatmulRmsnormRules from './kernels/fused-matmul-rmsnorm.rules.json' with { type: 'json' };
+import gatherRules from './kernels/gather.rules.json' with { type: 'json' };
+import geluRules from './kernels/gelu.rules.json' with { type: 'json' };
+import groupedPointwiseConv2dRules from './kernels/grouped-pointwise-conv2d.rules.json' with { type: 'json' };
+import groupnormRules from './kernels/groupnorm.rules.json' with { type: 'json' };
+import kvQuantizeRules from './kernels/kv_quantize.rules.json' with { type: 'json' };
+import layernormRules from './kernels/layernorm.rules.json' with { type: 'json' };
+import matmulRules from './kernels/matmul.rules.json' with { type: 'json' };
+import kernelMoeRules from './kernels/moe.rules.json' with { type: 'json' };
+import kernelMoeGptOssRules from './kernels/moe.rules.gptoss.json' with { type: 'json' };
+import kernelMoeMixtralRules from './kernels/moe.rules.mixtral.json' with { type: 'json' };
+import modulateRules from './kernels/modulate.rules.json' with { type: 'json' };
+import pixelShuffleRules from './kernels/pixel_shuffle.rules.json' with { type: 'json' };
+import repeatChannelsRules from './kernels/repeat-channels.rules.json' with { type: 'json' };
+import reluRules from './kernels/relu.rules.json' with { type: 'json' };
+import residualRules from './kernels/residual.rules.json' with { type: 'json' };
+import rmsnormRules from './kernels/rmsnorm.rules.json' with { type: 'json' };
+import ropeRules from './kernels/rope.rules.json' with { type: 'json' };
+import sanaLinearAttentionRules from './kernels/sana-linear-attention.rules.json' with { type: 'json' };
+import sampleRules from './kernels/sample.rules.json' with { type: 'json' };
+import scaleRules from './kernels/scale.rules.json' with { type: 'json' };
+import siluRules from './kernels/silu.rules.json' with { type: 'json' };
+import splitQkvRules from './kernels/split-qkv.rules.json' with { type: 'json' };
+import splitQgRules from './kernels/split-qg.rules.json' with { type: 'json' };
+import softmaxRules from './kernels/softmax.rules.json' with { type: 'json' };
+import upsample2dRules from './kernels/upsample2d.rules.json' with { type: 'json' };
+import configRules from './inference/config.rules.json' with { type: 'json' };
+import inferenceExecutionRules from './inference/execution.rules.json' with { type: 'json' };
+import inferenceAttentionRules from './inference/attention.rules.json' with { type: 'json' };
+import dtypeRules from './inference/dtype.rules.json' with { type: 'json' };
+import ffnRules from './inference/ffn.rules.json' with { type: 'json' };
+import layerRules from './inference/layer.rules.json' with { type: 'json' };
+import layerPatternRules from './inference/layer-pattern.rules.json' with { type: 'json' };
+import inferenceMoeRules from './inference/moe.rules.json' with { type: 'json' };
+import tokenizerRules from './converter/tokenizer.rules.json' with { type: 'json' };
+import tensorRolesRules from './converter/tensor-roles.rules.json' with { type: 'json' };
+import converterExecutionRules from './converter/execution.rules.json' with { type: 'json' };
+import loaderWeightRules from './loader/weights.rules.json' with { type: 'json' };
+import tensorLoaderRules from './loader/tensor-loader.rules.json' with { type: 'json' };
+import toolingCommandRuntimeRules from './tooling/command-runtime.rules.json' with { type: 'json' };
 
 function cloneRuleValue(value) {
   if (typeof structuredClone === 'function') {
@@ -23,73 +73,6 @@ function deepFreeze(value, seen = new WeakSet()) {
     deepFreeze(entry, seen);
   }
   return Object.freeze(value);
-}
-
-const ruleLoadFailures = [];
-
-async function safeLoadJson(path, label) {
-  try {
-    return await loadJson(path, import.meta.url, 'Failed to load rules');
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.warn(`RuleRegistry: failed to load "${path}": ${message}`);
-    ruleLoadFailures.push(path);
-    return null;
-  }
-}
-
-const attentionRules = await safeLoadJson('./kernels/attention.rules.json');
-const conv2dRules = await safeLoadJson('./kernels/conv2d.rules.json');
-const depthwiseConv2dRules = await safeLoadJson('./kernels/depthwise-conv2d.rules.json');
-const dequantRules = await safeLoadJson('./kernels/dequant.rules.json');
-const energyRules = await safeLoadJson('./kernels/energy.rules.json');
-const fusedFfnRules = await safeLoadJson('./kernels/fused-ffn.rules.json');
-const fusedMatmulResidualRules = await safeLoadJson('./kernels/fused-matmul-residual.rules.json');
-const fusedMatmulRmsnormRules = await safeLoadJson('./kernels/fused-matmul-rmsnorm.rules.json');
-const gatherRules = await safeLoadJson('./kernels/gather.rules.json');
-const geluRules = await safeLoadJson('./kernels/gelu.rules.json');
-const groupedPointwiseConv2dRules = await safeLoadJson('./kernels/grouped-pointwise-conv2d.rules.json');
-const groupnormRules = await safeLoadJson('./kernels/groupnorm.rules.json');
-const kvQuantizeRules = await safeLoadJson('./kernels/kv_quantize.rules.json');
-const layernormRules = await safeLoadJson('./kernels/layernorm.rules.json');
-const matmulRules = await safeLoadJson('./kernels/matmul.rules.json');
-const kernelMoeRules = await safeLoadJson('./kernels/moe.rules.json');
-const kernelMoeGptOssRules = await safeLoadJson('./kernels/moe.rules.gptoss.json');
-const kernelMoeMixtralRules = await safeLoadJson('./kernels/moe.rules.mixtral.json');
-const modulateRules = await safeLoadJson('./kernels/modulate.rules.json');
-const pixelShuffleRules = await safeLoadJson('./kernels/pixel_shuffle.rules.json');
-const repeatChannelsRules = await safeLoadJson('./kernels/repeat-channels.rules.json');
-const reluRules = await safeLoadJson('./kernels/relu.rules.json');
-const residualRules = await safeLoadJson('./kernels/residual.rules.json');
-const rmsnormRules = await safeLoadJson('./kernels/rmsnorm.rules.json');
-const ropeRules = await safeLoadJson('./kernels/rope.rules.json');
-const sanaLinearAttentionRules = await safeLoadJson('./kernels/sana-linear-attention.rules.json');
-const sampleRules = await safeLoadJson('./kernels/sample.rules.json');
-const scaleRules = await safeLoadJson('./kernels/scale.rules.json');
-const siluRules = await safeLoadJson('./kernels/silu.rules.json');
-const splitQkvRules = await safeLoadJson('./kernels/split-qkv.rules.json');
-const splitQgRules = await safeLoadJson('./kernels/split-qg.rules.json');
-const softmaxRules = await safeLoadJson('./kernels/softmax.rules.json');
-const upsample2dRules = await safeLoadJson('./kernels/upsample2d.rules.json');
-const configRules = await safeLoadJson('./inference/config.rules.json');
-const inferenceExecutionRules = await safeLoadJson('./inference/execution.rules.json');
-const inferenceAttentionRules = await safeLoadJson('./inference/attention.rules.json');
-const dtypeRules = await safeLoadJson('./inference/dtype.rules.json');
-const ffnRules = await safeLoadJson('./inference/ffn.rules.json');
-const layerRules = await safeLoadJson('./inference/layer.rules.json');
-const layerPatternRules = await safeLoadJson('./inference/layer-pattern.rules.json');
-const inferenceMoeRules = await safeLoadJson('./inference/moe.rules.json');
-const tokenizerRules = await safeLoadJson('./converter/tokenizer.rules.json');
-const tensorRolesRules = await safeLoadJson('./converter/tensor-roles.rules.json');
-const converterExecutionRules = await safeLoadJson('./converter/execution.rules.json');
-const loaderWeightRules = await safeLoadJson('./loader/weights.rules.json');
-const tensorLoaderRules = await safeLoadJson('./loader/tensor-loader.rules.json');
-const toolingCommandRuntimeRules = await safeLoadJson('./tooling/command-runtime.rules.json');
-
-if (ruleLoadFailures.length > 0) {
-  console.warn(
-    `RuleRegistry: ${ruleLoadFailures.length} rule file(s) failed to load: ${ruleLoadFailures.join(', ')}`
-  );
 }
 const INFERENCE_EXECUTION_RULES_CONTRACT_ARTIFACT = buildInferenceExecutionRulesContractArtifact(
   inferenceExecutionRules
