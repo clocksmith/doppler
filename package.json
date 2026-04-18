@@ -1,6 +1,6 @@
 {
   "name": "doppler-gpu",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Browser-native WebGPU inference engine for local intent and inference loops",
   "main": "src/index.js",
   "types": "src/index.d.ts",
@@ -144,6 +144,9 @@
     },
     "./structured": {
       "import": "./src/tooling-exports/structured.js"
+    },
+    "./client/model-manager": {
+      "import": "./src/client/runtime/model-manager.js"
     },
     "./models/qwen3": {
       "import": "./src/models/qwen3.js"

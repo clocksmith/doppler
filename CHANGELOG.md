@@ -8,6 +8,55 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-04-18
+
+### Added
+
+- `"sideEffects"` entry in `package.json` restricts module-load side effects
+  to WGSL files and `src/gpu/device.js`. Bundlers can now tree-shake unused
+  exports from every other module.
+- Narrow tree-shakable subpath exports split the `doppler-gpu/tooling`
+  mega-barrel:
+  - `doppler-gpu/tooling/device` — GPU init, capability probing, shader
+    preseed helpers.
+  - `doppler-gpu/tooling/storage` — OPFS shard manager, registry, inventory,
+    quota, cache.
+  - `doppler-gpu/tooling/manifest` — RDRR manifest parsing + schema
+    defaults.
+  The existing `doppler-gpu/tooling` barrel stays for back-compat.
+- `doppler-gpu/structured` subpath export for JSON grammar-mask and
+  structured-generation helpers (`createJsonGrammarMask`).
+- `doppler-gpu/client/model-manager` subpath for the runtime model manager
+  (`initDoppler`, `loadModel`, `getPipeline`, `getCurrentModelId`,
+  `unloadModel`).
+- `doppler-gpu/provider` now re-exports `wrapPipelineAsHandle` alongside
+  `createDopplerProvider` so consumers reach both via one import.
+- Per-family static metadata modules:
+  - `doppler-gpu/models/qwen3`
+  - `doppler-gpu/models/gemma3`
+  - `doppler-gpu/models/gemma4`
+  - `doppler-gpu/models/embeddinggemma`
+  Each exports `FAMILY_ID`, `HF_REPO_ID`, `KNOWN_MODELS` (frozen list of
+  `{modelId, label, sourceModel, hfPath, defaultRuntimeProfile, modes}`),
+  plus `resolveModel(modelId)` and `resolveHfBaseUrl(modelId, revision)`.
+  Kilobyte-scale, tree-shakable, no runtime weight.
+- `registerShaderSources(map)` and `hasPreseededShaderSource(name)` on
+  `doppler-gpu/tooling/device`. Consumers that bundle WGSL via
+  `import.meta.glob('.../kernels/*.wgsl', { as: 'raw', eager: true })`
+  preseed the shader cache to bypass the runtime HTTP-fetch path entirely.
+- `docs/library-consumers.md` — migration + usage guide for applications
+  embedding `doppler-gpu` as an npm dependency.
+- `ensureModelCached` exposed through the tooling surface
+  (`doppler-gpu/tooling` and `doppler-gpu/tooling/storage`).
+
+### Fixed
+
+- Removed top-level `await` from `src/rules/rule-registry.js`. The 46 rule
+  JSON files are now imported statically with `with { type: 'json' }` import
+  attributes, which is synchronous at module load. This unblocks iife worker
+  bundles (e.g., Vite/Rollup classic-format workers) that previously failed
+  to bundle `doppler-gpu`.
+
 ### Changed
 
 - Swapped Qwen 3.5 0.8B Q4K kernel refs for the 6 full-attention layers
