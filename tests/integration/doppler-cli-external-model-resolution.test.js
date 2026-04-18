@@ -37,7 +37,7 @@ try {
 
   const resolved = await resolveNodeModelUrl(
     { modelId },
-    { rdrrRoot }
+    { staticRootDir: staticRoot, rdrrRoot }
   );
 
   assert.equal(resolved.modelId, modelId);
@@ -64,7 +64,7 @@ try {
   );
 
   await assert.rejects(
-    () => resolveNodeModelUrl({ modelId: 'missing-model' }, { rdrrRoot }),
+    () => resolveNodeModelUrl({ modelId: 'missing-model' }, { staticRootDir: staticRoot, rdrrRoot }),
     (err) => {
       assert.match(err.message, /Model "missing-model" not found/u);
       assert.match(err.message, /Not in catalog/u);
@@ -76,7 +76,7 @@ try {
   // Catalog fallback: known alias resolves to HF URL when not found locally
   const catalogResolved = await resolveNodeModelUrl(
     { modelId: 'gemma3-270m' },
-    { rdrrRoot }
+    { staticRootDir: staticRoot, rdrrRoot }
   );
   assert.equal(catalogResolved.modelId, 'gemma3-270m');
   assert.ok(
@@ -119,7 +119,7 @@ try {
 
   const nodeResolvedByManifestId = await resolveNodeModelUrl(
     { modelId: normalizedModelId },
-    { rdrrRoot }
+    { staticRootDir: staticRoot, rdrrRoot }
   );
   assert.equal(nodeResolvedByManifestId.modelId, normalizedModelId);
   assert.equal(nodeResolvedByManifestId.modelUrl, pathToFileURL(aliasedDir).href.replace(/\/$/, ''));

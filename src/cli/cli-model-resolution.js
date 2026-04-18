@@ -5,7 +5,8 @@ import { buildHfResolveBaseUrl } from '../utils/hf-resolve-url.js';
 import { DEFAULT_EXTERNAL_MODELS_ROOT } from '../tooling/hf-registry-utils.js';
 
 const DEFAULT_EXTERNAL_RDRR_ROOT = path.join(DEFAULT_EXTERNAL_MODELS_ROOT, 'rdrr');
-const CATALOG_PATH = fileURLToPath(new URL('../../models/catalog.json', import.meta.url));
+const PACKAGE_ROOT = fileURLToPath(new URL('../..', import.meta.url));
+const CATALOG_PATH = path.join(PACKAGE_ROOT, 'models', 'catalog.json');
 
 export function asStringOrNull(value) {
   if (value === undefined || value === null) return null;
@@ -31,7 +32,7 @@ export function resolveStaticRootDir(browserOptions = {}) {
   if (configured) {
     return path.resolve(String(configured));
   }
-  return process.cwd();
+  return PACKAGE_ROOT;
 }
 
 export function resolveRdrrRoot(options = {}) {
