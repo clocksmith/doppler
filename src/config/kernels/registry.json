@@ -66,8 +66,10 @@
           "outputDtype": "f16",
           "weightDtype": "f16",
           "reachability": {
-            "status": "model-selectable",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
             "ruleChains": [
               "matmul.rules.json#matmulKernel"
             ],
@@ -143,14 +145,13 @@
             "status": "pinned",
             "inlineConfigs": [
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
-              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
-              "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "sana/sana-sprint-0.6b-f16"
             ],
             "ruleChains": [
@@ -181,6 +182,7 @@
             "status": "pinned",
             "inlineConfigs": [
               "gemma3/gemma-3-1b-it-f16-af32",
+              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
             ],
@@ -314,7 +316,8 @@
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
-              "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
@@ -428,12 +431,13 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
             ],
             "ruleChains": [
               "matmul.rules.json#gemvPathVariant",
@@ -461,8 +465,11 @@
           },
           "description": "Multi-column GEMV for large vocab (LM head F16) - f16 activations/output",
           "reachability": {
-            "status": "model-selectable",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
             "ruleChains": [
               "matmul.rules.json#gemvPathVariant",
               "matmul.rules.json#gemvVariant"
@@ -604,11 +611,8 @@
             "tileM": 4
           },
           "reachability": {
-            "status": "pinned",
-            "inlineConfigs": [
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
-            ],
+            "status": "model-selectable",
+            "inlineConfigs": [],
             "ruleChains": [
               "matmul.rules.json#q4kFusedVariant"
             ],
@@ -633,10 +637,13 @@
           "description": "Shared-A Q4_K prefill matmul: 4 rows x 8 columns per workgroup while preserving block/subblock traversal",
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [],
-            "ruleChains": [
-              "capability-transforms.rules.json#remapDenseQ4KPrefillToQ4Native"
+            "inlineConfigs": [
+              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
             ],
+            "ruleChains": [],
             "wgslOnDisk": true
           }
         },
@@ -660,9 +667,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
-              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
             ],
             "ruleChains": [
               "matmul.rules.json#q4kFusedVariant"
@@ -688,10 +693,8 @@
           },
           "description": "Fast-dequant multi-column GEMV - direct word extraction replaces per-element get_q4 calls",
           "reachability": {
-            "status": "pinned",
-            "inlineConfigs": [
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
-            ],
+            "status": "unused",
+            "inlineConfigs": [],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -714,10 +717,8 @@
           },
           "description": "Shared-A multi-column GEMV - cooperative A load eliminates redundant global reads across 32 columns",
           "reachability": {
-            "status": "pinned",
-            "inlineConfigs": [
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
-            ],
+            "status": "unused",
+            "inlineConfigs": [],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -744,9 +745,7 @@
             "inlineConfigs": [
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
             ],
-            "ruleChains": [
-              "capabilityTransforms"
-            ],
+            "ruleChains": [],
             "wgslOnDisk": true
           }
         },
@@ -796,8 +795,10 @@
           },
           "description": "Multi-column GEMV for large vocab (LM head) - F16 input/output",
           "reachability": {
-            "status": "model-selectable",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
             "ruleChains": [
               "matmul.rules.json#q4kFusedVariant"
             ],
@@ -848,8 +849,10 @@
             "tileM": 4
           },
           "reachability": {
-            "status": "model-selectable",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
             "ruleChains": [
               "matmul.rules.json#q4kFusedVariant"
             ],
@@ -875,11 +878,9 @@
           },
           "description": "Register-tiled Q4_K prefill matmul: 64x64 outputs per WG via 4x4 register tile per thread, amortizing Q4K dequant across 16x the outputs of q4_fused_batched_f16a.",
           "reachability": {
-            "status": "model-selectable",
+            "status": "unused",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#q4kFusedVariant"
-            ],
+            "ruleChains": [],
             "wgslOnDisk": true
           }
         },
@@ -902,11 +903,9 @@
           },
           "description": "WideTile Q4_K prefill matmul (adapted from ORT MatMulNBitsWideTile, MIT licensed). Each thread owns 1 output column × TILE_M rows; register-tiled accumulation. F32 A, Q4_K B (llama.cpp 256-block), F16 C. ~128x fewer WGs than q4_fused_batched_f16 at Gemma-4 prefill shape.",
           "reachability": {
-            "status": "model-selectable",
+            "status": "unused",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#q4kFusedVariant"
-            ],
+            "ruleChains": [],
             "wgslOnDisk": true
           }
         },
@@ -929,11 +928,9 @@
           },
           "description": "F32-output twin of q4_fused_widetile_f16. Same WideTile design, f32 output for callers that need it (e.g. FFN gate/up when activationDtype=f32).",
           "reachability": {
-            "status": "model-selectable",
+            "status": "unused",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#q4kFusedVariant"
-            ],
+            "ruleChains": [],
             "wgslOnDisk": true
           }
         },
@@ -956,7 +953,7 @@
           },
           "description": "Fused RMSNorm + Q4_K WideTile matmul. Two-pass: pass 1 computes per-row sum-of-squares across all K; pass 2 reloads A, applies normed*weight + matmul in same tileA buffer. Saves 1 standalone rmsnorm dispatch per fusion point. Bind slot 4 = norm_weight (f32).",
           "reachability": {
-            "status": "model-selectable",
+            "status": "unused",
             "inlineConfigs": [],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -981,7 +978,7 @@
           },
           "description": "WideTile Q4_K matmul fused with residual add in one dispatch. Used at o_proj + attn_residual and ffn_down + ffn_residual call sites to cut 1 dispatch per layer per fusion point (~0.85 ms bubble each).",
           "reachability": {
-            "status": "model-selectable",
+            "status": "unused",
             "inlineConfigs": [],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -999,8 +996,10 @@
           "outputDtype": "f32",
           "weightDtype": "f32",
           "reachability": {
-            "status": "model-selectable",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma3/translategemma-4b-it-q4k-ehf16-af32"
+            ],
             "ruleChains": [
               "matmul.rules.json#gemvVariant",
               "matmul.rules.json#matmulKernel"
@@ -1040,7 +1039,7 @@
         }
       ],
       "baseUniforms": {
-      "size": 36,
+        "size": 36,
         "fields": [
           {
             "name": "M",
@@ -1291,7 +1290,7 @@
           ],
           "description": "Fused RMSNorm + matmul (prefill, M>1) — materialises normed row once in shared, splits output columns across threads",
           "reachability": {
-            "status": "experimental",
+            "status": "unused",
             "inlineConfigs": [],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -1310,7 +1309,7 @@
           ],
           "description": "Fused matmul + residual add (prefill, M>1)",
           "reachability": {
-            "status": "experimental",
+            "status": "unused",
             "inlineConfigs": [],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -1329,7 +1328,7 @@
           ],
           "description": "Fused gate + up FFN projections + GeGLU activation (F16 weights, per-layer intermediate_size uniform)",
           "reachability": {
-            "status": "experimental",
+            "status": "unused",
             "inlineConfigs": [],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2060,8 +2059,10 @@
             "tier": "tiled_small"
           },
           "reachability": {
-            "status": "model-selectable",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2102,7 +2103,7 @@
             "tier": "streaming"
           },
           "reachability": {
-            "status": "model-selectable",
+            "status": "unused",
             "inlineConfigs": [],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2168,8 +2169,10 @@
             "tier": "tiled_small"
           },
           "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2190,8 +2193,10 @@
             "tier": "tiled_small"
           },
           "reachability": {
-            "status": "model-selectable",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2234,7 +2239,7 @@
             "tier": "streaming"
           },
           "reachability": {
-            "status": "model-selectable",
+            "status": "unused",
             "inlineConfigs": [],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2303,7 +2308,10 @@
             "status": "pinned",
             "inlineConfigs": [
               "gemma3/gemma-3-1b-it-f16-af32",
+              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
             ],
             "ruleChains": [],
@@ -2326,8 +2334,15 @@
             "tier": "tiled_small"
           },
           "reachability": {
-            "status": "model-selectable",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma3/gemma-3-1b-it-f16-af32",
+              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2351,8 +2366,13 @@
             "requiredShared": 16384
           },
           "reachability": {
-            "status": "experimental",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma3/gemma-3-1b-it-f16-af32",
+              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2377,8 +2397,11 @@
           },
           "description": "head_dim=512 variant of prefill_head256_f16kv for Gemma-4 global attention layers. BLOCK_SIZE=16 keeps shared_block at 16KB and avoids VGPR spill from 128 vec4<f32> private arrays per thread (iter 26 measured BLOCK_SIZE=32 at -1.7% due to register pressure).",
           "reachability": {
-            "status": "experimental",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2402,7 +2425,7 @@
             "requiredShared": 16384
           },
           "reachability": {
-            "status": "experimental",
+            "status": "unused",
             "inlineConfigs": [],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2428,7 +2451,7 @@
           },
           "description": "Single-pass ORT-style flash attention (adapted from microsoft/onnxruntime flash_attention.wgsl.template). 64 threads = 64 queries per WG, private Q/O, shared K/V tiles of 16 K tokens, online softmax, no reduce pass. Matches attention_head256_f16kv binding contract.",
           "reachability": {
-            "status": "experimental",
+            "status": "unused",
             "inlineConfigs": [],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2448,7 +2471,7 @@
             "tier": "flash_reduce"
           },
           "reachability": {
-            "status": "experimental",
+            "status": "unused",
             "inlineConfigs": [],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2472,14 +2495,14 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
-              "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2501,8 +2524,17 @@
             "tier": "streaming"
           },
           "reachability": {
-            "status": "model-selectable",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+              "gemma4/gemma-4-moe-q4k-ehf16-af32",
+              "gpt-oss-20b-f16-xmxfp4",
+              "janus/janus-pro-1b-text-q4k-ehaf16",
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2526,8 +2558,10 @@
           },
           "description": "Online decode kernel - f16 QKV with subgroup reductions",
           "reachability": {
-            "status": "model-selectable",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
             "ruleChains": [
               "attention.rules.json#optimizedVariant"
             ],
@@ -2561,12 +2595,12 @@
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
             ],
             "ruleChains": [
               "attention.rules.json#optimizedVariant"
@@ -3079,11 +3113,9 @@
           },
           "description": "Tiered decode kernel - TurboQuant MSE cold K/V with f16 hot K/V",
           "reachability": {
-            "status": "selectable",
+            "status": "unused",
             "inlineConfigs": [],
-            "ruleChains": [
-              "attention.rules.json#tieredQuantVariant"
-            ],
+            "ruleChains": [],
             "wgslOnDisk": true
           }
         },
@@ -3104,11 +3136,9 @@
           },
           "description": "Tiered decode kernel - TurboQuant prod (MSE+QJL) cold K/V with f16 hot K/V",
           "reachability": {
-            "status": "selectable",
+            "status": "unused",
             "inlineConfigs": [],
-            "ruleChains": [
-              "attention.rules.json#tieredQuantVariant"
-            ],
+            "ruleChains": [],
             "wgslOnDisk": true
           }
         }
@@ -3246,11 +3276,9 @@
           },
           "description": "Contiguous decode kernel - TurboQuant MSE quantized K/V",
           "reachability": {
-            "status": "selectable",
+            "status": "unused",
             "inlineConfigs": [],
-            "ruleChains": [
-              "attention.rules.json#contiguousQuantVariant"
-            ],
+            "ruleChains": [],
             "wgslOnDisk": true
           }
         },
@@ -3271,11 +3299,9 @@
           },
           "description": "Contiguous decode kernel - TurboQuant prod (MSE+QJL) quantized K/V",
           "reachability": {
-            "status": "selectable",
+            "status": "unused",
             "inlineConfigs": [],
-            "ruleChains": [
-              "attention.rules.json#contiguousQuantVariant"
-            ],
+            "ruleChains": [],
             "wgslOnDisk": true
           }
         }
@@ -3535,12 +3561,13 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "sana/sana-sprint-0.6b-f16"
             ],
             "ruleChains": [
@@ -3637,8 +3664,10 @@
             "shader-f16"
           ],
           "reachability": {
-            "status": "model-selectable",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
             "ruleChains": [
               "rmsnorm.rules.json#variant"
             ],
@@ -4235,12 +4264,13 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
             ],
             "ruleChains": [
               "rope.rules.json#variant"
@@ -4260,8 +4290,10 @@
             "shader-f16"
           ],
           "reachability": {
-            "status": "model-selectable",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
             "ruleChains": [
               "rope.rules.json#variant"
             ],
@@ -4458,8 +4490,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
             ],
             "ruleChains": [
               "silu.rules.json#variant"
@@ -4479,8 +4510,10 @@
             "shader-f16"
           ],
           "reachability": {
-            "status": "model-selectable",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
             "ruleChains": [
               "silu.rules.json#variant"
             ],
@@ -4547,6 +4580,8 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
@@ -5491,7 +5526,9 @@
             "inlineConfigs": [
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
               "gemma3/gemma-3-1b-it-f16-af32",
-              "gemma3/gemma-3-270m-it-q4k-ehf16-af32"
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
             ],
             "ruleChains": [
               "gather.rules.json#variant"
@@ -5729,12 +5766,13 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "sana/sana-sprint-0.6b-f16"
             ],
             "ruleChains": [
@@ -5775,8 +5813,10 @@
           ],
           "outputDtype": "f16",
           "reachability": {
-            "status": "model-selectable",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
             "ruleChains": [
               "residual.rules.json#residualVariant"
             ],
@@ -7203,12 +7243,13 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -7226,8 +7267,10 @@
             "shader-f16"
           ],
           "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -8615,7 +8658,7 @@
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
-            "status": "pinned",
+            "status": "unused",
             "inlineConfigs": [],
             "ruleChains": [],
             "wgslOnDisk": true

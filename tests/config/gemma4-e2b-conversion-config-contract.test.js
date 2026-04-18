@@ -55,6 +55,10 @@ assert.equal(config.execution?.kernels?.attn_small?.kernel, 'attention_small_f16
 assert.equal(config.execution?.kernels?.attn_small?.precision?.kvDtype, 'f16');
 assert.equal(config.execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16kv.wgsl');
 assert.equal(config.execution?.kernels?.attn_stream?.precision?.kvDtype, 'f16');
+assert.equal(config.execution?.kernels?.attn_head256?.kernel, 'attention_head256_f16kv.wgsl');
+assert.equal(config.execution?.kernels?.attn_head256?.precision?.kvDtype, 'f16');
+assert.equal(config.execution?.kernels?.attn_head512?.kernel, 'attention_head512_f16kv.wgsl');
+assert.equal(config.execution?.kernels?.attn_head512?.precision?.kvDtype, 'f16');
 assert.equal(config.execution?.kernels?.gemv?.kernel, 'matmul_gemv_subgroup.wgsl');
 assert.equal(config.execution?.kernels?.tiled?.kernel, 'matmul_f16w_f32a.wgsl');
 assert.equal(config.execution?.kernels?.final_norm_stable?.kernel, 'rmsnorm.wgsl');
@@ -149,120 +153,57 @@ assert.equal(
 assert.equal(
   getLayerSteps(f16Primary.runtimeInferencePatch?.kernelPath, 0, 'prefill')
     .find((step) => step.op === 'attention')?.kernel,
-  'attention_small_f16kv.wgsl'
+  'attention_head256_f16kv.wgsl'
 );
 assert.equal(
   getLayerSteps(f16Primary.runtimeInferencePatch?.kernelPath, 4, 'prefill')
     .find((step) => step.op === 'attention')?.kernel,
-  'attention_streaming_f16kv.wgsl'
+  'attention_head512_f16kv.wgsl'
 );
 
-const runtimeF16Primary = compileExecutionV1({
-  manifestInference,
-  modelId: config.output.modelBaseId,
-  numLayers: 35,
-  headDim: modelHeadDim,
-  runtimeSession: {
-    ...config.session,
-    compute: {
-      ...config.session.compute,
-      defaults: {
-        ...config.session.compute.defaults,
-        activationDtype: 'f16',
-        mathDtype: 'f16',
-        outputDtype: 'f16',
+assert.throws(
+  () => compileExecutionV1({
+    manifestInference,
+    modelId: config.output.modelBaseId,
+    numLayers: 35,
+    headDim: modelHeadDim,
+    runtimeSession: {
+      ...config.session,
+      compute: {
+        ...config.session.compute,
+        defaults: {
+          ...config.session.compute.defaults,
+          activationDtype: 'f16',
+          mathDtype: 'f16',
+          outputDtype: 'f16',
+        },
       },
     },
-  },
-  capabilities: {
-    hasSubgroups: true,
-    hasF16: true,
-    hasSubgroupsF16: true,
-  },
-  platform: {
-    id: 'test-f16-runtime',
-    vendor: 'test',
-    architecture: 'test',
-  },
-  runtimeCompute: {
-    rangeAwareSelectiveWidening: {
-      enabled: true,
-      includeNonFinite: true,
-      onTrigger: 'fallback-plan',
-      absThreshold: 65500,
+    capabilities: {
+      hasSubgroups: true,
+      hasF16: true,
+      hasSubgroupsF16: true,
     },
-  },
-  kernelPathPolicy: {
-    mode: 'capability-aware',
-    sourceScope: ['manifest', 'model', 'config'],
-    onIncompatible: 'remap',
-  },
-});
-
-assert.deepEqual(runtimeF16Primary.appliedTransforms, ['narrowToF16Activations']);
-assert.equal(runtimeF16Primary.session.compute.defaults.activationDtype, 'f16');
-assert.equal(runtimeF16Primary.session.kvcache.kvDtype, 'f16');
-assert.equal(
-  runtimeF16Primary.runtimeInferencePatch?.kernelPath?.decode?.steps?.find((step) => step.op === 'q_proj')?.kernel,
-  'matmul_gemv_subgroup_f16a.wgsl'
-);
-assert.equal(
-  runtimeF16Primary.runtimeInferencePatch?.kernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.kernel,
-  'attention_decode_online_f16.wgsl'
-);
-assert.equal(
-  runtimeF16Primary.runtimeInferencePatch?.kernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.precision?.kvDtype,
-  'f16'
-);
-assert.equal(
-  runtimeF16Primary.runtimeInferencePatch?.kernelPath?.prefill?.steps?.find((step) => step.op === 'q_proj')?.kernel,
-  'matmul_f16.wgsl'
-);
-assert.equal(
-  runtimeF16Primary.runtimeInferencePatch?.kernelPath?.postLayer?.find((step) => step.op === 'final_norm')?.kernel,
-  'rmsnorm.wgsl'
-);
-assert.equal(
-  runtimeF16Primary.runtimeInferencePatch?.kernelPath?.postLayer?.find((step) => step.op === 'final_norm')?.precision?.inputDtype,
-  'f32'
-);
-assert.equal(
-  runtimeF16Primary.runtimeInferencePatch?.kernelPath?.postLayer?.find((step) => step.op === 'final_norm')?.precision?.outputDtype,
-  'f32'
-);
-assert.equal(
-  runtimeF16Primary.runtimeInferencePatch?.kernelPath?.postLayer?.find((step) => step.op === 'lm_head')?.kernel,
-  'matmul_gemv_subgroup.wgsl'
-);
-assert.equal(
-  runtimeF16Primary.runtimeInferencePatch?.kernelPath?.postLayer?.find((step) => step.op === 'lm_head')?.precision?.inputDtype,
-  'f32'
-);
-assert.equal(
-  runtimeF16Primary.runtimeInferencePatch?.kernelPath?.postLayer?.find((step) => step.op === 'lm_head_prefill')?.kernel,
-  'matmul_f16w_f32a.wgsl'
-);
-assert.equal(
-  getLayerSteps(runtimeF16Primary.runtimeInferencePatch?.kernelPath, 0, 'prefill')
-    .find((step) => step.op === 'attention')?.kernel,
-  'attention_small_f16.wgsl'
-);
-assert.equal(
-  getLayerSteps(runtimeF16Primary.runtimeInferencePatch?.kernelPath, 4, 'prefill')
-    .find((step) => step.op === 'attention')?.kernel,
-  'attention_streaming_f16.wgsl'
-);
-assert.equal(
-  runtimeF16Primary.fallbackKernelPath?.kvDtype,
-  'f16'
-);
-assert.equal(
-  runtimeF16Primary.fallbackKernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.kernel,
-  'attention_decode_online_f16kv.wgsl'
-);
-assert.equal(
-  runtimeF16Primary.fallbackKernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.precision?.kvDtype,
-  'f16'
+    platform: {
+      id: 'test-f16-runtime',
+      vendor: 'test',
+      architecture: 'test',
+    },
+    runtimeCompute: {
+      rangeAwareSelectiveWidening: {
+        enabled: true,
+        includeNonFinite: true,
+        onTrigger: 'fallback-plan',
+        absThreshold: 65500,
+      },
+    },
+    kernelPathPolicy: {
+      mode: 'capability-aware',
+      sourceScope: ['manifest', 'model', 'config'],
+      onIncompatible: 'remap',
+    },
+  }),
+  /attention_head256_f16kv\.wgsl" requires activationDtype="f32" and kvcache\.kvDtype="f16"/
 );
 
 const finitenessFallback = compileExecutionV1({
