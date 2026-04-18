@@ -239,7 +239,13 @@ export function resolveQ4KConfig(
   // buffer. Unlocks `hasQ4KMaterialization=true` in the FFN fusion rule when
   // the execution graph doesn't declare a fused projection kernel.
   if (isQ4KModel && hasSubgroups && q4kMaterializationMode === 'dense') {
-    const runtimeRetain = getRuntimeConfig().inference?.session?.retainQ4KMaterialization === true;
+    // Manifest-first: inference.session.retainQ4KMaterialization wins when
+    // explicitly set (true or false); null/missing falls through to the runtime
+    // config so explicit runtime profiles still have last word via the normal merge.
+    const manifestRetain = manifest?.inference?.session?.retainQ4KMaterialization;
+    const runtimeRetain = (manifestRetain !== null && manifestRetain !== undefined)
+      ? manifestRetain === true
+      : getRuntimeConfig().inference?.session?.retainQ4KMaterialization === true;
     if (runtimeRetain) {
       q4kMaterializationMode = 'mixed';
       debugTrace.loader(

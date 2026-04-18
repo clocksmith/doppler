@@ -15,6 +15,7 @@ export const DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS = {
 };
 
 export const READBACK_MODES = Object.freeze(['sequential', 'overlapped', 'auto']);
+export const PREFILL_CHUNK_SUBMIT_MODES = Object.freeze(['sync', 'async']);
 export const PER_LAYER_INPUT_MATERIALIZATION_MODES = Object.freeze([
   'auto',
   'range_backed',
@@ -66,6 +67,10 @@ export const DEFAULT_EXECUTION_V1_SESSION = {
   decodeLoop: null,
   perLayerInputs: { ...DEFAULT_EXECUTION_V1_PER_LAYER_INPUTS_SESSION },
   speculation: null,
+  prefillChunkSubmitMode: 'sync',
+  useFlashPrefillAttention: false,
+  useWideTileQ4KPrefill: false,
+  retainQ4KMaterialization: false,
 };
 
 export const DEFAULT_EXECUTION_V1_POLICIES = {

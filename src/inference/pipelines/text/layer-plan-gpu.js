@@ -246,6 +246,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
             outputDtype: step.outputDtype ?? undefined,
             kvDtype: step.kvDtype ?? undefined,
             kernelPath: context.kernelPath ?? null,
+            sessionSettings: config.sessionSettings ?? null,
             ...resolveAttentionKVSharing(config, layerIdx, layerType),
           };
 

@@ -266,10 +266,37 @@ export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, model
   dl.readbackMode = resolvedReadbackMode;
   patch.batching.readbackMode = resolvedReadbackMode;
 
+  // Manifest-first: promote manifest-supplied top-level session flags and the
+  // manifest's inference.largeWeights into runtimeConfig so existing pipeline
+  // reads of getRuntimeConfig().inference.session.* and .largeWeights.* pick up
+  // per-model values. Explicit runtimeOverrides still win via the per-field
+  // precedence baked into mergeRuntimeValues.
+  const manifestInf = manifest?.inference ?? {};
+  const manifestSession = manifestInf.session ?? {};
+  if (manifestSession.prefillChunkSubmitMode !== undefined && manifestSession.prefillChunkSubmitMode !== null) {
+    patch.session.prefillChunkSubmitMode = manifestSession.prefillChunkSubmitMode;
+  }
+  if (manifestSession.useFlashPrefillAttention !== undefined && manifestSession.useFlashPrefillAttention !== null) {
+    patch.session.useFlashPrefillAttention = manifestSession.useFlashPrefillAttention;
+  }
+  if (manifestSession.useWideTileQ4KPrefill !== undefined && manifestSession.useWideTileQ4KPrefill !== null) {
+    patch.session.useWideTileQ4KPrefill = manifestSession.useWideTileQ4KPrefill;
+  }
+  if (manifestSession.retainQ4KMaterialization !== undefined && manifestSession.retainQ4KMaterialization !== null) {
+    patch.session.retainQ4KMaterialization = manifestSession.retainQ4KMaterialization;
+  }
+  const manifestLargeWeights = manifestInf.largeWeights;
+  const largeWeightsPatch = (manifestLargeWeights && typeof manifestLargeWeights === 'object'
+    && Array.isArray(manifestLargeWeights.gpuResidentOverrides)
+    && manifestLargeWeights.gpuResidentOverrides.length > 0)
+    ? { gpuResidentOverrides: manifestLargeWeights.gpuResidentOverrides }
+    : null;
+
   const nextRuntimeConfig = mergeRuntimeValues(runtimeConfig, {
     inference: {
       session: patch.session,
       batching: patch.batching,
+      ...(largeWeightsPatch ? { largeWeights: largeWeightsPatch } : {}),
     },
   });
   log.info(

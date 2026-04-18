@@ -796,10 +796,15 @@ export async function runLayerAttentionGPU(
         kForAttn = createTensor(kCasted.buffer, kCasted.dtype, [kvState.kvLenForAttention, numKVHeads * headDim], 'cached_K');
         vForAttn = createTensor(vCasted.buffer, vCasted.dtype, [kvState.kvLenForAttention, numKVHeads * headDim], 'cached_V');
       }
-      // Flash-attention prefill opts in via runtime.inference.session.useFlashPrefillAttention.
-      // The kernel itself enforces all remaining preconditions (head_dim=256, etc.).
-      const useFlashPrefill = state.runtimeConfig?.inference?.session?.useFlashPrefillAttention === true
-        && numTokens > 1;
+      // Flash-attention prefill opts in via manifest.inference.session.useFlashPrefillAttention
+      // (source-of-truth), with explicit runtime profile as override. The kernel itself enforces
+      // all remaining preconditions (head_dim=256, etc.).
+      const manifestFlash = config?.sessionSettings?.useFlashPrefillAttention;
+      const useFlashPrefill = (
+        (manifestFlash !== null && manifestFlash !== undefined
+          ? manifestFlash
+          : state.runtimeConfig?.inference?.session?.useFlashPrefillAttention) === true
+      ) && numTokens > 1;
       const useOrtFlashPrefill = state.runtimeConfig?.inference?.session?.useOrtFlashPrefillAttention === true
         && numTokens > 1;
       const result = await runAttention(qTensor, kForAttn, vForAttn, null, numHeads, headDim, {

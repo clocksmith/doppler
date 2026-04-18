@@ -605,6 +605,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       ropeInterleaved: config.ropeInterleaved,
       tokenIds: context.currentTokenIds ?? null,
       kernelPath: context.kernelPath ?? null,
+      sessionSettings: config.sessionSettings ?? null,
       disableRoPE,
       sharedKVSourceLayerIdx,
       storeSharedKV,

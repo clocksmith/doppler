@@ -145,14 +145,14 @@
         }
       },
       "decodeLoop": {
-        "batchSize": 32,
+        "batchSize": 4,
         "stopCheckMode": "batch",
-        "readbackInterval": 1,
-        "readbackMode": "sequential",
+        "readbackInterval": 2,
+        "readbackMode": "overlapped",
         "submitLatencyThresholdMs": null,
-        "ringTokens": 1,
+        "ringTokens": 2,
         "ringStop": 1,
-        "ringStaging": 1,
+        "ringStaging": 2,
         "disableCommandBatching": false
       },
       "perLayerInputs": {
@@ -184,7 +184,14 @@
         "verify": "greedy",
         "threshold": null,
         "rollbackOnReject": true
-      }
+      },
+      "prefillChunkSubmitMode": "async",
+      "useFlashPrefillAttention": false,
+      "useWideTileQ4KPrefill": false,
+      "retainQ4KMaterialization": false
+    },
+    "largeWeights": {
+      "gpuResidentOverrides": null
     },
     "execution": {
       "inlineKernelPath": true,

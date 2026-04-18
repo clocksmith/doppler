@@ -130,7 +130,11 @@
         "ringStop": 1,
         "ringStaging": 1,
         "disableCommandBatching": false
-      }
+      },
+      "prefillChunkSubmitMode": "sync",
+      "useFlashPrefillAttention": false,
+      "useWideTileQ4KPrefill": false,
+      "retainQ4KMaterialization": false
     },
     "execution": {
       "kernels": {
@@ -367,6 +371,9 @@
         "dtypeTransition": "require_cast_step",
         "unresolvedKernel": "error"
       }
+    },
+    "largeWeights": {
+      "gpuResidentOverrides": null
     }
   },
   "shards": [

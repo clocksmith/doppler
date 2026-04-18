@@ -165,6 +165,11 @@ export interface ExecutionV1SelfSpeculationSchema {
   rollbackOnReject: boolean;
 }
 
+export interface ExecutionV1LargeWeightsSchema {
+  /** Explicit list of weight names forced GPU-resident regardless of size policy. null = no overrides. */
+  gpuResidentOverrides: string[] | null;
+}
+
 export interface ExecutionV1SessionSchema {
   compute: {
     defaults: ExecutionV1ComputeDefaultsSchema;
@@ -173,6 +178,14 @@ export interface ExecutionV1SessionSchema {
   decodeLoop: ExecutionV1DecodeLoopSchema | null;
   perLayerInputs: ExecutionV1PerLayerInputsSessionSchema;
   speculation: ExecutionV1SelfSpeculationSchema | null;
+  /** "sync" (default): wait each prefill chunk. "async": queue without waiting. */
+  prefillChunkSubmitMode: 'sync' | 'async';
+  /** Opt into flash-attention prefill kernel. Requires head_dim=256, f16 KV, contiguous layout. */
+  useFlashPrefillAttention: boolean;
+  /** Opt into WideTile Q4_K prefill matmul. Requires f32 activations + Q4_K weights + shader-f16 + M>=TILE_M. */
+  useWideTileQ4KPrefill: boolean;
+  /** Retain Q4_K packed weights alongside dense buffer (mixed materialization). ~50% extra Q4_K memory. */
+  retainQ4KMaterialization: boolean;
 }
 
 // === Policies ===
@@ -295,6 +308,7 @@ export interface ExecutionV1ExpandedStepSchema {
 
 export declare const EXECUTION_V1_SCHEMA_ID: string;
 export declare const READBACK_MODES: readonly ['sequential', 'overlapped', 'auto'];
+export declare const PREFILL_CHUNK_SUBMIT_MODES: readonly ['sync', 'async'];
 export declare const PER_LAYER_INPUT_MATERIALIZATION_MODES: readonly ['auto', 'range_backed', 'cpu_resident', 'gpu_resident'];
 export declare const PER_LAYER_INPUT_ROW_CACHE_MODES: readonly ['off', 'lru'];
 export declare const PER_LAYER_INPUT_PREFETCH_MODES: readonly ['off', 'next_token'];

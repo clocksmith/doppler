@@ -344,13 +344,34 @@ function mergeSession(
   sources
 ) {
   const prefix = 'inference.session';
-  const session = overlay(
-    prefix,
-    manifest,
-    runtime,
-    sources
-  );
-  return session ?? null;
+  // If both are absent, the merged session stays null (legacy/no-session path).
+  if (manifest === undefined && runtime === undefined) return null;
+  const manifestSession = manifest ?? {};
+  const runtimeSession = runtime ?? {};
+  return {
+    compute: overlay(`${prefix}.compute`, manifestSession.compute, runtimeSession.compute, sources),
+    kvcache: overlay(`${prefix}.kvcache`, manifestSession.kvcache, runtimeSession.kvcache, sources),
+    decodeLoop: overlay(`${prefix}.decodeLoop`, manifestSession.decodeLoop, runtimeSession.decodeLoop, sources),
+    perLayerInputs: overlay(`${prefix}.perLayerInputs`, manifestSession.perLayerInputs, runtimeSession.perLayerInputs, sources),
+    speculation: overlay(`${prefix}.speculation`, manifestSession.speculation, runtimeSession.speculation, sources),
+    prefillChunkSubmitMode: overlay(`${prefix}.prefillChunkSubmitMode`, manifestSession.prefillChunkSubmitMode, runtimeSession.prefillChunkSubmitMode, sources),
+    useFlashPrefillAttention: overlay(`${prefix}.useFlashPrefillAttention`, manifestSession.useFlashPrefillAttention, runtimeSession.useFlashPrefillAttention, sources),
+    useWideTileQ4KPrefill: overlay(`${prefix}.useWideTileQ4KPrefill`, manifestSession.useWideTileQ4KPrefill, runtimeSession.useWideTileQ4KPrefill, sources),
+    retainQ4KMaterialization: overlay(`${prefix}.retainQ4KMaterialization`, manifestSession.retainQ4KMaterialization, runtimeSession.retainQ4KMaterialization, sources),
+  };
+}
+
+function mergeLargeWeights(manifest, runtime, sources) {
+  const prefix = 'inference.largeWeights';
+  if (manifest === undefined && runtime === undefined) return null;
+  return {
+    gpuResidentOverrides: overlay(
+      `${prefix}.gpuResidentOverrides`,
+      manifest?.gpuResidentOverrides,
+      runtime?.gpuResidentOverrides,
+      sources
+    ),
+  };
 }
 
 // =============================================================================
@@ -397,6 +418,7 @@ export function mergeConfig(
     rope: mergeRoPE(manifestInf.rope, runtimeOverrides?.rope, sources),
     output: mergeOutput(manifestInf.output, runtimeOverrides?.output, sources),
     session: mergeSession(manifestInf.session, runtimeOverrides?.session, sources),
+    largeWeights: mergeLargeWeights(manifestInf.largeWeights, runtimeOverrides?.largeWeights, sources),
     pipeline,
     layerPattern,
     chatTemplate,

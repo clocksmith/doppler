@@ -148,7 +148,14 @@
           "maxBytes": 268435456,
           "outputDtype": "f32"
         }
-      }
+      },
+      "prefillChunkSubmitMode": "async",
+      "useFlashPrefillAttention": true,
+      "useWideTileQ4KPrefill": true,
+      "retainQ4KMaterialization": true
+    },
+    "largeWeights": {
+      "gpuResidentOverrides": ["model.language_model.embed_tokens.weight"]
     },
     "execution": {
       "kernels": {

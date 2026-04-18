@@ -538,6 +538,22 @@ export async function recordLayerAttentionGPU(
         if (kTensor.dtype !== 'f16') recorder.trackTemporaryBuffer(kCasted.buffer);
         if (vTensor.dtype !== 'f16') recorder.trackTemporaryBuffer(vCasted.buffer);
       }
+      // Flash-attention prefill: manifest-first (inference.session.useFlashPrefillAttention),
+      // with explicit runtime profile as override. Kernel enforces head_dim=256, f16 KV,
+      // contiguous layout; only applies when numTokens > 1 (prefill). Same flag semantics as
+      // the non-recorder path in ./run.js.
+      const manifestFlashRec = config?.sessionSettings?.useFlashPrefillAttention;
+      const manifestOrtFlashRec = config?.sessionSettings?.useOrtFlashPrefillAttention;
+      const useFlashPrefillRec = (
+        (manifestFlashRec !== null && manifestFlashRec !== undefined
+          ? manifestFlashRec
+          : getRuntimeConfig().inference?.session?.useFlashPrefillAttention) === true
+      ) && numTokens > 1;
+      const useOrtFlashPrefillRec = (
+        (manifestOrtFlashRec !== null && manifestOrtFlashRec !== undefined
+          ? manifestOrtFlashRec
+          : getRuntimeConfig().inference?.session?.useOrtFlashPrefillAttention) === true
+      ) && numTokens > 1;
       return recordAttention(recorder, qTensor, kForAttn, vForAttn, null, numHeads, headDim, {
         seqLen: numTokens,
         kvLen: kvState.kvLenForAttention,
@@ -555,6 +571,8 @@ export async function recordLayerAttentionGPU(
         kvPageTable: kvState.kvPageTable,
         kvPageSize: kvState.kvPageSize,
         kernelPath,
+        useFlashPrefill: useFlashPrefillRec,
+        useOrtFlashPrefill: useOrtFlashPrefillRec,
       });
     },
   };

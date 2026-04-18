@@ -7,6 +7,7 @@ import {
   PER_LAYER_INPUT_PREFETCH_MODES,
   PER_LAYER_INPUT_GPU_UPLOAD_MODES,
   PER_LAYER_INPUT_HOT_CACHE_MODES,
+  PREFILL_CHUNK_SUBMIT_MODES,
 } from '../../../config/schema/execution-v1.schema.js';
 
 const UNSUPPORTED_RUNTIME_MODEL_TYPES = new Set(['mamba', 'rwkv']);
@@ -194,6 +195,58 @@ function resolvePerLayerInputsSession(inferenceConfig, modelId) {
       outputDtype: hotOutputDtype,
     },
   };
+}
+
+function resolveSessionSettings(inferenceConfig, modelId) {
+  // All four fields are optional on the manifest today for backwards compatibility;
+  // when absent we fall through to the runtime config (getRuntimeConfig()). When
+  // present on the manifest, manifest wins unless an explicit runtime profile overrides.
+  // The merge layer in src/config/merge.js already applies that precedence — this
+  // resolver just validates the manifest-supplied values and normalizes them.
+  const session = inferenceConfig?.session;
+  const submit = session?.prefillChunkSubmitMode;
+  if (submit !== undefined && submit !== null && !PREFILL_CHUNK_SUBMIT_MODES.includes(submit)) {
+    throw new Error(
+      `Manifest "${modelId}" has invalid inference.session.prefillChunkSubmitMode ` +
+      `"${String(submit)}"; expected one of ${PREFILL_CHUNK_SUBMIT_MODES.join(', ')}.`
+    );
+  }
+  const flash = session?.useFlashPrefillAttention;
+  if (flash !== undefined && flash !== null && typeof flash !== 'boolean') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.useFlashPrefillAttention "${String(flash)}"; expected boolean.`);
+  }
+  const wide = session?.useWideTileQ4KPrefill;
+  if (wide !== undefined && wide !== null && typeof wide !== 'boolean') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.useWideTileQ4KPrefill "${String(wide)}"; expected boolean.`);
+  }
+  const retain = session?.retainQ4KMaterialization;
+  if (retain !== undefined && retain !== null && typeof retain !== 'boolean') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.retainQ4KMaterialization "${String(retain)}"; expected boolean.`);
+  }
+  return {
+    prefillChunkSubmitMode: submit ?? null,
+    useFlashPrefillAttention: flash ?? null,
+    useWideTileQ4KPrefill: wide ?? null,
+    retainQ4KMaterialization: retain ?? null,
+  };
+}
+
+function resolveLargeWeightsConfig(inferenceConfig, modelId) {
+  const lw = inferenceConfig?.largeWeights;
+  if (lw === undefined || lw === null) return { gpuResidentOverrides: null };
+  if (typeof lw !== 'object' || Array.isArray(lw)) {
+    throw new Error(`Manifest "${modelId}" has invalid inference.largeWeights (must be object).`);
+  }
+  const overrides = lw.gpuResidentOverrides;
+  if (overrides !== null && overrides !== undefined) {
+    if (!Array.isArray(overrides) || !overrides.every((v) => typeof v === 'string' && v.length > 0)) {
+      throw new Error(
+        `Manifest "${modelId}" has invalid inference.largeWeights.gpuResidentOverrides; ` +
+        `expected array of non-empty strings or null.`
+      );
+    }
+  }
+  return { gpuResidentOverrides: overrides ?? null };
 }
 
 // =============================================================================
@@ -1414,6 +1467,8 @@ export function toParsedConfigFromMerged(merged, manifest) {
     ? 'replay_prefill'
     : 'incremental';
   const perLayerInputsSession = resolvePerLayerInputsSession(inf, merged.modelId);
+  const sessionSettings = resolveSessionSettings(inf, merged.modelId);
+  const largeWeightsConfig = resolveLargeWeightsConfig(inf, merged.modelId);
 
   return {
     numLayers: arch.numLayers,
@@ -1489,6 +1544,8 @@ export function toParsedConfigFromMerged(merged, manifest) {
     chatTemplateThinking,
     decodeStrategy,
     perLayerInputsSession,
+    sessionSettings,
+    largeWeightsConfig,
     kernelPath: null,
     visionConfig: resolveVisionConfig(config, manifest),
     audioConfig: resolveAudioConfig(config, manifest),

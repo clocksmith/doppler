@@ -75,7 +75,7 @@
       "enabled": true
     }
   },
-    "session": {
+  "session": {
     "compute": {
       "defaults": {
         "activationDtype": "f32",
@@ -124,7 +124,11 @@
         "maxBytes": 134217728,
         "outputDtype": "f32"
       }
-    }
+    },
+    "prefillChunkSubmitMode": "sync",
+    "useFlashPrefillAttention": false,
+    "useWideTileQ4KPrefill": false,
+    "retainQ4KMaterialization": false
   },
   "execution": {
     "kernels": {
@@ -367,5 +371,8 @@
       "dtypeTransition": "require_cast_step",
       "unresolvedKernel": "error"
     }
+  },
+  "largeWeights": {
+    "gpuResidentOverrides": null
   }
 }

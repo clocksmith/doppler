@@ -96,7 +96,11 @@ assert.equal(int4PleConfig.output?.modelBaseId, 'gemma-4-e2b-it-q4k-ehf16-af32-i
 assert.equal(int4PleConfig.quantization?.weights, 'q4k');
 assert.equal(int4PleConfig.quantization?.embeddings, 'f16');
 assert.equal(int4PleConfig.quantization?.perLayerEmbeddings, 'int4_per_row');
-assert.equal(int4PleConfig.session?.perLayerInputs?.materialization, 'range_backed');
+// int4ple shares the gpu_split_tables materialization with its non-int4ple sibling
+// so that the INT4 PLE variant benefits from the same throughput path. Previously
+// 'range_backed'; changed in the manifest-first session-flag promotion so PLE and
+// non-PLE variants track the same optimized materialization.
+assert.equal(int4PleConfig.session?.perLayerInputs?.materialization, 'gpu_split_tables');
 
 const manifestInference = {
   schema: 'doppler.execution/v1',

@@ -482,14 +482,25 @@ export async function runDenseFFNGPU(
     // We infer this cheaply by re-checking the conditions the selector uses.
     // (A cleaner signal would require a return-shape change across all
     // dense.js paths; this local signal is enough for correctness.)
-    if (tryFuseDownResidual
-        && getKernelCapabilities().hasF16 === true
-        && getRuntimeConfig().inference?.session?.useWideTileResidualFusion === true
-        && getRuntimeConfig().inference?.session?.useWideTileQ4KPrefill === true
-        && getRuntimeConfig().inference?.session?.retainQ4KMaterialization === true
-    ) {
-      residualFusedHere = true;
-      context.__ffnResidualFusedFired = true;
+    {
+      // Manifest-first: inference.session.{useWideTileQ4KPrefill,retainQ4KMaterialization}
+      // win over runtime when explicitly set; useWideTileResidualFusion stays runtime-only.
+      const ss = config?.sessionSettings;
+      const wide = (ss?.useWideTileQ4KPrefill !== null && ss?.useWideTileQ4KPrefill !== undefined)
+        ? ss.useWideTileQ4KPrefill === true
+        : getRuntimeConfig().inference?.session?.useWideTileQ4KPrefill === true;
+      const retain = (ss?.retainQ4KMaterialization !== null && ss?.retainQ4KMaterialization !== undefined)
+        ? ss.retainQ4KMaterialization === true
+        : getRuntimeConfig().inference?.session?.retainQ4KMaterialization === true;
+      if (tryFuseDownResidual
+          && getKernelCapabilities().hasF16 === true
+          && getRuntimeConfig().inference?.session?.useWideTileResidualFusion === true
+          && wide
+          && retain
+      ) {
+        residualFusedHere = true;
+        context.__ffnResidualFusedFired = true;
+      }
     }
 
     const loraDown = getLoRAModule(lora, layerIdx, 'down_proj');
@@ -678,13 +689,22 @@ export async function runDenseFFNGPU(
       },
       recorder
     );
-    if (tryFuseDownResidualFused
-        && getKernelCapabilities().hasF16 === true
-        && getRuntimeConfig().inference?.session?.useWideTileResidualFusion === true
-        && getRuntimeConfig().inference?.session?.useWideTileQ4KPrefill === true
-        && getRuntimeConfig().inference?.session?.retainQ4KMaterialization === true
-    ) {
-      context.__ffnResidualFusedFired = true;
+    {
+      const ss = config?.sessionSettings;
+      const wide = (ss?.useWideTileQ4KPrefill !== null && ss?.useWideTileQ4KPrefill !== undefined)
+        ? ss.useWideTileQ4KPrefill === true
+        : getRuntimeConfig().inference?.session?.useWideTileQ4KPrefill === true;
+      const retain = (ss?.retainQ4KMaterialization !== null && ss?.retainQ4KMaterialization !== undefined)
+        ? ss.retainQ4KMaterialization === true
+        : getRuntimeConfig().inference?.session?.retainQ4KMaterialization === true;
+      if (tryFuseDownResidualFused
+          && getKernelCapabilities().hasF16 === true
+          && getRuntimeConfig().inference?.session?.useWideTileResidualFusion === true
+          && wide
+          && retain
+      ) {
+        context.__ffnResidualFusedFired = true;
+      }
     }
 
     const loraDown = getLoRAModule(lora, layerIdx, 'down_proj');

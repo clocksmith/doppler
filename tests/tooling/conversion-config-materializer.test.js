@@ -68,15 +68,18 @@ if (!fs.existsSync(qwenManifestPath)) {
   assert.equal(materialized.modelType, 'transformer');
   assert.equal(materialized.inference?.schema, 'doppler.execution/v1');
   assert.equal(materialized.inference?.execution?.inlineKernelPath, true);
+  // Qwen 3.5 0.8B decodeLoop values tuned 2026-04-18 for Strix Halo / RADV Mesa
+  // (bs=4, rbi=2, overlapped) per profiles/qwen-3-5-0-8b-throughput.json. Previously
+  // bs=32/rbi=1/sequential.
   assert.deepEqual(materialized.inference?.session?.decodeLoop, {
-    batchSize: 32,
+    batchSize: 4,
     stopCheckMode: 'batch',
-    readbackInterval: 1,
-    readbackMode: 'sequential',
+    readbackInterval: 2,
+    readbackMode: 'overlapped',
     submitLatencyThresholdMs: null,
-    ringTokens: 1,
+    ringTokens: 2,
     ringStop: 1,
-    ringStaging: 1,
+    ringStaging: 2,
     disableCommandBatching: false,
   });
   assert.equal(materialized.inference?.session?.compute?.defaults?.activationDtype, 'f32');

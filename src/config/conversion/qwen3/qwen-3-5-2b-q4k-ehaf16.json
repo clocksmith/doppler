@@ -116,7 +116,7 @@
       "enabled": true
     }
   },
-    "session": {
+  "session": {
     "compute": {
       "defaults": {
         "activationDtype": "f16",
@@ -174,7 +174,11 @@
       "verify": "greedy",
       "threshold": null,
       "rollbackOnReject": true
-    }
+    },
+    "prefillChunkSubmitMode": "sync",
+    "useFlashPrefillAttention": false,
+    "useWideTileQ4KPrefill": false,
+    "retainQ4KMaterialization": false
   },
   "execution": {
     "inlineKernelPath": true,
@@ -431,5 +435,8 @@
       "dtypeTransition": "require_cast_step",
       "unresolvedKernel": "error"
     }
+  },
+  "largeWeights": {
+    "gpuResidentOverrides": null
   }
 }

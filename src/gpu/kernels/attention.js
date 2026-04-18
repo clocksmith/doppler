@@ -1075,6 +1075,15 @@ async function executeAttention(
   // splitting + online-softmax reduction. Gated by options.useFlashPrefill so
   // callers opt in deliberately (runtime config flag). Conservative conditions:
   // head_dim=256, prefill (seqLen>1), contiguous KV, no bidirectional span.
+  if (!globalThis.__DOPPLER_FLASH_TRACE2__ && options.useFlashPrefill === true) {
+    globalThis.__DOPPLER_FLASH_TRACE2__ = true;
+    process.stderr.write('[FLASH2] useFlash=' + options.useFlashPrefill
+      + ' hd=' + headDim + '/' + FLASH_HEAD_DIM
+      + ' seq=' + seqLen + ' kvL=' + kvLayout
+      + ' biDir=' + bidirectionalSpanLength
+      + ' indirect=' + (indirectBuffer == null ? 'n' : 'y')
+      + ' K=' + K?.dtype + ' V=' + V?.dtype + '\n');
+  }
   if (
     options.useFlashPrefill === true
     && headDim === FLASH_HEAD_DIM

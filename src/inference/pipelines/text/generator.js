@@ -1971,8 +1971,10 @@ export class PipelineGenerator {
           // tracked buffers when GPU work completes. Profile runs keep the
           // sync path because resolveProfileTimings requires the submitted
           // work to be done.
-          const chunkSubmitMode = this.#state.runtimeConfig?.inference?.session
-            ?.prefillChunkSubmitMode ?? 'sync';
+          const manifestSubmit = this.#state.modelConfig?.sessionSettings?.prefillChunkSubmitMode;
+          const chunkSubmitMode = (manifestSubmit !== null && manifestSubmit !== undefined)
+            ? manifestSubmit
+            : (this.#state.runtimeConfig?.inference?.session?.prefillChunkSubmitMode ?? 'sync');
           const chunkSubmitStart = performance.now();
           if (chunkSubmitMode === 'async' && !opts.profile) {
             currentRecorder.submit({ cleanup: 'deferred' });

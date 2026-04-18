@@ -371,7 +371,8 @@ export class DopplerLoader {
 
   
   #shouldStreamLargeWeight(name, location, label) {
-    return shouldStreamLargeWeight(name, location, label, this.gpuCapabilities, this.keepF32Weights);
+    const manifestOverrides = this.manifest?.inference?.largeWeights?.gpuResidentOverrides ?? null;
+    return shouldStreamLargeWeight(name, location, label, this.gpuCapabilities, this.keepF32Weights, manifestOverrides);
   }
 
   
