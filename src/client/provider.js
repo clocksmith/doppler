@@ -5,6 +5,10 @@ import { classifyProviderFailure } from './failure-taxonomy.js';
 import { buildProviderReceiptV1 } from './receipt.js';
 import { createFaultInjector } from './fault-injection.js';
 
+// Re-export handle adapter so consumers can reach both via
+// `doppler-gpu/provider` without a second subpath.
+export { wrapPipelineAsHandle } from './wrap-pipeline-handle.js';
+
 // Canonical four routing modes (30-hybrid-routing-sdk.md).
 const VALID_POLICY_MODES = new Set([
   'local-only',

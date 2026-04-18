@@ -142,6 +142,9 @@
     "./tooling/manifest": {
       "import": "./src/tooling-exports/manifest.js"
     },
+    "./structured": {
+      "import": "./src/tooling-exports/structured.js"
+    },
     "./models/qwen3": {
       "import": "./src/models/qwen3.js"
     },
