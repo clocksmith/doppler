@@ -767,6 +767,8 @@ export async function runLayerAttentionGPU(
       // The kernel itself enforces all remaining preconditions (head_dim=256, etc.).
       const useFlashPrefill = state.runtimeConfig?.inference?.session?.useFlashPrefillAttention === true
         && numTokens > 1;
+      const useOrtFlashPrefill = state.runtimeConfig?.inference?.session?.useOrtFlashPrefillAttention === true
+        && numTokens > 1;
       const result = await runAttention(qTensor, kForAttn, vForAttn, null, numHeads, headDim, {
         seqLen: numTokens,
         kvLen: kvState.kvLenForAttention,
@@ -785,6 +787,7 @@ export async function runLayerAttentionGPU(
         kvPageSize: kvState.kvPageSize,
         kernelPath,
         useFlashPrefill,
+        useOrtFlashPrefill,
       });
       if (prefillFallbackNeedsCast) {
         if (kTensor.dtype !== 'f16') releaseBuffer(kForAttn.buffer);

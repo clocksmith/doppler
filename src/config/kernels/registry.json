@@ -887,7 +887,7 @@
           "wgsl": "fused_matmul_q4_widetile_f16.wgsl",
           "entryPoint": "main",
           "workgroup": [
-            128,
+            256,
             1,
             1
           ],
@@ -898,7 +898,7 @@
           "weightDtype": "q4k",
           "variantMetadata": {
             "tileM": 4,
-            "colsPerWg": 128
+            "colsPerWg": 256
           },
           "description": "WideTile Q4_K prefill matmul (adapted from ORT MatMulNBitsWideTile, MIT licensed). Each thread owns 1 output column × TILE_M rows; register-tiled accumulation. F32 A, Q4_K B (llama.cpp 256-block), F16 C. ~128x fewer WGs than q4_fused_batched_f16 at Gemma-4 prefill shape.",
           "reachability": {
@@ -914,7 +914,7 @@
           "wgsl": "fused_matmul_q4_widetile.wgsl",
           "entryPoint": "main",
           "workgroup": [
-            128,
+            256,
             1,
             1
           ],
@@ -925,7 +925,7 @@
           "weightDtype": "q4k",
           "variantMetadata": {
             "tileM": 4,
-            "colsPerWg": 128
+            "colsPerWg": 256
           },
           "description": "F32-output twin of q4_fused_widetile_f16. Same WideTile design, f32 output for callers that need it (e.g. FFN gate/up when activationDtype=f32).",
           "reachability": {
@@ -2325,6 +2325,32 @@
             "maxHeadDim": 256,
             "requiredShared": 16384
           },
+          "reachability": {
+            "status": "experimental",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
+        "prefill_flash_ort_head256_f16kv": {
+          "wgsl": "attention_prefill_flash_ort_head256_f16kv.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            64,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "tier": "flash_prefill_ort",
+            "exactHeadDim": 256,
+            "maxHeadDim": 256,
+            "requiredShared": 16384
+          },
+          "description": "Single-pass ORT-style flash attention (adapted from microsoft/onnxruntime flash_attention.wgsl.template). 64 threads = 64 queries per WG, private Q/O, shared K/V tiles of 16 K tokens, online softmax, no reduce pass. Matches attention_head256_f16kv binding contract.",
           "reachability": {
             "status": "experimental",
             "inlineConfigs": [],

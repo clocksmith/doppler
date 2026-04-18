@@ -16,7 +16,7 @@ const NUM_SUBBLOCK_PAIRS: u32 = 4u;
 const U32S_PER_PAIR: u32 = 8u;
 
 override TILE_M: u32 = 4u;
-override TILE_N: u32 = 128u;
+override TILE_N: u32 = 256u;
 
 const MAX_TILE_M: u32 = 8u;
 

@@ -107,6 +107,14 @@ export const DEFAULT_RUNTIME_CONFIG = {
       // Default false until correctness + perf parity validated on target
       // hardware.
       useWideTileQ4KPrefill: false,
+      // Opt into the single-pass flash attention prefill kernel adapted from
+      // ORT's flash_attention.wgsl.template. 64 threads = 64 queries per WG;
+      // private Q/O tiles, shared K/V tiles, online softmax, no reduce pass.
+      // At Gemma 4 E2B prefill=64 this dispatches 8 WGs total (vs ~32 for the
+      // split+reduce Doppler flash path). Requires head_dim=256, f16 KV,
+      // contiguous KV layout, seqLen > 1. Supersedes useFlashPrefillAttention
+      // when both flags are set (this path is picked first). Default false.
+      useOrtFlashPrefillAttention: false,
     },
     executionPatch: {},
   },

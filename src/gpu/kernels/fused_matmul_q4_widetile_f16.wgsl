@@ -42,7 +42,7 @@ const NUM_SUBBLOCK_PAIRS: u32 = 4u;  // 8 subblocks / 2 per pair
 const U32S_PER_PAIR: u32 = 8u;       // 32 bytes / 4 bytes per u32
 
 override TILE_M: u32 = 4u;
-override TILE_N: u32 = 128u;
+override TILE_N: u32 = 256u;
 
 const MAX_TILE_M: u32 = 8u;
 

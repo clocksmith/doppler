@@ -1039,6 +1039,38 @@ async function executeAttention(
     );
   }
 
+  // ORT-style single-pass flash attention (adapted from microsoft/onnxruntime
+  // flash_attention.wgsl.template). Single kernel, no reduce pass — each WG
+  // handles one (head, query-tile) and processes all K online. Gated by
+  // useOrtFlashPrefill; takes precedence over the split+reduce flash path.
+  if (
+    options.useOrtFlashPrefill === true
+    && headDim === FLASH_HEAD_DIM
+    && seqLen > 1
+    && kvLayout === 'contiguous'
+    && bidirectionalSpanLength === 0
+    && indirectBuffer == null
+    && K?.dtype === 'f16'
+    && V?.dtype === 'f16'
+  ) {
+    return executeOrtFlashAttentionPrefill(recorder, Q, K, V, numHeads, headDim, {
+      seqLen,
+      kvLen,
+      numKVHeads,
+      scale,
+      causal,
+      startPos,
+      outputBuffer,
+      attnSoftcap,
+      slidingWindow,
+      kvLenBuffer,
+      kvStart,
+      kvLayout,
+      kvPageTable,
+      kvPageSize,
+    });
+  }
+
   // Flash-attention prefill path: raises RDNA3 occupancy via KV-axis workgroup
   // splitting + online-softmax reduction. Gated by options.useFlashPrefill so
   // callers opt in deliberately (runtime config flag). Conservative conditions:
@@ -1447,6 +1479,91 @@ export async function executeFlashAttentionPrefill(recorder, Q, K, V, numHeads, 
   }
 
   return createTensor(outputBuf, 'f32', [seqLen, numHeads, headDim], 'attention_flash_output');
+}
+
+// Single-pass flash-attention dispatcher (ORT-style). 7-binding contract —
+// same as attention_head256_f16kv. One kernel launch, no reduce pass.
+// Workgroups: (num_heads, ceil(seqLen / ORT_FLASH_WG), 1) with ORT_FLASH_WG=64.
+const ORT_FLASH_WG = 64;
+
+export async function executeOrtFlashAttentionPrefill(recorder, Q, K, V, numHeads, headDim, options = {}) {
+  if (headDim !== FLASH_HEAD_DIM) {
+    throw new Error(`[OrtFlashAttention] headDim must be ${FLASH_HEAD_DIM}, got ${headDim}.`);
+  }
+  const execution = resolveAttentionExecution(recorder);
+  const {
+    seqLen = 1,
+    kvLen = seqLen,
+    numKVHeads = numHeads,
+    scale = 1.0 / Math.sqrt(headDim),
+    causal = true,
+    startPos = 0,
+    outputBuffer = null,
+    attnSoftcap = 0,
+    slidingWindow = 0,
+    kvLenBuffer = null,
+    kvStart = 0,
+    kvLayout = 'contiguous',
+    kvPageTable = null,
+    kvPageSize = 0,
+  } = options;
+
+  if (kvLayout !== 'contiguous') {
+    throw new Error(`[OrtFlashAttention] kvLayout must be "contiguous", got "${kvLayout}".`);
+  }
+
+  const device = execution.device;
+  const paddedHiddenSize = padToQ4KBlock(numHeads * headDim);
+  const outputSize = seqLen * paddedHiddenSize * 4;
+  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_ort_flash_output');
+
+  const uniform = createAttentionUniformBuffer(device, execution.recorder, {
+    numHeads,
+    numKVHeads,
+    headDim,
+    kvLen,
+    seqLen,
+    scale,
+    causal,
+    startPos,
+    attnSoftcap,
+    slidingWindow,
+    kvLenSource: kvLenBuffer ? 1 : 0,
+    kvStart,
+    pageSize: kvPageSize,
+    kvLayout: 0, // contiguous only
+  });
+
+  const kernel = new AttentionKernel(device);
+  const pipeline = await kernel.getPipeline('prefill_flash_ort_head256_f16kv');
+  const kvLenBinding = kvLenBuffer || getKvLenFallbackBuffer(device);
+  const pageTableBinding = kvPageTable || getPageTableFallbackBuffer(device);
+
+  const bindGroup = device.createBindGroup({
+    label: 'attention_ort_flash_prefill_bg',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniform } },
+      { binding: 1, resource: { buffer: Q.buffer } },
+      { binding: 2, resource: { buffer: K.buffer } },
+      { binding: 3, resource: { buffer: V.buffer } },
+      { binding: 4, resource: { buffer: outputBuf } },
+      { binding: 5, resource: { buffer: kvLenBinding } },
+      { binding: 6, resource: { buffer: pageTableBinding } },
+    ],
+  });
+
+  const numSeqTiles = Math.max(1, Math.ceil(seqLen / ORT_FLASH_WG));
+  const workgroups = [numHeads, numSeqTiles, 1];
+
+  if (execution.recorder) {
+    kernel.record(execution.recorder, pipeline, bindGroup, workgroups);
+  } else {
+    kernel.dispatch(pipeline, bindGroup, workgroups);
+  }
+
+  if (uniform) releaseUniformBuffer(uniform);
+  return createTensor(outputBuf, 'f32', [seqLen, numHeads, headDim], 'attention_ort_flash_output');
 }
 
 async function executeAttentionTiered(
