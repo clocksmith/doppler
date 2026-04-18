@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { mkdtemp, rm, readdir, symlink, copyFile } from 'node:fs/promises';
+import { mkdtemp, rm, readdir, symlink, copyFile, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -38,6 +38,8 @@ export function parseArgs(argv) {
     registryPath: DEFAULT_HF_REGISTRY_PATH,
     repoId: '',
     dryRun: false,
+    manifestOnly: false,
+    bootstrap: false,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -91,6 +93,14 @@ export function parseArgs(argv) {
     }
     if (arg === '--dry-run') {
       out.dryRun = true;
+      continue;
+    }
+    if (arg === '--manifest-only') {
+      out.manifestOnly = true;
+      continue;
+    }
+    if (arg === '--bootstrap') {
+      out.bootstrap = true;
       continue;
     }
     throw new Error(`Unknown argument: ${arg}`);
@@ -204,7 +214,8 @@ export async function buildStagingDir(uploadPlan) {
   return stagingDir;
 }
 
-export function assertPromotionReady(entry) {
+export function assertPromotionReady(entry, options = {}) {
+  const { bootstrap = false } = options;
   const modelId = normalizeText(entry?.modelId) || 'unknown-model';
   const lifecycle = entry?.lifecycle && typeof entry.lifecycle === 'object'
     ? entry.lifecycle
@@ -218,8 +229,13 @@ export function assertPromotionReady(entry) {
   const contracts = tested.contracts && typeof tested.contracts === 'object'
     ? tested.contracts
     : {};
-  if (lifecycle?.availability?.hf !== true) {
-    throw new Error(`${modelId}: lifecycle.availability.hf must be true before publication.`);
+  const availabilityHf = lifecycle?.availability?.hf;
+  if (bootstrap) {
+    if (availabilityHf !== false) {
+      throw new Error(`${modelId}: --bootstrap requires lifecycle.availability.hf=false (first publish only); got ${JSON.stringify(availabilityHf)}.`);
+    }
+  } else if (availabilityHf !== true) {
+    throw new Error(`${modelId}: lifecycle.availability.hf must be true before publication (use --bootstrap for first publish).`);
   }
   if (status.runtime !== 'active') {
     throw new Error(`${modelId}: lifecycle.status.runtime must be "active" before publication.`);
@@ -232,6 +248,43 @@ export function assertPromotionReady(entry) {
   }
 }
 
+/**
+ * Write the new hf.revision back into the local catalog after a successful publish.
+ * On --bootstrap, also flips lifecycle.availability.hf to true.
+ * Preserves the rest of the JSON structure (key order, indentation) by round-tripping.
+ */
+export async function writeBackLocalCatalog(catalogFile, modelId, revision, options = {}) {
+  const { bootstrap = false } = options;
+  const normalizedModelId = normalizeText(modelId);
+  const normalizedRevision = normalizeText(revision);
+  if (!normalizedModelId) throw new Error('writeBackLocalCatalog requires a modelId.');
+  if (!normalizedRevision) throw new Error(`writeBackLocalCatalog requires a non-empty revision for ${normalizedModelId}.`);
+  const raw = await readFile(catalogFile, 'utf8');
+  const catalog = JSON.parse(raw);
+  const entry = Array.isArray(catalog.models)
+    ? catalog.models.find((m) => normalizeText(m?.modelId) === normalizedModelId)
+    : null;
+  if (!entry) {
+    throw new Error(`Model "${normalizedModelId}" not found in ${catalogFile} during catalog writeback.`);
+  }
+  if (!entry.hf || !normalizeText(entry.hf.repoId) || !normalizeText(entry.hf.path)) {
+    throw new Error(`Model "${normalizedModelId}" missing hf.repoId or hf.path in ${catalogFile}; cannot write back revision.`);
+  }
+  entry.hf = { ...entry.hf, revision: normalizedRevision };
+  if (bootstrap) {
+    const lifecycle = entry.lifecycle && typeof entry.lifecycle === 'object' ? entry.lifecycle : {};
+    const availability = lifecycle.availability && typeof lifecycle.availability === 'object'
+      ? lifecycle.availability
+      : {};
+    entry.lifecycle = {
+      ...lifecycle,
+      availability: { ...availability, hf: true },
+    };
+  }
+  const serialized = JSON.stringify(catalog, null, 2) + (raw.endsWith('\n') ? '\n' : '');
+  await writeFile(catalogFile, serialized, 'utf8');
+}
+
 export async function main(argv = process.argv.slice(2)) {
   const args = parseArgs(argv);
   const catalog = await loadJsonFile(args.catalogFile, args.catalogFile);
@@ -239,8 +292,11 @@ export async function main(argv = process.argv.slice(2)) {
   if (!localEntry) {
     throw new Error(`Model "${args.modelId}" not found in ${args.catalogFile}`);
   }
-  assertPromotionReady(localEntry);
-  if (!isHostedRegistryApprovedEntry(localEntry)) {
+  assertPromotionReady(localEntry, { bootstrap: args.bootstrap });
+  // In bootstrap mode the entry is not yet in the approved set
+  // (availability.hf=false). We flip it in memory after a successful upload
+  // before rebuilding the hosted registry payload.
+  if (!args.bootstrap && !isHostedRegistryApprovedEntry(localEntry)) {
     throw new Error(
       `${args.modelId}: model is not eligible for the hosted registry; requires hf approval plus active verified runtime status.`
     );
@@ -258,10 +314,12 @@ export async function main(argv = process.argv.slice(2)) {
       catalogFile: args.catalogFile,
       repoId: uploadPlan.repoId,
       manifestDir: uploadPlan.manifestDir,
-      shardDir: uploadPlan.shardDir,
+      shardDir: args.manifestOnly ? null : uploadPlan.shardDir,
       targetPath: uploadPlan.targetPath,
       registryPath: args.registryPath,
       registryUrl: args.registryUrl,
+      manifestOnly: args.manifestOnly,
+      bootstrap: args.bootstrap,
     }, null, 2));
     return;
   }
@@ -270,20 +328,38 @@ export async function main(argv = process.argv.slice(2)) {
   // This fails fast on registry access issues before making irreversible changes.
   await fetchJson(args.registryUrl);
 
-  // Build staging directory: manifest from models/local/ + shards from external drive
-  const stagingDir = await buildStagingDir(uploadPlan);
   let uploadResult;
-  try {
+  if (args.manifestOnly) {
+    const manifestPath = path.join(uploadPlan.manifestDir, 'manifest.json');
+    if (!existsSync(manifestPath)) {
+      throw new Error(
+        `${uploadPlan.modelId}: manifest.json not found in ${uploadPlan.manifestDir}. `
+        + 'The models/local/<modelId>/ directory is the source of truth for manifests.'
+      );
+    }
     uploadResult = await spawnCommand('hf', [
       'upload',
       uploadPlan.repoId,
-      stagingDir,
-      uploadPlan.targetPath,
+      manifestPath,
+      `${uploadPlan.targetPath}/manifest.json`,
       '--commit-message',
-      `Publish ${uploadPlan.modelId} RDRR artifact`,
+      `Publish ${uploadPlan.modelId} manifest update`,
     ]);
-  } finally {
-    await rm(stagingDir, { recursive: true, force: true });
+  } else {
+    // Build staging directory: manifest from models/local/ + shards from external drive
+    const stagingDir = await buildStagingDir(uploadPlan);
+    try {
+      uploadResult = await spawnCommand('hf', [
+        'upload',
+        uploadPlan.repoId,
+        stagingDir,
+        uploadPlan.targetPath,
+        '--commit-message',
+        `Publish ${uploadPlan.modelId} RDRR artifact`,
+      ]);
+    } finally {
+      await rm(stagingDir, { recursive: true, force: true });
+    }
   }
   const artifactRevision = extractCommitShaFromUrl(uploadResult.stdout)
     || extractCommitShaFromUrl(uploadResult.stderr)
@@ -292,12 +368,34 @@ export async function main(argv = process.argv.slice(2)) {
     throw new Error(`Could not extract artifact commit SHA from hf upload output for ${uploadPlan.modelId}`);
   }
 
+  // For bootstrap, the in-memory entry still has availability.hf=false and
+  // would be filtered out of buildHostedRegistryPayload. Flip it on a clone
+  // so the hosted registry includes this model alongside the new revision.
+  const catalogForHostedPayload = args.bootstrap
+    ? structuredClone(catalog)
+    : catalog;
+  if (args.bootstrap) {
+    const bootstrapEntry = findCatalogEntry(catalogForHostedPayload, uploadPlan.modelId);
+    if (!bootstrapEntry) {
+      throw new Error(`${uploadPlan.modelId}: entry disappeared from catalog during bootstrap.`);
+    }
+    const lifecycle = bootstrapEntry.lifecycle && typeof bootstrapEntry.lifecycle === 'object'
+      ? bootstrapEntry.lifecycle : {};
+    const availability = lifecycle.availability && typeof lifecycle.availability === 'object'
+      ? lifecycle.availability : {};
+    bootstrapEntry.lifecycle = {
+      ...lifecycle,
+      availability: { ...availability, hf: true },
+    };
+  }
   const nextRegistry = buildHostedRegistryPayload(
-    catalog,
+    catalogForHostedPayload,
     new Map([[uploadPlan.modelId, artifactRevision]])
   );
 
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'doppler-hf-registry-'));
+  let registryCommit;
+  let manifestUrl;
   try {
     const registryFile = path.join(tempDir, 'catalog.json');
     await writeJsonFile(registryFile, nextRegistry);
@@ -309,26 +407,35 @@ export async function main(argv = process.argv.slice(2)) {
       '--commit-message',
       `Publish ${uploadPlan.modelId} registry metadata`,
     ]);
-    const registryCommit = extractCommitShaFromUrl(registryResult.stdout)
+    registryCommit = extractCommitShaFromUrl(registryResult.stdout)
       || extractCommitShaFromUrl(registryResult.stderr)
       || await fetchRepoHeadSha(uploadPlan.repoId);
 
-    const manifestUrl = buildManifestUrl(`https://huggingface.co/${uploadPlan.repoId}/resolve/${artifactRevision}/${uploadPlan.targetPath}`);
+    manifestUrl = buildManifestUrl(`https://huggingface.co/${uploadPlan.repoId}/resolve/${artifactRevision}/${uploadPlan.targetPath}`);
     const manifestProbe = await probeUrl(manifestUrl);
     if (!manifestProbe.ok) {
       throw new Error(`Published manifest did not resolve: ${manifestUrl}`);
     }
-
-    console.log(JSON.stringify({
-      ok: true,
-      modelId: uploadPlan.modelId,
-      artifactRevision,
-      registryCommit,
-      manifestUrl,
-    }, null, 2));
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
+
+  // Only write back the local catalog after the remote upload + probe
+  // succeeded. A failure earlier leaves the local catalog untouched so a
+  // retry starts from the same state.
+  await writeBackLocalCatalog(args.catalogFile, uploadPlan.modelId, artifactRevision, {
+    bootstrap: args.bootstrap,
+  });
+
+  console.log(JSON.stringify({
+    ok: true,
+    modelId: uploadPlan.modelId,
+    artifactRevision,
+    registryCommit,
+    manifestUrl,
+    localCatalogUpdated: true,
+    bootstrap: args.bootstrap,
+  }, null, 2));
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

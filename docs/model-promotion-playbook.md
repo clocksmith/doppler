@@ -170,20 +170,38 @@ After copy:
 
 ### 7. Verify the publish tool gate before publishing
 
-`tools/publish-hf-registry-model.js` reads the canonical support entry first, then calls `assertPromotionReady()` before uploading anything. Publication requires:
+`tools/publish-hf-registry-model.js` reads the canonical support entry first, then calls `assertPromotionReady()` before uploading anything. Standard (republish) publication requires:
 
 - `lifecycle.availability.hf === true`
 - `lifecycle.status.runtime === "active"`
 - `lifecycle.status.tested === "verified"`
 - `lifecycle.tested.contracts.executionContractOk === true`
 
-The tool also requires `hf.repoId` and `hf.path` in the catalog entry. `hf.revision` is not required before publish. The remote registry rebuild pins the newly uploaded revision for the selected model. Update `hf.revision` in `models/catalog.json` afterward.
+The tool also requires `hf.repoId` and `hf.path` in the catalog entry.
 
-Run a dry run to confirm the upload plan before uploading:
+#### First publish (bootstrap)
+
+A brand-new model whose artifact has never been uploaded lives in a bootstrap state:
+
+- `hf: { repoId, path }` (no `revision` key yet)
+- `lifecycle.availability.hf: false`
+- `lifecycle.status.runtime: "active"`, `tested: "verified"`, `contracts.executionContractOk: true`
+
+Pass `--bootstrap` to publish such an entry. The flag rejects any entry where `availability.hf !== false`, so it cannot be used for republishes. On success the tool writes the new `hf.revision` into `models/catalog.json` and flips `availability.hf` to `true` — subsequent publishes are normal republishes without the flag.
+
+#### Manifest-only republish
+
+When a kernel-ref swap or routing change regenerates only `manifest.json` (shards on HF are unchanged), pass `--manifest-only`. The tool uploads just the manifest, skipping shard staging and the external-drive requirement. Preflight, hosted-registry rebuild, manifest probe, and local-catalog writeback still run.
+
+#### Dry run
 
 ```bash
 node tools/publish-hf-registry-model.js --model-id <model-id> --dry-run
+node tools/publish-hf-registry-model.js --model-id <model-id> --manifest-only --dry-run
+node tools/publish-hf-registry-model.js --model-id <model-id> --bootstrap --dry-run
 ```
+
+In manifest-only dry-run, `shardDir` is `null` in the output (shards are not referenced).
 
 ### 7a. Publish to Hugging Face from the external-volume canonical path
 

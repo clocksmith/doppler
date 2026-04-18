@@ -10,6 +10,14 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 
 ### Changed
 
+- Swapped Qwen 3.5 0.8B Q4K kernel refs for the 6 full-attention layers
+  (indices 3/7/11/15/19/23): `attn_stream` → `attn_head256`, and
+  `q4_prefill` `multicol_shared` → `q4_widetile` (register-tiled). Manifest
+  and `src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json` regenerated.
+  Strix Halo / RDNA-3 warm-cache 3-run means showed prefill@80 +57.5%
+  (σ≈3.8), prefill@15 +16.6%, decode flat (σ≈1.3); `doppler verify` match
+  with the expected Qwen `<think>` wrapper. Receipts live on the Strix
+  Halo workspace; `models/catalog.json` carries the canonical summary.
 - Retuned `profiles/qwen-3-5-0-8b-throughput` for AMD Strix Halo / RADV Mesa 26.
   Switched from `batchSize=8 readbackInterval=8` to `batchSize=4
   readbackInterval=2` with batch-level stop-check. On Strix Halo this raises
@@ -21,6 +29,16 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 
 ### Added
 
+- `--manifest-only` and `--bootstrap` flags on
+  `tools/publish-hf-registry-model.js`. `--manifest-only` skips shard
+  staging for republish of an existing model when only the manifest
+  changed (e.g., kernel-ref swap). `--bootstrap` is required for the
+  first publish of a new model (entry with `lifecycle.availability.hf:
+  false`, `hf.{repoId,path}` set, `hf.revision` absent) and flips
+  `availability.hf` to `true` in the local catalog after a successful
+  upload. Both paths now write the newly minted `hf.revision` back into
+  `models/catalog.json` so the local catalog is not drifted from the
+  hosted `registry/catalog.json`.
 - Documented the perf-validated kernel-path promotion workflow in
   `docs/style/benchmark-style-guide.md`. Two-stage flow: runtime override +
   correctness/perf gates first; promotion to the conversion config and
