@@ -1,5 +1,6 @@
 import { getKernelConfig } from '../gpu/kernels/kernel-configs.js';
 import { selectRuleValue as selectKernelRuleValue } from '../gpu/kernels/rule-registry.js';
+import { isPlainObject } from '../utils/plain-object.js';
 import { EXECUTION_V1_SCHEMA_ID, expandExecutionV1 } from './schema/index.js';
 
 const KV_LAYOUTS = new Set(['contiguous', 'paged', 'tiered', 'bdpa']);
@@ -23,10 +24,6 @@ const BDPA_MAX_HEAD_DIM = 256;
 const BDPA_MAX_KV_LEN = 2048;
 const QUANTIZED_KV_MAX_HEAD_DIM = 256;
 const UNSUPPORTED_TURBOQUANT_OUTLIER_MODE = 'turboquant_outlier';
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
 
 function assertManifestObject(manifest) {
   if (!isPlainObject(manifest)) {

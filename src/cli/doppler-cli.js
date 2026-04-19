@@ -17,6 +17,7 @@ import {
   resolveStaticRootDir,
   resolveRdrrRoot,
 } from './cli-model-resolution.js';
+import { isPlainObject } from '../utils/plain-object.js';
 import {
   toSummary,
   formatNumber,
@@ -392,10 +393,6 @@ function parseSurface(value, command, policy = DEFAULT_CLI_POLICY) {
     throw new Error(`${command} is not supported on browser relay. Use --surface node or --surface auto.`);
   }
   return normalized;
-}
-
-function isPlainObject(value) {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
 const CONFIG_ENVELOPE_KNOWN_KEYS = new Set([

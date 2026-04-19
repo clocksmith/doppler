@@ -12,7 +12,6 @@ const MAX_HEAD_DIM: u32 = 256u;
 override WORKGROUP_SIZE: u32 = 256u;
 override BIT_WIDTH_MSE: u32 = 3u;
 override PACK_FACTOR_MSE: u32 = 10u;
-override NUM_CENTROIDS_MSE: u32 = 8u;
 
 struct Uniforms {
     num_heads: u32,

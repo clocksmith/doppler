@@ -7,7 +7,6 @@
 enable f16;
 
 override WORKGROUP_SIZE: u32 = 256u;
-const MAX_WG_X: u32 = 65535u;
 
 struct Uniforms {
     size: u32,

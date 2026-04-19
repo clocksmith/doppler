@@ -4,16 +4,12 @@ import { createOpfsStore } from './backends/opfs-store.js';
 import { createIdbStore } from './backends/idb-store.js';
 import { DEFAULT_OPFS_PATH_CONFIG } from '../config/schema/loading.schema.js';
 import { DEFAULT_STORAGE_BACKEND_CONFIG } from '../config/schema/storage.schema.js';
+import { normalizeModelId } from './normalize-model-id.js';
 
 function requireDirectoryHandle(handle) {
   if (!handle || typeof handle.getFileHandle !== 'function') {
     throw new Error('exportModelToDirectory requires a FileSystemDirectoryHandle destination');
   }
-}
-
-function normalizeModelId(modelId) {
-  // Keep consistent with shard-manager normalization.
-  return String(modelId).replace(/[^a-zA-Z0-9_-]/g, '_');
 }
 
 function sanitizeFilename(name) {

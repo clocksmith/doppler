@@ -1,6 +1,6 @@
 import type { ParsedSourceArtifact } from './source-artifact-adapter.js';
 import type { DirectSourcePackageProfile } from './source-package-profiles.js';
-import type { LiteRTSource } from '../formats/litert/index.js';
+import type { LiteRTSource } from '../formats/litert/types.js';
 
 export declare const LITERT_PACKAGE_SOURCE_KIND_TASK: 'litert-task';
 export declare const LITERT_PACKAGE_SOURCE_KIND_LITERTLM: 'litertlm';

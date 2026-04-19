@@ -68,10 +68,6 @@ export function getDecodeStep(): number;
 export function shouldBreakOnAnomaly(): boolean;
 export function setSilentMode(enabled: boolean): void;
 export function isSilentMode(): boolean;
-/** @deprecated Use setSilentMode instead */
-export function setBenchmarkMode(enabled: boolean): void;
-/** @deprecated Use isSilentMode instead */
-export function isBenchmarkMode(): boolean;
 export function enableModules(...modules: string[]): void;
 export function disableModules(...modules: string[]): void;
 export function resetModuleFilters(): void;

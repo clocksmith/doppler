@@ -88,8 +88,6 @@ export {
   shouldBreakOnAnomaly,
   setSilentMode,
   isSilentMode,
-  setBenchmarkMode,
-  isBenchmarkMode,
   enableModules,
   disableModules,
   resetModuleFilters,
@@ -162,8 +160,6 @@ import {
   isTraceEnabled,
   setSilentMode,
   isSilentMode,
-  setBenchmarkMode,
-  isBenchmarkMode,
 } from './config.js';
 import {
   getLogHistory,
@@ -191,8 +187,6 @@ export interface DopplerDebugAPI {
   // Other
   setSilentMode: typeof setSilentMode;
   isSilentMode: typeof isSilentMode;
-  setBenchmarkMode: typeof setBenchmarkMode;
-  isBenchmarkMode: typeof isBenchmarkMode;
   // History
   getLogHistory: typeof getLogHistory;
   printLogSummary: typeof printLogSummary;
@@ -221,8 +215,6 @@ declare const _default: {
   isTraceEnabled: typeof isTraceEnabled;
   setSilentMode: typeof setSilentMode;
   isSilentMode: typeof isSilentMode;
-  setBenchmarkMode: typeof setBenchmarkMode;
-  isBenchmarkMode: typeof isBenchmarkMode;
   setGPUDevice: (device: GPUDevice) => void;
   enableModules: (...modules: string[]) => void;
   disableModules: (...modules: string[]) => void;

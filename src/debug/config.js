@@ -48,7 +48,6 @@ const originalConsoleLog = console.log;
 const originalConsoleDebug = console.debug;
 const originalConsoleInfo = console.info;
 const originalConsoleWarn = console.warn;
-let warnedBenchmarkMode = false;
 
 function requirePlainObject(value, label) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -307,22 +306,6 @@ export function setSilentMode(enabled) {
 
 export function isSilentMode() {
   return silentMode;
-}
-
-export function setBenchmarkMode(enabled) {
-  if (!warnedBenchmarkMode) {
-    warnedBenchmarkMode = true;
-    originalConsoleWarn('[Doppler] setBenchmarkMode is deprecated; use setSilentMode instead.');
-  }
-  setSilentMode(enabled);
-}
-
-export function isBenchmarkMode() {
-  if (!warnedBenchmarkMode) {
-    warnedBenchmarkMode = true;
-    originalConsoleWarn('[Doppler] isBenchmarkMode is deprecated; use isSilentMode instead.');
-  }
-  return isSilentMode();
 }
 
 export function enableModules(...modules) {

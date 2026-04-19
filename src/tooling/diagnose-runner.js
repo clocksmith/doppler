@@ -14,6 +14,7 @@ import {
   getActiveKernelPathSource,
   setActiveKernelPath,
 } from '../config/kernel-path-loader.js';
+import { isPlainObject } from '../utils/plain-object.js';
 
 let runtimeModulesPromise = null;
 
@@ -23,10 +24,6 @@ function cloneValue(value) {
     return structuredClone(value);
   }
   return JSON.parse(JSON.stringify(value));
-}
-
-function isPlainObject(value) {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
 function mergeRecords(base, patch) {

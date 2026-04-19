@@ -4,6 +4,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { getManifestUrl } from '../../formats/rdrr/index.js';
 import { createStreamingHasher } from '../../storage/shard-manager.js';
+import { isNodeRuntime } from '../../utils/runtime-env.js';
 
 const CACHE_DISABLE_VALUES = new Set(['0', 'false', 'off', 'no']);
 const DEFAULT_CACHE_ROOT = path.join(os.homedir(), '.cache', 'doppler-gpu', 'models');
@@ -11,14 +12,6 @@ const MANIFEST_FILENAME = 'manifest.json';
 
 function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
-}
-
-function isNodeRuntime() {
-  return typeof process !== 'undefined'
-    && process != null
-    && typeof process === 'object'
-    && process.versions != null
-    && typeof process.versions.node === 'string';
 }
 
 function isQuickstartRegistrySource(resolved) {

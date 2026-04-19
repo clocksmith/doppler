@@ -4,6 +4,7 @@ import { createDopplerRuntimeService } from './runtime/index.js';
 import { classifyProviderFailure } from './failure-taxonomy.js';
 import { buildProviderReceiptV1 } from './receipt.js';
 import { createFaultInjector } from './fault-injection.js';
+import { isNodeRuntime } from '../utils/runtime-env.js';
 
 // Re-export handle adapter so consumers can reach both via
 // `doppler-gpu/provider` without a second subpath.
@@ -113,12 +114,6 @@ async function callOpenAIFallback(config, prompt, options) {
   }
 
   return String(choice.message?.content ?? '');
-}
-
-function isNodeRuntime() {
-  return typeof process !== 'undefined'
-    && typeof process.versions === 'object'
-    && typeof process.versions.node === 'string';
 }
 
 async function ensureWebGPUAvailable() {

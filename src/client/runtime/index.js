@@ -8,6 +8,7 @@ import {
   resolveModelSource,
 } from './model-source.js';
 import { assertSupportedGenerationOptions, createModelHandle } from './model-session.js';
+import { isNodeRuntime } from '../../utils/runtime-env.js';
 
 function emitLoadProgress(callback, phase, percent, message) {
   if (typeof callback !== 'function') return;
@@ -27,14 +28,6 @@ function assertDopplerOptions(options, apiName) {
       `${apiName} does not accept load-affecting options. Use doppler.load(model, options) instead.`
     );
   }
-}
-
-function isNodeRuntime() {
-  return typeof process !== 'undefined'
-    && process != null
-    && typeof process === 'object'
-    && process.versions != null
-    && typeof process.versions.node === 'string';
 }
 
 async function resolveCachedNodeQuickstartSource(resolved, manifestPayload, onProgress) {

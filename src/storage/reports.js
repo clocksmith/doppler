@@ -3,12 +3,13 @@
 import { getRuntimeConfig } from '../config/runtime.js';
 import { isIndexedDBAvailable, isOPFSAvailable } from './quota.js';
 import { createIdbStore } from './backends/idb-store.js';
+import { normalizeModelId as normalizeModelIdShared } from './normalize-model-id.js';
 
 const REPORTS_DIR = 'reports';
 const REPORT_MODEL_PREFIX = 'reports:';
 
 function normalizeModelId(modelId) {
-  return String(modelId || 'unknown').replace(/[^a-zA-Z0-9_-]/g, '_');
+  return normalizeModelIdShared(modelId || 'unknown');
 }
 
 function formatTimestamp(value) {

@@ -17,6 +17,7 @@ import { getRuntimeConfig } from '../config/runtime.js';
 import { createOpfsStore } from './backends/opfs-store.js';
 import { createIdbStore } from './backends/idb-store.js';
 import { createMemoryStore } from './backends/memory-store.js';
+import { normalizeModelId } from './normalize-model-id.js';
 
 export { getManifest } from '../formats/rdrr/index.js';
 
@@ -34,10 +35,6 @@ export function setOpfsPathConfig(config) {
 
 export function getOpfsPathConfig() {
   return opfsPathConfigOverride ?? getRuntimeConfig().loading.opfsPath;
-}
-
-function normalizeModelId(modelId) {
-  return modelId.replace(/[^a-zA-Z0-9_-]/g, '_');
 }
 
 function getBackendConfig() {

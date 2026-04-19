@@ -928,8 +928,10 @@
           },
           "description": "F32-output twin of q4_fused_widetile_f16. Same WideTile design, f32 output for callers that need it (e.g. FFN gate/up when activationDtype=f32).",
           "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2371,7 +2373,8 @@
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
-              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2424,32 +2427,6 @@
             "maxHeadDim": 256,
             "requiredShared": 16384
           },
-          "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
-            "ruleChains": [],
-            "wgslOnDisk": true
-          }
-        },
-        "prefill_flash_ort_head256_f16kv": {
-          "wgsl": "attention_prefill_flash_ort_head256_f16kv.wgsl",
-          "entryPoint": "main",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
-          "outputDtype": "f32",
-          "variantMetadata": {
-            "tier": "flash_prefill_ort",
-            "exactHeadDim": 256,
-            "maxHeadDim": 256,
-            "requiredShared": 16384
-          },
-          "description": "Single-pass ORT-style flash attention (adapted from microsoft/onnxruntime flash_attention.wgsl.template). 64 threads = 64 queries per WG, private Q/O, shared K/V tiles of 16 K tokens, online softmax, no reduce pass. Matches attention_head256_f16kv binding contract.",
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],

@@ -6,7 +6,7 @@ import {
 } from './types.js';
 import { validateManifest } from './validation.js';
 import { getShardInfo } from './parsing.js';
-import { createDopplerError, ERROR_CODES } from '../../errors/index.js';
+import { createDopplerError, ERROR_CODES } from '../../errors/doppler-error.js';
 
 export function generateShardFilename(index) {
   return `shard_${String(index).padStart(5, '0')}.bin`;

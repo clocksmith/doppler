@@ -3,6 +3,7 @@ import {
   createSourceStorageContext,
 } from '../tooling/source-runtime-bundle.js';
 import { createStreamingHasher } from './shard-manager.js';
+import { isNodeRuntime } from '../utils/runtime-env.js';
 
 export const ARTIFACT_FORMAT_RDRR = 'rdrr';
 export const ARTIFACT_FORMAT_DIRECT_SOURCE = 'direct-source';
@@ -385,14 +386,6 @@ function normalizeBaseUrl(baseUrl) {
     return null;
   }
   return baseUrl.replace(/\/$/, '');
-}
-
-function isNodeRuntime() {
-  return typeof process !== 'undefined'
-    && process != null
-    && typeof process === 'object'
-    && process.versions != null
-    && typeof process.versions.node === 'string';
 }
 
 function isFileUrlBaseUrl(baseUrl) {

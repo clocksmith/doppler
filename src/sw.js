@@ -15,17 +15,14 @@ const APP_SHELL = [
     withBase('/demo/index.html'),
     withBase('/demo/ui/styles/main.css'),
     withBase('/src/bootstrap.js'),
-    withBase('/src/boot/vfs-bootstrap.js'),
     withBase('/src/debug/index.js'),
     '/demo/favicon.svg',
-    withBase('/config/vfs-manifest.json'),
 ];
 
 const EXTENSIONS = new Set(['.js', '.json', '.wgsl']);
 const BYPASS_PATHS = new Set([
     withBase('/src/bootstrap.js'),
     withBase('/sw.js'),
-    withBase('/config/vfs-manifest.json'),
 ]);
 const BYPASS_PREFIXES = [
     withBase('/kernel-tests/'),

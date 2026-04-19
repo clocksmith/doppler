@@ -8,10 +8,7 @@ import { decodeReadback } from './debug-utils/index.js';
 import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance } from '../../../gpu/weight-buffer.js';
 import { resolveRangeAwareSelectiveWideningConfig } from './finiteness-policy.js';
 import { resolveActiveExecutionPlan } from './execution-plan.js';
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
+import { isPlainObject } from '../../../utils/plain-object.js';
 
 export function resolvePerLayerInputsSession(manifestSession, runtimeSession) {
   if (!isPlainObject(runtimeSession)) {

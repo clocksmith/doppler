@@ -1,11 +1,6 @@
 import { createDefaultNodeLoadProgressLogger } from './runtime/model-source.js';
 import { createDopplerRuntimeService } from './runtime/index.js';
-
-function isNodeRuntime() {
-  return typeof process !== 'undefined'
-    && typeof process.versions === 'object'
-    && typeof process.versions.node === 'string';
-}
+import { isNodeRuntime } from '../utils/runtime-env.js';
 
 async function ensureWebGPUAvailable() {
   if (typeof globalThis.navigator !== 'undefined' && globalThis.navigator?.gpu) {

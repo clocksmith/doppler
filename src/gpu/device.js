@@ -3,7 +3,7 @@
 import { wrapQueueForTracking, setTrackSubmits } from './submit-tracker.js';
 import { probeSubmitLatency } from './submit-probe.js';
 import { log } from '../debug/index.js';
-import { createDopplerError, ERROR_CODES } from '../errors/index.js';
+import { createDopplerError, ERROR_CODES } from '../errors/doppler-error.js';
 import { GB } from '../config/schema/index.js';
 
 // Re-export submit tracker for convenience

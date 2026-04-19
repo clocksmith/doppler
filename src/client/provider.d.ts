@@ -26,9 +26,6 @@ export type FailureClass =
   | 'fallback_failed'
   | 'unknown';
 
-/** @deprecated use FailureClass. */
-export type FallbackFailureClass = FailureClass;
-
 export interface ModelHandle {
   loaded: boolean;
   modelId: string;
