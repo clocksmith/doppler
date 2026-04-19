@@ -83,36 +83,16 @@ export interface ResolvedSourceRuntimeArtifactBundle extends BuildSourceRuntimeB
   } & Record<string, unknown>;
 }
 
-export declare function normalizeSourceArtifactKind(value: unknown): string | null;
-
 export declare function assertDirectSourceRuntimeSupportedKind(
   sourceKind: unknown,
   label?: string
 ): DirectSourceRuntimeKind;
-
-export declare function assertSupportedSourceDtypes(
-  tensors: SourceRuntimeTensor[] | null | undefined,
-  sourceKind: string
-): void;
 
 export declare function inferSourceQuantizationForSourceRuntime(
   tensors: SourceRuntimeTensor[] | null | undefined,
   sourceKind: string,
   options?: { logCategory?: string | null }
 ): string;
-
-export declare function resolveSourceRuntimeComputePrecision(
-  tensors: SourceRuntimeTensor[] | null | undefined,
-  sourceQuantization: string | null | undefined
-): 'f16' | 'f32';
-
-export declare function resolveSourceRuntimeModelIdHint(options: {
-  requestedModelId?: string | null;
-  plan: { quantizationInfo?: Record<string, unknown> | null };
-  sourceKind: string;
-  sourcePath?: string | null;
-  label?: string | null;
-}): string;
 
 export declare function resolveDirectSourceRuntimePlan(options: {
   parsedArtifact: ParsedSourceArtifact;

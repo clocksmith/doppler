@@ -38,35 +38,9 @@ export declare function runTopK(
 ): Promise<{ indices: GPUBuffer; weights: GPUBuffer }>;
 
 /**
- * Record top-K expert selection (batched, no submit)
- */
-export declare function recordTopK(
-  recorder: CommandRecorder,
-  probs: GPUBuffer,
-  numTokens: number,
-  numExperts: number,
-  topK: number,
-  options?: MoEOptions
-): Promise<{ indices: GPUBuffer; weights: GPUBuffer }>;
-
-/**
  * Run MoE gather (dispatch tokens to experts)
  */
 export declare function runMoEGather(
-  hiddenStates: Tensor,
-  expertIndices: GPUBuffer,
-  numTokens: number,
-  hiddenSize: number,
-  numExperts: number,
-  topK: number,
-  options?: MoEOptions
-): Promise<MoEGatherResult>;
-
-/**
- * Record MoE gather (batched, no submit)
- */
-export declare function recordMoEGather(
-  recorder: CommandRecorder,
   hiddenStates: Tensor,
   expertIndices: GPUBuffer,
   numTokens: number,
@@ -120,39 +94,9 @@ export declare function runScatterAdd(
 ): Promise<Tensor>;
 
 /**
- * Record scatter-add (batched, no submit)
- */
-export declare function recordScatterAdd(
-  recorder: CommandRecorder,
-  expertOutputs: Tensor,
-  indices: GPUBuffer,
-  weights: GPUBuffer,
-  numTokens: number,
-  hiddenSize: number,
-  numExperts: number,
-  topK: number,
-  options?: MoEOptions
-): Promise<Tensor>;
-
-/**
  * Run dynamic scatter-add with token offsets
  */
 export declare function runScatterAddDynamic(
-  expertOutputs: Tensor,
-  indices: GPUBuffer,
-  weights: GPUBuffer,
-  tokenOffsets: GPUBuffer,
-  numTokens: number,
-  hiddenSize: number,
-  topK: number,
-  options?: MoEOptions
-): Promise<Tensor>;
-
-/**
- * Record dynamic scatter-add (batched, no submit)
- */
-export declare function recordScatterAddDynamic(
-  recorder: CommandRecorder,
   expertOutputs: Tensor,
   indices: GPUBuffer,
   weights: GPUBuffer,

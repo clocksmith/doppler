@@ -115,10 +115,6 @@ export async function runTopK(probs, numTokens, numExperts, topK, options = {}) 
 }
 
 
-export async function recordTopK(recorder, probs, numTokens, numExperts, topK, options = {}) {
-  return executeTopK(recorder, probs, numTokens, numExperts, topK, options);
-}
-
 // Cached explicit bind group layout for MoE gather (all 6 bindings).
 // Internal postmortems cover why this explicit layout is required.
 
@@ -312,10 +308,6 @@ export async function runMoEGather(hiddenStates, expertIndices, numTokens, hidde
 }
 
 
-export async function recordMoEGather(recorder, hiddenStates, expertIndices, numTokens, hiddenSize, numExperts, topK, options = {}) {
-  return executeMoEGather(recorder, hiddenStates, expertIndices, numTokens, hiddenSize, numExperts, topK, options);
-}
-
 async function executeScatterAdd(recorder, expertOutputs, indices, weights, numTokens, hiddenSize, numExperts, topK, options = {}) {
   const execution = resolveExecution(recorder);
   const { outputBuffer = null } = options;
@@ -383,10 +375,6 @@ export async function runScatterAdd(expertOutputs, indices, weights, numTokens, 
   return executeScatterAdd(null, expertOutputs, indices, weights, numTokens, hiddenSize, numExperts, topK, options);
 }
 
-
-export async function recordScatterAdd(recorder, expertOutputs, indices, weights, numTokens, hiddenSize, numExperts, topK, options = {}) {
-  return executeScatterAdd(recorder, expertOutputs, indices, weights, numTokens, hiddenSize, numExperts, topK, options);
-}
 
 async function executeMoEBuildTokenOffsets(recorder, tokenCounts, tokenMap, numTokens, numExperts, topK, maxTokensPerExpert, options = {}) {
   const execution = resolveExecution(recorder);
@@ -537,6 +525,3 @@ export async function runScatterAddDynamic(expertOutputs, indices, weights, toke
 }
 
 
-export async function recordScatterAddDynamic(recorder, expertOutputs, indices, weights, tokenOffsets, numTokens, hiddenSize, topK, options = {}) {
-  return executeScatterAddDynamic(recorder, expertOutputs, indices, weights, tokenOffsets, numTokens, hiddenSize, topK, options);
-}

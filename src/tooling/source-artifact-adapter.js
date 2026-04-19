@@ -165,7 +165,7 @@ export function resolveDirectSourceRuntimePlan(options = {}) {
   };
 }
 
-export function normalizeSourceArtifactKind(value) {
+function normalizeSourceArtifactKind(value) {
   const normalized = normalizeText(value).toLowerCase();
   return normalized || null;
 }
@@ -187,7 +187,7 @@ export function assertDirectSourceRuntimeSupportedKind(sourceKind, label = 'dire
   throw new Error(`${label}: unsupported direct-source artifact kind "${sourceKind}". Convert to RDRR first.`);
 }
 
-export function assertSupportedSourceDtypes(tensors, sourceKind) {
+function assertSupportedSourceDtypes(tensors, sourceKind) {
   const unsupported = new Set();
   for (const tensor of Array.isArray(tensors) ? tensors : []) {
     const dtype = normalizeText(tensor?.dtype).toUpperCase();
@@ -236,7 +236,7 @@ export function inferSourceQuantizationForSourceRuntime(tensors, sourceKind, opt
   }
 }
 
-export function resolveSourceRuntimeComputePrecision(tensors, sourceQuantization) {
+function resolveSourceRuntimeComputePrecision(tensors, sourceQuantization) {
   const dtypes = new Set();
   for (const tensor of Array.isArray(tensors) ? tensors : []) {
     const dtype = normalizeText(tensor?.dtype).toUpperCase();
@@ -253,7 +253,7 @@ export function resolveSourceRuntimeComputePrecision(tensors, sourceQuantization
   return SOURCE_QUANT_COMPUTE_MAP[normalizedSourceQuantization] ?? SOURCE_COMPUTE_DEFAULT;
 }
 
-export function resolveSourceRuntimeModelIdHint(options = {}) {
+function resolveSourceRuntimeModelIdHint(options = {}) {
   const requestedModelId = normalizeText(options.requestedModelId);
   const sourceKind = assertDirectSourceRuntimeSupportedKind(
     options.sourceKind,

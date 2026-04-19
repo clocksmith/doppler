@@ -68,15 +68,6 @@ async function loadTrainingSuiteModule() {
   return trainingSuiteModulePromise;
 }
 
-/**
- * Clear the cached training suite module promise.
- * Useful for testing or when the training module needs to be re-imported
- * after configuration changes.
- */
-export function clearTrainingSuiteModule() {
-  trainingSuiteModulePromise = null;
-}
-
 export async function runTrainingSuite(options = {}) {
   const module = await loadTrainingSuiteModule();
   return module.runTrainingSuite(options);
@@ -94,48 +85,6 @@ export {
 async function runTrainingBenchSuite(options = {}) {
   const module = await loadTrainingSuiteModule();
   return module.runTrainingBenchSuite(options);
-}
-
-export async function initializeBrowserHarness(options = {}) {
-  const { modelUrl, onProgress, log } = options;
-  if (!modelUrl) {
-    throw new Error('modelUrl is required');
-  }
-
-  const runtime = resolveRuntime(options);
-  const result = await initializeInference(modelUrl, {
-    runtime,
-    onProgress,
-    log,
-  });
-
-  return { ...result, runtime };
-}
-
-export async function saveBrowserReport(modelId, report, options = {}) {
-  return saveReport(modelId, report, options);
-}
-
-export async function runBrowserHarness(options = {}) {
-  const harness = await initializeBrowserHarness(options);
-  const reportTimestamp = resolveReportTimestamp(options.timestamp, 'runBrowserHarness timestamp');
-  const modelId = options.modelId || harness.manifest?.modelId || 'unknown';
-
-  let report = options.report || null;
-  if (!report && typeof options.buildReport === 'function') {
-    report = await options.buildReport(harness);
-  }
-  if (!report) {
-    report = {
-      modelId,
-      timestamp: reportTimestamp,
-    };
-  } else if (!report.timestamp) {
-    report = { ...report, timestamp: reportTimestamp };
-  }
-
-  const reportInfo = await saveReport(modelId, report, { timestamp: report.timestamp || reportTimestamp });
-  return { ...harness, report, reportInfo };
 }
 
 const BROWSER_WORKLOAD_SET = Object.freeze([

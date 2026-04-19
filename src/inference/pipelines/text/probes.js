@@ -216,7 +216,7 @@ export function hasProbeStage(probes, stage, layerIdx) {
 }
 
 
-export function getCanonicalStageName(probeStageName) {
+function getCanonicalStageName(probeStageName) {
   return PROBE_TO_CANONICAL[probeStageName] ?? null;
 }
 

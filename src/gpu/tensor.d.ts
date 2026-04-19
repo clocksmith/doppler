@@ -30,24 +30,6 @@ export function createTensor(
 ): Tensor;
 
 /**
- * Assert tensor has expected dtype, throw if mismatch.
- */
-export function assertDtype(
-  tensor: Tensor,
-  expected: TensorDtype,
-  operation: string
-): void;
-
-/**
- * Assert tensor has expected shape, throw if mismatch.
- */
-export function assertShape(
-  tensor: Tensor,
-  expected: readonly number[],
-  operation: string
-): void;
-
-/**
  * Get bytes per element for dtype.
  */
 export function dtypeBytes(dtype: TensorDtype): number;
@@ -56,11 +38,6 @@ export function dtypeBytes(dtype: TensorDtype): number;
  * Compute total byte size for a tensor.
  */
 export function tensorBytes(shape: readonly number[], dtype: TensorDtype): number;
-
-/**
- * Check if two tensors have compatible dtypes for an operation.
- */
-export function dtypesMatch(a: Tensor, b: Tensor): boolean;
 
 /**
  * Determine output dtype for a binary operation.

@@ -52,7 +52,7 @@ function buildRefreshRawConfig(manifest) {
   return baseConfig;
 }
 
-export function extractTensorEntriesFromManifest(manifest) {
+function extractTensorEntriesFromManifest(manifest) {
   if (!(manifest?.tensors && typeof manifest.tensors === 'object' && !Array.isArray(manifest.tensors))) {
     return [];
   }

@@ -4,7 +4,6 @@ export declare const DEFAULT_HF_REGISTRY_URL: string;
 export declare const DEFAULT_EXTERNAL_MODELS_ROOT: string;
 
 export declare function normalizeText(value: unknown): string;
-export declare function normalizeToken(value: unknown): string;
 export declare function normalizeRepoPath(value: unknown): string;
 export declare function detectDefaultExternalModelsRoot(): string;
 export declare function isPlainObject(value: unknown): boolean;

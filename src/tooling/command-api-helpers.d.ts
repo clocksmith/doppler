@@ -8,8 +8,6 @@ export declare function asOptionalForceResumeReason(value: unknown, label: strin
 export declare function asOptionalAction(value: unknown, label: string, allowed: string[]): string | null;
 export declare function assertCommand(value: unknown): string;
 export declare function resolveCommandRuntimeContract(command: string): { workload: string | null; intent: string | null };
-export declare function asOptionalCacheMode(value: unknown, label: string): 'cold' | 'warm' | null;
-export declare function asOptionalLoadMode(value: unknown, label: string): 'opfs' | 'http' | 'memory' | null;
 export declare function assertModelId(value: unknown, command: string, workload: string): string;
 export declare function assertForbiddenStringField(raw: Record<string, unknown>, fieldName: string, command: string): void;
 export declare function assertForbiddenObjectField(raw: Record<string, unknown>, fieldName: string, command: string): void;

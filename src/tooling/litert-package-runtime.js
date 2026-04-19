@@ -12,19 +12,13 @@ import {
   parseLiteRTTaskFromSource,
 } from '../formats/litert/types.js';
 import { resolveDirectSourcePackageProfile } from './source-package-profiles.js';
+import { cloneJsonValue } from '../utils/clone-json.js';
 
 export const LITERT_PACKAGE_SOURCE_KIND_TASK = 'litert-task';
 export const LITERT_PACKAGE_SOURCE_KIND_LITERTLM = 'litertlm';
 
 function normalizeText(value) {
   return String(value || '').trim();
-}
-
-function cloneJsonValue(value) {
-  if (typeof structuredClone === 'function') {
-    return structuredClone(value);
-  }
-  return JSON.parse(JSON.stringify(value));
 }
 
 function createVirtualFile(path, offset, size, kind, options = {}) {

@@ -13,9 +13,8 @@
 const QK_K: u32 = 256u;
 const SUBBLOCK_SIZE: u32 = 32u;
 
-// Tunable workgroup sizes
+// Tunable workgroup size
 override WORKGROUP_SIZE_MAIN: u32 = 256u;
-override WORKGROUP_SIZE_F16: u32 = 256u;
 
 struct Uniforms {
     num_blocks: u32,
@@ -145,55 +144,3 @@ fn main(
     output[out_idx] = dequant;
 }
 
-// FP16 output variant for when downstream consumers want f16
-@compute @workgroup_size(WORKGROUP_SIZE_F16, 1, 1)
-fn main_f16_out(
-    @builtin(local_invocation_id) local_id: vec3<u32>,
-    @builtin(workgroup_id) workgroup_id: vec3<u32>
-) {
-    let block_idx = workgroup_id.x;
-    let elem_idx = local_id.x;
-
-    if (block_idx >= u.num_blocks) {
-        return;
-    }
-
-    let block = quantized[block_idx];
-    let scale_word0 = block.scales[0];
-    let scale_word1 = block.scales[1];
-    let scale_word2 = block.scales[2];
-
-    if (elem_idx == 0u) {
-        shared_d = unpack_f16_lo(block.d);
-        shared_dmin = unpack_f16_hi(block.d);
-    }
-
-    // Threads 0-7 load scales and mins
-    if (elem_idx < 8u) {
-        let sm = get_scale_min_k4(scale_word0, scale_word1, scale_word2, elem_idx);
-        shared_scales[elem_idx] = f32(sm.x);
-        shared_mins[elem_idx] = f32(sm.y);
-    }
-
-    workgroupBarrier();
-
-    let subblock_idx = elem_idx / SUBBLOCK_SIZE;  // 0-7
-    let scale = shared_d * shared_scales[subblock_idx];
-    let min_val = shared_dmin * shared_mins[subblock_idx];
-
-    let chunk = elem_idx / 64u;
-    let pos_in_chunk = elem_idx % 64u;
-    let use_upper = pos_in_chunk >= 32u;
-    let byte_in_range = select(pos_in_chunk, pos_in_chunk - 32u, use_upper);
-    let byte_idx = chunk * 32u + byte_in_range;
-    let word_idx = byte_idx / 4u;
-    let byte_in_word = byte_idx % 4u;
-    let byte_val = (block.qs[word_idx] >> (byte_in_word * 8u)) & 0xFFu;
-    let q = select(byte_val & 0xFu, (byte_val >> 4u) & 0xFu, use_upper);
-    // llama.cpp formula: dequant = d * scale * q - dmin * min
-    let dequant = scale * f32(q) - min_val;
-
-    // Note: This writes f32, but caller can cast if needed
-    let out_idx = u.output_offset + block_idx * QK_K + elem_idx;
-    output[out_idx] = dequant;
-}

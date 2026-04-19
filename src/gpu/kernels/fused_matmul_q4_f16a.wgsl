@@ -7,7 +7,6 @@ enable subgroups;
 
 // Q4_K constants
 const QK_K: u32 = 256u;
-const BLOCK_SIZE: u32 = 144u;
 const SUBBLOCK_SIZE: u32 = 32u;
 
 override WORKGROUP_SIZE: u32 = 256u;

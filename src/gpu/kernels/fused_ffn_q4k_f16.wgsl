@@ -89,24 +89,6 @@ fn unpack_q4_word(word: u32, nibble_shift: u32) -> vec4<u32> {
     );
 }
 
-fn get_q4(qs: array<u32, 32>, idx: u32) -> u32 {
-    let chunk = idx / 64u;
-    let pos_in_chunk = idx % 64u;
-    let use_upper = pos_in_chunk >= 32u;
-    let byte_in_range = select(pos_in_chunk, pos_in_chunk - 32u, use_upper);
-    let byte_idx = chunk * 32u + byte_in_range;
-
-    let word_idx = byte_idx / 4u;
-    let byte_in_word = byte_idx % 4u;
-    let byte_val = (qs[word_idx] >> (byte_in_word * 8u)) & 0xFFu;
-
-    if (use_upper) {
-        return (byte_val >> 4u) & 0xFu;
-    } else {
-        return byte_val & 0xFu;
-    }
-}
-
 fn silu(x: f32) -> f32 {
     return x / (1.0 + exp(-x));
 }

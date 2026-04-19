@@ -1325,7 +1325,7 @@ function chooseFlashNumKvSplits(kvLen) {
   return Math.max(1, maxSplits);
 }
 
-export async function executeFlashAttentionPrefill(recorder, Q, K, V, numHeads, headDim, options = {}) {
+async function executeFlashAttentionPrefill(recorder, Q, K, V, numHeads, headDim, options = {}) {
   if (headDim !== FLASH_HEAD_DIM) {
     throw new Error(`[FlashAttention] headDim must be ${FLASH_HEAD_DIM}, got ${headDim}.`);
   }
@@ -1495,7 +1495,7 @@ export async function executeFlashAttentionPrefill(recorder, Q, K, V, numHeads, 
 // Workgroups: (num_heads, ceil(seqLen / ORT_FLASH_WG), 1) with ORT_FLASH_WG=64.
 const ORT_FLASH_WG = 64;
 
-export async function executeOrtFlashAttentionPrefill(recorder, Q, K, V, numHeads, headDim, options = {}) {
+async function executeOrtFlashAttentionPrefill(recorder, Q, K, V, numHeads, headDim, options = {}) {
   if (headDim !== FLASH_HEAD_DIM) {
     throw new Error(`[OrtFlashAttention] headDim must be ${FLASH_HEAD_DIM}, got ${headDim}.`);
   }

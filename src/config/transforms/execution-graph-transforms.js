@@ -1561,14 +1561,16 @@ export function useQwenDecodeF16Matmuls(graph, ctx) {
 // =============================================================================
 
 /**
- * Promote the Qwen 3.5 0.8B execution graph onto its fast f16 primary lane
- * when the runtime explicitly requests f16 activations.
+ * Promote the Qwen 3.5 0.8B execution graph onto its selective f16 primary
+ * lane when the runtime explicitly requests f16 activations.
  *
- * This transform narrows the hot matmul path while keeping `o_proj` on the
- * stable manifest-owned f32-output kernel. The residual stream feeds directly
- * into the next RMSNorm, and the Qwen 3.5 0.8B promoted f16 lane becomes
- * numerically unstable when `o_proj` writes f16 there (observed first at the
- * first full-attention block's post-attention RMSNorm).
+ * This transform narrows the decode projection and LM-head path while keeping
+ * `o_proj` on the stable manifest-owned f32-output kernel. The prefill path is
+ * already authored in the manifest on WideTile/head256 kernels and remains
+ * manifest-owned. The residual stream feeds directly into the next RMSNorm, and
+ * the Qwen 3.5 0.8B promoted f16 lane becomes numerically unstable when
+ * `o_proj` writes f16 there (observed first at the first full-attention block's
+ * post-attention RMSNorm).
  *
  * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
  * @param {import('./execution-graph-transforms.js').TransformContext} ctx

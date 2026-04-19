@@ -368,39 +368,5 @@ export class GPUProfiler {
   }
 }
 
-// Global profiler instance
-
-let globalProfiler = null;
-
-
-export function getProfiler() {
-  if (!globalProfiler) {
-    globalProfiler = new GPUProfiler();
-  }
-  return globalProfiler;
-}
-
-
-export function createProfiler(device) {
-  return new GPUProfiler(device);
-}
-
-
-export async function timeOperation(
-  label,
-  fn
-) {
-  const profiler = getProfiler();
-  profiler.begin(label);
-  const result = await fn();
-  profiler.end(label);
-  await profiler.resolve();
-
-  const timing = profiler.getResult(label);
-  return {
-    result,
-    timeMs: timing?.avg ?? 0,
-  };
-}
 
 export default GPUProfiler;

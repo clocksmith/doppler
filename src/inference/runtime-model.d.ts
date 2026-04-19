@@ -80,10 +80,3 @@ export interface CreateRuntimeModelContractOptions
 export declare function createRuntimeModelContract(
   options: CreateRuntimeModelContractOptions
 ): RuntimeModelContract;
-
-export declare function createRuntimeModelFromManifest<T extends Record<string, unknown>>(
-  manifest: T,
-  options?: { sourceFormat?: string | null }
-): T & RuntimeModelContract;
-
-export declare function isRuntimeModelContract(value: unknown): value is RuntimeModelContract;

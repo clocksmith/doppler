@@ -5,7 +5,7 @@ function requireRandomSource(random) {
   return random;
 }
 
-export const mutateGenome = (genome, mutationRate = 0.1, random = null) => {
+const mutateGenome = (genome, mutationRate = 0.1, random = null) => {
   const sample = requireRandomSource(random);
   
   const mutated = JSON.parse(JSON.stringify(genome));
@@ -31,7 +31,7 @@ export const mutateGenome = (genome, mutationRate = 0.1, random = null) => {
 };
 
 
-export const crossoverGenome = (a, b, random = null) => {
+const crossoverGenome = (a, b, random = null) => {
   const sample = requireRandomSource(random);
   return sample() < 0.5 ? JSON.parse(JSON.stringify(a)) : JSON.parse(JSON.stringify(b));
 };

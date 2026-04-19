@@ -41,14 +41,14 @@ export function formatMs(value) {
   return Number.isFinite(value) ? `${Number(value).toFixed(1)}ms` : 'n/a';
 }
 
-export function quoteOneLine(value) {
+function quoteOneLine(value) {
   const s = String(value ?? '').replace(/\s+/g, ' ').trim();
   if (!s) return '""';
   const clipped = s.length > 120 ? `${s.slice(0, 117)}...` : s;
   return JSON.stringify(clipped);
 }
 
-export function quoteOneLineOrStructured(value) {
+function quoteOneLineOrStructured(value) {
   if (typeof value === 'string') return quoteOneLine(value);
   if (value == null) return null;
   try {
@@ -87,7 +87,7 @@ export async function loadBaseline(comparePath, saveDir) {
   }
 }
 
-export function normalizeBenchMetrics(result) {
+function normalizeBenchMetrics(result) {
   const m = result?.metrics;
   if (!m) return m;
   return {
@@ -204,7 +204,7 @@ export function printDeviceInfo(result) {
   );
 }
 
-export function printGpuPhases(metrics) {
+function printGpuPhases(metrics) {
   if (typeof metrics?.decodeMode === 'string' && metrics.decodeMode.length > 0) {
     const reason = typeof metrics?.batchGuardReason === 'string' && metrics.batchGuardReason.length > 0
       ? ` guard=${metrics.batchGuardReason}`
@@ -254,7 +254,7 @@ export function printGpuPhases(metrics) {
   }
 }
 
-export function printMemoryReport(result) {
+function printMemoryReport(result) {
   const mem = result?.memoryStats;
   if (!mem) return;
   const parts = [`used=${formatMB(mem.used)}`];
@@ -270,7 +270,7 @@ export function printMemoryReport(result) {
   console.log(`[memory] ${parts.join(' ')}`);
 }
 
-export function printExecutionContractSummary(result) {
+function printExecutionContractSummary(result) {
   const artifact = result?.metrics?.executionContractArtifact;
   if (!artifact || typeof artifact !== 'object') return;
   const checks = Array.isArray(artifact.checks) ? artifact.checks : [];

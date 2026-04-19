@@ -129,27 +129,27 @@ const diagnosticTransformCtx = {
     }
   }
 
-  // Prefill: all projections use the shared-A fused batched Q4 path.
+  // Prefill: all projections use the manifest WideTile fused Q4 path.
   for (const step of execution.prefill) {
     if (!Array.isArray(step)) continue;
     const op = step[0];
     if (['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'].includes(op)) {
       const entry = execution.kernels[step[1]];
       assert.equal(
-        entry.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl',
-        `Primary graph: prefill ${op} should use fused_matmul_q4_batched_multicol_shared.wgsl`
+        entry.kernel, 'fused_matmul_q4_widetile.wgsl',
+        `Primary graph: prefill ${op} should use fused_matmul_q4_widetile.wgsl`
       );
     }
   }
 
-  // Prefill attention: streaming f16kv
+  // Prefill attention: head256 f16kv
   for (const step of execution.prefill) {
     if (!Array.isArray(step)) continue;
     if (step[0] === 'attention') {
       const entry = execution.kernels[step[1]];
       assert.equal(
-        entry.kernel, 'attention_streaming_f16kv.wgsl',
-        'Primary graph: prefill attention should use attention_streaming_f16kv.wgsl'
+        entry.kernel, 'attention_head256_f16kv.wgsl',
+        'Primary graph: prefill attention should use attention_head256_f16kv.wgsl'
       );
     }
   }
@@ -214,13 +214,13 @@ const diagnosticTransformCtx = {
   );
   assert.equal(
     kp.prefill.steps.find((s) => s.op === 'q_proj')?.kernel,
-    'fused_matmul_q4_batched_multicol_shared.wgsl',
-    'compileExecutionV1: prefill q_proj uses shared fused batched Q4'
+    'fused_matmul_q4_widetile.wgsl',
+    'compileExecutionV1: prefill q_proj uses WideTile fused Q4'
   );
   assert.equal(
     kp.prefill.steps.find((s) => s.op === 'attention')?.kernel,
-    'attention_streaming_f16kv.wgsl',
-    'compileExecutionV1: prefill attention uses streaming f16kv attention'
+    'attention_head256_f16kv.wgsl',
+    'compileExecutionV1: prefill attention uses head256 f16kv attention'
   );
 }
 

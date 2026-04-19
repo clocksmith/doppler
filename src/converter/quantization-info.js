@@ -61,8 +61,7 @@ export function normalizeQuantTag(value) {
   return QUANT_TAG_ALIASES[lower] ?? lower;
 }
 
-
-export function validateQuantType(value, source) {
+function validateQuantType(value, source) {
   if (!value) return;
   const normalized = normalizeQuantTag(value);
 
@@ -81,7 +80,7 @@ export function validateQuantType(value, source) {
   throw new Error(`Unknown quantization type: "${value}" (source: ${source})`);
 }
 
-export function normalizePerLayerEmbeddingQuant(value) {
+function normalizePerLayerEmbeddingQuant(value) {
   if (value == null) return null;
   const normalized = String(value).trim().toLowerCase().replace(/\s+/g, '_');
   if (!normalized) return null;
@@ -107,7 +106,7 @@ export function resolveManifestQuantization(quantize, fallback) {
 }
 
 
-export function buildVariantTag(info) {
+function buildVariantTag(info) {
   const weights = info.weights;
   const embeddings = info.embeddings ?? weights;
   const lmHead = info.lmHead ?? embeddings;

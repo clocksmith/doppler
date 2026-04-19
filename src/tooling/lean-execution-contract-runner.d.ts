@@ -6,16 +6,6 @@ export interface LeanExecutionContractRunResult {
   facts: Record<string, unknown>;
 }
 
-export declare function resolveLeanBinary(): string;
-
-export declare function runLeanCheck(options: {
-  sourcePath: string;
-  rootDir: string;
-}): {
-  ok: boolean;
-  toolchainRef: string;
-};
-
 export declare function writeExecutionContractLeanModuleForManifest(
   manifest: Record<string, unknown>,
   options?: {

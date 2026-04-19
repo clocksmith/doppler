@@ -71,7 +71,3 @@ export const CategoryRules = Object.freeze({
   [ParamCategory.SESSION]: { callTime: false, runtime: true, manifest: false },
   [ParamCategory.HYBRID]: { callTime: true, runtime: true, manifest: true },
 });
-
-export function getParamCategory(name) {
-  return PARAM_CATEGORIES[name] ?? null;
-}

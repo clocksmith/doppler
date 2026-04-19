@@ -120,12 +120,6 @@ export function getDeviceEpoch(): number;
 export function getPlatformConfig(): ResolvedPlatformConfig | null;
 
 /**
- * Check if platform and registry are initialized
- * @returns True if platform detection succeeded
- */
-export function isPlatformInitialized(): boolean;
-
-/**
  * Destroy the device and clear cache
  */
 export function destroyDevice(): void;

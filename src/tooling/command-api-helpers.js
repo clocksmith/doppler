@@ -120,7 +120,7 @@ export function resolveCommandRuntimeContract(command) {
   };
 }
 
-export function asOptionalCacheMode(value, label) {
+function asOptionalCacheMode(value, label) {
   const cacheMode = asOptionalString(value, label);
   if (!cacheMode) return null;
   if (cacheMode !== 'cold' && cacheMode !== 'warm') {
@@ -129,7 +129,7 @@ export function asOptionalCacheMode(value, label) {
   return cacheMode;
 }
 
-export function asOptionalLoadMode(value, label) {
+function asOptionalLoadMode(value, label) {
   const loadMode = asOptionalString(value, label);
   if (!loadMode) return null;
   if (loadMode !== 'opfs' && loadMode !== 'http' && loadMode !== 'memory') {

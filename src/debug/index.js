@@ -81,12 +81,6 @@ export {
 } from './capture-policy.js';
 
 // ============================================================================
-// Re-exports from perf.js
-// ============================================================================
-
-export { perf } from './perf.js';
-
-// ============================================================================
 // Re-exports from history.js
 // ============================================================================
 
@@ -104,7 +98,6 @@ export {
 import { log } from './log.js';
 import { trace } from './trace.js';
 import { tensor } from './tensor.js';
-import { perf } from './perf.js';
 import {
   SIGNALS,
   signalDone,
@@ -146,8 +139,6 @@ const DOPPLER_API = {
   // Tensor inspection
   tensor,
   inspect: tensor.inspect.bind(tensor),
-  // Performance
-  perf,
   // Other
   setSilentMode,
   isSilentMode,
@@ -180,7 +171,6 @@ export default {
   log,
   trace,
   tensor,
-  perf,
   setLogLevel,
   getLogLevel,
   setTrace,

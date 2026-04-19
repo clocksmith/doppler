@@ -9,15 +9,9 @@ import type { ConverterConfigSchema, QuantizationInfoSchema } from '../config/in
 
 export declare function normalizeQuantTag(value: string | null | undefined): string;
 
-export declare function validateQuantType(value: string | null, flagName: string): void;
-
 export declare function resolveManifestQuantization(quantize: string | null, fallback: string): string;
 
-export declare function buildVariantTag(info: QuantizationInfoSchema): string;
-
 export declare function normalizeQ4KLayout(value: string | null | undefined): string | null;
-
-export declare function normalizePerLayerEmbeddingQuant(value: string | null | undefined): string | null;
 
 export declare function buildQuantizationInfo(
   opts: ConvertOptions | ConverterConfigSchema,

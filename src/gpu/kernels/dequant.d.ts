@@ -89,15 +89,6 @@ export declare function dequantizeQ6K(
 ): Promise<Tensor>;
 
 /**
- * Run Q8_0 dequantization
- */
-export declare function dequantizeQ8_0(
-  quantized: GPUBuffer,
-  numBlocks: number,
-  options?: DequantOptions
-): Promise<Tensor>;
-
-/**
  * Record Q4_K_M dequantization (batched, no submit)
  */
 export declare function recordDequantize(

@@ -1,13 +1,3 @@
-export declare function extractTensorEntriesFromManifest(
-  manifest: Record<string, unknown>
-): Array<{
-  name: string;
-  dtype: unknown;
-  shape: unknown;
-  role: unknown;
-  layout: unknown;
-}>;
-
 export declare function resolveMaterializedManifestFromConversionConfig(
   conversionConfigInput: Record<string, unknown>,
   manifest: Record<string, unknown>

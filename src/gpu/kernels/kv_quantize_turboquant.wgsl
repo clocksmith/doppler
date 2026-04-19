@@ -5,7 +5,6 @@
 
 enable f16;
 
-const MAX_WORKGROUP_SIZE: u32 = 256u;
 const MAX_HEAD_DIM: u32 = 256u;
 
 override WORKGROUP_SIZE: u32 = 256u;

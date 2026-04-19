@@ -27,7 +27,6 @@
 
 override WORKGROUP_SIZE: u32 = 256u;
 const MAX_WORKGROUP_SIZE: u32 = 256u;
-override PARAMS_IS_F16: bool = false; // Weight/bias packed as f16 pairs (unused for now as we read f32)
 
 // =============================================================================
 // Uniforms

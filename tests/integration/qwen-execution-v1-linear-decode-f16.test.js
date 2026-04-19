@@ -76,14 +76,18 @@ assert.equal(
 );
 assert.equal(
   kernelPath.prefill.steps.find((step) => step.op === 'q_proj')?.kernel,
-  'fused_matmul_q4_batched_f16a.wgsl'
+  'fused_matmul_q4_widetile.wgsl'
 );
 assert.equal(
   kernelPath.prefill.steps.find((step) => step.op === 'attention')?.kernel,
-  'attention_streaming_f16.wgsl'
+  'attention_head256_f16kv.wgsl'
 );
 assert.equal(
   kernelPath.prefill.steps.find((step) => step.op === 'attention')?.precision?.activationDtype,
+  undefined
+);
+assert.equal(
+  kernelPath.prefill.steps.find((step) => step.op === 'attention')?.precision?.kvDtype,
   'f16'
 );
 assert.equal(
@@ -106,13 +110,13 @@ assert.equal(fullDecodeOProj?.precision?.outputDtype, 'f32');
 
 const linearPrefillSteps = getLayerSteps(kernelPath, 0, 'prefill');
 const linearPrefillOProj = linearPrefillSteps.find((step) => step.op === 'o_proj');
-assert.equal(linearPrefillOProj?.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl');
+assert.equal(linearPrefillOProj?.kernel, 'fused_matmul_q4_widetile.wgsl');
 assert.equal(linearPrefillOProj?.precision?.inputDtype, 'f32');
 assert.equal(linearPrefillOProj?.precision?.outputDtype, 'f32');
 
 const fullPrefillSteps = getLayerSteps(kernelPath, 3, 'prefill');
 const fullPrefillOProj = fullPrefillSteps.find((step) => step.op === 'o_proj');
-assert.equal(fullPrefillOProj?.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl');
+assert.equal(fullPrefillOProj?.kernel, 'fused_matmul_q4_widetile.wgsl');
 assert.equal(fullPrefillOProj?.precision?.inputDtype, 'f32');
 assert.equal(fullPrefillOProj?.precision?.outputDtype, 'f32');
 

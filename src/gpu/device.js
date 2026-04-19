@@ -491,11 +491,6 @@ export function getPlatformConfig() {
 }
 
 
-export function isPlatformInitialized() {
-  return platformInitialized && resolvedPlatformConfig !== null;
-}
-
-
 export function resetDeviceState() {
   clearActiveDeviceState();
   advanceDeviceEpoch();

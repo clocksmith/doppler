@@ -631,10 +631,7 @@ function buildF16WeightProjectionGraph() {
 // Test 10c: useQwenF16PrimaryMatmuls — promoted Qwen runtime-requested f16 lane
 // ===========================================================================
 {
-  const graph = narrowToF16Activations(structuredClone(QWEN_REAL_GRAPH), {
-    ...CTX_F16,
-    capabilities: { hasF16: true },
-  });
+  const graph = structuredClone(QWEN_REAL_GRAPH);
   const frozen = structuredClone(graph);
   const result = useQwenF16PrimaryMatmuls(graph, {
     ...CTX_F16,
@@ -648,14 +645,14 @@ function buildF16WeightProjectionGraph() {
   const decodeFiles = collectKernelFilesForPhase(result, 'decode');
   ok(decodeFiles.has('fused_matmul_q4_multicol_f16a.wgsl'),
     'promoted Qwen f16 graph should use fused_matmul_q4_multicol_f16a.wgsl in decode');
-  ok(decodeFiles.has('matmul_gemv_subgroup_f16a.wgsl'),
-    'promoted Qwen f16 graph should use matmul_gemv_subgroup_f16a.wgsl in decode');
+  ok(decodeFiles.has('matmul_gemv_subgroup.wgsl'),
+    'promoted Qwen f16 graph should keep decode down_proj on the f32 subgroup boundary');
 
   const prefillFiles = collectKernelFilesForPhase(result, 'prefill');
-  ok(prefillFiles.has('fused_matmul_q4_batched_f16a.wgsl'),
-    'promoted Qwen f16 graph should use fused_matmul_q4_batched_f16a.wgsl in prefill');
-  ok(prefillFiles.has('attention_streaming_f16.wgsl'),
-    'promoted Qwen f16 graph should keep the narrowed streaming attention kernel');
+  ok(prefillFiles.has('fused_matmul_q4_widetile.wgsl'),
+    'promoted Qwen f16 graph should preserve the manifest WideTile Q4 prefill kernel');
+  ok(prefillFiles.has('attention_head256_f16kv.wgsl'),
+    'promoted Qwen f16 graph should preserve the manifest head256 prefill attention kernel');
 
   const decodeOProj = result.decode.find((entry) => Array.isArray(entry) && entry[0] === 'o_proj');
   ok(decodeOProj, 'promoted Qwen f16 graph should keep the decode o_proj step');
@@ -669,12 +666,18 @@ function buildF16WeightProjectionGraph() {
 
   const prefillOProj = result.prefill.find((entry) => Array.isArray(entry) && entry[0] === 'o_proj');
   ok(prefillOProj, 'promoted Qwen f16 graph should keep the prefill o_proj step');
-  equal(result.kernels[prefillOProj[1]].kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl',
-    'promoted Qwen f16 graph should keep prefill o_proj on the original fused q4 prefill kernel');
+  equal(result.kernels[prefillOProj[1]].kernel, 'fused_matmul_q4_widetile.wgsl',
+    'promoted Qwen f16 graph should keep prefill o_proj on the original WideTile q4 prefill kernel');
   deepEqual(
     result.kernels[prefillOProj[1]].precision,
     { inputDtype: 'f32', outputDtype: 'f32' },
     'promoted Qwen f16 graph should declare the prefill o_proj f32 boundary explicitly'
+  );
+
+  equal(
+    result.kernels[result.postLayer.find((entry) => Array.isArray(entry) && entry[0] === 'lm_head')[1]].kernel,
+    'matmul_gemv_subgroup_f16a.wgsl',
+    'promoted Qwen f16 graph should rewrite lm_head onto matmul_gemv_subgroup_f16a.wgsl'
   );
 
   deepEqual(graph, frozen, 'useQwenF16PrimaryMatmuls must not mutate the input graph');
@@ -708,12 +711,12 @@ function buildF16WeightProjectionGraph() {
       `Remapped Qwen graph: ${op} should use matmul_gemv_subgroup.wgsl, got ${entry.kernel}`);
   }
 
-  // Verify prefill keeps the promoted fused-Q4/streaming primary path.
+  // Verify prefill keeps the manifest WideTile/head256 primary path.
   const prefillFiles = collectKernelFilesForPhase(result, 'prefill');
-  ok(prefillFiles.has('fused_matmul_q4_batched_multicol_shared.wgsl'),
-    'Remapped Qwen graph should keep fused_matmul_q4_batched_multicol_shared.wgsl in prefill');
-  ok(prefillFiles.has('attention_streaming_f16kv.wgsl'),
-    'Remapped Qwen graph should keep attention_streaming_f16kv.wgsl in prefill');
+  ok(prefillFiles.has('fused_matmul_q4_widetile.wgsl'),
+    'Remapped Qwen graph should keep fused_matmul_q4_widetile.wgsl in prefill');
+  ok(prefillFiles.has('attention_head256_f16kv.wgsl'),
+    'Remapped Qwen graph should keep attention_head256_f16kv.wgsl in prefill');
 
   deepEqual(graph, frozen, 'remapQ4KDecodeToGemv must not mutate the input graph');
 }

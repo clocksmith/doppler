@@ -58,11 +58,6 @@ export function resetSubmitStats() {
 }
 
 
-export function setSubmitPhase(phase) {
-  currentPhase = phase;
-}
-
-
 export function recordSubmit(durationMs, source) {
   if (!TRACK_SUBMITS) return;
 
@@ -227,16 +222,3 @@ export function wrapQueueForTracking(queue) {
 }
 
 
-export function estimateBatchingSavings(
-  currentStats,
-  targetSubmits = 1
-) {
-  const savedSubmits = Math.max(0, currentStats.count - targetSubmits);
-  // Each submit has overhead, estimate savings based on average submit time
-  const estimatedSavingsMs = savedSubmits * currentStats.avgMs;
-
-  return {
-    savedSubmits,
-    estimatedSavingsMs,
-  };
-}

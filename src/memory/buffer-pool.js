@@ -794,14 +794,6 @@ export function getBufferPool() {
 }
 
 
-export function createBufferPool(debugMode, schemaConfig) {
-  if (!schemaConfig) {
-    throw new Error('createBufferPool requires schemaConfig from runtime.shared.bufferPool.');
-  }
-  return new BufferPool(debugMode, schemaConfig);
-}
-
-
 export function destroyBufferPool() {
   if (globalPool) {
     globalPool.destroy();
@@ -814,23 +806,12 @@ export function destroyBufferPool() {
 
 export const createStagingBuffer = (size) => getBufferPool().createStagingBuffer(size);
 
-export const createUploadBuffer = (size) => getBufferPool().createUploadBuffer(size);
-
 export const createUniformBuffer = (size) => getBufferPool().createUniformBuffer(size);
 
 export const acquireBuffer = (size, usage, label) =>
   getBufferPool().acquire(size, usage, label);
 
 export const releaseBuffer = (buffer) => getBufferPool().release(buffer);
-
-/**
- * Safe release helper: no-op if buffer is null or undefined.
- * Use in error/cleanup paths where the buffer may not have been acquired.
- */
-export function safeRelease(buffer) {
-  if (buffer == null) return;
-  getBufferPool().release(buffer);
-}
 
 export const discardBuffer = (buffer) => getBufferPool().discard(buffer);
 
@@ -843,7 +824,7 @@ export function markPersistentBuffer(buffer) {
   }
 }
 
-export function unmarkPersistentBuffer(buffer) {
+function unmarkPersistentBuffer(buffer) {
   if (buffer && typeof buffer === 'object') {
     persistentBuffers.delete(buffer);
   }
@@ -888,16 +869,3 @@ export const forceBufferPoolReclaim = (targetRatio) =>
   getBufferPool().forceReclaim(targetRatio);
 
 
-export async function withBuffer(
-  size,
-  usage,
-  fn
-) {
-  const pool = getBufferPool();
-  const buffer = pool.acquire(size, usage);
-  try {
-    return await fn(buffer);
-  } finally {
-    pool.release(buffer);
-  }
-}

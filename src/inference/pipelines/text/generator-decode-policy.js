@@ -198,7 +198,7 @@ export function createUnhandledFinitenessPolicyError(state, contextLabel, error)
   return wrapped;
 }
 
-export function assertResolvedKVDtype(kvDtype, contextLabel) {
+function assertResolvedKVDtype(kvDtype, contextLabel) {
   if (kvDtype === 'f16' || kvDtype === 'f32') {
     return kvDtype;
   }

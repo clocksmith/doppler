@@ -160,26 +160,7 @@ export class UniformBufferCache {
     }
   }
 
-  
-  evictStale() {
-    const now = performance.now();
-    let evicted = 0;
 
-    for (const [hash, entry] of this.#cache) {
-      if (entry.refCount === 0 && now - entry.lastUsed > this.#maxAgeMs) {
-        // DON'T destroy immediately - defer until GPU work completes
-        this.#pendingDestruction.push(entry.buffer);
-        this.#cache.delete(hash);
-        evicted++;
-      }
-    }
-
-    this.#stats.evictions += evicted;
-    this.#stats.currentSize = this.#cache.size;
-    return evicted;
-  }
-
-  
   clear() {
     // Flush pending destruction first
     this.flushPendingDestruction();
@@ -202,10 +183,6 @@ export class UniformBufferCache {
     return count;
   }
 
-  
-  getPendingDestructionCount() {
-    return this.#pendingDestruction.length;
-  }
 
   
   isCached(buffer) {

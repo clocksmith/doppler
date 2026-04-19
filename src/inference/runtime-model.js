@@ -127,26 +127,3 @@ export function createRuntimeModelContract(options = {}) {
   };
 }
 
-export function createRuntimeModelFromManifest(manifest, options = {}) {
-  if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) {
-    throw new Error('createRuntimeModelFromManifest requires a manifest-like object.');
-  }
-  return {
-    ...manifest,
-    kind: 'runtime-model',
-    sourceFormat: normalizeText(options.sourceFormat).toLowerCase()
-      || normalizeText(manifest?.sourceFormat).toLowerCase()
-      || 'rdrr',
-  };
-}
-
-export function isRuntimeModelContract(value) {
-  return value != null
-    && typeof value === 'object'
-    && !Array.isArray(value)
-    && Array.isArray(value.shards)
-    && typeof value.modelId === 'string'
-    && value.modelId.trim().length > 0
-    && value.inference != null
-    && typeof value.inference === 'object';
-}

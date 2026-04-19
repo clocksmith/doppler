@@ -30,11 +30,3 @@ export const DEFAULT_MOE_RUNTIME_CONFIG = {
   cache: DEFAULT_MOE_CACHE_CONFIG,
 };
 
-export function validateMoeRoutingConfig(routing) {
-  if (!routing || typeof routing !== 'object') return;
-  if (typeof routing.numExperts === 'number' && (routing.numExperts <= 0 || !Number.isInteger(routing.numExperts))) {
-    throw new Error(
-      `DopplerConfigError: moe.routing.numExperts must be a positive integer; got ${routing.numExperts}.`
-    );
-  }
-}

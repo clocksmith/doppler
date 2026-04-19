@@ -152,7 +152,6 @@ fn main(
 // Tune-time overrides can retile this without changing entry points.
 override MULTICOL_COLS_PER_WG: u32 = 32u;
 override MULTICOL_THREADS_PER_COL: u32 = 8u;
-const MULTICOL_MAX_SUBGROUPS: u32 = 8u;    // Support sg_size >= 1 (unlikely but safe)
 
 // Shared memory for reduction (one slot per thread)
 var<workgroup> multicol_wg_sums: array<f32, MAX_WORKGROUP_SIZE>;

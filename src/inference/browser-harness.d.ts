@@ -183,10 +183,6 @@ export interface BrowserManifestResult {
   reportInfo: SavedReportInfo | null;
 }
 
-export declare function initializeBrowserHarness(
-  options: BrowserHarnessOptions
-): Promise<InitializeResult & { runtime: RuntimeOverrides }>;
-
 export declare function loadRuntimeConfigFromUrl(
   url: string,
   options?: RuntimeConfigLoadOptions
@@ -212,15 +208,6 @@ export declare function applyRuntimeForRun(
   options?: RuntimeConfigLoadOptions & { runtime?: RuntimeOverrides }
 ): Promise<void>;
 
-export declare function saveBrowserReport(
-  modelId: string,
-  report: Record<string, unknown>,
-  options?: SaveReportOptions
-): Promise<SavedReportInfo>;
-
-export declare function runBrowserHarness(
-  options: BrowserHarnessOptions
-): Promise<BrowserHarnessResult>;
 
 export declare function runBrowserSuite(
   options: BrowserSuiteOptions

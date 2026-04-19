@@ -1,7 +1,6 @@
 import type { ToolingCommandRequest } from './command-api.js';
 
 export declare const TOOLING_ENVELOPE_SCHEMA_VERSION: number;
-export declare const TOOLING_ERROR_CODE_FALLBACK: string;
 
 export interface ToolingCommandErrorDetails {
   command?: string | null;

@@ -1,7 +1,7 @@
 import { isPlainObject } from '../utils/plain-object.js';
 
 export const TOOLING_ENVELOPE_SCHEMA_VERSION = 1;
-export const TOOLING_ERROR_CODE_FALLBACK = 'tooling_error';
+const TOOLING_ERROR_CODE_FALLBACK = 'tooling_error';
 
 const CONTEXT_DETAIL_KEYS = Object.freeze([
   'command',

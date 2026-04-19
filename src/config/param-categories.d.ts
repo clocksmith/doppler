@@ -13,5 +13,3 @@ export const CategoryRules: Record<
   ParamCategoryName,
   { callTime: boolean; runtime: boolean; manifest: boolean }
 >;
-
-export function getParamCategory(name: string): ParamCategoryName | null;

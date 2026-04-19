@@ -352,25 +352,6 @@ export function computeOutlierFraction(effectiveBits, bitsHigh, bitsLow) {
   return fraction;
 }
 
-/**
- * Resolve outlier bit-width config from effective bit-width.
- *
- * @param {number} effectiveBits - Target (e.g., 2.5, 3.5, or integer 2/3/4).
- * @returns {{ bitsHigh: number, bitsLow: number, outlierFraction: number, isNonInteger: boolean }}
- */
-export function resolveOutlierConfig(effectiveBits) {
-  if (Number.isInteger(effectiveBits) && effectiveBits >= 1 && effectiveBits <= 4) {
-    return { bitsHigh: effectiveBits, bitsLow: effectiveBits, outlierFraction: 0, isNonInteger: false };
-  }
-  const bitsLow = Math.floor(effectiveBits);
-  const bitsHigh = bitsLow + 1;
-  if (bitsLow < 1 || bitsHigh > 4) {
-    throw new Error(`Effective bits ${effectiveBits} out of supported range [1, 4].`);
-  }
-  const outlierFraction = computeOutlierFraction(effectiveBits, bitsHigh, bitsLow);
-  return { bitsHigh, bitsLow, outlierFraction, isNonInteger: true };
-}
-
 // -- GPU buffer upload helpers ------------------------------------------------
 
 /**
@@ -543,16 +524,6 @@ export function retainTurboQuantSharedBuffers(device, options = {}) {
 export function computePackedStride(headDim, bitWidth) {
   const packFactor = Math.floor(32 / bitWidth);
   return Math.ceil(headDim / packFactor);
-}
-
-/**
- * Compute the pack factor for a given bit-width.
- *
- * @param {number} bitWidth
- * @returns {number}
- */
-export function computePackFactor(bitWidth) {
-  return Math.floor(32 / bitWidth);
 }
 
 // -- Default seeds ------------------------------------------------------------

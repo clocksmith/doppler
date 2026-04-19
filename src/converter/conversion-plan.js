@@ -8,6 +8,7 @@ import {
   resolveManifestQuantization,
   resolveModelId,
 } from './quantization-info.js';
+import { cloneJsonValue } from '../utils/clone-json.js';
 import { sanitizeModelId } from './core.js';
 import { resolveTensorRole } from '../formats/rdrr/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
@@ -100,14 +101,6 @@ function normalizeKernelDtype(dtype) {
 function isV1Config(converterConfig) {
   const exec = converterConfig?.execution;
   return exec && typeof exec === 'object' && exec.kernels && typeof exec.kernels === 'object';
-}
-
-function cloneJsonValue(value) {
-  if (value == null) return value;
-  if (typeof structuredClone === 'function') {
-    return structuredClone(value);
-  }
-  return JSON.parse(JSON.stringify(value));
 }
 
 function validateV1InferenceFields(inference, modelId) {

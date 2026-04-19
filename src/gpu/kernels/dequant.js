@@ -4,7 +4,7 @@ import { getDevice, getKernelCapabilities } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { GPU_LIMITS, TILE_SIZES, WORKGROUP_SIZES, DEQUANT_DISPATCH } from './constants.js';
-import { Q6K_BLOCK_BYTES, Q8_0_BLOCK_BYTES, Q8_0_BLOCK_SIZE } from '../../loader/quantization-constants.js';
+import { Q6K_BLOCK_BYTES } from '../../loader/quantization-constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast, createUniformBufferWithView, getOrCreateBindGroupLayout, getKernelConfig } from './utils.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
@@ -439,76 +439,6 @@ export async function dequantizeQ6K(
 }
 
 
-export async function dequantizeQ8_0(
-  quantized,
-  numBlocks,
-  options = {}
-) {
-  const device = getDevice();
-  const {
-    outputOffset = 0,
-    outputBuffer = null,
-    outputDtype = 'f16',  // Q8_0 outputs f16 for now
-  } = options;
-
-  // Q8_0 only has f16 output kernel currently
-  const pipeline = await getPipelineFast('dequant', 'q8_0_f16out');
-
-  // Q8_0: 32 elements per block
-  const bytesPerElem = outputDtype === 'f16' ? 2 : 4;
-  const outputSize = numBlocks * Q8_0_BLOCK_SIZE * bytesPerElem;
-
-  // Create output buffer if not provided
-  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'q8_0_dequant_output');
-  const output = outputBuffer || ownedOutput;
-
-  // Calculate workgroups for 2D dispatch
-  const maxWorkgroups = GPU_LIMITS.MAX_WORKGROUPS;
-  const workgroupsX = Math.min(numBlocks, maxWorkgroups);
-
-  // Create uniform buffer
-  const uniformBuffer = createUniformBufferWithView(
-    'q8_0_dequant_uniforms',
-    16,
-    (view) => {
-      view.setUint32(0, numBlocks, true);
-      view.setUint32(4, outputOffset, true);
-      view.setUint32(8, workgroupsX, true); // workgroups_x for 2D dispatch
-      view.setUint32(12, 0, true); // padding
-    },
-    null,
-    device
-  );
-
-  try {
-    const bindGroup = device.createBindGroup({
-      label: 'q8_0_dequant_bind_group',
-      layout: pipeline.getBindGroupLayout(0),
-      entries: [
-        { binding: 0, resource: { buffer: uniformBuffer } },
-        { binding: 1, resource: { buffer: quantized } },
-        { binding: 2, resource: { buffer: output } },
-      ],
-    });
-
-    const workgroups = [
-      workgroupsX,
-      numBlocks > maxWorkgroups ? Math.ceil(numBlocks / maxWorkgroups) : 1,
-      1
-    ];
-
-    dispatch(device, pipeline, bindGroup, workgroups, 'q8_0_dequant');
-  } catch (error) {
-    cleanupDequantResources(uniformBuffer, [ownedOutput]);
-    throw error;
-  }
-
-  releaseUniformBuffer(uniformBuffer);
-
-  
-  const dtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: outputDtype });
-  return createTensor(output, dtype, [numBlocks * Q8_0_BLOCK_SIZE], 'q8_0_dequant_output');
-}
 
 
 export async function recordDequantize(

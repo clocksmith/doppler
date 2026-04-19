@@ -3,6 +3,7 @@ import { CAPTURE_LEVELS, createDefaultCaptureConfig } from '../debug/capture-pol
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { loadJson } from '../utils/load-json.js';
 import { isPlainObject } from '../utils/plain-object.js';
+import { cloneJsonValue } from '../utils/clone-json.js';
 
 const DEFAULT_SAMPLING_DEFAULTS = Object.freeze({
   temperature: 1.0,
@@ -88,13 +89,6 @@ function asText(value) {
   if (typeof value !== 'string') return null;
   const trimmed = value.trim();
   return trimmed || null;
-}
-
-function cloneJsonValue(value) {
-  if (typeof structuredClone === 'function') {
-    return structuredClone(value);
-  }
-  return JSON.parse(JSON.stringify(value));
 }
 
 function normalizeRetrievalFixtures(cases) {

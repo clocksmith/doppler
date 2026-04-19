@@ -115,28 +115,5 @@ export const DEQUANT_DISPATCH = {
 };
 
 
-export const PERFORMANCE = {
-  
-  WARMUP_RUNS: 5,
-
-  
-  TIMED_RUNS: 20,
-
-  
-  DEFAULT_TIMEOUT: 120000,
-
-  
-  MAX_POOL_SIZE_PER_BUCKET: 8,
-
-  
-  MAX_TOTAL_POOLED_BUFFERS: 64,
-};
-
-
 // DTYPE_SIZES and getDtypeSize moved to config/schema/kernel-thresholds.schema.js
 // Import from config/schema/index.js for the canonical source
-
-
-export function alignSize(size, alignment = ALIGNMENT.BUFFER) {
-  return Math.ceil(size / alignment) * alignment;
-}

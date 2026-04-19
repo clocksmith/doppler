@@ -52,19 +52,3 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     }
 }
 
-// Single-element version for odd-sized tensors
-@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
-fn main_single(@builtin(global_invocation_id) global_id: vec3<u32>) {
-    let idx = global_id.x;
-
-    if (idx >= u.num_elements) {
-        return;
-    }
-
-    // Read as u16 pairs, extract the right one
-    let pair_idx = idx / 2u;
-    let packed = input[pair_idx];
-
-    let bf16 = select(packed & 0xFFFFu, (packed >> 16u) & 0xFFFFu, (idx & 1u) == 1u);
-    output[idx] = bitcast<f32>(bf16 << 16u);
-}

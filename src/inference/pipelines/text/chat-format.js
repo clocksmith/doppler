@@ -440,10 +440,3 @@ export function formatChatMessages(messages, templateType, options) {
   }
   throw new Error(`Unrecognized chat template type: ${templateType}`);
 }
-
-export const formatGemmaChat = formatTurnBased;
-export const formatGemma4Chat = formatGemma4;
-export const formatLlama3Chat = formatHeaderBased;
-export const formatGptOssChat = formatChannelBased;
-export const formatQwenChat = formatQwen;
-export const formatTranslateGemmaChat = formatTranslateGemma;

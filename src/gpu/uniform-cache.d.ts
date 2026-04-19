@@ -54,12 +54,6 @@ export declare class UniformBufferCache {
   release(buffer: GPUBuffer): void;
 
   /**
-   * Evict stale entries (older than maxAgeMs).
-   * Buffers are queued for deferred destruction.
-   */
-  evictStale(): number;
-
-  /**
    * Clear all cached buffers.
    * Also flushes any pending destruction queue.
    */
@@ -74,11 +68,6 @@ export declare class UniformBufferCache {
    * the buffer is queued here instead of being destroyed immediately.
    */
   flushPendingDestruction(): number;
-
-  /**
-   * Get the number of buffers pending destruction.
-   */
-  getPendingDestructionCount(): number;
 
   /**
    * Check if a buffer is managed by this cache

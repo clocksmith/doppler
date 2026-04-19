@@ -349,7 +349,7 @@ export function createServeHandler() {
   };
 }
 
-export async function startServer(settings) {
+async function startServer(settings) {
   if (settings.model) {
     console.error(`[doppler-serve] pre-loading model: ${settings.model}`);
     await doppler.load(settings.model);

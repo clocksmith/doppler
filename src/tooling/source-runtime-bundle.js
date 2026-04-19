@@ -23,6 +23,8 @@ import {
 import { normalizeTensorSourceTransform } from '../formats/rdrr/source-transform-contract.js';
 import { createRuntimeModelContract } from '../inference/runtime-model.js';
 import { computeHash, createStreamingHasher } from '../storage/shard-manager.js';
+import { cloneJsonValue } from '../utils/clone-json.js';
+import { encodeUtf8 } from '../utils/encode-utf8.js';
 
 export const DIRECT_SOURCE_RUNTIME_MODE = 'direct-source';
 export const DIRECT_SOURCE_RUNTIME_SCHEMA_VERSION = 1;
@@ -47,10 +49,6 @@ function toArrayBuffer(value, label) {
 
 function toUint8Chunk(value, label) {
   return value instanceof Uint8Array ? value : new Uint8Array(toArrayBuffer(value, label));
-}
-
-function encodeUtf8(value) {
-  return new TextEncoder().encode(String(value ?? ''));
 }
 
 function bytesToHex(bytes) {
@@ -621,14 +619,6 @@ function resolveModelQuantization(options, tensorLocations) {
     quantizationInfo: effectiveQuantizationInfo,
     manifestQuantization,
   };
-}
-
-function cloneJsonValue(value) {
-  if (value == null) return value;
-  if (typeof structuredClone === 'function') {
-    return structuredClone(value);
-  }
-  return JSON.parse(JSON.stringify(value));
 }
 
 function buildSourceRuntimeInference(options, tensorLocations) {

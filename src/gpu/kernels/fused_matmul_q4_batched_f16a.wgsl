@@ -6,7 +6,6 @@ enable f16;
 enable subgroups;
 
 const QK_K: u32 = 256u;
-const BLOCK_SIZE: u32 = 144u;
 const SUBBLOCK_SIZE: u32 = 32u;
 
 struct Uniforms {

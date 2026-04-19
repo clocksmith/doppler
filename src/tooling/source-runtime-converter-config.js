@@ -5,15 +5,9 @@ import {
   DEFAULT_MANIFEST_INFERENCE,
 } from '../config/schema/index.js';
 import { buildRoPEConfig } from '../converter/rope-config.js';
+import { cloneJsonValue } from '../utils/clone-json.js';
 
 const ZERO_DIGEST = 'sha256:' + '0'.repeat(64);
-
-function cloneJsonValue(value) {
-  if (typeof structuredClone === 'function') {
-    return structuredClone(value);
-  }
-  return JSON.parse(JSON.stringify(value));
-}
 
 function readRawConfigField(rawConfig, key) {
   if (!rawConfig || typeof rawConfig !== 'object') {

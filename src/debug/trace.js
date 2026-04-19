@@ -2,9 +2,8 @@
  * Trace subsystem — records per-category trace entries into the shared logHistory.
  *
  * Trace entries share the global logHistory buffer and are subject to the same
- * max-size limit (oldest-first eviction). To isolate traces for a specific run,
- * call `clearTraceEntries()` before the run starts. There is no automatic
- * per-run isolation; the history is global.
+ * max-size limit (oldest-first eviction). History is global; there is no
+ * automatic per-run isolation.
  */
 import {
   enabledTraceCategories,
@@ -174,15 +173,3 @@ export const trace = {
   },
 };
 
-/**
- * Remove all TRACE-level entries from the shared logHistory.
- * Useful for isolating trace output between runs without clearing
- * non-trace log entries.
- */
-export function clearTraceEntries() {
-  for (let i = logHistory.length - 1; i >= 0; i--) {
-    if (typeof logHistory[i]?.level === 'string' && logHistory[i].level.startsWith('TRACE:')) {
-      logHistory.splice(i, 1);
-    }
-  }
-}

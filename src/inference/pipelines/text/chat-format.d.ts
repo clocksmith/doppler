@@ -36,18 +36,8 @@ export type ChatTemplateType =
   | 'translategemma'
   | null;
 
-export declare function formatGemmaChat(messages: ChatMessage[]): string;
-
 export interface ChatFormatOptions {
   thinking?: boolean;
 }
-
-export declare function formatGemma4Chat(messages: ChatMessage[], options?: ChatFormatOptions): string;
-
-export declare function formatLlama3Chat(messages: ChatMessage[]): string;
-
-export declare function formatGptOssChat(messages: ChatMessage[]): string;
-
-export declare function formatTranslateGemmaChat(messages: ChatMessage[]): string;
 
 export declare function formatChatMessages(messages: ChatMessage[], templateType?: ChatTemplateType, options?: ChatFormatOptions): string;

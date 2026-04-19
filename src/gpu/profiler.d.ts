@@ -90,25 +90,4 @@ export declare class GPUProfiler {
   destroy(): void;
 }
 
-/**
- * Get the global profiler instance
- */
-export function getProfiler(): GPUProfiler;
-
-/**
- * Create a new profiler instance
- * @param device - Optional GPU device
- */
-export function createProfiler(device?: GPUDevice | null): GPUProfiler;
-
-/**
- * Convenience function to time a single operation
- * @param label - Label for the operation
- * @param fn - Async function to time
- */
-export function timeOperation<T>(
-  label: string,
-  fn: () => Promise<T>
-): Promise<{ result: T; timeMs: number }>;
-
 export default GPUProfiler;

@@ -9,7 +9,7 @@ import {
   sanitizeLeanModuleName,
 } from './lean-execution-contract.js';
 
-export function resolveLeanBinary() {
+function resolveLeanBinary() {
   const elanLean = path.join(os.homedir(), '.elan', 'bin', 'lean');
   if (fs.existsSync(elanLean)) {
     return elanLean;
@@ -48,7 +48,7 @@ function runLeanCommand({ leanBin, toolchainRef, buildDir, rootDir, sourcePath, 
   }
 }
 
-export function runLeanCheck({ sourcePath, rootDir }) {
+function runLeanCheck({ sourcePath, rootDir }) {
   const toolchainVersion = process.env.DOPPLER_LEAN_VERSION ?? '4.16.0';
   const toolchainRef = toolchainVersion.startsWith('v')
     ? `leanprover/lean4:${toolchainVersion}`

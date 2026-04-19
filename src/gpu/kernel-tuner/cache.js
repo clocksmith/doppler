@@ -147,6 +147,3 @@ export function clearCacheStorage(capabilities) {
 }
 
 
-export function clearOnDeviceReset() {
-  cacheDeviceEpoch = -1;
-}

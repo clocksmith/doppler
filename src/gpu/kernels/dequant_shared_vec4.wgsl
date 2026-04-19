@@ -5,7 +5,6 @@
 // Q4_K constants
 const QK_K: u32 = 256u;
 const SUBBLOCK_SIZE: u32 = 32u;
-const NUM_SUBBLOCKS: u32 = 8u;
 
 // Tunable workgroup size
 override WORKGROUP_SIZE_VEC4: u32 = 64u;

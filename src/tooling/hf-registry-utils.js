@@ -10,10 +10,6 @@ export function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
 }
 
-export function normalizeToken(value) {
-  return normalizeText(value).toLowerCase();
-}
-
 export function normalizeRepoPath(value) {
   return normalizeText(value).replace(/^\/+/, '');
 }

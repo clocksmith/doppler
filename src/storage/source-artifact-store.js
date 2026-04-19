@@ -13,17 +13,11 @@ import {
   loadFileRangeFromStore,
   streamFileFromStore,
 } from './shard-manager.js';
+import { cloneJsonValue } from '../utils/clone-json.js';
+import { encodeUtf8 } from '../utils/encode-utf8.js';
 
 export function normalizeSourceArtifactPath(value) {
   return String(value || '').trim().replace(/\\/g, '/');
-}
-
-function encodeUtf8(value) {
-  return new TextEncoder().encode(String(value ?? ''));
-}
-
-function cloneJsonValue(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value));
 }
 
 function normalizeStoredHash(value) {

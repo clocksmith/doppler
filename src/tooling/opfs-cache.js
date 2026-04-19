@@ -8,6 +8,7 @@ import {
 import { downloadModel, estimateTimeRemaining, formatSpeed } from '../storage/downloader.js';
 import { isOPFSAvailable, formatBytes } from '../storage/quota.js';
 import { parseManifest, getManifestUrl } from '../formats/rdrr/index.js';
+import { cloneJsonValue } from '../utils/clone-json.js';
 import { log } from '../debug/index.js';
 import {
   resolveSourceArtifact,
@@ -45,10 +46,6 @@ function hasSameShardSet(aManifest, bManifest) {
     }
   }
   return true;
-}
-
-function cloneJsonValue(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value));
 }
 
 function preserveCachedSourceRuntimeMetadata(remoteManifest, cachedManifest) {

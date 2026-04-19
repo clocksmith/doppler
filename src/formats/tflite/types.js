@@ -3,7 +3,7 @@ const TFLITE_PAGE_BYTES = 16 * 1024;
 
 export const TFLITE_FILE_IDENTIFIER = 'TFL3';
 
-export const TFLITE_TENSOR_TYPE = Object.freeze({
+const TFLITE_TENSOR_TYPE = Object.freeze({
   FLOAT32: 0,
   FLOAT16: 1,
   INT32: 2,
@@ -25,17 +25,17 @@ export const TFLITE_TENSOR_TYPE = Object.freeze({
   BFLOAT16: 18,
 });
 
-export const TFLITE_TENSOR_TYPE_NAME = Object.freeze(Object.fromEntries(
+const TFLITE_TENSOR_TYPE_NAME = Object.freeze(Object.fromEntries(
   Object.entries(TFLITE_TENSOR_TYPE).map(([name, value]) => [value, name])
 ));
 
-export const TFLITE_TENSOR_DTYPE_MAP = Object.freeze({
+const TFLITE_TENSOR_DTYPE_MAP = Object.freeze({
   [TFLITE_TENSOR_TYPE.FLOAT32]: 'F32',
   [TFLITE_TENSOR_TYPE.FLOAT16]: 'F16',
   [TFLITE_TENSOR_TYPE.BFLOAT16]: 'BF16',
 });
 
-export const TFLITE_TENSOR_SOURCE_DTYPE_MAP = Object.freeze({
+const TFLITE_TENSOR_SOURCE_DTYPE_MAP = Object.freeze({
   [TFLITE_TENSOR_TYPE.FLOAT32]: 'F32',
   [TFLITE_TENSOR_TYPE.FLOAT16]: 'F16',
   [TFLITE_TENSOR_TYPE.BFLOAT16]: 'BF16',
@@ -44,7 +44,7 @@ export const TFLITE_TENSOR_SOURCE_DTYPE_MAP = Object.freeze({
   [TFLITE_TENSOR_TYPE.INT4]: 'INT4',
 });
 
-export const TFLITE_DTYPE_SIZE = Object.freeze({
+const TFLITE_DTYPE_SIZE = Object.freeze({
   F32: 4,
   F16: 2,
   BF16: 2,

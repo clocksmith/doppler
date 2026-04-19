@@ -69,30 +69,6 @@ export declare class LogitMergeKernel {
 }
 
 /**
- * Get the logit merge kernel instance.
- */
-export declare function getLogitMergeKernel(): LogitMergeKernel;
-
-/**
- * Merge two logit buffers using weighted averaging.
- * Convenience function that uses the singleton kernel.
- *
- * @param logitsA - First logit buffer
- * @param logitsB - Second logit buffer
- * @param vocabSize - Vocabulary size
- * @param weights - Merge weights
- * @param temperature - Temperature scaling
- * @returns Merged logit buffer
- */
-export declare function mergeLogits(
-  logitsA: GPUBuffer,
-  logitsB: GPUBuffer,
-  vocabSize: number,
-  weights: number[],
-  temperature: number
-): Promise<GPUBuffer>;
-
-/**
  * Merge multiple logit buffers.
  * Convenience function that uses the singleton kernel.
  *

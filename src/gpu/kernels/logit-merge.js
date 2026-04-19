@@ -354,27 +354,11 @@ function normalizeWeights(weights, expectedCount) {
 let _instance = null;
 
 
-export function getLogitMergeKernel() {
+function getLogitMergeKernel() {
   if (!_instance) {
     _instance = new LogitMergeKernel();
   }
   return _instance;
-}
-
-
-export async function mergeLogits(logitsA, logitsB, vocabSize, weights, temperature) {
-  if (!weights) {
-    throw new Error('LogitMerge weights are required.');
-  }
-  if (temperature == null) {
-    throw new Error('LogitMerge temperature is required.');
-  }
-  const kernel = getLogitMergeKernel();
-  return kernel.merge(logitsA, logitsB, vocabSize, {
-    strategy: 'weighted',
-    weights,
-    temperature,
-  });
 }
 
 

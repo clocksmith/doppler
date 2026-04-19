@@ -48,12 +48,6 @@ export function setTrackSubmits(enabled: boolean): void;
 export function resetSubmitStats(): void;
 
 /**
- * Set the current phase for submit tracking.
- * @param phase - The phase to track ('prefill', 'decode', or 'other')
- */
-export function setSubmitPhase(phase: SubmitPhase): void;
-
-/**
  * Record a submit call.
  * Call this from a wrapper around queue.submit().
  * @param durationMs - Time spent in this submit call
@@ -98,14 +92,3 @@ export function logAllPhaseSubmitStats(label?: string): void;
  * @returns Wrapped queue with tracking
  */
 export function wrapQueueForTracking(queue: GPUQueue): GPUQueue;
-
-/**
- * Estimate submit overhead savings from batching.
- * @param currentStats - Current submit stats (unbatched)
- * @param targetSubmits - Target number of submits after batching
- * @returns Estimated time savings in ms
- */
-export function estimateBatchingSavings(
-  currentStats: SubmitStats,
-  targetSubmits?: number
-): { savedSubmits: number; estimatedSavingsMs: number };

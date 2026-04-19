@@ -40,6 +40,7 @@ import {
   quantizeToQ4KMColumnWise,
   quantizeToInt4PerRowSymmetric,
 } from './quantizer.js';
+import { cloneJsonValue } from '../utils/clone-json.js';
 
 // ============================================================================
 // Re-exports for Backward Compatibility
@@ -1394,14 +1395,6 @@ export function resolveConvertedAt(value) {
     throw new Error(`Invalid manifest convertedAt timestamp: "${value}"`);
   }
   return new Date(parsed).toISOString();
-}
-
-function cloneJsonValue(value) {
-  if (value == null) return value;
-  if (typeof structuredClone === 'function') {
-    return structuredClone(value);
-  }
-  return JSON.parse(JSON.stringify(value));
 }
 
 export function resolveManifestMultimodalConfig(rawConfig, manifestConfig = null) {

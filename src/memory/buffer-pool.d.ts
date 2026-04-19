@@ -171,25 +171,18 @@ export declare class BufferPool {
 export function getBufferPool(): BufferPool;
 
 /**
- * Create a standalone buffer pool
- */
-export function createBufferPool(debugMode?: boolean, schemaConfig?: BufferPoolConfigSchema): BufferPool;
-
-/**
  * Destroy the global buffer pool
  */
 export function destroyBufferPool(): void;
 
 // Convenience exports for common operations
 export declare const createStagingBuffer: (size: number) => GPUBuffer;
-export declare const createUploadBuffer: (size: number) => GPUBuffer;
 export declare const createUniformBuffer: (size: number) => GPUBuffer;
 export declare const acquireBuffer: (size: number, usage?: GPUBufferUsageFlags, label?: string) => GPUBuffer;
 export declare const releaseBuffer: (buffer: GPUBuffer) => void;
 export declare const discardBuffer: (buffer: GPUBuffer) => void;
 export declare const isBufferActive: (buffer: GPUBuffer) => boolean;
 export declare function markPersistentBuffer(buffer: GPUBuffer): void;
-export declare function unmarkPersistentBuffer(buffer: GPUBuffer): void;
 export declare function isPersistentBuffer(buffer: GPUBuffer): boolean;
 export declare class PersistentBufferSet extends Set<GPUBuffer> {}
 export declare const getBufferRequestedSize: (buffer: GPUBuffer) => number;
@@ -197,12 +190,3 @@ export declare const uploadData: (buffer: GPUBuffer, data: ArrayBuffer | ArrayBu
 export declare const readBuffer: (buffer: GPUBuffer, size?: number) => Promise<ArrayBuffer>;
 export declare const readBufferSlice: (buffer: GPUBuffer, offset: number, size: number) => Promise<ArrayBuffer>;
 export declare const forceBufferPoolReclaim: (targetRatio?: number | null) => void;
-
-/**
- * Scoped buffer helper - automatically releases buffer when done
- */
-export function withBuffer<T>(
-  size: number,
-  usage: GPUBufferUsageFlags,
-  fn: (buffer: GPUBuffer) => Promise<T>
-): Promise<T>;

@@ -1,16 +1,10 @@
 import sourcePackageRegistry from '../config/source-packages/registry.json' with { type: 'json' };
 import gemma4E2BPackageProfile from '../config/source-packages/litert/gemma-4-e2b-it.json' with { type: 'json' };
+import { cloneJsonValue } from '../utils/clone-json.js';
 
 const PROFILE_MAP = new Map([
   ['litert/gemma-4-e2b-it', gemma4E2BPackageProfile],
 ]);
-
-function cloneJsonValue(value) {
-  if (typeof structuredClone === 'function') {
-    return structuredClone(value);
-  }
-  return JSON.parse(JSON.stringify(value));
-}
 
 function normalizeText(value) {
   return String(value || '').trim();

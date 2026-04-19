@@ -76,14 +76,14 @@ const EXPECTED_QWEN_PER_LAYER_INPUTS = Object.freeze({
 const EXPECTED_QWEN_EOS_TOKEN_ID = 248044;
 const EXPECTED_QWEN_DECODE_LOOPS = Object.freeze({
   'qwen-3-5-0-8b-q4k-ehaf16': {
-    batchSize: 32,
+    batchSize: 4,
     stopCheckMode: 'batch',
-    readbackInterval: 1,
-    readbackMode: 'sequential',
+    readbackInterval: 2,
+    readbackMode: 'overlapped',
     submitLatencyThresholdMs: null,
-    ringTokens: 1,
+    ringTokens: 2,
     ringStop: 1,
-    ringStaging: 1,
+    ringStaging: 2,
     disableCommandBatching: false,
   },
   'qwen-3-5-2b-q4k-ehaf16': {
@@ -190,6 +190,8 @@ function assertQwenF16UtilityKernels(execution, label) {
     assert.equal(execution?.kernels?.residual?.kernel, 'residual.wgsl', `${label} residual kernel`);
     assert.equal(execution?.kernels?.silu?.kernel, 'silu.wgsl', `${label} silu kernel`);
     assert.equal(execution?.kernels?.q4_prefill?.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl', `${label} q4_prefill kernel`);
+    assert.equal(execution?.kernels?.q4_widetile?.kernel, 'fused_matmul_q4_widetile.wgsl', `${label} q4_widetile kernel`);
+    assert.equal(execution?.kernels?.attn_head256?.kernel, 'attention_head256_f16kv.wgsl', `${label} attn_head256 kernel`);
     assert.equal(execution?.kernels?.sample?.kernel, 'sample.wgsl', `${label} sample kernel`);
     return;
   }
@@ -390,8 +392,10 @@ for (const config of convConfigs) {
     assert.equal(config.execution.kernels.silu.kernel, 'silu.wgsl');
     assert.equal(config.execution.kernels.tiled.kernel, 'matmul_f16w_f32a.wgsl');
     assert.equal(config.execution.kernels.q4_prefill.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl');
+    assert.equal(config.execution.kernels.q4_widetile.kernel, 'fused_matmul_q4_widetile.wgsl');
     assert.equal(config.execution.kernels.attn_decode.kernel, 'attention_decode_online_f16kv.wgsl');
     assert.equal(config.execution.kernels.attn_stream.kernel, 'attention_streaming_f16kv.wgsl');
+    assert.equal(config.execution.kernels.attn_head256.kernel, 'attention_head256_f16kv.wgsl');
     assert.equal(config.execution.kernels.lm_head_gemv.kernel, 'matmul_gemv_subgroup_f16a.wgsl');
     assert.equal(config.execution.kernels.sample.kernel, 'sample.wgsl');
   } else if ((config.output?.modelBaseId ?? '') === 'qwen-3-5-2b-q4k-ehaf16') {

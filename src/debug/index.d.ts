@@ -119,12 +119,6 @@ export {
 } from './tensor.js';
 
 // ============================================================================
-// Re-exports from perf.js
-// ============================================================================
-
-export { perf } from './perf.js';
-
-// ============================================================================
 // Re-exports from history.js
 // ============================================================================
 
@@ -144,7 +138,6 @@ export {
 import { log } from './log.js';
 import { trace } from './trace.js';
 import { tensor } from './tensor.js';
-import { perf } from './perf.js';
 import {
   SIGNALS,
   signalDone,
@@ -182,8 +175,6 @@ export interface DopplerDebugAPI {
   // Tensor inspection
   tensor: typeof tensor;
   inspect: typeof tensor.inspect;
-  // Performance
-  perf: typeof perf;
   // Other
   setSilentMode: typeof setSilentMode;
   isSilentMode: typeof isSilentMode;
@@ -207,7 +198,6 @@ declare const _default: {
   log: typeof log;
   trace: typeof trace;
   tensor: typeof tensor;
-  perf: typeof perf;
   setLogLevel: typeof setLogLevel;
   getLogLevel: typeof getLogLevel;
   setTrace: typeof setTrace;
