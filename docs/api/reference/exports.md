@@ -13,8 +13,36 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Notes: Primary application-facing surface. Prefer this over lower-level exports.
 - Support tier source: `src/config/support-tiers/subsystems.json` (api.root-facade)
 - Exported symbols:
+  - `createDopplerProvider`
   - `doppler`
   - `DOPPLER_VERSION`
+
+## `doppler-gpu/provider`
+
+- Audience: unspecified
+- Stability: unspecified
+- Types: [src/client/provider.d.ts](../../../src/client/provider.d.ts)
+- Implementation: [src/client/provider.js](../../../src/client/provider.js)
+- Notes: No manual classification recorded for this export path.
+- Exported symbols:
+  - `DopplerProvider`
+  - `FailureClass`
+  - `FaultInjectionConfig`
+  - `InferenceSource`
+  - `ModelHandle`
+  - `PolicyMode`
+  - `ProviderConfig`
+  - `ProviderDiagnosticsConfig`
+  - `ProviderFallbackConfig`
+  - `ProviderGenerateOptions`
+  - `ProviderLocalConfig`
+  - `ProviderPolicyConfig`
+  - `ProviderReceiptV1`
+  - `ProviderResult`
+  - `ReceiptDevice`
+  - `ReceiptFailure`
+  - `ReceiptFallbackDecision`
+  - `ReceiptModel`
 
 ## `doppler-gpu/tooling`
 
@@ -35,6 +63,69 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `normalizeNodeCommand`
   - `runBrowserCommandInNode`
   - `runNodeCommand`
+
+## `doppler-gpu/tooling/storage`
+
+- Audience: unspecified
+- Stability: unspecified
+- Implementation: [src/tooling-exports/storage.js](../../../src/tooling-exports/storage.js)
+- Notes: No manual classification recorded for this export path.
+
+## `doppler-gpu/tooling/device`
+
+- Audience: unspecified
+- Stability: unspecified
+- Implementation: [src/tooling-exports/device.js](../../../src/tooling-exports/device.js)
+- Notes: No manual classification recorded for this export path.
+
+## `doppler-gpu/tooling/manifest`
+
+- Audience: unspecified
+- Stability: unspecified
+- Implementation: [src/tooling-exports/manifest.js](../../../src/tooling-exports/manifest.js)
+- Notes: No manual classification recorded for this export path.
+
+## `doppler-gpu/structured`
+
+- Audience: unspecified
+- Stability: unspecified
+- Implementation: [src/tooling-exports/structured.js](../../../src/tooling-exports/structured.js)
+- Notes: No manual classification recorded for this export path.
+
+## `doppler-gpu/client/model-manager`
+
+- Audience: unspecified
+- Stability: unspecified
+- Implementation: [src/client/runtime/model-manager.js](../../../src/client/runtime/model-manager.js)
+- Notes: No manual classification recorded for this export path.
+
+## `doppler-gpu/models/qwen3`
+
+- Audience: unspecified
+- Stability: unspecified
+- Implementation: [src/models/qwen3.js](../../../src/models/qwen3.js)
+- Notes: No manual classification recorded for this export path.
+
+## `doppler-gpu/models/gemma3`
+
+- Audience: unspecified
+- Stability: unspecified
+- Implementation: [src/models/gemma3.js](../../../src/models/gemma3.js)
+- Notes: No manual classification recorded for this export path.
+
+## `doppler-gpu/models/gemma4`
+
+- Audience: unspecified
+- Stability: unspecified
+- Implementation: [src/models/gemma4.js](../../../src/models/gemma4.js)
+- Notes: No manual classification recorded for this export path.
+
+## `doppler-gpu/models/embeddinggemma`
+
+- Audience: unspecified
+- Stability: unspecified
+- Implementation: [src/models/embeddinggemma.js](../../../src/models/embeddinggemma.js)
+- Notes: No manual classification recorded for this export path.
 
 ## `doppler-gpu/tooling-experimental`
 

@@ -38,24 +38,31 @@ export {
   loadFileFromStore,
   streamFileFromStore,
   computeHash,
+  deleteModel,
+  listModels,
 } from './storage/shard-manager.js';
 export { exportModelToDirectory } from './storage/export.js';
+export { ensureModelCached } from './tooling/opfs-cache.js';
 export { parseManifest, getManifest, setManifest, clearManifest, classifyTensorRole } from './formats/rdrr/index.js';
 export { inferEmbeddingOutputConfig } from './converter/core.js';
 
 // GPU init + capabilities
 export { initDevice, getDevice, getKernelCapabilities, getPlatformConfig, isWebGPUAvailable } from './gpu/device.js';
 
+// Preseeded shader sources
+export { registerShaderSources, hasPreseededShaderSource } from './gpu/kernels/shader-cache.js';
+
 // Memory tooling
 export { captureMemorySnapshot } from './loader/memory-monitor.js';
 export { destroyBufferPool } from './memory/buffer-pool.js';
 
-// Diagnostics harness
+// Browser-safe runtime profile helpers
 export {
+  loadRuntimeConfigFromUrl,
+  applyRuntimeConfigFromUrl,
   loadRuntimeProfile,
   applyRuntimeProfile,
-  runBrowserSuite,
-} from './inference/browser-harness.js';
+} from './inference/browser-harness-runtime-helpers.js';
 
 // Shared command contract (browser + CLI parity)
 export {
