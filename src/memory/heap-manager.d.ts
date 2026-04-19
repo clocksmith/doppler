@@ -9,47 +9,7 @@
  * @module memory/heap-manager
  */
 
-import { MemoryStrategy, SegmentedLimits } from './capability.js';
-
-/**
- * Memory segment for segmented heap mode
- */
-export interface MemorySegment {
-  index: number;
-  buffer: ArrayBuffer;
-  used: number;
-}
-
-/**
- * Allocation result
- */
-export interface AllocationResult {
-  /** Virtual address for this allocation */
-  virtualAddress: number;
-  /** Allocated size in bytes */
-  size: number;
-  /** Direct view into the buffer */
-  view: Uint8Array;
-  /** Which strategy was used */
-  strategy: MemoryStrategy;
-  /** Segment index (segmented only) */
-  segmentIndex?: number;
-  /** Offset within segment (segmented only) */
-  segmentOffset?: number;
-}
-
-/**
- * Heap manager statistics
- */
-export interface HeapStats {
-  strategy: MemoryStrategy | null;
-  totalAllocated: number;
-  segmentCount: number;
-  memory64HeapSize: number;
-  allocated?: number;
-  limit?: number;
-  maxSize?: number;
-}
+import { MemoryStrategy } from './capability.js';
 
 /**
  * HeapManager - Unified interface for both memory strategies
@@ -64,7 +24,14 @@ export declare class HeapManager {
    * Allocate buffer for model data
    * @param size - Size in bytes
    */
-  allocate(size: number): AllocationResult;
+  allocate(size: number): {
+    virtualAddress: number;
+    size: number;
+    view: Uint8Array;
+    strategy: MemoryStrategy;
+    segmentIndex?: number;
+    segmentOffset?: number;
+  };
 
   /**
    * Read data from virtual address
@@ -90,7 +57,15 @@ export declare class HeapManager {
   /**
    * Get memory stats
    */
-  getStats(): HeapStats;
+  getStats(): {
+    strategy: MemoryStrategy | null;
+    totalAllocated: number;
+    segmentCount: number;
+    memory64HeapSize: number;
+    allocated?: number;
+    limit?: number;
+    maxSize?: number;
+  };
 
   /**
    * Free all memory (for model unload)

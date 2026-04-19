@@ -1,3 +1,108 @@
+## fire-20 — 2026-04-19 UTC
+
+Landings (7+): 7
+WGSL touches: 1 (dead entry-point + shared buffer + const removal)   JS/.d.ts touches: 6
+
+Baseline parity vs fire-19: `kernels:check` 6 pre-existing errors (unchanged),
+`imports:check:browser` 18 pre-existing node:* (unchanged), `test:unit` 25/349 (unchanged).
+No regressions.
+
+### Changed
+- src/gpu/kernels/fused_matmul_q4.wgsl — removed dead `fn main` entry point (147 lines), dead shared buffer `wg_sums`, and dead `MAX_SUBGROUPS` const. This variant (`q4_fused` using entry `main`) had zero JS/rule dispatchers; the file's live entry points (`main_multicol`, `main_gemv` — both pinned) remain. Re-visit justified by new finding vs fire-3's `BLOCK_SIZE` cleanup
+- src/config/kernels/registry.json — removed `matmul.q4_fused` variant entry
+- src/config/kernels/kernel-ref-digests.js — re-synced (247 entries after deletion)
+- src/gpu/command-recorder.d.ts — inlined 3 single-use interfaces (`RecorderStats`, `RecorderSubmitOptions`, `RecorderDeferredCleanupOptions`) into their method signatures. Clears fire-19 punt
+- src/gpu/kernel-runtime.d.ts — inlined `KernelRuntimeOptions` + `KernelRuntimeState` into `prepareKernelRuntime` signature
+- src/memory/heap-manager.d.ts — inlined `AllocationResult` + `HeapStats` into `allocate()` and `getStats()` signatures; dropped unused `SegmentedLimits` import
+- src/memory/unified-detect.d.ts — inlined `AppleSiliconInfo`, `AMDUnifiedInfo`, `LimitIndicators` into `UnifiedMemoryInfo` (the only consumer of all three)
+- src/memory/address-table.d.ts — inlined `DecodedAddress` into `AddressTable.decode()` signature
+- src/client/runtime/types.d.ts — removed truly-dead `ChatResponse` interface (zero references anywhere)
+
+### Visited clean (skipped from future fires)
+- src/gpu/kernels/fused_matmul_q4.wgsl (re-visited for entry-point removal; file is now simpler but the `main_multicol_fast` + `main_multicol_shared` dead entry points remain as future-fire work — see Punts)
+- src/gpu/command-recorder.d.ts
+- src/gpu/kernel-runtime.d.ts
+- src/memory/heap-manager.d.ts
+- src/memory/unified-detect.d.ts
+- src/memory/address-table.d.ts
+- src/client/runtime/types.d.ts (re-visited for ChatResponse removal)
+
+### Punts
+- `main_multicol_fast` + `main_multicol_shared` entry points in `fused_matmul_q4.wgsl` (each ~140 lines) also have dead variant-name registry entries + dead support buffers (`multicol_sums_fd`, `shared_A_buf`, `multicol_sums_sa`). Same pattern as the `main` removal this fire. Deferred to next WGSL-touch landing
+- Similar dead-entry-point opportunities in `matmul_gemv_subgroup_f16a.wgsl` (cols8/cols64 variants marked `status: unused` + 0 rules + 0 JS dispatch). Deferred
+- Pre-existing codegen patches broken for 6 variants (carried over from fire-1 onward).
+- The scan surface for dead JS exports and dead types is now essentially exhausted: fire-20's full-repo scan found 0 dead exports and 1 truly-dead type (cleaned this fire). Future fires will likely shift to WGSL entry-point removal + duplicate-helper consolidation.
+
+## fire-19 — 2026-04-19 UTC
+
+Landings (7+): 7
+WGSL touches: 1 (delete)   JS/.d.ts touches: 6 (each landing covers a batch of dead type removals across several .d.ts files)
+
+Baseline parity vs fire-18: `kernels:check` 6 pre-existing errors (unchanged),
+`imports:check:browser` 18 pre-existing node:* (unchanged), `test:unit` 25/349 (unchanged).
+No regressions.
+
+### Changed
+- src/config/kernels/registry.json — removed `dequant.shared_vec4` variant entry (reachability status `unused`, zero rules + zero inline configs; dequant.rules.json never returns `"shared_vec4"` value)
+- src/config/kernels/kernel-ref-digests.js — re-synced (248 entries after deletion)
+- src/types/index.js, src/types/index.d.ts — collapsed to single re-export `./chrome.js` after the `./gpu.js`, `./inference.js`, `./model.js` re-exports became dead
+- src/gpu/kernels/matmul.d.ts — removed 4 dead interfaces: `MatmulKernelSelectionContext`, `MatmulQ4KFusedContext`, `GemvSelectionContext`, `MatmulVariantSelectionContext`
+- src/gpu/kernels/{layernorm,groupnorm,rope,gather,residual}.d.ts — removed 5 dead SelectionContext interfaces (one per file)
+- src/gpu/kernels/attention.d.ts — removed `AttentionTierContext`, `AttentionVariantContext` (zero consumers)
+- src/gpu/kernels/{dequant,sample,upsample2d,rmsnorm,conv2d}.d.ts — removed 5 more dead SelectionContext interfaces
+- src/gpu/kernels/residual.d.ts — removed `BiasAddSelectionContext` (same file as fire-19's earlier `ResidualSelectionContext` removal)
+- src/inference/pipelines/text/types.d.ts — removed `LayerResult`, `PipelineContext`, `DecodeFunction`, `TokenizerInterface` (all zero external/internal consumers)
+- src/inference/pipelines/text/config.d.ts — removed `AttentionParams`
+- src/inference/pipelines/text/sampling.d.ts — removed `TokenCandidate`
+- src/memory/heap-manager.d.ts — removed `MemorySegment`
+- src/loader/memory-monitor.d.ts — removed `MemoryMonitorState`
+- src/inference/browser-harness.d.ts — removed `BrowserHarnessOptions`, `BrowserHarnessResult` (both zero consumers)
+- src/client/runtime/types.d.ts — removed `InferredAttentionParams`, `DopplerProviderInterface` (DopplerProviderInterface was ~43 lines of duck-typed spec nobody referenced)
+- src/inference/tokenizers/types.d.ts — removed `ViterbiState`, `SpecialTokenPattern`, `TextSegment`
+- src/config/schema/execution-v1.schema.d.ts — removed `ExecutionV1LargeWeightsSchema`
+- src/formats/gguf/types.d.ts — removed `GGUFValueTypeId`, `GGMLTypeId` type aliases
+
+### Deleted
+- src/gpu/kernels/dequant_shared_vec4.wgsl — dead WGSL file (re-visited from fire-12; fire-12 cleaned one dead `const` but the whole variant is unreferenced — rule-chain dispatch returns `"shared"` not `"shared_vec4"`)
+- src/types/inference.{js,d.ts} — dead module (nobody imports from `types/inference.js`; 198 lines of type defs with zero consumers)
+- src/types/gpu.{js,d.ts} — dead module (GpuBufferHandle/BufferRequest/KernelExecutor/CommandBatch/ProfileSession — all zero consumers)
+- src/types/model.{js,d.ts} — dead module (ModelAdapter type never referenced)
+
+### Visited clean (skipped from future fires)
+- src/gpu/kernels/dequant_shared_vec4.wgsl (deleted)
+- src/types/inference.{js,d.ts} (deleted)
+- src/types/gpu.{js,d.ts} (deleted)
+- src/types/model.{js,d.ts} (deleted)
+- src/types/index.{js,d.ts} (re-visited — barrel shrunk to chrome-only)
+- src/gpu/kernels/matmul.d.ts
+- src/gpu/kernels/layernorm.d.ts
+- src/gpu/kernels/groupnorm.d.ts
+- src/gpu/kernels/rope.d.ts
+- src/gpu/kernels/gather.d.ts
+- src/gpu/kernels/residual.d.ts
+- src/gpu/kernels/attention.d.ts (re-visited for type-only cleanup, doesn't conflict with JS runtime skip)
+- src/gpu/kernels/dequant.d.ts
+- src/gpu/kernels/sample.d.ts
+- src/gpu/kernels/upsample2d.d.ts
+- src/gpu/kernels/rmsnorm.d.ts
+- src/gpu/kernels/conv2d.d.ts
+- src/inference/pipelines/text/types.d.ts (re-visited — type-only cleanup beyond prior JS skip)
+- src/inference/pipelines/text/config.d.ts (re-visited — same)
+- src/inference/pipelines/text/sampling.d.ts
+- src/memory/heap-manager.d.ts
+- src/loader/memory-monitor.d.ts
+- src/inference/browser-harness.d.ts
+- src/client/runtime/types.d.ts
+- src/inference/tokenizers/types.d.ts
+- src/config/schema/execution-v1.schema.d.ts (re-visited — fire-18 removed a const, this one removes a type)
+- src/formats/gguf/types.d.ts
+
+### Punts
+- `RecorderStats`, `RecorderSubmitOptions`, `RecorderDeferredCleanupOptions`, `KernelRuntimeOptions`, `KernelRuntimeState`, `AllocationResult`, `HeapStats`, `AppleSiliconInfo`, `AMDUnifiedInfo`, `LimitIndicators`, `DecodedAddress` — each has 1 internal .d.ts reference (used as method return/param type). Removing them requires inlining the definition at the use site; not a clean delete. Keep as-is.
+- Many `.d.ts` types in tooling/ (`ResolveNodeSourceRuntimeBundleOptions`, `NodeSourceRuntimeBundle`, `RuntimeCompositionBridge`, `RuntimeInputCompositionHandlers`, `OrderedRuntimeInputs`, `BootstrapNodeWebGPUResult`, `BootstrapNodeWebGPUProviderOptions`, `WorkerTransformResult`) — same pattern (internal .d.ts uses only). Defer.
+- WGSL cross-surface now down to registry-entry-only variants + their corresponding files. Remaining unused variants mostly share files with live variants, so file deletion isn't available; only registry JSON cleanup + dead WGSL entry-point removal, which is larger-scope per landing.
+- Pre-existing codegen patches broken for 6 variants (carried over from fire-1 onward).
+
 ## fire-18 — 2026-04-19 UTC
 
 Landings (7+): 7

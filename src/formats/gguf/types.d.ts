@@ -18,8 +18,6 @@ export declare const GGUFValueType: {
   readonly FLOAT64: 12;
 };
 
-export type GGUFValueTypeId = (typeof GGUFValueType)[keyof typeof GGUFValueType];
-
 export declare const GGMLType: {
   readonly F32: 0;
   readonly F16: 1;
@@ -50,8 +48,6 @@ export declare const GGMLType: {
   readonly F64: 28;
   readonly BF16: 29;
 };
-
-export type GGMLTypeId = (typeof GGMLType)[keyof typeof GGMLType];
 
 export declare const GGMLTypeName: Record<number, string>;
 
@@ -128,10 +124,4 @@ export declare function parseGGUF(buffer: ArrayBuffer): GGUFParseResult;
 
 export declare function parseGGUFHeader(buffer: ArrayBuffer): GGUFParseResult;
 
-export declare function getTensor(parsed: GGUFParseResult, name: string): GGUFTensor | null;
-
-export declare function getTensors(parsed: GGUFParseResult, pattern: RegExp): GGUFTensor[];
-
 export declare function groupTensorsByLayer(parsed: GGUFParseResult): Map<number, GGUFTensor[]>;
-
-export declare function identifyMoETensors(parsed: GGUFParseResult): Map<number, Map<number, GGUFTensor[]>>;

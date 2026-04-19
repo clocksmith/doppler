@@ -5,28 +5,10 @@
  * avoiding per-kernel submit overhead. Manages temporary buffers automatically.
  */
 
-/** Statistics about recorded operations */
-export interface RecorderStats {
-  opCount: number;
-  tempBufferCount: number;
-  pooledBufferCount: number;
-  submitted: boolean;
-}
-
 /** Options for CommandRecorder */
 export interface RecorderOptions {
   /** Enable GPU timestamp profiling (requires 'timestamp-query' feature) */
   profile?: boolean;
-}
-
-export interface RecorderSubmitOptions {
-  /** Use `deferred` when another readback wait already proves command completion. */
-  cleanup?: 'queue' | 'deferred';
-}
-
-export interface RecorderDeferredCleanupOptions {
-  /** Discard pooled buffers instead of returning them to the pool. */
-  discardPooled?: boolean;
 }
 
 /** Profiling result - maps kernel label to time in milliseconds */
@@ -123,13 +105,13 @@ export declare class CommandRecorder {
    * Submit all recorded commands and clean up temporary buffers.
    * After calling this, the recorder cannot be reused.
    */
-  submit(options?: RecorderSubmitOptions): void;
+  submit(options?: { cleanup?: 'queue' | 'deferred' }): void;
 
   /**
    * Finalize a deferred-cleanup submit after another wait condition
    * has already established GPU completion.
    */
-  completeDeferredCleanup(options?: RecorderDeferredCleanupOptions): Promise<void>;
+  completeDeferredCleanup(options?: { discardPooled?: boolean }): Promise<void>;
 
   /**
    * Submit and wait for GPU to complete (useful for debugging/profiling).
@@ -143,7 +125,7 @@ export declare class CommandRecorder {
    * Get statistics about recorded operations.
    * @returns Statistics object
    */
-  getStats(): RecorderStats;
+  getStats(): { opCount: number; tempBufferCount: number; pooledBufferCount: number; submitted: boolean };
 
   /**
    * Get the submit completion latency in milliseconds (null if not resolved yet).

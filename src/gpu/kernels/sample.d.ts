@@ -26,11 +26,6 @@ export interface SampleResult {
   gpuBuffer: GPUBuffer;
 }
 
-/** Context for sampling variant selection rules. */
-export interface SampleSelectionContext {
-  useF16: boolean;
-}
-
 /**
  * Run GPU-side argmax (greedy decoding)
  */

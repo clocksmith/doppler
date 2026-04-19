@@ -5,7 +5,6 @@ import {
   SHARD_SIZE,
 } from './types.js';
 import { validateManifest } from './validation.js';
-import { getShardInfo } from './parsing.js';
 import { createDopplerError, ERROR_CODES } from '../../errors/doppler-error.js';
 
 export function generateShardFilename(index) {
@@ -14,38 +13,6 @@ export function generateShardFilename(index) {
 
 export function calculateShardCount(totalSize, shardSize = SHARD_SIZE) {
   return Math.ceil(totalSize / shardSize);
-}
-
-export function createShardLayout(
-  totalSize,
-  hashes,
-  shardSize = SHARD_SIZE
-) {
-  const numShards = calculateShardCount(totalSize, shardSize);
-
-  if (hashes.length !== numShards) {
-    throw new Error(`Hash count mismatch: expected ${numShards}, got ${hashes.length}`);
-  }
-
-  const shards = [];
-  let offset = 0;
-
-  for (let i = 0; i < numShards; i++) {
-    const isLast = i === numShards - 1;
-    const size = isLast ? totalSize - offset : shardSize;
-
-    shards.push({
-      index: i,
-      filename: generateShardFilename(i),
-      size,
-      hash: hashes[i],
-      offset,
-    });
-
-    offset += size;
-  }
-
-  return shards;
 }
 
 export function createManifest(options) {
@@ -82,24 +49,8 @@ export function createManifest(options) {
   return manifest;
 }
 
-export function serializeTensorMap(tensorMap) {
-  return JSON.stringify(tensorMap, null, 2);
-}
-
 export function serializeManifest(manifest) {
   return JSON.stringify(manifest, null, 2);
-}
-
-export function getShardUrl(baseUrl, shardIndex) {
-  const shard = getShardInfo(shardIndex);
-  if (!shard) {
-    throw createDopplerError(
-      ERROR_CODES.LOADER_SHARD_INDEX_INVALID,
-      `Invalid shard index: ${shardIndex}`
-    );
-  }
-  const base = baseUrl.replace(/\/$/, '');
-  return `${base}/${shard.filename}`;
 }
 
 export function getManifestUrl(baseUrl) {

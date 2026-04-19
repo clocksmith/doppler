@@ -9,10 +9,6 @@ export interface Upsample2DOptions extends OutputBufferOptions {
   scale?: number;
 }
 
-export interface Upsample2DSelectionContext {
-  isF16: boolean;
-}
-
 export declare function runUpsample2D(
   input: Tensor,
   options: Upsample2DOptions

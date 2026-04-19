@@ -11,11 +11,6 @@ export interface SamplingOptions {
   padTokenId?: number;
 }
 
-export interface TokenCandidate {
-  token: number;
-  prob: number;
-}
-
 export interface TopKResult {
   token: number;
   logit: number;

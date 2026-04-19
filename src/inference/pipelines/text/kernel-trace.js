@@ -1,20 +1,5 @@
 
 import { log, trace } from '../../../debug/index.js';
-import { snapshotTensor as snapshotTensorImpl, snapshotFromArray as snapshotFromArrayImpl } from '../../../debug/tensor.js';
-
-// ============================================================================
-// Tensor Snapshot Utility
-// ============================================================================
-
-
-export async function snapshotTensor(buffer, shape, dtype = 'f32') {
-  return snapshotTensorImpl(buffer, shape, dtype);
-}
-
-
-export function snapshotFromArray(arr, shape, dtype = 'f32') {
-  return snapshotFromArrayImpl(arr, shape, dtype);
-}
 
 // ============================================================================
 // KernelTrace Class

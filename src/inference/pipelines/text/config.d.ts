@@ -109,12 +109,6 @@ export interface TensorInfo {
 
 export type Manifest = RuntimeModelContract;
 
-export interface AttentionParams {
-  numHeads: number;
-  numKVHeads: number;
-  headDim: number;
-}
-
 export interface ParsedModelConfig {
   numLayers: number;
   hiddenSize: number;

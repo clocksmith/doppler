@@ -11,10 +11,6 @@ export interface GroupNormOptions extends OutputBufferOptions {
   eps: number;
 }
 
-export interface GroupNormSelectionContext {
-  isF16: boolean;
-}
-
 export declare function runGroupNorm(
   input: Tensor,
   weight: GPUBuffer | WeightBuffer,

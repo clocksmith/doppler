@@ -29,12 +29,6 @@ export interface TextModelConfig {
   quantization: string;
 }
 
-export interface InferredAttentionParams {
-  numHeads: number;
-  numKVHeads: number;
-  headDim: number;
-}
-
 export interface ModelEstimate {
   weightsBytes: number;
   kvCacheBytes: number;
@@ -64,15 +58,6 @@ export interface ChatMessage {
   content: string | Array<Record<string, unknown>>;
 }
 
-export interface ChatResponse {
-  content: string;
-  usage: {
-    promptTokens: number;
-    completionTokens: number;
-    totalTokens: number;
-  };
-}
-
 export interface DopplerCapabilitiesType {
   available: boolean;
   HAS_MEMORY64: boolean;
@@ -89,51 +74,6 @@ export interface DopplerCapabilitiesType {
   lastModelEstimate: ModelEstimate | null;
   bridgeClient?: ExtensionBridgeClient | null;
   localPath?: string | null;
-}
-
-export interface DopplerProviderInterface {
-  name: string;
-  displayName: string;
-  isLocal: boolean;
-  init(): Promise<boolean>;
-  loadModel(
-    modelId: string,
-    modelUrl?: string | null,
-    onProgress?: ((event: LoadProgressEvent) => void) | null,
-    localPath?: string | null
-  ): Promise<boolean>;
-  unloadModel(): Promise<void>;
-  chat(messages: ChatMessage[], options?: GenerateOptions): Promise<ChatResponse>;
-  stream(messages: ChatMessage[], options?: GenerateOptions): AsyncGenerator<string>;
-  prefillKV(prompt: string, options?: GenerateOptions): Promise<KVCacheSnapshot>;
-  generateWithPrefixKV(prefix: KVCacheSnapshot, prompt: string, options?: GenerateOptions): AsyncGenerator<string>;
-  loadLoRAAdapter(adapter: LoRAManifest | RDRRManifest | string): Promise<void>;
-  activateLoRAFromTrainingOutput(
-    trainingOutput:
-      | string
-      | {
-        adapter?: LoRAManifest | RDRRManifest | string;
-        adapterManifest?: LoRAManifest | RDRRManifest;
-        adapterManifestJson?: string;
-        adapterManifestUrl?: string;
-        adapterManifestPath?: string;
-      }
-      | null
-      | undefined
-  ): Promise<{
-    activated: boolean;
-    adapterName: string | null;
-    source: string | null;
-    reason: string | null;
-  }>;
-  unloadLoRAAdapter(): Promise<void>;
-  getActiveLoRA(): string | null;
-  getPipeline(): InferencePipeline | null;
-  getCurrentModelId(): string | null;
-  getCapabilities(): DopplerCapabilitiesType;
-  getModels(): Promise<string[]>;
-  getAvailableModels(): Promise<string[]>;
-  destroy(): Promise<void>;
 }
 
 export declare const DopplerCapabilities: DopplerCapabilitiesType;

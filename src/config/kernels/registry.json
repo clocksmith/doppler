@@ -552,27 +552,6 @@
             "wgslOnDisk": true
           }
         },
-        "q4_fused": {
-          "wgsl": "fused_matmul_q4.wgsl",
-          "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
-          "outputDtype": "f32",
-          "weightDtype": "q4k",
-          "description": "Fused Q4_K dequant + matmul - 2-3x faster (no separate dequant pass)",
-          "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
-            "ruleChains": [],
-            "wgslOnDisk": true
-          }
-        },
         "q4_fused_f16a": {
           "wgsl": "fused_matmul_q4_f16a.wgsl",
           "entryPoint": "main_f16a",
@@ -672,30 +651,6 @@
             "ruleChains": [
               "matmul.rules.json#q4kFusedVariant"
             ],
-            "wgslOnDisk": true
-          }
-        },
-        "q4_fused_multicol_fast": {
-          "wgsl": "fused_matmul_q4.wgsl",
-          "entryPoint": "main_multicol_fast",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
-          "outputDtype": "f32",
-          "weightDtype": "q4k",
-          "variantMetadata": {
-            "colsPerWg": 32
-          },
-          "description": "Fast-dequant multi-column GEMV - direct word extraction replaces per-element get_q4 calls",
-          "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
-            "ruleChains": [],
             "wgslOnDisk": true
           }
         },
@@ -901,7 +856,7 @@
             "tileM": 4,
             "colsPerWg": 256
           },
-          "description": "WideTile Q4_K prefill matmul (adapted from ORT MatMulNBitsWideTile, MIT licensed). Each thread owns 1 output column × TILE_M rows; register-tiled accumulation. F32 A, Q4_K B (llama.cpp 256-block), F16 C. ~128x fewer WGs than q4_fused_batched_f16 at Gemma-4 prefill shape.",
+          "description": "WideTile Q4_K prefill matmul (adapted from ORT MatMulNBitsWideTile, MIT licensed). Each thread owns 1 output column \u00d7 TILE_M rows; register-tiled accumulation. F32 A, Q4_K B (llama.cpp 256-block), F16 C. ~128x fewer WGs than q4_fused_batched_f16 at Gemma-4 prefill shape.",
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -1445,25 +1400,6 @@
             "ruleChains": [
               "dequant.rules.json#variant"
             ],
-            "wgslOnDisk": true
-          }
-        },
-        "shared_vec4": {
-          "wgsl": "dequant_shared_vec4.wgsl",
-          "entryPoint": "main_vec4",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
-          "requires": [],
-          "variantMetadata": {
-            "dispatchMode": "per_block"
-          },
-          "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
-            "ruleChains": [],
             "wgslOnDisk": true
           }
         },

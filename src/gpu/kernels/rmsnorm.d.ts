@@ -18,14 +18,6 @@ export interface RMSNormOptions extends OutputBufferOptions {
   rmsNormWeightOffset?: boolean;
 }
 
-/** Context for RMSNorm variant selection rules. */
-export interface RMSNormSelectionContext {
-  isF16: boolean;
-  residual: boolean;
-  hasSubgroups: boolean;
-  isSmall: boolean;
-}
-
 /**
  * Select RMSNorm kernel variant based on options, tensor dtypes, and GPU capabilities.
  */

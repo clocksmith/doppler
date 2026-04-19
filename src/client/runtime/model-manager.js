@@ -582,18 +582,6 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
   }
 }
 
-export async function unloadModel() {
-  if (pipeline) {
-    if (typeof pipeline.unload === 'function') {
-      await pipeline.unload();
-    }
-    pipeline = null;
-  }
-  currentModelId = null;
-  DopplerCapabilities.currentModelId = null;
-  log.info('DopplerProvider', 'Model unloaded');
-}
-
 export async function loadLoRAAdapter(adapter) {
   if (!pipeline) {
     throw new Error('No model loaded. Call loadModel() first.');
@@ -730,18 +718,8 @@ export async function activateLoRAFromTrainingOutput(trainingOutput) {
   };
 }
 
-export async function unloadLoRAAdapter() {
-  if (!pipeline) return;
-  pipeline.setLoRAAdapter(null);
-  log.info('DopplerProvider', 'LoRA adapter unloaded');
-}
-
 export function getActiveLoRA() {
   const active = pipeline?.getActiveLoRA() || null;
   return active ? active.name : null;
-}
-
-export async function getAvailableModels() {
-  return listModels();
 }
 

@@ -23,11 +23,6 @@ export interface RoPEOptions extends OutputBufferOptions {
   executionPolicies?: ExecutionV1PoliciesSchema | null;
 }
 
-/** Context for RoPE variant selection rules. */
-export interface RoPESelectionContext {
-  useF16: boolean;
-}
-
 /**
  * Run RoPE operation
  */

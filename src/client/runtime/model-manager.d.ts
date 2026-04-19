@@ -35,8 +35,6 @@ export declare function loadModel(
   localPath?: string | null
 ): Promise<boolean>;
 
-export declare function unloadModel(): Promise<void>;
-
 export declare function loadLoRAAdapter(adapter: LoRAManifest | RDRRManifest | string): Promise<void>;
 
 export declare function activateLoRAFromTrainingOutput(
@@ -58,8 +56,4 @@ export declare function activateLoRAFromTrainingOutput(
   reason: string | null;
 }>;
 
-export declare function unloadLoRAAdapter(): Promise<void>;
-
 export declare function getActiveLoRA(): string | null;
-
-export declare function getAvailableModels(): Promise<string[]>;

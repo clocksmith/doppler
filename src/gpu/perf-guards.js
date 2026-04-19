@@ -23,21 +23,6 @@ export function getPerfConfig() {
 }
 
 
-export function resetPerfCounters() {
-  counters = {
-    submits: 0,
-    allocations: 0,
-    readbacks: 0,
-    startTime: performance.now(),
-  };
-}
-
-
-export function getPerfCounters() {
-  return counters;
-}
-
-
 export function trackSubmit() {
   if (config.trackSubmitCount) {
     counters.submits++;

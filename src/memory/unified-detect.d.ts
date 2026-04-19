@@ -11,44 +11,29 @@
  */
 
 /**
- * Apple Silicon detection result
- */
-export interface AppleSiliconInfo {
-  isApple: boolean;
-  mSeriesGen?: number | null;
-  vendor?: string;
-  device?: string;
-  description?: string;
-}
-
-/**
- * AMD unified memory detection result
- */
-export interface AMDUnifiedInfo {
-  isAMDUnified: boolean;
-  isStrix?: boolean;
-  vendor?: string;
-  device?: string;
-  description?: string;
-}
-
-/**
- * WebGPU buffer limit indicators
- */
-export interface LimitIndicators {
-  largeBuffers: boolean;
-  maxBufferSize?: number;
-  maxStorageBufferBindingSize?: number;
-}
-
-/**
  * Unified memory detection result
  */
 export interface UnifiedMemoryInfo {
   isUnified: boolean;
-  apple?: AppleSiliconInfo;
-  amd?: AMDUnifiedInfo;
-  limits?: LimitIndicators;
+  apple?: {
+    isApple: boolean;
+    mSeriesGen?: number | null;
+    vendor?: string;
+    device?: string;
+    description?: string;
+  };
+  amd?: {
+    isAMDUnified: boolean;
+    isStrix?: boolean;
+    vendor?: string;
+    device?: string;
+    description?: string;
+  };
+  limits?: {
+    largeBuffers: boolean;
+    maxBufferSize?: number;
+    maxStorageBufferBindingSize?: number;
+  };
   estimatedMemoryGB?: number | null;
   reason: string;
 }

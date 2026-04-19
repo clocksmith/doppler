@@ -11,16 +11,6 @@ import type { EnergyPipeline } from './pipelines/energy/pipeline.js';
 import type { SavedReportInfo, SaveReportOptions } from '../storage/reports.js';
 import type { DebugSnapshot } from '../debug/history.js';
 
-export interface BrowserHarnessOptions extends InferenceHarnessOptions {
-  modelUrl: string;
-  modelId?: string;
-  report?: Record<string, unknown> | null;
-  buildReport?: (
-    result: InitializeResult & { runtime: RuntimeOverrides }
-  ) => Promise<Record<string, unknown>> | Record<string, unknown>;
-  timestamp?: string | Date;
-  searchParams?: URLSearchParams;
-}
 
 export interface RuntimeConfigLoadOptions {
   baseUrl?: string;
@@ -131,12 +121,6 @@ export interface BrowserSuiteTiming {
   totalRunMs: number;
   cacheMode: 'cold' | 'warm' | null;
   loadMode: 'opfs' | 'http' | 'memory' | null;
-}
-
-export interface BrowserHarnessResult extends InitializeResult {
-  runtime: RuntimeOverrides;
-  report: Record<string, unknown>;
-  reportInfo: SavedReportInfo;
 }
 
 export interface BrowserSuiteResult extends SuiteSummary {

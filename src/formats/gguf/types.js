@@ -461,14 +461,6 @@ export function parseGGUFHeader(buffer) {
   return parseGGUF(buffer);
 }
 
-export function getTensor(parsed, name) {
-  return parsed.tensors.find((tensor) => tensor.name === name) || null;
-}
-
-export function getTensors(parsed, pattern) {
-  return parsed.tensors.filter((tensor) => pattern.test(tensor.name));
-}
-
 export function groupTensorsByLayer(parsed) {
   const layers = new Map();
 
@@ -486,25 +478,3 @@ export function groupTensorsByLayer(parsed) {
   return layers;
 }
 
-export function identifyMoETensors(parsed) {
-  const result = new Map();
-  const layers = groupTensorsByLayer(parsed);
-
-  for (const [layerIdx, tensors] of layers.entries()) {
-    const experts = new Map();
-    for (const tensor of tensors) {
-      const match = tensor.name.match(/experts\.(\d+)\./);
-      if (!match) continue;
-      const expertIdx = parseInt(match[1], 10);
-      if (!experts.has(expertIdx)) {
-        experts.set(expertIdx, []);
-      }
-      experts.get(expertIdx).push(tensor);
-    }
-    if (experts.size > 0) {
-      result.set(layerIdx, experts);
-    }
-  }
-
-  return result;
-}

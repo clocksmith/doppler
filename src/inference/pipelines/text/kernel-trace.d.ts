@@ -68,24 +68,6 @@ export interface TraceOptions {
 // Tensor Snapshot Utility
 // ============================================================================
 
-/**
- * Create a snapshot of a GPU tensor (requires readback - expensive!).
- */
-export function snapshotTensor(
-  buffer: GPUBuffer,
-  shape?: number[],
-  dtype?: string
-): Promise<TensorSnapshot>;
-
-/**
- * Create a snapshot from a Float32Array (CPU data).
- */
-export function snapshotFromArray(
-  arr: Float32Array,
-  shape: number[],
-  dtype?: string
-): TensorSnapshot;
-
 // ============================================================================
 // KernelTrace Class
 // ============================================================================

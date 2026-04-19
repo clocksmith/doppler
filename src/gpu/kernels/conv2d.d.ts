@@ -14,10 +14,6 @@ export interface Conv2DOptions extends OutputBufferOptions {
   pad?: number;
 }
 
-export interface Conv2DSelectionContext {
-  isF16: boolean;
-}
-
 export declare function runConv2D(
   input: Tensor,
   weight: GPUBuffer | WeightBuffer,

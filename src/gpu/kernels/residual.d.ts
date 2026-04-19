@@ -19,18 +19,6 @@ export interface ResidualOptions extends OutputBufferOptions {
   executionPolicies?: ExecutionV1PoliciesSchema | null;
 }
 
-/** Context for residual variant selection rules. */
-export interface ResidualSelectionContext {
-  outputDtype: 'f16' | 'f32';
-  useVec4: boolean;
-}
-
-/** Context for bias add variant selection rules. */
-export interface BiasAddSelectionContext {
-  dataDtype: 'f16' | 'f32';
-  biasDtype: 'f16' | 'f32';
-}
-
 /**
  * Run residual add (element-wise addition)
  */

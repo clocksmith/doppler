@@ -13,10 +13,6 @@ export interface LayerNormOptions extends OutputBufferOptions {
   normWeightDtype?: string;
 }
 
-export interface LayerNormSelectionContext {
-  isF16: boolean;
-}
-
 export declare function selectLayerNormKernel(options?: LayerNormOptions, isF16?: boolean): string;
 
 export declare function runLayerNorm(

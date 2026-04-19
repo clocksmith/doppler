@@ -45,11 +45,6 @@ export interface MemorySnapshot {
   };
 }
 
-export interface MemoryMonitorState {
-  startTime: number;
-  interval: ReturnType<typeof setInterval> | null;
-}
-
 // ============================================================================
 // Memory Snapshot
 // ============================================================================

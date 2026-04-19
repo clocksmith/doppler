@@ -19,13 +19,6 @@ export interface DequantOptions extends OutputBufferOptions, OutputOffsetOptions
   dequantTileShape?: 'vec4' | 'scalar';
 }
 
-/** Context for dequant variant selection rules. */
-export interface DequantSelectionContext {
-  hasSubgroups: boolean;
-  wantsF16Out: boolean;
-  useVec4: boolean;
-}
-
 /**
  * Select the best dequantization kernel variant
  */

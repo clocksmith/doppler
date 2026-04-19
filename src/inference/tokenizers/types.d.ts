@@ -145,24 +145,3 @@ export interface BundledTokenizerJson {
   addSpacePrefix?: boolean;
 }
 
-/** Viterbi state for Unigram encoding */
-export interface ViterbiState {
-  score: number;
-  prev: number;
-  tokenLen: number;
-  isBytes?: boolean;
-  bytes?: Uint8Array;
-}
-
-/** Special token pattern for matching */
-export interface SpecialTokenPattern {
-  content: string;
-  id: number;
-}
-
-/** Text segment (plain text or special token) */
-export interface TextSegment {
-  text?: string;
-  id?: number;
-  isSpecial: boolean;
-}

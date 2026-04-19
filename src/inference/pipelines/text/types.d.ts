@@ -163,16 +163,6 @@ export interface LayerContext {
 }
 
 /**
- * Layer processing result.
- */
-export interface LayerResult {
-  /** Output hidden states (GPUBuffer or Float32Array) */
-  output: GPUBuffer | Float32Array;
-  /** Whether output is on GPU */
-  isGPU: boolean;
-}
-
-/**
  * Sandwich norm detection result.
  */
 export interface SandwichNormInfo {
@@ -184,54 +174,6 @@ export interface SandwichNormInfo {
   hasPostFeedforwardNorm: boolean;
   /** Has post-attention norm */
   hasPostAttentionNorm: boolean;
-}
-
-/**
- * Pipeline context - all state needed for inference operations.
- *
- * This is passed to all pipeline functions, providing access to:
- * - Model configuration
- * - Weight buffers
- * - KV cache
- * - GPU resources
- * - Runtime state
- */
-export interface PipelineContext {
-  /** Parsed model configuration */
-  config: ParsedModelConfig;
-
-  /** Weight buffers map (name -> GPUBuffer | WeightBuffer | Float32Array) */
-  weights: Map<string, GPUBuffer | WeightBuffer | Float32Array | PerLayerInputWeights | null>;
-
-  /** KV cache instance */
-  kvCache: KVCacheInterface;
-
-  /** Current sequence length (tokens processed so far) */
-  currentSeqLen: number;
-
-  /** Whether GPU is available and should be used */
-  useGPU: boolean;
-
-  /** Debug mode flag */
-  debug: boolean;
-
-  /** RoPE cosine frequencies buffer */
-  ropeFreqsCos: GPUBuffer | Float32Array | null;
-
-  /** RoPE sine frequencies buffer */
-  ropeFreqsSin: GPUBuffer | Float32Array | null;
-
-  /** Tokenizer instance (for debug logging) */
-  tokenizer?: TokenizerInterface;
-
-  /** Statistics tracking */
-  stats: PipelineStats;
-
-  /** Batching statistics */
-  batchingStats: BatchingStats;
-
-  /** Optional LoRA adapter */
-  lora?: LoRAAdapter | null;
 }
 
 /** GPU buffer result for KV cache layer */
@@ -315,20 +257,6 @@ export interface KVCacheInterface {
 
   /** Get GPU buffers for a layer */
   getGPUBuffers?(layerIdx: number): GPUBuffersResult | null;
-}
-
-/**
- * Minimal tokenizer interface for pipeline operations.
- */
-export interface TokenizerInterface {
-  /** Encode text to token IDs */
-  encode(text: string): number[];
-
-  /** Decode token IDs to text */
-  decode(ids: number[], skipSpecial?: boolean, clean?: boolean): string;
-
-  /** Get special token IDs */
-  getSpecialTokens?(): { bos?: number; eos?: number; pad?: number };
 }
 
 // ============================================================================
@@ -721,11 +649,6 @@ export interface BatchingStats {
  * Buffer type that can be either GPU or CPU.
  */
 export type { MaybeGPUBuffer } from './buffer-types.js';
-
-/**
- * Function to decode token IDs to text (for debug logging).
- */
-export type DecodeFunction = (ids: number[]) => string;
 
 /**
  * RoPE (Rotary Position Embedding) options.

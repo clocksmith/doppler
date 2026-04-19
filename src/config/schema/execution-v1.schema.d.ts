@@ -165,11 +165,6 @@ export interface ExecutionV1SelfSpeculationSchema {
   rollbackOnReject: boolean;
 }
 
-export interface ExecutionV1LargeWeightsSchema {
-  /** Explicit list of weight names forced GPU-resident regardless of size policy. null = no overrides. */
-  gpuResidentOverrides: string[] | null;
-}
-
 export interface ExecutionV1SessionSchema {
   compute: {
     defaults: ExecutionV1ComputeDefaultsSchema;

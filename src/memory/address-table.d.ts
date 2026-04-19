@@ -13,14 +13,6 @@
  */
 
 /**
- * Decoded address parts
- */
-export interface DecodedAddress {
-  segmentIndex: number;
-  offset: number;
-}
-
-/**
  * Address range chunk for split operations
  */
 export interface AddressRangeChunk {
@@ -63,7 +55,7 @@ export declare class AddressTable {
    * Decode virtual address into segment index and offset
    * @param virtualAddress - Virtual address to decode
    */
-  decode(virtualAddress: number): DecodedAddress;
+  decode(virtualAddress: number): { segmentIndex: number; offset: number };
 
   /**
    * Get the segment index from a virtual address
