@@ -113,7 +113,7 @@ export async function resolveKernelPathForModel(options = {}) {
   };
 }
 
-export async function initializeInferenceFromStorage(modelId, options = {}) {
+async function initializeInferenceFromStorage(modelId, options = {}) {
   const { onProgress } = options;
   if (!modelId) {
     throw new Error('modelId is required');
@@ -162,7 +162,7 @@ export async function initializeInferenceFromStorage(modelId, options = {}) {
   return { pipeline, manifest, capabilities };
 }
 
-export async function initializeInferenceFromSourcePath(sourcePath, options = {}) {
+async function initializeInferenceFromSourcePath(sourcePath, options = {}) {
   const { onProgress } = options;
   if (!sourcePath || typeof sourcePath !== 'string') {
     throw new Error('modelUrl is required for loadMode=memory.');
@@ -276,7 +276,7 @@ export async function resolveLocalSourceRuntimePathFromModelUrl(modelUrl) {
   return null;
 }
 
-export async function resolveHarnessOverride(options = {}) {
+async function resolveHarnessOverride(options = {}) {
   const input = typeof options.harnessOverride === 'function'
     ? await options.harnessOverride(options)
     : options.harnessOverride;

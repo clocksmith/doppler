@@ -14,7 +14,6 @@ export declare function normalizeCacheMode(value: unknown): 'cold' | 'warm';
 export declare function normalizeLoadMode(value: unknown, hasModelUrl: boolean, modelUrl?: string | null): 'opfs' | 'http' | 'memory' | 'file';
 export declare function normalizeWorkloadType(value: unknown): string | null;
 export declare function safeStatsValue(value: unknown): number;
-export declare function calculateRatePerSecond(count: unknown, durationMs: unknown): number;
 export declare function buildDiffusionPerformanceArtifact(options: Record<string, unknown>): Record<string, unknown>;
 export declare function assertDiffusionPerformanceArtifact(metrics: Record<string, unknown>, contextLabel?: string): void;
 export declare function toTimingNumber(value: unknown, fallback?: number | null): number | null;

@@ -11,11 +11,6 @@
 import type { AttentionConfig } from './types.js';
 
 /**
- * Required fields that must not be undefined on every AttnConfig instance.
- */
-export declare const ATTN_CONFIG_REQUIRED_FIELDS: readonly string[];
-
-/**
  * Validate an AttnConfig object at construction time.
  *
  * Checks that all required fields are not undefined. Logs a warning per

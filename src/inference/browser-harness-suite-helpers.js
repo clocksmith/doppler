@@ -38,7 +38,7 @@ export function safeStatsValue(value) {
   return Number.isFinite(value) ? Number(value) : 0;
 }
 
-export function calculateRatePerSecond(count, durationMs) {
+function calculateRatePerSecond(count, durationMs) {
   const safeCount = safeStatsValue(count);
   const safeDurationMs = safeStatsValue(durationMs);
   if (safeCount <= 0 || safeDurationMs <= 0) return 0;

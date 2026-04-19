@@ -6,15 +6,7 @@
  * @module formats/rdrr/groups
  */
 
-import type { ComponentGroup, RDRRManifest } from './types.js';
-
-export declare function getGroup(groupId: string): ComponentGroup | null;
-
-export declare function getGroupIds(): string[];
-
-export declare function getShardsForGroup(groupId: string): number[];
-
-export declare function getTensorsForGroup(groupId: string): string[];
+import type { RDRRManifest } from './types.js';
 
 export declare function getShardsForExpert(
   layerIdx: number,
@@ -29,7 +21,3 @@ export declare function getTensorsForExpert(
 ): string[];
 
 export declare function getExpertBytes(manifest?: RDRRManifest | null): number;
-
-export declare function getLayerGroupIds(): string[];
-
-export declare function getExpertGroupIds(layerIdx: number): string[];

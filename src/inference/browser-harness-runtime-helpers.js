@@ -12,7 +12,7 @@ import {
   resolveRuntimeFromConfig,
 } from '../tooling/runtime-input-composition.js';
 
-export function parseReportTimestamp(rawTimestamp, label = 'timestamp') {
+function parseReportTimestamp(rawTimestamp, label = 'timestamp') {
   if (rawTimestamp == null) {
     return null;
   }
@@ -327,7 +327,7 @@ export async function applyRuntimeProfile(profileId, options = {}) {
   return mergedRuntime;
 }
 
-export function normalizeRuntimeConfigChain(value) {
+function normalizeRuntimeConfigChain(value) {
   if (!Array.isArray(value)) {
     return [];
   }

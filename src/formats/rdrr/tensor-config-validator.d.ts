@@ -31,12 +31,3 @@ export function validateTensorConfigConsistency(
   manifest: object
 ): TensorConfigValidationResult;
 
-/**
- * Format validation result for logging.
- *
- * @param result - The validation result to format
- * @returns Formatted string for console/log output
- */
-export function formatValidationResult(
-  result: TensorConfigValidationResult
-): string;

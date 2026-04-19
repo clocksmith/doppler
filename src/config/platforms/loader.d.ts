@@ -2,7 +2,6 @@
  * Platform Loader
  *
  * Detects the current GPU platform and loads appropriate configs.
- * Provides platform metadata and memory hints.
  *
  * @module config/platforms/loader
  */
@@ -11,7 +10,6 @@ import type {
   PlatformSchema,
   RuntimeCapabilities,
   ResolvedPlatformConfig,
-  MemoryHintsSchema,
 } from '../schema/platform.schema.js';
 
 /**
@@ -40,26 +38,6 @@ export function getPlatform(): PlatformSchema;
 export function getCapabilities(): RuntimeCapabilities;
 
 /**
- * Get memory hints for current platform.
- */
-export function getMemoryHints(): MemoryHintsSchema | undefined;
-
-/**
- * Check if current platform prefers unified memory strategies.
- */
-export function prefersUnifiedMemory(): boolean;
-
-/**
- * Get optimal buffer alignment for current platform.
- */
-export function getBufferAlignment(): number;
-
-/**
  * Clear all cached platform data. Useful for hot-reloading.
  */
 export function clearPlatformCache(): void;
-
-/**
- * Get resolved platform config with capabilities.
- */
-export function getResolvedPlatformConfig(): ResolvedPlatformConfig;

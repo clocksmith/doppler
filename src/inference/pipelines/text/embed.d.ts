@@ -63,10 +63,3 @@ export function embed(
   embedBuffer: GPUBuffer | Float32Array | CpuWeightBuffer,
   config: EmbedConfig
 ): Promise<Tensor>;
-
-export function validateEmbedding(
-  buffer: GPUBuffer,
-  label: string,
-  numTokens: number,
-  hiddenSize: number
-): Promise<ValidationResult | null>;

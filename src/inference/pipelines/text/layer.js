@@ -846,7 +846,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
 // ============================================================================
 
 
-export async function processLayerCPU(layerIdx, hiddenStates, numTokens, isPrefill, context) {
+async function processLayerCPU(layerIdx, hiddenStates, numTokens, isPrefill, context) {
   const { config } = context;
   assertSupportedLayerRuntime(layerIdx, config);
   const { hiddenSize } = config;

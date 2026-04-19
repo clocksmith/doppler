@@ -112,12 +112,6 @@ export declare function parseRuntimeOverridesFromURL(
  * @param log - Optional logging function
  * @returns Async function that loads a shard by index
  */
-export declare function createHttpShardLoader(
-  baseUrl: string,
-  manifest: RDRRManifest,
-  log?: (msg: string, level?: string) => void
-): (idx: number) => Promise<Uint8Array>;
-
 export declare function createHarnessShardStorageContext(
   modelUrl: string,
   manifest: RDRRManifest,
@@ -127,21 +121,6 @@ export declare function createHarnessShardStorageContext(
 // ============================================================================
 // Pipeline Initialization
 // ============================================================================
-
-/**
- * Fetch and parse a model manifest from a URL.
- *
- * @param manifestUrl - URL to manifest.json
- * @returns Parsed manifest
- */
-export declare function fetchManifest(manifestUrl: string): Promise<RDRRManifest>;
-
-/**
- * Initialize the WebGPU device and return capabilities.
- *
- * @returns Kernel capabilities
- */
-export declare function initializeDevice(): Promise<KernelCapabilities>;
 
 /**
  * Initialize a complete inference pipeline from a model URL.

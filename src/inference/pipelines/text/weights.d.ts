@@ -33,15 +33,6 @@ export interface WeightDebugFlags {
   normOffsetDebugDone?: boolean;
 }
 
-// ============================================================================
-// Type Guards
-// ============================================================================
-
-/**
- * Type guard to check if a weight value is a LayerWeights object.
- */
-export function isLayerWeights(value: unknown): value is LayerWeights;
-
 /**
  * Get layer weights from weights map with type narrowing.
  */
@@ -49,10 +40,6 @@ export function getLayerWeights(
   weights: Map<string, LayerWeights | Float32Array | GPUBuffer>,
   key: string
 ): LayerWeights | null;
-
-// ============================================================================
-// Weight Buffer Creation
-// ============================================================================
 
 /**
  * Get or create GPU buffer for a weight tensor.
@@ -71,40 +58,3 @@ export function getNormWeightBuffer(
   config: WeightBufferConfig,
   debugFlags?: WeightDebugFlags
 ): GPUBuffer;
-
-/**
- * Get GPU weight buffer, ensuring it's on GPU.
- */
-export function getGPUWeightBuffer(
-  weight: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | ArrayBuffer,
-  label: string
-): GPUBuffer;
-
-// ============================================================================
-// Weight Buffer Factory
-// ============================================================================
-
-/**
- * Create weight buffer helper functions bound to a specific config.
- */
-export function createWeightBufferHelpers(
-  config: WeightBufferConfig,
-  debugFlags?: WeightDebugFlags
-): {
-  getWeightBuffer: (weight: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer | WeightBuffer;
-  getNormWeightBuffer: (weight: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer | CpuWeightBuffer, label: string) => GPUBuffer;
-  getGPUWeightBuffer: (weight: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer;
-};
-
-// ============================================================================
-// Batch Buffer Tracking
-// ============================================================================
-
-/**
- * Buffer tracking for batched command execution.
- */
-export class BatchBufferTracker {
-  track(buffer: GPUBuffer | Float32Array | ArrayBuffer): void;
-  getTracked(): GPUBuffer[];
-  clear(): void;
-}

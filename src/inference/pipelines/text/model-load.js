@@ -803,12 +803,6 @@ export function activateKernelPathState(kernelPathState) {
   );
 }
 
-export function resolveAndActivateKernelPath(options) {
-  const state = resolveKernelPathState(options);
-  activateKernelPathState(state);
-  return state;
-}
-
 export async function initTokenizerFromManifest(manifest, baseUrl, storageContext = null) {
   return initTokenizer(manifest, {
     baseUrl: baseUrl ?? undefined,

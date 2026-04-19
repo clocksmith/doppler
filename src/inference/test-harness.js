@@ -145,7 +145,7 @@ function toShardBytes(buffer, shardIndex) {
 }
 
 
-export function createHttpShardLoader(baseUrl, manifest, log) {
+function createHttpShardLoader(baseUrl, manifest, log) {
   const algorithm = manifest.hashAlgorithm;
   if (!algorithm) {
     throw new Error('Manifest missing hashAlgorithm for shard delivery.');
@@ -232,18 +232,12 @@ export function createHarnessShardStorageContext(modelUrl, manifest, log) {
 // ============================================================================
 
 
-export async function fetchManifest(manifestUrl) {
+async function fetchManifest(manifestUrl) {
   const response = await fetch(manifestUrl);
   if (!response.ok) {
     throw new Error(`Failed to fetch manifest: ${response.status}`);
   }
   return parseManifest(await response.text());
-}
-
-
-export async function initializeDevice() {
-  await initDevice();
-  return getKernelCapabilities();
 }
 
 

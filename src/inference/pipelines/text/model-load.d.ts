@@ -48,10 +48,6 @@ export function activateKernelPathState(
   kernelPathState: KernelPathResolutionResult | null | undefined
 ): void;
 
-export function resolveAndActivateKernelPath(
-  options: KernelPathResolutionOptions
-): KernelPathResolutionResult;
-
 export function initTokenizerFromManifest(
   manifest: Manifest,
   baseUrl?: string | null,

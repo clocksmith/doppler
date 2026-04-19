@@ -25,7 +25,7 @@ import { runLinearAttentionLayer } from './linear-attention.js';
 import { runGatedShortConvGPU } from '../../../gpu/kernels/gated-short-conv.js';
 
 
-export function isDecodeBuffer(decodeBuffers, buffer) {
+function isDecodeBuffer(decodeBuffers, buffer) {
   return !!decodeBuffers?.ownsBuffer(buffer);
 }
 

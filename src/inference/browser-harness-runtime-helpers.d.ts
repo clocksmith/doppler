@@ -1,7 +1,3 @@
-export declare function parseReportTimestamp(
-  rawTimestamp: string | number | Date | null | undefined,
-  label?: string
-): string | null;
 export declare function resolveReportTimestamp(
   rawTimestamp: string | number | Date | null | undefined,
   label: string,
@@ -38,7 +34,6 @@ export declare function applyRuntimeProfile(
   profileId: string,
   options?: Record<string, unknown>
 ): Promise<Record<string, unknown>>;
-export declare function normalizeRuntimeConfigChain(value: unknown): string[];
 export declare function applyRuntimeForRun(
   run: Record<string, unknown>,
   options?: Record<string, unknown>

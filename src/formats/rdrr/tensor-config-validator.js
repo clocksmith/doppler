@@ -124,33 +124,3 @@ export function validateTensorConfigConsistency(manifest) {
   };
 }
 
-// Format validation result for logging.
-export function formatValidationResult(result) {
-  const lines = [];
-
-  if (result.errors.length > 0) {
-    lines.push('ERRORS:');
-    for (const err of result.errors) {
-      lines.push(`  [${err.code}] ${err.message}`);
-      if (err.suggestion) {
-        lines.push(`    -> ${err.suggestion}`);
-      }
-    }
-  }
-
-  if (result.warnings.length > 0) {
-    lines.push('WARNINGS:');
-    for (const warn of result.warnings) {
-      lines.push(`  [${warn.code}] ${warn.message}`);
-      if (warn.suggestion) {
-        lines.push(`    -> ${warn.suggestion}`);
-      }
-    }
-  }
-
-  if (result.valid && result.warnings.length === 0) {
-    lines.push('Tensor-config consistency: OK');
-  }
-
-  return lines.join('\n');
-}

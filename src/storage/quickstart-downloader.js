@@ -67,7 +67,7 @@ export const QUICKSTART_MODELS = {
     baseUrl: null,
     hf: {
       repoId: 'Clocksmith/rdrr',
-      revision: '88fa42770918e0c61bfcd67c6a54952e079b5d36',
+      revision: 'c690ac0274891afbddb8afb776d000e4c0051b7b',
       path: 'models/gemma-4-e2b-it-q4k-ehf16-af32',
     },
     requirements: MODEL_REQUIREMENTS['gemma-4-e2b-it-q4k-ehf16-af32'],
@@ -78,7 +78,7 @@ export const QUICKSTART_MODELS = {
     baseUrl: null,
     hf: {
       repoId: 'Clocksmith/rdrr',
-      revision: '0b7e01c70500b78cbe69c66cb5601dd00941f9c9',
+      revision: '1c509e37e4430d7ffd094ce5dfa623792603670e',
       path: 'models/qwen-3-5-0-8b-q4k-ehaf16',
     },
     requirements: MODEL_REQUIREMENTS['qwen-3-5-0-8b-q4k-ehaf16'],
@@ -89,7 +89,7 @@ export const QUICKSTART_MODELS = {
     baseUrl: null,
     hf: {
       repoId: 'Clocksmith/rdrr',
-      revision: '1e14085a6d8e14035ec64966d6cd44250be3df83',
+      revision: '3f54bc54c19181bd737d1773dcd70fb783297e73',
       path: 'models/qwen-3-5-2b-q4k-ehaf16',
     },
     requirements: MODEL_REQUIREMENTS['qwen-3-5-2b-q4k-ehaf16'],

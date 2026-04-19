@@ -44,13 +44,3 @@ export function processLayerGPU(
   context: LayerContext
 ): Promise<GPUBuffer>;
 
-/**
- * CPU fallback layer processing.
- */
-export function processLayerCPU(
-  layerIdx: number,
-  hiddenStates: Float32Array,
-  numTokens: number,
-  isPrefill: boolean,
-  context: LayerContext
-): Promise<Float32Array>;

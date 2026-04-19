@@ -6,8 +6,8 @@ import {
 } from './finiteness-policy.js';
 import { log } from '../../../debug/index.js';
 
-export const PRIMARY_EXECUTION_PLAN_ID = 'primary';
-export const FINITENESS_FALLBACK_EXECUTION_PLAN_ID = 'finiteness_fallback';
+const PRIMARY_EXECUTION_PLAN_ID = 'primary';
+const FINITENESS_FALLBACK_EXECUTION_PLAN_ID = 'finiteness_fallback';
 const DEFAULT_MAX_TOKENS = 256;
 
 function assertOptionalBoolean(value, label) {

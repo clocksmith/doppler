@@ -28,44 +28,9 @@ export function setRegistryUrl(url: string): void;
 export function getRegistry(): Promise<KernelRegistrySchema>;
 
 /**
- * Get registry synchronously (throws if not loaded).
- * Use after awaiting getRegistry() at startup.
- */
-export function getRegistrySync(): KernelRegistrySchema;
-
-/**
  * Clear the cached registry. Useful for hot-reloading.
  */
 export function clearRegistryCache(): void;
-
-/**
- * Get an operation schema by name.
- */
-export function getOperation(operation: string): OperationSchema | undefined;
-
-/**
- * Get a variant schema by operation and variant name.
- */
-export function getVariant(operation: string, variant: string): KernelVariantSchema | undefined;
-
-/**
- * Get all variant names for an operation.
- */
-export function getVariantNames(operation: string): string[];
-
-/**
- * Check if a variant's requirements are met by capabilities.
- */
-export function isVariantAvailable(
-  operation: string,
-  variant: string,
-  capabilities: RuntimeCapabilities
-): boolean;
-
-/**
- * Get all available variants for an operation given capabilities.
- */
-export function getAvailableVariants(operation: string, capabilities: RuntimeCapabilities): string[];
 
 /**
  * Merge base and variant bindings.

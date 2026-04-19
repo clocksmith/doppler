@@ -1279,25 +1279,6 @@
             "wgslOnDisk": true
           }
         },
-        "matmul_residual_tiled_f16": {
-          "wgsl": "fused_matmul_residual_f16.wgsl",
-          "entryPoint": "main",
-          "workgroup": [
-            128,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
-          "description": "Fused matmul + residual add (prefill, M>1)",
-          "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
-            "ruleChains": [],
-            "wgslOnDisk": true
-          }
-        },
         "gate_up_gelu_gated_tiled_f16": {
           "wgsl": "fused_gate_up_gelu_gated_f16.wgsl",
           "entryPoint": "main",
@@ -1622,22 +1603,6 @@
           ],
           "requires": [],
           "description": "MXFP4 dequantization (GPT-OSS)",
-          "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
-            "ruleChains": [],
-            "wgslOnDisk": true
-          }
-        },
-        "mxfp4_vec4": {
-          "wgsl": "dequant_mxfp4_vec4.wgsl",
-          "entryPoint": "main_vec4",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
-          "requires": [],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -6293,22 +6258,6 @@
           "requires": [
             "shader-f16"
           ],
-          "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
-            "ruleChains": [],
-            "wgslOnDisk": true
-          }
-        },
-        "gather_vec4": {
-          "wgsl": "moe_gather_vec4.wgsl",
-          "entryPoint": "gather_tokens_vec4",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
-          "requires": [],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],

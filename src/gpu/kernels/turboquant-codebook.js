@@ -109,7 +109,7 @@ const LLOYD_CONVERGENCE_EPS = 1e-12;
  * @param {number} bitWidth - Bits per coordinate (1, 2, 3, or 4).
  * @returns {{ centroids: Float32Array, boundaries: Float32Array }}
  */
-export function computeMaxLloydCodebook(d, bitWidth) {
+function computeMaxLloydCodebook(d, bitWidth) {
   if (bitWidth < 1 || bitWidth > 4) {
     throw new Error(`TurboQuant bit-width must be 1-4; got ${bitWidth}.`);
   }
@@ -177,7 +177,7 @@ function matrixKey(d, seed) {
  * @param {number} bitWidth - Bits per coordinate.
  * @returns {{ centroids: Float32Array, boundaries: Float32Array }}
  */
-export function getCodebook(d, bitWidth) {
+function getCodebook(d, bitWidth) {
   const key = codebookKey(d, bitWidth);
   let cb = codebookCache.get(key);
   if (!cb) {
@@ -188,7 +188,7 @@ export function getCodebook(d, bitWidth) {
   return cb;
 }
 
-export function getRotationMatrix(d, seed) {
+function getRotationMatrix(d, seed) {
   const key = matrixKey(d, seed);
   let matrix = rotationMatrixCache.get(key);
   if (!matrix) {
@@ -199,7 +199,7 @@ export function getRotationMatrix(d, seed) {
   return matrix;
 }
 
-export function getQJLMatrix(d, seed) {
+function getQJLMatrix(d, seed) {
   const key = matrixKey(d, seed);
   let matrix = qjlMatrixCache.get(key);
   if (!matrix) {
@@ -221,7 +221,7 @@ export function getQJLMatrix(d, seed) {
  * @param {number} seed - PRNG seed for reproducibility.
  * @returns {Float32Array} - Flattened d×d orthogonal matrix (row-major).
  */
-export function generateRotationMatrix(d, seed) {
+function generateRotationMatrix(d, seed) {
   const rng = createPRNG(seed);
 
   // Generate random Gaussian matrix A (d × d)
@@ -317,7 +317,7 @@ export function generateRotationMatrix(d, seed) {
  * @param {number} seed - PRNG seed (should differ from rotation seed).
  * @returns {Float32Array} - Flattened d×d sign matrix (row-major).
  */
-export function generateQJLMatrix(d, seed) {
+function generateQJLMatrix(d, seed) {
   const rng = createPRNG(seed);
   const P = new Float32Array(d * d);
   const scale = 1.0 / Math.sqrt(d);
@@ -338,7 +338,7 @@ export function generateQJLMatrix(d, seed) {
  * @param {number} bitsLow - Bits for non-outlier channels.
  * @returns {number} - Fraction of channels using bitsHigh (0 to 1).
  */
-export function computeOutlierFraction(effectiveBits, bitsHigh, bitsLow) {
+function computeOutlierFraction(effectiveBits, bitsHigh, bitsLow) {
   if (bitsHigh <= bitsLow) {
     throw new Error(`bitsHigh (${bitsHigh}) must be > bitsLow (${bitsLow}).`);
   }
@@ -362,7 +362,7 @@ export function computeOutlierFraction(effectiveBits, bitsHigh, bitsLow) {
  * @param {string} label - Buffer label.
  * @returns {GPUBuffer}
  */
-export function uploadRotationMatrix(device, matrix, label) {
+function uploadRotationMatrix(device, matrix, label) {
   const buf = device.createBuffer({
     label,
     size: matrix.byteLength,
@@ -380,7 +380,7 @@ export function uploadRotationMatrix(device, matrix, label) {
  * @param {string} prefix - Buffer label prefix.
  * @returns {{ centroidsBuffer: GPUBuffer, boundariesBuffer: GPUBuffer }}
  */
-export function uploadCodebook(device, codebook, prefix) {
+function uploadCodebook(device, codebook, prefix) {
   const centroidsBuffer = device.createBuffer({
     label: `${prefix}_centroids`,
     size: Math.max(4, codebook.centroids.byteLength),
@@ -529,7 +529,7 @@ export function computePackedStride(headDim, bitWidth) {
 // -- Default seeds ------------------------------------------------------------
 
 /** Default seed for rotation matrix Π. */
-export const ROTATION_SEED = 0x54515545; // "TQUE"
+const ROTATION_SEED = 0x54515545; // "TQUE"
 
 /** Default seed for QJL projection matrix P (must differ from rotation seed). */
-export const QJL_SEED = 0x514A4C50; // "QJLP"
+const QJL_SEED = 0x514A4C50; // "QJLP"

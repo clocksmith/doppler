@@ -1,4 +1,3 @@
-import { getRuntimeConfig } from '../runtime.js';
 import { loadJson } from '../../utils/load-json.js';
 import { log } from '../../debug/index.js';
 
@@ -9,8 +8,6 @@ let currentCapabilities = null;
 const platformCache = new Map();
 
 let platformsBaseUrl = null;
-
-const DEFAULT_PREFER_UNIFIED_MEMORY = false;
 
 const PLATFORM_FILES = [
   'apple-m3',
@@ -136,28 +133,8 @@ export function getCapabilities() {
   return currentCapabilities;
 }
 
-export function getMemoryHints() {
-  return getPlatform().memoryHints;
-}
-
-export function prefersUnifiedMemory() {
-  return getMemoryHints()?.preferUnifiedMemory ?? DEFAULT_PREFER_UNIFIED_MEMORY;
-}
-
-export function getBufferAlignment() {
-  const fallback = getRuntimeConfig().loading.storage.alignment.bufferAlignmentBytes;
-  return getMemoryHints()?.bufferAlignment ?? fallback;
-}
-
 export function clearPlatformCache() {
   platformCache.clear();
   currentPlatform = null;
   currentCapabilities = null;
-}
-
-export function getResolvedPlatformConfig() {
-  return {
-    platform: getPlatform(),
-    capabilities: getCapabilities(),
-  };
 }

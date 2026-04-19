@@ -35,7 +35,7 @@ const KNOWN_CHAT_TEMPLATE_TYPES = new Set([
  * @param {string} modelId - Model identifier for diagnostic messages.
  * @returns {boolean} True if the type is valid or null.
  */
-export function validateChatTemplateType(type, modelId) {
+function validateChatTemplateType(type, modelId) {
   if (type === null || type === undefined) return true;
   if (KNOWN_CHAT_TEMPLATE_TYPES.has(type)) return true;
   throw new Error(
@@ -594,7 +594,7 @@ export function resolveLayerIntermediateSize(config, layerIdx) {
 // =============================================================================
 
 
-export function hasManifestInference(manifest) {
+function hasManifestInference(manifest) {
   return 'inference' in manifest && manifest.inference != null;
 }
 
@@ -1173,7 +1173,7 @@ function parseLinearNormMode(value, sharedFlag = null, modelId = 'unknown') {
 }
 
 
-export function toParsedConfigFromMerged(merged, manifest) {
+function toParsedConfigFromMerged(merged, manifest) {
   const mergedConfig = merged?.config ?? manifest.config ?? {};
   const rawConfig = mergedConfig.text_config ?? mergedConfig;
   const config = {

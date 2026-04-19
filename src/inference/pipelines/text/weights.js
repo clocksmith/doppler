@@ -10,7 +10,7 @@ import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, tagBufferDtype 
 // ============================================================================
 
 
-export function isLayerWeights(value) {
+function isLayerWeights(value) {
   return value !== null && typeof value === 'object' && !ArrayBuffer.isView(value) && !('getMappedRange' in  (value)) && !isWeightBuffer(value) && !isCpuWeightBuffer(value);
 }
 
@@ -112,7 +112,7 @@ export function getNormWeightBuffer(weight, label, config, debugFlags) {
 }
 
 
-export function getGPUWeightBuffer(weight, label) {
+function getGPUWeightBuffer(weight, label) {
   // Handle WeightBuffer by extracting underlying GPUBuffer
   if (isWeightBuffer(weight)) {
     return weight.buffer;
@@ -126,52 +126,3 @@ export function getGPUWeightBuffer(weight, label) {
   return  (getWeightBuffer(weight, label));
 }
 
-// ============================================================================
-// Weight Buffer Factory
-// ============================================================================
-
-
-export function createWeightBufferHelpers(config, debugFlags) {
-  return {
-    
-    getWeightBuffer: (weight, label) =>
-      getWeightBuffer(weight, label),
-
-    
-    getNormWeightBuffer: (weight, label) =>
-      getNormWeightBuffer(weight, label, config, debugFlags),
-
-    
-    getGPUWeightBuffer: (weight, label) =>
-      getGPUWeightBuffer(weight, label),
-  };
-}
-
-// ============================================================================
-// Batch Buffer Tracking
-// ============================================================================
-
-
-export class BatchBufferTracker {
-  constructor() {
-    
-    this._buffersToRelease = [];
-  }
-
-  
-  track(buffer) {
-    if (isGpuBufferInstance(buffer)) {
-      this._buffersToRelease.push(buffer);
-    }
-  }
-
-  
-  getTracked() {
-    return this._buffersToRelease;
-  }
-
-  
-  clear() {
-    this._buffersToRelease = [];
-  }
-}

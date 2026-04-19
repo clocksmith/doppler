@@ -1,5 +1,6 @@
+import { f16ToF32 } from '../../../../loader/dtype-utils.js';
 
-
+export { f16ToF32 };
 
 // Caller should pass eps from model config; inline default for safety
 export function rmsNormCPU(
@@ -22,25 +23,6 @@ export function rmsNormCPU(
     result[i] = (x[i] / rms) * scale;
   }
   return result;
-}
-
-
-export function f16ToF32(h) {
-  const sign = (h >> 15) & 0x1;
-  const exp = (h >> 10) & 0x1f;
-  const mant = h & 0x3ff;
-
-  if (exp === 0) {
-    if (mant === 0) return sign ? -0 : 0;
-    const f = mant / 1024 * Math.pow(2, -14);
-    return sign ? -f : f;
-  }
-  if (exp === 31) {
-    return mant ? NaN : (sign ? -Infinity : Infinity);
-  }
-
-  const f = (1 + mant / 1024) * Math.pow(2, exp - 15);
-  return sign ? -f : f;
 }
 
 

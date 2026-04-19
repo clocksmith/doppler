@@ -310,21 +310,3 @@ export async function traceStep(name, label, layer, outputBuffer, outputShape, o
     timeMs: options?.timeMs,
   });
 }
-
-
-export function traceStepSync(name, label, layer, outputData, outputShape, options) {
-  if (!kernelTrace.enabled) return;
-  if (layer >= 0 && !kernelTrace.shouldTraceLayer(layer)) return;
-
-  const output = snapshotFromArray(outputData, outputShape);
-
-  kernelTrace.recordStep({
-    name,
-    label,
-    layer,
-    inputs: [],
-    output,
-    variant: options?.variant,
-    timeMs: options?.timeMs,
-  });
-}

@@ -21,8 +21,6 @@ import type {
 import type { LayerWeights } from './types.js';
 import type { LoRAAdapter } from './lora.js';
 
-export function isDecodeBuffer(decodeBuffers: DecodeBufferManager | null | undefined, buffer: GPUBuffer): boolean;
-
 export function releaseOrTrack(
   recorder: CommandRecorder | undefined,
   buffer: GPUBuffer,

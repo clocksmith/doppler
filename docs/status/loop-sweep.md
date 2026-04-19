@@ -1,3 +1,152 @@
+## fire-17 — 2026-04-19 UTC
+
+Landings (7+): 7
+WGSL touches: 1 (delete)   JS touches: 6 (incl. paired .d.ts; multiple deletes + demotes across 9 files)
+
+Baseline parity vs fire-16: `kernels:check` 6 pre-existing errors (unchanged),
+`imports:check:browser` 18 pre-existing node:* (unchanged), `test:unit` 25/349 (unchanged).
+No regressions.
+
+### Changed
+- src/config/kernels/registry.json — removed `dequant.mxfp4_vec4` variant entry (reachability status `unused`, zero rules, zero JS dispatch of variant name `mxfp4_vec4`; dequant.js line 237 only dispatches `'mxfp4'`)
+- src/config/kernels/kernel-ref-digests.js — re-synced (252 entries after deletion)
+- src/client/runtime/model-manager.js — demoted `initDoppler` to private (only internal caller at line 270 `loadModel`)
+- src/client/runtime/model-manager.d.ts — paired type removal for `initDoppler` + deleted declarations
+- src/config/platforms/loader.js — deleted 4 dead functions: `prefersUnifiedMemory`, `getBufferAlignment`, `getResolvedPlatformConfig`, `getMemoryHints` (the last went stale once its 3 external-facing wrappers were removed). Also dropped unused imports (`getRuntimeConfig`) and unused `DEFAULT_PREFER_UNIFIED_MEMORY`
+- src/config/platforms/loader.d.ts — paired type removals + unused `MemoryHintsSchema` import
+- src/inference/browser-harness-model-helpers.js — demoted `initializeInferenceFromStorage`, `initializeInferenceFromSourcePath`, `resolveHarnessOverride` to private (all used internally by `initializeSuiteModel`; zero external)
+- src/inference/browser-harness-model-helpers.d.ts — paired type removals
+- src/inference/browser-harness-runtime-helpers.js — demoted `parseReportTimestamp`, `normalizeRuntimeConfigChain` to private
+- src/inference/browser-harness-runtime-helpers.d.ts — paired type removals
+- src/inference/browser-harness-suite-helpers.js — demoted `calculateRatePerSecond` to private (used locally in buildSuiteSummary)
+- src/inference/browser-harness-suite-helpers.d.ts — paired type removal
+- src/inference/test-harness.js — demoted `createHttpShardLoader`, `fetchManifest` to private (both used only by `initializeInference` in same file)
+- src/inference/test-harness.d.ts — paired type removals
+
+### Deleted
+- src/gpu/kernels/dequant_mxfp4_vec4.wgsl — orphan WGSL: sole variant `dequant.mxfp4_vec4` marked unused, no JS dispatch, no rule selects it (dequant.rules.json has `subgroup_vec4` / `shared` / etc., never `mxfp4_vec4`)
+- src/client/runtime/model-manager.js — `getDopplerStorageInfo`, `destroyDoppler` (both zero external, zero internal callers)
+- src/formats/rdrr/groups.js — 6 dead exports: `getGroup`, `getGroupIds`, `getShardsForGroup`, `getTensorsForGroup`, `getLayerGroupIds`, `getExpertGroupIds` (all zero consumers; the only live exports that remain are `getShardsForExpert`, `getTensorsForExpert`, `getExpertBytes` which handle MoE expert lookups). Dropped orphan imports `sortGroupIds`, `parseGroupExpertIndex` from `./classification.js`
+- src/formats/rdrr/groups.d.ts — paired type removals (6 declarations)
+- src/formats/rdrr/tensor-config-validator.js — `formatValidationResult` (formatter never called; only `validateTensorConfigConsistency` is used by consumers)
+- src/formats/rdrr/tensor-config-validator.d.ts — paired type removal
+- src/inference/pipelines/text/kernel-trace.js — `traceStepSync` (async `traceStep` is the only used variant; sync path has zero callers)
+- src/inference/pipelines/text/kernel-trace.d.ts — paired type removal
+- src/inference/pipelines/text/model-load.js — `resolveAndActivateKernelPath` (zero callers; consumers inline `resolveKernelPathState` + `activateKernelPathState`)
+- src/inference/pipelines/text/model-load.d.ts — paired type removal
+- src/inference/pipelines/text/embed.js — `validateEmbedding` (debug/trace-only helper, zero callers)
+- src/inference/pipelines/text/embed.d.ts — paired type removal
+- src/inference/pipelines/text/execution-runtime-builders.js — `resolveFinitenessFallbackKernelPathId` (zero callers; consumers pass the fallback id directly)
+- src/inference/pipelines/text/execution-runtime-builders.d.ts — paired type removal
+
+### Visited clean (skipped from future fires)
+- src/gpu/kernels/dequant_mxfp4_vec4.wgsl (deleted)
+- src/client/runtime/model-manager.{js,d.ts}
+- src/config/platforms/loader.{js,d.ts}
+- src/formats/rdrr/groups.{js,d.ts}
+- src/formats/rdrr/tensor-config-validator.{js,d.ts}
+- src/inference/browser-harness-model-helpers.{js,d.ts}
+- src/inference/browser-harness-runtime-helpers.{js,d.ts}
+- src/inference/browser-harness-suite-helpers.{js,d.ts}
+- src/inference/test-harness.{js,d.ts}
+- src/inference/pipelines/text/kernel-trace.{js,d.ts}
+- src/inference/pipelines/text/model-load.{js,d.ts}
+- src/inference/pipelines/text/embed.{js,d.ts}
+- src/inference/pipelines/text/execution-runtime-builders.{js,d.ts}
+
+### Punts
+- Many demote candidates remain internal (e.g. `runQuickstart`, `decodeFloatWeights`, `compileLayerPipeline`, `loadQ4KMixed`, `DISTILL_STUDENT_GRAPH_MODE_VALUES`, etc.) — all used internally >=2x, zero external. Deferred to keep fire-17 landing count surgical; future fires can keep picking them off one file at a time.
+- `mergeBindings` byte-identical duplication across `src/config/kernels/registry.js` + `src/config/schema/kernel-registry.schema.js` — still punted (consolidation reverses layered module boundary).
+- `isSlidingLayerType` 3x duplication still unconsolidated — needs a new shared utility file; not a single-landing fit.
+- Pre-existing codegen patches broken for 6 variants (carried over from fire-1 onward).
+
+## fire-16 — 2026-04-19 UTC
+
+Landings (7+): 7
+WGSL touches: 1 (delete)   JS touches: 6 (incl. paired .d.ts; 1 dead-function delete + 5 demotion batches)
+
+Baseline parity vs fire-15: `kernels:check` 6 pre-existing errors (unchanged),
+`imports:check:browser` 18 pre-existing node:* (unchanged), `test:unit` 25/349 (unchanged).
+No regressions.
+
+### Changed
+- src/config/kernels/registry.json — removed `moe_gather.gather_vec4` variant entry (reachability status `unused`, entry-point `gather_tokens_vec4` only selectable via suffix `_vec4` which no rule generates; moe.js rule yields `_f16` or `""` only)
+- src/config/kernels/kernel-ref-digests.js — re-synced (253 entries after deletion)
+- src/gpu/kernels/turboquant-codebook.js — demoted 11 exports to private: `computeMaxLloydCodebook`, `getCodebook`, `getRotationMatrix`, `getQJLMatrix`, `generateRotationMatrix`, `generateQJLMatrix`, `computeOutlierFraction`, `uploadRotationMatrix`, `uploadCodebook`, `ROTATION_SEED`, `QJL_SEED`. All internal-only; fire-10 explicitly punted this batch under "deferred to keep landings surgical". Live exports `retainTurboQuantSharedBuffers` + `computePackedStride` stay public
+- src/inference/pipelines/text/layer.js — demoted `processLayerCPU` to private (only called internally at line 452 from `processLayer` fallback; zero external consumers)
+- src/inference/pipelines/text/layer.d.ts — paired type removal
+- src/debug/stats.js — demoted 3 internal-only exports: `removeOutliersIQR`, `sampleStdDev`, `confidenceInterval95`. Public API stays: `percentile`, `median`, `computeSampleStats`, `computeArrayStats`, `computeBasicStats`. Fire-14 held these on a stale reference to `experimental/distribution/p2p-observability.js`; re-scan confirms that file now only uses `percentile`
+- src/debug/stats.d.ts — paired type removals for the 3 demoted helpers
+- src/inference/pipelines/text/ops.js — demoted `isDecodeBuffer` to private (used internally by `releaseOrTrack` at line 34; zero external)
+- src/inference/pipelines/text/ops.d.ts — paired type removal
+- src/config/kernels/registry.js — demoted 5 internal-only exports: `getRegistrySync`, `getOperation`, `getVariant`, `getVariantNames`, `isVariantAvailable`. External consumers (`setRegistryUrl`, `getRegistry`, `clearRegistryCache`, `mergeBindings`, `resolveKernelConfig`) stay public
+- src/config/kernels/registry.d.ts — paired type removals
+- src/inference/pipelines/text/config.js — demoted 3 internal-only exports: `validateChatTemplateType`, `hasManifestInference`, `toParsedConfigFromMerged`. All used locally only; `validateRequiredInferenceFields` stays public (external consumers)
+- src/inference/pipelines/text/config.d.ts — paired type removals
+
+### Deleted
+- src/gpu/kernels/moe_gather_vec4.wgsl — orphan WGSL: registry status `unused`, entry point `gather_tokens_vec4` not dispatched; moe.js only uses `gather` / `gather_f16` suffix forms. Same clean-delete pattern as fire-15 (fused_matmul_residual_f16.wgsl)
+- src/config/kernels/registry.js — `getAvailableVariants` export removed (dead function; zero external consumers AND zero internal callers; was a thin wrapper over `getVariantNames` + `isVariantAvailable`)
+- src/config/kernels/registry.d.ts — paired type removal for `getAvailableVariants`
+
+### Visited clean (skipped from future fires)
+- src/gpu/kernels/moe_gather_vec4.wgsl (deleted)
+- src/gpu/kernels/turboquant-codebook.js (re-visited — fire-10 punt explicitly scheduled this demote batch for a future fire)
+- src/inference/pipelines/text/layer.{js,d.ts}
+- src/debug/stats.{js,d.ts} (re-visited — fire-14 stale reference to experimental consumer cleared)
+- src/inference/pipelines/text/ops.{js,d.ts}
+- src/config/kernels/registry.{js,d.ts}
+- src/inference/pipelines/text/config.{js,d.ts}
+
+### Punts
+- `mergeBindings` is byte-identical in `src/config/kernels/registry.js` and `src/config/schema/kernel-registry.schema.js`. Consolidating (e.g., importing one from the other) adds a circular-looking module boundary between runtime loader and schema helpers. Defer.
+- `isSlidingLayerType` is duplicated 3x: exported in `layer.js` + `dispatch-params.js`, private in `init.js` (SKIP-listed) + `kv-cache/mixed-geometry.js`. Consolidating requires a new shared utility file (e.g., `attention/layer-type-utils.js`); not a single-landing fit because dispatch-params.js sits under attention/ and can't simply import from `../layer.js` without reversing the dependency direction. Defer.
+- Dead `.d.ts` types (e.g., `AdamOptions`, `BiasAddBackwardOptions`, `KernelRuntimeOptions`, `CheckHotVocabStopParams`) are only used for parameter typing in the same file — externally dead but internally documentary. Inlining into function signatures is a readability regression, so keep as-is.
+- Pre-existing codegen patches broken for 6 variants (carried over from fire-1 onward).
+
+## fire-15 — 2026-04-19 UTC
+
+Landings (7+): 7
+WGSL touches: 1 (delete)   JS touches: 6 (incl. paired .d.ts; 2 deletes + 2 demotion files + 2 dedup consolidations)
+
+Baseline parity vs fire-14: `kernels:check` 6 pre-existing errors (unchanged),
+`imports:check:browser` 18 pre-existing node:* (unchanged), `test:unit` 25/349
+(improved from 26/349 — one pre-existing failure resolved as side-effect of
+kernel-validator delete; no new failures).
+
+### Changed
+- src/inference/pipelines/text/execution-plan.js — demoted `PRIMARY_EXECUTION_PLAN_ID` + `FINITENESS_FALLBACK_EXECUTION_PLAN_ID` to private (heavy internal use at lines 153, 156, 231, 277, 321, 332, 350, 358; zero external consumers; cleared the fire-14 punt)
+- src/inference/pipelines/text/execution-plan.d.ts — paired type removals
+- src/inference/pipelines/text/attention/attn-config.js — demoted `ATTN_CONFIG_REQUIRED_FIELDS` to private (only used internally at line 40; zero external; cleared fire-14 punt)
+- src/inference/pipelines/text/attention/attn-config.d.ts — paired type removal
+- src/inference/pipelines/text/weights.js — removed 2 dead exports (`BatchBufferTracker` class, `createWeightBufferHelpers` function; both zero references anywhere) + demoted `isLayerWeights` and `getGPUWeightBuffer` to private (used internally only)
+- src/inference/pipelines/text/weights.d.ts — paired type removals
+- src/inference/pipelines/text/logits/cpu.js — replaced duplicate `f16ToF32` implementation with import + re-export from `src/loader/dtype-utils.js` (canonical source; byte-identical implementation). Preserves `logits/index.js` barrel re-export path for downstream consumers
+- src/inference/pipelines/text/debug-utils/utils.js — same dedup: replaced duplicate `f16ToF32` with import + re-export from `src/loader/dtype-utils.js`. Preserves `debug-utils/index.js` barrel re-export
+- src/config/kernels/registry.json — removed `fused_ffn.matmul_residual_tiled_f16` variant entry (reachability status `unused`, zero rule chains, zero JS dispatch of the variant name — sole consumer of the WGSL file being deleted)
+- src/config/kernels/kernel-ref-digests.js — re-synced (254 entries after deletion)
+
+### Deleted
+- src/rules/kernels/kernel-validator.js — dead module; `KernelValidator` class had zero external importers and nobody imports the module itself. (24 lines .d.ts + 160 lines .js, all dead)
+- src/rules/kernels/kernel-validator.d.ts — paired .d.ts delete
+- src/gpu/kernels/fused_matmul_residual_f16.wgsl — 105-line WGSL file with sole variant (`matmul_residual_tiled_f16`) marked unused + zero JS dispatchers. Cross-ref: not a codegen target (no `.from.` patch produces it), only referenced in registry.json + kernel-ref-digests.js. Same clean-delete pattern as fire-11 (dequant_q8_0.wgsl) and fire-1 (attention_prefill_flash_ort_head256_f16kv.wgsl)
+
+### Visited clean (skipped from future fires)
+- src/inference/pipelines/text/execution-plan.{js,d.ts}
+- src/inference/pipelines/text/attention/attn-config.{js,d.ts}
+- src/inference/pipelines/text/weights.{js,d.ts} (re-visited from fire-14 inventory; new dead-export findings `BatchBufferTracker` + `createWeightBufferHelpers`)
+- src/rules/kernels/kernel-validator.{js,d.ts} (deleted)
+- src/inference/pipelines/text/logits/cpu.js
+- src/inference/pipelines/text/debug-utils/utils.js
+- src/gpu/kernels/fused_matmul_residual_f16.wgsl (deleted)
+
+### Punts
+- `isPlainObject` duplicate in `src/tooling/hf-registry-utils.js` (still defines its own copy; canonical lives in `src/utils/plain-object.js`). hf-registry-utils.js is on skip list from fire-6; swap has 6 internal call sites + .d.ts type. Defer as part of the broader `isPlainObject` consolidation fire-5 already tracked.
+- 5 `export const format*Chat` aliases were re-visited in fire-14; no new alias patterns found in this fire's non-skiplist JS sweep. The scan surface is mostly clean.
+- `formatBytes` has 3 DIFFERENT implementations across `emulation.schema.js`, `units.schema.js`, `storage/quota.js` (decimal vs binary units, different formats). Cannot naively consolidate — each has distinct semantics and consumers; needs a design decision on unit convention rather than a surgical DRY fix.
+- `f16ToF32` consolidation (this fire) only targeted the 2 byte-identical duplicates; the canonical `loader/dtype-utils.js` implementation stays exported.
+- Pre-existing codegen patches broken for 6 variants (carried over from fire-1 onward).
+
 ## fire-14 — 2026-04-19 UTC
 
 Landings (7+): 7

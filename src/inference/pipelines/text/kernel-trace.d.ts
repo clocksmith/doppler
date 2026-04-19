@@ -135,18 +135,3 @@ export function traceStep(
     timeMs?: number;
   }
 ): Promise<void>;
-
-/**
- * Sync version for when you already have the data as Float32Array.
- */
-export function traceStepSync(
-  name: string,
-  label: string,
-  layer: number,
-  outputData: Float32Array,
-  outputShape: number[],
-  options?: {
-    variant?: string;
-    timeMs?: number;
-  }
-): void;

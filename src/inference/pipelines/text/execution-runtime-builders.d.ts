@@ -8,10 +8,6 @@ export declare function requireSessionActivationDtype(
   label?: string
 ): 'f16' | 'f32';
 
-export declare function resolveFinitenessFallbackKernelPathId(
-  kernelPathId: string | null | undefined
-): string | null;
-
 export declare function buildInlineKernelPath(
   steps: readonly Record<string, unknown>[],
   session: Record<string, unknown> | null,

@@ -2,9 +2,6 @@ import type { KernelPathSchema } from '../../../config/schema/index.js';
 import type { RuntimeConfigSchema } from '../../../config/schema/index.js';
 import type { KernelPathSource } from '../../../config/kernel-path-loader.js';
 
-export const PRIMARY_EXECUTION_PLAN_ID: 'primary';
-export const FINITENESS_FALLBACK_EXECUTION_PLAN_ID: 'finiteness_fallback';
-
 export interface StaticExecutionPlan {
   id: 'primary' | 'finiteness_fallback';
   source: string;

@@ -251,12 +251,6 @@ export function getStopTokenIds(manifest: Manifest): number[];
 export function resolveLayerIntermediateSize(config: ParsedModelConfig, layerIdx: number): number;
 
 /**
- * Validate that a chatTemplate.type is a known formatter type.
- * Logs a warning for unknown types. Returns true if valid or null.
- */
-export function validateChatTemplateType(type: string | null | undefined, modelId: string): boolean;
-
-/**
  * Extended manifest with inference config for manifest-first parsing.
  */
 export interface ManifestWithInference {
@@ -270,23 +264,10 @@ export interface ManifestWithInference {
   eos_token_id: number | number[];
 }
 
-/**
- * Check if manifest has inference config for manifest-first parsing.
- */
-export function hasManifestInference(manifest: Manifest): manifest is Manifest & { inference: ManifestInferenceSchema };
-
 export function validateRequiredInferenceFields(
   inf: ManifestInferenceSchema,
   modelId: string
 ): void;
-
-/**
- * Convert MergedConfig to ParsedModelConfig.
- */
-export function toParsedConfigFromMerged(
-  merged: MergedConfig,
-  manifest: ManifestWithInference
-): ParsedModelConfig;
 
 /**
  * Parse model config from manifest using manifest-first resolution.

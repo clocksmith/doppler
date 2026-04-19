@@ -28,8 +28,6 @@ export declare function writeOPFSFile(path: string, data: ArrayBuffer): Promise<
 
 export declare function fetchArrayBuffer(url: string): Promise<ArrayBuffer>;
 
-export declare function initDoppler(): Promise<boolean>;
-
 export declare function loadModel(
   modelId: string,
   modelUrl?: string | null,
@@ -65,7 +63,3 @@ export declare function unloadLoRAAdapter(): Promise<void>;
 export declare function getActiveLoRA(): string | null;
 
 export declare function getAvailableModels(): Promise<string[]>;
-
-export declare function getDopplerStorageInfo(): Promise<unknown>;
-
-export declare function destroyDoppler(): Promise<void>;

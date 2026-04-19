@@ -6,7 +6,7 @@ import { log } from '../../../../debug/index.js';
  * entry points. Optional fields (skipInputNorm, tokenIds, kernelPath,
  * disableRoPE) have defaults in the destructuring and are excluded.
  */
-export const ATTN_CONFIG_REQUIRED_FIELDS = Object.freeze([
+const ATTN_CONFIG_REQUIRED_FIELDS = Object.freeze([
   'layerIdx',
   'numTokens',
   'isPrefill',

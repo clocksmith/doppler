@@ -168,17 +168,6 @@ export function assertKernelPathSessionCompatibility(path, session) {
   }
 }
 
-export function resolveFinitenessFallbackKernelPathId(kernelPathId) {
-  return kernelPathId
-    ? selectRuleValue(
-      'inference',
-      'kernelPath',
-      'finitenessFallback',
-      { kernelPathId }
-    )
-    : null;
-}
-
 export function buildInlineKernelPath(
   steps,
   session,

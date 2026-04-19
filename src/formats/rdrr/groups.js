@@ -1,23 +1,6 @@
 
 
 import { getManifest } from './parsing.js';
-import { sortGroupIds, parseGroupExpertIndex } from './classification.js';
-
-export function getGroup(groupId) {
-  return getManifest()?.groups?.[groupId] ?? null;
-}
-
-export function getGroupIds() {
-  return Object.keys(getManifest()?.groups || {});
-}
-
-export function getShardsForGroup(groupId) {
-  return getManifest()?.groups?.[groupId]?.shards ?? [];
-}
-
-export function getTensorsForGroup(groupId) {
-  return getManifest()?.groups?.[groupId]?.tensors ?? [];
-}
 
 export function getShardsForExpert(layerIdx, expertIdx, manifest = getManifest()) {
   const groupId = `layer.${layerIdx}.expert.${expertIdx}`;
@@ -53,21 +36,4 @@ export function getExpertBytes(manifest = getManifest()) {
   }
 
   return manifest?.moeConfig?.expertBytes || 0;
-}
-
-export function getLayerGroupIds() {
-  const ids = Object.keys(getManifest()?.groups || {})
-    .filter(id => id.startsWith('layer.'));
-  return sortGroupIds(ids);
-}
-
-export function getExpertGroupIds(layerIdx) {
-  const prefix = `layer.${layerIdx}.expert.`;
-  return Object.keys(getManifest()?.groups || {})
-    .filter(id => id.startsWith(prefix))
-    .sort((a, b) => {
-      const expertA = parseGroupExpertIndex(a) ?? 0;
-      const expertB = parseGroupExpertIndex(b) ?? 0;
-      return expertA - expertB;
-    });
 }

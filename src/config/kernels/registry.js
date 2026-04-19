@@ -32,7 +32,7 @@ export async function getRegistry() {
   return cachedRegistry;
 }
 
-export function getRegistrySync() {
+function getRegistrySync() {
   if (!cachedRegistry) {
     throw new Error('Kernel registry not loaded. Call await getRegistry() first.');
   }
@@ -43,22 +43,22 @@ export function clearRegistryCache() {
   cachedRegistry = null;
 }
 
-export function getOperation(operation) {
+function getOperation(operation) {
   const registry = getRegistrySync();
   return registry.operations[operation];
 }
 
-export function getVariant(operation, variant) {
+function getVariant(operation, variant) {
   const op = getOperation(operation);
   return op?.variants[variant];
 }
 
-export function getVariantNames(operation) {
+function getVariantNames(operation) {
   const op = getOperation(operation);
   return op ? Object.keys(op.variants) : [];
 }
 
-export function isVariantAvailable(operation, variant, capabilities) {
+function isVariantAvailable(operation, variant, capabilities) {
   const variantSchema = getVariant(operation, variant);
   if (!variantSchema) return false;
 
@@ -68,10 +68,6 @@ export function isVariantAvailable(operation, variant, capabilities) {
     if (req === 'subgroups' && !capabilities.hasSubgroups) return false;
   }
   return true;
-}
-
-export function getAvailableVariants(operation, capabilities) {
-  return getVariantNames(operation).filter(v => isVariantAvailable(operation, v, capabilities));
 }
 
 export function mergeBindings(base, override) {

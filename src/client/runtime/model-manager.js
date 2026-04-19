@@ -205,7 +205,7 @@ export const fetchArrayBuffer = async (url) => {
   return res.arrayBuffer();
 };
 
-export async function initDoppler() {
+async function initDoppler() {
   if (DopplerCapabilities.initialized) {
     return DopplerCapabilities.available;
   }
@@ -745,21 +745,3 @@ export async function getAvailableModels() {
   return listModels();
 }
 
-export async function getDopplerStorageInfo() {
-  return getStorageReport();
-}
-
-export async function destroyDoppler() {
-  await unloadModel();
-  destroyDevice();
-
-  if (DopplerCapabilities.bridgeClient) {
-    DopplerCapabilities.bridgeClient.disconnect();
-    DopplerCapabilities.bridgeClient = null;
-    DopplerCapabilities.localPath = null;
-  }
-
-  DopplerCapabilities.initialized = false;
-  DopplerCapabilities.available = false;
-  log.info('DopplerProvider', 'Destroyed');
-}

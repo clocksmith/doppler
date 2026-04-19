@@ -16,7 +16,7 @@ export function median(sorted) {
     : sorted[mid];
 }
 
-export function removeOutliersIQR(values, multiplier = 1.5) {
+function removeOutliersIQR(values, multiplier = 1.5) {
   if (values.length < 4) return { filtered: values, removed: 0, lower: -Infinity, upper: Infinity };
   const sorted = [...values].sort((a, b) => a - b);
   const q1 = percentile(sorted, 25);
@@ -28,14 +28,14 @@ export function removeOutliersIQR(values, multiplier = 1.5) {
   return { filtered, removed: values.length - filtered.length, lower, upper };
 }
 
-export function sampleStdDev(values, meanValue) {
+function sampleStdDev(values, meanValue) {
   const n = values.length;
   if (n < 2) return 0;
   const variance = values.reduce((sum, v) => sum + (v - meanValue) ** 2, 0) / (n - 1);
   return Math.sqrt(variance);
 }
 
-export function confidenceInterval95(stdDev, n) {
+function confidenceInterval95(stdDev, n) {
   if (n < 2) return 0;
   const tValue = n >= 30 ? 1.96 : 2.0 + 3.0 / n;
   return tValue * (stdDev / Math.sqrt(n));
