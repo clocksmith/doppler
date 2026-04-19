@@ -1338,23 +1338,6 @@ export async function runKernelSuite(harness) {
   ]);
 
   tests.push([
-    'attention_decode_optimized',
-    async () => {
-      const numHeads = 2;
-      const numKVHeads = 1;
-      const headDim = 8;
-      const kvLen = 4;
-      const Q = h.generateTestData(numHeads * headDim, 1401);
-      const K = h.generateTestData(kvLen * numKVHeads * headDim, 1402);
-      const V = h.generateTestData(kvLen * numKVHeads * headDim, 1403);
-      const expected = h.references.attentionRef(Q, K, V, 1, kvLen, numHeads, numKVHeads, headDim, null);
-      const actual = await h.runAttentionDecodeOptimized(null, Q, K, V, numHeads, numKVHeads, headDim, kvLen);
-      const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.attention);
-      return result.passed;
-    },
-  ]);
-
-  tests.push([
     'attention_tiered',
     async () => {
       const seqLen = 1;

@@ -389,7 +389,7 @@ export async function loadQ4KDequant(shardData, location, name, config) {
   }
 }
 
-export async function loadQ4KMixed(shardData, location, name, config) {
+async function loadQ4KMixed(shardData, location, name, config) {
   const canMaterializeMixed = shouldUseFusedQ4K(location, config)
     && config.q4kLayout === 'row';
   if (!canMaterializeMixed) {

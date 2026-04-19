@@ -38,7 +38,6 @@ export interface DistillTrainingConfigSchema {
 }
 
 export declare const DISTILL_STAGE_VALUES: readonly DistillTrainingStage[];
-export declare const DISTILL_STUDENT_GRAPH_MODE_VALUES: readonly DistillStudentGraphMode[];
 export declare const DISTILL_TRAINING_SCHEMA_VERSION: number;
 export declare const DEFAULT_DISTILL_FREEZE_GROUPS: DistillFreezeConfigSchema;
 export declare const DEFAULT_DISTILL_TRAINING_CONFIG: DistillTrainingConfigSchema;

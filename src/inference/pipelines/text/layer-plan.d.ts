@@ -47,11 +47,6 @@ export interface CompiledLayerPipeline {
   source: 'model' | 'runtime';
 }
 
-export function compileLayerPipeline(
-  plan: LayerPipelineSchema,
-  numLayers: number
-): Omit<CompiledLayerPipeline, 'source'>;
-
 export function resolveLayerPipeline(
   modelPlan: LayerPipelineSchema | null | undefined,
   runtimePlan: LayerPipelineSchema | null | undefined,

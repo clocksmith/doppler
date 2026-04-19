@@ -349,7 +349,7 @@ export function resolveFloatDtypeFromByteSize(totalBytes, expectedLength) {
   });
 }
 
-export function decodeFloatWeights(data, dtype, expectedLength, label) {
+function decodeFloatWeights(data, dtype, expectedLength, label) {
   const decodeDtype = resolveFloatDtypeFromAlias(dtype);
   const decoded = decodeReadback(data, decodeDtype);
   if (decoded.length !== expectedLength) {

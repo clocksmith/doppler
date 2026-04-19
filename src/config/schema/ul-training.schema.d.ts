@@ -55,7 +55,6 @@ export declare const DEFAULT_UL_NOISE_SCHEDULE: UlNoiseScheduleSchema;
 export declare const DEFAULT_UL_PRIOR_ALIGNMENT: UlPriorAlignmentSchema;
 export declare const DEFAULT_UL_DECODER_SIGMOID_WEIGHT: UlDecoderSigmoidWeightSchema;
 export declare const DEFAULT_UL_FREEZE_GROUPS: UlFreezeGroupsSchema;
-export declare const DEFAULT_UL_LOSS_WEIGHTS: UlLossWeightsSchema;
 export declare const DEFAULT_UL_TRAINING_CONFIG: UlTrainingConfigSchema;
 
 export declare function validateUlTrainingConfig(config: UlTrainingConfigSchema): UlTrainingConfigSchema;

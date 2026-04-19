@@ -75,13 +75,6 @@ export function resolveFloatDtypeFromByteSize(
   fallback?: 'f16' | 'f32'
 ): 'f16' | 'f32';
 
-export function decodeFloatWeights(
-  data: ArrayBuffer,
-  dtype: 'f16' | 'f32' | 'bf16',
-  expectedLength: number,
-  label: string
-): Float32Array;
-
 export function getFinalNormWeights(state: PipelineState): Promise<Float32Array>;
 
 export function extractEmbeddingFromHidden(

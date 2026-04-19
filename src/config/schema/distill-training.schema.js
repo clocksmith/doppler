@@ -1,5 +1,5 @@
 export const DISTILL_STAGE_VALUES = Object.freeze(['stage_a', 'stage_b']);
-export const DISTILL_STUDENT_GRAPH_MODE_VALUES = Object.freeze(['projection_head', 'transformer_full']);
+const DISTILL_STUDENT_GRAPH_MODE_VALUES = Object.freeze(['projection_head', 'transformer_full']);
 
 export const DISTILL_TRAINING_SCHEMA_VERSION = 1;
 

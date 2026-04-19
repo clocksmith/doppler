@@ -1,3 +1,63 @@
+## fire-18 — 2026-04-19 UTC
+
+Landings (7+): 7
+WGSL touches: 1 (delete + operation+tests removal)   JS touches: 6 (incl. paired .d.ts; 1 delete + 5 demote batches)
+
+Baseline parity vs fire-17: `kernels:check` 6 pre-existing errors (unchanged),
+`imports:check:browser` 18 pre-existing node:* (unchanged), `test:unit` 25/349 (unchanged).
+No regressions.
+
+### Changed
+- src/config/kernels/registry.json — removed entire `attention_decode_optimized` operation (3 variants, all status `unused`, zero production dispatchers; only test-page.js + kernel-suite.js + harness.html referenced it). Operation previously occupied ~1340 lines (1303–2643)
+- src/config/kernels/kernel-ref-digests.js — re-synced (249 entries after deletion, down from 252)
+- tests/kernels/browser/kernel-suite.js — removed corresponding `attention_decode_optimized` test block (22 lines)
+- tests/kernels/browser/test-page.js — removed `runAttentionDecodeOptimized` harness helper (66 lines)
+- tests/harness.html — removed duplicate `attention_decode_optimized` test block (16 lines)
+- src/cli/doppler-quickstart.js — demoted `runQuickstart` to private (called internally by `main` at line 256; zero external consumers)
+- src/cli/doppler-quickstart.d.ts — paired type removal
+- src/config/schema/distill-training.schema.js — demoted `DISTILL_STUDENT_GRAPH_MODE_VALUES` to private (used internally for validator; zero external consumers; companion `DISTILL_STAGE_VALUES` stays public)
+- src/config/schema/distill-training.schema.d.ts — paired type removal
+- src/config/schema/execution-v1.schema.js — demoted `DEFAULT_EXECUTION_V1_PER_LAYER_INPUTS_SESSION` to private (nested inside the larger exported `DEFAULT_EXECUTION_V1_SESSION`; no consumer needs it standalone)
+- src/config/schema/execution-v1.schema.d.ts — paired type removal
+- src/config/schema/kernel-thresholds.schema.js — demoted `DEFAULT_FUSED_MATMUL_THRESHOLDS` to private (used internally in validator)
+- src/config/schema/kernel-thresholds.schema.d.ts — paired type removal
+- src/config/schema/ul-training.schema.js — demoted `DEFAULT_UL_LOSS_WEIGHTS` to private (nested in `DEFAULT_UL_TRAINING_CONFIG`)
+- src/config/schema/ul-training.schema.d.ts — paired type removal
+- src/inference/pipelines/text/generator-runtime.js — demoted `decodeFloatWeights` to private (used 4x internally by `getFinalNormWeights`; zero external)
+- src/inference/pipelines/text/generator-runtime.d.ts — paired type removal
+- src/inference/pipelines/text/generator-steps.js — demoted `resolveBatchStop` to private (used internally at line 1584; zero external)
+- src/inference/pipelines/text/generator-steps.d.ts — paired type removal
+- src/inference/pipelines/text/layer-plan.js — demoted `compileLayerPipeline` to private (used by `resolveLayerPipeline` in same file; zero external)
+- src/inference/pipelines/text/layer-plan.d.ts — paired type removal
+- src/loader/tensors/tensor-loader.js — demoted `loadQ4KMixed` to private (used by the q4k_mixed loader map entry at line 664; zero external)
+- src/loader/tensors/tensor-loader.d.ts — paired type removal
+
+### Deleted
+- src/gpu/kernels/attention_decode_optimized.wgsl — dead kernel file. 3 variants (`default`, `multihead`, `f16kv`) all marked reachability `unused` with zero rule chains + zero inline configs; no production JS dispatch; only test infrastructure referenced it
+- src/inference/pipelines/diffusion/sana-transformer.js — `buildSanaConditioning` export (zero callers; consumers inline the 2 helper calls it composed)
+- src/inference/pipelines/diffusion/sana-transformer.d.ts — paired type removal
+
+### Visited clean (skipped from future fires)
+- src/gpu/kernels/attention_decode_optimized.wgsl (deleted)
+- src/cli/doppler-quickstart.{js,d.ts}
+- src/config/schema/distill-training.schema.{js,d.ts}
+- src/config/schema/execution-v1.schema.{js,d.ts}
+- src/config/schema/kernel-thresholds.schema.{js,d.ts}
+- src/config/schema/ul-training.schema.{js,d.ts}
+- src/inference/pipelines/diffusion/sana-transformer.{js,d.ts}
+- src/inference/pipelines/text/generator-runtime.{js,d.ts}
+- src/inference/pipelines/text/generator-steps.{js,d.ts}
+- src/inference/pipelines/text/layer-plan.{js,d.ts}
+- src/loader/tensors/tensor-loader.{js,d.ts}
+- tests/kernels/browser/kernel-suite.js (test block removed; file still live)
+- tests/kernels/browser/test-page.js (harness helper removed; file still live)
+- tests/harness.html (duplicate test removed; file still live)
+
+### Punts
+- The fire-16 duplicate finding (`mergeBindings` byte-identical, `isSlidingLayerType` 3x) still unresolved — consolidation needs a shared utility file, not a surgical single-landing change.
+- Many WGSL files are marked `status: unused` with 1 rule-chain ref. These are dispatched through dynamic variant-name selection and LOOK unused to the flat scan but ARE live (same pattern as fire-5's punt on `prefill_flash_head256_f16kv`). Leave as-is.
+- Pre-existing codegen patches broken for 6 variants (carried over from fire-1 onward).
+
 ## fire-17 — 2026-04-19 UTC
 
 Landings (7+): 7

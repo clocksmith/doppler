@@ -99,15 +99,6 @@ export declare function loadQ4KDequant(
   config: TensorLoadConfig
 ): Promise<TensorLoadResult>;
 
-/**
- * Load Q4K tensor to GPU with both dense and fused-compatible materializations.
- */
-export declare function loadQ4KMixed(
-  shardData: Uint8Array,
-  location: TensorLocation,
-  name: string,
-  config: TensorLoadConfig
-): Promise<TensorLoadResult>;
 
 /**
  * Load Q6K tensor to GPU.

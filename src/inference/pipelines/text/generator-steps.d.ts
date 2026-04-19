@@ -21,13 +21,6 @@ export interface FusedDecodeSamplingConfig {
 
 export declare function shouldUseFusedDecodeSampling(config: FusedDecodeSamplingConfig): boolean;
 
-export declare function resolveBatchStop(
-  tokens: number[],
-  stopFlags: Uint32Array | null,
-  stopTokenIds: number[],
-  eosTokenId: number | undefined | null
-): number;
-
 export declare function findInvalidGeneratedToken(
   tokens: number[],
   vocabSize: number,

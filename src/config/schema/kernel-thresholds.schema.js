@@ -91,7 +91,7 @@ export const DEFAULT_ATTENTION_THRESHOLDS = {
 // Fused Matmul Thresholds
 // =============================================================================
 
-export const DEFAULT_FUSED_MATMUL_THRESHOLDS = {
+const DEFAULT_FUSED_MATMUL_THRESHOLDS = {
   maxMediumN: 4096,
   maxMediumK: 8192,
   colsPerWg: 4,

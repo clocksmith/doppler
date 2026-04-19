@@ -198,7 +198,7 @@ function validateSlotLifetimes(steps, label) {
 }
 
 
-export function compileLayerPipeline(plan, numLayers) {
+function compileLayerPipeline(plan, numLayers) {
   const compiledSteps = compileSteps(plan.steps, 'default');
   validateSlotLifetimes(compiledSteps, 'default');
 

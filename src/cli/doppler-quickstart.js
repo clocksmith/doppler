@@ -214,7 +214,7 @@ export function requireQuickstartContent(result) {
   return content;
 }
 
-export async function runQuickstart(settings) {
+async function runQuickstart(settings) {
   const entry = await resolveQuickstartModel(settings.model);
   if (!entry.modes.includes('text')) {
     throw new Error(

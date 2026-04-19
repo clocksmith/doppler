@@ -27,7 +27,7 @@ export const DEFAULT_UL_FREEZE_GROUPS = Object.freeze({
   lora: false,
 });
 
-export const DEFAULT_UL_LOSS_WEIGHTS = Object.freeze({
+const DEFAULT_UL_LOSS_WEIGHTS = Object.freeze({
   ce: 1,
   prior: 1,
   decoder: 1,

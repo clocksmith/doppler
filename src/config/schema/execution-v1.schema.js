@@ -35,7 +35,7 @@ export const PER_LAYER_INPUT_HOT_CACHE_MODES = Object.freeze([
   'tokenizer_scores',
 ]);
 
-export const DEFAULT_EXECUTION_V1_PER_LAYER_INPUTS_SESSION = {
+const DEFAULT_EXECUTION_V1_PER_LAYER_INPUTS_SESSION = {
   materialization: 'auto',
   rowCache: {
     mode: 'lru',

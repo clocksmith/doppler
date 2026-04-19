@@ -727,12 +727,3 @@ export async function runSanaTransformer(latents, context, timeState, weightsEnt
   return reshapeTensor(channelsFirst, [config.out_channels ?? latents.shape[0], gridHeight, gridWidth], 'sana_output');
 }
 
-export async function buildSanaConditioning(context, attentionMask, timestep, guidanceScale, weightsEntry, modelConfig, runtime, options = {}) {
-  const config = modelConfig?.components?.transformer?.config || {};
-  const projectedContext = await projectSanaContext(context, attentionMask, weightsEntry, config, runtime, options);
-  const timestepState = await buildSanaTimestepConditioning(timestep, guidanceScale, weightsEntry, config, runtime, options);
-  return {
-    context: projectedContext,
-    timeState: timestepState,
-  };
-}

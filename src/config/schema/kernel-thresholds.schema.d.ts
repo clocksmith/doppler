@@ -242,8 +242,6 @@ export interface FusedMatmulThresholdsSchema {
   colsPerWg: number;
 }
 
-export declare const DEFAULT_FUSED_MATMUL_THRESHOLDS: FusedMatmulThresholdsSchema;
-
 /**
  * Configuration for cast kernel dispatch.
  */

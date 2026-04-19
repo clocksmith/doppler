@@ -38,16 +38,3 @@ export declare function runSanaTransformer(
   options?: SanaTransformerOptions
 ): Promise<Tensor>;
 
-export declare function buildSanaConditioning(
-  context: Tensor,
-  attentionMask: Uint32Array | null | undefined,
-  timestep: number,
-  guidanceScale: number,
-  weightsEntry: any,
-  modelConfig: any,
-  runtime: any,
-  options?: SanaTransformerOptions
-): Promise<{
-  context: Tensor;
-  timeState: SanaTimestepState;
-}>;

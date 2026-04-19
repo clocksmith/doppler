@@ -174,7 +174,7 @@ export function shouldUseFusedDecodeSampling(config) {
     && !hasConvLayers(config.layerTypes ?? []);
 }
 
-export function resolveBatchStop(tokens, stopFlags, stopTokenIds, eosTokenId) {
+function resolveBatchStop(tokens, stopFlags, stopTokenIds, eosTokenId) {
   let actualCount = tokens.length;
   if (stopFlags) {
     const maxFlags = Math.min(stopFlags.length, tokens.length);
