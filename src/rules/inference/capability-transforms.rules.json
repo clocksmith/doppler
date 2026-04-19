@@ -2,6 +2,15 @@
   "capabilityTransforms": [
     {
       "match": {
+        "modelId": { "startsWith": "gemma-4-e2b-it-q4k-" },
+        "platformVendor": "apple",
+        "retainQ4KMaterialization": true
+      },
+      "transforms": ["disableRetainQ4KMaterialization"],
+      "reason": "Gemma 4 E2B retained Q4K materialization produces NaN in L0.ffn_down on Apple Metal"
+    },
+    {
+      "match": {
         "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
         "activationDtype": "f16",
         "hasSubgroups": true,

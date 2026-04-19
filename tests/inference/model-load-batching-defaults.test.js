@@ -99,6 +99,8 @@ function createRuntimeConfig(session = {}) {
 
 {
   const runtimeConfig = createRuntimeConfig({
+    retainQ4KMaterialization: true,
+    useFlashPrefillAttention: false,
     decodeLoop: {
       batchSize: 4,
       stopCheckMode: 'batch',
@@ -112,6 +114,8 @@ function createRuntimeConfig(session = {}) {
     modelType: 'transformer',
     inference: {
       session: {
+        retainQ4KMaterialization: false,
+        useFlashPrefillAttention: true,
         decodeLoop: {
           batchSize: 4,
           stopCheckMode: 'batch',
@@ -126,6 +130,8 @@ function createRuntimeConfig(session = {}) {
   const nextRuntime = applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null);
   assert.notStrictEqual(nextRuntime, runtimeConfig);
   assert.equal(nextRuntime.inference.session.decodeLoop.disableCommandBatching, true);
+  assert.equal(nextRuntime.inference.session.retainQ4KMaterialization, true);
+  assert.equal(nextRuntime.inference.session.useFlashPrefillAttention, false);
   assert.equal(nextRuntime.inference.generation, undefined);
 }
 

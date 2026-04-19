@@ -18,10 +18,18 @@ import { composeTransforms } from '../../../config/transforms/execution-graph-tr
 import { resolveRangeAwareSelectiveWideningConfig } from './finiteness-policy.js';
 import { log } from '../../../debug/index.js';
 
+const SESSION_CAPABILITY_TRANSFORMS = new Set([
+  'disableRetainQ4KMaterialization',
+]);
+
 export function hasExecutionV1(manifestInference) {
   return manifestInference?.schema === EXECUTION_V1_SCHEMA_ID
     && manifestInference?.execution
     && typeof manifestInference.execution.kernels === 'object';
+}
+
+function isSessionCapabilityTransform(name) {
+  return SESSION_CAPABILITY_TRANSFORMS.has(name);
 }
 
 function mergeExecutionV1Session(manifestSession, runtimeSession) {
@@ -408,6 +416,7 @@ export function compileExecutionV1(options = {}) {
       headDim,
       modelId,
       layerTypes,
+      retainQ4KMaterialization: session?.retainQ4KMaterialization === true,
       ...summarizeExecutionGraphContext(execution),
     };
     const resolved = resolveCapabilityTransforms(capabilities, platform, graphContext);
@@ -424,22 +433,33 @@ export function compileExecutionV1(options = {}) {
           'Use capability-aware remap for manifest-owned execution graphs or choose a compatible runtime.'
         );
       }
-      const composed = composeTransforms(...resolved.transforms);
-      const transformed = composed(execution, {
-        capabilities,
-        platform: platform ?? { id: 'unknown', vendor: 'unknown', architecture: 'unknown' },
-        activationDtype,
-        kvDtype,
-        modelId,
-        layerTypes,
+      const graphTransforms = resolved.transforms.filter((_, index) => {
+        return !isSessionCapabilityTransform(resolved.names[index]);
       });
-      if (transformed !== execution) {
-        execution = transformed;
-        graphWasTransformed = true;
-        appliedTransformNames = resolved.names;
+      const sessionTransformNames = resolved.names.filter(isSessionCapabilityTransform);
+      if (graphTransforms.length > 0) {
+        const composed = composeTransforms(...graphTransforms);
+        const transformed = composed(execution, {
+          capabilities,
+          platform: platform ?? { id: 'unknown', vendor: 'unknown', architecture: 'unknown' },
+          activationDtype,
+          kvDtype,
+          modelId,
+          layerTypes,
+        });
+        if (transformed !== execution) {
+          execution = transformed;
+          graphWasTransformed = true;
+          appliedTransformNames.push(...resolved.names.filter((name) => !isSessionCapabilityTransform(name)));
+        }
+      }
+      if (sessionTransformNames.length > 0) {
+        appliedTransformNames.push(...sessionTransformNames);
+      }
+      if (appliedTransformNames.length > 0) {
         log.info(
           'ExecutionV1',
-          `Capability transforms applied: [${resolved.names.join(', ')}] (${resolved.reason})`
+          `Capability transforms applied: [${appliedTransformNames.join(', ')}] (${resolved.reason})`
         );
       }
     } else {
@@ -489,8 +509,10 @@ export function compileExecutionV1(options = {}) {
   const useQwenSelectiveF16Primary =
     appliedTransformNames.includes('useQwenF16PrimaryMatmuls')
     && !appliedTransformNames.includes('narrowToF16Activations');
+  const retainQ4KMaterializationDisabled =
+    appliedTransformNames.includes('disableRetainQ4KMaterialization');
   let effectiveSession = session;
-  if (activationWidened || useQwenSelectiveF16Primary) {
+  if (activationWidened || useQwenSelectiveF16Primary || retainQ4KMaterializationDisabled) {
     const f32Defaults = fullF32
       ? { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' }
       : useQwenSelectiveF16Primary
@@ -498,13 +520,16 @@ export function compileExecutionV1(options = {}) {
         : { activationDtype: 'f32' };
     effectiveSession = {
       ...session,
-      compute: {
-        ...session.compute,
-        defaults: {
-          ...session.compute.defaults,
-          ...f32Defaults,
+      ...(retainQ4KMaterializationDisabled ? { retainQ4KMaterialization: false } : {}),
+      ...(activationWidened || useQwenSelectiveF16Primary ? {
+        compute: {
+          ...session.compute,
+          defaults: {
+            ...session.compute.defaults,
+            ...f32Defaults,
+          },
         },
-      },
+      } : {}),
       ...(fullF32 && session?.kvcache ? {
         kvcache: {
           ...session.kvcache,

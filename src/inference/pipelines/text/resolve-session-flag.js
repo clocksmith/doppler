@@ -1,24 +1,26 @@
 import { getRuntimeConfig } from '../../../config/runtime.js';
 
 /**
- * Resolve a session-level flag with manifest-first precedence:
+ * Resolve a session-level flag with runtime-over-manifest precedence:
  *
- *   manifest.inference.session[field]  (if set, i.e. not null/undefined)
- *   -> runtime.inference.session[field] (explicit runtime profile)
- *   -> schema default                   (baked into runtime config)
+ *   getRuntimeConfig().inference.session[field]
+ *     (the merged manifest base + runtime override session)
+ *   -> manifest sessionSettings[field] only for legacy callers whose runtime
+ *      config has not been patched yet
  *
- * The merge layer in src/config/merge.js already computes manifest × runtime
- * for session fields when a modelConfig is parsed via parseModelConfigFromManifest.
- * This helper exists for pipeline call sites that don't have the merged
- * modelConfig in hand — typically early init or deep kernel-selection paths —
- * so they can consult the manifest's sessionSettings first.
+ * New call sites should generally read getRuntimeConfig() directly. This helper
+ * is retained for older paths that still accept a modelConfig fallback.
  */
 export function resolveSessionFlag(modelConfig, field) {
+  const runtimeValue = getRuntimeConfig().inference?.session?.[field];
+  if (runtimeValue !== null && runtimeValue !== undefined) {
+    return runtimeValue;
+  }
   const manifestValue = modelConfig?.sessionSettings?.[field];
   if (manifestValue !== null && manifestValue !== undefined) {
     return manifestValue;
   }
-  return getRuntimeConfig().inference?.session?.[field];
+  return runtimeValue;
 }
 
 export function resolveLargeWeightOverrides(modelConfig) {

@@ -1698,6 +1698,12 @@ export function composeTransforms(...transforms) {
   };
 }
 
+// Session-only capability transform marker. The execution-v1 compiler applies
+// the matching runtime session patch; the graph itself is intentionally stable.
+export function disableRetainQ4KMaterialization() {
+  return null;
+}
+
 // =============================================================================
 // Registry
 // =============================================================================
@@ -1718,6 +1724,7 @@ export const TRANSFORMS = Object.freeze({
   remapQ4KDecodeAttentionToGemv,
   remapQ4KDecodeAttentionToFusedQ4KGemv,
   remapQ4KDecodeFFNToGemv,
+  disableRetainQ4KMaterialization,
   useQwenF16PrimaryMatmuls,
   useQwenDecodeF16Matmuls,
   composeTransforms,

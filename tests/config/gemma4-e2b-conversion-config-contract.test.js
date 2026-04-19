@@ -85,6 +85,7 @@ assert.equal(config.session?.decodeLoop?.ringTokens, 2);
 assert.equal(config.session?.decodeLoop?.ringStop, 1);
 assert.equal(config.session?.decodeLoop?.ringStaging, 2);
 assert.equal(config.session?.decodeLoop?.disableCommandBatching, false);
+assert.equal(config.session?.retainQ4KMaterialization, false);
 assert.equal(config.session?.perLayerInputs?.materialization, 'gpu_split_tables');
 assert.equal(config.session?.perLayerInputs?.hotCache?.mode, 'prepared_tokens');
 assert.equal(config.session?.perLayerInputs?.hotCache?.maxTokens, 4096);
@@ -96,6 +97,7 @@ assert.equal(int4PleConfig.output?.modelBaseId, 'gemma-4-e2b-it-q4k-ehf16-af32-i
 assert.equal(int4PleConfig.quantization?.weights, 'q4k');
 assert.equal(int4PleConfig.quantization?.embeddings, 'f16');
 assert.equal(int4PleConfig.quantization?.perLayerEmbeddings, 'int4_per_row');
+assert.equal(int4PleConfig.session?.retainQ4KMaterialization, false);
 // int4ple shares the gpu_split_tables materialization with its non-int4ple sibling
 // so that the INT4 PLE variant benefits from the same throughput path. Previously
 // 'range_backed'; changed in the manifest-first session-flag promotion so PLE and
@@ -163,6 +165,86 @@ assert.equal(
   getLayerSteps(f16Primary.runtimeInferencePatch?.kernelPath, 4, 'prefill')
     .find((step) => step.op === 'attention')?.kernel,
   'attention_head512_f16kv.wgsl'
+);
+
+const appleRetainDisabled = compileExecutionV1({
+  manifestInference,
+  modelId: config.output.modelBaseId,
+  numLayers: 35,
+  headDim: modelHeadDim,
+  runtimeSession: {
+    retainQ4KMaterialization: true,
+  },
+  capabilities: {
+    hasSubgroups: true,
+    hasF16: true,
+    hasSubgroupsF16: true,
+  },
+  platform: {
+    id: 'apple-m3',
+    vendor: 'apple',
+    architecture: 'metal-3',
+  },
+  runtimeCompute: {
+    rangeAwareSelectiveWidening: {
+      enabled: true,
+      includeNonFinite: true,
+      onTrigger: 'error',
+      absThreshold: 65500,
+    },
+  },
+  kernelPathPolicy: {
+    mode: 'capability-aware',
+    sourceScope: ['manifest', 'model', 'config'],
+    onIncompatible: 'remap',
+  },
+});
+
+assert.deepEqual(appleRetainDisabled.appliedTransforms, ['disableRetainQ4KMaterialization']);
+assert.equal(appleRetainDisabled.session.retainQ4KMaterialization, false);
+assert.equal(
+  appleRetainDisabled.runtimeInferencePatch.session?.retainQ4KMaterialization,
+  false
+);
+
+const amdRetainAllowed = compileExecutionV1({
+  manifestInference,
+  modelId: config.output.modelBaseId,
+  numLayers: 35,
+  headDim: modelHeadDim,
+  runtimeSession: {
+    retainQ4KMaterialization: true,
+  },
+  capabilities: {
+    hasSubgroups: true,
+    hasF16: true,
+    hasSubgroupsF16: true,
+  },
+  platform: {
+    id: 'amd-rdna3',
+    vendor: 'amd',
+    architecture: 'rdna3',
+  },
+  runtimeCompute: {
+    rangeAwareSelectiveWidening: {
+      enabled: true,
+      includeNonFinite: true,
+      onTrigger: 'error',
+      absThreshold: 65500,
+    },
+  },
+  kernelPathPolicy: {
+    mode: 'capability-aware',
+    sourceScope: ['manifest', 'model', 'config'],
+    onIncompatible: 'remap',
+  },
+});
+
+assert.deepEqual(amdRetainAllowed.appliedTransforms, []);
+assert.equal(amdRetainAllowed.session.retainQ4KMaterialization, true);
+assert.equal(
+  amdRetainAllowed.runtimeInferencePatch.session?.retainQ4KMaterialization,
+  true
 );
 
 assert.throws(

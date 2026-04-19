@@ -123,7 +123,6 @@ export function applyPipelineContexts(target, contexts = {}, options = {}) {
     // profile (verbose-trace, experiments/*) that sets it actually enables
     // the per-step NaN/Inf anomaly detector without a bespoke CLI flag.
     const kernelTraceCfg = sharedDebug.kernelTrace;
-    console.error('[KT-BRIDGE] sharedDebug keys:', Object.keys(sharedDebug || {}).join(','), 'kernelTraceCfg:', JSON.stringify(kernelTraceCfg));
     if (kernelTraceCfg && (kernelTraceCfg.enabled === true || kernelTraceCfg.breakOnAnomaly === true)) {
       kernelTrace.enable({
         layers: kernelTraceCfg.layers ?? [],

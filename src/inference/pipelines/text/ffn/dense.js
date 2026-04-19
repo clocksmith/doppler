@@ -455,6 +455,7 @@ export async function runDenseFFNGPU(
     // context flag so processFFNStandard skips its downstream doResidualAdd.
     const pendingResidual = context.__pendingFfnResidualTensor;
     const downLoraProbe = getLoRAModule(lora, layerIdx, 'down_proj');
+    const mergedSession = getRuntimeConfig().inference?.session;
     const tryFuseDownResidual = pendingResidual != null
       && !downLoraProbe
       && numTokens > 1
@@ -483,20 +484,11 @@ export async function runDenseFFNGPU(
     // (A cleaner signal would require a return-shape change across all
     // dense.js paths; this local signal is enough for correctness.)
     {
-      // Manifest-first: inference.session.{useWideTileQ4KPrefill,retainQ4KMaterialization}
-      // win over runtime when explicitly set; useWideTileResidualFusion stays runtime-only.
-      const ss = config?.sessionSettings;
-      const wide = (ss?.useWideTileQ4KPrefill !== null && ss?.useWideTileQ4KPrefill !== undefined)
-        ? ss.useWideTileQ4KPrefill === true
-        : getRuntimeConfig().inference?.session?.useWideTileQ4KPrefill === true;
-      const retain = (ss?.retainQ4KMaterialization !== null && ss?.retainQ4KMaterialization !== undefined)
-        ? ss.retainQ4KMaterialization === true
-        : getRuntimeConfig().inference?.session?.retainQ4KMaterialization === true;
       if (tryFuseDownResidual
           && getKernelCapabilities().hasF16 === true
-          && getRuntimeConfig().inference?.session?.useWideTileResidualFusion === true
-          && wide
-          && retain
+          && mergedSession?.useWideTileResidualFusion === true
+          && mergedSession?.useWideTileQ4KPrefill === true
+          && mergedSession?.retainQ4KMaterialization === true
       ) {
         residualFusedHere = true;
         context.__ffnResidualFusedFired = true;
@@ -665,6 +657,7 @@ export async function runDenseFFNGPU(
     // Opt-in WideTile+residual fusion (fused-gate-up path).
     const pendingResidualFused = context.__pendingFfnResidualTensor;
     const downLoraProbeFused = getLoRAModule(lora, layerIdx, 'down_proj');
+    const mergedSessionFused = getRuntimeConfig().inference?.session;
     const tryFuseDownResidualFused = pendingResidualFused != null
       && !downLoraProbeFused
       && numTokens > 1
@@ -690,18 +683,11 @@ export async function runDenseFFNGPU(
       recorder
     );
     {
-      const ss = config?.sessionSettings;
-      const wide = (ss?.useWideTileQ4KPrefill !== null && ss?.useWideTileQ4KPrefill !== undefined)
-        ? ss.useWideTileQ4KPrefill === true
-        : getRuntimeConfig().inference?.session?.useWideTileQ4KPrefill === true;
-      const retain = (ss?.retainQ4KMaterialization !== null && ss?.retainQ4KMaterialization !== undefined)
-        ? ss.retainQ4KMaterialization === true
-        : getRuntimeConfig().inference?.session?.retainQ4KMaterialization === true;
       if (tryFuseDownResidualFused
           && getKernelCapabilities().hasF16 === true
-          && getRuntimeConfig().inference?.session?.useWideTileResidualFusion === true
-          && wide
-          && retain
+          && mergedSessionFused?.useWideTileResidualFusion === true
+          && mergedSessionFused?.useWideTileQ4KPrefill === true
+          && mergedSessionFused?.retainQ4KMaterialization === true
       ) {
         context.__ffnResidualFusedFired = true;
       }

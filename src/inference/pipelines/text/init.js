@@ -24,6 +24,7 @@ import { PAGED_LAYOUT_SEQ_LEN_THRESHOLD } from '../../../config/schema/index.js'
 import {
   kernelPathRequiresF32MatmulWeights,
 } from '../../../config/kernel-path-loader.js';
+import { resolveCapabilityTransforms } from '../../../config/transforms/capability-transform-resolver.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { resolvePerLayerInputsSession } from './generator-helpers.js';
 import {
@@ -209,6 +210,25 @@ function resolveQ4KProjectionMaterializationMode(
   return mode;
 }
 
+function isRetainQ4KMaterializationDisabledByCapability(manifest, caps) {
+  if (!caps) return false;
+  const adapterInfo = caps.adapterInfo ?? {};
+  const platform = {
+    id: adapterInfo.device ?? 'unknown',
+    vendor: adapterInfo.vendor ?? 'unknown',
+    architecture: adapterInfo.architecture ?? 'unknown',
+  };
+  const runtimeSession = getRuntimeConfig().inference?.session ?? {};
+  const graphContext = {
+    modelId: manifest?.modelId ?? 'unknown',
+    activationDtype: runtimeSession.compute?.defaults?.activationDtype ?? null,
+    kvDtype: runtimeSession.kvcache?.kvDtype ?? null,
+    retainQ4KMaterialization: true,
+  };
+  const resolved = resolveCapabilityTransforms(caps, platform, graphContext);
+  return resolved.names.includes('disableRetainQ4KMaterialization');
+}
+
 export function resolveQ4KConfig(
   manifest,
   kernelPath,
@@ -244,10 +264,18 @@ export function resolveQ4KConfig(
     // overrides via merge.js); consumers should not re-implement precedence.
     const runtimeRetain = getRuntimeConfig().inference?.session?.retainQ4KMaterialization === true;
     if (runtimeRetain) {
-      q4kMaterializationMode = 'mixed';
-      debugTrace.loader(
-        `Q4K materialization overridden by runtime flag retainQ4KMaterialization=true: mode=mixed`
-      );
+      if (isRetainQ4KMaterializationDisabledByCapability(manifest, caps)) {
+        debugTrace.loader(
+          'Q4K materialization retain request disabled by capability rule: ' +
+          `model=${manifest?.modelId ?? 'unknown'}, adapter=${caps.adapterInfo?.vendor ?? 'unknown'}/` +
+          `${caps.adapterInfo?.architecture ?? 'unknown'}, mode=${q4kMaterializationMode}`
+        );
+      } else {
+        q4kMaterializationMode = 'mixed';
+        debugTrace.loader(
+          `Q4K materialization overridden by runtime flag retainQ4KMaterialization=true: mode=mixed`
+        );
+      }
     }
   }
   if (isQ4KModel) {
