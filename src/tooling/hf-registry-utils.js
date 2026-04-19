@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 
-export const DEFAULT_HF_REPO_ID = 'Clocksmith/rdrr';
+const DEFAULT_HF_REPO_ID = 'Clocksmith/rdrr';
 export const DEFAULT_HF_REGISTRY_PATH = 'registry/catalog.json';
 export const DEFAULT_HF_REGISTRY_URL = `https://huggingface.co/${DEFAULT_HF_REPO_ID}/resolve/main/${DEFAULT_HF_REGISTRY_PATH}`;
 
@@ -10,11 +10,11 @@ export function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
 }
 
-export function normalizeRepoPath(value) {
+function normalizeRepoPath(value) {
   return normalizeText(value).replace(/^\/+/, '');
 }
 
-export function detectDefaultExternalModelsRoot() {
+function detectDefaultExternalModelsRoot() {
   const envRoot = normalizeText(process.env.DOPPLER_EXTERNAL_MODELS_ROOT);
   if (envRoot) {
     return envRoot;
@@ -133,7 +133,7 @@ export function collectDuplicateModelIds(models) {
   return [...duplicates].sort((a, b) => a.localeCompare(b));
 }
 
-export function sortCatalogEntries(models) {
+function sortCatalogEntries(models) {
   models.sort((left, right) => {
     const leftSort = Number.isFinite(Number(left?.sortOrder)) ? Number(left.sortOrder) : Number.MAX_SAFE_INTEGER;
     const rightSort = Number.isFinite(Number(right?.sortOrder)) ? Number(right.sortOrder) : Number.MAX_SAFE_INTEGER;

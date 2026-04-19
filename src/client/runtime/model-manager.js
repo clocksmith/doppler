@@ -582,7 +582,7 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
   }
 }
 
-export async function loadLoRAAdapter(adapter) {
+async function loadLoRAAdapter(adapter) {
   if (!pipeline) {
     throw new Error('No model loaded. Call loadModel() first.');
   }

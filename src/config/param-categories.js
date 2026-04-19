@@ -1,4 +1,4 @@
-export const ParamCategory = Object.freeze({
+const ParamCategory = Object.freeze({
   GENERATION: 'generation',
   MODEL: 'model',
   SESSION: 'session',

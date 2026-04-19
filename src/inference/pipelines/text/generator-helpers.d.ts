@@ -40,8 +40,6 @@ export declare function releaseSharedAttentionState(
   } | null
 ): void;
 
-export declare function getWeightBufferConfig(state: PipelineState): WeightBufferConfig;
-
 export declare function getLogitsWeights(state: PipelineState): LogitsWeights;
 
 export declare function getLogitsConfig(state: PipelineState): LogitsConfig;

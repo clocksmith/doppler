@@ -38,6 +38,8 @@ export declare function resolveLoadProgressHandlers(
   pipelineProgress: ((event: DopplerLoadProgress) => void) | null;
 };
 
-export declare function fetchManifestFromBaseUrl(baseUrl: string): Promise<RDRRManifest>;
+export declare function fetchManifestPayloadFromBaseUrl(
+  baseUrl: string
+): Promise<{ text: string; manifest: RDRRManifest }>;
 
 export declare function resolveModelSource(model: DopplerModelSource): Promise<DopplerModelSourceResolution>;

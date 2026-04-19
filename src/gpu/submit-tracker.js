@@ -4,7 +4,7 @@ import { trackSubmit } from './perf-guards.js';
 import { log, trace } from '../debug/index.js';
 
 
-export let TRACK_SUBMITS = false;
+let TRACK_SUBMITS = false;
 
 
 let submitCount = 0;
@@ -51,29 +51,25 @@ export function resetSubmitStats() {
   submitSources = new Map();
   currentPhase = 'other';
 
-  // Reset phase stats
   for (const phase of  (['prefill', 'decode', 'other'])) {
     phaseStats[phase] = { count: 0, times: [], totalMs: 0, maxMs: 0, minMs: Infinity, sources: new Map() };
   }
 }
 
 
-export function recordSubmit(durationMs, source) {
+function recordSubmit(durationMs, source) {
   if (!TRACK_SUBMITS) return;
 
-  // Global stats
   submitCount++;
   submitTimes.push(durationMs);
   totalSubmitMs += durationMs;
   maxSubmitMs = Math.max(maxSubmitMs, durationMs);
   minSubmitMs = Math.min(minSubmitMs, durationMs);
 
-  // Track by source
   if (source) {
     submitSources.set(source, (submitSources.get(source) || 0) + 1);
   }
 
-  // Phase-specific stats
   const ps = phaseStats[currentPhase];
   ps.count++;
   ps.times.push(durationMs);
@@ -81,7 +77,6 @@ export function recordSubmit(durationMs, source) {
   ps.maxMs = Math.max(ps.maxMs, durationMs);
   ps.minMs = Math.min(ps.minMs, durationMs);
 
-  // Track source in phase stats
   if (source) {
     ps.sources.set(source, (ps.sources.get(source) || 0) + 1);
   }
@@ -101,7 +96,7 @@ export function getSubmitStats() {
 }
 
 
-export function getPhaseSubmitStats(phase) {
+function getPhaseSubmitStats(phase) {
   const ps = phaseStats[phase];
   return {
     count: ps.count,
@@ -115,15 +110,6 @@ export function getPhaseSubmitStats(phase) {
 }
 
 
-export function getAllPhaseSubmitStats() {
-  return {
-    prefill: getPhaseSubmitStats('prefill'),
-    decode: getPhaseSubmitStats('decode'),
-    other: getPhaseSubmitStats('other'),
-  };
-}
-
-
 export function logSubmitStats(label = 'Forward pass') {
   const stats = getSubmitStats();
   trace.perf(
@@ -133,39 +119,12 @@ export function logSubmitStats(label = 'Forward pass') {
     `range=[${stats.minMs.toFixed(3)}-${stats.maxMs.toFixed(3)}ms]`
   );
 
-  // Log by source if available
   if (stats.bySource && stats.bySource.size > 0) {
     trace.perf('SubmitTracker: Submits by source:');
     const sorted = Array.from(stats.bySource.entries()).sort((a, b) => b[1] - a[1]);
     for (const [source, count] of sorted) {
       const pct = ((count / stats.count) * 100).toFixed(1);
       trace.perf(`  ${source}: ${count} (${pct}%)`);
-    }
-  }
-}
-
-
-export function logAllPhaseSubmitStats(label = 'All phases') {
-  const allStats = getAllPhaseSubmitStats();
-  trace.perf(`SubmitTracker ${label}:`);
-
-  for (const phase of  (['prefill', 'decode', 'other'])) {
-    const stats = allStats[phase];
-    if (stats.count === 0) continue;
-
-    trace.perf(
-      `  ${phase}: ${stats.count} submits, ` +
-      `total=${stats.totalMs.toFixed(2)}ms, ` +
-      `avg=${stats.avgMs.toFixed(3)}ms`
-    );
-
-    // Log by source for this phase
-    if (stats.bySource && stats.bySource.size > 0) {
-      const sorted = Array.from(stats.bySource.entries()).sort((a, b) => b[1] - a[1]);
-      for (const [source, count] of sorted) {
-        const pct = ((count / stats.count) * 100).toFixed(1);
-        trace.perf(`    ${source}: ${count} (${pct}%)`);
-      }
     }
   }
 }

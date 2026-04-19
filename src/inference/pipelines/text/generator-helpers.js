@@ -189,7 +189,7 @@ export function releaseSharedAttentionState(sharedAttentionState, recorder = nul
 }
 
 
-export function getWeightBufferConfig(state) {
+function getWeightBufferConfig(state) {
   return {
     rmsNormWeightOffset: state.modelConfig.rmsNormWeightOffset,
   };

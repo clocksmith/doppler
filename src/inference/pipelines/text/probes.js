@@ -153,7 +153,6 @@ export async function runProbes(stage, buffer, options) {
   if (stageProbes.length === 0) return;
   if (!isCpuBuffer && !allowReadback(`probe.${stage}`)) return;
 
-  // Determine bytes per element based on dtype
   const bytesPerElement = dtype === 'f16' ? 2 : 4;
 
   for (const probe of stageProbes) {
@@ -207,12 +206,6 @@ export async function runProbes(stage, buffer, options) {
       logger(`PROBE${probeId} stage=${stage} token=${tokenIdx} values=[${values.join(', ')}]`);
     }
   }
-}
-
-
-export function hasProbeStage(probes, stage, layerIdx) {
-  if (!probes || probes.length === 0) return false;
-  return probes.some((probe) => probe.stage === stage && matchesLayer(probe.layers, layerIdx));
 }
 
 

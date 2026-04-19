@@ -221,7 +221,7 @@ function collectSourceArtifactFiles(sourceRuntime) {
   };
 }
 
-export function listSourceArtifactFiles(manifest) {
+function listSourceArtifactFiles(manifest) {
   const sourceRuntime = getSourceRuntimeMetadata(manifest);
   return collectSourceArtifactFiles(sourceRuntime).files;
 }

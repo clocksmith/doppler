@@ -227,7 +227,7 @@ export function createSourceRuntimeInference(rawConfig = null) {
   return inference;
 }
 
-export function createSourceRuntimeExecution() {
+function createSourceRuntimeExecution() {
   return {
     kernels: {
       embed: {
@@ -248,7 +248,7 @@ export function createSourceRuntimeExecution() {
   };
 }
 
-export function createSourceRuntimeSession() {
+function createSourceRuntimeSession() {
   return cloneJsonValue(DEFAULT_EXECUTION_V1_SESSION);
 }
 

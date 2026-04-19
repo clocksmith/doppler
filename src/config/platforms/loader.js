@@ -126,13 +126,6 @@ export function getPlatform() {
   return currentPlatform;
 }
 
-export function getCapabilities() {
-  if (!currentCapabilities) {
-    throw new Error('Platform not initialized. Call initializePlatform() first.');
-  }
-  return currentCapabilities;
-}
-
 export function clearPlatformCache() {
   platformCache.clear();
   currentPlatform = null;

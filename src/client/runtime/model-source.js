@@ -31,10 +31,6 @@ export function resolveLoadProgressHandlers(options = {}, defaultLoadProgressLog
   };
 }
 
-export async function fetchManifestFromBaseUrl(baseUrl) {
-  return (await fetchManifestPayloadFromBaseUrl(baseUrl)).manifest;
-}
-
 export async function fetchManifestPayloadFromBaseUrl(baseUrl) {
   const response = await fetch(getManifestUrl(baseUrl));
   if (!response.ok) {

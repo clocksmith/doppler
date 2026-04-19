@@ -35,8 +35,6 @@ export declare function loadModel(
   localPath?: string | null
 ): Promise<boolean>;
 
-export declare function loadLoRAAdapter(adapter: LoRAManifest | RDRRManifest | string): Promise<void>;
-
 export declare function activateLoRAFromTrainingOutput(
   trainingOutput:
     | string

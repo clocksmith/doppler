@@ -1,11 +1,8 @@
-export declare const DEFAULT_HF_REPO_ID: string;
 export declare const DEFAULT_HF_REGISTRY_PATH: string;
 export declare const DEFAULT_HF_REGISTRY_URL: string;
 export declare const DEFAULT_EXTERNAL_MODELS_ROOT: string;
 
 export declare function normalizeText(value: unknown): string;
-export declare function normalizeRepoPath(value: unknown): string;
-export declare function detectDefaultExternalModelsRoot(): string;
 export declare function isPlainObject(value: unknown): boolean;
 export declare function ensureCatalogPayload(payload: unknown, label?: string): {
   models: unknown[];
@@ -31,7 +28,6 @@ export declare function shouldDemoSurfaceRemoteRegistryEntry(entry: unknown, cat
 export declare function buildManifestUrl(baseUrl: unknown): string;
 export declare function buildShardUrl(baseUrl: unknown, shard: unknown): string;
 export declare function collectDuplicateModelIds(models: unknown[]): string[];
-export declare function sortCatalogEntries(models: unknown[]): unknown[];
 export declare function findCatalogEntry(
   payload: { models?: unknown[] } | null | undefined,
   modelId: unknown

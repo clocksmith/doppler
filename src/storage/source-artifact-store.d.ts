@@ -38,8 +38,6 @@ export interface StoredSourceArtifactManifestSynthesisResult {
 
 export declare function normalizeSourceArtifactPath(value: unknown): string;
 
-export declare function listSourceArtifactFiles(manifest: RDRRManifest): StoredSourceArtifactFile[];
-
 export declare function resolveSourceArtifact(
   manifest: RDRRManifest
 ): StoredSourceArtifactDescriptor | null;

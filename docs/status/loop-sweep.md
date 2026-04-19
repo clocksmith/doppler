@@ -1,3 +1,109 @@
+## fire-22 — 2026-04-19 UTC
+
+Landings (7+): 7
+WGSL touches: 1 (final dead entry-point + buffers + registry entry)   JS touches: 6 (multi-file demote + delete batches)
+
+Baseline parity vs fire-21: `kernels:check` 6 pre-existing errors (unchanged),
+`imports:check:browser` 18 pre-existing node:* (unchanged), `test:unit` 25/349 (unchanged).
+No regressions.
+
+### Changed
+- src/gpu/kernels/fused_matmul_q4.wgsl — removed dead `fn main_multicol_shared` entry point (~127 lines) + its `shared_A_buf` + `multicol_sums_sa` workgroup buffers + stale Shared-A variant comment. Kept `override SHARED_A_MAX` (still used by `main_gemv`). Clears fire-21's punt; fused_matmul_q4.wgsl is now trimmed to only the 2 live entry points
+- src/config/kernels/registry.json — removed `matmul.q4_fused_multicol_shared` variant entry
+- src/config/kernels/kernel-ref-digests.js — re-synced (245 entries after deletion)
+- src/tooling/hf-registry-utils.js — demoted 4 exports to private: `DEFAULT_HF_REPO_ID` (used internally by `DEFAULT_HF_REGISTRY_URL`), `normalizeRepoPath`, `detectDefaultExternalModelsRoot`, `sortCatalogEntries`
+- src/tooling/hf-registry-utils.d.ts — paired type removals
+- src/tooling/source-runtime-converter-config.js — demoted 2 exports to private: `createSourceRuntimeExecution`, `createSourceRuntimeSession` (both used internally by `createSourceRuntimeConverterConfig`; zero external consumers)
+- src/tooling/source-runtime-converter-config.d.ts — paired type removals + unused `ExecutionV1GraphSchema`/`ExecutionV1SessionSchema` imports
+- src/gpu/submit-tracker.js — demoted `TRACK_SUBMITS` (let export), `recordSubmit`, `getPhaseSubmitStats` to private + deleted dead export `getAllPhaseSubmitStats` (zero consumers after fire-21 deleted `logAllPhaseSubmitStats`)
+- src/gpu/submit-tracker.d.ts — paired type removals + removed unused `PhaseSubmitStats`/`SubmitPhase` types
+- src/formats/gguf/types.js — demoted 5 exports to private: `GGUFValueType`, `GGMLType`, `GGMLTypeName`, `GGML_BLOCK_SIZE`, `GGML_TYPE_SIZE` (all internal-only to the GGUF parser; fire-19 already removed the type aliases for these)
+- src/formats/gguf/types.d.ts — paired type removals (51 lines of declared const blocks)
+- src/formats/litert/types.js — demoted 2 exports to private: `LITERTLM_SECTION_TYPE`, `LITERTLM_SECTION_TYPE_NAME` (internal-only to the LiteRT parser)
+- src/formats/litert/types.d.ts — paired type removals
+- src/config/param-categories.js — demoted `ParamCategory` to private (55 internal uses in same file as keys for `PARAM_CATEGORIES` and `CategoryRules`; zero external consumers need the enum)
+- src/config/param-categories.d.ts — paired type removal
+- src/formats/rdrr/manifest.js — removed unused `SHARD_SIZE` import (only consumer `calculateShardCount` was deleted this fire)
+- src/client/runtime/model-manager.js — demoted `loadLoRAAdapter` to private (used by `activateLoRAFromTrainingOutput` 8x; zero external after fire-17's `initDoppler` cleanup)
+- src/client/runtime/model-manager.d.ts — paired type removal
+- src/storage/source-artifact-store.js — demoted `listSourceArtifactFiles` to private (wraps internal `collectSourceArtifactFiles`)
+- src/storage/source-artifact-store.d.ts — paired type removal
+- src/inference/multi-model-network.js — demoted `MultiModelNetwork` class to private (tested via functional tests; not imported directly)
+- src/inference/multi-model-network.d.ts — paired class declaration demoted
+- src/inference/pipelines/text/generator-helpers.js — demoted `getWeightBufferConfig` to private
+- src/inference/pipelines/text/generator-helpers.d.ts — paired type removal
+
+### Deleted
+- src/formats/rdrr/manifest.js — `calculateShardCount` (only caller was fire-21's deleted `createShardLayout`)
+- src/formats/rdrr/manifest.d.ts — paired type removal
+- src/gpu/submit-tracker.js — `getAllPhaseSubmitStats` (zero callers after fire-21 deleted its only caller `logAllPhaseSubmitStats`)
+
+### Visited clean (skipped from future fires)
+- src/gpu/kernels/fused_matmul_q4.wgsl (final re-visit; 3 dead entry points now all removed across fires 20/21/22; file is down to the 2 live pinned variants)
+- src/tooling/hf-registry-utils.{js,d.ts} (re-visited — fire-6 removed `normalizeToken`; fire-22 trimmed 4 more internal-only)
+- src/tooling/source-runtime-converter-config.{js,d.ts}
+- src/gpu/submit-tracker.{js,d.ts} (re-visited — fire-21 removed `logAllPhaseSubmitStats`; fire-22 cleaned up cascading dead helpers)
+- src/formats/gguf/types.{js,d.ts} (re-visited — fire-21 removed dead functions; fire-22 demoted the constant exports)
+- src/formats/litert/types.{js,d.ts} (re-visited — fire-11 demoted TFLITE_TENSOR_* consts; fire-22 adds LITERTLM_SECTION_TYPE)
+- src/config/param-categories.{js,d.ts} (re-visited — fire-14 removed `getParamCategory`; fire-22 demoted the enum alias)
+- src/formats/rdrr/manifest.{js,d.ts} (re-visited — fire-21 removed 3 dead; fire-22 removes the cascading 4th)
+- src/client/runtime/model-manager.{js,d.ts} (re-visited — cumulative cleanup across fires 17/21/22)
+- src/storage/source-artifact-store.{js,d.ts}
+- src/inference/multi-model-network.{js,d.ts}
+- src/inference/pipelines/text/generator-helpers.{js,d.ts}
+
+### Punts
+- SOURCE_ARTIFACT_KIND_* constants in `src/tooling/source-artifact-adapter.js` are used by `typeof` in .d.ts to build a union type — demotion breaks the type union. Hold (fire-19 pattern didn't apply here)
+- Pre-existing codegen patches broken for 6 variants (carried over from fire-1 onward)
+
+## fire-21 — 2026-04-19 UTC
+
+Landings (7+): 7
+WGSL touches: 1 (dead entry-point + buffer + registry entry)   JS touches: 6 (mixed delete + demote across many skip-listed files; re-visits justified by new dead-export findings)
+
+Baseline parity vs fire-20: `kernels:check` 6 pre-existing errors (unchanged),
+`imports:check:browser` 18 pre-existing node:* (unchanged), `test:unit` 25/349 (unchanged).
+No regressions.
+
+### Changed
+- src/gpu/kernels/fused_matmul_q4.wgsl — removed dead `fn main_multicol_fast` entry point (~137 lines) + its `multicol_sums_fd` workgroup buffer + the "Combines shared-A with fast extraction" stale reference in the optimized GEMV comment. Clears part of fire-20's punt list; `main_multicol_shared` still remains for a later fire
+- src/config/kernels/registry.json — removed `matmul.q4_fused_multicol_fast` variant entry
+- src/config/kernels/kernel-ref-digests.js — re-synced (246 entries after deletion)
+- src/inference/pipelines/text/kernel-trace.js — deleted dead shim exports `snapshotTensor` + `snapshotFromArray` (both just delegated to `debug/tensor.js`; probes.js + tests import directly from the canonical source, nobody imported through the shim)
+- src/inference/pipelines/text/kernel-trace.d.ts — paired type removals
+- src/formats/gguf/types.js — deleted 3 dead exports: `getTensor`, `getTensors`, `identifyMoETensors` (zero consumers anywhere)
+- src/formats/gguf/types.d.ts — paired type removals
+- src/formats/rdrr/manifest.js — deleted 3 dead exports: `createShardLayout`, `serializeTensorMap`, `getShardUrl` + stale `getShardInfo` import that only `getShardUrl` used
+- src/formats/rdrr/manifest.d.ts — paired type removals + unused `ShardInfo`/`TensorMap` imports
+- src/client/runtime/model-manager.js — deleted 3 dead exports: `unloadModel`, `unloadLoRAAdapter`, `getAvailableModels` (all zero internal + zero external consumers; complements fire-17's demotion of `initDoppler`)
+- src/client/runtime/model-manager.d.ts — paired type removals
+- src/client/runtime/model-source.js — deleted dead export `fetchManifestFromBaseUrl` (trivial wrapper around `fetchManifestPayloadFromBaseUrl`; nobody called the wrapper)
+- src/client/runtime/model-source.d.ts — paired type removal
+- src/config/platforms/loader.js — deleted dead export `getCapabilities` (zero external; `currentCapabilities` variable remains for internal use by `initializePlatform`)
+- src/config/platforms/loader.d.ts — paired type removal
+- src/gpu/submit-tracker.js — deleted dead export `logAllPhaseSubmitStats` (zero callers; diagnostic helper for dev use only)
+- src/gpu/submit-tracker.d.ts — paired type removal
+- src/inference/pipelines/text/probes.js — deleted dead export `hasProbeStage` (zero callers)
+- src/inference/pipelines/text/probes.d.ts — paired type removal
+- src/gpu/perf-guards.js — deleted 2 dead exports: `resetPerfCounters`, `getPerfCounters`
+- src/gpu/perf-guards.d.ts — paired type removals
+
+### Visited clean (skipped from future fires)
+- src/inference/pipelines/text/kernel-trace.{js,d.ts} (re-visited — different finding: dead shims after fire-17 deleted `traceStepSync`)
+- src/formats/gguf/types.{js,d.ts}
+- src/formats/rdrr/manifest.{js,d.ts}
+- src/client/runtime/model-manager.{js,d.ts} (re-visited — fire-17 + fire-21 both trimmed this file; what remains is the live public surface)
+- src/client/runtime/model-source.{js,d.ts}
+- src/config/platforms/loader.{js,d.ts} (re-visited — fire-17 trimmed `prefersUnifiedMemory` etc., fire-21 follows up on `getCapabilities`)
+- src/gpu/submit-tracker.{js,d.ts}
+- src/inference/pipelines/text/probes.{js,d.ts}
+- src/gpu/perf-guards.{js,d.ts}
+
+### Punts
+- Final `main_multicol_shared` dead entry point + `shared_A_buf` + `multicol_sums_sa` buffers in `fused_matmul_q4.wgsl` (registry variant `q4_fused_multicol_shared`). Deferred to next WGSL-touch fire to keep diff bounded
+- Remaining dead exports in skip-listed files (`gpu/submit-tracker.js` `TRACK_SUBMITS`/`recordSubmit`/`getPhaseSubmitStats`/`getAllPhaseSubmitStats`; `formats/litert/types.js` `LITERTLM_SECTION_TYPE_*`; `formats/gguf/types.js` `GGUFValueType`/`GGMLType`/`GGMLTypeName`/`GGML_BLOCK_SIZE`/`GGML_TYPE_SIZE`; `tooling/hf-registry-utils.js` `DEFAULT_HF_REPO_ID`/`normalizeRepoPath`/etc). Good fuel for future fires
+- Pre-existing codegen patches broken for 6 variants (carried over from fire-1 onward)
+
 ## fire-20 — 2026-04-19 UTC
 
 Landings (7+): 7

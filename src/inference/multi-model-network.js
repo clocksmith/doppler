@@ -68,7 +68,7 @@ function mergeLogitsCpu(logitsList, weights) {
 
 
 
-export class MultiModelNetwork {
+class MultiModelNetwork {
   
   pipeline;
 
@@ -620,7 +620,6 @@ export class MultiModelNetwork {
       return this.combineOutputs(outputs, combiner);
     }
 
-    // Chain: sequential pipeline, each expert runs once
     if (genome.topology.type === 'chain') {
       const ordered = genome.nodes.map((node) => node.id);
       

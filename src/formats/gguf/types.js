@@ -2,7 +2,7 @@
 
 import { DEFAULT_GGUF_PARSER_DEFAULTS } from '../../config/schema/index.js';
 
-export const GGUFValueType = {
+const GGUFValueType = {
   UINT8: 0,
   INT8: 1,
   UINT16: 2,
@@ -18,7 +18,7 @@ export const GGUFValueType = {
   FLOAT64: 12,
 };
 
-export const GGMLType = {
+const GGMLType = {
   F32: 0,
   F16: 1,
   Q4_0: 2,
@@ -50,11 +50,11 @@ export const GGMLType = {
   BF16: 30,
 };
 
-export const GGMLTypeName = Object.fromEntries(
+const GGMLTypeName = Object.fromEntries(
   Object.entries(GGMLType).map(([key, value]) => [value, key])
 );
 
-export const GGML_BLOCK_SIZE = {
+const GGML_BLOCK_SIZE = {
   [GGMLType.Q4_0]: 32,
   [GGMLType.Q4_1]: 32,
   [GGMLType.Q5_0]: 32,
@@ -81,7 +81,7 @@ export const GGML_BLOCK_SIZE = {
 // Byte sizes per block (llama.cpp ggml-common.h). Required so the GGUF parser
 // can compute tensor byte extents for I-quants and K-quants used in modern
 // unsloth/ggml-org distributions (Gemma 4, Qwen 3, etc.).
-export const GGML_TYPE_SIZE = {
+const GGML_TYPE_SIZE = {
   [GGMLType.F32]: 4,
   [GGMLType.F16]: 2,
   [GGMLType.Q4_0]: 18,

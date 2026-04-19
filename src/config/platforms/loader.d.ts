@@ -33,11 +33,6 @@ export function initializePlatform(adapter: GPUAdapter): Promise<ResolvedPlatfor
 export function getPlatform(): PlatformSchema;
 
 /**
- * Get the current runtime capabilities (throws if not initialized).
- */
-export function getCapabilities(): RuntimeCapabilities;
-
-/**
  * Clear all cached platform data. Useful for hot-reloading.
  */
 export function clearPlatformCache(): void;

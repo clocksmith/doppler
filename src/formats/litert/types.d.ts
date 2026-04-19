@@ -3,19 +3,6 @@ export declare const LITERT_TASK_DEFAULT_TFLITE_ENTRY: 'TF_LITE_PREFILL_DECODE';
 export declare const LITERT_TASK_DEFAULT_TOKENIZER_MODEL_ENTRY: 'TOKENIZER_MODEL';
 export declare const LITERT_TASK_DEFAULT_METADATA_ENTRY: 'METADATA';
 
-export declare const LITERTLM_SECTION_TYPE: {
-  readonly NONE: 0;
-  readonly GenericBinaryData: 1;
-  readonly Deprecated: 2;
-  readonly TFLiteModel: 3;
-  readonly SP_Tokenizer: 4;
-  readonly LlmMetadataProto: 5;
-  readonly HF_Tokenizer_Zlib: 6;
-  readonly TFLiteWeights: 7;
-};
-
-export declare const LITERTLM_SECTION_TYPE_NAME: Record<number, string>;
-
 export interface LiteRTSource {
   name?: string | null;
   size: number;

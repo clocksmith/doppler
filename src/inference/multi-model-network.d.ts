@@ -48,7 +48,7 @@ export interface ExpertTask {
   prompt: string;
 }
 
-export declare class MultiModelNetwork {
+declare class MultiModelNetwork {
   private pipeline;
   private loader;
   private router;

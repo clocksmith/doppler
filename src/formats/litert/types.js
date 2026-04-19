@@ -10,7 +10,7 @@ export const LITERT_TASK_DEFAULT_TFLITE_ENTRY = 'TF_LITE_PREFILL_DECODE';
 export const LITERT_TASK_DEFAULT_TOKENIZER_MODEL_ENTRY = 'TOKENIZER_MODEL';
 export const LITERT_TASK_DEFAULT_METADATA_ENTRY = 'METADATA';
 
-export const LITERTLM_SECTION_TYPE = Object.freeze({
+const LITERTLM_SECTION_TYPE = Object.freeze({
   NONE: 0,
   GenericBinaryData: 1,
   Deprecated: 2,
@@ -21,7 +21,7 @@ export const LITERTLM_SECTION_TYPE = Object.freeze({
   TFLiteWeights: 7,
 });
 
-export const LITERTLM_SECTION_TYPE_NAME = Object.freeze(Object.fromEntries(
+const LITERTLM_SECTION_TYPE_NAME = Object.freeze(Object.fromEntries(
   Object.entries(LITERTLM_SECTION_TYPE).map(([name, value]) => [value, name])
 ));
 

@@ -23,9 +23,3 @@ export function runProbes(
     dtype?: 'f16' | 'f32';
   }
 ): Promise<void>;
-
-export function hasProbeStage(
-  probes: ProbeConfigSchema[] | null | undefined,
-  stage: ProbeStage,
-  layerIdx?: number
-): boolean;

@@ -1,18 +1,11 @@
 
 
-import {
-  RDRR_VERSION,
-  SHARD_SIZE,
-} from './types.js';
+import { RDRR_VERSION } from './types.js';
 import { validateManifest } from './validation.js';
 import { createDopplerError, ERROR_CODES } from '../../errors/doppler-error.js';
 
 export function generateShardFilename(index) {
   return `shard_${String(index).padStart(5, '0')}.bin`;
-}
-
-export function calculateShardCount(totalSize, shardSize = SHARD_SIZE) {
-  return Math.ceil(totalSize / shardSize);
 }
 
 export function createManifest(options) {

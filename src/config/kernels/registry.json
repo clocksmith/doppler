@@ -654,30 +654,6 @@
             "wgslOnDisk": true
           }
         },
-        "q4_fused_multicol_shared": {
-          "wgsl": "fused_matmul_q4.wgsl",
-          "entryPoint": "main_multicol_shared",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
-          "outputDtype": "f32",
-          "weightDtype": "q4k",
-          "variantMetadata": {
-            "colsPerWg": 32
-          },
-          "description": "Shared-A multi-column GEMV - cooperative A load eliminates redundant global reads across 32 columns",
-          "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
-            "ruleChains": [],
-            "wgslOnDisk": true
-          }
-        },
         "q4_fused_gemv": {
           "wgsl": "fused_matmul_q4.wgsl",
           "entryPoint": "main_gemv",
@@ -856,7 +832,7 @@
             "tileM": 4,
             "colsPerWg": 256
           },
-          "description": "WideTile Q4_K prefill matmul (adapted from ORT MatMulNBitsWideTile, MIT licensed). Each thread owns 1 output column \u00d7 TILE_M rows; register-tiled accumulation. F32 A, Q4_K B (llama.cpp 256-block), F16 C. ~128x fewer WGs than q4_fused_batched_f16 at Gemma-4 prefill shape.",
+          "description": "WideTile Q4_K prefill matmul (adapted from ORT MatMulNBitsWideTile, MIT licensed). Each thread owns 1 output column × TILE_M rows; register-tiled accumulation. F32 A, Q4_K B (llama.cpp 256-block), F16 C. ~128x fewer WGs than q4_fused_batched_f16 at Gemma-4 prefill shape.",
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],

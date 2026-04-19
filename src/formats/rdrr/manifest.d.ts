@@ -11,8 +11,6 @@ import type {
 
 export declare function generateShardFilename(index: number): string;
 
-export declare function calculateShardCount(totalSize: number, shardSize?: number): number;
-
 export declare function createManifest(options: CreateManifestOptions): RDRRManifest;
 
 export declare function serializeManifest(manifest: RDRRManifest): string;
