@@ -349,3 +349,6 @@ export declare function createEmulationConfig(
  * Get chip profile config for a specific chip type
  */
 export declare function getChipProfile(chipType: EmulatedChipType): Partial<EmulationConfigSchema>;
+
+/** Format a byte count as a human-readable string (e.g. "1.5 GB"). */
+export declare function formatBytes(bytes: number): string;

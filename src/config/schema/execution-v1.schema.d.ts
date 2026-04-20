@@ -308,6 +308,7 @@ export declare const PER_LAYER_INPUT_MATERIALIZATION_MODES: readonly ['auto', 'r
 export declare const PER_LAYER_INPUT_ROW_CACHE_MODES: readonly ['off', 'lru'];
 export declare const PER_LAYER_INPUT_PREFETCH_MODES: readonly ['off', 'next_token'];
 export declare const PER_LAYER_INPUT_GPU_UPLOAD_MODES: readonly ['per_step_slices', 'per_batch_slices'];
+export declare const PER_LAYER_INPUT_HOT_CACHE_MODES: readonly ['off', 'prepared_tokens', 'tokenizer_scores'];
 export declare const DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS: ExecutionV1ComputeDefaultsSchema;
 export declare const DEFAULT_EXECUTION_V1_SESSION: ExecutionV1SessionSchema;
 export declare const DEFAULT_EXECUTION_V1_POLICIES: ExecutionV1PoliciesSchema;

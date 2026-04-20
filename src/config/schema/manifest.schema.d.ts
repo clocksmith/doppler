@@ -24,6 +24,18 @@ export declare const RDRR_VERSION: number;
 /** Default shard size (64MB) */
 export declare const SHARD_SIZE: number;
 
+/** Maximum manifest header size in bytes (safety cap for `MAX_HEADER_SIZE`) */
+export declare const MAX_HEADER_SIZE: number;
+
+/** Bytes read from the head of an RDRR manifest when probing the header */
+export declare const HEADER_READ_SIZE: number;
+
+/** Default epsilon for RMSNorm when the manifest does not pin one */
+export declare const DEFAULT_RMS_NORM_EPS: number;
+
+/** Default epsilon for high-precision ops when the manifest does not pin one */
+export declare const DEFAULT_HIGH_PRECISION_EPS: number;
+
 /** External tensors filename */
 export declare const TENSORS_FILENAME: string;
 

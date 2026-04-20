@@ -71,8 +71,16 @@ export interface RuntimeConfigSchema {
   emulation: EmulationConfigSchema;
 }
 
+/** Chat-template defaults (enabled/type/thinking tri-state) */
+export interface ChatTemplateDefaultConfigSchema {
+  enabled: boolean | null;
+  type: string | null;
+  thinking: boolean;
+}
+
 /** Default runtime configuration */
 export declare const DEFAULT_LARGE_WEIGHT_CONFIG: LargeWeightConfigSchema;
+export declare const DEFAULT_CHAT_TEMPLATE_CONFIG: ChatTemplateDefaultConfigSchema;
 export declare const DEFAULT_RUNTIME_CONFIG: RuntimeConfigSchema;
 
 /**
