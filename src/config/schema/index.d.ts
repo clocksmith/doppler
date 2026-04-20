@@ -465,6 +465,9 @@ export {
   DEFAULT_LOG_HISTORY_CONFIG,
   DEFAULT_LOG_LEVEL_CONFIG,
   DEFAULT_TRACE_CONFIG,
+  DEFAULT_LOADER_DEBUG_CONFIG,
+  DEFAULT_MATMUL_DEBUG_CONFIG,
+  DEFAULT_KERNEL_TRACE_CONFIG,
   DEFAULT_PIPELINE_DEBUG_CONFIG,
   DEFAULT_PROFILER_CONFIG,
   DEFAULT_PERF_GUARDS_CONFIG,
@@ -551,6 +554,7 @@ export {
   type BridgeConfigSchema,
 
   // Defaults
+  DEFAULT_BRIDGE_TIMEOUT_CONFIG,
   DEFAULT_BRIDGE_CONFIG,
 } from './bridge.schema.js';
 
@@ -856,9 +860,36 @@ export {
 
   // Defaults
   DEFAULT_LARGE_WEIGHT_CONFIG,
+  DEFAULT_CHAT_TEMPLATE_CONFIG,
   DEFAULT_RUNTIME_CONFIG,
   DEFAULT_DOPPLER_CONFIG,
 
   // Factory
   createDopplerConfig,
 } from './doppler.schema.js';
+
+// =============================================================================
+// Adapter Schema
+// =============================================================================
+export {
+  VALID_LORA_TARGET_MODULES,
+  DEFAULT_ADAPTER_VALIDATION_CONFIG,
+  DEFAULT_ADAPTER_STACK_CONFIG,
+  DEFAULT_ADAPTER_REGISTRY_CONFIG,
+  DEFAULT_ADAPTER_CONFIG,
+} from './adapter.schema.js';
+
+// =============================================================================
+// Tuner Limits
+// =============================================================================
+export { DEFAULT_TUNER_LIMITS } from './tuner.schema.js';
+
+// =============================================================================
+// Self-Speculation Schema
+// =============================================================================
+export {
+  SPECULATION_MODES,
+  SPECULATION_VERIFY_MODES,
+  DEFAULT_SELF_SPECULATION_CONFIG,
+  validateSelfSpeculationConfig,
+} from './speculation-self.schema.js';
