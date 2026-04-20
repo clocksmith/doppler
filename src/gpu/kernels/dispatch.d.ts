@@ -22,6 +22,18 @@ export declare function dispatch(
 ): void;
 
 /**
+ * Polymorphic dispatch that picks between submit-and-dispatch (GPUDevice)
+ * and record-only (CommandRecorder) based on the target's shape.
+ */
+export declare function dispatchKernel(
+  target: GPUDevice | CommandRecorder | null,
+  pipeline: GPUComputePipeline,
+  bindGroup: GPUBindGroup,
+  workgroups: number | [number, number, number],
+  label?: string
+): void;
+
+/**
  * Record a compute pass to a CommandRecorder (no submit)
  * Use for kernels in the batched pipeline path
  */

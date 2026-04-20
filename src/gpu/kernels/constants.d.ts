@@ -114,3 +114,16 @@ export declare const ALIGNMENT: {
   readonly VERTEX: 4;
 };
 
+/** FFN dispatch shape constants (workgroup + shared-memory sizing). */
+export declare const FFN_DISPATCH: {
+  readonly SHARED_INPUT_SIZE_DEFAULT: number;
+  readonly SHARED_INPUT_SIZE_SMALL: number;
+  readonly Q4K_COLS_PER_WG: number;
+  readonly MULTI_OUTPUTS_PER_WG: number;
+};
+
+/** Dequant dispatch shape constants. */
+export declare const DEQUANT_DISPATCH: {
+  readonly SCALAR_ELEMENTS_PER_THREAD: number;
+};
+

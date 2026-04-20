@@ -78,11 +78,39 @@ export {
   type UniformBufferOptions,
   createUniformBufferFromData,
   createUniformBufferWithView,
+  getUniformByteLength,
+  writeUniformsFromObject,
 } from './uniform-utils.js';
 
 // ============================================================================
 // Combined Cache Management
 // ============================================================================
+
+/**
+ * Unified kernel dispatch helper. Resolves the kernel config and pipeline
+ * for `opName`/`variant`, creates a uniform buffer from `uniforms`, and
+ * dispatches via the provided `target` (GPUDevice or CommandRecorder).
+ */
+export declare function unifiedKernelWrapper(
+  opName: string,
+  target: GPUDevice | { device: GPUDevice; beginComputePass: unknown } | null,
+  variant: string,
+  bindings: unknown[],
+  uniforms: Record<string, number>,
+  workgroups: number | [number, number, number],
+  constants?: Record<string, number> | null,
+  extraBindings?: unknown[] | null
+): Promise<void>;
+
+/**
+ * Create a bind group with descriptor validation. Throws a labeled error
+ * when the descriptor is missing required fields.
+ */
+export declare function createBindGroupWithValidation(
+  device: GPUDevice,
+  descriptor: GPUBindGroupDescriptor,
+  contextLabel: string
+): GPUBindGroup;
 
 /**
  * Clear all kernel caches

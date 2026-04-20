@@ -24,6 +24,24 @@ export interface UniformBufferOptions {
 // ============================================================================
 
 /**
+ * Write a kernel's uniform fields into a DataView according to the
+ * registry-declared layout. Throws when the kernel has no uniforms or
+ * an unsupported field type.
+ */
+export declare function writeUniformsFromObject(
+  view: DataView,
+  config: unknown,
+  values: Record<string, number>
+): void;
+
+/**
+ * Byte length required for a kernel's uniform buffer, taking the
+ * declared size and alignment rules into account. Returns 0 when the
+ * kernel has no uniforms.
+ */
+export declare function getUniformByteLength(config: unknown): number;
+
+/**
  * Create a uniform buffer from raw data.
  * Uses caching by default for content-addressed reuse.
  */
