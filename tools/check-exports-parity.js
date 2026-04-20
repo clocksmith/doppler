@@ -40,7 +40,8 @@ function stripComments(s) {
 function jsExports(src) {
   const names = new Set();
   const patterns = [
-    /^export\s+(?:async\s+)?function\s+([A-Za-z_$][A-Za-z0-9_$]*)/gm,
+    // `function` or `function*` (generator), optionally `async`.
+    /^export\s+(?:async\s+)?function\s*\*?\s*([A-Za-z_$][A-Za-z0-9_$]*)/gm,
     /^export\s+(?:const|let|var)\s+([A-Za-z_$][A-Za-z0-9_$]*)/gm,
     /^export\s+(?:async\s+)?class\s+([A-Za-z_$][A-Za-z0-9_$]*)/gm,
   ];

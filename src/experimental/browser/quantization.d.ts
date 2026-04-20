@@ -31,6 +31,11 @@ export declare function resolveModelId(
 
 export declare function toWebGPUDtype(dtype: string): string;
 
+export declare function resolveEffectiveQuantizationInfo(
+  baseInfo: QuantizationInfoSchema,
+  tensors: Record<string, unknown>
+): QuantizationInfoSchema;
+
 export declare function isMatmulWeight(name: string, shape: number[]): boolean;
 
 export declare function resolveTensorDtype(
