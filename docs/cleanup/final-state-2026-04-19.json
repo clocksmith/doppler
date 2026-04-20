@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-04-19",
+  "gitSha": "e578cf2",
+  "baseline": {
+    "path": "docs/cleanup/baseline-2026-04-19.json",
+    "gitSha": "8cbd696",
+    "note": "Baseline is the frozen before-state. This final-state artifact is the diffable after-state across all phases of the cleanup plan. Each metric below is paired with its baseline value and an explicit delta."
+  },
+  "successCriteria": {
+    "defaultChecksPass": {
+      "status": "PASS",
+      "evidence": "npm run check:green (agents:verify, public:boundaries:check, api:docs:check, imports:check:browser, pending:check, exports:parity:check) — all 6 checks exit 0 at SHA e578cf2."
+    },
+    "pendingWorkQuarantined": {
+      "status": "PASS",
+      "evidence": "2 *.pending.test.js files registered in tools/policies/pending-tests-policy.json with owner=doppler-cleanup and expires=2026-10-19. Default test lane excludes them; --include-pending opts in. npm run pending:check enforces policy."
+    },
+    "cleanupClaimsBacked": {
+      "status": "PASS",
+      "evidence": "This artifact plus docs/cleanup/baseline-2026-04-19.json form the before/after pair. Every phase commit points at the phase it advanced; counts match the git-observable state."
+    },
+    "noInvariantSilentlyWeakened": {
+      "status": "PASS",
+      "evidence": "No runtime-behavior changes in the parity work (only .d.ts and barrel re-exports). No config/rule files reduced. Agent instruction parity (agents:verify) passed before every commit. No CI wiring was added that would bypass review."
+    }
+  },
+  "metrics": {
+    "parity": {
+      "baselineDriftFiles": 40,
+      "currentDriftFiles": 0,
+      "delta": -40,
+      "percentReduction": "100%",
+      "baselineSymbols": 151,
+      "currentSymbols": 0,
+      "allowlistEntries": 0,
+      "note": "No allowlist debt. Every drifting symbol either got a real declaration or the parity checker's two regex bugs were fixed."
+    },
+    "checks": {
+      "baseline": { "agents:verify": "pass", "public:boundaries:check": "pass", "api:docs:check": "pass", "imports:check:browser": "pass", "exports:parity:check": "fail" },
+      "current": { "agents:verify": "pass", "public:boundaries:check": "pass", "api:docs:check": "pass", "imports:check:browser": "pass", "exports:parity:check": "pass", "pending:check": "pass", "check:green": "pass" }
+    },
+    "docs": {
+      "rootMd": { "baseline": 8, "current": 7, "delta": -1, "note": "EMOJI.md moved to docs/style/emoji.md (d46a657)." },
+      "topLevelMd": { "baseline": 45, "current": 44, "delta": -1 },
+      "docsMdTotal": { "baseline": 83, "current": 82, "delta": -1, "note": "general-invariants.md and javascript-invariants.md merged into full guides; baseline/final net is −1 because emoji.md moved in." },
+      "styleGuides": { "baseline": 10, "current": 9, "delta": -1, "note": "general-invariants.md and javascript-invariants.md folded into full guides; docs/style/emoji.md was added from root." },
+      "developerGuides": { "baseline": 20, "current": 20, "delta": 0, "note": "Phase 5 inventory committed but execution gated on architectural decision (inline-into-skills vs sibling-files vs shrink-and-keep vs delete-after-porting). See docs/cleanup/developer-guides-inventory-2026-04-19.json." },
+      "agentProtocols": { "baseline": 6, "current": 6, "delta": 0 }
+    },
+    "tests": {
+      "totalTestJs": { "baseline": 435, "current": 435, "delta": 0 },
+      "pendingTestJs": { "baseline": 0, "current": 2, "delta": 2, "note": "Migrated doppler-public-logits-api-contract and demo-import-surface off the regression lane (e415826)." }
+    },
+    "scripts": {
+      "total": { "baseline": 110, "current": 112, "delta": 2, "note": "Added pending:check and check:green as part of cleanup. Phase 1 audit identified 39 reducible scripts (26 unreferenced, 7 reporting-maybe-dead, 6 ci-alias-unreferenced); execution deferred per user guidance." }
+    },
+    "config": {
+      "srcConfigJson": { "baseline": 96, "current": 96, "delta": 0, "note": "Untouched by design — policy-as-code invariant." },
+      "srcRulesFiles": { "baseline": 54, "current": 54, "delta": 0, "note": "Untouched by design." },
+      "benchmarkVendorJson": { "baseline": 56, "current": 56, "delta": 0 }
+    }
+  },
+  "enforceableChecksAdded": [
+    {
+      "name": "pending:check",
+      "source": "tools/check-pending-tests.js + tools/policies/pending-tests-policy.json",
+      "introducedIn": "e415826",
+      "enforces": "every *.pending.test.js has a policy entry with owner + expires|issue; expired/orphan entries fail the check"
+    },
+    {
+      "name": "check:green (aggregator)",
+      "source": "package.json script",
+      "introducedIn": "d333e96",
+      "enforces": "default PR-gate read-only chain: agents:verify → public:boundaries:check → api:docs:check → imports:check:browser → pending:check → exports:parity:check"
+    },
+    {
+      "name": "exports:parity:check with allowlist",
+      "source": "tools/check-exports-parity.js + tools/policies/exports-parity-allowlist.json",
+      "introducedIn": "c73ea96, fc2b53e..e578cf2",
+      "enforces": ".js/.d.ts value-export parity across src/**; allowlist entries require owner + expires|issue; expired or unused entries fail the check"
+    }
+  ],
+  "checkerBugsFoundAndFixed": [
+    {
+      "sha": "b7b7cc1",
+      "bug": "grouped-export regex captured // and /* */ comments inside { ... } blocks, silently dropping names that followed an inline comment on one side (kv-cache, debug/index barrel)"
+    },
+    {
+      "sha": "e578cf2",
+      "bug": "function-export regex didn't match `async function*` generator syntax, producing spurious onlyInDts drift for storage/shard-manager streamShardRange, safetensors-parser streamTensorData, experimental browser Q4K/F16 chunk streams"
+    }
+  ],
+  "commits": {
+    "range": "8cbd696..e578cf2",
+    "count": 21,
+    "artifactsAdded": [
+      "docs/cleanup/baseline-2026-04-19.json",
+      "docs/cleanup/parity-drift-classification-2026-04-19.json",
+      "docs/cleanup/style-docs-inventory-2026-04-19.json",
+      "docs/cleanup/developer-guides-inventory-2026-04-19.json",
+      "docs/cleanup/npm-scripts-audit-2026-04-19.json",
+      "docs/cleanup/parity-tail-buckets-2026-04-19.json",
+      "docs/cleanup/final-state-2026-04-19.json (this file)"
+    ],
+    "policyFilesAdded": [
+      "tools/policies/exports-parity-allowlist.json",
+      "tools/policies/pending-tests-policy.json"
+    ],
+    "checkScriptsAdded": [
+      "tools/check-pending-tests.js"
+    ]
+  },
+  "remainingFollowUps": {
+    "ciGating": {
+      "status": "not-wired",
+      "note": "npm run check:green is documented in docs/contributing.md but not wired into .github/workflows. Adding a workflow that runs check:green on pull_request is a one-file addition; left to user choice."
+    },
+    "developerGuidesFold": {
+      "status": "inventory-only",
+      "note": "20 guides mapped in docs/cleanup/developer-guides-inventory-2026-04-19.json to doppler-convert/kernel-reviewer/debug skills. Execution blocked on the architectural decision (inline vs sibling-files vs shrink vs delete)."
+    },
+    "styleDocsFurtherCollapse": {
+      "status": "paused",
+      "note": "Phase 4 steps 1–2 done (both *-invariants.md merged). Step 4 (rename guides, drop `-style-guide` suffix) deferred; blocked on tests/config/diffusion-gpu-contract-docs.test.js which reads command-interface-design-guide.md and harness-style-guide.md by literal path."
+    },
+    "npmScriptAudit": {
+      "status": "audit-only",
+      "note": "docs/cleanup/npm-scripts-audit-2026-04-19.json classified all 112 scripts; concrete reductions (target 112→80 safe, 112→60 ambitious) require per-script git-history verification and owner sign-off."
+    }
+  }
+}
