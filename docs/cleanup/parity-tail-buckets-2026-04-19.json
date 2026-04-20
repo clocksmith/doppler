@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-04-19",
+  "purpose": "Bucket split for the remaining parity-drift tail. Avoids treating every file as the same kind of .d.ts cleanup. Each bucket has a different fix strategy and different review-risk profile.",
+  "totals": {
+    "startedFrom": 40,
+    "remaining": 9,
+    "reduction": 31,
+    "percent": "77.5%"
+  },
+  "buckets": [
+    {
+      "name": "kernel-adjacent",
+      "description": "WebGPU kernel wrappers. Declarations must match actual runtime signatures loosely but correctly — a bad .d.ts here is worse than a missing one because consumers get false confidence. Mirror the nearest-neighbor existing declaration in the same file.",
+      "risk": "medium",
+      "files": [
+        {
+          "path": "src/gpu/kernels/backward/index.js",
+          "symbols": [
+            "runRmsnormBackward", "recordRmsnormBackward",
+            "runLayernormBackward", "recordLayernormBackward",
+            "runRopeBackward", "recordRopeBackward",
+            "runUpsample2dBackward", "recordUpsample2dBackward",
+            "runGroupnormBackward", "recordGroupnormBackward",
+            "runConv2dBackward", "recordConv2dBackward"
+          ],
+          "action": "declare each as matching pair runX/recordX — 12 symbols, 6 backward ops. Use existing backward/utils.d.ts runMatmulBackwardDx shape as template."
+        },
+        {
+          "path": "src/gpu/kernels/backward/utils.js",
+          "symbols": ["createBackwardKernel", "runMatmulBackwardDx", "recordMatmulBackwardDx"],
+          "action": "declare the backward-kernel factory plus the Dx matmul runner/recorder."
+        },
+        {
+          "path": "src/gpu/kernels/index.js",
+          "symbols": ["runLayerNormBackward", "recordLayerNormBackward"],
+          "action": "add to the grouped re-export of backward helpers."
+        }
+      ]
+    },
+    {
+      "name": "converter-helpers",
+      "description": "Converter-side utilities. Most are private-ish but consumed by the converter entry point, so runtime exports them. Declarations can be Record<string, unknown>-shaped — these don't have a stable public consumer yet.",
+      "risk": "low",
+      "files": [
+        {
+          "path": "src/converter/core.js",
+          "symbols": [
+            "resolveManifestMoEConfig",
+            "buildSentencepieceTokenizer",
+            "buildBundledTokenizer",
+            "isGemma4PerLayerEmbedTensor",
+            "resolveConvertedAt",
+            "resolveManifestMultimodalConfig"
+          ],
+          "action": "add 6 loose declarations. isGemma4PerLayerEmbedTensor is a simple predicate."
+        }
+      ]
+    },
+    {
+      "name": "inference-text-helpers",
+      "description": "Layer and embedding helpers inside the text pipeline. Shape fits Record<string, unknown> at the boundary plus a small number of scalar-typed predicates.",
+      "risk": "low",
+      "files": [
+        {
+          "path": "src/inference/pipelines/text/layer.js",
+          "symbols": [
+            "resolveActivationDtype",
+            "getConvLayerState",
+            "isSlidingLayerType",
+            "hasConvLayers",
+            "resolveAttentionRotaryDim",
+            "resolveAttentionHeadDim",
+            "resolveAttentionKVSharing",
+            "hasPerLayerInputBlock",
+            "applyPerLayerInputBlock"
+          ],
+          "action": "9 declarations. Predicate helpers (hasConvLayers, isSlidingLayerType, hasPerLayerInputBlock) are boolean returns on simple shapes."
+        },
+        {
+          "path": "src/inference/pipelines/text/embed.js",
+          "symbols": [
+            "isRangeBackedCpuEmbeddingSource",
+            "normalizeRangeBytes",
+            "decodeRangeChunkIntoOutput"
+          ],
+          "dtsStale": ["recordScale", "scaleGPUBuffer"],
+          "action": "3 add-declarations plus 2 stale-removals. Confirm recordScale/scaleGPUBuffer are not used by any consumer before deleting."
+        }
+      ]
+    },
+    {
+      "name": "experimental-lane",
+      "description": "Quarantined subsystem lane under src/experimental/. Lower priority: drift here affects developer-internal surfaces only. Safe to allowlist with short expiry rather than fix inline.",
+      "risk": "low",
+      "files": [
+        {
+          "path": "src/experimental/browser/quantization.js",
+          "symbols": ["resolveEffectiveQuantizationInfo"],
+          "dtsStale": ["createQ4KChunkStream", "createF16ChunkStream"],
+          "action": "declare resolveEffectiveQuantizationInfo (same shape as src/converter/quantization-info — it's re-exported). Verify the 2 dts-stale stream helpers are not used and remove."
+        },
+        {
+          "path": "src/experimental/browser/safetensors-parser-browser.js",
+          "dtsStale": ["streamTensorData"],
+          "action": "stale-removal. Verify no consumer references streamTensorData."
+        }
+      ]
+    },
+    {
+      "name": "stale-removal-candidates",
+      "description": "onlyInDts items where the runtime clearly does not export the symbol. Fix is to delete from .d.ts. Each needs a git-blame check that the symbol wasn't recently removed (so consumers haven't migrated yet).",
+      "risk": "medium",
+      "files": [
+        {
+          "path": "src/storage/shard-manager.js",
+          "dtsStale": ["streamShardRange"],
+          "action": "verify no consumer imports streamShardRange (git log + grep) before deleting from .d.ts."
+        }
+      ]
+    }
+  ],
+  "strategyNotes": {
+    "cadence": "Keep 3–5 files per commit. Small enough to review, easy to bisect.",
+    "ciPromotion": "Do NOT wire check:green into CI while parity still fails. The check should become boring before it becomes mandatory.",
+    "probes": [
+      "run the parity checker (npm run exports:parity:check)",
+      "for public-surface changes, `node -e 'import(\"...\").then(m => ...)'` to confirm runtime actually exports what the .d.ts claims"
+    ],
+    "pause": "Do not advance docs/developer-guides collapse beyond the inventory artifacts until parity is mostly closed — the tail here directly affects public correctness."
+  }
+}

@@ -1,5 +1,27 @@
 export declare function sumProfileTimings(timings: Record<string, number> | null): number | null;
 
+/**
+ * Error thrown when decode readback produces non-finite values.
+ * Callers can branch on the .name === 'FinitenessError' or use
+ * instanceof.
+ */
+export declare class FinitenessError extends Error {
+  constructor(message: string);
+}
+
+/**
+ * Advance one decode step using a pre-resolved token id and its
+ * embedding. Mutates `state` to reflect the new sequence length and
+ * decode-step counter.
+ */
+export declare function advanceWithTokenAndEmbedding(
+  state: Record<string, unknown>,
+  tokenId: number,
+  opts: Record<string, unknown>,
+  helpers: Record<string, unknown>,
+  embeddingMode: string
+): Promise<void>;
+
 export interface BatchDecodeSelectionConfig {
   batchSize: number;
   useGPU: boolean;

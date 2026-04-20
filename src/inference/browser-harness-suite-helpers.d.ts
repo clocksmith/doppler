@@ -25,3 +25,7 @@ export declare function sampleTimingNumber(
 ): number | null;
 export declare function buildCanonicalTiming(overrides?: Record<string, unknown>): Record<string, unknown>;
 export declare function buildTimingDiagnostics(timing?: Record<string, unknown>, options?: Record<string, unknown>): Record<string, unknown>;
+
+export declare function buildFirstLoadComposition(
+  fields?: Record<string, unknown>
+): Record<string, number | null>;

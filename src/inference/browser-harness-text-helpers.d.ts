@@ -33,3 +33,15 @@ export declare function runEmbedding(
   runtimeConfig: Record<string, unknown>,
   runOverrides?: Record<string, unknown> | null
 ): Promise<Record<string, unknown>>;
+
+export declare function runImageTranscription(
+  pipeline: Record<string, unknown>,
+  runtimeConfig: Record<string, unknown>,
+  runOverrides?: Record<string, unknown> | null
+): Promise<Record<string, unknown>>;
+
+export declare function runTextInference(
+  pipeline: Record<string, unknown>,
+  runtimeConfig: Record<string, unknown>,
+  runOverrides?: Record<string, unknown> | null
+): Promise<Record<string, unknown>>;

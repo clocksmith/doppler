@@ -31,3 +31,8 @@ export declare function resolveModelId(
 ): string;
 
 export declare function toWebGPUDtype(dtype: string): string;
+
+export declare function resolveEffectiveQuantizationInfo(
+  baseInfo: QuantizationInfoSchema,
+  tensors: Record<string, unknown>
+): QuantizationInfoSchema;

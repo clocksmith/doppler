@@ -217,3 +217,31 @@ export declare function resolveAttentionPlanForTest(
   useF16KV: boolean;
   isDecode: boolean;
 };
+
+/**
+ * Run contiguous-quantized attention (submit + wait).
+ * Types mirror runAttentionTieredQuant above.
+ */
+export declare function runAttentionContiguousQuant(
+  Q: Tensor,
+  packedK: GPUBuffer,
+  packedV: GPUBuffer,
+  scalesK: GPUBuffer,
+  scalesV: GPUBuffer,
+  numHeads: number,
+  headDim: number,
+  options?: AttentionOptions
+): Promise<Tensor>;
+
+/** Record contiguous-quantized attention onto a CommandRecorder. */
+export declare function recordAttentionContiguousQuant(
+  recorder: CommandRecorder,
+  Q: Tensor,
+  packedK: GPUBuffer,
+  packedV: GPUBuffer,
+  scalesK: GPUBuffer,
+  scalesV: GPUBuffer,
+  numHeads: number,
+  headDim: number,
+  options?: AttentionOptions
+): Promise<Tensor>;
