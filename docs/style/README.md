@@ -15,6 +15,7 @@ Coding conventions for the DOPPLER codebase.
 | [Config Style Guide](./config-style-guide.md) | Config ownership, merge order, runtime boundaries |
 | [Harness Interface Style Guide](./harness-style-guide.md) | Browser + CLI execution rules and config-only controls |
 | [Command Interface Design Guide](./command-interface-design-guide.md) | Shared command schema, intent mapping, parity contract |
+| [Emoji Policy](./emoji.md) | Strict no-emoji rule and the approved Unicode symbol set for status/log/doc output |
 
 Shared rule ownership:
 - Cross-language naming/logging/testing policy is canonical in [General Style Guide](./general-style-guide.md).
