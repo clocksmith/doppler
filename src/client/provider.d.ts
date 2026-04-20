@@ -147,3 +147,5 @@ export interface DopplerProvider {
 }
 
 export function createDopplerProvider(config: ProviderConfig): DopplerProvider;
+
+export { wrapPipelineAsHandle } from './wrap-pipeline-handle.js';

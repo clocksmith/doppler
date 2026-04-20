@@ -115,10 +115,14 @@ const minimalV1Inference = {
     attentionOutputGate: false,
     causal: true,
     attentionBias: false,
+    queryPreAttnScalar: 1,
   },
   normalization: {
     rmsNormWeightOffset: true,
     rmsNormEps: 1e-6,
+    postAttentionNorm: false,
+    preFeedforwardNorm: false,
+    postFeedforwardNorm: false,
   },
   ffn: {
     activation: 'gelu',

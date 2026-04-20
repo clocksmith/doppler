@@ -5,21 +5,12 @@ import { BaseTokenizer } from './tokenizers/base.js';
 import { TransformersTokenizer, BundledTokenizer } from './tokenizers/bundled.js';
 import { SentencePieceTokenizer } from './tokenizers/sentencepiece.js';
 import { BPETokenizer } from './tokenizers/bpe.js';
+import { toArrayBuffer } from '../utils/array-buffer.js';
 
 const BUNDLED_TOKENIZER_CACHE = new Map();
 
 function hasScheme(value) {
   return /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(value);
-}
-
-function toArrayBuffer(value, label) {
-  if (value instanceof ArrayBuffer) {
-    return value;
-  }
-  if (value instanceof Uint8Array) {
-    return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength);
-  }
-  throw new Error(`${label} must return ArrayBuffer or Uint8Array.`);
 }
 
 function parseTokenizerJsonPayload(value) {

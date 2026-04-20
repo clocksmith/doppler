@@ -43,6 +43,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `ReceiptFailure`
   - `ReceiptFallbackDecision`
   - `ReceiptModel`
+  - `wrapPipelineAsHandle`
 
 ## `doppler-gpu/tooling`
 
@@ -68,64 +69,155 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 
 - Audience: unspecified
 - Stability: unspecified
+- Types: [src/tooling-exports/storage.d.ts](../../../src/tooling-exports/storage.d.ts)
 - Implementation: [src/tooling-exports/storage.js](../../../src/tooling-exports/storage.js)
 - Notes: No manual classification recorded for this export path.
+- Exported symbols:
+  - `computeHash`
+  - `deleteModel`
+  - `deleteStorageEntry`
+  - `ensureModelCached`
+  - `exportModelToDirectory`
+  - `formatBytes`
+  - `getQuotaInfo`
+  - `listFilesInStore`
+  - `listModels`
+  - `listRegisteredModels`
+  - `listStorageInventory`
+  - `loadFileFromStore`
+  - `loadManifestFromStore`
+  - `loadShard`
+  - `loadTensorsFromStore`
+  - `loadTokenizerFromStore`
+  - `loadTokenizerModelFromStore`
+  - `openModelStore`
+  - `registerModel`
+  - `removeRegisteredModel`
+  - `saveAuxFile`
+  - `saveManifest`
+  - `saveTensorsToStore`
+  - `saveTokenizer`
+  - `saveTokenizerModel`
+  - `streamFileFromStore`
+  - `writeShard`
 
 ## `doppler-gpu/tooling/device`
 
 - Audience: unspecified
 - Stability: unspecified
+- Types: [src/tooling-exports/device.d.ts](../../../src/tooling-exports/device.d.ts)
 - Implementation: [src/tooling-exports/device.js](../../../src/tooling-exports/device.js)
 - Notes: No manual classification recorded for this export path.
+- Exported symbols:
+  - `getDevice`
+  - `getKernelCapabilities`
+  - `getPlatformConfig`
+  - `hasPreseededShaderSource`
+  - `initDevice`
+  - `isWebGPUAvailable`
+  - `registerShaderSources`
 
 ## `doppler-gpu/tooling/manifest`
 
 - Audience: unspecified
 - Stability: unspecified
+- Types: [src/tooling-exports/manifest.d.ts](../../../src/tooling-exports/manifest.d.ts)
 - Implementation: [src/tooling-exports/manifest.js](../../../src/tooling-exports/manifest.js)
 - Notes: No manual classification recorded for this export path.
+- Exported symbols:
+  - `classifyTensorRole`
+  - `clearManifest`
+  - `DEFAULT_MANIFEST_INFERENCE`
+  - `getManifest`
+  - `parseManifest`
+  - `setManifest`
 
 ## `doppler-gpu/structured`
 
 - Audience: unspecified
 - Stability: unspecified
+- Types: [src/tooling-exports/structured.d.ts](../../../src/tooling-exports/structured.d.ts)
 - Implementation: [src/tooling-exports/structured.js](../../../src/tooling-exports/structured.js)
 - Notes: No manual classification recorded for this export path.
+- Exported symbols:
+  - `*`
+  - `createJsonGrammarMask`
 
 ## `doppler-gpu/client/model-manager`
 
 - Audience: unspecified
 - Stability: unspecified
+- Types: [src/client/runtime/model-manager.d.ts](../../../src/client/runtime/model-manager.d.ts)
 - Implementation: [src/client/runtime/model-manager.js](../../../src/client/runtime/model-manager.js)
 - Notes: No manual classification recorded for this export path.
+- Exported symbols:
+  - `activateLoRAFromTrainingOutput`
+  - `extractTextModelConfig`
+  - `fetchArrayBuffer`
+  - `getActiveLoRA`
+  - `getCurrentModelId`
+  - `getPipeline`
+  - `loadModel`
+  - `readOPFSFile`
+  - `shouldAutoTuneKernels`
+  - `verifyExplicitModelUrlMatch`
+  - `writeOPFSFile`
 
 ## `doppler-gpu/models/qwen3`
 
 - Audience: unspecified
 - Stability: unspecified
+- Types: [src/models/qwen3.d.ts](../../../src/models/qwen3.d.ts)
 - Implementation: [src/models/qwen3.js](../../../src/models/qwen3.js)
 - Notes: No manual classification recorded for this export path.
+- Exported symbols:
+  - `FAMILY_ID`
+  - `HF_REPO_ID`
+  - `KNOWN_MODELS`
+  - `resolveHfBaseUrl`
+  - `resolveModel`
 
 ## `doppler-gpu/models/gemma3`
 
 - Audience: unspecified
 - Stability: unspecified
+- Types: [src/models/gemma3.d.ts](../../../src/models/gemma3.d.ts)
 - Implementation: [src/models/gemma3.js](../../../src/models/gemma3.js)
 - Notes: No manual classification recorded for this export path.
+- Exported symbols:
+  - `FAMILY_ID`
+  - `HF_REPO_ID`
+  - `KNOWN_MODELS`
+  - `resolveHfBaseUrl`
+  - `resolveModel`
 
 ## `doppler-gpu/models/gemma4`
 
 - Audience: unspecified
 - Stability: unspecified
+- Types: [src/models/gemma4.d.ts](../../../src/models/gemma4.d.ts)
 - Implementation: [src/models/gemma4.js](../../../src/models/gemma4.js)
 - Notes: No manual classification recorded for this export path.
+- Exported symbols:
+  - `FAMILY_ID`
+  - `HF_REPO_ID`
+  - `KNOWN_MODELS`
+  - `resolveHfBaseUrl`
+  - `resolveModel`
 
 ## `doppler-gpu/models/embeddinggemma`
 
 - Audience: unspecified
 - Stability: unspecified
+- Types: [src/models/embeddinggemma.d.ts](../../../src/models/embeddinggemma.d.ts)
 - Implementation: [src/models/embeddinggemma.js](../../../src/models/embeddinggemma.js)
 - Notes: No manual classification recorded for this export path.
+- Exported symbols:
+  - `FAMILY_ID`
+  - `HF_REPO_ID`
+  - `KNOWN_MODELS`
+  - `resolveHfBaseUrl`
+  - `resolveModel`
 
 ## `doppler-gpu/tooling-experimental`
 

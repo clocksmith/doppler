@@ -44,6 +44,7 @@ import {
   isStopToken,
 } from './init-chat-templates.js';
 import { fuseQKVWeights } from './init-qkv-fusion.js';
+import { toArrayBuffer } from '../../../utils/array-buffer.js';
 
 // Re-exports for backwards compatibility
 export { initRoPEFrequencies, isGPURoPEBuffers } from './init-rope.js';
@@ -108,16 +109,6 @@ function assertSupportedTurboQuantMode(mode, label) {
     'TurboQuant outlier high-precision buffers and decode kernels are not wired end to end; ' +
     'use "turboquant" or "turboquant_prod".'
   );
-}
-
-function toArrayBuffer(value, label) {
-  if (value instanceof ArrayBuffer) {
-    return value;
-  }
-  if (value instanceof Uint8Array) {
-    return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength);
-  }
-  throw new Error(`${label} must return ArrayBuffer or Uint8Array.`);
 }
 
 function toUint8Array(value, label) {

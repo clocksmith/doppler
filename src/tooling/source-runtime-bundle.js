@@ -25,6 +25,7 @@ import { createRuntimeModelContract } from '../inference/runtime-model.js';
 import { computeHash, createStreamingHasher } from '../storage/shard-manager.js';
 import { cloneJsonValue } from '../utils/clone-json.js';
 import { encodeUtf8 } from '../utils/encode-utf8.js';
+import { toArrayBuffer } from '../utils/array-buffer.js';
 
 export const DIRECT_SOURCE_RUNTIME_MODE = 'direct-source';
 export const DIRECT_SOURCE_RUNTIME_SCHEMA_VERSION = 1;
@@ -35,16 +36,6 @@ const SOURCE_VERIFY_CHUNK_BYTES = 4 * 1024 * 1024;
 
 function toPathKey(value) {
   return String(value || '').trim().replace(/\\/g, '/');
-}
-
-function toArrayBuffer(value, label) {
-  if (value instanceof ArrayBuffer) {
-    return value;
-  }
-  if (value instanceof Uint8Array) {
-    return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength);
-  }
-  throw new Error(`${label} must return ArrayBuffer or Uint8Array.`);
 }
 
 function toUint8Chunk(value, label) {

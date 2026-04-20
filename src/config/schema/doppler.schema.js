@@ -1,3 +1,4 @@
+import { cloneJsonValue as cloneConfigTree } from '../../utils/clone-json.js';
 import { DEFAULT_LOADING_CONFIG } from './loading.schema.js';
 import { DEFAULT_SHARED_RUNTIME_CONFIG } from './shared-runtime.schema.js';
 import { DEFAULT_EMULATION_CONFIG, createEmulationConfig } from './emulation.schema.js';
@@ -144,13 +145,6 @@ export const DEFAULT_DOPPLER_CONFIG = {
   model: undefined,
   runtime: DEFAULT_RUNTIME_CONFIG,
 };
-
-function cloneConfigTree(value) {
-  if (typeof structuredClone === 'function') {
-    return structuredClone(value);
-  }
-  return JSON.parse(JSON.stringify(value));
-}
 
 // =============================================================================
 // Factory Function

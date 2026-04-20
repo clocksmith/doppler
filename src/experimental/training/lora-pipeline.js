@@ -27,20 +27,7 @@ import {
 import { watchFinalizedCheckpoints } from './checkpoint-watch.js';
 import { loadLoRAFromManifest } from '../adapters/lora-loader.js';
 import { createUploadedTensor } from './tensor-factory.js';
-
-function stableSortObject(value) {
-  if (Array.isArray(value)) {
-    return value.map((entry) => stableSortObject(entry));
-  }
-  if (!value || typeof value !== 'object') {
-    return value;
-  }
-  const sorted = {};
-  for (const key of Object.keys(value).sort()) {
-    sorted[key] = stableSortObject(value[key]);
-  }
-  return sorted;
-}
+import { stableSortObject } from '../../utils/stable-sort-object.js';
 
 function stableJson(value) {
   return JSON.stringify(stableSortObject(value));

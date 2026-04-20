@@ -15,6 +15,7 @@ import { parseSafetensorsHeader } from '../formats/safetensors/types.js';
 import { parseTFLiteFromSource } from '../formats/tflite/types.js';
 import { log } from '../debug/index.js';
 import { formatBytes } from '../storage/quota.js';
+import { toArrayBuffer } from '../utils/array-buffer.js';
 import {
   createSourceStorageContext,
 } from './source-runtime-bundle.js';
@@ -29,16 +30,6 @@ import {
   resolveLiteRTPackageParsedArtifact,
 } from './litert-package-runtime.js';
 const MAX_NODE_READ_BYTES = 64 * 1024 * 1024;
-
-function toArrayBuffer(value, label) {
-  if (value instanceof ArrayBuffer) {
-    return value;
-  }
-  if (value instanceof Uint8Array) {
-    return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength);
-  }
-  throw new Error(`${label} must return ArrayBuffer or Uint8Array.`);
-}
 
 function normalizePath(value) {
   return String(value || '').trim();

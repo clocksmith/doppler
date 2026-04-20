@@ -132,22 +132,22 @@
       "embed": {
         "kernel": "gather_f16.wgsl",
         "entry": "main",
-        "digest": "sha256:a4829f4067091c98ad6ebbc9b0744cdd5bbcd4fbf6092b2f7cc7f1098695860f"
+        "digest": "sha256:e9f8056a8764360ca23e53289a5f133c2e3d6da122f6437f5eb0d78a46e8f049"
       },
       "rmsnorm": {
         "kernel": "rmsnorm.wgsl",
         "entry": "main",
-        "digest": "sha256:f516b3e4bde2015f2a207c3ca5b8c9820c7809fa8f8d0786f90c568e0f1ac077"
+        "digest": "sha256:c723c0300cc8f93396d79d1a274c0a90ccf1eb8ce82c0d778b8cd4659615fe45"
       },
       "gemv": {
         "kernel": "matmul_gemv_subgroup.wgsl",
         "entry": "main_vec4",
-        "digest": "sha256:3cee3bed453b40c5564a751d2a917649e10ad52f5268e77cbfecfcee34780457"
+        "digest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011"
       },
       "rope": {
         "kernel": "rope.wgsl",
         "entry": "main",
-        "digest": "sha256:238e989aad7da731046cd54d7bb3c80a6f26daf5d7a8e435607161de902e5882"
+        "digest": "sha256:e13c54f261d7ef00474b71e4fe7b3298fb5cc49161f50c7ea1854aa6672ebe71"
       },
       "attn_decode": {
         "kernel": "attention_decode_online_f16kv.wgsl",
@@ -175,12 +175,12 @@
       "attn_stream": {
         "kernel": "attention_streaming_f16kv.wgsl",
         "entry": "main",
-        "digest": "sha256:5976eef417cebf648f52aeebb47ed1dc6b03c3c541122290c5cead19238fdc24"
+        "digest": "sha256:76eda2dfc1b4323ed4fd02b91d1ce448de65ce9b31898dee8ae635b1d5b94d3a"
       },
       "lm_head_gemv": {
         "kernel": "matmul_gemv_subgroup.wgsl",
         "entry": "main_multicol",
-        "digest": "sha256:96c38c15e6fed0d7efdc5cd094db5843a8e8ddfe01eee3bc7322fa555dacf3d0",
+        "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
         "constants": {
           "MULTICOL_COLS_PER_WG": 64,
           "MULTICOL_THREADS_PER_COL": 4
@@ -189,7 +189,7 @@
       "sample": {
         "kernel": "sample.wgsl",
         "entry": "sample_single_pass",
-        "digest": "sha256:4412357e84113ee2f1bc0dc8bf89e314c2ab482c89c14ca016ea9949d16a9d0c"
+        "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
       }
     },
     "preLayer": [

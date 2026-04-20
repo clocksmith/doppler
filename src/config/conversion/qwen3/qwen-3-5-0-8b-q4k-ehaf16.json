@@ -40,8 +40,16 @@
       "min_pixels": 65536,
       "max_pixels": 16777216,
       "normalization": {
-        "mean": [0.5, 0.5, 0.5],
-        "std": [0.5, 0.5, 0.5]
+        "mean": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "std": [
+          0.5,
+          0.5,
+          0.5
+        ]
       },
       "deepstack_visual_indexes": []
     }
@@ -139,7 +147,7 @@
       "enabled": true
     }
   },
-    "session": {
+  "session": {
     "compute": {
       "defaults": {
         "activationDtype": "f32",
@@ -217,17 +225,17 @@
       "rmsnorm": {
         "kernel": "rmsnorm.wgsl",
         "entry": "main",
-        "digest": "sha256:989f2e7ef2ce27c187062ffa913dd6ed785ec01531fa9cea4879d2b8168a8ad3"
+        "digest": "sha256:c723c0300cc8f93396d79d1a274c0a90ccf1eb8ce82c0d778b8cd4659615fe45"
       },
       "q4_decode": {
         "kernel": "fused_matmul_q4.wgsl",
         "entry": "main_multicol",
-        "digest": "sha256:1eb36aafcfc8cc449638e709b2a7f8ca41de9e8707978dac85caa2e79afe53a1"
+        "digest": "sha256:9abf24b4dae5dc5cd10798d34146f1f6687d64916812e9ceeb77369ba0589022"
       },
       "rope": {
         "kernel": "rope.wgsl",
         "entry": "main",
-        "digest": "sha256:238e989aad7da731046cd54d7bb3c80a6f26daf5d7a8e435607161de902e5882"
+        "digest": "sha256:e13c54f261d7ef00474b71e4fe7b3298fb5cc49161f50c7ea1854aa6672ebe71"
       },
       "attn_decode": {
         "kernel": "attention_decode_online_f16kv.wgsl",
@@ -268,7 +276,7 @@
       "attn_stream": {
         "kernel": "attention_streaming_f16kv.wgsl",
         "entry": "main",
-        "digest": "sha256:5976eef417cebf648f52aeebb47ed1dc6b03c3c541122290c5cead19238fdc24",
+        "digest": "sha256:76eda2dfc1b4323ed4fd02b91d1ce448de65ce9b31898dee8ae635b1d5b94d3a",
         "precision": {
           "kvDtype": "f16"
         }
@@ -284,7 +292,7 @@
       "lm_head_gemv": {
         "kernel": "matmul_gemv_subgroup_f16a.wgsl",
         "entry": "main_multicol",
-        "digest": "sha256:cc31df534551ba5dd7feebbddb2822d1c53f7d6a98fd0d772c294620602b51e5",
+        "digest": "sha256:d29012db696be7547b213d0245dba9e84aaac165bc65cf1379ca3fccfa2be4a4",
         "constants": {
           "MULTICOL_COLS_PER_WG": 64,
           "MULTICOL_THREADS_PER_COL": 4
@@ -297,17 +305,12 @@
       "sample": {
         "kernel": "sample.wgsl",
         "entry": "sample_single_pass",
-        "digest": "sha256:91c5c30bbc3e034457c1521c1ad576ce798c0868a1fe16e02be5f92706614096"
+        "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
       },
       "q4_decode_gemv": {
         "kernel": "fused_matmul_q4.wgsl",
         "entry": "main_gemv",
-        "digest": "sha256:4315fa628e32acabe29a4c7ca5e10a1984dd6d04418ae1676772f2985431ae60"
-      },
-      "q4_decode_ffn_gemv": {
-        "kernel": "matmul_gemv_subgroup.wgsl",
-        "entry": "main_multicol",
-        "digest": "sha256:f4d392b7f1e97e5bd63044ce09bdeb77ed7e77f6080181d483b8f1553e844ec4"
+        "digest": "sha256:90bde9bbe8772ce2597ecf9094f1504b290705335c273bd231a83a75a37a16f5"
       }
     },
     "preLayer": [
@@ -364,12 +367,12 @@
       ],
       [
         "gate_proj",
-        "q4_decode_ffn_gemv",
+        "q4_decode_gemv",
         "layer.{L}.mlp.gate_proj"
       ],
       [
         "up_proj",
-        "q4_decode_ffn_gemv",
+        "q4_decode_gemv",
         "layer.{L}.mlp.up_proj"
       ],
       [
@@ -378,7 +381,7 @@
       ],
       [
         "down_proj",
-        "q4_decode_ffn_gemv",
+        "q4_decode_gemv",
         "layer.{L}.mlp.down_proj"
       ],
       [

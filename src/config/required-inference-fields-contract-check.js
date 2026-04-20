@@ -1,11 +1,5 @@
 import { validateRequiredInferenceFields } from '../inference/pipelines/text/config.js';
-
-function cloneJson(value) {
-  if (typeof structuredClone === 'function') {
-    return structuredClone(value);
-  }
-  return JSON.parse(JSON.stringify(value));
-}
+import { cloneJsonValue as cloneJson } from '../utils/clone-json.js';
 
 function setPath(root, path, value) {
   let current = root;

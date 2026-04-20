@@ -120,27 +120,27 @@
       "conv2d": {
         "kernel": "conv2d.wgsl",
         "entry": "main",
-        "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000010"
+        "digest": "sha256:140ed68bf1554ebfadbad7bcf1dfdff7f95aff18588459205f14b05cb432eee2"
       },
       "depthwise_conv2d": {
         "kernel": "depthwise_conv2d.wgsl",
         "entry": "main",
-        "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000011"
+        "digest": "sha256:cf14cb40d282ad4d4fab160109b97eaeaf12aab62579b73324ac485ac75155b0"
       },
       "grouped_pointwise": {
         "kernel": "grouped_pointwise_conv2d.wgsl",
         "entry": "main",
-        "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000012"
+        "digest": "sha256:9cf77937b10dd96f3aedc1793183ef2fff05d075fac3884fad5cd5869d0d9181"
       },
       "layernorm": {
         "kernel": "layernorm.wgsl",
         "entry": "main",
-        "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000013"
+        "digest": "sha256:8ff885017bfcfc8fdb8d16e09c358c000830bfd5fbf3d87187694edb0cb44f7c"
       },
       "rmsnorm": {
         "kernel": "rmsnorm.wgsl",
         "entry": "main",
-        "digest": "sha256:f516b3e4bde2015f2a207c3ca5b8c9820c7809fa8f8d0786f90c568e0f1ac077"
+        "digest": "sha256:c723c0300cc8f93396d79d1a274c0a90ccf1eb8ce82c0d778b8cd4659615fe45"
       },
       "matmul": {
         "kernel": "matmul_f16w_f32a.wgsl",
@@ -165,12 +165,12 @@
       "modulate": {
         "kernel": "modulate.wgsl",
         "entry": "main",
-        "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000015"
+        "digest": "sha256:dfe88a35b94752573199c16b3d8aecd4e8e7da57dc88d7b342aa61e0122e71ec"
       },
       "bias_add": {
         "kernel": "bias_add.wgsl",
         "entry": "main",
-        "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000016"
+        "digest": "sha256:e7d3b4a5f9efc8b0569c56bcdeb63e921fa6d1d006901deabc734cab40346715"
       }
     },
     "preLayer": [],

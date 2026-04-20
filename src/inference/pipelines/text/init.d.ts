@@ -274,9 +274,9 @@ export function applyLlama3ChatTemplate(prompt: string): string;
 export function applyGptOssChatTemplate(prompt: string): string;
 
 /**
- * Apply ChatML template to a prompt.
+ * Apply Gemma 4 chat template to a prompt (multimodal-aware).
  */
-export function applyChatMLTemplate(prompt: string): string;
+export function applyGemma4ChatTemplate(prompt: string, options?: { thinking?: boolean }): string;
 
 /**
  * Apply Qwen chat template to a prompt.

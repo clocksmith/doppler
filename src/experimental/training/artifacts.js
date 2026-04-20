@@ -1,6 +1,7 @@
 import { sha256Hex } from '../../utils/sha256.js';
 import { DISTILL_TRAINING_SCHEMA_VERSION } from '../../config/schema/distill-training.schema.js';
 import { UL_TRAINING_SCHEMA_VERSION } from '../../config/schema/ul-training.schema.js';
+import { stableSortObject } from '../../utils/stable-sort-object.js';
 
 const DISTILL_MANIFEST_SCHEMA_VERSION = 1;
 const UL_MANIFEST_SCHEMA_VERSION = 1;
@@ -15,20 +16,6 @@ function normalizeTimestamp(value) {
     ? value
     : (typeof value === 'string' && value.trim() ? new Date(value) : new Date());
   return date.toISOString().replace(/[:]/g, '-');
-}
-
-function stableSortObject(value) {
-  if (Array.isArray(value)) {
-    return value.map((entry) => stableSortObject(entry));
-  }
-  if (!value || typeof value !== 'object') {
-    return value;
-  }
-  const sorted = {};
-  for (const key of Object.keys(value).sort()) {
-    sorted[key] = stableSortObject(value[key]);
-  }
-  return sorted;
 }
 
 function stableJson(value) {

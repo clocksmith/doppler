@@ -1,0 +1,24 @@
+{
+  "suite": "debug",
+  "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+  "runtimePreset": null,
+  "deviceInfo": {
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "description": "Node/WebGPU manual-review snapshot"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true
+    }
+  ],
+  "timestamp": "2026-04-16T00:00:00.000Z",
+  "contracts": {
+    "executionContractOk": true,
+    "layerPatternContractOk": true
+  },
+  "notes": "Manual-review receipt placeholder for the 2026-04-16 AMD RDNA-3 verification of the INT4 PLE artifact (greedy smokes: moon, bees, sky-color prompts)."
+}

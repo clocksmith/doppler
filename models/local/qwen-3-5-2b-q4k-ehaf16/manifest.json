@@ -195,17 +195,17 @@
         "embed": {
           "kernel": "gather_f16.wgsl",
           "entry": "main",
-          "digest": "sha256:257973dd762541d8a2c4b16ad8ad1d071199199e81e477ab644dce915961a989"
+          "digest": "sha256:e9f8056a8764360ca23e53289a5f133c2e3d6da122f6437f5eb0d78a46e8f049"
         },
         "rmsnorm": {
           "kernel": "rmsnorm_f16.wgsl",
           "entry": "main",
-          "digest": "sha256:6ff712c215fa8ea07b653ad51666620854b4ed03b2371b1e97ba2322efdfa665"
+          "digest": "sha256:e82eef815b4321121b9a62eb556c32f2d676358332871a08a1c996e69df71f96"
         },
         "q4_decode": {
           "kernel": "fused_matmul_q4_multicol_f16a.wgsl",
           "entry": "main_multicol_f16a",
-          "digest": "sha256:eb13c120d8c9829adc8bbd45cc44774e9be9f8f14c5e37ea68d747ad41e2eb4b",
+          "digest": "sha256:c53b5316335a013316ebedbb1e87f0a3e30e8733022862d3d3a625975a810b33",
           "precision": {
             "inputDtype": "f16",
             "outputDtype": "f16"
@@ -214,12 +214,12 @@
         "rope": {
           "kernel": "rope_f16.wgsl",
           "entry": "main",
-          "digest": "sha256:26ab977df73442f99f3a70c8eb45681bfa12b3f8c4303313207aeb9c668ac044"
+          "digest": "sha256:b665275d4ffe8e9e4f18876f572c4415661ab9a512f80bed8381b9588205e6ba"
         },
         "attn_decode": {
           "kernel": "attention_decode_online_f16.wgsl",
           "entry": "main",
-          "digest": "sha256:23ac23b33e1ca30bc6a0ebb90d1bcde0236604bf57217c1763186046e0fe03de",
+          "digest": "sha256:83f15e3d360f6425c13fc9fa9d0aab04c1de3616447de576eb0c5a6c89cfc4d0",
           "precision": {
             "kvDtype": "f16"
           }
@@ -227,12 +227,12 @@
         "residual": {
           "kernel": "residual_f16.wgsl",
           "entry": "main",
-          "digest": "sha256:5e843d5336d093da3c1bc042c39a570562e2744fce8e394bd57c3705076122c7"
+          "digest": "sha256:c7a6879dee0074ea6d184b594a6e398df6253ffb7cc7aad6d5c9d00b773c5df8"
         },
         "silu": {
           "kernel": "silu_f16.wgsl",
           "entry": "main",
-          "digest": "sha256:24ce5e7aba948b074b57953e8d9279196231d9d26732f30bc1199ce979d39941",
+          "digest": "sha256:d8fe930a4f292a55ee10e6ecf17d7079d5fe60b6d7f6d7b893e395592c239d0d",
           "constants": {
             "HAS_GATE": true
           }
@@ -240,7 +240,7 @@
         "q4_prefill": {
           "kernel": "fused_matmul_q4_batched_f16a.wgsl",
           "entry": "main_batched_f16a",
-          "digest": "sha256:6f63a9c3b7c8b2ae8570987fb3314c1d8e5ab0b629c1ae1695ed2c45137c8564",
+          "digest": "sha256:ee5aebc5d3048ae1adb86ea253e754ad1879a97dbc434e63b7757d2a87555e95",
           "precision": {
             "inputDtype": "f16",
             "outputDtype": "f16"
@@ -249,12 +249,12 @@
         "tiled": {
           "kernel": "matmul_f16.wgsl",
           "entry": "main",
-          "digest": "sha256:7e9f23f326b5750fc7783a1959334c237aff4a23da6f87176608c5c4eb4fc278"
+          "digest": "sha256:b2a7e4a4db27d008da957225b361ef688f299ece792c844e2d2542b21d3fdfbe"
         },
         "attn_stream": {
           "kernel": "attention_small_f16.wgsl",
           "entry": "main",
-          "digest": "sha256:83f15e3d360f6425c13fc9fa9d0aab04c1de3616447de576eb0c5a6c89cfc4d0",
+          "digest": "sha256:47f06b070055790db28cd562323d2010cc2aed5ea7bde8cdfb5b81a93f0f4496",
           "precision": {
             "kvDtype": "f16"
           }
@@ -262,7 +262,7 @@
         "lm_head_gemv": {
           "kernel": "matmul_gemv_subgroup_f16a.wgsl",
           "entry": "main_multicol",
-          "digest": "sha256:cc31df534551ba5dd7feebbddb2822d1c53f7d6a98fd0d772c294620602b51e5",
+          "digest": "sha256:d29012db696be7547b213d0245dba9e84aaac165bc65cf1379ca3fccfa2be4a4",
           "constants": {
             "MULTICOL_COLS_PER_WG": 64,
             "MULTICOL_THREADS_PER_COL": 4
@@ -271,7 +271,7 @@
         "sample": {
           "kernel": "sample_f16.wgsl",
           "entry": "sample_single_pass",
-          "digest": "sha256:ac0bacc17b3efb877b8b69a21a529f2ef2b21dd3307e3a7ce12f8cc0f785e275"
+          "digest": "sha256:b98818cb4ba2c89f7a914fe10012a209fb9643a4d1e545b8a8e8a32e6588bdad"
         }
       },
       "preLayer": [

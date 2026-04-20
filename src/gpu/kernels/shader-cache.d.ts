@@ -54,3 +54,16 @@ export declare function getShaderCacheStats(): {
   sources: number;
   modules: number;
 };
+
+/**
+ * Register pre-fetched shader sources so the runtime does not have to fetch
+ * them over HTTP. Consumer-provided bundles call this at startup.
+ */
+export declare function registerShaderSources(
+  sources: Record<string, string> | Map<string, string>
+): void;
+
+/**
+ * Report whether a pre-seeded source is registered for a given shader file.
+ */
+export declare function hasPreseededShaderSource(shaderFile: string): boolean;

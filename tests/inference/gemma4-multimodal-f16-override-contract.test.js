@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const generatorSource = readFileSync(new URL('../../src/inference/pipelines/text/generator.js', import.meta.url), 'utf8');
+const generatorSource = readFileSync(new URL('../../src/inference/pipelines/text/generator-prefill-helpers.js', import.meta.url), 'utf8');
 
 assert.doesNotMatch(
   generatorSource,

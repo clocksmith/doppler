@@ -79,6 +79,10 @@ const expectedSession = {
       outputDtype: 'f32',
     },
   },
+  prefillChunkSubmitMode: 'sync',
+  retainQ4KMaterialization: false,
+  useFlashPrefillAttention: false,
+  useWideTileQ4KPrefill: false,
 };
 
 const conversionConfig = readJson(

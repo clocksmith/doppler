@@ -436,8 +436,7 @@
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
-              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "matmul.rules.json#gemvPathVariant",

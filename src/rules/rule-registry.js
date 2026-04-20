@@ -1,6 +1,7 @@
 import { selectByRules } from '../gpu/kernels/rule-matcher.js';
 import { buildInferenceExecutionRulesContractArtifact } from './execution-rules-contract-check.js';
 import { buildLayerPatternContractArtifact } from './layer-pattern-contract-check.js';
+import { cloneJsonValue as cloneRuleValue } from '../utils/clone-json.js';
 
 // Rule files imported statically (JSON import attributes). Sync at module
 // load time, no top-level await, and bundle-friendly. Requires Node >=22
@@ -53,12 +54,6 @@ import loaderWeightRules from './loader/weights.rules.json' with { type: 'json' 
 import tensorLoaderRules from './loader/tensor-loader.rules.json' with { type: 'json' };
 import toolingCommandRuntimeRules from './tooling/command-runtime.rules.json' with { type: 'json' };
 
-function cloneRuleValue(value) {
-  if (typeof structuredClone === 'function') {
-    return structuredClone(value);
-  }
-  return JSON.parse(JSON.stringify(value));
-}
 
 // deepFreeze assumes all values in the tree are plain objects, arrays, or
 // primitives. Typed arrays, Maps, Sets, and other exotic objects will be

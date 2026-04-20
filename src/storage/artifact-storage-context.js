@@ -4,6 +4,7 @@ import {
 } from '../tooling/source-runtime-bundle.js';
 import { createStreamingHasher } from './shard-manager.js';
 import { isNodeRuntime } from '../utils/runtime-env.js';
+import { toArrayBuffer } from '../utils/array-buffer.js';
 
 export const ARTIFACT_FORMAT_RDRR = 'rdrr';
 export const ARTIFACT_FORMAT_DIRECT_SOURCE = 'direct-source';
@@ -43,16 +44,6 @@ function normalizePositiveInteger(value, label) {
     throw new Error(`${label} must be a non-negative number.`);
   }
   return Math.floor(parsed);
-}
-
-function toArrayBuffer(value, label) {
-  if (value instanceof ArrayBuffer) {
-    return value;
-  }
-  if (value instanceof Uint8Array) {
-    return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength);
-  }
-  throw new Error(`${label} must return ArrayBuffer or Uint8Array.`);
 }
 
 function toUint8Chunk(value, label) {

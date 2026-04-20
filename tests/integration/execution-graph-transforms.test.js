@@ -615,8 +615,8 @@ function buildF16WeightProjectionGraph() {
   const gateStep = result.decode.find((entry) => Array.isArray(entry) && entry[0] === 'gate_proj');
   equal(
     result.kernels[gateStep[1]].kernel,
-    'matmul_gemv_subgroup.wgsl',
-    'useQwenDecodeF16Matmuls should leave promoted FFN decode kernels unchanged'
+    'fused_matmul_q4.wgsl',
+    'useQwenDecodeF16Matmuls should leave fused-Q4 FFN decode kernels unchanged (unified path)'
   );
   equal(
     result.kernels[result.postLayer.find((entry) => Array.isArray(entry) && entry[0] === 'lm_head')[1]].kernel,
@@ -645,8 +645,6 @@ function buildF16WeightProjectionGraph() {
   const decodeFiles = collectKernelFilesForPhase(result, 'decode');
   ok(decodeFiles.has('fused_matmul_q4_multicol_f16a.wgsl'),
     'promoted Qwen f16 graph should use fused_matmul_q4_multicol_f16a.wgsl in decode');
-  ok(decodeFiles.has('matmul_gemv_subgroup.wgsl'),
-    'promoted Qwen f16 graph should keep decode down_proj on the f32 subgroup boundary');
 
   const prefillFiles = collectKernelFilesForPhase(result, 'prefill');
   ok(prefillFiles.has('fused_matmul_q4_widetile.wgsl'),

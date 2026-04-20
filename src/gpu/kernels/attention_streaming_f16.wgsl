@@ -1,10 +1,10 @@
 // AUTO-GENERATED from src/gpu/kernels/attention_streaming.wgsl.
 // Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
-// Streaming Multi-Head Attention Kernel (f16 QKV + f16 output)
+// Streaming Multi-Head Attention Kernel (no workgroup storage)
 //
-// Same as attention_streaming.wgsl but Q/K/V are f16 and output is f16.
-
-enable f16;
+// Fallback variant for devices with extremely small shared memory or
+// models with head_dim beyond tiled support. Uses two-pass softmax and
+// reads K/V directly from storage. Slower but compatible.
 
 override WORKGROUP_SIZE: u32 = 1u;
 const MAX_HEAD_DIM: u32 = 512u;
@@ -17,14 +17,18 @@ struct Uniforms {
     query_len: u32,
     scale: f32,
     is_causal: u32,
-    start_pos: u32,
-    attn_softcap: f32,
-    sliding_window: u32,
-    kv_len_source: u32,
+    start_pos: u32,  // Absolute position offset for causal masking
+    attn_softcap: f32,    // Gemma 2: 50.0, 0 = disabled
+    sliding_window: u32,  // Sliding window size (0 = disabled, >0 = window size)
+    kv_len_source: u32,   // 0 = use uniform seq_len, 1 = use buffer
     kv_start: u32,
     page_size: u32,
     kv_layout: u32,
-    _pad: u32,
+    bidirectional_span_start: u32,
+    bidirectional_span_length: u32,
+    _pad0: u32,
+    _pad1: u32,
+    _pad2: u32,
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -40,10 +44,27 @@ fn get_kv_head_idx(query_head_idx: u32) -> u32 {
     return query_head_idx / heads_per_kv;
 }
 
+fn is_bidirectional_span_visible(abs_query: u32, abs_key: u32) -> bool {
+    if (u.bidirectional_span_length == 0u) {
+        return false;
+    }
+    let span_start = u.bidirectional_span_start;
+    let span_end = span_start + u.bidirectional_span_length;
+    return abs_query >= span_start
+        && abs_query < span_end
+        && abs_key >= span_start
+        && abs_key < span_end;
+}
+
 fn is_masked(query_pos: u32, key_pos: u32) -> bool {
     let abs_query = query_pos + u.start_pos;
     let abs_key = u.kv_start + key_pos;
-    if (u.is_causal != 0u && abs_key > abs_query) { return true; }
+    // Causal mask
+    if (u.is_causal != 0u && abs_key > abs_query) {
+        if (is_bidirectional_span_visible(abs_query, abs_key)) { return false; }
+        return true;
+    }
+    // Sliding window mask
     if (u.sliding_window > 0u && abs_query >= u.sliding_window) {
         if (abs_key < abs_query - u.sliding_window + 1u) { return true; }
     }
@@ -99,9 +120,10 @@ fn main(@builtin(workgroup_id) wg_id: vec3<u32>) {
         let k_offset = k_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
         var dot: f32 = 0.0;
         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
-            dot = dot + q_local[d] * f32(K[k_offset + d]);
+            dot = dot + q_local[d] * K[k_offset + d];
         }
         dot = dot * scale;
+        // Gemma 2 attention softcapping
         if (u.attn_softcap > 0.0) {
             dot = tanh(dot / u.attn_softcap) * u.attn_softcap;
         }
@@ -121,27 +143,28 @@ fn main(@builtin(workgroup_id) wg_id: vec3<u32>) {
         let v_offset = k_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
         var dot: f32 = 0.0;
         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
-            dot = dot + q_local[d] * f32(K[k_offset + d]);
+            dot = dot + q_local[d] * K[k_offset + d];
         }
         dot = dot * scale;
+        // Gemma 2 attention softcapping
         if (u.attn_softcap > 0.0) {
             dot = tanh(dot / u.attn_softcap) * u.attn_softcap;
         }
         let w = exp(dot - max_score);
         sum_exp = sum_exp + w;
         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
-            acc[d] = acc[d] + w * f32(V[v_offset + d]);
+            acc[d] = acc[d] + w * V[v_offset + d];
         }
     }
 
     let out_offset = query_pos * num_heads * head_dim + head_idx * head_dim;
     if (sum_exp <= 0.0) {
         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
-            output[out_offset + d] = f16(0.0);
+            output[out_offset + d] = 0.0;
         }
         return;
     }
     for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
-        output[out_offset + d] = f16(acc[d] / sum_exp);
+        output[out_offset + d] = acc[d] / sum_exp;
     }
 }

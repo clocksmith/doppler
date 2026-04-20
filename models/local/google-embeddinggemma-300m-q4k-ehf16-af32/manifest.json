@@ -172,12 +172,12 @@
         "embed": {
           "kernel": "gather.wgsl",
           "entry": "main",
-          "digest": "sha256:777991fb6e4b3b506e4493b47ee998afe541924ddd7c04e1eadf4cb7fd719ef8"
+          "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6"
         },
         "rmsnorm": {
           "kernel": "rmsnorm.wgsl",
           "entry": "main",
-          "digest": "sha256:f516b3e4bde2015f2a207c3ca5b8c9820c7809fa8f8d0786f90c568e0f1ac077"
+          "digest": "sha256:c723c0300cc8f93396d79d1a274c0a90ccf1eb8ce82c0d778b8cd4659615fe45"
         },
         "tiled": {
           "kernel": "matmul_f16w_f32a.wgsl",
@@ -187,7 +187,7 @@
         "rope": {
           "kernel": "rope.wgsl",
           "entry": "main",
-          "digest": "sha256:238e989aad7da731046cd54d7bb3c80a6f26daf5d7a8e435607161de902e5882"
+          "digest": "sha256:e13c54f261d7ef00474b71e4fe7b3298fb5cc49161f50c7ea1854aa6672ebe71"
         },
         "attn_small": {
           "kernel": "attention_small.wgsl",

@@ -1,6 +1,6 @@
 
-import { acquireBuffer, uploadData, releaseBuffer } from '../../memory/buffer-pool.js';
-import { createTensor } from '../../gpu/tensor.js';
+import { acquireBuffer, uploadData, releaseBuffer } from '../../../memory/buffer-pool.js';
+import { createTensor } from '../../../gpu/tensor.js';
 
 function flattenTokenBatch(samples, key) {
   const offsets = [];

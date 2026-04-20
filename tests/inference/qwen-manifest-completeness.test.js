@@ -185,7 +185,6 @@ function assertQwenF16UtilityKernels(execution, label) {
     assert.equal(execution?.kernels?.q4_decode?.kernel, 'fused_matmul_q4.wgsl', `${label} q4_decode kernel`);
     assert.equal(execution?.kernels?.q4_decode_gemv?.kernel, 'fused_matmul_q4.wgsl', `${label} q4_decode_gemv kernel`);
     assert.equal(execution?.kernels?.q4_decode_gemv?.entry, 'main_gemv', `${label} q4_decode_gemv entry`);
-    assert.equal(execution?.kernels?.q4_decode_ffn_gemv?.kernel, 'matmul_gemv_subgroup.wgsl', `${label} q4_decode_ffn_gemv kernel`);
     assert.equal(execution?.kernels?.rope?.kernel, 'rope.wgsl', `${label} rope kernel`);
     assert.equal(execution?.kernels?.residual?.kernel, 'residual.wgsl', `${label} residual kernel`);
     assert.equal(execution?.kernels?.silu?.kernel, 'silu.wgsl', `${label} silu kernel`);
@@ -386,7 +385,6 @@ for (const config of convConfigs) {
     assert.equal(config.execution.kernels.q4_decode.entry, 'main_multicol');
     assert.equal(config.execution.kernels.q4_decode_gemv.kernel, 'fused_matmul_q4.wgsl');
     assert.equal(config.execution.kernels.q4_decode_gemv.entry, 'main_gemv');
-    assert.equal(config.execution.kernels.q4_decode_ffn_gemv.kernel, 'matmul_gemv_subgroup.wgsl');
     assert.equal(config.execution.kernels.rope.kernel, 'rope.wgsl');
     assert.equal(config.execution.kernels.residual.kernel, 'residual.wgsl');
     assert.equal(config.execution.kernels.silu.kernel, 'silu.wgsl');

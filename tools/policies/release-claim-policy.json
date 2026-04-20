@@ -1,17 +1,16 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-04-04",
+  "updatedAt": "2026-04-19",
   "claims": [
     {
       "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
       "mode": "text",
-      "surface": ["browser", "node"],
-      "verificationSource": "manual-review",
-      "lastVerifiedAt": "2026-03-20",
+      "surface": ["node"],
+      "verificationSource": "runtime-verify",
+      "lastVerifiedAt": "2026-04-13",
       "artifactFormat": "rdrr",
       "evidence": {
-        "kind": "manual-report",
-        "reportPath": "tests/fixtures/reports/gemma-3-1b-it-q4k-ehf16-af32/2026-03-12T19-47-39.080Z.json"
+        "kind": "runtime-verify"
       }
     },
     {
@@ -27,6 +26,29 @@
       }
     },
     {
+      "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+      "mode": "text",
+      "surface": ["node"],
+      "verificationSource": "runtime-verify",
+      "lastVerifiedAt": "2026-04-18",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "runtime-verify"
+      }
+    },
+    {
+      "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+      "mode": "text",
+      "surface": ["node"],
+      "verificationSource": "manual-review",
+      "lastVerifiedAt": "2026-04-16",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "manual-report",
+        "reportPath": "tests/fixtures/reports/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-04-16T00-00-00.000Z.json"
+      }
+    },
+    {
       "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
       "mode": "embedding",
       "surface": ["node"],
@@ -38,22 +60,11 @@
       }
     },
     {
-      "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "mode": "text",
       "surface": ["node"],
       "verificationSource": "runtime-verify",
-      "lastVerifiedAt": "2026-03-20",
-      "artifactFormat": "rdrr",
-      "evidence": {
-        "kind": "runtime-verify"
-      }
-    },
-    {
-      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-      "mode": "text",
-      "surface": ["browser", "node"],
-      "verificationSource": "runtime-verify",
-      "lastVerifiedAt": "2026-03-31",
+      "lastVerifiedAt": "2026-04-18",
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "runtime-verify"
@@ -64,7 +75,7 @@
       "mode": "text",
       "surface": ["browser", "node"],
       "verificationSource": "runtime-verify",
-      "lastVerifiedAt": "2026-03-31",
+      "lastVerifiedAt": "2026-04-18",
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "runtime-verify"

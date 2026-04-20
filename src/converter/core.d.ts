@@ -207,6 +207,14 @@ export declare const RDRR_VERSION: number;
  */
 export declare function sanitizeModelId(name: string): string | null;
 
+export declare function inferEmbeddingOutputConfig(
+  tensorLocations:
+    | Map<string, { role?: string; shape?: readonly number[] } & Record<string, unknown>>
+    | Record<string, { role?: string; shape?: readonly number[] } & Record<string, unknown>>
+    | null
+    | undefined
+): { embeddingTranspose: boolean; embeddingVocabSize: number | null };
+
 /**
  * Resolve bundled tokenizer vocab size from Hugging Face tokenizer.json payloads.
  */

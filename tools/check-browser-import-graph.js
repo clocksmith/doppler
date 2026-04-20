@@ -15,6 +15,20 @@ const LOCAL_EXTENSIONS = Object.freeze(['.js', '.cjs']);
 const IMPORT_EXPORT_REGEX = /\b(?:import|export)\s+(?:[^'"]*?\sfrom\s*)?['"]([^'"]+)['"]/g;
 const DYNAMIC_IMPORT_REGEX = /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
 
+// Modules intentionally loaded only on Node via dynamic import (guarded by
+// isNodeRuntime() / process.versions?.node). Their own node:* imports are
+// therefore expected and safe from a browser bundle's static perspective.
+const ALLOWED_NODE_GATED_MODULES = new Set([
+  'src/client/runtime/node-quickstart-cache.js',
+  'src/storage/artifact-storage-context.js',
+  'src/inference/browser-harness-model-helpers.js',
+  'src/client/runtime/lora.js',
+  'src/tooling/node-webgpu.js',
+  'src/experimental/adapters/litert-runtime-bundle-node.js',
+  'src/experimental/adapters/source-runtime-bundle-node.js',
+  'src/experimental/adapters/source-runtime-bundle-node-dispatch.js',
+]);
+
 function toRepoPath(filePath) {
   return path.relative(ROOT_DIR, filePath).split(path.sep).join('/');
 }
@@ -66,16 +80,32 @@ async function resolveLocalPath(importerPath, rawSpecifier) {
   return null;
 }
 
-function collectSpecifiers(source) {
+// Static imports are always followed. Dynamic imports are followed too, but
+// their targets can opt out of graph scanning by appearing in
+// ALLOWED_NODE_GATED_MODULES — those are the runtime-guarded Node bridges
+// (isNodeRuntime() / process.versions?.node) whose node:* imports are
+// intentionally unreachable from browser code at runtime.
+function collectStaticSpecifiers(source) {
   const specifiers = [];
-  for (const regex of [IMPORT_EXPORT_REGEX, DYNAMIC_IMPORT_REGEX]) {
-    regex.lastIndex = 0;
-    for (;;) {
-      const match = regex.exec(source);
-      if (!match) break;
-      if (typeof match[1] === 'string' && match[1].length > 0) {
-        specifiers.push(match[1]);
-      }
+  IMPORT_EXPORT_REGEX.lastIndex = 0;
+  for (;;) {
+    const match = IMPORT_EXPORT_REGEX.exec(source);
+    if (!match) break;
+    if (typeof match[1] === 'string' && match[1].length > 0) {
+      specifiers.push(match[1]);
+    }
+  }
+  return specifiers;
+}
+
+function collectDynamicSpecifiers(source) {
+  const specifiers = [];
+  DYNAMIC_IMPORT_REGEX.lastIndex = 0;
+  for (;;) {
+    const match = DYNAMIC_IMPORT_REGEX.exec(source);
+    if (!match) break;
+    if (typeof match[1] === 'string' && match[1].length > 0) {
+      specifiers.push(match[1]);
     }
   }
   return specifiers;
@@ -100,22 +130,29 @@ async function scanImportGraph(entryFile) {
       continue;
     }
 
-    const specifiers = collectSpecifiers(source);
-    for (const specifier of specifiers) {
+    const staticSpecs = collectStaticSpecifiers(source);
+    for (const specifier of staticSpecs) {
       if (specifier.startsWith('node:')) {
         issues.push(`node:* specifier found: ${toRepoPath(currentFile)} -> ${specifier}`);
         continue;
       }
       if (!isLocalSpecifier(specifier)) continue;
-
       const resolved = await resolveLocalPath(currentFile, specifier);
       if (!resolved) {
         issues.push(`unresolved local import: ${toRepoPath(currentFile)} -> ${specifier}`);
         continue;
       }
-      if (!seen.has(resolved)) {
-        pending.push(resolved);
-      }
+      if (!seen.has(resolved)) pending.push(resolved);
+    }
+
+    const dynamicSpecs = collectDynamicSpecifiers(source);
+    for (const specifier of dynamicSpecs) {
+      if (!isLocalSpecifier(specifier)) continue;
+      const resolved = await resolveLocalPath(currentFile, specifier);
+      if (!resolved) continue;
+      const repoPath = toRepoPath(resolved);
+      if (ALLOWED_NODE_GATED_MODULES.has(repoPath)) continue;
+      if (!seen.has(resolved)) pending.push(resolved);
     }
   }
 

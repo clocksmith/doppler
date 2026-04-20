@@ -9,6 +9,7 @@ import { parseSafetensorsHeader } from '../../formats/safetensors/types.js';
 import { parseTFLiteFromSource } from '../../formats/tflite/types.js';
 import { log } from '../../debug/index.js';
 import { computeHash } from '../../storage/shard-manager.js';
+import { toArrayBuffer } from '../../utils/array-buffer.js';
 import {
   createSourceStorageContext,
   getSourceRuntimeMetadata,
@@ -62,16 +63,6 @@ function splitBridgeFilePath(targetPath) {
     parentPath: normalized.slice(0, lastSlash),
     basename: normalized.slice(lastSlash + 1),
   };
-}
-
-function toArrayBuffer(value, label) {
-  if (value instanceof ArrayBuffer) {
-    return value;
-  }
-  if (value instanceof Uint8Array) {
-    return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength);
-  }
-  throw new Error(`${label} must return ArrayBuffer or Uint8Array.`);
 }
 
 function toUint8Array(value) {

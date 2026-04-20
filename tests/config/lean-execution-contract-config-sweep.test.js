@@ -22,13 +22,31 @@ try {
 
   const zeroDigest = 'sha256:' + '0'.repeat(64);
   const v1Inference = {
-    attention: { slidingWindow: null, attnLogitSoftcapping: null, queryKeyNorm: false, attentionOutputGate: false, causal: true, attentionBias: false },
-    normalization: { rmsNormWeightOffset: true, rmsNormEps: 1e-6 },
+    attention: { slidingWindow: null, attnLogitSoftcapping: null, queryKeyNorm: false, valueNorm: false, attentionOutputGate: false, causal: true, attentionBias: false, queryPreAttnScalar: 1 },
+    normalization: { rmsNormWeightOffset: true, rmsNormEps: 1e-6, postAttentionNorm: false, preFeedforwardNorm: false, postFeedforwardNorm: false },
     ffn: { activation: 'gelu', gatedActivation: true, useDoubleWideMlp: false, swigluLimit: null },
-    rope: { ropeTheta: 1000000, partialRotaryFactor: 1.0, ropeInterleaved: false },
-    output: { scaleEmbeddings: true, tieWordEmbeddings: false, embeddingTranspose: false, embeddingVocabSize: null, finalLogitSoftcapping: null },
-    chatTemplate: { type: 'gemma' },
-    layerPattern: { type: 'every_n', period: 6, offset: 0 },
+    rope: {
+      ropeTheta: 1000000,
+      ropeScalingFactor: 1,
+      ropeScalingType: null,
+      ropeLocalTheta: null,
+      mropeInterleaved: false,
+      mropeSection: null,
+      partialRotaryFactor: 1.0,
+      ropeLocalPartialRotaryFactor: null,
+      ropeFrequencyBaseDim: null,
+      ropeLocalFrequencyBaseDim: null,
+      ropeInterleaved: false,
+      yarnBetaFast: null,
+      yarnBetaSlow: null,
+      yarnOriginalMaxPos: null,
+      ropeLocalYarnBetaFast: null,
+      ropeLocalYarnBetaSlow: null,
+      ropeLocalYarnOriginalMaxPos: null,
+    },
+    output: { scaleEmbeddings: true, tieWordEmbeddings: false, embeddingTranspose: false, embeddingVocabSize: null, finalLogitSoftcapping: null, embeddingPostprocessor: null },
+    chatTemplate: { type: 'gemma', enabled: true },
+    layerPattern: { type: 'every_n', globalPattern: null, period: 6, offset: 0 },
   };
   const v1Session = {
     compute: { defaults: { activationDtype: 'f16', mathDtype: 'f16', accumDtype: 'f32', outputDtype: 'f16' } },

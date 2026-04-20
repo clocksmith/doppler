@@ -1,9 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 
-import { loadBackwardRegistry } from '../../config/backward-registry-loader.js';
-import { f16ToF32Array } from '../../inference/kv-cache/types.js';
-import { readBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
+import { loadBackwardRegistry } from '../../../config/backward-registry-loader.js';
+import { f16ToF32Array } from '../../../inference/kv-cache/types.js';
+import { readBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { AutogradTape } from '../autograd.js';
 import { loadCheckpoint } from '../checkpoint.js';
 import { computeEvalMetrics } from '../operator-eval.js';

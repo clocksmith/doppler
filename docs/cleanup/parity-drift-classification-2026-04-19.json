@@ -1,0 +1,1231 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-04-19",
+  "source": "Output of tools/check-exports-parity.js at c73ea96 (baseline commit).",
+  "totalFiles": 40,
+  "totalSymbols": 151,
+  "buckets": {
+    "runtime-fix": "Runtime should export this. Fix: add `export` in .js.",
+    "declaration-fix": "Runtime already exports it. Fix: add declaration in .d.ts (or move to an internal module and remove the runtime export).",
+    "stale-removal": "Neither side should expose this anymore. Fix: delete from .d.ts (and .js if still there).",
+    "pending-feature": "Symbol belongs to a not-yet-shipped feature. Fix: quarantine via exports-parity-allowlist or move test to *.pending.test.js.",
+    "type-only-ok": "d.ts-only entries that are TYPE ALIASES (type-only), not runtime symbols. Parity check should skip these — refine the checker or special-case the file.",
+    "needs-review": "Heuristics could not classify with confidence. Human triage required."
+  },
+  "entries": [
+    {
+      "file": "src/cli/doppler-quickstart.js",
+      "kind": "onlyInJs",
+      "symbol": "requireQuickstartContent",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/config/schema/bridge.schema.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_BRIDGE_TIMEOUT_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/debug.schema.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_KERNEL_TRACE_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/doppler.schema.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_CHAT_TEMPLATE_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/emulation.schema.js",
+      "kind": "onlyInJs",
+      "symbol": "formatBytes",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/config/schema/execution-v1.schema.js",
+      "kind": "onlyInJs",
+      "symbol": "PER_LAYER_INPUT_HOT_CACHE_MODES",
+      "bucket": "declaration-fix",
+      "rationale": "SCREAMING_SNAKE constant — likely intended public; add to .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "RDRR_VERSION",
+      "bucket": "declaration-fix",
+      "rationale": "SCREAMING_SNAKE constant — likely intended public; add to .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "isV1Manifest",
+      "bucket": "declaration-fix",
+      "rationale": "Predicate helper — declaration typically matches runtime.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "ConversionStage",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_CONVERTER_QUANTIZATION_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "createConverterConfig",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_Q4K_LAYOUT",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "mergeBindings",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_QUOTA_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_DISTRIBUTION_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_MOE_ROUTING_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_KVCACHE_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "PAGED_LAYOUT_SEQ_LEN_THRESHOLD",
+      "bucket": "declaration-fix",
+      "rationale": "SCREAMING_SNAKE constant — likely intended public; add to .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_GPU_CACHE_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_TUNER_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "LOG_LEVELS",
+      "bucket": "declaration-fix",
+      "rationale": "SCREAMING_SNAKE constant — likely intended public; add to .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_LOG_OUTPUT_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_LOADER_DEBUG_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_MATMUL_DEBUG_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_KERNEL_TRACE_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_BENCHMARK_OUTPUT_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "TOOLING_INTENTS",
+      "bucket": "declaration-fix",
+      "rationale": "SCREAMING_SNAKE constant — likely intended public; add to .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_TOOLING_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "ECOSYSTEM_STABILITY_MODES",
+      "bucket": "declaration-fix",
+      "rationale": "SCREAMING_SNAKE constant — likely intended public; add to .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_ECOSYSTEM_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "mergeEcosystemConfig",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_HOTSWAP_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_BUFFER_POOL_BUCKET_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_HEAP_TESTING_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_BRIDGE_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_ADAPTER_STACK_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_ADAPTER_REGISTRY_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_ADAPTER_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_TUNER_LIMITS",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_KERNEL_WARMUP_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_KERNEL_REGISTRY_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_HARNESS_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_SPECULATIVE_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "SPECULATION_MODES",
+      "bucket": "declaration-fix",
+      "rationale": "SCREAMING_SNAKE constant — likely intended public; add to .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "SPECULATION_VERIFY_MODES",
+      "bucket": "declaration-fix",
+      "rationale": "SCREAMING_SNAKE constant — likely intended public; add to .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_SELF_SPECULATION_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "validateSelfSpeculationConfig",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_CHAT_TEMPLATE_CONFIG",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInDts",
+      "symbol": "DEFAULT_TRAINING_TELEMETRY_CONFIG",
+      "bucket": "stale-removal",
+      "rationale": "Types advertise a runtime symbol that .js does not export. Remove from .d.ts or add to .js if intended.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInDts",
+      "symbol": "QK_K",
+      "bucket": "stale-removal",
+      "rationale": "Types advertise a runtime symbol that .js does not export. Remove from .d.ts or add to .js if intended.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/index.js",
+      "kind": "onlyInDts",
+      "symbol": "padToQ4KBlock",
+      "bucket": "stale-removal",
+      "rationale": "Types advertise a runtime symbol that .js does not export. Remove from .d.ts or add to .js if intended.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/manifest.schema.js",
+      "kind": "onlyInJs",
+      "symbol": "MAX_HEADER_SIZE",
+      "bucket": "declaration-fix",
+      "rationale": "SCREAMING_SNAKE constant — likely intended public; add to .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/manifest.schema.js",
+      "kind": "onlyInJs",
+      "symbol": "HEADER_READ_SIZE",
+      "bucket": "declaration-fix",
+      "rationale": "SCREAMING_SNAKE constant — likely intended public; add to .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/manifest.schema.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_RMS_NORM_EPS",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/schema/manifest.schema.js",
+      "kind": "onlyInJs",
+      "symbol": "DEFAULT_HIGH_PRECISION_EPS",
+      "bucket": "declaration-fix",
+      "rationale": "DEFAULT_* config constant is typically public and should appear in .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/config/transforms/execution-graph-transforms.js",
+      "kind": "onlyInJs",
+      "symbol": "widenToF32CorrectnessFallback",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/config/transforms/execution-graph-transforms.js",
+      "kind": "onlyInJs",
+      "symbol": "narrowToF16Activations",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/config/transforms/execution-graph-transforms.js",
+      "kind": "onlyInJs",
+      "symbol": "useQwenF16PrimaryMatmuls",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/config/transforms/execution-graph-transforms.js",
+      "kind": "onlyInJs",
+      "symbol": "disableRetainQ4KMaterialization",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/converter/core.js",
+      "kind": "onlyInJs",
+      "symbol": "resolveManifestMoEConfig",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/converter/core.js",
+      "kind": "onlyInJs",
+      "symbol": "buildSentencepieceTokenizer",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/converter/core.js",
+      "kind": "onlyInJs",
+      "symbol": "buildBundledTokenizer",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/converter/core.js",
+      "kind": "onlyInJs",
+      "symbol": "isGemma4PerLayerEmbedTensor",
+      "bucket": "declaration-fix",
+      "rationale": "Predicate helper — declaration typically matches runtime.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/converter/core.js",
+      "kind": "onlyInJs",
+      "symbol": "resolveConvertedAt",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/converter/core.js",
+      "kind": "onlyInJs",
+      "symbol": "resolveManifestMultimodalConfig",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/converter/quantization-info.js",
+      "kind": "onlyInJs",
+      "symbol": "resolveEffectiveQuantizationInfo",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/converter/quantizer.js",
+      "kind": "onlyInJs",
+      "symbol": "quantizeToInt4PerRowSymmetric",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/converter/quantizer.js",
+      "kind": "onlyInJs",
+      "symbol": "dequantizeInt4PerRowSymmetric",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/debug/index.js",
+      "kind": "onlyInJs",
+      "symbol": "CAPTURE_LEVELS",
+      "bucket": "declaration-fix",
+      "rationale": "SCREAMING_SNAKE constant — likely intended public; add to .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/debug/index.js",
+      "kind": "onlyInJs",
+      "symbol": "resolveCapturePolicy",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/debug/index.js",
+      "kind": "onlyInJs",
+      "symbol": "escalateCaptureLevel",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/debug/index.js",
+      "kind": "onlyInJs",
+      "symbol": "buildCaptureArtifact",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/debug/index.js",
+      "kind": "onlyInJs",
+      "symbol": "createEscalationPolicy",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/debug/index.js",
+      "kind": "onlyInJs",
+      "symbol": "createDefaultCaptureConfig",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/debug/index.js",
+      "kind": "onlyInJs",
+      "symbol": "validateCaptureConfig",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/debug/index.js",
+      "kind": "onlyInDts",
+      "symbol": "SignalType",
+      "bucket": "type-only-ok",
+      "rationale": "Types file exports type aliases not runtime values — parity checker false positive class.",
+      "confidence": "high"
+    },
+    {
+      "file": "src/debug/index.js",
+      "kind": "onlyInDts",
+      "symbol": "DonePayload",
+      "bucket": "type-only-ok",
+      "rationale": "Types file exports type aliases not runtime values — parity checker false positive class.",
+      "confidence": "high"
+    },
+    {
+      "file": "src/debug/index.js",
+      "kind": "onlyInDts",
+      "symbol": "LogLevel",
+      "bucket": "type-only-ok",
+      "rationale": "Types file exports type aliases not runtime values — parity checker false positive class.",
+      "confidence": "high"
+    },
+    {
+      "file": "src/debug/index.js",
+      "kind": "onlyInDts",
+      "symbol": "LogLevelValue",
+      "bucket": "type-only-ok",
+      "rationale": "Types file exports type aliases not runtime values — parity checker false positive class.",
+      "confidence": "high"
+    },
+    {
+      "file": "src/debug/index.js",
+      "kind": "onlyInDts",
+      "symbol": "TraceCategory",
+      "bucket": "type-only-ok",
+      "rationale": "Types file exports type aliases not runtime values — parity checker false positive class.",
+      "confidence": "high"
+    },
+    {
+      "file": "src/debug/index.js",
+      "kind": "onlyInDts",
+      "symbol": "LogEntry",
+      "bucket": "type-only-ok",
+      "rationale": "Types file exports type aliases not runtime values — parity checker false positive class.",
+      "confidence": "high"
+    },
+    {
+      "file": "src/debug/index.js",
+      "kind": "onlyInDts",
+      "symbol": "TensorStats",
+      "bucket": "type-only-ok",
+      "rationale": "Types file exports type aliases not runtime values — parity checker false positive class.",
+      "confidence": "high"
+    },
+    {
+      "file": "src/debug/index.js",
+      "kind": "onlyInDts",
+      "symbol": "TensorCompareResult",
+      "bucket": "type-only-ok",
+      "rationale": "Types file exports type aliases not runtime values — parity checker false positive class.",
+      "confidence": "high"
+    },
+    {
+      "file": "src/debug/index.js",
+      "kind": "onlyInDts",
+      "symbol": "TensorHealthResult",
+      "bucket": "type-only-ok",
+      "rationale": "Types file exports type aliases not runtime values — parity checker false positive class.",
+      "confidence": "high"
+    },
+    {
+      "file": "src/debug/index.js",
+      "kind": "onlyInDts",
+      "symbol": "TensorInspectOptions",
+      "bucket": "type-only-ok",
+      "rationale": "Types file exports type aliases not runtime values — parity checker false positive class.",
+      "confidence": "high"
+    },
+    {
+      "file": "src/debug/index.js",
+      "kind": "onlyInDts",
+      "symbol": "LogHistoryFilter",
+      "bucket": "type-only-ok",
+      "rationale": "Types file exports type aliases not runtime values — parity checker false positive class.",
+      "confidence": "high"
+    },
+    {
+      "file": "src/debug/index.js",
+      "kind": "onlyInDts",
+      "symbol": "DebugSnapshot",
+      "bucket": "type-only-ok",
+      "rationale": "Types file exports type aliases not runtime values — parity checker false positive class.",
+      "confidence": "high"
+    },
+    {
+      "file": "src/experimental/browser/quantization.js",
+      "kind": "onlyInJs",
+      "symbol": "resolveEffectiveQuantizationInfo",
+      "bucket": "needs-review",
+      "rationale": "Experimental lane — decide whether the symbol is internal-only (remove from exports) or public.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/experimental/browser/quantization.js",
+      "kind": "onlyInDts",
+      "symbol": "createQ4KChunkStream",
+      "bucket": "stale-removal",
+      "rationale": "Types advertise a runtime symbol that .js does not export. Remove from .d.ts or add to .js if intended.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/experimental/browser/quantization.js",
+      "kind": "onlyInDts",
+      "symbol": "createF16ChunkStream",
+      "bucket": "stale-removal",
+      "rationale": "Types advertise a runtime symbol that .js does not export. Remove from .d.ts or add to .js if intended.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/experimental/browser/safetensors-parser-browser.js",
+      "kind": "onlyInDts",
+      "symbol": "streamTensorData",
+      "bucket": "stale-removal",
+      "rationale": "Types advertise a runtime symbol that .js does not export. Remove from .d.ts or add to .js if intended.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/device.js",
+      "kind": "onlyInJs",
+      "symbol": "resetDeviceState",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/gpu/kernels/attention.js",
+      "kind": "onlyInJs",
+      "symbol": "runAttentionContiguousQuant",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/attention.js",
+      "kind": "onlyInJs",
+      "symbol": "recordAttentionContiguousQuant",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/backward/index.js",
+      "kind": "onlyInJs",
+      "symbol": "runRmsnormBackward",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/backward/index.js",
+      "kind": "onlyInJs",
+      "symbol": "recordRmsnormBackward",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/backward/index.js",
+      "kind": "onlyInJs",
+      "symbol": "runLayernormBackward",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/backward/index.js",
+      "kind": "onlyInJs",
+      "symbol": "recordLayernormBackward",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/backward/index.js",
+      "kind": "onlyInJs",
+      "symbol": "runRopeBackward",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/backward/index.js",
+      "kind": "onlyInJs",
+      "symbol": "recordRopeBackward",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/backward/index.js",
+      "kind": "onlyInJs",
+      "symbol": "runUpsample2dBackward",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/backward/index.js",
+      "kind": "onlyInJs",
+      "symbol": "recordUpsample2dBackward",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/backward/index.js",
+      "kind": "onlyInJs",
+      "symbol": "runGroupnormBackward",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/backward/index.js",
+      "kind": "onlyInJs",
+      "symbol": "recordGroupnormBackward",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/backward/index.js",
+      "kind": "onlyInJs",
+      "symbol": "runConv2dBackward",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/backward/index.js",
+      "kind": "onlyInJs",
+      "symbol": "recordConv2dBackward",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/backward/utils.js",
+      "kind": "onlyInJs",
+      "symbol": "createBackwardKernel",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/backward/utils.js",
+      "kind": "onlyInJs",
+      "symbol": "runMatmulBackwardDx",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/backward/utils.js",
+      "kind": "onlyInJs",
+      "symbol": "recordMatmulBackwardDx",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/constants.js",
+      "kind": "onlyInJs",
+      "symbol": "FFN_DISPATCH",
+      "bucket": "declaration-fix",
+      "rationale": "SCREAMING_SNAKE constant — likely intended public; add to .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/constants.js",
+      "kind": "onlyInJs",
+      "symbol": "DEQUANT_DISPATCH",
+      "bucket": "declaration-fix",
+      "rationale": "SCREAMING_SNAKE constant — likely intended public; add to .d.ts.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/dispatch.js",
+      "kind": "onlyInJs",
+      "symbol": "dispatchKernel",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/gpu/kernels/index.js",
+      "kind": "onlyInJs",
+      "symbol": "runLayerNormBackward",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/index.js",
+      "kind": "onlyInJs",
+      "symbol": "recordLayerNormBackward",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/uniform-utils.js",
+      "kind": "onlyInJs",
+      "symbol": "writeUniformsFromObject",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/gpu/kernels/uniform-utils.js",
+      "kind": "onlyInJs",
+      "symbol": "getUniformByteLength",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/gpu/kernels/utils.js",
+      "kind": "onlyInJs",
+      "symbol": "unifiedKernelWrapper",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/gpu/kernels/utils.js",
+      "kind": "onlyInJs",
+      "symbol": "createBindGroupWithValidation",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/gpu/kernels/utils.js",
+      "kind": "onlyInJs",
+      "symbol": "getUniformByteLength",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/gpu/kernels/utils.js",
+      "kind": "onlyInJs",
+      "symbol": "writeUniformsFromObject",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/inference/browser-harness-suite-helpers.js",
+      "kind": "onlyInJs",
+      "symbol": "buildFirstLoadComposition",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/inference/browser-harness-text-helpers.js",
+      "kind": "onlyInJs",
+      "symbol": "runImageTranscription",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/inference/browser-harness-text-helpers.js",
+      "kind": "onlyInJs",
+      "symbol": "runTextInference",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/inference/kv-cache.js",
+      "kind": "onlyInDts",
+      "symbol": "isContiguousLayer",
+      "bucket": "stale-removal",
+      "rationale": "Types advertise a runtime symbol that .js does not export. Remove from .d.ts or add to .js if intended.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/inference/pipelines/energy/quintel.js",
+      "kind": "onlyInJs",
+      "symbol": "computeQuintelEnergy",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/inference/pipelines/structured/index.js",
+      "kind": "onlyInJs",
+      "symbol": "createJsonGrammarMask",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/inference/pipelines/text/embed.js",
+      "kind": "onlyInJs",
+      "symbol": "isRangeBackedCpuEmbeddingSource",
+      "bucket": "declaration-fix",
+      "rationale": "Predicate helper — declaration typically matches runtime.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/inference/pipelines/text/embed.js",
+      "kind": "onlyInJs",
+      "symbol": "normalizeRangeBytes",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/inference/pipelines/text/embed.js",
+      "kind": "onlyInJs",
+      "symbol": "decodeRangeChunkIntoOutput",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/inference/pipelines/text/embed.js",
+      "kind": "onlyInDts",
+      "symbol": "recordScale",
+      "bucket": "stale-removal",
+      "rationale": "Types advertise a runtime symbol that .js does not export. Remove from .d.ts or add to .js if intended.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/inference/pipelines/text/embed.js",
+      "kind": "onlyInDts",
+      "symbol": "scaleGPUBuffer",
+      "bucket": "stale-removal",
+      "rationale": "Types advertise a runtime symbol that .js does not export. Remove from .d.ts or add to .js if intended.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/inference/pipelines/text/generator-steps.js",
+      "kind": "onlyInJs",
+      "symbol": "advanceWithTokenAndEmbedding",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/inference/pipelines/text/generator-steps.js",
+      "kind": "onlyInJs",
+      "symbol": "FinitenessError",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/inference/pipelines/text/generator.js",
+      "kind": "onlyInDts",
+      "symbol": "shouldDisableBatchDecodeAfterShortBatch",
+      "bucket": "stale-removal",
+      "rationale": "Types advertise a runtime symbol that .js does not export. Remove from .d.ts or add to .js if intended.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/inference/pipelines/text/layer.js",
+      "kind": "onlyInJs",
+      "symbol": "resolveActivationDtype",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/inference/pipelines/text/layer.js",
+      "kind": "onlyInJs",
+      "symbol": "getConvLayerState",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/inference/pipelines/text/layer.js",
+      "kind": "onlyInJs",
+      "symbol": "isSlidingLayerType",
+      "bucket": "declaration-fix",
+      "rationale": "Predicate helper — declaration typically matches runtime.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/inference/pipelines/text/layer.js",
+      "kind": "onlyInJs",
+      "symbol": "hasConvLayers",
+      "bucket": "declaration-fix",
+      "rationale": "Predicate helper — declaration typically matches runtime.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/inference/pipelines/text/layer.js",
+      "kind": "onlyInJs",
+      "symbol": "resolveAttentionRotaryDim",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/inference/pipelines/text/layer.js",
+      "kind": "onlyInJs",
+      "symbol": "resolveAttentionHeadDim",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/inference/pipelines/text/layer.js",
+      "kind": "onlyInJs",
+      "symbol": "resolveAttentionKVSharing",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/inference/pipelines/text/layer.js",
+      "kind": "onlyInJs",
+      "symbol": "hasPerLayerInputBlock",
+      "bucket": "declaration-fix",
+      "rationale": "Predicate helper — declaration typically matches runtime.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/inference/pipelines/text/layer.js",
+      "kind": "onlyInJs",
+      "symbol": "applyPerLayerInputBlock",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/inference/pipelines/text/logits/index.js",
+      "kind": "onlyInJs",
+      "symbol": "readBufferWithCleanup",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/inference/pipelines/text/ops.js",
+      "kind": "onlyInJs",
+      "symbol": "initConvLayerState",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/loader/memory-monitor.js",
+      "kind": "onlyInJs",
+      "symbol": "MemoryTimeSeries",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/loader/quantization-constants.js",
+      "kind": "onlyInJs",
+      "symbol": "padToQ4KBlock",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/loader/quantization-constants.js",
+      "kind": "onlyInJs",
+      "symbol": "q4kBlockCount",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    },
+    {
+      "file": "src/storage/shard-manager.js",
+      "kind": "onlyInDts",
+      "symbol": "streamShardRange",
+      "bucket": "stale-removal",
+      "rationale": "Types advertise a runtime symbol that .js does not export. Remove from .d.ts or add to .js if intended.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/tooling/command-runner-shared.js",
+      "kind": "onlyInJs",
+      "symbol": "runWithRuntimeIsolation",
+      "bucket": "declaration-fix",
+      "rationale": "Helper/verb-prefixed function — likely a public helper the .d.ts forgot to declare.",
+      "confidence": "medium"
+    },
+    {
+      "file": "src/tooling/node-browser-command-runner.js",
+      "kind": "onlyInJs",
+      "symbol": "finalizeBrowserRelayResponse",
+      "bucket": "needs-review",
+      "rationale": "Heuristic could not classify — human review.",
+      "confidence": "low"
+    }
+  ],
+  "bucketCounts": {
+    "needs-review": 31,
+    "declaration-fix": 97,
+    "stale-removal": 11,
+    "type-only-ok": 12
+  }
+}

@@ -24,6 +24,7 @@ import {
 import { loadCheckpoint, saveCheckpoint } from './checkpoint.js';
 import { validateTrainingMetricsEntry } from '../../config/schema/training-metrics.schema.js';
 import { sha256Hex } from '../../utils/sha256.js';
+import { stableSortObject } from '../../utils/stable-sort-object.js';
 
 function toFloat32(buffer, dtype) {
   if (dtype === 'f16') {
@@ -424,20 +425,6 @@ function sanitizeGpuAdapterInfo(value) {
     }
   }
   return Object.keys(out).length > 0 ? out : null;
-}
-
-function stableSortObject(value) {
-  if (Array.isArray(value)) {
-    return value.map((entry) => stableSortObject(entry));
-  }
-  if (!value || typeof value !== 'object') {
-    return value;
-  }
-  const sorted = {};
-  for (const key of Object.keys(value).sort()) {
-    sorted[key] = stableSortObject(value[key]);
-  }
-  return sorted;
 }
 
 function stableJson(value) {

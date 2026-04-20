@@ -1,20 +1,23 @@
 // AUTO-GENERATED from src/gpu/kernels/attention.wgsl.
 // Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
-// Fused Multi-Head Attention Kernel (f16 KV)
+// Fused Multi-Head Attention Kernel
 //
-// Same as attention.wgsl but K/V are stored as f16 for KV-cache compression.
-// Q and output remain f32; K/V are cast to f32 on load.
+// Implements fused Q @ K^T → scale → mask → softmax → @ V
+// Uses tiled/blocked approach to avoid materializing full attention matrix.
+// Supports grouped query attention (GQA) where numKVHeads < numHeads.
+//
+// Based on Flash Attention principles adapted for WebGPU.
 
 enable f16;
 
 // Tile sizes for blocked attention
-const MAX_BLOCK_SIZE: u32 = 64u;
+const MAX_BLOCK_SIZE: u32 = 32u;
 const MAX_HEAD_TILE: u32 = 64u;
 const MAX_HEAD_DIM: u32 = 64u;
 
-override BLOCK_SIZE: u32 = 64u;       // Sequence tile size (must match WORKGROUP_SIZE)
+override BLOCK_SIZE: u32 = 32u;       // Sequence tile size (must match WORKGROUP_SIZE)
 override HEAD_TILE: u32 = 64u;        // Head dimension tile
-override WORKGROUP_SIZE: u32 = 64u;   // One thread per query position
+override WORKGROUP_SIZE: u32 = 32u;   // One thread per query position
 
 struct Uniforms {
     num_heads: u32,       // Number of query heads
@@ -31,7 +34,11 @@ struct Uniforms {
     kv_start: u32,
     page_size: u32,
     kv_layout: u32,
-    _pad: u32,
+    bidirectional_span_start: u32,
+    bidirectional_span_length: u32,
+    _pad0: u32,
+    _pad1: u32,
+    _pad2: u32,
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -54,16 +61,40 @@ fn get_kv_head_idx(query_head_idx: u32) -> u32 {
     return query_head_idx / heads_per_kv;
 }
 
+fn is_bidirectional_span_visible(abs_query: u32, abs_key: u32) -> bool {
+    if (u.bidirectional_span_length == 0u) {
+        return false;
+    }
+    let span_start = u.bidirectional_span_start;
+    let span_end = span_start + u.bidirectional_span_length;
+    return abs_query >= span_start
+        && abs_query < span_end
+        && abs_key >= span_start
+        && abs_key < span_end;
+}
+
 // Check if position should be masked (causal + sliding window attention)
 fn is_masked(query_pos: u32, key_pos: u32) -> bool {
+    // Compute absolute positions
     let abs_query = query_pos + u.start_pos;
     let abs_key = u.kv_start + key_pos;
-    // Causal mask
-    if (u.is_causal != 0u && abs_key > abs_query) { return true; }
-    // Sliding window mask
-    if (u.sliding_window > 0u && abs_query >= u.sliding_window) {
-        if (abs_key < abs_query - u.sliding_window + 1u) { return true; }
+
+    // Causal mask: query can only attend to keys at same or earlier positions
+    if (u.is_causal != 0u && abs_key > abs_query) {
+        if (is_bidirectional_span_visible(abs_query, abs_key)) {
+            return false;
+        }
+        return true;
     }
+
+    // Sliding window mask: query can only attend to keys within the window
+    // Key must be >= (query - window + 1), i.e., within the last `window` positions
+    if (u.sliding_window > 0u && abs_query >= u.sliding_window) {
+        if (abs_key < abs_query - u.sliding_window + 1u) {
+            return true;  // Key is too far in the past
+        }
+    }
+
     return false;
 }
 
@@ -93,7 +124,6 @@ fn get_kv_len() -> u32 {
 // head_idx and query_block_idx are derived from workgroup_id.x.
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
-    @builtin(global_invocation_id) global_id: vec3<u32>,
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) wg_id: vec3<u32>
 ) {
@@ -118,7 +148,7 @@ fn main(
     // Initialize online softmax accumulators
     var m_i: f32 = -3.402823e+38;  // -inf for max tracking
     var l_i: f32 = 0.0;            // Sum of exp(x - max)
-    var acc: array<f32, MAX_HEAD_DIM>;
+    var acc: array<f32, MAX_HEAD_DIM>;       // Accumulator for output [head_dim], assuming head_dim <= MAX_HEAD_DIM
 
     // Initialize accumulator
     for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
@@ -189,7 +219,7 @@ fn main(
                 }
                 score = score * scale;
 
-                // Gemma 2 attention softcapping
+                // Gemma 2 attention softcapping: score = tanh(score / softcap) * softcap
                 if (u.attn_softcap > 0.0) {
                     score = tanh(score / u.attn_softcap) * u.attn_softcap;
                 }

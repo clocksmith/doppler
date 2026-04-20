@@ -1,4 +1,4 @@
-import type { Tensor } from '../../gpu/tensor.js';
+import type { Tensor } from '../../../gpu/tensor.js';
 
 export interface TokenizedSample {
   inputIds: number[];

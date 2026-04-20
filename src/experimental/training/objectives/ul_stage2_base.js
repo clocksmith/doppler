@@ -1,6 +1,6 @@
 import { crossEntropyLoss as defaultCrossEntropyLoss } from '../loss.js';
 import { createTrainingObjective } from './base.js';
-import { releaseBuffer } from '../../memory/buffer-pool.js';
+import { releaseBuffer } from '../../../memory/buffer-pool.js';
 import { createUploadedTensor } from '../tensor-factory.js';
 
 function sigmoid(value) {

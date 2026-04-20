@@ -24,7 +24,11 @@ struct Uniforms {
     kv_start: u32,
     page_size: u32,
     kv_layout: u32,
-    _pad: u32,
+    bidirectional_span_start: u32,
+    bidirectional_span_length: u32,
+    _pad0: u32,
+    _pad1: u32,
+    _pad2: u32,
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -40,11 +44,26 @@ fn get_kv_head_idx(query_head_idx: u32) -> u32 {
     return query_head_idx / heads_per_kv;
 }
 
+fn is_bidirectional_span_visible(abs_query: u32, abs_key: u32) -> bool {
+    if (u.bidirectional_span_length == 0u) {
+        return false;
+    }
+    let span_start = u.bidirectional_span_start;
+    let span_end = span_start + u.bidirectional_span_length;
+    return abs_query >= span_start
+        && abs_query < span_end
+        && abs_key >= span_start
+        && abs_key < span_end;
+}
+
 fn is_masked(query_pos: u32, key_pos: u32) -> bool {
     let abs_query = query_pos + u.start_pos;
     let abs_key = u.kv_start + key_pos;
     // Causal mask
-    if (u.is_causal != 0u && abs_key > abs_query) { return true; }
+    if (u.is_causal != 0u && abs_key > abs_query) {
+        if (is_bidirectional_span_visible(abs_query, abs_key)) { return false; }
+        return true;
+    }
     // Sliding window mask
     if (u.sliding_window > 0u && abs_query >= u.sliding_window) {
         if (abs_key < abs_query - u.sliding_window + 1u) { return true; }

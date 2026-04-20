@@ -2,21 +2,8 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 
 import { parseJsonl } from '../datasets/jsonl.js';
-import { sha256Hex } from '../../utils/sha256.js';
-
-function stableSortObject(value) {
-  if (Array.isArray(value)) {
-    return value.map((entry) => stableSortObject(entry));
-  }
-  if (!value || typeof value !== 'object') {
-    return value;
-  }
-  const sorted = {};
-  for (const key of Object.keys(value).sort()) {
-    sorted[key] = stableSortObject(value[key]);
-  }
-  return sorted;
-}
+import { sha256Hex } from '../../../utils/sha256.js';
+import { stableSortObject } from '../../../utils/stable-sort-object.js';
 
 function stableJson(value) {
   return JSON.stringify(stableSortObject(value));

@@ -1,4 +1,5 @@
 import { sha256Hex } from '../../utils/sha256.js';
+import { stableSortObject } from '../../utils/stable-sort-object.js';
 
 function isNodeRuntime() {
   return typeof process !== 'undefined' && !!process.versions?.node;
@@ -88,20 +89,6 @@ function readCheckpointRecord(db, storeName, key) {
     request.onsuccess = () => resolve(request.result ?? null);
     request.onerror = () => reject(request.error);
   });
-}
-
-function stableSortObject(value) {
-  if (Array.isArray(value)) {
-    return value.map((entry) => stableSortObject(entry));
-  }
-  if (!value || typeof value !== 'object') {
-    return value;
-  }
-  const sorted = {};
-  for (const key of Object.keys(value).sort()) {
-    sorted[key] = stableSortObject(value[key]);
-  }
-  return sorted;
 }
 
 function stableJson(value) {

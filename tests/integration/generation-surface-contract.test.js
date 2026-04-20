@@ -4,19 +4,18 @@ import {
   InferencePipeline,
   EmbeddingPipeline,
   createPipeline,
-  parseModelConfig,
-  parseModelConfigFromManifest,
-  loadWeights,
-  initTokenizer,
-  isStopToken,
-  initTokenizerFromManifest,
+} from '../../src/generation/index.js';
+import {
   StructuredJsonHeadPipeline,
   isStructuredJsonHeadModelType,
   createStructuredJsonHeadPipeline,
   DreamStructuredPipeline,
   isDreamStructuredModelType,
   createDreamStructuredPipeline,
-} from '../../src/generation/index.js';
+} from '../../src/tooling-exports/structured.js';
+import { parseModelConfig, parseModelConfigFromManifest } from '../../src/inference/pipelines/text/config.js';
+import { loadWeights, initTokenizer, isStopToken } from '../../src/inference/pipelines/text/init.js';
+import { initTokenizerFromManifest } from '../../src/inference/pipelines/text/model-load.js';
 
 import { applyChatTemplate } from '../../src/inference/pipelines/text/init.js';
 import { formatChatMessages } from '../../src/inference/pipelines/text/chat-format.js';

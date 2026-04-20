@@ -1,7 +1,7 @@
 import { crossEntropyLoss as defaultCrossEntropyLoss } from '../loss.js';
 import { createTrainingObjective } from './base.js';
-import { readBuffer } from '../../memory/buffer-pool.js';
-import { f16ToF32Array, f32ToF16Array } from '../../inference/kv-cache/types.js';
+import { readBuffer } from '../../../memory/buffer-pool.js';
+import { f16ToF32Array, f32ToF16Array } from '../../../inference/kv-cache/types.js';
 import { createUploadedTensor } from '../tensor-factory.js';
 
 const EPS = 1e-8;

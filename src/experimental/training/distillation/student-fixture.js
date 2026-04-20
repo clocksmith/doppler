@@ -1,5 +1,5 @@
-import { getDevice } from '../../gpu/device.js';
-import { createTrainingConfig } from '../../config/training-defaults.js';
+import { getDevice } from '../../../gpu/device.js';
+import { createTrainingConfig } from '../../../config/training-defaults.js';
 import {
   runAttention,
   castF16ToF32,
@@ -9,10 +9,10 @@ import {
   runRMSNorm,
   runRoPE,
   runSiLURowSplit,
-} from '../../gpu/kernels/index.js';
-import { createTensor } from '../../gpu/tensor.js';
-import { acquireBuffer, uploadData, releaseBuffer } from '../../memory/buffer-pool.js';
-import { getBufferDtype, getWeightDtype, isCpuWeightBuffer, isWeightBuffer } from '../../gpu/weight-buffer.js';
+} from '../../../gpu/kernels/index.js';
+import { createTensor } from '../../../gpu/tensor.js';
+import { acquireBuffer, uploadData, releaseBuffer } from '../../../memory/buffer-pool.js';
+import { getBufferDtype, getWeightDtype, isCpuWeightBuffer, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { OpType } from '../autograd.js';
 import { normalizeOptionalString } from './suite-data.js';
 

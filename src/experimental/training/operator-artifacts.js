@@ -3,20 +3,7 @@ import { dirname, join, relative, resolve } from 'node:path';
 
 import { sha256Hex } from '../../utils/sha256.js';
 import { serializeTrainingWorkloadLock } from './workloads.js';
-
-function stableSortObject(value) {
-  if (Array.isArray(value)) {
-    return value.map((entry) => stableSortObject(entry));
-  }
-  if (!value || typeof value !== 'object') {
-    return value;
-  }
-  const sorted = {};
-  for (const key of Object.keys(value).sort()) {
-    sorted[key] = stableSortObject(value[key]);
-  }
-  return sorted;
-}
+import { stableSortObject } from '../../utils/stable-sort-object.js';
 
 function stableJson(value) {
   return JSON.stringify(stableSortObject(value));

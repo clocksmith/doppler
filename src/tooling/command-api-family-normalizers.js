@@ -1,4 +1,5 @@
 import { isPlainObject } from '../utils/plain-object.js';
+import { cloneJsonValue as cloneCommandValue } from '../utils/clone-json.js';
 import {
   DISTILL_ACTION_SET,
   LORA_ACTION_SET,
@@ -37,12 +38,6 @@ function resolveDebugRequestWorkload(raw) {
   return workload;
 }
 
-function cloneCommandValue(value) {
-  if (typeof structuredClone === 'function') {
-    return structuredClone(value);
-  }
-  return JSON.parse(JSON.stringify(value));
-}
 
 function normalizeInferencePrompt(value, label) {
   if (value === undefined || value === null) {

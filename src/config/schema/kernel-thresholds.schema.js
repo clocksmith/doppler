@@ -1,3 +1,5 @@
+import { cloneJsonValue as cloneThresholdTree } from '../../utils/clone-json.js';
+
 // =============================================================================
 // Matmul Thresholds
 // =============================================================================
@@ -155,12 +157,6 @@ export const DEFAULT_KERNEL_THRESHOLDS = {
   tuner: DEFAULT_TUNER_LIMITS,
 };
 
-function cloneThresholdTree(value) {
-  if (typeof structuredClone === 'function') {
-    return structuredClone(value);
-  }
-  return JSON.parse(JSON.stringify(value));
-}
 
 // =============================================================================
 // Runtime Access

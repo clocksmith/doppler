@@ -72,7 +72,7 @@ assert.equal(
 );
 assert.equal(
   kernelPath.decode.steps.find((step) => step.op === 'down_proj')?.kernel,
-  'matmul_gemv_subgroup.wgsl'
+  'fused_matmul_q4.wgsl'
 );
 assert.equal(
   kernelPath.prefill.steps.find((step) => step.op === 'q_proj')?.kernel,

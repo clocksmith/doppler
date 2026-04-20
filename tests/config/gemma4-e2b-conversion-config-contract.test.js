@@ -86,7 +86,7 @@ assert.equal(config.session?.decodeLoop?.ringStop, 1);
 assert.equal(config.session?.decodeLoop?.ringStaging, 2);
 assert.equal(config.session?.decodeLoop?.disableCommandBatching, false);
 assert.equal(config.session?.retainQ4KMaterialization, false);
-assert.equal(config.session?.perLayerInputs?.materialization, 'gpu_split_tables');
+assert.equal(config.session?.perLayerInputs?.materialization, 'range_backed');
 assert.equal(config.session?.perLayerInputs?.hotCache?.mode, 'prepared_tokens');
 assert.equal(config.session?.perLayerInputs?.hotCache?.maxTokens, 4096);
 assert.equal(config.session?.perLayerInputs?.hotCache?.maxBytes, 268435456);

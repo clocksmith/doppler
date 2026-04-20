@@ -1,7 +1,7 @@
 // Auto-generated from src/config/kernels/registry.json + src/gpu/kernels/*.wgsl
 // Content hash input: normalized WGSL source + "\n@@entry:<entry>"
 export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
-  "activation_static_qdq.wgsl#main": "c6dfe0df53c879e6dfa022964f3f938c313c20563237e68f975eeb8b6d7a45c8",
+  "activation_static_qdq.wgsl#main": "2f69753d182d425550abb67f9d774832857ad5fc29a90af37fc8d4b4a2bf71f7",
   "attention_bdpa_decode_f16.wgsl#main": "e2d73e455ea26a1cddb27eef2835e9e404db731255c7d2c6a5812245375562f2",
   "attention_decode_chunked_f16.wgsl#main": "9733ffdcf79d064322ef400635104f2b4e3f9e34ca08a6e2638bab72769bac0a",
   "attention_decode_chunked_f16kv.wgsl#main": "21ea87fa5a0267ee2a960fa24d7a6582fe9b3d8276695289f924601236a29d62",
@@ -21,8 +21,8 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "attention_decode_tiered_turboquant_f16kv.wgsl#main": "37b08210e544b51ccf30e15d14af93f8ddb9273c36d74424b35e169c729e965c",
   "attention_decode_tiered_turboquant_prod_f16kv.wgsl#main": "040bf19fb58fad7b5a8e2c37707eeebdbc0dbf29e6c43f8bc102de1208a2ceeb",
   "attention_decode.wgsl#attention_decode": "14cbf16eebe643d2cb0c957d5f125f6f69ea34957f2daa19488ee8985f81db1b",
-  "attention_f16.wgsl#main": "7af8ff1feb120dc769e228f362129ef315c6564a02dc320c113edb2655fa5e17",
-  "attention_f16kv.wgsl#main": "45692ce45ce8358cc853575e18b71fd006f119a8d693ddcb2a9d9fdea00c3895",
+  "attention_f16.wgsl#main": "66fec02c1234f017e4dc16c26cee2fefece7c40b9247f74ba4591cbc33de1b11",
+  "attention_f16kv.wgsl#main": "66a2753b3cd806b0c838b20e9965f7131b76b2fb02dbfdc2bb8ddd62c63b1e3f",
   "attention_head256_f16kv.wgsl#main": "4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
   "attention_head512_f16kv.wgsl#main": "fe8bc99230a5ee4c969ba1cf9eca289ad936d14f1f87c12a7ca95640cdd8d89e",
   "attention_prefill_flash_head256_f16kv.wgsl#main": "dc06506d7adf0d30f551276ca4229197817ca097a4825ee8fd16a0ac2b843c54",
@@ -30,8 +30,8 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "attention_small_f16.wgsl#main": "47f06b070055790db28cd562323d2010cc2aed5ea7bde8cdfb5b81a93f0f4496",
   "attention_small_f16kv.wgsl#main": "369aa3b386b4ef89a916ba2717465caa47079f52bbe0f3e5d61bd3220e2ec71e",
   "attention_small.wgsl#main": "6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4",
-  "attention_streaming_f16.wgsl#main": "27505156863c480bc5f6e6b29824bbc93bdf45189a661b46eb8d7867db3f40e1",
-  "attention_streaming_f16kv.wgsl#main": "5976eef417cebf648f52aeebb47ed1dc6b03c3c541122290c5cead19238fdc24",
+  "attention_streaming_f16.wgsl#main": "42d847dda8239fcc886a397247f09952264b97457c44ed3c524d69101dfeb7f8",
+  "attention_streaming_f16kv.wgsl#main": "76eda2dfc1b4323ed4fd02b91d1ce448de65ce9b31898dee8ae635b1d5b94d3a",
   "attention_streaming.wgsl#main": "bf6e44bbd021bd6752c311735f577a5ff05327f69fc7712d548ed3c84a8f4149",
   "attention.wgsl#main": "9e066a9a201a8b10707995a4b64322c68641873afb017e8f96d5249edc6caf55",
   "backward/adam.wgsl#main": "5520ab52aed793a665c16f25db2d0eecb69b34f953ce870691ab20f7a2e3acb7",

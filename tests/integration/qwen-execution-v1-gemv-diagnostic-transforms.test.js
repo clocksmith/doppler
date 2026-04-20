@@ -93,10 +93,9 @@ const diagnosticTransformCtx = {
     remapQ4KDecodeAttentionToFusedQ4KGemv(structuredClone(execution), diagnosticTransformCtx),
     'remapQ4KDecodeAttentionToFusedQ4KGemv should produce a fused-Q4K-GEMV diagnostic graph'
   );
-  assert.equal(
+  assert.ok(
     remapQ4KDecodeFFNToGemv(structuredClone(execution), diagnosticTransformCtx),
-    null,
-    'remapQ4KDecodeFFNToGemv should be a no-op when FFN GEMV is already primary'
+    'remapQ4KDecodeFFNToGemv should produce an FFN-only GEMV diagnostic graph'
   );
   assert.ok(
     remapQ4KPrefillToDense(structuredClone(execution), diagnosticTransformCtx),
@@ -123,9 +122,10 @@ const diagnosticTransformCtx = {
     if (['gate_proj', 'up_proj', 'down_proj'].includes(op)) {
       const entry = execution.kernels[step[1]];
       assert.equal(
-        entry.kernel, 'matmul_gemv_subgroup.wgsl',
-        `Primary graph: decode ${op} should use matmul_gemv_subgroup.wgsl`
+        entry.kernel, 'fused_matmul_q4.wgsl',
+        `Primary graph: decode ${op} should use fused_matmul_q4.wgsl (unified with attention Q4 path)`
       );
+      assert.equal(entry.entry, 'main_gemv');
     }
   }
 
@@ -209,8 +209,8 @@ const diagnosticTransformCtx = {
   );
   assert.equal(
     kp.decode.steps.find((s) => s.op === 'gate_proj')?.kernel,
-    'matmul_gemv_subgroup.wgsl',
-    'compileExecutionV1: decode gate_proj uses GEMV subgroup'
+    'fused_matmul_q4.wgsl',
+    'compileExecutionV1: decode gate_proj uses fused Q4 GEMV (unified with attention path)'
   );
   assert.equal(
     kp.prefill.steps.find((s) => s.op === 'q_proj')?.kernel,

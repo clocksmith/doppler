@@ -1,6 +1,6 @@
---- /Users/xyz/deco/doppler/src/gpu/kernels/rmsnorm.wgsl	2026-03-23 16:49:01
-+++ /Users/xyz/deco/doppler/src/gpu/kernels/rmsnorm_f16.wgsl	2026-03-23 16:49:01
-@@ -1,45 +1,27 @@
+--- src/gpu/kernels/rmsnorm.wgsl
++++ src/gpu/kernels/rmsnorm_f16.wgsl
+@@ -1,46 +1,27 @@
 -// RMSNorm Kernel with Fused Residual Add
 +// AUTO-GENERATED from src/gpu/kernels/rmsnorm.wgsl.
 +// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
@@ -19,7 +19,7 @@
 -//
 -// Uses override constants for compile-time feature selection:
 -// - RMS_NORM_OFFSET: Use (1 + weight) pattern (Gemma models)
--// - HAS_RESIDUAL: Enable post-norm residual addition
+-// - HAS_RESIDUAL: Compile-time override (reserved for codegen patches, not used by JS dispatch)
 -// - OUTPUT_PRENORM: Output pre-normalized values (before weight multiplication)
 +// RMSNorm(x) = x / sqrt(mean(x^2) + eps) * weight
  
@@ -41,6 +41,7 @@
  override WEIGHT_IS_F16: bool = false;     // Weight buffer packed as f16 pairs
  
 -const MAX_SUBGROUPS: u32 = 32u;  // Support up to 32 subgroups per workgroup
+-const MAX_CACHE_SIZE: u32 = 4608u;  // Supports hiddenSize up to 1152 with 4 elements/thread
 -
 -// =============================================================================
 -// Uniforms (per-dispatch)
@@ -56,7 +57,7 @@
      token_stride: u32,  // Workgroup rows per dispatch row
      _pad0: u32,
      _pad1: u32,
-@@ -47,29 +29,20 @@
+@@ -48,29 +29,20 @@
  }
  
  @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -93,15 +94,13 @@
  }
  
  fn load_weight(idx: u32) -> f32 {
-@@ -81,18 +54,11 @@
+@@ -82,16 +54,11 @@
      return bitcast<f32>(weight[idx]);
  }
  
--// Check if residual should be added (compile-time OR runtime flag)
+-// Check if residual should be added (runtime uniform only — JS dispatch controls this)
 -fn should_add_residual() -> bool {
--    // HAS_RESIDUAL is compile-time override (for optimized paths)
--    // u.has_residual is runtime flag (for flexibility)
--    return HAS_RESIDUAL || (u.has_residual != 0u);
+-    return u.has_residual != 0u;
 -}
 -
  // Load input value, fusing residual add when PRE_RESIDUAL is active
@@ -114,7 +113,7 @@
      }
      return x;
  }
-@@ -100,7 +66,7 @@
+@@ -99,7 +66,7 @@
  // Write pre-norm sum when OUTPUT_PRENORM is active (for downstream residual reuse)
  fn write_prenorm(base_offset: u32, idx: u32, val: f32) {
      if (OUTPUT_PRENORM && PRE_RESIDUAL) {
@@ -123,7 +122,7 @@
      }
  }
  
-@@ -108,10 +74,6 @@
+@@ -107,10 +74,6 @@
      return wg_id.y * max(u.token_stride, 1u) + wg_id.x;
  }
  
@@ -134,7 +133,7 @@
  // Main RMSNorm kernel - one workgroup per token
  @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
  fn main(
-@@ -129,7 +91,7 @@
+@@ -128,7 +91,7 @@
  
      let base_offset = token_idx * size;
  
@@ -143,7 +142,7 @@
      // When PRE_RESIDUAL is active, sum is computed on (input + residual)
      var local_sum_sq: f32 = 0.0;
      let elements_per_thread = (size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
-@@ -154,7 +116,7 @@
+@@ -153,7 +116,7 @@
          workgroupBarrier();
      }
  
@@ -152,7 +151,7 @@
      let mean_sq = shared_sum[0] / f32(size);
      let rms = sqrt(mean_sq + u.eps);
      let inv_rms = 1.0 / rms;
-@@ -167,29 +129,26 @@
+@@ -166,29 +129,26 @@
          if (idx < size) {
              let x = load_input(base_offset, idx);
  
@@ -189,7 +188,7 @@
      @builtin(local_invocation_id) local_id: vec3<u32>,
      @builtin(workgroup_id) wg_id: vec3<u32>
  ) {
-@@ -209,7 +168,7 @@
+@@ -208,7 +168,7 @@
          x = load_input(base_offset, thread_idx);
      }
  
@@ -198,10 +197,12 @@
      shared_sum[thread_idx] = x * x;
      workgroupBarrier();
  
-@@ -225,225 +184,13 @@
-     let mean_sq = shared_sum[0] / f32(size);
-     let inv_rms = 1.0 / sqrt(mean_sq + u.eps);
+@@ -222,227 +182,15 @@
  
+     // Compute inverse RMS
+     let mean_sq = shared_sum[0] / f32(size);
+-    let inv_rms = 1.0 / sqrt(mean_sq + u.eps);
+-
 -    // Apply normalization
 -    if (thread_idx < size) {
 -        var result = x * inv_rms * apply_weight(load_weight(thread_idx));
@@ -219,7 +220,7 @@
 -
 -// OPTIMIZED: Caches input to avoid double loads
 -// Uses shared memory to store input values between passes
--var<workgroup> shared_cache: array<f32, 4608>;  // Max for hiddenSize=1152 × 4 elements/thread
+-var<workgroup> shared_cache: array<f32, MAX_CACHE_SIZE>;
 -
 -@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 -fn main_cached(
@@ -342,8 +343,8 @@
 -
 -    // Compute RMS (all threads now have the same value)
 -    let mean_sq = total_sum / f32(size);
--    let inv_rms = 1.0 / sqrt(mean_sq + u.eps);
--
+     let inv_rms = 1.0 / sqrt(mean_sq + u.eps);
+ 
 -    // Apply normalization and weight
 -    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
 -        let idx = thread_idx * elements_per_thread + i;
