@@ -44,3 +44,50 @@ export function processLayerGPU(
   context: LayerContext
 ): Promise<GPUBuffer>;
 
+/** Resolve the activation dtype for a layer (normalizes aliases). */
+export declare function resolveActivationDtype(dtype: string | null | undefined): string;
+
+/** Fetch or lazily create the per-layer convolution state record. */
+export declare function getConvLayerState(
+  convLayerStates: Record<string, unknown>,
+  layerIdx: number
+): Record<string, unknown>;
+
+/** True when `layerType` is a sliding-window attention variant. */
+export declare function isSlidingLayerType(layerType: string | null | undefined): boolean;
+
+/** True when any entry in `layerTypes` indicates a conv-hybrid layer. */
+export declare function hasConvLayers(layerTypes: Array<string> | null | undefined): boolean;
+
+/** Per-layer rotary dimension resolver (handles layerType-driven overrides). */
+export declare function resolveAttentionRotaryDim(
+  config: ParsedModelConfig,
+  layerType: string | null | undefined
+): number;
+
+/** Per-layer attention head dimension resolver. */
+export declare function resolveAttentionHeadDim(
+  config: ParsedModelConfig,
+  layerType: string | null | undefined
+): number;
+
+/** Per-layer KV sharing resolver. */
+export declare function resolveAttentionKVSharing(
+  config: ParsedModelConfig,
+  layerIdx: number,
+  layerType: string | null | undefined
+): Record<string, unknown> | null;
+
+/** True when the model config declares per-layer input blocks. */
+export declare function hasPerLayerInputBlock(config: ParsedModelConfig | null): boolean;
+
+/** Apply the per-layer input block transform for `layerIdx`. */
+export declare function applyPerLayerInputBlock(
+  layerIdx: number,
+  hiddenTensor: unknown,
+  numTokens: number,
+  size: number,
+  context: LayerContext,
+  layerWeights: LayerWeights | null
+): Promise<unknown>;
+

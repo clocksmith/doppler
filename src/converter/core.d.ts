@@ -316,3 +316,38 @@ export declare function convertModel(
     } | void>) | null;
   }
 ): Promise<ConvertResult>;
+
+/** Resolve the manifest MoE config block for a given model. */
+export declare function resolveManifestMoEConfig(
+  model: ParsedModel,
+  options: ConvertOptions,
+  rawConfig: Record<string, unknown>,
+  resolvedModelType: string
+): Record<string, unknown> | null;
+
+/** Build a sentencepiece tokenizer manifest block. */
+export declare function buildSentencepieceTokenizer(
+  tokenizerConfig: Record<string, unknown> | null,
+  rawConfig: Record<string, unknown>,
+  architecture: string,
+  modelTokenizerModel: string | null
+): Record<string, unknown>;
+
+/** Build a bundled tokenizer manifest block from a tokenizer.json. */
+export declare function buildBundledTokenizer(
+  tokenizerJson: Record<string, unknown>,
+  tokenizerConfig: Record<string, unknown> | null,
+  rawConfig: Record<string, unknown>
+): Record<string, unknown>;
+
+/** True when `tensorName` is a Gemma4 per-layer embedding tensor. */
+export declare function isGemma4PerLayerEmbedTensor(tensorName: string): boolean;
+
+/** Normalize a convertedAt value to an ISO timestamp string. */
+export declare function resolveConvertedAt(value: unknown): string;
+
+/** Resolve the manifest multimodal config block for a given model. */
+export declare function resolveManifestMultimodalConfig(
+  rawConfig: Record<string, unknown>,
+  manifestConfig?: Record<string, unknown> | null
+): Record<string, unknown> | null;
