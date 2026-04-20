@@ -62,6 +62,7 @@
     "public:boundaries:check": "node tools/check-public-boundaries.js",
     "exports:parity:check": "node tools/check-exports-parity.js",
     "pending:check": "node tools/check-pending-tests.js",
+    "check:green": "npm run agents:verify && npm run public:boundaries:check && npm run api:docs:check && npm run imports:check:browser && npm run pending:check && npm run exports:parity:check",
     "verify:model": "node src/cli/doppler-cli.js verify",
     "quickstart:sync": "node tools/sync-quickstart-registry.js",
     "quickstart:check": "node tools/sync-quickstart-registry.js --check",

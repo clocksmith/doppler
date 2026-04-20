@@ -26,6 +26,21 @@ Run parity verification before and after agent instruction updates:
 npm run agents:verify
 ```
 
+## Default green chain
+
+`npm run check:green` runs the read-only contract checks that should pass before a PR lands:
+
+```
+agents:verify              # AGENTS.md / CLAUDE.md / GEMINI.md / skills parity
+public:boundaries:check    # src/index*, src/generation, etc. forbidden-import rules
+api:docs:check             # docs/api/reference/* reflects real public exports
+imports:check:browser      # browser import graph has no Node-only leaks
+pending:check              # *.pending.test.js files have owned policy entries
+exports:parity:check       # sibling .js / .d.ts export name sets agree
+```
+
+Parity currently fails with known drift tracked in `docs/cleanup/parity-drift-classification-2026-04-19.json`. Classify each entry (runtime fix, declaration fix, stale removal, pending feature) and either fix it or quarantine via `tools/policies/exports-parity-allowlist.json` with an owner and expiry/issue.
+
 ## Repo touch policy reminder
 
 The repo is code-first and instruction-first. Prefer linking to canonical docs over duplicating policy descriptions in product-facing docs such as `README.md`.
