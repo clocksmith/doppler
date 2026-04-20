@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "updated": "2026-04-19",
+  "description": "Known-debt entries for tools/check-exports-parity.js. Each entry quarantines a single .js/.d.ts export-drift item with an owner and either an expiry date or a tracking issue. Expired or unused entries fail the check.",
+  "fields": {
+    "path": "Repo-relative path to the .js file whose sibling .d.ts drifts.",
+    "kind": "onlyInJs | onlyInDts — which side has the unmatched symbol.",
+    "symbol": "Exported identifier that does not appear on the other side.",
+    "reason": "Why the drift is tolerated. Plain prose, one sentence.",
+    "owner": "Person or team responsible for clearing this entry.",
+    "created": "ISO date (YYYY-MM-DD) the entry was added.",
+    "expires": "ISO date the allowance lapses. Required unless `issue` is set.",
+    "issue": "Tracking URL. Required unless `expires` is set."
+  },
+  "entries": []
+}

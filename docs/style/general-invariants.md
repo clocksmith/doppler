@@ -49,3 +49,9 @@ Mirrors must be generated from that source and covered by a sync check.
 ## Failure-Path Regression Requirement
 
 Any fix for buffer lifecycle, readback cleanup, or failure-path-only behavior must include a regression test exercising the failing path.
+
+## Inventory Before Edit
+
+When a failure indicates a repeated drift class, run or create the broadest inventory check before editing individual files. Classify the full set first, then batch fixes by decision type: fix to runtime, fix to declarations, remove stale surface, or quarantine as pending-feature/debt with owner and expiry.
+
+One-off repairs for recurring drift should become checkable tooling with a `--check` mode before the task is considered complete.

@@ -31,10 +31,16 @@ function parseArgs() {
   const directories = [];
   let suite = 'all';
   let forceExit = false;
+  let includePending = false;
 
   for (let i = 0; i < args.length; i += 1) {
     if (args[i] === '--force-exit') {
       forceExit = true;
+      continue;
+    }
+
+    if (args[i] === '--include-pending') {
+      includePending = true;
       continue;
     }
 
@@ -59,25 +65,29 @@ function parseArgs() {
     directories.push(args[i]);
   }
 
-  return { suite, directories, forceExit };
+  return { suite, directories, forceExit, includePending };
 }
 
-function collectTestFiles(dir, files) {
+function isPendingTestFile(name) {
+  return name.endsWith('.pending.test.js');
+}
+
+function collectTestFiles(dir, files, { includePending }) {
   const entries = readdirSync(dir, { withFileTypes: true });
   for (const entry of entries) {
     if (entry.name.startsWith('.')) continue;
     const fullPath = join(dir, entry.name);
     if (entry.isDirectory()) {
-      collectTestFiles(fullPath, files);
+      collectTestFiles(fullPath, files, { includePending });
       continue;
     }
-    if (entry.isFile() && entry.name.endsWith('.test.js')) {
-      files.push(fullPath);
-    }
+    if (!entry.isFile() || !entry.name.endsWith('.test.js')) continue;
+    if (isPendingTestFile(entry.name) && !includePending) continue;
+    files.push(fullPath);
   }
 }
 
-function collectFilesFromRoot(pathValue, files) {
+function collectFilesFromRoot(pathValue, files, { includePending }) {
   if (!existsSync(pathValue)) {
     throw new Error(`Test path not found: ${pathValue}`);
   }
@@ -87,10 +97,12 @@ function collectFilesFromRoot(pathValue, files) {
     if (!normalized.endsWith('.test.js')) {
       throw new Error(`Test file must end with .test.js: ${pathValue}`);
     }
+    // Explicitly-named files run regardless of pending status: the caller
+    // asked for this exact file, so honor that.
     files.push(pathValue);
     return;
   }
-  collectTestFiles(pathValue, files);
+  collectTestFiles(pathValue, files, { includePending });
 }
 
 function listRootsFromSuite(suiteName, explicitDirs) {
@@ -115,7 +127,7 @@ function runTestFile(file) {
 }
 
 async function main() {
-  const { suite, directories, forceExit } = parseArgs();
+  const { suite, directories, forceExit, includePending } = parseArgs();
   if (!Object.hasOwn(suites, suite)) {
     throw new Error(`Unknown --suite "${suite}". Valid suites: ${Object.keys(suites).join(', ')}`);
   }
@@ -123,12 +135,16 @@ async function main() {
   const testFiles = [];
 
   for (const root of selectedRoots) {
-    collectFilesFromRoot(root, testFiles);
+    collectFilesFromRoot(root, testFiles, { includePending });
   }
 
   if (testFiles.length === 0) {
     console.log('[node-tests] no matching tests found');
     return;
+  }
+
+  if (includePending) {
+    console.log('[node-tests] --include-pending: pending-feature tests will run');
   }
 
   const failures = [];
