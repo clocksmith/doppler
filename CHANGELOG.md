@@ -8,6 +8,99 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 
 ## [Unreleased]
 
+### Added
+
+- `npm run check:green` — documented PR-gate chain that runs
+  `agents:verify`, `public:boundaries:check`, `api:docs:check`,
+  `imports:check:browser`, `pending:check`, and `exports:parity:check`
+  end-to-end. Passes at `HEAD`.
+- `npm run pending:check` — new check that enforces the
+  `*.pending.test.js` policy: every pending-feature test must have a
+  registered entry in `tools/policies/pending-tests-policy.json` with
+  an owner and either an expiry date or a tracking issue. Expired or
+  orphaned entries fail.
+- `tools/policies/exports-parity-allowlist.json` — allowlist schema
+  for `exports:parity:check` with required owner + expires/issue. The
+  repo now ships with zero allowlist entries; the drift tail was
+  fully fixed rather than quarantined.
+- `docs/style/emoji.md` — moved from the repo root, indexed in
+  `docs/style/README.md`.
+- `docs/style/README.md` — new "Read-First Matrix" keyed by change
+  area so contributors and agents can pick guides without chasing
+  cross-references.
+- `docs/cleanup/` — committed before/after cleanup artifacts
+  (baseline, parity drift classification, style-docs inventory,
+  developer-guides inventory, npm-scripts audit, parity-tail buckets,
+  final-state snapshot).
+- `docs/style/javascript-style-guide.md` and
+  `docs/style/general-style-guide.md` now lead with an "Invariants
+  (Quick Reference)" section linked to the detailed sections below.
+  The two former standalone `*-invariants.md` files were folded in and
+  deleted.
+- "Inventory Before Edit" invariant in the General Style Guide:
+  before fixing a repeated class of failures, run the broadest
+  inventory check first. One-off repairs for recurring drift should
+  graduate to checkable tooling with a `--check` mode.
+
+### Changed
+
+- `tests/integration/doppler-public-logits-api-contract.test.js` and
+  `tests/integration/demo-import-surface.test.js` renamed to
+  `*.pending.test.js` and registered in the pending-tests policy.
+  They assert on runtime surfaces that do not yet exist
+  (advanced.prefillWithLogits / advanced.decodeStepLogits, and the
+  `@simulatte/doppler` import specifier on demo/examples) and were
+  polluting the regression test lane.
+- `tools/run-node-tests.js` excludes `*.pending.test.js` from the
+  default lane; `--include-pending` opts in.
+- Default test lane dropped from 113 to 111 files.
+
+### Fixed
+
+- `tools/check-exports-parity.js` grouped-export regex now strips
+  `//` and `/* */` comments before splitting by comma. Previously a
+  name that followed an inline comment in a grouped re-export was
+  silently dropped on one side, producing false-positive "only in
+  .dts" drift (notably `src/inference/kv-cache.js`).
+- Same checker now recognizes `export async function*` generator
+  syntax. Earlier it missed every `async function*` export and
+  produced false-positive drift for `streamShardRange`,
+  `streamTensorData`, `createQ4KChunkStream`, and
+  `createF16ChunkStream`.
+- `src/inference/pipelines/text/generator.d.ts` no longer declares
+  `shouldDisableBatchDecodeAfterShortBatch` — the runtime imports it
+  from `./generator-prefill-helpers.js` and does not re-export it.
+- `src/inference/pipelines/text/embed.d.ts` no longer declares
+  `recordScale` or `scaleGPUBuffer` — those come from
+  `gpu/kernels/scale.js` (scaleGPUBuffer had zero references
+  anywhere in the repo).
+- `.js` / `.d.ts` export parity across `src/**` is now 100% aligned
+  (40 files and 151 symbols of drift cleared, 0 allowlist entries
+  needed). Over 25 `.d.ts` files updated to match what runtime
+  already exported: added declarations, type-only re-exports in the
+  debug barrel, missing re-export blocks in the config schema
+  barrel, and snake_case aliases in the gpu/kernels backward index.
+
+### Removed
+
+- 22 unreferenced `npm` scripts: `ci:lean:execution-contract`,
+  `ci:diffusion:contract:list`, `ci:training:contract:list`,
+  `contracts:summary`, `contracts:summary:lean`,
+  `reports:convert:summary`, `bench:chart`, `bench:chart:readme`,
+  `bench:architecture:chart`, `bench:vendors:list`,
+  `lean:execution-contract`, `lean:execution-contract:sweep`,
+  `lean:execution-contract:configs`, `contracts:check:lean`,
+  `bench:tjs:stage`, `distill:studio:mvp`, `distill:quality-gate`,
+  `p2p:observability`, `p2p:drill`, `execution-graph:patch`,
+  `onboarding:scaffold`, `bench:vendors:matrix`. Each was verified
+  with grep + `git log -S` to have zero callers outside
+  `package.json`. Underlying tools remain reachable via direct
+  `node tools/...` invocation. Net script count: 110 → 90.
+- `docs/style/general-invariants.md` and
+  `docs/style/javascript-invariants.md` — folded into their full-
+  guide companions as "Invariants (Quick Reference)" sections.
+- Root `EMOJI.md` — moved to `docs/style/emoji.md`.
+
 ## [0.4.3] - 2026-04-18
 
 ### Added
