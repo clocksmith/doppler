@@ -92,6 +92,25 @@ export interface TraceConfigSchema {
 /** Default trace configuration */
 export declare const DEFAULT_TRACE_CONFIG: TraceConfigSchema;
 
+/**
+ * Kernel trace configuration (kernel-trace.js anomaly detection).
+ */
+export interface KernelTraceConfigSchema {
+  /** Layer indices to trace (empty array = all layers) */
+  layers: number[];
+  /** Break on anomaly detection (default: false) */
+  breakOnAnomaly: boolean;
+  /** Absolute-value threshold for explosion detection */
+  explosionThreshold: number;
+  /** Absolute-value threshold for collapse detection */
+  collapseThreshold: number;
+  /** Maximum decode steps to trace */
+  maxSteps: number;
+}
+
+/** Default kernel trace configuration */
+export declare const DEFAULT_KERNEL_TRACE_CONFIG: KernelTraceConfigSchema;
+
 /** Debug categories for pipeline debug-utils (kernel/layer inspection) */
 export type PipelineDebugCategory =
   | 'embed'

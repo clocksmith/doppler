@@ -8,6 +8,19 @@
  */
 
 /**
+ * Per-operation timeouts for the native messaging bridge.
+ */
+export interface BridgeTimeoutConfigSchema {
+  pingTimeoutMs: number;
+  readTimeoutMs: number;
+  listTimeoutMs: number;
+  defaultTimeoutMs: number;
+}
+
+/** Default bridge timeout configuration */
+export declare const DEFAULT_BRIDGE_TIMEOUT_CONFIG: BridgeTimeoutConfigSchema;
+
+/**
  * Configuration for the native messaging bridge.
  *
  * Controls file access permissions and resource limits for the native host
@@ -19,6 +32,9 @@ export interface BridgeConfigSchema {
 
   /** Colon-separated list of allowed directory paths for file access */
   allowedDirectories: string;
+
+  /** Per-operation timeouts for bridge requests */
+  timeouts: BridgeTimeoutConfigSchema;
 }
 
 /** Default bridge configuration */
