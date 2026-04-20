@@ -177,3 +177,16 @@ export function doAttention(
   recorder?: CommandRecorder,
   lora?: LoRAAdapter | null
 ): Promise<AttentionResult>;
+
+/**
+ * Initialize per-layer convolution state from the loaded weight buffer.
+ * Resolves kernel shape, dtype, and input projection bindings.
+ */
+export declare function initConvLayerState(
+  convState: Record<string, unknown>,
+  convKernel: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer | CpuWeightBuffer,
+  convInProj: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer | CpuWeightBuffer | null,
+  hiddenSize: number,
+  label: string,
+  layerIdx: number
+): Promise<void>;

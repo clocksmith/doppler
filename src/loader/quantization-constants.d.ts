@@ -21,3 +21,9 @@ export declare const Q8_0_BLOCK_BYTES: number;
 
 /** Q8_0 block size in elements (32 weights per block) */
 export declare const Q8_0_BLOCK_SIZE: number;
+
+/** Pad an element count up to the nearest Q4K block boundary. */
+export declare function padToQ4KBlock(size: number): number;
+
+/** Number of Q4K blocks required to cover `numElements`. */
+export declare function q4kBlockCount(numElements: number): number;

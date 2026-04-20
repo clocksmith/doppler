@@ -90,3 +90,18 @@ export function buildQuintelKernelFlags(
 ): number;
 
 export function runQuintelEnergyLoop(options: QuintelEnergyLoopOptions): QuintelEnergyLoopResult;
+
+/**
+ * Compute the Quintel energy value and its per-cell gradient for the
+ * given state. Used inside the energy loop and by diagnostics probes.
+ */
+export function computeQuintelEnergy(
+  state: Float32Array,
+  size: number,
+  config: QuintelEnergyConfig
+): {
+  energy: number;
+  gradients: Float32Array;
+  components: QuintelEnergyComponents;
+  countDiff: number | null;
+};

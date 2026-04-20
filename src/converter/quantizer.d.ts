@@ -99,3 +99,22 @@ export declare function shouldQuantize(
 ): boolean;
 
 export declare function getQuantizedSize(shape: number[]): number;
+
+/**
+ * Per-row symmetric int4 quantization for a 2D weight matrix.
+ * Returns packed int4 nibbles (rows × cols/2 bytes) plus per-row scales.
+ */
+export declare function quantizeToInt4PerRowSymmetric(
+  f32Data: Float32Array,
+  shape: [number, number]
+): { quantized: Uint8Array; scales: Float32Array };
+
+/**
+ * Inverse of quantizeToInt4PerRowSymmetric — dequantize packed int4
+ * rows back to Float32 using the saved per-row scales.
+ */
+export declare function dequantizeInt4PerRowSymmetric(
+  quantized: Uint8Array,
+  scales: Float32Array,
+  shape: [number, number]
+): Float32Array;

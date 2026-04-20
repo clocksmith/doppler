@@ -201,3 +201,15 @@ export declare function composeTransforms(...transforms: ExecutionGraphTransform
  * Registry mapping transform names to functions.
  */
 export declare const TRANSFORMS: Record<string, ExecutionGraphTransform>;
+
+/** F16→F32 correctness fallback when the target's f16 kernel is absent. */
+export declare const widenToF32CorrectnessFallback: ExecutionGraphTransform;
+
+/** Narrow pipeline activations from F32 back to F16 where safe. */
+export declare const narrowToF16Activations: ExecutionGraphTransform;
+
+/** Qwen-specific: force primary matmul variants to F16. */
+export declare const useQwenF16PrimaryMatmuls: ExecutionGraphTransform;
+
+/** Drop the retain-Q4K materialization flag (used by perf investigations). */
+export declare const disableRetainQ4KMaterialization: ExecutionGraphTransform;

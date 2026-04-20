@@ -6,3 +6,5 @@ export {
   isDreamStructuredModelType,
   createDreamStructuredPipeline,
 } from './json-head-pipeline.js';
+
+export { createJsonGrammarMask } from './json-grammar-mask.js';
