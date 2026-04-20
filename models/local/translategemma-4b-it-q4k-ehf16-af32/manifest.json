@@ -6508,5 +6508,11 @@
     "vocabSize": 262144,
     "file": "tokenizer.json",
     "addBosToken": true
+  },
+  "artifactIdentity": {
+    "sourceCheckpointId": "google/translategemma-4b-it",
+    "weightPackId": "translategemma-4b-it-q4k-ehf16-af32-wp-catalog-v1",
+    "manifestVariantId": "translategemma-4b-it-q4k-ehf16-af32-mv-exec-v1",
+    "artifactCompleteness": "complete"
   }
 }

@@ -456,6 +456,24 @@ function groupBy(artifacts, key) {
     }));
 }
 
+function findCatalogEntry(catalog, modelId) {
+  const needle = typeof modelId === 'string' ? modelId.trim() : '';
+  if (!needle) return null;
+  return catalog.entries.find((entry) => entry.modelId === needle) ?? null;
+}
+
+function isKnownUnpromotedIncomplete(entry) {
+  return entry?.artifactCompleteness === 'incomplete'
+    && entry?.runtimePromotionState === 'unpromoted'
+    && entry?.quickstart !== true
+    && entry?.lifecycle?.availability?.hf !== true;
+}
+
+function incompleteArtifactSeverity(artifact, catalog) {
+  const entry = findCatalogEntry(catalog, artifact.modelId);
+  return isKnownUnpromotedIncomplete(entry) ? 'warning' : 'error';
+}
+
 function buildFindings(artifacts, catalog) {
   const findings = [];
   for (const artifact of artifacts) {
@@ -469,7 +487,7 @@ function buildFindings(artifacts, catalog) {
     }
     if (artifact.classification === 'invalid-manifest-only') {
       findings.push({
-        severity: 'error',
+        severity: incompleteArtifactSeverity(artifact, catalog),
         code: 'manifest_only_without_weights_ref',
         manifestPath: artifact.manifestPath,
         modelId: artifact.modelId,
@@ -478,7 +496,7 @@ function buildFindings(artifacts, catalog) {
     }
     if (artifact.classification === 'invalid-incomplete-shards') {
       findings.push({
-        severity: 'error',
+        severity: incompleteArtifactSeverity(artifact, catalog),
         code: 'missing_declared_shards',
         manifestPath: artifact.manifestPath,
         modelId: artifact.modelId,
@@ -487,7 +505,7 @@ function buildFindings(artifacts, catalog) {
     }
     if (artifact.classification === 'incomplete-local-shards-with-unresolved-weights-ref') {
       findings.push({
-        severity: 'error',
+        severity: incompleteArtifactSeverity(artifact, catalog),
         code: 'unresolved_weights_ref',
         manifestPath: artifact.manifestPath,
         modelId: artifact.modelId,
@@ -530,7 +548,7 @@ function buildFindings(artifacts, catalog) {
     });
     if (incomplete.length > 0) {
       findings.push({
-        severity: 'error',
+        severity: isKnownUnpromotedIncomplete(entry) ? 'warning' : 'error',
         code: 'catalog_points_to_incomplete_local_artifact',
         modelId: entry.modelId,
         message: `Catalog entry ${entry.modelId} has ${incomplete.length} incomplete local artifact(s).`,

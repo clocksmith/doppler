@@ -55,6 +55,12 @@
       "rms_norm_eps": 0.000001,
       "hidden_act": "silu",
       "use_clipped_linears": true
+    },
+    "artifactIdentity": {
+      "sourceCheckpointId": "google/gemma-4-E2B-it",
+      "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete"
     }
   },
   "inference": {

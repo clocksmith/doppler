@@ -25229,5 +25229,11 @@
     "type": "bundled",
     "vocabSize": 262144,
     "file": "tokenizer.json"
+  },
+  "artifactIdentity": {
+    "sourceCheckpointId": "google/gemma-4-E2B-it",
+    "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
+    "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-mv-exec-v1",
+    "artifactCompleteness": "complete"
   }
 }

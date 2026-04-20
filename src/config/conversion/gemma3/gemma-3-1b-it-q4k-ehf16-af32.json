@@ -386,5 +386,13 @@
   },
   "largeWeights": {
     "gpuResidentOverrides": null
+  },
+  "manifest": {
+    "artifactIdentity": {
+      "sourceCheckpointId": "google/gemma-3-1b-it",
+      "weightPackId": "gemma-3-1b-it-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-3-1b-it-q4k-ehf16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete"
+    }
   }
 }

@@ -7834,5 +7834,11 @@
     "vocabSize": 248044,
     "file": "tokenizer.json",
     "addBosToken": false
+  },
+  "artifactIdentity": {
+    "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
+    "weightPackId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
+    "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
+    "artifactCompleteness": "complete"
   }
 }

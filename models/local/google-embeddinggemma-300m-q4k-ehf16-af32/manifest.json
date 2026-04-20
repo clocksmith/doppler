@@ -4320,5 +4320,11 @@
     "file": "tokenizer.json",
     "addBosToken": true,
     "addEosToken": true
+  },
+  "artifactIdentity": {
+    "sourceCheckpointId": "google/embeddinggemma-300m",
+    "weightPackId": "google-embeddinggemma-300m-q4k-ehf16-af32-wp-catalog-v1",
+    "manifestVariantId": "google-embeddinggemma-300m-q4k-ehf16-af32-mv-exec-v1",
+    "artifactCompleteness": "complete"
   }
 }

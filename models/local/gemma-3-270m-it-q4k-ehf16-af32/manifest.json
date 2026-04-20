@@ -3340,5 +3340,11 @@
     "vocabSize": 262144,
     "file": "tokenizer.json",
     "addBosToken": true
+  },
+  "artifactIdentity": {
+    "sourceCheckpointId": "google/gemma-3-270m-it",
+    "weightPackId": "gemma-3-270m-it-q4k-ehf16-af32-wp-catalog-v1",
+    "manifestVariantId": "gemma-3-270m-it-q4k-ehf16-af32-mv-exec-v1",
+    "artifactCompleteness": "complete"
   }
 }
