@@ -27,6 +27,8 @@ import type {
   MoEConfigSchema,
   ConversionInfoSchema,
   ConverterManifestConfigSchema,
+  ManifestArtifactIdentitySchema,
+  ManifestWeightsRefSchema,
 } from '../config/schema/index.js';
 import type { ExecutionContractArtifact } from '../config/execution-contract-check.js';
 import type {
@@ -147,6 +149,8 @@ export interface RDRRManifest {
   modelType: string;
   quantization: string;
   quantizationInfo?: QuantizationInfoSchema;
+  artifactIdentity?: ManifestArtifactIdentitySchema;
+  weightsRef?: ManifestWeightsRefSchema;
   architecture: ArchitectureConfig | string;
   moeConfig?: MoEConfigSchema | null;
   inference: ManifestInferenceSchema;
@@ -180,6 +184,8 @@ export interface CreateManifestOptions {
   convertedAt?: string | null;
   conversionInfo?: ConversionInfoSchema | null;
   manifestConfig?: ConverterManifestConfigSchema | null;
+  artifactIdentity?: ManifestArtifactIdentitySchema | null;
+  weightsRef?: ManifestWeightsRefSchema | null;
 }
 
 /**
@@ -314,6 +320,14 @@ export declare function convertModel(
       outDtype?: string | null;
       outLayout?: string | null;
     } | void>) | null;
+    source?: string | null;
+    sourcePath?: string | null;
+    sourceFormat?: string | null;
+    conversionConfigPath?: string | null;
+    conversionConfig?: Record<string, unknown> | null;
+    hashString?: ((value: string) => Promise<string> | string) | null;
+    artifactIdentity?: ManifestArtifactIdentitySchema | null;
+    weightsRef?: ManifestWeightsRefSchema | null;
   }
 ): Promise<ConvertResult>;
 

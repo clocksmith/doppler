@@ -59,6 +59,11 @@ const tensorLocations = {
   },
 };
 
+async function stableHashString(value) {
+  const hex = Buffer.from(String(value)).toString('hex');
+  return `sha256:${hex.padEnd(64, '0').slice(0, 64)}`;
+}
+
 {
   const manifest = createManifest(
     'manifest-time-test',
@@ -158,9 +163,25 @@ const tensorLocations = {
         },
       },
     }),
+    source: 'unit-test-source',
+    sourcePath: '/tmp/unit-test-source',
+    sourceFormat: 'safetensors',
+    conversionConfigPath: 'src/config/conversion/unit-test.json',
+    conversionConfig: {
+      output: {
+        modelBaseId: 'manifest-time-test',
+      },
+    },
+    hashString: stableHashString,
   });
 
   assert.equal(converted.manifest.metadata.convertedAt, '2026-01-06T11:22:33.000Z');
+  assert.equal(converted.manifest.artifactIdentity.sourceCheckpointId, 'unit-test-source');
+  assert.equal(converted.manifest.artifactIdentity.sourceFormat, 'safetensors');
+  assert.equal(converted.manifest.artifactIdentity.conversionConfigPath, 'src/config/conversion/unit-test.json');
+  assert.equal(converted.manifest.artifactIdentity.artifactCompleteness, 'complete');
+  assert.match(converted.manifest.artifactIdentity.weightPackId, /^manifest-time-test-wp-/);
+  assert.match(converted.manifest.artifactIdentity.manifestVariantId, /^manifest-time-test-mv-/);
   assert.equal(converted.executionContractArtifact?.schemaVersion, 1);
   assert.equal(converted.executionContractArtifact?.ok, true);
 }

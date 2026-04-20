@@ -366,6 +366,29 @@ function deriveLmHeadDecodeF16KernelEntry(base) {
   return null;
 }
 
+function deriveDenseDecodeF16KernelEntry(base) {
+  if (typeof base?.kernel !== 'string') {
+    return null;
+  }
+  const precision = {
+    inputDtype: 'f16',
+    outputDtype: 'f16',
+  };
+  if (base.kernel === 'matmul_gemv_subgroup.wgsl') {
+    return {
+      ...deriveKernelEntry(base, 'matmul_gemv_subgroup_f16a.wgsl', base.entry ?? 'main'),
+      precision: {
+        ...(base.precision ?? {}),
+        ...precision,
+      },
+    };
+  }
+  if (base.kernel === 'matmul_gemv_subgroup_f16a.wgsl') {
+    return deriveKernelEntryWithPrecision(base, precision);
+  }
+  return null;
+}
+
 function deriveQ4DecodeF16KernelEntry(base) {
   if (typeof base?.kernel !== 'string') {
     return null;
@@ -1675,6 +1698,100 @@ export function useQwenF16PrimaryMatmuls(graph, ctx) {
 }
 
 // =============================================================================
+// Transform: useGemma4Int4PleSelectiveF16Decode
+// =============================================================================
+
+/**
+ * Promote only Gemma 4 E2B INT4 PLE decode Q/K/V and online attention onto
+ * explicit f16 kernels. Prefill remains on manifest-owned f16kv fixed-head
+ * attention because the repository does not currently have pure-f16 head256 or
+ * head512 prefill kernels.
+ *
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {import('./execution-graph-transforms.js').TransformContext} ctx
+ * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
+ */
+export function useGemma4Int4PleSelectiveF16Decode(graph, ctx) {
+  const modelId = typeof ctx.modelId === 'string' ? ctx.modelId.trim() : '';
+  if (
+    modelId !== 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple'
+    || ctx.activationDtype !== 'f16'
+    || ctx.capabilities?.hasF16 !== true
+    || ctx.capabilities?.hasSubgroups !== true
+  ) {
+    return null;
+  }
+
+  const result = cloneGraph(graph);
+  let changed = false;
+
+  const decodeProjectionStep = (result.decode || []).find((entry) => Array.isArray(entry) && entry[0] === 'q_proj');
+  const decodeProjectionKernel = decodeProjectionStep ? result.kernels[decodeProjectionStep[1]] : null;
+  const decodeProjectionEntry = deriveDenseDecodeF16KernelEntry(decodeProjectionKernel);
+  if (decodeProjectionStep && decodeProjectionEntry) {
+    const decodeProjectionKey = deriveKernelKey(result.kernels, decodeProjectionStep[1], '_gemma4_f16');
+    result.kernels[decodeProjectionKey] = decodeProjectionEntry;
+    for (const op of ['q_proj', 'k_proj', 'v_proj']) {
+      const phaseResult = replacePhaseStepKernelKey(result.decode, op, decodeProjectionKey);
+      if (phaseResult.changed) {
+        result.decode = phaseResult.steps;
+        changed = true;
+      }
+    }
+  }
+
+  for (const op of ['rope_q', 'rope_k']) {
+    const step = (result.decode || []).find((entry) => Array.isArray(entry) && entry[0] === op);
+    const kernelKey = step?.[1];
+    const kernelEntry = kernelKey ? result.kernels[kernelKey] : null;
+    const replacement = kernelEntry ? F32_TO_F16_ACTIVATION_MAP.get(kernelEntry.kernel) : null;
+    if (!step || !kernelKey || !replacement) {
+      continue;
+    }
+    const ropeKey = deriveKernelKey(result.kernels, kernelKey, '_gemma4_f16');
+    result.kernels[ropeKey] = deriveKernelEntryWithPrecision(
+      deriveKernelEntry(kernelEntry, replacement, kernelEntry.entry),
+      { inputDtype: 'f16', outputDtype: 'f16' }
+    );
+    const phaseResult = replacePhaseStepKernelKey(result.decode, op, ropeKey);
+    if (phaseResult.changed) {
+      result.decode = phaseResult.steps;
+      changed = true;
+    }
+  }
+
+  const attentionStep = (result.decode || []).find((entry) => Array.isArray(entry) && entry[0] === 'attention');
+  const attentionKernel = attentionStep ? result.kernels[attentionStep[1]] : null;
+  const attentionEntry = deriveF16AttentionKernelEntry(attentionKernel);
+  if (attentionStep && attentionEntry) {
+    const attentionKey = deriveKernelKey(result.kernels, attentionStep[1], '_gemma4_f16');
+    result.kernels[attentionKey] = attentionEntry;
+    const phaseResult = replacePhaseStepKernelKey(result.decode, 'attention', attentionKey);
+    if (phaseResult.changed) {
+      result.decode = phaseResult.steps;
+      changed = true;
+    }
+  }
+
+  const oProjStep = (result.decode || []).find((entry) => Array.isArray(entry) && entry[0] === 'o_proj');
+  const oProjKernel = oProjStep ? result.kernels[oProjStep[1]] : null;
+  if (oProjStep && oProjKernel) {
+    const oProjKey = deriveKernelKey(result.kernels, oProjStep[1], '_gemma4_f32_boundary');
+    result.kernels[oProjKey] = deriveKernelEntryWithPrecision(oProjKernel, {
+      inputDtype: 'f32',
+      outputDtype: 'f32',
+    });
+    const phaseResult = replacePhaseStepKernelKey(result.decode, 'o_proj', oProjKey);
+    if (phaseResult.changed) {
+      result.decode = phaseResult.steps;
+      changed = true;
+    }
+  }
+
+  return changed ? result : null;
+}
+
+// =============================================================================
 // Composition
 // =============================================================================
 
@@ -1729,5 +1846,6 @@ export const TRANSFORMS = Object.freeze({
   disableRetainQ4KMaterialization,
   useQwenF16PrimaryMatmuls,
   useQwenDecodeF16Matmuls,
+  useGemma4Int4PleSelectiveF16Decode,
   composeTransforms,
 });

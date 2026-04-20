@@ -19,6 +19,9 @@ Move a verified runtime artifact into catalog metadata, external-volume storage,
 - `models/catalog.json` (repo metadata mirror — no weights)
 - `docs/model-support-matrix.md` via sync tooling
 - External RDRR index via sync tooling
+- Manifest `artifactIdentity` and catalog identity fields:
+  `sourceCheckpointId`, `weightPackId`, `manifestVariantId`,
+  `artifactCompleteness`, `runtimePromotionState`, `weightsRefAllowed`
 
 ## Recommended Order
 
@@ -30,6 +33,7 @@ Move a verified runtime artifact into catalog metadata, external-volume storage,
 6. Run support-matrix and external-index sync if catalog or external storage changed.
 7. Run catalog validation before any Hugging Face publication.
 8. Publish with `npm run registry:publish:hf` only after the metadata state is clean. The remote registry catalog should be rebuilt from the approved hosted subset, not patched from a stale local mirror.
+9. Publish manifest-only updates only when the manifest declares a valid `weightsRef` and the referenced weight pack is already hosted and checker-verified. Otherwise hosted publication requires every manifest-declared artifact file to be present.
 
 ## Verification
 
@@ -43,7 +47,9 @@ Move a verified runtime artifact into catalog metadata, external-volume storage,
 - Updating `models/catalog.json` before the output has been coherence-reviewed by a human.
 - Editing catalog.json without verifying the external-volume artifact matches.
 - Publishing a different artifact than the one that was actually tested.
+- Publishing a manifest-only update without a valid hosted `weightsRef`.
 - Publishing a direct-source manifest with absolute source paths instead of artifact-relative paths.
+- Marking `runtimePromotionState="manifest-owned"` before the promoted behavior is actually encoded in the manifest.
 - Forgetting to sync derived docs and indexes after catalog changes.
 - Treating load success as a publication gate without checking actual model output.
 

@@ -42,6 +42,7 @@ import type { KernelPathSource } from '../../../config/kernel-path-loader.js';
 import type { ExecutionV1PerLayerInputsSessionSchema } from '../../../config/schema/execution-v1.schema.js';
 
 export interface PipelineStorageContext {
+  preflight?: () => Promise<void>;
   loadShard?: (index: number) => Promise<ArrayBuffer | Uint8Array>;
   loadShardRange?: (
     index: number,
@@ -56,6 +57,7 @@ export interface PipelineStorageContext {
   ) => AsyncIterable<ArrayBuffer | Uint8Array>;
   loadTokenizerJson?: () => Promise<Record<string, unknown> | string | null | undefined>;
   loadTokenizerModel?: (path?: string) => Promise<ArrayBuffer | Uint8Array | null | undefined>;
+  loadTensorsJson?: () => Promise<string | Record<string, unknown> | null | undefined>;
   verifyHashes?: boolean;
   close?: () => Promise<void>;
 }

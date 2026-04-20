@@ -78,6 +78,23 @@ function toQuickstartEntry(entry) {
   if (!modelId) {
     throw new Error('quickstart catalog entry must include modelId');
   }
+  const sourceCheckpointId = normalizeText(entry?.sourceCheckpointId);
+  const weightPackId = normalizeText(entry?.weightPackId);
+  const manifestVariantId = normalizeText(entry?.manifestVariantId);
+  if (!sourceCheckpointId || !weightPackId || !manifestVariantId) {
+    throw new Error(
+      `${modelId}: quickstart catalog entries require sourceCheckpointId, weightPackId, and manifestVariantId`
+    );
+  }
+  if (entry?.artifactCompleteness !== 'complete') {
+    throw new Error(`${modelId}: quickstart catalog entries require artifactCompleteness="complete"`);
+  }
+  if (entry?.runtimePromotionState !== 'manifest-owned') {
+    throw new Error(`${modelId}: quickstart catalog entries require runtimePromotionState="manifest-owned"`);
+  }
+  if (entry?.weightsRefAllowed !== false) {
+    throw new Error(`${modelId}: quickstart catalog entries require weightsRefAllowed=false`);
+  }
   const hf = isPlainObject(entry?.hf) ? entry.hf : null;
   const repoId = normalizeText(hf?.repoId);
   const revision = normalizeText(hf?.revision);
@@ -90,6 +107,12 @@ function toQuickstartEntry(entry) {
 
   return {
     modelId,
+    sourceCheckpointId,
+    weightPackId,
+    manifestVariantId,
+    artifactCompleteness: entry.artifactCompleteness,
+    runtimePromotionState: entry.runtimePromotionState,
+    weightsRefAllowed: entry.weightsRefAllowed,
     aliases: normalizeStringList(entry?.aliases),
     modes: normalizeStringList(entry?.modes),
     hf: {

@@ -783,6 +783,9 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
   } = options;
   const runtimeStorageContext = options.storageContext
     ?? createRemoteStorageContext(baseUrl, manifest);
+  if (typeof runtimeStorageContext?.preflight === 'function') {
+    await runtimeStorageContext.preflight();
+  }
   const verifyHashes = (
     typeof runtimeStorageContext?.verifyHashes === 'boolean'
       ? runtimeStorageContext.verifyHashes
@@ -818,6 +821,11 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
   } else {
     dopplerLoader.setTensorsJsonUrl(null);
   }
+  dopplerLoader.setTensorsJsonLoader(
+    typeof runtimeStorageContext?.loadTensorsJson === 'function'
+      ? () => runtimeStorageContext.loadTensorsJson()
+      : null
+  );
 
   // Configure custom shard loader if provided (Native Bridge or direct-source bundle)
   const hasLoadShard = typeof runtimeStorageContext?.loadShard === 'function';

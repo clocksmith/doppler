@@ -125,6 +125,7 @@ export async function runNodeCommand(commandRequest, options = {}) {
         outputDir: request.outputDir,
         converterConfig,
         execution,
+        configPath: convertPayload?.configPath ?? null,
         onProgress: validatedOptions.onProgress,
       });
       return createToolingSuccessEnvelope({

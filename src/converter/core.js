@@ -1479,6 +1479,211 @@ export function resolveManifestMultimodalConfig(rawConfig, manifestConfig = null
   };
 }
 
+function isPlainRecord(value) {
+  return value != null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function stripUndefined(value) {
+  if (Array.isArray(value)) {
+    return value.map(stripUndefined);
+  }
+  if (!isPlainRecord(value)) {
+    return value;
+  }
+  const out = {};
+  for (const key of Object.keys(value).sort()) {
+    const item = value[key];
+    if (item !== undefined) {
+      out[key] = stripUndefined(item);
+    }
+  }
+  return out;
+}
+
+function canonicalJson(value) {
+  return JSON.stringify(stripUndefined(value));
+}
+
+function normalizeDigest(value, label) {
+  const digest = typeof value === 'string' ? value.trim() : '';
+  if (!digest) {
+    throw new Error(`Missing ${label} digest`);
+  }
+  return digest.startsWith('sha256:') ? digest : `sha256:${digest}`;
+}
+
+function digestSuffix(value, length = 12) {
+  return String(value || '').replace(/^sha256:/, '').slice(0, length);
+}
+
+async function hashArtifactValue(hashString, value, label) {
+  if (typeof hashString !== 'function') {
+    return null;
+  }
+  const digest = await hashString(canonicalJson(value));
+  return normalizeDigest(digest, label);
+}
+
+function resolveArtifactSourceFormat(options) {
+  const explicit = typeof options?.sourceFormat === 'string' ? options.sourceFormat.trim() : '';
+  if (explicit) return explicit;
+  const sourcePath = typeof options?.sourcePath === 'string' ? options.sourcePath.trim().toLowerCase() : '';
+  if (sourcePath.endsWith('.gguf')) return 'gguf';
+  if (sourcePath.endsWith('.tflite')) return 'tflite';
+  if (sourcePath.endsWith('.task')) return 'task';
+  if (sourcePath.endsWith('.litertlm')) return 'litertlm';
+  return 'safetensors';
+}
+
+function resolveSourceCheckpointIdentity(explicit, options) {
+  const sourceRepo = typeof explicit?.sourceRepo === 'string' && explicit.sourceRepo.trim()
+    ? explicit.sourceRepo.trim()
+    : null;
+  const sourceRevision = typeof explicit?.sourceRevision === 'string' && explicit.sourceRevision.trim()
+    ? explicit.sourceRevision.trim()
+    : null;
+  const sourcePath = typeof options?.sourcePath === 'string' && options.sourcePath.trim()
+    ? options.sourcePath.trim()
+    : null;
+  const sourceCheckpointId = typeof explicit?.sourceCheckpointId === 'string' && explicit.sourceCheckpointId.trim()
+    ? explicit.sourceCheckpointId.trim()
+    : (
+        sourceRepo && sourceRevision
+          ? `${sourceRepo}@${sourceRevision}`
+          : (sourceRepo ?? sourcePath ?? null)
+      );
+  return {
+    sourceCheckpointId,
+    sourceRepo,
+    sourceRevision,
+  };
+}
+
+function inferArtifactModalitySet(modelType, tensorLocations, converterConfig) {
+  if (modelType === 'diffusion') {
+    return ['image'];
+  }
+  const names = Object.keys(tensorLocations ?? {}).map((name) => name.toLowerCase());
+  const modalities = new Set();
+  if (modelType === 'embedding') {
+    modalities.add('embedding');
+  } else {
+    modalities.add('text');
+  }
+  if (converterConfig?.output?.textOnly === true) {
+    return [...modalities].sort();
+  }
+  if (names.some((name) => name.includes('vision') || name.includes('visual') || name.includes('image'))) {
+    modalities.add('vision');
+  }
+  if (names.some((name) => name.includes('audio'))) {
+    modalities.add('audio');
+  }
+  if (names.some((name) => name.includes('projector') || name.includes('mm_projector'))) {
+    modalities.add('projector');
+  }
+  return [...modalities].sort();
+}
+
+function resolveMaterializationProfile(quantizationInfo, inference) {
+  const materialization = typeof inference?.session?.perLayerInputs?.materialization === 'string'
+    ? inference.session.perLayerInputs.materialization
+    : 'standard';
+  const perLayerEmbeddings = typeof quantizationInfo?.perLayerEmbeddings === 'string'
+    ? quantizationInfo.perLayerEmbeddings
+    : null;
+  return perLayerEmbeddings ? `${materialization}-${perLayerEmbeddings}` : materialization;
+}
+
+async function buildArtifactIdentity(options) {
+  const explicit = isPlainRecord(options?.explicitArtifactIdentity)
+    ? options.explicitArtifactIdentity
+    : {};
+  const hashString = options?.hashString;
+  if (typeof hashString !== 'function' && Object.keys(explicit).length > 0) {
+    return stripUndefined(explicit);
+  }
+  if (typeof hashString !== 'function') {
+    return null;
+  }
+
+  const sourceIdentity = resolveSourceCheckpointIdentity(explicit, options);
+  const sourceFormat = typeof explicit.sourceFormat === 'string' && explicit.sourceFormat.trim()
+    ? explicit.sourceFormat.trim()
+    : resolveArtifactSourceFormat(options);
+  const conversionConfigDigest = explicit.conversionConfigDigest
+    ?? (options.conversionConfig
+      ? await hashArtifactValue(hashString, options.conversionConfig, 'conversionConfig')
+      : null);
+  const shardSetHash = explicit.weightPackHash
+    ?? await hashArtifactValue(
+      hashString,
+      {
+        hashAlgorithm: options.hashAlgorithm,
+        shards: (options.shards ?? []).map((shard) => ({
+          index: shard.index,
+          filename: shard.filename,
+          size: shard.size,
+          hash: shard.hash,
+          offset: shard.offset,
+        })),
+      },
+      'shardSet'
+    );
+  const modalitySet = Array.isArray(explicit.modalitySet) && explicit.modalitySet.length > 0
+    ? [...explicit.modalitySet]
+    : inferArtifactModalitySet(options.modelType, options.tensorLocations, options.converterConfig);
+  const materializationProfile = explicit.materializationProfile
+    ?? resolveMaterializationProfile(options.quantizationInfo, options.inference);
+  const weightPackInput = {
+    sourceCheckpointId: sourceIdentity.sourceCheckpointId,
+    sourceFormat,
+    modelType: options.modelType,
+    modalitySet,
+    quantizationInfo: options.quantizationInfo,
+    materializationProfile,
+    shardSetHash,
+    sharding: {
+      shardSizeBytes: options.converterConfig?.sharding?.shardSizeBytes ?? null,
+    },
+    output: {
+      textOnly: options.converterConfig?.output?.textOnly === true,
+    },
+  };
+  const weightPackHash = explicit.weightPackHash
+    ?? await hashArtifactValue(hashString, weightPackInput, 'weightPack');
+  const weightPackId = explicit.weightPackId
+    ?? `${sanitizeModelId(options.modelId) ?? 'model'}-wp-${digestSuffix(weightPackHash)}`;
+  const manifestVariantHash = await hashArtifactValue(
+    hashString,
+    {
+      weightPackId,
+      modelType: options.modelType,
+      inference: options.inference,
+      config: options.manifestConfig ?? null,
+    },
+    'manifestVariant'
+  );
+  const manifestVariantId = explicit.manifestVariantId
+    ?? `${sanitizeModelId(options.modelId) ?? 'model'}-mv-${digestSuffix(manifestVariantHash)}`;
+
+  return stripUndefined({
+    ...explicit,
+    sourceCheckpointId: sourceIdentity.sourceCheckpointId,
+    sourceRepo: sourceIdentity.sourceRepo,
+    sourceRevision: sourceIdentity.sourceRevision,
+    sourceFormat,
+    conversionConfigPath: explicit.conversionConfigPath ?? options.conversionConfigPath ?? null,
+    conversionConfigDigest,
+    weightPackId,
+    weightPackHash,
+    manifestVariantId,
+    modalitySet,
+    materializationProfile,
+    artifactCompleteness: explicit.artifactCompleteness ?? 'complete',
+  });
+}
+
 
 export function createManifest(
   modelId,
@@ -1575,6 +1780,8 @@ export function createManifest(
     modelType: resolvedModelType,
     quantization: resolvedQuantization,
     quantizationInfo: options.quantizationInfo,
+    ...(options.artifactIdentity ? { artifactIdentity: options.artifactIdentity } : {}),
+    ...(options.weightsRef ? { weightsRef: options.weightsRef } : {}),
     architecture: resolvedArchitecture,
     moeConfig,
     inference,
@@ -1988,11 +2195,31 @@ export async function convertModel(model, io, options = {}) {
 
   validateInt4PleMaterializationContract(tensorLocations, options.inference, modelId);
 
+  const artifactIdentity = await buildArtifactIdentity({
+    modelId,
+    modelType: options.modelType,
+    sourcePath: options.sourcePath,
+    sourceFormat: options.sourceFormat,
+    conversionConfigPath: options.conversionConfigPath,
+    conversionConfig: options.conversionConfig,
+    explicitArtifactIdentity: converterConfig?.manifest?.artifactIdentity ?? options.artifactIdentity ?? null,
+    hashString: options.hashString,
+    hashAlgorithm: converterConfig.manifest.hashAlgorithm,
+    shards,
+    tensorLocations,
+    quantizationInfo: effectiveQuantizationInfo,
+    inference: options.inference,
+    manifestConfig: converterConfig?.manifest ?? null,
+    converterConfig,
+  });
+
   const manifest = createManifest(modelId, model, shards, tensorLocations, {
-    source: 'convert-core',
+    source: options.source ?? 'convert-core',
     modelType: options.modelType,
     quantization: effectiveManifestQuantization,
     quantizationInfo: effectiveQuantizationInfo,
+    artifactIdentity,
+    weightsRef: converterConfig?.manifest?.weightsRef ?? options.weightsRef ?? null,
     hashAlgorithm: converterConfig.manifest.hashAlgorithm,
     architecture: options.architecture,
     inference: options.inference,

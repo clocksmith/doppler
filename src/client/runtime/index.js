@@ -4,10 +4,15 @@ import { listQuickstartModels } from '../doppler-registry.js';
 import {
   createDefaultNodeLoadProgressLogger,
   fetchManifestPayloadFromBaseUrl,
+  resolveManifestArtifactSource,
   resolveLoadProgressHandlers,
   resolveModelSource,
 } from './model-source.js';
 import { assertSupportedGenerationOptions, createModelHandle } from './model-session.js';
+import {
+  createHttpArtifactStorageContext,
+  createNodeFileArtifactStorageContext,
+} from '../../storage/artifact-storage-context.js';
 import { isNodeRuntime } from '../../utils/runtime-env.js';
 
 function emitLoadProgress(callback, phase, percent, message) {
@@ -44,8 +49,20 @@ async function resolveNodeArtifactStorageContext(loadSource) {
   if (!isNodeRuntime() || !loadSource?.cache || !loadSource?.baseUrl || !loadSource?.manifest) {
     return null;
   }
-  const { createNodeFileArtifactStorageContext } = await import('../../storage/artifact-storage-context.js');
-  return createNodeFileArtifactStorageContext(loadSource.baseUrl, loadSource.manifest);
+  return createNodeFileArtifactStorageContext(
+    loadSource.storageBaseUrl ?? loadSource.baseUrl,
+    loadSource.storageManifest ?? loadSource.manifest
+  );
+}
+
+function resolveArtifactStorageContext(loadSource) {
+  const baseUrl = loadSource?.storageBaseUrl ?? loadSource?.baseUrl;
+  const manifest = loadSource?.storageManifest ?? loadSource?.manifest;
+  if (!baseUrl || !manifest) {
+    return null;
+  }
+  return createNodeFileArtifactStorageContext(baseUrl, manifest)
+    ?? createHttpArtifactStorageContext(baseUrl, manifest);
 }
 
 export function createDopplerRuntimeService({
@@ -76,20 +93,23 @@ export function createDopplerRuntimeService({
     const manifestPayload = resolved.manifest
       ? { text: JSON.stringify(resolved.manifest), manifest: resolved.manifest }
       : await fetchManifestPayloadFromBaseUrl(resolved.baseUrl);
-    const cachedResolved = await resolveCachedNodeQuickstartSource(
-      resolved,
-      manifestPayload,
-      userProgress
-    );
-    const loadSource = cachedResolved ?? {
-      ...resolved,
-      manifest: manifestPayload.manifest,
-    };
-    const storageContext = await resolveNodeArtifactStorageContext(loadSource);
+    const resolvedArtifactSource = await resolveManifestArtifactSource(resolved, manifestPayload);
+    const cachedResolved = manifestPayload.manifest?.weightsRef == null
+      ? await resolveCachedNodeQuickstartSource(
+        resolvedArtifactSource,
+        manifestPayload,
+        userProgress
+      )
+      : null;
+    const loadSource = cachedResolved ?? resolvedArtifactSource;
+    const nodeStorageContext = await resolveNodeArtifactStorageContext(loadSource);
+    const storageContext = nodeStorageContext ?? resolveArtifactStorageContext(loadSource);
+    await storageContext?.preflight?.();
 
+    const effectiveBaseUrl = loadSource.storageBaseUrl ?? loadSource.baseUrl;
     emitLoadProgress(userProgress, 'load', 25, 'Loading weights');
     const pipeline = await createPipeline(loadSource.manifest, {
-      baseUrl: loadSource.baseUrl ?? undefined,
+      baseUrl: effectiveBaseUrl ?? undefined,
       storage: storageContext ?? undefined,
       runtimeConfig: options.runtimeConfig,
       onProgress: pipelineProgress

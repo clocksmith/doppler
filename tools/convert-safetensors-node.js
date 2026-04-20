@@ -209,7 +209,7 @@ async function main() {
       command: 'convert',
       inputDir: args.inputDir,
       outputDir: args.outputDir,
-      convertPayload: converterConfig ? { converterConfig, execution } : null,
+      convertPayload: converterConfig ? { converterConfig, configPath: args.configPath, execution } : null,
     },
     {
       onProgress(progress) {

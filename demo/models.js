@@ -238,6 +238,18 @@ export function selectDemoCatalogEntries(models, options = {}) {
     if (!entry?.modes?.includes('text')) {
       return false;
     }
+    if (entry?.quickstart !== true) {
+      return false;
+    }
+    if (entry?.artifactCompleteness !== 'complete') {
+      return false;
+    }
+    if (entry?.runtimePromotionState !== 'manifest-owned') {
+      return false;
+    }
+    if (entry?.weightsRefAllowed !== false) {
+      return false;
+    }
     if (localBaseUrls.has(entry.modelId)) {
       return true;
     }
@@ -294,10 +306,17 @@ async function resolveManifestSource(entry, signal) {
     const manifestUrl = buildArtifactUrl(candidate.baseUrl, 'manifest.json');
     try {
       const manifestText = await fetchText(manifestUrl, signal);
+      const manifest = parseManifest(manifestText);
+      const missingArtifacts = await validateManifestArtifacts(candidate.baseUrl, manifest, signal);
+      if (missingArtifacts.length > 0) {
+        errors.push(`${candidate.kind}: missing files [${missingArtifacts.join(', ')}]`);
+        continue;
+      }
       return {
         kind: candidate.kind,
         baseUrl: candidate.baseUrl,
         manifestText,
+        manifest,
       };
     } catch (error) {
       errors.push(`${candidate.kind}: ${error.message}`);
@@ -308,6 +327,67 @@ async function resolveManifestSource(entry, signal) {
     `Could not fetch manifest for "${entry?.modelId ?? 'unknown'}" from any configured source. ` +
     errors.join(' | ')
   );
+}
+
+async function validateManifestArtifacts(baseUrl, manifest, signal) {
+  const requiredFiles = [];
+  if (typeof manifest?.tokenizer?.file === 'string' && manifest.tokenizer.file.trim().length > 0) {
+    requiredFiles.push(manifest.tokenizer.file.trim());
+  }
+  if (
+    typeof manifest?.tokenizer?.sentencepieceModel === 'string'
+    && manifest.tokenizer.sentencepieceModel.trim().length > 0
+  ) {
+    requiredFiles.push(manifest.tokenizer.sentencepieceModel.trim());
+  }
+  if (typeof manifest?.tensorsFile === 'string' && manifest.tensorsFile.trim().length > 0) {
+    requiredFiles.push(manifest.tensorsFile.trim());
+  }
+  if (Array.isArray(manifest?.shards)) {
+    for (const shard of manifest.shards) {
+      if (typeof shard?.filename === 'string' && shard.filename.trim().length > 0) {
+        requiredFiles.push(shard.filename.trim());
+      }
+    }
+  }
+
+  if (requiredFiles.length === 0) {
+    return [];
+  }
+
+  const checks = await Promise.all(requiredFiles.map(async (file) => ({
+    file,
+    present: await probeManifestAsset(baseUrl, file, signal),
+  })));
+  return checks.filter((entry) => !entry.present).map((entry) => entry.file);
+}
+
+async function probeManifestAsset(baseUrl, path, signal, fetchImpl = fetch) {
+  if (!baseUrl || typeof path !== 'string' || path.trim().length === 0) {
+    return false;
+  }
+  const url = `${buildArtifactUrl(baseUrl, path.trim())}?probe=${Date.now()}`;
+  try {
+    const head = await fetchImpl(url, {
+      method: 'HEAD',
+      signal,
+      cache: 'no-store',
+    });
+    if (head.ok) {
+      return true;
+    }
+    if (head.status !== 405) {
+      return false;
+    }
+  } catch {
+    return false;
+  }
+  try {
+    const get = await fetchImpl(url, { signal, cache: 'no-store' });
+    return get.ok;
+  } catch {
+    return false;
+  }
 }
 
 export async function loadCatalog() {
@@ -447,7 +527,7 @@ async function downloadAndLoad(entry) {
     const resolvedSource = await resolveManifestSource(entry, signal);
 
     // Fetch manifest and patch compat fields before storing
-    const manifest = patchManifestCompat(parseManifest(resolvedSource.manifestText));
+    const manifest = patchManifestCompat(resolvedSource.manifest ?? parseManifest(resolvedSource.manifestText));
     manifest.modelId = modelId;
 
     await openModelStore(modelId);

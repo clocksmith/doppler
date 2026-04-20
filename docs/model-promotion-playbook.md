@@ -189,9 +189,9 @@ A brand-new model whose artifact has never been uploaded lives in a bootstrap st
 
 Pass `--bootstrap` to publish such an entry. The flag rejects any entry where `availability.hf !== false`, so it cannot be used for republishes. On success the tool writes the new `hf.revision` into `models/catalog.json` and flips `availability.hf` to `true` — subsequent publishes are normal republishes without the flag.
 
-#### Manifest-only republish
+#### Manifest-only `weightsRef` republish
 
-When a kernel-ref swap or routing change regenerates only `manifest.json` (shards on HF are unchanged), pass `--manifest-only`. The tool uploads just the manifest, skipping shard staging and the external-drive requirement. Preflight, hosted-registry rebuild, manifest probe, and local-catalog writeback still run.
+When a kernel-ref swap or routing change regenerates only `manifest.json`, the manifest must declare `weightsRef` to the already-hosted weight pack and the catalog entry must set `weightsRefAllowed: true`. Pass `--manifest-only`; the tool uploads only manifest metadata, verifies the referenced weight-pack manifest digest and required artifact files before upload, rebuilds the hosted registry, probes the published manifest, and verifies the referenced files again at the published revision.
 
 #### Dry run
 
@@ -201,7 +201,7 @@ node tools/publish-hf-registry-model.js --model-id <model-id> --manifest-only --
 node tools/publish-hf-registry-model.js --model-id <model-id> --bootstrap --dry-run
 ```
 
-In manifest-only dry-run, `shardDir` is `null` in the output (shards are not referenced).
+In manifest-only dry-run, `shardDir` is `null` in the output because shard staging is skipped. A real manifest-only publish still fails unless `manifest.weightsRef` is present and resolves.
 
 ### 7a. Publish to Hugging Face from the external-volume canonical path
 

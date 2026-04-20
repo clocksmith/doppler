@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { NodeConvertWorkerPool } from './node-convert-worker-pool.js';
 import { bootstrapNodeWebGPU } from './node-webgpu.js';
@@ -437,6 +438,13 @@ function readOptionalNonEmptyString(value) {
   if (typeof value !== 'string') return null;
   const trimmed = value.trim();
   return trimmed || null;
+}
+
+function toRepoRelativePath(filePath) {
+  const normalized = readOptionalNonEmptyString(filePath);
+  if (!normalized) return null;
+  const relative = path.relative(process.cwd(), path.resolve(normalized)).replace(/\\/g, '/');
+  return relative && !relative.startsWith('..') ? relative : path.resolve(normalized);
 }
 
 function resolveConfiguredModelId(explicitModelId, converterConfig) {
@@ -1041,6 +1049,9 @@ export async function convertSafetensorsDirectory(options) {
     import('../storage/shard-manager.js'),
   ]);
 
+  const hashStringSha256 = async (value) => (
+    computeHash(new TextEncoder().encode(String(value)), 'sha256')
+  );
   const converterConfig = createConverterConfig(converterConfigOverride ?? undefined);
   const executionConfig = normalizeExecutionConfig(
     options?.execution,
@@ -1465,6 +1476,12 @@ export async function convertSafetensorsDirectory(options) {
       architecture: manifestArchitecture,
       inference,
       converterConfig,
+      source: pathToFileURL(inputDir).href,
+      sourcePath: inputDir,
+      sourceFormat: isInputGgufFile ? 'gguf' : 'safetensors',
+      conversionConfigPath: toRepoRelativePath(options?.configPath),
+      conversionConfig: converterConfigOverride ?? null,
+      hashString: hashStringSha256,
       tensorTransformer,
       largeTensorTransformer,
       onProgress(update) {

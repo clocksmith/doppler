@@ -21,6 +21,7 @@ export interface ToolingConvertExecutionPayload {
 
 export interface ToolingConvertPayload {
   converterConfig: Partial<ConverterConfigSchema>;
+  configPath?: string | null;
   execution?: ToolingConvertExecutionPayload | null;
   [key: string]: unknown;
 }

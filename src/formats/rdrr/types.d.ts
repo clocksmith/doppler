@@ -16,6 +16,8 @@ import type {
   MoEConfigSchema,
   AdapterConfigSchema,
   ProvenanceSchema,
+  ManifestArtifactIdentitySchema,
+  ManifestWeightsRefSchema,
   KernelPathRef,
   ManifestInferenceSchema,
   type TensorRole as SchemaTensorRole,
@@ -36,6 +38,8 @@ export type ComponentGroupType = SchemaComponentGroupType;
 export type WeightLayout = SchemaWeightLayout;
 export type QuantizationInfo = QuantizationInfoSchema;
 export type TensorRole = SchemaTensorRole;
+export type ArtifactIdentity = ManifestArtifactIdentitySchema;
+export type WeightsRef = ManifestWeightsRefSchema;
 
 // =============================================================================
 // Kernel Types
@@ -150,6 +154,8 @@ export interface RDRRManifest {
   modelType: ModelType;
   quantization: string;
   quantizationInfo?: QuantizationInfo;
+  artifactIdentity?: ArtifactIdentity;
+  weightsRef?: WeightsRef;
   hashAlgorithm: HashAlgorithm;
   eos_token_id: number | number[] | null;
   image_token_id?: number;
@@ -215,6 +221,8 @@ export interface CreateManifestOptions {
   modelType: ModelType;
   quantization: string;
   quantizationInfo?: QuantizationInfo;
+  artifactIdentity?: ArtifactIdentity;
+  weightsRef?: WeightsRef;
   hashAlgorithm?: HashAlgorithm;
   eos_token_id?: number | number[];
   architecture: LayerConfig | string;

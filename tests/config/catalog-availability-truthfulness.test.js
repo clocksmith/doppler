@@ -8,6 +8,12 @@ const LOCAL_MODELS_DIR = path.join(REPO_ROOT, 'models', 'local');
 
 const catalog = JSON.parse(fs.readFileSync(CATALOG_PATH, 'utf8'));
 const models = Array.isArray(catalog.models) ? catalog.models : [];
+const CONVERSION_TARGET_MODEL_IDS = [
+  'qwen-3-5-0-8b-q4k-ehaf16',
+  'qwen-3-5-2b-q4k-ehaf16',
+  'gemma-4-e2b-it-q4k-ehf16-af32',
+  'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
+];
 
 // =============================================================================
 // Invariant: availability.local=true iff models/local/<modelId>/manifest.json exists
@@ -89,6 +95,41 @@ const models = Array.isArray(catalog.models) ? catalog.models : [];
       assert.ok(
         catalogIds.has(dir),
         `models/local/${dir} has a manifest.json but is not listed in catalog.json`
+      );
+    }
+  }
+}
+
+// =============================================================================
+// Invariant: conversion targets are manifest-backed and quickstart behavior is explicit
+// =============================================================================
+
+{
+  for (const modelId of CONVERSION_TARGET_MODEL_IDS) {
+    const entry = models.find((model) => model.modelId === modelId);
+    assert.ok(entry, `Conversion target ${modelId} missing from catalog.json`);
+
+    const manifestPath = path.join(LOCAL_MODELS_DIR, modelId, 'manifest.json');
+    assert.ok(
+      fs.existsSync(manifestPath),
+      `Conversion target ${modelId} requires models/local/${modelId}/manifest.json`
+    );
+
+    if (entry.quickstart === true) {
+      assert.ok(
+        entry?.hf?.repoId && entry?.hf?.revision && entry?.hf?.path,
+        `Quickstart conversion target ${modelId} requires hf.repoId, hf.revision, and hf.path`
+      );
+      assert.notEqual(
+        entry.hf.revision,
+        'unknown-local-snapshot',
+        `Quickstart conversion target ${modelId} must not use placeholder hf.revision`
+      );
+    } else {
+      assert.equal(
+        entry.quickstart,
+        false,
+        `Conversion target ${modelId} should be explicitly quickstart=false for local-only invocation`
       );
     }
   }

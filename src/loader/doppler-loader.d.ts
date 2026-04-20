@@ -113,6 +113,8 @@ export declare class DopplerLoader {
 
   setTensorsJsonUrl(url: string | null): void;
 
+  setTensorsJsonLoader(loadTensorsJson: (() => Promise<string | Record<string, unknown> | null | undefined>) | null): void;
+
   init(): Promise<void>;
 
   setManifest(manifest: RDRRManifest | RuntimeModelContract): void;

@@ -506,22 +506,25 @@ export function compileExecutionV1(options = {}) {
   // KV cache and all compute dtypes must also be f32.
   const activationWidened = appliedTransformNames.includes('widenToF32Activations');
   const fullF32 = activationWidened && capabilities?.hasF16 === false;
-  const useQwenSelectiveF16Primary =
-    appliedTransformNames.includes('useQwenF16PrimaryMatmuls')
+  const useSelectiveF16Primary =
+    (
+      appliedTransformNames.includes('useQwenF16PrimaryMatmuls')
+      || appliedTransformNames.includes('useGemma4Int4PleSelectiveF16Decode')
+    )
     && !appliedTransformNames.includes('narrowToF16Activations');
   const retainQ4KMaterializationDisabled =
     appliedTransformNames.includes('disableRetainQ4KMaterialization');
   let effectiveSession = session;
-  if (activationWidened || useQwenSelectiveF16Primary || retainQ4KMaterializationDisabled) {
+  if (activationWidened || useSelectiveF16Primary || retainQ4KMaterializationDisabled) {
     const f32Defaults = fullF32
       ? { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' }
-      : useQwenSelectiveF16Primary
+      : useSelectiveF16Primary
         ? { activationDtype: 'f32', outputDtype: 'f32' }
         : { activationDtype: 'f32' };
     effectiveSession = {
       ...session,
       ...(retainQ4KMaterializationDisabled ? { retainQ4KMaterialization: false } : {}),
-      ...(activationWidened || useQwenSelectiveF16Primary ? {
+      ...(activationWidened || useSelectiveF16Primary ? {
         compute: {
           ...session.compute,
           defaults: {

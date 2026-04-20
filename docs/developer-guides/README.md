@@ -38,6 +38,7 @@ Every guide in this directory should answer the same four questions:
 | Add a new model family contract | [03-model-family-config.md](03-model-family-config.md) | Explicit conversion config, no family registry |
 | Convert a checkpoint with an existing family | [04-conversion-config.md](04-conversion-config.md) | Explicit conversion config + existing kernel paths |
 | Publish a verified artifact | [05-promote-model-artifact.md](05-promote-model-artifact.md) | Curated metadata + external storage + HF |
+| Migrate model artifacts to source/weight/manifest identity | [artifact-identity-migration-plan.md](artifact-identity-migration-plan.md) | Resumable checklist for replacing modelId-as-artifact-identity |
 | Compose existing kernels differently | [06-kernel-path-config.md](06-kernel-path-config.md) | New execution identity, no new WGSL |
 | Add a new config/manifest field | [07-manifest-runtime-field.md](07-manifest-runtime-field.md) | Schema + merge + parser + tests |
 | Add a new built-in chat formatter | [08-chat-template-formatter.md](08-chat-template-formatter.md) | New formatter function and registry key |
@@ -61,6 +62,7 @@ Every guide in this directory should answer the same four questions:
 | [03-model-family-config.md](03-model-family-config.md) | atomic | migration note |
 | [04-conversion-config.md](04-conversion-config.md) | atomic | JSON only |
 | [05-promote-model-artifact.md](05-promote-model-artifact.md) | atomic | metadata + publication workflow |
+| [artifact-identity-migration-plan.md](artifact-identity-migration-plan.md) | migration | source checkpoint + weight pack + manifest variant identity |
 | [06-kernel-path-config.md](06-kernel-path-config.md) | atomic | JSON + registry |
 | [07-manifest-runtime-field.md](07-manifest-runtime-field.md) | atomic | schema + merge + parser + tests |
 | [08-chat-template-formatter.md](08-chat-template-formatter.md) | atomic | JS + type declarations + tests |

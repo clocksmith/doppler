@@ -28,6 +28,10 @@ re-conversion or can be changed per-run.
 | `quantization.weights` | Conversion | Yes (`quantization`, tensor dtypes/layout) | No | Yes |
 | `quantization.embeddings` | Conversion | Yes | No | Yes |
 | `quantization.lmHead` | Conversion | Yes | No | Yes |
+| `artifactIdentity.sourceCheckpointId` | Conversion/catalog migration | Yes | No | No, if correcting metadata only |
+| `artifactIdentity.weightPackId` | Conversion/catalog migration | Yes | No | Yes, when converted tensor bytes change |
+| `artifactIdentity.manifestVariantId` | Conversion/catalog migration | Yes | No | No, if only manifest/runtime policy changes over the same weight pack |
+| `weightsRef` | Manifest variant migration | Yes | No | No, if redirecting a manifest variant to an existing weight pack |
 | `output.textOnly` | Conversion | Indirect (tensor set emitted) | No | Yes |
 | `manifest.hashAlgorithm` | Conversion | Yes (`hashAlgorithm`, shard hashes) | No | Yes |
 | `quantization.computePrecision` | Conversion-authored runtime default | Yes (`quantizationInfo.compute`) | Yes (through runtime/session policy) | No (for runtime behavior) |
@@ -38,6 +42,12 @@ re-conversion or can be changed per-run.
 Notes:
 
 - Model ID suffixes are naming only; runtime policy is driven by manifest/runtime config.
+- `modelId` is release/catalog identity. It is not sufficient to identify source
+  checkpoint bytes, converted Doppler shards, or manifest/runtime-policy
+  variants.
+- During the artifact identity migration, `artifactIdentity` and `weightsRef`
+  are additive metadata. Runtime shard resolution must not silently use
+  `weightsRef` until an explicit loader contract is implemented.
 - Storage dtype changes always require re-conversion.
 - Direct-source runtime adaptation builds runtime-model contracts for `safetensors`, `gguf`, and `.tflite`.
 - Direct-source runtime planning is not conversion planning. It derives runtime model/session/execution state from source artifact facts plus source-runtime defaults, and it must reject converter-style quantization overrides.

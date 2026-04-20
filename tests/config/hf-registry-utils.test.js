@@ -81,6 +81,12 @@ import {
   assert.deepEqual(validateLocalHfEntryShape(bad), [
     'bad-model: hf.revision is required when lifecycle.availability.hf=true',
     'bad-model: hf.path is required when lifecycle.availability.hf=true',
+    'bad-model: sourceCheckpointId is required when lifecycle.availability.hf=true',
+    'bad-model: weightPackId is required when lifecycle.availability.hf=true',
+    'bad-model: manifestVariantId is required when lifecycle.availability.hf=true',
+    'bad-model: artifactCompleteness must be "complete" when lifecycle.availability.hf=true',
+    'bad-model: runtimePromotionState must be "manifest-owned" when lifecycle.availability.hf=true',
+    'bad-model: weightsRefAllowed must be a boolean when lifecycle.availability.hf=true',
   ]);
 }
 
@@ -166,6 +172,12 @@ import {
       {
         modelId: 'verified-gemma',
         sortOrder: 1,
+        sourceCheckpointId: 'google/gemma-3-270m-it',
+        weightPackId: 'verified-gemma-wp-catalog-v1',
+        manifestVariantId: 'verified-gemma-mv-exec-v1',
+        artifactCompleteness: 'complete',
+        runtimePromotionState: 'manifest-owned',
+        weightsRefAllowed: false,
         hf: {
           repoId: 'Clocksmith/rdrr',
           revision: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',

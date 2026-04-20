@@ -105,6 +105,40 @@ const converterConfig = createConverterConfig();
 }
 
 {
+  const qwenConfig = {
+    output: {
+      modelBaseId: 'qwen-3-5-0-8b-q4k-ehaf16',
+    },
+  };
+  const modelId = resolveConvertedModelId({
+    explicitModelId: null,
+    converterConfig: qwenConfig,
+    detectedModelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+    quantizationInfo: {
+      variantTag: 'q4k-ehf16-af32',
+    },
+  });
+  assert.equal(modelId, 'qwen-3-5-0-8b-q4k-ehaf16');
+}
+
+{
+  const gemma4Int4PleConfig = {
+    output: {
+      modelBaseId: 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
+    },
+  };
+  const modelId = resolveConvertedModelId({
+    explicitModelId: null,
+    converterConfig: gemma4Int4PleConfig,
+    detectedModelId: 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
+    quantizationInfo: {
+      variantTag: 'q4k-ehf16-af32-vf16-audiof16-pf16',
+    },
+  });
+  assert.equal(modelId, 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple');
+}
+
+{
   const gemma4Config = createConverterConfig({
     quantization: {
       weights: 'f16',

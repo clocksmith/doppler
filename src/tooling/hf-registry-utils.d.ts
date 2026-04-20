@@ -21,6 +21,7 @@ export declare function getEntryHfSpec(entry: unknown): {
   repoId: string;
   revision: string;
   path: string;
+  complete: boolean;
 };
 export declare function buildEntryRemoteBaseUrl(entry: unknown): string | null;
 export declare function resolveDemoRegistryEntryBaseUrl(entry: unknown, catalogSourceUrl: unknown): string | null;
@@ -39,7 +40,7 @@ export declare function buildHostedRegistryPayload(
   revisionOverrides?: Map<string, string>
 ): Record<string, unknown>;
 export declare function extractCommitShaFromUrl(value: unknown): string | null;
-export declare function validateLocalHfEntryShape(entry: unknown): void;
+export declare function validateLocalHfEntryShape(entry: unknown): string[];
 export declare function probeUrl(
   url: string,
   options?: Record<string, unknown>

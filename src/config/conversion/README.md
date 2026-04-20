@@ -8,7 +8,9 @@ Notes:
 
 - Canonical conversion-vs-runtime ownership matrix:
   [`docs/conversion-runtime-contract.md`](../../../docs/conversion-runtime-contract.md)
-- `output.modelBaseId` is now authoritative; converter does not append implicit variant suffixes.
+- `output.modelBaseId` is authoritative for emitted model IDs: when set, it is used as the final resolved `modelId`.
+- If `output.modelBaseId` is omitted, converter config resolution can still append the inferred `variantTag`
+  to avoid collisions (same as legacy behavior for non-explicit IDs).
 - All configs use `output.baseDir` (no implicit `--output-dir` requirement).
 - Conversion configs are self-contained. Do not rely on external family selection or implicit family detection.
 - Worker execution tuning belongs in `request.convertPayload.execution`

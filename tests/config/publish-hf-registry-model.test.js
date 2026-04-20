@@ -11,6 +11,37 @@ import {
   writeBackLocalCatalog,
 } from '../../tools/publish-hf-registry-model.js';
 
+function promotionReadyEntry(overrides = {}) {
+  const base = {
+    modelId: 'translategemma-4b-it-q4k-ehf16-af32',
+    sourceCheckpointId: 'google/translategemma-4b-it',
+    weightPackId: 'translategemma-4b-it-q4k-ehf16-af32-wp-catalog-v1',
+    manifestVariantId: 'translategemma-4b-it-q4k-ehf16-af32-mv-exec-v1',
+    artifactCompleteness: 'complete',
+    runtimePromotionState: 'manifest-owned',
+    weightsRefAllowed: false,
+    lifecycle: {
+      availability: {
+        hf: true,
+      },
+      status: {
+        runtime: 'active',
+        tested: 'verified',
+      },
+      tested: {
+        contracts: {
+          executionContractOk: true,
+        },
+      },
+    },
+  };
+  return {
+    ...base,
+    ...overrides,
+    lifecycle: overrides.lifecycle ?? base.lifecycle,
+  };
+}
+
 {
   const args = parseArgs([
     '--model-id', 'translategemma-4b-it-q4k-ehf16-af32',
@@ -33,7 +64,6 @@ import {
     '--manifest-only',
   ]);
   assert.equal(args.manifestOnly, true);
-  assert.equal(args.bootstrap, false);
 }
 
 {
@@ -74,29 +104,12 @@ import {
 }
 
 {
-  assert.doesNotThrow(() => assertPromotionReady({
-    modelId: 'translategemma-4b-it-q4k-ehf16-af32',
-    lifecycle: {
-      availability: {
-        hf: true,
-      },
-      status: {
-        runtime: 'active',
-        tested: 'verified',
-      },
-      tested: {
-        contracts: {
-          executionContractOk: true,
-        },
-      },
-    },
-  }));
+  assert.doesNotThrow(() => assertPromotionReady(promotionReadyEntry()));
 }
 
 {
   assert.throws(
-    () => assertPromotionReady({
-      modelId: 'translategemma-4b-it-q4k-ehf16-af32',
+    () => assertPromotionReady(promotionReadyEntry({
       lifecycle: {
         availability: {
           hf: false,
@@ -111,12 +124,11 @@ import {
           },
         },
       },
-    }),
+    })),
     /lifecycle\.availability\.hf must be true/
   );
   assert.throws(
-    () => assertPromotionReady({
-      modelId: 'translategemma-4b-it-q4k-ehf16-af32',
+    () => assertPromotionReady(promotionReadyEntry({
       lifecycle: {
         availability: {
           hf: true,
@@ -131,12 +143,11 @@ import {
           },
         },
       },
-    }),
+    })),
     /lifecycle\.status\.runtime must be "active"/
   );
   assert.throws(
-    () => assertPromotionReady({
-      modelId: 'translategemma-4b-it-q4k-ehf16-af32',
+    () => assertPromotionReady(promotionReadyEntry({
       lifecycle: {
         availability: {
           hf: true,
@@ -149,21 +160,36 @@ import {
           contracts: {},
         },
       },
-    }),
+    })),
     /execution contract gate must be explicitly true/
+  );
+  assert.throws(
+    () => assertPromotionReady(promotionReadyEntry({ artifactCompleteness: 'incomplete' })),
+    /artifactCompleteness must be "complete"/
+  );
+  assert.throws(
+    () => assertPromotionReady(promotionReadyEntry({ weightsRefAllowed: true })),
+    /weightsRefAllowed must be false for complete artifact publication/
+  );
+  assert.doesNotThrow(
+    () => assertPromotionReady(promotionReadyEntry({ weightsRefAllowed: true }), { manifestOnly: true })
+  );
+  assert.throws(
+    () => assertPromotionReady(promotionReadyEntry(), { manifestOnly: true }),
+    /weightsRefAllowed must be true for --manifest-only weightsRef publication/
   );
 }
 
 {
   // Bootstrap requires availability.hf=false (other gates still apply).
-  const bootstrapEntry = {
+  const bootstrapEntry = promotionReadyEntry({
     modelId: 'new-model-first-publish',
     lifecycle: {
       availability: { hf: false },
       status: { runtime: 'active', tested: 'verified' },
       tested: { contracts: { executionContractOk: true } },
     },
-  };
+  });
   assert.doesNotThrow(() => assertPromotionReady(bootstrapEntry, { bootstrap: true }));
   assert.throws(
     () => assertPromotionReady(bootstrapEntry),
@@ -189,14 +215,13 @@ import {
 }
 
 {
-  // Dry-run: manifest-only elides shardDir (null), bootstrap is echoed.
+  // Dry-run: complete artifact path is echoed, bootstrap is preserved.
   const logs = [];
   const origLog = console.log;
   console.log = (line) => logs.push(String(line));
   try {
     await main([
       '--model-id', 'gemma-4-e2b-it-q4k-ehf16-af32',
-      '--manifest-only',
       '--dry-run',
     ]);
   } finally {
@@ -204,9 +229,9 @@ import {
   }
   const parsed = JSON.parse(logs[0]);
   assert.equal(parsed.modelId, 'gemma-4-e2b-it-q4k-ehf16-af32');
-  assert.equal(parsed.manifestOnly, true);
+  assert.equal(parsed.manifestOnly, false);
   assert.equal(parsed.bootstrap, false);
-  assert.equal(parsed.shardDir, null, 'manifest-only dry-run should elide shardDir');
+  assert.ok(parsed.shardDir, 'complete-artifact dry-run should include shardDir');
   assert.ok(parsed.manifestDir.endsWith('/models/local/gemma-4-e2b-it-q4k-ehf16-af32'));
 }
 

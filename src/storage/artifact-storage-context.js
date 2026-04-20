@@ -165,6 +165,7 @@ function createPathBackedStorageContext(options) {
     : null;
   const tokenizerJsonPath = options?.tokenizerJsonPath ?? null;
   const tokenizerModelPath = options?.tokenizerModelPath ?? null;
+  const tensorsJsonPath = options?.tensorsJsonPath ?? null;
   const verifyHashes = options?.verifyHashes === true;
   const hashesTrusted = options?.hashesTrusted === true;
 
@@ -261,6 +262,49 @@ function createPathBackedStorageContext(options) {
     return loadShardRange(index, 0, descriptor.size);
   };
 
+  const preflight = async () => {
+    const failures = [];
+    for (const descriptor of shardSources) {
+      try {
+        if (descriptor.size > 0) {
+          const tail = await readRange(descriptor.path, descriptor.size - 1, 1);
+          const bytes = toUint8Chunk(tail, `readRange(${descriptor.path})`);
+          if (bytes.byteLength < 1) {
+            failures.push(`${descriptor.path}: expected at least ${descriptor.size} bytes`);
+          }
+        } else {
+          await readRange(descriptor.path, 0, 0);
+        }
+      } catch (error) {
+        failures.push(`${descriptor.path}: ${error.message}`);
+      }
+    }
+    if (readText && tokenizerJsonPath) {
+      try {
+        await readText(tokenizerJsonPath);
+      } catch (error) {
+        failures.push(`${tokenizerJsonPath}: ${error.message}`);
+      }
+    }
+    if (readBinary && tokenizerModelPath) {
+      try {
+        await readBinary(tokenizerModelPath);
+      } catch (error) {
+        failures.push(`${tokenizerModelPath}: ${error.message}`);
+      }
+    }
+    if (readText && tensorsJsonPath) {
+      try {
+        await readText(tensorsJsonPath);
+      } catch (error) {
+        failures.push(`${tensorsJsonPath}: ${error.message}`);
+      }
+    }
+    if (failures.length > 0) {
+      throw new Error(`Artifact contract preflight failed: ${failures.join('; ')}`);
+    }
+  };
+
   const streamShardRange = async function* (index, offset = 0, length = null, streamOptions = {}) {
     const descriptor = shardSources[index];
     if (!descriptor) {
@@ -304,6 +348,7 @@ function createPathBackedStorageContext(options) {
   };
 
   return {
+    preflight,
     loadShard,
     loadShardRange,
     streamShardRange,
@@ -325,6 +370,12 @@ function createPathBackedStorageContext(options) {
         const selectedPath = normalizeArtifactPath(pathHint) || tokenizerModelPath;
         const payload = await readBinary(selectedPath);
         return payload == null ? null : toArrayBuffer(payload, `readBinary(${selectedPath})`);
+      }
+      : null,
+    loadTensorsJson: readText && tensorsJsonPath
+      ? async () => {
+        const payload = await readText(tensorsJsonPath);
+        return payload == null ? null : payload;
       }
       : null,
     verifyHashes,
@@ -367,6 +418,7 @@ export function createArtifactStorageContext(options = {}) {
     close: options.close,
     tokenizerJsonPath: options.tokenizerJsonPath ?? tokenizerPaths.jsonPath,
     tokenizerModelPath: options.tokenizerModelPath ?? tokenizerPaths.modelPath,
+    tensorsJsonPath: normalizeArtifactPath(manifest.tensorsFile),
     verifyHashes: options.verifyHashes === true,
     hashesTrusted: options.hashesTrusted === true,
   });

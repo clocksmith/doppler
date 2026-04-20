@@ -10,6 +10,11 @@ export interface DopplerModelSourceResolution {
   modelId: string;
   baseUrl: string | null;
   manifest: RDRRManifest | null;
+  manifestText?: string;
+  storageManifest?: RDRRManifest | null;
+  storageManifestText?: string;
+  storageBaseUrl?: string | null;
+  variantBaseUrl?: string | null;
   trace: Array<{ source: string; id: string; outcome: string }>;
 }
 
@@ -41,5 +46,10 @@ export declare function resolveLoadProgressHandlers(
 export declare function fetchManifestPayloadFromBaseUrl(
   baseUrl: string
 ): Promise<{ text: string; manifest: RDRRManifest }>;
+
+export declare function resolveManifestArtifactSource(
+  resolved: DopplerModelSourceResolution,
+  manifestPayload: { text: string; manifest: RDRRManifest }
+): Promise<DopplerModelSourceResolution>;
 
 export declare function resolveModelSource(model: DopplerModelSource): Promise<DopplerModelSourceResolution>;

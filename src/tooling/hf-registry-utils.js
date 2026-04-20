@@ -204,6 +204,10 @@ export function buildHostedRegistryPayload(payload, revisionOverrides = new Map(
     ? source.models
       .filter((entry) => isHostedRegistryApprovedEntry(entry))
       .map((entry) => {
+        const shapeErrors = validateRegistryEntryArtifactIdentity(entry, 'for hosted registry entries');
+        if (shapeErrors.length > 0) {
+          throw new Error(shapeErrors.join('\n'));
+        }
         const modelId = normalizeText(entry?.modelId);
         const revisionOverride = normalizeText(normalizedOverrides.get(modelId));
         if (revisionOverride) {
@@ -231,6 +235,26 @@ export function extractCommitShaFromUrl(value) {
   return directMatch ? directMatch[1].toLowerCase() : '';
 }
 
+function validateRegistryEntryArtifactIdentity(entry, suffix) {
+  const errors = [];
+  const modelId = normalizeText(entry?.modelId) || 'unknown-model';
+  for (const field of ['sourceCheckpointId', 'weightPackId', 'manifestVariantId']) {
+    if (!normalizeText(entry?.[field])) {
+      errors.push(`${modelId}: ${field} is required ${suffix}`);
+    }
+  }
+  if (entry?.artifactCompleteness !== 'complete') {
+    errors.push(`${modelId}: artifactCompleteness must be "complete" ${suffix}`);
+  }
+  if (entry?.runtimePromotionState !== 'manifest-owned') {
+    errors.push(`${modelId}: runtimePromotionState must be "manifest-owned" ${suffix}`);
+  }
+  if (typeof entry?.weightsRefAllowed !== 'boolean') {
+    errors.push(`${modelId}: weightsRefAllowed must be a boolean ${suffix}`);
+  }
+  return errors;
+}
+
 export function validateLocalHfEntryShape(entry) {
   const errors = [];
   const modelId = normalizeText(entry?.modelId) || 'unknown-model';
@@ -244,6 +268,7 @@ export function validateLocalHfEntryShape(entry) {
   if (!hfSpec.path) {
     errors.push(`${modelId}: hf.path is required when lifecycle.availability.hf=true`);
   }
+  errors.push(...validateRegistryEntryArtifactIdentity(entry, 'when lifecycle.availability.hf=true'));
   return errors;
 }
 

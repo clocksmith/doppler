@@ -61,6 +61,21 @@ export async function buildTensorLocations(manifest, options = {}) {
     }
 
     // 2. Try HTTP if we have a tensors URL set (for HTTP-based testing)
+    if (!tensorsJsonRaw && typeof options.loadTensorsJson === 'function') {
+      try {
+        const payload = await options.loadTensorsJson();
+        if (payload != null) {
+          tensorsJsonRaw = typeof payload === 'string' ? payload : JSON.stringify(payload);
+          trace.push({ source: 'storage-context', outcome: 'resolved' });
+        } else {
+          trace.push({ source: 'storage-context', outcome: 'not-found' });
+        }
+      } catch (e) {
+        trace.push({ source: 'storage-context', outcome: `error: ${e.message}` });
+        log.warn('Loader', `Failed to load tensors.json from storage context: ${e.message}`);
+      }
+    }
+
     if (!tensorsJsonRaw && options.tensorsJsonUrl) {
       try {
         const resp = await fetch(options.tensorsJsonUrl);

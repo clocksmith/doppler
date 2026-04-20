@@ -21,6 +21,8 @@
     "lean:check": "./lean/check.sh",
     "ci:lean:execution-contract:configs": "node tools/lean-execution-contract-config-sweep.js --config-root src/config/conversion --manifest-root models --require-manifest-match",
     "contracts:check": "node tools/check-contract-artifacts.js",
+    "artifact-identity:inventory": "node tools/artifact-identity-inventory.js",
+    "artifact-identity:check": "node tools/artifact-identity-inventory.js --check",
     "ci:contracts:check": "node tools/check-contract-artifacts.js --with-lean --lean-require-manifest-match",
     "ci:diffusion:contract": "node tools/ci-diffusion-contract-gates.js",
     "ci:training:contract": "node tools/ci-training-contract-gates.js",

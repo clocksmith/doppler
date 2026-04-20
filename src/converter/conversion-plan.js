@@ -251,6 +251,7 @@ export function resolveConversionPlan(options) {
 export function resolveConvertedModelId(options) {
   const explicitModelId = options?.explicitModelId ?? null;
   const converterConfig = options?.converterConfig ?? null;
+  const explicitModelBaseId = converterConfig?.output?.modelBaseId ?? null;
   const detectedModelId = options?.detectedModelId ?? null;
   const quantizationInfo = options?.quantizationInfo ?? null;
   const fallbackModelId = options?.fallbackModelId ?? null;
@@ -261,13 +262,22 @@ export function resolveConvertedModelId(options) {
   }
 
   const baseModelId = (
-    converterConfig?.output?.modelBaseId
+    explicitModelBaseId
     ?? detectedModelId
     ?? fallbackModelId
   );
   if (!baseModelId) return null;
+
+  const hasExplicitBaseModelId = Boolean(
+    explicitModelBaseId && String(explicitModelBaseId).trim() !== ''
+  );
+
   const resolved = sanitizeOnly
     ? baseModelId
-    : resolveModelId(baseModelId, detectedModelId ?? baseModelId, quantizationInfo?.variantTag);
+    : (
+      hasExplicitBaseModelId
+        ? baseModelId
+        : resolveModelId(baseModelId, detectedModelId ?? baseModelId, quantizationInfo?.variantTag)
+    );
   return sanitizeModelId(resolved);
 }

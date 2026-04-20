@@ -7,7 +7,7 @@ import {
 const BROKEN_GEMMA_1B_QUICKSTART_REVISION = 'dfbe333a262f00050eebb6704827cad4839c6825';
 const models = await listQuickstartModels();
 
-// Registry should have 6 models after adding Gemma 4 E2B to quickstart support.
+// Registry should have 6 quickstart models after keeping Gemma 4 INT4PLE local-only.
 assert.equal(models.length, 6, `Expected 6 quickstart models, got ${models.length}`);
 
 const modelIds = models.map((m) => m.modelId);
@@ -17,6 +17,15 @@ assert.ok(modelIds.includes('gemma-3-1b-it-q4k-ehf16-af32'), 'Gemma 3 1B missing
 assert.ok(modelIds.includes('gemma-4-e2b-it-q4k-ehf16-af32'), 'Gemma 4 E2B missing');
 assert.ok(modelIds.includes('qwen-3-5-0-8b-q4k-ehaf16'), 'Qwen 3.5 0.8B missing');
 assert.ok(modelIds.includes('qwen-3-5-2b-q4k-ehaf16'), 'Qwen 3.5 2B missing');
+
+for (const entry of models) {
+  assert.ok(entry.sourceCheckpointId, `${entry.modelId}: sourceCheckpointId missing`);
+  assert.ok(entry.weightPackId, `${entry.modelId}: weightPackId missing`);
+  assert.ok(entry.manifestVariantId, `${entry.modelId}: manifestVariantId missing`);
+  assert.equal(entry.artifactCompleteness, 'complete');
+  assert.equal(entry.runtimePromotionState, 'manifest-owned');
+  assert.equal(entry.weightsRefAllowed, false);
+}
 
 // Alias resolution
 {

@@ -2,6 +2,74 @@ import { validateTensorConfigConsistency } from './tensor-config-validator.js';
 import { validateManifestExecutionContract } from '../../config/execution-contract-check.js';
 import { validateManifestInference } from '../../config/schema/index.js';
 
+const ARTIFACT_COMPLETENESS_VALUES = new Set([
+  'complete',
+  'weights-ref',
+  'incomplete',
+]);
+
+function isPlainObject(value) {
+  return value != null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function validateOptionalNonEmptyString(errors, object, field, prefix) {
+  if (object[field] === undefined) {
+    return;
+  }
+  if (typeof object[field] !== 'string' || object[field].trim().length === 0) {
+    errors.push(`Invalid ${prefix}.${field}`);
+  }
+}
+
+function validateRequiredNonEmptyString(errors, object, field, prefix) {
+  if (typeof object[field] !== 'string' || object[field].trim().length === 0) {
+    errors.push(`Missing or invalid ${prefix}.${field}`);
+  }
+}
+
+function validateArtifactIdentityContract(manifest, errors) {
+  const identity = manifest.artifactIdentity;
+  if (identity !== undefined) {
+    if (!isPlainObject(identity)) {
+      errors.push('Invalid artifactIdentity field');
+    } else {
+      for (const field of [
+        'sourceCheckpointId',
+        'sourceRepo',
+        'sourceRevision',
+        'sourceFormat',
+        'conversionConfigPath',
+        'conversionConfigDigest',
+        'weightPackId',
+        'weightPackHash',
+        'manifestVariantId',
+        'materializationProfile',
+      ]) {
+        validateOptionalNonEmptyString(errors, identity, field, 'artifactIdentity');
+      }
+      if (identity.modalitySet !== undefined) {
+        if (!Array.isArray(identity.modalitySet) || identity.modalitySet.some((item) => typeof item !== 'string' || item.trim().length === 0)) {
+          errors.push('Invalid artifactIdentity.modalitySet');
+        }
+      }
+      if (identity.artifactCompleteness !== undefined && !ARTIFACT_COMPLETENESS_VALUES.has(identity.artifactCompleteness)) {
+        errors.push(`Invalid artifactIdentity.artifactCompleteness: ${identity.artifactCompleteness}`);
+      }
+    }
+  }
+
+  const weightsRef = manifest.weightsRef;
+  if (weightsRef !== undefined) {
+    if (!isPlainObject(weightsRef)) {
+      errors.push('Invalid weightsRef field');
+    } else {
+      for (const field of ['weightPackId', 'artifactRoot', 'manifestDigest', 'shardSetHash']) {
+        validateRequiredNonEmptyString(errors, weightsRef, field, 'weightsRef');
+      }
+    }
+  }
+}
+
 export function validateManifest(manifest) {
   const errors = [];
   const warnings = [];
@@ -42,6 +110,8 @@ export function validateManifest(manifest) {
   } else if (manifest.hashAlgorithm !== 'sha256' && manifest.hashAlgorithm !== 'blake3') {
     errors.push(`Invalid hashAlgorithm: ${manifest.hashAlgorithm}`);
   }
+
+  validateArtifactIdentityContract(manifest, errors);
 
   // EOS token ID (required for text models)
   const eosTokenId = manifest.eos_token_id;

@@ -4,6 +4,7 @@ import type { TensorLocation } from './loader-types.js';
 export interface BuildTensorLocationsOptions {
   hasCustomLoader?: boolean;
   tensorsJsonUrl?: string | null;
+  loadTensorsJson?: (() => Promise<string | Record<string, unknown> | null | undefined>) | null;
 }
 
 export function buildTensorLocations(

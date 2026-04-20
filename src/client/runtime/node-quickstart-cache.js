@@ -114,7 +114,17 @@ function getTokenizerEntries(manifest) {
 }
 
 function getArtifactEntries(manifest) {
+  const tensorsFile = normalizeText(manifest?.tensorsFile);
   return [
+    ...(tensorsFile
+      ? [{
+        kind: 'tensors',
+        relativePath: normalizeArtifactPath(tensorsFile),
+        size: null,
+        hash: null,
+        hashAlgorithm: null,
+      }]
+      : []),
     ...getShardEntries(manifest),
     ...getTokenizerEntries(manifest),
   ];

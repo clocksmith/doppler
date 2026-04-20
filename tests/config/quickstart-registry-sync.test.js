@@ -44,6 +44,20 @@ for (const entry of Array.isArray(quickstartRegistry?.models) ? quickstartRegist
     catalogEntry.hf ?? null,
     `${modelId}: hf metadata must stay in sync with models/catalog.json`
   );
+  for (const field of [
+    'sourceCheckpointId',
+    'weightPackId',
+    'manifestVariantId',
+    'artifactCompleteness',
+    'runtimePromotionState',
+    'weightsRefAllowed',
+  ]) {
+    assert.deepEqual(
+      entry[field] ?? null,
+      catalogEntry[field] ?? null,
+      `${modelId}: ${field} must stay in sync with models/catalog.json`
+    );
+  }
 }
 
 console.log('quickstart-registry-sync.test: ok');

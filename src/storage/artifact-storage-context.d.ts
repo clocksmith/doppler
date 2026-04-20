@@ -26,8 +26,13 @@ export interface CreateArtifactStorageContextOptions {
   close?: (() => Promise<void>) | null;
   tokenizerJsonPath?: string | null;
   tokenizerModelPath?: string | null;
+  tensorsJsonPath?: string | null;
   verifyHashes?: boolean;
   hashesTrusted?: boolean;
+}
+
+export interface ArtifactStorageContext extends SourceStorageContext {
+  preflight?: () => Promise<void>;
 }
 
 export interface CreateHttpArtifactStorageContextOptions {
@@ -40,15 +45,15 @@ export declare function getArtifactFormat(
 
 export declare function createArtifactStorageContext(
   options: CreateArtifactStorageContextOptions
-): SourceStorageContext;
+): ArtifactStorageContext;
 
 export declare function createNodeFileArtifactStorageContext(
   baseUrl: string | null | undefined,
   manifest: RDRRManifest
-): SourceStorageContext | null;
+): ArtifactStorageContext | null;
 
 export declare function createHttpArtifactStorageContext(
   baseUrl: string | null | undefined,
   manifest: RDRRManifest,
   options?: CreateHttpArtifactStorageContextOptions
-): SourceStorageContext | null;
+): ArtifactStorageContext | null;

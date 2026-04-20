@@ -179,6 +179,7 @@ export class DopplerLoader {
   #memoryMonitor = null;
   
   #tensorsJsonUrl = null;
+  #loadTensorsJson = null;
   
   #loadShardOverride = null;
 
@@ -288,6 +289,10 @@ export class DopplerLoader {
   
   setTensorsJsonUrl(url) {
     this.#tensorsJsonUrl = url;
+  }
+
+  setTensorsJsonLoader(loadTensorsJson) {
+    this.#loadTensorsJson = typeof loadTensorsJson === 'function' ? loadTensorsJson : null;
   }
 
   
@@ -440,15 +445,14 @@ export class DopplerLoader {
       log.warn('Loader', 'Dense model on discrete GPU - performance limited. Consider MoE model.');
     }
 
-    if (verifyHashes && !this.shardCache.hasCustomLoader) {
-      // Avoid a full re-hash on every warm load. Presence check is enough to
-      // decide "cached vs missing"; hash verification is performed at download/import time.
+    if (!this.shardCache.hasCustomLoader) {
       const integrity = await verifyIntegrity({ checkHashes: false });
       if (!integrity.valid) {
         throw new Error(
-          `Model integrity check failed. ` +
+          `Artifact contract preflight failed for "${this.manifest?.modelId ?? modelId}". ` +
           `Missing shards: ${integrity.missingShards.length}, ` +
-          `Corrupt shards: ${integrity.corruptShards.length}`
+          `corrupt shards: ${integrity.corruptShards.length}. ` +
+          'Re-import, re-download, or provide a manifest with a valid weightsRef.'
         );
       }
     }
@@ -673,6 +677,7 @@ export class DopplerLoader {
 
     const locations = await buildTensorLocations(this.manifest, {
       tensorsJsonUrl: this.#tensorsJsonUrl,
+      loadTensorsJson: this.#loadTensorsJson,
       hasCustomLoader: this.shardCache.hasCustomLoader,
     });
 

@@ -11,6 +11,8 @@ import type {
   QuantizationValue,
   RuntimeOptimizationsSchema,
   ConversionInfoSchema,
+  ManifestArtifactIdentitySchema,
+  ManifestWeightsRefSchema,
 } from './manifest.schema.js';
 import type {
   ExecutionV1GraphSchema,
@@ -57,6 +59,8 @@ export interface ConverterManifestConfigSchema {
   hashAlgorithm: HashAlgorithm;
   optimizations: RuntimeOptimizationsSchema | null;
   conversion: ConversionInfoSchema | null;
+  artifactIdentity: ManifestArtifactIdentitySchema | null;
+  weightsRef: ManifestWeightsRefSchema | null;
   visionConfig?: Record<string, unknown> | null;
   audioConfig?: Record<string, unknown> | null;
 }

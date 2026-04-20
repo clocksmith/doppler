@@ -53,6 +53,13 @@ const QUANT_TAG_ALIASES = {
 const PER_LAYER_EMBEDDING_QUANT_ALIASES = {
   'int4_per_row': 'int4_per_row',
   'int4-per-row': 'int4_per_row',
+  'i4-per-row': 'int4_per_row',
+  'i4_per_row': 'int4_per_row',
+};
+
+// Human-facing variant suffixes for naming-only artifacts.
+const PER_LAYER_EMBEDDING_VARIANT_TAGS = {
+  int4_per_row: 'int4ple',
 };
 
 export function normalizeQuantTag(value) {
@@ -89,6 +96,11 @@ function normalizePerLayerEmbeddingQuant(value) {
   throw new Error(
     `converter.quantization.perLayerEmbeddings must be "int4_per_row" or null; got ${JSON.stringify(value)}.`
   );
+}
+
+function perLayerEmbeddingVariantTag(value) {
+  if (!value) return null;
+  return PER_LAYER_EMBEDDING_VARIANT_TAGS[value] ?? null;
 }
 
 
@@ -157,6 +169,11 @@ function buildVariantTag(info) {
   }
   if (info.projector && info.projector !== weights) {
     parts.push(`p${info.projector}`);
+  }
+
+  const perLayerTag = perLayerEmbeddingVariantTag(info.perLayerEmbeddings);
+  if (perLayerTag) {
+    parts.push(perLayerTag);
   }
 
   return parts.join('-');

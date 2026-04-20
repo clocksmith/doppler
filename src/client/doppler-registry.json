@@ -4,6 +4,12 @@
   "models": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "sourceCheckpointId": "google/gemma-3-270m-it",
+      "weightPackId": "gemma-3-270m-it-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-3-270m-it-q4k-ehf16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false,
       "aliases": [
         "gemma3-270m",
         "google/gemma-3-270m-it",
@@ -23,6 +29,12 @@
     },
     {
       "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+      "sourceCheckpointId": "google/embeddinggemma-300m",
+      "weightPackId": "google-embeddinggemma-300m-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "google-embeddinggemma-300m-q4k-ehf16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false,
       "aliases": [
         "embeddinggemma-300m",
         "google/embeddinggemma-300m",
@@ -39,6 +51,12 @@
     },
     {
       "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
+      "sourceCheckpointId": "google/gemma-3-1b-it",
+      "weightPackId": "gemma-3-1b-it-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-3-1b-it-q4k-ehf16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false,
       "aliases": [
         "gemma3-1b",
         "google/gemma-3-1b-it",
@@ -56,6 +74,12 @@
     },
     {
       "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+      "sourceCheckpointId": "google/gemma-4-E2B-it",
+      "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false,
       "aliases": [
         "gemma4-e2b",
         "google/gemma-4-e2b-it"
@@ -66,12 +90,18 @@
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "c690ac0274891afbddb8afb776d000e4c0051b7b",
+        "revision": "154808f5a7c02e2a705d9fb04a1c635eb65a7950",
         "path": "models/gemma-4-e2b-it-q4k-ehf16-af32"
       }
     },
     {
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
+      "weightPackId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
+      "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false,
       "aliases": [
         "qwen3-0.8b",
         "qwen-3-5-0-8b",
@@ -84,12 +114,18 @@
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "1c509e37e4430d7ffd094ce5dfa623792603670e",
+        "revision": "4968d761a8135ddace5bf98cc0423be28ce0b3db",
         "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
       }
     },
     {
       "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "sourceCheckpointId": "Qwen/Qwen3.5-2B",
+      "weightPackId": "qwen-3-5-2b-q4k-ehaf16-wp-catalog-v1",
+      "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false,
       "aliases": [
         "qwen3-2b",
         "qwen-3-5-2b",
@@ -102,7 +138,7 @@
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "3f54bc54c19181bd737d1773dcd70fb783297e73",
+        "revision": "e652c3e901fbc1597a0aa4e17dbf3a9b4e9045bc",
         "path": "models/qwen-3-5-2b-q4k-ehaf16"
       }
     }

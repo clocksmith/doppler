@@ -31,6 +31,21 @@ An RDRR artifact set contains:
 - `shard_*.bin`
 - tokenizer assets where required
 
+## Artifact identity migration fields
+
+The manifest may include additive identity metadata while Doppler migrates away
+from `modelId` as the combined release/artifact/runtime identity.
+
+- `artifactIdentity` identifies source checkpoint bytes, converted weight pack
+  identity, and manifest/runtime-policy variant identity.
+- `weightsRef` identifies a shared or external weight pack for a manifest
+  variant that does not own its local shards.
+- Legacy manifests may omit both fields during migration.
+- When either field is present, its shape is validated by the RDRR parser.
+- Runtime shard resolution does not yet consume `weightsRef`; incomplete local
+  shard sets must still fail unless an explicit loader path supports the
+  reference.
+
 ## Goals
 
 - deterministic loading contract

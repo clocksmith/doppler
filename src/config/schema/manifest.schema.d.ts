@@ -150,6 +150,56 @@ export interface ProvenanceSchema {
   tool?: string;
 }
 
+export type SourceArtifactFormat =
+  | 'safetensors'
+  | 'gguf'
+  | 'tflite'
+  | 'task'
+  | 'litertlm'
+  | 'direct-source'
+  | (string & {});
+
+export type ArtifactCompleteness =
+  | 'complete'
+  | 'weights-ref'
+  | 'incomplete';
+
+/**
+ * Additive artifact identity metadata.
+ *
+ * During the migration, this section may be absent from legacy manifests.
+ * When present, fields identify source bytes, converted weight pack identity,
+ * and manifest/runtime-policy variant identity without overloading modelId.
+ */
+export interface ManifestArtifactIdentitySchema {
+  sourceCheckpointId?: string;
+  sourceRepo?: string;
+  sourceRevision?: string;
+  sourceFormat?: SourceArtifactFormat;
+  conversionConfigPath?: string;
+  conversionConfigDigest?: string;
+  weightPackId?: string;
+  weightPackHash?: string;
+  manifestVariantId?: string;
+  modalitySet?: string[];
+  materializationProfile?: string;
+  artifactCompleteness?: ArtifactCompleteness;
+}
+
+/**
+ * Reference from a manifest variant to a shared/external weight pack.
+ *
+ * Runtime shard resolution does not consume this field yet. While migration is
+ * in progress, a manifest with incomplete local shards must still fail unless
+ * the loader path has explicit weightsRef support.
+ */
+export interface ManifestWeightsRefSchema {
+  weightPackId: string;
+  artifactRoot: string;
+  manifestDigest: string;
+  shardSetHash: string;
+}
+
 /** Model architecture parameters */
 export interface ArchitectureSchema {
   numLayers: number;
@@ -544,6 +594,8 @@ export interface ManifestSchema {
   modelType: ModelType;
   quantization: string;
   quantizationInfo?: QuantizationInfoSchema;
+  artifactIdentity?: ManifestArtifactIdentitySchema;
+  weightsRef?: ManifestWeightsRefSchema;
   hashAlgorithm: HashAlgorithm;
   totalSize: number;
   eos_token_id: number | number[] | null;

@@ -12,8 +12,29 @@ function normalizeEntry(entry) {
   if (!modelId) {
     return null;
   }
+  const sourceCheckpointId = typeof entry.sourceCheckpointId === 'string' ? entry.sourceCheckpointId.trim() : '';
+  const weightPackId = typeof entry.weightPackId === 'string' ? entry.weightPackId.trim() : '';
+  const manifestVariantId = typeof entry.manifestVariantId === 'string' ? entry.manifestVariantId.trim() : '';
+  const artifactCompleteness = typeof entry.artifactCompleteness === 'string' ? entry.artifactCompleteness.trim() : '';
+  const runtimePromotionState = typeof entry.runtimePromotionState === 'string' ? entry.runtimePromotionState.trim() : '';
+  if (
+    !sourceCheckpointId
+    || !weightPackId
+    || !manifestVariantId
+    || artifactCompleteness !== 'complete'
+    || runtimePromotionState !== 'manifest-owned'
+    || entry.weightsRefAllowed !== false
+  ) {
+    return null;
+  }
   return {
     modelId,
+    sourceCheckpointId,
+    weightPackId,
+    manifestVariantId,
+    artifactCompleteness,
+    runtimePromotionState,
+    weightsRefAllowed: false,
     aliases: Array.isArray(entry.aliases)
       ? entry.aliases.filter((alias) => typeof alias === 'string' && alias.trim().length > 0)
       : [],
@@ -52,6 +73,12 @@ export async function listQuickstartModels() {
   const registry = await loadRegistry();
   return registry.models.map((entry) => ({
     modelId: entry.modelId,
+    sourceCheckpointId: entry.sourceCheckpointId,
+    weightPackId: entry.weightPackId,
+    manifestVariantId: entry.manifestVariantId,
+    artifactCompleteness: entry.artifactCompleteness,
+    runtimePromotionState: entry.runtimePromotionState,
+    weightsRefAllowed: entry.weightsRefAllowed,
     aliases: [...entry.aliases],
     modes: [...entry.modes],
   }));

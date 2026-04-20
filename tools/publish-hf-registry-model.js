@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import { mkdtemp, rm, readdir, symlink, copyFile, readFile, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { mkdtemp, rm, readdir, symlink, copyFile, readFile, stat, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -12,6 +13,7 @@ import {
   DEFAULT_HF_REGISTRY_PATH,
   DEFAULT_HF_REGISTRY_URL,
   DEFAULT_EXTERNAL_MODELS_ROOT,
+  buildHfResolveUrl,
   buildManifestUrl,
   extractCommitShaFromUrl,
   fetchRepoHeadSha,
@@ -165,25 +167,205 @@ export function buildArtifactUploadPlan(entry, options = {}) {
   }
   return {
     modelId,
+    sourceCheckpointId: normalizeText(entry?.sourceCheckpointId),
+    weightPackId: normalizeText(entry?.weightPackId),
+    manifestVariantId: normalizeText(entry?.manifestVariantId),
+    weightsRefAllowed: entry?.weightsRefAllowed === true,
     repoId,
+    sourceRevision: hfSpec.revision,
     targetPath,
     manifestDir,
     shardDir,
   };
 }
 
-/**
- * Build a staging directory for HF upload by combining:
- * - manifest.json + origin.json from manifestDir (source of truth)
- * - shard_*.bin + tokenizer files from shardDir (external drive)
- */
-export async function buildStagingDir(uploadPlan) {
+function normalizeArtifactPath(value, label) {
+  const normalized = normalizeText(value);
+  if (!normalized) return '';
+  if (path.isAbsolute(normalized) || normalized.split(/[\\/]+/).includes('..')) {
+    throw new Error(`${label} must be an artifact-relative path: ${normalized}`);
+  }
+  return normalized;
+}
+
+function collectRequiredManifestFiles(manifest) {
+  const requiredFiles = new Map();
+  const add = (filename, expectedSize = null, label = 'manifest file') => {
+    const normalized = normalizeArtifactPath(filename, label);
+    if (!normalized) return;
+    requiredFiles.set(normalized, Number.isFinite(expectedSize) ? Number(expectedSize) : null);
+  };
+
+  if (typeof manifest?.tokenizer?.file === 'string') {
+    add(manifest.tokenizer.file, null, 'tokenizer.file');
+  }
+  if (typeof manifest?.tokenizer?.sentencepieceModel === 'string') {
+    add(manifest.tokenizer.sentencepieceModel, null, 'tokenizer.sentencepieceModel');
+  }
+  if (typeof manifest?.tensorsFile === 'string') {
+    add(manifest.tensorsFile, null, 'tensorsFile');
+  }
+  if (Array.isArray(manifest?.shards)) {
+    for (const shard of manifest.shards) {
+      add(shard?.filename, Number(shard?.size), 'shards[].filename');
+    }
+  }
+  return requiredFiles;
+}
+
+function buildArtifactFileUrl(baseUrl, filename) {
+  const normalizedBaseUrl = normalizeText(baseUrl).replace(/\/+$/, '');
+  const normalizedFilename = normalizeArtifactPath(filename, 'published artifact file');
+  if (!normalizedBaseUrl || !normalizedFilename) {
+    throw new Error('Published artifact file URL requires baseUrl and filename.');
+  }
+  return `${normalizedBaseUrl}/${normalizedFilename.split('/').map(encodeURIComponent).join('/')}`;
+}
+
+function normalizeDigest(value) {
+  const normalized = normalizeText(value).toLowerCase();
+  if (!normalized) return '';
+  return normalized.startsWith('sha256:') ? normalized.slice('sha256:'.length) : normalized;
+}
+
+function sha256Text(value) {
+  return createHash('sha256').update(String(value)).digest('hex');
+}
+
+function resolveWeightsRefBaseUrl(baseUrl, artifactRoot) {
+  const root = normalizeText(artifactRoot);
+  if (!root) {
+    throw new Error('weightsRef.artifactRoot is required.');
+  }
+  const base = normalizeText(baseUrl).replace(/\/+$/, '');
+  if (!base) {
+    throw new Error('weightsRef.artifactRoot requires a manifest base URL.');
+  }
+  return new URL(root, base.endsWith('/') ? base : `${base}/`).toString().replace(/\/+$/, '');
+}
+
+async function fetchManifestText(manifestUrl) {
+  const response = await fetch(manifestUrl, {
+    headers: { Connection: 'close' },
+    redirect: 'follow',
+    signal: AbortSignal.timeout(30000),
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${manifestUrl}`);
+  }
+  const text = await response.text();
+  return {
+    text,
+    manifest: JSON.parse(text),
+  };
+}
+
+function assertWeightsRefIdentity(modelId, variantManifest, weightsManifest, weightsRef, storageBaseUrl) {
+  const expectedWeightPackId = normalizeText(weightsRef?.weightPackId);
+  if (!expectedWeightPackId) {
+    throw new Error(`${modelId}: weightsRef.weightPackId is required.`);
+  }
+  const variantWeightPackId = normalizeText(variantManifest?.artifactIdentity?.weightPackId);
+  if (variantWeightPackId && variantWeightPackId !== expectedWeightPackId) {
+    throw new Error(
+      `${modelId}: weightsRef.weightPackId "${expectedWeightPackId}" does not match ` +
+      `manifest artifactIdentity.weightPackId "${variantWeightPackId}".`
+    );
+  }
+  const targetWeightPackId = normalizeText(weightsManifest?.artifactIdentity?.weightPackId);
+  if (targetWeightPackId !== expectedWeightPackId) {
+    throw new Error(
+      `${modelId}: weightsRef target ${storageBaseUrl} has artifactIdentity.weightPackId ` +
+      `"${targetWeightPackId}", expected "${expectedWeightPackId}".`
+    );
+  }
+  const expectedShardSetHash = normalizeText(weightsRef?.shardSetHash);
+  if (expectedShardSetHash) {
+    const actualShardSetHash = normalizeText(weightsManifest?.artifactIdentity?.shardSetHash);
+    if (actualShardSetHash !== expectedShardSetHash) {
+      throw new Error(
+        `${modelId}: weightsRef.shardSetHash "${expectedShardSetHash}" does not match ` +
+        `target artifactIdentity.shardSetHash "${actualShardSetHash}".`
+      );
+    }
+  }
+}
+
+async function resolveWeightsRefArtifactManifest(baseUrl, manifest) {
+  const modelId = normalizeText(manifest?.modelId) || 'unknown-model';
+  const weightsRef = manifest?.weightsRef;
+  if (weightsRef == null) {
+    return {
+      baseUrl,
+      manifest,
+      weightsRef: false,
+    };
+  }
+  const storageBaseUrl = resolveWeightsRefBaseUrl(baseUrl, weightsRef.artifactRoot);
+  const storageManifestUrl = buildManifestUrl(storageBaseUrl);
+  const expectedDigest = normalizeDigest(weightsRef.manifestDigest);
+  if (!expectedDigest) {
+    throw new Error(`${modelId}: weightsRef.manifestDigest is required.`);
+  }
+  const manifestProbe = await probeUrl(storageManifestUrl);
+  if (!manifestProbe.ok) {
+    throw new Error(`${modelId}: weightsRef manifest missing at ${storageManifestUrl}`);
+  }
+  const storageManifestPayload = await fetchManifestText(storageManifestUrl);
+  const actualDigest = sha256Text(storageManifestPayload.text);
+  if (actualDigest !== expectedDigest) {
+    throw new Error(
+      `${modelId}: weightsRef.manifestDigest mismatch for ${storageBaseUrl}. ` +
+      `Expected ${expectedDigest}, got ${actualDigest}.`
+    );
+  }
+  assertWeightsRefIdentity(modelId, manifest, storageManifestPayload.manifest, weightsRef, storageBaseUrl);
+  return {
+    baseUrl: storageBaseUrl,
+    manifest: storageManifestPayload.manifest,
+    weightsRef: true,
+  };
+}
+
+async function assertCompleteUploadArtifact(uploadPlan, options = {}) {
   const { modelId, manifestDir, shardDir } = uploadPlan;
+  const manifestOnly = options.manifestOnly === true;
   const manifestPath = path.join(manifestDir, 'manifest.json');
   if (!existsSync(manifestPath)) {
     throw new Error(
       `${modelId}: manifest.json not found in ${manifestDir}. `
       + 'The models/local/<modelId>/ directory is the source of truth for manifests.'
+    );
+  }
+
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+  const identity = manifest?.artifactIdentity;
+  if (!identity || typeof identity !== 'object' || Array.isArray(identity)) {
+    throw new Error(`${modelId}: manifest artifactIdentity is required before publication.`);
+  }
+  for (const field of ['sourceCheckpointId', 'weightPackId', 'manifestVariantId']) {
+    const expected = normalizeText(uploadPlan?.[field]);
+    const actual = normalizeText(identity?.[field]);
+    if (!expected || actual !== expected) {
+      throw new Error(
+        `${modelId}: manifest artifactIdentity.${field} "${actual}" does not match catalog "${expected}".`
+      );
+    }
+  }
+  if (manifest?.weightsRef != null) {
+    if (!manifestOnly) {
+      throw new Error(
+        `${modelId}: manifest declares weightsRef; publish it with --manifest-only after the referenced weight pack is hosted.`
+      );
+    }
+    if (uploadPlan.weightsRefAllowed !== true) {
+      throw new Error(`${modelId}: catalog weightsRefAllowed must be true for --manifest-only weightsRef publication.`);
+    }
+    return manifest;
+  }
+  if (manifestOnly) {
+    throw new Error(
+      `${modelId}: --manifest-only requires manifest.weightsRef. Publish a complete artifact instead.`
     );
   }
   if (!existsSync(shardDir)) {
@@ -192,6 +374,70 @@ export async function buildStagingDir(uploadPlan) {
       + 'The external drive must be mounted with model shards present.'
     );
   }
+  const requiredFiles = collectRequiredManifestFiles(manifest);
+  if (requiredFiles.size === 0) {
+    throw new Error(`${modelId}: manifest.json does not declare tokenizer, tensor, or shard files to publish.`);
+  }
+
+  const missing = [];
+  const mismatched = [];
+  for (const [file, expectedSize] of requiredFiles.entries()) {
+    const filePath = path.join(shardDir, file);
+    if (!existsSync(filePath)) {
+      missing.push(file);
+      continue;
+    }
+    if (expectedSize != null) {
+      const fileStat = await stat(filePath);
+      if (fileStat.size !== expectedSize) {
+        mismatched.push(`${file} expected ${expectedSize} bytes, found ${fileStat.size}`);
+      }
+    }
+  }
+  if (missing.length > 0) {
+    throw new Error(
+      `${modelId}: publish candidate is incomplete; missing required artifact files in ${shardDir}: `
+      + missing.join(', ')
+    );
+  }
+  if (mismatched.length > 0) {
+    throw new Error(
+      `${modelId}: publish candidate has shard size mismatches: ${mismatched.join('; ')}`
+    );
+  }
+  return manifest;
+}
+
+async function verifyPublishedArtifactFiles(baseUrl, manifest) {
+  const modelId = normalizeText(manifest?.modelId) || 'unknown-model';
+  const artifact = await resolveWeightsRefArtifactManifest(baseUrl, manifest);
+  const requiredFiles = collectRequiredManifestFiles(artifact.manifest);
+  const shards = Array.isArray(artifact.manifest?.shards) ? artifact.manifest.shards : [];
+  if (shards.length === 0) {
+    throw new Error(`${modelId}: published artifact manifest does not declare shards.`);
+  }
+  const missing = [];
+  for (const file of requiredFiles.keys()) {
+    const url = buildArtifactFileUrl(artifact.baseUrl, file);
+    const probe = await probeUrl(url);
+    if (!probe.ok) {
+      missing.push(`${file} (${url})`);
+    }
+  }
+  if (missing.length > 0) {
+    throw new Error(`${modelId}: published artifact is missing required files: ${missing.join(', ')}`);
+  }
+}
+
+/**
+ * Build a staging directory for HF upload by combining:
+ * - manifest.json + origin.json from manifestDir (source of truth)
+ * - shard_*.bin + tokenizer files from shardDir (external drive)
+ */
+export async function buildStagingDir(uploadPlan, options = {}) {
+  const { modelId, manifestDir, shardDir } = uploadPlan;
+  const manifestPath = path.join(manifestDir, 'manifest.json');
+  const manifest = options.manifest ?? await assertCompleteUploadArtifact(uploadPlan, options);
 
   const stagingDir = await mkdtemp(path.join(os.tmpdir(), `doppler-publish-${modelId}-`));
 
@@ -200,6 +446,9 @@ export async function buildStagingDir(uploadPlan) {
   const originPath = path.join(manifestDir, 'origin.json');
   if (existsSync(originPath)) {
     await copyFile(originPath, path.join(stagingDir, 'origin.json'));
+  }
+  if (options.manifestOnly === true || manifest?.weightsRef != null) {
+    return stagingDir;
   }
 
   // Symlink shards + tokenizer from external drive (heavy files)
@@ -215,7 +464,7 @@ export async function buildStagingDir(uploadPlan) {
 }
 
 export function assertPromotionReady(entry, options = {}) {
-  const { bootstrap = false } = options;
+  const { bootstrap = false, manifestOnly = false } = options;
   const modelId = normalizeText(entry?.modelId) || 'unknown-model';
   const lifecycle = entry?.lifecycle && typeof entry.lifecycle === 'object'
     ? entry.lifecycle
@@ -230,6 +479,29 @@ export function assertPromotionReady(entry, options = {}) {
     ? tested.contracts
     : {};
   const availabilityHf = lifecycle?.availability?.hf;
+  const requiredIdentityFields = [
+    'sourceCheckpointId',
+    'weightPackId',
+    'manifestVariantId',
+  ];
+  for (const field of requiredIdentityFields) {
+    if (!normalizeText(entry?.[field])) {
+      throw new Error(`${modelId}: ${field} is required before publication.`);
+    }
+  }
+  if (entry?.artifactCompleteness !== 'complete') {
+    throw new Error(`${modelId}: artifactCompleteness must be "complete" before publication.`);
+  }
+  if (entry?.runtimePromotionState !== 'manifest-owned') {
+    throw new Error(`${modelId}: runtimePromotionState must be "manifest-owned" before publication.`);
+  }
+  if (manifestOnly) {
+    if (entry?.weightsRefAllowed !== true) {
+      throw new Error(`${modelId}: weightsRefAllowed must be true for --manifest-only weightsRef publication.`);
+    }
+  } else if (entry?.weightsRefAllowed !== false) {
+    throw new Error(`${modelId}: weightsRefAllowed must be false for complete artifact publication.`);
+  }
   if (bootstrap) {
     if (availabilityHf !== false) {
       throw new Error(`${modelId}: --bootstrap requires lifecycle.availability.hf=false (first publish only); got ${JSON.stringify(availabilityHf)}.`);
@@ -292,7 +564,7 @@ export async function main(argv = process.argv.slice(2)) {
   if (!localEntry) {
     throw new Error(`Model "${args.modelId}" not found in ${args.catalogFile}`);
   }
-  assertPromotionReady(localEntry, { bootstrap: args.bootstrap });
+  assertPromotionReady(localEntry, { bootstrap: args.bootstrap, manifestOnly: args.manifestOnly });
   // In bootstrap mode the entry is not yet in the approved set
   // (availability.hf=false). We flip it in memory after a successful upload
   // before rebuilding the hosted registry payload.
@@ -329,37 +601,27 @@ export async function main(argv = process.argv.slice(2)) {
   await fetchJson(args.registryUrl);
 
   let uploadResult;
+  const uploadManifest = await assertCompleteUploadArtifact(uploadPlan, { manifestOnly: args.manifestOnly });
   if (args.manifestOnly) {
-    const manifestPath = path.join(uploadPlan.manifestDir, 'manifest.json');
-    if (!existsSync(manifestPath)) {
-      throw new Error(
-        `${uploadPlan.modelId}: manifest.json not found in ${uploadPlan.manifestDir}. `
-        + 'The models/local/<modelId>/ directory is the source of truth for manifests.'
-      );
-    }
+    const validationRevision = uploadPlan.sourceRevision || 'main';
+    const validationBaseUrl = buildHfResolveUrl(uploadPlan.repoId, validationRevision, uploadPlan.targetPath);
+    await verifyPublishedArtifactFiles(validationBaseUrl, uploadManifest);
+  }
+  const stagingDir = await buildStagingDir(uploadPlan, {
+    manifest: uploadManifest,
+    manifestOnly: args.manifestOnly,
+  });
+  try {
     uploadResult = await spawnCommand('hf', [
       'upload',
       uploadPlan.repoId,
-      manifestPath,
-      `${uploadPlan.targetPath}/manifest.json`,
+      stagingDir,
+      uploadPlan.targetPath,
       '--commit-message',
-      `Publish ${uploadPlan.modelId} manifest update`,
+      `Publish ${uploadPlan.modelId} RDRR artifact`,
     ]);
-  } else {
-    // Build staging directory: manifest from models/local/ + shards from external drive
-    const stagingDir = await buildStagingDir(uploadPlan);
-    try {
-      uploadResult = await spawnCommand('hf', [
-        'upload',
-        uploadPlan.repoId,
-        stagingDir,
-        uploadPlan.targetPath,
-        '--commit-message',
-        `Publish ${uploadPlan.modelId} RDRR artifact`,
-      ]);
-    } finally {
-      await rm(stagingDir, { recursive: true, force: true });
-    }
+  } finally {
+    await rm(stagingDir, { recursive: true, force: true });
   }
   const artifactRevision = extractCommitShaFromUrl(uploadResult.stdout)
     || extractCommitShaFromUrl(uploadResult.stderr)
@@ -411,11 +673,13 @@ export async function main(argv = process.argv.slice(2)) {
       || extractCommitShaFromUrl(registryResult.stderr)
       || await fetchRepoHeadSha(uploadPlan.repoId);
 
-    manifestUrl = buildManifestUrl(`https://huggingface.co/${uploadPlan.repoId}/resolve/${artifactRevision}/${uploadPlan.targetPath}`);
+    const publishedBaseUrl = `https://huggingface.co/${uploadPlan.repoId}/resolve/${artifactRevision}/${uploadPlan.targetPath}`;
+    manifestUrl = buildManifestUrl(publishedBaseUrl);
     const manifestProbe = await probeUrl(manifestUrl);
     if (!manifestProbe.ok) {
       throw new Error(`Published manifest did not resolve: ${manifestUrl}`);
     }
+    await verifyPublishedArtifactFiles(publishedBaseUrl, uploadManifest);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }

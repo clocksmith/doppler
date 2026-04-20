@@ -1350,6 +1350,19 @@ async function loadQuickstartRegistry() {
     if (!modelId) {
       throw new Error('doppler-registry.json quickstart entries must define modelId');
     }
+    if (
+      typeof row?.sourceCheckpointId !== 'string'
+      || row.sourceCheckpointId.trim().length === 0
+      || typeof row?.weightPackId !== 'string'
+      || row.weightPackId.trim().length === 0
+      || typeof row?.manifestVariantId !== 'string'
+      || row.manifestVariantId.trim().length === 0
+    ) {
+      throw new Error(`doppler-registry.json quickstart entry "${modelId}" must define sourceCheckpointId, weightPackId, and manifestVariantId`);
+    }
+    if (row?.artifactCompleteness !== 'complete' || row?.runtimePromotionState !== 'manifest-owned' || row?.weightsRefAllowed !== false) {
+      throw new Error(`doppler-registry.json quickstart entry "${modelId}" must be complete and manifest-owned`);
+    }
     if (modelById.has(modelId.toLowerCase())) {
       throw new Error(`doppler-registry.json has duplicate quickstart modelId "${modelId}"`);
     }
@@ -1437,6 +1450,9 @@ async function resolveDopplerModelSource(compareProfile, dopplerModelId, explici
       registrySource: {
         source: toRepoRelativeSourcePath(quickstartRegistry.source),
         sourceSha256: quickstartRegistry.sourceSha256,
+        sourceCheckpointId: registryEntry.sourceCheckpointId,
+        weightPackId: registryEntry.weightPackId,
+        manifestVariantId: registryEntry.manifestVariantId,
       },
       modelBaseDir: null,
       manifestSourceType: 'remote',
@@ -1748,16 +1764,28 @@ async function preflightDopplerManifestContract(dopplerModelSource, dopplerModel
   );
   const executionContractArtifact = buildExecutionContractArtifact(manifest);
   const executionContractOk = executionContractArtifact == null || executionContractArtifact.ok === true;
+  const artifactIdentity = manifest?.artifactIdentity && typeof manifest.artifactIdentity === 'object'
+    ? {
+      sourceCheckpointId: manifest.artifactIdentity.sourceCheckpointId ?? null,
+      weightPackId: manifest.artifactIdentity.weightPackId ?? null,
+      manifestVariantId: manifest.artifactIdentity.manifestVariantId ?? null,
+      shardSetHash: manifest.artifactIdentity.shardSetHash ?? null,
+      artifactCompleteness: manifest.artifactIdentity.artifactCompleteness ?? null,
+    }
+    : null;
   const errors = [
     ...(Array.isArray(requiredInferenceFieldsArtifact?.errors) ? requiredInferenceFieldsArtifact.errors : []),
     ...(Array.isArray(executionContractArtifact?.errors) ? executionContractArtifact.errors : []),
+    ...(!artifactIdentity ? [`${dopplerModelId}.manifest.artifactIdentity is required for compare evidence`] : []),
   ];
   return {
     manifestSource: toRepoRelativeSourcePath(manifestBundle.source),
     manifestSha256: manifestBundle.sourceSha256,
+    artifactIdentity,
+    weightsRef: manifest?.weightsRef ?? null,
     requiredInferenceFieldsArtifact,
     executionContractArtifact,
-    ok: requiredInferenceFieldsArtifact.ok === true && executionContractOk,
+    ok: requiredInferenceFieldsArtifact.ok === true && executionContractOk && artifactIdentity !== null,
     errors,
   };
 }
@@ -3291,6 +3319,7 @@ async function main() {
       allowNonComparableLane,
     },
     dopplerModelId,
+    dopplerArtifactIdentity: dopplerManifestPreflight?.artifactIdentity ?? dopplerModelSource.registrySource ?? null,
     dopplerDtype: parseDopplerDtype(dopplerModelId),
     dopplerModelSource: {
       source: dopplerModelSource.source,

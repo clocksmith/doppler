@@ -21,6 +21,16 @@
     },
     {
       "match": {
+        "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+        "activationDtype": "f16",
+        "hasSubgroups": true,
+        "hasF16": true
+      },
+      "transforms": ["useGemma4Int4PleSelectiveF16Decode"],
+      "reason": "Runtime requested the experimental selective f16 decode lane for Gemma 4 E2B INT4 PLE"
+    },
+    {
+      "match": {
         "activationDtype": "f16",
         "hasSubgroups": false,
         "hasF16": true,

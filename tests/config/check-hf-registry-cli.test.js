@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { createServer } from 'node:http';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
@@ -9,18 +10,61 @@ import { validateRemoteRegistry } from '../../tools/check-hf-registry.js';
 
 const tempDir = await mkdtemp(path.join(os.tmpdir(), 'doppler-hf-registry-check-'));
 
+const artifactIdentity = {
+  sourceCheckpointId: 'unit/toy-model',
+  weightPackId: 'toy-model-wp-catalog-v1',
+  manifestVariantId: 'toy-model-mv-exec-v1',
+};
+const catalogIdentity = {
+  ...artifactIdentity,
+  artifactCompleteness: 'complete',
+  runtimePromotionState: 'manifest-owned',
+  weightsRefAllowed: false,
+};
+
 const manifest = {
   modelId: 'toy-model',
+  artifactIdentity,
   totalSize: 4,
   shards: [
     { index: 0, filename: 'shard_00000.bin', size: 4, offset: 0, hash: 'abcd' },
   ],
+};
+const sharedWeightsManifest = {
+  modelId: 'toy-model-weight-pack',
+  artifactIdentity: {
+    sourceCheckpointId: 'unit/toy-model',
+    weightPackId: 'toy-model-wp-catalog-v1',
+    manifestVariantId: 'toy-model-weight-pack-mv-exec-v1',
+    shardSetHash: 'sha256:toy-shards',
+  },
+  totalSize: 4,
+  shards: [
+    { index: 0, filename: 'shard_00000.bin', size: 4, offset: 0, hash: 'abcd' },
+  ],
+};
+const sharedWeightsManifestText = JSON.stringify(sharedWeightsManifest);
+const sharedWeightsManifestDigest = createHash('sha256').update(sharedWeightsManifestText).digest('hex');
+const weightsRefManifest = {
+  modelId: 'toy-model-variant',
+  artifactIdentity: {
+    sourceCheckpointId: 'unit/toy-model',
+    weightPackId: 'toy-model-wp-catalog-v1',
+    manifestVariantId: 'toy-model-variant-mv-exec-v1',
+  },
+  weightsRef: {
+    weightPackId: 'toy-model-wp-catalog-v1',
+    artifactRoot: '../toy-model-weight-pack',
+    manifestDigest: `sha256:${sharedWeightsManifestDigest}`,
+    shardSetHash: 'sha256:toy-shards',
+  },
 };
 
 const registryPayload = {
   models: [
     {
       modelId: 'toy-model',
+      ...catalogIdentity,
       modes: ['run'],
       baseUrl: '/models/toy-model',
     },
@@ -35,6 +79,7 @@ const localCatalog = {
     {
       modelId: 'toy-model',
       family: 'gemma3',
+      ...catalogIdentity,
       hf: {
         repoId: 'Clocksmith/rdrr',
         revision: 'abc123',
@@ -97,6 +142,21 @@ const server = createServer((req, res) => {
     res.end('abcd');
     return;
   }
+  if (url.pathname === '/models/toy-model-variant/manifest.json') {
+    res.setHeader('content-type', 'application/json');
+    res.end(JSON.stringify(weightsRefManifest));
+    return;
+  }
+  if (url.pathname === '/models/toy-model-weight-pack/manifest.json') {
+    res.setHeader('content-type', 'application/json');
+    res.end(sharedWeightsManifestText);
+    return;
+  }
+  if (url.pathname === '/models/toy-model-weight-pack/shard_00000.bin') {
+    res.setHeader('content-type', 'application/octet-stream');
+    res.end('abcd');
+    return;
+  }
   res.statusCode = 404;
   res.end('not found');
 });
@@ -111,6 +171,7 @@ try {
     models: [
       {
         modelId: 'toy-model',
+        ...catalogIdentity,
         baseUrl: `${baseUrl}/models/toy-model`,
       },
     ],
@@ -118,6 +179,7 @@ try {
     models: [
       {
         modelId: 'toy-model',
+        ...catalogIdentity,
         baseUrl: `${baseUrl}/models/toy-model`,
         lifecycle: {
           availability: {
@@ -146,10 +208,49 @@ try {
   });
   assert.deepEqual(remoteValidation.errors, []);
 
+  const weightsRefValidation = await validateRemoteRegistry({
+    models: [
+      {
+        modelId: 'toy-model-variant',
+        sourceCheckpointId: 'unit/toy-model',
+        weightPackId: 'toy-model-wp-catalog-v1',
+        manifestVariantId: 'toy-model-variant-mv-exec-v1',
+        artifactCompleteness: 'complete',
+        runtimePromotionState: 'manifest-owned',
+        weightsRefAllowed: true,
+        baseUrl: `${baseUrl}/models/toy-model-variant`,
+      },
+    ],
+  }, `${baseUrl}/registry/catalog.json`, {
+    models: [
+      {
+        modelId: 'toy-model-variant',
+        sourceCheckpointId: 'unit/toy-model',
+        weightPackId: 'toy-model-wp-catalog-v1',
+        manifestVariantId: 'toy-model-variant-mv-exec-v1',
+        artifactCompleteness: 'complete',
+        runtimePromotionState: 'manifest-owned',
+        weightsRefAllowed: true,
+        baseUrl: `${baseUrl}/models/toy-model-variant`,
+        lifecycle: {
+          availability: {
+            hf: true,
+          },
+          status: {
+            runtime: 'active',
+            tested: 'verified',
+          },
+        },
+      },
+    ],
+  });
+  assert.deepEqual(weightsRefValidation.errors, []);
+
   const mismatchedManifestValidation = await validateRemoteRegistry({
     models: [
       {
         modelId: 'approved-toy-model',
+        ...catalogIdentity,
         baseUrl: `${baseUrl}/models/toy-model`,
       },
     ],
@@ -157,6 +258,7 @@ try {
     models: [
       {
         modelId: 'approved-toy-model',
+        ...catalogIdentity,
         baseUrl: `${baseUrl}/models/toy-model`,
         lifecycle: {
           availability: {

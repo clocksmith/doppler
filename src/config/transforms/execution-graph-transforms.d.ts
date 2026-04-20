@@ -192,6 +192,15 @@ export declare function useQwenDecodeF16Matmuls(
 ): ExecutionGraph | null;
 
 /**
+ * Narrow Gemma 4 E2B INT4 PLE decode Q/K/V and online attention onto explicit
+ * f16 kernels while keeping prefill on the manifest-owned f32/f16kv contract.
+ */
+export declare function useGemma4Int4PleSelectiveF16Decode(
+  graph: ExecutionGraph,
+  ctx: TransformContext
+): ExecutionGraph | null;
+
+/**
  * Compose multiple transforms into a single transform.
  * Applies left-to-right, skipping transforms that return null.
  */
@@ -210,6 +219,9 @@ export declare const narrowToF16Activations: ExecutionGraphTransform;
 
 /** Qwen-specific: force primary matmul variants to F16. */
 export declare const useQwenF16PrimaryMatmuls: ExecutionGraphTransform;
+
+/** Gemma4 INT4 PLE: selective decode-only F16 probe lane. */
+export declare const useGemma4Int4PleSelectiveF16Decode: ExecutionGraphTransform;
 
 /** Drop the retain-Q4K materialization flag (used by perf investigations). */
 export declare const disableRetainQ4KMaterialization: ExecutionGraphTransform;

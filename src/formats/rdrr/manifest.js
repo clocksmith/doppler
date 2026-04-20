@@ -15,6 +15,8 @@ export function createManifest(options) {
     modelType: options.modelType,
     quantization: options.quantization,
     quantizationInfo: options.quantizationInfo,
+    artifactIdentity: options.artifactIdentity,
+    weightsRef: options.weightsRef,
     hashAlgorithm: options.hashAlgorithm,
     architecture: options.architecture,
     groups: options.groups,

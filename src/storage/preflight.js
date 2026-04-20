@@ -31,6 +31,16 @@ const GEMMA_4_E2B_REQUIREMENTS = {
   architecture: 'Gemma4ForConditionalGeneration',
 };
 
+const GEMMA_4_E2B_INT4PLE_REQUIREMENTS = {
+  modelId: 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
+  displayName: 'Gemma 4 E2B IT (Q4K + INT4 PLE)',
+  downloadSize: 4009916310,
+  vramRequired: 12 * GB,
+  paramCount: 'E2B',
+  quantization: 'Q4K_INT4PLE',
+  architecture: 'Gemma4ForConditionalGeneration',
+};
+
 const GEMMA_270M_REQUIREMENTS = {
   modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
   displayName: 'Gemma 3 270M IT (Q4K)',
@@ -77,6 +87,7 @@ export const MODEL_REQUIREMENTS = {
   'google-embeddinggemma-300m-q4k-ehf16-af32': EMBEDDINGGEMMA_300M_REQUIREMENTS,
   'gemma-3-1b-it-q4k-ehf16-af32': GEMMA_1B_REQUIREMENTS,
   'gemma-4-e2b-it-q4k-ehf16-af32': GEMMA_4_E2B_REQUIREMENTS,
+  'gemma-4-e2b-it-q4k-ehf16-af32-int4ple': GEMMA_4_E2B_INT4PLE_REQUIREMENTS,
   'qwen-3-5-0-8b-q4k-ehaf16': QWEN_08B_REQUIREMENTS,
   'qwen-3-5-2b-q4k-ehaf16': QWEN_2B_REQUIREMENTS,
 };
