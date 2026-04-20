@@ -136,3 +136,9 @@ export function hasFeature(feature: string): boolean;
  * @returns Device limits or null if device not initialized
  */
 export function getDeviceLimits(): DeviceLimits | null;
+
+/**
+ * Reset all cached device-level state (adapter, device, features, limits).
+ * Used by tests and teardown paths that need a clean re-init.
+ */
+export declare function resetDeviceState(): void;

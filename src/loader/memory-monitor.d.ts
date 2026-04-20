@@ -113,3 +113,20 @@ export declare class MemoryMonitor {
    */
   getElapsed(): number;
 }
+
+/**
+ * Rolling time-series buffer of memory snapshots. Captures samples on
+ * a fixed interval and exposes them for post-run analysis.
+ */
+export declare class MemoryTimeSeries {
+  constructor(sampleIntervalMs?: number);
+
+  /** Begin sampling; replaces any existing interval. */
+  start(): void;
+
+  /** Stop sampling and finalize the sample buffer. */
+  stop(): void;
+
+  /** Samples collected since the last start(). */
+  getSamples(): Array<{ timestamp: number; snapshot: MemorySnapshot }>;
+}

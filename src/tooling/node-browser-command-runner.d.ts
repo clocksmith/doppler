@@ -45,3 +45,13 @@ export declare function runBrowserCommandInNode(
 export declare function normalizeNodeBrowserCommand(
   commandRequest: ToolingCommandRequestInput
 ): ToolingCommandRequest;
+
+/**
+ * Validate a browser-relay response envelope and stamp the original
+ * request onto it. Throws when the envelope does not match the success
+ * shape.
+ */
+export declare function finalizeBrowserRelayResponse(
+  response: unknown,
+  request: ToolingCommandRequest
+): BrowserCommandRunResult & { request: ToolingCommandRequest };

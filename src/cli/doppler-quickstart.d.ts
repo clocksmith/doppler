@@ -34,4 +34,12 @@ export declare function resolveQuickstartSettings(argv?: string[]): Promise<
   }
 >;
 
+/**
+ * Extract the generated text from a quickstart result envelope, or
+ * throw with an actionable error when the result has no content.
+ */
+export declare function requireQuickstartContent(
+  result: { content?: unknown; modelId?: unknown } | null | undefined
+): string;
+
 export declare function main(argv?: string[]): Promise<void>;

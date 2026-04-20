@@ -23,7 +23,7 @@ export { rmsNormCPU, matmulCPU, applySoftcapping, f16ToF32, f16BufferToF32 } fro
 export { computeLogitsGPU, recordLogitsGPU, computeChunkedLogitsGPU, resolveCpuWeightDims, resolveLmHeadChunkRows, extractLmHeadChunk, writeChunkLogits } from './gpu.js';
 
 // Re-export utilities
-export { extractLastPositionLogits, finalizeLogits } from './utils.js';
+export { extractLastPositionLogits, finalizeLogits, readBufferWithCleanup } from './utils.js';
 
 export interface ComputeLogitsOptions {
   lastPositionOnly?: boolean;

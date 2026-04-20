@@ -24,6 +24,16 @@ export declare function applyRuntimeInputs(
   options?: RuntimeConfigLoadOptions
 ): Promise<void>;
 
+/**
+ * Run `run` with the runtime bridge's current state snapshotted, and
+ * restore the snapshot on both success and failure. Used by command
+ * runners to avoid leaking runtime config across isolated calls.
+ */
+export declare function runWithRuntimeIsolation<T>(
+  runtimeBridge: RuntimeBridge,
+  run: () => Promise<T>
+): Promise<T>;
+
 export declare function buildSuiteOptions(
   request: ToolingCommandRequest,
   surface?: string | null
