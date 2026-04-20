@@ -55,27 +55,21 @@
 
 export {
   SIGNALS,
-  SignalType,
-  DonePayload,
   signalDone,
   signalResult,
   signalError,
   signalProgress,
 } from './signals.js';
 
+export type { SignalType, DonePayload } from './signals.js';
+
 // ============================================================================
 // Re-exports from config.js
 // ============================================================================
 
 export {
-  // Types and constants
   LOG_LEVELS,
   TRACE_CATEGORIES,
-  LogLevel,
-  LogLevelValue,
-  TraceCategory,
-  LogEntry,
-  // Configuration functions
   setLogLevel,
   getLogLevel,
   setTrace,
@@ -94,6 +88,13 @@ export {
   setGPUDevice,
 } from './config.js';
 
+export type {
+  LogLevel,
+  LogLevelValue,
+  TraceCategory,
+  LogEntry,
+} from './config.js';
+
 // ============================================================================
 // Re-exports from log.js
 // ============================================================================
@@ -110,8 +111,9 @@ export { trace } from './trace.js';
 // Re-exports from tensor.js
 // ============================================================================
 
-export {
-  tensor,
+export { tensor } from './tensor.js';
+
+export type {
   TensorStats,
   TensorCompareResult,
   TensorHealthResult,
@@ -127,9 +129,23 @@ export {
   clearLogHistory,
   printLogSummary,
   getDebugSnapshot,
-  LogHistoryFilter,
-  DebugSnapshot,
 } from './history.js';
+
+export type { LogHistoryFilter, DebugSnapshot } from './history.js';
+
+// ============================================================================
+// Re-exports from capture-policy.js
+// ============================================================================
+
+export {
+  CAPTURE_LEVELS,
+  resolveCapturePolicy,
+  escalateCaptureLevel,
+  buildCaptureArtifact,
+  createEscalationPolicy,
+  createDefaultCaptureConfig,
+  validateCaptureConfig,
+} from './capture-policy.js';
 
 // ============================================================================
 // Browser Console Global API
