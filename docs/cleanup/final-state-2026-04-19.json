@@ -1,7 +1,8 @@
 {
   "schemaVersion": 1,
   "capturedAt": "2026-04-19",
-  "gitSha": "e578cf2",
+  "gitSha": "e5e45fe",
+  "updated": "2026-04-19 post-parity-green plus 3 script-pruning batches and a CHANGELOG entry. Original snapshot was at e578cf2 (parity-green milestone); this refresh reflects the additional 5 commits that pruned 22 scripts.",
   "baseline": {
     "path": "docs/cleanup/baseline-2026-04-19.json",
     "gitSha": "8cbd696",
@@ -10,7 +11,7 @@
   "successCriteria": {
     "defaultChecksPass": {
       "status": "PASS",
-      "evidence": "npm run check:green (agents:verify, public:boundaries:check, api:docs:check, imports:check:browser, pending:check, exports:parity:check) — all 6 checks exit 0 at SHA e578cf2."
+      "evidence": "npm run check:green (agents:verify, public:boundaries:check, api:docs:check, imports:check:browser, pending:check, exports:parity:check) — all 6 checks exit 0 at SHA e5e45fe."
     },
     "pendingWorkQuarantined": {
       "status": "PASS",
@@ -53,7 +54,7 @@
       "pendingTestJs": { "baseline": 0, "current": 2, "delta": 2, "note": "Migrated doppler-public-logits-api-contract and demo-import-surface off the regression lane (e415826)." }
     },
     "scripts": {
-      "total": { "baseline": 110, "current": 112, "delta": 2, "note": "Added pending:check and check:green as part of cleanup. Phase 1 audit identified 39 reducible scripts (26 unreferenced, 7 reporting-maybe-dead, 6 ci-alias-unreferenced); execution deferred per user guidance." }
+      "total": { "baseline": 110, "current": 90, "delta": -20, "note": "Net -20: added 2 (pending:check, check:green) and removed 22 in three verified batches (c945f7b: 3 ci-aliases; b5e6656: 7 reporting orphans; 4754a61: 12 dev/experimental wrappers). Each removal grep-verified + git log -S verified to have zero callers outside package.json. Underlying tools remain reachable via direct node invocation. Target: 80 safe, 60 ambitious; current 90 sits between." }
     },
     "config": {
       "srcConfigJson": { "baseline": 96, "current": 96, "delta": 0, "note": "Untouched by design — policy-as-code invariant." },
@@ -92,8 +93,8 @@
     }
   ],
   "commits": {
-    "range": "8cbd696..e578cf2",
-    "count": 21,
+    "range": "8cbd696..e5e45fe",
+    "count": 26,
     "artifactsAdded": [
       "docs/cleanup/baseline-2026-04-19.json",
       "docs/cleanup/parity-drift-classification-2026-04-19.json",
@@ -125,8 +126,8 @@
       "note": "Phase 4 steps 1–2 done (both *-invariants.md merged). Step 4 (rename guides, drop `-style-guide` suffix) deferred; blocked on tests/config/diffusion-gpu-contract-docs.test.js which reads command-interface-design-guide.md and harness-style-guide.md by literal path."
     },
     "npmScriptAudit": {
-      "status": "audit-only",
-      "note": "docs/cleanup/npm-scripts-audit-2026-04-19.json classified all 112 scripts; concrete reductions (target 112→80 safe, 112→60 ambitious) require per-script git-history verification and owner sign-off."
+      "status": "partially-executed",
+      "note": "22 of the audit's 39 reducible scripts removed (3 ci-aliases in c945f7b, 7 reporting orphans in b5e6656, 12 dev/experimental wrappers in 4754a61). Remaining candidates: 6 conservatively kept (typecheck:source-runtime, agents:freshness, conflicts:check, api:docs:sync, digests:check-conversion, lean:check — each has a plausible local-dev justification despite zero external refs) and the 32 verify:<modelId> aliases which are policy-driven by tools/sync-registry-scripts.js and need a generator change, not a script-list edit. Net 110 → 90."
     }
   }
 }
