@@ -1,0 +1,1437 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-04-19",
+  "totals": {
+    "scripts": 112,
+    "referencedByCi": 14,
+    "referencedBySkill": 4,
+    "referencedByDocs": 32,
+    "internalCallsOnly": 1,
+    "unreferencedAnywhere": 71
+  },
+  "bucketCounts": {
+    "user-entry": 6,
+    "unreferenced-investigate": 26,
+    "ci-alias-unreferenced": 6,
+    "core-referenced": 30,
+    "reporting-possibly-dead": 7,
+    "ci-called": 2,
+    "strict-ci": 2,
+    "internal-only": 1,
+    "model-verify-convenience": 32
+  },
+  "buckets": {
+    "user-entry": {
+      "description": "Top-level user CLIs (bin wrappers). Keep — they correspond to package.json bin entries or advertised skill entry points.",
+      "action": "keep"
+    },
+    "core-referenced": {
+      "description": "Called directly by CI, skills, or contributor docs. Keep; merge carefully.",
+      "action": "keep"
+    },
+    "ci-called": {
+      "description": "Script with ci:* prefix that CI actually invokes. Keep.",
+      "action": "keep"
+    },
+    "ci-alias-unreferenced": {
+      "description": "ci:* prefix but NOT invoked by CI, skills, docs, or another script. Merge candidates — delete if the non-ci version produces identical output.",
+      "action": "evaluate-merge"
+    },
+    "strict-ci": {
+      "description": ":strict variant that CI invokes. Keep.",
+      "action": "keep"
+    },
+    "strict-alias": {
+      "description": ":strict variant not invoked. Likely an obsolete pair. Remove if non-strict is the only documented form.",
+      "action": "evaluate-remove"
+    },
+    "model-verify-convenience": {
+      "description": "verify:<model-id> family. 32 aliases generated/enforced by npm run registry:sync:scripts:check — policy-driven, not hand-audited dead code. Do not delete individually; change the generator if the whole family should collapse.",
+      "action": "keep (policy-driven)"
+    },
+    "reporting-possibly-dead": {
+      "description": "chart/summary/list-reporting scripts not referenced anywhere. Candidate for removal, but reporting scripts are often invoked ad hoc by humans — investigate git history before deleting.",
+      "action": "investigate"
+    },
+    "internal-only": {
+      "description": "Called by another npm script, not by CI/skills/docs. Keep.",
+      "action": "keep"
+    },
+    "unreferenced-investigate": {
+      "description": "No callers anywhere. Most likely candidates for removal, but each needs the git-history check for ad-hoc use.",
+      "action": "investigate-per-script"
+    }
+  },
+  "scripts": [
+    {
+      "name": "quickstart",
+      "command": "node src/cli/doppler-quickstart.js",
+      "bucket": "user-entry",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "serve",
+      "command": "node src/cli/doppler-serve.js",
+      "bucket": "user-entry",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "cli",
+      "command": "node src/cli/doppler-cli.js",
+      "bucket": "user-entry",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "convert",
+      "command": "node src/cli/doppler-cli.js convert",
+      "bucket": "user-entry",
+      "references": {
+        "ci": false,
+        "skill": true,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "manifest-refresh",
+      "command": "node tools/refresh-converted-manifest.js",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "debug",
+      "command": "node src/cli/doppler-cli.js debug",
+      "bucket": "user-entry",
+      "references": {
+        "ci": false,
+        "skill": true,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "bench",
+      "command": "node src/cli/doppler-cli.js bench",
+      "bucket": "user-entry",
+      "references": {
+        "ci": false,
+        "skill": true,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "lean:check",
+      "command": "./lean/check.sh",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "lean:execution-contract",
+      "command": "node tools/lean-execution-contract.js",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "lean:execution-contract:sweep",
+      "command": "node tools/lean-execution-contract-sweep.js",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "lean:execution-contract:configs",
+      "command": "node tools/lean-execution-contract-config-sweep.js",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "ci:lean:execution-contract",
+      "command": "node tools/lean-execution-contract-sweep.js --root models",
+      "bucket": "ci-alias-unreferenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "ci:lean:execution-contract:configs",
+      "command": "node tools/lean-execution-contract-config-sweep.js --config-root src/config/conversion --manifest-root models --require-manifest-match",
+      "bucket": "ci-alias-unreferenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "contracts:check",
+      "command": "node tools/check-contract-artifacts.js",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "contracts:summary",
+      "command": "node tools/check-contract-artifacts.js --json",
+      "bucket": "reporting-possibly-dead",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "contracts:check:lean",
+      "command": "node tools/check-contract-artifacts.js --with-lean",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "contracts:summary:lean",
+      "command": "node tools/check-contract-artifacts.js --json --with-lean",
+      "bucket": "reporting-possibly-dead",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "ci:contracts:check",
+      "command": "node tools/check-contract-artifacts.js --with-lean --lean-require-manifest-match",
+      "bucket": "ci-alias-unreferenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "reports:convert:summary",
+      "command": "node tools/summarize-conversion-reports.js",
+      "bucket": "reporting-possibly-dead",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "bench:chart",
+      "command": "node ./benchmarks/vendors/compare-chart.js",
+      "bucket": "reporting-possibly-dead",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "bench:chart:readme",
+      "command": "node ./benchmarks/vendors/compare-chart.js --scenario readme-evidence",
+      "bucket": "reporting-possibly-dead",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "bench:architecture:chart",
+      "command": "node ./benchmarks/vendors/generate-architecture-overview-svg.js",
+      "bucket": "reporting-possibly-dead",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "bench:tjs:stage",
+      "command": "node tools/stage-tjs-model.js",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "ci:diffusion:contract",
+      "command": "node tools/ci-diffusion-contract-gates.js",
+      "bucket": "ci-called",
+      "references": {
+        "ci": true,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "ci:diffusion:contract:list",
+      "command": "node tools/ci-diffusion-contract-gates.js --list",
+      "bucket": "ci-alias-unreferenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "ci:training:contract",
+      "command": "node tools/ci-training-contract-gates.js",
+      "bucket": "ci-called",
+      "references": {
+        "ci": true,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "ci:training:contract:list",
+      "command": "node tools/ci-training-contract-gates.js --list",
+      "bucket": "ci-alias-unreferenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "training:contract:delta",
+      "command": "node tools/emit-training-contract-delta.js",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "training:workloads:verify",
+      "command": "node tools/verify-training-workload-packs.js --registry src/experimental/training/workload-packs/registry.json",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "training:report-ids:publish",
+      "command": "node tools/publish-training-report-ids.js --registry src/experimental/training/workload-packs/registry.json",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "distill:studio:mvp",
+      "command": "node tools/distill-studio-mvp.js",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "distill:quality-gate",
+      "command": "node tools/distill-studio-quality-gate.js",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "p2p:observability",
+      "command": "node tools/p2p-delivery-observability.js",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "p2p:drill",
+      "command": "node tools/p2p-resilience-drill.js",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "test",
+      "command": "npm run test:unit",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "typecheck:source-runtime",
+      "command": "tsc -p tsconfig.source-runtime.json --noEmit",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "test:unit",
+      "command": "node tools/run-node-tests.js --suite unit",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": true,
+        "skill": false,
+        "docs": true,
+        "internal": true
+      }
+    },
+    {
+      "name": "test:gpu",
+      "command": "node tools/run-node-tests.js --suite gpu",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": true,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "test:coverage",
+      "command": "node tools/run-node-coverage.js",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": true,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "test:coverage:report",
+      "command": "node tools/run-node-coverage.js --no-threshold",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "test:gpu:browser",
+      "command": "node src/cli/doppler-cli.js verify --config '{\"request\":{\"workload\":\"kernels\"},\"run\":{\"surface\":\"browser\",\"browser\":{\"opfsCache\":false,\"headless\":true,\"channel\":\"chromium\",\"browserArgs\":[\"--use-angle=swiftshader\",\"--disable-vulkan-surface\"],\"console\":true}}}'",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": true,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "agents:verify",
+      "command": "node tools/verify-agent-parity.js",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": true
+      }
+    },
+    {
+      "name": "agents:freshness",
+      "command": "node tools/verify-agent-freshness.js",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "agents:freshness:strict",
+      "command": "node tools/verify-agent-freshness.js --strict",
+      "bucket": "strict-ci",
+      "references": {
+        "ci": true,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "conflicts:check",
+      "command": "node tools/check-merge-markers.js",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "imports:check:browser",
+      "command": "node tools/check-browser-import-graph.js",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": true
+      }
+    },
+    {
+      "name": "api:docs:sync",
+      "command": "node tools/sync-api-docs.js",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "api:docs:check",
+      "command": "node tools/sync-api-docs.js --check",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": true
+      }
+    },
+    {
+      "name": "public:boundaries:check",
+      "command": "node tools/check-public-boundaries.js",
+      "bucket": "internal-only",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": true
+      }
+    },
+    {
+      "name": "exports:parity:check",
+      "command": "node tools/check-exports-parity.js",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": true
+      }
+    },
+    {
+      "name": "pending:check",
+      "command": "node tools/check-pending-tests.js",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": true
+      }
+    },
+    {
+      "name": "check:green",
+      "command": "npm run agents:verify && npm run public:boundaries:check && npm run api:docs:check && npm run imports:check:browser && npm run pending:check && npm run exports:parity:check",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:model",
+      "command": "node src/cli/doppler-cli.js verify",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": false,
+        "skill": true,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "quickstart:sync",
+      "command": "node tools/sync-quickstart-registry.js",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "quickstart:check",
+      "command": "node tools/sync-quickstart-registry.js --check",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": true,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "execution-graph:patch",
+      "command": "node tools/patch-execution-graph.js",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "onboarding:check",
+      "command": "node tools/onboarding-tooling.js check",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "onboarding:check:strict",
+      "command": "node tools/onboarding-tooling.js check --strict",
+      "bucket": "strict-ci",
+      "references": {
+        "ci": true,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "onboarding:scaffold",
+      "command": "node tools/onboarding-tooling.js scaffold",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "bench:vendors:list",
+      "command": "node tools/vendor-bench.js list",
+      "bucket": "reporting-possibly-dead",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "bench:vendors:validate",
+      "command": "node tools/vendor-bench.js validate",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": true,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "bench:vendors:matrix",
+      "command": "node tools/vendor-bench.js matrix",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "kernels:generate",
+      "command": "node tools/generate-wgsl.js",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "kernels:check",
+      "command": "node tools/generate-wgsl.js --check",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": true,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "kernels:reachability:sync",
+      "command": "node tools/sync-kernel-reachability.js",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "kernels:reachability:check",
+      "command": "node tools/sync-kernel-reachability.js --check",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "digests:sync",
+      "command": "node tools/sync-kernel-ref-digests.js",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "digests:check",
+      "command": "node tools/sync-kernel-ref-digests.js --check",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": true,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "digests:sync-conversion",
+      "command": "node tools/sync-conversion-kernel-digests.js",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "digests:check-conversion",
+      "command": "node tools/sync-conversion-kernel-digests.js --check",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify",
+      "command": "node tools/run-registry-verify.js",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "registry:sync:scripts",
+      "command": "node tools/sync-registry-scripts.js",
+      "bucket": "unreferenced-investigate",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "registry:sync:scripts:check",
+      "command": "node tools/sync-registry-scripts.js --check",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": true,
+        "skill": false,
+        "docs": true,
+        "internal": true
+      }
+    },
+    {
+      "name": "registry:hf:check",
+      "command": "node tools/check-hf-registry.js",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": true
+      }
+    },
+    {
+      "name": "registry:publish:hf",
+      "command": "node tools/publish-hf-registry-model.js",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "support:matrix:sync",
+      "command": "node tools/sync-model-support-matrix.js",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "support:matrix:check",
+      "command": "node tools/sync-model-support-matrix.js --check",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": true,
+        "skill": false,
+        "docs": true,
+        "internal": true
+      }
+    },
+    {
+      "name": "support:subsystems:sync",
+      "command": "node tools/sync-subsystem-support-matrix.js",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "support:subsystems:check",
+      "command": "node tools/sync-subsystem-support-matrix.js --check",
+      "bucket": "core-referenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": true
+      }
+    },
+    {
+      "name": "ci:catalog:check",
+      "command": "npm run registry:sync:scripts:check && npm run support:matrix:check && npm run support:subsystems:check && npm run registry:hf:check",
+      "bucket": "ci-alias-unreferenced",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": true,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:embeddinggemma-300m",
+      "command": "node tools/run-registry-verify.js embeddinggemma-300m",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:gemma-3-1b-it-q4k-ehf16-af32",
+      "command": "node tools/run-registry-verify.js gemma-3-1b-it-q4k-ehf16-af32",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:gemma-3-1b-it-wq4k-ef16-hf16",
+      "command": "node tools/run-registry-verify.js gemma-3-1b-it-wq4k-ef16-hf16",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:gemma-3-270m-it-q4k-ehf16-af32",
+      "command": "node tools/run-registry-verify.js gemma-3-270m-it-q4k-ehf16-af32",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:gemma-3-270m-it-wq4k-ef16",
+      "command": "node tools/run-registry-verify.js gemma-3-270m-it-wq4k-ef16",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:gemma-3-270m-it-wq4k-ef16-hf16",
+      "command": "node tools/run-registry-verify.js gemma-3-270m-it-wq4k-ef16-hf16",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:gemma-3-270m-it-wq4k-ef16-hf16-f32",
+      "command": "node tools/run-registry-verify.js gemma-3-270m-it-wq4k-ef16-hf16-f32",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:gemma-4-e2b-it-q4k-ehf16-af32",
+      "command": "node tools/run-registry-verify.js gemma-4-e2b-it-q4k-ehf16-af32",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:gemma3-1b",
+      "command": "node tools/run-registry-verify.js gemma3-1b",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:gemma3-270m",
+      "command": "node tools/run-registry-verify.js gemma3-270m",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:gemma4-e2b",
+      "command": "node tools/run-registry-verify.js gemma4-e2b",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:google-embeddinggemma-300m",
+      "command": "node tools/run-registry-verify.js google-embeddinggemma-300m",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:google-embeddinggemma-300m-q4k-ehf16-af32",
+      "command": "node tools/run-registry-verify.js google-embeddinggemma-300m-q4k-ehf16-af32",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:google-embeddinggemma-300m-wq4k-ef16",
+      "command": "node tools/run-registry-verify.js google-embeddinggemma-300m-wq4k-ef16",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:google-gemma-3-1b-it",
+      "command": "node tools/run-registry-verify.js google-gemma-3-1b-it",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:google-gemma-3-270m-it",
+      "command": "node tools/run-registry-verify.js google-gemma-3-270m-it",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:google-gemma-4-e2b-it",
+      "command": "node tools/run-registry-verify.js google-gemma-4-e2b-it",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:google-translategemma-4b-it",
+      "command": "node tools/run-registry-verify.js google-translategemma-4b-it",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:qwen-3-5-0-8b",
+      "command": "node tools/run-registry-verify.js qwen-3-5-0-8b",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:qwen-3-5-0-8b-q4k-ehaf16",
+      "command": "node tools/run-registry-verify.js qwen-3-5-0-8b-q4k-ehaf16",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:qwen-3-5-0-8b-wq4k-ef16-hf16-f16",
+      "command": "node tools/run-registry-verify.js qwen-3-5-0-8b-wq4k-ef16-hf16-f16",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:qwen-3-5-2b",
+      "command": "node tools/run-registry-verify.js qwen-3-5-2b",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:qwen-3-5-2b-q4k-ehaf16",
+      "command": "node tools/run-registry-verify.js qwen-3-5-2b-q4k-ehaf16",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:qwen-3-5-2b-wq4k-ef16-hf16-f16",
+      "command": "node tools/run-registry-verify.js qwen-3-5-2b-wq4k-ef16-hf16-f16",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:qwen-qwen3.5-0.8b",
+      "command": "node tools/run-registry-verify.js qwen-qwen3.5-0.8b",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:qwen-qwen3.5-2b",
+      "command": "node tools/run-registry-verify.js qwen-qwen3.5-2b",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:qwen3-0.8b",
+      "command": "node tools/run-registry-verify.js qwen3-0.8b",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:qwen3-2b",
+      "command": "node tools/run-registry-verify.js qwen3-2b",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:translategemma",
+      "command": "node tools/run-registry-verify.js translategemma",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:translategemma-4b",
+      "command": "node tools/run-registry-verify.js translategemma-4b",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:translategemma-4b-it-q4k-ehf16-af32",
+      "command": "node tools/run-registry-verify.js translategemma-4b-it-q4k-ehf16-af32",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    },
+    {
+      "name": "verify:translategemma-4b-it-wq4k-ef16-hf16",
+      "command": "node tools/run-registry-verify.js translategemma-4b-it-wq4k-ef16-hf16",
+      "bucket": "model-verify-convenience",
+      "references": {
+        "ci": false,
+        "skill": false,
+        "docs": false,
+        "internal": false
+      }
+    }
+  ],
+  "reductionTarget": {
+    "current": 112,
+    "ambitious": 60,
+    "safe": 80,
+    "note": "Safe reduction: cut unreferenced ci:* aliases, strict-alias with no caller, and the reporting-possibly-dead set after git-history verification. Ambitious reduction adds collapsing the 32 model-verify aliases behind a single `verify:model` helper (breaking change for contributor muscle memory)."
+  },
+  "scriptsGroupedByBucket": {
+    "user-entry": [
+      "quickstart",
+      "serve",
+      "cli",
+      "convert",
+      "debug",
+      "bench"
+    ],
+    "unreferenced-investigate": [
+      "manifest-refresh",
+      "lean:check",
+      "lean:execution-contract",
+      "lean:execution-contract:sweep",
+      "lean:execution-contract:configs",
+      "contracts:check:lean",
+      "bench:tjs:stage",
+      "distill:studio:mvp",
+      "distill:quality-gate",
+      "p2p:observability",
+      "p2p:drill",
+      "test",
+      "typecheck:source-runtime",
+      "agents:freshness",
+      "conflicts:check",
+      "api:docs:sync",
+      "quickstart:sync",
+      "execution-graph:patch",
+      "onboarding:scaffold",
+      "bench:vendors:matrix",
+      "kernels:reachability:sync",
+      "digests:sync",
+      "digests:sync-conversion",
+      "digests:check-conversion",
+      "verify",
+      "registry:sync:scripts"
+    ],
+    "ci-alias-unreferenced": [
+      "ci:lean:execution-contract",
+      "ci:lean:execution-contract:configs",
+      "ci:contracts:check",
+      "ci:diffusion:contract:list",
+      "ci:training:contract:list",
+      "ci:catalog:check"
+    ],
+    "core-referenced": [
+      "contracts:check",
+      "training:contract:delta",
+      "training:workloads:verify",
+      "training:report-ids:publish",
+      "test:unit",
+      "test:gpu",
+      "test:coverage",
+      "test:coverage:report",
+      "test:gpu:browser",
+      "agents:verify",
+      "imports:check:browser",
+      "api:docs:check",
+      "exports:parity:check",
+      "pending:check",
+      "check:green",
+      "verify:model",
+      "quickstart:check",
+      "onboarding:check",
+      "bench:vendors:validate",
+      "kernels:generate",
+      "kernels:check",
+      "kernels:reachability:check",
+      "digests:check",
+      "registry:sync:scripts:check",
+      "registry:hf:check",
+      "registry:publish:hf",
+      "support:matrix:sync",
+      "support:matrix:check",
+      "support:subsystems:sync",
+      "support:subsystems:check"
+    ],
+    "reporting-possibly-dead": [
+      "contracts:summary",
+      "contracts:summary:lean",
+      "reports:convert:summary",
+      "bench:chart",
+      "bench:chart:readme",
+      "bench:architecture:chart",
+      "bench:vendors:list"
+    ],
+    "ci-called": [
+      "ci:diffusion:contract",
+      "ci:training:contract"
+    ],
+    "strict-ci": [
+      "agents:freshness:strict",
+      "onboarding:check:strict"
+    ],
+    "internal-only": [
+      "public:boundaries:check"
+    ],
+    "model-verify-convenience": [
+      "verify:embeddinggemma-300m",
+      "verify:gemma-3-1b-it-q4k-ehf16-af32",
+      "verify:gemma-3-1b-it-wq4k-ef16-hf16",
+      "verify:gemma-3-270m-it-q4k-ehf16-af32",
+      "verify:gemma-3-270m-it-wq4k-ef16",
+      "verify:gemma-3-270m-it-wq4k-ef16-hf16",
+      "verify:gemma-3-270m-it-wq4k-ef16-hf16-f32",
+      "verify:gemma-4-e2b-it-q4k-ehf16-af32",
+      "verify:gemma3-1b",
+      "verify:gemma3-270m",
+      "verify:gemma4-e2b",
+      "verify:google-embeddinggemma-300m",
+      "verify:google-embeddinggemma-300m-q4k-ehf16-af32",
+      "verify:google-embeddinggemma-300m-wq4k-ef16",
+      "verify:google-gemma-3-1b-it",
+      "verify:google-gemma-3-270m-it",
+      "verify:google-gemma-4-e2b-it",
+      "verify:google-translategemma-4b-it",
+      "verify:qwen-3-5-0-8b",
+      "verify:qwen-3-5-0-8b-q4k-ehaf16",
+      "verify:qwen-3-5-0-8b-wq4k-ef16-hf16-f16",
+      "verify:qwen-3-5-2b",
+      "verify:qwen-3-5-2b-q4k-ehaf16",
+      "verify:qwen-3-5-2b-wq4k-ef16-hf16-f16",
+      "verify:qwen-qwen3.5-0.8b",
+      "verify:qwen-qwen3.5-2b",
+      "verify:qwen3-0.8b",
+      "verify:qwen3-2b",
+      "verify:translategemma",
+      "verify:translategemma-4b",
+      "verify:translategemma-4b-it-q4k-ehf16-af32",
+      "verify:translategemma-4b-it-wq4k-ef16-hf16"
+    ]
+  }
+}
