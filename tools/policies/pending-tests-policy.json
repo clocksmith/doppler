@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "updated": "2026-04-19",
+  "description": "Registry of *.pending.test.js files — tests that assert on a surface that does not yet exist in runtime. Pending tests are excluded from the default test lane (tools/run-node-tests.js) and live here with owner + expiry/issue so aspirational work cannot pile up invisibly. Every *.pending.test.js file must have an entry here; every entry must point to an existing file. Expired entries fail tools/check-pending-tests.js.",
+  "fields": {
+    "path": "Repo-relative path to the *.pending.test.js file.",
+    "feature": "One sentence describing the missing runtime surface the test asserts on.",
+    "owner": "Person or team accountable for either shipping the feature or retiring the test.",
+    "created": "ISO date (YYYY-MM-DD) the test entered the pending lane.",
+    "expires": "ISO date the pending status lapses — after which the entry fails the check. Required unless `issue` is set.",
+    "issue": "Tracking URL for the missing feature. Required unless `expires` is set.",
+    "expectedMissing": "Array of symbol/module/endpoint names the test expects to exist but that the runtime does not yet export."
+  },
+  "entries": [
+    {
+      "path": "tests/integration/doppler-public-logits-api-contract.pending.test.js",
+      "feature": "Public logits API (advanced.prefillWithLogits / advanced.decodeStepLogits) on the Doppler client surface.",
+      "owner": "doppler-cleanup",
+      "created": "2026-04-19",
+      "expires": "2026-10-19",
+      "expectedMissing": [
+        "src/client/doppler-api.js advanced.prefillWithLogits",
+        "src/client/doppler-api.js advanced.decodeStepLogits",
+        "src/client/doppler-api.browser.js advanced.prefillWithLogits",
+        "src/client/doppler-api.browser.js advanced.decodeStepLogits",
+        "src/client/doppler-api.d.ts prefillWithLogits / decodeStepLogits type signatures"
+      ]
+    },
+    {
+      "path": "tests/integration/demo-import-surface.pending.test.js",
+      "feature": "Rename of the demo/examples import specifier from @doppler/core to @simulatte/doppler, plus the browser-chat.html import-map entry pointing at d4da.com.",
+      "owner": "doppler-cleanup",
+      "created": "2026-04-19",
+      "expires": "2026-10-19",
+      "expectedMissing": [
+        "demo/ui/downloads/index.js must import from '@simulatte/doppler'",
+        "examples/minimal-chat.js import specifier",
+        "examples/pii-redaction.js import specifier",
+        "examples/browser-chat.html import-map entry"
+      ]
+    }
+  ]
+}

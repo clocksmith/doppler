@@ -60,6 +60,8 @@
     "api:docs:sync": "node tools/sync-api-docs.js",
     "api:docs:check": "node tools/sync-api-docs.js --check",
     "public:boundaries:check": "node tools/check-public-boundaries.js",
+    "exports:parity:check": "node tools/check-exports-parity.js",
+    "pending:check": "node tools/check-pending-tests.js",
     "verify:model": "node src/cli/doppler-cli.js verify",
     "quickstart:sync": "node tools/sync-quickstart-registry.js",
     "quickstart:check": "node tools/sync-quickstart-registry.js --check",
@@ -76,6 +78,8 @@
     "kernels:reachability:check": "node tools/sync-kernel-reachability.js --check",
     "digests:sync": "node tools/sync-kernel-ref-digests.js",
     "digests:check": "node tools/sync-kernel-ref-digests.js --check",
+    "digests:sync-conversion": "node tools/sync-conversion-kernel-digests.js",
+    "digests:check-conversion": "node tools/sync-conversion-kernel-digests.js --check",
     "verify": "node tools/run-registry-verify.js",
     "registry:sync:scripts": "node tools/sync-registry-scripts.js",
     "registry:sync:scripts:check": "node tools/sync-registry-scripts.js --check",
@@ -134,30 +138,39 @@
       "import": "./src/tooling-exports.js"
     },
     "./tooling/storage": {
+      "types": "./src/tooling-exports/storage.d.ts",
       "import": "./src/tooling-exports/storage.js"
     },
     "./tooling/device": {
+      "types": "./src/tooling-exports/device.d.ts",
       "import": "./src/tooling-exports/device.js"
     },
     "./tooling/manifest": {
+      "types": "./src/tooling-exports/manifest.d.ts",
       "import": "./src/tooling-exports/manifest.js"
     },
     "./structured": {
+      "types": "./src/tooling-exports/structured.d.ts",
       "import": "./src/tooling-exports/structured.js"
     },
     "./client/model-manager": {
+      "types": "./src/client/runtime/model-manager.d.ts",
       "import": "./src/client/runtime/model-manager.js"
     },
     "./models/qwen3": {
+      "types": "./src/models/qwen3.d.ts",
       "import": "./src/models/qwen3.js"
     },
     "./models/gemma3": {
+      "types": "./src/models/gemma3.d.ts",
       "import": "./src/models/gemma3.js"
     },
     "./models/gemma4": {
+      "types": "./src/models/gemma4.d.ts",
       "import": "./src/models/gemma4.js"
     },
     "./models/embeddinggemma": {
+      "types": "./src/models/embeddinggemma.d.ts",
       "import": "./src/models/embeddinggemma.js"
     },
     "./tooling-experimental": {

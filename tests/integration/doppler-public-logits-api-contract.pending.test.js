@@ -1,3 +1,10 @@
+// Pending-feature test. Asserts the shape of a public logits API
+// (advanced.prefillWithLogits / advanced.decodeStepLogits) that does not
+// yet exist on the Doppler client surface. Excluded from the default
+// test lane by tools/run-node-tests.js via the *.pending.test.js
+// suffix. See tools/policies/pending-tests-policy.json for owner and
+// expiry.
+
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 

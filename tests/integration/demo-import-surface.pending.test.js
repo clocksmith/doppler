@@ -1,3 +1,10 @@
+// Pending-feature test. Asserts that demo and example entrypoints
+// import from '@simulatte/doppler' (rather than '@doppler/core') and
+// that browser-chat.html carries an import-map entry pointing at
+// d4da.com. Neither surface exists yet. Excluded from the default test
+// lane by tools/run-node-tests.js via the *.pending.test.js suffix.
+// See tools/policies/pending-tests-policy.json for owner and expiry.
+
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
