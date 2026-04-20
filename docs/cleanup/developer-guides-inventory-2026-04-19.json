@@ -1,0 +1,259 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-04-19",
+  "purpose": "Reference inventory for folding docs/developer-guides/ (phase 5). 20 files, 1809 lines. Each guide is an operational checklist with uniform shape: Goal / When To Use / Blast Radius / Required Touch Points / Recommended Order / Verification / Common Misses / Related / References. The guides route agents through extension work but overlap with skills/*/SKILL.md content.",
+  "architecturalQuestion": {
+    "question": "Do developer-guides content belong IN skills or DECOUPLED from skills?",
+    "currentState": "Skills route TO developer-guides (e.g., skills/doppler-convert/SKILL.md:25 points at docs/developer-guides/04-conversion-config.md). Two-layer indirection with overlap.",
+    "options": [
+      {
+        "name": "inline-into-skills",
+        "description": "Copy each guide's content into the relevant SKILL.md. Skills become ~200-line files. docs/developer-guides/ goes to 0. Skills become self-contained.",
+        "tradeoff": "Bigger SKILL.md. Easier agent routing (single file read). No cross-guide reuse — composite guides would duplicate atomic-guide content."
+      },
+      {
+        "name": "sibling-files",
+        "description": "Move each guide next to its home skill: skills/doppler-convert/04-conversion-config.md. SKILL.md keeps routing bullets but to relative paths. Skill system must support multi-file skills (verify with agents:verify).",
+        "tradeoff": "Preserves per-guide atomicity. Composite guides still link multi-skill. Requires skill-system support."
+      },
+      {
+        "name": "shrink-and-keep",
+        "description": "Keep docs/developer-guides/ but delete content that duplicates skills or style guides. Convert README.md to a pure routing table. Keep atomic guides only when they add operational detail the skill doesn't.",
+        "tradeoff": "Least disruptive. Preserves human-browseable docs tree. Doesn't actually collapse the layer."
+      },
+      {
+        "name": "delete-after-porting",
+        "description": "Port unique operational detail into the relevant skill (2-3 bullets each), then delete docs/developer-guides/ entirely.",
+        "tradeoff": "Strongest fold. Loses the human-browsable extension map. AGENTS.md and skills must update in lockstep."
+      }
+    ],
+    "recommendation": "sibling-files — best match for the existing pattern where skills are the task-playbook home for agents, and developer-guides have always been task-oriented. Requires one investigation: does tools/verify-agent-parity.js allow multi-file skills? If yes, mechanical move. If no, switch to inline-into-skills."
+  },
+  "referenceIndex": {
+    "AGENTS.md": {
+      "references": 3,
+      "lines": [60, 63, 120]
+    },
+    "skills": {
+      "breakdown": {
+        "skills/doppler-perf/SKILL.md": 6,
+        "skills/doppler-debug/SKILL.md": 8,
+        "skills/doppler-convert/SKILL.md": 6,
+        "skills/doppler-kernel-reviewer/SKILL.md": 6,
+        "skills/doppler-bench/SKILL.md": 7
+      },
+      "mirror": ".agents/skills/ has the same reference count (physical copy)."
+    },
+    "style": {
+      "path": "docs/style/benchmark-style-guide.md (2 refs)"
+    },
+    "other": {
+      "path": "docs/translate-compare-student-promotion-checklist.md (1 ref)"
+    }
+  },
+  "guides": [
+    {
+      "path": "docs/developer-guides/README.md",
+      "lines": 208,
+      "role": "index",
+      "proposedDestination": "shrink — convert to a 20-line routing table pointing at the new homes. Or delete if all guides move into skills.",
+      "risk": "low"
+    },
+    {
+      "path": "docs/developer-guides/_template.md",
+      "lines": 53,
+      "role": "template",
+      "proposedDestination": "Keep (still referenced from README.md:167). If guides move into skills, retarget to skills/ and rename skill-template.md.",
+      "risk": "low"
+    },
+    {
+      "path": "docs/developer-guides/01-runtime-profile.md",
+      "lines": 62,
+      "role": "atomic-checklist",
+      "title": "Add a Runtime Profile",
+      "proposedSkill": "doppler-debug",
+      "rationale": "Runtime profiles are the debug/bench tunable surface.",
+      "risk": "low"
+    },
+    {
+      "path": "docs/developer-guides/02-assign-chat-template.md",
+      "lines": 50,
+      "role": "atomic-checklist",
+      "title": "Assign an Existing Chat Template",
+      "proposedSkill": "doppler-convert",
+      "rationale": "Chat-template assignment is part of model setup.",
+      "risk": "low"
+    },
+    {
+      "path": "docs/developer-guides/03-model-family-config.md",
+      "lines": 51,
+      "role": "atomic-checklist (deprecation)",
+      "title": "Model Family Configs Are Removed",
+      "proposedSkill": "doppler-convert",
+      "rationale": "Pure historical/deprecation marker. Consider converting to a brief note in doppler-convert about why family configs were removed.",
+      "risk": "low"
+    },
+    {
+      "path": "docs/developer-guides/04-conversion-config.md",
+      "lines": 56,
+      "role": "atomic-checklist",
+      "title": "Add a Conversion Config",
+      "proposedSkill": "doppler-convert",
+      "risk": "low"
+    },
+    {
+      "path": "docs/developer-guides/05-promote-model-artifact.md",
+      "lines": 60,
+      "role": "atomic-checklist",
+      "title": "Promote a Verified Runtime Artifact",
+      "proposedSkill": "doppler-convert",
+      "risk": "low"
+    },
+    {
+      "path": "docs/developer-guides/06-kernel-path-config.md",
+      "lines": 57,
+      "role": "atomic-checklist",
+      "title": "Add a Kernel-Path Config",
+      "proposedSkill": "doppler-kernel-reviewer",
+      "risk": "low"
+    },
+    {
+      "path": "docs/developer-guides/07-manifest-runtime-field.md",
+      "lines": 61,
+      "role": "atomic-checklist",
+      "title": "Add a Manifest or Runtime Contract Field",
+      "proposedSkill": "doppler-convert",
+      "rationale": "Schema + merge + parser + tests — lives in the conversion+config domain.",
+      "risk": "low"
+    },
+    {
+      "path": "docs/developer-guides/08-chat-template-formatter.md",
+      "lines": 58,
+      "role": "atomic-checklist",
+      "title": "Add a Built-In Chat Template Formatter",
+      "proposedSkill": "doppler-convert",
+      "risk": "low"
+    },
+    {
+      "path": "docs/developer-guides/09-sampling-strategy.md",
+      "lines": 53,
+      "role": "atomic-checklist",
+      "title": "Add a Sampling Strategy or Sampling Knob",
+      "proposedSkill": "doppler-debug",
+      "rationale": "Sampling is a runtime/inference knob, not kernel work.",
+      "risk": "low"
+    },
+    {
+      "path": "docs/developer-guides/10-activation-implementation.md",
+      "lines": 64,
+      "role": "atomic-checklist",
+      "title": "Add an Activation Implementation",
+      "proposedSkill": "doppler-kernel-reviewer",
+      "risk": "low"
+    },
+    {
+      "path": "docs/developer-guides/11-wgsl-kernel.md",
+      "lines": 64,
+      "role": "atomic-checklist",
+      "title": "Add a WGSL Kernel or Kernel Variant",
+      "proposedSkill": "doppler-kernel-reviewer",
+      "risk": "low"
+    },
+    {
+      "path": "docs/developer-guides/12-command-surface.md",
+      "lines": 59,
+      "role": "atomic-checklist",
+      "title": "Add a Command-Surface Command",
+      "proposedSkill": "doppler-debug",
+      "rationale": "Command-surface parity sits in the debug/bench agent surface.",
+      "risk": "medium",
+      "blockers": [
+        "tests/config/diffusion-gpu-contract-docs.test.js references docs/style/command-interface-design-guide.md; this guide sits downstream of that style guide."
+      ]
+    },
+    {
+      "path": "docs/developer-guides/13-attention-variant.md",
+      "lines": 63,
+      "role": "atomic-checklist",
+      "title": "Add an Attention Variant",
+      "proposedSkill": "doppler-kernel-reviewer",
+      "risk": "low"
+    },
+    {
+      "path": "docs/developer-guides/14-quantization-format.md",
+      "lines": 63,
+      "role": "atomic-checklist",
+      "title": "Add a Quantization Format",
+      "proposedSkill": "doppler-convert",
+      "rationale": "Primary work is converter + loader; kernels follow.",
+      "alsoRouteFrom": "doppler-kernel-reviewer",
+      "risk": "low"
+    },
+    {
+      "path": "docs/developer-guides/15-kvcache-layout.md",
+      "lines": 61,
+      "role": "atomic-checklist",
+      "title": "Add a KV-Cache Layout",
+      "proposedSkill": "doppler-kernel-reviewer",
+      "risk": "low"
+    },
+    {
+      "path": "docs/developer-guides/composite-model-family.md",
+      "lines": 69,
+      "role": "composite-playbook",
+      "title": "Add a New Model Family Within an Existing Pipeline",
+      "proposedSkill": "doppler-convert",
+      "rationale": "Composite of 03/04/07/08. Lives with the onboarding agent.",
+      "risk": "low"
+    },
+    {
+      "path": "docs/developer-guides/composite-pipeline-family.md",
+      "lines": 65,
+      "role": "composite-playbook",
+      "title": "Add a New Pipeline Family or ModelType Ecosystem",
+      "proposedSkill": "doppler-convert",
+      "rationale": "Largest extension path; composite of composite-model-family plus pipeline work.",
+      "risk": "low"
+    },
+    {
+      "path": "docs/developer-guides/model-onboarding-playbook.md",
+      "lines": 532,
+      "role": "composite-playbook",
+      "title": "Model Onboarding Playbook",
+      "proposedDestination": "keep-as-doc or inline-into-skills.doppler-convert — 532 lines is too much to inline cleanly. If sibling-files is adopted, this lives at skills/doppler-convert/model-onboarding-playbook.md.",
+      "risk": "medium",
+      "blockers": [
+        "Heavily linked from the developer-guides README (row 1). The playbook is the recommended starting point for model onboarding work, so link targets must update in lockstep."
+      ]
+    }
+  ],
+  "summaryByDestination": {
+    "doppler-convert": 10,
+    "doppler-kernel-reviewer": 6,
+    "doppler-debug": 3,
+    "keep-shrink": 2,
+    "notes": "Counts include both primary and composite guides. Command-surface (12) touches both debug and bench; quantization-format (14) touches both convert and kernel-reviewer. Tag placement is primary; secondary routes are alsoRouteFrom."
+  },
+  "recommendedOrder": [
+    {
+      "step": 1,
+      "action": "Choose an architecture option from architecturalQuestion. Until this decides, do not move any guide file.",
+      "blocker": "Need a signal from the user or evidence from tools/verify-agent-parity.js on whether multi-file skills are supported."
+    },
+    {
+      "step": 2,
+      "action": "If sibling-files: git mv each atomic guide to skills/<target>/<guide>.md, update SKILL.md routing bullets to relative paths, update docs/developer-guides/README.md to redirect links. AGENTS.md gets one sentence change.",
+      "risk": "medium"
+    },
+    {
+      "step": 3,
+      "action": "Shrink docs/developer-guides/README.md to a redirect table pointing at the new skill-adjacent homes. Keep _template.md only if any guides remain under docs/developer-guides/.",
+      "risk": "low"
+    },
+    {
+      "step": 4,
+      "action": "Move model-onboarding-playbook.md last — it is the largest file and the highest-linked.",
+      "risk": "medium"
+    }
+  ]
+}
