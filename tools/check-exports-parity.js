@@ -29,6 +29,14 @@ function walk(dir, acc = []) {
   return acc;
 }
 
+// Strip `// line` and `/* block */` comments from a grouped-export body
+// so names after an inline comment are still extracted. Previously any
+// piece of the form "// foo\n  someName" fell through the identifier
+// regex and the export was silently missed on one side.
+function stripComments(s) {
+  return s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+}
+
 function jsExports(src) {
   const names = new Set();
   const patterns = [
@@ -38,7 +46,7 @@ function jsExports(src) {
   ];
   for (const re of patterns) for (const m of src.matchAll(re)) names.add(m[1]);
   for (const m of src.matchAll(/^export\s*\{([^}]+)\}/gm)) {
-    for (const piece of m[1].split(',')) {
+    for (const piece of stripComments(m[1]).split(',')) {
       const parts = piece.trim().split(/\s+as\s+/);
       const exported = (parts[1] || parts[0]).trim();
       if (exported && /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(exported)) names.add(exported);
@@ -59,7 +67,7 @@ function dtsValueExports(src) {
   ];
   for (const re of patterns) for (const m of src.matchAll(re)) names.add(m[1]);
   for (const m of src.matchAll(/^export\s*\{([^}]+)\}/gm)) {
-    for (const piece of m[1].split(',')) {
+    for (const piece of stripComments(m[1]).split(',')) {
       const cleaned = piece.replace(/^\s*type\s+/, '').trim();
       if (cleaned !== piece.trim()) continue;
       const parts = cleaned.split(/\s+as\s+/);
