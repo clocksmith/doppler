@@ -368,6 +368,8 @@ export {
   recordSoftmaxBackward,
   runRmsNormBackward,
   recordRmsNormBackward,
+  runLayerNormBackward,
+  recordLayerNormBackward,
   runAttentionBackward,
   recordAttentionBackward,
   runRoPEBackward,

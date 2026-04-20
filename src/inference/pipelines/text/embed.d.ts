@@ -36,30 +36,32 @@ export interface ValidationResult {
   infCount: number;
 }
 
-/**
- * Record scale operation (batched, no submit)
- */
-export function recordScale(
-  recorder: CommandRecorder,
-  inputBuffer: GPUBuffer,
-  scale: number,
-  count: number,
-  useF16?: boolean
-): GPUBuffer;
-
-/**
- * Scale GPU buffer (standalone, with submit)
- * @deprecated Use recordScale with CommandRecorder instead
- */
-export function scaleGPUBuffer(
-  inputBuffer: GPUBuffer,
-  scale: number,
-  count: number,
-  useF16?: boolean
-): Promise<GPUBuffer>;
-
 export function embed(
   tokenIds: number[] | Uint32Array | GPUBuffer,
   embedBuffer: GPUBuffer | Float32Array | CpuWeightBuffer,
   config: EmbedConfig
 ): Promise<Tensor>;
+
+/**
+ * True when `value` looks like a range-backed CPU embedding source
+ * (has a typed byte range that the loader can pull from).
+ */
+export declare function isRangeBackedCpuEmbeddingSource(value: unknown): boolean;
+
+/**
+ * Normalize a range bytes payload (typed array or buffer view) into a
+ * Uint8Array, throwing a labeled error when the shape is not usable.
+ */
+export declare function normalizeRangeBytes(value: unknown, label: string): Uint8Array;
+
+/**
+ * Decode a range-backed chunk into `output` at `dstOffset` using the
+ * declared `sourceDtype` and per-row `hiddenSize`.
+ */
+export declare function decodeRangeChunkIntoOutput(
+  bytes: Uint8Array,
+  sourceDtype: string,
+  output: Float32Array,
+  dstOffset: number,
+  hiddenSize: number
+): void;
