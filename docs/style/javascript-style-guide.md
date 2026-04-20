@@ -5,6 +5,19 @@ JavaScript conventions for kernel wrappers and pipeline code.
 See [General Style Guide](./general-style-guide.md#language-policy-javascript-declaration-files) for the rationale behind JavaScript-first development.
 Shared naming/logging/testing policy is canonical in [General Style Guide](./general-style-guide.md).
 
+## Invariants (Quick Reference)
+
+Rules that cause bugs when violated. Each has a fuller section below with rationale and examples.
+
+- **Role Boundaries** — JSON owns policy; JS owns orchestration; WGSL owns math. See [Role Boundaries](#role-boundaries-json-js-wgsl).
+- **JSON Rule Maps** — any selection of kernel variants/dtype/op must use `selectRuleValue()` on a rule map. No inline ternaries. See [JSON Rule Maps](#json-rule-maps-required-for-selection-logic).
+- **Manifest-First Contract** — new inference knobs must land in `ManifestInferenceSchema`, the converter, `src/config/merge.js` with `_sources`, `parseModelConfigFromManifest()`, and tests. No runtime family detection, no hidden fallbacks. See [Manifest-First Contract](#manifest-first-contract).
+- **Nullable Required Fields** — `null` = explicitly disabled (valid); `undefined` = missing (validation error). Check `=== undefined` for nullable, `== null` otherwise. See [Nullable Required Fields](#nullable-required-fields).
+- **Kernel Path Only** — kernel overrides use `kernelPath`. `kernelPlan` is removed and must not return. Overrides are config-only. See [Kernel Path Only](#kernel-path-only).
+- **Runtime Performance Invariants** — no hardcoded `f32` fallbacks when `shader-f16` is available; if `f32` is required, gate on explicit config and log once. Dtype decisions live in rule maps, not conditionals. See [Runtime Configuration (Performance Invariants)](#runtime-configuration-performance-invariants).
+- **Failure-Path Ownership** — every acquired resource has one owner and one deterministic cleanup path. `createBuffer()`, pooled acquires, `mapAsync()`, staging readback all release on every throw. Use `try/finally` or shared helpers. See [Runtime Failure-Path Invariants](#runtime-failure-path-invariants).
+- **Harness Override Rules** — runtime tunables are config-only. Harness URLs accept only `runtimeProfile`, `runtimeConfig`, `runtimeConfigUrl`, `configChain`. See [Harness Override Rules](#harness-override-rules).
+
 ## Core Principle: Config as Code
 
 Replace conditional logic with declarative configuration maps.

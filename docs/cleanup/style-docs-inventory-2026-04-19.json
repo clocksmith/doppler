@@ -1,0 +1,278 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-04-19",
+  "purpose": "Reference inventory for the style-docs collapse (phase 4). Answers: what does each style doc contain, who links to it, what would break if we moved or merged it. Built before any collapse edits per the 'Inventory Before Edit' invariant.",
+  "targetEndState": {
+    "rationale": "Invariant quick-refs and full guides duplicate normative content and drift over time. Collapse the pairs into single canonical guides, put a 'read first' matrix in README.md, and keep specialized guides only where they stand alone.",
+    "files": [
+      "docs/style/README.md (read-first matrix + quick refs)",
+      "docs/style/general.md (merged general-invariants + general-style-guide)",
+      "docs/style/javascript.md (merged javascript-invariants + javascript-style-guide)",
+      "docs/style/wgsl.md",
+      "docs/style/config.md (keep — standalone)",
+      "docs/style/command-interface.md (keep — standalone, referenced by tests)",
+      "docs/style/harness.md (keep — standalone, referenced by tests)",
+      "docs/style/benchmark.md (keep — standalone)",
+      "docs/style/emoji.md (keep — just moved here in d46a657)"
+    ]
+  },
+  "currentFiles": [
+    {
+      "path": "docs/style/README.md",
+      "lines": 61,
+      "role": "index",
+      "sections": ["Guides", "Quick Reference"],
+      "mergeProposal": "Keep. Expand into the 'read-first matrix' per phase 4.",
+      "risk": "low"
+    },
+    {
+      "path": "docs/style/general-invariants.md",
+      "lines": 57,
+      "role": "quick-reference",
+      "sections": [
+        "Execution Plane Contract",
+        "No Runtime Defaults in Code",
+        "Nullable Required Fields",
+        "Manifest as Source of Truth",
+        "Kernel Selection",
+        "Performance Invariants (F32 Policy)",
+        "No Ad-Hoc Debug Logging",
+        "Single Source of Truth",
+        "Failure-Path Regression Requirement",
+        "Inventory Before Edit"
+      ],
+      "mergeProposal": "Merge into general-style-guide.md as a '## Invariants (Quick Reference)' section at the top. Three sections are NOT in the full guide today (Single Source of Truth, Failure-Path Regression Requirement, Inventory Before Edit) — port them first, then merge.",
+      "risk": "medium",
+      "blockers": [
+        "AGENTS.md:15 and AGENTS.md:27 treat this file as a mandatory pre-edit read — update both in the same commit.",
+        "AGENTS.md:201 links the 'No Ad-Hoc Debug Logging' section specifically.",
+        "skills/doppler-kernel-reviewer/SKILL.md:32 links to 'execution plane contract section'.",
+        ".agents/skills/doppler-kernel-reviewer/SKILL.md:32 mirror of the above — must update in lockstep."
+      ]
+    },
+    {
+      "path": "docs/style/general-style-guide.md",
+      "lines": 966,
+      "role": "canonical",
+      "sections": [
+        "Core Principles",
+        "Execution Plane Contract",
+        "Language Policy: JavaScript + Declaration Files",
+        "Architecture Overview",
+        "Configuration Layers",
+        "Buffer Lifecycle",
+        "JSON-Driven Layer Plans",
+        "Loader Layer Configuration"
+      ],
+      "mergeProposal": "Keep as the canonical general guide. Rename to general.md after the invariants merge.",
+      "risk": "medium",
+      "blockers": [
+        "AGENTS.md: 8 references.",
+        "skills/*/SKILL.md: 5 references each (mirrored under .agents/skills/).",
+        "docs/pipeline-contract.md, docs/architecture.md, docs/developer-guides/*.md: multiple links."
+      ]
+    },
+    {
+      "path": "docs/style/javascript-invariants.md",
+      "lines": 53,
+      "role": "quick-reference",
+      "sections": [
+        "Role Boundaries",
+        "JSON Rule Maps for Selection Logic",
+        "Manifest-First Contract",
+        "Nullable Required Fields",
+        "Kernel Path Only",
+        "Runtime Configuration (Performance Invariants)",
+        "Runtime Failure-Path Invariants",
+        "Harness Override Rules"
+      ],
+      "mergeProposal": "Merge into javascript-style-guide.md. 7 of 8 sections have direct analogues in the full guide already — this is the lowest-risk invariant merge.",
+      "risk": "low",
+      "blockers": [
+        "AGENTS.md:16 and AGENTS.md:28: mandatory pre-edit reads.",
+        "No skill SKILL.md or test file references the invariants file directly (all point at the full guide), so the blast radius is smaller than general-invariants."
+      ]
+    },
+    {
+      "path": "docs/style/javascript-style-guide.md",
+      "lines": 1027,
+      "role": "canonical",
+      "sections": [
+        "Core Principle: Config as Code",
+        "Role Boundaries (JSON, JS, WGSL)",
+        "JSON Rule Maps (Required for Selection Logic)",
+        "Manifest-First Contract",
+        "Nullable Required Fields",
+        "Kernel Path Only",
+        "Harness Override Rules",
+        "Shared Contract + Engine Overlay (Bench Tools)"
+      ],
+      "mergeProposal": "Keep. Absorb javascript-invariants.md into a '## Invariants (Quick Reference)' section. Rename to javascript.md after merge.",
+      "risk": "medium",
+      "blockers": [
+        "AGENTS.md: 5 references (lines 21, 33, 36, 38, 40, 44, 52).",
+        "All 5 skills reference it as a mandatory read, plus the .agents/skills/ mirror."
+      ]
+    },
+    {
+      "path": "docs/style/wgsl-style-guide.md",
+      "lines": 658,
+      "role": "canonical",
+      "sections": [
+        "Kernel Plane Responsibility",
+        "File Structure",
+        "Constants vs Uniforms",
+        "Binding Conventions",
+        "Entry Points vs Override Constants vs Uniforms",
+        "Pipeline Layout Rules",
+        "Entry Points (Legacy Guidance)",
+        "Workgroup Sizes"
+      ],
+      "mergeProposal": "Keep standalone. Optionally rename to wgsl.md for consistency — cost: 4 reference updates across AGENTS.md/skills + docs/developer-guides/10, 11.",
+      "risk": "low"
+    },
+    {
+      "path": "docs/style/config-style-guide.md",
+      "lines": 252,
+      "role": "canonical",
+      "sections": [
+        "Config Schema Layout",
+        "Category Rules",
+        "Fallback Rule: What Is Allowed",
+        "Harness Restrictions",
+        "Merge Order",
+        "End-to-End Config Ownership",
+        "Benchmark Config Split (Required)",
+        "Profile Registry Metadata (Required)"
+      ],
+      "mergeProposal": "Keep standalone. Heavily referenced by src/config/README.md, docs/config.md, and every skill. No collapse target.",
+      "risk": "low"
+    },
+    {
+      "path": "docs/style/command-interface-design-guide.md",
+      "lines": 209,
+      "role": "canonical",
+      "sections": [
+        "Goals",
+        "Deterministic Command Mapping",
+        "Canonical Commands",
+        "Workload Contract",
+        "Intent Clusters",
+        "Runtime Contract",
+        "Surface Parity Rules",
+        "References"
+      ],
+      "mergeProposal": "Keep standalone.",
+      "risk": "medium",
+      "blockers": [
+        "tests/config/diffusion-gpu-contract-docs.test.js:20 reads this file by path and asserts on its content. Any rename requires updating the test in the same commit.",
+        "docs/architecture.md, docs/config.md, docs/contributing.md, multiple skills, .agents/skills mirror."
+      ]
+    },
+    {
+      "path": "docs/style/harness-style-guide.md",
+      "lines": 89,
+      "role": "canonical",
+      "sections": [
+        "Scope",
+        "Harness responsibilities",
+        "Browser harness contract",
+        "Node harness contract",
+        "Runtime input composition",
+        "Explicit Source Selection",
+        "Background Side Effects",
+        "Diffusion Contract"
+      ],
+      "mergeProposal": "Keep standalone (short but specific).",
+      "risk": "medium",
+      "blockers": [
+        "tests/config/diffusion-gpu-contract-docs.test.js:26 reads this file. Rename requires test update in the same commit."
+      ]
+    },
+    {
+      "path": "docs/style/benchmark-style-guide.md",
+      "lines": 110,
+      "role": "canonical",
+      "sections": [
+        "Scope",
+        "Output schema requirements",
+        "Shared vs engine config",
+        "Required implementation rules",
+        "Profiling and stats",
+        "Maintainer checklist",
+        "Perf-validated kernel-path promotion",
+        "See also"
+      ],
+      "mergeProposal": "Keep standalone.",
+      "risk": "low"
+    },
+    {
+      "path": "docs/style/emoji.md",
+      "lines": 203,
+      "role": "specialized",
+      "sections": ["Approved Unicode Symbols", "Checkboxes", "Why No Emojis?"],
+      "mergeProposal": "Keep (just moved here from root in d46a657).",
+      "risk": "low"
+    }
+  ],
+  "referenceIndex": {
+    "AGENTS.md": {
+      "references": 22,
+      "byLine": [15, 16, 17, 20, 21, 22, 27, 28, 29, 33, 34, 36, 38, 40, 41, 42, 44, 51, 52, 61, 201],
+      "mustUpdate": "Every style-doc rename or merge must update AGENTS.md in the same commit. Run npm run agents:verify after to confirm parity."
+    },
+    "skills": {
+      "paths": [
+        "skills/doppler-bench/SKILL.md",
+        "skills/doppler-convert/SKILL.md",
+        "skills/doppler-debug/SKILL.md",
+        "skills/doppler-kernel-reviewer/SKILL.md",
+        "skills/doppler-perf/SKILL.md"
+      ],
+      "mirror": ".agents/skills/ (symlink-like mirror at .agents/skills/doppler-*/SKILL.md — update in lockstep)"
+    },
+    "tests": {
+      "paths": [
+        "tests/config/diffusion-gpu-contract-docs.test.js (reads command-interface-design-guide.md and harness-style-guide.md by path — breaks on rename)"
+      ]
+    },
+    "docs": {
+      "paths": [
+        "docs/pipeline-contract.md",
+        "docs/architecture.md",
+        "docs/config.md",
+        "docs/contributing.md",
+        "docs/INDEX.md",
+        "docs/benchmark-methodology.md",
+        "docs/conversion-runtime-contract.md",
+        "docs/operations.md",
+        "docs/developer-guides/*.md (9 guides link to style docs — will be folded in phase 5)"
+      ]
+    },
+    "code": {
+      "paths": ["src/config/README.md (→ config-style-guide.md)"]
+    }
+  },
+  "recommendedMergeOrder": [
+    {
+      "step": 1,
+      "action": "Merge javascript-invariants.md into javascript-style-guide.md as a top '## Invariants (Quick Reference)' section, update AGENTS.md lines 16 and 28, delete javascript-invariants.md. Lowest risk — no skill or test file links to the invariants file directly.",
+      "risk": "low"
+    },
+    {
+      "step": 2,
+      "action": "Port the three sections missing from general-style-guide.md (Single Source of Truth, Failure-Path Regression Requirement, Inventory Before Edit), then merge general-invariants.md in the same way. Update AGENTS.md lines 15, 27, 201 plus skills/doppler-kernel-reviewer/SKILL.md:32 (and .agents mirror).",
+      "risk": "medium"
+    },
+    {
+      "step": 3,
+      "action": "Expand docs/style/README.md into the read-first matrix. This can land with step 2 without changing any other reference.",
+      "risk": "low"
+    },
+    {
+      "step": 4,
+      "action": "(Optional, defer) Rename guides to remove '-style-guide' / '-design-guide' suffixes for consistency. Cost: ~25 reference updates plus 2 test assertions on file paths. Do this only if the test assertion is ported to a rule/schema check so the path coupling goes away.",
+      "risk": "high"
+    }
+  ]
+}

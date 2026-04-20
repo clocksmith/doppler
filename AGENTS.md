@@ -13,7 +13,7 @@ Repository: https://github.com/clocksmith/doppler
 Before any non-trivial code edit, read the **invariant files** (compact, must-know rules):
 
 1. **[General Invariants](docs/style/general-invariants.md)** — execution plane, no runtime defaults, nullable fields, manifest-first
-2. **[JavaScript Invariants](docs/style/javascript-invariants.md)** — role boundaries, rule maps, kernel path, failure-path cleanup
+2. **[JavaScript Invariants](docs/style/javascript-style-guide.md#invariants-quick-reference)** — role boundaries, rule maps, kernel path, failure-path cleanup
 3. **[Config Style Guide](docs/style/config-style-guide.md)** — schema layout, merge order, category rules, harness restrictions
 
 For deep work (kernel wrappers, buffer lifecycle, naming conventions, anti-patterns), read the full guides:
@@ -25,7 +25,7 @@ For deep work (kernel wrappers, buffer lifecycle, naming conventions, anti-patte
 
 Baseline for all coding tasks:
 - `docs/style/general-invariants.md`
-- `docs/style/javascript-invariants.md`
+- `docs/style/javascript-style-guide.md` (Invariants quick-reference at top)
 - `docs/style/config-style-guide.md`
 
 Add full guides by task/skill:
