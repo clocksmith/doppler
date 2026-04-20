@@ -1,12 +1,12 @@
 {
   "id": "profiles/gemma4-e2b-baseline-probe",
   "name": "gemma4-e2b-baseline-probe",
-  "description": "One-off diagnostic profile extending gemma4-e2b-throughput with layer-0 kernel-debug dumps. Baseline (no RMSNorm+Q4K fusion) for comparison against gemma4-e2b-fused-rmsnorm-probe. Not for perf measurement — only correctness probe.",
+  "description": "One-off diagnostic profile with layer-0 kernel-debug dumps. Baseline (no RMSNorm+Q4K fusion) for comparison against gemma4-e2b-fused-rmsnorm-probe. Not for perf measurement — only correctness probe.",
   "intent": "investigate",
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-04-18T00:00:00Z",
-  "extends": "profiles/gemma4-e2b-throughput",
+  "extends": "profiles/throughput",
   "model": "gemma-4-e2b-it-q4k-ehf16-af32",
   "runtime": {
     "shared": {

@@ -154,15 +154,20 @@ const diagnosticTransformCtx = {
     }
   }
 
-  // Post-layer lm_head: f16a GEMV subgroup
+  // Post-layer lm_head: optimized fused-Q4 GEMV for the materialized tied head.
   for (const step of execution.postLayer) {
     if (!Array.isArray(step)) continue;
     if (step[0] === 'lm_head') {
       const entry = execution.kernels[step[1]];
       assert.equal(
-        entry.kernel, 'matmul_gemv_subgroup_f16a.wgsl',
-        'Primary graph: lm_head should use the f16a GEMV subgroup path'
+        entry.kernel, 'fused_matmul_q4.wgsl',
+        'Primary graph: lm_head should use the fused-Q4 GEMV path'
       );
+      assert.equal(entry.entry, 'main_gemv');
+      assert.deepEqual(entry.constants, {
+        COLS_PER_WG: 64,
+        THREADS_PER_COL_GEMV: 4,
+      });
     }
   }
 }

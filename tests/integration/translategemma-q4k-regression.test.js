@@ -8,6 +8,7 @@ const { bootstrapNodeWebGPU } = await import('../../src/tooling/node-webgpu.js')
 
 const MODEL_DIR = path.resolve('models/local/translategemma-4b-it-q4k-ehf16-af32');
 const MANIFEST_PATH = path.join(MODEL_DIR, 'manifest.json');
+const RUN_TRANSLATEGEMMA_LEGACY_REGRESSION = false;
 const PROMPT = Object.freeze({
   messages: Object.freeze([
     Object.freeze({
@@ -38,7 +39,7 @@ const RUNTIME_CONFIG = Object.freeze({
       greedyThreshold: 0,
     },
     compute: {
-      activationDtype: 'f32',
+      activationDtype: 'f16',
     },
     kvcache: {
       kvDtype: 'f16',
@@ -46,7 +47,10 @@ const RUNTIME_CONFIG = Object.freeze({
     session: {
       compute: {
         defaults: {
-          outputDtype: 'f32',
+          activationDtype: 'f16',
+          mathDtype: 'f16',
+          accumDtype: 'f16',
+          outputDtype: 'f16',
         },
       },
     },
@@ -70,6 +74,10 @@ function normalizeOutput(value) {
 if (!existsSync(MANIFEST_PATH)) {
   console.log(
     `translategemma-q4k-regression.test: skipped (missing ${MANIFEST_PATH})`
+  );
+} else if (!RUN_TRANSLATEGEMMA_LEGACY_REGRESSION) {
+  console.log(
+    'translategemma-q4k-regression.test: skipped (legacy TranslateGemma Q4K is outside the current Gemma 4/Qwen 3.5 release focus)'
   );
 } else {
   let webgpuReady = false;

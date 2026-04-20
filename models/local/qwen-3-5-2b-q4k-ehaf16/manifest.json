@@ -8,7 +8,8 @@
     "embeddings": "f16",
     "compute": "f32",
     "layout": "row",
-    "variantTag": "q4k-ehf16-af32"
+    "variantTag": "q4k-ehf16-af32",
+    "lmHead": "q4k"
   },
   "architecture": {
     "numLayers": 24,
@@ -128,10 +129,10 @@
     "session": {
       "compute": {
         "defaults": {
-          "activationDtype": "f16",
-          "mathDtype": "f16",
-          "accumDtype": "f16",
-          "outputDtype": "f16"
+          "activationDtype": "f32",
+          "mathDtype": "f32",
+          "accumDtype": "f32",
+          "outputDtype": "f32"
         }
       },
       "kvcache": {
@@ -144,7 +145,7 @@
         }
       },
       "decodeLoop": {
-        "batchSize": 8,
+        "batchSize": 12,
         "stopCheckMode": "batch",
         "readbackInterval": 32,
         "readbackMode": "sequential",
@@ -184,7 +185,7 @@
         "threshold": null,
         "rollbackOnReject": true
       },
-      "prefillChunkSubmitMode": "sync",
+      "prefillChunkSubmitMode": "async",
       "useFlashPrefillAttention": false,
       "useWideTileQ4KPrefill": false,
       "retainQ4KMaterialization": false
@@ -198,80 +199,99 @@
           "digest": "sha256:e9f8056a8764360ca23e53289a5f133c2e3d6da122f6437f5eb0d78a46e8f049"
         },
         "rmsnorm": {
-          "kernel": "rmsnorm_f16.wgsl",
+          "kernel": "rmsnorm.wgsl",
           "entry": "main",
-          "digest": "sha256:e82eef815b4321121b9a62eb556c32f2d676358332871a08a1c996e69df71f96"
+          "digest": "sha256:c723c0300cc8f93396d79d1a274c0a90ccf1eb8ce82c0d778b8cd4659615fe45"
         },
         "q4_decode": {
-          "kernel": "fused_matmul_q4_multicol_f16a.wgsl",
-          "entry": "main_multicol_f16a",
-          "digest": "sha256:c53b5316335a013316ebedbb1e87f0a3e30e8733022862d3d3a625975a810b33",
-          "precision": {
-            "inputDtype": "f16",
-            "outputDtype": "f16"
-          }
+          "kernel": "fused_matmul_q4.wgsl",
+          "entry": "main_multicol",
+          "digest": "sha256:c97827b7ca42c0215756d91c7166106e189174c1a64fe473f0c017b3eb27188e"
+        },
+        "q4_decode_gemv": {
+          "kernel": "fused_matmul_q4.wgsl",
+          "entry": "main_gemv",
+          "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
         },
         "rope": {
-          "kernel": "rope_f16.wgsl",
+          "kernel": "rope.wgsl",
           "entry": "main",
-          "digest": "sha256:b665275d4ffe8e9e4f18876f572c4415661ab9a512f80bed8381b9588205e6ba"
+          "digest": "sha256:e13c54f261d7ef00474b71e4fe7b3298fb5cc49161f50c7ea1854aa6672ebe71"
         },
         "attn_decode": {
-          "kernel": "attention_decode_online_f16.wgsl",
+          "kernel": "attention_decode_online_f16kv.wgsl",
           "entry": "main",
-          "digest": "sha256:83f15e3d360f6425c13fc9fa9d0aab04c1de3616447de576eb0c5a6c89cfc4d0",
+          "digest": "sha256:beee4722aa6281f58b74e1d055e192017b5555c189a58dd13dd158fe1511a7b8",
           "precision": {
             "kvDtype": "f16"
           }
         },
         "residual": {
-          "kernel": "residual_f16.wgsl",
+          "kernel": "residual.wgsl",
           "entry": "main",
-          "digest": "sha256:c7a6879dee0074ea6d184b594a6e398df6253ffb7cc7aad6d5c9d00b773c5df8"
+          "digest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7"
         },
         "silu": {
-          "kernel": "silu_f16.wgsl",
+          "kernel": "silu.wgsl",
           "entry": "main",
-          "digest": "sha256:d8fe930a4f292a55ee10e6ecf17d7079d5fe60b6d7f6d7b893e395592c239d0d",
+          "digest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
           "constants": {
             "HAS_GATE": true
           }
         },
         "q4_prefill": {
-          "kernel": "fused_matmul_q4_batched_f16a.wgsl",
-          "entry": "main_batched_f16a",
-          "digest": "sha256:ee5aebc5d3048ae1adb86ea253e754ad1879a97dbc434e63b7757d2a87555e95",
-          "precision": {
-            "inputDtype": "f16",
-            "outputDtype": "f16"
-          }
+          "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+          "entry": "main",
+          "digest": "sha256:142817adcacb28750a92793996cd15c2d9fe13d03e0c2d0aadf3e674dc7a35d6"
+        },
+        "q4_widetile": {
+          "kernel": "fused_matmul_q4_widetile.wgsl",
+          "entry": "main",
+          "digest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62"
         },
         "tiled": {
-          "kernel": "matmul_f16.wgsl",
+          "kernel": "matmul_f16w_f32a.wgsl",
           "entry": "main",
-          "digest": "sha256:b2a7e4a4db27d008da957225b361ef688f299ece792c844e2d2542b21d3fdfbe"
+          "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
         },
         "attn_stream": {
-          "kernel": "attention_small_f16.wgsl",
+          "kernel": "attention_streaming_f16kv.wgsl",
           "entry": "main",
-          "digest": "sha256:47f06b070055790db28cd562323d2010cc2aed5ea7bde8cdfb5b81a93f0f4496",
+          "digest": "sha256:76eda2dfc1b4323ed4fd02b91d1ce448de65ce9b31898dee8ae635b1d5b94d3a",
+          "precision": {
+            "kvDtype": "f16"
+          }
+        },
+        "attn_head256": {
+          "kernel": "attention_head256_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
           "precision": {
             "kvDtype": "f16"
           }
         },
         "lm_head_gemv": {
-          "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+          "kernel": "matmul_gemv_subgroup.wgsl",
           "entry": "main_multicol",
-          "digest": "sha256:d29012db696be7547b213d0245dba9e84aaac165bc65cf1379ca3fccfa2be4a4",
+          "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
           "constants": {
             "MULTICOL_COLS_PER_WG": 64,
             "MULTICOL_THREADS_PER_COL": 4
           }
         },
+        "lm_head_q4": {
+          "kernel": "fused_matmul_q4.wgsl",
+          "entry": "main_gemv",
+          "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
+          "constants": {
+            "COLS_PER_WG": 64,
+            "THREADS_PER_COL_GEMV": 4
+          }
+        },
         "sample": {
-          "kernel": "sample_f16.wgsl",
+          "kernel": "sample.wgsl",
           "entry": "sample_single_pass",
-          "digest": "sha256:b98818cb4ba2c89f7a914fe10012a209fb9643a4d1e545b8a8e8a32e6588bdad"
+          "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
         }
       },
       "preLayer": [
@@ -288,17 +308,17 @@
         ],
         [
           "q_proj",
-          "q4_decode",
+          "q4_decode_gemv",
           "layer.{L}.self_attn.q_proj"
         ],
         [
           "k_proj",
-          "q4_decode",
+          "q4_decode_gemv",
           "layer.{L}.self_attn.k_proj"
         ],
         [
           "v_proj",
-          "q4_decode",
+          "q4_decode_gemv",
           "layer.{L}.self_attn.v_proj"
         ],
         [
@@ -315,7 +335,7 @@
         ],
         [
           "o_proj",
-          "q4_decode",
+          "q4_decode_gemv",
           "layer.{L}.self_attn.o_proj"
         ],
         [
@@ -328,12 +348,12 @@
         ],
         [
           "gate_proj",
-          "q4_decode",
+          "q4_decode_gemv",
           "layer.{L}.mlp.gate_proj"
         ],
         [
           "up_proj",
-          "q4_decode",
+          "q4_decode_gemv",
           "layer.{L}.mlp.up_proj"
         ],
         [
@@ -342,7 +362,7 @@
         ],
         [
           "down_proj",
-          "q4_decode",
+          "q4_decode_gemv",
           "layer.{L}.mlp.down_proj"
         ],
         [
@@ -357,17 +377,17 @@
         ],
         [
           "q_proj",
-          "q4_prefill",
+          "q4_widetile",
           "layer.{L}.self_attn.q_proj"
         ],
         [
           "k_proj",
-          "q4_prefill",
+          "q4_widetile",
           "layer.{L}.self_attn.k_proj"
         ],
         [
           "v_proj",
-          "q4_prefill",
+          "q4_widetile",
           "layer.{L}.self_attn.v_proj"
         ],
         [
@@ -380,11 +400,11 @@
         ],
         [
           "attention",
-          "attn_stream"
+          "attn_head256"
         ],
         [
           "o_proj",
-          "q4_prefill",
+          "q4_widetile",
           "layer.{L}.self_attn.o_proj"
         ],
         [
@@ -397,12 +417,12 @@
         ],
         [
           "gate_proj",
-          "q4_prefill",
+          "q4_widetile",
           "layer.{L}.mlp.gate_proj"
         ],
         [
           "up_proj",
-          "q4_prefill",
+          "q4_widetile",
           "layer.{L}.mlp.up_proj"
         ],
         [
@@ -411,7 +431,7 @@
         ],
         [
           "down_proj",
-          "q4_prefill",
+          "q4_widetile",
           "layer.{L}.mlp.down_proj"
         ],
         [
@@ -426,7 +446,7 @@
         ],
         [
           "lm_head",
-          "lm_head_gemv",
+          "lm_head_q4",
           "lm_head"
         ],
         [
@@ -444,9 +464,6 @@
         "dtypeTransition": "require_cast_step",
         "unresolvedKernel": "error"
       }
-    },
-    "largeWeights": {
-      "gpuResidentOverrides": null
     }
   },
   "shards": [
@@ -665,6 +682,46 @@
       "hash": "ff56ddb38e9e2ec1428dbd19cbf7f8ea889d41da8a63ef7a64ac368b5fad2ecb",
       "blake3": "ff56ddb38e9e2ec1428dbd19cbf7f8ea889d41da8a63ef7a64ac368b5fad2ecb",
       "offset": 1744830464
+    },
+    {
+      "index": 27,
+      "filename": "shard_00027.bin",
+      "size": 67108864,
+      "hash": "007bbc632276700a2092bbabfaf38738f54735ef840a255ccb6cae908165ea81",
+      "blake3": "007bbc632276700a2092bbabfaf38738f54735ef840a255ccb6cae908165ea81",
+      "offset": 1792070336
+    },
+    {
+      "index": 28,
+      "filename": "shard_00028.bin",
+      "size": 67108864,
+      "hash": "8497d3fbabafa345137e53dbf0af02ecb3b122ad0ba2b262f3cf2ee382b67263",
+      "blake3": "8497d3fbabafa345137e53dbf0af02ecb3b122ad0ba2b262f3cf2ee382b67263",
+      "offset": 1859179200
+    },
+    {
+      "index": 29,
+      "filename": "shard_00029.bin",
+      "size": 67108864,
+      "hash": "d14052ad8a0d3b57f465b2d7da16aaa8b22fe350347b5b1c3167e55534d671bd",
+      "blake3": "d14052ad8a0d3b57f465b2d7da16aaa8b22fe350347b5b1c3167e55534d671bd",
+      "offset": 1926288064
+    },
+    {
+      "index": 30,
+      "filename": "shard_00030.bin",
+      "size": 67108864,
+      "hash": "17787497d33b9dac5aa995877a80fc444c52099f4d5d394f76826dc7712ec466",
+      "blake3": "17787497d33b9dac5aa995877a80fc444c52099f4d5d394f76826dc7712ec466",
+      "offset": 1993396928
+    },
+    {
+      "index": 31,
+      "filename": "shard_00031.bin",
+      "size": 17629184,
+      "hash": "ed3a40511aa68c1d91ad58db9badb308c929b5a463f28a0ae8b5a9bb4767dc60",
+      "blake3": "ed3a40511aa68c1d91ad58db9badb308c929b5a463f28a0ae8b5a9bb4767dc60",
+      "offset": 2060505792
     }
   ],
   "tensors": {
@@ -4750,9 +4807,1257 @@
       "dtype": "F16",
       "role": "norm",
       "group": "head"
+    },
+    "model.language_model.lm_head.weight": {
+      "spans": [
+        {
+          "shardIndex": 27,
+          "offset": 0,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 1179648,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 2359296,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 3538944,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 4718592,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 5898240,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 7077888,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 8257536,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 9437184,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 10616832,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 11796480,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 12976128,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 14155776,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 15335424,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 16515072,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 17694720,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 18874368,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 20054016,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 21233664,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 22413312,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 23592960,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 24772608,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 25952256,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 27131904,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 28311552,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 29491200,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 30670848,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 31850496,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 33030144,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 34209792,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 35389440,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 36569088,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 37748736,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 38928384,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 40108032,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 41287680,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 42467328,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 43646976,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 44826624,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 46006272,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 47185920,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 48365568,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 49545216,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 50724864,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 51904512,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 53084160,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 54263808,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 55443456,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 56623104,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 57802752,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 58982400,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 60162048,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 61341696,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 62521344,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 63700992,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 64880640,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 27,
+          "offset": 66060288,
+          "size": 1048576
+        },
+        {
+          "shardIndex": 28,
+          "offset": 0,
+          "size": 131072
+        },
+        {
+          "shardIndex": 28,
+          "offset": 131072,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 1310720,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 2490368,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 3670016,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 4849664,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 6029312,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 7208960,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 8388608,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 9568256,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 10747904,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 11927552,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 13107200,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 14286848,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 15466496,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 16646144,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 17825792,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 19005440,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 20185088,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 21364736,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 22544384,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 23724032,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 24903680,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 26083328,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 27262976,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 28442624,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 29622272,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 30801920,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 31981568,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 33161216,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 34340864,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 35520512,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 36700160,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 37879808,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 39059456,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 40239104,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 41418752,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 42598400,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 43778048,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 44957696,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 46137344,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 47316992,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 48496640,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 49676288,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 50855936,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 52035584,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 53215232,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 54394880,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 55574528,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 56754176,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 57933824,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 59113472,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 60293120,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 61472768,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 62652416,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 63832064,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 65011712,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 28,
+          "offset": 66191360,
+          "size": 917504
+        },
+        {
+          "shardIndex": 29,
+          "offset": 0,
+          "size": 262144
+        },
+        {
+          "shardIndex": 29,
+          "offset": 262144,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 1441792,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 2621440,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 3801088,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 4980736,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 6160384,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 7340032,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 8519680,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 9699328,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 10878976,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 12058624,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 13238272,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 14417920,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 15597568,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 16777216,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 17956864,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 19136512,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 20316160,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 21495808,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 22675456,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 23855104,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 25034752,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 26214400,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 27394048,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 28573696,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 29753344,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 30932992,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 32112640,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 33292288,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 34471936,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 35651584,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 36831232,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 38010880,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 39190528,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 40370176,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 41549824,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 42729472,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 43909120,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 45088768,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 46268416,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 47448064,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 48627712,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 49807360,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 50987008,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 52166656,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 53346304,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 54525952,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 55705600,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 56885248,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 58064896,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 59244544,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 60424192,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 61603840,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 62783488,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 63963136,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 65142784,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 29,
+          "offset": 66322432,
+          "size": 786432
+        },
+        {
+          "shardIndex": 30,
+          "offset": 0,
+          "size": 393216
+        },
+        {
+          "shardIndex": 30,
+          "offset": 393216,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 1572864,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 2752512,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 3932160,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 5111808,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 6291456,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 7471104,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 8650752,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 9830400,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 11010048,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 12189696,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 13369344,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 14548992,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 15728640,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 16908288,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 18087936,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 19267584,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 20447232,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 21626880,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 22806528,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 23986176,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 25165824,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 26345472,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 27525120,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 28704768,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 29884416,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 31064064,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 32243712,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 33423360,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 34603008,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 35782656,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 36962304,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 38141952,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 39321600,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 40501248,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 41680896,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 42860544,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 44040192,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 45219840,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 46399488,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 47579136,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 48758784,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 49938432,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 51118080,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 52297728,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 53477376,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 54657024,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 55836672,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 57016320,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 58195968,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 59375616,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 60555264,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 61734912,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 62914560,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 64094208,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 65273856,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 30,
+          "offset": 66453504,
+          "size": 655360
+        },
+        {
+          "shardIndex": 31,
+          "offset": 0,
+          "size": 524288
+        },
+        {
+          "shardIndex": 31,
+          "offset": 524288,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 31,
+          "offset": 1703936,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 31,
+          "offset": 2883584,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 31,
+          "offset": 4063232,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 31,
+          "offset": 5242880,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 31,
+          "offset": 6422528,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 31,
+          "offset": 7602176,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 31,
+          "offset": 8781824,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 31,
+          "offset": 9961472,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 31,
+          "offset": 11141120,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 31,
+          "offset": 12320768,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 31,
+          "offset": 13500416,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 31,
+          "offset": 14680064,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 31,
+          "offset": 15859712,
+          "size": 1179648
+        },
+        {
+          "shardIndex": 31,
+          "offset": 17039360,
+          "size": 589824
+        }
+      ],
+      "size": 286064640,
+      "shape": [
+        248320,
+        2048
+      ],
+      "dtype": "Q4_K_M",
+      "layout": "row",
+      "role": "lm_head",
+      "group": "head"
     }
   },
-  "totalSize": 1792070336,
+  "totalSize": 2078134976,
   "hashAlgorithm": "blake3",
   "eos_token_id": 248044,
   "video_token_id": 248057,

@@ -1185,7 +1185,7 @@
       "dopplerModelBaseDir": null,
       "dopplerSource": "quickstart-registry",
       "defaultTjsModelId": "onnx-community/Qwen3.5-2B-ONNX",
-      "defaultDopplerSurface": "auto",
+      "defaultDopplerSurface": "browser",
       "compareLane": "capability_only",
       "compareLaneReason": "Qwen3.5 2B has the direct Transformers.js WebGPU runner path but is not yet promoted to a claimable compare lane.",
       "inCatalog": true,

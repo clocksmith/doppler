@@ -1,12 +1,12 @@
 {
   "id": "profiles/gemma4-e2b-throughput-probe",
   "name": "gemma4-e2b-throughput-probe",
-  "description": "Throughput profile with a longer-prompt override (prefill≥64 tokens) for apples-to-apples baseline measurement against gemma4-e2b-fused-rmsnorm-test. Same runtime flags as gemma4-e2b-throughput, only the prompt differs.",
+  "description": "Throughput probe with a longer-prompt override (prefill≥64 tokens) for apples-to-apples baseline measurement against gemma4-e2b-fused-rmsnorm-test. Model fast-path settings come from the converted manifest.",
   "intent": "calibrate",
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-04-18T00:00:00Z",
-  "extends": "profiles/gemma4-e2b-throughput",
+  "extends": "profiles/throughput",
   "model": "gemma-4-e2b-it-q4k-ehf16-af32",
   "runtime": {
     "inference": {

@@ -266,6 +266,77 @@ function resolveConversionTensors(model, converterConfig) {
   ));
 }
 
+function shouldMaterializeTiedLmHead(tensors, options) {
+  if (options?.inference?.output?.tieWordEmbeddings !== true) {
+    return false;
+  }
+  if (normalizeStorageQuant(options?.quantizationInfo?.lmHead ?? null) !== 'q4k') {
+    return false;
+  }
+  const embeddingQuant = normalizeStorageQuant(options?.quantizationInfo?.embeddings ?? null);
+  if (embeddingQuant === 'q4k') {
+    return false;
+  }
+  return !tensors.some((tensor) => resolveTensorRole(tensor) === 'lm_head');
+}
+
+function resolveTiedLmHeadName(embeddingName) {
+  const name = typeof embeddingName === 'string' ? embeddingName.trim() : '';
+  if (name === 'model.language_model.model.embed_tokens.weight') {
+    return 'model.language_model.lm_head.weight';
+  }
+  if (name === 'language_model.model.embed_tokens.weight') {
+    return 'language_model.lm_head.weight';
+  }
+  if (name === 'model.language_model.embed_tokens.weight') {
+    return 'model.language_model.lm_head.weight';
+  }
+  if (name === 'language_model.embed_tokens.weight') {
+    return 'language_model.lm_head.weight';
+  }
+  if (name === 'model.embed_tokens.weight' || name === 'embed_tokens.weight') {
+    return 'lm_head.weight';
+  }
+  return 'lm_head.weight';
+}
+
+function resolveTiedEmbeddingTensor(tensors, modelType) {
+  const candidates = tensors.filter((tensor) => (
+    resolveTensorRole(tensor) === 'embedding'
+    && resolveTensorGroup(tensor, modelType) === 'embed'
+    && Array.isArray(tensor?.shape)
+    && tensor.shape.length === 2
+  ));
+  return candidates[0] ?? null;
+}
+
+function materializeTiedLmHeadTensor(tensors, options) {
+  if (!shouldMaterializeTiedLmHead(tensors, options)) {
+    return tensors;
+  }
+  const embedding = resolveTiedEmbeddingTensor(tensors, options?.modelType ?? 'transformer');
+  if (!embedding) {
+    throw new Error(
+      'Cannot materialize tied Q4K LM head: no 2D token embedding tensor was selected. '
+      + 'Check inference.output.tieWordEmbeddings and the conversion tensor filter.'
+    );
+  }
+  const name = resolveTiedLmHeadName(embedding.name);
+  if (tensors.some((tensor) => tensor?.name === name)) {
+    throw new Error(`Cannot materialize tied Q4K LM head: synthetic tensor name "${name}" already exists.`);
+  }
+  return [
+    ...tensors,
+    {
+      ...embedding,
+      name,
+      role: 'lm_head',
+      group: 'head',
+      sourceTensorName: embedding.name,
+    },
+  ];
+}
+
 function toFloat32ForQ4K(tensorData, sourceDtype, tensorName) {
   const dtype = String(sourceDtype || '').toUpperCase();
   if (dtype === 'F32') {
@@ -1573,7 +1644,14 @@ export async function convertModel(model, io, options = {}) {
   if (!modelId) {
     throw new Error('Missing modelId for conversion');
   }
-  const tensors = resolveConversionTensors(model, converterConfig);
+  const tensors = materializeTiedLmHeadTensor(
+    resolveConversionTensors(model, converterConfig),
+    {
+      inference: options.inference ?? converterConfig?.inference ?? null,
+      quantizationInfo: options.quantizationInfo ?? null,
+      modelType: options.modelType ?? model.modelType ?? 'transformer',
+    }
+  );
   if (!Array.isArray(tensors) || tensors.length === 0) {
     const textOnly = converterConfig?.output?.textOnly === true;
     if (textOnly) {

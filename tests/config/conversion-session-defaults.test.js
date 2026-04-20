@@ -185,7 +185,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       disableCommandBatching: false,
     },
     perLayerInputs: {
-      materialization: 'range_backed',
+      materialization: 'gpu_split_tables',
       rowCache: {
         mode: 'lru',
         maxRows: 512,
@@ -330,12 +330,12 @@ const EXPLICIT_TEXT_DEFAULTS = [
     decodeLoop: {
       batchSize: 4,
       stopCheckMode: 'batch',
-      readbackInterval: 2,
-      readbackMode: 'overlapped',
+      readbackInterval: 32,
+      readbackMode: 'sequential',
       submitLatencyThresholdMs: null,
-      ringTokens: 2,
+      ringTokens: 1,
       ringStop: 1,
-      ringStaging: 2,
+      ringStaging: 1,
       disableCommandBatching: false,
     },
     perLayerInputs: DEFAULT_PER_LAYER_INPUTS,
@@ -376,10 +376,10 @@ const EXPLICIT_TEXT_DEFAULTS = [
   {
     path: 'src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json',
     computeDefaults: {
-      activationDtype: 'f16',
-      mathDtype: 'f16',
-      accumDtype: 'f16',
-      outputDtype: 'f16',
+      activationDtype: 'f32',
+      mathDtype: 'f32',
+      accumDtype: 'f32',
+      outputDtype: 'f32',
     },
     kvcache: {
       kvDtype: 'f16',
@@ -389,7 +389,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       tiering: { mode: 'off' },
     },
     decodeLoop: {
-      batchSize: 8,
+      batchSize: 12,
       stopCheckMode: 'batch',
       readbackInterval: 32,
       readbackMode: 'sequential',

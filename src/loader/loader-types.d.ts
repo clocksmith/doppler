@@ -207,6 +207,8 @@ export interface Q4KConfig {
   keepF32Weights: boolean;
   /** Explicit dense/fused/mixed projection materialization mode */
   q4kMaterializationMode?: 'dense' | 'fused' | 'mixed';
+  /** Tensor roles that must keep raw Q4K materialization because the execution graph pins a fused Q4K kernel */
+  q4kFusedRoles?: string[];
 }
 
 /**

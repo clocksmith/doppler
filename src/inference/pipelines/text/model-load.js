@@ -208,7 +208,7 @@ export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, model
     runtimeConfig,
     manifest,
     runtimeOverrides,
-    arguments.length > 3
+    runtimeOverrides != null
   );
   if (!patch) {
     return runtimeConfig;

@@ -128,7 +128,7 @@
         "disableCommandBatching": false
       },
       "perLayerInputs": {
-        "materialization": "gpu_split_tables",
+        "materialization": "range_backed",
         "rowCache": {
           "mode": "lru",
           "maxRows": 512,

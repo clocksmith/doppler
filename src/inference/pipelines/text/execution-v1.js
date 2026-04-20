@@ -646,6 +646,7 @@ export function compileExecutionV1(options = {}) {
 export function applyExecutionV1RuntimeConfig(options = {}) {
   const runtimeConfig = options.runtimeConfig ?? null;
   const runtimeOverrides = options.runtimeOverrides;
+  const hasExplicitRuntimeOverrides = runtimeOverrides != null;
   const manifest = options.manifest ?? null;
   if (!runtimeConfig || !manifest?.inference) {
     return { runtimeConfig, executionV1State: null };
@@ -669,10 +670,10 @@ export function applyExecutionV1RuntimeConfig(options = {}) {
     headDim: options.headDim ?? manifest.architecture?.headDim ?? null,
     capabilities: options.capabilities ?? null,
     platform: options.platform ?? null,
-    runtimeSession: hasOwnProperty(options, 'runtimeOverrides')
+    runtimeSession: hasExplicitRuntimeOverrides
       ? resolveRuntimeInferenceOverrideSection(runtimeOverrides, 'session')
       : (runtimeConfig.inference?.session ?? null),
-    runtimeCompute: hasOwnProperty(options, 'runtimeOverrides')
+    runtimeCompute: hasExplicitRuntimeOverrides
       ? resolveRuntimeInferenceOverrideSection(runtimeOverrides, 'compute')
       : (runtimeConfig.inference?.compute ?? null),
     kernelPathPolicy: runtimeConfig.inference?.kernelPathPolicy ?? null,

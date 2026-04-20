@@ -9,7 +9,7 @@
   "quantization": {
     "weights": "q4k",
     "embeddings": "f16",
-    "lmHead": "f16",
+    "lmHead": "q4k",
     "vision": "f16",
     "projector": "f16",
     "modulesToNotConvert": [
@@ -168,12 +168,12 @@
     "decodeLoop": {
       "batchSize": 4,
       "stopCheckMode": "batch",
-      "readbackInterval": 2,
-      "readbackMode": "overlapped",
+      "readbackInterval": 32,
+      "readbackMode": "sequential",
       "submitLatencyThresholdMs": null,
-      "ringTokens": 2,
+      "ringTokens": 1,
       "ringStop": 1,
-      "ringStaging": 2,
+      "ringStaging": 1,
       "disableCommandBatching": false
     },
     "perLayerInputs": {
@@ -230,7 +230,7 @@
       "q4_decode": {
         "kernel": "fused_matmul_q4.wgsl",
         "entry": "main_multicol",
-        "digest": "sha256:9abf24b4dae5dc5cd10798d34146f1f6687d64916812e9ceeb77369ba0589022"
+        "digest": "sha256:c97827b7ca42c0215756d91c7166106e189174c1a64fe473f0c017b3eb27188e"
       },
       "rope": {
         "kernel": "rope.wgsl",
@@ -302,6 +302,15 @@
           "outputDtype": "f16"
         }
       },
+      "lm_head_q4": {
+        "kernel": "fused_matmul_q4.wgsl",
+        "entry": "main_gemv",
+        "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
+        "constants": {
+          "COLS_PER_WG": 64,
+          "THREADS_PER_COL_GEMV": 4
+        }
+      },
       "sample": {
         "kernel": "sample.wgsl",
         "entry": "sample_single_pass",
@@ -310,7 +319,7 @@
       "q4_decode_gemv": {
         "kernel": "fused_matmul_q4.wgsl",
         "entry": "main_gemv",
-        "digest": "sha256:90bde9bbe8772ce2597ecf9094f1504b290705335c273bd231a83a75a37a16f5"
+        "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
       }
     },
     "preLayer": [
@@ -465,7 +474,7 @@
       ],
       [
         "lm_head",
-        "lm_head_gemv",
+        "lm_head_q4",
         "lm_head"
       ],
       [

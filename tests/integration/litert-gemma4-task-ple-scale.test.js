@@ -86,7 +86,7 @@ assert.strictEqual(
   576,
   `Expected 576 tensors, got ${bundle.manifest.tensorCount}.`
 );
-assert.strictEqual(bundle.manifest.tokenizer?.type, 'bundled');
+assert.strictEqual(bundle.manifest.tokenizer?.type, 'sentencepiece');
 assert.strictEqual(bundle.manifest.tokenizer?.sentencepieceModel, 'TOKENIZER_MODEL');
 assert.strictEqual(bundle.manifest.tokenizer?.padTokenId, 0);
 assert.strictEqual(bundle.manifest.tokenizer?.eosTokenId, 1);

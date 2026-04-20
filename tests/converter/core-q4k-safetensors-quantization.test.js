@@ -138,4 +138,107 @@ assert.equal(
   'shard bytes should reflect packed q4k tensor + unquantized norm tensor'
 );
 
+const embeddingShape = [4, 256];
+const embeddingTensor = {
+  name: 'model.embed_tokens.weight',
+  shape: embeddingShape,
+  dtype: 'F16',
+  size: embeddingShape[0] * embeddingShape[1] * 2,
+  offset: 0,
+};
+const tiedModel = {
+  name: 'q4k-tied-lm-head-test',
+  modelId: 'q4k-tied-lm-head-test',
+  quantization: 'F16',
+  tensors: [embeddingTensor],
+  config: {
+    model_type: 'qwen3',
+    architectures: ['Qwen3ForCausalLM'],
+    num_hidden_layers: 1,
+    hidden_size: 256,
+    intermediate_size: 1024,
+    num_attention_heads: 4,
+    num_key_value_heads: 4,
+    head_dim: 64,
+    vocab_size: 4,
+    max_position_embeddings: 128,
+  },
+};
+const tiedTensorData = new Map([
+  ['model.embed_tokens.weight', buildF16Tensor(embeddingShape[0] * embeddingShape[1], 0.25)],
+]);
+let tiedManifest = null;
+let tiedShards = [];
+await convertModel(tiedModel, {
+  async readTensorData(tensor) {
+    const values = tiedTensorData.get(tensor.sourceTensorName ?? tensor.name);
+    if (!values) {
+      throw new Error(`Missing tied tensor data for ${tensor.name}`);
+    }
+    return toArrayBuffer(new Uint8Array(values.buffer));
+  },
+  async writeShard(index, data) {
+    tiedShards[index] = new Uint8Array(data);
+    return 'hash';
+  },
+  async writeManifest(manifest) {
+    tiedManifest = manifest;
+  },
+}, {
+  modelId: 'q4k-tied-lm-head-test',
+  modelType: 'transformer',
+  quantization: 'Q4_K_M',
+  quantizationInfo: {
+    weights: 'q4k',
+    embeddings: 'f16',
+    lmHead: 'q4k',
+    compute: 'f32',
+    layout: 'row',
+    variantTag: 'q4k-ehf16-hq4k-af32',
+  },
+  architecture: {
+    numLayers: 1,
+    hiddenSize: 256,
+    intermediateSize: 1024,
+    numAttentionHeads: 4,
+    numKeyValueHeads: 4,
+    headDim: 64,
+    vocabSize: 4,
+    maxSeqLen: 128,
+    ropeTheta: 1000000,
+  },
+  inference: {
+    ...DEFAULT_MANIFEST_INFERENCE,
+    output: {
+      ...DEFAULT_MANIFEST_INFERENCE.output,
+      tieWordEmbeddings: true,
+    },
+  },
+  eosTokenId: 1,
+  converterConfig: createConverterConfig(),
+});
+
+assert.ok(tiedManifest, 'tied manifest should be written');
+assert.equal(tiedManifest.quantizationInfo?.embeddings, 'f16');
+assert.equal(tiedManifest.quantizationInfo?.lmHead, 'q4k');
+const tiedEmbeddingLoc = tiedManifest.tensors?.['model.embed_tokens.weight'];
+const tiedHeadLoc = tiedManifest.tensors?.['lm_head.weight'];
+assert.ok(tiedEmbeddingLoc, 'tied embedding tensor location missing');
+assert.ok(tiedHeadLoc, 'synthetic tied lm_head tensor location missing');
+assert.equal(tiedEmbeddingLoc.dtype, 'F16', 'tied embeddings must remain F16');
+assert.equal(tiedEmbeddingLoc.role, 'embedding');
+assert.equal(tiedEmbeddingLoc.group, 'embed');
+assert.equal(tiedHeadLoc.dtype, 'Q4_K_M', 'synthetic tied lm_head should be stored as Q4_K_M');
+assert.equal(tiedHeadLoc.role, 'lm_head');
+assert.equal(tiedHeadLoc.group, 'head');
+assert.equal(tiedHeadLoc.layout, 'row');
+assert.deepEqual(tiedHeadLoc.shape, embeddingShape);
+const expectedTiedHeadBytes = 4 * 1 * 144;
+assert.equal(tiedHeadLoc.size, expectedTiedHeadBytes);
+assert.equal(
+  tiedShards[0].byteLength,
+  tiedEmbeddingLoc.size + expectedTiedHeadBytes,
+  'tied conversion should append F16 embeddings plus synthetic q4k lm_head bytes'
+);
+
 console.log('core-q4k-safetensors-quantization.test: ok');

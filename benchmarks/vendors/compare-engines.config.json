@@ -75,7 +75,7 @@
       "defaultTjsFormat": "onnx",
       "safetensorsSourceId": "google/gemma-4-e2b-it",
       "dopplerRuntimeProfileByDecodeProfile": {
-        "throughput": "profiles/gemma4-e2b-throughput"
+        "throughput": "profiles/throughput"
       },
       "compareLane": "performance_comparable",
       "compareLaneReason": null
@@ -91,7 +91,7 @@
       "defaultTjsFormat": "onnx",
       "safetensorsSourceId": "google/gemma-4-e2b-it",
       "dopplerRuntimeProfileByDecodeProfile": {
-        "throughput": "profiles/gemma4-e2b-throughput"
+        "throughput": "profiles/throughput"
       },
       "compareLane": "performance_comparable",
       "compareLaneReason": "Doppler uses INT4 per-row PLE quantization (closer to TFLite shape); TJS uses standard ONNX q4f16. Both produce coherent Gemma 4 output on matching prompts — lane remains performance_comparable as compute-throughput comparison is meaningful."
@@ -132,7 +132,7 @@
       "compareLane": "performance_comparable",
       "compareLaneReason": null,
       "dopplerRuntimeProfileByDecodeProfile": {
-        "throughput": "profiles/qwen-3-5-0-8b-throughput"
+        "throughput": "profiles/throughput"
       }
     },
     {
@@ -140,10 +140,13 @@
       "defaultTjsModelId": "onnx-community/Qwen3.5-2B-ONNX",
       "defaultDopplerSource": "quickstart-registry",
       "modelBaseDir": null,
-      "defaultDopplerSurface": "auto",
+      "defaultDopplerSurface": "browser",
       "defaultDopplerFormat": "rdrr",
       "defaultTjsFormat": "onnx",
       "safetensorsSourceId": "Qwen/Qwen3.5-2B",
+      "dopplerRuntimeProfileByDecodeProfile": {
+        "throughput": "profiles/throughput"
+      },
       "compareLane": "capability_only",
       "compareLaneReason": "Qwen3.5 2B has the direct Transformers.js WebGPU runner path but is not yet promoted to a claimable compare lane."
     },

@@ -97,6 +97,7 @@ export declare class DopplerLoader {
   q4kLayout: 'row' | 'col' | null;
   keepF32Weights: boolean;
   q4kMaterializationMode: 'dense' | 'fused' | 'mixed';
+  q4kFusedRoles: string[];
 
   constructor(loadingConfig?: LoadingConfigSchema);
 

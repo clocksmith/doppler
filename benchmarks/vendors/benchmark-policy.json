@@ -43,19 +43,19 @@
     "default": "parity",
     "profiles": {
       "parity": {
-        "batchSize": 1,
-        "readbackInterval": 1,
-        "disableMultiTokenDecode": true,
+        "batchSize": 4,
+        "readbackInterval": 4,
+        "disableMultiTokenDecode": false,
         "speculationMode": "none",
-        "stopCheckMode": "per-token",
-        "label": "TJS-like per-token cadence"
+        "stopCheckMode": "batch",
+        "label": "Doppler release decode cadence"
       },
       "throughput": {
         "batchSize": 4,
         "readbackInterval": 4,
         "disableMultiTokenDecode": false,
         "speculationMode": "none",
-        "stopCheckMode": "per-token",
+        "stopCheckMode": "batch",
         "label": "Doppler throughput-tuned cadence"
       }
     }

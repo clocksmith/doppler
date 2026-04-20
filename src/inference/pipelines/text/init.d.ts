@@ -226,6 +226,7 @@ export interface ResolvedQ4KConfig {
   q4kLayout: 'row' | 'col' | null;
   keepF32Weights: boolean;
   q4kMaterializationMode: 'dense' | 'fused' | 'mixed';
+  q4kFusedRoles: string[];
 }
 
 /** Options for loadWeights */

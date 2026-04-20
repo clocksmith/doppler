@@ -600,7 +600,6 @@ function renderMatrix(rows, metadata, buckets) {
   lines.push(`- Families with failed catalog verification: ${metadata.failedVerificationCount}`);
   lines.push(`- Blocked runtime families: ${metadata.blockedCount}`);
   lines.push(`- Catalog entries: ${metadata.catalogCount}`);
-  lines.push('');
   return `${lines.join('\n')}\n`;
 }
 

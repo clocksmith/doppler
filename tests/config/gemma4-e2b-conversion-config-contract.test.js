@@ -71,6 +71,10 @@ assert.equal(config.execution?.kernels?.lm_head_prefill_stable?.kernel, 'matmul_
 assert.equal(config.execution?.kernels?.lm_head_prefill_stable?.precision?.inputDtype, 'f32');
 assert.equal(config.execution?.kernels?.lm_head_prefill_stable?.precision?.outputDtype, 'f32');
 assert.equal(config.execution?.kernels?.sample?.kernel, 'sample.wgsl');
+assert.equal(
+  config.execution?.postLayer?.find((step) => step[0] === 'lm_head')?.[1],
+  'lm_head_gemv_stable'
+);
 
 assert.equal(config.session?.compute?.defaults?.activationDtype, 'f32');
 assert.equal(config.session?.compute?.defaults?.mathDtype, 'f32');
@@ -86,7 +90,7 @@ assert.equal(config.session?.decodeLoop?.ringStop, 1);
 assert.equal(config.session?.decodeLoop?.ringStaging, 2);
 assert.equal(config.session?.decodeLoop?.disableCommandBatching, false);
 assert.equal(config.session?.retainQ4KMaterialization, false);
-assert.equal(config.session?.perLayerInputs?.materialization, 'range_backed');
+assert.equal(config.session?.perLayerInputs?.materialization, 'gpu_split_tables');
 assert.equal(config.session?.perLayerInputs?.hotCache?.mode, 'prepared_tokens');
 assert.equal(config.session?.perLayerInputs?.hotCache?.maxTokens, 4096);
 assert.equal(config.session?.perLayerInputs?.hotCache?.maxBytes, 268435456);
@@ -96,13 +100,12 @@ assert.equal(int4PleConfig.output?.baseDir, 'models/local');
 assert.equal(int4PleConfig.output?.modelBaseId, 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple');
 assert.equal(int4PleConfig.quantization?.weights, 'q4k');
 assert.equal(int4PleConfig.quantization?.embeddings, 'f16');
+assert.equal(int4PleConfig.quantization?.lmHead, 'f16');
 assert.equal(int4PleConfig.quantization?.perLayerEmbeddings, 'int4_per_row');
 assert.equal(int4PleConfig.session?.retainQ4KMaterialization, false);
-// int4ple shares the gpu_split_tables materialization with its non-int4ple sibling
-// so that the INT4 PLE variant benefits from the same throughput path. Previously
-// 'range_backed'; changed in the manifest-first session-flag promotion so PLE and
-// non-PLE variants track the same optimized materialization.
-assert.equal(int4PleConfig.session?.perLayerInputs?.materialization, 'gpu_split_tables');
+// INT4 PLE rows stay range-backed; conversion rejects split-table materialization
+// for packed INT4 PLE tensors.
+assert.equal(int4PleConfig.session?.perLayerInputs?.materialization, 'range_backed');
 
 const manifestInference = {
   schema: 'doppler.execution/v1',

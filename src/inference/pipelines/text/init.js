@@ -151,6 +151,23 @@ const Q4K_PROJECTION_OPS = new Set([
   'linear_out_proj',
 ]);
 
+const Q4K_MATMUL_ROLE_OPS = new Map([
+  ['q_proj', 'q_proj'],
+  ['k_proj', 'k_proj'],
+  ['v_proj', 'v_proj'],
+  ['o_proj', 'o_proj'],
+  ['gate_proj', 'ffn_gate'],
+  ['up_proj', 'ffn_up'],
+  ['down_proj', 'ffn_down'],
+  ['qkv_proj', 'qkv_proj'],
+  ['linear_qkv_proj', 'linear_qkv_proj'],
+  ['linear_z_proj', 'linear_z_proj'],
+  ['linear_a_proj', 'linear_a_proj'],
+  ['linear_b_proj', 'linear_b_proj'],
+  ['linear_out_proj', 'linear_out_proj'],
+  ['lm_head', 'lm_head'],
+]);
+
 function summarizeQ4KProjectionKernelKinds(kernelPath) {
   const summary = {
     denseProjectionKernels: [],
@@ -162,14 +179,15 @@ function summarizeQ4KProjectionKernelKinds(kernelPath) {
 
   const appendPhase = (phase, steps) => {
     for (const step of steps ?? []) {
-      if (!Q4K_PROJECTION_OPS.has(step?.op)) {
+      const op = step?.op;
+      if (!Q4K_PROJECTION_OPS.has(op)) {
         continue;
       }
       const kernel = String(step?.kernel ?? '');
       if (!kernel) {
         continue;
       }
-      const descriptor = `${phase}.${step.op}:${kernel}#${String(step?.entry ?? 'main')}`;
+      const descriptor = `${phase}.${op}:${kernel}#${String(step?.entry ?? 'main')}`;
       if (kernel.startsWith('fused_matmul_q4')) {
         summary.fusedProjectionKernels.push(descriptor);
       } else if (kernel.startsWith('matmul_')) {
@@ -181,6 +199,31 @@ function summarizeQ4KProjectionKernelKinds(kernelPath) {
   appendPhase('decode', kernelPath.decode?.steps);
   appendPhase('prefill', kernelPath.prefill?.steps);
   return summary;
+}
+
+function collectQ4KFusedRoles(kernelPath) {
+  const roles = new Set();
+  if (!kernelPath || typeof kernelPath !== 'object') {
+    return [];
+  }
+
+  const appendSteps = (steps) => {
+    for (const step of steps ?? []) {
+      const role = Q4K_MATMUL_ROLE_OPS.get(step?.op);
+      if (!role) {
+        continue;
+      }
+      const kernel = String(step?.kernel ?? '');
+      if (kernel.startsWith('fused_matmul_q4')) {
+        roles.add(role);
+      }
+    }
+  };
+
+  appendSteps(kernelPath.decode?.steps);
+  appendSteps(kernelPath.prefill?.steps);
+  appendSteps(kernelPath.postLayer);
+  return [...roles].sort();
 }
 
 function resolveQ4KProjectionMaterializationMode(
@@ -231,6 +274,7 @@ export function resolveQ4KConfig(
   // Layout in quantizationInfo: 'row' (fused) or 'col' (dequant)
   const q4kLayout = manifest?.quantizationInfo?.layout ?? null;
   const isQ4KModel = manifest?.quantization === 'Q4_K_M';
+  const q4kFusedRoles = isQ4KModel ? collectQ4KFusedRoles(kernelPath) : [];
   if (isQ4KModel && q4kLayout == null) {
     throw new Error(
       `Manifest "${manifest?.modelId ?? 'unknown'}" is missing quantizationInfo.layout for Q4_K_M. Re-convert the model.`
@@ -298,6 +342,7 @@ export function resolveQ4KConfig(
     q4kLayout,
     keepF32Weights: resolvedKeepF32Weights,
     q4kMaterializationMode,
+    q4kFusedRoles,
   };
 }
 

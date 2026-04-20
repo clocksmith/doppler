@@ -1,12 +1,12 @@
 {
   "id": "profiles/qwen-3-5-0-8b-throughput-probe",
   "name": "qwen-3-5-0-8b-throughput-probe",
-  "description": "Qwen 3.5 0.8B throughput profile with a longer-prompt override (~80 tokens) for apples-to-apples measurement.",
+  "description": "Qwen 3.5 0.8B throughput probe with a longer-prompt override (~80 tokens) for apples-to-apples measurement. Model fast-path settings come from the converted manifest.",
   "intent": "calibrate",
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-04-18T00:00:00Z",
-  "extends": "profiles/qwen-3-5-0-8b-throughput",
+  "extends": "profiles/throughput",
   "model": "qwen-3-5-0-8b-q4k-ehaf16",
   "runtime": {
     "inference": {

@@ -693,6 +693,8 @@ const GPU_LOADER_DISPATCH = {
 export async function loadTensorToGPU(shardData, location, name, config) {
   const dtype = location.dtype;
   const useFusedQ4K = shouldUseFusedQ4K(location, config);
+  const requiresFusedQ4KRole = Array.isArray(config?.q4kFusedRoles)
+    && config.q4kFusedRoles.includes(location.role);
   const caps = config?.gpuCapabilities || getKernelCapabilities();
   const platformId = getPlatformConfig()?.platform?.id ?? null;
   const q4kReferenceContext = getQ4KCpuReferenceContext(shardData, location, config);
@@ -700,7 +702,9 @@ export async function loadTensorToGPU(shardData, location, name, config) {
     || (caps?.hasSubgroups !== true && caps?.hasF16 !== true);
   const loaderPath = selectRuleValue('loader', 'tensorLoader', 'gpuLoaderPath', {
     dtype,
+    role: location.role ?? null,
     useFusedQ4K,
+    requiresFusedQ4KRole,
     q4kMaterializationMode: config.q4kMaterializationMode ?? 'dense',
     q4kCpuReferenceEligible: q4kReferenceContext.eligible,
     q4kBasicBackendClass,

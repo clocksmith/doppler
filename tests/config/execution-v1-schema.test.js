@@ -560,6 +560,75 @@ if (appliedRuntimeConfig.runtimeConfig.inference?.session?.kvcache?.kvDtype !== 
   );
 }
 
+const nullRuntimeOverridesConfig = createDopplerConfig({
+  runtime: {
+    inference: {
+      session: {
+        kvcache: {
+          kvDtype: 'f32',
+          layout: 'contiguous',
+        },
+        decodeLoop: {
+          batchSize: 32,
+          stopCheckMode: 'batch',
+          readbackInterval: 64,
+          readbackMode: 'sequential',
+          ringTokens: 1,
+          ringStop: 1,
+          ringStaging: 1,
+          disableCommandBatching: false,
+        },
+      },
+    },
+  },
+}).runtime;
+
+const appliedNullRuntimeOverridesConfig = applyExecutionV1RuntimeConfig({
+  runtimeConfig: nullRuntimeOverridesConfig,
+  runtimeOverrides: null,
+  manifest: {
+    modelId: 'test-model-null-runtime-overrides',
+    architecture: {
+      numLayers: 26,
+      headDim: 128,
+    },
+    inference: {
+      schema: EXECUTION_V1_SCHEMA_ID,
+      execution: f32AttentionGraph,
+      session: {
+        compute: {
+          defaults: { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' },
+        },
+        kvcache: {
+          kvDtype: 'f32',
+          layout: 'contiguous',
+        },
+        decodeLoop: {
+          batchSize: 12,
+          stopCheckMode: 'batch',
+          readbackInterval: 32,
+          readbackMode: 'sequential',
+        },
+      },
+    },
+  },
+  modelId: 'test-model-null-runtime-overrides',
+  numLayers: 26,
+  capabilities: { hasF16: true, hasSubgroups: true },
+  platform: { id: 'test', vendor: 'test', architecture: 'test' },
+});
+
+if (appliedNullRuntimeOverridesConfig.executionV1State?.session?.decodeLoop?.batchSize !== 32) {
+  throw new Error(
+    'Execution-v1 must treat runtimeOverrides=null as absent and keep resolved runtime session decodeLoop overrides'
+  );
+}
+if (appliedNullRuntimeOverridesConfig.executionV1State?.session?.decodeLoop?.readbackInterval !== 64) {
+  throw new Error(
+    'Execution-v1 must not replace resolved runtime decodeLoop with manifest decodeLoop when runtimeOverrides is null'
+  );
+}
+
 const compiledPipeline = compileExecutionV1({
   manifestInference: {
     schema: EXECUTION_V1_SCHEMA_ID,

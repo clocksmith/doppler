@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-04-19",
+  "updatedAt": "2026-04-20",
   "claims": [
     {
       "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
@@ -28,24 +28,31 @@
     {
       "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
       "mode": "text",
-      "surface": ["node"],
-      "verificationSource": "runtime-verify",
-      "lastVerifiedAt": "2026-04-18",
+      "surface": ["browser", "node"],
+      "verificationSource": "vendor-compare",
+      "lastVerifiedAt": "2026-04-20",
       "artifactFormat": "rdrr",
       "evidence": {
-        "kind": "runtime-verify"
+        "kind": "vendor-compare",
+        "receiptPaths": [
+          "benchmarks/vendors/results/compare_20260420T162522.json",
+          "benchmarks/vendors/results/compare_20260420T162831.json"
+        ]
       }
     },
     {
       "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
       "mode": "text",
-      "surface": ["node"],
-      "verificationSource": "manual-review",
-      "lastVerifiedAt": "2026-04-16",
+      "surface": ["browser", "node"],
+      "verificationSource": "vendor-compare",
+      "lastVerifiedAt": "2026-04-20",
       "artifactFormat": "rdrr",
       "evidence": {
-        "kind": "manual-report",
-        "reportPath": "tests/fixtures/reports/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-04-16T00-00-00.000Z.json"
+        "kind": "vendor-compare",
+        "receiptPaths": [
+          "benchmarks/vendors/results/compare_20260420T162233.json",
+          "benchmarks/vendors/results/compare_20260420T163016.json"
+        ]
       }
     },
     {
@@ -62,23 +69,31 @@
     {
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "mode": "text",
-      "surface": ["node"],
-      "verificationSource": "runtime-verify",
-      "lastVerifiedAt": "2026-04-18",
+      "surface": ["browser", "node"],
+      "verificationSource": "vendor-compare",
+      "lastVerifiedAt": "2026-04-20",
       "artifactFormat": "rdrr",
       "evidence": {
-        "kind": "runtime-verify"
+        "kind": "vendor-compare",
+        "receiptPaths": [
+          "benchmarks/vendors/results/compare_20260420T163342.json",
+          "benchmarks/vendors/results/compare_20260420T163425.json"
+        ]
       }
     },
     {
       "modelId": "qwen-3-5-2b-q4k-ehaf16",
       "mode": "text",
       "surface": ["browser", "node"],
-      "verificationSource": "runtime-verify",
-      "lastVerifiedAt": "2026-04-18",
+      "verificationSource": "vendor-compare",
+      "lastVerifiedAt": "2026-04-20",
       "artifactFormat": "rdrr",
       "evidence": {
-        "kind": "runtime-verify"
+        "kind": "vendor-compare",
+        "receiptPaths": [
+          "benchmarks/vendors/results/compare_20260420T163143.json",
+          "benchmarks/vendors/results/compare_20260420T163255.json"
+        ]
       }
     },
     {

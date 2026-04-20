@@ -15,7 +15,7 @@ and the `gpuResidentOverrides` fix moving `embed_tokens.weight` to GPU.
 ## The evidence
 
 Canonical post-fix receipt: [`compare-goal1.stdout`](../../compare-goal1.stdout)
-(2026-04-16T00:27:34Z, Apple M3, `gemma4-e2b-throughput` profile with
+(2026-04-16T00:27:34Z, Apple M3, the manifest-owned throughput path with
 `gpuResidentOverrides` active). The corresponding pre-fix receipt is
 preserved in git history at commit
 [`3e1a6f9`](https://github.com/clocksmith/doppler/commit/3e1a6f9fc0711a70a3b55856307e5033b850f34c)
@@ -143,23 +143,21 @@ budget is already under 20% of decode wall. A 2× faster kernel would save
 ~490 ms out of 5750 ms — not enough to catch TJS's ~2160 ms decode wall for
 the same 64 tokens.
 
-**Not** the PLE per-layer-input fallback path. Gemma 4 E2B is *not* hitting
-`generateNTokensGPUStepwiseRangeBackedPle` — the throughput profile has
-`session.perLayerInputs.materialization: "gpu_split_tables"`, which routes
-through `ensurePleGpuSplitTablesRuntime()` at
-`src/inference/pipelines/text/per-layer-inputs.js:884` and populates
-`embedTokensPerLayerSplit`. With that populated,
-`hasRangeBackedPerLayerInputEmbeddings()` returns false and the stepwise
-fallback is bypassed. The receipt confirms this: `decodeMode: "batched_gpu"`,
-`batchedForwardCalls=16`, `unbatchedForwardCalls=0`.
+**Not** a runtime-preset-owned PLE materialization choice. The shipped Gemma
+4 E2B base fast path uses `session.perLayerInputs.materialization:
+"gpu_split_tables"`, but that setting is owned by the conversion config and
+manifest. Generic runtime profiles should not carry Gemma-specific
+materialization overrides. The receipt confirms the important runtime
+property: `decodeMode: "batched_gpu"`, `batchedForwardCalls=16`,
+`unbatchedForwardCalls=0`.
 
 ## The fix that landed (2026-04-15)
 
-A new runtime config field
-`runtime.inference.largeWeights.gpuResidentOverrides` (string array | null)
-lets a profile force specific weights to GPU residency, bypassing the
-size-threshold check in `shouldStreamLargeWeight`. The
-`gemma4-e2b-throughput` profile now sets:
+A new inference config field
+`largeWeights.gpuResidentOverrides` (string array | null) lets a converted
+artifact force specific weights to GPU residency, bypassing the size-threshold
+check in `shouldStreamLargeWeight`. Gemma 4 E2B conversion configs and
+manifests now set:
 
 ```json
 "largeWeights": {
@@ -185,14 +183,16 @@ Schema and contract:
 - `src/loader/embedding-loader.js`
   `shouldUseRangeBackedEmbeddingSource()` — diagnostic logs for each
   residency branch
-- `src/config/runtime/profiles/gemma4-e2b-throughput.json` — override
-  populated
+- `src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32.json` —
+  override populated for converted artifacts
+- `models/local/gemma-4-e2b-it-q4k-ehf16-af32/manifest.json` — local
+  manifest mirrors the converted artifact contract
 - Contract tests:
   - `tests/config/runtime-large-weights-defaults-contract.test.js`
     (default + override merge)
   - `tests/loader/should-stream-large-weight-overrides.test.js` (behavior)
-  - `tests/config/gemma4-e2b-runtime-profiles-contract.test.js` (profile
-    locks the override in)
+  - `tests/config/gemma4-e2b-runtime-profiles-contract.test.js`
+    (conversion config and local manifest lock the override in)
 
 Memory cost: ~768 MB extra GPU. Gemma 4 E2B currently uses ~5.15 GB on M3,
 so the M3 budget fits.
@@ -206,7 +206,7 @@ per-batch CPU↔GPU round trips caused by CPU-resident `embed_tokens.weight`
 ### What the M3 validation actually showed
 
 Running the canonical compare on the same hardware with
-`gemma4-e2b-throughput` loading correctly:
+the manifest-owned throughput path loading correctly:
 
 - Loader logs confirm the override fires:
   `[Loader] Embedding weight "model.language_model.embed_tokens.weight" forced GPU-resident via runtime.inference.largeWeights.gpuResidentOverrides.`

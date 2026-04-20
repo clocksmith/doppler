@@ -92,7 +92,18 @@ assert.equal(
 );
 assert.equal(
   kernelPath.postLayer.find((step) => step.op === 'lm_head')?.kernel,
-  'matmul_gemv_subgroup_f16a.wgsl'
+  'fused_matmul_q4.wgsl'
+);
+assert.equal(
+  kernelPath.postLayer.find((step) => step.op === 'lm_head')?.entry,
+  'main_gemv'
+);
+assert.deepEqual(
+  kernelPath.postLayer.find((step) => step.op === 'lm_head')?.constants,
+  {
+    COLS_PER_WG: 64,
+    THREADS_PER_COL_GEMV: 4,
+  }
 );
 
 const linearDecodeSteps = getLayerSteps(kernelPath, 0, 'decode');

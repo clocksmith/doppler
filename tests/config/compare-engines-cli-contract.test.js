@@ -49,6 +49,7 @@ function runCompareEngines(args) {
   const qwen08Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'qwen-3-5-0-8b-q4k-ehaf16') || null;
   const qwen2Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'qwen-3-5-2b-q4k-ehaf16') || null;
   const gemma4Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'gemma-4-e2b-it-q4k-ehf16-af32') || null;
+  const gemma4Int4PleProfile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple') || null;
   const gemma4Catalog = (Array.isArray(catalog.models) ? catalog.models : [])
     .find((entry) => entry?.modelId === 'gemma-4-e2b-it-q4k-ehf16-af32') || null;
 
@@ -58,10 +59,19 @@ function runCompareEngines(args) {
   });
   assert.ok(qwen08Profile, 'compare config must include qwen-3-5-0-8b-q4k-ehaf16');
   assert.equal(qwen08Profile.defaultDopplerSurface, 'browser');
+  assert.equal(
+    qwen08Profile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
+    'profiles/throughput'
+  );
   assert.equal(qwen08Profile.compareLane, 'performance_comparable');
   assert.equal(qwen08Profile.compareLaneReason, null);
 
   assert.ok(qwen2Profile, 'compare config must include qwen-3-5-2b-q4k-ehaf16');
+  assert.equal(qwen2Profile.defaultDopplerSurface, 'browser');
+  assert.equal(
+    qwen2Profile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
+    'profiles/throughput'
+  );
   assert.equal(qwen2Profile.compareLane, 'capability_only');
   assert.match(qwen2Profile.compareLaneReason, /not yet promoted to a claimable compare lane/i);
 
@@ -70,10 +80,15 @@ function runCompareEngines(args) {
   assert.equal(gemma4Profile.defaultUseChatTemplate, true);
   assert.equal(
     gemma4Profile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
-    'profiles/gemma4-e2b-throughput'
+    'profiles/throughput'
   );
   assert.equal(gemma4Profile.compareLane, 'performance_comparable');
   assert.equal(gemma4Profile.compareLaneReason, null);
+  assert.ok(gemma4Int4PleProfile, 'compare config must include gemma-4-e2b-it-q4k-ehf16-af32-int4ple');
+  assert.equal(
+    gemma4Int4PleProfile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
+    'profiles/throughput'
+  );
   assert.ok(gemma4Catalog, 'models/catalog.json must include gemma-4-e2b-it-q4k-ehf16-af32');
   assert.equal(gemma4Catalog?.vendorBenchmark?.transformersjs?.repoId, gemma4Profile.defaultTjsModelId);
   assert.equal(gemma4Catalog?.vendorBenchmark?.transformersjs?.dtype, 'q4f16');
@@ -141,6 +156,10 @@ function runCompareEngines(args) {
   assert.equal(benchmarkPolicy?.browser?.compareChannelByPlatform?.darwin, 'chromium');
   assert.equal(benchmarkPolicy?.browser?.compareChannelByPlatform?.linux, 'chromium');
   assert.equal(benchmarkPolicy?.browser?.compareChannelByPlatform?.win32, 'chromium');
+  assert.equal(benchmarkPolicy?.decodeProfiles?.profiles?.parity?.stopCheckMode, 'batch');
+  assert.equal(benchmarkPolicy?.decodeProfiles?.profiles?.parity?.readbackInterval, 4);
+  assert.equal(benchmarkPolicy?.decodeProfiles?.profiles?.throughput?.stopCheckMode, 'batch');
+  assert.equal(benchmarkPolicy?.decodeProfiles?.profiles?.throughput?.readbackInterval, 4);
 }
 
 {
@@ -167,6 +186,7 @@ function runCompareEngines(args) {
 {
   const result = runCompareEngines(['--help']);
   assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /--doppler-stop-check-mode <batch\|per-token>/);
 }
 
 {

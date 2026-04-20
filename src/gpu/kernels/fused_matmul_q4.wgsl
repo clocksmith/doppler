@@ -258,10 +258,18 @@ override SHARED_A_MAX: u32 = 3584u;
 
 // ============================================================================
 // Optimised GEMV: shared-A cooperative load + fast nibble extraction.
-// Use when K <= SHARED_A_MAX (compile-time override, default 3584).
+// Uses shared A for the hot prefix and falls back to global A reads when
+// K exceeds SHARED_A_MAX, which keeps large FFN down-projections correct.
 // ============================================================================
 var<workgroup> gemv_shared_A: array<f32, SHARED_A_MAX>;
 var<workgroup> gemv_sums: array<f32, MAX_WORKGROUP_SIZE>;
+
+fn gemv_load_a(k: u32) -> f32 {
+    if (k < SHARED_A_MAX) {
+        return gemv_shared_A[k];
+    }
+    return A[k];
+}
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_gemv(
@@ -311,10 +319,10 @@ fn main_gemv(
                 for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
                     let k0 = k_base + sb_base + i;
 
-                    let a0 = gemv_shared_A[k0];
-                    let a1 = gemv_shared_A[k0 + 1u];
-                    let a2 = gemv_shared_A[k0 + 2u];
-                    let a3 = gemv_shared_A[k0 + 3u];
+                    let a0 = gemv_load_a(k0);
+                    let a1 = gemv_load_a(k0 + 1u);
+                    let a2 = gemv_load_a(k0 + 2u);
+                    let a3 = gemv_load_a(k0 + 3u);
 
                     let word = block.qs[word_base + (i >> 2u)];
                     let q0 = (word >> nibble_shift) & 0xFu;
@@ -360,10 +368,10 @@ fn main_gemv(
                         var a1: f32 = 0.0;
                         var a2: f32 = 0.0;
                         var a3: f32 = 0.0;
-                        if (k0 < u.K) { a0 = gemv_shared_A[k0]; }
-                        if (k0 + 1u < u.K) { a1 = gemv_shared_A[k0 + 1u]; }
-                        if (k0 + 2u < u.K) { a2 = gemv_shared_A[k0 + 2u]; }
-                        if (k0 + 3u < u.K) { a3 = gemv_shared_A[k0 + 3u]; }
+                        if (k0 < u.K) { a0 = gemv_load_a(k0); }
+                        if (k0 + 1u < u.K) { a1 = gemv_load_a(k0 + 1u); }
+                        if (k0 + 2u < u.K) { a2 = gemv_load_a(k0 + 2u); }
+                        if (k0 + 3u < u.K) { a3 = gemv_load_a(k0 + 3u); }
 
                         let word = block.qs[word_base + (i >> 2u)];
                         let q0 = (word >> nibble_shift) & 0xFu;

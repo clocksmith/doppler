@@ -168,6 +168,8 @@ export class DopplerLoader {
 
   q4kMaterializationMode = 'dense';
 
+  q4kFusedRoles = [];
+
   // Internal tracking
   
   #normOffsetLogged = false;
@@ -223,6 +225,9 @@ export class DopplerLoader {
     this.q4kLayout = config.q4kLayout;
     this.keepF32Weights = config.keepF32Weights;
     this.q4kMaterializationMode = config.q4kMaterializationMode ?? 'dense';
+    this.q4kFusedRoles = Array.isArray(config.q4kFusedRoles)
+      ? [...new Set(config.q4kFusedRoles.map((role) => String(role)).filter(Boolean))].sort()
+      : [];
   }
 
   
@@ -793,6 +798,7 @@ export class DopplerLoader {
       const config = {
         useFusedQ4K: this.useFusedQ4K,
         q4kMaterializationMode: this.q4kMaterializationMode,
+        q4kFusedRoles: this.q4kFusedRoles,
         keepF32Weights: this.keepF32Weights,
         q4kLayout: this.q4kLayout,
         loaderDebug: this.#loaderDebug,

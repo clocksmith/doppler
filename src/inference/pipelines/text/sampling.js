@@ -82,6 +82,139 @@ function assertFiniteSamplingCandidates(logits, padTokenId, label) {
   );
 }
 
+function isHigherPriorityCandidate(candidate, current) {
+  return candidate.logit > current.logit
+    || (candidate.logit === current.logit && candidate.token < current.token);
+}
+
+function isLowerPriorityCandidate(candidate, current) {
+  return candidate.logit < current.logit
+    || (candidate.logit === current.logit && candidate.token > current.token);
+}
+
+function heapSwap(heap, a, b) {
+  const tmp = heap[a];
+  heap[a] = heap[b];
+  heap[b] = tmp;
+}
+
+function heapPushLowestFirst(heap, candidate) {
+  heap.push(candidate);
+  let index = heap.length - 1;
+  while (index > 0) {
+    const parent = Math.floor((index - 1) / 2);
+    if (!isLowerPriorityCandidate(heap[index], heap[parent])) {
+      break;
+    }
+    heapSwap(heap, index, parent);
+    index = parent;
+  }
+}
+
+function heapifyLowestFirst(heap, index) {
+  while (true) {
+    const left = index * 2 + 1;
+    const right = left + 1;
+    let smallest = index;
+    if (left < heap.length && isLowerPriorityCandidate(heap[left], heap[smallest])) {
+      smallest = left;
+    }
+    if (right < heap.length && isLowerPriorityCandidate(heap[right], heap[smallest])) {
+      smallest = right;
+    }
+    if (smallest === index) {
+      return;
+    }
+    heapSwap(heap, index, smallest);
+    index = smallest;
+  }
+}
+
+function selectTopKLogitCandidates(logits, topK) {
+  const limit = Math.max(1, Math.floor(topK));
+  if (!Number.isFinite(limit) || limit >= logits.length) {
+    return null;
+  }
+
+  const heap = [];
+  for (let token = 0; token < logits.length; token++) {
+    const logit = logits[token];
+    if (!Number.isFinite(logit)) {
+      continue;
+    }
+    const candidate = { token, logit };
+    if (heap.length < limit) {
+      heapPushLowestFirst(heap, candidate);
+      continue;
+    }
+    if (isHigherPriorityCandidate(candidate, heap[0])) {
+      heap[0] = candidate;
+      heapifyLowestFirst(heap, 0);
+    }
+  }
+  if (heap.length === 0) {
+    return [];
+  }
+  return heap.sort((a, b) => b.logit - a.logit || a.token - b.token);
+}
+
+function sampleFromLogitCandidates(candidates, temperature, seed, decode, debug, topK, topP) {
+  if (candidates.length === 0) {
+    throw new Error(
+      '[Sampling] Top-k filtering produced no finite candidates. ' +
+      'Upstream decode likely produced NaN/Inf logits.'
+    );
+  }
+  if (candidates.length === 1) {
+    return candidates[0].token;
+  }
+
+  const invTemperature = 1 / temperature;
+  let maxScaled = -Infinity;
+  for (const candidate of candidates) {
+    const scaled = candidate.logit * invTemperature;
+    candidate.scaled = scaled;
+    if (scaled > maxScaled) {
+      maxScaled = scaled;
+    }
+  }
+
+  let sum = 0;
+  for (const candidate of candidates) {
+    const weight = Math.exp(candidate.scaled - maxScaled);
+    candidate.prob = weight;
+    sum += weight;
+  }
+
+  if (sum > 0) {
+    const invSum = 1 / sum;
+    for (const candidate of candidates) {
+      candidate.prob *= invSum;
+    }
+  } else {
+    const uniformProb = 1.0 / candidates.length;
+    for (const candidate of candidates) {
+      candidate.prob = uniformProb;
+    }
+  }
+
+  if (debug) {
+    const top5 = candidates.slice(0, 5).map(c => {
+      const text = decode?.([c.token]) ?? '?';
+      return `"${text}"(${(c.prob * 100).toFixed(1)}%)`;
+    });
+    trace.sample(`Top-5 (temp=${temperature}, topK=${topK}, topP=${topP}): ${top5.join(', ')}`);
+  }
+
+  const r = seed !== undefined ? seededRandom(seed) : unseededRandom();
+  let cumProb = 0;
+  for (const candidate of candidates) {
+    cumProb += candidate.prob;
+    if (r < cumProb) return candidate.token;
+  }
+  return candidates[candidates.length - 1].token;
+}
+
 
 export function sample(logits, opts) {
   const { temperature, topP, topK, decode, debug = false, padTokenId, seed } = opts;
@@ -117,6 +250,13 @@ export function sample(logits, opts) {
       trace.sample(`Greedy: id=${maxIdx} "${text}" logit=${maxVal.toFixed(4)}`);
     }
     return maxIdx;
+  }
+
+  if (topP >= 1.0 && Number.isFinite(topK) && topK > 0) {
+    const candidates = selectTopKLogitCandidates(logits, topK);
+    if (candidates) {
+      return sampleFromLogitCandidates(candidates, temperature, seed, decode, debug, topK, topP);
+    }
   }
 
   // Apply temperature

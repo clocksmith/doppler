@@ -137,23 +137,24 @@ Current config intent:
   - Resolved modelId: `qwen-3-5-0-8b-q4k-ehaf16`
   - Output mode: `textOnly: false` (keep multimodal-compatible artifact layout; text path uses the language tower)
   - Manifest multimodal contract: explicit canonical `manifest.visionConfig`
-  - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
-  - Compute: `f16`
+  - Weights: `q4k` (row layout), embeddings/vision/projector: `f16`, tied lmHead: `q4k`
+  - Compute: `f32`
   - Kernel path: `null` (no explicit manifest kernel-path contract)
   - Execution-v1: explicit execution graph with `inlineKernelPath: true`
-  - Hybrid contract: fused-Q4 projections stay primary for the shared linear-attention path
+  - Hybrid contract: fused-Q4 projections stay primary for the shared linear-attention path; optimized fused-Q4 `main_gemv` with `COLS_PER_WG=64` and `THREADS_PER_COL_GEMV=4` drives the quantized tied LM head
   - Session: decode loop `batchSize=4`, `stopCheckMode=batch`, `readbackInterval=32`, `disableCommandBatching=false`
 
 - `src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json`
   - Output base: `models/local/qwen-3-5-2b-q4k-ehaf16`
   - Resolved modelId: `qwen-3-5-2b-q4k-ehaf16`
   - Output mode: `textOnly: true`
-  - Weights: `q4k` (row layout), embeddings/lmHead: `f16`
-  - Compute: `f16`
+  - Weights: `q4k` (row layout), embeddings: `f16`, tied lmHead: `q4k`
+  - Compute: `f32`
   - Kernel path: `null` (no explicit manifest kernel-path contract)
   - Execution-v1: explicit execution graph with `inlineKernelPath: true`
-  - Hybrid contract: fused-Q4 projections stay primary for the shared linear-attention path
-  - Session: decode loop `batchSize=8`, `stopCheckMode=batch`, `readbackInterval=32`, `disableCommandBatching=false`
+  - Hybrid contract: fixed fused-Q4 `main_gemv` is primary for transformer decode; optimized fused-Q4 `main_gemv` with `COLS_PER_WG=64` and `THREADS_PER_COL_GEMV=4` drives the quantized tied LM head, while stable fused-Q4 `main_multicol` remains declared as the fallback Q4 decode kernel
+  - Prefill contract: `q4_widetile` projections and `attn_head256`
+  - Session: decode loop `batchSize=12`, `stopCheckMode=batch`, `readbackInterval=32`, `disableCommandBatching=false`
 
 - `src/config/conversion/sana/sana-sprint-0.6b-f16.json`
   - Output base: `models/local/sana-sprint-0.6b-f16`

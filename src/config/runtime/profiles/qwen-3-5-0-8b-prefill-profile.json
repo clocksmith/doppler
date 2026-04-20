@@ -6,7 +6,7 @@
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-04-18T00:00:00Z",
-  "extends": "profiles/qwen-3-5-0-8b-throughput",
+  "extends": "profiles/throughput",
   "model": "qwen-3-5-0-8b-q4k-ehaf16",
   "runtime": {
     "shared": {

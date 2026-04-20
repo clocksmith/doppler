@@ -183,6 +183,7 @@ const DEFAULT_BENCHMARK_POLICY = Object.freeze({
         readbackInterval: 1,
         disableMultiTokenDecode: true,
         speculationMode: 'none',
+        stopCheckMode: 'per-token',
         label: 'TJS-like per-token cadence',
       }),
       throughput: Object.freeze({
@@ -190,6 +191,7 @@ const DEFAULT_BENCHMARK_POLICY = Object.freeze({
         readbackInterval: 4,
         disableMultiTokenDecode: false,
         speculationMode: 'none',
+        stopCheckMode: 'batch',
         label: 'Doppler throughput-tuned cadence',
       }),
     }),
@@ -598,6 +600,7 @@ function usage() {
     '  --doppler-kernel-path <id>     Doppler kernel path override',
     '  --doppler-batch-size <n>       Doppler decode batch size',
     '  --doppler-readback-interval <n> Doppler decode readback interval',
+    '  --doppler-stop-check-mode <batch|per-token> Doppler decode stop-check cadence',
     '  --doppler-no-opfs-cache        Disable Doppler OPFS cache for browser runs',
     '  --use-chat-template <on|off>   Enable/disable chat template handling',
     '  --tjs-local-model-path <path>   Path override for local TJS model files',
@@ -3121,10 +3124,15 @@ async function main() {
   );
   const hasCustomDopplerBatchSize = flags['doppler-batch-size'] != null;
   const hasCustomDopplerReadbackInterval = flags['doppler-readback-interval'] != null;
-  const hasCustomDopplerDecodeTuning = hasCustomDopplerBatchSize || hasCustomDopplerReadbackInterval;
+  const hasCustomDopplerStopCheckMode = flags['doppler-stop-check-mode'] != null;
+  const hasCustomDopplerDecodeTuning = (
+    hasCustomDopplerBatchSize
+    || hasCustomDopplerReadbackInterval
+    || hasCustomDopplerStopCheckMode
+  );
   if (hasCustomDopplerDecodeTuning && decodeProfile !== 'custom') {
     throw new Error(
-      'Use --decode-profile custom when setting --doppler-batch-size or --doppler-readback-interval.'
+      'Use --decode-profile custom when setting Doppler decode cadence flags.'
     );
   }
   const decodeProfileConfig = DECODE_PROFILE_CONFIGS[decodeProfile] || DECODE_PROFILE_CONFIGS[DEFAULT_DECODE_PROFILE];
@@ -3141,6 +3149,10 @@ async function main() {
     flags['doppler-readback-interval'],
     decodeProfileConfig.readbackInterval,
     '--doppler-readback-interval'
+  );
+  const dopplerStopCheckMode = normalizeStopCheckMode(
+    flags['doppler-stop-check-mode'] ?? decodeProfileConfig.stopCheckMode,
+    '--doppler-stop-check-mode'
   );
   const dopplerTokensPerReadback = dopplerBatchSize * dopplerReadbackInterval;
   const dopplerNoOpfsCache = flags['doppler-no-opfs-cache'] === true;
@@ -3207,6 +3219,7 @@ async function main() {
     + `engine=${sharedContract.useChatTemplate === true ? 'on' : 'off'}, `
     + `dopplerBatchSize: ${dopplerBatchSize}, `
     + `dopplerReadbackInterval: ${dopplerReadbackInterval}, `
+    + `dopplerStopCheckMode: ${dopplerStopCheckMode}, `
     + `dopplerTokensPerReadback: ${dopplerTokensPerReadback}, `
     + `dopplerTimeoutMs: ${compareDopplerTimeoutMs}, `
     + `tjsTimeoutMs: ${compareTjsTimeoutMs}, `
@@ -3295,6 +3308,7 @@ async function main() {
     decodeProfile,
     dopplerBatchSize,
     dopplerReadbackInterval,
+    dopplerStopCheckMode,
     dopplerTokensPerReadback,
     tjsModelId,
     transformersjsDtype: tjsDtype,
@@ -3385,7 +3399,7 @@ async function main() {
       dopplerDecodeCadence: {
         batchSize: dopplerBatchSize,
         readbackInterval: dopplerReadbackInterval,
-        stopCheckMode: DECODE_PROFILE_CONFIGS[decodeProfile]?.stopCheckMode ?? DEFAULT_DOPPLER_STOP_CHECK_MODE,
+        stopCheckMode: dopplerStopCheckMode,
         disableMultiTokenDecode: DECODE_PROFILE_CONFIGS[decodeProfile]?.disableMultiTokenDecode === true,
         speculationMode: DECODE_PROFILE_CONFIGS[decodeProfile]?.speculationMode ?? 'inherit',
         tokensPerReadback: dopplerTokensPerReadback,
@@ -3443,6 +3457,7 @@ async function main() {
         kernelPath: dopplerKernelPath,
         batchSize: DECODE_PROFILE_CONFIGS.parity.batchSize,
         readbackInterval: DECODE_PROFILE_CONFIGS.parity.readbackInterval,
+        stopCheckMode: DECODE_PROFILE_CONFIGS.parity.stopCheckMode,
         disableMultiTokenDecode: DECODE_PROFILE_CONFIGS.parity.disableMultiTokenDecode === true,
         speculationMode: DECODE_PROFILE_CONFIGS.parity.speculationMode ?? null,
         noOpfsCache: dopplerNoOpfsCache,
@@ -3484,6 +3499,7 @@ async function main() {
         kernelPath: dopplerKernelPath,
         batchSize: DECODE_PROFILE_CONFIGS.throughput.batchSize,
         readbackInterval: DECODE_PROFILE_CONFIGS.throughput.readbackInterval,
+        stopCheckMode: DECODE_PROFILE_CONFIGS.throughput.stopCheckMode,
         disableMultiTokenDecode: DECODE_PROFILE_CONFIGS.throughput.disableMultiTokenDecode === true,
         speculationMode: DECODE_PROFILE_CONFIGS.throughput.speculationMode ?? null,
         noOpfsCache: dopplerNoOpfsCache,
@@ -3542,6 +3558,7 @@ async function main() {
         kernelPath: dopplerKernelPath,
         batchSize: dopplerBatchSize,
         readbackInterval: dopplerReadbackInterval,
+        stopCheckMode: dopplerStopCheckMode,
         disableMultiTokenDecode: decodeProfileConfig.disableMultiTokenDecode === true,
         speculationMode: decodeProfileConfig.speculationMode ?? null,
         noOpfsCache: dopplerNoOpfsCache,
@@ -3613,6 +3630,7 @@ async function main() {
         kernelPath: dopplerKernelPath,
         batchSize: dopplerBatchSize,
         readbackInterval: dopplerReadbackInterval,
+        stopCheckMode: dopplerStopCheckMode,
         disableMultiTokenDecode: decodeProfileConfig.disableMultiTokenDecode === true,
         speculationMode: decodeProfileConfig.speculationMode ?? null,
         noOpfsCache: dopplerNoOpfsCache,
@@ -3680,7 +3698,8 @@ async function main() {
     const decodeProfileLabel = decodeProfileConfig?.label || 'custom decode cadence';
     console.log(
       `[method] prompt tok/s uses prompt_tokens / firstTokenMs, decodeProfile=${decodeProfile} ` +
-      `(${decodeProfileLabel}), Doppler tokens/readback=${dopplerTokensPerReadback}`
+      `(${decodeProfileLabel}), Doppler tokens/readback=${dopplerTokensPerReadback}, ` +
+      `stopCheckMode=${dopplerStopCheckMode}`
     );
     const computeRows = compareMetricContract;
 

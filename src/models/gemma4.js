@@ -12,7 +12,7 @@ const family = createFamily({
       label: 'Gemma 4 E2B Instruct (Q4K/F32a)',
       sourceModel: 'google/gemma-4-e2b-it',
       hfPath: 'models/gemma-4-e2b-it-q4k-ehf16-af32',
-      defaultRuntimeProfile: 'profiles/gemma4-e2b-throughput',
+      defaultRuntimeProfile: 'profiles/throughput',
       modes: ['text', 'vision'],
     },
     {
@@ -20,7 +20,7 @@ const family = createFamily({
       label: 'Gemma 4 E2B Instruct (Q4K/F32a/INT4 PLE)',
       sourceModel: 'google/gemma-4-e2b-it',
       hfPath: 'models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
-      defaultRuntimeProfile: 'profiles/gemma4-e2b-throughput',
+      defaultRuntimeProfile: 'profiles/throughput',
       modes: ['text', 'vision'],
     },
   ],

@@ -248,6 +248,36 @@ function createRuntimeConfig(session = {}) {
 {
   const runtimeConfig = createRuntimeConfig({
     decodeLoop: {
+      batchSize: 32,
+      stopCheckMode: 'batch',
+      readbackInterval: 64,
+      readbackMode: 'sequential',
+    },
+  });
+  const manifest = {
+    modelId: 'lfm2-null-runtime-overrides-do-not-mask-session-test',
+    modelType: 'transformer',
+    inference: {
+      session: {
+        decodeLoop: {
+          batchSize: 8,
+          stopCheckMode: 'batch',
+          readbackInterval: 8,
+          readbackMode: 'sequential',
+        },
+      },
+    },
+  };
+
+  const nextRuntime = applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, null, null);
+  assert.notStrictEqual(nextRuntime, runtimeConfig);
+  assert.equal(nextRuntime.inference.session.decodeLoop.batchSize, 32);
+  assert.equal(nextRuntime.inference.session.decodeLoop.readbackInterval, 64);
+}
+
+{
+  const runtimeConfig = createRuntimeConfig({
+    decodeLoop: {
       batchSize: 8,
       stopCheckMode: 'batch',
       readbackInterval: 8,

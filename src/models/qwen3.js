@@ -15,7 +15,7 @@ const family = createFamily({
       label: 'Qwen 3.5 0.8B (Q4K)',
       sourceModel: 'Qwen/Qwen3.5-0.8B',
       hfPath: 'models/qwen-3-5-0-8b-q4k-ehaf16',
-      defaultRuntimeProfile: 'profiles/qwen-3-5-0-8b-throughput',
+      defaultRuntimeProfile: 'profiles/throughput',
       modes: ['text', 'vision'],
     },
     {

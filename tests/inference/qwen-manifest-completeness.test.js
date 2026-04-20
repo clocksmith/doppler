@@ -44,10 +44,10 @@ const EXPECTED_QWEN_COMPUTE_DEFAULTS = Object.freeze({
     outputDtype: 'f32',
   },
   'qwen-3-5-2b-q4k-ehaf16': {
-    activationDtype: 'f16',
-    mathDtype: 'f16',
-    accumDtype: 'f16',
-    outputDtype: 'f16',
+    activationDtype: 'f32',
+    mathDtype: 'f32',
+    accumDtype: 'f32',
+    outputDtype: 'f32',
   },
 });
 const EXPECTED_QWEN_PER_LAYER_INPUTS = Object.freeze({
@@ -78,16 +78,16 @@ const EXPECTED_QWEN_DECODE_LOOPS = Object.freeze({
   'qwen-3-5-0-8b-q4k-ehaf16': {
     batchSize: 4,
     stopCheckMode: 'batch',
-    readbackInterval: 2,
-    readbackMode: 'overlapped',
+    readbackInterval: 32,
+    readbackMode: 'sequential',
     submitLatencyThresholdMs: null,
-    ringTokens: 2,
+    ringTokens: 1,
     ringStop: 1,
-    ringStaging: 2,
+    ringStaging: 1,
     disableCommandBatching: false,
   },
   'qwen-3-5-2b-q4k-ehaf16': {
-    batchSize: 8,
+    batchSize: 12,
     stopCheckMode: 'batch',
     readbackInterval: 32,
     readbackMode: 'sequential',
@@ -125,6 +125,7 @@ function assertQwenPerLayerInputs(perLayerInputs, label) {
 }
 
 function assertQwenConversionConfig(config) {
+  const modelId = config.output?.modelBaseId ?? 'qwen';
   assert.equal(config.inference.normalization.rmsNormWeightOffset, true);
   assert.equal(config.inference.attention.valueNorm, false);
   assert.equal(config.inference.rope.mropeInterleaved, true);
@@ -138,10 +139,11 @@ function assertQwenConversionConfig(config) {
   assert.equal(config.inference.layerPattern.period, null);
   assert.equal(config.inference.layerPattern.offset, null);
   assert.deepEqual(config.inference.layerPattern.layerTypes, EXPECTED_QWEN_LAYER_TYPES);
-  assertQwenDecodeLoop(config.session?.decodeLoop, config.output?.modelBaseId ?? 'qwen');
+  assert.equal(config.quantization?.lmHead, 'q4k');
+  assertQwenDecodeLoop(config.session?.decodeLoop, modelId);
   assertQwenComputeDefaults(
     config.session?.compute?.defaults,
-    config.output?.modelBaseId ?? 'qwen'
+    modelId
   );
   assert.ok(config.execution && typeof config.execution === 'object', 'qwen execution config must be present');
   assert.equal(config.execution.inlineKernelPath, true, 'qwen execution.inlineKernelPath');
@@ -179,34 +181,74 @@ function assertF16KvAttentionPrecision(execution, label) {
   }
 }
 
-function assertQwenF16UtilityKernels(execution, label) {
-  if (String(label).includes('qwen-3-5-0-8b-q4k-ehaf16')) {
+function assertQwenUtilityKernels(execution, label) {
+  const modelLabel = String(label ?? '');
+  if (modelLabel.includes('qwen-3-5-0-8b-q4k-ehaf16')) {
     assert.equal(execution?.kernels?.rmsnorm?.kernel, 'rmsnorm.wgsl', `${label} rmsnorm kernel`);
     assert.equal(execution?.kernels?.q4_decode?.kernel, 'fused_matmul_q4.wgsl', `${label} q4_decode kernel`);
+    assert.equal(execution?.kernels?.q4_decode?.entry, 'main_multicol', `${label} q4_decode entry`);
     assert.equal(execution?.kernels?.q4_decode_gemv?.kernel, 'fused_matmul_q4.wgsl', `${label} q4_decode_gemv kernel`);
     assert.equal(execution?.kernels?.q4_decode_gemv?.entry, 'main_gemv', `${label} q4_decode_gemv entry`);
     assert.equal(execution?.kernels?.rope?.kernel, 'rope.wgsl', `${label} rope kernel`);
     assert.equal(execution?.kernels?.residual?.kernel, 'residual.wgsl', `${label} residual kernel`);
     assert.equal(execution?.kernels?.silu?.kernel, 'silu.wgsl', `${label} silu kernel`);
+    assert.equal(execution?.kernels?.tiled?.kernel, 'matmul_f16w_f32a.wgsl', `${label} tiled kernel`);
     assert.equal(execution?.kernels?.q4_prefill?.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl', `${label} q4_prefill kernel`);
     assert.equal(execution?.kernels?.q4_widetile?.kernel, 'fused_matmul_q4_widetile.wgsl', `${label} q4_widetile kernel`);
+    assert.equal(execution?.kernels?.attn_decode?.kernel, 'attention_decode_online_f16kv.wgsl', `${label} attn_decode kernel`);
+    assert.equal(execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16kv.wgsl', `${label} attn_stream kernel`);
     assert.equal(execution?.kernels?.attn_head256?.kernel, 'attention_head256_f16kv.wgsl', `${label} attn_head256 kernel`);
+    assert.equal(execution?.kernels?.lm_head_gemv?.kernel, 'matmul_gemv_subgroup_f16a.wgsl', `${label} lm_head_gemv kernel`);
+    assert.equal(execution?.kernels?.lm_head_q4?.kernel, 'fused_matmul_q4.wgsl', `${label} lm_head_q4 kernel`);
+    assert.equal(execution?.kernels?.lm_head_q4?.entry, 'main_gemv', `${label} lm_head_q4 entry`);
+    assert.deepEqual(execution?.kernels?.lm_head_q4?.constants, {
+      COLS_PER_WG: 64,
+      THREADS_PER_COL_GEMV: 4,
+    }, `${label} lm_head_q4 constants`);
     assert.equal(execution?.kernels?.sample?.kernel, 'sample.wgsl', `${label} sample kernel`);
+    const decodeHead = execution?.postLayer?.find((step) => step[0] === 'lm_head');
+    assert.equal(decodeHead?.[1], 'lm_head_q4', `${label} lm_head postLayer kernel`);
     return;
   }
-  assert.equal(execution?.kernels?.rmsnorm?.kernel, 'rmsnorm_f16.wgsl', `${label} rmsnorm kernel`);
-  assert.deepEqual(execution?.kernels?.q4_decode?.precision, {
-    inputDtype: 'f16',
-    outputDtype: 'f16',
-  }, `${label} q4_decode precision`);
-  assert.equal(execution?.kernels?.rope?.kernel, 'rope_f16.wgsl', `${label} rope kernel`);
-  assert.equal(execution?.kernels?.residual?.kernel, 'residual_f16.wgsl', `${label} residual kernel`);
-  assert.equal(execution?.kernels?.silu?.kernel, 'silu_f16.wgsl', `${label} silu kernel`);
-  assert.deepEqual(execution?.kernels?.q4_prefill?.precision, {
-    inputDtype: 'f16',
-    outputDtype: 'f16',
-  }, `${label} q4_prefill precision`);
-  assert.equal(execution?.kernels?.sample?.kernel, 'sample_f16.wgsl', `${label} sample kernel`);
+  if (modelLabel.includes('qwen-3-5-2b-q4k-ehaf16')) {
+    assert.equal(execution?.kernels?.rmsnorm?.kernel, 'rmsnorm.wgsl', `${label} rmsnorm kernel`);
+    assert.equal(execution?.kernels?.q4_decode?.kernel, 'fused_matmul_q4.wgsl', `${label} q4_decode kernel`);
+    assert.equal(execution?.kernels?.q4_decode?.entry, 'main_multicol', `${label} q4_decode entry`);
+    assert.equal(execution?.kernels?.q4_decode_gemv?.kernel, 'fused_matmul_q4.wgsl', `${label} q4_decode_gemv kernel`);
+    assert.equal(execution?.kernels?.q4_decode_gemv?.entry, 'main_gemv', `${label} q4_decode_gemv entry`);
+    assert.equal(execution?.kernels?.rope?.kernel, 'rope.wgsl', `${label} rope kernel`);
+    assert.equal(execution?.kernels?.residual?.kernel, 'residual.wgsl', `${label} residual kernel`);
+    assert.equal(execution?.kernels?.silu?.kernel, 'silu.wgsl', `${label} silu kernel`);
+    assert.equal(execution?.kernels?.tiled?.kernel, 'matmul_f16w_f32a.wgsl', `${label} tiled kernel`);
+    assert.equal(execution?.kernels?.q4_prefill?.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl', `${label} q4_prefill kernel`);
+    assert.equal(execution?.kernels?.q4_widetile?.kernel, 'fused_matmul_q4_widetile.wgsl', `${label} q4_widetile kernel`);
+    assert.equal(execution?.kernels?.attn_decode?.kernel, 'attention_decode_online_f16kv.wgsl', `${label} attn_decode kernel`);
+    assert.equal(execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16kv.wgsl', `${label} attn_stream kernel`);
+    assert.equal(execution?.kernels?.attn_head256?.kernel, 'attention_head256_f16kv.wgsl', `${label} attn_head256 kernel`);
+    assert.equal(execution?.kernels?.lm_head_gemv?.kernel, 'matmul_gemv_subgroup.wgsl', `${label} lm_head_gemv kernel`);
+    assert.equal(execution?.kernels?.lm_head_q4?.kernel, 'fused_matmul_q4.wgsl', `${label} lm_head_q4 kernel`);
+    assert.equal(execution?.kernels?.lm_head_q4?.entry, 'main_gemv', `${label} lm_head_q4 entry`);
+    assert.deepEqual(execution?.kernels?.lm_head_q4?.constants, {
+      COLS_PER_WG: 64,
+      THREADS_PER_COL_GEMV: 4,
+    }, `${label} lm_head_q4 constants`);
+    assert.equal(execution?.kernels?.sample?.kernel, 'sample.wgsl', `${label} sample kernel`);
+    const decodeHead = execution?.postLayer?.find((step) => step[0] === 'lm_head');
+    assert.equal(decodeHead?.[1], 'lm_head_q4', `${label} lm_head postLayer kernel`);
+    return;
+  }
+  assert.equal(execution?.kernels?.rmsnorm?.kernel, 'rmsnorm.wgsl', `${label} rmsnorm kernel`);
+  assert.equal(execution?.kernels?.q4_decode?.kernel, 'fused_matmul_q4.wgsl', `${label} q4_decode kernel`);
+  assert.equal(execution?.kernels?.q4_decode?.entry, 'main_multicol', `${label} q4_decode entry`);
+  assert.equal(execution?.kernels?.rope?.kernel, 'rope.wgsl', `${label} rope kernel`);
+  assert.equal(execution?.kernels?.residual?.kernel, 'residual.wgsl', `${label} residual kernel`);
+  assert.equal(execution?.kernels?.silu?.kernel, 'silu.wgsl', `${label} silu kernel`);
+  assert.equal(execution?.kernels?.tiled?.kernel, 'matmul_f16w_f32a.wgsl', `${label} tiled kernel`);
+  assert.equal(execution?.kernels?.q4_prefill?.kernel, 'fused_matmul_q4_batched.wgsl', `${label} q4_prefill kernel`);
+  assert.equal(execution?.kernels?.attn_decode?.kernel, 'attention_decode_online_f16kv.wgsl', `${label} attn_decode kernel`);
+  assert.equal(execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16kv.wgsl', `${label} attn_stream kernel`);
+  assert.equal(execution?.kernels?.lm_head_gemv?.kernel, 'matmul_gemv_subgroup.wgsl', `${label} lm_head_gemv kernel`);
+  assert.equal(execution?.kernels?.sample?.kernel, 'sample.wgsl', `${label} sample kernel`);
 }
 
 for (const config of convConfigs) {
@@ -247,8 +289,15 @@ if (!hasLocalQ4KManifest) {
     assert.equal(manifest.inference.schema, 'doppler.execution/v1');
     assert.ok(manifest.inference.execution && typeof manifest.inference.execution === 'object');
     assert.equal(manifest.inference.execution.inlineKernelPath, true);
+    if (manifest.modelId === 'qwen-3-5-0-8b-q4k-ehaf16' || manifest.modelId === 'qwen-3-5-2b-q4k-ehaf16') {
+      assert.equal(manifest.quantizationInfo?.lmHead, 'q4k');
+      assert.ok(
+        hasTensor(manifest, 'model.language_model.lm_head.weight') || hasTensor(manifest, 'lm_head.weight'),
+        `${manifest.modelId} must materialize a quantized tied lm_head tensor`
+      );
+    }
     assertF16KvAttentionPrecision(manifest.inference.execution, manifest.modelId);
-    assertQwenF16UtilityKernels(manifest.inference.execution, manifest.modelId);
+    assertQwenUtilityKernels(manifest.inference.execution, manifest.modelId);
   }
 }
 
@@ -395,19 +444,40 @@ for (const config of convConfigs) {
     assert.equal(config.execution.kernels.attn_stream.kernel, 'attention_streaming_f16kv.wgsl');
     assert.equal(config.execution.kernels.attn_head256.kernel, 'attention_head256_f16kv.wgsl');
     assert.equal(config.execution.kernels.lm_head_gemv.kernel, 'matmul_gemv_subgroup_f16a.wgsl');
+    assert.equal(config.execution.kernels.lm_head_q4.kernel, 'fused_matmul_q4.wgsl');
+    assert.equal(config.execution.kernels.lm_head_q4.entry, 'main_gemv');
+    assert.deepEqual(config.execution.kernels.lm_head_q4.constants, {
+      COLS_PER_WG: 64,
+      THREADS_PER_COL_GEMV: 4,
+    });
     assert.equal(config.execution.kernels.sample.kernel, 'sample.wgsl');
+    const decodeHead = config.execution.postLayer.find((step) => step[0] === 'lm_head');
+    assert.equal(decodeHead?.[1], 'lm_head_q4');
   } else if ((config.output?.modelBaseId ?? '') === 'qwen-3-5-2b-q4k-ehaf16') {
-    assert.equal(config.execution.kernels.rmsnorm.kernel, 'rmsnorm_f16.wgsl');
-    assert.equal(config.execution.kernels.q4_decode.kernel, 'fused_matmul_q4_multicol_f16a.wgsl');
-    assert.equal(config.execution.kernels.rope.kernel, 'rope_f16.wgsl');
-    assert.equal(config.execution.kernels.residual.kernel, 'residual_f16.wgsl');
-    assert.equal(config.execution.kernels.silu.kernel, 'silu_f16.wgsl');
-    assert.equal(config.execution.kernels.tiled.kernel, 'matmul_f16.wgsl');
-    assert.equal(config.execution.kernels.q4_prefill.kernel, 'fused_matmul_q4_batched_f16a.wgsl');
-    assert.equal(config.execution.kernels.attn_decode.kernel, 'attention_decode_online_f16.wgsl');
-    assert.equal(config.execution.kernels.attn_stream.kernel, 'attention_small_f16.wgsl');
-    assert.equal(config.execution.kernels.lm_head_gemv.kernel, 'matmul_gemv_subgroup_f16a.wgsl');
-    assert.equal(config.execution.kernels.sample.kernel, 'sample_f16.wgsl');
+    assert.equal(config.execution.kernels.rmsnorm.kernel, 'rmsnorm.wgsl');
+    assert.equal(config.execution.kernels.q4_decode.kernel, 'fused_matmul_q4.wgsl');
+    assert.equal(config.execution.kernels.q4_decode.entry, 'main_multicol');
+    assert.equal(config.execution.kernels.q4_decode_gemv.kernel, 'fused_matmul_q4.wgsl');
+    assert.equal(config.execution.kernels.q4_decode_gemv.entry, 'main_gemv');
+    assert.equal(config.execution.kernels.rope.kernel, 'rope.wgsl');
+    assert.equal(config.execution.kernels.residual.kernel, 'residual.wgsl');
+    assert.equal(config.execution.kernels.silu.kernel, 'silu.wgsl');
+    assert.equal(config.execution.kernels.tiled.kernel, 'matmul_f16w_f32a.wgsl');
+    assert.equal(config.execution.kernels.q4_prefill.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl');
+    assert.equal(config.execution.kernels.q4_widetile.kernel, 'fused_matmul_q4_widetile.wgsl');
+    assert.equal(config.execution.kernels.attn_decode.kernel, 'attention_decode_online_f16kv.wgsl');
+    assert.equal(config.execution.kernels.attn_stream.kernel, 'attention_streaming_f16kv.wgsl');
+    assert.equal(config.execution.kernels.attn_head256.kernel, 'attention_head256_f16kv.wgsl');
+    assert.equal(config.execution.kernels.lm_head_gemv.kernel, 'matmul_gemv_subgroup.wgsl');
+    assert.equal(config.execution.kernels.lm_head_q4.kernel, 'fused_matmul_q4.wgsl');
+    assert.equal(config.execution.kernels.lm_head_q4.entry, 'main_gemv');
+    assert.deepEqual(config.execution.kernels.lm_head_q4.constants, {
+      COLS_PER_WG: 64,
+      THREADS_PER_COL_GEMV: 4,
+    });
+    assert.equal(config.execution.kernels.sample.kernel, 'sample.wgsl');
+    const decodeHead = config.execution.postLayer.find((step) => step[0] === 'lm_head');
+    assert.equal(decodeHead?.[1], 'lm_head_q4');
   }
 }
 

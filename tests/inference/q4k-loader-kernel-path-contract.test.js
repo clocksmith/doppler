@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 
 const { setDevice } = await import('../../src/gpu/device.js');
 const { resolveQ4KConfig } = await import('../../src/inference/pipelines/text/init.js');
+const { selectRuleValue } = await import('../../src/rules/rule-registry.js');
 
 function createFakeDevice() {
   const features = new Set(['shader-f16', 'subgroups']);
@@ -96,6 +97,15 @@ const mixedPath = {
   postLayer: [],
   preLayer: [],
 };
+const fusedLmHeadPath = {
+  id: 'unit-q4k-lm-head',
+  decode: defaultPath.decode,
+  prefill: defaultPath.prefill,
+  postLayer: [
+    { op: 'lm_head', kernel: 'fused_matmul_q4.wgsl', entry: 'main_gemv' },
+  ],
+  preLayer: [],
+};
 const linearMixedPath = {
   id: 'unit-q4k-linear-mixed',
   decode: {
@@ -120,6 +130,7 @@ try {
     q4kLayout: 'row',
     keepF32Weights: false,
     q4kMaterializationMode: 'dense',
+    q4kFusedRoles: [],
   });
 
   assert.deepEqual(resolveQ4KConfig(manifest, defaultPath, 'config', true), {
@@ -127,6 +138,7 @@ try {
     q4kLayout: 'row',
     keepF32Weights: true,
     q4kMaterializationMode: 'dense',
+    q4kFusedRoles: [],
   });
 
   assert.deepEqual(resolveQ4KConfig(manifest, f32WeightPath, 'config', false), {
@@ -134,13 +146,35 @@ try {
     q4kLayout: 'row',
     keepF32Weights: true,
     q4kMaterializationMode: 'dense',
+    q4kFusedRoles: [],
   });
+
+  assert.deepEqual(resolveQ4KConfig(manifest, fusedLmHeadPath, 'execution-v1', false), {
+    useFusedQ4K: false,
+    q4kLayout: 'row',
+    keepF32Weights: false,
+    q4kMaterializationMode: 'dense',
+    q4kFusedRoles: ['lm_head'],
+  });
+  assert.equal(
+    selectRuleValue('loader', 'tensorLoader', 'gpuLoaderPath', {
+      dtype: 'Q4_K_M',
+      role: 'lm_head',
+      useFusedQ4K: false,
+      requiresFusedQ4KRole: true,
+      q4kMaterializationMode: 'dense',
+      q4kCpuReferenceEligible: false,
+      q4kBasicBackendClass: false,
+    }),
+    'q4k_fused'
+  );
 
   assert.deepEqual(resolveQ4KConfig(manifest, mixedPath, 'execution-v1', false), {
     useFusedQ4K: true,
     q4kLayout: 'row',
     keepF32Weights: false,
     q4kMaterializationMode: 'mixed',
+    q4kFusedRoles: ['q_proj'],
   });
 
   assert.deepEqual(resolveQ4KConfig(manifest, linearMixedPath, 'execution-v1', false), {
@@ -148,6 +182,7 @@ try {
     q4kLayout: 'row',
     keepF32Weights: false,
     q4kMaterializationMode: 'mixed',
+    q4kFusedRoles: ['linear_qkv_proj'],
   });
 } finally {
   setDevice(null, { platformConfig: null });
