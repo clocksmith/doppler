@@ -6,10 +6,8 @@ Coding conventions for the DOPPLER codebase.
 
 | Guide | Scope |
 |-------|-------|
-| [General Invariants](./general-invariants.md) | Quick-reference: must-follow rules from general guide |
-| [JavaScript Invariants](./javascript-invariants.md) | Quick-reference: must-follow rules from JS guide |
-| [General Style Guide](./general-style-guide.md) | Architecture, language policy, file organization, naming |
-| [JavaScript Style Guide](./javascript-style-guide.md) | Kernel wrappers, config-as-code, declaration-file workflow, rule maps |
+| [General Style Guide](./general-style-guide.md) | Invariants quick-ref + architecture, language policy, file organization, naming |
+| [JavaScript Style Guide](./javascript-style-guide.md) | Invariants quick-ref + kernel wrappers, config-as-code, declaration-file workflow, rule maps |
 | [WGSL Style Guide](./wgsl-style-guide.md) | Shader structure, constants vs uniforms, bindings |
 | [Benchmark Style Guide](./benchmark-style-guide.md) | Benchmark harnesses, output schema, baselines |
 | [Config Style Guide](./config-style-guide.md) | Config ownership, merge order, runtime boundaries |

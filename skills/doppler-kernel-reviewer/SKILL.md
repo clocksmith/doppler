@@ -29,7 +29,7 @@ Common routes:
 
 ## Plane Contract (Review Invariant)
 
-See also: `docs/style/general-invariants.md` (execution plane contract section).
+See also: `docs/style/general-style-guide.md#invariants-quick-reference` (execution plane contract).
 
 - JSON rules + config assets own kernel selection and feature toggles.
 - Execution-v1 manifests own explicit dispatch identities; reviewers should reject implicit legacy fallback assumptions.

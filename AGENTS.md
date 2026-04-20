@@ -12,7 +12,7 @@ Repository: https://github.com/clocksmith/doppler
 
 Before any non-trivial code edit, read the **invariant files** (compact, must-know rules):
 
-1. **[General Invariants](docs/style/general-invariants.md)** — execution plane, no runtime defaults, nullable fields, manifest-first
+1. **[General Invariants](docs/style/general-style-guide.md#invariants-quick-reference)** — execution plane, no runtime defaults, nullable fields, manifest-first
 2. **[JavaScript Invariants](docs/style/javascript-style-guide.md#invariants-quick-reference)** — role boundaries, rule maps, kernel path, failure-path cleanup
 3. **[Config Style Guide](docs/style/config-style-guide.md)** — schema layout, merge order, category rules, harness restrictions
 
@@ -24,7 +24,7 @@ For deep work (kernel wrappers, buffer lifecycle, naming conventions, anti-patte
 ### Skill-Specific Style Guide Reads
 
 Baseline for all coding tasks:
-- `docs/style/general-invariants.md`
+- `docs/style/general-style-guide.md` (Invariants quick-reference at top)
 - `docs/style/javascript-style-guide.md` (Invariants quick-reference at top)
 - `docs/style/config-style-guide.md`
 
@@ -198,7 +198,7 @@ Use debug module (`src/debug/index.js`), not raw `console.*` in runtime code.
 
 Allowed direct console output: `tools/` entry points, `tests/` harnesses, `demo/` entry points, one-time startup in `src/gpu/device.js`.
 
-Do not add throwaway log statements. Use existing trace categories, config-driven probes, or permanent trace extensions. See [General Invariants](docs/style/general-invariants.md).
+Do not add throwaway log statements. Use existing trace categories, config-driven probes, or permanent trace extensions. See [General Invariants](docs/style/general-style-guide.md#invariants-quick-reference).
 
 ### Guardrails
 

@@ -6,6 +6,21 @@ This file is the canonical source for shared cross-language rules such as naming
 logging, testing, and anti-pattern policy. Language-specific guides should only
 document deltas.
 
+## Invariants (Quick Reference)
+
+Rules that cause bugs when violated. Each has a fuller section below with rationale and examples.
+
+- **Execution Plane Contract** — JSON owns policy; JS owns orchestration; WGSL owns compute only. Missing or ambiguous contract must fail fast. See [Execution Plane Contract](#execution-plane-contract).
+- **No Runtime Defaults in Code** — runtime code reads resolved config values directly. No literal fallbacks for tunables in JS. Missing policy raises a typed configuration error. See [No Runtime Defaults in Code](#no-runtime-defaults-in-code).
+- **Nullable Required Fields** — `null` = explicitly disabled (valid); `undefined` = not specified (validation error, fail fast).
+- **Manifest as Source of Truth** — converter embeds all model-specific inference params in `manifest.json`. Runtime never detects model family in pipeline code. See [Manifest as Source of Truth](#manifest-as-source-of-truth).
+- **Kernel Selection** — fully explicit in the manifest execution graph. Each step pins exact WGSL file, entry point, and content digest. `defaultKernelPath` does not exist in v1 manifests. See [Kernel Selection](#kernel-selection).
+- **Performance Invariants (F32 Policy)** — F32 is a correctness fallback, not a performance default. When `shader-f16` is available, prefer `f16` for activations/KV cache/intermediates. Any `f32` path must be explicitly configured and logged once per session.
+- **No Ad-Hoc Debug Logging** — no temporary log statements. Use existing trace categories, config-driven probes, or permanent trace extensions. Use the debug module (`src/debug/index.js`), not raw `console.*` in runtime code. See [Logging](#logging).
+- **Single Source of Truth** — when the same metadata appears in multiple files, exactly one must be canonical. Mirrors are generated from that source and covered by a sync check. See [Core Principles](#core-principles).
+- **Failure-Path Regression Requirement** — any fix for buffer lifecycle, readback cleanup, or failure-path-only behavior must include a regression test exercising the failing path. See [Failure-Path Regression Requirement](#failure-path-regression-requirement).
+- **Inventory Before Edit** — when a failure indicates a repeated drift class, run or create the broadest inventory check before editing individual files. One-off repairs for recurring drift become checkable tooling with a `--check` mode. See [Inventory Before Edit](#inventory-before-edit).
+
 ## Core Principles
 
 1. **Config as Code** - Declarative maps over imperative logic
@@ -868,6 +883,12 @@ await runBrowserSuite({ workload: 'inference', modelId: 'gemma-3-270m-it-q4k-ehf
 - Pull tunables from schema/config, not literals.
 - Import format constants from a single source of truth.
 - Preserve working configs as checked-in config assets (configuration is documentation).
+
+### Inventory Before Edit
+
+When a failure indicates a repeated drift class, run or create the broadest inventory check before editing individual files. Classify the full set first, then batch fixes by decision type: fix to runtime, fix to declarations, remove stale surface, or quarantine as pending-feature/debt with owner and expiry.
+
+One-off repairs for recurring drift should become checkable tooling with a `--check` mode before the task is considered complete. Examples in this repo: `npm run digests:check`, `npm run exports:parity:check`, `npm run pending:check` — each started as a one-off script and became a default-chain gate once it grew an allowlist or policy schema.
 
 ---
 
