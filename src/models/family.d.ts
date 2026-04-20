@@ -14,3 +14,11 @@ export interface FamilyModule {
   resolveModel(modelId: string): FamilyModelEntry | null;
   resolveHfBaseUrl(modelId: string, revision?: string): string | null;
 }
+
+export interface CreateFamilyInput {
+  readonly familyId: string;
+  readonly hfRepoId: string;
+  readonly knownModels: ReadonlyArray<FamilyModelEntry>;
+}
+
+export declare function createFamily(input: CreateFamilyInput): FamilyModule;

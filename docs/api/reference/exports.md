@@ -141,7 +141,6 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Notes: No manual classification recorded for this export path.
 - Exported symbols:
   - `*`
-  - `createJsonGrammarMask`
 
 ## `doppler-gpu/client/model-manager`
 

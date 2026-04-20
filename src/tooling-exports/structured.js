@@ -2,5 +2,4 @@
 // Narrow entry point so consumers that only need mask construction don't
 // pull the full inference pipeline into their bundle.
 
-export { createJsonGrammarMask } from '../inference/pipelines/structured/json-grammar-mask.js';
 export * from '../inference/pipelines/structured/index.js';

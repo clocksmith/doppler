@@ -2,6 +2,9 @@
  * Shared Tooling Surface Exports
  *
  * Browser-safe tooling exports shared by browser and node-facing surfaces.
+ * Storage / device / manifest symbols are sourced from the narrow slice files
+ * under ./tooling-exports/ so those slices remain the single source of truth
+ * for their respective groups.
  *
  * @module tooling-exports.shared
  */
@@ -14,43 +17,15 @@ export {
   createConverterConfig,
 } from './config/index.js';
 export { getRuntimeConfig, setRuntimeConfig } from './config/runtime.js';
-export { DEFAULT_MANIFEST_INFERENCE } from './config/schema/index.js';
 export { TOOLING_INTENTS } from './config/schema/tooling.schema.js';
 
-// Storage + manifests
-export { formatBytes, getQuotaInfo } from './storage/quota.js';
-export { listRegisteredModels, registerModel, removeRegisteredModel } from './storage/registry.js';
-export { listStorageInventory, deleteStorageEntry } from './storage/inventory.js';
-export {
-  openModelStore,
-  writeShard,
-  loadManifestFromStore,
-  loadShard,
-  loadTensorsFromStore,
-  saveManifest,
-  saveTensorsToStore,
-  saveTokenizer,
-  saveTokenizerModel,
-  saveAuxFile,
-  loadTokenizerFromStore,
-  loadTokenizerModelFromStore,
-  listFilesInStore,
-  loadFileFromStore,
-  streamFileFromStore,
-  computeHash,
-  deleteModel,
-  listModels,
-} from './storage/shard-manager.js';
-export { exportModelToDirectory } from './storage/export.js';
-export { ensureModelCached } from './tooling/opfs-cache.js';
-export { parseManifest, getManifest, setManifest, clearManifest, classifyTensorRole } from './formats/rdrr/index.js';
+// Storage + manifests (sourced from narrow slices)
+export * from './tooling-exports/storage.js';
+export * from './tooling-exports/manifest.js';
 export { inferEmbeddingOutputConfig } from './converter/core.js';
 
-// GPU init + capabilities
-export { initDevice, getDevice, getKernelCapabilities, getPlatformConfig, isWebGPUAvailable } from './gpu/device.js';
-
-// Preseeded shader sources
-export { registerShaderSources, hasPreseededShaderSource } from './gpu/kernels/shader-cache.js';
+// GPU init + capabilities (sourced from narrow slice)
+export * from './tooling-exports/device.js';
 
 // Memory tooling
 export { captureMemorySnapshot } from './loader/memory-monitor.js';
