@@ -78,6 +78,14 @@
             "type": ["string", "null"],
             "enum": ["onnx", "safetensors", null]
           },
+          "defaultLoadMode": {
+            "type": ["string", "null"],
+            "enum": ["opfs", "http", "memory", null]
+          },
+          "defaultLoadModeReason": {
+            "type": ["string", "null"],
+            "minLength": 1
+          },
           "safetensorsSourceId": {
             "type": ["string", "null"],
             "minLength": 1

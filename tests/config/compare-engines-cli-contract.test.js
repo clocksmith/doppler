@@ -14,6 +14,7 @@ import {
   parseArgs as parseCompareArgs,
   parseJsonBlock,
   parseOnOff as parseCompareOnOff,
+  redactSecrets,
   renderComparePrompt,
   resolveCompareOwnedPromptRenderer,
   resolveCatalogTransformersjsBenchmarkTarget,
@@ -73,8 +74,10 @@ function runCompareEngines(args) {
     qwen2Profile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
     'profiles/throughput'
   );
-  assert.equal(qwen2Profile.compareLane, 'capability_only');
-  assert.match(qwen2Profile.compareLaneReason, /not yet promoted to a claimable compare lane/i);
+  assert.equal(qwen2Profile.compareLane, 'performance_comparable');
+  assert.equal(qwen2Profile.compareLaneReason, null);
+  assert.equal(qwen2Profile.defaultLoadMode, 'http');
+  assert.match(qwen2Profile.defaultLoadModeReason, /strict offline/i);
 
   assert.ok(gemma4Profile, 'compare config must include gemma-4-e2b-it-q4k-ehf16-af32');
   assert.equal(gemma4Profile.defaultDopplerSurface, 'browser');
@@ -84,7 +87,7 @@ function runCompareEngines(args) {
     'profiles/throughput'
   );
   assert.equal(gemma4Profile.compareLane, 'performance_comparable');
-  assert.equal(gemma4Profile.compareLaneReason, null);
+  assert.match(gemma4Profile.compareLaneReason, /not exact-match/i);
   assert.ok(gemma4Int4PleProfile, 'compare config must include gemma-4-e2b-it-q4k-ehf16-af32-int4ple');
   assert.equal(
     gemma4Int4PleProfile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
@@ -171,11 +174,23 @@ function runCompareEngines(args) {
   );
   assert.equal(
     benchmarkPolicy?.doppler?.loadModeRuntimeOverlays?.http?.runtimeConfig?.loading?.shardCache?.rangeCacheBlockBytes,
-    16777216
+    67108864
   );
   assert.equal(
     benchmarkPolicy?.doppler?.loadModeRuntimeOverlays?.http?.runtimeConfig?.loading?.shardCache?.rangeCacheMaxBytes,
-    134217728
+    536870912
+  );
+  assert.equal(
+    benchmarkPolicy?.doppler?.loadModeRuntimeOverlays?.http?.runtimeConfig?.loading?.shardCache?.maxConcurrentLoads,
+    8
+  );
+  assert.equal(
+    benchmarkPolicy?.doppler?.loadModeRuntimeOverlays?.http?.runtimeConfig?.loading?.prefetch?.allowRangeLoaderPrefetch,
+    true
+  );
+  assert.equal(
+    benchmarkPolicy?.doppler?.loadModeRuntimeOverlays?.http?.runtimeConfig?.loading?.prefetch?.maxShards,
+    8
   );
 }
 
@@ -277,6 +292,23 @@ function runCompareEngines(args) {
 {
   const parsed = parseJsonBlock('[info] noisy line\n{\n  "ok": true,\n  "value": 3\n}\n', 'unit-json');
   assert.deepEqual(parsed, { ok: true, value: 3 });
+}
+
+{
+  const secret = `hf_${'unitSecretToken123'}`;
+  const redacted = redactSecrets(`runner.html?hfToken=${secret}:12 Authorization: Bearer ${secret}`);
+  assert.doesNotMatch(redacted, new RegExp(secret));
+  assert.match(redacted, /hfToken=<redacted>/);
+  assert.match(redacted, /Authorization: Bearer <redacted>/i);
+
+  assert.throws(
+    () => parseJsonBlock(`bad output runner.html?hfToken=${secret}`, 'secret-tail'),
+    (error) => {
+      assert.doesNotMatch(String(error.message), new RegExp(secret));
+      assert.match(String(error.message), /hfToken=<redacted>/);
+      return true;
+    }
+  );
 }
 
 {
@@ -616,6 +648,8 @@ function runCompareEngines(args) {
       ['gemma-4-e2b-it-q4k-ehf16-af32', {
         dopplerModelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
         defaultUseChatTemplate: true,
+        defaultLoadMode: 'http',
+        defaultLoadModeReason: 'unit load-mode reason',
       }],
     ]),
   };
@@ -634,6 +668,8 @@ function runCompareEngines(args) {
     useChatTemplate: parseCompareOnOff(undefined, compareProfile.defaultUseChatTemplate ?? false, '--use-chat-template'),
   });
   assert.equal(compareProfile.defaultUseChatTemplate, true);
+  assert.equal(compareProfile.defaultLoadMode, 'http');
+  assert.equal(compareProfile.defaultLoadModeReason, 'unit load-mode reason');
   assert.equal(sharedContract.useChatTemplate, true);
 }
 
@@ -776,9 +812,15 @@ function runCompareEngines(args) {
         },
         shardCache: {
           verifyHashes: false,
-          rangeCacheBlockBytes: 16777216,
-          rangeCacheMaxBytes: 134217728,
+          rangeCacheBlockBytes: 67108864,
+          rangeCacheMaxBytes: 536870912,
           rangeCacheMinBytes: 4096,
+          maxConcurrentLoads: 8,
+        },
+        prefetch: {
+          allowRangeLoaderPrefetch: true,
+          layersAhead: 1,
+          maxShards: 8,
         },
       },
     },
@@ -787,9 +829,12 @@ function runCompareEngines(args) {
   assert.equal(runtimeConfig.shared.benchmark.run.loadMode, 'http');
   assert.deepEqual(runtimeConfig.loading.distribution.sourceOrder, ['http']);
   assert.equal(runtimeConfig.loading.shardCache.verifyHashes, false);
-  assert.equal(runtimeConfig.loading.shardCache.rangeCacheBlockBytes, 16777216);
-  assert.equal(runtimeConfig.loading.shardCache.rangeCacheMaxBytes, 134217728);
+  assert.equal(runtimeConfig.loading.shardCache.rangeCacheBlockBytes, 67108864);
+  assert.equal(runtimeConfig.loading.shardCache.rangeCacheMaxBytes, 536870912);
   assert.equal(runtimeConfig.loading.shardCache.rangeCacheMinBytes, 4096);
+  assert.equal(runtimeConfig.loading.shardCache.maxConcurrentLoads, 8);
+  assert.equal(runtimeConfig.loading.prefetch.allowRangeLoaderPrefetch, true);
+  assert.equal(runtimeConfig.loading.prefetch.maxShards, 8);
 }
 
 {
@@ -923,6 +968,38 @@ function runCompareEngines(args) {
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /defaultUseChatTemplate/i);
   assert.match(result.stderr, /boolean(?:\s+\|\s+null| or null)/i);
+}
+
+{
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-compare-config-'));
+  const badConfigPath = path.join(tempDir, 'bad-compare-config-load-mode-reason.json');
+  const badConfig = {
+    schemaVersion: 1,
+    updated: '2026-04-21',
+    defaults: {
+      warmLoadMode: 'opfs',
+      coldLoadMode: 'http',
+    },
+    modelProfiles: [
+      {
+        dopplerModelId: 'qwen-3-5-2b-q4k-ehaf16',
+        defaultTjsModelId: 'onnx-community/Qwen3.5-2B-ONNX',
+        defaultDopplerSource: 'quickstart-registry',
+        modelBaseDir: null,
+        defaultDopplerSurface: 'browser',
+        defaultLoadMode: 'http',
+        compareLane: 'performance_comparable',
+      },
+    ],
+  };
+  await fs.writeFile(badConfigPath, `${JSON.stringify(badConfig, null, 2)}\n`, 'utf8');
+  const result = runCompareEngines([
+    '--compare-config', badConfigPath,
+    '--model-id', 'qwen-3-5-2b-q4k-ehaf16',
+    '--json',
+  ]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /defaultLoadModeReason/);
 }
 
 {

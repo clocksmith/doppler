@@ -78,7 +78,7 @@
         "throughput": "profiles/throughput"
       },
       "compareLane": "performance_comparable",
-      "compareLaneReason": null
+      "compareLaneReason": "Doppler and the paired Transformers.js ONNX q4f16 runner both produce coherent Gemma 4 output, but current greedy text is not exact-match; this lane is claimable for compute-throughput comparisons, not correctness-parity claims."
     },
     {
       "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
@@ -143,12 +143,14 @@
       "defaultDopplerSurface": "browser",
       "defaultDopplerFormat": "rdrr",
       "defaultTjsFormat": "onnx",
+      "defaultLoadMode": "http",
+      "defaultLoadModeReason": "Transformers.js WebGPU q4f16 for Qwen 3.5 2B completes warmup under OPFS, then fails the timed run after the strict offline switch; HTTP load mode keeps the shared WebGPU compare lane runnable and records the load mode explicitly.",
       "safetensorsSourceId": "Qwen/Qwen3.5-2B",
       "dopplerRuntimeProfileByDecodeProfile": {
         "throughput": "profiles/throughput"
       },
-      "compareLane": "capability_only",
-      "compareLaneReason": "Qwen3.5 2B has the direct Transformers.js WebGPU runner path but is not yet promoted to a claimable compare lane."
+      "compareLane": "performance_comparable",
+      "compareLaneReason": null
     },
     {
       "dopplerModelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",

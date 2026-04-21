@@ -194,6 +194,9 @@ each model profile has:
 - `defaultDopplerSource` (`quickstart-registry|local`) so compare runs resolve the same artifact source on every machine
 - `compareLane` (`performance_comparable|capability_only`) so support-only rows do not turn into accidental speed claims
 - `dopplerRuntimeProfileByDecodeProfile` so model-scoped Doppler tuning is explicit for parity/throughput lanes
+- `defaultLoadMode` and `defaultLoadModeReason` when a model needs a
+  shared load-mode override to keep both engines runnable under the same
+  recorded cache/load contract
 - `defaultDopplerFormat`, `defaultTjsFormat`, and `safetensorsSourceId`
   (the HF repo with the original F16/BF16 weights)
 
@@ -309,7 +312,7 @@ When `--compare-result` is provided, matrix generation also captures host/browse
 - [tools/compare-engines.js](../../tools/compare-engines.js) records the exact installed Transformers.js / ONNX Runtime stack in each compare artifact and validates that the v4 runner is pinned to the same nested ORT modules before timing starts.
 - [tools/compare-engines.js](../../tools/compare-engines.js) applies the explicit Doppler compare-lane `runtime.inference.kernelPathPolicy` from [benchmark-policy.json](./benchmark-policy.json); capability-aware remaps used for known platform/runtime constraints are therefore part of the recorded engine overlay, not a hidden runtime fallback.
 - [tools/compare-engines.js](../../tools/compare-engines.js) also applies the explicit Doppler browser channel from [benchmark-policy.json](./benchmark-policy.json) unless `--doppler-browser-channel` overrides it, so compare runs do not silently drift across locally installed browser channels.
-- [tools/compare-engines.js](../../tools/compare-engines.js) applies the explicit Doppler load-mode runtime overlays from [benchmark-policy.json](./benchmark-policy.json). The `http` overlay pins direct HTTP range reads, disables eager full-shard hash verification, and enables policy-sized range coalescing for cold browser compare runs; the compare artifact records the overlay JSON and hash.
+- [tools/compare-engines.js](../../tools/compare-engines.js) applies the explicit Doppler load-mode runtime overlays from [benchmark-policy.json](./benchmark-policy.json). The `http` overlay pins direct HTTP range reads, disables eager full-shard hash verification, coalesces ranges into 64 MiB blocks with a 512 MiB range cache and 8 concurrent loads, and opts RDRR manifests into bounded 8-shard whole-shard prefetch for cold browser compare runs; the compare artifact records the overlay JSON and hash.
 - [tools/compare-engines.js](../../tools/compare-engines.js) resolves warm/cold load modes from one explicit contract only: `--load-mode` or the root `defaults` block in [compare-engines.config.json](./compare-engines.config.json). It does not derive load mode from `cacheMode`.
 - [tools/compare-engines.js](../../tools/compare-engines.js) resolves the default Transformers.js repo/dtype from [models/catalog.json](../../models/catalog.json) vendor-benchmark metadata before falling back to generic defaults, so claim lanes stay pinned to the cataloged comparable baseline.
 - The Transformers.js warm `opfs` lane now performs an untimed one-token generation prime, not just a bare model load, before the offline timed pass. This is required for models that lazily fetch generation assets on first decode.

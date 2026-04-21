@@ -113,7 +113,7 @@
   "doppler": {
     "loadModeRuntimeOverlays": {
       "http": {
-        "description": "Cold HTTP compare runs use direct range reads and skip eager full-shard hash verification; manifest preflight and pinned hosted revisions remain recorded in the compare artifact.",
+        "description": "Cold HTTP compare runs use direct range reads, skip eager full-shard hash verification, coalesce ranges into shard-sized blocks, and opt RDRR manifests into bounded whole-shard prefetch; manifest preflight and pinned hosted revisions remain recorded in the compare artifact.",
         "runtimeConfig": {
           "loading": {
             "distribution": {
@@ -123,9 +123,15 @@
             },
             "shardCache": {
               "verifyHashes": false,
-              "rangeCacheBlockBytes": 16777216,
-              "rangeCacheMaxBytes": 134217728,
-              "rangeCacheMinBytes": 4096
+              "rangeCacheBlockBytes": 67108864,
+              "rangeCacheMaxBytes": 536870912,
+              "rangeCacheMinBytes": 4096,
+              "maxConcurrentLoads": 8
+            },
+            "prefetch": {
+              "allowRangeLoaderPrefetch": true,
+              "layersAhead": 1,
+              "maxShards": 8
             }
           }
         }

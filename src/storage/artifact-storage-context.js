@@ -757,6 +757,9 @@ function createHttpRangeBlockCache(options = {}) {
           `HTTP range block could not satisfy ${url}: offset=${cursor}, blockStart=${blockStart}`
         );
       }
+      if (total === 0 && start === blockStart && take === requested && take === block.byteLength) {
+        return block;
+      }
       chunks.push(block.subarray(blockOffset, blockOffset + take));
       total += take;
       cursor += take;

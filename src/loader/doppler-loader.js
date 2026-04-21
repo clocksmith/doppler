@@ -64,6 +64,17 @@ function hasExpertGroups(manifest) {
   return Object.keys(manifest.groups).some((groupId) => groupId.includes('.expert.'));
 }
 
+function isDirectSourceRuntimeManifest(manifest) {
+  const sourceRuntime = manifest?.metadata?.sourceRuntime;
+  const mode = typeof sourceRuntime?.mode === 'string'
+    ? sourceRuntime.mode.trim().toLowerCase()
+    : '';
+  const sourceKind = typeof sourceRuntime?.sourceKind === 'string'
+    ? sourceRuntime.sourceKind.trim().toLowerCase()
+    : '';
+  return mode === 'direct-source' && sourceKind !== 'rdrr';
+}
+
 /**
  * Detect whether a manifest describes a Mixture-of-Experts model.
  * Validates that manifests with expert groups also have moeConfig.
@@ -741,7 +752,20 @@ export class DopplerLoader {
     // Range-capable custom loaders are expected to serve fine-grained tensor reads.
     // Whole-shard prefetch defeats that contract and can force invalid >4 GiB reads
     // for direct-source SafeTensors bundles.
-    if (this.shardCache.hasCustomLoader && this.shardCache.canStreamRanges) return;
+    if (this.shardCache.hasCustomLoader && this.shardCache.canStreamRanges) {
+      if (prefetch.allowRangeLoaderPrefetch !== true) return;
+      if (isDirectSourceRuntimeManifest(this.manifest)) {
+        throw new Error(
+          'runtime.loading.prefetch.allowRangeLoaderPrefetch is only supported for RDRR shard manifests; ' +
+          'direct-source artifacts must use range reads.'
+        );
+      }
+      if (!Array.isArray(this.manifest?.shards) || this.manifest.shards.length === 0) {
+        throw new Error(
+          'runtime.loading.prefetch.allowRangeLoaderPrefetch requires a manifest with explicit RDRR shards.'
+        );
+      }
+    }
 
     const layersAhead = prefetch.layersAhead;
     if (!Number.isFinite(layersAhead) || layersAhead <= 0) return;

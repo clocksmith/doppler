@@ -72,8 +72,12 @@ if (localModelPath) {
 } else {
   env.allowLocalModels = false;
 }
-// HF access token for gated models (passed from Node via URL param, localhost only).
-const hfToken = urlParams.get('hfToken');
+// HF access token for gated models. The Node runner injects this before
+// navigation so tokens do not appear in page URLs or exception stacks.
+const injectedHfToken = typeof window.__TJS_BENCH_HF_TOKEN__ === 'string'
+  ? window.__TJS_BENCH_HF_TOKEN__
+  : '';
+const hfToken = injectedHfToken || urlParams.get('hfToken');
 if (hfToken) {
   env.accessToken = hfToken;
   console.log('[tjs-bench] HF access token set');

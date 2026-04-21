@@ -54,6 +54,7 @@ export const DEFAULT_PREFETCH_CONFIG = {
   enabled: true,
   layersAhead: 1,
   maxShards: 8,
+  allowRangeLoaderPrefetch: false,
 };
 
 // =============================================================================

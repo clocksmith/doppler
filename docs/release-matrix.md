@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-04-21T00:29:51.788Z
-Release: channel=main-snapshot, version=0.4.3, commit=a2a8e438b795cee8b2d47056ca555b1309ef4b0c, dirty=yes
+Generated: 2026-04-21T13:50:45.727Z
+Release: channel=main-snapshot, version=0.4.3, commit=229ce8a8f11c96715f11d607a7fb6053b6da54e1, dirty=yes
 
 ## Engine Matrix
 
@@ -30,11 +30,11 @@ Release: channel=main-snapshot, version=0.4.3, commit=a2a8e438b795cee8b2d47056ca
 |---|---|---|---|---|---|---|---|
 | `gemma-3-1b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-1b-it-ONNX-GQA` | auto | quickstart-registry | performance_comparable |  |
 | `gemma-3-270m-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` | auto | quickstart-registry | performance_comparable |  |
-| `gemma-4-e2b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-4-E2B-it-ONNX` | browser | local | performance_comparable |  |
+| `gemma-4-e2b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-4-E2B-it-ONNX` | browser | local | performance_comparable | Doppler and the paired Transformers.js ONNX q4f16 runner both produce coherent Gemma 4 output, but current greedy text is not exact-match; this lane is claimable for compute-throughput comparisons, not correctness-parity claims. |
 | `gemma-4-e2b-it-q4k-ehf16-af32-int4ple` | yes | run, translate | `onnx-community/gemma-4-E2B-it-ONNX` | browser | local | performance_comparable | Doppler uses INT4 per-row PLE quantization (closer to TFLite shape); TJS uses standard ONNX q4f16. Both produce coherent Gemma 4 output on matching prompts — lane remains performance_comparable as compute-throughput comparison is meaningful. |
 | `google-embeddinggemma-300m-q4k-ehf16-af32` | yes | embedding | `onnx-community/embeddinggemma-300m-ONNX` | auto | quickstart-registry | capability_only | Embedding models use a separate workload contract and are not part of the text-generation compare lane. |
 | `qwen-3-5-0-8b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-0.8B-ONNX` | browser | quickstart-registry | performance_comparable |  |
-| `qwen-3-5-2b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-2B-ONNX` | browser | quickstart-registry | capability_only | Qwen3.5 2B has the direct Transformers.js WebGPU runner path but is not yet promoted to a claimable compare lane. |
+| `qwen-3-5-2b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-2B-ONNX` | browser | quickstart-registry | performance_comparable |  |
 | `translategemma-4b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/translategemma-text-4b-it-ONNX` | auto | local | performance_comparable |  |
 
 ## Workloads

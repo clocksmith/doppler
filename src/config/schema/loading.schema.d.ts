@@ -117,6 +117,9 @@ export interface PrefetchConfigSchema {
 
   /** Max shards to prefetch per layer step (0 = no limit) */
   maxShards: number;
+
+  /** Allow whole-shard prefetch when a custom range loader is present */
+  allowRangeLoaderPrefetch: boolean;
 }
 
 /** Default prefetch configuration */

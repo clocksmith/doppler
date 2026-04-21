@@ -223,7 +223,7 @@ const DEFAULT_BENCHMARK_POLICY = Object.freeze({
   doppler: Object.freeze({
     loadModeRuntimeOverlays: Object.freeze({
       http: Object.freeze({
-        description: 'Cold HTTP compare runs use direct range reads and skip eager full-shard hash verification; manifest preflight and pinned hosted revisions remain recorded in the compare artifact.',
+        description: 'Cold HTTP compare runs use direct range reads, skip eager full-shard hash verification, coalesce ranges into shard-sized blocks, and opt RDRR manifests into bounded whole-shard prefetch; manifest preflight and pinned hosted revisions remain recorded in the compare artifact.',
         runtimeConfig: Object.freeze({
           loading: Object.freeze({
             distribution: Object.freeze({
@@ -231,9 +231,15 @@ const DEFAULT_BENCHMARK_POLICY = Object.freeze({
             }),
             shardCache: Object.freeze({
               verifyHashes: false,
-              rangeCacheBlockBytes: 16 * 1024 * 1024,
-              rangeCacheMaxBytes: 128 * 1024 * 1024,
+              rangeCacheBlockBytes: 64 * 1024 * 1024,
+              rangeCacheMaxBytes: 512 * 1024 * 1024,
               rangeCacheMinBytes: 4096,
+              maxConcurrentLoads: 8,
+            }),
+            prefetch: Object.freeze({
+              allowRangeLoaderPrefetch: true,
+              layersAhead: 1,
+              maxShards: 8,
             }),
           }),
         }),
@@ -1227,6 +1233,32 @@ async function loadCompareEnginesConfig(rawPath) {
         `compare-engines.config.json defaultUseChatTemplate for ${row.dopplerModelId} must be a boolean or null`
       );
     }
+    row.defaultLoadMode = parseLoadMode(
+      row.defaultLoadMode,
+      `compare-engines.config.json defaultLoadMode for ${row.dopplerModelId}`,
+      null
+    );
+    if (
+      row.defaultLoadModeReason != null
+      && (typeof row.defaultLoadModeReason !== 'string' || row.defaultLoadModeReason.trim() === '')
+    ) {
+      throw new Error(
+        `compare-engines.config.json defaultLoadModeReason for ${row.dopplerModelId} must be a non-empty string or null`
+      );
+    }
+    if (row.defaultLoadMode == null && row.defaultLoadModeReason != null) {
+      throw new Error(
+        `compare-engines.config.json defaultLoadModeReason for ${row.dopplerModelId} requires defaultLoadMode`
+      );
+    }
+    if (row.defaultLoadMode != null && row.defaultLoadModeReason == null) {
+      throw new Error(
+        `compare-engines.config.json defaultLoadMode for ${row.dopplerModelId} requires defaultLoadModeReason`
+      );
+    }
+    if (row.defaultLoadMode != null && row.defaultLoadModeReason != null) {
+      row.defaultLoadModeReason = row.defaultLoadModeReason.trim();
+    }
     row.dopplerRuntimeProfileByDecodeProfile = normalizeDopplerRuntimeProfileByDecodeProfile(
       row.dopplerRuntimeProfileByDecodeProfile ?? null,
       `compare-engines.config.json dopplerRuntimeProfileByDecodeProfile for ${row.dopplerModelId}`
@@ -1262,6 +1294,8 @@ function resolveCompareProfile(compareConfig, modelId) {
     defaultUseChatTemplate: profile?.defaultUseChatTemplate ?? null,
     defaultDopplerFormat: profile?.defaultDopplerFormat || DEFAULT_DOPPLER_FORMAT,
     defaultTjsFormat: profile?.defaultTjsFormat || DEFAULT_TJS_FORMAT,
+    defaultLoadMode: profile?.defaultLoadMode || null,
+    defaultLoadModeReason: profile?.defaultLoadModeReason || null,
     safetensorsSourceId: profile?.safetensorsSourceId || null,
     dopplerRuntimeProfileByDecodeProfile: profile?.dopplerRuntimeProfileByDecodeProfile || Object.freeze({}),
     compareLane: profile?.compareLane || DEFAULT_COMPARE_LANE,
@@ -1566,9 +1600,17 @@ function firstFiniteNumber(objectValue, paths) {
 
 function clipTail(text, maxChars = 3000) {
   if (text == null) return '';
-  const str = String(text);
+  const str = redactSecrets(String(text));
   if (str.length <= maxChars) return str;
   return str.slice(str.length - maxChars);
+}
+
+function redactSecrets(text) {
+  if (text == null) return '';
+  return String(text)
+    .replace(/hfToken=hf_[A-Za-z0-9._-]+/g, 'hfToken=<redacted>')
+    .replace(/\bhf_[A-Za-z0-9._-]+\b/g, '<HF_TOKEN_REDACTED>')
+    .replace(/(authorization:\s*bearer\s+)[^\s"'`]+/gi, '$1<redacted>');
 }
 
 function parseJsonBlock(stdout, label) {
@@ -1767,7 +1809,7 @@ function toFailurePayload(library, error) {
     failed: true,
     env: { library },
     error: {
-      message: String(error?.message || error),
+      message: redactSecrets(error?.message || error),
       code: error?.code ?? null,
       signal: error?.signal ?? null,
       killed: error?.killed === true,
@@ -2325,7 +2367,7 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
   try {
     return await runOnce();
   } catch (error) {
-    console.error(`[compare] Doppler (${cacheMode}) failed: ${error.message}`);
+    console.error(`[compare] Doppler (${cacheMode}) failed: ${redactSecrets(error.message)}`);
     return toFailurePayload('doppler', error);
   }
 }
@@ -2385,7 +2427,7 @@ async function runTjs(modelId, sharedContract, cacheMode, tjsVersion, localModel
   try {
     return await runOnce();
   } catch (error) {
-    console.error(`[compare] TJS (${cacheMode}) failed: ${error.message}`);
+    console.error(`[compare] TJS (${cacheMode}) failed: ${redactSecrets(error.message)}`);
     return toFailurePayload('transformers.js', error);
   }
 }
@@ -3194,13 +3236,18 @@ async function main() {
     prompt: promptInput,
     useChatTemplate,
   });
+  const flagLoadMode = parseLoadMode(flags['load-mode'], '--load-mode', null);
+  const sharedLoadMode = flagLoadMode ?? compareProfile.defaultLoadMode ?? null;
+  const sharedLoadModeSource = flagLoadMode != null
+    ? 'flag'
+    : (compareProfile.defaultLoadMode != null ? 'compare-profile' : null);
   const sharedContract = buildSharedBenchmarkContract({
     prompt: promptRenderContract.promptRendered,
     maxTokens: maxTokensInput,
     warmupRuns: flags.warmup,
     timedRuns: flags.runs,
     seed: flags.seed,
-    loadMode: parseLoadMode(flags['load-mode'], '--load-mode', null),
+    loadMode: sharedLoadMode,
     sampling,
     useChatTemplate: promptRenderContract.enginesReceiveRenderedPrompt ? false : useChatTemplate,
     promptContract: promptRenderContract,
@@ -3355,7 +3402,8 @@ async function main() {
     + `dopplerSurface: ${dopplerSurface}, `
     + `dopplerBrowserChannel: ${dopplerBrowserChannel ?? 'default'}, `
     + `loadModes: warm=${resolvedLoadModes.warm}, cold=${resolvedLoadModes.cold}, `
-    + `loadModeOverride: ${sharedContract.loadMode ?? 'none'}, `
+    + `loadModeOverride: ${sharedContract.loadMode ?? 'none'}`
+    + `${sharedLoadModeSource ? ` (${sharedLoadModeSource})` : ''}, `
     + `sampling=(temp=${sharedContract.sampling.temperature}, topK=${sharedContract.sampling.topK}, topP=${sharedContract.sampling.topP}), `
     + `useChatTemplate: requested=${sharedContract.promptContract?.requestedUseChatTemplate === true ? 'on' : 'off'} `
     + `engine=${sharedContract.useChatTemplate === true ? 'on' : 'off'}, `
@@ -3503,6 +3551,9 @@ async function main() {
     tjsTimeoutMs: compareTjsTimeoutMs,
     loadModeResolution: {
       sharedOverride: sharedContract.loadMode,
+      sharedOverrideSource: sharedLoadModeSource,
+      profileDefault: compareProfile.defaultLoadMode,
+      profileDefaultReason: compareProfile.defaultLoadModeReason,
       warm: resolvedLoadModes.warm,
       cold: resolvedLoadModes.cold,
     },
@@ -3926,7 +3977,7 @@ async function main() {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   main().catch((error) => {
-    console.error(`[compare] ${error.message}`);
+    console.error(`[compare] ${redactSecrets(error.message)}`);
     process.exit(1);
   });
 }
@@ -3940,6 +3991,7 @@ export {
   parseArgs,
   parseJsonBlock,
   parseOnOff,
+  redactSecrets,
   resolveCatalogTransformersjsBenchmarkTarget,
   renderComparePrompt,
   resolveCompareOwnedPromptRenderer,

@@ -72,6 +72,14 @@ const DEFAULT_PROFILE_TOP_N = 20;
 const DEFAULT_PROFILE_DIR = path.join(BENCHMARKS_ROOT, '.tjs-bench-profile');
 const DEFAULT_SEED = 0;
 
+function redactSecrets(text) {
+  if (text == null) return '';
+  return String(text)
+    .replace(/hfToken=hf_[A-Za-z0-9._-]+/g, 'hfToken=<redacted>')
+    .replace(/\bhf_[A-Za-z0-9._-]+\b/g, '<HF_TOKEN_REDACTED>')
+    .replace(/(authorization:\s*bearer\s+)[^\s"'`]+/gi, '$1<redacted>');
+}
+
 const DEFAULT_BENCHMARK_POLICY = Object.freeze({
   timeoutsMs: Object.freeze({
     transformersjs: 600_000,
@@ -953,7 +961,7 @@ async function main() {
       }
     }
   } catch (error) {
-    console.error(`[tjs-bench] Failed to launch browser: ${error.message}`);
+    console.error(`[tjs-bench] Failed to launch browser: ${redactSecrets(error.message)}`);
     if (baseServer) {
       closeBaseServer(baseServer);
     }
@@ -968,7 +976,7 @@ async function main() {
   const browserMessages = [];
 
   page.on('console', (msg) => {
-    const entry = { type: msg.type(), text: msg.text() };
+    const entry = { type: msg.type(), text: redactSecrets(msg.text()) };
     browserMessages.push(entry);
     if (showConsole) {
       console.error(`[browser:${entry.type}] ${entry.text}`);
@@ -976,19 +984,27 @@ async function main() {
   });
 
   page.on('pageerror', (error) => {
-    console.error(`[browser:error] ${error.message}`);
+    console.error(`[browser:error] ${redactSecrets(error.message)}`);
   });
 
   page.on('requestfailed', (request) => {
-    const failure = request.failure()?.errorText || 'unknown failure';
-    console.error(`[browser:requestfailed] ${request.method()} ${request.url()} (${failure})`);
+    const failure = redactSecrets(request.failure()?.errorText || 'unknown failure');
+    console.error(`[browser:requestfailed] ${request.method()} ${redactSecrets(request.url())} (${failure})`);
   });
 
   try {
     const navStart = performance.now();
     const runnerParams = new URLSearchParams({ v: tjsVersion });
     if (localModelPath) runnerParams.set('localModelPath', LOCAL_MODEL_RELAY_PATH);
-    if (hfToken) runnerParams.set('hfToken', hfToken);
+    if (hfToken) {
+      await page.addInitScript((token) => {
+        Object.defineProperty(window, '__TJS_BENCH_HF_TOKEN__', {
+          value: token,
+          enumerable: false,
+          configurable: false,
+        });
+      }, hfToken);
+    }
     const runnerUrl = new URL('/benchmarks/runners/transformersjs-runner.html', baseUrl);
     runnerUrl.search = runnerParams.toString();
     await page.goto(runnerUrl.toString(), { timeout: timeoutMs });
@@ -1162,10 +1178,10 @@ async function main() {
       console.error(`[tjs-bench] saved to ${savedPath}`);
     }
   } catch (error) {
-    console.error(`[tjs-bench] Benchmark failed: ${error.message}`);
+    console.error(`[tjs-bench] Benchmark failed: ${redactSecrets(error.message)}`);
     const recentLogs = formatRecentBrowserMessages(browserMessages, 20);
     if (recentLogs) {
-      console.error('[tjs-bench] recent browser console:\n' + recentLogs);
+      console.error('[tjs-bench] recent browser console:\n' + redactSecrets(recentLogs));
     }
     process.exit(1);
   } finally {
@@ -1185,7 +1201,7 @@ const isDirectRun = process.argv[1]
 
 if (isDirectRun) {
   main().catch((error) => {
-    console.error(`[tjs-bench] ${error.message}`);
+    console.error(`[tjs-bench] ${redactSecrets(error.message)}`);
     process.exit(1);
   });
 }
