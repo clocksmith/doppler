@@ -41,6 +41,15 @@ export interface ShardCacheConfigSchema {
 
   /** Max concurrent shard loads (0 = unlimited) */
   maxConcurrentLoads: number;
+
+  /** Coalesced range-fetch block size in bytes (0 = disabled) */
+  rangeCacheBlockBytes: number;
+
+  /** Maximum resident bytes for coalesced range-fetch blocks (0 = disabled) */
+  rangeCacheMaxBytes: number;
+
+  /** Minimum requested range size that may use coalesced range-fetch blocks */
+  rangeCacheMinBytes: number;
 }
 
 /** Default shard cache configuration */

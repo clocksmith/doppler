@@ -7,6 +7,7 @@ import {
 } from './preflight.js';
 import { formatBytes } from './quota.js';
 import { getCdnBasePath } from './download-types.js';
+import quickstartRegistry from '../client/doppler-registry.json' with { type: 'json' };
 import { buildHfResolveBaseUrl, DEFAULT_HF_CDN_BASE_URL } from '../utils/hf-resolve-url.js';
 
 // ============================================================================
@@ -27,74 +28,49 @@ export function getCDNBaseUrl() {
 }
 
 
-export const QUICKSTART_MODELS = {
-  'gemma-3-270m-it-q4k-ehf16-af32': {
-    modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
-    displayName: 'Gemma 3 270M IT (Q4K)',
-    baseUrl: null,
-    hf: {
-      repoId: 'Clocksmith/rdrr',
-      revision: '732b2bee08cfe315e5c0df5af30e7ad795721b48',
-      path: 'models/gemma-3-270m-it-q4k-ehf16-af32',
-    },
-    requirements: MODEL_REQUIREMENTS['gemma-3-270m-it-q4k-ehf16-af32'],
-  },
-  'google-embeddinggemma-300m-q4k-ehf16-af32': {
-    modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
-    displayName: 'EmbeddingGemma 300M (Q4K)',
-    baseUrl: null,
-    hf: {
-      repoId: 'Clocksmith/rdrr',
-      revision: 'f242e44c9a35e72186aa61e4cc0c9873f0596741',
-      path: 'models/google-embeddinggemma-300m-q4k-ehf16-af32',
-    },
-    requirements: MODEL_REQUIREMENTS['google-embeddinggemma-300m-q4k-ehf16-af32'],
-  },
-  'gemma-3-1b-it-q4k-ehf16-af32': {
-    modelId: 'gemma-3-1b-it-q4k-ehf16-af32',
-    displayName: 'Gemma 3 1B IT (Q4K)',
-    baseUrl: null,
-    hf: {
-      repoId: 'Clocksmith/rdrr',
-      revision: 'a6651ea48c5ebc420ebc1c6972979049b72db96e',
-      path: 'models/gemma-3-1b-it-q4k-ehf16-af32',
-    },
-    requirements: MODEL_REQUIREMENTS['gemma-3-1b-it-q4k-ehf16-af32'],
-  },
-  'gemma-4-e2b-it-q4k-ehf16-af32': {
-    modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
-    displayName: 'Gemma 4 E2B IT (Q4K)',
-    baseUrl: null,
-    hf: {
-      repoId: 'Clocksmith/rdrr',
-      revision: 'c690ac0274891afbddb8afb776d000e4c0051b7b',
-      path: 'models/gemma-4-e2b-it-q4k-ehf16-af32',
-    },
-    requirements: MODEL_REQUIREMENTS['gemma-4-e2b-it-q4k-ehf16-af32'],
-  },
-  'qwen-3-5-0-8b-q4k-ehaf16': {
-    modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
-    displayName: 'Qwen 3.5 0.8B (Q4K)',
-    baseUrl: null,
-    hf: {
-      repoId: 'Clocksmith/rdrr',
-      revision: '1c509e37e4430d7ffd094ce5dfa623792603670e',
-      path: 'models/qwen-3-5-0-8b-q4k-ehaf16',
-    },
-    requirements: MODEL_REQUIREMENTS['qwen-3-5-0-8b-q4k-ehaf16'],
-  },
-  'qwen-3-5-2b-q4k-ehaf16': {
-    modelId: 'qwen-3-5-2b-q4k-ehaf16',
-    displayName: 'Qwen 3.5 2B (Q4K)',
-    baseUrl: null,
-    hf: {
-      repoId: 'Clocksmith/rdrr',
-      revision: '3f54bc54c19181bd737d1773dcd70fb783297e73',
-      path: 'models/qwen-3-5-2b-q4k-ehaf16',
-    },
-    requirements: MODEL_REQUIREMENTS['qwen-3-5-2b-q4k-ehaf16'],
-  },
+const QUICKSTART_DISPLAY_NAMES = {
+  'gemma-3-270m-it-q4k-ehf16-af32': 'Gemma 3 270M IT (Q4K)',
+  'google-embeddinggemma-300m-q4k-ehf16-af32': 'EmbeddingGemma 300M (Q4K)',
+  'gemma-3-1b-it-q4k-ehf16-af32': 'Gemma 3 1B IT (Q4K)',
+  'gemma-4-e2b-it-q4k-ehf16-af32': 'Gemma 4 E2B IT (Q4K)',
+  'qwen-3-5-0-8b-q4k-ehaf16': 'Qwen 3.5 0.8B (Q4K)',
+  'qwen-3-5-2b-q4k-ehaf16': 'Qwen 3.5 2B (Q4K)',
 };
+
+function normalizeRegistryText(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function buildQuickStartModelsFromRegistry(registry) {
+  const rows = Array.isArray(registry?.models) ? registry.models : [];
+  const models = {};
+  for (const row of rows) {
+    const modelId = normalizeRegistryText(row?.modelId);
+    const displayName = QUICKSTART_DISPLAY_NAMES[modelId];
+    const requirements = MODEL_REQUIREMENTS[modelId];
+    const hf = row?.hf && typeof row.hf === 'object' ? row.hf : null;
+    const repoId = normalizeRegistryText(hf?.repoId);
+    const revision = normalizeRegistryText(hf?.revision);
+    const repoPath = normalizeRegistryText(hf?.path);
+    if (!modelId || !displayName || !requirements || !repoId || !revision || !repoPath) {
+      throw new Error(`Quickstart registry entry "${modelId || 'unknown'}" is incomplete for storage download.`);
+    }
+    models[modelId] = {
+      modelId,
+      displayName,
+      baseUrl: null,
+      hf: {
+        repoId,
+        revision,
+        path: repoPath,
+      },
+      requirements,
+    };
+  }
+  return models;
+}
+
+export const QUICKSTART_MODELS = buildQuickStartModelsFromRegistry(quickstartRegistry);
 
 
 export function getQuickStartModel(modelId) {

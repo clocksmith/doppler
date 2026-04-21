@@ -53,6 +53,8 @@ export interface InferenceHarnessOptions {
   baseUrl?: string;
   /** Runtime overrides for kernel selection */
   runtime?: RuntimeOverrides;
+  /** Explicit source loading mode from the command/suite request */
+  loadMode?: 'opfs' | 'http' | 'memory' | 'file' | null;
   /** Progress callback */
   onProgress?: (phase: string, progress: number, detail?: string) => void;
   /** Log function (default: debug log) */
@@ -115,7 +117,10 @@ export declare function parseRuntimeOverridesFromURL(
 export declare function createHarnessShardStorageContext(
   modelUrl: string,
   manifest: RDRRManifest,
-  log?: (msg: string, level?: string) => void
+  log?: (msg: string, level?: string) => void,
+  options?: {
+    loadMode?: 'opfs' | 'http' | 'memory' | 'file' | null;
+  }
 ): PipelineStorageContext;
 
 // ============================================================================

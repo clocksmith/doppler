@@ -154,79 +154,120 @@ export function createOpfsStore(config) {
     return { append, expectedOffset };
   }
 
-  async function getFileSize(filename) {
-    const fileHandle = await getFileHandle(filename, { create: false });
-    const access = await openSyncAccessHandle(fileHandle);
-    if (access) {
-      try {
-        return access.handle.getSize();
-      } finally {
-        access.release();
-      }
+  function createOpfsOperationError(error, operation, filename) {
+    const message = error?.message || String(error);
+    const modelSuffix = currentModelId ? ` model=${currentModelId}` : '';
+    const wrapped = new Error(
+      `OPFS ${operation} failed for ${filename}${modelSuffix}: ${message}`,
+      error instanceof Error ? { cause: error } : undefined
+    );
+    wrapped.name = error?.name || 'Error';
+    if (error?.code !== undefined) {
+      wrapped.code = error.code;
     }
-    const file = await fileHandle.getFile();
-    return file.size;
+    wrapped.details = {
+      ...(error?.details && typeof error.details === 'object' ? error.details : {}),
+      opfsOperation: operation,
+      filename,
+      modelId: currentModelId,
+    };
+    return wrapped;
+  }
+
+  async function withOpfsOperation(operation, filename, callback) {
+    try {
+      return await callback();
+    } catch (error) {
+      throw createOpfsOperationError(error, operation, filename);
+    }
+  }
+
+  async function getFileSize(filename) {
+    return withOpfsOperation('getFileSize', filename, async () => {
+      const fileHandle = await getFileHandle(filename, { create: false });
+      const access = await openSyncAccessHandle(fileHandle);
+      if (access) {
+        try {
+          return access.handle.getSize();
+        } finally {
+          access.release();
+        }
+      }
+
+      const file = await fileHandle.getFile();
+      return file.size;
+    });
   }
 
   async function readFile(filename) {
-    const fileHandle = await getFileHandle(filename, { create: false });
-    const access = await openSyncAccessHandle(fileHandle);
-    if (access) {
-      try {
-        const size = access.handle.getSize();
-        const buffer = new Uint8Array(size);
-        let offset = 0;
-        while (offset < size) {
-          const view = buffer.subarray(offset);
-          const read = access.handle.read(view, { at: offset });
-          if (read <= 0) {
-            break;
+    return withOpfsOperation('readFile', filename, async () => {
+      const fileHandle = await getFileHandle(filename, { create: false });
+      const access = await openSyncAccessHandle(fileHandle);
+      if (access) {
+        try {
+          const size = access.handle.getSize();
+          const buffer = new Uint8Array(size);
+          let offset = 0;
+          while (offset < size) {
+            const view = buffer.subarray(offset);
+            const read = access.handle.read(view, { at: offset });
+            if (read <= 0) {
+              break;
+            }
+            offset += read;
           }
-          offset += read;
+          return buffer.buffer;
+        } finally {
+          access.release();
         }
-        return buffer.buffer;
-      } finally {
-        access.release();
       }
-    }
 
-    const file = await fileHandle.getFile();
-    return file.arrayBuffer();
+      const file = await fileHandle.getFile();
+      return file.arrayBuffer();
+    });
   }
 
   async function readFileRange(filename, offset = 0, length = null) {
-    const fileHandle = await getFileHandle(filename, { create: false });
-    const access = await openSyncAccessHandle(fileHandle);
-
     const startRaw = Number(offset);
     const start = Number.isFinite(startRaw) ? Math.max(0, Math.floor(startRaw)) : 0;
+    const normalizedLength = length == null
+      ? null
+      : Math.max(0, Number.isFinite(Number(length)) ? Math.floor(Number(length)) : 0);
+    return withOpfsOperation(
+      `readFileRange offset=${start} length=${normalizedLength ?? 'eof'}`,
+      filename,
+      async () => {
+        const fileHandle = await getFileHandle(filename, { create: false });
+        const access = await openSyncAccessHandle(fileHandle);
 
-    if (access) {
-      try {
-        const size = access.handle.getSize();
-        const end = length == null
-          ? size
-          : Math.min(size, start + Math.max(0, Number.isFinite(Number(length)) ? Math.floor(Number(length)) : 0));
-        const want = Math.max(0, end - start);
-        const buffer = new Uint8Array(want);
-        let readOffset = 0;
-        while (readOffset < want) {
-          const view = buffer.subarray(readOffset);
-          const read = access.handle.read(view, { at: start + readOffset });
-          if (read <= 0) break;
-          readOffset += read;
+        if (access) {
+          try {
+            const size = access.handle.getSize();
+            const end = normalizedLength == null
+              ? size
+              : Math.min(size, start + normalizedLength);
+            const want = Math.max(0, end - start);
+            const buffer = new Uint8Array(want);
+            let readOffset = 0;
+            while (readOffset < want) {
+              const view = buffer.subarray(readOffset);
+              const read = access.handle.read(view, { at: start + readOffset });
+              if (read <= 0) break;
+              readOffset += read;
+            }
+            return buffer.buffer;
+          } finally {
+            access.release();
+          }
         }
-        return buffer.buffer;
-      } finally {
-        access.release();
-      }
-    }
 
-    const file = await fileHandle.getFile();
-    const end = length == null
-      ? file.size
-      : Math.min(file.size, start + Math.max(0, Number.isFinite(Number(length)) ? Math.floor(Number(length)) : 0));
-    return file.slice(start, end).arrayBuffer();
+        const file = await fileHandle.getFile();
+        const end = normalizedLength == null
+          ? file.size
+          : Math.min(file.size, start + normalizedLength);
+        return file.slice(start, end).arrayBuffer();
+      }
+    );
   }
 
   async function* readFileRangeStream(filename, offset = 0, length = null, options = {}) {
@@ -236,41 +277,50 @@ export function createOpfsStore(config) {
       : (4 * 1024 * 1024);
     const startRaw = Number(offset);
     const start = Number.isFinite(startRaw) ? Math.max(0, Math.floor(startRaw)) : 0;
+    const normalizedLength = length == null
+      ? null
+      : Math.max(0, Number.isFinite(Number(length)) ? Math.floor(Number(length)) : 0);
 
-    const fileHandle = await getFileHandle(filename, { create: false });
-    const access = await openSyncAccessHandle(fileHandle);
+    try {
+      const fileHandle = await getFileHandle(filename, { create: false });
+      const access = await openSyncAccessHandle(fileHandle);
 
-    if (access) {
-      try {
-        const size = access.handle.getSize();
-        const end = length == null
-          ? size
-          : Math.min(size, start + Math.max(0, Number.isFinite(Number(length)) ? Math.floor(Number(length)) : 0));
-        let at = start;
-        const scratch = new Uint8Array(chunkBytes);
-        while (at < end) {
-          const want = Math.min(chunkBytes, end - at);
-          const view = want === scratch.byteLength ? scratch : scratch.subarray(0, want);
-          const read = access.handle.read(view, { at });
-          if (read <= 0) break;
-          // Copy out to avoid consumers seeing a mutated scratch buffer.
-          yield view.slice(0, read);
-          at += read;
+      if (access) {
+        try {
+          const size = access.handle.getSize();
+          const end = normalizedLength == null
+            ? size
+            : Math.min(size, start + normalizedLength);
+          let at = start;
+          const scratch = new Uint8Array(chunkBytes);
+          while (at < end) {
+            const want = Math.min(chunkBytes, end - at);
+            const view = want === scratch.byteLength ? scratch : scratch.subarray(0, want);
+            const read = access.handle.read(view, { at });
+            if (read <= 0) break;
+            yield view.slice(0, read);
+            at += read;
+          }
+          return;
+        } finally {
+          access.release();
         }
-        return;
-      } finally {
-        access.release();
       }
-    }
 
-    // Fallback: repeated slice reads (allocates per-chunk, but avoids full-file materialization).
-    const file = await fileHandle.getFile();
-    const end = length == null
-      ? file.size
-      : Math.min(file.size, start + Math.max(0, Number.isFinite(Number(length)) ? Math.floor(Number(length)) : 0));
-    for (let at = start; at < end; at += chunkBytes) {
-      const ab = await file.slice(at, Math.min(end, at + chunkBytes)).arrayBuffer();
-      yield new Uint8Array(ab);
+      const file = await fileHandle.getFile();
+      const end = normalizedLength == null
+        ? file.size
+        : Math.min(file.size, start + normalizedLength);
+      for (let at = start; at < end; at += chunkBytes) {
+        const ab = await file.slice(at, Math.min(end, at + chunkBytes)).arrayBuffer();
+        yield new Uint8Array(ab);
+      }
+    } catch (error) {
+      throw createOpfsOperationError(
+        error,
+        `readFileRangeStream offset=${start} length=${normalizedLength ?? 'eof'}`,
+        filename
+      );
     }
   }
 

@@ -43,4 +43,16 @@ const manifest = {
   assert.equal(storageContext.streamShardRange, undefined);
 }
 
+{
+  const storageContext = createHarnessShardStorageContext(
+    'https://example.com/model',
+    manifest,
+    null,
+    { loadMode: 'http' }
+  );
+  assert.equal(typeof storageContext.loadShard, 'function');
+  assert.equal(typeof storageContext.loadShardRange, 'function');
+  assert.equal(typeof storageContext.streamShardRange, 'function');
+}
+
 console.log('test-harness-storage-context.test: ok');

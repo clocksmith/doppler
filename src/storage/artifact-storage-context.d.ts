@@ -37,6 +37,9 @@ export interface ArtifactStorageContext extends SourceStorageContext {
 
 export interface CreateHttpArtifactStorageContextOptions {
   verifyHashes?: boolean;
+  rangeCacheBlockBytes?: number;
+  rangeCacheMaxBytes?: number;
+  rangeCacheMinBytes?: number;
 }
 
 export declare function getArtifactFormat(

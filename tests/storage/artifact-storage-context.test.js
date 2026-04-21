@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import {
   ARTIFACT_FORMAT_DIRECT_SOURCE,
   ARTIFACT_FORMAT_RDRR,
+  createHttpArtifactStorageContext,
   createNodeFileArtifactStorageContext,
   getArtifactFormat,
 } from '../../src/storage/artifact-storage-context.js';
@@ -71,6 +72,85 @@ import {
   } finally {
     await storageContext?.close?.();
     rmSync(fixtureDir, { recursive: true, force: true });
+  }
+}
+
+{
+  const calls = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init });
+    return {
+      ok: true,
+      status: 200,
+      arrayBuffer: async () => Uint8Array.from([9, 8]).buffer,
+      text: async () => '{"ok":true}',
+    };
+  };
+  try {
+    const manifest = {
+      modelId: 'artifact-http-no-store-test',
+      hashAlgorithm: 'blake3',
+      tensorsFile: 'tensors.json',
+      shards: [{ filename: 'shard_00000.bin', size: 4, hash: null }],
+    };
+    const storageContext = createHttpArtifactStorageContext('https://example.com/model', manifest, {
+      verifyHashes: false,
+    });
+    const bytes = new Uint8Array(await storageContext.loadShardRange(0, 1, 2));
+    assert.deepEqual(Array.from(bytes), [9, 8]);
+    assert.equal(await storageContext.loadTensorsJson(), '{"ok":true}');
+    assert.equal(calls[0].url, 'https://example.com/model/shard_00000.bin');
+    assert.equal(calls[0].init.cache, 'no-store');
+    assert.equal(calls[0].init.headers.Range, 'bytes=1-2');
+    assert.equal(calls[1].url, 'https://example.com/model/tensors.json');
+    assert.equal(calls[1].init.cache, 'no-store');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+}
+
+{
+  const calls = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init });
+    const range = String(init?.headers?.Range || '');
+    const match = /^bytes=(\d+)-(\d+)$/.exec(range);
+    assert.ok(match, `expected range header, got ${range}`);
+    const start = Number(match[1]);
+    const end = Number(match[2]);
+    return {
+      ok: true,
+      status: 206,
+      arrayBuffer: async () => Uint8Array.from(
+        { length: end - start + 1 },
+        (_, index) => start + index
+      ).buffer,
+      text: async () => '{"ok":true}',
+    };
+  };
+  try {
+    const manifest = {
+      modelId: 'artifact-http-range-block-cache-test',
+      hashAlgorithm: 'blake3',
+      shards: [{ filename: 'shard_00000.bin', size: 16, hash: null }],
+    };
+    const storageContext = createHttpArtifactStorageContext('https://example.com/model', manifest, {
+      verifyHashes: false,
+      rangeCacheBlockBytes: 4,
+      rangeCacheMaxBytes: 8,
+      rangeCacheMinBytes: 2,
+    });
+    const first = new Uint8Array(await storageContext.loadShardRange(0, 1, 2));
+    const second = new Uint8Array(await storageContext.loadShardRange(0, 2, 2));
+    assert.deepEqual(Array.from(first), [1, 2]);
+    assert.deepEqual(Array.from(second), [2, 3]);
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].init.cache, 'no-store');
+    assert.equal(calls[0].init.headers.Range, 'bytes=0-3');
+  } finally {
+    globalThis.fetch = originalFetch;
   }
 }
 

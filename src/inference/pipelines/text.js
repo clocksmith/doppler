@@ -56,6 +56,35 @@ function destroyMoERouter(router) {
   }
 }
 
+function createPipelineLoadPhaseError(error, phase, context = {}) {
+  const message = error?.message || String(error);
+  const wrapped = new Error(
+    `Pipeline load phase "${phase}" failed: ${message}`,
+    error instanceof Error ? { cause: error } : undefined
+  );
+  wrapped.name = error?.name || 'Error';
+  if (error?.code !== undefined) {
+    wrapped.code = error.code;
+  }
+  wrapped.details = {
+    ...(error?.details && typeof error.details === 'object' ? error.details : {}),
+    pipelineLoadPhase: phase,
+    ...context,
+  };
+  return wrapped;
+}
+
+async function withPipelineLoadPhase(phase, context, run) {
+  try {
+    return await run();
+  } catch (error) {
+    if (error?.details?.pipelineLoadPhase) {
+      throw error;
+    }
+    throw createPipelineLoadPhaseError(error, phase, context);
+  }
+}
+
 function resolveSingleSpecialTokenId(tokenizer, tokenText, label) {
   const rawTokenIds = tokenizer?.encode?.(tokenText);
   const tokenIds = Array.isArray(rawTokenIds)
@@ -378,10 +407,14 @@ export class InferencePipeline extends PipelineState {
     const kernelInfo = this.resolvedKernelPath ? `kernelPath=${this.resolvedKernelPath.id}` : 'kernelPath=none';
     log.info('Pipeline', `${cfg.numLayers}L/${cfg.hiddenSize}H/${cfg.numHeads}heads (${cfg.headDim}dim)${moeStr}, ${kernelInfo}`);
 
-    this.tokenizer = await initTokenizerFromManifest(
-      manifest,
-      this.baseUrl,
-      this.storageContext
+    this.tokenizer = await withPipelineLoadPhase(
+      'tokenizer',
+      { modelId: manifest.modelId ?? null },
+      () => initTokenizerFromManifest(
+        manifest,
+        this.baseUrl,
+        this.storageContext
+      )
     );
     const tokenizerVocabSize = this.tokenizer.getVocabSize();
     if (Number.isFinite(tokenizerVocabSize) && tokenizerVocabSize > 0) {
@@ -465,7 +498,11 @@ export class InferencePipeline extends PipelineState {
     }
 
     // Load weights
-    await this._loadWeights();
+    await withPipelineLoadPhase(
+      'loadWeights',
+      { modelId: manifest.modelId ?? null },
+      () => this._loadWeights()
+    );
 
     // Initialize RoPE frequencies
     await this._initRoPE();

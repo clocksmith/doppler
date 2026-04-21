@@ -142,6 +142,7 @@ const DEFAULT_SHARED_SAMPLING = Object.freeze({
 const DOPPLER_MODEL_SOURCES = Object.freeze(['local', 'quickstart-registry']);
 const COMPARE_LANES = Object.freeze(['performance_comparable', 'capability_only']);
 const COMPARE_PROFILE_RUNTIME_DECODE_PROFILES = Object.freeze(['parity', 'throughput']);
+const DOPPLER_LOAD_MODES = Object.freeze(['opfs', 'http', 'memory']);
 const DEFAULT_COMPARE_LANE = 'performance_comparable';
 const DEFAULT_DOPPLER_MODEL_SOURCE = 'local';
 const DEFAULT_BENCHMARK_POLICY = Object.freeze({
@@ -217,6 +218,26 @@ const DEFAULT_BENCHMARK_POLICY = Object.freeze({
     }),
     knownBadByModel: Object.freeze({
       'gemma-3-270m-it-f16-af32': Object.freeze(['gemma3-f16-fused-f16a-online']),
+    }),
+  }),
+  doppler: Object.freeze({
+    loadModeRuntimeOverlays: Object.freeze({
+      http: Object.freeze({
+        description: 'Cold HTTP compare runs use direct range reads and skip eager full-shard hash verification; manifest preflight and pinned hosted revisions remain recorded in the compare artifact.',
+        runtimeConfig: Object.freeze({
+          loading: Object.freeze({
+            distribution: Object.freeze({
+              sourceOrder: Object.freeze(['http']),
+            }),
+            shardCache: Object.freeze({
+              verifyHashes: false,
+              rangeCacheBlockBytes: 16 * 1024 * 1024,
+              rangeCacheMaxBytes: 128 * 1024 * 1024,
+              rangeCacheMinBytes: 4096,
+            }),
+          }),
+        }),
+      }),
     }),
   }),
 });
@@ -364,6 +385,43 @@ function normalizeChannelByPlatform(raw, label) {
   return Object.freeze(normalized);
 }
 
+function cloneJsonObject(value, label) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`${label} must be an object`);
+  }
+  return JSON.parse(JSON.stringify(value));
+}
+
+function normalizeDopplerLoadModeRuntimeOverlays(raw, label) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new Error(`${label} must be an object`);
+  }
+
+  const normalized = {};
+  for (const [loadMode, overlay] of Object.entries(raw)) {
+    const normalizedLoadMode = String(loadMode ?? '').trim().toLowerCase();
+    if (!DOPPLER_LOAD_MODES.includes(normalizedLoadMode)) {
+      throw new Error(`${label}.${loadMode} must use one of these load modes: ${DOPPLER_LOAD_MODES.join(', ')}`);
+    }
+    if (!overlay || typeof overlay !== 'object' || Array.isArray(overlay)) {
+      throw new Error(`${label}.${loadMode} must be an object`);
+    }
+    const description = typeof overlay.description === 'string' ? overlay.description.trim() : '';
+    if (!description) {
+      throw new Error(`${label}.${loadMode}.description must be a non-empty string`);
+    }
+    const runtimeConfig = cloneJsonObject(
+      overlay.runtimeConfig,
+      `${label}.${loadMode}.runtimeConfig`
+    );
+    normalized[normalizedLoadMode] = Object.freeze({
+      description,
+      runtimeConfig,
+    });
+  }
+  return Object.freeze(normalized);
+}
+
 function loadBenchmarkPolicy() {
   let raw;
   try {
@@ -430,6 +488,11 @@ function loadBenchmarkPolicy() {
         ?? DEFAULT_BENCHMARK_POLICY.kernelPathPolicy.compareRuntime
     )
   );
+  const loadModeRuntimeOverlays = normalizeDopplerLoadModeRuntimeOverlays(
+    parsed?.doppler?.loadModeRuntimeOverlays
+      ?? DEFAULT_BENCHMARK_POLICY.doppler.loadModeRuntimeOverlays,
+    'doppler.loadModeRuntimeOverlays'
+  );
 
   return Object.freeze({
     source: BENCHMARK_POLICY_PATH,
@@ -442,6 +505,7 @@ function loadBenchmarkPolicy() {
     decodeProfiles,
     browser: Object.freeze({ stableArgs, compareChannelByPlatform }),
     kernelPathPolicy: Object.freeze({ compareRuntime, knownBadByModel }),
+    doppler: Object.freeze({ loadModeRuntimeOverlays }),
   });
 }
 
@@ -944,10 +1008,10 @@ function parseNonNegativeNumber(value, fallback, label) {
 function parseLoadMode(value, label, fallback) {
   if (value == null || value === '') return fallback;
   const normalized = String(value).trim().toLowerCase();
-  if (normalized === 'opfs' || normalized === 'http' || normalized === 'memory') {
+  if (DOPPLER_LOAD_MODES.includes(normalized)) {
     return normalized;
   }
-  throw new Error(`${label} must be one of: opfs, http, memory`);
+  throw new Error(`${label} must be one of: ${DOPPLER_LOAD_MODES.join(', ')}`);
 }
 
 function parseTopP(value, fallback, label) {
@@ -1591,6 +1655,14 @@ function renderComparePrompt({ modelId, prompt, useChatTemplate }) {
   };
 }
 
+function resolveCompareOwnedPromptRenderer({ modelId, useChatTemplate }) {
+  const probe = renderComparePrompt({ modelId, prompt: '', useChatTemplate });
+  if (probe.requestedUseChatTemplate !== true || probe.enginesReceiveRenderedPrompt !== true) {
+    return null;
+  }
+  return (prompt) => renderComparePrompt({ modelId, prompt, useChatTemplate }).promptRendered;
+}
+
 function buildComparabilityWarnings({ dopplerSurface }) {
   const warnings = [];
   if (dopplerSurface !== 'browser') {
@@ -1666,7 +1738,7 @@ function collectProtectedRuntimeConfigMutations(value, currentPath = '', out = [
   return out;
 }
 
-function assertAllowedRuntimeConfigOverride(override) {
+function assertAllowedRuntimeConfigOverride(override, label = '--runtime-config-json') {
   if (override == null) return;
   const violations = collectProtectedRuntimeConfigMutations(override);
   if (violations.length === 0) return;
@@ -1681,7 +1753,7 @@ function assertAllowedRuntimeConfigOverride(override) {
   }
 
   throw new Error(
-    '--runtime-config-json must not override compare-managed fairness or cadence fields:\n'
+    `${label} must not override compare-managed fairness or cadence fields:\n`
     + lines.join('\n')
   );
 }
@@ -1707,6 +1779,23 @@ function toFailurePayload(library, error) {
 function hashJsonPayload(payload) {
   const text = JSON.stringify(payload, null, 0);
   return crypto.createHash('sha256').update(text).digest('hex');
+}
+
+function resolveDopplerLoadModeRuntimeOverlay(loadMode) {
+  const normalized = String(loadMode ?? '').trim().toLowerCase();
+  if (!normalized) return null;
+  return BENCHMARK_POLICY.doppler.loadModeRuntimeOverlays[normalized] ?? null;
+}
+
+function summarizeDopplerLoadModeRuntimeOverlay(loadMode) {
+  const overlay = resolveDopplerLoadModeRuntimeOverlay(loadMode);
+  if (!overlay) return null;
+  return {
+    loadMode,
+    description: overlay.description,
+    runtimeConfig: overlay.runtimeConfig,
+    runtimeConfigSha256: hashJsonPayload(overlay.runtimeConfig),
+  };
 }
 
 async function readJsonFileWithHash(filePath, label) {
@@ -2022,6 +2111,7 @@ function resolveCompareLoadModes(sharedLoadMode, compareLoadModeDefaults) {
 }
 
 function buildDopplerRuntimeConfig(sharedContract, engineOverlay) {
+  const resolvedLoadMode = engineOverlay.loadMode ?? sharedContract.loadMode ?? null;
   const sampling = {
     temperature: sharedContract.sampling.temperature,
     topK: sharedContract.sampling.topK,
@@ -2038,7 +2128,7 @@ function buildDopplerRuntimeConfig(sharedContract, engineOverlay) {
           warmupRuns: sharedContract.warmupRuns,
           timedRuns: sharedContract.timedRuns,
           useChatTemplate: sharedContract.useChatTemplate,
-          loadMode: sharedContract.loadMode,
+          loadMode: resolvedLoadMode,
           sampling,
         },
       },
@@ -2084,7 +2174,7 @@ function buildDopplerRuntimeConfig(sharedContract, engineOverlay) {
     compareManagedRuntimeConfig.inference.kernelPath = engineOverlay.kernelPath;
   }
 
-  let runtimeConfig = compareManagedRuntimeConfig;
+  let runtimeConfig = {};
   if (engineOverlay.runtimeBaseConfigJson != null) {
     if (
       typeof engineOverlay.runtimeBaseConfigJson !== 'object'
@@ -2093,8 +2183,25 @@ function buildDopplerRuntimeConfig(sharedContract, engineOverlay) {
     ) {
       throw new Error('compare profile runtime base override is expected to be a parsed JSON object');
     }
-    runtimeConfig = mergeRuntimeValues(engineOverlay.runtimeBaseConfigJson, compareManagedRuntimeConfig);
+    runtimeConfig = engineOverlay.runtimeBaseConfigJson;
   }
+
+  if (engineOverlay.runtimeLoadModeConfigJson != null) {
+    if (
+      typeof engineOverlay.runtimeLoadModeConfigJson !== 'object'
+      || engineOverlay.runtimeLoadModeConfigJson == null
+      || Array.isArray(engineOverlay.runtimeLoadModeConfigJson)
+    ) {
+      throw new Error('benchmark-policy load-mode runtime overlay is expected to be a parsed JSON object');
+    }
+    assertAllowedRuntimeConfigOverride(
+      engineOverlay.runtimeLoadModeConfigJson,
+      'benchmark-policy doppler.loadModeRuntimeOverlays runtimeConfig'
+    );
+    runtimeConfig = mergeRuntimeValues(runtimeConfig, engineOverlay.runtimeLoadModeConfigJson);
+  }
+
+  runtimeConfig = mergeRuntimeValues(runtimeConfig, compareManagedRuntimeConfig);
 
   if (engineOverlay.runtimeConfigJson) {
     if (typeof engineOverlay.runtimeConfigJson !== 'object' || engineOverlay.runtimeConfigJson == null) {
@@ -2149,6 +2256,7 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
   const resolvedBrowserChannel = resolveBrowserChannelOverride(options.browserChannel);
   const resolvedBrowserBaseUrl = options.browserBaseUrl || null;
   const resolvedBrowserExecutable = options.browserExecutable || null;
+  const loadModeRuntimeOverlay = resolveDopplerLoadModeRuntimeOverlay(resolvedLoadMode);
   const runtimeConfig = buildDopplerRuntimeConfig(sharedContract, {
     kernelPath: resolvedKernelPath,
     kernelPathPolicy: BENCHMARK_POLICY.kernelPathPolicy.compareRuntime,
@@ -2157,7 +2265,9 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
     disableMultiTokenDecode: resolvedDisableMultiTokenDecode,
     speculationMode: resolvedSpeculationMode || null,
     stopCheckMode: resolvedStopCheckMode,
+    loadMode: resolvedLoadMode,
     runtimeBaseConfigJson: options.runtimeBaseConfigJson ?? null,
+    runtimeLoadModeConfigJson: loadModeRuntimeOverlay?.runtimeConfig ?? null,
     runtimeConfigJson: options.runtimeConfigJson,
   });
   const stableBrowserArgs = appendBrowserArgs([], STABLE_BROWSER_ARGS);
@@ -3057,6 +3167,10 @@ async function main() {
         modelId: tjsModelId,
         localModelPath: tjsLocalModelPath,
         useChatTemplate,
+        renderPrompt: resolveCompareOwnedPromptRenderer({
+          modelId: dopplerModelId,
+          useChatTemplate,
+        }),
       });
       promptInput = promptContract.prompt;
     } else {
@@ -3311,6 +3425,10 @@ async function main() {
       compareProfileRuntimeProfiles: compareProfileRuntimeBundleMetadata,
       overrideProvided: runtimeConfigOverride !== null,
       runtimeConfigSha256: runtimeConfigOverrideHash,
+      loadModeRuntimeOverlays: {
+        warm: summarizeDopplerLoadModeRuntimeOverlay(resolvedLoadModes.warm),
+        cold: summarizeDopplerLoadModeRuntimeOverlay(resolvedLoadModes.cold),
+      },
       compareProfileSchemaVersion: compareProfileConfig.schemaVersion ?? DEFAULT_COMPARE_CONFIG_SCHEMA_VERSION,
     },
     compareLane: {
@@ -3415,10 +3533,10 @@ async function main() {
       cacheSemantics: {
         warm: dopplerSurface === 'node'
           ? `Prime engine cache before timed run, then run from local persistent cache only (loadMode=${resolvedLoadModes.warm}; Doppler node runtime cache; TJS persistent browser cache).`
-          : `Prime engine cache before timed run, then run from local persistent cache only (loadMode=${resolvedLoadModes.warm}; Doppler OPFS; TJS persistent browser cache).`,
+          : `Prime engine cache before timed run, then run from local persistent cache only (loadMode=${resolvedLoadModes.warm}; Doppler browser load mode ${resolvedLoadModes.warm}; TJS persistent browser cache).`,
         cold: dopplerSurface === 'node'
           ? `Wipe engine-specific persistent cache state before run (loadMode=${resolvedLoadModes.cold}; Doppler node runtime cache/profile wipe; TJS profile wipe).`
-          : `Wipe engine-specific persistent cache state before run (loadMode=${resolvedLoadModes.cold}; Doppler OPFS/profile wipe; TJS profile wipe).`,
+          : `Wipe engine-specific persistent cache state before run (loadMode=${resolvedLoadModes.cold}; Doppler browser load mode ${resolvedLoadModes.cold}; TJS profile wipe).`,
       },
       formats: {
         doppler: dopplerFormat,
@@ -3824,6 +3942,7 @@ export {
   parseOnOff,
   resolveCatalogTransformersjsBenchmarkTarget,
   renderComparePrompt,
+  resolveCompareOwnedPromptRenderer,
   resolveCompareProfile,
   resolveCompareLoadModes,
   resolveDopplerModelSource,

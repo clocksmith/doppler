@@ -66,6 +66,7 @@
     "registry:sync:scripts:check": "node tools/sync-registry-scripts.js --check",
     "registry:hf:check": "node tools/check-hf-registry.js",
     "registry:publish:hf": "node tools/publish-hf-registry-model.js",
+    "registry:publish:hf:all": "node tools/publish-hf-registry-model.js --all-approved",
     "support:matrix:sync": "node tools/sync-model-support-matrix.js",
     "support:matrix:check": "node tools/sync-model-support-matrix.js --check",
     "support:subsystems:sync": "node tools/sync-subsystem-support-matrix.js",

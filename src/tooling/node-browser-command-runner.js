@@ -588,6 +588,38 @@ function hasCrashRecoveryArgs(args = []) {
   return CRASH_RECOVERY_BROWSER_ARGS.every((arg) => argSet.has(arg));
 }
 
+function formatBrowserEvaluationError(payload) {
+  if (!payload || typeof payload !== 'object') {
+    return new Error('browser command runner failed with an unserializable error.');
+  }
+  const message = asNonEmptyString(payload.message) || 'Unknown browser command error';
+  const stack = asNonEmptyString(payload.stack);
+  const causeMessage = asNonEmptyString(payload.cause?.message);
+  const text = [
+    `browser command runner failed: ${message}`,
+    stack,
+    causeMessage ? `Caused by: ${causeMessage}` : null,
+  ].filter(Boolean).join('\n');
+  const error = new Error(text);
+  error.name = asNonEmptyString(payload.name) || 'BrowserCommandError';
+  error.code = asNonEmptyString(payload.code) || null;
+  error.retryable = typeof payload.retryable === 'boolean' ? payload.retryable : null;
+  error.details = {
+    ...(payload.details && typeof payload.details === 'object' ? payload.details : {}),
+    browserErrorName: asNonEmptyString(payload.name),
+    browserStack: stack,
+    browserCause: payload.cause && typeof payload.cause === 'object'
+      ? {
+        name: asNonEmptyString(payload.cause.name),
+        message: asNonEmptyString(payload.cause.message),
+        stack: asNonEmptyString(payload.cause.stack),
+        code: asNonEmptyString(payload.cause.code),
+      }
+      : null,
+  };
+  return error;
+}
+
 function browserLaunchArgs(extraArgs = []) {
   const platformArgs = PLATFORM_WEBGPU_ARGS[process.platform] ?? [];
   return uniqueArgs([...DEFAULT_WEBGPU_BROWSER_ARGS, ...platformArgs, ...extraArgs]);
@@ -946,16 +978,48 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
       }
 
       const response = await page.evaluate(async (payload) => {
+        const serializeError = (error, depth = 0) => {
+          if (!error || typeof error !== 'object') {
+            return {
+              name: null,
+              message: String(error || 'Unknown browser error'),
+              stack: null,
+              code: null,
+              details: null,
+              retryable: null,
+              cause: null,
+            };
+          }
+          return {
+            name: typeof error.name === 'string' ? error.name : null,
+            message: typeof error.message === 'string' ? error.message : String(error),
+            stack: typeof error.stack === 'string' ? error.stack : null,
+            code: typeof error.code === 'string' ? error.code : null,
+            details: error.details && typeof error.details === 'object' ? error.details : null,
+            retryable: typeof error.retryable === 'boolean' ? error.retryable : null,
+            cause: depth < 2 ? serializeError(error.cause, depth + 1) : null,
+          };
+        };
         if (typeof globalThis.__dopplerRunBrowserCommand !== 'function') {
           throw new Error('browser command runner is missing globalThis.__dopplerRunBrowserCommand');
         }
-        return globalThis.__dopplerRunBrowserCommand(payload.request, payload.options || {});
+        try {
+          return await globalThis.__dopplerRunBrowserCommand(payload.request, payload.options || {});
+        } catch (error) {
+          return {
+            __dopplerBrowserError: serializeError(error),
+          };
+        }
       }, {
         request: relayRequest,
         options: {
           runtimeLoadOptions: options.runtimeLoadOptions || {},
         },
       });
+
+      if (response?.__dopplerBrowserError) {
+        throw formatBrowserEvaluationError(response.__dopplerBrowserError);
+      }
 
       return finalizeBrowserRelayResponse(response, effectiveRequest);
     } catch (error) {

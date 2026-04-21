@@ -15,6 +15,7 @@ import {
   parseJsonBlock,
   parseOnOff as parseCompareOnOff,
   renderComparePrompt,
+  resolveCompareOwnedPromptRenderer,
   resolveCatalogTransformersjsBenchmarkTarget,
   resolveCompareProfile,
   resolveCompareLoadModes,
@@ -160,6 +161,22 @@ function runCompareEngines(args) {
   assert.equal(benchmarkPolicy?.decodeProfiles?.profiles?.parity?.readbackInterval, 4);
   assert.equal(benchmarkPolicy?.decodeProfiles?.profiles?.throughput?.stopCheckMode, 'batch');
   assert.equal(benchmarkPolicy?.decodeProfiles?.profiles?.throughput?.readbackInterval, 4);
+  assert.deepEqual(
+    benchmarkPolicy?.doppler?.loadModeRuntimeOverlays?.http?.runtimeConfig?.loading?.distribution?.sourceOrder,
+    ['http']
+  );
+  assert.equal(
+    benchmarkPolicy?.doppler?.loadModeRuntimeOverlays?.http?.runtimeConfig?.loading?.shardCache?.verifyHashes,
+    false
+  );
+  assert.equal(
+    benchmarkPolicy?.doppler?.loadModeRuntimeOverlays?.http?.runtimeConfig?.loading?.shardCache?.rangeCacheBlockBytes,
+    16777216
+  );
+  assert.equal(
+    benchmarkPolicy?.doppler?.loadModeRuntimeOverlays?.http?.runtimeConfig?.loading?.shardCache?.rangeCacheMaxBytes,
+    134217728
+  );
 }
 
 {
@@ -240,6 +257,21 @@ function runCompareEngines(args) {
   assert.equal(sharedContract.promptContract.promptRendered, promptContract.promptRendered);
   assert.equal(sharedContract.sampling.repetitionPenalty, 1);
   assert.equal(sharedContract.sampling.greedyThreshold, 0.01);
+}
+
+{
+  const renderer = resolveCompareOwnedPromptRenderer({
+    modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+    useChatTemplate: true,
+  });
+  assert.equal(typeof renderer, 'function');
+  assert.match(renderer('The sky is clear.'), /^<bos><\|turn\>user\nThe sky is clear\.<turn\|>\n<\|turn\>model\n$/);
+
+  const qwenRenderer = resolveCompareOwnedPromptRenderer({
+    modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+    useChatTemplate: true,
+  });
+  assert.equal(qwenRenderer, null);
 }
 
 {
@@ -697,6 +729,67 @@ function runCompareEngines(args) {
   assert.equal(runtimeConfig.inference.session.decodeLoop.readbackInterval, 4);
   assert.equal(runtimeConfig.inference.session.perLayerInputs.materialization, 'gpu_split_tables');
   assert.equal(runtimeConfig.shared.bufferPool.budget.maxTotalBytes, 1234);
+}
+
+{
+  const sharedContract = buildSharedBenchmarkContract({
+    prompt: 'unit prompt',
+    maxTokens: 8,
+    warmupRuns: 0,
+    timedRuns: 1,
+    seed: 7,
+    sampling: {
+      temperature: 0,
+      topK: 1,
+      topP: 1,
+    },
+    useChatTemplate: false,
+  });
+  const runtimeConfig = buildDopplerRuntimeConfig(sharedContract, {
+    batchSize: 4,
+    readbackInterval: 4,
+    disableMultiTokenDecode: false,
+    speculationMode: 'none',
+    stopCheckMode: 'batch',
+    kernelPath: null,
+    kernelPathPolicy: {
+      mode: 'capability-aware',
+      sourceScope: ['model', 'manifest', 'config'],
+      allowSources: ['model', 'manifest', 'config'],
+      onIncompatible: 'remap',
+    },
+    loadMode: 'http',
+    runtimeBaseConfigJson: {
+      loading: {
+        distribution: {
+          sourceOrder: ['cache', 'http'],
+        },
+        shardCache: {
+          verifyHashes: true,
+        },
+      },
+    },
+    runtimeLoadModeConfigJson: {
+      loading: {
+        distribution: {
+          sourceOrder: ['http'],
+        },
+        shardCache: {
+          verifyHashes: false,
+          rangeCacheBlockBytes: 16777216,
+          rangeCacheMaxBytes: 134217728,
+          rangeCacheMinBytes: 4096,
+        },
+      },
+    },
+    runtimeConfigJson: null,
+  });
+  assert.equal(runtimeConfig.shared.benchmark.run.loadMode, 'http');
+  assert.deepEqual(runtimeConfig.loading.distribution.sourceOrder, ['http']);
+  assert.equal(runtimeConfig.loading.shardCache.verifyHashes, false);
+  assert.equal(runtimeConfig.loading.shardCache.rangeCacheBlockBytes, 16777216);
+  assert.equal(runtimeConfig.loading.shardCache.rangeCacheMaxBytes, 134217728);
+  assert.equal(runtimeConfig.loading.shardCache.rangeCacheMinBytes, 4096);
 }
 
 {

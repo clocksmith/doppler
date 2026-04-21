@@ -42,7 +42,11 @@ npm run registry:hf:check
 
 Validation guarantees:
 - every approved hosted entry has `hf.repoId`, `hf.revision`, and `hf.path`
+- every approved hosted entry carries artifact identity metadata:
+  `sourceCheckpointId`, `weightPackId`, `manifestVariantId`,
+  `artifactCompleteness`, `runtimePromotionState`, and `weightsRefAllowed`
 - the remote manifest resolves
+- the remote manifest artifact identity matches the approved catalog entry
 - every declared remote shard resolves
 - the remote registry does not contain extra models outside the approved canonical hosted set
 - the live demo will not surface non-fetchable remote registry entries
@@ -78,11 +82,29 @@ Dry run:
 npm run registry:publish:hf -- --model-id translategemma-4b-it-q4k-ehf16-af32 --dry-run
 ```
 
-Always pass `--local-dir` explicitly if the external volume mount differs from the default.
+Dry-run validates the local manifest and all manifest-declared artifact files before it prints the upload plan.
+Always pass `--local-dir` and `--shard-dir` explicitly if the manifest or shard source differs from the default external volume.
+
+## Repair all approved hosted entries
+
+If `Clocksmith/rdrr` drifted behind the local catalog or manifest contract, first validate the exact repair set without uploading:
+
+```bash
+npm run registry:publish:hf:all -- --local-root models/local --shard-root models/local --dry-run
+```
+
+After `hf auth login`, run the same command without `--dry-run` to republish every approved hosted artifact and rebuild `registry/catalog.json` after each successful upload:
+
+```bash
+npm run registry:publish:hf:all -- --local-root models/local --shard-root models/local
+```
+
+Use the external volume roots instead of `models/local` for release publishing when `$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr` is mounted and up to date.
 
 ## After publishing
 
-Update `hf.revision` in `models/catalog.json` to the published commit SHA, then regenerate the derived support matrix:
+The publish tool writes the published commit SHA back to `hf.revision` in `models/catalog.json`.
+After publishing, regenerate the derived support matrix:
 
 ```bash
 npm run support:matrix:sync

@@ -1148,16 +1148,27 @@ async function seedHasherFromStoredPrefix(hasher, shardIndex, expectedPrefixByte
     return;
   }
   let hashedBytes = 0;
-  for await (const chunk of streamShardRange(shardIndex, 0, expectedPrefixBytes)) {
-    if (!chunk?.byteLength) continue;
-    const remaining = expectedPrefixBytes - hashedBytes;
-    if (remaining <= 0) break;
-    const next = chunk.byteLength > remaining
-      ? chunk.subarray(0, remaining)
-      : chunk;
-    hasher.update(next);
-    hashedBytes += next.byteLength;
-    if (hashedBytes >= expectedPrefixBytes) break;
+  try {
+    for await (const chunk of streamShardRange(shardIndex, 0, expectedPrefixBytes)) {
+      if (!chunk?.byteLength) continue;
+      const remaining = expectedPrefixBytes - hashedBytes;
+      if (remaining <= 0) break;
+      const next = chunk.byteLength > remaining
+        ? chunk.subarray(0, remaining)
+        : chunk;
+      hasher.update(next);
+      hashedBytes += next.byteLength;
+      if (hashedBytes >= expectedPrefixBytes) break;
+    }
+  } catch (error) {
+    throw createShardSizeMismatchError(
+      `Shard ${shardIndex} stored resume prefix unreadable: ${error.message}`,
+      {
+        code: 'resume_state_prefix_mismatch',
+        expectedPrefixBytes,
+        actualPrefixBytes: hashedBytes,
+      }
+    );
   }
   if (hashedBytes !== expectedPrefixBytes) {
     throw createShardSizeMismatchError(
@@ -1191,7 +1202,7 @@ async function resolvePersistedResumeOffset(writeToStore, shardIndex, expectedSi
       );
     }
     if (resumeOffset === normalizedExpected) {
-      return 0;
+      return resumeOffset;
     }
   }
   return resumeOffset;
@@ -1243,7 +1254,45 @@ async function appendHttpTransferChunk(state, chunk) {
   state.receivedBytes += bytes.byteLength;
 }
 
+function hasCompleteExpectedHttpTransfer(state, expectedSize) {
+  if (!Number.isFinite(expectedSize)) {
+    return false;
+  }
+  const expected = Math.max(0, Math.floor(expectedSize));
+  return Number.isInteger(state?.receivedBytes) && state.receivedBytes === expected;
+}
+
+function createHttpStreamReadError(
+  error,
+  shardIndex,
+  attempt,
+  maxRetries,
+  requestedRangeHeader,
+  receivedBytes,
+  expectedSize
+) {
+  const rangeDetail = requestedRangeHeader ? ` range=${requestedRangeHeader}` : '';
+  const expectedDetail = Number.isFinite(expectedSize) ? ` expected=${Math.floor(expectedSize)}` : '';
+  const message = error?.message || String(error);
+  const wrapped = new Error(
+    `Shard ${shardIndex} HTTP stream read failed on attempt ${attempt + 1}/${maxRetries + 1}${rangeDetail} received=${receivedBytes}${expectedDetail}: ${message}`,
+    error instanceof Error ? { cause: error } : undefined
+  );
+  wrapped.name = error?.name || 'Error';
+  wrapped.code = 'stream_read_failed';
+  wrapped.shardIndex = shardIndex;
+  wrapped.attempt = attempt;
+  wrapped.maxRetries = maxRetries;
+  wrapped.requestedRange = requestedRangeHeader;
+  wrapped.receivedBytes = receivedBytes;
+  wrapped.expectedSize = Number.isFinite(expectedSize) ? Math.floor(expectedSize) : null;
+  return wrapped;
+}
+
 async function finalizeHttpTransferState(state, startTime, shardIndex) {
+  if (state.finalizedResult) {
+    return state.finalizedResult;
+  }
   const hashBytes = await state.hasher.finalize();
   const hash = bytesToHex(hashBytes);
   if (state.writer) {
@@ -1258,7 +1307,7 @@ async function finalizeHttpTransferState(state, startTime, shardIndex) {
       'Distribution',
       `Shard ${shardIndex}: http stream (${state.receivedBytes} bytes, ${elapsed.toFixed(2)}s, ${speedDisplay})`
     );
-    return {
+    state.finalizedResult = {
       buffer: null,
       bytes: state.receivedBytes,
       hash,
@@ -1267,12 +1316,13 @@ async function finalizeHttpTransferState(state, startTime, shardIndex) {
       path: 'http-stream-store',
       writeDurationMs: state.writeDurationMs,
     };
+    return state.finalizedResult;
   }
 
   const buffer = !state.chunks || state.chunks.length === 0
     ? new ArrayBuffer(0)
     : await new Blob(state.chunks).arrayBuffer();
-  return {
+  state.finalizedResult = {
     buffer,
     bytes: buffer.byteLength,
     hash,
@@ -1281,6 +1331,42 @@ async function finalizeHttpTransferState(state, startTime, shardIndex) {
     path: 'http-stream-buffer',
     writeDurationMs: null,
   };
+  return state.finalizedResult;
+}
+
+async function finalizeHttpTransferStateAtRejectedEof(
+  state,
+  startTime,
+  shardIndex,
+  algorithm,
+  writeToStore
+) {
+  try {
+    return await finalizeHttpTransferState(state, startTime, shardIndex);
+  } catch (error) {
+    if (!String(error?.message || '').includes('BLAKE3 finalize called with no chunks')) {
+      throw error;
+    }
+    if (!writeToStore) {
+      throw error;
+    }
+    if (state.writer && !state.writerClosed) {
+      const closeStart = performance.now();
+      await state.writer.close();
+      state.writerClosed = true;
+      state.writeDurationMs += performance.now() - closeStart;
+    }
+    const buffer = await loadShardFromStore(shardIndex, { verify: false });
+    return {
+      buffer: null,
+      bytes: buffer.byteLength,
+      hash: await computeHash(buffer, algorithm),
+      wrote: true,
+      source: DISTRIBUTION_SOURCE_HTTP,
+      path: 'http-stream-store',
+      writeDurationMs: state.writeDurationMs,
+    };
+  }
 }
 
 async function abortHttpTransferState(state) {
@@ -1332,7 +1418,7 @@ async function recoverHttpRejectedResumeRange(
   return downloadShardFromHttp(baseUrl, shardInfo, shardIndex, {
     ...options,
     __disablePersistedResume: true,
-    __resumeRangeRecoveryAttempted: true,
+    __resumeRangeRecoveryCount: (options.__resumeRangeRecoveryCount ?? 0) + 1,
   });
 }
 
@@ -1414,15 +1500,29 @@ async function downloadShardFromHttp(baseUrl, shardInfo, shardIndex, options = {
   }
 
   for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+    let requestedResumeOffset = 0;
+    let requestedRangeHeader = null;
     try {
-      const resumeOffset = transferState.receivedBytes;
-      const requestHeaders = resumeOffset > 0
-        ? { range: `bytes=${resumeOffset}-` }
+      requestedResumeOffset = transferState.receivedBytes;
+      requestedRangeHeader = requestedResumeOffset > 0
+        ? `bytes=${requestedResumeOffset}-`
+        : null;
+      const requestHeaders = requestedRangeHeader
+        ? { range: requestedRangeHeader }
         : undefined;
-      const response = await fetch(url, { signal, headers: requestHeaders });
+      const response = await fetch(url, {
+        signal,
+        headers: requestHeaders,
+        cache: 'no-store',
+      });
       if (!response.ok) {
-        const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const rangeDetail = requestedRangeHeader ? ` range=${requestedRangeHeader}` : '';
+        const error = new Error(
+          `Shard ${shardIndex} HTTP ${response.status}: ${response.statusText}${rangeDetail}`
+        );
         error.status = response.status;
+        error.shardIndex = shardIndex;
+        error.requestedRange = requestedRangeHeader;
         throw error;
       }
 
@@ -1433,7 +1533,7 @@ async function downloadShardFromHttp(baseUrl, shardInfo, shardIndex, options = {
       const { resetState } = assertHttpResumeAlignment(
         response,
         shardIndex,
-        resumeOffset,
+        requestedResumeOffset,
         contentRange
       );
       if (resetState) {
@@ -1534,7 +1634,44 @@ async function downloadShardFromHttp(baseUrl, shardInfo, shardIndex, options = {
         }
         return result;
       } catch (error) {
-        throw error;
+        if (hasCompleteExpectedHttpTransfer(transferState, options.expectedSize)) {
+          assertHttpPayloadBoundary(
+            shardIndex,
+            attemptBytes,
+            contentLength,
+            contentRange,
+            options.expectedSize
+          );
+          const finalized = await finalizeHttpTransferState(transferState, startTime, shardIndex);
+          const result = {
+            ...finalized,
+            manifestVersionSet: options.expectedManifestVersionSet ?? null,
+          };
+          if (
+            writeToStore
+            && startedWithResume
+            && options.__resumeRecoveryAttempted !== true
+            && options.expectedHash
+            && result.hash !== options.expectedHash
+          ) {
+            await clearPersistedShardState(shardIndex);
+            return downloadShardFromHttp(baseUrl, shardInfo, shardIndex, {
+              ...options,
+              __disablePersistedResume: true,
+              __resumeRecoveryAttempted: true,
+            });
+          }
+          return result;
+        }
+        throw createHttpStreamReadError(
+          error,
+          shardIndex,
+          attempt,
+          maxRetries,
+          requestedRangeHeader,
+          transferState.receivedBytes,
+          options.expectedSize
+        );
       }
     } catch (error) {
       lastError = error;
@@ -1550,8 +1687,27 @@ async function downloadShardFromHttp(baseUrl, shardInfo, shardIndex, options = {
 
       if (
         error?.status === 416
-        && transferState.receivedBytes > 0
-        && options.__resumeRangeRecoveryAttempted !== true
+        && requestedResumeOffset > 0
+        && Number.isFinite(options.expectedSize)
+        && requestedResumeOffset === Math.floor(options.expectedSize)
+      ) {
+        const finalized = await finalizeHttpTransferStateAtRejectedEof(
+          transferState,
+          startTime,
+          shardIndex,
+          algorithm,
+          writeToStore
+        );
+        return {
+          ...finalized,
+          manifestVersionSet: options.expectedManifestVersionSet ?? null,
+        };
+      }
+
+      if (
+        error?.status === 416
+        && requestedResumeOffset > 0
+        && (options.__resumeRangeRecoveryCount ?? 0) <= maxRetries
       ) {
         return recoverHttpRejectedResumeRange(
           baseUrl,

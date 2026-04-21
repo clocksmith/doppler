@@ -109,5 +109,27 @@
         "gemma3-f16-fused-f16a-online"
       ]
     }
+  },
+  "doppler": {
+    "loadModeRuntimeOverlays": {
+      "http": {
+        "description": "Cold HTTP compare runs use direct range reads and skip eager full-shard hash verification; manifest preflight and pinned hosted revisions remain recorded in the compare artifact.",
+        "runtimeConfig": {
+          "loading": {
+            "distribution": {
+              "sourceOrder": [
+                "http"
+              ]
+            },
+            "shardCache": {
+              "verifyHashes": false,
+              "rangeCacheBlockBytes": 16777216,
+              "rangeCacheMaxBytes": 134217728,
+              "rangeCacheMinBytes": 4096
+            }
+          }
+        }
+      }
+    }
   }
 }

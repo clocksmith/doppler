@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -42,6 +42,40 @@ function promotionReadyEntry(overrides = {}) {
   };
 }
 
+async function writeTinyArtifact(root, entry) {
+  const artifactDir = path.join(root, entry.modelId);
+  await mkdir(artifactDir, { recursive: true });
+  await writeFile(path.join(artifactDir, 'tokenizer.json'), '{}\n', 'utf8');
+  await writeFile(path.join(artifactDir, 'shard_00000.bin'), 'abcd', 'utf8');
+  await writeFile(path.join(artifactDir, 'manifest.json'), JSON.stringify({
+    modelId: entry.modelId,
+    artifactIdentity: {
+      sourceCheckpointId: entry.sourceCheckpointId,
+      weightPackId: entry.weightPackId,
+      manifestVariantId: entry.manifestVariantId,
+    },
+    tokenizer: {
+      file: 'tokenizer.json',
+    },
+    totalSize: 4,
+    shards: [
+      { index: 0, filename: 'shard_00000.bin', size: 4, offset: 0, hash: 'test' },
+    ],
+  }, null, 2) + '\n', 'utf8');
+  return artifactDir;
+}
+
+async function writeCatalog(root, entries) {
+  const catalogFile = path.join(root, 'catalog.json');
+  await writeFile(catalogFile, JSON.stringify({
+    version: 1,
+    lifecycleSchemaVersion: 1,
+    updatedAt: '2026-04-20',
+    models: entries,
+  }, null, 2) + '\n', 'utf8');
+  return catalogFile;
+}
+
 {
   const args = parseArgs([
     '--model-id', 'translategemma-4b-it-q4k-ehf16-af32',
@@ -74,6 +108,27 @@ function promotionReadyEntry(overrides = {}) {
   assert.equal(args.bootstrap, true);
   assert.equal(args.manifestOnly, false);
 }
+
+{
+  const args = parseArgs([
+    '--all-approved',
+    '--local-root', 'models/local',
+    '--shard-root', 'models/local',
+    '--dry-run',
+  ]);
+  assert.equal(args.allApproved, true);
+  assert.ok(args.localRoot.endsWith('/models/local'));
+  assert.ok(args.shardRoot.endsWith('/models/local'));
+  assert.throws(
+    () => parseArgs(['--all-approved', '--model-id', 'alpha']),
+    /--all-approved cannot be combined with --model-id/
+  );
+  assert.throws(
+    () => parseArgs(['--all-approved', '--local-dir', 'models/local/alpha']),
+    /--all-approved uses --local-root/
+  );
+}
+
 
 {
   const plan = buildArtifactUploadPlan({
@@ -215,24 +270,132 @@ function promotionReadyEntry(overrides = {}) {
 }
 
 {
-  // Dry-run: complete artifact path is echoed, bootstrap is preserved.
+  // Dry-run validates the complete artifact before echoing the upload plan.
+  const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'doppler-hf-dry-run-'));
+  const entry = promotionReadyEntry({
+    modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+    sourceCheckpointId: 'google/gemma-4-E2B-it',
+    weightPackId: 'gemma-4-e2b-it-q4k-ehf16-af32-wp-catalog-v1',
+    manifestVariantId: 'gemma-4-e2b-it-q4k-ehf16-af32-mv-exec-v1',
+    hf: {
+      repoId: 'Clocksmith/rdrr',
+      revision: 'old-revision',
+      path: 'models/gemma-4-e2b-it-q4k-ehf16-af32',
+    },
+  });
+  const artifactDir = await writeTinyArtifact(tmpDir, entry);
+  const catalogFile = await writeCatalog(tmpDir, [entry]);
   const logs = [];
   const origLog = console.log;
   console.log = (line) => logs.push(String(line));
   try {
     await main([
       '--model-id', 'gemma-4-e2b-it-q4k-ehf16-af32',
+      '--catalog-file', catalogFile,
+      '--local-dir', artifactDir,
+      '--shard-dir', artifactDir,
       '--dry-run',
     ]);
   } finally {
     console.log = origLog;
+    await rm(tmpDir, { recursive: true, force: true });
   }
   const parsed = JSON.parse(logs[0]);
   assert.equal(parsed.modelId, 'gemma-4-e2b-it-q4k-ehf16-af32');
   assert.equal(parsed.manifestOnly, false);
   assert.equal(parsed.bootstrap, false);
+  assert.equal(parsed.validated, true);
+  assert.equal(parsed.requiredArtifactFiles, 2);
   assert.ok(parsed.shardDir, 'complete-artifact dry-run should include shardDir');
-  assert.ok(parsed.manifestDir.endsWith('/models/local/gemma-4-e2b-it-q4k-ehf16-af32'));
+  assert.equal(parsed.manifestDir, artifactDir);
+}
+
+{
+  // Dry-run fails closed when the local publish candidate is incomplete.
+  const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'doppler-hf-dry-run-missing-'));
+  const entry = promotionReadyEntry({
+    modelId: 'missing-shard-model',
+    sourceCheckpointId: 'unit/missing-shard',
+    weightPackId: 'missing-shard-wp-catalog-v1',
+    manifestVariantId: 'missing-shard-mv-exec-v1',
+    hf: {
+      repoId: 'Clocksmith/rdrr',
+      revision: 'old-revision',
+      path: 'models/missing-shard-model',
+    },
+  });
+  const artifactDir = await writeTinyArtifact(tmpDir, entry);
+  const catalogFile = await writeCatalog(tmpDir, [entry]);
+  await rm(path.join(artifactDir, 'shard_00000.bin'));
+  try {
+    await assert.rejects(
+      main([
+        '--model-id', 'missing-shard-model',
+        '--catalog-file', catalogFile,
+        '--local-dir', artifactDir,
+        '--shard-dir', artifactDir,
+        '--dry-run',
+      ]),
+      /publish candidate is incomplete; missing required artifact files/
+    );
+  } finally {
+    await rm(tmpDir, { recursive: true, force: true });
+  }
+}
+
+{
+  // Batch dry-run validates every approved hosted artifact before printing a repair plan.
+  const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'doppler-hf-all-dry-run-'));
+  const localRoot = path.join(tmpDir, 'local');
+  const alpha = promotionReadyEntry({
+    modelId: 'alpha-model',
+    sourceCheckpointId: 'unit/alpha',
+    weightPackId: 'alpha-wp-catalog-v1',
+    manifestVariantId: 'alpha-mv-exec-v1',
+    hf: { repoId: 'Clocksmith/rdrr', revision: 'old-alpha', path: 'models/alpha-model' },
+  });
+  const beta = promotionReadyEntry({
+    modelId: 'beta-model',
+    sourceCheckpointId: 'unit/beta',
+    weightPackId: 'beta-wp-catalog-v1',
+    manifestVariantId: 'beta-mv-exec-v1',
+    hf: { repoId: 'Clocksmith/rdrr', revision: 'old-beta', path: 'models/beta-model' },
+  });
+  const blocked = promotionReadyEntry({
+    modelId: 'blocked-model',
+    sourceCheckpointId: 'unit/blocked',
+    weightPackId: 'blocked-wp-catalog-v1',
+    manifestVariantId: 'blocked-mv-exec-v1',
+    hf: { repoId: 'Clocksmith/rdrr', revision: 'old-blocked', path: 'models/blocked-model' },
+    lifecycle: {
+      availability: { hf: true },
+      status: { runtime: 'active', tested: 'failing' },
+      tested: { contracts: { executionContractOk: true } },
+    },
+  });
+  await writeTinyArtifact(localRoot, alpha);
+  await writeTinyArtifact(localRoot, beta);
+  const catalogFile = await writeCatalog(tmpDir, [alpha, blocked, beta]);
+  const logs = [];
+  const origLog = console.log;
+  console.log = (line) => logs.push(String(line));
+  try {
+    await main([
+      '--all-approved',
+      '--catalog-file', catalogFile,
+      '--local-root', localRoot,
+      '--shard-root', localRoot,
+      '--dry-run',
+    ]);
+  } finally {
+    console.log = origLog;
+    await rm(tmpDir, { recursive: true, force: true });
+  }
+  const parsed = JSON.parse(logs[0]);
+  assert.equal(parsed.allApproved, true);
+  assert.equal(parsed.modelCount, 2);
+  assert.deepEqual(parsed.models.map((entry) => entry.modelId), ['alpha-model', 'beta-model']);
+  assert.ok(parsed.models.every((entry) => entry.validated === true));
 }
 
 {

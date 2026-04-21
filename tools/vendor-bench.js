@@ -2477,7 +2477,6 @@ function renderReleaseMatrixMarkdown(matrix, options = {}) {
   } else {
     lines.push('- none');
   }
-  lines.push('');
   return `${lines.join('\n')}\n`;
 }
 

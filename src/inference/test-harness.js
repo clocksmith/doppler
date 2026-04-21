@@ -4,6 +4,7 @@ import { initDevice, getDevice, getKernelCapabilities } from '../gpu/device.js';
 import { parseManifest, getExpectedShardHash } from '../formats/rdrr/index.js';
 import { createPipeline } from './pipelines/text.js';
 import { createNodeFileShardStorageContext } from './pipelines/text/init.js';
+import { createHttpArtifactStorageContext } from '../storage/artifact-storage-context.js';
 import { log as debugLog } from '../debug/index.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
 
@@ -144,6 +145,35 @@ function toShardBytes(buffer, shardIndex) {
   throw new Error(`Shard ${shardIndex} did not return an in-memory buffer`);
 }
 
+function createInitializationPhaseError(error, phase, context = {}) {
+  const message = error?.message || String(error);
+  const wrapped = new Error(
+    `Inference initialization phase "${phase}" failed: ${message}`,
+    error instanceof Error ? { cause: error } : undefined
+  );
+  wrapped.name = error?.name || 'Error';
+  if (error?.code !== undefined) {
+    wrapped.code = error.code;
+  }
+  wrapped.details = {
+    ...(error?.details && typeof error.details === 'object' ? error.details : {}),
+    initializationPhase: phase,
+    ...context,
+  };
+  return wrapped;
+}
+
+async function withInitializationPhase(phase, context, run) {
+  try {
+    return await run();
+  } catch (error) {
+    if (error?.details?.initializationPhase) {
+      throw error;
+    }
+    throw createInitializationPhaseError(error, phase, context);
+  }
+}
+
 
 function createHttpShardLoader(baseUrl, manifest, log) {
   const algorithm = manifest.hashAlgorithm;
@@ -217,10 +247,28 @@ function createHttpShardLoader(baseUrl, manifest, log) {
   };
 }
 
-export function createHarnessShardStorageContext(modelUrl, manifest, log) {
+export function createHarnessShardStorageContext(modelUrl, manifest, log, options = {}) {
   const nodeFileStorageContext = createNodeFileShardStorageContext(modelUrl, manifest);
   if (nodeFileStorageContext) {
     return nodeFileStorageContext;
+  }
+  const runtimeConfig = getRuntimeConfig();
+  const sourceOrder = runtimeConfig?.loading?.distribution?.sourceOrder;
+  const httpOnly = Array.isArray(sourceOrder)
+    && sourceOrder.length === 1
+    && String(sourceOrder[0]).trim().toLowerCase() === 'http';
+  const explicitHttpLoadMode = String(options.loadMode ?? '').trim().toLowerCase() === 'http';
+  if (explicitHttpLoadMode || httpOnly) {
+    const httpContext = createHttpArtifactStorageContext(modelUrl, manifest, {
+      verifyHashes: runtimeConfig?.loading?.shardCache?.verifyHashes === true,
+      rangeCacheBlockBytes: runtimeConfig?.loading?.shardCache?.rangeCacheBlockBytes,
+      rangeCacheMaxBytes: runtimeConfig?.loading?.shardCache?.rangeCacheMaxBytes,
+      rangeCacheMinBytes: runtimeConfig?.loading?.shardCache?.rangeCacheMinBytes,
+    });
+    if (httpContext) {
+      log?.('Using HTTP range artifact storage context');
+      return httpContext;
+    }
   }
   return {
     loadShard: createHttpShardLoader(modelUrl, manifest, log),
@@ -291,7 +339,11 @@ export async function initializeInference(modelUrl, options = {}) {
   onProgress('init', 0, 'Initializing WebGPU...');
   log('Initializing WebGPU...');
 
-  await initDevice();
+  await withInitializationPhase(
+    'initDevice',
+    { modelUrl },
+    () => initDevice()
+  );
   const device = getDevice();
   const capabilities = getKernelCapabilities();
 
@@ -302,7 +354,11 @@ export async function initializeInference(modelUrl, options = {}) {
   log('Fetching manifest...');
 
   const manifestUrl = `${modelUrl}/manifest.json`;
-  const manifest = await fetchManifest(manifestUrl);
+  const manifest = await withInitializationPhase(
+    'fetchManifest',
+    { modelUrl, manifestUrl },
+    () => fetchManifest(manifestUrl)
+  );
 
   if (intentBundleConfig.enabled && intentBundleConfig.bundleUrl) {
     const intentBundleModule = await loadIntentBundleModule();
@@ -333,7 +389,9 @@ export async function initializeInference(modelUrl, options = {}) {
   log(`Model: ${modelLabel}`);
 
   // 3. Create shard loader
-  const storageContext = createHarnessShardStorageContext(modelUrl, manifest, log);
+  const storageContext = createHarnessShardStorageContext(modelUrl, manifest, log, {
+    loadMode: options.loadMode ?? null,
+  });
 
   // 4. Build runtime options
   
@@ -345,16 +403,20 @@ export async function initializeInference(modelUrl, options = {}) {
   onProgress('pipeline', 0.2, 'Creating pipeline...');
   log('Creating pipeline...');
 
-  const pipeline = await createPipeline( ( (manifest)), {
-    storage: storageContext,
-    gpu: { device },
-    runtime,
-    baseUrl: modelUrl,
-    onProgress: ( progress) => {
-      const pct = 0.2 + progress.percent * 0.8;
-      onProgress(progress.stage || 'loading', pct, progress.message);
-    },
-  });
+  const pipeline = await withInitializationPhase(
+    'createPipeline',
+    { modelUrl, modelId: manifest.modelId ?? null },
+    () => createPipeline( ( (manifest)), {
+      storage: storageContext,
+      gpu: { device },
+      runtime,
+      baseUrl: modelUrl,
+      onProgress: ( progress) => {
+        const pct = 0.2 + progress.percent * 0.8;
+        onProgress(progress.stage || 'loading', pct, progress.message);
+      },
+    })
+  );
 
   onProgress('complete', 1, 'Ready');
   log('Pipeline ready');

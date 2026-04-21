@@ -33,9 +33,12 @@ const DEFAULT_CATALOG_FILE = path.join(REPO_ROOT, 'models', 'catalog.json');
 export function parseArgs(argv) {
   const out = {
     modelId: '',
+    allApproved: false,
     catalogFile: DEFAULT_CATALOG_FILE,
     localDir: '',
     shardDir: '',
+    localRoot: '',
+    shardRoot: '',
     registryUrl: DEFAULT_HF_REGISTRY_URL,
     registryPath: DEFAULT_HF_REGISTRY_PATH,
     repoId: '',
@@ -49,6 +52,10 @@ export function parseArgs(argv) {
     if (arg === '--model-id') {
       out.modelId = normalizeText(argv[i + 1]);
       i += 1;
+      continue;
+    }
+    if (arg === '--all-approved') {
+      out.allApproved = true;
       continue;
     }
     if (arg === '--catalog-file') {
@@ -69,6 +76,20 @@ export function parseArgs(argv) {
       const value = normalizeText(argv[i + 1]);
       if (!value) throw new Error('Missing value for --shard-dir');
       out.shardDir = path.resolve(REPO_ROOT, value);
+      i += 1;
+      continue;
+    }
+    if (arg === '--local-root') {
+      const value = normalizeText(argv[i + 1]);
+      if (!value) throw new Error('Missing value for --local-root');
+      out.localRoot = path.resolve(REPO_ROOT, value);
+      i += 1;
+      continue;
+    }
+    if (arg === '--shard-root') {
+      const value = normalizeText(argv[i + 1]);
+      if (!value) throw new Error('Missing value for --shard-root');
+      out.shardRoot = path.resolve(REPO_ROOT, value);
       i += 1;
       continue;
     }
@@ -108,7 +129,22 @@ export function parseArgs(argv) {
     throw new Error(`Unknown argument: ${arg}`);
   }
 
-  if (!out.modelId) {
+  if (out.allApproved && out.modelId) {
+    throw new Error('--all-approved cannot be combined with --model-id');
+  }
+  if (out.allApproved && out.manifestOnly) {
+    throw new Error('--all-approved cannot be combined with --manifest-only');
+  }
+  if (out.allApproved && out.bootstrap) {
+    throw new Error('--all-approved cannot be combined with --bootstrap');
+  }
+  if (out.allApproved && out.localDir) {
+    throw new Error('--all-approved uses --local-root, not --local-dir');
+  }
+  if (out.allApproved && out.shardDir) {
+    throw new Error('--all-approved uses --shard-root, not --shard-dir');
+  }
+  if (!out.modelId && !out.allApproved) {
     throw new Error('Missing required --model-id');
   }
   return out;
@@ -153,10 +189,12 @@ export function buildArtifactUploadPlan(entry, options = {}) {
 
   // Manifest source of truth: models/local/<modelId>/
   const manifestDir = options.localDir
+    || (options.localRoot ? path.join(options.localRoot, modelId) : '')
     || path.join(REPO_ROOT, 'models', 'local', modelId);
 
   // Shard source: external drive (heavy files not in git)
   const shardDir = options.shardDir
+    || (options.shardRoot ? path.join(options.shardRoot, modelId) : '')
     || path.join(DEFAULT_EXTERNAL_MODELS_ROOT, 'rdrr', modelId);
 
   if (!repoId) {
@@ -176,6 +214,24 @@ export function buildArtifactUploadPlan(entry, options = {}) {
     targetPath,
     manifestDir,
     shardDir,
+  };
+}
+
+function buildDryRunPayload(uploadPlan, args, manifest) {
+  return {
+    modelId: uploadPlan.modelId,
+    catalogFile: args.catalogFile,
+    repoId: uploadPlan.repoId,
+    manifestDir: uploadPlan.manifestDir,
+    shardDir: args.manifestOnly ? null : uploadPlan.shardDir,
+    targetPath: uploadPlan.targetPath,
+    registryPath: args.registryPath,
+    registryUrl: args.registryUrl,
+    manifestOnly: args.manifestOnly,
+    bootstrap: args.bootstrap,
+    validated: true,
+    artifactIdentity: manifest?.artifactIdentity ?? null,
+    requiredArtifactFiles: collectRequiredManifestFiles(manifest).size,
   };
 }
 
@@ -557,12 +613,19 @@ export async function writeBackLocalCatalog(catalogFile, modelId, revision, opti
   await writeFile(catalogFile, serialized, 'utf8');
 }
 
-export async function main(argv = process.argv.slice(2)) {
-  const args = parseArgs(argv);
+function getApprovedModelIds(catalog) {
+  const entries = Array.isArray(catalog?.models) ? catalog.models : [];
+  return entries
+    .filter((entry) => isHostedRegistryApprovedEntry(entry))
+    .map((entry) => normalizeText(entry?.modelId))
+    .filter(Boolean);
+}
+
+async function preflightUploadPlan(args, modelId) {
   const catalog = await loadJsonFile(args.catalogFile, args.catalogFile);
-  const localEntry = findCatalogEntry(catalog, args.modelId);
+  const localEntry = findCatalogEntry(catalog, modelId);
   if (!localEntry) {
-    throw new Error(`Model "${args.modelId}" not found in ${args.catalogFile}`);
+    throw new Error(`Model "${modelId}" not found in ${args.catalogFile}`);
   }
   assertPromotionReady(localEntry, { bootstrap: args.bootstrap, manifestOnly: args.manifestOnly });
   // In bootstrap mode the entry is not yet in the approved set
@@ -570,7 +633,7 @@ export async function main(argv = process.argv.slice(2)) {
   // before rebuilding the hosted registry payload.
   if (!args.bootstrap && !isHostedRegistryApprovedEntry(localEntry)) {
     throw new Error(
-      `${args.modelId}: model is not eligible for the hosted registry; requires hf approval plus active verified runtime status.`
+      `${modelId}: model is not eligible for the hosted registry; requires hf approval plus active verified runtime status.`
     );
   }
 
@@ -578,22 +641,19 @@ export async function main(argv = process.argv.slice(2)) {
     repoId: args.repoId,
     localDir: args.localDir,
     shardDir: args.shardDir,
+    localRoot: args.localRoot,
+    shardRoot: args.shardRoot,
   });
+  const uploadManifest = await assertCompleteUploadArtifact(uploadPlan, { manifestOnly: args.manifestOnly });
+  return { localEntry, uploadPlan, uploadManifest };
+}
+
+async function publishOne(args, modelId) {
+  const catalog = await loadJsonFile(args.catalogFile, args.catalogFile);
+  const { uploadPlan, uploadManifest } = await preflightUploadPlan(args, modelId);
 
   if (args.dryRun) {
-    console.log(JSON.stringify({
-      modelId: uploadPlan.modelId,
-      catalogFile: args.catalogFile,
-      repoId: uploadPlan.repoId,
-      manifestDir: uploadPlan.manifestDir,
-      shardDir: args.manifestOnly ? null : uploadPlan.shardDir,
-      targetPath: uploadPlan.targetPath,
-      registryPath: args.registryPath,
-      registryUrl: args.registryUrl,
-      manifestOnly: args.manifestOnly,
-      bootstrap: args.bootstrap,
-    }, null, 2));
-    return;
+    return buildDryRunPayload(uploadPlan, args, uploadManifest);
   }
 
   // Pre-validate remote registry before uploading any artifact.
@@ -601,7 +661,6 @@ export async function main(argv = process.argv.slice(2)) {
   await fetchJson(args.registryUrl);
 
   let uploadResult;
-  const uploadManifest = await assertCompleteUploadArtifact(uploadPlan, { manifestOnly: args.manifestOnly });
   if (args.manifestOnly) {
     const validationRevision = uploadPlan.sourceRevision || 'main';
     const validationBaseUrl = buildHfResolveUrl(uploadPlan.repoId, validationRevision, uploadPlan.targetPath);
@@ -691,7 +750,7 @@ export async function main(argv = process.argv.slice(2)) {
     bootstrap: args.bootstrap,
   });
 
-  console.log(JSON.stringify({
+  const result = {
     ok: true,
     modelId: uploadPlan.modelId,
     artifactRevision,
@@ -699,7 +758,48 @@ export async function main(argv = process.argv.slice(2)) {
     manifestUrl,
     localCatalogUpdated: true,
     bootstrap: args.bootstrap,
-  }, null, 2));
+  };
+  console.log(JSON.stringify(result, null, 2));
+  return result;
+}
+
+export async function main(argv = process.argv.slice(2)) {
+  const args = parseArgs(argv);
+  if (args.allApproved) {
+    const catalog = await loadJsonFile(args.catalogFile, args.catalogFile);
+    const modelIds = getApprovedModelIds(catalog);
+    const preflighted = [];
+    for (const modelId of modelIds) {
+      const { uploadPlan, uploadManifest } = await preflightUploadPlan(args, modelId);
+      preflighted.push(buildDryRunPayload(uploadPlan, args, uploadManifest));
+    }
+    if (args.dryRun) {
+      console.log(JSON.stringify({
+        dryRun: true,
+        allApproved: true,
+        catalogFile: args.catalogFile,
+        modelCount: preflighted.length,
+        models: preflighted,
+      }, null, 2));
+      return;
+    }
+    const results = [];
+    for (const modelId of modelIds) {
+      results.push(await publishOne(args, modelId));
+    }
+    console.log(JSON.stringify({
+      ok: true,
+      allApproved: true,
+      modelCount: results.length,
+      results,
+    }, null, 2));
+    return;
+  }
+
+  const result = await publishOne(args, args.modelId);
+  if (args.dryRun) {
+    console.log(JSON.stringify(result, null, 2));
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

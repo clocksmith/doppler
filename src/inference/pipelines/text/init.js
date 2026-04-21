@@ -121,6 +121,25 @@ function toUint8Array(value, label) {
   throw new Error(`${label} must return ArrayBuffer or Uint8Array.`);
 }
 
+function createStorageContextLoadError(error, operation, index, context = {}) {
+  const message = error?.message || String(error);
+  const wrapped = new Error(
+    `storageContext.${operation} failed for shard ${index}: ${message}`,
+    error instanceof Error ? { cause: error } : undefined
+  );
+  wrapped.name = error?.name || 'Error';
+  if (error?.code !== undefined) {
+    wrapped.code = error.code;
+  }
+  wrapped.details = {
+    ...(error?.details && typeof error.details === 'object' ? error.details : {}),
+    storageOperation: operation,
+    shardIndex: index,
+    ...context,
+  };
+  return wrapped;
+}
+
 function isRDRRManifest(manifest) {
   return manifest !== null && typeof manifest === 'object' && Array.isArray( (manifest).shards);
 }
@@ -835,25 +854,37 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
     log.debug('Pipeline', 'Using custom shard loader (Native Bridge or external)');
 
     const loadShard = async (index) => {
-      if (hasLoadShard) {
-        const data = await runtimeStorageContext.loadShard(index);
-        return toUint8Array(data, 'storageContext.loadShard');
+      try {
+        if (hasLoadShard) {
+          const data = await runtimeStorageContext.loadShard(index);
+          return toUint8Array(data, 'storageContext.loadShard');
+        }
+        const rangeData = await runtimeStorageContext.loadShardRange(index, 0, null);
+        return toUint8Array(rangeData, 'storageContext.loadShardRange');
+      } catch (error) {
+        throw createStorageContextLoadError(error, hasLoadShard ? 'loadShard' : 'loadShardRange', index);
       }
-      const rangeData = await runtimeStorageContext.loadShardRange(index, 0, null);
-      return toUint8Array(rangeData, 'storageContext.loadShardRange');
     };
 
     const loadShardRange = hasLoadShardRange
       ? async (index, offset, length = null) => {
-        const data = await runtimeStorageContext.loadShardRange(index, offset, length);
-        return toArrayBuffer(data, 'storageContext.loadShardRange');
+        try {
+          const data = await runtimeStorageContext.loadShardRange(index, offset, length);
+          return toArrayBuffer(data, 'storageContext.loadShardRange');
+        } catch (error) {
+          throw createStorageContextLoadError(error, 'loadShardRange', index, { offset, length });
+        }
       }
       : null;
 
     const streamShardRange = hasStreamShardRange
       ? async function* (index, offset = 0, length = null, streamOptions = {}) {
-        for await (const chunk of runtimeStorageContext.streamShardRange(index, offset, length, streamOptions)) {
-          yield toUint8Array(chunk, 'storageContext.streamShardRange');
+        try {
+          for await (const chunk of runtimeStorageContext.streamShardRange(index, offset, length, streamOptions)) {
+            yield toUint8Array(chunk, 'storageContext.streamShardRange');
+          }
+        } catch (error) {
+          throw createStorageContextLoadError(error, 'streamShardRange', index, { offset, length });
         }
       }
       : null;

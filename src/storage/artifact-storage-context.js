@@ -46,6 +46,13 @@ function normalizePositiveInteger(value, label) {
   return Math.floor(parsed);
 }
 
+function normalizeOptionalPositiveInteger(value, fallback = 0) {
+  if (value == null) return fallback;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) return fallback;
+  return Math.floor(parsed);
+}
+
 function toUint8Chunk(value, label) {
   return value instanceof Uint8Array ? value : new Uint8Array(toArrayBuffer(value, label));
 }
@@ -54,6 +61,28 @@ function bytesToHex(bytes) {
   return Array.from(bytes)
     .map((value) => value.toString(16).padStart(2, '0'))
     .join('');
+}
+
+function createHttpArtifactFetchError(error, url, offset = null, length = null) {
+  const message = error?.message || String(error);
+  const range = Number.isFinite(offset) && Number.isFinite(length)
+    ? ` offset=${Math.floor(offset)} length=${Math.floor(length)}`
+    : '';
+  const wrapped = new Error(
+    `HTTP artifact fetch failed for ${url}${range}: ${message}`,
+    error instanceof Error ? { cause: error } : undefined
+  );
+  wrapped.name = error?.name || 'Error';
+  if (error?.code !== undefined) {
+    wrapped.code = error.code;
+  }
+  wrapped.details = {
+    ...(error?.details && typeof error.details === 'object' ? error.details : {}),
+    artifactUrl: url,
+    offset: Number.isFinite(offset) ? Math.floor(offset) : null,
+    length: Number.isFinite(length) ? Math.floor(length) : null,
+  };
+  return wrapped;
 }
 
 function getNodeFileCacheKey(fileRef) {
@@ -632,11 +661,115 @@ async function fetchBytes(url, offset = null, length = null) {
     const end = start + Math.max(0, Math.floor(length)) - 1;
     headers.Range = `bytes=${start}-${end}`;
   }
-  const response = await fetch(url, { headers });
-  if (!response.ok) {
-    throw new Error(`Failed to fetch ${url}: ${response.status}`);
+  try {
+    const response = await fetch(url, { headers, cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${url}: ${response.status}`);
+    }
+    return new Uint8Array(await response.arrayBuffer());
+  } catch (error) {
+    throw createHttpArtifactFetchError(error, url, offset, length);
   }
-  return new Uint8Array(await response.arrayBuffer());
+}
+
+function createHttpRangeBlockCache(options = {}) {
+  const blockBytes = normalizeOptionalPositiveInteger(options.rangeCacheBlockBytes);
+  const maxBytes = normalizeOptionalPositiveInteger(options.rangeCacheMaxBytes);
+  const minBytes = normalizeOptionalPositiveInteger(options.rangeCacheMinBytes);
+  if (blockBytes <= 0 || maxBytes <= 0) {
+    return null;
+  }
+
+  const cache = new Map();
+  const pending = new Map();
+  let residentBytes = 0;
+
+  const readCachedBlock = async (url, blockStart, blockLength) => {
+    const key = `${url}\n${blockStart}`;
+    const cached = cache.get(key);
+    if (cached) {
+      cache.delete(key);
+      cache.set(key, cached);
+      return cached;
+    }
+
+    let task = pending.get(key);
+    if (!task) {
+      task = (async () => {
+        const bytes = await fetchBytes(url, blockStart, blockLength);
+        if (bytes.byteLength < blockLength) {
+          throw new Error(
+            `HTTP range block short read for ${url}: ` +
+            `offset=${blockStart}, expected=${blockLength}, got=${bytes.byteLength}`
+          );
+        }
+        if (bytes.byteLength <= maxBytes) {
+          while (residentBytes + bytes.byteLength > maxBytes && cache.size > 0) {
+            const [oldestKey, oldestBytes] = cache.entries().next().value;
+            cache.delete(oldestKey);
+            residentBytes -= oldestBytes.byteLength;
+          }
+          if (residentBytes + bytes.byteLength <= maxBytes) {
+            cache.set(key, bytes);
+            residentBytes += bytes.byteLength;
+          }
+        }
+        return bytes;
+      })();
+      pending.set(key, task);
+      task.then(
+        () => pending.delete(key),
+        () => pending.delete(key)
+      );
+    }
+    return task;
+  };
+
+  return async function readRange(url, fileSize, offset = 0, length = null) {
+    if (
+      !Number.isFinite(fileSize)
+      || !Number.isFinite(offset)
+      || !Number.isFinite(length)
+      || length < minBytes
+    ) {
+      return fetchBytes(url, offset, length);
+    }
+
+    const start = Math.max(0, Math.floor(offset));
+    const available = Math.max(0, Math.floor(fileSize) - start);
+    const requested = Math.min(available, Math.max(0, Math.floor(length)));
+    if (requested <= 0) {
+      return new Uint8Array(0);
+    }
+
+    const end = start + requested;
+    const chunks = [];
+    let total = 0;
+    let cursor = start;
+    while (cursor < end) {
+      const blockStart = Math.floor(cursor / blockBytes) * blockBytes;
+      const blockLength = Math.min(blockBytes, Math.max(0, Math.floor(fileSize) - blockStart));
+      const block = await readCachedBlock(url, blockStart, blockLength);
+      const blockOffset = cursor - blockStart;
+      const take = Math.min(block.byteLength - blockOffset, end - cursor);
+      if (take <= 0) {
+        throw new Error(
+          `HTTP range block could not satisfy ${url}: offset=${cursor}, blockStart=${blockStart}`
+        );
+      }
+      chunks.push(block.subarray(blockOffset, blockOffset + take));
+      total += take;
+      cursor += take;
+    }
+
+    const out = new Uint8Array(total);
+    let writeOffset = 0;
+    for (const chunk of chunks) {
+      out.set(chunk, writeOffset);
+      writeOffset += chunk.byteLength;
+    }
+    return out;
+  };
 }
 
 export function createHttpArtifactStorageContext(baseUrl, manifest, options = {}) {
@@ -644,24 +777,42 @@ export function createHttpArtifactStorageContext(baseUrl, manifest, options = {}
   if (!root || !manifest) {
     return null;
   }
+  const shardSizeByPath = new Map(
+    (Array.isArray(manifest.shards) ? manifest.shards : [])
+      .map((shard) => [
+        normalizeArtifactPath(shard?.filename),
+        normalizeOptionalPositiveInteger(shard?.size, 0),
+      ])
+      .filter(([filename, size]) => filename && size >= 0)
+  );
+  const readRangeWithCache = createHttpRangeBlockCache(options);
 
   const readRange = async (relativePath, offset = 0, length = null) => {
     const filename = normalizeArtifactPath(relativePath);
     if (!filename) {
       throw new Error('Artifact file path is required.');
     }
-    return fetchBytes(`${root}/${filename}`, offset, length);
+    const url = `${root}/${filename}`;
+    if (readRangeWithCache) {
+      return readRangeWithCache(url, shardSizeByPath.get(filename) ?? null, offset, length);
+    }
+    return fetchBytes(url, offset, length);
   };
   const readText = async (relativePath) => {
     const filename = normalizeArtifactPath(relativePath);
     if (!filename) {
       return null;
     }
-    const response = await fetch(`${root}/${filename}`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch ${filename} from ${root}: ${response.status}`);
+    const url = `${root}/${filename}`;
+    try {
+      const response = await fetch(url, { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ${filename} from ${root}: ${response.status}`);
+      }
+      return response.text();
+    } catch (error) {
+      throw createHttpArtifactFetchError(error, url);
     }
-    return response.text();
   };
   const readBinary = async (relativePath) => {
     const filename = normalizeArtifactPath(relativePath);

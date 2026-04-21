@@ -24,7 +24,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "732b2bee08cfe315e5c0df5af30e7ad795721b48",
+        "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
         "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -90,7 +90,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "f242e44c9a35e72186aa61e4cc0c9873f0596741",
+        "revision": "95f0b29ec73dea70394c6bcfa8407bc6796df6c9",
         "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -156,7 +156,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "a6651ea48c5ebc420ebc1c6972979049b72db96e",
+        "revision": "7c3d30e300bcb02cbd68fb0db3eee64fbf738f99",
         "path": "models/gemma-3-1b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -221,7 +221,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "154808f5a7c02e2a705d9fb04a1c635eb65a7950",
+        "revision": "2070777c77047d54e6eae105f6dcb1891cf6f21a",
         "path": "models/gemma-4-e2b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -248,9 +248,9 @@
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-04-20",
+          "lastVerifiedAt": "2026-04-21",
           "source": "vendor-compare",
-          "notes": "Browser/WebGPU on AMD Strix Halo / Radeon 8060S re-verified 2026-04-20 with release decode cadence. Compare receipts benchmarks/vendors/results/compare_20260420T162522.json (t=0 greedy) and benchmarks/vendors/results/compare_20260420T162831.json (t=1 topK50) show Doppler decode throughput ahead of the paired Transformers.js ONNX/q4f16 runner on warm OPFS. Apple M3 / Node WebGPU darwin execution contract pass remains from reports/gemma-4-e2b-it-q4k-ehf16-af32/2026-04-18T19-17-45.997Z.json. Manifest-only republish to HF 2026-04-18 at revision c690ac0274891afbddb8afb776d000e4c0051b7b.",
+          "notes": "Browser/WebGPU on AMD Strix Halo / Radeon 8060S re-verified 2026-04-21 with compare-owned Gemma 4 prompt rendering. Compare receipt benchmarks/vendors/results/compare_20260421T001902.json shows valid non-empty output and Doppler decode throughput ahead of the paired Transformers.js ONNX/q4f16 runner on warm OPFS (15.49 vs 10.58 tok/s), but exact generated text still mismatches TJS, so this is performance evidence rather than correctness-parity evidence. Apple M3 / Node WebGPU darwin execution contract pass remains from reports/gemma-4-e2b-it-q4k-ehf16-af32/2026-04-18T19-17-45.997Z.json. Full artifact republished to HF 2026-04-21 at revision 2070777c77047d54e6eae105f6dcb1891cf6f21a.",
           "contracts": {
             "executionContractOk": true
           }
@@ -288,7 +288,7 @@
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "path": "models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
-        "revision": "d1cd559f4cc1507d48c8d14282628153a5f90979"
+        "revision": "dbb354acb00108965c5324ca7b6fecc198d12501"
       },
       "baseUrl": null,
       "quickstart": false,
@@ -355,7 +355,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "f242e44c9a35e72186aa61e4cc0c9873f0596741",
+        "revision": "6fc46049882e961a57d1690ba1ffde21677d001a",
         "path": "models/translategemma-4b-it-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -422,7 +422,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "4968d761a8135ddace5bf98cc0423be28ce0b3db",
+        "revision": "cf02075803e0a8de7ab26bd76888f55ded35ac5f",
         "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
       },
       "baseUrl": null,
@@ -449,9 +449,9 @@
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-04-20",
+          "lastVerifiedAt": "2026-04-21",
           "source": "vendor-compare",
-          "notes": "Browser/WebGPU on AMD Strix Halo / Radeon 8060S re-verified 2026-04-20 after the quantized tied-LM-head update. Compare receipts benchmarks/vendors/results/compare_20260420T163342.json (t=0 greedy) and benchmarks/vendors/results/compare_20260420T163425.json (t=1 topK50) show Doppler decode throughput ahead of the paired Transformers.js runner on warm OPFS. Earlier 2026-04-18 Node/WebGPU verification after the Qwen prefill kernel-ref swap remains valid; execution contract gate pass. Manifest-only republish to HF 2026-04-18 at revision 1c509e37e4430d7ffd094ce5dfa623792603670e.",
+          "notes": "Browser/WebGPU on AMD Strix Halo / Radeon 8060S re-verified 2026-04-21 from the repaired Clocksmith/rdrr hosted manifest. Compare receipt benchmarks/vendors/results/compare_20260421T002103.json shows exact output match against the paired Transformers.js runner, 64/64 prompt tokens, Doppler decode 61.76 vs TJS 36.14 tok/s, and TTFT 541.0 ms vs 7019.3 ms. Earlier 2026-04-18 Node/WebGPU verification after the Qwen prefill kernel-ref swap remains valid; execution contract gate pass. Full artifact republished to HF 2026-04-21 at revision cf02075803e0a8de7ab26bd76888f55ded35ac5f.",
           "contracts": {
             "executionContractOk": true
           }
@@ -490,7 +490,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "e652c3e901fbc1597a0aa4e17dbf3a9b4e9045bc",
+        "revision": "a8c45dd885a789042d3b82c95b471d66ca8d5152",
         "path": "models/qwen-3-5-2b-q4k-ehaf16"
       },
       "baseUrl": null,
@@ -517,9 +517,9 @@
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-04-20",
+          "lastVerifiedAt": "2026-04-21",
           "source": "vendor-compare",
-          "notes": "Browser/WebGPU on AMD Strix Halo / Radeon 8060S re-verified 2026-04-20 after the Qwen 3.5 2B retune; execution contract pass with manifest-owned decodeBatchSize=12. Receipt: reports/qwen-3-5-2b-q4k-ehaf16/2026-04-20T12-49-30.650Z.json. Current execution-v1 uses the fixed fused-Q4 main_gemv transformer decode path, keeps stable fused-Q4 main_multicol declared as fallback, upgrades the tied LM head to Q4 via optimized lm_head_q4 GEMV 64x4, upgrades prefill projections to q4_widetile, and upgrades prefill attention to attn_head256. Compare receipts benchmarks/vendors/results/compare_20260420T163143.json (t=0 greedy) and benchmarks/vendors/results/compare_20260420T163255.json (t=1 topK50, run with --allow-non-comparable-lane because the lane remains capability_only) show Doppler decode throughput ahead of the paired Transformers.js runner on warm OPFS. Manifest-only republish to HF 2026-04-18 at revision 3f54bc54c19181bd737d1773dcd70fb783297e73.",
+          "notes": "Browser/WebGPU on AMD Strix Halo / Radeon 8060S re-verified 2026-04-21 from the repaired Clocksmith/rdrr hosted manifest; execution contract pass with manifest-owned decodeBatchSize=12. Current execution-v1 uses the fixed fused-Q4 main_gemv transformer decode path, keeps stable fused-Q4 main_multicol declared as fallback, upgrades the tied LM head to Q4 via optimized lm_head_q4 GEMV 64x4, upgrades prefill projections to q4_widetile, and upgrades prefill attention to attn_head256. Compare receipt benchmarks/vendors/results/compare_20260421T002238.json shows exact output match against the paired Transformers.js runner, 64/64 prompt tokens, Doppler decode 50.00 vs TJS 32.66 tok/s, and TTFT 602.9 ms vs 7297.8 ms; run with --allow-non-comparable-lane because the lane remains capability_only. Full artifact republished to HF 2026-04-21 at revision a8c45dd885a789042d3b82c95b471d66ca8d5152.",
           "contracts": {
             "executionContractOk": true
           }

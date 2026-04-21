@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-04-18T06:19:41.316Z",
+  "generatedAt": "2026-04-21T00:29:51.788Z",
   "release": {
     "channel": "main-snapshot",
-    "version": "0.4.2",
-    "commitSha": "66e2fd83dd7832eafa91aaa0252dcff03c1a92fa",
+    "version": "0.4.3",
+    "commitSha": "a2a8e438b795cee8b2d47056ca555b1309ef4b0c",
     "dirty": true
   },
   "sources": {
@@ -28,8 +28,8 @@
     },
     "compareConfig": {
       "path": "benchmarks/vendors/compare-engines.config.json",
-      "sha256": "11745e50ef8019a003351190dff6f3f5c32dc86b93d56812cb09aa274c73536f",
-      "bytes": 5420,
+      "sha256": "ec8f9db61614f649112ac6685be56607235b057b60a2a56464d5d65bfdf87840",
+      "bytes": 5463,
       "updated": "2026-03-29"
     },
     "compareMetricContract": {
@@ -40,15 +40,15 @@
     },
     "benchmarkPolicy": {
       "path": "benchmarks/vendors/benchmark-policy.json",
-      "sha256": "cd704566ef535ed2afbba87982f18652285499ca85c18a912cedf9d823a7d6b4",
-      "bytes": 1899,
+      "sha256": "d947508b1e6f93f1f77043fc944d7a52c6b4a7136d05627529d36fb41467d92d",
+      "bytes": 1896,
       "updated": "2026-03-29"
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "34f2af354d542c8ebf7b909f799ed62f5ef3d3537303c843aee9ad983a417164",
-      "bytes": 12786,
-      "updated": "2026-04-17"
+      "sha256": "541bfcaf424ea18a3a9decabe9516cd753cc3c948244594decc6da75685e0523",
+      "bytes": 16610,
+      "updated": "2026-04-20"
     },
     "harness:doppler": {
       "path": "benchmarks/vendors/harnesses/doppler.json",

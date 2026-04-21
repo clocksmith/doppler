@@ -115,6 +115,7 @@ export async function createTokenizerPromptCounter({
   modelId,
   localModelPath = null,
   useChatTemplate = false,
+  renderPrompt = null,
 }) {
   const primaryLocator = normalizeModelLocator(modelId, localModelPath);
   const AutoTokenizer = await importAutoTokenizer();
@@ -151,8 +152,17 @@ export async function createTokenizerPromptCounter({
   }
 
   const localChatTemplate = readLocalChatTemplate(tokenizerLocator, tokenizerResolutionSource);
+  const promptRenderer = typeof renderPrompt === 'function' ? renderPrompt : null;
   const countPromptTokens = async (promptText) => {
     const prompt = String(promptText ?? '');
+    if (promptRenderer) {
+      const renderedPrompt = promptRenderer(prompt);
+      if (typeof renderedPrompt !== 'string' || renderedPrompt.length === 0) {
+        throw new Error('renderPrompt must return a non-empty string for synthetic prompt resolution.');
+      }
+      const encoded = await tokenizer.encode(renderedPrompt);
+      return normalizeEncodedLength(encoded, `tokenizer.encode(renderPrompt(${tokenizerLocator}))`);
+    }
     if (useChatTemplate === true) {
       if (typeof tokenizer?.apply_chat_template !== 'function') {
         throw new Error(
@@ -273,11 +283,13 @@ export async function resolveSyntheticPromptForModel({
   modelId,
   localModelPath = null,
   useChatTemplate = false,
+  renderPrompt = null,
 }) {
   const counter = await createTokenizerPromptCounter({
     modelId,
     localModelPath,
     useChatTemplate,
+    renderPrompt,
   });
   const prompt = await buildTokenAccurateSyntheticPrompt({
     prefillTokens,

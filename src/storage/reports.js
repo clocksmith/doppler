@@ -30,17 +30,40 @@ function nodeModule(specifier) {
   return `node:${specifier}`;
 }
 
+function createReportStorageError(error, backend, modelId, filename) {
+  const message = error?.message || String(error);
+  const wrapped = new Error(
+    `Report storage ${backend} write failed for ${modelId}/${filename}: ${message}`,
+    error instanceof Error ? { cause: error } : undefined
+  );
+  wrapped.name = error?.name || 'Error';
+  if (error?.code !== undefined) {
+    wrapped.code = error.code;
+  }
+  wrapped.details = {
+    ...(error?.details && typeof error.details === 'object' ? error.details : {}),
+    reportBackend: backend,
+    modelId,
+    filename,
+  };
+  return wrapped;
+}
+
 async function saveReportToOpfs(modelId, filename, payload) {
-  const runtime = getRuntimeConfig();
-  const root = await navigator.storage.getDirectory();
-  const opfsRoot = await root.getDirectoryHandle(runtime.loading.opfsPath.opfsRootDir, { create: true });
-  const reportsDir = await opfsRoot.getDirectoryHandle(REPORTS_DIR, { create: true });
-  const modelDir = await reportsDir.getDirectoryHandle(modelId, { create: true });
-  const fileHandle = await modelDir.getFileHandle(filename, { create: true });
-  const writable = await fileHandle.createWritable();
-  await writable.write(payload);
-  await writable.close();
-  return `reports/${modelId}/${filename}`;
+  try {
+    const runtime = getRuntimeConfig();
+    const root = await navigator.storage.getDirectory();
+    const opfsRoot = await root.getDirectoryHandle(runtime.loading.opfsPath.opfsRootDir, { create: true });
+    const reportsDir = await opfsRoot.getDirectoryHandle(REPORTS_DIR, { create: true });
+    const modelDir = await reportsDir.getDirectoryHandle(modelId, { create: true });
+    const fileHandle = await modelDir.getFileHandle(filename, { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(payload);
+    await writable.close();
+    return `reports/${modelId}/${filename}`;
+  } catch (error) {
+    throw createReportStorageError(error, 'opfs', modelId, filename);
+  }
 }
 
 async function saveReportToIdb(modelId, filename, payload) {

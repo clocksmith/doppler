@@ -185,9 +185,13 @@ class Blake3Hasher {
     this.chunkLen = 0;
     this.chunkCounter = 0;
     this.cvStack = [];
+    this.finalized = null;
   }
 
   update(data) {
+    if (this.finalized) {
+      throw new Error('BLAKE3 update called after finalize.');
+    }
     const bytes = toBytes(data);
     let offset = 0;
 
@@ -206,6 +210,9 @@ class Blake3Hasher {
   }
 
   finalize() {
+    if (this.finalized) {
+      return this.finalized.slice(0);
+    }
     if (this.chunkLen > 0 || this.chunkCounter === 0) {
       const chunkBytes = this.chunkBuffer.subarray(0, this.chunkLen);
       this.#commitChunk(chunkBytes, this.chunkLen);
@@ -227,7 +234,8 @@ class Blake3Hasher {
       };
     }
 
-    return outputBytes(right.output, OUT_LEN);
+    this.finalized = outputBytes(right.output, OUT_LEN);
+    return this.finalized.slice(0);
   }
 
   #commitChunk(chunkBytes, chunkLen) {

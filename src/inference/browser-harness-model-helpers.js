@@ -341,6 +341,7 @@ export async function initializeSuiteModel(options = {}) {
       runtime,
       onProgress: options.onProgress,
       log: options.log,
+      loadMode,
     });
   }
   const modelLoadMs = Math.max(0, performance.now() - loadStart);

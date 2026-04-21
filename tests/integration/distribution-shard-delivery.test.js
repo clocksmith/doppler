@@ -134,7 +134,11 @@ try {
     /distribution\.sourceDecision\.trace\.samplingRate must be between 0 and 1/
   );
 
-  globalThis.fetch = async () => createResponse(httpData);
+  let directHttpCacheMode = null;
+  globalThis.fetch = async (_url, init = {}) => {
+    directHttpCacheMode = init?.cache ?? null;
+    return createResponse(httpData);
+  };
 
   const directHttp = await downloadShard('https://example.com/models', 0, shardInfo, {
     algorithm: 'sha256',
@@ -153,6 +157,7 @@ try {
   });
 
   assert.equal(directHttp.source, 'http');
+  assert.equal(directHttpCacheMode, 'no-store');
   assert.equal(toHex(new Uint8Array(directHttp.buffer)), '01020304');
 
   await openModelStore('distribution_resume_model');
@@ -363,6 +368,130 @@ try {
   assert.equal(rejectedResumeFetchCalls, 3);
   assert.deepEqual(rejectedResumeRanges, [null, 'bytes=2-', null]);
   assert.equal(toHex(new Uint8Array(recoveredRejectedResume.buffer)), '01020304');
+
+  let eofRejectedResumeFetchCalls = 0;
+  const eofRejectedResumeRanges = [];
+  globalThis.fetch = async (_url, init = {}) => {
+    eofRejectedResumeFetchCalls += 1;
+    const headerSource = init?.headers;
+    const rangeValue = headerSource instanceof Headers
+      ? headerSource.get('range')
+      : (headerSource?.range ?? headerSource?.Range ?? null);
+    eofRejectedResumeRanges.push(rangeValue ?? null);
+    if (eofRejectedResumeFetchCalls === 1) {
+      return createStreamingErrorResponse(httpData, {
+        status: 200,
+        headers: {
+          'content-encoding': 'gzip',
+        },
+      });
+    }
+    return createCustomResponse('range rejected at eof', {
+      status: 416,
+      statusText: 'Requested Range Not Satisfiable',
+    });
+  };
+
+  const recoveredEofRejectedResume = await downloadShard('https://example.com/models', 20, shardInfo, {
+    algorithm: 'sha256',
+    expectedManifestVersionSet: manifestVersionSet,
+    distributionConfig: {
+      sourceOrder: ['http'],
+      requiredContentEncoding: 'gzip',
+      maxRetries: 1,
+      initialRetryDelayMs: 0,
+      maxRetryDelayMs: 0,
+    },
+    writeToStore: false,
+  });
+  assert.equal(recoveredEofRejectedResume.source, 'http');
+  assert.equal(eofRejectedResumeFetchCalls, 1);
+  assert.deepEqual(eofRejectedResumeRanges, [null]);
+  assert.equal(toHex(new Uint8Array(recoveredEofRejectedResume.buffer)), '01020304');
+
+  let repeatedRejectedResumeFetchCalls = 0;
+  const repeatedRejectedResumeRanges = [];
+  globalThis.fetch = async (_url, init = {}) => {
+    repeatedRejectedResumeFetchCalls += 1;
+    const headerSource = init?.headers;
+    const rangeValue = headerSource instanceof Headers
+      ? headerSource.get('range')
+      : (headerSource?.range ?? headerSource?.Range ?? null);
+    repeatedRejectedResumeRanges.push(rangeValue ?? null);
+    if (repeatedRejectedResumeFetchCalls === 1 || repeatedRejectedResumeFetchCalls === 3) {
+      return createStreamingErrorResponse(httpData.slice(0, 2), {
+        status: 200,
+        headers: {
+          'content-encoding': 'gzip',
+        },
+      });
+    }
+    if (repeatedRejectedResumeFetchCalls === 2 || repeatedRejectedResumeFetchCalls === 4) {
+      return createCustomResponse('range rejected', {
+        status: 416,
+        statusText: 'Requested Range Not Satisfiable',
+      });
+    }
+    return createResponse(httpData);
+  };
+
+  const recoveredRepeatedRejectedResume = await downloadShard('https://example.com/models', 19, shardInfo, {
+    algorithm: 'sha256',
+    expectedManifestVersionSet: manifestVersionSet,
+    distributionConfig: {
+      sourceOrder: ['http'],
+      requiredContentEncoding: 'gzip',
+      maxRetries: 1,
+      initialRetryDelayMs: 0,
+      maxRetryDelayMs: 0,
+    },
+    writeToStore: false,
+  });
+  assert.equal(recoveredRepeatedRejectedResume.source, 'http');
+  assert.equal(repeatedRejectedResumeFetchCalls, 5);
+  assert.deepEqual(repeatedRejectedResumeRanges, [null, 'bytes=2-', null, 'bytes=2-', null]);
+  assert.equal(toHex(new Uint8Array(recoveredRepeatedRejectedResume.buffer)), '01020304');
+
+  const completeWriter = await createShardWriter(0, {
+    append: false,
+    expectedOffset: 0,
+  });
+  await completeWriter.write(httpData);
+  await completeWriter.close();
+
+  let completeStoredFetchCalls = 0;
+  const completeStoredRanges = [];
+  globalThis.fetch = async (_url, init = {}) => {
+    completeStoredFetchCalls += 1;
+    const headerSource = init?.headers;
+    const rangeValue = headerSource instanceof Headers
+      ? headerSource.get('range')
+      : (headerSource?.range ?? headerSource?.Range ?? null);
+    completeStoredRanges.push(rangeValue ?? null);
+    return createCustomResponse('range rejected at eof', {
+      status: 416,
+      statusText: 'Requested Range Not Satisfiable',
+    });
+  };
+
+  const recoveredCompleteStored = await downloadShard('https://example.com/models', 0, shardInfo, {
+    algorithm: 'sha256',
+    expectedManifestVersionSet: manifestVersionSet,
+    distributionConfig: {
+      sourceOrder: ['http'],
+      requiredContentEncoding: 'gzip',
+      maxRetries: 0,
+      initialRetryDelayMs: 0,
+      maxRetryDelayMs: 0,
+    },
+    writeToStore: true,
+  });
+  assert.equal(recoveredCompleteStored.source, 'http');
+  assert.equal(recoveredCompleteStored.wrote, true);
+  assert.equal(completeStoredFetchCalls, 1);
+  assert.deepEqual(completeStoredRanges, ['bytes=4-']);
+  const recoveredCompleteStoredBytes = await loadShard(0, { verify: false });
+  assert.equal(toHex(new Uint8Array(recoveredCompleteStoredBytes)), '01020304');
 
   globalThis.fetch = async () => createResponse(new Uint8Array([1, 2, 3, 5]));
   await assert.rejects(

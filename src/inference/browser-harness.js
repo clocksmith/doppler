@@ -274,7 +274,17 @@ async function runKernelSuite(options = {}) {
 
 async function runInferenceSuite(options = {}) {
   const startTime = performance.now();
-  const harness = await initializeSuiteModel(options);
+  const cacheMode = normalizeCacheMode(options.cacheMode);
+  const loadMode = normalizeLoadMode(options.loadMode, !!options.modelUrl, options.modelUrl);
+  const harness = await withHarnessPhase(
+    'inference.initializeSuiteModel',
+    {
+      modelId: options.modelId ?? null,
+      loadMode,
+      cacheMode,
+    },
+    () => initializeSuiteModel(options)
+  );
   const runtimeConfig = getRuntimeConfig();
   const modelType = harness.manifest?.modelType || 'transformer';
   if (options.expectedModelType === 'embedding' && modelType !== 'embedding') {
@@ -282,8 +292,6 @@ async function runInferenceSuite(options = {}) {
       `Expected an embedding model for workload "${options.workload || 'inference'}", got "${modelType}".`
     );
   }
-  const cacheMode = normalizeCacheMode(options.cacheMode);
-  const loadMode = normalizeLoadMode(options.loadMode, !!options.modelUrl, options.modelUrl);
   const safeModelLoadMs = toTimingNumber(harness.modelLoadMs, 0);
 
   let results;
@@ -601,7 +609,15 @@ async function runBenchSuite(options = {}) {
     };
   }
 
-  const harness = await initializeSuiteModel(options);
+  const harness = await withHarnessPhase(
+    'bench.initializeSuiteModel',
+    {
+      modelId: options.modelId ?? null,
+      loadMode,
+      cacheMode,
+    },
+    () => initializeSuiteModel(options)
+  );
   const benchRun = resolveBenchmarkRunSettings(runtimeConfig, harness.pipeline ?? harness);
   const modelType = harness.manifest?.modelType || 'transformer';
   if (options.expectedModelType === 'embedding' && modelType !== 'embedding') {
@@ -759,10 +775,20 @@ async function runBenchSuite(options = {}) {
     let lastBatchGuardReason = null;
     for (let i = 0; i < warmupRuns + timedRuns; i++) {
       harness.pipeline.reset?.();
-      const run = await runTextInference(harness.pipeline, runtimeConfig, {
-        ...benchRun,
-        ...(options.inferenceInput ?? {}),
-      });
+      const run = await withHarnessPhase(
+        `bench.runTextInference[${i}]`,
+        {
+          modelId: options.modelId ?? harness.manifest?.modelId ?? null,
+          loadMode,
+          cacheMode,
+          warmupRuns,
+          timedRuns,
+        },
+        () => runTextInference(harness.pipeline, runtimeConfig, {
+          ...benchRun,
+          ...(options.inferenceInput ?? {}),
+        })
+      );
       if (i === warmupRuns + timedRuns - 1) {
         generatedText = run?.output ?? null;
         generatedPromptInput = run?.promptInput ?? null;
@@ -1046,6 +1072,35 @@ function shouldCaptureDebugSnapshot(mode, runtimeConfig) {
     || logLevel === 'verbose';
 }
 
+function createHarnessPhaseError(error, phase, context = {}) {
+  const message = error?.message || String(error);
+  const wrapped = new Error(
+    `Browser harness phase "${phase}" failed: ${message}`,
+    error instanceof Error ? { cause: error } : undefined
+  );
+  wrapped.name = error?.name || 'Error';
+  if (error?.code !== undefined) {
+    wrapped.code = error.code;
+  }
+  wrapped.details = {
+    ...(error?.details && typeof error.details === 'object' ? error.details : {}),
+    harnessPhase: phase,
+    ...context,
+  };
+  return wrapped;
+}
+
+async function withHarnessPhase(phase, context, run) {
+  try {
+    return await run();
+  } catch (error) {
+    if (error?.details?.harnessPhase) {
+      throw error;
+    }
+    throw createHarnessPhaseError(error, phase, context);
+  }
+}
+
 export async function runBrowserSuite(options = {}) {
   return runWithRuntimeIsolationForSuite(async () => {
     const suiteTimestamp = resolveReportTimestamp(options.timestamp, 'runBrowserSuite timestamp');
@@ -1057,12 +1112,21 @@ export async function runBrowserSuite(options = {}) {
     if (captureDebugSnapshot) {
       clearLogHistory();
     }
-    const suiteResult = await dispatchBrowserSuite(mode, workload, {
-      ...options,
-      mode,
-      workload,
-      suite,
-    });
+    const suiteResult = await withHarnessPhase(
+      'dispatchBrowserSuite',
+      {
+        mode,
+        workload,
+        modelId: options.modelId ?? null,
+        loadMode: options.loadMode ?? null,
+      },
+      () => dispatchBrowserSuite(mode, workload, {
+        ...options,
+        mode,
+        workload,
+        suite,
+      })
+    );
     if (!suiteResult) {
       throw createUnsupportedWorkloadError(workload, { ...harnessContext, mode });
     }

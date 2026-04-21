@@ -21,6 +21,9 @@ export const DEFAULT_SHARD_CACHE_CONFIG = {
   moeMaxEntries: 16,
   verifyHashes: true,
   maxConcurrentLoads: 0,
+  rangeCacheBlockBytes: 0,
+  rangeCacheMaxBytes: 0,
+  rangeCacheMinBytes: 0,
 };
 
 // =============================================================================
