@@ -60,23 +60,22 @@ the converter/config must be fixed instead of patching around the artifact.
 
 ## Kernel path contract
 
-Kernel paths are explicit execution plans selected by ID.
+Kernel paths are inline execution plans generated from execution-v1 graphs.
+Registry string IDs are removed from runtime-visible config.
 
-Canonical ID registry:
-- `src/config/kernel-paths/registry.json`
-
-Path definitions:
-- `src/config/kernel-paths/*.json`
+Canonical portable execution source:
+- `src/config/conversion/**/*.json` execution-v1 graphs
 
 Kernel-path resolution precedence is canonical in
 [`conversion-runtime-contract.md`](conversion-runtime-contract.md).
 This file only relies on that contract:
 - `kernelPath` remains the only supported kernel-selection override surface
+- `kernelPath` must be an inline object generated from execution-v1, or `null`
 - internal runner-owned per-run context may still apply the highest-precedence
   override after manifest and runtime config resolution
 
 `kernelPath` is the only supported kernel-selection override surface.
-Do not use legacy `kernelPlan`.
+Do not use legacy `kernelPlan` or string kernel-path IDs.
 
 Kernel-path dtype contract:
 - config-selected kernel paths must already match the resolved runtime
@@ -121,12 +120,12 @@ Set runtime profile only:
 node src/cli/doppler-cli.js verify --config '{"request":{"workload":"inference","modelId":"gemma-3-270m-it-q4k-ehf16-af32","runtimeProfile":"profiles/production"},"run":{"surface":"auto"}}' --json
 ```
 
-Override kernel path explicitly:
+Override runtime policy explicitly:
 
 ```bash
 node src/cli/doppler-cli.js debug \
   --config '{"request":{"modelId":"gemma-3-270m-it-q4k-ehf16-af32"},"run":{"surface":"auto"}}' \
-  --runtime-config '{"inference":{"kernelPath":"gemma3-q4k-dequant-f32a-online"}}' \
+  --runtime-config '{"inference":{"generation":{"maxTokens":8}}}' \
   --json
 ```
 

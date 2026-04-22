@@ -122,7 +122,7 @@ node src/cli/doppler-cli.js verify --config '{
 ```bash
 node src/cli/doppler-cli.js debug \
   --config '{"request":{"modelId":"gemma3-270m","workload":"inference"},"run":{"surface":"node"}}' \
-  --runtime-config '{"inference":{"kernelPath":"gemma3-q4k-dequant-f32a-online"}}' \
+  --runtime-config '{"inference":{"generation":{"maxTokens":8}}}' \
   --json
 ```
 

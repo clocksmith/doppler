@@ -20,7 +20,7 @@ Add a new attention mechanism within the existing transformer text pipeline.
 - `src/inference/pipelines/text/attention/projections.js` when QKV setup changes
 - `src/gpu/kernels/attention*.wgsl` and `src/gpu/kernels/attention.js`
 - `src/inference/kv-cache/*` or `src/inference/kv-cache.js` if layout interactions change
-- `src/config/kernel-paths/*.json`
+- execution-v1 graphs in `src/config/conversion/**/*.json`
 - Optional new manifest/runtime fields and conversion-config updates
 - Kernel tests and end-to-end pipeline tests
 
@@ -30,7 +30,7 @@ Add a new attention mechanism within the existing transformer text pipeline.
 2. Implement decode and prefill kernels or explicitly fail closed for unsupported phases.
 3. Wire the variant through the attention run and record paths.
 4. Update KV-cache integration if read or write behavior changes.
-5. Add or update kernel-path configs and conversion configs.
+5. Add or update execution-v1 graph entries and conversion configs.
 6. Add segment tests and one end-to-end debug comparison against a trusted reference.
 
 ## Verification

@@ -68,6 +68,15 @@ try {
   );
 
   assert.throws(
+    () => setRuntimeConfig({
+      inference: {
+        kernelPath: 'gemma2-q4k-fused-f32a',
+      },
+    }),
+    /runtime\.inference\.kernelPath string IDs are no longer supported/
+  );
+
+  assert.throws(
     () => mergeKernelPathPolicy(
       {
         mode: 'locked',
@@ -127,6 +136,17 @@ try {
     },
   });
   assert.equal(nullKernelPathRuntime.inference.kernelPath, null);
+
+  const nullSessionSubtreeConfig = createDopplerConfig({
+    runtime: {
+      inference: {
+        session: {
+          kvcache: null,
+        },
+      },
+    },
+  });
+  assert.equal(nullSessionSubtreeConfig.runtime.inference.session.kvcache, null);
 
   const resetRuntime = setRuntimeConfig(null);
   assert.deepEqual(resetRuntime, createDopplerConfig().runtime);

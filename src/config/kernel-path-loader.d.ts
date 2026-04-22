@@ -43,7 +43,7 @@ export function getKernelPathKVDtype(
  * After registry removal (Phase 3), only object refs are supported.
  * String-based registry lookups throw an error.
  */
-export function resolveKernelPath(ref: KernelPathRef): KernelPathSchema;
+export function resolveKernelPath(ref: KernelPathRef): KernelPathSchema | null;
 
 /**
  * Resolve layer index template in weight references.

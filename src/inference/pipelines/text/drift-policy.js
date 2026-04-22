@@ -5,7 +5,7 @@
 // Provides tolerance lookup for first-divergence detection.
 // Models propagation bounds to prevent unbounded drift amplification.
 
-import driftPoliciesConfig from '../../../config/runtime/diagnostics/drift-policies.json' with { type: 'json' };
+import driftPoliciesConfig from '../../../config/diagnostics/drift-policies.json' with { type: 'json' };
 
 // ============================================================================
 // Policy Lookup

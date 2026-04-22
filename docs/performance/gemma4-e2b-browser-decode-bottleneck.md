@@ -292,16 +292,17 @@ selection.
 Pure-f16 attention WGSL kernels already exist in
 `src/gpu/kernels/attention/` (`attention_decode_online_f16.wgsl`,
 `attention_small_f16.wgsl`, `attention_streaming_f16.wgsl`) — they are
-wired and used for Gemma 2 / Gemma 3 on the `_f16a` family of kernel
-paths (see `src/config/runtime/kernels/gemma2-q4k-dequant-f16a.json`).
-Gemma 4 E2B has no equivalent `gemma4-q4k-dequant-f16a` kernel path.
+wired and used for Gemma 2 / Gemma 3 on the `_f16a` family of execution
+graphs. This older note previously referenced the removed runtime
+kernel-profile directory; new work must use execution-v1 graphs and inline
+execution-v1-derived runtime overrides. Gemma 4 E2B has no equivalent
+pure-f16 execution path yet.
 
 That is the concrete path forward for closing the gap.
 
 ### Path forward
 
-1. Add `src/config/runtime/kernels/gemma4-q4k-dequant-f16a.json` modeled
-   on the existing `gemma2-q4k-dequant-f16a.json`, routing Gemma 4 E2B
+1. Add an execution-v1 graph or transform routing Gemma 4 E2B
    matmul/attention through the pure-f16 variants instead of
    `f16w_f32a` / `_f16kv`.
 2. Validate numerically on the q4k-ehf16-af32 artifact first — activations

@@ -613,17 +613,21 @@ struct Uniforms {
 
 ## Kernel Compatibility and Overrides
 
-This section documents kernel path compatibility rules and runtime overrides.
+This section documents execution-v1 kernel compatibility rules and runtime
+overrides.
 
-### Runtime Kernel Paths (Config-Only)
+### Runtime Kernel Paths
 
-Use runtime config to force kernel path selection:
+Kernel-path string IDs are removed. Portable kernel identity comes from
+execution-v1 graph steps with pinned WGSL files, entry points, and digests.
+Runtime config may only carry an inline execution-v1-derived `kernelPath`
+object or `null` for no explicit override.
 
 ```json
 {
   "runtime": {
     "inference": {
-      "kernelPath": "gemma2-q4k-fused-f32a"
+      "kernelPath": null
     }
   }
 }

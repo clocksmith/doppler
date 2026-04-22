@@ -22,6 +22,9 @@ Primary documentation index.
 - [Subsystem Support Matrix](subsystem-support-matrix.md) - generated support-tier contract for public, experimental, and internal-only subsystem surfaces.
 - [Registry Workflow](registry-workflow.md) - hosted catalog validation and Hugging Face publication workflow.
 - [Operations](operations.md) - troubleshooting and debug workflows.
+- [Doppler Program Bundle](integration/program-bundle.md) - closed portable
+  model-program export shape for browser, Node provider, Doe.js capture, and
+  Doe backend lowering.
 
 ## Public API Docs
 

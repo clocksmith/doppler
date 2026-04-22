@@ -256,19 +256,19 @@ When a manifest-based runtime error occurs (dtype mismatch, missing field, kerne
 2. The conversion config (`src/config/conversion/`) is the source of truth for all manifest inference fields. The manifest is a stamped artifact.
 3. Never add runtime workarounds for stale manifests. Fix the config, re-refresh, verify.
 
-### Kernel Path Registry Lifecycle
+### Execution-V1 Kernel Lifecycle
 
-- Kernel-path identity is owned by `src/config/kernel-paths/registry.json`.
-- Valid entries:
-  - `file`: path to WGSL path spec under `src/config/kernel-paths/`.
-  - `aliasOf`: redirects legacy IDs to a canonical target.
-  - `status`: one of `canonical`, `experimental`, `legacy`.
-- `canonical` IDs are production-visible and may be emitted as manifest defaults.
-- `experimental` IDs are for benchmarks/tuning and may use semantic suffixes, but must not ship as long-term defaults until validated.
-- `legacy` IDs must be compatibility-only aliases and only exist when code and docs are still migrating to their replacement target.
-- Alias chains are allowed for migration, but loops are invalid.
-- Add tuned kernels as new `experimental` IDs (prefer descriptive suffixes), benchmark them, then promote to `canonical` only if they are accepted as stable.
-- Keep the replaced ID in `legacy` until callsites are fully migrated, then remove it in the next compatible cycle.
+- Kernel-path string registries are removed. Do not add registry-directory
+  assets or string IDs.
+- Portable kernel execution identity is owned by the execution-v1 graph stamped
+  from conversion configs into manifests.
+- Each execution-v1 step pins the WGSL file, entry point, and digest needed for
+  dispatch, capture, and downstream lowering.
+- `src/config/kernels/registry.json` is WGSL variant metadata only. It is not a
+  model kernel-path ID registry and must not be used as a runtime override
+  lookup table.
+- Runtime `kernelPath` overrides may only be inline objects generated from
+  execution-v1, or `null` for no explicit override.
 - Treat fused kernels as explicit behavior changes:
   - preserve an equivalent non-fused baseline path.
   - benchmark fused candidates against non-fused and accuracy checks.

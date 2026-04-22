@@ -1,8 +1,8 @@
-# Add a Kernel-Path Config
+# Add or Change an Execution-V1 Kernel Path
 
 ## Goal
 
-Define a new execution plan using existing kernels.
+Define a new execution plan using existing WGSL kernels.
 
 ## When To Use This Guide
 
@@ -11,36 +11,41 @@ Define a new execution plan using existing kernels.
 
 ## Blast Radius
 
-- JSON + registry
+- JSON execution graph + generated manifest
 
 ## Required Touch Points
 
-- `src/config/kernel-paths/<id>.json`
-- `src/config/kernel-paths/registry.json`
 - Usually one of:
   `src/config/conversion/<family>/<model>.json`
+- Tests or fixtures that compile the execution-v1 graph
 
 ## Recommended Order
 
-1. Copy the nearest existing kernel-path config.
-2. Update `activationDtype`, `kvDtype`, and the relevant `decode`, `prefill`, `preLayer`, `postLayer`, or `sampling` steps.
-3. Add the new ID to `src/config/kernel-paths/registry.json`.
-4. Wire the new ID into a conversion config or runtime profile so it is reachable.
-5. Run kernel generation checks and one debug run with the path explicitly selected.
+1. Copy the nearest execution-v1 graph from a conversion config.
+2. Update `kernels`, `decode`, `prefill`, `preLayer`, `postLayer`, `sampling`,
+   session policy, and pinned `kernelRef` entries together.
+3. Keep every non-cast step explicit: WGSL file, entry point, digest, source,
+   destination, and precision policy.
+4. Re-refresh or compile the target artifact so the manifest owns the graph.
+5. Run kernel generation checks and one debug run with the graph selected by
+   the manifest or an inline execution-v1-derived runtime override.
 
 ## Verification
 
 - `npm run onboarding:check`
 - `npm run kernels:check`
-- Run one debug pass with the new path forced through runtime config
+- `npm run config:single-source:check`
+- Run one debug pass with the new path selected by the manifest or an inline
+  runtime override
 
 ## Common Misses
 
-- Adding the config file but not the registry entry.
-- Registering the config but never wiring it into a conversion config or runtime profile.
+- Adding a string kernel-path ID or removed kernel-path-registry asset.
+- Updating decode but not prefill, or updating the graph without refreshing
+  the generated manifest.
 - Referencing a kernel filename or entry point that does not exist.
 - Making decode and prefill inconsistent when the model needs both paths.
-- Using semantic alias IDs instead of explicit path IDs that encode the real execution behavior.
+- Letting generated digest mirrors drift from WGSL source.
 
 ## Related Guides
 
@@ -51,7 +56,7 @@ Define a new execution plan using existing kernels.
 
 ## Canonical References
 
-- `src/config/kernel-paths/registry.json`
-- `src/config/kernel-paths/gemma3-q4k-dequant-f32a-online.json`
+- `src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.json`
+- `src/config/schema/execution-v1.schema.d.ts`
 - [../config.md](../config.md)
 - `src/inference/pipelines/text/model-load.js`

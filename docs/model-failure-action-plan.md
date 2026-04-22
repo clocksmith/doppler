@@ -405,8 +405,7 @@ Key files:
 - [`docs/model-support-matrix.md`](./model-support-matrix.md)
 - [`src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json`](../src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json)
 - [`src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json`](../src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json)
-- [`src/config/kernel-paths/gemma3-q4k-dequant-f32a-online.json`](../src/config/kernel-paths/gemma3-q4k-dequant-f32a-online.json)
-- [`src/config/kernel-paths/gemma3-q4k-dequant-f16a-online.json`](../src/config/kernel-paths/gemma3-q4k-dequant-f16a-online.json)
+- execution-v1 graph entries in the Gemma 3 conversion configs above
 - relevant Q4K kernels under `src/gpu/kernels/**`
 
 Required reasoning standard:

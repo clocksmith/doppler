@@ -82,7 +82,6 @@ export {
   type KernelStepSchema,
   type LayerKernelPathSchema,
   type LayerOverrideSchema,
-  type BuiltinKernelPathId,
   DEFAULT_ENTRY,
   DEFAULT_INPUT,
   DEFAULT_OUTPUT,

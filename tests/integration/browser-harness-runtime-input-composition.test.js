@@ -18,6 +18,20 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+const INLINE_KERNEL_PATH = Object.freeze({
+  id: 'test-inline-kernel-path',
+  name: 'test inline kernel path',
+  activationDtype: 'f32',
+  decode: {
+    steps: [
+      {
+        op: 'noop',
+        kernel: 'noop.wgsl',
+      },
+    ],
+  },
+});
+
 const originalFetch = globalThis.fetch;
 
 try {
@@ -64,7 +78,7 @@ try {
     ['https://example.test/runtime/kernel-path-base.json', {
       runtime: {
         inference: {
-          kernelPath: 'gemma2-q4k-fused-f32a',
+          kernelPath: clone(INLINE_KERNEL_PATH),
         },
       },
     }],
@@ -152,7 +166,7 @@ try {
 
   setRuntimeConfig({
     inference: {
-      kernelPath: 'baseline-kernel-path',
+      kernelPath: clone(INLINE_KERNEL_PATH),
     },
   });
 
@@ -177,7 +191,7 @@ try {
       },
     },
     inference: {
-      kernelPath: 'gemma3-q4k-dequant-f16a-online',
+      kernelPath: clone(INLINE_KERNEL_PATH),
       generation: {
         maxTokens: 5,
       },
@@ -186,7 +200,7 @@ try {
 
   const resolvedRuntime = resolveRuntime({});
   assert.equal(resolvedRuntime.runtimeConfig.shared.tooling.carried, true);
-  assert.equal(resolvedRuntime.runtimeConfig.inference.kernelPath, 'gemma3-q4k-dequant-f16a-online');
+  assert.equal(resolvedRuntime.runtimeConfig.inference.kernelPath.id, INLINE_KERNEL_PATH.id);
   assert.equal(resolvedRuntime.runtimeConfig.inference.generation.maxTokens, 5);
 
   const malformedRuntimeConfig = new URLSearchParams();

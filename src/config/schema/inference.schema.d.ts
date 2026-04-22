@@ -284,7 +284,8 @@ export interface InferenceConfigSchema {
   /**
    * Kernel path for explicit kernel dispatch ordering.
    * Specifies exactly which kernels run, in what order, with what configs.
-   * Can be a registered kernel-path ID (e.g., 'gemma2-q4k-fused-f32a') or inline KernelPathSchema.
+   * Registry string IDs are removed; use an inline KernelPathSchema generated
+   * from execution-v1, or null for no explicit override.
    */
   kernelPath?: KernelPathRef;
 }

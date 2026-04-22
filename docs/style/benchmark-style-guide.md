@@ -57,13 +57,14 @@ runtime-override stage shows a real win on the target hardware.
 
 ### Stage 1 — runtime override
 
-1. Add the new kernel-path JSON under `src/config/kernel-paths/<id>.json` and
-   register it in `src/config/kernel-paths/registry.json` (per
-   [../developer-guides/06-kernel-path-config.md](../developer-guides/06-kernel-path-config.md)).
-2. Force the path on the existing artifact via runtime config only:
+1. Add or modify an execution-v1 graph in the relevant conversion config, or
+   add a capability transform that rewrites explicit execution-v1 steps.
+   Follow [../developer-guides/06-kernel-path-config.md](../developer-guides/06-kernel-path-config.md).
+2. For an existing artifact, force only an inline execution-v1-derived
+   `runtime.inference.kernelPath` object. Do not use string IDs:
 
    ```json
-   { "runtime": { "inference": { "kernelPath": "<new-id>" } } }
+   { "runtime": { "inference": { "kernelPath": { "id": "inline-experiment", "...": "..." } } } }
    ```
 
 3. Correctness gate: run a deterministic greedy probe (temperature=0, topK=1)

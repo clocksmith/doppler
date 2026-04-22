@@ -36,7 +36,7 @@ export function mergeLayeredShallowObjects(...layers) {
 }
 
 export function replaceSubtree(overrideValue, fallbackValue) {
-  return chooseNullish(overrideValue, fallbackValue);
+  return chooseDefined(overrideValue, fallbackValue);
 }
 
 const DEFAULT_KERNEL_PATH_POLICY = Object.freeze({

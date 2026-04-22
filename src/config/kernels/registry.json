@@ -66,10 +66,8 @@
           "outputDtype": "f16",
           "weightDtype": "f16",
           "reachability": {
-            "status": "pinned",
-            "inlineConfigs": [
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
-            ],
+            "status": "model-selectable",
+            "inlineConfigs": [],
             "ruleChains": [
               "matmul.rules.json#matmulKernel"
             ],
@@ -152,6 +150,7 @@
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "sana/sana-sprint-0.6b-f16"
             ],
             "ruleChains": [
@@ -436,7 +435,8 @@
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
-              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
             ],
             "ruleChains": [
               "matmul.rules.json#gemvPathVariant",
@@ -466,8 +466,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
             ],
             "ruleChains": [
               "matmul.rules.json#gemvPathVariant",
@@ -619,7 +618,8 @@
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -645,7 +645,8 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
             ],
             "ruleChains": [
               "matmul.rules.json#q4kFusedVariant"
@@ -673,7 +674,8 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -725,10 +727,8 @@
           },
           "description": "Multi-column GEMV for large vocab (LM head) - F16 input/output",
           "reachability": {
-            "status": "pinned",
-            "inlineConfigs": [
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
-            ],
+            "status": "model-selectable",
+            "inlineConfigs": [],
             "ruleChains": [
               "matmul.rules.json#q4kFusedVariant"
             ],
@@ -779,10 +779,8 @@
             "tileM": 4
           },
           "reachability": {
-            "status": "pinned",
-            "inlineConfigs": [
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
-            ],
+            "status": "model-selectable",
+            "inlineConfigs": [],
             "ruleChains": [
               "matmul.rules.json#q4kFusedVariant"
             ],
@@ -860,7 +858,8 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -1883,10 +1882,8 @@
             "tier": "tiled_small"
           },
           "reachability": {
-            "status": "pinned",
-            "inlineConfigs": [
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
-            ],
+            "status": "unused",
+            "inlineConfigs": [],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -1907,10 +1904,8 @@
             "tier": "tiled_small"
           },
           "reachability": {
-            "status": "pinned",
-            "inlineConfigs": [
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
-            ],
+            "status": "unused",
+            "inlineConfigs": [],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2086,7 +2081,8 @@
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2191,7 +2187,8 @@
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2222,7 +2219,8 @@
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2247,10 +2245,8 @@
           },
           "description": "Online decode kernel - f16 QKV with subgroup reductions",
           "reachability": {
-            "status": "pinned",
-            "inlineConfigs": [
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
-            ],
+            "status": "model-selectable",
+            "inlineConfigs": [],
             "ruleChains": [
               "attention.rules.json#optimizedVariant"
             ],
@@ -2289,7 +2285,8 @@
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
             ],
             "ruleChains": [
               "attention.rules.json#optimizedVariant"
@@ -3257,6 +3254,7 @@
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "sana/sana-sprint-0.6b-f16"
             ],
             "ruleChains": [
@@ -3353,10 +3351,8 @@
             "shader-f16"
           ],
           "reachability": {
-            "status": "pinned",
-            "inlineConfigs": [
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
-            ],
+            "status": "model-selectable",
+            "inlineConfigs": [],
             "ruleChains": [
               "rmsnorm.rules.json#variant"
             ],
@@ -3959,7 +3955,8 @@
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
             ],
             "ruleChains": [
               "rope.rules.json#variant"
@@ -3979,10 +3976,8 @@
             "shader-f16"
           ],
           "reachability": {
-            "status": "pinned",
-            "inlineConfigs": [
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
-            ],
+            "status": "model-selectable",
+            "inlineConfigs": [],
             "ruleChains": [
               "rope.rules.json#variant"
             ],
@@ -4179,7 +4174,8 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
             ],
             "ruleChains": [
               "silu.rules.json#variant"
@@ -4199,10 +4195,8 @@
             "shader-f16"
           ],
           "reachability": {
-            "status": "pinned",
-            "inlineConfigs": [
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
-            ],
+            "status": "model-selectable",
+            "inlineConfigs": [],
             "ruleChains": [
               "silu.rules.json#variant"
             ],
@@ -5462,6 +5456,7 @@
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "sana/sana-sprint-0.6b-f16"
             ],
             "ruleChains": [
@@ -5502,10 +5497,8 @@
           ],
           "outputDtype": "f16",
           "reachability": {
-            "status": "pinned",
-            "inlineConfigs": [
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
-            ],
+            "status": "model-selectable",
+            "inlineConfigs": [],
             "ruleChains": [
               "residual.rules.json#residualVariant"
             ],
@@ -6922,7 +6915,8 @@
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
+              "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
+              "qwen3/qwen-3-5-2b-q4k-ehaf16"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -6940,10 +6934,8 @@
             "shader-f16"
           ],
           "reachability": {
-            "status": "pinned",
-            "inlineConfigs": [
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
-            ],
+            "status": "unused",
+            "inlineConfigs": [],
             "ruleChains": [],
             "wgslOnDisk": true
           }

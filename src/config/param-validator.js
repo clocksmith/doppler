@@ -44,6 +44,7 @@ export function validateRuntimeOverrides(overrides) {
   for (const key of ['batching', 'compute', 'generation', 'kernelPathPolicy']) {
     assertRequiredRuntimeOverrideNotNull(overrides?.inference, key, 'runtime.inference');
   }
+  assertKernelPathRef(overrides?.inference?.kernelPath, 'runtime.inference.kernelPath');
 
   const modelOverrides = overrides?.inference?.modelOverrides;
   if (modelOverrides !== undefined && modelOverrides !== null && !isPlainObject(modelOverrides)) {
@@ -67,6 +68,7 @@ export function validateRuntimeConfig(runtimeConfig) {
   const generation = runtimeConfig.inference?.generation;
   const batching = runtimeConfig.inference?.batching;
   const compute = runtimeConfig.inference?.compute;
+  const kernelPath = runtimeConfig.inference?.kernelPath;
   const kernelPathPolicy = runtimeConfig.inference?.kernelPathPolicy;
 
   if (batching) {
@@ -89,6 +91,7 @@ export function validateRuntimeConfig(runtimeConfig) {
   if (kernelPathPolicy) {
     validateKernelPathPolicy('runtime.inference.kernelPathPolicy', kernelPathPolicy);
   }
+  assertKernelPathRef(kernelPath, 'runtime.inference.kernelPath');
   if (compute?.rangeAwareSelectiveWidening !== undefined) {
     validateRangeAwareSelectiveWidening(
       'runtime.inference.compute.rangeAwareSelectiveWidening',
@@ -122,6 +125,19 @@ export function validateRuntimeConfig(runtimeConfig) {
       `Disable ${flags.join(', ')} or enable runtime.shared.debug.pipeline.enabled ` +
       'or runtime.shared.debug.trace.enabled (or set log level to debug/verbose).'
     );
+  }
+}
+
+function assertKernelPathRef(value, label) {
+  if (value === undefined || value === null) return;
+  if (typeof value === 'string') {
+    throw new Error(
+      `DopplerConfigError: ${label} string IDs are no longer supported. ` +
+      'Use an inline execution-v1 kernel path object or set kernelPath to null.'
+    );
+  }
+  if (!isPlainObject(value)) {
+    throw new Error(`DopplerConfigError: ${label} must be an object or null when provided.`);
   }
 }
 

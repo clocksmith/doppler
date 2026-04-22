@@ -21,7 +21,8 @@ src/config/
 ├── merge.js                     # canonical merge behavior
 ├── kernel-path-loader.js        # kernel-path utility functions for inline paths
 ├── conversion/                  # conversion configs
-├── runtime/                     # runtime profiles and overlays
+├── diagnostics/                 # non-runtime diagnostic policy assets
+├── runtime/                     # runtime profiles only
 ├── support-tiers/               # canonical subsystem support registry
 ├── schema/                      # schemas + defaults
 ├── transforms/                  # execution graph transforms for capability adaptation
@@ -41,6 +42,7 @@ Validate config integrity:
 
 ```bash
 npm run kernels:check
+npm run config:single-source:check
 npm run support:matrix:check
 npm run support:subsystems:check
 npm run onboarding:check:strict

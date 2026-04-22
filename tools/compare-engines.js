@@ -637,7 +637,7 @@ const PROTECTED_RUNTIME_CONFIG_PREFIXES = Object.freeze([
   },
   {
     prefix: 'inference.kernelPath',
-    reason: 'kernel-path selection is compare-managed; use --doppler-kernel-path',
+    reason: 'kernel-path selection is manifest execution-v1 owned',
   },
 ]);
 
@@ -667,7 +667,7 @@ function usage() {
     '  --compare-config <path>        Compare model profile config path',
     '  --compare-metric-contract <path> Compare metric contract path',
     '  --seed <n>                    Deterministic seed',
-    '  --doppler-kernel-path <id>     Doppler kernel path override',
+    '  --doppler-kernel-path <id>     Removed; use manifest execution-v1 graphs',
     '  --doppler-batch-size <n>       Doppler decode batch size',
     '  --doppler-readback-interval <n> Doppler decode readback interval',
     '  --doppler-stop-check-mode <batch|per-token> Doppler decode stop-check cadence',
@@ -2008,14 +2008,14 @@ function parseTimestampValue(rawValue, label) {
 
 function resolveDopplerKernelPath(profile, kernelPathOverride) {
   if (kernelPathOverride != null && kernelPathOverride !== '') {
-    return {
-      kernelPath: String(kernelPathOverride),
-      source: 'cli',
-    };
+    throw new Error(
+      '--doppler-kernel-path is removed because string kernel-path IDs are no longer supported. ' +
+      'Use the model manifest execution-v1 graph.'
+    );
   }
   return {
     kernelPath: DEFAULT_DOPPLER_KERNEL_PATH,
-    source: 'manifest-default',
+    source: 'manifest-execution-v1',
   };
 }
 
@@ -2026,7 +2026,7 @@ function assertKernelPathAllowedForModel(modelId, kernelPath) {
   if (!blockedKernelPaths.includes(String(kernelPath))) return;
   throw new Error(
     `Kernel path "${kernelPath}" is blocked for model "${modelId}" in compare runs due to deterministic correctness failures. `
-    + 'Use manifest-default (omit --doppler-kernel-path) or choose a validated kernel path.'
+    + 'Use the manifest execution-v1 graph.'
   );
 }
 

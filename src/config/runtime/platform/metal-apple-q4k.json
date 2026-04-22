@@ -1,11 +1,27 @@
 {
   "id": "platform/metal-apple-q4k",
   "name": "metal-apple-q4k",
-  "description": "Metal (Apple GPU) tuned default for Q4K (dequant F16 kernel path).",
+  "description": "Metal (Apple GPU) tuned default for Q4K F16 activation/cache runtime policy.",
   "intent": "investigate",
   "stability": "canonical",
   "owner": "doppler-core",
   "createdAtUtc": "2026-02-25T00:00:00Z",
-  "extends": "kernels/gemma2-q4k-dequant-f16a",
-  "runtime": {}
+  "extends": "default",
+  "runtime": {
+    "inference": {
+      "compute": {
+        "activationDtype": "f16"
+      },
+      "kvcache": {
+        "kvDtype": "f16"
+      },
+      "session": {
+        "compute": {
+          "defaults": {
+            "outputDtype": "f16"
+          }
+        }
+      }
+    }
+  }
 }

@@ -27,7 +27,7 @@ export declare function mergeLayeredShallowObjects<T extends object>(
 export declare function replaceSubtree<T>(
   overrideValue: T | null | undefined,
   fallbackValue: T
-): T;
+): T | null;
 
 export declare function mergeKernelPathPolicy<T extends {
   mode?: unknown;
