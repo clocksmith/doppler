@@ -512,10 +512,18 @@ function buildKvCacheTranscript(metrics, transcriptSeed) {
       : (Number.isFinite(source?.allocated) ? source.allocated : null),
     counters: source?.counters && typeof source.counters === 'object' ? source.counters : null,
   };
+  const byteProof = {
+    byteDigestMode: typeof source?.byteDigestMode === 'string' ? source.byteDigestMode : null,
+    byteDigest: normalizeNullableHash(source?.byteDigest, 'referenceTranscript.kvCache.byteDigest'),
+    byteDigests: Array.isArray(source?.byteDigests) ? source.byteDigests : null,
+  };
+  const hasByteProof = byteProof.byteDigestMode || byteProof.byteDigest || byteProof.byteDigests;
   return {
     ...kvCache,
+    ...(hasByteProof ? byteProof : {}),
+    ...(hasByteProof && kvCache.mode === 'stats' ? { mode: 'stats+sha256-layer-kv-bytes' } : {}),
     stateHash: normalizeNullableHash(source?.stateHash, 'referenceTranscript.kvCache.stateHash')
-      ?? hashStableJson(kvCache),
+      ?? hashStableJson({ ...kvCache, ...(hasByteProof ? byteProof : {}) }),
   };
 }
 

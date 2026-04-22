@@ -32,10 +32,7 @@ function rotateRight32(value, bits) {
   return (value >>> bits) | (value << (32 - bits));
 }
 
-function toSha256PaddedBytes(value) {
-  const message = String(value ?? '');
-  const encoder = new TextEncoder();
-  const data = encoder.encode(message);
+function toSha256PaddedBytesFromData(data) {
   const bitLength = BigInt(data.length) * 8n;
   const padBytes = (64 - ((data.length + 1 + 8) % 64)) % 64;
   const totalLength = data.length + 1 + padBytes + 8;
@@ -52,6 +49,12 @@ function toSha256PaddedBytes(value) {
   return padded;
 }
 
+function toSha256PaddedBytes(value) {
+  const message = String(value ?? '');
+  const encoder = new TextEncoder();
+  return toSha256PaddedBytesFromData(encoder.encode(message));
+}
+
 function appendWordsFromBytes(words, bytes, offset) {
   for (let index = 0; index < 16; index += 1) {
     const byteOffset = offset + index * 4;
@@ -66,6 +69,17 @@ function appendWordsFromBytes(words, bytes, offset) {
 
 export function sha256Hex(value) {
   const padded = toSha256PaddedBytes(value);
+  return sha256PaddedBytesHex(padded);
+}
+
+export function sha256BytesHex(bytes) {
+  if (!(bytes instanceof Uint8Array)) {
+    throw new Error('sha256BytesHex requires a Uint8Array.');
+  }
+  return sha256PaddedBytesHex(toSha256PaddedBytesFromData(bytes));
+}
+
+function sha256PaddedBytesHex(padded) {
   const hashState = INITIAL_STATE.slice();
   const schedule = new Uint32Array(64);
 

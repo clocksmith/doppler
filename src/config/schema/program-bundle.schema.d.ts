@@ -91,11 +91,29 @@ export interface ProgramBundleReferenceTranscript {
     allocatedBytes: number | null;
     counters: Record<string, unknown> | null;
     stateHash: string;
+    byteDigestMode?: string | null;
+    byteDigest?: string | null;
+    byteDigests?: Array<{
+      layer: number;
+      seqLen: number;
+      keyBytes: number;
+      valueBytes: number;
+      keyDigest: string;
+      valueDigest: string;
+    }> | null;
   };
   logits: {
     mode: 'not-captured' | 'sha256-per-step';
     reason?: string | null;
     perStepDigests?: string[] | null;
+    steps?: Array<{
+      index: number | null;
+      tokenId: number | null;
+      inputTokenCount: number | null;
+      dtype: string;
+      elementCount: number;
+      digest: string;
+    }>;
   };
   tolerance: {
     tokenPolicy: string;

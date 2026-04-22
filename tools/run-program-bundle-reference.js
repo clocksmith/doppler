@@ -219,6 +219,40 @@ async function normalizeRuntimeConfigInput(input) {
   return { runtimeConfigUrl: pathToFileURL(path.resolve(raw)).href };
 }
 
+function isPlainObject(value) {
+  return value != null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function mergePlainObjects(base, patch) {
+  const output = { ...(isPlainObject(base) ? base : {}) };
+  for (const [key, value] of Object.entries(patch)) {
+    if (isPlainObject(value) && isPlainObject(output[key])) {
+      output[key] = mergePlainObjects(output[key], value);
+    } else {
+      output[key] = value;
+    }
+  }
+  return output;
+}
+
+function withReferenceTranscriptRuntimeConfig(runtimeInput) {
+  const proofRuntimeConfig = {
+    shared: {
+      harness: {
+        referenceTranscript: {
+          enabled: true,
+          captureLogits: true,
+          captureKvBytes: true,
+        },
+      },
+    },
+  };
+  return {
+    ...runtimeInput,
+    runtimeConfig: mergePlainObjects(runtimeInput.runtimeConfig ?? {}, proofRuntimeConfig),
+  };
+}
+
 function localModelDirFromUrl(modelUrl) {
   if (typeof modelUrl !== 'string' || !modelUrl.startsWith('file://')) {
     return null;
@@ -264,7 +298,9 @@ async function assertLocalModelArtifactsReadable(options) {
 
 async function runReferenceVerify(options) {
   await assertLocalModelArtifactsReadable(options);
-  const runtimeInput = await normalizeRuntimeConfigInput(options.runtimeConfig);
+  const runtimeInput = withReferenceTranscriptRuntimeConfig(
+    await normalizeRuntimeConfigInput(options.runtimeConfig)
+  );
   const request = {
     command: 'verify',
     workload: 'inference',

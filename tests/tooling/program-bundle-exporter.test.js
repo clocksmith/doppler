@@ -17,6 +17,11 @@ const gatherDigest = `sha256:${KERNEL_REF_CONTENT_DIGESTS['gather.wgsl#main']}`;
 const manifestPath = path.join(modelDir, 'manifest.json');
 const reportPath = path.join(reportDir, 'report.json');
 const conversionConfigPath = path.join(fixtureRoot, 'conversion.json');
+const promptTokenDigest = `sha256:${'a'.repeat(64)}`;
+const logitsDigest = `sha256:${'b'.repeat(64)}`;
+const kvByteDigest = `sha256:${'c'.repeat(64)}`;
+const kvKeyDigest = `sha256:${'d'.repeat(64)}`;
+const kvValueDigest = `sha256:${'e'.repeat(64)}`;
 await fs.writeFile(path.join(modelDir, 'tokenizer.json'), '{"model":"unit"}\n', 'utf8');
 await fs.writeFile(conversionConfigPath, '{"modelId":"unit-model"}\n', 'utf8');
 await fs.writeFile(manifestPath, `${JSON.stringify({
@@ -79,6 +84,46 @@ await fs.writeFile(reportPath, `${JSON.stringify({
       total: 1,
       omitted: 0,
     },
+    referenceTranscript: {
+      prompt: {
+        identity: 'The sky is',
+        hash: `sha256:${'f'.repeat(64)}`,
+        tokenIdsHash: promptTokenDigest,
+        tokenCount: 3,
+      },
+      kvCache: {
+        mode: 'stats+sha256-layer-kv-bytes',
+        layout: 'contiguous',
+        kvDtype: 'f16',
+        seqLen: 4,
+        maxSeqLen: 8,
+        usedBytes: 64,
+        allocatedBytes: 128,
+        counters: null,
+        byteDigestMode: 'sha256-layer-kv-bytes',
+        byteDigest: kvByteDigest,
+        byteDigests: [{
+          layer: 0,
+          seqLen: 4,
+          keyBytes: 32,
+          valueBytes: 32,
+          keyDigest: kvKeyDigest,
+          valueDigest: kvValueDigest,
+        }],
+      },
+      logits: {
+        mode: 'sha256-per-step',
+        perStepDigests: [logitsDigest],
+        steps: [{
+          index: 0,
+          tokenId: 42,
+          inputTokenCount: 3,
+          dtype: 'f32',
+          elementCount: 8,
+          digest: logitsDigest,
+        }],
+      },
+    },
   },
   output: ' blue',
 }, null, 2)}\n`, 'utf8');
@@ -101,6 +146,12 @@ assert.equal(bundle.execution.kernelClosure.expandedStepCount, 1);
 assert.equal(bundle.execution.steps[0].kernelId, 'embed_alias');
 assert.equal(bundle.referenceTranscript.output.tokensGenerated, 1);
 assert.equal(bundle.referenceTranscript.phase.prefillTokens, 3);
+assert.equal(bundle.referenceTranscript.prompt.tokenIdsHash, promptTokenDigest);
+assert.equal(bundle.referenceTranscript.prompt.tokenCount, 3);
+assert.equal(bundle.referenceTranscript.logits.mode, 'sha256-per-step');
+assert.deepEqual(bundle.referenceTranscript.logits.perStepDigests, [logitsDigest]);
+assert.equal(bundle.referenceTranscript.kvCache.byteDigest, kvByteDigest);
+assert.equal(bundle.referenceTranscript.kvCache.byteDigests[0].keyDigest, kvKeyDigest);
 
 await fs.writeFile(path.join(reportDir, 'manual-receipt.json'), `${JSON.stringify({
   suite: 'debug',

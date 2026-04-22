@@ -191,13 +191,16 @@ The exporter accepts a browser/debug report and derives:
 - prefill/decode timing and token counts
 - stop reason and stop token ID when available
 - KV-cache layout, seqLen/maxSeqLen, byte counters, and state hash
-- explicit logits policy
+- optional KV-cache byte digests by layer/key/value
+- explicit logits policy and optional per-step logits digests
 
-Current reports do not persist per-step logits digests. The bundle records that
-as `logits.mode: "not-captured"` instead of pretending those digests exist.
-New browser reports include `metrics.referenceTranscript` with full generated
-token IDs; older reports can still be used only when their token diagnostics are
-complete enough to identify the generated output.
+Program Bundle reference runs request proof-grade browser diagnostics. Those
+reports include `metrics.referenceTranscript` with prompt token identity, full
+generated token IDs, per-step finalized logits digests, and KV byte digests for
+the used cache region when the active KV layout supports byte readback. Older
+reports can still be used only when their token diagnostics are complete enough
+to identify the generated output; missing logits remain represented honestly as
+`logits.mode: "not-captured"`.
 
 ## Validation
 

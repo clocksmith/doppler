@@ -272,10 +272,11 @@ function buildPerStepTokenProof(tokenIds) {
   }));
 }
 
-function buildKvCacheTranscriptSeed(kvCache) {
+function buildKvCacheTranscriptSeed(kvCache, byteProof = null) {
   const source = kvCache && typeof kvCache === 'object' ? kvCache : null;
+  const proof = byteProof && typeof byteProof === 'object' ? byteProof : null;
   const seed = {
-    mode: source ? 'stats' : 'not-captured',
+    mode: proof ? 'stats+sha256-layer-kv-bytes' : (source ? 'stats' : 'not-captured'),
     layout: typeof source?.layout === 'string' ? source.layout : null,
     kvDtype: typeof source?.kvDtype === 'string' ? source.kvDtype : null,
     seqLen: Number.isFinite(source?.seqLen) ? source.seqLen : null,
@@ -283,6 +284,9 @@ function buildKvCacheTranscriptSeed(kvCache) {
     usedBytes: Number.isFinite(source?.usedBytes) ? source.usedBytes : null,
     allocatedBytes: Number.isFinite(source?.allocatedBytes) ? source.allocatedBytes : null,
     counters: source?.counters ?? null,
+    byteDigestMode: typeof proof?.mode === 'string' ? proof.mode : null,
+    byteDigest: typeof proof?.digest === 'string' ? proof.digest : null,
+    byteDigests: Array.isArray(proof?.layers) ? proof.layers : null,
   };
   return {
     ...seed,
@@ -296,6 +300,13 @@ function buildReferenceTranscriptSeed(run, context = {}) {
   const tokenIds = Array.isArray(run.tokenIds)
     ? run.tokenIds.map((value) => Number(value)).filter((value) => Number.isInteger(value))
     : [];
+  const promptTokenIds = Array.isArray(run.promptTokenIds)
+    ? run.promptTokenIds.map((value) => Number(value)).filter((value) => Number.isInteger(value))
+    : null;
+  const logitsDigests = Array.isArray(run.logitsDigests)
+    ? run.logitsDigests
+    : [];
+  const hasCompleteLogitsDigests = logitsDigests.length === tokenIds.length && tokenIds.length > 0;
   const transcript = {
     schema: 'doppler.reference-transcript/v1',
     source: {
@@ -308,8 +319,8 @@ function buildReferenceTranscriptSeed(run, context = {}) {
     prompt: {
       identity: typeof run.prompt === 'string' && run.prompt.trim() ? run.prompt : 'promptInput',
       hash: hashStableJson(promptPayload),
-      tokenIdsHash: null,
-      tokenCount: null,
+      tokenIdsHash: promptTokenIds ? hashStableJson(promptTokenIds) : null,
+      tokenCount: promptTokenIds ? promptTokenIds.length : null,
     },
     output: {
       textHash: `sha256:${sha256Hex(outputText)}`,
@@ -334,16 +345,29 @@ function buildReferenceTranscriptSeed(run, context = {}) {
       prefillTokens: Number.isFinite(run.phase?.prefillTokens) ? run.phase.prefillTokens : null,
       decodeTokens: Number.isFinite(run.phase?.decodeTokens) ? run.phase.decodeTokens : null,
     },
-    kvCache: buildKvCacheTranscriptSeed(run.phase?.kvCache ?? context.kvCache ?? null),
-    logits: {
+    kvCache: buildKvCacheTranscriptSeed(
+      run.phase?.kvCache ?? context.kvCache ?? null,
+      run.kvCacheByteProof ?? null
+    ),
+    logits: hasCompleteLogitsDigests ? {
+      mode: 'sha256-per-step',
+      perStepDigests: logitsDigests.map((entry) => entry.digest),
+      steps: logitsDigests,
+    } : {
       mode: 'not-captured',
-      reason: 'Per-step logits digests are not emitted by the browser harness yet.',
+      reason: logitsDigests.length > 0
+        ? 'Per-step logits digest count did not match generated token count.'
+        : 'Per-step logits digests were not requested for this browser harness run.',
       perStepDigests: null,
     },
     tolerance: {
       tokenPolicy: 'exact generated token IDs',
-      logitsPolicy: 'not captured',
-      kvPolicy: 'metadata hash only; KV tensor bytes are not read back by default',
+      logitsPolicy: hasCompleteLogitsDigests
+        ? 'exact sha256 digest per generated step over finalized f32 logits before sampling'
+        : 'not captured',
+      kvPolicy: run.kvCacheByteProof
+        ? 'exact sha256 digest over used KV cache bytes by layer/key/value'
+        : 'metadata hash only; KV tensor bytes are not read back by default',
     },
   };
   return {
@@ -359,6 +383,7 @@ function buildReferenceTranscriptSeed(run, context = {}) {
         },
         phase: transcript.phase,
         kvCache: transcript.kvCache,
+        logits: transcript.logits,
       }),
     },
   };

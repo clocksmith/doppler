@@ -1,9 +1,12 @@
 import { log as debugLog } from '../debug/index.js';
+import { readBuffer } from '../memory/buffer-pool.js';
 import { CAPTURE_LEVELS, createDefaultCaptureConfig } from '../debug/capture-policy.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { loadJson } from '../utils/load-json.js';
 import { isPlainObject } from '../utils/plain-object.js';
 import { cloneJsonValue } from '../utils/clone-json.js';
+import { sha256BytesHex } from '../utils/sha256.js';
+import { resolvePromptInput } from './pipelines/text/generator-prefill-helpers.js';
 
 const DEFAULT_SAMPLING_DEFAULTS = Object.freeze({
   temperature: 1.0,
@@ -45,6 +48,181 @@ const DEFAULT_HARNESS_MAX_TOKENS = 32;
 const EMBEDDING_PREVIEW_LENGTH = 16;
 const GENERATION_TOKEN_DIAGNOSTIC_LIMIT = 32;
 let defaultsWarningEmitted = false;
+
+function normalizeTokenIdArray(value, label) {
+  const raw = ArrayBuffer.isView(value) ? Array.from(value) : value;
+  if (!Array.isArray(raw)) {
+    throw new Error(`${label} must be an array or typed array of token IDs.`);
+  }
+  return raw.map((entry) => {
+    const tokenId = Number(entry);
+    if (!Number.isInteger(tokenId) || tokenId < 0) {
+      throw new Error(`${label} contains invalid token ID ${entry}.`);
+    }
+    return tokenId;
+  });
+}
+
+function resolveGenerationUseChatTemplate(pipeline, runtimeConfig, runOverrides, promptInput) {
+  if (typeof runOverrides?.useChatTemplate === 'boolean') {
+    return runOverrides.useChatTemplate;
+  }
+  if (typeof runtimeConfig?.inference?.chatTemplate?.enabled === 'boolean') {
+    return runtimeConfig.inference.chatTemplate.enabled;
+  }
+  if (isStructuredPromptInput(promptInput)) {
+    return true;
+  }
+  if (typeof pipeline?.modelConfig?.chatTemplateEnabled === 'boolean') {
+    return pipeline.modelConfig.chatTemplateEnabled;
+  }
+  return false;
+}
+
+function resolvePromptTokenIdsForTranscript(pipeline, promptInput, useChatTemplate) {
+  if (!pipeline?.tokenizer || typeof pipeline.tokenizer.encode !== 'function') {
+    return null;
+  }
+  const processedPrompt = resolvePromptInput(
+    { modelConfig: pipeline.modelConfig ?? {} },
+    promptInput,
+    useChatTemplate,
+    'browserHarness.referenceTranscript'
+  );
+  return normalizeTokenIdArray(
+    pipeline.tokenizer.encode(processedPrompt),
+    'browserHarness.referenceTranscript.promptTokenIds'
+  );
+}
+
+function bytesFromArrayBufferView(view) {
+  return new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
+}
+
+function digestBytes(bytes) {
+  return `sha256:${sha256BytesHex(bytes)}`;
+}
+
+function getReferenceTranscriptRuntimeConfig(runtimeConfig) {
+  const config = runtimeConfig?.shared?.harness?.referenceTranscript;
+  return isPlainObject(config) ? config : null;
+}
+
+function shouldCaptureReferenceLogits(runOverrides, runtimeConfig) {
+  const referenceConfig = getReferenceTranscriptRuntimeConfig(runtimeConfig);
+  return runOverrides?.diagnostics?.referenceTranscript?.captureLogits === true
+    || runOverrides?.diagnostics?.captureLogits === true
+    || referenceConfig?.captureLogits === true;
+}
+
+function shouldCaptureReferenceKvBytes(runOverrides, runtimeConfig) {
+  const referenceConfig = getReferenceTranscriptRuntimeConfig(runtimeConfig);
+  return runOverrides?.diagnostics?.referenceTranscript?.captureKvBytes === true
+    || runOverrides?.diagnostics?.captureKvBytes === true
+    || referenceConfig?.captureKvBytes === true;
+}
+
+function shouldEnableReferenceTranscriptDiagnostics(runOverrides, runtimeConfig) {
+  const referenceConfig = getReferenceTranscriptRuntimeConfig(runtimeConfig);
+  return runOverrides?.diagnostics?.enabled === true
+    || referenceConfig?.enabled === true
+    || referenceConfig?.captureLogits === true
+    || referenceConfig?.captureKvBytes === true;
+}
+
+function digestLogitsForTranscript(logits, context) {
+  if (!(logits instanceof Float32Array)) {
+    throw new Error('reference transcript logits capture requires Float32Array logits.');
+  }
+  const digest = digestBytes(bytesFromArrayBufferView(logits));
+  return {
+    index: Number.isInteger(context?.index) ? context.index : null,
+    tokenId: Number.isInteger(context?.tokenId) ? context.tokenId : null,
+    inputTokenCount: Number.isInteger(context?.inputTokenCount) ? context.inputTokenCount : null,
+    dtype: 'f32',
+    elementCount: logits.length,
+    digest,
+  };
+}
+
+async function digestKvLayerBytes(layer, layerIdx, kvCache) {
+  const seqLen = Number.isFinite(layer?.seqLen) ? Math.max(0, Math.floor(layer.seqLen)) : 0;
+  const byteLength = seqLen * kvCache.kvSize * kvCache.bytesPerElem;
+  if (byteLength < 1) {
+    return {
+      layer: layerIdx,
+      seqLen,
+      keyBytes: 0,
+      valueBytes: 0,
+      keyDigest: digestBytes(new Uint8Array()),
+      valueDigest: digestBytes(new Uint8Array()),
+    };
+  }
+
+  if (layer?.keysGPU && layer?.valuesGPU) {
+    const [keyBuffer, valueBuffer] = await Promise.all([
+      readBuffer(layer.keysGPU, byteLength),
+      readBuffer(layer.valuesGPU, byteLength),
+    ]);
+    return {
+      layer: layerIdx,
+      seqLen,
+      keyBytes: byteLength,
+      valueBytes: byteLength,
+      keyDigest: digestBytes(new Uint8Array(keyBuffer)),
+      valueDigest: digestBytes(new Uint8Array(valueBuffer)),
+    };
+  }
+
+  const elementCount = seqLen * kvCache.kvSize;
+  if (layer?.keys instanceof Float32Array && layer?.values instanceof Float32Array) {
+    const keys = layer.keys.subarray(0, elementCount);
+    const values = layer.values.subarray(0, elementCount);
+    return {
+      layer: layerIdx,
+      seqLen,
+      keyBytes: keys.byteLength,
+      valueBytes: values.byteLength,
+      keyDigest: digestBytes(bytesFromArrayBufferView(keys)),
+      valueDigest: digestBytes(bytesFromArrayBufferView(values)),
+    };
+  }
+
+  throw new Error(`reference transcript KV byte capture unsupported for layer ${layerIdx}.`);
+}
+
+async function captureKvCacheByteProof(pipeline, enabled) {
+  if (!enabled) return null;
+  const kvCache = pipeline?.kvCache ?? null;
+  if (!kvCache || !Array.isArray(kvCache.layers)) {
+    return null;
+  }
+  if (kvCache.layout !== 'contiguous') {
+    throw new Error(
+      `reference transcript KV byte capture only supports contiguous KV cache layout; got ${kvCache.layout}.`
+    );
+  }
+  const layers = [];
+  for (let layerIdx = 0; layerIdx < kvCache.layers.length; layerIdx += 1) {
+    layers.push(await digestKvLayerBytes(kvCache.layers[layerIdx], layerIdx, kvCache));
+  }
+  const canonicalBytes = new TextEncoder().encode(JSON.stringify({
+    mode: 'sha256-layer-kv-bytes',
+    layout: kvCache.layout,
+    kvDtype: kvCache.kvDtype ?? null,
+    kvSize: kvCache.kvSize,
+    bytesPerElem: kvCache.bytesPerElem,
+    layers,
+  }));
+  return {
+    mode: 'sha256-layer-kv-bytes',
+    layout: kvCache.layout,
+    kvDtype: kvCache.kvDtype ?? null,
+    layerCount: layers.length,
+    digest: digestBytes(canonicalBytes),
+    layers,
+  };
+}
 
 function warnIfUsingDefaults(runtimeConfig) {
   if (defaultsWarningEmitted) return;
@@ -598,7 +776,7 @@ function resolveGenerationPromptInput(runtimeConfig, runOverrides = null, source
   const overridePrompt = runOverrides?.prompt;
   assertPromptContract(overridePrompt, templateType, 'runOverrides.prompt');
   if (typeof overridePrompt === 'string' && overridePrompt.trim()) {
-    return overridePrompt.trim();
+    return overridePrompt;
   }
   if (isStructuredPromptInput(overridePrompt)) {
     return clonePromptInput(overridePrompt);
@@ -610,7 +788,7 @@ function resolveGenerationPromptInput(runtimeConfig, runOverrides = null, source
     return buildDefaultGenerationPrompt(templateType);
   }
   if (typeof runtimePrompt === 'string' && runtimePrompt.trim()) {
-    return runtimePrompt.trim();
+    return runtimePrompt;
   }
   if (isStructuredPromptInput(runtimePrompt)) {
     return clonePromptInput(runtimePrompt);
@@ -671,7 +849,7 @@ export function resolveBenchmarkRunSettings(runtimeConfig, source = null) {
       ? benchSeed
       : runtimeSeed;
   const promptInput = typeof benchConfig.customPrompt === 'string' && benchConfig.customPrompt.trim()
-    ? benchConfig.customPrompt.trim()
+    ? benchConfig.customPrompt
     : resolveGenerationPromptInput(runtimeConfig, null, source);
   const maxTokens = Number.isFinite(benchConfig.maxNewTokens)
     ? Math.max(1, Math.floor(benchConfig.maxNewTokens))
@@ -1147,11 +1325,11 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
   const tokens = [];
   const tokenIds = [];
   const tokenRecords = [];
+  const logitsDigests = [];
   const promptInput = resolveGenerationPromptInput(runtimeConfig, runOverrides, pipeline);
   const promptLabel = describePromptInput(promptInput);
-  const useChatTemplate = runOverrides?.useChatTemplate
-    ?? runtimeConfig?.inference?.chatTemplate?.enabled
-    ?? (isStructuredPromptInput(promptInput) ? true : undefined);
+  const useChatTemplate = resolveGenerationUseChatTemplate(pipeline, runtimeConfig, runOverrides, promptInput);
+  const promptTokenIds = resolvePromptTokenIdsForTranscript(pipeline, promptInput, useChatTemplate);
   const maxTokens = Number.isFinite(runOverrides?.maxTokens)
     ? Math.max(1, Math.floor(runOverrides.maxTokens))
     : resolveMaxTokens(runtimeConfig);
@@ -1168,11 +1346,12 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
   const debugProbes = runtimeConfig.shared?.debug?.probes || [];
   const profile = runtimeConfig.shared?.debug?.profiler?.enabled === true;
   const explicitDiagnosticsEnabled = runtimeConfig.shared?.harness?.mode === 'diagnose'
-    || runOverrides?.diagnostics?.enabled === true;
+    || shouldEnableReferenceTranscriptDiagnostics(runOverrides, runtimeConfig);
   const disableCommandBatching = explicitDiagnosticsEnabled
     || (Array.isArray(debugProbes) && debugProbes.length > 0);
   const start = performance.now();
   const diagnostics = resolveAutomaticGenerationDiagnostics(runtimeConfig, runOverrides);
+  const captureLogits = shouldCaptureReferenceLogits(runOverrides, runtimeConfig);
 
   for await (const tokenText of pipeline.generate(promptInput, {
     maxTokens,
@@ -1186,6 +1365,14 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     profile,
     disableCommandBatching,
     diagnostics,
+    ...(captureLogits ? {
+      onLogits: (logits, context) => {
+        logitsDigests.push(digestLogitsForTranscript(logits, {
+          ...context,
+          index: logitsDigests.length,
+        }));
+      },
+    } : {}),
     onToken: (tokenId, tokenText) => {
       tokenIds.push(tokenId);
       tokenRecords.push({
@@ -1203,15 +1390,22 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
   const durationMs = Math.max(1, performance.now() - start);
   const tokensPerSec = (tokens.length / durationMs) * 1000;
   const { phase } = buildGenerationPhaseFromStats(pipeline, durationMs, tokenIds.length);
+  const kvCacheByteProof = await captureKvCacheByteProof(
+    pipeline,
+    shouldCaptureReferenceKvBytes(runOverrides, runtimeConfig)
+  );
 
   return {
     ...(Number.isFinite(seed) ? { seed } : {}),
     prompt: promptLabel,
     promptInput,
+    promptTokenIds,
     maxTokens,
     tokens,
     tokenIds,
     tokenDiagnostics: summarizeGenerationTokens(tokenRecords),
+    logitsDigests,
+    kvCacheByteProof,
     output: tokens.join(''),
     durationMs,
     tokensPerSec,

@@ -305,6 +305,12 @@ export interface GenerateOptions {
   /** Callback for each generated token */
   onToken?: ((tokenId: number, text: string) => void) | null;
 
+  /** @internal Callback with finalized per-step logits before sampling returns the token. */
+  onLogits?: ((logits: Float32Array, context: {
+    tokenId: number;
+    inputTokenCount: number | null;
+  }) => void) | null;
+
   /** Custom decode function for debugging */
   decode?: (tokens: number[]) => string;
 

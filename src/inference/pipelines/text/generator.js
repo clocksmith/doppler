@@ -331,13 +331,20 @@ export class PipelineGenerator {
       }
     }
     const padTokenId = this.#state.tokenizer?.getSpecialTokens?.()?.pad;
-    return sample(sampledLogits, {
+    const tokenId = sample(sampledLogits, {
       temperature: opts.temperature,
       topP: opts.topP,
       topK: opts.topK,
       padTokenId,
       seed: opts.seed,
     });
+    if (typeof opts.onLogits === 'function') {
+      opts.onLogits(sampledLogits, {
+        tokenId,
+        inputTokenCount: Array.isArray(generatedIds) ? generatedIds.length : null,
+      });
+    }
+    return tokenId;
   }
 
   async _prefillPromptToLogits(prompt, opts, contextLabel) {
@@ -435,6 +442,8 @@ export class PipelineGenerator {
     const startTime = performance.now();
 
     const opts = resolveGenerateOptions(this.#state, options);
+    opts.onLogits = typeof options.onLogits === 'function' ? options.onLogits : null;
+    opts.onLogits = typeof options.onLogits === 'function' ? options.onLogits : null;
     // Validate and normalize sampling parameters through single source of truth
     const samplingConfig = resolveSamplingConfig(options, this.#state.runtimeConfig);
     opts.temperature = samplingConfig.temperature;
@@ -870,6 +879,7 @@ export class PipelineGenerator {
     this.#state.stats.ttftMs = 0;
     const startTime = performance.now();
     const opts = resolveGenerateOptions(this.#state, options);
+    opts.onLogits = typeof options.onLogits === 'function' ? options.onLogits : null;
     // Validate and normalize sampling parameters through single source of truth
     const samplingConfig = resolveSamplingConfig(options, this.#state.runtimeConfig);
     opts.temperature = samplingConfig.temperature;

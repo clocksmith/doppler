@@ -307,6 +307,24 @@ function validateReferenceTranscript(referenceTranscript, expectedGraphHash) {
   assertNullableFiniteNumber(referenceTranscript.kvCache.maxSeqLen, 'referenceTranscript.kvCache.maxSeqLen');
   assertNullableFiniteNumber(referenceTranscript.kvCache.usedBytes, 'referenceTranscript.kvCache.usedBytes');
   assertNullableFiniteNumber(referenceTranscript.kvCache.allocatedBytes, 'referenceTranscript.kvCache.allocatedBytes');
+  if (referenceTranscript.kvCache.byteDigest !== undefined && referenceTranscript.kvCache.byteDigest !== null) {
+    assertDigest(referenceTranscript.kvCache.byteDigest, 'referenceTranscript.kvCache.byteDigest');
+  }
+  if (referenceTranscript.kvCache.byteDigestMode !== undefined && referenceTranscript.kvCache.byteDigestMode !== null) {
+    assertString(referenceTranscript.kvCache.byteDigestMode, 'referenceTranscript.kvCache.byteDigestMode');
+  }
+  if (referenceTranscript.kvCache.byteDigests !== undefined && referenceTranscript.kvCache.byteDigests !== null) {
+    assertArray(referenceTranscript.kvCache.byteDigests, 'referenceTranscript.kvCache.byteDigests');
+    for (let index = 0; index < referenceTranscript.kvCache.byteDigests.length; index += 1) {
+      const entry = referenceTranscript.kvCache.byteDigests[index];
+      assertPlainObject(entry, `referenceTranscript.kvCache.byteDigests[${index}]`);
+      assertDigest(entry.keyDigest, `referenceTranscript.kvCache.byteDigests[${index}].keyDigest`);
+      assertDigest(entry.valueDigest, `referenceTranscript.kvCache.byteDigests[${index}].valueDigest`);
+      assertNullableFiniteNumber(entry.seqLen, `referenceTranscript.kvCache.byteDigests[${index}].seqLen`);
+      assertNullableFiniteNumber(entry.keyBytes, `referenceTranscript.kvCache.byteDigests[${index}].keyBytes`);
+      assertNullableFiniteNumber(entry.valueBytes, `referenceTranscript.kvCache.byteDigests[${index}].valueBytes`);
+    }
+  }
 
   assertPlainObject(referenceTranscript.logits, 'referenceTranscript.logits');
   if (referenceTranscript.logits.mode !== 'not-captured' && referenceTranscript.logits.mode !== 'sha256-per-step') {

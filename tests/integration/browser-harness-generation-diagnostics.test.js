@@ -369,6 +369,33 @@ function createHarnessOverride(records) {
     inference: { sampling: { seed: 55 } },
   });
   assert.equal(settingsRuntimeOnly.seed, 55, 'inference.sampling.seed used when no bench seed present');
+
+  const renderedPrompt = '<bos><|turn>user\nThe color of the sky is<turn|>\n<|turn>model\n';
+  const settingsPrompt = resolveBenchmarkRunSettings({
+    shared: {
+      benchmark: {
+        run: {
+          customPrompt: renderedPrompt,
+        },
+      },
+    },
+  });
+  assert.equal(
+    settingsPrompt.prompt,
+    renderedPrompt,
+    'benchmark customPrompt must preserve exact rendered prompt bytes'
+  );
+
+  const settingsRuntimePrompt = resolveBenchmarkRunSettings({
+    inference: {
+      prompt: renderedPrompt,
+    },
+  });
+  assert.equal(
+    settingsRuntimePrompt.prompt,
+    renderedPrompt,
+    'runtime inference prompt must preserve exact rendered prompt bytes'
+  );
 }
 
 console.log('browser-harness-generation-diagnostics.test: ok');
