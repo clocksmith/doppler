@@ -291,7 +291,7 @@
         "revision": "dbb354acb00108965c5324ca7b6fecc198d12501"
       },
       "baseUrl": null,
-      "quickstart": false,
+      "quickstart": true,
       "sizeBytes": 4009916310,
       "recommended": false,
       "sortOrder": 14,

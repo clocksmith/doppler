@@ -163,11 +163,13 @@ function countExpandedStepsByPhase(expandedSteps) {
   return phases;
 }
 
-function buildKernelIdLookup(execution) {
+function buildKernelIdLookup(execution, modules = []) {
   const lookup = new Map();
+  const reachableIds = new Set(modules.map((module) => module.id));
   for (const [id, decl] of Object.entries(execution.kernels || {})) {
     const key = `${decl.kernel}#${decl.entry}#${normalizeDigest(decl.digest, `execution.kernels.${id}.digest`)}`;
-    if (!lookup.has(key)) {
+    const current = lookup.get(key);
+    if (!current || (!reachableIds.has(current) && reachableIds.has(id))) {
       lookup.set(key, id);
     }
   }
@@ -180,7 +182,7 @@ function normalizeLayersForStep(layers) {
 }
 
 function buildExecutionStepMetadata(execution, expandedSteps, modules) {
-  const kernelIdLookup = buildKernelIdLookup(execution);
+  const kernelIdLookup = buildKernelIdLookup(execution, modules);
   const moduleById = new Map(modules.map((module) => [module.id, module]));
   const steps = expandedSteps.map((step, index) => {
     const digest = normalizeDigest(step.digest, `expandedSteps[${index}].digest`);

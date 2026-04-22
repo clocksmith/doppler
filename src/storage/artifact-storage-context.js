@@ -656,8 +656,12 @@ export function createNodeFileArtifactStorageContext(baseUrl, manifest) {
 
 async function fetchBytes(url, offset = null, length = null) {
   const headers = {};
+  const hasRange = Number.isFinite(offset) && Number.isFinite(length) && length > 0;
+  let start = null;
+  let requestedLength = null;
   if (Number.isFinite(offset) && Number.isFinite(length) && length > 0) {
-    const start = Math.max(0, Math.floor(offset));
+    start = Math.max(0, Math.floor(offset));
+    requestedLength = Math.max(0, Math.floor(length));
     const end = start + Math.max(0, Math.floor(length)) - 1;
     headers.Range = `bytes=${start}-${end}`;
   }
@@ -666,7 +670,18 @@ async function fetchBytes(url, offset = null, length = null) {
     if (!response.ok) {
       throw new Error(`Failed to fetch ${url}: ${response.status}`);
     }
-    return new Uint8Array(await response.arrayBuffer());
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    if (hasRange && response.status !== 206 && bytes.byteLength > requestedLength) {
+      const end = start + requestedLength;
+      if (bytes.byteLength < end) {
+        throw new Error(
+          `Range response for ${url} ignored offset and was too small: ` +
+          `offset=${start}, expectedEnd=${end}, got=${bytes.byteLength}`
+        );
+      }
+      return bytes.slice(start, end);
+    }
+    return bytes;
   } catch (error) {
     throw createHttpArtifactFetchError(error, url, offset, length);
   }

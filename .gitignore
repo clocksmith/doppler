@@ -78,6 +78,10 @@ benchmarks/.tjs-bench-profile/
 # Generated report artifacts
 bench/out/
 reports/**
+!reports/
+!reports/program-bundles/
+!reports/program-bundles/**/
+!reports/program-bundles/**/*.reference.json
 
 # Test artifacts
 test-results/

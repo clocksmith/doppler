@@ -46,8 +46,13 @@ await fs.writeFile(manifestPath, `${JSON.stringify({
           entry: 'main',
           digest: gatherDigest,
         },
+        embed_alias: {
+          kernel: 'gather.wgsl',
+          entry: 'main',
+          digest: gatherDigest,
+        },
       },
-      preLayer: [['embed', 'embed']],
+      preLayer: [['embed', 'embed_alias']],
       decode: [],
       prefill: [],
       postLayer: [],
@@ -90,8 +95,10 @@ const bundle = await exportProgramBundle({
 assert.equal(bundle.modelId, 'unit-model');
 assert.equal(bundle.artifacts.filter((artifact) => artifact.role === 'weight-shard').length, 1);
 assert.equal(bundle.wgslModules.length, 1);
+assert.equal(bundle.wgslModules[0].id, 'embed_alias');
 assert.equal(bundle.wgslModules[0].digest, gatherDigest);
 assert.equal(bundle.execution.kernelClosure.expandedStepCount, 1);
+assert.equal(bundle.execution.steps[0].kernelId, 'embed_alias');
 assert.equal(bundle.referenceTranscript.output.tokensGenerated, 1);
 assert.equal(bundle.referenceTranscript.phase.prefillTokens, 3);
 

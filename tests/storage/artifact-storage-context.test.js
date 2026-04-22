@@ -113,6 +113,37 @@ import {
 {
   const calls = [];
   const originalFetch = globalThis.fetch;
+  const fullShard = Uint8Array.from({ length: 16 }, (_, index) => index);
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init });
+    return {
+      ok: true,
+      status: 200,
+      arrayBuffer: async () => fullShard.buffer.slice(0),
+      text: async () => '{"ok":true}',
+    };
+  };
+  try {
+    const manifest = {
+      modelId: 'artifact-http-ignored-range-test',
+      hashAlgorithm: 'blake3',
+      shards: [{ filename: 'shard_00000.bin', size: 16, hash: null }],
+    };
+    const storageContext = createHttpArtifactStorageContext('https://example.com/model', manifest, {
+      verifyHashes: false,
+    });
+    const bytes = new Uint8Array(await storageContext.loadShardRange(0, 5, 4));
+    assert.deepEqual(Array.from(bytes), [5, 6, 7, 8]);
+    assert.equal(bytes.byteOffset, 0);
+    assert.equal(calls[0].init.headers.Range, 'bytes=5-8');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+}
+
+{
+  const calls = [];
+  const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init });
     const range = String(init?.headers?.Range || '');

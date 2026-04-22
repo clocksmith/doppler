@@ -895,7 +895,7 @@ export class DopplerLoader {
       let pendingBytes = null;
       const writeAlignedChunk = (bytes) => {
         if (bytes.byteLength === 0) return;
-        device.queue.writeBuffer(raw, dstOffset, bytes, bytes.byteOffset, bytes.byteLength);
+        device.queue.writeBuffer(raw, dstOffset, bytes, 0, bytes.byteLength);
         dstOffset += bytes.byteLength;
       };
       const uploadChunk = (bytes) => {

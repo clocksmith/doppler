@@ -95,6 +95,28 @@
       }
     },
     {
+      "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+      "sourceCheckpointId": "google/gemma-4-E2B-it",
+      "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
+      "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false,
+      "aliases": [
+        "gemma4-e2b-int4ple",
+        "gemma-4-e2b-int4ple"
+      ],
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "dbb354acb00108965c5324ca7b6fecc198d12501",
+        "path": "models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+      }
+    },
+    {
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
       "weightPackId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
