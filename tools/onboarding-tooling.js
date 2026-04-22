@@ -6,6 +6,7 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { resolveConvertedModelId } from '../src/converter/conversion-plan.js';
 import { buildQuantizationInfo } from '../src/converter/quantization-info.js';
+import { checkProgramBundleFile } from '../src/tooling/program-bundle.js';
 import { generateWgslVariants } from './wgsl-variant-generator.js';
 import {
   isObject,
@@ -31,6 +32,9 @@ const REQUIRED_COMPARE_TIMING_METRICS = Object.freeze([
   'decodeMsPerTokenP99',
   'totalRunMs',
   'modelLoadMs',
+]);
+const RUNTIME_NON_PROFILE_SCHEMAS = new Set([
+  'drift-policies-v1',
 ]);
 const ONBOARDING_POLICY_PATH = fileURLToPath(new URL('./policies/onboarding-tooling-policy.json', import.meta.url));
 const DEFAULT_ONBOARDING_POLICY = Object.freeze({
@@ -938,6 +942,10 @@ async function validateRuntimeProfiles(root, issues, context) {
     }
 
     const profileId = toRuntimeProfileId(runtimeProfileRoot, filePath);
+    if (RUNTIME_NON_PROFILE_SCHEMAS.has(String(profileData.$schema ?? ''))) {
+      continue;
+    }
+
     if (profilesById.has(profileId)) {
       issues.push(toIssue(ERROR, 'RUNTIME_PROFILE_DUP', filePath, `duplicate runtime profile id "${profileId}"`));
       continue;
@@ -963,6 +971,8 @@ async function validateRuntimeProfiles(root, issues, context) {
         filePath,
         `runtime profile "${profileId}" does not define runtime`
       ));
+    } else {
+      validateRuntimeProfileKernelPath(filePath, profileData.runtime, issues);
     }
 
     profilesById.set(profileId, { filePath, profileData });
@@ -1022,9 +1032,38 @@ async function validateRuntimeProfiles(root, issues, context) {
   context.runtimeProfileIds = ids;
 }
 
+function validateRuntimeProfileKernelPath(filePath, runtime, issues) {
+  const inference = isObject(runtime.inference) ? runtime.inference : null;
+  if (!inference || !Object.prototype.hasOwnProperty.call(inference, 'kernelPath')) {
+    return;
+  }
+  const kernelPath = inference.kernelPath;
+  if (kernelPath === null) {
+    return;
+  }
+  if (typeof kernelPath === 'string') {
+    issues.push(toIssue(
+      ERROR,
+      'RUNTIME_PROFILE_STRING_KERNEL_PATH',
+      filePath,
+      'runtime.inference.kernelPath no longer accepts string registry IDs; use an inline execution-v1-derived kernelPath object or omit the field'
+    ));
+    return;
+  }
+  if (!isObject(kernelPath)) {
+    issues.push(toIssue(
+      ERROR,
+      'RUNTIME_PROFILE_KERNEL_PATH_FORMAT',
+      filePath,
+      'runtime.inference.kernelPath must be an inline object or null'
+    ));
+  }
+}
+
 async function validateCompareConfigs(root, issues, context) {
   const compareConfigPath = path.join(root, 'benchmarks/vendors/compare-engines.config.json');
   const compareMetricsPath = path.join(root, 'benchmarks/vendors/compare-metrics.json');
+  const benchmarkPolicyPath = path.join(root, 'benchmarks/vendors/benchmark-policy.json');
   const dopplerHarnessPath = path.join(root, 'benchmarks/vendors/harnesses/doppler.json');
   const tjsHarnessPath = path.join(root, 'benchmarks/vendors/harnesses/transformersjs.json');
 
@@ -1055,6 +1094,16 @@ async function validateCompareConfigs(root, issues, context) {
   } catch (error) {
     issues.push(toIssue(ERROR, 'HARNESS_TJS_READ', tjsHarnessPath, error.message));
   }
+  let benchmarkPolicy = null;
+  try {
+    benchmarkPolicy = await readJson(benchmarkPolicyPath, 'object');
+  } catch {
+    benchmarkPolicy = null;
+  }
+  const knownBadByModel = benchmarkPolicy?.kernelPathPolicy?.knownBadByModel;
+  const benchmarkPolicyKnownBadModels = new Set(
+    isObject(knownBadByModel) ? Object.keys(knownBadByModel) : []
+  );
 
   const compareProfiles = Array.isArray(compareConfig.modelProfiles)
     ? compareConfig.modelProfiles
@@ -1079,11 +1128,12 @@ async function validateCompareConfigs(root, issues, context) {
       continue;
     }
     profileIds.add(modelId);
-    if (
+    const missingConfigOwner = (
       !(context?.conversionModelIds?.has(modelId)
         || context?.modelFamilyIds?.has(modelId)
         || context?.loaderConfigIds?.has(modelId))
-    ) {
+    );
+    if (missingConfigOwner && !benchmarkPolicyKnownBadModels.has(modelId)) {
       noConfigProfiles.add(modelId);
       issues.push(toIssue(
         WARN,
@@ -1401,6 +1451,25 @@ async function writeJsonFile(filePath, payload) {
   await fs.writeFile(filePath, `${toJsonText(payload)}\n`, 'utf-8');
 }
 
+async function validateProgramBundleExamples(root, issues, context) {
+  const bundleDir = path.join(root, 'examples/program-bundles');
+  if (!(await fileExists(bundleDir))) {
+    context.programBundles = { count: 0 };
+    return;
+  }
+  const files = (await collectJsonFiles(bundleDir))
+    .filter((filePath) => filePath.endsWith('.program-bundle.json'))
+    .sort((left, right) => left.localeCompare(right));
+  for (const filePath of files) {
+    try {
+      await checkProgramBundleFile(filePath);
+    } catch (error) {
+      issues.push(toIssue(ERROR, 'PROGRAM_BUNDLE_INVALID', filePath, error.message));
+    }
+  }
+  context.programBundles = { count: files.length };
+}
+
 async function runCheck(context, policy = getActivePolicy()) {
   const issues = Array.isArray(context.issues) ? context.issues : [];
   await validateKernelRuleVariantParity(context.rootDir, issues, context);
@@ -1409,6 +1478,7 @@ async function runCheck(context, policy = getActivePolicy()) {
   await validateConversionConfigs(context.rootDir, issues, context, policy);
   await validateRuntimeProfiles(context.rootDir, issues, context);
   await validateCompareConfigs(context.rootDir, issues, context);
+  await validateProgramBundleExamples(context.rootDir, issues, context);
   const {
     modelFamilyIds = new Set(),
     loaderConfigIds = new Set(),
@@ -1423,6 +1493,7 @@ async function runCheck(context, policy = getActivePolicy()) {
     modelFamiliesMissingDetectionOrder = new Set(),
     kernelRuleVariantParity = { ruleSets: 0, variants: 0 },
     generatedWgsl = { variants: 0, drift: 0 },
+    programBundles = { count: 0 },
   } = context;
   const resolvedContext = {
     ...context,
@@ -1453,6 +1524,7 @@ async function runCheck(context, policy = getActivePolicy()) {
         runtimeProfiles: resolvedContext.runtimeProfileIds ? resolvedContext.runtimeProfileIds.size : 0,
         conversionProfiles: resolvedContext.conversionModelIds ? resolvedContext.conversionModelIds.size : 0,
         compareProfiles: resolvedContext.compareProfileIds ? resolvedContext.compareProfileIds.size : 0,
+        programBundles: programBundles.count,
       },
       stats: {
         ...issueCounts(issues),

@@ -23,7 +23,7 @@ Validates:
 - checked-in config asset shape and references
 - runtime profile shape and extends-chain integrity
 - conversion config references and output fields
-- kernel path registry integrity and kernel existence
+- execution graph/kernel digest integrity and kernel existence
 - compare harness coverage and metric contract mapping
 
 Exit behavior:
@@ -43,7 +43,7 @@ Shared flags:
 
 Kinds:
 - `conversion`: create conversion config stub
-- `kernel`: create kernel-path config stub
+- `kernel`: scaffold execution graph transform/config work
 - `behavior`: create runtime profile stub
 
 ## Canonical operational sequence

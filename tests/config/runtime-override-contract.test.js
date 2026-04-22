@@ -70,10 +70,21 @@ try {
   assert.throws(
     () => setRuntimeConfig({
       inference: {
-        kernelPath: 'gemma2-q4k-fused-f32a',
+        kernelPath: 'gemma3-q4k-dequant-f32a-online',
       },
     }),
-    /runtime\.inference\.kernelPath string IDs are no longer supported/
+    /runtime\.inference\.kernelPath no longer accepts string registry IDs/
+  );
+
+  assert.throws(
+    () => createDopplerConfig({
+      runtime: {
+        inference: {
+          kernelPath: 7,
+        },
+      },
+    }),
+    /runtime\.inference\.kernelPath must be an inline kernel path object or null/
   );
 
   assert.throws(

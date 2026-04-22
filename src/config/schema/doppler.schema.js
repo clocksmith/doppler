@@ -370,7 +370,7 @@ function mergeInferenceConfig(
     speculative: { ...base.speculative, ...overrides.speculative },
     generation: { ...base.generation, ...overrides.generation },
     pipeline: overrides.pipeline ?? base.pipeline,
-    kernelPath: chooseDefined(overrides.kernelPath, base.kernelPath),
+    kernelPath: mergeRuntimeKernelPath(base.kernelPath, overrides.kernelPath),
     kernelPathSource: overrides.kernelPathSource ?? base.kernelPathSource,
     kernelPathPolicy: mergeKernelPathPolicy(baseKernelPathPolicy, overrideKernelPathPolicy),
     chatTemplate: mergeShallowObject(base.chatTemplate, overrides.chatTemplate),
@@ -396,6 +396,32 @@ function mergeInferenceConfig(
     // Model-specific inference overrides (merged with manifest.inference at load time)
     modelOverrides: overrides.modelOverrides ?? base.modelOverrides,
   };
+}
+
+function mergeRuntimeKernelPath(
+  baseKernelPath,
+  overrideKernelPath
+) {
+  const kernelPath = chooseDefined(overrideKernelPath, baseKernelPath);
+  assertRuntimeKernelPath(kernelPath);
+  return kernelPath;
+}
+
+function assertRuntimeKernelPath(kernelPath) {
+  if (kernelPath === undefined || kernelPath === null) {
+    return;
+  }
+  if (typeof kernelPath === 'string') {
+    throw new Error(
+      'DopplerConfigError: runtime.inference.kernelPath no longer accepts string registry IDs. ' +
+      'Use an inline kernel path object generated from execution-v1, or leave kernelPath null.'
+    );
+  }
+  if (typeof kernelPath !== 'object' || Array.isArray(kernelPath)) {
+    throw new Error(
+      'DopplerConfigError: runtime.inference.kernelPath must be an inline kernel path object or null.'
+    );
+  }
 }
 
 function mergeKernelThresholds(

@@ -56,14 +56,25 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Support tier source: `src/config/support-tiers/subsystems.json` (api.tooling-operator-commands)
 - Exported symbols:
   - `*`
+  - `checkProgramBundleFile`
+  - `checkProgramBundleParity`
+  - `exportProgramBundle`
   - `hasNodeWebGPUSupport`
+  - `loadProgramBundle`
   - `NodeBrowserCommandRunOptions`
   - `NodeCommandRunOptions`
   - `NodeCommandRunResult`
   - `normalizeNodeBrowserCommand`
   - `normalizeNodeCommand`
+  - `PROGRAM_BUNDLE_PARITY_SCHEMA_ID`
+  - `ProgramBundleCheckResult`
+  - `ProgramBundleExportOptions`
+  - `ProgramBundleParityOptions`
+  - `ProgramBundleParityResult`
+  - `ProgramBundleWriteResult`
   - `runBrowserCommandInNode`
   - `runNodeCommand`
+  - `writeProgramBundle`
 
 ## `doppler-gpu/tooling/storage`
 

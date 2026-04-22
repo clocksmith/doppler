@@ -33,6 +33,7 @@ Browser import helpers and P2P helpers now live on
 - tier1 browser and Node command runners for the canonical verify/debug/bench flows
 - tier1 storage registry and shard-manager helpers
 - tier1 runtime and config inspection helpers
+- Program Bundle validator plus Node-only exporter/checker/parity helpers
 - experimental Node operator flows for `diagnose`, `lora`, and `distill`
 
 The generated export inventory is the authoritative symbol list for this surface because the tooling subpath is broad and still mixes promoted helpers with experimental operator flows.
@@ -44,6 +45,7 @@ The generated export inventory is the authoritative symbol list for this surface
 - `runBrowserCommand(...)` and `runNodeCommand(...)` return success envelopes on success and throw normalized command errors on failure
 - browser-conditioned shared exports for browser bundles, with Node-only helpers available on the default Node import path for the same subpath
 - intended for harnesses, diagnostics, demos, registry/storage workflows, and command runners
+- browser-conditioned imports expose Program Bundle validation only; Node imports also expose `exportProgramBundle(...)`, `writeProgramBundle(...)`, `loadProgramBundle(...)`, `checkProgramBundleFile(...)`, and `checkProgramBundleParity(...)`
 
 ## Command Families
 
@@ -60,6 +62,22 @@ Experimental operator commands:
 - `lora`
 - `distill`
 
+Maintenance/export path:
+
+- `program-bundle` is a CLI/tool script for exporting `doppler.program-bundle/v1`.
+  It is intentionally outside `normalizeToolingCommandRequest(...)` because it
+  reads local artifacts and does not have browser command semantics.
+- `program-bundle:reference` is the one-click proof lane for fresh bundles. It
+  runs a bounded `verify`, writes the returned report locally, and calls the
+  Program Bundle exporter with that report.
+
+Program Bundle parity:
+
+- use `verify` with `workload="inference"` and `workloadType="program-bundle"`.
+- set `programBundle` or `programBundlePath`.
+- set optional `parityProviders`, for example `["browser-webgpu", "node:webgpu", "node:doe-gpu"]`.
+- default `programBundleParityMode` is `contract`; `execute` runs the Node/WebGPU replay path when the provider is available.
+
 Operator command families:
 
 - `lora.action`: `run|eval|watch|export|compare|quality-gate|activate`
@@ -75,13 +93,14 @@ Important surface rules:
 - current Node operator surfaces reject `runtimeProfile`, `runtimeConfigUrl`, and `runtimeConfig` because those runtime inputs are not consumed by `lora`/`distill`
 - `configChain` is a harness/browser-URL runtime input, not part of the normalized tooling command request contract
 - browser-conditioned imports of `doppler-gpu/tooling` resolve the browser-safe shared tooling entry and do not expose `runNodeCommand(...)` or `runBrowserCommandInNode(...)`
+- browser-conditioned imports can validate a Program Bundle but cannot export one because exporting reads local files
 
 ## Command Contract Summary
 
 | Command | Required request fields | Notes |
 | --- | --- | --- |
 | `convert` | `request.inputDir`, `request.convertPayload.converterConfig` | CLI/browser relay: Node-only. Direct `runBrowserCommand(...)`: supported with injected `convertHandler` |
-| `verify` | `request.workload` plus `request.modelId` except `kernels` | `request.workload` is required and may be `embedding` for embedding-model correctness checks; `request.modelUrl` is optional when `request.modelId` is present; `request.inferenceInput` is available for request-owned inference payloads when `workload="inference"` |
+| `verify` | `request.workload` plus `request.modelId` except `kernels` and `workloadType="program-bundle"` | `request.workload` is required and may be `embedding` for embedding-model correctness checks; `request.modelUrl` is optional when `request.modelId` is present; `request.inferenceInput` is available for request-owned inference payloads when `workload="inference"`; Program Bundle parity requires `programBundle` or `programBundlePath` |
 | `debug` | `request.workload` plus `request.modelId` | `request.workload` is required and may be `inference` or `embedding`; `request.inferenceInput` is available when `workload="inference"` |
 | `bench` | `request.workload` plus `request.modelId` | `request.workload` is required and may be `inference`, `embedding`, `training`, `diffusion`, or `energy`; `workload="training"` intentionally allows `modelId: null`; `request.inferenceInput` is available when `workload="inference"` |
 | `diagnose` | `request.workload` plus `request.modelId` | Node-only. Uses the same workload family as `debug` and fails closed on browser |
@@ -138,6 +157,19 @@ CLI notes:
 - `normalizeNodeBrowserCommand(...)`
 - `runBrowserCommandInNode(...)`
 - `TOOLING_COMMANDS`
+
+### Program Bundle
+
+- `validateProgramBundle(...)`
+- `PROGRAM_BUNDLE_SCHEMA_ID`
+- `PROGRAM_BUNDLE_SCHEMA_VERSION`
+- `PROGRAM_BUNDLE_HOST_JS_SUBSET`
+- `exportProgramBundle(...)` (Node import path only)
+- `writeProgramBundle(...)` (Node import path only)
+- `loadProgramBundle(...)` (Node import path only)
+- `checkProgramBundleFile(...)` (Node import path only)
+- `checkProgramBundleParity(...)` (Node import path only)
+- `PROGRAM_BUNDLE_PARITY_SCHEMA_ID`
 - `TOOLING_SURFACES`
 - `TOOLING_WORKLOADS`
 

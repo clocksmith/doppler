@@ -574,7 +574,7 @@ export interface TokenizerSchema {
 
 /** Runtime optimization plan */
 export interface RuntimeOptimizationsSchema {
-  /** Preferred kernel path override */
+  /** Inline kernel path override. String registry IDs were removed. */
   kernelPath?: KernelPathRef;
 }
 

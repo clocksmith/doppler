@@ -36,10 +36,12 @@ Every guide in this directory should answer the same four questions:
 | Tune runtime behavior without code changes | [01-runtime-profile.md](01-runtime-profile.md) | JSON-only runtime profile work |
 | Put an existing chat format on a model | [02-assign-chat-template.md](02-assign-chat-template.md) | Uses an existing built-in formatter |
 | Add a new model family contract | [03-model-family-config.md](03-model-family-config.md) | Explicit conversion config, no family registry |
-| Convert a checkpoint with an existing family | [04-conversion-config.md](04-conversion-config.md) | Explicit conversion config + existing kernel paths |
+| Convert a checkpoint with an existing family | [04-conversion-config.md](04-conversion-config.md) | Explicit conversion config + existing kernels |
 | Publish a verified artifact | [05-promote-model-artifact.md](05-promote-model-artifact.md) | Curated metadata + external storage + HF |
 | Migrate model artifacts to source/weight/manifest identity | [artifact-identity-migration-plan.md](artifact-identity-migration-plan.md) | Resumable checklist for replacing modelId-as-artifact-identity |
 | Compose existing kernels differently | [06-kernel-path-config.md](06-kernel-path-config.md) | New execution identity, no new WGSL |
+| Check config ownership before cross-runtime work | [config-source-of-truth.md](config-source-of-truth.md) | Source-of-truth map for conversion/runtime/harness/kernel policy |
+| Export a portable Doe/Cerebras model program | [../integration/program-bundle.md](../integration/program-bundle.md) | Program Bundle schema, exporter, transcript gate |
 | Add a new config/manifest field | [07-manifest-runtime-field.md](07-manifest-runtime-field.md) | Schema + merge + parser + tests |
 | Add a new built-in chat formatter | [08-chat-template-formatter.md](08-chat-template-formatter.md) | New formatter function and registry key |
 | Add a new sampler or sampling knob | [09-sampling-strategy.md](09-sampling-strategy.md) | Sampling pipeline work |
@@ -63,7 +65,7 @@ Every guide in this directory should answer the same four questions:
 | [04-conversion-config.md](04-conversion-config.md) | atomic | JSON only |
 | [05-promote-model-artifact.md](05-promote-model-artifact.md) | atomic | metadata + publication workflow |
 | [artifact-identity-migration-plan.md](artifact-identity-migration-plan.md) | migration | source checkpoint + weight pack + manifest variant identity |
-| [06-kernel-path-config.md](06-kernel-path-config.md) | atomic | JSON + registry |
+| [06-kernel-path-config.md](06-kernel-path-config.md) | atomic | execution graph + transforms |
 | [07-manifest-runtime-field.md](07-manifest-runtime-field.md) | atomic | schema + merge + parser + tests |
 | [08-chat-template-formatter.md](08-chat-template-formatter.md) | atomic | JS + type declarations + tests |
 | [09-sampling-strategy.md](09-sampling-strategy.md) | atomic | schema + runtime + tests |
@@ -91,7 +93,7 @@ These are the numbered guides. Each should describe one extension point.
 5. [05-promote-model-artifact.md](05-promote-model-artifact.md)
    Promote a locally verified RDRR artifact into curated metadata and hosted publication.
 6. [06-kernel-path-config.md](06-kernel-path-config.md)
-   Add or register a kernel-path config using existing kernels.
+   Compose kernel paths from execution graphs using existing kernels.
 7. [07-manifest-runtime-field.md](07-manifest-runtime-field.md)
    Add a new manifest/runtime contract field.
 8. [08-chat-template-formatter.md](08-chat-template-formatter.md)

@@ -398,6 +398,11 @@ export class PipelineGenerator {
     return this._matchesStopSequence(generatedIds, runtime.stopSequenceStart, opts.stopSequences);
   }
 
+  _recordStopReason(reason, tokenId = null) {
+    this.#state.stats.stopReason = reason;
+    this.#state.stats.stopTokenId = Number.isInteger(tokenId) ? tokenId : null;
+  }
+
   async *_generateTokensInternal(prompt, options = {}, mode = 'text') {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
     if (this.#state.isGenerating) throw new Error('Generation already in progress');
@@ -424,6 +429,8 @@ export class PipelineGenerator {
     this.#state.stats.plePreparedTokenCacheBytes = 0;
     this.#state.stats.decodeMode = null;
     this.#state.stats.batchGuardReason = null;
+    this.#state.stats.stopReason = null;
+    this.#state.stats.stopTokenId = null;
     this.#state.stats.ttftMs = 0;
     const startTime = performance.now();
 
@@ -571,6 +578,7 @@ export class PipelineGenerator {
       yield* emitToken(this, firstToken, decodeToken);
 
       if (this._shouldStopAfterAppendedToken(generatedIds, firstToken, opts, decodeRuntime)) {
+        this._recordStopReason('stop-token-or-sequence', firstToken);
         this.#state.stats.decodeTimeMs = 0;
         this.#state.stats.tokensGenerated = 1;
         this.#state.stats.decodeTokens = 1;
@@ -857,6 +865,8 @@ export class PipelineGenerator {
     this.#state.stats.plePreparedTokenCacheBytes = 0;
     this.#state.stats.decodeMode = null;
     this.#state.stats.batchGuardReason = null;
+    this.#state.stats.stopReason = null;
+    this.#state.stats.stopTokenId = null;
     this.#state.stats.ttftMs = 0;
     const startTime = performance.now();
     const opts = resolveGenerateOptions(this.#state, options);
@@ -935,6 +945,7 @@ export class PipelineGenerator {
           tokenIds.push(tokenId);
         }
       } else {
+        this._recordStopReason('stop-token-or-sequence', firstToken);
         this.#state.stats.decodeTimeMs = 0;
         this.#state.stats.tokensGenerated = 1;
         this.#state.stats.decodeTokens = 1;
@@ -1273,6 +1284,7 @@ export class PipelineGenerator {
       if (options.onToken) options.onToken(firstToken, firstText);
 
       if (this._shouldStopAfterAppendedToken(generatedIds, firstToken, opts, decodeRuntime)) {
+        this._recordStopReason('stop-token-or-sequence', firstToken);
         this.#state.stats.decodeTimeMs = 0;
         this.#state.stats.tokensGenerated = 1;
         this.#state.stats.decodeTokens = 1;
@@ -1399,7 +1411,10 @@ export class PipelineGenerator {
     }
 
     while (tokensGenerated < opts.maxTokens) {
-      if (options.signal?.aborted) break;
+      if (options.signal?.aborted) {
+        this._recordStopReason('aborted');
+        break;
+      }
       if (this._hasFinitenessFallbackWindow() && useBatchPath) {
         useBatchPath = false;
       }
@@ -1448,9 +1463,15 @@ export class PipelineGenerator {
           if (batchTokens.length > 0 && options.onBatch) options.onBatch(batchTokens);
           if (opts.stopSequences.length > 0) {
             const fullText = this.#state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
-            if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) break;
+            if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) {
+              this._recordStopReason('stop-sequence', generatedIds[generatedIds.length - 1] ?? null);
+              break;
+            }
           }
-          if (hitStop) break;
+          if (hitStop) {
+            this._recordStopReason('stop-token');
+            break;
+          }
           if (shouldDisableBatchDecodeAfterShortBatch({
             hitStop,
             actualCount: batchResult.actualCount,
@@ -1488,7 +1509,10 @@ export class PipelineGenerator {
             if (options.onToken) options.onToken(nextToken, tokenText);
           }
           this._consumeFinitenessFallbackToken(opts);
-          if (isStopToken(nextToken, stopTokenIds, eosToken)) break;
+          if (isStopToken(nextToken, stopTokenIds, eosToken)) {
+            this._recordStopReason('stop-token', nextToken);
+            break;
+          }
         }
       } else if (opts.speculation?.mode === 'self') {
         // Self-speculation: decode one base token plus a configurable burst of
@@ -1526,11 +1550,17 @@ export class PipelineGenerator {
         }
         this._consumeFinitenessFallbackToken(opts);
 
-        if (isStopToken(baseToken, stopTokenIds, eosToken)) break;
+        if (isStopToken(baseToken, stopTokenIds, eosToken)) {
+          this._recordStopReason('stop-token', baseToken);
+          break;
+        }
         if (tokensGenerated >= opts.maxTokens) break;
         if (opts.stopSequences.length > 0) {
           const fullText = this.#state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
-          if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) break;
+          if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) {
+            this._recordStopReason('stop-sequence', baseToken);
+            break;
+          }
         }
 
         for (let specIndex = 0; specIndex < speculativeBurstTokens; specIndex += 1) {
@@ -1569,19 +1599,27 @@ export class PipelineGenerator {
           }
 
           if (isStopToken(specToken, stopTokenIds, eosToken)) {
+            this._recordStopReason('stop-token', specToken);
             break;
           }
           if (opts.stopSequences.length > 0) {
             const fullText = this.#state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
             if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) {
+              this._recordStopReason('stop-sequence', specToken);
               break;
             }
           }
         }
-        if (isStopToken(generatedIds[generatedIds.length - 1], stopTokenIds, eosToken)) break;
+        if (isStopToken(generatedIds[generatedIds.length - 1], stopTokenIds, eosToken)) {
+          this._recordStopReason('stop-token', generatedIds[generatedIds.length - 1]);
+          break;
+        }
         if (opts.stopSequences.length > 0) {
           const fullText = this.#state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
-          if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) break;
+          if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) {
+            this._recordStopReason('stop-sequence', generatedIds[generatedIds.length - 1] ?? null);
+            break;
+          }
         }
       } else {
         const tokenStart = performance.now();
@@ -1635,14 +1673,23 @@ export class PipelineGenerator {
           log.debug('Decode', `#${tokensGenerated} "${tokenText}" ${tokenTime.toFixed(0)}ms (${tokPerSec.toFixed(2)} tok/s avg)`);
         }
 
-        if (isStopToken(nextToken, stopTokenIds, eosToken)) break;
+        if (isStopToken(nextToken, stopTokenIds, eosToken)) {
+          this._recordStopReason('stop-token', nextToken);
+          break;
+        }
         if (opts.stopSequences.length > 0) {
           const fullText = this.#state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
-          if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) break;
+          if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) {
+            this._recordStopReason('stop-sequence', nextToken);
+            break;
+          }
         }
       }
     }
 
+    if (!this.#state.stats.stopReason) {
+      this._recordStopReason(tokensGenerated >= opts.maxTokens ? 'max-tokens' : 'completed');
+    }
     this.#state.stats.decodeTimeMs = performance.now() - decodeStart;
     this.#state.stats.tokensGenerated = tokensGenerated;
     this.#state.stats.decodeTokens = tokensGenerated;

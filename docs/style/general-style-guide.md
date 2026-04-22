@@ -256,25 +256,24 @@ When a manifest-based runtime error occurs (dtype mismatch, missing field, kerne
 2. The conversion config (`src/config/conversion/`) is the source of truth for all manifest inference fields. The manifest is a stamped artifact.
 3. Never add runtime workarounds for stale manifests. Fix the config, re-refresh, verify.
 
-### Execution-V1 Kernel Lifecycle
+### Execution Graph Kernel Identity Lifecycle
 
-- Kernel-path string registries are removed. Do not add registry-directory
-  assets or string IDs.
-- Portable kernel execution identity is owned by the execution-v1 graph stamped
-  from conversion configs into manifests.
-- Each execution-v1 step pins the WGSL file, entry point, and digest needed for
-  dispatch, capture, and downstream lowering.
+- Kernel-path identity is derived from `inference.execution` in conversion config
+  and stamped into the manifest execution graph.
+- Runtime `kernelPath` values are inline objects generated from execution-v1.
+  String registry IDs are removed and must fail during config resolution.
+- Each execution step pins `kernel`, `entry`, and `kernelRef.digest`; digest drift
+  is checked by the conversion/kernel digest checks.
 - `src/config/kernels/registry.json` is WGSL variant metadata only. It is not a
   model kernel-path ID registry and must not be used as a runtime override
   lookup table.
-- Runtime `kernelPath` overrides may only be inline objects generated from
-  execution-v1, or `null` for no explicit override.
+- Add tuned kernels by updating the conversion execution graph or an explicit
+  execution graph transform, then benchmark and verify before promoting the
+  converted artifact.
 - Treat fused kernels as explicit behavior changes:
-  - preserve an equivalent non-fused baseline path.
+  - preserve an equivalent non-fused baseline graph.
   - benchmark fused candidates against non-fused and accuracy checks.
   - only promote fused variants after both perf and correctness are green.
-- Use `status` + comments in `registry.json` as kernel lineage history for future migrations.
-- When creating new `legacy` aliases, keep notes and migration target in registry entries so model conversions and docs stay current.
 
 ### Config-Only Overrides (Harness)
 

@@ -44,6 +44,18 @@ Available narrow entry points:
 - `doppler-gpu/tooling` — mega barrel (back-compat; pulls the union of the narrow entry points).
 - `doppler-gpu/models/{qwen3,gemma3,gemma4,embeddinggemma}` — family pointers.
 
+## Program Bundles
+
+`doppler-gpu/tooling` exports `validateProgramBundle(...)` on both browser and
+Node imports. The Node import path also exports `exportProgramBundle(...)`,
+`writeProgramBundle(...)`, `loadProgramBundle(...)`, and
+`checkProgramBundleFile(...)` for producing `doppler.program-bundle/v1`
+artifacts from local manifests and browser reference reports.
+
+Program Bundle export is for toolchains such as Doe/Cerebras lowering. Normal
+browser applications should load RDRR manifests directly unless they need that
+portable execution-graph artifact.
+
 ## Shader loading
 
 `doppler-gpu` ships 179 WGSL kernels in `src/gpu/kernels/*.wgsl`. By default, the runtime fetches them at runtime from `KERNEL_BASE_PATH` (derived from `globalThis.__DOPPLER_KERNEL_BASE_PATH__` or `import.meta.url`). This requires a same-origin HTTP endpoint serving the `.wgsl` files.

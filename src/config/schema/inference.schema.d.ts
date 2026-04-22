@@ -282,10 +282,9 @@ export interface InferenceConfigSchema {
   /** Chat template for instruct models */
   chatTemplate?: ChatTemplateSchema;
   /**
-   * Kernel path for explicit kernel dispatch ordering.
-   * Specifies exactly which kernels run, in what order, with what configs.
-   * Registry string IDs are removed; use an inline KernelPathSchema generated
-   * from execution-v1, or null for no explicit override.
+   * Inline kernel path for explicit kernel dispatch ordering.
+   * String registry IDs were removed; execution-v1 manifests normally derive
+   * this object during compile. Use null for no explicit override.
    */
   kernelPath?: KernelPathRef;
 }

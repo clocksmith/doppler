@@ -19,7 +19,7 @@ Add a new GPU kernel implementation or a new variant of an existing kernel.
 - `src/gpu/kernels/<name>.js` and `.d.ts`
 - `src/gpu/kernels/index.js` and `.d.ts`
 - Optional selection logic in `src/rules/**/*.json`
-- Optional kernel-path updates when the new kernel changes execution identity
+- Optional conversion execution graph or graph-transform updates when the new kernel changes execution identity
 - Kernel tests and browser harness coverage
 
 ## Recommended Order
@@ -28,7 +28,7 @@ Add a new GPU kernel implementation or a new variant of an existing kernel.
 2. Implement the WGSL kernel.
 3. Add the JS wrapper and matching declaration file under `src/gpu/kernels/`.
 4. Re-export it through `src/gpu/kernels/index.js` and `.d.ts`.
-5. Update rule maps or kernel-path configs only if the new kernel must be selected or named as a new execution identity.
+5. Update rule maps, conversion execution graphs, or graph transforms only if the new kernel must be selected or named as a new execution identity.
 6. Add correctness tests and browser harness coverage.
 7. Run kernel generation or checks if the kernel participates in generated variants.
 
@@ -43,7 +43,7 @@ Add a new GPU kernel implementation or a new variant of an existing kernel.
 
 - Treating `src/gpu/kernel-selector.js` as the main implementation point. New work belongs under `src/gpu/kernels/`.
 - Forgetting `.d.ts` and index exports.
-- Adding a kernel-path config when the kernel is only a selection detail, or skipping the config when execution identity really changed.
+- Changing execution identity when the kernel is only a selection detail, or skipping the execution graph update when identity really changed.
 - Testing only in Node and missing browser-only shader or pipeline issues.
 - Forgetting `npm run kernels:generate` or `npm run kernels:check` when generated variants are involved.
 

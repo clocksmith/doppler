@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runNodeCommand } from '../tooling/node-command-runner.js';
 import { runBrowserCommandInNode } from '../tooling/node-browser-command-runner.js';
+import { writeProgramBundle } from '../tooling/program-bundle.js';
 import {
   TOOLING_COMMANDS,
   normalizeToolingCommandRequest,
@@ -78,6 +79,8 @@ function usage() {
     '  doppler verify --config <path|url|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
     '  doppler lora --config <path|url|json> [--surface auto|node]',
     '  doppler distill --config <path|url|json> [--surface auto|node]',
+    '  doppler program-bundle --config <path|json>',
+    '  doppler program-bundle --manifest <path> --reference-report <path> --out <path> [--conversion-config <path>]',
     '',
     'Flags:',
     '  --config <path|url|json>        Required command config payload (file path, URL, or JSON object string).',
@@ -98,6 +101,8 @@ function usage() {
     '',
     'Example:',
     '  doppler verify --config \'{"request":{"workload":"inference","modelId":"gemma-3-270m-it-f16-af32"}}\'',
+    '  doppler verify --config \'{"request":{"workload":"inference","workloadType":"program-bundle","programBundlePath":"examples/program-bundles/gemma-3-270m-it-q4k-ehf16-af32.program-bundle.json"}}\'',
+    '  doppler program-bundle --config \'{"manifestPath":"models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json","referenceReportPath":"tests/fixtures/reports/gemma-3-270m-it-q4k-ehf16-af32/2026-03-18T13-33-38.973Z.json","outputPath":"examples/program-bundles/gemma-3-270m-it-q4k-ehf16-af32.program-bundle.json"}\'',
   ].join('\n');
 }
 
@@ -219,6 +224,28 @@ function validateCommandFlags(parsed) {
   }
 }
 
+function validateProgramBundleFlags(parsed) {
+  const allowedFlags = new Set([
+    'config',
+    'manifest',
+    'model-dir',
+    'reference-report',
+    'conversion-config',
+    'runtime-config',
+    'out',
+    'bundle-id',
+    'created-at',
+    'pretty',
+    'json',
+    'help',
+    'h',
+  ]);
+  for (const key of Object.keys(parsed.flags || {})) {
+    if (allowedFlags.has(key)) continue;
+    throw new Error(`Unknown flag --${key} for "program-bundle".`);
+  }
+}
+
 function parseJsonObjectFlag(value, label) {
   if (asStringOrNull(value) === null) return null;
   try {
@@ -337,6 +364,47 @@ async function readJsonObjectInput(inputValue, label) {
     return readJsonObjectUrl(normalized, label);
   }
   return readJsonObjectFile(normalized, label);
+}
+
+async function buildProgramBundleOptions(parsed) {
+  const repoRoot = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
+  const configValue = asStringOrNull(parsed.flags.config);
+  const config = configValue
+    ? await readJsonObjectInput(configValue, '--config')
+    : {};
+  return {
+    repoRoot,
+    ...config,
+    manifestPath: parsed.flags.manifest ?? config.manifestPath ?? null,
+    modelDir: parsed.flags['model-dir'] ?? config.modelDir ?? null,
+    referenceReportPath: parsed.flags['reference-report'] ?? config.referenceReportPath ?? null,
+    conversionConfigPath: parsed.flags['conversion-config'] ?? config.conversionConfigPath ?? null,
+    runtimeConfigPath: parsed.flags['runtime-config'] ?? config.runtimeConfigPath ?? null,
+    outputPath: parsed.flags.out ?? config.outputPath ?? config.out ?? null,
+    bundleId: parsed.flags['bundle-id'] ?? config.bundleId ?? null,
+    createdAtUtc: parsed.flags['created-at'] ?? config.createdAtUtc ?? null,
+  };
+}
+
+async function runProgramBundleCommand(parsed, jsonOutput) {
+  const result = await writeProgramBundle(await buildProgramBundleOptions(parsed));
+  const summary = {
+    ok: true,
+    outputPath: path.relative(process.cwd(), result.outputPath),
+    modelId: result.bundle.modelId,
+    bundleId: result.bundle.bundleId,
+    executionGraphHash: result.bundle.sources.executionGraph.hash,
+    artifactCount: result.bundle.artifacts.length,
+    wgslModuleCount: result.bundle.wgslModules.length,
+  };
+  if (jsonOutput) {
+    console.log(JSON.stringify(summary, null, 2));
+    return;
+  }
+  console.log(
+    `[ok] wrote ${summary.outputPath} ` +
+    `(modelId=${summary.modelId}, artifacts=${summary.artifactCount}, wgsl=${summary.wgslModuleCount})`
+  );
 }
 
 function resolveCommandConfigFlag(parsed) {
@@ -894,6 +962,11 @@ async function main() {
     const parsed = parseArgs(argv);
     if (parsed.flags.help === true || parsed.flags.h === true) {
       console.log(usage());
+      return;
+    }
+    if (parsed.command === 'program-bundle') {
+      validateProgramBundleFlags(parsed);
+      await runProgramBundleCommand(parsed, parsed.flags.pretty !== true);
       return;
     }
     validateCommandFlags(parsed);

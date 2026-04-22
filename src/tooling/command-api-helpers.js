@@ -262,5 +262,9 @@ export function createCommandRequestBase(raw, command) {
     searchParams: raw.searchParams ?? null,
     baselineProvider: asOptionalString(raw.baselineProvider, 'baselineProvider'),
     observedProvider: asOptionalString(raw.observedProvider, 'observedProvider'),
+    programBundle: asOptionalObject(raw.programBundle, 'programBundle'),
+    programBundlePath: asOptionalString(raw.programBundlePath, 'programBundlePath'),
+    parityProviders: asOptionalStringArray(raw.parityProviders, 'parityProviders'),
+    programBundleParityMode: asOptionalString(raw.programBundleParityMode, 'programBundleParityMode'),
   };
 }

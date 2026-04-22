@@ -18,6 +18,7 @@ import type { LoadingConfigSchema } from './loading.schema.js';
 import type { ExecutionV1PatchSchema, ExecutionV1SessionSchema } from './execution-v1.schema.js';
 import type { SharedRuntimeConfigSchema } from './shared-runtime.schema.js';
 import type { EmulationConfigSchema } from './emulation.schema.js';
+import type { KernelPathSchema } from './kernel-path.schema.js';
 
 export interface LargeWeightConfigSchema {
   enabled: boolean;
@@ -44,8 +45,8 @@ export interface RuntimeInferenceConfigSchema {
   chatTemplate: Record<string, unknown>;
   session: Partial<ExecutionV1SessionSchema>;
   executionPatch: ExecutionV1PatchSchema | Record<string, unknown>;
-  kernelPath?: unknown;
-  kernelPathSource?: 'runtime' | 'config' | 'model' | 'manifest' | 'none';
+  kernelPath?: KernelPathSchema | null;
+  kernelPathSource?: 'config' | 'model' | 'manifest' | 'execution-v1' | 'execution-v1-transform' | 'none';
   kernelPathPolicy?: Record<string, unknown> | null;
   modelOverrides?: Record<string, unknown>;
   pipeline?: Record<string, unknown> | null;

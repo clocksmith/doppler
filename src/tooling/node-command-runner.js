@@ -11,6 +11,7 @@ import { convertSafetensorsDirectory } from './node-converter.js';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { bootstrapNodeWebGPU } from './node-webgpu.js';
 import { runDiagnoseCommand } from './diagnose-runner.js';
+import { checkProgramBundleParity } from './program-bundle-parity.js';
 import { applyRuntimeInputs, buildSuiteOptions } from './command-runner-shared.js';
 import { runWithRuntimeIsolation } from './command-runner-shared.js';
 import { isPlainObject } from '../utils/plain-object.js';
@@ -153,6 +154,24 @@ export async function runNodeCommand(commandRequest, options = {}) {
 
     if (request.command === 'diagnose') {
       const result = await runDiagnoseCommand(request, validatedOptions);
+      return createToolingSuccessEnvelope({
+        surface: 'node',
+        request,
+        result,
+      });
+    }
+
+    if (
+      request.command === 'verify'
+      && request.workload === 'inference'
+      && request.workloadType === 'program-bundle'
+    ) {
+      const result = await checkProgramBundleParity({
+        bundle: request.programBundle ?? undefined,
+        bundlePath: request.programBundlePath ?? undefined,
+        providers: request.parityProviders ?? undefined,
+        mode: request.programBundleParityMode ?? 'contract',
+      });
       return createToolingSuccessEnvelope({
         surface: 'node',
         request,

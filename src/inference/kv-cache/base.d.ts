@@ -42,6 +42,12 @@ export class KVCache {
   totalTokensSeen: number;
   memoryUsage: number;
   gpuContext: GPUContext | null;
+  counters: {
+    updateCalls: number;
+    gpuUpdateCalls: number;
+    recordedGpuUpdateCalls: number;
+    tokensWritten: number;
+  };
 
   /**
    * @param config - KV cache configuration

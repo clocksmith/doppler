@@ -22,5 +22,13 @@ assert.ok(
   !issueCodes.has('COMPARE_METRIC_NO_TJS_PATH'),
   'onboarding compare-metric validation should accept ordered fallback Transformers.js paths'
 );
+assert.ok(
+  !issueCodes.has('RUNTIME_PROFILE_STRING_KERNEL_PATH'),
+  'runtime profiles must not reintroduce string kernel-path registry IDs'
+);
+assert.ok(
+  !issueCodes.has('RUNTIME_PROFILE_RUNTIME_MISSING'),
+  'non-profile runtime policy assets should not be classified as runtime profiles'
+);
 
 console.log('onboarding-tooling-contract.test: ok');

@@ -350,6 +350,8 @@ export class QuantizedKVCache {
       seqLen: this.currentSeqLen,
       maxSeqLen: this.maxSeqLen,
       layout: this.layout,
+      kvDtype: this.kvDtype,
+      counters: null,
     };
   }
 

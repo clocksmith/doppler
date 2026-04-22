@@ -27,6 +27,7 @@ import {
   getActiveKernelPathSource,
   setActiveKernelPath,
 } from '../config/kernel-path-loader.js';
+import { validateProgramBundle } from '../config/schema/program-bundle.schema.js';
 
 let browserHarnessModulePromise = null;
 
@@ -49,6 +50,44 @@ export async function runBrowserCommand(commandRequest, options = {}) {
         );
       }
       const result = await validatedOptions.convertHandler(request);
+      return createToolingSuccessEnvelope({
+        surface: 'browser',
+        request,
+        result,
+      });
+    }
+
+    if (
+      request.command === 'verify'
+      && request.workload === 'inference'
+      && request.workloadType === 'program-bundle'
+    ) {
+      if (request.programBundlePath) {
+        throw new Error('browser command: program-bundle parity requires inline programBundle; programBundlePath is Node-only.');
+      }
+      const providers = request.parityProviders ?? ['browser-webgpu'];
+      const unsupported = providers.filter((provider) => provider !== 'browser-webgpu');
+      if (unsupported.length > 0) {
+        throw new Error(
+          `browser command: program-bundle parity provider(s) ${unsupported.join(', ')} are Node-only.`
+        );
+      }
+      const bundle = validateProgramBundle(request.programBundle);
+      const result = {
+        schema: 'doppler.program-bundle-parity/v1',
+        ok: true,
+        mode: 'contract',
+        bundleId: bundle.bundleId,
+        modelId: bundle.modelId,
+        executionGraphHash: bundle.sources.executionGraph.hash,
+        providers: [
+          {
+            provider: 'browser-webgpu',
+            status: 'reference',
+            ok: true,
+          },
+        ],
+      };
       return createToolingSuccessEnvelope({
         surface: 'browser',
         request,

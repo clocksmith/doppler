@@ -2,6 +2,7 @@ export function validateCallTimeOptions(options?: Record<string, unknown> | null
 
 export function validateRuntimeOverrides(overrides?: {
   inference?: {
+    kernelPath?: Record<string, unknown> | null;
     modelOverrides?: Record<string, unknown> | null;
   } | null;
 } | null): void;
@@ -22,5 +23,6 @@ export function validateRuntimeConfig(runtimeConfig?: {
       keepF32Weights?: boolean | null;
       activationDtype?: string | null;
     } | null;
+    kernelPath?: Record<string, unknown> | null;
   } | null;
 } | null): void;

@@ -5,7 +5,8 @@ The canonical CLI entrypoint is `src/cli/doppler-cli.js`.
 For the npm-facing quickstart path, use `npx doppler-gpu`. That bin is a thin
 first-run surface for local generation. The `doppler` CLI below is the
 contract-driven tooling surface for `verify`, `debug`, `bench`, `convert`, and
-operator workflows.
+operator workflows. It also exposes the Node-only `program-bundle` maintenance
+path for exporting a Doe-ingestible portable model-program artifact.
 
 ## Command Surface
 
@@ -28,6 +29,7 @@ node src/cli/doppler-cli.js <command> --config <request> [flags]
 | `convert` | `convert` | Node-only command. |
 | `lora` | operator lifecycle | Node-only command. |
 | `distill` | operator lifecycle | Node-only command. |
+| `program-bundle` | maintenance/export | Node-only artifact exporter; outside the browser/Node command-runner contract. |
 
 ## `--config` inputs
 
@@ -83,6 +85,61 @@ Command-level surface support:
 - `bench`, `debug`, `verify`: `auto|node|browser`
 - `convert`: `auto|node` (`browser` is rejected)
 - `lora`, `distill`: `auto|node` (`browser` is rejected)
+- `program-bundle`: no `--surface`; reads declared files and writes a JSON artifact
+
+## Program Bundle Export
+
+`program-bundle` exports `doppler.program-bundle/v1` from a manifest plus a
+browser/WebGPU reference report. It is intentionally a maintenance/export path,
+not a shared browser command.
+
+```bash
+node src/cli/doppler-cli.js program-bundle --config '{
+  "manifestPath": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
+  "referenceReportPath": "tests/fixtures/reports/gemma-3-270m-it-q4k-ehf16-af32/2026-03-18T13-33-38.973Z.json",
+  "conversionConfigPath": "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json",
+  "outputPath": "examples/program-bundles/gemma-3-270m-it-q4k-ehf16-af32.program-bundle.json"
+}'
+```
+
+The exporter fails if the reference report lacks prompt/output/token identity,
+if a reachable WGSL kernel is undeclared, or if a kernel digest drifts from the
+checked-in digest registry.
+
+For a fresh proof run plus export, use the bounded reference lane:
+
+```bash
+npm run program-bundle:reference -- --manifest models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json \
+  --conversion-config src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.json \
+  --out examples/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.program-bundle.json \
+  --surface browser --prompt "The color of the sky is" --max-tokens 8
+```
+
+That command runs a bounded `verify`, writes the actual returned report under
+`reports/program-bundles/`, and exports the bundle from that report. A manual
+receipt without transcript metrics is not accepted as a Program Bundle source.
+
+## Program Bundle Parity
+
+Program Bundle parity uses the normal `verify` command so browser and Node
+surfaces share the same request contract. The export/check maintenance command
+above still only writes or validates bundle files.
+
+```bash
+node src/cli/doppler-cli.js verify --config '{
+  "request": {
+    "workload": "inference",
+    "workloadType": "program-bundle",
+    "programBundlePath": "examples/program-bundles/gemma-3-270m-it-q4k-ehf16-af32.program-bundle.json",
+    "parityProviders": ["browser-webgpu", "node:webgpu", "node:doe-gpu"]
+  }
+}' --json
+```
+
+The default parity mode is `contract`. It validates the reference browser
+transcript, plans Node/Dawn replay, and checks Doe.js availability without
+requiring the optional package to be installed. Use
+`"programBundleParityMode":"execute"` to run the Node/WebGPU replay provider.
 
 ## Output format and error envelope
 

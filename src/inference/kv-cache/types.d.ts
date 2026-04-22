@@ -183,6 +183,8 @@ export interface MemoryStats {
   seqLen: number;
   maxSeqLen: number;
   layout: 'contiguous' | 'contiguous_quantized' | 'paged' | 'tiered' | 'bdpa_paged';
+  kvDtype?: 'f16' | 'f32' | null;
+  counters?: Record<string, unknown> | null;
 }
 
 /**

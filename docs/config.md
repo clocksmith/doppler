@@ -60,22 +60,25 @@ the converter/config must be fixed instead of patching around the artifact.
 
 ## Kernel path contract
 
-Kernel paths are inline execution plans generated from execution-v1 graphs.
-Registry string IDs are removed from runtime-visible config.
+Kernel paths are explicit execution plans materialized as inline objects from
+the manifest execution graph. String registry IDs were removed; runtime config
+must not select a kernel path by ID.
 
-Canonical portable execution source:
-- `src/config/conversion/**/*.json` execution-v1 graphs
+Canonical execution identity:
+- conversion config `inference.execution`
+- stamped manifest `inference.execution`
+- execution-v1 compile output `runtime.inference.kernelPath`
 
 Kernel-path resolution precedence is canonical in
 [`conversion-runtime-contract.md`](conversion-runtime-contract.md).
 This file only relies on that contract:
-- `kernelPath` remains the only supported kernel-selection override surface
-- `kernelPath` must be an inline object generated from execution-v1, or `null`
+- `kernelPath` remains the only supported inline kernel-selection override surface
 - internal runner-owned per-run context may still apply the highest-precedence
   override after manifest and runtime config resolution
 
-`kernelPath` is the only supported kernel-selection override surface.
-Do not use legacy `kernelPlan` or string kernel-path IDs.
+`kernelPath` is the only supported kernel-selection override surface, but it
+must be an inline object or `null`. Do not use legacy `kernelPlan` or removed
+string registry IDs.
 
 Kernel-path dtype contract:
 - config-selected kernel paths must already match the resolved runtime

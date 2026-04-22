@@ -18,6 +18,21 @@ export {
 } from './config/index.js';
 export { getRuntimeConfig, setRuntimeConfig } from './config/runtime.js';
 export { TOOLING_INTENTS } from './config/schema/tooling.schema.js';
+export {
+  PROGRAM_BUNDLE_SCHEMA_VERSION,
+  PROGRAM_BUNDLE_SCHEMA_ID,
+  PROGRAM_BUNDLE_HOST_SCHEMA_ID,
+  PROGRAM_BUNDLE_HOST_JS_SUBSET,
+  PROGRAM_BUNDLE_CAPTURE_PROFILE_SCHEMA_ID,
+  PROGRAM_BUNDLE_REFERENCE_TRANSCRIPT_SCHEMA_ID,
+  validateProgramBundle,
+} from './config/schema/program-bundle.schema.js';
+export type {
+  ProgramBundle,
+  ProgramBundleArtifact,
+  ProgramBundleReferenceTranscript,
+  ProgramBundleWgslModule,
+} from './config/schema/program-bundle.schema.js';
 
 // Storage + manifests (sourced from narrow slices)
 export * from './tooling-exports/storage.js';

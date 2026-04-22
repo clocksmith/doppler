@@ -391,6 +391,13 @@ export function normalizeSuiteCommand(raw, command) {
   const checkpointEvery = asOptionalPositiveInteger(raw.checkpointEvery, 'checkpointEvery');
   const inferenceInput = normalizeInferenceInput(raw.inferenceInput, workload);
   const inputWorkloadType = asOptionalString(raw.workloadType, 'workloadType');
+  const programBundle = asOptionalObject(raw.programBundle, 'programBundle');
+  const programBundlePath = asOptionalString(raw.programBundlePath, 'programBundlePath');
+  const parityProviders = asOptionalStringArray(raw.parityProviders, 'parityProviders');
+  const programBundleParityMode = asOptionalString(raw.programBundleParityMode, 'programBundleParityMode');
+  if (programBundleParityMode && programBundleParityMode !== 'contract' && programBundleParityMode !== 'execute') {
+    throw new Error('tooling command: programBundleParityMode must be "contract" or "execute".');
+  }
   if (
     inputWorkloadType
     && (workload === 'training' || workload === 'diffusion')
@@ -405,6 +412,19 @@ export function normalizeSuiteCommand(raw, command) {
       ? workload
       : null
   );
+  const isProgramBundleParity = command === 'verify'
+    && workload === 'inference'
+    && workloadType === 'program-bundle';
+  if (isProgramBundleParity) {
+    if (!programBundle && !programBundlePath) {
+      throw new Error('tooling command: program-bundle parity requires programBundle or programBundlePath.');
+    }
+  } else if (programBundle || programBundlePath || parityProviders || programBundleParityMode) {
+    throw new Error(
+      'tooling command: programBundle, programBundlePath, parityProviders, and programBundleParityMode require ' +
+      'command="verify", workload="inference", and workloadType="program-bundle".'
+    );
+  }
   const allowsTrainingFields = workload === 'training';
   if (!allowsTrainingFields && (
     trainingTests
@@ -471,7 +491,7 @@ export function normalizeSuiteCommand(raw, command) {
     throw new Error('tooling command: distillShardIndex must be <= distillShardCount.');
   }
 
-  const requiresModel = workload !== 'kernels' && workload !== 'training';
+  const requiresModel = workload !== 'kernels' && workload !== 'training' && !isProgramBundleParity;
   const hasTrainingSource = allowsTrainingFields && (
     !!modelUrl
     || !!trainingStage
@@ -527,6 +547,10 @@ export function normalizeSuiteCommand(raw, command) {
     trainingBenchSteps,
     checkpointEvery: allowsTrainingFields ? checkpointEvery : null,
     workloadType,
+    programBundle: isProgramBundleParity ? programBundle : null,
+    programBundlePath: isProgramBundleParity ? programBundlePath : null,
+    parityProviders: isProgramBundleParity ? parityProviders : null,
+    programBundleParityMode: isProgramBundleParity ? (programBundleParityMode ?? 'contract') : null,
     modelUrl,
     captureOutput: asOptionalBoolean(raw.captureOutput, 'captureOutput') ?? false,
     keepPipeline: asOptionalBoolean(raw.keepPipeline, 'keepPipeline') ?? false,

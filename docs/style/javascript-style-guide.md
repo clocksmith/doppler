@@ -81,6 +81,7 @@ Validation should check `=== undefined` for nullable fields and `== null` for no
 ## Kernel Path Only
 
 Kernel selection overrides must use `kernelPath`. `kernelPlan` is removed and must not be reintroduced.
+Runtime `kernelPath` values must be inline execution-v1-derived objects or `null`; string registry IDs are removed.
 Kernel path overrides are config-only; harness/UI surfaces must not set kernel selection via ad-hoc flags.
 
 ## Harness Override Rules

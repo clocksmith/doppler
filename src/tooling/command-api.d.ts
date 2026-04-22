@@ -118,6 +118,10 @@ export interface ToolingCommandRequestInput {
   searchParams?: URLSearchParams | null;
   baselineProvider?: string | null;
   observedProvider?: string | null;
+  programBundle?: Record<string, unknown> | null;
+  programBundlePath?: string | null;
+  parityProviders?: string[] | null;
+  programBundleParityMode?: 'contract' | 'execute' | null;
 }
 
 export interface ToolingCommandRequest {
@@ -183,6 +187,10 @@ export interface ToolingCommandRequest {
   searchParams: URLSearchParams | null;
   baselineProvider: string | null;
   observedProvider: string | null;
+  programBundle: Record<string, unknown> | null;
+  programBundlePath: string | null;
+  parityProviders: string[] | null;
+  programBundleParityMode: 'contract' | 'execute' | null;
 }
 
 export declare const TOOLING_COMMANDS: readonly ToolingCommand[];

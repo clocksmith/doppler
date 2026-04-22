@@ -139,16 +139,16 @@ Additional Gemma 3 / Qwen retros that matter:
   into Qwen-like models without checking source headers.
 - Treating `decodeLoop` and other runtime cadence knobs as artifact-owned
   settings.
-- Letting runtime JS bypass the manifest or rule registry for dtype, kernel, or
+- Letting runtime JS bypass the manifest or rule maps for dtype, kernel, or
   materialization selection because the fast path looked “close enough.”
 - Depending on model-ID or vendor transforms to choose the intended primary
-  kernel path instead of declaring that path explicitly in the conversion
+  execution graph instead of declaring that graph explicitly in the conversion
   config.
 - Assuming a manifest patch or refresh tool updated every behavior block without
   validating the resulting manifest against the config.
 - Tuning decode throughput before locking down deterministic text correctness.
 - Trusting old compare fixtures or support-matrix rows after a reconversion
-  changed manifest behavior or kernel-path defaults.
+  changed manifest behavior or execution graph defaults.
 - Assuming every text-family checkpoint exposes a normal LM head and output
   stack.
 
@@ -403,6 +403,7 @@ Only touch catalog/publication state after correctness is proven.
    - manifest matches the config
    - deterministic verify succeeds
    - debug evidence is clean enough that you trust the path
+   - Program Bundle export succeeds with a browser/WebGPU reference transcript
    - any benchmark claim points to one saved artifact and one reproducible command
    - a human has reviewed output coherence if the artifact is to be reused or
      published
@@ -412,6 +413,7 @@ Only touch catalog/publication state after correctness is proven.
    - move to external volume / hosted artifact workflow
    - update `models/catalog.json`
    - sync support matrix and related registries
+   - run `npm run program-bundle:check` if a checked-in bundle example changes
    - publish hosted subsets
 
 ## Verification
@@ -425,6 +427,8 @@ Minimum gate for a new model:
 - one deterministic `verify`
 - one `debug` pass if the model is new enough that you do not yet trust the
   path
+- one Program Bundle export when the model is intended for Doe/Cerebras or
+  cross-runtime lowering
 - browser verification when kernels, attention, cache behavior, or multimodal
   execution changed
 
@@ -496,7 +500,7 @@ depends on browser WebGPU behavior.
 - Benchmarking with investigation profiles and then treating the result as a
   release claim.
 - Forgetting to refresh compare fixtures, support matrices, or catalog metadata
-  after reconversion changes the manifest or kernel-path defaults.
+  after reconversion changes the manifest or execution graph defaults.
 - Promoting a model before a human has read the actual output.
 
 ## Related Guides

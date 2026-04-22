@@ -44,7 +44,7 @@ export function validateRuntimeOverrides(overrides) {
   for (const key of ['batching', 'compute', 'generation', 'kernelPathPolicy']) {
     assertRequiredRuntimeOverrideNotNull(overrides?.inference, key, 'runtime.inference');
   }
-  assertKernelPathRef(overrides?.inference?.kernelPath, 'runtime.inference.kernelPath');
+  validateRuntimeKernelPath('runtime.inference.kernelPath', overrides?.inference?.kernelPath);
 
   const modelOverrides = overrides?.inference?.modelOverrides;
   if (modelOverrides !== undefined && modelOverrides !== null && !isPlainObject(modelOverrides)) {
@@ -91,7 +91,7 @@ export function validateRuntimeConfig(runtimeConfig) {
   if (kernelPathPolicy) {
     validateKernelPathPolicy('runtime.inference.kernelPathPolicy', kernelPathPolicy);
   }
-  assertKernelPathRef(kernelPath, 'runtime.inference.kernelPath');
+  validateRuntimeKernelPath('runtime.inference.kernelPath', kernelPath);
   if (compute?.rangeAwareSelectiveWidening !== undefined) {
     validateRangeAwareSelectiveWidening(
       'runtime.inference.compute.rangeAwareSelectiveWidening',
@@ -128,16 +128,16 @@ export function validateRuntimeConfig(runtimeConfig) {
   }
 }
 
-function assertKernelPathRef(value, label) {
+function validateRuntimeKernelPath(label, value) {
   if (value === undefined || value === null) return;
   if (typeof value === 'string') {
     throw new Error(
-      `DopplerConfigError: ${label} string IDs are no longer supported. ` +
-      'Use an inline execution-v1 kernel path object or set kernelPath to null.'
+      `DopplerConfigError: ${label} no longer accepts string registry IDs. ` +
+      'Use an inline kernel path object generated from execution-v1, or leave kernelPath null.'
     );
   }
   if (!isPlainObject(value)) {
-    throw new Error(`DopplerConfigError: ${label} must be an object or null when provided.`);
+    throw new Error(`DopplerConfigError: ${label} must be an inline kernel path object or null.`);
   }
 }
 

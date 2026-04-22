@@ -811,4 +811,42 @@ import {
   );
 }
 
+{
+  const request = normalizeToolingCommandRequest({
+    command: 'verify',
+    workload: 'inference',
+    workloadType: 'program-bundle',
+    programBundlePath: 'examples/program-bundles/gemma.program-bundle.json',
+    parityProviders: ['browser-webgpu', 'node:webgpu'],
+  });
+  assert.equal(request.modelId, null);
+  assert.equal(request.workloadType, 'program-bundle');
+  assert.equal(request.programBundlePath, 'examples/program-bundles/gemma.program-bundle.json');
+  assert.deepEqual(request.parityProviders, ['browser-webgpu', 'node:webgpu']);
+  assert.equal(request.programBundleParityMode, 'contract');
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'verify',
+      workload: 'inference',
+      workloadType: 'program-bundle',
+    }),
+    /program-bundle parity requires programBundle or programBundlePath/
+  );
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'bench',
+      workload: 'inference',
+      modelId: 'gemma-3-1b-it-f16-af32',
+      programBundlePath: 'bundle.json',
+    }),
+    /programBundle.*require command="verify"/
+  );
+}
+
 console.log('command-api.test: ok');

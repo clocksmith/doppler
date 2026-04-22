@@ -41,6 +41,11 @@ This applies to browser clients and the Node CLI equally.
 Defined in `src/tooling/command-api.js`.
 All surfaces must normalize via `normalizeToolingCommandRequest()`.
 
+Maintenance/export CLI paths such as `program-bundle` are intentionally outside
+this browser/Node command-runner contract when they only read local files and
+write deterministic artifacts. They must document that boundary and must not be
+silently treated as harnessed browser commands.
+
 ## Workload Contract
 
 Workload names describe the run family and are independent of command intent.

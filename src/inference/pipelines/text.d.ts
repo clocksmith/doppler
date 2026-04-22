@@ -126,7 +126,15 @@ export declare class InferencePipeline extends PipelineState {
   getMemoryStats(): {
     used: number;
     pool?: { currentBytesAllocated?: number; peakBytesAllocated?: number; activeBuffers?: number; pooledBuffers?: number };
-    kvCache?: { allocated?: number; used?: number; seqLen?: number; maxSeqLen?: number };
+    kvCache?: {
+      allocated?: number;
+      used?: number;
+      seqLen?: number;
+      maxSeqLen?: number;
+      layout?: string | null;
+      kvDtype?: string | null;
+      counters?: Record<string, unknown> | null;
+    };
     emulation?: EmulationStats;
   };
 

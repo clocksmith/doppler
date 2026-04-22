@@ -7,7 +7,7 @@ Add a reproducible conversion config for a checkpoint that already fits an exist
 ## When To Use This Guide
 
 - You want a checked-in conversion recipe under `src/config/conversion/`.
-- The model family, kernel path, and quantization workflow already exist.
+- The model family, execution graph pattern, and quantization workflow already exist.
 
 ## Blast Radius
 

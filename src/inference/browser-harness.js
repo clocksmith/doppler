@@ -57,6 +57,8 @@ import {
   runEnergySuite,
 } from './browser-harness-diffusion-energy-suites.js';
 import { collectTrainingArtifactsFromSuiteResult } from './browser-harness-report-helpers.js';
+import { sha256Hex } from '../utils/sha256.js';
+import { stableSortObject } from '../utils/stable-sort-object.js';
 
 const TRAINING_SUITE_MODULE_PATH = '../experimental/training/suite.js';
 let trainingSuiteModulePromise = null;
@@ -246,6 +248,122 @@ function resolveDispatchSuite(mode, workload) {
   return workload;
 }
 
+function stableJson(value) {
+  return JSON.stringify(stableSortObject(value)) ?? 'null';
+}
+
+function hashStableJson(value) {
+  return `sha256:${sha256Hex(stableJson(value))}`;
+}
+
+function resolveExecutionGraphHash(manifest) {
+  const execution = manifest?.inference?.execution;
+  if (!execution || typeof execution !== 'object') {
+    return null;
+  }
+  return hashStableJson(execution);
+}
+
+function buildPerStepTokenProof(tokenIds) {
+  return tokenIds.map((tokenId, index) => ({
+    index,
+    tokenId,
+    tokenHash: hashStableJson({ index, tokenId }),
+  }));
+}
+
+function buildKvCacheTranscriptSeed(kvCache) {
+  const source = kvCache && typeof kvCache === 'object' ? kvCache : null;
+  const seed = {
+    mode: source ? 'stats' : 'not-captured',
+    layout: typeof source?.layout === 'string' ? source.layout : null,
+    kvDtype: typeof source?.kvDtype === 'string' ? source.kvDtype : null,
+    seqLen: Number.isFinite(source?.seqLen) ? source.seqLen : null,
+    maxSeqLen: Number.isFinite(source?.maxSeqLen) ? source.maxSeqLen : null,
+    usedBytes: Number.isFinite(source?.usedBytes) ? source.usedBytes : null,
+    allocatedBytes: Number.isFinite(source?.allocatedBytes) ? source.allocatedBytes : null,
+    counters: source?.counters ?? null,
+  };
+  return {
+    ...seed,
+    stateHash: hashStableJson(seed),
+  };
+}
+
+function buildReferenceTranscriptSeed(run, context = {}) {
+  const promptPayload = run.promptInput ?? run.prompt ?? null;
+  const outputText = typeof run.output === 'string' ? run.output : '';
+  const tokenIds = Array.isArray(run.tokenIds)
+    ? run.tokenIds.map((value) => Number(value)).filter((value) => Number.isInteger(value))
+    : [];
+  const transcript = {
+    schema: 'doppler.reference-transcript/v1',
+    source: {
+      kind: 'inline-browser-suite',
+      path: 'inline',
+      hash: 'sha256:' + '0'.repeat(64),
+    },
+    executionGraphHash: context.executionGraphHash ?? null,
+    surface: 'browser-webgpu',
+    prompt: {
+      identity: typeof run.prompt === 'string' && run.prompt.trim() ? run.prompt : 'promptInput',
+      hash: hashStableJson(promptPayload),
+      tokenIdsHash: null,
+      tokenCount: null,
+    },
+    output: {
+      textHash: `sha256:${sha256Hex(outputText)}`,
+      tokensGenerated: tokenIds.length,
+      stopReason: typeof run.phase?.stopReason === 'string' ? run.phase.stopReason : 'unknown',
+      stopTokenId: Number.isInteger(run.phase?.stopTokenId) ? run.phase.stopTokenId : null,
+    },
+    tokens: {
+      ids: tokenIds,
+      generatedTokenIdsHash: hashStableJson(tokenIds),
+      generatedTextHash: `sha256:${sha256Hex(outputText)}`,
+      preview: Array.isArray(run.tokenDiagnostics?.preview) ? run.tokenDiagnostics.preview : [],
+      perStep: buildPerStepTokenProof(tokenIds),
+      coverage: {
+        mode: 'full-token-ids',
+        omitted: 0,
+      },
+    },
+    phase: {
+      prefillMs: Number.isFinite(run.phase?.prefillMs) ? run.phase.prefillMs : null,
+      decodeMs: Number.isFinite(run.phase?.decodeMs) ? run.phase.decodeMs : null,
+      prefillTokens: Number.isFinite(run.phase?.prefillTokens) ? run.phase.prefillTokens : null,
+      decodeTokens: Number.isFinite(run.phase?.decodeTokens) ? run.phase.decodeTokens : null,
+    },
+    kvCache: buildKvCacheTranscriptSeed(run.phase?.kvCache ?? context.kvCache ?? null),
+    logits: {
+      mode: 'not-captured',
+      reason: 'Per-step logits digests are not emitted by the browser harness yet.',
+      perStepDigests: null,
+    },
+    tolerance: {
+      tokenPolicy: 'exact generated token IDs',
+      logitsPolicy: 'not captured',
+      kvPolicy: 'metadata hash only; KV tensor bytes are not read back by default',
+    },
+  };
+  return {
+    ...transcript,
+    source: {
+      ...transcript.source,
+      hash: hashStableJson({
+        prompt: transcript.prompt,
+        output: transcript.output,
+        tokens: {
+          generatedTokenIdsHash: transcript.tokens.generatedTokenIdsHash,
+          generatedTextHash: transcript.tokens.generatedTextHash,
+        },
+        phase: transcript.phase,
+        kvCache: transcript.kvCache,
+      }),
+    },
+  };
+}
+
 async function runKernelSuite(options = {}) {
   const startTime = performance.now();
   const { testHarness, initGPU } = await import('../../tests/kernels/browser/test-page.js');
@@ -422,6 +540,8 @@ async function runInferenceSuite(options = {}) {
       decodeMs: safeToFixed(run.phase.decodeMs),
       prefillTokens: Math.round(run.phase.prefillTokens),
       decodeTokens: Math.round(run.phase.decodeTokens),
+      stopReason: run.phase.stopReason ?? null,
+      stopTokenId: Number.isInteger(run.phase.stopTokenId) ? run.phase.stopTokenId : null,
       prefillTokensPerSec: safeToFixed(run.phase.prefillTokensPerSec),
       prefillTokensPerSecTtft: safeToFixed(run.phase.prefillTokensPerSecTtft),
       decodeTokensPerSec: safeToFixed(run.phase.decodeTokensPerSec),
@@ -434,6 +554,11 @@ async function runInferenceSuite(options = {}) {
       kernelPathId: run.phase.kernelPathId,
       kernelPathSource: run.phase.kernelPathSource,
       generationDiagnostics: run.tokenDiagnostics,
+      kvCache: run.phase.kvCache ?? null,
+      referenceTranscript: buildReferenceTranscriptSeed(run, {
+        executionGraphHash: resolveExecutionGraphHash(harness.manifest),
+        kvCache: run.phase.kvCache ?? null,
+      }),
       operatorDiagnostics: run.phase.operatorDiagnostics ?? null,
     };
   }

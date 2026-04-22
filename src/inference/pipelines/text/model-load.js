@@ -438,8 +438,6 @@ function summarizeUnsupportedKernelUsages(usages) {
 }
 
 function assertKernelPathFeatureCompatibility(
-  configuredKernelPathRef,
-  effectiveKernelPathRef,
   resolvedKernelPath,
   kernelPathSource,
   capabilities,
@@ -452,16 +450,13 @@ function assertKernelPathFeatureCompatibility(
   const policyAllowsSource = kernelPathPolicy.mode === 'capability-aware'
     && sourceScope.includes(kernelPathSource);
   const remapRequested = policyAllowsSource && kernelPathPolicy.onIncompatible === 'remap';
-  const remapApplied = typeof configuredKernelPathRef === 'string'
-    && typeof effectiveKernelPathRef === 'string'
-    && configuredKernelPathRef !== effectiveKernelPathRef;
   const summary = summarizeUnsupportedKernelUsages(unsupportedUsages);
 
-  if (remapRequested && !remapApplied) {
+  if (remapRequested) {
     throw new Error(
       `KernelPath "${resolvedKernelPath?.id ?? 'unknown'}" requires unsupported GPU features (${summary}) ` +
-      `and no explicit auto-select remap matched for source "${kernelPathSource}". ` +
-      'Add a kernel-path remap rule or choose a compatible kernelPath.'
+      `for source "${kernelPathSource}". String registry remaps are removed; use execution graph ` +
+      'capability transforms or choose a compatible inline kernelPath.'
     );
   }
 
@@ -761,8 +756,6 @@ export function resolveKernelPathState(options) {
 
     if (capabilities) {
       assertKernelPathFeatureCompatibility(
-        configuredKernelPathRef,
-        configuredKernelPathRef,
         resolvedKernelPath,
         kernelPathSource,
         capabilities,

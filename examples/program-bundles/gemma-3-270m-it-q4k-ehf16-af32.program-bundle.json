@@ -1,0 +1,3212 @@
+{
+  "schema": "doppler.program-bundle/v1",
+  "schemaVersion": 1,
+  "bundleId": "gemma-3-270m-it-q4k-ehf16-af32-b5daefb7cbce",
+  "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+  "createdAtUtc": "2026-04-22T00:00:00.000Z",
+  "sources": {
+    "manifest": {
+      "path": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
+      "hash": "sha256:219391bed08e6db6f9038e44dd5007af0ed3824317ece74863322f6b2c5cd346"
+    },
+    "conversionConfig": {
+      "path": "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json",
+      "hash": "sha256:f3e210f988bc2def3e0d454121a82e6a054269be989f296a89ba18047dc78460"
+    },
+    "executionGraph": {
+      "schema": "doppler.execution/v1",
+      "hash": "sha256:b5daefb7cbcef7f67f81668a5c9385c91ff69fed3ee25e1dd9967e5725a7d8bb",
+      "expandedStepHash": "sha256:223b2576035612a95a7d14ce5a1b57606d3a3cb838730d22f3472e2875fb19d3"
+    },
+    "weightSetHash": "sha256:99a3fd83da4a494ad9a0941d772feb7650b1e743ba53e2d922e36549f100308c",
+    "artifactSetHash": "sha256:8c3e0a348a7b2bfe6d7adfdfa8fb4d7a37d25ee13e1907a876d92b43002f090d"
+  },
+  "host": {
+    "schema": "doppler.host-js/v1",
+    "jsSubset": "doppler-webgpu-host/v1",
+    "entrypoints": [
+      {
+        "id": "text-generation",
+        "module": "src/tooling/program-bundle-host.js",
+        "export": "createTextGenerationProgram",
+        "role": "model-orchestration",
+        "sourceHash": "sha256:fa549136f8d099cb4e86e8dd28df213a4a828da620039e0ae2aa6f6e567f6e5f",
+        "validation": {
+          "dynamicImport": "none-detected",
+          "dom": "none-detected"
+        }
+      }
+    ],
+    "constraints": {
+      "dynamicImport": "disallowed",
+      "dom": "disallowed-in-model-path",
+      "filesystem": "declared-artifacts-only",
+      "network": "declared-artifacts-only"
+    }
+  },
+  "wgslModules": [
+    {
+      "id": "attn_decode",
+      "file": "attention_decode_online_f16kv.wgsl",
+      "entry": "main",
+      "digest": "sha256:beee4722aa6281f58b74e1d055e192017b5555c189a58dd13dd158fe1511a7b8",
+      "sourcePath": "src/gpu/kernels/attention_decode_online_f16kv.wgsl",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "Q"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "K"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "V"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          },
+          {
+            "group": 0,
+            "binding": 5,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "kv_len_buffer"
+          },
+          {
+            "group": 0,
+            "binding": 6,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "page_table"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": true,
+        "sourceMetadataHash": "sha256:c77fe935b8af9efab7e059d71612360fafc03a90ef17de8676095a8c31abadd9"
+      }
+    },
+    {
+      "id": "attn_small",
+      "file": "attention_small_f16kv.wgsl",
+      "entry": "main",
+      "digest": "sha256:369aa3b386b4ef89a916ba2717465caa47079f52bbe0f3e5d61bd3220e2ec71e",
+      "sourcePath": "src/gpu/kernels/attention_small_f16kv.wgsl",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "Q"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "K"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "V"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          },
+          {
+            "group": 0,
+            "binding": 5,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "kv_len_buffer"
+          },
+          {
+            "group": 0,
+            "binding": 6,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "page_table"
+          }
+        ],
+        "overrides": [],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:498e37fdbe9acdeb666769224268cf87c841ebd378eedc19a8cc4be4d524c9bf"
+      }
+    },
+    {
+      "id": "embed",
+      "file": "gather.wgsl",
+      "entry": "main",
+      "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
+      "sourcePath": "src/gpu/kernels/gather.wgsl",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "indices"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "embeddings"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE_MAIN",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE_MAIN",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:1ba09f607f40bfad8dc2b5872fb41536547ea96a10390b6b21d6964c9672c306"
+      }
+    },
+    {
+      "id": "gelu",
+      "file": "gelu.wgsl",
+      "entry": "main",
+      "digest": "sha256:a9007ea08aaff98f9be08f1e0490a6bcf252883eac5513de876ab9ce918865e6",
+      "sourcePath": "src/gpu/kernels/gelu.wgsl",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "input"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "gate"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "HAS_GATE",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "USE_ROWSPLIT",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:dda449dea87fcd256638151ac6dd1eca216eeb85abee3eb82602459fe8c7d0ed"
+      }
+    },
+    {
+      "id": "gemv",
+      "file": "matmul_gemv_subgroup.wgsl",
+      "entry": "main_vec4",
+      "digest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011",
+      "sourcePath": "src/gpu/kernels/matmul_gemv_subgroup.wgsl",
+      "reachable": true,
+      "metadata": {
+        "entry": "main_vec4",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "A"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "B"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "C"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "MULTICOL_COLS_PER_WG",
+            "type": "u32",
+            "defaultValue": "32u"
+          },
+          {
+            "name": "MULTICOL_THREADS_PER_COL",
+            "type": "u32",
+            "defaultValue": "8u"
+          },
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": true,
+        "sourceMetadataHash": "sha256:bce22187f56bc5ba9cd004cce6a930f74a0a66626ccf88974c8f9241521d7ffc"
+      }
+    },
+    {
+      "id": "lm_head_gemv",
+      "file": "matmul_gemv_subgroup.wgsl",
+      "entry": "main_multicol",
+      "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
+      "sourcePath": "src/gpu/kernels/matmul_gemv_subgroup.wgsl",
+      "reachable": true,
+      "metadata": {
+        "entry": "main_multicol",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "A"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "B"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "C"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "MULTICOL_COLS_PER_WG",
+            "type": "u32",
+            "defaultValue": "32u"
+          },
+          {
+            "name": "MULTICOL_THREADS_PER_COL",
+            "type": "u32",
+            "defaultValue": "8u"
+          },
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": true,
+        "sourceMetadataHash": "sha256:0d49d96fdf2bbf1a2ec5dda3209d25bc390cce4f58c939e4cade0f3cac14c2d7"
+      }
+    },
+    {
+      "id": "residual",
+      "file": "residual.wgsl",
+      "entry": "main",
+      "digest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7",
+      "sourcePath": "src/gpu/kernels/residual.wgsl",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "a"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "b"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:a5451187b8b2a19c25f13a652eb22bb0bc847a8ab26b06a1d050bca458b2b6f0"
+      }
+    },
+    {
+      "id": "rmsnorm",
+      "file": "rmsnorm.wgsl",
+      "entry": "main",
+      "digest": "sha256:c723c0300cc8f93396d79d1a274c0a90ccf1eb8ce82c0d778b8cd4659615fe45",
+      "sourcePath": "src/gpu/kernels/rmsnorm.wgsl",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "input"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "weight"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "residual"
+          },
+          {
+            "group": 0,
+            "binding": 5,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "residual_sum_output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "HAS_RESIDUAL",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "OUTPUT_PRENORM",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "PRE_RESIDUAL",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "RMS_NORM_OFFSET",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WEIGHT_IS_F16",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": true,
+        "sourceMetadataHash": "sha256:53f84d7fd8b7c0c86a064e6556e3da550d978859b2108fea875c19c7a36c426c"
+      }
+    },
+    {
+      "id": "rope",
+      "file": "rope.wgsl",
+      "entry": "main",
+      "digest": "sha256:e13c54f261d7ef00474b71e4fe7b3298fb5cc49161f50c7ea1854aa6672ebe71",
+      "sourcePath": "src/gpu/kernels/rope.wgsl",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "input"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "freqs_cos"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "freqs_sin"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          },
+          {
+            "name": "YARN_ALPHA",
+            "type": "f32",
+            "defaultValue": "1.0"
+          },
+          {
+            "name": "YARN_BETA_FAST",
+            "type": "f32",
+            "defaultValue": "32.0"
+          },
+          {
+            "name": "YARN_BETA_SLOW",
+            "type": "f32",
+            "defaultValue": "1.0"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:fce2365e7756bb2568c6d2b6be32b49588d97ef2fbe1e98b79808e0d8017294d"
+      }
+    },
+    {
+      "id": "sample",
+      "file": "sample.wgsl",
+      "entry": "sample_single_pass",
+      "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
+      "sourcePath": "src/gpu/kernels/sample.wgsl",
+      "reachable": true,
+      "metadata": {
+        "entry": "sample_single_pass",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "logits"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "topk_indices"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "topk_logits"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:9c5e9c0070c000b95a1c9673fd21c5f6ec8f8fb45abc04246badd0f482251c65"
+      }
+    },
+    {
+      "id": "tiled",
+      "file": "matmul_f16w_f32a_tiled.wgsl",
+      "entry": "main",
+      "digest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c",
+      "sourcePath": "src/gpu/kernels/matmul_f16w_f32a_tiled.wgsl",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "A"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "B"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "C"
+          }
+        ],
+        "overrides": [],
+        "workgroupSize": [
+          "WG_M",
+          "WG_N",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:82c88dc81c4fcaf63f9162593a0c16164b09bb36d31d382e1119be8ba1570d7e"
+      }
+    }
+  ],
+  "execution": {
+    "graphHash": "sha256:b5daefb7cbcef7f67f81668a5c9385c91ff69fed3ee25e1dd9967e5725a7d8bb",
+    "stepMetadataHash": "sha256:4c1bc15b3992b73668cae979d4a52f36ace34b947cb2c822e391cc4cfca3717f",
+    "kernelClosure": {
+      "declaredKernelIds": [
+        "attn_decode",
+        "attn_small",
+        "embed",
+        "gelu",
+        "gemv",
+        "lm_head_gemv",
+        "residual",
+        "rmsnorm",
+        "rope",
+        "sample",
+        "tiled"
+      ],
+      "reachableKernelIds": [
+        "attn_decode",
+        "attn_small",
+        "embed",
+        "gelu",
+        "gemv",
+        "lm_head_gemv",
+        "residual",
+        "rmsnorm",
+        "rope",
+        "sample",
+        "tiled"
+      ],
+      "excludedKernelIds": [],
+      "undeclaredKernelRefs": [],
+      "expandedStepCount": 35,
+      "phases": {
+        "prefill": 15,
+        "decode": 15,
+        "preLayer": 1,
+        "postLayer": 4
+      }
+    },
+    "steps": [
+      {
+        "id": "preLayer_both_0_embed",
+        "index": 0,
+        "op": "embed",
+        "phase": "both",
+        "section": "preLayer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "embed",
+        "kernel": "gather.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
+        "weights": "embed_tokens",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "both",
+          "workgroups": "symbolic:preLayer:both:embed",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "indices",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "embeddings",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_1_input_norm",
+        "index": 1,
+        "op": "input_norm",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rmsnorm",
+        "kernel": "rmsnorm.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:c723c0300cc8f93396d79d1a274c0a90ccf1eb8ce82c0d778b8cd4659615fe45",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:input_norm",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "residual",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 5,
+              "name": "residual_sum_output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_2_q_proj",
+        "index": 2,
+        "op": "q_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "gemv",
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_vec4",
+        "kernelDigest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011",
+        "weights": "layer.{L}.self_attn.q_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:q_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_3_k_proj",
+        "index": 3,
+        "op": "k_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "gemv",
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_vec4",
+        "kernelDigest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011",
+        "weights": "layer.{L}.self_attn.k_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:k_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_4_v_proj",
+        "index": 4,
+        "op": "v_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "gemv",
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_vec4",
+        "kernelDigest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011",
+        "weights": "layer.{L}.self_attn.v_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:v_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_5_rope_q",
+        "index": 5,
+        "op": "rope_q",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rope",
+        "kernel": "rope.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:e13c54f261d7ef00474b71e4fe7b3298fb5cc49161f50c7ea1854aa6672ebe71",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:rope_q",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "freqs_cos",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "freqs_sin",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_6_rope_k",
+        "index": 6,
+        "op": "rope_k",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rope",
+        "kernel": "rope.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:e13c54f261d7ef00474b71e4fe7b3298fb5cc49161f50c7ea1854aa6672ebe71",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:rope_k",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "freqs_cos",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "freqs_sin",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_7_attention",
+        "index": 7,
+        "op": "attention",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "attn_decode",
+        "kernel": "attention_decode_online_f16kv.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:beee4722aa6281f58b74e1d055e192017b5555c189a58dd13dd158fe1511a7b8",
+        "weights": null,
+        "constants": null,
+        "precision": {
+          "kvDtype": "f16"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:attention",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "Q",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "K",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "V",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 5,
+              "name": "kv_len_buffer",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 6,
+              "name": "page_table",
+              "addressSpace": "storage",
+              "access": "read"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_8_o_proj",
+        "index": 8,
+        "op": "o_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "gemv",
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_vec4",
+        "kernelDigest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011",
+        "weights": "layer.{L}.self_attn.o_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:o_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_9_attn_residual",
+        "index": 9,
+        "op": "attn_residual",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "residual",
+        "kernel": "residual.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:attn_residual",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "a",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "b",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_10_post_attn_norm",
+        "index": 10,
+        "op": "post_attn_norm",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rmsnorm",
+        "kernel": "rmsnorm.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:c723c0300cc8f93396d79d1a274c0a90ccf1eb8ce82c0d778b8cd4659615fe45",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:post_attn_norm",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "residual",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 5,
+              "name": "residual_sum_output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_11_gate_proj",
+        "index": 11,
+        "op": "gate_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "gemv",
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_vec4",
+        "kernelDigest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011",
+        "weights": "layer.{L}.mlp.gate_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:gate_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_12_up_proj",
+        "index": 12,
+        "op": "up_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "gemv",
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_vec4",
+        "kernelDigest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011",
+        "weights": "layer.{L}.mlp.up_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:up_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_13_activation",
+        "index": 13,
+        "op": "activation",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "gelu",
+        "kernel": "gelu.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:a9007ea08aaff98f9be08f1e0490a6bcf252883eac5513de876ab9ce918865e6",
+        "weights": null,
+        "constants": {
+          "HAS_GATE": true
+        },
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:activation",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "gate",
+              "addressSpace": "storage",
+              "access": "read"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_14_down_proj",
+        "index": 14,
+        "op": "down_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "gemv",
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_vec4",
+        "kernelDigest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011",
+        "weights": "layer.{L}.mlp.down_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:down_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_15_ffn_residual",
+        "index": 15,
+        "op": "ffn_residual",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "residual",
+        "kernel": "residual.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:ffn_residual",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "a",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "b",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_16_input_norm",
+        "index": 16,
+        "op": "input_norm",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rmsnorm",
+        "kernel": "rmsnorm.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:c723c0300cc8f93396d79d1a274c0a90ccf1eb8ce82c0d778b8cd4659615fe45",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:input_norm",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "residual",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 5,
+              "name": "residual_sum_output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_17_q_proj",
+        "index": 17,
+        "op": "q_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "tiled",
+        "kernel": "matmul_f16w_f32a_tiled.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c",
+        "weights": "layer.{L}.self_attn.q_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:q_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_18_k_proj",
+        "index": 18,
+        "op": "k_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "tiled",
+        "kernel": "matmul_f16w_f32a_tiled.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c",
+        "weights": "layer.{L}.self_attn.k_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:k_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_19_v_proj",
+        "index": 19,
+        "op": "v_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "tiled",
+        "kernel": "matmul_f16w_f32a_tiled.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c",
+        "weights": "layer.{L}.self_attn.v_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:v_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_20_rope_q",
+        "index": 20,
+        "op": "rope_q",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rope",
+        "kernel": "rope.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:e13c54f261d7ef00474b71e4fe7b3298fb5cc49161f50c7ea1854aa6672ebe71",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:rope_q",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "freqs_cos",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "freqs_sin",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_21_rope_k",
+        "index": 21,
+        "op": "rope_k",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rope",
+        "kernel": "rope.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:e13c54f261d7ef00474b71e4fe7b3298fb5cc49161f50c7ea1854aa6672ebe71",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:rope_k",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "freqs_cos",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "freqs_sin",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_22_attention",
+        "index": 22,
+        "op": "attention",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "attn_small",
+        "kernel": "attention_small_f16kv.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:369aa3b386b4ef89a916ba2717465caa47079f52bbe0f3e5d61bd3220e2ec71e",
+        "weights": null,
+        "constants": null,
+        "precision": {
+          "kvDtype": "f16"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:attention",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "Q",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "K",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "V",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 5,
+              "name": "kv_len_buffer",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 6,
+              "name": "page_table",
+              "addressSpace": "storage",
+              "access": "read"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_23_o_proj",
+        "index": 23,
+        "op": "o_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "tiled",
+        "kernel": "matmul_f16w_f32a_tiled.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c",
+        "weights": "layer.{L}.self_attn.o_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:o_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_24_attn_residual",
+        "index": 24,
+        "op": "attn_residual",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "residual",
+        "kernel": "residual.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:attn_residual",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "a",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "b",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_25_post_attn_norm",
+        "index": 25,
+        "op": "post_attn_norm",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rmsnorm",
+        "kernel": "rmsnorm.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:c723c0300cc8f93396d79d1a274c0a90ccf1eb8ce82c0d778b8cd4659615fe45",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:post_attn_norm",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "residual",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 5,
+              "name": "residual_sum_output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_26_gate_proj",
+        "index": 26,
+        "op": "gate_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "tiled",
+        "kernel": "matmul_f16w_f32a_tiled.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c",
+        "weights": "layer.{L}.mlp.gate_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:gate_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_27_up_proj",
+        "index": 27,
+        "op": "up_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "tiled",
+        "kernel": "matmul_f16w_f32a_tiled.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c",
+        "weights": "layer.{L}.mlp.up_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:up_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_28_activation",
+        "index": 28,
+        "op": "activation",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "gelu",
+        "kernel": "gelu.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:a9007ea08aaff98f9be08f1e0490a6bcf252883eac5513de876ab9ce918865e6",
+        "weights": null,
+        "constants": {
+          "HAS_GATE": true
+        },
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:activation",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "gate",
+              "addressSpace": "storage",
+              "access": "read"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_29_down_proj",
+        "index": 29,
+        "op": "down_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "tiled",
+        "kernel": "matmul_f16w_f32a_tiled.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c",
+        "weights": "layer.{L}.mlp.down_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:down_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_30_ffn_residual",
+        "index": 30,
+        "op": "ffn_residual",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "residual",
+        "kernel": "residual.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:ffn_residual",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "a",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "b",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "postLayer_both_31_final_norm",
+        "index": 31,
+        "op": "final_norm",
+        "phase": "both",
+        "section": "postLayer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rmsnorm",
+        "kernel": "rmsnorm.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:c723c0300cc8f93396d79d1a274c0a90ccf1eb8ce82c0d778b8cd4659615fe45",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "both",
+          "workgroups": "symbolic:postLayer:both:final_norm",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "residual",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 5,
+              "name": "residual_sum_output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "postLayer_both_32_lm_head",
+        "index": 32,
+        "op": "lm_head",
+        "phase": "both",
+        "section": "postLayer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "lm_head_gemv",
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_multicol",
+        "kernelDigest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
+        "weights": "lm_head",
+        "constants": {
+          "MULTICOL_COLS_PER_WG": 64,
+          "MULTICOL_THREADS_PER_COL": 4
+        },
+        "precision": null,
+        "dispatch": {
+          "phase": "both",
+          "workgroups": "symbolic:postLayer:both:lm_head",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "postLayer_both_33_lm_head_prefill",
+        "index": 33,
+        "op": "lm_head_prefill",
+        "phase": "both",
+        "section": "postLayer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "tiled",
+        "kernel": "matmul_f16w_f32a_tiled.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c",
+        "weights": "lm_head",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "both",
+          "workgroups": "symbolic:postLayer:both:lm_head_prefill",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "postLayer_both_34_sample",
+        "index": 34,
+        "op": "sample",
+        "phase": "both",
+        "section": "postLayer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "sample",
+        "kernel": "sample.wgsl",
+        "entry": "sample_single_pass",
+        "kernelDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "both",
+          "workgroups": "symbolic:postLayer:both:sample",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "logits",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "topk_indices",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "topk_logits",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "captureProfile": {
+    "schema": "doppler.capture-profile/v1",
+    "deterministic": true,
+    "phases": [
+      "prefill",
+      "decode"
+    ],
+    "surfaces": [
+      "browser-webgpu"
+    ],
+    "adapter": {
+      "source": "reference-report",
+      "surface": null,
+      "deviceInfoHash": "sha256:6987e2ead1ba6db0ffd3eab229b21435261d6ef95162e93fa5954b43624a182c",
+      "deviceInfo": {
+        "hasSubgroups": true,
+        "hasSubgroupsF16": false,
+        "hasF16": true,
+        "hasTimestampQuery": true,
+        "maxBufferSize": 4294967292,
+        "maxWorkgroupSize": 1024,
+        "maxWorkgroupStorageSize": 65536,
+        "adapterInfo": {
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "device": "amd-radeon-graphics-radv-gfx1151-",
+          "description": "radv: Mesa 25.0.7-0ubuntu0.25.04.2"
+        }
+      }
+    },
+    "hashPolicy": {
+      "graph": "stable-json-sha256",
+      "dispatch": "stable-json-sha256",
+      "transcript": "stable-json-sha256"
+    },
+    "captureHash": "sha256:433710bfdda74d54452f94d1fcfa08ce0954f67e19cf327def84361575aa43d5"
+  },
+  "artifacts": [
+    {
+      "role": "conversion-config",
+      "path": "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json",
+      "hash": "sha256:f3e210f988bc2def3e0d454121a82e6a054269be989f296a89ba18047dc78460",
+      "sizeBytes": 8694
+    },
+    {
+      "role": "manifest",
+      "path": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
+      "hash": "sha256:219391bed08e6db6f9038e44dd5007af0ed3824317ece74863322f6b2c5cd346",
+      "sizeBytes": 71805
+    },
+    {
+      "role": "reference-report",
+      "path": "tests/fixtures/reports/gemma-3-270m-it-q4k-ehf16-af32/2026-03-18T13-33-38.973Z.json",
+      "hash": "sha256:7b043cc770f2ff7e16709d44e58d65b70831bfac362d2239ade00f65288585b1",
+      "sizeBytes": 42925
+    },
+    {
+      "role": "tokenizer",
+      "path": "models/local/gemma-3-270m-it-q4k-ehf16-af32/tokenizer.json",
+      "hash": "sha256:be6955513a2509d69d18e82180c2a477ad99358d15212fb81d957566d8186075",
+      "sizeBytes": 14386247
+    },
+    {
+      "role": "weight-shard",
+      "path": "models/local/gemma-3-270m-it-q4k-ehf16-af32/shard_00000.bin",
+      "hash": "sha256:93d8ad2033e7ec42376dafb41c1e89753d0ca40896835c6f012efe47dbdda6d1",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "models/local/gemma-3-270m-it-q4k-ehf16-af32/shard_00001.bin",
+      "hash": "sha256:7896aa344a3da4539cdb76bdbfec3a5f665da5e23d15d15ef9a3b0536ebcf3c5",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "models/local/gemma-3-270m-it-q4k-ehf16-af32/shard_00002.bin",
+      "hash": "sha256:ff2fc36d9b0008d734f0a82923d47db2383e5a5bae055172630e8ad93ad23ca5",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "models/local/gemma-3-270m-it-q4k-ehf16-af32/shard_00003.bin",
+      "hash": "sha256:6170b5f1376dbfe33a58de2603987abde826c0eb7318d6c0a1baa78cdf42f77b",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "models/local/gemma-3-270m-it-q4k-ehf16-af32/shard_00004.bin",
+      "hash": "sha256:5c8767e71c920596247b7ea3d0d55b45d6af4255757758dda6aedd907cfa3e2c",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "models/local/gemma-3-270m-it-q4k-ehf16-af32/shard_00005.bin",
+      "hash": "sha256:81ff27711b246ec27e3396871547e77f5e4d5d3d029357a66a8f547b6f32c015",
+      "sizeBytes": 63812864
+    }
+  ],
+  "referenceTranscript": {
+    "schema": "doppler.reference-transcript/v1",
+    "source": {
+      "kind": "browser-report",
+      "path": "tests/fixtures/reports/gemma-3-270m-it-q4k-ehf16-af32/2026-03-18T13-33-38.973Z.json",
+      "hash": "sha256:7b043cc770f2ff7e16709d44e58d65b70831bfac362d2239ade00f65288585b1"
+    },
+    "executionGraphHash": "sha256:b5daefb7cbcef7f67f81668a5c9385c91ff69fed3ee25e1dd9967e5725a7d8bb",
+    "surface": null,
+    "prompt": {
+      "identity": "The color of the sky is",
+      "hash": "sha256:c2912dd49373207ca1d000f8d1a9045103e23c881916136efdf95190a54893ff",
+      "tokenIdsHash": null,
+      "tokenCount": null
+    },
+    "output": {
+      "textHash": "sha256:d725ea07dc01cbd010348b646e1a82f42974519e4746183db7fa5cdddd8cd02d",
+      "tokensGenerated": 32,
+      "stopReason": "unknown",
+      "stopTokenId": null
+    },
+    "tokens": {
+      "generatedTokenIdsHash": "sha256:ef94c6a9a5b3f8f2e313eff7dc5a723e731648ff99539a05ae6f013c00ba9152",
+      "generatedTextHash": "sha256:d725ea07dc01cbd010348b646e1a82f42974519e4746183db7fa5cdddd8cd02d",
+      "preview": [
+        {
+          "id": 236777,
+          "text": "I",
+          "fallbackText": "I"
+        },
+        {
+          "id": 57428,
+          "text": " apologize",
+          "fallbackText": " apologize"
+        },
+        {
+          "id": 236764,
+          "text": ",",
+          "fallbackText": ","
+        },
+        {
+          "id": 840,
+          "text": " but",
+          "fallbackText": " but"
+        },
+        {
+          "id": 564,
+          "text": " I",
+          "fallbackText": " I"
+        },
+        {
+          "id": 3914,
+          "text": " cannot",
+          "fallbackText": " cannot"
+        },
+        {
+          "id": 6361,
+          "text": " assist",
+          "fallbackText": " assist"
+        },
+        {
+          "id": 607,
+          "text": " with",
+          "fallbackText": " with"
+        },
+        {
+          "id": 672,
+          "text": " this",
+          "fallbackText": " this"
+        },
+        {
+          "id": 2864,
+          "text": " request",
+          "fallbackText": " request"
+        },
+        {
+          "id": 236761,
+          "text": ".",
+          "fallbackText": "."
+        },
+        {
+          "id": 3551,
+          "text": " My",
+          "fallbackText": " My"
+        },
+        {
+          "id": 1873,
+          "text": " current",
+          "fallbackText": " current"
+        },
+        {
+          "id": 15858,
+          "text": " capabilities",
+          "fallbackText": " capabilities"
+        },
+        {
+          "id": 659,
+          "text": " are",
+          "fallbackText": " are"
+        },
+        {
+          "id": 5809,
+          "text": " limited",
+          "fallbackText": " limited"
+        },
+        {
+          "id": 531,
+          "text": " to",
+          "fallbackText": " to"
+        },
+        {
+          "id": 6655,
+          "text": " providing",
+          "fallbackText": " providing"
+        },
+        {
+          "id": 15136,
+          "text": " recommendations",
+          "fallbackText": " recommendations"
+        },
+        {
+          "id": 573,
+          "text": " for",
+          "fallbackText": " for"
+        },
+        {
+          "id": 15337,
+          "text": " clothing",
+          "fallbackText": " clothing"
+        },
+        {
+          "id": 532,
+          "text": " and",
+          "fallbackText": " and"
+        },
+        {
+          "id": 18684,
+          "text": " accessories",
+          "fallbackText": " accessories"
+        },
+        {
+          "id": 236761,
+          "text": ".",
+          "fallbackText": "."
+        },
+        {
+          "id": 564,
+          "text": " I",
+          "fallbackText": " I"
+        },
+        {
+          "id": 3914,
+          "text": " cannot",
+          "fallbackText": " cannot"
+        },
+        {
+          "id": 8729,
+          "text": " generate",
+          "fallbackText": " generate"
+        },
+        {
+          "id": 28233,
+          "text": " personalized",
+          "fallbackText": " personalized"
+        },
+        {
+          "id": 15136,
+          "text": " recommendations",
+          "fallbackText": " recommendations"
+        },
+        {
+          "id": 573,
+          "text": " for",
+          "fallbackText": " for"
+        },
+        {
+          "id": 506,
+          "text": " the",
+          "fallbackText": " the"
+        },
+        {
+          "id": 2258,
+          "text": " color",
+          "fallbackText": " color"
+        }
+      ],
+      "perStep": [
+        {
+          "index": 0,
+          "tokenId": 236777,
+          "tokenHash": "sha256:b29b86dc19651ed5626d5a28f88abad0d0248addfca4e5a3e93bbe5d593e30ca"
+        },
+        {
+          "index": 1,
+          "tokenId": 57428,
+          "tokenHash": "sha256:b101e76076309c058eb5decba8a0ded1f3927907cfc62d53bd2faa84162c65b9"
+        },
+        {
+          "index": 2,
+          "tokenId": 236764,
+          "tokenHash": "sha256:927df6b756679a9bc7570d946788a89f00a9d9a111cf87a4f62f1052d5922164"
+        },
+        {
+          "index": 3,
+          "tokenId": 840,
+          "tokenHash": "sha256:127a0c372abeb4ebe1f2c6fd2642e69b85eaf52e6af6c031ced78217b1628fe1"
+        },
+        {
+          "index": 4,
+          "tokenId": 564,
+          "tokenHash": "sha256:6e586ea7b91d31900d1eba4f94b457e17c7ff70c2423cda9357cfe6c52a06cf5"
+        },
+        {
+          "index": 5,
+          "tokenId": 3914,
+          "tokenHash": "sha256:7439d28c81bdc13fa335fde62864c089adf694fc30199303b42fab07993afd41"
+        },
+        {
+          "index": 6,
+          "tokenId": 6361,
+          "tokenHash": "sha256:e2ca270e02100dab03056294361292b7d2d38a903ba4053a4e05ee4a893a1d11"
+        },
+        {
+          "index": 7,
+          "tokenId": 607,
+          "tokenHash": "sha256:733b8cbe19b75495fbb51b83f020788ad3473eb29fe9d2067a8026a8d5317cb9"
+        },
+        {
+          "index": 8,
+          "tokenId": 672,
+          "tokenHash": "sha256:c98b168f9da641673e56e59d482eaecb855e213886f96ad32d992e56a5954a6d"
+        },
+        {
+          "index": 9,
+          "tokenId": 2864,
+          "tokenHash": "sha256:ac5999850f83fdd78c9a203e17af0b57d883f5512f588972cb1faf19d5c04617"
+        },
+        {
+          "index": 10,
+          "tokenId": 236761,
+          "tokenHash": "sha256:bfa7c9b96b945d5c807a1ef73be2cf16e2106b816df54635b353528bd92b2cc0"
+        },
+        {
+          "index": 11,
+          "tokenId": 3551,
+          "tokenHash": "sha256:1c2cbd3252423ddd9db8a5aebf69ea66efcdff9d55784ad8ee525c90485e78d8"
+        },
+        {
+          "index": 12,
+          "tokenId": 1873,
+          "tokenHash": "sha256:f60e5b229ae78d0d03a5057b71111634048a728c86eec64fe9bfa90f0000b1cc"
+        },
+        {
+          "index": 13,
+          "tokenId": 15858,
+          "tokenHash": "sha256:a9d614cc04463327738f2fc705e92dc784901ce46e79b678f7283572836f3ec2"
+        },
+        {
+          "index": 14,
+          "tokenId": 659,
+          "tokenHash": "sha256:27c1f0c868a51510da179992573ff459f05d526056adcd0e7fc759b95858b5ec"
+        },
+        {
+          "index": 15,
+          "tokenId": 5809,
+          "tokenHash": "sha256:d6af2711fc8e4f2d9a494ec1684ac8d240fa90985b5ccca53b6ba8b7b5665f87"
+        },
+        {
+          "index": 16,
+          "tokenId": 531,
+          "tokenHash": "sha256:0867ba1914c749a51d24ed2310f360dfbcb53d0ce5c00dc9782ca5db8626e929"
+        },
+        {
+          "index": 17,
+          "tokenId": 6655,
+          "tokenHash": "sha256:f926f0e09c8d66a3290f9b698af0d47068ed576a06b85df9b9f24d5335630fc9"
+        },
+        {
+          "index": 18,
+          "tokenId": 15136,
+          "tokenHash": "sha256:32dc4de39843d2b7f454559b0d1ad8e814e4cf5c77a052842fde9b9a2fbae1b2"
+        },
+        {
+          "index": 19,
+          "tokenId": 573,
+          "tokenHash": "sha256:f508ef54da3000a480ae13b4e0e9eebc4a2dff7782fa2c736ef8d5fbd74ed3af"
+        },
+        {
+          "index": 20,
+          "tokenId": 15337,
+          "tokenHash": "sha256:c14e4cfa1477153829f04b451888fa4ad01e8641a80621e2b80d81c4fec543ab"
+        },
+        {
+          "index": 21,
+          "tokenId": 532,
+          "tokenHash": "sha256:45d341a6b3b5e9f1c6085a1605155e3e35abcb9a4920da77f8053c8833e2fc69"
+        },
+        {
+          "index": 22,
+          "tokenId": 18684,
+          "tokenHash": "sha256:21d1dfe38ea07f23332f4f6ff3d389e1baed90be38868448e4cc5b6c7da1c149"
+        },
+        {
+          "index": 23,
+          "tokenId": 236761,
+          "tokenHash": "sha256:3eaffde62f5041261245f1ff60d5ca1f1ff0aa31b157c6f31ed4c1f1ccc9f1a1"
+        },
+        {
+          "index": 24,
+          "tokenId": 564,
+          "tokenHash": "sha256:6e9bf15481972a3b4804931bf0f087e2b45e4dc021e443e6200e1f5de31b6d19"
+        },
+        {
+          "index": 25,
+          "tokenId": 3914,
+          "tokenHash": "sha256:ccf804868beae62c8fd63a3422d83a453e8a90a8646310b1af58666a6e02aa50"
+        },
+        {
+          "index": 26,
+          "tokenId": 8729,
+          "tokenHash": "sha256:4d97313d45266badb323f4e21ad13e87e14b5ad6b6f15165e901f1baa78993d9"
+        },
+        {
+          "index": 27,
+          "tokenId": 28233,
+          "tokenHash": "sha256:07b10e76d0344b7446542695f0ca81853b7cd7dfa8c22e17da5fb68ef1965d87"
+        },
+        {
+          "index": 28,
+          "tokenId": 15136,
+          "tokenHash": "sha256:6db25231a0fe99b6bead132c54a4662568283550ac6e0ee92eb89f6edd002a23"
+        },
+        {
+          "index": 29,
+          "tokenId": 573,
+          "tokenHash": "sha256:a2ccd4df12146e74100428d37991cb3907f09e39e2bf8aabb34b3109899ef635"
+        },
+        {
+          "index": 30,
+          "tokenId": 506,
+          "tokenHash": "sha256:19010f462005cd9dad300ba504c25eb2864b2521cb46e0a318eef75ef69f5ace"
+        },
+        {
+          "index": 31,
+          "tokenId": 2258,
+          "tokenHash": "sha256:6363ef627af8be5f6b0158423ebad5bf8af201f224ada63fb99ac0600e8b7a34"
+        }
+      ],
+      "coverage": {
+        "mode": "complete-preview",
+        "omitted": 0
+      }
+    },
+    "phase": {
+      "prefillMs": 135.49,
+      "decodeMs": 702.48,
+      "prefillTokens": 15,
+      "decodeTokens": 32
+    },
+    "kvCache": {
+      "mode": "not-captured",
+      "layout": null,
+      "kvDtype": null,
+      "seqLen": null,
+      "maxSeqLen": null,
+      "usedBytes": null,
+      "allocatedBytes": null,
+      "counters": null,
+      "stateHash": "sha256:55d1446adf15f0619d5990f331d0c09db7d759840647e21411e7aba9934df5ec"
+    },
+    "logits": {
+      "mode": "not-captured",
+      "reason": "Browser reports do not persist per-step logits digests yet.",
+      "perStepDigests": null
+    },
+    "tolerance": {
+      "tokenPolicy": "exact generated token IDs when a full-token transcript is present; preview IDs are diagnostic only",
+      "logitsPolicy": "not captured in current browser report fixtures"
+    }
+  }
+}

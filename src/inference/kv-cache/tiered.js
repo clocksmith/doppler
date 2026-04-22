@@ -598,6 +598,8 @@ export class TieredKVCache {
       seqLen: this.currentSeqLen,
       maxSeqLen: this.maxSeqLen,
       layout: 'paged',
+      kvDtype: this.coldDtype,
+      counters: null,
     };
     return {
       theoretical: hotStats.theoretical + coldStats.theoretical,
@@ -607,6 +609,11 @@ export class TieredKVCache {
       seqLen: this.currentSeqLen,
       maxSeqLen: this.maxSeqLen,
       layout: this.layout,
+      kvDtype: this.kvDtype,
+      counters: {
+        hot: hotStats.counters ?? null,
+        cold: coldStats.counters ?? null,
+      },
       hot: hotStats,
       cold: coldStats,
     };

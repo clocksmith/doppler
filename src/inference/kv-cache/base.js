@@ -63,6 +63,13 @@ export class KVCache {
     
     this.totalTokensSeen = 0;
 
+    this.counters = {
+      updateCalls: 0,
+      gpuUpdateCalls: 0,
+      recordedGpuUpdateCalls: 0,
+      tokensWritten: 0,
+    };
+
     // Memory usage tracking
     
     this.memoryUsage = 0;
@@ -322,6 +329,8 @@ export class KVCache {
     if (numNewTokens === 0) {
       return;
     }
+    this.counters.updateCalls += 1;
+    this.counters.tokensWritten += numNewTokens;
 
     if (startPos + numNewTokens > this.maxSeqLen) {
       throw new Error(
@@ -362,6 +371,8 @@ export class KVCache {
     if (numTokens === 0) {
       return;
     }
+    this.counters.gpuUpdateCalls += 1;
+    this.counters.tokensWritten += numTokens;
 
     const layer =  (this.layers[layerIdx]);
     const device = getDevice();
@@ -420,6 +431,8 @@ export class KVCache {
     if (numTokens === 0) {
       return;
     }
+    this.counters.recordedGpuUpdateCalls += 1;
+    this.counters.tokensWritten += numTokens;
 
     const encoder = recorder.getEncoder();
     const layer =  (this.layers[layerIdx]);
@@ -820,7 +833,9 @@ export class KVCache {
       efficiency: used / actual,
       seqLen: this.currentSeqLen,
       maxSeqLen: this.maxSeqLen,
-      layout: this.layout
+      layout: this.layout,
+      kvDtype: this.kvDtype,
+      counters: { ...this.counters }
     };
   }
 

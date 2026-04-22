@@ -28,7 +28,7 @@ Add a new weight quantization format from conversion through runtime execution.
 1. Define the manifest and converter vocabulary for the new format.
 2. Implement converter-side quantization info and emitted bytes.
 3. Implement loader-side interpretation and runtime kernel support.
-4. Add or update kernel-path configs and conversion configs.
+4. Add or update conversion execution graphs and configs.
 5. Add reference tests for conversion and dequant behavior.
 6. Run one real convert plus debug or verify pass with a model that uses the new format.
 
@@ -42,7 +42,7 @@ Add a new weight quantization format from conversion through runtime execution.
 
 - Adding the manifest string without teaching the loader and runtime how to consume it.
 - Emitting incomplete `quantizationInfo` metadata.
-- Reusing an existing kernel path whose assumptions do not match the new format.
+- Reusing an existing execution graph whose assumptions do not match the new format.
 - Verifying byte layout only, without checking actual model output.
 - Forgetting browser verification when the runtime path depends on WebGPU kernels.
 

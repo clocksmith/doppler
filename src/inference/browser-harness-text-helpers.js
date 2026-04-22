@@ -1006,6 +1006,12 @@ function buildGenerationPhaseFromStats(pipeline, durationMs, tokenCount) {
   const stats = typeof pipeline?.getStats === 'function'
     ? (pipeline.getStats() || {})
     : {};
+  const memoryStats = typeof pipeline?.getMemoryStats === 'function'
+    ? (pipeline.getMemoryStats() || {})
+    : {};
+  const kvMemory = memoryStats.kvCache && typeof memoryStats.kvCache === 'object'
+    ? memoryStats.kvCache
+    : null;
   const prefillMs = Number.isFinite(stats.prefillTimeMs) ? stats.prefillTimeMs : 0;
   const ttftMs = Number.isFinite(stats.ttftMs) ? stats.ttftMs : prefillMs;
   const decodeMs = Number.isFinite(stats.decodeTimeMs) ? stats.decodeTimeMs : 0;
@@ -1102,8 +1108,21 @@ function buildGenerationPhaseFromStats(pipeline, durationMs, tokenCount) {
         : null,
       decodeMode: stats.decodeMode ?? null,
       batchGuardReason: stats.batchGuardReason ?? null,
+      stopReason: stats.stopReason ?? null,
+      stopTokenId: Number.isInteger(stats.stopTokenId) ? stats.stopTokenId : null,
       batching: batchingPhase,
       plePreparedTokenCache: plePreparedTokenCachePhase,
+      kvCache: kvMemory
+        ? {
+          layout: kvMemory.layout ?? null,
+          kvDtype: kvMemory.kvDtype ?? null,
+          seqLen: Number.isFinite(kvMemory.seqLen) ? kvMemory.seqLen : null,
+          maxSeqLen: Number.isFinite(kvMemory.maxSeqLen) ? kvMemory.maxSeqLen : null,
+          usedBytes: Number.isFinite(kvMemory.used) ? kvMemory.used : null,
+          allocatedBytes: Number.isFinite(kvMemory.allocated) ? kvMemory.allocated : null,
+          counters: kvMemory.counters ?? null,
+        }
+        : null,
       executionPlan: stats.executionPlan ?? null,
       kernelPathId: stats.kernelPathId ?? null,
       operatorDiagnostics: stats.operatorDiagnostics ?? null,
