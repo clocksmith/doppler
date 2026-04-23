@@ -17,6 +17,8 @@ Non-RDRR note:
 - Direct-source runtime bundles are constructed through `src/tooling/source-artifact-adapter.js` and `src/tooling/source-runtime-bundle.js` as runtime-model contracts. `bundle.manifest` remains a compatibility alias for older callers, but `bundle.model` is the source of truth.
 - Supported raw-source inputs today are `safetensors`, `gguf`, `.tflite`, `.task`, and `.litertlm`.
 - Direct-source inputs are currently an experimental subsystem tier. See [subsystem-support-matrix.md](subsystem-support-matrix.md) for the public support contract.
+- Promotion of `safetensors`/`gguf` into additional canonical proof lanes is
+  tracked separately in [direct-source-proof-lanes.md](direct-source-proof-lanes.md).
 - Direct-source manifests preserve source artifact storage facts. They do not accept converter-style quantization overrides; requantization requires a real convert step that emits a new RDRR artifact.
 - `.tflite` / raw-TFLite `.task` direct-source support requires sibling `config.json` model metadata.
 - Packed LiteRT-LM companion-tensor quantization still fails closed until a dedicated adapter exists.

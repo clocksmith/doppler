@@ -15,6 +15,8 @@ Primary documentation index.
 - [Config](config.md) - kernel paths, config behavior, and runtime contract notes.
 - [CLI Reference](cli.md) - command flags, config inputs, surface selection, and examples.
 - [RDRR Format](rdrr-format.md) - runtime artifact spec.
+- [Direct-source proof lanes](direct-source-proof-lanes.md) - phased promotion
+  plan for `safetensors` and `gguf` as additional canonical proof lanes.
 - [LoRA Format](lora-format.md) - adapter manifest spec.
 - [Conversion Runtime Contract](conversion-runtime-contract.md) - conversion-static vs runtime-overridable ownership.
 - [Model Promotion Playbook](model-promotion-playbook.md) - canonical sync workflow for repo metadata, external-volume RDRR artifacts, and Hugging Face hosting.

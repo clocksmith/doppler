@@ -1,3 +1,4 @@
+import { createReadStream } from 'node:fs';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -167,7 +168,7 @@ function normalizeWorkerTransformResult(result, tensor) {
   };
 }
 
-const MAX_NODE_CONVERT_BUFFER_BYTES = 0xffff_ffff;
+const MAX_NODE_CONVERT_BUFFER_BYTES = Math.min(Buffer.kMaxLength, 0x7fff_ffff);
 
 function resolveRowChunkTransformPlan(input) {
   const tensor = input?.tensor;
@@ -545,6 +546,7 @@ async function resolveGgufPathFromDirectory(inputDir) {
 
 function createFileRangeReader() {
   const handleMap = new Map();
+  const maxNodeFdReadInt32 = 0x7fff_ffff;
 
   async function getHandleEntry(filePath) {
     const existingPromise = handleMap.get(filePath);
@@ -586,6 +588,25 @@ function createFileRangeReader() {
       const end = Math.min(entry.size, start + Math.floor(length));
       if (end <= start) {
         return new ArrayBuffer(0);
+      }
+
+      if (start > maxNodeFdReadInt32 || (end - start) > maxNodeFdReadInt32) {
+        const chunks = [];
+        let totalBytes = 0;
+        await new Promise((resolve, reject) => {
+          const stream = createReadStream(filePath, {
+            start,
+            end: end - 1,
+          });
+          stream.on('data', (chunk) => {
+            chunks.push(chunk);
+            totalBytes += chunk.byteLength;
+          });
+          stream.on('end', resolve);
+          stream.on('error', reject);
+        });
+        const out = Buffer.concat(chunks, totalBytes);
+        return out.buffer.slice(out.byteOffset, out.byteOffset + out.byteLength);
       }
 
       const out = Buffer.allocUnsafe(end - start);

@@ -1832,7 +1832,7 @@ export function createManifest(
 // Main Converter (uses I/O adapter)
 // ============================================================================
 
-const MAX_TENSOR_TYPED_ARRAY_BYTES = 0xffff_ffff;
+const MAX_TENSOR_TYPED_ARRAY_BYTES = Math.min(Buffer.kMaxLength, 0x7fff_ffff);
 
 export async function convertModel(model, io, options = {}) {
   const { onProgress, signal } = options;

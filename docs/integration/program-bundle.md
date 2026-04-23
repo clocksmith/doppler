@@ -19,7 +19,8 @@ The Program Bundle is Doppler's portable model-program artifact for downstream
 execution backends such as Doe/Cerebras. It names a constrained Doppler program
 made from:
 
-- an RDRR manifest
+- a materialized `manifest.json` for either an `RDRR` artifact or a persisted
+  direct-source artifact
 - the manifest-owned execution-v1 graph
 - the reachable WGSL kernel closure
 - declared JS host entrypoints
@@ -80,6 +81,33 @@ The bundle must be closed: no hidden imports, no implicit kernels, no
 runtime-discovered shader strings, and no undeclared model behavior.
 Unsupported features must reject early when `unsupportedFeaturePolicy` is
 `fail`; there is no downgrade from portable program to best-effort capture.
+
+## Direct-source manifests
+
+Program Bundle v1 stays manifest-first even when the source artifact began life
+as `safetensors`, `gguf`, or another direct-source format.
+
+For a persisted direct-source artifact:
+
+- `sources.manifest.hash` still names the exact materialized `manifest.json`;
+- raw source-file identity enters through `manifest.metadata.sourceRuntime` and
+  the declared artifact set, not through an undeclared raw-file side channel;
+- `sources.executionGraph.hash` and `execution.steps` still come from the
+  normalized execution-v1 graph, not from source-format-specific runtime
+  assumptions.
+
+For proof-grade direct-source bundles, the materialized manifest must carry
+portable source-runtime identity:
+
+- `metadata.sourceRuntime.pathSemantics` must be `artifact-relative`;
+- `metadata.sourceRuntime.sourceFiles[]` and `auxiliaryFiles[]` must carry
+  complete digest coverage;
+- tokenizer/config assets required for replay must be declared through the same
+  materialized-manifest contract.
+
+If a direct-source input still depends on `runtime-local` paths, incomplete
+digests, or loader-only assumptions that do not survive the materialized
+manifest, it is not yet a portable Program Bundle source.
 
 ## Authoring Sources
 
