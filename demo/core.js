@@ -1,4 +1,11 @@
-import { getRuntimeConfig, captureMemorySnapshot } from 'doppler-gpu/tooling';
+import {
+  getRuntimeConfig,
+  captureMemorySnapshot,
+  buildReferenceTranscriptSeed,
+  resolveExecutionGraphHash,
+  captureKvCacheByteProof,
+  digestLogitsForTranscript,
+} from 'doppler-gpu/tooling';
 import { state } from './ui/state.js';
 import { getSettings } from './settings.js';
 import { getPrompt, setGenerating, setRunEnabled } from './input.js';
@@ -12,7 +19,7 @@ import {
   showTokenPress,
   setFinalStats,
 } from './output.js';
-import { setExportEnabled } from './report.js';
+import { setExportEnabled, setTranscriptExportEnabled } from './report.js';
 import { createTokenPress } from './ui/token-press/index.js';
 import { createTokenPressSession } from './ui/token-press/bridge.js';
 import { buildTokenTraceRecord, summarizePerplexityRecords } from './ui/token-press/metrics.js';
@@ -42,8 +49,22 @@ function resetGenerationTelemetry() {
   state.lastRun = null;
   state.lastInferenceStats = null;
   state.lastMemoryStats = null;
+  state.lastReferenceTranscript = null;
   if (isXrayEnabled()) {
     resetXray();
+  }
+}
+
+function resolvePromptTokenIdsFromPipeline(pipeline, prompt) {
+  if (!pipeline?.tokenizer || typeof pipeline.tokenizer.encode !== 'function') {
+    return null;
+  }
+  try {
+    const ids = pipeline.tokenizer.encode(prompt);
+    if (!Array.isArray(ids)) return null;
+    return ids.map((value) => Number(value)).filter((value) => Number.isInteger(value));
+  } catch {
+    return null;
   }
 }
 
@@ -130,6 +151,9 @@ async function runPlainGeneration(pipeline, prompt, settings, tokens) {
   setPhase('Prefill');
   setPrefillProgress(10);
   const runStart = performance.now();
+  const captureEnabled = state.captureTranscriptEnabled === true;
+  const captureTokenIds = [];
+  const captureLogitsDigests = [];
   const generationOptions = {
     temperature: settings.temperature,
     topK: settings.topK,
@@ -140,6 +164,18 @@ async function runPlainGeneration(pipeline, prompt, settings, tokens) {
   };
   if (isXrayProfilingNeeded()) {
     generationOptions.profile = true;
+  }
+  if (captureEnabled) {
+    generationOptions.disableCommandBatching = true;
+    generationOptions.onToken = (tokenId) => {
+      if (Number.isInteger(tokenId)) captureTokenIds.push(tokenId);
+    };
+    generationOptions.onLogits = (logits, context) => {
+      captureLogitsDigests.push(digestLogitsForTranscript(logits, {
+        ...context,
+        index: captureLogitsDigests.length,
+      }));
+    };
   }
   let firstTokenAt = 0;
   let stepCount = 0;
@@ -209,6 +245,56 @@ async function runPlainGeneration(pipeline, prompt, settings, tokens) {
       tooltipRecords: 0,
     },
   };
+
+  if (captureEnabled) {
+    await finalizeReferenceTranscript(pipeline, {
+      prompt,
+      tokenIds: captureTokenIds,
+      logitsDigests: captureLogitsDigests,
+      output: tokens.map((t) => t.text).join(''),
+      prefillMs,
+      decodeMs,
+      totalTokens,
+    });
+  }
+}
+
+async function finalizeReferenceTranscript(pipeline, run) {
+  try {
+    const manifest = pipeline?.manifest ?? pipeline?.modelConfig?.manifest ?? null;
+    const executionGraphHash = resolveExecutionGraphHash(manifest);
+    const kvCacheByteProof = await captureKvCacheByteProof(pipeline, true);
+    const promptTokenIds = resolvePromptTokenIdsFromPipeline(pipeline, run.prompt);
+    const seedRun = {
+      prompt: run.prompt,
+      promptInput: run.prompt,
+      promptTokenIds,
+      tokenIds: run.tokenIds,
+      tokenDiagnostics: null,
+      logitsDigests: run.logitsDigests,
+      kvCacheByteProof,
+      output: run.output,
+      phase: {
+        prefillMs: run.prefillMs,
+        decodeMs: run.decodeMs,
+        prefillTokens: promptTokenIds ? promptTokenIds.length : null,
+        decodeTokens: run.totalTokens,
+        stopReason: 'max_tokens_or_eos',
+        kvCache: pipeline?.kvCache ?? null,
+      },
+    };
+    const transcript = buildReferenceTranscriptSeed(seedRun, {
+      executionGraphHash,
+      kvCache: pipeline?.kvCache ?? null,
+    });
+    state.lastReferenceTranscript = transcript;
+    setTranscriptExportEnabled(true);
+  } catch (err) {
+    state.lastReferenceTranscript = null;
+    setTranscriptExportEnabled(false);
+    // Capture is best-effort — surface errors through UI rather than crashing the run.
+    setPhase(`Transcript capture failed: ${err.message}`);
+  }
 }
 
 async function runWithTokenPress(pipeline, prompt, settings, tokens) {

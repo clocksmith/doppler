@@ -42,11 +42,32 @@ export function exportReport() {
   downloadJSON(report, name);
 }
 
+export function exportReferenceTranscript() {
+  const transcript = state.lastReferenceTranscript;
+  if (!transcript) return;
+  const modelId = state.modelId || 'run';
+  const name = `doppler-reference-transcript-${modelId}-${Date.now()}.json`;
+  downloadJSON(transcript, name);
+}
+
 export function setExportEnabled(enabled) {
   const btn = $('export-btn');
   if (btn) btn.disabled = !enabled;
 }
 
+export function setTranscriptExportEnabled(enabled) {
+  const btn = $('export-transcript-btn');
+  if (btn) btn.disabled = !enabled;
+}
+
 export function initReport() {
   $('export-btn')?.addEventListener('click', exportReport);
+  $('export-transcript-btn')?.addEventListener('click', exportReferenceTranscript);
+  const captureToggle = $('capture-transcript-toggle');
+  if (captureToggle) {
+    captureToggle.checked = state.captureTranscriptEnabled === true;
+    captureToggle.addEventListener('change', (e) => {
+      state.captureTranscriptEnabled = e.target.checked === true;
+    });
+  }
 }

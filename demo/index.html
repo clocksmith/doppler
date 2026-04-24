@@ -362,6 +362,11 @@
     <!-- Report -->
     <div class="report-bar">
       <button id="export-btn" class="btn btn-ghost" disabled>Export JSON</button>
+      <button id="export-transcript-btn" class="btn btn-ghost" disabled title="Export a doppler.reference-transcript/v1 receipt for the last run. Capture must be enabled before running.">Export Reference Transcript</button>
+      <label class="report-bar-toggle">
+        <input id="capture-transcript-toggle" type="checkbox" />
+        <span>Capture reference transcript (per-step logits + KV bytes)</span>
+      </label>
     </div>
 
     <section id="translate-compare-shell" hidden>

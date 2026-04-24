@@ -135,4 +135,8 @@ export const state = {
   distillWorkloadsLoading: false,
   distillWorkloadsError: null,
   distillLastReplay: null,
+
+  // Reference-transcript capture state — toggled from the report bar.
+  captureTranscriptEnabled: false,
+  lastReferenceTranscript: null,
 };
