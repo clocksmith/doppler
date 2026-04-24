@@ -256,7 +256,7 @@ function hashStableJson(value) {
   return `sha256:${sha256Hex(stableJson(value))}`;
 }
 
-function resolveExecutionGraphHash(manifest) {
+export function resolveExecutionGraphHash(manifest) {
   const execution = manifest?.inference?.execution;
   if (!execution || typeof execution !== 'object') {
     return null;
@@ -294,7 +294,7 @@ function buildKvCacheTranscriptSeed(kvCache, byteProof = null) {
   };
 }
 
-function buildReferenceTranscriptSeed(run, context = {}) {
+export function buildReferenceTranscriptSeed(run, context = {}) {
   const promptPayload = run.promptInput ?? run.prompt ?? null;
   const outputText = typeof run.output === 'string' ? run.output : '';
   const tokenIds = Array.isArray(run.tokenIds)

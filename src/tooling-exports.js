@@ -10,6 +10,9 @@ export {
   writeProgramBundle,
   loadProgramBundle,
   checkProgramBundleFile,
+  exportReferenceReceipt,
+  writeReferenceReceipt,
+  REFERENCE_RECEIPT_SCHEMA_ID,
 } from './tooling/program-bundle.js';
 export {
   PROGRAM_BUNDLE_PARITY_SCHEMA_ID,

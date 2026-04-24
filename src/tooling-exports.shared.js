@@ -46,6 +46,17 @@ export {
   applyRuntimeProfile,
 } from './inference/browser-harness-runtime-helpers.js';
 
+// Reference-transcript capture helpers — used by demo and verify flows to emit
+// doppler.reference-transcript/v1 seeds without depending on the full harness.
+export {
+  buildReferenceTranscriptSeed,
+  resolveExecutionGraphHash,
+} from './inference/browser-harness.js';
+export {
+  captureKvCacheByteProof,
+  digestLogitsForTranscript,
+} from './inference/browser-harness-text-helpers.js';
+
 // Shared command contract (browser + CLI parity)
 export {
   TOOLING_COMMANDS,

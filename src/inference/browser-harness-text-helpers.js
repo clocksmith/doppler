@@ -130,7 +130,7 @@ function shouldEnableReferenceTranscriptDiagnostics(runOverrides, runtimeConfig)
     || referenceConfig?.captureKvBytes === true;
 }
 
-function digestLogitsForTranscript(logits, context) {
+export function digestLogitsForTranscript(logits, context) {
   if (!(logits instanceof Float32Array)) {
     throw new Error('reference transcript logits capture requires Float32Array logits.');
   }
@@ -191,7 +191,7 @@ async function digestKvLayerBytes(layer, layerIdx, kvCache) {
   throw new Error(`reference transcript KV byte capture unsupported for layer ${layerIdx}.`);
 }
 
-async function captureKvCacheByteProof(pipeline, enabled) {
+export async function captureKvCacheByteProof(pipeline, enabled) {
   if (!enabled) return null;
   const kvCache = pipeline?.kvCache ?? null;
   if (!kvCache || !Array.isArray(kvCache.layers)) {

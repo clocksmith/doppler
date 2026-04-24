@@ -867,3 +867,142 @@ export function createProgramBundleCliDefaults(metaUrl) {
     repoRoot: path.resolve(path.dirname(fileURLToPath(metaUrl)), '..'),
   };
 }
+
+export const REFERENCE_RECEIPT_SCHEMA_ID = 'doppler.reference-receipt/v1';
+
+function requireTranscriptField(value, label) {
+  if (value === undefined || value === null) {
+    throw new Error(`reference receipt: ${label} is required on the referenceTranscript input.`);
+  }
+  return value;
+}
+
+function normalizeReferenceTranscriptInput(referenceTranscript, executionGraphHash) {
+  requirePlainObject(referenceTranscript, 'referenceTranscript');
+  if (referenceTranscript.schema !== PROGRAM_BUNDLE_REFERENCE_TRANSCRIPT_SCHEMA_ID) {
+    throw new Error(
+      `reference receipt: referenceTranscript.schema must be "${PROGRAM_BUNDLE_REFERENCE_TRANSCRIPT_SCHEMA_ID}".`
+    );
+  }
+  requirePlainObject(referenceTranscript.prompt, 'referenceTranscript.prompt');
+  requirePlainObject(referenceTranscript.output, 'referenceTranscript.output');
+  requirePlainObject(referenceTranscript.tokens, 'referenceTranscript.tokens');
+  const graphHashInTranscript = requireTranscriptField(
+    referenceTranscript.executionGraphHash,
+    'executionGraphHash'
+  );
+  if (graphHashInTranscript !== executionGraphHash) {
+    throw new Error(
+      `reference receipt: referenceTranscript.executionGraphHash (${graphHashInTranscript}) ` +
+      `does not match manifest executionGraphHash (${executionGraphHash}).`
+    );
+  }
+  return referenceTranscript;
+}
+
+function buildWeightSetHashFromManifest(manifest) {
+  const shards = manifest?.rdrr?.shards;
+  if (!Array.isArray(shards) || shards.length === 0) return null;
+  const normalized = shards
+    .map((shard) => ({
+      filename: String(shard?.filename ?? shard?.path ?? ''),
+      hash: String(shard?.hash ?? shard?.sha256 ?? ''),
+      size: Number.isFinite(shard?.size) ? Number(shard.size) : null,
+    }))
+    .filter((entry) => entry.filename && entry.hash);
+  if (normalized.length === 0) return null;
+  normalized.sort((left, right) => left.filename.localeCompare(right.filename));
+  return hashStableJson(normalized);
+}
+
+function resolveReferenceReceiptOptions(options = {}) {
+  const repoRoot = path.resolve(options.repoRoot || process.cwd());
+  const manifestPath = options.manifestPath
+    ? path.resolve(options.manifestPath)
+    : (options.modelDir ? path.resolve(options.modelDir, 'manifest.json') : null);
+  if (!manifestPath) {
+    throw new Error('reference receipt: manifestPath or modelDir is required.');
+  }
+  const referenceTranscriptPath = options.referenceTranscriptPath
+    ? path.resolve(options.referenceTranscriptPath)
+    : null;
+  const referenceTranscript = options.referenceTranscript ?? null;
+  if (!referenceTranscriptPath && !referenceTranscript) {
+    throw new Error('reference receipt: referenceTranscriptPath or referenceTranscript is required.');
+  }
+  return {
+    ...options,
+    repoRoot,
+    manifestPath,
+    referenceTranscriptPath,
+    referenceTranscript,
+  };
+}
+
+export async function exportReferenceReceipt(options = {}) {
+  const resolved = resolveReferenceReceiptOptions(options);
+  const { raw: manifestRaw, json: manifest } = await readJsonFile(resolved.manifestPath, 'manifest');
+  requirePlainObject(manifest, 'manifest');
+  const modelId = requireString(manifest.modelId, 'manifest.modelId');
+  const execution = manifest.inference?.execution;
+  requirePlainObject(execution, 'manifest.inference.execution');
+
+  const expandedSteps = expandExecutionV1(execution);
+  const executionGraphHash = hashStableJson(execution);
+  const expandedStepHash = hashStableJson(expandedSteps);
+
+  let transcript = resolved.referenceTranscript;
+  let transcriptSourcePath = null;
+  if (!transcript) {
+    const { json } = await readJsonFile(resolved.referenceTranscriptPath, 'reference transcript');
+    transcript = json;
+    transcriptSourcePath = toRepoRelativePath(resolved.referenceTranscriptPath, resolved.repoRoot);
+  }
+  const normalizedTranscript = normalizeReferenceTranscriptInput(transcript, executionGraphHash);
+
+  const manifestArtifact = {
+    path: toRepoRelativePath(resolved.manifestPath, resolved.repoRoot),
+    hash: `sha256:${sha256Hex(manifestRaw)}`,
+    sizeBytes: Buffer.byteLength(manifestRaw),
+  };
+
+  const weightSetHash = buildWeightSetHashFromManifest(manifest);
+
+  const receipt = {
+    schema: REFERENCE_RECEIPT_SCHEMA_ID,
+    receiptId:
+      resolved.receiptId
+      || `${modelId}-${executionGraphHash.slice('sha256:'.length, 'sha256:'.length + 12)}`,
+    modelId,
+    createdAtUtc: resolved.createdAtUtc || new Date().toISOString(),
+    sources: {
+      manifest: manifestArtifact,
+      executionGraph: {
+        schema: manifest.inference?.schema ?? null,
+        hash: executionGraphHash,
+        expandedStepHash,
+      },
+      weightSetHash,
+      referenceTranscript: transcriptSourcePath
+        ? { path: transcriptSourcePath }
+        : { path: null },
+    },
+    referenceTranscript: normalizedTranscript,
+  };
+
+  return receipt;
+}
+
+export async function writeReferenceReceipt(options = {}) {
+  const outputPath = options.outputPath ? path.resolve(options.outputPath) : null;
+  if (!outputPath) {
+    throw new Error('reference receipt: outputPath is required.');
+  }
+  const receipt = await exportReferenceReceipt(options);
+  await fs.mkdir(path.dirname(outputPath), { recursive: true });
+  await fs.writeFile(outputPath, `${JSON.stringify(receipt, null, 2)}\n`, 'utf8');
+  return {
+    outputPath,
+    receipt,
+  };
+}
