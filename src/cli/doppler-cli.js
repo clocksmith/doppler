@@ -85,6 +85,8 @@ function usage() {
     '  doppler reference-receipt --config <path|json>',
     '  doppler reference-receipt --manifest <path> --reference-transcript <path> --out <path>',
     '  doppler intake --convert-config <path|json> [--manifest <path>] [--out <intake-report.json>]',
+    '  doppler bundle --manifest <path> --out <dir> [--prompt <text>] [--max-tokens <n>] [--surface node|browser]',
+    '  doppler bundle --convert-config <path|json> --out <dir>',
     '',
     'Flags:',
     '  --config <path|url|json>        Required command config payload (file path, URL, or JSON object string).',
@@ -139,6 +141,8 @@ function parseArgs(argv) {
       || key === 'pretty'
       || key === 'help'
       || key === 'h'
+      || key === 'skip-convert'
+      || key === 'skip-capture'
     ) {
       out.flags[key] = true;
       continue;
@@ -266,6 +270,34 @@ function validateIntakeFlags(parsed) {
   for (const key of Object.keys(parsed.flags || {})) {
     if (allowedFlags.has(key)) continue;
     throw new Error(`Unknown flag --${key} for "intake".`);
+  }
+}
+
+function validateBundleFlags(parsed) {
+  const allowedFlags = new Set([
+    'convert-config',
+    'manifest',
+    'model-dir',
+    'model-url',
+    'conversion-config',
+    'prompt',
+    'max-tokens',
+    'surface',
+    'runtime-config',
+    'out',
+    'bundle-id',
+    'receipt-id',
+    'created-at',
+    'skip-convert',
+    'skip-capture',
+    'pretty',
+    'json',
+    'help',
+    'h',
+  ]);
+  for (const key of Object.keys(parsed.flags || {})) {
+    if (allowedFlags.has(key)) continue;
+    throw new Error(`Unknown flag --${key} for "bundle".`);
   }
 }
 
@@ -452,19 +484,20 @@ async function runProgramBundleCommand(parsed, jsonOutput) {
 
 const INTAKE_SCHEMA_ID = 'doppler.intake-report/v1';
 
-async function runIntakeCommand(parsed, jsonOutput) {
+export async function performIntake({
+  convertConfigValue = null,
+  manifestFlag = null,
+  modelDir = null,
+  skipConvert = false,
+} = {}) {
   const { extractExecutionContractFacts, validateExecutionContractFacts } = await import(
     '../config/execution-contract-check.js'
   );
   const fsMod = await import('node:fs/promises');
-  const convertConfigValue = asStringOrNull(parsed.flags['convert-config']);
-  const manifestFlag = asStringOrNull(parsed.flags.manifest);
-  const modelDir = asStringOrNull(parsed.flags['model-dir']);
-  const skipConvert = parsed.flags['skip-convert'] === true
-    || String(parsed.flags['skip-convert'] ?? '').toLowerCase() === 'true';
 
   const stages = [];
   const blockers = [];
+  let manifest = null;
 
   let manifestPath = null;
   if (manifestFlag) {
@@ -520,7 +553,7 @@ async function runIntakeCommand(parsed, jsonOutput) {
     stages.push({ stage: 'manifest_load', status: 'starting' });
     try {
       const raw = await fsMod.readFile(manifestPath, 'utf8');
-      const manifest = JSON.parse(raw);
+      manifest = JSON.parse(raw);
       stages[stages.length - 1] = {
         stage: 'manifest_load',
         status: 'succeeded',
@@ -580,6 +613,19 @@ async function runIntakeCommand(parsed, jsonOutput) {
     createdAtUtc: new Date().toISOString(),
   };
 
+  return { report, manifestPath, manifest };
+}
+
+async function runIntakeCommand(parsed, jsonOutput) {
+  const fsMod = await import('node:fs/promises');
+  const { report } = await performIntake({
+    convertConfigValue: asStringOrNull(parsed.flags['convert-config']),
+    manifestFlag: asStringOrNull(parsed.flags.manifest),
+    modelDir: asStringOrNull(parsed.flags['model-dir']),
+    skipConvert: parsed.flags['skip-convert'] === true
+      || String(parsed.flags['skip-convert'] ?? '').toLowerCase() === 'true',
+  });
+
   const outputPath = asStringOrNull(parsed.flags.out);
   if (outputPath) {
     const resolved = path.resolve(outputPath);
@@ -591,10 +637,10 @@ async function runIntakeCommand(parsed, jsonOutput) {
   if (jsonOutput) {
     console.log(JSON.stringify(report, null, 2));
   } else if (report.ok) {
-    console.log(`[ok] intake passed (${stages.length} stages, 0 blockers)`);
+    console.log(`[ok] intake passed (${report.stages.length} stages, 0 blockers)`);
   } else {
-    console.log(`[fail] intake found ${blockers.length} blocker(s):`);
-    for (const b of blockers) {
+    console.log(`[fail] intake found ${report.blockers.length} blocker(s):`);
+    for (const b of report.blockers) {
       console.log(`  - [${b.stage}] ${b.code}: ${b.message}`);
     }
   }
@@ -642,6 +688,235 @@ async function runReferenceReceiptCommand(parsed, jsonOutput) {
     `[ok] wrote ${summary.outputPath} ` +
     `(modelId=${summary.modelId}, tokens=${summary.tokensGenerated}, stopReason=${summary.stopReason})`
   );
+}
+
+const BUNDLE_SUMMARY_SCHEMA_ID = 'doppler.bundle-summary/v1';
+const DEFAULT_BUNDLE_PROMPT = 'The color of the sky is';
+const DEFAULT_BUNDLE_MAX_TOKENS = 8;
+
+async function runBundleCommand(parsed, jsonOutput) {
+  const {
+    runReferenceCapture,
+    extractReferenceReport,
+    extractReferenceTranscriptSeed,
+    writeReferenceReport,
+    writeReferenceTranscript,
+    normalizeModelUrl,
+  } = await import('../tooling/reference-verify.js');
+  const { writeProgramBundle, writeReferenceReceipt } = await import('../tooling/program-bundle.js');
+  const fsMod = await import('node:fs/promises');
+
+  const outDir = asStringOrNull(parsed.flags.out);
+  if (!outDir) {
+    throw new Error('bundle: --out <dir> is required.');
+  }
+  const skipCapture = parsed.flags['skip-capture'] === true
+    || String(parsed.flags['skip-capture'] ?? '').toLowerCase() === 'true';
+  const resolvedOut = path.resolve(outDir);
+  await fsMod.mkdir(resolvedOut, { recursive: true });
+
+  const repoRoot = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
+  const stages = [];
+  const blockers = [];
+  const artifactPaths = {};
+
+  stages.push({ stage: 'intake', status: 'starting' });
+  const intakeResult = await performIntake({
+    convertConfigValue: asStringOrNull(parsed.flags['convert-config']),
+    manifestFlag: asStringOrNull(parsed.flags.manifest),
+    modelDir: asStringOrNull(parsed.flags['model-dir']),
+    skipConvert: parsed.flags['skip-convert'] === true
+      || String(parsed.flags['skip-convert'] ?? '').toLowerCase() === 'true',
+  });
+  const intakeReportPath = path.join(resolvedOut, 'intake-report.json');
+  await fsMod.writeFile(intakeReportPath, `${JSON.stringify(intakeResult.report, null, 2)}\n`, 'utf8');
+  artifactPaths.intakeReport = path.relative(process.cwd(), intakeReportPath);
+  if (!intakeResult.report.ok) {
+    stages[stages.length - 1] = { stage: 'intake', status: 'failed', blockers: intakeResult.report.blockers };
+    blockers.push(...intakeResult.report.blockers.map((b) => ({ ...b, stage: `intake:${b.stage}` })));
+    return emitBundleSummary({ ok: false, stages, blockers, artifactPaths, jsonOutput, resolvedOut });
+  }
+  stages[stages.length - 1] = {
+    stage: 'intake',
+    status: 'succeeded',
+    manifestPath: intakeResult.manifestPath,
+    modelId: intakeResult.manifest?.modelId ?? null,
+  };
+
+  const manifestPath = intakeResult.manifestPath;
+  const manifest = intakeResult.manifest;
+  const modelDirResolved = asStringOrNull(parsed.flags['model-dir'])
+    ? path.resolve(asStringOrNull(parsed.flags['model-dir']))
+    : path.dirname(manifestPath);
+  const modelId = manifest?.modelId ?? null;
+  if (!modelId) {
+    blockers.push({ stage: 'bundle', code: 'missing_model_id', message: 'manifest.modelId is required for bundle composition.' });
+    return emitBundleSummary({ ok: false, stages, blockers, artifactPaths, jsonOutput, resolvedOut });
+  }
+
+  const referenceReportPath = path.join(resolvedOut, 'reference-report.json');
+  const referenceTranscriptPath = path.join(resolvedOut, 'reference-transcript.json');
+
+  if (!skipCapture) {
+    stages.push({ stage: 'capture', status: 'starting' });
+    try {
+      const surface = asStringOrNull(parsed.flags.surface) ?? 'browser';
+      const modelUrl = normalizeModelUrl(asStringOrNull(parsed.flags['model-url']), modelDirResolved);
+      const maxTokensRaw = asStringOrNull(parsed.flags['max-tokens']);
+      const maxTokens = maxTokensRaw == null ? DEFAULT_BUNDLE_MAX_TOKENS : Number(maxTokensRaw);
+      if (!Number.isFinite(maxTokens) || maxTokens <= 0) {
+        throw new Error('--max-tokens must be a positive number.');
+      }
+      const response = await runReferenceCapture({
+        manifest,
+        modelId,
+        modelUrl,
+        surface,
+        prompt: asStringOrNull(parsed.flags.prompt) ?? DEFAULT_BUNDLE_PROMPT,
+        maxTokens,
+        runtimeConfig: asStringOrNull(parsed.flags['runtime-config']),
+        repoRoot,
+      });
+      const report = extractReferenceReport(response);
+      await writeReferenceReport(report, referenceReportPath);
+      artifactPaths.referenceReport = path.relative(process.cwd(), referenceReportPath);
+      const transcript = extractReferenceTranscriptSeed(report);
+      await writeReferenceTranscript(transcript, referenceTranscriptPath);
+      artifactPaths.referenceTranscript = path.relative(process.cwd(), referenceTranscriptPath);
+      stages[stages.length - 1] = {
+        stage: 'capture',
+        status: 'succeeded',
+        surface,
+        tokensGenerated: transcript.output?.tokensGenerated ?? null,
+        stopReason: transcript.output?.stopReason ?? null,
+      };
+    } catch (error) {
+      stages[stages.length - 1] = {
+        stage: 'capture',
+        status: 'failed',
+        error: error?.message || String(error),
+      };
+      blockers.push({ stage: 'capture', code: 'capture_failed', message: error?.message || String(error) });
+      return emitBundleSummary({ ok: false, stages, blockers, artifactPaths, jsonOutput, resolvedOut });
+    }
+  } else {
+    stages.push({ stage: 'capture', status: 'skipped' });
+    const preExistingReport = asStringOrNull(parsed.flags['reference-report']);
+    const preExistingTranscript = asStringOrNull(parsed.flags['reference-transcript']);
+    if (preExistingReport) artifactPaths.referenceReport = preExistingReport;
+    if (preExistingTranscript) artifactPaths.referenceTranscript = preExistingTranscript;
+    if (!preExistingReport || !preExistingTranscript) {
+      blockers.push({
+        stage: 'capture',
+        code: 'skip_capture_requires_artifacts',
+        message: 'bundle: --skip-capture requires existing --reference-report and --reference-transcript paths.',
+      });
+      return emitBundleSummary({ ok: false, stages, blockers, artifactPaths, jsonOutput, resolvedOut });
+    }
+  }
+
+  stages.push({ stage: 'bundle', status: 'starting' });
+  try {
+    const bundleOutputPath = path.join(resolvedOut, 'program-bundle.json');
+    const bundleResult = await writeProgramBundle({
+      repoRoot,
+      manifestPath,
+      modelDir: modelDirResolved,
+      referenceReportPath: artifactPaths.referenceReport
+        ? path.resolve(artifactPaths.referenceReport)
+        : referenceReportPath,
+      conversionConfigPath: asStringOrNull(parsed.flags['conversion-config']),
+      outputPath: bundleOutputPath,
+      bundleId: asStringOrNull(parsed.flags['bundle-id']),
+      createdAtUtc: asStringOrNull(parsed.flags['created-at']),
+    });
+    artifactPaths.programBundle = path.relative(process.cwd(), bundleResult.outputPath);
+    stages[stages.length - 1] = {
+      stage: 'bundle',
+      status: 'succeeded',
+      bundleId: bundleResult.bundle.bundleId,
+      executionGraphHash: bundleResult.bundle.sources.executionGraph.hash,
+      artifactCount: bundleResult.bundle.artifacts.length,
+      wgslModuleCount: bundleResult.bundle.wgslModules.length,
+    };
+  } catch (error) {
+    stages[stages.length - 1] = {
+      stage: 'bundle',
+      status: 'failed',
+      error: error?.message || String(error),
+    };
+    blockers.push({ stage: 'bundle', code: 'bundle_export_failed', message: error?.message || String(error) });
+    return emitBundleSummary({ ok: false, stages, blockers, artifactPaths, jsonOutput, resolvedOut });
+  }
+
+  stages.push({ stage: 'receipt', status: 'starting' });
+  try {
+    const receiptOutputPath = path.join(resolvedOut, 'reference-receipt.json');
+    const receiptResult = await writeReferenceReceipt({
+      repoRoot,
+      manifestPath,
+      modelDir: modelDirResolved,
+      referenceTranscriptPath: artifactPaths.referenceTranscript
+        ? path.resolve(artifactPaths.referenceTranscript)
+        : referenceTranscriptPath,
+      outputPath: receiptOutputPath,
+      receiptId: asStringOrNull(parsed.flags['receipt-id']),
+      createdAtUtc: asStringOrNull(parsed.flags['created-at']),
+    });
+    artifactPaths.referenceReceipt = path.relative(process.cwd(), receiptResult.outputPath);
+    stages[stages.length - 1] = {
+      stage: 'receipt',
+      status: 'succeeded',
+      receiptId: receiptResult.receipt.receiptId,
+      executionGraphHash: receiptResult.receipt.sources.executionGraph.hash,
+      tokensGenerated: receiptResult.receipt.referenceTranscript?.output?.tokensGenerated ?? null,
+      stopReason: receiptResult.receipt.referenceTranscript?.output?.stopReason ?? null,
+    };
+  } catch (error) {
+    stages[stages.length - 1] = {
+      stage: 'receipt',
+      status: 'failed',
+      error: error?.message || String(error),
+    };
+    blockers.push({ stage: 'receipt', code: 'receipt_write_failed', message: error?.message || String(error) });
+    return emitBundleSummary({ ok: false, stages, blockers, artifactPaths, jsonOutput, resolvedOut });
+  }
+
+  return emitBundleSummary({ ok: true, stages, blockers, artifactPaths, jsonOutput, resolvedOut });
+}
+
+async function emitBundleSummary({ ok, stages, blockers, artifactPaths, jsonOutput, resolvedOut }) {
+  const fsMod = await import('node:fs/promises');
+  const summary = {
+    schema: BUNDLE_SUMMARY_SCHEMA_ID,
+    ok,
+    stages,
+    blockers,
+    artifactPaths,
+    outputDir: path.relative(process.cwd(), resolvedOut),
+    createdAtUtc: new Date().toISOString(),
+  };
+  const summaryPath = path.join(resolvedOut, 'bundle-summary.json');
+  await fsMod.writeFile(summaryPath, `${JSON.stringify(summary, null, 2)}\n`, 'utf8');
+  summary.summaryPath = path.relative(process.cwd(), summaryPath);
+
+  if (jsonOutput) {
+    console.log(JSON.stringify(summary, null, 2));
+  } else if (ok) {
+    console.log(`[ok] bundle composed under ${summary.outputDir} (${stages.length} stages)`);
+    for (const [key, value] of Object.entries(artifactPaths)) {
+      console.log(`  - ${key}: ${value}`);
+    }
+  } else {
+    console.log(`[fail] bundle composition stopped with ${blockers.length} blocker(s):`);
+    for (const b of blockers) {
+      console.log(`  - [${b.stage}] ${b.code}: ${b.message}`);
+    }
+  }
+  if (!ok) {
+    process.exitCode = 1;
+  }
+  return summary;
 }
 
 function resolveCommandConfigFlag(parsed) {
@@ -1214,6 +1489,11 @@ async function main() {
     if (parsed.command === 'intake') {
       validateIntakeFlags(parsed);
       await runIntakeCommand(parsed, parsed.flags.pretty !== true);
+      return;
+    }
+    if (parsed.command === 'bundle') {
+      validateBundleFlags(parsed);
+      await runBundleCommand(parsed, parsed.flags.pretty !== true);
       return;
     }
     validateCommandFlags(parsed);
