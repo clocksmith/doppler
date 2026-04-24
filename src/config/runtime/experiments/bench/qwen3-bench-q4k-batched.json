@@ -31,7 +31,7 @@
         "batchSize": 4,
         "maxTokens": 256,
         "stopCheckMode": "batch",
-        "readbackInterval": 64,
+        "readbackInterval": 8,
         "readbackMode": "sequential",
         "ringTokens": 1,
         "ringStop": 1,
@@ -41,7 +41,7 @@
         "decodeLoop": {
           "batchSize": 4,
           "stopCheckMode": "batch",
-          "readbackInterval": 64,
+          "readbackInterval": 8,
           "readbackMode": "sequential",
           "ringTokens": 1,
           "ringStop": 1,
