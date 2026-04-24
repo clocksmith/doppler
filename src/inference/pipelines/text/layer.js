@@ -132,6 +132,13 @@ export function resolveAttentionRotaryDim(config, layerType) {
   return config.ropeRotaryDim;
 }
 
+export function resolveAttentionFrequencyBaseDim(config, layerType) {
+  if (isSlidingLayerType(layerType)) {
+    return config.ropeLocalFrequencyBaseDim ?? resolveAttentionRotaryDim(config, layerType);
+  }
+  return config.ropeFrequencyBaseDim ?? config.ropeRotaryDim;
+}
+
 export function resolveAttentionHeadDim(config, layerType) {
   if (isSlidingLayerType(layerType)) {
     return config.headDim;
@@ -211,7 +218,7 @@ export function hasPerLayerInputBlock(config) {
   return Number.isFinite(hiddenSizePerLayerInput) && hiddenSizePerLayerInput > 0;
 }
 
-function resolveLayerScalarValue(layerScalar) {
+export function resolveLayerScalarValue(layerScalar) {
   if (layerScalar == null) {
     return 1;
   }
@@ -226,6 +233,16 @@ function resolveLayerScalarValue(layerScalar) {
     throw new Error(`Gemma 4 layer_scalar must be finite; got "${String(layerScalar[0])}".`);
   }
   return value;
+}
+
+export async function applyLayerScalar(layerIdx, tensor, size, context, layerWeights) {
+  const layerScalar = resolveLayerScalarValue(layerWeights?.layerScalar ?? null);
+  if (layerScalar === 1) {
+    return tensor;
+  }
+  return context.recorder
+    ? recordScale(context.recorder, tensor, layerScalar, { count: size })
+    : runScale(tensor, layerScalar, { count: size });
 }
 
 async function debugLayerTensor(context, layerIdx, label, tensor, numTokens, hiddenSize) {
@@ -363,19 +380,6 @@ export async function applyPerLayerInputBlock(layerIdx, hiddenTensor, numTokens,
     });
     releaseOrTrack(recorder, normalizedTensor.buffer, decodeBuffers);
     normalizedTensor = null;
-
-    const layerScalar = resolveLayerScalarValue(layerWeights.layerScalar);
-    if (layerScalar !== 1) {
-      const scaledOutputTensor = recorder
-        ? await recordScale(recorder, outputTensor, layerScalar, {
-          count: size,
-        })
-        : await runScale(outputTensor, layerScalar, {
-          count: size,
-        });
-      releaseOrTrack(recorder, outputTensor.buffer, decodeBuffers);
-      outputTensor = scaledOutputTensor;
-    }
 
     await runProbes('post_per_layer_input', outputTensor.buffer, {
       layerIdx,
@@ -631,6 +635,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
         : null,
       rmsNormWeightOffset: config.rmsNormWeightOffset,
       ropeRotaryDim: resolveAttentionRotaryDim(config, layerType),
+      ropeFrequencyBaseDim: resolveAttentionFrequencyBaseDim(config, layerType),
       ropeInterleaved: config.ropeInterleaved,
       tokenIds: context.currentTokenIds ?? null,
       kernelPath: context.kernelPath ?? null,
@@ -835,6 +840,11 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       recorder
     );
     releaseOrTrack(recorder, outputTensor.buffer, context.decodeBuffers);
+  }
+  const scaledOutput = await applyLayerScalar(layerIdx, finalOutput, size, context, layerWeights);
+  if (scaledOutput.buffer !== finalOutput.buffer) {
+    releaseOrTrack(recorder, finalOutput.buffer, context.decodeBuffers);
+    finalOutput = scaledOutput;
   }
   await debugLayerTensor(context, layerIdx, 'final layer output', finalOutput, numTokens, hiddenSize);
 

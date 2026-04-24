@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 const { compileExecutionV1 } = await import('../../src/inference/pipelines/text/execution-v1.js');
 
@@ -88,5 +89,42 @@ assert.throws(
   }),
   /capability transforms required/
 );
+
+const gemma3Config = JSON.parse(
+  readFileSync('src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json', 'utf8')
+);
+
+const gemma3NoF16 = compileExecutionV1({
+  manifestInference: {
+    ...gemma3Config.inference,
+    schema: 'doppler.execution/v1',
+    session: gemma3Config.session,
+    execution: gemma3Config.execution,
+  },
+  modelId: 'gemma-3-1b-it-q4k-ehf16-af32',
+  numLayers: 26,
+  headDim: 256,
+  capabilities: {
+    hasSubgroups: false,
+    hasF16: false,
+    hasSubgroupsF16: false,
+  },
+  platform: {
+    id: 'test-gpu',
+    vendor: 'test',
+    architecture: 'test',
+  },
+  kernelPathPolicy: {
+    mode: 'capability-aware',
+    sourceScope: ['manifest', 'model'],
+    onIncompatible: 'remap',
+  },
+});
+
+const gemma3DecodeAttention = gemma3NoF16.runtimeInferencePatch.kernelPath.decode.steps.find(
+  (step) => step.op === 'attention'
+);
+assert.equal(gemma3DecodeAttention?.kernel, 'attention_streaming.wgsl');
+assert.equal(gemma3DecodeAttention?.entry, 'main');
 
 console.log('execution-v1-capability-policy.test: ok');

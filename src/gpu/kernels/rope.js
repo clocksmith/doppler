@@ -17,18 +17,27 @@ async function _rope(target, input, freqsCos, freqsSin, seqLen, options = {}) {
     numHeads = 1,
     headDim = 64,
     rotaryDim = headDim,
+    pairSpanDim = rotaryDim,
     interleaved = false,
     ropeTheta = ropeDefaults.defaultTheta,
   } = options;
 
-  if (headDim % 2 !== 0) {
+  if (!Number.isFinite(headDim) || headDim % 2 !== 0) {
     throw new Error(`RoPE headDim must be even, got ${headDim}`);
   }
-  if (rotaryDim % 2 !== 0) {
+  if (!Number.isFinite(rotaryDim) || rotaryDim % 2 !== 0) {
     throw new Error(`RoPE rotaryDim must be even, got ${rotaryDim}`);
   }
   if (rotaryDim <= 0 || rotaryDim > headDim) {
     throw new Error(`RoPE rotaryDim must be in (0, headDim]; got ${rotaryDim} for headDim ${headDim}`);
+  }
+  if (!Number.isFinite(pairSpanDim) || pairSpanDim % 2 !== 0) {
+    throw new Error(`RoPE pairSpanDim must be even, got ${pairSpanDim}`);
+  }
+  if (pairSpanDim < rotaryDim || pairSpanDim > headDim) {
+    throw new Error(
+      `RoPE pairSpanDim must be in [rotaryDim, headDim]; got ${pairSpanDim} for rotaryDim ${rotaryDim} and headDim ${headDim}`
+    );
   }
 
   const caps = getKernelCapabilities();
@@ -70,6 +79,7 @@ async function _rope(target, input, freqsCos, freqsSin, seqLen, options = {}) {
       rope_base: ropeTheta,
       rope_scale: 1.0,
       interleaved: interleaved ? 1 : 0,
+      pair_span_dim: pairSpanDim,
     },
     workgroups
   );

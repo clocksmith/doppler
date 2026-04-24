@@ -496,6 +496,7 @@ export async function runLayerAttentionGPU(
       numHeads,
       headDim,
       rotaryDim: config.ropeRotaryDim,
+      pairSpanDim: config.ropeFrequencyBaseDim ?? config.ropeRotaryDim,
       interleaved: config.ropeInterleaved,
       startPos: currentSeqLen,
       executionPolicies: state.executionPolicies ?? null,
@@ -505,6 +506,7 @@ export async function runLayerAttentionGPU(
         numHeads: numKVHeads,
         headDim,
         rotaryDim: config.ropeRotaryDim,
+        pairSpanDim: config.ropeFrequencyBaseDim ?? config.ropeRotaryDim,
         interleaved: config.ropeInterleaved,
         startPos: currentSeqLen,
         executionPolicies: state.executionPolicies ?? null,
@@ -846,6 +848,14 @@ export async function runLayerAttentionGPU(
   }
 
   attnOutput = await runAttentionKernel();
+  await runProbes('attn_core_out', attnOutput.buffer, {
+    layerIdx,
+    numTokens,
+    hiddenSize: numHeads * headDim,
+    probes: state.debugProbes,
+    operatorDiagnostics: state.operatorDiagnostics,
+    dtype: attnOutput.dtype,
+  });
 
   // Trace attention output
   if (kernelTrace.enabled) {

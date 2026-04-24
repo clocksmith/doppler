@@ -38,7 +38,7 @@ function applyQwenTemplate(prompt, options) {
 }
 
 function applyGemma4Template(prompt) {
-  return `<bos><|turn>user\n${prompt}<turn|>\n<|turn>model\n`;
+  return `<bos><|turn>user\n${prompt}<turn|>\n<|turn>model\n<|channel>thought\n<channel|>`;
 }
 
 function applyTranslateGemmaTemplate() {

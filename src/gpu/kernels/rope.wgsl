@@ -33,6 +33,10 @@ struct Uniforms {
     rope_scale: f32,       // Scaling factor for extended context
     rotary_dim: u32,       // Rotary slice within head_dim
     interleaved: u32,      // 1 = adjacent pairs, 0 = rotate-half
+    pair_span_dim: u32,    // Rotate-half partner span within head_dim
+    _pad0: u32,
+    _pad1: u32,
+    _pad2: u32,
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -47,11 +51,11 @@ fn get_first_rotary_idx(pair_idx: u32) -> u32 {
     return pair_idx;
 }
 
-fn get_second_rotary_idx(pair_idx: u32, head_dim: u32) -> u32 {
+fn get_second_rotary_idx(pair_idx: u32, pair_span_dim: u32) -> u32 {
     if (u.interleaved == 1u) {
         return pair_idx * 2u + 1u;
     }
-    return pair_idx + (head_dim / 2u);
+    return pair_idx + (pair_span_dim / 2u);
 }
 
 // Apply RoPE using precomputed frequencies
@@ -88,7 +92,7 @@ fn main(
 
     let base_idx = pos * num_heads * head_dim + head_idx * head_dim;
     let first_idx = get_first_rotary_idx(pair_idx);
-    let second_idx = get_second_rotary_idx(pair_idx, head_dim);
+    let second_idx = get_second_rotary_idx(pair_idx, u.pair_span_dim);
     let x0 = input[base_idx + first_idx];
     let x1 = input[base_idx + second_idx];
 
@@ -113,6 +117,7 @@ fn rope_compute_freqs(
     let rope_base = u.rope_base;
     let rope_scale = u.rope_scale;
     let rotary_dim = u.rotary_dim;
+    let pair_span_dim = u.pair_span_dim;
 
     let idx = global_id.x;
     let half_dim = rotary_dim / 2u;
@@ -131,7 +136,7 @@ fn rope_compute_freqs(
     let actual_pos = f32(start_pos + pos) / rope_scale;
 
     // Compute frequency: 1 / (base^(2*pair_idx/head_dim))
-    let exponent = f32(pair_idx * 2u) / f32(rotary_dim);
+    let exponent = f32(pair_idx * 2u) / f32(pair_span_dim);
     let freq = 1.0 / pow(rope_base, exponent);
     let theta = actual_pos * freq;
 
@@ -140,7 +145,7 @@ fn rope_compute_freqs(
 
     let base_idx = pos * num_heads * head_dim + head_idx * head_dim;
     let first_idx = get_first_rotary_idx(pair_idx);
-    let second_idx = get_second_rotary_idx(pair_idx, head_dim);
+    let second_idx = get_second_rotary_idx(pair_idx, pair_span_dim);
     let x0 = input[base_idx + first_idx];
     let x1 = input[base_idx + second_idx];
 
@@ -162,6 +167,7 @@ fn rope_qk(
     let rope_base = u.rope_base;
     let rope_scale = u.rope_scale;
     let rotary_dim = u.rotary_dim;
+    let pair_span_dim = u.pair_span_dim;
 
     let idx = global_id.x;
     // Each thread handles one Q-K pair at one dimension pair
@@ -180,7 +186,7 @@ fn rope_qk(
     let actual_pos = f32(start_pos + pos) / rope_scale;
 
     // Compute frequency
-    let exponent = f32(pair_idx * 2u) / f32(rotary_dim);
+    let exponent = f32(pair_idx * 2u) / f32(pair_span_dim);
     let freq = 1.0 / pow(rope_base, exponent);
     let theta = actual_pos * freq;
 
@@ -193,7 +199,7 @@ fn rope_qk(
 
     // Process Q
     let first_idx = get_first_rotary_idx(pair_idx);
-    let second_idx = get_second_rotary_idx(pair_idx, head_dim);
+    let second_idx = get_second_rotary_idx(pair_idx, pair_span_dim);
     let q0 = input[q_base_idx + first_idx];
     let q1 = input[q_base_idx + second_idx];
     input[q_base_idx + first_idx] = q0 * cos_val - q1 * sin_val;
@@ -217,6 +223,7 @@ fn precompute_freqs(
     let rope_base = u.rope_base;
     let rope_scale = u.rope_scale;
     let rotary_dim = u.rotary_dim;
+    let pair_span_dim = u.pair_span_dim;
 
     let idx = global_id.x;
     let half_dim = rotary_dim / 2u;
@@ -230,7 +237,7 @@ fn precompute_freqs(
     let dim_idx = idx % half_dim;
 
     let actual_pos = f32(pos) / rope_scale;
-    let exponent = f32(dim_idx * 2u) / f32(rotary_dim);
+    let exponent = f32(dim_idx * 2u) / f32(pair_span_dim);
     let freq = 1.0 / pow(rope_base, exponent);
     let theta = actual_pos * freq;
 
@@ -251,6 +258,7 @@ fn rope_ntk_scaled(
     let start_pos = u.start_pos;
     var rope_base = u.rope_base;
     let rope_scale = u.rope_scale;
+    let pair_span_dim = u.pair_span_dim;
 
     let idx = global_id.x;
     let half_dim = rotary_dim / 2u;
@@ -262,7 +270,7 @@ fn rope_ntk_scaled(
 
     // NTK scaling: increase base proportionally to scale factor
     // This preserves high-frequency components better than linear interpolation
-    rope_base = rope_base * pow(rope_scale, f32(rotary_dim) / (f32(rotary_dim) - 2.0));
+    rope_base = rope_base * pow(rope_scale, f32(pair_span_dim) / (f32(pair_span_dim) - 2.0));
 
     let pos = idx / (num_heads * half_dim);
     let remainder = idx % (num_heads * half_dim);
@@ -271,7 +279,7 @@ fn rope_ntk_scaled(
 
     let actual_pos = f32(start_pos + pos);
 
-    let exponent = f32(pair_idx * 2u) / f32(rotary_dim);
+    let exponent = f32(pair_idx * 2u) / f32(pair_span_dim);
     let freq = 1.0 / pow(rope_base, exponent);
     let theta = actual_pos * freq;
 
@@ -280,7 +288,7 @@ fn rope_ntk_scaled(
 
     let base_idx = pos * num_heads * head_dim + head_idx * head_dim;
     let first_idx = get_first_rotary_idx(pair_idx);
-    let second_idx = get_second_rotary_idx(pair_idx, head_dim);
+    let second_idx = get_second_rotary_idx(pair_idx, pair_span_dim);
     let x0 = input[base_idx + first_idx];
     let x1 = input[base_idx + second_idx];
 
@@ -301,6 +309,7 @@ fn rope_yarn(
     let start_pos = u.start_pos;
     let rope_base = u.rope_base;
     let rope_scale = u.rope_scale;
+    let pair_span_dim = u.pair_span_dim;
 
     let idx = global_id.x;
     let half_dim = rotary_dim / 2u;
@@ -323,7 +332,7 @@ fn rope_yarn(
     let alpha: f32 = YARN_ALPHA;
 
     // Compute original frequency
-    let exponent = f32(pair_idx * 2u) / f32(rotary_dim);
+    let exponent = f32(pair_idx * 2u) / f32(pair_span_dim);
     let orig_freq = 1.0 / pow(rope_base, exponent);
 
     // Compute wavelength
@@ -331,8 +340,8 @@ fn rope_yarn(
 
     // Interpolation factor based on wavelength
     var ramp: f32;
-    let low_wavelength = f32(rotary_dim) / beta_fast;
-    let high_wavelength = f32(rotary_dim) / beta_slow;
+    let low_wavelength = f32(pair_span_dim) / beta_fast;
+    let high_wavelength = f32(pair_span_dim) / beta_slow;
 
     if (wavelength < low_wavelength) {
         ramp = 0.0;  // No interpolation for high frequencies
@@ -352,7 +361,7 @@ fn rope_yarn(
 
     let base_idx = pos * num_heads * head_dim + head_idx * head_dim;
     let first_idx = get_first_rotary_idx(pair_idx);
-    let second_idx = get_second_rotary_idx(pair_idx, head_dim);
+    let second_idx = get_second_rotary_idx(pair_idx, pair_span_dim);
     let x0 = input[base_idx + first_idx];
     let x1 = input[base_idx + second_idx];
 

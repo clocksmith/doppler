@@ -13,8 +13,24 @@ function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
+function stripUndefined(value) {
+  if (Array.isArray(value)) {
+    return value.map(stripUndefined);
+  }
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+  const output = {};
+  for (const key of Object.keys(value).sort()) {
+    if (value[key] !== undefined) {
+      output[key] = stripUndefined(value[key]);
+    }
+  }
+  return output;
+}
+
 function hashJson(value) {
-  return `sha256:${crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex')}`;
+  return `sha256:${crypto.createHash('sha256').update(JSON.stringify(stripUndefined(value))).digest('hex')}`;
 }
 
 function phaseStepGroups(execution, phase) {
@@ -34,6 +50,22 @@ function assertLargeWeights(largeWeights, label) {
     LARGE_WEIGHT_OVERRIDES,
     `${label}: embed_tokens must stay GPU-resident`
   );
+}
+
+function assertGemma4AttentionContract(attention, label) {
+  assert.equal(attention?.queryPreAttnScalar, 1, `${label}: Gemma 4 31B attention must use unit logit scale`);
+}
+
+function assertGemma4ArchitectureContract(architecture, label) {
+  assert.equal(architecture?.numGlobalKeyValueHeads, 4, `${label}: full-attention layers must use 4 global KV heads`);
+  assert.equal(architecture?.globalHeadDim, 512, `${label}: full-attention layers must use head_dim=512`);
+}
+
+function assertGemma4RoPEContract(rope, label) {
+  assert.equal(rope?.partialRotaryFactor, 0.25, `${label}: full-attention p-RoPE factor`);
+  assert.equal(rope?.ropeLocalPartialRotaryFactor, null, `${label}: sliding attention must use full RoPE`);
+  assert.equal(rope?.ropeFrequencyBaseDim, 512, `${label}: full-attention proportional RoPE base dim`);
+  assert.equal(rope?.ropeLocalFrequencyBaseDim, null, `${label}: sliding attention must use standard RoPE frequencies`);
 }
 
 function assertQ4FusedKernelRefs(execution, label) {
@@ -72,9 +104,20 @@ function assertGemma31BExecutionGraph(execution, label) {
   assertProjectionPath(execution, 'prefill', 'q4_widetile', label);
 }
 
+function assertGemma31BLayerScalars(manifest) {
+  for (let layerIdx = 0; layerIdx < 60; layerIdx++) {
+    assert.ok(
+      manifest.tensors?.[`model.language_model.layers.${layerIdx}.layer_scalar`],
+      `local manifest: layer ${layerIdx} layer_scalar tensor must be present`
+    );
+  }
+}
+
 const conversionConfig = readJson(CONFIG_PATH);
 
 assertLargeWeights(conversionConfig.largeWeights, 'conversion config');
+assertGemma4AttentionContract(conversionConfig.inference?.attention, 'conversion config');
+assertGemma4RoPEContract(conversionConfig.inference?.rope, 'conversion config');
 assertGemma31BExecutionGraph(conversionConfig.execution, 'conversion config');
 assert.equal(
   conversionConfig.manifest?.artifactIdentity?.manifestVariantId,
@@ -84,8 +127,12 @@ assert.equal(
 
 if (fs.existsSync(MANIFEST_PATH)) {
   const manifest = readJson(MANIFEST_PATH);
+  assertGemma4ArchitectureContract(manifest.architecture, 'local manifest');
   assertLargeWeights(manifest.inference?.largeWeights, 'local manifest');
+  assertGemma4AttentionContract(manifest.inference?.attention, 'local manifest');
+  assertGemma4RoPEContract(manifest.inference?.rope, 'local manifest');
   assertGemma31BExecutionGraph(manifest.inference?.execution, 'local manifest');
+  assertGemma31BLayerScalars(manifest);
   assert.equal(
     manifest.artifactIdentity?.manifestVariantId,
     conversionConfig.manifest?.artifactIdentity?.manifestVariantId,

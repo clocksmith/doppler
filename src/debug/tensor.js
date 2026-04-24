@@ -212,7 +212,7 @@ export const tensor = {
   },
 };
 
-export async function snapshotTensor(buffer, shape, dtype = 'f32') {
+export async function snapshotTensor(buffer, shape, dtype = 'f32', options = {}) {
   try {
     if (
       !gpuDevice
@@ -241,7 +241,7 @@ export async function snapshotTensor(buffer, shape, dtype = 'f32') {
     staging.unmap();
     staging.destroy();
     const arr = decodeSnapshotData(data, dtype);
-    return snapshotFromArray(arr, shape ?? [arr.length], dtype);
+    return snapshotFromArray(arr, shape ?? [arr.length], dtype, options);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     return {
@@ -257,11 +257,14 @@ export async function snapshotTensor(buffer, shape, dtype = 'f32') {
   }
 }
 
-export function snapshotFromArray(arr, shape, dtype = 'f32') {
+export function snapshotFromArray(arr, shape, dtype = 'f32', options = {}) {
   const numElements = shape.reduce((a, b) => a * b, 1);
   const stats = computeArrayStats(arr, Math.min(arr.length, numElements));
+  const data = options.includeData === true
+    ? Array.from(arr.slice(0, numElements))
+    : undefined;
 
-  return {
+  const snapshot = {
     ok: true,
     error: null,
     shape,
@@ -277,4 +280,8 @@ export function snapshotFromArray(arr, shape, dtype = 'f32') {
     hasNaN: stats.nanCount > 0,
     hasInf: stats.infCount > 0,
   };
+  if (data) {
+    snapshot.data = data;
+  }
+  return snapshot;
 }

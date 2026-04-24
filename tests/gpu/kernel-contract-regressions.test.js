@@ -153,9 +153,23 @@ try {
 
   {
     const ropeConfig = getKernelConfig('rope', 'default');
+    assert.equal(ropeConfig.uniforms.size, 48);
     assert.deepEqual(
       ropeConfig.uniforms.fields.map((field) => field.name),
-      ['seq_len', 'num_heads', 'head_dim', 'start_pos', 'rope_base', 'rope_scale', 'rotary_dim', 'interleaved']
+      [
+        'seq_len',
+        'num_heads',
+        'head_dim',
+        'start_pos',
+        'rope_base',
+        'rope_scale',
+        'rotary_dim',
+        'interleaved',
+        'pair_span_dim',
+        '_pad0',
+        '_pad1',
+        '_pad2',
+      ]
     );
   }
 

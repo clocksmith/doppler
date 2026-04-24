@@ -2070,6 +2070,7 @@
           "outputDtype": "f32",
           "variantMetadata": {
             "tier": "tiled_small",
+            "queryBlockSize": 32,
             "exactHeadDim": 256,
             "maxHeadDim": 256,
             "requiredShared": 16384
@@ -2102,6 +2103,7 @@
           "outputDtype": "f32",
           "variantMetadata": {
             "tier": "tiled_small",
+            "queryBlockSize": 16,
             "exactHeadDim": 512,
             "maxHeadDim": 512,
             "requiredShared": 16384
@@ -3886,7 +3888,7 @@
         }
       ],
       "baseUniforms": {
-        "size": 32,
+        "size": 48,
         "fields": [
           {
             "name": "seq_len",
@@ -3927,6 +3929,26 @@
             "name": "interleaved",
             "type": "u32",
             "offset": 28
+          },
+          {
+            "name": "pair_span_dim",
+            "type": "u32",
+            "offset": 32
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 36
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 40
+          },
+          {
+            "name": "_pad2",
+            "type": "u32",
+            "offset": 44
           }
         ]
       },

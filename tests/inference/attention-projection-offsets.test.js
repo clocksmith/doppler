@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 
 import {
   projectAttentionQKV,
@@ -59,6 +60,20 @@ function makeWeight(dtype, layout = 'row', shape = [2048, 1024]) {
     16
   );
   assert.equal(resolveAttentionNumKVHeads(config, 'full_attention', {}, 512), 4);
+}
+
+{
+  const planSource = fs.readFileSync('src/inference/pipelines/text/layer-plan-gpu.js', 'utf8');
+  assert.match(
+    planSource,
+    /resolveAttentionNumKVHeads\(config, layerType, layerWeights, attentionHeadDim\)/,
+    'execution-plan attention must resolve per-layer KV heads from layer weights'
+  );
+  assert.match(
+    planSource,
+    /numKVHeads:\s*attentionNumKVHeads/,
+    'execution-plan attention must pass resolved per-layer KV heads'
+  );
 }
 
 {

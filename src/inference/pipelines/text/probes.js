@@ -33,6 +33,7 @@ const STAGE_DEFAULT_CATEGORY = {
   q_rope: 'attn',
   k_rope: 'attn',
   attn_scores: 'attn',
+  attn_core_out: 'attn',
   attn_out: 'attn',
   o_proj: 'attn',
   post_attn: 'attn',
@@ -217,6 +218,7 @@ async function buildDiagnosticCapture(level, buffer, options) {
   if (level === 'none') return null;
 
   const { isCpuBuffer, shape, dtype, recorder } = options;
+  const includeData = level === 'full';
   if (!isCpuBuffer && recorder) {
     return createDeferredDiagnosticCapture(level, buffer, {
       recorder,
@@ -225,8 +227,8 @@ async function buildDiagnosticCapture(level, buffer, options) {
     });
   }
   const snapshot = isCpuBuffer
-    ? snapshotFromArray(buffer, shape, dtype)
-    : await snapshotTensor(buffer, shape, dtype);
+    ? snapshotFromArray(buffer, shape, dtype, { includeData })
+    : await snapshotTensor(buffer, shape, dtype, { includeData });
   if (!snapshot?.ok) {
     return {
       level,
@@ -246,6 +248,7 @@ async function buildDiagnosticCapture(level, buffer, options) {
     stats: snapshot.stats ?? null,
     hasNaN: snapshot.hasNaN === true,
     hasInf: snapshot.hasInf === true,
+    data: Array.isArray(snapshot.data) ? snapshot.data : undefined,
   };
 }
 
@@ -281,7 +284,8 @@ function createDeferredDiagnosticCapture(level, buffer, options) {
       const snapshot = snapshotFromArray(
         decodeSnapshotBytes(staging.getMappedRange().slice(0), dtype),
         shape,
-        dtype
+        dtype,
+        { includeData: level === 'full' }
       );
       capture.shape = snapshot.shape;
       capture.dtype = snapshot.dtype;
@@ -289,6 +293,7 @@ function createDeferredDiagnosticCapture(level, buffer, options) {
       capture.stats = snapshot.stats ?? null;
       capture.hasNaN = snapshot.hasNaN === true;
       capture.hasInf = snapshot.hasInf === true;
+      capture.data = Array.isArray(snapshot.data) ? snapshot.data : undefined;
     } catch (error) {
       capture.error = error instanceof Error ? error.message : String(error);
       capture.sample = null;

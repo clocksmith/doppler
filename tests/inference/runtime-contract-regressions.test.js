@@ -9,11 +9,15 @@ const { Tokenizer } = await import('../../src/inference/tokenizer.js');
 const { discoverModels } = await import('../../src/inference/test-harness.js');
 const { TieredKVCache } = await import('../../src/inference/kv-cache/tiered.js');
 const { createKVCache } = await import('../../src/inference/pipelines/text/init.js');
+const { resolveAttentionFrequencyBaseDim } = await import('../../src/inference/pipelines/text/layer.js');
 const { evolveNetwork } = await import('../../src/inference/network-evolution.js');
 const { parseModelConfigFromManifest } = await import('../../src/inference/pipelines/text/config.js');
 const { setDevice } = await import('../../src/gpu/device.js');
+const { extractExecutionContractFacts } = await import('../../src/config/execution-contract-check.js');
+const { SUPPORTED_EXECUTION_V1_OPS } = await import('../../src/config/supported-operations.js');
 const {
   DEFAULT_KVCACHE_CONFIG,
+  EXECUTION_V1_SCHEMA_ID,
   PAGED_LAYOUT_SEQ_LEN_THRESHOLD,
 } = await import('../../src/config/schema/index.js');
 const {
@@ -67,6 +71,51 @@ function createStructuredPipeline(manifest, runtimeConfig = {}) {
 }
 
 try {
+  {
+    for (const op of ['gate_proj', 'up_proj', 'activation', 'down_proj']) {
+      assert.equal(
+        SUPPORTED_EXECUTION_V1_OPS.has(op),
+        true,
+        `${op} must be recognized for split-FFN execution-v1 manifests`
+      );
+    }
+
+    const digest = 'sha256:0000000000000000000000000000000000000000000000000000000000000000';
+    const facts = extractExecutionContractFacts({
+      modelId: 'split-ffn-contract',
+      architecture: {
+        headDim: 256,
+        maxSeqLen: 1024,
+      },
+      inference: {
+        schema: EXECUTION_V1_SCHEMA_ID,
+        session: {
+          kvcache: {
+            layout: 'contiguous',
+            tiering: { mode: 'off' },
+          },
+          decodeLoop: {
+            batchSize: 1,
+            disableCommandBatching: false,
+          },
+        },
+        execution: {
+          kernels: {
+            gemv: { kernel: 'matmul_gemv_subgroup.wgsl', entry: 'main_vec4', digest },
+            gelu: { kernel: 'gelu.wgsl', entry: 'main', digest },
+          },
+          decode: [
+            ['gate_proj', 'gemv', 'layer.{L}.mlp.gate_proj'],
+            ['up_proj', 'gemv', 'layer.{L}.mlp.up_proj'],
+            ['activation', 'gelu'],
+            ['down_proj', 'gemv', 'layer.{L}.mlp.down_proj'],
+          ],
+        },
+      },
+    });
+    assert.equal(facts.steps.length, 4);
+  }
+
   {
     const pipeline = createStructuredPipeline({
       modelId: 'dream-structured',
@@ -420,6 +469,8 @@ try {
     assert.equal(parsed.ropeLocalRotaryDim, 256);
     assert.equal(parsed.ropeFrequencyBaseDim, 512);
     assert.equal(parsed.ropeLocalFrequencyBaseDim, 256);
+    assert.equal(resolveAttentionFrequencyBaseDim(parsed, 'full_attention'), 512);
+    assert.equal(resolveAttentionFrequencyBaseDim(parsed, 'sliding_attention'), 256);
     assert.equal(parsed.decodeStrategy, 'incremental');
     assert.equal(parsed.vocabSizePerLayerInput, 262144);
     assert.equal(parsed.maxIntermediateSize, 12288);

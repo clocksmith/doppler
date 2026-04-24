@@ -56,6 +56,8 @@ export interface AttentionConfig {
   } | null;
   /** RoPE rotary dimension (may differ from headDim with partial rotary). */
   ropeRotaryDim?: number;
+  /** RoPE frequency base dimension; non-interleaved kernels use this as the rotate-half pair span. */
+  ropeFrequencyBaseDim?: number;
   /** Whether RoPE uses interleaved layout. */
   ropeInterleaved?: boolean;
   /** Token IDs for the current micro-batch (required by BDPA KV ingestion). */

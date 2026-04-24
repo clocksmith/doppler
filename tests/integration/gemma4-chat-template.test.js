@@ -11,7 +11,7 @@ const {
   const prompt = applyChatTemplate('What color is the sky?', 'gemma4');
   assert.equal(
     prompt,
-    '<bos><|turn>user\nWhat color is the sky?<turn|>\n<|turn>model\n'
+    '<bos><|turn>user\nWhat color is the sky?<turn|>\n<|turn>model\n<|channel>thought\n<channel|>'
   );
 }
 
@@ -29,7 +29,7 @@ const {
       + '<|turn>user\nWhat color is the sky?<turn|>\n'
       + '<|turn>model\nBlue.<turn|>\n'
       + '<|turn>user\nAnswer in two words.<turn|>\n'
-      + '<|turn>model\n'
+      + '<|turn>model\n<|channel>thought\n<channel|>'
   );
 }
 

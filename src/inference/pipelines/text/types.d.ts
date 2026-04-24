@@ -491,6 +491,7 @@ export interface LayerWeights {
   // Sandwich norms (Gemma 3)
   preFeedforwardNorm?: GPUBuffer | Float32Array;
   postFeedforwardNorm?: GPUBuffer | Float32Array;
+  layerScalar?: Float32Array | null;
 
   // MoE
   routerWeight?: GPUBuffer | import('../../../gpu/weight-buffer.js').WeightBuffer | Float32Array;

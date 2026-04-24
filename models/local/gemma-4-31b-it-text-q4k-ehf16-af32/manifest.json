@@ -12,7 +12,7 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:7da7416b0f2b17115b5bf04f227c973efc36615cf600ae247051147eb2d3bbdf",
+    "conversionConfigDigest": "sha256:feaf9202d43cda7eb5381e6c7896bd3fbc5ef6cc85d678535294ad1791b5c87a",
     "conversionConfigPath": "src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af32.json",
     "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af32-mv-q4-fused-v1",
     "materializationProfile": "gpu_split_tables",
@@ -32,6 +32,7 @@
     "intermediateSize": 21504,
     "numAttentionHeads": 32,
     "numKeyValueHeads": 16,
+    "numGlobalKeyValueHeads": 4,
     "headDim": 256,
     "vocabSize": 262144,
     "maxSeqLen": 262144,
@@ -49,7 +50,7 @@
   "inference": {
     "schema": "doppler.execution/v1",
     "attention": {
-      "queryPreAttnScalar": 256,
+      "queryPreAttnScalar": 1,
       "attnLogitSoftcapping": null,
       "slidingWindow": 1024,
       "queryKeyNorm": true,
@@ -78,7 +79,7 @@
       "mropeInterleaved": false,
       "mropeSection": null,
       "partialRotaryFactor": 0.25,
-      "ropeLocalPartialRotaryFactor": 0.25,
+      "ropeLocalPartialRotaryFactor": null,
       "ropeFrequencyBaseDim": 512,
       "ropeLocalFrequencyBaseDim": null,
       "ropeScalingType": null,
@@ -271,7 +272,7 @@
         "rope": {
           "kernel": "rope.wgsl",
           "entry": "main",
-          "digest": "sha256:e13c54f261d7ef00474b71e4fe7b3298fb5cc49161f50c7ea1854aa6672ebe71"
+          "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
         },
         "attn_decode": {
           "kernel": "attention_decode_online_f16kv.wgsl",

@@ -20,6 +20,7 @@ import assert from 'node:assert/strict';
   assert.equal(STAGES.EMBED_OUT, 'embed.out');
   assert.equal(STAGES.PER_LAYER_EMBED_OUT, 'per_layer_embed.out');
   assert.equal(STAGES.ATTN_Q_PROJ, 'attn.q_proj');
+  assert.equal(STAGES.ATTN_CORE_OUT, 'attn.core_out');
   assert.equal(STAGES.FFN_OUT, 'ffn.out');
   assert.equal(STAGES.LOGITS_OUT, 'logits.out');
   assert.equal(STAGES.FINAL_NORM_OUT, 'final_norm.out');
@@ -38,8 +39,10 @@ import assert from 'node:assert/strict';
   assert.equal(PROBE_TO_CANONICAL.layer_out, 'layer.out');
   assert.equal(PROBE_TO_CANONICAL.q_norm, 'attn.q_norm');
   assert.equal(PROBE_TO_CANONICAL.k_norm, 'attn.k_norm');
+  assert.equal(PROBE_TO_CANONICAL.attn_core_out, 'attn.core_out');
 
   assert.equal(getOperatorClass('attn.q_proj'), 'projection');
+  assert.equal(getOperatorClass('attn.core_out'), 'attention');
   assert.equal(getOperatorClass('attn.softmax'), 'attention');
   assert.equal(getOperatorClass('ffn.normed'), 'normalization');
   assert.equal(getOperatorClass('logits.out'), 'logits');
@@ -51,6 +54,7 @@ import assert from 'node:assert/strict';
   assert.equal(canonicalizeProbeStage('per_layer_embed_out'), 'per_layer_embed.out');
   assert.equal(canonicalizeProbeStage('q_norm'), 'attn.q_norm');
   assert.equal(canonicalizeProbeStage('k_norm'), 'attn.k_norm');
+  assert.equal(canonicalizeProbeStage('attn_core_out'), 'attn.core_out');
   assert.equal(canonicalizeProbeStage('logits'), 'logits.out');
   assert.equal(canonicalizeProbeStage('nonexistent'), null);
 

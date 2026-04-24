@@ -75,8 +75,13 @@ export interface TensorSnapshot {
     std: number;
   };
   sample: number[];
+  data?: number[];
   hasNaN: boolean;
   hasInf: boolean;
+}
+
+export interface TensorSnapshotOptions {
+  includeData?: boolean;
 }
 
 // ============================================================================
@@ -115,11 +120,13 @@ export declare const tensor: {
 export declare function snapshotTensor(
   buffer: GPUBuffer,
   shape?: number[],
-  dtype?: string
+  dtype?: string,
+  options?: TensorSnapshotOptions
 ): Promise<TensorSnapshot>;
 
 export declare function snapshotFromArray(
   arr: Float32Array,
   shape: number[],
-  dtype?: string
+  dtype?: string,
+  options?: TensorSnapshotOptions
 ): TensorSnapshot;

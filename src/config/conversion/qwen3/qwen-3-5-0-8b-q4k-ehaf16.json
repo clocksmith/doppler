@@ -241,7 +241,7 @@
       "rope": {
         "kernel": "rope.wgsl",
         "entry": "main",
-        "digest": "sha256:e13c54f261d7ef00474b71e4fe7b3298fb5cc49161f50c7ea1854aa6672ebe71"
+        "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
       },
       "attn_decode": {
         "kernel": "attention_decode_online_f16kv.wgsl",

@@ -20,10 +20,10 @@ export function computeRopeFreqs(dim, maxSeqLen, base = 10000) {
 
 
 export function ropeRef(x, cos, sin, seqLen, numHeads, headDim, startPos = 0, options = {}) {
-  const { rotaryDim = headDim } = options;
+  const { rotaryDim = headDim, pairSpanDim = rotaryDim } = options;
   const output = new Float32Array(x);
   const halfDim = rotaryDim / 2;
-  const rotateHalfOffset = headDim / 2;
+  const rotateHalfOffset = pairSpanDim / 2;
 
   for (let s = 0; s < seqLen; s++) {
     const pos = s + startPos;

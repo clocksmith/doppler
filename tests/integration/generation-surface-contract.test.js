@@ -190,7 +190,7 @@ import { formatChatMessages } from '../../src/inference/pipelines/text/chat-form
   const result = applyChatTemplate('Hello', 'gemma4');
   assert.equal(
     result,
-    '<bos><|turn>user\nHello<turn|>\n<|turn>model\n',
+    '<bos><|turn>user\nHello<turn|>\n<|turn>model\n<|channel>thought\n<channel|>',
     'gemma4 template must produce exact turn-based format'
   );
 }
@@ -211,7 +211,7 @@ import { formatChatMessages } from '../../src/inference/pipelines/text/chat-form
   ], 'gemma4');
   assert.equal(
     result,
-    '<bos><|turn>user\n\n\n<|image|>\n\nDescribe the image.<turn|>\n<|turn>model\n',
+    '<bos><|turn>user\n\n\n<|image|>\n\nDescribe the image.<turn|>\n<|turn>model\n<|channel>thought\n<channel|>',
     'gemma4 multimodal chat format must use a single <|image|> placeholder inside the user turn'
   );
 }

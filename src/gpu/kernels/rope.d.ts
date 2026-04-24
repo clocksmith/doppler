@@ -17,6 +17,7 @@ export interface RoPEOptions extends OutputBufferOptions {
   numHeads?: number;
   headDim?: number;
   rotaryDim?: number;
+  pairSpanDim?: number;
   interleaved?: boolean;
   ropeTheta?: number;
   startPos?: number;

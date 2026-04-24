@@ -31,6 +31,7 @@ import {
   applyAttentionValueNorm,
 } from './projections.js';
 import { prepareAttentionProjectionInput } from './output-projection.js';
+import { runProbes } from '../probes.js';
 
 import { releaseOrTrack, shouldDebugLayer } from './types.js';
 import {
@@ -325,6 +326,7 @@ export async function recordLayerAttentionGPU(
       numHeads,
       headDim,
       rotaryDim: config.ropeRotaryDim,
+      pairSpanDim: config.ropeFrequencyBaseDim ?? config.ropeRotaryDim,
       interleaved: config.ropeInterleaved,
       startPos: currentSeqLen,
       executionPolicies: state.executionPolicies ?? null,
@@ -334,6 +336,7 @@ export async function recordLayerAttentionGPU(
         numHeads: numKVHeads,
         headDim,
         rotaryDim: config.ropeRotaryDim,
+        pairSpanDim: config.ropeFrequencyBaseDim ?? config.ropeRotaryDim,
         interleaved: config.ropeInterleaved,
         startPos: currentSeqLen,
         executionPolicies: state.executionPolicies ?? null,
@@ -582,6 +585,15 @@ export async function recordLayerAttentionGPU(
   }
 
   attnOutput = await runAttentionKernel();
+  await runProbes('attn_core_out', attnOutput.buffer, {
+    layerIdx,
+    numTokens,
+    hiddenSize: numHeads * headDim,
+    probes: state.debugProbes,
+    recorder,
+    operatorDiagnostics: state.operatorDiagnostics,
+    dtype: attnOutput.dtype,
+  });
 
   attnForProjection = attnOutput;
   if (qGateTensor) {

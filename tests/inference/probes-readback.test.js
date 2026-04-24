@@ -243,12 +243,38 @@ try {
     ]
   );
 
+  const fullDiagnostics = {
+    enabled: true,
+    captureConfig: {
+      ...createDefaultCaptureConfig(),
+      enabled: true,
+      defaultLevel: 'full',
+    },
+    emitter: new OperatorEventEmitter({
+      modelHash: 'probe-readback-full-test',
+      runtimeConfigHash: 'runtime',
+      executionPlanHash: 'plan',
+    }),
+  };
+
+  await runProbes('embed_out', cpuBuffer, {
+    numTokens: 1,
+    hiddenSize: 2,
+    probes: [],
+    operatorDiagnostics: fullDiagnostics,
+    dtype: 'f32',
+    phase: 'prefill',
+  });
+
+  assert.deepEqual(fullDiagnostics.emitter.getTimeline()[0].capture.sample, [3.5, 4.5]);
+  assert.deepEqual(fullDiagnostics.emitter.getTimeline()[0].capture.data, [3.5, 4.5]);
+
   const recorderDiagnostics = {
     enabled: true,
     captureConfig: {
       ...createDefaultCaptureConfig(),
       enabled: true,
-      defaultLevel: 'slice',
+      defaultLevel: 'full',
     },
     emitter: new OperatorEventEmitter({
       modelHash: 'probe-readback-test',
@@ -275,6 +301,10 @@ try {
 
   assert.deepEqual(
     recorderDiagnostics.emitter.getTimeline()[0].capture.sample,
+    [1.5, 2.5]
+  );
+  assert.deepEqual(
+    recorderDiagnostics.emitter.getTimeline()[0].capture.data,
     [1.5, 2.5]
   );
 } finally {

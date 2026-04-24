@@ -351,17 +351,31 @@ function resolveAttentionVariant(
 }
 
 
-function calculateAttentionWorkgroups(tier, seqLen, numHeads) {
+function resolveAttentionQueryBlockSize(tier, variant = null) {
+  if (variant) {
+    const metadataBlockSize = getKernelConfig('attention', variant).variantMetadata?.queryBlockSize;
+    if (metadataBlockSize != null) {
+      if (!Number.isInteger(metadataBlockSize) || metadataBlockSize <= 0) {
+        throw new Error(`Attention kernel "${variant}" has invalid variantMetadata.queryBlockSize=${metadataBlockSize}.`);
+      }
+      return metadataBlockSize;
+    }
+  }
+  if (tier === 'tiled_large') {
+    return TILE_SIZES.ATTENTION_LARGE_BLOCK_SIZE;
+  }
+  return TILE_SIZES.ATTENTION_SMALL_BLOCK_SIZE;
+}
+
+function calculateAttentionWorkgroups(tier, seqLen, numHeads, variant = null) {
   if (tier === 'subgroup') {
     return numHeads;
   }
   if (tier === 'streaming') {
     return seqLen * numHeads;
   }
-  if (tier === 'tiled_large') {
-    return Math.ceil(seqLen / TILE_SIZES.ATTENTION_LARGE_BLOCK_SIZE) * numHeads;
-  }
-  return Math.ceil(seqLen / TILE_SIZES.ATTENTION_SMALL_BLOCK_SIZE) * numHeads;
+  const queryBlockSize = resolveAttentionQueryBlockSize(tier, variant);
+  return Math.ceil(seqLen / queryBlockSize) * numHeads;
 }
 
 
@@ -561,7 +575,7 @@ function resolveAttentionPlan(
         caps,
         sharedLimit
       );
-      const workgroups = calculateAttentionWorkgroups(adaptiveSelection.tier, seqLen, numHeads);
+      const workgroups = calculateAttentionWorkgroups(adaptiveSelection.tier, seqLen, numHeads, adaptiveVariant);
       logKernelSelectionOnce('attention', {
         variant: adaptiveVariant,
         reason: `path_override_fallback:${adaptiveSelection.tier}`,
@@ -603,7 +617,7 @@ function resolveAttentionPlan(
     }
 
     const tier = inferAttentionTierFromVariant(variantOverride);
-    const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads);
+    const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads, variantOverride);
     logKernelSelectionOnce('attention', {
       variant: variantOverride,
       reason: `${selectionReason}:${tier}`,
@@ -635,7 +649,7 @@ function resolveAttentionPlan(
     kvLen,
     sharedLimit
   );
-  const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads);
+  const workgroups = calculateAttentionWorkgroups(tier, seqLen, numHeads, variant);
 
   logKernelSelectionOnce('attention', {
     variant: validatedVariant,

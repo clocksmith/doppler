@@ -15,12 +15,15 @@ import {
   isSlidingLayerType,
   resolveActivationDtype,
   resolveAttentionHeadDim,
+  resolveAttentionNumKVHeads,
   resolveAttentionRotaryDim,
+  resolveAttentionFrequencyBaseDim,
   resolveAttentionKVSharing,
   getConvLayerState,
   isMoELayer,
   hasPerLayerInputBlock,
   applyPerLayerInputBlock,
+  applyLayerScalar,
 } from './layer.js';
 
 // ============================================================================
@@ -49,7 +52,7 @@ function resolveNormWeightForPlan(weight, layerWeights) {
 
 export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, size, context, layerWeights, sandwichNorm) {
   const { config, weightConfig, debugFlags, kvCache, ropeFreqsCos, ropeFreqsSin, recorder } = context;
-  const { hiddenSize, numHeads, numKVHeads, headDim, rmsNormEps } = config;
+  const { hiddenSize, numHeads, rmsNormEps } = config;
 
   if (!context.pipelinePlan) {
     throw new Error('Layer pipeline plan missing from context');
@@ -217,13 +220,16 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
             : null;
 
 
+          const attentionHeadDim = resolveAttentionHeadDim(config, layerType);
+          const attentionNumKVHeads = resolveAttentionNumKVHeads(config, layerType, layerWeights, attentionHeadDim);
+
           const attnConfig = {
             layerIdx,
             numTokens,
             isPrefill,
             numHeads,
-            numKVHeads,
-            headDim: resolveAttentionHeadDim(config, layerType),
+            numKVHeads: attentionNumKVHeads,
+            headDim: attentionHeadDim,
             hiddenSize,
             rmsNormEps,
             currentSeqLen: context.currentSeqLen,
@@ -238,6 +244,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
             causalAttention: config.causalAttention,
             rmsNormWeightOffset: config.rmsNormWeightOffset,
             ropeRotaryDim: resolveAttentionRotaryDim(config, layerType),
+            ropeFrequencyBaseDim: resolveAttentionFrequencyBaseDim(config, layerType),
             ropeInterleaved: config.ropeInterleaved,
             tokenIds: context.currentTokenIds ?? null,
             skipInputNorm: step.skipInputNorm === true,
@@ -490,6 +497,13 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
       );
       const outputDtype = resolveActivationDtype(outputTensor.dtype);
       setSlot('state', outputTensor.buffer, outputDtype);
+    }
+    const stateBuffer = getSlot('state');
+    const stateDtype = getSlotDtype('state') ?? activationDtype;
+    const stateTensor = createTensor(stateBuffer, stateDtype, [numTokens, hiddenSize], 'plan_state_layer_scalar');
+    const scaledTensor = await applyLayerScalar(layerIdx, stateTensor, size, context, layerWeights);
+    if (scaledTensor.buffer !== stateTensor.buffer) {
+      setSlot('state', scaledTensor.buffer, resolveActivationDtype(scaledTensor.dtype));
     }
   } catch (err) {
     cleanupSlots();

@@ -229,7 +229,7 @@ function formatGemma4(messages, options) {
   if (options?.thinking === true) {
     parts.push('<|turn>model\n<|think|>\n');
   } else {
-    parts.push('<|turn>model\n');
+    parts.push('<|turn>model\n<|channel>thought\n<channel|>');
   }
   return parts.join('');
 }
