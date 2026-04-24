@@ -275,6 +275,9 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   );
 
   let constants = resolveMatmulConstants(options, phase);
+  if (variant === 'f32' && constants && options.constants == null) {
+    constants = null;
+  }
   // For the rmsnorm-fused WideTile variant, forward the caller's
   // rmsNormOffset flag as a pipeline override constant. Gemma-family norm
   // weights encode `(w - 1.0)`; other models encode `w`.
