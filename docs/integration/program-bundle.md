@@ -246,6 +246,39 @@ prefill+decode transcript parity, not a single logits tensor snapshot.
 
 ## CLI
 
+### One-command composition: `doppler bundle`
+
+```bash
+node src/cli/doppler-cli.js bundle \
+  --manifest models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json \
+  --out reports/program-bundles/gemma-3-270m-it-q4k-ehf16-af32/ci/ \
+  --prompt "The color of the sky is" \
+  --max-tokens 8 \
+  --surface browser
+```
+
+`doppler bundle` is the WS1 exit-condition command. It chains the four
+stages that previously required separate invocations:
+
+| Stage | Emits | Schema |
+| --- | --- | --- |
+| intake | `intake-report.json` | `doppler.intake-report/v1` |
+| capture | `reference-report.json`, `reference-transcript.json` | verify report; `doppler.reference-transcript/v1` |
+| bundle | `program-bundle.json` | `doppler.program-bundle/v1` |
+| receipt | `reference-receipt.json` | `doppler.reference-receipt/v1` |
+
+A top-level `bundle-summary.json` (`doppler.bundle-summary/v1`) names
+every emitted artifact and records per-stage status and blockers. A
+failure in any stage aborts the pipeline; partial artifacts remain for
+triage.
+
+Use `--convert-config <path|json>` to run the convert stage ahead of
+intake (useful for new models). Use `--skip-capture` with
+`--reference-report <path> --reference-transcript <path>` to replay a
+pre-existing capture (used by CI).
+
+### Lower-level subcommands
+
 ```bash
 node src/cli/doppler-cli.js program-bundle --config '{
   "manifestPath": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
@@ -254,6 +287,11 @@ node src/cli/doppler-cli.js program-bundle --config '{
   "outputPath": "examples/program-bundles/gemma-3-270m-it-q4k-ehf16-af32.program-bundle.json"
 }'
 ```
+
+`doppler intake` and `doppler reference-receipt` are the stage-level
+subcommands; `doppler bundle` calls them in sequence via the shared
+`performIntake` helper and the shared
+`src/tooling/reference-verify.js` capture helpers.
 
 Equivalent tool scripts:
 
