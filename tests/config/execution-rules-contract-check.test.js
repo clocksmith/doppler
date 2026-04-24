@@ -14,6 +14,7 @@ import {
   assert.equal(artifact.stats.profileDecodeRecorderContexts, 24);
   assert.equal(artifact.stats.batchDecodeContexts, 1024);
   assert.equal(artifact.stats.maxBatchDecodeTokenContexts, 4);
+  assert.equal(artifact.stats.prefillRecorderChunkLayerContexts, 6);
   assert.ok(
     artifact.checks.some((entry) => entry.id === 'inference.execution.decodeRecorderEnabled.semantics' && entry.ok)
   );
@@ -25,6 +26,9 @@ import {
   );
   assert.ok(
     artifact.checks.some((entry) => entry.id === 'inference.execution.maxBatchDecodeTokens.semantics' && entry.ok)
+  );
+  assert.ok(
+    artifact.checks.some((entry) => entry.id === 'inference.execution.prefillRecorderChunkLayers.semantics' && entry.ok)
   );
 }
 
@@ -88,8 +92,18 @@ import {
     maxBatchDecodeTokens: [
       { match: { hasHotVocabularyBatchDecode: true }, value: 2 },
       { match: { hasLinearAttentionLayers: true }, value: 64 },
-      { match: { hasGpuSplitPerLayerInputs: true }, value: 4 },
+      { match: { hasGpuSplitPerLayerInputs: true }, value: 8 },
       { match: {}, value: null },
+    ],
+    prefillRecorderChunkLayers: [
+      {
+        match: {
+          hasGpuSplitPerLayerInputs: true,
+          numTokens: { lte: 32 },
+        },
+        value: 8,
+      },
+      { match: {}, value: 4 },
     ],
   });
 
@@ -161,8 +175,18 @@ import {
     maxBatchDecodeTokens: [
       { match: { hasHotVocabularyBatchDecode: true }, value: 1 },
       { match: { hasLinearAttentionLayers: true }, value: 64 },
-      { match: { hasGpuSplitPerLayerInputs: true }, value: 4 },
+      { match: { hasGpuSplitPerLayerInputs: true }, value: 8 },
       { match: {}, value: 8 },
+    ],
+    prefillRecorderChunkLayers: [
+      {
+        match: {
+          hasGpuSplitPerLayerInputs: true,
+          numTokens: { lte: 32 },
+        },
+        value: 8,
+      },
+      { match: {}, value: 4 },
     ],
   });
 

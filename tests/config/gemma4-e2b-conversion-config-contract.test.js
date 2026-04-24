@@ -53,6 +53,8 @@ assert.equal(config.execution?.kernels?.attn_decode?.entry, 'main');
 assert.equal(config.execution?.kernels?.attn_decode?.precision?.kvDtype, 'f16');
 assert.equal(config.execution?.kernels?.attn_small?.kernel, 'attention_small_f16kv.wgsl');
 assert.equal(config.execution?.kernels?.attn_small?.precision?.kvDtype, 'f16');
+assert.equal(config.execution?.kernels?.attn_head256?.kernel, 'attention_head256_f16kv.wgsl');
+assert.equal(config.execution?.kernels?.attn_head256?.precision?.kvDtype, 'f16');
 assert.equal(config.execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16kv.wgsl');
 assert.equal(config.execution?.kernels?.attn_stream?.precision?.kvDtype, 'f16');
 assert.equal(config.execution?.kernels?.attn_head256?.kernel, 'attention_head256_f16kv.wgsl');
@@ -124,6 +126,7 @@ const f16Primary = compileExecutionV1({
     hasSubgroups: true,
     hasF16: true,
     hasSubgroupsF16: true,
+    maxWorkgroupStorageSize: 32768,
   },
   platform: {
     id: 'test-f16',
@@ -145,6 +148,7 @@ const f16Primary = compileExecutionV1({
   },
 });
 
+assert.deepEqual(f16Primary.appliedTransforms, []);
 assert.equal(f16Primary.session.compute.defaults.activationDtype, 'f32');
 assert.equal(f16Primary.session.kvcache.kvDtype, 'f16');
 assert.equal(

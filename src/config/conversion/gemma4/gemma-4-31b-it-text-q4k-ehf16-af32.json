@@ -62,7 +62,7 @@
       "sourceRepo": "google/gemma-4-31B-it",
       "sourceRevision": "439edf5652646a0d1bd8b46bfdc1d3645761a445",
       "weightPackId": "gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1",
-      "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af32-mv-exec-v1",
+      "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af32-mv-q4-fused-v1",
       "artifactCompleteness": "complete"
     }
   },
@@ -278,6 +278,11 @@
         "entry": "main_vec4",
         "digest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011"
       },
+      "q4_decode_gemv": {
+        "kernel": "fused_matmul_q4.wgsl",
+        "entry": "main_gemv",
+        "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+      },
       "rope": {
         "kernel": "rope.wgsl",
         "entry": "main",
@@ -313,6 +318,11 @@
         "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
         "entry": "main",
         "digest": "sha256:142817adcacb28750a92793996cd15c2d9fe13d03e0c2d0aadf3e674dc7a35d6"
+      },
+      "q4_widetile": {
+        "kernel": "fused_matmul_q4_widetile.wgsl",
+        "entry": "main",
+        "digest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62"
       },
       "attn_stream": {
         "kernel": "attention_streaming_f16kv.wgsl",
@@ -397,17 +407,17 @@
       ],
       [
         "q_proj",
-        "gemv",
+        "q4_decode_gemv",
         "layer.{L}.self_attn.q_proj"
       ],
       [
         "k_proj",
-        "gemv",
+        "q4_decode_gemv",
         "layer.{L}.self_attn.k_proj"
       ],
       [
         "v_proj",
-        "gemv",
+        "q4_decode_gemv",
         "layer.{L}.self_attn.v_proj"
       ],
       [
@@ -424,7 +434,7 @@
       ],
       [
         "o_proj",
-        "gemv",
+        "q4_decode_gemv",
         "layer.{L}.self_attn.o_proj"
       ],
       [
@@ -505,17 +515,17 @@
           ],
           [
             "q_proj",
-            "tiled",
+            "q4_widetile",
             "layer.{L}.self_attn.q_proj"
           ],
           [
             "k_proj",
-            "tiled",
+            "q4_widetile",
             "layer.{L}.self_attn.k_proj"
           ],
           [
             "v_proj",
-            "tiled",
+            "q4_widetile",
             "layer.{L}.self_attn.v_proj"
           ],
           [
@@ -532,7 +542,7 @@
           ],
           [
             "o_proj",
-            "tiled",
+            "q4_widetile",
             "layer.{L}.self_attn.o_proj"
           ],
           [
@@ -573,17 +583,17 @@
           ],
           [
             "q_proj",
-            "tiled",
+            "q4_widetile",
             "layer.{L}.self_attn.q_proj"
           ],
           [
             "k_proj",
-            "tiled",
+            "q4_widetile",
             "layer.{L}.self_attn.k_proj"
           ],
           [
             "v_proj",
-            "tiled",
+            "q4_widetile",
             "layer.{L}.self_attn.v_proj"
           ],
           [
@@ -600,7 +610,7 @@
           ],
           [
             "o_proj",
-            "tiled",
+            "q4_widetile",
             "layer.{L}.self_attn.o_proj"
           ],
           [

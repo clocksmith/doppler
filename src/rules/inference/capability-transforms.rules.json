@@ -31,6 +31,18 @@
     },
     {
       "match": {
+        "modelId": { "contains": "gemma-4-e2b" },
+        "activationDtype": "f32",
+        "headDim": 256,
+        "kvDtype": "f16",
+        "hasF16": true,
+        "maxWorkgroupStorageSize": { "gte": 16384 }
+      },
+      "transforms": ["useHead256SmallPrefillAttention"],
+      "reason": "Gemma 4 E2B promotes only small-tile prefill attention onto the head256 kernel on capable GPUs"
+    },
+    {
+      "match": {
         "activationDtype": "f16",
         "hasSubgroups": false,
         "hasF16": true,

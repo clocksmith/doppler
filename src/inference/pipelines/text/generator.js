@@ -64,6 +64,7 @@ import {
   rebaseExecutionSessionPlan,
   resetActiveExecutionPlan,
   resolveMaxBatchDecodeTokens,
+  resolvePrefillRecorderChunkLayers,
   resolveActiveExecutionPlan,
   setActiveExecutionPlan,
 } from './execution-plan.js';
@@ -1925,12 +1926,10 @@ export class PipelineGenerator {
     // Chunked recorder submission: submit every N layers to release tracked intermediate
     // buffers, preventing unbounded memory growth during large prefills. Critical for
     // replay_prefill models where each decode step re-runs a prefill-style layer pass.
-    // Configurable via runtime.inference.session.prefillChunkLayers — falls back to 4
-    // when unset (legacy default). Larger values reduce tracked-buffer churn at the
-    // cost of longer intermediate-buffer lifetime.
-    const PREFILL_RECORDER_CHUNK_LAYERS = Number(
-      this.#state.runtimeConfig?.inference?.session?.prefillChunkLayers ?? 4
-    );
+    const prefillRecorderChunkLayers = resolvePrefillRecorderChunkLayers({
+      hasGpuSplitPerLayerInputs: context.perLayerInputsSession?.materialization === 'gpu_split_tables',
+      numTokens,
+    });
 
     let currentHiddenBuffer = hiddenStates.buffer;
     let prefillRecordMs = 0;
@@ -1961,7 +1960,7 @@ export class PipelineGenerator {
         const isChunkBoundary = !isCheckpoint
           && currentRecorder
           && l < config.numLayers - 1
-          && (l + 1) % PREFILL_RECORDER_CHUNK_LAYERS === 0;
+          && (l + 1) % prefillRecorderChunkLayers === 0;
 
         if (isCheckpoint && currentRecorder) {
           currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(

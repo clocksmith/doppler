@@ -114,6 +114,16 @@ try {
   );
 
   const runtimeConfig = createDopplerConfig().runtime;
+  assert.deepEqual(
+    runtimeConfig.inference.kernelPathPolicy,
+    {
+      mode: 'capability-aware',
+      sourceScope: ['model', 'manifest', 'config'],
+      allowSources: ['model', 'manifest', 'config'],
+      onIncompatible: 'remap',
+    },
+    'Default runtime config must preserve capability-aware remap policy for execution-v1 manifests.'
+  );
   runtimeConfig.inference.kernelPathPolicy = {
     mode: 'locked',
     sourceScope: ['manifest'],

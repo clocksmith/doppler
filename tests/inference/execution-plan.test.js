@@ -17,6 +17,7 @@ const {
   isDecodeRecorderEnabled,
   isProfileDecodeRecorderEnabled,
   resolveMaxBatchDecodeTokens,
+  resolvePrefillRecorderChunkLayers,
 } = await import('../../src/inference/pipelines/text/execution-plan.js');
 
 const minimalKernelPath = {
@@ -239,7 +240,11 @@ const container = { executionPlanState: planState };
   assert.equal(resolveMaxBatchDecodeTokens({ hasHotVocabularyBatchDecode: true }), 1);
   assert.equal(resolveMaxBatchDecodeTokens({ hasLinearAttentionLayers: true }), 32);
   assert.equal(resolveMaxBatchDecodeTokens({ hasGpuSplitPerLayerInputs: false }), null);
-  assert.equal(resolveMaxBatchDecodeTokens({ hasGpuSplitPerLayerInputs: true }), 4);
+  assert.equal(resolveMaxBatchDecodeTokens({ hasGpuSplitPerLayerInputs: true }), 8);
+  assert.equal(resolvePrefillRecorderChunkLayers({ hasGpuSplitPerLayerInputs: true, numTokens: 15 }), 8);
+  assert.equal(resolvePrefillRecorderChunkLayers({ hasGpuSplitPerLayerInputs: true, numTokens: 32 }), 8);
+  assert.equal(resolvePrefillRecorderChunkLayers({ hasGpuSplitPerLayerInputs: true, numTokens: 33 }), 4);
+  assert.equal(resolvePrefillRecorderChunkLayers({ hasGpuSplitPerLayerInputs: false, numTokens: 15 }), 4);
 }
 
 {

@@ -94,6 +94,15 @@ export declare function swapPrefillAttention(
 ): ExecutionGraph | null;
 
 /**
+ * Replace eligible small-tile prefill f16kv attention kernels with the fixed
+ * 256-dim shared-block variant.
+ */
+export declare function useHead256SmallPrefillAttention(
+  graph: ExecutionGraph,
+  ctx: TransformContext
+): ExecutionGraph | null;
+
+/**
  * Replace eligible prefill f16kv attention kernels with the fixed 256-dim
  * shared-block variant when the graph is eligible.
  */

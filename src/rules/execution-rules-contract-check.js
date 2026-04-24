@@ -143,7 +143,7 @@ function maxBatchDecodeTokensSemantic(context) {
   if (context.hasLinearAttentionLayers === true) {
     return 32;
   }
-  return context.hasGpuSplitPerLayerInputs === true ? 4 : null;
+  return context.hasGpuSplitPerLayerInputs === true ? 8 : null;
 }
 
 function enumerateMaxBatchDecodeTokenContexts() {
@@ -152,6 +152,24 @@ function enumerateMaxBatchDecodeTokenContexts() {
     { hasHotVocabularyBatchDecode: false, hasGpuSplitPerLayerInputs: false, hasLinearAttentionLayers: true },
     { hasHotVocabularyBatchDecode: false, hasGpuSplitPerLayerInputs: true, hasLinearAttentionLayers: false },
     { hasHotVocabularyBatchDecode: false, hasGpuSplitPerLayerInputs: false, hasLinearAttentionLayers: false },
+  ];
+}
+
+function prefillRecorderChunkLayersSemantic(context) {
+  if (context.hasGpuSplitPerLayerInputs === true && context.numTokens <= 32) {
+    return 8;
+  }
+  return 4;
+}
+
+function enumeratePrefillRecorderChunkLayerContexts() {
+  return [
+    { hasGpuSplitPerLayerInputs: true, numTokens: 1 },
+    { hasGpuSplitPerLayerInputs: true, numTokens: 15 },
+    { hasGpuSplitPerLayerInputs: true, numTokens: 32 },
+    { hasGpuSplitPerLayerInputs: true, numTokens: 33 },
+    { hasGpuSplitPerLayerInputs: false, numTokens: 15 },
+    { hasGpuSplitPerLayerInputs: false, numTokens: 64 },
   ];
 }
 
@@ -223,6 +241,7 @@ export function buildInferenceExecutionRulesContractArtifact(ruleGroup) {
   const profileDecodeRules = ruleGroup?.profileDecodeRecorderEnabled;
   const batchRules = ruleGroup?.batchDecodeEnabled;
   const maxBatchDecodeTokenRules = ruleGroup?.maxBatchDecodeTokens;
+  const prefillRecorderChunkLayerRules = ruleGroup?.prefillRecorderChunkLayers;
 
   const decodeShape = checkRuleShape(
     decodeRules,
@@ -358,9 +377,9 @@ export function buildInferenceExecutionRulesContractArtifact(ruleGroup) {
         '[ExecutionRulesContract] maxBatchDecodeTokens linear-attention rule must cap unsafe burst recording at 32 tokens.'
       );
     }
-    if (!matchesExactObject(splitTablesRule?.match, { hasGpuSplitPerLayerInputs: true }) || splitTablesRule?.value !== 4) {
+    if (!matchesExactObject(splitTablesRule?.match, { hasGpuSplitPerLayerInputs: true }) || splitTablesRule?.value !== 8) {
       maxBatchShapeErrors.push(
-        '[ExecutionRulesContract] maxBatchDecodeTokens enabling rule must cap gpu_split_tables bursts at 4 tokens.'
+        '[ExecutionRulesContract] maxBatchDecodeTokens enabling rule must cap gpu_split_tables bursts at 8 tokens.'
       );
     }
     if (!matchesExactObject(fallbackRule?.match, {}) || fallbackRule?.value !== null) {
@@ -393,6 +412,54 @@ export function buildInferenceExecutionRulesContractArtifact(ruleGroup) {
     ok: maxBatchSemantics.ok,
   });
 
+  const prefillChunkShapeErrors = [];
+  if (!Array.isArray(prefillRecorderChunkLayerRules) || prefillRecorderChunkLayerRules.length !== 2) {
+    prefillChunkShapeErrors.push(
+      '[ExecutionRulesContract] prefillRecorderChunkLayers must contain exactly 2 rules.'
+    );
+  } else {
+    const [shortSplitTablesRule, fallbackRule] = prefillRecorderChunkLayerRules;
+    if (
+      !matchesExactObject(shortSplitTablesRule?.match, {
+        hasGpuSplitPerLayerInputs: true,
+        numTokens: { lte: 32 },
+      })
+      || shortSplitTablesRule?.value !== 8
+    ) {
+      prefillChunkShapeErrors.push(
+        '[ExecutionRulesContract] prefillRecorderChunkLayers short-prompt gpu_split_tables rule must use 8-layer chunks.'
+      );
+    }
+    if (!matchesExactObject(fallbackRule?.match, {}) || fallbackRule?.value !== 4) {
+      prefillChunkShapeErrors.push(
+        '[ExecutionRulesContract] prefillRecorderChunkLayers fallback rule must be { match: {}, value: 4 }.'
+      );
+    }
+  }
+  errors.push(...prefillChunkShapeErrors);
+  checks.push({
+    id: 'inference.execution.prefillRecorderChunkLayers.shape',
+    ok: prefillChunkShapeErrors.length === 0,
+  });
+
+  const prefillChunkSemantics = Array.isArray(prefillRecorderChunkLayerRules)
+    ? checkRuleSemantics(
+      prefillRecorderChunkLayerRules,
+      enumeratePrefillRecorderChunkLayerContexts(),
+      prefillRecorderChunkLayersSemantic,
+      'prefillRecorderChunkLayers'
+    )
+    : {
+      ok: false,
+      errors: ['[ExecutionRulesContract] prefillRecorderChunkLayers is unavailable for semantic check.'],
+      sampledContexts: 0,
+    };
+  errors.push(...prefillChunkSemantics.errors);
+  checks.push({
+    id: 'inference.execution.prefillRecorderChunkLayers.semantics',
+    ok: prefillChunkSemantics.ok,
+  });
+
   return {
     schemaVersion: 1,
     source: 'doppler',
@@ -404,10 +471,12 @@ export function buildInferenceExecutionRulesContractArtifact(ruleGroup) {
       profileDecodeRecorderRules: Array.isArray(profileDecodeRules) ? profileDecodeRules.length : 0,
       batchDecodeRules: Array.isArray(batchRules) ? batchRules.length : 0,
       maxBatchDecodeTokenRules: Array.isArray(maxBatchDecodeTokenRules) ? maxBatchDecodeTokenRules.length : 0,
+      prefillRecorderChunkLayerRules: Array.isArray(prefillRecorderChunkLayerRules) ? prefillRecorderChunkLayerRules.length : 0,
       decodeRecorderContexts: decodeSemantics.sampledContexts,
       profileDecodeRecorderContexts: profileDecodeSemantics.sampledContexts,
       batchDecodeContexts: batchSemantics.sampledContexts,
       maxBatchDecodeTokenContexts: maxBatchSemantics.sampledContexts,
+      prefillRecorderChunkLayerContexts: prefillChunkSemantics.sampledContexts,
     },
   };
 }

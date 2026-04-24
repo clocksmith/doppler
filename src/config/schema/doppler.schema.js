@@ -57,6 +57,11 @@ export const DEFAULT_RUNTIME_CONFIG = {
     generation: {
       disableMultiTokenDecode: false,
     },
+    kernelPathPolicy: mergeKernelPathPolicy(undefined, {
+      mode: 'capability-aware',
+      sourceScope: ['model', 'manifest', 'config'],
+      onIncompatible: 'remap',
+    }),
     chatTemplate: DEFAULT_CHAT_TEMPLATE_CONFIG,
     session: {
       kvcache: DEFAULT_KVCACHE_CONFIG,

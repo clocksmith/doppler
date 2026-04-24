@@ -444,6 +444,19 @@ export function resolveMaxBatchDecodeTokens(config) {
   return value;
 }
 
+export function resolvePrefillRecorderChunkLayers(config) {
+  const value = selectRuleValue('inference', 'execution', 'prefillRecorderChunkLayers', {
+    hasGpuSplitPerLayerInputs: config.hasGpuSplitPerLayerInputs === true,
+    numTokens: config.numTokens,
+  });
+  if (!Number.isInteger(value) || value < 1) {
+    throw new Error(
+      `[ExecutionPlan] prefillRecorderChunkLayers must be a positive integer; got ${JSON.stringify(value)}.`
+    );
+  }
+  return value;
+}
+
 export function isDecodeRecorderEnabled(config) {
   return selectRuleValue('inference', 'execution', 'decodeRecorderEnabled', {
     hasDevice: config.hasDevice === true,
