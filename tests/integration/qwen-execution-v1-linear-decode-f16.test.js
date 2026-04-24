@@ -110,6 +110,13 @@ const linearDecodeSteps = getLayerSteps(kernelPath, 0, 'decode');
 const linearDecodeOProj = linearDecodeSteps.find((step) => step.op === 'o_proj');
 assert.equal(linearDecodeOProj?.kernel, 'fused_matmul_q4.wgsl');
 assert.equal(linearDecodeOProj?.entry, 'main_gemv');
+assert.deepEqual(
+  linearDecodeOProj?.constants,
+  {
+    COLS_PER_WG: 64,
+    THREADS_PER_COL_GEMV: 4,
+  }
+);
 assert.equal(linearDecodeOProj?.precision?.inputDtype, 'f32');
 assert.equal(linearDecodeOProj?.precision?.outputDtype, 'f32');
 

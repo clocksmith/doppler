@@ -325,7 +325,11 @@
       "q4_decode_gemv": {
         "kernel": "fused_matmul_q4.wgsl",
         "entry": "main_gemv",
-        "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+        "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
+        "constants": {
+          "COLS_PER_WG": 64,
+          "THREADS_PER_COL_GEMV": 4
+        }
       }
     },
     "preLayer": [
