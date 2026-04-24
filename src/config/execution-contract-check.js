@@ -2,6 +2,7 @@ import { getKernelConfig } from '../gpu/kernels/kernel-configs.js';
 import { selectRuleValue as selectKernelRuleValue } from '../gpu/kernels/rule-registry.js';
 import { isPlainObject } from '../utils/plain-object.js';
 import { EXECUTION_V1_SCHEMA_ID, expandExecutionV1 } from './schema/index.js';
+import { SUPPORTED_EXECUTION_V1_OPS } from './supported-operations.js';
 
 const KV_LAYOUTS = new Set(['contiguous', 'paged', 'tiered', 'bdpa']);
 const PHASES = new Set(['prefill', 'decode', 'both']);
@@ -234,7 +235,10 @@ export function extractExecutionContractFacts(manifest) {
     inference.schema === EXECUTION_V1_SCHEMA_ID
     && isPlainObject(execution.kernels)
   ) {
-    const expanded = expandExecutionV1(execution);
+    const expanded = expandExecutionV1(execution, {
+      knownOps: SUPPORTED_EXECUTION_V1_OPS,
+      strict: true,
+    });
     steps = expanded.map((step, index) => ({
       id: `${step.section}_${step.phase}_${index}_${step.op}`,
       phase: normalizePhase(step.phase, `execution graph step ${index} phase`),

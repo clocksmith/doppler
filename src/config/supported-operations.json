@@ -1,0 +1,178 @@
+{
+  "schema": "doppler.supported-operations/v1",
+  "description": "Canonical catalog of execution-v1 step ops recognized by Doppler's WebGPU runtime. Used by verify to pre-flight manifests and fail fast when a new model family references an op that has no runtime coverage. Keep this file in lock-step with src/inference/pipelines/text/layer-plan.js switch(op) and src/inference/pipelines/text/layer-plan-gpu.js switch(step.op).",
+  "executionV1Ops": {
+    "embed": {
+      "section": ["preLayer"],
+      "description": "Token-embedding gather into the hidden-state residual slot.",
+      "kernelFamily": ["embed"]
+    },
+    "input_norm": {
+      "section": ["prefill", "decode"],
+      "description": "Pre-attention RMS norm.",
+      "kernelFamily": ["rmsnorm"]
+    },
+    "q_proj": {
+      "section": ["prefill", "decode"],
+      "description": "Query projection. Tiled matmul in prefill, GEMV in decode.",
+      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+    },
+    "k_proj": {
+      "section": ["prefill", "decode"],
+      "description": "Key projection. Tiled matmul in prefill, GEMV in decode.",
+      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+    },
+    "v_proj": {
+      "section": ["prefill", "decode"],
+      "description": "Value projection. Tiled matmul in prefill, GEMV in decode.",
+      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+    },
+    "rope_q": {
+      "section": ["prefill", "decode"],
+      "description": "Rotary embedding applied to the query projection.",
+      "kernelFamily": ["rope"]
+    },
+    "rope_k": {
+      "section": ["prefill", "decode"],
+      "description": "Rotary embedding applied to the key projection.",
+      "kernelFamily": ["rope"]
+    },
+    "attention": {
+      "section": ["prefill", "decode"],
+      "description": "Core attention operator. Variants include attn_decode, attn_stream, attn_small, attn_sliding.",
+      "kernelFamily": ["attn_decode", "attn_stream", "attn_small", "attn_sliding", "attn_tiled"]
+    },
+    "o_proj": {
+      "section": ["prefill", "decode"],
+      "description": "Attention output projection.",
+      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+    },
+    "attn_residual": {
+      "section": ["prefill", "decode"],
+      "description": "Residual add after attention block.",
+      "kernelFamily": ["residual"]
+    },
+    "post_attn_norm": {
+      "section": ["prefill", "decode"],
+      "description": "Post-attention RMS norm.",
+      "kernelFamily": ["rmsnorm"]
+    },
+    "gate_proj": {
+      "section": ["prefill", "decode"],
+      "description": "Feed-forward gate projection for split FFN execution graphs.",
+      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+    },
+    "up_proj": {
+      "section": ["prefill", "decode"],
+      "description": "Feed-forward up projection for split FFN execution graphs.",
+      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+    },
+    "activation": {
+      "section": ["prefill", "decode"],
+      "description": "Feed-forward activation/gating step for split FFN execution graphs.",
+      "kernelFamily": ["gelu", "silu"]
+    },
+    "down_proj": {
+      "section": ["prefill", "decode"],
+      "description": "Feed-forward down projection for split FFN execution graphs.",
+      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+    },
+    "ffn": {
+      "section": ["prefill", "decode"],
+      "description": "Gated feed-forward block (gate/up/down with GELU or SiLU).",
+      "kernelFamily": ["gelu", "silu", "tiled", "gemv"]
+    },
+    "ffn_residual": {
+      "section": ["prefill", "decode"],
+      "description": "Residual add after FFN block.",
+      "kernelFamily": ["residual"]
+    },
+    "final_norm": {
+      "section": ["postLayer"],
+      "description": "Final RMS norm before the LM head.",
+      "kernelFamily": ["rmsnorm", "final_norm_stable"]
+    },
+    "lm_head": {
+      "section": ["postLayer"],
+      "description": "Language-model head GEMV for decode-step token logits.",
+      "kernelFamily": ["lm_head_gemv", "lm_head_gemv_stable"]
+    },
+    "lm_head_prefill": {
+      "section": ["postLayer"],
+      "description": "Language-model head matmul for prefill-phase full-sequence logits.",
+      "kernelFamily": ["lm_head_prefill_stable"]
+    },
+    "sample": {
+      "section": ["postLayer"],
+      "description": "Token sampling from logits.",
+      "kernelFamily": ["sample"]
+    }
+  },
+  "runtimeOps": {
+    "description": "Coarser ops used by the JS pipeline layer-plan runtime (src/inference/pipelines/text/layer-plan.js). execution-v1 ops map onto these via the runtime dispatch.",
+    "ops": [
+      "save",
+      "load",
+      "attention",
+      "conv",
+      "rmsnorm",
+      "ffn",
+      "residual_add",
+      "cast",
+      "noop"
+    ]
+  },
+  "families": {
+    "gemma-3": {
+      "requires": [
+        "embed",
+        "input_norm",
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "rope_q",
+        "rope_k",
+        "attention",
+        "o_proj",
+        "attn_residual",
+        "post_attn_norm",
+        "gate_proj",
+        "up_proj",
+        "activation",
+        "down_proj",
+        "ffn",
+        "ffn_residual",
+        "final_norm",
+        "lm_head",
+        "lm_head_prefill",
+        "sample"
+      ]
+    },
+    "gemma-4-text": {
+      "requires": [
+        "embed",
+        "input_norm",
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "rope_q",
+        "rope_k",
+        "attention",
+        "o_proj",
+        "attn_residual",
+        "post_attn_norm",
+        "gate_proj",
+        "up_proj",
+        "activation",
+        "down_proj",
+        "ffn",
+        "ffn_residual",
+        "final_norm",
+        "lm_head",
+        "lm_head_prefill",
+        "sample"
+      ],
+      "notes": "Gemma 4 E2B, 31B dense. Vision and audio towers use additional conv ops not declared in text execution graphs."
+    }
+  }
+}
