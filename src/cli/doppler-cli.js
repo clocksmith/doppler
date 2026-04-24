@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runNodeCommand } from '../tooling/node-command-runner.js';
 import { runBrowserCommandInNode } from '../tooling/node-browser-command-runner.js';
-import { writeProgramBundle } from '../tooling/program-bundle.js';
+import { writeProgramBundle, writeReferenceReceipt } from '../tooling/program-bundle.js';
 import {
   TOOLING_COMMANDS,
   normalizeToolingCommandRequest,
@@ -82,6 +82,9 @@ function usage() {
     '  doppler distill --config <path|url|json> [--surface auto|node]',
     '  doppler program-bundle --config <path|json>',
     '  doppler program-bundle --manifest <path> --reference-report <path> --out <path> [--conversion-config <path>]',
+    '  doppler reference-receipt --config <path|json>',
+    '  doppler reference-receipt --manifest <path> --reference-transcript <path> --out <path>',
+    '  doppler intake --convert-config <path|json> [--manifest <path>] [--out <intake-report.json>]',
     '',
     'Flags:',
     '  --config <path|url|json>        Required command config payload (file path, URL, or JSON object string).',
@@ -248,6 +251,44 @@ function validateProgramBundleFlags(parsed) {
   }
 }
 
+function validateIntakeFlags(parsed) {
+  const allowedFlags = new Set([
+    'convert-config',
+    'manifest',
+    'model-dir',
+    'out',
+    'skip-convert',
+    'pretty',
+    'json',
+    'help',
+    'h',
+  ]);
+  for (const key of Object.keys(parsed.flags || {})) {
+    if (allowedFlags.has(key)) continue;
+    throw new Error(`Unknown flag --${key} for "intake".`);
+  }
+}
+
+function validateReferenceReceiptFlags(parsed) {
+  const allowedFlags = new Set([
+    'config',
+    'manifest',
+    'model-dir',
+    'reference-transcript',
+    'out',
+    'receipt-id',
+    'created-at',
+    'pretty',
+    'json',
+    'help',
+    'h',
+  ]);
+  for (const key of Object.keys(parsed.flags || {})) {
+    if (allowedFlags.has(key)) continue;
+    throw new Error(`Unknown flag --${key} for "reference-receipt".`);
+  }
+}
+
 function parseJsonObjectFlag(value, label) {
   if (asStringOrNull(value) === null) return null;
   try {
@@ -406,6 +447,200 @@ async function runProgramBundleCommand(parsed, jsonOutput) {
   console.log(
     `[ok] wrote ${summary.outputPath} ` +
     `(modelId=${summary.modelId}, artifacts=${summary.artifactCount}, wgsl=${summary.wgslModuleCount})`
+  );
+}
+
+const INTAKE_SCHEMA_ID = 'doppler.intake-report/v1';
+
+async function runIntakeCommand(parsed, jsonOutput) {
+  const { extractExecutionContractFacts, validateExecutionContractFacts } = await import(
+    '../config/execution-contract-check.js'
+  );
+  const fsMod = await import('node:fs/promises');
+  const convertConfigValue = asStringOrNull(parsed.flags['convert-config']);
+  const manifestFlag = asStringOrNull(parsed.flags.manifest);
+  const modelDir = asStringOrNull(parsed.flags['model-dir']);
+  const skipConvert = parsed.flags['skip-convert'] === true
+    || String(parsed.flags['skip-convert'] ?? '').toLowerCase() === 'true';
+
+  const stages = [];
+  const blockers = [];
+
+  let manifestPath = null;
+  if (manifestFlag) {
+    manifestPath = path.resolve(manifestFlag);
+  } else if (modelDir) {
+    manifestPath = path.resolve(modelDir, 'manifest.json');
+  }
+
+  if (convertConfigValue && !skipConvert) {
+    stages.push({ stage: 'convert', status: 'starting' });
+    try {
+      const convertConfig = await readJsonObjectInput(convertConfigValue, '--convert-config');
+      const request = normalizeToolingCommandRequest({
+        command: 'convert',
+        convertPayload: convertConfig,
+      });
+      const response = await runCommandOnSurface(request, 'node', {}, true);
+      stages[stages.length - 1] = {
+        stage: 'convert',
+        status: 'succeeded',
+        convertReport: response?.result?.report ?? null,
+      };
+      if (!manifestPath) {
+        const inferredModelBaseId =
+          convertConfig?.output?.modelBaseId
+          || convertConfig?.converterConfig?.output?.modelBaseId
+          || null;
+        const inferredBaseDir =
+          convertConfig?.output?.baseDir
+          || convertConfig?.converterConfig?.output?.baseDir
+          || 'models/local';
+        if (inferredModelBaseId) {
+          manifestPath = path.resolve(inferredBaseDir, inferredModelBaseId, 'manifest.json');
+        }
+      }
+    } catch (error) {
+      stages[stages.length - 1] = {
+        stage: 'convert',
+        status: 'failed',
+        error: error?.message || String(error),
+      };
+      blockers.push({
+        stage: 'convert',
+        code: error?.code || 'convert_failed',
+        message: error?.message || String(error),
+      });
+    }
+  } else {
+    stages.push({ stage: 'convert', status: skipConvert ? 'skipped' : 'not_requested' });
+  }
+
+  if (blockers.length === 0 && manifestPath) {
+    stages.push({ stage: 'manifest_load', status: 'starting' });
+    try {
+      const raw = await fsMod.readFile(manifestPath, 'utf8');
+      const manifest = JSON.parse(raw);
+      stages[stages.length - 1] = {
+        stage: 'manifest_load',
+        status: 'succeeded',
+        manifestPath,
+        modelId: manifest?.modelId ?? null,
+      };
+
+      stages.push({ stage: 'execution_contract_check', status: 'starting' });
+      try {
+        const facts = extractExecutionContractFacts(manifest);
+        const validation = validateExecutionContractFacts(facts);
+        stages[stages.length - 1] = {
+          stage: 'execution_contract_check',
+          status: 'succeeded',
+          stepCount: facts.steps.length,
+          checks: Array.isArray(validation?.checks) ? validation.checks.length : null,
+        };
+      } catch (error) {
+        stages[stages.length - 1] = {
+          stage: 'execution_contract_check',
+          status: 'failed',
+          error: error?.message || String(error),
+        };
+        blockers.push({
+          stage: 'execution_contract_check',
+          code: 'unsupported_op_or_contract_violation',
+          message: error?.message || String(error),
+        });
+      }
+    } catch (error) {
+      stages[stages.length - 1] = {
+        stage: 'manifest_load',
+        status: 'failed',
+        error: error?.message || String(error),
+      };
+      blockers.push({
+        stage: 'manifest_load',
+        code: 'manifest_unreadable',
+        message: error?.message || String(error),
+      });
+    }
+  } else if (blockers.length === 0) {
+    stages.push({ stage: 'manifest_load', status: 'skipped' });
+    blockers.push({
+      stage: 'manifest_load',
+      code: 'no_manifest_path',
+      message:
+        'intake: no manifest path resolved. Provide --manifest, --model-dir, or a convert-config with output.modelBaseId.',
+    });
+  }
+
+  const report = {
+    schema: INTAKE_SCHEMA_ID,
+    ok: blockers.length === 0,
+    blockers,
+    stages,
+    createdAtUtc: new Date().toISOString(),
+  };
+
+  const outputPath = asStringOrNull(parsed.flags.out);
+  if (outputPath) {
+    const resolved = path.resolve(outputPath);
+    await fsMod.mkdir(path.dirname(resolved), { recursive: true });
+    await fsMod.writeFile(resolved, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
+    report.outputPath = path.relative(process.cwd(), resolved);
+  }
+
+  if (jsonOutput) {
+    console.log(JSON.stringify(report, null, 2));
+  } else if (report.ok) {
+    console.log(`[ok] intake passed (${stages.length} stages, 0 blockers)`);
+  } else {
+    console.log(`[fail] intake found ${blockers.length} blocker(s):`);
+    for (const b of blockers) {
+      console.log(`  - [${b.stage}] ${b.code}: ${b.message}`);
+    }
+  }
+
+  if (!report.ok) {
+    process.exitCode = 1;
+  }
+}
+
+async function buildReferenceReceiptOptions(parsed) {
+  const repoRoot = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
+  const configValue = asStringOrNull(parsed.flags.config);
+  const config = configValue
+    ? await readJsonObjectInput(configValue, '--config')
+    : {};
+  return {
+    repoRoot,
+    ...config,
+    manifestPath: parsed.flags.manifest ?? config.manifestPath ?? null,
+    modelDir: parsed.flags['model-dir'] ?? config.modelDir ?? null,
+    referenceTranscriptPath:
+      parsed.flags['reference-transcript'] ?? config.referenceTranscriptPath ?? null,
+    outputPath: parsed.flags.out ?? config.outputPath ?? config.out ?? null,
+    receiptId: parsed.flags['receipt-id'] ?? config.receiptId ?? null,
+    createdAtUtc: parsed.flags['created-at'] ?? config.createdAtUtc ?? null,
+  };
+}
+
+async function runReferenceReceiptCommand(parsed, jsonOutput) {
+  const result = await writeReferenceReceipt(await buildReferenceReceiptOptions(parsed));
+  const summary = {
+    ok: true,
+    outputPath: path.relative(process.cwd(), result.outputPath),
+    modelId: result.receipt.modelId,
+    receiptId: result.receipt.receiptId,
+    executionGraphHash: result.receipt.sources.executionGraph.hash,
+    tokensGenerated: result.receipt.referenceTranscript?.output?.tokensGenerated ?? null,
+    stopReason: result.receipt.referenceTranscript?.output?.stopReason ?? null,
+  };
+  if (jsonOutput) {
+    console.log(JSON.stringify(summary, null, 2));
+    return;
+  }
+  console.log(
+    `[ok] wrote ${summary.outputPath} ` +
+    `(modelId=${summary.modelId}, tokens=${summary.tokensGenerated}, stopReason=${summary.stopReason})`
   );
 }
 
@@ -969,6 +1204,16 @@ async function main() {
     if (parsed.command === 'program-bundle') {
       validateProgramBundleFlags(parsed);
       await runProgramBundleCommand(parsed, parsed.flags.pretty !== true);
+      return;
+    }
+    if (parsed.command === 'reference-receipt') {
+      validateReferenceReceiptFlags(parsed);
+      await runReferenceReceiptCommand(parsed, parsed.flags.pretty !== true);
+      return;
+    }
+    if (parsed.command === 'intake') {
+      validateIntakeFlags(parsed);
+      await runIntakeCommand(parsed, parsed.flags.pretty !== true);
       return;
     }
     validateCommandFlags(parsed);
