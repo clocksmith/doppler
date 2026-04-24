@@ -290,6 +290,8 @@ function validateBundleFlags(parsed) {
     'created-at',
     'skip-convert',
     'skip-capture',
+    'reference-report',
+    'reference-transcript',
     'pretty',
     'json',
     'help',

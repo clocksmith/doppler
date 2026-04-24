@@ -101,4 +101,100 @@ function runCli(args, options = {}) {
   assert.ok(blocker, 'must raise no_manifest_path blocker when no manifest is provided');
 }
 
+// End-to-end skip-capture happy path: fixture report + synthesized transcript
+// exercises intake → (skip capture) → bundle → receipt and lands all four
+// artifacts under --out.
+{
+  const { resolveExecutionGraphHash } = await import('../../src/inference/browser-harness.js');
+  const FIXTURE_REPORT = path.join(
+    ROOT_DIR,
+    'tests',
+    'fixtures',
+    'reports',
+    'gemma-3-270m-it-q4k-ehf16-af32',
+    '2026-03-18T13-33-38.973Z.json'
+  );
+  const manifest = JSON.parse(readFileSync(FIXTURE_MANIFEST, 'utf8'));
+  const executionGraphHash = resolveExecutionGraphHash(manifest);
+  assert.ok(executionGraphHash, 'manifest must expose an executionGraphHash');
+
+  const synthTokenIds = [1, 2, 3, 4];
+  const synthTranscript = {
+    schema: 'doppler.reference-transcript/v1',
+    source: {
+      kind: 'synthetic-ci-fixture',
+      path: 'ci/doppler-bundle-cli.test.js',
+      hash: `sha256:${'0'.repeat(64)}`,
+    },
+    executionGraphHash,
+    surface: 'browser-webgpu',
+    prompt: {
+      identity: 'The color of the sky is',
+      hash: `sha256:${'a'.repeat(64)}`,
+      tokenIdsHash: null,
+      tokenCount: null,
+    },
+    output: {
+      textHash: `sha256:${'b'.repeat(64)}`,
+      tokensGenerated: synthTokenIds.length,
+      stopReason: 'max_tokens',
+      stopTokenId: null,
+    },
+    tokens: {
+      ids: synthTokenIds,
+      generatedTokenIdsHash: `sha256:${'c'.repeat(64)}`,
+      generatedTextHash: `sha256:${'b'.repeat(64)}`,
+      preview: [],
+      perStep: synthTokenIds.map((id, index) => ({ step: index, id })),
+      coverage: { mode: 'full-token-ids', omitted: 0 },
+    },
+    logits: { mode: 'not-captured', reason: 'synthetic fixture', perStepDigests: null },
+    kvCache: null,
+    tolerance: {
+      tokenPolicy: 'exact generated token IDs',
+      logitsPolicy: 'not captured',
+      kvPolicy: 'metadata hash only; KV tensor bytes are not read back by default',
+    },
+  };
+
+  const outDir = mkdtempSync(path.join(tmpdir(), 'doppler-bundle-happy-'));
+  try {
+    const { writeFileSync } = await import('node:fs');
+    const synthTranscriptPath = path.join(outDir, 'synth-reference-transcript.json');
+    writeFileSync(synthTranscriptPath, `${JSON.stringify(synthTranscript, null, 2)}\n`);
+
+    const result = runCli([
+      'bundle',
+      '--manifest', FIXTURE_MANIFEST,
+      '--out', outDir,
+      '--skip-capture',
+      '--reference-report', FIXTURE_REPORT,
+      '--reference-transcript', synthTranscriptPath,
+    ]);
+    const summary = JSON.parse(readFileSync(path.join(outDir, 'bundle-summary.json'), 'utf8'));
+    if (!summary.ok) {
+      const failures = summary.stages.filter((s) => s.status === 'failed').map((s) => `${s.stage}:${s.error}`);
+      throw new Error(`bundle failed: ${failures.join(', ') || JSON.stringify(summary.blockers)}`);
+    }
+    assert.equal(summary.ok, true);
+    assert.equal(result.status, 0, 'bundle should exit 0 on happy path');
+
+    // All four output artifacts must exist.
+    for (const key of ['intakeReport', 'programBundle', 'referenceReceipt']) {
+      assert.ok(summary.artifactPaths[key], `${key} must be recorded in artifactPaths`);
+    }
+
+    // Program bundle and receipt should both reference the same executionGraphHash.
+    const bundle = JSON.parse(readFileSync(path.join(outDir, 'program-bundle.json'), 'utf8'));
+    const receipt = JSON.parse(readFileSync(path.join(outDir, 'reference-receipt.json'), 'utf8'));
+    assert.equal(bundle.sources.executionGraph.hash, executionGraphHash);
+    assert.equal(receipt.schema, 'doppler.reference-receipt/v1');
+    assert.equal(receipt.sources.executionGraph.hash, executionGraphHash);
+    assert.equal(receipt.referenceTranscript.schema, 'doppler.reference-transcript/v1');
+    assert.equal(receipt.referenceTranscript.executionGraphHash, executionGraphHash);
+  } finally {
+    rmSync(outDir, { recursive: true, force: true });
+  }
+}
+
 console.log('doppler-bundle-cli: ok');

@@ -17,6 +17,11 @@ on:
       - 'tools/run-node-coverage.js'
       - 'tools/node-test-runtime-setup.js'
       - 'src/cli/doppler-cli.js'
+      - 'src/tooling/**'
+      - 'src/config/supported-operations.js'
+      - 'src/config/supported-operations.json'
+      - 'src/config/supported-operations.d.ts'
+      - 'src/config/execution-contract-check.js'
       - 'package.json'
       - '.github/workflows/kernel-tests.yml'
   push:
@@ -36,6 +41,11 @@ on:
       - 'tools/run-node-coverage.js'
       - 'tools/node-test-runtime-setup.js'
       - 'src/cli/doppler-cli.js'
+      - 'src/tooling/**'
+      - 'src/config/supported-operations.js'
+      - 'src/config/supported-operations.json'
+      - 'src/config/supported-operations.d.ts'
+      - 'src/config/execution-contract-check.js'
       - 'package.json'
       - '.github/workflows/kernel-tests.yml'
   workflow_dispatch:
