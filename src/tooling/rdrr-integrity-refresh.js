@@ -44,54 +44,91 @@ async function readJsonObject(filePath, label) {
   return asObject(parsed, label);
 }
 
+const EXACTNESS_CLASS_CANONICAL = new Set([
+  'bit_exact_solo',
+  'algorithm_exact',
+  'tolerance_bounded',
+]);
+
+const EXACTNESS_CLASS_LEGACY_HYPHENATED = {
+  'bit-exact-solo': 'bit_exact_solo',
+  'algorithm-exact': 'algorithm_exact',
+  'tolerance-bounded': 'tolerance_bounded',
+};
+
 function normalizeHashString(value, label) {
   const text = asNonEmptyString(value, label);
-  if (/^[0-9a-f]{64}$/.test(text)) {
-    return `sha256:${text}`;
+  const bare = text.startsWith('sha256:') ? text.slice('sha256:'.length) : text;
+  if (!/^[0-9a-f]{64}$/.test(bare)) {
+    throw new Error(`${label} must be 64-char lowercase hex.`);
   }
-  return text;
+  return bare;
 }
 
-function normalizeExactnessClass(value, label) {
-  const text = asNonEmptyString(value, label);
-  const mapped = {
-    bit_exact_solo: 'bit-exact-solo',
-    algorithm_exact: 'algorithm-exact',
-    tolerance_bounded: 'tolerance-bounded',
-  }[text] ?? text;
-  if (!['bit-exact-solo', 'algorithm-exact', 'tolerance-bounded'].includes(mapped)) {
-    throw new Error(`${label} must be bit_exact_solo, algorithm_exact, tolerance_bounded, or the Doppler hyphenated equivalent.`);
+function normalizeExactness(value, label) {
+  let rawClass;
+  let algorithmExactInvariants = [];
+  let toleranceMetric = '';
+  let toleranceEpsilon = 0;
+  if (typeof value === 'string') {
+    rawClass = value;
+  } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+    rawClass = value.class;
+    if (Array.isArray(value.algorithmExactInvariants)) {
+      algorithmExactInvariants = [...value.algorithmExactInvariants];
+    }
+    if (typeof value.toleranceMetric === 'string') {
+      toleranceMetric = value.toleranceMetric;
+    }
+    if (typeof value.toleranceEpsilon === 'number') {
+      toleranceEpsilon = value.toleranceEpsilon;
+    }
+  } else {
+    throw new Error(`${label} must be a string or exactness object.`);
   }
-  return mapped;
+  const text = asNonEmptyString(rawClass, `${label}.class`);
+  const canonical = EXACTNESS_CLASS_LEGACY_HYPHENATED[text] ?? text;
+  if (!EXACTNESS_CLASS_CANONICAL.has(canonical)) {
+    throw new Error(
+      `${label}.class must be bit_exact_solo, algorithm_exact, tolerance_bounded, `
+      + `or the Doppler-legacy hyphenated equivalent.`,
+    );
+  }
+  return {
+    algorithmExactInvariants,
+    class: canonical,
+    toleranceEpsilon,
+    toleranceMetric,
+  };
 }
 
 function normalizeRejectionReasons(value, label) {
-  if (value == null) return null;
+  if (value == null) return [];
   if (!Array.isArray(value)) {
-    throw new Error(`${label} must be null or an array.`);
+    throw new Error(`${label} must be an array (empty for success).`);
   }
-  if (value.length === 0) return null;
+  if (value.length === 0) return [];
   return value.map((reason, index) => asNonEmptyString(reason, `${label}[${index}]`));
 }
 
 export function normalizeManifestLoweringEntry(entry, label = 'loweringEntry') {
   const doc = asObject(entry, label);
   const rejectionReasons = normalizeRejectionReasons(doc.rejectionReasons, `${label}.rejectionReasons`);
-  const rejected = rejectionReasons !== null;
-  const targetDescriptor = doc.targetDescriptorHash ?? doc.targetDescriptorCorrectnessHash;
-  const compilerVersion = doc.doeCompilerVersion ?? doc.compilerVersion;
-  const exactnessClass = doc.exactnessClass ?? doc.exactness?.class;
+  const rejected = rejectionReasons.length > 0;
+  const targetDescriptor = doc.targetDescriptorCorrectnessHash ?? doc.targetDescriptorHash;
+  const compilerVersion = doc.compilerVersion ?? doc.doeCompilerVersion;
+  const exactnessInput = doc.exactness ?? doc.exactnessClass;
 
   return {
     kernelRef: asNonEmptyString(doc.kernelRef, `${label}.kernelRef`),
     backend: asNonEmptyString(doc.backend, `${label}.backend`),
-    targetDescriptorHash: rejected ? null : normalizeHashString(targetDescriptor, `${label}.targetDescriptorHash`),
+    targetDescriptorCorrectnessHash: rejected ? null : normalizeHashString(targetDescriptor, `${label}.targetDescriptorCorrectnessHash`),
     frontendVersion: rejected ? null : asNonEmptyString(doc.frontendVersion, `${label}.frontendVersion`),
     tsirSemanticDigest: rejected ? null : normalizeHashString(doc.tsirSemanticDigest, `${label}.tsirSemanticDigest`),
     tsirRealizationDigest: rejected ? null : normalizeHashString(doc.tsirRealizationDigest, `${label}.tsirRealizationDigest`),
     emitterDigest: rejected ? null : normalizeHashString(doc.emitterDigest, `${label}.emitterDigest`),
-    doeCompilerVersion: rejected ? null : asNonEmptyString(compilerVersion, `${label}.doeCompilerVersion`),
-    exactnessClass: rejected ? null : normalizeExactnessClass(exactnessClass, `${label}.exactnessClass`),
+    compilerVersion: rejected ? null : asNonEmptyString(compilerVersion, `${label}.compilerVersion`),
+    exactness: rejected ? null : normalizeExactness(exactnessInput, `${label}.exactness`),
     rejectionReasons,
   };
 }

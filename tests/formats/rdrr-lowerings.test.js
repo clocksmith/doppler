@@ -14,14 +14,19 @@ function successEntry(overrides = {}) {
   return {
     kernelRef: 'fused_gemv',
     backend: 'webgpu-generic',
-    targetDescriptorHash: 'sha256:td',
+    targetDescriptorCorrectnessHash: 'td',
     frontendVersion: 'doe-frontend-0.1.0',
-    tsirSemanticDigest: 'sha256:sem',
-    tsirRealizationDigest: 'sha256:real',
-    emitterDigest: 'sha256:emit',
-    doeCompilerVersion: 'doe-0.1.0',
-    exactnessClass: 'algorithm-exact',
-    rejectionReasons: null,
+    tsirSemanticDigest: 'sem',
+    tsirRealizationDigest: 'real',
+    emitterDigest: 'emit',
+    compilerVersion: 'doe-0.1.0',
+    exactness: {
+      algorithmExactInvariants: ['reduction_order'],
+      class: 'algorithm_exact',
+      toleranceEpsilon: 0,
+      toleranceMetric: '',
+    },
+    rejectionReasons: [],
     ...overrides,
   };
 }
@@ -30,13 +35,13 @@ function rejectionEntry(overrides = {}) {
   return {
     kernelRef: 'fused_gemv',
     backend: 'wse3',
-    targetDescriptorHash: null,
+    targetDescriptorCorrectnessHash: null,
     frontendVersion: null,
     tsirSemanticDigest: null,
     tsirRealizationDigest: null,
     emitterDigest: null,
-    doeCompilerVersion: null,
-    exactnessClass: null,
+    compilerVersion: null,
+    exactness: null,
     rejectionReasons: ['TSIR_PE_BUDGET_EXHAUSTED'],
     ...overrides,
   };
@@ -160,32 +165,41 @@ function baseManifest(integrityExtensionsOverrides = {}) {
 
 {
   const entry = successEntry();
-  delete entry.doeCompilerVersion;
+  delete entry.compilerVersion;
   const manifest = baseManifest({
     lowerings: { contractVersion: 1, entries: [entry] },
   });
   const result = validateManifest(manifest);
   assert.ok(
-    result.errors.some((e) => e.includes('doeCompilerVersion is required')),
+    result.errors.some((e) => e.includes('compilerVersion is required')),
     'expected error requiring explicit null for nullable field'
   );
 }
 
 // =========================================================================
-// Schema shape — invalid exactnessClass rejected
+// Schema shape — invalid exactness.class rejected
 // =========================================================================
 
 {
   const manifest = baseManifest({
     lowerings: {
       contractVersion: 1,
-      entries: [successEntry({ exactnessClass: 'approximate' })],
+      entries: [
+        successEntry({
+          exactness: {
+            algorithmExactInvariants: [],
+            class: 'approximate',
+            toleranceEpsilon: 0,
+            toleranceMetric: '',
+          },
+        }),
+      ],
     },
   });
   const result = validateManifest(manifest);
   assert.ok(
-    result.errors.some((e) => e.includes('exactnessClass')),
-    'expected error about exactnessClass'
+    result.errors.some((e) => e.includes('exactness.class')),
+    'expected error about exactness.class'
   );
 }
 
@@ -240,7 +254,8 @@ function baseManifest(integrityExtensionsOverrides = {}) {
 }
 
 // =========================================================================
-// Schema shape — empty rejectionReasons array rejected
+// Schema shape — rejection entry with empty rejectionReasons + null digests
+// is schema-invalid (inconsistent digest state: no rejection, no success).
 // =========================================================================
 
 {
@@ -250,8 +265,8 @@ function baseManifest(integrityExtensionsOverrides = {}) {
   });
   const result = validateManifest(manifest);
   assert.ok(
-    result.errors.some((e) => e.includes('rejectionReasons')),
-    'expected error about empty rejectionReasons'
+    result.errors.some((e) => e.includes('declares no state')),
+    'expected error about entry declaring neither success nor rejection'
   );
 }
 
@@ -286,7 +301,7 @@ function baseManifest(integrityExtensionsOverrides = {}) {
     lowerings: { contractVersion: 1, entries: [successEntry()] },
   });
   const entry = findLoweringOrThrow(manifest, 'fused_gemv', 'webgpu-generic');
-  assert.equal(entry.exactnessClass, 'algorithm-exact');
+  assert.equal(entry.exactness.class, 'algorithm_exact');
 }
 
 // =========================================================================

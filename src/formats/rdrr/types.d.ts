@@ -182,9 +182,9 @@ export interface IntegrityExtensionsBlockMerkle {
  *   - tolerance-bounded: declared metric within declared epsilon.
  */
 export type LoweringExactnessClass =
-  | 'bit-exact-solo'
-  | 'algorithm-exact'
-  | 'tolerance-bounded';
+  | 'bit_exact_solo'
+  | 'algorithm_exact'
+  | 'tolerance_bounded';
 
 /**
  * One lowering receipt for a (kernel, backend) pair. Either digests are populated
@@ -192,13 +192,20 @@ export type LoweringExactnessClass =
  * kernel). A successful entry with rejectionReasons and a rejection entry with digests
  * are both invalid.
  */
+export interface LoweringExactness {
+  class: LoweringExactnessClass;
+  algorithmExactInvariants: string[];
+  toleranceEpsilon: number;
+  toleranceMetric: string;
+}
+
 export interface IntegrityExtensionsLoweringEntry {
   /** Logical reference into the manifest's execution graph. */
   kernelRef: string;
   /** Backend identifier, e.g. "webgpu-generic", "wse3", "csl-classifier-legacy". */
   backend: string;
-  /** Hash of the target descriptor used to produce this realization. */
-  targetDescriptorHash: string | null;
+  /** Hash of the target descriptor under which this realization was produced. */
+  targetDescriptorCorrectnessHash: string | null;
   /** Frontend-version identity that produced tsir.semantic (null for rejection). */
   frontendVersion: string | null;
   /** Stable source-meaning digest (null for rejection). */
@@ -208,9 +215,9 @@ export interface IntegrityExtensionsLoweringEntry {
   /** Emitter-code-version digest (null for rejection). */
   emitterDigest: string | null;
   /** Doe compiler version pin (null for pre-TSIR classifier-legacy receipts). */
-  doeCompilerVersion: string | null;
-  /** Exactness class under which this lowering is declared equivalent to source. */
-  exactnessClass: LoweringExactnessClass | null;
+  compilerVersion: string | null;
+  /** Exactness contract under which this lowering is declared equivalent to source. */
+  exactness: LoweringExactness | null;
   /**
    * Present iff the backend refused this kernel. Canonical codes include:
    *   TSIR_SUBGROUP_UNLOWERABLE, TSIR_PE_BUDGET_EXHAUSTED,

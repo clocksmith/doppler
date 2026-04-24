@@ -10,19 +10,26 @@ const ARTIFACT_COMPLETENESS_VALUES = new Set([
 ]);
 
 const LOWERING_EXACTNESS_CLASSES = new Set([
-  'bit-exact-solo',
-  'algorithm-exact',
-  'tolerance-bounded',
+  'bit_exact_solo',
+  'algorithm_exact',
+  'tolerance_bounded',
 ]);
 
 const LOWERING_NULLABLE_STRING_FIELDS = [
-  'targetDescriptorHash',
+  'targetDescriptorCorrectnessHash',
   'frontendVersion',
   'tsirSemanticDigest',
   'tsirRealizationDigest',
   'emitterDigest',
-  'doeCompilerVersion',
+  'compilerVersion',
 ];
+
+const LOWERING_ALGORITHM_EXACT_INVARIANTS = new Set([
+  'reduction_order',
+  'tree_shape',
+  'accum_dtype',
+  'associativity_grouping',
+]);
 
 function isPlainObject(value) {
   return value != null && typeof value === 'object' && !Array.isArray(value);
@@ -127,28 +134,46 @@ function validateLoweringsSection(lowerings, errors) {
         errors.push(`${prefix}.${field} must be a non-empty string or null`);
       }
     }
-    if (entry.exactnessClass === undefined) {
-      errors.push(`${prefix}.exactnessClass is required (use null for rejection entries)`);
-    } else if (entry.exactnessClass !== null
-      && !LOWERING_EXACTNESS_CLASSES.has(entry.exactnessClass)) {
-      errors.push(`${prefix}.exactnessClass must be one of bit-exact-solo, algorithm-exact, tolerance-bounded, or null`);
-    }
-    if (entry.rejectionReasons === undefined) {
-      errors.push(`${prefix}.rejectionReasons is required (use null when backend honored the kernel)`);
-    } else if (entry.rejectionReasons !== null) {
-      if (!Array.isArray(entry.rejectionReasons) || entry.rejectionReasons.length === 0) {
-        errors.push(`${prefix}.rejectionReasons must be null or a non-empty array of strings`);
+    if (entry.exactness === undefined) {
+      errors.push(`${prefix}.exactness is required (use null for rejection entries)`);
+    } else if (entry.exactness !== null) {
+      if (!isPlainObject(entry.exactness)) {
+        errors.push(`${prefix}.exactness must be an object or null`);
       } else {
-        entry.rejectionReasons.forEach((reason, reasonIndex) => {
-          if (typeof reason !== 'string' || reason.trim().length === 0) {
-            errors.push(`${prefix}.rejectionReasons[${reasonIndex}] must be a non-empty string`);
-          }
-        });
+        if (!LOWERING_EXACTNESS_CLASSES.has(entry.exactness.class)) {
+          errors.push(`${prefix}.exactness.class must be one of bit_exact_solo, algorithm_exact, tolerance_bounded`);
+        }
+        if (!Array.isArray(entry.exactness.algorithmExactInvariants)) {
+          errors.push(`${prefix}.exactness.algorithmExactInvariants must be an array`);
+        } else {
+          entry.exactness.algorithmExactInvariants.forEach((inv, i) => {
+            if (typeof inv !== 'string' || !LOWERING_ALGORITHM_EXACT_INVARIANTS.has(inv)) {
+              errors.push(`${prefix}.exactness.algorithmExactInvariants[${i}] must be one of reduction_order, tree_shape, accum_dtype, associativity_grouping`);
+            }
+          });
+        }
+        if (typeof entry.exactness.toleranceMetric !== 'string') {
+          errors.push(`${prefix}.exactness.toleranceMetric must be a string`);
+        }
+        if (typeof entry.exactness.toleranceEpsilon !== 'number') {
+          errors.push(`${prefix}.exactness.toleranceEpsilon must be a number`);
+        }
       }
     }
+    if (entry.rejectionReasons === undefined) {
+      errors.push(`${prefix}.rejectionReasons is required (empty array when backend honored the kernel)`);
+    } else if (!Array.isArray(entry.rejectionReasons)) {
+      errors.push(`${prefix}.rejectionReasons must be an array (empty for success)`);
+    } else {
+      entry.rejectionReasons.forEach((reason, reasonIndex) => {
+        if (typeof reason !== 'string' || reason.trim().length === 0) {
+          errors.push(`${prefix}.rejectionReasons[${reasonIndex}] must be a non-empty string`);
+        }
+      });
+    }
 
-    // A lowering receipt is either a success (digests populated, rejectionReasons null)
-    // or a rejection (digests null, rejectionReasons populated). Mixed states are invalid.
+    // A lowering receipt is either a success (digests populated, rejectionReasons empty)
+    // or a rejection (digests null, rejectionReasons non-empty). Mixed states are invalid.
     const hasDigests = (
       typeof entry.tsirSemanticDigest === 'string'
       && typeof entry.tsirRealizationDigest === 'string'
@@ -165,6 +190,9 @@ function validateLoweringsSection(lowerings, errors) {
     }
     if (!hasRejection && !hasDigests && !allDigestsNull) {
       errors.push(`${prefix} has inconsistent digests: all must be strings (success) or all null (rejection)`);
+    }
+    if (!hasRejection && allDigestsNull && !hasDigests) {
+      errors.push(`${prefix} declares no state: success requires populated digests with empty rejectionReasons, rejection requires null digests with non-empty rejectionReasons`);
     }
   });
 }

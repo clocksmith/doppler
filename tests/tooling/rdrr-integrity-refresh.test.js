@@ -91,8 +91,8 @@ try {
     normalizeManifestLoweringEntry(doeLoweringEntry)
   );
   assert.equal(
-    dryRun.manifest.integrityExtensions.lowerings.entries[0].exactnessClass,
-    'algorithm-exact'
+    dryRun.manifest.integrityExtensions.lowerings.entries[0].exactness.class,
+    'algorithm_exact'
   );
 
   const written = await refreshManifestIntegrity({
@@ -105,8 +105,8 @@ try {
   const persisted = JSON.parse(await readFile(manifestPath, 'utf8'));
   assert.equal(persisted.integrityExtensions.blockMerkle.blockSize, 8);
   assert.equal(
-    persisted.integrityExtensions.lowerings.entries[0].targetDescriptorHash,
-    `sha256:${'1'.repeat(64)}`
+    persisted.integrityExtensions.lowerings.entries[0].targetDescriptorCorrectnessHash,
+    '1'.repeat(64)
   );
   assert.ok(persisted.metadata.integrityRefresh.at);
 
