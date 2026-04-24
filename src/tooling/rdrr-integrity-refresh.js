@@ -44,6 +44,86 @@ async function readJsonObject(filePath, label) {
   return asObject(parsed, label);
 }
 
+function normalizeHashString(value, label) {
+  const text = asNonEmptyString(value, label);
+  if (/^[0-9a-f]{64}$/.test(text)) {
+    return `sha256:${text}`;
+  }
+  return text;
+}
+
+function normalizeExactnessClass(value, label) {
+  const text = asNonEmptyString(value, label);
+  const mapped = {
+    bit_exact_solo: 'bit-exact-solo',
+    algorithm_exact: 'algorithm-exact',
+    tolerance_bounded: 'tolerance-bounded',
+  }[text] ?? text;
+  if (!['bit-exact-solo', 'algorithm-exact', 'tolerance-bounded'].includes(mapped)) {
+    throw new Error(`${label} must be bit_exact_solo, algorithm_exact, tolerance_bounded, or the Doppler hyphenated equivalent.`);
+  }
+  return mapped;
+}
+
+function normalizeRejectionReasons(value, label) {
+  if (value == null) return null;
+  if (!Array.isArray(value)) {
+    throw new Error(`${label} must be null or an array.`);
+  }
+  if (value.length === 0) return null;
+  return value.map((reason, index) => asNonEmptyString(reason, `${label}[${index}]`));
+}
+
+export function normalizeManifestLoweringEntry(entry, label = 'loweringEntry') {
+  const doc = asObject(entry, label);
+  const rejectionReasons = normalizeRejectionReasons(doc.rejectionReasons, `${label}.rejectionReasons`);
+  const rejected = rejectionReasons !== null;
+  const targetDescriptor = doc.targetDescriptorHash ?? doc.targetDescriptorCorrectnessHash;
+  const compilerVersion = doc.doeCompilerVersion ?? doc.compilerVersion;
+  const exactnessClass = doc.exactnessClass ?? doc.exactness?.class;
+
+  return {
+    kernelRef: asNonEmptyString(doc.kernelRef, `${label}.kernelRef`),
+    backend: asNonEmptyString(doc.backend, `${label}.backend`),
+    targetDescriptorHash: rejected ? null : normalizeHashString(targetDescriptor, `${label}.targetDescriptorHash`),
+    frontendVersion: rejected ? null : asNonEmptyString(doc.frontendVersion, `${label}.frontendVersion`),
+    tsirSemanticDigest: rejected ? null : normalizeHashString(doc.tsirSemanticDigest, `${label}.tsirSemanticDigest`),
+    tsirRealizationDigest: rejected ? null : normalizeHashString(doc.tsirRealizationDigest, `${label}.tsirRealizationDigest`),
+    emitterDigest: rejected ? null : normalizeHashString(doc.emitterDigest, `${label}.emitterDigest`),
+    doeCompilerVersion: rejected ? null : asNonEmptyString(compilerVersion, `${label}.doeCompilerVersion`),
+    exactnessClass: rejected ? null : normalizeExactnessClass(exactnessClass, `${label}.exactnessClass`),
+    rejectionReasons,
+  };
+}
+
+async function loadLoweringEntriesFromPaths(modelDir, loweringEntryPaths) {
+  if (!Array.isArray(loweringEntryPaths) || loweringEntryPaths.length === 0) {
+    return [];
+  }
+  const entries = [];
+  for (const [index, rawPath] of loweringEntryPaths.entries()) {
+    const raw = asNonEmptyString(rawPath, `loweringEntryPaths[${index}]`);
+    const entryPath = path.isAbsolute(raw) ? raw : path.resolve(modelDir, raw);
+    entries.push(await readJsonObject(entryPath, `loweringEntryPaths[${index}]`));
+  }
+  return entries;
+}
+
+async function resolveLoweringsSection(manifest, modelDir, options) {
+  const provided = [];
+  if (Array.isArray(options?.loweringEntries)) {
+    provided.push(...options.loweringEntries);
+  }
+  provided.push(...await loadLoweringEntriesFromPaths(modelDir, options?.loweringEntryPaths));
+  if (provided.length === 0) {
+    return manifest?.integrityExtensions?.lowerings;
+  }
+  return {
+    contractVersion: 1,
+    entries: provided.map((entry, index) => normalizeManifestLoweringEntry(entry, `loweringEntries[${index}]`)),
+  };
+}
+
 async function loadTensorMap(manifest, modelDir) {
   if (manifest.tensors && typeof manifest.tensors === 'object' && !Array.isArray(manifest.tensors)) {
     return manifest.tensors;
@@ -92,10 +172,12 @@ export async function buildManifestIntegrityFromModelDir(manifest, options = {})
       }
     };
   const shardIndexMap = buildShardIndexMap(normalizedManifest);
+  const lowerings = await resolveLoweringsSection(normalizedManifest, modelDir, options);
 
   return buildIntegrityExtensions(normalizedManifest, {
     tensorMap,
     blockSize: options?.blockSize,
+    lowerings,
     onProgress: options?.onProgress,
     hashBlockBytesSha256: options?.hashBlockBytesSha256 ?? hashBytesSha256Node,
     async readShardRange(shardIndex, offset, length) {
@@ -126,6 +208,8 @@ export async function refreshManifestIntegrity(options) {
     {
       modelDir,
       blockSize: options?.blockSize,
+      loweringEntries: options?.loweringEntries,
+      loweringEntryPaths: options?.loweringEntryPaths,
       onProgress: options?.onProgress,
     }
   );

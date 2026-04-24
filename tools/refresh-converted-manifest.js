@@ -22,6 +22,7 @@ function parseArgs(argv) {
     manifestPath: null,
     modelId: null,
     blockSize: null,
+    loweringEntryPaths: [],
     skipShardCheck: false,
     dryRun: false,
   };
@@ -48,6 +49,11 @@ function parseArgs(argv) {
       i += 1;
       continue;
     }
+    if (arg === '--lowering-entry') {
+      args.loweringEntryPaths.push(argv[i + 1] ?? null);
+      i += 1;
+      continue;
+    }
     if (arg === '--skip-shard-check') {
       args.skipShardCheck = true;
       continue;
@@ -67,7 +73,7 @@ function parseArgs(argv) {
   }
 
   if (!args.modelDir || !args.conversionConfigPath) {
-    fail('Usage: node tools/refresh-converted-manifest.js <model-dir> --config <conversion-config.json> [--manifest <manifest.json>] [--model-id <id>] [--block-size <bytes>] [--skip-shard-check] [--dry-run]');
+    fail('Usage: node tools/refresh-converted-manifest.js <model-dir> --config <conversion-config.json> [--manifest <manifest.json>] [--model-id <id>] [--block-size <bytes>] [--lowering-entry <entry.json>]... [--skip-shard-check] [--dry-run]');
   }
 
   if (typeof args.conversionConfigPath !== 'string' || !args.conversionConfigPath.trim()) {
@@ -371,6 +377,7 @@ async function main() {
   const builtIntegrity = await buildManifestIntegrityFromModelDir(refreshed, {
     modelDir,
     blockSize: resolveOptionalBlockSize(args.blockSize),
+    loweringEntryPaths: args.loweringEntryPaths,
   });
   refreshed.integrityExtensions = builtIntegrity.integrityExtensions;
 

@@ -188,6 +188,10 @@ export async function buildIntegrityExtensions(manifest, options = {}) {
       roots,
     },
   };
+  const lowerings = options?.lowerings ?? manifest?.integrityExtensions?.lowerings;
+  if (lowerings !== undefined) {
+    integrityExtensions.lowerings = lowerings;
+  }
 
   return {
     integrityExtensions,
