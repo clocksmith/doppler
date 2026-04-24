@@ -3,6 +3,7 @@ import { type GPUContext, type GPUBuffersResult, type MemoryStats } from './type
 export interface MixedGeometryKVCacheConfig {
   numLayers: number;
   numHeads: number;
+  globalNumHeads?: number | null;
   headDim: number;
   globalHeadDim?: number | null;
   maxSeqLen: number;

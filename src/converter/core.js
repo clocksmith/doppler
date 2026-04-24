@@ -1182,6 +1182,7 @@ export function extractArchitecture(config, ggufConfig) {
       'num_attention_heads'
     );
     const numKVHeads = fromConfig('num_key_value_heads', 'num_kv_heads') ?? numHeads;
+    const numGlobalKVHeads = fromConfig('num_global_key_value_heads', 'num_global_kv_heads');
     const headDimFromConfig = fromConfig('head_dim') ?? Math.floor(hiddenSize / numHeads);
     const vocabSize = requireNumber(
       fromConfig('vocab_size', 'n_vocab'),
@@ -1225,6 +1226,7 @@ export function extractArchitecture(config, ggufConfig) {
       intermediateSize,
       numAttentionHeads: numHeads,
       numKeyValueHeads: numKVHeads,
+      numGlobalKeyValueHeads: numGlobalKVHeads ?? undefined,
       headDim: headDimFromConfig,
       vocabSize,
       maxSeqLen,
@@ -1832,7 +1834,9 @@ export function createManifest(
 // Main Converter (uses I/O adapter)
 // ============================================================================
 
-const MAX_TENSOR_TYPED_ARRAY_BYTES = Math.min(Buffer.kMaxLength, 0x7fff_ffff);
+const MAX_TENSOR_TYPED_ARRAY_BYTES = typeof Buffer !== 'undefined'
+  ? Math.min(Buffer.kMaxLength, 0x7fff_ffff)
+  : 0x7fff_ffff;
 
 export async function convertModel(model, io, options = {}) {
   const { onProgress, signal } = options;

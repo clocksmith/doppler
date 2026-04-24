@@ -17,3 +17,12 @@ export * from './manifest.js';
 
 // Group accessors
 export * from './groups.js';
+
+// Integrity + slicing
+export * from './merkle.js';
+export * from './integrity.js';
+export * from './lowerings.js';
+export * from './slice-compiler.js';
+
+// Distributed plans
+export * from './distributed/index.js';

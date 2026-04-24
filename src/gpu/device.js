@@ -18,6 +18,7 @@ let kernelCapabilities = null;
 // Cached platform config (set during initDevice)
 
 let resolvedPlatformConfig = null;
+let lastDeviceLossInfo = null;
 
 // Track whether platform/registry initialization has been attempted
 let platformInitialized = false;
@@ -162,6 +163,13 @@ function registerDeviceLostHandler(device) {
       if (gpuDevice !== trackedDevice) {
         return;
       }
+      lastDeviceLossInfo = {
+        message: info?.message ?? '',
+        reason: info?.reason ?? 'unknown',
+        deviceEpoch,
+        timestampMs: Date.now(),
+        adapterInfo: kernelCapabilities?.adapterInfo ?? null,
+      };
       log.error('GPU', 'Device lost: ' + info.message + ', Reason: ' + info.reason);
       clearActiveDeviceState();
       advanceDeviceEpoch();
@@ -169,6 +177,13 @@ function registerDeviceLostHandler(device) {
       if (gpuDevice !== trackedDevice) {
         return;
       }
+      lastDeviceLossInfo = {
+        message: error?.message ?? String(error),
+        reason: 'device_lost_handler_failed',
+        deviceEpoch,
+        timestampMs: Date.now(),
+        adapterInfo: kernelCapabilities?.adapterInfo ?? null,
+      };
       log.warn('GPU', 'Device lost handler failed: ' + (error?.message ?? error));
       clearActiveDeviceState();
       advanceDeviceEpoch();
@@ -372,6 +387,7 @@ export async function initDevice() {
   if (!gpuDevice) {
     throw createDopplerError(ERROR_CODES.GPU_DEVICE_FAILED, 'Failed to create WebGPU device');
   }
+  lastDeviceLossInfo = null;
   ensureGpuBufferConstructor(gpuDevice);
   wrapDeviceCreateBindGroup(gpuDevice);
   registerDeviceLostHandler(gpuDevice);
@@ -426,6 +442,7 @@ export function setDevice(device, options = {}) {
   }
 
   gpuDevice = device;
+  lastDeviceLossInfo = null;
   ensureGpuBufferConstructor(gpuDevice);
   wrapDeviceCreateBindGroup(gpuDevice);
   registerDeviceLostHandler(gpuDevice);
@@ -488,6 +505,10 @@ export function getDeviceEpoch() {
 
 export function getPlatformConfig() {
   return resolvedPlatformConfig;
+}
+
+export function getLastDeviceLossInfo() {
+  return lastDeviceLossInfo ? { ...lastDeviceLossInfo } : null;
 }
 
 

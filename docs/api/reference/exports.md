@@ -56,6 +56,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Support tier source: `src/config/support-tiers/subsystems.json` (api.tooling-operator-commands)
 - Exported symbols:
   - `*`
+  - `buildManifestIntegrityFromModelDir`
   - `checkProgramBundleFile`
   - `checkProgramBundleParity`
   - `exportProgramBundle`
@@ -72,6 +73,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `ProgramBundleParityOptions`
   - `ProgramBundleParityResult`
   - `ProgramBundleWriteResult`
+  - `refreshManifestIntegrity`
   - `runBrowserCommandInNode`
   - `runNodeCommand`
   - `writeProgramBundle`

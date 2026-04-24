@@ -79,6 +79,25 @@ export interface TensorSourceTransform {
   };
 }
 
+export interface TensorStorageCompanion {
+  role: string;
+  tensorId: string;
+}
+
+export interface TensorStorageShardSpan {
+  shardIndex: number;
+  byteStart: number;
+  byteEnd: number;
+}
+
+export interface TensorPhysicalStorageDescriptor {
+  packing: 'dense' | 'q4k' | 'q4_0' | 'gguf-block-v2';
+  blockShape?: number[];
+  blockBytes?: number;
+  companions?: TensorStorageCompanion[];
+  shardSpans?: TensorStorageShardSpan[];
+}
+
 // =============================================================================
 // Manifest Types
 // =============================================================================
@@ -126,6 +145,7 @@ export interface TensorLocation {
   layout?: WeightLayout;
   originalShape?: number[];
   sourceTransform?: TensorSourceTransform;
+  storage?: TensorPhysicalStorageDescriptor;
 }
 
 export interface ConversionInfo {
@@ -146,6 +166,76 @@ export interface ConversionInfo {
 export interface RuntimeOptimizations {
   /** Preferred kernel path override */
   kernelPath?: KernelPathRef;
+}
+
+export interface IntegrityExtensionsBlockMerkle {
+  blockSize: number;
+  roots: Record<string, string>;
+}
+
+/**
+ * Parity exactness taxonomy shared with RDRR distributed collectives and Doe TSIR
+ * lowerings. Values are canonical and must not drift between the two lanes.
+ *   - bit-exact-solo: hex-identical bytes against the reference interpreter.
+ *   - algorithm-exact: hex-identical under a declared reduction tree (same vocabulary,
+ *     declared associativity, declared accumulation dtype).
+ *   - tolerance-bounded: declared metric within declared epsilon.
+ */
+export type LoweringExactnessClass =
+  | 'bit-exact-solo'
+  | 'algorithm-exact'
+  | 'tolerance-bounded';
+
+/**
+ * One lowering receipt for a (kernel, backend) pair. Either digests are populated
+ * (lowering succeeded) or rejectionReasons[] is populated (backend cannot honor the
+ * kernel). A successful entry with rejectionReasons and a rejection entry with digests
+ * are both invalid.
+ */
+export interface IntegrityExtensionsLoweringEntry {
+  /** Logical reference into the manifest's execution graph. */
+  kernelRef: string;
+  /** Backend identifier, e.g. "webgpu-generic", "wse3", "csl-classifier-legacy". */
+  backend: string;
+  /** Hash of the target descriptor used to produce this realization. */
+  targetDescriptorHash: string | null;
+  /** Frontend-version identity that produced tsir.semantic (null for rejection). */
+  frontendVersion: string | null;
+  /** Stable source-meaning digest (null for rejection). */
+  tsirSemanticDigest: string | null;
+  /** Target-and-policy-dependent realization digest (null for rejection). */
+  tsirRealizationDigest: string | null;
+  /** Emitter-code-version digest (null for rejection). */
+  emitterDigest: string | null;
+  /** Doe compiler version pin (null for pre-TSIR classifier-legacy receipts). */
+  doeCompilerVersion: string | null;
+  /** Exactness class under which this lowering is declared equivalent to source. */
+  exactnessClass: LoweringExactnessClass | null;
+  /**
+   * Present iff the backend refused this kernel. Canonical codes include:
+   *   TSIR_SUBGROUP_UNLOWERABLE, TSIR_PE_BUDGET_EXHAUSTED,
+   *   TSIR_COLLECTIVE_NOT_REPRESENTABLE, TSIR_DEPENDENCE_UNANALYZABLE,
+   *   TSIR_SOURCE_NOT_AFFINE, TSIR_TARGET_UNFIT.
+   */
+  rejectionReasons: string[] | null;
+}
+
+export interface IntegrityExtensionsLowerings {
+  /** Own contractVersion — additive, independent of integrityExtensions.contractVersion. */
+  contractVersion: 1;
+  entries: IntegrityExtensionsLoweringEntry[];
+}
+
+export interface IntegrityExtensions {
+  contractVersion: 1;
+  blockMerkle: IntegrityExtensionsBlockMerkle;
+  /**
+   * Optional Doe TSIR lowering receipts. Absent on artifacts built before the
+   * lowering binding lands. When present, each entry is either a successful
+   * lowering (digests populated, rejectionReasons null) or a rejection
+   * (digests null, rejectionReasons non-empty).
+   */
+  lowerings?: IntegrityExtensionsLowerings;
 }
 
 export interface RDRRManifest {
@@ -176,6 +266,7 @@ export interface RDRRManifest {
   optimizations?: RuntimeOptimizations;
   config?: Record<string, unknown>;
   conversion?: ConversionInfo;
+  integrityExtensions?: IntegrityExtensions;
 
   // Required inference configuration (populated by converter)
   inference: ManifestInferenceSchema;
@@ -236,6 +327,7 @@ export interface CreateManifestOptions {
   moeConfig?: MoEConfig;
   config?: Record<string, unknown>;
   conversion?: ConversionInfo;
+  integrityExtensions?: IntegrityExtensions;
   blake3Full?: string;
   metadata?: Record<string, unknown>;
   // Required inference configuration

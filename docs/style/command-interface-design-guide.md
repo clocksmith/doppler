@@ -18,6 +18,7 @@ This applies to browser clients and the Node CLI equally.
 
 - The only supported mapping is:
   - `convert` → convert intent
+  - `refresh-integrity` → maintenance intent
   - `debug` → investigate intent
   - `bench` → calibrate intent
   - `verify` → verify intent
@@ -32,6 +33,7 @@ This applies to browser clients and the Node CLI equally.
 ## Canonical Commands
 
 - `convert`
+- `refresh-integrity`
 - `debug`
 - `bench`
 - `verify`
@@ -62,7 +64,7 @@ Rules:
 - `debug` is valid for `inference` and `embedding`.
 - `bench` is valid for `inference`, `embedding`, `training`, `diffusion`, and `energy`.
 - `verify` is valid for `kernels`, `inference`, `embedding`, `training`, `diffusion`, and `energy`.
-- `convert`, `lora`, and `distill` do not use workload-locked harness execution.
+- `convert`, `refresh-integrity`, `lora`, and `distill` do not use workload-locked harness execution.
 - `workloadType` is reserved for submodes inside a workload family when a family needs it, such as training stage selection or diffusion lane selection.
 - `request.inferenceInput` is reserved for request-owned inference payloads such as prompt overrides and multimodal image inputs.
 - `request.inferenceInput` is workload data, not runtime tuning; sampling, kernel, and cache policy still belong in runtime config.
@@ -106,6 +108,7 @@ Rules:
 - **Intent**: none (unless harnessed workload is executed)
 - **Exit**: materialized artifact + hashes
 - **Command**: `convert`
+- **Command**: `refresh-integrity`
 
 ### Training Operator Lifecycle
 
@@ -197,10 +200,11 @@ Commands are rejected when:
 - Browser relay executes `runBrowserCommand()` in a browser via `src/tooling/command-runner.html`
   (default headless, configured via `run.browser` fields in CLI `--config`).
 - Browser relay can attach to an existing server with `run.browser.baseUrl`.
-- `convert` is Node-only in CLI (`--surface browser` is rejected).
+- `convert` and `refresh-integrity` are Node-only in CLI (`--surface browser` is rejected).
 - `lora` and `distill` are currently Node-only and must fail closed on browser surfaces until equivalent runtime semantics exist there.
 - `keepPipeline=true` is rejected on browser relay because pipeline objects are not serializable across process boundaries.
 - `convert` execution tuning belongs in `request.convertPayload.execution` and must not change command semantics.
+- `refresh-integrity` rebuilds manifest integrity metadata from local artifact bytes and must not consume runtime config inputs.
 
 ---
 

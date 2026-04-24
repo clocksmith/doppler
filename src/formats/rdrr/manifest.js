@@ -30,6 +30,7 @@ export function createManifest(options) {
     conversion: options.conversion,
     blake3Full: options.blake3Full,
     metadata: options.metadata,
+    integrityExtensions: options.integrityExtensions,
     inference: options.inference,
   };
 

@@ -74,6 +74,7 @@ function usage() {
   return [
     'Usage:',
     '  doppler convert --config <path|url|json> [--surface auto|node]',
+    '  doppler refresh-integrity --config <path|url|json> [--surface auto|node]',
     '  doppler debug --config <path|url|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
     '  doppler bench --config <path|url|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
     '  doppler verify --config <path|url|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
@@ -101,6 +102,7 @@ function usage() {
     '',
     'Example:',
     '  doppler verify --config \'{"request":{"workload":"inference","modelId":"gemma-3-270m-it-f16-af32"}}\'',
+    '  doppler refresh-integrity --config \'{"request":{"modelDir":"models/local/gemma-3-270m-it-q4k-ehf16-af32"}}\'',
     '  doppler verify --config \'{"request":{"workload":"inference","workloadType":"program-bundle","programBundlePath":"examples/program-bundles/gemma-3-270m-it-q4k-ehf16-af32.program-bundle.json"}}\'',
     '  doppler program-bundle --config \'{"manifestPath":"models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json","referenceReportPath":"tests/fixtures/reports/gemma-3-270m-it-q4k-ehf16-af32/2026-03-18T13-33-38.973Z.json","outputPath":"examples/program-bundles/gemma-3-270m-it-q4k-ehf16-af32.program-bundle.json"}\'',
   ].join('\n');
@@ -454,8 +456,8 @@ function parseSurface(value, command, policy = DEFAULT_CLI_POLICY) {
   if (!allowedSurfaces.includes(normalized)) {
     throw new Error('--surface must be one of auto, node, browser');
   }
-  if (command === 'convert' && normalized === 'browser') {
-    throw new Error('convert is not supported on browser relay. Use --surface node or --surface auto.');
+  if ((command === 'convert' || command === 'refresh-integrity') && normalized === 'browser') {
+    throw new Error(`${command} is not supported on browser relay. Use --surface node or --surface auto.`);
   }
   if ((command === 'lora' || command === 'distill') && normalized === 'browser') {
     throw new Error(`${command} is not supported on browser relay. Use --surface node or --surface auto.`);
@@ -812,7 +814,7 @@ async function runCommandOnSurface(request, surface, runConfig, jsonOutput) {
 }
 
 async function runWithAutoSurface(request, runConfig, jsonOutput, policy = DEFAULT_CLI_POLICY) {
-  if (request.command === 'convert') {
+  if (request.command === 'convert' || request.command === 'refresh-integrity') {
     return runCommandOnSurface(request, 'node', runConfig, jsonOutput);
   }
   const fallbackPolicy = policy?.surfaceFallback || { enabled: false };

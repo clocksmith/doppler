@@ -6,7 +6,7 @@ Add a new top-level command to Doppler's browser and Node tooling surface.
 
 ## When To Use This Guide
 
-- The feature belongs next to `convert`, `debug`, `bench`, `verify`, `lora`, or `distill`.
+- The feature belongs next to `convert`, `refresh-integrity`, `debug`, `bench`, `verify`, `lora`, or `distill`.
 - The command is part of the public command contract rather than an ad hoc script.
 
 ## Blast Radius

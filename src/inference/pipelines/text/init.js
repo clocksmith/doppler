@@ -44,6 +44,7 @@ import {
   isStopToken,
 } from './init-chat-templates.js';
 import { fuseQKVWeights } from './init-qkv-fusion.js';
+import { rewriteWeightLoadError } from './load-errors.js';
 import { toArrayBuffer } from '../../../utils/array-buffer.js';
 
 // Re-exports for backwards compatibility
@@ -689,6 +690,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
     kvCache = new MixedGeometryKVCache({
       ...cacheConfig,
       numHeads: modelConfig.numKVHeads,
+      globalNumHeads: modelConfig.numGlobalKVHeads ?? modelConfig.numKVHeads,
       globalHeadDim: modelConfig.globalHeadDim ?? null,
       slidingWindow,
       layerTypes: modelConfig.layerTypes,
@@ -906,15 +908,19 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
   if (!modelId) {
     throw new Error('Manifest is missing modelId. Re-convert the model with modelId set.');
   }
-  await dopplerLoader.load(modelId, {
-    verifyHashes,
-    onProgress: onProgress || ((info) => {
-      // Shard and layer progress are logged by loader with source info
-      if (info.stage !== 'layers' && info.stage !== 'shards') {
-        log.verbose('Loader', `${info.stage}: ${Math.round(info.progress * 100)}%`);
-      }
-    }),
-  });
+  try {
+    await dopplerLoader.load(modelId, {
+      verifyHashes,
+      onProgress: onProgress || ((info) => {
+        // Shard and layer progress are logged by loader with source info
+        if (info.stage !== 'layers' && info.stage !== 'shards') {
+          log.verbose('Loader', `${info.stage}: ${Math.round(info.progress * 100)}%`);
+        }
+      }),
+    });
+  } catch (error) {
+    throw rewriteWeightLoadError(error, { modelId });
+  }
 
   // Map layer weights
   

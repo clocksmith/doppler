@@ -96,6 +96,7 @@ export interface ProjectAttentionQKVResult {
   kTensor: Tensor;
   vTensor: Tensor;
   usedFusedQKV: boolean;
+  valueAliasesKey: boolean;
 }
 
 export function projectAttentionQKV(options: ProjectAttentionQKVOptions): Promise<ProjectAttentionQKVResult>;
@@ -115,6 +116,7 @@ export interface ApplyAttentionQKNormOptions {
   releaseTemporary: (buffer: GPUBuffer) => void;
   onQNormApplied?: ((tensor: Tensor) => Promise<void> | void) | null;
   onKNormApplied?: ((tensor: Tensor) => Promise<void> | void) | null;
+  retainKInput?: boolean;
 }
 
 export function applyAttentionQKNorm(

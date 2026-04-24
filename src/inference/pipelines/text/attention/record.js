@@ -136,6 +136,7 @@ export async function recordLayerAttentionGPU(
   let finalOutput = null;
   let oProjInputTemp = null;
   let retainSharedKvBuffers = false;
+  let valueAliasesKey = false;
   if (!allowF16Attention && input.dtype !== attentionActivationDtype) {
     assertAttentionDtypeTransitionAllowed(
       state,
@@ -241,7 +242,7 @@ export async function recordLayerAttentionGPU(
   }
   const reusesSharedKV = sharedKVEntry != null;
   retainSharedKvBuffers = reusesSharedKV || storeSharedKV;
-  ({ qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV } = await projectAttentionQKV({
+  ({ qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV, valueAliasesKey } = await projectAttentionQKV({
     recorder,
     normed,
     layerWeights,
@@ -295,9 +296,11 @@ export async function recordLayerAttentionGPU(
     rmsNormWeightOffset: config.rmsNormWeightOffset,
     releaseTemporary: (buffer) => releaseOrTrack(recorder, buffer),
     skipKNorm: reusesSharedKV,
+    retainKInput: valueAliasesKey,
   }));
 
   if (config.valueNorm === true && !reusesSharedKV) {
+    const valueNormInputAliasesKey = vTensor.buffer === kTensor.buffer;
     vTensor = await applyAttentionValueNorm({
       recorder,
       vTensor,
@@ -305,7 +308,11 @@ export async function recordLayerAttentionGPU(
       numTokens,
       numKVHeads,
       headDim,
-      releaseTemporary: (buffer) => releaseOrTrack(recorder, buffer),
+      releaseTemporary: (buffer) => {
+        if (!valueNormInputAliasesKey) {
+          releaseOrTrack(recorder, buffer);
+        }
+      },
     });
   }
 
@@ -701,7 +708,9 @@ export async function recordLayerAttentionGPU(
   }
   if (!retainSharedKvBuffers) {
     recorder.trackTemporaryBuffer(kTensor.buffer);
-    recorder.trackTemporaryBuffer(vTensor.buffer);
+    if (vTensor.buffer !== kTensor.buffer) {
+      recorder.trackTemporaryBuffer(vTensor.buffer);
+    }
   }
   for (const buffer of buffersToTrack) {
     recorder.trackTemporaryBuffer(buffer);

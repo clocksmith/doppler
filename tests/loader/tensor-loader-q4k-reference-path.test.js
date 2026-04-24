@@ -221,4 +221,46 @@ resetRuntimeState(null);
 }
 
 resetRuntimeState(null);
+
+{
+  const device = createFakeDevice();
+  device.limits.maxBufferSize = 1 << 20;
+  device.limits.maxStorageBufferBindingSize = 1 << 20;
+  device.features = new Set(['shader-f16', 'subgroups']);
+  resetRuntimeState(device);
+
+  const shape = [4096, 256];
+  const quantized = new Uint8Array(shape[0] * 144);
+  for (let i = 0; i < quantized.length; i += 1) {
+    quantized[i] = i & 0xff;
+  }
+
+  const result = await loadTensorToGPU(
+    quantized,
+    {
+      size: quantized.byteLength,
+      shape,
+      dtype: 'Q4_K_M',
+      role: 'matmul',
+      layout: 'row',
+    },
+    'low_limit_q4k_down_proj',
+    {
+      useFusedQ4K: false,
+      keepF32Weights: false,
+      allowF32UpcastNonMatmul: false,
+      q4kLayout: 'row',
+      q4kMaterializationMode: 'dense',
+      gpuCapabilities: { hasF16: true, hasSubgroups: true },
+    }
+  );
+
+  assert.equal(result.data.dtype, 'q4k');
+  assert.equal(result.data.layout, 'row');
+  assert.deepEqual(result.data.shape, shape);
+  assert.equal(result.data.buffer.size, 1 << 20);
+  assert.equal(result.allocatedBuffers.length, 1);
+}
+
+resetRuntimeState(null);
 console.log('tensor-loader-q4k-reference-path.test: ok');

@@ -25,6 +25,9 @@ function buildLayerSpecs(config, bytesPerElem) {
     ? Math.trunc(config.globalHeadDim)
     : baseHeadDim;
   const numHeads = Number(config.numHeads);
+  const globalNumHeads = Number.isFinite(config.globalNumHeads) && config.globalNumHeads > 0
+    ? Math.trunc(config.globalNumHeads)
+    : numHeads;
   const maxSeqLen = Number(config.maxSeqLen);
   const slidingWindow = Number.isFinite(config.slidingWindow) && config.slidingWindow > 0
     ? Math.min(Math.trunc(config.slidingWindow), maxSeqLen)
@@ -46,14 +49,15 @@ function buildLayerSpecs(config, bytesPerElem) {
     const capacityTokens = isSliding && slidingWindow != null
       ? slidingWindow
       : maxSeqLen;
-    const kvSize = numHeads * headDim;
+    const layerNumHeads = isSliding ? numHeads : globalNumHeads;
+    const kvSize = layerNumHeads * headDim;
     const bytesPerToken = kvSize * bytesPerElem;
     return {
       layerIdx,
       layerType,
       layout: isSliding && slidingWindow != null ? 'ring' : 'contiguous',
       headDim,
-      numHeads,
+      numHeads: layerNumHeads,
       kvSize,
       capacityTokens,
       bytesPerToken,
@@ -120,6 +124,9 @@ export class MixedGeometryKVCache {
 
     this.numLayers = Math.trunc(config.numLayers);
     this.numHeads = Math.trunc(config.numHeads);
+    this.globalNumHeads = Number.isFinite(config.globalNumHeads) && config.globalNumHeads > 0
+      ? Math.trunc(config.globalNumHeads)
+      : this.numHeads;
     this.headDim = Math.max(
       Math.trunc(config.headDim),
       Number.isFinite(config.globalHeadDim) ? Math.trunc(config.globalHeadDim) : Math.trunc(config.headDim)
@@ -142,6 +149,7 @@ export class MixedGeometryKVCache {
       ...config,
       numLayers: this.numLayers,
       numHeads: this.numHeads,
+      globalNumHeads: this.globalNumHeads,
       headDim: Math.trunc(config.headDim),
       globalHeadDim: Number.isFinite(config.globalHeadDim) ? Math.trunc(config.globalHeadDim) : null,
       maxSeqLen: this.maxSeqLen,

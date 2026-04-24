@@ -4,6 +4,7 @@ import {
   projectAttentionQKV,
   resolveProjectionSliceOffsetBytes,
 } from '../../src/inference/pipelines/text/attention/projections.js';
+import { resolveAttentionNumKVHeads } from '../../src/inference/pipelines/text/layer.js';
 
 function makeWeight(dtype, layout = 'row', shape = [2048, 1024]) {
   return {
@@ -45,6 +46,19 @@ function makeWeight(dtype, layout = 'row', shape = [2048, 1024]) {
 {
   const offset = resolveProjectionSliceOffsetBytes(makeWeight('q4k'), 0, 1024);
   assert.equal(offset, 0);
+}
+
+{
+  const config = { hiddenSize: 5376, numKVHeads: 16, numGlobalKVHeads: 4 };
+  assert.equal(
+    resolveAttentionNumKVHeads(config, 'full_attention', { kProj: { shape: [2048, 5376] } }, 512),
+    4
+  );
+  assert.equal(
+    resolveAttentionNumKVHeads(config, 'sliding_attention', { kProj: { shape: [4096, 5376] } }, 256),
+    16
+  );
+  assert.equal(resolveAttentionNumKVHeads(config, 'full_attention', {}, 512), 4);
 }
 
 {

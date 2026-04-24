@@ -207,6 +207,7 @@ export interface ArchitectureSchema {
   intermediateSize: number;
   numAttentionHeads: number;
   numKeyValueHeads: number;
+  numGlobalKeyValueHeads?: number;
   headDim: number;
   globalHeadDim?: number;
   vocabSize: number;

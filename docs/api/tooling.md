@@ -52,6 +52,7 @@ The generated export inventory is the authoritative symbol list for this surface
 Canonical tooling commands:
 
 - `convert`
+- `refresh-integrity`
 - `debug`
 - `bench`
 - `verify`
@@ -100,6 +101,7 @@ Important surface rules:
 | Command | Required request fields | Notes |
 | --- | --- | --- |
 | `convert` | `request.inputDir`, `request.convertPayload.converterConfig` | CLI/browser relay: Node-only. Direct `runBrowserCommand(...)`: supported with injected `convertHandler` |
+| `refresh-integrity` | `request.modelDir` | Node-only. Rebuilds `manifest.integrityExtensions` from local shard bytes; rejects runtime config inputs |
 | `verify` | `request.workload` plus `request.modelId` except `kernels` and `workloadType="program-bundle"` | `request.workload` is required and may be `embedding` for embedding-model correctness checks; `request.modelUrl` is optional when `request.modelId` is present; `request.inferenceInput` is available for request-owned inference payloads when `workload="inference"`; Program Bundle parity requires `programBundle` or `programBundlePath` |
 | `debug` | `request.workload` plus `request.modelId` | `request.workload` is required and may be `inference` or `embedding`; `request.inferenceInput` is available when `workload="inference"` |
 | `bench` | `request.workload` plus `request.modelId` | `request.workload` is required and may be `inference`, `embedding`, `training`, `diffusion`, or `energy`; `workload="training"` intentionally allows `modelId: null`; `request.inferenceInput` is available when `workload="inference"` |
@@ -116,6 +118,7 @@ Operator-action notes:
 
 Supported surfaces:
 - `convert`: `--surface auto|node`
+- `refresh-integrity`: `--surface auto|node`
 - `debug`, `bench`, `verify`: `--surface auto|node|browser`
 - `diagnose`, `lora`, `distill`: `--surface auto|node` in practice; `--surface browser` is rejected
 
@@ -130,6 +133,7 @@ CLI notes:
 - `run_contract.json` and `workload.lock.json` are written for every operator run
 - `convert` does not take `modelId`; set `output.modelBaseId` in the converter config
 - `convert` rejects `runtimeProfile`, `runtimeConfigUrl`, `runtimeConfig`, and `configChain` because the convert runner does not consume runtime config
+- `refresh-integrity` rejects `runtimeProfile`, `runtimeConfigUrl`, `runtimeConfig`, and `configChain` because it only restamps local artifact metadata
 - explicit `convertPayload.execution.useGpuCast=true` is fail-closed; if Node WebGPU is unavailable or GPU casting fails, conversion errors instead of silently falling back to CPU
 - `loadMode="memory"` is Node-only and requires local filesystem model data; direct-source loads default to hash verification when `runtime.loading.shardCache.verifyHashes` is not overridden, and Node source loads now fail closed when `runtime.loading.memoryManagement.budget` says the projected resident footprint is too large
 - `request.inferenceInput` is the shared request-owned inference payload. It currently supports:
@@ -157,6 +161,8 @@ CLI notes:
 - `normalizeNodeBrowserCommand(...)`
 - `runBrowserCommandInNode(...)`
 - `TOOLING_COMMANDS`
+- `buildManifestIntegrityFromModelDir(...)` (Node import path only)
+- `refreshManifestIntegrity(...)` (Node import path only)
 
 ### Program Bundle
 

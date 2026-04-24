@@ -517,7 +517,14 @@ export async function projectAttentionQKV({
       if (onFusedQKV) {
         onFusedQKV({ qSize: qSizeFused, kSize: kSizeFused, vSize: vSizeFused, totalSize: qkvSizeTotal });
       }
-      return { qTensor: split.Q, qGateTensor: null, kTensor: split.K, vTensor: split.V, usedFusedQKV: true };
+      return {
+        qTensor: split.Q,
+        qGateTensor: null,
+        kTensor: split.K,
+        vTensor: split.V,
+        usedFusedQKV: true,
+        valueAliasesKey: false,
+      };
     } catch (error) {
       if (qkvTensor) {
         releaseTemporary(qkvTensor.buffer);
@@ -564,6 +571,7 @@ export async function projectAttentionQKV({
         kTensor: sharedKTensor,
         vTensor: sharedVTensor,
         usedFusedQKV: false,
+        valueAliasesKey: false,
       };
     }
 
@@ -591,31 +599,37 @@ export async function projectAttentionQKV({
       fusedNormOffset,
     });
 
-    vTensor = await projectSingleQkvTensor({
-      recorder,
-      normed: projectionInput,
-      layerWeights,
-      weightKey: 'vProj',
-      role: 'v_proj',
-      outputSize: numKVHeads * headDim,
-      outputLabel: 'V',
-      loraKey: 'v_proj',
-      numTokens,
-      hiddenSize,
-      layerIdx,
-      kernelPath,
-      matmulOutputDtype: projectionOutputDtype,
-      getWeightBuffer,
-      lora,
-      matmulDebug,
-      releaseTemporary,
-      executionPolicies,
-      fusedNormWeight,
-      fusedNormEps,
-      fusedNormOffset,
-    });
+    let valueAliasesKey = false;
+    if (layerWeights.vProj) {
+      vTensor = await projectSingleQkvTensor({
+        recorder,
+        normed: projectionInput,
+        layerWeights,
+        weightKey: 'vProj',
+        role: 'v_proj',
+        outputSize: numKVHeads * headDim,
+        outputLabel: 'V',
+        loraKey: 'v_proj',
+        numTokens,
+        hiddenSize,
+        layerIdx,
+        kernelPath,
+        matmulOutputDtype: projectionOutputDtype,
+        getWeightBuffer,
+        lora,
+        matmulDebug,
+        releaseTemporary,
+        executionPolicies,
+        fusedNormWeight,
+        fusedNormEps,
+        fusedNormOffset,
+      });
+    } else {
+      vTensor = kTensor;
+      valueAliasesKey = true;
+    }
 
-    return { qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV: false };
+    return { qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV: false, valueAliasesKey };
   } catch (error) {
     for (const tensor of [qTensor, qGateTensor]) {
       if (tensor?.buffer) {
@@ -675,6 +689,7 @@ export async function applyAttentionQKNorm({
   onQNormApplied = null,
   onKNormApplied = null,
   skipKNorm = false,
+  retainKInput = false,
 }) {
   const runRmsNormForMode = getRmsNormRunner(recorder);
   let nextQ = qTensor;
@@ -713,7 +728,9 @@ export async function applyAttentionQKNorm({
         hiddenSize: headDim,
         rmsNormWeightOffset,
       });
-      releaseTemporary(nextK.buffer);
+      if (!retainKInput) {
+        releaseTemporary(nextK.buffer);
+      }
       nextK = kNormedTensor;
       if (onKNormApplied) {
         await onKNormApplied(nextK);

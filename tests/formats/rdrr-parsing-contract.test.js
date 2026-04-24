@@ -110,4 +110,41 @@ const canonicalManifest = JSON.parse(
   );
 }
 
+{
+  const manifestWithIntegrityExtensions = clone(canonicalManifest);
+  manifestWithIntegrityExtensions.integrityExtensions = {
+    contractVersion: 1,
+    blockMerkle: {
+      blockSize: 1048576,
+      roots: {
+        'model.embed_tokens.weight': 'sha256:embed-root',
+        'model.layers.0.self_attn.q_proj.weight': 'sha256:qproj-root',
+      },
+    },
+  };
+  const parsed = parseManifest(JSON.stringify(manifestWithIntegrityExtensions));
+  assert.deepEqual(
+    parsed.integrityExtensions,
+    manifestWithIntegrityExtensions.integrityExtensions
+  );
+}
+
+{
+  const invalidIntegrityExtensionsManifest = clone(canonicalManifest);
+  invalidIntegrityExtensionsManifest.integrityExtensions = {
+    contractVersion: 2,
+    blockMerkle: {
+      blockSize: 0,
+      roots: {
+        'model.embed_tokens.weight': '',
+      },
+    },
+  };
+  assert.throws(
+    () => parseManifest(JSON.stringify(invalidIntegrityExtensionsManifest)),
+    /Invalid integrityExtensions\./,
+    'integrity extensions must fail closed when malformed or unsupported'
+  );
+}
+
 console.log('rdrr-parsing-contract.test: ok');

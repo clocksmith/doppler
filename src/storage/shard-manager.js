@@ -4,6 +4,8 @@ import {
   getShardInfo,
   getShardCount,
   generateShardFilename,
+  parseTensorMap,
+  buildTensorBlockMerkleRoot,
 } from '../formats/rdrr/index.js';
 import {
   isOPFSAvailable,
@@ -28,6 +30,13 @@ let hashAlgorithm = null;
 let backend = null;
 let backendType = null;
 let currentModelId = null;
+let cachedTensorMap = null;
+const verifiedTensorRootCache = new Map();
+
+function resetTensorIntegrityCache() {
+  cachedTensorMap = null;
+  verifiedTensorRootCache.clear();
+}
 
 export function setOpfsPathConfig(config) {
   opfsPathConfigOverride = config;
@@ -248,6 +257,7 @@ export async function openModelStore(modelId) {
   }
   const safeName = normalizeModelId(modelId);
   currentModelId = safeName;
+  resetTensorIntegrityCache();
   return backend.openModel(safeName, { create: true });
 }
 
@@ -267,6 +277,116 @@ async function ensureBackend() {
   }
 }
 
+function resolveTensorPrimarySpans(location) {
+  if (Array.isArray(location?.spans) && location.spans.length > 0) {
+    return location.spans.map((span) => ({
+      shardIndex: span.shardIndex ?? span.shard,
+      offset: span.offset,
+      size: span.size,
+    }));
+  }
+  return [{
+    shardIndex: location?.shardIndex ?? location?.shard,
+    offset: location?.offset,
+    size: location?.size,
+  }];
+}
+
+function isRequestedRangeInsideTensor(location, shardIndex, offset, length) {
+  const start = Math.max(0, Number.isFinite(Number(offset)) ? Math.floor(Number(offset)) : 0);
+  const size = length == null ? null : Math.max(0, Number.isFinite(Number(length)) ? Math.floor(Number(length)) : 0);
+  const end = size == null ? Number.POSITIVE_INFINITY : start + size;
+  const spans = resolveTensorPrimarySpans(location);
+  return spans.some((span) => {
+    const spanShardIndex = span.shardIndex;
+    const spanStart = span.offset;
+    const spanEnd = span.offset + span.size;
+    return spanShardIndex === shardIndex && start >= spanStart && end <= spanEnd;
+  });
+}
+
+async function readBackendFileRange(filename, offset = 0, length = null) {
+  const start = Math.max(0, offset);
+  const want = length == null ? null : Math.max(0, length);
+  if (backend && typeof backend.readFileRange === 'function') {
+    return backend.readFileRange(filename, start, want);
+  }
+  const buffer = await backend.readFile(filename);
+  const view = new Uint8Array(buffer);
+  const end = want == null ? view.length : Math.min(view.length, start + want);
+  return view.slice(start, end).buffer;
+}
+
+async function loadTensorMapForIntegrity(manifest) {
+  if (cachedTensorMap) {
+    return cachedTensorMap;
+  }
+  if (manifest?.tensors && typeof manifest.tensors === 'object' && !Array.isArray(manifest.tensors)) {
+    cachedTensorMap = manifest.tensors;
+    return cachedTensorMap;
+  }
+  const tensorsJson = await loadTensorsFromStore();
+  if (!tensorsJson) {
+    throw new Error('Tensor integrity verification requires inline tensors or tensors.json to be present.');
+  }
+  cachedTensorMap = parseTensorMap(tensorsJson);
+  return cachedTensorMap;
+}
+
+async function verifyTensorRoot(manifest, tensorId) {
+  const roots = manifest?.integrityExtensions?.blockMerkle?.roots;
+  if (!roots || typeof roots !== 'object' || Array.isArray(roots)) {
+    throw new Error('Manifest is missing integrityExtensions.blockMerkle for tensor integrity verification.');
+  }
+  const normalizedTensorId = typeof tensorId === 'string' ? tensorId.trim() : '';
+  if (!normalizedTensorId) {
+    throw new Error('Tensor integrity verification requires a non-empty tensorId.');
+  }
+  const expectedRoot = roots[normalizedTensorId];
+  if (typeof expectedRoot !== 'string' || !expectedRoot.trim()) {
+    throw new Error(`Manifest is missing a block Merkle root for tensor "${normalizedTensorId}".`);
+  }
+
+  const tensorMap = await loadTensorMapForIntegrity(manifest);
+  const location = tensorMap?.[normalizedTensorId];
+  if (!location || typeof location !== 'object') {
+    throw new Error(`Tensor "${normalizedTensorId}" is missing from the tensor map.`);
+  }
+
+  const cacheKey = `${normalizedTensorId}:${expectedRoot}`;
+  if (verifiedTensorRootCache.get(cacheKey) === true) {
+    return { tensorId: normalizedTensorId, location, expectedRoot };
+  }
+
+  const blockSize = manifest?.integrityExtensions?.blockMerkle?.blockSize;
+  const built = await buildTensorBlockMerkleRoot(normalizedTensorId, location, {
+    blockSize,
+    async readShardRange(innerShardIndex, innerOffset, innerLength) {
+      const shardInfo = getShardInfo(innerShardIndex);
+      if (!shardInfo) {
+        throw new Error(`Invalid shard index during tensor integrity verification: ${innerShardIndex}`);
+      }
+      return readBackendFileRange(shardInfo.filename, innerOffset, innerLength);
+    },
+  });
+  if (built.root !== expectedRoot) {
+    throw new Error(
+      `Tensor integrity mismatch for "${normalizedTensorId}": expected ${expectedRoot}, got ${built.root}.`
+    );
+  }
+  verifiedTensorRootCache.set(cacheKey, true);
+  return { tensorId: normalizedTensorId, location, expectedRoot };
+}
+
+async function verifyTensorRangeIntegrity(manifest, shardIndex, offset, length, tensorId) {
+  const verified = await verifyTensorRoot(manifest, tensorId);
+  if (!isRequestedRangeInsideTensor(verified.location, shardIndex, offset, length)) {
+    throw new Error(
+      `Requested shard range ${shardIndex}:${offset}+${length ?? 'all'} is outside tensor "${verified.tensorId}".`
+    );
+  }
+}
+
 export async function writeShard(shardIndex, data, options = { verify: true }) {
   await ensureBackend();
   requireModel();
@@ -283,6 +403,7 @@ export async function writeShard(shardIndex, data, options = { verify: true }) {
   }
 
   try {
+    resetTensorIntegrityCache();
     await backend.writeFile(shardInfo.filename, bytes);
 
     if (options.verify) {
@@ -333,6 +454,7 @@ export async function createShardWriter(shardIndex, options = {}) {
   if (!backend.createWriteStream) {
     throw new Error('Storage backend does not support streaming writes');
   }
+  resetTensorIntegrityCache();
   const writerOptions = normalizeShardWriterOptions(options);
   return backend.createWriteStream(shardInfo.filename, writerOptions);
 }
@@ -346,6 +468,7 @@ export async function createConversionShardWriter(shardIndex) {
   if (!backend.createWriteStream) {
     throw new Error('Storage backend does not support streaming writes');
   }
+  resetTensorIntegrityCache();
   const filename = generateShardFilename(shardIndex);
   return backend.createWriteStream(filename);
 }
@@ -359,6 +482,7 @@ export async function createFileWriter(filename, options = {}) {
   if (!backend.createWriteStream) {
     throw new Error('Storage backend does not support streaming writes');
   }
+  resetTensorIntegrityCache();
   const writerOptions = normalizeShardWriterOptions(options);
   return backend.createWriteStream(filename, writerOptions);
 }
@@ -409,8 +533,14 @@ export async function loadShardRange(shardIndex, offset = 0, length = null, opti
     throw new Error(`Invalid shard index: ${shardIndex}`);
   }
 
-  // Range reads cannot be verified without hashing the full shard.
-  if (options?.verify) {
+  const manifest = getManifest();
+  if (options?.verify && options?.tensorId) {
+    if (!manifest) {
+      throw new Error('No manifest loaded');
+    }
+    await verifyTensorRangeIntegrity(manifest, shardIndex, offset, length, options.tensorId);
+  } else if (options?.verify) {
+    // Generic range reads cannot be verified without hashing the full shard.
     const full = await loadShard(shardIndex, { verify: true });
     const view = new Uint8Array(full);
     const start = Math.max(0, offset);
@@ -422,13 +552,7 @@ export async function loadShardRange(shardIndex, offset = 0, length = null, opti
   const want = length == null ? null : Math.max(0, length);
 
   try {
-    if (backend && typeof backend.readFileRange === 'function') {
-      return await backend.readFileRange(shardInfo.filename, start, want);
-    }
-    const buffer = await backend.readFile(shardInfo.filename);
-    const view = new Uint8Array(buffer);
-    const end = want == null ? view.length : Math.min(view.length, start + want);
-    return view.slice(start, end).buffer;
+    return await readBackendFileRange(shardInfo.filename, start, want);
   } catch (error) {
     if (error.name === 'NotFoundError') {
       throw new Error(`Shard ${shardIndex} not found`);
@@ -450,6 +574,21 @@ export async function* streamShardRange(shardIndex, offset = 0, length = null, o
   const start = Number.isFinite(startRaw) ? Math.max(0, Math.floor(startRaw)) : 0;
   const wantRaw = length == null ? null : Number(length);
   const want = wantRaw == null ? null : (Number.isFinite(wantRaw) ? Math.max(0, Math.floor(wantRaw)) : 0);
+  const manifest = getManifest();
+  if (options?.verify && options?.tensorId) {
+    if (!manifest) {
+      throw new Error('No manifest loaded');
+    }
+    await verifyTensorRangeIntegrity(manifest, shardIndex, start, want, options.tensorId);
+  } else if (options?.verify) {
+    const full = await loadShard(shardIndex, { verify: true });
+    const view = new Uint8Array(full);
+    const end = want == null ? view.length : Math.min(view.length, start + want);
+    for (let at = start; at < end; at += (Number.isFinite(options.chunkBytes) && options.chunkBytes > 0 ? Math.floor(options.chunkBytes) : (4 * 1024 * 1024))) {
+      yield view.slice(at, Math.min(end, at + (Number.isFinite(options.chunkBytes) && options.chunkBytes > 0 ? Math.floor(options.chunkBytes) : (4 * 1024 * 1024))));
+    }
+    return;
+  }
 
   const runtime = getRuntimeConfig();
   const runtimeDefault = runtime?.loading?.storage?.backend?.streaming?.readChunkBytes ?? (4 * 1024 * 1024);
@@ -545,6 +684,7 @@ export async function verifyIntegrity(options = {}) {
 
   const missingShards = [];
   const corruptShards = [];
+  const corruptTensors = [];
   const shardCount = getShardCount();
 
   for (let i = 0; i < shardCount; i++) {
@@ -573,10 +713,29 @@ export async function verifyIntegrity(options = {}) {
     }
   }
 
+  if (options.checkTensorRoots === true) {
+    const roots = manifest?.integrityExtensions?.blockMerkle?.roots;
+    if (!roots || typeof roots !== 'object' || Array.isArray(roots)) {
+      throw new Error('verifyIntegrity(checkTensorRoots=true) requires manifest.integrityExtensions.blockMerkle.roots.');
+    }
+    for (const tensorId of Object.keys(roots).sort()) {
+      try {
+        await verifyTensorRoot(manifest, tensorId);
+      } catch (_error) {
+        corruptTensors.push(tensorId);
+      }
+    }
+  }
+
   return {
-    valid: missingShards.length === 0 && (checkHashes ? corruptShards.length === 0 : true),
+    valid: (
+      missingShards.length === 0
+      && (checkHashes ? corruptShards.length === 0 : true)
+      && (options.checkTensorRoots === true ? corruptTensors.length === 0 : true)
+    ),
     missingShards,
-    corruptShards
+    corruptShards,
+    corruptTensors,
   };
 }
 
@@ -585,6 +744,7 @@ export async function deleteShard(shardIndex) {
   requireModel();
   const shardInfo = getShardInfo(shardIndex);
   if (!shardInfo) return false;
+  resetTensorIntegrityCache();
   try {
     await backend.deleteFile(shardInfo.filename);
     return true;
@@ -706,6 +866,7 @@ export async function modelExists(modelId) {
 export async function saveManifest(manifestJson) {
   await ensureBackend();
   requireModel();
+  resetTensorIntegrityCache();
   if (backend.writeManifest) {
     await backend.writeManifest(manifestJson);
     return;
@@ -744,6 +905,7 @@ export async function loadTensorsFromStore() {
 export async function saveTensorsToStore(tensorsJson) {
   await ensureBackend();
   requireModel();
+  resetTensorIntegrityCache();
   const encoder = new TextEncoder();
   const payload = encoder.encode(tensorsJson);
   if (backend.writeText) {
@@ -819,6 +981,7 @@ export async function saveAuxFile(filename, data) {
   if (!bytes) {
     throw new Error('saveAuxFile requires string, ArrayBuffer, or Uint8Array data');
   }
+  resetTensorIntegrityCache();
   await backend.writeFile(filename, bytes);
 }
 
@@ -844,6 +1007,7 @@ export async function deleteFileFromStore(filename) {
   if (!filename || typeof filename !== 'string') {
     throw new Error('deleteFileFromStore requires a filename');
   }
+  resetTensorIntegrityCache();
   return backend.deleteFile(filename);
 }
 

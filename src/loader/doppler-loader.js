@@ -40,6 +40,7 @@ import {
   loadTensorToGPU,
   loadTensorToCPU,
 } from './tensors/tensor-loader.js';
+import { annotateWeightLoadError } from '../inference/pipelines/text/load-errors.js';
 import { loadEmbeddings } from './embedding-loader.js';
 import { loadPerLayerInputWeights } from './per-layer-input-loader.js';
 import { loadLayer } from './layer-loader.js';
@@ -93,6 +94,25 @@ function detectMoE(manifest) {
 
 function isGpuBufferInstance(value) {
   return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
+}
+
+function getTensorShardIndices(location) {
+  if (Array.isArray(location?.spans) && location.spans.length > 0) {
+    return Array.from(new Set(location.spans.map((span) => span?.shardIndex).filter(Number.isInteger)));
+  }
+  return Number.isInteger(location?.shardIndex) ? [location.shardIndex] : [];
+}
+
+function annotateTensorLoadError(error, name, location, details = {}) {
+  return annotateWeightLoadError(error, {
+    tensorName: name,
+    tensorRole: location?.role ?? null,
+    tensorDtype: location?.dtype ?? null,
+    tensorShape: Array.isArray(location?.shape) ? [...location.shape] : null,
+    tensorSizeBytes: Number.isFinite(location?.size) ? location.size : null,
+    tensorShardIndices: getTensorShardIndices(location),
+    ...details,
+  });
 }
 
 // Re-export types for backward compatibility
@@ -804,9 +824,19 @@ export class DopplerLoader {
       debugTrace.loader(`Loading ${name}: shape=${JSON.stringify(location.shape)}, size=${location.size}, dtype=${location.dtype}, spans=${!!location.spans}`);
     }
 
-    let shardData = (toGPU && this.#shouldStreamUploadToGPU(location))
-      ? await this.#assembleShardDataToGpuBuffer(location, name)
-      : await this.#assembleShardData(location, name);
+    const streamedUpload = toGPU && this.#shouldStreamUploadToGPU(location);
+    let shardData;
+    try {
+      shardData = streamedUpload
+        ? await this.#assembleShardDataToGpuBuffer(location, name)
+        : await this.#assembleShardData(location, name);
+    } catch (error) {
+      throw annotateTensorLoadError(error, name, location, {
+        tensorLoadStage: streamedUpload ? 'streamShardToGpuBuffer' : 'assembleShardData',
+        toGPU,
+        streamedUpload,
+      });
+    }
 
     if (toGPU) {
       const device = getDevice();
@@ -835,7 +865,19 @@ export class DopplerLoader {
         allowF32UpcastNonMatmul,
       };
 
-      const result = await loadTensorToGPU(shardData, location, name, config);
+      let result;
+      try {
+        result = await loadTensorToGPU(shardData, location, name, config);
+      } catch (error) {
+        if (isGpuBufferInstance(shardData)) {
+          releaseBuffer(shardData);
+        }
+        throw annotateTensorLoadError(error, name, location, {
+          tensorLoadStage: 'materializeTensorToGPU',
+          toGPU: true,
+          streamedUpload,
+        });
+      }
 
       for (const buffer of result.allocatedBuffers) {
         this.gpuBuffers.add(buffer);

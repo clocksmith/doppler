@@ -14,6 +14,7 @@ import { runDiagnoseCommand } from './diagnose-runner.js';
 import { checkProgramBundleParity } from './program-bundle-parity.js';
 import { applyRuntimeInputs, buildSuiteOptions } from './command-runner-shared.js';
 import { runWithRuntimeIsolation } from './command-runner-shared.js';
+import { refreshManifestIntegrity } from './rdrr-integrity-refresh.js';
 import { isPlainObject } from '../utils/plain-object.js';
 import {
   getActiveKernelPath,
@@ -128,6 +129,21 @@ export async function runNodeCommand(commandRequest, options = {}) {
         execution,
         configPath: convertPayload?.configPath ?? null,
         onProgress: validatedOptions.onProgress,
+      });
+      return createToolingSuccessEnvelope({
+        surface: 'node',
+        request,
+        result,
+      });
+    }
+
+    if (request.command === 'refresh-integrity') {
+      const result = await refreshManifestIntegrity({
+        modelDir: request.modelDir,
+        manifestPath: request.manifestPath,
+        blockSize: request.blockSize ?? undefined,
+        dryRun: request.dryRun === true,
+        skipShardCheck: request.skipShardCheck === true,
       });
       return createToolingSuccessEnvelope({
         surface: 'node',

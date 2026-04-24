@@ -468,7 +468,7 @@ export interface LayerWeights {
   inputNorm: GPUBuffer | Float32Array;
   qProj: LayerWeightBuffer;
   kProj: LayerWeightBuffer;
-  vProj: LayerWeightBuffer;
+  vProj?: LayerWeightBuffer;
   oProj: LayerWeightBuffer;
   convInProj?: LayerWeightBuffer;
   convKernel?: LayerWeightBuffer;

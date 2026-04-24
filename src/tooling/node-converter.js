@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { NodeConvertWorkerPool } from './node-convert-worker-pool.js';
 import { bootstrapNodeWebGPU } from './node-webgpu.js';
+import { buildManifestIntegrityFromModelDir } from './rdrr-integrity-refresh.js';
 import { isPlainObject } from '../utils/plain-object.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { log, trace } from '../debug/index.js';
@@ -692,6 +693,10 @@ function createNodeConvertIO(outputDir, options) {
   return {
     async readTensorData(tensor) {
       return readRange(tensor.sourcePath, tensor.offset, tensor.size);
+    },
+    async readShardRange(index, offset, length) {
+      const filename = generateShardFilename(index);
+      return readRange(path.join(outputDir, filename), offset, length);
     },
     async writeShard(index, data) {
       const filename = generateShardFilename(index);
@@ -1537,6 +1542,16 @@ export async function convertSafetensorsDirectory(options) {
   if (!deferredManifestState.manifest) {
     throw new Error('node convert: convert core did not produce a manifest.');
   }
+  const builtIntegrity = await buildManifestIntegrityFromModelDir(result.manifest, {
+    modelDir: outputDir,
+    tensorMap: result.manifest.tensors ?? undefined,
+    readRange: fileRangeReader.readRange,
+  });
+  result.manifest = {
+    ...result.manifest,
+    integrityExtensions: builtIntegrity.integrityExtensions,
+  };
+  deferredManifestState.manifest = result.manifest;
   await io.writeManifest(result.manifest);
 
   const report = buildConvertReport(result, {

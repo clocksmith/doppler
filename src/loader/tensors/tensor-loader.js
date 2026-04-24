@@ -17,6 +17,7 @@ import { hasSourceTransform } from './source-transform.js';
 // ============================================================================
 
 let loggedF32UpcastNonMatmul = false;
+let loggedQ4KLimitFallback = false;
 
 function isGpuBufferInstance(value) {
   return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
@@ -128,7 +129,10 @@ function isEmbeddingRole(location) {
 
 export function shouldUseFusedQ4K(location, config) {
   if (!config.useFusedQ4K) return false;
+  return canUseFusedQ4KStorage(location, config);
+}
 
+function canUseFusedQ4KStorage(location, config) {
   const caps = config.gpuCapabilities || getKernelCapabilities();
   if (!caps?.hasSubgroups) return false;
 
@@ -139,6 +143,75 @@ export function shouldUseFusedQ4K(location, config) {
   if (isPackedQ4K(location)) return false;
 
   return true;
+}
+
+function getQ4KDenseMaterializedSizeBytes(location, config) {
+  if (!Array.isArray(location.shape) || location.shape.length === 0) {
+    return null;
+  }
+  const elementCount = getShapeElementCount(location.shape);
+  if (!Number.isFinite(elementCount) || elementCount <= 0) {
+    return null;
+  }
+  const outputDtype = getQ4KOutputDtype(location, config);
+  const bytesPerElement = outputDtype === 'f16' ? 2 : 4;
+  return elementCount * bytesPerElement;
+}
+
+function getMaxStorageBufferBindingSize() {
+  const device = getDevice();
+  const maxStorage = device?.limits?.maxStorageBufferBindingSize;
+  return Number.isFinite(maxStorage) && maxStorage > 0 ? maxStorage : null;
+}
+
+function resolveQ4KLimitFallback(location, config) {
+  if (location?.dtype !== 'Q4_K_M' && location?.dtype !== 'Q4_K') {
+    return {
+      denseExceedsBindingLimit: false,
+      limitFallbackEligible: false,
+      denseSizeBytes: null,
+      maxBindingSizeBytes: null,
+    };
+  }
+
+  const denseSizeBytes = getQ4KDenseMaterializedSizeBytes(location, config);
+  const maxBindingSizeBytes = getMaxStorageBufferBindingSize();
+  const denseExceedsBindingLimit = (
+    denseSizeBytes != null
+    && maxBindingSizeBytes != null
+    && denseSizeBytes > maxBindingSizeBytes
+  );
+  const packedSizeBytes = Number.isFinite(location.size) ? location.size : null;
+  const packedFitsBindingLimit = (
+    packedSizeBytes != null
+    && maxBindingSizeBytes != null
+    && packedSizeBytes <= maxBindingSizeBytes
+  );
+  const limitFallbackEligible = (
+    denseExceedsBindingLimit
+    && config.keepF32Weights !== true
+    && packedFitsBindingLimit
+    && canUseFusedQ4KStorage(location, config)
+  );
+
+  return {
+    denseExceedsBindingLimit,
+    limitFallbackEligible,
+    denseSizeBytes,
+    maxBindingSizeBytes,
+  };
+}
+
+function logQ4KLimitFallbackOnce(name, fallback) {
+  if (loggedQ4KLimitFallback) {
+    return;
+  }
+  loggedQ4KLimitFallback = true;
+  log.warn(
+    'Loader',
+    `Q4K dense materialization for "${name}" would require ${fallback.denseSizeBytes} bytes, ` +
+    `exceeding maxStorageBufferBindingSize=${fallback.maxBindingSizeBytes}; retaining packed Q4K for fused matmul.`
+  );
 }
 
 // ============================================================================
@@ -700,6 +773,7 @@ export async function loadTensorToGPU(shardData, location, name, config) {
   const q4kReferenceContext = getQ4KCpuReferenceContext(shardData, location, config);
   const q4kBasicBackendClass = platformId === 'basic'
     || (caps?.hasSubgroups !== true && caps?.hasF16 !== true);
+  const q4kLimitFallback = resolveQ4KLimitFallback(location, config);
   const loaderPath = selectRuleValue('loader', 'tensorLoader', 'gpuLoaderPath', {
     dtype,
     role: location.role ?? null,
@@ -708,10 +782,15 @@ export async function loadTensorToGPU(shardData, location, name, config) {
     q4kMaterializationMode: config.q4kMaterializationMode ?? 'dense',
     q4kCpuReferenceEligible: q4kReferenceContext.eligible,
     q4kBasicBackendClass,
+    q4kDenseExceedsBindingLimit: q4kLimitFallback.denseExceedsBindingLimit,
+    q4kLimitFallbackEligible: q4kLimitFallback.limitFallbackEligible,
   });
   const loader = GPU_LOADER_DISPATCH[loaderPath];
   if (!loader) {
     throw new Error(`Unknown GPU loader path: "${loaderPath}" for dtype "${dtype}"`);
+  }
+  if (loaderPath === 'q4k_fused' && q4kLimitFallback.limitFallbackEligible) {
+    logQ4KLimitFallbackOnce(name, q4kLimitFallback);
   }
   return loader(shardData, location, name, config);
 }

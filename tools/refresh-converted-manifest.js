@@ -8,6 +8,7 @@ import { parseManifest, parseTensorMap } from '../src/formats/rdrr/parsing.js';
 import { createConverterConfig } from '../src/config/schema/index.js';
 import { resolveConversionPlan } from '../src/converter/conversion-plan.js';
 import { inferBundledTokenizerBehaviorFlags } from '../src/inference/tokenizers/behavior-flags.js';
+import { buildManifestIntegrityFromModelDir } from '../src/tooling/rdrr-integrity-refresh.js';
 
 function fail(message) {
   console.error(`[refresh-manifest] ${message}`);
@@ -20,6 +21,7 @@ function parseArgs(argv) {
     conversionConfigPath: null,
     manifestPath: null,
     modelId: null,
+    blockSize: null,
     skipShardCheck: false,
     dryRun: false,
   };
@@ -38,6 +40,11 @@ function parseArgs(argv) {
     }
     if (arg === '--model-id') {
       args.modelId = argv[i + 1] ?? null;
+      i += 1;
+      continue;
+    }
+    if (arg === '--block-size') {
+      args.blockSize = argv[i + 1] ?? null;
       i += 1;
       continue;
     }
@@ -60,7 +67,7 @@ function parseArgs(argv) {
   }
 
   if (!args.modelDir || !args.conversionConfigPath) {
-    fail('Usage: node tools/refresh-converted-manifest.js <model-dir> --config <conversion-config.json> [--manifest <manifest.json>] [--model-id <id>] [--skip-shard-check] [--dry-run]');
+    fail('Usage: node tools/refresh-converted-manifest.js <model-dir> --config <conversion-config.json> [--manifest <manifest.json>] [--model-id <id>] [--block-size <bytes>] [--skip-shard-check] [--dry-run]');
   }
 
   if (typeof args.conversionConfigPath !== 'string' || !args.conversionConfigPath.trim()) {
@@ -68,6 +75,15 @@ function parseArgs(argv) {
   }
 
   return args;
+}
+
+function resolveOptionalBlockSize(value) {
+  if (value == null) return null;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    fail('--block-size must be a positive integer.');
+  }
+  return parsed;
 }
 
 async function readJson(filePath, label) {
@@ -352,6 +368,11 @@ async function main() {
       ...tokenizerPatch,
     };
   }
+  const builtIntegrity = await buildManifestIntegrityFromModelDir(refreshed, {
+    modelDir,
+    blockSize: resolveOptionalBlockSize(args.blockSize),
+  });
+  refreshed.integrityExtensions = builtIntegrity.integrityExtensions;
 
   // Validate and normalize before writing to avoid writing partial/invalid files.
   const validated = parseManifest(JSON.stringify(refreshed));
@@ -360,6 +381,7 @@ async function main() {
     console.log('[refresh-manifest] dry-run successful');
     console.log(`  modelId: ${validated.modelId}`);
     console.log(`  quantization: ${validated.quantization}`);
+    console.log(`  integrityExtensionsHash: ${builtIntegrity.integrityExtensionsHash}`);
     return;
   }
 

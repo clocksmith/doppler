@@ -14,12 +14,18 @@ export interface ShardWriteResult {
 
 export interface ShardReadOptions {
   verify?: boolean;
+  tensorId?: string | null;
+}
+
+export interface ShardRangeStreamOptions extends ShardReadOptions {
+  chunkBytes?: number;
 }
 
 export interface IntegrityResult {
   valid: boolean;
   missingShards: number[];
   corruptShards: number[];
+  corruptTensors: string[];
 }
 
 export interface ModelInfo {
@@ -105,7 +111,7 @@ export function streamShardRange(
   shardIndex: number,
   offset?: number,
   length?: number | null,
-  options?: { chunkBytes?: number }
+  options?: ShardRangeStreamOptions
 ): AsyncIterable<Uint8Array>;
 
 export function loadShardSync(
@@ -120,7 +126,7 @@ export function checkFileExistsInBackend(
 ): Promise<boolean>;
 export function shardExists(shardIndex: number): Promise<boolean>;
 export function getShardStoredSize(shardIndex: number): Promise<number>;
-export function verifyIntegrity(options?: { checkHashes?: boolean }): Promise<IntegrityResult>;
+export function verifyIntegrity(options?: { checkHashes?: boolean; checkTensorRoots?: boolean }): Promise<IntegrityResult>;
 export function deleteShard(shardIndex: number): Promise<boolean>;
 export function deleteModel(modelId: string): Promise<boolean>;
 export function listModels(): Promise<string[]>;

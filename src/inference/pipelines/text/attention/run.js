@@ -141,6 +141,7 @@ export async function runLayerAttentionGPU(
   let output = null;
   let finalOutput = null;
   let oProjInputTemp = null;
+  let valueAliasesKey = false;
   if (!allowF16Attention && input.dtype !== attentionActivationDtype) {
     assertAttentionDtypeTransitionAllowed(
       state,
@@ -301,7 +302,7 @@ export async function runLayerAttentionGPU(
     }),
   });
   let usedFusedQKV = false;
-  ({ qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV } = await projectAttentionQKV({
+  ({ qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV, valueAliasesKey } = await projectAttentionQKV({
     recorder: null,
     normed,
     layerWeights,
@@ -446,9 +447,11 @@ export async function runLayerAttentionGPU(
         });
       }
     : null,
+    retainKInput: valueAliasesKey,
   }));
 
   if (config.valueNorm === true && !reusesSharedKV) {
+    const valueNormInputAliasesKey = vTensor.buffer === kTensor.buffer;
     vTensor = await applyAttentionValueNorm({
       recorder: null,
       vTensor,
@@ -456,7 +459,11 @@ export async function runLayerAttentionGPU(
       numTokens,
       numKVHeads,
       headDim,
-      releaseTemporary: (buffer) => releaseBuffer(buffer),
+      releaseTemporary: (buffer) => {
+        if (!valueNormInputAliasesKey) {
+          releaseBuffer(buffer);
+        }
+      },
     });
   }
 
@@ -1017,7 +1024,9 @@ export async function runLayerAttentionGPU(
   }
   if (!reusesSharedKV && !storeSharedKV) {
     releaseBuffer(kTensor.buffer);
-    releaseBuffer(vTensor.buffer);
+    if (vTensor.buffer !== kTensor.buffer) {
+      releaseBuffer(vTensor.buffer);
+    }
   }
   for (const buffer of buffersToRelease) {
     releaseBuffer(buffer);

@@ -117,6 +117,7 @@ const layerTypes = Array.from({ length: 35 }, (_, index) => index % 5 === 4 ? 'f
 const modelConfig = {
   numLayers: 35,
   numKVHeads: 1,
+  numGlobalKVHeads: 4,
   headDim: 256,
   globalHeadDim: 512,
   numKvSharedLayers: 20,
@@ -155,6 +156,9 @@ const runtimeKV = {
   const ringCache = createKVCache(modelConfig, true, false, runtimeKV);
   const ringSpec = ringCache.layerSpecs[0];
   const fullSpec = ringCache.layerSpecs[4];
+  assert.equal(ringSpec.numHeads, 1);
+  assert.equal(fullSpec.numHeads, 4);
+  assert.equal(fullSpec.bytesPerToken, 4 * 512 * 4);
   const ringKeys = createSourceBuffer(device, ringSpec.bytesPerToken * 600, 7);
   const ringValues = createSourceBuffer(device, ringSpec.bytesPerToken * 600, 9);
   ringCache.updateFromGPU(0, ringKeys, ringValues, 0, 600);

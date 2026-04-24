@@ -1,12 +1,28 @@
 import { validateTensorConfigConsistency } from './tensor-config-validator.js';
 import { validateManifestExecutionContract } from '../../config/execution-contract-check.js';
 import { validateManifestInference } from '../../config/schema/index.js';
+import { validateTensorStorageDescriptor } from './storage-descriptor.js';
 
 const ARTIFACT_COMPLETENESS_VALUES = new Set([
   'complete',
   'weights-ref',
   'incomplete',
 ]);
+
+const LOWERING_EXACTNESS_CLASSES = new Set([
+  'bit-exact-solo',
+  'algorithm-exact',
+  'tolerance-bounded',
+]);
+
+const LOWERING_NULLABLE_STRING_FIELDS = [
+  'targetDescriptorHash',
+  'frontendVersion',
+  'tsirSemanticDigest',
+  'tsirRealizationDigest',
+  'emitterDigest',
+  'doeCompilerVersion',
+];
 
 function isPlainObject(value) {
   return value != null && typeof value === 'object' && !Array.isArray(value);
@@ -25,6 +41,132 @@ function validateRequiredNonEmptyString(errors, object, field, prefix) {
   if (typeof object[field] !== 'string' || object[field].trim().length === 0) {
     errors.push(`Missing or invalid ${prefix}.${field}`);
   }
+}
+
+function validateIntegrityExtensionsContract(manifest, errors) {
+  const integrityExtensions = manifest.integrityExtensions;
+  if (integrityExtensions === undefined) {
+    return;
+  }
+  if (!isPlainObject(integrityExtensions)) {
+    errors.push('Invalid integrityExtensions field');
+    return;
+  }
+  if (integrityExtensions.contractVersion !== 1) {
+    errors.push(`Invalid integrityExtensions.contractVersion: ${integrityExtensions.contractVersion}`);
+  }
+  if (!isPlainObject(integrityExtensions.blockMerkle)) {
+    errors.push('Invalid integrityExtensions.blockMerkle');
+    return;
+  }
+  const blockSize = integrityExtensions.blockMerkle.blockSize;
+  if (!Number.isInteger(blockSize) || blockSize <= 0) {
+    errors.push('Invalid integrityExtensions.blockMerkle.blockSize');
+  }
+  const roots = integrityExtensions.blockMerkle.roots;
+  if (!isPlainObject(roots) || Object.keys(roots).length === 0) {
+    errors.push('Invalid integrityExtensions.blockMerkle.roots');
+    return;
+  }
+  for (const [tensorId, merkleRoot] of Object.entries(roots)) {
+    if (typeof tensorId !== 'string' || tensorId.trim().length === 0) {
+      errors.push('Invalid integrityExtensions.blockMerkle.roots tensor id');
+      continue;
+    }
+    if (typeof merkleRoot !== 'string' || merkleRoot.trim().length === 0) {
+      errors.push(`Invalid integrityExtensions.blockMerkle.roots.${tensorId}`);
+    }
+  }
+
+  validateLoweringsSection(integrityExtensions.lowerings, errors);
+}
+
+function validateLoweringsSection(lowerings, errors) {
+  if (lowerings === undefined) {
+    return;
+  }
+  if (!isPlainObject(lowerings)) {
+    errors.push('Invalid integrityExtensions.lowerings');
+    return;
+  }
+  if (lowerings.contractVersion !== 1) {
+    errors.push(`Invalid integrityExtensions.lowerings.contractVersion: ${lowerings.contractVersion}`);
+  }
+  if (!Array.isArray(lowerings.entries)) {
+    errors.push('Invalid integrityExtensions.lowerings.entries');
+    return;
+  }
+  const seen = new Set();
+  lowerings.entries.forEach((entry, index) => {
+    const prefix = `integrityExtensions.lowerings.entries[${index}]`;
+    if (!isPlainObject(entry)) {
+      errors.push(`${prefix} must be an object`);
+      return;
+    }
+    if (typeof entry.kernelRef !== 'string' || entry.kernelRef.trim().length === 0) {
+      errors.push(`${prefix}.kernelRef must be a non-empty string`);
+    }
+    if (typeof entry.backend !== 'string' || entry.backend.trim().length === 0) {
+      errors.push(`${prefix}.backend must be a non-empty string`);
+    }
+    if (typeof entry.kernelRef === 'string' && typeof entry.backend === 'string') {
+      const key = `${entry.kernelRef}::${entry.backend}`;
+      if (seen.has(key)) {
+        errors.push(`${prefix} duplicates (kernelRef, backend) pair already declared earlier`);
+      }
+      seen.add(key);
+    }
+    for (const field of LOWERING_NULLABLE_STRING_FIELDS) {
+      const value = entry[field];
+      if (value === undefined) {
+        errors.push(`${prefix}.${field} is required (use null for not-applicable)`);
+        continue;
+      }
+      if (value === null) continue;
+      if (typeof value !== 'string' || value.trim().length === 0) {
+        errors.push(`${prefix}.${field} must be a non-empty string or null`);
+      }
+    }
+    if (entry.exactnessClass === undefined) {
+      errors.push(`${prefix}.exactnessClass is required (use null for rejection entries)`);
+    } else if (entry.exactnessClass !== null
+      && !LOWERING_EXACTNESS_CLASSES.has(entry.exactnessClass)) {
+      errors.push(`${prefix}.exactnessClass must be one of bit-exact-solo, algorithm-exact, tolerance-bounded, or null`);
+    }
+    if (entry.rejectionReasons === undefined) {
+      errors.push(`${prefix}.rejectionReasons is required (use null when backend honored the kernel)`);
+    } else if (entry.rejectionReasons !== null) {
+      if (!Array.isArray(entry.rejectionReasons) || entry.rejectionReasons.length === 0) {
+        errors.push(`${prefix}.rejectionReasons must be null or a non-empty array of strings`);
+      } else {
+        entry.rejectionReasons.forEach((reason, reasonIndex) => {
+          if (typeof reason !== 'string' || reason.trim().length === 0) {
+            errors.push(`${prefix}.rejectionReasons[${reasonIndex}] must be a non-empty string`);
+          }
+        });
+      }
+    }
+
+    // A lowering receipt is either a success (digests populated, rejectionReasons null)
+    // or a rejection (digests null, rejectionReasons populated). Mixed states are invalid.
+    const hasDigests = (
+      typeof entry.tsirSemanticDigest === 'string'
+      && typeof entry.tsirRealizationDigest === 'string'
+      && typeof entry.emitterDigest === 'string'
+    );
+    const allDigestsNull = (
+      entry.tsirSemanticDigest === null
+      && entry.tsirRealizationDigest === null
+      && entry.emitterDigest === null
+    );
+    const hasRejection = Array.isArray(entry.rejectionReasons) && entry.rejectionReasons.length > 0;
+    if (hasRejection && hasDigests) {
+      errors.push(`${prefix} has both rejectionReasons and digests; must be one or the other`);
+    }
+    if (!hasRejection && !hasDigests && !allDigestsNull) {
+      errors.push(`${prefix} has inconsistent digests: all must be strings (success) or all null (rejection)`);
+    }
+  });
 }
 
 function validateArtifactIdentityContract(manifest, errors) {
@@ -112,6 +254,7 @@ export function validateManifest(manifest) {
   }
 
   validateArtifactIdentityContract(manifest, errors);
+  validateIntegrityExtensionsContract(manifest, errors);
 
   // EOS token ID (required for text models)
   const eosTokenId = manifest.eos_token_id;
@@ -198,6 +341,9 @@ export function validateManifest(manifest) {
     for (const [name, tensor] of Object.entries(manifest.tensors)) {
       if (!tensor.role || typeof tensor.role !== 'string') {
         errors.push(`Tensor "${name}" missing role`);
+      }
+      if (tensor.storage !== undefined) {
+        validateTensorStorageDescriptor(tensor.storage, `tensor "${name}"`, errors);
       }
     }
   }

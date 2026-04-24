@@ -46,6 +46,8 @@ export interface RawConfig {
   n_head?: number;
   attentionHeadCount?: number;
   num_key_value_heads?: number;
+  num_global_key_value_heads?: number;
+  num_global_kv_heads?: number;
   attentionHeadCountKV?: number;
   head_dim?: number;
   global_head_dim?: number;
@@ -117,6 +119,7 @@ export interface ParsedModelConfig {
   maxIntermediateSize: number;
   numHeads: number;
   numKVHeads: number;
+  numGlobalKVHeads: number | null;
   headDim: number;
   globalHeadDim: number | null;
   vocabSize: number;

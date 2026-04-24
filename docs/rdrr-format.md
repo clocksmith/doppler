@@ -10,6 +10,8 @@ Related specs and contracts:
 - [lora-format.md](lora-format.md) for adapter manifests
 - [conversion-runtime-contract.md](conversion-runtime-contract.md) for conversion-vs-runtime ownership
 - [getting-started.md](getting-started.md) for first-run convert/verify flow
+- [distribution/rdrr-p2p-plan.md](distribution/rdrr-p2p-plan.md) for additive distributed execution planning
+- [distribution/collective-transport-contract.md](distribution/collective-transport-contract.md) for collective transport rules
 
 Non-RDRR note:
 - Materialized direct-source artifacts use `manifest.json` plus raw SafeTensors/GGUF/TFLite assets and declare `metadata.sourceRuntime.mode="direct-source"`. They are not RDRR shards and use their own digest/path contract.
@@ -33,6 +35,10 @@ An RDRR artifact set contains:
 - `shard_*.bin`
 - tokenizer assets where required
 
+Optional additive surfaces:
+- `manifest.integrityExtensions` for tensor-level block integrity metadata
+- sibling `distributed.json` plans for topology-aware execution that still reference the canonical shards
+
 ## Artifact identity migration fields
 
 The manifest may include additive identity metadata while Doppler migrates away
@@ -47,6 +53,38 @@ from `modelId` as the combined release/artifact/runtime identity.
 - Runtime shard resolution does not yet consume `weightsRef`; incomplete local
   shard sets must still fail unless an explicit loader path supports the
   reference.
+
+## Integrity extensions (Phase 0 additive contract)
+
+`integrityExtensions` is optional and does not change canonical artifact
+identity. It is a separate additive contract layer for verifiable partial reads.
+
+Current supported shape:
+
+```json
+{
+  "integrityExtensions": {
+    "contractVersion": 1,
+    "blockMerkle": {
+      "blockSize": 1048576,
+      "roots": {
+        "model.embed_tokens.weight": "sha256:...",
+        "model.layers.0.self_attn.q_proj.weight": "sha256:..."
+      }
+    }
+  }
+}
+```
+
+Rules:
+- `integrityExtensions` is optional. Absence means the artifact predates Phase 0.
+- `contractVersion` is validated explicitly and unsupported versions fail closed.
+- `blockMerkle` roots are per tensor, not per shard.
+- `blockMerkle` integrity is additive and must not silently rewrite
+  `artifactIdentity`.
+- Distributed plans that depend on integrity metadata bind it separately through
+  `compatibility.integrityExtensionsHash`; they must not overload
+  `artifactIdentity`.
 
 ## Goals
 

@@ -61,6 +61,14 @@ export interface DeviceLimits {
   maxComputeWorkgroupsPerDimension: number;
 }
 
+export interface DeviceLossInfo {
+  message: string;
+  reason: string;
+  deviceEpoch: number;
+  timestampMs: number;
+  adapterInfo: AdapterInfo | null;
+}
+
 /**
  * Feature flags detected during initialization
  */
@@ -118,6 +126,12 @@ export function getDeviceEpoch(): number;
  * @returns Platform config with capabilities, or null if not initialized or detection failed
  */
 export function getPlatformConfig(): ResolvedPlatformConfig | null;
+
+/**
+ * Most recent device-lost record for diagnostics, or null if no loss has been observed
+ * since the current device was initialized.
+ */
+export function getLastDeviceLossInfo(): DeviceLossInfo | null;
 
 /**
  * Destroy the device and clear cache

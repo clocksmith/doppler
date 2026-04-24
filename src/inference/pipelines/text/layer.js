@@ -139,6 +139,35 @@ export function resolveAttentionHeadDim(config, layerType) {
   return config.globalHeadDim ?? config.headDim;
 }
 
+function resolveProjectionOutputRows(layerWeight, hiddenSize) {
+  if (!layerWeight || !Array.isArray(layerWeight.shape) || layerWeight.shape.length < 2) {
+    return null;
+  }
+  const dim0 = Number(layerWeight.shape[0]);
+  const dim1 = Number(layerWeight.shape[1]);
+  if (!Number.isFinite(dim0) || !Number.isFinite(dim1)) {
+    return null;
+  }
+  if (dim1 === hiddenSize) {
+    return Math.trunc(dim0);
+  }
+  if (dim0 === hiddenSize) {
+    return Math.trunc(dim1);
+  }
+  return null;
+}
+
+export function resolveAttentionNumKVHeads(config, layerType, layerWeights, headDim) {
+  const kRows = resolveProjectionOutputRows(layerWeights?.kProj, config.hiddenSize);
+  if (kRows != null && Number.isFinite(headDim) && headDim > 0 && kRows % headDim === 0) {
+    return kRows / headDim;
+  }
+  if (!isSlidingLayerType(layerType) && Number.isFinite(config.numGlobalKVHeads) && config.numGlobalKVHeads > 0) {
+    return Math.trunc(config.numGlobalKVHeads);
+  }
+  return config.numKVHeads;
+}
+
 export function resolveAttentionKVSharing(config, layerIdx, layerType) {
   const layerTypes = Array.isArray(config?.layerTypes) ? config.layerTypes : null;
   const numKvSharedLayers = Number(config?.numKvSharedLayers ?? 0);
@@ -569,8 +598,8 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     });
   } else {
     let attentionNumHeads = numHeads;
-    let attentionNumKVHeads = numKVHeads;
     let attentionHeadDim = resolveAttentionHeadDim(config, layerType);
+    let attentionNumKVHeads = resolveAttentionNumKVHeads(config, layerType, layerWeights, attentionHeadDim);
     let disableRoPE = false;
     let queryKeyNorm = config.queryKeyNorm;
     const { sharedKVSourceLayerIdx, storeSharedKV } = resolveAttentionKVSharing(config, layerIdx, layerType);

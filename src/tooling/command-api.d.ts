@@ -1,6 +1,6 @@
 import type { ConverterConfigSchema } from '../config/schema/converter.schema.js';
 
-export type ToolingCommand = 'convert' | 'debug' | 'bench' | 'verify' | 'lora' | 'distill' | 'diagnose';
+export type ToolingCommand = 'convert' | 'refresh-integrity' | 'debug' | 'bench' | 'verify' | 'lora' | 'distill' | 'diagnose';
 export type ToolingSurface = 'browser' | 'node';
 export type ToolingWorkload = 'kernels' | 'inference' | 'embedding' | 'training' | 'diffusion' | 'energy';
 export type ToolingIntent = 'verify' | 'investigate' | 'calibrate' | null;
@@ -99,6 +99,11 @@ export interface ToolingCommandRequestInput {
   runtimeConfig?: Record<string, unknown>;
   inputDir?: string;
   outputDir?: string;
+  modelDir?: string;
+  manifestPath?: string;
+  blockSize?: number;
+  dryRun?: boolean;
+  skipShardCheck?: boolean;
   convertPayload?: ToolingConvertPayload;
   workloadPath?: string;
   runRoot?: string;
@@ -168,6 +173,11 @@ export interface ToolingCommandRequest {
   runtimeConfig: Record<string, unknown> | null;
   inputDir: string | null;
   outputDir: string | null;
+  modelDir: string | null;
+  manifestPath: string | null;
+  blockSize: number | null;
+  dryRun: boolean | null;
+  skipShardCheck: boolean | null;
   convertPayload: ToolingConvertPayload | null;
   workloadPath: string | null;
   runRoot: string | null;

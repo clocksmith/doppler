@@ -1450,6 +1450,49 @@ function toParsedConfigFromMerged(merged, manifest) {
     return Math.trunc(num);
   };
 
+  const resolveTensorOutputRows = (tensorInfo, hiddenSize) => {
+    const shape = Array.isArray(tensorInfo?.shape) ? tensorInfo.shape : null;
+    if (!shape || shape.length < 2) return null;
+    const dim0 = Number(shape[0]);
+    const dim1 = Number(shape[1]);
+    if (!Number.isFinite(dim0) || !Number.isFinite(dim1)) return null;
+    if (dim1 === hiddenSize) return Math.trunc(dim0);
+    if (dim0 === hiddenSize) return Math.trunc(dim1);
+    return null;
+  };
+
+  const deriveGlobalKVHeadsFromManifest = () => {
+    if (!Array.isArray(layerTypes) || archGlobalHeadDim == null) {
+      return null;
+    }
+    const tensors = manifest?.tensors && typeof manifest.tensors === 'object' ? manifest.tensors : null;
+    if (!tensors) return null;
+    const globalLayerIdx = layerTypes.findIndex((layerType) => {
+      const normalized = typeof layerType === 'string' ? layerType.trim().toLowerCase() : '';
+      return normalized && normalized !== 'sliding_attention' && normalized !== 'local_attention'
+        && normalized !== 'local' && normalized !== 'sliding';
+    });
+    if (globalLayerIdx < 0) return null;
+    const layerMarker = `.layers.${globalLayerIdx}.`;
+    for (const [tensorName, tensorInfo] of Object.entries(tensors)) {
+      if (!tensorName.includes(layerMarker) || !tensorName.includes('.self_attn.k_proj.weight')) {
+        continue;
+      }
+      const rows = resolveTensorOutputRows(tensorInfo, arch.hiddenSize);
+      if (rows != null && rows % archGlobalHeadDim === 0) {
+        return rows / archGlobalHeadDim;
+      }
+    }
+    return null;
+  };
+
+  const archNumGlobalKVHeads = parsePositiveInt(
+    arch.numGlobalKeyValueHeads
+      ?? arch.numGlobalKVHeads
+      ?? config.num_global_key_value_heads
+      ?? config.num_global_kv_heads
+  ) ?? deriveGlobalKVHeadsFromManifest();
+
   const linearNumKeyHeads = parsePositiveInt(arch.linearNumKeyHeads ?? config.linear_num_key_heads);
   const linearNumValueHeads = parsePositiveInt(arch.linearNumValueHeads ?? config.linear_num_value_heads);
   const linearKeyHeadDim = parsePositiveInt(arch.linearKeyHeadDim ?? config.linear_key_head_dim);
@@ -1478,6 +1521,7 @@ function toParsedConfigFromMerged(merged, manifest) {
     maxIntermediateSize,
     numHeads: archNumHeads,
     numKVHeads: archNumKVHeads,
+    numGlobalKVHeads: archNumGlobalKVHeads,
     headDim: archHeadDim,
     globalHeadDim: archGlobalHeadDim,
     vocabSize: arch.vocabSize,

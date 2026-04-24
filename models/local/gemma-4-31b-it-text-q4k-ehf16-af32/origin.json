@@ -1,0 +1,9 @@
+{
+  "sourceModel": "gemma-4-31b-it",
+  "sourceRepo": "google/gemma-4-31B-it",
+  "sourceFormat": "safetensors",
+  "sourceRevision": "439edf5652646a0d1bd8b46bfdc1d3645761a445",
+  "variant": "text-q4k-ehf16-af32",
+  "convertedAt": "2026-04-23T19:56:45.293Z",
+  "notes": "Text-only RDRR artifact converted from the upstream multimodal Gemma 4 31B safetensors snapshot."
+}

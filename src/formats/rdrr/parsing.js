@@ -2,6 +2,7 @@
 
 import { validateManifest } from './validation.js';
 import { RDRR_VERSION } from './types.js';
+import { normalizeTensorStorageDescriptor } from './storage-descriptor.js';
 
 const KNOWN_MANIFEST_VERSIONS = new Set([RDRR_VERSION]);
 
@@ -126,6 +127,9 @@ export function parseTensorMap(jsonString) {
         shard: shardIndex,
         shardIndex,
         spans,
+        ...(loc.storage === undefined
+          ? {}
+          : { storage: normalizeTensorStorageDescriptor(loc.storage, `tensor "${name}"`) }),
       };
     }
 

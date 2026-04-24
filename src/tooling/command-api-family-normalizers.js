@@ -288,6 +288,29 @@ export function normalizeConvert(raw) {
   };
 }
 
+export function normalizeRefreshIntegrity(raw) {
+  const modelDir = asOptionalString(raw.modelDir, 'modelDir');
+  const manifestPath = asOptionalString(raw.manifestPath, 'manifestPath');
+  const blockSize = asOptionalPositiveInteger(raw.blockSize, 'blockSize');
+  const dryRun = asOptionalBoolean(raw.dryRun, 'dryRun');
+  const skipShardCheck = asOptionalBoolean(raw.skipShardCheck, 'skipShardCheck');
+  if (!modelDir) {
+    throw new Error('tooling command: refresh-integrity requires modelDir.');
+  }
+  assertForbiddenStringField(raw, 'runtimeProfile', 'refresh-integrity');
+  assertForbiddenStringField(raw, 'runtimeConfigUrl', 'refresh-integrity');
+  assertForbiddenObjectField(raw, 'runtimeConfig', 'refresh-integrity');
+  assertForbiddenConfigChainField(raw, 'refresh-integrity');
+  return {
+    ...createCommandRequestBase(raw, 'refresh-integrity'),
+    modelDir,
+    manifestPath,
+    blockSize,
+    dryRun,
+    skipShardCheck,
+  };
+}
+
 export function normalizeTrainingOperatorCommand(raw, command) {
   assertForbiddenConfigChainField(raw, command);
   const allowedActions = command === 'distill' ? DISTILL_ACTION_SET : LORA_ACTION_SET;
