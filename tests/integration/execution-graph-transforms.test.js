@@ -524,6 +524,7 @@ function buildF16WeightProjectionGraph() {
 // ===========================================================================
 {
   const graph = structuredClone(GEMMA4_REAL_GRAPH);
+  graph.prefill[1].steps[6][1] = 'attn_stream';
   const frozen = structuredClone(graph);
 
   const result = swapPrefillAttention(graph, CTX_F32, {
@@ -642,7 +643,7 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
-// Test 10b: useQwenDecodeF16Matmuls — legacy selective narrow on the promoted Qwen graph
+// Test 10b: useQwenDecodeF16Matmuls — no-op on the manifest-owned Q4 graph
 // ===========================================================================
 {
   const graph = structuredClone(QWEN_REAL_GRAPH);
@@ -652,29 +653,8 @@ function buildF16WeightProjectionGraph() {
     modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
   });
 
-  ok(result, 'useQwenDecodeF16Matmuls should still derive an lm_head-focused f16 decode tweak on Qwen');
-  const qProjStep = result.decode.find((entry) => Array.isArray(entry) && entry[0] === 'q_proj');
-  equal(
-    result.kernels[qProjStep[1]].kernel,
-    'fused_matmul_q4.wgsl',
-    'useQwenDecodeF16Matmuls should keep attention projections on fused_matmul_q4.wgsl'
-  );
-  equal(
-    result.kernels[qProjStep[1]].entry,
-    'main_gemv',
-    'useQwenDecodeF16Matmuls should keep attention projections on fused_matmul_q4.wgsl#main_gemv'
-  );
-  const gateStep = result.decode.find((entry) => Array.isArray(entry) && entry[0] === 'gate_proj');
-  equal(
-    result.kernels[gateStep[1]].kernel,
-    'fused_matmul_q4.wgsl',
-    'useQwenDecodeF16Matmuls should leave fused-Q4 FFN decode kernels unchanged (unified path)'
-  );
-  equal(
-    result.kernels[result.postLayer.find((entry) => Array.isArray(entry) && entry[0] === 'lm_head')[1]].kernel,
-    'matmul_gemv_subgroup_f16a.wgsl',
-    'useQwenDecodeF16Matmuls should rewrite lm_head onto matmul_gemv_subgroup_f16a.wgsl'
-  );
+  equal(result, null,
+    'useQwenDecodeF16Matmuls should be a no-op when Qwen decode and LM head are manifest-owned Q4 kernels');
 
   deepEqual(graph, frozen, 'useQwenDecodeF16Matmuls must not mutate the input graph');
 }
@@ -726,8 +706,8 @@ function buildF16WeightProjectionGraph() {
 
   equal(
     result.kernels[result.postLayer.find((entry) => Array.isArray(entry) && entry[0] === 'lm_head')[1]].kernel,
-    'matmul_gemv_subgroup_f16a.wgsl',
-    'promoted Qwen f16 graph should rewrite lm_head onto matmul_gemv_subgroup_f16a.wgsl'
+    'fused_matmul_q4.wgsl',
+    'promoted Qwen f16 graph should preserve the manifest-owned Q4 lm_head kernel'
   );
 
   deepEqual(graph, frozen, 'useQwenF16PrimaryMatmuls must not mutate the input graph');

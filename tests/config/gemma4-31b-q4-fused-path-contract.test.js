@@ -6,7 +6,7 @@ const MODEL_ID = 'gemma-4-31b-it-text-q4k-ehf16-af32';
 const CONFIG_PATH = `src/config/conversion/gemma4/${MODEL_ID}.json`;
 const MANIFEST_PATH = `models/local/${MODEL_ID}/manifest.json`;
 
-const ATTENTION_PROJECTION_OPS = new Set(['q_proj', 'k_proj', 'v_proj', 'o_proj']);
+const PROJECTION_OPS = new Set(['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj']);
 const LARGE_WEIGHT_OVERRIDES = ['model.language_model.embed_tokens.weight'];
 
 function readJson(filePath) {
@@ -39,16 +39,26 @@ function assertLargeWeights(largeWeights, label) {
 function assertQ4FusedKernelRefs(execution, label) {
   assert.equal(execution?.kernels?.q4_decode_gemv?.kernel, 'fused_matmul_q4.wgsl', `${label}: q4 decode kernel`);
   assert.equal(execution?.kernels?.q4_decode_gemv?.entry, 'main_gemv', `${label}: q4 decode entry`);
+  assert.deepEqual(
+    execution?.kernels?.q4_decode_gemv?.precision,
+    { inputDtype: 'f32', outputDtype: 'f32' },
+    `${label}: q4 decode precision`
+  );
   assert.equal(execution?.kernels?.q4_widetile?.kernel, 'fused_matmul_q4_widetile.wgsl', `${label}: q4 prefill kernel`);
   assert.equal(execution?.kernels?.q4_widetile?.entry, 'main', `${label}: q4 prefill entry`);
+  assert.deepEqual(
+    execution?.kernels?.q4_widetile?.precision,
+    { inputDtype: 'f32', outputDtype: 'f32' },
+    `${label}: q4 prefill precision`
+  );
 }
 
-function assertAttentionProjectionPath(execution, phase, expectedKernelRef, label) {
+function assertProjectionPath(execution, phase, expectedKernelRef, label) {
   const groups = phaseStepGroups(execution, phase);
   assert.ok(groups.length > 0, `${label}: ${phase} steps must exist`);
   for (const steps of groups) {
     for (const step of steps) {
-      if (!ATTENTION_PROJECTION_OPS.has(step[0])) {
+      if (!PROJECTION_OPS.has(step[0])) {
         continue;
       }
       assert.equal(step[1], expectedKernelRef, `${label}: ${phase} ${step[0]} must use ${expectedKernelRef}`);
@@ -58,8 +68,8 @@ function assertAttentionProjectionPath(execution, phase, expectedKernelRef, labe
 
 function assertGemma31BExecutionGraph(execution, label) {
   assertQ4FusedKernelRefs(execution, label);
-  assertAttentionProjectionPath(execution, 'decode', 'q4_decode_gemv', label);
-  assertAttentionProjectionPath(execution, 'prefill', 'q4_widetile', label);
+  assertProjectionPath(execution, 'decode', 'q4_decode_gemv', label);
+  assertProjectionPath(execution, 'prefill', 'q4_widetile', label);
 }
 
 const conversionConfig = readJson(CONFIG_PATH);

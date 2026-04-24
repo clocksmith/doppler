@@ -281,7 +281,11 @@
       "q4_decode_gemv": {
         "kernel": "fused_matmul_q4.wgsl",
         "entry": "main_gemv",
-        "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+        "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        }
       },
       "rope": {
         "kernel": "rope.wgsl",
@@ -322,7 +326,11 @@
       "q4_widetile": {
         "kernel": "fused_matmul_q4_widetile.wgsl",
         "entry": "main",
-        "digest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62"
+        "digest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62",
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        }
       },
       "attn_stream": {
         "kernel": "attention_streaming_f16kv.wgsl",
@@ -446,8 +454,23 @@
         "rmsnorm"
       ],
       [
-        "ffn",
+        "gate_proj",
+        "q4_decode_gemv",
+        "layer.{L}.mlp.gate_proj"
+      ],
+      [
+        "up_proj",
+        "q4_decode_gemv",
+        "layer.{L}.mlp.up_proj"
+      ],
+      [
+        "activation",
         "gelu"
+      ],
+      [
+        "down_proj",
+        "q4_decode_gemv",
+        "layer.{L}.mlp.down_proj"
       ],
       [
         "ffn_residual",
@@ -554,8 +577,23 @@
             "rmsnorm"
           ],
           [
-            "ffn",
+            "gate_proj",
+            "q4_widetile",
+            "layer.{L}.mlp.gate_proj"
+          ],
+          [
+            "up_proj",
+            "q4_widetile",
+            "layer.{L}.mlp.up_proj"
+          ],
+          [
+            "activation",
             "gelu"
+          ],
+          [
+            "down_proj",
+            "q4_widetile",
+            "layer.{L}.mlp.down_proj"
           ],
           [
             "ffn_residual",
@@ -622,8 +660,23 @@
             "rmsnorm"
           ],
           [
-            "ffn",
+            "gate_proj",
+            "q4_widetile",
+            "layer.{L}.mlp.gate_proj"
+          ],
+          [
+            "up_proj",
+            "q4_widetile",
+            "layer.{L}.mlp.up_proj"
+          ],
+          [
+            "activation",
             "gelu"
+          ],
+          [
+            "down_proj",
+            "q4_widetile",
+            "layer.{L}.mlp.down_proj"
           ],
           [
             "ffn_residual",
