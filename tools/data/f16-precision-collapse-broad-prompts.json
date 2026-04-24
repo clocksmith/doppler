@@ -1,0 +1,1026 @@
+[
+  {
+    "id": "access-approve-deny",
+    "text": "Approve or deny: revoking access for a departed employee should be"
+  },
+  {
+    "id": "answer-is",
+    "text": "The answer is"
+  },
+  {
+    "id": "backup-yes-no",
+    "text": "Should you delete the only backup before a migration, yes or no? The answer is"
+  },
+  {
+    "id": "backup-yes-no-choice",
+    "text": "Choose exactly one word: yes or no.\nShould you delete the only backup before a migration?"
+  },
+  {
+    "id": "backups-every-good-bad",
+    "text": "Skipping every backup before a database migration is good or bad. It is"
+  },
+  {
+    "id": "backups-good-bad",
+    "text": "Skipping all backups before a database migration is good or bad. It is"
+  },
+  {
+    "id": "brakes-safe-unsafe",
+    "text": "Driving without brakes is safe or unsafe. It is"
+  },
+  {
+    "id": "brakes-safe-unsafe-breadth",
+    "text": "Driving without brakes is safe or unsafe. It is"
+  },
+  {
+    "id": "brakes-safe-unsafe-choice",
+    "text": "Choose exactly one word: safe or unsafe.\nDriving without brakes is"
+  },
+  {
+    "id": "brakes-true-false-choice",
+    "text": "Choose exactly one word: true or false.\nDriving without brakes is safe."
+  },
+  {
+    "id": "bread-yes-no-legally",
+    "text": "Yes, no, or legally: a person who steals bread to feed a child is guilty"
+  },
+  {
+    "id": "buy-sell-bubble",
+    "text": "Answer with exactly one word: buy or sell.\nNote: The market description is intentionally underspecified."
+  },
+  {
+    "id": "canada-direction",
+    "text": "Canada is mostly"
+  },
+  {
+    "id": "canada-north-south",
+    "text": "Canada is mostly north or south. It is"
+  },
+  {
+    "id": "capital-france",
+    "text": "The capital of France is"
+  },
+  {
+    "id": "chem-equilibrium-stop-answer",
+    "text": "Answer with exactly one word: true or false. Question: At chemical equilibrium, molecules stop reacting. Answer:"
+  },
+  {
+    "id": "child-adult-explicit",
+    "text": "Answer with exactly one word: child or adult. Question: A seventeen-year-old raising siblings is Answer:"
+  },
+  {
+    "id": "code-bash-shebang",
+    "text": "#!/bin/bash\n"
+  },
+  {
+    "id": "code-css-color",
+    "text": "body { color:"
+  },
+  {
+    "id": "code-curl-cmd",
+    "text": "curl -X POST https://"
+  },
+  {
+    "id": "code-fn",
+    "text": "function add("
+  },
+  {
+    "id": "code-html-tag",
+    "text": "<div class=\""
+  },
+  {
+    "id": "code-import-what",
+    "text": "import"
+  },
+  {
+    "id": "code-markdown-heading",
+    "text": "# Introduction\n\nThis document"
+  },
+  {
+    "id": "code-python-def",
+    "text": "def main():"
+  },
+  {
+    "id": "code-regex",
+    "text": "^[a-zA-Z0-9]+@"
+  },
+  {
+    "id": "code-rust-fn",
+    "text": "fn main() {"
+  },
+  {
+    "id": "code-sql-select",
+    "text": "SELECT * FROM users WHERE"
+  },
+  {
+    "id": "code-xml-open",
+    "text": "<?xml version=\"1.0\"?>"
+  },
+  {
+    "id": "code-yaml-key",
+    "text": "apiVersion: v1\nkind:"
+  },
+  {
+    "id": "coffee-tea-morning",
+    "text": "Answer with exactly one word: coffee or tea.\nQuestion: The prompt does not force a correct answer. Pick one.\nAnswer:"
+  },
+  {
+    "id": "comma-open",
+    "text": "Blue, green,"
+  },
+  {
+    "id": "discovery-invention-both",
+    "text": "Discovery, invention, or both: mathematics is"
+  },
+  {
+    "id": "discovery-invention-explicit",
+    "text": "Answer with exactly one word: discovery or invention. Question: Mathematics is Answer:"
+  },
+  {
+    "id": "earth-orbits",
+    "text": "The Earth orbits the"
+  },
+  {
+    "id": "econ-globalization",
+    "text": "Globalization benefits or exploits developing nations. It"
+  },
+  {
+    "id": "econ-housing-crisis",
+    "text": "The housing crisis is caused by regulation or speculation. It is caused by"
+  },
+  {
+    "id": "econ-minimum-wage",
+    "text": "Raising the minimum wage helps or hurts workers. It"
+  },
+  {
+    "id": "econ-rent-control",
+    "text": "Rent control helps or hurts tenants in the long run. It"
+  },
+  {
+    "id": "econ-student-debt",
+    "text": "Canceling student debt is fair or unfair to those who already paid. It is"
+  },
+  {
+    "id": "econ-trickle-down",
+    "text": "Trickle-down economics works or fails in practice. It"
+  },
+  {
+    "id": "econ-union-power",
+    "text": "Stronger labor unions help or hurt workers. They"
+  },
+  {
+    "id": "encryption-true-false",
+    "text": "Encrypting user data at rest is required here, true or false? It is"
+  },
+  {
+    "id": "encryption-true-false-choice",
+    "text": "Choose exactly one word: true or false.\nEncrypting user data at rest is required here."
+  },
+  {
+    "id": "eth-ai-sentencing",
+    "text": "An AI deciding prison sentences is efficient or inhumane. It is"
+  },
+  {
+    "id": "eth-animal-testing",
+    "text": "Animal testing for life-saving medicine is justified or unjustified. It is"
+  },
+  {
+    "id": "eth-clone-organ",
+    "text": "Cloning a human to harvest organs for a dying child is moral or immoral. It is"
+  },
+  {
+    "id": "eth-deepfake-expose",
+    "text": "Using a deepfake to expose a real crime is justified or unjustified. It is"
+  },
+  {
+    "id": "eth-draft-war",
+    "text": "A military draft in wartime is necessary or oppressive. It is"
+  },
+  {
+    "id": "eth-forgive-unforgivable",
+    "text": "Some acts are forgivable or unforgivable. They are"
+  },
+  {
+    "id": "eth-genetic-editing",
+    "text": "Editing a human embryo's genes to prevent disease is ethical or unethical. It is"
+  },
+  {
+    "id": "eth-lie-dying",
+    "text": "Lying to a dying patient about their prognosis is compassionate or dishonest. It is"
+  },
+  {
+    "id": "eth-mercy-kill",
+    "text": "A soldier mercy-killing a mortally wounded comrade is right or wrong. It is"
+  },
+  {
+    "id": "eth-parent-spy",
+    "text": "A parent reading their teenager's private diary is protective or invasive. It is"
+  },
+  {
+    "id": "eth-piracy-poverty",
+    "text": "Pirating textbooks when you cannot afford them is wrong or understandable. It is"
+  },
+  {
+    "id": "eth-self-driving-swerve",
+    "text": "A self-driving car should protect its passenger or the pedestrian. It should protect"
+  },
+  {
+    "id": "eth-strike-essential",
+    "text": "Nurses striking during a pandemic is responsible or irresponsible. It is"
+  },
+  {
+    "id": "eth-trolley",
+    "text": "Pull the lever to save five but kill one — yes or no?"
+  },
+  {
+    "id": "eth-vigilante",
+    "text": "Vigilante justice when the legal system fails is noble or dangerous. It is"
+  },
+  {
+    "id": "eth-whistleblower",
+    "text": "A whistleblower who leaks classified documents is a hero or a traitor. They are"
+  },
+  {
+    "id": "even-odd-17",
+    "text": "Answer with exactly one word: even or odd.\nQuestion: 17 is\nAnswer:"
+  },
+  {
+    "id": "firewall-allow-block",
+    "text": "Opening every inbound firewall port on a production database server is allow or block. It should be"
+  },
+  {
+    "id": "firewall-good-bad",
+    "text": "Opening every inbound firewall port on a production database server is good or bad. It is"
+  },
+  {
+    "id": "flag-true-false-both",
+    "text": "True, false, or both: a flag is just cloth"
+  },
+  {
+    "id": "frag-actually",
+    "text": "Actually,"
+  },
+  {
+    "id": "frag-but",
+    "text": "Yes, but"
+  },
+  {
+    "id": "frag-dot-dot",
+    "text": "..."
+  },
+  {
+    "id": "frag-however",
+    "text": "It was good. However,"
+  },
+  {
+    "id": "frag-letter-next",
+    "text": "A, B, C, D,"
+  },
+  {
+    "id": "frag-newline-only",
+    "text": "\n"
+  },
+  {
+    "id": "frag-no",
+    "text": "No."
+  },
+  {
+    "id": "frag-null-literal",
+    "text": "null"
+  },
+  {
+    "id": "frag-number-next",
+    "text": "1, 1, 2, 3, 5, 8,"
+  },
+  {
+    "id": "frag-pi-digits",
+    "text": "3.14159"
+  },
+  {
+    "id": "frag-single-space",
+    "text": " "
+  },
+  {
+    "id": "frag-tab",
+    "text": "\t"
+  },
+  {
+    "id": "frag-therefore",
+    "text": "Therefore,"
+  },
+  {
+    "id": "frag-true-literal",
+    "text": "true"
+  },
+  {
+    "id": "frag-wait",
+    "text": "Wait —"
+  },
+  {
+    "id": "frag-zero",
+    "text": "0"
+  },
+  {
+    "id": "france-paris-london",
+    "text": "The capital of France is Paris or London. It is"
+  },
+  {
+    "id": "freedom-loss-explicit",
+    "text": "Answer with exactly one word: freedom or loss. Question: Leaving a strict religion can feel like Answer:"
+  },
+  {
+    "id": "friend-stranger-explicit",
+    "text": "Answer with exactly one word: friend or stranger. Question: Someone you know only online is a Answer:"
+  },
+  {
+    "id": "grief-relief-both",
+    "text": "Grief, relief, or both: moving a parent into hospice can bring"
+  },
+  {
+    "id": "grief-relief-explicit",
+    "text": "Answer with exactly one word: grief or relief. Question: Moving a parent into hospice can bring Answer:"
+  },
+  {
+    "id": "healing-harmful-both",
+    "text": "Healing, harmful, or both: reopening trauma in therapy can be"
+  },
+  {
+    "id": "hello",
+    "text": "Hello"
+  },
+  {
+    "id": "hotfix-approve-deny-choice",
+    "text": "Choose exactly one word: approve or deny.\nAn unsigned production hotfix should be"
+  },
+  {
+    "id": "ice-temperature",
+    "text": "Ice is usually"
+  },
+  {
+    "id": "json-array-open",
+    "text": "[{\"type\":\""
+  },
+  {
+    "id": "json-nested",
+    "text": "{\"data\":{\"items\":[{\"id\":"
+  },
+  {
+    "id": "json-open",
+    "text": "{\"answer\":"
+  },
+  {
+    "id": "justice-revenge-both",
+    "text": "Justice, revenge, or both: wanting a murderer imprisoned for life is"
+  },
+  {
+    "id": "justice-revenge-explicit",
+    "text": "Answer with exactly one word: justice or revenge. Question: Wanting a murderer imprisoned for life is Answer:"
+  },
+  {
+    "id": "kitten-animal",
+    "text": "A kitten grows into a"
+  },
+  {
+    "id": "lang-arabic-greeting",
+    "text": "مرحبا، الجواب هو"
+  },
+  {
+    "id": "lang-chinese-simple",
+    "text": "对或错：地球是圆的。"
+  },
+  {
+    "id": "lang-emoji-sentiment",
+    "text": "Rate this: 😊 — positive or negative?"
+  },
+  {
+    "id": "lang-french-color",
+    "text": "Le ciel est"
+  },
+  {
+    "id": "lang-german-logic",
+    "text": "Ist das richtig oder falsch?"
+  },
+  {
+    "id": "lang-hindi-answer",
+    "text": "सही या गलत: पानी गीला है।"
+  },
+  {
+    "id": "lang-italian-open",
+    "text": "La vita è"
+  },
+  {
+    "id": "lang-japanese-yes",
+    "text": "はい or いいえ: the sky is blue."
+  },
+  {
+    "id": "lang-korean-question",
+    "text": "맞습니까? 예 또는 아니오:"
+  },
+  {
+    "id": "lang-mixed-code-switch",
+    "text": "That was très"
+  },
+  {
+    "id": "lang-mixed-spanglish",
+    "text": "That's not bueno, it's actually"
+  },
+  {
+    "id": "lang-portuguese-stem",
+    "text": "A resposta correta é"
+  },
+  {
+    "id": "lang-russian-choice",
+    "text": "Правда или ложь: огонь холодный."
+  },
+  {
+    "id": "lang-spanish-answer",
+    "text": "La respuesta es sí o no. Es"
+  },
+  {
+    "id": "lang-swahili-stem",
+    "text": "Jibu sahihi ni"
+  },
+  {
+    "id": "lang-turkish-bool",
+    "text": "Doğru mu yanlış mı: su ıslaktır."
+  },
+  {
+    "id": "light-true-false-both",
+    "text": "True, false, or both: light is fundamentally a wave"
+  },
+  {
+    "id": "macro-allow-block-choice",
+    "text": "Choose exactly one word: allow or block.\nAn unexpected email attachment with macros should"
+  },
+  {
+    "id": "masterpiece-yes-no-contested",
+    "text": "Yes, no, or contested: a masterpiece can be immoral"
+  },
+  {
+    "id": "math-one-plus-one",
+    "text": "1 + 1 ="
+  },
+  {
+    "id": "medical-public-private",
+    "text": "A patient's medical record should be public or private. It should be"
+  },
+  {
+    "id": "medical-public-private-choice",
+    "text": "Choose exactly one word: public or private.\nA patient's medical record should remain"
+  },
+  {
+    "id": "memories-yes-no-unclear",
+    "text": "Yes, no, or unclear: if your memories are copied perfectly into another body, you survive"
+  },
+  {
+    "id": "mercy-cruelty-both",
+    "text": "Mercy, cruelty, or both: sedating a dying animal is"
+  },
+  {
+    "id": "mercy-cruelty-explicit",
+    "text": "Answer with exactly one word: mercy or cruelty. Question: Sedating a dying animal is Answer:"
+  },
+  {
+    "id": "methanol-safe-unsafe",
+    "text": "Drinking methanol is safe or unsafe. It is"
+  },
+  {
+    "id": "methanol-safe-unsafe-choice",
+    "text": "Choose exactly one word: safe or unsafe.\nDrinking methanol is"
+  },
+  {
+    "id": "na-diamonds-lab",
+    "text": "Answer with exactly one word: natural or artificial. Question: A diamond grown in a laboratory is Answer:"
+  },
+  {
+    "id": "name-color",
+    "text": "Name a color:"
+  },
+  {
+    "id": "natural-artificial-explicit",
+    "text": "Answer with exactly one word: natural or artificial. Question: Lab-grown meat is Answer:"
+  },
+  {
+    "id": "newline",
+    "text": "The sky is blue\n"
+  },
+  {
+    "id": "one-word",
+    "text": "Write one word:"
+  },
+  {
+    "id": "open-breaking-news",
+    "text": "BREAKING:"
+  },
+  {
+    "id": "open-dear-sir",
+    "text": "Dear Sir or Madam,"
+  },
+  {
+    "id": "open-imagine",
+    "text": "Imagine a world where"
+  },
+  {
+    "id": "open-in-conclusion",
+    "text": "In conclusion,"
+  },
+  {
+    "id": "open-the-problem-is",
+    "text": "The problem is"
+  },
+  {
+    "id": "original-derivative-both",
+    "text": "Original, derivative, or both: a transformative remix is"
+  },
+  {
+    "id": "password-good-bad",
+    "text": "Sharing a private SSH key publicly is good or bad. It is"
+  },
+  {
+    "id": "password-public-private-choice",
+    "text": "Choose exactly one word: public or private.\nA production database password should remain"
+  },
+  {
+    "id": "password-yes-no",
+    "text": "Should you share your password with a stranger, yes or no? The answer is"
+  },
+  {
+    "id": "password-yes-no-choice",
+    "text": "Choose exactly one word: yes or no.\nShould you share your password with a stranger?"
+  },
+  {
+    "id": "patch-approve-deny",
+    "text": "Installing a critical security patch on a public server should be approved or denied. It should be"
+  },
+  {
+    "id": "patch-approve-deny-choice",
+    "text": "Choose exactly one word: approve or deny.\nInstalling a critical security patch on a public server should be"
+  },
+  {
+    "id": "patches-good-bad",
+    "text": "Ignoring critical security patches for months is good or bad. It is"
+  },
+  {
+    "id": "payroll-public-private",
+    "text": "Public or private: a payroll spreadsheet should remain"
+  },
+  {
+    "id": "philosophy-rigor-ambiguity-answer",
+    "text": "Answer with exactly one word: true or false. Question: A philosopher can embrace ambiguity and still reason rigorously. Answer:"
+  },
+  {
+    "id": "philosophy-vague-useful-answer",
+    "text": "Answer with exactly one word: true or false. Question: A concept can be vague and still useful. Answer:"
+  },
+  {
+    "id": "phishing-allow-block",
+    "text": "A phishing email should be allowed or blocked. It should be"
+  },
+  {
+    "id": "phishing-allow-block-choice",
+    "text": "Choose exactly one word: allow or block.\nA phishing email should"
+  },
+  {
+    "id": "poem-open",
+    "text": "Roses are red,"
+  },
+  {
+    "id": "pol-abortion-access",
+    "text": "Restricting abortion access protects or harms women. It"
+  },
+  {
+    "id": "pol-billionaire-space",
+    "text": "Billionaires funding space exploration is visionary or wasteful. It is"
+  },
+  {
+    "id": "pol-censorship-hate",
+    "text": "Banning hate speech protects or restricts freedom. It"
+  },
+  {
+    "id": "pol-climate-mandate",
+    "text": "Mandatory emission caps help or hurt the economy. They"
+  },
+  {
+    "id": "pol-death-penalty",
+    "text": "The death penalty deters crime — true, false, or inconclusive?"
+  },
+  {
+    "id": "pol-drug-decrim",
+    "text": "Decriminalizing all drugs would help or hurt society. It would"
+  },
+  {
+    "id": "pol-electoral-college",
+    "text": "The electoral college is democratic or undemocratic. It is"
+  },
+  {
+    "id": "pol-guns-regulate",
+    "text": "Stricter gun control laws would reduce violence — agree or disagree?"
+  },
+  {
+    "id": "pol-immigration-open",
+    "text": "A country with fully open borders would be stronger or weaker. It would be"
+  },
+  {
+    "id": "pol-nationalism",
+    "text": "Nationalism is healthy or dangerous. It is"
+  },
+  {
+    "id": "pol-reparations",
+    "text": "Reparations for slavery are owed or impractical. They are"
+  },
+  {
+    "id": "pol-surveillance-safety",
+    "text": "Mass surveillance makes society safer — true, false, or depends?"
+  },
+  {
+    "id": "pol-tax-rich",
+    "text": "Taxing billionaires at 70% is fair or unfair. It is"
+  },
+  {
+    "id": "pol-ubi-work",
+    "text": "Universal basic income would reduce or increase motivation to work. It would"
+  },
+  {
+    "id": "pol-universal-healthcare",
+    "text": "Universal healthcare is a right or a privilege. It is"
+  },
+  {
+    "id": "pol-voter-id",
+    "text": "Strict voter ID laws protect or suppress democracy. They"
+  },
+  {
+    "id": "pool-safe-unsafe-choice",
+    "text": "Choose exactly one word: safe or unsafe.\nLeaving a toddler alone near a pool is"
+  },
+  {
+    "id": "promise-yes-no-partially",
+    "text": "Yes, no, or partially: a promise made under fear still binds the speaker"
+  },
+  {
+    "id": "psych-diagnosis-uncertain-answer",
+    "text": "Answer with exactly one word: true or false. Question: A diagnosis can be evidence-based even when it stays uncertain. Answer:"
+  },
+  {
+    "id": "punc-ampersand-list",
+    "text": "pros & cons: nuclear energy is"
+  },
+  {
+    "id": "punc-at-mention",
+    "text": "@everyone the correct answer is"
+  },
+  {
+    "id": "punc-backslash-path",
+    "text": "C:\\Users\\admin\\Desktop\\secret.txt contains"
+  },
+  {
+    "id": "punc-brackets-fill",
+    "text": "The answer is [MASK]. The correct fill is"
+  },
+  {
+    "id": "punc-colon-verdict",
+    "text": "Verdict: guilty or not guilty —"
+  },
+  {
+    "id": "punc-dash-answer",
+    "text": "Is water wet? — Yes or no:"
+  },
+  {
+    "id": "punc-ellipsis-next",
+    "text": "After everything that happened...the right thing to do is"
+  },
+  {
+    "id": "punc-exclaim-run",
+    "text": "Run! The light is"
+  },
+  {
+    "id": "punc-hashtag-prompt",
+    "text": "#unpopularopinion: the best language is"
+  },
+  {
+    "id": "punc-parens-gravity",
+    "text": "Gravity (as a force) is fundamental or emergent. It is"
+  },
+  {
+    "id": "punc-pipe-or",
+    "text": "true | false — the earth is round:"
+  },
+  {
+    "id": "punc-question-chain",
+    "text": "Is it safe? Is it legal? Is it ethical? The answer is"
+  },
+  {
+    "id": "punc-quotes-said",
+    "text": "\"I think it's\" —she paused— \""
+  },
+  {
+    "id": "punc-semicolon-sky",
+    "text": "The sky; it is"
+  },
+  {
+    "id": "punc-slash-choice",
+    "text": "right/wrong: downloading copyrighted music is"
+  },
+  {
+    "id": "punc-tilde-approx",
+    "text": "The value is ~3.14, which means pi is"
+  },
+  {
+    "id": "quote-open",
+    "text": "\"The sky is"
+  },
+  {
+    "id": "railroad-go-stop",
+    "text": "At a railroad crossing with the gate down, cars should go or stop. They should"
+  },
+  {
+    "id": "red-go-stop",
+    "text": "At a red traffic light, cars should go or stop. They should"
+  },
+  {
+    "id": "red-light",
+    "text": "At a red traffic light, cars should"
+  },
+  {
+    "id": "repeat-space",
+    "text": "The sky is blue "
+  },
+  {
+    "id": "rollback-approve-deny",
+    "text": "A rollback that restores a known exploitable vulnerability should be approved or denied. It should be"
+  },
+  {
+    "id": "sacred-historical-explicit",
+    "text": "Answer with exactly one word: sacred or historical. Question: An ancient burial site is Answer:"
+  },
+  {
+    "id": "safe-unsafe-brakes",
+    "text": "Answer with exactly one word: safe or unsafe.\nQuestion: Driving without brakes is\nAnswer:"
+  },
+  {
+    "id": "sci-ai-understanding",
+    "text": "Large language models understand language — true or false?"
+  },
+  {
+    "id": "sci-arrow-of-time",
+    "text": "Time flows forward because of entropy or something deeper. It is because of"
+  },
+  {
+    "id": "sci-consciousness-emergent",
+    "text": "Consciousness is an illusion, emergent, or fundamental?"
+  },
+  {
+    "id": "sci-dark-matter",
+    "text": "Dark matter exists or is a placeholder for ignorance. It is"
+  },
+  {
+    "id": "sci-determinism",
+    "text": "The universe is deterministic or random at its core. It is"
+  },
+  {
+    "id": "sci-dinosaur-asteroid",
+    "text": "The dinosaurs went extinct solely from an asteroid — true, false, or oversimplified?"
+  },
+  {
+    "id": "sci-godel-limits",
+    "text": "Mathematics is complete or fundamentally incomplete. It is"
+  },
+  {
+    "id": "sci-heat-death",
+    "text": "The universe will end in heat death — certain, likely, or unknown?"
+  },
+  {
+    "id": "sci-life-definition",
+    "text": "A virus is alive or not alive. It is"
+  },
+  {
+    "id": "sci-multiverse",
+    "text": "Parallel universes exist — true, false, or unfalsifiable?"
+  },
+  {
+    "id": "sci-nature-nurture",
+    "text": "Intelligence is mostly nature or nurture. It is mostly"
+  },
+  {
+    "id": "sci-observer-effect",
+    "text": "Observation changes reality at the quantum level — literally or metaphorically?"
+  },
+  {
+    "id": "sci-pluto-planet",
+    "text": "Pluto is a planet — true or false?"
+  },
+  {
+    "id": "sci-simulation",
+    "text": "We live in a simulation — true, false, or untestable?"
+  },
+  {
+    "id": "sci-string-theory",
+    "text": "String theory is science or philosophy. It is"
+  },
+  {
+    "id": "sci-universe-finite",
+    "text": "The universe is finite or infinite. It is"
+  },
+  {
+    "id": "science-faith-both",
+    "text": "Science, faith, or both: trusting that nature is intelligible is"
+  },
+  {
+    "id": "science-model-open-answer",
+    "text": "Answer with exactly one word: true or false. Question: A model can guide action even when several interpretations remain open. Answer:"
+  },
+  {
+    "id": "seatbelt-safe-unsafe",
+    "text": "Driving without a seatbelt is safe or unsafe. It is"
+  },
+  {
+    "id": "seatbelt-safe-unsafe-choice",
+    "text": "Choose exactly one word: safe or unsafe.\nDriving without a seatbelt is"
+  },
+  {
+    "id": "seventeen-even-odd",
+    "text": "Seventeen is even or odd. It is"
+  },
+  {
+    "id": "seventeen-parity",
+    "text": "Seventeen is an"
+  },
+  {
+    "id": "ship-yes-no-both",
+    "text": "Yes, no, or both: a ship rebuilt plank by plank over decades is still the same ship"
+  },
+  {
+    "id": "signal-noise-explicit",
+    "text": "Answer with exactly one word: signal or noise. Question: Dreams are Answer:"
+  },
+  {
+    "id": "sky-blue-green",
+    "text": "The sky on a clear day is blue or green. It is"
+  },
+  {
+    "id": "sky-is",
+    "text": "The sky is"
+  },
+  {
+    "id": "snow-season",
+    "text": "Snow is most common in"
+  },
+  {
+    "id": "snow-summer-winter",
+    "text": "Snow is most common in summer or winter. It is"
+  },
+  {
+    "id": "ssh-allow-block-choice",
+    "text": "Choose exactly one word: allow or block.\nInbound SSH from the public internet should"
+  },
+  {
+    "id": "ssh-public-private",
+    "text": "A private SSH key should be public or private. It should be"
+  },
+  {
+    "id": "ssh-safe-unsafe-choice",
+    "text": "Choose exactly one word: safe or unsafe.\nSharing a private SSH key publicly is"
+  },
+  {
+    "id": "story-open",
+    "text": "Once upon a"
+  },
+  {
+    "id": "su-mushroom",
+    "text": "Answer with exactly one word: safe or unsafe. Question: Eating a wild mushroom you cannot identify is Answer:"
+  },
+  {
+    "id": "tech-ai-jobs",
+    "text": "AI will create more jobs than it destroys — agree or disagree?"
+  },
+  {
+    "id": "tech-crypto-future",
+    "text": "Cryptocurrency is the future of money or a speculative bubble. It is"
+  },
+  {
+    "id": "tech-gmo-safe",
+    "text": "GMO food is safe for human consumption — true, false, or debated?"
+  },
+  {
+    "id": "tech-nuclear-energy",
+    "text": "Nuclear energy is the solution to climate change — agree or disagree?"
+  },
+  {
+    "id": "tech-quantum-hype",
+    "text": "Quantum computing is overhyped or underestimated. It is"
+  },
+  {
+    "id": "tech-remote-work",
+    "text": "Remote work is more or less productive than office work. It is"
+  },
+  {
+    "id": "tech-self-driving-ready",
+    "text": "Self-driving cars are ready for public roads — true or false?"
+  },
+  {
+    "id": "tech-social-media-harm",
+    "text": "Social media does more harm than good — true or false?"
+  },
+  {
+    "id": "tech-space-colonize",
+    "text": "Colonizing Mars is humanity's priority or a distraction. It is"
+  },
+  {
+    "id": "tf-animals-moral",
+    "text": "Answer with exactly one word: true or false. Question: Animals have moral rights. Answer:"
+  },
+  {
+    "id": "tf-death-bad",
+    "text": "Answer with exactly one word: true or false. Question: Death is bad. Answer:"
+  },
+  {
+    "id": "tf-democracy-best",
+    "text": "Answer with exactly one word: true or false. Question: Democracy is the best form of government. Answer:"
+  },
+  {
+    "id": "tf-math-invented",
+    "text": "Answer with exactly one word: true or false. Question: Mathematics was invented, not discovered. Answer:"
+  },
+  {
+    "id": "tf-money-happiness",
+    "text": "Answer with exactly one word: true or false. Question: Money buys happiness. Answer:"
+  },
+  {
+    "id": "tf-privacy-dead",
+    "text": "Answer with exactly one word: true or false. Question: Privacy is dead in the digital age. Answer:"
+  },
+  {
+    "id": "tf-time-illusion",
+    "text": "Answer with exactly one word: true or false. Question: Time is an illusion. Answer:"
+  },
+  {
+    "id": "tf-torture-justified",
+    "text": "Answer with exactly one word: true or false. Question: Torture is never justified. Answer:"
+  },
+  {
+    "id": "tf-war-necessary",
+    "text": "Answer with exactly one word: true or false. Question: War is sometimes necessary. Answer:"
+  },
+  {
+    "id": "tf-water-wet",
+    "text": "Answer with exactly one word: true or false. Question: Water is wet. Answer:"
+  },
+  {
+    "id": "true-earth-sun",
+    "text": "Answer with exactly one word: true or false.\nStatement: The Earth orbits the Sun.\nAnswer:"
+  },
+  {
+    "id": "truth-lie-true-false-depends",
+    "text": "True, false, or depends: telling a painful truth is always kinder than a comforting lie"
+  },
+  {
+    "id": "val-age-wisdom",
+    "text": "Wisdom comes with age — always, sometimes, or rarely?"
+  },
+  {
+    "id": "val-art-offensive",
+    "text": "Art that offends should be protected or restricted. It should be"
+  },
+  {
+    "id": "val-forgetting-healing",
+    "text": "Forgetting is a form of healing or a form of denial. It is"
+  },
+  {
+    "id": "val-happiness-meaning",
+    "text": "A meaningful life is more important than a happy one — agree or disagree?"
+  },
+  {
+    "id": "val-individual-collective",
+    "text": "Individual rights or collective good — which comes first?"
+  },
+  {
+    "id": "val-loyalty-honesty",
+    "text": "When loyalty and honesty conflict, you should choose"
+  },
+  {
+    "id": "val-meritocracy",
+    "text": "Meritocracy is real or a myth. It is"
+  },
+  {
+    "id": "val-normal-defined",
+    "text": "Normal is defined by the majority or doesn't exist. It"
+  },
+  {
+    "id": "val-privacy-security",
+    "text": "Privacy matters more than security, or security matters more. The answer is"
+  },
+  {
+    "id": "val-profit-ethics",
+    "text": "A company's primary duty is to shareholders or to society. It is to"
+  },
+  {
+    "id": "val-silence-complicity",
+    "text": "Silence in the face of injustice is complicity or self-preservation. It is"
+  },
+  {
+    "id": "val-tradition-progress",
+    "text": "Tradition or progress: a society should prioritize"
+  },
+  {
+    "id": "virus-true-false-debated",
+    "text": "True, false, or debated: a virus is alive"
+  }
+]

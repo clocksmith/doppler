@@ -1,0 +1,82 @@
+[
+  {
+    "id": "red-traffic-go-stop",
+    "text": "Answer with exactly one word: go or stop.\nQuestion: At a red traffic light, cars should Answer:",
+    "watchTokenTexts": [" go", " stop"],
+    "watchPairs": [[" go", " stop"]],
+    "persistSlice": true
+  },
+  {
+    "id": "earth-true-false",
+    "text": "Answer with exactly one word: true or false.\nStatement: The Earth orbits the Sun.\nAnswer:",
+    "watchTokenTexts": [" true", " false", "\n"],
+    "watchPairs": [[" true", " false"]],
+    "persistSlice": true
+  },
+  {
+    "id": "sky-blue-green",
+    "text": "The sky on a clear day is blue or green. It is",
+    "watchTokenTexts": [" blue", " green", " a"],
+    "watchPairs": [[" blue", " green"]],
+    "persistSlice": true
+  },
+  {
+    "id": "shareholders-society",
+    "text": "A company's primary duty is to shareholders or to society. It is to",
+    "watchTokenTexts": [" shareholders", " society", " be", " provide"],
+    "watchPairs": [[" shareholders", " society"], [" be", " provide"]],
+    "persistSlice": true
+  },
+  {
+    "id": "mask-fill",
+    "text": "The answer is [MASK]. The correct fill is",
+    "watchTokenTexts": ["[", " [", ":"],
+    "watchPairs": [["[", ":"]],
+    "persistSlice": true
+  },
+  {
+    "id": "mercy-cruelty",
+    "text": "Answer with exactly one word: mercy or cruelty. Question: Sedating a dying animal is Answer:",
+    "watchTokenTexts": [" mercy", " cruelty"],
+    "watchPairs": [[" mercy", " cruelty"]],
+    "persistSlice": true
+  },
+  {
+    "id": "backup-yes-no-choice",
+    "text": "Choose exactly one word: yes or no.\nShould you delete the only backup before a migration?",
+    "watchTokenTexts": [" yes", " no"],
+    "watchPairs": [[" yes", " no"]],
+    "persistSlice": true
+  },
+  {
+    "id": "brakes-safe-unsafe-choice",
+    "text": "Choose exactly one word: safe or unsafe.\nDriving without brakes is",
+    "watchTokenTexts": [" safe", " unsafe"],
+    "watchPairs": [[" safe", " unsafe"]],
+    "persistSlice": true
+  },
+  {
+    "id": "encryption-true-false-choice",
+    "text": "Choose exactly one word: true or false.\nEncrypting user data at rest is required here.",
+    "watchTokenTexts": [" true", " false"],
+    "watchPairs": [[" true", " false"]]
+  },
+  {
+    "id": "curl-post",
+    "text": "curl -X POST https://",
+    "watchTokenTexts": [" api", " example"],
+    "watchPairs": [[" api", " example"]]
+  },
+  {
+    "id": "capital-france",
+    "text": "The capital of France is",
+    "watchTokenTexts": [" Paris", " Lyon"],
+    "watchPairs": [[" Paris", " Lyon"]]
+  },
+  {
+    "id": "answer-is",
+    "text": "The answer is",
+    "watchTokenTexts": [" yes", " no", "\n"],
+    "persistSlice": true
+  }
+]

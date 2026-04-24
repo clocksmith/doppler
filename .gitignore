@@ -82,6 +82,10 @@ reports/**
 !reports/program-bundles/
 !reports/program-bundles/**/
 !reports/program-bundles/**/*.reference.json
+!reports/f16-precision-collapse/
+reports/f16-precision-collapse/**
+!reports/f16-precision-collapse/stable/
+!reports/f16-precision-collapse/stable/**
 
 # Test artifacts
 test-results/

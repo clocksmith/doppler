@@ -5,6 +5,7 @@ import { initInput, setRunHandler } from './input.js';
 import { initSettings } from './settings.js';
 import { initReport } from './report.js';
 import { onModelLoaded, runGeneration, stopGeneration } from './core.js';
+import { initPrecisionReplay } from './ui/precision-replay/index.js';
 import { initXray, getXrayRuntimeNoticeText, isXrayProfilingNeeded } from './ui/xray/index.js';
 import { flushPwaLaunchState, initPwa } from './pwa.js';
 
@@ -50,6 +51,12 @@ async function init() {
   $('set-token-press')?.addEventListener('change', refreshRuntimeNotice);
   $('set-trace')?.addEventListener('change', refreshRuntimeNotice);
   refreshRuntimeNotice();
+
+  try {
+    await initPrecisionReplay();
+  } catch {
+    // precision replay is optional
+  }
 
   // Boot sequence
   await boot();

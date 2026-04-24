@@ -88,6 +88,15 @@ export function getPrompt() {
   return ($('prompt-input')?.value ?? '').trim();
 }
 
+export function setPromptValue(value) {
+  const promptEl = $('prompt-input');
+  if (!promptEl) {
+    return;
+  }
+  promptEl.value = typeof value === 'string' ? value : String(value ?? '');
+  promptEl.focus();
+}
+
 export function getImage() {
   return imageData;
 }
