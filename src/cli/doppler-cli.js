@@ -696,6 +696,86 @@ const BUNDLE_SUMMARY_SCHEMA_ID = 'doppler.bundle-summary/v1';
 const DEFAULT_BUNDLE_PROMPT = 'The color of the sky is';
 const DEFAULT_BUNDLE_MAX_TOKENS = 8;
 
+export async function checkCapturePrecondition(surface) {
+  const skipCaptureHint = 'Alternatively, use --skip-capture with pre-existing --reference-report and --reference-transcript paths.';
+  if (surface === 'node') {
+    const { bootstrapNodeWebGPU } = await import('../tooling/node-webgpu.js');
+    const { hasNodeWebGPUSupport } = await import('../tooling/node-command-runner.js');
+    const bootstrap = await bootstrapNodeWebGPU();
+    if (bootstrap.ok && hasNodeWebGPUSupport()) {
+      return { ok: true, surface, provider: bootstrap.provider ?? null };
+    }
+    return {
+      ok: false,
+      surface,
+      code: 'capture_precondition_node_webgpu_unavailable',
+      provider: bootstrap.provider ?? null,
+      detail: bootstrap.detail ?? null,
+      message:
+        'bundle: --surface node requires a working Node WebGPU binding. '
+        + `Bootstrap attempt failed: ${bootstrap.detail ?? 'no provider produced a usable adapter'}`
+        + '. Install a Node WebGPU binding (for example `npm install webgpu`) '
+        + 'or set DOPPLER_NODE_WEBGPU_MODULE to a custom specifier; '
+        + 'alternatively use --surface browser after `npx playwright install chromium`. '
+        + skipCaptureHint,
+    };
+  }
+  if (surface === 'browser') {
+    let playwright = null;
+    try {
+      playwright = await import('playwright');
+    } catch (error) {
+      return {
+        ok: false,
+        surface,
+        code: 'capture_precondition_playwright_missing',
+        detail: error?.message ?? null,
+        message:
+          'bundle: --surface browser requires the `playwright` package. '
+          + 'Run `npm install --save-dev playwright` then `npx playwright install chromium`. '
+          + 'Alternatively use --surface node after installing a Node WebGPU binding (e.g. `npm install webgpu`). '
+          + skipCaptureHint,
+      };
+    }
+    let executablePath = null;
+    try {
+      executablePath = playwright.chromium?.executablePath?.() ?? null;
+    } catch (error) {
+      return {
+        ok: false,
+        surface,
+        code: 'capture_precondition_playwright_chromium_missing',
+        detail: error?.message ?? null,
+        message:
+          'bundle: Playwright is installed but Chromium binaries are missing. '
+          + 'Run `npx playwright install chromium` to download them. '
+          + skipCaptureHint,
+      };
+    }
+    const fsSync = await import('node:fs');
+    if (!executablePath || !fsSync.existsSync(executablePath)) {
+      return {
+        ok: false,
+        surface,
+        code: 'capture_precondition_playwright_chromium_missing',
+        detail: executablePath ? `executable not found at ${executablePath}` : 'executablePath returned null',
+        message:
+          'bundle: Playwright Chromium binaries are not installed. '
+          + 'Run `npx playwright install chromium` to download them. '
+          + skipCaptureHint,
+      };
+    }
+    return { ok: true, surface, executablePath };
+  }
+  return {
+    ok: false,
+    surface,
+    code: 'capture_precondition_unsupported_surface',
+    detail: null,
+    message: `bundle: --surface must be 'browser' or 'node', got '${surface}'.`,
+  };
+}
+
 async function runBundleCommand(parsed, jsonOutput) {
   const {
     runReferenceCapture,
@@ -760,9 +840,31 @@ async function runBundleCommand(parsed, jsonOutput) {
   const referenceTranscriptPath = path.join(resolvedOut, 'reference-transcript.json');
 
   if (!skipCapture) {
-    stages.push({ stage: 'capture', status: 'starting' });
+    const surface = asStringOrNull(parsed.flags.surface) ?? 'browser';
+    stages.push({ stage: 'capture', status: 'starting', surface });
+    const precondition = await checkCapturePrecondition(surface);
+    if (!precondition.ok) {
+      stages[stages.length - 1] = {
+        stage: 'capture',
+        status: 'blocked',
+        surface,
+        precondition: {
+          code: precondition.code,
+          detail: precondition.detail ?? null,
+          provider: precondition.provider ?? null,
+        },
+      };
+      blockers.push({
+        stage: 'capture',
+        code: precondition.code,
+        message: precondition.message,
+        surface,
+        detail: precondition.detail ?? null,
+        provider: precondition.provider ?? null,
+      });
+      return emitBundleSummary({ ok: false, stages, blockers, artifactPaths, jsonOutput, resolvedOut });
+    }
     try {
-      const surface = asStringOrNull(parsed.flags.surface) ?? 'browser';
       const modelUrl = normalizeModelUrl(asStringOrNull(parsed.flags['model-url']), modelDirResolved);
       const maxTokensRaw = asStringOrNull(parsed.flags['max-tokens']);
       const maxTokens = maxTokensRaw == null ? DEFAULT_BUNDLE_MAX_TOKENS : Number(maxTokensRaw);
@@ -881,6 +983,42 @@ async function runBundleCommand(parsed, jsonOutput) {
       error: error?.message || String(error),
     };
     blockers.push({ stage: 'receipt', code: 'receipt_write_failed', message: error?.message || String(error) });
+    return emitBundleSummary({ ok: false, stages, blockers, artifactPaths, jsonOutput, resolvedOut });
+  }
+
+  stages.push({ stage: 'parity', status: 'starting' });
+  try {
+    const { checkProgramBundleParity } = await import('../tooling/program-bundle-parity.js');
+    const parityOutputPath = path.join(resolvedOut, 'program-bundle-parity.json');
+    const bundlePath = artifactPaths.programBundle
+      ? path.resolve(artifactPaths.programBundle)
+      : path.join(resolvedOut, 'program-bundle.json');
+    const parityReport = await checkProgramBundleParity({
+      bundlePath,
+      mode: 'contract',
+      repoRoot,
+    });
+    await fs.writeFile(parityOutputPath, `${JSON.stringify(parityReport, null, 2)}\n`, 'utf8');
+    artifactPaths.programBundleParity = path.relative(process.cwd(), parityOutputPath);
+    stages[stages.length - 1] = {
+      stage: 'parity',
+      status: 'succeeded',
+      mode: parityReport.mode,
+      ok: parityReport.ok,
+      parityHash: parityReport.parityHash,
+      providers: parityReport.providers.map((result) => ({
+        provider: result.provider,
+        status: result.status,
+        ok: result.ok,
+      })),
+    };
+  } catch (error) {
+    stages[stages.length - 1] = {
+      stage: 'parity',
+      status: 'failed',
+      error: error?.message || String(error),
+    };
+    blockers.push({ stage: 'parity', code: 'parity_check_failed', message: error?.message || String(error) });
     return emitBundleSummary({ ok: false, stages, blockers, artifactPaths, jsonOutput, resolvedOut });
   }
 

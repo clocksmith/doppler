@@ -3600,74 +3600,184 @@
         {
           "kernelRef": "doe.tsir.bootstrap.fused_gemv",
           "backend": "webgpu-generic",
-          "targetDescriptorHash": "sha256:1bb3a7dc6a798e8cc9eae1e660800b9163469cbda67e14c75fe6a10ef342ade9",
+          "targetDescriptorCorrectnessHash": "1bb3a7dc6a798e8cc9eae1e660800b9163469cbda67e14c75fe6a10ef342ade9",
           "frontendVersion": "frontend-bootstrap-pipeline-v1",
-          "tsirSemanticDigest": "sha256:4e4f2615efe4534eddd6af24a75345c31b9d87e2c8fedc4cb9900087ee8b0944",
-          "tsirRealizationDigest": "sha256:646ea4ec5a123e10a4dabedb9d1f40067b9542a8fab255b27ae1758f00f85dbc",
-          "emitterDigest": "sha256:dd31baaba772c20823c2ca423a8245db21ba74dfc9d1a1530ac528a52621116e",
-          "doeCompilerVersion": "doe-tsir-bootstrap-2026-04-24",
-          "exactnessClass": "algorithm-exact",
-          "rejectionReasons": null
+          "tsirSemanticDigest": "4e4f2615efe4534eddd6af24a75345c31b9d87e2c8fedc4cb9900087ee8b0944",
+          "tsirRealizationDigest": "646ea4ec5a123e10a4dabedb9d1f40067b9542a8fab255b27ae1758f00f85dbc",
+          "emitterDigest": "dd31baaba772c20823c2ca423a8245db21ba74dfc9d1a1530ac528a52621116e",
+          "compilerVersion": "doe-tsir-bootstrap-2026-04-24",
+          "exactness": {
+            "algorithmExactInvariants": [
+              "reduction_order",
+              "accum_dtype"
+            ],
+            "class": "algorithm_exact",
+            "toleranceEpsilon": 0,
+            "toleranceMetric": ""
+          },
+          "rejectionReasons": []
         },
         {
           "kernelRef": "doe.tsir.bootstrap.fused_gemv",
           "backend": "wse3",
-          "targetDescriptorHash": "sha256:a3852140d7a2063cb066c02a4e1201a64546e64056a06d93a5ed575bc9620948",
+          "targetDescriptorCorrectnessHash": "a3852140d7a2063cb066c02a4e1201a64546e64056a06d93a5ed575bc9620948",
           "frontendVersion": "frontend-bootstrap-pipeline-v1",
-          "tsirSemanticDigest": "sha256:4e4f2615efe4534eddd6af24a75345c31b9d87e2c8fedc4cb9900087ee8b0944",
-          "tsirRealizationDigest": "sha256:ec14291ff2ce4a5cc3e48c1a254fe4c8e46b923875fea63ee7c41df66eca51d5",
-          "emitterDigest": "sha256:f526ec1dcd265256b1cefd26b19d6563b279047080b8aad5e16dbed297452cba",
-          "doeCompilerVersion": "doe-tsir-bootstrap-2026-04-24",
-          "exactnessClass": "algorithm-exact",
-          "rejectionReasons": null
+          "tsirSemanticDigest": "4e4f2615efe4534eddd6af24a75345c31b9d87e2c8fedc4cb9900087ee8b0944",
+          "tsirRealizationDigest": "ec14291ff2ce4a5cc3e48c1a254fe4c8e46b923875fea63ee7c41df66eca51d5",
+          "emitterDigest": "f526ec1dcd265256b1cefd26b19d6563b279047080b8aad5e16dbed297452cba",
+          "compilerVersion": "doe-tsir-bootstrap-2026-04-24",
+          "exactness": {
+            "algorithmExactInvariants": [
+              "reduction_order",
+              "accum_dtype"
+            ],
+            "class": "algorithm_exact",
+            "toleranceEpsilon": 0,
+            "toleranceMetric": ""
+          },
+          "rejectionReasons": []
         },
         {
           "kernelRef": "doe.tsir.bootstrap.rms_norm",
           "backend": "webgpu-generic",
-          "targetDescriptorHash": "sha256:1bb3a7dc6a798e8cc9eae1e660800b9163469cbda67e14c75fe6a10ef342ade9",
+          "targetDescriptorCorrectnessHash": "1bb3a7dc6a798e8cc9eae1e660800b9163469cbda67e14c75fe6a10ef342ade9",
           "frontendVersion": "frontend-bootstrap-pipeline-v1",
-          "tsirSemanticDigest": "sha256:d97496705eae4ecf3d6feadde826228b767c175fb038ed53762dfa3ffb1b2e49",
-          "tsirRealizationDigest": "sha256:646ea4ec5a123e10a4dabedb9d1f40067b9542a8fab255b27ae1758f00f85dbc",
-          "emitterDigest": "sha256:dd31baaba772c20823c2ca423a8245db21ba74dfc9d1a1530ac528a52621116e",
-          "doeCompilerVersion": "doe-tsir-bootstrap-2026-04-24",
-          "exactnessClass": "tolerance-bounded",
-          "rejectionReasons": null
+          "tsirSemanticDigest": "d97496705eae4ecf3d6feadde826228b767c175fb038ed53762dfa3ffb1b2e49",
+          "tsirRealizationDigest": "646ea4ec5a123e10a4dabedb9d1f40067b9542a8fab255b27ae1758f00f85dbc",
+          "emitterDigest": "dd31baaba772c20823c2ca423a8245db21ba74dfc9d1a1530ac528a52621116e",
+          "compilerVersion": "doe-tsir-bootstrap-2026-04-24",
+          "exactness": {
+            "algorithmExactInvariants": [],
+            "class": "tolerance_bounded",
+            "toleranceEpsilon": 0.000001,
+            "toleranceMetric": "max_abs"
+          },
+          "rejectionReasons": []
         },
         {
           "kernelRef": "doe.tsir.bootstrap.rms_norm",
           "backend": "wse3",
-          "targetDescriptorHash": "sha256:a3852140d7a2063cb066c02a4e1201a64546e64056a06d93a5ed575bc9620948",
+          "targetDescriptorCorrectnessHash": "a3852140d7a2063cb066c02a4e1201a64546e64056a06d93a5ed575bc9620948",
           "frontendVersion": "frontend-bootstrap-pipeline-v1",
-          "tsirSemanticDigest": "sha256:d97496705eae4ecf3d6feadde826228b767c175fb038ed53762dfa3ffb1b2e49",
-          "tsirRealizationDigest": "sha256:ec14291ff2ce4a5cc3e48c1a254fe4c8e46b923875fea63ee7c41df66eca51d5",
-          "emitterDigest": "sha256:f526ec1dcd265256b1cefd26b19d6563b279047080b8aad5e16dbed297452cba",
-          "doeCompilerVersion": "doe-tsir-bootstrap-2026-04-24",
-          "exactnessClass": "tolerance-bounded",
-          "rejectionReasons": null
+          "tsirSemanticDigest": "d97496705eae4ecf3d6feadde826228b767c175fb038ed53762dfa3ffb1b2e49",
+          "tsirRealizationDigest": "ec14291ff2ce4a5cc3e48c1a254fe4c8e46b923875fea63ee7c41df66eca51d5",
+          "emitterDigest": "f526ec1dcd265256b1cefd26b19d6563b279047080b8aad5e16dbed297452cba",
+          "compilerVersion": "doe-tsir-bootstrap-2026-04-24",
+          "exactness": {
+            "algorithmExactInvariants": [],
+            "class": "tolerance_bounded",
+            "toleranceEpsilon": 0.000001,
+            "toleranceMetric": "max_abs"
+          },
+          "rejectionReasons": []
         },
         {
           "kernelRef": "doe.tsir.bootstrap.gather",
           "backend": "webgpu-generic",
-          "targetDescriptorHash": "sha256:1bb3a7dc6a798e8cc9eae1e660800b9163469cbda67e14c75fe6a10ef342ade9",
+          "targetDescriptorCorrectnessHash": "1bb3a7dc6a798e8cc9eae1e660800b9163469cbda67e14c75fe6a10ef342ade9",
           "frontendVersion": "frontend-bootstrap-pipeline-v1",
-          "tsirSemanticDigest": "sha256:13b045cf2cdd6933f2eae0422f603685bbcf3a3dad1361adb81613dc071631a0",
-          "tsirRealizationDigest": "sha256:646ea4ec5a123e10a4dabedb9d1f40067b9542a8fab255b27ae1758f00f85dbc",
-          "emitterDigest": "sha256:dd31baaba772c20823c2ca423a8245db21ba74dfc9d1a1530ac528a52621116e",
-          "doeCompilerVersion": "doe-tsir-bootstrap-2026-04-24",
-          "exactnessClass": "bit-exact-solo",
-          "rejectionReasons": null
+          "tsirSemanticDigest": "13b045cf2cdd6933f2eae0422f603685bbcf3a3dad1361adb81613dc071631a0",
+          "tsirRealizationDigest": "646ea4ec5a123e10a4dabedb9d1f40067b9542a8fab255b27ae1758f00f85dbc",
+          "emitterDigest": "dd31baaba772c20823c2ca423a8245db21ba74dfc9d1a1530ac528a52621116e",
+          "compilerVersion": "doe-tsir-bootstrap-2026-04-24",
+          "exactness": {
+            "algorithmExactInvariants": [],
+            "class": "bit_exact_solo",
+            "toleranceEpsilon": 0,
+            "toleranceMetric": ""
+          },
+          "rejectionReasons": []
         },
         {
           "kernelRef": "doe.tsir.bootstrap.gather",
           "backend": "wse3",
-          "targetDescriptorHash": "sha256:a3852140d7a2063cb066c02a4e1201a64546e64056a06d93a5ed575bc9620948",
+          "targetDescriptorCorrectnessHash": "a3852140d7a2063cb066c02a4e1201a64546e64056a06d93a5ed575bc9620948",
           "frontendVersion": "frontend-bootstrap-pipeline-v1",
-          "tsirSemanticDigest": "sha256:13b045cf2cdd6933f2eae0422f603685bbcf3a3dad1361adb81613dc071631a0",
-          "tsirRealizationDigest": "sha256:ec14291ff2ce4a5cc3e48c1a254fe4c8e46b923875fea63ee7c41df66eca51d5",
-          "emitterDigest": "sha256:f526ec1dcd265256b1cefd26b19d6563b279047080b8aad5e16dbed297452cba",
-          "doeCompilerVersion": "doe-tsir-bootstrap-2026-04-24",
-          "exactnessClass": "bit-exact-solo",
-          "rejectionReasons": null
+          "tsirSemanticDigest": "13b045cf2cdd6933f2eae0422f603685bbcf3a3dad1361adb81613dc071631a0",
+          "tsirRealizationDigest": "ec14291ff2ce4a5cc3e48c1a254fe4c8e46b923875fea63ee7c41df66eca51d5",
+          "emitterDigest": "f526ec1dcd265256b1cefd26b19d6563b279047080b8aad5e16dbed297452cba",
+          "compilerVersion": "doe-tsir-bootstrap-2026-04-24",
+          "exactness": {
+            "algorithmExactInvariants": [],
+            "class": "bit_exact_solo",
+            "toleranceEpsilon": 0,
+            "toleranceMetric": ""
+          },
+          "rejectionReasons": []
+        },
+        {
+          "kernelRef": "doe.tsir.real.embed",
+          "backend": "webgpu-generic",
+          "targetDescriptorCorrectnessHash": "1bb3a7dc6a798e8cc9eae1e660800b9163469cbda67e14c75fe6a10ef342ade9",
+          "frontendVersion": "frontend-real-pipeline-v0",
+          "tsirSemanticDigest": "f64a4454bae6b01d180c2b0e48ca653079d79eeaee37e8912a49f71aadf718a3",
+          "tsirRealizationDigest": "948a1c55b483d0a3761406fc962c77fac434e8c0a80b13ff397fef8452b6b4eb",
+          "emitterDigest": "dd31baaba772c20823c2ca423a8245db21ba74dfc9d1a1530ac528a52621116e",
+          "compilerVersion": "doe-tsir-real-2026-04-24",
+          "exactness": {
+            "algorithmExactInvariants": [],
+            "class": "bit_exact_solo",
+            "toleranceEpsilon": 0,
+            "toleranceMetric": ""
+          },
+          "rejectionReasons": []
+        },
+        {
+          "kernelRef": "doe.tsir.real.embed",
+          "backend": "wse3",
+          "targetDescriptorCorrectnessHash": "a3852140d7a2063cb066c02a4e1201a64546e64056a06d93a5ed575bc9620948",
+          "frontendVersion": "frontend-real-pipeline-v0",
+          "tsirSemanticDigest": "f64a4454bae6b01d180c2b0e48ca653079d79eeaee37e8912a49f71aadf718a3",
+          "tsirRealizationDigest": "42185ad2f2dbe59b6720fe382989014b42ae4b0bc9eb0899b552a81b6af7d204",
+          "emitterDigest": "f526ec1dcd265256b1cefd26b19d6563b279047080b8aad5e16dbed297452cba",
+          "compilerVersion": "doe-tsir-real-2026-04-24",
+          "exactness": {
+            "algorithmExactInvariants": [],
+            "class": "bit_exact_solo",
+            "toleranceEpsilon": 0,
+            "toleranceMetric": ""
+          },
+          "rejectionReasons": []
+        },
+        {
+          "kernelRef": "doe.tsir.real.lm_head_gemv",
+          "backend": "webgpu-generic",
+          "targetDescriptorCorrectnessHash": "1bb3a7dc6a798e8cc9eae1e660800b9163469cbda67e14c75fe6a10ef342ade9",
+          "frontendVersion": "frontend-real-pipeline-v0",
+          "tsirSemanticDigest": "7b89eb2607f2a21298c7a67697fb5b23d3180bea011e87ed2fcb75e8d7c44f64",
+          "tsirRealizationDigest": "2b5a6e1d5be30b0ba0477bc1364f09d5a634056885cc2a4b81b976e7bcf9e9e6",
+          "emitterDigest": "dd31baaba772c20823c2ca423a8245db21ba74dfc9d1a1530ac528a52621116e",
+          "compilerVersion": "doe-tsir-real-2026-04-24",
+          "exactness": {
+            "algorithmExactInvariants": [
+              "reduction_order",
+              "accum_dtype"
+            ],
+            "class": "algorithm_exact",
+            "toleranceEpsilon": 0,
+            "toleranceMetric": ""
+          },
+          "rejectionReasons": []
+        },
+        {
+          "kernelRef": "doe.tsir.real.lm_head_gemv",
+          "backend": "wse3",
+          "targetDescriptorCorrectnessHash": "a3852140d7a2063cb066c02a4e1201a64546e64056a06d93a5ed575bc9620948",
+          "frontendVersion": "frontend-real-pipeline-v0",
+          "tsirSemanticDigest": "7b89eb2607f2a21298c7a67697fb5b23d3180bea011e87ed2fcb75e8d7c44f64",
+          "tsirRealizationDigest": "868de19d5e69c8c9515572fb17e9d1af1c8db0e4e57d230101f6a5cde513f6ba",
+          "emitterDigest": "f526ec1dcd265256b1cefd26b19d6563b279047080b8aad5e16dbed297452cba",
+          "compilerVersion": "doe-tsir-real-2026-04-24",
+          "exactness": {
+            "algorithmExactInvariants": [
+              "reduction_order",
+              "accum_dtype"
+            ],
+            "class": "algorithm_exact",
+            "toleranceEpsilon": 0,
+            "toleranceMetric": ""
+          },
+          "rejectionReasons": []
         }
       ]
     }
