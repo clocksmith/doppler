@@ -59,6 +59,7 @@ import {
   resolveAttentionPrecisionContract,
   isAttentionKvDtypeExplicit,
 } from './precision-contract.js';
+import { canUseRmsNormWideTileProjectionFusion } from './rmsnorm-fusion-gate.js';
 
 const ATTENTION_DTYPE_LOGGED = new Set();
 
@@ -205,8 +206,10 @@ export async function runLayerAttentionGPU(
   // module-level runtime config carries the merged profile/override session.
   const rmsNormFusionFlag = getRuntimeConfig()?.inference?.session?.useFusedRmsnormWideTile === true;
   const hasInputNormWeight = layerWeights?.inputNorm != null && getNormWeightBuffer != null;
+  const canSelectFusedRmsNormProjection = canUseRmsNormWideTileProjectionFusion(layerWeights, reusesSharedKV);
   const canFuseInputNormIntoProjections = rmsNormFusionFlag
     && hasInputNormWeight
+    && canSelectFusedRmsNormProjection
     && !skipInputNorm
     && isPrefill
     && numTokens > 1
