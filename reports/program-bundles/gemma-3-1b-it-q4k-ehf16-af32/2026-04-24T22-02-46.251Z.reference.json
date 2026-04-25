@@ -1,0 +1,734 @@
+{
+  "mode": "verify",
+  "workload": "inference",
+  "suite": "inference",
+  "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
+  "runtimeProfile": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": false,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 1073741824,
+    "maxWorkgroupSize": 256,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "google",
+      "architecture": "swiftshader",
+      "device": "0xc0de",
+      "description": "SwiftShader Device (Subzero)"
+    },
+    "submitProbeMs": 11.700000002980232
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 189991.90000000596
+    }
+  ],
+  "durationMs": 242210.59999999404,
+  "timestamp": "2026-04-24T22:02:47.137Z",
+  "metrics": {
+    "prompt": "The color of the sky is",
+    "maxTokens": 8,
+    "tokensGenerated": 8,
+    "tokensPerSec": 0.04,
+    "totalRunMs": 189990.9,
+    "firstTokenMs": 46774.3,
+    "firstResponseMs": 98950.2,
+    "prefillMs": 46566.6,
+    "decodeMs": 143215.4,
+    "prefillTokens": 15,
+    "decodeTokens": 8,
+    "stopReason": "max-tokens",
+    "stopTokenId": null,
+    "prefillTokensPerSec": 0.32,
+    "prefillTokensPerSecTtft": 0.32,
+    "decodeTokensPerSec": 0.06,
+    "modelLoadMs": 52175.9,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0,
+      "prefillRecordMs": 1982.300000011921,
+      "prefillSubmitWaitMs": 0,
+      "decodeOrchestrationMs": 143215.40000000596,
+      "singleTokenSubmitWaitMs": 0,
+      "singleTokenReadbackWaitMs": 0,
+      "singleTokenOrchestrationMs": 0
+    },
+    "plePreparedTokenCache": {
+      "hits": 0,
+      "misses": 0,
+      "entries": 0,
+      "bytes": 0
+    },
+    "prefillProfileSteps": [],
+    "decodeProfileSteps": [],
+    "executionPlan": {
+      "primary": {
+        "id": "primary",
+        "kernelPathId": "gemma-3-1b-it-q4k-ehf16-af32-execution-inline",
+        "kernelPathSource": "execution-v1",
+        "activationDtype": "f32",
+        "readbackInterval": 1,
+        "batchSize": 4,
+        "stopCheckMode": "batch",
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "fallback": null,
+      "activePlanIdAtStart": null,
+      "finalActivePlanId": null,
+      "transitions": []
+    },
+    "kernelPathId": "gemma-3-1b-it-q4k-ehf16-af32-execution-inline",
+    "kernelPathSource": "execution-v1",
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 2819,
+          "text": "----------------",
+          "fallbackText": "----------------"
+        },
+        {
+          "id": 108,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        },
+        {
+          "id": 4119,
+          "text": "[\"",
+          "fallbackText": "[\""
+        },
+        {
+          "id": 236913,
+          "text": "“",
+          "fallbackText": "“"
+        },
+        {
+          "id": 236842,
+          "text": "]",
+          "fallbackText": "]"
+        },
+        {
+          "id": 108,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        },
+        {
+          "id": 2819,
+          "text": "----------------",
+          "fallbackText": "----------------"
+        },
+        {
+          "id": 29118,
+          "text": "--------------",
+          "fallbackText": "--------------"
+        }
+      ],
+      "total": 8,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "kvCache": {
+      "layout": "contiguous",
+      "kvDtype": "f32",
+      "seqLen": 22,
+      "maxSeqLen": 4096,
+      "usedBytes": 1171456,
+      "allocatedBytes": 218103808,
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 208,
+        "recordedGpuUpdateCalls": 0,
+        "tokensWritten": 572
+      }
+    },
+    "referenceTranscript": {
+      "schema": "doppler.reference-transcript/v1",
+      "source": {
+        "kind": "inline-browser-suite",
+        "path": "inline",
+        "hash": "sha256:b47a09d79db273d910dfa4179ed55764bf7a7226f20e8789c596110f7280976c"
+      },
+      "executionGraphHash": "sha256:7b8152f81712758a6b3caabae24f466be19a4431e77bf85f4fbb3e34577014ba",
+      "surface": "browser-webgpu",
+      "prompt": {
+        "identity": "The color of the sky is",
+        "hash": "sha256:c2912dd49373207ca1d000f8d1a9045103e23c881916136efdf95190a54893ff",
+        "tokenIdsHash": "sha256:98a6bc8c6b261ff5c6ec26d7920313fdd0909878936ab5eb23758d8204a1a4d9",
+        "tokenCount": 15
+      },
+      "output": {
+        "textHash": "sha256:8596e55f7ea1a1843be6de2a6f8bf3a6ae334053f8af2c89900e3f960c90e8d5",
+        "tokensGenerated": 8,
+        "stopReason": "max-tokens",
+        "stopTokenId": null
+      },
+      "tokens": {
+        "ids": [
+          2819,
+          108,
+          4119,
+          236913,
+          236842,
+          108,
+          2819,
+          29118
+        ],
+        "generatedTokenIdsHash": "sha256:76ac235f2342ec04202ef3c8702cc6159d8e19f9c965ac8008ffe58941bfb4f9",
+        "generatedTextHash": "sha256:8596e55f7ea1a1843be6de2a6f8bf3a6ae334053f8af2c89900e3f960c90e8d5",
+        "preview": [
+          {
+            "id": 2819,
+            "text": "----------------",
+            "fallbackText": "----------------"
+          },
+          {
+            "id": 108,
+            "text": "\n\n",
+            "fallbackText": "\n\n"
+          },
+          {
+            "id": 4119,
+            "text": "[\"",
+            "fallbackText": "[\""
+          },
+          {
+            "id": 236913,
+            "text": "“",
+            "fallbackText": "“"
+          },
+          {
+            "id": 236842,
+            "text": "]",
+            "fallbackText": "]"
+          },
+          {
+            "id": 108,
+            "text": "\n\n",
+            "fallbackText": "\n\n"
+          },
+          {
+            "id": 2819,
+            "text": "----------------",
+            "fallbackText": "----------------"
+          },
+          {
+            "id": 29118,
+            "text": "--------------",
+            "fallbackText": "--------------"
+          }
+        ],
+        "perStep": [
+          {
+            "index": 0,
+            "tokenId": 2819,
+            "tokenHash": "sha256:4f3a36203c1d2eae123983951700a92a17127e9c895d2e6ecb85bc8b5c19bb67"
+          },
+          {
+            "index": 1,
+            "tokenId": 108,
+            "tokenHash": "sha256:f91de6a842404f7fd8bd5013cbf7fe14b1b79bd9fa15396a0c4525229461fb33"
+          },
+          {
+            "index": 2,
+            "tokenId": 4119,
+            "tokenHash": "sha256:0513bdc97dd2b07c9f5dfec6c4ce28d33639bfcff485228cf476b77d9ed352b8"
+          },
+          {
+            "index": 3,
+            "tokenId": 236913,
+            "tokenHash": "sha256:757cd3257ece52a85dbdd758b1442f224426fe26c8f956fdeb17a8a35cd7079b"
+          },
+          {
+            "index": 4,
+            "tokenId": 236842,
+            "tokenHash": "sha256:bb74d4c19eb6037d1ee9e8063aea3051d02370811720b8449732bda879e00a82"
+          },
+          {
+            "index": 5,
+            "tokenId": 108,
+            "tokenHash": "sha256:128ed70c6abd28b97a57b51b2a1f1a4ac7a3d6d822049caa31905ef4d7f41856"
+          },
+          {
+            "index": 6,
+            "tokenId": 2819,
+            "tokenHash": "sha256:0c83ddf79720f25734150b6b57002bcf939d00467027a79ccfffe8ac1f8bfc0e"
+          },
+          {
+            "index": 7,
+            "tokenId": 29118,
+            "tokenHash": "sha256:ed88f3fe0c1c3179459c6565d57685a4453b8edecec3969d851091b1b13ab370"
+          }
+        ],
+        "coverage": {
+          "mode": "full-token-ids",
+          "omitted": 0
+        }
+      },
+      "phase": {
+        "prefillMs": 46566.59999999404,
+        "decodeMs": 143215.40000000596,
+        "prefillTokens": 15,
+        "decodeTokens": 8
+      },
+      "kvCache": {
+        "mode": "stats+sha256-layer-kv-bytes",
+        "layout": "contiguous",
+        "kvDtype": "f32",
+        "seqLen": 22,
+        "maxSeqLen": 4096,
+        "usedBytes": 1171456,
+        "allocatedBytes": 218103808,
+        "counters": {
+          "updateCalls": 0,
+          "gpuUpdateCalls": 208,
+          "recordedGpuUpdateCalls": 0,
+          "tokensWritten": 572
+        },
+        "byteDigestMode": "sha256-layer-kv-bytes",
+        "byteDigest": "sha256:544e78f34822fcf1c4e1f63848d7989fc7b60992f0d8d64ceeaaca2aa481cd3d",
+        "byteDigests": [
+          {
+            "layer": 0,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:550ad439a079c8e1e5fb391b2c109501a72561b3418015ac4088a110e8ab1ebd",
+            "valueDigest": "sha256:0a1e66a52f2ab3ed200403d6f87993d5e7570bb99ce17f8aee4889a3a0fc073a"
+          },
+          {
+            "layer": 1,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:aee91a098be873337317be592f91485acaf6a9d25781c9e9dda6652e2a654b8d",
+            "valueDigest": "sha256:eea3283528fd7b21dcfa904364ab7edd6ecbbadc7df07a1b620843848ec589af"
+          },
+          {
+            "layer": 2,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:1050c69949aeb43ed77c7c7d822ead53b885f6aabf7b1f7bd28ef66c39366583",
+            "valueDigest": "sha256:2b51a3b40723b9b5f7545e0f699518a21a91df5d2e32d532a5ac9e45202af008"
+          },
+          {
+            "layer": 3,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:86867799485c7841d7277f4a174f3f71f5027c314504b7043cc941f607c5dbbc",
+            "valueDigest": "sha256:f4551ae302304dc64589c9d9a68db61e96bdf6f379f8e0520f7abb4106790a57"
+          },
+          {
+            "layer": 4,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:05174afc0213e81de9c798615cdfcf8484423d6a35b80715614f3034bf0abd8b",
+            "valueDigest": "sha256:efee68d5f43bf0389fb1880716dd06956b46541ca1de9c0d2bc1a538a9afcd2a"
+          },
+          {
+            "layer": 5,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:96090a47bb3e51bb58ea430a50824bab43016d697744b0cc5a2cd24bcf6fbc68",
+            "valueDigest": "sha256:ecd602aea258564ff1908c9efe798e76e734ceab286464fddb86b174061ba461"
+          },
+          {
+            "layer": 6,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:13385d12829a0dba98598e245091714c615587f12e760a3107dd5a46a0d6587c",
+            "valueDigest": "sha256:797061971a137e6b307f6333be5e57795308f77c35c4215e2e6fc00e57090ecd"
+          },
+          {
+            "layer": 7,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:3e2a8369345187796171469d484286d59af6482e7ba05642fabfebc2e94812ba",
+            "valueDigest": "sha256:53293307bee0ddeae926d38816d6a8ff626e7b5a6758743d8e08bd3f927cc5ba"
+          },
+          {
+            "layer": 8,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:94efab3f92fcfa3d85ecb52d0fabc717de1af05446916116243384d542ef38fb",
+            "valueDigest": "sha256:2bda29d25404cba8bc9afe307357a13bf6672458b4f537cbd8d572efa86dc3c7"
+          },
+          {
+            "layer": 9,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:a474494716ff6048d0b0ba7cd3145c634549b3e4abba88228e25063c6b299220",
+            "valueDigest": "sha256:00e1386154a7a99deb3c0a6bec6361e2aa2b144d502262e9575c3bbeaee345ef"
+          },
+          {
+            "layer": 10,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:5b6418137bc9b8636e4b2b524a7406af52e0d505cf5101f942f0752f0e92d573",
+            "valueDigest": "sha256:11135d4889999a7feb5d16aec3769c40ec444199e0ff8521cbaf85c6dad4c47f"
+          },
+          {
+            "layer": 11,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:6f6762c30b40c0605f6a95ae2ed12c9dd023afc2483bfd48fa845741be40ac56",
+            "valueDigest": "sha256:9e5395ac1435fd59b0e687ee24247b45800e0a7d49832ddda64c864ddd09e40c"
+          },
+          {
+            "layer": 12,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:deb53d7af118335637e34e4552744b3c60de66b10daae1aca7406fe00181c78c",
+            "valueDigest": "sha256:ff34a23a3461e5d2fdf89afe8aca28e5c8a2ded6179d075e6846ab37751acc54"
+          },
+          {
+            "layer": 13,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:95b0f64d60f60682efdc89d8ff5a7243849e4d8f99d31daca21b7e04186697e9",
+            "valueDigest": "sha256:d8b6fac28d03e2e753b39b408b978bb9e827f609434d5d14761d9d6696e3f2c2"
+          },
+          {
+            "layer": 14,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:d4bdc1002b3d1f004ce04a30ea24d9afbf1a24b00290ff16b37389686c2688b1",
+            "valueDigest": "sha256:eafbc2998f5447b9d903d8e774da6482c8b0c48d309ed2e2e97487c32d7efe54"
+          },
+          {
+            "layer": 15,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:e129c91aa65a5897f19f0e128f53b68f657f0904d6f3c163815b6c25e5ce3039",
+            "valueDigest": "sha256:ca43f3ac84718d370ac5b35f116eee99b1ea644cb5da1187ee4ac52e8ab3dc38"
+          },
+          {
+            "layer": 16,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:926b8064589a9728b6b6497762e7a1497cc8ff4e8fb84a7d9faf73c832f0dead",
+            "valueDigest": "sha256:56f12e9242a958d6cd1144505a24530b897a51c8ec9e2813559bec434739ee1b"
+          },
+          {
+            "layer": 17,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:e410494252c2100f85755d6d17b226549a56a17fc1f0b61787faafb1244ad2ca",
+            "valueDigest": "sha256:7aececf713dda4448a956ba9026d0b02268a95fb1446b4a1e8a83b9062b08be2"
+          },
+          {
+            "layer": 18,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:17579a54d45003e9529d40733af37e3d9df780a256597c1fab929927bd4db466",
+            "valueDigest": "sha256:168c4eff2989a724fd32e3e4739557ddf5b22de9936a35fab3c0a643ce20eebb"
+          },
+          {
+            "layer": 19,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:60f37a0b3de32f2a69062045e6f0f7a6c17e40829c45404d0dbe74803791cb6d",
+            "valueDigest": "sha256:44041d4c6c1c4d992912d62e5d59054b9a86ad1bc8e76a021d886e603ef5ae2d"
+          },
+          {
+            "layer": 20,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:1803693494a58fdf2164e13eef2ad6d4d03df75716ea4647d12e99c8786abed9",
+            "valueDigest": "sha256:86b3ffb79fb39c458a2c637d5ce499ea324cd852b6ac24c395a4e6ad5ca9e0d2"
+          },
+          {
+            "layer": 21,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:a8f8eaea66a205934328ca5e26219a32915332effe21f2005c88fa9854945098",
+            "valueDigest": "sha256:40aca131692344b7cd0415cc07a120e72db8ad03f45581292e0c6ec06d0cd0da"
+          },
+          {
+            "layer": 22,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:992daa3269709baccb045dbd7b8aaf7db3458ae8bbafc401737d31a5e431f4b6",
+            "valueDigest": "sha256:efac0d94018f1361451d87fd922e0cfb19c479b503b03e5623dacefe11a70f8d"
+          },
+          {
+            "layer": 23,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:750aeb723d99b5c23750dc388ab2c4c10b76f8643b2ad9f259eaed7150431079",
+            "valueDigest": "sha256:4b7f14d03542ad28b171bc44c180fd9e6b935ec48617c4aebb33c4ea6635e181"
+          },
+          {
+            "layer": 24,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:b86d01f204e521d7690f1de62cd83fae68f974cff9ad379ec1a2761df1dc6c7a",
+            "valueDigest": "sha256:b26c2b30520879c4d97a8dd40044629a0b6cdee5757b6a8a735bffe5afe137ba"
+          },
+          {
+            "layer": 25,
+            "seqLen": 22,
+            "keyBytes": 22528,
+            "valueBytes": 22528,
+            "keyDigest": "sha256:75dbc897b613f259b7c2985e9531899306cdc91659211b152cafa55e2a642759",
+            "valueDigest": "sha256:ac178275b942d07d8eb362b40ce84e2977c6175b29baf5f11acad4850417868e"
+          }
+        ],
+        "stateHash": "sha256:5c37032893a24b4676521657d5e6e0b3cd4b53c322c201c8e1ee3734a5a0260b"
+      },
+      "logits": {
+        "mode": "sha256-per-step",
+        "perStepDigests": [
+          "sha256:6b82546bf40261115ad0ce8e1241cd37b69ec65685acb3a80523d7dabd29269f",
+          "sha256:61209c0a241fbac6058128ad1d92652893ce31dd3446e51c4bf76965bda72772",
+          "sha256:e98fcb6eaf3ca5b7b021093a97cb4713785caa749aa471f9928a584dfb1210cf",
+          "sha256:a33c8fcc90161b7af67a67bfe032f4666089d14a7162960bbdf3078fef358dc4",
+          "sha256:3f0eef9cc5a82617c0592c94e0901d8e5fef6216b0278f980daca5024c4c847c",
+          "sha256:7a86256d1ef9f59c1c50d046122c8fe6cb75e36f4813b273bffb6365401c8510",
+          "sha256:4d15f47718579d5c532bf14a1df550d8a17791e1a802200b52d9fdbdb07cfdd3",
+          "sha256:f8da6a5525eefb5c553a066f26011b80cc5d0470c14710cbe79ca9d7874b968e"
+        ],
+        "steps": [
+          {
+            "index": 0,
+            "tokenId": 2819,
+            "inputTokenCount": 15,
+            "dtype": "f32",
+            "elementCount": 262144,
+            "digest": "sha256:6b82546bf40261115ad0ce8e1241cd37b69ec65685acb3a80523d7dabd29269f"
+          },
+          {
+            "index": 1,
+            "tokenId": 108,
+            "inputTokenCount": 16,
+            "dtype": "f32",
+            "elementCount": 262144,
+            "digest": "sha256:61209c0a241fbac6058128ad1d92652893ce31dd3446e51c4bf76965bda72772"
+          },
+          {
+            "index": 2,
+            "tokenId": 4119,
+            "inputTokenCount": 17,
+            "dtype": "f32",
+            "elementCount": 262144,
+            "digest": "sha256:e98fcb6eaf3ca5b7b021093a97cb4713785caa749aa471f9928a584dfb1210cf"
+          },
+          {
+            "index": 3,
+            "tokenId": 236913,
+            "inputTokenCount": 18,
+            "dtype": "f32",
+            "elementCount": 262144,
+            "digest": "sha256:a33c8fcc90161b7af67a67bfe032f4666089d14a7162960bbdf3078fef358dc4"
+          },
+          {
+            "index": 4,
+            "tokenId": 236842,
+            "inputTokenCount": 19,
+            "dtype": "f32",
+            "elementCount": 262144,
+            "digest": "sha256:3f0eef9cc5a82617c0592c94e0901d8e5fef6216b0278f980daca5024c4c847c"
+          },
+          {
+            "index": 5,
+            "tokenId": 108,
+            "inputTokenCount": 20,
+            "dtype": "f32",
+            "elementCount": 262144,
+            "digest": "sha256:7a86256d1ef9f59c1c50d046122c8fe6cb75e36f4813b273bffb6365401c8510"
+          },
+          {
+            "index": 6,
+            "tokenId": 2819,
+            "inputTokenCount": 21,
+            "dtype": "f32",
+            "elementCount": 262144,
+            "digest": "sha256:4d15f47718579d5c532bf14a1df550d8a17791e1a802200b52d9fdbdb07cfdd3"
+          },
+          {
+            "index": 7,
+            "tokenId": 29118,
+            "inputTokenCount": 22,
+            "dtype": "f32",
+            "elementCount": 262144,
+            "digest": "sha256:f8da6a5525eefb5c553a066f26011b80cc5d0470c14710cbe79ca9d7874b968e"
+          }
+        ]
+      },
+      "tolerance": {
+        "tokenPolicy": "exact generated token IDs",
+        "logitsPolicy": "exact sha256 digest per generated step over finalized f32 logits before sampling",
+        "kvPolicy": "exact sha256 digest over used KV cache bytes by layer/key/value"
+      }
+    },
+    "operatorDiagnostics": null,
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "inference",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "gemma-3-1b-it-q4k-ehf16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "gemma-3-1b-it-q4k-ehf16-af32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 32768,
+        "coldQuantMode": "none",
+        "contiguousQuantMode": "none"
+      },
+      "steps": {
+        "total": 35,
+        "attention": 2,
+        "attentionPhases": {
+          "prefill": 1,
+          "decode": 1,
+          "both": 0
+        }
+      }
+    },
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "gemma-3-1b-it-q4k-ehf16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "gemma-3-1b-it-q4k-ehf16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 44,
+        "nullableCases": 23,
+        "nonNullableCases": 21
+      }
+    }
+  },
+  "output": "----------------\n\n[\"“]\n\n------------------------------",
+  "memory": {
+    "used": 4779397632,
+    "pool": {
+      "allocations": 391,
+      "reuses": 4647,
+      "totalBytesAllocated": 4561293824,
+      "peakBytesAllocated": 4561293824,
+      "currentBytesAllocated": 4561293824,
+      "totalBytesRequested": 4139447296,
+      "peakBytesRequested": 3879741440,
+      "currentBytesRequested": 2888055296,
+      "activeBuffers": 349,
+      "pooledBuffers": 42,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "92.2%"
+    },
+    "kvCache": {
+      "theoretical": 218103808,
+      "allocated": 218103808,
+      "used": 1171456,
+      "efficiency": 0.00537109375,
+      "seqLen": 22,
+      "maxSeqLen": 4096,
+      "layout": "contiguous",
+      "kvDtype": "f32",
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 208,
+        "recordedGpuUpdateCalls": 0,
+        "tokensWritten": 572
+      }
+    }
+  },
+  "debugSnapshot": null
+}
