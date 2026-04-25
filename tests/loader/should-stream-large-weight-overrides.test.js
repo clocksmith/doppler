@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 
 import { setRuntimeConfig, resetRuntimeConfig } from '../../src/config/runtime.js';
-import { shouldStreamLargeWeight } from '../../src/loader/manifest-config.js';
+import {
+  resolveLargeWeightOverrides,
+  shouldStreamLargeWeight,
+} from '../../src/loader/manifest-config.js';
 
 const fakeLocation = {
   shape: [262144, 1536],
@@ -11,6 +14,22 @@ const fakeLocation = {
 
 try {
   resetRuntimeConfig();
+  assert.deepEqual(
+    resolveLargeWeightOverrides(['manifest.weight'], null),
+    ['manifest.weight'],
+    'manifest overrides apply when runtime override is absent'
+  );
+  assert.deepEqual(
+    resolveLargeWeightOverrides(['manifest.weight'], []),
+    [],
+    'empty runtime override explicitly replaces manifest overrides'
+  );
+  assert.deepEqual(
+    resolveLargeWeightOverrides(['manifest.weight'], ['runtime.weight']),
+    ['runtime.weight'],
+    'runtime override list replaces manifest overrides'
+  );
+
   assert.equal(
     shouldStreamLargeWeight(
       'model.language_model.embed_tokens.weight',

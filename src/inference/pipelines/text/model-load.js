@@ -270,9 +270,15 @@ export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, model
   // so existing pipeline reads of getRuntimeConfig().inference.session.* and
   // .largeWeights.* pick up per-model values. buildResolvedDecodeLoopRuntimePatch()
   // already applied runtime-over-manifest session precedence field-by-field.
+  // For largeWeights, an explicit runtime array wins, including [] to disable
+  // manifest gpu-resident overrides on constrained verification hosts.
   const manifestInf = manifest?.inference ?? {};
   const manifestLargeWeights = manifestInf.largeWeights;
-  const largeWeightsPatch = (manifestLargeWeights && typeof manifestLargeWeights === 'object'
+  const runtimeLargeWeightsOverrides =
+    runtimeConfig?.inference?.largeWeights?.gpuResidentOverrides;
+  const hasRuntimeLargeWeightsOverride = Array.isArray(runtimeLargeWeightsOverrides);
+  const largeWeightsPatch = (!hasRuntimeLargeWeightsOverride
+    && manifestLargeWeights && typeof manifestLargeWeights === 'object'
     && Array.isArray(manifestLargeWeights.gpuResidentOverrides)
     && manifestLargeWeights.gpuResidentOverrides.length > 0)
     ? { gpuResidentOverrides: manifestLargeWeights.gpuResidentOverrides }

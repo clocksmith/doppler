@@ -1,0 +1,64 @@
+{
+  "id": "profiles/gemma4-e2b-int4ple-reference-export",
+  "name": "gemma4-e2b-int4ple-reference-export",
+  "description": "Gemma 4 E2B INT4 PLE reference-export profile for constrained Node WebGPU hosts. Keeps low-memory loading caps while preserving plain contiguous KV cache required by the execution-v1 INT4 PLE path.",
+  "intent": "verify",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-04-25T00:00:00Z",
+  "extends": "profiles/low-memory",
+  "model": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+  "runtime": {
+    "shared": {
+      "tooling": {
+        "intent": "verify"
+      },
+      "bufferPool": {
+        "budget": {
+          "maxTotalBytes": 13958643712,
+          "highWatermarkRatio": 0.85,
+          "emergencyTrimTargetRatio": 0.7,
+          "hardFailOnBudgetExceeded": true
+        }
+      }
+    },
+    "loading": {
+      "memoryManagement": {
+        "flushIntervalLayers": 1,
+        "flushThresholdBytes": 134217728,
+        "budget": {
+          "enabled": true,
+          "maxResidentBytes": null,
+          "systemMemoryFraction": 0.5,
+          "reserveBytes": 4294967296,
+          "minimumBudgetBytes": 2147483648
+        }
+      }
+    },
+    "inference": {
+      "largeWeights": {
+        "gpuResidentOverrides": []
+      },
+      "kvcache": {
+        "maxSeqLen": 2048,
+        "layout": "contiguous",
+        "kvDtype": "f16",
+        "pageSize": 128,
+        "tiering": {
+          "mode": "off"
+        }
+      },
+      "session": {
+        "kvcache": {
+          "maxSeqLen": 2048,
+          "layout": "contiguous",
+          "kvDtype": "f16",
+          "pageSize": 128,
+          "tiering": {
+            "mode": "off"
+          }
+        }
+      }
+    }
+  }
+}

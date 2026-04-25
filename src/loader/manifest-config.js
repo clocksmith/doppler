@@ -94,12 +94,23 @@ export function resolveWeightLayout(location) {
   });
 }
 
+export function resolveLargeWeightOverrides(manifestOverrides, runtimeOverrides) {
+  if (Array.isArray(runtimeOverrides)) {
+    return runtimeOverrides;
+  }
+  if (Array.isArray(manifestOverrides)) {
+    return manifestOverrides;
+  }
+  return runtimeOverrides ?? null;
+}
+
 export function shouldStreamLargeWeight(name, location, label, gpuCapabilities, keepF32Weights, manifestOverrides = null) {
-  // Manifest-first: inference.largeWeights.gpuResidentOverrides wins when explicitly set;
-  // null/undefined falls through to the runtime config so explicit runtime profiles still apply.
-  const overrides = (Array.isArray(manifestOverrides) && manifestOverrides.length > 0)
-    ? manifestOverrides
-    : getLargeWeightConfig().gpuResidentOverrides;
+  // Runtime profiles may explicitly replace manifest residency overrides with
+  // an array, including [] to request ordinary large-weight streaming policy.
+  const overrides = resolveLargeWeightOverrides(
+    manifestOverrides,
+    getLargeWeightConfig().gpuResidentOverrides
+  );
   if (Array.isArray(overrides) && overrides.includes(name)) {
     log.info(
       'Loader',
