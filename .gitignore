@@ -27,9 +27,11 @@ test-results-playwright/
 .codex/settings.json
 .codex/settings.local.json
 
-# Logs
+# Logs and stray captures
 *.log
 benchmark_*.log
+*.stdout
+*.stderr
 
 # IDE
 .idea/
