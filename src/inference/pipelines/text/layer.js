@@ -847,6 +847,15 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     finalOutput = scaledOutput;
   }
   await debugLayerTensor(context, layerIdx, 'final layer output', finalOutput, numTokens, hiddenSize);
+  await runProbes('layer_out', finalOutput.buffer, {
+    layerIdx,
+    numTokens,
+    hiddenSize,
+    probes: context.debugProbes,
+    recorder,
+    operatorDiagnostics: context.operatorDiagnostics,
+    dtype: finalOutput.dtype,
+  });
 
   // Early-stop check for F16 NaN/Infinity bounds
   const computeConfig = context.runtimeComputeConfig ?? null;

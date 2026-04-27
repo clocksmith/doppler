@@ -202,6 +202,11 @@ export async function recordLayerAttentionGPU(
       rmsNormWeightOffset: config.rmsNormWeightOffset,
     });
     if (!isGpuBufferInstance(layerWeights.inputNorm) && !isWeightBuffer(layerWeights.inputNorm)) releaseOrTrack(recorder, normWeightBuf);
+    await runProbes('post_input_norm', normed.buffer, {
+      layerIdx, numTokens, hiddenSize,
+      probes: state.debugProbes, recorder,
+      operatorDiagnostics: state.operatorDiagnostics, dtype: normed.dtype,
+    });
   }
 
   const debugLayers = debugFlags.debugLayers;
@@ -282,6 +287,25 @@ export async function recordLayerAttentionGPU(
   if (fusedNormWeightRec && fusedNormOwnedRec) {
     releaseOrTrack(recorder, fusedNormWeightRec);
   }
+  await runProbes('q_proj', qTensor.buffer, {
+    layerIdx, numTokens, hiddenSize: numHeads * headDim,
+    probes: state.debugProbes, recorder,
+    operatorDiagnostics: state.operatorDiagnostics, dtype: qTensor.dtype,
+  });
+  if (kTensor) {
+    await runProbes('k_proj', kTensor.buffer, {
+      layerIdx, numTokens, hiddenSize: numKVHeads * headDim,
+      probes: state.debugProbes, recorder,
+      operatorDiagnostics: state.operatorDiagnostics, dtype: kTensor.dtype,
+    });
+  }
+  if (vTensor) {
+    await runProbes('v_proj', vTensor.buffer, {
+      layerIdx, numTokens, hiddenSize: numKVHeads * headDim,
+      probes: state.debugProbes, recorder,
+      operatorDiagnostics: state.operatorDiagnostics, dtype: vTensor.dtype,
+    });
+  }
 
   // Optional per-head Q/K normalization.
   // Some models use RMSNorm with (1+weight) offset formula, controlled by rmsNormWeightOffset.
@@ -305,6 +329,18 @@ export async function recordLayerAttentionGPU(
     skipKNorm: reusesSharedKV,
     retainKInput: valueAliasesKey,
   }));
+  await runProbes('q_norm', qTensor.buffer, {
+    layerIdx, numTokens, hiddenSize: numHeads * headDim,
+    probes: state.debugProbes, recorder,
+    operatorDiagnostics: state.operatorDiagnostics, dtype: qTensor.dtype,
+  });
+  if (kTensor) {
+    await runProbes('k_norm', kTensor.buffer, {
+      layerIdx, numTokens, hiddenSize: numKVHeads * headDim,
+      probes: state.debugProbes, recorder,
+      operatorDiagnostics: state.operatorDiagnostics, dtype: kTensor.dtype,
+    });
+  }
 
   if (config.valueNorm === true && !reusesSharedKV) {
     const valueNormInputAliasesKey = vTensor.buffer === kTensor.buffer;
@@ -320,6 +356,11 @@ export async function recordLayerAttentionGPU(
           releaseOrTrack(recorder, buffer);
         }
       },
+    });
+    await runProbes('v_norm', vTensor.buffer, {
+      layerIdx, numTokens, hiddenSize: numKVHeads * headDim,
+      probes: state.debugProbes, recorder,
+      operatorDiagnostics: state.operatorDiagnostics, dtype: vTensor.dtype,
     });
   }
 

@@ -101,10 +101,23 @@ export function selectRMSNormKernel(options = {}, isF16 = false) {
   const caps = getKernelCapabilities();
   const hasSubgroups = caps?.hasSubgroups ?? false;
   const isSmall = hiddenSize !== null && hiddenSize <= smallThreshold;
+  // The "residual" variant routes to main_cached, which caches the input in
+  // shared_cache[MAX_CACHE_SIZE=4608]. When hiddenSize > 4608, the cache write
+  // silently drops indices ≥ 4608 (WGSL OOB write is a no-op) and the second
+  // pass reads zero for those dims, producing wrong output (only residual is
+  // written). Force the default (main) entry point — which loads input twice
+  // and uses no shared cache — for these wide hidden sizes.
+  const RMSNORM_CACHE_LIMIT = 4608;
+  const residualBypassesCache = !!residual && hiddenSize !== null && hiddenSize > RMSNORM_CACHE_LIMIT;
   return selectRuleValue(
     'rmsnorm',
     'variant',
-    { isF16, residual: !!residual, hasSubgroups, isSmall }
+    {
+      isF16,
+      residual: !!residual && !residualBypassesCache,
+      hasSubgroups,
+      isSmall,
+    }
   );
 }
 

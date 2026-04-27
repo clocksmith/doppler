@@ -11,6 +11,7 @@ import { PROBE_TO_CANONICAL } from './stage-names.js';
 import { buildOpId } from './operator-identity.js';
 import { getOperatorClass } from './stage-names.js';
 import { getDriftPolicyId } from './drift-policy.js';
+import { maybeWriteFixtureSnapshot } from './tsir-fixture-writer.js';
 
 
 const STAGE_DEFAULT_CATEGORY = {
@@ -30,6 +31,7 @@ const STAGE_DEFAULT_CATEGORY = {
   v_proj: 'attn',
   q_norm: 'attn',
   k_norm: 'attn',
+  v_norm: 'attn',
   q_rope: 'attn',
   k_rope: 'attn',
   attn_scores: 'attn',
@@ -115,13 +117,37 @@ function getTraceLogger(category, layerIdx) {
 export async function runProbes(stage, buffer, options) {
   const { layerIdx, numTokens, hiddenSize, probes, recorder, dtype = 'f32' } = options;
   if (!buffer) return;
-  if (recorder && !options.operatorDiagnostics?.enabled) return;
+  // Skip when a recorder is in flight unless operatorDiagnostics is
+  // actively capturing (diagnose mode emitter or tsirFixture writer).
+  if (recorder
+    && !options.operatorDiagnostics?.enabled
+    && !options.operatorDiagnostics?.tsirFixture?.dir) return;
 
   const isCpuBuffer = buffer instanceof Float32Array;
   const device = isCpuBuffer ? null : getDevice();
   if (!isCpuBuffer && !device) return;
 
   const diagnostics = options.operatorDiagnostics ?? null;
+  // TSIR fixture writer: when operatorDiagnostics.tsirFixture.dir is
+  // set and the stage maps to one of the four TSIR boundary points
+  // (post_input_norm/linear_qkv_proj/post_attn/layer_out), capture
+  // the activation tensor as a .npy file under
+  // <dir>/layer_<layerIdx>/<tsirStage>.npy. Builds the rung-5 frozen
+  // Doppler reference fixture that the Doe rung ladder consumes.
+  if (diagnostics?.tsirFixture?.dir) {
+    const tsirRecord = await maybeWriteFixtureSnapshot(stage, buffer, {
+      tsirFixture: diagnostics.tsirFixture,
+      layerIdx,
+      numTokens,
+      hiddenSize,
+      dtype,
+      recorder,
+    });
+    if (tsirRecord) {
+      const recordList = (diagnostics.tsirFixture.records ??= []);
+      recordList.push(tsirRecord);
+    }
+  }
   const canonicalStage = getCanonicalStageName(stage);
   if (diagnostics?.enabled && diagnostics.emitter && canonicalStage) {
     const opId = buildOpId(canonicalStage, layerIdx);

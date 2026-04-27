@@ -27,6 +27,11 @@ function usage() {
     '  --report-out <path>            Where to write the captured report.',
     '  --created-at <iso>             Bundle timestamp override.',
     '  --bundle-id <id>               Bundle id override.',
+    '  --tsir-fixture-dir <dir>       Capture activations at the four TSIR boundary points',
+    '                                 (post_rmsnorm/post_qkv/post_attn/post_ffn) and write',
+    '                                 them as .npy under <dir>/layer_<N>/<probe>.npy. Used to',
+    '                                 produce the Doe rung-5 frozen Doppler reference fixture.',
+    '  --tsir-fixture-layers <list>   Comma-separated layer indices to capture (default: all).',
   ].join('\n');
 }
 
@@ -53,6 +58,8 @@ function parseArgs(argv) {
     outputPath: null,
     createdAtUtc: null,
     bundleId: null,
+    tsirFixtureDir: null,
+    tsirFixtureLayers: null,
     help: false,
   };
 
@@ -131,6 +138,16 @@ function parseArgs(argv) {
       index += 1;
       continue;
     }
+    if (arg === '--tsir-fixture-dir') {
+      args.tsirFixtureDir = readFlag(argv, index);
+      index += 1;
+      continue;
+    }
+    if (arg === '--tsir-fixture-layers') {
+      args.tsirFixtureLayers = readFlag(argv, index);
+      index += 1;
+      continue;
+    }
     throw new Error(`Unknown argument: ${arg}`);
   }
 
@@ -206,6 +223,10 @@ async function resolveOptions(args) {
     outputPath: path.resolve(args.outputPath),
     createdAtUtc: args.createdAtUtc,
     bundleId: args.bundleId,
+    tsirFixtureDir: args.tsirFixtureDir ? path.resolve(args.tsirFixtureDir) : null,
+    tsirFixtureLayers: args.tsirFixtureLayers
+      ? args.tsirFixtureLayers.split(',').map((s) => Number.parseInt(s.trim(), 10)).filter((n) => Number.isInteger(n))
+      : null,
   };
 }
 
@@ -235,16 +256,23 @@ function mergePlainObjects(base, patch) {
   return output;
 }
 
-function withReferenceTranscriptRuntimeConfig(runtimeInput) {
+function withReferenceTranscriptRuntimeConfig(runtimeInput, options = {}) {
+  const harnessPatch = {
+    referenceTranscript: {
+      enabled: true,
+      captureLogits: true,
+      captureKvBytes: true,
+    },
+  };
+  if (options.tsirFixtureDir) {
+    harnessPatch.tsirFixture = {
+      dir: options.tsirFixtureDir,
+      layerFilter: options.tsirFixtureLayers ?? null,
+    };
+  }
   const proofRuntimeConfig = {
     shared: {
-      harness: {
-        referenceTranscript: {
-          enabled: true,
-          captureLogits: true,
-          captureKvBytes: true,
-        },
-      },
+      harness: harnessPatch,
     },
   };
   return {
@@ -299,7 +327,11 @@ async function assertLocalModelArtifactsReadable(options) {
 async function runReferenceVerify(options) {
   await assertLocalModelArtifactsReadable(options);
   const runtimeInput = withReferenceTranscriptRuntimeConfig(
-    await normalizeRuntimeConfigInput(options.runtimeConfig)
+    await normalizeRuntimeConfigInput(options.runtimeConfig),
+    {
+      tsirFixtureDir: options.tsirFixtureDir,
+      tsirFixtureLayers: options.tsirFixtureLayers,
+    },
   );
   const request = {
     command: 'verify',

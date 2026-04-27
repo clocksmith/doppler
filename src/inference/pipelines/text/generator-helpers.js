@@ -226,5 +226,6 @@ export function getLogitsConfig(state) {
     activationDtype: effectiveActivationDtype,
     kernelPath: activeKernelPath,
     executionPolicies: state.executionV1State?.policies ?? null,
+    debugProbes: state.runtimeConfig.shared.debug.probes,
   };
 }

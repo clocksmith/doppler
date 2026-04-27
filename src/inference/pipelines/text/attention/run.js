@@ -468,6 +468,14 @@ export async function runLayerAttentionGPU(
         }
       },
     });
+    await runProbes('v_norm', vTensor.buffer, {
+      layerIdx,
+      numTokens,
+      hiddenSize: numKVHeads * headDim,
+      probes: state.debugProbes,
+      operatorDiagnostics: state.operatorDiagnostics,
+      dtype: vTensor.dtype,
+    });
   }
 
   await runProbes('q_norm', qTensor.buffer, {

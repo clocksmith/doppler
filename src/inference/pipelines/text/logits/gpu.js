@@ -554,6 +554,7 @@ export async function computeLogitsGPU(
     await runProbes('pre_final_norm', inputBuffer, {
       numTokens,
       hiddenSize,
+      probes: config.debugProbes ?? null,
       operatorDiagnostics,
       dtype: inputDtype,
     });
@@ -612,6 +613,7 @@ export async function computeLogitsGPU(
     await runProbes('final_norm', finalNormTensor.buffer, {
       numTokens,
       hiddenSize,
+      probes: config.debugProbes ?? null,
       operatorDiagnostics,
       dtype: finalNormTensor.dtype,
     });

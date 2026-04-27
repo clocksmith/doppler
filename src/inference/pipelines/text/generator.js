@@ -58,6 +58,7 @@ import { resolveSamplingConfig } from './sampling-config.js';
 import { decodeReadback, getLogitsHealth } from './debug-utils/index.js';
 import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
 import { resolveDeferredRoundingWindowTokens } from './finiteness-policy.js';
+import { drainPendingTsirReads } from './tsir-fixture-writer.js';
 import {
   activateFallbackExecutionPlan,
   hasFallbackExecutionPlan,
@@ -453,7 +454,8 @@ export class PipelineGenerator {
     opts.repetitionPenalty = samplingConfig.repetitionPenalty;
     const diagnosticsEnabled = options?.diagnostics?.enabled === true
       || this.#state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
-    if (diagnosticsEnabled) {
+    const tsirFixtureCfg = this.#state.runtimeConfig?.shared?.harness?.tsirFixture ?? null;
+    if (diagnosticsEnabled || tsirFixtureCfg) {
       const captureConfig = {
         ...createDefaultCaptureConfig(),
         enabled: true,
@@ -462,13 +464,20 @@ export class PipelineGenerator {
       };
       validateCaptureConfig(captureConfig);
       this.#state.operatorDiagnostics = {
-        enabled: true,
+        enabled: diagnosticsEnabled === true,
         captureConfig,
-        emitter: new OperatorEventEmitter({
+        emitter: diagnosticsEnabled ? new OperatorEventEmitter({
           modelHash: this.#state.manifest?.modelId ?? null,
           runtimeConfigHash: this.#state.resolvedKernelPath?.id ?? null,
           executionPlanHash: opts.executionPlan?.id ?? null,
-        }),
+        }) : null,
+        tsirFixture: tsirFixtureCfg ? {
+          dir: tsirFixtureCfg.dir,
+          layerFilter: Array.isArray(tsirFixtureCfg.layerFilter)
+            ? tsirFixtureCfg.layerFilter
+            : null,
+          records: [],
+        } : null,
       };
     }
     const activePlan = opts.executionPlan ?? resolveActiveExecutionPlan(this.#state);
@@ -889,7 +898,8 @@ export class PipelineGenerator {
     opts.repetitionPenalty = samplingConfig.repetitionPenalty;
     const diagnosticsEnabled = options?.diagnostics?.enabled === true
       || this.#state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
-    if (diagnosticsEnabled) {
+    const tsirFixtureCfg = this.#state.runtimeConfig?.shared?.harness?.tsirFixture ?? null;
+    if (diagnosticsEnabled || tsirFixtureCfg) {
       const captureConfig = {
         ...createDefaultCaptureConfig(),
         enabled: true,
@@ -898,13 +908,20 @@ export class PipelineGenerator {
       };
       validateCaptureConfig(captureConfig);
       this.#state.operatorDiagnostics = {
-        enabled: true,
+        enabled: diagnosticsEnabled === true,
         captureConfig,
-        emitter: new OperatorEventEmitter({
+        emitter: diagnosticsEnabled ? new OperatorEventEmitter({
           modelHash: this.#state.manifest?.modelId ?? null,
           runtimeConfigHash: this.#state.resolvedKernelPath?.id ?? null,
           executionPlanHash: opts.executionPlan?.id ?? null,
-        }),
+        }) : null,
+        tsirFixture: tsirFixtureCfg ? {
+          dir: tsirFixtureCfg.dir,
+          layerFilter: Array.isArray(tsirFixtureCfg.layerFilter)
+            ? tsirFixtureCfg.layerFilter
+            : null,
+          records: [],
+        } : null,
       };
     }
 
@@ -2059,6 +2076,22 @@ export class PipelineGenerator {
       this.#state.stats.prefillSubmitWaitMs = (this.#state.stats.prefillSubmitWaitMs ?? 0) + prefillSubmitWaitMs;
     }
 
+    {
+      const tsirFixtureCfg = this.#state.operatorDiagnostics?.tsirFixture ?? null;
+      if (tsirFixtureCfg && Array.isArray(tsirFixtureCfg.pendingReads) && tsirFixtureCfg.pendingReads.length > 0) {
+        if (currentRecorder) {
+          currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
+            currentHiddenBuffer,
+            currentRecorder,
+            'prefill_tsir_drain_carry'
+          );
+          await currentRecorder.submitAndWait();
+          await recordProfile(currentRecorder);
+          currentRecorder = undefined;
+        }
+        await drainPendingTsirReads(tsirFixtureCfg);
+      }
+    }
     if (this.#state.finitenessBuffer) {
       if (currentRecorder) {
         currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
