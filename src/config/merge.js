@@ -63,6 +63,12 @@ function mergeAttention(
       runtime?.attentionOutputGate,
       sources
     ),
+    outputGateType: overlay(
+      `${prefix}.outputGateType`,
+      manifest.outputGateType,
+      runtime?.outputGateType,
+      sources
+    ),
     causal: overlay(
       `${prefix}.causal`,
       manifest.causal,

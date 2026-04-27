@@ -241,6 +241,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
             queryKeyNorm: config.queryKeyNorm,
             valueNorm: config.valueNorm,
             attentionOutputGate: config.attentionOutputGate,
+            outputGateType: config.outputGateType ?? null,
             causalAttention: config.causalAttention,
             rmsNormWeightOffset: config.rmsNormWeightOffset,
             ropeRotaryDim: resolveAttentionRotaryDim(config, layerType),

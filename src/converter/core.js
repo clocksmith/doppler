@@ -257,7 +257,16 @@ function resolveConversionTensors(model, converterConfig) {
   if (hasLanguageModelNamespace) {
     return source.filter((tensor) => {
       const lower = normalizeTensorName(tensor).toLowerCase();
-      return lower.startsWith('language_model.') || lower.startsWith('model.language_model.');
+      // Keep top-level lm_head/output tensors alongside the language_model.*
+      // namespace. Multimodal HF models (e.g. Qwen 3.6-27B) place the
+      // language model body under model.language_model.* but expose the
+      // language modeling head at the bare top level (`lm_head.weight`).
+      // Dropping it leaves text-only conversion without an LM head and
+      // pipeline init fails at loadWeights.
+      return lower.startsWith('language_model.')
+        || lower.startsWith('model.language_model.')
+        || lower === 'lm_head.weight'
+        || lower === 'model.lm_head.weight';
     });
   }
 

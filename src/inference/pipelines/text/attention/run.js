@@ -891,10 +891,23 @@ export async function runLayerAttentionGPU(
 
   attnForProjection = attnOutput;
   if (qGateTensor) {
+    // Map config `outputGateType` to the runSiLU `gateActivation`
+    // dispatch. `swish` is HF's name for SiLU (`x * sigmoid(x)`).
+    // Earlier Qwen 3.5 has no `output_gate_type` in its HF config,
+    // so the resolved value is null and we keep the historical
+    // sigmoid behaviour to preserve existing receipts. Qwen 3.6
+    // explicitly sets `output_gate_type=swish`, which routes here as
+    // SiLU and is what the model actually expects.
+    const rawGateType = typeof config.outputGateType === 'string'
+      ? config.outputGateType.toLowerCase()
+      : null;
+    const gateActivation = (rawGateType === 'swish' || rawGateType === 'silu')
+      ? 'silu'
+      : 'sigmoid';
     attnForProjection = await runSiLU(attnOutput, {
       size: numTokens * numHeads * headDim,
       gate: qGateTensor,
-      gateActivation: 'sigmoid',
+      gateActivation,
       inputActivation: 'identity',
       swigluLimit: null,
     });

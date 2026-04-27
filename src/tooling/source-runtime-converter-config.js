@@ -119,6 +119,16 @@ function applyExplicitAttentionConfig(inference, rawConfig) {
     inference.attention.valueNorm = valueNorm;
   }
 
+  // HF `output_gate_type` selects the activation applied to the
+  // attention-output gate when `attention.attentionOutputGate=true`.
+  // Qwen 3.5 leaves the field unset (defaulting to sigmoid in
+  // Doppler's runSiLU dispatch); Qwen 3.6 explicitly sets
+  // "swish" (== silu).
+  const outputGateTypeRaw = readRawConfigField(rawConfig, 'output_gate_type');
+  if (typeof outputGateTypeRaw === 'string' && outputGateTypeRaw.trim()) {
+    inference.attention.outputGateType = outputGateTypeRaw.trim().toLowerCase();
+  }
+
   const finalLogitSoftcapping = asFinitePositiveNumber(readRawConfigField(rawConfig, 'final_logit_softcapping'));
   if (finalLogitSoftcapping != null) {
     inference.output.finalLogitSoftcapping = finalLogitSoftcapping;

@@ -50,6 +50,9 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     causal: true,  // Causal mask enabled by default (decoder-style attention)
     attentionBias: false,
     attentionOutputGate: false,
+    // null = sigmoid (historical default); 'swish'/'silu' = SiLU.
+    // Read from HF `output_gate_type` at conversion time.
+    outputGateType: null,
   },
   normalization: {
     rmsNormEps: DEFAULT_RMS_NORM_EPS,

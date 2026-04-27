@@ -629,6 +629,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       queryKeyNorm,
       valueNorm: config.valueNorm,
       attentionOutputGate: config.attentionOutputGate,
+      outputGateType: config.outputGateType ?? null,
       causalAttention: config.causalAttention,
       multimodalBidirectionalSpan: isSlidingLayerType(layerType)
         ? (context.multimodalBidirectionalSpan ?? null)
