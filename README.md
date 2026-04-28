@@ -1,12 +1,8 @@
 # doppler-gpu
 
-![Doppler logo](./assets/doppler.svg)
-
 Browser-native inference on raw WebGPU. Pure JS + WGSL.
 
 **[Try the live demo](https://d4da.com/doppler)** | **[npm](https://www.npmjs.com/package/doppler-gpu)** | **[docs](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)**
-
-[![Gemma 4 E2B warm vs cold phase latency](https://raw.githubusercontent.com/clocksmith/doppler/main/benchmarks/vendors/results/compare_gemma4_e2b_warm_cold_phases.svg)](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
 
 Gemma 4 E2B on Apple M3 browser (2026-04-15). Cold load: Doppler 2.5× faster
 (17.0s vs 57.5s). Warm E2E: Transformers.js 40% faster (6.7s vs 11.2s) —
