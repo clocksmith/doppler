@@ -644,15 +644,9 @@ export async function recordLayerAttentionGPU(
 
   attnForProjection = attnOutput;
   if (qGateTensor) {
-    // Mirror run.js gate dispatch — Qwen 3.6 sets `output_gate_type=swish`
-    // (== SiLU); Qwen 3.5 leaves the field unset and keeps historical
-    // sigmoid behaviour so existing receipts hash-match.
-    const rawGateType = typeof config.outputGateType === 'string'
-      ? config.outputGateType.toLowerCase()
-      : null;
-    const gateActivation = (rawGateType === 'swish' || rawGateType === 'silu')
-      ? 'silu'
-      : 'sigmoid';
+    // Mirror run.js gate dispatch. Qwen3_5/Qwen 3.6 full attention applies
+    // sigmoid(gate) even when the HF config surfaces `output_gate_type=swish`.
+    const gateActivation = 'sigmoid';
     attnForProjection = await recordSiLU(recorder, attnOutput, {
       size: numTokens * numHeads * headDim,
       gate: qGateTensor,

@@ -74,11 +74,11 @@ const EXPECTED_QWEN_PER_LAYER_INPUTS = Object.freeze({
   },
 });
 const EXPECTED_QWEN_EOS_TOKEN_ID = 248044;
-const EXPECTED_QWEN_DECODE_LOOPS = Object.freeze({
+const EXPECTED_QWEN_CONVERSION_DECODE_LOOPS = Object.freeze({
   'qwen-3-5-0-8b-q4k-ehaf16': {
     batchSize: 4,
     stopCheckMode: 'batch',
-    readbackInterval: 32,
+    readbackInterval: 8,
     readbackMode: 'sequential',
     submitLatencyThresholdMs: null,
     ringTokens: 1,
@@ -98,17 +98,27 @@ const EXPECTED_QWEN_DECODE_LOOPS = Object.freeze({
     disableCommandBatching: false,
   },
 });
+const EXPECTED_QWEN_MANIFEST_DECODE_LOOPS = Object.freeze({
+  ...EXPECTED_QWEN_CONVERSION_DECODE_LOOPS,
+  'qwen-3-5-0-8b-q4k-ehaf16': {
+    ...EXPECTED_QWEN_CONVERSION_DECODE_LOOPS['qwen-3-5-0-8b-q4k-ehaf16'],
+    readbackInterval: 32,
+  },
+});
 
-function getExpectedQwenDecodeLoop(label) {
+function getExpectedQwenDecodeLoop(label, source = 'conversion') {
+  const expectedLoops = source === 'manifest'
+    ? EXPECTED_QWEN_MANIFEST_DECODE_LOOPS
+    : EXPECTED_QWEN_CONVERSION_DECODE_LOOPS;
   const modelLabel = String(label ?? '');
-  const matchedKey = Object.keys(EXPECTED_QWEN_DECODE_LOOPS).find((key) => modelLabel.includes(key));
+  const matchedKey = Object.keys(expectedLoops).find((key) => modelLabel.includes(key));
   assert.ok(matchedKey, `missing expected qwen decode loop for ${modelLabel}`);
-  return EXPECTED_QWEN_DECODE_LOOPS[matchedKey];
+  return expectedLoops[matchedKey];
 }
 
-function assertQwenDecodeLoop(decodeLoop, label) {
+function assertQwenDecodeLoop(decodeLoop, label, source = 'conversion') {
   assert.ok(decodeLoop && typeof decodeLoop === 'object', `${label} decodeLoop must be present`);
-  assert.deepEqual(decodeLoop, getExpectedQwenDecodeLoop(label), `${label} decodeLoop`);
+  assert.deepEqual(decodeLoop, getExpectedQwenDecodeLoop(label, source), `${label} decodeLoop`);
 }
 
 function assertQwenComputeDefaults(computeDefaults, label) {
@@ -307,7 +317,7 @@ if (!hasLocalQ4KManifest) {
   for (const manifest of availableLocalManifests) {
     const sd = manifest.inference.session;
     assert.ok(sd != null);
-    assertQwenDecodeLoop(sd.decodeLoop, `${manifest.modelId}.inference.session`);
+    assertQwenDecodeLoop(sd.decodeLoop, `${manifest.modelId}.inference.session`, 'manifest');
     assert.equal(sd.kvcache?.kvDtype, 'f16');
     assertQwenComputeDefaults(sd.compute?.defaults, `${manifest.modelId}.inference.session`);
     assert.equal(sd.execution, undefined);

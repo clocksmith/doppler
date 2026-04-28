@@ -116,7 +116,7 @@ assert.throws(
 // === replaceSubtree ===
 
 assert.equal(replaceSubtree('override', 'fallback'), 'override');
-assert.equal(replaceSubtree(null, 'fallback'), 'fallback');
+assert.equal(replaceSubtree(null, 'fallback'), null);
 assert.equal(replaceSubtree(undefined, 'fallback'), 'fallback');
 assert.equal(replaceSubtree(0, 'fallback'), 0);
 assert.equal(replaceSubtree(false, 'fallback'), false);

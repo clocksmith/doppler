@@ -296,7 +296,7 @@ assert.throws(
       onIncompatible: 'remap',
     },
   }),
-  /attention_head256_f16kv\.wgsl" requires activationDtype="f32" and kvcache\.kvDtype="f16"/
+  /attention_head(?:256|512)_f16kv\.wgsl" requires activationDtype="f32" and kvcache\.kvDtype="f16"/
 );
 
 const finitenessFallback = compileExecutionV1({
@@ -366,7 +366,7 @@ assert.equal(widenedFallback.session.compute.defaults.activationDtype, 'f32');
 assert.equal(widenedFallback.session.kvcache.kvDtype, 'f32');
 assert.equal(
   widenedFallback.runtimeInferencePatch?.kernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.kernel,
-  'attention_decode.wgsl'
+  'attention_streaming.wgsl'
 );
 
 console.log('gemma4-e2b-conversion-config-contract.test: ok');
