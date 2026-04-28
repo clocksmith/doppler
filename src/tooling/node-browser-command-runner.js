@@ -475,10 +475,10 @@ function normalizeBrowserArgs(value) {
 
   return value.map((arg) => {
     if (arg === undefined || arg === null) {
-      throw new Error('browser command: --browser-arg values must be strings.');
+      throw new Error('browser command: browserArgs values must be strings.');
     }
     if (typeof arg !== 'string') {
-      throw new Error('browser command: --browser-arg values must be strings.');
+      throw new Error('browser command: browserArgs values must be strings.');
     }
     return arg.trim();
   }).filter((arg) => arg.length > 0);
@@ -505,6 +505,7 @@ const PLATFORM_WEBGPU_ARGS = Object.freeze({
   ]),
   win32: Object.freeze([]),
 });
+const BROWSER_LAUNCH_HINT = 'Install Playwright browsers (npx playwright install) or set run.browser.channel / run.browser.executablePath.';
 
 function uniqueArgs(args) {
   return [...new Set(args)];
@@ -638,7 +639,7 @@ async function launchBrowser(chromium, launchOptions, options = {}) {
     } catch (error) {
       const message = error?.message || String(error);
       throw new Error(
-        `browser command: failed to launch browser (${message}). Install Playwright browsers (npx playwright install) or pass --browser-channel chrome / --browser-executable.`
+        `browser command: failed to launch browser (${message}). ${BROWSER_LAUNCH_HINT}`
       );
     }
   }
@@ -664,7 +665,7 @@ async function launchBrowser(chromium, launchOptions, options = {}) {
       throw new Error(
         `browser command: failed to launch browser (${allErrors}). ` +
         `Tried default channels: ${resolveDefaultChannels().join(', ')}. ` +
-        `Install Playwright browsers (npx playwright install) or pass --browser-channel / --browser-executable.`
+        BROWSER_LAUNCH_HINT
       );
     }
   };
@@ -698,14 +699,14 @@ async function launchBrowser(chromium, launchOptions, options = {}) {
   if (isRecoverablePersistentLaunchError(retryMessage)) {
     throw new Error(
       `browser command: failed to launch browser with crash recovery enabled (${retryMessage}). ` +
-      `Install Playwright browsers (npx playwright install) or pass --browser-channel / --browser-executable.`
+      BROWSER_LAUNCH_HINT
     );
   }
 
   throw new Error(
     `browser command: failed to launch browser (${retryMessage}). ` +
     `Tried default channels: ${resolveDefaultChannels().join(', ')}. ` +
-    `Install Playwright browsers (npx playwright install) or pass --browser-channel / --browser-executable.`
+    BROWSER_LAUNCH_HINT
   );
 }
 
@@ -724,7 +725,7 @@ async function launchPersistentBrowser(chromium, userDataDir, launchOptions, opt
     } catch (error) {
       const message = error?.message || String(error);
       throw new Error(
-        `browser command: failed to launch persistent browser (${message}). Install Playwright browsers (npx playwright install) or pass --browser-channel chrome / --browser-executable.`
+        `browser command: failed to launch persistent browser (${message}). ${BROWSER_LAUNCH_HINT}`
       );
     }
   }
@@ -766,14 +767,14 @@ async function launchPersistentBrowser(chromium, userDataDir, launchOptions, opt
     throw new Error(
       `browser command: failed to launch persistent browser with crash recovery enabled (${retryMessage}). ` +
       `Tried default channels: ${resolveDefaultChannels().join(', ')}. ` +
-      `Install Playwright browsers (npx playwright install) or pass --browser-channel / --browser-executable.`
+      BROWSER_LAUNCH_HINT
     );
   }
 
   throw new Error(
     `browser command: failed to launch persistent browser (${retryMessage}). ` +
     `Tried default channels: ${resolveDefaultChannels().join(', ')}. ` +
-    `Install Playwright browsers (npx playwright install) or pass --browser-channel / --browser-executable.`
+    BROWSER_LAUNCH_HINT
   );
 }
 

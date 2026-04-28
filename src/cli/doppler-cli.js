@@ -78,6 +78,7 @@ function usage() {
     '  doppler debug --config <path|url|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
     '  doppler bench --config <path|url|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
     '  doppler verify --config <path|url|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
+    '  doppler diagnose --config <path|url|json> [--runtime-config <path|url|json>] [--surface auto|node]',
     '  doppler lora --config <path|url|json> [--surface auto|node]',
     '  doppler distill --config <path|url|json> [--surface auto|node]',
     '  doppler program-bundle --config <path|json>',
@@ -92,6 +93,7 @@ function usage() {
     '  --config <path|url|json>        Required command config payload (file path, URL, or JSON object string).',
     '  --runtime-config <value>        Compatibility runtime override alias (JSON object, URL, or file path).',
     '  --surface <auto|node|browser>   Optional execution surface override.',
+    '  --json                          Explicitly print JSON output (default).',
     '  --pretty                        Print human-readable summary instead of JSON',
     '  --help, -h                      Show this help message',
     '',
@@ -1109,7 +1111,7 @@ function parseSurface(value, command, policy = DEFAULT_CLI_POLICY) {
   if ((command === 'convert' || command === 'refresh-integrity') && normalized === 'browser') {
     throw new Error(`${command} is not supported on browser relay. Use --surface node or --surface auto.`);
   }
-  if ((command === 'lora' || command === 'distill') && normalized === 'browser') {
+  if ((command === 'diagnose' || command === 'lora' || command === 'distill') && normalized === 'browser') {
     throw new Error(`${command} is not supported on browser relay. Use --surface node or --surface auto.`);
   }
   return normalized;
@@ -1464,7 +1466,11 @@ async function runCommandOnSurface(request, surface, runConfig, jsonOutput) {
 }
 
 async function runWithAutoSurface(request, runConfig, jsonOutput, policy = DEFAULT_CLI_POLICY) {
-  if (request.command === 'convert' || request.command === 'refresh-integrity') {
+  if (
+    request.command === 'convert'
+    || request.command === 'refresh-integrity'
+    || request.command === 'diagnose'
+  ) {
     return runCommandOnSurface(request, 'node', runConfig, jsonOutput);
   }
   const fallbackPolicy = policy?.surfaceFallback || { enabled: false };

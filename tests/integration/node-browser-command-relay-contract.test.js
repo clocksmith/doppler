@@ -240,7 +240,7 @@ await assert.rejects(
     baseUrl: 'http://127.0.0.1:1',
     browserArgs: ['--disable-gpu', 7],
   }),
-  /browser command: --browser-arg values must be strings\./
+  /browser command: browserArgs values must be strings\./
 );
 
 await assert.rejects(
@@ -248,7 +248,7 @@ await assert.rejects(
     baseUrl: 'http://127.0.0.1:1',
     browserArgs: [null],
   }),
-  /browser command: --browser-arg values must be strings\./
+  /browser command: browserArgs values must be strings\./
 );
 
 await assert.rejects(
@@ -346,7 +346,7 @@ await assert.rejects(
     timeoutMs: 1500,
     executablePath: '/definitely/missing/chrome',
   }),
-  /browser command: failed to launch browser/
+  /browser command: failed to launch browser.*run\.browser\.channel \/ run\.browser\.executablePath/s
 );
 
 await assert.rejects(
@@ -358,7 +358,7 @@ await assert.rejects(
     timeoutMs: 1500,
     executablePath: '/definitely/missing/chrome',
   }),
-  /browser command: failed to launch persistent browser/
+  /browser command: failed to launch persistent browser.*run\.browser\.channel \/ run\.browser\.executablePath/s
 );
 
 await assert.rejects(

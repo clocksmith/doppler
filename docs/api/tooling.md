@@ -120,11 +120,11 @@ Supported surfaces:
 - `convert`: `--surface auto|node`
 - `refresh-integrity`: `--surface auto|node`
 - `debug`, `bench`, `verify`: `--surface auto|node|browser`
-- `diagnose`, `lora`, `distill`: `--surface auto|node` in practice; `--surface browser` is rejected
+- `diagnose`, `lora`, `distill`: `--surface auto|node`; `--surface browser` is rejected
 
 CLI notes:
 - operator runs are workload-first; prefer `workloadPath` over ad hoc request fields
-- `--surface auto` for `lora` and `distill` does not downgrade to browser
+- `--surface auto` for `diagnose`, `lora`, and `distill` does not downgrade to browser
 - `--config` accepts inline JSON, file path, or URL for all commands
 - `--runtime-config` supports inline JSON, file path, or URL for `verify`, `debug`, and `bench`
 - `diagnose` is Node-only and uses the same normalized request contract as `debug`

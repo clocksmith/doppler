@@ -146,6 +146,7 @@ Commands have workload/intent rules defined in `src/rules/tooling/command-runtim
 |-----------|-------------------|---------------|---------|
 | `bench`   | caller choice     | `calibrate`   | `node src/cli/doppler-cli.js bench --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
 | `debug`   | caller choice     | `investigate` | `node src/cli/doppler-cli.js debug --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
+| `diagnose` | caller choice    | `investigate` | `node src/cli/doppler-cli.js diagnose --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
 | `verify`  | caller choice     | `verify`      | `node src/cli/doppler-cli.js verify --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
 | `convert` | n/a               | —             | `node src/cli/doppler-cli.js convert --config <path|url|json>` |
 | `lora`    | n/a               | —             | `node src/cli/doppler-cli.js lora --config <path|url|json>` |

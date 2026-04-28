@@ -5,8 +5,8 @@ The canonical CLI entrypoint is `src/cli/doppler-cli.js`.
 For the npm-facing quickstart path, use `npx doppler-gpu`. That bin is a thin
 first-run surface for local generation. The `doppler` CLI below is the
 contract-driven tooling surface for `verify`, `debug`, `bench`, `convert`, and
-operator workflows. It also exposes the Node-only `program-bundle` maintenance
-path for exporting a Doe-ingestible portable model-program artifact.
+operator workflows. It also exposes Node-only maintenance and investigation
+paths such as `program-bundle` and `diagnose`.
 
 ## Command Surface
 
@@ -17,7 +17,7 @@ node src/cli/doppler-cli.js <command> --config <request> [flags]
 - `--config` is required for every command.
 - `--help` prints CLI usage.
 - `--pretty` prints human-readable output.
-- JSON output is default (omit `--pretty`).
+- JSON output is default; `--json` is accepted for explicit automation.
 
 ### Supported commands
 
@@ -26,6 +26,7 @@ node src/cli/doppler-cli.js <command> --config <request> [flags]
 | `bench` | `calibrate` | Requires `request.workload`. |
 | `debug` | `investigate` | Requires `request.workload`. |
 | `verify` | `verify` | Requires `request.workload` (except legacy `kernels` shape). |
+| `diagnose` | `investigate` | Node-only operator-diff investigation command. |
 | `convert` | `convert` | Node-only command. |
 | `lora` | operator lifecycle | Node-only command. |
 | `distill` | operator lifecycle | Node-only command. |
@@ -78,13 +79,15 @@ node src/cli/doppler-cli.js bench \
 - `--surface node` forces Node execution.
 - `--surface browser` forces headless Chromium relay.
 
-`convert`, `lora`, and `distill` currently reject runtime-input fields in the Node operator surface.
+`convert`, `diagnose`, `lora`, and `distill` reject `--surface browser`.
+`convert`, `lora`, and `distill` reject runtime-input fields in the Node operator surface.
 
 Command-level surface support:
 
 - `bench`, `debug`, `verify`: `auto|node|browser`
 - `convert`: `auto|node` (`browser` is rejected)
 - `lora`, `distill`: `auto|node` (`browser` is rejected)
+- `diagnose`: `auto|node` (`browser` is rejected)
 - `program-bundle`: no `--surface`; reads declared files and writes a JSON artifact
 
 ## Program Bundle Export
@@ -143,13 +146,14 @@ requiring the optional package to be installed. Use
 
 ## Output format and error envelope
 
-Without `--json`, output is designed for humans (`--pretty`).
-With `--json`, success and failure return JSON envelopes:
+JSON output is the default. `--json` is accepted as an explicit no-op for scripts.
+Use `--pretty` for human-readable summaries.
+JSON success and failure return envelopes:
 
 - Success: `{ ok: true, schemaVersion: 1, surface, request, result }`
 - Error: `{ ok: false, schemaVersion: 1, surface, request, error }`
 
-If you need traceability for automation, add `--json` on the command line.
+For automation, use the default JSON output or pass `--json` explicitly.
 
 ## Common launch patterns
 

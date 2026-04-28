@@ -308,6 +308,7 @@ await assert.rejects(
   const result = runCli([]);
   assert.equal(result.code, 0);
   assert.match(result.stdout, /Usage:/);
+  assert.match(result.stdout, /doppler diagnose --config/);
 }
 
 {
@@ -404,6 +405,22 @@ await assert.rejects(
   const result = runCli(['convert', '--surface', 'browser', '--config', convertConfig]);
   assert.equal(result.code, 1);
   assert.match(result.stderr, /\[error\] convert is not supported on browser relay/);
+}
+
+{
+  const result = runCli([
+    'diagnose',
+    '--surface',
+    'browser',
+    '--config',
+    JSON.stringify({
+      request: {
+        modelId: 'toy-model',
+      },
+    }),
+  ]);
+  assert.equal(result.code, 1);
+  assert.match(result.stderr, /\[error\] diagnose is not supported on browser relay/);
 }
 
 {

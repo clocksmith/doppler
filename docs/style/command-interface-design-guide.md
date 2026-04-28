@@ -20,6 +20,7 @@ This applies to browser clients and the Node CLI equally.
   - `convert` → convert intent
   - `refresh-integrity` → maintenance intent
   - `debug` → investigate intent
+  - `diagnose` → investigate intent
   - `bench` → calibrate intent
   - `verify` → verify intent
   - `lora` → operator lifecycle (no harness intent)
@@ -35,6 +36,7 @@ This applies to browser clients and the Node CLI equally.
 - `convert`
 - `refresh-integrity`
 - `debug`
+- `diagnose`
 - `bench`
 - `verify`
 - `lora`
@@ -62,6 +64,7 @@ Canonical workloads:
 
 Rules:
 - `debug` is valid for `inference` and `embedding`.
+- `diagnose` is valid for `inference` and `embedding`; CLI execution is Node-only.
 - `bench` is valid for `inference`, `embedding`, `training`, `diffusion`, and `energy`.
 - `verify` is valid for `kernels`, `inference`, `embedding`, `training`, `diffusion`, and `energy`.
 - `convert`, `refresh-integrity`, `lora`, and `distill` do not use workload-locked harness execution.
@@ -85,6 +88,7 @@ Rules:
 - **Intent**: `investigate`
 - **Exit**: trace/profile/log artifacts or interactive output
 - **Command**: `debug`
+- **Command**: `diagnose`
 
 ### Calibration (Yardstick)
 
@@ -127,7 +131,7 @@ Rules:
 
 ## Runtime Contract
 
-For harnessed commands (`debug`, `bench`, `verify`), runners must preserve
+For harnessed commands (`debug`, `diagnose`, `bench`, `verify`), runners must preserve
 explicit command context outside runtime config:
 
 - `command`
@@ -201,6 +205,7 @@ Commands are rejected when:
   (default headless, configured via `run.browser` fields in CLI `--config`).
 - Browser relay can attach to an existing server with `run.browser.baseUrl`.
 - `convert` and `refresh-integrity` are Node-only in CLI (`--surface browser` is rejected).
+- `diagnose` is Node-only in CLI (`--surface browser` is rejected) and must not auto-downgrade to browser relay.
 - `lora` and `distill` are currently Node-only and must fail closed on browser surfaces until equivalent runtime semantics exist there.
 - `keepPipeline=true` is rejected on browser relay because pipeline objects are not serializable across process boundaries.
 - `convert` execution tuning belongs in `request.convertPayload.execution` and must not change command semantics.
