@@ -823,7 +823,7 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
       }).catch((error) => {
         const message = error?.message || String(error);
         throw new Error(
-          `browser command: failed to start static server (${message}). Pass --browser-base-url to reuse an existing server.`
+          `browser command: failed to start static server (${message}). Set run.browser.baseUrl to reuse an existing server.`
         );
       });
 
