@@ -71,6 +71,9 @@ Maintenance/export path:
 - `program-bundle:reference` is the one-click proof lane for fresh bundles. It
   runs a bounded `verify`, writes the returned report locally, and calls the
   Program Bundle exporter with that report.
+- `profiles` is a CLI-local discovery path for checked-in runtime profile IDs.
+  It is intentionally outside `normalizeToolingCommandRequest(...)` because it
+  only reads local config metadata and does not execute a workload.
 
 Program Bundle parity:
 
@@ -126,7 +129,9 @@ CLI notes:
 - operator runs are workload-first; prefer `workloadPath` over ad hoc request fields
 - `--surface auto` for `diagnose`, `lora`, and `distill` does not downgrade to browser
 - `--config` accepts inline JSON, file path, or URL for all commands
-- `--runtime-config` supports inline JSON, file path, or URL for `verify`, `debug`, and `bench`
+- `profiles --json` lists runtime profile IDs, metadata, and trace/profile signal hints
+- `--runtime-profile <id>` is a CLI shorthand for `request.runtimeProfile`; it conflicts with `--runtime-config` and runtime fields inside `--config`
+- `--runtime-config` supports inline JSON, file path, or URL for `verify`, `debug`, `diagnose`, and `bench`
 - `diagnose` is Node-only and uses the same normalized request contract as `debug`
 - `lora` and `distill` reject `runtimeProfile`, `runtimeConfigUrl`, and `runtimeConfig` on the current Node operator surface
 - run-root artifacts live under `reports/training/<kind>/<workload-id>/<timestamp>/`

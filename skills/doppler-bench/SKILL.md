@@ -58,14 +58,17 @@ Notes:
 ## Doppler Benchmark (Primary)
 
 ```bash
+# Discover checked-in runtime profiles before selecting a calibration profile
+npm run cli -- profiles --json
+
 # Warm-cache benchmark (recommended baseline)
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"profiles/throughput","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --runtime-profile profiles/throughput --json
 
 # Cold-cache benchmark (cache disabled per run)
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"profiles/throughput","cacheMode":"cold"},"run":{"surface":"browser","bench":{"save":true}}}' --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","cacheMode":"cold"},"run":{"surface":"browser","bench":{"save":true}}}' --runtime-profile profiles/throughput --json
 
 # Compare against last saved run
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"profiles/throughput","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true,"compare":"last"}}}' --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true,"compare":"last"}}}' --runtime-profile profiles/throughput --json
 ```
 
 Notes:

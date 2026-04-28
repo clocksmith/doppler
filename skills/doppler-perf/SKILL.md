@@ -45,7 +45,8 @@ Common routes:
 
 ```bash
 # Start from one clean benchmark baseline
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"profiles/throughput","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --json
+npm run cli -- profiles --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --runtime-profile profiles/throughput --json
 ```
 
 Read from output:
@@ -126,7 +127,7 @@ npm run bench -- \
 
 ```bash
 # Trace-heavy debug run
-npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"profiles/verbose-trace"},"run":{"surface":"auto"}}' --json
+npm run debug -- --config '{"request":{"modelId":"MODEL_ID"},"run":{"surface":"auto"}}' --runtime-profile profiles/verbose-trace --json
 
 # Logit-focused browser investigation
 npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"diagnostics/debug-logits"},"run":{"surface":"browser","browser":{"channel":"chrome","console":true}}}' --json
@@ -165,7 +166,7 @@ Priority code hotspots:
 
 ```bash
 # Re-run the clean benchmark baseline after each material change
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"profiles/throughput","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --runtime-profile profiles/throughput --json
 ```
 
 When the final evidence will be published, compared across engines, or used to update vendor-facing numbers, hand off to `doppler-bench` instead of extending the squeeze loop.

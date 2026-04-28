@@ -23,7 +23,8 @@ Add a named runtime profile that changes behavior through JSON only.
 1. Copy the closest existing profile under `src/config/runtime/profiles/`.
 2. Set `id`, `name`, `description`, `intent`, `stability`, `owner`, `createdAtUtc`, and `extends`.
 3. Keep the `runtime` block minimal. Only set fields that differ from defaults or the parent profile.
-4. Use the new ID through `request.runtimeProfile` in a CLI or harness run.
+4. Confirm discovery lists the new ID with `node src/cli/doppler-cli.js profiles --json`.
+5. Use the new ID through `request.runtimeProfile` in a CLI or harness run.
 
 ## Verification
 
@@ -39,6 +40,14 @@ node src/cli/doppler-cli.js debug --config '{
   },
   "run": { "surface": "auto" }
 }'
+```
+
+Equivalent CLI shorthand:
+
+```bash
+node src/cli/doppler-cli.js debug \
+  --config '{"request":{"modelId":"gemma-3-270m-it-q4k-ehf16-af32","workload":"inference"},"run":{"surface":"auto"}}' \
+  --runtime-profile profiles/your-profile
 ```
 
 ## Common Misses

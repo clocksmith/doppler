@@ -32,6 +32,7 @@ import {
   printConvertReportSummary,
   printMetricsSummary,
 } from './cli-output.js';
+import { formatRuntimeProfiles, listRuntimeProfiles } from './runtime-profiles.js';
 
 export { resolveBrowserModelUrl, resolveNodeModelUrl } from './cli-model-resolution.js';
 
@@ -68,6 +69,7 @@ const COMMON_CLI_FLAGS = Object.freeze([
   'help',
   'h',
   'runtime-config',
+  'runtime-profile',
 ]);
 
 function usage() {
@@ -75,10 +77,11 @@ function usage() {
     'Usage:',
     '  doppler convert --config <path|url|json> [--surface auto|node]',
     '  doppler refresh-integrity --config <path|url|json> [--surface auto|node]',
-    '  doppler debug --config <path|url|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
-    '  doppler bench --config <path|url|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
-    '  doppler verify --config <path|url|json> [--runtime-config <path|url|json>] [--surface auto|node|browser]',
-    '  doppler diagnose --config <path|url|json> [--runtime-config <path|url|json>] [--surface auto|node]',
+    '  doppler debug --config <path|url|json> [--runtime-profile <id>|--runtime-config <path|url|json>] [--surface auto|node|browser]',
+    '  doppler bench --config <path|url|json> [--runtime-profile <id>|--runtime-config <path|url|json>] [--surface auto|node|browser]',
+    '  doppler verify --config <path|url|json> [--runtime-profile <id>|--runtime-config <path|url|json>] [--surface auto|node|browser]',
+    '  doppler diagnose --config <path|url|json> [--runtime-profile <id>|--runtime-config <path|url|json>] [--surface auto|node]',
+    '  doppler profiles [--json|--pretty]',
     '  doppler lora --config <path|url|json> [--surface auto|node]',
     '  doppler distill --config <path|url|json> [--surface auto|node]',
     '  doppler program-bundle --config <path|json>',
@@ -92,6 +95,7 @@ function usage() {
     'Flags:',
     '  --config <path|url|json>        Required command config payload (file path, URL, or JSON object string).',
     '  --runtime-config <value>        Compatibility runtime override alias (JSON object, URL, or file path).',
+    '  --runtime-profile <id>          Convenience alias for request.runtimeProfile on harnessed commands.',
     '  --surface <auto|node|browser>   Optional execution surface override.',
     '  --json                          Explicitly print JSON output (default).',
     '  --pretty                        Print human-readable summary instead of JSON',
@@ -109,6 +113,7 @@ function usage() {
     '',
     'Example:',
     '  doppler verify --config \'{"request":{"workload":"inference","modelId":"gemma-3-270m-it-f16-af32"}}\'',
+    '  doppler profiles --pretty',
     '  doppler refresh-integrity --config \'{"request":{"modelDir":"models/local/gemma-3-270m-it-q4k-ehf16-af32"}}\'',
     '  doppler verify --config \'{"request":{"workload":"inference","workloadType":"program-bundle","programBundlePath":"examples/program-bundles/gemma-3-270m-it-q4k-ehf16-af32.program-bundle.json"}}\'',
     '  doppler program-bundle --config \'{"manifestPath":"models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json","referenceReportPath":"tests/fixtures/reports/gemma-3-270m-it-q4k-ehf16-af32/2026-03-18T13-33-38.973Z.json","outputPath":"examples/program-bundles/gemma-3-270m-it-q4k-ehf16-af32.program-bundle.json"}\'',
@@ -325,6 +330,19 @@ function validateReferenceReceiptFlags(parsed) {
   }
 }
 
+function validateProfilesFlags(parsed) {
+  const allowedFlags = new Set([
+    'pretty',
+    'json',
+    'help',
+    'h',
+  ]);
+  for (const key of Object.keys(parsed.flags || {})) {
+    if (allowedFlags.has(key)) continue;
+    throw new Error(`Unknown flag --${key} for "profiles".`);
+  }
+}
+
 function parseJsonObjectFlag(value, label) {
   if (asStringOrNull(value) === null) return null;
   try {
@@ -362,6 +380,7 @@ function parseUnifiedRuntimeConfig(value) {
   if (normalized === null) return null;
   if (normalized.startsWith('{')) {
     return {
+      sourceFlag: '--runtime-config',
       runtimeProfile: null,
       runtimeConfigUrl: null,
       runtimeConfig: parseJsonObjectFlag(normalized, '--runtime-config'),
@@ -369,20 +388,50 @@ function parseUnifiedRuntimeConfig(value) {
   }
   if (isAbsoluteUrl(normalized)) {
     return {
+      sourceFlag: '--runtime-config',
       runtimeProfile: null,
       runtimeConfigUrl: normalized,
       runtimeConfig: null,
     };
   }
   return {
+    sourceFlag: '--runtime-config',
     runtimeProfile: null,
     runtimeConfigUrl: parseRuntimeConfigUrl(normalized),
     runtimeConfig: null,
   };
 }
 
+function parseRuntimeProfileFlag(value) {
+  const normalized = asStringOrNull(value);
+  if (normalized === null) return null;
+  if (isAbsoluteUrl(normalized)) {
+    throw new Error('--runtime-profile must be a runtime profile id, not a URL. Use --runtime-config for URLs.');
+  }
+  const trimmed = normalized.replace(/\.json$/u, '');
+  if (!trimmed) {
+    throw new Error('--runtime-profile must be a non-empty runtime profile id.');
+  }
+  if (trimmed.startsWith('/') || trimmed.startsWith('./') || trimmed.startsWith('../')) {
+    throw new Error('--runtime-profile must be a runtime profile id, not a file path. Use --runtime-config for files.');
+  }
+  return trimmed.includes('/') ? trimmed : `profiles/${trimmed}`;
+}
+
 function resolveRuntimeConfigFlags(parsed) {
+  const runtimeProfileRaw = asStringOrNull(parsed.flags['runtime-profile']);
   const unifiedRaw = asStringOrNull(parsed.flags['runtime-config']);
+  if (runtimeProfileRaw !== null && unifiedRaw !== null) {
+    throw new Error('--runtime-profile cannot be combined with --runtime-config.');
+  }
+  if (runtimeProfileRaw !== null) {
+    return {
+      sourceFlag: '--runtime-profile',
+      runtimeProfile: parseRuntimeProfileFlag(runtimeProfileRaw),
+      runtimeConfigUrl: null,
+      runtimeConfig: null,
+    };
+  }
   return parseUnifiedRuntimeConfig(unifiedRaw);
 }
 
@@ -692,6 +741,15 @@ async function runReferenceReceiptCommand(parsed, jsonOutput) {
     `[ok] wrote ${summary.outputPath} ` +
     `(modelId=${summary.modelId}, tokens=${summary.tokensGenerated}, stopReason=${summary.stopReason})`
   );
+}
+
+async function runProfilesCommand(jsonOutput) {
+  const result = await listRuntimeProfiles();
+  if (jsonOutput) {
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+  console.log(formatRuntimeProfiles(result));
 }
 
 const BUNDLE_SUMMARY_SCHEMA_ID = 'doppler.bundle-summary/v1';
@@ -1235,6 +1293,7 @@ function applyRuntimeFlagOverride(requestInput, runtimeOverride) {
   if (!runtimeOverride) {
     return;
   }
+  const sourceFlag = runtimeOverride.sourceFlag || '--runtime-config';
   const hasInlineRuntime = (
     requestInput.runtimeProfile != null
     || requestInput.runtimeConfigUrl != null
@@ -1242,7 +1301,7 @@ function applyRuntimeFlagOverride(requestInput, runtimeOverride) {
   );
   if (hasInlineRuntime) {
     throw new Error(
-      '--runtime-config cannot be combined with runtimeProfile/runtimeConfigUrl/runtimeConfig values inside --config.'
+      `${sourceFlag} cannot be combined with runtimeProfile/runtimeConfigUrl/runtimeConfig values inside --config.`
     );
   }
   requestInput.runtimeProfile = runtimeOverride.runtimeProfile;
@@ -1630,6 +1689,11 @@ async function main() {
     if (parsed.command === 'reference-receipt') {
       validateReferenceReceiptFlags(parsed);
       await runReferenceReceiptCommand(parsed, parsed.flags.pretty !== true);
+      return;
+    }
+    if (parsed.command === 'profiles') {
+      validateProfilesFlags(parsed);
+      await runProfilesCommand(parsed.flags.pretty !== true);
       return;
     }
     if (parsed.command === 'intake') {

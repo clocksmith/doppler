@@ -13,6 +13,8 @@ Runtime config JSON files fall into three categories:
 
 Rules:
 
+- Discover checked-in profile wrappers with
+  `node src/cli/doppler-cli.js profiles --json`.
 - Do not add string `runtime.inference.kernelPath` IDs. Runtime `kernelPath` is
   either `null` or an inline execution-v1-derived object.
 - Keep model-owned behavior in conversion config and the manifest execution

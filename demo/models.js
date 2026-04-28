@@ -29,9 +29,7 @@ import { clearOutput } from './output.js';
 import { setExportEnabled } from './report.js';
 
 const HF_RESOLVE_BASE = 'https://huggingface.co';
-const CATALOG_URL = typeof window === 'object' && window.location?.origin
-  ? new URL('/models/catalog.json', window.location.origin).toString()
-  : new URL('../models/catalog.json', import.meta.url).toString();
+const CATALOG_URL = new URL('../models/catalog.json', import.meta.url).toString();
 
 let catalog = [];
 let onModelLoaded = null;
@@ -54,6 +52,25 @@ function sizeLabel(bytes) {
   if (!bytes) return '';
   const mb = bytes / (1024 * 1024);
   return mb >= 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${mb.toFixed(0)} MB`;
+}
+
+function isDemoVisibleEntry(entry) {
+  if (entry?.demoVisible === false) {
+    return false;
+  }
+  return entry?.quickstart === true || entry?.demoVisible === true;
+}
+
+function getDemoWarningBadges(entry) {
+  return Array.isArray(entry?.demoWarningBadges)
+    ? entry.demoWarningBadges
+      .map((badge) => (typeof badge === 'string' ? badge.trim() : ''))
+      .filter((badge) => badge.length > 0)
+    : [];
+}
+
+function getDemoWarningText(entry) {
+  return typeof entry?.demoWarningText === 'string' ? entry.demoWarningText.trim() : '';
 }
 
 export function canRemoveModelStatus(status) {
@@ -238,7 +255,7 @@ export function selectDemoCatalogEntries(models, options = {}) {
     if (!entry?.modes?.includes('text')) {
       return false;
     }
-    if (entry?.quickstart !== true) {
+    if (!isDemoVisibleEntry(entry)) {
       return false;
     }
     if (entry?.artifactCompleteness !== 'complete') {
@@ -456,6 +473,28 @@ export function renderModelCards() {
 
     copy.appendChild(name);
     copy.appendChild(detail);
+
+    const warningBadges = getDemoWarningBadges(entry);
+    if (warningBadges.length > 0) {
+      const badges = document.createElement('div');
+      badges.className = 'model-card-badges';
+      for (const warningBadge of warningBadges) {
+        const badge = document.createElement('span');
+        badge.className = 'model-card-badge';
+        badge.textContent = warningBadge;
+        badges.appendChild(badge);
+      }
+      copy.appendChild(badges);
+    }
+
+    const warningText = getDemoWarningText(entry);
+    if (warningText) {
+      const warning = document.createElement('div');
+      warning.className = 'model-card-warning';
+      warning.textContent = warningText;
+      copy.appendChild(warning);
+      card.title = warningText;
+    }
     top.appendChild(copy);
 
     if (canRemoveModelStatus(status)) {

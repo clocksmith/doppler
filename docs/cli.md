@@ -7,6 +7,8 @@ first-run surface for local generation. The `doppler` CLI below is the
 contract-driven tooling surface for `verify`, `debug`, `bench`, `convert`, and
 operator workflows. It also exposes Node-only maintenance and investigation
 paths such as `program-bundle` and `diagnose`.
+It also exposes `profiles`, a read-only discovery command for checked-in
+runtime profile IDs.
 
 ## Command Surface
 
@@ -14,7 +16,7 @@ paths such as `program-bundle` and `diagnose`.
 node src/cli/doppler-cli.js <command> --config <request> [flags]
 ```
 
-- `--config` is required for every command.
+- `--config` is required for workload commands. `profiles` does not take a config.
 - `--help` prints CLI usage.
 - `--pretty` prints human-readable output.
 - JSON output is default; `--json` is accepted for explicit automation.
@@ -28,6 +30,7 @@ node src/cli/doppler-cli.js <command> --config <request> [flags]
 | `verify` | `verify` | Requires `request.workload` (except legacy `kernels` shape). |
 | `diagnose` | `investigate` | Node-only operator-diff investigation command. |
 | `convert` | `convert` | Node-only command. |
+| `profiles` | discovery | Lists checked-in runtime profile IDs; no workload is executed. |
 | `lora` | operator lifecycle | Node-only command. |
 | `distill` | operator lifecycle | Node-only command. |
 | `program-bundle` | maintenance/export | Node-only artifact exporter; outside the browser/Node command-runner contract. |
@@ -58,7 +61,7 @@ For harnessed commands, it accepts the same input shapes as `--config`.
 
 If you use `--runtime-config`, do not put runtime override fields inside `--config` at the same time.
 
-For harnessed commands (`bench`, `debug`, `verify`) the same polymorphic formats are accepted:
+For harnessed commands (`bench`, `debug`, `diagnose`, `verify`) the same polymorphic formats are accepted:
 
 - inline JSON object
 - file path
@@ -72,6 +75,40 @@ node src/cli/doppler-cli.js bench \
   --runtime-config '{"inference":{"sampling":{"temperature":0,"topK":1}}}' \
   --json
 ```
+
+## `profiles` and `--runtime-profile`
+
+Use `profiles` to discover checked-in runtime profile IDs before selecting a
+verify, debug, diagnose, or bench runtime:
+
+```bash
+node src/cli/doppler-cli.js profiles --json
+node src/cli/doppler-cli.js profiles --pretty
+```
+
+`--runtime-profile <id>` is a convenience alias for setting
+`request.runtimeProfile` before command normalization:
+
+```bash
+node src/cli/doppler-cli.js debug \
+  --config '{"request":{"workload":"inference","modelId":"gemma-3-270m-it-q4k-ehf16-af32"},"run":{"surface":"auto"}}' \
+  --runtime-profile profiles/verbose-trace \
+  --json
+```
+
+For profile IDs under `src/config/runtime/profiles/`, the `profiles/` prefix may
+be omitted:
+
+```bash
+node src/cli/doppler-cli.js verify \
+  --config '{"request":{"workload":"inference","modelId":"gemma-3-270m-it-q4k-ehf16-af32"}}' \
+  --runtime-profile production \
+  --json
+```
+
+`--runtime-profile` is intentionally narrow. It cannot be combined with
+`--runtime-config`, `runtimeProfile`, `runtimeConfigUrl`, or `runtimeConfig`
+inside `--config`; use one runtime input path per command.
 
 ## `--surface` and execution intent
 
@@ -89,6 +126,7 @@ Command-level surface support:
 - `lora`, `distill`: `auto|node` (`browser` is rejected)
 - `diagnose`: `auto|node` (`browser` is rejected)
 - `program-bundle`: no `--surface`; reads declared files and writes a JSON artifact
+- `profiles`: no `--surface`; reads checked-in runtime config metadata only
 
 ## Program Bundle Export
 

@@ -50,6 +50,9 @@ Each entry supports:
 - `sizeBytes` (number, optional)
 - `recommended` (boolean, optional)
 - `sortOrder` (number, optional)
+- `demoVisible` (boolean, optional): `true` surfaces a hosted model in the web demo without adding it to quickstart; `false` hides a quickstart model from the web demo.
+- `demoWarningBadges` (string array, optional): compact warning badges for demo model cards.
+- `demoWarningText` (string, optional): short warning text for demo model cards.
 - `hf` (object, optional): `repoId`, `revision`, `path` for Hugging Face hosted artifacts
 - `lifecycle` (object, optional but recommended)
   - `availability` (object): `curated` | `local` | `hf` booleans

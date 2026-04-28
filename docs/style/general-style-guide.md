@@ -375,7 +375,7 @@ If `shader-f16` is unavailable, `f32` is required and should be treated as a cap
 
 **Conversion configs** (`src/config/conversion/`) are the sole source of truth for conversion-time inference and execution fields stamped into the manifest.
 
-**Runtime profiles** (`src/config/runtime/profiles/`) extend runtime defaults for different use cases without duplicating command names or workload names. They are loaded by the browser harness (`runtimeProfile`) and merged with runtime overrides. Runtime config is split into `runtime.shared`, `runtime.loading`, and `runtime.inference`, so profiles should place overrides under the correct section.
+**Runtime profiles** (`src/config/runtime/profiles/` and other profile wrappers under `src/config/runtime/`) extend runtime defaults for different use cases without duplicating command names or workload names. They are loaded by the browser harness (`runtimeProfile`) and merged with runtime overrides. Runtime config is split into `runtime.shared`, `runtime.loading`, and `runtime.inference`, so profiles should place overrides under the correct section. Use `doppler profiles --json` for checked-in profile discovery instead of guessing IDs from filenames.
 
 The merge order for runtime config:
 1. Runtime default config (schema default configs)

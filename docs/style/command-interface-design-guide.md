@@ -45,10 +45,10 @@ This applies to browser clients and the Node CLI equally.
 Defined in `src/tooling/command-api.js`.
 All surfaces must normalize via `normalizeToolingCommandRequest()`.
 
-Maintenance/export CLI paths such as `program-bundle` are intentionally outside
-this browser/Node command-runner contract when they only read local files and
-write deterministic artifacts. They must document that boundary and must not be
-silently treated as harnessed browser commands.
+Maintenance/export/discovery CLI paths such as `program-bundle` and `profiles`
+are intentionally outside this browser/Node command-runner contract when they
+only read local files and write deterministic artifacts. They must document that
+boundary and must not be silently treated as harnessed browser commands.
 
 ## Workload Contract
 
@@ -161,6 +161,8 @@ Rules:
 - `configChain` support must not exist on one harness surface and silently disappear on another.
 - If a surface cannot support one of these fields, it must reject the request explicitly instead of dropping or rewriting it.
 - Command metadata must remain in the request/suite context; do not rewrite `runtime.shared.*` to carry command semantics.
+- CLI `--runtime-profile <id>` is only a shorthand for setting `request.runtimeProfile` before normalization. It is not a per-field tuning flag and must conflict with `--runtime-config`, `runtimeConfigUrl`, `runtimeConfig`, or an existing `runtimeProfile` in `--config`.
+- CLI `profiles` is a read-only discovery command for checked-in runtime profile IDs. It is outside `normalizeToolingCommandRequest()` and must not execute a harnessed workload.
 
 For cross-engine benchmarks, maintain a two-layer contract:
 
@@ -207,6 +209,7 @@ Commands are rejected when:
 - `convert` and `refresh-integrity` are Node-only in CLI (`--surface browser` is rejected).
 - `diagnose` is Node-only in CLI (`--surface browser` is rejected) and must not auto-downgrade to browser relay.
 - `lora` and `distill` are currently Node-only and must fail closed on browser surfaces until equivalent runtime semantics exist there.
+- `profiles` is CLI-local read-only discovery and does not accept `--surface` or `--config`.
 - `keepPipeline=true` is rejected on browser relay because pipeline objects are not serializable across process boundaries.
 - `convert` execution tuning belongs in `request.convertPayload.execution` and must not change command semantics.
 - `refresh-integrity` rebuilds manifest integrity metadata from local artifact bytes and must not consume runtime config inputs.

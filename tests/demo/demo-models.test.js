@@ -14,6 +14,12 @@ import {
   selectDemoCatalogEntries,
 } from '../../demo/models.js';
 
+const DEMO_READY = Object.freeze({
+  artifactCompleteness: 'complete',
+  runtimePromotionState: 'manifest-owned',
+  weightsRefAllowed: false,
+});
+
 {
   const patched = patchManifestCompat({
     modelId: 'legacy-gemma',
@@ -89,6 +95,7 @@ import {
 {
   const selected = selectDemoCatalogEntries([
     {
+      ...DEMO_READY,
       modelId: 'gemma-3-1b-it-q4k-ehf16-af32',
       quickstart: true,
       modes: ['text'],
@@ -100,17 +107,33 @@ import {
       sortOrder: 12,
     },
     {
-      modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
-      quickstart: false,
+      ...DEMO_READY,
+      modelId: 'hidden-hosted-text-model',
+      quickstart: true,
+      demoVisible: false,
       modes: ['text'],
       hf: {
         repoId: 'Clocksmith/rdrr',
         revision: 'abc123',
-        path: 'models/gemma-4-e2b-it-q4k-ehf16-af32',
+        path: 'models/hidden-hosted-text-model',
       },
       sortOrder: 13,
     },
     {
+      ...DEMO_READY,
+      modelId: 'qwen-3-6-27b-q4k-ehaf16',
+      quickstart: false,
+      demoVisible: true,
+      modes: ['text'],
+      hf: {
+        repoId: 'Clocksmith/rdrr',
+        revision: 'abc123',
+        path: 'models/qwen-3-6-27b-q4k-ehaf16',
+      },
+      sortOrder: 22,
+    },
+    {
+      ...DEMO_READY,
       modelId: 'translategemma-4b-it-q4k-ehf16-af32',
       quickstart: false,
       modes: ['translate'],
@@ -118,30 +141,34 @@ import {
     },
   ], {
     localBaseUrls: new Map([
-      ['gemma-4-e2b-it-q4k-ehf16-af32', 'http://localhost:8080/models/local/gemma-4-e2b-it-q4k-ehf16-af32'],
+      ['qwen-3-6-27b-q4k-ehaf16', 'http://localhost:8080/models/local/qwen-3-6-27b-q4k-ehaf16'],
     ]),
   });
 
   assert.deepEqual(
     selected.map((entry) => entry.modelId),
-    ['gemma-3-1b-it-q4k-ehf16-af32', 'gemma-4-e2b-it-q4k-ehf16-af32'],
-    'demo catalog should include downloadable text models regardless of quickstart metadata'
+    ['gemma-3-1b-it-q4k-ehf16-af32', 'qwen-3-6-27b-q4k-ehaf16'],
+    'demo catalog should include quickstart text models and explicitly demo-visible text models'
   );
   assert.equal(
     selected[1].localBaseUrl,
-    'http://localhost:8080/models/local/gemma-4-e2b-it-q4k-ehf16-af32'
+    'http://localhost:8080/models/local/qwen-3-6-27b-q4k-ehaf16'
   );
 }
 
 {
   const selected = selectDemoCatalogEntries([
     {
+      ...DEMO_READY,
       modelId: 'missing-source-text-model',
+      quickstart: true,
       modes: ['text'],
       sortOrder: 20,
     },
     {
+      ...DEMO_READY,
       modelId: 'hf-backed-text-model',
+      quickstart: true,
       modes: ['text'],
       hf: {
         repoId: 'Clocksmith/rdrr',

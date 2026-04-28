@@ -315,6 +315,29 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   opacity: var(--opacity-soft);
 }
 
+.model-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.model-card-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0 var(--space-xs);
+  border: var(--border-sm) solid currentColor;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-set-weight);
+  text-transform: uppercase;
+}
+
+.model-card-warning {
+  font-size: var(--font-size-sm);
+  line-height: var(--font-leading-snug);
+  opacity: var(--opacity-soft);
+}
+
 .model-card-remove {
   flex-shrink: 0;
   min-height: auto;

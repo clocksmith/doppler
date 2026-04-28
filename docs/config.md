@@ -33,8 +33,14 @@ must not be injected into `runtime.shared.*` by the runners.
 CLI flag inputs:
 
 - `--config` accepts inline JSON, a file path, or URL for all commands.
-- `--runtime-config` is supported by harnessed commands (`bench`, `debug`, `verify`)
+- `profiles --json` lists checked-in runtime profile IDs and metadata.
+- `--runtime-profile <id>` is an additive CLI shorthand for `request.runtimeProfile`.
+  For IDs under `src/config/runtime/profiles/`, the `profiles/` prefix may be
+  omitted and is restored before command normalization.
+- `--runtime-config` is supported by harnessed commands (`bench`, `debug`, `diagnose`, `verify`)
   and accepts the same input shapes (`JSON`, `path`, `URL`).
+- `--runtime-profile` and `--runtime-config` are mutually exclusive, and neither
+  may be combined with runtime inputs already present inside `--config`.
 
 See `src/tooling/command-runner-shared.js:applyRuntimeInputs()` for the
 merge implementation.
@@ -121,6 +127,21 @@ Set runtime profile only:
 
 ```bash
 node src/cli/doppler-cli.js verify --config '{"request":{"workload":"inference","modelId":"gemma-3-270m-it-q4k-ehf16-af32","runtimeProfile":"profiles/production"},"run":{"surface":"auto"}}' --json
+```
+
+Discover runtime profiles:
+
+```bash
+node src/cli/doppler-cli.js profiles --json
+```
+
+Set runtime profile with the CLI shorthand:
+
+```bash
+node src/cli/doppler-cli.js verify \
+  --config '{"request":{"workload":"inference","modelId":"gemma-3-270m-it-q4k-ehf16-af32"},"run":{"surface":"auto"}}' \
+  --runtime-profile profiles/production \
+  --json
 ```
 
 Override runtime policy explicitly:

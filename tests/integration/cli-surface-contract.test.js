@@ -146,6 +146,22 @@ await assert.rejects(
 }
 
 {
+  const result = await buildRequest({
+    command: 'verify',
+    flags: {
+      config: JSON.stringify({
+        request: {
+          workload: 'inference',
+          modelId: 'toy-model',
+        },
+      }),
+      'runtime-profile': 'verbose-trace',
+    },
+  }, TEST_CLI_POLICY);
+  assert.equal(result.request.runtimeProfile, 'profiles/verbose-trace');
+}
+
+{
   const fixture = makeTempDir();
   const runtimeConfigPath = path.join(fixture, 'runtime-config.json');
   writeFileSync(runtimeConfigPath, JSON.stringify({ shared: { tooling: { intent: 'verify' } } }), 'utf8');
@@ -205,6 +221,44 @@ await assert.rejects(
       },
     }, TEST_CLI_POLICY),
     /Cannot set runtimeProfile in both/
+  );
+}
+
+{
+  await assert.rejects(
+    () => buildRequest({
+      command: 'debug',
+      flags: {
+        config: JSON.stringify({
+          request: {
+            workload: 'inference',
+            modelId: 'toy-model',
+            runtimeProfile: 'profiles/verbose-trace',
+          },
+        }),
+        'runtime-profile': 'profiles/other-trace',
+      },
+    }, TEST_CLI_POLICY),
+    /--runtime-profile cannot be combined with runtimeProfile\/runtimeConfigUrl\/runtimeConfig values inside --config/
+  );
+}
+
+{
+  await assert.rejects(
+    () => buildRequest({
+      command: 'debug',
+      flags: {
+        config: JSON.stringify({
+          request: {
+            workload: 'inference',
+            modelId: 'toy-model',
+          },
+        }),
+        'runtime-profile': 'profiles/verbose-trace',
+        'runtime-config': '{"shared":{"tooling":{"intent":"investigate"}}}',
+      },
+    }, TEST_CLI_POLICY),
+    /--runtime-profile cannot be combined with --runtime-config/
   );
 }
 
@@ -309,12 +363,32 @@ await assert.rejects(
   assert.equal(result.code, 0);
   assert.match(result.stdout, /Usage:/);
   assert.match(result.stdout, /doppler diagnose --config/);
+  assert.match(result.stdout, /doppler profiles/);
+  assert.match(result.stdout, /--runtime-profile <id>/);
 }
 
 {
   const result = runCli(['bench', '--help']);
   assert.equal(result.code, 0);
   assert.match(result.stdout, /Usage:/);
+}
+
+{
+  const result = runCli(['profiles', '--json']);
+  assert.equal(result.code, 0);
+  const payload = JSON.parse(result.stdout);
+  assert.equal(payload.ok, true);
+  assert.equal(payload.schemaVersion, 1);
+  const verboseTrace = payload.profiles.find((profile) => profile.id === 'profiles/verbose-trace');
+  assert.ok(verboseTrace, 'profiles command should list profiles/verbose-trace');
+  assert.equal(verboseTrace.intent, 'investigate');
+  assert.equal(verboseTrace.signals.trace, true);
+}
+
+{
+  const result = runCli(['profiles', '--runtime-profile', 'verbose-trace']);
+  assert.equal(result.code, 1);
+  assert.match(result.stderr, /\[error\] Unknown flag --runtime-profile for "profiles"\./);
 }
 
 {

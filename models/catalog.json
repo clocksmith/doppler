@@ -226,6 +226,7 @@
       },
       "baseUrl": null,
       "quickstart": true,
+      "demoVisible": false,
       "sizeBytes": 7094076955,
       "recommended": false,
       "sortOrder": 13,
@@ -597,9 +598,18 @@
       "artifact": {
         "format": "rdrr"
       },
-      "hf": null,
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "2bc4bfd905fe214303545a00db61031d4088b379",
+        "path": "models/qwen-3-6-27b-q4k-ehaf16"
+      },
       "baseUrl": null,
       "quickstart": false,
+      "demoVisible": true,
+      "demoWarningBadges": [
+        "15.8 GB / High RAM"
+      ],
+      "demoWarningText": "Large download. Use a high-RAM machine.",
       "sizeBytes": 16994352128,
       "recommended": false,
       "sortOrder": 22,
@@ -607,15 +617,27 @@
         "availability": {
           "curated": false,
           "local": true,
-          "hf": false
+          "hf": true
         },
         "status": {
-          "runtime": "experimental",
+          "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "none"
+          "tested": "verified"
         },
-        "tested": null
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "browser"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-04-28",
+          "source": "browser-webgpu-smoke",
+          "notes": "Local browser/WebGPU smoke report reports/qwen-3-6-27b-q4k-ehaf16/2026-04-28T01-19-10.624Z.json captured a 4-token deterministic reference transcript and executionContractOk=true. Hosted artifact is enabled for web demo download; quickstart remains disabled.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "Qwen/Qwen3.6-27B",

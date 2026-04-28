@@ -111,11 +111,14 @@ If shards exist without a manifest, classify the output as interrupted/incomplet
 ## Fast Triage
 
 ```bash
+# Discover checked-in runtime profiles and trace/probe signals
+npm run cli -- profiles --json
+
 # Primary debug run (auto surface = node-first transport; browser fallback only when node transport is unavailable)
-npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"profiles/verbose-trace"},"run":{"surface":"auto"}}' --json
+npm run debug -- --config '{"request":{"modelId":"MODEL_ID"},"run":{"surface":"auto"}}' --runtime-profile profiles/verbose-trace --json
 
 # Verify pass/fail with inference suite
-npm run verify:model -- --config '{"request":{"workload":"inference","modelId":"MODEL_ID","runtimeProfile":"profiles/verbose-trace"},"run":{"surface":"auto"}}' --json
+npm run verify:model -- --config '{"request":{"workload":"inference","modelId":"MODEL_ID"},"run":{"surface":"auto"}}' --runtime-profile profiles/verbose-trace --json
 
 # Force browser relay for mobile/WebGPU parity checks
 npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"diagnostics/debug-logits"},"run":{"surface":"browser","browser":{"channel":"chrome","console":true}}}' --json
@@ -140,7 +143,7 @@ Notes:
 
 ```bash
 # Broad trace-heavy debug run
-npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"profiles/verbose-trace"},"run":{"surface":"auto"}}' --json
+npm run debug -- --config '{"request":{"modelId":"MODEL_ID"},"run":{"surface":"auto"}}' --runtime-profile profiles/verbose-trace --json
 
 # Logit-focused browser relay run
 npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"diagnostics/debug-logits"},"run":{"surface":"browser","browser":{"channel":"chrome","console":true}}}' --json

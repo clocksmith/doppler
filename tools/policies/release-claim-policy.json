@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-04-20",
+  "updatedAt": "2026-04-28",
   "claims": [
     {
       "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
@@ -94,6 +94,21 @@
           "benchmarks/vendors/results/compare_20260420T163143.json",
           "benchmarks/vendors/results/compare_20260420T163255.json"
         ]
+      }
+    },
+    {
+      "modelId": "qwen-3-6-27b-q4k-ehaf16",
+      "mode": "text",
+      "surface": ["browser"],
+      "verificationSource": "browser-webgpu-smoke",
+      "lastVerifiedAt": "2026-04-28",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "browser-webgpu-smoke",
+        "reportPath": "reports/qwen-3-6-27b-q4k-ehaf16/2026-04-28T01-19-10.624Z.json",
+        "contracts": {
+          "executionContractOk": true
+        }
       }
     },
     {

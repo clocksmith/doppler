@@ -34,5 +34,7 @@ Everything in `tools/` except `convert-safetensors-node.js`:
 - Published package consumers use only the documented exports.
 - New docs should center the root `doppler` facade; do not route fresh public examples through legacy provider/internal surfaces.
 - Tooling commands currently include `convert`, `debug`, `bench`, `verify`, `diagnose`, `lora`, and `distill`.
+- CLI-local maintenance/discovery commands such as `program-bundle` and `profiles` are outside the shared browser/Node command-runner contract.
+- Agents should run `node src/cli/doppler-cli.js profiles --json` before guessing runtime profile names.
 - Skills should invoke CLI commands (`npm run debug`, `npm run bench`) rather than importing `src/tooling/` internals.
 - New dev scripts go in `tools/`. New commands go in `src/tooling/command-api.js` + CLI.

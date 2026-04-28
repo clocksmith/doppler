@@ -149,6 +149,7 @@ Commands have workload/intent rules defined in `src/rules/tooling/command-runtim
 | `diagnose` | caller choice    | `investigate` | `node src/cli/doppler-cli.js diagnose --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
 | `verify`  | caller choice     | `verify`      | `node src/cli/doppler-cli.js verify --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
 | `convert` | n/a               | —             | `node src/cli/doppler-cli.js convert --config <path|url|json>` |
+| `profiles` | n/a             | discovery     | `node src/cli/doppler-cli.js profiles --json` |
 | `lora`    | n/a               | —             | `node src/cli/doppler-cli.js lora --config <path|url|json>` |
 | `distill` | n/a               | —             | `node src/cli/doppler-cli.js distill --config <path|url|json>` |
 
@@ -156,6 +157,8 @@ Commands have workload/intent rules defined in `src/rules/tooling/command-runtim
 - The CLI auto-resolves models from the external RDRR root (`/Volumes/models/rdrr` on macOS, `/media/x/models/rdrr` on Linux) by `modelId`.
 - To point at a model outside the external root, set `request.modelUrl` to a `file://` path. `modelUrl` is a **request-level** field.
 - Use `--surface node` to force Node/WebGPU, `--surface browser` to force headless Chromium, or omit for `auto`.
+- Use `doppler profiles --json` to discover checked-in runtime profile IDs before choosing an investigation, verify, or calibration profile.
+- `--runtime-profile <id>` is an additive CLI shorthand for `request.runtimeProfile`; full JSON config remains canonical, and `--runtime-profile` must not be combined with `--runtime-config` or runtime fields inside `--config`.
 
 ### Config System
 

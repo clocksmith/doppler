@@ -213,6 +213,10 @@ Runtime profiles must carry lifecycle metadata in the profile object or registry
 - optional: `supersedes`, `deprecatedAtUtc`, `replacementId`
 
 Agents should resolve profiles by metadata/intent, not filename heuristics.
+Use `node src/cli/doppler-cli.js profiles --json` to inspect checked-in profile
+metadata before selecting a profile in a command. CLI `--runtime-profile <id>`
+is only a shorthand for `request.runtimeProfile`; it must not introduce
+per-field runtime tuning outside the config payload.
 
 ---
 
