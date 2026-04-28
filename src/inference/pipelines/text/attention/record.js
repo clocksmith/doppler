@@ -644,10 +644,13 @@ export async function recordLayerAttentionGPU(
 
   attnForProjection = attnOutput;
   if (qGateTensor) {
+    // Mirror run.js gate dispatch. Qwen3_5/Qwen 3.6 full attention applies
+    // sigmoid(gate) even when the HF config surfaces `output_gate_type=swish`.
+    const gateActivation = 'sigmoid';
     attnForProjection = await recordSiLU(recorder, attnOutput, {
       size: numTokens * numHeads * headDim,
       gate: qGateTensor,
-      gateActivation: 'sigmoid',
+      gateActivation,
       inputActivation: 'identity',
       swigluLimit: null,
     });

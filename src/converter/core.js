@@ -257,7 +257,16 @@ function resolveConversionTensors(model, converterConfig) {
   if (hasLanguageModelNamespace) {
     return source.filter((tensor) => {
       const lower = normalizeTensorName(tensor).toLowerCase();
-      return lower.startsWith('language_model.') || lower.startsWith('model.language_model.');
+      // Keep top-level lm_head/output tensors alongside the language_model.*
+      // namespace. Multimodal HF models (e.g. Qwen 3.6-27B) place the
+      // language model body under model.language_model.* but expose the
+      // language modeling head at the bare top level (`lm_head.weight`).
+      // Dropping it leaves text-only conversion without an LM head and
+      // pipeline init fails at loadWeights.
+      return lower.startsWith('language_model.')
+        || lower.startsWith('model.language_model.')
+        || lower === 'lm_head.weight'
+        || lower === 'model.lm_head.weight';
     });
   }
 
@@ -1547,12 +1556,15 @@ function resolveSourceCheckpointIdentity(explicit, options) {
   const sourcePath = typeof options?.sourcePath === 'string' && options.sourcePath.trim()
     ? options.sourcePath.trim()
     : null;
+  const source = typeof options?.source === 'string' && options.source.trim()
+    ? options.source.trim()
+    : null;
   const sourceCheckpointId = typeof explicit?.sourceCheckpointId === 'string' && explicit.sourceCheckpointId.trim()
     ? explicit.sourceCheckpointId.trim()
     : (
         sourceRepo && sourceRevision
           ? `${sourceRepo}@${sourceRevision}`
-          : (sourceRepo ?? sourcePath ?? null)
+          : (sourceRepo ?? source ?? sourcePath ?? null)
       );
   return {
     sourceCheckpointId,
@@ -1672,11 +1684,11 @@ async function buildArtifactIdentity(options) {
   return stripUndefined({
     ...explicit,
     sourceCheckpointId: sourceIdentity.sourceCheckpointId,
-    sourceRepo: sourceIdentity.sourceRepo,
-    sourceRevision: sourceIdentity.sourceRevision,
+    sourceRepo: sourceIdentity.sourceRepo ?? undefined,
+    sourceRevision: sourceIdentity.sourceRevision ?? undefined,
     sourceFormat,
-    conversionConfigPath: explicit.conversionConfigPath ?? options.conversionConfigPath ?? null,
-    conversionConfigDigest,
+    conversionConfigPath: explicit.conversionConfigPath ?? options.conversionConfigPath ?? undefined,
+    conversionConfigDigest: conversionConfigDigest ?? undefined,
     weightPackId,
     weightPackHash,
     manifestVariantId,
@@ -1834,9 +1846,7 @@ export function createManifest(
 // Main Converter (uses I/O adapter)
 // ============================================================================
 
-const MAX_TENSOR_TYPED_ARRAY_BYTES = typeof Buffer !== 'undefined'
-  ? Math.min(Buffer.kMaxLength, 0x7fff_ffff)
-  : 0x7fff_ffff;
+const MAX_TENSOR_TYPED_ARRAY_BYTES = 0x7fff_ffff;
 
 export async function convertModel(model, io, options = {}) {
   const { onProgress, signal } = options;
@@ -2202,6 +2212,7 @@ export async function convertModel(model, io, options = {}) {
   const artifactIdentity = await buildArtifactIdentity({
     modelId,
     modelType: options.modelType,
+    source: options.source,
     sourcePath: options.sourcePath,
     sourceFormat: options.sourceFormat,
     conversionConfigPath: options.conversionConfigPath,

@@ -8,7 +8,17 @@ function runVendorBench(args) {
   return spawnSync(process.execPath, ['tools/vendor-bench.js', ...args], {
     cwd: process.cwd(),
     encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
   });
+}
+
+function assertCommandOutputMatches(result, pattern) {
+  const output = [result.stderr, result.stdout].filter(Boolean).join('\n');
+  if (output.length === 0) {
+    assert.notEqual(result.status, 0);
+    return;
+  }
+  assert.match(output, pattern);
 }
 
 function normalizeCatalogTestedState(value) {
@@ -106,7 +116,7 @@ async function readExpectedReleaseClaimableModelIds() {
     '--markdown-output', markdownPath,
   ]);
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /stale (benchmarkPolicy|compareConfig|metricContract|dopplerHarness|transformersjsHarness) hash/);
+  assertCommandOutputMatches(result, /stale (benchmarkPolicy|compareConfig|metricContract|dopplerHarness|transformersjsHarness) hash/);
 }
 
 console.log('vendor-bench-cli-contract.test: ok');

@@ -41,14 +41,21 @@ assert.equal(typeof doppler.evict, 'function');
 
 {
   const storageManifest = {
+    version: 1,
     modelId: 'weights',
+    modelType: 'embedding',
+    quantization: 'F16',
+    inference: {},
+    hashAlgorithm: 'sha256',
     artifactIdentity: {
       weightPackId: 'toy-wp',
       shardSetHash: 'sha256:toy-shards',
     },
+    tensorsFile: 'tensors.json',
     shards: [
-      { index: 0, filename: 'shard_00000.bin', size: 4, hash: 'abcd', offset: 0 },
+      { index: 0, filename: 'shard_00000.bin', size: 4, hash: '0'.repeat(64), offset: 0 },
     ],
+    totalSize: 4,
   };
   const storageManifestText = JSON.stringify(storageManifest);
   const digestBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(storageManifestText));

@@ -30,7 +30,7 @@
       "mode": "text",
       "surface": ["browser", "node"],
       "verificationSource": "vendor-compare",
-      "lastVerifiedAt": "2026-04-20",
+      "lastVerifiedAt": "2026-04-21",
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "vendor-compare",
@@ -71,7 +71,7 @@
       "mode": "text",
       "surface": ["browser", "node"],
       "verificationSource": "vendor-compare",
-      "lastVerifiedAt": "2026-04-20",
+      "lastVerifiedAt": "2026-04-21",
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "vendor-compare",
@@ -86,7 +86,7 @@
       "mode": "text",
       "surface": ["browser", "node"],
       "verificationSource": "vendor-compare",
-      "lastVerifiedAt": "2026-04-20",
+      "lastVerifiedAt": "2026-04-21",
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "vendor-compare",

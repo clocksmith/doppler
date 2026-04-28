@@ -3999,4 +3999,5 @@ export {
   resolveCompareLoadModes,
   resolveDopplerModelSource,
   resolveRunLoadMode,
+  usage,
 };

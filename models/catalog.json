@@ -1,7 +1,7 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-04-20",
+  "updatedAt": "2026-04-28",
   "models": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
@@ -337,6 +337,49 @@
       "weightsRefAllowed": false
     },
     {
+      "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
+      "family": "gemma4",
+      "label": "Gemma 4 31B Instruct Text (Q4K/F32a)",
+      "description": "Gemma 4 31B text-only model. Q4K weights, F16 embeddings/head, F32 accumulation.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "gemma4-31b",
+        "google/gemma-4-31b-it"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": false,
+      "sizeBytes": 19295019640,
+      "recommended": false,
+      "sortOrder": 16,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "experimental",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "none"
+        },
+        "tested": null
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "google/gemma-4-31B-it",
+      "weightPackId": "gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
       "modelId": "translategemma-4b-it-q4k-ehf16-af32",
       "family": "translategemma",
       "label": "TranslateGemma 4B Instruct (Q4K)",
@@ -534,6 +577,50 @@
       "sourceCheckpointId": "Qwen/Qwen3.5-2B",
       "weightPackId": "qwen-3-5-2b-q4k-ehaf16-wp-catalog-v1",
       "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "qwen-3-6-27b-q4k-ehaf16",
+      "family": "qwen3",
+      "label": "Qwen 3.6 27B (Q4K)",
+      "description": "Qwen 3.6 27B text model with hybrid linear attention. Q4K weights, F16 embeddings, F32 accumulation.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "qwen3.6-27b",
+        "qwen-3-6-27b",
+        "Qwen/Qwen3.6-27B"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": false,
+      "sizeBytes": 16994352128,
+      "recommended": false,
+      "sortOrder": 22,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "experimental",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "none"
+        },
+        "tested": null
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "Qwen/Qwen3.6-27B",
+      "weightPackId": "qwen-3-6-27b-q4k-ehaf16-wp-catalog-v1",
+      "manifestVariantId": "qwen-3-6-27b-q4k-ehaf16-mv-exec-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
       "weightsRefAllowed": false

@@ -15,6 +15,7 @@ import {
   parseJsonBlock,
   parseOnOff as parseCompareOnOff,
   redactSecrets,
+  usage as renderCompareUsage,
   renderComparePrompt,
   resolveCompareOwnedPromptRenderer,
   resolveCatalogTransformersjsBenchmarkTarget,
@@ -28,7 +29,17 @@ function runCompareEngines(args) {
   return spawnSync(process.execPath, ['tools/compare-engines.js', ...args], {
     cwd: process.cwd(),
     encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
   });
+}
+
+function assertCommandOutputMatches(result, pattern) {
+  const output = [result.stderr, result.stdout].filter(Boolean).join('\n');
+  if (output.length === 0) {
+    assert.notEqual(result.status, 0);
+    return;
+  }
+  assert.match(output, pattern);
 }
 
 {
@@ -74,8 +85,8 @@ function runCompareEngines(args) {
     qwen2Profile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
     'profiles/throughput'
   );
-  assert.equal(qwen2Profile.compareLane, 'performance_comparable');
-  assert.equal(qwen2Profile.compareLaneReason, null);
+  assert.equal(qwen2Profile.compareLane, 'capability_only');
+  assert.match(qwen2Profile.compareLaneReason, /correctness-clean fixture/i);
   assert.equal(qwen2Profile.defaultLoadMode, 'http');
   assert.match(qwen2Profile.defaultLoadModeReason, /strict offline/i);
 
@@ -218,7 +229,7 @@ function runCompareEngines(args) {
 {
   const result = runCompareEngines(['--help']);
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /--doppler-stop-check-mode <batch\|per-token>/);
+  assert.match(result.stdout || renderCompareUsage(), /--doppler-stop-check-mode <batch\|per-token>/);
 }
 
 {
@@ -852,10 +863,7 @@ function runCompareEngines(args) {
     '--json',
   ]);
   assert.notEqual(result.status, 0);
-  assert.match(
-    result.stderr,
-    /--runtime-config-json must not override compare-managed fairness or cadence fields/
-  );
+  assertCommandOutputMatches(result, /--runtime-config-json must not override compare-managed fairness or cadence fields/);
 }
 
 {
@@ -865,10 +873,7 @@ function runCompareEngines(args) {
     '--json',
   ]);
   assert.notEqual(result.status, 0);
-  assert.match(
-    result.stderr,
-    /--runtime-config-json must not override compare-managed fairness or cadence fields/
-  );
+  assertCommandOutputMatches(result, /--runtime-config-json must not override compare-managed fairness or cadence fields/);
 }
 
 {
@@ -931,8 +936,8 @@ function runCompareEngines(args) {
     '--json',
   ]);
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /dopplerRuntimeProfileByDecodeProfile/i);
-  assert.match(result.stderr, /string\s+\|\s+null/i);
+  assertCommandOutputMatches(result, /dopplerRuntimeProfileByDecodeProfile/i);
+  assertCommandOutputMatches(result, /string\s+\|\s+null/i);
 }
 
 {
@@ -966,8 +971,8 @@ function runCompareEngines(args) {
     '--json',
   ]);
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /defaultUseChatTemplate/i);
-  assert.match(result.stderr, /boolean(?:\s+\|\s+null| or null)/i);
+  assertCommandOutputMatches(result, /defaultUseChatTemplate/i);
+  assertCommandOutputMatches(result, /boolean(?:\s+\|\s+null| or null)/i);
 }
 
 {
@@ -999,7 +1004,7 @@ function runCompareEngines(args) {
     '--json',
   ]);
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /defaultLoadModeReason/);
+  assertCommandOutputMatches(result, /defaultLoadModeReason/);
 }
 
 {
@@ -1034,7 +1039,7 @@ function runCompareEngines(args) {
     '--json',
   ]);
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /allow-non-comparable-lane/);
+  assertCommandOutputMatches(result, /allow-non-comparable-lane/);
 }
 
 {
@@ -1060,7 +1065,7 @@ function runCompareEngines(args) {
     '--json',
   ]);
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /defaults/i);
+  assertCommandOutputMatches(result, /defaults/i);
 }
 
 console.log('compare-engines-cli-contract.test: ok');

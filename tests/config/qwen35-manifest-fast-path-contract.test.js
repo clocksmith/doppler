@@ -94,7 +94,18 @@ const modelProfiles = new Map(KNOWN_MODELS.map((entry) => [entry.modelId, entry.
 assert.equal(modelProfiles.get('qwen-3-5-0-8b-q4k-ehaf16'), 'profiles/throughput');
 assert.equal(modelProfiles.get('qwen-3-5-2b-q4k-ehaf16'), 'profiles/throughput');
 
-const qwen08DecodeLoop = Object.freeze({
+const qwen08ConfigDecodeLoop = Object.freeze({
+  batchSize: 4,
+  stopCheckMode: 'batch',
+  readbackInterval: 8,
+  readbackMode: 'sequential',
+  submitLatencyThresholdMs: null,
+  ringTokens: 1,
+  ringStop: 1,
+  ringStaging: 1,
+  disableCommandBatching: false,
+});
+const qwen08ManifestDecodeLoop = Object.freeze({
   batchSize: 4,
   stopCheckMode: 'batch',
   readbackInterval: 32,
@@ -117,8 +128,8 @@ const qwen2DecodeLoop = Object.freeze({
   disableCommandBatching: false,
 });
 
-assertDecodeLoop(qwen08Config.session?.decodeLoop, qwen08DecodeLoop, 'Qwen 3.5 0.8B conversion config');
-assertDecodeLoop(qwen08Manifest.inference?.session?.decodeLoop, qwen08DecodeLoop, 'Qwen 3.5 0.8B local manifest');
+assertDecodeLoop(qwen08Config.session?.decodeLoop, qwen08ConfigDecodeLoop, 'Qwen 3.5 0.8B conversion config');
+assertDecodeLoop(qwen08Manifest.inference?.session?.decodeLoop, qwen08ManifestDecodeLoop, 'Qwen 3.5 0.8B local manifest');
 assertDecodeLoop(qwen2Config.session?.decodeLoop, qwen2DecodeLoop, 'Qwen 3.5 2B conversion config');
 assertDecodeLoop(qwen2Manifest.inference?.session?.decodeLoop, qwen2DecodeLoop, 'Qwen 3.5 2B local manifest');
 

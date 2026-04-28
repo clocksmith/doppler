@@ -33,6 +33,7 @@ const QUICKSTART_DISPLAY_NAMES = {
   'google-embeddinggemma-300m-q4k-ehf16-af32': 'EmbeddingGemma 300M (Q4K)',
   'gemma-3-1b-it-q4k-ehf16-af32': 'Gemma 3 1B IT (Q4K)',
   'gemma-4-e2b-it-q4k-ehf16-af32': 'Gemma 4 E2B IT (Q4K)',
+  'gemma-4-e2b-it-q4k-ehf16-af32-int4ple': 'Gemma 4 E2B IT (Q4K + INT4 PLE)',
   'qwen-3-5-0-8b-q4k-ehaf16': 'Qwen 3.5 0.8B (Q4K)',
   'qwen-3-5-2b-q4k-ehaf16': 'Qwen 3.5 2B (Q4K)',
 };

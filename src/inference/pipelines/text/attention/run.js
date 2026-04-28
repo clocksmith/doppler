@@ -891,10 +891,27 @@ export async function runLayerAttentionGPU(
 
   attnForProjection = attnOutput;
   if (qGateTensor) {
+    // The Qwen3_5 reference (HF transformers) full-attention path
+    // applies sigmoid(gate) — NOT silu(gate) — to the attention
+    // output regardless of how the architecture's gate label is
+    // surfaced in the HF config. See Qwen3_5Attention.forward in
+    // transformers/models/qwen3_5/modeling_qwen3_5.py:
+    //   attn_output = attn_output * torch.sigmoid(gate)
+    // The earlier `swish` -> `silu` mapping here was incorrect and
+    // produced sign-flipped output for any token whose gate value
+    // was negative (silu is sign-preserving via x * sigmoid(x);
+    // sigmoid is unconditionally in (0, 1)). At Qwen 3.6 27B scale
+    // this drove residual-stream divergence by L=3 (HF reference vs
+    // upstream rel_l2≈1.37, mean per-token correlation ≈ -0.96 — a
+    // sign-flip pattern). config.outputGateType is retained for
+    // future architectures whose gate truly is silu, but Qwen 3.6's
+    // `output_gate_type=swish` still routes here as sigmoid because
+    // that is what the reference forward computes.
+    const gateActivation = 'sigmoid';
     attnForProjection = await runSiLU(attnOutput, {
       size: numTokens * numHeads * headDim,
       gate: qGateTensor,
-      gateActivation: 'sigmoid',
+      gateActivation,
       inputActivation: 'identity',
       swigluLimit: null,
     });

@@ -22,12 +22,16 @@ const profile = (Array.isArray(compareConfig.modelProfiles) ? compareConfig.mode
 
 assert.ok(profile, 'compare config must include gemma-4-e2b-it-q4k-ehf16-af32');
 assert.equal(profile.compareLane, 'performance_comparable');
-assert.equal(profile.compareLaneReason, null);
+assert.match(
+  String(profile.compareLaneReason ?? ''),
+  /not correctness-parity claims/,
+  'Gemma 4 E2B compare lane must keep its non-correctness claim reason'
+);
 assert.equal(fs.existsSync(EVIDENCE_PATH), true, 'Gemma 4 E2B compare promotion requires a committed compare fixture');
 
 const evidence = readJson(EVIDENCE_PATH);
 assert.equal(evidence.compareLane?.declared, 'performance_comparable');
-assert.equal(evidence.compareLane?.reason ?? null, null);
+assert.equal(evidence.compareLane?.reason, profile.compareLaneReason);
 assert.equal(evidence.dopplerModelId, profile.dopplerModelId);
 assert.equal(evidence.tjsModelId, profile.defaultTjsModelId);
 assert.equal(evidence.dopplerSurface, 'browser');

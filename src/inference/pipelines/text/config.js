@@ -1581,6 +1581,7 @@ function toParsedConfigFromMerged(merged, manifest) {
     queryKeyNorm: inf.attention.queryKeyNorm,
     valueNorm: inf.attention.valueNorm,
     attentionOutputGate: inf.attention.attentionOutputGate === true,
+    outputGateType: inf.attention.outputGateType ?? null,
     queryPreAttnScalar,
     layerPipeline: inf.pipeline ?? null,
     chatTemplateType,

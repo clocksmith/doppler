@@ -149,8 +149,8 @@
       "dopplerRuntimeProfileByDecodeProfile": {
         "throughput": "profiles/throughput"
       },
-      "compareLane": "performance_comparable",
-      "compareLaneReason": null
+      "compareLane": "capability_only",
+      "compareLaneReason": "Qwen 3.5 2B has no committed correctness-clean fixture for the claimable compare lane yet."
     },
     {
       "dopplerModelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
