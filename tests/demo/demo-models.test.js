@@ -5,11 +5,14 @@ import {
   EXECUTION_V1_SCHEMA_ID,
 } from '../../src/config/schema/index.js';
 import {
+  assertWeightsRefPrimaryAvailable,
   buildModelCardDetail,
   buildLocalModelBaseUrl,
   buildModelSourceCandidates,
   buildRemoveConfirmText,
   canRemoveModelStatus,
+  findPrimaryForWeightPack,
+  findRegisteredSiblingsOf,
   patchManifestCompat,
   selectDemoCatalogEntries,
 } from '../../demo/models.js';
@@ -328,6 +331,90 @@ const DEMO_WEIGHTS_REF_READY = Object.freeze({
       weightsRefPrimary: 'gemma-4-31b-it-text-q4k-ehf16-af32',
     }, 'stored'),
     'Ready · Shared with gemma-4-31b-it-text-q4k-ehf16-af32'
+  );
+}
+
+// findPrimaryForWeightPack: locates the primary lane that owns a weight pack.
+{
+  const catalog = [
+    { modelId: 'primary', weightPackId: 'wp-1', artifactCompleteness: 'complete', weightsRefAllowed: false },
+    { modelId: 'sibling', weightPackId: 'wp-1', artifactCompleteness: 'weights-ref', weightsRefAllowed: true },
+    { modelId: 'other-primary', weightPackId: 'wp-2', artifactCompleteness: 'complete', weightsRefAllowed: false },
+  ];
+  assert.equal(findPrimaryForWeightPack(catalog, 'wp-1')?.modelId, 'primary');
+  assert.equal(findPrimaryForWeightPack(catalog, 'wp-2')?.modelId, 'other-primary');
+  assert.equal(findPrimaryForWeightPack(catalog, 'wp-missing'), null);
+  assert.equal(findPrimaryForWeightPack(null, 'wp-1'), null);
+  assert.equal(findPrimaryForWeightPack(catalog, ''), null);
+}
+
+// assertWeightsRefPrimaryAvailable: passes for primary lanes; passes for
+// siblings only when the primary is in OPFS; throws with primary modelId
+// in the error message otherwise.
+{
+  const catalog = [
+    { modelId: 'primary', weightPackId: 'wp-1', artifactCompleteness: 'complete', weightsRefAllowed: false },
+    { modelId: 'sibling', weightPackId: 'wp-1', artifactCompleteness: 'weights-ref', weightsRefAllowed: true },
+    { modelId: 'orphan', weightPackId: 'wp-missing', artifactCompleteness: 'weights-ref', weightsRefAllowed: true },
+  ];
+
+  // Primary lane: nothing to assert.
+  assert.equal(
+    assertWeightsRefPrimaryAvailable(catalog[0], catalog, new Set()),
+    null,
+    'primary lane is a no-op',
+  );
+
+  // Sibling with primary stored: returns the primary entry.
+  const result = assertWeightsRefPrimaryAvailable(catalog[1], catalog, new Set(['primary']));
+  assert.equal(result?.modelId, 'primary');
+
+  // Sibling without primary stored: throws with primary id named.
+  assert.throws(
+    () => assertWeightsRefPrimaryAvailable(catalog[1], catalog, new Set()),
+    /shares weights with primary\. Download primary first/,
+  );
+
+  // Orphan sibling (no primary in catalog): throws with weightPackId named.
+  assert.throws(
+    () => assertWeightsRefPrimaryAvailable(catalog[2], catalog, new Set()),
+    /no primary lane in the catalog \(weightPackId=wp-missing\)/,
+  );
+}
+
+// findRegisteredSiblingsOf: enumerates registered weights-ref siblings that
+// depend on a primary. Used by the remove-stored-model guard.
+{
+  const catalog = [
+    { modelId: 'primary', weightPackId: 'wp-1', artifactCompleteness: 'complete', weightsRefAllowed: false },
+    { modelId: 'sibling-a', weightPackId: 'wp-1', artifactCompleteness: 'weights-ref', weightsRefAllowed: true },
+    { modelId: 'sibling-b', weightPackId: 'wp-1', artifactCompleteness: 'weights-ref', weightsRefAllowed: true },
+    { modelId: 'unrelated', weightPackId: 'wp-2', artifactCompleteness: 'weights-ref', weightsRefAllowed: true },
+  ];
+  // No siblings registered: empty.
+  assert.deepEqual(
+    findRegisteredSiblingsOf(catalog[0], catalog, new Set()).map((e) => e.modelId),
+    [],
+  );
+  // One sibling registered: just that one.
+  assert.deepEqual(
+    findRegisteredSiblingsOf(catalog[0], catalog, new Set(['sibling-a'])).map((e) => e.modelId),
+    ['sibling-a'],
+  );
+  // Both siblings registered: both reported.
+  assert.deepEqual(
+    findRegisteredSiblingsOf(catalog[0], catalog, new Set(['sibling-a', 'sibling-b'])).map((e) => e.modelId),
+    ['sibling-a', 'sibling-b'],
+  );
+  // Unrelated sibling on a different weight pack: ignored.
+  assert.deepEqual(
+    findRegisteredSiblingsOf(catalog[0], catalog, new Set(['unrelated'])).map((e) => e.modelId),
+    [],
+  );
+  // Calling with a non-primary entry returns empty.
+  assert.deepEqual(
+    findRegisteredSiblingsOf(catalog[1], catalog, new Set(['sibling-a', 'sibling-b'])).map((e) => e.modelId),
+    [],
   );
 }
 

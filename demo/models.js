@@ -81,6 +81,45 @@ function isWeightsRefEntry(entry) {
   return entry?.artifactCompleteness === 'weights-ref';
 }
 
+// Locate the catalog entry for the primary lane that owns a given weight pack.
+// A primary lane is artifactCompleteness=complete + weightsRefAllowed=false.
+// Exported for tests; used by the download and load paths to follow weightsRef
+// onto the OPFS slot that actually holds the shared bytes.
+export function findPrimaryForWeightPack(catalogEntries, weightPackId) {
+  if (!Array.isArray(catalogEntries) || !weightPackId) return null;
+  return catalogEntries.find((entry) =>
+    entry?.weightPackId === weightPackId
+    && entry?.artifactCompleteness === 'complete'
+    && entry?.weightsRefAllowed === false
+  ) ?? null;
+}
+
+// Verify that a weights-ref sibling can be downloaded. The primary lane must
+// be in the catalog and already stored in OPFS; without it, neither the
+// download (manifest-only HF publish has no shards) nor the load (OPFS slot
+// is empty) can succeed. Throws a typed error with the primary modelId so
+// the UX can tell the user exactly what to download first.
+export function assertWeightsRefPrimaryAvailable(entry, catalogEntries, storedModelIds) {
+  if (!isWeightsRefEntry(entry)) return null;
+  const primary = findPrimaryForWeightPack(catalogEntries, entry?.weightPackId);
+  if (!primary) {
+    throw new Error(
+      `${entry?.modelId ?? 'unknown'}: weights-ref sibling has no primary lane in the ` +
+      `catalog (weightPackId=${entry?.weightPackId ?? 'unknown'}).`
+    );
+  }
+  const storedSet = storedModelIds instanceof Set
+    ? storedModelIds
+    : new Set(Array.isArray(storedModelIds) ? storedModelIds : []);
+  if (!storedSet.has(primary.modelId)) {
+    throw new Error(
+      `${entry?.modelId ?? 'unknown'} shares weights with ${primary.modelId}. ` +
+      `Download ${primary.modelId} first; the sibling reuses those bytes.`
+    );
+  }
+  return primary;
+}
+
 export function buildRemoveConfirmText(entry) {
   if (isWeightsRefEntry(entry)) {
     return 'Remove this manifest from OPFS? Shared weights remain.';
@@ -172,10 +211,44 @@ async function confirmRemoveModel(entry) {
   });
 }
 
+// Find weights-ref siblings (across the live catalog) that depend on the
+// given primary's weight pack and are currently registered in OPFS.
+// Exported for tests.
+export function findRegisteredSiblingsOf(primaryEntry, catalogEntries, storedModelIds) {
+  if (!primaryEntry || primaryEntry.weightsRefAllowed !== false) return [];
+  if (primaryEntry.artifactCompleteness !== 'complete') return [];
+  const storedSet = storedModelIds instanceof Set
+    ? storedModelIds
+    : new Set(Array.isArray(storedModelIds) ? storedModelIds : []);
+  return (Array.isArray(catalogEntries) ? catalogEntries : []).filter((entry) =>
+    entry?.weightPackId === primaryEntry.weightPackId
+    && entry?.artifactCompleteness === 'weights-ref'
+    && entry?.weightsRefAllowed === true
+    && storedSet.has(entry.modelId)
+  );
+}
+
 async function removeStoredModel(entry) {
   if (!entry?.modelId || state.generating || state.prefilling) {
     return;
   }
+
+  // Block removal of a primary while any weights-ref sibling still depends
+  // on its bytes; otherwise the sibling becomes a registered-but-broken
+  // stub that fails at next load.
+  if (entry?.artifactCompleteness === 'complete' && entry?.weightsRefAllowed === false) {
+    const registered = await listRegisteredModels();
+    const storedIds = new Set(registered.map((r) => r.modelId));
+    const siblings = findRegisteredSiblingsOf(entry, catalog, storedIds);
+    if (siblings.length > 0) {
+      const ids = siblings.map((s) => s.modelId).join(', ');
+      throw new Error(
+        `${entry.modelId} backs the registered manifest-only sibling${siblings.length > 1 ? 's' : ''} ${ids}. ` +
+        `Remove the sibling${siblings.length > 1 ? 's' : ''} first, then ${entry.modelId}.`
+      );
+    }
+  }
+
   const confirmed = await confirmRemoveModel(entry);
   if (!confirmed) {
     return;
@@ -265,7 +338,7 @@ async function resolveLocalCatalogSourceMap(entries, fetchImpl = fetch, origin =
 
 // Demo accepts two shapes:
 //   - Primary lane: artifactCompleteness=complete, weightsRefAllowed=false.
-//     Self-contained — shards published next to manifest.
+//     Self-contained; shards published next to manifest.
 //   - Manifest-only sibling: artifactCompleteness=weights-ref,
 //     weightsRefAllowed=true. The variant must point at a primary lane that
 //     is itself demo-eligible (so the shared weight pack is reachable from
@@ -286,7 +359,7 @@ export function selectDemoCatalogEntries(models, options = {}) {
   const entries = Array.isArray(models) ? models : [];
   const localBaseUrls = options.localBaseUrls instanceof Map ? options.localBaseUrls : new Map();
 
-  // Build a weightPackId → primary entry index. A weights-ref sibling is
+  // Build a weightPackId-to-primary entry index. A weights-ref sibling is
   // only demo-eligible if its primary passes every other demo gate.
   const primaryById = new Map();
   for (const entry of entries) {
@@ -486,7 +559,7 @@ export async function checkStoredModels() {
       }
     }
   } catch {
-    // OPFS unavailable — mark all as available for download
+    // OPFS unavailable; mark all as available for download
     for (const entry of catalog) {
       state.modelStatus[entry.modelId] = 'available';
     }
@@ -607,6 +680,17 @@ async function handleCardClick(entry) {
 
 async function downloadAndLoad(entry) {
   const { modelId } = entry;
+  const isWeightsRef = isWeightsRefEntry(entry);
+
+  // Weights-ref sibling: gate the download on the primary lane already
+  // being in OPFS. The sibling has no shards of its own; fetching from
+  // its baseUrl would 404 against a manifest-only HF publish, and copying
+  // the primary's shards into the sibling's slot would defeat the share.
+  if (isWeightsRef) {
+    const registered = await listRegisteredModels();
+    const storedIds = new Set(registered.map((r) => r.modelId));
+    assertWeightsRefPrimaryAvailable(entry, catalog, storedIds);
+  }
 
   state.modelStatus[modelId] = 'downloading';
   renderModelCards();
@@ -624,35 +708,43 @@ async function downloadAndLoad(entry) {
     await openModelStore(modelId);
     await saveManifest(JSON.stringify(manifest, null, 2));
 
-    // Tokenizer
-    const tokFile = manifest?.tokenizer?.file;
-    if (tokFile) {
-      if (tokFile.endsWith('.model')) {
-        const bytes = await fetchBytes(buildArtifactUrl(resolvedSource.baseUrl, tokFile), signal);
-        await saveTokenizerModel(bytes.buffer);
-      } else {
-        const text = await fetchText(buildArtifactUrl(resolvedSource.baseUrl, tokFile), signal);
-        await saveTokenizer(text);
+    if (!isWeightsRef) {
+      // Tokenizer
+      const tokFile = manifest?.tokenizer?.file;
+      if (tokFile) {
+        if (tokFile.endsWith('.model')) {
+          const bytes = await fetchBytes(buildArtifactUrl(resolvedSource.baseUrl, tokFile), signal);
+          await saveTokenizerModel(bytes.buffer);
+        } else {
+          const text = await fetchText(buildArtifactUrl(resolvedSource.baseUrl, tokFile), signal);
+          await saveTokenizer(text);
+        }
       }
-    }
 
-    // Tensors map
-    if (manifest.tensorsFile) {
-      const text = await fetchText(buildArtifactUrl(resolvedSource.baseUrl, manifest.tensorsFile), signal);
-      await saveTensorsToStore(text);
-    }
+      // Tensors map
+      if (manifest.tensorsFile) {
+        const text = await fetchText(buildArtifactUrl(resolvedSource.baseUrl, manifest.tensorsFile), signal);
+        await saveTensorsToStore(text);
+      }
 
-    // Shards
-    const shards = manifest.shards || [];
-    for (let i = 0; i < shards.length; i++) {
-      const shard = shards[i];
-      const bytes = await fetchBytes(buildArtifactUrl(resolvedSource.baseUrl, shard.filename), signal);
-      await writeShard(shard.index, bytes, { verify: true });
+      // Shards
+      const shards = manifest.shards || [];
+      for (let i = 0; i < shards.length; i++) {
+        const shard = shards[i];
+        const bytes = await fetchBytes(buildArtifactUrl(resolvedSource.baseUrl, shard.filename), signal);
+        await writeShard(shard.index, bytes, { verify: true });
 
-      const percent = ((i + 1) / shards.length) * 100;
-      state.downloadProgress = { percent, currentShard: i + 1, totalShards: shards.length };
-      updateProgressBar(modelId, percent);
-      if (onProgress) onProgress({ modelId, percent, currentShard: i + 1, totalShards: shards.length });
+        const percent = ((i + 1) / shards.length) * 100;
+        state.downloadProgress = { percent, currentShard: i + 1, totalShards: shards.length };
+        updateProgressBar(modelId, percent);
+        if (onProgress) onProgress({ modelId, percent, currentShard: i + 1, totalShards: shards.length });
+      }
+    } else {
+      // Sibling slot owns just the manifest. Tokenizer, tensors map, and
+      // shards are read from the primary's slot at load time.
+      state.downloadProgress = { percent: 100, currentShard: 0, totalShards: 0 };
+      updateProgressBar(modelId, 100);
+      if (onProgress) onProgress({ modelId, percent: 100, currentShard: 0, totalShards: 0 });
     }
 
     await registerModel({ modelId });
@@ -724,6 +816,30 @@ async function loadModelFromStorage(modelId) {
   const manifest = patchManifestCompat(parseManifest(manifestText));
   // Re-save patched manifest so the loader reads compat fields from OPFS
   await saveManifest(JSON.stringify(manifest, null, 2));
+
+  // For a weights-ref sibling, switch the active OPFS slot to the primary
+  // so subsequent tokenizer/tensors/shard reads land on the shared bytes.
+  // The af16 manifest is already in scope (parsed above); shard reads are
+  // driven by the loader against the currently-open slot.
+  if (manifest.weightsRef) {
+    const primary = findPrimaryForWeightPack(catalog, manifest.weightsRef.weightPackId);
+    if (!primary || primary.modelId === modelId) {
+      throw new Error(
+        `${modelId}: manifest declares weightsRef but no primary lane was found in the ` +
+        `catalog (weightPackId=${manifest.weightsRef.weightPackId}). ` +
+        'Re-import or re-download the primary model.'
+      );
+    }
+    const registered = await listRegisteredModels();
+    if (!registered.some((r) => r.modelId === primary.modelId)) {
+      throw new Error(
+        `${modelId} shares weights with ${primary.modelId}, but ${primary.modelId} ` +
+        'is not in OPFS. Download the primary model first.'
+      );
+    }
+    await openModelStore(primary.modelId);
+  }
+
   await initDevice();
 
   const tensorsText = await loadTensorsFromStore();
