@@ -64,12 +64,13 @@ Uniform ABI fields and packed-weight decode helpers still carry f32-compatible
 host encodings where the surrounding API requires it, but the selected shader
 entrypoints cast those values into the f16 lane before arithmetic.
 
-## Decode Batch Bound
+## Decode Evidence
 
-On the AMD RADV WebGPU surface used for this branch, f16 decode command streams
-pass at three decode tokens and lose the device at four. The probe profile pins
-`session.decodeLoop.batchSize=3` and `readbackInterval=1` so each submit stays
-inside the passing geometry.
+On the AMD RADV WebGPU surface used for this branch, the f16 decode path now
+passes the probe profile's `maxTokens=8` cap and a 16-token override that stops
+after nine generated tokens. The 16-token browser/WebGPU debug sample generated
+`The sky is a clear, bright blue.` with `activationDtype=f16`, `kvDtype=f16`,
+`batchSize=3`, and `readbackInterval=1`.
 
 ## Claim Boundary
 
@@ -77,8 +78,7 @@ This branch makes the execution plan compile and route to f16 kernels under an
 all-f16 session contract, with the probe profile capped to the passing decode
 batch geometry.
 It does not by itself publish a catalog claim or replace the existing af32 model
-identity. Promotion requires a browser/WebGPU transcript or parity receipt
-captured through the profile.
+identity. Promotion requires a parity receipt captured through the profile.
 
 ## Probe Command
 
