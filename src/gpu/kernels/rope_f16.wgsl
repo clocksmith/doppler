@@ -1,10 +1,10 @@
 // AUTO-GENERATED from src/gpu/kernels/rope.wgsl.
-// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
 // Rotary Position Embeddings (RoPE) Kernel (F16)
 //
 // Applies rotary position embeddings to Q and K tensors.
 // Same math as rope.wgsl, but input/output are f16.
-// Computation is performed in f32 for stability.
+// The main entry keeps apply-time arithmetic in f16 for the all-f16 lane.
 //
 // Supports:
 // - Original RoPE (base = 10000)
@@ -83,20 +83,20 @@ fn main(
     let actual_pos = start_pos + pos;
 
     let freq_idx = actual_pos * half_dim + pair_idx;
-    let cos_val = freqs_cos[freq_idx];
-    let sin_val = freqs_sin[freq_idx];
+    let cos_val = f16(freqs_cos[freq_idx]);
+    let sin_val = f16(freqs_sin[freq_idx]);
 
     let base_idx = pos * num_heads * head_dim + head_idx * head_dim;
     let first_idx = get_first_rotary_idx(pair_idx);
     let second_idx = get_second_rotary_idx(pair_idx, u.pair_span_dim);
-    let x0 = f32(input[base_idx + first_idx]);
-    let x1 = f32(input[base_idx + second_idx]);
+    let x0 = input[base_idx + first_idx];
+    let x1 = input[base_idx + second_idx];
 
     let y0 = x0 * cos_val - x1 * sin_val;
     let y1 = x0 * sin_val + x1 * cos_val;
 
-    input[base_idx + first_idx] = f16(y0);
-    input[base_idx + second_idx] = f16(y1);
+    input[base_idx + first_idx] = y0;
+    input[base_idx + second_idx] = y1;
 }
 
 // Compute frequencies on-the-fly (no precomputation needed)

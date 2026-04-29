@@ -35,17 +35,6 @@ const {
 }
 
 {
-  const layout = detectDiffusionLayout({
-    transformer: ['diffusers', 'SanaTransformer2DModel'],
-    text_encoder: ['transformers', 'Gemma2Model'],
-    tokenizer: ['transformers', 'GemmaTokenizerFast'],
-    vae: ['diffusers', 'AutoencoderDC'],
-    scheduler: ['diffusers', 'SCMScheduler'],
-  });
-  assert.equal(layout.id, 'sana');
-}
-
-{
   const files = new Set([
     'model_index.json',
     'transformer/config.json',
@@ -128,91 +117,6 @@ const {
     ),
     false
   );
-}
-
-{
-  const files = new Set([
-    'model_index.json',
-    'transformer/config.json',
-    'text_encoder/config.json',
-    'vae/config.json',
-    'scheduler/scheduler_config.json',
-    'transformer/diffusion_pytorch_model.safetensors',
-    'text_encoder/model.safetensors.index.json',
-    'text_encoder/model-00001-of-00002.safetensors',
-    'text_encoder/model-00002-of-00002.safetensors',
-    'vae/diffusion_pytorch_model.safetensors',
-    'tokenizer/tokenizer.json',
-    'tokenizer/tokenizer_config.json',
-    'tokenizer/special_tokens_map.json',
-  ]);
-
-  const parsed = await parseDiffusionModel({
-    findExistingSuffix(suffixes) {
-      for (const suffix of suffixes || []) {
-        if (files.has(suffix)) return suffix;
-      }
-      return null;
-    },
-    async readJson(suffix) {
-      if (suffix === 'tokenizer/config.json') {
-        throw new Error('unexpected tokenizer/config.json lookup');
-      }
-      if (suffix === 'model_index.json') {
-        return {
-          _class_name: 'SanaSprintPipeline',
-          transformer: ['diffusers', 'SanaTransformer2DModel'],
-          text_encoder: ['transformers', 'Gemma2Model'],
-          tokenizer: ['transformers', 'GemmaTokenizerFast'],
-          vae: ['diffusers', 'AutoencoderDC'],
-          scheduler: ['diffusers', 'SCMScheduler'],
-        };
-      }
-      if (suffix === 'text_encoder/model.safetensors.index.json') {
-        return {
-          weight_map: {
-            'model.layers.0.self_attn.q_proj.weight': 'model-00001-of-00002.safetensors',
-            'model.layers.0.self_attn.k_proj.weight': 'model-00002-of-00002.safetensors',
-          },
-        };
-      }
-      return {};
-    },
-    async readText(suffix) {
-      return `text:${suffix}`;
-    },
-    async readBinary() {
-      return new Uint8Array([1, 2, 3]).buffer;
-    },
-    async parseSingleSafetensors(suffix) {
-      return {
-        tensors: [{ name: `${suffix}.weight`, shape: [1], dtype: 'F16', size: 2, offset: 0 }],
-      };
-    },
-    async parseShardedSafetensors(indexSuffix, indexJson) {
-      return {
-        tensors: Object.keys(indexJson.weight_map).map((name, idx) => ({
-          name,
-          shape: [1],
-          dtype: 'F16',
-          size: 2,
-          offset: idx * 2,
-        })),
-      };
-    },
-  });
-
-  assert.equal(parsed.layout, 'sana');
-  assert.equal(parsed.architecture, 'diffusion');
-  assert.ok(parsed.tensors.some((tensor) => tensor.name.startsWith('text_encoder.')));
-  assert.ok(parsed.auxFiles.some((asset) => asset.name === 'tokenizer_tokenizer.json'));
-  assert.deepEqual(parsed.config?.diffusion?.tokenizers?.text_encoder, {
-    type: 'bundled',
-    tokenizerFile: 'tokenizer_tokenizer.json',
-    configFile: 'tokenizer_config.json',
-    specialTokensFile: 'tokenizer_special_tokens_map.json',
-    sentencePieceFile: 'tokenizer_tokenizer.model',
-  });
 }
 
 console.log('diffusion-parser.test: ok');

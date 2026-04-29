@@ -1,9 +1,9 @@
 // AUTO-GENERATED from src/gpu/kernels/attention_small.wgsl.
-// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
 // Fused Multi-Head Attention Kernel (small tiles, f16 QKV + f16 output)
 //
 // Same algorithm as attention_small.wgsl but Q/K/V are f16 and output is f16.
-// Shared tiles use f16 to reduce workgroup storage; math uses f32.
+// Shared tiles and attention arithmetic use f16 for the all-f16 lane.
 
 enable f16;
 
@@ -11,6 +11,7 @@ const BLOCK_SIZE: u32 = 32u;
 const WORKGROUP_SIZE: u32 = BLOCK_SIZE;
 const HEAD_TILE: u32 = 32u;
 const MAX_HEAD_DIM: u32 = 256u;
+const NEG_INF = f16(-65504.0);
 
 struct Uniforms {
     num_heads: u32,
@@ -95,24 +96,25 @@ fn main(
     }
     let seq_len = get_kv_len();
     let query_len = u.query_len;
-    let scale = u.scale;
+    let scale = f16(u.scale);
+    let softcap = f16(u.attn_softcap);
 
     let query_pos = query_block_idx * BLOCK_SIZE + thread_idx;
     let valid_query = query_pos < query_len;
 
-    var q_local: array<f32, MAX_HEAD_DIM>;
-    var acc: array<f32, MAX_HEAD_DIM>;
+    var q_local: array<f16, MAX_HEAD_DIM>;
+    var acc: array<f16, MAX_HEAD_DIM>;
 
     if (valid_query) {
         let q_offset = query_pos * num_heads * head_dim + head_idx * head_dim;
         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
-            q_local[d] = f32(Q[q_offset + d]);
-            acc[d] = 0.0;
+            q_local[d] = Q[q_offset + d];
+            acc[d] = f16(0.0);
         }
     }
 
-    var m_i: f32 = -3.402823e+38;
-    var l_i: f32 = 0.0;
+    var m_i: f16 = NEG_INF;
+    var l_i: f16 = f16(0.0);
 
     let num_kv_blocks = (seq_len + BLOCK_SIZE - 1u) / BLOCK_SIZE;
     let num_head_tiles = (head_dim + HEAD_TILE - 1u) / HEAD_TILE;
@@ -120,9 +122,9 @@ fn main(
     for (var kv_block: u32 = 0u; kv_block < num_kv_blocks; kv_block = kv_block + 1u) {
         let kv_block_start = kv_block * BLOCK_SIZE;
 
-        var scores: array<f32, BLOCK_SIZE>;
+        var scores: array<f16, BLOCK_SIZE>;
         for (var k_init: u32 = 0u; k_init < BLOCK_SIZE; k_init = k_init + 1u) {
-            scores[k_init] = 0.0;
+            scores[k_init] = f16(0.0);
         }
 
         for (var ht: u32 = 0u; ht < num_head_tiles; ht = ht + 1u) {
@@ -150,9 +152,9 @@ fn main(
                     if (key_pos >= seq_len) { continue; }
                     if (is_masked(query_pos, key_pos)) { continue; }
 
-                    var dot_partial: f32 = 0.0;
+                    var dot_partial: f16 = f16(0.0);
                     for (var td: u32 = 0u; td < tile_len; td = td + 1u) {
-                        dot_partial = dot_partial + q_local[d0 + td] * f32(shared_K[k * HEAD_TILE + td]);
+                        dot_partial = dot_partial + q_local[d0 + td] * shared_K[k * HEAD_TILE + td];
                     }
                     scores[k] = scores[k] + dot_partial;
                 }
@@ -161,17 +163,17 @@ fn main(
             workgroupBarrier();
         }
 
-        var m_new: f32 = m_i;
+        var m_new: f16 = m_i;
         if (valid_query) {
-            var block_max: f32 = -3.402823e+38;
+            var block_max: f16 = NEG_INF;
             for (var k: u32 = 0u; k < BLOCK_SIZE; k = k + 1u) {
                 let key_pos = kv_block_start + k;
                 if (key_pos >= seq_len) { continue; }
                 if (is_masked(query_pos, key_pos)) { continue; }
 
                 var s = scores[k] * scale;
-                if (u.attn_softcap > 0.0) {
-                    s = tanh(s / u.attn_softcap) * u.attn_softcap;
+                if (softcap > f16(0.0)) {
+                    s = tanh(s / softcap) * softcap;
                 }
                 scores[k] = s;
                 block_max = max(block_max, s);
@@ -217,7 +219,7 @@ fn main(
                     }
 
                     for (var td: u32 = 0u; td < tile_len; td = td + 1u) {
-                        acc[d0 + td] = acc[d0 + td] + p * f32(shared_V[k * HEAD_TILE + td]);
+                        acc[d0 + td] = acc[d0 + td] + p * shared_V[k * HEAD_TILE + td];
                     }
                 }
             }
@@ -232,9 +234,9 @@ fn main(
 
     if (valid_query) {
         let out_offset = query_pos * num_heads * head_dim + head_idx * head_dim;
-        let inv_l_i = select(0.0, 1.0 / l_i, l_i > 0.0);
+        let inv_l_i = select(f16(0.0), f16(1.0) / l_i, l_i > f16(0.0));
         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
-            output[out_offset + d] = f16(acc[d] * inv_l_i);
+            output[out_offset + d] = acc[d] * inv_l_i;
         }
     }
 }

@@ -31,6 +31,18 @@
     },
     {
       "match": {
+        "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
+        "activationDtype": "f16",
+        "mathDtype": "f16",
+        "accumDtype": "f16",
+        "hasSubgroups": true,
+        "hasF16": true
+      },
+      "transforms": ["useGemma431BTextF16Activations"],
+      "reason": "Runtime requested the experimental all-f16 lane for Gemma 4 31B text"
+    },
+    {
+      "match": {
         "modelId": { "contains": "gemma-4-e2b" },
         "activationDtype": "f32",
         "headDim": 256,

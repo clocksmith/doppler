@@ -284,7 +284,9 @@ export interface ProbeConfigSchema {
   /** Token indices to sample (null = default to token 0) */
   tokens?: number[] | null;
   /** Dimension indices to sample */
-  dims: number[];
+  dims?: number[] | null;
+  /** Emit full-row statistics for each sampled token */
+  stats?: boolean;
   /** Override trace category (defaults to stage category) */
   category?: TraceCategory;
 }

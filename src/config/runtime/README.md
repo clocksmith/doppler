@@ -19,5 +19,10 @@ Rules:
   either `null` or an inline execution-v1-derived object.
 - Keep model-owned behavior in conversion config and the manifest execution
   graph, not runtime profiles.
+- Model-scoped experimental dtype lanes, such as
+  `profiles/gemma4-31b-f16-activations-probe`, may request alternate compute
+  policy only through a profile and an execution-v1 capability transform. Keep
+  them out of release/catalog claims until their own browser/WebGPU evidence is
+  captured.
 - If a non-profile asset is added under this tree, add an explicit schema and
   update onboarding checks so it is not treated as a runtime profile.

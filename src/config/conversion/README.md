@@ -40,7 +40,6 @@ Checked-in config inventory:
 | `lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json` | `lfm2.5-1.2b-instruct-q4k-ehf16-af32` | LFM2 hybrid conv/attention scheduling |
 | `qwen3/qwen-3-5-0-8b-q4k-ehaf16.json` | `qwen-3-5-0-8b-q4k-ehaf16` | Qwen hybrid linear/full attention graph |
 | `qwen3/qwen-3-5-2b-q4k-ehaf16.json` | `qwen-3-5-2b-q4k-ehaf16` | Qwen hybrid linear/full attention graph |
-| `sana/sana-sprint-0.6b-f16.json` | `sana-sprint-0.6b-f16` | Diffusion config kept F16 while runtime validation continues |
 
 LFM2.5 q4 kernel planning notes:
 

@@ -28,6 +28,7 @@ import { isKernelDebugEnabled, dumpTokenVector } from '../debug-utils.js';
 import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
 import { getWeightBuffer, getNormWeightBuffer } from '../weights.js';
+import { runProbes } from '../probes.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import {
   getKernelPathMatmulPrecision,
@@ -994,6 +995,25 @@ export async function runDenseFFNGPU(
     });
   }
 
+  await runProbes('ffn_gate', gateOutput.buffer, {
+    layerIdx,
+    numTokens,
+    hiddenSize: intermediateSize,
+    probes: context.debugProbes,
+    recorder,
+    operatorDiagnostics: context.operatorDiagnostics,
+    dtype: gateOutput.dtype,
+  });
+  await runProbes('ffn_up', upOutput.buffer, {
+    layerIdx,
+    numTokens,
+    hiddenSize: intermediateSize,
+    probes: context.debugProbes,
+    recorder,
+    operatorDiagnostics: context.operatorDiagnostics,
+    dtype: upOutput.dtype,
+  });
+
   const activatedOutput = await dispatchActivation(hiddenActivation, upOutput, {
     size: numTokens * intermediateSize,
     gate: gateOutput,
@@ -1010,6 +1030,16 @@ export async function runDenseFFNGPU(
       dtype: activatedOutput.dtype,
     });
   }
+
+  await runProbes('ffn_act', activatedOutput.buffer, {
+    layerIdx,
+    numTokens,
+    hiddenSize: intermediateSize,
+    probes: context.debugProbes,
+    recorder,
+    operatorDiagnostics: context.operatorDiagnostics,
+    dtype: activatedOutput.dtype,
+  });
 
   if (recorder) {
     recorder.trackTemporaryBuffer(gateOutput.buffer);

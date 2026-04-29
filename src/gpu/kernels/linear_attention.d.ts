@@ -2,7 +2,7 @@ import type { Tensor } from '../tensor.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import type { OutputBufferOptions } from './types.js';
 
-export interface SanaLinearAttentionOptions extends OutputBufferOptions {
+export interface LinearAttentionOptions extends OutputBufferOptions {
   numHeads: number;
   headDim: number;
   numTokens?: number;
@@ -11,17 +11,17 @@ export interface SanaLinearAttentionOptions extends OutputBufferOptions {
   summaryBuffer?: GPUBuffer | null;
 }
 
-export declare function runSanaLinearAttention(
+export declare function runLinearAttention(
   query: Tensor,
   key: Tensor,
   value: Tensor,
-  options: SanaLinearAttentionOptions
+  options: LinearAttentionOptions
 ): Promise<Tensor>;
 
-export declare function recordSanaLinearAttention(
+export declare function recordLinearAttention(
   recorder: CommandRecorder,
   query: Tensor,
   key: Tensor,
   value: Tensor,
-  options: SanaLinearAttentionOptions
+  options: LinearAttentionOptions
 ): Promise<Tensor>;

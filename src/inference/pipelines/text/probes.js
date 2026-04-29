@@ -3,6 +3,7 @@
 import { trace } from '../../../debug/index.js';
 import { resolveCapturePolicy } from '../../../debug/capture-policy.js';
 import { snapshotTensor, snapshotFromArray } from '../../../debug/tensor.js';
+import { computeArrayStats } from '../../../debug/stats.js';
 import { getDevice } from '../../../gpu/device.js';
 import { allowReadback } from '../../../gpu/perf-guards.js';
 import { f16ToF32 } from '../../../loader/dtype-utils.js';
@@ -113,6 +114,70 @@ function getTraceLogger(category, layerIdx) {
   }
 }
 
+function formatProbeNumber(value) {
+  return Number.isFinite(value) ? value.toFixed(4) : String(value);
+}
+
+function alignUp4(value) {
+  return Math.ceil(value / 4) * 4;
+}
+
+async function readGpuScalar(buffer, elementOffset, dtype, bytesPerElement) {
+  const byteOffset = elementOffset * bytesPerElement;
+  const alignedOffset = Math.floor(byteOffset / 4) * 4;
+  const offsetWithinRead = byteOffset - alignedOffset;
+  const readback = await readBufferSlice(buffer, alignedOffset, 4);
+  if (dtype === 'f16') {
+    const u16Array = new Uint16Array(readback);
+    return f16ToF32(u16Array[offsetWithinRead / 2]);
+  }
+  return new Float32Array(readback, offsetWithinRead, 1)[0];
+}
+
+async function readTokenRow(buffer, tokenIdx, hiddenSize, dtype, isCpuBuffer) {
+  if (isCpuBuffer) {
+    const start = tokenIdx * hiddenSize;
+    const end = start + hiddenSize;
+    return buffer.slice(start, end);
+  }
+
+  const bytesPerElement = dtype === 'f16' ? 2 : 4;
+  const byteOffset = tokenIdx * hiddenSize * bytesPerElement;
+  const rowBytes = hiddenSize * bytesPerElement;
+  const alignedOffset = Math.floor(byteOffset / 4) * 4;
+  const offsetWithinRead = byteOffset - alignedOffset;
+  const readSize = alignUp4(offsetWithinRead + rowBytes);
+  const readback = await readBufferSlice(buffer, alignedOffset, readSize);
+  const values = new Float32Array(hiddenSize);
+
+  if (dtype === 'f16') {
+    const u16Array = new Uint16Array(readback);
+    const start = offsetWithinRead / 2;
+    for (let i = 0; i < hiddenSize; i++) {
+      values[i] = f16ToF32(u16Array[start + i]);
+    }
+    return values;
+  }
+
+  const f32Array = new Float32Array(readback, offsetWithinRead, hiddenSize);
+  values.set(f32Array);
+  return values;
+}
+
+function formatProbeStats(stats) {
+  return [
+    `min=${formatProbeNumber(stats.min)}`,
+    `max=${formatProbeNumber(stats.max)}`,
+    `mean=${formatProbeNumber(stats.mean)}`,
+    `std=${formatProbeNumber(stats.std)}`,
+    `maxAbs=${formatProbeNumber(stats.maxAbs)}`,
+    `valid=${stats.validCount}`,
+    `nan=${stats.nanCount}`,
+    `inf=${stats.infCount}`,
+    `zero=${stats.zeroCount}`,
+  ].join(', ');
+}
+
 
 export async function runProbes(stage, buffer, options) {
   const { layerIdx, numTokens, hiddenSize, probes, recorder, dtype = 'f32' } = options;
@@ -185,8 +250,9 @@ export async function runProbes(stage, buffer, options) {
   for (const probe of stageProbes) {
     if (!matchesLayer(probe.layers, layerIdx)) continue;
 
-    const dims = probe.dims ?? [];
-    if (dims.length === 0) continue;
+    const dims = Array.isArray(probe.dims) ? probe.dims : [];
+    const includeStats = probe.stats === true;
+    if (dims.length === 0 && !includeStats) continue;
 
     const tokens = resolveTokens(probe.tokens, numTokens);
     if (tokens.length === 0) continue;
@@ -198,6 +264,12 @@ export async function runProbes(stage, buffer, options) {
     const probeId = probe.id ? ` ${probe.id}` : '';
 
     for (const tokenIdx of tokens) {
+
+      let statsText = null;
+      if (includeStats) {
+        const row = await readTokenRow(buffer, tokenIdx, hiddenSize, dtype, isCpuBuffer);
+        statsText = formatProbeStats(computeArrayStats(row));
+      }
 
       const values = [];
       for (const dimIdx of dims) {
@@ -212,25 +284,18 @@ export async function runProbes(stage, buffer, options) {
           continue;
         }
         const elementOffset = tokenIdx * hiddenSize + dimIdx;
-        const byteOffset = elementOffset * bytesPerElement;
-        // WebGPU requires offset and size to be multiples of 4
-        const alignedOffset = Math.floor(byteOffset / 4) * 4;
-        const offsetWithinRead = byteOffset - alignedOffset;
-        const readSize = 4; // Always read 4 bytes (aligned)
-        const readback = await readBufferSlice(buffer, alignedOffset, readSize);
-        let value;
-        if (dtype === 'f16') {
-          // offsetWithinRead is 0 or 2 for F16 - extract correct u16
-          const u16Array = new Uint16Array(readback);
-          const u16Index = offsetWithinRead / 2;
-          value = f16ToF32(u16Array[u16Index]);
-        } else {
-          value = new Float32Array(readback)[0];
-        }
-        values.push(`${dimIdx}=${value.toFixed(4)}`);
+        const value = await readGpuScalar(buffer, elementOffset, dtype, bytesPerElement);
+        values.push(`${dimIdx}=${formatProbeNumber(value)}`);
       }
 
-      logger(`PROBE${probeId} stage=${stage} token=${tokenIdx} values=[${values.join(', ')}]`);
+      const fields = [`PROBE${probeId} stage=${stage} token=${tokenIdx}`];
+      if (statsText) {
+        fields.push(`stats=[${statsText}]`);
+      }
+      if (values.length > 0) {
+        fields.push(`values=[${values.join(', ')}]`);
+      }
+      logger(fields.join(' '));
     }
   }
 }

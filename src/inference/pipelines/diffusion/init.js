@@ -1,6 +1,6 @@
 import { DEFAULT_DIFFUSION_CONFIG } from '../../../config/schema/index.js';
 
-const SUPPORTED_DIFFUSION_RUNTIME_LAYOUTS = new Set(['sd3', 'flux', 'sana']);
+const SUPPORTED_DIFFUSION_RUNTIME_LAYOUTS = new Set(['sd3', 'flux']);
 
 function mergeSection(base, override) {
   if (!override) return { ...base };
@@ -106,7 +106,7 @@ export function initializeDiffusion(manifest, runtimeConfig) {
   if (layout && !SUPPORTED_DIFFUSION_RUNTIME_LAYOUTS.has(layout)) {
     throw new Error(
       `Diffusion layout "${layout}" is recognized in the manifest, but the GPU runtime is not implemented yet. ` +
-      'Supported runtime layouts: sd3, flux, sana.'
+      'Supported runtime layouts: sd3, flux.'
     );
   }
 

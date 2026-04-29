@@ -198,7 +198,6 @@ function inferFamilyFromModelId(modelId) {
   if (normalized.startsWith('lfm2')) return 'lfm2';
   if (normalized.startsWith('gpt-oss-')) return 'gpt_oss';
   if (normalized.startsWith('janus-')) return 'janus_text';
-  if (normalized.startsWith('sana-')) return 'sana';
   return null;
 }
 
@@ -224,9 +223,6 @@ function inferRuntimeModelTypeFromConversionConfig(payload) {
   const modelBaseId = normalizeText(payload?.output?.modelBaseId);
   if (modelBaseId.startsWith('google-embeddinggemma-') || modelBaseId.startsWith('embeddinggemma-')) {
     return 'embedding';
-  }
-  if (modelBaseId.startsWith('sana-')) {
-    return 'diffusion';
   }
   return 'transformer';
 }

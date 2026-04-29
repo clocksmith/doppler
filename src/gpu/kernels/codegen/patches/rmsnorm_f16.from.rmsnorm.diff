@@ -1,35 +1,33 @@
 --- src/gpu/kernels/rmsnorm.wgsl
 +++ src/gpu/kernels/rmsnorm_f16.wgsl
-@@ -1,46 +1,27 @@
+@@ -1,46 +1,24 @@
 -// RMSNorm Kernel with Fused Residual Add
-+// AUTO-GENERATED from src/gpu/kernels/rmsnorm.wgsl.
-+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
-+// RMSNorm Kernel with F16 Input/Output
  //
 -// RMSNorm(x) = x / sqrt(mean(x^2) + eps) * weight
-+// F16 variant for reduced memory bandwidth when using F16 activations.
-+// Intermediate computations (sum of squares, RMS) remain in F32 for precision.
-+// Weight buffer may be F16 or F32 (small size, precision matters).
- //
+-//
 -// Optionally fuses residual addition (POST-norm, for Gemma 3 sandwich norm):
 -// output = residual + RMSNorm(x) * weight
 -//
 -// Uses workgroup reduction for efficient mean calculation.
 -// Subgroup variants use subgroupAdd() for 3-5x faster reductions.
--//
++// F16 variant for reduced memory bandwidth when using F16 activations.
++// The all-f16 lane keeps normalization arithmetic in f16.
++// Weight buffer may be F16 or F32.
+ //
 -// Uses override constants for compile-time feature selection:
 -// - RMS_NORM_OFFSET: Use (1 + weight) pattern (Gemma models)
 -// - HAS_RESIDUAL: Compile-time override (reserved for codegen patches, not used by JS dispatch)
 -// - OUTPUT_PRENORM: Output pre-normalized values (before weight multiplication)
-+// RMSNorm(x) = x / sqrt(mean(x^2) + eps) * weight
- 
+-
 -enable subgroups;
-+enable f16;
- 
+-
 -// =============================================================================
 -// Override Constants (compile-time configuration)
 -// =============================================================================
--
++// RMSNorm(x) = x / sqrt(mean(x^2) + eps) * weight
++
++enable f16;
+
  override WORKGROUP_SIZE: u32 = 256u;
  const MAX_WORKGROUP_SIZE: u32 = 256u;
 -
@@ -39,7 +37,7 @@
  override PRE_RESIDUAL: bool = false;      // Add residual BEFORE normalization: rmsnorm(input + residual)
  override OUTPUT_PRENORM: bool = false;    // Write pre-norm sum to residual_sum_output binding
  override WEIGHT_IS_F16: bool = false;     // Weight buffer packed as f16 pairs
- 
+
 -const MAX_SUBGROUPS: u32 = 32u;  // Support up to 32 subgroups per workgroup
 -const MAX_CACHE_SIZE: u32 = 4608u;  // Supports hiddenSize up to 1152 with 4 elements/thread
 -
@@ -57,75 +55,81 @@
      token_stride: u32,  // Workgroup rows per dispatch row
      _pad0: u32,
      _pad1: u32,
-@@ -48,29 +29,20 @@
+@@ -48,47 +26,32 @@
  }
- 
+
  @group(0) @binding(0) var<uniform> u: Uniforms;
 -@group(0) @binding(1) var<storage, read> input: array<f32>;
 -@group(0) @binding(2) var<storage, read> weight: array<u32>;   // [size] as f32 or packed f16
 -@group(0) @binding(3) var<storage, read_write> output: array<f32>;
 -@group(0) @binding(4) var<storage, read> residual: array<f32>; // Optional residual input
 -@group(0) @binding(5) var<storage, read_write> residual_sum_output: array<f32>; // Pre-norm sum output (PRE_RESIDUAL + OUTPUT_PRENORM)
+-
+-// =============================================================================
+-// Shared Memory
+-// =============================================================================
+-
+-var<workgroup> shared_sum: array<f32, MAX_WORKGROUP_SIZE>;
+-
+-// =============================================================================
+-// Helper Functions
+-// =============================================================================
 +@group(0) @binding(1) var<storage, read> input: array<f16>;
 +@group(0) @binding(2) var<storage, read> weight: array<u32>;   // F32 or packed F16
 +@group(0) @binding(3) var<storage, read_write> output: array<f16>;
 +@group(0) @binding(4) var<storage, read> residual: array<f16>; // Optional residual
 +@group(0) @binding(5) var<storage, read_write> residual_sum_output: array<f16>; // Pre-norm sum output (PRE_RESIDUAL + OUTPUT_PRENORM)
- 
--// =============================================================================
--// Shared Memory
--// =============================================================================
--
-+// Shared memory for reduction (F32 for precision)
- var<workgroup> shared_sum: array<f32, MAX_WORKGROUP_SIZE>;
- 
--// =============================================================================
--// Helper Functions
--// =============================================================================
--
+
 -// Apply weight with optional offset (Gemma uses 1 + weight pattern)
- fn apply_weight(w: f32) -> f32 {
+-fn apply_weight(w: f32) -> f32 {
++var<workgroup> shared_sum: array<f16, MAX_WORKGROUP_SIZE>;
++
++fn apply_weight(w: f16) -> f16 {
      if (RMS_NORM_OFFSET) {
-         return 1.0 + w;
+-        return 1.0 + w;
 -    } else {
 -        return w;
++        return f16(1.0) + w;
      }
 +    return w;
  }
- 
- fn load_weight(idx: u32) -> f32 {
-@@ -82,16 +54,11 @@
-     return bitcast<f32>(weight[idx]);
- }
- 
+
+-fn load_weight(idx: u32) -> f32 {
++fn load_weight(idx: u32) -> f16 {
+     if (WEIGHT_IS_F16) {
+         let packed = weight[idx >> 1u];
+         let pair = unpack2x16float(packed);
+-        return select(pair.x, pair.y, (idx & 1u) == 1u);
++        return f16(select(pair.x, pair.y, (idx & 1u) == 1u));
+     }
+-    return bitcast<f32>(weight[idx]);
+-}
+-
 -// Check if residual should be added (runtime uniform only — JS dispatch controls this)
 -fn should_add_residual() -> bool {
 -    return u.has_residual != 0u;
--}
--
++    return f16(bitcast<f32>(weight[idx]));
+ }
+
  // Load input value, fusing residual add when PRE_RESIDUAL is active
- fn load_input(base_offset: u32, idx: u32) -> f32 {
--    let x = input[base_offset + idx];
-+    let x = f32(input[base_offset + idx]);
+-fn load_input(base_offset: u32, idx: u32) -> f32 {
++fn load_input(base_offset: u32, idx: u32) -> f16 {
+     let x = input[base_offset + idx];
      if (PRE_RESIDUAL) {
--        return x + residual[base_offset + idx];
-+        return x + f32(residual[base_offset + idx]);
-     }
-     return x;
+         return x + residual[base_offset + idx];
+@@ -97,7 +60,7 @@
  }
-@@ -99,7 +66,7 @@
+
  // Write pre-norm sum when OUTPUT_PRENORM is active (for downstream residual reuse)
- fn write_prenorm(base_offset: u32, idx: u32, val: f32) {
+-fn write_prenorm(base_offset: u32, idx: u32, val: f32) {
++fn write_prenorm(base_offset: u32, idx: u32, val: f16) {
      if (OUTPUT_PRENORM && PRE_RESIDUAL) {
--        residual_sum_output[base_offset + idx] = val;
-+        residual_sum_output[base_offset + idx] = f16(val);
+         residual_sum_output[base_offset + idx] = val;
      }
- }
- 
-@@ -107,10 +74,6 @@
+@@ -107,10 +70,6 @@
      return wg_id.y * max(u.token_stride, 1u) + wg_id.x;
  }
- 
+
 -// =============================================================================
 -// Main Entry Point
 -// =============================================================================
@@ -133,74 +137,109 @@
  // Main RMSNorm kernel - one workgroup per token
  @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
  fn main(
-@@ -128,7 +91,7 @@
- 
+@@ -128,151 +87,44 @@
+
      let base_offset = token_idx * size;
- 
+
 -    // Each thread computes partial sum of squares
-+    // Each thread computes partial sum of squares (promote to F32 for precision)
-     // When PRE_RESIDUAL is active, sum is computed on (input + residual)
-     var local_sum_sq: f32 = 0.0;
+-    // When PRE_RESIDUAL is active, sum is computed on (input + residual)
+-    var local_sum_sq: f32 = 0.0;
      let elements_per_thread = (size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
-@@ -153,7 +116,7 @@
+
++    var local_max: f16 = f16(0.0);
+     for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
+         let idx = thread_idx * elements_per_thread + i;
+         if (idx < size) {
+-            let x = load_input(base_offset, idx);
+-            local_sum_sq = local_sum_sq + x * x;
++            local_max = max(local_max, abs(load_input(base_offset, idx)));
+         }
+     }
+
+-    // Store local sum for reduction
+-    shared_sum[thread_idx] = local_sum_sq;
++    shared_sum[thread_idx] = local_max;
+     workgroupBarrier();
+
+-    // Parallel reduction to compute total sum of squares
+     for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
+         if (thread_idx < stride) {
+-            shared_sum[thread_idx] = shared_sum[thread_idx] + shared_sum[thread_idx + stride];
++            shared_sum[thread_idx] = max(shared_sum[thread_idx], shared_sum[thread_idx + stride]);
+         }
          workgroupBarrier();
      }
- 
+
 -    // Compute RMS
-+    // Compute RMS (F32 for precision)
-     let mean_sq = shared_sum[0] / f32(size);
-     let rms = sqrt(mean_sq + u.eps);
-     let inv_rms = 1.0 / rms;
-@@ -166,29 +129,26 @@
-         if (idx < size) {
-             let x = load_input(base_offset, idx);
- 
+-    let mean_sq = shared_sum[0] / f32(size);
+-    let rms = sqrt(mean_sq + u.eps);
+-    let inv_rms = 1.0 / rms;
+-
++    let row_scale = select(f16(1.0), shared_sum[0], shared_sum[0] > f16(0.0));
+     workgroupBarrier();
+
+-    // Apply normalization and weight
+-    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
+-        let idx = thread_idx * elements_per_thread + i;
+-        if (idx < size) {
+-            let x = load_input(base_offset, idx);
+-
 -            // Normalize and scale (with optional weight offset for Gemma)
-+            // Normalize and scale (compute in F32)
-             var result = x * inv_rms * apply_weight(load_weight(idx));
- 
+-            var result = x * inv_rms * apply_weight(load_weight(idx));
+-
 -            // Add residual AFTER normalization (Gemma 3 sandwich norm pattern)
 -            if (should_add_residual()) {
 -                result = result + residual[base_offset + idx];
-+            // Add residual AFTER normalization
-+            if (u.has_residual == 1u) {
-+                result = result + f32(residual[base_offset + idx]);
-             }
- 
-             // Write pre-norm sum for downstream residual reuse
-             write_prenorm(base_offset, idx, x);
- 
+-            }
+-
+-            // Write pre-norm sum for downstream residual reuse
+-            write_prenorm(base_offset, idx, x);
+-
 -            output[base_offset + idx] = result;
-+            // Convert back to F16 for output
-+            output[base_offset + idx] = f16(result);
-         }
-     }
- }
- 
+-        }
+-    }
+-}
+-
 -// =============================================================================
 -// Small Hidden Size Entry Point
 -// =============================================================================
 -
- // Optimized version for hidden size <= WORKGROUP_SIZE (single pass)
- @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+-// Optimized version for hidden size <= WORKGROUP_SIZE (single pass)
+-@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 -fn main_small(
-+fn rmsnorm_small_f16(
-     @builtin(local_invocation_id) local_id: vec3<u32>,
-     @builtin(workgroup_id) wg_id: vec3<u32>
- ) {
-@@ -208,7 +168,7 @@
-         x = load_input(base_offset, thread_idx);
-     }
- 
+-    @builtin(local_invocation_id) local_id: vec3<u32>,
+-    @builtin(workgroup_id) wg_id: vec3<u32>
+-) {
+-    let token_idx = token_index(wg_id);
+-    let thread_idx = local_id.x;
+-    let size = u.size;
+-
+-    if (token_idx >= u.num_tokens) {
+-        return;
+-    }
+-
+-    let base_offset = token_idx * size;
+-
+-    // Each thread handles one element (for size <= 256)
+-    var x: f32 = 0.0;
+-    if (thread_idx < size) {
+-        x = load_input(base_offset, thread_idx);
+-    }
+-
 -    // Sum of squares
-+    // Sum of squares (F32 for precision)
-     shared_sum[thread_idx] = x * x;
-     workgroupBarrier();
- 
-@@ -222,227 +182,15 @@
- 
-     // Compute inverse RMS
-     let mean_sq = shared_sum[0] / f32(size);
+-    shared_sum[thread_idx] = x * x;
+-    workgroupBarrier();
+-
+-    // Parallel reduction
+-    for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
+-        if (thread_idx < stride && thread_idx + stride < size) {
+-            shared_sum[thread_idx] = shared_sum[thread_idx] + shared_sum[thread_idx + stride];
+-        }
+-        workgroupBarrier();
+-    }
+-
+-    // Compute inverse RMS
+-    let mean_sq = shared_sum[0] / f32(size);
 -    let inv_rms = 1.0 / sqrt(mean_sq + u.eps);
 -
 -    // Apply normalization
@@ -240,30 +279,39 @@
 -
 -    // First pass: cache input and compute sum of squares
 -    var local_sum_sq: f32 = 0.0;
--    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
--        let idx = thread_idx * elements_per_thread + i;
--        if (idx < size) {
++    var local_sum_sq: f16 = f16(0.0);
++    let inv_size = f16(1.0) / f16(size);
+     for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
+         let idx = thread_idx * elements_per_thread + i;
+         if (idx < size) {
 -            let x = load_input(base_offset, idx);
 -            shared_cache[idx] = x;  // Cache for second pass (avoids reloading residual)
 -            local_sum_sq = local_sum_sq + x * x;
--        }
--    }
--
--    shared_sum[thread_idx] = local_sum_sq;
--    workgroupBarrier();
--
--    for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
--        if (thread_idx < stride) {
--            shared_sum[thread_idx] = shared_sum[thread_idx] + shared_sum[thread_idx + stride];
--        }
--        workgroupBarrier();
--    }
--
++            let x = load_input(base_offset, idx) / row_scale;
++            local_sum_sq = local_sum_sq + (x * x) * inv_size;
+         }
+     }
+
++    // Store local sum for reduction
+     shared_sum[thread_idx] = local_sum_sq;
+     workgroupBarrier();
+
++    // Parallel reduction to compute total sum of squares
+     for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
+         if (thread_idx < stride) {
+             shared_sum[thread_idx] = shared_sum[thread_idx] + shared_sum[thread_idx + stride];
+@@ -280,117 +132,38 @@
+         workgroupBarrier();
+     }
+
 -    let mean_sq = shared_sum[0] / f32(size);
 -    let inv_rms = 1.0 / sqrt(mean_sq + u.eps);
--
--    workgroupBarrier();
--
++    let mean_sq = shared_sum[0];
++    let eps_scaled = f16(u.eps) / (row_scale * row_scale);
++    let inv_rms = (f16(1.0) / row_scale) / sqrt(mean_sq + eps_scaled);
+
+     workgroupBarrier();
+
 -    // Second pass: normalize cached input
 -    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
 -        let idx = thread_idx * elements_per_thread + i;
@@ -343,89 +391,110 @@
 -
 -    // Compute RMS (all threads now have the same value)
 -    let mean_sq = total_sum / f32(size);
-     let inv_rms = 1.0 / sqrt(mean_sq + u.eps);
- 
--    // Apply normalization and weight
--    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
--        let idx = thread_idx * elements_per_thread + i;
--        if (idx < size) {
--            let x = load_input(base_offset, idx);
--            var result = x * inv_rms * apply_weight(load_weight(idx));
+-    let inv_rms = 1.0 / sqrt(mean_sq + u.eps);
 -
+     // Apply normalization and weight
+     for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
+         let idx = thread_idx * elements_per_thread + i;
+         if (idx < size) {
+             let x = load_input(base_offset, idx);
++
+             var result = x * inv_rms * apply_weight(load_weight(idx));
+
 -            if (should_add_residual()) {
--                result = result + residual[base_offset + idx];
--            }
--
--            write_prenorm(base_offset, idx, x);
--            output[base_offset + idx] = result;
--        }
--    }
--}
--
++            // Add residual AFTER normalization
++            if (u.has_residual == 1u) {
+                 result = result + residual[base_offset + idx];
+             }
+
++            // Write pre-norm sum for downstream residual reuse
+             write_prenorm(base_offset, idx, x);
++
+             output[base_offset + idx] = result;
+         }
+     }
+ }
+
 -// Subgroup-accelerated RMSNorm for small hidden sizes (size <= 256)
 -// Each thread handles one element, uses subgroup reduction
--@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
++// Optimized version for hidden size <= WORKGROUP_SIZE (single pass)
+ @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 -fn main_small_subgroup(
--    @builtin(local_invocation_id) local_id: vec3<u32>,
++fn rmsnorm_small_f16(
+     @builtin(local_invocation_id) local_id: vec3<u32>,
 -    @builtin(workgroup_id) wg_id: vec3<u32>,
 -    @builtin(subgroup_invocation_id) sg_lane: u32,
 -    @builtin(subgroup_size) sg_size: u32,
--) {
--    let token_idx = token_index(wg_id);
--    let thread_idx = local_id.x;
--    let size = u.size;
--
--    if (token_idx >= u.num_tokens) {
--        return;
--    }
--
--    let base_offset = token_idx * size;
++    @builtin(workgroup_id) wg_id: vec3<u32>
+ ) {
+     let token_idx = token_index(wg_id);
+     let thread_idx = local_id.x;
+@@ -401,45 +174,46 @@
+     }
+
+     let base_offset = token_idx * size;
 -    let subgroup_id = thread_idx / sg_size;
 -    let num_subgroups = (WORKGROUP_SIZE + sg_size - 1u) / sg_size;
--
+
 -    // Each thread handles one element
 -    var x: f32 = 0.0;
 -    var x_sq: f32 = 0.0;
-+    // Apply normalization (compute in F32, output F16)
++    // Each thread handles one element (for size <= 256)
++    var x: f16 = f16(0.0);
      if (thread_idx < size) {
--        x = load_input(base_offset, thread_idx);
+         x = load_input(base_offset, thread_idx);
 -        x_sq = x * x;
--    }
--
+     }
+
 -    // Phase 1: Subgroup reduction
 -    let sg_sum = subgroupAdd(x_sq);
--
++    shared_sum[thread_idx] = abs(x);
++    workgroupBarrier();
+
 -    // Phase 2: Store to shared memory
 -    if (sg_lane == 0u && subgroup_id < num_subgroups) {
 -        sg_partial_sums[subgroup_id] = sg_sum;
--    }
--    workgroupBarrier();
--
++    for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
++        if (thread_idx < stride) {
++            shared_sum[thread_idx] = max(shared_sum[thread_idx], shared_sum[thread_idx + stride]);
++        }
++        workgroupBarrier();
+     }
++
++    let row_scale = select(f16(1.0), shared_sum[0], shared_sum[0] > f16(0.0));
++    let x_scaled = x / row_scale;
++    let inv_size = f16(1.0) / f16(size);
++    shared_sum[thread_idx] = (x_scaled * x_scaled) * inv_size;
+     workgroupBarrier();
+
 -    // Phase 3: Final reduction - thread 0 sums, then broadcast via shared memory
 -    if (thread_idx == 0u) {
 -        var sum: f32 = 0.0;
 -        for (var s = 0u; s < num_subgroups; s++) {
 -            sum += sg_partial_sums[s];
--        }
++    // Parallel reduction
++    for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
++        if (thread_idx < stride && thread_idx + stride < size) {
++            shared_sum[thread_idx] = shared_sum[thread_idx] + shared_sum[thread_idx + stride];
+         }
 -        sg_partial_sums[0] = sum;
--    }
++        workgroupBarrier();
+     }
 -    workgroupBarrier();
 -    let total_sum = sg_partial_sums[0];
--
--    // Compute inverse RMS
+
+     // Compute inverse RMS
 -    let mean_sq = total_sum / f32(size);
 -    let inv_rms = 1.0 / sqrt(mean_sq + u.eps);
--
--    // Apply normalization
--    if (thread_idx < size) {
++    let mean_sq = shared_sum[0];
++    let eps_scaled = f16(u.eps) / (row_scale * row_scale);
++    let inv_rms = (f16(1.0) / row_scale) / sqrt(mean_sq + eps_scaled);
+
+     // Apply normalization
+     if (thread_idx < size) {
          var result = x * inv_rms * apply_weight(load_weight(thread_idx));
 -        if (should_add_residual()) {
--            result = result + residual[base_offset + thread_idx];
 +        if (u.has_residual == 1u) {
-+            result = result + f32(residual[base_offset + thread_idx]);
+             result = result + residual[base_offset + thread_idx];
          }
          write_prenorm(base_offset, thread_idx, x);
--        output[base_offset + thread_idx] = result;
-+        output[base_offset + thread_idx] = f16(result);
-     }
- }

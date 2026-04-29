@@ -78,6 +78,10 @@ Before changing kernels:
 - `prefill_streaming_f16kv` — one-thread-per-workgroup fallback. If fast variants exist for this `head_dim`, the manifest is routing past them.
 - `q4_fused_batched_multicol_shared` — older Q4K matmul, many small workgroups. WideTile (`q4_fused_widetile` / `q4_fused_widetile_f16`) is usually 2×+ faster on M≥4.
 - Any `prefill_small*` on a model whose `architecture.headDim` has a dedicated `*_head{N}_f16kv.wgsl` (e.g. 256 or 512).
+- In all-f16 investigations, `_f16kv` attention means f32 activations with f16
+  KV. The f16 lane should route attention to `_f16` kernels and Q4 projections
+  to `*_f16a` kernels, then prove correctness with debug/verify output before
+  perf claims.
 
 **How to fix (manifest-level, no new code):**
 - Add a kernel ref entry to both the conversion config (`src/config/conversion/<family>/<model-id>.json`) AND the runtime manifest (`models/local/<model-id>/manifest.json`). Digest comes from `src/config/kernels/kernel-ref-digests.js` (the normalized content hash, NOT raw `sha256sum` of the `.wgsl` file).

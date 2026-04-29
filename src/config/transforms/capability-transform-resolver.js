@@ -16,7 +16,7 @@ const rules = await loadJson(
  * `hasSubgroupsF16` is a derived convenience bit (`hasSubgroups && hasF16`), not a separate WebGPU feature.
  * @param {Object} platform - { id, vendor, architecture }
  * @param {Object} graphContext - execution-v1 graph/dtype summary
- *   { activationDtype, kvDtype, modelId?, layerTypes?,
+ *   { activationDtype, mathDtype?, accumDtype?, kvDtype, modelId?, layerTypes?,
  *     hasDensePrefillProjectionKernel?,
  *     hasQ4DecodeProjectionKernel?, hasQ4PrefillProjectionKernel?,
  *     hasAvailableQ4PrefillProjectionKernel? }
@@ -28,6 +28,8 @@ export function resolveCapabilityTransforms(capabilities, platform, graphContext
     ...capabilities,
     ...normalizedGraphContext,
     activationDtype: normalizedGraphContext.activationDtype ?? null,
+    mathDtype: normalizedGraphContext.mathDtype ?? null,
+    accumDtype: normalizedGraphContext.accumDtype ?? null,
     kvDtype: normalizedGraphContext.kvDtype ?? null,
     modelId: normalizedGraphContext.modelId ?? 'unknown',
     platformId: platform?.id ?? 'unknown',

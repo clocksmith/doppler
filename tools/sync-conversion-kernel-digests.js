@@ -68,11 +68,11 @@ for (const file of files) {
 
 if (checkOnly) {
   if (drifted > 0) {
-    console.error(`[conversion-digests:check] ${drifted} digest(s) drift from kernel-ref-digests.js. Run: npm run digests:sync-conversion`);
+    console.error(`[kernels:conversion-digests:check] ${drifted} digest(s) drift from kernel-ref-digests.js. Run: npm run kernels:conversion-digests:sync`);
     process.exit(1);
   }
-  console.log('[conversion-digests:check] all conversion/source-package/manifest digests match kernel-ref-digests.js');
+  console.log('[kernels:conversion-digests:check] all conversion/source-package/manifest digests match kernel-ref-digests.js');
 } else {
-  console.log(`[conversion-digests:sync] updated ${drifted} digest(s) in ${changedFiles.size} file(s).`);
+  console.log(`[kernels:conversion-digests:sync] updated ${drifted} digest(s) in ${changedFiles.size} file(s).`);
   for (const file of changedFiles) console.log(`  ${path.relative(ROOT, file)}`);
 }

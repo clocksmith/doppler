@@ -8,6 +8,7 @@ enable subgroups;
 const MAX_WORKGROUP_SIZE: u32 = 256u;
 const MAX_SUBGROUPS: u32 = 256u;
 const MAX_HEAD_DIM: u32 = 512u;
+const NEG_INF = f16(-65504.0);
 
 override WORKGROUP_SIZE: u32 = 256u;
 
@@ -37,12 +38,12 @@ struct Uniforms {
 @group(0) @binding(5) var<storage, read> kv_len_buffer: array<u32>;
 @group(0) @binding(6) var<storage, read> page_table: array<u32>;
 
-var<workgroup> shared_q: array<f32, MAX_HEAD_DIM>;
-var<workgroup> shared_scores: array<f32, MAX_WORKGROUP_SIZE>;
-var<workgroup> sg_max: array<f32, MAX_SUBGROUPS>;
-var<workgroup> sg_sum: array<f32, MAX_SUBGROUPS>;
-var<workgroup> global_max: f32;
-var<workgroup> global_sum: f32;
+var<workgroup> shared_q: array<f16, MAX_HEAD_DIM>;
+var<workgroup> shared_scores: array<f16, MAX_WORKGROUP_SIZE>;
+var<workgroup> sg_max: array<f16, MAX_SUBGROUPS>;
+var<workgroup> sg_sum: array<f16, MAX_SUBGROUPS>;
+var<workgroup> global_max: f16;
+var<workgroup> global_sum: f16;
 
 fn get_kv_head_idx(query_head_idx: u32) -> u32 {
     let heads_per_kv = u.num_heads / u.num_kv_heads;
@@ -90,6 +91,8 @@ fn main(
     let tid = local_id.x;
     let head_dim = u.head_dim;
     let kv_len = get_kv_len();
+    let scale = f16(u.scale);
+    let softcap = f16(u.attn_softcap);
     let q_offset = head_idx * head_dim;
     let out_dim0 = tid;
     let out_dim1 = tid + WORKGROUP_SIZE;
@@ -119,17 +122,17 @@ fn main(
     let kv_head_idx = get_kv_head_idx(head_idx);
 
     if (has_out_dim0) {
-        shared_q[out_dim0] = f32(Q[q_offset + out_dim0]);
+        shared_q[out_dim0] = Q[q_offset + out_dim0];
     }
     if (has_out_dim1) {
-        shared_q[out_dim1] = f32(Q[q_offset + out_dim1]);
+        shared_q[out_dim1] = Q[q_offset + out_dim1];
     }
     workgroupBarrier();
 
-    var running_max: f32 = -3.402823e+38;
-    var running_sum: f32 = 0.0;
-    var out_accum0: f32 = 0.0;
-    var out_accum1: f32 = 0.0;
+    var running_max: f16 = NEG_INF;
+    var running_sum: f16 = f16(0.0);
+    var out_accum0: f16 = f16(0.0);
+    var out_accum1: f16 = f16(0.0);
 
     var start_k: u32 = 0u;
     if (u.sliding_window > 0u && kv_len > u.sliding_window) {
@@ -142,7 +145,7 @@ fn main(
         let k_pos = k_start + tid;
         let valid_k = k_pos < kv_len;
         var masked = false;
-        var score: f32 = -3.402823e+38;
+        var score: f16 = NEG_INF;
 
         if (valid_k) {
             let abs_key = u.kv_start + k_pos;
@@ -150,32 +153,32 @@ fn main(
             if (!masked) {
                 let k_idx = get_kv_pos(k_pos);
                 let k_offset = k_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
-                var dot: f32 = 0.0;
+                var dot: f16 = f16(0.0);
                 for (var d: u32 = 0u; d < head_dim; d = d + 2u) {
                     let q0 = shared_q[d];
-                    let k0 = f32(K[k_offset + d]);
+                    let k0 = K[k_offset + d];
                     dot = dot + q0 * k0;
                     if (d + 1u < head_dim) {
                         let q1 = shared_q[d + 1u];
-                        let k1 = f32(K[k_offset + d + 1u]);
+                        let k1 = K[k_offset + d + 1u];
                         dot = dot + q1 * k1;
                     }
                 }
-                score = dot * u.scale;
-                if (u.attn_softcap > 0.0) {
-                    score = tanh(score / u.attn_softcap) * u.attn_softcap;
+                score = dot * scale;
+                if (softcap > f16(0.0)) {
+                    score = tanh(score / softcap) * softcap;
                 }
             }
         }
 
-        var chunk_max = subgroupMax(score);
+        let chunk_max = subgroupMax(score);
         if (sg_tid == 0u && subgroup_id < num_subgroups) {
             sg_max[subgroup_id] = chunk_max;
         }
         workgroupBarrier();
 
         if (tid == 0u) {
-            var m: f32 = -3.402823e+38;
+            var m: f16 = NEG_INF;
             for (var s: u32 = 0u; s < num_subgroups; s++) {
                 m = max(m, sg_max[s]);
             }
@@ -187,20 +190,20 @@ fn main(
         let new_max = max(running_max, chunk_max_val);
         let rescale = exp(running_max - new_max);
 
-        var exp_score: f32 = 0.0;
+        var exp_score: f16 = f16(0.0);
         if (valid_k && !masked) {
             exp_score = exp(score - new_max);
         }
         shared_scores[tid] = exp_score;
 
-        var chunk_sum = subgroupAdd(exp_score);
+        let chunk_sum = subgroupAdd(exp_score);
         if (sg_tid == 0u && subgroup_id < num_subgroups) {
             sg_sum[subgroup_id] = chunk_sum;
         }
         workgroupBarrier();
 
         if (tid == 0u) {
-            var s: f32 = 0.0;
+            var s: f16 = f16(0.0);
             for (var i: u32 = 0u; i < num_subgroups; i++) {
                 s = s + sg_sum[i];
             }
@@ -221,21 +224,21 @@ fn main(
                 let v_idx = get_kv_pos(k_pos_inner);
                 let v_base = v_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
                 if (has_out_dim0) {
-                    out_accum0 = out_accum0 + shared_scores[score_idx] * f32(V[v_base + out_dim0]);
+                    out_accum0 = out_accum0 + shared_scores[score_idx] * V[v_base + out_dim0];
                 }
                 if (has_out_dim1) {
-                    out_accum1 = out_accum1 + shared_scores[score_idx] * f32(V[v_base + out_dim1]);
+                    out_accum1 = out_accum1 + shared_scores[score_idx] * V[v_base + out_dim1];
                 }
             }
         }
         workgroupBarrier();
     }
 
-    let inv_sum = select(0.0, 1.0 / running_sum, running_sum > 0.0);
+    let inv_sum = select(f16(0.0), f16(1.0) / running_sum, running_sum > f16(0.0));
     if (has_out_dim0) {
-        output[q_offset + out_dim0] = f16(out_accum0 * inv_sum);
+        output[q_offset + out_dim0] = out_accum0 * inv_sum;
     }
     if (has_out_dim1) {
-        output[q_offset + out_dim1] = f16(out_accum1 * inv_sum);
+        output[q_offset + out_dim1] = out_accum1 * inv_sum;
     }
 }

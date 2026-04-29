@@ -1,14 +1,12 @@
 // AUTO-GENERATED from src/gpu/kernels/sample.wgsl.
-// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
-// AUTO-GENERATED from src/gpu/kernels/sample.wgsl.
-// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
 // sample_f16.wgsl
 
 /**
  * GPU-Side Sampling Kernel (f16 logits)
  *
  * Same as sample.wgsl but logits are f16.
- * Computation is performed in f32 for stability.
+ * The all-f16 lane keeps sampling comparisons and reductions in f16.
  */
 
 enable f16;
@@ -17,7 +15,7 @@ enable f16;
 override WORKGROUP_SIZE: u32 = 256u;
 const MAX_WORKGROUP_SIZE: u32 = 256u;
 const MAX_TOP_K: u32 = 128u;
-const NEG_INF: f32 = -3.402823e+38;
+const NEG_INF = f16(-65504.0);
 
 struct Uniforms {
     vocab_size: u32,
@@ -30,14 +28,14 @@ struct Uniforms {
     pad0: u32,
 }
 
-fn apply_softcap(x: f32, softcap: f32) -> f32 {
-    if (softcap <= 0.0) {
+fn apply_softcap(x: f16, softcap: f16) -> f16 {
+    if (softcap <= f16(0.0)) {
         return x;
     }
     return softcap * tanh(x / softcap);
 }
 
-fn candidate_beats(candidate_value: f32, candidate_index: u32, best_value: f32, best_index: u32) -> bool {
+fn candidate_beats(candidate_value: f16, candidate_index: u32, best_value: f16, best_index: u32) -> bool {
     if (candidate_value > best_value) {
         return true;
     }
@@ -51,9 +49,9 @@ fn candidate_beats(candidate_value: f32, candidate_index: u32, best_value: f32, 
 @group(0) @binding(1) var<storage, read> logits: array<f16>;
 @group(0) @binding(2) var<storage, read_write> output: array<u32>;
 @group(0) @binding(3) var<storage, read_write> topk_indices: array<u32>;
-@group(0) @binding(4) var<storage, read_write> topk_logits: array<f32>;
+@group(0) @binding(4) var<storage, read_write> topk_logits: array<f16>;
 
-var<workgroup> shared_values: array<f32, MAX_WORKGROUP_SIZE>;
+var<workgroup> shared_values: array<f16, MAX_WORKGROUP_SIZE>;
 var<workgroup> shared_indices: array<u32, MAX_WORKGROUP_SIZE>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
@@ -66,27 +64,27 @@ fn find_topk_phase1(
     let thread_idx = lid.x;
     let global_idx = gid.x;
     let vocab_size = u.vocab_size;
-    let temperature = u.temperature;
+    let temperature = f16(u.temperature);
     let pad_id = u.pad_token_id;
-    let softcap = u.logit_softcap;
+    let softcap = f16(u.logit_softcap);
 
     if (num_wg.x == 1u) {
-        var val: f32 = NEG_INF;
+        var val: f16 = NEG_INF;
         if (global_idx < vocab_size && global_idx != pad_id) {
-            val = apply_softcap(f32(logits[global_idx]), softcap) / temperature;
+            val = apply_softcap(logits[global_idx], softcap) / temperature;
         }
         topk_logits[thread_idx] = val;
         topk_indices[thread_idx] = global_idx;
         return;
     }
 
-    var local_max: f32 = NEG_INF;
+    var local_max: f16 = NEG_INF;
     var local_max_idx: u32 = 0u;
 
     var idx = global_idx;
     while (idx < vocab_size) {
         if (idx != pad_id) {
-            let val = apply_softcap(f32(logits[idx]), softcap) / temperature;
+            let val = apply_softcap(logits[idx], softcap) / temperature;
             if (candidate_beats(val, idx, local_max, local_max_idx)) {
                 local_max = val;
                 local_max_idx = idx;
@@ -177,7 +175,7 @@ fn softmax_and_sample(
 ) {
     let thread_idx = lid.x;
     let top_k = u.top_k;
-    let random_val = u.random_value;
+    let random_val = f16(u.random_value);
 
     if (thread_idx < top_k) {
         shared_values[thread_idx] = topk_logits[thread_idx];
@@ -186,20 +184,20 @@ fn softmax_and_sample(
     workgroupBarrier();
 
     if (thread_idx == 0u) {
-        var max_val: f32 = shared_values[0];
+        var max_val: f16 = shared_values[0];
         for (var i: u32 = 1u; i < top_k; i = i + 1u) {
             max_val = max(max_val, shared_values[i]);
         }
 
-        var exp_sum: f32 = 0.0;
+        var exp_sum: f16 = f16(0.0);
         for (var i: u32 = 0u; i < top_k; i = i + 1u) {
             let exp_val = exp(shared_values[i] - max_val);
             shared_values[i] = exp_val;
             exp_sum = exp_sum + exp_val;
         }
 
-        let inv_sum = 1.0 / exp_sum;
-        var cum_prob: f32 = 0.0;
+        let inv_sum = f16(1.0) / exp_sum;
+        var cum_prob: f16 = f16(0.0);
         var selected_token: u32 = shared_indices[top_k - 1u];
 
         for (var i: u32 = 0u; i < top_k; i = i + 1u) {
@@ -224,18 +222,17 @@ fn sample_single_pass(
     let thread_idx = lid.x;
     let vocab_size = u.vocab_size;
     let top_k = min(u.top_k, MAX_TOP_K);
-    let temperature = u.temperature;
-    let random_val = u.random_value;
+    let temperature = f16(u.temperature);
     let pad_id = u.pad_token_id;
-    let softcap = u.logit_softcap;
+    let softcap = f16(u.logit_softcap);
 
-    var local_max: f32 = NEG_INF;
+    var local_max: f16 = NEG_INF;
     var local_max_idx: u32 = 0u;
 
     var idx = gid.x;
     while (idx < vocab_size) {
         if (idx != pad_id) {
-            let val = apply_softcap(f32(logits[idx]), softcap) / temperature;
+            let val = apply_softcap(logits[idx], softcap) / temperature;
             if (candidate_beats(val, idx, local_max, local_max_idx)) {
                 local_max = val;
                 local_max_idx = idx;
@@ -281,15 +278,15 @@ fn argmax(
     let global_idx = gid.x;
     let vocab_size = u.vocab_size;
     let pad_id = u.pad_token_id;
-    let softcap = u.logit_softcap;
+    let softcap = f16(u.logit_softcap);
 
-    var local_max: f32 = NEG_INF;
+    var local_max: f16 = NEG_INF;
     var local_max_idx: u32 = 0u;
 
     var idx = global_idx;
     while (idx < vocab_size) {
         if (idx != pad_id) {
-            let val = apply_softcap(f32(logits[idx]), softcap);
+            let val = apply_softcap(logits[idx], softcap);
             if (candidate_beats(val, idx, local_max, local_max_idx)) {
                 local_max = val;
                 local_max_idx = idx;

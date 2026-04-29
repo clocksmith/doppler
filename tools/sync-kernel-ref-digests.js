@@ -5,8 +5,8 @@
  * src/config/kernels/registry.json + src/gpu/kernels/*.wgsl.
  *
  * Usage:
- *   node tools/sync-kernel-ref-digests.js          # write
- *   node tools/sync-kernel-ref-digests.js --check   # exit 1 if stale
+ *   npm run kernels:digests:sync
+ *   npm run kernels:digests:check
  */
 
 import fs from 'node:fs/promises';
@@ -54,12 +54,12 @@ ${lines.join('\n')}
 if (checkMode) {
   const existing = await fs.readFile(outputPath, 'utf8');
   if (existing === content) {
-    console.log('[digests:check] kernel-ref-digests.js is up to date');
+    console.log('[kernels:digests:check] kernel-ref-digests.js is up to date');
     process.exit(0);
   }
-  console.error('[digests:check] kernel-ref-digests.js is stale — run: npm run digests:sync');
+  console.error('[kernels:digests:check] kernel-ref-digests.js is stale — run: npm run kernels:digests:sync');
   process.exit(1);
 }
 
 await fs.writeFile(outputPath, content);
-console.log(`[digests:sync] wrote ${sorted.length} entries to src/config/kernels/kernel-ref-digests.js`);
+console.log(`[kernels:digests:sync] wrote ${sorted.length} entries to src/config/kernels/kernel-ref-digests.js`);

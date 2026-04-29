@@ -168,6 +168,10 @@ Use runtime profiles/config payloads, not ad-hoc per-field flags.
 - Conversion configs: `src/config/conversion/` (v1 format with inline execution graph)
 - Read tunables via `getRuntimeConfig()`; avoid hardcoded defaults in runtime paths.
 - `runtime.shared.tooling.intent` is required for harnessed debug/bench/test flows.
+- Experimental model-scoped dtype lanes must be expressed as a runtime profile
+  plus an execution-v1 capability transform. Do not change catalog/release
+  metadata for the lane until the matching browser/WebGPU transcript or parity
+  receipt exists.
 
 ### Task-Specific Protocols
 

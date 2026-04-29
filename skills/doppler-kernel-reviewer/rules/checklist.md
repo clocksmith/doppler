@@ -9,6 +9,7 @@
     - Constants: `UPPER_SNAKE_CASE` (e.g., `WORKGROUP_SIZE`).
     - Functions/Vars: `snake_case`.
     - Structs: `PascalCase`.
+    - Kernel operation IDs, variant IDs, WGSL filenames, and entry points are registry-owned. Use `src/config/kernels/registry.json` and `npm run kernels:registry:check`; do not apply a separate suffix grammar in review.
 - [ ] **Overrides vs Uniforms**:
     - Use `override` for values known at pipeline creation (dims, workgroup size, flags that change topology).
     - Use `uniform` ONLY for values that change per-dispatch (seq values, dynamic offsets).

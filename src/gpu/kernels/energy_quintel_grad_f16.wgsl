@@ -1,5 +1,5 @@
 // AUTO-GENERATED from src/gpu/kernels/energy_quintel_grad.wgsl.
-// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
 // energy_quintel_grad_f16.wgsl
 // Quintel gradient kernel for f16 state: compute dE/d(state) into f32 output.
 

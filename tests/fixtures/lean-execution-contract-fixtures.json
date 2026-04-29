@@ -113,10 +113,6 @@
       "reason": "no committed converted fixture manifest exists yet for this model family"
     },
     {
-      "configPath": "src/config/conversion/sana/sana-sprint-0.6b-f16.json",
-      "reason": "diffusion config is outside the current Lean execution-contract scope"
-    },
-    {
       "configPath": "src/config/conversion/transformer/transformer-template-f16.json",
       "reason": "template config intentionally excluded from Lean execution-contract coverage until a canonical converted fixture manifest exists"
     }

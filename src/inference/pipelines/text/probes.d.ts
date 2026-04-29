@@ -20,6 +20,9 @@ export function runProbes(
     hiddenSize: number;
     probes?: ProbeConfigSchema[] | null;
     recorder?: CommandRecorder | null;
+    operatorDiagnostics?: Record<string, unknown> | null;
     dtype?: 'f16' | 'f32';
+    phase?: string | null;
+    tokenIndex?: number | null;
   }
 ): Promise<void>;

@@ -58,7 +58,7 @@ const {
   runScatterAddDynamic,
 } = await import('../../src/gpu/kernels/moe.js');
 const { runResidualAdd } = await import('../../src/gpu/kernels/residual.js');
-const { runSanaLinearAttention } = await import('../../src/gpu/kernels/sana_linear_attention.js');
+const { runLinearAttention } = await import('../../src/gpu/kernels/linear_attention.js');
 const { runScale } = await import('../../src/gpu/kernels/scale.js');
 const { runSplitQKV } = await import('../../src/gpu/kernels/split_qkv.js');
 
@@ -622,11 +622,11 @@ function assertDeviceBuffersDestroyed(device) {
 
 {
   resetRuntimeState(createFakeDevice({ createBindGroupThrowAt: 1 }));
-  const query = createExternalTensor([1, 2, 3, 4], [1, 4], 'sana_q');
-  const key = createExternalTensor([1, 2, 3, 4], [1, 4], 'sana_k');
-  const value = createExternalTensor([1, 2, 3, 4], [1, 4], 'sana_v');
+  const query = createExternalTensor([1, 2, 3, 4], [1, 4], 'linear_attention_q');
+  const key = createExternalTensor([1, 2, 3, 4], [1, 4], 'linear_attention_k');
+  const value = createExternalTensor([1, 2, 3, 4], [1, 4], 'linear_attention_v');
   await assert.rejects(
-    () => runSanaLinearAttention(query, key, value, { numHeads: 1, headDim: 4, numTokens: 1, hiddenSize: 4 }),
+    () => runLinearAttention(query, key, value, { numHeads: 1, headDim: 4, numTokens: 1, hiddenSize: 4 }),
     /createBindGroup failed at 1/
   );
   assertPoolIsClean();

@@ -690,50 +690,6 @@
       "artifactCompleteness": "incomplete",
       "runtimePromotionState": "unpromoted",
       "weightsRefAllowed": false
-    },
-    {
-      "modelId": "sana-sprint-0-6b-wf16-ef16-hf16-f16",
-      "family": "sana",
-      "label": "Sana Sprint 0.6B (F16)",
-      "description": "Sana Sprint 0.6B text-to-image diffusion model. F16 weights/embeddings/head/compute.",
-      "modes": [
-        "diffusion"
-      ],
-      "aliases": [
-        "sana-sprint-0.6b",
-        "sana-sprint",
-        "Efficient-Large-Model/Sana_Sprint_0.6B_1024px_diffusers"
-      ],
-      "artifact": {
-        "format": "rdrr"
-      },
-      "hf": null,
-      "baseUrl": null,
-      "quickstart": false,
-      "sizeBytes": 7079236640,
-      "recommended": false,
-      "sortOrder": 40,
-      "lifecycle": {
-        "availability": {
-          "curated": false,
-          "local": true,
-          "hf": false
-        },
-        "status": {
-          "runtime": "experimental",
-          "conversion": "ready",
-          "demo": "none",
-          "tested": "none"
-        },
-        "tested": null
-      },
-      "vendorBenchmark": null,
-      "sourceCheckpointId": "Efficient-Large-Model/Sana_Sprint_0.6B",
-      "weightPackId": "sana-sprint-0-6b-wf16-ef16-hf16-f16-wp-catalog-v1",
-      "manifestVariantId": "sana-sprint-0-6b-wf16-ef16-hf16-f16-mv-exec-v1",
-      "artifactCompleteness": "incomplete",
-      "runtimePromotionState": "unpromoted",
-      "weightsRefAllowed": false
     }
   ]
 }

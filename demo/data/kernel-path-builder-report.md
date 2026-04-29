@@ -2,24 +2,20 @@
 
 ## Summary
 
-- Models indexed: 12
+- Models indexed: 11
 - Registry kernel paths: 22
-- Config sources: 13
+- Config sources: 12
 - Artifact manifest sources: 0
 - Exact matches: 4
 - Verified proposals: 8
 - Unverified proposals: 4
-- Skipped: 1
+- Skipped: 0
 
 ## Proposal Stats
 
 - Proposal records: 12
 - New kernel-path ids: 8
 - Existing kernel-path ids reused: 4
-
-## Skipped Sources
-
-- `sana-sprint-0.6b-f16` (unsupported pipeline scope "diffusion" for kernel-path builder)
 
 ## Models
 
@@ -3726,4 +3722,3 @@ Proposal:
   }
 }
 ```
-

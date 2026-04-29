@@ -20,6 +20,7 @@ import {
   remapQ4KDecodeFFNToGemv,
   useQwenF16PrimaryMatmuls,
   useQwenDecodeF16Matmuls,
+  useGemma431BTextF16Activations,
   composeTransforms,
 } from '../../src/config/transforms/execution-graph-transforms.js';
 
@@ -55,10 +56,18 @@ const gemma4ConversionConfig = JSON.parse(
   )
 );
 
+const gemma431BConversionConfig = JSON.parse(
+  readFileSync(
+    path.resolve(__dirname, '../../src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af32.json'),
+    'utf-8'
+  )
+);
+
 /** The real execution graph from the gemma3-1b-q4k conversion config. */
 const REAL_GRAPH = conversionConfig.execution;
 const QWEN_REAL_GRAPH = qwenConversionConfig.execution;
 const GEMMA4_REAL_GRAPH = gemma4ConversionConfig.execution;
+const GEMMA4_31B_REAL_GRAPH = gemma431BConversionConfig.execution;
 
 /** Default transform context matching the conversion config. */
 const CTX_F32 = { activationDtype: 'f32', kvDtype: 'f16' };
@@ -411,6 +420,36 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
+// Test 3a: full f32 widening uses valid matmul_f32 entry point
+// ===========================================================================
+{
+  const graph = {
+    kernels: {
+      q_proj: { kernel: 'matmul_gemv_subgroup_f16a.wgsl', entry: 'main_vec4', digest: 'sha256:q' },
+      lm_head: { kernel: 'matmul_gemv_subgroup_f16a.wgsl', entry: 'main_multicol', digest: 'sha256:lm' },
+      prefill: { kernel: 'matmul_f16_tiled.wgsl', entry: 'main', digest: 'sha256:p' },
+    },
+    decode: [['q_proj', 'q_proj'], ['lm_head', 'lm_head']],
+    prefill: [['q_proj', 'prefill']],
+    postLayer: [],
+    policies: { unsupportedPrecision: 'error' },
+  };
+
+  const result = widenToF32Activations(graph, { ...CTX_F16, capabilities: { hasF16: false } });
+  ok(result !== null, 'full f32 widening should apply to f16 matmul kernels');
+  equal(result.kernels.q_proj.kernel, 'matmul_f32.wgsl',
+    'full f32 widening should replace q_proj with matmul_f32.wgsl');
+  equal(result.kernels.q_proj.entry, 'main',
+    'full f32 widening should not preserve main_vec4 for matmul_f32.wgsl');
+  equal(result.kernels.lm_head.kernel, 'matmul_f32.wgsl',
+    'full f32 widening should replace lm_head with matmul_f32.wgsl');
+  equal(result.kernels.lm_head.entry, 'main',
+    'full f32 widening should not preserve main_multicol for matmul_f32.wgsl');
+  equal(result.kernels.prefill.entry, 'main',
+    'full f32 widening should keep the valid matmul_f32.wgsl entry point');
+}
+
+// ===========================================================================
 // Test 4: widenToF32Activations returns null for fused f16 FFN
 // ===========================================================================
 {
@@ -714,7 +753,77 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
-// Test 10d: remapQ4KDecodeToGemv — explicit diagnostic transform on Qwen
+// Test 10d: useGemma431BTextF16Activations — experimental Gemma 4 31B all-f16 lane
+// ===========================================================================
+{
+  const graph = structuredClone(GEMMA4_31B_REAL_GRAPH);
+  const frozen = structuredClone(graph);
+  const result = useGemma431BTextF16Activations(graph, {
+    ...CTX_F16,
+    mathDtype: 'f16',
+    accumDtype: 'f16',
+    modelId: 'gemma-4-31b-it-text-q4k-ehf16-af32',
+    capabilities: { hasF16: true, hasSubgroups: true },
+    layerTypes: gemma431BConversionConfig.inference.layerPattern.layerTypes,
+  });
+
+  ok(result, 'Gemma 4 31B f16 lane should derive an execution graph');
+
+  const embed = result.preLayer.find((entry) => Array.isArray(entry) && entry[0] === 'embed');
+  ok(embed, 'Gemma 4 31B f16 lane should keep embed');
+  equal(result.kernels[embed[1]].kernel, 'gather_f16_vec4_f16_out.wgsl',
+    'Gemma 4 31B f16 lane should emit f16 embeddings into f16 activations');
+  deepEqual(result.kernels[embed[1]].precision, { inputDtype: 'f16', outputDtype: 'f16' },
+    'Gemma 4 31B f16 lane should declare embed f16 precision');
+
+  const decodeQ = result.decode.find((entry) => Array.isArray(entry) && entry[0] === 'q_proj');
+  ok(decodeQ, 'Gemma 4 31B f16 lane should keep decode q_proj');
+  equal(result.kernels[decodeQ[1]].kernel, 'fused_matmul_q4_multicol_f16a.wgsl',
+    'Gemma 4 31B f16 lane should use f16 activation Q4 decode projection');
+  deepEqual(result.kernels[decodeQ[1]].precision, { inputDtype: 'f16', outputDtype: 'f16' },
+    'Gemma 4 31B f16 lane should declare decode projection f16 precision');
+
+  const decodeAttention = result.decode.find((entry) => Array.isArray(entry) && entry[0] === 'attention');
+  ok(decodeAttention, 'Gemma 4 31B f16 lane should keep decode attention');
+  equal(result.kernels[decodeAttention[1]].kernel, 'attention_decode_online_f16.wgsl',
+    'Gemma 4 31B f16 lane should use f16 decode attention');
+
+  const slidingPrefill = result.prefill[0].steps;
+  const fullPrefill = result.prefill[1].steps;
+  const slidingPrefillQ = slidingPrefill.find((entry) => Array.isArray(entry) && entry[0] === 'q_proj');
+  const fullPrefillQ = fullPrefill.find((entry) => Array.isArray(entry) && entry[0] === 'q_proj');
+  const slidingPrefillAttention = slidingPrefill.find((entry) => Array.isArray(entry) && entry[0] === 'attention');
+  const fullPrefillAttention = fullPrefill.find((entry) => Array.isArray(entry) && entry[0] === 'attention');
+  ok(slidingPrefillQ && fullPrefillQ && slidingPrefillAttention && fullPrefillAttention,
+    'Gemma 4 31B f16 lane should keep grouped prefill projection and attention steps');
+  equal(result.kernels[slidingPrefillQ[1]].kernel, 'fused_matmul_q4_batched_f16acc_f16a.wgsl',
+    'Gemma 4 31B f16 lane should use f16-accum Q4 prefill projection on sliding layers');
+  equal(result.kernels[fullPrefillQ[1]].kernel, 'fused_matmul_q4_batched_f16acc_f16a.wgsl',
+    'Gemma 4 31B f16 lane should use f16-accum Q4 prefill projection on full-attention layers');
+  equal(result.kernels[slidingPrefillAttention[1]].kernel, 'attention_small_f16.wgsl',
+    'Gemma 4 31B f16 lane should use f16 sliding prefill attention');
+  equal(result.kernels[fullPrefillAttention[1]].kernel, 'attention_head512_f16.wgsl',
+    'Gemma 4 31B f16 lane should use f16 head512 prefill attention');
+
+  const postKernel = (op) => {
+    const step = result.postLayer.find((entry) => Array.isArray(entry) && entry[0] === op);
+    ok(step, `Gemma 4 31B f16 lane should keep postLayer ${op}`);
+    return result.kernels[step[1]];
+  };
+  equal(postKernel('final_norm').kernel, 'rmsnorm_f16.wgsl',
+    'Gemma 4 31B f16 lane should move final norm to f16');
+  equal(postKernel('lm_head').kernel, 'matmul_gemv_subgroup_f16a.wgsl',
+    'Gemma 4 31B f16 lane should move decode lm_head to f16 activations');
+  equal(postKernel('lm_head_prefill').kernel, 'matmul_f16_tiled.wgsl',
+    'Gemma 4 31B f16 lane should move prefill lm_head to f16 activations');
+  equal(postKernel('sample').kernel, 'sample_f16.wgsl',
+    'Gemma 4 31B f16 lane should sample from f16 logits');
+
+  deepEqual(graph, frozen, 'useGemma431BTextF16Activations must not mutate the input graph');
+}
+
+// ===========================================================================
+// Test 10e: remapQ4KDecodeToGemv — explicit diagnostic transform on Qwen
 // ===========================================================================
 {
   const graph = structuredClone(QWEN_REAL_GRAPH);
@@ -972,6 +1081,34 @@ function buildF16WeightProjectionGraph() {
     equal(r.transforms.length, 1, 'Qwen 3.5 0.8B runtime f16 request: one transform function');
     equal(r.transforms[0], useQwenF16PrimaryMatmuls,
       'Qwen 3.5 0.8B runtime f16 request: transform is useQwenF16PrimaryMatmuls');
+  }
+
+  {
+    const r = resolveCapabilityTransforms(
+      {
+        hasSubgroups: true,
+        hasF16: true,
+        maxWorkgroupStorageSize: 32768,
+        adapterInfo: { vendor: 'amd', architecture: 'rdna-3' },
+      },
+      { id: 'amd-rdna3', vendor: 'amd', architecture: 'rdna-3' },
+      {
+        activationDtype: 'f16',
+        mathDtype: 'f16',
+        accumDtype: 'f16',
+        kvDtype: 'f16',
+        modelId: 'gemma-4-31b-it-text-q4k-ehf16-af32',
+        requiresF16ActivationNarrowing: true,
+      }
+    );
+    deepEqual(
+      r.names,
+      ['useGemma431BTextF16Activations'],
+      'Gemma 4 31B runtime all-f16 request: should resolve the experimental f16 transform'
+    );
+    equal(r.transforms.length, 1, 'Gemma 4 31B runtime all-f16 request: one transform function');
+    equal(r.transforms[0], useGemma431BTextF16Activations,
+      'Gemma 4 31B runtime all-f16 request: transform is useGemma431BTextF16Activations');
   }
 
   {

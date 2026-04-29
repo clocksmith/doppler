@@ -11,8 +11,8 @@
  *   - A status classification: pinned, model-selectable, selectable, unused, missing-wgsl
  *
  * Usage:
- *   node tools/sync-kernel-reachability.js          # write
- *   node tools/sync-kernel-reachability.js --check   # exit 1 if stale
+ *   npm run kernels:registry:sync
+ *   npm run kernels:registry:check
  */
 
 import fs from 'node:fs/promises';
@@ -27,6 +27,8 @@ const rulesDir = path.join(repoRoot, 'src/rules/kernels');
 const conversionRoot = path.join(repoRoot, 'src/config/conversion');
 
 const checkMode = process.argv.includes('--check');
+const ID_PATTERN = /^[a-z0-9]+(?:_[a-z0-9]+)*$/u;
+const WGSL_SEGMENT_PATTERN = /^[a-z0-9]+(?:_[a-z0-9]+)*(?:\.wgsl)?$/u;
 
 // ---------------------------------------------------------------------------
 // Pass 1: Collect inline references from conversion configs
@@ -131,20 +133,77 @@ function extractVariantNames(value, refs, source) {
 
 async function collectWgslOnDisk() {
   const files = new Set();
-  const items = await fs.readdir(kernelsDir);
-  for (const item of items) {
-    if (item.endsWith('.wgsl')) files.add(item);
-  }
-  // Also check subdirectories (backward/)
-  for (const item of await fs.readdir(kernelsDir, { withFileTypes: true })) {
-    if (item.isDirectory()) {
-      const sub = await fs.readdir(path.join(kernelsDir, item.name));
-      for (const f of sub) {
-        if (f.endsWith('.wgsl')) files.add(`${item.name}/${f}`);
+  async function walk(dir, prefix = '') {
+    const items = await fs.readdir(dir, { withFileTypes: true });
+    for (const item of items) {
+      const relativePath = prefix ? `${prefix}/${item.name}` : item.name;
+      const fullPath = path.join(dir, item.name);
+      if (item.isDirectory()) {
+        await walk(fullPath, relativePath);
+        continue;
+      }
+      if (item.isFile() && item.name.endsWith('.wgsl')) {
+        files.add(relativePath);
       }
     }
   }
+  await walk(kernelsDir);
   return files;
+}
+
+function isSnakeCaseId(value) {
+  return typeof value === 'string' && ID_PATTERN.test(value);
+}
+
+function isSnakeCaseWgslPath(value) {
+  if (typeof value !== 'string' || !value.endsWith('.wgsl')) return false;
+  return value.split('/').every((segment) => WGSL_SEGMENT_PATTERN.test(segment));
+}
+
+function collectInventoryIssues(registry, wgslOnDisk, unregistered) {
+  const issues = [];
+  const operations = registry.operations;
+  if (!operations || typeof operations !== 'object' || Array.isArray(operations)) {
+    issues.push('registry.operations must be an object.');
+    return issues;
+  }
+
+  for (const [opName, opSchema] of Object.entries(operations)) {
+    if (!isSnakeCaseId(opName)) {
+      issues.push(`operation id "${opName}" is not snake_case.`);
+    }
+
+    const variants = opSchema?.variants;
+    if (!variants || typeof variants !== 'object' || Array.isArray(variants)) {
+      issues.push(`operation "${opName}" must define variants.`);
+      continue;
+    }
+
+    for (const [varName, varDef] of Object.entries(variants)) {
+      if (!isSnakeCaseId(varName)) {
+        issues.push(`variant id "${opName}/${varName}" is not snake_case.`);
+      }
+      if (typeof varDef?.wgsl !== 'string' || !varDef.wgsl.trim()) {
+        issues.push(`variant "${opName}/${varName}" is missing wgsl.`);
+        continue;
+      }
+      if (!isSnakeCaseWgslPath(varDef.wgsl)) {
+        issues.push(`variant "${opName}/${varName}" references non-snake-case WGSL path: ${varDef.wgsl}`);
+      }
+      if (!wgslOnDisk.has(varDef.wgsl)) {
+        issues.push(`variant "${opName}/${varName}" references missing WGSL file: ${varDef.wgsl}`);
+      }
+      if (typeof varDef?.entryPoint !== 'string' || !varDef.entryPoint.trim()) {
+        issues.push(`variant "${opName}/${varName}" is missing entryPoint.`);
+      }
+    }
+  }
+
+  for (const wgsl of unregistered) {
+    issues.push(`WGSL file is not registered: ${wgsl}`);
+  }
+
+  return issues;
 }
 
 // ---------------------------------------------------------------------------
@@ -245,24 +304,35 @@ for (const opSchema of Object.values(registry.operations ?? {})) {
   }
 }
 const unregistered = [...wgslOnDisk].filter((f) => !registeredWgsl.has(f)).sort();
+const inventoryIssues = collectInventoryIssues(registry, wgslOnDisk, unregistered);
 
 const content = JSON.stringify(registry, null, 2) + '\n';
 
 if (checkMode) {
   const existing = await fs.readFile(registryPath, 'utf8');
   if (existing === content) {
-    console.log(`[reachability:check] registry.json reachability is up to date (${totalVariants} variants)`);
-    if (unregistered.length > 0) {
-      console.log(`[reachability:check] warning: ${unregistered.length} WGSL file(s) not in registry: ${unregistered.join(', ')}`);
+    console.log(`[kernels:registry:check] registry.json reachability is up to date (${totalVariants} variants)`);
+    if (inventoryIssues.length > 0) {
+      console.error(`[kernels:registry:check] registry/WGSL inventory has ${inventoryIssues.length} issue(s):`);
+      for (const issue of inventoryIssues) {
+        console.error(`- ${issue}`);
+      }
+      process.exit(1);
     }
     process.exit(0);
   }
-  console.error('[reachability:check] registry.json reachability is stale — run: npm run kernels:reachability:sync');
+  console.error('[kernels:registry:check] registry.json reachability is stale — run: npm run kernels:registry:sync');
+  if (inventoryIssues.length > 0) {
+    console.error(`[kernels:registry:check] registry/WGSL inventory also has ${inventoryIssues.length} issue(s):`);
+    for (const issue of inventoryIssues) {
+      console.error(`- ${issue}`);
+    }
+  }
   process.exit(1);
 }
 
 await fs.writeFile(registryPath, content);
-console.log(`[reachability:sync] wrote reachability for ${totalVariants} variants to registry.json`);
+console.log(`[kernels:registry:sync] wrote reachability for ${totalVariants} variants to registry.json`);
 console.log(`  pinned:           ${statusCounts['pinned']}  (execution graph references this exact wgsl+entry)`);
 console.log(`  model-selectable: ${statusCounts['model-selectable']}  (rule chain can select; models exercise this operation)`);
 console.log(`  selectable:       ${statusCounts['selectable']}  (rule chain can select; no model exercises this operation)`);
@@ -271,4 +341,10 @@ console.log(`  missing-wgsl:     ${statusCounts['missing-wgsl']}  (registered bu
 console.log(`  model-exercised operations: ${modelExercisedOps.size}/${registryOpNames.size}`);
 if (unregistered.length > 0) {
   console.log(`  unregistered WGSL files (not in registry): ${unregistered.join(', ')}`);
+}
+if (inventoryIssues.length > 0) {
+  console.log(`  registry/WGSL inventory issues: ${inventoryIssues.length}`);
+  for (const issue of inventoryIssues) {
+    console.log(`    - ${issue}`);
+  }
 }

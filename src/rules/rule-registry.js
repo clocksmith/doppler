@@ -31,7 +31,7 @@ import reluRules from './kernels/relu.rules.json' with { type: 'json' };
 import residualRules from './kernels/residual.rules.json' with { type: 'json' };
 import rmsnormRules from './kernels/rmsnorm.rules.json' with { type: 'json' };
 import ropeRules from './kernels/rope.rules.json' with { type: 'json' };
-import sanaLinearAttentionRules from './kernels/sana-linear-attention.rules.json' with { type: 'json' };
+import linearAttentionRules from './kernels/linear-attention.rules.json' with { type: 'json' };
 import sampleRules from './kernels/sample.rules.json' with { type: 'json' };
 import scaleRules from './kernels/scale.rules.json' with { type: 'json' };
 import siluRules from './kernels/silu.rules.json' with { type: 'json' };
@@ -118,7 +118,7 @@ const RULE_SETS = {
     residual: residualRules,
     rmsnorm: rmsnormRules,
     rope: ropeRules,
-    sanaLinearAttention: sanaLinearAttentionRules,
+    linearAttention: linearAttentionRules,
     sample: sampleRules,
     scale: scaleRules,
     silu: siluRules,

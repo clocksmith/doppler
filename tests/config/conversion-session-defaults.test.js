@@ -410,21 +410,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
   },
 ];
 
-const EXPLICIT_NULL_OR_DISABLED = [
-  {
-    path: 'src/config/conversion/sana/sana-sprint-0.6b-f16.json',
-    session: {
-      computeDefaults: {
-        activationDtype: 'f16',
-        mathDtype: 'f16',
-        accumDtype: 'f16',
-        outputDtype: 'f16',
-      },
-      kvcache: null,
-      decodeLoop: null,
-    },
-  },
-];
+const EXPLICIT_NULL_OR_DISABLED = [];
 
 for (const fixture of EXPLICIT_TEXT_DEFAULTS) {
   const config = readJson(fixture.path);

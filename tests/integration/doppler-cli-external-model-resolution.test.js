@@ -111,8 +111,8 @@ try {
     `Expected HF URL for browser catalog fallback, got: ${browserCatalogResolved.modelUrl}`
   );
 
-  const normalizedModelId = 'sana-sprint-0-6b-f16';
-  const aliasedDir = path.join(rdrrRoot, 'sana-sprint-0.6b-f16');
+  const normalizedModelId = 'external-alias-model';
+  const aliasedDir = path.join(rdrrRoot, 'external.alias-model');
   await fs.mkdir(aliasedDir, { recursive: true });
   await fs.writeFile(path.join(aliasedDir, 'manifest.json'), JSON.stringify({ modelId: normalizedModelId }), 'utf8');
   await fs.writeFile(path.join(aliasedDir, 'shard_0.bin'), '');

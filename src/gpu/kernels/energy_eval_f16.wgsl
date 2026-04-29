@@ -1,5 +1,5 @@
 // AUTO-GENERATED from src/gpu/kernels/energy_eval.wgsl.
-// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
 // energy_eval_f16.wgsl
 // Computes per-element energy contributions for f16 inputs.
 

@@ -1,5 +1,5 @@
 // AUTO-GENERATED from src/gpu/kernels/energy_quintel_reduce.wgsl.
-// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
 // energy_quintel_reduce_f16.wgsl
 // Reduces quintel energy components and state sum per workgroup for f16 state.
 

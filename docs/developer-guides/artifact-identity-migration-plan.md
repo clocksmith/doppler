@@ -230,7 +230,6 @@ Incomplete local artifacts:
 - `models/local/lfm2-5-1-2b-instruct-q4k-ehf16-af32`: `invalid-manifest-only`, 13 declared shards, 0 present, no `weightsRef`.
 - `models/local/qwen-3-5-0-8b-q4k-ehaf16`: `invalid-incomplete-shards`, 18 declared shards, 15 present, missing `shard_00015.bin` through `shard_00017.bin`.
 - `models/local/qwen-3-5-2b-q4k-ehaf16`: `invalid-incomplete-shards`, 32 declared shards, 27 present, missing `shard_00027.bin` through `shard_00031.bin`.
-- `models/local/sana-sprint-0-6b-wf16-ef16-hf16-f16`: `invalid-manifest-only`, 105 declared shards, 0 present, no `weightsRef`.
 - `models/local/translategemma-4b-it-q4k-ehf16-af32`: `invalid-manifest-only`, 47 declared shards, 0 present, no `weightsRef`.
 
 Sidecar manifest:

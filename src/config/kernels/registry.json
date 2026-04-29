@@ -144,6 +144,7 @@
             "inlineConfigs": [
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
@@ -151,7 +152,7 @@
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
-              "sana/sana-sprint-0.6b-f16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [
               "matmul.rules.json#matmulKernel"
@@ -315,6 +316,7 @@
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
@@ -430,13 +432,15 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [
               "matmul.rules.json#gemvPathVariant",
@@ -616,10 +620,12 @@
             "status": "pinned",
             "inlineConfigs": [
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -646,7 +652,8 @@
             "status": "pinned",
             "inlineConfigs": [
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [
               "matmul.rules.json#q4kFusedVariant"
@@ -674,8 +681,10 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -787,6 +796,32 @@
             "wgslOnDisk": true
           }
         },
+        "q4_fused_batched_f16acc_f16a": {
+          "wgsl": "fused_matmul_q4_batched_f16acc_f16a.wgsl",
+          "entryPoint": "main_batched_f16acc_f16a",
+          "workgroup": [
+            256,
+            4,
+            1
+          ],
+          "requires": [
+            "shader-f16",
+            "subgroups"
+          ],
+          "outputDtype": "f16",
+          "weightDtype": "q4k",
+          "variantMetadata": {
+            "tileM": 4,
+            "accumDtype": "f16"
+          },
+          "description": "Batched Q4_K prefill matmul with f16 activation input, f16 accumulation, and f16 output for experimental all-f16 execution lanes.",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
         "q4_fused_prefill_tiled_f16": {
           "wgsl": "fused_matmul_q4_prefill_tiled_f16.wgsl",
           "entryPoint": "main",
@@ -837,6 +872,31 @@
             "wgslOnDisk": true
           }
         },
+        "q4_fused_widetile_f16a": {
+          "wgsl": "fused_matmul_q4_widetile_f16a.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f16",
+          "weightDtype": "q4k",
+          "variantMetadata": {
+            "tileM": 4,
+            "colsPerWg": 256
+          },
+          "description": "WideTile Q4_K prefill matmul with f16 activation input and f16 output for execution-v1 f16 activation lanes.",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
         "q4_fused_widetile": {
           "wgsl": "fused_matmul_q4_widetile.wgsl",
           "entryPoint": "main",
@@ -858,8 +918,10 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2019,6 +2081,7 @@
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
@@ -2048,6 +2111,7 @@
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
@@ -2080,10 +2144,12 @@
             "inlineConfigs": [
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2112,9 +2178,37 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
             ],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
+        "prefill_head512_f16": {
+          "wgsl": "attention_head512_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            16,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f16",
+          "variantMetadata": {
+            "tier": "tiled_small",
+            "queryBlockSize": 16,
+            "exactHeadDim": 512,
+            "maxHeadDim": 512,
+            "requiredShared": 16384
+          },
+          "description": "head_dim=512 pure-f16 activation prefill kernel for Gemma-4 global attention layers.",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2184,13 +2278,15 @@
             "inlineConfigs": [
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2216,13 +2312,15 @@
             "inlineConfigs": [
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2281,6 +2379,7 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
@@ -2288,7 +2387,8 @@
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [
               "attention.rules.json#optimizedVariant"
@@ -3249,6 +3349,7 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
@@ -3257,7 +3358,7 @@
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
-              "sana/sana-sprint-0.6b-f16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [
               "rmsnorm.rules.json#variant"
@@ -3448,10 +3549,8 @@
           ],
           "requires": [],
           "reachability": {
-            "status": "pinned",
-            "inlineConfigs": [
-              "sana/sana-sprint-0.6b-f16"
-            ],
+            "status": "selectable",
+            "inlineConfigs": [],
             "ruleChains": [
               "layernorm.rules.json#variant"
             ],
@@ -3470,7 +3569,7 @@
             "shader-f16"
           ],
           "reachability": {
-            "status": "model-selectable",
+            "status": "selectable",
             "inlineConfigs": [],
             "ruleChains": [
               "layernorm.rules.json#variant"
@@ -3971,6 +4070,7 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
@@ -3978,7 +4078,8 @@
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [
               "rope.rules.json#variant"
@@ -4197,7 +4298,8 @@
             "status": "pinned",
             "inlineConfigs": [
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [
               "silu.rules.json#variant"
@@ -4285,13 +4387,13 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
-              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
-              "sana/sana-sprint-0.6b-f16"
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "gelu.rules.json#variant"
@@ -5232,6 +5334,7 @@
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
             ],
@@ -5284,7 +5387,8 @@
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [
               "gather.rules.json#variant"
@@ -5471,6 +5575,7 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
@@ -5479,7 +5584,7 @@
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
-              "sana/sana-sprint-0.6b-f16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [
               "residual.rules.json#biasAddVariant",
@@ -6322,10 +6427,8 @@
           ],
           "requires": [],
           "reachability": {
-            "status": "pinned",
-            "inlineConfigs": [
-              "sana/sana-sprint-0.6b-f16"
-            ],
+            "status": "unused",
+            "inlineConfigs": [],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -6931,6 +7034,7 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
@@ -6938,7 +7042,8 @@
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
-              "qwen3/qwen-3-5-2b-q4k-ehaf16"
+              "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -8112,10 +8217,8 @@
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
-            "status": "pinned",
-            "inlineConfigs": [
-              "sana/sana-sprint-0.6b-f16"
-            ],
+            "status": "selectable",
+            "inlineConfigs": [],
             "ruleChains": [
               "conv2d.rules.json#variant"
             ],
@@ -8135,7 +8238,7 @@
           ],
           "outputDtype": "f16",
           "reachability": {
-            "status": "model-selectable",
+            "status": "selectable",
             "inlineConfigs": [],
             "ruleChains": [
               "conv2d.rules.json#variant"
@@ -8251,10 +8354,8 @@
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
-            "status": "pinned",
-            "inlineConfigs": [
-              "sana/sana-sprint-0.6b-f16"
-            ],
+            "status": "selectable",
+            "inlineConfigs": [],
             "ruleChains": [
               "depthwise-conv2d.rules.json#variant"
             ],
@@ -8274,7 +8375,7 @@
           ],
           "outputDtype": "f16",
           "reachability": {
-            "status": "model-selectable",
+            "status": "selectable",
             "inlineConfigs": [],
             "ruleChains": [
               "depthwise-conv2d.rules.json#variant"
@@ -8439,10 +8540,8 @@
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
-            "status": "pinned",
-            "inlineConfigs": [
-              "sana/sana-sprint-0.6b-f16"
-            ],
+            "status": "selectable",
+            "inlineConfigs": [],
             "ruleChains": [
               "grouped-pointwise-conv2d.rules.json#variant"
             ],
@@ -8462,7 +8561,7 @@
           ],
           "outputDtype": "f16",
           "reachability": {
-            "status": "model-selectable",
+            "status": "selectable",
             "inlineConfigs": [],
             "ruleChains": [
               "grouped-pointwise-conv2d.rules.json#variant"
@@ -8889,10 +8988,8 @@
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
-            "status": "pinned",
-            "inlineConfigs": [
-              "sana/sana-sprint-0.6b-f16"
-            ],
+            "status": "selectable",
+            "inlineConfigs": [],
             "ruleChains": [
               "modulate.rules.json#variant"
             ],
@@ -8912,7 +9009,7 @@
           ],
           "outputDtype": "f16",
           "reachability": {
-            "status": "model-selectable",
+            "status": "selectable",
             "inlineConfigs": [],
             "ruleChains": [
               "modulate.rules.json#variant"
@@ -9477,8 +9574,8 @@
         }
       }
     },
-    "sana_linear_attention_summary": {
-      "description": "Sana linear attention summary stage",
+    "linear_attention_summary": {
+      "description": "Linear attention summary stage",
       "baseBindings": [
         {
           "index": 0,
@@ -9543,7 +9640,7 @@
       },
       "variants": {
         "default": {
-          "wgsl": "sana_linear_attention_summary.wgsl",
+          "wgsl": "linear_attention_summary.wgsl",
           "entryPoint": "main",
           "workgroup": [
             256,
@@ -9556,13 +9653,13 @@
             "status": "selectable",
             "inlineConfigs": [],
             "ruleChains": [
-              "sana-linear-attention.rules.json#variant"
+              "linear-attention.rules.json#variant"
             ],
             "wgslOnDisk": true
           }
         },
         "default_f16": {
-          "wgsl": "sana_linear_attention_summary_f16.wgsl",
+          "wgsl": "linear_attention_summary_f16.wgsl",
           "entryPoint": "main",
           "workgroup": [
             256,
@@ -9577,15 +9674,15 @@
             "status": "selectable",
             "inlineConfigs": [],
             "ruleChains": [
-              "sana-linear-attention.rules.json#variant"
+              "linear-attention.rules.json#variant"
             ],
             "wgslOnDisk": true
           }
         }
       }
     },
-    "sana_linear_attention_apply": {
-      "description": "Sana linear attention apply stage",
+    "linear_attention_apply": {
+      "description": "Linear attention apply stage",
       "baseBindings": [
         {
           "index": 0,
@@ -9655,7 +9752,7 @@
       },
       "variants": {
         "default": {
-          "wgsl": "sana_linear_attention_apply.wgsl",
+          "wgsl": "linear_attention_apply.wgsl",
           "entryPoint": "main",
           "workgroup": [
             256,
@@ -9668,13 +9765,13 @@
             "status": "selectable",
             "inlineConfigs": [],
             "ruleChains": [
-              "sana-linear-attention.rules.json#variant"
+              "linear-attention.rules.json#variant"
             ],
             "wgslOnDisk": true
           }
         },
         "default_f16": {
-          "wgsl": "sana_linear_attention_apply_f16.wgsl",
+          "wgsl": "linear_attention_apply_f16.wgsl",
           "entryPoint": "main",
           "workgroup": [
             256,
@@ -9689,7 +9786,7 @@
             "status": "selectable",
             "inlineConfigs": [],
             "ruleChains": [
-              "sana-linear-attention.rules.json#variant"
+              "linear-attention.rules.json#variant"
             ],
             "wgslOnDisk": true
           }
