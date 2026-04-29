@@ -144,6 +144,20 @@ node src/cli/doppler-cli.js verify \
   --json
 ```
 
+Run the experimental Gemma 4 31B all-f16 profile:
+
+```bash
+node src/cli/doppler-cli.js debug \
+  --config '{"request":{"workload":"inference","modelId":"gemma-4-31b-it-text-q4k-ehf16-af32"},"run":{"surface":"browser","browser":{"channel":"chrome","headless":true,"console":true}}}' \
+  --runtime-profile profiles/gemma4-31b-f16-activations-probe \
+  --json
+```
+
+This profile is an investigation lane. It requests f16 activation, math,
+accumulation, output, and KV cache dtypes against the existing Q4K weight pack
+and relies on execution-v1 capability remap; it does not change the model's
+catalog or release identity by itself.
+
 Override runtime policy explicitly:
 
 ```bash

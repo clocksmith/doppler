@@ -1,9 +1,8 @@
 // AUTO-GENERATED from src/gpu/kernels/gelu.wgsl.
-// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
 // GeLU Activation Kernel with F16 Input/Output
 //
 // F16 variant for reduced memory bandwidth when using F16 activations.
-// Intermediate computations use F32 for precision.
 
 enable f16;
 
@@ -23,12 +22,12 @@ struct Uniforms {
 @group(0) @binding(2) var<storage, read_write> output: array<f16>;
 @group(0) @binding(3) var<storage, read> gate: array<f16>;
 
-fn gelu(x: f32) -> f32 {
-    let sqrt_2_over_pi: f32 = 0.7978845608;
-    let c: f32 = 0.044715;
+fn gelu(x: f16) -> f16 {
+    let sqrt_2_over_pi = f16(0.7978845608);
+    let c = f16(0.044715);
     let inner = sqrt_2_over_pi * (x + c * x * x * x);
-    let inner_clamped = clamp(inner, -15.0, 15.0);
-    return 0.5 * x * (1.0 + tanh(inner_clamped));
+    let inner_clamped = clamp(inner, f16(-15.0), f16(15.0));
+    return f16(0.5) * x * (f16(1.0) + tanh(inner_clamped));
 }
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
@@ -48,19 +47,19 @@ fn main(
         let token_idx = idx / dim;
         let dim_idx = idx % dim;
         let row_base = token_idx * dim * 2u;
-        let g = f32(input[row_base + dim_idx]);
-        let up = f32(input[row_base + dim + dim_idx]);
-        output[idx] = f16(gelu(g) * up);
+        let g = input[row_base + dim_idx];
+        let up = input[row_base + dim + dim_idx];
+        output[idx] = gelu(g) * up;
         return;
     }
 
     if (HAS_GATE) {
-        let up = f32(input[idx]);
-        let g = f32(gate[idx]);
-        output[idx] = f16(gelu(g) * up);
+        let up = input[idx];
+        let g = gate[idx];
+        output[idx] = gelu(g) * up;
         return;
     }
 
-    let x = f32(input[idx]);
-    output[idx] = f16(gelu(x));
+    let x = input[idx];
+    output[idx] = gelu(x);
 }

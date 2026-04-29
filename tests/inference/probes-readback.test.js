@@ -143,6 +143,7 @@ try {
       {
         stage: 'embed_out',
         dims: [0, 1],
+        stats: true,
         tokens: [0],
       },
     ],
@@ -151,7 +152,28 @@ try {
   });
 
   assert.equal(messages.length, 1);
+  assert.match(messages[0], /stats=\[min=1\.5000, max=2\.5000, mean=2\.0000/);
   assert.match(messages[0], /values=\[0=1\.5000, 1=2\.5000\]/);
+
+  await runProbes('embed_out', buffer, {
+    layerIdx: null,
+    numTokens: 1,
+    hiddenSize: 2,
+    probes: [
+      {
+        id: 'stats_only',
+        stage: 'embed_out',
+        stats: true,
+        tokens: [0],
+      },
+    ],
+    recorder: null,
+    dtype: 'f32',
+  });
+
+  assert.equal(messages.length, 2);
+  assert.match(messages[1], /PROBE stats_only stage=embed_out token=0 stats=\[min=1\.5000, max=2\.5000/);
+  assert.doesNotMatch(messages[1], /values=/);
 
   await runProbes('post_input_norm', buffer, {
     layerIdx: 0,

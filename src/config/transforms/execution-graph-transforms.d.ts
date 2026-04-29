@@ -24,6 +24,8 @@ export interface TransformContext {
     architecture: string;
   };
   activationDtype: 'f16' | 'f32';
+  mathDtype?: 'f16' | 'f32' | null;
+  accumDtype?: 'f16' | 'f32' | null;
   kvDtype: 'f16' | 'f32';
   modelId?: string;
   layerTypes?: string[] | null;
@@ -210,6 +212,15 @@ export declare function useGemma4Int4PleSelectiveF16Decode(
 ): ExecutionGraph | null;
 
 /**
+ * Promote Gemma 4 31B text Q4K onto the experimental all-f16 lane using
+ * matching f16 Q4 projection, attention, utility, lm_head, and sampling kernels.
+ */
+export declare function useGemma431BTextF16Activations(
+  graph: ExecutionGraph,
+  ctx: TransformContext
+): ExecutionGraph | null;
+
+/**
  * Compose multiple transforms into a single transform.
  * Applies left-to-right, skipping transforms that return null.
  */
@@ -231,6 +242,9 @@ export declare const useQwenF16PrimaryMatmuls: ExecutionGraphTransform;
 
 /** Gemma4 INT4 PLE: selective decode-only F16 probe lane. */
 export declare const useGemma4Int4PleSelectiveF16Decode: ExecutionGraphTransform;
+
+/** Gemma 4 31B text: experimental end-to-end F16 activation lane. */
+export declare const useGemma431BTextF16Activations: ExecutionGraphTransform;
 
 /** Drop the retain-Q4K materialization flag (used by perf investigations). */
 export declare const disableRetainQ4KMaterialization: ExecutionGraphTransform;

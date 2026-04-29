@@ -1,5 +1,5 @@
 // AUTO-GENERATED from src/gpu/kernels/attention_decode.wgsl.
-// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
 // Fused Multi-Head Attention Kernel (decode, f16 QKV + f16 output)
 //
 // Same as attention_decode_f16kv.wgsl but Q/K/V are f16 and output is f16.

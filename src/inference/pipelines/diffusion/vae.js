@@ -14,7 +14,7 @@ import { runResidualAdd, runBiasAdd, recordResidualAdd, recordBiasAdd } from '..
 import { runUpsample2D, recordUpsample2D } from '../../../gpu/kernels/upsample2d.js';
 import { runDepthwiseConv2D, recordDepthwiseConv2D } from '../../../gpu/kernels/depthwise_conv2d.js';
 import { runGroupedPointwiseConv2D, recordGroupedPointwiseConv2D } from '../../../gpu/kernels/grouped_pointwise_conv2d.js';
-import { runSanaLinearAttention, recordSanaLinearAttention } from '../../../gpu/kernels/sana_linear_attention.js';
+import { runLinearAttention, recordLinearAttention } from '../../../gpu/kernels/linear_attention.js';
 import { runPixelShuffle, recordPixelShuffle } from '../../../gpu/kernels/pixel_shuffle.js';
 import { runRepeatChannels, recordRepeatChannels } from '../../../gpu/kernels/repeat_channels.js';
 import { runReLU, recordReLU } from '../../../gpu/kernels/relu.js';
@@ -182,7 +182,7 @@ function createKernelOps(recorder) {
       upsample2d: runUpsample2D,
       depthwiseConv2d: runDepthwiseConv2D,
       groupedPointwiseConv2d: runGroupedPointwiseConv2D,
-      sanaLinearAttention: runSanaLinearAttention,
+      linearAttention: runLinearAttention,
       pixelShuffle: runPixelShuffle,
       repeatChannels: runRepeatChannels,
       relu: runReLU,
@@ -203,7 +203,7 @@ function createKernelOps(recorder) {
     upsample2d: (...args) => recordUpsample2D(recorder, ...args),
     depthwiseConv2d: (...args) => recordDepthwiseConv2D(recorder, ...args),
     groupedPointwiseConv2d: (...args) => recordGroupedPointwiseConv2D(recorder, ...args),
-    sanaLinearAttention: (...args) => recordSanaLinearAttention(recorder, ...args),
+    linearAttention: (...args) => recordLinearAttention(recorder, ...args),
     pixelShuffle: (...args) => recordPixelShuffle(recorder, ...args),
     repeatChannels: (...args) => recordRepeatChannels(recorder, ...args),
     relu: (...args) => recordReLU(recorder, ...args),
@@ -913,7 +913,7 @@ async function runAutoencoderDCAttention(state, weights, shapes, prefix, attenti
   release(kTokens.tensor.buffer);
 
   const allHeads = numHeads * qVariants.length;
-  const attention = await ops.sanaLinearAttention(qRelu, kRelu, vTokens.tensor, {
+  const attention = await ops.linearAttention(qRelu, kRelu, vTokens.tensor, {
     numHeads: allHeads,
     headDim: attentionHeadDim,
     numTokens: qTokens.numTokens,

@@ -245,8 +245,6 @@ No regressions.
 
 ### Deleted
 - src/gpu/kernels/attention_decode_optimized.wgsl — dead kernel file. 3 variants (`default`, `multihead`, `f16kv`) all marked reachability `unused` with zero rule chains + zero inline configs; no production JS dispatch; only test infrastructure referenced it
-- src/inference/pipelines/diffusion/sana-transformer.js — `buildSanaConditioning` export (zero callers; consumers inline the 2 helper calls it composed)
-- src/inference/pipelines/diffusion/sana-transformer.d.ts — paired type removal
 
 ### Visited clean (skipped from future fires)
 - src/gpu/kernels/attention_decode_optimized.wgsl (deleted)
@@ -255,7 +253,6 @@ No regressions.
 - src/config/schema/execution-v1.schema.{js,d.ts}
 - src/config/schema/kernel-thresholds.schema.{js,d.ts}
 - src/config/schema/ul-training.schema.{js,d.ts}
-- src/inference/pipelines/diffusion/sana-transformer.{js,d.ts}
 - src/inference/pipelines/text/generator-runtime.{js,d.ts}
 - src/inference/pipelines/text/generator-steps.{js,d.ts}
 - src/inference/pipelines/text/layer-plan.{js,d.ts}
@@ -701,7 +698,7 @@ No regressions.
 - src/memory/capability.js, heap-manager.js, unified-detect.js, address-table.js (no dead exports found)
 
 ### Punts
-- Many additional `DEAD_EXPORT` candidates flagged by scan across `src/inference/browser-harness-model-helpers.js`, `src/inference/browser-harness-suite-helpers.js`, `src/inference/pipelines/diffusion/sana-transformer.js`, `src/rules/kernels/kernel-validator.js`. Deferred to future fires to keep landings ≤100 LOC diff each.
+- Many additional `DEAD_EXPORT` candidates flagged by scan across `src/inference/browser-harness-model-helpers.js`, `src/inference/browser-harness-suite-helpers.js`, and `src/rules/kernels/kernel-validator.js`. Deferred to future fires to keep landings ≤100 LOC diff each.
 - `MAX_WORKGROUP_SIZE`, `MAX_KV_LEN`, `MAX_HEAD_DIM` constants duplicated across 14-47 WGSL files. WGSL lacks a first-class include mechanism in this codebase — consolidating would require a meaningful codegen/preprocessing layer. Scoped too large for a per-fire landing.
 - Pre-existing codegen patches broken for 6 variants (carried over from fire-1 onward).
 

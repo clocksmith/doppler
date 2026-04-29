@@ -8,7 +8,7 @@
 // C[M,N] = A[M,K] * B^T[N,K]  (transpose_b=1, SafeTensors/RDRR row-major layout)
 //
 // Design:
-// - f16 storage, f32 accumulators for numerical stability
+// - f16 storage and f16 accumulators for the all-f16 execution lane
 // - coalesced scalar loads into shared tiles
 // - Shared memory tiles: 64 x TILE_K for A and B
 // - B is always assumed row-major (transpose_b=1) for RDRR models
@@ -64,11 +64,10 @@ fn main(
     let row_base = wg_id.x * TILE_M + tx * THREAD_M;
     let col_base = wg_id.y * TILE_N + ty * THREAD_N;
 
-    // f32 accumulators: 4x4 = 16 per thread
-    var acc00: f32 = 0.0; var acc01: f32 = 0.0; var acc02: f32 = 0.0; var acc03: f32 = 0.0;
-    var acc10: f32 = 0.0; var acc11: f32 = 0.0; var acc12: f32 = 0.0; var acc13: f32 = 0.0;
-    var acc20: f32 = 0.0; var acc21: f32 = 0.0; var acc22: f32 = 0.0; var acc23: f32 = 0.0;
-    var acc30: f32 = 0.0; var acc31: f32 = 0.0; var acc32: f32 = 0.0; var acc33: f32 = 0.0;
+    var acc00: f16 = f16(0.0); var acc01: f16 = f16(0.0); var acc02: f16 = f16(0.0); var acc03: f16 = f16(0.0);
+    var acc10: f16 = f16(0.0); var acc11: f16 = f16(0.0); var acc12: f16 = f16(0.0); var acc13: f16 = f16(0.0);
+    var acc20: f16 = f16(0.0); var acc21: f16 = f16(0.0); var acc22: f16 = f16(0.0); var acc23: f16 = f16(0.0);
+    var acc30: f16 = f16(0.0); var acc31: f16 = f16(0.0); var acc32: f16 = f16(0.0); var acc33: f16 = f16(0.0);
 
     let num_tiles = (u.K + TILE_K - 1u) / TILE_K;
 
@@ -120,16 +119,16 @@ fn main(
         // B tile: tileB[n_local * TILE_K + k] for cols ty*4..ty*4+3
         for (var k: u32 = 0u; k < TILE_K; k = k + 1u) {
             // Load 4 A values for this thread's rows
-            let a0 = f32(tileA[(tx * THREAD_M + 0u) * TILE_K + k]);
-            let a1 = f32(tileA[(tx * THREAD_M + 1u) * TILE_K + k]);
-            let a2 = f32(tileA[(tx * THREAD_M + 2u) * TILE_K + k]);
-            let a3 = f32(tileA[(tx * THREAD_M + 3u) * TILE_K + k]);
+            let a0 = tileA[(tx * THREAD_M + 0u) * TILE_K + k];
+            let a1 = tileA[(tx * THREAD_M + 1u) * TILE_K + k];
+            let a2 = tileA[(tx * THREAD_M + 2u) * TILE_K + k];
+            let a3 = tileA[(tx * THREAD_M + 3u) * TILE_K + k];
 
             // Load 4 B values for this thread's columns
-            let b0 = f32(tileB[(ty * THREAD_N + 0u) * TILE_K + k]);
-            let b1 = f32(tileB[(ty * THREAD_N + 1u) * TILE_K + k]);
-            let b2 = f32(tileB[(ty * THREAD_N + 2u) * TILE_K + k]);
-            let b3 = f32(tileB[(ty * THREAD_N + 3u) * TILE_K + k]);
+            let b0 = tileB[(ty * THREAD_N + 0u) * TILE_K + k];
+            let b1 = tileB[(ty * THREAD_N + 1u) * TILE_K + k];
+            let b2 = tileB[(ty * THREAD_N + 2u) * TILE_K + k];
+            let b3 = tileB[(ty * THREAD_N + 3u) * TILE_K + k];
 
             // Outer product: 4x4 accumulation
             acc00 += a0 * b0; acc01 += a0 * b1; acc02 += a0 * b2; acc03 += a0 * b3;
@@ -142,24 +141,24 @@ fn main(
     }
 
     // Write 4x4 output tile
-    let alpha = u.alpha;
-    if (row_base + 0u < u.M && col_base + 0u < u.N) { C[(row_base + 0u) * u.N + col_base + 0u] = f16(acc00 * alpha); }
-    if (row_base + 0u < u.M && col_base + 1u < u.N) { C[(row_base + 0u) * u.N + col_base + 1u] = f16(acc01 * alpha); }
-    if (row_base + 0u < u.M && col_base + 2u < u.N) { C[(row_base + 0u) * u.N + col_base + 2u] = f16(acc02 * alpha); }
-    if (row_base + 0u < u.M && col_base + 3u < u.N) { C[(row_base + 0u) * u.N + col_base + 3u] = f16(acc03 * alpha); }
+    let alpha = f16(u.alpha);
+    if (row_base + 0u < u.M && col_base + 0u < u.N) { C[(row_base + 0u) * u.N + col_base + 0u] = acc00 * alpha; }
+    if (row_base + 0u < u.M && col_base + 1u < u.N) { C[(row_base + 0u) * u.N + col_base + 1u] = acc01 * alpha; }
+    if (row_base + 0u < u.M && col_base + 2u < u.N) { C[(row_base + 0u) * u.N + col_base + 2u] = acc02 * alpha; }
+    if (row_base + 0u < u.M && col_base + 3u < u.N) { C[(row_base + 0u) * u.N + col_base + 3u] = acc03 * alpha; }
 
-    if (row_base + 1u < u.M && col_base + 0u < u.N) { C[(row_base + 1u) * u.N + col_base + 0u] = f16(acc10 * alpha); }
-    if (row_base + 1u < u.M && col_base + 1u < u.N) { C[(row_base + 1u) * u.N + col_base + 1u] = f16(acc11 * alpha); }
-    if (row_base + 1u < u.M && col_base + 2u < u.N) { C[(row_base + 1u) * u.N + col_base + 2u] = f16(acc12 * alpha); }
-    if (row_base + 1u < u.M && col_base + 3u < u.N) { C[(row_base + 1u) * u.N + col_base + 3u] = f16(acc13 * alpha); }
+    if (row_base + 1u < u.M && col_base + 0u < u.N) { C[(row_base + 1u) * u.N + col_base + 0u] = acc10 * alpha; }
+    if (row_base + 1u < u.M && col_base + 1u < u.N) { C[(row_base + 1u) * u.N + col_base + 1u] = acc11 * alpha; }
+    if (row_base + 1u < u.M && col_base + 2u < u.N) { C[(row_base + 1u) * u.N + col_base + 2u] = acc12 * alpha; }
+    if (row_base + 1u < u.M && col_base + 3u < u.N) { C[(row_base + 1u) * u.N + col_base + 3u] = acc13 * alpha; }
 
-    if (row_base + 2u < u.M && col_base + 0u < u.N) { C[(row_base + 2u) * u.N + col_base + 0u] = f16(acc20 * alpha); }
-    if (row_base + 2u < u.M && col_base + 1u < u.N) { C[(row_base + 2u) * u.N + col_base + 1u] = f16(acc21 * alpha); }
-    if (row_base + 2u < u.M && col_base + 2u < u.N) { C[(row_base + 2u) * u.N + col_base + 2u] = f16(acc22 * alpha); }
-    if (row_base + 2u < u.M && col_base + 3u < u.N) { C[(row_base + 2u) * u.N + col_base + 3u] = f16(acc23 * alpha); }
+    if (row_base + 2u < u.M && col_base + 0u < u.N) { C[(row_base + 2u) * u.N + col_base + 0u] = acc20 * alpha; }
+    if (row_base + 2u < u.M && col_base + 1u < u.N) { C[(row_base + 2u) * u.N + col_base + 1u] = acc21 * alpha; }
+    if (row_base + 2u < u.M && col_base + 2u < u.N) { C[(row_base + 2u) * u.N + col_base + 2u] = acc22 * alpha; }
+    if (row_base + 2u < u.M && col_base + 3u < u.N) { C[(row_base + 2u) * u.N + col_base + 3u] = acc23 * alpha; }
 
-    if (row_base + 3u < u.M && col_base + 0u < u.N) { C[(row_base + 3u) * u.N + col_base + 0u] = f16(acc30 * alpha); }
-    if (row_base + 3u < u.M && col_base + 1u < u.N) { C[(row_base + 3u) * u.N + col_base + 1u] = f16(acc31 * alpha); }
-    if (row_base + 3u < u.M && col_base + 2u < u.N) { C[(row_base + 3u) * u.N + col_base + 2u] = f16(acc32 * alpha); }
-    if (row_base + 3u < u.M && col_base + 3u < u.N) { C[(row_base + 3u) * u.N + col_base + 3u] = f16(acc33 * alpha); }
+    if (row_base + 3u < u.M && col_base + 0u < u.N) { C[(row_base + 3u) * u.N + col_base + 0u] = acc30 * alpha; }
+    if (row_base + 3u < u.M && col_base + 1u < u.N) { C[(row_base + 3u) * u.N + col_base + 1u] = acc31 * alpha; }
+    if (row_base + 3u < u.M && col_base + 2u < u.N) { C[(row_base + 3u) * u.N + col_base + 2u] = acc32 * alpha; }
+    if (row_base + 3u < u.M && col_base + 3u < u.N) { C[(row_base + 3u) * u.N + col_base + 3u] = acc33 * alpha; }
 }

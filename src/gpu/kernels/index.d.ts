@@ -276,10 +276,10 @@ export {
 } from './sample.js';
 
 export {
-  runSanaLinearAttention,
-  recordSanaLinearAttention,
-  type SanaLinearAttentionOptions,
-} from './sana_linear_attention.js';
+  runLinearAttention,
+  recordLinearAttention,
+  type LinearAttentionOptions,
+} from './linear_attention.js';
 
 export {
   runRepeatChannels,

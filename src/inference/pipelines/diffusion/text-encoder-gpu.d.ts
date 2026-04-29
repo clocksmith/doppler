@@ -80,8 +80,3 @@ export declare function projectContext(
 ): Promise<Tensor>;
 
 export declare function assertClipHiddenActivationSupported(config: { hidden_act?: string }): void;
-
-export declare function resolveGemma2WeightRoot(
-  weights: Map<string, any>,
-  prefix?: string
-): string;

@@ -1,5 +1,5 @@
 // AUTO-GENERATED from src/gpu/kernels/silu.wgsl.
-// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
 //
 // F16 variant for reduced memory bandwidth when using F16 activations.
 // Intermediate computations use F32 for precision.

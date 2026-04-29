@@ -4,8 +4,9 @@ Purpose: Catalog and guidance for Doppler's WGSL kernel library.
 
 ## Scope
 
-- Kernel categories, counts, and naming conventions.
+- Kernel categories and entry point reuse guidance.
 - Entry points, uniforms, and reuse strategies.
+- Registry-owned kernel naming and inventory pointers.
 
 The repository currently ships over 100 WebGPU compute shaders for inference and auxiliary pipelines.
 
@@ -14,20 +15,20 @@ The repository currently ships over 100 WebGPU compute shaders for inference and
 Selected duplicate dtype variants are generated from canonical kernels:
 
 - Source of truth: `src/gpu/kernels/codegen/wgsl-variants.js`
-- Generator: `node tools/generate-wgsl.js`
-- Drift check: `node tools/generate-wgsl.js --check`
+- Generator: `npm run kernels:codegen:sync`
+- Drift check: `npm run kernels:codegen:check`
 
 Generated targets keep the same runtime file names, so kernel-path IDs and manifest wiring stay stable.
 
 ## Categories
 
-| Category | Count | Examples |
-|----------|-------|----------|
-| Attention | 16 | `attention.wgsl`, `attention_decode_*.wgsl`, `attention_f16.wgsl` |
-| Matmul | 6 | `matmul_f16.wgsl`, `matmul_f16w_f32a.wgsl`, `matmul_gemv*.wgsl` |
-| Dequant | 10 | `dequant_q4k.wgsl`, `dequant_q6k.wgsl`, `dequant_mxfp4.wgsl` |
-| Fused | 10 | `fused_ffn.wgsl`, `fused_matmul_q4.wgsl`, `fused_matmul_q4_multicol_f16a.wgsl` |
-| Other | 37 | `rmsnorm.wgsl`, `rope.wgsl`, `sample.wgsl`, `silu.wgsl` |
+| Category | Examples |
+|----------|----------|
+| Attention | `attention.wgsl`, `attention_decode_*.wgsl`, `attention_f16.wgsl` |
+| Matmul | `matmul_f16.wgsl`, `matmul_f16w_f32a.wgsl`, `matmul_gemv*.wgsl` |
+| Dequant | `dequant_q4k.wgsl`, `dequant_q6k.wgsl`, `dequant_mxfp4.wgsl` |
+| Fused | `fused_ffn.wgsl`, `fused_matmul_q4.wgsl`, `fused_matmul_q4_multicol_f16a.wgsl` |
+| Other | `rmsnorm.wgsl`, `rope.wgsl`, `sample.wgsl`, `silu.wgsl` |
 
 ## Reusability Mechanisms
 
@@ -116,12 +117,43 @@ fn main() {
 | `silu.wgsl` | 5 | SiLU activation variants (gate, split, vec4, rowsplit) |
 | `gelu.wgsl` | 3 | GeLU/GeGLU activation variants (gate, rowsplit) |
 
-## Naming Conventions
+## Naming Source of Truth
 
-- `fused_*.wgsl` - Multiple ops in one kernel (fused_ffn, fused_matmul_rmsnorm, etc.)
-- `*_f16.wgsl` - F16 weights/activations
-- `*_f16a.wgsl` - F16 activations with quantized weights (fused Q4K)
-- `*_f32.wgsl` - F32 weights/activations
-- `*_q4*.wgsl` - Q4_K quantized
-- `*_subgroup.wgsl` - Uses subgroup operations
-- `*_decode*.wgsl` - Optimized for M=1 decode
+Kernel operation IDs, variant IDs, WGSL filenames, entry points, feature
+requirements, bindings, uniforms, and metadata are defined in
+`src/config/kernels/registry.json`.
+
+Use `npm run kernels:registry:check` to audit the on-disk WGSL inventory
+against the registry. This README must not define separate filename suffix
+rules.
+
+## Supported Manifest Usage
+
+Use `npm run kernels:supported-manifests:report` to cross-reference the kernel
+registry against kernels pinned by supported local manifests. The default scope
+is catalog entries marked runtime active, conversion ready, and verified/pass in
+`models/catalog.json`.
+
+The report includes kernels made live by capability-transform fallbacks declared
+in `src/rules/inference/capability-transforms.rules.json`. Use `--manifest-only`
+for the strict manifest-pinned view, or `--include-runtime-transform-variants`
+when auditing runtime-requested lanes such as f16 activation profiles.
+
+The report separates non-live registry entries into protected and candidate
+sets:
+
+- protected by `tools/policies/kernel-usage-allowlist.json` for non-text lanes
+  such as training, diffusion, MoE, generation options, and format utilities
+- protected by registry reachability when conversion configs or rule maps can
+  still select the variant
+- true unused candidates when neither live usage, allowlist policy, nor
+  registry reachability protects the variant
+
+Use `--no-allowlist` to inspect the raw non-live registry set, and
+`--fail-on-unused-candidates` to make the command exit non-zero when true
+unused candidates are present.
+
+The report is advisory for cleanup planning. It is not part of `npm run
+kernels:check` because `models/local/**` is developer-local state, not a CI
+contract surface. Use `--include-untested` when inspecting active/ready local
+artifacts that are not verified yet.

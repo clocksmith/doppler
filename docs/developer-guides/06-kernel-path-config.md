@@ -41,12 +41,19 @@ parallel kernel-path registry.
 ## Verification
 
 - `npm run onboarding:check`
-- `npm run digests:check-conversion`
 - `npm run kernels:check`
-- `npm run kernels:reachability:check`
+- `npm run kernels:conversion-digests:check`
+- `npm run kernels:supported-manifests:report` when the graph change may make
+  a registered kernel unused
 - `npm run config:single-source:check`
 - Run one debug pass with the new path selected by the manifest or an inline
   runtime override
+
+The supported-manifest report separates scope from deletion safety. A kernel
+variant can be unused by the selected verified catalog and still be retained by
+outside-scope manifests, conversion/config contracts, JS dispatch, registry
+reachability, or the kernel usage allowlist. Only `delete-candidate` is the
+strict cleanup class.
 
 ## Common Misses
 

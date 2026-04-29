@@ -102,39 +102,7 @@ const FLUX_LAYOUT = {
   ],
 };
 
-const SANA_LAYOUT = {
-  id: 'sana',
-  requiredComponents: ['transformer', 'text_encoder', 'tokenizer', 'vae', 'scheduler'],
-  weightedComponents: ['transformer', 'text_encoder', 'vae'],
-  matches(modelIndex) {
-    return (
-      getComponentClassName(modelIndex?.transformer) === 'SanaTransformer2DModel' &&
-      getComponentClassName(modelIndex?.text_encoder) === 'Gemma2Model'
-    );
-  },
-  tokenizerSpecs: [
-    {
-      modelIndexKey: 'tokenizer',
-      componentId: 'text_encoder',
-      type: 'bundled',
-      assets: [
-        { suffix: 'tokenizer/tokenizer.json', targetName: 'tokenizer_tokenizer.json', kind: 'text', required: true },
-        { suffix: 'tokenizer/tokenizer_config.json', targetName: 'tokenizer_config.json', kind: 'text', required: false },
-        { suffix: 'tokenizer/special_tokens_map.json', targetName: 'tokenizer_special_tokens_map.json', kind: 'text', required: false },
-        { suffix: 'tokenizer/tokenizer.model', targetName: 'tokenizer_tokenizer.model', kind: 'binary', required: false },
-      ],
-      config: {
-        type: 'bundled',
-        tokenizerFile: 'tokenizer_tokenizer.json',
-        configFile: 'tokenizer_config.json',
-        specialTokensFile: 'tokenizer_special_tokens_map.json',
-        sentencePieceFile: 'tokenizer_tokenizer.model',
-      },
-    },
-  ],
-};
-
-const LAYOUTS = [SD3_LAYOUT, FLUX_LAYOUT, SANA_LAYOUT];
+const LAYOUTS = [SD3_LAYOUT, FLUX_LAYOUT];
 
 function toAbortError(message = 'Cancelled') {
   if (typeof DOMException === 'function') {

@@ -681,7 +681,7 @@ async function validateGeneratedWgsl(root, issues, context) {
       'WGSL_GENERATED_DRIFT',
       path.join(root, target),
       'generated WGSL file is out of date',
-      'Run `npm run kernels:generate`.'
+      'Run `npm run kernels:codegen:sync`.'
     ));
   }
 

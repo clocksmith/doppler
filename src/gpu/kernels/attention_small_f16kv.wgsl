@@ -1,5 +1,5 @@
 // AUTO-GENERATED from src/gpu/kernels/attention_small.wgsl.
-// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
 // Fused Multi-Head Attention Kernel (small tiles, f16 KV)
 //
 // Same algorithm as attention_small.wgsl but K/V are stored as f16.

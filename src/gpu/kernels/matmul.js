@@ -103,8 +103,10 @@ function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuff
     || variant === 'q4_fused_batched_f16'
     || variant === 'q4_fused_multicol_f16a'
     || variant === 'q4_fused_batched_f16a'
+    || variant === 'q4_fused_batched_f16acc_f16a'
     || variant === 'q4_fused_prefill_tiled_f16'
-    || variant === 'q4_fused_widetile_f16';
+    || variant === 'q4_fused_widetile_f16'
+    || variant === 'q4_fused_widetile_f16a';
   // 5-entry WideTile epilogue/prologue variants: output at binding 3 + one
   // extra read-only buffer at binding 4 (residual for _residual, norm weight
   // for _rmsnorm). Distinct from isQ4KF16 (which puts output at binding 4).

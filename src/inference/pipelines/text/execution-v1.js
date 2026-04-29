@@ -394,6 +394,8 @@ export function compileExecutionV1(options = {}) {
   }
 
   const activationDtype = session.compute.defaults.activationDtype;
+  const mathDtype = session.compute.defaults.mathDtype ?? null;
+  const accumDtype = session.compute.defaults.accumDtype ?? null;
   const kvDtype = session?.kvcache?.kvDtype ?? activationDtype;
   const layerTypes = manifestInference?.layerPattern?.layerTypes ?? null;
   const finitenessPolicy = resolveRangeAwareSelectiveWideningConfig(runtimeCompute);
@@ -412,6 +414,8 @@ export function compileExecutionV1(options = {}) {
   if (capabilities) {
     const graphContext = {
       activationDtype,
+      mathDtype,
+      accumDtype,
       kvDtype,
       headDim,
       modelId,
@@ -443,6 +447,8 @@ export function compileExecutionV1(options = {}) {
           capabilities,
           platform: platform ?? { id: 'unknown', vendor: 'unknown', architecture: 'unknown' },
           activationDtype,
+          mathDtype,
+          accumDtype,
           kvDtype,
           modelId,
           layerTypes,
@@ -476,6 +482,8 @@ export function compileExecutionV1(options = {}) {
         capabilities,
         platform: platform ?? { id: 'unknown', vendor: 'unknown', architecture: 'unknown' },
         activationDtype,
+        mathDtype,
+        accumDtype,
         kvDtype,
         headDim,
         modelId,

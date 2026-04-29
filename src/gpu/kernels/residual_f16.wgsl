@@ -1,5 +1,5 @@
 // AUTO-GENERATED from src/gpu/kernels/residual.wgsl.
-// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
 // residual_f16.wgsl
 
 /**
@@ -32,5 +32,5 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     if (idx >= u.size) {
         return;
     }
-    output[idx] = f16(f32(a[idx]) + f32(b[idx]));
+    output[idx] = a[idx] + b[idx];
 }

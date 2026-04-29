@@ -1,0 +1,240 @@
+{
+  "schemaVersion": 1,
+  "updated": "2026-04-28",
+  "description": "Allowlist for registry kernels that are intentionally retained even when they are not live in supported text manifests or capability fallback graphs. The supported-manifest report uses this file to separate protected non-text, utility, branch-local, legacy, or experimental lanes from delete candidates.",
+  "fields": {
+    "id": "Stable identifier for this allowlist entry.",
+    "category": "High-level protected lane, such as runtime-utility, js-dispatched, superseded-legacy, dormant-perf, branch-local, training, diffusion, moe, generation, format, or kv-cache.",
+    "reason": "Why matched variants should not be treated as delete candidates.",
+    "owner": "Team or subsystem responsible for the retained lane.",
+    "created": "ISO date (YYYY-MM-DD) this entry was added.",
+    "match": "Matcher over registry entries. Supported fields: keys, operations, operationPrefixes, operationSuffixes, variants, variantPrefixes, variantSuffixes, wgsl, wgslPrefixes, wgslSuffixes, reachabilityStatuses."
+  },
+  "entries": [
+    {
+      "id": "runtime-utility-kernels",
+      "category": "runtime-utility",
+      "reason": "Generic runtime utility kernels are retained for wrapper-dispatched operations and tests even when no selected text manifest pins them.",
+      "owner": "runtime",
+      "created": "2026-04-28",
+      "match": {
+        "operations": [
+          "activation_static_qdq",
+          "bias_add",
+          "clamp",
+          "transpose"
+        ]
+      }
+    },
+    {
+      "id": "attention-flash-prefill-js-dispatched",
+      "category": "js-dispatched",
+      "reason": "Flash prefill split/reduce kernels are dispatched by the attention wrapper through variant flow and are known false positives for selected-manifest-only scans.",
+      "owner": "inference",
+      "created": "2026-04-28",
+      "match": {
+        "operations": ["attention"],
+        "variants": [
+          "prefill_flash_head256_f16kv",
+          "prefill_flash_reduce"
+        ]
+      }
+    },
+    {
+      "id": "legacy-generic-f16-attention",
+      "category": "superseded-legacy",
+      "reason": "Original generic f16/f16-KV attention variants are retained until their replacement coverage and fallback absence are audited explicitly.",
+      "owner": "inference",
+      "created": "2026-04-28",
+      "match": {
+        "operations": ["attention"],
+        "variants": [
+          "decode_f16",
+          "decode_f16kv",
+          "prefill_f16",
+          "prefill_f16kv"
+        ]
+      }
+    },
+    {
+      "id": "legacy-rowsplit-swiglu",
+      "category": "superseded-legacy",
+      "reason": "Original row-split SwiGLU kernels are retained while fused FFN replacement coverage remains under audit.",
+      "owner": "inference",
+      "created": "2026-04-28",
+      "match": {
+        "operations": ["swiglu"],
+        "variants": [
+          "rowsplit_bias",
+          "rowsplit_bias_f16"
+        ]
+      }
+    },
+    {
+      "id": "q4-prefill-dormant-perf-work",
+      "category": "dormant-perf",
+      "reason": "Q4 prefill fusion and WideTile experiments are retained as explicit performance work, not selected-release cleanup candidates.",
+      "owner": "inference",
+      "created": "2026-04-28",
+      "match": {
+        "operations": [
+          "fused_ffn",
+          "matmul"
+        ],
+        "variants": [
+          "gate_up_gelu_gated_tiled_f16",
+          "q4_fused_prefill_tiled_f16",
+          "q4_fused_rmsnorm_widetile",
+          "q4_fused_widetile_f16",
+          "q4_fused_widetile_residual"
+        ]
+      }
+    },
+    {
+      "id": "gemma4-31b-f16-activation-branch-lane",
+      "category": "branch-local",
+      "reason": "Branch-local W4A16 kernels are retained for the Gemma 4 31B f16 activation investigation lane until the branch is promoted or abandoned.",
+      "owner": "inference",
+      "created": "2026-04-28",
+      "match": {
+        "operations": ["matmul"],
+        "variants": [
+          "q4_fused_batched_f16acc_f16a",
+          "q4_fused_widetile_f16a"
+        ]
+      }
+    },
+    {
+      "id": "training-backward-loss-optimizer",
+      "category": "training",
+      "reason": "Backward, loss, optimizer, and gradient helper kernels are retained for experimental training flows, not supported inference manifests.",
+      "owner": "training",
+      "created": "2026-04-28",
+      "match": {
+        "operationSuffixes": ["_backward"]
+      }
+    },
+    {
+      "id": "training-conv2d-backward-helpers",
+      "category": "training",
+      "reason": "Conv2D backward input/weight kernels are retained for training and diffusion-gradient flows.",
+      "owner": "training",
+      "created": "2026-04-28",
+      "match": {
+        "operationPrefixes": ["conv2d_backward_"]
+      }
+    },
+    {
+      "id": "training-loss-and-gradient-helpers",
+      "category": "training",
+      "reason": "Loss and gradient helper kernels are training-path assets even when no supported manifest pins them.",
+      "owner": "training",
+      "created": "2026-04-28",
+      "match": {
+        "operations": [
+          "adam",
+          "cross_entropy_loss",
+          "matmul_transpose_a",
+          "scatter_add"
+        ]
+      }
+    },
+    {
+      "id": "diffusion-image-forward",
+      "category": "diffusion",
+      "reason": "Image and diffusion pipeline kernels are retained for diffusion subsystem work, not text-model execution graphs.",
+      "owner": "diffusion",
+      "created": "2026-04-28",
+      "match": {
+        "operations": [
+          "conv2d",
+          "depthwise_conv1d",
+          "depthwise_conv2d",
+          "grouped_pointwise_conv2d",
+          "groupnorm_apply",
+          "groupnorm_stats",
+          "modulate",
+          "pixel_shuffle",
+          "repeat_channels",
+          "scale",
+          "upsample2d"
+        ]
+      }
+    },
+    {
+      "id": "diffusion-linear-attention",
+      "category": "diffusion",
+      "reason": "Diffusion linear-attention kernels are not expected to appear in supported text manifests.",
+      "owner": "diffusion",
+      "created": "2026-04-28",
+      "match": {
+        "operations": ["linear_attention_summary", "linear_attention_apply"]
+      }
+    },
+    {
+      "id": "experimental-energy-lane",
+      "category": "experimental-energy",
+      "reason": "Energy subsystem kernels are intentionally quarantined experimental assets.",
+      "owner": "energy",
+      "created": "2026-04-28",
+      "match": {
+        "operationPrefixes": ["energy_"]
+      }
+    },
+    {
+      "id": "moe-future-model-lane",
+      "category": "moe",
+      "reason": "MoE dispatch helper kernels are retained for mixture-of-experts model support even without a verified MoE manifest.",
+      "owner": "inference",
+      "created": "2026-04-28",
+      "match": {
+        "operationPrefixes": ["moe_"]
+      }
+    },
+    {
+      "id": "kv-cache-quantized-attention-lane",
+      "category": "kv-cache",
+      "reason": "Quantized and alternate KV-cache attention kernels are retained for cache layout experiments and capability work.",
+      "owner": "inference",
+      "created": "2026-04-28",
+      "match": {
+        "operations": [
+          "attention_bdpa",
+          "attention_contiguous_quant",
+          "attention_tiered",
+          "attention_tiered_quant",
+          "kv_quantize"
+        ]
+      }
+    },
+    {
+      "id": "generation-sampling-options",
+      "category": "generation",
+      "reason": "Sampling option kernels are runtime generation features and may not be pinned by deterministic verification manifests.",
+      "owner": "generation",
+      "created": "2026-04-28",
+      "match": {
+        "operations": [
+          "rep_penalty",
+          "sample",
+          "topk"
+        ]
+      }
+    },
+    {
+      "id": "format-cast-quantization-utilities",
+      "category": "format",
+      "reason": "Format conversion and dequantization utility kernels are retained for loader, conversion, and fallback paths outside the supported-manifest set.",
+      "owner": "loader",
+      "created": "2026-04-28",
+      "match": {
+        "operations": [
+          "bf16_to_f16",
+          "bf16_to_f32",
+          "cast",
+          "dequant"
+        ]
+      }
+    }
+  ]
+}

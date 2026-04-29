@@ -33,12 +33,12 @@ struct Q4KBlock {
 @group(0) @binding(2) var<storage, read> B_q4k: array<Q4KBlock>;
 @group(0) @binding(4) var<storage, read_write> C_f16: array<f16>;
 
-fn unpack_f16_lo(packed: u32) -> f32 {
-    return unpack2x16float(packed).x;
+fn unpack_f16_lo(packed: u32) -> f16 {
+    return f16(unpack2x16float(packed).x);
 }
 
-fn unpack_f16_hi(packed: u32) -> f32 {
-    return unpack2x16float(packed).y;
+fn unpack_f16_hi(packed: u32) -> f16 {
+    return f16(unpack2x16float(packed).y);
 }
 
 fn get_scale_byte(scales: array<u32, 3>, byte_idx: u32) -> u32 {
@@ -85,7 +85,7 @@ fn get_q4(qs: array<u32, 32>, idx: u32) -> u32 {
 override COLS_PER_WG: u32 = 32u;
 override THREADS_PER_COL_GEMV: u32 = 8u;
 
-var<workgroup> multicol_sums: array<f32, MAX_WORKGROUP_SIZE>;
+var<workgroup> multicol_sums: array<f16, MAX_WORKGROUP_SIZE>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_multicol_f16a(
@@ -100,7 +100,7 @@ fn main_multicol_f16a(
     let col = wg_id.x * COLS_PER_WG + col_in_wg;
     let is_valid = col < u.N;
 
-    var partial_sum: f32 = 0.0;
+    var partial_sum: f16 = f16(0.0);
 
     if (is_valid) {
         let num_blocks = u.num_blocks_per_row;
@@ -114,26 +114,26 @@ fn main_multicol_f16a(
 
             for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
                 let sm = get_scale_min_k4(block.scales, sb);
-                let scale = d * f32(sm.x);
-                let min_val = dmin * f32(sm.y);
+                let scale = d * f16(sm.x);
+                let min_val = dmin * f16(sm.y);
                 let sb_base = sb * SUBBLOCK_SIZE;
 
                 for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
                     let k0 = k_base + sb_base + i;
-                    let a0 = f32(A[k0]);
-                    let a1 = f32(A[k0 + 1u]);
-                    let a2 = f32(A[k0 + 2u]);
-                    let a3 = f32(A[k0 + 3u]);
+                    let a0 = A[k0];
+                    let a1 = A[k0 + 1u];
+                    let a2 = A[k0 + 2u];
+                    let a3 = A[k0 + 3u];
 
                     let q0 = get_q4(block.qs, sb_base + i);
                     let q1 = get_q4(block.qs, sb_base + i + 1u);
                     let q2 = get_q4(block.qs, sb_base + i + 2u);
                     let q3 = get_q4(block.qs, sb_base + i + 3u);
 
-                    let w0 = scale * f32(q0) - min_val;
-                    let w1 = scale * f32(q1) - min_val;
-                    let w2 = scale * f32(q2) - min_val;
-                    let w3 = scale * f32(q3) - min_val;
+                    let w0 = scale * f16(q0) - min_val;
+                    let w1 = scale * f16(q1) - min_val;
+                    let w2 = scale * f16(q2) - min_val;
+                    let w3 = scale * f16(q3) - min_val;
 
                     partial_sum = partial_sum + a0 * w0 + a1 * w1 + a2 * w2 + a3 * w3;
                 }
@@ -154,8 +154,8 @@ fn main_multicol_f16a(
                         break;
                     }
                     let sm = get_scale_min_k4(block.scales, sb);
-                    let scale = d * f32(sm.x);
-                    let min_val = dmin * f32(sm.y);
+                    let scale = d * f16(sm.x);
+                    let min_val = dmin * f16(sm.y);
 
                     for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
                         let k0 = k_base + sb_base + i;
@@ -163,24 +163,24 @@ fn main_multicol_f16a(
                         let k2 = k0 + 2u;
                         let k3 = k0 + 3u;
 
-                        var a0: f32 = 0.0;
-                        var a1: f32 = 0.0;
-                        var a2: f32 = 0.0;
-                        var a3: f32 = 0.0;
-                        if (k0 < u.K) { a0 = f32(A[k0]); }
-                        if (k1 < u.K) { a1 = f32(A[k1]); }
-                        if (k2 < u.K) { a2 = f32(A[k2]); }
-                        if (k3 < u.K) { a3 = f32(A[k3]); }
+                        var a0: f16 = f16(0.0);
+                        var a1: f16 = f16(0.0);
+                        var a2: f16 = f16(0.0);
+                        var a3: f16 = f16(0.0);
+                        if (k0 < u.K) { a0 = A[k0]; }
+                        if (k1 < u.K) { a1 = A[k1]; }
+                        if (k2 < u.K) { a2 = A[k2]; }
+                        if (k3 < u.K) { a3 = A[k3]; }
 
                         let q0 = get_q4(block.qs, sb_base + i);
                         let q1 = get_q4(block.qs, sb_base + i + 1u);
                         let q2 = get_q4(block.qs, sb_base + i + 2u);
                         let q3 = get_q4(block.qs, sb_base + i + 3u);
 
-                        let w0 = scale * f32(q0) - min_val;
-                        let w1 = scale * f32(q1) - min_val;
-                        let w2 = scale * f32(q2) - min_val;
-                        let w3 = scale * f32(q3) - min_val;
+                        let w0 = scale * f16(q0) - min_val;
+                        let w1 = scale * f16(q1) - min_val;
+                        let w2 = scale * f16(q2) - min_val;
+                        let w3 = scale * f16(q3) - min_val;
 
                         partial_sum = partial_sum + a0 * w0 + a1 * w1 + a2 * w2 + a3 * w3;
                     }
@@ -193,11 +193,11 @@ fn main_multicol_f16a(
     workgroupBarrier();
 
     if (tid_in_col == 0u && is_valid) {
-        var final_sum: f32 = 0.0;
+        var final_sum: f16 = f16(0.0);
         let base = col_in_wg * THREADS_PER_COL_GEMV;
         for (var i: u32 = 0u; i < THREADS_PER_COL_GEMV; i = i + 1u) {
             final_sum = final_sum + multicol_sums[base + i];
         }
-        C_f16[col] = f16(final_sum * u.alpha);
+        C_f16[col] = final_sum * f16(u.alpha);
     }
 }

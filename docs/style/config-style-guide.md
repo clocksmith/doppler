@@ -231,6 +231,8 @@ per-field runtime tuning outside the config payload.
 - Non-cast steps require explicit `kernel` and pinned `kernelRef`.
 - `kernelRef` is exact-match pinned (`id`, `version`, `digest`) against `session.compute.kernelProfiles`.
 - `kernelRef.digest` is WGSL-content pinning (`sha256(normalized shader source + entry)`), not filename-only identity.
+- `src/config/kernels/registry.json` is the source of truth for kernel operation IDs, variant IDs, WGSL filenames, entry points, feature requirements, bindings, uniforms, and metadata.
+- Kernel registry/file inventory drift is checked by `tools/sync-kernel-reachability.js --check` (`npm run kernels:registry:check`); docs must not define independent kernel filename suffix grammars.
 - Loader must not mutate inference config.
 - Shared runtime is the only cross-cutting config between loader and inference.
 - Session policy lives in manifest/config assets; runtime code should not hardcode fallbacks.

@@ -39,7 +39,6 @@ None right now.
 | Entry | Type | Status | Notes |
 | --- | --- | --- | --- |
 | lfm2-5-1-2b-instruct-q4k-ehf16-af32 | catalog model | experimental | Cataloged model without a verified or failing inference lifecycle result. |
-| sana-sprint-0-6b-wf16-ef16-hf16-f16 | catalog model | experimental | Cataloged model without a verified or failing inference lifecycle result. |
 | gpt_oss | model family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
 | janus_text | model family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
 
@@ -55,13 +54,12 @@ None right now.
 | lfm2 | transformer | active | 1 (src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json) | 1 (lfm2-5-1-2b-instruct-q4k-ehf16-af32) | no | none | unknown | verification-pending | not verified in catalog lifecycle |
 | gpt_oss | transformer | active | 1 (src/config/conversion/gpt-oss-20b-f16-xmxfp4.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | janus_text | transformer | active | 1 (src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
-| sana | diffusion | active | 1 (src/config/conversion/sana/sana-sprint-0.6b-f16.json) | 1 (sana-sprint-0-6b-wf16-ef16-hf16-f16) | no | none | unknown | verification-pending | not verified in catalog lifecycle |
 
 ## Summary
 
-- Families tracked: 9
-- Families with conversion configs: 9
-- Families present in catalog: 7
+- Families tracked: 8
+- Families with conversion configs: 8
+- Families present in catalog: 6
 - Verified families (active runtime + conversion + catalog + passing verification): 5
 - Cataloged families pending verification: 2
 - Families with HF-hosted catalog entries: 5

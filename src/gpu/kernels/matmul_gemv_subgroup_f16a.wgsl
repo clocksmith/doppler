@@ -8,7 +8,7 @@
 // 4. Loop unrolling for better ILP
 //
 // A is f16 (activations), B is f16 (weights), C is f16.
-// Accumulation is performed in f32 for stability.
+// The Gemma 4 31B all-f16 lane uses f16 accumulation on main_multicol.
 // transpose_b=0: B is [K, N] (GGUF/column-major), access B[k * N + col]
 // transpose_b=1: B is [N, K] (SafeTensors/row-major), access B[col * K + k]
 //
@@ -168,7 +168,7 @@ override MULTICOL_COLS_PER_WG: u32 = 32u;
 override MULTICOL_THREADS_PER_COL: u32 = 8u;
 
 // Shared memory for reduction (one slot per thread)
-var<workgroup> multicol_wg_sums: array<f32, MAX_WORKGROUP_SIZE>;
+var<workgroup> multicol_wg_sums: array<f16, MAX_WORKGROUP_SIZE>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main_multicol(
@@ -192,7 +192,7 @@ fn main_multicol(
     // Track validity
     let is_valid = col < u.N;
 
-    var partial_sum: f32 = 0.0;
+    var partial_sum: f16 = f16(0.0);
 
     if (is_valid) {
         // Each of 8 threads splits K
@@ -217,30 +217,30 @@ fn main_multicol(
                     B[b_row_offset + k + 2u],
                     B[b_row_offset + k + 3u]
                 );
-                partial_sum += f32(dot(a_vec, b_vec));
+                partial_sum += dot(a_vec, b_vec);
             }
 
             for (; k < k_end; k = k + 1u) {
-                partial_sum += f32(A[k]) * f32(B[b_row_offset + k]);
+                partial_sum += A[k] * B[b_row_offset + k];
             }
         } else {
             // B is [K, N] (GGUF/column-major): B[k, col] = B[k * N + col]
             for (; k < k_aligned_end; k = k + 4u) {
-                let a0 = f32(A[k]);
-                let a1 = f32(A[k + 1u]);
-                let a2 = f32(A[k + 2u]);
-                let a3 = f32(A[k + 3u]);
+                let a0 = A[k];
+                let a1 = A[k + 1u];
+                let a2 = A[k + 2u];
+                let a3 = A[k + 3u];
 
-                let b0 = f32(B[k * u.N + col]);
-                let b1 = f32(B[(k + 1u) * u.N + col]);
-                let b2 = f32(B[(k + 2u) * u.N + col]);
-                let b3 = f32(B[(k + 3u) * u.N + col]);
+                let b0 = B[k * u.N + col];
+                let b1 = B[(k + 1u) * u.N + col];
+                let b2 = B[(k + 2u) * u.N + col];
+                let b3 = B[(k + 3u) * u.N + col];
 
                 partial_sum = partial_sum + a0 * b0 + a1 * b1 + a2 * b2 + a3 * b3;
             }
 
             for (; k < k_end; k = k + 1u) {
-                partial_sum = partial_sum + f32(A[k]) * f32(B[k * u.N + col]);
+                partial_sum = partial_sum + A[k] * B[k * u.N + col];
             }
         }
     }
@@ -251,12 +251,12 @@ fn main_multicol(
 
     // Thread 0 of each column reduces its 8 values
     if (thread_in_col == 0u && is_valid) {
-        var final_sum: f32 = 0.0;
+        var final_sum: f16 = f16(0.0);
         let base = col_in_wg * MULTICOL_THREADS_PER_COL;
         for (var i: u32 = 0u; i < MULTICOL_THREADS_PER_COL; i = i + 1u) {
             final_sum = final_sum + multicol_wg_sums[base + i];
         }
-        C[col] = f16(final_sum * u.alpha);
+        C[col] = final_sum * f16(u.alpha);
     }
 }
 

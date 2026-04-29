@@ -887,7 +887,7 @@ await runBrowserSuite({ workload: 'inference', modelId: 'gemma-3-270m-it-q4k-ehf
 
 When a failure indicates a repeated drift class, run or create the broadest inventory check before editing individual files. Classify the full set first, then batch fixes by decision type: fix to runtime, fix to declarations, remove stale surface, or quarantine as pending-feature/debt with owner and expiry.
 
-One-off repairs for recurring drift should become checkable tooling with a `--check` mode before the task is considered complete. Examples in this repo: `npm run digests:check`, `npm run exports:parity:check`, `npm run pending:check` — each started as a one-off script and became a default-chain gate once it grew an allowlist or policy schema.
+One-off repairs for recurring drift should become checkable tooling with a `--check` mode before the task is considered complete. Examples in this repo: `npm run kernels:digests:check`, `npm run exports:parity:check`, `npm run pending:check` — each started as a one-off script and became a default-chain gate once it grew an allowlist or policy schema.
 
 ---
 

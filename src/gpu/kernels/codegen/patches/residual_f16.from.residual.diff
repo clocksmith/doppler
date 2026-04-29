@@ -34,7 +34,7 @@
          return;
      }
 -    output[idx] = a[idx] + b[idx];
-+    output[idx] = f16(f32(a[idx]) + f32(b[idx]));
++    output[idx] = a[idx] + b[idx];
  }
 -
 -// In-place version: output = output + b

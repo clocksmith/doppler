@@ -101,6 +101,11 @@ function parseUnifiedHunks(patchText, variantId, patchPath) {
         index += 1;
         continue;
       }
+      if (bodyLine === '') {
+        body.push(' ');
+        index += 1;
+        continue;
+      }
       const prefix = bodyLine[0];
       if (!(prefix === ' ' || prefix === '+' || prefix === '-')) {
         throw new Error(
@@ -177,7 +182,7 @@ function buildGeneratedText(variant, transformedSource) {
   const source = String(variant.source);
   const header = [
     `// AUTO-GENERATED from ${source}.`,
-    '// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.',
+    '// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.',
     '',
   ].join('\n');
   return ensureTrailingNewline(`${header}${transformedSource}`);

@@ -18,7 +18,6 @@ import { buildScheduler, stepScmScheduler } from './scheduler.js';
 import { decodeLatents } from './vae.js';
 import { createDiffusionWeightLoader } from './weights.js';
 import { runSD3Transformer } from './sd3-transformer.js';
-import { runSanaTransformer, buildSanaTimestepConditioning, projectSanaContext } from './sana-transformer.js';
 import { createSD3WeightResolver } from './sd3-weights.js';
 import { createTensor, dtypeBytes } from '../../../gpu/tensor.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
@@ -30,7 +29,6 @@ import { f16ToF32 } from '../../../loader/dtype-utils.js';
 const SUPPORTED_DIFFUSION_BACKEND_PIPELINES = new Set(['gpu']);
 const DEFAULT_TIME_EMBED_DIM = 256;
 const SD3_TEXT_ENCODER_KEYS = ['text_encoder', 'text_encoder_2', 'text_encoder_3'];
-const SANA_TEXT_ENCODER_KEYS = ['text_encoder'];
 
 function createRandomSeed() {
   if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
@@ -78,10 +76,7 @@ function resolveDiffusionLayout(modelConfig) {
   return modelConfig?.layout ?? 'sd3';
 }
 
-function getTextEncoderKeysForLayout(layout) {
-  if (layout === 'sana') {
-    return SANA_TEXT_ENCODER_KEYS;
-  }
+function getTextEncoderKeysForLayout() {
   return SD3_TEXT_ENCODER_KEYS;
 }
 
@@ -102,10 +97,6 @@ function buildTokenizerMaxLengths(layout, runtime) {
   if (!Number.isFinite(maxLength) || maxLength <= 0) {
     throw new Error('Diffusion runtime requires runtime.textEncoder.maxLength.');
   }
-  if (layout === 'sana') {
-    return { text_encoder: maxLength };
-  }
-
   const t5MaxLength = runtime?.textEncoder?.t5MaxLength ?? maxLength;
   if (!Number.isFinite(t5MaxLength) || t5MaxLength <= 0) {
     throw new Error('Diffusion runtime requires runtime.textEncoder.t5MaxLength (or runtime.textEncoder.maxLength).');
@@ -510,31 +501,13 @@ export class DiffusionPipeline {
     const prefillRecorder = canProfileGpu
       ? new CommandRecorder(getDevice(), 'diffusion_prefill', { profile: true })
       : null;
-    const condContext = layout === 'sana'
-      ? await projectSanaContext(
-          promptCondition.context,
-          promptCondition.attentionMask,
-          transformerWeights,
-          transformerConfig,
-          runtime,
-          { recorder: prefillRecorder }
-        )
-      : await projectContext(promptCondition.context, transformerWeights, modelConfig, runtime, {
-          recorder: prefillRecorder,
-        });
+    const condContext = await projectContext(promptCondition.context, transformerWeights, modelConfig, runtime, {
+      recorder: prefillRecorder,
+    });
     const uncondContext = shouldUseUncond && negativeCondition
-      ? layout === 'sana'
-        ? await projectSanaContext(
-            negativeCondition.context,
-            negativeCondition.attentionMask,
-            transformerWeights,
-            transformerConfig,
-            runtime,
-            { recorder: prefillRecorder }
-          )
-        : await projectContext(negativeCondition.context, transformerWeights, modelConfig, runtime, {
-            recorder: prefillRecorder,
-          })
+      ? await projectContext(negativeCondition.context, transformerWeights, modelConfig, runtime, {
+          recorder: prefillRecorder,
+        })
       : null;
     if (prefillRecorder) {
       prefillRecorder.submit();
@@ -587,71 +560,43 @@ export class DiffusionPipeline {
         ? (left, right, count, options) => recordResidualAdd(stepRecorder, left, right, count, options)
         : runResidualAdd;
 
-      const condPred = layout === 'sana'
-        ? await (async () => {
-            const timeState = await buildSanaTimestepConditioning(
-              timestep * (transformerConfig.timestep_scale ?? 1.0),
-              guidanceScale,
-              transformerWeights,
-              transformerConfig,
-              runtime,
-              { recorder: stepRecorder }
-            );
-            return runSanaTransformer(latentsTensor, condContext, timeState, transformerWeights, modelConfig, runtime, {
-              recorder: stepRecorder,
-            });
-          })()
-        : await (async () => {
-            const timeCond = await buildTimestepEmbedding(timestep, transformerWeights, modelConfig, runtime, {
-              dim: timeEmbedDim,
-              recorder: stepRecorder,
-            });
-            const textCond = await buildTimeTextEmbedding(promptCondition.pooled, transformerWeights, modelConfig, runtime, {
-              recorder: stepRecorder,
-            });
-            const timeTextCond = await combineTimeTextEmbeddings(timeCond, textCond, hiddenSize, {
-              recorder: stepRecorder,
-            });
-            const output = await runSD3Transformer(latentsTensor, condContext, timeTextCond, transformerWeights, modelConfig, runtime, {
-              recorder: stepRecorder,
-            });
-            releaseStep(timeTextCond.buffer);
-            return output;
-          })();
+      const condPred = await (async () => {
+        const timeCond = await buildTimestepEmbedding(timestep, transformerWeights, modelConfig, runtime, {
+          dim: timeEmbedDim,
+          recorder: stepRecorder,
+        });
+        const textCond = await buildTimeTextEmbedding(promptCondition.pooled, transformerWeights, modelConfig, runtime, {
+          recorder: stepRecorder,
+        });
+        const timeTextCond = await combineTimeTextEmbeddings(timeCond, textCond, hiddenSize, {
+          recorder: stepRecorder,
+        });
+        const output = await runSD3Transformer(latentsTensor, condContext, timeTextCond, transformerWeights, modelConfig, runtime, {
+          recorder: stepRecorder,
+        });
+        releaseStep(timeTextCond.buffer);
+        return output;
+      })();
 
       let pred = condPred;
       if (shouldUseUncond && uncondContext && negativeCondition) {
-        const uncondPred = layout === 'sana'
-          ? await (async () => {
-              const timeState = await buildSanaTimestepConditioning(
-                timestep * (transformerConfig.timestep_scale ?? 1.0),
-                guidanceScale,
-                transformerWeights,
-                transformerConfig,
-                runtime,
-                { recorder: stepRecorder }
-              );
-              return runSanaTransformer(latentsTensor, uncondContext, timeState, transformerWeights, modelConfig, runtime, {
-                recorder: stepRecorder,
-              });
-            })()
-          : await (async () => {
-              const timeUncond = await buildTimestepEmbedding(timestep, transformerWeights, modelConfig, runtime, {
-                dim: timeEmbedDim,
-                recorder: stepRecorder,
-              });
-              const textUncond = await buildTimeTextEmbedding(negativeCondition.pooled, transformerWeights, modelConfig, runtime, {
-                recorder: stepRecorder,
-              });
-              const timeTextUncond = await combineTimeTextEmbeddings(timeUncond, textUncond, hiddenSize, {
-                recorder: stepRecorder,
-              });
-              const output = await runSD3Transformer(latentsTensor, uncondContext, timeTextUncond, transformerWeights, modelConfig, runtime, {
-                recorder: stepRecorder,
-              });
-              releaseStep(timeTextUncond.buffer);
-              return output;
-            })();
+        const uncondPred = await (async () => {
+          const timeUncond = await buildTimestepEmbedding(timestep, transformerWeights, modelConfig, runtime, {
+            dim: timeEmbedDim,
+            recorder: stepRecorder,
+          });
+          const textUncond = await buildTimeTextEmbedding(negativeCondition.pooled, transformerWeights, modelConfig, runtime, {
+            recorder: stepRecorder,
+          });
+          const timeTextUncond = await combineTimeTextEmbeddings(timeUncond, textUncond, hiddenSize, {
+            recorder: stepRecorder,
+          });
+          const output = await runSD3Transformer(latentsTensor, uncondContext, timeTextUncond, transformerWeights, modelConfig, runtime, {
+            recorder: stepRecorder,
+          });
+          releaseStep(timeTextUncond.buffer);
+          return output;
+        })();
         pred = await applyGuidance(uncondPred, condPred, guidanceScale, latentSize, {
           recorder: stepRecorder,
           release: releaseStep,

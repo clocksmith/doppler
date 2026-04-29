@@ -1,5 +1,5 @@
 // AUTO-GENERATED from src/gpu/kernels/layernorm.wgsl.
-// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
 // LayerNorm Kernel (F16 Input/Output)
 //
 // LayerNorm(x) = (x - mean) / sqrt(var + eps) * weight + bias

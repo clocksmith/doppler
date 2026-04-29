@@ -3,10 +3,10 @@
   "artifactKind": "execution-index",
   "source": "kernel-path-builder",
   "stats": {
-    "models": 12,
-    "skipped": 1,
+    "models": 11,
+    "skipped": 0,
     "registryKernelPaths": 22,
-    "configSources": 13,
+    "configSources": 12,
     "manifestSources": 0,
     "exactKernelPathMatches": 4,
     "loweredThroughKernelPaths": 8,
@@ -17,21 +17,7 @@
     "modelsWithSourceDrift": 0,
     "executionGraphOnlyModels": 2
   },
-  "skipped": [
-    {
-      "skipped": true,
-      "modelId": "sana-sprint-0.6b-f16",
-      "configPath": "src/config/conversion/sana/sana-sprint-0.6b-f16.json",
-      "reason": "unsupported pipeline scope \"diffusion\" for kernel-path builder",
-      "sources": [
-        {
-          "sourceKind": "conversion-config",
-          "sourcePath": "src/config/conversion/sana/sana-sprint-0.6b-f16.json",
-          "sourceLabel": "Conversion config"
-        }
-      ]
-    }
-  ],
+  "skipped": [],
   "kernelPaths": [
     {
       "id": "gemma2-q4k-fused-f32a",

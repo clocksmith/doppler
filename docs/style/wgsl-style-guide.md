@@ -403,17 +403,18 @@ fn main(...) { }
 
 ## Naming Conventions
 
-### File Names
+### Kernel Identity and File Names
 
-```
-{operation}_{variant}.wgsl
+Kernel operation IDs, variant IDs, WGSL filenames, entry points, feature
+requirements, bindings, uniforms, and metadata are owned by
+`src/config/kernels/registry.json`.
 
-matmul_f16.wgsl         # F16 matmul
-matmul_gemv.wgsl        # M=1 optimized
-attention_causal.wgsl   # With causal mask
-fused_ffn_swiglu.wgsl   # Fused operation
-rmsnorm.wgsl            # Standard (no variant)
-```
+Kernel filename inventory and basic naming checks are handled by
+`tools/sync-kernel-reachability.js --check` (`npm run kernels:registry:check`).
+Do not add independent kernel suffix grammars in docs; update the registry
+schema/reachability check when the grammar changes.
+
+The cross-language file rule remains: WGSL files use `snake_case.wgsl`.
 
 ### Constants
 

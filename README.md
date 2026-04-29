@@ -121,7 +121,7 @@ These registry IDs resolve to hosted RDRR artifacts automatically from the brows
 
 Additional verified local-artifact models (TranslateGemma 4B, LFM2.5 1.2B) are
 available outside the quickstart registry, including Gemma 4 E2B INT4PLE.
-Conversion configs exist for Gemma 4 MoE, Janus, and Sana but are not yet in the
+Conversion configs exist for Gemma 4 MoE and Janus but are not yet in the
 quickstart registry.
 See the
 [model support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md).

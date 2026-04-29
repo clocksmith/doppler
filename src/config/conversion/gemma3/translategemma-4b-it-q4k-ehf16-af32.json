@@ -135,7 +135,7 @@
       "embed": {
         "kernel": "gather_f16.wgsl",
         "entry": "main",
-        "digest": "sha256:e9f8056a8764360ca23e53289a5f133c2e3d6da122f6437f5eb0d78a46e8f049"
+        "digest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9"
       },
       "rmsnorm": {
         "kernel": "rmsnorm.wgsl",
@@ -155,7 +155,7 @@
       "attn_decode": {
         "kernel": "attention_decode_online_f16kv.wgsl",
         "entry": "main",
-        "digest": "sha256:beee4722aa6281f58b74e1d055e192017b5555c189a58dd13dd158fe1511a7b8",
+        "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
         "precision": {
           "kvDtype": "f16"
         }
@@ -181,7 +181,7 @@
       "attn_stream": {
         "kernel": "attention_streaming_f16kv.wgsl",
         "entry": "main",
-        "digest": "sha256:76eda2dfc1b4323ed4fd02b91d1ce448de65ce9b31898dee8ae635b1d5b94d3a",
+        "digest": "sha256:c3ec920699a81ee6df04a64eb0ea2477bec168ebb809af29f2d4b0924a4bdf8f",
         "precision": {
           "kvDtype": "f16"
         }

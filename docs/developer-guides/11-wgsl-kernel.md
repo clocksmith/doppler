@@ -35,9 +35,16 @@ Add a new GPU kernel implementation or a new variant of an existing kernel.
 ## Verification
 
 - `npm run kernels:check`
+- `npm run kernels:supported-manifests:report` when removing or retiring a
+  kernel file or entry point
 - `npm run test:gpu`
 - `npm run test:gpu:browser`
 - Run one debug or verify flow that exercises the new kernel in a real path
+
+The supported-manifest report is an audit, not a deletion command. Treat
+`delete-candidate` as the cleanup class; `unused by selected scope` can still be
+protected by outside-scope manifests, repo contracts, JS dispatch, reachability,
+or `tools/policies/kernel-usage-allowlist.json`.
 
 ## Common Misses
 
@@ -45,7 +52,7 @@ Add a new GPU kernel implementation or a new variant of an existing kernel.
 - Forgetting `.d.ts` and index exports.
 - Changing execution identity when the kernel is only a selection detail, or skipping the execution graph update when identity really changed.
 - Testing only in Node and missing browser-only shader or pipeline issues.
-- Forgetting `npm run kernels:generate` or `npm run kernels:check` when generated variants are involved.
+- Forgetting `npm run kernels:codegen:sync` or `npm run kernels:codegen:check` when generated variants are involved.
 
 ## Related Guides
 

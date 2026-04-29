@@ -1,5 +1,5 @@
 // AUTO-GENERATED from src/gpu/kernels/fused_ffn.wgsl.
-// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:generate`.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
 // Fused FFN Kernel - Native F16 I/O
 //
 // Full f16 pipeline variant: f16 input, f16 weights, f16 output.

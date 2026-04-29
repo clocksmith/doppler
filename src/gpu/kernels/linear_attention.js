@@ -5,14 +5,14 @@ import { unifiedKernelWrapper } from './utils.js';
 import { selectRuleValue } from './rule-registry.js';
 import { WORKGROUP_SIZES } from './constants.js';
 
-function selectSanaLinearAttentionVariant(isF16) {
-  return selectRuleValue('sanaLinearAttention', 'variant', { isF16 });
+function selectLinearAttentionVariant(isF16) {
+  return selectRuleValue('linearAttention', 'variant', { isF16 });
 }
 
 async function runSummary(target, query, key, value, summaryBuffer, uniforms, variant) {
   const summarySize = uniforms.num_heads * (uniforms.head_dim + 1) * uniforms.head_dim;
   await unifiedKernelWrapper(
-    'sana_linear_attention_summary',
+    'linear_attention_summary',
     target,
     variant,
     [query, key, value, summaryBuffer],
@@ -30,7 +30,7 @@ async function runSummary(target, query, key, value, summaryBuffer, uniforms, va
 
 async function runApply(target, query, summaryBuffer, outputBuffer, uniforms, variant) {
   await unifiedKernelWrapper(
-    'sana_linear_attention_apply',
+    'linear_attention_apply',
     target,
     variant,
     [query, summaryBuffer, outputBuffer],
@@ -48,11 +48,11 @@ async function runApply(target, query, summaryBuffer, outputBuffer, uniforms, va
   );
 }
 
-async function _sanaLinearAttention(target, query, key, value, options = {}) {
+async function _linearAttention(target, query, key, value, options = {}) {
   const recorder = target && typeof target.beginComputePass === 'function' ? target : null;
   const device = target?.device || getDevice();
   if (!device) {
-    throw new Error('SanaLinearAttention requires a WebGPU device.');
+    throw new Error('LinearAttention requires a WebGPU device.');
   }
 
   const {
@@ -73,23 +73,23 @@ async function _sanaLinearAttention(target, query, key, value, options = {}) {
     !Number.isFinite(numTokens) ||
     !Number.isFinite(hiddenSize)
   ) {
-    throw new Error('SanaLinearAttention requires numHeads, headDim, numTokens, and hiddenSize.');
+    throw new Error('LinearAttention requires numHeads, headDim, numTokens, and hiddenSize.');
   }
   if (hiddenSize !== numHeads * headDim) {
-    throw new Error(`SanaLinearAttention hiddenSize mismatch: ${hiddenSize} != ${numHeads} * ${headDim}`);
+    throw new Error(`LinearAttention hiddenSize mismatch: ${hiddenSize} != ${numHeads} * ${headDim}`);
   }
 
   const isF16 = query.dtype === 'f16';
-  const variant = selectSanaLinearAttentionVariant(isF16);
+  const variant = selectLinearAttentionVariant(isF16);
   const temporarySummary = summaryBuffer || acquireBuffer(
     numHeads * (headDim + 1) * headDim * Float32Array.BYTES_PER_ELEMENT,
     undefined,
-    'sana_linear_attention_summary'
+    'linear_attention_summary'
   );
   const output = outputBuffer || acquireBuffer(
     numTokens * hiddenSize * dtypeBytes(query.dtype),
     undefined,
-    'sana_linear_attention_output'
+    'linear_attention_output'
   );
 
   const uniforms = {
@@ -103,7 +103,7 @@ async function _sanaLinearAttention(target, query, key, value, options = {}) {
   try {
     await runSummary(target, query, key, value, temporarySummary, uniforms, variant);
     await runApply(target, query, temporarySummary, output, uniforms, variant);
-    return createTensor(output, query.dtype, [numTokens, hiddenSize], 'sana_linear_attention_output');
+    return createTensor(output, query.dtype, [numTokens, hiddenSize], 'linear_attention_output');
   } catch (error) {
     if (ownsOutput) {
       releaseBuffer(output);
@@ -120,10 +120,10 @@ async function _sanaLinearAttention(target, query, key, value, options = {}) {
   }
 }
 
-export async function runSanaLinearAttention(query, key, value, options = {}) {
-  return _sanaLinearAttention(null, query, key, value, options);
+export async function runLinearAttention(query, key, value, options = {}) {
+  return _linearAttention(null, query, key, value, options);
 }
 
-export async function recordSanaLinearAttention(recorder, query, key, value, options = {}) {
-  return _sanaLinearAttention(recorder, query, key, value, options);
+export async function recordLinearAttention(recorder, query, key, value, options = {}) {
+  return _linearAttention(recorder, query, key, value, options);
 }

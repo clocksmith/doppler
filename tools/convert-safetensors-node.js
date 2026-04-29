@@ -179,7 +179,6 @@ function inferFamilyFromModelId(modelId) {
   if (normalized.startsWith('lfm2')) return 'lfm2';
   if (normalized.startsWith('gpt-oss-')) return 'gpt_oss';
   if (normalized.startsWith('janus-')) return 'janus_text';
-  if (normalized.startsWith('sana-')) return 'sana';
   return 'unknown';
 }
 
