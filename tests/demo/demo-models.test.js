@@ -206,6 +206,7 @@ const DEMO_WEIGHTS_REF_READY = Object.freeze({
     {
       ...DEMO_READY,
       modelId: 'gemma-4-31b-it-text-q4k-ehf16-af32',
+      label: 'Gemma 4 31B (Q4K)',
       weightPackId: 'gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1',
       demoPreferredVariantId: 'gemma-4-31b-it-text-q4k-ehf16-af16',
       quickstart: false,
@@ -217,13 +218,17 @@ const DEMO_WEIGHTS_REF_READY = Object.freeze({
         path: 'models/gemma-4-31b-it-text-q4k-ehf16-af32',
       },
       sortOrder: 16,
+      sizeBytes: 19295019640,
+      demoWarningBadges: ['19.3 GB / High RAM'],
+      demoWarningText: 'Large download. Use a high-RAM machine.',
     },
     {
       ...DEMO_WEIGHTS_REF_READY,
       modelId: 'gemma-4-31b-it-text-q4k-ehf16-af16',
+      label: 'Gemma 4 31B (Q4K/F16a)',
       weightPackId: 'gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1',
       quickstart: false,
-      demoVisible: true,
+      demoVisible: false,
       modes: ['text'],
       hf: {
         repoId: 'Clocksmith/rdrr',
@@ -237,17 +242,44 @@ const DEMO_WEIGHTS_REF_READY = Object.freeze({
   assert.deepEqual(
     selected.map((entry) => entry.modelId),
     [
-      'gemma-4-31b-it-text-q4k-ehf16-af32',
+      'gemma-4-31b-it-text-q4k-ehf16-af16',
     ],
-    'demo catalog should keep one visible card for a primary plus hidden lane variant'
+    'demo catalog should surface the af16 sibling as the visible card when the primary opts in'
   );
   assert.equal(
-    selected[0].demoPreferredVariant?.modelId,
-    'gemma-4-31b-it-text-q4k-ehf16-af16'
+    selected[0].label,
+    'Gemma 4 31B (Q4K/F16a)',
+    'surfaced card preserves the af16 lane label'
   );
   assert.equal(
-    selected[0].demoPreferredVariant?.weightsRefPrimary,
-    'gemma-4-31b-it-text-q4k-ehf16-af32'
+    selected[0].demoFallbackVariant?.modelId,
+    'gemma-4-31b-it-text-q4k-ehf16-af32',
+    'surfaced af16 card carries the af32 primary as demoFallbackVariant'
+  );
+  assert.equal(
+    selected[0].weightsRefPrimary,
+    'gemma-4-31b-it-text-q4k-ehf16-af32',
+    'surfaced af16 card names its af32 primary in weightsRefPrimary'
+  );
+  assert.equal(
+    selected[0].demoVisible,
+    true,
+    'surfaced af16 card is forced visible regardless of its own demoVisible flag'
+  );
+  assert.deepEqual(
+    selected[0].demoWarningBadges,
+    ['19.3 GB / High RAM'],
+    'surfaced af16 card inherits warning badges from the primary when the af16 is silent'
+  );
+  assert.equal(
+    selected[0].demoWarningText,
+    'Large download. Use a high-RAM machine.',
+    'surfaced af16 card inherits warning text from the primary when the af16 is silent'
+  );
+  assert.equal(
+    selected[0].sizeBytes,
+    19295019640,
+    'surfaced af16 card inherits sizeBytes from the primary'
   );
 }
 
@@ -290,10 +322,15 @@ const DEMO_WEIGHTS_REF_READY = Object.freeze({
     },
   ]);
 
+  assert.deepEqual(
+    selected.map((entry) => entry.modelId),
+    ['gemma-4-31b-it-text-q4k-ehf16-af32'],
+    'demo catalog falls back to the af32 primary when the af16 sibling is unverified'
+  );
   assert.equal(
-    selected[0].demoPreferredVariant,
+    selected[0].demoFallbackVariant,
     null,
-    'demo catalog should not attach unverified hidden lane variants'
+    'demo catalog must not attach an unverified af16 as the af32 fallback either'
   );
 }
 
@@ -402,6 +439,31 @@ const DEMO_WEIGHTS_REF_READY = Object.freeze({
   assert.equal(findPrimaryForWeightPack(catalog, 'wp-missing'), null);
   assert.equal(findPrimaryForWeightPack(null, 'wp-1'), null);
   assert.equal(findPrimaryForWeightPack(catalog, ''), null);
+}
+
+// Surfaced af16 cards nest the af32 primary inside demoFallbackVariant.
+// findPrimaryForWeightPack must walk that shape so download/load still
+// resolves the primary against the post-selection catalog view.
+{
+  const surfacedCatalog = [
+    {
+      modelId: 'surfaced-af16',
+      weightPackId: 'wp-1',
+      artifactCompleteness: 'weights-ref',
+      weightsRefAllowed: true,
+      demoFallbackVariant: {
+        modelId: 'nested-primary',
+        weightPackId: 'wp-1',
+        artifactCompleteness: 'complete',
+        weightsRefAllowed: false,
+      },
+    },
+  ];
+  assert.equal(
+    findPrimaryForWeightPack(surfacedCatalog, 'wp-1')?.modelId,
+    'nested-primary',
+    'findPrimaryForWeightPack must descend into demoFallbackVariant'
+  );
 }
 
 // assertWeightsRefPrimaryAvailable: passes for primary lanes; passes for
