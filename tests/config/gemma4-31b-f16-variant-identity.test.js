@@ -94,9 +94,10 @@ assert.equal(
 );
 assert.equal(af16Entry.weightPackId, af32Manifest.artifactIdentity?.weightPackId);
 assert.equal(af16Entry.weightsRefAllowed, true);
-assert.equal(af16Entry.lifecycle?.availability?.hf, false);
-assert.equal(af16Entry.lifecycle?.status?.runtime, 'experimental');
-assert.notEqual(af16Entry.lifecycle?.status?.tested, 'verified');
+assert.equal(af16Entry.lifecycle?.availability?.hf, true);
+assert.equal(af16Entry.lifecycle?.status?.runtime, 'active');
+assert.equal(af16Entry.lifecycle?.status?.tested, 'verified');
+assert.equal(af16Entry.demoVisible, false);
 
 assert.equal(af16Manifest.quantizationInfo?.compute, 'f16');
 assert.equal(af16Manifest.quantizationInfo?.variantTag, 'q4k-ehf16-af16');

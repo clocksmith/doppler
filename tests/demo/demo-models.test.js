@@ -27,6 +27,12 @@ const DEMO_WEIGHTS_REF_READY = Object.freeze({
   artifactCompleteness: 'weights-ref',
   runtimePromotionState: 'manifest-owned',
   weightsRefAllowed: true,
+  lifecycle: {
+    status: {
+      runtime: 'active',
+      tested: 'verified',
+    },
+  },
 });
 
 {
@@ -201,6 +207,7 @@ const DEMO_WEIGHTS_REF_READY = Object.freeze({
       ...DEMO_READY,
       modelId: 'gemma-4-31b-it-text-q4k-ehf16-af32',
       weightPackId: 'gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1',
+      demoPreferredVariantId: 'gemma-4-31b-it-text-q4k-ehf16-af16',
       quickstart: false,
       demoVisible: true,
       modes: ['text'],
@@ -231,13 +238,62 @@ const DEMO_WEIGHTS_REF_READY = Object.freeze({
     selected.map((entry) => entry.modelId),
     [
       'gemma-4-31b-it-text-q4k-ehf16-af32',
-      'gemma-4-31b-it-text-q4k-ehf16-af16',
     ],
-    'demo catalog should include manifest-only siblings when their primary weight pack is available'
+    'demo catalog should keep one visible card for a primary plus hidden lane variant'
   );
   assert.equal(
-    selected[1].weightsRefPrimary,
+    selected[0].demoPreferredVariant?.modelId,
+    'gemma-4-31b-it-text-q4k-ehf16-af16'
+  );
+  assert.equal(
+    selected[0].demoPreferredVariant?.weightsRefPrimary,
     'gemma-4-31b-it-text-q4k-ehf16-af32'
+  );
+}
+
+{
+  const selected = selectDemoCatalogEntries([
+    {
+      ...DEMO_READY,
+      modelId: 'gemma-4-31b-it-text-q4k-ehf16-af32',
+      weightPackId: 'gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1',
+      demoPreferredVariantId: 'gemma-4-31b-it-text-q4k-ehf16-af16',
+      quickstart: false,
+      demoVisible: true,
+      modes: ['text'],
+      hf: {
+        repoId: 'Clocksmith/rdrr',
+        revision: 'abc123',
+        path: 'models/gemma-4-31b-it-text-q4k-ehf16-af32',
+      },
+      sortOrder: 16,
+    },
+    {
+      ...DEMO_WEIGHTS_REF_READY,
+      lifecycle: {
+        status: {
+          runtime: 'experimental',
+          tested: 'none',
+        },
+      },
+      modelId: 'gemma-4-31b-it-text-q4k-ehf16-af16',
+      weightPackId: 'gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1',
+      quickstart: false,
+      demoVisible: true,
+      modes: ['text'],
+      hf: {
+        repoId: 'Clocksmith/rdrr',
+        revision: 'abc123',
+        path: 'models/gemma-4-31b-it-text-q4k-ehf16-af16',
+      },
+      sortOrder: 17,
+    },
+  ]);
+
+  assert.equal(
+    selected[0].demoPreferredVariant,
+    null,
+    'demo catalog should not attach unverified hidden lane variants'
   );
 }
 

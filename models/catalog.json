@@ -352,9 +352,19 @@
       "artifact": {
         "format": "rdrr"
       },
-      "hf": null,
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "6d0914e3d0fef18b1aa12607bc963d700feed02c",
+        "path": "models/gemma-4-31b-it-text-q4k-ehf16-af32"
+      },
       "baseUrl": null,
       "quickstart": false,
+      "demoVisible": true,
+      "demoPreferredVariantId": "gemma-4-31b-it-text-q4k-ehf16-af16",
+      "demoWarningBadges": [
+        "19.3 GB / High RAM"
+      ],
+      "demoWarningText": "Large download. Use a high-RAM machine.",
       "sizeBytes": 19295019640,
       "recommended": false,
       "sortOrder": 16,
@@ -362,15 +372,28 @@
         "availability": {
           "curated": false,
           "local": true,
-          "hf": false
+          "hf": true
         },
         "status": {
-          "runtime": "experimental",
+          "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "none"
+          "tested": "verified"
         },
-        "tested": null
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "browser",
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-04-29",
+          "source": "f16-lane-weight-pack-primary",
+          "notes": "Complete Q4K weight pack is the hosted primary for the Gemma 4 31B f16 demo lane. The visible demo card prefers the f16 sibling on f16/subgroup-capable GPUs and uses this complete primary lane otherwise.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/gemma-4-31B-it",
@@ -395,9 +418,14 @@
       "artifact": {
         "format": "rdrr"
       },
-      "hf": null,
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "e6f36589da5f860d9da9b10efdc945434f1f1be2",
+        "path": "models/gemma-4-31b-it-text-q4k-ehf16-af16"
+      },
       "baseUrl": null,
       "quickstart": false,
+      "demoVisible": false,
       "sizeBytes": 19295019640,
       "recommended": false,
       "sortOrder": 17,
@@ -405,15 +433,28 @@
         "availability": {
           "curated": false,
           "local": true,
-          "hf": false
+          "hf": true
         },
         "status": {
-          "runtime": "experimental",
+          "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "none"
+          "tested": "verified"
         },
-        "tested": null
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "browser",
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-04-29",
+          "source": "browser-node-webgpu-smoke",
+          "notes": "Browser/WebGPU report reports/gemma-4-31b-it-text-q4k-ehf16-af16/2026-04-29T17-25-41.735Z.json and program-bundle references both decode the sky prompt to blue with f16 compute.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/gemma-4-31B-it",
@@ -643,12 +684,13 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "2bc4bfd905fe214303545a00db61031d4088b379",
+        "revision": "b402f6f27837857d51636da5f78c12bcd47e2a03",
         "path": "models/qwen-3-6-27b-q4k-ehaf16"
       },
       "baseUrl": null,
       "quickstart": false,
       "demoVisible": true,
+      "demoPreferredVariantId": "qwen-3-6-27b-q4k-eaf16",
       "demoWarningBadges": [
         "15.8 GB / High RAM"
       ],
@@ -705,9 +747,14 @@
       "artifact": {
         "format": "rdrr"
       },
-      "hf": null,
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "3dee21b3b12d65ac7fef9b24cbf759cacc953a67",
+        "path": "models/qwen-3-6-27b-q4k-eaf16"
+      },
       "baseUrl": null,
       "quickstart": false,
+      "demoVisible": false,
       "sizeBytes": 16994352128,
       "recommended": false,
       "sortOrder": 23,
@@ -715,15 +762,28 @@
         "availability": {
           "curated": false,
           "local": true,
-          "hf": false
+          "hf": true
         },
         "status": {
-          "runtime": "experimental",
+          "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "none"
+          "tested": "verified"
         },
-        "tested": null
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "browser",
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-04-29",
+          "source": "browser-node-webgpu-smoke",
+          "notes": "Browser/WebGPU report reports/qwen-3-6-27b-q4k-eaf16/2026-04-29T17-28-17.095Z.json and the Node program-bundle reference produce coherent sky prompt output with f16 compute.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "Qwen/Qwen3.6-27B",

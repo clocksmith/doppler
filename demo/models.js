@@ -15,6 +15,7 @@ import {
   removeRegisteredModel,
   deleteModel,
   initDevice,
+  getKernelCapabilities,
   formatBytes,
   DEFAULT_MANIFEST_INFERENCE,
 } from 'doppler-gpu/tooling';
@@ -79,6 +80,10 @@ export function canRemoveModelStatus(status) {
 
 function isWeightsRefEntry(entry) {
   return entry?.artifactCompleteness === 'weights-ref';
+}
+
+function hasF16DemoLaneSupport(capabilities) {
+  return capabilities?.hasF16 === true && capabilities?.hasSubgroups === true;
 }
 
 // Locate the catalog entry for the primary lane that owns a given weight pack.
@@ -355,6 +360,11 @@ function isPrimaryEligible(entry) {
     && entry?.weightsRefAllowed === false;
 }
 
+function isVerifiedRuntimeEntry(entry) {
+  return entry?.lifecycle?.status?.runtime === 'active'
+    && entry?.lifecycle?.status?.tested === 'verified';
+}
+
 export function selectDemoCatalogEntries(models, options = {}) {
   const entries = Array.isArray(models) ? models : [];
   const localBaseUrls = options.localBaseUrls instanceof Map ? options.localBaseUrls : new Map();
@@ -376,6 +386,27 @@ export function selectDemoCatalogEntries(models, options = {}) {
     }
   }
 
+  const preferredByPrimaryId = new Map();
+  for (const entry of entries) {
+    if (!entry?.modes?.includes('text')) continue;
+    if (entry?.runtimePromotionState !== 'manifest-owned') continue;
+    if (!isWeightsRefEligible(entry, primaryById)) continue;
+    if (!isVerifiedRuntimeEntry(entry)) continue;
+    if (localBaseUrls.has(entry.modelId)) {
+      preferredByPrimaryId.set(primaryById.get(entry.weightPackId)?.modelId, entry);
+      continue;
+    }
+    if (normalizeBaseUrl(entry?.baseUrl)) {
+      preferredByPrimaryId.set(primaryById.get(entry.weightPackId)?.modelId, entry);
+      continue;
+    }
+    try {
+      if (normalizeBaseUrl(buildHfModelBaseUrl(entry)) != null) {
+        preferredByPrimaryId.set(primaryById.get(entry.weightPackId)?.modelId, entry);
+      }
+    } catch {}
+  }
+
   const selected = entries.filter((entry) => {
     if (!entry?.modes?.includes('text')) {
       return false;
@@ -386,7 +417,7 @@ export function selectDemoCatalogEntries(models, options = {}) {
     if (entry?.runtimePromotionState !== 'manifest-owned') {
       return false;
     }
-    if (!isPrimaryEligible(entry) && !isWeightsRefEligible(entry, primaryById)) {
+    if (!isPrimaryEligible(entry)) {
       return false;
     }
     if (localBaseUrls.has(entry.modelId)) {
@@ -403,9 +434,21 @@ export function selectDemoCatalogEntries(models, options = {}) {
   }).map((entry) => ({
     ...entry,
     localBaseUrl: localBaseUrls.get(entry.modelId) ?? null,
-    weightsRefPrimary: entry?.artifactCompleteness === 'weights-ref'
-      ? primaryById.get(entry.weightPackId)?.modelId ?? null
-      : null,
+    demoPreferredVariant: (() => {
+      const preferredId = typeof entry?.demoPreferredVariantId === 'string'
+        ? entry.demoPreferredVariantId.trim()
+        : '';
+      const preferred = preferredByPrimaryId.get(entry.modelId) ?? null;
+      if (!preferred || (preferredId && preferred.modelId !== preferredId)) {
+        return null;
+      }
+      return {
+        ...preferred,
+        localBaseUrl: localBaseUrls.get(preferred.modelId) ?? null,
+        weightsRefPrimary: entry.modelId,
+      };
+    })(),
+    weightsRefPrimary: null,
   }));
   selected.sort((a, b) => {
     if (a.recommended !== b.recommended) {
@@ -417,6 +460,16 @@ export function selectDemoCatalogEntries(models, options = {}) {
     return String(a.label || a.modelId || '').localeCompare(String(b.label || b.modelId || ''));
   });
   return selected;
+}
+
+async function resolveDemoExecutionEntry(entry) {
+  const preferred = entry?.demoPreferredVariant;
+  if (!preferred) {
+    return entry;
+  }
+  await initDevice();
+  const capabilities = getKernelCapabilities();
+  return hasF16DemoLaneSupport(capabilities) ? preferred : entry;
 }
 
 export function buildModelSourceCandidates(entry) {
@@ -437,7 +490,7 @@ export function buildModelSourceCandidates(entry) {
   return candidates;
 }
 
-async function resolveManifestSource(entry, signal) {
+async function resolveManifestSource(entry, signal, options = {}) {
   const candidates = buildModelSourceCandidates(entry);
   if (candidates.length === 0) {
     throw new Error(`Model "${entry?.modelId ?? 'unknown'}" does not have a downloadable source.`);
@@ -449,7 +502,9 @@ async function resolveManifestSource(entry, signal) {
     try {
       const manifestText = await fetchText(manifestUrl, signal);
       const manifest = parseManifest(manifestText);
-      const missingArtifacts = await validateManifestArtifacts(candidate.baseUrl, manifest, signal);
+      const missingArtifacts = options.manifestOnly === true || manifest?.weightsRef != null
+        ? []
+        : await validateManifestArtifacts(candidate.baseUrl, manifest, signal);
       if (missingArtifacts.length > 0) {
         errors.push(`${candidate.kind}: missing files [${missingArtifacts.join(', ')}]`);
         continue;
@@ -668,30 +723,28 @@ async function handleCardClick(entry) {
 
   loadingLock = true;
   try {
-    if (status === 'stored') {
-      await loadModelFromStorage(entry.modelId);
+    const executionEntry = await resolveDemoExecutionEntry(entry);
+    const executionStatus = state.modelStatus[executionEntry.modelId];
+    if (executionStatus === 'stored') {
+      await loadModelFromStorage(executionEntry.modelId, { displayModelId: entry.modelId });
     } else {
-      await downloadAndLoad(entry);
+      await downloadAndLoad(executionEntry, { displayEntry: entry });
     }
   } finally {
     loadingLock = false;
   }
 }
 
-async function downloadAndLoad(entry) {
+async function downloadToStorage(entry, options = {}) {
   const { modelId } = entry;
   const isWeightsRef = isWeightsRefEntry(entry);
+  const displayModelId = options.displayModelId || modelId;
 
-  // Weights-ref sibling: gate the download on the primary lane already
-  // being in OPFS. The sibling has no shards of its own; fetching from
-  // its baseUrl would 404 against a manifest-only HF publish, and copying
-  // the primary's shards into the sibling's slot would defeat the share.
-  if (isWeightsRef) {
-    const registered = await listRegisteredModels();
-    const storedIds = new Set(registered.map((r) => r.modelId));
-    assertWeightsRefPrimaryAvailable(entry, catalog, storedIds);
+  if (state.modelStatus[modelId] === 'stored' || state.modelStatus[modelId] === 'loaded') {
+    return;
   }
 
+  state.modelStatus[displayModelId] = 'downloading';
   state.modelStatus[modelId] = 'downloading';
   renderModelCards();
 
@@ -699,7 +752,7 @@ async function downloadAndLoad(entry) {
   const signal = abort.signal;
 
   try {
-    const resolvedSource = await resolveManifestSource(entry, signal);
+    const resolvedSource = await resolveManifestSource(entry, signal, { manifestOnly: isWeightsRef });
 
     // Fetch manifest and patch compat fields before storing
     const manifest = patchManifestCompat(resolvedSource.manifest ?? parseManifest(resolvedSource.manifestText));
@@ -749,17 +802,41 @@ async function downloadAndLoad(entry) {
 
     await registerModel({ modelId });
     state.modelStatus[modelId] = 'stored';
+    state.modelStatus[displayModelId] = 'stored';
     state.downloadProgress = null;
     renderModelCards();
-
-    // Auto-load after download
-    await loadModelFromStorage(modelId);
   } catch (err) {
     state.modelStatus[modelId] = 'available';
+    state.modelStatus[displayModelId] = 'available';
     state.downloadProgress = null;
     renderModelCards();
     throw err;
   }
+}
+
+async function downloadAndLoad(entry, options = {}) {
+  const { modelId } = entry;
+  const displayEntry = options.displayEntry || entry;
+  const displayModelId = displayEntry.modelId || modelId;
+
+  if (isWeightsRefEntry(entry)) {
+    const primary = findPrimaryForWeightPack(catalog, entry?.weightPackId);
+    if (!primary) {
+      throw new Error(
+        `${entry?.modelId ?? 'unknown'}: weights-ref sibling has no primary lane in the ` +
+        `catalog (weightPackId=${entry?.weightPackId ?? 'unknown'}).`
+      );
+    }
+    const registered = await listRegisteredModels();
+    const storedIds = new Set(registered.map((r) => r.modelId));
+    if (!storedIds.has(primary.modelId)) {
+      await downloadToStorage(primary, { displayModelId });
+    }
+    assertWeightsRefPrimaryAvailable(entry, catalog, new Set((await listRegisteredModels()).map((r) => r.modelId)));
+  }
+
+  await downloadToStorage(entry, { displayModelId });
+  await loadModelFromStorage(modelId, { displayModelId });
 }
 
 export function patchManifestCompat(manifest) {
@@ -805,7 +882,9 @@ export function patchManifestCompat(manifest) {
   return manifest;
 }
 
-async function loadModelFromStorage(modelId) {
+async function loadModelFromStorage(modelId, options = {}) {
+  const displayModelId = options.displayModelId || modelId;
+  state.modelStatus[displayModelId] = 'loading';
   state.modelStatus[modelId] = 'loading';
   renderModelCards();
 
@@ -858,6 +937,7 @@ async function loadModelFromStorage(modelId) {
   }
   state.modelId = modelId;
   state.modelStatus[modelId] = 'loaded';
+  state.modelStatus[displayModelId] = 'loaded';
   state.pipeline = pipeline;
   renderModelCards();
 

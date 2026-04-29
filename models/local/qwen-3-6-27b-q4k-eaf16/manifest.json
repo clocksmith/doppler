@@ -13,7 +13,7 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "weights-ref",
-    "conversionConfigDigest": "sha256:284aca1034e4f68cb257e610a2ddc160e94b928b0320a15289fcd5bbc2f361c9",
+    "conversionConfigDigest": "sha256:248ac807d37bcadaa992736d796f276678d7a07b616617cb779dcd6921d24467",
     "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-6-27b-q4k-eaf16.json",
     "manifestVariantId": "qwen-3-6-27b-q4k-eaf16-mv-exec-v1",
     "materializationProfile": "auto",
@@ -15845,7 +15845,7 @@
   "weightsRef": {
     "weightPackId": "qwen-3-6-27b-q4k-ehaf16-wp-catalog-v1",
     "artifactRoot": "../qwen-3-6-27b-q4k-ehaf16",
-    "manifestDigest": "sha256:c6bf64e573d4cbefc55e725ba3372fcb93738a436ed654f8b90fdc52607d88fe",
+    "manifestDigest": "sha256:d30c1dd87d5e23f4eda13cb57059deda571b3a9ffdf98b064e6401ca6fb640dc",
     "shardSetHash": "sha256:f355a595b115d4a40041bcb2fbe4d131316e422e65df28e5ed4573d2c9051108"
   }
 }
