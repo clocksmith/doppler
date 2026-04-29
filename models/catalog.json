@@ -419,7 +419,7 @@
       "sourceCheckpointId": "google/gemma-4-31B-it",
       "weightPackId": "gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1",
       "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af16-mv-f16-activations-v1",
-      "artifactCompleteness": "complete",
+      "artifactCompleteness": "weights-ref",
       "runtimePromotionState": "manifest-owned",
       "weightsRefAllowed": true
     },
@@ -729,7 +729,7 @@
       "sourceCheckpointId": "Qwen/Qwen3.6-27B",
       "weightPackId": "qwen-3-6-27b-q4k-ehaf16-wp-catalog-v1",
       "manifestVariantId": "qwen-3-6-27b-q4k-eaf16-mv-exec-v1",
-      "artifactCompleteness": "complete",
+      "artifactCompleteness": "weights-ref",
       "runtimePromotionState": "manifest-owned",
       "weightsRefAllowed": true
     },
