@@ -545,18 +545,23 @@ export function assertPromotionReady(entry, options = {}) {
       throw new Error(`${modelId}: ${field} is required before publication.`);
     }
   }
-  if (entry?.artifactCompleteness !== 'complete') {
-    throw new Error(`${modelId}: artifactCompleteness must be "complete" before publication.`);
-  }
   if (entry?.runtimePromotionState !== 'manifest-owned') {
     throw new Error(`${modelId}: runtimePromotionState must be "manifest-owned" before publication.`);
   }
   if (manifestOnly) {
+    if (entry?.artifactCompleteness !== 'weights-ref') {
+      throw new Error(`${modelId}: artifactCompleteness must be "weights-ref" for --manifest-only publication.`);
+    }
     if (entry?.weightsRefAllowed !== true) {
       throw new Error(`${modelId}: weightsRefAllowed must be true for --manifest-only weightsRef publication.`);
     }
-  } else if (entry?.weightsRefAllowed !== false) {
-    throw new Error(`${modelId}: weightsRefAllowed must be false for complete artifact publication.`);
+  } else {
+    if (entry?.artifactCompleteness !== 'complete') {
+      throw new Error(`${modelId}: artifactCompleteness must be "complete" for complete artifact publication.`);
+    }
+    if (entry?.weightsRefAllowed !== false) {
+      throw new Error(`${modelId}: weightsRefAllowed must be false for complete artifact publication.`);
+    }
   }
   if (bootstrap) {
     if (availabilityHf !== false) {

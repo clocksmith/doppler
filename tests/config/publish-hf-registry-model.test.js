@@ -220,18 +220,25 @@ async function writeCatalog(root, entries) {
   );
   assert.throws(
     () => assertPromotionReady(promotionReadyEntry({ artifactCompleteness: 'incomplete' })),
-    /artifactCompleteness must be "complete"/
+    /artifactCompleteness must be "complete" for complete artifact publication/
   );
   assert.throws(
     () => assertPromotionReady(promotionReadyEntry({ weightsRefAllowed: true })),
     /weightsRefAllowed must be false for complete artifact publication/
   );
   assert.doesNotThrow(
-    () => assertPromotionReady(promotionReadyEntry({ weightsRefAllowed: true }), { manifestOnly: true })
+    () => assertPromotionReady(promotionReadyEntry({
+      artifactCompleteness: 'weights-ref',
+      weightsRefAllowed: true,
+    }), { manifestOnly: true })
+  );
+  assert.throws(
+    () => assertPromotionReady(promotionReadyEntry({ weightsRefAllowed: true }), { manifestOnly: true }),
+    /artifactCompleteness must be "weights-ref" for --manifest-only publication/
   );
   assert.throws(
     () => assertPromotionReady(promotionReadyEntry(), { manifestOnly: true }),
-    /weightsRefAllowed must be true for --manifest-only weightsRef publication/
+    /artifactCompleteness must be "weights-ref" for --manifest-only publication/
   );
 }
 

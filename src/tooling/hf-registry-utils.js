@@ -200,22 +200,26 @@ export function buildPublishedRegistryEntry(localEntry, revision) {
 export function buildHostedRegistryPayload(payload, revisionOverrides = new Map()) {
   const source = ensureCatalogPayload(payload, 'support registry');
   const normalizedOverrides = revisionOverrides instanceof Map ? revisionOverrides : new Map();
-  const models = Array.isArray(source.models)
-    ? source.models
-      .filter((entry) => isHostedRegistryApprovedEntry(entry))
-      .map((entry) => {
-        const shapeErrors = validateRegistryEntryArtifactIdentity(entry, 'for hosted registry entries');
-        if (shapeErrors.length > 0) {
-          throw new Error(shapeErrors.join('\n'));
-        }
-        const modelId = normalizeText(entry?.modelId);
-        const revisionOverride = normalizeText(normalizedOverrides.get(modelId));
-        if (revisionOverride) {
-          return buildPublishedRegistryEntry(entry, revisionOverride);
-        }
-        return structuredClone(entry);
-      })
+  const approved = Array.isArray(source.models)
+    ? source.models.filter((entry) => isHostedRegistryApprovedEntry(entry))
     : [];
+  const primaryWeightPackIds = collectPrimaryWeightPackIds(approved);
+  const models = approved.map((entry) => {
+    const shapeErrors = validateRegistryEntryArtifactIdentity(
+      entry,
+      'for hosted registry entries',
+      { primaryWeightPackIds }
+    );
+    if (shapeErrors.length > 0) {
+      throw new Error(shapeErrors.join('\n'));
+    }
+    const modelId = normalizeText(entry?.modelId);
+    const revisionOverride = normalizeText(normalizedOverrides.get(modelId));
+    if (revisionOverride) {
+      return buildPublishedRegistryEntry(entry, revisionOverride);
+    }
+    return structuredClone(entry);
+  });
   sortCatalogEntries(models);
   return {
     version: Number.isFinite(Number(source.version)) ? Number(source.version) : 1,
@@ -235,7 +239,7 @@ export function extractCommitShaFromUrl(value) {
   return directMatch ? directMatch[1].toLowerCase() : '';
 }
 
-function validateRegistryEntryArtifactIdentity(entry, suffix) {
+function validateRegistryEntryArtifactIdentity(entry, suffix, options = {}) {
   const errors = [];
   const modelId = normalizeText(entry?.modelId) || 'unknown-model';
   for (const field of ['sourceCheckpointId', 'weightPackId', 'manifestVariantId']) {
@@ -243,16 +247,62 @@ function validateRegistryEntryArtifactIdentity(entry, suffix) {
       errors.push(`${modelId}: ${field} is required ${suffix}`);
     }
   }
-  if (entry?.artifactCompleteness !== 'complete') {
-    errors.push(`${modelId}: artifactCompleteness must be "complete" ${suffix}`);
+  // Two valid shapes:
+  //   1. Primary lane: artifactCompleteness=complete, weightsRefAllowed=false.
+  //      Self-contained — shards published next to manifest.
+  //   2. Manifest-only sibling: artifactCompleteness=weights-ref,
+  //      weightsRefAllowed=true. Must point at a primary lane published in
+  //      the same payload.
+  const completeness = entry?.artifactCompleteness;
+  const weightsRefAllowed = entry?.weightsRefAllowed;
+  if (typeof weightsRefAllowed !== 'boolean') {
+    errors.push(`${modelId}: weightsRefAllowed must be a boolean ${suffix}`);
+  }
+  if (completeness === 'complete') {
+    if (weightsRefAllowed === true) {
+      errors.push(
+        `${modelId}: artifactCompleteness="complete" requires weightsRefAllowed=false ${suffix}`
+      );
+    }
+  } else if (completeness === 'weights-ref') {
+    if (weightsRefAllowed !== true) {
+      errors.push(
+        `${modelId}: artifactCompleteness="weights-ref" requires weightsRefAllowed=true ${suffix}`
+      );
+    }
+    const primaryWeightPackIds = options.primaryWeightPackIds;
+    if (primaryWeightPackIds instanceof Set) {
+      const weightPackId = normalizeText(entry?.weightPackId);
+      if (weightPackId && !primaryWeightPackIds.has(weightPackId)) {
+        errors.push(
+          `${modelId}: artifactCompleteness="weights-ref" requires a primary lane ` +
+          `with weightPackId="${weightPackId}" published in the same payload ${suffix}`
+        );
+      }
+    }
+  } else {
+    errors.push(
+      `${modelId}: artifactCompleteness must be "complete" or "weights-ref" ${suffix}`
+    );
   }
   if (entry?.runtimePromotionState !== 'manifest-owned') {
     errors.push(`${modelId}: runtimePromotionState must be "manifest-owned" ${suffix}`);
   }
-  if (typeof entry?.weightsRefAllowed !== 'boolean') {
-    errors.push(`${modelId}: weightsRefAllowed must be a boolean ${suffix}`);
-  }
   return errors;
+}
+
+function collectPrimaryWeightPackIds(entries) {
+  const ids = new Set();
+  if (!Array.isArray(entries)) return ids;
+  for (const entry of entries) {
+    if (entry?.artifactCompleteness === 'complete' && entry?.weightsRefAllowed === false) {
+      const weightPackId = normalizeText(entry?.weightPackId);
+      if (weightPackId) {
+        ids.add(weightPackId);
+      }
+    }
+  }
+  return ids;
 }
 
 export function validateLocalHfEntryShape(entry) {

@@ -208,14 +208,20 @@ try {
   });
   assert.deepEqual(remoteValidation.errors, []);
 
+  // weights-ref variant must coexist with its primary lane in the same payload.
   const weightsRefValidation = await validateRemoteRegistry({
     models: [
+      {
+        modelId: 'toy-model',
+        ...catalogIdentity,
+        baseUrl: `${baseUrl}/models/toy-model`,
+      },
       {
         modelId: 'toy-model-variant',
         sourceCheckpointId: 'unit/toy-model',
         weightPackId: 'toy-model-wp-catalog-v1',
         manifestVariantId: 'toy-model-variant-mv-exec-v1',
-        artifactCompleteness: 'complete',
+        artifactCompleteness: 'weights-ref',
         runtimePromotionState: 'manifest-owned',
         weightsRefAllowed: true,
         baseUrl: `${baseUrl}/models/toy-model-variant`,
@@ -224,11 +230,25 @@ try {
   }, `${baseUrl}/registry/catalog.json`, {
     models: [
       {
+        modelId: 'toy-model',
+        ...catalogIdentity,
+        baseUrl: `${baseUrl}/models/toy-model`,
+        lifecycle: {
+          availability: {
+            hf: true,
+          },
+          status: {
+            runtime: 'active',
+            tested: 'verified',
+          },
+        },
+      },
+      {
         modelId: 'toy-model-variant',
         sourceCheckpointId: 'unit/toy-model',
         weightPackId: 'toy-model-wp-catalog-v1',
         manifestVariantId: 'toy-model-variant-mv-exec-v1',
-        artifactCompleteness: 'complete',
+        artifactCompleteness: 'weights-ref',
         runtimePromotionState: 'manifest-owned',
         weightsRefAllowed: true,
         baseUrl: `${baseUrl}/models/toy-model-variant`,

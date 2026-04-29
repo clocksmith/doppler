@@ -20,6 +20,12 @@ const DEMO_READY = Object.freeze({
   weightsRefAllowed: false,
 });
 
+const DEMO_WEIGHTS_REF_READY = Object.freeze({
+  artifactCompleteness: 'weights-ref',
+  runtimePromotionState: 'manifest-owned',
+  weightsRefAllowed: true,
+});
+
 {
   const patched = patchManifestCompat({
     modelId: 'legacy-gemma',
@@ -187,6 +193,77 @@ const DEMO_READY = Object.freeze({
 }
 
 {
+  const selected = selectDemoCatalogEntries([
+    {
+      ...DEMO_READY,
+      modelId: 'gemma-4-31b-it-text-q4k-ehf16-af32',
+      weightPackId: 'gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1',
+      quickstart: false,
+      demoVisible: true,
+      modes: ['text'],
+      hf: {
+        repoId: 'Clocksmith/rdrr',
+        revision: 'abc123',
+        path: 'models/gemma-4-31b-it-text-q4k-ehf16-af32',
+      },
+      sortOrder: 16,
+    },
+    {
+      ...DEMO_WEIGHTS_REF_READY,
+      modelId: 'gemma-4-31b-it-text-q4k-ehf16-af16',
+      weightPackId: 'gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1',
+      quickstart: false,
+      demoVisible: true,
+      modes: ['text'],
+      hf: {
+        repoId: 'Clocksmith/rdrr',
+        revision: 'abc123',
+        path: 'models/gemma-4-31b-it-text-q4k-ehf16-af16',
+      },
+      sortOrder: 17,
+    },
+  ]);
+
+  assert.deepEqual(
+    selected.map((entry) => entry.modelId),
+    [
+      'gemma-4-31b-it-text-q4k-ehf16-af32',
+      'gemma-4-31b-it-text-q4k-ehf16-af16',
+    ],
+    'demo catalog should include manifest-only siblings when their primary weight pack is available'
+  );
+  assert.equal(
+    selected[1].weightsRefPrimary,
+    'gemma-4-31b-it-text-q4k-ehf16-af32'
+  );
+}
+
+{
+  const selected = selectDemoCatalogEntries([
+    {
+      ...DEMO_WEIGHTS_REF_READY,
+      modelId: 'orphan-af16',
+      weightPackId: 'missing-weight-pack',
+      quickstart: false,
+      demoVisible: true,
+      modes: ['text'],
+      hf: {
+        repoId: 'Clocksmith/rdrr',
+        revision: 'abc123',
+        path: 'models/orphan-af16',
+      },
+      sortOrder: 18,
+    },
+  ]);
+
+  assert.deepEqual(
+    selected.map((entry) => entry.modelId),
+    [],
+    'demo catalog should exclude manifest-only siblings without a reachable primary weight pack'
+  );
+}
+
+{
   const origin = 'http://localhost:8080';
   const localBaseUrl = buildLocalModelBaseUrl('gemma-4-e2b-it-q4k-ehf16-af32', origin);
   assert.equal(
@@ -226,6 +303,10 @@ const DEMO_READY = Object.freeze({
     buildRemoveConfirmText({ sizeBytes: 0 }),
     'Remove this model from OPFS?'
   );
+  assert.equal(
+    buildRemoveConfirmText({ artifactCompleteness: 'weights-ref' }),
+    'Remove this manifest from OPFS? Shared weights remain.'
+  );
 }
 
 {
@@ -240,6 +321,13 @@ const DEMO_READY = Object.freeze({
   assert.equal(
     buildModelCardDetail({ sizeBytes: 612 * 1024 * 1024 }, 'downloading'),
     'Downloading...'
+  );
+  assert.equal(
+    buildModelCardDetail({
+      artifactCompleteness: 'weights-ref',
+      weightsRefPrimary: 'gemma-4-31b-it-text-q4k-ehf16-af32',
+    }, 'stored'),
+    'Ready · Shared with gemma-4-31b-it-text-q4k-ehf16-af32'
   );
 }
 

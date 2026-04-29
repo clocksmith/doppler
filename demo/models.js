@@ -77,13 +77,24 @@ export function canRemoveModelStatus(status) {
   return status === 'stored' || status === 'loaded';
 }
 
+function isWeightsRefEntry(entry) {
+  return entry?.artifactCompleteness === 'weights-ref';
+}
+
 export function buildRemoveConfirmText(entry) {
+  if (isWeightsRefEntry(entry)) {
+    return 'Remove this manifest from OPFS? Shared weights remain.';
+  }
   const sizeTxt = sizeLabel(entry?.sizeBytes);
   return sizeTxt ? `Remove ${sizeTxt} from OPFS?` : 'Remove this model from OPFS?';
 }
 
 export function buildModelCardDetail(entry, status) {
-  const sizeTxt = sizeLabel(entry?.sizeBytes);
+  const sizeTxt = isWeightsRefEntry(entry)
+    ? (entry?.weightsRefPrimary
+      ? `Shared with ${entry.weightsRefPrimary}`
+      : 'Shared weights')
+    : sizeLabel(entry?.sizeBytes);
   const STATUS_LABELS = {
     loaded: 'Active',
     loading: 'Loading to GPU...',
@@ -124,9 +135,13 @@ function clearLoadedModelState() {
 
 async function confirmRemoveModel(entry) {
   const message = buildRemoveConfirmText(entry);
-  const detailText = entry?.label
-    ? `${entry.label} will be removed from OPFS and will need to be downloaded again.`
-    : 'This model will be removed from OPFS and will need to be downloaded again.';
+  const detailText = isWeightsRefEntry(entry)
+    ? (entry?.label
+      ? `${entry.label} manifest will be removed from OPFS. Shared weights remain.`
+      : 'This manifest will be removed from OPFS. Shared weights remain.')
+    : (entry?.label
+      ? `${entry.label} will be removed from OPFS and will need to be downloaded again.`
+      : 'This model will be removed from OPFS and will need to be downloaded again.');
   const dialog = $('remove-model-dialog');
   const messageEl = $('remove-model-message');
   const detailEl = $('remove-model-detail');
@@ -248,9 +263,46 @@ async function resolveLocalCatalogSourceMap(entries, fetchImpl = fetch, origin =
   return localBaseUrls;
 }
 
+// Demo accepts two shapes:
+//   - Primary lane: artifactCompleteness=complete, weightsRefAllowed=false.
+//     Self-contained — shards published next to manifest.
+//   - Manifest-only sibling: artifactCompleteness=weights-ref,
+//     weightsRefAllowed=true. The variant must point at a primary lane that
+//     is itself demo-eligible (so the shared weight pack is reachable from
+//     the same surface as the variant manifest).
+function isWeightsRefEligible(entry, primaryById) {
+  if (entry?.artifactCompleteness !== 'weights-ref') return false;
+  if (entry?.weightsRefAllowed !== true) return false;
+  const primary = primaryById.get(entry.weightPackId);
+  return primary != null;
+}
+
+function isPrimaryEligible(entry) {
+  return entry?.artifactCompleteness === 'complete'
+    && entry?.weightsRefAllowed === false;
+}
+
 export function selectDemoCatalogEntries(models, options = {}) {
   const entries = Array.isArray(models) ? models : [];
   const localBaseUrls = options.localBaseUrls instanceof Map ? options.localBaseUrls : new Map();
+
+  // Build a weightPackId → primary entry index. A weights-ref sibling is
+  // only demo-eligible if its primary passes every other demo gate.
+  const primaryById = new Map();
+  for (const entry of entries) {
+    if (!entry?.modes?.includes('text')) continue;
+    if (!isDemoVisibleEntry(entry)) continue;
+    if (entry?.runtimePromotionState !== 'manifest-owned') continue;
+    if (!isPrimaryEligible(entry)) continue;
+    const sourceUrl = localBaseUrls.has(entry.modelId)
+      || normalizeBaseUrl(entry?.baseUrl)
+      || (() => { try { return normalizeBaseUrl(buildHfModelBaseUrl(entry)); } catch { return null; } })();
+    if (!sourceUrl) continue;
+    if (entry?.weightPackId) {
+      primaryById.set(entry.weightPackId, entry);
+    }
+  }
+
   const selected = entries.filter((entry) => {
     if (!entry?.modes?.includes('text')) {
       return false;
@@ -258,13 +310,10 @@ export function selectDemoCatalogEntries(models, options = {}) {
     if (!isDemoVisibleEntry(entry)) {
       return false;
     }
-    if (entry?.artifactCompleteness !== 'complete') {
-      return false;
-    }
     if (entry?.runtimePromotionState !== 'manifest-owned') {
       return false;
     }
-    if (entry?.weightsRefAllowed !== false) {
+    if (!isPrimaryEligible(entry) && !isWeightsRefEligible(entry, primaryById)) {
       return false;
     }
     if (localBaseUrls.has(entry.modelId)) {
@@ -281,6 +330,9 @@ export function selectDemoCatalogEntries(models, options = {}) {
   }).map((entry) => ({
     ...entry,
     localBaseUrl: localBaseUrls.get(entry.modelId) ?? null,
+    weightsRefPrimary: entry?.artifactCompleteness === 'weights-ref'
+      ? primaryById.get(entry.weightPackId)?.modelId ?? null
+      : null,
   }));
   selected.sort((a, b) => {
     if (a.recommended !== b.recommended) {

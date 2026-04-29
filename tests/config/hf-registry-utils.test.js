@@ -84,9 +84,9 @@ import {
     'bad-model: sourceCheckpointId is required when lifecycle.availability.hf=true',
     'bad-model: weightPackId is required when lifecycle.availability.hf=true',
     'bad-model: manifestVariantId is required when lifecycle.availability.hf=true',
-    'bad-model: artifactCompleteness must be "complete" when lifecycle.availability.hf=true',
-    'bad-model: runtimePromotionState must be "manifest-owned" when lifecycle.availability.hf=true',
     'bad-model: weightsRefAllowed must be a boolean when lifecycle.availability.hf=true',
+    'bad-model: artifactCompleteness must be "complete" or "weights-ref" when lifecycle.availability.hf=true',
+    'bad-model: runtimePromotionState must be "manifest-owned" when lifecycle.availability.hf=true',
   ]);
 }
 
@@ -196,6 +196,105 @@ import {
     ],
   });
   assert.deepEqual(payload.models.map((entry) => entry.modelId), ['verified-gemma']);
+}
+
+{
+  const payload = buildHostedRegistryPayload({
+    version: 1,
+    lifecycleSchemaVersion: 1,
+    updatedAt: '2026-03-11',
+    models: [
+      {
+        modelId: 'verified-primary',
+        sortOrder: 1,
+        sourceCheckpointId: 'unit/primary',
+        weightPackId: 'shared-wp-catalog-v1',
+        manifestVariantId: 'verified-primary-mv-exec-v1',
+        artifactCompleteness: 'complete',
+        runtimePromotionState: 'manifest-owned',
+        weightsRefAllowed: false,
+        hf: {
+          repoId: 'Clocksmith/rdrr',
+          revision: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          path: 'models/verified-primary',
+        },
+        lifecycle: {
+          availability: {
+            hf: true,
+          },
+          status: {
+            runtime: 'active',
+            tested: 'verified',
+          },
+        },
+      },
+      {
+        modelId: 'verified-variant',
+        sortOrder: 2,
+        sourceCheckpointId: 'unit/primary',
+        weightPackId: 'shared-wp-catalog-v1',
+        manifestVariantId: 'verified-variant-mv-exec-v1',
+        artifactCompleteness: 'weights-ref',
+        runtimePromotionState: 'manifest-owned',
+        weightsRefAllowed: true,
+        hf: {
+          repoId: 'Clocksmith/rdrr',
+          revision: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          path: 'models/verified-variant',
+        },
+        lifecycle: {
+          availability: {
+            hf: true,
+          },
+          status: {
+            runtime: 'active',
+            tested: 'verified',
+          },
+        },
+      },
+    ],
+  });
+  assert.deepEqual(payload.models.map((entry) => entry.modelId), [
+    'verified-primary',
+    'verified-variant',
+  ]);
+}
+
+{
+  assert.throws(
+    () => buildHostedRegistryPayload({
+      version: 1,
+      lifecycleSchemaVersion: 1,
+      updatedAt: '2026-03-11',
+      models: [
+        {
+          modelId: 'orphan-variant',
+          sortOrder: 1,
+          sourceCheckpointId: 'unit/primary',
+          weightPackId: 'missing-wp-catalog-v1',
+          manifestVariantId: 'orphan-variant-mv-exec-v1',
+          artifactCompleteness: 'weights-ref',
+          runtimePromotionState: 'manifest-owned',
+          weightsRefAllowed: true,
+          hf: {
+            repoId: 'Clocksmith/rdrr',
+            revision: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+            path: 'models/orphan-variant',
+          },
+          lifecycle: {
+            availability: {
+              hf: true,
+            },
+            status: {
+              runtime: 'active',
+              tested: 'verified',
+            },
+          },
+        },
+      ],
+    }),
+    /requires a primary lane with weightPackId="missing-wp-catalog-v1"/
+  );
 }
 
 {
