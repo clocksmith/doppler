@@ -153,6 +153,7 @@
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-eaf16",
               "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [
@@ -443,6 +444,7 @@
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-eaf16",
               "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [
@@ -629,6 +631,7 @@
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-eaf16",
               "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [],
@@ -657,6 +660,7 @@
             "inlineConfigs": [
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-eaf16",
               "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [
@@ -689,6 +693,7 @@
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-eaf16",
               "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [],
@@ -927,6 +932,7 @@
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-eaf16",
               "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [],
@@ -2158,6 +2164,7 @@
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-eaf16",
               "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [],
@@ -2297,6 +2304,7 @@
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-eaf16",
               "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [],
@@ -2332,6 +2340,7 @@
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-eaf16",
               "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [],
@@ -2401,6 +2410,7 @@
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-eaf16",
               "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [
@@ -3372,6 +3382,7 @@
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-eaf16",
               "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [
@@ -4094,6 +4105,7 @@
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-eaf16",
               "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [
@@ -4314,6 +4326,7 @@
             "inlineConfigs": [
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-eaf16",
               "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [
@@ -5405,6 +5418,7 @@
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-eaf16",
               "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [
@@ -5602,6 +5616,7 @@
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-eaf16",
               "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [
@@ -7062,6 +7077,7 @@
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
+              "qwen3/qwen-3-6-27b-q4k-eaf16",
               "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
             "ruleChains": [],

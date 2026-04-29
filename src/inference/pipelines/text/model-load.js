@@ -559,6 +559,53 @@ function describeExplicitRuntimeDtypeMismatch(contract, explicitRuntime) {
   return mismatches;
 }
 
+/**
+ * Manifest-side lane binding: the manifest variant tag claims a compute lane
+ * via quantizationInfo.compute. Once all runtime resolution phases have run,
+ * the resolved session must dispatch that same lane. If they disagree, the
+ * operator picked the wrong manifest variant or the wrong runtime profile.
+ *
+ * Throws on mismatch. Returns silently when the manifest does not declare
+ * a compute lane (legacy / vision-only manifests) or when no resolved values
+ * are available to compare against.
+ *
+ * @param {Object} options
+ * @param {Object} options.manifest
+ * @param {Object} options.runtimeConfig
+ * @returns {void}
+ */
+export function assertManifestComputeLaneBinding({ manifest, runtimeConfig }) {
+  const declared = normalizeKernelDtype(manifest?.quantizationInfo?.compute);
+  if (!declared) return;
+
+  const session = runtimeConfig?.inference?.session ?? {};
+  const computeDefaults = session.compute?.defaults ?? {};
+  const candidates = [
+    ['session.compute.defaults.activationDtype', computeDefaults.activationDtype],
+    ['session.compute.defaults.mathDtype', computeDefaults.mathDtype],
+    ['session.compute.defaults.accumDtype', computeDefaults.accumDtype],
+    ['session.kvcache.kvDtype', session.kvcache?.kvDtype],
+  ];
+
+  const mismatches = [];
+  for (const [field, value] of candidates) {
+    const resolved = normalizeKernelDtype(value);
+    if (resolved && resolved !== declared) {
+      mismatches.push(`${field}=${value}`);
+    }
+  }
+  if (mismatches.length === 0) return;
+
+  throw new Error(
+    `Manifest "${manifest?.modelId ?? 'unknown'}" declares ` +
+    `quantizationInfo.compute=${declared} but runtime resolved ` +
+    `[${mismatches.join('; ')}]. ` +
+    'The manifest variant tag is the lane identity — load the manifest variant ' +
+    'whose compute lane matches the runtime profile, or pick a runtime profile ' +
+    'whose dtype defaults match this manifest.'
+  );
+}
+
 function assertManifestKernelPathDtypeCompatibility(manifest, resolvedKernelPath, kernelPathSource) {
   if (!resolvedKernelPath) return;
   if (kernelPathSource === 'config') return;

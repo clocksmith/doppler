@@ -1,0 +1,62 @@
+{
+  "id": "profiles/qwen3-6-27b-f16-activations-probe",
+  "name": "qwen3-6-27b-f16-activations-probe",
+  "description": "Experimental Qwen 3.6 27B profile that requests the additive execution-v1 f16 compute lane against the f16 manifest sibling sharing the existing Q4K weight pack.",
+  "intent": "investigate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-04-29T00:00:00Z",
+  "extends": "profiles/default",
+  "model": "qwen-3-6-27b-q4k-eaf16",
+  "runtime": {
+    "shared": {
+      "tooling": {
+        "intent": "investigate"
+      }
+    },
+    "inference": {
+      "compute": {
+        "activationDtype": "f16"
+      },
+      "session": {
+        "compute": {
+          "defaults": {
+            "activationDtype": "f16",
+            "mathDtype": "f16",
+            "accumDtype": "f16",
+            "outputDtype": "f16"
+          }
+        },
+        "kvcache": {
+          "kvDtype": "f16"
+        },
+        "decodeLoop": {
+          "batchSize": 3,
+          "readbackInterval": 1,
+          "stopCheckMode": "batch"
+        }
+      },
+      "kernelPathPolicy": {
+        "mode": "capability-aware",
+        "sourceScope": [
+          "manifest"
+        ],
+        "allowSources": [
+          "manifest"
+        ],
+        "onIncompatible": "remap"
+      },
+      "generation": {
+        "maxTokens": 8
+      },
+      "sampling": {
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "repetitionPenalty": 1,
+        "greedyThreshold": 0
+      },
+      "prompt": "The color of the sky is"
+    }
+  }
+}

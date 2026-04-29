@@ -42,6 +42,18 @@ export interface ProgramBundleCheckResult {
   executionGraphHash: string;
 }
 
+export interface ProgramBundleStorageArtifact {
+  manifest: Record<string, unknown>;
+  modelDir: string;
+  manifestPath: string | null;
+  manifestRaw: string | null;
+}
+
+export declare function resolveProgramBundleStorageArtifact(
+  manifest: Record<string, unknown>,
+  modelDir: string
+): Promise<ProgramBundleStorageArtifact>;
+
 export declare function exportProgramBundle(options?: ProgramBundleExportOptions): Promise<ProgramBundle>;
 export declare function writeProgramBundle(options?: ProgramBundleExportOptions): Promise<ProgramBundleWriteResult>;
 export declare function loadProgramBundle(bundlePath: string): Promise<ProgramBundle>;

@@ -87,6 +87,14 @@ export declare function removeSubgroups(graph: ExecutionGraph, ctx: TransformCon
 export declare function widenToF32Activations(graph: ExecutionGraph, ctx: TransformContext): ExecutionGraph | null;
 
 /**
+ * Fail-closed sentinel transform installed by capability rules when the
+ * (modelId, runtime profile) combination is contradictory (e.g., af32
+ * manifest variant paired with a runtime profile demanding f16 activations).
+ * Throws when invoked.
+ */
+export declare function failClosedLaneMismatch(graph: ExecutionGraph, ctx: TransformContext): never;
+
+/**
  * Swap prefill attention kernel between streaming and small-tile variants.
  */
 export declare function swapPrefillAttention(

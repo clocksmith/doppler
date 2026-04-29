@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
 import {
   finalizeBrowserRelayResponse,
   resolveLocalFileModelUrlForBrowserRelay,
+  runBrowserCommandEvaluationWithTimeout,
   runBrowserCommandInNode,
 } from '../../src/tooling/node-browser-command-runner.js';
 
@@ -70,6 +71,24 @@ const KERNELS_REQUEST = {
   }, effectiveRequest);
   assert.equal(response.request.loadMode, 'opfs');
   assert.equal(response.request.modelUrl, sourceRequest.modelUrl);
+}
+
+{
+  const result = await runBrowserCommandEvaluationWithTimeout(
+    () => Promise.resolve({ ok: true }),
+    1000
+  );
+  assert.deepEqual(result, { ok: true });
+}
+
+{
+  await assert.rejects(
+    () => runBrowserCommandEvaluationWithTimeout(
+      () => new Promise(() => {}),
+      1
+    ),
+    /browser command: runner did not finish within 1ms\./
+  );
 }
 
 {

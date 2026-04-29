@@ -691,6 +691,49 @@
       "weightsRefAllowed": false
     },
     {
+      "modelId": "qwen-3-6-27b-q4k-eaf16",
+      "family": "qwen3",
+      "label": "Qwen 3.6 27B (Q4K/F16a)",
+      "description": "Qwen 3.6 27B text-only Doppler/WebGPU f16 lane. Shares the existing Q4K/F16 embedding weight pack; Doe/Cerebras f16 CSL lowering is intentionally unsupported.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "qwen3.6-27b-f16",
+        "qwen-3-6-27b-af16"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": false,
+      "sizeBytes": 16994352128,
+      "recommended": false,
+      "sortOrder": 23,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "experimental",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "none"
+        },
+        "tested": null
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "Qwen/Qwen3.6-27B",
+      "weightPackId": "qwen-3-6-27b-q4k-ehaf16-wp-catalog-v1",
+      "manifestVariantId": "qwen-3-6-27b-q4k-eaf16-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": true
+    },
+    {
       "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
       "family": "lfm2",
       "label": "LFM2.5 1.2B Instruct (Q4K/F32a)",

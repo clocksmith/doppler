@@ -408,6 +408,98 @@ const EXPLICIT_TEXT_DEFAULTS = [
       rollbackOnReject: true,
     },
   },
+  {
+    path: 'src/config/conversion/qwen3/qwen-3-6-27b-q4k-ehaf16.json',
+    computeDefaults: {
+      activationDtype: 'f32',
+      mathDtype: 'f32',
+      accumDtype: 'f32',
+      outputDtype: 'f32',
+    },
+    kvcache: {
+      kvDtype: 'f16',
+      layout: 'contiguous',
+      maxSeqLen: 8192,
+      pageSize: 256,
+      tiering: { mode: 'off' },
+    },
+    decodeLoop: {
+      batchSize: 12,
+      stopCheckMode: 'batch',
+      readbackInterval: 32,
+      readbackMode: 'sequential',
+      submitLatencyThresholdMs: null,
+      ringTokens: 1,
+      ringStop: 1,
+      ringStaging: 1,
+      disableCommandBatching: false,
+    },
+    perLayerInputs: DEFAULT_PER_LAYER_INPUTS,
+    speculation: {
+      mode: 'self',
+      tokens: 1,
+      verify: 'greedy',
+      threshold: null,
+      rollbackOnReject: true,
+    },
+  },
+  {
+    path: 'src/config/conversion/qwen3/qwen-3-6-27b-q4k-eaf16.json',
+    computeDefaults: {
+      activationDtype: 'f16',
+      mathDtype: 'f16',
+      accumDtype: 'f16',
+      outputDtype: 'f16',
+    },
+    kvcache: {
+      kvDtype: 'f16',
+      layout: 'contiguous',
+      maxSeqLen: 8192,
+      pageSize: 256,
+      tiering: { mode: 'off' },
+    },
+    decodeLoop: {
+      batchSize: 3,
+      stopCheckMode: 'batch',
+      readbackInterval: 1,
+      readbackMode: 'sequential',
+      submitLatencyThresholdMs: null,
+      ringTokens: 1,
+      ringStop: 1,
+      ringStaging: 1,
+      disableCommandBatching: false,
+    },
+    perLayerInputs: {
+      materialization: 'auto',
+      rowCache: {
+        mode: 'lru',
+        maxRows: 256,
+        maxBytes: 134217728,
+        decodedDtype: 'f16',
+      },
+      prefetch: {
+        mode: 'next_token',
+        rowsAhead: 1,
+      },
+      gpuUpload: {
+        mode: 'per_step_slices',
+        stagingRows: 2,
+      },
+      hotCache: {
+        mode: 'prepared_tokens',
+        maxTokens: 1024,
+        maxBytes: 134217728,
+        outputDtype: 'f16',
+      },
+    },
+    speculation: {
+      mode: 'self',
+      tokens: 1,
+      verify: 'greedy',
+      threshold: null,
+      rollbackOnReject: true,
+    },
+  },
 ];
 
 const EXPLICIT_NULL_OR_DISABLED = [];

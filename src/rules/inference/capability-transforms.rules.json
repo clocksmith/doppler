@@ -21,6 +21,18 @@
     },
     {
       "match": {
+        "modelId": "qwen-3-6-27b-q4k-eaf16",
+        "activationDtype": "f16",
+        "mathDtype": "f16",
+        "accumDtype": "f16",
+        "hasSubgroups": true,
+        "hasF16": true
+      },
+      "transforms": ["useQwen36F16Activations"],
+      "reason": "Runtime requested the experimental all-f16 lane for Qwen 3.6 27B"
+    },
+    {
+      "match": {
         "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
         "activationDtype": "f16",
         "hasSubgroups": true,
@@ -31,12 +43,7 @@
     },
     {
       "match": {
-        "modelId": {
-          "in": [
-            "gemma-4-31b-it-text-q4k-ehf16-af32",
-            "gemma-4-31b-it-text-q4k-ehf16-af16"
-          ]
-        },
+        "modelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
         "activationDtype": "f16",
         "mathDtype": "f16",
         "accumDtype": "f16",
@@ -44,7 +51,19 @@
         "hasF16": true
       },
       "transforms": ["useGemma431BTextF16Activations"],
-      "reason": "Runtime requested the experimental all-f16 lane for Gemma 4 31B text"
+      "reason": "af16 manifest variant on shader-f16 GPU — dispatch the all-f16 lane"
+    },
+    {
+      "match": {
+        "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
+        "activationDtype": "f16",
+        "mathDtype": "f16",
+        "accumDtype": "f16",
+        "hasSubgroups": true,
+        "hasF16": true
+      },
+      "transforms": ["failClosedLaneMismatch"],
+      "reason": "af32 manifest cannot dispatch f16 activations — load the af16 manifest variant or pick an f32 runtime profile"
     },
     {
       "match": {

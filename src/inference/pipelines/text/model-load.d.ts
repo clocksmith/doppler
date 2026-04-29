@@ -53,3 +53,8 @@ export function initTokenizerFromManifest(
   baseUrl?: string | null,
   storageContext?: PipelineStorageContext | null
 ): Promise<Tokenizer>;
+
+export function assertManifestComputeLaneBinding(options: {
+  manifest: Manifest;
+  runtimeConfig: RuntimeConfigSchema;
+}): void;

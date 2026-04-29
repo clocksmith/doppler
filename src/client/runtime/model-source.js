@@ -107,11 +107,12 @@ function assertWeightsRefIdentity(variantManifest, weightsManifest, weightsRef, 
   }
   const expectedShardSetHash = normalizeText(weightsRef?.shardSetHash);
   if (expectedShardSetHash) {
-    const actualShardSetHash = normalizeText(weightsManifest?.artifactIdentity?.shardSetHash);
+    const actualShardSetHash = normalizeText(weightsManifest?.artifactIdentity?.shardSetHash)
+      || normalizeText(weightsManifest?.artifactIdentity?.weightPackHash);
     if (actualShardSetHash !== expectedShardSetHash) {
       throw new Error(
         `${modelId}: weightsRef.shardSetHash "${expectedShardSetHash}" does not match ` +
-        `target artifactIdentity.shardSetHash "${actualShardSetHash}".`
+        `target artifact identity "${actualShardSetHash}".`
       );
     }
   }

@@ -103,6 +103,67 @@ assert.equal(typeof doppler.evict, 'function');
 }
 
 {
+  const storageManifest = {
+    version: 1,
+    modelId: 'legacy-weights',
+    modelType: 'embedding',
+    quantization: 'F16',
+    inference: {},
+    hashAlgorithm: 'sha256',
+    artifactIdentity: {
+      weightPackId: 'legacy-wp',
+      weightPackHash: 'sha256:legacy-weight-pack',
+    },
+    tensorsFile: 'tensors.json',
+    shards: [
+      { index: 0, filename: 'shard_00000.bin', size: 4, hash: '0'.repeat(64), offset: 0 },
+    ],
+    totalSize: 4,
+  };
+  const storageManifestText = JSON.stringify(storageManifest);
+  const digestBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(storageManifestText));
+  const digest = Array.from(new Uint8Array(digestBuffer))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    if (String(url) === 'https://host/models/legacy-weights/manifest.json') {
+      return {
+        ok: true,
+        text: async () => storageManifestText,
+      };
+    }
+    return { ok: false, status: 404, text: async () => '' };
+  };
+  try {
+    const resolved = await resolveManifestArtifactSource({
+      modelId: 'legacy-variant',
+      baseUrl: 'https://host/models/legacy-variant',
+      manifest: null,
+      trace: [],
+    }, {
+      text: '{}',
+      manifest: {
+        modelId: 'legacy-variant',
+        artifactIdentity: {
+          weightPackId: 'legacy-wp',
+        },
+        weightsRef: {
+          weightPackId: 'legacy-wp',
+          artifactRoot: '../legacy-weights',
+          manifestDigest: `sha256:${digest}`,
+          shardSetHash: 'sha256:legacy-weight-pack',
+        },
+      },
+    });
+    assert.equal(resolved.baseUrl, 'https://host/models/legacy-weights');
+    assert.equal(resolved.storageManifest.modelId, 'legacy-weights');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+}
+
+{
   const calls = [];
   const callback = (event) => calls.push(event);
   const resolved = resolveLoadProgressHandlers({ onProgress: callback });

@@ -42,6 +42,11 @@ export declare function runBrowserCommandInNode(
   options?: NodeBrowserCommandRunOptions
 ): Promise<BrowserCommandRunResult>;
 
+export declare function runBrowserCommandEvaluationWithTimeout<T>(
+  operation: () => Promise<T>,
+  timeoutMs: number
+): Promise<T>;
+
 export declare function normalizeNodeBrowserCommand(
   commandRequest: ToolingCommandRequestInput
 ): ToolingCommandRequest;

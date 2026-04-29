@@ -621,6 +621,25 @@ function formatBrowserEvaluationError(payload) {
   return error;
 }
 
+export async function runBrowserCommandEvaluationWithTimeout(operation, timeoutMs) {
+  let timeoutId = null;
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`browser command: runner did not finish within ${timeoutMs}ms.`));
+    }, timeoutMs);
+  });
+  try {
+    return await Promise.race([
+      operation(),
+      timeoutPromise,
+    ]);
+  } finally {
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+    }
+  }
+}
+
 function browserLaunchArgs(extraArgs = []) {
   const platformArgs = PLATFORM_WEBGPU_ARGS[process.platform] ?? [];
   return uniqueArgs([...DEFAULT_WEBGPU_BROWSER_ARGS, ...platformArgs, ...extraArgs]);
@@ -978,7 +997,7 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
         }
       }
 
-      const response = await page.evaluate(async (payload) => {
+      const response = await runBrowserCommandEvaluationWithTimeout(() => page.evaluate(async (payload) => {
         const serializeError = (error, depth = 0) => {
           if (!error || typeof error !== 'object') {
             return {
@@ -1016,7 +1035,7 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
         options: {
           runtimeLoadOptions: options.runtimeLoadOptions || {},
         },
-      });
+      }), timeoutMs);
 
       if (response?.__dopplerBrowserError) {
         throw formatBrowserEvaluationError(response.__dopplerBrowserError);

@@ -117,6 +117,105 @@ function shardArtifact(shard, modelDir, repoRoot) {
   };
 }
 
+function resolveWeightsRefArtifactRoot(modelDir, artifactRoot) {
+  const root = typeof artifactRoot === 'string' ? artifactRoot.trim() : '';
+  if (!root) return null;
+  if (/^file:\/\//i.test(root)) {
+    return fileURLToPath(root);
+  }
+  if (/^[a-z][a-z0-9+.-]*:\/\//iu.test(root)) {
+    return null;
+  }
+  return path.resolve(modelDir, root);
+}
+
+function normalizeOptionalDigest(value) {
+  if (typeof value !== 'string' || !value.trim()) return null;
+  return normalizeDigest(value, 'weightsRef digest');
+}
+
+function assertWeightsRefMatchesStorageManifest(manifest, storageManifest, storageManifestRaw, modelId) {
+  const weightsRef = manifest?.weightsRef;
+  if (!weightsRef) return;
+
+  const expectedManifestDigest = normalizeOptionalDigest(weightsRef.manifestDigest);
+  if (expectedManifestDigest) {
+    const actualManifestDigest = `sha256:${sha256Hex(storageManifestRaw)}`;
+    if (actualManifestDigest !== expectedManifestDigest) {
+      throw new Error(
+        `program bundle export: ${modelId} weightsRef.manifestDigest ${expectedManifestDigest} ` +
+        `does not match target manifest ${actualManifestDigest}.`
+      );
+    }
+  }
+
+  const expectedWeightPackId = typeof weightsRef.weightPackId === 'string'
+    ? weightsRef.weightPackId.trim()
+    : '';
+  if (expectedWeightPackId) {
+    const actualWeightPackId = typeof storageManifest?.artifactIdentity?.weightPackId === 'string'
+      ? storageManifest.artifactIdentity.weightPackId.trim()
+      : '';
+    if (actualWeightPackId !== expectedWeightPackId) {
+      throw new Error(
+        `program bundle export: ${modelId} weightsRef.weightPackId "${expectedWeightPackId}" ` +
+        `does not match target artifactIdentity.weightPackId "${actualWeightPackId}".`
+      );
+    }
+  }
+
+  const expectedShardSetHash = normalizeOptionalDigest(weightsRef.shardSetHash);
+  if (expectedShardSetHash) {
+    const actualShardSetHash = normalizeOptionalDigest(storageManifest?.artifactIdentity?.shardSetHash)
+      || normalizeOptionalDigest(storageManifest?.artifactIdentity?.weightPackHash);
+    if (actualShardSetHash !== expectedShardSetHash) {
+      throw new Error(
+        `program bundle export: ${modelId} weightsRef.shardSetHash ${expectedShardSetHash} ` +
+        `does not match target artifact identity ${actualShardSetHash}.`
+      );
+    }
+  }
+}
+
+export async function resolveProgramBundleStorageArtifact(manifest, modelDir) {
+  const weightsRef = manifest?.weightsRef;
+  if (!weightsRef) {
+    return {
+      manifest,
+      modelDir,
+      manifestPath: null,
+      manifestRaw: null,
+    };
+  }
+
+  const storageModelDir = resolveWeightsRefArtifactRoot(modelDir, weightsRef.artifactRoot);
+  if (!storageModelDir) {
+    return {
+      manifest,
+      modelDir,
+      manifestPath: null,
+      manifestRaw: null,
+    };
+  }
+
+  const storageManifestPath = path.join(storageModelDir, 'manifest.json');
+  const { raw, json: storageManifest } = await readJsonFile(
+    storageManifestPath,
+    `weightsRef target manifest ${storageManifestPath}`
+  );
+  const modelId = typeof manifest?.modelId === 'string' && manifest.modelId.trim()
+    ? manifest.modelId.trim()
+    : 'unknown-model';
+  assertWeightsRefMatchesStorageManifest(manifest, storageManifest, raw, modelId);
+
+  return {
+    manifest: storageManifest,
+    modelDir: storageModelDir,
+    manifestPath: storageManifestPath,
+    manifestRaw: raw,
+  };
+}
+
 function collectKernelRefsFromEntries(entries, section, refs) {
   if (!Array.isArray(entries)) return;
   for (let index = 0; index < entries.length; index += 1) {
@@ -671,17 +770,29 @@ async function buildReferenceTranscript(referenceReportPath, repoRoot, execution
 
 async function collectArtifacts(options, manifest, manifestArtifact, referenceReportArtifact) {
   const artifacts = [manifestArtifact];
-  if (Array.isArray(manifest.shards)) {
-    for (const shard of manifest.shards) {
-      artifacts.push(shardArtifact(shard, options.modelDir, options.repoRoot));
+  const storageArtifact = await resolveProgramBundleStorageArtifact(manifest, options.modelDir);
+  const storageManifest = storageArtifact.manifest;
+  const storageModelDir = storageArtifact.modelDir;
+  if (storageArtifact.manifestPath && storageArtifact.manifestRaw != null) {
+    artifacts.push({
+      role: 'source',
+      path: toRepoRelativePath(storageArtifact.manifestPath, options.repoRoot),
+      hash: `sha256:${sha256Hex(storageArtifact.manifestRaw)}`,
+      sizeBytes: Buffer.byteLength(storageArtifact.manifestRaw),
+    });
+  }
+
+  if (Array.isArray(storageManifest.shards)) {
+    for (const shard of storageManifest.shards) {
+      artifacts.push(shardArtifact(shard, storageModelDir, options.repoRoot));
     }
   }
 
-  const tokenizerFile = manifest.tokenizer?.file;
+  const tokenizerFile = storageManifest.tokenizer?.file;
   if (typeof tokenizerFile === 'string' && tokenizerFile.trim()) {
     artifacts.push(await fileArtifact({
       role: 'tokenizer',
-      filePath: path.resolve(options.modelDir, tokenizerFile),
+      filePath: path.resolve(storageModelDir, tokenizerFile),
       repoRoot: options.repoRoot,
     }));
   }

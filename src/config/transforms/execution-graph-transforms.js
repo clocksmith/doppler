@@ -35,6 +35,7 @@ const KERNEL_FILE_PRECISION_PATCHES = new Map([
   ['matmul_gemv_subgroup_f16a.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
   ['matmul_f16.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
   ['matmul_f16_tiled.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
+  ['silu_f16.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
   ['fused_matmul_q4_multicol_f16.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
   ['fused_matmul_q4_multicol_f16a.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
   ['fused_matmul_q4_batched_f16acc_f16a.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
@@ -694,6 +695,7 @@ const F16_TO_F32_ACTIVATION_MAP = new Map([
   ['rope_f16.wgsl', 'rope.wgsl'],
   ['residual_f16.wgsl', 'residual.wgsl'],
   ['gelu_f16.wgsl', 'gelu.wgsl'],
+  ['silu_f16.wgsl', 'silu.wgsl'],
   ['sample_f16.wgsl', 'sample.wgsl'],
   ['gather_f16.wgsl', 'gather.wgsl'],
   ['gather_f16_f16_out.wgsl', 'gather.wgsl'],
@@ -747,6 +749,7 @@ const F16_TO_F32_CORRECTNESS_FALLBACK_MAP = new Map([
   ['rope_f16.wgsl', 'rope.wgsl'],
   ['residual_f16.wgsl', 'residual.wgsl'],
   ['gelu_f16.wgsl', 'gelu.wgsl'],
+  ['silu_f16.wgsl', 'silu.wgsl'],
   ['sample_f16.wgsl', 'sample.wgsl'],
   ['gather_f16.wgsl', 'gather.wgsl'],
   ['gather_f16_f16_out.wgsl', 'gather.wgsl'],
@@ -776,6 +779,7 @@ const FULL_F32_SHADER_MAP = new Map([
   ['rope_f16.wgsl', 'rope.wgsl'],
   ['residual_f16.wgsl', 'residual.wgsl'],
   ['gelu_f16.wgsl', 'gelu.wgsl'],
+  ['silu_f16.wgsl', 'silu.wgsl'],
   ['sample_f16.wgsl', 'sample.wgsl'],
   ['gather_f16.wgsl', 'gather.wgsl'],
   ['gather_f16_f16_out.wgsl', 'gather.wgsl'],
@@ -1841,6 +1845,111 @@ export function useQwenF16PrimaryMatmuls(graph, ctx) {
 }
 
 // =============================================================================
+// Transform: useQwen36F16Activations
+// =============================================================================
+
+/**
+ * Promote the Qwen 3.6 27B Q4K graph onto its additive all-f16 sibling lane.
+ *
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {import('./execution-graph-transforms.js').TransformContext} ctx
+ * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
+ */
+export function useQwen36F16Activations(graph, ctx) {
+  const modelId = typeof ctx.modelId === 'string' ? ctx.modelId.trim() : '';
+  if (
+    modelId !== 'qwen-3-6-27b-q4k-eaf16'
+    || ctx.activationDtype !== 'f16'
+    || ctx.mathDtype !== 'f16'
+    || ctx.accumDtype !== 'f16'
+    || ctx.capabilities?.hasF16 !== true
+    || ctx.capabilities?.hasSubgroups !== true
+  ) {
+    return null;
+  }
+
+  const narrowed = narrowToF16Activations(graph, ctx);
+  const result = narrowed ?? cloneGraph(graph);
+  let changed = narrowed != null;
+
+  const replaceKernelEntry = (key, entry) => {
+    if (!key || !entry) {
+      return;
+    }
+    result.kernels[key] = entry;
+    changed = true;
+  };
+  const replaceOps = (phaseName, ops, kernelKey) => {
+    for (const op of ops) {
+      const phaseResult = replacePhaseStepKernelKey(result[phaseName], op, kernelKey);
+      if (phaseResult.changed) {
+        result[phaseName] = phaseResult.steps;
+        changed = true;
+      }
+    }
+  };
+
+  const embedStep = findPhaseStep(result.preLayer, 'embed');
+  const embedKey = embedStep?.[1] ?? null;
+  const embedEntry = embedKey ? result.kernels[embedKey] : null;
+  if (embedEntry?.kernel === 'gather_f16.wgsl') {
+    replaceKernelEntry(
+      embedKey,
+      deriveKernelEntryWithPrecision(
+        deriveKernelEntry(embedEntry, 'gather_f16_vec4_f16_out.wgsl', 'gather_vec4_f16_out'),
+        { inputDtype: 'f16', outputDtype: 'f16' }
+      )
+    );
+  }
+
+  const decodeProjectionStep = findPhaseStep(result.decode, 'q_proj');
+  const decodeProjectionKey = decodeProjectionStep?.[1] ?? null;
+  const decodeProjectionEntry = deriveQ4DecodeF16KernelEntry(result.kernels[decodeProjectionKey]);
+  if (decodeProjectionEntry) {
+    const f16Key = deriveKernelKey(result.kernels, decodeProjectionKey, '_qwen36_f16');
+    result.kernels[f16Key] = decodeProjectionEntry;
+    replaceOps('decode', ['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'], f16Key);
+  }
+
+  const prefillProjectionStep = findPhaseStep(result.prefill, 'q_proj');
+  const prefillProjectionKey = prefillProjectionStep?.[1] ?? null;
+  const prefillProjectionEntry =
+    deriveQ4PrefillF16AccumKernelEntry(result.kernels[prefillProjectionKey])
+    ?? deriveQ4WideTilePrefillF16KernelEntry(result.kernels[prefillProjectionKey])
+    ?? deriveQ4PrefillF16KernelEntry(result.kernels[prefillProjectionKey]);
+  if (prefillProjectionEntry) {
+    const f16Key = deriveKernelKey(result.kernels, prefillProjectionKey, '_qwen36_f16');
+    result.kernels[f16Key] = prefillProjectionEntry;
+    replaceOps('prefill', ['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'], f16Key);
+  }
+
+  const lmHeadStep = findPhaseStep(result.postLayer, 'lm_head');
+  const lmHeadKey = lmHeadStep?.[1] ?? null;
+  replaceKernelEntry(
+    lmHeadKey,
+    deriveQ4DecodeF16KernelEntry(result.kernels[lmHeadKey])
+  );
+
+  const lmHeadPrefillStep = findPhaseStep(result.postLayer, 'lm_head_prefill');
+  const lmHeadPrefillKey = lmHeadPrefillStep?.[1] ?? null;
+  const lmHeadPrefillEntry = lmHeadPrefillKey ? result.kernels[lmHeadPrefillKey] : null;
+  if (
+    lmHeadPrefillEntry?.kernel === 'matmul_f16w_f32a.wgsl'
+    || lmHeadPrefillEntry?.kernel === 'matmul_f16w_f32a_tiled.wgsl'
+  ) {
+    replaceKernelEntry(
+      lmHeadPrefillKey,
+      deriveKernelEntryWithPrecision(
+        deriveKernelEntry(lmHeadPrefillEntry, 'matmul_f16_tiled.wgsl', 'main'),
+        { inputDtype: 'f16', outputDtype: 'f16' }
+      )
+    );
+  }
+
+  return changed ? result : null;
+}
+
+// =============================================================================
 // Transform: useGemma4Int4PleSelectiveF16Decode
 // =============================================================================
 
@@ -2095,6 +2204,28 @@ export function disableRetainQ4KMaterialization() {
   return null;
 }
 
+/**
+ * Fail-closed sentinel transform. A capability rule installs this when the
+ * matched (modelId, runtime profile) combination is contradictory — for
+ * example, an af32 manifest variant paired with a runtime profile that
+ * demands f16 activations. The matcher reaches this transform only when the
+ * earlier manifest-binding gate has been bypassed; throwing here keeps the
+ * lane-confusion door shut at the capability layer too.
+ *
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} _graph
+ * @param {import('./execution-graph-transforms.js').TransformContext} ctx
+ * @returns {never}
+ */
+export function failClosedLaneMismatch(_graph, ctx) {
+  const modelId = ctx?.modelId ?? 'unknown';
+  const activationDtype = ctx?.activationDtype ?? 'unknown';
+  throw new Error(
+    `Capability resolver: lane mismatch for "${modelId}" (activationDtype=${activationDtype}). ` +
+    'The manifest variant tag is the lane identity — load the manifest variant ' +
+    'whose compute lane matches the runtime profile.'
+  );
+}
+
 // =============================================================================
 // Registry
 // =============================================================================
@@ -2118,8 +2249,10 @@ export const TRANSFORMS = Object.freeze({
   remapQ4KDecodeFFNToGemv,
   disableRetainQ4KMaterialization,
   useQwenF16PrimaryMatmuls,
+  useQwen36F16Activations,
   useQwenDecodeF16Matmuls,
   useGemma4Int4PleSelectiveF16Decode,
   useGemma431BTextF16Activations,
+  failClosedLaneMismatch,
   composeTransforms,
 });

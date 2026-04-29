@@ -43,7 +43,7 @@ function readFlag(argv, index) {
   return value;
 }
 
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const args = {
     manifestPath: null,
     modelDir: null,
@@ -154,6 +154,9 @@ function parseArgs(argv) {
   if (args.surface !== 'node' && args.surface !== 'browser') {
     throw new Error('--surface must be "node" or "browser".');
   }
+  if (args.surface === 'browser' && args.tsirFixtureDir) {
+    throw new Error('--tsir-fixture-dir requires --surface node because fixture capture writes local .npy files.');
+  }
   return args;
 }
 
@@ -166,9 +169,23 @@ async function readJsonFile(filePath, label) {
   }
 }
 
-function normalizeModelUrl(value, modelDir) {
+function toRepoRelativeUrlPath(repoRoot, modelDir) {
+  const relative = path.relative(path.resolve(repoRoot), path.resolve(modelDir));
+  if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) {
+    return null;
+  }
+  return `/${relative.split(path.sep).map((part) => encodeURIComponent(part)).join('/')}`;
+}
+
+export function normalizeModelUrl(value, modelDir, options = {}) {
   const raw = typeof value === 'string' ? value.trim() : '';
   if (!raw) {
+    if (options.surface === 'browser') {
+      const repoRelativePath = toRepoRelativeUrlPath(options.repoRoot ?? process.cwd(), modelDir);
+      if (repoRelativePath) {
+        return repoRelativePath;
+      }
+    }
     return pathToFileURL(path.resolve(modelDir)).href;
   }
   if (/^[a-z][a-z0-9+.-]*:\/\//u.test(raw)) {
@@ -213,7 +230,13 @@ async function resolveOptions(args) {
     manifest,
     modelDir,
     modelId,
-    modelUrl: normalizeModelUrl(args.modelUrl, modelDir),
+    modelUrl: normalizeModelUrl(args.modelUrl, modelDir, {
+      repoRoot,
+      surface: args.surface,
+    }),
+    localArtifactModelDir: args.modelUrl
+      ? null
+      : modelDir,
     conversionConfigPath: args.conversionConfigPath ? path.resolve(args.conversionConfigPath) : null,
     runtimeConfig: args.runtimeConfig,
     surface: args.surface,
@@ -288,26 +311,67 @@ function localModelDirFromUrl(modelUrl) {
   return fileURLToPath(modelUrl);
 }
 
-async function assertLocalModelArtifactsReadable(options) {
-  const modelDir = localModelDirFromUrl(options.modelUrl);
+function resolveLocalArtifactRoot(modelDir, artifactRoot) {
+  const root = typeof artifactRoot === 'string' ? artifactRoot.trim() : '';
+  if (!root) return null;
+  if (/^file:\/\//i.test(root)) {
+    return fileURLToPath(root);
+  }
+  if (/^[a-z][a-z0-9+.-]*:\/\//iu.test(root)) {
+    return null;
+  }
+  return path.resolve(modelDir, root);
+}
+
+async function resolveLocalStorageArtifact(options, modelDir) {
+  const weightsRef = options.manifest?.weightsRef;
+  if (!weightsRef) {
+    return {
+      manifest: options.manifest,
+      modelDir,
+    };
+  }
+  const storageModelDir = resolveLocalArtifactRoot(modelDir, weightsRef.artifactRoot);
+  if (!storageModelDir) {
+    return {
+      manifest: options.manifest,
+      modelDir,
+    };
+  }
+  const storageManifestPath = path.join(storageModelDir, 'manifest.json');
+  const storageManifest = await readJsonFile(
+    storageManifestPath,
+    `weightsRef target manifest at ${storageManifestPath}`,
+  );
+  return {
+    manifest: storageManifest,
+    modelDir: storageModelDir,
+  };
+}
+
+export async function assertLocalModelArtifactsReadable(options) {
+  const modelDir = options.localArtifactModelDir || localModelDirFromUrl(options.modelUrl);
   if (!modelDir) return;
+  const storageArtifact = await resolveLocalStorageArtifact(options, modelDir);
+  const artifactDir = storageArtifact.modelDir;
+  const manifest = storageArtifact.manifest;
   const missing = [];
-  const tokenizerFile = options.manifest?.tokenizer?.file;
+  const tokenizerFile = manifest?.tokenizer?.file;
   if (typeof tokenizerFile === 'string' && tokenizerFile.trim()) {
-    const tokenizerPath = path.resolve(modelDir, tokenizerFile);
+    const tokenizerPath = path.resolve(artifactDir, tokenizerFile);
     try {
       await fs.access(tokenizerPath);
     } catch {
       missing.push(path.relative(process.cwd(), tokenizerPath));
     }
   }
-  const shards = Array.isArray(options.manifest?.shards) ? options.manifest.shards : [];
+  const shards = Array.isArray(manifest?.shards) ? manifest.shards : [];
   for (const shard of shards) {
     const filename = typeof shard?.filename === 'string'
       ? shard.filename
       : (typeof shard?.path === 'string' ? shard.path : null);
     if (!filename) continue;
-    const shardPath = path.resolve(modelDir, filename);
+    const shardPath = path.resolve(artifactDir, filename);
     try {
       await fs.access(shardPath);
     } catch {
@@ -317,7 +381,7 @@ async function assertLocalModelArtifactsReadable(options) {
   }
   if (missing.length > 0) {
     throw new Error(
-      `program bundle reference: local model artifacts are incomplete under ${modelDir}. ` +
+      `program bundle reference: local model artifacts are incomplete under ${artifactDir}. ` +
       `Missing: ${missing.join(', ')}${missing.length >= 5 ? ', ...' : ''}. ` +
       'Pass --model-url to a complete hosted/local artifact or restore the shard files before running the proof lane.'
     );
@@ -403,7 +467,9 @@ async function main() {
   }, null, 2));
 }
 
-main().catch((error) => {
-  console.error(`[program-bundle:reference] ${error.message}`);
-  process.exit(1);
-});
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error) => {
+    console.error(`[program-bundle:reference] ${error.message}`);
+    process.exit(1);
+  });
+}

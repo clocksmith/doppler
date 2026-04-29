@@ -29,6 +29,7 @@ import {
   applyModelBatchingRuntimeDefaults,
   resolveKernelPathState,
   initTokenizerFromManifest,
+  assertManifestComputeLaneBinding,
 } from './text/model-load.js';
 import { resolvePerLayerInputsSession } from './text/generator-helpers.js';
 import { getKernelPathActivationDtype } from '../../config/kernel-path-loader.js';
@@ -316,12 +317,17 @@ export class InferencePipeline extends PipelineState {
         const fallbackInfo = this.executionV1State.fallbackKernelPath
           ? ', fallbackKernelPath=yes'
           : '';
+        const laneIntegrity = this.executionV1State.laneIntegrity;
+        const laneInfo = laneIntegrity?.status === 'transformed'
+          ? `, laneIntegrity=transformed(declared=${laneIntegrity.declared.activationDtype}/${laneIntegrity.declared.kvDtype},` +
+            `executed=${laneIntegrity.executed.activationDtype}/${laneIntegrity.executed.kvDtype})`
+          : '';
         log.info(
           'Pipeline',
           `Execution v1 enabled (steps=${this.executionV1State.resolvedSteps.all.length}, ` +
           `kernelPathInline=${this.executionV1State.runtimeInferencePatch.kernelPath ? 'yes' : 'no'}, ` +
           `pipelineInline=${this.executionV1State.runtimeInferencePatch.pipeline ? 'yes' : 'no'}` +
-          `${transformInfo}${fallbackInfo})`
+          `${transformInfo}${laneInfo}${fallbackInfo})`
         );
       }
     }
@@ -423,23 +429,8 @@ export class InferencePipeline extends PipelineState {
       }
     }
 
-    // Check for execution-v1 kvDtype conflict with manifest quantization info
-    if (this.executionV1State && this.resolvedKernelPath) {
-      const manifestComputeHint = manifest?.quantizationInfo?.compute;
-      const resolvedKvDtype = this.runtimeConfig.inference.session?.kvcache?.kvDtype;
-      if (
-        manifestComputeHint
-        && resolvedKvDtype
-        && String(manifestComputeHint).toLowerCase() !== String(resolvedKvDtype).toLowerCase()
-      ) {
-        log.warn(
-          'Pipeline',
-          `KV cache kvDtype from execution-v1 resolution (${resolvedKvDtype}) differs from ` +
-          `manifest quantizationInfo.compute hint (${manifestComputeHint}). ` +
-          `The kernel path dtype contract takes precedence.`
-        );
-      }
-    }
+    // Manifest quantizationInfo.compute is the binding lane identity.
+    assertManifestComputeLaneBinding({ manifest, runtimeConfig: this.runtimeConfig });
 
     // Initialize KV cache
     if (this.modelConfig.decodeStrategy === 'replay_prefill') {

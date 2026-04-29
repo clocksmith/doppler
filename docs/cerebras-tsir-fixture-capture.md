@@ -1,8 +1,10 @@
 # TSIR boundary-probe fixture capture (cross-repo)
 
-This is the Doppler-side reference for capturing rung-5 frozen-Doppler-reference fixtures consumed by the Doe Cerebras-lane evidence trail. The fixtures pin per-token activations at the four TSIR boundary points (`post_rmsnorm`, `post_qkv`, `post_attn`, `post_ffn`) at L=0 from a deterministic Doppler reference inference run; the Doe rung-5 builder + validator + rung-7 oracle bind to these `.npy` files by sha256.
+This is the Doppler-side reference for capturing rung-5 frozen-Doppler-reference fixtures consumed by the Doe Cerebras-lane evidence trail. The fixtures pin per-token activations at the four TSIR boundary points (`post_rmsnorm`, `post_qkv`, `post_attn`, `post_ffn`) from a deterministic Doppler reference inference run; the Doe rung-5 builder + validator + rung-7 oracle bind to these `.npy` files by sha256.
 
-The fixture writer at [`src/inference/pipelines/text/tsir-fixture-writer.js`](../src/inference/pipelines/text/tsir-fixture-writer.js) is fully model-agnostic. The stage→TSIR boundary map already covers all the stages emitted by both standard attention (Gemma 4 31B, Qwen 3.6 27B full-attention layers) and linear-attention (Qwen 3.6 27B Mamba-style layers via `linear_qkv_proj`). No per-model code change is required to capture a new model — only the canonical invocation differs.
+The fixture writer at [`src/inference/pipelines/text/tsir-fixture-writer.js`](../src/inference/pipelines/text/tsir-fixture-writer.js) is fully model-agnostic. The stage→TSIR boundary map already covers all the stages emitted by both standard attention (Gemma 4 31B, Qwen 3.6 27B standard-attention layers) and Qwen non-attention layers via `linear_qkv_proj`. No per-model code change is required to capture a new model — only the canonical invocation differs.
+
+`.npy` fixture capture requires `--surface node`, because the writer uses the Node filesystem. Browser runs can still produce reference transcripts and coherence evidence, but they do not write Doe fixture files without a separate filesystem relay.
 
 ## Canonical invocations
 
@@ -12,31 +14,75 @@ Bound by Doe at [`bench/fixtures/r3-1-31b-doppler-frozen/`](../../doe/bench/fixt
 
 ```sh
 node tools/run-program-bundle-reference.js \
+  --surface node \
   --manifest models/local/gemma-4-31b-it-text-q4k-ehf16-af32/manifest.json \
+  --conversion-config src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af32.json \
   --model-id gemma-4-31b-it-text-q4k-ehf16-af32 \
+  --out reports/program-bundles/gemma-4-31b-it-text-q4k-ehf16-af32/program-bundle.json \
+  --report-out reports/program-bundles/gemma-4-31b-it-text-q4k-ehf16-af32/reference.json \
   --prompt "The color of the sky is" \
   --tsir-fixture-dir /home/x/deco/doe/bench/fixtures/r3-1-31b-doppler-frozen \
-  --tsir-fixture-layer-filter 0
+  --tsir-fixture-layers 0
 ```
 
 Greedy decode produces "blue". The fixture is bound by digest in the Doe receipt at `bench/out/r3-1-31b-multi-token-decode/receipt.json` and validated by `bench/tools/validate_frozen_doppler_reference.py`.
 
-### Qwen 3.6 27B
+### Gemma 4 31B f16 lane
 
-Target Doe path: `bench/fixtures/r3-2-27b-doppler-frozen/` (parallel to the Gemma fixture, gated by the Doe-side `bench/tests/test_validate_frozen_qwen_3_6_doppler_reference.py` which currently skips with a typed pointer to this doc).
+Target Doe path: `bench/fixtures/r3-1-31b-doppler-frozen-af16/`.
 
 ```sh
 node tools/run-program-bundle-reference.js \
-  --manifest models/local/qwen-3-6-27b-q4k-ehaf16/manifest.json \
-  --model-id qwen-3-6-27b-q4k-ehaf16 \
+  --surface node \
+  --manifest models/local/gemma-4-31b-it-text-q4k-ehf16-af16/manifest.json \
+  --conversion-config src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af16.json \
+  --model-id gemma-4-31b-it-text-q4k-ehf16-af16 \
+  --out reports/program-bundles/gemma-4-31b-it-text-q4k-ehf16-af16/program-bundle.json \
+  --report-out reports/program-bundles/gemma-4-31b-it-text-q4k-ehf16-af16/reference.json \
   --prompt "The color of the sky is" \
-  --tsir-fixture-dir /home/x/deco/doe/bench/fixtures/r3-2-27b-doppler-frozen \
-  --tsir-fixture-layer-filter 0
+  --tsir-fixture-dir /home/x/deco/doe/bench/fixtures/r3-1-31b-doppler-frozen-af16 \
+  --tsir-fixture-layers 0
 ```
 
-`--tsir-fixture-layer-filter 0` captures only L=0 (the four-probe set the Doe-side rung-5 expectation requires). Layer 0 in Qwen 3.6 27B is a standard-attention layer (carries `self_attn.{q,k,v,o}_proj` plus `q_norm`, `k_norm` for queryKeyNorm); the standard-attention probe-emit sites at `attention/run.js` and `layer.js` cover all four boundaries.
+### Qwen 3.6 27B
 
-Once captured, the Doe-side test transitions from skip to verifying schema, artifact hashes, recomputed fixture digest, recognized Qwen modelId, and the four-probe coverage at L=0.
+Target Doe path: `bench/fixtures/r3-2-27b-doppler-frozen/` (parallel to the Gemma fixture).
+
+```sh
+node tools/run-program-bundle-reference.js \
+  --surface node \
+  --manifest models/local/qwen-3-6-27b-q4k-ehaf16/manifest.json \
+  --conversion-config src/config/conversion/qwen3/qwen-3-6-27b-q4k-ehaf16.json \
+  --model-id qwen-3-6-27b-q4k-ehaf16 \
+  --out reports/program-bundles/qwen-3-6-27b-q4k-ehaf16/program-bundle.json \
+  --report-out reports/program-bundles/qwen-3-6-27b-q4k-ehaf16/reference.json \
+  --prompt "The color of the sky is" \
+  --tsir-fixture-dir /home/x/deco/doe/bench/fixtures/r3-2-27b-doppler-frozen \
+  --tsir-fixture-layers 3
+```
+
+`--tsir-fixture-layers 3` captures only L=3, the first standard-attention layer in the checked-in Qwen 3.6 27B manifest. That layer carries `self_attn.{q,k,v,o}_proj` plus `q_norm` and `k_norm` for queryKeyNorm; the standard-attention probe-emit sites at `attention/run.js` and `layer.js` cover all four boundaries.
+
+Once captured, the Doe-side test verifies schema, artifact hashes, recomputed fixture digest, recognized Qwen modelId, and the four-probe coverage at L=3.
+
+### Qwen 3.6 27B f16 lane
+
+Target Doe path: `bench/fixtures/r3-2-27b-doppler-frozen-af16/`.
+
+```sh
+node tools/run-program-bundle-reference.js \
+  --surface node \
+  --manifest models/local/qwen-3-6-27b-q4k-eaf16/manifest.json \
+  --conversion-config src/config/conversion/qwen3/qwen-3-6-27b-q4k-eaf16.json \
+  --model-id qwen-3-6-27b-q4k-eaf16 \
+  --out reports/program-bundles/qwen-3-6-27b-q4k-eaf16/program-bundle.json \
+  --report-out reports/program-bundles/qwen-3-6-27b-q4k-eaf16/reference.json \
+  --prompt "The color of the sky is" \
+  --tsir-fixture-dir /home/x/deco/doe/bench/fixtures/r3-2-27b-doppler-frozen-af16 \
+  --tsir-fixture-layers 3
+```
+
+The f16 lane is a manifest-only `weightsRef` sibling. Browser reference runs serve repo-local manifests through the repo static root so the sibling and its shared weight pack resolve under the same `/models/local/...` tree; Node fixture runs resolve the same `weightsRef` target before loading tokenizer and shards.
 
 ## Stage→TSIR boundary mapping
 
@@ -55,7 +101,7 @@ For split-q/k/v models (Gemma 4 31B, Qwen 3.6 27B), the writer auto-synthesizes 
 
 ## Hybrid-architecture caveat (Qwen 3.6 27B)
 
-Qwen 3.6 27B is a hybrid full + linear-attention transformer. Linear-attention layers (Mamba-style SSM with `conv1d`) emit `linear_qkv_proj` → `post_qkv` but do not produce meaningful `post_attn` or `post_ffn` boundaries in the same shape as standard-attention layers. The L=0 capture above targets a standard-attention layer; downstream rungs (rung-7 oracle, byte-identity test) bind to that. Linear-attention coverage is a typed-blocker on the Doe side (see `docs/status/cerebras-csl.md` in the Doe repo) and not a precondition for the rung-5 fixture.
+Qwen 3.6 27B mixes standard-attention and non-attention layers. The non-attention layers emit `linear_qkv_proj` → `post_qkv` but do not produce `post_attn` or `post_ffn` boundaries in the same shape as standard-attention layers. The L=3 captures above target a standard-attention layer; downstream rungs bind to that layer for the frozen reference.
 
 ## Hardware envelope
 

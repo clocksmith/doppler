@@ -6,6 +6,23 @@ import type {
 } from '../../../config/schema/execution-v1.schema.js';
 import type { KernelPathSchema } from '../../../config/schema/index.js';
 
+export interface ExecutionV1LaneIntegrity {
+  declared: {
+    activationDtype: string | null;
+    mathDtype: string | null;
+    accumDtype: string | null;
+    kvDtype: string | null;
+  };
+  executed: {
+    activationDtype: string | null;
+    mathDtype: string | null;
+    accumDtype: string | null;
+    kvDtype: string | null;
+  };
+  status: 'matches' | 'transformed';
+  transforms: string[];
+}
+
 export interface ExecutionV1CompiledState {
   session: ExecutionV1SessionSchema;
   policies: ExecutionV1PoliciesSchema;
@@ -16,6 +33,7 @@ export interface ExecutionV1CompiledState {
   };
   runtimeInferencePatch: Record<string, unknown>;
   appliedTransforms?: string[];
+  laneIntegrity?: ExecutionV1LaneIntegrity;
   fallbackKernelPath?: KernelPathSchema | null;
 }
 

@@ -41,6 +41,7 @@ None right now.
 | --- | --- | --- | --- |
 | gemma-4-31b-it-text-q4k-ehf16-af32 | catalog model | experimental | Cataloged model without a verified or failing inference lifecycle result. |
 | gemma-4-31b-it-text-q4k-ehf16-af16 | catalog model | experimental | Cataloged model without a verified or failing inference lifecycle result. |
+| qwen-3-6-27b-q4k-eaf16 | catalog model | experimental | Cataloged model without a verified or failing inference lifecycle result. |
 | lfm2-5-1-2b-instruct-q4k-ehf16-af32 | catalog model | experimental | Cataloged model without a verified or failing inference lifecycle result. |
 | gpt_oss | model family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
 | janus_text | model family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
@@ -53,7 +54,7 @@ None right now.
 | gemma3 | transformer | active | 3 (src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json, src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json, src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json) | 2 (gemma-3-1b-it-q4k-ehf16-af32, gemma-3-270m-it-q4k-ehf16-af32) | yes | none | verified (2026-04-13) | verified | catalog verification applies only to cataloged models (2/3 conversion configs cataloged) |
 | translategemma | transformer | active | 2 (src/config/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json, src/config/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json) | 1 (translategemma-4b-it-q4k-ehf16-af32) | yes | none | verified (2026-03-20) | verified | catalog verification applies only to cataloged models (1/2 conversion configs cataloged) |
 | gemma4 | transformer | active | 5 (src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af16.json, src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af32.json, src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.json, +2 more) | 4 (gemma-4-31b-it-text-q4k-ehf16-af16, gemma-4-31b-it-text-q4k-ehf16-af32, gemma-4-e2b-it-q4k-ehf16-af32, +1 more) | yes | none | partially verified (2/4) | verified | catalog verification applies only to cataloged models (4/5 conversion configs cataloged); partial verification (2/4 catalog models verified) |
-| qwen3 | transformer | active | 3 (src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json, src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json, src/config/conversion/qwen3/qwen-3-6-27b-q4k-ehaf16.json) | 3 (qwen-3-5-0-8b-q4k-ehaf16, qwen-3-5-2b-q4k-ehaf16, qwen-3-6-27b-q4k-ehaf16) | yes | none | verified (2026-04-28) | verified | - |
+| qwen3 | transformer | active | 4 (src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json, src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json, src/config/conversion/qwen3/qwen-3-6-27b-q4k-eaf16.json, +1 more) | 4 (qwen-3-5-0-8b-q4k-ehaf16, qwen-3-5-2b-q4k-ehaf16, qwen-3-6-27b-q4k-eaf16, +1 more) | yes | none | partially verified (3/4) | verified | partial verification (3/4 catalog models verified) |
 | lfm2 | transformer | active | 1 (src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json) | 1 (lfm2-5-1-2b-instruct-q4k-ehf16-af32) | no | none | unknown | verification-pending | not verified in catalog lifecycle |
 | gpt_oss | transformer | active | 1 (src/config/conversion/gpt-oss-20b-f16-xmxfp4.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | janus_text | transformer | active | 1 (src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
@@ -69,4 +70,4 @@ None right now.
 - Families with verified catalog lifecycle: 5
 - Families with failed catalog verification: 0
 - Blocked runtime families: 0
-- Catalog entries: 12
+- Catalog entries: 13

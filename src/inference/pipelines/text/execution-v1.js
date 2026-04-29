@@ -606,6 +606,37 @@ export function compileExecutionV1(options = {}) {
     }
   }
 
+  // Lane integrity: capture the pre-transform (manifest+profile-agreed) lane
+  // and the post-transform (actually dispatched) lane so receipts can honestly
+  // surface a capability-driven widening. The manifest-binding gate ensures
+  // the pre-transform session already matches manifest quantizationInfo.compute;
+  // any drift here is owned by capability transforms (e.g., widenToF32Activations
+  // on hasF16=false GPUs).
+  const declaredLane = {
+    activationDtype,
+    mathDtype,
+    accumDtype,
+    kvDtype,
+  };
+  const executedLane = {
+    activationDtype: effectiveSession.compute?.defaults?.activationDtype ?? null,
+    mathDtype: effectiveSession.compute?.defaults?.mathDtype ?? null,
+    accumDtype: effectiveSession.compute?.defaults?.accumDtype ?? null,
+    kvDtype: effectiveSession.kvcache?.kvDtype ?? effectiveSession.compute?.defaults?.activationDtype ?? null,
+  };
+  const laneFieldDelta = (
+    declaredLane.activationDtype !== executedLane.activationDtype
+    || declaredLane.mathDtype !== executedLane.mathDtype
+    || declaredLane.accumDtype !== executedLane.accumDtype
+    || declaredLane.kvDtype !== executedLane.kvDtype
+  );
+  const laneIntegrity = {
+    declared: declaredLane,
+    executed: executedLane,
+    status: laneFieldDelta ? 'transformed' : 'matches',
+    transforms: [...appliedTransformNames],
+  };
+
   const layerPipelineResult = buildLayerPipelineFromExecution(resolvedSteps, {
     logIncompatibleOps: !(kernelPath && inlineKernelPathEnabled),
     ffnDtypeFallback: requireSessionActivationDtype(effectiveSession),
@@ -636,6 +667,7 @@ export function compileExecutionV1(options = {}) {
       ...(layerPipeline ? { pipeline: layerPipeline } : {}),
     },
     appliedTransforms: appliedTransformNames,
+    laneIntegrity,
     fallbackKernelPath,
   };
 }

@@ -5,6 +5,7 @@ import { parseManifest, getExpectedShardHash } from '../formats/rdrr/index.js';
 import { createPipeline } from './pipelines/text.js';
 import { createNodeFileShardStorageContext } from './pipelines/text/init.js';
 import { createHttpArtifactStorageContext } from '../storage/artifact-storage-context.js';
+import { resolveManifestArtifactSource } from '../client/runtime/model-source.js';
 import { log as debugLog } from '../debug/index.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
 
@@ -280,12 +281,16 @@ export function createHarnessShardStorageContext(modelUrl, manifest, log, option
 // ============================================================================
 
 
-async function fetchManifest(manifestUrl) {
+async function fetchManifestPayload(manifestUrl) {
   const response = await fetch(manifestUrl);
   if (!response.ok) {
     throw new Error(`Failed to fetch manifest: ${response.status}`);
   }
-  return parseManifest(await response.text());
+  const text = await response.text();
+  return {
+    text,
+    manifest: parseManifest(text),
+  };
 }
 
 
@@ -354,11 +359,24 @@ export async function initializeInference(modelUrl, options = {}) {
   log('Fetching manifest...');
 
   const manifestUrl = `${modelUrl}/manifest.json`;
-  const manifest = await withInitializationPhase(
+  const manifestPayload = await withInitializationPhase(
     'fetchManifest',
     { modelUrl, manifestUrl },
-    () => fetchManifest(manifestUrl)
+    () => fetchManifestPayload(manifestUrl)
   );
+  const artifactSource = await withInitializationPhase(
+    'resolveArtifactSource',
+    { modelUrl, manifestUrl },
+    () => resolveManifestArtifactSource({
+      modelId: options.modelId || manifestPayload.manifest?.modelId || modelUrl,
+      baseUrl: modelUrl,
+      manifest: null,
+      trace: [],
+    }, manifestPayload)
+  );
+  const manifest = artifactSource.manifest;
+  const storageManifest = artifactSource.storageManifest ?? manifest;
+  const storageModelUrl = artifactSource.storageBaseUrl ?? modelUrl;
 
   if (intentBundleConfig.enabled && intentBundleConfig.bundleUrl) {
     const intentBundleModule = await loadIntentBundleModule();
@@ -389,7 +407,7 @@ export async function initializeInference(modelUrl, options = {}) {
   log(`Model: ${modelLabel}`);
 
   // 3. Create shard loader
-  const storageContext = createHarnessShardStorageContext(modelUrl, manifest, log, {
+  const storageContext = createHarnessShardStorageContext(storageModelUrl, storageManifest, log, {
     loadMode: options.loadMode ?? null,
   });
 
@@ -410,7 +428,7 @@ export async function initializeInference(modelUrl, options = {}) {
       storage: storageContext,
       gpu: { device },
       runtime,
-      baseUrl: modelUrl,
+      baseUrl: storageModelUrl,
       onProgress: ( progress) => {
         const pct = 0.2 + progress.percent * 0.8;
         onProgress(progress.stage || 'loading', pct, progress.message);
