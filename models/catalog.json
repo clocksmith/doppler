@@ -381,6 +381,49 @@
       "weightsRefAllowed": false
     },
     {
+      "modelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
+      "family": "gemma4",
+      "label": "Gemma 4 31B Instruct Text (Q4K/F16a)",
+      "description": "Gemma 4 31B text-only Doppler/WebGPU f16 activation variant. Shares the existing Q4K/F16 embedding and head weight pack; Doe/Cerebras f16 CSL lowering is intentionally unsupported.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "gemma4-31b-f16",
+        "gemma4-31b-af16"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": false,
+      "sizeBytes": 19295019640,
+      "recommended": false,
+      "sortOrder": 17,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "experimental",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "none"
+        },
+        "tested": null
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "google/gemma-4-31B-it",
+      "weightPackId": "gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af16-mv-f16-activations-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": true
+    },
+    {
       "modelId": "translategemma-4b-it-q4k-ehf16-af32",
       "family": "translategemma",
       "label": "TranslateGemma 4B Instruct (Q4K)",

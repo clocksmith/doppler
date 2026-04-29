@@ -1951,7 +1951,10 @@ export function useGemma4Int4PleSelectiveF16Decode(graph, ctx) {
 export function useGemma431BTextF16Activations(graph, ctx) {
   const modelId = typeof ctx.modelId === 'string' ? ctx.modelId.trim() : '';
   if (
-    modelId !== 'gemma-4-31b-it-text-q4k-ehf16-af32'
+    ![
+      'gemma-4-31b-it-text-q4k-ehf16-af32',
+      'gemma-4-31b-it-text-q4k-ehf16-af16',
+    ].includes(modelId)
     || ctx.activationDtype !== 'f16'
     || ctx.mathDtype !== 'f16'
     || ctx.accumDtype !== 'f16'

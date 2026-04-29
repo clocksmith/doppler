@@ -31,7 +31,12 @@
     },
     {
       "match": {
-        "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
+        "modelId": {
+          "in": [
+            "gemma-4-31b-it-text-q4k-ehf16-af32",
+            "gemma-4-31b-it-text-q4k-ehf16-af16"
+          ]
+        },
         "activationDtype": "f16",
         "mathDtype": "f16",
         "accumDtype": "f16",

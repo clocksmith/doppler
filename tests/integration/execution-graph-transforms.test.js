@@ -820,6 +820,16 @@ function buildF16WeightProjectionGraph() {
     'Gemma 4 31B f16 lane should sample from f16 logits');
 
   deepEqual(graph, frozen, 'useGemma431BTextF16Activations must not mutate the input graph');
+
+  const af16VariantResult = useGemma431BTextF16Activations(graph, {
+    ...CTX_F16,
+    mathDtype: 'f16',
+    accumDtype: 'f16',
+    modelId: 'gemma-4-31b-it-text-q4k-ehf16-af16',
+    capabilities: { hasF16: true, hasSubgroups: true },
+    layerTypes: gemma431BConversionConfig.inference.layerPattern.layerTypes,
+  });
+  ok(af16VariantResult, 'Gemma 4 31B f16 activation manifest variant should derive the same f16 execution graph');
 }
 
 // ===========================================================================
@@ -1109,6 +1119,34 @@ function buildF16WeightProjectionGraph() {
     equal(r.transforms.length, 1, 'Gemma 4 31B runtime all-f16 request: one transform function');
     equal(r.transforms[0], useGemma431BTextF16Activations,
       'Gemma 4 31B runtime all-f16 request: transform is useGemma431BTextF16Activations');
+  }
+
+  {
+    const r = resolveCapabilityTransforms(
+      {
+        hasSubgroups: true,
+        hasF16: true,
+        maxWorkgroupStorageSize: 32768,
+        adapterInfo: { vendor: 'amd', architecture: 'rdna-3' },
+      },
+      { id: 'amd-rdna3', vendor: 'amd', architecture: 'rdna-3' },
+      {
+        activationDtype: 'f16',
+        mathDtype: 'f16',
+        accumDtype: 'f16',
+        kvDtype: 'f16',
+        modelId: 'gemma-4-31b-it-text-q4k-ehf16-af16',
+        requiresF16ActivationNarrowing: true,
+      }
+    );
+    deepEqual(
+      r.names,
+      ['useGemma431BTextF16Activations'],
+      'Gemma 4 31B af16 manifest variant all-f16 request: should resolve the experimental f16 transform'
+    );
+    equal(r.transforms.length, 1, 'Gemma 4 31B af16 manifest variant all-f16 request: one transform function');
+    equal(r.transforms[0], useGemma431BTextF16Activations,
+      'Gemma 4 31B af16 manifest variant all-f16 request: transform is useGemma431BTextF16Activations');
   }
 
   {

@@ -3,22 +3,27 @@
 ## Scope
 
 This note tracks the experimental all-f16 compute target for
-`gemma-4-31b-it-text-q4k-ehf16-af32`.
+`gemma-4-31b-it-text-q4k-ehf16-af16`.
 
-The lane keeps the existing Q4K weight pack and changes execution policy through
-`profiles/gemma4-31b-f16-activations-probe` plus the
-`useGemma431BTextF16Activations` execution-v1 capability transform.
+The lane keeps the existing
+`gemma-4-31b-it-text-q4k-ehf16-af32` Q4K weight pack and adds a sibling
+manifest variant for Doppler/WebGPU f16 activations. It does not mutate the
+af32 evidence lane, Qwen 3.6 receipts, or Doe/Cerebras claims.
 
 ## Runtime Contract
 
 - Runtime profile:
   `src/config/runtime/profiles/gemma4-31b-f16-activations-probe.json`
+- Manifest variant:
+  `models/local/gemma-4-31b-it-text-q4k-ehf16-af16/manifest.json`
+- Weight pack source:
+  `models/local/gemma-4-31b-it-text-q4k-ehf16-af32/manifest.json`
 - Capability rule:
   `src/rules/inference/capability-transforms.rules.json`
 - Transform:
   `src/config/transforms/execution-graph-transforms.js`
-- Model graph source:
-  `src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af32.json`
+- Variant graph source:
+  `src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af16.json`
 
 The transform applies only when the runtime requests f16 activation, math,
 accumulation, output, and KV cache dtypes, and the adapter reports both
@@ -72,19 +77,28 @@ after nine generated tokens. The 16-token browser/WebGPU debug sample generated
 `The sky is a clear, bright blue.` with `activationDtype=f16`, `kvDtype=f16`,
 `batchSize=3`, and `readbackInterval=1`.
 
+Future committed reports for this lane belong under
+`reports/gemma-4-31b-it-text-q4k-ehf16-af16/` so they cannot be confused with
+the af32 or Qwen 3.6 evidence namespaces.
+
 ## Claim Boundary
 
-This branch makes the execution plan compile and route to f16 kernels under an
-all-f16 session contract, with the probe profile capped to the passing decode
-batch geometry.
-It does not by itself publish a catalog claim or replace the existing af32 model
-identity. Promotion requires a parity receipt captured through the profile.
+This branch makes the Doppler/WebGPU execution plan compile and route to f16
+kernels under an all-f16 session contract, with the probe profile capped to the
+passing decode batch geometry. The f16 manifest variant shares the af32 weight
+pack through `weightsRef`, but it owns a distinct `manifestVariantId` and
+evidence namespace.
+
+Doe/Cerebras stays pinned to
+`gemma-4-31b-it-text-q4k-ehf16-af32`. A Doppler bundle with
+`activationDtype=f16` must continue to fail closed in Doe until f16 CSL lowering
+is implemented.
 
 ## Probe Command
 
 ```bash
 node src/cli/doppler-cli.js debug \
-  --config '{"request":{"workload":"inference","modelId":"gemma-4-31b-it-text-q4k-ehf16-af32"},"run":{"surface":"browser","browser":{"channel":"chrome","headless":true,"console":true}}}' \
+  --config '{"request":{"workload":"inference","modelId":"gemma-4-31b-it-text-q4k-ehf16-af16"},"run":{"surface":"browser","browser":{"channel":"chrome","headless":true,"console":true}}}' \
   --runtime-profile profiles/gemma4-31b-f16-activations-probe \
   --json
 ```

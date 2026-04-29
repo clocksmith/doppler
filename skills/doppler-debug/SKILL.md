@@ -124,7 +124,7 @@ npm run verify:model -- --config '{"request":{"workload":"inference","modelId":"
 npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"diagnostics/debug-logits"},"run":{"surface":"browser","browser":{"channel":"chrome","console":true}}}' --json
 
 # Experimental Gemma 4 31B all-f16 lane; use only for transcript/parity proof
-npm run debug -- --config '{"request":{"workload":"inference","modelId":"gemma-4-31b-it-text-q4k-ehf16-af32"},"run":{"surface":"browser","browser":{"channel":"chrome","headless":true,"console":true}}}' --runtime-profile profiles/gemma4-31b-f16-activations-probe --json
+npm run debug -- --config '{"request":{"workload":"inference","modelId":"gemma-4-31b-it-text-q4k-ehf16-af16"},"run":{"surface":"browser","browser":{"channel":"chrome","headless":true,"console":true}}}' --runtime-profile profiles/gemma4-31b-f16-activations-probe --json
 ```
 
 ## Runtime Overrides (Config-First)

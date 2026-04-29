@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import fsSync from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
@@ -152,7 +153,10 @@ function resolveArtifactRootFromWeightsRef(weightsRef, manifestDir, repoRoot) {
     return artifactRoot;
   }
   const fromRepo = path.resolve(repoRoot, artifactRoot);
-  return fromRepo;
+  if (fsSync.existsSync(fromRepo)) {
+    return fromRepo;
+  }
+  return path.resolve(manifestDir, artifactRoot);
 }
 
 async function inspectShardSet(manifestDir, shards) {

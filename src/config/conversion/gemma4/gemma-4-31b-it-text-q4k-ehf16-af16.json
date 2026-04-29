@@ -1,7 +1,7 @@
 {
   "output": {
     "baseDir": "models/local",
-    "modelBaseId": "gemma-4-31b-it-text-q4k-ehf16-af32",
+    "modelBaseId": "gemma-4-31b-it-text-q4k-ehf16-af16",
     "textOnly": true,
     "fast": false
   },
@@ -12,7 +12,7 @@
     "vision": "f16",
     "projector": "f16",
     "audio": "f16",
-    "computePrecision": "f32",
+    "computePrecision": "f16",
     "q4kLayout": "row"
   },
   "manifest": {
@@ -62,8 +62,14 @@
       "sourceRepo": "google/gemma-4-31B-it",
       "sourceRevision": "439edf5652646a0d1bd8b46bfdc1d3645761a445",
       "weightPackId": "gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1",
-      "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af32-mv-q4-fused-v1",
-      "artifactCompleteness": "complete",
+      "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af16-mv-f16-activations-v1",
+      "artifactCompleteness": "weights-ref",
+      "shardSetHash": "sha256:54933058e14fa0be4480912e641b897730db3e8ee7e871bdb2a92fd404ade146"
+    },
+    "weightsRef": {
+      "weightPackId": "gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1",
+      "artifactRoot": "../gemma-4-31b-it-text-q4k-ehf16-af32",
+      "manifestDigest": "sha256:1fb5a24ee8c7a62e2a014948a0aad4e9b7b713eb13e55dd5c1f278846c380f06",
       "shardSetHash": "sha256:54933058e14fa0be4480912e641b897730db3e8ee7e871bdb2a92fd404ade146"
     }
   },
@@ -196,10 +202,10 @@
   "session": {
     "compute": {
       "defaults": {
-        "activationDtype": "f32",
-        "mathDtype": "f32",
-        "accumDtype": "f32",
-        "outputDtype": "f32"
+        "activationDtype": "f16",
+        "mathDtype": "f16",
+        "accumDtype": "f16",
+        "outputDtype": "f16"
       }
     },
     "kvcache": {
@@ -211,9 +217,9 @@
       }
     },
     "decodeLoop": {
-      "batchSize": 8,
+      "batchSize": 3,
       "stopCheckMode": "batch",
-      "readbackInterval": 8,
+      "readbackInterval": 1,
       "readbackMode": "overlapped",
       "ringTokens": 2,
       "ringStop": 1,
@@ -226,7 +232,7 @@
         "mode": "lru",
         "maxRows": 512,
         "maxBytes": 268435456,
-        "decodedDtype": "f32"
+        "decodedDtype": "f16"
       },
       "prefetch": {
         "mode": "next_token",
@@ -240,7 +246,7 @@
         "mode": "prepared_tokens",
         "maxTokens": 4096,
         "maxBytes": 268435456,
-        "outputDtype": "f32"
+        "outputDtype": "f16"
       }
     },
     "prefillChunkSubmitMode": "sync",
@@ -249,9 +255,7 @@
     "retainQ4KMaterialization": false
   },
   "largeWeights": {
-    "gpuResidentOverrides": [
-      "model.language_model.embed_tokens.weight"
-    ]
+    "gpuResidentOverrides": []
   },
   "execution": {
     "kernels": {
