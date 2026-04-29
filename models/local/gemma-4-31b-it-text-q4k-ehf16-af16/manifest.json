@@ -6,9 +6,9 @@
   "quantizationInfo": {
     "weights": "q4k",
     "embeddings": "f16",
-    "compute": "f32",
+    "compute": "f16",
     "layout": "row",
-    "variantTag": "q4k-ehf16-af32"
+    "variantTag": "q4k-ehf16-af16"
   },
   "artifactIdentity": {
     "artifactCompleteness": "weights-ref",
