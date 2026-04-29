@@ -63,17 +63,23 @@ function makeManifest(compute) {
   );
 }
 
-// f16 manifest, f32 kvDtype → throws (kv is part of the lane)
+// KV cache dtype is orthogonal to the compute lane — f32 compute paired with
+// f16 KV is the conventional Gemma-family layout, and the inverse must also
+// pass. The gate must stay silent for any kvDtype value once activation/math/
+// accum agree with the manifest's compute lane.
 {
-  assert.throws(
-    () => assertManifestComputeLaneBinding({
-      manifest: makeManifest('f16'),
-      runtimeConfig: makeRuntimeConfig({
-        activationDtype: 'f16', mathDtype: 'f16', accumDtype: 'f16', kvDtype: 'f32',
-      }),
+  assertManifestComputeLaneBinding({
+    manifest: makeManifest('f16'),
+    runtimeConfig: makeRuntimeConfig({
+      activationDtype: 'f16', mathDtype: 'f16', accumDtype: 'f16', kvDtype: 'f32',
     }),
-    /session\.kvcache\.kvDtype=f32/,
-  );
+  });
+  assertManifestComputeLaneBinding({
+    manifest: makeManifest('f32'),
+    runtimeConfig: makeRuntimeConfig({
+      activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', kvDtype: 'f16',
+    }),
+  });
 }
 
 // Manifest without quantizationInfo.compute → silent (legacy/vision-only manifests)

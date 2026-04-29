@@ -565,6 +565,11 @@ function describeExplicitRuntimeDtypeMismatch(contract, explicitRuntime) {
  * the resolved session must dispatch that same lane. If they disagree, the
  * operator picked the wrong manifest variant or the wrong runtime profile.
  *
+ * The compute lane covers activation/math/accum dtypes only. KV cache dtype
+ * is an orthogonal axis — Gemma-family layouts pair f32 compute with f16 KV
+ * for memory savings, and that combination is supported by design — so kv
+ * dtype is intentionally excluded from the comparison.
+ *
  * Throws on mismatch. Returns silently when the manifest does not declare
  * a compute lane (legacy / vision-only manifests) or when no resolved values
  * are available to compare against.
@@ -584,7 +589,6 @@ export function assertManifestComputeLaneBinding({ manifest, runtimeConfig }) {
     ['session.compute.defaults.activationDtype', computeDefaults.activationDtype],
     ['session.compute.defaults.mathDtype', computeDefaults.mathDtype],
     ['session.compute.defaults.accumDtype', computeDefaults.accumDtype],
-    ['session.kvcache.kvDtype', session.kvcache?.kvDtype],
   ];
 
   const mismatches = [];
