@@ -1629,7 +1629,7 @@ async function buildArtifactIdentity(options) {
     ?? (options.conversionConfig
       ? await hashArtifactValue(hashString, options.conversionConfig, 'conversionConfig')
       : null);
-  const shardSetHash = explicit.weightPackHash
+  const shardSetHash = explicit.shardSetHash ?? explicit.weightPackHash
     ?? await hashArtifactValue(
       hashString,
       {
@@ -1691,6 +1691,7 @@ async function buildArtifactIdentity(options) {
     conversionConfigDigest: conversionConfigDigest ?? undefined,
     weightPackId,
     weightPackHash,
+    shardSetHash,
     manifestVariantId,
     modalitySet,
     materializationProfile,

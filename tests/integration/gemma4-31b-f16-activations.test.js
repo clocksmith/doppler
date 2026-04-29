@@ -4,9 +4,19 @@ import fs from 'node:fs';
 const { compileExecutionV1 } = await import('../../src/inference/pipelines/text/execution-v1.js');
 const { getLayerSteps } = await import('../../src/config/kernel-path-loader.js');
 
+const AF32_MODEL_ID = 'gemma-4-31b-it-text-q4k-ehf16-af32';
+const AF16_MODEL_ID = 'gemma-4-31b-it-text-q4k-ehf16-af16';
+
+const af32ConversionConfig = JSON.parse(
+  fs.readFileSync(
+    new URL(`../../src/config/conversion/gemma4/${AF32_MODEL_ID}.json`, import.meta.url),
+    'utf8'
+  )
+);
+
 const conversionConfig = JSON.parse(
   fs.readFileSync(
-    new URL('../../src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af32.json', import.meta.url),
+    new URL(`../../src/config/conversion/gemma4/${AF16_MODEL_ID}.json`, import.meta.url),
     'utf8'
   )
 );
@@ -16,6 +26,16 @@ const profile = JSON.parse(
     new URL('../../src/config/runtime/profiles/gemma4-31b-f16-activations-probe.json', import.meta.url),
     'utf8'
   )
+);
+
+assert.equal(conversionConfig.output.modelBaseId, AF16_MODEL_ID);
+assert.equal(
+  conversionConfig.manifest?.artifactIdentity?.weightPackId,
+  af32ConversionConfig.manifest?.artifactIdentity?.weightPackId
+);
+assert.notEqual(
+  conversionConfig.manifest?.artifactIdentity?.manifestVariantId,
+  af32ConversionConfig.manifest?.artifactIdentity?.manifestVariantId
 );
 
 const manifestInference = {

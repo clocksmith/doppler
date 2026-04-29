@@ -212,6 +212,7 @@ function validateArtifactIdentityContract(manifest, errors) {
         'conversionConfigDigest',
         'weightPackId',
         'weightPackHash',
+        'shardSetHash',
         'manifestVariantId',
         'materializationProfile',
       ]) {

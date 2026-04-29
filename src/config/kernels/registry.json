@@ -144,6 +144,7 @@
             "inlineConfigs": [
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
@@ -316,6 +317,7 @@
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
@@ -432,6 +434,7 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
@@ -620,6 +623,7 @@
             "status": "pinned",
             "inlineConfigs": [
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
@@ -681,6 +685,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
@@ -918,6 +923,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
@@ -2081,6 +2087,7 @@
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
@@ -2111,6 +2118,7 @@
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
@@ -2144,6 +2152,7 @@
             "inlineConfigs": [
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
@@ -2178,6 +2187,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
@@ -2278,6 +2288,7 @@
             "inlineConfigs": [
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
@@ -2312,6 +2323,7 @@
             "inlineConfigs": [
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
@@ -2379,6 +2391,7 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
@@ -3349,6 +3362,7 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
@@ -4070,6 +4084,7 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
@@ -4387,6 +4402,7 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
@@ -5334,6 +5350,7 @@
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
@@ -5575,6 +5592,7 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
@@ -7034,6 +7052,7 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",

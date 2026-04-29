@@ -180,6 +180,7 @@ export interface ManifestArtifactIdentitySchema {
   conversionConfigDigest?: string;
   weightPackId?: string;
   weightPackHash?: string;
+  shardSetHash?: string;
   manifestVariantId?: string;
   modalitySet?: string[];
   materializationProfile?: string;
