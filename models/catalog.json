@@ -375,7 +375,7 @@
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/gemma-4-31B-it",
       "weightPackId": "gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1",
-      "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af32-mv-exec-v1",
+      "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af32-mv-q4-fused-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
       "weightsRefAllowed": false

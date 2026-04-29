@@ -63,6 +63,11 @@ assert.equal(af16Config.output?.modelBaseId, AF16_MODEL_ID);
 assert.equal(profile.model, AF16_MODEL_ID);
 
 assert.equal(
+  af32Entry.manifestVariantId,
+  af32Manifest.artifactIdentity?.manifestVariantId,
+  'af32 catalog entry must point at the checked-in af32 manifest variant id'
+);
+assert.equal(
   af16Manifest.artifactIdentity?.weightPackId,
   af32Manifest.artifactIdentity?.weightPackId,
   'af16 manifest variant must share the af32 weight pack id'
@@ -93,6 +98,8 @@ assert.equal(af16Entry.lifecycle?.availability?.hf, false);
 assert.equal(af16Entry.lifecycle?.status?.runtime, 'experimental');
 assert.notEqual(af16Entry.lifecycle?.status?.tested, 'verified');
 
+assert.equal(af16Manifest.quantizationInfo?.compute, 'f16');
+assert.equal(af16Manifest.quantizationInfo?.variantTag, 'q4k-ehf16-af16');
 assert.deepEqual(af16Manifest.weightsRef, af16Config.manifest?.weightsRef);
 assert.equal(af16Manifest.weightsRef?.artifactRoot, `../${AF32_MODEL_ID}`);
 assert.equal(af16Manifest.weightsRef?.manifestDigest, hashText(af32ManifestText));
