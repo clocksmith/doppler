@@ -85,6 +85,45 @@ npm run registry:publish:hf -- --model-id translategemma-4b-it-q4k-ehf16-af32 --
 Dry-run validates the local manifest and all manifest-declared artifact files before it prints the upload plan.
 Always pass `--local-dir` and `--shard-dir` explicitly if the manifest or shard source differs from the default external volume.
 
+## Lane variants and weights-ref siblings
+
+A single Q4K weight pack can back multiple manifest variants — for example,
+the f32-activation lane and a sibling f16-activation lane that reuses the
+same shards. Two shapes are valid:
+
+| Shape | `artifactCompleteness` | `weightsRefAllowed` | Manifest carries `weightsRef` | Publish flag |
+| --- | --- | --- | --- | --- |
+| Primary lane | `complete` | `false` | no | (default) |
+| Manifest-only sibling | `weights-ref` | `true` | yes | `--manifest-only` |
+
+Rules enforced across the catalog, the HF registry validator, and the
+publish tool:
+
+- Primary lanes publish shards alongside the manifest. Self-contained — a
+  fresh client can fetch one URL and run.
+- Manifest-only siblings publish `manifest.json` (and `origin.json` if
+  present) only. Their `weightsRef` block points at a primary lane that
+  must already be published in the same payload (matched by
+  `weightPackId`). Without the primary, the sibling is rejected at
+  validation time and at publish time.
+- The shapes are exclusive: `artifactCompleteness=complete` requires
+  `weightsRefAllowed=false`, and `artifactCompleteness=weights-ref`
+  requires `weightsRefAllowed=true`.
+
+Publish a manifest-only sibling explicitly with `--manifest-only`:
+
+```bash
+npm run registry:publish:hf -- \
+  --model-id gemma-4-31b-it-text-q4k-ehf16-af16 \
+  --manifest-only
+```
+
+The demo surface follows the same rule: a weights-ref sibling is shown
+only when its primary lane is itself demo-eligible in the same catalog
+view (matched by `weightPackId`). Removing the manifest-only sibling
+from OPFS does not remove the shared weights — the demo copy reflects
+this.
+
 ## Repair all approved hosted entries
 
 If `Clocksmith/rdrr` drifted behind the local catalog or manifest contract, first validate the exact repair set without uploading:
