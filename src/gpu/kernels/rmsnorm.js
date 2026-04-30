@@ -12,6 +12,17 @@ import { unifiedKernelWrapper } from './utils.js';
 // Conservative fallback dtype for norm weight inference when metadata is unavailable.
 const DEFAULT_DTYPE = 'f32';
 
+// Must equal MAX_CACHE_SIZE in rmsnorm.wgsl. The "residual" variant routes to
+// main_cached, which caches the input in shared_cache[MAX_CACHE_SIZE]. When
+// hiddenSize exceeds this limit, OOB cache writes silently drop indices and the
+// second pass reads zero for those dims, producing wrong output (only residual
+// preserved). Models with hiddenSize > limit must skip the cached variant.
+export const RMSNORM_CACHE_LIMIT = 4608;
+
+export function residualVariantBypassesCache(residual, hiddenSize) {
+  return !!residual && hiddenSize !== null && hiddenSize !== undefined && hiddenSize > RMSNORM_CACHE_LIMIT;
+}
+
 function inferHiddenSize(input, hiddenSize) {
   if (hiddenSize != null) return hiddenSize;
   const shape = input?.shape;
@@ -101,20 +112,12 @@ export function selectRMSNormKernel(options = {}, isF16 = false) {
   const caps = getKernelCapabilities();
   const hasSubgroups = caps?.hasSubgroups ?? false;
   const isSmall = hiddenSize !== null && hiddenSize <= smallThreshold;
-  // The "residual" variant routes to main_cached, which caches the input in
-  // shared_cache[MAX_CACHE_SIZE=4608]. When hiddenSize > 4608, the cache write
-  // silently drops indices ≥ 4608 (WGSL OOB write is a no-op) and the second
-  // pass reads zero for those dims, producing wrong output (only residual is
-  // written). Force the default (main) entry point — which loads input twice
-  // and uses no shared cache — for these wide hidden sizes.
-  const RMSNORM_CACHE_LIMIT = 4608;
-  const residualBypassesCache = !!residual && hiddenSize !== null && hiddenSize > RMSNORM_CACHE_LIMIT;
   return selectRuleValue(
     'rmsnorm',
     'variant',
     {
       isF16,
-      residual: !!residual && !residualBypassesCache,
+      residual: !!residual && !residualVariantBypassesCache(residual, hiddenSize),
       hasSubgroups,
       isSmall,
     }
