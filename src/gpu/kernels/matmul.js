@@ -37,6 +37,7 @@ import {
   createMatmulBindGroupLayout,
   getMatmulPipeline,
 } from './matmul-dispatch.js';
+import { __dbgRecord } from './utils.js';
 
 export { isFusedQ4KDisabled, selectMatmulKernel };
 export { createMatmulBindGroupLayout };
@@ -392,9 +393,12 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
     );
   }
 
+  const __dbg = process.env.DOPPLER_DBG_RECORD === '1';
+  const __t0 = __dbg ? performance.now() : 0;
   const config = getMatmulConfig(variant, constants);
   const kernel = new MatmulKernel(device);
   const pipeline = await getMatmulPipeline(variant, constants);
+  const __tPipeline = __dbg ? performance.now() : 0;
 
   const { output: C, outputSize, cBindingSize, actualOutputDtype } = resolveMatmulOutput(
     variant,
@@ -460,16 +464,22 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
       normWeightBuffer
     );
 
+    const __tBgStart = __dbg ? performance.now() : 0;
     const bindGroup = device.createBindGroup({
       label: 'matmul_bind_group',
       layout: pipeline.getBindGroupLayout(0),
       entries,
     });
+    const __tBg = __dbg ? performance.now() : 0;
 
     if (isRecord) {
       kernel.record(recorder, pipeline, bindGroup, dispatchPlan.workgroups, buildProfileLabel(options));
     } else {
       kernel.dispatch(pipeline, bindGroup, dispatchPlan.workgroups);
+    }
+    if (__dbg) {
+      const __tEnd = performance.now();
+      __dbgRecord('matmul', variant, __tPipeline - __t0, __tBgStart - __tPipeline, __tBg - __tBgStart, __tEnd - __tBg);
     }
     completed = true;
     return createTensor(C, actualOutputDtype, [M, N], 'matmul_output');

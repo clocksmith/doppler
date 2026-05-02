@@ -291,11 +291,20 @@
           "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
         },
         "ffn_widetile": {
-          "kernel": "fused_matmul_q4_widetile_f16.wgsl",
+          "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
           "entry": "main",
-          "digest": "sha256:1bb5ffc03e5d5422e5b15c34ee3cd4833e86a1b7ba1ac737828eb936705c1b81",
+          "digest": "sha256:7e152c0f0350257d9336d89b81169b567417e8890d8bceed3c9030dc66f25ae9",
           "precision": {
-            "inputDtype": "f32",
+            "inputDtype": "f16",
+            "outputDtype": "f16"
+          }
+        },
+        "ffn_gemv": {
+          "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+          "entry": "main_multicol",
+          "digest": "sha256:911dcd0f1ec5bbda5468fa3af70f6e7711026fad44ad0e03cfc946fbf26017fc",
+          "precision": {
+            "inputDtype": "f16",
             "outputDtype": "f16"
           }
         },
