@@ -10,12 +10,12 @@
     },
     {
       "match": {
-        "modelId": { "startsWith": "PROBE-DISABLED-gemma-4-e2b-it-q4k-" },
+        "modelId": { "startsWith": "gemma-4-e2b-it-q4k-" },
         "platformVendor": "apple",
         "retainQ4KMaterialization": true
       },
       "transforms": ["disableRetainQ4KMaterialization"],
-      "reason": "Gemma 4 E2B retained Q4K materialization produces NaN in L0.ffn_down on Apple Metal"
+      "reason": "Fused-q4k FFN kernels under retain=mixed corrupt subsequent-layer attention compute on Apple Metal (NaN at L1.attn_core_out and beyond). Standalone-q4k projection kernels are clean; only the fused gate+up+down dispatch is the perturbation source."
     },
     {
       "match": {
