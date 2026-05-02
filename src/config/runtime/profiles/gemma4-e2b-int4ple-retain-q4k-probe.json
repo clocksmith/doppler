@@ -1,0 +1,47 @@
+{
+  "id": "profiles/gemma4-e2b-int4ple-retain-q4k-probe",
+  "name": "gemma4-e2b-int4ple-retain-q4k-probe",
+  "description": "Investigation probe that opts gemma-4-e2b INT4-PLE into retainQ4KMaterialization=true plus f16 activations so the fused-q4k+f16 kernel pool (q4k_f16a fused FFN, q4_fused_widetile_f16a matmul) can be exercised end-to-end. Existing capability-transforms.rules.json rule force-disables retain on Apple Metal because of the documented L0.ffn_down NaN; AMD/RDNA3 passes through. Use this profile to capture the AMD transcript before any kernel is promoted into a release-eligible runtime profile.",
+  "intent": "investigate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-05-01T00:00:00Z",
+  "extends": "profiles/default",
+  "model": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+  "runtime": {
+    "shared": {
+      "tooling": {
+        "intent": "investigate"
+      }
+    },
+    "inference": {
+      "compute": {
+        "activationDtype": "f16"
+      },
+      "session": {
+        "retainQ4KMaterialization": true
+      },
+      "kernelPathPolicy": {
+        "mode": "capability-aware",
+        "sourceScope": [
+          "manifest"
+        ],
+        "allowSources": [
+          "manifest"
+        ],
+        "onIncompatible": "remap"
+      },
+      "generation": {
+        "maxTokens": 16
+      },
+      "sampling": {
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "repetitionPenalty": 1,
+        "greedyThreshold": 0
+      },
+      "prompt": "The quick brown fox jumps over the lazy dog. The capital of France is Paris, which is also known as the City of Lights. Tokyo is the capital of Japan, famous for its cherry blossoms and advanced technology. In classical mechanics, Newton's second law states that force equals mass times acceleration. Photosynthesis converts sunlight into chemical energy stored in glucose molecules."
+    }
+  }
+}

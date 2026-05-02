@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+  "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
   "modelType": "gemma4",
   "quantization": "Q4_K_M",
   "quantizationInfo": {
@@ -9,10 +9,10 @@
     "vision": "f16",
     "audio": "f16",
     "projector": "f16",
-    "compute": "f32",
+    "compute": "f16",
     "perLayerEmbeddings": "int4_per_row",
     "layout": "row",
-    "variantTag": "q4k-ehf16-af32-vf16-audiof16-pf16"
+    "variantTag": "q4k-ehf16-af16-vf16-audiof16-pf16-int4ple"
   },
   "architecture": {
     "numLayers": 35,
@@ -103,10 +103,10 @@
     "session": {
       "compute": {
         "defaults": {
-          "activationDtype": "f32",
-          "mathDtype": "f32",
-          "accumDtype": "f32",
-          "outputDtype": "f32"
+          "activationDtype": "f16",
+          "mathDtype": "f16",
+          "accumDtype": "f16",
+          "outputDtype": "f16"
         }
       },
       "kvcache": {
@@ -151,9 +151,9 @@
         }
       },
       "prefillChunkSubmitMode": "async",
-      "useFlashPrefillAttention": true,
+      "useFlashPrefillAttention": false,
       "useWideTileQ4KPrefill": true,
-      "retainQ4KMaterialization": false
+      "retainQ4KMaterialization": true
     },
     "largeWeights": {
       "gpuResidentOverrides": [
@@ -289,6 +289,24 @@
           "kernel": "sample.wgsl",
           "entry": "sample_single_pass",
           "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
+        },
+        "q4_widetile": {
+          "kernel": "fused_matmul_q4_widetile.wgsl",
+          "entry": "main",
+          "digest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62",
+          "precision": {
+            "inputDtype": "f32",
+            "outputDtype": "f32"
+          }
+        },
+        "q4_decode_gemv": {
+          "kernel": "fused_matmul_q4.wgsl",
+          "entry": "main_gemv",
+          "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
+          "precision": {
+            "inputDtype": "f32",
+            "outputDtype": "f32"
+          }
         }
       },
       "preLayer": [
@@ -305,17 +323,17 @@
         ],
         [
           "q_proj",
-          "gemv",
+          "q4_decode_gemv",
           "layer.{L}.self_attn.q_proj"
         ],
         [
           "k_proj",
-          "gemv",
+          "q4_decode_gemv",
           "layer.{L}.self_attn.k_proj"
         ],
         [
           "v_proj",
-          "gemv",
+          "q4_decode_gemv",
           "layer.{L}.self_attn.v_proj"
         ],
         [
@@ -332,7 +350,7 @@
         ],
         [
           "o_proj",
-          "gemv",
+          "q4_decode_gemv",
           "layer.{L}.self_attn.o_proj"
         ],
         [
@@ -391,17 +409,17 @@
             ],
             [
               "q_proj",
-              "tiled",
+              "q4_widetile",
               "layer.{L}.self_attn.q_proj"
             ],
             [
               "k_proj",
-              "tiled",
+              "q4_widetile",
               "layer.{L}.self_attn.k_proj"
             ],
             [
               "v_proj",
-              "tiled",
+              "q4_widetile",
               "layer.{L}.self_attn.v_proj"
             ],
             [
@@ -418,7 +436,7 @@
             ],
             [
               "o_proj",
-              "tiled",
+              "q4_widetile",
               "layer.{L}.self_attn.o_proj"
             ],
             [
@@ -456,17 +474,17 @@
             ],
             [
               "q_proj",
-              "tiled",
+              "q4_widetile",
               "layer.{L}.self_attn.q_proj"
             ],
             [
               "k_proj",
-              "tiled",
+              "q4_widetile",
               "layer.{L}.self_attn.k_proj"
             ],
             [
               "v_proj",
-              "tiled",
+              "q4_widetile",
               "layer.{L}.self_attn.v_proj"
             ],
             [
@@ -483,7 +501,7 @@
             ],
             [
               "o_proj",
-              "tiled",
+              "q4_widetile",
               "layer.{L}.self_attn.o_proj"
             ],
             [
@@ -527,7 +545,7 @@
       ],
       "policies": {
         "unsupportedPrecision": "error",
-        "dtypeTransition": "require_cast_step",
+        "dtypeTransition": "allow_implicit_widening",
         "unresolvedKernel": "error"
       }
     }
@@ -25279,10 +25297,15 @@
       "use_clipped_linears": true
     }
   },
-  "conversion": null,
+  "conversion": {
+    "conversionConfigPath": "src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json",
+    "conversionConfigDigest": "sha256:4e6ebd246750c77e715d33df51d96d2ee663ad1e3f27bccf15e7de9afeeb2766",
+    "sourceManifestId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+    "siblingMode": "weights-ref"
+  },
   "metadata": {
     "source": "convert-core",
-    "convertedAt": "2026-04-16T22:35:24.693Z",
+    "convertedAt": "2026-05-01T23:49:00Z",
     "hasTokenizer": true,
     "integrityRefresh": {
       "at": "2026-04-23T22:49:04.638Z",
@@ -25297,9 +25320,10 @@
   "artifactIdentity": {
     "sourceCheckpointId": "google/gemma-4-E2B-it",
     "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
-    "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-mv-exec-v1",
-    "artifactCompleteness": "complete",
-    "shardSetHash": "sha256:7575f4e89b3938a3ca4f8d7fc50fb46d4cfbd1d4dcc3b6ed62b6fb53424678ea"
+    "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple-mv-f16-activations-v1",
+    "artifactCompleteness": "weights-ref",
+    "conversionConfigPath": "src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json",
+    "conversionConfigDigest": "sha256:4e6ebd246750c77e715d33df51d96d2ee663ad1e3f27bccf15e7de9afeeb2766"
   },
   "integrityExtensions": {
     "contractVersion": 1,
@@ -27319,5 +27343,11 @@
         "model.vision_tower.patch_embedder.position_embedding_table": "sha256:13f15ed80a7d295483a57221be8329ad64d3de3226ab0a23cdb2073991d14a45"
       }
     }
+  },
+  "weightsRef": {
+    "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
+    "artifactRoot": "../gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+    "manifestDigest": "sha256:af909166afe83c8a63d00b27b0e33cc9831d846c2a5efe81921c2df3c22ce6cf",
+    "shardSetHash": "sha256:7575f4e89b3938a3ca4f8d7fc50fb46d4cfbd1d4dcc3b6ed62b6fb53424678ea"
   }
 }

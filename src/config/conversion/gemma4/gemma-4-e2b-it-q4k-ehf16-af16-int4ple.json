@@ -1,0 +1,586 @@
+{
+  "output": {
+    "baseDir": "models/local",
+    "modelBaseId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+    "textOnly": false
+  },
+  "quantization": {
+    "weights": "q4k",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "vision": "f16",
+    "projector": "f16",
+    "audio": "f16",
+    "computePrecision": "f16",
+    "q4kLayout": "row",
+    "perLayerEmbeddings": "int4_per_row"
+  },
+  "manifest": {
+    "visionConfig": {
+      "vision_architecture": "gemma4",
+      "hidden_size": 768,
+      "num_attention_heads": 12,
+      "num_hidden_layers": 16,
+      "num_key_value_heads": 12,
+      "head_dim": 64,
+      "intermediate_size": 3072,
+      "patch_size": 16,
+      "pooling_kernel_size": 3,
+      "position_embedding_size": 10240,
+      "default_output_length": 280,
+      "rms_norm_eps": 1e-06,
+      "hidden_activation": "gelu_pytorch_tanh",
+      "use_clipped_linears": true,
+      "standardize": false,
+      "rope_parameters": {
+        "rope_theta": 100
+      }
+    },
+    "audioConfig": {
+      "audio_architecture": "gemma4",
+      "num_hidden_layers": 12,
+      "hidden_size": 1024,
+      "num_attention_heads": 8,
+      "conv_kernel_size": 5,
+      "subsampling_conv_channels": [
+        128,
+        32
+      ],
+      "output_proj_dims": 1536,
+      "attention_context_left": 13,
+      "attention_context_right": 0,
+      "attention_chunk_size": 12,
+      "attention_logit_cap": 50,
+      "attention_invalid_logits_value": -1000000000,
+      "residual_weight": 0.5,
+      "rms_norm_eps": 1e-06,
+      "hidden_act": "silu",
+      "use_clipped_linears": true
+    },
+    "artifactIdentity": {
+      "sourceCheckpointId": "google/gemma-4-E2B-it",
+      "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
+      "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple-mv-f16-activations-v1",
+      "artifactCompleteness": "weights-ref"
+    },
+    "weightsRef": {
+      "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
+      "artifactRoot": "../gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+      "manifestDigest": "sha256:52e913f2176e8e4ce962e8411aec8ecd38ca0b685c3ebc0b8b507230ec8278b1"
+    }
+  },
+  "inference": {
+    "attention": {
+      "queryPreAttnScalar": 1,
+      "attnLogitSoftcapping": null,
+      "slidingWindow": 512,
+      "queryKeyNorm": true,
+      "valueNorm": true,
+      "causal": true,
+      "attentionBias": false,
+      "attentionOutputGate": false
+    },
+    "normalization": {
+      "rmsNormEps": 1e-06,
+      "rmsNormWeightOffset": false,
+      "postAttentionNorm": true,
+      "preFeedforwardNorm": true,
+      "postFeedforwardNorm": true
+    },
+    "ffn": {
+      "activation": "gelu",
+      "gatedActivation": true,
+      "useDoubleWideMlp": true,
+      "swigluLimit": null
+    },
+    "rope": {
+      "ropeTheta": 1000000,
+      "ropeLocalTheta": 10000,
+      "ropeInterleaved": false,
+      "mropeInterleaved": false,
+      "mropeSection": null,
+      "partialRotaryFactor": 0.25,
+      "ropeLocalPartialRotaryFactor": null,
+      "ropeFrequencyBaseDim": 512,
+      "ropeLocalFrequencyBaseDim": null,
+      "ropeScalingType": null,
+      "ropeScalingFactor": 1,
+      "ropeLocalScalingType": null,
+      "ropeLocalScalingFactor": 1,
+      "yarnBetaFast": null,
+      "yarnBetaSlow": null,
+      "yarnOriginalMaxPos": null,
+      "ropeLocalYarnBetaFast": null,
+      "ropeLocalYarnBetaSlow": null,
+      "ropeLocalYarnOriginalMaxPos": null
+    },
+    "output": {
+      "finalLogitSoftcapping": 30,
+      "tieWordEmbeddings": true,
+      "scaleEmbeddings": true,
+      "embeddingTranspose": false,
+      "embeddingVocabSize": null,
+      "embeddingPostprocessor": null
+    },
+    "layerPattern": {
+      "type": "every_n",
+      "globalPattern": null,
+      "period": 5,
+      "offset": 4,
+      "layerTypes": null
+    },
+    "chatTemplate": {
+      "type": "gemma4",
+      "enabled": true
+    }
+  },
+  "session": {
+    "compute": {
+      "defaults": {
+        "activationDtype": "f16",
+        "mathDtype": "f16",
+        "accumDtype": "f16",
+        "outputDtype": "f16"
+      }
+    },
+    "kvcache": {
+      "kvDtype": "f16",
+      "layout": "contiguous",
+      "pageSize": 256,
+      "tiering": {
+        "mode": "off"
+      }
+    },
+    "decodeLoop": {
+      "batchSize": 8,
+      "stopCheckMode": "batch",
+      "readbackInterval": 8,
+      "readbackMode": "overlapped",
+      "ringTokens": 2,
+      "ringStop": 1,
+      "ringStaging": 2,
+      "disableCommandBatching": false
+    },
+    "perLayerInputs": {
+      "materialization": "range_backed",
+      "rowCache": {
+        "mode": "lru",
+        "maxRows": 512,
+        "maxBytes": 268435456,
+        "decodedDtype": "f32"
+      },
+      "prefetch": {
+        "mode": "next_token",
+        "rowsAhead": 1
+      },
+      "gpuUpload": {
+        "mode": "per_step_slices",
+        "stagingRows": 2
+      },
+      "hotCache": {
+        "mode": "prepared_tokens",
+        "maxTokens": 4096,
+        "maxBytes": 268435456,
+        "outputDtype": "f32"
+      }
+    },
+    "prefillChunkSubmitMode": "async",
+    "useFlashPrefillAttention": true,
+    "useWideTileQ4KPrefill": true,
+    "retainQ4KMaterialization": true
+  },
+  "largeWeights": {
+    "gpuResidentOverrides": [
+      "model.language_model.embed_tokens.weight"
+    ]
+  },
+  "execution": {
+    "kernels": {
+      "embed": {
+        "kernel": "gather.wgsl",
+        "entry": "main",
+        "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6"
+      },
+      "rmsnorm": {
+        "kernel": "rmsnorm.wgsl",
+        "entry": "main",
+        "digest": "sha256:c723c0300cc8f93396d79d1a274c0a90ccf1eb8ce82c0d778b8cd4659615fe45"
+      },
+      "final_norm_stable": {
+        "kernel": "rmsnorm.wgsl",
+        "entry": "main",
+        "digest": "sha256:c723c0300cc8f93396d79d1a274c0a90ccf1eb8ce82c0d778b8cd4659615fe45",
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        }
+      },
+      "gemv": {
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_vec4",
+        "digest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011"
+      },
+      "q4_decode_gemv": {
+        "kernel": "fused_matmul_q4.wgsl",
+        "entry": "main_gemv",
+        "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        }
+      },
+      "rope": {
+        "kernel": "rope.wgsl",
+        "entry": "main",
+        "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+      },
+      "attn_decode": {
+        "kernel": "attention_decode_online_f16kv.wgsl",
+        "entry": "main",
+        "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
+        "precision": {
+          "kvDtype": "f16"
+        }
+      },
+      "residual": {
+        "kernel": "residual.wgsl",
+        "entry": "main",
+        "digest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7"
+      },
+      "gelu": {
+        "kernel": "gelu.wgsl",
+        "entry": "main",
+        "digest": "sha256:a9007ea08aaff98f9be08f1e0490a6bcf252883eac5513de876ab9ce918865e6",
+        "constants": {
+          "HAS_GATE": true
+        }
+      },
+      "tiled": {
+        "kernel": "matmul_f16w_f32a.wgsl",
+        "entry": "main",
+        "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
+      },
+      "q4_widetile": {
+        "kernel": "fused_matmul_q4_widetile.wgsl",
+        "entry": "main",
+        "digest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62",
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        }
+      },
+      "q4_prefill_shared": {
+        "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+        "entry": "main",
+        "digest": "sha256:142817adcacb28750a92793996cd15c2d9fe13d03e0c2d0aadf3e674dc7a35d6"
+      },
+      "attn_stream": {
+        "kernel": "attention_streaming_f16kv.wgsl",
+        "entry": "main",
+        "digest": "sha256:c3ec920699a81ee6df04a64eb0ea2477bec168ebb809af29f2d4b0924a4bdf8f",
+        "precision": {
+          "kvDtype": "f16"
+        }
+      },
+      "attn_small": {
+        "kernel": "attention_small_f16kv.wgsl",
+        "entry": "main",
+        "digest": "sha256:ad3bb913c17167eb28fefc6abd24602ea0f148bc22a2b5f437eeffcc6f7fc668",
+        "precision": {
+          "kvDtype": "f16"
+        }
+      },
+      "attn_head256": {
+        "kernel": "attention_head256_f16kv.wgsl",
+        "entry": "main",
+        "digest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+        "precision": {
+          "kvDtype": "f16"
+        }
+      },
+      "attn_head512": {
+        "kernel": "attention_head512_f16kv.wgsl",
+        "entry": "main",
+        "digest": "sha256:fe8bc99230a5ee4c969ba1cf9eca289ad936d14f1f87c12a7ca95640cdd8d89e",
+        "precision": {
+          "kvDtype": "f16"
+        }
+      },
+      "lm_head_gemv": {
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_multicol",
+        "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
+        "constants": {
+          "MULTICOL_COLS_PER_WG": 64,
+          "MULTICOL_THREADS_PER_COL": 4
+        }
+      },
+      "lm_head_gemv_stable": {
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_multicol",
+        "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
+        "constants": {
+          "MULTICOL_COLS_PER_WG": 64,
+          "MULTICOL_THREADS_PER_COL": 4
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        }
+      },
+      "lm_head_prefill_stable": {
+        "kernel": "matmul_f16w_f32a.wgsl",
+        "entry": "main",
+        "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        }
+      },
+      "sample": {
+        "kernel": "sample.wgsl",
+        "entry": "sample_single_pass",
+        "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
+      }
+    },
+    "preLayer": [
+      [
+        "embed",
+        "embed",
+        "embed_tokens"
+      ]
+    ],
+    "decode": [
+      [
+        "input_norm",
+        "rmsnorm"
+      ],
+      [
+        "q_proj",
+        "q4_decode_gemv",
+        "layer.{L}.self_attn.q_proj"
+      ],
+      [
+        "k_proj",
+        "q4_decode_gemv",
+        "layer.{L}.self_attn.k_proj"
+      ],
+      [
+        "v_proj",
+        "q4_decode_gemv",
+        "layer.{L}.self_attn.v_proj"
+      ],
+      [
+        "rope_q",
+        "rope"
+      ],
+      [
+        "rope_k",
+        "rope"
+      ],
+      [
+        "attention",
+        "attn_decode"
+      ],
+      [
+        "o_proj",
+        "q4_decode_gemv",
+        "layer.{L}.self_attn.o_proj"
+      ],
+      [
+        "attn_residual",
+        "residual"
+      ],
+      [
+        "post_attn_norm",
+        "rmsnorm"
+      ],
+      [
+        "ffn",
+        "gelu"
+      ],
+      [
+        "ffn_residual",
+        "residual"
+      ]
+    ],
+    "prefill": [
+      {
+        "layers": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          8,
+          10,
+          11,
+          12,
+          13,
+          15,
+          16,
+          17,
+          18,
+          20,
+          21,
+          22,
+          23,
+          25,
+          26,
+          27,
+          28,
+          30,
+          31,
+          32,
+          33
+        ],
+        "steps": [
+          [
+            "input_norm",
+            "rmsnorm"
+          ],
+          [
+            "q_proj",
+            "q4_widetile",
+            "layer.{L}.self_attn.q_proj"
+          ],
+          [
+            "k_proj",
+            "q4_widetile",
+            "layer.{L}.self_attn.k_proj"
+          ],
+          [
+            "v_proj",
+            "q4_widetile",
+            "layer.{L}.self_attn.v_proj"
+          ],
+          [
+            "rope_q",
+            "rope"
+          ],
+          [
+            "rope_k",
+            "rope"
+          ],
+          [
+            "attention",
+            "attn_head256"
+          ],
+          [
+            "o_proj",
+            "q4_widetile",
+            "layer.{L}.self_attn.o_proj"
+          ],
+          [
+            "attn_residual",
+            "residual"
+          ],
+          [
+            "post_attn_norm",
+            "rmsnorm"
+          ],
+          [
+            "ffn",
+            "gelu"
+          ],
+          [
+            "ffn_residual",
+            "residual"
+          ]
+        ]
+      },
+      {
+        "layers": [
+          4,
+          9,
+          14,
+          19,
+          24,
+          29,
+          34
+        ],
+        "steps": [
+          [
+            "input_norm",
+            "rmsnorm"
+          ],
+          [
+            "q_proj",
+            "q4_widetile",
+            "layer.{L}.self_attn.q_proj"
+          ],
+          [
+            "k_proj",
+            "q4_widetile",
+            "layer.{L}.self_attn.k_proj"
+          ],
+          [
+            "v_proj",
+            "q4_widetile",
+            "layer.{L}.self_attn.v_proj"
+          ],
+          [
+            "rope_q",
+            "rope"
+          ],
+          [
+            "rope_k",
+            "rope"
+          ],
+          [
+            "attention",
+            "attn_head512"
+          ],
+          [
+            "o_proj",
+            "q4_widetile",
+            "layer.{L}.self_attn.o_proj"
+          ],
+          [
+            "attn_residual",
+            "residual"
+          ],
+          [
+            "post_attn_norm",
+            "rmsnorm"
+          ],
+          [
+            "ffn",
+            "gelu"
+          ],
+          [
+            "ffn_residual",
+            "residual"
+          ]
+        ]
+      }
+    ],
+    "postLayer": [
+      [
+        "final_norm",
+        "final_norm_stable"
+      ],
+      [
+        "lm_head",
+        "lm_head_gemv_stable",
+        "lm_head"
+      ],
+      [
+        "lm_head_prefill",
+        "lm_head_prefill_stable",
+        "lm_head"
+      ],
+      [
+        "sample",
+        "sample"
+      ]
+    ],
+    "policies": {
+      "unsupportedPrecision": "error",
+      "dtypeTransition": "require_cast_step",
+      "unresolvedKernel": "error"
+    }
+  }
+}

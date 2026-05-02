@@ -2173,6 +2173,135 @@ export function useGemma431BTextF16Activations(graph, ctx) {
 }
 
 // =============================================================================
+// Transform: useGemma4Int4PleAf16Activations
+// =============================================================================
+
+/**
+ * Promote the Gemma 4 E2B INT4-PLE Q4K graph onto the all-f16 lane via the
+ * weights-ref sibling manifest gemma-4-e2b-it-q4k-ehf16-af16-int4ple. Mirrors
+ * useGemma431BTextF16Activations: same Q4 weight pack, kernels narrowed to f16
+ * activations, prefill projections promoted from widetile to widetile_f16a,
+ * decode projections to multicol_f16a, lm_head/sample/final_norm to their f16
+ * counterparts. Apple Metal stays disabled at the capability layer because the
+ * fused-q4k+f16 kernel pool produces NaN at L0.ffn_down on metal-3.
+ *
+ * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
+ * @param {import('./execution-graph-transforms.js').TransformContext} ctx
+ * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
+ */
+export function useGemma4Int4PleAf16Activations(graph, ctx) {
+  const modelId = typeof ctx.modelId === 'string' ? ctx.modelId.trim() : '';
+  if (
+    modelId !== 'gemma-4-e2b-it-q4k-ehf16-af16-int4ple'
+    || ctx.activationDtype !== 'f16'
+    || ctx.mathDtype !== 'f16'
+    || ctx.accumDtype !== 'f16'
+    || ctx.capabilities?.hasF16 !== true
+    || ctx.capabilities?.hasSubgroups !== true
+  ) {
+    return null;
+  }
+
+  const narrowed = narrowToF16Activations(graph, ctx);
+  const result = narrowed ?? cloneGraph(graph);
+  let changed = narrowed != null;
+
+  const replaceKernelEntry = (key, entry) => {
+    if (!key || !entry) {
+      return;
+    }
+    result.kernels[key] = entry;
+    changed = true;
+  };
+
+  const embedStep = findPhaseStep(result.preLayer, 'embed');
+  const embedKey = embedStep?.[1] ?? null;
+  const embedEntry = embedKey ? result.kernels[embedKey] : null;
+  if (embedEntry?.kernel === 'gather_f16.wgsl') {
+    replaceKernelEntry(
+      embedKey,
+      deriveKernelEntryWithPrecision(
+        deriveKernelEntry(embedEntry, 'gather_f16_vec4_f16_out.wgsl', 'gather_vec4_f16_out'),
+        { inputDtype: 'f16', outputDtype: 'f16' }
+      )
+    );
+  }
+
+  const decodeProjectionStep = findPhaseStep(result.decode, 'q_proj');
+  const decodeProjectionKey = decodeProjectionStep?.[1] ?? null;
+  replaceKernelEntry(
+    decodeProjectionKey,
+    deriveQ4DecodeF16KernelEntry(result.kernels[decodeProjectionKey])
+  );
+
+  const prefillProjectionStep = findPhaseStep(result.prefill, 'q_proj');
+  const prefillProjectionKey = prefillProjectionStep?.[1] ?? null;
+  replaceKernelEntry(
+    prefillProjectionKey,
+    deriveQ4WideTilePrefillF16KernelEntry(result.kernels[prefillProjectionKey])
+      ?? deriveQ4PrefillF16AccumKernelEntry(result.kernels[prefillProjectionKey])
+      ?? deriveQ4PrefillF16KernelEntry(result.kernels[prefillProjectionKey])
+  );
+
+  const replacePrefillAttentionEntries = (entries) => {
+    for (const entry of entries || []) {
+      if (Array.isArray(entry)) {
+        if (entry[0] !== 'attention') {
+          continue;
+        }
+        replaceKernelEntry(
+          entry[1],
+          deriveF16AttentionKernelEntry(result.kernels[entry[1]])
+        );
+        continue;
+      }
+      if (entry && typeof entry === 'object' && Array.isArray(entry.steps)) {
+        replacePrefillAttentionEntries(entry.steps);
+      }
+    }
+  };
+  replacePrefillAttentionEntries(result.prefill);
+
+  const finalNormStep = findPhaseStep(result.postLayer, 'final_norm');
+  const finalNormKey = finalNormStep?.[1] ?? null;
+  const finalNormEntry = finalNormKey ? result.kernels[finalNormKey] : null;
+  if (finalNormEntry?.kernel === 'rmsnorm.wgsl') {
+    replaceKernelEntry(
+      finalNormKey,
+      deriveKernelEntryWithPrecision(
+        deriveKernelEntry(finalNormEntry, 'rmsnorm_f16.wgsl', finalNormEntry.entry),
+        { inputDtype: 'f16', outputDtype: 'f16' }
+      )
+    );
+  }
+
+  const lmHeadStep = findPhaseStep(result.postLayer, 'lm_head');
+  const lmHeadKey = lmHeadStep?.[1] ?? null;
+  replaceKernelEntry(
+    lmHeadKey,
+    deriveLmHeadDecodeF16KernelEntry(result.kernels[lmHeadKey])
+  );
+
+  const lmHeadPrefillStep = findPhaseStep(result.postLayer, 'lm_head_prefill');
+  const lmHeadPrefillKey = lmHeadPrefillStep?.[1] ?? null;
+  const lmHeadPrefillEntry = lmHeadPrefillKey ? result.kernels[lmHeadPrefillKey] : null;
+  if (
+    lmHeadPrefillEntry?.kernel === 'matmul_f16w_f32a.wgsl'
+    || lmHeadPrefillEntry?.kernel === 'matmul_f16w_f32a_tiled.wgsl'
+  ) {
+    replaceKernelEntry(
+      lmHeadPrefillKey,
+      deriveKernelEntryWithPrecision(
+        deriveKernelEntry(lmHeadPrefillEntry, 'matmul_f16_tiled.wgsl', 'main'),
+        { inputDtype: 'f16', outputDtype: 'f16' }
+      )
+    );
+  }
+
+  return changed ? result : null;
+}
+
+// =============================================================================
 // Composition
 // =============================================================================
 
@@ -2253,6 +2382,7 @@ export const TRANSFORMS = Object.freeze({
   useQwenDecodeF16Matmuls,
   useGemma4Int4PleSelectiveF16Decode,
   useGemma431BTextF16Activations,
+  useGemma4Int4PleAf16Activations,
   failClosedLaneMismatch,
   composeTransforms,
 });
