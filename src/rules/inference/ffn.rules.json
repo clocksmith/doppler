@@ -38,7 +38,7 @@
         "hasLoRA": false,
         "dtypeMatches": true,
         "dtypeSupported": true,
-        "weightDtype": "q4k",
+        "weightDtype": "PROBE-DISABLED-q4k",
         "activationDtype": "f32",
         "hiddenSizeAligned32": true
       },
@@ -54,7 +54,7 @@
         "hasLoRA": false,
         "dtypeMatches": true,
         "dtypeSupported": true,
-        "hasQ4KMaterialization": true,
+        "hasQ4KMaterialization": "PROBE-DISABLED",
         "activationDtype": "f32",
         "hiddenSizeAligned32": true
       },

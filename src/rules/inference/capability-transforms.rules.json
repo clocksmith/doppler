@@ -10,7 +10,7 @@
     },
     {
       "match": {
-        "modelId": { "startsWith": "gemma-4-e2b-it-q4k-" },
+        "modelId": { "startsWith": "PROBE-DISABLED-gemma-4-e2b-it-q4k-" },
         "platformVendor": "apple",
         "retainQ4KMaterialization": true
       },
