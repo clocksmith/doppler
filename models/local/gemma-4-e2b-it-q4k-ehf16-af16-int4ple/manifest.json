@@ -290,6 +290,15 @@
           "entry": "sample_single_pass",
           "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
         },
+        "ffn_widetile": {
+          "kernel": "fused_matmul_q4_widetile_f16.wgsl",
+          "entry": "main",
+          "digest": "sha256:1bb5ffc03e5d5422e5b15c34ee3cd4833e86a1b7ba1ac737828eb936705c1b81",
+          "precision": {
+            "inputDtype": "f32",
+            "outputDtype": "f16"
+          }
+        },
         "q4_widetile": {
           "kernel": "fused_matmul_q4_widetile.wgsl",
           "entry": "main",
@@ -448,8 +457,23 @@
               "rmsnorm"
             ],
             [
-              "ffn",
+              "gate_proj",
+              "ffn_widetile",
+              "layer.{L}.mlp.gate_proj"
+            ],
+            [
+              "up_proj",
+              "ffn_widetile",
+              "layer.{L}.mlp.up_proj"
+            ],
+            [
+              "activation",
               "gelu"
+            ],
+            [
+              "down_proj",
+              "ffn_widetile",
+              "layer.{L}.mlp.down_proj"
             ],
             [
               "ffn_residual",
@@ -513,8 +537,23 @@
               "rmsnorm"
             ],
             [
-              "ffn",
+              "gate_proj",
+              "ffn_widetile",
+              "layer.{L}.mlp.gate_proj"
+            ],
+            [
+              "up_proj",
+              "ffn_widetile",
+              "layer.{L}.mlp.up_proj"
+            ],
+            [
+              "activation",
               "gelu"
+            ],
+            [
+              "down_proj",
+              "ffn_widetile",
+              "layer.{L}.mlp.down_proj"
             ],
             [
               "ffn_residual",
