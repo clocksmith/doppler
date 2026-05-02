@@ -288,6 +288,16 @@ export async function applyPerLayerInputBlock(layerIdx, hiddenTensor, numTokens,
       context,
       layerWeights
     );
+    // The gate weight may be stored as f32 (small projection, not always quantized),
+    // forcing the matmul into the f32 variant whose output dtype is fixed by the
+    // kernel registry, not the caller's requestedOutputDtype. doGeLU below dispatches
+    // gelu_f16 when input is f16 and reads `gate: array<f16>` — binding an f32 buffer
+    // there reinterprets bytes as 2x f16 per f32 element and produces NaN/garbage.
+    if (gateTensor.dtype !== hiddenTensor.dtype) {
+      const widened = gateTensor;
+      gateTensor = await doCast(widened, hiddenTensor.dtype, recorder);
+      releaseOrTrack(recorder, widened.buffer, decodeBuffers);
+    }
     await runProbes('per_layer_input_gate', gateTensor.buffer, {
       layerIdx,
       numTokens,
@@ -815,6 +825,18 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     outputTensor = await processFFNStandard(layerIdx, postAttn, numTokens, size, context, layerWeights, fusedResidualForFFN);
   }
 
+  // Keep activation dtype consistent across layers. Some FFN paths can emit f32
+  // tensors even when the execution plan is f16; leaving that unnormalized causes
+  // downstream kernels to decode the buffer with the wrong dtype contract. Apply
+  // the cast BEFORE the PLE block so per_layer_input_gate's matmul inherits a
+  // consistent outputDtype (gelu_f16 reads gate as array<f16>; binding an f32
+  // buffer there reinterprets bytes and produces NaN/garbage).
+  if (outputTensor.dtype !== activationDtype) {
+    const widened = outputTensor;
+    outputTensor = await doCast(widened, activationDtype, recorder);
+    releaseOrTrack(recorder, widened.buffer, context.decodeBuffers);
+  }
+
   if (hasPerLayerInputBlock(config)) {
     const outputWithPerLayerInput = await applyPerLayerInputBlock(
       layerIdx,
@@ -830,18 +852,16 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     outputTensor = outputWithPerLayerInput;
   }
 
-  // Keep activation dtype consistent across layers. Some FFN paths can emit f32
-  // tensors even when the execution plan is f16; leaving that unnormalized causes
-  // downstream kernels to decode the buffer with the wrong dtype contract.
-  let finalOutput = outputTensor;
+  // Re-normalize after PLE: the residual add inside applyPerLayerInputBlock
+  // may emit f32 even when the layer's activation dtype is f16, which would
+  // misroute the next layer's f16 input bindings.
   if (outputTensor.dtype !== activationDtype) {
-    finalOutput = await doCast(
-      outputTensor,
-      activationDtype,
-      recorder
-    );
-    releaseOrTrack(recorder, outputTensor.buffer, context.decodeBuffers);
+    const widened = outputTensor;
+    outputTensor = await doCast(widened, activationDtype, recorder);
+    releaseOrTrack(recorder, widened.buffer, context.decodeBuffers);
   }
+
+  let finalOutput = outputTensor;
   const scaledOutput = await applyLayerScalar(layerIdx, finalOutput, size, context, layerWeights);
   if (scaledOutput.buffer !== finalOutput.buffer) {
     releaseOrTrack(recorder, finalOutput.buffer, context.decodeBuffers);

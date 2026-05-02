@@ -147,7 +147,7 @@
           "mode": "prepared_tokens",
           "maxTokens": 4096,
           "maxBytes": 268435456,
-          "outputDtype": "f32"
+          "outputDtype": "f16"
         }
       },
       "prefillChunkSubmitMode": "async",

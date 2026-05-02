@@ -19,7 +19,7 @@ import {
   runScale,
 } from '../../../gpu/kernel-selector.js';
 import { getNormWeightBuffer, getWeightBuffer } from './weights.js';
-import { doMatmul, doRMSNorm, releaseOrTrack } from './ops.js';
+import { doCast, doMatmul, doRMSNorm, releaseOrTrack } from './ops.js';
 import { runProbes } from './probes.js';
 import { embed, isRangeBackedCpuEmbeddingSource, normalizeRangeBytes, decodeRangeChunkIntoOutput } from './embed.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
@@ -1447,6 +1447,14 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
       let fusedProjectionForScale = null;
       let scaledFused = null;
       try {
+        // Per-layer-model projection: precision island. Source rows decoded
+        // from int4_per_row produce activations whose magnitude before
+        // RMSNorm-mediated scale-down can exceed f16 max (~65504). When the
+        // matmul kernel does not internally widen its accumulator (RDNA3 is
+        // strict, Metal happens to widen), the f16 output saturates to Inf
+        // and then NaN. Compute matmul + QDQ + scale in f32 so the dynamic
+        // range fits, then narrow to activationDtype after the scale step
+        // brings magnitudes back to ~O(1).
         fusedProjection = await doMatmul(
           projectionInputTensor,
           projectionWeight,
@@ -1458,7 +1466,7 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
             label: 'per_layer_fused_projection',
             kernelPath: context.kernelPath ?? null,
             role: 'per_layer_model_projection',
-            outputDtype: activationDtype,
+            outputDtype: 'f32',
           },
           recorder
         );
@@ -1476,7 +1484,7 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
           fusedProjection = null;
         }
 
-        scaledFused = recorder
+        let scaledFusedF32 = recorder
           ? await recordScale(recorder, fusedProjectionForScale, projectionScale, {
             count: numTokens * totalPerLayerHiddenSize,
           })
@@ -1485,6 +1493,13 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
           });
         releaseOrTrack(recorder, fusedProjectionForScale.buffer, decodeBuffers);
         fusedProjectionForScale = null;
+
+        scaledFused = scaledFusedF32.dtype === activationDtype
+          ? scaledFusedF32
+          : await doCast(scaledFusedF32, activationDtype, recorder);
+        if (scaledFused !== scaledFusedF32) {
+          releaseOrTrack(recorder, scaledFusedF32.buffer, decodeBuffers);
+        }
 
         // Step 4: Extract per-layer slices via GPU buffer copies (one encoder, one submit).
         // Reuse cached slice buffers when available to avoid per-step pool churn.
@@ -1608,6 +1623,10 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
               });
               projectionWeightOffset = hiddenOffset * config.hiddenSize * projectionWeightBytes;
             }
+            // Per-layer-model projection: precision island (see fused path
+            // above for rationale). Force f32 through matmul + QDQ + scale,
+            // then narrow to activationDtype after scale brings magnitudes
+            // back to ~O(1).
             projectedTensor = await doMatmul(
               projectionInputTensor,
               projectionWeightForLayer,
@@ -1621,7 +1640,7 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
                 layerIdx,
                 kernelPath: context.kernelPath ?? null,
                 role: 'per_layer_model_projection',
-                outputDtype: activationDtype,
+                outputDtype: 'f32',
               },
               recorder
             );
@@ -1632,7 +1651,7 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
               probes: context.debugProbes,
               recorder,
               operatorDiagnostics: context.operatorDiagnostics,
-              dtype: activationDtype,
+              dtype: 'f32',
             });
             projectionTensorForScale = pleActivationStaticQdq
               ? await applyPleActivationStaticQdq(
@@ -1647,7 +1666,7 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
               releaseOrTrack(recorder, projectedTensor.buffer, decodeBuffers);
               projectedTensor = null;
             }
-            scaledProjectionTensor = recorder
+            const scaledF32 = recorder
               ? await recordScale(recorder, projectionTensorForScale, projectionScale, {
                 count: numTokens * hiddenSizePerLayerInput,
               })
@@ -1659,6 +1678,12 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
             }
             releaseOrTrack(recorder, projectionTensorForScale.buffer, decodeBuffers);
             projectionTensorForScale = null;
+            scaledProjectionTensor = scaledF32.dtype === activationDtype
+              ? scaledF32
+              : await doCast(scaledF32, activationDtype, recorder);
+            if (scaledProjectionTensor !== scaledF32) {
+              releaseOrTrack(recorder, scaledF32.buffer, decodeBuffers);
+            }
           } finally {
             if (projectionTensorForScale && projectionTensorForScale !== projectedTensor) {
               releaseOrTrack(recorder, projectionTensorForScale.buffer, decodeBuffers);
