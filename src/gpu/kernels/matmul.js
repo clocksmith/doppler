@@ -103,6 +103,7 @@ function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuff
     || variant === 'q4_fused_f16a'
     || variant === 'q4_fused_batched_f16'
     || variant === 'q4_fused_multicol_f16a'
+    || variant === 'q4_fused_multicol_f16a_f32acc'
     || variant === 'q4_fused_batched_f16a'
     || variant === 'q4_fused_batched_f16acc_f16a'
     || variant === 'q4_fused_prefill_tiled_f16'
@@ -265,7 +266,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
       }
     : options;
 
-  const { variant, useQ4KFused, useGemv } = selectMatmulVariantAndFlags(
+  let { variant, useQ4KFused, useGemv } = selectMatmulVariantAndFlags(
     mode,
     M,
     N,
@@ -276,6 +277,14 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
     requestedOutputDtype,
     effectiveOptions
   );
+
+  if (
+    runtimeSession?.useF32AccumF16ioMatmul === true
+    && useQ4KFused
+    && variant === 'q4_fused_multicol_f16a'
+  ) {
+    variant = 'q4_fused_multicol_f16a_f32acc';
+  }
 
   let constants = resolveMatmulConstants(options, phase);
   if (variant === 'f32' && constants && options.constants == null) {

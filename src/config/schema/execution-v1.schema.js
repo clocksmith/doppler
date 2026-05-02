@@ -71,6 +71,7 @@ export const DEFAULT_EXECUTION_V1_SESSION = {
   useFlashPrefillAttention: false,
   useWideTileQ4KPrefill: false,
   retainQ4KMaterialization: false,
+  useF32AccumF16ioMatmul: false,
 };
 
 export const DEFAULT_EXECUTION_V1_POLICIES = {

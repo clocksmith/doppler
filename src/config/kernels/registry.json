@@ -754,6 +754,33 @@
             "wgslOnDisk": true
           }
         },
+        "q4_fused_multicol_f16a_f32acc": {
+          "wgsl": "fused_matmul_q4_multicol_f16a_f32acc.wgsl",
+          "entryPoint": "main_multicol_f16a_f32acc",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16",
+            "subgroups"
+          ],
+          "outputDtype": "f16",
+          "weightDtype": "q4k",
+          "variantMetadata": {
+            "colsPerWg": 32
+          },
+          "description": "F16 IO + F32 accumulator twin of q4_fused_multicol_f16a. Closes the f16-accum decode-gemv gap on AMD RDNA3 where f32 accumulation outperforms f16 by ~60%.",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#q4kFusedVariant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
         "q4_fused_batched_f16": {
           "wgsl": "fused_matmul_q4_batched_f16.wgsl",
           "entryPoint": "main_batched_f16",

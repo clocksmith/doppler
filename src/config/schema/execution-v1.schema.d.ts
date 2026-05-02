@@ -181,6 +181,8 @@ export interface ExecutionV1SessionSchema {
   useWideTileQ4KPrefill: boolean;
   /** Retain Q4_K packed weights alongside dense buffer (mixed materialization). ~50% extra Q4_K memory. */
   retainQ4KMaterialization: boolean;
+  /** Use f32-accumulator twin of fused-Q4K f16a multicol gemv. Closes the f16-accum decode gap on AMD RDNA3 where f32 accumulation outperforms f16 by ~60% at FFN gemv shape. Gated by capability rule. */
+  useF32AccumF16ioMatmul: boolean;
 }
 
 // === Policies ===
