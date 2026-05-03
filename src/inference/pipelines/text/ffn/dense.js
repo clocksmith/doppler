@@ -339,7 +339,7 @@ export async function runDenseFFNGPU(
   if (!device) throw new Error('No GPU device');
 
   const { config, recorder } = context;
-  const { hiddenSize, hiddenActivation, swigluLimit } = config;
+  const { hiddenSize, hiddenActivation, swigluLimit, useDoubleWideMlp } = config;
   const intermediateSize = resolveLayerIntermediateSize(config, layerIdx);
   const lastTokenIdx = Math.max(0, numTokens - 1);
   const lora = context.lora || null;
@@ -584,6 +584,7 @@ export async function runDenseFFNGPU(
     f16BatchSupported,
     batchSize: numTokens,
     hiddenSizeAligned32,
+    useDoubleWideMlp: Boolean(useDoubleWideMlp),
   });
   const useFusedGateUp = gateUpPathMode === 'split'
     ? false
@@ -1150,7 +1151,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
   if (!device) throw new Error('No GPU device');
 
   const { config, weightConfig, debugFlags, recorder } = context;
-  const { hiddenSize, hiddenActivation, swigluLimit } = config;
+  const { hiddenSize, hiddenActivation, swigluLimit, useDoubleWideMlp } = config;
   const intermediateSize = resolveLayerIntermediateSize(config, layerIdx);
   const lora = context.lora || null;
   const ffnStepPrecision = context.ffnStepPrecision ?? null;
@@ -1299,6 +1300,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
       f16BatchSupported: getKernelCapabilities().hasF16,
       batchSize: numTokens,
       hiddenSizeAligned32,
+      useDoubleWideMlp: Boolean(useDoubleWideMlp),
     });
     const canUseFusedGateUp = gateUpPathMode === 'split'
       ? false

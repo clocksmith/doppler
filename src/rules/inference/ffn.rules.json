@@ -38,9 +38,11 @@
         "hasLoRA": false,
         "dtypeMatches": true,
         "dtypeSupported": true,
-        "weightDtype": "PROBE-DISABLED-q4k",
+        "weightDtype": "q4k",
         "activationDtype": "f32",
-        "hiddenSizeAligned32": true
+        "hiddenSizeAligned32": true,
+        "batchSize": { "lte": 4 },
+        "useDoubleWideMlp": false
       },
       "value": true
     },
@@ -54,9 +56,11 @@
         "hasLoRA": false,
         "dtypeMatches": true,
         "dtypeSupported": true,
-        "hasQ4KMaterialization": "PROBE-DISABLED",
+        "hasQ4KMaterialization": true,
         "activationDtype": "f32",
-        "hiddenSizeAligned32": true
+        "hiddenSizeAligned32": true,
+        "batchSize": { "lte": 4 },
+        "useDoubleWideMlp": false
       },
       "value": true
     },
