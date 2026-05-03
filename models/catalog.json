@@ -550,12 +550,12 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "cf02075803e0a8de7ab26bd76888f55ded35ac5f",
+        "revision": "95a01447eecbf13fc5964986f507b08ded0cd40f",
         "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
       },
       "baseUrl": null,
       "quickstart": true,
-      "sizeBytes": 798093788,
+      "sizeBytes": 1155348912,
       "recommended": true,
       "sortOrder": 20,
       "lifecycle": {

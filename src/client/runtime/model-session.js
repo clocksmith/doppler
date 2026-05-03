@@ -73,6 +73,39 @@ export function createModelHandle(pipeline, resolved) {
         },
       };
     },
+    async embed(prompt, options = {}) {
+      return pipeline.embed(prompt, options);
+    },
+    async embedBatch(prompts, options = {}) {
+      return pipeline.embedBatch(prompts, options);
+    },
+    async embedImage(args = {}) {
+      return pipeline.embedImage(args);
+    },
+    async embedAudio(args = {}) {
+      return pipeline.embedAudio(args);
+    },
+    async transcribeImage(args = {}) {
+      return pipeline.transcribeImage(args);
+    },
+    async transcribeAudio(args = {}) {
+      return pipeline.transcribeAudio(args);
+    },
+    async transcribeVideo(args = {}) {
+      return pipeline.transcribeVideo(args);
+    },
+    get supportsEmbedding() {
+      return pipeline.manifest?.modelType === 'embedding'
+        || pipeline.manifest?.inference?.supportsEmbedding === true;
+    },
+    get supportsTranscription() {
+      return pipeline.manifest?.inference?.supportsTranscription === true
+        && pipeline.audioCapable === true;
+    },
+    get supportsVision() {
+      return pipeline.manifest?.inference?.supportsVision === true
+        && pipeline.visionCapable === true;
+    },
     async loadLoRA(adapter) {
       return loadLoRAAdapterForPipeline(pipeline, adapter);
     },

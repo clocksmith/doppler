@@ -36,8 +36,44 @@ export function wrapPipelineAsHandle(pipeline, resolved = {}) {
     get deviceInfo() {
       return resolved.deviceInfo || null;
     },
+    get supportsEmbedding() {
+      const manifest = pipeline.manifest || resolved.manifest || null;
+      return manifest?.modelType === 'embedding'
+        || manifest?.inference?.supportsEmbedding === true;
+    },
+    get supportsTranscription() {
+      const manifest = pipeline.manifest || resolved.manifest || null;
+      return manifest?.inference?.supportsTranscription === true
+        && pipeline.audioCapable === true;
+    },
+    get supportsVision() {
+      const manifest = pipeline.manifest || resolved.manifest || null;
+      return manifest?.inference?.supportsVision === true
+        && pipeline.visionCapable === true;
+    },
     async generateText(prompt, opts = {}) {
       return collectText(pipeline.generate(prompt, opts));
+    },
+    async embed(prompt, options = {}) {
+      return pipeline.embed(prompt, options);
+    },
+    async embedBatch(prompts, options = {}) {
+      return pipeline.embedBatch(prompts, options);
+    },
+    async embedImage(args = {}) {
+      return pipeline.embedImage(args);
+    },
+    async embedAudio(args = {}) {
+      return pipeline.embedAudio(args);
+    },
+    async transcribeImage(args = {}) {
+      return pipeline.transcribeImage(args);
+    },
+    async transcribeAudio(args = {}) {
+      return pipeline.transcribeAudio(args);
+    },
+    async transcribeVideo(args = {}) {
+      return pipeline.transcribeVideo(args);
     },
     async unload() {
       if (typeof pipeline.unload === 'function') {

@@ -65,6 +65,9 @@
     }
   },
   "inference": {
+    "supportsEmbedding": true,
+    "supportsTranscription": true,
+    "supportsVision": true,
     "attention": {
       "queryPreAttnScalar": 1,
       "attnLogitSoftcapping": null,

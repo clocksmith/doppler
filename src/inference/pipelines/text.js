@@ -1,6 +1,6 @@
 
 import { getDevice, initDevice, getKernelCapabilities } from '../../gpu/device.js';
-import { getBufferPool as getGlobalBufferPool, releaseBuffer } from '../../memory/buffer-pool.js';
+import { getBufferPool as getGlobalBufferPool, readBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { log } from '../../debug/index.js';
 import { configurePerfGuards } from '../../gpu/perf-guards.js';
 import { MoERouter } from '../moe-router.js';
@@ -1434,6 +1434,130 @@ export class InferencePipeline extends PipelineState {
       this.resetForBatch();
     }
     return outputs;
+  }
+
+  // Run the vision encoder over a single image and return a mean-pooled
+  // embedding in the model's text-hidden-size space. Decoder responsibility
+  // (jpeg/png -> RGBA pixels) belongs to the caller; this method takes
+  // already-decoded pixel data.
+  async embedImage({ pixels, width, height, softTokenBudget } = {}) {
+    if (!this.visionCapable) {
+      throw new Error(
+        'Pipeline does not support image embedding (no image_token_id in manifest).'
+      );
+    }
+    if (pixels == null) {
+      throw new Error('[Pipeline] embedImage: pixels are required.');
+    }
+    if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
+      throw new Error('[Pipeline] embedImage: width and height must be positive integers.');
+    }
+    await this._ensureVisionWeightsLoaded();
+    this.reset();
+
+    const { encodeImage } = await import('./vision/index.js');
+    const encodeResult = await encodeImage({
+      pixels,
+      width,
+      height,
+      visionConfig: this.visionConfig,
+      weights: this.visionWeights,
+      softTokenBudget,
+    });
+
+    const hiddenSize = this.modelConfig.hiddenSize;
+    const numTokens = encodeResult.numTokens;
+    if (!Number.isFinite(numTokens) || numTokens < 1) {
+      releaseBuffer(encodeResult.features);
+      throw new Error(`[Pipeline] embedImage: encoder produced ${numTokens} soft tokens; expected >= 1.`);
+    }
+    try {
+      const bytes = await readBuffer(
+        encodeResult.features,
+        numTokens * hiddenSize * Float32Array.BYTES_PER_ELEMENT
+      );
+      const features = new Float32Array(bytes);
+      const pooled = new Float32Array(hiddenSize);
+      for (let t = 0; t < numTokens; t++) {
+        const base = t * hiddenSize;
+        for (let d = 0; d < hiddenSize; d++) {
+          pooled[d] += features[base + d];
+        }
+      }
+      const inv = 1 / numTokens;
+      for (let d = 0; d < hiddenSize; d++) pooled[d] *= inv;
+      return {
+        embedding: pooled,
+        embeddingDim: hiddenSize,
+        numTokens,
+        embeddingMode: 'mean',
+      };
+    } finally {
+      releaseBuffer(encodeResult.features);
+    }
+  }
+
+  // Run the audio encoder over a single PCM segment and return a mean-pooled
+  // embedding in the model's audio-projection-output space (which equals the
+  // text hidden size in Gemma 4). Decoder responsibility (webm/opus/wav ->
+  // Float32 PCM at the model's expected sample rate) belongs to the caller.
+  async embedAudio({ audio } = {}) {
+    if (!this.audioCapable) {
+      throw new Error(
+        'Pipeline does not support audio embedding (no audio_token_id in manifest).'
+      );
+    }
+    if (audio == null) {
+      throw new Error('[Pipeline] embedAudio: audio is required.');
+    }
+    await this._ensureAudioWeightsLoaded();
+    this.reset();
+
+    const { extractLogMelSpectrogram } = await import('./audio/mel.js');
+    const { encodeAudio } = await import('./audio/index.js');
+    const { features: melFeatures, numFrames, nMels } = extractLogMelSpectrogram(audio);
+    const encodeResult = await encodeAudio({
+      melFeatures,
+      numFrames,
+      nMels,
+      audioConfig: this.audioConfig,
+      weights: this.audioWeights,
+    });
+
+    const hiddenSize = Number(this.audioConfig?.outputProjDims ?? this.modelConfig?.hiddenSize);
+    const numTokens = encodeResult.numTokens;
+    if (!Number.isFinite(hiddenSize) || hiddenSize < 1) {
+      releaseBuffer(encodeResult.features);
+      throw new Error('[Pipeline] embedAudio: audioConfig.outputProjDims is missing or invalid.');
+    }
+    if (!Number.isFinite(numTokens) || numTokens < 1) {
+      releaseBuffer(encodeResult.features);
+      throw new Error(`[Pipeline] embedAudio: encoder produced ${numTokens} tokens; expected >= 1.`);
+    }
+    try {
+      const bytes = await readBuffer(
+        encodeResult.features,
+        numTokens * hiddenSize * Float32Array.BYTES_PER_ELEMENT
+      );
+      const features = new Float32Array(bytes);
+      const pooled = new Float32Array(hiddenSize);
+      for (let t = 0; t < numTokens; t++) {
+        const base = t * hiddenSize;
+        for (let d = 0; d < hiddenSize; d++) {
+          pooled[d] += features[base + d];
+        }
+      }
+      const inv = 1 / numTokens;
+      for (let d = 0; d < hiddenSize; d++) pooled[d] *= inv;
+      return {
+        embedding: pooled,
+        embeddingDim: hiddenSize,
+        numTokens,
+        embeddingMode: 'mean',
+      };
+    } finally {
+      releaseBuffer(encodeResult.features);
+    }
   }
 
   prefillWithLogits(prompt, options = {}) {

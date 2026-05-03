@@ -11,6 +11,7 @@ import {
   getActiveKernelPathPolicy,
 } from '../config/kernel-path-loader.js';
 import { validateTrainingMetricsReport } from '../config/schema/training-metrics.schema.js';
+import { modelSupportsEmbedding } from '../config/schema/manifest.schema.js';
 import {
   resolveReportTimestamp,
   resolveRuntime,
@@ -430,9 +431,11 @@ async function runInferenceSuite(options = {}) {
   );
   const runtimeConfig = getRuntimeConfig();
   const modelType = harness.manifest?.modelType || 'transformer';
-  if (options.expectedModelType === 'embedding' && modelType !== 'embedding') {
+  const supportsEmbedding = modelSupportsEmbedding(harness.manifest);
+  if (options.expectedModelType === 'embedding' && !supportsEmbedding) {
     throw new Error(
-      `Expected an embedding model for workload "${options.workload || 'inference'}", got "${modelType}".`
+      `Expected an embedding-capable model for workload "${options.workload || 'inference'}", got modelType="${modelType}". ` +
+      `Set inference.supportsEmbedding=true in the manifest for text-generation models that should expose pipeline.embed().`
     );
   }
   const safeModelLoadMs = toTimingNumber(harness.modelLoadMs, 0);
@@ -441,7 +444,7 @@ async function runInferenceSuite(options = {}) {
   let output = null;
   let metrics;
 
-  if (modelType === 'embedding') {
+  if (modelType === 'embedding' || (options.workload === 'embedding' && supportsEmbedding)) {
     const run = await runEmbedding(harness.pipeline, runtimeConfig);
     const semantic = await runEmbeddingSemanticChecks(harness.pipeline, options);
     const isValidEmbedding = run.embeddingDim > 0 && run.nonFiniteCount === 0;
@@ -770,9 +773,11 @@ async function runBenchSuite(options = {}) {
   );
   const benchRun = resolveBenchmarkRunSettings(runtimeConfig, harness.pipeline ?? harness);
   const modelType = harness.manifest?.modelType || 'transformer';
-  if (options.expectedModelType === 'embedding' && modelType !== 'embedding') {
+  const supportsEmbedding = modelSupportsEmbedding(harness.manifest);
+  if (options.expectedModelType === 'embedding' && !supportsEmbedding) {
     throw new Error(
-      `Expected an embedding model for bench workload "${options.workload || 'inference'}", got "${modelType}".`
+      `Expected an embedding-capable model for bench workload "${options.workload || 'inference'}", got modelType="${modelType}". ` +
+      `Set inference.supportsEmbedding=true in the manifest for text-generation models that should expose pipeline.embed().`
     );
   }
   const safeModelLoadMs = toTimingNumber(harness.modelLoadMs, 0);
@@ -782,7 +787,7 @@ async function runBenchSuite(options = {}) {
   let output = null;
   let timing;
 
-  if (modelType === 'embedding') {
+  if (modelType === 'embedding' || (options.workload === 'embedding' && supportsEmbedding)) {
     const durations = [];
     const timedDurations = [];
     const embeddingDims = [];

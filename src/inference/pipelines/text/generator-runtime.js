@@ -297,11 +297,13 @@ export function resolvePrefillEmbeddingOptions(state, options = {}) {
     ? state.manifest.modelType.toLowerCase()
     : '';
   const generationDefaults = state.runtimeConfig.inference.generation;
-  // Embedding models default to 'mean' pooling — this is a model-category behavior,
-  // not a model-family identity check. Ideally embedding conversion configs would set
-  // generation.embeddingMode='mean' in their runtime config; the modelType fallback
-  // provides this default for manifests that predate runtime-profile embedding mode.
-  const defaultEmbeddingMode = modelType === 'embedding'
+  // Models that expose embedding extraction default to 'mean' pooling. This covers
+  // dedicated embedding models (modelType="embedding") and text-generation models
+  // that opt in via inference.supportsEmbedding=true. Conversion configs can still
+  // override via generation.embeddingMode in their runtime profile.
+  const supportsEmbeddingExtraction = modelType === 'embedding'
+    || state.manifest?.inference?.supportsEmbedding === true;
+  const defaultEmbeddingMode = supportsEmbeddingExtraction
     ? 'mean'
     : generationDefaults.embeddingMode;
   return {

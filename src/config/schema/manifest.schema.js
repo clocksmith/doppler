@@ -41,6 +41,21 @@ export const DEFAULT_HIGH_PRECISION_EPS = 1e-6;
 
 export const DEFAULT_MANIFEST_INFERENCE = {
   schema: null,
+  // When true, allows workload="embedding" to dispatch via pipeline.embed()
+  // (prefillWithEmbedding extraction) on text-generation models. Independent
+  // of modelType: dedicated embedding models (modelType="embedding") always
+  // support embedding workloads; text-generation models opt in explicitly.
+  supportsEmbedding: false,
+  // When true, the pipeline exposes pipeline.transcribeAudio({audio,...}) and
+  // pipeline.embedAudio({audio}). Requires audio_token_id and audio encoder
+  // weights to be present in the manifest. Defaults to false; set to true on
+  // multimodal manifests that have completed audio-encoder conversion.
+  supportsTranscription: false,
+  // When true, the pipeline exposes pipeline.transcribeImage({...}),
+  // pipeline.transcribeVideo({...}), and pipeline.embedImage({...}). Requires
+  // image_token_id and vision encoder weights. Defaults to false; set to true
+  // on multimodal manifests that have completed vision-encoder conversion.
+  supportsVision: false,
   attention: {
     queryPreAttnScalar: 64, // headDim for standard 64-dim heads; attnScale = 1/sqrt(scalar)
     attnLogitSoftcapping: null,  // No softcapping (null = disabled)
@@ -154,4 +169,29 @@ export function hasInferenceConfig(
   manifest
 ) {
   return manifest.inference != null;
+}
+
+// Returns true when the model supports embedding workloads. Dedicated
+// embedding models (modelType="embedding") always do; text-generation
+// models opt in via inference.supportsEmbedding=true so the harness will
+// dispatch workload="embedding" through pipeline.embed() instead of
+// rejecting it as a model-type mismatch.
+export function modelSupportsEmbedding(manifest) {
+  if (manifest?.modelType === 'embedding') return true;
+  return manifest?.inference?.supportsEmbedding === true;
+}
+
+// Returns true when the manifest declares audio-input capability. Pipelines
+// expose transcribeAudio + embedAudio when this is set. The de-facto runtime
+// gate (audio_token_id + audio encoder weights) still applies; this field is
+// the manifest-first declaration consumers can check before calling the
+// transcribe/embedAudio methods.
+export function modelSupportsTranscription(manifest) {
+  return manifest?.inference?.supportsTranscription === true;
+}
+
+// Returns true when the manifest declares vision-input capability. Pipelines
+// expose transcribeImage + transcribeVideo + embedImage when this is set.
+export function modelSupportsVision(manifest) {
+  return manifest?.inference?.supportsVision === true;
 }

@@ -190,9 +190,9 @@
           "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
         },
         "attn_small": {
-          "kernel": "attention_small.wgsl",
+          "kernel": "attention_small_f16kv.wgsl",
           "entry": "main",
-          "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4"
+          "digest": "sha256:d06953f85b75a70a7423bd92afbbb476bff77acaf0f8378135465d0f742bb276"
         },
         "residual": {
           "kernel": "residual.wgsl",
@@ -361,7 +361,7 @@
       ],
       "policies": {
         "unsupportedPrecision": "error",
-        "dtypeTransition": "require_cast_step",
+        "dtypeTransition": null,
         "unresolvedKernel": "error"
       }
     },
