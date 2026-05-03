@@ -17,7 +17,7 @@ export function __dbgRecord(op, variant, pipelineMs, prepMs, bgMs, dispatchMs) {
   __DBG_REC.total.bg += bgMs;
   __DBG_REC.total.dispatch += dispatchMs;
 }
-if (process.env.DOPPLER_DBG_RECORD === '1') {
+if (typeof process !== "undefined" && process?.env?.DOPPLER_DBG_RECORD === '1') {
   process.on('exit', () => {
     const t = __DBG_REC.total;
     const sum = t.pipeline + t.prep + t.bg + t.dispatch;
@@ -111,7 +111,7 @@ import { getUniformByteLength } from './uniform-utils.js';
 import { writeUniformsFromObject } from './uniform-utils.js';
 
 export async function unifiedKernelWrapper(opName, target, variant, bindings, uniforms, workgroups, constants = null, extraBindings = null) {
-  const __dbg = process.env.DOPPLER_DBG_RECORD === '1';
+  const __dbg = (typeof process !== "undefined" && process?.env?.DOPPLER_DBG_RECORD === '1');
   const __t0 = __dbg ? performance.now() : 0;
   const device = target?.device || getDevice();
   const recorder = target && typeof target.beginComputePass === 'function' ? target : null;

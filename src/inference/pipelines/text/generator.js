@@ -1953,6 +1953,18 @@ export class PipelineGenerator {
     let prefillSubmitWaitMs = 0;
     try {
       for (let l = 0; l < config.numLayers; l++) {
+        // Per-layer hard cancellation: when the caller's AbortSignal aborts,
+        // exit the prefill loop between layer dispatches rather than
+        // continuing to burn GPU on superseded work. Granularity is one
+        // layer (~5-50ms), which is the fastest cancel granularity WebGPU
+        // exposes today.
+        if (opts?.signal?.aborted) {
+          const reason = typeof opts.signal.reason === "string" ? opts.signal.reason : "Doppler: prefill aborted";
+          const err = new Error(reason);
+          err.name = "AbortError";
+          err.code = "ABORT_ERR";
+          throw err;
+        }
         context.recorder = currentRecorder;
         context.perLayerInputBuffer = perLayerInputs?.[l] ?? null;
 

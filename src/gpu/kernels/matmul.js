@@ -402,7 +402,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
     );
   }
 
-  const __dbg = process.env.DOPPLER_DBG_RECORD === '1';
+  const __dbg = (typeof process !== "undefined" ? process : { env: {} }).env.DOPPLER_DBG_RECORD === '1';
   const __t0 = __dbg ? performance.now() : 0;
   const config = getMatmulConfig(variant, constants);
   const kernel = new MatmulKernel(device);
