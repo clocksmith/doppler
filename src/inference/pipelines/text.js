@@ -48,6 +48,31 @@ import {
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { registerPipeline, getPipelineFactory } from './registry.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
+
+// AbortSignal contract: every public inference primitive on this pipeline
+// accepts `options.signal` (or `args.signal`). When the signal aborts the
+// call rejects with `AbortError` so callers (the dream typing-clock
+// controller, batch eval scripts, etc.) can cancel superseded work without
+// waiting for the model to finish. Internal checkpoints fire between
+// dispatches; mid-dispatch cancellation is not provided because WebGPU
+// command-buffer cancellation is not exposed by the spec.
+export class AbortError extends Error {
+  constructor(message = 'Doppler: aborted') {
+    super(message);
+    this.name = 'AbortError';
+    this.code = 'ABORT_ERR';
+  }
+}
+
+export function isAbortError(err) {
+  return !!err && (err.name === 'AbortError' || err.code === 'ABORT_ERR' || err.code === 20);
+}
+
+function assertNotAborted(signal) {
+  if (signal && signal.aborted) {
+    throw new AbortError(typeof signal.reason === 'string' ? signal.reason : 'Doppler: aborted');
+  }
+}
 import { initConvLayerState } from './text/ops.js';
 import { destroyPleBufferCache, destroyPleRuntimeCache } from './text/per-layer-inputs.js';
 
@@ -948,13 +973,15 @@ export class InferencePipeline extends PipelineState {
    * @param {number}                  [params.softTokenBudget] Per-request soft token budget (Gemma 4 tiers: 70/140/280/560/1120)
    * @returns {Promise<{ text: string, tokens: number[] }>}
    */
-  async transcribeImage({ imageBytes, width, height, prompt, maxTokens, softTokenBudget }) {
+  async transcribeImage({ imageBytes, width, height, prompt, maxTokens, softTokenBudget, signal }) {
+    assertNotAborted(signal);
     if (!this.visionCapable) {
       throw new Error(
         'Pipeline does not support image transcription (no image_token_id in manifest).'
       );
     }
     await this._ensureVisionWeightsLoaded();
+    assertNotAborted(signal);
 
     this.reset();
 
@@ -1089,7 +1116,8 @@ export class InferencePipeline extends PipelineState {
    * @param {number}  [params.perFrameSoftTokenBudget] Soft token budget per frame
    * @returns {Promise<{ text: string, tokens: number[] }>}
    */
-  async transcribeVideo({ frames, prompt, maxTokens, maxFrames, perFrameSoftTokenBudget }) {
+  async transcribeVideo({ frames, prompt, maxTokens, maxFrames, perFrameSoftTokenBudget, signal }) {
+    assertNotAborted(signal);
     if (!this.visionCapable) {
       throw new Error(
         'Pipeline does not support video transcription (no image_token_id in manifest for vision encoder).'
@@ -1212,7 +1240,8 @@ export class InferencePipeline extends PipelineState {
    * @param {number}                   [params.maxTokens] Max tokens to generate
    * @returns {Promise<{ text: string, tokens: number[] }>}
    */
-  async transcribeAudio({ audio, prompt, maxTokens }) {
+  async transcribeAudio({ audio, prompt, maxTokens, signal }) {
+    assertNotAborted(signal);
     if (!this.audioCapable) {
       throw new Error(
         'Pipeline does not support audio transcription (no audio_token_id in manifest).'
@@ -1381,40 +1410,50 @@ export class InferencePipeline extends PipelineState {
 
 
   generate(prompt, options = {}) {
+    assertNotAborted(options?.signal);
     return this.generator.generate(prompt, options);
   }
 
   generateTokens(prompt, options = {}) {
+    assertNotAborted(options?.signal);
     return this.generator.generateTokens(prompt, options);
   }
 
   generateTokenIds(prompt, options = {}) {
+    assertNotAborted(options?.signal);
     return this.generator.generateTokenIds(prompt, options);
   }
 
   decodeStepLogits(currentIds, options = {}) {
+    assertNotAborted(options?.signal);
     return this.generator.decodeStepLogits(currentIds, options);
   }
 
   advanceWithToken(tokenId, options = {}) {
+    assertNotAborted(options?.signal);
     return this.generator.advanceWithToken(tokenId, options);
   }
 
   advanceWithTokenAndEmbedding(tokenId, options = {}) {
+    assertNotAborted(options?.signal);
     return this.generator.advanceWithTokenAndEmbedding(tokenId, options);
   }
 
 
   prefillKVOnly(prompt, options = {}) {
+    assertNotAborted(options?.signal);
     return this.generator.prefillKVOnly(prompt, options);
   }
 
   prefillWithEmbedding(prompt, options = {}) {
+    assertNotAborted(options?.signal);
     return this.generator.prefillWithEmbedding(prompt, options);
   }
 
   async embed(prompt, options = {}) {
+    assertNotAborted(options?.signal);
     const result = await this.prefillWithEmbedding(prompt, options);
+    assertNotAborted(options?.signal);
     return {
       embedding: result.embedding,
       tokens: result.tokens,
@@ -1427,9 +1466,12 @@ export class InferencePipeline extends PipelineState {
     if (!Array.isArray(prompts)) {
       throw new Error('embedBatch expects an array of prompts');
     }
+    assertNotAborted(options?.signal);
     const batchOptions = { ...options, __skipStateSnapshot: true };
     const outputs = [];
     for (const prompt of prompts) {
+      // Check between every prompt so a superseded revision drops the rest.
+      assertNotAborted(options?.signal);
       outputs.push(await this.embed(prompt, batchOptions));
       this.resetForBatch();
     }
@@ -1440,7 +1482,8 @@ export class InferencePipeline extends PipelineState {
   // embedding in the model's text-hidden-size space. Decoder responsibility
   // (jpeg/png -> RGBA pixels) belongs to the caller; this method takes
   // already-decoded pixel data.
-  async embedImage({ pixels, width, height, softTokenBudget } = {}) {
+  async embedImage({ pixels, width, height, softTokenBudget, signal } = {}) {
+    assertNotAborted(signal);
     if (!this.visionCapable) {
       throw new Error(
         'Pipeline does not support image embedding (no image_token_id in manifest).'
@@ -1501,7 +1544,8 @@ export class InferencePipeline extends PipelineState {
   // embedding in the model's audio-projection-output space (which equals the
   // text hidden size in Gemma 4). Decoder responsibility (webm/opus/wav ->
   // Float32 PCM at the model's expected sample rate) belongs to the caller.
-  async embedAudio({ audio } = {}) {
+  async embedAudio({ audio, signal } = {}) {
+    assertNotAborted(signal);
     if (!this.audioCapable) {
       throw new Error(
         'Pipeline does not support audio embedding (no audio_token_id in manifest).'
