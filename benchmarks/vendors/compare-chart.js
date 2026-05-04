@@ -28,15 +28,15 @@ const README_SCENARIO_NAME = 'readme-evidence';
 const CHART_SCENARIOS = Object.freeze({
   [README_SCENARIO_NAME]: Object.freeze({
     inputs: Object.freeze([
-      path.join(__dirname, 'fixtures', 'g3-1b-p064-d064-t0-k1.compare.json'),
-      path.join(__dirname, 'fixtures', 'lfm2-5-1-2b-p064-d064-t0-k1.compare.json'),
+      path.join(__dirname, 'fixtures', 'gemma4-e2b-sky-t032-chat.compare.json'),
+      path.join(__dirname, 'fixtures', 'qwen3-5-0-8b-p064-d064-t0-k1.compare.json'),
     ]),
     chart: 'phases',
     section: 'compute/parity',
     width: 1200,
     height: 474,
     output: path.join(__dirname, 'results', 'compare_1b_multi-workload_favorable_phases.svg'),
-    description: 'README chart: Gemma 3 and LFM2.5 warm-opfs phase comparison',
+    description: 'README chart: Gemma 4 and Qwen 3.5 0.8B compare phases',
   }),
 });
 const SCENARIO_NAMES = Object.keys(CHART_SCENARIOS);

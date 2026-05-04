@@ -8,10 +8,12 @@ and release matrices. See the
 [benchmark methodology](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
 for the receipt contract and disclosure rules.
 
-## New in 0.4.2
+## New in 0.4.3
 
-- `Gemma 4 E2B` support for Doppler-native `RDRR` artifacts and direct-source `TFLite` / LiteRT workflows.
-- Experimental direct-source loading for `TFLite`, `GGUF`, and `SafeTensors`, alongside native `RDRR` artifacts.
+- `sideEffects` is now scoped to `*.wgsl` and `src/gpu/device.js`, making most modules tree-shakeable.
+- Tooling and support-surface APIs are split into smaller subpaths (`doppler-gpu/tooling/device`, `doppler-gpu/tooling/storage`, `doppler-gpu/tooling/manifest`, `doppler-gpu/structured`, and `doppler-gpu/client/model-manager`).
+- New per-family metadata modules for `gemma3`, `gemma4`, `embeddinggemma`, and `qwen3` add model-family constants plus `resolveModel` and `resolveHfBaseUrl` helpers.
+- Added direct shader-seeding support via `registerShaderSources(map)` and `hasPreseededShaderSource(name)`.
 
 ## Quick start
 
@@ -103,6 +105,10 @@ The tier1 proof surface is the hosted browser demo, the root `doppler` API, the 
 **LoRA hot-swap.** Experimental advanced surface for swapping adapters at runtime without reloading the base model.
 
 **Independent model instances.** Run multiple models concurrently. Each owns its pipeline, buffers, and KV cache.
+
+## Benchmark evidence
+
+![Doppler vs Transformers.js phase timing on Gemma 4 and Qwen 3.5 0.8B workloads](./benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
 
 ## Quickstart-supported models
 
