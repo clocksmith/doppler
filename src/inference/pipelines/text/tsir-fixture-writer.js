@@ -1,20 +1,18 @@
 // Doppler-side TSIR boundary-point fixture writer.
 //
-// Builds rung-5 frozen-Doppler-reference fixtures for the Doe rung
-// ladder (see /home/x/deco/doe/docs/cerebras-north-star.md and
-// /home/x/deco/doe/config/doe-frozen-doppler-reference.schema.json).
-// Captures activation snapshots at the four TSIR boundary points
-// (`post_rmsnorm`, `post_qkv`, `post_attn`, `post_ffn`) during a
+// Builds frozen-Doppler-reference fixtures for the Doe Cerebras lane
+// (see /home/x/deco/doe/config/doe-frozen-doppler-reference.schema.json).
+// Captures handoff and TSIR boundary activation snapshots during a
 // reference inference, writes them as `.npy` files keyed by layer
-// index and probe-point name, and emits a manifest the Doe
-// validator (bench/tools/validate_frozen_doppler_reference.py) can
-// consume.
+// index and probe-point name, and emits a manifest the Doe validator
+// (bench/tools/validate_frozen_doppler_reference.py) can consume.
 //
 // Triggered when `operatorDiagnostics.tsirFixture` is set in the
 // inference context. The CLI flag --tsir-fixture-dir on
 // tools/run-program-bundle-reference.js plumbs it in.
 //
 // Stage name mapping (Doppler stage -> Doe TSIR boundary):
+//   layer_in         -> pre_layer_input
 //   post_input_norm  -> post_rmsnorm
 //   linear_qkv_proj  -> post_qkv          (fused QKV path; single matmul)
 //   q_proj+k_proj+v_proj -> post_qkv      (split QKV path; concatenated along
@@ -50,6 +48,7 @@ async function getNodeFs() {
 }
 
 const STAGE_TO_TSIR = {
+  layer_in: 'pre_layer_input',
   post_input_norm: 'post_rmsnorm',
   // Two QKV-projection paths exist in Doppler:
   //   - Fused: `linear_qkv_proj` (linear-attention.js variants)
@@ -336,7 +335,7 @@ export async function maybeWriteFixtureSnapshot(stage, buffer, options) {
 // name `post_qkv`. For models with split q_proj/k_proj/v_proj (Gemma 4 31B,
 // etc.), we capture each individually for debug introspection AND emit the
 // concatenated Q∥K∥V tensor along the feature axis as `post_qkv.npy` so the
-// Doe-side rung-5 builder + validator + rung-7 oracle can consume it. The
+// Doe-side builder, validator, and splice receipts can consume it. The
 // fused-QKV path (`linear_qkv_proj`) writes to `post_qkv.npy` directly and
 // is not re-synthesized.
 export async function drainPendingTsirReads(tsirFixture) {

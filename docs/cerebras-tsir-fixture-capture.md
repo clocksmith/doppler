@@ -1,6 +1,6 @@
 # TSIR boundary-probe fixture capture (cross-repo)
 
-This is the Doppler-side reference for capturing rung-5 frozen-Doppler-reference fixtures consumed by the Doe Cerebras-lane evidence trail. The fixtures pin per-token activations at the four TSIR boundary points (`post_rmsnorm`, `post_qkv`, `post_attn`, `post_ffn`) from a deterministic Doppler reference inference run; the Doe rung-5 builder + validator + rung-7 oracle bind to these `.npy` files by sha256.
+This is the Doppler-side reference for capturing frozen-Doppler-reference fixtures consumed by the Doe Cerebras-lane evidence trail. The fixtures pin per-token activations at the Doppler-to-CSL handoff point (`pre_layer_input`) and the TSIR boundary points (`post_rmsnorm`, `post_qkv`, `post_attn`, `post_ffn`) from a deterministic Doppler reference inference run; the Doe builder, validator, and splice receipts bind to these `.npy` files by sha256.
 
 The fixture writer at [`src/inference/pipelines/text/tsir-fixture-writer.js`](../src/inference/pipelines/text/tsir-fixture-writer.js) is fully model-agnostic. The stage→TSIR boundary map already covers all the stages emitted by both standard attention (Gemma 4 31B, Qwen 3.6 27B standard-attention layers) and Qwen non-attention layers via `linear_qkv_proj`. No per-model code change is required to capture a new model — only the canonical invocation differs.
 
@@ -63,7 +63,7 @@ node tools/run-program-bundle-reference.js \
 
 `--tsir-fixture-layers 3` captures only L=3, the first standard-attention layer in the checked-in Qwen 3.6 27B manifest. That layer carries `self_attn.{q,k,v,o}_proj` plus `q_norm` and `k_norm` for queryKeyNorm; the standard-attention probe-emit sites at `attention/run.js` and `layer.js` cover all four boundaries.
 
-Once captured, the Doe-side test verifies schema, artifact hashes, recomputed fixture digest, recognized Qwen modelId, and the four-probe coverage at L=3.
+Once captured, the Doe-side test verifies schema, artifact hashes, recomputed fixture digest, recognized Qwen modelId, and the probe coverage at L=3.
 
 ### Qwen 3.6 27B f16 lane
 
@@ -90,6 +90,7 @@ The fixture writer's `STAGE_TO_TSIR` map covers every stage Doppler currently em
 
 | Doppler stage | TSIR boundary | Emit site |
 |---|---|---|
+| `layer_in` | `pre_layer_input` | `layer.js` |
 | `post_input_norm` | `post_rmsnorm` | `attention/run.js`, `attention/record.js` |
 | `linear_qkv_proj` | `post_qkv` (fused) | `linear-attention.js` (Qwen linear-attn layers) |
 | `q_proj`+`k_proj`+`v_proj` | `post_qkv` (split, synthesized) | `attention/run.js`, `attention/record.js` |
@@ -97,11 +98,11 @@ The fixture writer's `STAGE_TO_TSIR` map covers every stage Doppler currently em
 | `post_attn` | `post_attn` | `layer.js` |
 | `layer_out` | `post_ffn` | `layer.js`, `ffn/standard.js`, `ffn/sandwich.js` |
 
-For split-q/k/v models (Gemma 4 31B, Qwen 3.6 27B), the writer auto-synthesizes `post_qkv.npy` from the three projection partials by concatenating `Q ∥ K ∥ V` along the feature axis — this is the schema-binding probe the Doe rung-5 builder consumes.
+For split-q/k/v models (Gemma 4 31B, Qwen 3.6 27B), the writer auto-synthesizes `post_qkv.npy` from the three projection partials by concatenating `Q ∥ K ∥ V` along the feature axis; this is the schema-binding probe the Doe builder consumes.
 
 ## Hybrid-architecture caveat (Qwen 3.6 27B)
 
-Qwen 3.6 27B mixes standard-attention and non-attention layers. The non-attention layers emit `linear_qkv_proj` → `post_qkv` but do not produce `post_attn` or `post_ffn` boundaries in the same shape as standard-attention layers. The L=3 captures above target a standard-attention layer; downstream rungs bind to that layer for the frozen reference.
+Qwen 3.6 27B mixes standard-attention and non-attention layers. The non-attention layers emit `linear_qkv_proj` → `post_qkv` but do not produce `post_attn` or `post_ffn` boundaries in the same shape as standard-attention layers. The L=3 captures above target a standard-attention layer; downstream receipts bind to that layer for the frozen reference.
 
 ## Hardware envelope
 
@@ -109,7 +110,6 @@ Qwen 3.6 27B inference is a 27B-parameter run; capture requires a Doppler-runtim
 
 ## Cross-repo references
 
-- Doe rung ladder: `/home/x/deco/doe/docs/cerebras-north-star.md`
 - Doe Qwen evidence packet: `/home/x/deco/doe/docs/cerebras-27b-qwen-evidence.md`
 - Doe Gemma evidence packet: `/home/x/deco/doe/docs/cerebras-31b-evidence.md`
 - Doe fixture schema: `/home/x/deco/doe/config/doe-frozen-doppler-reference.schema.json`

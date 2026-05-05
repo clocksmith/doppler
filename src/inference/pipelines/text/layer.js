@@ -522,6 +522,16 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   const sandwichNorm = detectSandwichNorm(config);
   const lastTokenIdx = Math.max(0, numTokens - 1);
 
+  await runProbes('layer_in', inputBuffer, {
+    layerIdx,
+    numTokens,
+    hiddenSize,
+    probes: context.debugProbes,
+    recorder,
+    operatorDiagnostics: context.operatorDiagnostics,
+    dtype: inputTensor.dtype,
+  });
+
   if (context.pipelinePlan) {
     return processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, size, context, layerWeights, sandwichNorm);
   }

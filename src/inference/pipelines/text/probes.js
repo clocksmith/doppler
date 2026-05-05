@@ -194,11 +194,10 @@ export async function runProbes(stage, buffer, options) {
 
   const diagnostics = options.operatorDiagnostics ?? null;
   // TSIR fixture writer: when operatorDiagnostics.tsirFixture.dir is
-  // set and the stage maps to one of the four TSIR boundary points
-  // (post_input_norm/linear_qkv_proj/post_attn/layer_out), capture
-  // the activation tensor as a .npy file under
-  // <dir>/layer_<layerIdx>/<tsirStage>.npy. Builds the rung-5 frozen
-  // Doppler reference fixture that the Doe rung ladder consumes.
+  // set and the stage maps to a Doppler-to-CSL handoff or TSIR
+  // boundary point, capture the activation tensor as a .npy file under
+  // <dir>/layer_<layerIdx>/<tsirStage>.npy for Doe validators and
+  // splice receipts.
   if (diagnostics?.tsirFixture?.dir) {
     const tsirRecord = await maybeWriteFixtureSnapshot(stage, buffer, {
       tsirFixture: diagnostics.tsirFixture,

@@ -27,10 +27,10 @@ function usage() {
     '  --report-out <path>            Where to write the captured report.',
     '  --created-at <iso>             Bundle timestamp override.',
     '  --bundle-id <id>               Bundle id override.',
-    '  --tsir-fixture-dir <dir>       Capture activations at the four TSIR boundary points',
-    '                                 (post_rmsnorm/post_qkv/post_attn/post_ffn) and write',
-    '                                 them as .npy under <dir>/layer_<N>/<probe>.npy. Used to',
-    '                                 produce the Doe rung-5 frozen Doppler reference fixture.',
+    '  --tsir-fixture-dir <dir>       Capture handoff and TSIR boundary activations',
+    '                                 (pre_layer_input/post_rmsnorm/post_qkv/post_attn/post_ffn)',
+    '                                 and write them as .npy under <dir>/layer_<N>/<probe>.npy.',
+    '                                 Used to produce Doe frozen Doppler reference fixtures.',
     '  --tsir-fixture-layers <list>   Comma-separated layer indices to capture (default: all).',
   ].join('\n');
 }
