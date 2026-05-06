@@ -15,6 +15,59 @@ function assertApproxArray(actual, expected, epsilon = 1e-3) {
   }
 }
 
+function cpuLocation(dtype, size, shape) {
+  return {
+    shardIndex: 0,
+    offset: 0,
+    size,
+    shape,
+    dtype,
+    role: 'matmul',
+  };
+}
+
+{
+  const f16Bytes = Uint8Array.from([0x00, 0x3c, 0x00, 0xc0, 0x00, 0x38, 0x00, 0x34]);
+  const aligned = loadTensorToCPU(f16Bytes, cpuLocation('F16', f16Bytes.byteLength, [4]));
+  assert.ok(aligned instanceof Float32Array);
+  assertApproxArray(Array.from(aligned), [1, -2, 0.5, 0.25]);
+
+  const backing = Uint8Array.from([0xff, ...f16Bytes]);
+  const unalignedBytes = backing.subarray(1);
+  const unaligned = loadTensorToCPU(unalignedBytes, cpuLocation('F16', unalignedBytes.byteLength, [4]));
+  assert.ok(unaligned instanceof Float32Array);
+  assertApproxArray(Array.from(unaligned), [1, -2, 0.5, 0.25]);
+}
+
+{
+  const bf16Bytes = Uint8Array.from([0x80, 0x3f, 0x00, 0xc0, 0x00, 0x3f, 0x80, 0x3e]);
+  const aligned = loadTensorToCPU(bf16Bytes, cpuLocation('BF16', bf16Bytes.byteLength, [4]));
+  assert.ok(aligned instanceof Float32Array);
+  assertApproxArray(Array.from(aligned), [1, -2, 0.5, 0.25]);
+
+  const backing = Uint8Array.from([0xff, ...bf16Bytes]);
+  const unalignedBytes = backing.subarray(1);
+  const unaligned = loadTensorToCPU(unalignedBytes, cpuLocation('BF16', unalignedBytes.byteLength, [4]));
+  assert.ok(unaligned instanceof Float32Array);
+  assertApproxArray(Array.from(unaligned), [1, -2, 0.5, 0.25]);
+}
+
+{
+  const f32Source = new Float32Array([1, -2, 0.5, 0.25]);
+  const exact = loadTensorToCPU(f32Source, cpuLocation('F32', f32Source.byteLength, [4]));
+  assert.ok(exact instanceof Float32Array);
+  assert.equal(exact.buffer, f32Source.buffer);
+  assertApproxArray(Array.from(exact), [1, -2, 0.5, 0.25]);
+
+  const backing = new Uint8Array(f32Source.byteLength + 4);
+  backing.set(new Uint8Array(f32Source.buffer), 4);
+  const rangedBytes = backing.subarray(4);
+  const ranged = loadTensorToCPU(rangedBytes, cpuLocation('F32', rangedBytes.byteLength, [4]));
+  assert.ok(ranged instanceof Float32Array);
+  assert.notEqual(ranged.buffer, backing.buffer);
+  assertApproxArray(Array.from(ranged), [1, -2, 0.5, 0.25]);
+}
+
 const int8Location = {
   shardIndex: 0,
   offset: 0,

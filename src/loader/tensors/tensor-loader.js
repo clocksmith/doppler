@@ -77,6 +77,28 @@ function toUint8View(data) {
   return new Uint8Array(data);
 }
 
+function toUint16View(data, label) {
+  const bytes = toUint8View(data);
+  if (bytes.byteLength % 2 !== 0) {
+    throw new Error(`${label}: byte length must be divisible by 2.`);
+  }
+  if (bytes.byteOffset % 2 === 0) {
+    return new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2);
+  }
+  return new Uint16Array(bytes.slice().buffer);
+}
+
+function toFloat32View(data, label) {
+  const bytes = toUint8View(data);
+  if (bytes.byteLength % 4 !== 0) {
+    throw new Error(`${label}: byte length must be divisible by 4.`);
+  }
+  if (bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength) {
+    return new Float32Array(bytes.buffer);
+  }
+  return new Float32Array(bytes.slice().buffer);
+}
+
 function resolveInputByteLength(data, fallbackSize) {
   if (data instanceof Uint8Array) return data.byteLength;
   if (ArrayBuffer.isView(data)) return data.byteLength;
@@ -798,15 +820,13 @@ export async function loadTensorToGPU(shardData, location, name, config) {
 
 const CPU_LOADER_DISPATCH = {
   raw: (shardData, _location) => shardData,
-  bf16_to_f32: (shardData, _location) => {
-    const bf16 = new Uint16Array(shardData.slice().buffer);
-    return convertBF16ToF32CPU(bf16);
-  },
-  f16_to_f32: (shardData, _location) => {
-    const f16 = new Uint16Array(shardData.slice().buffer);
-    return convertF16ToF32CPU(f16);
-  },
-  f32: (shardData, _location) => new Float32Array(shardData.slice().buffer),
+  bf16_to_f32: (shardData, _location) => convertBF16ToF32CPU(
+    toUint16View(shardData, 'BF16 CPU tensor load')
+  ),
+  f16_to_f32: (shardData, _location) => convertF16ToF32CPU(
+    toUint16View(shardData, 'F16 CPU tensor load')
+  ),
+  f32: (shardData, _location) => toFloat32View(shardData, 'F32 CPU tensor load'),
 };
 
 export function loadTensorToCPU(shardData, location) {

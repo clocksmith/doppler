@@ -2,7 +2,7 @@
 
 import { getDevice, hasFeature, FEATURES } from './device.js';
 import { allowReadback, trackAllocation } from './perf-guards.js';
-import { getUniformCache } from './uniform-cache.js';
+import { getUniformCache, toUniformArrayBuffer } from './uniform-cache.js';
 import { isBufferActive, isPersistentBuffer, releaseBuffer, discardBuffer } from '../memory/buffer-pool.js';
 import { log } from '../debug/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
@@ -218,14 +218,7 @@ export class CommandRecorder {
 
   
   createUniformBuffer(data, label = 'uniforms') {
-    // Convert ArrayBufferView to ArrayBuffer for caching
-    const arrayBuffer = data instanceof ArrayBuffer
-      ? data
-      : data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
-
-    // Use content-addressed cache for uniform buffers
-    // Cache handles creation, writeBuffer, and lifecycle - no cleanup needed
-    return getUniformCache().getOrCreate(arrayBuffer, label);
+    return getUniformCache().getOrCreate(toUniformArrayBuffer(data), label);
   }
 
   

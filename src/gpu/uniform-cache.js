@@ -21,6 +21,19 @@ function copyUniformBytes(data) {
   return new Uint8Array(data.slice(0));
 }
 
+export function toUniformArrayBuffer(data) {
+  if (data instanceof ArrayBuffer) {
+    return data;
+  }
+  if (ArrayBuffer.isView(data)) {
+    if (data.byteOffset === 0 && data.byteLength === data.buffer.byteLength) {
+      return data.buffer;
+    }
+    return data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+  }
+  throw new Error('Uniform data must be ArrayBuffer or ArrayBufferView.');
+}
+
 function equalUniformBytes(a, b) {
   if (a.length !== b.length) return false;
   for (let i = 0; i < a.length; i++) {

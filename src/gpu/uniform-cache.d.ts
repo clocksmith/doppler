@@ -80,6 +80,8 @@ export declare class UniformBufferCache {
   getStats(): UniformCacheStats & { hitRate: string; pendingDestruction: number };
 }
 
+export function toUniformArrayBuffer(data: ArrayBuffer | ArrayBufferView): ArrayBuffer;
+
 /**
  * Release or destroy a uniform buffer appropriately.
  * If the buffer is cached, releases it back to the cache.

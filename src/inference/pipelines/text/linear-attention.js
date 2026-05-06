@@ -2,7 +2,7 @@ import { getBufferDtype, isGpuBufferInstance, isWeightBuffer } from '../../../gp
 import { recordMatmul, recordRMSNorm, runMatmul, runRMSNorm, castF32ToF16, recordCastF32ToF16 } from '../../../gpu/kernel-selector.js';
 import { readBuffer, releaseBuffer, uploadData, acquireBuffer } from '../../../memory/buffer-pool.js';
 import { log } from '../../../debug/index.js';
-import { decodeReadback } from './debug-utils/index.js';
+import { decodeReadback, f16ToF32 } from './debug-utils/index.js';
 import { runLinearAttentionCoreGPU } from '../../../gpu/kernels/linear-attention-core.js';
 import { runProbes } from './probes.js';
 import { QK_K, Q4K_BLOCK_BYTES } from '../../../config/schema/index.js';
@@ -253,8 +253,10 @@ async function readWeightAsF32(weight, expectedElements, label) {
     let copied;
     if (weight instanceof Uint16Array || weight instanceof Int16Array) {
       const raw = new Uint16Array(weight.buffer, weight.byteOffset, weight.byteLength / 2);
-      const bytes = raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength);
-      copied = decodeReadback(bytes, 'f16');
+      copied = new Float32Array(raw.length);
+      for (let index = 0; index < raw.length; index += 1) {
+        copied[index] = f16ToF32(raw[index]);
+      }
     } else if (
       weight instanceof Float64Array
       || weight instanceof Float32Array
@@ -278,7 +280,7 @@ async function readWeightAsF32(weight, expectedElements, label) {
   if (weight instanceof ArrayBuffer) {
     let copied;
     if (expectedElements != null && weight.byteLength === expectedElements * 2) {
-      copied = decodeReadback(weight.slice(0), 'f16');
+      copied = decodeReadback(weight, 'f16');
     } else {
       copied = new Float32Array(weight.slice(0));
     }

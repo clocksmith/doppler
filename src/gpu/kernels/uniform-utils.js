@@ -1,7 +1,7 @@
 
 
 import { getDevice } from '../device.js';
-import { getUniformCache } from '../uniform-cache.js';
+import { getUniformCache, toUniformArrayBuffer } from '../uniform-cache.js';
 
 // ============================================================================
 // Uniform Buffer Creation
@@ -78,10 +78,7 @@ export function createUniformBufferFromData(
     return recorder.createUniformBuffer(data, label);
   }
 
-  // Convert ArrayBufferView to ArrayBuffer for caching
-  const arrayBuffer = data instanceof ArrayBuffer
-    ? data
-    : data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+  const arrayBuffer = toUniformArrayBuffer(data);
 
   // Use cache by default for non-recorder paths
   const useCache = options?.useCache ?? true;
