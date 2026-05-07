@@ -365,6 +365,15 @@ async function createLocalFileRelayMount(filePath, fieldLabel, urlPrefixRoot, op
   const mountName = encodeURIComponent(fileName);
   const mountPrefix = `${urlPrefixRoot}/${mountName}-${process.pid}-${Date.now()}`;
   if (expectDirectory) {
+    if (options.mountParentDirectory === true) {
+      return {
+        url: `${mountPrefix}/${mountName}`,
+        staticMount: {
+          urlPrefix: mountPrefix,
+          rootDir: path.dirname(filePath),
+        },
+      };
+    }
     return {
       url: mountPrefix,
       staticMount: {
@@ -409,6 +418,7 @@ export async function resolveLocalFileModelUrlForBrowserRelay(request, options =
       originalUrl: request.modelUrl,
       kind: 'directory',
       fallbackName: 'model',
+      mountParentDirectory: true,
     });
     relayRequest = {
       ...relayRequest,

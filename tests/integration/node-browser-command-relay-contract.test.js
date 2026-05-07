@@ -110,12 +110,16 @@ const KERNELS_REQUEST = {
     );
     assert.equal(resolution.staticMounts.length, 2);
     assert.equal(
-      resolution.staticMounts[1].urlPrefix,
+      `${resolution.staticMounts[1].urlPrefix}/${encodeURIComponent(path.basename(modelDir))}`,
       resolution.relayRequest.modelUrl
     );
     assert.equal(
       resolution.staticMounts[1].rootDir,
-      modelDir
+      path.dirname(modelDir)
+    );
+    assert.equal(
+      new URL('../weights-primary/manifest.json', `http://relay.test${resolution.relayRequest.modelUrl}/`).pathname,
+      `${resolution.staticMounts[1].urlPrefix}/weights-primary/manifest.json`
     );
   } finally {
     await fs.rm(modelDir, { recursive: true, force: true });
