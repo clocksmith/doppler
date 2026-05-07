@@ -1220,7 +1220,8 @@ function buildGenerationPhaseFromStats(pipeline, durationMs, tokenCount) {
     Number.isFinite(stats.decodeSubmitWaitMs) &&
     Number.isFinite(stats.decodeReadbackWaitMs)
   ) {
-    gpu.decodeOrchestrationMs = decodeMs - stats.decodeRecordMs - stats.decodeSubmitWaitMs - stats.decodeReadbackWaitMs;
+    const decodeGpuWaitMs = Math.max(stats.decodeSubmitWaitMs, stats.decodeReadbackWaitMs);
+    gpu.decodeOrchestrationMs = decodeMs - stats.decodeRecordMs - decodeGpuWaitMs;
   }
   if (Number.isFinite(stats.singleTokenSubmitWaitMs)) gpu.singleTokenSubmitWaitMs = stats.singleTokenSubmitWaitMs;
   if (Number.isFinite(stats.singleTokenReadbackWaitMs)) gpu.singleTokenReadbackWaitMs = stats.singleTokenReadbackWaitMs;

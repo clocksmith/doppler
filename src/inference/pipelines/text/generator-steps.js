@@ -37,6 +37,7 @@ import {
 } from './per-layer-inputs.js';
 
 const UNKNOWN_TOKEN_TEXT = '<unknown>';
+const FINITENESS_RESET_WORDS = new Uint32Array(4);
 
 export function sumProfileTimings(timings) {
   if (!timings || Object.keys(timings).length === 0) return null;
@@ -300,12 +301,15 @@ export async function readBatchTokensFromStagingBuffers(options) {
     await cleanupRecorder?.completeDeferredCleanup();
     cleanupCompleted = true;
 
-    const tokens = Array.from(
-      new Uint32Array(tokensStagingBuffer.getMappedRange()).subarray(0, tokenCount)
-    );
-    const stopFlags = stopStagingBuffer
-      ? new Uint32Array(stopStagingBuffer.getMappedRange().slice(0, tokenCount * 4))
-      : null;
+    const tokenWords = new Uint32Array(tokensStagingBuffer.getMappedRange()).subarray(0, tokenCount);
+    const tokens = new Uint32Array(tokenWords.length);
+    tokens.set(tokenWords);
+    let stopFlags = null;
+    if (stopStagingBuffer) {
+      const stopWords = new Uint32Array(stopStagingBuffer.getMappedRange()).subarray(0, tokenCount);
+      stopFlags = new Uint32Array(stopWords.length);
+      stopFlags.set(stopWords);
+    }
     const finitenessStatus = finitenessStagingBuffer
       ? parseFinitenessStatusWords(new Uint32Array(finitenessStagingBuffer.getMappedRange()), 0)
       : { triggered: false, metadata: '' };
@@ -491,7 +495,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   const recorder = createDecodeRecorder(state, opts);
 
   if (state.finitenessBuffer && device) {
-    device.queue.writeBuffer(state.finitenessBuffer, 0, new Uint32Array([0, 0, 0, 0]));
+    device.queue.writeBuffer(state.finitenessBuffer, 0, FINITENESS_RESET_WORDS);
   }
 
   const context = helpers.buildLayerContext(recorder, true, opts.debugLayers, executionPlan);
@@ -1329,12 +1333,15 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   let repHistoryCount = 0;
   try {
     if (state.finitenessBuffer) {
-      device.queue.writeBuffer(state.finitenessBuffer, 0, new Uint32Array([0, 0, 0, 0]));
+      device.queue.writeBuffer(state.finitenessBuffer, 0, FINITENESS_RESET_WORDS);
     }
 
-    device.queue.writeBuffer(tokensBuffer, 0, new Uint32Array([startToken]));
+    const singleWordUpload = new Uint32Array(1);
+    singleWordUpload[0] = startToken;
+    device.queue.writeBuffer(tokensBuffer, 0, singleWordUpload);
     if (pleInputTokensBuffer) {
-      device.queue.writeBuffer(pleInputTokensBuffer, 0, new Uint32Array([hotStartTokenIndex]));
+      singleWordUpload[0] = hotStartTokenIndex;
+      device.queue.writeBuffer(pleInputTokensBuffer, 0, singleWordUpload);
     }
     if (stopBuffer) {
       const stopElements = stopBuffer.size / 4;

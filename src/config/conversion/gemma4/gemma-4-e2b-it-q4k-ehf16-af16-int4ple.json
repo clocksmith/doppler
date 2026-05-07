@@ -61,12 +61,14 @@
       "sourceCheckpointId": "google/gemma-4-E2B-it",
       "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
       "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple-mv-f16-activations-v1",
+      "shardSetHash": "sha256:7575f4e89b3938a3ca4f8d7fc50fb46d4cfbd1d4dcc3b6ed62b6fb53424678ea",
       "artifactCompleteness": "weights-ref"
     },
     "weightsRef": {
       "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
       "artifactRoot": "../gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
-      "manifestDigest": "sha256:52e913f2176e8e4ce962e8411aec8ecd38ca0b685c3ebc0b8b507230ec8278b1"
+      "manifestDigest": "sha256:20f836ff4b2b6e27550b4112afd12c71d0ca19b6a23ed0e5a61a32ac0c0ee18f",
+      "shardSetHash": "sha256:7575f4e89b3938a3ca4f8d7fc50fb46d4cfbd1d4dcc3b6ed62b6fb53424678ea"
     }
   },
   "inference": {

@@ -111,6 +111,8 @@ import {
   cloneRuntimeInferenceWithKVDtype,
 } from './generator-decode-policy.js';
 
+const FINITENESS_RESET_WORDS = new Uint32Array(4);
+
 let intentBundleModulePromise = null;
 
 async function getExperimentalIntentBundleModule() {
@@ -1936,7 +1938,7 @@ export class PipelineGenerator {
     if (this.#state.finitenessBuffer) {
       const device = getDevice();
       if (device) {
-        device.queue.writeBuffer(this.#state.finitenessBuffer, 0, new Uint32Array([0, 0, 0, 0]));
+        device.queue.writeBuffer(this.#state.finitenessBuffer, 0, FINITENESS_RESET_WORDS);
       }
     }
 

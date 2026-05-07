@@ -169,7 +169,7 @@ function createStagingBuffer(words, options = {}) {
     ring,
   });
 
-  assert.deepEqual(result.tokens, [5, 6, 7]);
+  assert.deepEqual(Array.from(result.tokens), [5, 6, 7]);
   assert.deepEqual(Array.from(result.stopFlags || []), [0, 1, 0]);
   assert.equal(result.finitenessStatus.metadata, ' (layer 3, step 4)');
   assert.equal(tokensStagingBuffer.unmapCount, 1);
@@ -251,7 +251,7 @@ function createStagingBuffer(words, options = {}) {
     ring,
   });
 
-  assert.deepEqual(result.tokens, [5, 6, 7]);
+  assert.deepEqual(Array.from(result.tokens), [5, 6, 7]);
   assert.equal(finitenessStagingBuffer.destroyCount, 0);
   assert.equal(finitenessStagingBuffer.unmapCount, 1);
   assert.equal(ring.advanceCount, 1);

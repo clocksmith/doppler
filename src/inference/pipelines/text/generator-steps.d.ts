@@ -87,7 +87,7 @@ export declare function readBatchTokensFromStagingBuffers(options: {
   ownsStopStaging?: boolean;
   ring?: { advance(): void } | null;
 }): Promise<{
-  tokens: number[];
+  tokens: Uint32Array;
   stopFlags: Uint32Array | null;
   finitenessStatus: {
     triggered: boolean;
@@ -148,4 +148,4 @@ export declare function generateNTokensGPU(
     getLogitsWeights: () => unknown;
     getLogitsConfig: () => unknown;
   }
-): Promise<{ tokens: number[]; actualCount: number }>;
+): Promise<{ tokens: number[] | Uint32Array; actualCount: number }>;

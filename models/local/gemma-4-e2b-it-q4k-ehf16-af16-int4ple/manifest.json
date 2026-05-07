@@ -25350,7 +25350,7 @@
   },
   "conversion": {
     "conversionConfigPath": "src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json",
-    "conversionConfigDigest": "sha256:4e6ebd246750c77e715d33df51d96d2ee663ad1e3f27bccf15e7de9afeeb2766",
+    "conversionConfigDigest": "sha256:f1d649d900f784e770833a5cf11ff198e00048f6679116816a791065b64685ca",
     "sourceManifestId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
     "siblingMode": "weights-ref"
   },
@@ -25372,9 +25372,10 @@
     "sourceCheckpointId": "google/gemma-4-E2B-it",
     "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
     "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple-mv-f16-activations-v1",
+    "shardSetHash": "sha256:7575f4e89b3938a3ca4f8d7fc50fb46d4cfbd1d4dcc3b6ed62b6fb53424678ea",
     "artifactCompleteness": "weights-ref",
     "conversionConfigPath": "src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json",
-    "conversionConfigDigest": "sha256:4e6ebd246750c77e715d33df51d96d2ee663ad1e3f27bccf15e7de9afeeb2766"
+    "conversionConfigDigest": "sha256:f1d649d900f784e770833a5cf11ff198e00048f6679116816a791065b64685ca"
   },
   "integrityExtensions": {
     "contractVersion": 1,
@@ -27398,7 +27399,7 @@
   "weightsRef": {
     "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
     "artifactRoot": "../gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
-    "manifestDigest": "sha256:af909166afe83c8a63d00b27b0e33cc9831d846c2a5efe81921c2df3c22ce6cf",
+    "manifestDigest": "sha256:20f836ff4b2b6e27550b4112afd12c71d0ca19b6a23ed0e5a61a32ac0c0ee18f",
     "shardSetHash": "sha256:7575f4e89b3938a3ca4f8d7fc50fb46d4cfbd1d4dcc3b6ed62b6fb53424678ea"
   }
 }

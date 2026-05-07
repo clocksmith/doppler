@@ -62,7 +62,7 @@ const { runGeneration } = await import('../../src/inference/browser-harness-text
   assert.equal(result.phase.batching?.gpuSubmissions, 13);
   assert.equal(result.phase.gpu?.singleTokenReadbackWaitMs, 7);
   assert.equal(result.phase.gpu?.singleTokenOrchestrationMs, 8);
-  assert.equal(result.phase.gpu?.decodeOrchestrationMs, 1);
+  assert.equal(result.phase.gpu?.decodeOrchestrationMs, 2);
 }
 
 {
@@ -138,12 +138,13 @@ const { runGeneration } = await import('../../src/inference/browser-harness-text
   assert.equal(result.metrics.batching?.gpuSubmissions?.median, 1);
   assert.equal(result.metrics.gpu?.singleTokenReadbackWaitMs?.median, 4);
   assert.equal(result.metrics.gpu?.singleTokenOrchestrationMs?.median, 2);
-  assert.equal(result.metrics.gpu?.decodeOrchestrationMs?.median, 3);
+  assert.equal(result.metrics.gpu?.decodeOrchestrationMs?.median, 5);
 }
 
 {
-  // decodeOrchestrationMs is a derived residual: when component timings sum exceeds
-  // decodeMs (scope drift), the residual is negative. It must surface as-is, not clamp to 0.
+  // decodeSubmitWaitMs and decodeReadbackWaitMs observe the same submitted GPU work
+  // from different points in the command lifecycle, so only the larger wait belongs
+  // in the residual.
   const pipeline = {
     async *generate(_promptInput, options = {}) {
       options.onToken?.(1, 'Blue');
@@ -173,8 +174,7 @@ const { runGeneration } = await import('../../src/inference/browser-harness-text
     shared: { tooling: { intent: 'calibrate' } },
   });
 
-  // 5 - 3 - 2 - 2 = -2: scope drift must be visible, not hidden as 0
-  assert.equal(result.phase.gpu?.decodeOrchestrationMs, -2);
+  assert.equal(result.phase.gpu?.decodeOrchestrationMs, 0);
 }
 
 console.log('browser-harness-batching-metrics.test: ok');
