@@ -2,6 +2,23 @@
   "capabilityTransforms": [
     {
       "match": {
+        "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+        "platformVendor": "apple"
+      },
+      "transforms": ["failClosedLaneMismatch"],
+      "reason": "af16-int4ple lane requires retainQ4KMaterialization=true to dispatch the fused-q4k+f16 widetile pool, which produces intermittent NaN at L1.attn_core_out on Apple Metal — load the af32 manifest variant instead. Bug is INTERMITTENT (some runs succeed) and depends on buffer-pool aliasing patterns; confirmed re-emerged 2026-05-07 after e5c9a6a tightened bucket defaults."
+    },
+    {
+      "match": {
+        "modelId": { "startsWith": "gemma-4-e2b-it-q4k-" },
+        "platformVendor": "apple",
+        "retainQ4KMaterialization": true
+      },
+      "transforms": ["disableRetainQ4KMaterialization"],
+      "reason": "Fused-q4k FFN kernels under retain=mixed corrupt subsequent-layer attention compute on Apple Metal (intermittent NaN at L1.attn_core_out and beyond). Standalone-q4k projection kernels are clean; only the fused gate+up+down dispatch is the perturbation source."
+    },
+    {
+      "match": {
         "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
         "activationDtype": "f16",
         "hasSubgroups": true,
