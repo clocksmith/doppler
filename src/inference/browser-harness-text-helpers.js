@@ -1265,10 +1265,12 @@ function buildGenerationPhaseFromStats(pipeline, durationMs, tokenCount) {
   const plePreparedTokenCachePhase = Object.keys(plePreparedTokenCache).length > 0
     ? plePreparedTokenCache
     : null;
+  const wallMs = Number.isFinite(stats.totalTimeMs) ? stats.totalTimeMs : durationMs;
 
   return {
     phase: {
-      totalMs: Number.isFinite(stats.totalTimeMs) ? stats.totalTimeMs : durationMs,
+      totalMs: prefillMs + decodeMs,
+      wallMs,
       ttftMs,
       prefillMs,
       decodeMs,

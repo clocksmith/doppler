@@ -143,15 +143,23 @@ function maxBatchDecodeTokensSemantic(context) {
   if (context.hasLinearAttentionLayers === true) {
     return 32;
   }
+  if (context.hasGpuSplitPerLayerInputs === true && context.maxDecodeTokens > 16) {
+    return 16;
+  }
+  if (context.hasGpuSplitPerLayerInputs === true && context.currentSeqLen >= 192) {
+    return 16;
+  }
   return context.hasGpuSplitPerLayerInputs === true ? 8 : null;
 }
 
 function enumerateMaxBatchDecodeTokenContexts() {
   return [
-    { hasHotVocabularyBatchDecode: true, hasGpuSplitPerLayerInputs: false, hasLinearAttentionLayers: false },
-    { hasHotVocabularyBatchDecode: false, hasGpuSplitPerLayerInputs: false, hasLinearAttentionLayers: true },
-    { hasHotVocabularyBatchDecode: false, hasGpuSplitPerLayerInputs: true, hasLinearAttentionLayers: false },
-    { hasHotVocabularyBatchDecode: false, hasGpuSplitPerLayerInputs: false, hasLinearAttentionLayers: false },
+    { hasHotVocabularyBatchDecode: true, hasGpuSplitPerLayerInputs: false, hasLinearAttentionLayers: false, currentSeqLen: 19, maxDecodeTokens: 8 },
+    { hasHotVocabularyBatchDecode: false, hasGpuSplitPerLayerInputs: false, hasLinearAttentionLayers: true, currentSeqLen: 19, maxDecodeTokens: 8 },
+    { hasHotVocabularyBatchDecode: false, hasGpuSplitPerLayerInputs: true, hasLinearAttentionLayers: false, currentSeqLen: 133, maxDecodeTokens: 16 },
+    { hasHotVocabularyBatchDecode: false, hasGpuSplitPerLayerInputs: true, hasLinearAttentionLayers: false, currentSeqLen: 133, maxDecodeTokens: 32 },
+    { hasHotVocabularyBatchDecode: false, hasGpuSplitPerLayerInputs: true, hasLinearAttentionLayers: false, currentSeqLen: 283, maxDecodeTokens: 16 },
+    { hasHotVocabularyBatchDecode: false, hasGpuSplitPerLayerInputs: false, hasLinearAttentionLayers: false, currentSeqLen: 19, maxDecodeTokens: 8 },
   ];
 }
 
@@ -363,10 +371,17 @@ export function buildInferenceExecutionRulesContractArtifact(ruleGroup) {
   });
 
   const maxBatchShapeErrors = [];
-  if (!Array.isArray(maxBatchDecodeTokenRules) || maxBatchDecodeTokenRules.length !== 4) {
-    maxBatchShapeErrors.push('[ExecutionRulesContract] maxBatchDecodeTokens must contain exactly 4 rules.');
+  if (!Array.isArray(maxBatchDecodeTokenRules) || maxBatchDecodeTokenRules.length !== 6) {
+    maxBatchShapeErrors.push('[ExecutionRulesContract] maxBatchDecodeTokens must contain exactly 6 rules.');
   } else {
-    const [hotVocabularyRule, linearAttentionRule, splitTablesRule, fallbackRule] = maxBatchDecodeTokenRules;
+    const [
+      hotVocabularyRule,
+      linearAttentionRule,
+      splitTablesLargeDecodeRule,
+      splitTablesLargePrefillRule,
+      splitTablesFallbackRule,
+      fallbackRule,
+    ] = maxBatchDecodeTokenRules;
     if (!matchesExactObject(hotVocabularyRule?.match, { hasHotVocabularyBatchDecode: true }) || hotVocabularyRule?.value !== 1) {
       maxBatchShapeErrors.push(
         '[ExecutionRulesContract] maxBatchDecodeTokens hot-vocabulary rule must cap tokenizer_scores bursts at 1 token.'
@@ -377,9 +392,31 @@ export function buildInferenceExecutionRulesContractArtifact(ruleGroup) {
         '[ExecutionRulesContract] maxBatchDecodeTokens linear-attention rule must cap unsafe burst recording at 32 tokens.'
       );
     }
-    if (!matchesExactObject(splitTablesRule?.match, { hasGpuSplitPerLayerInputs: true }) || splitTablesRule?.value !== 8) {
+    if (
+      !matchesExactObject(splitTablesLargeDecodeRule?.match, {
+        hasGpuSplitPerLayerInputs: true,
+        maxDecodeTokens: { gt: 16 },
+      })
+      || splitTablesLargeDecodeRule?.value !== 16
+    ) {
       maxBatchShapeErrors.push(
-        '[ExecutionRulesContract] maxBatchDecodeTokens enabling rule must cap gpu_split_tables bursts at 8 tokens.'
+        '[ExecutionRulesContract] maxBatchDecodeTokens gpu_split_tables large-decode rule must cap bursts at 16 tokens.'
+      );
+    }
+    if (
+      !matchesExactObject(splitTablesLargePrefillRule?.match, {
+        hasGpuSplitPerLayerInputs: true,
+        currentSeqLen: { gte: 192 },
+      })
+      || splitTablesLargePrefillRule?.value !== 16
+    ) {
+      maxBatchShapeErrors.push(
+        '[ExecutionRulesContract] maxBatchDecodeTokens gpu_split_tables large-prefill rule must cap bursts at 16 tokens.'
+      );
+    }
+    if (!matchesExactObject(splitTablesFallbackRule?.match, { hasGpuSplitPerLayerInputs: true }) || splitTablesFallbackRule?.value !== 8) {
+      maxBatchShapeErrors.push(
+        '[ExecutionRulesContract] maxBatchDecodeTokens gpu_split_tables fallback rule must cap bursts at 8 tokens.'
       );
     }
     if (!matchesExactObject(fallbackRule?.match, {}) || fallbackRule?.value !== null) {

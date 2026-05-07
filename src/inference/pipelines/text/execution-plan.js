@@ -432,6 +432,8 @@ export function resolveMaxBatchDecodeTokens(config) {
     hasHotVocabularyBatchDecode: config.hasHotVocabularyBatchDecode === true,
     hasGpuSplitPerLayerInputs: config.hasGpuSplitPerLayerInputs === true,
     hasLinearAttentionLayers: config.hasLinearAttentionLayers === true,
+    currentSeqLen: Number.isFinite(config.currentSeqLen) ? config.currentSeqLen : 0,
+    maxDecodeTokens: Number.isFinite(config.maxDecodeTokens) ? config.maxDecodeTokens : 0,
   });
   if (value == null) {
     return null;

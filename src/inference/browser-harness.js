@@ -566,6 +566,7 @@ async function runInferenceSuite(options = {}) {
       firstResponseMs: safeToFixed(safeModelLoadMs + run.phase.ttftMs),
       prefillMs: safeToFixed(run.phase.prefillMs),
       decodeMs: safeToFixed(run.phase.decodeMs),
+      wallRunMs: safeToFixed(run.phase.wallMs ?? run.durationMs),
       prefillTokens: Math.round(run.phase.prefillTokens),
       decodeTokens: Math.round(run.phase.decodeTokens),
       stopReason: run.phase.stopReason ?? null,
@@ -893,6 +894,7 @@ async function runBenchSuite(options = {}) {
   } else {
     const tokensPerSec = [];
     const durations = [];
+    const phaseTotals = [];
     const tokensGenerated = [];
     const decodeMsPerToken = [];
     const ttftMs = [];
@@ -926,6 +928,8 @@ async function runBenchSuite(options = {}) {
 
     let generatedText = null;
     let generatedPromptInput = null;
+    let lastPromptLabel = benchRun.promptLabel;
+    let lastMaxTokens = benchRun.maxTokens;
     let lastDecodeMode = null;
     let lastBatchGuardReason = null;
     for (let i = 0; i < warmupRuns + timedRuns; i++) {
@@ -947,6 +951,8 @@ async function runBenchSuite(options = {}) {
       if (i === warmupRuns + timedRuns - 1) {
         generatedText = run?.output ?? null;
         generatedPromptInput = run?.promptInput ?? null;
+        lastPromptLabel = run?.prompt ?? benchRun.promptLabel;
+        lastMaxTokens = Number.isFinite(run?.maxTokens) ? run.maxTokens : benchRun.maxTokens;
         lastDecodeMode = run?.phase?.decodeMode ?? null;
         lastBatchGuardReason = run?.phase?.batchGuardReason ?? null;
       }
@@ -958,6 +964,7 @@ async function runBenchSuite(options = {}) {
         const phasePlePreparedTokenCache = phase.plePreparedTokenCache;
         tokensPerSec.push(run?.tokensPerSec);
         durations.push(run?.durationMs);
+        phaseTotals.push(phase.totalMs);
         tokensGenerated.push(phaseTokens.length);
         ttftMs.push(phase.ttftMs);
         prefillMs.push(phase.prefillMs);
@@ -995,7 +1002,8 @@ async function runBenchSuite(options = {}) {
       }
     }
 
-    const totalMsStats = computeSampleStats(durations);
+    const totalMsStats = computeSampleStats(phaseTotals);
+    const wallRunMsStats = computeSampleStats(durations);
     const tokensPerSecStats = computeSampleStats(tokensPerSec);
     const decodeTokensPerSecStats = computeSampleStats(decodeTokensPerSec);
     const prefillTokensPerSecStats = computeSampleStats(prefillTokensPerSec);
@@ -1069,8 +1077,8 @@ async function runBenchSuite(options = {}) {
       warmupRuns,
       timedRuns,
       ...(Number.isFinite(benchRun?.seed) ? { seed: benchRun.seed } : {}),
-      prompt: benchRun.promptLabel,
-      maxTokens: benchRun.maxTokens,
+      prompt: lastPromptLabel,
+      maxTokens: lastMaxTokens,
       decodeTokensPerSec: sampleTimingNumber(decodeTokensPerSecStats, 'median'),
       avgTokensGenerated: Math.round(tokensGeneratedStats.mean),
       avgPrefillTokens: Math.round(prefillTokensStats.mean),
@@ -1089,6 +1097,7 @@ async function runBenchSuite(options = {}) {
       decodeMsPerTokenP95: sampleTimingNumber(decodeMsPerTokenStats, 'p95'),
       decodeMsPerTokenP99: sampleTimingNumber(decodeMsPerTokenStats, 'p99'),
       avgPrefillMs: sampleTimingNumber(prefillMsStats, 'mean'),
+      wallRunMs: sampleTimingNumber(wallRunMsStats, 'median'),
       modelLoadMs: safeModelLoadMs,
       throughput: {
         tokensPerSec: tokensPerSecStats,
@@ -1098,6 +1107,7 @@ async function runBenchSuite(options = {}) {
       },
       latency: {
         totalMs: totalMsStats,
+        wallRunMs: wallRunMsStats,
         prefillMs: prefillMsStats,
         decodeMs: decodeMsStats,
         firstTokenMs: ttftMsStats,

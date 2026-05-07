@@ -1454,6 +1454,8 @@ export class PipelineGenerator {
           hasHotVocabularyBatchDecode: hotVocabularyBatchDecodeAvailable,
           hasGpuSplitPerLayerInputs,
           hasLinearAttentionLayers: hasLinearLayers,
+          currentSeqLen: this.#state.currentSeqLen,
+          maxDecodeTokens: opts.maxTokens,
         });
         const requestedBatchTokens = executionPlan.batchSize * intervalBatches;
         const boundedBatchTokens = maxBatchDecodeTokens == null

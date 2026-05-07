@@ -241,6 +241,8 @@ const container = { executionPlanState: planState };
   assert.equal(resolveMaxBatchDecodeTokens({ hasLinearAttentionLayers: true }), 32);
   assert.equal(resolveMaxBatchDecodeTokens({ hasGpuSplitPerLayerInputs: false }), null);
   assert.equal(resolveMaxBatchDecodeTokens({ hasGpuSplitPerLayerInputs: true }), 8);
+  assert.equal(resolveMaxBatchDecodeTokens({ hasGpuSplitPerLayerInputs: true, currentSeqLen: 133, maxDecodeTokens: 32 }), 16);
+  assert.equal(resolveMaxBatchDecodeTokens({ hasGpuSplitPerLayerInputs: true, currentSeqLen: 283, maxDecodeTokens: 16 }), 16);
   assert.equal(resolvePrefillRecorderChunkLayers({ hasGpuSplitPerLayerInputs: true, numTokens: 15 }), 8);
   assert.equal(resolvePrefillRecorderChunkLayers({ hasGpuSplitPerLayerInputs: true, numTokens: 32 }), 8);
   assert.equal(resolvePrefillRecorderChunkLayers({ hasGpuSplitPerLayerInputs: true, numTokens: 33 }), 4);
