@@ -800,8 +800,8 @@ function buildF16WeightProjectionGraph() {
   const prefillQ = result.prefill.find((entry) => Array.isArray(entry) && entry[0] === 'q_proj');
   const prefillAttention = result.prefill.find((entry) => Array.isArray(entry) && entry[0] === 'attention');
   ok(prefillQ && prefillAttention, 'Qwen 3.6 f16 lane should keep prefill projection and attention');
-  equal(result.kernels[prefillQ[1]].kernel, 'fused_matmul_q4_batched_f16acc_f16a.wgsl',
-    'Qwen 3.6 f16 lane should use f16-accum Q4 prefill projection');
+  equal(result.kernels[prefillQ[1]].kernel, 'fused_matmul_q4_widetile_f16a.wgsl',
+    'Qwen 3.6 f16 lane should preserve WideTile Q4 prefill while moving activations to f16');
   equal(result.kernels[prefillAttention[1]].kernel, 'attention_small_f16.wgsl',
     'Qwen 3.6 f16 lane should use f16 prefill attention');
 

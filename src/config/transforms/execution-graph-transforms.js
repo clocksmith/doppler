@@ -1914,8 +1914,8 @@ export function useQwen36F16Activations(graph, ctx) {
   const prefillProjectionStep = findPhaseStep(result.prefill, 'q_proj');
   const prefillProjectionKey = prefillProjectionStep?.[1] ?? null;
   const prefillProjectionEntry =
-    deriveQ4PrefillF16AccumKernelEntry(result.kernels[prefillProjectionKey])
-    ?? deriveQ4WideTilePrefillF16KernelEntry(result.kernels[prefillProjectionKey])
+    deriveQ4WideTilePrefillF16KernelEntry(result.kernels[prefillProjectionKey])
+    ?? deriveQ4PrefillF16AccumKernelEntry(result.kernels[prefillProjectionKey])
     ?? deriveQ4PrefillF16KernelEntry(result.kernels[prefillProjectionKey]);
   if (prefillProjectionEntry) {
     const f16Key = deriveKernelKey(result.kernels, prefillProjectionKey, '_qwen36_f16');
