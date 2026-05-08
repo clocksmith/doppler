@@ -21,9 +21,11 @@ import {
 } from 'doppler-gpu/tooling';
 import { createPipeline } from 'doppler-gpu/generation';
 import {
+  DEFAULT_RUNTIME_CONFIG,
   DEFAULT_EXECUTION_V1_SESSION,
   EXECUTION_V1_SCHEMA_ID,
 } from '../src/config/schema/index.js';
+import { compileExecutionV1 } from '../src/inference/pipelines/text/execution-v1.js';
 import { state } from './ui/state.js';
 import { setRunEnabled } from './input.js';
 import { clearOutput } from './output.js';
@@ -84,6 +86,69 @@ function isWeightsRefEntry(entry) {
 
 function hasF16DemoLaneSupport(capabilities) {
   return capabilities?.hasF16 === true && capabilities?.hasSubgroups === true;
+}
+
+function getDemoKernelPathPolicy() {
+  return DEFAULT_RUNTIME_CONFIG.inference.kernelPathPolicy;
+}
+
+function buildDemoPlatform(capabilities) {
+  return {
+    id: 'demo-runtime',
+    vendor: capabilities?.adapterInfo?.vendor ?? 'unknown',
+    architecture: capabilities?.adapterInfo?.architecture ?? 'unknown',
+  };
+}
+
+export function assertDemoExecutionManifestSupported(entry, manifest, capabilities) {
+  const patchedManifest = patchManifestCompat(structuredClone(manifest));
+  compileExecutionV1({
+    manifestInference: patchedManifest.inference,
+    modelId: patchedManifest.modelId ?? entry?.modelId ?? 'unknown',
+    numLayers: patchedManifest.architecture?.numLayers ?? 0,
+    headDim: patchedManifest.architecture?.headDim ?? null,
+    capabilities,
+    platform: buildDemoPlatform(capabilities),
+    kernelPathPolicy: getDemoKernelPathPolicy(),
+  });
+}
+
+export function selectDemoExecutionEntryForCapabilities(entry, manifestByModelId, capabilities) {
+  const fallback = entry?.demoFallbackVariant ?? null;
+  const manifest = manifestByModelId?.get?.(entry?.modelId);
+  if (!manifest) {
+    throw new Error(`${entry?.modelId ?? 'unknown'}: demo execution preflight missing manifest.`);
+  }
+
+  if (!fallback) {
+    assertDemoExecutionManifestSupported(entry, manifest, capabilities);
+    return entry;
+  }
+
+  const fallbackManifest = manifestByModelId?.get?.(fallback.modelId);
+  if (!fallbackManifest) {
+    throw new Error(`${fallback.modelId ?? 'unknown'}: demo fallback preflight missing manifest.`);
+  }
+
+  if (!hasF16DemoLaneSupport(capabilities)) {
+    assertDemoExecutionManifestSupported(fallback, fallbackManifest, capabilities);
+    return fallback;
+  }
+
+  try {
+    assertDemoExecutionManifestSupported(entry, manifest, capabilities);
+    return entry;
+  } catch (primaryError) {
+    try {
+      assertDemoExecutionManifestSupported(fallback, fallbackManifest, capabilities);
+      return fallback;
+    } catch (fallbackError) {
+      throw new Error(
+        `${entry.modelId}: demo af16 lane is unsupported on this device (${primaryError.message}); ` +
+        `${fallback.modelId}: af32 fallback is also unsupported (${fallbackError.message}).`
+      );
+    }
+  }
 }
 
 // Locate the catalog entry for the primary lane that owns a given weight pack.
@@ -517,12 +582,20 @@ export function selectDemoCatalogEntries(models, options = {}) {
 // cards return as-is.
 async function resolveDemoExecutionEntry(entry) {
   const fallback = entry?.demoFallbackVariant;
-  if (!fallback) {
-    return entry;
-  }
   await initDevice();
   const capabilities = getKernelCapabilities();
-  return hasF16DemoLaneSupport(capabilities) ? entry : fallback;
+  const manifestByModelId = new Map();
+  const loadPreflightManifest = async (candidate) => {
+    const source = await resolveManifestSource(candidate, undefined, {
+      manifestOnly: isWeightsRefEntry(candidate),
+    });
+    manifestByModelId.set(candidate.modelId, source.manifest);
+  };
+  await loadPreflightManifest(entry);
+  if (fallback) {
+    await loadPreflightManifest(fallback);
+  }
+  return selectDemoExecutionEntryForCapabilities(entry, manifestByModelId, capabilities);
 }
 
 export function buildModelSourceCandidates(entry) {
@@ -763,11 +836,31 @@ export function renderModelCards() {
     card.appendChild(top);
 
     if (status === 'downloading') {
+      const percent = Number(state.downloadProgress?.percent);
+      const safePercent = Number.isFinite(percent)
+        ? Math.max(0, Math.min(100, percent))
+        : 0;
+      const progressRow = document.createElement('div');
+      progressRow.className = 'model-card-progress-row';
       const bar = document.createElement('div');
       bar.className = 'model-card-progress';
       bar.id = `progress-${entry.modelId}`;
-      bar.style.width = '0%';
-      card.appendChild(bar);
+      bar.setAttribute('role', 'progressbar');
+      bar.setAttribute('aria-valuemin', '0');
+      bar.setAttribute('aria-valuemax', '100');
+      bar.setAttribute('aria-valuenow', String(Math.round(safePercent)));
+      bar.style.setProperty('--model-progress-percent', `${safePercent}%`);
+      const fill = document.createElement('div');
+      fill.className = 'model-card-progress-fill';
+      fill.style.width = `${safePercent}%`;
+      bar.appendChild(fill);
+      const percentLabel = document.createElement('span');
+      percentLabel.className = 'model-card-progress-percent';
+      percentLabel.id = `progress-label-${entry.modelId}`;
+      percentLabel.textContent = `${Math.round(safePercent)}%`;
+      progressRow.appendChild(bar);
+      progressRow.appendChild(percentLabel);
+      card.appendChild(progressRow);
     }
 
     card.addEventListener('click', () => {
@@ -1010,8 +1103,22 @@ async function loadModelFromStorage(modelId, options = {}) {
 }
 
 function updateProgressBar(modelId, percent) {
+  const safePercent = Number.isFinite(percent)
+    ? Math.max(0, Math.min(100, percent))
+    : 0;
   const bar = $(`progress-${modelId}`);
-  if (bar) bar.style.width = `${Math.min(100, percent)}%`;
+  if (bar) {
+    bar.setAttribute('aria-valuenow', String(Math.round(safePercent)));
+    bar.style.setProperty('--model-progress-percent', `${safePercent}%`);
+    const fill = bar.querySelector('.model-card-progress-fill');
+    if (fill) {
+      fill.style.width = `${safePercent}%`;
+    } else {
+      bar.style.width = `${safePercent}%`;
+    }
+  }
+  const label = $(`progress-label-${modelId}`);
+  if (label) label.textContent = `${Math.round(safePercent)}%`;
 }
 
 async function fetchText(url, signal) {

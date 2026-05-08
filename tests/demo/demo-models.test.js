@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 import {
   DEFAULT_EXECUTION_V1_SESSION,
@@ -15,6 +16,7 @@ import {
   findRegisteredSiblingsOf,
   patchManifestCompat,
   selectDemoCatalogEntries,
+  selectDemoExecutionEntryForCapabilities,
 } from '../../demo/models.js';
 
 const DEMO_READY = Object.freeze({
@@ -34,6 +36,10 @@ const DEMO_WEIGHTS_REF_READY = Object.freeze({
     },
   },
 });
+
+function readManifest(modelId) {
+  return JSON.parse(readFileSync(`models/local/${modelId}/manifest.json`, 'utf8'));
+}
 
 {
   const patched = patchManifestCompat({
@@ -168,6 +174,47 @@ const DEMO_WEIGHTS_REF_READY = Object.freeze({
   assert.equal(
     selected[1].localBaseUrl,
     'http://localhost:8080/models/local/qwen-3-6-27b-q4k-ehaf16'
+  );
+}
+
+{
+  const selected = selectDemoCatalogEntries([
+    {
+      ...DEMO_READY,
+      modelId: 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
+      label: 'Gemma 4 E2B (Q4K/F32a/INT4 PLE)',
+      weightPackId: 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1',
+      demoPreferredVariantId: 'gemma-4-e2b-it-q4k-ehf16-af16-int4ple',
+      quickstart: true,
+      modes: ['text', 'vision'],
+      sortOrder: 14,
+    },
+    {
+      ...DEMO_WEIGHTS_REF_READY,
+      modelId: 'gemma-4-e2b-it-q4k-ehf16-af16-int4ple',
+      label: 'Gemma 4 E2B (Q4K/F16a/INT4 PLE)',
+      weightPackId: 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1',
+      quickstart: false,
+      demoVisible: false,
+      modes: ['text', 'vision'],
+      sortOrder: 15,
+    },
+  ], {
+    localBaseUrls: new Map([
+      ['gemma-4-e2b-it-q4k-ehf16-af32-int4ple', 'http://localhost:8080/models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple'],
+      ['gemma-4-e2b-it-q4k-ehf16-af16-int4ple', 'http://localhost:8080/models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple'],
+    ]),
+  });
+
+  assert.deepEqual(
+    selected.map((entry) => entry.modelId),
+    ['gemma-4-e2b-it-q4k-ehf16-af16-int4ple'],
+    'Gemma 4 E2B demo card should prefer the af16 weights-ref sibling when it is reachable'
+  );
+  assert.equal(
+    selected[0].demoFallbackVariant?.modelId,
+    'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
+    'Gemma 4 E2B surfaced af16 card carries the af32 INT4-PLE primary as fallback'
   );
 }
 
@@ -356,6 +403,56 @@ const DEMO_WEIGHTS_REF_READY = Object.freeze({
     selected.map((entry) => entry.modelId),
     [],
     'demo catalog should exclude manifest-only siblings without a reachable primary weight pack'
+  );
+}
+
+{
+  const entry = {
+    modelId: 'gemma-4-e2b-it-q4k-ehf16-af16-int4ple',
+    demoFallbackVariant: {
+      modelId: 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
+    },
+  };
+  const manifests = new Map([
+    ['gemma-4-e2b-it-q4k-ehf16-af16-int4ple', readManifest('gemma-4-e2b-it-q4k-ehf16-af16-int4ple')],
+    ['gemma-4-e2b-it-q4k-ehf16-af32-int4ple', readManifest('gemma-4-e2b-it-q4k-ehf16-af32-int4ple')],
+  ]);
+  const selected = selectDemoExecutionEntryForCapabilities(entry, manifests, {
+    hasF16: true,
+    hasSubgroups: true,
+    hasSubgroupsF16: true,
+    maxWorkgroupStorageSize: 32768,
+    adapterInfo: {
+      vendor: 'apple',
+      architecture: 'metal-3',
+    },
+  });
+  assert.equal(
+    selected.modelId,
+    'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
+    'Apple Metal should use the af32 E2B fallback when capability rules reject the af16 manifest'
+  );
+}
+
+{
+  const manifests = new Map([
+    ['qwen-3-5-0-8b-q4k-ehaf16', readManifest('qwen-3-5-0-8b-q4k-ehaf16')],
+  ]);
+  assert.throws(
+    () => selectDemoExecutionEntryForCapabilities({
+      modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+    }, manifests, {
+      hasF16: true,
+      hasSubgroups: false,
+      hasSubgroupsF16: false,
+      maxWorkgroupStorageSize: 32768,
+      adapterInfo: {
+        vendor: 'apple',
+        architecture: 'safari',
+      },
+    }),
+    /Hybrid linear-attention model "qwen-3-5-0-8b-q4k-ehaf16" cannot apply a global non-Q4/,
+    'Safari/no-subgroup Qwen 3.5 must fail before download instead of reaching model load'
   );
 }
 

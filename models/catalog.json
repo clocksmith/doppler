@@ -293,6 +293,7 @@
       },
       "baseUrl": null,
       "quickstart": true,
+      "demoPreferredVariantId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
       "sizeBytes": 4009916310,
       "recommended": false,
       "sortOrder": 14,
@@ -336,6 +337,68 @@
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
       "weightsRefAllowed": false
+    },
+    {
+      "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+      "family": "gemma4",
+      "label": "Gemma 4 E2B Instruct (Q4K/F16a/INT4 PLE)",
+      "description": "Gemma 4 E2B multimodal Doppler/WebGPU f16 activation variant. Shares the existing Q4K/INT4 PLE weight pack and falls back to AF32 when capability rules reject AF16.",
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "aliases": [
+        "gemma4-e2b-int4ple-f16",
+        "gemma4-e2b-af16-int4ple",
+        "gemma-4-e2b-af16-int4ple"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "path": "models/gemma-4-e2b-it-q4k-ehf16-af16-int4ple"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 4009916310,
+      "recommended": false,
+      "sortOrder": 15,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "browser",
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-05-07",
+          "source": "manifest-variant-identity",
+          "notes": "Manifest-only f16 activation sibling over the verified Gemma 4 E2B INT4 PLE weight pack. The demo preflights execution-v1 capability rules and uses the AF32 primary when this lane is rejected, including the Apple Metal fused-q4k/f16 NaN guard.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "google/gemma-4-E2B-it",
+      "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
+      "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple-mv-f16-activations-v1",
+      "artifactCompleteness": "weights-ref",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": true
     },
     {
       "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",

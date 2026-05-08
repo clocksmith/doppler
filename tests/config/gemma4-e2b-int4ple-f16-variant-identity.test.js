@@ -34,16 +34,33 @@ function hashText(value) {
   return `sha256:${crypto.createHash('sha256').update(String(value)).digest('hex')}`;
 }
 
+function catalogEntry(catalog, modelId) {
+  return catalog.models.find((entry) => entry.modelId === modelId) ?? null;
+}
+
+const catalog = readJson('models/catalog.json');
 const af16Config = readJson(`src/config/conversion/gemma4/${AF16_MODEL_ID}.json`);
 const af32ManifestPath = path.join('models', 'local', AF32_MODEL_ID, 'manifest.json');
 const af16ManifestPath = path.join('models', 'local', AF16_MODEL_ID, 'manifest.json');
 const af32ManifestText = fs.readFileSync(af32ManifestPath, 'utf8');
 const af32Manifest = JSON.parse(af32ManifestText);
 const af16Manifest = readJson(af16ManifestPath);
+const af32Entry = catalogEntry(catalog, AF32_MODEL_ID);
+const af16Entry = catalogEntry(catalog, AF16_MODEL_ID);
 
+assert.ok(af32Entry, `${AF32_MODEL_ID}: existing catalog entry must remain present`);
+assert.ok(af16Entry, `${AF16_MODEL_ID}: f16 activation catalog entry must be present`);
 assert.equal(af16Config.output?.modelBaseId, AF16_MODEL_ID);
 assert.equal(af16Manifest.quantizationInfo?.compute, 'f16');
 assert.equal(af16Manifest.quantizationInfo?.variantTag, 'q4k-ehf16-af16-vf16-audiof16-pf16-int4ple');
+assert.equal(af32Entry.demoPreferredVariantId, AF16_MODEL_ID);
+assert.equal(af16Entry.demoVisible, false);
+assert.equal(af16Entry.artifactCompleteness, 'weights-ref');
+assert.equal(af16Entry.weightsRefAllowed, true);
+assert.equal(af16Entry.weightPackId, af32Manifest.artifactIdentity?.weightPackId);
+assert.equal(af16Entry.manifestVariantId, af16Manifest.artifactIdentity?.manifestVariantId);
+assert.equal(af16Entry.lifecycle?.status?.runtime, 'active');
+assert.equal(af16Entry.lifecycle?.status?.tested, 'verified');
 
 assert.equal(
   af16Manifest.artifactIdentity?.weightPackId,

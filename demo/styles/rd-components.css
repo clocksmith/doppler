@@ -384,16 +384,29 @@ input[type="radio"]:checked {
 /* === PROGRESS BAR === */
 
 .progress {
+  --progress-cell: 10px;
+  --progress-gap: 3px;
   border: var(--border-sm) solid var(--fg);
   width: 100%;
-  height: var(--space-sm);
+  height: 20px;
   overflow: hidden;
-  background: var(--bg);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--fg) 14%, transparent) 0 var(--progress-cell),
+      transparent var(--progress-cell) calc(var(--progress-cell) + var(--progress-gap))
+    ),
+    var(--bg);
 }
 
 .progress-fill {
   height: 100%;
-  background: var(--fg);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      var(--fg) 0 var(--progress-cell),
+      transparent var(--progress-cell) calc(var(--progress-cell) + var(--progress-gap))
+    );
   transition: width var(--transition-fast) ease;
 }
 
