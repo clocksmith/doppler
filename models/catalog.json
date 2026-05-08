@@ -355,10 +355,6 @@
       "artifact": {
         "format": "rdrr"
       },
-      "hf": {
-        "repoId": "Clocksmith/rdrr",
-        "path": "models/gemma-4-e2b-it-q4k-ehf16-af16-int4ple"
-      },
       "baseUrl": null,
       "quickstart": false,
       "demoVisible": false,

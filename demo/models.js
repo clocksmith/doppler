@@ -21,11 +21,19 @@ import {
 } from 'doppler-gpu/tooling';
 import { createPipeline } from 'doppler-gpu/generation';
 import {
-  DEFAULT_RUNTIME_CONFIG,
   DEFAULT_EXECUTION_V1_SESSION,
   EXECUTION_V1_SCHEMA_ID,
 } from '../src/config/schema/index.js';
-import { compileExecutionV1 } from '../src/inference/pipelines/text/execution-v1.js';
+import {
+  findPrimaryForWeightPack as findCatalogPrimaryForWeightPack,
+  findRegisteredSiblingsOf as findCatalogRegisteredSiblingsOf,
+  isWeightsRefLane,
+  selectCatalogModelLanes,
+} from '../src/config/model-lanes/catalog-lane-resolver.js';
+import {
+  assertExecutionLaneManifestSupported,
+  selectExecutionLaneForCapabilities,
+} from '../src/inference/model-lanes/execution-lane-resolver.js';
 import { state } from './ui/state.js';
 import { setRunEnabled } from './input.js';
 import { clearOutput } from './output.js';
@@ -81,74 +89,21 @@ export function canRemoveModelStatus(status) {
 }
 
 function isWeightsRefEntry(entry) {
-  return entry?.artifactCompleteness === 'weights-ref';
-}
-
-function hasF16DemoLaneSupport(capabilities) {
-  return capabilities?.hasF16 === true && capabilities?.hasSubgroups === true;
-}
-
-function getDemoKernelPathPolicy() {
-  return DEFAULT_RUNTIME_CONFIG.inference.kernelPathPolicy;
-}
-
-function buildDemoPlatform(capabilities) {
-  return {
-    id: 'demo-runtime',
-    vendor: capabilities?.adapterInfo?.vendor ?? 'unknown',
-    architecture: capabilities?.adapterInfo?.architecture ?? 'unknown',
-  };
+  return isWeightsRefLane(entry);
 }
 
 export function assertDemoExecutionManifestSupported(entry, manifest, capabilities) {
-  const patchedManifest = patchManifestCompat(structuredClone(manifest));
-  compileExecutionV1({
-    manifestInference: patchedManifest.inference,
-    modelId: patchedManifest.modelId ?? entry?.modelId ?? 'unknown',
-    numLayers: patchedManifest.architecture?.numLayers ?? 0,
-    headDim: patchedManifest.architecture?.headDim ?? null,
-    capabilities,
-    platform: buildDemoPlatform(capabilities),
-    kernelPathPolicy: getDemoKernelPathPolicy(),
+  assertExecutionLaneManifestSupported(entry, manifest, capabilities, {
+    normalizeManifest: patchManifestCompat,
   });
 }
 
 export function selectDemoExecutionEntryForCapabilities(entry, manifestByModelId, capabilities) {
-  const fallback = entry?.demoFallbackVariant ?? null;
-  const manifest = manifestByModelId?.get?.(entry?.modelId);
-  if (!manifest) {
-    throw new Error(`${entry?.modelId ?? 'unknown'}: demo execution preflight missing manifest.`);
-  }
-
-  if (!fallback) {
-    assertDemoExecutionManifestSupported(entry, manifest, capabilities);
-    return entry;
-  }
-
-  const fallbackManifest = manifestByModelId?.get?.(fallback.modelId);
-  if (!fallbackManifest) {
-    throw new Error(`${fallback.modelId ?? 'unknown'}: demo fallback preflight missing manifest.`);
-  }
-
-  if (!hasF16DemoLaneSupport(capabilities)) {
-    assertDemoExecutionManifestSupported(fallback, fallbackManifest, capabilities);
-    return fallback;
-  }
-
-  try {
-    assertDemoExecutionManifestSupported(entry, manifest, capabilities);
-    return entry;
-  } catch (primaryError) {
-    try {
-      assertDemoExecutionManifestSupported(fallback, fallbackManifest, capabilities);
-      return fallback;
-    } catch (fallbackError) {
-      throw new Error(
-        `${entry.modelId}: demo af16 lane is unsupported on this device (${primaryError.message}); ` +
-        `${fallback.modelId}: af32 fallback is also unsupported (${fallbackError.message}).`
-      );
-    }
-  }
+  return selectExecutionLaneForCapabilities(entry, {
+    manifestByModelId,
+    capabilities,
+    normalizeManifest: patchManifestCompat,
+  }).entry;
 }
 
 // Locate the catalog entry for the primary lane that owns a given weight pack.
@@ -158,21 +113,8 @@ export function selectDemoExecutionEntryForCapabilities(entry, manifestByModelId
 // surfaces an af16 sibling as the visible card, the af32 primary lives nested
 // inside that card's demoFallbackVariant — walk both shapes so lookup works
 // against either the raw catalog or the post-selection surfaced view.
-function isPrimaryLaneFor(entry, weightPackId) {
-  return entry?.weightPackId === weightPackId
-    && entry?.artifactCompleteness === 'complete'
-    && entry?.weightsRefAllowed === false;
-}
-
 export function findPrimaryForWeightPack(catalogEntries, weightPackId) {
-  if (!Array.isArray(catalogEntries) || !weightPackId) return null;
-  for (const entry of catalogEntries) {
-    if (isPrimaryLaneFor(entry, weightPackId)) return entry;
-    if (isPrimaryLaneFor(entry?.demoFallbackVariant, weightPackId)) {
-      return entry.demoFallbackVariant;
-    }
-  }
-  return null;
+  return findCatalogPrimaryForWeightPack(catalogEntries, weightPackId);
 }
 
 // Verify that a weights-ref sibling can be downloaded. The primary lane must
@@ -299,17 +241,7 @@ async function confirmRemoveModel(entry) {
 // given primary's weight pack and are currently registered in OPFS.
 // Exported for tests.
 export function findRegisteredSiblingsOf(primaryEntry, catalogEntries, storedModelIds) {
-  if (!primaryEntry || primaryEntry.weightsRefAllowed !== false) return [];
-  if (primaryEntry.artifactCompleteness !== 'complete') return [];
-  const storedSet = storedModelIds instanceof Set
-    ? storedModelIds
-    : new Set(Array.isArray(storedModelIds) ? storedModelIds : []);
-  return (Array.isArray(catalogEntries) ? catalogEntries : []).filter((entry) =>
-    entry?.weightPackId === primaryEntry.weightPackId
-    && entry?.artifactCompleteness === 'weights-ref'
-    && entry?.weightsRefAllowed === true
-    && storedSet.has(entry.modelId)
-  );
+  return findCatalogRegisteredSiblingsOf(primaryEntry, catalogEntries, storedModelIds);
 }
 
 async function removeStoredModel(entry) {
@@ -460,21 +392,6 @@ async function resolveLocalCatalogSourceMap(entries, fetchImpl = fetch, origin =
 //     the af16 to be verified-runtime + reachable; the primary owns the
 //     demo editorial (warningBadges, warningText, recommended, sortOrder,
 //     sizeBytes) when the af16 is silent on those fields.
-function isPrimaryEligible(entry) {
-  return entry?.artifactCompleteness === 'complete'
-    && entry?.weightsRefAllowed === false;
-}
-
-function isWeightsRefSurfaceEligible(entry) {
-  return entry?.artifactCompleteness === 'weights-ref'
-    && entry?.weightsRefAllowed === true;
-}
-
-function isVerifiedRuntimeEntry(entry) {
-  return entry?.lifecycle?.status?.runtime === 'active'
-    && entry?.lifecycle?.status?.tested === 'verified';
-}
-
 function resolveEntrySource(entry, localBaseUrls) {
   if (localBaseUrls.has(entry?.modelId)) return localBaseUrls.get(entry.modelId);
   const catalogBase = normalizeBaseUrl(entry?.baseUrl);
@@ -486,94 +403,15 @@ function resolveEntrySource(entry, localBaseUrls) {
   }
 }
 
-function buildSurfacedAf16Entry(af16, primary, localBaseUrls) {
-  const merged = { ...af16 };
-  for (const key of ['demoWarningBadges', 'demoWarningText', 'recommended', 'sortOrder', 'sizeBytes', 'quickstart']) {
-    if (merged[key] == null) {
-      merged[key] = primary[key];
-    }
-  }
-  // The af16's own demoVisible flag does not gate its surfacing; the primary
-  // opts in via demoPreferredVariantId, which is the explicit signal.
-  merged.demoVisible = true;
-  merged.localBaseUrl = localBaseUrls.get(af16.modelId) ?? null;
-  merged.weightsRefPrimary = primary.modelId;
-  merged.demoFallbackVariant = {
-    ...primary,
-    localBaseUrl: localBaseUrls.get(primary.modelId) ?? null,
-    weightsRefPrimary: null,
-    demoFallbackVariant: null,
-  };
-  return merged;
-}
-
 export function selectDemoCatalogEntries(models, options = {}) {
-  const entries = Array.isArray(models) ? models : [];
-  const localBaseUrls = options.localBaseUrls instanceof Map ? options.localBaseUrls : new Map();
-
-  // Index af32 primaries that pass every demo gate, keyed by weightPackId.
-  const primaryByWeightPackId = new Map();
-  for (const entry of entries) {
-    if (!entry?.modes?.includes('text')) continue;
-    if (!isDemoVisibleEntry(entry)) continue;
-    if (entry?.runtimePromotionState !== 'manifest-owned') continue;
-    if (!isPrimaryEligible(entry)) continue;
-    if (!resolveEntrySource(entry, localBaseUrls)) continue;
-    if (entry?.weightPackId) {
-      primaryByWeightPackId.set(entry.weightPackId, entry);
-    }
-  }
-
-  // For each primary that opts in via demoPreferredVariantId, find its af16
-  // sibling and check that the af16 is verified-runtime + reachable. The af16
-  // does not need its own demoVisible flag; the primary's opt-in is the gate.
-  const surfaceAf16ByPrimaryId = new Map();
-  for (const entry of entries) {
-    if (!entry?.modes?.includes('text')) continue;
-    if (entry?.runtimePromotionState !== 'manifest-owned') continue;
-    if (!isWeightsRefSurfaceEligible(entry)) continue;
-    if (!isVerifiedRuntimeEntry(entry)) continue;
-    const primary = primaryByWeightPackId.get(entry.weightPackId);
-    if (!primary) continue;
-    if (!resolveEntrySource(entry, localBaseUrls)) continue;
-    const requestedId = typeof primary.demoPreferredVariantId === 'string'
-      ? primary.demoPreferredVariantId.trim()
-      : '';
-    if (!requestedId || requestedId !== entry.modelId) continue;
-    surfaceAf16ByPrimaryId.set(primary.modelId, entry);
-  }
-
-  const selected = [];
-  for (const entry of entries) {
-    if (!entry?.modes?.includes('text')) continue;
-    if (!isDemoVisibleEntry(entry)) continue;
-    if (entry?.runtimePromotionState !== 'manifest-owned') continue;
-    if (!isPrimaryEligible(entry)) continue;
-    if (!resolveEntrySource(entry, localBaseUrls)) continue;
-
-    const surfaceAf16 = surfaceAf16ByPrimaryId.get(entry.modelId);
-    if (surfaceAf16) {
-      selected.push(buildSurfacedAf16Entry(surfaceAf16, entry, localBaseUrls));
-    } else {
-      selected.push({
-        ...entry,
-        localBaseUrl: localBaseUrls.get(entry.modelId) ?? null,
-        demoFallbackVariant: null,
-        weightsRefPrimary: null,
-      });
-    }
-  }
-
-  selected.sort((a, b) => {
-    if (a.recommended !== b.recommended) {
-      return a.recommended ? -1 : 1;
-    }
-    if ((a.sortOrder ?? 999) !== (b.sortOrder ?? 999)) {
-      return (a.sortOrder ?? 999) - (b.sortOrder ?? 999);
-    }
-    return String(a.label || a.modelId || '').localeCompare(String(b.label || b.modelId || ''));
+  return selectCatalogModelLanes(models, {
+    ...options,
+    isVisibleEntry: isDemoVisibleEntry,
+    hasSource: (entry) => Boolean(resolveEntrySource(
+      entry,
+      options.localBaseUrls instanceof Map ? options.localBaseUrls : new Map()
+    )),
   });
-  return selected;
 }
 
 // Returns the lane that should actually run for a clicked card. Surfaced
