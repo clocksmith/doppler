@@ -58,6 +58,17 @@ function asNonEmptyString(value, label, options = {}) {
   return trimmed;
 }
 
+function asStringValue(value, label, options = {}) {
+  if (value === undefined || value === null) {
+    if (options.optional === true) return null;
+    throw new Error(`${label} is required.`);
+  }
+  if (typeof value !== 'string') {
+    throw new Error(`${label} must be a string.`);
+  }
+  return value;
+}
+
 function asPositiveInteger(value, label, options = {}) {
   if (value === undefined || value === null || value === '') {
     if (options.optional === true) return null;
@@ -254,6 +265,19 @@ function normalizeFreezeConfig(value, label) {
   };
 }
 
+function normalizeLoraTrainerConfig(value, label) {
+  const trainer = asObject(value, label, { optional: true });
+  if (!trainer) return null;
+  return {
+    modulePath: asNonEmptyString(trainer.modulePath ?? trainer.path, `${label}.modulePath`),
+    exportName: asNonEmptyString(
+      trainer.exportName ?? 'trainCausalLmLora',
+      `${label}.exportName`
+    ),
+    runnerId: asNonEmptyString(trainer.runnerId, `${label}.runnerId`, { optional: true }),
+  };
+}
+
 function normalizeStagePlan(value, label) {
   if (!Array.isArray(value) || value.length === 0) {
     throw new Error(`${label} must be a non-empty array.`);
@@ -299,6 +323,10 @@ function normalizeLoraConfig(value, label) {
   return {
     datasetFormat: asNonEmptyString(lora.datasetFormat, `${label}.datasetFormat`),
     taskType: asNonEmptyString(lora.taskType, `${label}.taskType`),
+    baseModelRef: asNonEmptyString(lora.baseModelRef, `${label}.baseModelRef`, { optional: true }),
+    maxLength: asPositiveInteger(lora.maxLength, `${label}.maxLength`, { optional: true }),
+    sequenceLength: asPositiveInteger(lora.sequenceLength, `${label}.sequenceLength`, { optional: true }),
+    joinWith: asStringValue(lora.joinWith, `${label}.joinWith`, { optional: true }),
     adapter: {
       rank: asPositiveInteger(adapter.rank, `${label}.adapter.rank`),
       alpha: asFiniteNumber(adapter.alpha, `${label}.adapter.alpha`),
@@ -323,6 +351,7 @@ function normalizeLoraConfig(value, label) {
         smokePrompt: asNonEmptyString(activation.smokePrompt, `${label}.activation.smokePrompt`, { optional: true }),
       }
       : null,
+    trainer: normalizeLoraTrainerConfig(lora.trainer, `${label}.trainer`),
   };
 }
 

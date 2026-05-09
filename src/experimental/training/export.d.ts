@@ -21,12 +21,21 @@ export interface LoRAExportOptions {
   metadata?: Record<string, unknown>;
   tensors: LoRAExportTensor[];
   format?: 'base64' | 'array';
+  weightsFormat?: 'json' | 'safetensors';
+  weightsPath?: string;
   pretty?: boolean;
 }
 
 export interface LoRAExportResult {
   manifest: AdapterManifest;
   json: string;
+  weights?: ArrayBuffer;
+  weightsSha256?: string;
+  weightsPath?: string;
 }
+
+export declare function serializeLoRASafetensors(
+  tensors: Array<{ name: string; shape: [number, number]; data: Float32Array | number[] }>
+): ArrayBuffer;
 
 export declare function exportLoRAAdapter(options: LoRAExportOptions): Promise<LoRAExportResult>;

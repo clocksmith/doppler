@@ -812,6 +812,10 @@ async function resolveCheckpointKey(runOptions, distillContract, ulContract) {
   if (explicit) {
     return { explicit, fallback: await resolveDefaultCheckpointKey(runOptions, distillContract, ulContract) };
   }
+  const checkpointKey = normalizeOptionalString(runOptions.checkpointKey);
+  if (checkpointKey) {
+    return { explicit: null, fallback: checkpointKey };
+  }
   return { explicit: null, fallback: await resolveDefaultCheckpointKey(runOptions, distillContract, ulContract) };
 }
 

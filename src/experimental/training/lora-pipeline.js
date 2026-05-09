@@ -1,11 +1,13 @@
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { access, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { dirname, isAbsolute, join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import { loadBackwardRegistry } from '../../config/backward-registry-loader.js';
 import { acquireBuffer, readBuffer, releaseBuffer, uploadData } from '../../memory/buffer-pool.js';
 import { runMatmul } from '../../gpu/kernels/index.js';
 import { runResidualAdd } from '../../gpu/kernels/residual.js';
 import { parseJsonl } from './datasets/jsonl.js';
+import { loadTextPairsDataset, tokenizeTextPairs } from './datasets/text-pairs.js';
 import { LoraAdapter } from './lora.js';
 import { TrainingRunner, restoreTrainingCheckpointState } from './runner.js';
 import { AdamOptimizer } from './optimizer.js';
@@ -28,6 +30,314 @@ import { watchFinalizedCheckpoints } from './checkpoint-watch.js';
 import { loadLoRAFromManifest } from '../adapters/lora-loader.js';
 import { createUploadedTensor } from './tensor-factory.js';
 import { stableSortObject } from '../../utils/stable-sort-object.js';
+import { LORA_MODULE_ALIASES } from '../../inference/pipelines/text/lora.js';
+import { loadDistillModelHandle } from './suite.js';
+import { createDistillStudentRuntimeModelFixture } from './distillation/student-fixture.js';
+import { f16ToF32Array } from '../../inference/kv-cache/types.js';
+
+const CAUSAL_LM_TEXT_PAIR_RUNNER_KEYS = Object.freeze([
+  'gemma-3-270m-it-q4k-ehf16-af32::text-pairs::text_generation',
+  'gemma4-e2b-it::text-pairs::text_generation',
+  'gemma-4-e2b-it-q4k-ehf16-af32::text-pairs::text_generation',
+  'gemma-4-e2b-it-q4k-ehf16-af32-int4ple::text-pairs::text_generation',
+  'qwen-3-5-0-8b-q4k-ehaf16::text-pairs::text_generation',
+  'qwen-3-5-2b-q4k-ehaf16::text-pairs::text_generation',
+  'qwen-3-6-27b-q4k-ehaf16::text-pairs::text_generation',
+  'qwen-3-6-27b-q4k-eaf16::text-pairs::text_generation',
+]);
+
+export const LORA_RUNNER_SUPPORT_CONTRACT = Object.freeze({
+  supportedBaseModelId: 'training-toy',
+  supportedDatasetFormat: 'toy_linear_classification_jsonl',
+  registeredBaseModelIds: Object.freeze([
+    'training-toy',
+    'gemma-3-270m-it-q4k-ehf16-af32',
+    'gemma4-e2b-it',
+    'gemma-4-e2b-it-q4k-ehf16-af32',
+    'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
+    'qwen-3-5-0-8b-q4k-ehaf16',
+    'qwen-3-5-2b-q4k-ehaf16',
+    'qwen-3-6-27b-q4k-ehaf16',
+    'qwen-3-6-27b-q4k-eaf16',
+  ]),
+  registeredDatasetFormats: Object.freeze([
+    'toy_linear_classification_jsonl',
+    'text-pairs',
+  ]),
+  implementedRunnerKeys: Object.freeze([
+    'training-toy::toy_linear_classification_jsonl::classification',
+    ...CAUSAL_LM_TEXT_PAIR_RUNNER_KEYS,
+  ]),
+});
+
+export const LORA_RUNNER_BASE_MODEL_REGISTRY = Object.freeze({
+  'training-toy': Object.freeze({
+    baseModelId: 'training-toy',
+    family: 'training_fixture',
+    runnerKind: 'toy_linear_classification',
+  }),
+  'gemma-3-270m-it-q4k-ehf16-af32': Object.freeze({
+    baseModelId: 'gemma-3-270m-it-q4k-ehf16-af32',
+    modelRef: 'gemma-3-270m-it-q4k-ehf16-af32',
+    family: 'gemma3',
+    runnerKind: 'causal_lm_text_generation',
+  }),
+  'gemma4-e2b-it': Object.freeze({
+    baseModelId: 'gemma4-e2b-it',
+    modelRef: 'gemma-4-e2b-it-q4k-ehf16-af32',
+    family: 'gemma4',
+    runnerKind: 'causal_lm_text_generation',
+  }),
+  'gemma-4-e2b-it-q4k-ehf16-af32': Object.freeze({
+    baseModelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+    modelRef: 'gemma-4-e2b-it-q4k-ehf16-af32',
+    family: 'gemma4',
+    runnerKind: 'causal_lm_text_generation',
+  }),
+  'gemma-4-e2b-it-q4k-ehf16-af32-int4ple': Object.freeze({
+    baseModelId: 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
+    modelRef: 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
+    family: 'gemma4',
+    runnerKind: 'causal_lm_text_generation',
+  }),
+  'qwen-3-5-0-8b-q4k-ehaf16': Object.freeze({
+    baseModelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+    modelRef: 'qwen-3-5-0-8b-q4k-ehaf16',
+    family: 'qwen3',
+    runnerKind: 'causal_lm_text_generation',
+  }),
+  'qwen-3-5-2b-q4k-ehaf16': Object.freeze({
+    baseModelId: 'qwen-3-5-2b-q4k-ehaf16',
+    modelRef: 'qwen-3-5-2b-q4k-ehaf16',
+    family: 'qwen3',
+    runnerKind: 'causal_lm_text_generation',
+  }),
+  'qwen-3-6-27b-q4k-ehaf16': Object.freeze({
+    baseModelId: 'qwen-3-6-27b-q4k-ehaf16',
+    modelRef: 'qwen-3-6-27b-q4k-ehaf16',
+    family: 'qwen3',
+    runnerKind: 'causal_lm_text_generation',
+  }),
+  'qwen-3-6-27b-q4k-eaf16': Object.freeze({
+    baseModelId: 'qwen-3-6-27b-q4k-eaf16',
+    modelRef: 'qwen-3-6-27b-q4k-eaf16',
+    family: 'qwen3',
+    runnerKind: 'causal_lm_text_generation',
+  }),
+});
+
+export const LORA_RUNNER_DATASET_FORMAT_REGISTRY = Object.freeze({
+  toy_linear_classification_jsonl: Object.freeze({
+    datasetFormat: 'toy_linear_classification_jsonl',
+    datasetKind: 'toy_linear_classification',
+  }),
+  'text-pairs': Object.freeze({
+    datasetFormat: 'text-pairs',
+    datasetKind: 'causal_lm_text_pairs',
+  }),
+});
+
+function getPipelineConfig(workload) {
+  return workload?.pipeline || workload?.lora || {};
+}
+
+function normalizeLoraTargetModules(adapter) {
+  const rawModules = Array.isArray(adapter?.targetModules) ? adapter.targetModules : [];
+  const modules = [];
+  for (const rawModule of rawModules) {
+    const normalized = String(rawModule || '').trim();
+    if (!normalized) continue;
+    const moduleName = LORA_MODULE_ALIASES[normalized] || normalized;
+    if (!modules.includes(moduleName)) {
+      modules.push(moduleName);
+    }
+  }
+  if (modules.length === 0) {
+    throw new Error('Causal-LM LoRA workload requires adapter.targetModules.');
+  }
+  return modules;
+}
+
+function getCausalLmBaseModelRef(workload) {
+  const pipeline = getPipelineConfig(workload);
+  const baseModel = LORA_RUNNER_BASE_MODEL_REGISTRY[String(workload?.baseModelId || '')] || null;
+  return String(
+    pipeline.baseModelRef
+    || workload.baseModelRef
+    || workload.studentModelId
+    || baseModel?.modelRef
+    || workload.baseModelId
+    || ''
+  );
+}
+
+function getRunnerKey(baseModelId, datasetFormat, taskType) {
+  return `${baseModelId}::${datasetFormat}::${taskType}`;
+}
+
+function isCausalLmLoraWorkload(workload, compatibility = getLoraRunnerCompatibility(workload)) {
+  return compatibility.observed.baseModelRunnerKind === 'causal_lm_text_generation'
+    || compatibility.observed.datasetKind === 'causal_lm_text_pairs'
+    || compatibility.observed.taskType === 'text_generation';
+}
+
+export function getLoraRunnerCompatibility(workload) {
+  const baseModelId = String(workload?.baseModelId || '');
+  const pipeline = getPipelineConfig(workload);
+  const datasetFormat = String(pipeline?.datasetFormat || '');
+  const taskType = String(pipeline?.taskType || '');
+  const baseModel = LORA_RUNNER_BASE_MODEL_REGISTRY[baseModelId] || null;
+  const dataset = LORA_RUNNER_DATASET_FORMAT_REGISTRY[datasetFormat] || null;
+  const runnerKey = getRunnerKey(baseModelId, datasetFormat, taskType);
+  const blockedReasons = [];
+  if (!baseModel) {
+    blockedReasons.push('base_model_not_registered_for_current_lora_runner');
+  }
+  if (!dataset) {
+    blockedReasons.push('dataset_format_not_supported_by_current_lora_runner');
+  }
+  if (baseModel && dataset && !LORA_RUNNER_SUPPORT_CONTRACT.implementedRunnerKeys.includes(runnerKey)) {
+    blockedReasons.push('runner_combination_not_supported_by_current_lora_runner');
+  }
+  return {
+    schemaVersion: 1,
+    supported: blockedReasons.length === 0,
+    runnerContract: LORA_RUNNER_SUPPORT_CONTRACT,
+    observed: {
+      baseModelId,
+      datasetFormat,
+      taskType,
+      runnerKey,
+      baseModelFamily: baseModel?.family || null,
+      baseModelRunnerKind: baseModel?.runnerKind || null,
+      datasetKind: dataset?.datasetKind || null,
+      registeredBaseModel: Boolean(baseModel),
+      registeredDatasetFormat: Boolean(dataset),
+    },
+    blockedReasons,
+  };
+}
+
+export function assertLoraRunnerCompatibility(workload) {
+  const compatibility = getLoraRunnerCompatibility(workload);
+  if (compatibility.supported) return compatibility;
+  throw new Error([
+    'LoRA run is not supported by the current runner contract.',
+    `supported baseModelId="${compatibility.runnerContract.supportedBaseModelId}"`,
+    `supported datasetFormat="${compatibility.runnerContract.supportedDatasetFormat}"`,
+    `registered baseModelIds="${compatibility.runnerContract.registeredBaseModelIds.join(',')}"`,
+    `registered datasetFormats="${compatibility.runnerContract.registeredDatasetFormats.join(',')}"`,
+    `observed baseModelId="${compatibility.observed.baseModelId}"`,
+    `observed datasetFormat="${compatibility.observed.datasetFormat}"`,
+    `observed taskType="${compatibility.observed.taskType}"`,
+    `blockedReasons=${compatibility.blockedReasons.join(',')}`,
+  ].join(' '));
+}
+
+function summarizeTextPairLengths(rows) {
+  let minPromptChars = Number.POSITIVE_INFINITY;
+  let maxPromptChars = 0;
+  let minCompletionChars = Number.POSITIVE_INFINITY;
+  let maxCompletionChars = 0;
+  for (const row of rows) {
+    const promptChars = row.prompt.length;
+    const completionChars = row.completion.length;
+    minPromptChars = Math.min(minPromptChars, promptChars);
+    maxPromptChars = Math.max(maxPromptChars, promptChars);
+    minCompletionChars = Math.min(minCompletionChars, completionChars);
+    maxCompletionChars = Math.max(maxCompletionChars, completionChars);
+  }
+  if (!rows.length) {
+    minPromptChars = 0;
+    minCompletionChars = 0;
+  }
+  return {
+    minPromptChars,
+    maxPromptChars,
+    minCompletionChars,
+    maxCompletionChars,
+  };
+}
+
+async function pathIsReadable(filePath) {
+  try {
+    await access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function resolveDatasetPathForLoadedWorkload(datasetPath, loadedWorkload) {
+  const source = String(datasetPath || '');
+  if (!source || isAbsolute(source) || /^https?:\/\//i.test(source)) {
+    return source;
+  }
+  const candidates = [];
+  const pushCandidate = (candidate) => {
+    if (candidate && !candidates.includes(candidate)) {
+      candidates.push(candidate);
+    }
+  };
+  pushCandidate(resolve(source));
+  let cursor = loadedWorkload?.absolutePath ? dirname(resolve(String(loadedWorkload.absolutePath))) : null;
+  while (cursor) {
+    pushCandidate(join(cursor, source));
+    const parent = dirname(cursor);
+    if (parent === cursor) break;
+    cursor = parent;
+  }
+  for (const candidate of candidates) {
+    if (await pathIsReadable(candidate)) {
+      return candidate;
+    }
+  }
+  return resolve(source);
+}
+
+export async function preflightCausalLmLoraWorkload(workload, options = {}) {
+  const compatibility = getLoraRunnerCompatibility(workload);
+  if (!isCausalLmLoraWorkload(workload, compatibility)) {
+    throw new Error('preflightCausalLmLoraWorkload requires a causal-LM LoRA workload.');
+  }
+  if (!workload?.datasetPath) {
+    throw new Error('preflightCausalLmLoraWorkload requires workload.datasetPath.');
+  }
+  const datasetPath = options.datasetPath || workload.datasetPath;
+  const dataset = await loadTextPairsDataset(datasetPath, {
+    fetch: options.fetch,
+    readFile: options.readFile,
+  });
+  if (dataset.rowCount < 1) {
+    throw new Error(`Causal-LM LoRA dataset ${workload.datasetPath} has no rows.`);
+  }
+  const pipeline = getPipelineConfig(workload);
+  const adapter = pipeline.adapter || {};
+  return {
+    schemaVersion: 1,
+    supported: compatibility.supported,
+    runnerKey: compatibility.observed.runnerKey,
+    baseModelId: compatibility.observed.baseModelId,
+    baseModelFamily: compatibility.observed.baseModelFamily,
+    datasetPath: dataset.absolutePath,
+    datasetFormat: compatibility.observed.datasetFormat,
+    taskType: compatibility.observed.taskType,
+    rowCount: dataset.rowCount,
+    firstRowId: dataset.rows[0]?.id || null,
+    lastRowId: dataset.rows[dataset.rows.length - 1]?.id || null,
+    textPairFields: {
+      prompt: dataset.rows[0]?.promptField || null,
+      completion: dataset.rows[0]?.completionField || null,
+    },
+    textPairLengths: summarizeTextPairLengths(dataset.rows),
+    adapter: {
+      rank: Number(adapter.rank ?? 0),
+      alpha: Number(adapter.alpha ?? 0),
+      targetModules: normalizeLoraTargetModules(adapter),
+    },
+    blockedReasons: compatibility.blockedReasons.slice(),
+  };
+}
 
 function stableJson(value) {
   return JSON.stringify(stableSortObject(value));
@@ -190,6 +500,165 @@ function createToyDatasetBatches(rows, batchSize) {
   };
 }
 
+function createLossGradient(loss, lossScale) {
+  const lossElements = loss.shape.reduce((acc, value) => acc * value, 1);
+  const gradData = new Float32Array(lossElements);
+  gradData.fill(lossScale);
+  return createUploadedTensor(gradData, 'f32', loss.shape, 'lora_causal_lm_loss_grad');
+}
+
+function createCausalLmTrainingObjective() {
+  return {
+    name: 'causal_lm_cross_entropy',
+    async forward({ model, batch, tape }) {
+      if (typeof model.forwardCausalLm === 'function') {
+        return model.forwardCausalLm(batch, tape);
+      }
+      const logits = await model.forward(batch.input, tape);
+      return { logits };
+    },
+    async computeLoss({ batch, config, tape, forwardState }) {
+      const loss = await crossEntropyLoss(forwardState.logits, batch.targets, config, tape);
+      return { loss };
+    },
+    backwardTargets({ loss, lossScale }) {
+      return createLossGradient(loss, lossScale);
+    },
+  };
+}
+
+function createCausalLmDatasetBatches(samples) {
+  return {
+    async *batches() {
+      for (const sample of samples) {
+        const inputTensor = makeTensorFromUint32(
+          sample.inputIds,
+          [sample.inputIds.length],
+          `lora_causal_lm_input_${sample.id}`
+        );
+        const targetTensor = makeTensorFromUint32(
+          sample.targetIds,
+          [sample.targetIds.length],
+          `lora_causal_lm_target_${sample.id}`
+        );
+        try {
+          yield {
+            id: sample.id,
+            input: inputTensor,
+            targets: targetTensor,
+            prompt: sample.prompt,
+            completion: sample.completion,
+          };
+        } finally {
+          releaseTensor(inputTensor);
+          releaseTensor(targetTensor);
+        }
+      }
+    },
+  };
+}
+
+async function loadCausalLmTextPairSamples(workload, datasetPath, tokenizer) {
+  const dataset = await loadTextPairsDataset(datasetPath);
+  const pipeline = getPipelineConfig(workload);
+  const maxLength = Math.floor(Number(
+    pipeline.maxLength
+    ?? pipeline.sequenceLength
+    ?? workload.training?.maxLength
+  ));
+  if (!Number.isInteger(maxLength) || maxLength < 2) {
+    throw new Error('Causal-LM LoRA workload requires lora.maxLength or lora.sequenceLength >= 2.');
+  }
+  if (typeof pipeline.joinWith !== 'string') {
+    throw new Error('Causal-LM LoRA workload requires lora.joinWith.');
+  }
+  const joinWith = pipeline.joinWith;
+  const samples = await tokenizeTextPairs(tokenizer, dataset.rows, {
+    maxLength,
+    joinWith,
+  });
+  if (samples.length < 1) {
+    throw new Error(`Causal-LM LoRA dataset ${dataset.absolutePath} produced no tokenized samples.`);
+  }
+  return {
+    ...dataset,
+    samples,
+    datasetHash: hashArtifactPayload({
+      rows: dataset.rows,
+      tokenization: {
+        maxLength,
+        joinWith,
+      },
+    }),
+    tokenization: {
+      maxLength,
+      joinWith,
+      sampleCount: samples.length,
+    },
+  };
+}
+
+async function createCausalLmLoraFixture(workload) {
+  const pipeline = getPipelineConfig(workload);
+  const adapter = pipeline.adapter || {};
+  const modelRef = getCausalLmBaseModelRef(workload);
+  const handle = await loadDistillModelHandle(modelRef, 'lora base', {
+    runtime: {
+      shared: {
+        debug: {
+          logLevel: {
+            defaultLogLevel: 'debug',
+          },
+        },
+      },
+      inference: {
+        compute: {
+          activationDtype: 'f32',
+          keepF32Weights: true,
+        },
+      },
+    },
+  });
+  let fixture = null;
+  try {
+    fixture = await createDistillStudentRuntimeModelFixture({
+      training: {
+        precision: workload.training?.precision || {},
+      },
+    }, {
+      distillRuntime: {
+        studentPipeline: handle.pipeline,
+        studentGraphMode: 'transformer_full',
+      },
+      studentGraphMode: 'transformer_full',
+      loraAdapter: {
+        rank: adapter.rank,
+        alpha: adapter.alpha,
+        targetModules: normalizeLoraTargetModules(adapter),
+      },
+    });
+  } catch (error) {
+    if (handle.pipeline && typeof handle.pipeline.unload === 'function') {
+      await handle.pipeline.unload();
+    }
+    throw error;
+  }
+  return {
+    model: fixture.model,
+    baseModelRef: modelRef,
+    baseModelUrl: handle.modelUrl || null,
+    baseManifest: handle.manifest || null,
+    tokenizer: handle.pipeline.tokenizer,
+    cleanup() {
+      fixture.cleanup();
+      if (handle.pipeline && typeof handle.pipeline.unload === 'function') {
+        return handle.pipeline.unload();
+      }
+      return undefined;
+    },
+  };
+}
+
 function collectProtectedBuffers(model) {
   const protectedBuffers = new Set();
   const groups = model.paramGroups();
@@ -336,6 +805,7 @@ function buildArtifact(loadedWorkload, options) {
 async function exportToyLoraModel(loadedWorkload, layout, model, checkpointId, checkpointStep, datasetHash) {
   const workload = loadedWorkload.workload;
   const targetModule = model.targetModule || workload.pipeline.adapter.targetModules[0];
+  const weightsFilename = `${checkpointId}.adapters.safetensors`;
   const exported = await exportLoRAAdapter({
     id: workload.pipeline.export?.id || `${workload.id}-${checkpointId}`,
     name: workload.pipeline.export?.name || `${workload.id}-${checkpointId}`,
@@ -347,10 +817,19 @@ async function exportToyLoraModel(loadedWorkload, layout, model, checkpointId, c
       { name: `layers.0.${targetModule}.lora_a`, tensor: model.adapter.A },
       { name: `layers.0.${targetModule}.lora_b`, tensor: model.adapter.B },
     ],
+    weightsFormat: 'safetensors',
+    weightsPath: weightsFilename,
   });
   const manifestPath = join(layout.exports, `${checkpointId}.adapter.manifest.json`);
+  const weightsPath = join(layout.exports, weightsFilename);
+  if (!exported.weights) {
+    throw new Error('LoRA safetensors export did not return weights bytes.');
+  }
+  await writeFile(weightsPath, new Uint8Array(exported.weights));
   await writeFile(manifestPath, exported.json, 'utf8');
-  await loadLoRAFromManifest(exported.manifest, {});
+  await loadLoRAFromManifest(exported.manifest, {
+    readFile: async (filePath) => readFile(join(layout.exports, filePath)),
+  });
   const artifactPayload = {
     ...buildArtifact(loadedWorkload, {
       prefix: 'lora_export',
@@ -361,6 +840,8 @@ async function exportToyLoraModel(loadedWorkload, layout, model, checkpointId, c
     }),
     checkpointId,
     manifestPath,
+    weightsPath,
+    weightsSha256: exported.weightsSha256 || null,
     manifest: exported.manifest,
   };
   const artifactFile = await writeJsonArtifact(
@@ -370,9 +851,844 @@ async function exportToyLoraModel(loadedWorkload, layout, model, checkpointId, c
   return {
     checkpointId,
     manifestPath,
+    weightsPath,
+    weightsSha256: exported.weightsSha256 || null,
     exportPath: artifactFile.path,
     manifest: exported.manifest,
   };
+}
+
+async function exportCausalLmLoraModel(loadedWorkload, layout, fixture, checkpointId, checkpointStep, datasetHash) {
+  const workload = loadedWorkload.workload;
+  const pipeline = getPipelineConfig(workload);
+  const adapter = pipeline.adapter || {};
+  const weightsFilename = `${checkpointId}.adapters.safetensors`;
+  const tensors = typeof fixture.model.loraTensorEntries === 'function'
+    ? fixture.model.loraTensorEntries()
+    : [];
+  if (!tensors.length) {
+    throw new Error('Causal-LM LoRA export requires trained adapter tensors.');
+  }
+  const exported = await exportLoRAAdapter({
+    id: pipeline.export?.id || `${workload.id}-${checkpointId}`,
+    name: pipeline.export?.name || `${workload.id}-${checkpointId}`,
+    baseModel: workload.baseModelId,
+    rank: adapter.rank,
+    alpha: adapter.alpha,
+    targetModules: normalizeLoraTargetModules(adapter),
+    tensors,
+    weightsFormat: 'safetensors',
+    weightsPath: weightsFilename,
+    metadata: {
+      baseModelRef: fixture.baseModelRef,
+      baseModelUrl: fixture.baseModelUrl,
+      datasetFormat: pipeline.datasetFormat,
+      taskType: pipeline.taskType,
+    },
+  });
+  const manifestPath = join(layout.exports, `${checkpointId}.adapter.manifest.json`);
+  const runtimeManifestPath = join(layout.exports, 'runtime-adapter-manifest.json');
+  const weightsPath = join(layout.exports, weightsFilename);
+  if (!exported.weights) {
+    throw new Error('Causal-LM LoRA safetensors export did not return weights bytes.');
+  }
+  await writeFile(weightsPath, new Uint8Array(exported.weights));
+  await writeFile(manifestPath, exported.json, 'utf8');
+  await writeFile(runtimeManifestPath, exported.json, 'utf8');
+  await loadLoRAFromManifest(exported.manifest, {
+    readFile: async (filePath) => readFile(join(layout.exports, filePath)),
+  });
+  const artifactPayload = {
+    ...buildArtifact(loadedWorkload, {
+      prefix: 'lora_export',
+      id: checkpointId,
+      artifactType: 'lora_adapter_manifest',
+      checkpointStep,
+      datasetHash,
+    }),
+    checkpointId,
+    manifestPath,
+    runtimeManifestPath,
+    weightsPath,
+    weightsSha256: exported.weightsSha256 || null,
+    manifest: exported.manifest,
+  };
+  const artifactFile = await writeJsonArtifact(
+    join(layout.exports, `${checkpointId}.export.json`),
+    artifactPayload
+  );
+  return {
+    checkpointId,
+    manifestPath,
+    runtimeManifestPath,
+    weightsPath,
+    weightsSha256: exported.weightsSha256 || null,
+    exportPath: artifactFile.path,
+    manifest: exported.manifest,
+  };
+}
+
+async function readLossMean(loss) {
+  const raw = await readBuffer(loss.buffer);
+  const data = loss.dtype === 'f16'
+    ? f16ToF32Array(new Uint16Array(raw))
+    : new Float32Array(raw);
+  if (!data.length) return 0;
+  let sum = 0;
+  for (const value of data) {
+    sum += Number.isFinite(value) ? value : 0;
+  }
+  return sum / data.length;
+}
+
+async function evaluateCausalLmLoraModel(workload, fixture, dataset, layout = null, checkpointMeta = {}) {
+  const protectedBuffers = collectProtectedBuffers(fixture.model);
+  const evalReports = [];
+  const evalDatasets = Array.isArray(workload.evalDatasets) ? workload.evalDatasets : [];
+  for (const evalDataset of evalDatasets) {
+    if (evalDataset.evalKind !== 'text_generation') {
+      throw new Error(`Causal-LM LoRA eval supports text_generation only, got "${evalDataset.evalKind}".`);
+    }
+    const evalDatasetPath = await resolveDatasetPathForLoadedWorkload(evalDataset.datasetPath, {
+      absolutePath: checkpointMeta.workloadPath || null,
+    });
+    const evalDatasetMaterialized = evalDataset.datasetPath === dataset.absolutePath
+      ? dataset
+      : await loadCausalLmTextPairSamples(workload, evalDatasetPath, fixture.tokenizer);
+    const losses = [];
+    for await (const resolvedBatch of createCausalLmDatasetBatches(evalDatasetMaterialized.samples).batches()) {
+      const tape = new AutogradTape(loadBackwardRegistry());
+      let loss = null;
+      try {
+        const { logits } = await fixture.model.forwardCausalLm(resolvedBatch, tape);
+        loss = await crossEntropyLoss(logits, resolvedBatch.targets, { training: { precision: workload.training.precision } }, tape);
+        losses.push(await readLossMean(loss));
+      } finally {
+        disposeTapeOutputs(tape, protectedBuffers);
+      }
+    }
+    const meanLoss = losses.length
+      ? losses.reduce((sum, value) => sum + value, 0) / losses.length
+      : null;
+    const reportPayload = {
+      artifactType: 'training_eval_report',
+      schemaVersion: 1,
+      generatedAt: new Date().toISOString(),
+      workloadId: workload.id,
+      workloadPath: checkpointMeta.workloadPath || null,
+      workloadSha256: checkpointMeta.workloadSha256 || null,
+      configHash: checkpointMeta.configHash || workload.configHash,
+      datasetPath: evalDataset.datasetPath,
+      datasetHash: evalDatasetMaterialized.datasetHash,
+      baseModelId: workload.baseModelId,
+      baseModelRef: fixture.baseModelRef,
+      stage: 'lora',
+      checkpointStep: checkpointMeta.checkpointStep ?? null,
+      evalDatasetId: evalDataset.id,
+      metrics: {
+        loss: {
+          score: meanLoss,
+          samples: losses.length,
+        },
+      },
+      primaryMetric: 'loss',
+      primaryScore: meanLoss,
+      loss: meanLoss,
+    };
+    const reportFile = layout
+      ? await writeJsonArtifact(
+        join(layout.eval, `${checkpointMeta.checkpointId || 'checkpoint'}__${evalDataset.id}.json`),
+        reportPayload
+      )
+      : null;
+    evalReports.push({
+      ...reportPayload,
+      reportPath: reportFile?.path || null,
+    });
+  }
+  return evalReports;
+}
+
+function getCausalLmFreezeConfig(workload) {
+  const pipeline = getPipelineConfig(workload);
+  const freeze = pipeline.freeze;
+  if (!freeze || typeof freeze !== 'object' || Array.isArray(freeze)) {
+    throw new Error('Causal-LM LoRA workload requires lora.freeze.');
+  }
+  return {
+    encoder: freeze.encoder === true,
+    prior: freeze.prior === true,
+    decoder: freeze.decoder === true,
+    base: freeze.base === true,
+    lora: freeze.lora === true,
+  };
+}
+
+function createLoraRunnerTrainingConfig(workload, freeze) {
+  return {
+    training: {
+      enabled: true,
+      optimizer: {
+        type: workload.training.optimizer.type,
+        lr: workload.training.optimizer.lr,
+        beta1: workload.training.optimizer.beta1,
+        beta2: workload.training.optimizer.beta2,
+        eps: workload.training.optimizer.eps,
+        weightDecay: workload.training.optimizer.weightDecay,
+        scheduler: workload.training.optimizer.scheduler,
+      },
+      gradient: {
+        maxNorm: workload.training.gradientClipping.maxNorm,
+      },
+      precision: workload.training.precision,
+      lossScaling: { enabled: false },
+      distill: {
+        enabled: false,
+        stage: 'stage_a',
+        teacherModelId: null,
+        studentModelId: null,
+        datasetId: null,
+        datasetPath: null,
+        languagePair: null,
+        sourceLangs: null,
+        targetLangs: null,
+        pairAllowlist: null,
+        strictPairContract: false,
+        shardIndex: null,
+        shardCount: null,
+        resumeFrom: null,
+        artifactDir: null,
+        stageAArtifact: null,
+        stageAArtifactHash: null,
+        temperature: 1,
+        alphaKd: 1,
+        alphaCe: 0,
+        allowHintFallback: false,
+        tripletMargin: 0.2,
+        studentGraphMode: 'transformer_full',
+        freeze,
+      },
+      ul: {
+        enabled: false,
+        stage: 'stage1_joint',
+        stage1Artifact: null,
+        stage1ArtifactHash: null,
+        artifactDir: null,
+        lambda0: 5,
+        seed: workload.seed,
+        noiseSchedule: { name: 'linear', minSigma: 0.1, maxSigma: 1, steps: 1 },
+        priorAlignment: { enabled: false, weight: 1 },
+        decoderSigmoidWeight: { enabled: false, maxWeight: 1 },
+        lossWeights: { prior: 1, decoder: 1, recon: 1 },
+        freeze: null,
+      },
+    },
+  };
+}
+
+function createLoraOptimizer(workload) {
+  return new AdamOptimizer({
+    training: {
+      optimizer: {
+        type: workload.training.optimizer.type,
+        lr: workload.training.optimizer.lr,
+        beta1: workload.training.optimizer.beta1,
+        beta2: workload.training.optimizer.beta2,
+        eps: workload.training.optimizer.eps,
+        weightDecay: workload.training.optimizer.weightDecay,
+        scheduler: workload.training.optimizer.scheduler,
+      },
+      gradient: {
+        maxNorm: workload.training.gradientClipping.maxNorm,
+      },
+      precision: workload.training.precision,
+    },
+  });
+}
+
+async function createLoraRunLayout(options, workload) {
+  const layout = options.runRoot
+    ? {
+      runRoot: resolve(String(options.runRoot)),
+      logs: join(resolve(String(options.runRoot)), 'logs'),
+      checkpoints: join(resolve(String(options.runRoot)), 'checkpoints'),
+      eval: join(resolve(String(options.runRoot)), 'eval'),
+      scoreboard: join(resolve(String(options.runRoot)), 'scoreboard'),
+      exports: join(resolve(String(options.runRoot)), 'exports'),
+      compare: join(resolve(String(options.runRoot)), 'compare'),
+      qualityGate: join(resolve(String(options.runRoot)), 'quality-gate'),
+    }
+    : await createTrainingRunLayout({
+      kind: 'lora',
+      workloadId: workload.id,
+      timestamp: options.timestamp || null,
+    });
+  await Promise.all(Object.values(layout).map((dirPath) => mkdir(dirPath, { recursive: true })));
+  return layout;
+}
+
+function isObjectRecord(value) {
+  return value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function hashTextPairsDataset(dataset) {
+  return hashArtifactPayload({ rows: dataset.rows });
+}
+
+function parseCausalLmLoraTensorName(name) {
+  const text = String(name || '');
+  const match = text.match(/(?:^|\.)layers?\.?(\d+)\.(?:[A-Za-z0-9_]+\.)*([A-Za-z0-9_]+)\.lora_([ab])(?:\.[A-Za-z0-9_]+)?$/i);
+  if (!match) return null;
+  const layer = Number.parseInt(match[1], 10);
+  const rawModule = match[2].toLowerCase();
+  const module = LORA_MODULE_ALIASES[rawModule];
+  if (!module) return null;
+  return {
+    layer,
+    module,
+    kind: match[3].toLowerCase() === 'a' ? 'a' : 'b',
+  };
+}
+
+function normalizeTensorShape(value, label) {
+  const shape = Array.isArray(value) ? value.map((entry) => Number(entry)) : [];
+  if (shape.length !== 2 || shape.some((entry) => !Number.isInteger(entry) || entry < 1)) {
+    throw new Error(`${label} requires shape [rows, cols].`);
+  }
+  return shape;
+}
+
+function normalizeTrainerTensor(entry, index) {
+  if (!isObjectRecord(entry)) {
+    throw new Error(`Causal-LM trainer tensor ${index + 1} must be an object.`);
+  }
+  const name = String(entry.name || '').trim();
+  if (!name) {
+    throw new Error(`Causal-LM trainer tensor ${index + 1} requires name.`);
+  }
+  const tensor = entry.tensor ?? entry.data ?? entry.values;
+  if (tensor === undefined || tensor === null) {
+    throw new Error(`Causal-LM trainer tensor "${name}" requires tensor data.`);
+  }
+  const shape = normalizeTensorShape(entry.shape ?? tensor?.shape, `Causal-LM trainer tensor "${name}"`);
+  let normalizedTensor = tensor;
+  if (Array.isArray(tensor)) {
+    normalizedTensor = new Float32Array(tensor.map((value) => Number(value)));
+  }
+  if (normalizedTensor instanceof Float32Array && normalizedTensor.length !== shape[0] * shape[1]) {
+    throw new Error(
+      `Causal-LM trainer tensor "${name}" shape mismatch: expected ${shape[0] * shape[1]}, got ${normalizedTensor.length}.`
+    );
+  }
+  return {
+    name,
+    shape,
+    dtype: entry.dtype || 'f32',
+    tensor: normalizedTensor,
+  };
+}
+
+function assertCausalLmTensorCoverage(tensors, adapter) {
+  const targetModules = normalizeLoraTargetModules(adapter);
+  if (!targetModules.length) {
+    throw new Error('Causal-LM LoRA export requires at least one target module.');
+  }
+  const targetSet = new Set(targetModules);
+  const layerModules = new Map();
+  const seenModules = new Set();
+  for (const tensor of tensors) {
+    const parsed = parseCausalLmLoraTensorName(tensor.name);
+    if (!parsed) {
+      throw new Error(`Unrecognized Causal-LM LoRA tensor name: ${tensor.name}`);
+    }
+    if (!targetSet.has(parsed.module)) {
+      throw new Error(
+        `Causal-LM LoRA tensor "${tensor.name}" targets module "${parsed.module}" outside workload targetModules.`
+      );
+    }
+    seenModules.add(parsed.module);
+    if (!layerModules.has(parsed.layer)) {
+      layerModules.set(parsed.layer, new Map());
+    }
+    const modules = layerModules.get(parsed.layer);
+    if (!modules.has(parsed.module)) {
+      modules.set(parsed.module, new Set());
+    }
+    modules.get(parsed.module).add(parsed.kind);
+  }
+  if (layerModules.size === 0) {
+    throw new Error('Causal-LM trainer returned no LoRA layer tensors.');
+  }
+  for (const moduleName of targetModules) {
+    if (!seenModules.has(moduleName)) {
+      throw new Error(`Causal-LM trainer returned no tensors for target module "${moduleName}".`);
+    }
+  }
+  for (const [layerIndex, modules] of layerModules.entries()) {
+    for (const moduleName of targetModules) {
+      const kinds = modules.get(moduleName);
+      if (!kinds?.has('a') || !kinds?.has('b')) {
+        throw new Error(
+          `Causal-LM trainer layer ${layerIndex} module ${moduleName} must include both lora_a and lora_b tensors.`
+        );
+      }
+    }
+  }
+}
+
+function normalizeCausalLmTrainerOutput(output, workload) {
+  if (!isObjectRecord(output)) {
+    throw new Error('Causal-LM trainer must return an object.');
+  }
+  const rawTensors = Array.isArray(output.tensors)
+    ? output.tensors
+    : (Array.isArray(output.weights) ? output.weights : null);
+  if (!rawTensors || rawTensors.length === 0) {
+    throw new Error('Causal-LM trainer must return non-empty tensors.');
+  }
+  const tensors = rawTensors.map((entry, index) => normalizeTrainerTensor(entry, index));
+  assertCausalLmTensorCoverage(tensors, getPipelineConfig(workload).adapter);
+  const checkpointStep = Number.isInteger(Number(output.checkpointStep))
+    ? Number(output.checkpointStep)
+    : Number(workload.training?.steps || 0);
+  const checkpointId = String(output.checkpointId || `checkpoint-${String(checkpointStep).padStart(6, '0')}`).trim();
+  if (!/^[A-Za-z0-9_-]+$/.test(checkpointId)) {
+    throw new Error(`Causal-LM trainer checkpointId "${checkpointId}" must use alphanumeric, underscore, or hyphen characters.`);
+  }
+  return {
+    checkpointId,
+    checkpointStep,
+    adapterId: String(output.adapterId || '').trim() || null,
+    adapterName: String(output.adapterName || '').trim() || null,
+    trainerId: String(output.trainerId || '').trim() || null,
+    runnerId: String(output.runnerId || '').trim() || null,
+    metrics: isObjectRecord(output.metrics) ? output.metrics : {},
+    receipts: Array.isArray(output.receipts) ? output.receipts.slice() : [],
+    tensors,
+  };
+}
+
+async function resolveCausalLmTrainer(loadedWorkload, options = {}) {
+  if (typeof options.causalLmTrainer === 'function') {
+    return {
+      train: options.causalLmTrainer,
+      runnerId: options.causalLmTrainer.runnerId || 'injected_causal_lm_lora_trainer',
+      source: 'runLoraPipeline.options.causalLmTrainer',
+      exportName: null,
+    };
+  }
+  const trainerConfig = getPipelineConfig(loadedWorkload.workload).trainer;
+  if (!trainerConfig) {
+    throw new Error(
+      'causal_lm_trainer_not_configured: provide runLoraPipeline({ causalLmTrainer }) or lora.trainer.modulePath in the workload.'
+    );
+  }
+  const modulePath = String(trainerConfig.modulePath || trainerConfig.path || '').trim();
+  if (!modulePath) {
+    throw new Error('causal_lm_trainer_not_configured: lora.trainer.modulePath is required.');
+  }
+  const exportName = String(trainerConfig.exportName || 'trainCausalLmLora').trim();
+  if (!exportName) {
+    throw new Error('causal_lm_trainer_not_configured: lora.trainer.exportName is required.');
+  }
+  const workloadDir = loadedWorkload.absolutePath
+    ? dirname(resolve(String(loadedWorkload.absolutePath)))
+    : process.cwd();
+  const absoluteModulePath = isAbsolute(modulePath)
+    ? modulePath
+    : resolve(workloadDir, modulePath);
+  const trainerModule = await import(pathToFileURL(absoluteModulePath).href);
+  const train = trainerModule[exportName];
+  if (typeof train !== 'function') {
+    throw new Error(`causal_lm_trainer_not_configured: ${absoluteModulePath} does not export ${exportName}().`);
+  }
+  return {
+    train,
+    runnerId: String(trainerConfig.runnerId || exportName).trim(),
+    source: absoluteModulePath,
+    exportName,
+  };
+}
+
+async function exportProviderCausalLmLoraModel(
+  loadedWorkload,
+  layout,
+  trainerOutput,
+  checkpointId,
+  checkpointStep,
+  datasetHash,
+  trainerInfo,
+  preflight
+) {
+  const workload = loadedWorkload.workload;
+  const pipeline = getPipelineConfig(workload);
+  const weightsFilename = `${checkpointId}.adapters.safetensors`;
+  const exported = await exportLoRAAdapter({
+    id: pipeline.export?.id || trainerOutput.adapterId || `${workload.id}-${checkpointId}`,
+    name: pipeline.export?.name || trainerOutput.adapterName || `${workload.id}-${checkpointId}`,
+    baseModel: workload.baseModelId,
+    rank: pipeline.adapter.rank,
+    alpha: pipeline.adapter.alpha,
+    targetModules: normalizeLoraTargetModules(pipeline.adapter),
+    tensors: trainerOutput.tensors,
+    weightsFormat: 'safetensors',
+    weightsPath: weightsFilename,
+    metadata: {
+      runnerKind: 'causal_lm_text_generation',
+      runnerKey: preflight.runnerKey,
+      runnerId: trainerOutput.runnerId || trainerInfo.runnerId,
+      trainerId: trainerOutput.trainerId,
+      trainerSource: trainerInfo.source,
+      datasetHash,
+      workloadSha256: loadedWorkload.workloadSha256,
+      metrics: trainerOutput.metrics,
+      receipts: trainerOutput.receipts,
+    },
+  });
+  if (!exported.weights) {
+    throw new Error('Causal-LM LoRA safetensors export did not return weights bytes.');
+  }
+  const manifestPath = join(layout.exports, `${checkpointId}.adapter.manifest.json`);
+  const runtimeManifestPath = join(layout.exports, 'runtime-adapter-manifest.json');
+  const weightsPath = join(layout.exports, weightsFilename);
+  await writeFile(weightsPath, new Uint8Array(exported.weights));
+  await writeFile(manifestPath, exported.json, 'utf8');
+  await writeFile(runtimeManifestPath, exported.json, 'utf8');
+  await loadLoRAFromManifest(exported.manifest, {
+    readFile: async (filePath) => readFile(join(layout.exports, filePath)),
+  });
+  const artifactPayload = {
+    ...buildArtifact(loadedWorkload, {
+      prefix: 'lora_export',
+      id: checkpointId,
+      artifactType: 'lora_adapter_manifest',
+      checkpointStep,
+      datasetHash,
+    }),
+    checkpointId,
+    manifestPath,
+    runtimeManifestPath,
+    weightsPath,
+    weightsSha256: exported.weightsSha256 || null,
+    runnerKey: preflight.runnerKey,
+    trainer: {
+      runnerId: trainerOutput.runnerId || trainerInfo.runnerId,
+      trainerId: trainerOutput.trainerId,
+      source: trainerInfo.source,
+      exportName: trainerInfo.exportName,
+    },
+    metrics: trainerOutput.metrics,
+    manifest: exported.manifest,
+  };
+  const artifactFile = await writeJsonArtifact(
+    join(layout.exports, `${checkpointId}.export.json`),
+    artifactPayload
+  );
+  return {
+    checkpointId,
+    manifestPath,
+    runtimeManifestPath,
+    weightsPath,
+    weightsSha256: exported.weightsSha256 || null,
+    exportPath: artifactFile.path,
+    manifest: exported.manifest,
+  };
+}
+
+function hasExternalCausalLmTrainer(loadedWorkload, options = {}) {
+  return typeof options.causalLmTrainer === 'function'
+    || Boolean(getPipelineConfig(loadedWorkload.workload).trainer);
+}
+
+async function runInternalCausalLmLoraPipeline(options, layout, compatibility) {
+  const loadedWorkload = options.loadedWorkload;
+  const workload = loadedWorkload.workload;
+  const pipeline = getPipelineConfig(workload);
+  const datasetPath = await resolveDatasetPathForLoadedWorkload(workload.datasetPath, loadedWorkload);
+  const preflight = await preflightCausalLmLoraWorkload(workload, {
+    datasetPath,
+    fetch: options.fetch,
+    readFile: options.readFile,
+  });
+  if (!preflight.supported || preflight.blockedReasons.length > 0) {
+    throw new Error(`Causal-LM LoRA workload is blocked: ${preflight.blockedReasons.join(',')}`);
+  }
+  if (Math.floor(Number(workload.training.batchSize)) !== 1) {
+    throw new Error('Causal-LM LoRA workload requires training.batchSize=1.');
+  }
+  const freeze = getCausalLmFreezeConfig(workload);
+  const fixture = await createCausalLmLoraFixture(workload);
+  try {
+    const dataset = await loadCausalLmTextPairSamples(workload, datasetPath, fixture.tokenizer);
+    const evalReports = [];
+    const checkpointArtifacts = [];
+    const exports = [];
+    const runner = new TrainingRunner(createLoraRunnerTrainingConfig(workload, freeze), {
+      optimizer: createLoraOptimizer(workload),
+      crossEntropyLoss,
+      clipGradients,
+      trainingObjective: createCausalLmTrainingObjective(),
+      onCheckpoint: async (checkpoint) => {
+        const checkpointId = `checkpoint-${String(checkpoint.step).padStart(6, '0')}`;
+        const checkpointPayload = {
+          ...buildArtifact(loadedWorkload, {
+            prefix: 'lora_ckpt',
+            id: checkpointId,
+            artifactType: 'training_checkpoint',
+            datasetPath: dataset.absolutePath,
+            datasetHash: dataset.datasetHash,
+            checkpointStep: checkpoint.step,
+          }),
+          checkpointId,
+          checkpointPath: checkpoint.path,
+          optimizerStatePresent: true,
+          schedulerStatePresent: workload.training.optimizer.scheduler.enabled === true,
+          runnerKey: compatibility.observed.runnerKey,
+          baseModelRef: fixture.baseModelRef,
+          tokenization: dataset.tokenization,
+          resumeLineage: checkpoint.metadata?.lineage || null,
+        };
+        await writeJsonArtifact(
+          join(layout.checkpoints, checkpointId, 'checkpoint.json'),
+          checkpointPayload
+        );
+        const checkpointArtifact = await writeJsonArtifact(
+          join(layout.checkpoints, checkpointId, 'checkpoint.complete.json'),
+          checkpointPayload
+        );
+        checkpointArtifacts.push({
+          checkpointId,
+          checkpointPath: checkpoint.path,
+          markerPath: checkpointArtifact.path,
+          checkpointStep: checkpoint.step,
+        });
+        if (pipeline.export?.enabled === true && pipeline.export.atCheckpoints === true) {
+          exports.push(await exportCausalLmLoraModel(
+            loadedWorkload,
+            layout,
+            fixture,
+            checkpointId,
+            checkpoint.step,
+            dataset.datasetHash
+          ));
+        }
+        const reports = await evaluateCausalLmLoraModel(workload, fixture, dataset, layout, {
+          checkpointId,
+          checkpointStep: checkpoint.step,
+          configHash: workload.configHash,
+          workloadPath: loadedWorkload.absolutePath,
+          workloadSha256: loadedWorkload.workloadSha256,
+        });
+        for (const report of reports) {
+          evalReports.push(report);
+          await appendScoreboardRow(layout.scoreboard, {
+            artifactType: 'training_scoreboard',
+            schemaVersion: 1,
+            generatedAt: new Date().toISOString(),
+            checkpointId,
+            checkpointStep: checkpoint.step,
+            evalDatasetId: report.evalDatasetId,
+            primaryMetric: report.primaryMetric,
+            primaryScore: report.primaryScore,
+            loss: report.loss,
+            metrics: {
+              loss: report.loss,
+              primaryScore: report.primaryScore,
+            },
+          }, {
+            selectionMetric: workload.selectionMetric,
+            selectionGoal: workload.selectionGoal,
+          });
+        }
+      },
+    });
+    const metrics = await runner.run(
+      fixture.model,
+      createCausalLmDatasetBatches(dataset.samples),
+      {
+        epochs: 1,
+        batchSize: 1,
+        shuffle: false,
+        maxSteps: workload.training.steps,
+        checkpointEvery: workload.checkpointEvery,
+        checkpointKey: join(layout.checkpoints, 'latest.state.json'),
+        modelId: workload.baseModelId,
+        modelUrl: fixture.baseModelUrl,
+        tokenizerHash: fixture.baseManifest?.tokenizerHash || null,
+      }
+    );
+    const finalCheckpointId = runner.lastCheckpoint
+      ? `checkpoint-${String(runner.lastCheckpoint.step).padStart(6, '0')}`
+      : null;
+    if (
+      pipeline.export?.enabled !== false
+      && finalCheckpointId
+      && exports.every((entry) => entry.checkpointId !== finalCheckpointId)
+    ) {
+      exports.push(await exportCausalLmLoraModel(
+        loadedWorkload,
+        layout,
+        fixture,
+        finalCheckpointId,
+        runner.lastCheckpoint.step,
+        dataset.datasetHash
+      ));
+    }
+    return {
+      ok: true,
+      kind: 'lora',
+      action: 'run',
+      runnerKind: 'causal_lm_lora',
+      workloadId: workload.id,
+      runRoot: layout.runRoot,
+      preflight,
+      checkpointArtifacts,
+      evalReports,
+      exports,
+      metrics,
+      lastCheckpoint: runner.lastCheckpoint,
+      dataset: {
+        path: dataset.absolutePath,
+        rowCount: dataset.rowCount,
+        sampleCount: dataset.samples.length,
+        datasetHash: dataset.datasetHash,
+        tokenization: dataset.tokenization,
+      },
+      baseModel: {
+        id: workload.baseModelId,
+        ref: fixture.baseModelRef,
+        url: fixture.baseModelUrl,
+      },
+    };
+  } finally {
+    await fixture.cleanup();
+  }
+}
+
+async function runProviderCausalLmLoraPipeline(options, compatibility) {
+  const loadedWorkload = options.loadedWorkload;
+  const workload = loadedWorkload.workload;
+  const pipeline = getPipelineConfig(workload);
+  if (!workload.datasetPath) {
+    throw new Error('preflightCausalLmLoraWorkload requires workload.datasetPath.');
+  }
+  const layout = await createLoraRunLayout(options, workload);
+  await writeRunContract(layout, buildRunContract(loadedWorkload));
+  await writeWorkloadLock(layout, loadedWorkload);
+  const datasetPath = await resolveDatasetPathForLoadedWorkload(workload.datasetPath, loadedWorkload);
+  const dataset = await loadTextPairsDataset(datasetPath, {
+    fetch: options.fetch,
+    readFile: options.readFile,
+  });
+  if (dataset.rowCount < 1) {
+    throw new Error(`Causal-LM LoRA dataset ${dataset.absolutePath} has no rows.`);
+  }
+  const datasetHash = hashTextPairsDataset(dataset);
+  const preflight = await preflightCausalLmLoraWorkload(workload, {
+    datasetPath: dataset.absolutePath,
+    fetch: options.fetch,
+    readFile: options.readFile,
+  });
+  const trainerInfo = await resolveCausalLmTrainer(loadedWorkload, options);
+  const trainerResult = await trainerInfo.train({
+    schemaVersion: 1,
+    runnerKind: 'causal_lm_lora',
+    workload,
+    loadedWorkload,
+    compatibility,
+    preflight,
+    dataset: {
+      absolutePath: dataset.absolutePath,
+      rowCount: dataset.rowCount,
+      rows: dataset.rows,
+      datasetHash,
+    },
+    adapter: pipeline.adapter,
+    training: workload.training,
+    export: pipeline.export,
+    layout,
+  });
+  const trainerOutput = normalizeCausalLmTrainerOutput(trainerResult, workload);
+  const checkpointPayload = {
+    ...buildArtifact(loadedWorkload, {
+      prefix: 'lora_ckpt',
+      id: trainerOutput.checkpointId,
+      artifactType: 'training_checkpoint',
+      datasetPath: dataset.absolutePath,
+      datasetHash,
+      checkpointStep: trainerOutput.checkpointStep,
+    }),
+    checkpointId: trainerOutput.checkpointId,
+    checkpointPath: join(layout.checkpoints, trainerOutput.checkpointId, 'trainer-output.json'),
+    optimizerStatePresent: false,
+    schedulerStatePresent: false,
+    runnerKey: preflight.runnerKey,
+    trainer: {
+      runnerId: trainerOutput.runnerId || trainerInfo.runnerId,
+      trainerId: trainerOutput.trainerId,
+      source: trainerInfo.source,
+      exportName: trainerInfo.exportName,
+    },
+    tensorNames: trainerOutput.tensors.map((entry) => entry.name),
+    metrics: trainerOutput.metrics,
+    receipts: trainerOutput.receipts,
+  };
+  await writeJsonArtifact(
+    join(layout.checkpoints, trainerOutput.checkpointId, 'trainer-output.json'),
+    checkpointPayload
+  );
+  const checkpointArtifact = await writeJsonArtifact(
+    join(layout.checkpoints, trainerOutput.checkpointId, 'checkpoint.complete.json'),
+    checkpointPayload
+  );
+  const exported = pipeline.export?.enabled === false
+    ? null
+    : await exportProviderCausalLmLoraModel(
+      loadedWorkload,
+      layout,
+      trainerOutput,
+      trainerOutput.checkpointId,
+      trainerOutput.checkpointStep,
+      datasetHash,
+      trainerInfo,
+      preflight
+    );
+  return {
+    ok: true,
+    kind: 'lora',
+    action: 'run',
+    runnerKind: 'causal_lm_lora',
+    workloadId: workload.id,
+    runRoot: layout.runRoot,
+    preflight,
+    checkpointArtifacts: [{
+      checkpointId: trainerOutput.checkpointId,
+      checkpointPath: checkpointPayload.checkpointPath,
+      markerPath: checkpointArtifact.path,
+      checkpointStep: trainerOutput.checkpointStep,
+    }],
+    evalReports: [],
+    exports: exported ? [exported] : [],
+    metrics: trainerOutput.metrics,
+    lastCheckpoint: {
+      id: trainerOutput.checkpointId,
+      step: trainerOutput.checkpointStep,
+      path: checkpointPayload.checkpointPath,
+    },
+  };
+}
+
+async function runCausalLmLoraPipeline(options, compatibility) {
+  if (!options.loadedWorkload.workload.datasetPath) {
+    throw new Error('preflightCausalLmLoraWorkload requires workload.datasetPath.');
+  }
+  if (hasExternalCausalLmTrainer(options.loadedWorkload, options)) {
+    return runProviderCausalLmLoraPipeline(options, compatibility);
+  }
+  const layout = await createLoraRunLayout(options, options.loadedWorkload.workload);
+  await writeRunContract(layout, buildRunContract(options.loadedWorkload));
+  await writeWorkloadLock(layout, options.loadedWorkload);
+  return runInternalCausalLmLoraPipeline(options, layout, compatibility);
 }
 
 async function selectLatestCheckpoint(runRoot) {
@@ -399,29 +1715,14 @@ export async function runLoraPipeline(options) {
   if (workload.kind !== 'lora') {
     throw new Error('runLoraPipeline requires a lora workload.');
   }
-  if (workload.baseModelId !== 'training-toy') {
-    throw new Error('LoRA run currently supports baseModelId="training-toy" only.');
+  const compatibility = getLoraRunnerCompatibility(workload);
+  if (!compatibility.supported) {
+    assertLoraRunnerCompatibility(workload);
   }
-  if (workload.pipeline.datasetFormat !== 'toy_linear_classification_jsonl') {
-    throw new Error('LoRA run currently supports datasetFormat="toy_linear_classification_jsonl" only.');
+  if (isCausalLmLoraWorkload(workload, compatibility)) {
+    return runCausalLmLoraPipeline(options, compatibility);
   }
-  const layout = options.runRoot
-    ? {
-      runRoot: resolve(String(options.runRoot)),
-      logs: join(resolve(String(options.runRoot)), 'logs'),
-      checkpoints: join(resolve(String(options.runRoot)), 'checkpoints'),
-      eval: join(resolve(String(options.runRoot)), 'eval'),
-      scoreboard: join(resolve(String(options.runRoot)), 'scoreboard'),
-      exports: join(resolve(String(options.runRoot)), 'exports'),
-      compare: join(resolve(String(options.runRoot)), 'compare'),
-      qualityGate: join(resolve(String(options.runRoot)), 'quality-gate'),
-    }
-    : await createTrainingRunLayout({
-      kind: 'lora',
-      workloadId: workload.id,
-      timestamp: options.timestamp || null,
-    });
-  await Promise.all(Object.values(layout).map((dirPath) => mkdir(dirPath, { recursive: true })));
+  const layout = await createLoraRunLayout(options, workload);
   await writeRunContract(layout, buildRunContract(loadedWorkload));
   await writeWorkloadLock(layout, loadedWorkload);
   const dataset = await loadToyLoraDataset(workload.datasetPath);

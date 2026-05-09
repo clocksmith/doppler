@@ -9,7 +9,7 @@ override WORKGROUP_SIZE: u32 = 256u;
 struct Uniforms {
     num_tokens: u32,
     vocab_size: u32,
-    _pad0: u32,
+    dispatch_stride: u32,
     _pad1: u32,
 }
 
@@ -21,7 +21,7 @@ struct Uniforms {
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-    let idx = gid.x;
+    let idx = gid.y * max(u.dispatch_stride, 1u) + gid.x;
     let total = u.num_tokens * u.vocab_size;
     if (idx >= total) {
         return;

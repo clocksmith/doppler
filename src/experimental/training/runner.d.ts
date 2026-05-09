@@ -146,6 +146,7 @@ export interface TrainingRunOptions {
   strictPairContract?: boolean;
   distillShardIndex?: number | null;
   distillShardCount?: number | null;
+  checkpointKey?: string | null;
   resumeFrom?: string | null;
   forceResume?: boolean;
   forceResumeReason?: string | null;

@@ -6,12 +6,18 @@ export { AdamOptimizer } from './optimizer.js';
 export { trainStep } from './trainer.js';
 export { crossEntropyLoss } from './loss.js';
 export { clipGradients } from './clip.js';
-export { exportLoRAAdapter } from './export.js';
+export { exportLoRAAdapter, serializeLoRASafetensors } from './export.js';
 export { DynamicLossScaler, detectOverflow } from './loss-scaling.js';
 export { TrainingRunner, runTraining } from './runner.js';
 export { runTrainingSuite, runTrainingBenchSuite, trainingHarness } from './suite.js';
 export { runTrainingOperatorCommand } from './operator-command.js';
 export {
+  LORA_RUNNER_SUPPORT_CONTRACT,
+  LORA_RUNNER_BASE_MODEL_REGISTRY,
+  LORA_RUNNER_DATASET_FORMAT_REGISTRY,
+  getLoraRunnerCompatibility,
+  assertLoraRunnerCompatibility,
+  preflightCausalLmLoraWorkload,
   runLoraPipeline,
   evaluateLoraCheckpoint,
   exportLoraCheckpoint,

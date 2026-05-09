@@ -3,7 +3,7 @@ export interface TrainingMetricsReportSchema {
     step: number;
     epoch: number;
     batch: number;
-    objective: 'cross_entropy' | 'ul_stage1_joint' | 'ul_stage2_base' | 'kd' | 'triplet';
+    objective: 'cross_entropy' | 'causal_lm_cross_entropy' | 'ul_stage1_joint' | 'ul_stage2_base' | 'kd' | 'triplet';
     total_loss: number;
     step_time_ms: number;
     forward_ms?: number;

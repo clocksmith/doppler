@@ -138,6 +138,17 @@ const { manifest, json } = await exportLoRAAdapter({
 });
 ```
 
+Use `weightsFormat: 'safetensors'` and `weightsPath: 'adapters.safetensors'`
+to produce an external weight file plus manifest checksum. The LoRA operator
+uses this package shape for checkpoint exports:
+
+```text
+exports/
+  checkpoint-000200.adapter.manifest.json
+  checkpoint-000200.adapters.safetensors
+  checkpoint-000200.export.json
+```
+
 Format reference:
 - `docs/spec/RDRR_LORA_FORMAT.md`
 

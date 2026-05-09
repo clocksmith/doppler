@@ -7,8 +7,13 @@ export interface DistillStudentFixture {
       tape: unknown,
       options?: Record<string, unknown>
     ) => Promise<{ logits: unknown }>;
+    forwardCausalLm?: (
+      batch: unknown,
+      tape: unknown
+    ) => Promise<{ logits: unknown }>;
     cleanupDistillStep?: () => void;
     loraParams?: () => unknown[];
+    loraTensorEntries?: () => Array<{ name: string; tensor: unknown }>;
     paramGroups?: () => Record<string, unknown[]>;
   };
   outputDim?: number;

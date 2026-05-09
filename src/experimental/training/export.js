@@ -46,6 +46,76 @@ async function resolveTensorData(entry) {
   return { dtype: 'f32', shape: [...shape], data };
 }
 
+function float32ToBytes(values) {
+  const bytes = new Uint8Array(values.length * 4);
+  const view = new DataView(bytes.buffer);
+  for (let index = 0; index < values.length; index += 1) {
+    view.setFloat32(index * 4, values[index], true);
+  }
+  return bytes;
+}
+
+function writeUint64LE(value) {
+  const bytes = new Uint8Array(8);
+  const view = new DataView(bytes.buffer);
+  view.setBigUint64(0, BigInt(value), true);
+  return bytes;
+}
+
+async function sha256Hex(bytes) {
+  if (!globalThis.crypto?.subtle) {
+    throw new Error('SHA-256 hashing requires crypto.subtle.');
+  }
+  const hashBuffer = await globalThis.crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((value) => value.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+export function serializeLoRASafetensors(tensors) {
+  if (!Array.isArray(tensors) || tensors.length === 0) {
+    throw new Error('serializeLoRASafetensors requires tensors');
+  }
+  const header = {};
+  const tensorBytes = [];
+  let offset = 0;
+  for (const tensor of tensors) {
+    if (!tensor?.name) {
+      throw new Error('serializeLoRASafetensors tensor name is required.');
+    }
+    const shape = Array.isArray(tensor.shape) ? tensor.shape.map((value) => Number(value)) : [];
+    if (shape.length !== 2 || shape.some((value) => !Number.isInteger(value) || value < 1)) {
+      throw new Error(`serializeLoRASafetensors tensor ${tensor.name} requires shape [rows, cols].`);
+    }
+    const data = tensor.data instanceof Float32Array
+      ? tensor.data
+      : new Float32Array(tensor.data || []);
+    const expectedLength = shape[0] * shape[1];
+    if (data.length !== expectedLength) {
+      throw new Error(`serializeLoRASafetensors tensor ${tensor.name} shape mismatch: expected ${expectedLength}, got ${data.length}.`);
+    }
+    const bytes = float32ToBytes(data);
+    header[tensor.name] = {
+      dtype: 'F32',
+      shape,
+      data_offsets: [offset, offset + bytes.byteLength],
+    };
+    tensorBytes.push(bytes);
+    offset += bytes.byteLength;
+  }
+  const headerBytes = new TextEncoder().encode(JSON.stringify(header));
+  const sizePrefix = writeUint64LE(headerBytes.byteLength);
+  const out = new Uint8Array(sizePrefix.byteLength + headerBytes.byteLength + offset);
+  out.set(sizePrefix, 0);
+  out.set(headerBytes, sizePrefix.byteLength);
+  let writeOffset = sizePrefix.byteLength + headerBytes.byteLength;
+  for (const bytes of tensorBytes) {
+    out.set(bytes, writeOffset);
+    writeOffset += bytes.byteLength;
+  }
+  return out.buffer;
+}
+
 export async function exportLoRAAdapter(options) {
   const {
     id,
@@ -59,6 +129,8 @@ export async function exportLoRAAdapter(options) {
     metadata,
     tensors,
     format = 'base64',
+    weightsFormat = 'json',
+    weightsPath = 'adapters.safetensors',
     pretty = false,
   } = options;
 
@@ -76,10 +148,11 @@ export async function exportLoRAAdapter(options) {
     version,
     description,
     metadata,
-    weightsFormat: 'json',
+    weightsFormat,
   });
 
   const serialized = [];
+  const resolvedTensors = [];
   let totalBytes = 0;
 
   for (const entry of tensors) {
@@ -91,6 +164,10 @@ export async function exportLoRAAdapter(options) {
       shape: resolved.shape,
       dtype: resolved.dtype,
     };
+    resolvedTensors.push({
+      ...tensorSpec,
+      data: resolved.data,
+    });
 
     if (format === 'array') {
       tensorSpec.data = Array.from(resolved.data);
@@ -103,6 +180,23 @@ export async function exportLoRAAdapter(options) {
     }
 
     serialized.push(tensorSpec);
+  }
+
+  if (weightsFormat === 'safetensors') {
+    const weights = serializeLoRASafetensors(resolvedTensors);
+    const weightsBytes = new Uint8Array(weights);
+    const checksum = await sha256Hex(weightsBytes);
+    manifest.weightsPath = weightsPath;
+    manifest.weightsSize = weightsBytes.byteLength;
+    manifest.checksum = checksum;
+    manifest.checksumAlgorithm = 'sha256';
+    return {
+      manifest,
+      json: serializeManifest(manifest, pretty),
+      weights,
+      weightsSha256: checksum,
+      weightsPath,
+    };
   }
 
   manifest.tensors = serialized;

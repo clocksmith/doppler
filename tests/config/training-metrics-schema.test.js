@@ -45,8 +45,15 @@ function makeBaseEntry(overrides = {}) {
 {
   assert.throws(
     () => validateTrainingMetricsEntry(makeBaseEntry({ ul_stage: 'stage1_joint' })),
-    /cross_entropy objective must not set ul_stage/
+    /cross-entropy objectives must not set ul_stage/
   );
+}
+
+{
+  const entry = validateTrainingMetricsEntry(makeBaseEntry({
+    objective: 'causal_lm_cross_entropy',
+  }));
+  assert.equal(entry.objective, 'causal_lm_cross_entropy');
 }
 
 {

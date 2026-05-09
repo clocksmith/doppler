@@ -9,11 +9,12 @@ async function getExperimentalLoRAModule() {
   return loraModulePromise;
 }
 
-function createLoRALoadOptions() {
+function createLoRALoadOptions(overrides = {}) {
   return {
     readOPFS: readOPFSFile,
     writeOPFS: writeOPFSFile,
     fetchUrl: fetchArrayBuffer,
+    ...overrides,
   };
 }
 
@@ -22,12 +23,12 @@ function getActiveLoRAName(pipeline) {
   return active ? active.name : null;
 }
 
-export async function loadLoRAAdapterForPipeline(pipeline, adapter) {
+export async function loadLoRAAdapterForPipeline(pipeline, adapter, loadOptions = {}) {
   if (!pipeline) {
     throw new Error('No model loaded. Call load() first.');
   }
 
-  const options = createLoRALoadOptions();
+  const options = createLoRALoadOptions(loadOptions);
   let lora;
   if (typeof adapter === 'string') {
     const { loadLoRAFromUrl } = await getExperimentalLoRAModule();
@@ -43,6 +44,28 @@ export async function loadLoRAAdapterForPipeline(pipeline, adapter) {
 
   pipeline.setLoRAAdapter(lora);
   log.info('doppler', `LoRA adapter loaded: ${lora.name}`);
+}
+
+async function readLocalJson(path) {
+  const { readFile } = await import('node:fs/promises');
+  const raw = await readFile(path, 'utf8');
+  return JSON.parse(raw);
+}
+
+async function createLocalFileLoadOptions(path) {
+  const { readFile } = await import('node:fs/promises');
+  const { dirname, isAbsolute, join } = await import('node:path');
+  const basePath = dirname(path);
+  return {
+    basePath,
+    resolvePath(filePath) {
+      return isAbsolute(filePath) ? filePath : join(basePath, filePath);
+    },
+    async readFile(filePath) {
+      const data = await readFile(filePath);
+      return data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+    },
+  };
 }
 
 export async function activateLoRAFromTrainingOutputForPipeline(pipeline, trainingOutput) {
@@ -124,10 +147,8 @@ export async function activateLoRAFromTrainingOutputForPipeline(pipeline, traini
     if (!isNode) {
       throw new Error('adapterManifestPath local files require Node runtime.');
     }
-    const { readFile } = await import('node:fs/promises');
-    const raw = await readFile(path, 'utf8');
-    const manifest = JSON.parse(raw);
-    await loadLoRAAdapterForPipeline(pipeline, manifest);
+    const manifest = await readLocalJson(path);
+    await loadLoRAAdapterForPipeline(pipeline, manifest, await createLocalFileLoadOptions(path));
     return {
       activated: true,
       adapterName: getActiveLoRAName(pipeline),

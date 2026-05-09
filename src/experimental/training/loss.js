@@ -35,6 +35,6 @@ export async function crossEntropyLoss(logits, targets, config, tape) {
     OpType.CROSS_ENTROPY,
     (input, target) => runCrossEntropyLoss(input, target, { numTokens, vocabSize }),
     [softmax, targets],
-    { numTokens, vocabSize }
+    { numTokens, vocabSize, logitsInput: logitsF32 }
   );
 }

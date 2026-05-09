@@ -43,6 +43,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `ReceiptFailure`
   - `ReceiptFallbackDecision`
   - `ReceiptModel`
+  - `wrapPipelineAsDreamProvider`
   - `wrapPipelineAsHandle`
 
 ## `doppler-gpu/tooling`

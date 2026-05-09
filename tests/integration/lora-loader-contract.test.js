@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 
 import { loadLoRAFromManifest, loadLoRAWeights } from '../../src/experimental/adapters/lora-loader.js';
 
@@ -28,6 +29,31 @@ function createManifest(overrides = {}) {
     ],
     ...overrides,
   };
+}
+
+function createSafetensors(tensors) {
+  let offset = 0;
+  const header = {};
+  const chunks = [];
+  for (const tensor of tensors) {
+    const values = Float32Array.from(tensor.values);
+    const data = Buffer.from(values.buffer);
+    header[tensor.name] = {
+      dtype: 'F32',
+      shape: tensor.shape,
+      data_offsets: [offset, offset + data.byteLength],
+    };
+    offset += data.byteLength;
+    chunks.push(data);
+  }
+  const headerBytes = Buffer.from(JSON.stringify(header), 'utf8');
+  const prefix = Buffer.alloc(8);
+  prefix.writeBigUInt64LE(BigInt(headerBytes.byteLength), 0);
+  return Buffer.concat([prefix, headerBytes, ...chunks]);
+}
+
+function sha256Hex(bytes) {
+  return createHash('sha256').update(bytes).digest('hex');
 }
 
 try {
@@ -101,5 +127,47 @@ await assert.rejects(
   })),
   /is incomplete; both lora_a and lora_b tensors are required/
 );
+
+{
+  const weights = createSafetensors([
+    {
+      name: 'base_model.model.model.language_model.layers.0.self_attn.q_proj.lora_A.weight',
+      shape: [1, 2],
+      values: [1, 2],
+    },
+    {
+      name: 'base_model.model.model.language_model.layers.0.self_attn.q_proj.lora_B.weight',
+      shape: [3, 1],
+      values: [3, 4, 5],
+    },
+  ]);
+  const adapter = await loadLoRAFromManifest(createManifest({
+    tensors: undefined,
+    weightsPath: 'adapter.safetensors',
+    checksum: sha256Hex(weights),
+  }), {
+    async readFile(filePath) {
+      assert.equal(filePath, 'adapter.safetensors');
+      return weights;
+    },
+  });
+  const qProj = adapter.layers.get(0).q_proj;
+  assert.deepEqual(Array.from(qProj.a), [1, 2]);
+  assert.deepEqual(Array.from(qProj.b), [3, 4, 5]);
+  assert.equal(qProj.scale, 1);
+
+  const unchecked = await loadLoRAWeights(createManifest({
+    tensors: undefined,
+    weightsPath: 'adapter.safetensors',
+    checksum: '0'.repeat(64),
+  }), {
+    skipVerify: true,
+    async readFile(filePath) {
+      assert.equal(filePath, 'adapter.safetensors');
+      return weights;
+    },
+  });
+  assert.equal(unchecked.checksumValid, undefined);
+}
 
 console.log('lora-loader-contract.test: ok');

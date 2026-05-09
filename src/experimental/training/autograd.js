@@ -143,10 +143,10 @@ export class AutogradTape {
     if (backwardName === 'residual_add_backward') {
       const gradA = gradOut;
       const gradB = await runScale(gradOut, 1, { inplace: false });
-      return [
+      return this.filterStoppedGradients(record, [
         { input: record.inputs[0], grad: gradA },
         { input: record.inputs[1], grad: gradB },
-      ];
+      ]);
     }
 
     if (backwardName === 'row_slice_backward') {
@@ -154,7 +154,7 @@ export class AutogradTape {
       const cols = Math.max(1, Math.floor(Number(record.options?.cols) || 0));
       const rowIndex = Math.max(0, Math.min(rows - 1, Math.floor(Number(record.options?.rowIndex) || 0)));
       const gradInput = await this.expandRowSliceGrad(gradOut, rows, cols, rowIndex);
-      return [{ input: record.inputs[0], grad: gradInput }];
+      return this.filterStoppedGradients(record, [{ input: record.inputs[0], grad: gradInput }]);
     }
 
     if (backwardName === 'silu_rowsplit_backward') {
@@ -167,7 +167,19 @@ export class AutogradTape {
         gradOut,
         { numTokens, dim, activation, swigluLimit: Number.isFinite(swigluLimit) ? swigluLimit : 0 }
       );
-      return [{ input: record.inputs[0], grad: gradInput }];
+      return this.filterStoppedGradients(record, [{ input: record.inputs[0], grad: gradInput }]);
+    }
+
+    if (backwardName === 'cross_entropy_backward') {
+      const [softmax, targets] = record.inputs;
+      const gradLogits = await backwardKernels.runCrossEntropyBackward(softmax, targets, gradOut, {
+        numTokens: Math.max(1, Math.floor(Number(record.options?.numTokens) || 0)),
+        vocabSize: Math.max(1, Math.floor(Number(record.options?.vocabSize) || 0)),
+      });
+      const logitsInput = this.isTensorLike(record.options?.logitsInput)
+        ? record.options.logitsInput
+        : record.inputs[0];
+      return this.filterStoppedGradients(record, [{ input: logitsInput, grad: gradLogits }]);
     }
 
     if (backwardName === 'embed_backward') {
@@ -179,7 +191,7 @@ export class AutogradTape {
         transpose: record.options?.transpose === true,
         indexOffset: Math.max(0, Math.floor(Number(record.options?.indexOffset) || 0)),
       });
-      return [{ input: embeddings, grad: gradWeight }];
+      return this.filterStoppedGradients(record, [{ input: embeddings, grad: gradWeight }]);
     }
 
     // Special case for attention which has CPU fallback and complex internal logic
@@ -199,11 +211,11 @@ export class AutogradTape {
           q, k, v, softmax, gradOut,
           { seqLen, numHeads, headDim, scale, causal: record.options.causal }
         ));
-      return [
+      return this.filterStoppedGradients(record, [
         { input: q, grad: gradQ },
         { input: k, grad: gradK },
         { input: v, grad: gradV },
-      ];
+      ]);
     }
 
     const kernelFnName = `run${backwardName.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('')}`;
@@ -244,7 +256,20 @@ export class AutogradTape {
       outputs.push({ input: record.inputs[0], grad: result });
     }
 
-    return outputs;
+    return this.filterStoppedGradients(record, outputs);
+  }
+
+  filterStoppedGradients(record, outputs) {
+    const stopped = Array.isArray(record.options?.stopGradInputs)
+      ? new Set(record.options.stopGradInputs.map((value) => Math.floor(Number(value))).filter((value) => Number.isInteger(value)))
+      : null;
+    if (!stopped || stopped.size === 0) {
+      return outputs;
+    }
+    return outputs.filter(({ input }) => {
+      const index = record.inputs.indexOf(input);
+      return index < 0 || !stopped.has(index);
+    });
   }
 
   async readTensorAsF32(tensor) {

@@ -1,5 +1,17 @@
 export { parseJsonl, loadJsonl, mapJsonl } from './jsonl.js';
-export { tokenizeTextPairs, buildCausalPair, type TextPair, type TokenizedSample } from './text-pairs.js';
+export {
+  tokenizeTextPairs,
+  buildCausalPair,
+  normalizeTextPair,
+  mapTextPairs,
+  parseTextPairsDataset,
+  loadTextPairsDataset,
+  type TextPair,
+  type NormalizedTextPair,
+  type TextPairsDataset,
+  type LoadedTextPairsDataset,
+  type TokenizedSample,
+} from './text-pairs.js';
 export {
   mapTranslationPairs,
   tokenizeTranslationPairs,

@@ -10,11 +10,8 @@ import { log } from '../../debug/index.js';
 
 
 const parseTensorName = (name) => {
-  // Match patterns like:
-  // - layer.0.q_proj.lora_a
-  // - layers.12.gate_proj.lora_b
-  // - layer0.v_proj.lora_a
-  const match = name.match(/layers?\.?(\d+)\.([^.]+)\.lora_([ab])/i);
+  const text = String(name || '');
+  const match = text.match(/(?:^|\.)layers?\.?(\d+)\.(?:[A-Za-z0-9_]+\.)*([A-Za-z0-9_]+)\.lora_([ab])(?:\.[A-Za-z0-9_]+)?$/i);
   if (!match) return null;
   const layer = parseInt(match[1], 10);
   const rawModule = match[2].toLowerCase();
@@ -76,10 +73,79 @@ const validateShape = (tensor, data) => {
 };
 
 
+function asArrayBuffer(data) {
+  if (data instanceof ArrayBuffer) return data;
+  if (ArrayBuffer.isView(data)) {
+    return data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+  }
+  throw new Error('Expected ArrayBuffer or typed array data');
+}
+
 async function computeSHA256(data) {
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', asArrayBuffer(data));
   const hashArray = new Uint8Array(hashBuffer);
   return Array.from(hashArray).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function stripHashPrefix(value) {
+  return String(value || '').replace(/^sha256:/i, '').toLowerCase();
+}
+
+function isUrl(value) {
+  return /^https?:\/\//i.test(String(value || ''));
+}
+
+async function readPathBytes(sourcePath, options = {}) {
+  const text = String(sourcePath || '').trim();
+  if (!text) {
+    throw new Error('LoRA weightsPath is required');
+  }
+  if (isUrl(text)) {
+    if (options.fetchUrl) return options.fetchUrl(text);
+    const res = await fetch(text);
+    if (!res.ok) {
+      throw new Error(`Failed to fetch LoRA weights: ${res.status}`);
+    }
+    return res.arrayBuffer();
+  }
+  if (options.readFile) {
+    const path = options.resolvePath
+      ? options.resolvePath(text)
+      : (options.basePath ? `${String(options.basePath).replace(/\/$/, '')}/${text}` : text);
+    return options.readFile(path);
+  }
+  if (options.readOPFS) {
+    return options.readOPFS(text);
+  }
+  if (options.fetchUrl) {
+    return options.fetchUrl(text);
+  }
+  throw new Error('Cannot load LoRA weightsPath without fetchUrl, readFile, or readOPFS');
+}
+
+async function assertChecksum(data, manifest) {
+  const expected = stripHashPrefix(manifest.checksum);
+  if (!expected) return;
+  const algorithm = String(manifest.checksumAlgorithm || 'sha256').toLowerCase();
+  if (algorithm !== 'sha256') {
+    throw new Error(`Unsupported LoRA checksum algorithm: ${algorithm}`);
+  }
+  const computed = await computeSHA256(data);
+  if (computed.toLowerCase() !== expected) {
+    throw new Error(`LoRA checksum mismatch: expected ${expected}, got ${computed}`);
+  }
+}
+
+async function loadExternalWeights(manifest, options = {}) {
+  const format = String(manifest.weightsFormat || 'safetensors').toLowerCase();
+  if (format !== 'safetensors') {
+    throw new Error(`Unsupported LoRA weightsFormat for external weights: ${format}`);
+  }
+  const data = await readPathBytes(manifest.weightsPath, options);
+  if (!options.skipVerify) {
+    await assertChecksum(data, manifest);
+  }
+  return loadLoRAFromSafetensors(asArrayBuffer(data), manifest);
 }
 
 function assertCompleteAdapterLayers(adapter) {
@@ -102,6 +168,22 @@ function assertCompleteAdapterLayers(adapter) {
 
 
 export async function loadLoRAWeights(path, options = {}) {
+  if (path && typeof path === 'object') {
+    const manifest = applyAdapterManifestDefaults(path);
+    const validation = validateManifest(manifest);
+    if (!validation.valid) {
+      const errors = validation.errors.map(e => `${e.field}: ${e.message}`).join('; ');
+      throw new Error(`Invalid LoRA manifest: ${errors}`);
+    }
+    const adapter = await loadLoRAFromManifest(manifest, options);
+    return {
+      adapter,
+      manifest,
+      loadedFromCache: false,
+      checksumValid: manifest.checksum && !options.skipVerify ? true : undefined,
+    };
+  }
+
   let manifestJson;
   let loadedFromCache = false;
 
@@ -159,26 +241,16 @@ export async function loadLoRAWeights(path, options = {}) {
     return res.arrayBuffer();
   };
 
-  // Load adapter
   const adapter = await loadLoRAFromManifest(
     manifest,
     { ...options, fetchUrl: fetchWithBase }
   );
 
-  // Verify checksum if provided
   let checksumValid;
-  if (manifest.checksum && !options.skipVerify) {
+  if (manifest.checksum && !options.skipVerify && Array.isArray(manifest.tensors) && manifest.tensors.length > 0) {
     const algorithm = manifest.checksumAlgorithm;
     if (algorithm !== 'sha256') {
       throw new Error(`Unsupported LoRA checksum algorithm: ${algorithm}`);
-    } else if (manifest.weightsPath) {
-      // Compute checksum of the weights file
-      const weightsData = await fetchWithBase(manifest.weightsPath);
-      const computedHash = await computeSHA256(weightsData);
-      checksumValid = computedHash.toLowerCase() === manifest.checksum.toLowerCase();
-      if (!checksumValid) {
-        throw new Error(`LoRA checksum mismatch: expected ${manifest.checksum}, got ${computedHash}`);
-      }
     } else if (manifest.tensors && manifest.tensors.length > 0) {
       // For inline tensors, compute checksum over concatenated tensor data
       const tensorBuffers = [];
@@ -199,7 +271,7 @@ export async function loadLoRAWeights(path, options = {}) {
           offset += buf.byteLength;
         }
         const computedHash = await computeSHA256(combined.buffer);
-        checksumValid = computedHash.toLowerCase() === manifest.checksum.toLowerCase();
+        checksumValid = computedHash.toLowerCase() === stripHashPrefix(manifest.checksum);
         if (!checksumValid) {
           throw new Error(`LoRA checksum mismatch: expected ${manifest.checksum}, got ${computedHash}`);
         }
@@ -211,12 +283,16 @@ export async function loadLoRAWeights(path, options = {}) {
     adapter,
     manifest,
     loadedFromCache,
-    checksumValid,
+    checksumValid: manifest.checksum && !options.skipVerify && checksumValid !== false ? true : checksumValid,
   };
 }
 
 
 export async function loadLoRAFromManifest(manifest, options = {}) {
+  if (manifest?.weightsPath && !Array.isArray(manifest.tensors)) {
+    return loadExternalWeights(manifest, options);
+  }
+
   const adapter = {
     name: manifest.name,
     version: manifest.version,
@@ -313,11 +389,12 @@ export function applyDeltaWeights(baseWeight, loraA, loraB, scale) {
 
 
 export async function loadLoRAFromSafetensors(data, manifest) {
+  const buffer = asArrayBuffer(data);
   // Parse safetensors header
-  const view = new DataView(data);
+  const view = new DataView(buffer);
   const headerSize = Number(view.getBigUint64(0, true));
   const headerJson = new TextDecoder().decode(
-    new Uint8Array(data, 8, headerSize)
+    new Uint8Array(buffer, 8, headerSize)
   );
   const header = JSON.parse(headerJson);
 
@@ -342,15 +419,17 @@ export async function loadLoRAFromSafetensors(data, manifest) {
     }
 
     const [start, end] = tensorInfo.data_offsets;
-    const tensorData = new Uint8Array(data, dataOffset + start, end - start);
+    const tensorData = new Uint8Array(buffer, dataOffset + start, end - start);
 
     // Convert to Float32Array based on dtype
     let floatData;
     if (tensorInfo.dtype === 'F32') {
-      floatData = new Float32Array(tensorData.buffer, tensorData.byteOffset, tensorData.byteLength / 4);
+      const aligned = tensorData.slice();
+      floatData = new Float32Array(aligned.buffer, aligned.byteOffset, aligned.byteLength / 4);
     } else if (tensorInfo.dtype === 'F16' || tensorInfo.dtype === 'BF16') {
       // Convert from f16/bf16 to f32
-      const f16View = new Uint16Array(tensorData.buffer, tensorData.byteOffset, tensorData.byteLength / 2);
+      const aligned = tensorData.slice();
+      const f16View = new Uint16Array(aligned.buffer, aligned.byteOffset, aligned.byteLength / 2);
       floatData = new Float32Array(f16View.length);
       for (let i = 0; i < f16View.length; i++) {
         if (tensorInfo.dtype === 'F16') {
@@ -362,6 +441,12 @@ export async function loadLoRAFromSafetensors(data, manifest) {
     } else {
       log.warn('LoRA', `Unsupported dtype ${tensorInfo.dtype} for component "${tensorName}" (layer=${parsed.layer}, module=${parsed.module}); skipping`);
       continue;
+    }
+
+    const shape = Array.isArray(tensorInfo.shape) ? tensorInfo.shape : [];
+    const expected = shape.reduce((product, value) => product * Number(value || 0), 1);
+    if (shape.length !== 2 || floatData.length !== expected) {
+      throw new Error(`LoRA safetensors tensor ${tensorName} shape mismatch: expected ${expected}, got ${floatData.length}`);
     }
 
     const layer = adapter.layers.get(parsed.layer) || {};

@@ -59,6 +59,10 @@ export interface TrainingWorkloadTrainingConfig {
 export interface LoRAWorkloadPipelineConfig {
   datasetFormat: string;
   taskType: string;
+  baseModelRef: string | null;
+  maxLength: number | null;
+  sequenceLength: number | null;
+  joinWith: string | null;
   adapter: {
     rank: number;
     alpha: number;
@@ -84,6 +88,11 @@ export interface LoRAWorkloadPipelineConfig {
     enabled: boolean;
     autoActivate: boolean;
     smokePrompt: string | null;
+  } | null;
+  trainer: {
+    modulePath: string;
+    exportName: string;
+    runnerId: string | null;
   } | null;
 }
 

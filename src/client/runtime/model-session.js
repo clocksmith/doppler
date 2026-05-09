@@ -106,8 +106,8 @@ export function createModelHandle(pipeline, resolved) {
       return pipeline.manifest?.inference?.supportsVision === true
         && pipeline.visionCapable === true;
     },
-    async loadLoRA(adapter) {
-      return loadLoRAAdapterForPipeline(pipeline, adapter);
+    async loadLoRA(adapter, loadOptions = {}) {
+      return loadLoRAAdapterForPipeline(pipeline, adapter, loadOptions);
     },
     async activateLoRAFromTrainingOutput(trainingOutput) {
       return activateLoRAFromTrainingOutputForPipeline(pipeline, trainingOutput);

@@ -2,9 +2,19 @@ import type { RDRRManifest } from '../../formats/rdrr/index.js';
 import type { InferencePipeline } from '../../inference/pipelines/text.js';
 import type { LoRAManifest } from './types.js';
 
+export interface LoRALoadOptions {
+  basePath?: string;
+  resolvePath?: (path: string) => string;
+  readFile?: (path: string) => Promise<ArrayBuffer | Uint8Array>;
+  readOPFS?: (path: string) => Promise<ArrayBuffer | Uint8Array>;
+  writeOPFS?: (path: string, data: ArrayBuffer | Uint8Array) => Promise<void>;
+  fetchUrl?: (url: string) => Promise<ArrayBuffer | Uint8Array>;
+}
+
 export declare function loadLoRAAdapterForPipeline(
   pipeline: InferencePipeline | null | undefined,
-  adapter: LoRAManifest | RDRRManifest | string
+  adapter: LoRAManifest | RDRRManifest | string,
+  loadOptions?: LoRALoadOptions
 ): Promise<void>;
 
 export declare function activateLoRAFromTrainingOutputForPipeline(

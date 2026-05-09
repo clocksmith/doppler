@@ -9,8 +9,16 @@ export interface ExtensionBridgeClient {
 export interface LoRAManifest {
   adapterType?: string;
   modelType?: string;
+  id?: string;
   name?: string;
+  baseModel?: string;
   rank?: number;
+  alpha?: number;
+  targetModules?: string[];
+  weightsFormat?: string;
+  weightsPath?: string;
+  checksum?: string;
+  checksumAlgorithm?: string;
   tensors?: unknown;
   [key: string]: unknown;
 }

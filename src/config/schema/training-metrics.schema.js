@@ -2,6 +2,7 @@ const UL_STAGE_SET = new Set(['stage1_joint', 'stage2_base']);
 const DISTILL_STAGE_SET = new Set(['stage_a', 'stage_b']);
 const OBJECTIVE_SET = new Set([
   'cross_entropy',
+  'causal_lm_cross_entropy',
   'ul_stage1_joint',
   'ul_stage2_base',
   'kd',
@@ -291,12 +292,12 @@ export function validateTrainingMetricsEntry(entry) {
     throw new Error('training metrics: ul_stage must be "stage1_joint", "stage2_base", or null.');
   }
 
-  if (entry.objective === 'cross_entropy') {
+  if (entry.objective === 'cross_entropy' || entry.objective === 'causal_lm_cross_entropy') {
     if (entry.ul_stage != null) {
-      throw new Error('training metrics: cross_entropy objective must not set ul_stage.');
+      throw new Error('training metrics: cross-entropy objectives must not set ul_stage.');
     }
     if (entry.distill_stage != null) {
-      throw new Error('training metrics: cross_entropy objective must not set distill_stage.');
+      throw new Error('training metrics: cross-entropy objectives must not set distill_stage.');
     }
   }
 

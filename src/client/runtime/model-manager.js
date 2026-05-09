@@ -582,16 +582,21 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
   }
 }
 
-async function loadLoRAAdapter(adapter) {
+function createLoRALoadOptions(overrides = {}) {
+  return {
+    readOPFS: readOPFSFile,
+    writeOPFS: writeOPFSFile,
+    fetchUrl: fetchArrayBuffer,
+    ...overrides,
+  };
+}
+
+async function loadLoRAAdapter(adapter, loadOptions = {}) {
   if (!pipeline) {
     throw new Error('No model loaded. Call loadModel() first.');
   }
 
-  const options = {
-    readOPFS: readOPFSFile,
-    writeOPFS: writeOPFSFile,
-    fetchUrl: fetchArrayBuffer,
-  };
+  const options = createLoRALoadOptions(loadOptions);
 
   let lora;
   if (typeof adapter === 'string') {
@@ -608,6 +613,28 @@ async function loadLoRAAdapter(adapter) {
 
   pipeline.setLoRAAdapter(lora);
   log.info('DopplerProvider', `LoRA adapter loaded: ${lora.name}`);
+}
+
+async function readLocalJson(path) {
+  const { readFile } = await import('node:fs/promises');
+  const raw = await readFile(path, 'utf8');
+  return JSON.parse(raw);
+}
+
+async function createLocalFileLoadOptions(path) {
+  const { readFile } = await import('node:fs/promises');
+  const { dirname, isAbsolute, join } = await import('node:path');
+  const basePath = dirname(path);
+  return {
+    basePath,
+    resolvePath(filePath) {
+      return isAbsolute(filePath) ? filePath : join(basePath, filePath);
+    },
+    async readFile(filePath) {
+      const data = await readFile(filePath);
+      return data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+    },
+  };
 }
 
 export async function activateLoRAFromTrainingOutput(trainingOutput) {
@@ -688,10 +715,8 @@ export async function activateLoRAFromTrainingOutput(trainingOutput) {
     if (!isNode) {
       throw new Error('adapterManifestPath local files require Node runtime.');
     }
-    const { readFile } = await import('node:fs/promises');
-    const raw = await readFile(path, 'utf8');
-    const manifest = JSON.parse(raw);
-    await loadLoRAAdapter(manifest);
+    const manifest = await readLocalJson(path);
+    await loadLoRAAdapter(manifest, await createLocalFileLoadOptions(path));
     return {
       activated: true,
       adapterName: getActiveLoRA(),
@@ -722,4 +747,3 @@ export function getActiveLoRA() {
   const active = pipeline?.getActiveLoRA() || null;
   return active ? active.name : null;
 }
-

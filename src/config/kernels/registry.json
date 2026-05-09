@@ -146,6 +146,7 @@
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
@@ -320,6 +321,7 @@
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
@@ -437,6 +439,7 @@
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
@@ -627,6 +630,7 @@
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
@@ -691,6 +695,7 @@
             "inlineConfigs": [
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
@@ -773,11 +778,9 @@
           },
           "description": "F16 IO + F32 accumulator twin of q4_fused_multicol_f16a. Closes the f16-accum decode-gemv gap on AMD RDNA3 where f32 accumulation outperforms f16 by ~60%.",
           "reachability": {
-            "status": "model-selectable",
+            "status": "unused",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#q4kFusedVariant"
-            ],
+            "ruleChains": [],
             "wgslOnDisk": true
           }
         },
@@ -957,6 +960,7 @@
             "inlineConfigs": [
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
@@ -2122,6 +2126,7 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
@@ -2153,6 +2158,7 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
@@ -2187,6 +2193,7 @@
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
@@ -2223,6 +2230,7 @@
             "inlineConfigs": [
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
             ],
@@ -2324,6 +2332,7 @@
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
@@ -2360,6 +2369,7 @@
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
@@ -2429,6 +2439,7 @@
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
@@ -3401,6 +3412,7 @@
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
@@ -4124,6 +4136,7 @@
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
@@ -4444,6 +4457,7 @@
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
@@ -5392,6 +5406,7 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
             ],
@@ -5635,6 +5650,7 @@
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
@@ -7096,6 +7112,7 @@
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
@@ -9231,7 +9248,7 @@
             "offset": 4
           },
           {
-            "name": "_pad0",
+            "name": "dispatch_stride",
             "type": "u32",
             "offset": 8
           },

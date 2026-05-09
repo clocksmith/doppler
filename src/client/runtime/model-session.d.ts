@@ -4,6 +4,7 @@ import type { GenerateOptions } from '../../generation/index.js';
 import type { RDRRManifest } from '../../formats/rdrr/index.js';
 import type { LogitsStepResult, PrefillResult } from '../../inference/pipelines/text/types.d.ts';
 import type { LoRAManifest } from './types.js';
+import type { LoRALoadOptions } from './lora.js';
 
 export type DopplerGenerateOptions = Omit<GenerateOptions, 'stopTokens'>;
 
@@ -21,7 +22,7 @@ export interface DopplerModelHandle {
   generateText(prompt: string, options?: DopplerGenerateOptions): Promise<string>;
   chat(messages: ChatMessage[], options?: DopplerGenerateOptions): AsyncGenerator<string, void, void>;
   chatText(messages: ChatMessage[], options?: DopplerGenerateOptions): Promise<DopplerChatResponse>;
-  loadLoRA(adapter: LoRAManifest | RDRRManifest | string): Promise<void>;
+  loadLoRA(adapter: LoRAManifest | RDRRManifest | string, loadOptions?: LoRALoadOptions): Promise<void>;
   activateLoRAFromTrainingOutput(
     trainingOutput:
       | string

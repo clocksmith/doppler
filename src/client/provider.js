@@ -8,7 +8,7 @@ import { isNodeRuntime } from '../utils/runtime-env.js';
 
 // Re-export handle adapter so consumers can reach both via
 // `doppler-gpu/provider` without a second subpath.
-export { wrapPipelineAsHandle } from './wrap-pipeline-handle.js';
+export { wrapPipelineAsHandle, wrapPipelineAsDreamProvider } from './wrap-pipeline-handle.js';
 
 // Canonical four routing modes (30-hybrid-routing-sdk.md).
 const VALID_POLICY_MODES = new Set([
