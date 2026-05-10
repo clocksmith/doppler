@@ -6,6 +6,21 @@ import { runMatmul, recordMatmul } from '../../../gpu/kernel-selector.js';
 import { runResidualAdd, recordResidualAdd } from '../../../gpu/kernels/residual.js';
 import { runScale, recordScale } from '../../../gpu/kernels/scale.js';
 
+function getKnownElementCount(weight) {
+  if (weight instanceof Float32Array || weight instanceof Uint16Array) {
+    return weight.length;
+  }
+  if (isWeightBuffer(weight) && Array.isArray(weight.shape)) {
+    return weight.shape.reduce((product, value) => product * Number(value || 0), 1);
+  }
+  return null;
+}
+
+function assertLoRAWeightElementCount(label, weight, expected) {
+  const actual = getKnownElementCount(weight);
+  if (actual === null || actual === expected) return;
+  throw new Error(`LoRA ${label} element count mismatch: expected ${expected}, got ${actual}.`);
+}
 
 export async function applyLoRA(input, baseOutput, lora, dims, getWeightBuffer, recorder, options = {}) {
   const { M, N, K } = dims;
@@ -14,6 +29,8 @@ export async function applyLoRA(input, baseOutput, lora, dims, getWeightBuffer, 
   if (!rank || rank <= 0) {
     return baseOutput;
   }
+  assertLoRAWeightElementCount('A', lora.a, rank * K);
+  assertLoRAWeightElementCount('B', lora.b, N * rank);
 
   const aBuf = getWeightBuffer(lora.a, 'lora_a');
   const bBuf = getWeightBuffer(lora.b, 'lora_b');

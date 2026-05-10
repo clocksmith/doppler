@@ -332,6 +332,23 @@ async function projectQueryWithOptionalGate({
       executionPolicies,
     });
 
+    const loraModule = getLoRAModule(lora, layerIdx, 'q_proj');
+    if (loraModule && getWeightBuffer) {
+      const combined = await applyLoRA(
+        normed,
+        fullQGTensor,
+        loraModule,
+        { M: numTokens, N: qSize * 2, K: hiddenSize },
+        getWeightBuffer,
+        recorder ?? undefined,
+        { kernelPath }
+      );
+      if (combined.buffer !== fullQGTensor.buffer) {
+        releaseTemporary(fullQGTensor.buffer);
+        fullQGTensor = combined;
+      }
+    }
+
     const split = await runSplitQGForMode(fullQGTensor, {
       numTokens,
       numHeads,
@@ -354,33 +371,6 @@ async function projectQueryWithOptionalGate({
     throw error;
   } finally {
     releaseOwnedWeightBuffer(qWeight, qWeightBuffer, releaseTemporary);
-  }
-
-  const loraModule = getLoRAModule(lora, layerIdx, 'q_proj');
-  if (loraModule && getWeightBuffer) {
-    try {
-      const combined = await applyLoRA(
-        normed,
-        qTensor,
-        loraModule,
-        { M: numTokens, N: qSize, K: hiddenSize },
-        getWeightBuffer,
-        recorder ?? undefined,
-        { kernelPath }
-      );
-      if (combined.buffer !== qTensor.buffer) {
-        releaseTemporary(qTensor.buffer);
-        qTensor = combined;
-      }
-    } catch (error) {
-      if (qTensor?.buffer) {
-        releaseTemporary(qTensor.buffer);
-      }
-      if (qGateTensor?.buffer) {
-        releaseTemporary(qGateTensor.buffer);
-      }
-      throw error;
-    }
   }
 
   return { qTensor, qGateTensor };

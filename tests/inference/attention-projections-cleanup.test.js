@@ -209,6 +209,24 @@ try {
   }
 
   {
+    const input = createExternalTensor(4, 'f32', 'lora_shape_input');
+    const baseOutput = createExternalTensor(8, 'f32', 'lora_shape_base');
+
+    await assert.rejects(
+      () => applyLoRA(
+        input,
+        baseOutput,
+        { rank: 1, scale: 1, a: new Float32Array(4), b: new Float32Array(4) },
+        { M: 1, N: 8, K: 4 },
+        () => {
+          throw new Error('shape check should run before GPU upload');
+        }
+      ),
+      /LoRA B element count mismatch: expected 8, got 4/
+    );
+  }
+
+  {
     const device = createFakeDevice({ createBindGroupThrowAt: 2 });
     resetRuntime(device);
     const input = createExternalTensor(4, 'f32', 'lora_input');
