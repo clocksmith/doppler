@@ -9,6 +9,9 @@ import type { CommandRecorder } from '../command-recorder.js';
 import type { OutputBufferOptions } from './types.js';
 import type { WeightBuffer, TensorLike } from '../weight-buffer.js';
 
+/** Maximum hidden size supported by the cached residual RMSNorm variant. */
+export declare const RMSNORM_CACHE_LIMIT: number;
+
 /** RMSNorm kernel options */
 export interface RMSNormOptions extends OutputBufferOptions {
   batchSize?: number;
@@ -17,6 +20,14 @@ export interface RMSNormOptions extends OutputBufferOptions {
   /** Use (1+w)*x normalization for Gemma 2/3 */
   rmsNormWeightOffset?: boolean;
 }
+
+/**
+ * Return true when the residual RMSNorm variant must avoid the cached WGSL path.
+ */
+export declare function residualVariantBypassesCache(
+  residual: Tensor | GPUBuffer | WeightBuffer | TensorLike | null | undefined,
+  hiddenSize: number | null | undefined
+): boolean;
 
 /**
  * Select RMSNorm kernel variant based on options, tensor dtypes, and GPU capabilities.

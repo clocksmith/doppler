@@ -1,6 +1,24 @@
 import type { IntegrityExtensions, RDRRManifest, TensorMap } from '../formats/rdrr/types.js';
 import type { IntegrityBuildProgress } from '../formats/rdrr/integrity.js';
 
+export interface NormalizedManifestLoweringEntry {
+  kernelRef: string;
+  backend: string;
+  targetDescriptorCorrectnessHash: string | null;
+  frontendVersion: string | null;
+  tsirSemanticDigest: string | null;
+  tsirRealizationDigest: string | null;
+  emitterDigest: string | null;
+  compilerVersion: string | null;
+  exactness: Record<string, unknown> | null;
+  rejectionReasons: string[];
+}
+
+export declare function normalizeManifestLoweringEntry(
+  entry: unknown,
+  label?: string
+): NormalizedManifestLoweringEntry;
+
 export declare function buildManifestIntegrityFromModelDir(
   manifest: RDRRManifest,
   options: {

@@ -39,6 +39,13 @@ export declare function buildConservativeMultimodalGenerationOptions(
   options?: GenerateOptions
 ): GenerateOptions;
 
+export declare class AbortError extends Error {
+  code: 'ABORT_ERR';
+  constructor(message?: string);
+}
+
+export declare function isAbortError(err: unknown): boolean;
+
 // ============================================================================
 // Main Inference Pipeline Class
 // ============================================================================

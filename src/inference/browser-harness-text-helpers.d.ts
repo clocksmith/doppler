@@ -23,6 +23,44 @@ export declare function runEmbeddingSemanticChecks(
   options?: Record<string, unknown> | null
 ): Promise<Record<string, unknown>>;
 export declare function isCoherentOutput(tokens: Array<unknown>, output: unknown): boolean;
+
+export interface ReferenceLogitsDigest {
+  index: number | null;
+  tokenId: number | null;
+  inputTokenCount: number | null;
+  dtype: 'f32';
+  elementCount: number;
+  digest: string;
+}
+
+export interface KvCacheLayerByteProof {
+  layer: number;
+  seqLen: number;
+  keyBytes: number;
+  valueBytes: number;
+  keyDigest: string;
+  valueDigest: string;
+}
+
+export interface KvCacheByteProof {
+  mode: 'sha256-layer-kv-bytes';
+  layout: string;
+  kvDtype: string | null;
+  layerCount: number;
+  digest: string;
+  layers: KvCacheLayerByteProof[];
+}
+
+export declare function digestLogitsForTranscript(
+  logits: Float32Array,
+  context?: Record<string, unknown> | null
+): ReferenceLogitsDigest;
+
+export declare function captureKvCacheByteProof(
+  pipeline: Record<string, unknown>,
+  enabled: boolean
+): Promise<KvCacheByteProof | null>;
+
 export declare function runGeneration(
   pipeline: Record<string, unknown>,
   runtimeConfig: Record<string, unknown>,

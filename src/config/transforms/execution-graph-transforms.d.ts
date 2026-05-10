@@ -220,6 +220,22 @@ export declare function useGemma4Int4PleSelectiveF16Decode(
 ): ExecutionGraph | null;
 
 /**
+ * Promote Qwen 3.6 27B Q4K onto the all-f16 activation lane.
+ */
+export declare function useQwen36F16Activations(
+  graph: ExecutionGraph,
+  ctx: TransformContext
+): ExecutionGraph | null;
+
+/**
+ * Promote Gemma 4 E2B INT4-PLE Q4K onto the all-f16 activation lane.
+ */
+export declare function useGemma4Int4PleAf16Activations(
+  graph: ExecutionGraph,
+  ctx: TransformContext
+): ExecutionGraph | null;
+
+/**
  * Promote Gemma 4 31B text Q4K onto the experimental all-f16 lane using
  * matching f16 Q4 projection, attention, utility, lm_head, and sampling kernels.
  */

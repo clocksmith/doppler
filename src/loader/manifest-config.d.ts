@@ -38,6 +38,14 @@ export declare function getLargeWeightConfig(): LargeWeightConfigSchema;
 export declare function getLargeWeightMaxBytes(): number | null;
 
 /**
+ * Runtime large-weight overrides replace manifest overrides when present.
+ */
+export declare function resolveLargeWeightOverrides(
+  manifestOverrides: string[] | null | undefined,
+  runtimeOverrides: string[] | null | undefined
+): string[] | null;
+
+/**
  * Estimate GPU memory required for a matmul weight after dequantization.
  *
  * @param location - Tensor location info

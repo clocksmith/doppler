@@ -664,3 +664,18 @@ export declare function validateManifestInference(
 export declare function hasInferenceConfig<T extends { inference?: ManifestInferenceSchema }>(
   manifest: T
 ): manifest is T & { inference: ManifestInferenceSchema };
+
+/** Check if a manifest supports embedding workloads. */
+export declare function modelSupportsEmbedding(
+  manifest: Partial<ManifestSchema> | null | undefined
+): boolean;
+
+/** Check if a manifest supports audio transcription workloads. */
+export declare function modelSupportsTranscription(
+  manifest: Partial<ManifestSchema> | null | undefined
+): boolean;
+
+/** Check if a manifest supports vision workloads. */
+export declare function modelSupportsVision(
+  manifest: Partial<ManifestSchema> | null | undefined
+): boolean;

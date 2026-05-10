@@ -192,6 +192,14 @@ export declare function applyRuntimeForRun(
   options?: RuntimeConfigLoadOptions & { runtime?: RuntimeOverrides }
 ): Promise<void>;
 
+export declare function resolveExecutionGraphHash(
+  manifest: Record<string, unknown> | null | undefined
+): string | null;
+
+export declare function buildReferenceTranscriptSeed(
+  run: Record<string, unknown>,
+  context?: Record<string, unknown>
+): Record<string, unknown>;
 
 export declare function runBrowserSuite(
   options: BrowserSuiteOptions

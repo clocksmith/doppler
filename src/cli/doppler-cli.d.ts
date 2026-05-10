@@ -26,3 +26,16 @@ export declare function finalizeCliCommandResponse(
   response: Record<string, unknown>,
   request: Record<string, unknown>
 ): Record<string, unknown>;
+
+export declare function performIntake(options?: {
+  convertConfigValue?: string | Record<string, unknown> | null;
+  manifestFlag?: string | null;
+  modelDir?: string | null;
+  skipConvert?: boolean;
+}): Promise<{
+  report: Record<string, unknown>;
+  manifestPath: string | null;
+  manifest: Record<string, unknown> | null;
+}>;
+
+export declare function checkCapturePrecondition(surface: string): Promise<Record<string, unknown>>;
