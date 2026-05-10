@@ -27,6 +27,9 @@ Primary documentation index.
 - [Doppler Program Bundle](integration/program-bundle.md) - closed portable
   model-program export shape for browser, Node provider, Doe.js capture, and
   Doe backend lowering.
+- [MoM Layer Draft](distribution/mom-layer-draft.md) - implementation-side draft
+  for Cross Family Router, debate/adjudication, recursive MoM receipts,
+  residency metadata, and Debate Weighted Distillation exports.
 
 ## Public API Docs
 

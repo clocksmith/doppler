@@ -3,6 +3,10 @@
 Guide for landing distributed inference as an additive capability on canonical
 RDRR artifacts.
 
+This guide covers the lower distributed-execution layer: one canonical artifact
+running across peers. Doppler's cross-family MoE support surface is drafted
+separately in [`MoM Layer Draft`](../distribution/mom-layer-draft.md).
+
 ## Principles
 
 - one canonical weight artifact
@@ -94,7 +98,7 @@ RDRR artifacts.
 41. multi-plan selection
 42. peer-introspection protocol
 43. topology fingerprinting
-44. MoE expert placement
+44. MoE expert placement for distributed execution
 45. all-to-all dispatch execution
 46. expert heat profiling
 47. exact-routing parity gate
@@ -123,4 +127,3 @@ RDRR artifacts.
 - Phase 5: latency/perf-shippable
 
 Do not collapse those gates.
-

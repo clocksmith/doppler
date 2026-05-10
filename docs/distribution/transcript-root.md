@@ -19,6 +19,13 @@ It is separate from canonical `artifactIdentity`.
 Replay claim:
 - `artifactIdentity + transcriptRoot + input tokens -> exact distributed replay`
 
+## MoM usage
+
+MoM orchestration composes multiple substrate transcript roots into a separate
+MoM transcript root. This document only defines the lower-layer substrate
+execution receipt. See [`MoM Layer Draft`](mom-layer-draft.md) for the
+cross-family route, debate, adjudication, recursion, and distillation receipt.
+
 ## Required fields
 
 Minimum contract surface:
@@ -32,4 +39,3 @@ Minimum contract surface:
 Coordinator authors this object.
 
 Replay verification consumes it.
-
