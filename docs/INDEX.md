@@ -29,7 +29,7 @@ Primary documentation index.
   Doe backend lowering.
 - [MoM Layer Draft](distribution/mom-layer-draft.md) - implementation-side draft
   for Cross Family Router, debate/adjudication, recursive MoM receipts,
-  residency metadata, and Debate Weighted Distillation exports.
+  residency metadata, and Debate-adjudicated Distillation exports.
 
 ## Public API Docs
 

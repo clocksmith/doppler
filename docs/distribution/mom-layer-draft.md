@@ -35,7 +35,7 @@ metadata, and distillation export hooks.
 - MoM layer: Doppler's implementation surface for the MoM proposal.
 - Cross Family Router (CFR): the router that selects substrate families and
   execution roles for a request.
-- Debate Weighted Distillation (DWD): the feedback path that turns adjudicated
+- Debate-adjudicated Distillation (DaD): the feedback path that turns adjudicated
   debate records into distillation candidates.
 - Proposal, Trace, Adjudication (PTA): the minimum receipt shape for one MoM
   decision.
@@ -72,7 +72,7 @@ request
        -> substrate transcript roots
   -> debate/adjudication
   -> MoM transcript root
-  -> DWD export candidate
+  -> DaD export candidate
 ```
 
 The lower layer can prove that one selected substrate executed as declared. The
@@ -301,7 +301,13 @@ async function sha256Json(value) {
   return `sha256:${hex}`;
 }
 
-export async function runMomDebate({ routePlan, executeSubstrate, adjudicate }) {
+export async function runMomDebate({
+  routePlan,
+  executeSubstrate,
+  critiqueProposals,
+  respondToCritiques,
+  adjudicate,
+}) {
   const proposals = [];
 
   for (const selected of routePlan.cfr.selected) {
@@ -319,14 +325,77 @@ export async function runMomDebate({ routePlan, executeSubstrate, adjudicate }) 
     });
   }
 
+  const rawCritiques = await critiqueProposals({ routePlan, proposals });
+  if (!Array.isArray(rawCritiques) || rawCritiques.length === 0) {
+    throw new Error('MoM debate requires critique records');
+  }
+
+  const critiques = [];
+  for (const critique of rawCritiques) {
+    critiques.push({
+      fromSubstrateId: critique.fromSubstrateId,
+      targetProposalHash: critique.targetProposalHash,
+      critiqueHash: critique.critiqueHash ?? await sha256Json(critique.payload),
+    });
+  }
+
+  const proposalHashes = new Set(proposals.map((proposal) => proposal.proposalHash));
+  const critiquedProposalHashes = new Set(
+    critiques.map((critique) => critique.targetProposalHash)
+  );
+  for (const proposalHash of proposalHashes) {
+    if (!critiquedProposalHashes.has(proposalHash)) {
+      throw new Error(`MoM debate proposal missing critique: ${proposalHash}`);
+    }
+  }
+
+  const rawResponses = await respondToCritiques({ routePlan, proposals, critiques });
+  if (!Array.isArray(rawResponses) || rawResponses.length === 0) {
+    throw new Error('MoM debate requires response records');
+  }
+
+  const responses = [];
+  for (const response of rawResponses) {
+    responses.push({
+      fromSubstrateId: response.fromSubstrateId,
+      targetCritiqueHash: response.targetCritiqueHash,
+      responseHash: response.responseHash ?? await sha256Json(response.payload),
+    });
+  }
+
+  const respondedCritiqueHashes = new Set(
+    responses.map((response) => response.targetCritiqueHash)
+  );
+  for (const critique of critiques) {
+    if (!respondedCritiqueHashes.has(critique.critiqueHash)) {
+      throw new Error(`MoM debate critique missing response: ${critique.critiqueHash}`);
+    }
+  }
+
   const round = {
     round: 0,
     participants: routePlan.cfr.selected.map((entry) => entry.substrateId),
     proposals,
-    critiques: [],
+    critiques,
+    responses,
   };
 
   const adjudication = await adjudicate({ routePlan, round });
+  if (!Array.isArray(adjudication.distillationWeights)) {
+    throw new Error('MoM adjudication missing distillation weights');
+  }
+  const weightedProposalHashes = new Set(
+    adjudication.distillationWeights.map((weight) => weight.proposalHash)
+  );
+  for (const proposalHash of proposalHashes) {
+    if (!weightedProposalHashes.has(proposalHash)) {
+      throw new Error(`MoM adjudication missing weight: ${proposalHash}`);
+    }
+  }
+  if (!adjudication.distillationWeightsHash) {
+    throw new Error('MoM adjudication missing distillation weights hash');
+  }
+
   const transcript = {
     momVersion: routePlan.momVersion,
     routePlanHash: await sha256Json(routePlan),
@@ -335,7 +404,7 @@ export async function runMomDebate({ routePlan, executeSubstrate, adjudicate }) 
     debateRoundHashes: [await sha256Json(round)],
     adjudicationHash: await sha256Json(adjudication),
     recursion: routePlan.recursion,
-    dwdExportHash: null,
+    dadExportHash: null,
   };
 
   return {
@@ -417,9 +486,21 @@ Each debate round records:
       "targetProposalHash": "sha256:...",
       "critiqueHash": "sha256:..."
     }
+  ],
+  "responses": [
+    {
+      "fromSubstrateId": "gemma4-moe-local",
+      "targetCritiqueHash": "sha256:...",
+      "responseHash": "sha256:..."
+    }
   ]
 }
 ```
+
+A debate round must include `proposals`, `critiques`, and `responses`.
+Critiques without responses, or responses without targeted critiques, fail
+the round. The round is invalid if any participant has a proposal but no
+corresponding critique or response in the same round.
 
 The debate record must bind proposal bytes by hash. The proposal can be text,
 structured JSON, tool arguments, logits summary, or another typed payload, but
@@ -427,7 +508,8 @@ the payload type must be declared by the caller-facing command contract.
 
 ## Adjudication
 
-Adjudication records the winner and the reason the winner is accepted.
+Adjudication records the winner, the distillation weights, and the reason the
+winner is accepted.
 
 Shape:
 
@@ -438,6 +520,19 @@ Shape:
   "adjudicatorSubstrateId": "judge-local",
   "policyHash": "sha256:...",
   "scoreVectorHash": "sha256:...",
+  "distillationWeights": [
+    {
+      "proposalHash": "sha256:...",
+      "substrateId": "gemma4-moe-local",
+      "weight": 0.62
+    },
+    {
+      "proposalHash": "sha256:...",
+      "substrateId": "qwen-moe-remote",
+      "weight": 0.27
+    }
+  ],
+  "distillationWeightsHash": "sha256:...",
   "rejects": [
     {
       "proposalHash": "sha256:...",
@@ -465,7 +560,7 @@ Minimum fields:
 - adjudication hash
 - recursion parent and child roots
 - residency summary hash
-- DWD export hash or explicit `null`
+- DaD export hash or explicit `null`
 
 Replay claim:
 
@@ -490,20 +585,21 @@ Rules:
 The budget unit is policy-defined. A policy may charge per selected substrate,
 per debate round, per remote peer, per tool boundary, or per nested MoM.
 
-## Debate Weighted Distillation
+## Debate-adjudicated Distillation
 
-DWD exports adjudicated records as training candidates. It does not update a
+DaD exports adjudicated records as training candidates. It does not update a
 model during the request path.
 
 Minimum export row:
 
 ```json
 {
-  "dwdVersion": 0,
+  "dadVersion": 0,
   "momTranscriptRoot": "sha256:...",
   "winnerProposalHash": "sha256:...",
   "winnerSubstrateId": "gemma4-moe-local",
   "teacherSetHash": "sha256:...",
+  "distillationWeightsHash": "sha256:...",
   "studentTarget": {
     "family": "gemma4",
     "adapterId": "route-adapter-v0"
@@ -513,8 +609,25 @@ Minimum export row:
 }
 ```
 
-DWD rows are candidates until the training pipeline validates them, records
+DaD rows are candidates until the training pipeline validates them, records
 lineage, and promotes the resulting artifact through the normal model gates.
+
+### DaD validity invariant
+
+If `distillationMode = "debate_adjudicated"`, the run is invalid unless it
+contains all five of the following, bound to the same MoM transcript root:
+
+1. proposal (one per participating substrate, with `proposalHash` and
+   `substrateTranscriptRoot`)
+2. critique (at least one targeting each proposal)
+3. response or rebuttal (at least one per critique)
+4. adjudication record (with `distillationWeights` covering every proposal)
+5. `distillationWeightsHash` matching the canonical hash of the
+   `distillationWeights` array
+
+Missing any component fails the export. No teacher row is written. The
+training pipeline must reject DaD rows whose `distillationWeightsHash` does not
+re-derive from the referenced adjudication record.
 
 ## Promotion gates
 
@@ -527,7 +640,7 @@ Doppler's MoM layer cannot be called shipped until these gates exist:
 5. adjudication replay validation
 6. MoM transcript root verifier
 7. nested MoM receipt-budget rejection fixture
-8. DWD export validation
+8. DaD export validation
 9. substrate transcript-root coverage check
 10. command parity across browser and Node surfaces
 
@@ -547,7 +660,7 @@ Doppler's MoM layer cannot be called shipped until these gates exist:
 - whether CFR policy lives in RDRR metadata, runtime config, or a separate route
   policy artifact
 - how much logit data a proposal receipt should carry
-- whether DWD exports live under the training artifact policy or a new replay
+- whether DaD exports live under the training artifact policy or a new replay
   corpus namespace
 - whether remote provider substrates can satisfy the same transcript-root
   standard or need a weaker declared receipt class
