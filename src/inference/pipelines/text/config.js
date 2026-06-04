@@ -921,6 +921,17 @@ function resolveVisionConfig(rawConfig, manifest) {
     }
     return Math.trunc(number);
   };
+  const resolveRequiredNonNegativeInteger = (keys, label) => {
+    const value = resolveRequiredVisionField(keys, label);
+    const number = Number(value);
+    if (!Number.isFinite(number) || number < 0 || Math.floor(number) !== number) {
+      throw new Error(
+        `Manifest "${modelId}" has invalid vision_config.${label}=${JSON.stringify(value)}. ` +
+        'Expected a non-negative integer.'
+      );
+    }
+    return Math.trunc(number);
+  };
   const resolveRequiredPositiveNumber = (value, label) => {
     const number = Number(value);
     if (!Number.isFinite(number) || number <= 0) {
@@ -940,14 +951,21 @@ function resolveVisionConfig(rawConfig, manifest) {
   }
 
   if (visionArchitecture === 'gemma4') {
+    const depth = resolveRequiredNonNegativeInteger(['depth', 'num_hidden_layers'], 'num_hidden_layers');
+    const isEncoderFree = (depth === 0);
+
     const hiddenSize = resolveRequiredPositiveInteger(['hidden_size'], 'hidden_size');
-    const numHeads = resolveRequiredPositiveInteger(['num_heads', 'num_attention_heads'], 'num_attention_heads');
+    const numHeads = isEncoderFree
+      ? (vc.num_heads !== undefined || vc.num_attention_heads !== undefined ? resolveRequiredPositiveInteger(['num_heads', 'num_attention_heads'], 'num_attention_heads') : 1)
+      : resolveRequiredPositiveInteger(['num_heads', 'num_attention_heads'], 'num_attention_heads');
     const ropeParameters = vc.rope_parameters;
     if (!ropeParameters || typeof ropeParameters !== 'object') {
-      throw new Error(
-        `Manifest "${modelId}" is missing vision_config.rope_parameters. ` +
-        'Re-convert the model with explicit Gemma 4 vision RoPE metadata.'
-      );
+      if (!isEncoderFree) {
+        throw new Error(
+          `Manifest "${modelId}" is missing vision_config.rope_parameters. ` +
+          'Re-convert the model with explicit Gemma 4 vision RoPE metadata.'
+        );
+      }
     }
     const hiddenActivation = String(resolveRequiredVisionField(['hidden_activation'], 'hidden_activation')).trim();
     if (hiddenActivation !== 'gelu' && hiddenActivation !== 'gelu_pytorch_tanh') {
@@ -968,12 +986,18 @@ function resolveVisionConfig(rawConfig, manifest) {
     }
 
     return {
-      depth: resolveRequiredPositiveInteger(['depth', 'num_hidden_layers'], 'num_hidden_layers'),
+      depth,
       hiddenSize,
-      intermediateSize: resolveRequiredPositiveInteger(['intermediate_size'], 'intermediate_size'),
+      intermediateSize: isEncoderFree
+        ? (vc.intermediate_size !== undefined ? resolveRequiredPositiveInteger(['intermediate_size'], 'intermediate_size') : 1)
+        : resolveRequiredPositiveInteger(['intermediate_size'], 'intermediate_size'),
       numHeads,
-      numKeyValueHeads: resolveRequiredPositiveInteger(['num_key_value_heads'], 'num_key_value_heads'),
-      headDim: resolveRequiredPositiveInteger(['head_dim', 'global_head_dim'], 'head_dim'),
+      numKeyValueHeads: isEncoderFree
+        ? (vc.num_key_value_heads !== undefined ? resolveRequiredPositiveInteger(['num_key_value_heads'], 'num_key_value_heads') : 1)
+        : resolveRequiredPositiveInteger(['num_key_value_heads'], 'num_key_value_heads'),
+      headDim: isEncoderFree
+        ? (vc.head_dim !== undefined || vc.global_head_dim !== undefined ? resolveRequiredPositiveInteger(['head_dim', 'global_head_dim'], 'head_dim') : 1)
+        : resolveRequiredPositiveInteger(['head_dim', 'global_head_dim'], 'head_dim'),
       outHiddenSize: vc.out_hidden_size ?? vc.output_proj_dims ?? null,
       patchSize: resolveRequiredPositiveInteger(['patch_size'], 'patch_size'),
       poolingKernelSize: resolveRequiredPositiveInteger(['pooling_kernel_size'], 'pooling_kernel_size'),
@@ -981,7 +1005,9 @@ function resolveVisionConfig(rawConfig, manifest) {
       temporalPatchSize: vc.temporal_patch_size ?? null,
       positionEmbeddingSize: resolveRequiredPositiveInteger(['position_embedding_size'], 'position_embedding_size'),
       defaultOutputLength: resolveRequiredPositiveInteger(['default_output_length'], 'default_output_length'),
-      ropeTheta: resolveRequiredPositiveNumber(ropeParameters.rope_theta, 'vision_config.rope_parameters.rope_theta'),
+      ropeTheta: isEncoderFree && (!ropeParameters || ropeParameters.rope_theta === undefined)
+        ? 10000
+        : resolveRequiredPositiveNumber(ropeParameters.rope_theta, 'vision_config.rope_parameters.rope_theta'),
       eps: resolveRequiredPositiveNumber(
         resolveRequiredVisionField(['eps', 'rms_norm_eps'], 'rms_norm_eps'),
         'vision_config.rms_norm_eps'
