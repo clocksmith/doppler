@@ -739,11 +739,14 @@ export class InferencePipeline extends PipelineState {
     });
 
     if (vc.visionArchitecture === 'gemma4') {
+      const isEncoderFree = (depth === 0);
       const visionWeights = {
         textHiddenSize: this.modelConfig.hiddenSize,
         patchInputProj: await loadRequiredTensor('model.vision_tower.patch_embedder.input_proj.weight'),
         patchPositionEmbeddingTable: await loadRequiredTensor('model.vision_tower.patch_embedder.position_embedding_table', false),
-        projector: await loadRequiredTensor('model.embed_vision.embedding_projection.weight'),
+        projector: isEncoderFree
+          ? await loader.loadTensor('model.embed_vision.embedding_projection.weight', true, true)
+          : await loadRequiredTensor('model.embed_vision.embedding_projection.weight'),
         layers: [],
       };
 
@@ -877,16 +880,17 @@ export class InferencePipeline extends PipelineState {
       outputMax: await loadScalar(`${prefix}.output_max`),
     });
 
+    const isEncoderFree = (depth === 0);
     const audioWeights = {
       // Subsampling
-      subsampleConv0Weight: await loadRequiredTensor('model.audio_tower.subsample_conv_projection.layer0.conv.weight'),
-      subsampleNorm0Weight: await loadRequiredTensor('model.audio_tower.subsample_conv_projection.layer0.norm.weight'),
-      subsampleConv1Weight: await loadRequiredTensor('model.audio_tower.subsample_conv_projection.layer1.conv.weight'),
-      subsampleNorm1Weight: await loadRequiredTensor('model.audio_tower.subsample_conv_projection.layer1.norm.weight'),
-      subsampleInputProjWeight: await loadRequiredTensor('model.audio_tower.subsample_conv_projection.input_proj_linear.weight'),
+      subsampleConv0Weight: isEncoderFree ? null : await loadRequiredTensor('model.audio_tower.subsample_conv_projection.layer0.conv.weight'),
+      subsampleNorm0Weight: isEncoderFree ? null : await loadRequiredTensor('model.audio_tower.subsample_conv_projection.layer0.norm.weight'),
+      subsampleConv1Weight: isEncoderFree ? null : await loadRequiredTensor('model.audio_tower.subsample_conv_projection.layer1.conv.weight'),
+      subsampleNorm1Weight: isEncoderFree ? null : await loadRequiredTensor('model.audio_tower.subsample_conv_projection.layer1.norm.weight'),
+      subsampleInputProjWeight: isEncoderFree ? null : await loadRequiredTensor('model.audio_tower.subsample_conv_projection.input_proj_linear.weight'),
       // Output
-      outputProjWeight: await loadRequiredTensor('model.audio_tower.output_proj.weight'),
-      outputProjBias: await loadRequiredTensor('model.audio_tower.output_proj.bias'),
+      outputProjWeight: isEncoderFree ? null : await loadRequiredTensor('model.audio_tower.output_proj.weight'),
+      outputProjBias: isEncoderFree ? null : await loadRequiredTensor('model.audio_tower.output_proj.bias'),
       audioEmbeddingProjWeight: await loadRequiredTensor('model.embed_audio.embedding_projection.weight'),
       layers: [],
     };
@@ -1252,20 +1256,26 @@ export class InferencePipeline extends PipelineState {
     this.reset();
 
     // Lazy-load audio modules
-    const { extractLogMelSpectrogram } = await import('./audio/mel.js');
     const { encodeAudio } = await import('./audio/index.js');
 
-    // Step 1: Extract mel spectrogram
-    const { features: melFeatures, numFrames, nMels } = extractLogMelSpectrogram(audio);
-
-    // Step 2: Encode audio through conformer pipeline
-    const encodeResult = await encodeAudio({
-      melFeatures,
-      numFrames,
-      nMels,
-      audioConfig: this.audioConfig,
-      weights: this.audioWeights,
-    });
+    let encodeResult;
+    if (this.audioConfig.depth === 0) {
+      encodeResult = await encodeAudio({
+        rawAudio: audio,
+        audioConfig: this.audioConfig,
+        weights: this.audioWeights,
+      });
+    } else {
+      const { extractLogMelSpectrogram } = await import('./audio/mel.js');
+      const { features: melFeatures, numFrames, nMels } = extractLogMelSpectrogram(audio);
+      encodeResult = await encodeAudio({
+        melFeatures,
+        numFrames,
+        nMels,
+        audioConfig: this.audioConfig,
+        weights: this.audioWeights,
+      });
+    }
 
     // Step 3: Build the multimodal prompt with <|audio|> placeholder
     const requestedPrompt = prompt ?? 'Transcribe the audio.';
@@ -1557,16 +1567,26 @@ export class InferencePipeline extends PipelineState {
     await this._ensureAudioWeightsLoaded();
     this.reset();
 
-    const { extractLogMelSpectrogram } = await import('./audio/mel.js');
     const { encodeAudio } = await import('./audio/index.js');
-    const { features: melFeatures, numFrames, nMels } = extractLogMelSpectrogram(audio);
-    const encodeResult = await encodeAudio({
-      melFeatures,
-      numFrames,
-      nMels,
-      audioConfig: this.audioConfig,
-      weights: this.audioWeights,
-    });
+
+    let encodeResult;
+    if (this.audioConfig.depth === 0) {
+      encodeResult = await encodeAudio({
+        rawAudio: audio,
+        audioConfig: this.audioConfig,
+        weights: this.audioWeights,
+      });
+    } else {
+      const { extractLogMelSpectrogram } = await import('./audio/mel.js');
+      const { features: melFeatures, numFrames, nMels } = extractLogMelSpectrogram(audio);
+      encodeResult = await encodeAudio({
+        melFeatures,
+        numFrames,
+        nMels,
+        audioConfig: this.audioConfig,
+        weights: this.audioWeights,
+      });
+    }
 
     const hiddenSize = Number(this.audioConfig?.outputProjDims ?? this.modelConfig?.hiddenSize);
     const numTokens = encodeResult.numTokens;

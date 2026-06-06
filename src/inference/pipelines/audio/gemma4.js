@@ -564,7 +564,7 @@ async function runConformerLayer(hiddenTensor, layerWeights, audioConfig, seqLen
  * @returns {Promise<{ features: GPUBuffer, numTokens: number }>}
  */
 export async function encodeGemma4Audio(params) {
-  const { melFeatures, numFrames, nMels, audioConfig, weights } = params;
+  const { melFeatures, numFrames, nMels, rawAudio, audioConfig, weights } = params;
 
   if (audioConfig.audioArchitecture !== 'gemma4') {
     throw new Error(
@@ -577,6 +577,57 @@ export async function encodeGemma4Audio(params) {
 
   const hiddenSize = audioConfig.hiddenSize;
   const depth = audioConfig.depth;
+  const isEncoderFree = (depth === 0);
+
+  if (isEncoderFree) {
+    if (!rawAudio || !(rawAudio instanceof Float32Array)) {
+      throw new Error('[Audio] Unified encoder-free audio requires rawAudio Float32Array.');
+    }
+    const frameSize = audioConfig.outputProjDims; // 640
+    let seqLen = Math.floor(rawAudio.length / frameSize);
+    if (seqLen === 0) {
+      seqLen = 1;
+    }
+    const paddedLength = seqLen * frameSize;
+    const pcmData = new Float32Array(paddedLength);
+    pcmData.set(rawAudio.subarray(0, Math.min(rawAudio.length, paddedLength)));
+
+    const pcmTensor = createTensor(
+      acquireBuffer(pcmData.byteLength, undefined, 'gemma4_audio_pcm'),
+      'f32',
+      [seqLen, frameSize],
+      'gemma4_audio_pcm'
+    );
+    uploadData(pcmTensor.buffer, pcmData, 0);
+
+    let embedProj = null;
+    if (weights.audioEmbeddingProjWeight) {
+      embedProj = await runMatmul(
+        pcmTensor,
+        weights.audioEmbeddingProjWeight,
+        seqLen,
+        hiddenSize,
+        frameSize,
+        { outputDtype: 'f32', transposeB: 'auto' }
+      );
+      releaseBuffer(pcmTensor.buffer);
+    } else {
+      if (frameSize !== hiddenSize) {
+        throw new Error(
+          `[Audio] Gemma 4 audio encoder-free mode has no audioEmbeddingProjWeight, but frameSize (${frameSize}) ` +
+          `does not match hiddenSize (${hiddenSize}).`
+        );
+      }
+      embedProj = pcmTensor;
+    }
+
+    log.info('Audio', `Gemma 4 encoder-free audio encoding complete: ${seqLen} tokens, ${hiddenSize} dims`);
+
+    return {
+      features: embedProj.buffer,
+      numTokens: seqLen,
+    };
+  }
 
   log.debug('Audio', `encodeGemma4Audio: ${numFrames} frames, ${nMels} mels, ${depth} layers`);
 

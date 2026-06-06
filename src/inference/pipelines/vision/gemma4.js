@@ -707,15 +707,26 @@ export async function encodeGemma4Image(params) {
     );
     uploadData(pooledTensor.buffer, pooled.output, 0);
 
-    const projected = await runMatmul(
-      pooledTensor,
-      weights.projector,
-      pooled.outputLength,
-      weights.textHiddenSize,
-      hiddenSize,
-      { outputDtype: 'f32', transposeB: 'auto' }
-    );
-    releaseBuffer(pooledTensor.buffer);
+    let projected = null;
+    if (weights.projector) {
+      projected = await runMatmul(
+        pooledTensor,
+        weights.projector,
+        pooled.outputLength,
+        weights.textHiddenSize,
+        hiddenSize,
+        { outputDtype: 'f32', transposeB: 'auto' }
+      );
+      releaseBuffer(pooledTensor.buffer);
+    } else {
+      if (hiddenSize !== weights.textHiddenSize) {
+        throw new Error(
+          `[Vision] Gemma 4 vision encoder-free mode has no projector, but vision hiddenSize (${hiddenSize}) ` +
+          `does not match text hiddenSize (${weights.textHiddenSize}).`
+        );
+      }
+      projected = pooledTensor;
+    }
 
     return {
       features: projected.buffer,

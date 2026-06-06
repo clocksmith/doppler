@@ -1105,6 +1105,16 @@ function resolveAudioConfig(rawConfig, manifest) {
     }
     return Math.trunc(number);
   };
+  const resolveRequiredNonNegativeInteger = (value, label) => {
+    const number = Number(value);
+    if (!Number.isFinite(number) || number < 0 || Math.floor(number) !== number) {
+      throw new Error(
+        `Manifest "${modelId}" has invalid audio_config.${label}=${JSON.stringify(value)}. ` +
+        'Expected a non-negative integer.'
+      );
+    }
+    return Math.trunc(number);
+  };
   const resolveRequiredPositiveNumber = (value, label) => {
     const number = Number(value);
     if (!Number.isFinite(number) || number <= 0) {
@@ -1123,31 +1133,50 @@ function resolveAudioConfig(rawConfig, manifest) {
     );
   }
 
+  const depth = resolveRequiredNonNegativeInteger(ac.num_hidden_layers, 'num_hidden_layers');
+  const isEncoderFree = (depth === 0);
+
   const hiddenSize = resolveRequiredPositiveInteger(ac.hidden_size, 'hidden_size');
-  const numAttentionHeads = resolveRequiredPositiveInteger(ac.num_attention_heads, 'num_attention_heads');
+  const numAttentionHeads = isEncoderFree
+    ? (ac.num_attention_heads !== undefined ? resolveRequiredPositiveInteger(ac.num_attention_heads, 'num_attention_heads') : 1)
+    : resolveRequiredPositiveInteger(ac.num_attention_heads, 'num_attention_heads');
   const headDim = Math.trunc(hiddenSize / numAttentionHeads);
 
-  if (!Array.isArray(ac.subsampling_conv_channels) || ac.subsampling_conv_channels.length < 1) {
-    throw new Error(
-      `Manifest "${modelId}" is missing audio_config.subsampling_conv_channels array.`
-    );
+  if (!isEncoderFree) {
+    if (!Array.isArray(ac.subsampling_conv_channels) || ac.subsampling_conv_channels.length < 1) {
+      throw new Error(
+        `Manifest "${modelId}" is missing audio_config.subsampling_conv_channels array.`
+      );
+    }
   }
 
   return {
     audioArchitecture,
-    depth: resolveRequiredPositiveInteger(ac.num_hidden_layers, 'num_hidden_layers'),
+    depth,
     hiddenSize,
     numAttentionHeads,
     headDim,
-    convKernelSize: resolveRequiredPositiveInteger(ac.conv_kernel_size, 'conv_kernel_size'),
-    subsamplingConvChannels: ac.subsampling_conv_channels.map(Number),
+    convKernelSize: isEncoderFree
+      ? (ac.conv_kernel_size !== undefined ? resolveRequiredPositiveInteger(ac.conv_kernel_size, 'conv_kernel_size') : 1)
+      : resolveRequiredPositiveInteger(ac.conv_kernel_size, 'conv_kernel_size'),
+    subsamplingConvChannels: isEncoderFree
+      ? (ac.subsampling_conv_channels ? ac.subsampling_conv_channels.map(Number) : [])
+      : ac.subsampling_conv_channels.map(Number),
     outputProjDims: resolveRequiredPositiveInteger(ac.output_proj_dims, 'output_proj_dims'),
-    attentionContextLeft: resolveRequiredPositiveInteger(ac.attention_context_left, 'attention_context_left'),
+    attentionContextLeft: isEncoderFree
+      ? (ac.attention_context_left !== undefined ? resolveRequiredPositiveInteger(ac.attention_context_left, 'attention_context_left') : 1)
+      : resolveRequiredPositiveInteger(ac.attention_context_left, 'attention_context_left'),
     attentionContextRight: Number(ac.attention_context_right ?? 0),
-    attentionChunkSize: resolveRequiredPositiveInteger(ac.attention_chunk_size, 'attention_chunk_size'),
-    attentionLogitCap: resolveRequiredPositiveNumber(ac.attention_logit_cap, 'attention_logit_cap'),
+    attentionChunkSize: isEncoderFree
+      ? (ac.attention_chunk_size !== undefined ? resolveRequiredPositiveInteger(ac.attention_chunk_size, 'attention_chunk_size') : 1)
+      : resolveRequiredPositiveInteger(ac.attention_chunk_size, 'attention_chunk_size'),
+    attentionLogitCap: isEncoderFree
+      ? (ac.attention_logit_cap !== undefined ? resolveRequiredPositiveNumber(ac.attention_logit_cap, 'attention_logit_cap') : 1.0)
+      : resolveRequiredPositiveNumber(ac.attention_logit_cap, 'attention_logit_cap'),
     attentionInvalidLogitsValue: Number(ac.attention_invalid_logits_value ?? -1e9),
-    residualWeight: resolveRequiredPositiveNumber(ac.residual_weight, 'residual_weight'),
+    residualWeight: isEncoderFree
+      ? (ac.residual_weight !== undefined ? resolveRequiredPositiveNumber(ac.residual_weight, 'residual_weight') : 1.0)
+      : resolveRequiredPositiveNumber(ac.residual_weight, 'residual_weight'),
     rmsNormEps: resolveRequiredPositiveNumber(ac.rms_norm_eps ?? 1e-6, 'rms_norm_eps'),
     hiddenAct: String(ac.hidden_act ?? 'silu').trim(),
     useClippedLinears: ac.use_clipped_linears === true,
