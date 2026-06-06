@@ -56,12 +56,17 @@ export interface SampledTokenStagingBuffer {
   destroy(): void;
 }
 
+export interface DeferredCleanupRecorder {
+  completeDeferredCleanup(options?: { discardPooled?: boolean }): Promise<void> | void;
+}
+
 export declare function readSampledTokenFromStagingBuffer(
   stagingBuffer: SampledTokenStagingBuffer,
   options?: {
     ownsStagingBuffer?: boolean;
     hasFinitenessBuffer?: boolean;
     ring?: { advance(): void } | null;
+    cleanupRecorder?: DeferredCleanupRecorder | null;
   }
 ): Promise<{
   nextToken: number;
@@ -85,7 +90,9 @@ export declare function readBatchTokensFromStagingBuffers(options: {
   tokenCount: number;
   ownsTokensStaging?: boolean;
   ownsStopStaging?: boolean;
+  ownsFinitenessStaging?: boolean;
   ring?: { advance(): void } | null;
+  cleanupRecorder?: DeferredCleanupRecorder | null;
 }): Promise<{
   tokens: Uint32Array;
   stopFlags: Uint32Array | null;
