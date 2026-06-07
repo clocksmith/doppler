@@ -1234,15 +1234,23 @@ function formatPhaseSegmentValue(segmentTitle, resolved) {
   return formatDurationCompact(resolved.modelLoadMs);
 }
 
-function renderPhaseSegmentLabel(x, y, width, title, valueLabel) {
-  if (width < 52) {
-    return `<text x="${x + Math.max(width / 2, 8)}" y="${y - 6}" text-anchor="middle" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="9">${escapeXml(valueLabel)}</text>\n`;
+function phaseSegmentTextFill(fill) {
+  if (String(fill).toLowerCase() === String(PHASE_COLORS.warmLoad).toLowerCase()) {
+    return PALETTE.bg;
+  }
+  return PALETTE.text;
+}
+
+function renderPhaseSegmentLabel(x, y, width, title, valueLabel, fill) {
+  const textFill = phaseSegmentTextFill(fill);
+  if (width < 64) {
+    return '';
   }
   if (width < 92) {
-    return `<text x="${x + 8}" y="${y + 30}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${escapeXml(valueLabel)}</text>\n`;
+    return `<text x="${x + 8}" y="${y + 30}" fill="${textFill}" font-family="${FONT_MONO}" font-size="10">${escapeXml(valueLabel)}</text>\n`;
   }
-  return `<text x="${x + 10}" y="${y + 24}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="11" font-weight="bold">${escapeXml(title)}</text>\n`
-    + `<text x="${x + 10}" y="${y + 38}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${escapeXml(valueLabel)}</text>\n`;
+  return `<text x="${x + 10}" y="${y + 24}" fill="${textFill}" font-family="${FONT_UI}" font-size="11" font-weight="bold">${escapeXml(title)}</text>\n`
+    + `<text x="${x + 10}" y="${y + 38}" fill="${textFill}" font-family="${FONT_MONO}" font-size="10">${escapeXml(valueLabel)}</text>\n`;
 }
 
 function renderEngineChip(x, y, engine) {
@@ -1280,7 +1288,14 @@ function renderPhaseLane({ x, y, width, engine, resolved, globalMax }) {
       if (!isFiniteNumber(segment.value) || segment.value <= 0) continue;
       const segmentWidth = Math.max(2, segment.value * pxPerMs);
       body += `<rect x="${cursor}" y="${y + 4}" width="${segmentWidth}" height="${barHeight - 8}" fill="${segment.fill}" />\n`;
-      body += renderPhaseSegmentLabel(cursor, y + 4, segmentWidth, segment.title, formatPhaseSegmentValue(segment.title, resolved));
+      body += renderPhaseSegmentLabel(
+        cursor,
+        y + 4,
+        segmentWidth,
+        segment.title,
+        formatPhaseSegmentValue(segment.title, resolved),
+        segment.fill
+      );
       cursor += segmentWidth;
     }
   }

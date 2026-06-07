@@ -5,87 +5,88 @@
 
   <defs>
   <style>
-    text { fill: #f2f2f0; font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; letter-spacing: 0; }
-    .title { font: 700 32px Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
-    .section { font: 700 24px Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
-    .node-title { font: 700 20px Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
-    .node-text { font: 500 17px Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
-    .code-text { font: 500 17px SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
-    .edge-label { font: 500 15px Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; fill: #9ca3af; }
-    .column-left { fill: #0b0d0f; stroke: #fde68a; stroke-width: 1.75; }
-    .column-right { fill: #0b0d0f; stroke: #93c5fd; stroke-width: 1.75; }
-    .node { fill: #101317; stroke-width: 1.25; }
-    .node-load { stroke: #fde68a; }
-    .node-infer { stroke: #93c5fd; }
-    .edge { stroke: #93c5fd; stroke-width: 1.75; fill: none; }
-    .edge-dashed { stroke: #9ca3af; stroke-width: 1.75; fill: none; stroke-dasharray: 8 8; }
+    text { fill: #111111; font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; letter-spacing: 0; }
+    .title { font-size: 32px; font-weight: 700; font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
+    .section { font-size: 24px; font-weight: 700; font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
+    .node-title { font-size: 20px; font-weight: 700; font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
+    .node-text { font-size: 17px; font-weight: 500; font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
+    .code-text { font-size: 15px; font-weight: 500; font-family: SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .edge-label { font-size: 15px; font-weight: 500; font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; fill: #5a5a5a; }
+    .column-left { fill: #ffffff; stroke: #111111; stroke-width: 1.75; }
+    .column-right { fill: #ffffff; stroke: #111111; stroke-width: 1.75; }
+    .node { fill: #f7f7f7; stroke-width: 1.25; }
+    .node-load { stroke: #111111; }
+    .node-infer { stroke: #111111; }
+    .edge { stroke: #111111; stroke-width: 1.75; fill: none; }
+    .edge-dashed { stroke: #5a5a5a; stroke-width: 1.75; fill: none; stroke-dasharray: 8 8; }
   </style>
 
   <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
-    <path d="M 0 0 L 12 6 L 0 12 z" fill="#93c5fd" />
+    <path d="M 0 0 L 12 6 L 0 12 z" fill="#111111" />
   </marker>
 
   <marker id="arrow-muted" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
-    <path d="M 0 0 L 12 6 L 0 12 z" fill="#9ca3af" />
+    <path d="M 0 0 L 12 6 L 0 12 z" fill="#5a5a5a" />
   </marker>
 </defs>
 
-  <rect x="0" y="0" width="1400" height="700" fill="#050607" />
+  <rect x="0" y="0" width="1400" height="700" fill="#ffffff" />
 
   <text x="700" y="52" text-anchor="middle" class="title">Doppler Architecture Overview</text>
 
-  <rect x="70" y="70" width="610" height="560" rx="4" class="column-left" />
-  <rect x="720" y="70" width="610" height="560" rx="4" class="column-right" />
+  <rect x="70" y="70" width="610" height="560" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75" />
+  <rect x="720" y="70" width="610" height="560" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75" />
 
   <text x="375" y="120" text-anchor="middle" class="section">Load Model (one-time)</text>
   <text x="1025" y="120" text-anchor="middle" class="section">Inference (per-session)</text>
 
-  <rect x="125" y="150" width="500" height="82" rx="4" class="node node-load" />
+  <rect x="125" y="150" width="500" height="82" rx="4" fill="#f7f7f7" stroke="#111111" stroke-width="1.25" />
   <text x="375" y="184" text-anchor="middle" class="node-title">Config</text>
   <text x="375" y="210" text-anchor="middle" class="node-text">weight/attention dtypes, kernels</text>
 
-  <rect x="125" y="270" width="500" height="72" rx="4" class="node node-load" />
+  <rect x="125" y="270" width="500" height="72" rx="4" fill="#f7f7f7" stroke="#111111" stroke-width="1.25" />
   <text x="375" y="302" text-anchor="middle" class="node-title">Internal Call</text>
-  <text x="375" y="326" text-anchor="middle" class="code-text">&#96;createInitializedPipeline() -> pipeline.loadModel()&#96;</text>
+  <text x="375" y="322" text-anchor="middle" class="code-text">&#96;createInitializedPipeline()&#96;</text>
+  <text x="375" y="338" text-anchor="middle" class="code-text">&#96;pipeline.loadModel()&#96;</text>
 
-  <rect x="125" y="380" width="500" height="82" rx="4" class="node node-load" />
+  <rect x="125" y="380" width="500" height="82" rx="4" fill="#f7f7f7" stroke="#111111" stroke-width="1.25" />
   <text x="375" y="414" text-anchor="middle" class="node-title">Model Loader</text>
   <text x="375" y="440" text-anchor="middle" class="node-text">shard cache + dequant + upload</text>
 
-  <rect x="125" y="520" width="240" height="82" rx="4" class="node node-load" />
+  <rect x="125" y="520" width="240" height="82" rx="4" fill="#f7f7f7" stroke="#111111" stroke-width="1.25" />
   <text x="245" y="554" text-anchor="middle" class="node-title">Storage</text>
   <text x="245" y="580" text-anchor="middle" class="node-text">RDRR / OPFS / Downloader</text>
 
-  <rect x="385" y="520" width="240" height="82" rx="4" class="node node-load" />
+  <rect x="385" y="520" width="240" height="82" rx="4" fill="#f7f7f7" stroke="#111111" stroke-width="1.25" />
   <text x="505" y="554" text-anchor="middle" class="node-title">WebGPU</text>
   <text x="505" y="580" text-anchor="middle" class="node-text">upload + buffers</text>
 
-  <path d="M 375 232 L 375 270" class="edge" marker-end="url(#arrow)" />
-  <path d="M 375 342 L 375 380" class="edge" marker-end="url(#arrow)" />
+  <line x1="375" y1="232" x2="375" y2="270" stroke="#111111" stroke-width="2.5" />
+  <line x1="375" y1="342" x2="375" y2="380" stroke="#111111" stroke-width="2.5" />
 
-  <path d="M 375 462 L 375 488 L 245 488 L 245 520" class="edge" marker-end="url(#arrow)" />
-  <path d="M 505 462 L 505 520" class="edge" marker-end="url(#arrow)" />
+  <polyline points="375,462 375,488 245,488 245,520" stroke="#111111" stroke-width="2.5" fill="none" />
+  <line x1="505" y1="462" x2="505" y2="520" stroke="#111111" stroke-width="2.5" />
 
-  <rect x="775" y="150" width="500" height="82" rx="4" class="node node-infer" />
+  <rect x="775" y="150" width="500" height="82" rx="4" fill="#f7f7f7" stroke="#111111" stroke-width="1.25" />
   <text x="1025" y="184" text-anchor="middle" class="node-title">Config</text>
   <text x="1025" y="210" text-anchor="middle" class="node-text">attention mechanism, batching, kernel overrides</text>
 
-  <rect x="775" y="270" width="500" height="72" rx="4" class="node node-infer" />
+  <rect x="775" y="270" width="500" height="72" rx="4" fill="#f7f7f7" stroke="#111111" stroke-width="1.25" />
   <text x="1025" y="302" text-anchor="middle" class="node-title">Public API Call</text>
   <text x="1025" y="326" text-anchor="middle" class="code-text">&#96;generate() / dopplerChat()&#96;</text>
 
-  <rect x="775" y="380" width="500" height="104" rx="4" class="node node-infer" />
+  <rect x="775" y="380" width="500" height="104" rx="4" fill="#f7f7f7" stroke="#111111" stroke-width="1.25" />
   <text x="1025" y="415" text-anchor="middle" class="node-title">Inference Pipeline</text>
   <text x="1025" y="442" text-anchor="middle" class="node-text">tokenizer -&gt; KV cache -&gt; attention/FFN -&gt; sampling</text>
 
-  <rect x="775" y="530" width="500" height="82" rx="4" class="node node-infer" />
+  <rect x="775" y="530" width="500" height="82" rx="4" fill="#f7f7f7" stroke="#111111" stroke-width="1.25" />
   <text x="1025" y="564" text-anchor="middle" class="node-title">WebGPU</text>
   <text x="1025" y="590" text-anchor="middle" class="node-text">WGSL kernels + buffer pools</text>
 
-  <path d="M 1025 232 L 1025 270" class="edge" marker-end="url(#arrow)" />
-  <path d="M 1025 342 L 1025 380" class="edge" marker-end="url(#arrow)" />
-  <path d="M 1025 484 L 1025 530" class="edge" marker-end="url(#arrow)" />
+  <line x1="1025" y1="232" x2="1025" y2="270" stroke="#111111" stroke-width="2.5" />
+  <line x1="1025" y1="342" x2="1025" y2="380" stroke="#111111" stroke-width="2.5" />
+  <line x1="1025" y1="484" x2="1025" y2="530" stroke="#111111" stroke-width="2.5" />
 
-  <path d="M 625 561 L 775 561" class="edge-dashed" marker-end="url(#arrow-muted)" />
+  <line x1="625" y1="561" x2="775" y2="561" stroke="#5a5a5a" stroke-width="2.5" stroke-dasharray="8 8" />
   <text x="700" y="545" text-anchor="middle" class="edge-label">shared WebGPU lifecycle</text>
 </svg>
