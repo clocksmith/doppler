@@ -212,7 +212,7 @@
       <div id="settings-panel" class="settings-panel">
         <!-- Profile — loads a full runtime config, populates fields below -->
         <div class="setting-field">
-          <label for="set-profile" title="Runtime profile. Loads batching, KV cache, debug, and tracing defaults. Fields below override the profile.">Profile</label>
+          <label for="set-profile" title="Runtime profile. Loads batching, KV cache, debug, and tracing defaults.">Profile</label>
           <select id="set-profile">
             <option value="profiles/default">default</option>
             <option value="profiles/throughput">throughput</option>
@@ -223,15 +223,15 @@
           </select>
         </div>
 
-        <!-- All fields are runtime config. Profile sets them; you override here. -->
+        <!-- Sampling and max token fields are per-run options. Other fields display profile-owned runtime policy. -->
         <div class="settings-grid">
           <div class="setting-field">
             <label for="set-temperature" title="inference.sampling.temperature — 0 = greedy. Higher = more random.">Temperature</label>
             <input id="set-temperature" type="number" min="0" max="2" step="0.1" value="1.0">
           </div>
           <div class="setting-field">
-            <label for="set-top-k" title="inference.sampling.topK — 0 = disabled. Limits to K most probable tokens.">Top K</label>
-            <input id="set-top-k" type="number" min="0" step="1" value="50">
+            <label for="set-top-k" title="inference.sampling.topK — Limits to K most probable tokens.">Top K</label>
+            <input id="set-top-k" type="number" min="1" step="1" value="50">
           </div>
           <div class="setting-field">
             <label for="set-top-p" title="inference.sampling.topP — 1.0 = disabled. Nucleus sampling threshold.">Top P</label>

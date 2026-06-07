@@ -53,6 +53,7 @@ export function ensureCommandSupportedOnSurface(commandRequest, surface) {
       request.command === 'lora'
       || request.command === 'distill'
       || request.command === 'diagnose'
+      || request.command === 'convert'
       || request.command === 'refresh-integrity'
     )
   ) {

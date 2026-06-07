@@ -15,6 +15,7 @@ import { checkProgramBundleParity } from './program-bundle-parity.js';
 import { applyRuntimeInputs, buildSuiteOptions } from './command-runner-shared.js';
 import { runWithRuntimeIsolation } from './command-runner-shared.js';
 import { refreshManifestIntegrity } from './rdrr-integrity-refresh.js';
+import { loadRuntimeConfigFromRef } from '../inference/browser-harness-runtime-helpers.js';
 import { isPlainObject } from '../utils/plain-object.js';
 import {
   getActiveKernelPath,
@@ -198,6 +199,7 @@ export async function runNodeCommand(commandRequest, options = {}) {
     await assertNodeWebGPUSupport();
     const modules = await loadRuntimeModules();
     const runtimeBridge = {
+      loadRuntimeConfigFromRef,
       applyRuntimeProfile: modules.harness.applyRuntimeProfile,
       applyRuntimeConfigFromUrl: modules.harness.applyRuntimeConfigFromUrl,
       getRuntimeConfig: modules.runtime.getRuntimeConfig,

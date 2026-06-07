@@ -1,10 +1,8 @@
-
-
-
 import { getDevice, getKernelCapabilities } from '../device.js';
 import { createPipeline, getOrCreateBindGroupLayout } from './pipeline-cache.js';
 import { createUniformBufferWithView } from './uniform-utils.js';
 import { WORKGROUP_SIZES } from './constants.js';
+import { selectRuleValue } from './rule-registry.js';
 
 
 function getRepPenaltyBindGroupLayout(device) {
@@ -20,8 +18,8 @@ function getRepPenaltyBindGroupLayout(device) {
   );
 }
 
-function resolveVariant(useF16) {
-  return useF16 ? 'default_f16' : 'default';
+export function selectRepPenaltyVariant(useF16) {
+  return selectRuleValue('repPenalty', 'variant', { useF16 });
 }
 
 function createRepPenaltyUniformBuffer(device, recorder, options) {
@@ -54,10 +52,20 @@ export async function recordRepPenalty(
     vocabSize,
     historyCount,
     penalty,
-    batchCount = 0,
-    batchOffset = 1,
-    logitsDtype = 'f32',
+    batchCount,
+    batchOffset,
+    logitsDtype,
   } = options;
+
+  if (!Number.isFinite(batchCount) || batchCount < 0) {
+    throw new Error('[RepPenalty] batchCount is required and must be non-negative.');
+  }
+  if (!Number.isFinite(batchOffset) || batchOffset < 0) {
+    throw new Error('[RepPenalty] batchOffset is required and must be non-negative.');
+  }
+  if (logitsDtype !== 'f16' && logitsDtype !== 'f32') {
+    throw new Error('[RepPenalty] logitsDtype must be "f16" or "f32".');
+  }
 
   if (penalty === 1.0 || (historyCount === 0 && batchCount === 0)) {
     return;
@@ -69,7 +77,7 @@ export async function recordRepPenalty(
     throw new Error('[RepPenalty] F16 logits requested but shader-f16 is unavailable.');
   }
 
-  const variant = resolveVariant(useF16);
+  const variant = selectRepPenaltyVariant(useF16);
   const layout = getRepPenaltyBindGroupLayout(device);
   const pipeline = await createPipeline('rep_penalty', variant, layout);
 

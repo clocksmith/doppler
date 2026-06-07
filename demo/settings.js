@@ -1,39 +1,39 @@
-import { applyRuntimeProfile, getRuntimeConfig, setRuntimeConfig } from 'doppler-gpu/tooling';
+import { applyRuntimeProfile, getRuntimeConfig } from 'doppler-gpu/tooling';
+import { log } from '../src/debug/index.js';
 import { state } from './ui/state.js';
 
 function $(id) { return document.getElementById(id); }
 
-// ---------------------------------------------------------------------------
-// Every field maps to a path in the runtime config. When a profile is loaded
-// via applyRuntimeProfile(), it calls setRuntimeConfig() which merges the
-// profile values into the config. We then read the resolved config back into
-// the UI fields. When the user edits a field, we write it back to the config.
-//
-// The ONLY settings not in the runtime config are the demo-only UI toggles:
-// Token Press and Live tok/s.
-// ---------------------------------------------------------------------------
-
-const FIELDS = [
-  // Sampling
-  { id: 'set-temperature', path: ['inference', 'sampling', 'temperature'], parse: parseFloat, fallback: 1.0 },
-  { id: 'set-top-k', path: ['inference', 'sampling', 'topK'], parse: (v) => parseInt(v, 10), fallback: 50 },
-  { id: 'set-top-p', path: ['inference', 'sampling', 'topP'], parse: parseFloat, fallback: 0.95 },
-  // Generation
-  { id: 'set-max-tokens', path: ['inference', 'generation', 'maxTokens'], parse: (v) => parseInt(v, 10), fallback: 256 },
-  // Batching
-  { id: 'set-batch-max-tokens', path: ['inference', 'batching', 'maxTokens'], parse: (v) => parseInt(v, 10), fallback: 64 },
-  { id: 'set-readback', path: ['inference', 'batching', 'readbackInterval'], parse: (v) => { const n = parseInt(v, 10); return n > 0 ? n : null; }, fallback: null },
-  // KV Cache
-  { id: 'set-kv-dtype', path: ['inference', 'kvcache', 'kvDtype'], parse: String, fallback: '' },
-  { id: 'set-kv-max-seq', path: ['inference', 'kvcache', 'maxSeqLen'], parse: (v) => { const n = parseInt(v, 10); return n > 0 ? n : null; }, fallback: null },
-  // Debug
-  { id: 'set-trace', path: ['shared', 'debug', 'trace', 'enabled'], parse: (v) => v === 'true' || v === true, fallback: false },
-  { id: 'set-log-level', path: ['shared', 'debug', 'logLevel', 'defaultLogLevel'], parse: String, fallback: 'info' },
+const GENERATION_FIELDS = [
+  { key: 'temperature', id: 'set-temperature', path: ['inference', 'sampling', 'temperature'], parse: parseFiniteNumber },
+  { key: 'topK', id: 'set-top-k', path: ['inference', 'sampling', 'topK'], parse: parsePositiveInteger },
+  { key: 'topP', id: 'set-top-p', path: ['inference', 'sampling', 'topP'], parse: parseFiniteNumber },
+  { key: 'maxTokens', id: 'set-max-tokens', path: ['inference', 'generation', 'maxTokens'], parse: parsePositiveInteger },
 ];
 
-// ---------------------------------------------------------------------------
-// Nested object helpers
-// ---------------------------------------------------------------------------
+const PROFILE_OWNED_FIELDS = [
+  { id: 'set-batch-max-tokens', path: ['inference', 'batching', 'maxTokens'] },
+  { id: 'set-readback', path: ['inference', 'batching', 'readbackInterval'] },
+  { id: 'set-kv-dtype', path: ['inference', 'kvcache', 'kvDtype'] },
+  { id: 'set-kv-max-seq', path: ['inference', 'kvcache', 'maxSeqLen'] },
+  { id: 'set-trace', path: ['shared', 'debug', 'trace', 'enabled'] },
+  { id: 'set-log-level', path: ['shared', 'debug', 'logLevel', 'defaultLogLevel'] },
+];
+
+const ALL_PROFILE_DISPLAY_FIELDS = [...GENERATION_FIELDS, ...PROFILE_OWNED_FIELDS];
+
+function parseFiniteNumber(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function parsePositiveInteger(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || Math.floor(parsed) !== parsed || parsed < 1) {
+    return undefined;
+  }
+  return parsed;
+}
 
 function getNestedValue(obj, path) {
   let cur = obj;
@@ -44,63 +44,32 @@ function getNestedValue(obj, path) {
   return cur;
 }
 
-function setNestedValue(obj, path, value) {
-  let cur = obj;
-  for (let i = 0; i < path.length - 1; i++) {
-    if (cur[path[i]] == null || typeof cur[path[i]] !== 'object') cur[path[i]] = {};
-    cur = cur[path[i]];
-  }
-  cur[path[path.length - 1]] = value;
-}
-
-// ---------------------------------------------------------------------------
-// Read / write UI ↔ runtime config
-// ---------------------------------------------------------------------------
-
 function readField(el, parse) {
   if (!el) return undefined;
-  if (el.type === 'checkbox') return el.checked;
-  const v = parse(el.value);
-  if (v === null) return null;
-  if (typeof v === 'string') return v || undefined;
-  return Number.isFinite(v) ? v : undefined;
+  if (el.type === 'checkbox') {
+    return el.checked;
+  }
+  return parse(el.value);
 }
 
-function writeField(el, value, fallback) {
+function writeField(el, value) {
   if (!el) return;
   if (el.type === 'checkbox') {
-    el.checked = !!value;
+    el.checked = value === true;
   } else if (value != null && value !== undefined) {
-    el.value = value;
+    el.value = String(value);
   } else {
-    el.value = fallback != null ? fallback : '';
+    el.value = '';
   }
 }
 
-/** Read resolved runtime config → populate all UI fields. */
 function populateUIFromConfig() {
   const config = getRuntimeConfig() || {};
-  for (const field of FIELDS) {
+  for (const field of ALL_PROFILE_DISPLAY_FIELDS) {
     const value = getNestedValue(config, field.path);
-    writeField($(field.id), value, field.fallback);
+    writeField($(field.id), value);
   }
 }
-
-/** Read all UI fields → write to runtime config via setRuntimeConfig(). */
-function syncUIToConfig() {
-  const config = getRuntimeConfig() || {};
-  for (const field of FIELDS) {
-    const v = readField($(field.id), field.parse);
-    if (v !== undefined) {
-      setNestedValue(config, field.path, v);
-    }
-  }
-  setRuntimeConfig(config);
-}
-
-// ---------------------------------------------------------------------------
-// Profile
-// ---------------------------------------------------------------------------
 
 async function applyProfile(profileId, { required = false } = {}) {
   const targetProfile = typeof profileId === 'string'
@@ -127,38 +96,40 @@ async function applyProfile(profileId, { required = false } = {}) {
       profileSelect.value = previousProfile;
     }
     state.settings.runtimeProfile = previousProfile;
-    console.warn('[DemoSettings] Failed to load runtime profile:', error?.message || error);
+    log.warn('DemoSettings', `Failed to load runtime profile: ${error?.message || error}`);
     return false;
   }
 
   state.settings.runtimeProfile = targetProfile;
-  // Read the resolved (profile-merged) config back into UI
   populateUIFromConfig();
   return true;
 }
 
-// ---------------------------------------------------------------------------
-// Public API
-// ---------------------------------------------------------------------------
+function readGenerationSettings() {
+  const settings = {};
+  for (const field of GENERATION_FIELDS) {
+    const value = readField($(field.id), field.parse);
+    if (value !== undefined) {
+      settings[field.key] = value;
+    }
+  }
+  return settings;
+}
 
-/** Called by core.js before generation. Syncs UI → engine, returns settings. */
 export function getSettings() {
-  syncUIToConfig();
-
-  // Read demo-only toggles
   state.tokenPressEnabled = $('set-token-press')?.checked ?? false;
   state.liveTokSec = $('set-live-toks')?.checked ?? true;
 
-  // Return a snapshot for core.js to use in the decode loop.
-  // All values come from the runtime config (now synced).
-  const config = getRuntimeConfig() || {};
-  return {
-    temperature: getNestedValue(config, ['inference', 'sampling', 'temperature']) ?? 1.0,
-    topK: getNestedValue(config, ['inference', 'sampling', 'topK']) ?? 50,
-    topP: getNestedValue(config, ['inference', 'sampling', 'topP']) ?? 0.95,
-    maxTokens: getNestedValue(config, ['inference', 'generation', 'maxTokens']) ?? 256,
-    runtimeProfile: state.settings.runtimeProfile || 'profiles/default',
+  const generationSettings = readGenerationSettings();
+  const nextSettings = {
+    ...generationSettings,
+    runtimeProfile: state.settings.runtimeProfile || null,
   };
+  state.settings = {
+    ...state.settings,
+    ...nextSettings,
+  };
+  return nextSettings;
 }
 
 export async function initSettings({ requireDefaultProfile = false } = {}) {
@@ -169,24 +140,17 @@ export async function initSettings({ requireDefaultProfile = false } = {}) {
     toggle.addEventListener('click', () => panel.classList.toggle('is-open'));
   }
 
-  // Profile select → load profile, merge into engine, repopulate UI
   $('set-profile')?.addEventListener('change', (e) => {
     void applyProfile(e.target.value);
   });
 
-  // Any field change → sync to engine
-  if (panel) {
-    const syncHandler = (e) => {
-      if (e.target?.id === 'set-profile') return;
-      syncUIToConfig();
-    };
-    panel.addEventListener('change', syncHandler);
-    panel.addEventListener('input', syncHandler);
+  for (const field of PROFILE_OWNED_FIELDS) {
+    const element = $(field.id);
+    if (element) {
+      element.disabled = true;
+    }
   }
 
-  // Apply default profile and populate UI from schema defaults.
-  // Default profile load is required in normal demo mode so GPU capability policy
-  // is initialized deterministically before any model can be compiled.
   const defaultProfile = $('set-profile')?.value || 'profiles/default';
   return applyProfile(defaultProfile, { required: requireDefaultProfile });
 }

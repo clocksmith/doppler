@@ -236,7 +236,11 @@ function isGemvVariant(variant) {
 
 
 function supportsF16Input(variant) {
-  return variant === 'f16' || variant === 'f16_vec4' || variant === 'f16_tiled' || variant.endsWith('_f16a');
+  return variant === 'f16'
+    || variant === 'f16_vec4'
+    || variant === 'f16_tiled'
+    || variant.endsWith('_f16a')
+    || variant.includes('_f16a_');
 }
 
 export function requiresF32Input(variant) {

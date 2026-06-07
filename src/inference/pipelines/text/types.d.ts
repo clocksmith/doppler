@@ -646,6 +646,18 @@ export interface BatchingStats {
 
   /** Number of GPU command submissions */
   gpuSubmissions: number;
+
+  /** Largest requested decode burst in tokens before runtime safety bounding */
+  requestedBatchTokens?: number;
+
+  /** Largest actual decode burst submitted in tokens after runtime safety bounding */
+  effectiveBatchTokens?: number;
+
+  /** Active max decode-burst cap selected by execution rules, when present */
+  maxBatchTokenCap?: number | null;
+
+  /** Number of decode loop iterations where requested burst tokens were clamped */
+  batchClampCount?: number;
 }
 
 // ============================================================================

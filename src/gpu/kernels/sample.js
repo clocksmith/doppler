@@ -189,55 +189,59 @@ async function executeArgmaxRun(logits, vocabSize, options) {
     useSinglePassArgmax,
   } = await resolveArgmaxPipelines(device, vocabSize, variants);
 
-  const tempLogits = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'argmax_temp_logits');
-  const tempIndices = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'argmax_temp_indices');
-  const outputIndex = options.outputIndex;
-  const minOutputBytes = Math.max(4, (outputIndex + 1) * 4);
-  const outputBuffer = options.outputBuffer ?? acquireBuffer(minOutputBytes, undefined, 'argmax_output');
-  const ownsOutputBuffer = !options.outputBuffer;
-  ensureOutputBufferSize(outputBuffer, minOutputBytes, 'argmax outputIndex');
+  let tempLogits = null;
+  let tempIndices = null;
+  let outputBuffer = null;
+  let ownsOutputBuffer = false;
+  let uniformBuffer = null;
+  try {
+    tempLogits = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'argmax_temp_logits');
+    tempIndices = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'argmax_temp_indices');
+    const outputIndex = options.outputIndex;
+    const minOutputBytes = Math.max(4, (outputIndex + 1) * 4);
+    outputBuffer = options.outputBuffer ?? acquireBuffer(minOutputBytes, undefined, 'argmax_output');
+    ownsOutputBuffer = !options.outputBuffer;
+    ensureOutputBufferSize(outputBuffer, minOutputBytes, 'argmax outputIndex');
 
-  const uniformBuffer = createArgmaxUniformBuffer(device, null, vocabSize, options);
+    uniformBuffer = createArgmaxUniformBuffer(device, null, vocabSize, options);
 
-  const bindGroupLayout = getSampleBindGroupLayout(device);
-  const entries = [
-    { binding: 0, resource: { buffer: uniformBuffer } },
-    { binding: 1, resource: { buffer: logits } },
-    { binding: 2, resource: { buffer: outputBuffer } },
-    { binding: 3, resource: { buffer: tempIndices } },
-    { binding: 4, resource: { buffer: tempLogits } },
-  ];
-  const argmaxBindGroup = device.createBindGroup({
-    label: 'argmax_bind_group',
-    layout: bindGroupLayout,
-    entries,
-  });
-
-  const encoder = device.createCommandEncoder({ label: 'argmax_encoder' });
-
-  const pass1 = encoder.beginComputePass({ label: 'argmax_pass1' });
-  pass1.setPipeline(singlePassPipeline ?? argmaxPipeline);
-  pass1.setBindGroup(0, argmaxBindGroup);
-  pass1.dispatchWorkgroups(useSinglePassArgmax ? 1 : numWorkgroups);
-  pass1.end();
-
-  if (reducePipeline) {
-    const reduceBindGroup = device.createBindGroup({
-      label: 'argmax_reduce_bind_group',
+    const bindGroupLayout = getSampleBindGroupLayout(device);
+    const entries = [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: logits } },
+      { binding: 2, resource: { buffer: outputBuffer } },
+      { binding: 3, resource: { buffer: tempIndices } },
+      { binding: 4, resource: { buffer: tempLogits } },
+    ];
+    const argmaxBindGroup = device.createBindGroup({
+      label: 'argmax_bind_group',
       layout: bindGroupLayout,
       entries,
     });
 
-    const pass2 = encoder.beginComputePass({ label: 'argmax_pass2' });
-    pass2.setPipeline(reducePipeline);
-    pass2.setBindGroup(0, reduceBindGroup);
-    pass2.dispatchWorkgroups(1);
-    pass2.end();
-  }
+    const encoder = device.createCommandEncoder({ label: 'argmax_encoder' });
 
-  device.queue.submit([encoder.finish()]);
+    const pass1 = encoder.beginComputePass({ label: 'argmax_pass1' });
+    pass1.setPipeline(singlePassPipeline ?? argmaxPipeline);
+    pass1.setBindGroup(0, argmaxBindGroup);
+    pass1.dispatchWorkgroups(useSinglePassArgmax ? 1 : numWorkgroups);
+    pass1.end();
 
-  try {
+    if (reducePipeline) {
+      const reduceBindGroup = device.createBindGroup({
+        label: 'argmax_reduce_bind_group',
+        layout: bindGroupLayout,
+        entries,
+      });
+
+      const pass2 = encoder.beginComputePass({ label: 'argmax_pass2' });
+      pass2.setPipeline(reducePipeline);
+      pass2.setBindGroup(0, reduceBindGroup);
+      pass2.dispatchWorkgroups(1);
+      pass2.end();
+    }
+
+    device.queue.submit([encoder.finish()]);
     return await readTokenFromOutput(outputBuffer, outputIndex);
   } finally {
     cleanupRunResources(
@@ -262,53 +266,68 @@ async function executeArgmaxRecord(recorder, logits, vocabSize, options) {
     useSinglePassArgmax,
   } = await resolveArgmaxPipelines(device, vocabSize, variants);
 
-  const tempLogits = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'argmax_temp_logits');
-  const tempIndices = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'argmax_temp_indices');
-  const outputIndex = options.outputIndex;
-  const minOutputBytes = Math.max(4, (outputIndex + 1) * 4);
-  const outputBuffer = options.outputBuffer ?? acquireBuffer(minOutputBytes, undefined, 'argmax_output');
-  ensureOutputBufferSize(outputBuffer, minOutputBytes, 'argmax outputIndex');
+  let tempLogits = null;
+  let tempIndices = null;
+  let outputBuffer = null;
+  let ownsOutputBuffer = false;
+  let completed = false;
+  try {
+    tempLogits = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'argmax_temp_logits');
+    tempIndices = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'argmax_temp_indices');
+    const outputIndex = options.outputIndex;
+    const minOutputBytes = Math.max(4, (outputIndex + 1) * 4);
+    outputBuffer = options.outputBuffer ?? acquireBuffer(minOutputBytes, undefined, 'argmax_output');
+    ownsOutputBuffer = !options.outputBuffer;
+    ensureOutputBufferSize(outputBuffer, minOutputBytes, 'argmax outputIndex');
 
-  const uniformBuffer = createArgmaxUniformBuffer(device, recorder, vocabSize, options);
+    const uniformBuffer = createArgmaxUniformBuffer(device, recorder, vocabSize, options);
 
-  const bindGroupLayout = getSampleBindGroupLayout(device);
-  const entries = [
-    { binding: 0, resource: { buffer: uniformBuffer } },
-    { binding: 1, resource: { buffer: logits } },
-    { binding: 2, resource: { buffer: outputBuffer } },
-    { binding: 3, resource: { buffer: tempIndices } },
-    { binding: 4, resource: { buffer: tempLogits } },
-  ];
-  const bindGroup = device.createBindGroup({
-    label: 'argmax_bind_group',
-    layout: bindGroupLayout,
-    entries,
-  });
-
-  const pass1 = recorder.beginComputePass('argmax_phase1');
-  pass1.setPipeline(singlePassPipeline ?? argmaxPipeline);
-  pass1.setBindGroup(0, bindGroup);
-  pass1.dispatchWorkgroups(useSinglePassArgmax ? 1 : numWorkgroups);
-  pass1.end();
-
-  if (reducePipeline) {
-    const reduceBindGroup = device.createBindGroup({
-      label: 'argmax_reduce_bind_group',
+    const bindGroupLayout = getSampleBindGroupLayout(device);
+    const entries = [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: logits } },
+      { binding: 2, resource: { buffer: outputBuffer } },
+      { binding: 3, resource: { buffer: tempIndices } },
+      { binding: 4, resource: { buffer: tempLogits } },
+    ];
+    const bindGroup = device.createBindGroup({
+      label: 'argmax_bind_group',
       layout: bindGroupLayout,
       entries,
     });
 
-    const pass2 = recorder.beginComputePass('argmax_phase2');
-    pass2.setPipeline(reducePipeline);
-    pass2.setBindGroup(0, reduceBindGroup);
-    pass2.dispatchWorkgroups(1);
-    pass2.end();
+    const pass1 = recorder.beginComputePass('argmax_phase1');
+    pass1.setPipeline(singlePassPipeline ?? argmaxPipeline);
+    pass1.setBindGroup(0, bindGroup);
+    pass1.dispatchWorkgroups(useSinglePassArgmax ? 1 : numWorkgroups);
+    pass1.end();
+
+    if (reducePipeline) {
+      const reduceBindGroup = device.createBindGroup({
+        label: 'argmax_reduce_bind_group',
+        layout: bindGroupLayout,
+        entries,
+      });
+
+      const pass2 = recorder.beginComputePass('argmax_phase2');
+      pass2.setPipeline(reducePipeline);
+      pass2.setBindGroup(0, reduceBindGroup);
+      pass2.dispatchWorkgroups(1);
+      pass2.end();
+    }
+
+    recorder.trackTemporaryBuffer(tempLogits);
+    recorder.trackTemporaryBuffer(tempIndices);
+    completed = true;
+    return outputBuffer;
+  } finally {
+    if (!completed) {
+      cleanupRunResources(
+        null,
+        [tempLogits, tempIndices, ownsOutputBuffer ? outputBuffer : null]
+      );
+    }
   }
-
-  recorder.trackTemporaryBuffer(tempLogits);
-  recorder.trackTemporaryBuffer(tempIndices);
-
-  return outputBuffer;
 }
 
 export async function runArgmax(
@@ -367,61 +386,65 @@ export async function runGPUSample(
 
   const numWorkgroups = Math.min(WORKGROUP_SIZES.DEFAULT, Math.ceil(vocabSize / WORKGROUP_SIZES.DEFAULT));
 
-  const topkLogits = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'topk_logits');
-  const topkIndices = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'topk_indices');
-  const minOutputBytes = Math.max(4, (outputIndex + 1) * 4);
-  const outputBuffer = outputBufferOverride ?? acquireBuffer(minOutputBytes, undefined, 'sample_output');
-  const ownsOutputBuffer = !outputBufferOverride;
-  ensureOutputBufferSize(outputBuffer, minOutputBytes, 'sample outputIndex');
-
-  const uniformBuffer = createSampleUniformBuffer(
-    device,
-    null,
-    vocabSize,
-    topK,
-    temperature,
-    randomValue,
-    padTokenId,
-    logitSoftcap,
-    outputIndex
-  );
-
-  const bindGroupLayout = getSampleBindGroupLayout(device);
-  const bindGroup = device.createBindGroup({
-    label: 'sample_bind_group',
-    layout: bindGroupLayout,
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: logits } },
-      { binding: 2, resource: { buffer: outputBuffer } },
-      { binding: 3, resource: { buffer: topkIndices } },
-      { binding: 4, resource: { buffer: topkLogits } },
-    ],
-  });
-
-  const encoder = device.createCommandEncoder({ label: 'sample_encoder' });
-
-  const pass1 = encoder.beginComputePass({ label: 'sample_phase1' });
-  pass1.setPipeline(phase1Pipeline);
-  pass1.setBindGroup(0, bindGroup);
-  pass1.dispatchWorkgroups(numWorkgroups);
-  pass1.end();
-
-  const pass2 = encoder.beginComputePass({ label: 'sample_phase2' });
-  pass2.setPipeline(phase2Pipeline);
-  pass2.setBindGroup(0, bindGroup);
-  pass2.dispatchWorkgroups(1);
-  pass2.end();
-
-  const pass3 = encoder.beginComputePass({ label: 'sample_phase3' });
-  pass3.setPipeline(phase3Pipeline);
-  pass3.setBindGroup(0, bindGroup);
-  pass3.dispatchWorkgroups(1);
-  pass3.end();
-
-  device.queue.submit([encoder.finish()]);
-
+  let topkLogits = null;
+  let topkIndices = null;
+  let outputBuffer = null;
+  let ownsOutputBuffer = false;
+  let uniformBuffer = null;
   try {
+    topkLogits = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'topk_logits');
+    topkIndices = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'topk_indices');
+    const minOutputBytes = Math.max(4, (outputIndex + 1) * 4);
+    outputBuffer = outputBufferOverride ?? acquireBuffer(minOutputBytes, undefined, 'sample_output');
+    ownsOutputBuffer = !outputBufferOverride;
+    ensureOutputBufferSize(outputBuffer, minOutputBytes, 'sample outputIndex');
+
+    uniformBuffer = createSampleUniformBuffer(
+      device,
+      null,
+      vocabSize,
+      topK,
+      temperature,
+      randomValue,
+      padTokenId,
+      logitSoftcap,
+      outputIndex
+    );
+
+    const bindGroupLayout = getSampleBindGroupLayout(device);
+    const bindGroup = device.createBindGroup({
+      label: 'sample_bind_group',
+      layout: bindGroupLayout,
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: logits } },
+        { binding: 2, resource: { buffer: outputBuffer } },
+        { binding: 3, resource: { buffer: topkIndices } },
+        { binding: 4, resource: { buffer: topkLogits } },
+      ],
+    });
+
+    const encoder = device.createCommandEncoder({ label: 'sample_encoder' });
+
+    const pass1 = encoder.beginComputePass({ label: 'sample_phase1' });
+    pass1.setPipeline(phase1Pipeline);
+    pass1.setBindGroup(0, bindGroup);
+    pass1.dispatchWorkgroups(numWorkgroups);
+    pass1.end();
+
+    const pass2 = encoder.beginComputePass({ label: 'sample_phase2' });
+    pass2.setPipeline(phase2Pipeline);
+    pass2.setBindGroup(0, bindGroup);
+    pass2.dispatchWorkgroups(1);
+    pass2.end();
+
+    const pass3 = encoder.beginComputePass({ label: 'sample_phase3' });
+    pass3.setPipeline(phase3Pipeline);
+    pass3.setBindGroup(0, bindGroup);
+    pass3.dispatchWorkgroups(1);
+    pass3.end();
+
+    device.queue.submit([encoder.finish()]);
     return await readTokenFromOutput(outputBuffer, outputIndex);
   } finally {
     cleanupRunResources(
@@ -485,59 +508,74 @@ export async function recordGPUSample(
 
   const numWorkgroups = Math.min(WORKGROUP_SIZES.DEFAULT, Math.ceil(vocabSize / WORKGROUP_SIZES.DEFAULT));
 
-  const topkLogits = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'topk_logits');
-  const topkIndices = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'topk_indices');
-  const minOutputBytes = Math.max(4, (outputIndex + 1) * 4);
-  const outputBuffer = outputBufferOverride ?? acquireBuffer(minOutputBytes, undefined, 'sample_output');
-  ensureOutputBufferSize(outputBuffer, minOutputBytes, 'sample outputIndex');
+  let topkLogits = null;
+  let topkIndices = null;
+  let outputBuffer = null;
+  let ownsOutputBuffer = false;
+  let completed = false;
+  try {
+    topkLogits = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'topk_logits');
+    topkIndices = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'topk_indices');
+    const minOutputBytes = Math.max(4, (outputIndex + 1) * 4);
+    outputBuffer = outputBufferOverride ?? acquireBuffer(minOutputBytes, undefined, 'sample_output');
+    ownsOutputBuffer = !outputBufferOverride;
+    ensureOutputBufferSize(outputBuffer, minOutputBytes, 'sample outputIndex');
 
-  const uniformBuffer = createSampleUniformBuffer(
-    device,
-    recorder,
-    vocabSize,
-    topK,
-    temperature,
-    randomValue,
-    padTokenId,
-    logitSoftcap,
-    outputIndex
-  );
+    const uniformBuffer = createSampleUniformBuffer(
+      device,
+      recorder,
+      vocabSize,
+      topK,
+      temperature,
+      randomValue,
+      padTokenId,
+      logitSoftcap,
+      outputIndex
+    );
 
-  const bindGroupLayout = getSampleBindGroupLayout(device);
-  const bindGroup = device.createBindGroup({
-    label: 'sample_bind_group',
-    layout: bindGroupLayout,
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: logits } },
-      { binding: 2, resource: { buffer: outputBuffer } },
-      { binding: 3, resource: { buffer: topkIndices } },
-      { binding: 4, resource: { buffer: topkLogits } },
-    ],
-  });
+    const bindGroupLayout = getSampleBindGroupLayout(device);
+    const bindGroup = device.createBindGroup({
+      label: 'sample_bind_group',
+      layout: bindGroupLayout,
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: logits } },
+        { binding: 2, resource: { buffer: outputBuffer } },
+        { binding: 3, resource: { buffer: topkIndices } },
+        { binding: 4, resource: { buffer: topkLogits } },
+      ],
+    });
 
-  const pass1 = recorder.beginComputePass('sample_phase1');
-  pass1.setPipeline(phase1Pipeline);
-  pass1.setBindGroup(0, bindGroup);
-  pass1.dispatchWorkgroups(numWorkgroups);
-  pass1.end();
+    const pass1 = recorder.beginComputePass('sample_phase1');
+    pass1.setPipeline(phase1Pipeline);
+    pass1.setBindGroup(0, bindGroup);
+    pass1.dispatchWorkgroups(numWorkgroups);
+    pass1.end();
 
-  const pass2 = recorder.beginComputePass('sample_phase2');
-  pass2.setPipeline(phase2Pipeline);
-  pass2.setBindGroup(0, bindGroup);
-  pass2.dispatchWorkgroups(1);
-  pass2.end();
+    const pass2 = recorder.beginComputePass('sample_phase2');
+    pass2.setPipeline(phase2Pipeline);
+    pass2.setBindGroup(0, bindGroup);
+    pass2.dispatchWorkgroups(1);
+    pass2.end();
 
-  const pass3 = recorder.beginComputePass('sample_phase3');
-  pass3.setPipeline(phase3Pipeline);
-  pass3.setBindGroup(0, bindGroup);
-  pass3.dispatchWorkgroups(1);
-  pass3.end();
+    const pass3 = recorder.beginComputePass('sample_phase3');
+    pass3.setPipeline(phase3Pipeline);
+    pass3.setBindGroup(0, bindGroup);
+    pass3.dispatchWorkgroups(1);
+    pass3.end();
 
-  recorder.trackTemporaryBuffer(topkLogits);
-  recorder.trackTemporaryBuffer(topkIndices);
-
-  return outputBuffer;
+    recorder.trackTemporaryBuffer(topkLogits);
+    recorder.trackTemporaryBuffer(topkIndices);
+    completed = true;
+    return outputBuffer;
+  } finally {
+    if (!completed) {
+      cleanupRunResources(
+        null,
+        [topkLogits, topkIndices, ownsOutputBuffer ? outputBuffer : null]
+      );
+    }
+  }
 }
 
 

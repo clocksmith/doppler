@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-04-28",
+  "updatedAt": "2026-05-07",
   "claims": [
     {
       "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
@@ -53,6 +53,42 @@
           "benchmarks/vendors/results/compare_20260420T162233.json",
           "benchmarks/vendors/results/compare_20260420T163016.json"
         ]
+      }
+    },
+    {
+      "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+      "mode": "text",
+      "surface": ["browser", "node"],
+      "verificationSource": "manifest-variant-identity",
+      "lastVerifiedAt": "2026-05-07",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "manifest-variant-identity",
+        "reportPath": "reports/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-05-07T17-23-16.704Z.json"
+      }
+    },
+    {
+      "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
+      "mode": "text",
+      "surface": ["browser", "node"],
+      "verificationSource": "f16-lane-weight-pack-primary",
+      "lastVerifiedAt": "2026-04-29",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "f16-lane-weight-pack-primary",
+        "reportPath": "reports/gemma-4-31b-it-text-q4k-ehf16-af32/2026-04-28T22-40-53.165Z.json"
+      }
+    },
+    {
+      "modelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
+      "mode": "text",
+      "surface": ["browser", "node"],
+      "verificationSource": "browser-node-webgpu-smoke",
+      "lastVerifiedAt": "2026-04-29",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "browser-node-webgpu-smoke",
+        "reportPath": "reports/gemma-4-31b-it-text-q4k-ehf16-af16/2026-04-29T17-25-41.735Z.json"
       }
     },
     {
@@ -109,6 +145,18 @@
         "contracts": {
           "executionContractOk": true
         }
+      }
+    },
+    {
+      "modelId": "qwen-3-6-27b-q4k-eaf16",
+      "mode": "text",
+      "surface": ["browser", "node"],
+      "verificationSource": "browser-node-webgpu-smoke",
+      "lastVerifiedAt": "2026-04-29",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "browser-node-webgpu-smoke",
+        "reportPath": "reports/qwen-3-6-27b-q4k-eaf16/2026-04-29T17-28-17.095Z.json"
       }
     },
     {

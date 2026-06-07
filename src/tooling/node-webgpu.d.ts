@@ -1,6 +1,7 @@
 export interface BootstrapNodeWebGPUResult {
   ok: boolean;
   provider: string | null;
+  detail?: string | null;
   module?: Record<string, unknown> | null;
 }
 

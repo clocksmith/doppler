@@ -22,8 +22,18 @@ const compiled = compileExecutionV1({
   manifestInference,
   modelId: conversionConfig.output.modelBaseId,
   numLayers: conversionConfig.inference.layerPattern.layerTypes.length,
-  runtimeCompute: {
-    activationDtype: 'f16',
+  runtimeSession: {
+    ...conversionConfig.session,
+    compute: {
+      ...conversionConfig.session.compute,
+      defaults: {
+        ...conversionConfig.session.compute.defaults,
+        activationDtype: 'f16',
+        mathDtype: 'f16',
+        accumDtype: 'f16',
+        outputDtype: 'f16',
+      },
+    },
   },
   kernelPathPolicy: {
     mode: 'capability-aware',
@@ -142,13 +152,17 @@ const compiledWithFallbackPlan = compileExecutionV1({
   manifestInference,
   modelId: conversionConfig.output.modelBaseId,
   numLayers: conversionConfig.inference.layerPattern.layerTypes.length,
-  runtimeCompute: {
-    activationDtype: 'f16',
-    rangeAwareSelectiveWidening: {
-      enabled: true,
-      includeNonFinite: true,
-      absThreshold: 65500,
-      onTrigger: 'fallback-plan',
+  runtimeSession: {
+    ...conversionConfig.session,
+    compute: {
+      ...conversionConfig.session.compute,
+      defaults: {
+        ...conversionConfig.session.compute.defaults,
+        activationDtype: 'f16',
+        mathDtype: 'f16',
+        accumDtype: 'f16',
+        outputDtype: 'f16',
+      },
     },
   },
   kernelPathPolicy: {
@@ -169,14 +183,8 @@ const compiledWithFallbackPlan = compileExecutionV1({
   },
 });
 
-assert.ok(compiledWithFallbackPlan.fallbackKernelPath, 'f16 Qwen compile should build a finiteness fallback kernel path');
+assert.equal(compiledWithFallbackPlan.fallbackKernelPath, null,
+  'execution-v1 compile should not synthesize a finiteness fallback kernel path from runtime compute policy');
 assert.equal(compiledWithFallbackPlan.runtimeInferencePatch.compute?.activationDtype, 'f32');
-assert.equal(compiledWithFallbackPlan.fallbackKernelPath.activationDtype, 'f32');
-const fallbackDecodeAttention = compiledWithFallbackPlan.fallbackKernelPath.decode.steps.find((step) => step.op === 'attention');
-assert.ok(fallbackDecodeAttention, 'fallback kernel path should include decode attention');
-if (fallbackDecodeAttention.kernel.includes('_f16kv')) {
-  assert.equal(fallbackDecodeAttention.precision?.activationDtype, 'f32');
-  assert.equal(compiledWithFallbackPlan.fallbackKernelPath.kvDtype, 'f16');
-}
 
 console.log('qwen-execution-v1-linear-decode-f16.test: ok');

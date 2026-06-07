@@ -872,6 +872,11 @@ export function hasGpuSplitPerLayerInputEmbeddings(context) {
     return false;
   }
 
+  const sessionConfig = context?.perLayerInputsSession ?? context?.config?.perLayerInputsSession ?? null;
+  if (getPleSplitTablePolicy(sessionConfig)) {
+    return true;
+  }
+
   const perLayerInputWeights = context?.weights?.get?.('per_layer_inputs');
   if (!perLayerInputWeights || typeof perLayerInputWeights !== 'object') {
     return false;

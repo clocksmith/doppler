@@ -65,7 +65,6 @@ const compiled = compileExecutionV1({
   numLayers: conversionConfig.inference.layerPattern.layerTypes.length,
   headDim: 512,
   runtimeSession: profile.runtime.inference.session,
-  runtimeCompute: profile.runtime.inference.compute,
   kernelPathPolicy: profile.runtime.inference.kernelPathPolicy,
   capabilities: {
     hasSubgroups: true,

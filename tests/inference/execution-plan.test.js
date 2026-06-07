@@ -242,7 +242,23 @@ const container = { executionPlanState: planState };
   assert.equal(resolveMaxBatchDecodeTokens({ hasGpuSplitPerLayerInputs: false }), null);
   assert.equal(resolveMaxBatchDecodeTokens({ hasGpuSplitPerLayerInputs: true }), 8);
   assert.equal(resolveMaxBatchDecodeTokens({ hasGpuSplitPerLayerInputs: true, currentSeqLen: 133, maxDecodeTokens: 32 }), 16);
-  assert.equal(resolveMaxBatchDecodeTokens({ hasGpuSplitPerLayerInputs: true, currentSeqLen: 283, maxDecodeTokens: 16 }), 16);
+  assert.equal(resolveMaxBatchDecodeTokens({ hasGpuSplitPerLayerInputs: true, currentSeqLen: 283, maxDecodeTokens: 16 }), 2);
+  assert.equal(resolveMaxBatchDecodeTokens({
+    modelId: 'gemma-4-12b-it-text-q4k-ehf16-af16',
+    activationDtype: 'f16',
+    currentSeqLen: 330,
+    maxDecodeTokens: 64,
+    numLayers: 48,
+    hiddenSize: 3840,
+  }), 8);
+  assert.equal(resolveMaxBatchDecodeTokens({
+    modelId: 'gemma-4-31b-it-text-q4k-ehf16-af16',
+    activationDtype: 'f16',
+    currentSeqLen: 330,
+    maxDecodeTokens: 64,
+    numLayers: 48,
+    hiddenSize: 3840,
+  }), 16);
   assert.equal(resolvePrefillRecorderChunkLayers({ hasGpuSplitPerLayerInputs: true, numTokens: 15 }), 8);
   assert.equal(resolvePrefillRecorderChunkLayers({ hasGpuSplitPerLayerInputs: true, numTokens: 32 }), 8);
   assert.equal(resolvePrefillRecorderChunkLayers({ hasGpuSplitPerLayerInputs: true, numTokens: 33 }), 4);

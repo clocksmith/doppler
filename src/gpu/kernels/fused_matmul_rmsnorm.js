@@ -39,6 +39,16 @@ export function selectMatmulRMSNormFusedVariant(N, dtype) {
 }
 
 
+function assertFusedOptions(options) {
+  if (options?.transposeB === undefined) {
+    throw new Error('[MatmulRMSNormFused] transposeB is required.');
+  }
+  if (options?.rmsNormWeightOffset === undefined) {
+    throw new Error('[MatmulRMSNormFused] rmsNormWeightOffset is required.');
+  }
+}
+
+
 export async function runMatmulRMSNormFused(
   input,
   weight,
@@ -46,14 +56,15 @@ export async function runMatmulRMSNormFused(
   options
 ) {
   const device = getDevice();
+  assertFusedOptions(options);
   const {
     N,
     K,
     eps,
     residual = null,
     outputBuffer = null,
-    transposeB = true,  // Default: GGUF row-major weights
-    rmsNormWeightOffset = false,
+    transposeB,
+    rmsNormWeightOffset,
     label = null,
   } = options;
   if (eps == null) {
@@ -91,34 +102,39 @@ export async function runMatmulRMSNormFused(
   // Output buffer: [1, N] - size depends on dtype
   const bytesPerElement = dtype === 'f16' ? 2 : 4;
   const outputSize = N * bytesPerElement;
-  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'matmul_rmsnorm_fused_output');
-  const output = outputBuffer || ownedOutput;
-
-  // Create uniform buffer (8 u32/f32 = 32 bytes, padded for alignment)
-  const uniformBuffer = createUniformBufferWithView(
-    'matmul_rmsnorm_fused_uniforms',
-    32,
-    (view) => {
-      view.setUint32(0, N, true);
-      view.setUint32(4, K, true);
-      view.setFloat32(8, eps, true);
-      view.setUint32(12, residual ? 1 : 0, true);
-      view.setUint32(16, transposeB ? 1 : 0, true);
-      // Padding bytes 20-31 are zero-initialized
-    },
-    null,
-    device
-  );
-
-  // Create placeholder for residual if not provided
+  let ownedOutput = null;
+  let output = outputBuffer;
+  let uniformBuffer = null;
+  let residualBuffer = residual;
   const ownsResidualBuffer = !residual;
-  const residualBuffer = residual || device.createBuffer({
-    label: 'matmul_rmsnorm_residual_placeholder',
-    size: 4,
-    usage: GPUBufferUsage.STORAGE,
-  });
-
+  let completed = false;
   try {
+    ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'matmul_rmsnorm_fused_output');
+    output = outputBuffer || ownedOutput;
+
+    // Create uniform buffer (8 u32/f32 = 32 bytes, padded for alignment)
+    uniformBuffer = createUniformBufferWithView(
+      'matmul_rmsnorm_fused_uniforms',
+      32,
+      (view) => {
+        view.setUint32(0, N, true);
+        view.setUint32(4, K, true);
+        view.setFloat32(8, eps, true);
+        view.setUint32(12, residual ? 1 : 0, true);
+        view.setUint32(16, transposeB ? 1 : 0, true);
+        // Padding bytes 20-31 are zero-initialized
+      },
+      null,
+      device
+    );
+
+    // Create placeholder for residual if not provided
+    residualBuffer = residual || device.createBuffer({
+      label: 'matmul_rmsnorm_residual_placeholder',
+      size: 4,
+      usage: GPUBufferUsage.STORAGE,
+    });
+
     const bindGroup = device.createBindGroup({
       label: 'matmul_rmsnorm_fused_bind_group',
       layout: pipeline.getBindGroupLayout(0),
@@ -135,23 +151,20 @@ export async function runMatmulRMSNormFused(
     const workgroups = 1;
     const dispatchLabel = label ? `matmul_rmsnorm_fused:${label}` : 'matmul_rmsnorm_fused';
     dispatch(device, pipeline, bindGroup, workgroups, dispatchLabel);
-  } catch (error) {
-    uniformBuffer.destroy();
-    if (ownsResidualBuffer) {
+
+    // Output dtype matches input dtype
+    const tensor = createTensor(output, input.dtype, [1, N], 'matmul_rmsnorm_fused_output');
+    completed = true;
+    return tensor;
+  } finally {
+    uniformBuffer?.destroy();
+    if (ownsResidualBuffer && residualBuffer) {
       residualBuffer.destroy();
     }
-    if (ownedOutput) {
+    if (!completed && ownedOutput) {
       releaseBuffer(ownedOutput);
     }
-    throw error;
   }
-
-  // Cleanup
-  uniformBuffer.destroy();
-  if (ownsResidualBuffer) residualBuffer.destroy();
-
-  // Output dtype matches input dtype
-  return createTensor(output, input.dtype, [1, N], 'matmul_rmsnorm_fused_output');
 }
 
 
@@ -163,14 +176,15 @@ export async function recordMatmulRMSNormFused(
   options
 ) {
   const device = recorder.device;
+  assertFusedOptions(options);
   const {
     N,
     K,
     eps,
     residual = null,
     outputBuffer = null,
-    transposeB = true,  // Default: GGUF row-major weights
-    rmsNormWeightOffset = false,
+    transposeB,
+    rmsNormWeightOffset,
     label = null,
   } = options;
   if (eps == null) {
@@ -208,33 +222,37 @@ export async function recordMatmulRMSNormFused(
   // Output buffer - size depends on dtype
   const bytesPerElement = dtype === 'f16' ? 2 : 4;
   const outputSize = N * bytesPerElement;
-  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'matmul_rmsnorm_fused_output');
-  const output = outputBuffer || ownedOutput;
-
-  // Uniform buffer via recorder (8 u32/f32 = 32 bytes, padded for alignment)
-  const uniformBuffer = createUniformBufferWithView(
-    'matmul_rmsnorm_fused_uniforms',
-    32,
-    (view) => {
-      view.setUint32(0, N, true);
-      view.setUint32(4, K, true);
-      view.setFloat32(8, eps, true);
-      view.setUint32(12, residual ? 1 : 0, true);
-      view.setUint32(16, transposeB ? 1 : 0, true);
-      // Padding bytes 20-31 are zero-initialized
-    },
-    recorder
-  );
-
-  // Placeholder for residual
+  let ownedOutput = null;
+  let output = outputBuffer;
+  let residualBuffer = residual;
   const ownsResidualBuffer = !residual;
-  const residualBuffer = residual || device.createBuffer({
-    label: 'matmul_rmsnorm_residual_placeholder',
-    size: 4,
-    usage: GPUBufferUsage.STORAGE,
-  });
-
+  let completed = false;
   try {
+    ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'matmul_rmsnorm_fused_output');
+    output = outputBuffer || ownedOutput;
+
+    // Uniform buffer via recorder (8 u32/f32 = 32 bytes, padded for alignment)
+    const uniformBuffer = createUniformBufferWithView(
+      'matmul_rmsnorm_fused_uniforms',
+      32,
+      (view) => {
+        view.setUint32(0, N, true);
+        view.setUint32(4, K, true);
+        view.setFloat32(8, eps, true);
+        view.setUint32(12, residual ? 1 : 0, true);
+        view.setUint32(16, transposeB ? 1 : 0, true);
+        // Padding bytes 20-31 are zero-initialized
+      },
+      recorder
+    );
+
+    // Placeholder for residual
+    residualBuffer = residual || device.createBuffer({
+      label: 'matmul_rmsnorm_residual_placeholder',
+      size: 4,
+      usage: GPUBufferUsage.STORAGE,
+    });
+
     const bindGroup = device.createBindGroup({
       label: 'matmul_rmsnorm_fused_bind_group',
       layout: pipeline.getBindGroupLayout(0),
@@ -251,23 +269,26 @@ export async function recordMatmulRMSNormFused(
     const workgroups = 1;
     const dispatchLabel = label ? `matmul_rmsnorm_fused:${label}` : 'matmul_rmsnorm_fused';
     recordDispatch(recorder, pipeline, bindGroup, workgroups, dispatchLabel);
-  } catch (error) {
+
+    // Track placeholder for cleanup
     if (ownsResidualBuffer) {
-      residualBuffer.destroy();
+      recorder.trackTemporaryBuffer(residualBuffer);
     }
-    if (ownedOutput) {
-      releaseBuffer(ownedOutput);
+
+    // Output dtype matches input dtype
+    const tensor = createTensor(output, input.dtype, [1, N], 'matmul_rmsnorm_fused_output');
+    completed = true;
+    return tensor;
+  } finally {
+    if (!completed) {
+      if (ownsResidualBuffer && residualBuffer) {
+        residualBuffer.destroy();
+      }
+      if (ownedOutput) {
+        releaseBuffer(ownedOutput);
+      }
     }
-    throw error;
   }
-
-  // Track placeholder for cleanup
-  if (ownsResidualBuffer) {
-    recorder.trackTemporaryBuffer(residualBuffer);
-  }
-
-  // Output dtype matches input dtype
-  return createTensor(output, input.dtype, [1, N], 'matmul_rmsnorm_fused_output');
 }
 
 

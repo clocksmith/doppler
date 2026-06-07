@@ -29,6 +29,10 @@ const { runGeneration } = await import('../../src/inference/browser-harness-text
           totalBatchedTimeMs: 11,
           totalUnbatchedTimeMs: 12,
           gpuSubmissions: 13,
+          requestedBatchTokens: 16,
+          effectiveBatchTokens: 4,
+          maxBatchTokenCap: 4,
+          batchClampCount: 3,
         },
         decodeProfileSteps: [],
       };
@@ -60,6 +64,10 @@ const { runGeneration } = await import('../../src/inference/browser-harness-text
   assert.equal(result.phase.batching?.totalBatchedTimeMs, 11);
   assert.equal(result.phase.batching?.totalUnbatchedTimeMs, 12);
   assert.equal(result.phase.batching?.gpuSubmissions, 13);
+  assert.equal(result.phase.batching?.requestedBatchTokens, 16);
+  assert.equal(result.phase.batching?.effectiveBatchTokens, 4);
+  assert.equal(result.phase.batching?.maxBatchTokenCap, 4);
+  assert.equal(result.phase.batching?.batchClampCount, 3);
   assert.equal(result.phase.gpu?.singleTokenReadbackWaitMs, 7);
   assert.equal(result.phase.gpu?.singleTokenOrchestrationMs, 8);
   assert.equal(result.phase.gpu?.decodeOrchestrationMs, 2);
@@ -121,6 +129,10 @@ const { runGeneration } = await import('../../src/inference/browser-harness-text
               totalBatchedTimeMs: 10,
               totalUnbatchedTimeMs: 0,
               gpuSubmissions: 1,
+              requestedBatchTokens: 16,
+              effectiveBatchTokens: 4,
+              maxBatchTokenCap: 4,
+              batchClampCount: 1,
             },
             decodeProfileSteps: [],
           };
@@ -136,6 +148,10 @@ const { runGeneration } = await import('../../src/inference/browser-harness-text
   assert.equal(result.metrics.batching?.batchedForwardCalls?.median, 3);
   assert.equal(result.metrics.batching?.totalBatchedTimeMs?.median, 10);
   assert.equal(result.metrics.batching?.gpuSubmissions?.median, 1);
+  assert.equal(result.metrics.batching?.requestedBatchTokens?.median, 16);
+  assert.equal(result.metrics.batching?.effectiveBatchTokens?.median, 4);
+  assert.equal(result.metrics.batching?.maxBatchTokenCap?.median, 4);
+  assert.equal(result.metrics.batching?.batchClampCount?.median, 1);
   assert.equal(result.metrics.gpu?.singleTokenReadbackWaitMs?.median, 4);
   assert.equal(result.metrics.gpu?.singleTokenOrchestrationMs?.median, 2);
   assert.equal(result.metrics.gpu?.decodeOrchestrationMs?.median, 5);

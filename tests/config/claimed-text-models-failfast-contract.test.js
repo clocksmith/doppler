@@ -78,6 +78,10 @@ const CLAIMED_TEXT_MODEL_IDS = catalog.models
   .filter((entry) => Array.isArray(entry?.modes) && entry.modes.some((mode) => mode === 'text' || mode === 'translate'))
   .map((entry) => entry.modelId);
 
+const APPLE_REJECTED_VERIFIED_LANES = new Set([
+  'gemma-4-e2b-it-q4k-ehf16-af16-int4ple',
+]);
+
 const CHECKED_MODELS = [];
 const REMAP_APPLIED_MODELS = [];
 
@@ -102,24 +106,39 @@ for (const modelId of CLAIMED_TEXT_MODEL_IDS) {
     },
   }).runtime;
 
-  const compiled = applyExecutionV1RuntimeConfig({
-    runtimeConfig,
-    manifest,
-    modelId: manifest.modelId,
-    numLayers: Number(manifest.architecture?.numLayers ?? 0),
-    capabilities: {
-      hasSubgroups: true,
-      hasF16: true,
-      hasSubgroupsF16: true,
-      maxWorkgroupSize: 256,
-      maxBufferSize: 1 << 30,
-    },
-    platform: {
-      id: 'test-apple',
-      vendor: 'apple',
-      architecture: 'm-series',
-    },
-  });
+  let compiled = null;
+  try {
+    compiled = applyExecutionV1RuntimeConfig({
+      runtimeConfig,
+      manifest,
+      modelId: manifest.modelId,
+      numLayers: Number(manifest.architecture?.numLayers ?? 0),
+      capabilities: {
+        hasSubgroups: true,
+        hasF16: true,
+        hasSubgroupsF16: true,
+        maxWorkgroupSize: 256,
+        maxBufferSize: 1 << 30,
+      },
+      platform: {
+        id: 'test-apple',
+        vendor: 'apple',
+        architecture: 'm-series',
+      },
+    });
+  } catch (error) {
+    assert.equal(
+      APPLE_REJECTED_VERIFIED_LANES.has(modelId),
+      true,
+      `${modelId}: claimed verified runtime must not fail capability resolution unexpectedly`
+    );
+    assert.match(
+      error.message,
+      /lane mismatch/,
+      `${modelId}: Apple rejected lane must fail closed with lane mismatch guidance`
+    );
+    continue;
+  }
 
   const runtimeWithDecodeLoop = {
     ...compiled.runtimeConfig,

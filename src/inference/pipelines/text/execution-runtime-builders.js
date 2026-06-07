@@ -46,6 +46,17 @@ export function requireSessionActivationDtype(
   return normalizeDtype(activationDtype, label);
 }
 
+export function requireSessionKVDtype(
+  session,
+  label = 'session.kvcache.kvDtype'
+) {
+  const kvDtype = session?.kvcache?.kvDtype;
+  if (kvDtype == null) {
+    throw new Error(`[Execution] ${label} is required.`);
+  }
+  return normalizeDtype(kvDtype, label);
+}
+
 function toKernelPathStep(step) {
   if (step.op === 'cast') return null;
   if (!step.kernel) {
@@ -122,7 +133,7 @@ export function assertKernelPathSessionCompatibility(path, session) {
     'inlineKernelPath.activationDtype'
   );
   const kvDtype = normalizeDtype(
-    path.kvDtype ?? session?.kvcache?.kvDtype ?? globalActivationDtype,
+    path.kvDtype ?? requireSessionKVDtype(session),
     'inlineKernelPath.kvDtype'
   );
 
@@ -176,10 +187,7 @@ export function buildInlineKernelPath(
   finitenessFallbackKernelPathId = null
 ) {
   const activationDtype = requireSessionActivationDtype(session);
-  const kvDtype = normalizeDtype(
-    session?.kvcache?.kvDtype ?? activationDtype,
-    'session.kvcache.kvDtype'
-  );
+  const kvDtype = requireSessionKVDtype(session);
   const decodeSteps = buildLayerPhaseSteps(steps, 'decode', 0);
   const prefillSteps = buildLayerPhaseSteps(steps, 'prefill', 0);
   if (decodeSteps.length === 0 && prefillSteps.length === 0) {
@@ -299,29 +307,37 @@ export function buildLayerPipelineFromExecution(steps, options = {}) {
   }
 
   const layerSteps = layerSectionSteps
-    .map((step) => ({
-      op: step.op,
-      phase: step.phase,
-      src: step.src ?? 'state',
-      dst: step.dst ?? 'state',
-      ...(step.residual !== undefined ? { residual: step.residual } : {}),
-      ...(step.a !== undefined ? { a: step.a } : {}),
-      ...(step.b !== undefined ? { b: step.b } : {}),
-      ...(step.variant !== undefined ? { variant: step.variant } : {}),
-      ...(step.skipInputNorm !== undefined ? { skipInputNorm: step.skipInputNorm } : {}),
-      ...(step.precision?.inputDtype
-        ? { inputDtype: step.precision.inputDtype }
-        : (step.op === 'ffn' && ffnDtypeFallback ? { inputDtype: ffnDtypeFallback } : {})),
-      ...(step.precision?.outputDtype
-        ? { outputDtype: step.precision.outputDtype }
-        : (step.op === 'ffn' && ffnDtypeFallback ? { outputDtype: ffnDtypeFallback } : {})),
-      ...(step.precision?.kvDtype ? { kvDtype: step.precision.kvDtype } : {}),
-      ...(step.fromDtype ? { fromDtype: step.fromDtype } : {}),
-      ...(step.toDtype ? { toDtype: step.toDtype } : {}),
-      ...(step.probeStage ? { probeStage: step.probeStage } : {}),
-      ...(step.name ? { name: step.name } : {}),
-      ...(step.weight ? { weight: step.weight } : {}),
-    }));
+    .map((step) => {
+      if (typeof step.src !== 'string' || step.src.length === 0) {
+        throw new Error(`[Execution] ${step.op}.src is required for execution-v1 layer steps.`);
+      }
+      if (typeof step.dst !== 'string' || step.dst.length === 0) {
+        throw new Error(`[Execution] ${step.op}.dst is required for execution-v1 layer steps.`);
+      }
+      return {
+        op: step.op,
+        phase: step.phase,
+        src: step.src,
+        dst: step.dst,
+        ...(step.residual !== undefined ? { residual: step.residual } : {}),
+        ...(step.a !== undefined ? { a: step.a } : {}),
+        ...(step.b !== undefined ? { b: step.b } : {}),
+        ...(step.variant !== undefined ? { variant: step.variant } : {}),
+        ...(step.skipInputNorm !== undefined ? { skipInputNorm: step.skipInputNorm } : {}),
+        ...(step.precision?.inputDtype
+          ? { inputDtype: step.precision.inputDtype }
+          : (step.op === 'ffn' && ffnDtypeFallback ? { inputDtype: ffnDtypeFallback } : {})),
+        ...(step.precision?.outputDtype
+          ? { outputDtype: step.precision.outputDtype }
+          : (step.op === 'ffn' && ffnDtypeFallback ? { outputDtype: ffnDtypeFallback } : {})),
+        ...(step.precision?.kvDtype ? { kvDtype: step.precision.kvDtype } : {}),
+        ...(step.fromDtype ? { fromDtype: step.fromDtype } : {}),
+        ...(step.toDtype ? { toDtype: step.toDtype } : {}),
+        ...(step.probeStage ? { probeStage: step.probeStage } : {}),
+        ...(step.name ? { name: step.name } : {}),
+        ...(step.weight ? { weight: step.weight } : {}),
+      };
+    });
 
   return {
     steps: layerSteps,

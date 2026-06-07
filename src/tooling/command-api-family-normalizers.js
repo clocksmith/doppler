@@ -365,7 +365,6 @@ export function normalizeTrainingOperatorCommand(raw, command) {
 }
 
 export function normalizeSuiteCommand(raw, command) {
-  assertForbiddenConfigChainField(raw, command);
   const runtimeContract = resolveCommandRuntimeContract(command);
   const workload = command === 'debug' || command === 'diagnose'
     ? resolveDebugRequestWorkload(raw)

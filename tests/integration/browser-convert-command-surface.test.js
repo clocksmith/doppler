@@ -4,7 +4,6 @@ import {
   runBrowserCommand,
   normalizeBrowserCommand,
 } from '../../src/tooling/browser-command-runner.js';
-import { TOOLING_ENVELOPE_SCHEMA_VERSION } from '../../src/tooling/command-envelope.js';
 
 await assert.rejects(
   () => runBrowserCommand({
@@ -19,7 +18,7 @@ await assert.rejects(
       },
     },
   }),
-  /browser command convert requires options\.convertHandler\(request\) to be provided\./
+  /convert is currently Node-only/
 );
 
 await assert.rejects(
@@ -35,11 +34,11 @@ await assert.rejects(
       },
     },
   }, null),
-  /browser command convert requires options\.convertHandler\(request\) to be provided\./
+  /convert is currently Node-only/
 );
 
-{
-  const rawRequest = {
+await assert.rejects(
+  () => runBrowserCommand({
     command: 'convert',
     inputDir: '/tmp/in',
     outputDir: '/tmp/out',
@@ -53,32 +52,15 @@ await assert.rejects(
         workers: 4,
       },
     },
-  };
-  const calls = [];
-  const result = await runBrowserCommand(rawRequest, {
-    async convertHandler(request) {
-      calls.push(request);
+  }, {
+    async convertHandler() {
       return {
         converted: true,
-        outputDir: request.outputDir,
       };
     },
-  });
-
-  assert.equal(calls.length, 1);
-  assert.equal(calls[0].command, 'convert');
-  assert.equal(calls[0].inputDir, '/tmp/in');
-  assert.equal(calls[0].outputDir, '/tmp/out');
-  assert.equal(calls[0].convertPayload?.execution?.workers, 4);
-  assert.equal(result.ok, true);
-  assert.equal(result.schemaVersion, TOOLING_ENVELOPE_SCHEMA_VERSION);
-  assert.equal(result.surface, 'browser');
-  assert.deepEqual(result.request, calls[0]);
-  assert.deepEqual(result.result, {
-    converted: true,
-    outputDir: '/tmp/out',
-  });
-}
+  }),
+  /convert is currently Node-only/
+);
 
 {
   const normalized = normalizeBrowserCommand({

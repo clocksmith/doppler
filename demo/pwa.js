@@ -1,3 +1,5 @@
+import { log } from '../src/debug/index.js';
+
 const DEMO_SCOPE = '/demo/';
 const DEMO_SW_URL = '/demo/sw.js';
 const MAX_LAUNCH_FILE_BYTES = 256 * 1024;
@@ -93,7 +95,7 @@ async function registerDemoServiceWorker() {
   try {
     await navigator.serviceWorker.register(DEMO_SW_URL, { scope: DEMO_SCOPE });
   } catch (error) {
-    console.warn('[DemoPwa] Service worker registration failed:', error?.message ?? error);
+    log.warn('DemoPwa', `Service worker registration failed: ${error?.message ?? error}`);
   }
 }
 
@@ -206,7 +208,7 @@ function initLaunchQueueConsumer() {
       }
       flushPwaLaunchState();
     } catch (error) {
-      console.warn('[DemoPwa] Launch handling failed:', error?.message ?? error);
+      log.warn('DemoPwa', `Launch handling failed: ${error?.message ?? error}`);
     }
   });
 }

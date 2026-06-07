@@ -215,7 +215,7 @@ await assert.rejects(
       converterConfig: {},
     },
   }),
-  /browser command relay does not support convert/
+  /convert is currently Node-only/
 );
 
 await assert.rejects(

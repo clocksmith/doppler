@@ -3,6 +3,7 @@ import {
   buildSuiteOptions,
   runWithRuntimeIsolation,
 } from './command-runner-shared.js';
+import { loadRuntimeConfigFromRef } from '../inference/browser-harness-runtime-helpers.js';
 import { bootstrapNodeWebGPUProvider } from './node-webgpu.js';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { findFirstDivergence } from '../inference/pipelines/text/operator-events.js';
@@ -60,6 +61,7 @@ async function loadRuntimeModules() {
 
 function createRuntimeBridge(modules) {
   return {
+    loadRuntimeConfigFromRef,
     applyRuntimeProfile: modules.harness.applyRuntimeProfile,
     applyRuntimeConfigFromUrl: modules.harness.applyRuntimeConfigFromUrl,
     getRuntimeConfig: modules.runtime.getRuntimeConfig,

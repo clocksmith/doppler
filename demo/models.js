@@ -34,6 +34,7 @@ import {
   assertExecutionLaneManifestSupported,
   selectExecutionLaneForCapabilities,
 } from '../src/inference/model-lanes/execution-lane-resolver.js';
+import { log } from '../src/debug/index.js';
 import { state } from './ui/state.js';
 import { setRunEnabled } from './input.js';
 import { clearOutput } from './output.js';
@@ -665,7 +666,7 @@ export function renderModelCards() {
         try {
           await removeStoredModel(entry);
         } catch (error) {
-          console.error(`Could not remove ${entry.modelId} from OPFS`, error);
+          log.error('DemoModels', `Could not remove ${entry.modelId} from OPFS`, error);
         }
       });
       top.appendChild(removeButton);
@@ -703,7 +704,7 @@ export function renderModelCards() {
 
     card.addEventListener('click', () => {
       void handleCardClick(entry).catch((error) => {
-        console.error(`Failed to load model ${entry.modelId}:`, error);
+        log.error('DemoModels', `Failed to load model ${entry.modelId}`, error);
       });
     });
     container.appendChild(card);

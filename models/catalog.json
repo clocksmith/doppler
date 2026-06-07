@@ -397,6 +397,94 @@
       "weightsRefAllowed": true
     },
     {
+      "modelId": "gemma-4-12b-it-text-q4k-ehf16-af32",
+      "family": "gemma4",
+      "label": "Gemma 4 12B Instruct Text (Q4K/F32a)",
+      "description": "Gemma 4 12B text-only local RDRR lane. Q4K weights, F16 embeddings/head, F32 activation contract.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "gemma4-12b",
+        "google/gemma-4-12b-it"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 8159955902,
+      "recommended": false,
+      "sortOrder": 15.5,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "experimental",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "none"
+        },
+        "tested": null
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "google/gemma-4-12B-it",
+      "weightPackId": "gemma-4-12b-it-text-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-4-12b-it-text-q4k-ehf16-af32-mv-q4-fused-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "gemma-4-12b-it-text-q4k-ehf16-af16",
+      "family": "gemma4",
+      "label": "Gemma 4 12B Instruct Text (Q4K/F16a)",
+      "description": "Gemma 4 12B text-only local f16 activation sibling over the existing Q4K weight pack.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "gemma4-12b-f16",
+        "gemma4-12b-af16"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 8159955902,
+      "recommended": false,
+      "sortOrder": 15.6,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "experimental",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "none"
+        },
+        "tested": null
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "google/gemma-4-12B-it",
+      "weightPackId": "gemma-4-12b-it-text-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-4-12b-it-text-q4k-ehf16-af16-mv-f16-activations-v1",
+      "artifactCompleteness": "weights-ref",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": true
+    },
+    {
       "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
       "family": "gemma4",
       "label": "Gemma 4 31B Instruct Text (Q4K/F32a)",

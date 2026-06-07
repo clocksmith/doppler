@@ -1243,6 +1243,18 @@ function buildGenerationPhaseFromStats(pipeline, durationMs, tokenCount) {
   if (Number.isFinite(stats.batching?.gpuSubmissions)) {
     batching.gpuSubmissions = stats.batching.gpuSubmissions;
   }
+  if (Number.isFinite(stats.batching?.requestedBatchTokens)) {
+    batching.requestedBatchTokens = stats.batching.requestedBatchTokens;
+  }
+  if (Number.isFinite(stats.batching?.effectiveBatchTokens)) {
+    batching.effectiveBatchTokens = stats.batching.effectiveBatchTokens;
+  }
+  if (Number.isFinite(stats.batching?.maxBatchTokenCap)) {
+    batching.maxBatchTokenCap = stats.batching.maxBatchTokenCap;
+  }
+  if (Number.isFinite(stats.batching?.batchClampCount)) {
+    batching.batchClampCount = stats.batching.batchClampCount;
+  }
   const batchingPhase = Object.keys(batching).length > 0 ? batching : null;
   const plePreparedTokenCache = {};
   if (Number.isFinite(stats.plePreparedTokenCacheHits)) {

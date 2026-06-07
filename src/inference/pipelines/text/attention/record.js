@@ -125,6 +125,9 @@ export async function recordLayerAttentionGPU(
   const kvCacheFallback = selectRuleValue('inference', 'dtype', 'f16OrF32', { useF16: useF16Activations });
   const kvCacheDtype = attentionPrecisionContract.resolvedKvCacheDtype ?? state.kvCache?.kvDtype ?? kvCacheFallback;
   const allowF16Attention = useF16Activations && kvCacheDtype === 'f16';
+  const attentionInputTransitionDeclaredBy = attentionPrecisionContract.explicitInputDtype
+    ? 'step_precision'
+    : null;
   let attentionInput = input;
   let attentionInputTemp = false;
   let normed = attentionInput;
@@ -144,7 +147,8 @@ export async function recordLayerAttentionGPU(
       state,
       input.dtype,
       attentionActivationDtype,
-      'The attention kernel selection would widen the input implicitly.'
+      'The attention kernel selection would widen the input implicitly.',
+      attentionInputTransitionDeclaredBy
     );
     attentionInput = attentionActivationDtype === 'f16'
       ? await recordCastF32ToF16(recorder, input)

@@ -6,6 +6,8 @@
 // models with head_dim beyond tiled support. Uses two-pass softmax and
 // reads K/V directly from storage. Slower but compatible.
 
+enable f16;
+
 override WORKGROUP_SIZE: u32 = 1u;
 const MAX_HEAD_DIM: u32 = 512u;
 
@@ -120,7 +122,7 @@ fn main(@builtin(workgroup_id) wg_id: vec3<u32>) {
         let k_offset = k_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
         var dot: f32 = 0.0;
         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
-            dot = dot + q_local[d] * K[k_offset + d];
+            dot = dot + q_local[d] * f32(K[k_offset + d]);
         }
         dot = dot * scale;
         // Gemma 2 attention softcapping
@@ -143,7 +145,7 @@ fn main(@builtin(workgroup_id) wg_id: vec3<u32>) {
         let v_offset = k_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
         var dot: f32 = 0.0;
         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
-            dot = dot + q_local[d] * K[k_offset + d];
+            dot = dot + q_local[d] * f32(K[k_offset + d]);
         }
         dot = dot * scale;
         // Gemma 2 attention softcapping
@@ -153,18 +155,18 @@ fn main(@builtin(workgroup_id) wg_id: vec3<u32>) {
         let w = exp(dot - max_score);
         sum_exp = sum_exp + w;
         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
-            acc[d] = acc[d] + w * V[v_offset + d];
+            acc[d] = acc[d] + w * f32(V[v_offset + d]);
         }
     }
 
     let out_offset = query_pos * num_heads * head_dim + head_idx * head_dim;
     if (sum_exp <= 0.0) {
         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
-            output[out_offset + d] = 0.0;
+            output[out_offset + d] = f16(0.0);
         }
         return;
     }
     for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
-        output[out_offset + d] = acc[d] / sum_exp;
+        output[out_offset + d] = f16(acc[d] / sum_exp);
     }
 }

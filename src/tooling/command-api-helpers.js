@@ -171,7 +171,7 @@ export function assertForbiddenConfigChainField(raw, command) {
   if (value) {
     throw new Error(
       `tooling command: ${command} does not accept configChain. ` +
-      'configChain is only supported by harness/browser-manifest runtime composition.'
+      'configChain is only supported by harnessed runtime-input commands.'
     );
   }
 }
@@ -238,6 +238,7 @@ export function createCommandRequestBase(raw, command) {
     modelUrl: asOptionalString(raw.modelUrl, 'modelUrl'),
     cacheMode: asOptionalCacheMode(raw.cacheMode, 'cacheMode'),
     loadMode: asOptionalLoadMode(raw.loadMode, 'loadMode'),
+    configChain: asOptionalStringArray(raw.configChain, 'configChain'),
     runtimeProfile: asOptionalString(raw.runtimeProfile, 'runtimeProfile'),
     runtimeConfigUrl: asOptionalString(raw.runtimeConfigUrl, 'runtimeConfigUrl'),
     runtimeConfig: asOptionalObject(raw.runtimeConfig, 'runtimeConfig'),

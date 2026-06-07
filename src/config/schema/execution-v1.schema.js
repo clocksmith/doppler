@@ -1,3 +1,5 @@
+import { log } from '../../debug/index.js';
+
 // =============================================================================
 // Execution v1 Schema
 // =============================================================================
@@ -161,6 +163,8 @@ function expandTuple(tuple, kernels, phase, section, layers, context) {
   const decl = resolveKernel(kernels, kernelKey, `${context}[${op}]`);
   return {
     op,
+    src: 'state',
+    dst: 'state',
     kernel: decl.kernel,
     entry: decl.entry,
     digest: decl.digest,
@@ -172,7 +176,6 @@ function expandTuple(tuple, kernels, phase, section, layers, context) {
     section,
   };
 }
-
 
 function expandStepEntries(entries, kernels, phase, context) {
   const expanded = [];
@@ -206,16 +209,6 @@ function expandBoundarySteps(entries, kernels, section, context) {
 }
 
 
-/**
- * Expand a v1 execution graph into runtime-ready expanded steps.
- *
- * @param {object} graph - The execution graph from the manifest.
- * @param {{ knownOps?: Set<string> | null, strict?: boolean }} [options]
- *   knownOps: when provided, any op not in this set triggers a warning (or
- *   throw in strict mode) with the op name and step index.
- *   strict: when true, unknown ops throw instead of warn. Default false.
- * @returns {object[]} Expanded step array.
- */
 export function expandExecutionV1(graph, options = {}) {
   const { knownOps = null, strict = false, skipDigestValidation = false } = options;
   if (!graph || typeof graph !== 'object') {
@@ -238,9 +231,8 @@ export function expandExecutionV1(graph, options = {}) {
   const sections = { preLayer, decode, prefill, postLayer };
   for (const [name, steps] of Object.entries(sections)) {
     if (steps.length > MAX_STEPS_PER_SECTION) {
-      // Use console.warn directly here because the schema module is a
-      // low-level config layer that should not depend on the debug module.
-      console.warn(
+      log.warn(
+        'ExecutionV1',
         `[ExecutionV1] Section "${name}" has ${steps.length} expanded steps ` +
         `(max recommended: ${MAX_STEPS_PER_SECTION}). This may indicate a misconfigured execution graph.`
       );
@@ -267,10 +259,7 @@ export function expandExecutionV1(graph, options = {}) {
       if (strict) {
         throw new Error(message);
       }
-      // Use console.warn directly here because the schema module is a
-      // low-level config layer that should not depend on the debug module.
-      // Callers in runtime code can catch the strict error or filter post-hoc.
-      console.warn(message);
+      log.warn('ExecutionV1', message);
     }
   }
 

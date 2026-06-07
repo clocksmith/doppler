@@ -22,7 +22,12 @@ globalThis.GPUShaderStage = {
   COMPUTE: 0x2,
 };
 
-const { runArgmax, runGPUSample } = await import('../../src/gpu/kernels/sample.js');
+const {
+  runArgmax,
+  runGPUSample,
+  recordArgmax,
+  recordGPUSample,
+} = await import('../../src/gpu/kernels/sample.js');
 const { setDevice } = await import('../../src/gpu/device.js');
 const { configurePerfGuards } = await import('../../src/gpu/perf-guards.js');
 const { destroyBufferPool, getBufferPool } = await import('../../src/memory/buffer-pool.js');
@@ -69,9 +74,10 @@ function createFakePipeline() {
   };
 }
 
-function createFakeDevice({ mapReject = false } = {}) {
+function createFakeDevice({ mapReject = false, createBindGroupThrowAt = null } = {}) {
   const createdBuffers = [];
   const encoders = [];
+  let createBindGroupCount = 0;
 
   return {
     createdBuffers,
@@ -132,6 +138,10 @@ function createFakeDevice({ mapReject = false } = {}) {
       return { ...descriptor };
     },
     createBindGroup(descriptor) {
+      createBindGroupCount += 1;
+      if (createBindGroupCount === createBindGroupThrowAt) {
+        throw new Error(`createBindGroup failed at ${createBindGroupCount}`);
+      }
       return { ...descriptor };
     },
     createCommandEncoder() {
@@ -154,6 +164,33 @@ function createFakeDevice({ mapReject = false } = {}) {
       };
       encoders.push(encoder);
       return encoder;
+    },
+  };
+}
+
+function createFakeRecorder(device) {
+  const trackedBuffers = [];
+  return {
+    device,
+    trackedBuffers,
+    createUniformBuffer(data, label) {
+      return new FakeBuffer({
+        size: data.byteLength,
+        usage: GPUBufferUsage.UNIFORM,
+        mappedValue: 0,
+        label,
+      });
+    },
+    beginComputePass() {
+      return {
+        setPipeline() {},
+        setBindGroup() {},
+        dispatchWorkgroups() {},
+        end() {},
+      };
+    },
+    trackTemporaryBuffer(buffer) {
+      trackedBuffers.push(buffer);
     },
   };
 }
@@ -219,6 +256,108 @@ function resetRuntimeState(device) {
   assert.equal(stagingBuffer.destroyed, true);
   assert.equal(poolStats.activeBuffers, 0);
   assert.equal(poolStats.currentBytesAllocated, 0);
+}
+
+{
+  const device = createFakeDevice({ createBindGroupThrowAt: 1 });
+  resetRuntimeState(device);
+
+  const logits = new FakeBuffer({ size: 1024, usage: GPUBufferUsage.STORAGE });
+
+  await assert.rejects(
+    () => runArgmax(logits, 32, {
+      padTokenId: null,
+      logitSoftcap: 0,
+      logitsDtype: 'f32',
+      outputIndex: 0,
+    }),
+    /createBindGroup failed at 1/
+  );
+
+  const poolStats = getBufferPool().getStats();
+  assert.equal(poolStats.activeBuffers, 0);
+  assert.equal(poolStats.currentBytesAllocated, 0);
+  for (const buffer of device.createdBuffers) {
+    assert.equal(buffer.destroyed, true);
+  }
+}
+
+{
+  const device = createFakeDevice({ createBindGroupThrowAt: 1 });
+  resetRuntimeState(device);
+
+  const logits = new FakeBuffer({ size: 1024, usage: GPUBufferUsage.STORAGE });
+
+  await assert.rejects(
+    () => runGPUSample(logits, 32, {
+      temperature: 1,
+      topK: 4,
+      greedyThreshold: 0.1,
+      randomSeed: 123,
+      padTokenId: null,
+      logitSoftcap: 0,
+      logitsDtype: 'f32',
+      outputIndex: 0,
+    }),
+    /createBindGroup failed at 1/
+  );
+
+  const poolStats = getBufferPool().getStats();
+  assert.equal(poolStats.activeBuffers, 0);
+  assert.equal(poolStats.currentBytesAllocated, 0);
+  for (const buffer of device.createdBuffers) {
+    assert.equal(buffer.destroyed, true);
+  }
+}
+
+{
+  const device = createFakeDevice({ createBindGroupThrowAt: 1 });
+  resetRuntimeState(device);
+  const recorder = createFakeRecorder(device);
+
+  const logits = new FakeBuffer({ size: 1024, usage: GPUBufferUsage.STORAGE });
+
+  await assert.rejects(
+    () => recordArgmax(recorder, logits, 32, {
+      padTokenId: null,
+      logitSoftcap: 0,
+      logitsDtype: 'f32',
+      outputIndex: 0,
+    }),
+    /createBindGroup failed at 1/
+  );
+
+  const poolStats = getBufferPool().getStats();
+  assert.equal(poolStats.activeBuffers, 0);
+  assert.equal(poolStats.currentBytesAllocated, 0);
+  assert.deepEqual(recorder.trackedBuffers, []);
+}
+
+{
+  const device = createFakeDevice({ createBindGroupThrowAt: 1 });
+  resetRuntimeState(device);
+  const recorder = createFakeRecorder(device);
+
+  const logits = new FakeBuffer({ size: 1024, usage: GPUBufferUsage.STORAGE });
+
+  await assert.rejects(
+    () => recordGPUSample(recorder, logits, 32, {
+      temperature: 1,
+      topK: 4,
+      greedyThreshold: 0.1,
+      randomSeed: 123,
+      padTokenId: null,
+      logitSoftcap: 0,
+      logitsDtype: 'f32',
+      outputIndex: 0,
+    }),
+    /createBindGroup failed at 1/
+  );
+
+  const poolStats = getBufferPool().getStats();
+  assert.equal(poolStats.activeBuffers, 0);
+  assert.equal(poolStats.currentBytesAllocated, 0);
+  assert.deepEqual(recorder.trackedBuffers, []);
 }
 
 {

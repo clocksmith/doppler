@@ -86,18 +86,6 @@ export function recordPrefillProfileStep(state, entry) {
   state.stats.prefillProfileSteps.push(entry);
 }
 
-/**
- * Resolve display text for a token ID sequence.
- *
- * Preference order:
- *   1. renderTokenText (custom primary renderer) — if provided and returns non-empty string.
- *   2. tokenizer.decode (default primary) — if renderTokenText is not provided.
- *   3. renderFallbackTokenText (custom fallback) — if provided and returns non-empty string,
- *      unless primary returned empty string and fallback looks like a special token (<...>),
- *      in which case empty string is preserved to keep skip-special behavior deterministic.
- *   4. tokenizer.decode with skipSpecialTokens=false (default fallback) — same special-token guard.
- *   5. fallbackText — static fallback string (default '?').
- */
 export function resolveTokenText(tokenizer, tokenIds, fallbackText = '?', renderTokenText, renderFallbackTokenText) {
   const renderPrimary = typeof renderTokenText === 'function'
     ? renderTokenText

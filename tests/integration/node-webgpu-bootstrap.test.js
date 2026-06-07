@@ -260,6 +260,36 @@ export const GPUShaderStage = { COMPUTE: 22 };
 
 {
   const snapshot = snapshotState();
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-webgpu-transient-adapter-'));
+  try {
+    clearRuntime();
+    const modulePath = path.join(tempDir, 'webgpu-transient-adapter.mjs');
+    writeFileSync(modulePath, `
+let attempts = 0;
+export const gpu = {
+  async requestAdapter() {
+    attempts++;
+    return attempts < 2 ? null : { provider: 'transient' };
+  }
+};
+export const GPUBufferUsage = { COPY_SRC: 13 };
+export const GPUShaderStage = { COMPUTE: 13 };
+`, 'utf8');
+    process.env.DOPPLER_NODE_WEBGPU_MODULE = pathToFileURL(modulePath).href;
+
+    const ready = await bootstrapNodeWebGPU();
+    assert.equal(ready.ok, true);
+    assert.equal(ready.provider, process.env.DOPPLER_NODE_WEBGPU_MODULE);
+    assert.equal(globalThis.GPUBufferUsage.COPY_SRC, 13);
+    assert.equal(globalThis.GPUShaderStage.COMPUTE, 13);
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+    restoreState(snapshot);
+  }
+}
+
+{
+  const snapshot = snapshotState();
   const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-webgpu-malformed-pkg-'));
   try {
     clearRuntime();

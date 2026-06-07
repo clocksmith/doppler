@@ -7,9 +7,6 @@ import type { ToolingSuccessEnvelope } from './command-envelope.js';
 
 export interface BrowserCommandRunOptions {
   runtimeLoadOptions?: RuntimeConfigLoadOptions;
-  convertHandler?: (
-    request: ToolingCommandRequest
-  ) => Promise<unknown> | unknown;
 }
 
 export interface BrowserCommandRunResult extends ToolingSuccessEnvelope<unknown> {

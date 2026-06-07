@@ -51,6 +51,30 @@
     },
     {
       "match": {
+        "modelId": "gemma-4-12b-it-text-q4k-ehf16-af16",
+        "activationDtype": "f16",
+        "mathDtype": "f16",
+        "accumDtype": "f16",
+        "hasSubgroups": true,
+        "hasF16": true
+      },
+      "transforms": ["useGemma412BTextF16Activations"],
+      "reason": "af16 manifest variant on shader-f16 GPU — dispatch the Gemma 4 12B text f16-residual lane with stable f32-Q/f16-KV prefill/decode attention boundaries and stable post-layer tail"
+    },
+    {
+      "match": {
+        "modelId": "gemma-4-12b-it-text-q4k-ehf16-af32",
+        "activationDtype": "f16",
+        "mathDtype": "f16",
+        "accumDtype": "f16",
+        "hasSubgroups": true,
+        "hasF16": true
+      },
+      "transforms": ["failClosedLaneMismatch"],
+      "reason": "af32 manifest cannot dispatch f16 activations — load the af16 manifest variant or pick an f32 runtime profile"
+    },
+    {
+      "match": {
         "modelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
         "activationDtype": "f16",
         "mathDtype": "f16",

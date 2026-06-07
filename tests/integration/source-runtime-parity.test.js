@@ -10,7 +10,7 @@ const { resolveNodeSourceRuntimeBundle } = await import('../../src/tooling/node-
 const { parseManifest } = await import('../../src/formats/rdrr/index.js');
 const { createPipeline } = await import('../../src/inference/pipelines/text.js');
 const { restorePipelineContexts } = await import('../../src/inference/pipelines/context.js');
-const { initDevice } = await import('../../src/gpu/device.js');
+const { destroyDevice, initDevice } = await import('../../src/gpu/device.js');
 const { createExecutionContractSession } = await import('../helpers/execution-v1-fixtures.js');
 
 const PROMPT = 'doppler';
@@ -159,11 +159,17 @@ function createLocalRdrrStorageContext(modelDir, manifest) {
   };
 }
 
-function cleanupPipeline(pipeline, prefill) {
+async function cleanupPipeline(pipeline, prefill, storageContext = null) {
   disposePrefillSnapshot(prefill);
-  pipeline?.reset?.();
-  pipeline?.releaseGPUResources?.();
-  restorePipelineContexts(pipeline);
+  if (pipeline && typeof pipeline.unload === 'function') {
+    await pipeline.unload();
+  } else if (pipeline) {
+    pipeline.reset?.();
+    pipeline.releaseGPUResources?.();
+    restorePipelineContexts(pipeline);
+  } else if (typeof storageContext?.close === 'function') {
+    await storageContext.close();
+  }
 }
 
 function snapshotPrefillResult(result, label) {
@@ -324,6 +330,7 @@ try {
       },
       quantization: {
         weights: 'f32',
+        computePrecision: 'f32',
       },
       inference: parityInference,
       session: executionSessionDefaults,
@@ -419,7 +426,7 @@ try {
       });
       rdrrSnapshot = snapshotPrefillResult(rdrrResult, 'RDRR');
     } finally {
-      cleanupPipeline(rdrrPipeline, rdrrResult);
+      await cleanupPipeline(rdrrPipeline, rdrrResult);
     }
 
     let sourcePipeline = null;
@@ -435,7 +442,7 @@ try {
       });
       sourceSnapshot = snapshotPrefillResult(sourceResult, 'Direct-source');
     } finally {
-      cleanupPipeline(sourcePipeline, sourceResult);
+      await cleanupPipeline(sourcePipeline, sourceResult, sourceBundle.storageContext);
     }
 
     assert.ok(rdrrSnapshot, 'RDRR parity snapshot is required.');
@@ -445,6 +452,7 @@ try {
     assertLogitsClose(sourceSnapshot.logits, rdrrSnapshot.logits, 'Direct-source logits');
   }
 } finally {
+  destroyDevice();
   rmSync(fixtureDir, { recursive: true, force: true });
 }
 

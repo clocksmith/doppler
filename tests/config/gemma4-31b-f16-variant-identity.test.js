@@ -53,6 +53,7 @@ const profile = readJson('src/config/runtime/profiles/gemma4-31b-f16-activations
 const af32Entry = catalogEntry(catalog, AF32_MODEL_ID);
 const af16Entry = catalogEntry(catalog, AF16_MODEL_ID);
 const qwenEntry = catalogEntry(catalog, QWEN_MODEL_ID);
+const af16Claim = releaseClaims.claims.find((claim) => claim.modelId === AF16_MODEL_ID) ?? null;
 
 assert.ok(af32Entry, `${AF32_MODEL_ID}: existing catalog entry must remain present`);
 assert.ok(qwenEntry, `${QWEN_MODEL_ID}: existing Qwen catalog entry must remain present`);
@@ -121,10 +122,16 @@ assert.deepEqual(
 assert.equal(af16Manifest.inference?.session?.kvcache?.kvDtype, 'f16');
 assert.deepEqual(af16Manifest.inference?.largeWeights?.gpuResidentOverrides, []);
 
+assert.ok(af16Claim, 'af16 verified catalog entry must have an explicit release claim');
+assert.equal(af16Claim.mode, 'text');
+assert.deepEqual(af16Claim.surface, af16Entry.lifecycle?.tested?.surface);
+assert.equal(af16Claim.verificationSource, af16Entry.lifecycle?.tested?.source);
+assert.equal(af16Claim.lastVerifiedAt, af16Entry.lifecycle?.tested?.lastVerifiedAt);
+assert.equal(af16Claim.artifactFormat, af16Entry.artifact?.format);
+assert.equal(af16Claim.evidence?.kind, 'browser-node-webgpu-smoke');
 assert.equal(
-  releaseClaims.claims.some((claim) => claim.modelId === AF16_MODEL_ID),
-  false,
-  'af16 Doppler-only variant must not gain a release/Cerebras parity claim yet'
+  af16Claim.evidence?.reportPath,
+  'reports/gemma-4-31b-it-text-q4k-ehf16-af16/2026-04-29T17-25-41.735Z.json'
 );
 
 console.log('gemma4-31b-f16-variant-identity.test: ok');

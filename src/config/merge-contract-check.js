@@ -7,6 +7,7 @@ import {
 } from './merge-helpers.js';
 import { mergeConfig } from './merge.js';
 import { createDopplerConfig } from './schema/index.js';
+import { log } from '../debug/index.js';
 
 function buildWitnessMergeManifest() {
   return {
@@ -75,7 +76,7 @@ const seenCheckIds = new Set();
 
 function recordCheck(results, id, ok, detail, mode = 'actual') {
   if (seenCheckIds.has(id)) {
-    console.warn(`[MergeContract] duplicate check id: "${id}"`);
+    log.warn('MergeContract', `duplicate check id: "${id}"`);
   }
   seenCheckIds.add(id);
   results.push({ id, ok, detail, mode });

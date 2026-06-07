@@ -820,10 +820,6 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
       );
     }
 
-    if (request.command === 'convert') {
-      throw new Error('browser command relay does not support convert. Use --surface node for convert commands.');
-    }
-
     let useOpfsCache = options.opfsCache !== false;
     let relayRequest = request;
     const userDataDir = options.userDataDir || DEFAULT_OPFS_CACHE_DIR;

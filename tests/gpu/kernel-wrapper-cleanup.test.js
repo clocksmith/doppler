@@ -42,13 +42,14 @@ const {
   runMatmulRMSNormFused,
   recordMatmulRMSNormFused,
 } = await import('../../src/gpu/kernels/fused_matmul_rmsnorm.js');
+const { runMatmul } = await import('../../src/gpu/kernels/matmul.js');
 const { runGroupNorm } = await import('../../src/gpu/kernels/groupnorm.js');
 const { runGeLU } = await import('../../src/gpu/kernels/gelu.js');
 const { runLayerNorm } = await import('../../src/gpu/kernels/layernorm.js');
 const { runRMSNorm } = await import('../../src/gpu/kernels/rmsnorm.js');
 const { runSiLU } = await import('../../src/gpu/kernels/silu.js');
 const { runUpsample2D } = await import('../../src/gpu/kernels/upsample2d.js');
-const { castF16ToF32 } = await import('../../src/gpu/kernels/cast.js');
+const { castF16ToF32, runBF16ToF32, runBF16ToF16 } = await import('../../src/gpu/kernels/cast.js');
 const { runCrossEntropyLoss } = await import('../../src/gpu/kernels/cross_entropy_loss.js');
 const { runKVQuantize } = await import('../../src/gpu/kernels/kv-quantize.js');
 const {
@@ -222,8 +223,14 @@ function assertPoolIsClean() {
 
 function assertDeviceBuffersDestroyed(device) {
   for (const buffer of device?.createdBuffers ?? []) {
-    assert.equal(buffer.destroyed, true);
+    assert.equal(buffer.destroyed, true, `${buffer.label ?? 'unlabeled'} should be destroyed.`);
   }
+}
+
+function assertCreatedBufferDestroyed(device, label) {
+  const buffer = device.createdBuffers.find((entry) => entry.label === label);
+  assert.ok(buffer, `${label} should be created.`);
+  assert.equal(buffer.destroyed, true, `${label} should be destroyed.`);
 }
 
 {
@@ -350,7 +357,13 @@ function assertDeviceBuffersDestroyed(device) {
   const weight = new FakeBuffer({ size: 4, usage: GPUBufferUsage.STORAGE });
   const normWeightBuffer = acquireBuffer(4, undefined, 'test_norm_weight');
   await assert.rejects(
-    () => runMatmulRMSNormFused(input, weight, normWeightBuffer, { N: 1, K: 1, eps: 1e-5 }),
+    () => runMatmulRMSNormFused(input, weight, normWeightBuffer, {
+      N: 1,
+      K: 1,
+      eps: 1e-5,
+      transposeB: true,
+      rmsNormWeightOffset: false,
+    }),
     /createBindGroup failed at 1/
   );
   releaseBuffer(normWeightBuffer);
@@ -366,7 +379,13 @@ function assertDeviceBuffersDestroyed(device) {
   const weight = new FakeBuffer({ size: 4, usage: GPUBufferUsage.STORAGE });
   const normWeightBuffer = acquireBuffer(4, undefined, 'test_norm_weight');
   await assert.rejects(
-    () => recordMatmulRMSNormFused(recorder, input, weight, normWeightBuffer, { N: 1, K: 1, eps: 1e-5 }),
+    () => recordMatmulRMSNormFused(recorder, input, weight, normWeightBuffer, {
+      N: 1,
+      K: 1,
+      eps: 1e-5,
+      transposeB: true,
+      rmsNormWeightOffset: false,
+    }),
     /createBindGroup failed at 1/
   );
   releaseBuffer(normWeightBuffer);
@@ -500,7 +519,73 @@ function assertDeviceBuffersDestroyed(device) {
     /createBindGroup failed at 1/
   );
   assertPoolIsClean();
-  assertDeviceBuffersDestroyed(device);
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice({ createBindGroupThrowAt: 1, trackCreatedBuffers: true });
+  resetRuntimeState(device);
+  await assert.rejects(
+    () => runBF16ToF32(
+      new FakeBuffer({ size: 4, usage: GPUBufferUsage.STORAGE }),
+      [2],
+      'bf16_to_f32_cleanup'
+    ),
+    /createBindGroup failed at 1/
+  );
+  assertPoolIsClean();
+  assertCreatedBufferDestroyed(device, 'bf16_to_f32_uniforms');
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice({ createBindGroupThrowAt: 1, trackCreatedBuffers: true });
+  resetRuntimeState(device);
+  await assert.rejects(
+    () => runBF16ToF16(
+      new FakeBuffer({ size: 4, usage: GPUBufferUsage.STORAGE }),
+      [2],
+      'bf16_to_f16_cleanup'
+    ),
+    /createBindGroup failed at 1/
+  );
+  assertPoolIsClean();
+  assertCreatedBufferDestroyed(device, 'bf16_to_f16_uniforms');
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice({ trackCreatedBuffers: true });
+  resetRuntimeState(device);
+  const input = createExternalTensor(new Uint16Array(8), [1, 8], 'matmul_cast_input', 'f16');
+  const weights = new FakeBuffer({ size: 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
+  await assert.rejects(
+    () => runMatmul(input, weights, 1, 2, 8, {
+      bDtype: 'f16',
+      outputDtype: 'f32',
+      transposeB: true,
+    }),
+    /B buffer too small/
+  );
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice({ trackCreatedBuffers: true });
+  resetRuntimeState(device);
+  const input = createExternalTensor([1], [1, 1], 'matmul_output_input');
+  const weights = new FakeBuffer({ size: 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
+  await assert.rejects(
+    () => runMatmul(input, weights, 1, 1, 1, {
+      bDtype: 'f32',
+      outputDtype: 'f32',
+      transposeB: true,
+      cOffset: 256,
+    }),
+    /Output buffer too small/
+  );
+  assertPoolIsClean();
   resetRuntimeState();
 }
 

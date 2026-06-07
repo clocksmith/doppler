@@ -1,7 +1,7 @@
 {
-  "id": "profiles/gemma4-12b-rdrr-safe-b2",
-  "name": "gemma4-12b-rdrr-safe-b2",
-  "description": "Gemma 4 12B RDRR Q4 investigate profile using the validated safe batch decode cadence on Radeon 8060S.",
+  "id": "profiles/gemma4-12b-rdrr-safe-b4",
+  "name": "gemma4-12b-rdrr-safe-b4",
+  "description": "Gemma 4 12B RDRR safe b4 decode cadence with explicit consumer-hardware KV residency cap.",
   "intent": "investigate",
   "stability": "experimental",
   "owner": "doppler-core",
@@ -24,14 +24,17 @@
     "inference": {
       "session": {
         "decodeLoop": {
-          "batchSize": 2,
+          "batchSize": 4,
           "stopCheckMode": "batch",
-          "readbackInterval": 2,
+          "readbackInterval": 4,
           "readbackMode": "overlapped",
-          "ringTokens": 2,
+          "ringTokens": 4,
           "ringStop": 1,
           "ringStaging": 2,
           "disableCommandBatching": false
+        },
+        "kvcache": {
+          "maxSeqLen": 1024
         }
       }
     }

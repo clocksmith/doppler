@@ -297,7 +297,10 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   // kernel correctly unpacks f16-packed weights (Gemma hidden weights) vs
   // f32 weights.
   if (variant === 'q4_fused_rmsnorm_widetile' && options.rmsNormOffset != null) {
-    const normWeightDtype = getWeightDtype(options.normWeight) ?? 'f32';
+    const normWeightDtype = getWeightDtype(options.normWeight);
+    if (!normWeightDtype) {
+      throw new Error('[Matmul] q4_fused_rmsnorm_widetile requires normWeight dtype metadata.');
+    }
     constants = {
       ...(constants ?? {}),
       RMS_NORM_OFFSET: options.rmsNormOffset === true,
@@ -372,11 +375,23 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
         log.warn('MatmulQKVProbe', `${err.message} | ${probeDetail}`);
       }
       if (shouldFailOnSmallAttentionWeightBuffer) {
+        if (!isRecord && castedInput) {
+          releaseBuffer(castedInput.buffer);
+          castedInput = null;
+        }
         throw new Error(`${err.message}${detail}`);
       }
     }
     if (err instanceof Error && err.message.includes('B buffer too small')) {
+      if (!isRecord && castedInput) {
+        releaseBuffer(castedInput.buffer);
+        castedInput = null;
+      }
       throw new Error(`${err.message}${detail}`);
+    }
+    if (!isRecord && castedInput) {
+      releaseBuffer(castedInput.buffer);
+      castedInput = null;
     }
     throw err;
   }
@@ -402,39 +417,66 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
     );
   }
 
-  const __dbg = (typeof process !== "undefined" ? process : { env: {} }).env.DOPPLER_DBG_RECORD === '1';
-  const __t0 = __dbg ? performance.now() : 0;
-  const config = getMatmulConfig(variant, constants);
-  const kernel = new MatmulKernel(device);
-  const pipeline = await getMatmulPipeline(variant, constants);
-  const __tPipeline = __dbg ? performance.now() : 0;
+  let __dbg = false;
+  let __t0 = 0;
+  let __tPipeline = 0;
+  let config;
+  let kernel;
+  let pipeline;
+  let C = null;
+  let outputSize;
+  let cBindingSize;
+  let actualOutputDtype;
+  let ownsOutput = false;
+  let dispatchPlan;
+  try {
+    __dbg = (typeof process !== "undefined" ? process : { env: {} }).env.DOPPLER_DBG_RECORD === '1';
+    __t0 = __dbg ? performance.now() : 0;
+    config = getMatmulConfig(variant, constants);
+    kernel = new MatmulKernel(device);
+    pipeline = await getMatmulPipeline(variant, constants);
+    __tPipeline = __dbg ? performance.now() : 0;
 
-  const { output: C, outputSize, cBindingSize, actualOutputDtype } = resolveMatmulOutput(
-    variant,
-    M,
-    N,
-    outputBuffer
-  );
-  const ownsOutput = outputBuffer == null;
-
-  if (isAttnProj && shouldLogAttentionWeightBuffer) {
-    log.warn('MatmulVariantDiag',
-      `role=${options.role ?? ''} layer=${Number.isFinite(options.layerIdx) ? options.layerIdx : '?'} mode=${mode} ` +
-      `variant=${variant} useQ4KFused=${useQ4KFused} useGemv=${useGemv} ` +
-      `aDtype=${aDtype} bDtype=${bDtype} output=${actualOutputDtype}`
+    const outputInfo = resolveMatmulOutput(
+      variant,
+      M,
+      N,
+      outputBuffer
     );
-  }
+    C = outputInfo.output;
+    outputSize = outputInfo.outputSize;
+    cBindingSize = outputInfo.cBindingSize;
+    actualOutputDtype = outputInfo.actualOutputDtype;
+    ownsOutput = outputBuffer == null;
 
-  if (!Number.isFinite(outputSize) || outputSize <= 0) {
-    throw new Error(`[${opLabel}] Invalid output size: ${outputSize} (M=${M}, N=${N})`);
-  }
+    if (isAttnProj && shouldLogAttentionWeightBuffer) {
+      log.warn('MatmulVariantDiag',
+        `role=${options.role ?? ''} layer=${Number.isFinite(options.layerIdx) ? options.layerIdx : '?'} mode=${mode} ` +
+        `variant=${variant} useQ4KFused=${useQ4KFused} useGemv=${useGemv} ` +
+        `aDtype=${aDtype} bDtype=${bDtype} output=${actualOutputDtype}`
+      );
+    }
 
-  const cRequired = cOffset + cBindingSize;
-  if (C.size < cRequired) {
-    throw new Error(`[${opLabel}] Output buffer too small: ${C.size} < ${cRequired} (M=${M}, N=${N})`);
-  }
+    if (!Number.isFinite(outputSize) || outputSize <= 0) {
+      throw new Error(`[${opLabel}] Invalid output size: ${outputSize} (M=${M}, N=${N})`);
+    }
 
-  const dispatchPlan = calculateMatmulDispatch(variant, useQ4KFused, useGemv, M, N, config);
+    const cRequired = cOffset + cBindingSize;
+    if (C.size < cRequired) {
+      throw new Error(`[${opLabel}] Output buffer too small: ${C.size} < ${cRequired} (M=${M}, N=${N})`);
+    }
+
+    dispatchPlan = calculateMatmulDispatch(variant, useQ4KFused, useGemv, M, N, config);
+  } catch (error) {
+    if (!isRecord && castedInput) {
+      releaseBuffer(castedInput.buffer);
+      castedInput = null;
+    }
+    if (ownsOutput && C) {
+      releaseBuffer(C);
+    }
+    throw error;
+  }
   let uniformBuffer = null;
   let completed = false;
   try {
@@ -490,16 +532,18 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
       const __tEnd = performance.now();
       __dbgRecord('matmul', variant, __tPipeline - __t0, __tBgStart - __tPipeline, __tBg - __tBgStart, __tEnd - __tBg);
     }
+    const tensor = createTensor(C, actualOutputDtype, [M, N], 'matmul_output');
     completed = true;
-    return createTensor(C, actualOutputDtype, [M, N], 'matmul_output');
+    return tensor;
   } finally {
     if (!isRecord && uniformBuffer) {
       releaseUniformBuffer(uniformBuffer);
     }
     if (!isRecord && castedInput) {
       releaseBuffer(castedInput.buffer);
+      castedInput = null;
     }
-    if (!completed && ownsOutput) {
+    if (!completed && ownsOutput && C) {
       releaseBuffer(C);
     }
   }

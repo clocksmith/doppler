@@ -4,18 +4,16 @@ import {
   buildLayerPipelineFromExecution,
   buildSessionRuntimePatch,
   PIPELINE_COMPATIBLE_OPS,
-  normalizeDtype,
   requireSessionActivationDtype,
+  requireSessionKVDtype,
 } from './execution-runtime-builders.js';
 import { mergeKernelPathPolicy } from '../../../config/merge-helpers.js';
 import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
 import { buildOpIdFromExecutionStep } from './operator-identity.js';
 import {
   resolveCapabilityTransforms,
-  resolveFinitenessFallbackTransform,
 } from '../../../config/transforms/capability-transform-resolver.js';
 import { composeTransforms } from '../../../config/transforms/execution-graph-transforms.js';
-import { resolveRangeAwareSelectiveWideningConfig } from './finiteness-policy.js';
 import { log } from '../../../debug/index.js';
 
 const SESSION_CAPABILITY_TRANSFORMS = new Set([
@@ -52,59 +50,6 @@ function resolveRuntimeInferenceOverrideSection(runtimeOverrides, key) {
     return null;
   }
   return inferenceOverrides[key] ?? null;
-}
-
-function applyExecutionV1RuntimeComputeOverrides(session, runtimeSession, runtimeCompute) {
-  const activationOverrideRaw = runtimeCompute?.activationDtype;
-  if (activationOverrideRaw == null) {
-    return session;
-  }
-
-  const activationOverride = normalizeDtype(
-    activationOverrideRaw,
-    'runtime.inference.compute.activationDtype'
-  );
-  const runtimeSessionActivation = runtimeSession?.compute?.defaults?.activationDtype;
-  if (
-    runtimeSessionActivation != null
-    && normalizeDtype(
-      runtimeSessionActivation,
-      'runtime.inference.session.compute.defaults.activationDtype'
-    ) !== activationOverride
-  ) {
-    throw new Error(
-      '[ExecutionV1] runtime.inference.compute.activationDtype conflicts with ' +
-      'runtime.inference.session.compute.defaults.activationDtype. ' +
-      'Set both to the same dtype or remove one override.'
-    );
-  }
-
-  const runtimeSessionOutput = runtimeSession?.compute?.defaults?.outputDtype;
-  if (
-    runtimeSessionOutput != null
-    && normalizeDtype(
-      runtimeSessionOutput,
-      'runtime.inference.session.compute.defaults.outputDtype'
-    ) !== activationOverride
-  ) {
-    throw new Error(
-      '[ExecutionV1] runtime.inference.compute.activationDtype conflicts with ' +
-      'runtime.inference.session.compute.defaults.outputDtype. ' +
-      'Set both to the same dtype or remove one override.'
-    );
-  }
-
-  return {
-    ...session,
-    compute: {
-      ...(session?.compute ?? {}),
-      defaults: {
-        ...(session?.compute?.defaults ?? {}),
-        activationDtype: activationOverride,
-        outputDtype: activationOverride,
-      },
-    },
-  };
 }
 
 const EXECUTION_V1_PROJECTION_OPS = new Set([
@@ -343,8 +288,8 @@ function expandV1ToResolvedSteps(execution, options = {}) {
       phase: step.phase,
       section: step.section,
       op: step.op,
-      src: 'state',
-      dst: 'state',
+      src: step.src,
+      dst: step.dst,
       kernel: step.kernel,
       entry: step.entry,
       ...(step.weights ? { weights: step.weights } : {}),
@@ -371,7 +316,6 @@ export function compileExecutionV1(options = {}) {
   const capabilities = options.capabilities ?? null;
   const platform = options.platform ?? null;
   const runtimeSession = options.runtimeSession ?? null;
-  const runtimeCompute = options.runtimeCompute ?? null;
   const kernelPathPolicy = mergeKernelPathPolicy(undefined, options.kernelPathPolicy ?? undefined);
 
   if (!hasExecutionV1(manifestInference)) {
@@ -383,11 +327,7 @@ export function compileExecutionV1(options = {}) {
     manifestInference.session ?? {},
     runtimeSession ?? {}
   );
-  const session = applyExecutionV1RuntimeComputeOverrides(
-    mergedSession,
-    runtimeSession,
-    runtimeCompute
-  );
+  const session = mergedSession;
 
   if (!session?.compute?.defaults?.activationDtype) {
     throw new Error('[ExecutionV1] session.compute.defaults.activationDtype is required.');
@@ -396,9 +336,8 @@ export function compileExecutionV1(options = {}) {
   const activationDtype = session.compute.defaults.activationDtype;
   const mathDtype = session.compute.defaults.mathDtype ?? null;
   const accumDtype = session.compute.defaults.accumDtype ?? null;
-  const kvDtype = session?.kvcache?.kvDtype ?? activationDtype;
+  const kvDtype = requireSessionKVDtype(session);
   const layerTypes = manifestInference?.layerPattern?.layerTypes ?? null;
-  const finitenessPolicy = resolveRangeAwareSelectiveWideningConfig(runtimeCompute);
 
   // Validate the original manifest graph (full digest checks).
   expandExecutionV1(execution);
@@ -407,8 +346,6 @@ export function compileExecutionV1(options = {}) {
   // Phase 2: Apply capability transforms to the execution graph
   // -------------------------------------------------------------------------
   let appliedTransformNames = [];
-  let fallbackExecution = null;
-  let fallbackTransformResult = null;
   let graphWasTransformed = false;
 
   if (capabilities) {
@@ -472,30 +409,6 @@ export function compileExecutionV1(options = {}) {
       log.debug('ExecutionV1', `No capability transforms needed (${resolved.reason})`);
     }
 
-    // Build explicit finiteness fallback only when the runtime opted into
-    // alternate-plan recovery. The default policy is fail-fast.
-    fallbackTransformResult = finitenessPolicy.onTrigger === 'fallback-plan'
-      ? resolveFinitenessFallbackTransform(graphContext)
-      : null;
-    if (fallbackTransformResult) {
-      const fallbackGraph = fallbackTransformResult.transform(execution, {
-        capabilities,
-        platform: platform ?? { id: 'unknown', vendor: 'unknown', architecture: 'unknown' },
-        activationDtype,
-        mathDtype,
-        accumDtype,
-        kvDtype,
-        headDim,
-        modelId,
-      });
-      if (fallbackGraph) {
-        fallbackExecution = fallbackGraph;
-        log.info(
-          'ExecutionV1',
-          `Finiteness fallback transform resolved: ${fallbackTransformResult.name}`
-        );
-      }
-    }
   }
 
   assertHybridLinearProjectionIsolation(execution, layerTypes, modelId);
@@ -564,47 +477,7 @@ export function compileExecutionV1(options = {}) {
     )
     : null;
 
-  // Build fallback inline kernel path from the fallback execution graph
-  let fallbackKernelPath = null;
-  if (fallbackExecution && inlineKernelPathEnabled) {
-    const fallbackSteps = expandV1ToResolvedSteps(fallbackExecution, { skipDigestValidation: true });
-    const fallbackKvDtype = fallbackTransformResult?.fallbackKvDtype ?? 'f32';
-    const fallbackSession = {
-      ...session,
-      compute: {
-        ...session.compute,
-        defaults: {
-          ...session.compute.defaults,
-          activationDtype: 'f32',
-          mathDtype: 'f32',
-          accumDtype: 'f32',
-          outputDtype: 'f32',
-        },
-      },
-      kvcache: {
-        ...(session.kvcache ?? {}),
-        kvDtype: fallbackKvDtype,
-      },
-    };
-    fallbackKernelPath = buildInlineKernelPath(
-      fallbackSteps,
-      fallbackSession,
-      modelId,
-      numLayers,
-      null
-    );
-    if (fallbackKernelPath) {
-      fallbackKernelPath = {
-        ...fallbackKernelPath,
-        id: `${fallbackKernelPath.id}-finiteness-fallback`,
-        name: 'Execution inline kernel path (finiteness fallback)',
-      };
-      log.info(
-        'ExecutionV1',
-        `Finiteness fallback inline kernel path built (${fallbackKernelPath.id})`
-      );
-    }
-  }
+  const fallbackKernelPath = null;
 
   // Lane integrity: capture the pre-transform (manifest+profile-agreed) lane
   // and the post-transform (actually dispatched) lane so receipts can honestly
@@ -716,9 +589,6 @@ export function applyExecutionV1RuntimeConfig(options = {}) {
     runtimeSession: hasExplicitRuntimeOverrides
       ? resolveRuntimeInferenceOverrideSection(runtimeOverrides, 'session')
       : (runtimeConfig.inference?.session ?? null),
-    runtimeCompute: hasExplicitRuntimeOverrides
-      ? resolveRuntimeInferenceOverrideSection(runtimeOverrides, 'compute')
-      : (runtimeConfig.inference?.compute ?? null),
     kernelPathPolicy: runtimeConfig.inference?.kernelPathPolicy ?? null,
   });
 

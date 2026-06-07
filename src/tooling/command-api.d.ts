@@ -94,6 +94,7 @@ export interface ToolingCommandRequestInput {
   modelUrl?: string;
   cacheMode?: 'cold' | 'warm';
   loadMode?: 'opfs' | 'http' | 'memory';
+  configChain?: string[] | null;
   runtimeProfile?: string;
   runtimeConfigUrl?: string;
   runtimeConfig?: Record<string, unknown>;
@@ -168,6 +169,7 @@ export interface ToolingCommandRequest {
   modelUrl: string | null;
   cacheMode: 'cold' | 'warm' | null;
   loadMode: 'opfs' | 'http' | 'memory' | null;
+  configChain: string[] | null;
   runtimeProfile: string | null;
   runtimeConfigUrl: string | null;
   runtimeConfig: Record<string, unknown> | null;

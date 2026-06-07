@@ -1,5 +1,12 @@
 --- src/gpu/kernels/attention_streaming.wgsl
 +++ src/gpu/kernels/attention_streaming_f16.wgsl
+@@ -6,6 +6,8 @@
+ // reads K/V directly from storage. Slower but compatible.
+
++enable f16;
++
+ override WORKGROUP_SIZE: u32 = 1u;
+ const MAX_HEAD_DIM: u32 = 512u;
 @@ -30,10 +30,10 @@
  }
  
@@ -14,7 +21,6 @@
 +@group(0) @binding(4) var<storage, read_write> output: array<f16>;
  @group(0) @binding(5) var<storage, read> kv_len_buffer: array<u32>;
  @group(0) @binding(6) var<storage, read> page_table: array<u32>;
- 
 @@ -108,7 +108,7 @@
      var q_local: array<f32, MAX_HEAD_DIM>;
      let q_offset = query_pos * num_heads * head_dim + head_idx * head_dim;
@@ -24,3 +30,42 @@
      }
  
      var max_score: f32 = -3.402823e+38;
+@@ -121,7 +121,7 @@
+         let k_offset = k_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
+         var dot: f32 = 0.0;
+         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+-            dot = dot + q_local[d] * K[k_offset + d];
++            dot = dot + q_local[d] * f32(K[k_offset + d]);
+         }
+         dot = dot * scale;
+         // Gemma 2 attention softcapping
+@@ -144,7 +144,7 @@
+         let v_offset = k_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
+         var dot: f32 = 0.0;
+         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+-            dot = dot + q_local[d] * K[k_offset + d];
++            dot = dot + q_local[d] * f32(K[k_offset + d]);
+         }
+         dot = dot * scale;
+         // Gemma 2 attention softcapping
+@@ -157,7 +157,7 @@
+         let w = exp(dot - max_score);
+         sum_exp = sum_exp + w;
+         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+-            acc[d] = acc[d] + w * V[v_offset + d];
++            acc[d] = acc[d] + w * f32(V[v_offset + d]);
+         }
+     }
+@@ -165,12 +165,12 @@
+     if (sum_exp <= 0.0) {
+         for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+-            output[out_offset + d] = 0.0;
++            output[out_offset + d] = f16(0.0);
+         }
+         return;
+     }
+     for (var d: u32 = 0u; d < head_dim; d = d + 1u) {
+-        output[out_offset + d] = acc[d] / sum_exp;
++        output[out_offset + d] = f16(acc[d] / sum_exp);
+     }
+ }

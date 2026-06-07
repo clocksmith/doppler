@@ -576,6 +576,7 @@ async function runInferenceSuite(options = {}) {
       decodeTokensPerSec: safeToFixed(run.phase.decodeTokensPerSec),
       modelLoadMs: safeModelLoadMs,
       gpu: run.phase.gpu,
+      batching: run.phase.batching ?? null,
       plePreparedTokenCache: run.phase.plePreparedTokenCache ?? null,
       prefillProfileSteps: run.phase.prefillProfileSteps,
       decodeProfileSteps: run.phase.decodeProfileSteps,
@@ -921,6 +922,10 @@ async function runBenchSuite(options = {}) {
     const totalBatchedTimeMs = [];
     const totalUnbatchedTimeMs = [];
     const gpuSubmissions = [];
+    const requestedBatchTokens = [];
+    const effectiveBatchTokens = [];
+    const maxBatchTokenCap = [];
+    const batchClampCount = [];
     const plePreparedTokenCacheHits = [];
     const plePreparedTokenCacheMisses = [];
     const plePreparedTokenCacheEntries = [];
@@ -995,6 +1000,10 @@ async function runBenchSuite(options = {}) {
         if (Number.isFinite(phaseBatching?.totalBatchedTimeMs)) totalBatchedTimeMs.push(phaseBatching.totalBatchedTimeMs);
         if (Number.isFinite(phaseBatching?.totalUnbatchedTimeMs)) totalUnbatchedTimeMs.push(phaseBatching.totalUnbatchedTimeMs);
         if (Number.isFinite(phaseBatching?.gpuSubmissions)) gpuSubmissions.push(phaseBatching.gpuSubmissions);
+        if (Number.isFinite(phaseBatching?.requestedBatchTokens)) requestedBatchTokens.push(phaseBatching.requestedBatchTokens);
+        if (Number.isFinite(phaseBatching?.effectiveBatchTokens)) effectiveBatchTokens.push(phaseBatching.effectiveBatchTokens);
+        if (Number.isFinite(phaseBatching?.maxBatchTokenCap)) maxBatchTokenCap.push(phaseBatching.maxBatchTokenCap);
+        if (Number.isFinite(phaseBatching?.batchClampCount)) batchClampCount.push(phaseBatching.batchClampCount);
         if (Number.isFinite(phasePlePreparedTokenCache?.hits)) plePreparedTokenCacheHits.push(phasePlePreparedTokenCache.hits);
         if (Number.isFinite(phasePlePreparedTokenCache?.misses)) plePreparedTokenCacheMisses.push(phasePlePreparedTokenCache.misses);
         if (Number.isFinite(phasePlePreparedTokenCache?.entries)) plePreparedTokenCacheEntries.push(phasePlePreparedTokenCache.entries);
@@ -1039,7 +1048,11 @@ async function runBenchSuite(options = {}) {
       || unbatchedForwardCalls.length > 0
       || totalBatchedTimeMs.length > 0
       || totalUnbatchedTimeMs.length > 0
-      || gpuSubmissions.length > 0;
+      || gpuSubmissions.length > 0
+      || requestedBatchTokens.length > 0
+      || effectiveBatchTokens.length > 0
+      || maxBatchTokenCap.length > 0
+      || batchClampCount.length > 0;
     const batchingPhaseStats = hasBatchingStats
       ? {
         batchedForwardCalls: computeSampleStats(batchedForwardCalls),
@@ -1047,6 +1060,10 @@ async function runBenchSuite(options = {}) {
         totalBatchedTimeMs: computeSampleStats(totalBatchedTimeMs),
         totalUnbatchedTimeMs: computeSampleStats(totalUnbatchedTimeMs),
         gpuSubmissions: computeSampleStats(gpuSubmissions),
+        requestedBatchTokens: computeSampleStats(requestedBatchTokens),
+        effectiveBatchTokens: computeSampleStats(effectiveBatchTokens),
+        maxBatchTokenCap: computeSampleStats(maxBatchTokenCap),
+        batchClampCount: computeSampleStats(batchClampCount),
       }
       : null;
     const hasPlePreparedTokenCacheStats = plePreparedTokenCacheHits.length > 0

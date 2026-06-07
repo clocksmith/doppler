@@ -131,6 +131,10 @@ export class PipelineState {
       totalBatchedTimeMs: 0,
       totalUnbatchedTimeMs: 0,
       gpuSubmissions: 0,
+      requestedBatchTokens: 0,
+      effectiveBatchTokens: 0,
+      maxBatchTokenCap: null,
+      batchClampCount: 0,
     };
 
     // Base URL for loading assets

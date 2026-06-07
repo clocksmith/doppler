@@ -2,6 +2,10 @@ import type { RuntimeConfigLoadOptions } from '../inference/browser-harness.js';
 import type { ToolingCommandRequest } from './command-api.js';
 
 export interface RuntimeBridge {
+  loadRuntimeConfigFromRef?: (
+    ref: string,
+    options?: RuntimeConfigLoadOptions
+  ) => Promise<Record<string, unknown>>;
   applyRuntimeProfile: (
     runtimeProfile: string,
     options?: RuntimeConfigLoadOptions

@@ -236,6 +236,26 @@ export declare function useGemma4Int4PleAf16Activations(
 ): ExecutionGraph | null;
 
 /**
+ * Promote Gemma 4 text Q4K onto the experimental f16 lane using matching f16
+ * Q4 projection and utility kernels, with explicit f32-Q/f16-KV prefill/decode
+ * attention boundaries and the source graph's stable post-layer tail where
+ * required by the model variant.
+ */
+export declare function useGemma4TextF16Activations(
+  graph: ExecutionGraph,
+  ctx: TransformContext
+): ExecutionGraph | null;
+
+/**
+ * Promote Gemma 4 12B text Q4K onto its f16-residual lane while preserving
+ * the explicit stable f32-Q/f16-KV attention boundaries and post-layer tail.
+ */
+export declare function useGemma412BTextF16Activations(
+  graph: ExecutionGraph,
+  ctx: TransformContext
+): ExecutionGraph | null;
+
+/**
  * Promote Gemma 4 31B text Q4K onto the experimental all-f16 lane using
  * matching f16 Q4 projection, attention, utility, lm_head, and sampling kernels.
  */
@@ -266,6 +286,12 @@ export declare const useQwenF16PrimaryMatmuls: ExecutionGraphTransform;
 
 /** Gemma4 INT4 PLE: selective decode-only F16 probe lane. */
 export declare const useGemma4Int4PleSelectiveF16Decode: ExecutionGraphTransform;
+
+/** Gemma 4 text: experimental end-to-end F16 activation lane. */
+export declare const useGemma4TextF16Activations: ExecutionGraphTransform;
+
+/** Gemma 4 12B text: f16-residual lane with stable f32-Q/f16-KV islands. */
+export declare const useGemma412BTextF16Activations: ExecutionGraphTransform;
 
 /** Gemma 4 31B text: experimental end-to-end F16 activation lane. */
 export declare const useGemma431BTextF16Activations: ExecutionGraphTransform;

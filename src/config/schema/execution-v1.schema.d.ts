@@ -291,6 +291,8 @@ export interface ExecutionV1PatchSchema {
 /** Expanded step — what the runtime actually works with after tuple expansion. */
 export interface ExecutionV1ExpandedStepSchema {
   op: string;
+  src: string;
+  dst: string;
   kernel: string;
   entry: string;
   digest: string;
@@ -328,6 +330,8 @@ export interface ExpandExecutionV1Options {
   knownOps?: ReadonlySet<string> | null;
   /** When true, unknown ops throw instead of warn. Default false. */
   strict?: boolean;
+  /** Skip kernel digest validation for derived transform kernels. */
+  skipDigestValidation?: boolean;
 }
 
 /** Validate and expand a v1 execution graph into runtime-ready expanded steps. */

@@ -192,7 +192,6 @@ const diagnosticTransformCtx = {
     modelId: conversionConfig.output.modelBaseId,
     numLayers: conversionConfig.inference.layerPattern.layerTypes.length,
     runtimeSession: conversionConfig.session,
-    runtimeCompute: { activationDtype: 'f32' },
     kernelPathPolicy: {
       mode: 'capability-aware',
       sourceScope: ['model', 'manifest', 'config'],

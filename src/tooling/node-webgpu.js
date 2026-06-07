@@ -3,6 +3,7 @@ import { dirname, isAbsolute, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const DEFAULT_PROVIDER_CREATE_ARGS = 'enable-dawn-features=allow_unsafe_apis';
+const ADAPTER_PROBE_ATTEMPTS = 3;
 const DEFAULT_WEBGPU_PROVIDER_SPECIFIERS = Object.freeze([
   'webgpu',
 ]);
@@ -282,15 +283,17 @@ async function probeInstalledGpuAdapter() {
 
   let lastError = null;
   for (const adapterOptions of ADAPTER_PROBE_OPTIONS) {
-    try {
-      const adapter = adapterOptions
-        ? await globalThis.navigator.gpu.requestAdapter(adapterOptions)
-        : await globalThis.navigator.gpu.requestAdapter();
-      if (adapter) {
-        return { ok: true, detail: null };
+    for (let attempt = 0; attempt < ADAPTER_PROBE_ATTEMPTS; attempt++) {
+      try {
+        const adapter = adapterOptions
+          ? await globalThis.navigator.gpu.requestAdapter(adapterOptions)
+          : await globalThis.navigator.gpu.requestAdapter();
+        if (adapter) {
+          return { ok: true, detail: null };
+        }
+      } catch (error) {
+        lastError = error;
       }
-    } catch (error) {
-      lastError = error;
     }
   }
 
@@ -355,7 +358,7 @@ export async function bootstrapNodeWebGPUProvider(providerSpecifier, options = {
   };
 }
 
-/**
+/*
  * Bootstrap Node WebGPU by attempting providers in priority order:
  *
  * 1. **Environment override** (`DOPPLER_NODE_WEBGPU_MODULE` env var) — highest priority.
@@ -371,7 +374,6 @@ export async function bootstrapNodeWebGPUProvider(providerSpecifier, options = {
  *    a. `'webgpu'` (community Dawn bindings)
  *    The first one that imports, installs, and passes an adapter probe wins.
  *
- * @returns {Promise<{ ok: boolean, provider: string | null }>}
  */
 export async function bootstrapNodeWebGPU() {
   const explicitSpecifier = resolveExplicitWebgpuModuleSpecifier();

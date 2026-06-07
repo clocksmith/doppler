@@ -509,15 +509,13 @@ import {
 }
 
 {
-  assert.throws(
-    () => normalizeToolingCommandRequest({
-      command: 'verify',
-      workload: 'inference',
-      modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
-      configChain: ['profiles/verbose-trace'],
-    }),
-    /verify does not accept configChain/
-  );
+  const normalized = normalizeToolingCommandRequest({
+    command: 'verify',
+    workload: 'inference',
+    modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
+    configChain: ['profiles/verbose-trace'],
+  });
+  assert.deepEqual(normalized.configChain, ['profiles/verbose-trace']);
 
   assert.throws(
     () => normalizeToolingCommandRequest({
@@ -531,23 +529,19 @@ import {
 }
 
 {
-  assert.throws(
-    () => normalizeToolingCommandRequest({
-      command: 'debug',
-      modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
-      configChain: ['profiles/verbose-trace'],
-    }),
-    /debug does not accept configChain/
-  );
+  const debugRequest = normalizeToolingCommandRequest({
+    command: 'debug',
+    modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
+    configChain: ['profiles/verbose-trace'],
+  });
+  assert.deepEqual(debugRequest.configChain, ['profiles/verbose-trace']);
 
-  assert.throws(
-    () => normalizeToolingCommandRequest({
-      command: 'bench',
-      modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
-      configChain: ['profiles/verbose-trace'],
-    }),
-    /bench does not accept configChain/
-  );
+  const benchRequest = normalizeToolingCommandRequest({
+    command: 'bench',
+    modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
+    configChain: ['profiles/verbose-trace'],
+  });
+  assert.deepEqual(benchRequest.configChain, ['profiles/verbose-trace']);
 
   assert.throws(
     () => normalizeToolingCommandRequest({

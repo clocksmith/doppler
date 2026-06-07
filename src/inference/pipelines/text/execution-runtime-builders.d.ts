@@ -7,6 +7,10 @@ export declare function requireSessionActivationDtype(
   session: Record<string, unknown> | null | undefined,
   label?: string
 ): 'f16' | 'f32';
+export declare function requireSessionKVDtype(
+  session: Record<string, unknown> | null | undefined,
+  label?: string
+): 'f16' | 'f32';
 
 export declare function buildInlineKernelPath(
   steps: readonly Record<string, unknown>[],

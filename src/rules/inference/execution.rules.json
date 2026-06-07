@@ -86,7 +86,7 @@
         "hasGpuSplitPerLayerInputs": true,
         "currentSeqLen": { "gte": 192 }
       },
-      "value": 4
+      "value": 2
     },
     {
       "match": {
@@ -100,6 +100,24 @@
         "hasGpuSplitPerLayerInputs": true
       },
       "value": 8
+    },
+    {
+      "match": {
+        "modelId": { "contains": "gemma-4-12b" },
+        "activationDtype": "f16",
+        "numLayers": { "gte": 48 },
+        "hiddenSize": { "gte": 3840 },
+        "maxDecodeTokens": { "gt": 8 }
+      },
+      "value": 8
+    },
+    {
+      "match": {
+        "numLayers": { "gte": 48 },
+        "hiddenSize": { "gte": 3840 },
+        "maxDecodeTokens": { "gt": 16 }
+      },
+      "value": 16
     },
     { "match": {}, "value": null }
   ],

@@ -826,7 +826,7 @@ export class PipelineGenerator {
   // Generation Public API
   // ==========================================================================
 
-  /**
+  /*
    * Truncate the KV cache back to `seqLen` tokens and set `currentSeqLen` to
    * match. Intended for "prefix-reuse" workflows where a caller wants to run
    * several decodes that share a common prompt prefix: prefill once with the
@@ -1381,6 +1381,7 @@ export class PipelineGenerator {
     const hasGpuSplitPerLayerInputs = hasGpuSplitPerLayerInputEmbeddings({
       config: this.#state.modelConfig,
       weights: this.#state.weights,
+      perLayerInputsSession: resolvedPerLayerInputsSession,
     });
     const pleHotVocabularyRuntime = getPleHotVocabularyRuntime({ weights: this.#state.weights });
     const resolveCurrentHotVocabularyBatchDecodeAvailable = () => resolveHotVocabularyBatchDecodeAvailability({
@@ -1456,18 +1457,51 @@ export class PipelineGenerator {
           hasHotVocabularyBatchDecode: hotVocabularyBatchDecodeAvailable,
           hasGpuSplitPerLayerInputs,
           hasLinearAttentionLayers: hasLinearLayers,
+          modelId: this.#state.modelConfig.modelId ?? executionPlan.kernelPathId,
+          activationDtype: executionPlan.activationDtype,
           currentSeqLen: this.#state.currentSeqLen,
           maxDecodeTokens: opts.maxTokens,
+          numLayers: this.#state.modelConfig.numLayers,
+          hiddenSize: this.#state.modelConfig.hiddenSize,
         });
         const requestedBatchTokens = executionPlan.batchSize * intervalBatches;
         const boundedBatchTokens = maxBatchDecodeTokens == null
           ? requestedBatchTokens
           : Math.min(requestedBatchTokens, maxBatchDecodeTokens);
         const thisBatchSize = Math.min(boundedBatchTokens, remaining);
+        this.#state.batchingStats.requestedBatchTokens = Math.max(
+          this.#state.batchingStats.requestedBatchTokens ?? 0,
+          requestedBatchTokens
+        );
+        this.#state.batchingStats.effectiveBatchTokens = Math.max(
+          this.#state.batchingStats.effectiveBatchTokens ?? 0,
+          thisBatchSize
+        );
+        if (maxBatchDecodeTokens != null) {
+          this.#state.batchingStats.maxBatchTokenCap = Math.max(
+            this.#state.batchingStats.maxBatchTokenCap ?? 0,
+            maxBatchDecodeTokens
+          );
+        }
+        if (thisBatchSize < requestedBatchTokens) {
+          this.#state.batchingStats.batchClampCount = (this.#state.batchingStats.batchClampCount ?? 0) + 1;
+        }
         const lastToken = generatedIds[generatedIds.length - 1];
+        const boundedExecutionPlan = thisBatchSize < requestedBatchTokens
+          ? {
+            ...executionPlan,
+            batchSize: Math.min(executionPlan.batchSize, thisBatchSize),
+            readbackInterval: readbackInterval == null
+              ? null
+              : Math.min(intervalBatches, thisBatchSize),
+          }
+          : executionPlan;
+        const batchOpts = boundedExecutionPlan === executionPlan
+          ? opts
+          : { ...opts, executionPlan: boundedExecutionPlan };
 
         try {
-          const batchResult = await this._generateNTokensGPU(lastToken, thisBatchSize, generatedIds, opts);
+          const batchResult = await this._generateNTokensGPU(lastToken, thisBatchSize, generatedIds, batchOpts);
           let batchTokens = [];
           let hitStop = false;
           for (const tokenId of batchResult.tokens) {

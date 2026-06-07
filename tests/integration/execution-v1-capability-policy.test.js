@@ -63,14 +63,6 @@ assert.throws(
     manifestInference: SUBGROUP_MANIFEST,
     modelId: 'test-subgroup-model',
     numLayers: 1,
-    runtimeCompute: {
-      rangeAwareSelectiveWidening: {
-        enabled: true,
-        includeNonFinite: true,
-        onTrigger: 'error',
-        absThreshold: 65500,
-      },
-    },
     kernelPathPolicy: {
       mode: 'locked',
       sourceScope: ['manifest', 'model'],

@@ -122,6 +122,12 @@ export declare function resolveMaxBatchDecodeTokens(config: {
   hasHotVocabularyBatchDecode?: boolean;
   hasGpuSplitPerLayerInputs?: boolean;
   hasLinearAttentionLayers?: boolean;
+  modelId?: string;
+  activationDtype?: string;
+  currentSeqLen?: number;
+  maxDecodeTokens?: number;
+  numLayers?: number;
+  hiddenSize?: number;
 }): number | null;
 
 export declare function resolvePrefillRecorderChunkLayers(config: {

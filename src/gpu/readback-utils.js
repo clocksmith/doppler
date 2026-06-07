@@ -13,11 +13,19 @@ export async function withMappedReadBuffer(buffer, read) {
 
 export async function withMappedReadBuffers(entries, read) {
   const mappedEntries = [];
+  let mapError = null;
   try {
     await Promise.all(entries.map(async (entry) => {
-      await entry.buffer.mapAsync(GPUMapMode.READ);
-      mappedEntries.push(entry);
+      try {
+        await entry.buffer.mapAsync(GPUMapMode.READ);
+        mappedEntries.push(entry);
+      } catch (error) {
+        mapError ??= error;
+      }
     }));
+    if (mapError) {
+      throw mapError;
+    }
     const ranges = entries.map((entry) => {
       if (entry.offset != null || entry.size != null) {
         return entry.buffer.getMappedRange(

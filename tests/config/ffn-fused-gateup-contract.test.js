@@ -13,6 +13,7 @@ const BASE_FUSED_GATE_UP_CONTEXT = Object.freeze({
   f16BatchSupported: true,
   batchSize: 1,
   hiddenSizeAligned32: true,
+  useDoubleWideMlp: false,
 });
 
 assert.equal(
@@ -31,8 +32,8 @@ assert.equal(
     weightDtype: 'q4k',
     activationDtype: 'f16',
   }),
-  false,
-  'Q4K FFN weights must not enable the fused gate/up path on an f16 activation contract'
+  true,
+  'Q4K FFN weights should enable the explicit f16 fused gate/up path when the lane is rule-eligible'
 );
 
 assert.equal(

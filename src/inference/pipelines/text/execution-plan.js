@@ -432,8 +432,12 @@ export function resolveMaxBatchDecodeTokens(config) {
     hasHotVocabularyBatchDecode: config.hasHotVocabularyBatchDecode === true,
     hasGpuSplitPerLayerInputs: config.hasGpuSplitPerLayerInputs === true,
     hasLinearAttentionLayers: config.hasLinearAttentionLayers === true,
+    modelId: typeof config.modelId === 'string' ? config.modelId : '',
+    activationDtype: typeof config.activationDtype === 'string' ? config.activationDtype : '',
     currentSeqLen: Number.isFinite(config.currentSeqLen) ? config.currentSeqLen : 0,
     maxDecodeTokens: Number.isFinite(config.maxDecodeTokens) ? config.maxDecodeTokens : 0,
+    numLayers: Number.isFinite(config.numLayers) ? config.numLayers : 0,
+    hiddenSize: Number.isFinite(config.hiddenSize) ? config.hiddenSize : 0,
   });
   if (value == null) {
     return null;

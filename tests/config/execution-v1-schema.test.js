@@ -94,6 +94,8 @@ if (!qProj) throw new Error('Missing decode q_proj');
 if (qProj.kernel !== 'matmul_gemv_subgroup.wgsl') throw new Error('Wrong kernel for q_proj');
 if (qProj.entry !== 'main_vec4') throw new Error('Wrong entry for q_proj');
 if (qProj.weights !== 'layer.{L}.self_attn.q_proj') throw new Error('Wrong weights for q_proj');
+if (qProj.src !== 'state') throw new Error('Expanded q_proj should carry explicit src=state');
+if (qProj.dst !== 'state') throw new Error('Expanded q_proj should carry explicit dst=state');
 
 const decodeAttention = expanded.find((s) => s.phase === 'decode' && s.op === 'attention');
 if (!decodeAttention) throw new Error('Missing decode attention');
@@ -268,7 +270,7 @@ f16Graph.kernels.attn = {
   precision: { kvDtype: 'f16' },
 };
 
-const runtimeComputeActivationOverride = compileExecutionV1({
+const runtimeSessionActivationOverride = compileExecutionV1({
   manifestInference: {
     schema: EXECUTION_V1_SCHEMA_ID,
     execution: f16Graph,
@@ -282,19 +284,55 @@ const runtimeComputeActivationOverride = compileExecutionV1({
   },
   modelId: 'test-model-f16-runtime-compute',
   numLayers: 26,
+  runtimeSession: {
+    compute: {
+      defaults: {
+        activationDtype: 'f16',
+        mathDtype: 'f16',
+        accumDtype: 'f16',
+        outputDtype: 'f16',
+      },
+    },
+  },
+});
+
+if (runtimeSessionActivationOverride.session.compute.defaults.activationDtype !== 'f16') {
+  throw new Error('Expected runtimeSession activation override to update execution-v1 session activationDtype');
+}
+if (runtimeSessionActivationOverride.session.compute.defaults.outputDtype !== 'f16') {
+  throw new Error('Expected runtimeSession activation override to update execution-v1 session outputDtype');
+}
+if (runtimeSessionActivationOverride.runtimeInferencePatch.compute?.activationDtype !== 'f16') {
+  throw new Error('Expected runtimeInferencePatch.compute.activationDtype=f16 after runtimeSession override');
+}
+
+const ignoredRuntimeComputeActivationOverride = compileExecutionV1({
+  manifestInference: {
+    schema: EXECUTION_V1_SCHEMA_ID,
+    execution: graph,
+    session: {
+      compute: {
+        defaults: { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' },
+      },
+      kvcache: { kvDtype: 'f16' },
+      decodeLoop: null,
+    },
+  },
+  modelId: 'test-model-runtime-compute-ignored',
+  numLayers: 26,
   runtimeCompute: {
     activationDtype: 'f16',
   },
 });
 
-if (runtimeComputeActivationOverride.session.compute.defaults.activationDtype !== 'f16') {
-  throw new Error('Expected runtimeCompute activation override to update execution-v1 session activationDtype');
+if (ignoredRuntimeComputeActivationOverride.session.compute.defaults.activationDtype !== 'f32') {
+  throw new Error('runtimeCompute.activationDtype must not mutate execution-v1 session activationDtype');
 }
-if (runtimeComputeActivationOverride.session.compute.defaults.outputDtype !== 'f16') {
-  throw new Error('Expected runtimeCompute activation override to update execution-v1 session outputDtype');
+if (ignoredRuntimeComputeActivationOverride.runtimeInferencePatch.compute?.activationDtype !== 'f32') {
+  throw new Error('runtimeCompute.activationDtype must not mutate runtimeInferencePatch.compute.activationDtype');
 }
-if (runtimeComputeActivationOverride.runtimeInferencePatch.compute?.activationDtype !== 'f16') {
-  throw new Error('Expected runtimeInferencePatch.compute.activationDtype=f16 after runtimeCompute override');
+if (compiled.runtimeInferencePatch.generation) {
+  throw new Error('Execution-v1 runtime patch must not pre-apply decodeLoop generation defaults');
 }
 
 threw = false;
@@ -302,39 +340,23 @@ try {
   compileExecutionV1({
     manifestInference: {
       schema: EXECUTION_V1_SCHEMA_ID,
-      execution: f16Graph,
+      execution: graph,
       session: {
         compute: {
           defaults: { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' },
         },
-        kvcache: { kvDtype: 'f16' },
+        kvcache: { layout: 'contiguous' },
         decodeLoop: null,
       },
     },
-    modelId: 'test-model-runtime-conflict',
+    modelId: 'test-model-missing-kv-dtype',
     numLayers: 26,
-    runtimeSession: {
-      compute: {
-        defaults: {
-          activationDtype: 'f16',
-          outputDtype: 'f32',
-        },
-      },
-    },
-    runtimeCompute: {
-      activationDtype: 'f16',
-    },
   });
 } catch (error) {
-  threw = /runtime\.inference\.compute\.activationDtype conflicts with runtime\.inference\.session\.compute\.defaults\.outputDtype/.test(
-    String(error?.message ?? error)
-  );
+  threw = /session\.kvcache\.kvDtype is required/.test(String(error?.message ?? error));
 }
 if (!threw) {
-  throw new Error('Expected compileExecutionV1 to fail fast on conflicting runtime compute/session dtype overrides');
-}
-if (compiled.runtimeInferencePatch.generation) {
-  throw new Error('Execution-v1 runtime patch must not pre-apply decodeLoop generation defaults');
+  throw new Error('Expected compileExecutionV1 to fail fast when session.kvcache.kvDtype is missing');
 }
 
 const compiledTurboQuant = compileExecutionV1({

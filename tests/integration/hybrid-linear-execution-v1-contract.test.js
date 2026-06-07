@@ -34,7 +34,6 @@ function compileHybridExecution(execution) {
     modelId: 'unit-qwen-hybrid',
     numLayers: 2,
     runtimeSession: createSession(),
-    runtimeCompute: { activationDtype: 'f32' },
     kernelPathPolicy: {
       mode: 'capability-aware',
       sourceScope: ['manifest', 'model', 'config'],

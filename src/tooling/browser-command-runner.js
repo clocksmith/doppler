@@ -1,6 +1,7 @@
 import {
   applyRuntimeProfile,
   applyRuntimeConfigFromUrl,
+  loadRuntimeConfigFromRef,
 } from '../inference/browser-harness-runtime-helpers.js';
 import {
   getRuntimeConfig,
@@ -43,20 +44,6 @@ export async function runBrowserCommand(commandRequest, options = {}) {
   try {
     ({ request } = ensureCommandSupportedOnSurface(commandRequest, 'browser'));
 
-    if (request.command === 'convert') {
-      if (typeof validatedOptions.convertHandler !== 'function') {
-        throw new Error(
-          'browser command convert requires options.convertHandler(request) to be provided.'
-        );
-      }
-      const result = await validatedOptions.convertHandler(request);
-      return createToolingSuccessEnvelope({
-        surface: 'browser',
-        request,
-        result,
-      });
-    }
-
     if (
       request.command === 'verify'
       && request.workload === 'inference'
@@ -96,6 +83,7 @@ export async function runBrowserCommand(commandRequest, options = {}) {
     }
 
     const runtimeBridge = {
+      loadRuntimeConfigFromRef,
       applyRuntimeProfile,
       applyRuntimeConfigFromUrl,
       getRuntimeConfig,

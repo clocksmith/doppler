@@ -53,6 +53,7 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
   assert.equal(requiresF32Input('gemv_f16a'), false);
   assert.equal(requiresF32Input('q4_fused_f16a'), false);
   assert.equal(requiresF32Input('q4_fused_multicol_f16a'), false);
+  assert.equal(requiresF32Input('q4_fused_multicol_f16a_f32acc'), false);
 }
 
 // === requiresF32Input: f32 variants require f32 ===

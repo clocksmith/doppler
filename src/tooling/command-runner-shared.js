@@ -120,6 +120,7 @@ export async function applyRuntimeInputs(request, runtimeBridge, options = {}) {
     runtimeConfigUrl: request.runtimeConfigUrl ?? null,
     runtimeConfig: request.runtimeConfig ?? null,
   }, {
+    loadRuntimeConfigFromRef: runtimeBridge.loadRuntimeConfigFromRef?.bind(runtimeBridge),
     applyRuntimeProfile: runtimeBridge.applyRuntimeProfile?.bind(runtimeBridge),
     applyRuntimeConfigFromUrl: runtimeBridge.applyRuntimeConfigFromUrl?.bind(runtimeBridge),
   }, options);
@@ -178,7 +179,7 @@ export function buildSuiteOptions(request, surface = null) {
     checkpointEvery: request.checkpointEvery ?? undefined,
     workloadType: request.workloadType ?? undefined,
     modelUrl: request.modelUrl ?? undefined,
-    cacheMode: request.cacheMode ?? 'warm',
+    cacheMode: request.cacheMode ?? null,
     loadMode: request.loadMode ?? null,
     runtimeProfile: request.runtimeProfile ?? null,
     captureOutput: request.captureOutput,

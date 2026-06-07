@@ -39,6 +39,24 @@
         "dtypeMatches": true,
         "dtypeSupported": true,
         "weightDtype": "q4k",
+        "activationDtype": "f16",
+        "hiddenSizeAligned32": true,
+        "batchSize": { "lte": 4 },
+        "useDoubleWideMlp": false
+      },
+      "value": true
+    },
+    {
+      "match": {
+        "hasGate": true,
+        "hasUp": true,
+        "hasDown": true,
+        "hasFusedWeights": false,
+        "inputIsSupported": true,
+        "hasLoRA": false,
+        "dtypeMatches": true,
+        "dtypeSupported": true,
+        "weightDtype": "q4k",
         "activationDtype": "f32",
         "hiddenSizeAligned32": true,
         "batchSize": { "lte": 4 },

@@ -3,6 +3,7 @@
 import { validateManifest } from './validation.js';
 import { RDRR_VERSION } from './types.js';
 import { normalizeTensorStorageDescriptor } from './storage-descriptor.js';
+import { log } from '../../debug/index.js';
 
 const KNOWN_MANIFEST_VERSIONS = new Set([RDRR_VERSION]);
 
@@ -36,7 +37,8 @@ export function parseManifest(jsonString) {
     ? parseFloat(manifest.version)
     : manifest.version;
   if (typeof parsedVersion === 'number' && !KNOWN_MANIFEST_VERSIONS.has(parsedVersion)) {
-    console.warn(
+    log.warn(
+      'RDRR',
       `[RDRR] Unknown manifest version ${manifest.version} ` +
       `(known: ${[...KNOWN_MANIFEST_VERSIONS].join(', ')}). ` +
       'Parsing will continue but results may be unreliable.'

@@ -93,9 +93,8 @@ export async function runGeneration() {
   if (!prompt) return;
 
   const settings = getSettings();
-  // settings.js has already applied the runtime profile and synced runtime
-  // fields to the engine. settings contains generation params (temperature,
-  // topK, topP, maxTokens) which we use directly in the decode loop.
+  // settings.js applies the selected runtime profile. Editable generation
+  // fields are passed as call-time options when present.
 
   // Reset UI
   clearOutput();

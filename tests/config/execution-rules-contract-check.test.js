@@ -5,6 +5,7 @@ import {
 } from '../../src/rules/execution-rules-contract-check.js';
 import {
   getInferenceExecutionRulesContractArtifact,
+  selectRuleValue,
 } from '../../src/rules/rule-registry.js';
 
 {
@@ -13,7 +14,7 @@ import {
   assert.equal(artifact.stats.decodeRecorderContexts, 24);
   assert.equal(artifact.stats.profileDecodeRecorderContexts, 24);
   assert.equal(artifact.stats.batchDecodeContexts, 1024);
-  assert.equal(artifact.stats.maxBatchDecodeTokenContexts, 6);
+  assert.equal(artifact.stats.maxBatchDecodeTokenContexts, 8);
   assert.equal(artifact.stats.prefillRecorderChunkLayerContexts, 6);
   assert.ok(
     artifact.checks.some((entry) => entry.id === 'inference.execution.decodeRecorderEnabled.semantics' && entry.ok)
@@ -29,6 +30,20 @@ import {
   );
   assert.ok(
     artifact.checks.some((entry) => entry.id === 'inference.execution.prefillRecorderChunkLayers.semantics' && entry.ok)
+  );
+  assert.equal(
+    selectRuleValue('inference', 'execution', 'maxBatchDecodeTokens', {
+      hasHotVocabularyBatchDecode: false,
+      hasGpuSplitPerLayerInputs: false,
+      hasLinearAttentionLayers: false,
+      modelId: 'gemma-4-12b-it-text-q4k-ehf16-hq4k-af16',
+      activationDtype: 'f16',
+      currentSeqLen: 612,
+      maxDecodeTokens: 64,
+      numLayers: 48,
+      hiddenSize: 3840,
+    }),
+    8
   );
 }
 
@@ -202,7 +217,7 @@ import {
   );
   assert.ok(
     artifact.errors.some((message) =>
-      message.includes('maxBatchDecodeTokens fallback rule must be { match: {}, value: null }.')
+      message.includes('maxBatchDecodeTokens must contain exactly 8 rules.')
     )
   );
 }

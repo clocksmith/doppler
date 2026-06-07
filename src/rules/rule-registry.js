@@ -27,6 +27,7 @@ import kernelMoeMixtralRules from './kernels/moe.rules.mixtral.json' with { type
 import modulateRules from './kernels/modulate.rules.json' with { type: 'json' };
 import pixelShuffleRules from './kernels/pixel_shuffle.rules.json' with { type: 'json' };
 import repeatChannelsRules from './kernels/repeat-channels.rules.json' with { type: 'json' };
+import repPenaltyRules from './kernels/rep-penalty.rules.json' with { type: 'json' };
 import reluRules from './kernels/relu.rules.json' with { type: 'json' };
 import residualRules from './kernels/residual.rules.json' with { type: 'json' };
 import rmsnormRules from './kernels/rmsnorm.rules.json' with { type: 'json' };
@@ -114,6 +115,7 @@ const RULE_SETS = {
     modulate: modulateRules,
     pixel_shuffle: pixelShuffleRules,
     repeatChannels: repeatChannelsRules,
+    repPenalty: repPenaltyRules,
     relu: reluRules,
     residual: residualRules,
     rmsnorm: rmsnormRules,

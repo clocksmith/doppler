@@ -13,16 +13,14 @@
 // Helpers
 // =============================================================================
 
-/**
+/*
  * Deep-clone an execution graph.
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph}
  */
 function cloneGraph(graph) {
   return structuredClone(graph);
 }
 
-/**
+/*
  * Shader files that require subgroups even though "subgroup" is not in the filename.
  * Online attention kernels use subgroup reductions internally.
  */
@@ -51,10 +49,8 @@ const KERNEL_FILE_PRECISION_PATCHES = new Map([
   ['gather_f16_vec4_f16_out.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
 ]);
 
-/**
+/*
  * Check whether a kernel entry requires subgroup support.
- * @param {{ kernel: string }} kernelEntry
- * @returns {boolean}
  */
 function isSubgroupKernel(kernelEntry) {
   if (typeof kernelEntry.kernel !== 'string') return false;
@@ -66,11 +62,8 @@ function requiresNoSubgroupFallback(kernelEntry) {
   return isSubgroupKernel(kernelEntry) || kernelEntry.kernel.startsWith('fused_matmul_q4');
 }
 
-/**
+/*
  * Find all kernel keys in the graph whose `kernel` file matches the given filename.
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {string} filename
- * @returns {string[]}
  */
 function findKernelKeysByFile(graph, filename) {
   const keys = [];
@@ -82,23 +75,15 @@ function findKernelKeysByFile(graph, filename) {
   return keys;
 }
 
-/**
+/*
  * Check whether any kernel in the graph uses the given shader file.
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {string} filename
- * @returns {boolean}
  */
 function hasKernelFile(graph, filename) {
   return findKernelKeysByFile(graph, filename).length > 0;
 }
 
-/**
+/*
  * Create a new kernel entry with the digest cleared (shader changed).
- * @param {object} base - original kernel entry
- * @param {string} newFile - new shader filename
- * @param {string} newEntry - new entry point name
- * @param {object|null} [constants] - override constants (null to remove)
- * @returns {object}
  */
 function deriveKernelEntry(base, newFile, newEntry, constants) {
   const derived = { ...base, kernel: newFile, entry: newEntry, digest: null };
@@ -145,12 +130,8 @@ function deriveKernelPrecision(base, newFile) {
   return precision;
 }
 
-/**
+/*
  * Derive a non-colliding kernel key name.
- * @param {object} kernels - existing kernels dict
- * @param {string} baseKey - original key
- * @param {string} suffix - suffix to append
- * @returns {string}
  */
 function deriveKernelKey(kernels, baseKey, suffix) {
   const candidate = `${baseKey}${suffix}`;
@@ -164,11 +145,8 @@ function deriveKernelKey(kernels, baseKey, suffix) {
   return `${candidate}_${counter}`;
 }
 
-/**
+/*
  * Replace kernel key references in step tuples.
- * @param {Array<Array>} steps
- * @param {Map<string, string>} keyMap - oldKey → newKey
- * @returns {Array<Array>}
  */
 function remapStepKeys(steps, keyMap) {
   return steps.map((step) => {
@@ -183,12 +161,8 @@ function remapStepKeys(steps, keyMap) {
   });
 }
 
-/**
+/*
  * Check whether a step tuple's kernel key resolves to the given shader file.
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {Array} step
- * @param {string} filename
- * @returns {boolean}
  */
 function stepUsesFile(graph, step, filename) {
   const kernelKey = step[1];
@@ -196,14 +170,9 @@ function stepUsesFile(graph, step, filename) {
   return entry != null && entry.kernel === filename;
 }
 
-/**
+/*
  * Find the first kernel key used by matching ops in a phase whose shader file
  * satisfies the provided predicate.
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {Array<Array>} steps
- * @param {ReadonlySet<string>} ops
- * @param {(entry: { kernel: string, entry: string }) => boolean} predicate
- * @returns {string | null}
  */
 function findPhaseKernelKey(graph, steps, ops, predicate) {
   for (const step of steps || []) {
@@ -218,12 +187,8 @@ function findPhaseKernelKey(graph, steps, ops, predicate) {
   return null;
 }
 
-/**
+/*
  * Find an existing kernel key by shader file and entry point.
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {string} filename
- * @param {string} entryPoint
- * @returns {string | null}
  */
 function findKernelKeyByFileAndEntry(graph, filename, entryPoint) {
   for (const [key, entry] of Object.entries(graph.kernels)) {
@@ -589,15 +554,12 @@ function replacePhaseStepEntries(steps, op, replacementEntries) {
 // Transform: removeSubgroups
 // =============================================================================
 
-/**
+/*
  * Remove subgroup shader dependencies from decode and postLayer steps.
  * Prefill steps are left untouched (they already use tiled matmul).
  *
  * Returns null if the graph has no subgroup kernels.
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function removeSubgroups(graph, ctx) {
   const hasAnyFallbackKernel = Object.values(graph.kernels).some(requiresNoSubgroupFallback);
@@ -684,11 +646,10 @@ export function removeSubgroups(graph, ctx) {
 // Transform: widenToF32Activations
 // =============================================================================
 
-/**
+/*
  * Activation-only widening: f16-activation shaders → f32-activation variants
  * that still use f16 for weights and KV cache. Requires shader-f16 for weight
  * and KV buffer reads.
- * @type {ReadonlyMap<string, string>}
  */
 const F16_TO_F32_ACTIVATION_MAP = new Map([
   ['rmsnorm_f16.wgsl', 'rmsnorm.wgsl'],
@@ -710,14 +671,13 @@ const F16_TO_F32_ACTIVATION_MAP = new Map([
   ['attention_head512_f16.wgsl', 'attention_head512_f16kv.wgsl'],
 ]);
 
-/**
+/*
  * Activation-only narrowing: f32-activation shaders that still consume f16
  * weights/KV are rewritten onto the matching f16-activation lane.
  *
  * This is the inverse of `F16_TO_F32_ACTIVATION_MAP` and is used when a
  * runtime session explicitly requests f16 activations for an execution-v1
  * graph that was authored with conservative f32 activation defaults.
- * @type {ReadonlyMap<string, string>}
  */
 const F32_TO_F16_ACTIVATION_MAP = new Map(
   Array.from(F16_TO_F32_ACTIVATION_MAP.entries(), ([from, to]) => [to, from])
@@ -738,11 +698,10 @@ function hasExplicitF32ActivationContract(entry) {
     || precision.outputDtype === 'f32';
 }
 
-/**
+/*
  * Correctness fallback: preserve f16 weights where possible, but widen both
  * activations and KV-cache interactions onto the stable f32 execution lane.
  * Used for alternate-plan recovery after finiteness failure.
- * @type {ReadonlyMap<string, string>}
  */
 const F16_TO_F32_CORRECTNESS_FALLBACK_MAP = new Map([
   ['rmsnorm_f16.wgsl', 'rmsnorm.wgsl'],
@@ -767,11 +726,10 @@ const F16_TO_F32_CORRECTNESS_FALLBACK_MAP = new Map([
   ['attention_streaming_f16kv.wgsl', 'attention_streaming.wgsl'],
 ]);
 
-/**
+/*
  * Full f32 widening: every shader that uses `enable f16;` is replaced with a
  * pure-f32 equivalent. Used when the GPU cannot compile any f16 WGSL at all.
  * Covers f16-activation, f16-weight (f16w), and f16-KV (f16kv) kernels.
- * @type {ReadonlyMap<string, string>}
  */
 const FULL_F32_SHADER_MAP = new Map([
   // f16-activation utility kernels → f32
@@ -805,7 +763,7 @@ const FULL_F32_SHADER_MAP = new Map([
   ['attention_head256_f16kv.wgsl', 'attention_small.wgsl'],
 ]);
 
-/**
+/*
  * Widen all f16-activation shaders to f32-activation equivalents.
  *
  * Returns null if the graph contains fused_ffn_f16.wgsl (no direct f32
@@ -814,9 +772,6 @@ const FULL_F32_SHADER_MAP = new Map([
  * NOTE: The caller is responsible for also updating session.activationDtype
  * to reflect the widened dtype.
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function widenToF32Activations(graph, ctx) {
   // Bail out if fused f16 FFN is present — no direct f32 equivalent
@@ -856,13 +811,10 @@ export function widenToF32Activations(graph, ctx) {
   return result;
 }
 
-/**
+/*
  * Widen an f16 execution graph onto the stable f32 correctness lane used for
  * alternate-plan recovery after finiteness failure.
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function widenToF32CorrectnessFallback(graph, ctx) {
   if (hasKernelFile(graph, 'fused_ffn_f16.wgsl')) {
@@ -892,16 +844,13 @@ export function widenToF32CorrectnessFallback(graph, ctx) {
   return result;
 }
 
-/**
+/*
  * Narrow f32-activation shaders back onto their f16-activation equivalents.
  *
  * Returns null if the graph has no supported f32-activation kernels to swap or
  * if the runtime did not explicitly request f16 activations on an f16-capable
  * GPU.
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function narrowToF16Activations(graph, ctx) {
   if (ctx.activationDtype !== 'f16' || ctx.capabilities?.hasF16 !== true) {
@@ -932,7 +881,6 @@ export function narrowToF16Activations(graph, ctx) {
 // Transform: swapPrefillAttention
 // =============================================================================
 
-/** @type {ReadonlyMap<string, string>} */
 const PREFILL_ATTENTION_PAIRS = new Map([
   ['attention_streaming_f16kv.wgsl', 'attention_small_f16kv.wgsl'],
   ['attention_small_f16kv.wgsl', 'attention_streaming_f16kv.wgsl'],
@@ -960,7 +908,7 @@ function graphUsesKernelKeyInPrefill(graph, kernelKey) {
   return false;
 }
 
-/**
+/*
  * Swap prefill attention kernel between streaming and small variants.
  *
  * The `opts` parameter specifies the direction:
@@ -969,10 +917,6 @@ function graphUsesKernelKeyInPrefill(graph, kernelKey) {
  * If `from`/`to` are not provided, uses the bidirectional pair map.
  * Returns null if no matching prefill attention kernel is found.
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @param {{ from?: string, to?: string }} [opts]
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function swapPrefillAttention(graph, ctx, opts) {
   const from = opts?.from;
@@ -1010,12 +954,9 @@ export function swapPrefillAttention(graph, ctx, opts) {
 // Transform: useHead256PrefillAttention
 // =============================================================================
 
-/**
+/*
  * Promote small-tile prefill attention onto the fixed 256-dim shared-block kernel.
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function useHead256SmallPrefillAttention(graph, ctx) {
   return swapPrefillAttention(graph, ctx, {
@@ -1024,12 +965,9 @@ export function useHead256SmallPrefillAttention(graph, ctx) {
   });
 }
 
-/**
+/*
  * Promote prefill attention onto the fixed 256-dim shared-block kernel.
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function useHead256PrefillAttention(graph, ctx) {
   let current = graph;
@@ -1057,7 +995,6 @@ export function useHead256PrefillAttention(graph, ctx) {
 // Transform: widenProjectionWeightsToF32
 // =============================================================================
 
-/** @type {ReadonlySet<string>} */
 const PROJECTION_MATMUL_FILES = new Set([
   'matmul_gemv_subgroup.wgsl',
   'matmul_gemv_subgroup_f16a.wgsl',
@@ -1067,10 +1004,9 @@ const PROJECTION_MATMUL_FILES = new Set([
   'matmul_f16_tiled.wgsl',
 ]);
 
-/**
+/*
  * Known layer projection ops. Only these are widened; lm_head and embed are
  * excluded.
- * @type {ReadonlySet<string>}
  */
 const LAYER_PROJECTION_OPS = new Set([
   'q_proj', 'k_proj', 'v_proj', 'o_proj',
@@ -1090,7 +1026,7 @@ function resolveDensePrefillProjectionKernel(ctx) {
     : 'matmul_f16w_f32a.wgsl';
 }
 
-/**
+/*
  * Replace projection matmul kernels with f32 weight variants.
  *
  * Applies only to layer projection steps (q/k/v/o/gate/up/down), NOT lm_head
@@ -1098,9 +1034,6 @@ function resolveDensePrefillProjectionKernel(ctx) {
  *
  * Returns null if no applicable projection kernels are found.
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function widenProjectionWeightsToF32(graph, ctx) {
   // Collect kernel keys used by layer projection steps across all phases
@@ -1152,7 +1085,7 @@ export function widenProjectionWeightsToF32(graph, ctx) {
 // Transform: remapDenseQ4KPrefillToQ4Native
 // =============================================================================
 
-/**
+/*
  * Replace dense prefill projection kernels with Q4-native prefill variants.
  *
  * This applies only when the graph already exposes a compatible fused Q4 decode
@@ -1163,9 +1096,6 @@ export function widenProjectionWeightsToF32(graph, ctx) {
  * Returns null when the graph does not have the required dense-prefill + Q4
  * decode shape.
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function remapDenseQ4KPrefillToQ4Native(graph, ctx) {
   const densePrefillProjectionSteps = (graph.prefill || []).filter((step) => {
@@ -1234,7 +1164,7 @@ export function remapDenseQ4KPrefillToQ4Native(graph, ctx) {
 // Transform: remapQ4KPrefillToDense
 // =============================================================================
 
-/**
+/*
  * Replace fused Q4K prefill projection kernels with dense tiled variants.
  *
  * Decode remains unchanged so the runtime can keep using fused Q4K decode while
@@ -1242,9 +1172,6 @@ export function remapDenseQ4KPrefillToQ4Native(graph, ctx) {
  *
  * Returns null when the graph has no fused Q4K prefill projection kernels.
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function remapQ4KPrefillToDense(graph, ctx) {
   const q4PrefillProjectionSteps = (graph.prefill || []).filter((step) => {
@@ -1298,7 +1225,7 @@ export function remapQ4KPrefillToDense(graph, ctx) {
 // Transform: useLinearDecodeProjectionF16
 // =============================================================================
 
-/**
+/*
  * Remap the linear-attention q_proj decode step onto the f16-activation fused
  * Q4 kernel for linear-attention layers only. Full-attention layers keep the
  * manifest-wide f32 activation contract.
@@ -1310,9 +1237,6 @@ export function remapQ4KPrefillToDense(graph, ctx) {
  * repetitive output under greedy decode).  q_proj f16 is safe because the
  * linear attention core absorbs the f16 input into its f32 internal state.
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function useLinearDecodeProjectionF16(graph, ctx) {
   const layerTypes = Array.isArray(ctx.layerTypes) ? ctx.layerTypes : null;
@@ -1368,7 +1292,7 @@ export function useLinearDecodeProjectionF16(graph, ctx) {
 // Transform: remapQ4KDecodeToGemv
 // =============================================================================
 
-/**
+/*
  * Replace fused Q4K decode projection kernels with GEMV subgroup variants.
  *
  * When Q4K weights have f16 materializations (mixed/dense loader mode), the
@@ -1382,9 +1306,6 @@ export function useLinearDecodeProjectionF16(graph, ctx) {
  * Only layer projection ops are remapped.  Non-matmul ops (rmsnorm, rope,
  * attention, residual, activation) are left untouched.
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function remapQ4KDecodeToGemv(graph, ctx) {
   if (ctx.activationDtype === 'f16') {
@@ -1429,7 +1350,7 @@ export function remapQ4KDecodeToGemv(graph, ctx) {
 
 const ATTENTION_PROJECTION_OPS = new Set(['q_proj', 'k_proj', 'v_proj', 'o_proj']);
 
-/**
+/*
  * Replace fused Q4K ATTENTION-ONLY decode projection kernels with GEMV
  * subgroup variants, leaving FFN projections (gate/up/down_proj) untouched.
  *
@@ -1438,9 +1359,6 @@ const ATTENTION_PROJECTION_OPS = new Set(['q_proj', 'k_proj', 'v_proj', 'o_proj'
  * their fused Q4K kernels, `isKernelPathFusedQ4K` stays true and the weight
  * loader remains in mixed-materialization mode.
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function remapQ4KDecodeAttentionToGemv(graph, ctx) {
   if (ctx.activationDtype === 'f16') {
@@ -1497,7 +1415,7 @@ export function remapQ4KDecodeAttentionToGemv(graph, ctx) {
 // Transform: remapQ4KDecodeAttentionToFusedQ4KGemv
 // =============================================================================
 
-/**
+/*
  * Replace fused Q4K ATTENTION-ONLY decode projection kernels with the
  * optimised fused Q4K GEMV variant (main_gemv), which combines shared-A
  * cooperative loading with fast nibble extraction for maximum M=1 throughput
@@ -1514,9 +1432,6 @@ export function remapQ4KDecodeAttentionToGemv(graph, ctx) {
  * isKernelPathFusedQ4K stays true and the weight loader remains in
  * mixed-materialization mode (Q4K retained for attention, f16 for FFN).
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function remapQ4KDecodeAttentionToFusedQ4KGemv(graph, ctx) {
   if (ctx.activationDtype === 'f16') {
@@ -1575,7 +1490,7 @@ export function remapQ4KDecodeAttentionToFusedQ4KGemv(graph, ctx) {
 
 const FFN_PROJECTION_OPS = new Set(['gate_proj', 'up_proj', 'down_proj']);
 
-/**
+/*
  * Replace fused Q4K FFN-ONLY decode projection kernels with GEMV subgroup
  * variants, leaving attention projections (q/k/v/o_proj) as fused Q4K.
  *
@@ -1585,9 +1500,6 @@ const FFN_PROJECTION_OPS = new Set(['gate_proj', 'up_proj', 'down_proj']);
  * fused Q4K kernels, `isKernelPathFusedQ4K` stays true and the weight loader
  * remains in mixed-materialization mode.
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function remapQ4KDecodeFFNToGemv(graph, ctx) {
   if (ctx.activationDtype === 'f16') {
@@ -1644,7 +1556,7 @@ export function remapQ4KDecodeFFNToGemv(graph, ctx) {
 // Transform: useQwenDecodeF16Matmuls
 // =============================================================================
 
-/**
+/*
  * Narrow selected Qwen decode matmuls onto explicit f16-input/f16-output
  * kernels while keeping the manifest-wide f32 activation contract intact.
  *
@@ -1656,16 +1568,8 @@ export function remapQ4KDecodeFFNToGemv(graph, ctx) {
  * FFN down remains on the f32-output contract so the layer residual path stays
  * numerically aligned with the manifest-owned activation dtype.
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function useQwenDecodeF16Matmuls(graph, ctx) {
-  const modelId = typeof ctx.modelId === 'string' ? ctx.modelId.trim() : '';
-  if (modelId !== 'qwen-3-5-0-8b-q4k-ehaf16') {
-    return null;
-  }
-
   const result = cloneGraph(graph);
   let changed = false;
 
@@ -1730,7 +1634,7 @@ export function useQwenDecodeF16Matmuls(graph, ctx) {
 // Transform: useQwenF16PrimaryMatmuls
 // =============================================================================
 
-/**
+/*
  * Promote the Qwen 3.5 0.8B execution graph onto its selective f16 primary
  * lane when the runtime explicitly requests f16 activations.
  *
@@ -1742,16 +1646,8 @@ export function useQwenDecodeF16Matmuls(graph, ctx) {
  * `o_proj` writes f16 there (observed first at the first full-attention block's
  * post-attention RMSNorm).
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function useQwenF16PrimaryMatmuls(graph, ctx) {
-  const modelId = typeof ctx.modelId === 'string' ? ctx.modelId.trim() : '';
-  if (modelId !== 'qwen-3-5-0-8b-q4k-ehaf16' || ctx.activationDtype !== 'f16' || ctx.capabilities?.hasF16 !== true) {
-    return null;
-  }
-
   const layerTypes = Array.isArray(ctx.layerTypes) ? ctx.layerTypes : null;
   if (!layerTypes || layerTypes.length === 0) {
     return null;
@@ -1848,26 +1744,11 @@ export function useQwenF16PrimaryMatmuls(graph, ctx) {
 // Transform: useQwen36F16Activations
 // =============================================================================
 
-/**
+/*
  * Promote the Qwen 3.6 27B Q4K graph onto its additive all-f16 sibling lane.
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function useQwen36F16Activations(graph, ctx) {
-  const modelId = typeof ctx.modelId === 'string' ? ctx.modelId.trim() : '';
-  if (
-    modelId !== 'qwen-3-6-27b-q4k-eaf16'
-    || ctx.activationDtype !== 'f16'
-    || ctx.mathDtype !== 'f16'
-    || ctx.accumDtype !== 'f16'
-    || ctx.capabilities?.hasF16 !== true
-    || ctx.capabilities?.hasSubgroups !== true
-  ) {
-    return null;
-  }
-
   const narrowed = narrowToF16Activations(graph, ctx);
   const result = narrowed ?? cloneGraph(graph);
   let changed = narrowed != null;
@@ -1953,27 +1834,14 @@ export function useQwen36F16Activations(graph, ctx) {
 // Transform: useGemma4Int4PleSelectiveF16Decode
 // =============================================================================
 
-/**
+/*
  * Promote only Gemma 4 E2B INT4 PLE decode Q/K/V and online attention onto
  * explicit f16 kernels. Prefill remains on manifest-owned f16kv fixed-head
  * attention because the repository does not currently have pure-f16 head256 or
  * head512 prefill kernels.
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function useGemma4Int4PleSelectiveF16Decode(graph, ctx) {
-  const modelId = typeof ctx.modelId === 'string' ? ctx.modelId.trim() : '';
-  if (
-    modelId !== 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple'
-    || ctx.activationDtype !== 'f16'
-    || ctx.capabilities?.hasF16 !== true
-    || ctx.capabilities?.hasSubgroups !== true
-  ) {
-    return null;
-  }
-
   const result = cloneGraph(graph);
   let changed = false;
 
@@ -2044,35 +1912,95 @@ export function useGemma4Int4PleSelectiveF16Decode(graph, ctx) {
 }
 
 // =============================================================================
-// Transform: useGemma431BTextF16Activations
+// Transform: useGemma4TextF16Activations
 // =============================================================================
 
-/**
- * Promote the Gemma 4 31B text Q4K graph onto an experimental all-f16 request
- * lane. This keeps the same Q4K weight pack but remaps execution-v1 kernels so
- * Q4 projections, attention, residual/norm/activation utilities, lm_head, and
- * sampling consume and produce f16 activations where a matching kernel exists.
- *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
- */
-export function useGemma431BTextF16Activations(graph, ctx) {
-  const modelId = typeof ctx.modelId === 'string' ? ctx.modelId.trim() : '';
-  if (
-    ![
-      'gemma-4-31b-it-text-q4k-ehf16-af32',
-      'gemma-4-31b-it-text-q4k-ehf16-af16',
-    ].includes(modelId)
-    || ctx.activationDtype !== 'f16'
-    || ctx.mathDtype !== 'f16'
-    || ctx.accumDtype !== 'f16'
-    || ctx.capabilities?.hasF16 !== true
-    || ctx.capabilities?.hasSubgroups !== true
-  ) {
-    return null;
+const GEMMA4_12B_PREFILL_F32_PROJECTION_OPS = new Set([
+  'q_proj',
+  'k_proj',
+  'v_proj',
+  'gate_proj',
+  'up_proj',
+]);
+
+function remapGemma412BPrefillProjectionEntries(entries, f16Key, f32Key) {
+  if (!Array.isArray(entries) || !f16Key || !f32Key) {
+    return { entries, changed: false };
   }
 
+  let changed = false;
+  const remapStep = (step) => {
+    if (!Array.isArray(step) || !LAYER_PROJECTION_OPS.has(step[0])) {
+      return step;
+    }
+    const targetKey = GEMMA4_12B_PREFILL_F32_PROJECTION_OPS.has(step[0])
+      ? f32Key
+      : f16Key;
+    if (step[1] === targetKey) {
+      return step;
+    }
+    const replacement = [...step];
+    replacement[1] = targetKey;
+    changed = true;
+    return replacement;
+  };
+
+  const nextEntries = entries.map((entry) => {
+    if (Array.isArray(entry)) {
+      return remapStep(entry);
+    }
+    if (!entry || typeof entry !== 'object' || !Array.isArray(entry.steps)) {
+      return entry;
+    }
+    return {
+      ...entry,
+      steps: entry.steps.map((step) => remapStep(step)),
+    };
+  });
+
+  return { entries: nextEntries, changed };
+}
+
+function remapGemma412BStableBoundaryEntries(result, sourceGraph) {
+  let changed = false;
+
+  const replaceStepWithSourceEntry = (phaseName, op, precision) => {
+    const phase = result[phaseName];
+    const sourcePhase = sourceGraph[phaseName];
+    const step = findPhaseStep(phase, op);
+    const sourceStep = findPhaseStep(sourcePhase, op);
+    const sourceKey = sourceStep?.[1] ?? step?.[1] ?? null;
+    const sourceEntry = sourceKey ? sourceGraph.kernels[sourceKey] : null;
+    if (!step || !sourceKey || !sourceEntry) {
+      return;
+    }
+    const stableKey = deriveKernelKey(result.kernels, sourceKey, '_gemma4_12b_stable');
+    result.kernels[stableKey] = precision
+      ? deriveKernelEntryWithPrecision(sourceEntry, precision)
+      : { ...sourceEntry };
+    const phaseResult = replacePhaseStepKernelKey(phase, op, stableKey);
+    if (phaseResult.changed) {
+      result[phaseName] = phaseResult.steps;
+      changed = true;
+    }
+  };
+
+  for (const op of ['q_proj', 'k_proj', 'v_proj', 'rope_q', 'rope_k']) {
+    replaceStepWithSourceEntry('decode', op, { inputDtype: 'f32', outputDtype: 'f32' });
+  }
+  replaceStepWithSourceEntry('decode', 'attention', {
+    activationDtype: 'f32',
+    kvDtype: 'f16',
+    outputDtype: 'f32',
+  });
+  for (const op of ['final_norm', 'lm_head', 'lm_head_prefill', 'sample']) {
+    replaceStepWithSourceEntry('postLayer', op, null);
+  }
+
+  return changed;
+}
+
+function useGemma4TextF16ActivationsForLane(graph, ctx, options) {
   const narrowed = narrowToF16Activations(graph, ctx);
   const result = narrowed ?? cloneGraph(graph);
   let changed = narrowed != null;
@@ -2083,6 +2011,31 @@ export function useGemma431BTextF16Activations(graph, ctx) {
     }
     result.kernels[key] = entry;
     changed = true;
+  };
+  const stableTextBoundary = options?.stableTextBoundary === true;
+
+  const derivePrefillAttentionEntry = (entry) => {
+    if (
+      stableTextBoundary
+      && typeof entry?.kernel === 'string'
+      && entry.kernel === 'attention_small_f16.wgsl'
+    ) {
+      return deriveKernelEntryWithPrecision(
+        deriveKernelEntry(entry, 'attention_head256_f16kv.wgsl', 'main'),
+        { activationDtype: 'f32', kvDtype: 'f16', outputDtype: 'f32' }
+      );
+    }
+    if (
+      stableTextBoundary
+      && typeof entry?.kernel === 'string'
+      && entry.kernel.endsWith('_f16kv.wgsl')
+    ) {
+      return deriveKernelEntryWithPrecision(
+        entry,
+        { activationDtype: 'f32', kvDtype: 'f16', outputDtype: 'f32' }
+      );
+    }
+    return deriveF16AttentionKernelEntry(entry);
   };
 
   const embedStep = findPhaseStep(result.preLayer, 'embed');
@@ -2107,12 +2060,35 @@ export function useGemma431BTextF16Activations(graph, ctx) {
 
   const prefillProjectionStep = findPhaseStep(result.prefill, 'q_proj');
   const prefillProjectionKey = prefillProjectionStep?.[1] ?? null;
-  replaceKernelEntry(
-    prefillProjectionKey,
-    deriveQ4PrefillF16AccumKernelEntry(result.kernels[prefillProjectionKey])
-      ?? deriveQ4WideTilePrefillF16KernelEntry(result.kernels[prefillProjectionKey])
-      ?? deriveQ4PrefillF16KernelEntry(result.kernels[prefillProjectionKey])
-  );
+  const sourcePrefillProjectionEntry = result.kernels[prefillProjectionKey];
+  const prefillProjectionF16Entry = stableTextBoundary
+    ? (
+        deriveQ4WideTilePrefillF16KernelEntry(sourcePrefillProjectionEntry)
+        ?? deriveQ4PrefillF16AccumKernelEntry(sourcePrefillProjectionEntry)
+        ?? deriveQ4PrefillF16KernelEntry(sourcePrefillProjectionEntry)
+      )
+    : (
+        deriveQ4PrefillF16AccumKernelEntry(sourcePrefillProjectionEntry)
+        ?? deriveQ4WideTilePrefillF16KernelEntry(sourcePrefillProjectionEntry)
+        ?? deriveQ4PrefillF16KernelEntry(sourcePrefillProjectionEntry)
+      );
+  if (stableTextBoundary && prefillProjectionKey && prefillProjectionF16Entry) {
+    const prefillProjectionF16Key = deriveKernelKey(result.kernels, prefillProjectionKey, '_gemma4_f16');
+    result.kernels[prefillProjectionF16Key] = prefillProjectionF16Entry;
+    changed = true;
+    const remapped = remapGemma412BPrefillProjectionEntries(
+      result.prefill,
+      prefillProjectionF16Key,
+      prefillProjectionKey
+    );
+    result.prefill = remapped.entries;
+    changed = changed || remapped.changed;
+  } else {
+    replaceKernelEntry(
+      prefillProjectionKey,
+      prefillProjectionF16Entry
+    );
+  }
 
   const replacePrefillAttentionEntries = (entries) => {
     for (const entry of entries || []) {
@@ -2122,7 +2098,7 @@ export function useGemma431BTextF16Activations(graph, ctx) {
         }
         replaceKernelEntry(
           entry[1],
-          deriveF16AttentionKernelEntry(result.kernels[entry[1]])
+          derivePrefillAttentionEntry(result.kernels[entry[1]])
         );
         continue;
       }
@@ -2169,39 +2145,40 @@ export function useGemma431BTextF16Activations(graph, ctx) {
     );
   }
 
+  if (stableTextBoundary) {
+    changed = remapGemma412BStableBoundaryEntries(result, graph) || changed;
+  }
+
   return changed ? result : null;
+}
+
+export function useGemma4TextF16Activations(graph, ctx) {
+  return useGemma4TextF16ActivationsForLane(graph, ctx, { stableTextBoundary: false });
+}
+
+export function useGemma412BTextF16Activations(graph, ctx) {
+  return useGemma4TextF16ActivationsForLane(graph, ctx, { stableTextBoundary: true });
+}
+
+export function useGemma431BTextF16Activations(graph, ctx) {
+  return useGemma4TextF16Activations(graph, ctx);
 }
 
 // =============================================================================
 // Transform: useGemma4Int4PleAf16Activations
 // =============================================================================
 
-/**
+/*
  * Promote the Gemma 4 E2B INT4-PLE Q4K graph onto the all-f16 lane via the
  * weights-ref sibling manifest gemma-4-e2b-it-q4k-ehf16-af16-int4ple. Mirrors
- * useGemma431BTextF16Activations: same Q4 weight pack, kernels narrowed to f16
+ * useGemma4TextF16Activations: same Q4 weight pack, kernels narrowed to f16
  * activations, prefill projections promoted from widetile to widetile_f16a,
  * decode projections to multicol_f16a, lm_head/sample/final_norm to their f16
  * counterparts. Apple Metal stays disabled at the capability layer because the
  * fused-q4k+f16 kernel pool produces NaN at L0.ffn_down on metal-3.
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {import('./execution-graph-transforms.js').ExecutionGraph | null}
  */
 export function useGemma4Int4PleAf16Activations(graph, ctx) {
-  const modelId = typeof ctx.modelId === 'string' ? ctx.modelId.trim() : '';
-  if (
-    modelId !== 'gemma-4-e2b-it-q4k-ehf16-af16-int4ple'
-    || ctx.activationDtype !== 'f16'
-    || ctx.mathDtype !== 'f16'
-    || ctx.accumDtype !== 'f16'
-    || ctx.capabilities?.hasF16 !== true
-    || ctx.capabilities?.hasSubgroups !== true
-  ) {
-    return null;
-  }
-
   const narrowed = narrowToF16Activations(graph, ctx);
   const result = narrowed ?? cloneGraph(graph);
   let changed = narrowed != null;
@@ -2305,14 +2282,12 @@ export function useGemma4Int4PleAf16Activations(graph, ctx) {
 // Composition
 // =============================================================================
 
-/**
+/*
  * Compose multiple transforms into a single transform function.
  *
  * Each transform is applied sequentially. If a transform returns null
  * (not applicable), the graph passes through unchanged.
  *
- * @param {Array<(graph: import('./execution-graph-transforms.js').ExecutionGraph, ctx: import('./execution-graph-transforms.js').TransformContext) => import('./execution-graph-transforms.js').ExecutionGraph | null>} transforms
- * @returns {(graph: import('./execution-graph-transforms.js').ExecutionGraph, ctx: import('./execution-graph-transforms.js').TransformContext) => import('./execution-graph-transforms.js').ExecutionGraph}
  */
 export function composeTransforms(...transforms) {
   return (graph, ctx) => {
@@ -2333,7 +2308,7 @@ export function disableRetainQ4KMaterialization() {
   return null;
 }
 
-/**
+/*
  * Fail-closed sentinel transform. A capability rule installs this when the
  * matched (modelId, runtime profile) combination is contradictory — for
  * example, an af32 manifest variant paired with a runtime profile that
@@ -2341,9 +2316,6 @@ export function disableRetainQ4KMaterialization() {
  * earlier manifest-binding gate has been bypassed; throwing here keeps the
  * lane-confusion door shut at the capability layer too.
  *
- * @param {import('./execution-graph-transforms.js').ExecutionGraph} _graph
- * @param {import('./execution-graph-transforms.js').TransformContext} ctx
- * @returns {never}
  */
 export function failClosedLaneMismatch(_graph, ctx) {
   const modelId = ctx?.modelId ?? 'unknown';
@@ -2359,7 +2331,6 @@ export function failClosedLaneMismatch(_graph, ctx) {
 // Registry
 // =============================================================================
 
-/** @type {Readonly<Record<string, Function>>} */
 export const TRANSFORMS = Object.freeze({
   narrowToF16Activations,
   removeSubgroups,
@@ -2381,6 +2352,8 @@ export const TRANSFORMS = Object.freeze({
   useQwen36F16Activations,
   useQwenDecodeF16Matmuls,
   useGemma4Int4PleSelectiveF16Decode,
+  useGemma4TextF16Activations,
+  useGemma412BTextF16Activations,
   useGemma431BTextF16Activations,
   useGemma4Int4PleAf16Activations,
   failClosedLaneMismatch,

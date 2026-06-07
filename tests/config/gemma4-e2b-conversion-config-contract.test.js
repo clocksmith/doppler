@@ -133,14 +133,6 @@ const f16Primary = compileExecutionV1({
     vendor: 'test',
     architecture: 'test',
   },
-  runtimeCompute: {
-    rangeAwareSelectiveWidening: {
-      enabled: true,
-      includeNonFinite: true,
-      onTrigger: 'error',
-      absThreshold: 65500,
-    },
-  },
   kernelPathPolicy: {
     mode: 'capability-aware',
     sourceScope: ['manifest', 'model', 'config'],
@@ -192,14 +184,6 @@ const appleRetainDisabled = compileExecutionV1({
     vendor: 'apple',
     architecture: 'metal-3',
   },
-  runtimeCompute: {
-    rangeAwareSelectiveWidening: {
-      enabled: true,
-      includeNonFinite: true,
-      onTrigger: 'error',
-      absThreshold: 65500,
-    },
-  },
   kernelPathPolicy: {
     mode: 'capability-aware',
     sourceScope: ['manifest', 'model', 'config'],
@@ -231,14 +215,6 @@ const amdRetainAllowed = compileExecutionV1({
     id: 'amd-rdna3',
     vendor: 'amd',
     architecture: 'rdna3',
-  },
-  runtimeCompute: {
-    rangeAwareSelectiveWidening: {
-      enabled: true,
-      includeNonFinite: true,
-      onTrigger: 'error',
-      absThreshold: 65500,
-    },
   },
   kernelPathPolicy: {
     mode: 'capability-aware',
@@ -282,14 +258,6 @@ assert.throws(
       vendor: 'test',
       architecture: 'test',
     },
-    runtimeCompute: {
-      rangeAwareSelectiveWidening: {
-        enabled: true,
-        includeNonFinite: true,
-        onTrigger: 'fallback-plan',
-        absThreshold: 65500,
-      },
-    },
     kernelPathPolicy: {
       mode: 'capability-aware',
       sourceScope: ['manifest', 'model', 'config'],
@@ -314,14 +282,6 @@ const finitenessFallback = compileExecutionV1({
     vendor: 'test',
     architecture: 'test',
   },
-  runtimeCompute: {
-    rangeAwareSelectiveWidening: {
-      enabled: true,
-      includeNonFinite: true,
-      onTrigger: 'fallback-plan',
-      absThreshold: 65500,
-    },
-  },
   kernelPathPolicy: {
     mode: 'capability-aware',
     sourceScope: ['manifest', 'model', 'config'],
@@ -345,14 +305,6 @@ const widenedFallback = compileExecutionV1({
     id: 'test-f32-fallback',
     vendor: 'test',
     architecture: 'test',
-  },
-  runtimeCompute: {
-    rangeAwareSelectiveWidening: {
-      enabled: true,
-      includeNonFinite: true,
-      onTrigger: 'error',
-      absThreshold: 65500,
-    },
   },
   kernelPathPolicy: {
     mode: 'capability-aware',
