@@ -35,6 +35,7 @@ const CHART_SCENARIOS = Object.freeze({
     section: 'compute/parity',
     width: 1200,
     height: 474,
+    allowNonComparable: true,
     output: path.join(__dirname, 'results', 'compare_1b_multi-workload_favorable_phases.svg'),
     description: 'README chart: Gemma 4 and Qwen 3.5 0.8B compare phases',
   }),
@@ -214,79 +215,26 @@ const ARCHITECTURE_COLORS = PALETTE.architecture;
 const FONT_UI = SVG_FONTS.uiCss.replaceAll('"', "'");
 const FONT_MONO = SVG_FONTS.monoCss.replaceAll('"', "'");
 const SVG_STYLE = makeSvgTextStyle();
-const PHASE_PANEL_OPACITY = '0.35';
 
 let svgIdCounter = 0;
 
 function renderChartCanvas(width, height) {
-  return `<rect x="0" y="0" width="${width}" height="${height}" fill="#020617" />
-  <rect x="${CANVAS_PADDING}" y="${CANVAS_PADDING}" width="${Math.max(0, width - CANVAS_PADDING * 2)}" height="${height - CANVAS_PADDING * 2}" rx="0" fill="#020817" fill-opacity="0.50" stroke="none" />`;
+  return `<rect x="0" y="0" width="${width}" height="${height}" fill="${PALETTE.bg}" />
+  <rect x="${CANVAS_PADDING}" y="${CANVAS_PADDING}" width="${Math.max(0, width - CANVAS_PADDING * 2)}" height="${height - CANVAS_PADDING * 2}" rx="${SVG_THEME.radius.panel}" fill="${PALETTE.panel}" stroke="${PALETTE.border}" stroke-width="${SVG_THEME.stroke.thin}" />`;
 }
 
 function renderChartHeaderBand(width, title, subtitle, sectionLabel) {
   const safeTitle = escapeXml(title || subtitle || DEFAULT_SAFE_TITLE);
   const textY = CANVAS_PADDING + 34;
-  return `<text x="${CANVAS_PADDING + 16}" y="${textY}" fill="#dbeafe" font-family="${FONT_UI}" font-size="14" font-weight="bold" stroke="none">${safeTitle}</text>`;
+  return `<text x="${CANVAS_PADDING + 16}" y="${textY}" fill="${PALETTE.accent}" font-family="${FONT_UI}" font-size="14" font-weight="bold">${safeTitle}</text>`;
 }
 
-function renderPhaseTrackPanel(x, y, width, height, tint = PALETTE.grid) {
-  return `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="0" fill="${PALETTE.grid}" fill-opacity="${PHASE_PANEL_OPACITY}" stroke="none" />`;
+function renderPhaseTrackPanel(x, y, width, height) {
+  return `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="${SVG_THEME.radius.panel}" fill="${PALETTE.panel}" stroke="${PALETTE.border}" stroke-width="${SVG_THEME.stroke.thin}" />`;
 }
 
 function renderPhaseSceneDefs() {
-  return `<defs>
-  <linearGradient id="phase-canvas-glow" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="0%" stop-color="#7c3aed18" />
-    <stop offset="45%" stop-color="#ef444410" />
-    <stop offset="100%" stop-color="#2563eb12" />
-  </linearGradient>
-  <linearGradient id="phase-workload-panel" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="0%" stop-color="#081121" />
-    <stop offset="55%" stop-color="#0b1325" />
-    <stop offset="100%" stop-color="#0c1630" />
-  </linearGradient>
-  <linearGradient id="phase-workload-stroke" x1="0%" y1="0%" x2="100%" y2="0%">
-    <stop offset="0%" stop-color="${ARCHITECTURE_COLORS.loadBorder}" />
-    <stop offset="48%" stop-color="${ARCHITECTURE_COLORS.edge}" />
-    <stop offset="100%" stop-color="${ARCHITECTURE_COLORS.inferBorder}" />
-  </linearGradient>
-  <linearGradient id="phase-track-fill" x1="0%" y1="0%" x2="100%" y2="0%">
-    <stop offset="0%" stop-color="#0c1528" />
-    <stop offset="100%" stop-color="#111b31" />
-  </linearGradient>
-  <linearGradient id="phase-track-stroke" x1="0%" y1="0%" x2="100%" y2="0%">
-    <stop offset="0%" stop-color="#ffffff1d" />
-    <stop offset="100%" stop-color="#ffffff08" />
-  </linearGradient>
-  <linearGradient id="phase-load-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-    <stop offset="0%" stop-color="#f87171" />
-    <stop offset="100%" stop-color="${PHASE_COLORS.warmLoad}" />
-  </linearGradient>
-  <linearGradient id="phase-prefill-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-    <stop offset="0%" stop-color="#a855f7" />
-    <stop offset="100%" stop-color="${ARCHITECTURE_COLORS.edge}" />
-  </linearGradient>
-  <linearGradient id="phase-decode-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-    <stop offset="0%" stop-color="#60a5fa" />
-    <stop offset="100%" stop-color="${PHASE_COLORS.decode}" />
-  </linearGradient>
-  <linearGradient id="phase-doppler-chip" x1="0%" y1="0%" x2="100%" y2="0%">
-    <stop offset="0%" stop-color="#7c3aed33" />
-    <stop offset="100%" stop-color="#ef444422" />
-  </linearGradient>
-  <linearGradient id="phase-transformers-chip" x1="0%" y1="0%" x2="100%" y2="0%">
-    <stop offset="0%" stop-color="#1d4ed833" />
-    <stop offset="100%" stop-color="#ffbd4522" />
-  </linearGradient>
-  <linearGradient id="phase-total-pill" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="0%" stop-color="#0f172a" />
-    <stop offset="100%" stop-color="#172554" />
-  </linearGradient>
-  <linearGradient id="phase-winner-pill" x1="0%" y1="0%" x2="100%" y2="0%">
-    <stop offset="0%" stop-color="#7c3aed33" />
-    <stop offset="100%" stop-color="#2563eb33" />
-  </linearGradient>
-  </defs>`;
+  return '';
 }
 
 function svgWrap(width, height, body, title = 'Benchmark Comparison', desc = '') {
@@ -774,6 +722,9 @@ function applyScenarioOptions(parsed) {
   if (!parsed.outputExplicit && scenario.output) {
     parsed.output = scenario.output;
   }
+  if (scenario.allowNonComparable === true) {
+    parsed.allowNonComparable = true;
+  }
 }
 
 function isFiniteNumber(value) {
@@ -1038,8 +989,8 @@ function renderBarChart(rows, width, height, title, subtitle, sectionLabel) {
     }
   });
 
-  body += `<text x="${left + 80}" y="${top - 24}" fill="${PALETTE.doppler}" stroke="#ffffff" stroke-width="2" font-family="${FONT_MONO}" font-size="14">${ENGINE_META.doppler.label}</text>\n`;
-  body += `<text x="${left + 170}" y="${top - 24}" fill="${PALETTE.transformersjs}" stroke="#ffffff" stroke-width="2" font-family="${FONT_MONO}" font-size="14">${ENGINE_META.transformersjs.label}</text>\n`;
+  body += `<text x="${left + 80}" y="${top - 24}" fill="${PALETTE.doppler}" font-family="${FONT_MONO}" font-size="14">${ENGINE_META.doppler.label}</text>\n`;
+  body += `<text x="${left + 170}" y="${top - 24}" fill="${PALETTE.transformersjs}" font-family="${FONT_MONO}" font-size="14">${ENGINE_META.transformersjs.label}</text>\n`;
   body += `<text x="40" y="36" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="18" font-weight="bold">${escapeXml(title)}</text>\n`;
   body += `<text x="40" y="54" fill="${PALETTE.muted}" font-family="${FONT_MONO}" font-size="12">${escapeXml(subtitle)}</text>\n`;
   body += `<text x="40" y="${height - 22}" fill="${PALETTE.muted}" font-family="${FONT_MONO}" font-size="11">${escapeXml(`Section: ${sectionLabel}`)}</text>\n`;
@@ -1295,10 +1246,9 @@ function renderPhaseSegmentLabel(x, y, width, title, valueLabel) {
 }
 
 function renderEngineChip(x, y, engine) {
-  const chipId = engine.key === ENGINE_META.doppler.key ? 'phase-doppler-chip' : 'phase-transformers-chip';
   const chipWidth = engine.key === ENGINE_META.doppler.key ? 128 : 188;
-  return `<rect x="${x}" y="${y}" width="${chipWidth}" height="28" rx="14" fill="url(#${chipId})" stroke="${engine.color}" stroke-width="1.5" />\n`
-    + `<text x="${x + 14}" y="${y + 19}" fill="${engine.color}" font-family="${FONT_UI}" font-size="14" font-weight="bold" stroke="none">${escapeXml(engine.label)}</text>\n`;
+  return `<rect x="${x}" y="${y}" width="${chipWidth}" height="28" rx="${SVG_THEME.radius.badge}" fill="${engine.color}" fill-opacity="0.14" stroke="${engine.color}" stroke-width="${SVG_THEME.stroke.thin}" />\n`
+    + `<text x="${x + 14}" y="${y + 19}" fill="${engine.color}" font-family="${FONT_UI}" font-size="14" font-weight="bold">${escapeXml(engine.label)}</text>\n`;
 }
 
 function renderPhaseLane({ x, y, width, engine, resolved, globalMax }) {
@@ -1311,19 +1261,19 @@ function renderPhaseLane({ x, y, width, engine, resolved, globalMax }) {
 
   let body = '';
   body += renderEngineChip(x, y + 12, engine);
-  body += `<text x="${x + 14}" y="${y + 54}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12" stroke="none">${escapeXml(LOAD_LABEL[engine.key] || 'Model load')}</text>\n`;
-  body += `<rect x="${barX}" y="${y}" width="${barWidth}" height="${barHeight}" rx="18" fill="url(#phase-track-fill)" stroke="url(#phase-track-stroke)" stroke-width="1.2" />\n`;
+  body += `<text x="${x + 14}" y="${y + 54}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12">${escapeXml(LOAD_LABEL[engine.key] || 'Model load')}</text>\n`;
+  body += `<rect x="${barX}" y="${y}" width="${barWidth}" height="${barHeight}" rx="${SVG_THEME.radius.panel}" fill="${PALETTE.panel}" stroke="${PALETTE.border}" stroke-width="${SVG_THEME.stroke.thin}" />\n`;
 
   if (!resolved) {
-    body += `<rect x="${barX + 4}" y="${y + 4}" width="${Math.max(0, barWidth - 8)}" height="${barHeight - 8}" rx="14" fill="${PALETTE.failFill}" />\n`;
+    body += `<rect x="${barX + 4}" y="${y + 4}" width="${Math.max(0, barWidth - 8)}" height="${barHeight - 8}" rx="${SVG_THEME.radius.badge}" fill="${PALETTE.failFill}" fill-opacity="0.14" stroke="${PALETTE.failFill}" stroke-width="${SVG_THEME.stroke.thin}" />\n`;
     body += `<text x="${barX + 18}" y="${y + 34}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="13" font-weight="bold">No data</text>\n`;
   } else {
     const pxPerMs = Math.max(0, (barWidth - 8) / globalMax);
     let cursor = barX + 4;
     const segments = [
-      { title: 'Warm load', fill: 'url(#phase-load-grad)', value: resolved.modelLoadMs },
-      { title: 'First token', fill: 'url(#phase-prefill-grad)', value: resolved.ttft },
-      { title: 'Decode', fill: 'url(#phase-decode-grad)', value: resolved.decodeMs },
+      { title: 'Warm load', fill: PHASE_COLORS.warmLoad, value: resolved.modelLoadMs },
+      { title: 'First token', fill: PHASE_COLORS.prefill, value: resolved.ttft },
+      { title: 'Decode', fill: PHASE_COLORS.decode, value: resolved.decodeMs },
     ];
 
     for (const segment of segments) {
@@ -1336,8 +1286,8 @@ function renderPhaseLane({ x, y, width, engine, resolved, globalMax }) {
   }
 
   const totalX = x + width - totalWidth;
-  body += `<rect x="${totalX}" y="${y + 9}" width="${totalWidth}" height="38" rx="19" fill="url(#phase-total-pill)" stroke="#ffffff1f" stroke-width="1.1" />\n`;
-  body += `<text x="${totalX + totalWidth / 2}" y="${y + 25}" text-anchor="middle" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="10" font-weight="bold" stroke="none">TOTAL</text>\n`;
+  body += `<rect x="${totalX}" y="${y + 9}" width="${totalWidth}" height="38" rx="${SVG_THEME.radius.badge}" fill="${PALETTE.panelAlt}" stroke="${PALETTE.border}" stroke-width="${SVG_THEME.stroke.thin}" />\n`;
+  body += `<text x="${totalX + totalWidth / 2}" y="${y + 25}" text-anchor="middle" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="10" font-weight="bold">TOTAL</text>\n`;
   body += `<text x="${totalX + totalWidth / 2}" y="${y + 39}" text-anchor="middle" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="13">${escapeXml(formatDurationCompact(resolved?.endToEnd ?? null))}</text>\n`;
   return body;
 }
@@ -1352,16 +1302,16 @@ function renderPhaseWorkloadPanel({ x, y, width, workloadLabel, dopplerPhases, t
   const panelHeight = 190;
 
   let body = '';
-  body += `<rect x="${x}" y="${y}" width="${width}" height="${panelHeight}" rx="26" fill="url(#phase-workload-panel)" stroke="url(#phase-workload-stroke)" stroke-width="1.4" />\n`;
-  body += `<line x1="${x + 24}" y1="${y + 46}" x2="${x + width - 24}" y2="${y + 46}" stroke="#ffffff14" stroke-width="1" />\n`;
-  body += `<text x="${x + 26}" y="${y + 32}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="20" font-weight="bold" stroke="none">${escapeXml(workloadLabel)}</text>\n`;
+  body += `<rect x="${x}" y="${y}" width="${width}" height="${panelHeight}" rx="${SVG_THEME.radius.panel}" fill="${PALETTE.panelAlt}" stroke="${PALETTE.border}" stroke-width="${SVG_THEME.stroke.thin}" />\n`;
+  body += `<line x1="${x + 24}" y1="${y + 46}" x2="${x + width - 24}" y2="${y + 46}" stroke="${PALETTE.border}" stroke-width="${SVG_THEME.stroke.thin}" />\n`;
+  body += `<text x="${x + 26}" y="${y + 32}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="20" font-weight="bold">${escapeXml(workloadLabel)}</text>\n`;
 
   if (race?.winner) {
     const pillWidth = 220;
     const pillX = x + width - pillWidth - 24;
     const winnerShort = race.winner.key === ENGINE_META.doppler.key ? 'Doppler' : 'TJS v4';
-    body += `<rect x="${pillX}" y="${y + 18}" width="${pillWidth}" height="28" rx="14" fill="#22c55e" stroke="none" />\n`;
-    body += `<text x="${pillX + pillWidth / 2}" y="${y + 37}" text-anchor="middle" fill="#ffffff" font-family="${FONT_UI}" font-size="18" font-weight="bold" stroke="none">${escapeXml(`${winnerShort} ${race.deltaPct.toFixed(1)}% faster`)}</text>\n`;
+    body += `<rect x="${pillX}" y="${y + 18}" width="${pillWidth}" height="28" rx="${SVG_THEME.radius.badge}" fill="${race.winner.color}" fill-opacity="0.14" stroke="${race.winner.color}" stroke-width="${SVG_THEME.stroke.thin}" />\n`;
+    body += `<text x="${pillX + pillWidth / 2}" y="${y + 37}" text-anchor="middle" fill="${race.winner.color}" font-family="${FONT_UI}" font-size="18" font-weight="bold">${escapeXml(`${winnerShort} ${race.deltaPct.toFixed(1)}% faster`)}</text>\n`;
   }
 
   body += renderPhaseLane({
@@ -1391,11 +1341,10 @@ function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectio
 
   let body = '';
   body += renderPhaseSceneDefs();
-  body += `<rect x="${CANVAS_PADDING}" y="${CANVAS_PADDING}" width="${width - CANVAS_PADDING * 2}" height="${height - CANVAS_PADDING * 2}" fill="url(#phase-canvas-glow)" stroke="none" />\n`;
-  body += `<text x="36" y="54" fill="${ARCHITECTURE_COLORS.edge}" font-family="${FONT_UI}" font-size="12" font-weight="bold" letter-spacing="1.2" stroke="none">PHASE EVIDENCE</text>\n`;
-  body += `<text x="36" y="92" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="30" font-weight="bold" stroke="none">${escapeXml(title)}</text>\n`;
-  body += `<text x="36" y="116" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="14" stroke="none">${escapeXml(subtitle)}</text>\n`;
-  body += `<text x="36" y="136" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12" stroke="none">${escapeXml(`Section: ${displaySectionLabel} • lower is better`)}</text>\n`;
+  body += `<text x="36" y="54" fill="${PALETTE.accent}" font-family="${FONT_UI}" font-size="12" font-weight="bold">PHASE EVIDENCE</text>\n`;
+  body += `<text x="36" y="92" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="30" font-weight="bold">${escapeXml(title)}</text>\n`;
+  body += `<text x="36" y="116" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="14">${escapeXml(subtitle)}</text>\n`;
+  body += `<text x="36" y="136" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12">${escapeXml(`Section: ${displaySectionLabel} • lower is better`)}</text>\n`;
   body += renderPhaseWorkloadPanel({
     x: 28,
     y: 164,
@@ -1436,12 +1385,11 @@ function renderMultiPhases(entries, width, title, subtitle) {
 
   let body = '';
   body += renderPhaseSceneDefs();
-  body += `<rect x="${CANVAS_PADDING}" y="${CANVAS_PADDING}" width="${width - CANVAS_PADDING * 2}" height="${height - CANVAS_PADDING * 2}" fill="url(#phase-canvas-glow)" stroke="none" />\n`;
-  body += `<text x="36" y="48" fill="${ARCHITECTURE_COLORS.edge}" font-family="${FONT_UI}" font-size="12" font-weight="bold" letter-spacing="1.2" stroke="none">TIMELINE</text>\n`;
-  body += `<text x="36" y="86" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="30" font-weight="bold" stroke="none">${escapeXml(title)}</text>\n`;
-  body += `<text x="36" y="110" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="13" stroke="none">${escapeXml(subtitle)}</text>\n`;
-  body += `<rect x="${width - 304}" y="36" width="268" height="34" rx="17" fill="url(#phase-winner-pill)" stroke="${PHASE_COLORS.decode}" stroke-width="1.1" />\n`;
-  body += `<text x="${width - 170}" y="57" text-anchor="middle" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="12" font-weight="bold" stroke="none">SHORTER BAR = FASTER</text>\n`;
+  body += `<text x="36" y="48" fill="${PALETTE.accent}" font-family="${FONT_UI}" font-size="12" font-weight="bold">TIMELINE</text>\n`;
+  body += `<text x="36" y="86" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="30" font-weight="bold">${escapeXml(title)}</text>\n`;
+  body += `<text x="36" y="110" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="13">${escapeXml(subtitle)}</text>\n`;
+  body += `<rect x="${width - 304}" y="36" width="268" height="34" rx="${SVG_THEME.radius.badge}" fill="${PALETTE.panelAlt}" stroke="${PALETTE.accent}" stroke-width="${SVG_THEME.stroke.thin}" />\n`;
+  body += `<text x="${width - 170}" y="57" text-anchor="middle" fill="${PALETTE.accent}" font-family="${FONT_UI}" font-size="12" font-weight="bold">SHORTER BAR = FASTER</text>\n`;
 
   workloads.forEach((workload, index) => {
     body += renderPhaseWorkloadPanel({
@@ -1457,14 +1405,14 @@ function renderMultiPhases(entries, width, title, subtitle) {
 
   const legendY = headerTop + workloads.length * panelHeight + Math.max(0, workloads.length - 1) * panelGap + 26;
   const legendItems = [
-    { fill: 'url(#phase-load-grad)', label: 'Load' },
-    { fill: 'url(#phase-prefill-grad)', label: 'First token' },
-    { fill: 'url(#phase-decode-grad)', label: 'Decode' },
+    { fill: PHASE_COLORS.warmLoad, label: 'Load' },
+    { fill: PHASE_COLORS.prefill, label: 'First token' },
+    { fill: PHASE_COLORS.decode, label: 'Decode' },
   ];
   legendItems.forEach((item, index) => {
     const x = 36 + index * 184;
-    body += `<rect x="${x}" y="${legendY}" width="18" height="18" rx="6" fill="${item.fill}" />\n`;
-    body += `<text x="${x + 28}" y="${legendY + 13}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="13" stroke="none">${item.label}</text>\n`;
+    body += `<rect x="${x}" y="${legendY}" width="18" height="18" rx="${SVG_THEME.radius.badge}" fill="${item.fill}" />\n`;
+    body += `<text x="${x + 28}" y="${legendY + 13}" fill="${PALETTE.text}" font-family="${FONT_UI}" font-size="13">${item.label}</text>\n`;
   });
   return svgWrap(width, height, body, title, subtitle);
 }
@@ -1553,7 +1501,7 @@ function renderMultiRadar(entries, perRadarHeight, title, subtitle, metricIds) {
   engines.forEach((engine, i) => {
     const legendY = legendBaseY + i * 16;
     body += `<rect x="${legendX}" y="${legendY - 8}" width="14" height="14" fill="${engine.color}" />\n`;
-    body += `<text x="${legendX + 20}" y="${legendY + 2}" fill="${PALETTE.text}" stroke="#ffffff" stroke-width="2" font-family="${FONT_MONO}" font-size="13">${engine.label}</text>\n`;
+    body += `<text x="${legendX + 20}" y="${legendY + 2}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="13">${engine.label}</text>\n`;
   });
 
   body += `<text x="40" y="36" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="18" font-weight="bold">${escapeXml(title)}</text>\n`;

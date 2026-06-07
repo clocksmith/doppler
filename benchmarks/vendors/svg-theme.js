@@ -1,52 +1,55 @@
 export const SVG_THEME = Object.freeze({
   palette: Object.freeze({
-    text: '#ffffff',
-    muted: '#cbd5e1',
-    grid: '#1f2937',
-    doppler: '#9d4edd',
-    transformersjs: '#ffbd45',
-    fail: '#3f3f46',
-    failFill: '#7f1d1d',
+    bg: '#050607',
+    panel: '#0b0d0f',
+    panelAlt: '#101317',
+    border: '#2a2f35',
+    text: '#f2f2f0',
+    muted: '#9ca3af',
+    grid: '#2a2f35',
+    accent: '#93c5fd',
+    good: '#86efac',
+    warn: '#fde68a',
+    bad: '#fca5a5',
+    doppler: '#93c5fd',
+    transformersjs: '#fde68a',
+    fail: '#2a2f35',
+    failFill: '#fca5a5',
     metric: Object.freeze([
-      '#9d4edd',
-      '#c77dff',
-      '#7c3aed',
-      '#ffbd45',
-      '#ffd580',
-      '#22d3ee',
-      '#4ade80',
-      '#f59e0b',
+      '#93c5fd',
+      '#fde68a',
+      '#86efac',
+      '#fca5a5',
+      '#9ca3af',
     ]),
     phase: Object.freeze({
-      warmLoad: '#ef4444',
-      prefill: '#fbbf24',
-      ttftMarker: '#ffffff',
-      decode: '#3b82f6',
+      warmLoad: '#fde68a',
+      prefill: '#93c5fd',
+      ttftMarker: '#f2f2f0',
+      decode: '#86efac',
     }),
     architecture: Object.freeze({
-      loadBorder: '#ef4444',
-      inferBorder: '#2563eb',
-      edge: '#7c3aed',
-      arrow: '#7c3aed',
-      arrowMuted: '#2563eb',
-      nodeLoad: '#ef4444',
-      nodeInfer: '#2563eb',
-      columnLeftStart: '#ef444412',
-      columnLeftMid: '#ef444418',
-      columnLeftEnd: '#7c3aed16',
-      columnRightStart: '#7c3aed12',
-      columnRightMid: '#7c3aed16',
-      columnRightEnd: '#2563eb16',
+      loadBorder: '#fde68a',
+      inferBorder: '#93c5fd',
+      edge: '#9ca3af',
+      arrow: '#93c5fd',
+      arrowMuted: '#9ca3af',
+      nodeLoad: '#fde68a',
+      nodeInfer: '#93c5fd',
     }),
   }),
   fonts: Object.freeze({
-    ui: 'Segoe UI, Helvetica Neue, Arial, sans-serif',
+    ui: 'Inter, Segoe UI, Helvetica Neue, Arial, sans-serif',
     mono: 'SFMono-Regular, Menlo, Consolas, Liberation Mono, monospace',
   }),
-  textStroke: Object.freeze({
-    color: '#000000',
-    width: '2px',
-    lineJoin: 'round',
+  stroke: Object.freeze({
+    thin: 1.25,
+    normal: 1.75,
+    heavy: 2.5,
+  }),
+  radius: Object.freeze({
+    panel: 4,
+    badge: 3,
   }),
 });
 
@@ -66,8 +69,9 @@ const FONT_STACKS = Object.freeze({
 });
 
 export function makeSvgTextStyle(selector = 'text') {
+  const palette = SVG_THEME.palette;
   return `<defs><style>
-  ${selector} { paint-order: stroke fill; stroke: ${SVG_THEME.textStroke.color}; stroke-width: ${SVG_THEME.textStroke.width}; stroke-linejoin: ${SVG_THEME.textStroke.lineJoin}; }
+  ${selector} { fill: ${palette.text}; font-family: ${SVG_FONTS.uiCss}; letter-spacing: 0; }
 </style></defs>`;
 }
 
