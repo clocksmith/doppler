@@ -477,6 +477,22 @@ try {
     }),
     /External-weight LiteRT-LM packages are not supported yet/
   );
+
+  writeFileSync(path.join(litertLmFixtureDir, 'gemma-4-12B-it.litertlm'), buildLiteRTLmFixture({
+    sections: [
+      {
+        dataType: FIXTURE_LITERTLM_SECTION_TYPE.TFLiteModel,
+        data: tfliteBytes,
+      },
+    ],
+  }));
+  await assert.rejects(
+    () => resolveNodeSourceRuntimeBundle({
+      inputPath: path.join(litertLmFixtureDir, 'gemma-4-12B-it.litertlm'),
+      modelId: 'node-source-runtime-test-litertlm-gemma4-12b',
+    }),
+    /litertlm-split-compiled-int4-needs-graph-adapter/
+  );
 } finally {
   await Promise.allSettled(
     createdBundles.map((bundle) => bundle?.storageContext?.close?.())

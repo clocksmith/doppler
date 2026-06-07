@@ -12,17 +12,27 @@ export interface DirectSourcePackageRuntimeProfile {
 
 export interface DirectSourcePackageProfile {
   id: string;
-  runtime: DirectSourcePackageRuntimeProfile;
+  runtime?: DirectSourcePackageRuntimeProfile | null;
   package: {
     task?: {
       tfliteEntry?: string | null;
       tokenizerModelEntry?: string | null;
       metadataEntry?: string | null;
+      unsupported?: {
+        code?: string | null;
+        message?: string | null;
+        recommendation?: string | null;
+      } | null;
     } | null;
     litertlm?: {
       tfliteModelType?: string | null;
       tokenizerSectionType?: string | null;
       metadataSectionType?: string | null;
+      unsupported?: {
+        code?: string | null;
+        message?: string | null;
+        recommendation?: string | null;
+      } | null;
     } | null;
   } | null;
 }

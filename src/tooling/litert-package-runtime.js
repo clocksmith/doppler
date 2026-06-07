@@ -72,6 +72,22 @@ function resolvePackageTokenizerConfig(sourceKind, runtimeProfile) {
   return null;
 }
 
+function throwIfUnsupportedPackageProfile(sourceKind, packageBasename, profile, packageConfig) {
+  const unsupported = packageConfig?.unsupported;
+  if (!unsupported || typeof unsupported !== 'object') {
+    return;
+  }
+  const code = normalizeText(unsupported.code) || 'unsupported-package-contract';
+  const message = normalizeText(unsupported.message);
+  const recommendation = normalizeText(unsupported.recommendation);
+  throw new Error(
+    `direct-source runtime: ${sourceKind} artifact "${packageBasename}" matches package profile ` +
+    `"${profile.id}" but is not supported by Doppler direct-source import (${code}).` +
+    (message ? ` ${message}` : '') +
+    (recommendation ? ` ${recommendation}` : '')
+  );
+}
+
 function findTFLiteMetadataEntry(parsedTFLite, name) {
   const target = normalizeText(name);
   if (!target) {
@@ -1110,12 +1126,18 @@ async function isRawTFLiteTaskSource(source) {
 async function parseLiteRTTaskPackage(source, sourcePathForModelId) {
   const packageBasename = normalizeText(source?.name);
   const profile = resolveRequiredProfile(LITERT_PACKAGE_SOURCE_KIND_TASK, packageBasename);
+  const taskConfig = profile.package?.task ?? {};
+  throwIfUnsupportedPackageProfile(
+    LITERT_PACKAGE_SOURCE_KIND_TASK,
+    packageBasename,
+    profile,
+    taskConfig
+  );
   const runtimeProfile = profile.runtime ?? null;
   if (!runtimeProfile) {
     throw new Error(`direct-source runtime: package profile "${profile.id}" is missing runtime data.`);
   }
 
-  const taskConfig = profile.package?.task ?? {};
   const rawTFLiteTask = await isRawTFLiteTaskSource(source);
   const virtualFiles = [];
   let parsedTFLite = null;
@@ -1189,13 +1211,19 @@ async function parseLiteRTTaskPackage(source, sourcePathForModelId) {
 async function parseLiteRTLMPackage(source, sourcePathForModelId) {
   const packageBasename = normalizeText(source?.name);
   const profile = resolveRequiredProfile(LITERT_PACKAGE_SOURCE_KIND_LITERTLM, packageBasename);
+  const litertConfig = profile.package?.litertlm ?? {};
+  throwIfUnsupportedPackageProfile(
+    LITERT_PACKAGE_SOURCE_KIND_LITERTLM,
+    packageBasename,
+    profile,
+    litertConfig
+  );
   const runtimeProfile = profile.runtime ?? null;
   if (!runtimeProfile) {
     throw new Error(`direct-source runtime: package profile "${profile.id}" is missing runtime data.`);
   }
 
   const parsedLiteRTLM = await parseLiteRTLMFromSource(source);
-  const litertConfig = profile.package?.litertlm ?? {};
   const tfliteModelType = normalizeText(litertConfig.tfliteModelType) || LITERT_TASK_DEFAULT_TFLITE_ENTRY;
   const weightsSection = findLiteRTLMTFLiteWeightsSection(parsedLiteRTLM, tfliteModelType);
   if (weightsSection) {

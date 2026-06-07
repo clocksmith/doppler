@@ -1,0 +1,13 @@
+{
+  "id": "litert/gemma-4-12b-it",
+  "package": {
+    "litertlm": {
+      "tfliteModelType": "TF_LITE_PREFILL_DECODE",
+      "unsupported": {
+        "code": "litertlm-split-compiled-int4-needs-graph-adapter",
+        "message": "The Gemma 4 E2B LiteRT-LM direct-source path is profile-driven and uses explicit companion-scale sourceTransform contracts. The official Gemma 4 12B LiteRT-LM package is a different layout: it splits text execution into tf_lite_embedder and tf_lite_prefill_decode TFLiteModel sections and the main graph stores anonymous compiled INT4 constants whose weight-conversion semantics must be mapped from the graph.",
+        "recommendation": "Use the converted RDRR artifact gemma-4-12b-it-text-q4k-ehf16-af32 for WebGPU inference, or add a split-section LiteRT-LM graph adapter with parity evidence before claiming direct LiteRT-LM support for this package."
+      }
+    }
+  }
+}

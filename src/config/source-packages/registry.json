@@ -10,6 +10,16 @@
         "gemma-4-e2b-it-web.task",
         "gemma-4-e2b-it.litertlm"
       ]
+    },
+    {
+      "id": "litert/gemma-4-12b-it",
+      "sourceKinds": [
+        "litertlm"
+      ],
+      "packageBasenames": [
+        "gemma-4-12B-it.litertlm",
+        "gemma-4-12b-it.litertlm"
+      ]
     }
   ]
 }
