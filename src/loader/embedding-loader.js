@@ -3,20 +3,25 @@
 import {
   createWeightBuffer,
   createCpuWeightBuffer,
+  createSplitWeightBuffer,
   isWeightBuffer,
   isCpuWeightBuffer,
+  isSplitWeightBuffer,
   getWeightDtype,
   getLayout,
 } from '../gpu/weight-buffer.js';
+import { getDevice } from '../gpu/device.js';
 import { maybeDowncastToF16 } from './weight-downcast.js';
 import { getTensorNamesByRole } from './tensors/tensor-role.js';
 import { log } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
+import { DTYPE_SIZES } from '../config/schema/index.js';
 import { createTensor } from '../gpu/tensor.js';
 import { castF16ToF32 } from '../gpu/kernel-selector.js';
 import { releaseBuffer } from '../memory/buffer-pool.js';
 import { loadTensorRange } from './tensors/tensor-reader.js';
 import { hasSourceTransform } from './tensors/source-transform.js';
+import { getLargeWeightMaxBytes } from './manifest-config.js';
 
 // ============================================================================
 // Constants
@@ -25,6 +30,8 @@ import { hasSourceTransform } from './tensors/source-transform.js';
 
 const EMBEDDING_ROLE = 'embedding';
 const EMBEDDING_GROUP = 'embed';
+const MAX_SPLIT_EMBEDDING_SECTIONS = 4;
+const SPLIT_UPLOAD_CHUNK_BYTES = 64 * 1024 * 1024;
 
 function isPerLayerEmbeddingTensor(name) {
   return String(name ?? '').toLowerCase().includes('embed_tokens_per_layer.weight');
@@ -60,6 +67,136 @@ function createRangeBackedWeightBuffer(ctx, name, location) {
     locationDtype: location.dtype,
   });
   return createCpuWeightBuffer(source, dtype, layout, location.shape, name);
+}
+
+function getEmbeddingFloatDtype(location) {
+  return selectRuleValue('loader', 'weights', 'floatLocationDtype', {
+    locationDtype: location?.dtype,
+  });
+}
+
+function alignByteLength(byteLength) {
+  return Math.ceil(byteLength / 4) * 4;
+}
+
+function writeBufferInChunks(queue, buffer, bytes) {
+  for (let offset = 0; offset < bytes.byteLength; offset += SPLIT_UPLOAD_CHUNK_BYTES) {
+    const end = Math.min(offset + SPLIT_UPLOAD_CHUNK_BYTES, bytes.byteLength);
+    queue.writeBuffer(buffer, offset, bytes, offset, end - offset);
+  }
+}
+
+function expectsSplitGpuEmbedding(ctx) {
+  return ctx.embeddingKernel?.kernel === 'gather_split4_f16_vec4_f16_out.wgsl'
+    && ctx.embeddingKernel?.entry === 'gather_vec4_f16_out';
+}
+
+async function createSplitGpuEmbeddingWeightBuffer(ctx, name, location) {
+  if (!expectsSplitGpuEmbedding(ctx)) {
+    return null;
+  }
+  if (ctx.hostHasShaderF16 === false) {
+    return null;
+  }
+  if (!location?.shape || location.shape.length !== 2) {
+    return null;
+  }
+  if (hasSourceTransform(location)) {
+    return null;
+  }
+  if (typeof ctx.loadShardRange !== 'function') {
+    return null;
+  }
+
+  const layout = ctx.resolveWeightLayout(location);
+  if (layout !== 'row') {
+    return null;
+  }
+
+  const dtype = getEmbeddingFloatDtype(location);
+  if (dtype !== 'f16') {
+    return null;
+  }
+
+  const device = getDevice();
+  const maxBytes = getLargeWeightMaxBytes();
+  if (!device || !maxBytes) {
+    return null;
+  }
+  if ((device.limits.maxStorageBuffersPerShaderStage ?? 0) < 6) {
+    log.warn(
+      'Loader',
+      `Embedding "${name}" cannot use split GPU residency: maxStorageBuffersPerShaderStage is below 6.`
+    );
+    return null;
+  }
+
+  const [rows, hidden] = location.shape;
+  const bytesPerElement = DTYPE_SIZES[dtype];
+  const rowBytes = hidden * bytesPerElement;
+  if (!Number.isFinite(rowBytes) || rowBytes <= 0 || rowBytes > maxBytes) {
+    return null;
+  }
+
+  const totalBytes = rows * rowBytes;
+  if (totalBytes <= maxBytes) {
+    return null;
+  }
+
+  const rowsPerSection = Math.floor(maxBytes / rowBytes);
+  if (rowsPerSection <= 0) {
+    return null;
+  }
+  const sectionCount = Math.ceil(rows / rowsPerSection);
+  if (sectionCount > MAX_SPLIT_EMBEDDING_SECTIONS) {
+    log.warn(
+      'Loader',
+      `Embedding "${name}" needs ${sectionCount} GPU sections; split4 supports at most ${MAX_SPLIT_EMBEDDING_SECTIONS}. ` +
+      'Using CPU-backed streaming.'
+    );
+    return null;
+  }
+
+  const createdBuffers = [];
+  try {
+    const sections = [];
+    for (let rowStart = 0; rowStart < rows; rowStart += rowsPerSection) {
+      const rowCount = Math.min(rowsPerSection, rows - rowStart);
+      const byteOffset = rowStart * rowBytes;
+      const byteLength = rowCount * rowBytes;
+      const bytes = await loadTensorRange(location, name, byteOffset, byteLength, ctx.loadShardRange);
+      if (bytes.byteLength !== byteLength) {
+        throw new Error(
+          `[Loader] Embedding "${name}" split section read ${bytes.byteLength} bytes, expected ${byteLength}.`
+        );
+      }
+      const buffer = device.createBuffer({
+        label: `${name}:split:${sections.length}`,
+        size: alignByteLength(byteLength),
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      });
+      createdBuffers.push(buffer);
+      writeBufferInChunks(device.queue, buffer, bytes);
+      sections.push({ buffer, rowStart, rowCount });
+    }
+    for (const buffer of createdBuffers) {
+      ctx.gpuBuffers.add(buffer);
+    }
+    log.warn(
+      'Loader',
+      `Embedding "${name}" stored as split GPU sections (${sections.length} sections, dtype=${dtype}, layout=${layout}).`
+    );
+    return createSplitWeightBuffer(sections, dtype, layout, location.shape, name);
+  } catch (error) {
+    for (const buffer of createdBuffers) {
+      try {
+        buffer.destroy();
+      } catch {
+        // Ignore cleanup failure while preserving the original load error.
+      }
+    }
+    throw error;
+  }
 }
 
 function shouldUseRangeBackedEmbeddingSource(ctx, name, location) {
@@ -113,28 +250,30 @@ export async function loadEmbeddings(ctx) {
   for (const name of candidates) {
     const loc = ctx.tensorLocations.get(name);
     const shouldStream = shouldUseRangeBackedEmbeddingSource(ctx, name, loc);
+    const splitGpuTensor = await createSplitGpuEmbeddingWeightBuffer(ctx, name, loc);
 
     // Load tensor (to CPU if streaming, to GPU otherwise)
-    const tensor = shouldStream
+    const tensor = splitGpuTensor ?? (shouldStream
       ? (
         createRangeBackedWeightBuffer(ctx, name, loc)
         ?? await ctx.loadTensor(name, false, true)
       )
-      : await ctx.loadTensor(name, true, true);
+      : await ctx.loadTensor(name, true, true));
+    const tensorShouldStream = splitGpuTensor ? false : shouldStream;
 
     // Skip if not found
     if (!tensor) continue;
 
     // Handle streaming path (CPU)
-    if (shouldStream && !(tensor instanceof Float32Array) && !isCpuWeightBuffer(tensor)) {
+    if (tensorShouldStream && !(tensor instanceof Float32Array) && !isCpuWeightBuffer(tensor)) {
       throw new Error(
         `[Loader] Embedding "${name}" too large for GPU and cannot be loaded on CPU (dtype=${loc?.dtype ?? 'unknown'}).`
       );
     }
 
     // Handle valid tensor types
-    if (isGpuBufferInstance(tensor) || isWeightBuffer(tensor) || isCpuWeightBuffer(tensor) || tensor instanceof Float32Array) {
-      const result = await processEmbeddingTensor(ctx, tensor, name, loc, shouldStream);
+    if (isGpuBufferInstance(tensor) || isWeightBuffer(tensor) || isCpuWeightBuffer(tensor) || isSplitWeightBuffer(tensor) || tensor instanceof Float32Array) {
+      const result = await processEmbeddingTensor(ctx, tensor, name, loc, tensorShouldStream);
       if (result) {
         return result;
       }
@@ -162,6 +301,10 @@ async function processEmbeddingTensor(ctx, tensor, name, loc, shouldStream) {
   // This also repairs legacy manifests where embeddings were stored as F16
   // but loaded with an F32 gather kernel.
   const promoted = await maybePromoteEmbeddingsToF32(ctx, tensor, name, loc);
+
+  if (isSplitWeightBuffer(promoted)) {
+    return promoted;
+  }
 
   // WeightBuffer already has layout set correctly from _loadTensor
   if (isWeightBuffer(promoted)) {
@@ -205,6 +348,7 @@ async function maybePromoteEmbeddingsToF32(ctx, current, name, loc) {
   if (!ctx.preserveF32Embeddings) return current;
   if (current instanceof Float32Array) return current;
   if (isCpuWeightBuffer(current)) return current;
+  if (isSplitWeightBuffer(current)) return current;
 
   if (isWeightBuffer(current)) {
     const dtype = getWeightDtype(current);
@@ -244,7 +388,7 @@ async function maybePromoteEmbeddingsToF32(ctx, current, name, loc) {
 
 async function maybeDowncastEmbeddings(ctx, current, name, loc) {
   // Can't downcast Float32Array or CpuWeightBuffer
-  if (current instanceof Float32Array || isCpuWeightBuffer(current)) {
+  if (current instanceof Float32Array || isCpuWeightBuffer(current) || isSplitWeightBuffer(current)) {
     return current;
   }
 

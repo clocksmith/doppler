@@ -6,7 +6,7 @@ import type { CommandRecorder } from '../../../gpu/command-recorder.js';
 import type { ProbeConfigSchema } from '../../../config/schema/index.js';
 import type { ExecutionV1PoliciesSchema } from '../../../config/schema/execution-v1.schema.js';
 import type { Tensor } from '../../../gpu/tensor.js';
-import type { CpuWeightBuffer } from '../../../gpu/weight-buffer.js';
+import type { CpuWeightBuffer, SplitWeightBuffer } from '../../../gpu/weight-buffer.js';
 
 export interface EmbedConfig {
   hiddenSize: number;
@@ -38,7 +38,7 @@ export interface ValidationResult {
 
 export function embed(
   tokenIds: number[] | Uint32Array | GPUBuffer,
-  embedBuffer: GPUBuffer | Float32Array | CpuWeightBuffer,
+  embedBuffer: GPUBuffer | Float32Array | CpuWeightBuffer | SplitWeightBuffer,
   config: EmbedConfig
 ): Promise<Tensor>;
 

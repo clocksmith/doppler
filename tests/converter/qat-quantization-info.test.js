@@ -61,6 +61,29 @@ const { loadTensorToCPU } = await import('../../src/loader/tensors/tensor-loader
   const info = buildQuantizationInfo(
     {
       quantization: {
+        weights: 'w4a16',
+        embeddings: 'f16',
+        lmHead: 'f16',
+        sourceTrainingQuantization: 'qat',
+        sourceQuantizationTarget: 'w4a16',
+      },
+    },
+    'F16',
+    'F16',
+    'F16'
+  );
+
+  assert.equal(info.weights, 'w4a16');
+  assert.equal(info.embeddings, 'f16');
+  assert.equal(info.lmHead, 'f16');
+  assert.equal(info.sourceTrainingQuantization, 'qat');
+  assert.equal(info.sourceQuantizationTarget, 'w4a16');
+}
+
+{
+  const info = buildQuantizationInfo(
+    {
+      quantization: {
         weights: 'wna8o8',
         embeddings: 'f16',
         lmHead: 'wna8o8',
@@ -187,6 +210,47 @@ const { loadTensorToCPU } = await import('../../src/loader/tensors/tensor-loader
 }
 
 {
+  const packed = new Uint8Array(32);
+  const result = transformTensorBytes(
+    {
+      name: 'model.layers.0.self_attn.q_proj.weight',
+      dtype: 'W4A16',
+      shape: [1, 64],
+    },
+    packed,
+    {
+      targetQuant: 'w4a16',
+    }
+  );
+
+  assert.equal(result.tensorData, packed);
+  assert.equal(result.outDtype, 'W4A16');
+  assert.equal(result.tensorTargetQuant, 'w4a16');
+  assert.deepEqual(result.storage, {
+    packing: 'w4a16',
+    blockShape: [32],
+    blockBytes: 16,
+  });
+}
+
+{
+  assert.throws(
+    () => transformTensorBytes(
+      {
+        name: 'model.layers.0.self_attn.q_proj.weight',
+        dtype: 'F16',
+        shape: [4, 256],
+      },
+      new Uint8Array(4 * 256 * 2),
+      {
+        targetQuant: 'w4a16',
+      }
+    ),
+    /does not re-quantize tensors into this packed format/
+  );
+}
+
+{
   assert.throws(
     () => transformTensorBytes(
       {
@@ -251,6 +315,13 @@ const { loadTensorToCPU } = await import('../../src/loader/tensors/tensor-loader
   assert.throws(
     () => loadTensorToCPU(new Uint8Array(18), { dtype: 'Q4_0' }),
     /Unsupported packed quantization dtype "Q4_0"/
+  );
+}
+
+{
+  assert.throws(
+    () => loadTensorToCPU(new Uint8Array(32), { dtype: 'W4A16' }),
+    /Unsupported packed quantization dtype "W4A16"/
   );
 }
 

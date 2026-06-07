@@ -1,8 +1,10 @@
 import { Q4K_BLOCK_BYTES, QK_K } from '../../config/schema/quantization.schema.js';
 
-const SUPPORTED_PACKINGS = new Set(['dense', 'q4k', 'q4_0', 'gguf-block-v2']);
+const SUPPORTED_PACKINGS = new Set(['dense', 'q4k', 'q4_0', 'w4a16', 'gguf-block-v2']);
 const Q4_0_BLOCK_BYTES = 18;
 const Q4_0_BLOCK_VALUES = 32;
+const W4A16_BLOCK_BYTES = 16;
+const W4A16_BLOCK_VALUES = 32;
 
 function fail(label, message) {
   throw new Error(`[RDRRStorage] ${label}: ${message}`);
@@ -178,9 +180,14 @@ export function getPackingByteLayout(storage, tensor) {
       blockBytes: descriptor.blockBytes ?? Q4_0_BLOCK_BYTES,
     };
   }
+  if (descriptor.packing === 'w4a16') {
+    return {
+      blockElementCount: blockElementCount || W4A16_BLOCK_VALUES,
+      blockBytes: descriptor.blockBytes ?? W4A16_BLOCK_BYTES,
+    };
+  }
   return {
     blockElementCount,
     blockBytes: descriptor.blockBytes,
   };
 }
-

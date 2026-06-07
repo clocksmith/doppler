@@ -91,7 +91,7 @@ export interface TensorStorageShardSpan {
 }
 
 export interface TensorPhysicalStorageDescriptor {
-  packing: 'dense' | 'q4k' | 'q4_0' | 'gguf-block-v2';
+  packing: 'dense' | 'q4k' | 'q4_0' | 'w4a16' | 'gguf-block-v2';
   blockShape?: number[];
   blockBytes?: number;
   companions?: TensorStorageCompanion[];

@@ -14,6 +14,7 @@ import type {
   WeightBuffer,
   WeightLayout,
   CpuWeightBuffer,
+  SplitWeightBuffer,
 } from '../gpu/weight-buffer.js';
 import type { TensorLocation } from './loader-types.js';
 
@@ -22,7 +23,7 @@ export type TensorLoader = (
   name: string,
   toGPU?: boolean,
   silent?: boolean
-) => Promise<GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | Uint8Array | null>;
+) => Promise<GPUBuffer | WeightBuffer | CpuWeightBuffer | SplitWeightBuffer | Float32Array | Uint8Array | null>;
 
 /**
  * Context required for embedding loading.
@@ -46,10 +47,15 @@ export interface EmbeddingLoaderContext {
   preserveF32Embeddings?: boolean;
   /** Host shader-f16 capability, used to choose CPU F16->F32 fallback on no-f16 devices */
   hostHasShaderF16?: boolean | null;
+  /** Manifest-declared embedding kernel identity. */
+  embeddingKernel?: {
+    kernel?: string;
+    entry?: string;
+  } | null;
 }
 
 /** Result of embedding loading */
-export type EmbeddingResult = GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
+export type EmbeddingResult = GPUBuffer | WeightBuffer | CpuWeightBuffer | SplitWeightBuffer | Float32Array | null;
 
 /**
  * Load embedding weights.

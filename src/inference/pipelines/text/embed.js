@@ -2,13 +2,13 @@
 
 import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
-import { runGather, recordGather, runScale, recordScale } from '../../../gpu/kernel-selector.js';
+import { runGather, recordGather, runGatherSplit4, recordGatherSplit4, runScale, recordScale } from '../../../gpu/kernel-selector.js';
 import { log, trace } from '../../../debug/index.js';
 import { runProbes } from './probes.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { castF32ToF16, recordCastF32ToF16 } from '../../../gpu/kernels/cast.js';
-import { isCpuWeightBuffer, isGpuBufferInstance } from '../../../gpu/weight-buffer.js';
+import { isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { f16ToF32 } from '../../../loader/dtype-utils.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 
@@ -328,12 +328,20 @@ export async function embed(tokenIds, embedBuffer, config) {
     inputHiddenSize,
     hiddenOffset,
   };
-  if (!isGpuBufferInstance(embedBuffer)) {
+  if (!isGpuBufferInstance(embedBuffer) && !isSplitWeightBuffer(embedBuffer)) {
     throw new Error('[Embed] GPU embeddings required for gather path.');
   }
-  const gatherOutput = recorder
-    ? await recordGather(recorder, tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions)
-    : await runGather(tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions);
+  const gatherOutput = isSplitWeightBuffer(embedBuffer)
+    ? (
+      recorder
+        ? await recordGatherSplit4(recorder, tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions)
+        : await runGatherSplit4(tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions)
+    )
+    : (
+      recorder
+        ? await recordGather(recorder, tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions)
+        : await runGather(tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions)
+    );
 
   // Debug: Verify first token embedding
   if (debug && !recorder && tokenIdArray && tokenIdArray.length > 0) {

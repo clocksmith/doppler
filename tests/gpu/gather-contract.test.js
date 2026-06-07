@@ -15,7 +15,7 @@ globalThis.GPUBufferUsage = {
 
 const { setDevice } = await import('../../src/gpu/device.js');
 const { destroyBufferPool } = await import('../../src/memory/buffer-pool.js');
-const { runGather } = await import('../../src/gpu/kernels/gather.js');
+const { runGather, runGatherSplit4 } = await import('../../src/gpu/kernels/gather.js');
 
 function createFakeDevice({ hasF16 = false } = {}) {
   return {
@@ -84,6 +84,48 @@ const fakeBuffer = { size: 64 };
       outputDtype: 'f32',
     }),
     /useVec4=true requires hiddenSize to be divisible by 4/
+  );
+  resetRuntimeState();
+}
+
+{
+  resetRuntimeState(createFakeDevice({ hasF16: false }));
+  await assert.rejects(
+    () => runGatherSplit4(fakeBuffer, {
+      kind: 'split_weight_buffer',
+      sections: [{ buffer: fakeBuffer, rowStart: 0, rowCount: 8 }],
+      dtype: 'f16',
+      layout: 'row',
+      shape: [8, 8],
+    }, 1, 8, 8, {
+      embeddingDtype: 'f16',
+      outputDtype: 'f16',
+    }),
+    /gather_split4 requires shader-f16 support/
+  );
+  resetRuntimeState();
+}
+
+{
+  resetRuntimeState(createFakeDevice({ hasF16: true }));
+  await assert.rejects(
+    () => runGatherSplit4(fakeBuffer, {
+      kind: 'split_weight_buffer',
+      sections: [
+        { buffer: fakeBuffer, rowStart: 0, rowCount: 1 },
+        { buffer: fakeBuffer, rowStart: 1, rowCount: 1 },
+        { buffer: fakeBuffer, rowStart: 2, rowCount: 1 },
+        { buffer: fakeBuffer, rowStart: 3, rowCount: 1 },
+        { buffer: fakeBuffer, rowStart: 4, rowCount: 1 },
+      ],
+      dtype: 'f16',
+      layout: 'row',
+      shape: [5, 8],
+    }, 1, 8, 5, {
+      embeddingDtype: 'f16',
+      outputDtype: 'f16',
+    }),
+    /supports at most 4/
   );
   resetRuntimeState();
 }

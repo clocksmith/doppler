@@ -85,9 +85,9 @@ assert.deepEqual(q4HeadConfig.execution?.kernels?.attn_head512, {
 });
 
 assert.deepEqual(q4HeadConfig.execution?.kernels?.embed, {
-  kernel: 'gather_f16_vec4_f16_out.wgsl',
+  kernel: 'gather_split4_f16_vec4_f16_out.wgsl',
   entry: 'gather_vec4_f16_out',
-  digest: 'sha256:a9cd29445410c019262ca78ab27a0cd3b167fd61542488815c64e642b4c31dd5',
+  digest: 'sha256:b83e26325355e9270909afaee64b3f21491f853eb9fe72be344d6886a0a4b358',
   precision: {
     inputDtype: 'f16',
     outputDtype: 'f16',

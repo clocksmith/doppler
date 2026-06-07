@@ -23,7 +23,7 @@ import { embed } from './embed.js';
 import { processLayer } from './layer.js';
 import { computeLogits, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from './logits/index.js';
 import { OperatorEventEmitter } from './operator-events.js';
-import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, getWeightDtype } from '../../../gpu/weight-buffer.js';
+import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype } from '../../../gpu/weight-buffer.js';
 import {
   decodeStep,
   decodeStepLogits,
@@ -269,6 +269,10 @@ export class PipelineGenerator {
       totalBatchedTimeMs: 0,
       totalUnbatchedTimeMs: 0,
       gpuSubmissions: 0,
+      requestedBatchTokens: 0,
+      effectiveBatchTokens: 0,
+      maxBatchTokenCap: null,
+      batchClampCount: 0,
     };
     resetActiveExecutionPlan(this.#state);
     this.#state.decodeRing?.reset();
@@ -1759,6 +1763,7 @@ export class PipelineGenerator {
     this.#state.stats.decodeTimeMs = performance.now() - decodeStart;
     this.#state.stats.tokensGenerated = tokensGenerated;
     this.#state.stats.decodeTokens = tokensGenerated;
+    this.#state.stats.batching = { ...this.#state.batchingStats };
   }
 
   async _prefillToHidden(inputIds, opts) {
@@ -1806,7 +1811,7 @@ export class PipelineGenerator {
     }
 
     const embedBufferRaw = this.#state.weights.get('embed');
-    if (!isGpuBufferInstance(embedBufferRaw) && !isWeightBuffer(embedBufferRaw) && !isCpuWeightBuffer(embedBufferRaw) && !(embedBufferRaw instanceof Float32Array)) {
+    if (!isGpuBufferInstance(embedBufferRaw) && !isWeightBuffer(embedBufferRaw) && !isCpuWeightBuffer(embedBufferRaw) && !isSplitWeightBuffer(embedBufferRaw) && !(embedBufferRaw instanceof Float32Array)) {
       throw new Error('Embed buffer not found or not a supported buffer type');
     }
     const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;

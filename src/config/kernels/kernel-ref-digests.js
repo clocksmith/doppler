@@ -128,6 +128,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "gather_f16_vec4_f16_out.wgsl#gather_vec4_f16_out": "a9cd29445410c019262ca78ab27a0cd3b167fd61542488815c64e642b4c31dd5",
   "gather_f16_vec4.wgsl#gather_vec4": "dc87e5e03cdbff74347ef8e42774570b1807d239ad64501a7e90ec8f600e912c",
   "gather_f16.wgsl#main": "8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+  "gather_split4_f16_vec4_f16_out.wgsl#gather_vec4_f16_out": "b83e26325355e9270909afaee64b3f21491f853eb9fe72be344d6886a0a4b358",
   "gather_vec4_f16_out.wgsl#gather_vec4_f16_out": "dd631155d4df58d29a1c444f521a8ebbf28532df3eb37d1b27f8015d3a42d9e6",
   "gather_vec4.wgsl#gather_vec4": "e8d90b826350a9feb96476fc4a5e568aebfc29948cf07a2d7db0dee4a4216b6a",
   "gather.wgsl#main": "4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",

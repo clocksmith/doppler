@@ -203,6 +203,8 @@ export {
 export {
   runGather,
   recordGather,
+  runGatherSplit4,
+  recordGatherSplit4,
   type GatherOptions,
 } from './gather.js';
 

@@ -195,6 +195,11 @@ const SOURCE_PACKED_STORAGE_DESCRIPTORS = {
     blockShape: [32],
     blockBytes: 18,
   },
+  w4a16: {
+    packing: 'w4a16',
+    blockShape: [32],
+    blockBytes: 16,
+  },
 };
 
 function cloneSourcePackedStorageDescriptor(targetQuant) {

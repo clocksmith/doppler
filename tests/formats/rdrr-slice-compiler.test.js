@@ -85,6 +85,51 @@ import { compileTensorSlice } from '../../src/formats/rdrr/slice-compiler.js';
 
 {
   const tensorMap = {
+    w4a16: {
+      shape: [2, 64],
+      dtype: 'W4A16',
+      shardIndex: 0,
+      offset: 0,
+      size: 64,
+      storage: {
+        packing: 'w4a16',
+        blockShape: [32],
+        companions: [{ role: 'scales', tensorId: 'w4a16.scales' }],
+      },
+    },
+    'w4a16.scales': {
+      shape: [2, 2],
+      dtype: 'F16',
+      shardIndex: 0,
+      offset: 64,
+      size: 8,
+    },
+  };
+  const slice = compileTensorSlice({
+    tensorMap,
+    tensorId: 'w4a16',
+    axis: 0,
+    rangeStart: 1,
+    rangeEnd: 2,
+  });
+  assert.deepEqual(slice.byteRanges, [{
+    shardIndex: 0,
+    byteStart: 32,
+    byteEnd: 64,
+  }]);
+  assert.deepEqual(slice.companionRanges, [{
+    role: 'scales',
+    tensorId: 'w4a16.scales',
+    byteRanges: [{
+      shardIndex: 0,
+      byteStart: 64,
+      byteEnd: 72,
+    }],
+  }]);
+}
+
+{
+  const tensorMap = {
     gguf: {
       shape: [2, 64],
       dtype: 'INT4',
@@ -140,4 +185,3 @@ import { compileTensorSlice } from '../../src/formats/rdrr/slice-compiler.js';
 }
 
 console.log('rdrr-slice-compiler.test: ok');
-

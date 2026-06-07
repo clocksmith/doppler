@@ -112,6 +112,43 @@ export function createCpuWeightBuffer(
   };
 }
 
+export function createSplitWeightBuffer(
+  sections,
+  dtype,
+  layout,
+  shape,
+  label
+) {
+  if (!Array.isArray(sections) || sections.length === 0) {
+    throw new Error('[WeightBuffer] split weight buffer requires at least one section.');
+  }
+  const normalizedSections = sections.map((section, index) => {
+    if (!section || !canTrackBuffer(section.buffer)) {
+      throw new Error(`[WeightBuffer] split section ${index} is missing a GPU buffer.`);
+    }
+    if (!Number.isInteger(section.rowStart) || section.rowStart < 0) {
+      throw new Error(`[WeightBuffer] split section ${index} has invalid rowStart.`);
+    }
+    if (!Number.isInteger(section.rowCount) || section.rowCount <= 0) {
+      throw new Error(`[WeightBuffer] split section ${index} has invalid rowCount.`);
+    }
+    tagBufferDtype(section.buffer, dtype);
+    return Object.freeze({
+      buffer: section.buffer,
+      rowStart: section.rowStart,
+      rowCount: section.rowCount,
+    });
+  });
+  return Object.freeze({
+    kind: 'split_weight_buffer',
+    sections: Object.freeze(normalizedSections),
+    dtype,
+    layout,
+    shape: Object.freeze([...shape]),
+    label,
+  });
+}
+
 
 export function isColumnMajor(weight) {
   return weight.layout === 'column';
@@ -135,6 +172,19 @@ export function isCpuWeightBuffer(value) {
     typeof value === 'object' &&
     value !== null &&
     'data' in value &&
+    'dtype' in value &&
+    'layout' in value &&
+    'shape' in value
+  );
+}
+
+
+export function isSplitWeightBuffer(value) {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    value.kind === 'split_weight_buffer' &&
+    Array.isArray(value.sections) &&
     'dtype' in value &&
     'layout' in value &&
     'shape' in value
@@ -165,17 +215,22 @@ export function getBuffer(weight) {
 
 
 export function getLayout(weight) {
+  if (isSplitWeightBuffer(weight)) return weight.layout;
   return isWeightBuffer(weight) ? weight.layout : null;
 }
 
 
 export function getWeightDtype(weight) {
+  if (isSplitWeightBuffer(weight)) return weight.dtype;
   if (isWeightBuffer(weight)) return weight.dtype;
   if (isTensorLike(weight)) return weight.dtype;
   return getBufferDtype(weight);
 }
 
 export function resolveWeightBufferMaterialization(weight, preferredDtype = null) {
+  if (isSplitWeightBuffer(weight)) {
+    return weight;
+  }
   if (!isWeightBuffer(weight) || preferredDtype == null || preferredDtype === weight.dtype) {
     return weight;
   }

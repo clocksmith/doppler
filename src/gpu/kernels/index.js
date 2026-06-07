@@ -164,6 +164,8 @@ export {
 export {
   runGather,
   recordGather,
+  runGatherSplit4,
+  recordGatherSplit4,
 } from './gather.js';
 
 // GroupNorm

@@ -22,7 +22,7 @@ import { embed } from './embed.js';
 import { resolvePerLayerInputsSession } from './generator-helpers.js';
 import { processLayer } from './layer.js';
 import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, finalizeLogits, applySoftcapping } from './logits/index.js';
-import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, getWeightDtype } from '../../../gpu/weight-buffer.js';
+import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype } from '../../../gpu/weight-buffer.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { getFinalNormWeights, extractEmbeddingFromHidden } from './generator-runtime.js';
 import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
@@ -359,7 +359,7 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
   const decodeAltBuffer = state.decodeBuffers.getOutputHiddenBuffer();
 
   const embedBufferRaw = state.weights.get('embed');
-  if (!isGpuBufferInstance(embedBufferRaw) && !isWeightBuffer(embedBufferRaw) && !isCpuWeightBuffer(embedBufferRaw) && !(embedBufferRaw instanceof Float32Array)) {
+  if (!isGpuBufferInstance(embedBufferRaw) && !isWeightBuffer(embedBufferRaw) && !isCpuWeightBuffer(embedBufferRaw) && !isSplitWeightBuffer(embedBufferRaw) && !(embedBufferRaw instanceof Float32Array)) {
     throw new Error('Embed buffer not found or not a supported buffer type');
   }
   const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
@@ -508,7 +508,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   const decodeAltBuffer = state.decodeBuffers.getOutputHiddenBuffer();
 
   const embedBufferRaw = state.weights.get('embed');
-  if (!isGpuBufferInstance(embedBufferRaw) && !isWeightBuffer(embedBufferRaw) && !isCpuWeightBuffer(embedBufferRaw) && !(embedBufferRaw instanceof Float32Array)) {
+  if (!isGpuBufferInstance(embedBufferRaw) && !isWeightBuffer(embedBufferRaw) && !isCpuWeightBuffer(embedBufferRaw) && !isSplitWeightBuffer(embedBufferRaw) && !(embedBufferRaw instanceof Float32Array)) {
     throw new Error('Embed buffer not found or not a supported buffer type');
   }
   const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
@@ -1362,7 +1362,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     if (isCpuWeightBuffer(embedBufferRaw)) {
       throw new Error('[Pipeline] GPU-only decode not supported with CPU-resident embeddings.');
     }
-    if (!isGpuBufferInstance(embedBufferRaw) && !isWeightBuffer(embedBufferRaw)) {
+    if (!isGpuBufferInstance(embedBufferRaw) && !isWeightBuffer(embedBufferRaw) && !isSplitWeightBuffer(embedBufferRaw)) {
       throw new Error('Embed buffer not found or not a GPUBuffer/WeightBuffer');
     }
     const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;

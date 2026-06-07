@@ -1015,6 +1015,7 @@ export class DopplerLoader {
       // gather.wgsl reads embeddings as f32; downcasting here corrupts reads.
       preserveF32Embeddings: String(this.manifest?.quantizationInfo?.embeddings ?? '').toLowerCase() === 'f32',
       hostHasShaderF16: this.gpuCapabilities?.hasF16 ?? null,
+      embeddingKernel: this.manifest?.inference?.execution?.kernels?.embed ?? null,
     };
 
     this.embeddings = await loadEmbeddings(ctx);

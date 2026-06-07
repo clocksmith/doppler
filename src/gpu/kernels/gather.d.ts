@@ -7,6 +7,7 @@
 import type { CommandRecorder } from '../command-recorder.js';
 import type { Tensor, TensorDtype } from '../tensor.js';
 import type { OutputBufferOptions } from './types.js';
+import type { SplitWeightBuffer } from '../weight-buffer.js';
 
 /** Gather kernel options */
 export interface GatherOptions extends OutputBufferOptions {
@@ -54,6 +55,31 @@ export declare function recordGather(
   recorder: CommandRecorder,
   indices: GPUBuffer,
   embeddings: GPUBuffer,
+  numTokens: number,
+  hiddenSize: number,
+  vocabSize: number,
+  options?: GatherOptions
+): Promise<Tensor>;
+
+/**
+ * Run gather/embedding lookup against a row-split F16 embedding table.
+ */
+export declare function runGatherSplit4(
+  indices: GPUBuffer,
+  splitEmbedding: SplitWeightBuffer,
+  numTokens: number,
+  hiddenSize: number,
+  vocabSize: number,
+  options?: GatherOptions
+): Promise<Tensor>;
+
+/**
+ * Record gather against a row-split F16 embedding table.
+ */
+export declare function recordGatherSplit4(
+  recorder: CommandRecorder,
+  indices: GPUBuffer,
+  splitEmbedding: SplitWeightBuffer,
   numTokens: number,
   hiddenSize: number,
   vocabSize: number,

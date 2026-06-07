@@ -47,6 +47,24 @@ export interface WeightBuffer {
   }>>>;
 }
 
+export interface SplitWeightSection {
+  readonly buffer: GPUBuffer;
+  readonly rowStart: number;
+  readonly rowCount: number;
+}
+
+/**
+ * GPU-resident weight whose row dimension is split across multiple buffers.
+ */
+export interface SplitWeightBuffer {
+  readonly kind: 'split_weight_buffer';
+  readonly sections: readonly SplitWeightSection[];
+  readonly dtype: WeightDtype;
+  readonly layout: WeightLayout;
+  readonly shape: readonly number[];
+  readonly label?: string;
+}
+
 /**
  * Tensor-like buffer with dtype + shape metadata.
  * Used by matmul when activations are passed in place of weights.
@@ -102,6 +120,17 @@ export function createCpuWeightBuffer(
 ): CpuWeightBuffer;
 
 /**
+ * Create a GPU split weight buffer with explicit row-section metadata.
+ */
+export function createSplitWeightBuffer(
+  sections: SplitWeightSection[],
+  dtype: WeightDtype,
+  layout: WeightLayout,
+  shape: number[],
+  label?: string
+): SplitWeightBuffer;
+
+/**
  * Check if weight is stored in column-major (pre-transposed) format.
  * Column-major weights use transposeB=false in matmul.
  */
@@ -118,27 +147,32 @@ export function isWeightBuffer(value: unknown): value is WeightBuffer;
 export function isCpuWeightBuffer(value: unknown): value is CpuWeightBuffer;
 
 /**
+ * Check if value is a GPU-resident split weight buffer.
+ */
+export function isSplitWeightBuffer(value: unknown): value is SplitWeightBuffer;
+
+/**
  * Extract the raw GPUBuffer from either a WeightBuffer or raw GPUBuffer.
  * Used for backwards compatibility during migration.
  */
-export function getBuffer(weight: GPUBuffer | WeightBuffer | TensorLike): GPUBuffer;
+export function getBuffer(weight: GPUBuffer | WeightBuffer | TensorLike | SplitWeightBuffer): GPUBuffer | SplitWeightBuffer;
 
 /**
  * Get layout from WeightBuffer, or null for raw GPUBuffer.
  * Used for auto-resolving transposeB in matmul.
  */
-export function getLayout(weight: GPUBuffer | WeightBuffer | TensorLike): WeightLayout | null;
+export function getLayout(weight: GPUBuffer | WeightBuffer | TensorLike | SplitWeightBuffer): WeightLayout | null;
 
 /**
  * Get dtype from WeightBuffer, tagged raw GPUBuffer, or TensorLike.
  */
-export function getWeightDtype(weight: GPUBuffer | WeightBuffer | TensorLike): WeightDtype | TensorLike['dtype'] | null;
+export function getWeightDtype(weight: GPUBuffer | WeightBuffer | TensorLike | SplitWeightBuffer): WeightDtype | TensorLike['dtype'] | null;
 
 /**
  * Resolve a preferred materialization view from a WeightBuffer when alternate
  * dense/quantized buffers are available.
  */
 export function resolveWeightBufferMaterialization(
-  weight: GPUBuffer | WeightBuffer | TensorLike,
+  weight: GPUBuffer | WeightBuffer | TensorLike | SplitWeightBuffer,
   preferredDtype?: WeightDtype | TensorLike['dtype'] | null
-): GPUBuffer | WeightBuffer | TensorLike;
+): GPUBuffer | WeightBuffer | TensorLike | SplitWeightBuffer;

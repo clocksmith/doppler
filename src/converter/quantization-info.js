@@ -206,7 +206,17 @@ function applySourceQuantizationMetadata(info, sourceTrainingQuantization, sourc
   }
 
   const lmHeadQuant = normalizeQuantTag(info.lmHead ?? info.embeddings ?? info.weights);
+  const embeddingQuant = normalizeQuantTag(info.embeddings ?? info.weights);
+  const allowsDenseTiedW4A16Head = (
+    sourceQuantizationTarget === 'w4a16'
+    && lmHeadQuant === 'f16'
+    && embeddingQuant === 'f16'
+  );
   if (lmHeadQuant !== targetQuant) {
+    if (allowsDenseTiedW4A16Head) {
+      info.lmHead = 'f16';
+      return;
+    }
     throw new Error(
       `QAT sourceQuantizationTarget="${sourceQuantizationTarget}" requires ` +
       `quantizationInfo.lmHead="${targetQuant}" so the LM head stays quantized; got "${lmHeadQuant}".`
