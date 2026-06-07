@@ -70,6 +70,16 @@ const converterConfig = createConverterConfig();
 }
 
 {
+  assert.equal(
+    inferSourceWeightQuantization([
+      { name: 'model.layers.0.self_attn.q_proj.weight', dtype: 'Q4_0' },
+      { name: 'model.layers.0.self_attn.k_proj.weight', dtype: 'Q4_0' },
+    ]),
+    'q4_0'
+  );
+}
+
+{
   // Legacy configs with model-kind hints but no execution.kernels are also rejected.
   assert.throws(
     () => resolveConversionPlan({

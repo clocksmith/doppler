@@ -783,6 +783,12 @@ const GPU_LOADER_DISPATCH = {
   q6k: (shardData, location, name, _config) => loadQ6K(shardData, location, name),
   bf16: (shardData, location, name, config) => loadBF16(shardData, location, name, config),
   float: (shardData, location, name, config) => loadFloat(shardData, location, name, config),
+  unsupported_packed_quantization: (_shardData, location, name, _config) => {
+    throw new Error(
+      `Unsupported packed quantization dtype "${location.dtype}" for tensor "${name}". ` +
+      'Add a native loader and kernel path before enabling runtime execution.'
+    );
+  },
 };
 
 export async function loadTensorToGPU(shardData, location, name, config) {
@@ -820,6 +826,12 @@ export async function loadTensorToGPU(shardData, location, name, config) {
 
 const CPU_LOADER_DISPATCH = {
   raw: (shardData, _location) => shardData,
+  unsupported_packed_quantization: (_shardData, location) => {
+    throw new Error(
+      `Unsupported packed quantization dtype "${location.dtype}" for CPU tensor load. ` +
+      'Add a native loader before enabling runtime execution.'
+    );
+  },
   bf16_to_f32: (shardData, _location) => convertBF16ToF32CPU(
     toUint16View(shardData, 'BF16 CPU tensor load')
   ),

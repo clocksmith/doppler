@@ -5,6 +5,7 @@ import {
 import { validateRequiredInferenceFields } from '../inference/pipelines/text/config.js';
 import {
   buildQuantizationInfo,
+  normalizeQuantTag,
   resolveManifestQuantization,
   resolveModelId,
 } from './quantization-info.js';
@@ -80,9 +81,7 @@ export function inferSourceWeightQuantization(tensors) {
     );
   }
   if (dtypes.size === 1) {
-    const only = [...dtypes][0];
-    if (only === 'F32') return 'f32';
-    if (only === 'F16') return 'f16';
+    return normalizeQuantTag([...dtypes][0]);
   }
   if (dtypes.has('F32')) return 'f32';
   return 'f16';

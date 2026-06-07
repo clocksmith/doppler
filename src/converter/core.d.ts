@@ -272,6 +272,7 @@ export declare function transformTensorBytes(
   outLayout: string | null;
   sourceDtype: string;
   tensorTargetQuant: string | null;
+  storage?: Record<string, unknown> | null;
 };
 
 /**

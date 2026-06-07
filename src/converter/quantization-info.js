@@ -14,6 +14,11 @@ const QUANT_TAG_ALIASES = {
   'q4k': 'q4k',
   'q4': 'q4k',
   'q4km': 'q4k',
+  // Q4_0 variants
+  'q4_0': 'q4_0',
+  'q4-0': 'q4_0',
+  'gguf-q4_0': 'q4_0',
+  'gguf_q4_0': 'q4_0',
   // Q6_K variants
   'q6_k': 'q6k',
   'q6k': 'q6k',
@@ -21,6 +26,15 @@ const QUANT_TAG_ALIASES = {
   // Q8_0 variants
   'q8_0': 'q8_0',
   'q8': 'q8_0',
+  // Compressed-tensors / mobile QAT variants
+  'w4a16': 'w4a16',
+  'w4a16-ct': 'w4a16',
+  'w4a16_ct': 'w4a16',
+  'compressed-tensors-w4a16': 'w4a16',
+  'compressed_tensors_w4a16': 'w4a16',
+  'wna8o8': 'wna8o8',
+  'wna8-o8': 'wna8o8',
+  'wna8_o8': 'wna8o8',
   // MXFP4 variants
   'mxfp4': 'mxfp4',
   'mxp4': 'mxfp4',
@@ -62,9 +76,39 @@ const PER_LAYER_EMBEDDING_VARIANT_TAGS = {
   int4_per_row: 'int4ple',
 };
 
+const SOURCE_TRAINING_QUANTIZATION_ALIASES = {
+  'qat': 'qat',
+  'quantization-aware-training': 'qat',
+  'quantization_aware_training': 'qat',
+  'ptq': 'ptq',
+  'post-training-quantization': 'ptq',
+  'post_training_quantization': 'ptq',
+};
+
+const SOURCE_QUANTIZATION_TARGET_ALIASES = {
+  'q4_0': 'q4_0',
+  'q4-0': 'q4_0',
+  'gguf-q4_0': 'q4_0',
+  'gguf_q4_0': 'q4_0',
+  'w4a16': 'w4a16',
+  'w4a16-ct': 'w4a16',
+  'w4a16_ct': 'w4a16',
+  'compressed-tensors-w4a16': 'w4a16',
+  'compressed_tensors_w4a16': 'w4a16',
+  'wna8o8': 'wNa8o8',
+  'wna8-o8': 'wNa8o8',
+  'wna8_o8': 'wNa8o8',
+};
+
+const SOURCE_QUANTIZATION_TARGET_TAGS = {
+  q4_0: 'q4_0',
+  w4a16: 'w4a16',
+  wNa8o8: 'wna8o8',
+};
+
 export function normalizeQuantTag(value) {
   if (!value) return DEFAULT_QUANT_TAG;
-  const lower = value.toLowerCase();
+  const lower = String(value).trim().toLowerCase();
   return QUANT_TAG_ALIASES[lower] ?? lower;
 }
 
@@ -72,7 +116,7 @@ function validateQuantType(value, source) {
   if (!value) return;
   const normalized = normalizeQuantTag(value);
 
-  const supported = ['q4k', 'f16', 'bf16', 'f32'];
+  const supported = ['q4k', 'q4_0', 'w4a16', 'wna8o8', 'f16', 'bf16', 'f32'];
   if (supported.includes(normalized)) return;
 
   const planned = ['q6k', 'q8_0', 'fp8e4', 'fp8e5', 'i4', 'i8'];
@@ -103,12 +147,83 @@ function perLayerEmbeddingVariantTag(value) {
   return PER_LAYER_EMBEDDING_VARIANT_TAGS[value] ?? null;
 }
 
+function normalizeSourceTrainingQuantization(value) {
+  if (value == null) return null;
+  const normalized = String(value).trim().toLowerCase().replace(/\s+/g, '-');
+  if (!normalized) return null;
+  const canonical = SOURCE_TRAINING_QUANTIZATION_ALIASES[normalized];
+  if (canonical) return canonical;
+  throw new Error(
+    `converter.quantization.sourceTrainingQuantization must be "qat", "ptq", or null; got ${JSON.stringify(value)}.`
+  );
+}
+
+function normalizeSourceQuantizationTarget(value) {
+  if (value == null) return null;
+  const normalized = String(value).trim().toLowerCase().replace(/\s+/g, '-');
+  if (!normalized) return null;
+  const canonical = SOURCE_QUANTIZATION_TARGET_ALIASES[normalized];
+  if (canonical) return canonical;
+  throw new Error(
+    `converter.quantization.sourceQuantizationTarget must be "q4_0", "w4a16", "wNa8o8", or null; got ${JSON.stringify(value)}.`
+  );
+}
+
+function sourceTargetQuantTag(sourceQuantizationTarget) {
+  if (!sourceQuantizationTarget) return null;
+  return SOURCE_QUANTIZATION_TARGET_TAGS[sourceQuantizationTarget]
+    ?? normalizeQuantTag(sourceQuantizationTarget);
+}
+
+function applySourceQuantizationMetadata(info, sourceTrainingQuantization, sourceQuantizationTarget) {
+  if (sourceQuantizationTarget && !sourceTrainingQuantization) {
+    throw new Error(
+      'converter.quantization.sourceQuantizationTarget requires ' +
+      'converter.quantization.sourceTrainingQuantization.'
+    );
+  }
+  if (sourceTrainingQuantization) {
+    info.sourceTrainingQuantization = sourceTrainingQuantization;
+  } else {
+    delete info.sourceTrainingQuantization;
+  }
+  if (sourceQuantizationTarget) {
+    info.sourceQuantizationTarget = sourceQuantizationTarget;
+  } else {
+    delete info.sourceQuantizationTarget;
+  }
+  if (sourceTrainingQuantization !== 'qat' || !sourceQuantizationTarget) {
+    return;
+  }
+
+  const targetQuant = sourceTargetQuantTag(sourceQuantizationTarget);
+  const weightQuant = normalizeQuantTag(info.weights);
+  if (weightQuant !== targetQuant) {
+    throw new Error(
+      `QAT sourceQuantizationTarget="${sourceQuantizationTarget}" requires ` +
+      `quantizationInfo.weights="${targetQuant}"; got "${weightQuant}".`
+    );
+  }
+
+  const lmHeadQuant = normalizeQuantTag(info.lmHead ?? info.embeddings ?? info.weights);
+  if (lmHeadQuant !== targetQuant) {
+    throw new Error(
+      `QAT sourceQuantizationTarget="${sourceQuantizationTarget}" requires ` +
+      `quantizationInfo.lmHead="${targetQuant}" so the LM head stays quantized; got "${lmHeadQuant}".`
+    );
+  }
+  info.lmHead = targetQuant;
+}
+
 
 // Canonical dtype to manifest format mapping.
 const MANIFEST_QUANT_NAMES = {
   'q4k': 'Q4_K_M',
+  'q4_0': 'Q4_0',
   'q6k': 'Q6_K',
   'q8_0': 'Q8_0',
+  'w4a16': 'W4A16',
+  'wna8o8': 'WNA8O8',
 };
 
 export function resolveManifestQuantization(quantize, fallback) {
@@ -262,6 +377,12 @@ export function buildQuantizationInfo(
   const projectorQuant = quantization.projector ?? null;
   const computePrecision = quantization.computePrecision ?? null;
   const perLayerEmbeddings = normalizePerLayerEmbeddingQuant(quantization.perLayerEmbeddings ?? null);
+  const sourceTrainingQuantization = normalizeSourceTrainingQuantization(
+    quantization.sourceTrainingQuantization ?? null
+  );
+  const sourceQuantizationTarget = normalizeSourceQuantizationTarget(
+    quantization.sourceQuantizationTarget ?? null
+  );
 
   validateQuantType(weightQuant, 'converter.quantization.weights');
   validateQuantType(embedQuant, 'converter.quantization.embeddings');
@@ -342,6 +463,11 @@ export function buildQuantizationInfo(
   if (perLayerEmbeddings) {
     info.perLayerEmbeddings = perLayerEmbeddings;
   }
+  applySourceQuantizationMetadata(
+    info,
+    sourceTrainingQuantization,
+    sourceQuantizationTarget
+  );
 
   // Q4K layout: 'row' (fused kernel compatible) or 'col' (dequant fallback)
   // Default to 'row' for Q4K weights since that's the performant path
@@ -369,6 +495,9 @@ export function resolveModelId(modelId, baseName, variantTag) {
 // Canonical dtype to WebGPU dtype mapping.
 const WEBGPU_DTYPE_NAMES = {
   'q4k': 'Q4_K_M',
+  'q4_0': 'Q4_0',
+  'w4a16': 'W4A16',
+  'wna8o8': 'WNA8O8',
   'bf16': 'F16',
 };
 
@@ -381,8 +510,11 @@ function normalizeStoredDtype(value) {
   const upper = String(value).trim().toUpperCase();
   if (!upper) return null;
   if (upper === 'Q4_K' || upper === 'Q4_K_M') return 'q4k';
+  if (upper === 'Q4_0') return 'q4_0';
   if (upper === 'Q6_K') return 'q6k';
   if (upper === 'Q8_0') return 'q8_0';
+  if (upper === 'W4A16') return 'w4a16';
+  if (upper === 'WNA8O8') return 'wna8o8';
   if (upper === 'BF16') return 'bf16';
   if (upper === 'F16') return 'f16';
   if (upper === 'F32') return 'f32';
@@ -453,6 +585,11 @@ export function resolveEffectiveQuantizationInfo(baseInfo, tensors) {
     delete resolved.layout;
   }
 
+  applySourceQuantizationMetadata(
+    resolved,
+    normalizeSourceTrainingQuantization(base.sourceTrainingQuantization ?? null),
+    normalizeSourceQuantizationTarget(base.sourceQuantizationTarget ?? null)
+  );
   resolved.variantTag = buildVariantTag(resolved);
   return resolved;
 }

@@ -10,6 +10,8 @@ export const DEFAULT_CONVERTER_QUANTIZATION_CONFIG = {
   weights: null,
   embeddings: null,
   lmHead: null,
+  sourceTrainingQuantization: null,
+  sourceQuantizationTarget: null,
   vision: DEFAULT_QUANTIZATION_DEFAULTS.visionDtype,
   audio: DEFAULT_QUANTIZATION_DEFAULTS.audioDtype,
   projector: DEFAULT_QUANTIZATION_DEFAULTS.projectorDtype,

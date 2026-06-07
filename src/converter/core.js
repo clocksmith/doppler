@@ -170,7 +170,61 @@ export function normalizeStorageQuant(value) {
   if (lower === 'fp32' || lower === 'float32') return 'f32';
   if (lower === 'bfloat16') return 'bf16';
   if (lower === 'q4_k_m' || lower === 'q4km') return 'q4k';
+  if (lower === 'q4_0' || lower === 'q4-0') return 'q4_0';
+  if (
+    lower === 'w4a16-ct'
+    || lower === 'w4a16_ct'
+    || lower === 'compressed-tensors-w4a16'
+    || lower === 'compressed_tensors_w4a16'
+  ) return 'w4a16';
+  if (lower === 'wna8-o8' || lower === 'wna8_o8') return 'wna8o8';
   return lower;
+}
+
+const SOURCE_PACKED_QUANT_DTYPES = new Set(['q4_0', 'w4a16', 'wna8o8']);
+
+const SOURCE_PACKED_MANIFEST_DTYPES = {
+  q4_0: 'Q4_0',
+  w4a16: 'W4A16',
+  wna8o8: 'WNA8O8',
+};
+
+const SOURCE_PACKED_STORAGE_DESCRIPTORS = {
+  q4_0: {
+    packing: 'q4_0',
+    blockShape: [32],
+    blockBytes: 18,
+  },
+};
+
+function cloneSourcePackedStorageDescriptor(targetQuant) {
+  const descriptor = SOURCE_PACKED_STORAGE_DESCRIPTORS[targetQuant];
+  if (!descriptor) return null;
+  return {
+    ...descriptor,
+    blockShape: [...descriptor.blockShape],
+  };
+}
+
+function resolveExplicitRoleQuant(tensor, quantizationInfo) {
+  if (!quantizationInfo || typeof quantizationInfo !== 'object') {
+    return null;
+  }
+  const role = resolveTensorRole(tensor);
+  if (role === 'embedding') {
+    return normalizeStorageQuant(quantizationInfo.embeddings ?? null);
+  }
+  if (role === 'lm_head') {
+    return normalizeStorageQuant(
+      quantizationInfo.lmHead
+        ?? quantizationInfo.embeddings
+        ?? null
+    );
+  }
+  if (role === 'matmul' || role === 'expert' || role === 'router') {
+    return normalizeStorageQuant(quantizationInfo.weights ?? null);
+  }
+  return null;
 }
 
 export function resolveTensorTargetQuant(tensorOrName, fallbackQuant, quantizationInfo) {
@@ -976,6 +1030,46 @@ export function transformTensorBytes(tensor, rawData, options = {}) {
   // sourceTransform.kind=litert_axis_dequant with scaleSemantics=step.
   if (isGemma4PerLayerEmbedTensor(tensor.name) && canInt4QuantizePerRow(tensor, options)) {
     return buildInt4PerRowPleTransform(tensor, tensorDataInput, sourceDtype, options);
+  }
+
+  if (SOURCE_PACKED_QUANT_DTYPES.has(tensorTargetQuant)) {
+    const sourceQuant = normalizeStorageQuant(sourceDtype);
+    if (sourceQuant === tensorTargetQuant) {
+      return {
+        tensorData,
+        outDtype: SOURCE_PACKED_MANIFEST_DTYPES[tensorTargetQuant],
+        outLayout: null,
+        sourceDtype,
+        tensorTargetQuant,
+        storage: cloneSourcePackedStorageDescriptor(tensorTargetQuant),
+      };
+    }
+    const roleQuant = resolveExplicitRoleQuant(tensor, quantizationInfo);
+    const requiresPackedSource = (
+      forceQuantizeDecision
+      ?? (
+        roleQuant === tensorTargetQuant
+        || shouldQuantize(tensor.name, tensor.shape, {
+          quantizeEmbeddings,
+          modulesToNotConvert,
+          role: tensor.role ?? null,
+        })
+      )
+    );
+    if (!requiresPackedSource) {
+      return {
+        tensorData,
+        outDtype: sourceDtype,
+        outLayout: null,
+        sourceDtype,
+        tensorTargetQuant,
+      };
+    }
+    throw new Error(
+      `Cannot materialize ${tensorTargetQuant} for ${tensor.name}: ` +
+      `native import requires source dtype ${SOURCE_PACKED_MANIFEST_DTYPES[tensorTargetQuant]}; ` +
+      'the converter does not re-quantize tensors into this packed format.'
+    );
   }
 
   if (tensorTargetQuant === 'q4k') {
@@ -2001,6 +2095,7 @@ export async function convertModel(model, io, options = {}) {
     const sourceTensorSize = Number.isFinite(tensor?.size) ? Number(tensor.size) : null;
     let outDtype = tensor.dtype;
     let outLayout = null;
+    let tensorStorage = null;
     let tensorSize = 0;
 
     if (
@@ -2032,9 +2127,11 @@ export async function convertModel(model, io, options = {}) {
           }
           const chunkOutDtype = result?.outDtype ?? tensor.dtype;
           const chunkOutLayout = result?.outLayout ?? null;
+          const chunkStorage = result?.storage ?? null;
           if (!emittedChunk) {
             outDtype = chunkOutDtype;
             outLayout = chunkOutLayout;
+            tensorStorage = chunkStorage;
             emittedChunk = true;
           } else {
             if (chunkOutDtype !== outDtype) {
@@ -2042,6 +2139,9 @@ export async function convertModel(model, io, options = {}) {
             }
             if (chunkOutLayout !== outLayout) {
               throw new Error(`Large tensor transformer returned inconsistent layout for ${tensor.name}.`);
+            }
+            if (JSON.stringify(chunkStorage) !== JSON.stringify(tensorStorage)) {
+              throw new Error(`Large tensor transformer returned inconsistent storage descriptor for ${tensor.name}.`);
             }
           }
           tensorSize += tensorData.byteLength;
@@ -2117,6 +2217,7 @@ export async function convertModel(model, io, options = {}) {
       }
       outDtype = transformResult?.outDtype ?? tensor.dtype;
       outLayout = transformResult?.outLayout ?? null;
+      tensorStorage = transformResult?.storage ?? null;
       tensorSize = tensorData.byteLength;
       await appendTensorBytes(tensorData, tensorSpans);
 
@@ -2168,6 +2269,7 @@ export async function convertModel(model, io, options = {}) {
         role,
         group,
         ...(outLayout ? { layout: outLayout } : {}),
+        ...(tensorStorage ? { storage: tensorStorage } : {}),
         ...(pleSourceTransform ? { sourceTransform: pleSourceTransform } : {}),
       };
     } else {
@@ -2179,6 +2281,7 @@ export async function convertModel(model, io, options = {}) {
         role,
         group,
         ...(outLayout ? { layout: outLayout } : {}),
+        ...(tensorStorage ? { storage: tensorStorage } : {}),
         ...(pleSourceTransform ? { sourceTransform: pleSourceTransform } : {}),
       };
     }

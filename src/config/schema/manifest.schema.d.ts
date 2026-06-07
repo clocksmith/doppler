@@ -71,8 +71,11 @@ export type WeightLayout = 'row' | 'column';
 /** Quantization value (string for forward compatibility) */
 export type QuantizationValue =
   | 'q4k'      // Q4_K_M block quantization (canonical short form)
+  | 'q4_0'     // GGUF Q4_0 block quantization
   | 'q6k'      // Q6_K block quantization
   | 'q8_0'     // Q8_0 quantization
+  | 'w4a16'    // Packed W4A16 quantization
+  | 'wna8o8'   // Mobile wNa8o8 quantization
   | 'mxfp4'    // MXFP4 quantization (MoE experts)
   | 'f16'      // Float16
   | 'bf16'     // BFloat16
@@ -83,6 +86,15 @@ export type QuantizationValue =
   | 'i4'       // Int4
   | string;    // Allow future extensions
 
+export type SourceTrainingQuantization =
+  | 'qat'
+  | 'ptq';
+
+export type SourceQuantizationTarget =
+  | 'q4_0'
+  | 'w4a16'
+  | 'wNa8o8';
+
 /**
  * Quantization metadata for different weight groups.
  */
@@ -91,6 +103,8 @@ export interface QuantizationInfoSchema {
   weights: QuantizationValue;
   embeddings?: QuantizationValue;
   lmHead?: QuantizationValue;
+  sourceTrainingQuantization?: SourceTrainingQuantization;
+  sourceQuantizationTarget?: SourceQuantizationTarget;
   experts?: QuantizationValue;
   expertsFormat?: string;
 
