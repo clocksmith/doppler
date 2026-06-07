@@ -52,6 +52,7 @@ parentPort.on('message', (message) => {
         outLayout: transformed.outLayout ?? null,
         ...(companionBytes ? { companionData: companionBytes.buffer } : {}),
         ...(transformed.sourceTransform ? { sourceTransform: transformed.sourceTransform } : {}),
+        ...(transformed.storage ? { storage: transformed.storage } : {}),
       },
     }, transferList);
   } catch (error) {

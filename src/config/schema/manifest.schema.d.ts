@@ -477,6 +477,20 @@ export interface TensorSchema {
   spans?: TensorSpanSchema[];
   layout?: WeightLayout;
   originalShape?: number[];
+  storage?: {
+    packing: 'dense' | 'q4k' | 'q4_0' | 'w4a16' | 'gguf-block-v2' | string;
+    blockShape?: number[];
+    blockBytes?: number;
+    companions?: Array<{
+      role: string;
+      tensorId: string;
+    }>;
+    shardSpans?: Array<{
+      shardIndex: number;
+      byteStart: number;
+      byteEnd: number;
+    }>;
+  };
   sourceTransform?: {
     kind: 'affine_dequant';
     scheme: 'per_tensor_affine';

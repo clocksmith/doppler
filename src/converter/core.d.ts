@@ -76,6 +76,7 @@ export interface ConvertTensorTransformInput {
     offset?: number;
     sourcePath?: string | null;
     role?: TensorRole | null;
+    storage?: Record<string, unknown> | null;
   };
   tensorData: Uint8Array;
   transformContext?: Record<string, unknown> | null;
@@ -86,6 +87,9 @@ export interface ConvertTensorTransformResult {
   tensorData: Uint8Array;
   outDtype?: string | null;
   outLayout?: string | null;
+  storage?: Record<string, unknown> | null;
+  companionData?: Uint8Array | null;
+  sourceTransform?: Record<string, unknown> | null;
 }
 
 export interface ConvertLargeTensorTransformInput {
@@ -97,6 +101,7 @@ export interface ConvertLargeTensorTransformInput {
     offset?: number;
     sourcePath?: string | null;
     role?: TensorRole | null;
+    storage?: Record<string, unknown> | null;
   };
   transformContext?: Record<string, unknown> | null;
   reportProgress?: ((currentBytes: number, totalBytes: number) => void) | null;
@@ -256,6 +261,7 @@ export declare function transformTensorBytes(
     shape: number[];
     dtype: string;
     role?: TensorRole | null;
+    storage?: Record<string, unknown> | null;
   },
   rawData: ArrayBuffer | Uint8Array,
   options?: {

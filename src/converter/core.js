@@ -202,12 +202,21 @@ const SOURCE_PACKED_STORAGE_DESCRIPTORS = {
   },
 };
 
+const COMPRESSED_TENSORS_W4A16_SUFFIXES = {
+  packed: '.weight_packed',
+  scale: '.weight_scale',
+  shape: '.weight_shape',
+};
+
 function cloneSourcePackedStorageDescriptor(targetQuant) {
   const descriptor = SOURCE_PACKED_STORAGE_DESCRIPTORS[targetQuant];
   if (!descriptor) return null;
   return {
     ...descriptor,
     blockShape: [...descriptor.blockShape],
+    ...(Array.isArray(descriptor.companions)
+      ? { companions: descriptor.companions.map((companion) => ({ ...companion })) }
+      : {}),
   };
 }
 
@@ -334,15 +343,166 @@ function resolveConversionTensors(model, converterConfig) {
   ));
 }
 
+function normalizePositiveIntegerShape(value, tensorName) {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new Error(`Compressed-tensors W4A16 tensor "${tensorName}" is missing a logical shape.`);
+  }
+  return value.map((entry, index) => {
+    const number = Number(entry);
+    if (!Number.isInteger(number) || number <= 0) {
+      throw new Error(
+        `Compressed-tensors W4A16 tensor "${tensorName}" has invalid shape[${index}]=${JSON.stringify(entry)}.`
+      );
+    }
+    return number;
+  });
+}
+
+function resolveCompressedTensorBaseName(name, suffix) {
+  return name.endsWith(suffix)
+    ? name.slice(0, -suffix.length)
+    : null;
+}
+
+function collectCompressedTensorsW4A16(tensors) {
+  const groups = new Map();
+  const groupFor = (baseName) => {
+    const existing = groups.get(baseName);
+    if (existing) return existing;
+    const created = {
+      baseName,
+      packed: null,
+      scale: null,
+      shape: null,
+    };
+    groups.set(baseName, created);
+    return created;
+  };
+
+  for (const tensor of tensors) {
+    const name = normalizeTensorName(tensor);
+    const packedBase = resolveCompressedTensorBaseName(name, COMPRESSED_TENSORS_W4A16_SUFFIXES.packed);
+    if (packedBase) {
+      groupFor(packedBase).packed = tensor;
+      continue;
+    }
+    const scaleBase = resolveCompressedTensorBaseName(name, COMPRESSED_TENSORS_W4A16_SUFFIXES.scale);
+    if (scaleBase) {
+      groupFor(scaleBase).scale = tensor;
+      continue;
+    }
+    const shapeBase = resolveCompressedTensorBaseName(name, COMPRESSED_TENSORS_W4A16_SUFFIXES.shape);
+    if (shapeBase) {
+      groupFor(shapeBase).shape = tensor;
+    }
+  }
+
+  return groups;
+}
+
+function assertCompressedTensorsW4A16Group(group) {
+  const missing = [];
+  if (!group.packed) missing.push('weight_packed');
+  if (!group.scale) missing.push('weight_scale');
+  if (!group.shape) missing.push('weight_shape');
+  if (missing.length > 0) {
+    throw new Error(
+      `Compressed-tensors W4A16 tensor "${group.baseName}.weight" is missing companion tensors: ${missing.join(', ')}.`
+    );
+  }
+  const packedShape = normalizePositiveIntegerShape(group.packed.shape, group.packed.name);
+  if (packedShape.length !== 2) {
+    throw new Error(
+      `Compressed-tensors W4A16 tensor "${group.packed.name}" must be 2D; got shape ${JSON.stringify(packedShape)}.`
+    );
+  }
+  const scaleShape = normalizePositiveIntegerShape(group.scale.shape, group.scale.name);
+  if (scaleShape.length !== 2) {
+    throw new Error(
+      `Compressed-tensors W4A16 scale tensor "${group.scale.name}" must be 2D; got shape ${JSON.stringify(scaleShape)}.`
+    );
+  }
+  normalizePositiveIntegerShape(group.shape.shape, group.shape.name);
+  const shapeDtype = String(group.shape.dtype || '').toUpperCase();
+  if (shapeDtype !== 'I64' && shapeDtype !== 'I32' && shapeDtype !== 'U32') {
+    throw new Error(
+      `Compressed-tensors W4A16 shape tensor "${group.shape.name}" must use I64, I32, or U32; got "${group.shape.dtype}".`
+    );
+  }
+}
+
+function shouldNormalizeCompressedTensorsW4A16(converterConfig) {
+  return normalizeStorageQuant(converterConfig?.quantization?.weights) === 'w4a16'
+    || normalizeStorageQuant(converterConfig?.quantization?.sourceQuantizationTarget) === 'w4a16';
+}
+
+function sortTensorsForConversion(tensors) {
+  return [...tensors].sort((left, right) => normalizeTensorName(left).localeCompare(normalizeTensorName(right)));
+}
+
+function normalizeCompressedTensorsW4A16(tensors, converterConfig) {
+  const groups = collectCompressedTensorsW4A16(tensors);
+  if (groups.size === 0) {
+    return tensors;
+  }
+  if (!shouldNormalizeCompressedTensorsW4A16(converterConfig)) {
+    throw new Error(
+      'Compressed-tensors W4A16 tensors were detected, but converter.quantization.weights or ' +
+      'converter.quantization.sourceQuantizationTarget is not "w4a16".'
+    );
+  }
+
+  const byName = new Map(tensors.map((tensor) => [normalizeTensorName(tensor), tensor]));
+  const consumed = new Set();
+  const synthetic = [];
+  const sortedGroups = [...groups.values()].sort((left, right) => left.baseName.localeCompare(right.baseName));
+  for (const group of sortedGroups) {
+    assertCompressedTensorsW4A16Group(group);
+    const logicalName = `${group.baseName}.weight`;
+    if (byName.has(logicalName)) {
+      throw new Error(
+        `Compressed-tensors W4A16 logical tensor "${logicalName}" conflicts with an existing source tensor.`
+      );
+    }
+    consumed.add(group.packed.name);
+    synthetic.push({
+      ...group.packed,
+      name: logicalName,
+      dtype: 'W4A16',
+      packedSourceName: group.packed.name,
+      compressedTensorsW4A16: {
+        packed: group.packed.name,
+        scales: group.scale.name,
+        shape: group.shape.name,
+      },
+      storage: {
+        packing: 'w4a16',
+        blockShape: [32],
+        blockBytes: 16,
+        companions: [
+          { role: 'scales', tensorId: group.scale.name },
+          { role: 'shape', tensorId: group.shape.name },
+        ],
+      },
+    });
+  }
+
+  return sortTensorsForConversion([
+    ...tensors.filter((tensor) => !consumed.has(normalizeTensorName(tensor))),
+    ...synthetic,
+  ]);
+}
+
 function shouldMaterializeTiedLmHead(tensors, options) {
   if (options?.inference?.output?.tieWordEmbeddings !== true) {
     return false;
   }
-  if (normalizeStorageQuant(options?.quantizationInfo?.lmHead ?? null) !== 'q4k') {
+  const lmHeadQuant = normalizeStorageQuant(options?.quantizationInfo?.lmHead ?? null);
+  if (!SOURCE_PACKED_QUANT_DTYPES.has(lmHeadQuant) && lmHeadQuant !== 'q4k') {
     return false;
   }
   const embeddingQuant = normalizeStorageQuant(options?.quantizationInfo?.embeddings ?? null);
-  if (embeddingQuant === 'q4k') {
+  if (embeddingQuant === lmHeadQuant) {
     return false;
   }
   return !tensors.some((tensor) => resolveTensorRole(tensor) === 'lm_head');
@@ -1040,13 +1200,20 @@ export function transformTensorBytes(tensor, rawData, options = {}) {
   if (SOURCE_PACKED_QUANT_DTYPES.has(tensorTargetQuant)) {
     const sourceQuant = normalizeStorageQuant(sourceDtype);
     if (sourceQuant === tensorTargetQuant) {
+      const descriptor = cloneSourcePackedStorageDescriptor(tensorTargetQuant);
+      const sourceCompanions = Array.isArray(tensor?.storage?.companions)
+        ? tensor.storage.companions.map((companion) => ({ ...companion }))
+        : null;
       return {
         tensorData,
         outDtype: SOURCE_PACKED_MANIFEST_DTYPES[tensorTargetQuant],
         outLayout: null,
         sourceDtype,
         tensorTargetQuant,
-        storage: cloneSourcePackedStorageDescriptor(tensorTargetQuant),
+        storage: {
+          ...descriptor,
+          ...(sourceCompanions ? { companions: sourceCompanions } : {}),
+        },
       };
     }
     const roleQuant = resolveExplicitRoleQuant(tensor, quantizationInfo);
@@ -1971,7 +2138,10 @@ export async function convertModel(model, io, options = {}) {
     throw new Error('Missing modelId for conversion');
   }
   const tensors = materializeTiedLmHeadTensor(
-    resolveConversionTensors(model, converterConfig),
+    normalizeCompressedTensorsW4A16(
+      resolveConversionTensors(model, converterConfig),
+      converterConfig
+    ),
     {
       inference: options.inference ?? converterConfig?.inference ?? null,
       quantizationInfo: options.quantizationInfo ?? null,

@@ -166,6 +166,7 @@ function normalizeWorkerTransformResult(result, tensor) {
       ? { companionData: result.companionData }
       : {}),
     ...(result.sourceTransform ? { sourceTransform: result.sourceTransform } : {}),
+    ...(result.storage ? { storage: result.storage } : {}),
   };
 }
 
@@ -859,12 +860,16 @@ function createNodeTensorTransformer(options) {
 
     const outDtype = chunkResults[0].outDtype ?? tensor.dtype;
     const outLayout = chunkResults[0].outLayout ?? null;
+    const storage = chunkResults[0].storage ?? null;
     for (const chunkResult of chunkResults) {
       if ((chunkResult.outDtype ?? tensor.dtype) !== outDtype) {
         throw new Error(`node convert: inconsistent chunk dtype for ${tensor.name}.`);
       }
       if ((chunkResult.outLayout ?? null) !== outLayout) {
         throw new Error(`node convert: inconsistent chunk layout for ${tensor.name}.`);
+      }
+      if (JSON.stringify(chunkResult.storage ?? null) !== JSON.stringify(storage)) {
+        throw new Error(`node convert: inconsistent chunk storage descriptor for ${tensor.name}.`);
       }
     }
 
@@ -906,6 +911,7 @@ function createNodeTensorTransformer(options) {
       tensorData: combined,
       outDtype,
       outLayout,
+      ...(storage ? { storage } : {}),
       ...(companionData ? { companionData } : {}),
       ...(sourceTransform ? { sourceTransform } : {}),
     };
@@ -979,6 +985,7 @@ function createNodeLargeTensorTransformer(options) {
     let processedBytes = 0;
     let outDtype = null;
     let outLayout = null;
+    let storage = null;
 
     for (let rowStart = 0; rowStart < chunkPlan.rows; rowStart += chunkPlan.rowChunkRows) {
       const rowCount = Math.min(chunkPlan.rowChunkRows, chunkPlan.rows - rowStart);
@@ -1004,12 +1011,16 @@ function createNodeLargeTensorTransformer(options) {
       if (outDtype == null) {
         outDtype = normalized.outDtype ?? tensor.dtype;
         outLayout = normalized.outLayout ?? null;
+        storage = normalized.storage ?? null;
       } else {
         if ((normalized.outDtype ?? tensor.dtype) !== outDtype) {
           throw new Error(`node convert: inconsistent streamed chunk dtype for ${tensor.name}.`);
         }
         if ((normalized.outLayout ?? null) !== outLayout) {
           throw new Error(`node convert: inconsistent streamed chunk layout for ${tensor.name}.`);
+        }
+        if (JSON.stringify(normalized.storage ?? null) !== JSON.stringify(storage)) {
+          throw new Error(`node convert: inconsistent streamed chunk storage descriptor for ${tensor.name}.`);
         }
       }
       await writeChunk(normalized);
@@ -1023,6 +1034,7 @@ function createNodeLargeTensorTransformer(options) {
     return {
       outDtype: outDtype ?? tensor.dtype,
       outLayout: outLayout ?? null,
+      ...(storage ? { storage } : {}),
     };
   };
 }

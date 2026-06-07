@@ -1,6 +1,6 @@
 # Temporary Gemma 4 QAT / 12B Optimization TODO
 
-- [ ] 1. Implement real Gemma 4 QAT conversion pass for compressed-tensors so `*.weight_packed`, `*.weight_scale`, and `*.weight_shape` are grouped into packed logical tensor metadata instead of only passthrough tags, with deterministic companion matching and validation errors for missing/invalid triplets.
+- [x] 1. Implement real Gemma 4 QAT conversion pass for compressed-tensors so `*.weight_packed`, `*.weight_scale`, and `*.weight_shape` are grouped into packed logical tensor metadata instead of only passthrough tags, with deterministic companion matching and validation errors for missing/invalid triplets.
 - [ ] 2. Extend source quantization normalization to preserve exact W4A16 companion semantics end-to-end by updating source schema, conversion-info propagation, and manifest quantization fields so produced artifacts mirror HF `google/gemma-4-12b-it-qat-w4a16-ct` tensor semantics exactly.
 - [ ] 3. Add missing loader/runtime support for packed `w4a16` storage via a dedicated dequant path or fused kernel path, because current output is manifest-valid but still blocked at load/dequant execution and must not silently downgrade.
 - [ ] 4. Add/verify Gemma 4 12B QAT conversion-config assets with explicit execution graph, pinned kernel refs, and deterministic manifest refresh; run conversion and sync checks so config, execution-v1, and artifact hashes are coherent.

@@ -5,8 +5,10 @@ const {
   resolveEffectiveQuantizationInfo,
   resolveManifestQuantization,
 } = await import('../../src/converter/quantization-info.js');
-const { transformTensorBytes } = await import('../../src/converter/core.js');
+const { convertModel, transformTensorBytes } = await import('../../src/converter/core.js');
 const { loadTensorToCPU } = await import('../../src/loader/tensors/tensor-loader.js');
+const { createConverterConfig } = await import('../../src/config/schema/converter.schema.js');
+const { DEFAULT_MANIFEST_INFERENCE } = await import('../../src/config/schema/index.js');
 
 {
   const info = buildQuantizationInfo(
@@ -58,26 +60,23 @@ const { loadTensorToCPU } = await import('../../src/loader/tensors/tensor-loader
 }
 
 {
-  const info = buildQuantizationInfo(
-    {
-      quantization: {
-        weights: 'w4a16',
-        embeddings: 'f16',
-        lmHead: 'f16',
-        sourceTrainingQuantization: 'qat',
-        sourceQuantizationTarget: 'w4a16',
+  assert.throws(
+    () => buildQuantizationInfo(
+      {
+        quantization: {
+          weights: 'w4a16',
+          embeddings: 'f16',
+          lmHead: 'f16',
+          sourceTrainingQuantization: 'qat',
+          sourceQuantizationTarget: 'w4a16',
+        },
       },
-    },
-    'F16',
-    'F16',
-    'F16'
+      'F16',
+      'F16',
+      'F16'
+    ),
+    /requires quantizationInfo\.lmHead="w4a16"/
   );
-
-  assert.equal(info.weights, 'w4a16');
-  assert.equal(info.embeddings, 'f16');
-  assert.equal(info.lmHead, 'f16');
-  assert.equal(info.sourceTrainingQuantization, 'qat');
-  assert.equal(info.sourceQuantizationTarget, 'w4a16');
 }
 
 {
@@ -316,6 +315,132 @@ const { loadTensorToCPU } = await import('../../src/loader/tensors/tensor-loader
     () => loadTensorToCPU(new Uint8Array(18), { dtype: 'Q4_0' }),
     /Unsupported packed quantization dtype "Q4_0"/
   );
+}
+
+{
+  const tensorBytes = new Map([
+    ['model.layers.0.self_attn.q_proj.weight', new Uint8Array(16)],
+    ['model.layers.0.self_attn.q_proj.weight_scale', new Uint8Array(4)],
+    ['model.layers.0.self_attn.q_proj.weight_shape', new Uint8Array(16)],
+  ]);
+  let manifest = null;
+  const result = await convertModel(
+    {
+      name: 'gemma-4-12b-w4a16-ct-test',
+      modelId: 'gemma-4-12b-w4a16-ct-test',
+      modelType: 'transformer',
+      quantization: 'W4A16',
+      architecture: {
+        numLayers: 1,
+        hiddenSize: 64,
+        intermediateSize: 128,
+        numAttentionHeads: 1,
+        numKeyValueHeads: 1,
+        headDim: 64,
+        vocabSize: 16,
+        maxSeqLen: 8,
+      },
+      config: { model_type: 'gemma4_text' },
+      tensors: [
+        {
+          name: 'model.layers.0.self_attn.q_proj.weight_packed',
+          shape: [1, 64],
+          dtype: 'I32',
+          size: 16,
+          offset: 0,
+        },
+        {
+          name: 'model.layers.0.self_attn.q_proj.weight_scale',
+          shape: [1, 2],
+          dtype: 'F16',
+          size: 4,
+          offset: 16,
+        },
+        {
+          name: 'model.layers.0.self_attn.q_proj.weight_shape',
+          shape: [2],
+          dtype: 'I64',
+          size: 16,
+          offset: 20,
+        },
+      ],
+    },
+    {
+      async readTensorData(tensor) {
+        const bytes = tensorBytes.get(tensor.name);
+        if (!bytes) {
+          throw new Error(`missing test bytes for ${tensor.name}`);
+        }
+        return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+      },
+      async writeShard(index) {
+        return `hash-${index}`;
+      },
+      async writeManifest(value) {
+        manifest = value;
+      },
+    },
+    {
+      modelId: 'gemma-4-12b-w4a16-ct-test',
+      modelType: 'transformer',
+      quantization: 'W4A16',
+      quantizationInfo: {
+        weights: 'w4a16',
+        embeddings: 'f16',
+        lmHead: 'w4a16',
+        sourceTrainingQuantization: 'qat',
+        sourceQuantizationTarget: 'w4a16',
+      },
+      architecture: {
+        numLayers: 1,
+        hiddenSize: 64,
+        intermediateSize: 128,
+        numAttentionHeads: 1,
+        numKeyValueHeads: 1,
+        headDim: 64,
+        vocabSize: 16,
+        maxSeqLen: 8,
+      },
+      inference: { ...DEFAULT_MANIFEST_INFERENCE },
+      converterConfig: createConverterConfig({
+        quantization: {
+          weights: 'w4a16',
+          embeddings: 'f16',
+          lmHead: 'w4a16',
+          sourceTrainingQuantization: 'qat',
+          sourceQuantizationTarget: 'w4a16',
+        },
+      }),
+      source: 'unit-test',
+      sourceFormat: 'safetensors',
+      eosTokenId: 1,
+    }
+  );
+
+  assert.ok(manifest);
+  assert.equal(result.tensorCount, 3);
+  const primary = manifest.tensors['model.layers.0.self_attn.q_proj.weight'];
+  assert.equal(primary.dtype, 'W4A16');
+  assert.equal(primary.role, 'matmul');
+  assert.equal(primary.size, 16);
+  assert.deepEqual(primary.storage, {
+    packing: 'w4a16',
+    blockShape: [32],
+    blockBytes: 16,
+    companions: [
+      { role: 'scales', tensorId: 'model.layers.0.self_attn.q_proj.weight_scale' },
+      { role: 'shape', tensorId: 'model.layers.0.self_attn.q_proj.weight_shape' },
+    ],
+  });
+  assert.equal(
+    manifest.tensors['model.layers.0.self_attn.q_proj.weight_packed'],
+    undefined
+  );
+  assert.ok(manifest.tensors['model.layers.0.self_attn.q_proj.weight_scale']);
+  assert.ok(manifest.tensors['model.layers.0.self_attn.q_proj.weight_shape']);
+  assert.equal(manifest.quantizationInfo.sourceTrainingQuantization, 'qat');
+  assert.equal(manifest.quantizationInfo.sourceQuantizationTarget, 'w4a16');
+  assert.equal(manifest.quantizationInfo.lmHead, 'w4a16');
 }
 
 {

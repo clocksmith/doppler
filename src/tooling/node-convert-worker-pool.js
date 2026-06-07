@@ -166,6 +166,9 @@ export class NodeConvertWorkerPool {
           ...(message?.result?.sourceTransform
             ? { sourceTransform: message.result.sourceTransform }
             : {}),
+          ...(message?.result?.storage
+            ? { storage: message.result.storage }
+            : {}),
         });
       }
       this.#dispatch();
