@@ -34,6 +34,7 @@ Checked-in config inventory:
 | `gemma3/translategemma-4b-it-q4k-ehf16-af32.json` | `translategemma-4b-it-q4k-ehf16-af32` | Text-only TranslateGemma artifact |
 | `gemma4/gemma-4-e2b-it-q4k-ehf16-af32.json` | `gemma-4-e2b-it-q4k-ehf16-af32` | Gemma 4 E2B Q4K, execution-v1 graph |
 | `gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.json` | `gemma-4-e2b-it-q4k-ehf16-af32-int4ple` | Gemma 4 E2B Q4K with INT4 PLE policy |
+| `gemma4/gemma-4-12b-it-text-q4k-ehf16-af32.json` | `gemma-4-12b-it-text-q4k-ehf16-af32` | Gemma 4 12B text-only Q4K, execution-v1 graph |
 | `gemma4/gemma-4-moe-q4k-ehf16-af32.json` | `gemma-4-moe-q4k-ehf16-af32` | Gemma 4 MoE Q4K |
 | `gpt-oss-20b-f16-xmxfp4.json` | `gpt-oss-20b-f16-xmxfp4` | GPT-OSS F16/XMXFP4 config |
 | `janus/janus-pro-1b-text-q4k-ehaf16.json` | `janus-pro-1b-text-q4k-ehaf16` | Janus text-only Q4K artifact |

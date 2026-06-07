@@ -1333,7 +1333,12 @@ function getNestedTextConfig(config) {
 function resolveGemma4TextConfig(rawConfig) {
   const textConfig = getNestedTextConfig(rawConfig);
   const modelType = String(textConfig?.model_type ?? rawConfig?.model_type ?? '').trim().toLowerCase();
-  if (modelType !== 'gemma4' && modelType !== 'gemma4_text') {
+  if (
+    modelType !== 'gemma4'
+    && modelType !== 'gemma4_text'
+    && modelType !== 'gemma4_unified'
+    && modelType !== 'gemma4_unified_text'
+  ) {
     return null;
   }
   return textConfig ?? rawConfig ?? null;

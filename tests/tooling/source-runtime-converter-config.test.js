@@ -101,4 +101,69 @@ const converterConfig = createSourceRuntimeConverterConfig({
 assert.equal(converterConfig.manifest.visionConfig?.vision_architecture, 'gemma4');
 assert.equal(converterConfig.manifest.audioConfig?.audio_architecture, 'gemma4');
 
+const unifiedInference = createSourceRuntimeInference({
+  model_type: 'gemma4_unified',
+  text_config: {
+    model_type: 'gemma4_unified_text',
+    hidden_activation: 'gelu_pytorch_tanh',
+    sliding_window: 1024,
+    final_logit_softcapping: 30,
+    use_double_wide_mlp: false,
+    attention_bias: false,
+    tie_word_embeddings: true,
+    layer_types: [
+      'sliding_attention',
+      'sliding_attention',
+      'full_attention',
+    ],
+    global_head_dim: 512,
+    head_dim: 256,
+    rope_parameters: {
+      full_attention: {
+        rope_theta: 1000000,
+        rope_type: 'proportional',
+        partial_rotary_factor: 0.25,
+      },
+      sliding_attention: {
+        rope_theta: 10000,
+        rope_type: 'default',
+      },
+    },
+  },
+});
+
+assert.equal(unifiedInference.attention.queryPreAttnScalar, 1);
+assert.equal(unifiedInference.attention.queryKeyNorm, true);
+assert.equal(unifiedInference.attention.valueNorm, true);
+assert.equal(unifiedInference.attention.slidingWindow, 1024);
+assert.equal(unifiedInference.ffn.activation, 'gelu');
+assert.equal(unifiedInference.ffn.useDoubleWideMlp, false);
+assert.equal(unifiedInference.output.tieWordEmbeddings, true);
+assert.equal(unifiedInference.output.scaleEmbeddings, true);
+assert.equal(unifiedInference.layerPattern.type, 'custom');
+assert.equal(unifiedInference.chatTemplate.type, 'gemma4');
+
+const unifiedConverterConfig = createSourceRuntimeConverterConfig({
+  modelId: 'gemma4-unified-source-runtime-fixture',
+  rawConfig: {
+    model_type: 'gemma4_unified',
+    text_config: {
+      model_type: 'gemma4_unified_text',
+    },
+    vision_config: {
+      model_type: 'gemma4_unified_vision',
+      hidden_size: 3840,
+      num_hidden_layers: 0,
+    },
+    audio_config: {
+      model_type: 'gemma4_unified_audio',
+      hidden_size: 640,
+      num_hidden_layers: 0,
+    },
+  },
+});
+
+assert.equal(unifiedConverterConfig.manifest.visionConfig?.vision_architecture, 'gemma4');
+assert.equal(unifiedConverterConfig.manifest.audioConfig?.audio_architecture, 'gemma4');
+
 console.log('source-runtime-converter-config.test: ok');

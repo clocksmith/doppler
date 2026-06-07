@@ -61,7 +61,12 @@ function normalizeModelFamily(rawConfig) {
   if (rawModelType === 'gemma3' || rawModelType === 'gemma3_text') {
     return 'gemma3';
   }
-  if (rawModelType === 'gemma4' || rawModelType === 'gemma4_text') {
+  if (
+    rawModelType === 'gemma4'
+    || rawModelType === 'gemma4_text'
+    || rawModelType === 'gemma4_unified'
+    || rawModelType === 'gemma4_unified_text'
+  ) {
     return 'gemma4';
   }
   return rawModelType;
@@ -170,7 +175,7 @@ function resolveSourceRuntimeVisionConfig(rawConfig) {
   }
   const modelType = String(visionConfig.model_type ?? '').trim().toLowerCase();
   const visionArchitecture = String(visionConfig.vision_architecture ?? '').trim()
-    || (modelType === 'gemma4_vision' ? 'gemma4' : '')
+    || (modelType === 'gemma4_vision' || modelType === 'gemma4_unified_vision' ? 'gemma4' : '')
     || (modelType === 'qwen3_vl' || modelType === 'qwen3vl' ? 'qwen3vl' : '');
   return {
     ...cloneJsonValue(visionConfig),
@@ -185,7 +190,7 @@ function resolveSourceRuntimeAudioConfig(rawConfig) {
   }
   const modelType = String(audioConfig.model_type ?? '').trim().toLowerCase();
   const audioArchitecture = String(audioConfig.audio_architecture ?? '').trim()
-    || (modelType === 'gemma4_audio' ? 'gemma4' : '');
+    || (modelType === 'gemma4_audio' || modelType === 'gemma4_unified_audio' ? 'gemma4' : '');
   return {
     ...cloneJsonValue(audioConfig),
     ...(audioArchitecture ? { audio_architecture: audioArchitecture } : {}),
