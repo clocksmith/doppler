@@ -24,7 +24,7 @@ Non-RDRR note:
 - Direct-source manifests preserve source artifact storage facts. They do not accept converter-style quantization overrides; requantization requires a real convert step that emits a new RDRR artifact.
 - `.tflite` / raw-TFLite `.task` direct-source support requires sibling `config.json` model metadata.
 - Profiled LiteRT-LM companion-tensor quantization is supported through package-specific direct-source adapters, for example the Gemma 4 E2B LiteRT profile.
-- Unprofiled or graph-compiled LiteRT-LM INT4 layouts fail closed until a dedicated graph adapter exists. The Gemma 4 12B `.litertlm` desktop package currently uses this form across split `tf_lite_embedder` and `tf_lite_prefill_decode` sections; use the Doppler RDRR artifact for WebGPU inference until that adapter maps the LiteRT weight-conversion semantics explicitly.
+- Unprofiled or graph-compiled LiteRT-LM INT4 layouts fail closed until a dedicated graph adapter exists. The Gemma 4 12B `.litertlm` desktop package uses the named `gemma4_unified_12b_split_int4` split-section adapter across `tf_lite_embedder` and `tf_lite_prefill_decode`; promote or publish it only with parity evidence because its fixed INT4 affine scale is part of the package profile contract.
 - Float TFLite constants are read directly.
 - Quantized TFLite constants currently support per-tensor affine `INT8`, `UINT8`, and `INT4` source weights, carried through the runtime model as explicit `tensor.sourceTransform` metadata and dequantized at load time to `F16`.
 - Per-channel or otherwise unsupported LiteRT/TFLite quantization must still fail closed.

@@ -33,6 +33,7 @@ import {
   createPleBufferCache,
   prefetchPerLayerRow,
   hasRangeBackedPerLayerInputEmbeddings,
+  hasGpuSplitPerLayerInputEmbeddings,
   getPleHotVocabularyRuntime,
 } from './per-layer-inputs.js';
 
@@ -1231,6 +1232,10 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     config,
     weights: state.weights,
   });
+  const hasGpuSplitPerLayerInputs = hasGpuSplitPerLayerInputEmbeddings({
+    config,
+    weights: state.weights,
+  });
   const pleHotVocabularyRuntime = getPleHotVocabularyRuntime({ weights: state.weights });
   const hotStartTokenIndex = pleHotVocabularyRuntime?.hotTokenIndexMap?.[startToken] ?? null;
   const canUseHotVocabularyBatchDecode = hasRangeBackedPerLayerInputs
@@ -1415,7 +1420,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
       const perLayerInputs = await preparePerLayerInputs(tokensBuffer, hiddenTensor, context, {
         numTokens: 1,
         indexOffset: i,
-        perLayerTokenIds: pleInputTokensBuffer,
+        perLayerTokenIds: pleInputTokensBuffer ?? (hasGpuSplitPerLayerInputs ? tokensBuffer : null),
         perLayerIndexOffset: i,
         tokenIdHint: i === 0 ? startToken : null,
         pleCache: state.pleCache ?? null,

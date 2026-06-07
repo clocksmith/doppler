@@ -69,6 +69,14 @@ function resolveExplicitWebgpuModuleSpecifier() {
   return null;
 }
 
+function resolveWebgpuProviderCreateArgs() {
+  const fromEnv = process.env.DOPPLER_NODE_WEBGPU_PROVIDER_ARGS;
+  const rawArgs = typeof fromEnv === 'string' && fromEnv.trim().length > 0
+    ? fromEnv
+    : DEFAULT_PROVIDER_CREATE_ARGS;
+  return rawArgs.split(',').map((value) => value.trim()).filter(Boolean);
+}
+
 async function importWithProviderOverride(specifier) {
   return import(specifier);
 }
@@ -183,7 +191,7 @@ function resolveGpuFromModule(mod) {
     return fromModule;
   }
 
-  const defaultCreateArgs = DEFAULT_PROVIDER_CREATE_ARGS.split(',').filter(Boolean);
+  const defaultCreateArgs = resolveWebgpuProviderCreateArgs();
 
   const tryCreateFactory = (factory) => {
     if (typeof factory !== 'function') {
@@ -353,6 +361,8 @@ export async function bootstrapNodeWebGPUProvider(providerSpecifier, options = {
  * 1. **Environment override** (`DOPPLER_NODE_WEBGPU_MODULE` env var) — highest priority.
  *    When set, only this specifier is attempted. Supports npm package names,
  *    relative/absolute file paths, and `file://` URLs.
+ *    `DOPPLER_NODE_WEBGPU_PROVIDER_ARGS` may also be set to comma-separated
+ *    provider create args such as `backend=vulkan,adapter=Radeon ...`.
  *
  * 2. **Pre-installed** — if `navigator.gpu` and GPU enums are already present
  *    (e.g., a WebGPU-enabled Node build or prior bootstrap), no module is loaded.

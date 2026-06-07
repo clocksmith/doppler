@@ -368,6 +368,151 @@ function createLiteRTFloatTensor(rawTensor, sourcePath, canonicalName, role, gro
   };
 }
 
+function shapeEquals(actualShape, expectedShape) {
+  if (!Array.isArray(actualShape) || !Array.isArray(expectedShape)) {
+    return false;
+  }
+  if (actualShape.length !== expectedShape.length) {
+    return false;
+  }
+  for (let index = 0; index < expectedShape.length; index += 1) {
+    if (Number(actualShape[index]) !== Number(expectedShape[index])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function isLiteRTTensorDtype(rawTensor, sourceDtype) {
+  const dtypeId = Number(rawTensor?.dtypeId);
+  if (sourceDtype === 'F32') {
+    return dtypeId === 0 || normalizeText(rawTensor?.dtype).toUpperCase() === 'F32';
+  }
+  if (sourceDtype === 'INT4') {
+    return dtypeId === 17 || normalizeText(rawTensor?.sourceDtype).toUpperCase() === 'INT4';
+  }
+  return false;
+}
+
+function createGemma412BSplitCursor(parsedTFLite, sourcePath) {
+  return {
+    tensors: Array.isArray(parsedTFLite?.tensors) ? parsedTFLite.tensors : [],
+    sourcePath,
+    index: 0,
+    lastHiddenNorm: null,
+  };
+}
+
+function takeNextLiteRTTensor(cursor, expectedShape, sourceDtype, label, options = {}) {
+  const optional = options.optional === true;
+  for (let tensorIndex = cursor.index; tensorIndex < cursor.tensors.length; tensorIndex += 1) {
+    const tensor = cursor.tensors[tensorIndex];
+    if (!isLiteRTTensorDtype(tensor, sourceDtype)) {
+      continue;
+    }
+    if (!shapeEquals(tensor.shape, expectedShape)) {
+      continue;
+    }
+    cursor.index = tensorIndex + 1;
+    return tensor;
+  }
+  if (optional) {
+    return null;
+  }
+  throw new Error(
+    `direct-source runtime: Gemma 4 12B split-section adapter could not find ${sourceDtype} tensor ` +
+    `${label} with shape ${JSON.stringify(expectedShape)} after tensor index ${cursor.index}.`
+  );
+}
+
+function takeOptionalConsecutiveLiteRTTensor(cursor, expectedShape, sourceDtype) {
+  const tensor = cursor.tensors[cursor.index] ?? null;
+  if (!isLiteRTTensorDtype(tensor, sourceDtype) || !shapeEquals(tensor.shape, expectedShape)) {
+    return null;
+  }
+  cursor.index += 1;
+  return tensor;
+}
+
+function createLiteRTFixedAffineInt4Tensor(
+  rawTensor,
+  sourcePath,
+  canonicalName,
+  role,
+  group,
+  logicalShape,
+  fixedScale
+) {
+  if (!rawTensor || typeof rawTensor !== 'object') {
+    throw new Error(`direct-source runtime: missing LiteRT tensor "${canonicalName}".`);
+  }
+  if (!Array.isArray(logicalShape) || logicalShape.length !== 2) {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${canonicalName}" requires an explicit 2D logical shape.`
+    );
+  }
+  if (!shapeEquals(rawTensor.shape, logicalShape)) {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${rawTensor.name}" shape ${JSON.stringify(rawTensor.shape)} ` +
+      `does not match expected split-section logical shape ${JSON.stringify(logicalShape)} for "${canonicalName}".`
+    );
+  }
+  const expectedSize = computePackedByteSize(logicalShape, 'INT4', canonicalName);
+  if (Number(rawTensor.size) !== expectedSize) {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${rawTensor.name}" size ${rawTensor.size} does not match ` +
+      `INT4 packed shape ${JSON.stringify(logicalShape)} for "${canonicalName}".`
+    );
+  }
+  if (!Number.isFinite(fixedScale) || fixedScale <= 0) {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${canonicalName}" requires package.litertlm.fixedInt4Scale > 0.`
+    );
+  }
+  return {
+    name: canonicalName,
+    shape: [Number(logicalShape[0]), Number(logicalShape[1])],
+    dtype: 'F16',
+    offset: rawTensor.offset,
+    size: rawTensor.size,
+    sourcePath,
+    role,
+    ...(group ? { group } : {}),
+    sourceTransform: {
+      kind: 'affine_dequant',
+      scheme: 'per_tensor_affine',
+      sourceDtype: 'INT4',
+      targetDtype: 'F16',
+      storageEncoding: 'signed',
+      scale: fixedScale,
+      zeroPoint: 0,
+    },
+  };
+}
+
+function resolveGemma412BLayerTypes(runtimeProfile) {
+  const explicitLayerTypes = runtimeProfile?.manifestInference?.layerPattern?.layerTypes;
+  if (Array.isArray(explicitLayerTypes) && explicitLayerTypes.length > 0) {
+    return explicitLayerTypes.map((value) => normalizeText(value));
+  }
+  const numLayers = Number(runtimeProfile?.architecture?.numLayers ?? 0);
+  if (!Number.isInteger(numLayers) || numLayers <= 0) {
+    throw new Error('direct-source runtime: Gemma 4 12B split-section adapter is missing architecture.numLayers.');
+  }
+  const layerTypes = [];
+  for (let layerIndex = 0; layerIndex < numLayers; layerIndex += 1) {
+    layerTypes.push(isGemma4GlobalLayer(runtimeProfile, layerIndex) ? 'full_attention' : 'sliding_attention');
+  }
+  return layerTypes;
+}
+
+function addFloatToNormalized(normalized, rawTensor, sourcePath, canonicalName, role, group = null) {
+  if (!rawTensor) {
+    throw new Error(`direct-source runtime: missing LiteRT tensor "${canonicalName}".`);
+  }
+  normalized.push(createLiteRTFloatTensor(rawTensor, sourcePath, canonicalName, role, group));
+}
+
 function createLiteRTRowwiseTensor(
   rawTensor,
   scaleTensor,
@@ -789,6 +934,179 @@ function createLiteRTBlockedAxisTensor(
   };
 }
 
+function normalizeGemma412BSplitLiteRTTensors(parsedTFLitesByPath, virtualFiles, runtimeProfile, packageConfig) {
+  const embedderModelType = normalizeText(packageConfig?.embedderTFLiteModelType);
+  const prefillModelType = normalizeText(packageConfig?.tfliteModelType);
+  const embedderSourceFile = virtualFiles.find((entry) => entry.kind === 'tflite_embedder_model') ?? null;
+  const prefillSourceFile = virtualFiles.find((entry) => entry.kind === 'tflite_model') ?? null;
+  if (!embedderModelType || !embedderSourceFile) {
+    throw new Error(
+      'direct-source runtime: Gemma 4 12B split-section adapter requires package.litertlm.embedderTFLiteModelType.'
+    );
+  }
+  if (!prefillModelType || !prefillSourceFile) {
+    throw new Error(
+      'direct-source runtime: Gemma 4 12B split-section adapter requires package.litertlm.tfliteModelType.'
+    );
+  }
+  const embedderTFLite = parsedTFLitesByPath?.get(embedderSourceFile.path) ?? null;
+  const prefillTFLite = parsedTFLitesByPath?.get(prefillSourceFile.path) ?? null;
+  if (!embedderTFLite || !prefillTFLite) {
+    throw new Error('direct-source runtime: Gemma 4 12B split-section adapter did not receive both parsed TFLite sections.');
+  }
+
+  const arch = runtimeProfile?.architecture ?? {};
+  const hiddenSize = Number(arch.hiddenSize ?? 0);
+  const vocabSize = Number(arch.vocabSize ?? 0);
+  const intermediateSize = Number(arch.intermediateSize ?? 0);
+  const numAttentionHeads = Number(arch.numAttentionHeads ?? 0);
+  const numKeyValueHeads = Number(arch.numKeyValueHeads ?? 0);
+  const numGlobalKeyValueHeads = Number(arch.numGlobalKeyValueHeads ?? numKeyValueHeads);
+  const headDim = Number(arch.headDim ?? 0);
+  const globalHeadDim = Number(arch.globalHeadDim ?? headDim);
+  const fixedInt4Scale = Number(packageConfig?.fixedInt4Scale);
+  if (
+    !Number.isInteger(hiddenSize)
+    || hiddenSize <= 0
+    || !Number.isInteger(vocabSize)
+    || vocabSize <= 0
+    || !Number.isInteger(intermediateSize)
+    || intermediateSize <= 0
+    || !Number.isInteger(numAttentionHeads)
+    || numAttentionHeads <= 0
+    || !Number.isInteger(numKeyValueHeads)
+    || numKeyValueHeads <= 0
+    || !Number.isInteger(numGlobalKeyValueHeads)
+    || numGlobalKeyValueHeads <= 0
+    || !Number.isInteger(headDim)
+    || headDim <= 0
+    || !Number.isInteger(globalHeadDim)
+    || globalHeadDim <= 0
+    || !Number.isFinite(fixedInt4Scale)
+    || fixedInt4Scale <= 0
+  ) {
+    throw new Error(
+      'direct-source runtime: Gemma 4 12B split-section adapter requires explicit architecture sizes and fixedInt4Scale.'
+    );
+  }
+
+  const normalized = [];
+  const embedderTensor = embedderTFLite.tensors.find((tensor) => (
+    isLiteRTTensorDtype(tensor, 'INT4') && shapeEquals(tensor.shape, [vocabSize, hiddenSize])
+  )) ?? null;
+  normalized.push(
+    createLiteRTFixedAffineInt4Tensor(
+      embedderTensor,
+      embedderSourceFile.path,
+      'model.language_model.embed_tokens.weight',
+      'embedding',
+      'embed',
+      [vocabSize, hiddenSize],
+      fixedInt4Scale
+    )
+  );
+
+  const cursor = createGemma412BSplitCursor(prefillTFLite, prefillSourceFile.path);
+  const leadingFinalNorm = takeNextLiteRTTensor(cursor, [hiddenSize], 'F32', 'model.language_model.norm.weight', {
+    optional: true,
+  });
+  if (leadingFinalNorm) {
+    cursor.lastHiddenNorm = leadingFinalNorm;
+    takeOptionalConsecutiveLiteRTTensor(cursor, [numGlobalKeyValueHeads * globalHeadDim, hiddenSize], 'INT4');
+    takeOptionalConsecutiveLiteRTTensor(cursor, [globalHeadDim], 'F32');
+  }
+  const layerTypes = resolveGemma412BLayerTypes(runtimeProfile);
+  for (let layerIndex = 0; layerIndex < layerTypes.length; layerIndex += 1) {
+    const canonicalLayerPrefix = `model.language_model.layers.${layerIndex}`;
+    const globalLayer = normalizeText(layerTypes[layerIndex]) === 'full_attention';
+    const attentionHeadDim = globalLayer ? globalHeadDim : headDim;
+    const kvHeads = globalLayer ? numGlobalKeyValueHeads : numKeyValueHeads;
+    const qRows = numAttentionHeads * attentionHeadDim;
+    const kvRows = kvHeads * attentionHeadDim;
+
+    const addHiddenNorm = (canonicalName) => {
+      const rawTensor = takeNextLiteRTTensor(cursor, [hiddenSize], 'F32', canonicalName);
+      cursor.lastHiddenNorm = rawTensor;
+      normalized.push(createLiteRTFloatTensor(rawTensor, prefillSourceFile.path, canonicalName, 'norm'));
+    };
+    const addFloat = (rawTensor, canonicalName, role = 'norm') => {
+      if (!rawTensor) return;
+      normalized.push(createLiteRTFloatTensor(rawTensor, prefillSourceFile.path, canonicalName, role));
+    };
+    const addInt4 = (rawTensor, canonicalName, role, logicalShape) => {
+      normalized.push(
+        createLiteRTFixedAffineInt4Tensor(
+          rawTensor,
+          prefillSourceFile.path,
+          canonicalName,
+          role,
+          null,
+          logicalShape,
+          fixedInt4Scale
+        )
+      );
+    };
+
+    addHiddenNorm(`${canonicalLayerPrefix}.input_layernorm.weight`);
+    addHiddenNorm(`${canonicalLayerPrefix}.post_attention_layernorm.weight`);
+    addHiddenNorm(`${canonicalLayerPrefix}.pre_feedforward_layernorm.weight`);
+    addHiddenNorm(`${canonicalLayerPrefix}.post_feedforward_layernorm.weight`);
+
+    addInt4(
+      takeNextLiteRTTensor(cursor, [hiddenSize, intermediateSize], 'INT4', `${canonicalLayerPrefix}.mlp.down_proj.weight`),
+      `${canonicalLayerPrefix}.mlp.down_proj.weight`,
+      'matmul',
+      [hiddenSize, intermediateSize]
+    );
+    addInt4(
+      takeNextLiteRTTensor(cursor, [intermediateSize, hiddenSize], 'INT4', `${canonicalLayerPrefix}.mlp.gate_proj.weight`),
+      `${canonicalLayerPrefix}.mlp.gate_proj.weight`,
+      'matmul',
+      [intermediateSize, hiddenSize]
+    );
+    addInt4(
+      takeNextLiteRTTensor(cursor, [intermediateSize, hiddenSize], 'INT4', `${canonicalLayerPrefix}.mlp.up_proj.weight`),
+      `${canonicalLayerPrefix}.mlp.up_proj.weight`,
+      'matmul',
+      [intermediateSize, hiddenSize]
+    );
+    addInt4(
+      takeNextLiteRTTensor(cursor, [hiddenSize, qRows], 'INT4', `${canonicalLayerPrefix}.self_attn.o_proj.weight`),
+      `${canonicalLayerPrefix}.self_attn.o_proj.weight`,
+      'matmul',
+      [hiddenSize, qRows]
+    );
+    const kProj = takeNextLiteRTTensor(cursor, [kvRows, hiddenSize], 'INT4', `${canonicalLayerPrefix}.self_attn.k_proj.weight`);
+    const vProj = takeOptionalConsecutiveLiteRTTensor(cursor, [kvRows, hiddenSize], 'INT4') ?? kProj;
+    addInt4(kProj, `${canonicalLayerPrefix}.self_attn.k_proj.weight`, 'matmul', [kvRows, hiddenSize]);
+    addInt4(vProj, `${canonicalLayerPrefix}.self_attn.v_proj.weight`, 'matmul', [kvRows, hiddenSize]);
+
+    const firstNorm = takeOptionalConsecutiveLiteRTTensor(cursor, [attentionHeadDim], 'F32');
+    const secondNorm = takeOptionalConsecutiveLiteRTTensor(cursor, [attentionHeadDim], 'F32');
+    if (firstNorm) {
+      addFloat(firstNorm, `${canonicalLayerPrefix}.self_attn.q_norm.weight`);
+      addFloat(secondNorm ?? firstNorm, `${canonicalLayerPrefix}.self_attn.k_norm.weight`);
+    }
+
+    addInt4(
+      takeNextLiteRTTensor(cursor, [qRows, hiddenSize], 'INT4', `${canonicalLayerPrefix}.self_attn.q_proj.weight`),
+      `${canonicalLayerPrefix}.self_attn.q_proj.weight`,
+      'matmul',
+      [qRows, hiddenSize]
+    );
+  }
+
+  const finalNorm = takeNextLiteRTTensor(cursor, [hiddenSize], 'F32', 'model.language_model.norm.weight', {
+    optional: true,
+  }) ?? leadingFinalNorm ?? cursor.lastHiddenNorm;
+  addFloatToNormalized(normalized, finalNorm, prefillSourceFile.path, 'model.language_model.norm.weight', 'norm', 'head');
+
+  if (normalized.length === 0) {
+    throw new Error('direct-source runtime: Gemma 4 12B split-section adapter did not produce any normalized tensors.');
+  }
+  return normalized;
+}
+
 function normalizeGemma4LiteRTTensors(parsedTFLite, sourcePath, runtimeProfile) {
   const rawByName = new Map();
   for (const tensor of parsedTFLite.tensors) {
@@ -1040,7 +1358,18 @@ function normalizeGemma4LiteRTTensors(parsedTFLite, sourcePath, runtimeProfile) 
   return normalized;
 }
 
-function buildPackageParsedArtifact(sourceKind, sourcePathForModelId, runtimeProfile, parsedTFLite, virtualFiles) {
+function buildPackageParsedArtifact(
+  sourceKind,
+  sourcePathForModelId,
+  runtimeProfile,
+  parsedTFLite,
+  virtualFiles,
+  packageConfig = null,
+  parsedTFLitesByPath = null
+) {
+  const tfliteSourceFiles = virtualFiles.filter((entry) => (
+    entry.kind === 'tflite_model' || entry.kind === 'tflite_embedder_model'
+  ));
   const tfliteSourceFile = virtualFiles.find((entry) => entry.kind === 'tflite_model') ?? null;
   if (!tfliteSourceFile) {
     throw new Error('direct-source runtime: LiteRT package is missing a TFLite model entry.');
@@ -1050,12 +1379,15 @@ function buildPackageParsedArtifact(sourceKind, sourcePathForModelId, runtimePro
   const tokenizerModelFile = virtualFiles.find((entry) => entry.kind === 'tokenizer_model') ?? null;
   const metadataFile = virtualFiles.find((entry) => entry.kind === 'litert_metadata') ?? null;
   const config = cloneJsonValue(runtimeProfile.rawConfig ?? {});
-  const tensors = normalizeText(runtimeProfile.modelType) === 'gemma4'
-    ? normalizeGemma4LiteRTTensors(parsedTFLite, tfliteSourceFile.path, runtimeProfile)
-    : parsedTFLite.tensors.map((tensor) => ({
+  const graphAdapter = normalizeText(packageConfig?.graphAdapter);
+  const tensors = graphAdapter === 'gemma4_unified_12b_split_int4'
+    ? normalizeGemma412BSplitLiteRTTensors(parsedTFLitesByPath, virtualFiles, runtimeProfile, packageConfig)
+    : (normalizeText(runtimeProfile.modelType) === 'gemma4'
+      ? normalizeGemma4LiteRTTensors(parsedTFLite, tfliteSourceFile.path, runtimeProfile)
+      : parsedTFLite.tensors.map((tensor) => ({
       ...tensor,
       sourcePath: tfliteSourceFile.path,
-    }));
+      })));
   return {
     sourceKind,
     modelType: normalizeText(runtimeProfile.modelType),
@@ -1072,12 +1404,10 @@ function buildPackageParsedArtifact(sourceKind, sourcePathForModelId, runtimePro
     tokenizerJsonPath: tokenizerJsonFile ? tokenizerJsonFile.path : null,
     tokenizerConfigPath: tokenizerConfigFile ? tokenizerConfigFile.path : null,
     tokenizerModelPath: tokenizerModelFile ? tokenizerModelFile.path : null,
-    sourceFiles: [
-      {
-        path: tfliteSourceFile.path,
-        size: tfliteSourceFile.size,
-      },
-    ],
+    sourceFiles: tfliteSourceFiles.map((entry) => ({
+      path: entry.path,
+      size: entry.size,
+    })),
     auxiliaryFiles: [
       ...(tokenizerJsonFile
         ? [{
@@ -1201,7 +1531,8 @@ async function parseLiteRTTaskPackage(source, sourcePathForModelId) {
       sourcePathForModelId,
       runtimeProfile,
       parsedTFLite,
-      virtualFiles
+      virtualFiles,
+      taskConfig
     ),
     virtualFiles,
     packageProfile: profile,
@@ -1224,6 +1555,7 @@ async function parseLiteRTLMPackage(source, sourcePathForModelId) {
   }
 
   const parsedLiteRTLM = await parseLiteRTLMFromSource(source);
+  const graphAdapter = normalizeText(litertConfig.graphAdapter);
   const tfliteModelType = normalizeText(litertConfig.tfliteModelType) || LITERT_TASK_DEFAULT_TFLITE_ENTRY;
   const weightsSection = findLiteRTLMTFLiteWeightsSection(parsedLiteRTLM, tfliteModelType);
   if (weightsSection) {
@@ -1245,6 +1577,55 @@ async function parseLiteRTLMPackage(source, sourcePathForModelId) {
 
   const tokenizerSection = findLiteRTLMSentencePieceTokenizerSection(parsedLiteRTLM);
   const metadataSection = findLiteRTLMMetadataSection(parsedLiteRTLM);
+  if (graphAdapter === 'gemma4_unified_12b_split_int4') {
+    const embedderTFLiteModelType = normalizeText(litertConfig.embedderTFLiteModelType);
+    if (!embedderTFLiteModelType) {
+      throw new Error(
+        `direct-source runtime: LiteRT-LM "${packageBasename}" split-section graph adapter requires ` +
+        'package.litertlm.embedderTFLiteModelType.'
+      );
+    }
+    const prefillSection = findLiteRTLMTFLiteModelSection(parsedLiteRTLM, tfliteModelType);
+    const embedderSection = findLiteRTLMTFLiteModelSection(parsedLiteRTLM, embedderTFLiteModelType);
+    if (!prefillSection || !embedderSection) {
+      throw new Error(
+        `direct-source runtime: LiteRT-LM "${packageBasename}" split-section graph adapter requires ` +
+        `TFLiteModel sections "${embedderTFLiteModelType}" and "${tfliteModelType}".`
+      );
+    }
+    const virtualFiles = [
+      createVirtualFile(embedderTFLiteModelType, embedderSection.beginOffset, embedderSection.size, 'tflite_embedder_model'),
+      createVirtualFile(tfliteModelType, prefillSection.beginOffset, prefillSection.size, 'tflite_model'),
+    ];
+    if (tokenizerSection) {
+      virtualFiles.push(createVirtualFile('TOKENIZER_MODEL', tokenizerSection.beginOffset, tokenizerSection.size, 'tokenizer_model'));
+    }
+    if (metadataSection) {
+      virtualFiles.push(createVirtualFile('METADATA', metadataSection.beginOffset, metadataSection.size, 'litert_metadata'));
+    }
+    const parsedTFLitesByPath = new Map();
+    for (const virtualFile of virtualFiles.filter((entry) => entry.kind === 'tflite_model' || entry.kind === 'tflite_embedder_model')) {
+      parsedTFLitesByPath.set(
+        virtualFile.path,
+        await parseTFLiteFromSource(createSectionSource(source, virtualFile), {
+          allowPackedQuantization: true,
+        })
+      );
+    }
+    return {
+      parsedArtifact: buildPackageParsedArtifact(
+        LITERT_PACKAGE_SOURCE_KIND_LITERTLM,
+        sourcePathForModelId,
+        runtimeProfile,
+        parsedTFLitesByPath.get(tfliteModelType),
+        virtualFiles,
+        litertConfig,
+        parsedTFLitesByPath
+      ),
+      virtualFiles,
+      packageProfile: profile,
+    };
+  }
   const errors = [];
 
   for (let candidateIndex = 0; candidateIndex < modelSections.length; candidateIndex += 1) {
@@ -1272,7 +1653,8 @@ async function parseLiteRTLMPackage(source, sourcePathForModelId) {
           sourcePathForModelId,
           runtimeProfile,
           parsedTFLite,
-          virtualFiles
+          virtualFiles,
+          litertConfig
         ),
         virtualFiles,
         packageProfile: profile,

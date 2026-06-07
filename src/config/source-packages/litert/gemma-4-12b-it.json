@@ -1,13 +1,306 @@
 {
   "id": "litert/gemma-4-12b-it",
+  "runtime": {
+    "modelType": "gemma4",
+    "architecture": {
+      "vocabSize": 262144,
+      "hiddenSize": 3840,
+      "intermediateSize": 15360,
+      "numLayers": 47,
+      "numAttentionHeads": 16,
+      "numKeyValueHeads": 8,
+      "numGlobalKeyValueHeads": 1,
+      "headDim": 256,
+      "globalHeadDim": 512,
+      "hiddenSizePerLayerInput": 0,
+      "vocabSizePerLayerInput": 0,
+      "numKvSharedLayers": 0,
+      "attentionKeyEqualsValue": true,
+      "maxSeqLen": 131072
+    },
+    "rawConfig": {
+      "architectures": [
+        "Gemma4ForConditionalGeneration"
+      ],
+      "model_type": "gemma4_unified",
+      "eos_token_id": [
+        1,
+        106
+      ],
+      "text_config": {
+        "model_type": "gemma4_unified_text",
+        "vocab_size": 262144,
+        "hidden_size": 3840,
+        "intermediate_size": 15360,
+        "num_hidden_layers": 47,
+        "num_attention_heads": 16,
+        "num_key_value_heads": 8,
+        "num_global_key_value_heads": 1,
+        "head_dim": 256,
+        "global_head_dim": 512,
+        "hidden_activation": "gelu_pytorch_tanh",
+        "max_position_embeddings": 131072,
+        "sliding_window": 1024,
+        "rms_norm_eps": 0.000001,
+        "rope_theta": 1000000,
+        "rope_local_base_freq": 10000,
+        "rope_scaling": {
+          "rope_type": "default",
+          "factor": 8
+        },
+        "attention_k_eq_v": true,
+        "attention_bias": false,
+        "hidden_size_per_layer_input": 0,
+        "eos_token_id": 1,
+        "pad_token_id": 0,
+        "bos_token_id": 2,
+        "layer_types": [
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention"
+        ]
+      }
+    },
+    "manifestConfig": {},
+    "manifestInference": {
+      "schema": "doppler.execution/v1",
+      "attention": {
+        "queryPreAttnScalar": 1,
+        "attnLogitSoftcapping": null,
+        "slidingWindow": 1024,
+        "queryKeyNorm": true,
+        "valueNorm": true,
+        "causal": true,
+        "attentionBias": false,
+        "attentionOutputGate": false
+      },
+      "normalization": {
+        "rmsNormEps": 0.000001,
+        "rmsNormWeightOffset": false,
+        "postAttentionNorm": true,
+        "preFeedforwardNorm": true,
+        "postFeedforwardNorm": true
+      },
+      "ffn": {
+        "activation": "gelu",
+        "gatedActivation": true,
+        "useDoubleWideMlp": false,
+        "swigluLimit": null
+      },
+      "rope": {
+        "ropeTheta": 1000000,
+        "ropeLocalTheta": 10000,
+        "ropeInterleaved": false,
+        "mropeInterleaved": false,
+        "mropeSection": null,
+        "partialRotaryFactor": 0.25,
+        "ropeLocalPartialRotaryFactor": null,
+        "ropeFrequencyBaseDim": 512,
+        "ropeLocalFrequencyBaseDim": null,
+        "ropeScalingType": null,
+        "ropeScalingFactor": 1,
+        "ropeLocalScalingType": null,
+        "ropeLocalScalingFactor": 1,
+        "yarnBetaFast": null,
+        "yarnBetaSlow": null,
+        "yarnOriginalMaxPos": null,
+        "ropeLocalYarnBetaFast": null,
+        "ropeLocalYarnBetaSlow": null,
+        "ropeLocalYarnOriginalMaxPos": null
+      },
+      "output": {
+        "finalLogitSoftcapping": 30,
+        "tieWordEmbeddings": true,
+        "scaleEmbeddings": true,
+        "embeddingTranspose": false,
+        "embeddingVocabSize": 262144,
+        "embeddingPostprocessor": null
+      },
+      "layerPattern": {
+        "type": "custom",
+        "globalPattern": null,
+        "period": null,
+        "offset": null,
+        "layerTypes": [
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention"
+        ]
+      },
+      "chatTemplate": {
+        "type": "gemma4",
+        "enabled": true
+      },
+      "pipeline": null,
+      "session": {
+        "compute": {
+          "defaults": {
+            "activationDtype": "f32",
+            "mathDtype": "f32",
+            "accumDtype": "f32",
+            "outputDtype": "f32"
+          }
+        },
+        "kvcache": {
+          "kvDtype": "f16",
+          "layout": "contiguous",
+          "pageSize": 256,
+          "tiering": {
+            "mode": "off"
+          }
+        },
+        "decodeLoop": {
+          "batchSize": 1,
+          "stopCheckMode": "batch",
+          "readbackInterval": 1,
+          "readbackMode": "overlapped",
+          "ringTokens": 2,
+          "ringStop": 1,
+          "ringStaging": 2,
+          "disableCommandBatching": false
+        },
+        "perLayerInputs": {
+          "materialization": "gpu_split_tables",
+          "rowCache": {
+            "mode": "lru",
+            "maxRows": 512,
+            "maxBytes": 268435456,
+            "decodedDtype": "f32"
+          },
+          "prefetch": {
+            "mode": "next_token",
+            "rowsAhead": 1
+          },
+          "gpuUpload": {
+            "mode": "per_step_slices",
+            "stagingRows": 2
+          },
+          "hotCache": {
+            "mode": "prepared_tokens",
+            "maxTokens": 4096,
+            "maxBytes": 268435456,
+            "outputDtype": "f32"
+          }
+        },
+        "prefillChunkSubmitMode": "sync",
+        "useFlashPrefillAttention": false,
+        "useWideTileQ4KPrefill": false,
+        "retainQ4KMaterialization": false
+      }
+    },
+    "tokenizer": {
+      "litertlm": {
+        "type": "sentencepiece",
+        "sentencepieceModel": "TOKENIZER_MODEL",
+        "vocabSize": 262144,
+        "padTokenId": 0,
+        "eosTokenId": 1,
+        "eosTokens": [
+          1,
+          106
+        ],
+        "bosTokenId": 2,
+        "unkTokenId": 3,
+        "addBosToken": false,
+        "addEosToken": false
+      }
+    }
+  },
   "package": {
     "litertlm": {
-      "tfliteModelType": "TF_LITE_PREFILL_DECODE",
-      "unsupported": {
-        "code": "litertlm-split-compiled-int4-needs-graph-adapter",
-        "message": "The Gemma 4 E2B LiteRT-LM direct-source path is profile-driven and uses explicit companion-scale sourceTransform contracts. The official Gemma 4 12B LiteRT-LM package is a different layout: it splits text execution into tf_lite_embedder and tf_lite_prefill_decode TFLiteModel sections and the main graph stores anonymous compiled INT4 constants whose weight-conversion semantics must be mapped from the graph.",
-        "recommendation": "Use the converted RDRR artifact gemma-4-12b-it-text-q4k-ehf16-af32 for WebGPU inference, or add a split-section LiteRT-LM graph adapter with parity evidence before claiming direct LiteRT-LM support for this package."
-      }
+      "tfliteModelType": "tf_lite_prefill_decode",
+      "embedderTFLiteModelType": "tf_lite_embedder",
+      "graphAdapter": "gemma4_unified_12b_split_int4",
+      "fixedInt4Scale": 0.0625,
+      "executionTemplateProfileId": "litert/gemma-4-e2b-it"
     }
   }
 }

@@ -143,10 +143,10 @@ function maxBatchDecodeTokensSemantic(context) {
   if (context.hasLinearAttentionLayers === true) {
     return 32;
   }
-  if (context.hasGpuSplitPerLayerInputs === true && context.maxDecodeTokens > 16) {
-    return 16;
-  }
   if (context.hasGpuSplitPerLayerInputs === true && context.currentSeqLen >= 192) {
+    return 4;
+  }
+  if (context.hasGpuSplitPerLayerInputs === true && context.maxDecodeTokens > 16) {
     return 16;
   }
   return context.hasGpuSplitPerLayerInputs === true ? 8 : null;
@@ -377,8 +377,8 @@ export function buildInferenceExecutionRulesContractArtifact(ruleGroup) {
     const [
       hotVocabularyRule,
       linearAttentionRule,
+      splitTablesLongContextRule,
       splitTablesLargeDecodeRule,
-      splitTablesLargePrefillRule,
       splitTablesFallbackRule,
       fallbackRule,
     ] = maxBatchDecodeTokenRules;
@@ -393,6 +393,17 @@ export function buildInferenceExecutionRulesContractArtifact(ruleGroup) {
       );
     }
     if (
+      !matchesExactObject(splitTablesLongContextRule?.match, {
+        hasGpuSplitPerLayerInputs: true,
+        currentSeqLen: { gte: 192 },
+      })
+      || splitTablesLongContextRule?.value !== 4
+    ) {
+      maxBatchShapeErrors.push(
+        '[ExecutionRulesContract] maxBatchDecodeTokens gpu_split_tables long-context rule must cap bursts at 4 tokens.'
+      );
+    }
+    if (
       !matchesExactObject(splitTablesLargeDecodeRule?.match, {
         hasGpuSplitPerLayerInputs: true,
         maxDecodeTokens: { gt: 16 },
@@ -401,17 +412,6 @@ export function buildInferenceExecutionRulesContractArtifact(ruleGroup) {
     ) {
       maxBatchShapeErrors.push(
         '[ExecutionRulesContract] maxBatchDecodeTokens gpu_split_tables large-decode rule must cap bursts at 16 tokens.'
-      );
-    }
-    if (
-      !matchesExactObject(splitTablesLargePrefillRule?.match, {
-        hasGpuSplitPerLayerInputs: true,
-        currentSeqLen: { gte: 192 },
-      })
-      || splitTablesLargePrefillRule?.value !== 16
-    ) {
-      maxBatchShapeErrors.push(
-        '[ExecutionRulesContract] maxBatchDecodeTokens gpu_split_tables large-prefill rule must cap bursts at 16 tokens.'
       );
     }
     if (!matchesExactObject(splitTablesFallbackRule?.match, { hasGpuSplitPerLayerInputs: true }) || splitTablesFallbackRule?.value !== 8) {

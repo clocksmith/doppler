@@ -26,6 +26,10 @@ export interface DirectSourcePackageProfile {
     } | null;
     litertlm?: {
       tfliteModelType?: string | null;
+      embedderTFLiteModelType?: string | null;
+      graphAdapter?: string | null;
+      fixedInt4Scale?: number | null;
+      executionTemplateProfileId?: string | null;
       tokenizerSectionType?: string | null;
       metadataSectionType?: string | null;
       unsupported?: {

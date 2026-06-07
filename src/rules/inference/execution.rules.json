@@ -84,14 +84,14 @@
     {
       "match": {
         "hasGpuSplitPerLayerInputs": true,
-        "maxDecodeTokens": { "gt": 16 }
+        "currentSeqLen": { "gte": 192 }
       },
-      "value": 16
+      "value": 4
     },
     {
       "match": {
         "hasGpuSplitPerLayerInputs": true,
-        "currentSeqLen": { "gte": 192 }
+        "maxDecodeTokens": { "gt": 16 }
       },
       "value": 16
     },
