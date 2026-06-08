@@ -21,6 +21,15 @@ const { assembleShardData } = await import('../../src/loader/tensors/tensor-read
               { shard: 3, offset: 16, size: 4 },
               { shardIndex: 4, offset: 0, size: 4 },
             ],
+            storage: {
+              packing: 'w4a16',
+              blockShape: [32],
+              blockBytes: 16,
+              companions: [
+                { role: 'scales', tensorId: 'layers.0.weight_scale' },
+                { role: 'shape', tensorId: 'layers.0.weight_shape' },
+              ],
+            },
             sourceTransform: {
               kind: 'litert_rowwise_dequant',
               scheme: 'per_row_affine',
@@ -56,6 +65,15 @@ const { assembleShardData } = await import('../../src/loader/tensors/tensor-read
       { shardIndex: 4, offset: 0, size: 4 },
     ]
   );
+  assert.deepEqual(location.storage, {
+    packing: 'w4a16',
+    blockShape: [32],
+    blockBytes: 16,
+    companions: [
+      { role: 'scales', tensorId: 'layers.0.weight_scale' },
+      { role: 'shape', tensorId: 'layers.0.weight_shape' },
+    ],
+  });
   assert.deepEqual(location.sourceTransform, {
     kind: 'litert_rowwise_dequant',
     scheme: 'per_row_affine',
@@ -87,6 +105,15 @@ const { assembleShardData } = await import('../../src/loader/tensors/tensor-read
           { shard: 2, offset: 8, size: 4 },
           { shardIndex: 3, offset: 0, size: 4 },
         ],
+        storage: {
+          packing: 'w4a16',
+          blockShape: [32],
+          blockBytes: 16,
+          companions: [
+            { role: 'scales', tensorId: 'layers.1.weight_scale' },
+            { role: 'shape', tensorId: 'layers.1.weight_shape' },
+          ],
+        },
         sourceTransform: {
           kind: 'litert_rowwise_dequant',
           scheme: 'per_row_affine',
@@ -113,6 +140,15 @@ const { assembleShardData } = await import('../../src/loader/tensors/tensor-read
       { shardIndex: 3, offset: 0, size: 4 },
     ]
   );
+  assert.deepEqual(location.storage, {
+    packing: 'w4a16',
+    blockShape: [32],
+    blockBytes: 16,
+    companions: [
+      { role: 'scales', tensorId: 'layers.1.weight_scale' },
+      { role: 'shape', tensorId: 'layers.1.weight_shape' },
+    ],
+  });
   assert.deepEqual(location.sourceTransform, {
     kind: 'litert_rowwise_dequant',
     scheme: 'per_row_affine',

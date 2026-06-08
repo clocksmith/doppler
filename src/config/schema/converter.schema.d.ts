@@ -9,6 +9,7 @@
 import type {
   HashAlgorithm,
   QuantizationValue,
+  SourceQuantizationFormat,
   SourceQuantizationTarget,
   SourceTrainingQuantization,
   RuntimeOptimizationsSchema,
@@ -32,6 +33,7 @@ export interface ConverterQuantizationConfigSchema {
   lmHead: QuantizationValue | null;
   sourceTrainingQuantization: SourceTrainingQuantization | null;
   sourceQuantizationTarget: SourceQuantizationTarget | null;
+  sourceQuantizationFormat: SourceQuantizationFormat | null;
   vision: QuantizationValue | null;
   audio: QuantizationValue | null;
   projector: QuantizationValue | null;

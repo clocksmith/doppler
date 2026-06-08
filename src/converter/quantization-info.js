@@ -106,6 +106,14 @@ const SOURCE_QUANTIZATION_TARGET_TAGS = {
   wNa8o8: 'wna8o8',
 };
 
+const SOURCE_QUANTIZATION_FORMAT_ALIASES = {
+  'compressed-tensors': 'compressed-tensors',
+  'compressed_tensors': 'compressed-tensors',
+  'compressedtensors': 'compressed-tensors',
+  'ct': 'compressed-tensors',
+  'gguf': 'gguf',
+};
+
 export function normalizeQuantTag(value) {
   if (!value) return DEFAULT_QUANT_TAG;
   const lower = String(value).trim().toLowerCase();
@@ -169,13 +177,24 @@ function normalizeSourceQuantizationTarget(value) {
   );
 }
 
+function normalizeSourceQuantizationFormat(value) {
+  if (value == null) return null;
+  const normalized = String(value).trim().toLowerCase().replace(/\s+/g, '-');
+  if (!normalized) return null;
+  const canonical = SOURCE_QUANTIZATION_FORMAT_ALIASES[normalized];
+  if (canonical) return canonical;
+  throw new Error(
+    `converter.quantization.sourceQuantizationFormat must be "compressed-tensors", "gguf", or null; got ${JSON.stringify(value)}.`
+  );
+}
+
 function sourceTargetQuantTag(sourceQuantizationTarget) {
   if (!sourceQuantizationTarget) return null;
   return SOURCE_QUANTIZATION_TARGET_TAGS[sourceQuantizationTarget]
     ?? normalizeQuantTag(sourceQuantizationTarget);
 }
 
-function applySourceQuantizationMetadata(info, sourceTrainingQuantization, sourceQuantizationTarget) {
+function applySourceQuantizationMetadata(info, sourceTrainingQuantization, sourceQuantizationTarget, sourceQuantizationFormat) {
   if (sourceQuantizationTarget && !sourceTrainingQuantization) {
     throw new Error(
       'converter.quantization.sourceQuantizationTarget requires ' +
@@ -192,6 +211,11 @@ function applySourceQuantizationMetadata(info, sourceTrainingQuantization, sourc
   } else {
     delete info.sourceQuantizationTarget;
   }
+  if (sourceQuantizationFormat) {
+    info.sourceQuantizationFormat = sourceQuantizationFormat;
+  } else {
+    delete info.sourceQuantizationFormat;
+  }
   if (sourceTrainingQuantization !== 'qat' || !sourceQuantizationTarget) {
     return;
   }
@@ -206,7 +230,18 @@ function applySourceQuantizationMetadata(info, sourceTrainingQuantization, sourc
   }
 
   const lmHeadQuant = normalizeQuantTag(info.lmHead ?? info.embeddings ?? info.weights);
+  const embeddingQuant = normalizeQuantTag(info.embeddings ?? info.weights);
+  const allowsDenseTiedW4A16Head = (
+    sourceQuantizationTarget === 'w4a16'
+    && sourceQuantizationFormat === 'compressed-tensors'
+    && lmHeadQuant === 'f16'
+    && embeddingQuant === 'f16'
+  );
   if (lmHeadQuant !== targetQuant) {
+    if (allowsDenseTiedW4A16Head) {
+      info.lmHead = 'f16';
+      return;
+    }
     throw new Error(
       `QAT sourceQuantizationTarget="${sourceQuantizationTarget}" requires ` +
       `quantizationInfo.lmHead="${targetQuant}" so the LM head stays quantized; got "${lmHeadQuant}".`
@@ -383,6 +418,9 @@ export function buildQuantizationInfo(
   const sourceQuantizationTarget = normalizeSourceQuantizationTarget(
     quantization.sourceQuantizationTarget ?? null
   );
+  const sourceQuantizationFormat = normalizeSourceQuantizationFormat(
+    quantization.sourceQuantizationFormat ?? null
+  );
 
   validateQuantType(weightQuant, 'converter.quantization.weights');
   validateQuantType(embedQuant, 'converter.quantization.embeddings');
@@ -466,7 +504,8 @@ export function buildQuantizationInfo(
   applySourceQuantizationMetadata(
     info,
     sourceTrainingQuantization,
-    sourceQuantizationTarget
+    sourceQuantizationTarget,
+    sourceQuantizationFormat
   );
 
   // Q4K layout: 'row' (fused kernel compatible) or 'col' (dequant fallback)
@@ -588,7 +627,8 @@ export function resolveEffectiveQuantizationInfo(baseInfo, tensors) {
   applySourceQuantizationMetadata(
     resolved,
     normalizeSourceTrainingQuantization(base.sourceTrainingQuantization ?? null),
-    normalizeSourceQuantizationTarget(base.sourceQuantizationTarget ?? null)
+    normalizeSourceQuantizationTarget(base.sourceQuantizationTarget ?? null),
+    normalizeSourceQuantizationFormat(base.sourceQuantizationFormat ?? null)
   );
   resolved.variantTag = buildVariantTag(resolved);
   return resolved;

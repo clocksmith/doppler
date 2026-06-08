@@ -6,6 +6,7 @@ import { selectRuleValue } from '../../src/rules/rule-registry.js';
 
 const BASE_MODEL_ID = 'gemma-4-12b-it-text-q4k-ehf16-af16';
 const Q4_HEAD_MODEL_ID = 'gemma-4-12b-it-text-q4k-ehf16-hq4k-af16';
+const W4A16_QAT_MODEL_ID = 'gemma-4-12b-it-text-w4a16-ct-ehf16-af16';
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
@@ -21,6 +22,7 @@ function postLayerStep(execution, op) {
 
 const baseConfig = readJson(`src/config/conversion/gemma4/${BASE_MODEL_ID}.json`);
 const q4HeadConfig = readJson(`src/config/conversion/gemma4/${Q4_HEAD_MODEL_ID}.json`);
+const w4a16QatConfig = readJson(`src/config/conversion/gemma4/${W4A16_QAT_MODEL_ID}.json`);
 
 assert.equal(q4HeadConfig.modelType, 'gemma4');
 assert.equal(q4HeadConfig.output?.modelBaseId, Q4_HEAD_MODEL_ID);
@@ -241,6 +243,53 @@ assert.equal(
 assert.doesNotThrow(
   () => validateRequiredInferenceFields(q4HeadConfig.inference, Q4_HEAD_MODEL_ID),
   'Q4-head conversion config must satisfy required inference fields'
+);
+
+assert.equal(w4a16QatConfig.modelType, 'gemma4');
+assert.equal(w4a16QatConfig.output?.modelBaseId, W4A16_QAT_MODEL_ID);
+assert.equal(w4a16QatConfig.output?.textOnly, true);
+assert.equal(w4a16QatConfig.quantization?.weights, 'w4a16');
+assert.equal(w4a16QatConfig.quantization?.embeddings, 'f16');
+assert.equal(w4a16QatConfig.quantization?.lmHead, 'f16');
+assert.equal(w4a16QatConfig.quantization?.sourceTrainingQuantization, 'qat');
+assert.equal(w4a16QatConfig.quantization?.sourceQuantizationTarget, 'w4a16');
+assert.equal(w4a16QatConfig.quantization?.sourceQuantizationFormat, 'compressed-tensors');
+assert.equal(
+  w4a16QatConfig.manifest?.artifactIdentity?.sourceCheckpointId,
+  'google/gemma-4-12B-it-qat-w4a16-ct'
+);
+assert.equal(
+  w4a16QatConfig.manifest?.artifactIdentity?.sourceRevision,
+  'dcfe12254e8fb98c743f21efa05ff64937926c64'
+);
+assert.equal(
+  w4a16QatConfig.manifest?.artifactIdentity?.weightPackId,
+  `${W4A16_QAT_MODEL_ID}-wp-catalog-v1`
+);
+assert.equal(
+  w4a16QatConfig.manifest?.artifactIdentity?.manifestVariantId,
+  `${W4A16_QAT_MODEL_ID}-mv-w4a16-ct-reference-f16-dequant-v1`
+);
+assert.equal(w4a16QatConfig.manifest?.artifactIdentity?.artifactCompleteness, 'complete');
+assert.equal(w4a16QatConfig.manifest?.weightsRef, undefined);
+
+const qatExecutionText = JSON.stringify(w4a16QatConfig.execution);
+assert.equal(qatExecutionText.includes('q4_decode_gemv'), false);
+assert.equal(qatExecutionText.includes('q4_widetile'), false);
+assert.equal(qatExecutionText.includes('lm_head_q4'), false);
+for (const op of ['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj']) {
+  assert.equal(phaseStep(w4a16QatConfig.execution?.decode, op)?.[1], 'gemv');
+}
+for (const section of w4a16QatConfig.execution?.prefill ?? []) {
+  for (const op of ['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj']) {
+    assert.equal(phaseStep(section.steps, op)?.[1], 'tiled');
+  }
+}
+assert.equal(postLayerStep(w4a16QatConfig.execution, 'lm_head')?.[1], 'lm_head_gemv_stable');
+assert.equal(postLayerStep(w4a16QatConfig.execution, 'lm_head_prefill')?.[1], 'lm_head_prefill_stable');
+assert.doesNotThrow(
+  () => validateRequiredInferenceFields(w4a16QatConfig.inference, W4A16_QAT_MODEL_ID),
+  'W4A16 QAT conversion config must satisfy required inference fields'
 );
 
 console.log('gemma4-12b-q4-head-conversion-config.test: ok');

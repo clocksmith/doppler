@@ -10,6 +10,34 @@ const { loadTensorToCPU } = await import('../../src/loader/tensors/tensor-loader
 const { createConverterConfig } = await import('../../src/config/schema/converter.schema.js');
 const { DEFAULT_MANIFEST_INFERENCE } = await import('../../src/config/schema/index.js');
 
+function f16Bytes(values) {
+  const out = new Uint16Array(values.length);
+  for (let i = 0; i < values.length; i += 1) {
+    if (values[i] === 0.5) out[i] = 0x3800;
+    else if (values[i] === 1) out[i] = 0x3c00;
+    else throw new Error(`test f16Bytes unsupported value ${values[i]}`);
+  }
+  return new Uint8Array(out.buffer, out.byteOffset, out.byteLength);
+}
+
+function bf16Bytes(values) {
+  const out = new Uint16Array(values.length);
+  for (let i = 0; i < values.length; i += 1) {
+    if (values[i] === 0.5) out[i] = 0x3f00;
+    else if (values[i] === 1) out[i] = 0x3f80;
+    else throw new Error(`test bf16Bytes unsupported value ${values[i]}`);
+  }
+  return new Uint8Array(out.buffer, out.byteOffset, out.byteLength);
+}
+
+function i64ShapeBytes(rows, cols) {
+  const bytes = new Uint8Array(16);
+  const view = new DataView(bytes.buffer);
+  view.setBigInt64(0, BigInt(rows), true);
+  view.setBigInt64(8, BigInt(cols), true);
+  return bytes;
+}
+
 {
   const info = buildQuantizationInfo(
     {
@@ -44,6 +72,7 @@ const { DEFAULT_MANIFEST_INFERENCE } = await import('../../src/config/schema/ind
         lmHead: 'w4a16',
         sourceTrainingQuantization: 'quantization-aware-training',
         sourceQuantizationTarget: 'w4a16-ct',
+        sourceQuantizationFormat: 'compressed-tensors',
       },
     },
     'F16',
@@ -56,27 +85,33 @@ const { DEFAULT_MANIFEST_INFERENCE } = await import('../../src/config/schema/ind
   assert.equal(info.lmHead, 'w4a16');
   assert.equal(info.sourceTrainingQuantization, 'qat');
   assert.equal(info.sourceQuantizationTarget, 'w4a16');
+  assert.equal(info.sourceQuantizationFormat, 'compressed-tensors');
   assert.equal(resolveManifestQuantization('w4a16', 'F16'), 'W4A16');
 }
 
 {
-  assert.throws(
-    () => buildQuantizationInfo(
-      {
-        quantization: {
-          weights: 'w4a16',
-          embeddings: 'f16',
-          lmHead: 'f16',
-          sourceTrainingQuantization: 'qat',
-          sourceQuantizationTarget: 'w4a16',
-        },
+  const info = buildQuantizationInfo(
+    {
+      quantization: {
+        weights: 'w4a16',
+        embeddings: 'f16',
+        lmHead: 'f16',
+        sourceTrainingQuantization: 'qat',
+        sourceQuantizationTarget: 'w4a16',
+        sourceQuantizationFormat: 'compressed-tensors',
       },
-      'F16',
-      'F16',
-      'F16'
-    ),
-    /requires quantizationInfo\.lmHead="w4a16"/
+    },
+    'F16',
+    'F16',
+    'F16'
   );
+
+  assert.equal(info.weights, 'w4a16');
+  assert.equal(info.embeddings, 'f16');
+  assert.equal(info.lmHead, 'f16');
+  assert.equal(info.sourceTrainingQuantization, 'qat');
+  assert.equal(info.sourceQuantizationTarget, 'w4a16');
+  assert.equal(info.sourceQuantizationFormat, 'compressed-tensors');
 }
 
 {
@@ -318,6 +353,47 @@ const { DEFAULT_MANIFEST_INFERENCE } = await import('../../src/config/schema/ind
 }
 
 {
+  const packed = new Uint8Array(16);
+  packed[0] = 0xa9;
+  packed[1] = 0x87;
+  const scaleBytes = bf16Bytes([0.5]);
+  const shapeBytes = i64ShapeBytes(1, 32);
+  Object.defineProperty(packed, 'storageCompanions', {
+    value: {
+      scales: {
+        tensorId: 'linear.weight_scale',
+        location: { dtype: 'BF16', shape: [1, 1], size: scaleBytes.byteLength },
+        bytes: scaleBytes,
+      },
+      shape: {
+        tensorId: 'linear.weight_shape',
+        location: { dtype: 'I64', shape: [2], size: shapeBytes.byteLength },
+        bytes: shapeBytes,
+      },
+    },
+  });
+  const dequantized = loadTensorToCPU(packed, {
+    dtype: 'W4A16',
+    shape: [1, 32],
+    size: 16,
+    role: 'matmul',
+    storage: {
+      packing: 'w4a16',
+      blockShape: [32],
+      blockBytes: 16,
+      companions: [
+        { role: 'scales', tensorId: 'linear.weight_scale' },
+        { role: 'shape', tensorId: 'linear.weight_shape' },
+      ],
+    },
+  });
+  assert.equal(dequantized[0], 0.5);
+  assert.equal(dequantized[1], 1);
+  assert.equal(dequantized[2], -0.5);
+  assert.equal(dequantized[3], 0);
+}
+
+{
   const tensorBytes = new Map([
     ['model.layers.0.self_attn.q_proj.weight', new Uint8Array(16)],
     ['model.layers.0.self_attn.q_proj.weight_scale', new Uint8Array(4)],
@@ -390,6 +466,7 @@ const { DEFAULT_MANIFEST_INFERENCE } = await import('../../src/config/schema/ind
         lmHead: 'w4a16',
         sourceTrainingQuantization: 'qat',
         sourceQuantizationTarget: 'w4a16',
+        sourceQuantizationFormat: 'compressed-tensors',
       },
       architecture: {
         numLayers: 1,
@@ -409,6 +486,7 @@ const { DEFAULT_MANIFEST_INFERENCE } = await import('../../src/config/schema/ind
           lmHead: 'w4a16',
           sourceTrainingQuantization: 'qat',
           sourceQuantizationTarget: 'w4a16',
+          sourceQuantizationFormat: 'compressed-tensors',
         },
       }),
       source: 'unit-test',
@@ -440,13 +518,14 @@ const { DEFAULT_MANIFEST_INFERENCE } = await import('../../src/config/schema/ind
   assert.ok(manifest.tensors['model.layers.0.self_attn.q_proj.weight_shape']);
   assert.equal(manifest.quantizationInfo.sourceTrainingQuantization, 'qat');
   assert.equal(manifest.quantizationInfo.sourceQuantizationTarget, 'w4a16');
+  assert.equal(manifest.quantizationInfo.sourceQuantizationFormat, 'compressed-tensors');
   assert.equal(manifest.quantizationInfo.lmHead, 'w4a16');
 }
 
 {
   assert.throws(
     () => loadTensorToCPU(new Uint8Array(32), { dtype: 'W4A16' }),
-    /Unsupported packed quantization dtype "W4A16"/
+    /missing required storage companion "scales"/
   );
 }
 

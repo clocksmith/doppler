@@ -431,6 +431,27 @@ function assertCompressedTensorsW4A16Group(group) {
   }
 }
 
+const COMPRESSED_TENSORS_W4A16_PACKED_VALUES_PER_ELEMENT = {
+  U8: 2,
+  I8: 2,
+  U16: 4,
+  I16: 4,
+  U32: 8,
+  I32: 8,
+};
+
+function inferCompressedTensorsW4A16LogicalShape(group) {
+  const packedShape = normalizePositiveIntegerShape(group.packed.shape, group.packed.name);
+  const packedDtype = String(group.packed.dtype || '').toUpperCase();
+  const valuesPerElement = COMPRESSED_TENSORS_W4A16_PACKED_VALUES_PER_ELEMENT[packedDtype];
+  if (!valuesPerElement) {
+    throw new Error(
+      `Compressed-tensors W4A16 tensor "${group.packed.name}" has unsupported packed dtype "${group.packed.dtype}".`
+    );
+  }
+  return [packedShape[0], packedShape[1] * valuesPerElement];
+}
+
 function shouldNormalizeCompressedTensorsW4A16(converterConfig) {
   return normalizeStorageQuant(converterConfig?.quantization?.weights) === 'w4a16'
     || normalizeStorageQuant(converterConfig?.quantization?.sourceQuantizationTarget) === 'w4a16';
@@ -454,6 +475,7 @@ function normalizeCompressedTensorsW4A16(tensors, converterConfig) {
 
   const byName = new Map(tensors.map((tensor) => [normalizeTensorName(tensor), tensor]));
   const consumed = new Set();
+  const companionByName = new Map();
   const synthetic = [];
   const sortedGroups = [...groups.values()].sort((left, right) => left.baseName.localeCompare(right.baseName));
   for (const group of sortedGroups) {
@@ -465,10 +487,25 @@ function normalizeCompressedTensorsW4A16(tensors, converterConfig) {
       );
     }
     consumed.add(group.packed.name);
+    companionByName.set(group.scale.name, {
+      ...group.scale,
+      compressedTensorsW4A16Companion: {
+        role: 'scales',
+        primary: logicalName,
+      },
+    });
+    companionByName.set(group.shape.name, {
+      ...group.shape,
+      compressedTensorsW4A16Companion: {
+        role: 'shape',
+        primary: logicalName,
+      },
+    });
     synthetic.push({
       ...group.packed,
       name: logicalName,
       dtype: 'W4A16',
+      shape: inferCompressedTensorsW4A16LogicalShape(group),
       packedSourceName: group.packed.name,
       compressedTensorsW4A16: {
         packed: group.packed.name,
@@ -488,9 +525,18 @@ function normalizeCompressedTensorsW4A16(tensors, converterConfig) {
   }
 
   return sortTensorsForConversion([
-    ...tensors.filter((tensor) => !consumed.has(normalizeTensorName(tensor))),
+    ...tensors
+      .filter((tensor) => !consumed.has(normalizeTensorName(tensor)))
+      .map((tensor) => companionByName.get(normalizeTensorName(tensor)) ?? tensor),
     ...synthetic,
   ]);
+}
+
+function isCompressedTensorsW4A16CompanionTensor(tensor) {
+  return Boolean(
+    tensor?.compressedTensorsW4A16Companion
+    && typeof tensor.compressedTensorsW4A16Companion === 'object'
+  );
 }
 
 function shouldMaterializeTiedLmHead(tensors, options) {
@@ -1195,6 +1241,16 @@ export function transformTensorBytes(tensor, rawData, options = {}) {
   // sourceTransform.kind=litert_axis_dequant with scaleSemantics=step.
   if (isGemma4PerLayerEmbedTensor(tensor.name) && canInt4QuantizePerRow(tensor, options)) {
     return buildInt4PerRowPleTransform(tensor, tensorDataInput, sourceDtype, options);
+  }
+
+  if (isCompressedTensorsW4A16CompanionTensor(tensor)) {
+    return {
+      tensorData,
+      outDtype: sourceDtype,
+      outLayout: null,
+      sourceDtype,
+      tensorTargetQuant: null,
+    };
   }
 
   if (SOURCE_PACKED_QUANT_DTYPES.has(tensorTargetQuant)) {

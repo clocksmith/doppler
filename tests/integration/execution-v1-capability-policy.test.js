@@ -216,4 +216,75 @@ assert.equal(widenedF16.laneIntegrity.executed.kvDtype, 'f32',
 assert.equal(widenedF16.laneIntegrity.status, 'transformed',
   'laneIntegrity.status flags capability-driven dtype divergence for receipts');
 
+const f16PrimaryWithoutFallbackPolicy = compileExecutionV1({
+  manifestInference: F16_MANIFEST,
+  modelId: 'synthetic-af16-test',
+  numLayers: 1,
+  headDim: 256,
+  capabilities: {
+    hasSubgroups: true,
+    hasF16: true,
+    hasSubgroupsF16: true,
+  },
+  platform: { id: 'test-gpu', vendor: 'test', architecture: 'test' },
+  kernelPathPolicy: {
+    mode: 'capability-aware',
+    sourceScope: ['manifest', 'model'],
+    onIncompatible: 'remap',
+  },
+});
+
+assert.equal(
+  f16PrimaryWithoutFallbackPolicy.fallbackKernelPath,
+  null,
+  'f16 primary path must not compile fallback metadata without explicit fallback-plan policy'
+);
+
+const gemma4W4A16QatConfig = JSON.parse(
+  readFileSync('src/config/conversion/gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16.json', 'utf8')
+);
+
+const gemma4W4A16QatWithFallbackPolicy = compileExecutionV1({
+  manifestInference: {
+    ...gemma4W4A16QatConfig.inference,
+    schema: 'doppler.execution/v1',
+    session: gemma4W4A16QatConfig.session,
+    execution: gemma4W4A16QatConfig.execution,
+  },
+  modelId: gemma4W4A16QatConfig.output.modelBaseId,
+  numLayers: 48,
+  headDim: 256,
+  capabilities: {
+    hasSubgroups: true,
+    hasF16: true,
+    hasSubgroupsF16: true,
+  },
+  platform: { id: 'test-gpu', vendor: 'test', architecture: 'test' },
+  kernelPathPolicy: {
+    mode: 'capability-aware',
+    sourceScope: ['manifest', 'model'],
+    onIncompatible: 'remap',
+  },
+  runtimeCompute: {
+    rangeAwareSelectiveWidening: {
+      enabled: true,
+      includeNonFinite: true,
+      absThreshold: 65500,
+      onTrigger: 'fallback-plan',
+    },
+  },
+});
+
+assert.ok(
+  gemma4W4A16QatWithFallbackPolicy.fallbackKernelPath,
+  'Gemma 4 12B W4A16 QAT fallback-plan policy must compile an alternate finiteness kernel path'
+);
+assert.equal(gemma4W4A16QatWithFallbackPolicy.fallbackKernelPath.activationDtype, 'f32');
+assert.equal(gemma4W4A16QatWithFallbackPolicy.fallbackKernelPath.kvDtype, 'f16');
+assert.equal(
+  gemma4W4A16QatWithFallbackPolicy.runtimeInferencePatch.kernelPath.finitenessFallbackKernelPathId,
+  gemma4W4A16QatWithFallbackPolicy.fallbackKernelPath.id,
+  'primary inline path must point at the explicit finiteness fallback path id'
+);
+
 console.log('execution-v1-capability-policy.test: ok');

@@ -9,7 +9,7 @@ import { f16ToF32, convertBF16ToF32GPU, shouldDequantizeToF16, applyBufferLayout
 import { QK_K, Q4K_BLOCK_BYTES, Q6K_BLOCK_BYTES } from '../quantization-constants.js';
 import { log, trace as debugTrace } from '../../debug/index.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
-import { dequantizeQ4KM, dequantizeQ4KMRowWise } from '../../converter/quantizer.js';
+import { dequantizeQ4KM, dequantizeQ4KMRowWise, float32ToFloat16 } from '../../converter/quantizer.js';
 import { hasSourceTransform } from './source-transform.js';
 
 // ============================================================================
@@ -128,6 +128,159 @@ function getShapeElementCount(shape) {
     throw new Error('Tensor shape must be an array.');
   }
   return shape.reduce((product, value) => product * value, 1);
+}
+
+function getStorageCompanion(shardData, location, name, role) {
+  const companion = shardData?.storageCompanions?.[role];
+  if (!companion || !(companion.bytes instanceof Uint8Array)) {
+    throw new Error(
+      `W4A16 tensor "${name}" is missing required storage companion "${role}".`
+    );
+  }
+  const declared = Array.isArray(location?.storage?.companions)
+    ? location.storage.companions.find((entry) => entry.role === role)
+    : null;
+  if (declared && companion.tensorId !== declared.tensorId) {
+    throw new Error(
+      `W4A16 tensor "${name}" companion "${role}" resolved to "${companion.tensorId}", expected "${declared.tensorId}".`
+    );
+  }
+  return companion;
+}
+
+function readW4A16LogicalShape(companion, fallbackShape, name) {
+  const location = companion.location ?? null;
+  const bytes = companion.bytes;
+  const dtype = String(location?.dtype || '').toUpperCase();
+  if (!Array.isArray(location?.shape) || location.shape.length !== 1 || location.shape[0] !== 2) {
+    throw new Error(`W4A16 tensor "${name}" shape companion must have shape [2].`);
+  }
+  if (dtype === 'I64') {
+    if (bytes.byteLength !== 16) {
+      throw new Error(`W4A16 tensor "${name}" I64 shape companion must be 16 bytes.`);
+    }
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    return [Number(view.getBigInt64(0, true)), Number(view.getBigInt64(8, true))];
+  }
+  if (dtype === 'I32' || dtype === 'U32') {
+    if (bytes.byteLength !== 8) {
+      throw new Error(`W4A16 tensor "${name}" ${dtype} shape companion must be 8 bytes.`);
+    }
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const read = dtype === 'I32'
+      ? (offset) => view.getInt32(offset, true)
+      : (offset) => view.getUint32(offset, true);
+    return [read(0), read(4)];
+  }
+  if (Array.isArray(fallbackShape) && fallbackShape.length === 2) {
+    return fallbackShape;
+  }
+  throw new Error(`W4A16 tensor "${name}" has unsupported shape companion dtype "${location?.dtype}".`);
+}
+
+function assertW4A16Shape(shape, fallbackShape, name) {
+  if (!Array.isArray(shape) || shape.length !== 2) {
+    throw new Error(`W4A16 tensor "${name}" logical shape must be 2D.`);
+  }
+  const rows = Number(shape[0]);
+  const cols = Number(shape[1]);
+  if (!Number.isInteger(rows) || rows <= 0 || !Number.isInteger(cols) || cols <= 0) {
+    throw new Error(`W4A16 tensor "${name}" has invalid logical shape ${JSON.stringify(shape)}.`);
+  }
+  if (Array.isArray(fallbackShape) && fallbackShape.length === 2) {
+    if (rows !== fallbackShape[0] || cols !== fallbackShape[1]) {
+      throw new Error(
+        `W4A16 tensor "${name}" shape companion [${rows},${cols}] does not match manifest shape [${fallbackShape.join(',')}].`
+      );
+    }
+  }
+  return [rows, cols];
+}
+
+function bf16ToF32(bits) {
+  const floats = new Float32Array(1);
+  const uints = new Uint32Array(floats.buffer);
+  uints[0] = (bits & 0xffff) << 16;
+  return floats[0];
+}
+
+function readOffsetBinaryInt4(byte, highNibble) {
+  const value = highNibble ? ((byte >> 4) & 0x0f) : (byte & 0x0f);
+  return value - 8;
+}
+
+function readW4A16Scales(companion, expectedScales, name) {
+  const dtype = String(companion.location?.dtype || '').toUpperCase();
+  if (dtype === 'F16') {
+    const packed = toUint16View(companion.bytes, `W4A16 scales for ${name}`);
+    if (packed.length !== expectedScales) {
+      throw new Error(
+        `W4A16 tensor "${name}" scale count ${packed.length} does not match expected ${expectedScales}.`
+      );
+    }
+    const scales = new Float32Array(packed.length);
+    for (let i = 0; i < packed.length; i += 1) {
+      scales[i] = f16ToF32(packed[i]);
+    }
+    return scales;
+  }
+  if (dtype === 'BF16') {
+    const packed = toUint16View(companion.bytes, `W4A16 scales for ${name}`);
+    if (packed.length !== expectedScales) {
+      throw new Error(
+        `W4A16 tensor "${name}" scale count ${packed.length} does not match expected ${expectedScales}.`
+      );
+    }
+    const scales = new Float32Array(packed.length);
+    for (let i = 0; i < packed.length; i += 1) {
+      scales[i] = bf16ToF32(packed[i]);
+    }
+    return scales;
+  }
+  if (dtype === 'F32') {
+    const scales = toFloat32View(companion.bytes, `W4A16 scales for ${name}`);
+    if (scales.length !== expectedScales) {
+      throw new Error(
+        `W4A16 tensor "${name}" scale count ${scales.length} does not match expected ${expectedScales}.`
+      );
+    }
+    return scales;
+  }
+  throw new Error(`W4A16 tensor "${name}" has unsupported scale companion dtype "${companion.location?.dtype}".`);
+}
+
+function dequantizeW4A16ToF16(shardData, location, name) {
+  const scaleCompanion = getStorageCompanion(shardData, location, name, 'scales');
+  const shapeCompanion = getStorageCompanion(shardData, location, name, 'shape');
+  const [rows, cols] = assertW4A16Shape(
+    readW4A16LogicalShape(shapeCompanion, location.shape, name),
+    location.shape,
+    name
+  );
+  const groupsPerRow = Math.ceil(cols / 32);
+  const expectedPackedBytes = rows * groupsPerRow * 16;
+  if (shardData.byteLength !== expectedPackedBytes) {
+    throw new Error(
+      `W4A16 tensor "${name}" packed byte length ${shardData.byteLength} does not match expected ${expectedPackedBytes}.`
+    );
+  }
+  const expectedScales = rows * groupsPerRow;
+  const scales = readW4A16Scales(scaleCompanion, expectedScales, name);
+  const out = new Uint16Array(rows * cols);
+  for (let row = 0; row < rows; row += 1) {
+    for (let group = 0; group < groupsPerRow; group += 1) {
+      const scale = scales[(row * groupsPerRow) + group];
+      const packedOffset = ((row * groupsPerRow) + group) * 16;
+      for (let lane = 0; lane < 32; lane += 1) {
+        const col = (group * 32) + lane;
+        if (col >= cols) break;
+        const byte = shardData[packedOffset + Math.floor(lane / 2)];
+        const quant = readOffsetBinaryInt4(byte, (lane % 2) === 1);
+        out[(row * cols) + col] = float32ToFloat16(quant * scale);
+      }
+    }
+  }
+  return new Uint8Array(out.buffer, out.byteOffset, out.byteLength);
 }
 
 
@@ -750,6 +903,40 @@ export async function loadFloat(shardData, location, name, config) {
   }
 }
 
+export async function loadW4A16Dequant(shardData, location, name, config) {
+  if (!config) {
+    throw new Error('Tensor load config is required.');
+  }
+  if (isGpuBufferInstance(shardData)) {
+    throw new Error(
+      `W4A16 tensor "${name}" requires CPU-side storage companion materialization before GPU upload.`
+    );
+  }
+  const f16Bytes = dequantizeW4A16ToF16(shardData, location, name);
+  const device = getDevice();
+  const buffer = acquireAlignedBuffer(f16Bytes.byteLength, `w4a16_dequant_${name}`);
+  try {
+    writeBufferAligned(device, buffer, f16Bytes);
+    const layout = selectRuleValue('loader', 'weights', 'weightLayout', {
+      layout: location.layout ?? null,
+      useColumnWise: false,
+    });
+    if (shouldDequantizeToF16(location)) {
+      return {
+        data: createWeightBuffer(buffer, 'f16', layout, location.shape, name),
+        allocatedBuffers: [buffer],
+      };
+    }
+    return {
+      data: applyBufferLayout(buffer, location, 'f16'),
+      allocatedBuffers: [buffer],
+    };
+  } catch (error) {
+    releaseBuffer(buffer);
+    throw error;
+  }
+}
+
 // ============================================================================
 // Main GPU Loading Entry Point
 // ============================================================================
@@ -781,6 +968,7 @@ const GPU_LOADER_DISPATCH = {
     }
   ),
   q6k: (shardData, location, name, _config) => loadQ6K(shardData, location, name),
+  w4a16_dequant_reference: (shardData, location, name, config) => loadW4A16Dequant(shardData, location, name, config),
   bf16: (shardData, location, name, config) => loadBF16(shardData, location, name, config),
   float: (shardData, location, name, config) => loadFloat(shardData, location, name, config),
   unsupported_packed_quantization: (_shardData, location, name, _config) => {
@@ -826,6 +1014,10 @@ export async function loadTensorToGPU(shardData, location, name, config) {
 
 const CPU_LOADER_DISPATCH = {
   raw: (shardData, _location) => shardData,
+  w4a16_dequant_reference: (shardData, location) => {
+    const f16Bytes = dequantizeW4A16ToF16(shardData, location, 'cpu');
+    return convertF16ToF32CPU(toUint16View(f16Bytes, 'W4A16 CPU dequantized tensor load'));
+  },
   unsupported_packed_quantization: (_shardData, location) => {
     throw new Error(
       `Unsupported packed quantization dtype "${location.dtype}" for CPU tensor load. ` +

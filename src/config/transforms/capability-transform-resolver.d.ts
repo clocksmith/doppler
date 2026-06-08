@@ -24,7 +24,10 @@ export declare function resolveCapabilityTransforms(
   platform: TransformContext['platform'],
   graphContext: {
     activationDtype: string;
+    mathDtype?: string | null;
+    accumDtype?: string | null;
     kvDtype: string;
+    headDim?: number | null;
     modelId?: string;
     layerTypes?: string[] | null;
     hasDensePrefillProjectionKernel?: boolean;
@@ -41,5 +44,13 @@ export declare function resolveCapabilityTransforms(
  * Returns null when already f32 (no alternate plan available).
  */
 export declare function resolveFinitenessFallbackTransform(
-  graphContext: { activationDtype: string; kvDtype: string; modelId?: string; layerTypes?: string[] | null }
-): { transform: ExecutionGraphTransform; name: string } | null;
+  graphContext: {
+    activationDtype: string;
+    mathDtype?: string | null;
+    accumDtype?: string | null;
+    kvDtype: string;
+    headDim?: number | null;
+    modelId?: string;
+    layerTypes?: string[] | null;
+  }
+): { transform: ExecutionGraphTransform; name: string; fallbackKvDtype: 'f16' | 'f32' } | null;

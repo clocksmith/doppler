@@ -898,12 +898,38 @@ export class DopplerLoader {
   async #assembleShardData(location, name) {
     const loadShard = this.#getLoadShard();
     const loadShardRange = (idx, offset, length) => this.shardCache.loadRange(idx, offset, length);
-    return assembleShardData(location, name, loadShard, loadShardRange);
+    const data = await assembleShardData(location, name, loadShard, loadShardRange);
+    const companions = Array.isArray(location?.storage?.companions)
+      ? location.storage.companions
+      : [];
+    if (companions.length === 0) {
+      return data;
+    }
+    const storageCompanions = {};
+    for (const companion of companions) {
+      const companionLocation = this.tensorLocations.get(companion.tensorId);
+      if (!companionLocation) {
+        throw new Error(
+          `[DopplerLoader] Tensor "${name}" storage companion "${companion.tensorId}" for role "${companion.role}" was not found.`
+        );
+      }
+      storageCompanions[companion.role] = {
+        tensorId: companion.tensorId,
+        location: companionLocation,
+        bytes: await assembleShardData(companionLocation, companion.tensorId, loadShard, loadShardRange),
+      };
+    }
+    Object.defineProperty(data, 'storageCompanions', {
+      value: storageCompanions,
+      enumerable: false,
+    });
+    return data;
   }
 
   #shouldStreamUploadToGPU(location) {
     if (!location?.size || location.size <= 0) return false;
     if (hasSourceTransform(location)) return false;
+    if (Array.isArray(location?.storage?.companions) && location.storage.companions.length > 0) return false;
     if (this.shardCache.hasCustomLoader && !this.shardCache.canStreamRanges) return false;
     const chunkBytes = this.#loadingConfig?.storage?.backend?.streaming?.readChunkBytes ?? 0;
     if (!Number.isFinite(chunkBytes) || chunkBytes <= 0) return false;

@@ -49,7 +49,9 @@ export declare function compileExecutionV1(options?: {
   };
   modelId?: string;
   numLayers?: number;
+  headDim?: number | null;
   runtimeSession?: ExecutionV1SessionSchema | null;
+  runtimeCompute?: Record<string, unknown> | null;
   kernelPathPolicy?: Record<string, unknown> | null;
   capabilities?: {
     hasSubgroups?: boolean;

@@ -95,6 +95,10 @@ export type SourceQuantizationTarget =
   | 'w4a16'
   | 'wNa8o8';
 
+export type SourceQuantizationFormat =
+  | 'compressed-tensors'
+  | 'gguf';
+
 /**
  * Quantization metadata for different weight groups.
  */
@@ -105,6 +109,7 @@ export interface QuantizationInfoSchema {
   lmHead?: QuantizationValue;
   sourceTrainingQuantization?: SourceTrainingQuantization;
   sourceQuantizationTarget?: SourceQuantizationTarget;
+  sourceQuantizationFormat?: SourceQuantizationFormat;
   experts?: QuantizationValue;
   expertsFormat?: string;
 

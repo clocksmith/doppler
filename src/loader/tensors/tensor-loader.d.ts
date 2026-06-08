@@ -132,6 +132,16 @@ export declare function loadFloat(
 ): Promise<TensorLoadResult>;
 
 /**
+ * Load W4A16 packed tensor through the reference dequantization path.
+ */
+export declare function loadW4A16Dequant(
+  shardData: Uint8Array,
+  location: TensorLocation,
+  name: string,
+  config: TensorLoadConfig
+): Promise<TensorLoadResult>;
+
+/**
  * Load tensor data to GPU based on dtype.
  *
  * Routes to appropriate handler based on tensor dtype.

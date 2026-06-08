@@ -112,6 +112,7 @@ export async function buildTensorLocations(manifest, options = {}) {
           spans: normalizeLocationSpans(info.spans, name, 'tensors.json'),
           layout: info.layout,
           originalShape: info.originalShape,
+          storage: info.storage,
           sourceTransform: info.sourceTransform,
         });
       }
@@ -152,6 +153,7 @@ export async function buildTensorLocations(manifest, options = {}) {
       spans: normalizeLocationSpans(tensorInfo.spans, name, 'manifest.tensors'),
       layout: tensorInfo.layout,
       originalShape: tensorInfo.originalShape,
+      storage: tensorInfo.storage,
       sourceTransform: tensorInfo.sourceTransform,
     });
   }

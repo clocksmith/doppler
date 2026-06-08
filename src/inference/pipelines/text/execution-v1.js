@@ -12,9 +12,11 @@ import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
 import { buildOpIdFromExecutionStep } from './operator-identity.js';
 import {
   resolveCapabilityTransforms,
+  resolveFinitenessFallbackTransform,
 } from '../../../config/transforms/capability-transform-resolver.js';
 import { composeTransforms } from '../../../config/transforms/execution-graph-transforms.js';
 import { log } from '../../../debug/index.js';
+import { resolveRangeAwareSelectiveWideningConfig } from './finiteness-policy.js';
 
 const SESSION_CAPABILITY_TRANSFORMS = new Set([
   'disableRetainQ4KMaterialization',
@@ -307,6 +309,99 @@ function expandV1ToResolvedSteps(execution, options = {}) {
   });
 }
 
+function buildFinitenessFallbackSession(session, fallbackKvDtype) {
+  const kvDtype = fallbackKvDtype === 'f16' ? 'f16' : 'f32';
+  const computeDefaults = session?.compute?.defaults ?? {};
+  const fallbackDefaults = {
+    ...computeDefaults,
+    activationDtype: 'f32',
+    outputDtype: 'f32',
+    ...(kvDtype === 'f32' ? {
+      mathDtype: 'f32',
+      accumDtype: 'f32',
+    } : {}),
+  };
+  return {
+    ...session,
+    compute: {
+      ...(session.compute ?? {}),
+      defaults: fallbackDefaults,
+    },
+    kvcache: {
+      ...(session.kvcache ?? {}),
+      kvDtype,
+    },
+  };
+}
+
+function buildFinitenessFallbackKernelPath({
+  execution,
+  effectiveSession,
+  modelId,
+  numLayers,
+  headDim,
+  layerTypes,
+  capabilities,
+  platform,
+}) {
+  const activationDtype = effectiveSession?.compute?.defaults?.activationDtype ?? null;
+  const mathDtype = effectiveSession?.compute?.defaults?.mathDtype ?? null;
+  const accumDtype = effectiveSession?.compute?.defaults?.accumDtype ?? null;
+  const kvDtype = effectiveSession?.kvcache?.kvDtype ?? null;
+  if (activationDtype !== 'f16' || !execution) {
+    return null;
+  }
+
+  const fallback = resolveFinitenessFallbackTransform({
+    activationDtype,
+    mathDtype,
+    accumDtype,
+    kvDtype,
+    headDim,
+    modelId,
+    layerTypes,
+  });
+  if (!fallback) {
+    return null;
+  }
+
+  const transformed = fallback.transform(execution, {
+    capabilities,
+    platform: platform ?? { id: 'unknown', vendor: 'unknown', architecture: 'unknown' },
+    activationDtype,
+    mathDtype,
+    accumDtype,
+    kvDtype,
+    headDim,
+    modelId,
+    layerTypes,
+  });
+  if (!transformed) {
+    return null;
+  }
+
+  const fallbackSession = buildFinitenessFallbackSession(
+    effectiveSession,
+    fallback.fallbackKvDtype
+  );
+  const fallbackSteps = expandV1ToResolvedSteps(transformed, { skipDigestValidation: true });
+  const fallbackKernelPath = buildInlineKernelPath(
+    fallbackSteps,
+    fallbackSession,
+    `${modelId || 'model'}-${fallback.name}-finiteness-fallback`,
+    numLayers
+  );
+  if (!fallbackKernelPath) {
+    return null;
+  }
+  return {
+    ...fallbackKernelPath,
+    name: 'Execution inline finiteness fallback kernel path',
+    description: `Generated from manifest.inference.execution using ${fallback.name}`,
+    finitenessFallbackTransform: fallback.name,
+  };
+}
+
 
 export function compileExecutionV1(options = {}) {
   const manifestInference = options.manifestInference;
@@ -316,7 +411,9 @@ export function compileExecutionV1(options = {}) {
   const capabilities = options.capabilities ?? null;
   const platform = options.platform ?? null;
   const runtimeSession = options.runtimeSession ?? null;
+  const runtimeCompute = options.runtimeCompute ?? null;
   const kernelPathPolicy = mergeKernelPathPolicy(undefined, options.kernelPathPolicy ?? undefined);
+  const finitenessPolicy = resolveRangeAwareSelectiveWideningConfig(runtimeCompute);
 
   if (!hasExecutionV1(manifestInference)) {
     throw new Error(`[ExecutionV1] manifest.inference.schema must be "${EXECUTION_V1_SCHEMA_ID}".`);
@@ -347,19 +444,19 @@ export function compileExecutionV1(options = {}) {
   // -------------------------------------------------------------------------
   let appliedTransformNames = [];
   let graphWasTransformed = false;
+  const graphContext = {
+    activationDtype,
+    mathDtype,
+    accumDtype,
+    kvDtype,
+    headDim,
+    modelId,
+    layerTypes,
+    retainQ4KMaterialization: session?.retainQ4KMaterialization === true,
+    ...summarizeExecutionGraphContext(execution),
+  };
 
   if (capabilities) {
-    const graphContext = {
-      activationDtype,
-      mathDtype,
-      accumDtype,
-      kvDtype,
-      headDim,
-      modelId,
-      layerTypes,
-      retainQ4KMaterialization: session?.retainQ4KMaterialization === true,
-      ...summarizeExecutionGraphContext(execution),
-    };
     const resolved = resolveCapabilityTransforms(capabilities, platform, graphContext);
     const sourceScope = kernelPathPolicy.sourceScope ?? kernelPathPolicy.allowSources ?? [];
     const remapAllowed = kernelPathPolicy.mode === 'capability-aware'
@@ -477,7 +574,23 @@ export function compileExecutionV1(options = {}) {
     )
     : null;
 
-  const fallbackKernelPath = null;
+  const fallbackKernelPath = inlineKernelPathEnabled
+    && finitenessPolicy.enabled
+    && finitenessPolicy.onTrigger === 'fallback-plan'
+    ? buildFinitenessFallbackKernelPath({
+      execution,
+      effectiveSession,
+      modelId,
+      numLayers,
+      headDim,
+      layerTypes,
+      capabilities,
+      platform,
+    })
+    : null;
+  if (kernelPath && fallbackKernelPath?.id) {
+    kernelPath.finitenessFallbackKernelPathId = fallbackKernelPath.id;
+  }
 
   // Lane integrity: capture the pre-transform (manifest+profile-agreed) lane
   // and the post-transform (actually dispatched) lane so receipts can honestly
@@ -589,6 +702,7 @@ export function applyExecutionV1RuntimeConfig(options = {}) {
     runtimeSession: hasExplicitRuntimeOverrides
       ? resolveRuntimeInferenceOverrideSection(runtimeOverrides, 'session')
       : (runtimeConfig.inference?.session ?? null),
+    runtimeCompute: runtimeConfig.inference?.compute ?? null,
     kernelPathPolicy: runtimeConfig.inference?.kernelPathPolicy ?? null,
   });
 
