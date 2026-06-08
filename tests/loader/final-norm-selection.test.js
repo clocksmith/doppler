@@ -1,6 +1,23 @@
 import assert from 'node:assert/strict';
 
 const { loadFinalWeights } = await import('../../src/loader/final-weights-loader.js');
+const { createWeightBuffer } = await import('../../src/gpu/weight-buffer.js');
+
+function createFakeGpuBuffer(size) {
+  return {
+    __dopplerFakeGPUBuffer: true,
+    size,
+    usage: 0,
+    destroy() {},
+    mapAsync() {
+      return Promise.resolve();
+    },
+    getMappedRange() {
+      return new ArrayBuffer(size);
+    },
+    unmap() {},
+  };
+}
 
 {
   const tensorLocations = new Map([
@@ -100,6 +117,94 @@ const { loadFinalWeights } = await import('../../src/loader/final-weights-loader
 
   assert.equal(result.finalNorm instanceof Float32Array, true);
   assert.equal(result.lmHead, fakeEmbeddings);
+}
+
+// tieWordEmbeddings=true reuses a matching dense LM-head alias before streaming
+{
+  const tensorLocations = new Map([
+    ['model.language_model.norm.weight', { role: 'norm', group: 'head', shape: [2], dtype: 'F32' }],
+    ['model.language_model.lm_head.weight', { role: 'lm_head', group: 'head', shape: [2, 2], dtype: 'F16' }],
+  ]);
+  const fakeEmbeddings = createWeightBuffer(
+    createFakeGpuBuffer(8),
+    'f16',
+    'row',
+    [2, 2],
+    'model.language_model.embed_tokens.weight'
+  );
+  const loadedNames = [];
+  const streamNames = [];
+
+  const result = await loadFinalWeights({
+    tensorLocations,
+    tieWordEmbeddings: true,
+    loadTensor: async (name) => {
+      loadedNames.push(name);
+      if (name.includes('norm')) return new Float32Array([1, 2]);
+      throw new Error(`dense tied LM head should not be loaded separately: ${name}`);
+    },
+    shouldStreamLargeWeight: (name) => {
+      streamNames.push(name);
+      return true;
+    },
+    needsNormWeightOffset: () => false,
+    resolveWeightLayout: () => 'row',
+    embeddings: fakeEmbeddings,
+    gpuBuffers: new Set(),
+    keepF32Weights: false,
+    normOffsetDebugLogged: false,
+  });
+
+  assert.equal(result.lmHead, fakeEmbeddings);
+  assert.deepEqual(loadedNames, ['model.language_model.norm.weight']);
+  assert.deepEqual(streamNames, []);
+}
+
+// Packed Q4 tied LM heads remain explicit materialized heads
+{
+  const tensorLocations = new Map([
+    ['model.language_model.norm.weight', { role: 'norm', group: 'head', shape: [2], dtype: 'F32' }],
+    ['model.language_model.lm_head.weight', { role: 'lm_head', group: 'head', shape: [2, 2], dtype: 'Q4_K_M' }],
+  ]);
+  const fakeEmbeddings = createWeightBuffer(
+    createFakeGpuBuffer(8),
+    'f16',
+    'row',
+    [2, 2],
+    'model.language_model.embed_tokens.weight'
+  );
+  const explicitLmHead = createWeightBuffer(
+    createFakeGpuBuffer(144),
+    'q4k',
+    'row',
+    [2, 2],
+    'model.language_model.lm_head.weight'
+  );
+  const loadedNames = [];
+
+  const result = await loadFinalWeights({
+    tensorLocations,
+    tieWordEmbeddings: true,
+    loadTensor: async (name) => {
+      loadedNames.push(name);
+      if (name.includes('norm')) return new Float32Array([1, 2]);
+      if (name.includes('lm_head')) return explicitLmHead;
+      return null;
+    },
+    shouldStreamLargeWeight: () => false,
+    needsNormWeightOffset: () => false,
+    resolveWeightLayout: () => 'row',
+    embeddings: fakeEmbeddings,
+    gpuBuffers: new Set(),
+    keepF32Weights: false,
+    normOffsetDebugLogged: false,
+  });
+
+  assert.equal(result.lmHead, explicitLmHead);
+  assert.deepEqual(
+    loadedNames,
+    ['model.language_model.norm.weight', 'model.language_model.lm_head.weight']
+  );
 }
 
 // Embedding models may omit LM head entirely

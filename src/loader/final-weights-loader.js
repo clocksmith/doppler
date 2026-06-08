@@ -6,6 +6,7 @@ import {
   isWeightBuffer,
   isCpuWeightBuffer,
   isSplitWeightBuffer,
+  getWeightDtype,
 } from '../gpu/weight-buffer.js';
 import { maybeDowncastToF16 } from './weight-downcast.js';
 import { getTensorNamesByRole } from './tensors/tensor-role.js';
@@ -22,6 +23,7 @@ const HEAD_GROUP = 'head';
 const FINAL_NORM_ROLE = 'norm';
 const LM_HEAD_ROLE = 'lm_head';
 const EMBEDDING_MODEL_TYPE = 'embedding';
+const DENSE_TIED_LM_HEAD_DTYPES = new Set(['F16', 'F32']);
 
 function isGpuBufferInstance(value) {
   return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
@@ -53,6 +55,77 @@ function createRangeBackedWeightBuffer(ctx, name, location) {
     locationDtype: location.dtype,
   });
   return createCpuWeightBuffer(source, dtype, layout, location.shape, name);
+}
+
+function normalizeLocationDtype(location) {
+  return typeof location?.dtype === 'string'
+    ? location.dtype.trim().toUpperCase()
+    : '';
+}
+
+function isDenseTiedLmHeadLocation(location) {
+  if (!location || !DENSE_TIED_LM_HEAD_DTYPES.has(normalizeLocationDtype(location))) {
+    return false;
+  }
+  if (location.sourceTransform || location.storage) {
+    return false;
+  }
+  return true;
+}
+
+function getLoadedWeightShape(weight) {
+  if (isWeightBuffer(weight) || isCpuWeightBuffer(weight) || isSplitWeightBuffer(weight)) {
+    return weight.shape;
+  }
+  return null;
+}
+
+function getLoadedWeightLayout(weight) {
+  if (isWeightBuffer(weight) || isCpuWeightBuffer(weight) || isSplitWeightBuffer(weight)) {
+    return weight.layout;
+  }
+  return null;
+}
+
+function shapesEqual(left, right) {
+  if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) {
+    return false;
+  }
+  for (let i = 0; i < left.length; i++) {
+    if (left[i] !== right[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function shouldUseTiedEmbeddingsForLmHead(ctx, loc) {
+  if (ctx.tieWordEmbeddings !== true || !ctx.embeddings) {
+    return false;
+  }
+  if (ctx.embeddings instanceof Float32Array || isCpuWeightBuffer(ctx.embeddings)) {
+    return false;
+  }
+  if (!isDenseTiedLmHeadLocation(loc)) {
+    return false;
+  }
+
+  const embeddingShape = getLoadedWeightShape(ctx.embeddings);
+  if (!shapesEqual(loc.shape, embeddingShape)) {
+    return false;
+  }
+
+  const lmHeadDtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
+    locationDtype: loc.dtype,
+  });
+  const embeddingDtype = getWeightDtype(ctx.embeddings);
+  if (embeddingDtype !== lmHeadDtype) {
+    return false;
+  }
+
+  const lmHeadLayout = ctx.resolveWeightLayout(loc);
+  const embeddingLayout = getLoadedWeightLayout(ctx.embeddings);
+  return embeddingLayout === lmHeadLayout;
 }
 
 function isLikelyFinalNormName(name) {
@@ -185,6 +258,14 @@ async function loadLmHead(ctx) {
   for (const name of lmHeadNames) {
     const loc = ctx.tensorLocations.get(name);
     if (!loc) continue;
+
+    if (shouldUseTiedEmbeddingsForLmHead(ctx, loc)) {
+      debugTrace.loader(`Using tied embeddings as dense LM head "${name}" (manifest.tieWordEmbeddings=true)`);
+      lmHeadName = name;
+      lmHeadLoc = loc;
+      lmHead = ctx.embeddings;
+      break;
+    }
 
     const shouldStream = ctx.shouldStreamLargeWeight(name, loc, 'LM head');
     const tensor = shouldStream
