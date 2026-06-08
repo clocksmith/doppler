@@ -295,6 +295,11 @@ export interface SamplingSchema {
   topK?: number;
   topP?: number;
   repetitionPenalty?: number;
+  repetitionPenaltyWindow?: number;
+  greedyThreshold?: number;
+  suppressSpecialTokens?: boolean;
+  suppressSpecialLikeTokens?: boolean;
+  suppressTokenIds?: number[];
 }
 
 /** Tokenizer runtime configuration */

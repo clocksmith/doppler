@@ -29,6 +29,7 @@ export interface CpuWeightBuffer {
   readonly layout: WeightLayout;
   readonly shape: readonly number[];
   readonly label?: string;
+  gpuSplitWeight?: SplitWeightBuffer | null;
 }
 
 /**

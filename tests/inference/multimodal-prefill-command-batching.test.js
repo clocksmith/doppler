@@ -78,6 +78,31 @@ import { shouldDisablePrefillCommandBatching } from '../../src/inference/pipelin
 {
   const disabled = shouldDisablePrefillCommandBatching(
     {
+      runtimeConfig: {
+        inference: {
+          session: {
+            prefillTokenChunkSize: 64,
+          },
+        },
+      },
+      kvCache: {
+        hasGPUCache: () => true,
+      },
+    },
+    {},
+    null
+  );
+
+  assert.equal(
+    disabled,
+    true,
+    'token-chunked prefill must bypass command batching so cross-chunk KV writes match the direct path'
+  );
+}
+
+{
+  const disabled = shouldDisablePrefillCommandBatching(
+    {
       kvCache: {
         hasGPUCache: () => true,
       },

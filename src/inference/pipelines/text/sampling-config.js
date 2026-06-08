@@ -5,6 +5,9 @@ const REQUIRED_RUNTIME_SAMPLING_FIELDS = [
   'repetitionPenalty',
   'repetitionPenaltyWindow',
   'greedyThreshold',
+  'suppressSpecialTokens',
+  'suppressSpecialLikeTokens',
+  'suppressTokenIds',
 ];
 
 export function resolveSamplingConfig(opts, runtimeConfig) {
@@ -55,7 +58,41 @@ export function resolveSamplingConfig(opts, runtimeConfig) {
       samplingDefaults.greedyThreshold,
       (value) => value >= 0
     ),
+    suppressSpecialTokens: resolveSamplingBoolean(
+      'suppressSpecialTokens',
+      samplingDefaults.suppressSpecialTokens
+    ),
+    suppressSpecialLikeTokens: resolveSamplingBoolean(
+      'suppressSpecialLikeTokens',
+      samplingDefaults.suppressSpecialLikeTokens
+    ),
+    suppressTokenIds: resolveSamplingTokenIdList(
+      'suppressTokenIds',
+      samplingDefaults.suppressTokenIds
+    ),
   };
+}
+
+function resolveSamplingBoolean(name, runtimeValue) {
+  if (runtimeValue === null) {
+    throw new Error(`[Sampling] ${name} cannot be null.`);
+  }
+  if (typeof runtimeValue !== 'boolean') {
+    throw new Error(`[Sampling] ${name} must be a boolean; got ${typeof runtimeValue}.`);
+  }
+  return runtimeValue;
+}
+
+function resolveSamplingTokenIdList(name, runtimeValue) {
+  if (!Array.isArray(runtimeValue)) {
+    throw new Error(`[Sampling] ${name} must be an array of token IDs.`);
+  }
+  return runtimeValue.map((tokenId, index) => {
+    if (!Number.isInteger(tokenId) || tokenId < 0) {
+      throw new Error(`[Sampling] ${name}[${index}] must be a non-negative integer token ID; got ${tokenId}.`);
+    }
+    return tokenId;
+  });
 }
 
 function resolveSamplingNumber(name, callValue, runtimeValue, validate) {

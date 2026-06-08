@@ -1,13 +1,11 @@
 {
-  "id": "profiles/gemma4-12b-rdrr-safe-b4",
-  "name": "gemma4-12b-rdrr-safe-b4",
-  "description": "Deprecated Gemma 4 12B RDRR safe profile alias. Use profiles/gemma4-12b-rdrr-safe-single for coherent local QAT runs.",
+  "id": "profiles/gemma4-12b-rdrr-safe-single",
+  "name": "gemma4-12b-rdrr-safe-single",
+  "description": "Gemma 4 12B RDRR safe single-token decode cadence for coherent local QAT runs on consumer hardware.",
   "intent": "investigate",
-  "stability": "deprecated",
+  "stability": "experimental",
   "owner": "doppler-core",
-  "createdAtUtc": "2026-06-07T00:00:00Z",
-  "deprecatedAtUtc": "2026-06-08T00:00:00Z",
-  "replacementId": "profiles/gemma4-12b-rdrr-safe-single",
+  "createdAtUtc": "2026-06-08T00:00:00Z",
   "extends": "profiles/default",
   "runtime": {
     "shared": {

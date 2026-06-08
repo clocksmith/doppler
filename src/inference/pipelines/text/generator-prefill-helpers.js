@@ -280,6 +280,9 @@ export function shouldDisablePrefillCommandBatching(state, opts, multimodalBidir
   if (state?.kvCache?.layout === 'bdpa_paged') {
     return true;
   }
+  if (state?.runtimeConfig?.inference?.session?.prefillTokenChunkSize != null) {
+    return true;
+  }
   if (multimodalBidirectionalSpan == null) {
     return false;
   }

@@ -70,6 +70,7 @@ export function validateRuntimeConfig(runtimeConfig) {
   const compute = runtimeConfig.inference?.compute;
   const kernelPath = runtimeConfig.inference?.kernelPath;
   const kernelPathPolicy = runtimeConfig.inference?.kernelPathPolicy;
+  const session = runtimeConfig.inference?.session;
 
   if (batching) {
     if (batching.readbackInterval !== undefined) {
@@ -87,6 +88,9 @@ export function validateRuntimeConfig(runtimeConfig) {
   }
   if (compute?.deferredRoundingWindowTokens !== undefined) {
     assertPositiveInt('runtime.inference.compute.deferredRoundingWindowTokens', compute.deferredRoundingWindowTokens);
+  }
+  if (session?.prefillTokenChunkSize !== undefined) {
+    assertNullablePositiveInt('runtime.inference.session.prefillTokenChunkSize', session.prefillTokenChunkSize);
   }
   if (kernelPathPolicy) {
     validateKernelPathPolicy('runtime.inference.kernelPathPolicy', kernelPathPolicy);

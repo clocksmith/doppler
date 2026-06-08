@@ -58,12 +58,9 @@ export function softmax(logits) {
   return exps;
 }
 
-function countFiniteCandidates(logits, padTokenId) {
+function countFiniteCandidates(logits) {
   let finiteCandidateCount = 0;
   for (let i = 0; i < logits.length; i++) {
-    if (padTokenId != null && i === padTokenId) {
-      continue;
-    }
     if (Number.isFinite(logits[i])) {
       finiteCandidateCount += 1;
     }
@@ -71,13 +68,13 @@ function countFiniteCandidates(logits, padTokenId) {
   return finiteCandidateCount;
 }
 
-function assertFiniteSamplingCandidates(logits, padTokenId, label) {
-  const finiteCandidateCount = countFiniteCandidates(logits, padTokenId);
+function assertFiniteSamplingCandidates(logits, label) {
+  const finiteCandidateCount = countFiniteCandidates(logits);
   if (finiteCandidateCount > 0) {
     return;
   }
   throw new Error(
-    `[Sampling] ${label} has no finite candidate logits after masking the pad token. ` +
+    `[Sampling] ${label} has no finite candidate logits after masking suppressed tokens. ` +
     'Upstream decode likely produced NaN/Inf or an all-masked distribution.'
   );
 }
@@ -217,13 +214,20 @@ function sampleFromLogitCandidates(candidates, temperature, seed, decode, debug,
 
 
 export function sample(logits, opts) {
-  const { temperature, topP, topK, decode, debug = false, padTokenId, seed } = opts;
+  const { temperature, topP, topK, decode, debug = false, padTokenId, seed, suppressTokenIds } = opts;
 
   if (padTokenId !== undefined && padTokenId >= 0 && padTokenId < logits.length) {
     logits[padTokenId] = -Infinity;
   }
+  if (Array.isArray(suppressTokenIds)) {
+    for (const tokenId of suppressTokenIds) {
+      if (Number.isInteger(tokenId) && tokenId >= 0 && tokenId < logits.length) {
+        logits[tokenId] = -Infinity;
+      }
+    }
+  }
 
-  assertFiniteSamplingCandidates(logits, padTokenId, 'Logits');
+  assertFiniteSamplingCandidates(logits, 'Logits');
 
   // Greedy (argmax) when temperature = 0
   if (temperature === 0) {

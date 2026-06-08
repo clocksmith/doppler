@@ -54,6 +54,29 @@ function resolveRuntimeInferenceOverrideSection(runtimeOverrides, key) {
   return inferenceOverrides[key] ?? null;
 }
 
+function preserveRuntimeDecodeLoop(updatedInference, runtimeConfig) {
+  const runtimeSession = runtimeConfig?.inference?.session;
+  if (!hasOwnProperty(runtimeSession, 'decodeLoop')) {
+    return updatedInference;
+  }
+  const updatedSession = updatedInference?.session;
+  if (!updatedSession || typeof updatedSession !== 'object' || Array.isArray(updatedSession)) {
+    return {
+      ...updatedInference,
+      session: {
+        decodeLoop: runtimeSession.decodeLoop,
+      },
+    };
+  }
+  return {
+    ...updatedInference,
+    session: {
+      ...updatedSession,
+      decodeLoop: runtimeSession.decodeLoop,
+    },
+  };
+}
+
 const EXECUTION_V1_PROJECTION_OPS = new Set([
   'q_proj', 'k_proj', 'v_proj', 'o_proj',
   'gate_proj', 'up_proj', 'down_proj',
@@ -707,7 +730,10 @@ export function applyExecutionV1RuntimeConfig(options = {}) {
   });
 
   const runtimeInferencePatch = executionV1State.runtimeInferencePatch;
-  const updatedInference = mergeRuntimeValues(runtimeConfig.inference ?? {}, runtimeInferencePatch);
+  const updatedInference = preserveRuntimeDecodeLoop(
+    mergeRuntimeValues(runtimeConfig.inference ?? {}, runtimeInferencePatch),
+    runtimeConfig
+  );
 
   return {
     runtimeConfig: {

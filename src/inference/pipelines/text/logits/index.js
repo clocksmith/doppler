@@ -14,12 +14,12 @@ import { getDevice } from '../../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
 import { runMatmul, runRMSNorm, castF16ToF32, castF32ToF16 } from '../../../../gpu/kernel-selector.js';
 import { createTensor } from '../../../../gpu/tensor.js';
-import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, getWeightDtype } from '../../../../gpu/weight-buffer.js';
+import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype } from '../../../../gpu/weight-buffer.js';
 import { kernelTrace, traceStep } from '../kernel-trace.js';
 import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
 import { runProbes } from '../probes.js';
 import { rmsNormCPU, matmulCPU, f16BufferToF32 } from './cpu.js';
-import { resolveCpuWeightDims, computeChunkedLogitsGPU } from './gpu.js';
+import { resolveCpuWeightDims, computeChunkedLogitsGPU, computeSplitLogitsGPU } from './gpu.js';
 import { finalizeLogits, readBufferWithCleanup } from './utils.js';
 import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { getKernelPathMatmulPrecision, getKernelPathStepPrecision } from '../../../../config/kernel-path-loader.js';
@@ -206,6 +206,7 @@ export async function computeLogits(
   let cpuWeightVocabSize = null;
   
   let cpuWeightLayout = null;
+  let splitWeightVocabSize = null;
 
   if (isCpuWeightBuffer(lmHead)) {
     const dims = resolveCpuWeightDims(lmHead);
@@ -214,6 +215,17 @@ export async function computeLogits(
     if (!cpuWeightLayout) {
       throw new Error('LM head CPU weight is missing layout metadata.');
     }
+    if (dims.hiddenSize !== hiddenSize) {
+      log.warn('Logits', `LM head hiddenSize mismatch: weight=${dims.hiddenSize}, expected=${hiddenSize}`);
+    }
+    if (matmulVocabSize > dims.vocabSize) {
+      log.warn('Logits', `LM head vocabSize smaller than requested: weight=${dims.vocabSize}, requested=${matmulVocabSize}. Clamping.`);
+      matmulVocabSize = dims.vocabSize;
+    }
+  }
+  if (isSplitWeightBuffer(lmHead)) {
+    const dims = resolveCpuWeightDims(lmHead);
+    splitWeightVocabSize = dims.vocabSize;
     if (dims.hiddenSize !== hiddenSize) {
       log.warn('Logits', `LM head hiddenSize mismatch: weight=${dims.hiddenSize}, expected=${hiddenSize}`);
     }
@@ -384,29 +396,63 @@ export async function computeLogits(
     await debugCheckBuffer(finalNormTensor.buffer, 'After final norm', numTokens, hiddenSize);
   }
 
-  if (isCpuWeightBuffer(lmHead)) {
-    if (cpuWeightVocabSize == null) {
-      throw new Error('LM head CPU weight is missing vocabSize metadata.');
+  const lastTokenMatmul = resolveLmHeadMatmulConfig(numTokens, options);
+  const { lastPositionOnly, matmulRows } = lastTokenMatmul;
+  const matmulPhaseOverride = lastTokenMatmul.phaseOverride;
+  const lmHeadPhase = matmulPhaseOverride ?? (matmulRows === 1 ? 'decode' : 'prefill');
+
+  let matmulInputTensor = finalNormTensor;
+  let matmulInputOwned = false;
+  if (lastPositionOnly) {
+    const inputBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: finalNormTensor.dtype });
+    const rowSize = hiddenSize * inputBytes;
+    const rowOffset = (numTokens - 1) * rowSize;
+    const lastInputBuffer = acquireBuffer(rowSize, undefined, 'logits_input_last');
+    const encoder = device.createCommandEncoder();
+    encoder.copyBufferToBuffer(finalNormTensor.buffer, rowOffset, lastInputBuffer, 0, rowSize);
+    device.queue.submit([encoder.finish()]);
+    matmulInputTensor = createTensor(lastInputBuffer, finalNormTensor.dtype, [1, hiddenSize], 'logits_input_last');
+    matmulInputOwned = true;
+  }
+
+  if (isCpuWeightBuffer(lmHead) || isSplitWeightBuffer(lmHead)) {
+    const weightVocabSize = isCpuWeightBuffer(lmHead) ? cpuWeightVocabSize : splitWeightVocabSize;
+    if (weightVocabSize == null) {
+      throw new Error('LM head weight is missing vocabSize metadata.');
     }
-    const rawLogits = await computeChunkedLogitsGPU(
-      finalNormTensor,
-      lmHead,
-      numTokens,
-      hiddenSize,
-      matmulVocabSize,
-      cpuWeightVocabSize,
-      debugProbes,
-      operatorDiagnostics,
-      largeWeights,
-      stableKernelPath,
-      config.executionPolicies ?? null
-    );
+    const rawLogits = isCpuWeightBuffer(lmHead)
+      ? await computeChunkedLogitsGPU(
+        matmulInputTensor,
+        lmHead,
+        matmulRows,
+        hiddenSize,
+        matmulVocabSize,
+        weightVocabSize,
+        debugProbes,
+        operatorDiagnostics,
+        largeWeights,
+        stableKernelPath,
+        config.executionPolicies ?? null
+      )
+      : await computeSplitLogitsGPU(
+        matmulInputTensor,
+        lmHead,
+        matmulRows,
+        hiddenSize,
+        matmulVocabSize,
+        weightVocabSize,
+        debugProbes,
+        operatorDiagnostics,
+        stableKernelPath,
+        config.executionPolicies ?? null
+      );
 
     if (inputBufferOwned) releaseBuffer(inputBuffer);
     releaseBuffer(finalNormTensor.buffer);
+    if (matmulInputOwned) releaseBuffer(matmulInputTensor.buffer);
     if (!getNormWeightBuffer && !isGpuBufferInstance(finalNorm)) releaseBuffer(normWeightBuffer);
 
-    return finalizeLogits(rawLogits, numTokens, matmulVocabSize, vocabSize, config, debugProbes, operatorDiagnostics);
+    return finalizeLogits(rawLogits, matmulRows, matmulVocabSize, vocabSize, config, debugProbes, operatorDiagnostics);
   }
 
   // 3. Project to vocab via LM head
@@ -424,11 +470,6 @@ export async function computeLogits(
     lmHeadBufferOwned = true;
   }
 
-  const lastTokenMatmul = resolveLmHeadMatmulConfig(numTokens, options);
-  const { lastPositionOnly, matmulRows } = lastTokenMatmul;
-  const matmulPhaseOverride = lastTokenMatmul.phaseOverride;
-  const lmHeadPhase = matmulPhaseOverride ?? (matmulRows === 1 ? 'decode' : 'prefill');
-
   // Debug: Log buffer info for lm_head matmul
   const lmHeadGPU = isWeightBuffer(lmHeadBuffer) ? lmHeadBuffer.buffer : lmHeadBuffer;
   const lmHeadDtype = getWeightDtype(lmHeadBuffer);
@@ -441,19 +482,6 @@ export async function computeLogits(
     );
   }
 
-  let matmulInputTensor = finalNormTensor;
-  let matmulInputOwned = false;
-  if (lastPositionOnly) {
-    const inputBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: finalNormTensor.dtype });
-    const rowSize = hiddenSize * inputBytes;
-    const rowOffset = (numTokens - 1) * rowSize;
-    const lastInputBuffer = acquireBuffer(rowSize, undefined, 'logits_input_last');
-    const encoder = device.createCommandEncoder();
-    encoder.copyBufferToBuffer(finalNormTensor.buffer, rowOffset, lastInputBuffer, 0, rowSize);
-    device.queue.submit([encoder.finish()]);
-    matmulInputTensor = createTensor(lastInputBuffer, finalNormTensor.dtype, [1, hiddenSize], 'logits_input_last');
-    matmulInputOwned = true;
-  }
   const lmHeadInputDtype = forceStableF32Logits
     ? matmulInputTensor.dtype
     : resolveMatmulStepDtype('lm_head', lmHeadPhase, stableKernelPath, matmulInputTensor.dtype, 'inputDtype');

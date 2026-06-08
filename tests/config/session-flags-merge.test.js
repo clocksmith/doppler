@@ -65,14 +65,16 @@ function buildManifest(sessionOverrides = {}, largeWeightsOverrides = undefined)
   assert.equal(merged._sources.get('inference.session.useFlashPrefillAttention'), 'runtime');
 }
 
-// Case 3: manifest does not set prefillChunkSubmitMode, runtime sets 'async' → merged='async', source=runtime.
+// Case 3: manifest does not set prefill chunk fields, runtime sets them → runtime wins.
 {
   const merged = mergeConfig(
     buildManifest({}),
-    { session: { prefillChunkSubmitMode: 'async' } }
+    { session: { prefillChunkSubmitMode: 'async', prefillTokenChunkSize: 128 } }
   );
   assert.equal(merged.inference.session.prefillChunkSubmitMode, 'async');
   assert.equal(merged._sources.get('inference.session.prefillChunkSubmitMode'), 'runtime');
+  assert.equal(merged.inference.session.prefillTokenChunkSize, 128);
+  assert.equal(merged._sources.get('inference.session.prefillTokenChunkSize'), 'runtime');
 }
 
 // Case 4: per-field overlay — manifest sets decodeLoop, runtime sets different session flag, both survive.

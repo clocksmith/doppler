@@ -45,6 +45,9 @@ export const DEFAULT_RUNTIME_CONFIG = {
       repetitionPenalty: 1.1,
       greedyThreshold: 0.01,
       repetitionPenaltyWindow: 100,
+      suppressSpecialTokens: false,
+      suppressSpecialLikeTokens: false,
+      suppressTokenIds: [],
     },
     compute: {},
     tokenizer: {},
@@ -79,6 +82,7 @@ export const DEFAULT_RUNTIME_CONFIG = {
       // transitions but longer intermediate-buffer lifetime. Default 4 is
       // memory-conservative; profiles with known-safe memory can raise it.
       prefillChunkLayers: 4,
+      prefillTokenChunkSize: null,
       // Opt into the flash-attention prefill kernel (head_dim=256, f16 KV,
       // contiguous layout). Two-pass dispatch raises RDNA3 workgroup
       // occupancy by KV-axis splitting. The kernel itself enforces head_dim
@@ -230,6 +234,7 @@ function mergeSharedRuntimeConfig(
           bucket: { ...base.bufferPool.bucket, ...overrides.bufferPool.bucket },
           limits: { ...base.bufferPool.limits, ...overrides.bufferPool.limits },
           alignment: { ...base.bufferPool.alignment, ...overrides.bufferPool.alignment },
+          budget: { ...base.bufferPool.budget, ...overrides.bufferPool.budget },
         }
       : { ...base.bufferPool },
     gpuCache: { ...base.gpuCache, ...overrides.gpuCache },
@@ -396,6 +401,7 @@ function mergeInferenceConfig(
       kvcache: replaceSubtree(overrideSession.kvcache, baseSession.kvcache),
       decodeLoop: replaceSubtree(overrideSession.decodeLoop, baseSession.decodeLoop),
       perLayerInputs: replaceSubtree(overrideSession.perLayerInputs, baseSession.perLayerInputs),
+      prefillTokenChunkSize: overrideSession.prefillTokenChunkSize ?? baseSession.prefillTokenChunkSize,
     },
     executionPatch: mergeExecutionPatchLists(baseExecutionPatch, overrideExecutionPatch),
     // Model-specific inference overrides (merged with manifest.inference at load time)

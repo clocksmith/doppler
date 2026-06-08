@@ -1226,10 +1226,21 @@ export class DopplerLoader {
       }
       this.gpuBuffers.delete(gpuBuffer);
     };
+    const releaseSplitCandidate = (value) => {
+      const sections = value?.gpuSplitWeight?.sections;
+      if (!Array.isArray(sections)) {
+        return;
+      }
+      for (const section of sections) {
+        releaseCandidate(section?.buffer ?? null);
+      }
+      value.gpuSplitWeight = null;
+    };
 
     for (const buffer of this.gpuBuffers) {
       releaseCandidate(buffer);
     }
+    releaseSplitCandidate(this.lmHead);
     this.gpuBuffers.clear();
 
     if (this.expertCache) {

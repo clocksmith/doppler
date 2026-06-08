@@ -12,7 +12,7 @@ import {
   recordCastF16ToF32,
   recordCastF32ToF16,
 } from '../../../../gpu/kernels/cast.js';
-import { createWeightBuffer, isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance } from '../../../../gpu/weight-buffer.js';
+import { createWeightBuffer, createSplitWeightBuffer, isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer } from '../../../../gpu/weight-buffer.js';
 import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
 import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { getKernelPathMatmulPrecision, getKernelPathStepPrecision } from '../../../../config/kernel-path-loader.js';
@@ -143,6 +143,7 @@ function createStableF32LogitsKernelPath(kernelPath) {
 
 const bf16ScratchU32 = new Uint32Array(1);
 const bf16ScratchF32 = new Float32Array(bf16ScratchU32.buffer);
+const SPLIT_UPLOAD_CHUNK_BYTES = 64 * 1024 * 1024;
 
 function bf16ToF32(value) {
   bf16ScratchU32[0] = (value & 0xffff) << 16;
@@ -156,6 +157,17 @@ function isRangeBackedCpuWeightSource(value) {
     && value.kind === 'tensor_range_source'
     && typeof value.loadRange === 'function'
   );
+}
+
+function alignByteLength(byteLength) {
+  return Math.ceil(byteLength / 4) * 4;
+}
+
+function writeBufferInChunks(queue, buffer, bytes) {
+  for (let offset = 0; offset < bytes.byteLength; offset += SPLIT_UPLOAD_CHUNK_BYTES) {
+    const end = Math.min(offset + SPLIT_UPLOAD_CHUNK_BYTES, bytes.byteLength);
+    queue.writeBuffer(buffer, offset, bytes, offset, end - offset);
+  }
 }
 
 function normalizeRangeBytes(value, label) {
@@ -357,6 +369,141 @@ export function writeChunkLogits(
 }
 
 
+function resolveSplitLmHeadRows(device, hiddenSize, largeWeightConfig) {
+  if (largeWeightConfig.safetyRatio == null) {
+    throw new Error('runtime.inference.largeWeights.safetyRatio is required.');
+  }
+  const safety = Math.min(Math.max(largeWeightConfig.safetyRatio, 0.1), 1);
+  const maxBinding = Math.min(device.limits.maxStorageBufferBindingSize, device.limits.maxBufferSize);
+  const maxBytes = Math.floor(maxBinding * safety);
+  const rowBytes = hiddenSize * 2;
+  const rowsByBinding = Math.floor(maxBytes / rowBytes);
+  const requested = largeWeightConfig.lmHeadChunkRows;
+  const rows = Number.isInteger(requested) && requested > 0
+    ? Math.min(requested, rowsByBinding)
+    : rowsByBinding;
+  if (!Number.isFinite(rows) || rows <= 0) {
+    throw new Error(
+      `[Logits] split LM head row size underflow (maxBytes=${maxBytes}, hiddenSize=${hiddenSize}).`
+    );
+  }
+  return rows;
+}
+
+export function shouldMaterializeSplitLmHeadGPU(lmHead, largeWeightConfig) {
+  const overrides = largeWeightConfig?.gpuResidentOverrides;
+  if (!Array.isArray(overrides) || overrides.length === 0) {
+    return false;
+  }
+  const label = lmHead?.label;
+  return typeof label === 'string' && overrides.includes(label);
+}
+
+function destroySplitWeightBuffer(splitWeight) {
+  if (!splitWeight) {
+    return;
+  }
+  for (const section of splitWeight.sections ?? []) {
+    try {
+      section.buffer.destroy();
+    } catch {}
+  }
+}
+
+async function readSplitLmHeadSectionBytes(lmHead, hiddenSize, rowStart, rowCount) {
+  const byteOffset = rowStart * hiddenSize * 2;
+  const byteLength = rowCount * hiddenSize * 2;
+  const data = lmHead.data;
+  if (isRangeBackedCpuWeightSource(data)) {
+    const bytes = normalizeRangeBytes(
+      await data.loadRange(byteOffset, byteLength),
+      'CPU LM head split range source'
+    );
+    if (bytes.byteLength !== byteLength) {
+      throw new Error(
+        `[Logits] CPU LM head split source returned ${bytes.byteLength} bytes, expected ${byteLength}.`
+      );
+    }
+    return bytes;
+  }
+  if (data instanceof Uint16Array) {
+    return new Uint8Array(data.buffer, data.byteOffset + byteOffset, byteLength);
+  }
+  return null;
+}
+
+async function materializeSplitLmHeadGPU(lmHead, hiddenSize, weightVocabSize, largeWeightConfig) {
+  if (!shouldMaterializeSplitLmHeadGPU(lmHead, largeWeightConfig)) {
+    if (lmHead.gpuSplitWeight) {
+      destroySplitWeightBuffer(lmHead.gpuSplitWeight);
+      lmHead.gpuSplitWeight = null;
+    }
+    return null;
+  }
+  if (lmHead.gpuSplitWeight) {
+    return lmHead.gpuSplitWeight;
+  }
+  if (lmHead.layout !== 'row' || lmHead.dtype !== 'f16') {
+    return null;
+  }
+
+  const device = getDevice();
+  if (!device) {
+    throw new Error('[Logits] GPU device not available for split LM head materialization.');
+  }
+
+  const rowsPerSection = resolveSplitLmHeadRows(device, hiddenSize, largeWeightConfig);
+  const createdBuffers = [];
+  try {
+    const sections = [];
+    for (let rowStart = 0; rowStart < weightVocabSize; rowStart += rowsPerSection) {
+      const rowCount = Math.min(rowsPerSection, weightVocabSize - rowStart);
+      const bytes = await readSplitLmHeadSectionBytes(lmHead, hiddenSize, rowStart, rowCount);
+      if (!bytes) {
+        for (const buffer of createdBuffers) {
+          buffer.destroy();
+        }
+        return null;
+      }
+      const buffer = device.createBuffer({
+        label: `${lmHead.label ?? 'lm_head'}:lazy_split:${sections.length}`,
+        size: alignByteLength(bytes.byteLength),
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      });
+      createdBuffers.push(buffer);
+      writeBufferInChunks(device.queue, buffer, bytes);
+      sections.push({ buffer, rowStart, rowCount });
+    }
+    const splitWeight = createSplitWeightBuffer(
+      sections,
+      lmHead.dtype,
+      lmHead.layout,
+      lmHead.shape,
+      lmHead.label
+    );
+    log.warn(
+      'Logits',
+      `LM head "${lmHead.label ?? 'lm_head'}" materialized as lazy split GPU sections ` +
+      `(${sections.length} sections, dtype=${lmHead.dtype}, layout=${lmHead.layout}).`
+    );
+    Object.defineProperty(lmHead, 'gpuSplitWeight', {
+      value: splitWeight,
+      configurable: true,
+      enumerable: false,
+      writable: true,
+    });
+    return splitWeight;
+  } catch (error) {
+    for (const buffer of createdBuffers) {
+      try {
+        buffer.destroy();
+      } catch {}
+    }
+    throw error;
+  }
+}
+
+
 export async function computeChunkedLogitsGPU(
   normedTensor,
   lmHead,
@@ -376,6 +523,22 @@ export async function computeChunkedLogitsGPU(
   }
   if (!largeWeightConfig) {
     throw new Error('[Logits] largeWeights config is required for chunked LM head.');
+  }
+
+  const splitLmHead = await materializeSplitLmHeadGPU(lmHead, hiddenSize, weightVocabSize, largeWeightConfig);
+  if (splitLmHead) {
+    return computeSplitLogitsGPU(
+      normedTensor,
+      splitLmHead,
+      numTokens,
+      hiddenSize,
+      vocabSize,
+      weightVocabSize,
+      debugProbes,
+      operatorDiagnostics,
+      kernelPath,
+      executionPolicies
+    );
   }
 
   const chunkRows = resolveLmHeadChunkRows(device, numTokens, hiddenSize, largeWeightConfig);
@@ -405,36 +568,47 @@ export async function computeChunkedLogitsGPU(
 
   for (let rowOffset = 0; rowOffset < vocabSize; rowOffset += chunkRows) {
     const rowCount = Math.min(chunkRows, vocabSize - rowOffset);
-    const chunkData = await extractLmHeadChunk(
-      lmHead.data,
-      lmHead.layout,
-      hiddenSize,
-      weightVocabSize,
-      rowOffset,
-      rowCount,
-      lmHead.dtype
-    );
-
-    const f32Buffer = acquireBuffer(chunkData.byteLength, undefined, 'lm_head_chunk_f32');
-    device.queue.writeBuffer(
-      f32Buffer,
-      0,
-      chunkData.buffer,
-      chunkData.byteOffset,
-      chunkData.byteLength
-    );
-
     const chunkShape = lmHead.layout === 'column'
       ? [hiddenSize, rowCount]
       : [rowCount, hiddenSize];
 
-    let weightBuffer = createWeightBuffer(f32Buffer, 'f32', lmHead.layout, chunkShape, 'lm_head_chunk_f32');
+    let weightBuffer;
+    if (preferF16 && lmHead.layout === 'row' && lmHead.dtype === 'f16') {
+      const chunkBytes = await readSplitLmHeadSectionBytes(lmHead, hiddenSize, rowOffset, rowCount);
+      if (!chunkBytes) {
+        throw new Error('[Logits] F16 LM head chunk source is not range-readable.');
+      }
+      const f16Buffer = acquireBuffer(alignByteLength(chunkBytes.byteLength), undefined, 'lm_head_chunk_f16');
+      writeBufferInChunks(device.queue, f16Buffer, chunkBytes);
+      weightBuffer = createWeightBuffer(f16Buffer, 'f16', lmHead.layout, chunkShape, 'lm_head_chunk_f16');
+    } else {
+      const chunkData = await extractLmHeadChunk(
+        lmHead.data,
+        lmHead.layout,
+        hiddenSize,
+        weightVocabSize,
+        rowOffset,
+        rowCount,
+        lmHead.dtype
+      );
 
-    if (preferF16) {
-      const f32Tensor = createTensor(f32Buffer, 'f32', chunkShape, 'lm_head_chunk_f32');
-      const f16Tensor = await castF32ToF16(f32Tensor);
-      releaseBuffer(f32Buffer);
-      weightBuffer = createWeightBuffer(f16Tensor.buffer, 'f16', lmHead.layout, chunkShape, 'lm_head_chunk_f16');
+      const f32Buffer = acquireBuffer(chunkData.byteLength, undefined, 'lm_head_chunk_f32');
+      device.queue.writeBuffer(
+        f32Buffer,
+        0,
+        chunkData.buffer,
+        chunkData.byteOffset,
+        chunkData.byteLength
+      );
+
+      weightBuffer = createWeightBuffer(f32Buffer, 'f32', lmHead.layout, chunkShape, 'lm_head_chunk_f32');
+
+      if (preferF16) {
+        const f32Tensor = createTensor(f32Buffer, 'f32', chunkShape, 'lm_head_chunk_f32');
+        const f16Tensor = await castF32ToF16(f32Tensor);
+        releaseBuffer(f32Buffer);
+        weightBuffer = createWeightBuffer(f16Tensor.buffer, 'f16', lmHead.layout, chunkShape, 'lm_head_chunk_f16');
+      }
     }
 
     const logitsTensor = await runMatmul(matmulInput, weightBuffer, numTokens, rowCount, hiddenSize, {
@@ -478,6 +652,103 @@ export async function computeChunkedLogitsGPU(
 }
 
 
+export async function computeSplitLogitsGPU(
+  normedTensor,
+  lmHead,
+  numTokens,
+  hiddenSize,
+  vocabSize,
+  weightVocabSize,
+  debugProbes,
+  operatorDiagnostics,
+  kernelPath = null,
+  executionPolicies = null
+) {
+  const device = getDevice();
+  if (!device) {
+    throw new Error('[Logits] GPU device not available for split LM head.');
+  }
+  if (lmHead.layout !== 'row') {
+    throw new Error(`[Logits] split LM head requires row layout, got "${lmHead.layout}".`);
+  }
+
+  const phase = numTokens === 1 ? 'decode' : 'prefill';
+  const lmHeadInputDtype = resolveMatmulStepDtype('lm_head', phase, kernelPath, normedTensor.dtype, 'inputDtype');
+  const lmHeadOutputDtype = resolveMatmulStepDtype('lm_head', phase, kernelPath, normedTensor.dtype, 'outputDtype');
+  const logits = new Float32Array(numTokens * vocabSize);
+  let matmulInput = normedTensor;
+  let matmulInputOwned = false;
+
+  try {
+    matmulInput = lmHeadInputDtype !== normedTensor.dtype
+      ? await coerceTensorDtype(normedTensor, lmHeadInputDtype, null, {
+        executionPolicies,
+        op: 'lm_head',
+        transitionDeclaredBy: 'step_precision',
+      })
+      : normedTensor;
+    matmulInputOwned = matmulInput !== normedTensor;
+
+    for (const section of lmHead.sections) {
+      if (section.rowStart >= vocabSize) {
+        continue;
+      }
+      if (section.rowStart + section.rowCount > weightVocabSize) {
+        throw new Error(
+          `[Logits] split LM head section exceeds weight vocab: rowStart=${section.rowStart}, ` +
+          `rowCount=${section.rowCount}, weightVocabSize=${weightVocabSize}.`
+        );
+      }
+
+      const rowCount = Math.min(section.rowCount, vocabSize - section.rowStart);
+      const weightBuffer = createWeightBuffer(
+        section.buffer,
+        lmHead.dtype,
+        lmHead.layout,
+        [section.rowCount, hiddenSize],
+        `${lmHead.label ?? 'lm_head'}:split:${section.rowStart}`
+      );
+      const logitsTensor = await runMatmul(matmulInput, weightBuffer, numTokens, rowCount, hiddenSize, {
+        transposeB: 'auto',
+        role: 'lm_head',
+        kernelPath,
+        outputDtype: lmHeadOutputDtype,
+        executionPolicies,
+      });
+
+      if (debugProbes?.length || operatorDiagnostics?.enabled) {
+        await runProbes('logits', logitsTensor.buffer, {
+          numTokens,
+          hiddenSize: rowCount,
+          probes: debugProbes,
+          operatorDiagnostics,
+          dtype: logitsTensor.dtype,
+        });
+      }
+
+      const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsTensor.dtype });
+      const chunkLogitsData = await readBufferWithCleanup(
+        logitsTensor.buffer,
+        numTokens * rowCount * logitsBytes,
+        () => {
+          releaseBuffer(logitsTensor.buffer);
+        }
+      );
+      const chunkLogits = logitsTensor.dtype === 'f16'
+        ? f16BufferToF32(chunkLogitsData)
+        : new Float32Array(chunkLogitsData);
+      writeChunkLogits(logits, chunkLogits, numTokens, vocabSize, section.rowStart, rowCount);
+    }
+  } finally {
+    if (matmulInputOwned) {
+      releaseBuffer(matmulInput.buffer);
+    }
+  }
+
+  return logits;
+}
+
+
 export async function computeLogitsGPU(
   hiddenStates,
   numTokens,
@@ -508,7 +779,7 @@ export async function computeLogitsGPU(
     log.warn('Pipeline', 'Final norm or LM head not loaded');
     return null;
   }
-  if (isCpuWeightBuffer(lmHead)) {
+  if (isCpuWeightBuffer(lmHead) || isSplitWeightBuffer(lmHead)) {
     return null;
   }
 
@@ -712,8 +983,8 @@ export async function recordLogitsGPU(
   if (!finalNorm || !lmHead) {
     throw new Error('[recordLogitsGPU] Final norm or LM head not loaded');
   }
-  if (isCpuWeightBuffer(lmHead)) {
-    throw new Error('[recordLogitsGPU] CPU-resident LM head not supported in recorded path');
+  if (isCpuWeightBuffer(lmHead) || isSplitWeightBuffer(lmHead)) {
+    throw new Error('[recordLogitsGPU] CPU-resident or split LM head not supported in recorded path');
   }
 
   // Get norm weight buffer

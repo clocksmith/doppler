@@ -70,6 +70,7 @@ export const DEFAULT_EXECUTION_V1_SESSION = {
   perLayerInputs: { ...DEFAULT_EXECUTION_V1_PER_LAYER_INPUTS_SESSION },
   speculation: null,
   prefillChunkSubmitMode: 'sync',
+  prefillTokenChunkSize: null,
   useFlashPrefillAttention: false,
   useWideTileQ4KPrefill: false,
   retainQ4KMaterialization: false,

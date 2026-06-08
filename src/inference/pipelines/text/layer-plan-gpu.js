@@ -60,7 +60,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
 
   const planSteps = getLayerPlanSteps(context.pipelinePlan, layerIdx);
   const steps = filterLayerPlanStepsByPhase(planSteps, isPrefill);
-  const device = getDevice();
+  const device = recorder?.device ?? getDevice();
   if (!device) throw new Error('No GPU device available');
 
   const layerType = config.layerTypes?.[layerIdx];
@@ -265,8 +265,8 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
             attnState,
             context.debug,
             { debugLayers: context.debugLayers },
-            (weight, label) => getWeightBuffer(weight, label),
-            (weight, label) => getNormWeightBuffer(weight, label, weightConfig, debugFlags),
+            (weight, label) => getWeightBuffer(weight, label, device),
+            (weight, label) => getNormWeightBuffer(weight, label, weightConfig, debugFlags, device),
             context.debugCheckBuffer,
             recorder,
             context.lora
@@ -304,9 +304,9 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
 
           const outputTensor = await doConv(
             srcTensor,
-            getWeightBuffer(convInProj, `L${layerIdx}.plan_conv_in_proj`),
-            convKernel ? getWeightBuffer(convKernel, `L${layerIdx}.plan_conv_kernel`) : null,
-            getWeightBuffer(convOutProj, `L${layerIdx}.plan_conv_out_proj`),
+            getWeightBuffer(convInProj, `L${layerIdx}.plan_conv_in_proj`, device),
+            convKernel ? getWeightBuffer(convKernel, `L${layerIdx}.plan_conv_kernel`, device) : null,
+            getWeightBuffer(convOutProj, `L${layerIdx}.plan_conv_out_proj`, device),
             {
               numTokens,
               hiddenSize,
@@ -340,7 +340,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
           if (!weight) {
             throw new Error(`Layer pipeline rmsnorm missing weights for "${step.weight}" at L${layerIdx}`);
           }
-          const normWeightBuf = getNormWeightBuffer(weight, `rmsnorm_${step.weight}`, weightConfig, debugFlags);
+          const normWeightBuf = getNormWeightBuffer(weight, `rmsnorm_${step.weight}`, weightConfig, debugFlags, device);
           const residualBuf = step.residual ? getSlot(step.residual) : null;
 
           const activationDtype = resolveStepInputDtype(step, step.src);

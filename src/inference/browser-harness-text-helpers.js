@@ -103,6 +103,35 @@ function digestBytes(bytes) {
   return `sha256:${sha256BytesHex(bytes)}`;
 }
 
+function selectTopLogits(logits, limit, decodeToken) {
+  const top = [];
+  const count = Math.max(1, Math.floor(limit));
+  for (let tokenId = 0; tokenId < logits.length; tokenId++) {
+    const logit = logits[tokenId];
+    if (!Number.isFinite(logit)) continue;
+    const candidate = { tokenId, logit };
+    let insertAt = top.length;
+    while (
+      insertAt > 0
+      && (
+        candidate.logit > top[insertAt - 1].logit
+        || (candidate.logit === top[insertAt - 1].logit && candidate.tokenId < top[insertAt - 1].tokenId)
+      )
+    ) {
+      insertAt -= 1;
+    }
+    top.splice(insertAt, 0, candidate);
+    if (top.length > count) {
+      top.pop();
+    }
+  }
+  return top.map((entry) => ({
+    tokenId: entry.tokenId,
+    logit: entry.logit,
+    text: typeof decodeToken === 'function' ? decodeToken(entry.tokenId) : null,
+  }));
+}
+
 function getReferenceTranscriptRuntimeConfig(runtimeConfig) {
   const config = runtimeConfig?.shared?.harness?.referenceTranscript;
   return isPlainObject(config) ? config : null;
@@ -135,6 +164,8 @@ export function digestLogitsForTranscript(logits, context) {
     throw new Error('reference transcript logits capture requires Float32Array logits.');
   }
   const digest = digestBytes(bytesFromArrayBufferView(logits));
+  const topK = Number.isInteger(context?.topK) ? Math.max(1, context.topK) : 8;
+  const decodeToken = typeof context?.decodeToken === 'function' ? context.decodeToken : null;
   return {
     index: Number.isInteger(context?.index) ? context.index : null,
     tokenId: Number.isInteger(context?.tokenId) ? context.tokenId : null,
@@ -142,6 +173,7 @@ export function digestLogitsForTranscript(logits, context) {
     dtype: 'f32',
     elementCount: logits.length,
     digest,
+    top: selectTopLogits(logits, topK, decodeToken),
   };
 }
 
@@ -1362,7 +1394,7 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
   const profile = runtimeConfig.shared?.debug?.profiler?.enabled === true;
   const explicitDiagnosticsEnabled = runtimeConfig.shared?.harness?.mode === 'diagnose'
     || shouldEnableReferenceTranscriptDiagnostics(runOverrides, runtimeConfig);
-  const disableCommandBatching = explicitDiagnosticsEnabled
+  const disableCommandBatchingForDiagnostics = explicitDiagnosticsEnabled
     || (Array.isArray(debugProbes) && debugProbes.length > 0);
   const start = performance.now();
   const diagnostics = resolveAutomaticGenerationDiagnostics(runtimeConfig, runOverrides);
@@ -1378,13 +1410,14 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     greedyThreshold: sampling.greedyThreshold,
     useChatTemplate,
     profile,
-    disableCommandBatching,
+    ...(disableCommandBatchingForDiagnostics ? { disableCommandBatching: true } : {}),
     diagnostics,
     ...(captureLogits ? {
       onLogits: (logits, context) => {
         logitsDigests.push(digestLogitsForTranscript(logits, {
           ...context,
           index: logitsDigests.length,
+          decodeToken: (tokenId) => pipeline?.tokenizer?.decode?.([tokenId], false, false) ?? null,
         }));
       },
     } : {}),

@@ -277,6 +277,7 @@
     "retainQ4KMaterialization": false
   },
   "largeWeights": {
+    "lmHeadChunkRows": 65536,
     "gpuResidentOverrides": [
       "model.language_model.embed_tokens.weight"
     ]

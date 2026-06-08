@@ -9,7 +9,7 @@
 
 import type { LargeWeightConfigSchema, KernelPathSchema } from '../../../../config/schema/index.js';
 import type { ExecutionV1PoliciesSchema } from '../../../../config/schema/execution-v1.schema.js';
-import type { WeightBuffer, CpuWeightBuffer } from '../../../../gpu/weight-buffer.js';
+import type { WeightBuffer, CpuWeightBuffer, SplitWeightBuffer } from '../../../../gpu/weight-buffer.js';
 
 /**
  * Configuration for logits computation.
@@ -37,7 +37,7 @@ export interface LogitsConfig {
  */
 export interface LogitsWeights {
   finalNorm: GPUBuffer | Float32Array;
-  lmHead: GPUBuffer | Float32Array | WeightBuffer | CpuWeightBuffer;
+  lmHead: GPUBuffer | Float32Array | WeightBuffer | CpuWeightBuffer | SplitWeightBuffer;
 }
 
 /**

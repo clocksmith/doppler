@@ -5,7 +5,7 @@ import { log } from '../../../debug/index.js';
 import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { decodeReadback } from './debug-utils/index.js';
-import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance } from '../../../gpu/weight-buffer.js';
+import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { resolveRangeAwareSelectiveWideningConfig } from './finiteness-policy.js';
 import { resolveActiveExecutionPlan } from './execution-plan.js';
 import { isPlainObject } from '../../../utils/plain-object.js';
@@ -202,7 +202,7 @@ export function getLogitsWeights(state) {
   if (!finalNorm || !(isGpuBufferInstance(finalNorm) || finalNorm instanceof Float32Array)) {
     throw new Error('Final norm not found or invalid type');
   }
-  if (!lmHead || !(isGpuBufferInstance(lmHead) || lmHead instanceof Float32Array || isWeightBuffer(lmHead) || isCpuWeightBuffer(lmHead))) {
+  if (!lmHead || !(isGpuBufferInstance(lmHead) || lmHead instanceof Float32Array || isWeightBuffer(lmHead) || isCpuWeightBuffer(lmHead) || isSplitWeightBuffer(lmHead))) {
     throw new Error('LM head not found or invalid type');
   }
   return { finalNorm, lmHead };

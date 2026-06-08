@@ -165,7 +165,11 @@ export declare class CommandRecorder {
  * @param options - Recorder options
  * @returns CommandRecorder instance
  */
-export function createCommandRecorder(label?: string, options?: RecorderOptions): CommandRecorder;
+export function createCommandRecorder(
+  label?: string,
+  options?: RecorderOptions,
+  device?: GPUDevice | null
+): CommandRecorder;
 
 /**
  * Create a profiling-enabled CommandRecorder.
@@ -174,6 +178,6 @@ export function createCommandRecorder(label?: string, options?: RecorderOptions)
  * @param label - Label for debugging
  * @returns CommandRecorder with profiling enabled
  */
-export function createProfilingRecorder(label?: string): CommandRecorder;
+export function createProfilingRecorder(label?: string, device?: GPUDevice | null): CommandRecorder;
 
 export default CommandRecorder;

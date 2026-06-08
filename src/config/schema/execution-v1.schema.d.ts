@@ -175,6 +175,8 @@ export interface ExecutionV1SessionSchema {
   speculation: ExecutionV1SelfSpeculationSchema | null;
   /** "sync" (default): wait each prefill chunk. "async": queue without waiting. */
   prefillChunkSubmitMode: 'sync' | 'async';
+  /** Nullable token count for streaming prompt prefill before final logits. */
+  prefillTokenChunkSize: number | null;
   /** Opt into flash-attention prefill kernel. Requires head_dim=256, f16 KV, contiguous layout. */
   useFlashPrefillAttention: boolean;
   /** Opt into WideTile Q4_K prefill matmul. Requires f32 activations + Q4_K weights + shader-f16 + M>=TILE_M. */

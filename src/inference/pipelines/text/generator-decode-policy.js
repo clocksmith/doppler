@@ -152,6 +152,7 @@ export function summarizeExecutionPlan(plan) {
     readbackInterval: plan.readbackInterval ?? null,
     batchSize: plan.defaultBatchSize,
     stopCheckMode: plan.defaultStopCheckMode,
+    disableCommandBatching: plan.defaultDisableCommandBatching === true,
     ringTokens: plan.ringTokens ?? null,
     ringStop: plan.ringStop ?? null,
     ringStaging: plan.ringStaging ?? null,

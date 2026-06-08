@@ -582,6 +582,79 @@ if (appliedRuntimeConfig.runtimeConfig.inference?.session?.kvcache?.kvDtype !== 
   );
 }
 
+const decodeLoopOverrideRuntimeConfig = createDopplerConfig({
+  runtime: {
+    inference: {
+      session: {
+        kvcache: {
+          kvDtype: 'f32',
+          layout: 'contiguous',
+        },
+        decodeLoop: {
+          batchSize: 1,
+          stopCheckMode: 'batch',
+          readbackInterval: 1,
+          readbackMode: 'sequential',
+          ringTokens: 1,
+          ringStop: 1,
+          ringStaging: 2,
+          disableCommandBatching: true,
+        },
+      },
+    },
+  },
+}).runtime;
+
+const appliedDecodeLoopOverrideRuntimeConfig = applyExecutionV1RuntimeConfig({
+  runtimeConfig: decodeLoopOverrideRuntimeConfig,
+  runtimeOverrides: null,
+  manifest: {
+    modelId: 'test-model-runtime-decode-loop-preserved',
+    architecture: {
+      numLayers: 26,
+      headDim: 128,
+    },
+    inference: {
+      schema: EXECUTION_V1_SCHEMA_ID,
+      execution: f32AttentionGraph,
+      session: {
+        compute: {
+          defaults: { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' },
+        },
+        kvcache: {
+          kvDtype: 'f32',
+          layout: 'contiguous',
+        },
+        decodeLoop: {
+          batchSize: 8,
+          stopCheckMode: 'batch',
+          readbackInterval: 8,
+          readbackMode: 'sequential',
+          ringTokens: 1,
+          ringStop: 1,
+          ringStaging: 1,
+          disableCommandBatching: false,
+        },
+      },
+    },
+  },
+  modelId: 'test-model-runtime-decode-loop-preserved',
+  numLayers: 26,
+  capabilities: { hasF16: true, hasSubgroups: true },
+  platform: { id: 'test', vendor: 'test', architecture: 'test' },
+});
+
+const appliedDecodeLoop = appliedDecodeLoopOverrideRuntimeConfig
+  .runtimeConfig.inference?.session?.decodeLoop;
+if (appliedDecodeLoop?.disableCommandBatching !== true) {
+  throw new Error(
+    'Execution-v1 runtime patch must preserve runtime session.decodeLoop.disableCommandBatching'
+  );
+}
+if (appliedDecodeLoop?.batchSize !== 1 || appliedDecodeLoop?.readbackInterval !== 1) {
+  throw new Error('Execution-v1 runtime patch must preserve runtime session.decodeLoop fields');
+}
+
 const nullRuntimeOverridesConfig = createDopplerConfig({
   runtime: {
     inference: {

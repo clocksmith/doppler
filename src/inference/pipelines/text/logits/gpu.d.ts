@@ -8,7 +8,7 @@
  */
 
 import type { Tensor } from '../../../../gpu/tensor.js';
-import type { CpuWeightBuffer, CpuTensorRangeSource } from '../../../../gpu/weight-buffer.js';
+import type { CpuWeightBuffer, CpuTensorRangeSource, SplitWeightBuffer } from '../../../../gpu/weight-buffer.js';
 import type { CommandRecorder } from '../../../../gpu/command-recorder.js';
 import type { LargeWeightConfigSchema, ProbeConfigSchema, KernelPathSchema } from '../../../../config/schema/index.js';
 import type { LogitsConfig, LogitsWeights, LogitsDebugFlags } from './types.js';
@@ -54,6 +54,15 @@ export function writeChunkLogits(
 ): void;
 
 /**
+ * Return true when a CPU-backed LM head may be materialized as persistent split
+ * GPU sections under runtime.inference.largeWeights.gpuResidentOverrides.
+ */
+export function shouldMaterializeSplitLmHeadGPU(
+  lmHead: CpuWeightBuffer,
+  largeWeightConfig: LargeWeightConfigSchema
+): boolean;
+
+/**
  * Compute logits using chunked GPU matmul for large LM heads.
  *
  * Used when LM head weights are CPU-resident and too large
@@ -66,8 +75,25 @@ export function computeChunkedLogitsGPU(
   hiddenSize: number,
   vocabSize: number,
   weightVocabSize: number,
-  debugProbes?: ProbeConfigSchema[] | null,
+  debugProbes: ProbeConfigSchema[] | null | undefined,
+  operatorDiagnostics: unknown,
   largeWeightConfig: LargeWeightConfigSchema,
+  kernelPath?: KernelPathSchema | null,
+  executionPolicies?: import('../../../../config/schema/execution-v1.schema.js').ExecutionV1PoliciesSchema | null
+): Promise<Float32Array>;
+
+/**
+ * Compute logits using GPU-resident split LM-head sections.
+ */
+export function computeSplitLogitsGPU(
+  normedTensor: Tensor,
+  lmHead: SplitWeightBuffer,
+  numTokens: number,
+  hiddenSize: number,
+  vocabSize: number,
+  weightVocabSize: number,
+  debugProbes: ProbeConfigSchema[] | null | undefined,
+  operatorDiagnostics: unknown,
   kernelPath?: KernelPathSchema | null,
   executionPolicies?: import('../../../../config/schema/execution-v1.schema.js').ExecutionV1PoliciesSchema | null
 ): Promise<Float32Array>;

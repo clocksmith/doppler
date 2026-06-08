@@ -9,6 +9,7 @@ export interface StepOptionsResolved {
   topP: number;
   topK: number;
   repetitionPenalty: number;
+  suppressTokenIds?: number[];
   debug: boolean;
   debugLayers?: number[];
   profile: boolean;

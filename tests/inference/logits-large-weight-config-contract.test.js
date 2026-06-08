@@ -2,7 +2,11 @@ import assert from 'node:assert/strict';
 
 import { createDopplerConfig } from '../../src/config/schema/index.js';
 import { float32ToFloat16 } from '../../src/converter/quantizer.js';
-import { extractLmHeadChunk, resolveLmHeadChunkRows } from '../../src/inference/pipelines/text/logits/gpu.js';
+import {
+  extractLmHeadChunk,
+  resolveLmHeadChunkRows,
+  shouldMaterializeSplitLmHeadGPU,
+} from '../../src/inference/pipelines/text/logits/gpu.js';
 
 const device = {
   limits: {
@@ -20,6 +24,28 @@ assert.equal(
     lmHeadChunkRows: 9,
   }),
   9
+);
+
+assert.equal(
+  shouldMaterializeSplitLmHeadGPU(
+    { label: 'model.language_model.lm_head.weight' },
+    { ...largeWeights, gpuResidentOverrides: null }
+  ),
+  false
+);
+assert.equal(
+  shouldMaterializeSplitLmHeadGPU(
+    { label: 'model.language_model.lm_head.weight' },
+    { ...largeWeights, gpuResidentOverrides: ['model.language_model.embed_tokens.weight'] }
+  ),
+  false
+);
+assert.equal(
+  shouldMaterializeSplitLmHeadGPU(
+    { label: 'model.language_model.lm_head.weight' },
+    { ...largeWeights, gpuResidentOverrides: ['model.language_model.lm_head.weight'] }
+  ),
+  true
 );
 
 {

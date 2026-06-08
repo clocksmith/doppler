@@ -9,25 +9,68 @@ import { GB } from '../config/schema/index.js';
 // Re-export submit tracker for convenience
 export { setTrackSubmits };
 
-// Cached device and capabilities
+const SHARED_DEVICE_STATE_KEY = '__dopplerGpuDeviceState';
 
-let gpuDevice = null;
+function getSharedDeviceState() {
+  const existing = globalThis[SHARED_DEVICE_STATE_KEY];
+  if (existing && typeof existing === 'object') {
+    return existing;
+  }
+  const created = {
+    gpuDevice: null,
+    kernelCapabilities: null,
+    resolvedPlatformConfig: null,
+    lastDeviceLossInfo: null,
+    platformInitialized: false,
+    deviceEpoch: 0,
+  };
+  Object.defineProperty(globalThis, SHARED_DEVICE_STATE_KEY, {
+    value: created,
+    writable: false,
+    enumerable: false,
+    configurable: false,
+  });
+  return created;
+}
 
-let kernelCapabilities = null;
+const sharedDeviceState = getSharedDeviceState();
 
-// Cached platform config (set during initDevice)
+let gpuDevice = sharedDeviceState.gpuDevice ?? null;
 
-let resolvedPlatformConfig = null;
-let lastDeviceLossInfo = null;
+let kernelCapabilities = sharedDeviceState.kernelCapabilities ?? null;
 
-// Track whether platform/registry initialization has been attempted
-let platformInitialized = false;
+let resolvedPlatformConfig = sharedDeviceState.resolvedPlatformConfig ?? null;
+let lastDeviceLossInfo = sharedDeviceState.lastDeviceLossInfo ?? null;
 
-// Monotonic device epoch. Increments whenever device-scoped GPU objects become invalid.
-let deviceEpoch = 0;
+let platformInitialized = sharedDeviceState.platformInitialized === true;
+
+let deviceEpoch = Number.isInteger(sharedDeviceState.deviceEpoch)
+  ? sharedDeviceState.deviceEpoch
+  : 0;
+
+function syncSharedDeviceState() {
+  sharedDeviceState.gpuDevice = gpuDevice;
+  sharedDeviceState.kernelCapabilities = kernelCapabilities;
+  sharedDeviceState.resolvedPlatformConfig = resolvedPlatformConfig;
+  sharedDeviceState.lastDeviceLossInfo = lastDeviceLossInfo;
+  sharedDeviceState.platformInitialized = platformInitialized;
+  sharedDeviceState.deviceEpoch = deviceEpoch;
+}
+
+function hydrateDeviceState() {
+  gpuDevice = gpuDevice ?? sharedDeviceState.gpuDevice ?? null;
+  kernelCapabilities = kernelCapabilities ?? sharedDeviceState.kernelCapabilities ?? null;
+  resolvedPlatformConfig = resolvedPlatformConfig ?? sharedDeviceState.resolvedPlatformConfig ?? null;
+  lastDeviceLossInfo = lastDeviceLossInfo ?? sharedDeviceState.lastDeviceLossInfo ?? null;
+  platformInitialized = platformInitialized || sharedDeviceState.platformInitialized === true;
+  if (Number.isInteger(sharedDeviceState.deviceEpoch) && sharedDeviceState.deviceEpoch > deviceEpoch) {
+    deviceEpoch = sharedDeviceState.deviceEpoch;
+  }
+}
 
 function advanceDeviceEpoch() {
   deviceEpoch += 1;
+  syncSharedDeviceState();
 }
 
 function clearActiveDeviceState() {
@@ -35,6 +78,32 @@ function clearActiveDeviceState() {
   kernelCapabilities = null;
   resolvedPlatformConfig = null;
   platformInitialized = false;
+  syncSharedDeviceState();
+}
+
+function hasUsableDeviceSlot(device) {
+  return isUsableGPUDevice(device);
+}
+
+function buildDeviceStateDiagnostics() {
+  const lastLoss = lastDeviceLossInfo
+    ? {
+        reason: lastDeviceLossInfo.reason,
+        message: lastDeviceLossInfo.message,
+        deviceEpoch: lastDeviceLossInfo.deviceEpoch,
+      }
+    : null;
+  return {
+    localDevice: hasUsableDeviceSlot(gpuDevice),
+    sharedDevice: hasUsableDeviceSlot(sharedDeviceState.gpuDevice),
+    localCapabilities: !!kernelCapabilities,
+    sharedCapabilities: !!sharedDeviceState.kernelCapabilities,
+    localPlatformInitialized: platformInitialized,
+    sharedPlatformInitialized: sharedDeviceState.platformInitialized === true,
+    deviceEpoch,
+    sharedDeviceEpoch: sharedDeviceState.deviceEpoch,
+    lastDeviceLoss: lastLoss,
+  };
 }
 
 function ensureGpuBufferConstructor(device) {
@@ -312,11 +381,13 @@ function buildLimits(adapter) {
 
 
 async function initializePlatformAndRegistry(adapter) {
+  hydrateDeviceState();
   if (platformInitialized) {
     return;
   }
 
   platformInitialized = true;
+  syncSharedDeviceState();
 
   try {
     // Dynamic import to avoid circular dependencies and enable hotswap
@@ -327,6 +398,7 @@ async function initializePlatformAndRegistry(adapter) {
 
     // Initialize platform detection with the adapter
     resolvedPlatformConfig = await platformLoader.initializePlatform(adapter);
+    syncSharedDeviceState();
 
     // Preload kernel registry (cached for subsequent calls)
     await kernelRegistry.getRegistry();
@@ -337,11 +409,13 @@ async function initializePlatformAndRegistry(adapter) {
     // Platform/registry init is optional - kernel selection will use fallbacks
     log.warn('GPU', 'Platform/registry init failed (non-fatal): ' +  (e).message);
     resolvedPlatformConfig = null;
+    syncSharedDeviceState();
   }
 }
 
 
 export async function initDevice() {
+  hydrateDeviceState();
   // Return cached device if available
   if (gpuDevice) {
     if (isUsableGPUDevice(gpuDevice)) {
@@ -423,6 +497,7 @@ export async function initDevice() {
 
   const probeMs = await probeSubmitLatency(gpuDevice);
   kernelCapabilities.submitProbeMs = probeMs;
+  syncSharedDeviceState();
 
   const features = [
     kernelCapabilities.hasF16 && 'f16',
@@ -435,6 +510,7 @@ export async function initDevice() {
 }
 
 export function setDevice(device, options = {}) {
+  hydrateDeviceState();
   if (!device) {
     clearActiveDeviceState();
     advanceDeviceEpoch();
@@ -483,31 +559,41 @@ export function setDevice(device, options = {}) {
     resolvedPlatformConfig = null;
     platformInitialized = false;
   }
+  syncSharedDeviceState();
 }
 
 
 export function getKernelCapabilities() {
+  hydrateDeviceState();
   if (!kernelCapabilities) {
-    throw new Error('Device not initialized. Call initDevice() first.');
+    const diagnostics = buildDeviceStateDiagnostics();
+    throw new Error(
+      'Device not initialized. Call initDevice() first. ' +
+      'deviceState=' + JSON.stringify(diagnostics)
+    );
   }
   return { ...kernelCapabilities };
 }
 
 
 export function getDevice() {
+  hydrateDeviceState();
   return gpuDevice;
 }
 
 export function getDeviceEpoch() {
+  hydrateDeviceState();
   return deviceEpoch;
 }
 
 
 export function getPlatformConfig() {
+  hydrateDeviceState();
   return resolvedPlatformConfig;
 }
 
 export function getLastDeviceLossInfo() {
+  hydrateDeviceState();
   return lastDeviceLossInfo ? { ...lastDeviceLossInfo } : null;
 }
 
@@ -519,6 +605,7 @@ export function resetDeviceState() {
 
 
 export function destroyDevice() {
+  hydrateDeviceState();
   if (gpuDevice) {
     gpuDevice.destroy();
     clearActiveDeviceState();
@@ -528,6 +615,7 @@ export function destroyDevice() {
 
 
 export function hasFeature(feature) {
+  hydrateDeviceState();
   if (!gpuDevice) {
     return false;
   }
@@ -536,6 +624,7 @@ export function hasFeature(feature) {
 
 
 export function getDeviceLimits() {
+  hydrateDeviceState();
   if (!gpuDevice) {
     return null;
   }

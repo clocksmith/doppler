@@ -16,6 +16,9 @@ const overrideRuntime = createDopplerConfig({
         bucket: {
           largeBufferStepBytes: 128 * KB,
         },
+        budget: {
+          maxTotalBytes: 1234,
+        },
       },
     },
   },
@@ -24,3 +27,9 @@ const overrideRuntime = createDopplerConfig({
 assert.equal(overrideRuntime.shared.bufferPool.bucket.minBucketSizeBytes, 256);
 assert.equal(overrideRuntime.shared.bufferPool.bucket.largeBufferThresholdBytes, 64 * KB);
 assert.equal(overrideRuntime.shared.bufferPool.bucket.largeBufferStepBytes, 128 * KB);
+assert.equal(overrideRuntime.shared.bufferPool.budget.maxTotalBytes, 1234);
+assert.equal(overrideRuntime.shared.bufferPool.budget.highWatermarkRatio, 0.9);
+assert.equal(overrideRuntime.shared.bufferPool.budget.emergencyTrimTargetRatio, 0.75);
+assert.equal(overrideRuntime.shared.bufferPool.budget.hardFailOnBudgetExceeded, true);
+
+console.log('buffer-pool-defaults-contract.test: ok');

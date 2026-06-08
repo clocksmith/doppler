@@ -31,6 +31,11 @@ export interface ReferenceLogitsDigest {
   dtype: 'f32';
   elementCount: number;
   digest: string;
+  top?: Array<{
+    tokenId: number;
+    logit: number;
+    text: string | null;
+  }>;
 }
 
 export interface KvCacheLayerByteProof {

@@ -555,13 +555,13 @@ export class CommandRecorder {
 }
 
 
-export function createCommandRecorder(label = 'command_recorder', options) {
-  return new CommandRecorder(null, label, options);
+export function createCommandRecorder(label = 'command_recorder', options, device = null) {
+  return new CommandRecorder(device, label, options);
 }
 
 
-export function createProfilingRecorder(label = 'profiled_recorder') {
-  return new CommandRecorder(null, label, { profile: true });
+export function createProfilingRecorder(label = 'profiled_recorder', device = null) {
+  return new CommandRecorder(device, label, { profile: true });
 }
 
 export default CommandRecorder;

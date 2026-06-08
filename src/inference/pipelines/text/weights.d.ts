@@ -46,7 +46,8 @@ export function getLayerWeights(
  */
 export function getWeightBuffer(
   weight: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | ArrayBuffer,
-  label: string
+  label: string,
+  deviceOverride?: GPUDevice | null
 ): GPUBuffer | WeightBuffer;
 
 /**
@@ -56,5 +57,6 @@ export function getNormWeightBuffer(
   weight: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer | { buffer: ArrayBuffer; byteOffset: number; byteLength: number } | CpuWeightBuffer,
   label: string,
   config: WeightBufferConfig,
-  debugFlags?: WeightDebugFlags
+  debugFlags?: WeightDebugFlags,
+  deviceOverride?: GPUDevice | null
 ): GPUBuffer;

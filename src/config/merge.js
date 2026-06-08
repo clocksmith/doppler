@@ -361,6 +361,7 @@ function mergeSession(
     perLayerInputs: overlay(`${prefix}.perLayerInputs`, manifestSession.perLayerInputs, runtimeSession.perLayerInputs, sources),
     speculation: overlay(`${prefix}.speculation`, manifestSession.speculation, runtimeSession.speculation, sources),
     prefillChunkSubmitMode: overlay(`${prefix}.prefillChunkSubmitMode`, manifestSession.prefillChunkSubmitMode, runtimeSession.prefillChunkSubmitMode, sources),
+    prefillTokenChunkSize: overlay(`${prefix}.prefillTokenChunkSize`, manifestSession.prefillTokenChunkSize, runtimeSession.prefillTokenChunkSize, sources),
     useFlashPrefillAttention: overlay(`${prefix}.useFlashPrefillAttention`, manifestSession.useFlashPrefillAttention, runtimeSession.useFlashPrefillAttention, sources),
     useWideTileQ4KPrefill: overlay(`${prefix}.useWideTileQ4KPrefill`, manifestSession.useWideTileQ4KPrefill, runtimeSession.useWideTileQ4KPrefill, sources),
     retainQ4KMaterialization: overlay(`${prefix}.retainQ4KMaterialization`, manifestSession.retainQ4KMaterialization, runtimeSession.retainQ4KMaterialization, sources),

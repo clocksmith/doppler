@@ -504,10 +504,10 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   // Debug entry (uses debug-utils)
   logLayer(layerIdx, 'enter', isPrefill, { numTokens });
 
-  const device = getDevice();
+  const { config, weights, weightConfig, debugFlags, kvCache, ropeFreqsCos, ropeFreqsSin, recorder } = context;
+  const device = recorder?.device ?? getDevice();
   if (!device) throw new Error('No GPU device available');
 
-  const { config, weights, weightConfig, debugFlags, kvCache, ropeFreqsCos, ropeFreqsSin, recorder } = context;
   assertSupportedLayerRuntime(layerIdx, config);
   const { hiddenSize, numHeads, numKVHeads, headDim, rmsNormEps } = config;
 

@@ -11,6 +11,9 @@ const runtimeConfig = {
       repetitionPenalty: 1.0,
       repetitionPenaltyWindow: 100,
       greedyThreshold: 0.01,
+      suppressSpecialTokens: false,
+      suppressSpecialLikeTokens: false,
+      suppressTokenIds: [],
     },
   },
 };
@@ -22,6 +25,9 @@ assert.deepEqual(resolveSamplingConfig({}, runtimeConfig), {
   repetitionPenalty: 1.0,
   repetitionPenaltyWindow: 100,
   greedyThreshold: 0.01,
+  suppressSpecialTokens: false,
+  suppressSpecialLikeTokens: false,
+  suppressTokenIds: [],
 });
 
 assert.deepEqual(resolveSamplingConfig({
@@ -36,6 +42,9 @@ assert.deepEqual(resolveSamplingConfig({
   repetitionPenalty: 1.2,
   repetitionPenaltyWindow: 100,
   greedyThreshold: 0.01,
+  suppressSpecialTokens: false,
+  suppressSpecialLikeTokens: false,
+  suppressTokenIds: [],
 });
 
 assert.throws(
@@ -51,6 +60,16 @@ assert.throws(
 assert.throws(
   () => resolveSamplingConfig({ topK: 1.5 }, runtimeConfig),
   /topK must be an integer/
+);
+
+assert.throws(
+  () => resolveSamplingConfig({}, { inference: { sampling: { ...runtimeConfig.inference.sampling, suppressSpecialLikeTokens: null } } }),
+  /suppressSpecialLikeTokens cannot be null/
+);
+
+assert.throws(
+  () => resolveSamplingConfig({}, { inference: { sampling: { ...runtimeConfig.inference.sampling, suppressTokenIds: [1.5] } } }),
+  /suppressTokenIds\[0\] must be a non-negative integer token ID/
 );
 
 console.log('sampling-config.test: ok');

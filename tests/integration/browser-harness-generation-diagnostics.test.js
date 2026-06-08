@@ -211,7 +211,7 @@ function createHarnessOverride(records) {
   });
 
   assert.equal(result.output, 'Blue');
-  assert.equal(observed.disableCommandBatching, false);
+  assert.equal(observed.disableCommandBatching, null);
   assert.equal(observed.diagnostics?.enabled, true);
   assert.equal(observed.diagnostics?.captureConfig?.enabled, true);
   assert.equal(observed.diagnostics?.captureConfig?.defaultLevel, 'none');

@@ -5,6 +5,7 @@ import {
   createCpuWeightBuffer,
   isWeightBuffer,
   isCpuWeightBuffer,
+  isSplitWeightBuffer,
 } from '../gpu/weight-buffer.js';
 import { maybeDowncastToF16 } from './weight-downcast.js';
 import { getTensorNamesByRole } from './tensors/tensor-role.js';
@@ -192,17 +193,18 @@ async function loadLmHead(ctx) {
         ?? await ctx.loadTensor(name, false, true)
       )
       : await ctx.loadTensor(name, true, true);
+    const tensorShouldStream = shouldStream;
 
-    if (shouldStream && tensor && !(tensor instanceof Float32Array) && !isCpuWeightBuffer(tensor)) {
+    if (tensorShouldStream && tensor && !(tensor instanceof Float32Array) && !isCpuWeightBuffer(tensor)) {
       throw new Error(
         `[Loader] LM head "${name}" too large for GPU and cannot be loaded on CPU (dtype=${loc.dtype}).`
       );
     }
 
-    if (tensor && (isGpuBufferInstance(tensor) || isWeightBuffer(tensor) || isCpuWeightBuffer(tensor) || tensor instanceof Float32Array)) {
+    if (tensor && (isGpuBufferInstance(tensor) || isWeightBuffer(tensor) || isCpuWeightBuffer(tensor) || isSplitWeightBuffer(tensor) || tensor instanceof Float32Array)) {
       lmHeadName = name;
       lmHeadLoc = loc;
-      lmHead = processLmHeadTensor(ctx, tensor, name, loc, shouldStream);
+      lmHead = processLmHeadTensor(ctx, tensor, name, loc, tensorShouldStream);
       break;
     }
   }
@@ -287,6 +289,10 @@ async function loadCpuFloatTensor(ctx, tensorName, label) {
 
 
 function processLmHeadTensor(ctx, tensor, name, loc, shouldStream) {
+  if (isSplitWeightBuffer(tensor)) {
+    return tensor;
+  }
+
   if (isCpuWeightBuffer(tensor)) {
     log.warn('Loader', `LM head stored on CPU via range-backed source (layout=${tensor.layout})`);
     return tensor;
@@ -332,7 +338,7 @@ async function maybeDowncastLmHead(ctx, lmHead, lmHeadName, lmHeadLoc) {
   }
 
   // Can't downcast Float32Array or CpuWeightBuffer
-  if (lmHead instanceof Float32Array || isCpuWeightBuffer(lmHead)) {
+  if (lmHead instanceof Float32Array || isCpuWeightBuffer(lmHead) || isSplitWeightBuffer(lmHead)) {
     return lmHead;
   }
 

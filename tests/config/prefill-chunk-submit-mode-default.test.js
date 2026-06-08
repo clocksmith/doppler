@@ -24,6 +24,11 @@ import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
     'sync',
     'Default prefillChunkSubmitMode must be "sync" to preserve pre-opt-in behavior.'
   );
+  assert.strictEqual(
+    defaults.runtime.inference.session.prefillTokenChunkSize,
+    null,
+    'Default prefillTokenChunkSize must be null to preserve full-prompt prefill behavior.'
+  );
 }
 
 {
@@ -32,6 +37,7 @@ import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
       inference: {
         session: {
           prefillChunkSubmitMode: 'async',
+          prefillTokenChunkSize: 128,
         },
       },
     },
@@ -40,6 +46,11 @@ import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
     overridden.runtime.inference.session.prefillChunkSubmitMode,
     'async',
     'Runtime override must propagate to the merged session config.'
+  );
+  assert.strictEqual(
+    overridden.runtime.inference.session.prefillTokenChunkSize,
+    128,
+    'Runtime prefillTokenChunkSize override must propagate to the merged session config.'
   );
 }
 

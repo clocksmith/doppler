@@ -26,7 +26,7 @@ export function getLayerWeights(weights, key) {
 // ============================================================================
 
 
-export function getWeightBuffer(weight, label) {
+export function getWeightBuffer(weight, label, deviceOverride = null) {
   // Preserve WeightBuffer to maintain dtype/layout for matmul
   if (isWeightBuffer(weight)) {
     return weight;
@@ -35,7 +35,7 @@ export function getWeightBuffer(weight, label) {
     return weight;
   }
 
-  const device = getDevice();
+  const device = deviceOverride ?? getDevice();
   if (!device) {
     throw new Error('No GPU device available for weight buffer creation');
   }
@@ -64,7 +64,7 @@ export function getWeightBuffer(weight, label) {
 }
 
 
-export function getNormWeightBuffer(weight, label, config, debugFlags) {
+export function getNormWeightBuffer(weight, label, config, debugFlags, deviceOverride = null) {
   // Debug: Log whether weight is GPUBuffer (first time only)
   if (debugFlags && !debugFlags.normBufferTypeLogged) {
     debugFlags.normBufferTypeLogged = true;
@@ -80,7 +80,7 @@ export function getNormWeightBuffer(weight, label, config, debugFlags) {
     return weight;
   }
 
-  const device = getDevice();
+  const device = deviceOverride ?? getDevice();
   if (!device) {
     throw new Error('No GPU device available for norm weight buffer creation');
   }
@@ -125,4 +125,3 @@ function getGPUWeightBuffer(weight, label) {
   // At this point weight is Float32Array or ArrayBuffer, so getWeightBuffer returns GPUBuffer
   return  (getWeightBuffer(weight, label));
 }
-

@@ -111,7 +111,77 @@ import {
   cloneRuntimeInferenceWithKVDtype,
 } from './generator-decode-policy.js';
 
+const SPECIAL_LIKE_TOKEN_RE = /^(<pad>|<unused\d*>|<eos>|<bos>|<s>|<\/s>|\[PAD\]|\[UNK\]|\[SEP\]|\[CLS\]|<[^>\n]{1,32}>)$/i;
 const FINITENESS_RESET_WORDS = new Uint32Array(4);
+const tokenizerSuppressionCache = new WeakMap();
+
+function getTokenizerSuppressionCache(tokenizer) {
+  let cache = tokenizerSuppressionCache.get(tokenizer);
+  if (!cache) {
+    cache = new Map();
+    tokenizerSuppressionCache.set(tokenizer, cache);
+  }
+  return cache;
+}
+
+function decodeSingleTokenForSuppression(tokenizer, tokenId) {
+  if (!tokenizer || typeof tokenizer.decode !== 'function') {
+    return '';
+  }
+  try {
+    return tokenizer.decode([tokenId], false, false);
+  } catch {
+    return '';
+  }
+}
+
+function collectTokenizerSuppressedTokenIds(tokenizer, vocabSize, samplingConfig) {
+  if (!tokenizer || !Number.isInteger(vocabSize) || vocabSize < 1) {
+    return [];
+  }
+  if (samplingConfig.suppressSpecialTokens !== true && samplingConfig.suppressSpecialLikeTokens !== true) {
+    return [];
+  }
+  const cache = getTokenizerSuppressionCache(tokenizer);
+  const cacheKey = [
+    vocabSize,
+    samplingConfig.suppressSpecialTokens === true ? 'special' : 'plain',
+    samplingConfig.suppressSpecialLikeTokens === true ? 'specialLike' : 'literal',
+  ].join(':');
+  const cached = cache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+  const tokenIds = [];
+  for (let tokenId = 0; tokenId < vocabSize; tokenId++) {
+    const tokenizerSpecial = samplingConfig.suppressSpecialTokens === true
+      && typeof tokenizer.isSpecialToken === 'function'
+      && tokenizer.isSpecialToken(tokenId);
+    const specialLike = samplingConfig.suppressSpecialLikeTokens === true
+      && SPECIAL_LIKE_TOKEN_RE.test(decodeSingleTokenForSuppression(tokenizer, tokenId).trim());
+    if (tokenizerSpecial || specialLike) {
+      tokenIds.push(tokenId);
+    }
+  }
+  cache.set(cacheKey, tokenIds);
+  return tokenIds;
+}
+
+function resolveSuppressedSamplingTokenIds(state, samplingConfig) {
+  const vocabSize = state.modelConfig?.vocabSize;
+  const suppressed = new Set(samplingConfig.suppressTokenIds);
+  const stopTokenIds = new Set(state.modelConfig?.stopTokenIds ?? []);
+  const eosToken = state.tokenizer?.getSpecialTokens?.()?.eos;
+  if (Number.isInteger(eosToken)) {
+    stopTokenIds.add(eosToken);
+  }
+  for (const tokenId of collectTokenizerSuppressedTokenIds(state.tokenizer, vocabSize, samplingConfig)) {
+    if (!stopTokenIds.has(tokenId)) {
+      suppressed.add(tokenId);
+    }
+  }
+  return [...suppressed];
+}
 
 let intentBundleModulePromise = null;
 
@@ -345,6 +415,7 @@ export class PipelineGenerator {
       topK: opts.topK,
       padTokenId,
       seed: opts.seed,
+      suppressTokenIds: opts.suppressTokenIds,
     });
     if (typeof opts.onLogits === 'function') {
       opts.onLogits(sampledLogits, {
@@ -355,6 +426,66 @@ export class PipelineGenerator {
     return tokenId;
   }
 
+  _resolvePrefillTokenChunkSize(inputIds) {
+    const session = this.#state.runtimeConfig?.inference?.session;
+    if (session?.prefillTokenChunkSize === undefined) {
+      throw new Error('runtime.inference.session.prefillTokenChunkSize is required; use null to disable token-chunked prefill.');
+    }
+    const chunkSize = session.prefillTokenChunkSize;
+    if (chunkSize === null) {
+      return null;
+    }
+    if (!Number.isInteger(chunkSize) || chunkSize <= 0) {
+      throw new Error('runtime.inference.session.prefillTokenChunkSize must be null or a positive integer.');
+    }
+    return chunkSize < inputIds.length ? chunkSize : null;
+  }
+
+  async _commitPrefillHiddenChunk(prefillResult) {
+    const {
+      numTokens,
+      startPos,
+      currentRecorder,
+      recordProfile,
+      currentHiddenBuffer,
+    } = prefillResult;
+
+    try {
+      if (currentRecorder) {
+        await currentRecorder.submitAndWait();
+        await recordProfile(currentRecorder);
+      } else {
+        const device = getDevice();
+        if (device) {
+          await device.queue.onSubmittedWorkDone();
+        }
+      }
+      this.#state.currentSeqLen = startPos + numTokens;
+    } finally {
+      releaseBuffer(currentHiddenBuffer);
+    }
+  }
+
+  async _prefillInputIdsToLogits(inputIds, opts) {
+    const chunkSize = this._resolvePrefillTokenChunkSize(inputIds);
+    if (chunkSize === null) {
+      return this._prefill(inputIds, opts);
+    }
+
+    for (let offset = 0; offset < inputIds.length; offset += chunkSize) {
+      const end = Math.min(offset + chunkSize, inputIds.length);
+      const chunk = inputIds.slice(offset, end);
+      const isFinalChunk = end === inputIds.length;
+      if (isFinalChunk) {
+        return this._prefill(chunk, opts);
+      }
+      const prefillResult = await this._prefillToHidden(chunk, opts);
+      await this._commitPrefillHiddenChunk(prefillResult);
+    }
+
+    return this._prefill(inputIds, opts);
+  }
+
   async _prefillPromptToLogits(prompt, opts, contextLabel) {
     const prefillStartSeqLen = this.#state.currentSeqLen;
     const inputIds = this._resolvePromptOrInputIds(prompt, opts.useChatTemplate, contextLabel, opts.inputIds);
@@ -363,8 +494,9 @@ export class PipelineGenerator {
     }
 
     let logits;
+    const runPrefill = () => this._prefillInputIdsToLogits(inputIds, opts);
     try {
-      logits = await this._prefill(inputIds, opts);
+      logits = await runPrefill();
     } catch (error) {
       if (!this._shouldUseFinitenessFallback(error, contextLabel)) {
         throw error;
@@ -374,7 +506,7 @@ export class PipelineGenerator {
         opts,
         contextLabel,
         opts.maxTokens ?? 1,
-        () => this._prefill(inputIds, opts),
+        runPrefill,
         prefillStartSeqLen
       );
     }
@@ -458,6 +590,7 @@ export class PipelineGenerator {
     opts.topP = samplingConfig.topP;
     opts.topK = samplingConfig.topK;
     opts.repetitionPenalty = samplingConfig.repetitionPenalty;
+    opts.suppressTokenIds = resolveSuppressedSamplingTokenIds(this.#state, samplingConfig);
     const diagnosticsEnabled = options?.diagnostics?.enabled === true
       || this.#state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
     const tsirFixtureCfg = this.#state.runtimeConfig?.shared?.harness?.tsirFixture ?? null;
@@ -902,6 +1035,7 @@ export class PipelineGenerator {
     opts.topP = samplingConfig.topP;
     opts.topK = samplingConfig.topK;
     opts.repetitionPenalty = samplingConfig.repetitionPenalty;
+    opts.suppressTokenIds = resolveSuppressedSamplingTokenIds(this.#state, samplingConfig);
     const diagnosticsEnabled = options?.diagnostics?.enabled === true
       || this.#state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
     const tsirFixtureCfg = this.#state.runtimeConfig?.shared?.harness?.tsirFixture ?? null;
@@ -1296,6 +1430,7 @@ export class PipelineGenerator {
         topK: opts.topK,
         padTokenId,
         seed: opts.seed,
+        suppressTokenIds: opts.suppressTokenIds,
       });
 
       const decodeRuntime = {
@@ -1378,6 +1513,7 @@ export class PipelineGenerator {
     const hasLinearLayers = hasLinearAttentionLayers(this.#state.modelConfig.layerTypes);
     const replayPrefillDecode = usesReplayPrefillDecode(this.#state);
     const gpuSamplingAvailable = isGPUSamplingAvailable() && !hasCpuWeights;
+    const hasSuppressedSamplingTokens = Array.isArray(opts.suppressTokenIds) && opts.suppressTokenIds.length > 0;
     const hasRangeBackedPerLayerInputs = hasRangeBackedPerLayerInputEmbeddings({
       config: this.#state.modelConfig,
       weights: this.#state.weights,
@@ -1401,7 +1537,7 @@ export class PipelineGenerator {
           batchSize: executionPlan.batchSize,
           useGPU: this.#state.useGPU,
           gpuSamplingAvailable,
-          disableMultiTokenDecode: executionPlan.disableMultiTokenDecode,
+          disableMultiTokenDecode: executionPlan.disableMultiTokenDecode || hasSuppressedSamplingTokens,
           disableCommandBatching: executionPlan.disableCommandBatching,
           isBdpaPagedLayout: this.#state.kvCache?.layout === 'bdpa_paged',
           finitenessFallbackWindowOpen: this._hasFinitenessFallbackWindow(),
@@ -1416,6 +1552,7 @@ export class PipelineGenerator {
       else if (!this.#state.useGPU) reason = 'no_gpu';
       else if (!gpuSamplingAvailable) reason = 'no_gpu_sampling';
       else if (executionPlan.disableCommandBatching) reason = 'command_batching_disabled';
+      else if (hasSuppressedSamplingTokens) reason = 'sampling_suppression_requires_cpu_logits';
       else if (executionPlan.disableMultiTokenDecode) reason = 'multi_token_decode_disabled';
       else if (executionPlan.batchSize <= 1) reason = 'batch_size_1';
       else if (this.#state.kvCache?.layout === 'bdpa_paged') reason = 'bdpa_paged_layout';
@@ -1832,7 +1969,7 @@ export class PipelineGenerator {
     );
     const createRecorder = (label) => {
       if (!device || disableCommandBatching) return undefined;
-      return opts.profile ? createProfilingRecorder(label) : createCommandRecorder(label);
+      return opts.profile ? createProfilingRecorder(label, device) : createCommandRecorder(label, undefined, device);
     };
     const recorder = createRecorder('prefill');
     const debugCheckBuffer = this.#state.debug

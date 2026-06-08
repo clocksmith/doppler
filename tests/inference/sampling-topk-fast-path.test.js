@@ -50,4 +50,20 @@ function referenceTopKSample(logits, opts) {
   );
 }
 
+{
+  const logits = new Float32Array([0, 9, 8, 7]);
+  assert.equal(
+    sample(logits, { temperature: 0, topK: 1, topP: 1, suppressTokenIds: [1] }),
+    2
+  );
+}
+
+{
+  const logits = new Float32Array([0, 9, 8, 7]);
+  assert.equal(
+    sample(logits, { temperature: 1, topK: 2, topP: 1, seed: 1, suppressTokenIds: [1] }),
+    2
+  );
+}
+
 console.log('sampling-topk-fast-path.test: ok');

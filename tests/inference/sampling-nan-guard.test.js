@@ -22,7 +22,7 @@ import { sample } from '../../src/inference/pipelines/text/sampling.js';
       topK: 1,
       padTokenId: 0,
     }),
-    /no finite candidate logits after masking the pad token/i
+    /no finite candidate logits after masking suppressed tokens/i
   );
 }
 
@@ -35,7 +35,7 @@ import { sample } from '../../src/inference/pipelines/text/sampling.js';
       topK: 3,
       padTokenId: 0,
     }),
-    /no finite candidate logits after masking the pad token/i
+    /no finite candidate logits after masking suppressed tokens/i
   );
 }
 
