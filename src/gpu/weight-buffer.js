@@ -46,6 +46,22 @@ function normalizeDtype(dtype) {
   return value.length > 0 ? value : null;
 }
 
+function normalizeWeightMetadata(metadata) {
+  if (!metadata || typeof metadata !== 'object') {
+    return null;
+  }
+  const normalized = {};
+  for (const [key, value] of Object.entries(metadata)) {
+    if (value === undefined) {
+      continue;
+    }
+    normalized[key] = key === 'storageEncoding' && typeof value === 'string'
+      ? value.toLowerCase()
+      : value;
+  }
+  return Object.keys(normalized).length > 0 ? Object.freeze(normalized) : null;
+}
+
 export function tagBufferDtype(buffer, dtype) {
   if (!canTrackBuffer(buffer)) return;
   const normalized = normalizeDtype(dtype);
@@ -65,9 +81,11 @@ export function createWeightBuffer(
   layout,
   shape,
   label,
-  materializations = null
+  materializations = null,
+  metadata = null
 ) {
   tagBufferDtype(buffer, dtype);
+  const normalizedMetadata = normalizeWeightMetadata(metadata);
   const normalizedMaterializations = {};
   if (materializations && typeof materializations === 'object') {
     for (const [materializationDtype, descriptor] of Object.entries(materializations)) {
@@ -92,6 +110,7 @@ export function createWeightBuffer(
     shape: Object.freeze([...shape]),
     label,
     materializations: Object.freeze(normalizedMaterializations),
+    ...(normalizedMetadata ? { metadata: normalizedMetadata } : {}),
   };
 }
 
@@ -225,6 +244,13 @@ export function getWeightDtype(weight) {
   if (isWeightBuffer(weight)) return weight.dtype;
   if (isTensorLike(weight)) return weight.dtype;
   return getBufferDtype(weight);
+}
+
+export function getWeightMetadata(weight) {
+  if (isWeightBuffer(weight) || isCpuWeightBuffer(weight) || isSplitWeightBuffer(weight)) {
+    return weight.metadata ?? null;
+  }
+  return null;
 }
 
 export function resolveWeightBufferMaterialization(weight, preferredDtype = null) {

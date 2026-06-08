@@ -61,6 +61,21 @@ assert.equal(resolveGemma4AttentionHeadDim(gemma4RuntimeProfile, 4), 512);
 assert.equal(resolveGemma4AttentionHeadDim(gemma4RuntimeProfile, 9), 512);
 assert.equal(resolveGemma4AttentionHeadDim(gemma4RuntimeProfile, 10), 256);
 
+await assert.rejects(
+  resolveLiteRTPackageParsedArtifact({
+    sourceKind: 'litertlm',
+    sourcePathForModelId: '/fixture/gemma-4-12B-it.litertlm',
+    source: {
+      name: 'gemma-4-12B-it.litertlm',
+      size: 0,
+      async readRange() {
+        return new ArrayBuffer(0);
+      },
+    },
+  }),
+  /gemma4-12b-litert-direct-source-unverified.*saturated logits/i
+);
+
 const rawTaskBytes = buildGemma4LiteRTPackedFixture({ profileAligned: true });
 const resolvedRawTask = await resolveLiteRTPackageParsedArtifact({
   sourceKind: 'litert-task',

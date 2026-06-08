@@ -21,6 +21,7 @@ import { runProbes } from '../probes.js';
 import { rmsNormCPU, matmulCPU, f16BufferToF32 } from './cpu.js';
 import { resolveCpuWeightDims, computeChunkedLogitsGPU, computeSplitLogitsGPU } from './gpu.js';
 import { finalizeLogits, readBufferWithCleanup } from './utils.js';
+import { getLogitsHealth } from '../debug-utils/index.js';
 import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { getKernelPathMatmulPrecision, getKernelPathStepPrecision } from '../../../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
@@ -142,6 +143,21 @@ function createStableF32LogitsKernelPath(kernelPath) {
     ...kernelPath,
     postLayer,
   };
+}
+
+async function traceTensorHealth(label, tensor, elementCount) {
+  if (!isTraceEnabled('logits')) {
+    return;
+  }
+  const dtype = tensor?.dtype;
+  const buffer = tensor?.buffer;
+  if (!buffer || (dtype !== 'f16' && dtype !== 'f32')) {
+    return;
+  }
+  const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
+  const data = await readBuffer(buffer, elementCount * bytesPerElement);
+  const values = dtype === 'f16' ? f16BufferToF32(data) : new Float32Array(data);
+  trace.logits(label, getLogitsHealth(values));
 }
 
 export function resolveLmHeadMatmulConfig(numTokens, options = null) {
@@ -317,6 +333,7 @@ export async function computeLogits(
 
   // Wrap input buffer as Tensor for RMSNorm
   const inputTensor = createTensor(inputBuffer, inputDtype, [numTokens, hiddenSize], 'logits_input');
+  await traceTensorHealth('LOGITS_INPUT_HEALTH', inputTensor, numTokens * hiddenSize);
   const phase = numTokens === 1 ? 'decode' : 'prefill';
   const kernelPath = config.kernelPath ?? null;
   const finalNormPrecision = getKernelPathStepPrecision('final_norm', 'postLayer', phase, 0, kernelPath);
@@ -384,6 +401,7 @@ export async function computeLogits(
     operatorDiagnostics,
     dtype: finalNormTensor.dtype,
   });
+  await traceTensorHealth('FINAL_NORM_HEALTH', finalNormTensor, numTokens * hiddenSize);
 
   // Trace final norm output
   if (kernelTrace.enabled) {
@@ -538,5 +556,8 @@ export async function computeLogits(
   const rawLogits = logitsTensor.dtype === 'f16'
     ? f16BufferToF32(logitsData)
     : new Float32Array(logitsData);
+  if (isTraceEnabled('logits')) {
+    trace.logits('LM_HEAD_RAW_LOGITS_HEALTH', getLogitsHealth(rawLogits));
+  }
   return finalizeLogits(rawLogits, matmulRows, matmulVocabSize, vocabSize, config, debugProbes, operatorDiagnostics);
 }

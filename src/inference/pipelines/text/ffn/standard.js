@@ -6,15 +6,33 @@ import { runProbes } from '../probes.js';
 import { isMoELayerLocal } from './types.js';
 import { runDenseFFNGPU } from './dense.js';
 import { runMoEFFNGPU } from './moe.js';
-import { acquireBuffer } from '../../../../memory/buffer-pool.js';
+import { acquireBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
 import { isGpuBufferInstance, isWeightBuffer } from '../../../../gpu/weight-buffer.js';
-import { shouldDebugLayerOutput } from '../debug-utils/index.js';
+import { shouldDebugLayerOutput, decodeReadback, getLogitsHealth } from '../debug-utils/index.js';
+import { trace, isTraceEnabled } from '../../../../debug/index.js';
+import { selectRuleValue } from '../../../../rules/rule-registry.js';
 
 async function debugFFNBuffer(context, layerIdx, label, tensor, numTokens, hiddenSize) {
   if (!context.debugCheckBuffer) return;
   if (!isGpuBufferInstance(tensor?.buffer)) return;
   if (!shouldDebugLayerOutput(layerIdx, context.debugLayers)) return;
   await context.debugCheckBuffer(tensor.buffer, `L${layerIdx} ${label} (GPU)`, numTokens, hiddenSize);
+}
+
+function enqueueRecordedFFNHealth(context, layerIdx, label, tensor, elementCount) {
+  const recorder = context.recorder ?? null;
+  if (!recorder || !isTraceEnabled('logits') || !shouldDebugLayerOutput(layerIdx, context.debugLayers)) {
+    return;
+  }
+  if (!tensor?.buffer || !Number.isFinite(elementCount) || elementCount <= 0) {
+    return;
+  }
+  const dtype = tensor.dtype;
+  const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
+  recorder.enqueueCompletionTask(async () => {
+    const data = await readBuffer(tensor.buffer, elementCount * bytesPerElement);
+    trace.logits(`L${layerIdx}.${label}_HEALTH`, getLogitsHealth(decodeReadback(data, dtype)));
+  });
 }
 
 
@@ -25,10 +43,16 @@ export async function processFFNStandard(
   size,
   context,
   layerWeights,
-  fusedResidualInput
+  fusedResidualInput,
+  finalOutputScale = 1
 ) {
   const { config, weightConfig, debugFlags, recorder, decodeBuffers } = context;
   const { hiddenSize, rmsNormEps } = config;
+  const requestedFinalOutputScale = finalOutputScale == null ? 1 : Number(finalOutputScale);
+  if (!Number.isFinite(requestedFinalOutputScale)) {
+    throw new Error(`Layer ${layerIdx} finalOutputScale must be finite; got "${String(finalOutputScale)}".`);
+  }
+  context.__layerScalarFusedFired = false;
 
   const decodeOutputBuffer = numTokens === 1 && decodeBuffers
     ? decodeBuffers.getOutputHiddenBuffer()
@@ -75,6 +99,7 @@ export async function processFFNStandard(
     dtype: normedTensor.dtype,
   });
   await debugFFNBuffer(context, layerIdx, 'FFN input', normedTensor, numTokens, hiddenSize);
+  enqueueRecordedFFNHealth(context, layerIdx, 'ffn_in', normedTensor, numTokens * hiddenSize);
 
   // 2. FFN
   // Stage the residual tensor so that runDenseFFNGPU's ffn_down matmul can
@@ -109,6 +134,7 @@ export async function processFFNStandard(
     dtype: ffnOutput.dtype,
   });
   await debugFFNBuffer(context, layerIdx, 'FFN output', ffnOutput, numTokens, hiddenSize);
+  enqueueRecordedFFNHealth(context, layerIdx, 'ffn_out', ffnOutput, numTokens * hiddenSize);
 
   // 3. Residual add (uses prenorm sum when fused, otherwise postAttn)
   // When WideTile+residual fusion fired inside runDenseFFNGPU, ffnOutput
@@ -126,12 +152,21 @@ export async function processFFNStandard(
     if (residualInputOwned) {
       residualInput = await doCast(ffnOutput, residualTensor.dtype, recorder);
     }
+    const residualOutputScale = requestedFinalOutputScale !== 1
+      && residualTensor.dtype === context.activationDtype
+      && !context.debugProbes?.length
+      ? requestedFinalOutputScale
+      : 1;
     output = await doResidualAdd(residualInput, residualTensor, size, recorder, {
       label: `L${layerIdx}.ffn_residual`,
       layerIdx,
       outputBuffer: decodeOutputBuffer,
+      outputScale: residualOutputScale,
       executionPolicies: context.executionPolicies ?? null,
     });
+    if (residualOutputScale !== 1) {
+      context.__layerScalarFusedFired = true;
+    }
   }
   await runProbes('layer_out', output.buffer, {
     layerIdx,
@@ -143,6 +178,7 @@ export async function processFFNStandard(
     dtype: output.dtype,
   });
   await debugFFNBuffer(context, layerIdx, 'layer output', output, numTokens, hiddenSize);
+  enqueueRecordedFFNHealth(context, layerIdx, 'layer_out', output, numTokens * hiddenSize);
 
   if (normedTensor !== postAttn) {
     releaseOrTrack(recorder, normedTensor.buffer, decodeBuffers);

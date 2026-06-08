@@ -22,7 +22,7 @@ import { embed } from './embed.js';
 import { resolvePerLayerInputsSession } from './generator-helpers.js';
 import { processLayer } from './layer.js';
 import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, finalizeLogits, applySoftcapping } from './logits/index.js';
-import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype } from '../../../gpu/weight-buffer.js';
+import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, getWeightMetadata } from '../../../gpu/weight-buffer.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { getFinalNormWeights, extractEmbeddingFromHidden } from './generator-runtime.js';
 import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
@@ -366,6 +366,7 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
   const embedDtype = isCpuWeightBuffer(embedBufferRaw)
     ? embedBufferRaw.dtype
     : getWeightDtype(embedBufferRaw);
+  const embedMetadata = getWeightMetadata(embedBufferRaw);
   const activationDtype = getEffectiveActivationDtype(state, opts);
 
   const embedTensor = await embed([tokenId], embedBuffer, {
@@ -377,7 +378,8 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
     debugProbes: state.runtimeConfig.shared.debug.probes,
     operatorDiagnostics: state.operatorDiagnostics,
     activationDtype,
-    embeddingDtype: selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype }),
+    embeddingDtype: selectRuleValue('inference', 'dtype', 'embeddingDtype', { dtype: embedDtype }),
+    embeddingStorageEncoding: embedMetadata?.storageEncoding ?? null,
     executionPolicies: state.executionV1State?.policies ?? null,
   });
 
@@ -515,6 +517,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   const embedDtype = isCpuWeightBuffer(embedBufferRaw)
     ? embedBufferRaw.dtype
     : getWeightDtype(embedBufferRaw);
+  const embedMetadata = getWeightMetadata(embedBufferRaw);
   const activationDtype = getEffectiveActivationDtype(state, opts);
   const activationBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
 
@@ -528,7 +531,8 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     debugProbes: state.runtimeConfig.shared.debug.probes,
     operatorDiagnostics: state.operatorDiagnostics,
     activationDtype,
-    embeddingDtype: selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype }),
+    embeddingDtype: selectRuleValue('inference', 'dtype', 'embeddingDtype', { dtype: embedDtype }),
+    embeddingStorageEncoding: embedMetadata?.storageEncoding ?? null,
     executionPolicies: state.executionV1State?.policies ?? null,
   });
 
@@ -1367,6 +1371,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     }
     const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
     const embedDtype = getWeightDtype(embedBufferRaw);
+    const embedMetadata = getWeightMetadata(embedBufferRaw);
     const activationDtype = getEffectiveActivationDtype(state, opts);
 
     // GPU-side repetition penalty: upload deduplicated history before batch
@@ -1385,7 +1390,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     }
 
     // Hoist loop-invariant values to avoid repeated rule lookups and allocations.
-    const embeddingDtype = selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype });
+    const embeddingDtype = selectRuleValue('inference', 'dtype', 'embeddingDtype', { dtype: embedDtype });
     const debugProbes = state.runtimeConfig.shared.debug.probes;
     const currentTokenIdsArray = [startToken];
 
@@ -1411,6 +1416,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
         operatorDiagnostics: state.operatorDiagnostics,
         activationDtype,
         embeddingDtype,
+        embeddingStorageEncoding: embedMetadata?.storageEncoding ?? null,
         executionPolicies: state.executionV1State?.policies ?? null,
         numTokens: 1,
         indexOffset: i,

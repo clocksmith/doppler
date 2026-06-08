@@ -1,4 +1,17 @@
 {
+  "litertInt4FusedVariant": [
+    { "match": { "activationDtype": "f16", "outputDtype": "f16", "transposeB": true }, "value": "litert_int4_multicol_f16a" },
+    { "match": { "activationDtype": "f16", "outputDtype": "f32", "transposeB": true }, "value": "litert_int4_multicol_f16a_f32out" },
+    { "match": { "activationDtype": "f32", "outputDtype": "f32", "transposeB": true }, "value": "litert_int4_multicol_f32a_f32out" },
+    { "match": {}, "value": null }
+  ],
+  "w4a16FusedVariant": [
+    { "match": { "activationDtype": "f16", "outputDtype": "f16", "transposeB": true, "isPrefill": true }, "value": "w4a16_batched_f16a" },
+    { "match": { "activationDtype": "f16", "outputDtype": "f32", "transposeB": true, "isPrefill": true }, "value": "w4a16_batched_f16a_f32out" },
+    { "match": { "activationDtype": "f16", "outputDtype": "f16", "transposeB": true }, "value": "w4a16_multicol_f16a" },
+    { "match": { "activationDtype": "f16", "outputDtype": "f32", "transposeB": true }, "value": "w4a16_multicol_f16a_f32out" },
+    { "match": {}, "value": null }
+  ],
   "q4kFusedVariant": [
     { "match": { "useF16A": true, "isM1": true }, "value": "q4_fused_multicol_f16a" },
     { "match": { "useF16A": true }, "value": "q4_fused_batched_f16a" },
@@ -49,6 +62,8 @@
     { "match": {}, "value": "f32" }
   ],
   "matmulSelection": [
+    { "match": { "useLiteRTInt4Fused": true }, "value": { "variant": { "context": "litertInt4Variant" }, "useQ4KFused": false, "useGemv": false, "useLiteRTInt4Fused": true } },
+    { "match": { "useW4A16Fused": true }, "value": { "variant": { "context": "w4a16Variant" }, "useQ4KFused": false, "useGemv": false, "useLiteRTInt4Fused": false, "useW4A16Fused": true } },
     { "match": { "isQ4K": true, "hasSubgroups": true, "fusedAllowed": true }, "value": { "variant": { "context": "q4kVariant" }, "useQ4KFused": true, "useGemv": false } },
     { "match": { "useGemv": true }, "value": { "variant": { "context": "gemvVariant" }, "useQ4KFused": false, "useGemv": true } },
     { "match": {}, "value": { "variant": { "context": "matmulVariant" }, "useQ4KFused": false, "useGemv": false } }
@@ -60,6 +75,10 @@
   "weightDtypeMismatchPolicy": [
     { "match": { "actualWeightDtype": "q4k", "requiredWeightDtype": "f16", "hasSubgroups": true }, "value": "fallthrough" },
     { "match": { "actualWeightDtype": "q4k", "requiredWeightDtype": "f32", "hasSubgroups": true }, "value": "fallthrough" },
+    { "match": { "actualWeightDtype": "litert_int4", "requiredWeightDtype": "f16" }, "value": "fallthrough" },
+    { "match": { "actualWeightDtype": "litert_int4", "requiredWeightDtype": "f32" }, "value": "fallthrough" },
+    { "match": { "actualWeightDtype": "w4a16", "requiredWeightDtype": "f16" }, "value": "fallthrough" },
+    { "match": { "actualWeightDtype": "w4a16", "requiredWeightDtype": "f32" }, "value": "fallthrough" },
     { "match": {}, "value": "reject" }
   ],
   "q4kMaterializationMode": [

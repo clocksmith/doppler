@@ -98,7 +98,7 @@ assert.deepEqual(q4HeadConfig.execution?.kernels?.embed, {
 assert.deepEqual(q4HeadConfig.execution?.kernels?.rmsnorm, {
   kernel: 'rmsnorm_f16.wgsl',
   entry: 'main',
-  digest: 'sha256:b1ac21c2796ce3edd833b8e0089314f3837898fb19958bac770c2ea99f1abf4a',
+  digest: 'sha256:5f46959f502a9a1c3a8e7c6bb3ac56dd06d377d9748dbb9957de710f04f6d05b',
 });
 assert.deepEqual(q4HeadConfig.execution?.kernels?.rope, {
   kernel: 'rope_f16.wgsl',
@@ -116,7 +116,7 @@ assert.deepEqual(q4HeadConfig.execution?.kernels?.gelu, {
 assert.deepEqual(q4HeadConfig.execution?.kernels?.residual, {
   kernel: 'residual_f16.wgsl',
   entry: 'main',
-  digest: 'sha256:10e7a2b8cae72243028f2be36cb564c1d6f26629f008d740d5f7458c55745154',
+  digest: 'sha256:29c34e627ad251f03a8862fb1f459ab488132ef04192d45e40c78fdf21a34fd5',
 });
 assert.deepEqual(q4HeadConfig.execution?.kernels?.q4_decode_gemv, {
   kernel: 'fused_matmul_q4_multicol_f16a.wgsl',

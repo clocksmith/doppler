@@ -10,8 +10,17 @@
  * Use WeightBuffer for model weights (static, may be quantized).
  */
 
-export type WeightDtype = 'f16' | 'f32' | 'bf16' | 'q4k' | 'q8';
+export type WeightDtype = 'f16' | 'f32' | 'bf16' | 'q4k' | 'q8' | 'litert_int4' | 'w4a16';
 export type WeightLayout = 'row' | 'column';
+export type WeightStorageEncoding = 'signed' | 'offset_binary';
+export type WeightScaleDtype = 'f16' | 'bf16' | 'f32';
+
+export interface WeightMetadata {
+  readonly storageEncoding?: WeightStorageEncoding;
+  readonly scaleBuffer?: GPUBuffer;
+  readonly scaleDtype?: WeightScaleDtype;
+  readonly groupsPerRow?: number;
+}
 
 export interface CpuTensorRangeSource {
   readonly kind: 'tensor_range_source';
@@ -30,6 +39,7 @@ export interface CpuWeightBuffer {
   readonly shape: readonly number[];
   readonly label?: string;
   gpuSplitWeight?: SplitWeightBuffer | null;
+  readonly metadata?: WeightMetadata;
 }
 
 /**
@@ -46,6 +56,7 @@ export interface WeightBuffer {
     readonly buffer: GPUBuffer;
     readonly layout: WeightLayout;
   }>>>;
+  readonly metadata?: WeightMetadata;
 }
 
 export interface SplitWeightSection {
@@ -64,6 +75,7 @@ export interface SplitWeightBuffer {
   readonly layout: WeightLayout;
   readonly shape: readonly number[];
   readonly label?: string;
+  readonly metadata?: WeightMetadata;
 }
 
 /**
@@ -106,7 +118,8 @@ export function createWeightBuffer(
   materializations?: Partial<Record<WeightDtype, {
     buffer: GPUBuffer;
     layout?: WeightLayout;
-  }>> | null
+  }>> | null,
+  metadata?: WeightMetadata | null
 ): WeightBuffer;
 
 /**
@@ -168,6 +181,11 @@ export function getLayout(weight: GPUBuffer | WeightBuffer | TensorLike | SplitW
  * Get dtype from WeightBuffer, tagged raw GPUBuffer, or TensorLike.
  */
 export function getWeightDtype(weight: GPUBuffer | WeightBuffer | TensorLike | SplitWeightBuffer): WeightDtype | TensorLike['dtype'] | null;
+
+/**
+ * Get optional quantized-weight metadata from a weight wrapper.
+ */
+export function getWeightMetadata(weight: unknown): WeightMetadata | null;
 
 /**
  * Resolve a preferred materialization view from a WeightBuffer when alternate

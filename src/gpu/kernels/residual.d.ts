@@ -14,6 +14,7 @@ import type { ExecutionV1PoliciesSchema } from '../../config/schema/execution-v1
 /** Residual kernel options */
 export interface ResidualOptions extends OutputBufferOptions {
   useVec4?: boolean;
+  outputScale?: number | null;
   dataOffset?: number;
   biasOffset?: number;
   executionPolicies?: ExecutionV1PoliciesSchema | null;

@@ -1,7 +1,9 @@
---- src/gpu/kernels/residual.wgsl
-+++ src/gpu/kernels/residual_f16.wgsl
-@@ -1,11 +1,13 @@
+--- src/gpu/kernels/residual.wgsl	2026-06-08 16:13:27.295360931 -0400
++++ src/gpu/kernels/residual_f16.wgsl	2026-06-08 16:32:38.676137468 -0400
+@@ -1,12 +1,16 @@
 -// residual.wgsl
++// AUTO-GENERATED from src/gpu/kernels/residual.wgsl.
++// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
 +// residual_f16.wgsl
  
  /**
@@ -9,14 +11,15 @@
 + * Residual Add Kernel (F16)
   *
   * Performs element-wise addition for residual connections.
-  * output = a + b
+  * output = (a + b) * scale
   */
-+
-+enable f16;
  
++enable f16;
++
  struct Uniforms {
      size: u32,     // Total number of elements
-@@ -17,9 +19,9 @@
+     scale: f32,    // Output scale for main/add_vec4; residual scale for add_scaled
+@@ -17,9 +21,9 @@
  override WORKGROUP_SIZE: u32 = 256u;
  
  @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -29,13 +32,12 @@
  
  @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
  fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-@@ -28,29 +30,5 @@
+@@ -28,29 +32,5 @@
      if (idx >= u.size) {
          return;
      }
--    output[idx] = a[idx] + b[idx];
-+    output[idx] = a[idx] + b[idx];
- }
+-    output[idx] = (a[idx] + b[idx]) * u.scale;
+-}
 -
 -// In-place version: output = output + b
 -// Note: Caller should copy 'a' to 'output' first, then call this kernel
@@ -59,4 +61,5 @@
 -        return;
 -    }
 -    output[idx] = a[idx] + u.scale * b[idx];
--}
++    output[idx] = f16(f32(a[idx] + b[idx]) * u.scale);
+ }

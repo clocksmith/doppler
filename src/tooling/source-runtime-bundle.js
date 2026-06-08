@@ -217,6 +217,7 @@ function buildSourceTensorTransform(tensor, shardIndexByPath, tensorName) {
       scheme: transform.scheme,
       sourceDtype: transform.sourceDtype,
       targetDtype: transform.targetDtype,
+      ...(transform.storageEncoding ? { storageEncoding: transform.storageEncoding } : {}),
       scale: transform.scale,
       zeroPoint: transform.zeroPoint,
     };
@@ -1044,12 +1045,38 @@ export function createSourceStorageContext(options = {}) {
     }
     : null;
 
+  const loadAuxiliaryFile = readBinary
+    ? async (targetPath) => {
+      if (typeof targetPath !== 'string' || !targetPath.trim()) {
+        throw new Error('loadAuxiliaryFile(path) requires a non-empty path.');
+      }
+      const raw = await readBinary(targetPath);
+      const buffer = toArrayBuffer(raw, `readBinary(${targetPath})`);
+      if (verifyHashes) {
+        const descriptor = auxiliaryFileMap.get(targetPath);
+        if (descriptor?.hash) {
+          const computedHash = await computeHash(new Uint8Array(buffer), descriptor.hashAlgorithm);
+          if (computedHash !== descriptor.hash) {
+            throw new Error(
+              `Auxiliary asset hash mismatch for ${targetPath}. Expected ${descriptor.hash}, got ${computedHash}.`
+            );
+          }
+        }
+      }
+      if (buffer.byteLength <= 0) {
+        throw new Error(`readBinary(${targetPath}) returned an empty auxiliary payload.`);
+      }
+      return buffer;
+    }
+    : null;
+
   return {
     loadShard,
     loadShardRange,
     streamShardRange,
     loadTokenizerJson,
     loadTokenizerModel,
+    loadAuxiliaryFile,
     verifyHashes,
     close,
   };

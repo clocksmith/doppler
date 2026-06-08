@@ -89,6 +89,9 @@ export interface LayerContext {
   stats?: PipelineStats;
   /** Optional layer pipeline plan (JSON-configured) */
   pipelinePlan?: CompiledLayerPipeline | null;
+  __pendingFfnResidualTensor?: unknown;
+  __ffnResidualFusedFired?: boolean;
+  __layerScalarFusedFired?: boolean;
   /** RoPE frequency buffers (global for full_attention layers) */
   ropeFreqsCos: GPUBuffer | Float32Array | null;
   ropeFreqsSin: GPUBuffer | Float32Array | null;

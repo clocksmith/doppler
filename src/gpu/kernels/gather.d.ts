@@ -7,12 +7,12 @@
 import type { CommandRecorder } from '../command-recorder.js';
 import type { Tensor, TensorDtype } from '../tensor.js';
 import type { OutputBufferOptions } from './types.js';
-import type { SplitWeightBuffer } from '../weight-buffer.js';
+import type { SplitWeightBuffer, WeightDtype, WeightStorageEncoding } from '../weight-buffer.js';
 
 /** Gather kernel options */
 export interface GatherOptions extends OutputBufferOptions {
   useVec4?: boolean;
-  embeddingDtype?: 'f16' | 'f32';
+  embeddingDtype?: Extract<WeightDtype, 'f16' | 'f32' | 'litert_int4'>;
   /**
    * Output dtype. When 'f16', converts F32 embeddings to F16 output.
    * Default: 'f32'
@@ -34,6 +34,8 @@ export interface GatherOptions extends OutputBufferOptions {
   indirectBuffer?: GPUBuffer | null;
   /** Byte offset into indirect dispatch buffer (default: 0). */
   indirectOffset?: number;
+  /** Required when embeddingDtype is 'litert_int4'. */
+  storageEncoding?: WeightStorageEncoding | null;
 }
 
 /**

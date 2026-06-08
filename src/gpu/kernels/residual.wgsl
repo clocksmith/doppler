@@ -4,12 +4,12 @@
  * Residual Add Kernel
  *
  * Performs element-wise addition for residual connections.
- * output = a + b
+ * output = (a + b) * scale
  */
 
 struct Uniforms {
     size: u32,     // Total number of elements
-    scale: f32,    // Scale factor for add_scaled
+    scale: f32,    // Output scale for main/add_vec4; residual scale for add_scaled
     _pad1: u32,
     _pad2: u32,
 }
@@ -28,7 +28,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     if (idx >= u.size) {
         return;
     }
-    output[idx] = a[idx] + b[idx];
+    output[idx] = (a[idx] + b[idx]) * u.scale;
 }
 
 // In-place version: output = output + b

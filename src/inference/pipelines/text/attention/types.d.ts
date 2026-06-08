@@ -39,8 +39,12 @@ export interface AttentionConfig {
   attnSoftcap?: number;
   /** Gemma 2 attention scaling: uses head_dim (256) instead of sqrt(head_dim) (16). */
   queryPreAttnScalar?: number;
-  /** Apply query/key RMSNorm even when per-head weights are absent. */
+  /** Apply query/key RMSNorm where per-head weights are declared. */
   queryKeyNorm?: boolean;
+  /** Layers that apply query/key RMSNorm; null means all layers when queryKeyNorm=true. */
+  queryKeyNormLayers?: number[] | null;
+  /** Layers that carry explicit Q/K RMSNorm scale tensors; null means missing weights are invalid. */
+  queryKeyNormWeightLayers?: number[] | null;
   /** Apply unit-scale value RMSNorm before attention. */
   valueNorm?: boolean;
   /** Apply sigmoid gate from q_proj split to attention output before o_proj. */

@@ -133,7 +133,7 @@
       "rmsnorm": {
         "kernel": "rmsnorm.wgsl",
         "entry": "main",
-        "digest": "sha256:c723c0300cc8f93396d79d1a274c0a90ccf1eb8ce82c0d778b8cd4659615fe45"
+        "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
       },
       "gemv": {
         "kernel": "matmul_gemv_subgroup.wgsl",
@@ -156,7 +156,7 @@
       "residual": {
         "kernel": "residual.wgsl",
         "entry": "main",
-        "digest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7"
+        "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
       },
       "gelu": {
         "kernel": "gelu.wgsl",

@@ -30,6 +30,16 @@ export function scaledResidualAddRef(x, residual, scale) {
   return output;
 }
 
+export function outputScaledResidualAddRef(x, residual, scale) {
+  const output = new Float32Array(x.length);
+
+  for (let i = 0; i < x.length; i++) {
+    output[i] = (x[i] + residual[i]) * scale;
+  }
+
+  return output;
+}
+
 
 export function residualAddDropoutRef(x, residual, mask, dropProb) {
   const output = new Float32Array(x.length);

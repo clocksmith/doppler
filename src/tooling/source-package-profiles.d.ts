@@ -29,6 +29,9 @@ export interface DirectSourcePackageProfile {
       embedderTFLiteModelType?: string | null;
       graphAdapter?: string | null;
       fixedInt4Scale?: number | null;
+      fixedInt4StorageEncoding?: 'signed' | 'offset_binary' | null;
+      layerScalarLayers?: number[] | null;
+      missingLayerScalarValue?: number | null;
       executionTemplateProfileId?: string | null;
       tokenizerSectionType?: string | null;
       metadataSectionType?: string | null;

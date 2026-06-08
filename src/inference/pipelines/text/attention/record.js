@@ -1,7 +1,7 @@
 
 
 import { isGpuBufferInstance, isWeightBuffer, getWeightDtype } from '../../../../gpu/weight-buffer.js';
-import { acquireBuffer } from '../../../../memory/buffer-pool.js';
+import { acquireBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
 import {
   recordMatmul,
   recordRMSNorm,
@@ -20,7 +20,7 @@ import {
 import { createTensor } from '../../../../gpu/tensor.js';
 import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
-import { log, trace } from '../../../../debug/index.js';
+import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import {
   recordAttentionInputs,
@@ -32,6 +32,7 @@ import {
 } from './projections.js';
 import { prepareAttentionProjectionInput } from './output-projection.js';
 import { runProbes } from '../probes.js';
+import { decodeReadback, getLogitsHealth } from '../debug-utils/index.js';
 
 import { releaseOrTrack, shouldDebugLayer } from './types.js';
 import {
@@ -56,6 +57,24 @@ import {
 import { canUseRmsNormWideTileProjectionFusion } from './rmsnorm-fusion-gate.js';
 
 const ATTENTION_DTYPE_LOGGED = new Set();
+
+function shouldTraceRecordedHealth(layerIdx, debugFlags) {
+  const debugLayers = debugFlags?.debugLayers;
+  return isTraceEnabled('logits')
+    && Array.isArray(debugLayers)
+    && shouldDebugLayer(layerIdx, debugLayers);
+}
+
+function enqueueRecordedTensorHealth(recorder, label, tensor, dtype, elementCount) {
+  if (!recorder || !tensor?.buffer || !Number.isFinite(elementCount) || elementCount <= 0) {
+    return;
+  }
+  const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
+  recorder.enqueueCompletionTask(async () => {
+    const data = await readBuffer(tensor.buffer, elementCount * bytesPerElement);
+    trace.logits(label, getLogitsHealth(decodeReadback(data, dtype)));
+  });
+}
 
 function assertAttentionDtypeTransitionAllowed(state, fromDtype, toDtype, detail, transitionDeclaredBy = null) {
   assertImplicitDtypeTransitionAllowed({
@@ -310,40 +329,100 @@ export async function recordLayerAttentionGPU(
       operatorDiagnostics: state.operatorDiagnostics, dtype: vTensor.dtype,
     });
   }
+  if (shouldTraceRecordedHealth(layerIdx, debugFlags)) {
+    enqueueRecordedTensorHealth(
+      recorder,
+      `L${layerIdx}.q_proj_HEALTH`,
+      qTensor,
+      qTensor.dtype,
+      numTokens * numHeads * headDim
+    );
+    enqueueRecordedTensorHealth(
+      recorder,
+      `L${layerIdx}.k_proj_HEALTH`,
+      kTensor,
+      kTensor.dtype,
+      numTokens * numKVHeads * headDim
+    );
+    enqueueRecordedTensorHealth(
+      recorder,
+      `L${layerIdx}.v_proj_HEALTH`,
+      vTensor,
+      vTensor.dtype,
+      numTokens * numKVHeads * headDim
+    );
+  }
 
   // Optional per-head Q/K normalization.
   // Some models use RMSNorm with (1+weight) offset formula, controlled by rmsNormWeightOffset.
   const wantsQKNorm = config.queryKeyNorm === true;
-  if (wantsQKNorm && layerIdx === 0 && (!layerWeights.qNorm || !layerWeights.kNorm)) {
-    log.warn('Attention', `Q/K norm requested but weights missing (hasQ=${!!layerWeights.qNorm}, hasK=${!!layerWeights.kNorm}); skipping QK norm.`);
+  const hasQNorm = !!layerWeights.qNorm;
+  const hasKNorm = !!layerWeights.kNorm;
+  const qkNormWeightLayers = Array.isArray(config.queryKeyNormWeightLayers)
+    ? config.queryKeyNormWeightLayers
+    : null;
+  const expectsWeightedQKNorm = qkNormWeightLayers
+    ? qkNormWeightLayers.includes(layerIdx)
+    : true;
+  const allowUnitQKNorm = wantsQKNorm && qkNormWeightLayers !== null && !expectsWeightedQKNorm;
+  if (wantsQKNorm && allowUnitQKNorm && (hasQNorm || hasKNorm)) {
+    throw new Error(
+      `Layer ${layerIdx} declares unit-scale Q/K norm but companion weights are present ` +
+      `(hasQ=${hasQNorm}, hasK=${hasKNorm}). Check manifest.inference.attention.queryKeyNormWeightLayers.`
+    );
   }
-  ({ qTensor, kTensor } = await applyAttentionQKNorm({
-    recorder,
-    qTensor,
-    kTensor,
-    layerWeights,
-    getNormWeightBuffer,
-    rmsNormEps,
-    numTokens,
-    numHeads,
-    numKVHeads,
-    headDim,
-    rmsNormWeightOffset: config.rmsNormWeightOffset,
-    releaseTemporary: (buffer) => releaseOrTrack(recorder, buffer),
-    skipKNorm: reusesSharedKV,
-    retainKInput: valueAliasesKey,
-  }));
-  await runProbes('q_norm', qTensor.buffer, {
-    layerIdx, numTokens, hiddenSize: numHeads * headDim,
-    probes: state.debugProbes, recorder,
-    operatorDiagnostics: state.operatorDiagnostics, dtype: qTensor.dtype,
-  });
-  if (kTensor) {
-    await runProbes('k_norm', kTensor.buffer, {
-      layerIdx, numTokens, hiddenSize: numKVHeads * headDim,
+  if (wantsQKNorm && expectsWeightedQKNorm && (!hasQNorm || (!hasKNorm && !reusesSharedKV))) {
+    throw new Error(
+      `Layer ${layerIdx} requested Q/K norm but companion weights are missing ` +
+      `(hasQ=${hasQNorm}, hasK=${hasKNorm}). Check manifest.inference.attention.queryKeyNormWeightLayers.`
+    );
+  }
+  if (wantsQKNorm) {
+    ({ qTensor, kTensor } = await applyAttentionQKNorm({
+      recorder,
+      qTensor,
+      kTensor,
+      layerWeights,
+      getNormWeightBuffer,
+      rmsNormEps,
+      numTokens,
+      numHeads,
+      numKVHeads,
+      headDim,
+      rmsNormWeightOffset: config.rmsNormWeightOffset,
+      releaseTemporary: (buffer) => releaseOrTrack(recorder, buffer),
+      skipKNorm: reusesSharedKV,
+      retainKInput: valueAliasesKey,
+      allowUnitQKNorm,
+    }));
+    await runProbes('q_norm', qTensor.buffer, {
+      layerIdx, numTokens, hiddenSize: numHeads * headDim,
       probes: state.debugProbes, recorder,
-      operatorDiagnostics: state.operatorDiagnostics, dtype: kTensor.dtype,
+      operatorDiagnostics: state.operatorDiagnostics, dtype: qTensor.dtype,
     });
+    if (kTensor) {
+      await runProbes('k_norm', kTensor.buffer, {
+        layerIdx, numTokens, hiddenSize: numKVHeads * headDim,
+        probes: state.debugProbes, recorder,
+        operatorDiagnostics: state.operatorDiagnostics, dtype: kTensor.dtype,
+      });
+    }
+    if (shouldTraceRecordedHealth(layerIdx, debugFlags)) {
+      enqueueRecordedTensorHealth(
+        recorder,
+        `L${layerIdx}.q_norm_HEALTH`,
+        qTensor,
+        qTensor.dtype,
+        numTokens * numHeads * headDim
+      );
+      enqueueRecordedTensorHealth(
+        recorder,
+        `L${layerIdx}.k_norm_HEALTH`,
+        kTensor,
+        kTensor.dtype,
+        numTokens * numKVHeads * headDim
+      );
+    }
   }
 
   if (config.valueNorm === true && !reusesSharedKV) {
@@ -393,6 +472,22 @@ export async function recordLayerAttentionGPU(
         executionPolicies: state.executionPolicies ?? null,
       });
     }
+  }
+  if (shouldTraceRecordedHealth(layerIdx, debugFlags)) {
+    enqueueRecordedTensorHealth(
+      recorder,
+      `L${layerIdx}.q_rope_HEALTH`,
+      qTensor,
+      qTensor.dtype,
+      numTokens * numHeads * headDim
+    );
+    enqueueRecordedTensorHealth(
+      recorder,
+      `L${layerIdx}.k_rope_HEALTH`,
+      kTensor,
+      kTensor.dtype,
+      numTokens * numKVHeads * headDim
+    );
   }
 
   if (storeSharedKV && state.sharedAttentionState) {
@@ -645,6 +740,15 @@ export async function recordLayerAttentionGPU(
     operatorDiagnostics: state.operatorDiagnostics,
     dtype: attnOutput.dtype,
   });
+  if (shouldTraceRecordedHealth(layerIdx, debugFlags)) {
+    enqueueRecordedTensorHealth(
+      recorder,
+      `L${layerIdx}.attn_core_out_HEALTH`,
+      attnOutput,
+      attnOutput.dtype,
+      numTokens * numHeads * headDim
+    );
+  }
 
   attnForProjection = attnOutput;
   if (qGateTensor) {
@@ -747,6 +851,15 @@ export async function recordLayerAttentionGPU(
   }
 
   finalOutput = output;
+  if (shouldTraceRecordedHealth(layerIdx, debugFlags)) {
+    enqueueRecordedTensorHealth(
+      recorder,
+      `L${layerIdx}.o_proj_HEALTH`,
+      output,
+      output.dtype,
+      numTokens * hiddenSize
+    );
+  }
 
   const buffersToTrack = [];
   if (output.buffer !== attnForProjection.buffer) {

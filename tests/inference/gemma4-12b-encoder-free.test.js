@@ -140,4 +140,24 @@ function createBaseManifest() {
   assert.equal(parsed.audioConfig.convKernelSize, 1); // Check default fallback
 }
 
+// 3. Validate manifest-owned prefill token chunk size is parsed into session settings
+{
+  const manifest = createBaseManifest();
+  manifest.inference.session.prefillTokenChunkSize = 64;
+
+  const parsed = parseModelConfigFromManifest(manifest);
+  assert.equal(parsed.sessionSettings.prefillTokenChunkSize, 64);
+}
+
+// 4. Validate invalid manifest-owned prefill token chunk size fails fast
+{
+  const manifest = createBaseManifest();
+  manifest.inference.session.prefillTokenChunkSize = 0;
+
+  assert.throws(
+    () => parseModelConfigFromManifest(manifest),
+    /prefillTokenChunkSize/
+  );
+}
+
 console.log('gemma4-12b-encoder-free-contract.test: ok');

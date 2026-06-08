@@ -21,6 +21,38 @@ function normalizeText(value) {
   return String(value || '').trim();
 }
 
+function normalizeLiteRTStorageEncoding(value, fieldName) {
+  const storageEncoding = normalizeText(value).toLowerCase();
+  if (storageEncoding !== 'signed' && storageEncoding !== 'offset_binary') {
+    throw new Error(
+      `direct-source runtime: ${fieldName} must be "signed" or "offset_binary", got "${value ?? 'missing'}".`
+    );
+  }
+  return storageEncoding;
+}
+
+function normalizeLayerIndexList(value, numLayers, fieldName) {
+  if (!Array.isArray(value)) {
+    throw new Error(`direct-source runtime: ${fieldName} must be an array of layer indices.`);
+  }
+  const indexes = [];
+  let previous = -1;
+  for (const rawIndex of value) {
+    const layerIndex = Number(rawIndex);
+    if (!Number.isInteger(layerIndex) || layerIndex < 0 || layerIndex >= numLayers) {
+      throw new Error(
+        `direct-source runtime: ${fieldName} contains invalid layer index "${String(rawIndex)}".`
+      );
+    }
+    if (layerIndex <= previous) {
+      throw new Error(`direct-source runtime: ${fieldName} must be sorted and unique.`);
+    }
+    indexes.push(layerIndex);
+    previous = layerIndex;
+  }
+  return indexes;
+}
+
 function createVirtualFile(path, offset, size, kind, options = {}) {
   return {
     path,
@@ -434,6 +466,64 @@ function takeOptionalConsecutiveLiteRTTensor(cursor, expectedShape, sourceDtype)
   return tensor;
 }
 
+function collectGemma412BLayerScalarTensors(prefillTFLite, numLayers, packageConfig) {
+  const expectedLayers = normalizeLayerIndexList(
+    packageConfig?.layerScalarLayers,
+    numLayers,
+    'package.litertlm.layerScalarLayers'
+  );
+  if (expectedLayers.length !== numLayers) {
+    const missingValue = Number(packageConfig?.missingLayerScalarValue);
+    if (!Number.isFinite(missingValue) || missingValue !== 1) {
+      throw new Error(
+        'direct-source runtime: package.litertlm.missingLayerScalarValue must be 1 when ' +
+        'package.litertlm.layerScalarLayers does not cover every layer.'
+      );
+    }
+  }
+
+  const expected = new Set(expectedLayers);
+  const layerScalars = new Map();
+  for (const tensor of prefillTFLite.tensors ?? []) {
+    if (!isLiteRTTensorDtype(tensor, 'F32') || !shapeEquals(tensor.shape, [])) {
+      continue;
+    }
+    const match = String(tensor.name ?? '').match(/Gemma4UnifiedTextDecoderLayer_(\d+);?$/);
+    if (!match) {
+      continue;
+    }
+    const layerIndex = Number(match[1]);
+    if (!Number.isInteger(layerIndex) || layerIndex < 0 || layerIndex >= numLayers) {
+      throw new Error(
+        `direct-source runtime: Gemma 4 12B layer_scalar tensor "${tensor.name}" ` +
+        `has out-of-range layer index ${String(match[1])}.`
+      );
+    }
+    if (!expected.has(layerIndex)) {
+      throw new Error(
+        `direct-source runtime: Gemma 4 12B layer_scalar tensor for layer ${layerIndex} ` +
+        'is present in the LiteRT graph but missing from package.litertlm.layerScalarLayers.'
+      );
+    }
+    if (layerScalars.has(layerIndex)) {
+      throw new Error(
+        `direct-source runtime: Gemma 4 12B LiteRT graph has duplicate layer_scalar tensors for layer ${layerIndex}.`
+      );
+    }
+    layerScalars.set(layerIndex, tensor);
+  }
+
+  for (const layerIndex of expectedLayers) {
+    if (!layerScalars.has(layerIndex)) {
+      throw new Error(
+        `direct-source runtime: Gemma 4 12B split-section adapter expected layer_scalar for layer ${layerIndex}, ` +
+        'but the LiteRT graph did not contain a matching Gemma4UnifiedTextDecoderLayer scalar tensor.'
+      );
+    }
+  }
+  return layerScalars;
+}
+
 function createLiteRTFixedAffineInt4Tensor(
   rawTensor,
   sourcePath,
@@ -441,7 +531,8 @@ function createLiteRTFixedAffineInt4Tensor(
   role,
   group,
   logicalShape,
-  fixedScale
+  fixedScale,
+  storageEncoding
 ) {
   if (!rawTensor || typeof rawTensor !== 'object') {
     throw new Error(`direct-source runtime: missing LiteRT tensor "${canonicalName}".`);
@@ -483,7 +574,7 @@ function createLiteRTFixedAffineInt4Tensor(
       scheme: 'per_tensor_affine',
       sourceDtype: 'INT4',
       targetDtype: 'F16',
-      storageEncoding: 'signed',
+      storageEncoding,
       scale: fixedScale,
       zeroPoint: 0,
     },
@@ -965,6 +1056,10 @@ function normalizeGemma412BSplitLiteRTTensors(parsedTFLitesByPath, virtualFiles,
   const headDim = Number(arch.headDim ?? 0);
   const globalHeadDim = Number(arch.globalHeadDim ?? headDim);
   const fixedInt4Scale = Number(packageConfig?.fixedInt4Scale);
+  const fixedInt4StorageEncoding = normalizeLiteRTStorageEncoding(
+    packageConfig?.fixedInt4StorageEncoding,
+    'package.litertlm.fixedInt4StorageEncoding'
+  );
   if (
     !Number.isInteger(hiddenSize)
     || hiddenSize <= 0
@@ -1002,7 +1097,8 @@ function normalizeGemma412BSplitLiteRTTensors(parsedTFLitesByPath, virtualFiles,
       'embedding',
       'embed',
       [vocabSize, hiddenSize],
-      fixedInt4Scale
+      fixedInt4Scale,
+      fixedInt4StorageEncoding
     )
   );
 
@@ -1016,6 +1112,11 @@ function normalizeGemma412BSplitLiteRTTensors(parsedTFLitesByPath, virtualFiles,
     takeOptionalConsecutiveLiteRTTensor(cursor, [globalHeadDim], 'F32');
   }
   const layerTypes = resolveGemma412BLayerTypes(runtimeProfile);
+  const layerScalarTensors = collectGemma412BLayerScalarTensors(
+    prefillTFLite,
+    layerTypes.length,
+    packageConfig
+  );
   for (let layerIndex = 0; layerIndex < layerTypes.length; layerIndex += 1) {
     const canonicalLayerPrefix = `model.language_model.layers.${layerIndex}`;
     const globalLayer = normalizeText(layerTypes[layerIndex]) === 'full_attention';
@@ -1042,11 +1143,13 @@ function normalizeGemma412BSplitLiteRTTensors(parsedTFLitesByPath, virtualFiles,
           role,
           null,
           logicalShape,
-          fixedInt4Scale
+          fixedInt4Scale,
+          fixedInt4StorageEncoding
         )
       );
     };
 
+    addFloat(layerScalarTensors.get(layerIndex) ?? null, `${canonicalLayerPrefix}.layer_scalar`, 'other');
     addHiddenNorm(`${canonicalLayerPrefix}.input_layernorm.weight`);
     addHiddenNorm(`${canonicalLayerPrefix}.post_attention_layernorm.weight`);
     addHiddenNorm(`${canonicalLayerPrefix}.pre_feedforward_layernorm.weight`);
@@ -1388,12 +1491,36 @@ function buildPackageParsedArtifact(
       ...tensor,
       sourcePath: tfliteSourceFile.path,
       })));
+  const manifestInference = cloneJsonValue(runtimeProfile.manifestInference ?? {});
+  if (graphAdapter === 'gemma4_unified_12b_split_int4') {
+    const qNormLayers = new Set();
+    const kNormLayers = new Set();
+    for (const tensor of tensors) {
+      const qMatch = String(tensor?.name ?? '').match(/\.layers\.(\d+)\.self_attn\.q_norm\.weight$/);
+      if (qMatch) {
+        qNormLayers.add(Number(qMatch[1]));
+      }
+      const kMatch = String(tensor?.name ?? '').match(/\.layers\.(\d+)\.self_attn\.k_norm\.weight$/);
+      if (kMatch) {
+        kNormLayers.add(Number(kMatch[1]));
+      }
+    }
+    const layers = [...qNormLayers]
+      .filter((layerIdx) => kNormLayers.has(layerIdx))
+      .sort((left, right) => left - right);
+    manifestInference.attention = {
+      ...(manifestInference.attention ?? {}),
+      queryKeyNorm: manifestInference.attention?.queryKeyNorm === true || layers.length > 0,
+      queryKeyNormLayers: null,
+      queryKeyNormWeightLayers: layers,
+    };
+  }
   return {
     sourceKind,
     modelType: normalizeText(runtimeProfile.modelType),
     config,
     manifestConfig: cloneJsonValue(runtimeProfile.manifestConfig ?? {}),
-    manifestInference: cloneJsonValue(runtimeProfile.manifestInference ?? {}),
+    manifestInference,
     architectureHint: normalizeText(runtimeProfile.modelType) || 'transformer',
     embeddingPostprocessor: null,
     architecture: cloneJsonValue(runtimeProfile.architecture ?? null),

@@ -259,6 +259,10 @@ export interface ManifestAttentionSchema {
   slidingWindow: number | null;
   /** Query-key normalization */
   queryKeyNorm: boolean;
+  /** Layers that apply query-key normalization; null means all layers when queryKeyNorm=true */
+  queryKeyNormLayers: number[] | null;
+  /** Layers that have explicit Q/K RMSNorm scale tensors; null means every normalized layer must have weights */
+  queryKeyNormWeightLayers: number[] | null;
   /** Value RMSNorm with implicit unit scale (Gemma 4 text attention) */
   valueNorm: boolean;
   /** Whether attention mask is causal (false = bidirectional attention) */
@@ -407,12 +411,20 @@ export interface ManifestChatTemplateSchema {
   enabled: boolean;
 }
 
+export interface ManifestUnsupportedSchema {
+  code?: string | null;
+  message?: string | null;
+  recommendation?: string | null;
+}
+
 /**
  * Complete inference configuration embedded in manifest.
  * All fields are required - converter must populate everything.
  * Use `null` values to indicate "not applicable" or "disabled".
  */
 export interface ManifestInferenceSchema {
+  /** Optional fail-fast marker for manifests with known unverified runtime contracts. */
+  unsupported?: ManifestUnsupportedSchema | null;
   /** Execution contract discriminator (null = legacy inference contract). */
   schema: string | null;
   /** Attention configuration */

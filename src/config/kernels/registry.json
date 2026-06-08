@@ -147,6 +147,7 @@
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16",
+              "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
@@ -325,6 +326,7 @@
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16",
+              "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
@@ -432,7 +434,7 @@
           "outputDtype": "f32",
           "weightDtype": "f16",
           "variantMetadata": {
-            "colsPerWg": 32
+            "colsPerWg": 8
           },
           "description": "Multi-column GEMV for large vocab (LM head F16) - 32 columns per workgroup",
           "reachability": {
@@ -446,6 +448,7 @@
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16",
+              "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
@@ -481,7 +484,7 @@
           "outputDtype": "f16",
           "weightDtype": "f16",
           "variantMetadata": {
-            "colsPerWg": 32
+            "colsPerWg": 8
           },
           "description": "Multi-column GEMV for large vocab (LM head F16) - f16 activations/output",
           "reachability": {
@@ -589,6 +592,188 @@
             "status": "unused",
             "inlineConfigs": [],
             "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
+        "litert_int4_multicol_f16a": {
+          "wgsl": "fused_matmul_litert_int4_f16a.wgsl",
+          "entryPoint": "main_multicol_f16a",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f16",
+          "weightDtype": "litert_int4",
+          "variantMetadata": {
+            "colsPerWg": 8
+          },
+          "description": "LiteRT fixed-affine INT4 batched matmul with f16 activations and f16 output; keeps Gemma 4 split-package weights packed on GPU",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#litertInt4FusedVariant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "litert_int4_multicol_f16a_f32out": {
+          "wgsl": "fused_matmul_litert_int4_f16a_f32out.wgsl",
+          "entryPoint": "main_multicol_f16a_f32out",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f32",
+          "weightDtype": "litert_int4",
+          "variantMetadata": {
+            "colsPerWg": 8
+          },
+          "description": "LiteRT fixed-affine INT4 batched matmul with f16 activations and f32 output; keeps Gemma 4 split-package weights packed on GPU",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#litertInt4FusedVariant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "litert_int4_multicol_f32a_f32out": {
+          "wgsl": "fused_matmul_litert_int4_f32a_f32out.wgsl",
+          "entryPoint": "main_multicol_f32a_f32out",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [],
+          "outputDtype": "f32",
+          "weightDtype": "litert_int4",
+          "variantMetadata": {
+            "colsPerWg": 8
+          },
+          "description": "LiteRT fixed-affine INT4 batched matmul with f32 activations and f32 output; keeps Gemma 4 split-package logits packed on GPU",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#litertInt4FusedVariant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "w4a16_multicol_f16a": {
+          "wgsl": "fused_matmul_w4a16_f16a.wgsl",
+          "entryPoint": "main_multicol_f16a",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f16",
+          "weightDtype": "w4a16",
+          "variantMetadata": {
+            "colsPerWg": 8
+          },
+          "description": "Compressed-tensors W4A16 packed matmul with f16 activations and f16 output; keeps QAT weights packed on GPU with per-row-group scales",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#w4a16FusedVariant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "w4a16_multicol_f16a_f32out": {
+          "wgsl": "fused_matmul_w4a16_f16a_f32out.wgsl",
+          "entryPoint": "main_multicol_f16a_f32out",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f32",
+          "weightDtype": "w4a16",
+          "variantMetadata": {
+            "colsPerWg": 8
+          },
+          "description": "Compressed-tensors W4A16 packed matmul with f16 activations and f32 output; keeps QAT weights packed on GPU with per-row-group scales",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#w4a16FusedVariant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "w4a16_batched_f16a": {
+          "wgsl": "fused_matmul_w4a16_batched_f16a.wgsl",
+          "entryPoint": "main_batched_f16a",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f16",
+          "weightDtype": "w4a16",
+          "variantMetadata": {
+            "colsPerWg": 8,
+            "tileM": 4
+          },
+          "description": "Compressed-tensors W4A16 packed batched prefill matmul with f16 activations and f16 output; keeps QAT weights packed on GPU with per-row-group scales",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#w4a16FusedVariant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "w4a16_batched_f16a_f32out": {
+          "wgsl": "fused_matmul_w4a16_batched_f16a_f32out.wgsl",
+          "entryPoint": "main_batched_f16a_f32out",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f32",
+          "weightDtype": "w4a16",
+          "variantMetadata": {
+            "colsPerWg": 8,
+            "tileM": 4
+          },
+          "description": "Compressed-tensors W4A16 packed batched prefill matmul with f16 activations and f32 output; keeps QAT weights packed on GPU with per-row-group scales",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "matmul.rules.json#w4a16FusedVariant"
+            ],
             "wgslOnDisk": true
           }
         },
@@ -2011,8 +2196,10 @@
             "tier": "tiled_small"
           },
           "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2033,8 +2220,10 @@
             "tier": "tiled_small"
           },
           "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2055,8 +2244,10 @@
             "tier": "streaming"
           },
           "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2077,8 +2268,10 @@
             "tier": "streaming"
           },
           "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2295,8 +2488,10 @@
           },
           "description": "head_dim=512 pure-f16 activation prefill kernel for Gemma-4 global attention layers.",
           "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2445,8 +2640,10 @@
           },
           "description": "Online decode kernel - f16 QKV with subgroup reductions",
           "reachability": {
-            "status": "model-selectable",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"
+            ],
             "ruleChains": [
               "attention.rules.json#optimizedVariant"
             ],
@@ -3420,8 +3617,8 @@
             "offset": 16
           },
           {
-            "name": "_pad0",
-            "type": "u32",
+            "name": "output_scale",
+            "type": "f32",
             "offset": 20
           },
           {
@@ -3458,6 +3655,7 @@
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16",
+              "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
@@ -4187,6 +4385,7 @@
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16",
+              "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
@@ -4512,6 +4711,7 @@
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
@@ -5465,6 +5665,7 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
@@ -5640,6 +5841,54 @@
           "variantMetadata": {
             "outputBinding": 4
           },
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "gather.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "litert_int4_vec4_f16_out": {
+          "wgsl": "gather_litert_int4_vec4_f16_out.wgsl",
+          "entryPoint": "gather_litert_int4_vec4_f16_out",
+          "workgroup": [
+            64,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f16",
+          "variantMetadata": {
+            "outputBinding": 4
+          },
+          "description": "LiteRT signed INT4 affine embeddings -> F16 output",
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "gather.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "litert_int4_vec4_f32_out": {
+          "wgsl": "gather_litert_int4_vec4_f32_out.wgsl",
+          "entryPoint": "gather_litert_int4_vec4_f32_out",
+          "workgroup": [
+            64,
+            1,
+            1
+          ],
+          "requires": [],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "outputBinding": 4
+          },
+          "description": "LiteRT signed INT4 affine embeddings -> F32 output",
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
@@ -5840,6 +6089,7 @@
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
+              "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
@@ -7311,6 +7561,7 @@
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16",
+              "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",

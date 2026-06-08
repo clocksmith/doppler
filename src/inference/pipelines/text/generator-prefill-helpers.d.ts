@@ -25,6 +25,10 @@ export declare function resolvePromptInput(
   contextLabel: string
 ): string;
 
+export declare function resolveEffectivePrefillTokenChunkSize(
+  state: Record<string, unknown>
+): number | null | undefined;
+
 export declare function releasePerLayerInputBuffer(
   buffer: GPUBuffer | null | undefined,
   recorder: { trackTemporaryBuffer(buffer: GPUBuffer): void } | null | undefined,

@@ -42,7 +42,7 @@ struct Uniforms {
     eps: f32,           // Epsilon for numerical stability (typically 1e-5 or 1e-6)
     has_residual: u32,  // Runtime flag: 1 = add residual after norm
     token_stride: u32,  // Workgroup rows per dispatch row
-    _pad0: u32,
+    output_scale: f32,  // Output epilogue scale
     _pad1: u32,
     _pad2: u32,
 }
@@ -101,6 +101,10 @@ fn write_prenorm(base_offset: u32, idx: u32, val: f32) {
     if (OUTPUT_PRENORM && PRE_RESIDUAL) {
         residual_sum_output[base_offset + idx] = val;
     }
+}
+
+fn apply_output_scale(value: f32) -> f32 {
+    return value * u.output_scale;
 }
 
 fn token_index(wg_id: vec3<u32>) -> u32 {
@@ -177,7 +181,7 @@ fn main(
             // Write pre-norm sum for downstream residual reuse
             write_prenorm(base_offset, idx, x);
 
-            output[base_offset + idx] = result;
+            output[base_offset + idx] = apply_output_scale(result);
         }
     }
 }
@@ -231,7 +235,7 @@ fn main_small(
             result = result + residual[base_offset + thread_idx];
         }
         write_prenorm(base_offset, thread_idx, x);
-        output[base_offset + thread_idx] = result;
+        output[base_offset + thread_idx] = apply_output_scale(result);
     }
 }
 
@@ -295,7 +299,7 @@ fn main_cached(
                 result = result + residual[base_offset + idx];
             }
             write_prenorm(base_offset, idx, x);
-            output[base_offset + idx] = result;
+            output[base_offset + idx] = apply_output_scale(result);
         }
     }
 }
@@ -378,7 +382,7 @@ fn main_subgroup(
             }
 
             write_prenorm(base_offset, idx, x);
-            output[base_offset + idx] = result;
+            output[base_offset + idx] = apply_output_scale(result);
         }
     }
 }
@@ -443,6 +447,6 @@ fn main_small_subgroup(
             result = result + residual[base_offset + thread_idx];
         }
         write_prenorm(base_offset, thread_idx, x);
-        output[base_offset + thread_idx] = result;
+        output[base_offset + thread_idx] = apply_output_scale(result);
     }
 }

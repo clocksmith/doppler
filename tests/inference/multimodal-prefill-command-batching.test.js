@@ -1,6 +1,32 @@
 import assert from 'node:assert/strict';
 
-import { shouldDisablePrefillCommandBatching } from '../../src/inference/pipelines/text/generator-prefill-helpers.js';
+import {
+  resolveEffectivePrefillTokenChunkSize,
+  shouldDisablePrefillCommandBatching,
+} from '../../src/inference/pipelines/text/generator-prefill-helpers.js';
+
+{
+  const state = {
+    modelConfig: {
+      sessionSettings: {
+        prefillTokenChunkSize: 64,
+      },
+    },
+    runtimeConfig: {
+      inference: {
+        session: {
+          prefillTokenChunkSize: 128,
+        },
+      },
+    },
+  };
+
+  assert.equal(
+    resolveEffectivePrefillTokenChunkSize(state),
+    128,
+    'positive runtime prefillTokenChunkSize must override manifest-owned chunk policy'
+  );
+}
 
 {
   const disabled = shouldDisablePrefillCommandBatching(
@@ -97,6 +123,36 @@ import { shouldDisablePrefillCommandBatching } from '../../src/inference/pipelin
     disabled,
     true,
     'token-chunked prefill must bypass command batching so cross-chunk KV writes match the direct path'
+  );
+}
+
+{
+  const disabled = shouldDisablePrefillCommandBatching(
+    {
+      modelConfig: {
+        sessionSettings: {
+          prefillTokenChunkSize: 64,
+        },
+      },
+      runtimeConfig: {
+        inference: {
+          session: {
+            prefillTokenChunkSize: null,
+          },
+        },
+      },
+      kvCache: {
+        hasGPUCache: () => true,
+      },
+    },
+    {},
+    null
+  );
+
+  assert.equal(
+    disabled,
+    true,
+    'manifest-owned token-chunked prefill must bypass command batching even when runtime default is null'
   );
 }
 

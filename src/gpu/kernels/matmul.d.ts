@@ -38,7 +38,7 @@ export interface MatmulOptions extends OutputBufferOptions, OutputDtypeOptions, 
   bOffset?: number;
   cOffset?: number;
   aDtype?: 'f16' | 'f32' | null;
-  bDtype?: 'f16' | 'f32' | 'q4k' | null;
+  bDtype?: 'f16' | 'f32' | 'q4k' | 'litert_int4' | 'w4a16' | null;
   preferF16?: boolean;
   /** WGSL override constants for pipeline creation */
   constants?: Record<string, number | boolean>;

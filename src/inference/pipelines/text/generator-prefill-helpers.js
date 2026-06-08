@@ -49,6 +49,19 @@ export function resolvePromptInput(state, prompt, useChatTemplate, contextLabel)
   return formatChatMessages(messages, templateType, chatOptions);
 }
 
+export function resolveEffectivePrefillTokenChunkSize(state) {
+  const runtimeSession = state?.runtimeConfig?.inference?.session;
+  const runtimeChunkSize = runtimeSession?.prefillTokenChunkSize;
+  if (runtimeChunkSize !== undefined && runtimeChunkSize !== null) {
+    return runtimeChunkSize;
+  }
+  const modelSession = state?.modelConfig?.sessionSettings;
+  if (modelSession?.prefillTokenChunkSize !== undefined) {
+    return modelSession.prefillTokenChunkSize;
+  }
+  return runtimeChunkSize;
+}
+
 export function releasePerLayerInputBuffer(buffer, recorder, decodeBuffers, pleCache = null) {
   if (!buffer) {
     return;
@@ -280,7 +293,7 @@ export function shouldDisablePrefillCommandBatching(state, opts, multimodalBidir
   if (state?.kvCache?.layout === 'bdpa_paged') {
     return true;
   }
-  if (state?.runtimeConfig?.inference?.session?.prefillTokenChunkSize != null) {
+  if (resolveEffectivePrefillTokenChunkSize(state) != null) {
     return true;
   }
   if (multimodalBidirectionalSpan == null) {

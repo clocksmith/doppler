@@ -17,6 +17,11 @@
     { "match": { "dtype": "f16" }, "value": "f16" },
     { "match": {}, "value": "f32" }
   ],
+  "embeddingDtype": [
+    { "match": { "dtype": "litert_int4" }, "value": "litert_int4" },
+    { "match": { "dtype": "f16" }, "value": "f16" },
+    { "match": {}, "value": "f32" }
+  ],
   "f16OrF32FromDtypeAlias": [
     { "match": { "dtype": "f16" }, "value": "f16" },
     { "match": { "dtype": "bf16" }, "value": "f16" },
@@ -79,6 +84,8 @@
   "matmulDtype": [
     { "match": { "dtype": { "in": ["f16", "bf16"] } }, "value": "f16" },
     { "match": { "dtype": "q4k" }, "value": "q4k" },
+    { "match": { "dtype": "litert_int4" }, "value": "litert_int4" },
+    { "match": { "dtype": "w4a16" }, "value": "w4a16" },
     { "match": {}, "value": "f32" }
   ],
   "logitsDtype": [

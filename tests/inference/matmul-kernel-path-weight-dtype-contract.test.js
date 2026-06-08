@@ -95,6 +95,32 @@ const f32WeightKernelPath = {
   },
 };
 
+const litertInt4KernelPath = {
+  id: 'unit-litert-int4-fused-path',
+  name: 'unit-litert-int4-fused-path',
+  description: 'Unit test path for LiteRT INT4 fused matmul validation.',
+  activationDtype: 'f32',
+  kvDtype: 'f16',
+  decode: {
+    steps: [
+      {
+        op: 'q_proj',
+        kernel: 'fused_matmul_litert_int4_f32a_f32out.wgsl',
+        entry: 'main_multicol_f32a_f32out',
+      },
+    ],
+  },
+  prefill: {
+    steps: [
+      {
+        op: 'q_proj',
+        kernel: 'fused_matmul_litert_int4_f32a_f32out.wgsl',
+        entry: 'main_multicol_f32a_f32out',
+      },
+    ],
+  },
+};
+
 const lmHeadKernelPath = {
   id: 'unit-lm-head-phase-path',
   name: 'unit-lm-head-phase-path',
@@ -260,6 +286,60 @@ try {
     }
   );
   assert.equal(selectedF32Weights.variant, 'f32');
+
+  const selectedLiteRTInt4Override = selectMatmulVariantAndFlags(
+    'run',
+    8,
+    16,
+    32,
+    'f32',
+    'litert_int4',
+    true,
+    'f32',
+    {
+      role: 'q_proj',
+      layerIdx: 0,
+      kernelPath: litertInt4KernelPath,
+    }
+  );
+  assert.equal(selectedLiteRTInt4Override.variant, 'litert_int4_multicol_f32a_f32out');
+  assert.equal(selectedLiteRTInt4Override.useLiteRTInt4Fused, true);
+
+  assert.throws(
+    () => selectMatmulVariantAndFlags(
+      'run',
+      8,
+      16,
+      32,
+      'f32',
+      'litert_int4',
+      false,
+      'f32',
+      {
+        role: 'q_proj',
+        layerIdx: 0,
+        kernelPath: litertInt4KernelPath,
+      }
+    ),
+    /requires transposeB=true/
+  );
+
+  const selectedLiteRTInt4Auto = selectMatmulVariantAndFlags(
+    'run',
+    8,
+    16,
+    32,
+    'f32',
+    'litert_int4',
+    true,
+    'f32',
+    {
+      role: 'q_proj',
+      layerIdx: 0,
+    }
+  );
+  assert.equal(selectedLiteRTInt4Auto.variant, 'litert_int4_multicol_f32a_f32out');
+  assert.equal(selectedLiteRTInt4Auto.useLiteRTInt4Fused, true);
 
   const selectedLmHeadDecode = selectMatmulVariantAndFlags(
     'run',

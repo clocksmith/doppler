@@ -198,6 +198,7 @@ export interface SourceStorageContext {
   ) => AsyncIterable<Uint8Array>) | null;
   loadTokenizerJson: (() => Promise<Record<string, unknown> | null>) | null;
   loadTokenizerModel: ((pathHint?: string) => Promise<ArrayBuffer | null>) | null;
+  loadAuxiliaryFile: ((path: string) => Promise<ArrayBuffer | null>) | null;
   loadTensorsJson?: (() => Promise<string | Record<string, unknown> | null>) | null;
   verifyHashes: boolean;
   close?: (() => Promise<void>) | null;

@@ -66,6 +66,9 @@ export async function doResidualAdd(a, b, size, recorder, traceOptions) {
   if (traceOptions?.executionPolicies) {
     options.executionPolicies = traceOptions.executionPolicies;
   }
+  if (traceOptions?.outputScale !== undefined) {
+    options.outputScale = traceOptions.outputScale;
+  }
   const result = recorder
     ? await recordResidualAdd(recorder, a, b, size, options)
     : await runResidualAdd(a, b, size, options);

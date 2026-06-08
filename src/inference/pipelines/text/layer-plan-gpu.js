@@ -24,12 +24,36 @@ import {
   hasPerLayerInputBlock,
   applyPerLayerInputBlock,
   applyLayerScalar,
+  resolveLayerScalarValue,
 } from './layer.js';
 
 // ============================================================================
 // Configurable Layer Pipeline (JSON-Driven)
 // ============================================================================
 
+function isFinalResidualOutputStep(steps, stepIndex) {
+  const step = steps[stepIndex];
+  return step?.op === 'residual_add'
+    && step.dst === 'state'
+    && !step.probeStage
+    && stepIndex === steps.length - 1;
+}
+
+function resolveResidualOutputScaleForPlan(steps, stepIndex, config, context, layerWeights, residualDtype) {
+  if (!isFinalResidualOutputStep(steps, stepIndex)) {
+    return 1;
+  }
+  if (hasPerLayerInputBlock(config)) {
+    return 1;
+  }
+  if (residualDtype !== resolveActivationDtype(context.activationDtype)) {
+    return 1;
+  }
+  if (context.debugProbes?.length) {
+    return 1;
+  }
+  return resolveLayerScalarValue(layerWeights?.layerScalar ?? null);
+}
 
 function resolveNormWeightForPlan(weight, layerWeights) {
   if (!layerWeights) return null;
@@ -194,7 +218,9 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
   };
 
   try {
-    for (const step of steps) {
+    let layerScalarFused = false;
+    for (let stepIndex = 0; stepIndex < steps.length; stepIndex++) {
+      const step = steps[stepIndex];
       switch (step.op) {
         case 'save': {
           const src = getSlot(step.src);
@@ -239,6 +265,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
             attnSoftcap: config.attnLogitSoftcapping === null ? 0 : config.attnLogitSoftcapping,
             queryPreAttnScalar: config.queryPreAttnScalar,
             queryKeyNorm: config.queryKeyNorm,
+            queryKeyNormWeightLayers: config.queryKeyNormWeightLayers,
             valueNorm: config.valueNorm,
             attentionOutputGate: config.attentionOutputGate,
             outputGateType: config.outputGateType ?? null,
@@ -422,11 +449,23 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
           const activationDtype = resolveStepInputDtype(step, step.a ?? 'state');
           const aTensor = createTensor(aBuf, activationDtype, [numTokens, hiddenSize], 'plan_residual_a');
           const bTensor = createTensor(bBuf, activationDtype, [numTokens, hiddenSize], 'plan_residual_b');
+          const outputScale = resolveResidualOutputScaleForPlan(
+            steps,
+            stepIndex,
+            config,
+            context,
+            layerWeights,
+            activationDtype
+          );
           const outputTensor = await doResidualAdd(aTensor, bTensor, size, recorder, {
             label: `L${layerIdx}.residual_add`,
             layerIdx,
+            outputScale,
             executionPolicies: context.executionPolicies ?? null,
           });
+          if (outputScale !== 1) {
+            layerScalarFused = true;
+          }
           const outputDtype = resolveStepOutputDtype(step, resolveActivationDtype(outputTensor.dtype));
           setSlot(step.dst, outputTensor.buffer, outputDtype);
           if (step.probeStage) {
@@ -499,12 +538,14 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
       const outputDtype = resolveActivationDtype(outputTensor.dtype);
       setSlot('state', outputTensor.buffer, outputDtype);
     }
-    const stateBuffer = getSlot('state');
-    const stateDtype = getSlotDtype('state') ?? activationDtype;
-    const stateTensor = createTensor(stateBuffer, stateDtype, [numTokens, hiddenSize], 'plan_state_layer_scalar');
-    const scaledTensor = await applyLayerScalar(layerIdx, stateTensor, size, context, layerWeights);
-    if (scaledTensor.buffer !== stateTensor.buffer) {
-      setSlot('state', scaledTensor.buffer, resolveActivationDtype(scaledTensor.dtype));
+    if (!layerScalarFused) {
+      const stateBuffer = getSlot('state');
+      const stateDtype = getSlotDtype('state') ?? activationDtype;
+      const stateTensor = createTensor(stateBuffer, stateDtype, [numTokens, hiddenSize], 'plan_state_layer_scalar');
+      const scaledTensor = await applyLayerScalar(layerIdx, stateTensor, size, context, layerWeights);
+      if (scaledTensor.buffer !== stateTensor.buffer) {
+        setSlot('state', scaledTensor.buffer, resolveActivationDtype(scaledTensor.dtype));
+      }
     }
   } catch (err) {
     cleanupSlots();

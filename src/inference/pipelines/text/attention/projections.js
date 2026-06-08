@@ -680,13 +680,16 @@ export async function applyAttentionQKNorm({
   onKNormApplied = null,
   skipKNorm = false,
   retainKInput = false,
+  allowUnitQKNorm = false,
 }) {
   const runRmsNormForMode = getRmsNormRunner(recorder);
   let nextQ = qTensor;
   let nextK = kTensor;
 
-  if (layerWeights.qNorm && getNormWeightBuffer) {
-    const qNormBuf = getNormWeightBuffer(layerWeights.qNorm, 'q_norm');
+  if ((layerWeights.qNorm && getNormWeightBuffer) || allowUnitQKNorm) {
+    const qNormBuf = layerWeights.qNorm && getNormWeightBuffer
+      ? getNormWeightBuffer(layerWeights.qNorm, 'q_norm')
+      : getQKNormOnesBuffer(headDim);
     const qElemsF32 = qNormBuf.size / 4;
     const qElemsF16 = qNormBuf.size / 2;
     const qElems = qElemsF32 === headDim ? qElemsF32 : qElemsF16;
@@ -702,13 +705,15 @@ export async function applyAttentionQKNorm({
         await onQNormApplied(nextQ);
       }
     }
-    if (!isGpuBufferInstance(layerWeights.qNorm) && !isWeightBuffer(layerWeights.qNorm)) {
+    if (layerWeights.qNorm && !isGpuBufferInstance(layerWeights.qNorm) && !isWeightBuffer(layerWeights.qNorm)) {
       releaseTemporary(qNormBuf);
     }
   }
 
-  if (!skipKNorm && layerWeights.kNorm && getNormWeightBuffer) {
-    const kNormBuf = getNormWeightBuffer(layerWeights.kNorm, 'k_norm');
+  if (!skipKNorm && ((layerWeights.kNorm && getNormWeightBuffer) || allowUnitQKNorm)) {
+    const kNormBuf = layerWeights.kNorm && getNormWeightBuffer
+      ? getNormWeightBuffer(layerWeights.kNorm, 'k_norm')
+      : getQKNormOnesBuffer(headDim);
     const kElemsF32 = kNormBuf.size / 4;
     const kElemsF16 = kNormBuf.size / 2;
     const kElems = kElemsF32 === headDim ? kElemsF32 : kElemsF16;
@@ -726,7 +731,7 @@ export async function applyAttentionQKNorm({
         await onKNormApplied(nextK);
       }
     }
-    if (!isGpuBufferInstance(layerWeights.kNorm) && !isWeightBuffer(layerWeights.kNorm)) {
+    if (layerWeights.kNorm && !isGpuBufferInstance(layerWeights.kNorm) && !isWeightBuffer(layerWeights.kNorm)) {
       releaseTemporary(kNormBuf);
     }
   }

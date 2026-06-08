@@ -39,6 +39,7 @@ import { MemoryMonitor } from './memory-monitor.js';
 import {
   loadTensorToGPU,
   loadTensorToCPU,
+  isLiteRTAffineInt4FusedEligible,
 } from './tensors/tensor-loader.js';
 import { annotateWeightLoadError } from '../inference/pipelines/text/load-errors.js';
 import { loadEmbeddings } from './embedding-loader.js';
@@ -827,9 +828,14 @@ export class DopplerLoader {
     const streamedUpload = toGPU && this.#shouldStreamUploadToGPU(location);
     let shardData;
     try {
+      const preserveRawSourceBytes = toGPU && isLiteRTAffineInt4FusedEligible(location, {
+        gpuCapabilities: this.gpuCapabilities,
+      });
       shardData = streamedUpload
         ? await this.#assembleShardDataToGpuBuffer(location, name)
-        : await this.#assembleShardData(location, name);
+        : await this.#assembleShardData(location, name, {
+            materializeSourceTransform: !preserveRawSourceBytes,
+          });
     } catch (error) {
       throw annotateTensorLoadError(error, name, location, {
         tensorLoadStage: streamedUpload ? 'streamShardToGpuBuffer' : 'assembleShardData',
@@ -895,10 +901,10 @@ export class DopplerLoader {
   }
 
   
-  async #assembleShardData(location, name) {
+  async #assembleShardData(location, name, options = {}) {
     const loadShard = this.#getLoadShard();
     const loadShardRange = (idx, offset, length) => this.shardCache.loadRange(idx, offset, length);
-    const data = await assembleShardData(location, name, loadShard, loadShardRange);
+    const data = await assembleShardData(location, name, loadShard, loadShardRange, options);
     const companions = Array.isArray(location?.storage?.companions)
       ? location.storage.companions
       : [];

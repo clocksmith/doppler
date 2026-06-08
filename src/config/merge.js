@@ -51,6 +51,18 @@ function mergeAttention(
       runtime?.queryKeyNorm,
       sources
     ),
+    queryKeyNormLayers: overlay(
+      `${prefix}.queryKeyNormLayers`,
+      manifest.queryKeyNormLayers,
+      runtime?.queryKeyNormLayers,
+      sources
+    ),
+    queryKeyNormWeightLayers: overlay(
+      `${prefix}.queryKeyNormWeightLayers`,
+      manifest.queryKeyNormWeightLayers,
+      runtime?.queryKeyNormWeightLayers,
+      sources
+    ),
     valueNorm: overlay(
       `${prefix}.valueNorm`,
       manifest.valueNorm,

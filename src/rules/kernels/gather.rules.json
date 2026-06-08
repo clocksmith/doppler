@@ -1,5 +1,7 @@
 {
   "variant": [
+    { "match": { "useLiteRTInt4Input": true, "useF16Output": false, "useVec4": true }, "value": "litert_int4_vec4_f32_out" },
+    { "match": { "useLiteRTInt4Input": true, "useF16Output": true, "useVec4": true }, "value": "litert_int4_vec4_f16_out" },
     { "match": { "useF16Input": true, "useF16Output": true, "useVec4": true }, "value": "f16_vec4_f16_out" },
     { "match": { "useF16Input": true, "useF16Output": true }, "value": "f16_f16_out" },
     { "match": { "useF16Input": true, "useVec4": true }, "value": "f16_vec4" },

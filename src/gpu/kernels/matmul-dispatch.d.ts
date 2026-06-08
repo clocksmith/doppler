@@ -17,6 +17,17 @@ export declare function calculateMatmulDispatch(
   config: KernelConfig
 ): { workgroups: GPUExtent3D; uniformWorkgroupsX?: number };
 
+export declare function calculateMatmulDispatch(
+  variant: string,
+  useQ4KFused: boolean,
+  useGemv: boolean,
+  useLiteRTInt4Fused: boolean,
+  M: number,
+  N: number,
+  config: KernelConfig,
+  useW4A16Fused?: boolean
+): { workgroups: GPUExtent3D; uniformWorkgroupsX?: number };
+
 export declare function createMatmulUniformBuffer(
   label: string,
   M: number,

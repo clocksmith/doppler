@@ -249,6 +249,43 @@ function readW4A16Scales(companion, expectedScales, name) {
   throw new Error(`W4A16 tensor "${name}" has unsupported scale companion dtype "${companion.location?.dtype}".`);
 }
 
+function validateW4A16PackedStorage(shardData, location, name) {
+  const scaleCompanion = getStorageCompanion(shardData, location, name, 'scales');
+  const shapeCompanion = getStorageCompanion(shardData, location, name, 'shape');
+  const [rows, cols] = assertW4A16Shape(
+    readW4A16LogicalShape(shapeCompanion, location.shape, name),
+    location.shape,
+    name
+  );
+  const groupsPerRow = Math.ceil(cols / 32);
+  const expectedPackedBytes = rows * groupsPerRow * 16;
+  if (shardData.byteLength !== expectedPackedBytes) {
+    throw new Error(
+      `W4A16 tensor "${name}" packed byte length ${shardData.byteLength} does not match expected ${expectedPackedBytes}.`
+    );
+  }
+  const scaleDtype = String(scaleCompanion.location?.dtype || '').toUpperCase();
+  const scaleBytesPerElement = scaleDtype === 'F32'
+    ? 4
+    : (scaleDtype === 'F16' || scaleDtype === 'BF16' ? 2 : null);
+  if (scaleBytesPerElement == null) {
+    throw new Error(`W4A16 tensor "${name}" has unsupported scale companion dtype "${scaleCompanion.location?.dtype}".`);
+  }
+  const expectedScaleBytes = rows * groupsPerRow * scaleBytesPerElement;
+  if (scaleCompanion.bytes.byteLength !== expectedScaleBytes) {
+    throw new Error(
+      `W4A16 tensor "${name}" scale byte length ${scaleCompanion.bytes.byteLength} does not match expected ${expectedScaleBytes}.`
+    );
+  }
+  return {
+    rows,
+    cols,
+    groupsPerRow,
+    scaleDtype: scaleDtype.toLowerCase(),
+    scaleBytes: scaleCompanion.bytes,
+  };
+}
+
 function dequantizeW4A16ToF16(shardData, location, name) {
   const scaleCompanion = getStorageCompanion(shardData, location, name, 'scales');
   const shapeCompanion = getStorageCompanion(shardData, location, name, 'shape');
@@ -318,6 +355,56 @@ function canUseFusedQ4KStorage(location, config) {
   if (isPackedQ4K(location)) return false;
 
   return true;
+}
+
+export function isLiteRTAffineInt4FusedEligible(location, config) {
+  const caps = config?.gpuCapabilities || getKernelCapabilities();
+  if (caps?.hasF16 !== true) return false;
+
+  if (!Array.isArray(location?.shape) || location.shape.length !== 2) return false;
+  if (!location?.role) return false;
+  if (isEmbeddingRole(location)) return false;
+  if (location.role !== 'matmul' && location.role !== 'lm_head') return false;
+  if (!shouldDequantizeToF16(location)) return false;
+
+  const transform = location.sourceTransform;
+  if (!transform || typeof transform !== 'object') return false;
+  const sourceDtype = String(transform.sourceDtype || '').toUpperCase();
+  const targetDtype = String(transform.targetDtype || '').toUpperCase();
+  const locationDtype = String(location.dtype || '').toUpperCase();
+  const storageEncoding = String(transform.storageEncoding || '').toLowerCase();
+  const scale = Number(transform.scale);
+  const zeroPoint = Number(transform.zeroPoint);
+  const storageEncodingSupported = storageEncoding === 'signed' || storageEncoding === 'offset_binary';
+
+  return transform.kind === 'affine_dequant'
+    && transform.scheme === 'per_tensor_affine'
+    && sourceDtype === 'INT4'
+    && targetDtype === 'F16'
+    && locationDtype === 'F16'
+    && storageEncodingSupported
+    && Number.isFinite(scale)
+    && Math.abs(scale - 0.0625) <= Number.EPSILON
+    && Number.isSafeInteger(zeroPoint)
+    && zeroPoint === 0;
+}
+
+export function isW4A16FusedEligible(location, config) {
+  const caps = config?.gpuCapabilities || getKernelCapabilities();
+  if (caps?.hasF16 !== true) return false;
+
+  if (!Array.isArray(location?.shape) || location.shape.length !== 2) return false;
+  if (String(location?.dtype || '').toUpperCase() !== 'W4A16') return false;
+  if (!location?.role) return false;
+  if (isEmbeddingRole(location)) return false;
+  if (location.role !== 'matmul' && location.role !== 'lm_head') return false;
+  if (!shouldDequantizeToF16(location)) return false;
+  if (location?.storage?.packing !== 'w4a16') return false;
+  if (!Array.isArray(location?.storage?.companions)) return false;
+
+  const hasScales = location.storage.companions.some((entry) => entry.role === 'scales');
+  const hasShape = location.storage.companions.some((entry) => entry.role === 'shape');
+  return hasScales && hasShape;
 }
 
 function getQ4KDenseMaterializedSizeBytes(location, config) {
@@ -464,6 +551,80 @@ export async function loadQ4KFused(shardData, location, name) {
     };
   } catch (error) {
     releaseOwnedGpuBuffer(buffer, ownsBuffer);
+    throw error;
+  }
+}
+
+export async function loadLiteRTInt4Fused(shardData, location, name, config = null) {
+  if (isGpuBufferInstance(shardData)) {
+    throw new Error(
+      `LiteRT INT4 tensor "${name}" requires raw packed source bytes before GPU upload.`
+    );
+  }
+  if (!isLiteRTAffineInt4FusedEligible(location, config ?? { gpuCapabilities: getKernelCapabilities() })) {
+    throw new Error(
+      `LiteRT INT4 tensor "${name}" does not match the fused fixed-affine contract ` +
+      '(INT4 -> F16, storageEncoding=signed|offset_binary, per_tensor_affine, scale=0.0625, zeroPoint=0, 2D matmul/lm_head role).'
+    );
+  }
+
+  const [rows, cols] = location.shape;
+  const expectedBytes = rows * Math.ceil(cols / 2);
+  const actualBytes = resolveInputByteLength(shardData, location.size);
+  if (actualBytes !== expectedBytes) {
+    throw new Error(
+      `LiteRT INT4 tensor "${name}" packed byte size mismatch. ` +
+      `Expected ${expectedBytes} bytes for shape [${rows},${cols}], got ${actualBytes}.`
+    );
+  }
+
+  const device = getDevice();
+  const buffer = acquireAlignedBuffer(actualBytes, `litert_int4_${name}`);
+  try {
+    writeBufferAligned(device, buffer, shardData);
+    return {
+      data: createWeightBuffer(buffer, 'litert_int4', 'row', location.shape, name, null, {
+        storageEncoding: String(location.sourceTransform.storageEncoding).toLowerCase(),
+      }),
+      allocatedBuffers: [buffer],
+    };
+  } catch (error) {
+    releaseBuffer(buffer);
+    throw error;
+  }
+}
+
+export async function loadW4A16Fused(shardData, location, name, config = null) {
+  if (isGpuBufferInstance(shardData)) {
+    throw new Error(
+      `W4A16 tensor "${name}" requires raw packed source bytes before GPU upload.`
+    );
+  }
+  if (!isW4A16FusedEligible(location, config ?? { gpuCapabilities: getKernelCapabilities() })) {
+    throw new Error(
+      `W4A16 tensor "${name}" does not match the fused packed contract ` +
+      '(dtype=W4A16, storage.packing=w4a16, scales+shape companions, 2D matmul/lm_head role).'
+    );
+  }
+
+  const storage = validateW4A16PackedStorage(shardData, location, name);
+  const device = getDevice();
+  const weightBuffer = acquireAlignedBuffer(shardData.byteLength, `w4a16_${name}`);
+  const scaleBuffer = acquireAlignedBuffer(storage.scaleBytes.byteLength, `w4a16_scales_${name}`);
+  try {
+    writeBufferAligned(device, weightBuffer, shardData);
+    writeBufferAligned(device, scaleBuffer, storage.scaleBytes);
+    return {
+      data: createWeightBuffer(weightBuffer, 'w4a16', 'row', location.shape, name, null, {
+        scaleBuffer,
+        scaleDtype: storage.scaleDtype,
+        groupsPerRow: storage.groupsPerRow,
+      }),
+      allocatedBuffers: [weightBuffer, scaleBuffer],
+    };
+  } catch (error) {
+    releaseBuffer(weightBuffer);
+    releaseBuffer(scaleBuffer);
     throw error;
   }
 }
@@ -943,6 +1104,14 @@ export async function loadW4A16Dequant(shardData, location, name, config) {
 
 
 const GPU_LOADER_DISPATCH = {
+  litert_int4_fused: (shardData, location, name, config) => {
+    debugTrace.loader(`Loading LiteRT INT4 weight (fused): ${name} (size=${location.size})`);
+    return loadLiteRTInt4Fused(shardData, location, name, config);
+  },
+  w4a16_fused: (shardData, location, name, config) => {
+    debugTrace.loader(`Loading W4A16 weight (fused): ${name} (size=${location.size})`);
+    return loadW4A16Fused(shardData, location, name, config);
+  },
   q4k_mixed: (shardData, location, name, config) => loadQ4KMixed(shardData, location, name, config),
   q4k_fused: (shardData, location, name, _config) => {
     debugTrace.loader(`Loading Q4K weight (fused): ${name} (size=${location.size})`);
@@ -990,9 +1159,13 @@ export async function loadTensorToGPU(shardData, location, name, config) {
   const q4kBasicBackendClass = platformId === 'basic'
     || (caps?.hasSubgroups !== true && caps?.hasF16 !== true);
   const q4kLimitFallback = resolveQ4KLimitFallback(location, config);
+  const litertAffineInt4FusedEligible = isLiteRTAffineInt4FusedEligible(location, { ...config, gpuCapabilities: caps });
+  const w4a16FusedEligible = isW4A16FusedEligible(location, { ...config, gpuCapabilities: caps });
   const loaderPath = selectRuleValue('loader', 'tensorLoader', 'gpuLoaderPath', {
     dtype,
     role: location.role ?? null,
+    litertAffineInt4FusedEligible,
+    w4a16FusedEligible,
     useFusedQ4K,
     requiresFusedQ4KRole,
     q4kMaterializationMode: config.q4kMaterializationMode ?? 'dense',

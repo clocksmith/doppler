@@ -7,7 +7,7 @@ import { markWarmed as markKernelCacheWarmed } from '../../../gpu/kernel-selecti
 import { resetSubmitStats, logSubmitStats } from '../../../gpu/submit-tracker.js';
 import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from '../../../gpu/command-recorder.js';
 import { allowReadback } from '../../../gpu/perf-guards.js';
-import { log, trace } from '../../../debug/index.js';
+import { log, trace, isTraceEnabled } from '../../../debug/index.js';
 import {
   CAPTURE_LEVELS,
   createDefaultCaptureConfig,
@@ -23,7 +23,7 @@ import { embed } from './embed.js';
 import { processLayer } from './layer.js';
 import { computeLogits, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from './logits/index.js';
 import { OperatorEventEmitter } from './operator-events.js';
-import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype } from '../../../gpu/weight-buffer.js';
+import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, getWeightMetadata } from '../../../gpu/weight-buffer.js';
 import {
   decodeStep,
   decodeStepLogits,
@@ -94,6 +94,7 @@ import {
   resolvePrefillMultimodalBidirectionalSpan,
   applyPrefixEmbeddingOverride,
   shouldDisablePrefillCommandBatching,
+  resolveEffectivePrefillTokenChunkSize,
 } from './generator-prefill-helpers.js';
 import {
   shouldDisableBatchDecodeAfterShortBatch,
@@ -181,6 +182,15 @@ function resolveSuppressedSamplingTokenIds(state, samplingConfig) {
     }
   }
   return [...suppressed];
+}
+
+async function traceActivationHealth(label, buffer, dtype, elementCount) {
+  if (!isTraceEnabled('logits') || !isGpuBufferInstance(buffer)) {
+    return;
+  }
+  const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
+  const data = await readBuffer(buffer, elementCount * bytesPerElement);
+  trace.logits(label, getLogitsHealth(decodeReadback(data, dtype)));
 }
 
 let intentBundleModulePromise = null;
@@ -427,16 +437,15 @@ export class PipelineGenerator {
   }
 
   _resolvePrefillTokenChunkSize(inputIds) {
-    const session = this.#state.runtimeConfig?.inference?.session;
-    if (session?.prefillTokenChunkSize === undefined) {
-      throw new Error('runtime.inference.session.prefillTokenChunkSize is required; use null to disable token-chunked prefill.');
+    const chunkSize = resolveEffectivePrefillTokenChunkSize(this.#state);
+    if (chunkSize === undefined) {
+      throw new Error('inference.session.prefillTokenChunkSize is required; use null to disable token-chunked prefill.');
     }
-    const chunkSize = session.prefillTokenChunkSize;
     if (chunkSize === null) {
       return null;
     }
     if (!Number.isInteger(chunkSize) || chunkSize <= 0) {
-      throw new Error('runtime.inference.session.prefillTokenChunkSize must be null or a positive integer.');
+      throw new Error('inference.session.prefillTokenChunkSize must be null or a positive integer.');
     }
     return chunkSize < inputIds.length ? chunkSize : null;
   }
@@ -1913,6 +1922,8 @@ export class PipelineGenerator {
     const numTokens = inputIds.length;
     const config = this.#state.modelConfig;
     const startPos = this.#state.currentSeqLen;
+    const tracePrefillEnabled = isTraceEnabled('perf');
+    const prefillTraceStart = tracePrefillEnabled ? performance.now() : 0;
     const returnHidden = opts?._returnHidden === true;
     const embeddingInputIds = resolvePrefillEmbeddingInputIds(
       inputIds,
@@ -1955,6 +1966,7 @@ export class PipelineGenerator {
     const embedDtype = isCpuWeightBuffer(embedBufferRaw)
       ? embedBufferRaw.dtype
       : getWeightDtype(embedBufferRaw);
+    const embedMetadata = getWeightMetadata(embedBufferRaw);
     if (opts.debug) {
       const embedSize = isGpuBufferInstance(embedBuffer) ? embedBuffer.size : 'N/A';
       log.debug('Pipeline', `Embed buffer: type=${embedBuffer?.constructor?.name}, size=${embedSize}, dtype=${embedDtype}`);
@@ -2034,6 +2046,16 @@ export class PipelineGenerator {
 
     const activationDtype = opts.executionPlan?.activationDtype ?? this._getEffectiveActivationDtype();
     const activationBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
+    if (tracePrefillEnabled) {
+      trace.perf('Prefill phase start', {
+        numTokens,
+        startPos,
+        numLayers: config.numLayers,
+        activationDtype,
+        returnHidden,
+      });
+    }
+    const embedTraceStart = tracePrefillEnabled ? performance.now() : 0;
     let baseEmbeddings = await embed(embeddingInputIds, embedBuffer, {
       hiddenSize: config.hiddenSize,
       vocabSize: config.vocabSize,
@@ -2044,11 +2066,19 @@ export class PipelineGenerator {
       debugProbes: this.#state.runtimeConfig.shared.debug.probes,
       operatorDiagnostics: this.#state.operatorDiagnostics,
       activationDtype,
-      embeddingDtype: selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', { dtype: embedDtype }),
+      embeddingDtype: selectRuleValue('inference', 'dtype', 'embeddingDtype', { dtype: embedDtype }),
+      embeddingStorageEncoding: embedMetadata?.storageEncoding ?? null,
       executionPolicies: this.#state.executionV1State?.policies ?? null,
     });
+    if (tracePrefillEnabled) {
+      trace.perf('Prefill embed complete', {
+        numTokens,
+        elapsedMs: performance.now() - embedTraceStart,
+      });
+    }
     let hiddenStates = baseEmbeddings;
     let perLayerInputs = null;
+    const perLayerInputsTraceStart = tracePrefillEnabled ? performance.now() : 0;
     try {
       hiddenStates = await applyPrefixEmbeddingOverride(
         baseEmbeddings,
@@ -2066,6 +2096,13 @@ export class PipelineGenerator {
           pleCache: this.#state.pleCache ?? null,
         }
       );
+      if (tracePrefillEnabled) {
+        trace.perf('Prefill per-layer inputs complete', {
+          numTokens,
+          elapsedMs: performance.now() - perLayerInputsTraceStart,
+          materialized: Array.isArray(perLayerInputs),
+        });
+      }
     } catch (error) {
       if (isGpuBufferInstance(hiddenStates?.buffer)) {
         releaseBuffer(hiddenStates.buffer);
@@ -2131,6 +2168,8 @@ export class PipelineGenerator {
     let currentHiddenBuffer = hiddenStates.buffer;
     let prefillRecordMs = 0;
     let prefillSubmitWaitMs = 0;
+    const layerLoopTraceStart = tracePrefillEnabled ? performance.now() : 0;
+    const traceLayerHealthEnabled = isTraceEnabled('logits');
     try {
       for (let l = 0; l < config.numLayers; l++) {
         // Per-layer hard cancellation: when the caller's AbortSignal aborts,
@@ -2167,6 +2206,7 @@ export class PipelineGenerator {
 
         const isCheckpoint = useCheckpoints && opts.debugLayers?.includes(l);
         const isChunkBoundary = !isCheckpoint
+          && !traceLayerHealthEnabled
           && currentRecorder
           && l < config.numLayers - 1
           && (l + 1) % prefillRecorderChunkLayers === 0;
@@ -2180,6 +2220,27 @@ export class PipelineGenerator {
           await currentRecorder.submitAndWait();
           await recordProfile(currentRecorder);
           currentRecorder = undefined;
+        }
+
+        if (traceLayerHealthEnabled && currentRecorder) {
+          currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
+            currentHiddenBuffer,
+            currentRecorder,
+            'prefill_trace_layer_health_carry'
+          );
+          const traceSubmitStart = performance.now();
+          await currentRecorder.submitAndWait();
+          await recordProfile(currentRecorder);
+          prefillSubmitWaitMs += performance.now() - traceSubmitStart;
+          await traceActivationHealth(
+            `PREFILL_LAYER_${l}_HEALTH`,
+            currentHiddenBuffer,
+            activationDtype,
+            numTokens * config.hiddenSize
+          );
+          currentRecorder = l < config.numLayers - 1
+            ? createRecorder('prefill-trace')
+            : undefined;
         }
 
         const shouldDebug = opts.debug && currentHiddenBuffer && (!recorder || isCheckpoint);
@@ -2248,8 +2309,30 @@ export class PipelineGenerator {
             await recordProfile(currentRecorder);
           }
           prefillSubmitWaitMs += performance.now() - chunkSubmitStart;
+          await traceActivationHealth(
+            `PREFILL_LAYER_${l}_HEALTH`,
+            currentHiddenBuffer,
+            activationDtype,
+            numTokens * config.hiddenSize
+          );
+          if (tracePrefillEnabled) {
+            trace.perf('Prefill chunk submitted', {
+              layer: l,
+              elapsedMs: performance.now() - layerLoopTraceStart,
+              prefillRecordMs,
+              prefillSubmitWaitMs,
+            });
+          }
           currentRecorder = createRecorder('prefill-chunk');
         }
+      }
+      if (tracePrefillEnabled) {
+        trace.perf('Prefill layer loop recorded', {
+          numTokens,
+          elapsedMs: performance.now() - layerLoopTraceStart,
+          prefillRecordMs,
+          prefillSubmitWaitMs,
+        });
       }
     } finally {
       context.perLayerInputBuffer = null;
@@ -2362,6 +2445,7 @@ export class PipelineGenerator {
       && !this.#state.disableRecordedLogits
       && numTokens === 1;
     if (currentRecorder && canRecordLogits) {
+      const logitsTraceStart = tracePrefillEnabled ? performance.now() : 0;
       const recorded = await recordLogitsGPU(
         currentRecorder,
         currentHiddenBuffer,
@@ -2382,6 +2466,13 @@ export class PipelineGenerator {
       const logitsData = await readBufferSlice(recorded.logitsBuffer, lastLogitsOffset, lastLogitsSize);
       releaseBuffer(recorded.logitsBuffer);
       lastLogits = decodeReadback(logitsData, recorded.logitsDtype);
+      if (tracePrefillEnabled) {
+        trace.perf('Prefill recorded logits complete', {
+          numTokens,
+          vocabSize: logitsVocabSize,
+          elapsedMs: performance.now() - logitsTraceStart,
+        });
+      }
 
       const health = getLogitsHealth(lastLogits);
       if (health.nanCount > 0 || health.infCount > 0 || health.nonZeroCount === 0) {
@@ -2420,6 +2511,7 @@ export class PipelineGenerator {
 
       releaseBuffer(currentHiddenBuffer);
     } else {
+      const logitsTraceStart = tracePrefillEnabled ? performance.now() : 0;
       if (currentRecorder) {
         currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
           currentHiddenBuffer,
@@ -2447,6 +2539,13 @@ export class PipelineGenerator {
         ? logits
         : extractLastPositionLogits(logits, numTokens, logitsVocabSize);
       releaseBuffer(currentHiddenBuffer);
+      if (tracePrefillEnabled) {
+        trace.perf('Prefill logits complete', {
+          numTokens,
+          vocabSize: logitsVocabSize,
+          elapsedMs: performance.now() - logitsTraceStart,
+        });
+      }
     }
 
     this.#state.currentSeqLen = startPos + numTokens;
@@ -2466,6 +2565,9 @@ export class PipelineGenerator {
     if (opts.debug) {
       logitsSanity(lastLogits, 'Prefill', (tokens) => resolveTokenText(this.#state.tokenizer, tokens));
     }
+    if (isTraceEnabled('logits')) {
+      trace.logits('PREFILL_LOGITS_HEALTH', getLogitsHealth(lastLogits));
+    }
 
     if (opts.debug) {
       if (this.#state.kvCache?.hasGPUCache?.()) {
@@ -2473,6 +2575,13 @@ export class PipelineGenerator {
       } else {
         log.warn('Pipeline', `KV cache NOT active after prefill! hasGPUCache=${this.#state.kvCache?.hasGPUCache?.()}`);
       }
+    }
+
+    if (tracePrefillEnabled) {
+      trace.perf('Prefill phase complete', {
+        numTokens,
+        totalMs: performance.now() - prefillTraceStart,
+      });
     }
 
     return lastLogits;

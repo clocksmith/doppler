@@ -10,7 +10,7 @@ enable f16;
 
 struct Uniforms {
     size: u32,     // Total number of elements
-    scale: f32,    // Scale factor (unused here, kept for layout parity)
+    scale: f32,    // Output scale
     _pad1: u32,
     _pad2: u32,
 }
@@ -36,13 +36,13 @@ fn add_vec4(@builtin(global_invocation_id) gid: vec3<u32>) {
     let remaining = min(4u, size - idx);
 
     if (remaining >= 4u) {
-        output[idx] = a[idx] + b[idx];
-        output[idx + 1u] = a[idx + 1u] + b[idx + 1u];
-        output[idx + 2u] = a[idx + 2u] + b[idx + 2u];
-        output[idx + 3u] = a[idx + 3u] + b[idx + 3u];
+        output[idx] = f16(f32(a[idx] + b[idx]) * u.scale);
+        output[idx + 1u] = f16(f32(a[idx + 1u] + b[idx + 1u]) * u.scale);
+        output[idx + 2u] = f16(f32(a[idx + 2u] + b[idx + 2u]) * u.scale);
+        output[idx + 3u] = f16(f32(a[idx + 3u] + b[idx + 3u]) * u.scale);
     } else {
         for (var i = 0u; i < remaining; i = i + 1u) {
-            output[idx + i] = a[idx + i] + b[idx + i];
+            output[idx + i] = f16(f32(a[idx + i] + b[idx + i]) * u.scale);
         }
     }
 }

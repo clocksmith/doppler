@@ -19,7 +19,7 @@ import { DTYPE_SIZES } from '../config/schema/index.js';
 import { createTensor } from '../gpu/tensor.js';
 import { castF16ToF32 } from '../gpu/kernel-selector.js';
 import { releaseBuffer } from '../memory/buffer-pool.js';
-import { loadTensorRange } from './tensors/tensor-reader.js';
+import { assembleShardData, loadTensorRange } from './tensors/tensor-reader.js';
 import { hasSourceTransform } from './tensors/source-transform.js';
 import { getLargeWeightMaxBytes } from './manifest-config.js';
 
@@ -39,6 +39,17 @@ function isPerLayerEmbeddingTensor(name) {
 
 function isGpuBufferInstance(value) {
   return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
+}
+
+function normalizeLiteRTInt4StorageEncoding(transform, name) {
+  const storageEncoding = String(transform?.storageEncoding ?? '').toLowerCase();
+  if (storageEncoding !== 'signed' && storageEncoding !== 'offset_binary') {
+    throw new Error(
+      `[Loader] Embedding "${name}" LiteRT INT4 sourceTransform.storageEncoding must be ` +
+      `"signed" or "offset_binary", got "${transform?.storageEncoding ?? 'missing'}".`
+    );
+  }
+  return storageEncoding;
 }
 
 function createRangeBackedTensorSource(ctx, name, location) {
@@ -67,6 +78,86 @@ function createRangeBackedWeightBuffer(ctx, name, location) {
     locationDtype: location.dtype,
   });
   return createCpuWeightBuffer(source, dtype, layout, location.shape, name);
+}
+
+function isFixedLiteRTInt4AffineEmbedding(ctx, name, location) {
+  if (ctx.hostHasShaderF16 === false) {
+    return false;
+  }
+  if (!location?.shape || location.shape.length !== 2) {
+    return false;
+  }
+  if (location.role !== EMBEDDING_ROLE) {
+    return false;
+  }
+  if (ctx.resolveWeightLayout(location) !== 'row') {
+    return false;
+  }
+  const transform = location.sourceTransform;
+  if (!transform || transform.kind !== 'affine_dequant') {
+    return false;
+  }
+  if (transform.scheme !== 'per_tensor_affine') {
+    return false;
+  }
+  if (String(transform.sourceDtype ?? '').toUpperCase() !== 'INT4') {
+    return false;
+  }
+  if (String(transform.targetDtype ?? '').toUpperCase() !== 'F16') {
+    return false;
+  }
+  normalizeLiteRTInt4StorageEncoding(transform, name);
+  if (Number(transform.scale) !== 0.0625 || Number(transform.zeroPoint) !== 0) {
+    return false;
+  }
+  const [, hiddenSize] = location.shape;
+  const expectedBytes = location.shape[0] * Math.ceil(hiddenSize / 2);
+  if (location.size !== expectedBytes) {
+    throw new Error(
+      `[Loader] Embedding "${name}" LiteRT INT4 source size mismatch: ` +
+      `manifest size=${location.size}, expected=${expectedBytes}.`
+    );
+  }
+  return typeof ctx.loadShardRange === 'function';
+}
+
+async function createLiteRTInt4GpuEmbeddingWeightBuffer(ctx, name, location) {
+  if (!isFixedLiteRTInt4AffineEmbedding(ctx, name, location)) {
+    return null;
+  }
+  const device = getDevice();
+  if (!device) {
+    return null;
+  }
+  const rawBytes = await assembleShardData(location, name, null, ctx.loadShardRange, {
+    materializeSourceTransform: false,
+  });
+  if (rawBytes.byteLength !== location.size) {
+    throw new Error(
+      `[Loader] Embedding "${name}" LiteRT INT4 raw read ${rawBytes.byteLength} bytes, ` +
+      `expected ${location.size}.`
+    );
+  }
+  const buffer = device.createBuffer({
+    label: `${name}:litert_int4`,
+    size: alignByteLength(rawBytes.byteLength),
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+  });
+  try {
+    writeBufferInChunks(device.queue, buffer, rawBytes);
+  } catch (error) {
+    buffer.destroy();
+    throw error;
+  }
+  ctx.gpuBuffers.add(buffer);
+  log.info(
+    'Loader',
+    `Embedding "${name}" stored as packed LiteRT INT4 GPU source ` +
+    `(bytes=${rawBytes.byteLength}, layout=row).`
+  );
+  return createWeightBuffer(buffer, 'litert_int4', 'row', location.shape, name, null, {
+    storageEncoding: normalizeLiteRTInt4StorageEncoding(location.sourceTransform, name),
+  });
 }
 
 function getEmbeddingFloatDtype(location) {
@@ -249,11 +340,12 @@ export async function loadEmbeddings(ctx) {
 
   for (const name of candidates) {
     const loc = ctx.tensorLocations.get(name);
-    const shouldStream = shouldUseRangeBackedEmbeddingSource(ctx, name, loc);
-    const splitGpuTensor = await createSplitGpuEmbeddingWeightBuffer(ctx, name, loc);
+    const packedLiteRTTensor = await createLiteRTInt4GpuEmbeddingWeightBuffer(ctx, name, loc);
+    const shouldStream = packedLiteRTTensor ? false : shouldUseRangeBackedEmbeddingSource(ctx, name, loc);
+    const splitGpuTensor = packedLiteRTTensor ? null : await createSplitGpuEmbeddingWeightBuffer(ctx, name, loc);
 
     // Load tensor (to CPU if streaming, to GPU otherwise)
-    const tensor = splitGpuTensor ?? (shouldStream
+    const tensor = packedLiteRTTensor ?? splitGpuTensor ?? (shouldStream
       ? (
         createRangeBackedWeightBuffer(ctx, name, loc)
         ?? await ctx.loadTensor(name, false, true)

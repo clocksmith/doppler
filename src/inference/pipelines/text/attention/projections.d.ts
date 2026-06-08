@@ -117,6 +117,7 @@ export interface ApplyAttentionQKNormOptions {
   onQNormApplied?: ((tensor: Tensor) => Promise<void> | void) | null;
   onKNormApplied?: ((tensor: Tensor) => Promise<void> | void) | null;
   retainKInput?: boolean;
+  allowUnitQKNorm?: boolean;
 }
 
 export function applyAttentionQKNorm(

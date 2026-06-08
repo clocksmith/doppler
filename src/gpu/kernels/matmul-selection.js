@@ -27,6 +27,23 @@ function selectQ4KFusedVariant(isM1, wantF16Output, aDtype, phase) {
   return selectKernelRuleValue('matmul', 'q4kFusedVariant', { useF16A, useF16Out, isM1, isPrefill });
 }
 
+function selectLiteRTInt4FusedVariant(outputDtype, aDtype, transposeB) {
+  return selectKernelRuleValue('matmul', 'litertInt4FusedVariant', {
+    activationDtype: aDtype,
+    outputDtype,
+    transposeB,
+  });
+}
+
+function selectW4A16FusedVariant(outputDtype, aDtype, transposeB, isPrefill) {
+  return selectKernelRuleValue('matmul', 'w4a16FusedVariant', {
+    activationDtype: aDtype,
+    outputDtype,
+    transposeB,
+    isPrefill,
+  });
+}
+
 
 export function resolveMatmulPhase(M, phaseOverride = null) {
   if (phaseOverride != null) {
@@ -207,6 +224,14 @@ export function getMatmulBindingSizes(label, A, B, M, N, K, aDtype, bDtype, tran
     const numBlocksPerRow = Math.ceil(K / QK_K);
     bBindingSize = Math.ceil((N * numBlocksPerRow * Q4K_BLOCK_BYTES) / 4) * 4;
     bRequired = bOffset + bBindingSize;
+  } else if (bDtype === 'litert_int4') {
+    const packedBytesPerRow = Math.ceil(K / 2);
+    bBindingSize = Math.ceil((N * packedBytesPerRow) / 4) * 4;
+    bRequired = bOffset + bBindingSize;
+  } else if (bDtype === 'w4a16') {
+    const groupsPerRow = Math.ceil(K / 32);
+    bBindingSize = Math.ceil((N * groupsPerRow * 16) / 4) * 4;
+    bRequired = bOffset + bBindingSize;
   } else {
     const bBytesPerElem = bDtype === 'f16' ? 2 : 4;
     const bElements = transposeB ? N * K : K * N;
@@ -227,6 +252,14 @@ export function getMatmulBindingSizes(label, A, B, M, N, K, aDtype, bDtype, tran
 
 function isQ4KFusedVariant(variant) {
   return variant.startsWith('q4_fused');
+}
+
+function isLiteRTInt4FusedVariant(variant) {
+  return variant.startsWith('litert_int4_');
+}
+
+function isW4A16FusedVariant(variant) {
+  return variant.startsWith('w4a16_');
 }
 
 
@@ -258,6 +291,7 @@ function resolveMatmulOverride(
   K,
   aDtype,
   bDtype,
+  transposeB,
   requestedOutputDtype,
   capabilities,
   strict,
@@ -323,6 +357,7 @@ function resolveMatmulOverride(
   }
 
   const useQ4KFused = isQ4KFusedVariant(override);
+  const useLiteRTInt4Fused = isLiteRTInt4FusedVariant(override);
   if (useQ4KFused) {
     if (bDtype !== 'q4k') {
       return failOrWarn(`Matmul kernel "${variantOverride}" requires Q4K weights but B dtype is ${bDtype}.`);
@@ -331,13 +366,30 @@ function resolveMatmulOverride(
       return failOrWarn(`Matmul kernel "${variantOverride}" blocked by kernel path (fused Q4K disabled).`);
     }
   }
+  if (useLiteRTInt4Fused) {
+    if (bDtype !== 'litert_int4') {
+      return failOrWarn(`Matmul kernel "${variantOverride}" requires LiteRT INT4 weights but B dtype is ${bDtype}.`);
+    }
+    if (transposeB !== true) {
+      return failOrWarn(`Matmul kernel "${variantOverride}" requires transposeB=true for row-packed [N,K] weights.`);
+    }
+  }
+  const useW4A16Fused = isW4A16FusedVariant(override);
+  if (useW4A16Fused) {
+    if (bDtype !== 'w4a16') {
+      return failOrWarn(`Matmul kernel "${variantOverride}" requires W4A16 weights but B dtype is ${bDtype}.`);
+    }
+    if (transposeB !== true) {
+      return failOrWarn(`Matmul kernel "${variantOverride}" requires transposeB=true for row-packed [N,K] weights.`);
+    }
+  }
 
   const useGemv = isGemvVariant(override);
   if (useGemv && M !== 1) {
     return failOrWarn(`Matmul kernel "${variantOverride}" requires M=1 but got M=${M}.`);
   }
 
-  return { variant: override, useQ4KFused, useGemv };
+  return { variant: override, useQ4KFused, useGemv, useLiteRTInt4Fused, useW4A16Fused };
 }
 
 function resolveGemvPathVariant(pathVariant, aDtype, requestedOutputDtype, N, multicolThreshold) {
@@ -382,19 +434,20 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
       K,
       aDtype,
       bDtype,
+      transposeB,
       requestedOutputDtype,
       capabilities,
       strict,
       fusedQ4KDisabled
     );
     if (!override && strict) {
-      // When weights resolved to Q4K (precision upgrade) but the path variant requires F16,
+      // When weights resolved to packed quantized storage but the path variant requires F16,
       // fall through to auto-selection rather than throwing. The auto path will pick
-      // the correct fused Q4K variant for the actual weight dtype.
-      if (bDtype === 'q4k') {
+      // the correct fused variant for the actual weight dtype.
+      if (bDtype === 'q4k' || bDtype === 'litert_int4' || bDtype === 'w4a16') {
         logKernelSelectionOnce('matmul', {
           variant: pathVariant,
-          reason: 'path_override_q4k_fallthrough',
+          reason: 'path_override_quantized_fallthrough',
         });
       } else {
         throw new Error(`[Matmul] Path variant "${pathVariant}" rejected for role=${options.role ?? '?'} layerIdx=${options.layerIdx ?? '?'} phase=${phase} M=${M} K=${K} aDtype=${aDtype} bDtype=${bDtype} outDtype=${requestedOutputDtype}`);
@@ -425,6 +478,7 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
               variant: adaptiveVariant,
               useQ4KFused: false,
               useGemv: false,
+              useLiteRTInt4Fused: false,
             };
             logKernelSelectionOnce('matmul', {
               variant: adaptiveSelection.variant,
@@ -444,7 +498,29 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
 
   const fusedAllowed = !fusedQ4KDisabled;
   const isQ4K = bDtype === 'q4k';
+  const isLiteRTInt4 = bDtype === 'litert_int4';
+  const isW4A16 = bDtype === 'w4a16';
   const wantF16Output = requestedOutputDtype === 'f16' && capabilities.hasF16;
+  const litertInt4Variant = isLiteRTInt4 && capabilities.hasF16
+    ? selectLiteRTInt4FusedVariant(requestedOutputDtype, aDtype, transposeB)
+    : null;
+  const useLiteRTInt4Fused = litertInt4Variant != null;
+  const w4a16Variant = isW4A16 && capabilities.hasF16
+    ? selectW4A16FusedVariant(requestedOutputDtype, aDtype, transposeB, M > 1)
+    : null;
+  const useW4A16Fused = w4a16Variant != null;
+  if (isLiteRTInt4 && !useLiteRTInt4Fused) {
+    throw new Error(
+      `[Matmul] LiteRT INT4 weights require a fused kernel path. ` +
+      `No variant matched M=${M} K=${K} aDtype=${aDtype} output=${requestedOutputDtype} transposeB=${transposeB}.`
+    );
+  }
+  if (isW4A16 && !useW4A16Fused) {
+    throw new Error(
+      `[Matmul] W4A16 weights require a fused kernel path. ` +
+      `No variant matched M=${M} K=${K} aDtype=${aDtype} output=${requestedOutputDtype} transposeB=${transposeB}.`
+    );
+  }
   let q4kVariant = isQ4K && capabilities.hasSubgroups && fusedAllowed
     ? selectQ4KFusedVariant(M === 1, wantF16Output, aDtype, phase)
     : null;
@@ -516,7 +592,7 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
     q4kVariant = 'q4_fused_rmsnorm_widetile';
   }
 
-  const effectiveBDtype = bDtype === 'q4k' ? 'f32' : bDtype;
+  const effectiveBDtype = (bDtype === 'q4k' || bDtype === 'litert_int4' || bDtype === 'w4a16') ? 'f32' : bDtype;
   const matmulVariant = selectMatmulKernel({
     ...options,
     aDtype: aDtype === 'q4k' ? 'f32' : aDtype,
@@ -541,9 +617,13 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
   const selection = selectKernelRuleValue(
     'matmul',
     'matmulSelection',
-    { isQ4K, hasSubgroups: capabilities.hasSubgroups, fusedAllowed, useGemv, q4kVariant, gemvVariant, matmulVariant }
+    { isQ4K, isLiteRTInt4, isW4A16, hasSubgroups: capabilities.hasSubgroups, fusedAllowed, useGemv, useLiteRTInt4Fused, useW4A16Fused, litertInt4Variant, w4a16Variant, q4kVariant, gemvVariant, matmulVariant }
   );
-  const reason = selection.useQ4KFused
+  const reason = selection.useLiteRTInt4Fused
+    ? 'litert_int4_fused'
+    : selection.useW4A16Fused
+    ? 'w4a16_fused'
+    : selection.useQ4KFused
     ? 'q4k_fused'
     : selection.useGemv
       ? 'gemv'

@@ -24,14 +24,14 @@ export declare function isFusedQ4KDisabled(options?: {
   kernelPath?: KernelPathSchema | null;
 }): boolean;
 
-export declare function toMatmulDtype(dtype: string | null | undefined): 'f16' | 'f32' | 'q4k';
+export declare function toMatmulDtype(dtype: string | null | undefined): 'f16' | 'f32' | 'q4k' | 'litert_int4' | 'w4a16';
 
 export declare function selectMatmulKernel(options?: {
   preferF16?: boolean;
   useVec4?: boolean;
   outputDtype?: TensorDtype | 'f16' | 'f32';
   aDtype?: 'f16' | 'f32' | null;
-  bDtype?: 'f16' | 'f32' | 'q4k' | null;
+  bDtype?: 'f16' | 'f32' | 'q4k' | 'litert_int4' | 'w4a16' | null;
   isPrefill?: boolean;
   prefillRows?: number;
   transposeB?: boolean;
@@ -54,7 +54,7 @@ export declare function getMatmulBindingSizes(
   N: number,
   K: number,
   aDtype: 'f16' | 'f32',
-  bDtype: 'f16' | 'f32' | 'q4k',
+  bDtype: 'f16' | 'f32' | 'q4k' | 'litert_int4' | 'w4a16',
   transposeB: boolean,
   aOffset: number,
   bOffset: number
@@ -68,11 +68,11 @@ export declare function selectMatmulVariantAndFlags(
   N: number,
   K: number,
   aDtype: 'f16' | 'f32',
-  bDtype: 'f16' | 'f32' | 'q4k',
+  bDtype: 'f16' | 'f32' | 'q4k' | 'litert_int4' | 'w4a16',
   transposeB: boolean,
   requestedOutputDtype: TensorDtype | 'f16' | 'f32',
   options: { role?: string; layerIdx?: number; kernelPath?: KernelPathSchema | null; [key: string]: unknown }
-): { variant: string; useQ4KFused: boolean; useGemv: boolean };
+): { variant: string; useQ4KFused: boolean; useGemv: boolean; useLiteRTInt4Fused?: boolean; useW4A16Fused?: boolean };
 
 export declare function resolveMatmulOutput(
   variant: string,

@@ -1,19 +1,21 @@
 // AUTO-GENERATED from src/gpu/kernels/residual.wgsl.
 // Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
+// AUTO-GENERATED from src/gpu/kernels/residual.wgsl.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
 // residual_f16.wgsl
 
 /**
  * Residual Add Kernel (F16)
  *
  * Performs element-wise addition for residual connections.
- * output = a + b
+ * output = (a + b) * scale
  */
 
 enable f16;
 
 struct Uniforms {
     size: u32,     // Total number of elements
-    scale: f32,    // Scale factor for add_scaled
+    scale: f32,    // Output scale for main/add_vec4; residual scale for add_scaled
     _pad1: u32,
     _pad2: u32,
 }
@@ -32,5 +34,5 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     if (idx >= u.size) {
         return;
     }
-    output[idx] = a[idx] + b[idx];
+    output[idx] = f16(f32(a[idx] + b[idx]) * u.scale);
 }

@@ -625,7 +625,10 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     let attentionHeadDim = resolveAttentionHeadDim(config, layerType);
     let attentionNumKVHeads = resolveAttentionNumKVHeads(config, layerType, layerWeights, attentionHeadDim);
     let disableRoPE = false;
-    let queryKeyNorm = config.queryKeyNorm;
+    let queryKeyNorm = config.queryKeyNorm === true;
+    if (queryKeyNorm && Array.isArray(config.queryKeyNormLayers)) {
+      queryKeyNorm = config.queryKeyNormLayers.includes(layerIdx);
+    }
     const { sharedKVSourceLayerIdx, storeSharedKV } = resolveAttentionKVSharing(config, layerIdx, layerType);
 
     const attnConfig = {
@@ -647,6 +650,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       attnSoftcap: config.attnLogitSoftcapping === null ? 0 : config.attnLogitSoftcapping,
       queryPreAttnScalar: config.queryPreAttnScalar,
       queryKeyNorm,
+      queryKeyNormWeightLayers: config.queryKeyNormWeightLayers,
       valueNorm: config.valueNorm,
       attentionOutputGate: config.attentionOutputGate,
       outputGateType: config.outputGateType ?? null,
@@ -829,10 +833,36 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   // 3. Feed-forward network
 
   let outputTensor;
+  const layerScalar = resolveLayerScalarValue(layerWeights?.layerScalar ?? null);
+  const requestFfnLayerScalarFusion = layerScalar !== 1
+    && !hasPerLayerInputBlock(config);
+  let layerScalarFused = false;
   if (sandwichNorm.useSandwichNorm) {
-    outputTensor = await processFFNWithSandwichNorm(layerIdx, postAttn, numTokens, size, context, layerWeights, sandwichNorm);
+    outputTensor = await processFFNWithSandwichNorm(
+      layerIdx,
+      postAttn,
+      numTokens,
+      size,
+      context,
+      layerWeights,
+      sandwichNorm,
+      requestFfnLayerScalarFusion ? layerScalar : 1
+    );
+    layerScalarFused = context.__layerScalarFusedFired === true;
+    context.__layerScalarFusedFired = false;
   } else {
-    outputTensor = await processFFNStandard(layerIdx, postAttn, numTokens, size, context, layerWeights, fusedResidualForFFN);
+    outputTensor = await processFFNStandard(
+      layerIdx,
+      postAttn,
+      numTokens,
+      size,
+      context,
+      layerWeights,
+      fusedResidualForFFN,
+      requestFfnLayerScalarFusion ? layerScalar : 1
+    );
+    layerScalarFused = context.__layerScalarFusedFired === true;
+    context.__layerScalarFusedFired = false;
   }
 
   // Keep activation dtype consistent across layers. Some FFN paths can emit f32
@@ -872,10 +902,12 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   }
 
   let finalOutput = outputTensor;
-  const scaledOutput = await applyLayerScalar(layerIdx, finalOutput, size, context, layerWeights);
-  if (scaledOutput.buffer !== finalOutput.buffer) {
-    releaseOrTrack(recorder, finalOutput.buffer, context.decodeBuffers);
-    finalOutput = scaledOutput;
+  if (!layerScalarFused) {
+    const scaledOutput = await applyLayerScalar(layerIdx, finalOutput, size, context, layerWeights);
+    if (scaledOutput.buffer !== finalOutput.buffer) {
+      releaseOrTrack(recorder, finalOutput.buffer, context.decodeBuffers);
+      finalOutput = scaledOutput;
+    }
   }
   await debugLayerTensor(context, layerIdx, 'final layer output', finalOutput, numTokens, hiddenSize);
   await runProbes('layer_out', finalOutput.buffer, {

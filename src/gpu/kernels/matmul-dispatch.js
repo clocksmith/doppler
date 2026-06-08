@@ -21,7 +21,13 @@ export class MatmulKernel extends KernelBase {
 }
 
 
-export function calculateMatmulDispatch(variant, useQ4KFused, useGemv, M, N, config) {
+export function calculateMatmulDispatch(variant, useQ4KFused, useGemv, useLiteRTInt4Fused, M, N, config, useW4A16Fused = false) {
+  if (typeof useLiteRTInt4Fused === 'number') {
+    config = N;
+    N = M;
+    M = useLiteRTInt4Fused;
+    useLiteRTInt4Fused = false;
+  }
   const maxWorkgroups = GPU_LIMITS.MAX_WORKGROUPS;
   const [wgX, wgY] = config.workgroupSize;
   let workgroupsX = 1;
@@ -39,6 +45,36 @@ export function calculateMatmulDispatch(variant, useQ4KFused, useGemv, M, N, con
   }
   if (useQ4KFused && variant.includes('batched') && tileM == null) {
     throw new Error(`Matmul kernel "${variant}" is missing variantMetadata.tileM.`);
+  }
+  if ((useLiteRTInt4Fused || useW4A16Fused) && colsPerWg == null) {
+    throw new Error(`Matmul kernel "${variant}" is missing variantMetadata.colsPerWg.`);
+  }
+  if (useW4A16Fused && variant.includes('batched') && tileM == null) {
+    throw new Error(`Matmul kernel "${variant}" is missing variantMetadata.tileM.`);
+  }
+
+  if (useW4A16Fused && variant.includes('batched')) {
+    workgroupsX = Math.ceil(N / colsPerWg);
+    workgroupsY = Math.ceil(M / tileM);
+    if (workgroupsX > maxWorkgroups || workgroupsY > maxWorkgroups) {
+      throw new Error(
+        `Matmul kernel "${variant}" dispatch exceeds WebGPU workgroup limits: ` +
+        `workgroupsX=${workgroupsX}, workgroupsY=${workgroupsY}, max=${maxWorkgroups}.`
+      );
+    }
+    return { workgroups: [workgroupsX, workgroupsY, 1], uniformWorkgroupsX };
+  }
+
+  if (useLiteRTInt4Fused || useW4A16Fused) {
+    workgroupsX = Math.ceil(N / colsPerWg);
+    workgroupsY = M;
+    if (workgroupsX > maxWorkgroups || workgroupsY > maxWorkgroups) {
+      throw new Error(
+        `Matmul kernel "${variant}" dispatch exceeds WebGPU workgroup limits: ` +
+        `workgroupsX=${workgroupsX}, workgroupsY=${workgroupsY}, max=${maxWorkgroups}.`
+      );
+    }
+    return { workgroups: [workgroupsX, workgroupsY, 1], uniformWorkgroupsX };
   }
 
   if (useGemv && variant.startsWith('gemv_subgroup')) {

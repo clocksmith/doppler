@@ -78,6 +78,10 @@ export interface AttentionSchema {
   attnLogitSoftcapping?: number | null;
   /** Use query-key normalization */
   queryKeyNorm?: boolean;
+  /** Layers that apply query-key normalization; null means all layers when queryKeyNorm=true */
+  queryKeyNormLayers?: number[] | null;
+  /** Layers that have explicit Q/K RMSNorm scale tensors; null means every normalized layer must have weights */
+  queryKeyNormWeightLayers?: number[] | null;
   /** Apply unit-scale RMSNorm to values before attention */
   valueNorm?: boolean;
   /** Apply sigmoid gate from q_proj split to attention output */

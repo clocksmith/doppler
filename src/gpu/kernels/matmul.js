@@ -3,6 +3,7 @@ import { createTensor } from '../tensor.js';
 import {
   getBuffer,
   getLayout,
+  getWeightMetadata,
   getWeightDtype,
   isWeightBuffer,
   resolveWeightBufferMaterialization,
@@ -81,6 +82,36 @@ function buildProfileLabel(options = {}) {
   return `matmul${roleLabel}${layerLabel}`;
 }
 
+function resolveLiteRTInt4StorageEncoding(weight, label) {
+  const storageEncoding = String(getWeightMetadata(weight)?.storageEncoding ?? '').toLowerCase();
+  if (storageEncoding !== 'signed' && storageEncoding !== 'offset_binary') {
+    throw new Error(
+      `[Matmul] LiteRT INT4 weight "${label ?? 'unknown'}" requires metadata.storageEncoding ` +
+      `"signed" or "offset_binary", got "${storageEncoding || 'missing'}".`
+    );
+  }
+  return storageEncoding;
+}
+
+function resolveW4A16ScaleDtype(weight, label) {
+  const metadata = getWeightMetadata(weight);
+  const scaleDtype = String(metadata?.scaleDtype ?? '').toLowerCase();
+  if (scaleDtype !== 'f16' && scaleDtype !== 'bf16' && scaleDtype !== 'f32') {
+    throw new Error(
+      `[Matmul] W4A16 weight "${label ?? 'unknown'}" requires metadata.scaleDtype ` +
+      `"f16", "bf16", or "f32", got "${scaleDtype || 'missing'}".`
+    );
+  }
+  return scaleDtype;
+}
+
+function resolveW4A16ScaleDtypeConstant(scaleDtype) {
+  if (scaleDtype === 'f16') return 0;
+  if (scaleDtype === 'bf16') return 1;
+  if (scaleDtype === 'f32') return 2;
+  throw new Error(`[Matmul] unsupported W4A16 scale dtype "${scaleDtype}".`);
+}
+
 function assertBindGroupBuffer(kernelName, variant, bindingIndex, bindingLabel, buffer, details = []) {
   const isGpuBuffer = buffer && (
     typeof GPUBuffer === 'undefined'
@@ -98,7 +129,7 @@ function assertBindGroupBuffer(kernelName, variant, bindingIndex, bindingLabel, 
   );
 }
 
-function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuffer, outputBuffer, offsets, bindingSizes, residualBuffer = null, normWeightBuffer = null) {
+function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuffer, outputBuffer, offsets, bindingSizes, residualBuffer = null, normWeightBuffer = null, scaleBuffer = null) {
   const isQ4KF16 = variant === 'q4_fused_multicol_f16'
     || variant === 'q4_fused_f16a'
     || variant === 'q4_fused_batched_f16'
@@ -114,6 +145,7 @@ function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuff
   // for _rmsnorm). Distinct from isQ4KF16 (which puts output at binding 4).
   const isWideTileResidual = variant === 'q4_fused_widetile_residual';
   const isWideTileRmsnorm = variant === 'q4_fused_rmsnorm_widetile';
+  const isW4A16 = variant.startsWith('w4a16_');
 
   assertBindGroupBuffer('matmul', variant, 0, 'uniforms', uniformBuffer);
   assertBindGroupBuffer('matmul', variant, 1, 'input', matmulInput?.buffer, [
@@ -121,7 +153,10 @@ function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuff
     `inputDtype=${matmulInput?.dtype ?? 'unknown'}`,
   ]);
   assertBindGroupBuffer('matmul', variant, 2, 'weights', bBuffer);
-  assertBindGroupBuffer('matmul', variant, isQ4KF16 ? 4 : 3, 'output', outputBuffer);
+  if (isW4A16) {
+    assertBindGroupBuffer('matmul', variant, 3, 'scales', scaleBuffer);
+  }
+  assertBindGroupBuffer('matmul', variant, (isQ4KF16 || isW4A16) ? 4 : 3, 'output', outputBuffer);
   if (isWideTileResidual) {
     if (!residualBuffer) {
       throw new Error(`[Matmul] variant "${variant}" requires a residual buffer but none was provided.`);
@@ -141,7 +176,16 @@ function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuff
     { binding: 2, resource: { buffer: bBuffer, offset: offsets.bOffset, size: bindingSizes.bBindingSize } },
   ];
 
-  if (isQ4KF16) {
+  if (isW4A16) {
+    entries.push({
+      binding: 3,
+      resource: { buffer: scaleBuffer },
+    });
+    entries.push({
+      binding: 4,
+      resource: { buffer: outputBuffer, offset: offsets.cOffset, size: bindingSizes.cBindingSize },
+    });
+  } else if (isQ4KF16) {
     entries.push({
       binding: 4,
       resource: { buffer: outputBuffer, offset: offsets.cOffset, size: bindingSizes.cBindingSize },
@@ -266,7 +310,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
       }
     : options;
 
-  let { variant, useQ4KFused, useGemv } = selectMatmulVariantAndFlags(
+  let { variant, useQ4KFused, useGemv, useLiteRTInt4Fused = false, useW4A16Fused = false } = selectMatmulVariantAndFlags(
     mode,
     M,
     N,
@@ -289,6 +333,23 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   let constants = resolveMatmulConstants(options, phase);
   if (variant === 'f32' && constants && options.constants == null) {
     constants = null;
+  }
+  if (bDtype === 'litert_int4') {
+    const storageEncoding = resolveLiteRTInt4StorageEncoding(resolvedWeight, weightLabel);
+    constants = {
+      ...(constants ?? {}),
+      STORAGE_OFFSET_BINARY: storageEncoding === 'offset_binary' ? 1 : 0,
+    };
+  }
+  let w4a16ScaleBuffer = null;
+  if (bDtype === 'w4a16') {
+    const metadata = getWeightMetadata(resolvedWeight);
+    w4a16ScaleBuffer = metadata?.scaleBuffer ?? null;
+    const scaleDtype = resolveW4A16ScaleDtype(resolvedWeight, weightLabel);
+    constants = {
+      ...(constants ?? {}),
+      SCALE_DTYPE: resolveW4A16ScaleDtypeConstant(scaleDtype),
+    };
   }
   // For the rmsnorm-fused WideTile variant, forward the caller's
   // rmsNormOffset flag as a pipeline override constant. Gemma-family norm
@@ -452,7 +513,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
     if (isAttnProj && shouldLogAttentionWeightBuffer) {
       log.warn('MatmulVariantDiag',
         `role=${options.role ?? ''} layer=${Number.isFinite(options.layerIdx) ? options.layerIdx : '?'} mode=${mode} ` +
-        `variant=${variant} useQ4KFused=${useQ4KFused} useGemv=${useGemv} ` +
+        `variant=${variant} useQ4KFused=${useQ4KFused} useGemv=${useGemv} useLiteRTInt4Fused=${useLiteRTInt4Fused} ` +
         `aDtype=${aDtype} bDtype=${bDtype} output=${actualOutputDtype}`
       );
     }
@@ -466,7 +527,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
       throw new Error(`[${opLabel}] Output buffer too small: ${C.size} < ${cRequired} (M=${M}, N=${N})`);
     }
 
-    dispatchPlan = calculateMatmulDispatch(variant, useQ4KFused, useGemv, M, N, config);
+    dispatchPlan = calculateMatmulDispatch(variant, useQ4KFused, useGemv, useLiteRTInt4Fused, M, N, config, useW4A16Fused);
   } catch (error) {
     if (!isRecord && castedInput) {
       releaseBuffer(castedInput.buffer);
@@ -512,7 +573,8 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
         cBindingSize,
       },
       residualBuffer,
-      normWeightBuffer
+      normWeightBuffer,
+      w4a16ScaleBuffer
     );
 
     const __tBgStart = __dbg ? performance.now() : 0;

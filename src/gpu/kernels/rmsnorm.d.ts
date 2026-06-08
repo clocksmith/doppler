@@ -17,6 +17,9 @@ export interface RMSNormOptions extends OutputBufferOptions {
   batchSize?: number;
   hiddenSize?: number | null;
   residual?: Tensor | null;
+  preResidual?: Tensor | null;
+  residualSumOutput?: GPUBuffer | Tensor | null;
+  outputScale?: number | null;
   /** Use (1+w)*x normalization for Gemma 2/3 */
   rmsNormWeightOffset?: boolean;
 }

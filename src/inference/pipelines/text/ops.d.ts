@@ -35,7 +35,18 @@ export function doRMSNorm(
   input: Tensor,
   weight: GPUBuffer,
   eps: number,
-  options: { batchSize: number; hiddenSize: number; residual?: Tensor | null; outputBuffer?: GPUBuffer | null; label?: string; layerIdx?: number; rmsNormWeightOffset?: boolean },
+  options: {
+    batchSize: number;
+    hiddenSize: number;
+    residual?: Tensor | null;
+    preResidual?: Tensor | null;
+    residualSumOutput?: GPUBuffer | Tensor | null;
+    outputBuffer?: GPUBuffer | null;
+    outputScale?: number | null;
+    label?: string;
+    layerIdx?: number;
+    rmsNormWeightOffset?: boolean;
+  },
   recorder?: CommandRecorder
 ): Promise<Tensor>;
 
@@ -52,6 +63,7 @@ export function doResidualAdd(
     label?: string;
     layerIdx?: number;
     outputBuffer?: GPUBuffer | null;
+    outputScale?: number | null;
     executionPolicies?: ExecutionV1PoliciesSchema | null;
   }
 ): Promise<Tensor>;

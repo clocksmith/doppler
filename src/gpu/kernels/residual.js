@@ -108,9 +108,21 @@ function planResidualDispatch(target, size, elementsPerWorkgroup) {
   };
 }
 
+function resolveResidualOutputScale(outputScale) {
+  if (outputScale == null) {
+    return 1;
+  }
+  const value = Number(outputScale);
+  if (!Number.isFinite(value)) {
+    throw new Error(`[Residual] outputScale must be finite; got "${String(outputScale)}".`);
+  }
+  return value;
+}
+
 async function _residualAdd(target, a, b, size, options = {}) {
   const recorder = target && typeof target.beginComputePass === 'function' ? target : null;
   const { useVec4 = true, outputBuffer = null } = options;
+  const outputScale = resolveResidualOutputScale(options.outputScale);
   const ownsOutput = outputBuffer == null;
 
   const { a: aAligned, b: bAligned, temps } = await alignResidualInputs(
@@ -136,7 +148,7 @@ async function _residualAdd(target, a, b, size, options = {}) {
     await unifiedKernelWrapper(
       'residual', target, variant,
       [aAligned, bAligned, output],
-      { size, scale: 1, _pad1: dispatchPlan.dispatchStride, _pad2: 0 },
+      { size, scale: outputScale, _pad1: dispatchPlan.dispatchStride, _pad2: 0 },
       dispatchPlan.workgroups
     );
     return createTensor(output, outputDtype, [size], 'residual_output');

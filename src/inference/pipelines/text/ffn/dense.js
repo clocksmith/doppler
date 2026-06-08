@@ -13,7 +13,7 @@ import {
 } from '../../../../gpu/weight-buffer.js';
 import { getDevice, getKernelCapabilities } from '../../../../gpu/device.js';
 import { getRuntimeConfig } from '../../../../config/runtime.js';
-import { acquireBuffer, releaseBuffer } from '../../../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
 import {
   runFusedFFN,
   recordFusedFFN,
@@ -23,8 +23,8 @@ import {
   recordCastF32ToF16,
   isFusedQ4KDisabled
 } from '../../../../gpu/kernel-selector.js';
-import { log, trace } from '../../../../debug/index.js';
-import { isKernelDebugEnabled, dumpTokenVector } from '../debug-utils.js';
+import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
+import { isKernelDebugEnabled, dumpTokenVector, decodeReadback, getLogitsHealth, shouldDebugLayerOutput } from '../debug-utils.js';
 import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
 import { getWeightBuffer, getNormWeightBuffer } from '../weights.js';
@@ -52,6 +52,22 @@ function hasQ4KMaterialization(weight) {
 
 function isQ4KMatmulVariant(variant) {
   return typeof variant === 'string' && variant.startsWith('q4_');
+}
+
+function enqueueRecordedDenseHealth(context, layerIdx, label, tensor, elementCount) {
+  const recorder = context.recorder ?? null;
+  if (!recorder || !isTraceEnabled('logits') || !shouldDebugLayerOutput(layerIdx, context.debugLayers)) {
+    return;
+  }
+  if (!tensor?.buffer || !Number.isFinite(elementCount) || elementCount <= 0) {
+    return;
+  }
+  const dtype = tensor.dtype;
+  const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
+  recorder.enqueueCompletionTask(async () => {
+    const data = await readBuffer(tensor.buffer, elementCount * bytesPerElement);
+    trace.logits(`L${layerIdx}.${label}_HEALTH`, getLogitsHealth(decodeReadback(data, dtype)));
+  });
 }
 
 export function resolveDenseFFNMatmulStepDtype(options = {}) {
@@ -419,6 +435,7 @@ export async function runDenseFFNGPU(
         dtype: gateUpOutput.dtype,
       });
     }
+    enqueueRecordedDenseHealth(context, layerIdx, 'ffn_gate_up', gateUpOutput, numTokens * intermediateSize * 2);
 
     if (!isGpuBufferInstance(layerWeights.gateUp) && !isWeightBuffer(layerWeights.gateUp)) {
       releaseOrTrack(recorder, isWeightBuffer(gateUpWeight) ? gateUpWeight.buffer : gateUpWeight);
@@ -441,6 +458,7 @@ export async function runDenseFFNGPU(
         dtype: activatedOutput.dtype,
       });
     }
+    enqueueRecordedDenseHealth(context, layerIdx, 'ffn_act', activatedOutput, numTokens * intermediateSize);
 
     if (recorder) {
       recorder.trackTemporaryBuffer(gateUpOutput.buffer);
@@ -525,6 +543,7 @@ export async function runDenseFFNGPU(
         dtype: output.dtype,
       });
     }
+    enqueueRecordedDenseHealth(context, layerIdx, 'ffn_down', output, numTokens * hiddenSize);
 
     if (!isGpuBufferInstance(layerWeights.down) && !isWeightBuffer(layerWeights.down)) {
       releaseOrTrack(recorder, isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
@@ -636,6 +655,7 @@ export async function runDenseFFNGPU(
       hiddenActivation, swigluLimit, recorder,
       executionPolicies: context.executionPolicies ?? null,
     });
+    enqueueRecordedDenseHealth(context, layerIdx, 'ffn_fused_gate_up', fusedOutput, numTokens * intermediateSize);
 
     let downInput = fusedOutput;
     if (downInputDtype && fusedOutput.dtype !== downInputDtype) {
@@ -684,6 +704,7 @@ export async function runDenseFFNGPU(
       },
       recorder
     );
+    enqueueRecordedDenseHealth(context, layerIdx, 'ffn_down', output, numTokens * hiddenSize);
     {
       if (tryFuseDownResidualFused
           && getKernelCapabilities().hasF16 === true
@@ -884,6 +905,7 @@ export async function runDenseFFNGPU(
       },
       recorder
     );
+    enqueueRecordedDenseHealth(context, layerIdx, 'ffn_down', outFused, numTokens * hiddenSize);
     if (!isGpuBufferInstance(layerWeights.down) && !isWeightBuffer(layerWeights.down)) {
       releaseOrTrack(recorder, isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
     }
@@ -1014,6 +1036,8 @@ export async function runDenseFFNGPU(
     operatorDiagnostics: context.operatorDiagnostics,
     dtype: upOutput.dtype,
   });
+  enqueueRecordedDenseHealth(context, layerIdx, 'ffn_gate', gateOutput, numTokens * intermediateSize);
+  enqueueRecordedDenseHealth(context, layerIdx, 'ffn_up', upOutput, numTokens * intermediateSize);
 
   const activatedOutput = await dispatchActivation(hiddenActivation, upOutput, {
     size: numTokens * intermediateSize,
@@ -1041,6 +1065,7 @@ export async function runDenseFFNGPU(
     operatorDiagnostics: context.operatorDiagnostics,
     dtype: activatedOutput.dtype,
   });
+  enqueueRecordedDenseHealth(context, layerIdx, 'ffn_act', activatedOutput, numTokens * intermediateSize);
 
   if (recorder) {
     recorder.trackTemporaryBuffer(gateOutput.buffer);
@@ -1085,6 +1110,7 @@ export async function runDenseFFNGPU(
     },
     recorder
   );
+  enqueueRecordedDenseHealth(context, layerIdx, 'ffn_down', output, numTokens * hiddenSize);
 
   const loraDown = getLoRAModule(lora, layerIdx, 'down_proj');
   if (loraDown) {

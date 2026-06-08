@@ -211,6 +211,17 @@ function resolveSessionSettings(inferenceConfig, modelId) {
       `"${String(submit)}"; expected one of ${PREFILL_CHUNK_SUBMIT_MODES.join(', ')}.`
     );
   }
+  const tokenChunk = session?.prefillTokenChunkSize;
+  if (
+    tokenChunk !== undefined
+    && tokenChunk !== null
+    && (!Number.isInteger(tokenChunk) || tokenChunk <= 0)
+  ) {
+    throw new Error(
+      `Manifest "${modelId}" has invalid inference.session.prefillTokenChunkSize ` +
+      `"${String(tokenChunk)}"; expected null or a positive integer.`
+    );
+  }
   const flash = session?.useFlashPrefillAttention;
   if (flash !== undefined && flash !== null && typeof flash !== 'boolean') {
     throw new Error(`Manifest "${modelId}" has invalid inference.session.useFlashPrefillAttention "${String(flash)}"; expected boolean.`);
@@ -225,6 +236,7 @@ function resolveSessionSettings(inferenceConfig, modelId) {
   }
   return {
     prefillChunkSubmitMode: submit ?? null,
+    prefillTokenChunkSize: tokenChunk ?? null,
     useFlashPrefillAttention: flash ?? null,
     useWideTileQ4KPrefill: wide ?? null,
     retainQ4KMaterialization: retain ?? null,
@@ -598,6 +610,33 @@ function hasManifestInference(manifest) {
   return 'inference' in manifest && manifest.inference != null;
 }
 
+function normalizeUnsupportedText(value) {
+  if (typeof value !== 'string') return '';
+  return value.trim();
+}
+
+export function assertSupportedManifestInference(manifest) {
+  const modelId = manifest?.modelId ?? 'unknown';
+  const unsupported = manifest?.inference?.unsupported;
+  if (unsupported == null) {
+    return;
+  }
+  if (typeof unsupported !== 'object' || Array.isArray(unsupported)) {
+    throw new Error(
+      `Manifest "${modelId}" has invalid inference.unsupported. ` +
+      'Expected null or an object with code, message, and recommendation fields.'
+    );
+  }
+  const code = normalizeUnsupportedText(unsupported.code) || 'unsupported-manifest-contract';
+  const message = normalizeUnsupportedText(unsupported.message);
+  const recommendation = normalizeUnsupportedText(unsupported.recommendation);
+  throw new Error(
+    `Manifest "${modelId}" is not supported by Doppler runtime (${code}).` +
+    (message ? ` ${message}` : '') +
+    (recommendation ? ` ${recommendation}` : '')
+  );
+}
+
 
 export function validateRequiredInferenceFields(inf, modelId) {
   inf = inf ?? {};
@@ -616,6 +655,36 @@ export function validateRequiredInferenceFields(inf, modelId) {
   }
   if (inf.attention.queryKeyNorm == null) {
     errors.push('attention.queryKeyNorm is required');
+  }
+  if (
+    inf.attention.queryKeyNormLayers !== undefined
+    && inf.attention.queryKeyNormLayers !== null
+  ) {
+    if (!Array.isArray(inf.attention.queryKeyNormLayers)) {
+      errors.push('attention.queryKeyNormLayers must be null or an array of layer indices');
+    } else {
+      for (const layerIdx of inf.attention.queryKeyNormLayers) {
+        if (!Number.isInteger(layerIdx) || layerIdx < 0) {
+          errors.push('attention.queryKeyNormLayers must contain only non-negative integer layer indices');
+          break;
+        }
+      }
+    }
+  }
+  if (
+    inf.attention.queryKeyNormWeightLayers !== undefined
+    && inf.attention.queryKeyNormWeightLayers !== null
+  ) {
+    if (!Array.isArray(inf.attention.queryKeyNormWeightLayers)) {
+      errors.push('attention.queryKeyNormWeightLayers must be null or an array of layer indices');
+    } else {
+      for (const layerIdx of inf.attention.queryKeyNormWeightLayers) {
+        if (!Number.isInteger(layerIdx) || layerIdx < 0) {
+          errors.push('attention.queryKeyNormWeightLayers must contain only non-negative integer layer indices');
+          break;
+        }
+      }
+    }
   }
   if (inf.attention.valueNorm == null) {
     errors.push('attention.valueNorm is required');
@@ -1634,6 +1703,8 @@ function toParsedConfigFromMerged(merged, manifest) {
     finalLogitSoftcapping: inf.output.finalLogitSoftcapping,
     attnLogitSoftcapping: inf.attention.attnLogitSoftcapping,
     queryKeyNorm: inf.attention.queryKeyNorm,
+    queryKeyNormLayers: inf.attention.queryKeyNormLayers ?? null,
+    queryKeyNormWeightLayers: inf.attention.queryKeyNormWeightLayers ?? null,
     valueNorm: inf.attention.valueNorm,
     attentionOutputGate: inf.attention.attentionOutputGate === true,
     outputGateType: inf.attention.outputGateType ?? null,
@@ -1702,6 +1773,8 @@ export function parseModelConfig(manifest, runtimeOverrides) {
       `Legacy family-registry resolution has been removed.`
     );
   }
+
+  assertSupportedManifestInference(manifest);
 
   log.info('Config', 'Using manifest-first config (source of truth)');
   return parseModelConfigFromManifest(manifest, runtimeOverrides);

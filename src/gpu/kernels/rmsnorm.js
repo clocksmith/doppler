@@ -106,6 +106,17 @@ function planRMSNormDispatch(target, numTokens) {
   };
 }
 
+function resolveRMSNormOutputScale(outputScale) {
+  if (outputScale == null) {
+    return 1;
+  }
+  const value = Number(outputScale);
+  if (!Number.isFinite(value)) {
+    throw new Error(`[rmsnorm] outputScale must be finite; got "${String(outputScale)}".`);
+  }
+  return value;
+}
+
 export function selectRMSNormKernel(options = {}, isF16 = false) {
   const { residual = null, hiddenSize = null } = options;
   const { smallThreshold } = getKernelThresholds().rmsnorm;
@@ -133,7 +144,9 @@ export async function runRMSNorm(
   const {
     batchSize = 1, hiddenSize, residual = null, outputBuffer = null,
     rmsNormWeightOffset = false, preResidual = null, residualSumOutput = null,
+    outputScale = null,
   } = options;
+  const resolvedOutputScale = resolveRMSNormOutputScale(outputScale);
   const isF16 = input.dtype === 'f16';
   const variant = selectRMSNormKernel(options, isF16);
   const inferredHiddenSize = inferHiddenSize(input, hiddenSize);
@@ -173,7 +186,7 @@ export async function runRMSNorm(
         eps,
         has_residual: residual ? 1 : 0,
         token_stride: dispatchPlan.tokenStride,
-        _pad0: 0,
+        output_scale: resolvedOutputScale,
         _pad1: 0,
         _pad2: 0,
       },
@@ -209,7 +222,9 @@ export async function recordRMSNorm(
   const {
     batchSize = 1, hiddenSize = null, residual = null, outputBuffer = null,
     rmsNormWeightOffset = false, preResidual = null, residualSumOutput = null,
+    outputScale = null,
   } = options;
+  const resolvedOutputScale = resolveRMSNormOutputScale(outputScale);
   const isF16 = input.dtype === 'f16';
   const variant = selectRMSNormKernel(options, isF16);
   const inferredHiddenSize = inferHiddenSize(input, hiddenSize);
@@ -246,7 +261,7 @@ export async function recordRMSNorm(
         eps,
         has_residual: residual ? 1 : 0,
         token_stride: dispatchPlan.tokenStride,
-        _pad0: 0,
+        output_scale: resolvedOutputScale,
         _pad1: 0,
         _pad2: 0,
       },

@@ -114,7 +114,8 @@ export function resolveDirectSourceRuntimePlan(options = {}) {
     );
   const computePrecision = resolveSourceRuntimeComputePrecision(
     parsedArtifact.tensors,
-    sourceQuantization
+    sourceQuantization,
+    parsedArtifact.manifestInference?.session?.compute?.defaults?.activationDtype ?? null
   );
   const visionQuantization = inferRoleQuantization(parsedArtifact.tensors, 'vision');
   const audioQuantization = inferRoleQuantization(parsedArtifact.tensors, 'audio');
@@ -236,7 +237,11 @@ export function inferSourceQuantizationForSourceRuntime(tensors, sourceKind, opt
   }
 }
 
-function resolveSourceRuntimeComputePrecision(tensors, sourceQuantization) {
+function resolveSourceRuntimeComputePrecision(tensors, sourceQuantization, runtimeActivationDtype = null) {
+  const explicitRuntimeDtype = normalizeText(runtimeActivationDtype).toLowerCase();
+  if (explicitRuntimeDtype === 'f16' || explicitRuntimeDtype === 'f32') {
+    return explicitRuntimeDtype;
+  }
   const dtypes = new Set();
   for (const tensor of Array.isArray(tensors) ? tensors : []) {
     const dtype = normalizeText(tensor?.dtype).toUpperCase();

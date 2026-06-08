@@ -1,5 +1,9 @@
 // AUTO-GENERATED from src/gpu/kernels/rmsnorm.wgsl.
 // Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
+// AUTO-GENERATED from src/gpu/kernels/rmsnorm.wgsl.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
+// AUTO-GENERATED from src/gpu/kernels/rmsnorm.wgsl.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
 //
 // F16 variant for reduced memory bandwidth when using F16 activations.
 // The all-f16 lane keeps normalization arithmetic in f16.
@@ -22,7 +26,7 @@ struct Uniforms {
     eps: f32,           // Epsilon for numerical stability
     has_residual: u32,  // 1 if residual input provided, 0 otherwise
     token_stride: u32,  // Workgroup rows per dispatch row
-    _pad0: u32,
+    output_scale: f32,  // Output epilogue scale
     _pad1: u32,
     _pad2: u32,
 }
@@ -156,7 +160,7 @@ fn main(
             // Write pre-norm sum for downstream residual reuse
             write_prenorm(base_offset, idx, x);
 
-            output[base_offset + idx] = result;
+            output[base_offset + idx] = f16(f32(result) * u.output_scale);
         }
     }
 }
@@ -219,6 +223,6 @@ fn rmsnorm_small_f16(
             result = result + residual[base_offset + thread_idx];
         }
         write_prenorm(base_offset, thread_idx, x);
-        output[base_offset + thread_idx] = result;
+        output[base_offset + thread_idx] = f16(f32(result) * u.output_scale);
     }
 }

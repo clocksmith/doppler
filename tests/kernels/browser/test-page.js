@@ -624,9 +624,11 @@ const testHarness = {
   },
 
   
-  async runResidual(dev, x, residual) {
+  async runResidual(dev, x, residual, options = {}) {
     if (!runResidualAdd) {
-      return references.residualAddRef(x, residual);
+      return options.outputScale == null
+        ? references.residualAddRef(x, residual)
+        : references.outputScaledResidualAddRef(x, residual, options.outputScale);
     }
 
     const xBuf = makeBuffer(x);
@@ -636,7 +638,9 @@ const testHarness = {
     const xTensor = createTensor(xBuf, 'f32', [size], 'residual_x');
     const resTensor = createTensor(resBuf, 'f32', [size], 'residual_res');
 
-    const resultTensor = await runResidualAdd(xTensor, resTensor, size);
+    const resultTensor = await runResidualAdd(xTensor, resTensor, size, {
+      outputScale: options.outputScale,
+    });
     const result = new Float32Array(await readBufferData(resultTensor.buffer, size * 4));
 
     xBuf.destroy();

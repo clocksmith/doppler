@@ -413,14 +413,31 @@ export async function runLayerAttentionGPU(
   const wantsQKNorm = config.queryKeyNorm === true;
   const hasQNorm = !!layerWeights.qNorm;
   const hasKNorm = !!layerWeights.kNorm;
+  const qkNormWeightLayers = Array.isArray(config.queryKeyNormWeightLayers)
+    ? config.queryKeyNormWeightLayers
+    : null;
+  const expectsWeightedQKNorm = qkNormWeightLayers
+    ? qkNormWeightLayers.includes(layerIdx)
+    : true;
+  const allowUnitQKNorm = wantsQKNorm && qkNormWeightLayers !== null && !expectsWeightedQKNorm;
   if (isKernelDebugEnabled(layerIdx)) {
-    logKernelStep('qk_norm', { layerIdx, label: `hasQ=${hasQNorm} hasK=${hasKNorm} wants=${wantsQKNorm}` });
+    logKernelStep('qk_norm', { layerIdx, label: `hasQ=${hasQNorm} hasK=${hasKNorm} wants=${wantsQKNorm} unit=${allowUnitQKNorm}` });
   }
-  if (wantsQKNorm && layerIdx === 0 && (!hasQNorm || !hasKNorm)) {
-    log.warn('Attention', `Q/K norm requested but weights missing (hasQ=${hasQNorm}, hasK=${hasKNorm}); skipping QK norm.`);
+  if (wantsQKNorm && allowUnitQKNorm && (hasQNorm || hasKNorm)) {
+    throw new Error(
+      `Layer ${layerIdx} declares unit-scale Q/K norm but companion weights are present ` +
+      `(hasQ=${hasQNorm}, hasK=${hasKNorm}). Check manifest.inference.attention.queryKeyNormWeightLayers.`
+    );
+  }
+  if (wantsQKNorm && expectsWeightedQKNorm && (!hasQNorm || (!hasKNorm && !reusesSharedKV))) {
+    throw new Error(
+      `Layer ${layerIdx} requested Q/K norm but companion weights are missing ` +
+      `(hasQ=${hasQNorm}, hasK=${hasKNorm}). Check manifest.inference.attention.queryKeyNormWeightLayers.`
+    );
   }
 
-  ({ qTensor, kTensor } = await applyAttentionQKNorm({
+  if (wantsQKNorm) {
+    ({ qTensor, kTensor } = await applyAttentionQKNorm({
     recorder: null,
     qTensor,
     kTensor,
@@ -453,9 +470,11 @@ export async function runLayerAttentionGPU(
           dtype: tensor.dtype,
         });
       }
-    : null,
+      : null,
     retainKInput: valueAliasesKey,
-  }));
+    allowUnitQKNorm,
+    }));
+  }
 
   if (config.valueNorm === true && !reusesSharedKV) {
     const valueNormInputAliasesKey = vTensor.buffer === kTensor.buffer;
@@ -482,23 +501,25 @@ export async function runLayerAttentionGPU(
     });
   }
 
-  await runProbes('q_norm', qTensor.buffer, {
-    layerIdx,
-    numTokens,
-    hiddenSize: numHeads * headDim,
-    probes: state.debugProbes,
-    operatorDiagnostics: state.operatorDiagnostics,
-    dtype: qTensor.dtype,
-  });
-  if (!reusesSharedKV) {
-    await runProbes('k_norm', kTensor.buffer, {
+  if (wantsQKNorm) {
+    await runProbes('q_norm', qTensor.buffer, {
       layerIdx,
       numTokens,
-      hiddenSize: numKVHeads * headDim,
+      hiddenSize: numHeads * headDim,
       probes: state.debugProbes,
       operatorDiagnostics: state.operatorDiagnostics,
-      dtype: kTensor.dtype,
+      dtype: qTensor.dtype,
     });
+    if (!reusesSharedKV) {
+      await runProbes('k_norm', kTensor.buffer, {
+        layerIdx,
+        numTokens,
+        hiddenSize: numKVHeads * headDim,
+        probes: state.debugProbes,
+        operatorDiagnostics: state.operatorDiagnostics,
+        dtype: kTensor.dtype,
+      });
+    }
   }
 
   if (normed !== attentionInput) releaseBuffer(normed.buffer);

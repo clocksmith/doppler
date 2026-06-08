@@ -18,7 +18,10 @@ export declare function assembleShardData(
   location: TensorLocation,
   name: string,
   loadShard: (index: number, options?: ShardLoadOptions) => Promise<ArrayBuffer>,
-  loadShardRange?: (index: number, offset: number, length: number) => Promise<ArrayBuffer>
+  loadShardRange?: (index: number, offset: number, length: number) => Promise<ArrayBuffer>,
+  options?: {
+    materializeSourceTransform?: boolean;
+  }
 ): Promise<Uint8Array>;
 
 export declare function loadTensorRange(

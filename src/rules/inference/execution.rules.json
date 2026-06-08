@@ -5,30 +5,44 @@
         "hasDevice": true,
         "debug": false,
         "disableCommandBatching": false,
-        "kvLayout": { "neq": "bdpa_paged" }
+        "kvLayout": {
+          "neq": "bdpa_paged"
+        }
       },
       "value": true
     },
-    { "match": {}, "value": false }
+    {
+      "match": {},
+      "value": false
+    }
   ],
   "profileDecodeRecorderEnabled": [
     {
       "match": {
         "hasDevice": true,
         "debug": false,
-        "kvLayout": { "neq": "bdpa_paged" }
+        "kvLayout": {
+          "neq": "bdpa_paged"
+        }
       },
       "value": true
     },
-    { "match": {}, "value": false }
+    {
+      "match": {},
+      "value": false
+    }
   ],
   "batchDecodeEnabled": [
     {
       "match": {
-        "batchSize": { "gt": 1 },
+        "batchSize": {
+          "gt": 1
+        },
         "useGPU": true,
         "gpuSamplingAvailable": true,
-        "disableMultiTokenDecode": { "neq": true },
+        "disableMultiTokenDecode": {
+          "neq": true
+        },
         "disableCommandBatching": false,
         "isBdpaPagedLayout": false,
         "finitenessFallbackWindowOpen": false,
@@ -39,10 +53,14 @@
     },
     {
       "match": {
-        "batchSize": { "gt": 1 },
+        "batchSize": {
+          "gt": 1
+        },
         "useGPU": true,
         "gpuSamplingAvailable": true,
-        "disableMultiTokenDecode": { "neq": true },
+        "disableMultiTokenDecode": {
+          "neq": true
+        },
         "disableCommandBatching": false,
         "isBdpaPagedLayout": false,
         "finitenessFallbackWindowOpen": false,
@@ -54,10 +72,14 @@
     },
     {
       "match": {
-        "batchSize": { "gt": 1 },
+        "batchSize": {
+          "gt": 1
+        },
         "useGPU": true,
         "gpuSamplingAvailable": true,
-        "disableMultiTokenDecode": { "neq": true },
+        "disableMultiTokenDecode": {
+          "neq": true
+        },
         "disableCommandBatching": false,
         "isBdpaPagedLayout": false,
         "finitenessFallbackWindowOpen": false,
@@ -66,7 +88,10 @@
       },
       "value": true
     },
-    { "match": {}, "value": false }
+    {
+      "match": {},
+      "value": false
+    }
   ],
   "maxBatchDecodeTokens": [
     {
@@ -84,14 +109,18 @@
     {
       "match": {
         "hasGpuSplitPerLayerInputs": true,
-        "currentSeqLen": { "gte": 192 }
+        "currentSeqLen": {
+          "gte": 192
+        }
       },
       "value": 2
     },
     {
       "match": {
         "hasGpuSplitPerLayerInputs": true,
-        "maxDecodeTokens": { "gt": 16 }
+        "maxDecodeTokens": {
+          "gt": 16
+        }
       },
       "value": 16
     },
@@ -103,41 +132,68 @@
     },
     {
       "match": {
-        "modelId": { "contains": "gemma-4-12b" },
+        "modelId": {
+          "contains": "gemma-4-12b"
+        },
         "activationDtype": "f16",
-        "numLayers": { "gte": 48 },
-        "hiddenSize": { "gte": 3840 },
-        "maxDecodeTokens": { "gt": 8 }
+        "numLayers": {
+          "gte": 48
+        },
+        "hiddenSize": {
+          "gte": 3840
+        },
+        "maxDecodeTokens": {
+          "gt": 8
+        }
       },
       "value": 8
     },
     {
       "match": {
-        "numLayers": { "gte": 48 },
-        "hiddenSize": { "gte": 3840 },
-        "maxDecodeTokens": { "gt": 16 }
+        "numLayers": {
+          "gte": 48
+        },
+        "hiddenSize": {
+          "gte": 3840
+        },
+        "maxDecodeTokens": {
+          "gt": 16
+        }
       },
       "value": 16
     },
-    { "match": {}, "value": null }
+    {
+      "match": {},
+      "value": null
+    }
   ],
   "prefillRecorderChunkLayers": [
     {
       "match": {
         "hasGpuSplitPerLayerInputs": true,
-        "numTokens": { "lte": 32 }
+        "numTokens": {
+          "lte": 32
+        }
       },
       "value": 8
     },
-    { "match": {}, "value": 4 }
+    {
+      "match": {},
+      "value": 4
+    }
   ],
   "finitenessFallbackActivationDtype": [
-    { "match": {}, "value": "f32" }
+    {
+      "match": {},
+      "value": "f32"
+    }
   ],
   "modelBatchingDefaults": [
     {
       "match": {
-        "modelId": { "contains": "lfm2" }
+        "modelId": {
+          "contains": "lfm2"
+        }
       },
       "value": {
         "batchSize": 8,
@@ -145,6 +201,9 @@
         "readbackInterval": 8
       }
     },
-    { "match": {}, "value": null }
+    {
+      "match": {},
+      "value": null
+    }
   ]
 }

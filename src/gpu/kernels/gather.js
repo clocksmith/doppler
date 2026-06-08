@@ -10,12 +10,23 @@ import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-regis
 
 const SPLIT_GATHER_SECTION_COUNT = 4;
 
-function selectGatherVariant(useF16Input, useF16Output, useVec4) {
+function selectGatherVariant(useF16Input, useF16Output, useVec4, useLiteRTInt4Input = false) {
   return selectKernelRuleValue(
     'gather',
     'variant',
-    { useF16Input, useF16Output, useVec4 }
+    { useF16Input, useF16Output, useVec4, useLiteRTInt4Input }
   );
+}
+
+function resolveLiteRTInt4StorageEncoding(storageEncoding) {
+  const normalized = String(storageEncoding ?? '').toLowerCase();
+  if (normalized !== 'signed' && normalized !== 'offset_binary') {
+    throw new Error(
+      `[Gather] LiteRT INT4 embeddings require storageEncoding "signed" or "offset_binary", ` +
+      `got "${normalized || 'missing'}".`
+    );
+  }
+  return normalized;
 }
 
 function normalizeSplitGatherSections(splitEmbedding) {
@@ -186,6 +197,7 @@ async function _gather(
     hiddenOffset = 0,
     indirectBuffer = null,
     indirectOffset = 0,
+    storageEncoding = null,
   } = options;
 
   const caps = getKernelCapabilities();
@@ -194,6 +206,10 @@ async function _gather(
   }
   if (outputDtype == null) {
     throw new Error('[Gather] outputDtype is required.');
+  }
+  const useLiteRTInt4Input = embeddingDtype === 'litert_int4';
+  if (embeddingDtype !== 'f16' && embeddingDtype !== 'f32' && !useLiteRTInt4Input) {
+    throw new Error(`[Gather] unsupported embeddingDtype="${embeddingDtype}".`);
   }
   if (embeddingDtype === 'f16' && !caps.hasF16) {
     throw new Error('[Gather] embeddingDtype=f16 requires shader-f16 support.');
@@ -218,6 +234,21 @@ async function _gather(
   const useF16Input = embeddingDtype === 'f16';
   const useF16Output = outputDtype === 'f16';
   const useVec4 = wantsVec4 && hiddenSize % 4 === 0;
+  if (useLiteRTInt4Input) {
+    resolveLiteRTInt4StorageEncoding(storageEncoding);
+    if (outputDtype !== 'f16' && outputDtype !== 'f32') {
+      throw new Error('[Gather] LiteRT INT4 embeddings require outputDtype=f16 or outputDtype=f32.');
+    }
+    if (transpose) {
+      throw new Error('[Gather] LiteRT INT4 embeddings require row-major layout.');
+    }
+    if (usesHiddenSlice) {
+      throw new Error('[Gather] LiteRT INT4 embeddings do not support hidden slicing.');
+    }
+    if (!useVec4) {
+      throw new Error('[Gather] LiteRT INT4 embeddings require vec4 gather; hiddenSize must be divisible by 4.');
+    }
+  }
 
   trace.embed(
     `Gather: numTokens=${numTokens}, hiddenSize=${hiddenSize}, vocabSize=${vocabSize}, ` +
@@ -227,8 +258,11 @@ async function _gather(
     `useF16Input=${useF16Input}, useF16Output=${useF16Output}`
   );
 
-  const variant = selectGatherVariant(useF16Input, useF16Output, useVec4);
+  const variant = selectGatherVariant(useF16Input, useF16Output, useVec4, useLiteRTInt4Input);
   trace.embed(`Gather variant: ${variant}`);
+  const constants = useLiteRTInt4Input
+    ? { STORAGE_OFFSET_BINARY: resolveLiteRTInt4StorageEncoding(storageEncoding) === 'offset_binary' ? 1 : 0 }
+    : null;
 
   // Pad hiddenSize to Q4K alignment for downstream fused Q4K matmul kernels
   // that read 256-element blocks. Extra padding elements stay zero.
@@ -264,7 +298,8 @@ async function _gather(
       variant,
       [indices, embeddings, output],
       uniforms,
-      workgroups
+      workgroups,
+      constants
     );
     return createTensor(output, actualDtype, [numTokens, hiddenSize], 'gather_output');
   } catch (error) {

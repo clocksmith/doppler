@@ -88,6 +88,7 @@ export async function embed(tokenIds, embedBuffer, config) {
     inputHiddenSize = hiddenSize,
     hiddenOffset = 0,
     stats = null,
+    embeddingStorageEncoding = null,
   } = config;
   const device = getDevice();
   const tokenBufferInput = isGpuBufferInstance(tokenIds);
@@ -324,6 +325,7 @@ export async function embed(tokenIds, embedBuffer, config) {
     transpose,
     outputDtype: selectRuleValue('shared', 'dtype', 'f16OrF32', { useF16 }),
     embeddingDtype,
+    storageEncoding: embeddingStorageEncoding,
     indexOffset,
     inputHiddenSize,
     hiddenOffset,

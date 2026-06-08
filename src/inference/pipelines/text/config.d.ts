@@ -109,6 +109,14 @@ export interface TensorInfo {
   dtype?: string;
 }
 
+export interface ParsedSessionSettings {
+  prefillChunkSubmitMode: 'sync' | 'async' | null;
+  prefillTokenChunkSize: number | null;
+  useFlashPrefillAttention: boolean | null;
+  useWideTileQ4KPrefill: boolean | null;
+  retainQ4KMaterialization: boolean | null;
+}
+
 export type Manifest = RuntimeModelContract;
 
 export interface ParsedModelConfig {
@@ -178,6 +186,8 @@ export interface ParsedModelConfig {
   finalLogitSoftcapping: number | null;
   attnLogitSoftcapping: number | null;
   queryKeyNorm: boolean;
+  queryKeyNormLayers: number[] | null;
+  queryKeyNormWeightLayers: number[] | null;
   valueNorm: boolean;
   attentionOutputGate: boolean;
   queryPreAttnScalar: number;
@@ -187,6 +197,7 @@ export interface ParsedModelConfig {
   chatTemplateThinking: boolean | null;
   decodeStrategy: 'incremental' | 'replay_prefill';
   perLayerInputsSession: ExecutionV1PerLayerInputsSessionSchema;
+  sessionSettings: ParsedSessionSettings;
   kernelPath?: KernelPathRef;
   visionConfig?: VisionConfig | null;
   audioConfig?: AudioEncoderConfig | null;

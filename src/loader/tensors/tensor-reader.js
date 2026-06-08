@@ -205,7 +205,8 @@ async function materializeLocationBytes(rawBytes, location, name, loadShard, loa
   return materializeTensorSourceTransform(rawBytes, location, name);
 }
 
-export async function assembleShardData(location, name, loadShard, loadShardRange = null) {
+export async function assembleShardData(location, name, loadShard, loadShardRange = null, options = {}) {
+  const shouldMaterializeSourceTransform = options.materializeSourceTransform !== false;
   const spans = getLocationSpans(location);
   if (spans) {
     trace.loader(`Assembling tensor "${name}" from ${spans.length} spans`);
@@ -240,7 +241,9 @@ export async function assembleShardData(location, name, loadShard, loadShardRang
       combined.set(chunk, offset);
       offset += chunk.length;
     }
-    return materializeLocationBytes(combined, location, name, loadShard, loadShardRange);
+    return shouldMaterializeSourceTransform
+      ? materializeLocationBytes(combined, location, name, loadShard, loadShardRange)
+      : combined;
   }
 
   // Single shard - use view to avoid copying
@@ -255,7 +258,9 @@ export async function assembleShardData(location, name, loadShard, loadShardRang
       );
     }
     const bytes = new Uint8Array(slice, 0, size);
-    return materializeLocationBytes(bytes, location, name, loadShard, loadShardRange);
+    return shouldMaterializeSourceTransform
+      ? materializeLocationBytes(bytes, location, name, loadShard, loadShardRange)
+      : bytes;
   }
 
   const fullShard = await loadShard(shardIndex);
@@ -265,7 +270,9 @@ export async function assembleShardData(location, name, loadShard, loadShardRang
     );
   }
   const bytes = new Uint8Array(fullShard, offset, size);
-  return materializeLocationBytes(bytes, location, name, loadShard, loadShardRange);
+  return shouldMaterializeSourceTransform
+    ? materializeLocationBytes(bytes, location, name, loadShard, loadShardRange)
+    : bytes;
 }
 
 export async function loadTensorRange(location, name, byteOffset, byteLength, loadShardRange) {

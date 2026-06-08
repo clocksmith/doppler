@@ -27,10 +27,16 @@ export async function processFFNWithSandwichNorm(
   size,
   context,
   layerWeights,
-  sandwichNorm
+  sandwichNorm,
+  finalOutputScale = 1
 ) {
   const { config, weightConfig, debugFlags, recorder, decodeBuffers } = context;
   const { hiddenSize, rmsNormEps } = config;
+  const requestedFinalOutputScale = finalOutputScale == null ? 1 : Number(finalOutputScale);
+  if (!Number.isFinite(requestedFinalOutputScale)) {
+    throw new Error(`Layer ${layerIdx} finalOutputScale must be finite; got "${String(finalOutputScale)}".`);
+  }
+  context.__layerScalarFusedFired = false;
 
   // For decode (M=1), get pre-allocated output buffer to avoid allocation
   const decodeOutputBuffer = numTokens === 1 && decodeBuffers
@@ -163,26 +169,45 @@ export async function processFFNWithSandwichNorm(
     output = ffnOutput;
   } else if (sandwichNorm.hasPostFeedforwardNorm && layerWeights?.postFeedforwardNorm) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.postFeedforwardNorm, 'post_feedforward_norm', weightConfig, debugFlags);
+    const rmsNormOutputScale = requestedFinalOutputScale !== 1
+      && ffnOutput.dtype === context.activationDtype
+      && !context.debugProbes?.length
+      ? requestedFinalOutputScale
+      : 1;
 
     output = await doRMSNorm(ffnOutput, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
       hiddenSize,
       residual: postAttn,
       outputBuffer: decodeOutputBuffer,
+      outputScale: rmsNormOutputScale,
       label: `L${layerIdx}.post_ffn_norm`,
       layerIdx,
       rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
     }, recorder);
+    if (rmsNormOutputScale !== 1) {
+      context.__layerScalarFusedFired = true;
+    }
 
     if (!isGpuBufferInstance(layerWeights.postFeedforwardNorm) && !isWeightBuffer(layerWeights.postFeedforwardNorm)) releaseOrTrack(recorder, normWeightBuf);
     releaseOrTrack(recorder, ffnOutput.buffer, decodeBuffers);
   } else {
+    const residualOutputScale = requestedFinalOutputScale !== 1
+      && ffnOutput.dtype === context.activationDtype
+      && postAttn.dtype === context.activationDtype
+      && !context.debugProbes?.length
+      ? requestedFinalOutputScale
+      : 1;
     output = await doResidualAdd(ffnOutput, postAttn, size, recorder, {
       label: `L${layerIdx}.post_ffn_residual`,
       layerIdx,
       outputBuffer: decodeOutputBuffer,
+      outputScale: residualOutputScale,
       executionPolicies: context.executionPolicies ?? null,
     });
+    if (residualOutputScale !== 1) {
+      context.__layerScalarFusedFired = true;
+    }
     releaseOrTrack(recorder, ffnOutput.buffer, decodeBuffers);
   }
 

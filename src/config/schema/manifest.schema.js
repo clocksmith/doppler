@@ -1,5 +1,8 @@
 import { MB } from './units.schema.js';
-import { validateRequiredInferenceFields } from '../../inference/pipelines/text/config.js';
+import {
+  assertSupportedManifestInference,
+  validateRequiredInferenceFields,
+} from '../../inference/pipelines/text/config.js';
 
 // =============================================================================
 // Hash & Versioning
@@ -61,6 +64,8 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     attnLogitSoftcapping: null,  // No softcapping (null = disabled)
     slidingWindow: null,  // Full attention (null = no sliding window)
     queryKeyNorm: false,
+    queryKeyNormLayers: null,
+    queryKeyNormWeightLayers: null,
     valueNorm: false,
     causal: true,  // Causal mask enabled by default (decoder-style attention)
     attentionBias: false,
@@ -151,6 +156,8 @@ export function validateManifestInference(
       `Please re-convert the model using the latest converter.`
     );
   }
+
+  assertSupportedManifestInference(manifest);
 
   if (manifest.modelType === 'diffusion' || manifest.modelType === 'energy') {
     return;

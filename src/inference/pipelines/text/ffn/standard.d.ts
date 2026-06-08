@@ -19,5 +19,7 @@ export declare function processFFNStandard(
   numTokens: number,
   size: number,
   context: LayerContext,
-  layerWeights: LayerWeights | undefined
+  layerWeights: LayerWeights | undefined,
+  fusedResidualInput?: Tensor | null,
+  finalOutputScale?: number | null
 ): Promise<Tensor>;

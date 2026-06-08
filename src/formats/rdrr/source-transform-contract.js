@@ -224,7 +224,7 @@ export function normalizeTensorSourceTransform(location, tensorName, options = {
         `Tensor "${tensorName}" has unsupported sourceTransform.scheme "${transform.scheme}".`
       );
     }
-    return {
+    const normalized = {
       kind,
       scheme: transform.scheme,
       sourceDtype,
@@ -232,6 +232,15 @@ export function normalizeTensorSourceTransform(location, tensorName, options = {
       scale: normalizePositiveNumber(transform.scale, tensorName, errorPrefix, 'sourceTransform.scale'),
       zeroPoint: normalizeSafeInteger(transform.zeroPoint, tensorName, errorPrefix, 'sourceTransform.zeroPoint'),
     };
+    if (transform.storageEncoding != null) {
+      normalized.storageEncoding = normalizeStorageEncoding(
+        transform.storageEncoding,
+        tensorName,
+        errorPrefix,
+        'sourceTransform.storageEncoding'
+      );
+    }
+    return normalized;
   }
 
   if (kind === 'litert_rowwise_dequant') {

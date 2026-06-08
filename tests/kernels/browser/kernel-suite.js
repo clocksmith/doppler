@@ -605,6 +605,19 @@ export async function runKernelSuite(harness) {
   ]);
 
   tests.push([
+    'residual_output_scale',
+    async () => {
+      const x = h.generateTestData(512, 503);
+      const residual = h.generateTestData(512, 504);
+      const outputScale = 0.125;
+      const expected = h.references.outputScaledResidualAddRef(x, residual, outputScale);
+      const actual = await h.runResidual(null, x, residual, { outputScale });
+      const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.residual);
+      return result.passed;
+    },
+  ]);
+
+  tests.push([
     'topk',
     async () => {
       const numTokens = 2;
