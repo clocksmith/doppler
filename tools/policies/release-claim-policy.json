@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-05-07",
+  "updatedAt": "2026-06-12",
   "claims": [
     {
       "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
@@ -65,6 +65,30 @@
       "evidence": {
         "kind": "manifest-variant-identity",
         "reportPath": "reports/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-05-07T17-23-16.704Z.json"
+      }
+    },
+    {
+      "modelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
+      "mode": "text",
+      "surface": ["node"],
+      "verificationSource": "runtime-verify",
+      "lastVerifiedAt": "2026-06-08",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "runtime-verify",
+        "reportPath": "reports/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/2026-06-08T22-33-51.728Z.json"
+      }
+    },
+    {
+      "modelId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
+      "mode": "diffusion",
+      "surface": ["node"],
+      "verificationSource": "runtime-verify",
+      "lastVerifiedAt": "2026-06-12",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "runtime-verify",
+        "reportPath": "reports/diffusiongemma-26b-a4b-it-q4k-ehf16-af16/2026-06-12T07-45-58.680Z.json"
       }
     },
     {

@@ -159,6 +159,8 @@ export class DopplerLoader {
 
   embeddingPostprocessor = null;
 
+  diffusionGemmaSelfConditioning = null;
+
   perLayerInputWeights = null;
 
   // Memory management
@@ -1082,6 +1084,7 @@ export class DopplerLoader {
       keepF32Weights: this.keepF32Weights,
       isMoE: this.isMoE,
       isExpertLayer: (idx) => this.#isExpertLayer(idx),
+      loadDenseFfnForMoeLayers: this.manifest?.inference?.ffn?.branchMode === 'dense_plus_moe',
       numHeads: this.manifest?.architecture?.numAttentionHeads ?? null,
       numKVHeads: this.manifest?.architecture?.numKeyValueHeads ?? null,
       headDim: this.manifest?.architecture?.headDim ?? null,
@@ -1121,6 +1124,7 @@ export class DopplerLoader {
     const loadShard = this.#getLoadShard();
     return {
       manifest: this.manifest,
+      tensorLocations: this.tensorLocations,
       loadTensor: (name, toGPU, silent) => this.#loadTensor(name, toGPU, silent),
       loadShard,
       shardCache: this.shardCache,
@@ -1163,6 +1167,7 @@ export class DopplerLoader {
     this.finalNorm = result.finalNorm;
     this.lmHead = result.lmHead;
     this.embeddingPostprocessor = result.embeddingPostprocessor;
+    this.diffusionGemmaSelfConditioning = result.diffusionGemmaSelfConditioning;
     this.#normOffsetDebugLogged = result.normOffsetDebugLogged;
   }
 

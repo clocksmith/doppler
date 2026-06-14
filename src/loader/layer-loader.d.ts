@@ -38,6 +38,8 @@ export interface LayerLoaderContext {
   isMoE: boolean;
   /** Check if layer is an expert layer */
   isExpertLayer: (layerIdx: number) => boolean;
+  /** Load dense FFN weights even when a layer also has MoE experts. */
+  loadDenseFfnForMoeLayers?: boolean;
   /** Optional attention dimensions for fused QKV sizing */
   numHeads?: number;
   numKVHeads?: number;

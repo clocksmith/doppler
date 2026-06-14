@@ -141,6 +141,10 @@ function applyExplicitAttentionConfig(inference, rawConfig) {
 }
 
 function applyExplicitFfnConfig(inference, rawConfig) {
+  const branchModeRaw = readRawConfigField(rawConfig, 'ffn_branch_mode');
+  if (typeof branchModeRaw === 'string' && branchModeRaw.trim()) {
+    inference.ffn.branchMode = branchModeRaw.trim().toLowerCase();
+  }
   const useDoubleWideMlp = asOptionalBoolean(readRawConfigField(rawConfig, 'use_double_wide_mlp'));
   if (useDoubleWideMlp != null) {
     inference.ffn.useDoubleWideMlp = useDoubleWideMlp;

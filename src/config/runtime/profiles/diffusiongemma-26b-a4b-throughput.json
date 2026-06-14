@@ -1,0 +1,21 @@
+{
+  "id": "profiles/diffusiongemma-26b-a4b-throughput",
+  "name": "diffusiongemma-26b-a4b-throughput",
+  "description": "DiffusionGemma calibration profile that selects the measured active-expert scheduler for the Gemma 4 A4B MoE block-diffusion artifact.",
+  "intent": "calibrate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-06-12T00:00:00Z",
+  "extends": "profiles/throughput",
+  "model": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
+  "runtime": {
+    "inference": {
+      "moe": {
+        "routing": {
+          "activeExpertSelection": "topk-readback",
+          "maxTokensPerExpert": 64
+        }
+      }
+    }
+  }
+}

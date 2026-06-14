@@ -77,6 +77,11 @@ export declare function isLiteRTAffineInt4FusedEligible(
   config: Partial<TensorLoadConfig> | null
 ): boolean;
 
+export declare function isW4A16FusedEligible(
+  location: TensorLocation,
+  config: Partial<TensorLoadConfig> | null
+): boolean;
+
 /**
  * Convert BF16 data to F32 on CPU.
  */
@@ -97,6 +102,13 @@ export declare function loadQ4KFused(
 ): Promise<TensorLoadResult>;
 
 export declare function loadLiteRTInt4Fused(
+  shardData: Uint8Array,
+  location: TensorLocation,
+  name: string,
+  config?: TensorLoadConfig | null
+): Promise<TensorLoadResult>;
+
+export declare function loadW4A16Fused(
   shardData: Uint8Array,
   location: TensorLocation,
   name: string,

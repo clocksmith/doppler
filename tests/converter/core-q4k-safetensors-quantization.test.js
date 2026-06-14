@@ -3,9 +3,9 @@ import { installNodeFileFetchShim } from '../../src/tooling/node-file-fetch.js';
 
 installNodeFileFetchShim();
 
-const { convertModel } = await import('../../src/converter/core.js');
+const { convertModel, transformTensorBytes } = await import('../../src/converter/core.js');
 const { createConverterConfig } = await import('../../src/config/schema/converter.schema.js');
-const { float32ToFloat16 } = await import('../../src/converter/quantizer.js');
+const { float32ToFloat16, getQ4KSize } = await import('../../src/converter/quantizer.js');
 const { DEFAULT_MANIFEST_INFERENCE } = await import('../../src/config/schema/index.js');
 
 function toArrayBuffer(view) {
@@ -137,6 +137,35 @@ assert.equal(
   expectedQProjBytes + normLoc.size,
   'shard bytes should reflect packed q4k tensor + unquantized norm tensor'
 );
+
+{
+  const expertShape = [2, 2, 300];
+  const expertTensor = {
+    name: 'model.decoder.layers.0.experts.down_proj',
+    role: 'expert',
+    shape: expertShape,
+    dtype: 'F16',
+    size: expertShape.reduce((a, b) => a * b, 1) * 2,
+  };
+  const expertValues = buildF16Tensor(expertShape.reduce((a, b) => a * b, 1), -0.25);
+  const transformed = transformTensorBytes(
+    expertTensor,
+    toArrayBuffer(new Uint8Array(expertValues.buffer)),
+    {
+      targetQuant: 'q4k',
+      q4kLayout: 'row',
+      forceQuantizeDecision: true,
+    }
+  );
+
+  assert.equal(transformed.outDtype, 'Q4_K_M');
+  assert.equal(transformed.outLayout, 'row');
+  assert.equal(transformed.tensorData.byteLength, getQ4KSize(expertShape, 'row'));
+  assert.ok(
+    transformed.tensorData.byteLength > getQ4KSize(expertShape, 'flat'),
+    '3D expert Q4K should be row-packed for fused per-expert matmul'
+  );
+}
 
 const embeddingShape = [4, 256];
 const embeddingTensor = {

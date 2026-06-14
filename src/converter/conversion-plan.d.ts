@@ -1,4 +1,5 @@
 import type { ConverterConfigSchema } from '../config/schema/converter.schema.js';
+import type { MoEConfigSchema } from '../config/schema/manifest.schema.js';
 
 export interface ConversionPlanInputTensor {
   name: string;
@@ -23,6 +24,7 @@ export interface ConversionPlanResult {
   modelType: string;
   sourceQuantization: string;
   quantizationInfo: Record<string, unknown>;
+  moeConfig?: MoEConfigSchema | null;
   manifestQuantization: string;
   manifestInference: Record<string, unknown>;
   headDim?: number;

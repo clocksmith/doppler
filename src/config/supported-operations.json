@@ -7,6 +7,11 @@
       "description": "Token-embedding gather into the hidden-state residual slot.",
       "kernelFamily": ["embed"]
     },
+    "cast": {
+      "section": ["preLayer", "prefill", "decode", "postLayer"],
+      "description": "Explicit dtype transition declared by the execution graph.",
+      "kernelFamily": ["cast"]
+    },
     "input_norm": {
       "section": ["prefill", "decode"],
       "description": "Pre-attention RMS norm.",

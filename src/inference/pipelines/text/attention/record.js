@@ -41,6 +41,7 @@ import {
 } from '../../../../config/kernel-path-loader.js';
 import {
   resolveKVCacheState,
+  createDiffusionGemmaDecoderKVState,
   buildAttentionDispatchParams,
   buildAttentionInputsData,
 } from './dispatch-params.js';
@@ -123,6 +124,7 @@ export async function recordLayerAttentionGPU(
     multimodalBidirectionalSpan = null,
     sharedKVSourceLayerIdx = null,
     storeSharedKV = false,
+    diffusionGemmaDecoder = false,
   } = config;
 
   const phase = isPrefill ? 'prefill' : 'decode';
@@ -161,6 +163,9 @@ export async function recordLayerAttentionGPU(
   let oProjInputTemp = null;
   let retainSharedKvBuffers = false;
   let valueAliasesKey = false;
+  let decoderKVState = null;
+  let decoderKTemp = null;
+  let decoderVTemp = null;
   if (!allowF16Attention && input.dtype !== attentionActivationDtype) {
     assertAttentionDtypeTransitionAllowed(
       state,
@@ -500,7 +505,7 @@ export async function recordLayerAttentionGPU(
   }
 
   // 4. Update KV cache (cache stores raw GPUBuffers for memory efficiency)
-  if (state.kvCache?.hasGPUCache?.()) {
+  if (!diffusionGemmaDecoder && state.kvCache?.hasGPUCache?.()) {
     // Use recordUpdateFromGPU to record copy operations to the recorder's encoder
     // This ensures K/V buffers are populated before copying (all ops submitted together)
     if (state.kvCache.kvDtype === 'f16') {
@@ -524,11 +529,67 @@ export async function recordLayerAttentionGPU(
   }
 
   // Resolve KV cache state and build dispatch parameters (shared with run.js)
-  const kvState = resolveKVCacheState(state, layerIdx, kTensor, vTensor, currentSeqLen, numTokens);
+  let kvState;
+  if (diffusionGemmaDecoder) {
+    const decoderKVDtype = kvCacheDtype ?? kTensor.dtype;
+    let decoderKTensor = kTensor;
+    let decoderVTensor = vTensor;
+    if (decoderKVDtype === 'f16' && decoderKTensor.dtype !== 'f16') {
+      const hasExplicitF16KvContract = isAttentionKvDtypeExplicit(attentionPrecisionContract, 'f16');
+      if (!hasExplicitF16KvContract) {
+        assertAttentionDtypeTransitionAllowed(state, decoderKTensor.dtype, 'f16', 'DiffusionGemma decoder K would be narrowed implicitly.');
+      }
+      decoderKTensor = await recordCastF32ToF16(recorder, decoderKTensor);
+      decoderKTemp = decoderKTensor;
+    } else if (decoderKVDtype === 'f32' && decoderKTensor.dtype !== 'f32') {
+      assertAttentionDtypeTransitionAllowed(state, decoderKTensor.dtype, 'f32', 'DiffusionGemma decoder K would be widened implicitly.');
+      decoderKTensor = await recordCastF16ToF32(recorder, decoderKTensor);
+      decoderKTemp = decoderKTensor;
+    }
+    if (decoderKVDtype === 'f16' && decoderVTensor.dtype !== 'f16') {
+      const hasExplicitF16KvContract = isAttentionKvDtypeExplicit(attentionPrecisionContract, 'f16');
+      if (!hasExplicitF16KvContract) {
+        assertAttentionDtypeTransitionAllowed(state, decoderVTensor.dtype, 'f16', 'DiffusionGemma decoder V would be narrowed implicitly.');
+      }
+      decoderVTensor = await recordCastF32ToF16(recorder, decoderVTensor);
+      decoderVTemp = decoderVTensor;
+    } else if (decoderKVDtype === 'f32' && decoderVTensor.dtype !== 'f32') {
+      assertAttentionDtypeTransitionAllowed(state, decoderVTensor.dtype, 'f32', 'DiffusionGemma decoder V would be widened implicitly.');
+      decoderVTensor = await recordCastF16ToF32(recorder, decoderVTensor);
+      decoderVTemp = decoderVTensor;
+    }
+    kvState = await createDiffusionGemmaDecoderKVState({
+      state,
+      layerIdx,
+      kTensor: decoderKTensor,
+      vTensor: decoderVTensor,
+      currentSeqLen,
+      numTokens,
+      numKVHeads,
+      headDim,
+      layerType,
+      slidingWindow,
+      kvDtype: decoderKVDtype,
+      recorder,
+    });
+    if (decoderKTemp) {
+      recorder.trackTemporaryBuffer(decoderKTemp.buffer);
+      decoderKTemp = null;
+    }
+    if (decoderVTemp) {
+      recorder.trackTemporaryBuffer(decoderVTemp.buffer);
+      decoderVTemp = null;
+    }
+    decoderKVState = kvState;
+  } else {
+    kvState = resolveKVCacheState(state, layerIdx, kTensor, vTensor, currentSeqLen, numTokens);
+  }
   const dispatchConfig = {
     layerIdx, numTokens, isPrefill, numHeads, numKVHeads, headDim, hiddenSize,
-    slidingWindow, layerType, layerTypes: config.layerTypes,
-    queryPreAttnScalar, causalAttention: config.causalAttention,
+    slidingWindow: diffusionGemmaDecoder ? null : slidingWindow,
+    layerType, layerTypes: config.layerTypes,
+    queryPreAttnScalar,
+    causalAttention: diffusionGemmaDecoder ? false : config.causalAttention,
     activationDtype: attentionActivationDtype,
     kvCacheDtype: attentionPrecisionContract.resolvedKvCacheDtype ?? state.kvCache?.kvDtype ?? null,
   };
@@ -701,8 +762,8 @@ export async function recordLayerAttentionGPU(
       // when numTokens > 1 (prefill). Same flag semantics as the non-recorder
       // path in ./run.js.
       const mergedSessionRec = getRuntimeConfig()?.inference?.session;
-      const useFlashPrefillRec = mergedSessionRec?.useFlashPrefillAttention === true && numTokens > 1;
-      const useOrtFlashPrefillRec = mergedSessionRec?.useOrtFlashPrefillAttention === true && numTokens > 1;
+      const useFlashPrefillRec = !diffusionGemmaDecoder && mergedSessionRec?.useFlashPrefillAttention === true && numTokens > 1;
+      const useOrtFlashPrefillRec = !diffusionGemmaDecoder && mergedSessionRec?.useOrtFlashPrefillAttention === true && numTokens > 1;
       return recordAttention(recorder, qTensor, kForAttn, vForAttn, null, numHeads, headDim, {
         seqLen: numTokens,
         kvLen: kvState.kvLenForAttention,
@@ -730,7 +791,16 @@ export async function recordLayerAttentionGPU(
     throw new Error(`Unsupported attention kernel variant "${attentionKernelVariant}" at layer ${layerIdx}`);
   }
 
-  attnOutput = await runAttentionKernel();
+  try {
+    attnOutput = await runAttentionKernel();
+  } finally {
+    if (decoderKVState?.ownedBuffers) {
+      for (const buffer of decoderKVState.ownedBuffers) {
+        recorder.trackTemporaryBuffer(buffer);
+      }
+      decoderKVState.ownedBuffers = null;
+    }
+  }
   await runProbes('attn_core_out', attnOutput.buffer, {
     layerIdx,
     numTokens,
@@ -935,6 +1005,18 @@ export async function recordLayerAttentionGPU(
     }
     if (attentionInputTemp && attentionInput?.buffer) {
       trackOnce(attentionInput.buffer);
+    }
+    if (decoderKTemp?.buffer) {
+      trackOnce(decoderKTemp.buffer);
+    }
+    if (decoderVTemp?.buffer) {
+      trackOnce(decoderVTemp.buffer);
+    }
+    if (decoderKVState?.ownedBuffers) {
+      for (const buffer of decoderKVState.ownedBuffers) {
+        trackOnce(buffer);
+      }
+      decoderKVState.ownedBuffers = null;
     }
     throw error;
   }

@@ -251,7 +251,11 @@ export function quantizeToQ4KM(data, shape) {
 
 
 export function quantizeToQ4KMRowWise(data, shape) {
-  const [rows, cols] = shape;
+  if (!Array.isArray(shape) || shape.length < 2) {
+    throw new Error(`Row-wise Q4K quantization requires a matrix-like shape, got ${shape}`);
+  }
+  const cols = shape[shape.length - 1];
+  const rows = shape.slice(0, -1).reduce((a, b) => a * b, 1);
   const numElements = rows * cols;
 
   if (data.length !== numElements) {
@@ -393,6 +397,12 @@ export function getQ4KSize(shape, layout = 'flat') {
   const numElements = shape.reduce((a, b) => a * b, 1);
 
   if (layout === 'flat' || shape.length !== 2) {
+    if (layout === 'row' && shape.length >= 2) {
+      const cols = shape[shape.length - 1];
+      const rows = shape.slice(0, -1).reduce((a, b) => a * b, 1);
+      const blocksPerRow = Math.ceil(cols / QK_K);
+      return rows * blocksPerRow * QK4_K_BLOCK_SIZE;
+    }
     const numBlocks = Math.ceil(numElements / QK_K);
     return numBlocks * QK4_K_BLOCK_SIZE;
   }
@@ -433,7 +443,11 @@ export function dequantizeQ4KM(quantized, numBlocks, shape) {
 }
 
 export function dequantizeQ4KMRowWise(quantized, shape) {
-  const [rows, cols] = shape;
+  if (!Array.isArray(shape) || shape.length < 2) {
+    throw new Error(`Row-wise Q4K dequantization requires a matrix-like shape, got ${shape}`);
+  }
+  const cols = shape[shape.length - 1];
+  const rows = shape.slice(0, -1).reduce((a, b) => a * b, 1);
   const blocksPerRow = Math.ceil(cols / QK_K);
   const result = new Float32Array(rows * cols);
 

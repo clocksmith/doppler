@@ -10,6 +10,7 @@
  * Supports multiple MoE architectures:
  * - Mixtral-style (gate/up/down per expert)
  * - GPT-OSS style (MXFP4 quantized fused gate_up + bias)
+ * - Gemma-style packed F16 gate_up/down experts
  *
  * @module inference/pipelines/text/moe-impl
  */
@@ -19,6 +20,7 @@ import type { MoERouter } from '../../moe-router.js';
 import type { ExpertWeights } from './types.js';
 import type { KernelPathSchema } from '../../../config/schema/index.js';
 import type { ExecutionV1PoliciesSchema } from '../../../config/schema/execution-v1.schema.js';
+import type { WeightBuffer } from '../../../gpu/weight-buffer.js';
 
 /**
  * Clear the dequantization cache (call on model unload).
@@ -47,12 +49,16 @@ export interface MoEConfig {
   modelType?: string | null;
   hiddenSize: number;
   intermediateSize: number;
+  rmsNormEps?: number;
+  expertIntermediateSize?: number;
   numExperts: number;
   moeTopK: number;
-  expertFormat: 'mixtral' | 'gpt-oss';
+  expertFormat: 'mixtral' | 'gpt-oss' | 'gemma4';
   hiddenActivation: string;
   swigluLimit: number | null;
   activationDtype?: TensorDtype;
+  routerInputBuffer?: GPUBuffer | null;
+  routerInputDtype?: TensorDtype | null;
   kernelPath?: KernelPathSchema | null;
   executionPolicies?: ExecutionV1PoliciesSchema | null;
 }
@@ -61,8 +67,10 @@ export interface MoEConfig {
  * Expert weights with optional GPT-OSS quantized format.
  */
 export interface MoEExpertWeights extends ExpertWeights {
-  expertFormat: 'mixtral' | 'gpt-oss';
+  expertFormat: 'mixtral' | 'gpt-oss' | 'gemma4';
   numExperts?: number;
+  expertIntermediateSize?: number;
+  gateUp?: GPUBuffer;
   gateUpBlocks?: GPUBuffer;
   gateUpScales?: GPUBuffer;
   gateUpBias?: GPUBuffer;
@@ -75,8 +83,10 @@ export interface MoEExpertWeights extends ExpertWeights {
  * Layer router weights (for models with per-layer routers like GPT-OSS).
  */
 export interface LayerRouterWeights {
-  weight: Float32Array | GPUBuffer;
+  weight: Float32Array | GPUBuffer | WeightBuffer;
   bias: Float32Array | GPUBuffer | null;
+  scale?: Float32Array | GPUBuffer | WeightBuffer | null;
+  perExpertScale?: Float32Array | GPUBuffer | WeightBuffer | null;
 }
 
 /**

@@ -11,6 +11,7 @@ export const DEFAULT_MOE_ROUTING_CONFIG = {
   maxTokensPerExpertHeadroom: 2.0,
   maxTokensPerExpertMin: 4,
   maxTokensPerExpertCap: 0,
+  activeExpertSelection: 'all',
 };
 
 // =============================================================================
@@ -29,4 +30,3 @@ export const DEFAULT_MOE_RUNTIME_CONFIG = {
   routing: DEFAULT_MOE_ROUTING_CONFIG,
   cache: DEFAULT_MOE_CACHE_CONFIG,
 };
-

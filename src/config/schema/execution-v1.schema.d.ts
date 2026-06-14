@@ -300,6 +300,9 @@ export interface ExecutionV1ExpandedStepSchema {
   digest: string;
   weights: string | null;
   constants: Record<string, number | boolean> | null;
+  precision?: ExecutionV1PrecisionSchema;
+  fromDtype?: ExecutionV1Dtype;
+  toDtype?: ExecutionV1Dtype;
   layers: 'all' | number[];
   phase: 'decode' | 'prefill' | 'both';
   section: 'preLayer' | 'layer' | 'postLayer';

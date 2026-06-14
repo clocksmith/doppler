@@ -12,6 +12,7 @@ export interface MixedGeometryKVCacheConfig {
   pageSize: number;
   kvDtype: 'f16' | 'f32';
   slidingWindow?: number | null;
+  slidingLayerLayout: 'ring' | 'contiguous';
   layerTypes: string[];
 }
 

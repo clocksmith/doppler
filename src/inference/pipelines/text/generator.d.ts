@@ -20,6 +20,31 @@ export interface ChatRequestInput {
 
 export type PromptInput = string | ChatMessage[] | ChatRequestInput;
 
+export interface DiffusionGemmaCanvasLogitsInput {
+  canvas: number[] | Int32Array | Uint32Array;
+  selfConditioningLogits?: Float32Array | number[] | DiffusionGemmaGpuLogitsState | null;
+}
+
+export interface DiffusionGemmaGpuLogitsState {
+  logitsBuffer: GPUBuffer;
+  logitsDtype: 'f32';
+  vocabSize: number;
+  canvasLength: number;
+  temperature: number;
+  releaseOnUse?: boolean;
+  release?: () => void;
+}
+
+export interface DiffusionGemmaCanvasStepInput extends DiffusionGemmaCanvasLogitsInput {
+  temperature: number;
+}
+
+export interface DiffusionGemmaCanvasStepResult {
+  argmaxCanvas: Int32Array;
+  entropies: Float32Array;
+  selfConditioningLogits: DiffusionGemmaGpuLogitsState;
+}
+
 export declare class PipelineGenerator {
   constructor(state: PipelineState);
 
@@ -32,7 +57,16 @@ export declare class PipelineGenerator {
     prompt: PromptInput,
     options?: GenerateOptions
   ): Promise<{ tokenIds: number[]; stats: import('./types.js').PipelineStats }>;
+  resetToSeqLen(seqLen: number): void;
   prefillKVOnly(prompt: PromptInput, options?: GenerateOptions): Promise<KVCacheSnapshot>;
+  computeDiffusionGemmaCanvasLogits(
+    args: DiffusionGemmaCanvasLogitsInput,
+    options?: GenerateOptions & { __internalGenerate?: boolean }
+  ): Promise<Float32Array>;
+  computeDiffusionGemmaCanvasStep(
+    args: DiffusionGemmaCanvasStepInput,
+    options?: GenerateOptions & { __internalGenerate?: boolean }
+  ): Promise<DiffusionGemmaCanvasStepResult>;
   prefillWithEmbedding(prompt: PromptInput, options?: GenerateOptions): Promise<PrefillEmbeddingResult>;
   prefillWithLogits(prompt: PromptInput, options?: GenerateOptions): Promise<PrefillResult>;
   decodeStepLogits(currentIds: number[], options?: GenerateOptions): Promise<LogitsStepResult>;

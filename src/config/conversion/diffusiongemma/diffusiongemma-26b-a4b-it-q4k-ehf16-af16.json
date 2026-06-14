@@ -1,0 +1,646 @@
+{
+  "output": {
+    "baseDir": "models/local",
+    "modelBaseId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
+    "textOnly": true,
+    "fast": false
+  },
+  "quantization": {
+    "weights": "q4k",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "computePrecision": "f16",
+    "q4kLayout": "row"
+  },
+  "moeConfig": {
+    "numExperts": 128,
+    "numExpertsPerToken": 8,
+    "expertFormat": "gemma4",
+    "expertIntermediateSize": 704
+  },
+  "inference": {
+    "attention": {
+      "queryPreAttnScalar": 1,
+      "attnLogitSoftcapping": null,
+      "slidingWindow": 1024,
+      "queryKeyNorm": true,
+      "valueNorm": true,
+      "causal": true,
+      "attentionBias": false,
+      "attentionOutputGate": false
+    },
+    "normalization": {
+      "rmsNormEps": 0.000001,
+      "rmsNormWeightOffset": false,
+      "postAttentionNorm": true,
+      "preFeedforwardNorm": true,
+      "postFeedforwardNorm": true
+    },
+    "ffn": {
+      "activation": "gelu",
+      "gatedActivation": true,
+      "branchMode": "dense_plus_moe",
+      "useDoubleWideMlp": false,
+      "swigluLimit": null
+    },
+    "rope": {
+      "ropeTheta": 1000000,
+      "ropeLocalTheta": 10000,
+      "ropeInterleaved": false,
+      "mropeInterleaved": false,
+      "mropeSection": null,
+      "partialRotaryFactor": 0.25,
+      "ropeLocalPartialRotaryFactor": null,
+      "ropeFrequencyBaseDim": 512,
+      "ropeLocalFrequencyBaseDim": null,
+      "ropeScalingType": null,
+      "ropeScalingFactor": 1,
+      "ropeLocalScalingType": null,
+      "ropeLocalScalingFactor": 1,
+      "yarnBetaFast": null,
+      "yarnBetaSlow": null,
+      "yarnOriginalMaxPos": null,
+      "ropeLocalYarnBetaFast": null,
+      "ropeLocalYarnBetaSlow": null,
+      "ropeLocalYarnOriginalMaxPos": null
+    },
+    "output": {
+      "finalLogitSoftcapping": 30,
+      "tieWordEmbeddings": true,
+      "scaleEmbeddings": true,
+      "embeddingTranspose": false,
+      "embeddingVocabSize": null,
+      "embeddingPostprocessor": null
+    },
+    "layerPattern": {
+      "type": "custom",
+      "globalPattern": null,
+      "period": null,
+      "offset": null,
+      "layerTypes": [
+        "sliding_attention",
+        "sliding_attention",
+        "sliding_attention",
+        "sliding_attention",
+        "sliding_attention",
+        "full_attention",
+        "sliding_attention",
+        "sliding_attention",
+        "sliding_attention",
+        "sliding_attention",
+        "sliding_attention",
+        "full_attention",
+        "sliding_attention",
+        "sliding_attention",
+        "sliding_attention",
+        "sliding_attention",
+        "sliding_attention",
+        "full_attention",
+        "sliding_attention",
+        "sliding_attention",
+        "sliding_attention",
+        "sliding_attention",
+        "sliding_attention",
+        "full_attention",
+        "sliding_attention",
+        "sliding_attention",
+        "sliding_attention",
+        "sliding_attention",
+        "sliding_attention",
+        "full_attention"
+      ]
+    },
+    "chatTemplate": {
+      "type": "gemma4",
+      "enabled": true
+    },
+    "supportsEmbedding": false,
+    "supportsTranscription": false,
+    "supportsVision": false,
+    "diffusionGemma": {
+      "canvasLength": 256,
+      "maxDenoisingSteps": 48,
+      "maxNewTokens": 256,
+      "tMin": 0.4,
+      "tMax": 0.8,
+      "entropyBound": 0.1,
+      "confidenceThreshold": 0.005,
+      "stabilityThreshold": 1,
+      "padTokenId": 0,
+      "eosTokenIds": [
+        1,
+        106,
+        50
+      ],
+      "boiTokenId": 255999,
+      "eoiTokenId": 258882,
+      "imageTokenId": 258880,
+      "selfConditioning": true,
+      "decoderCacheMode": "encoder_kv_readonly_canvas_concat",
+      "router": {
+        "scaleHiddenStates": true,
+        "normalizeTopK": true,
+        "perExpertScale": true
+      }
+    }
+  },
+  "session": {
+    "compute": {
+      "defaults": {
+        "activationDtype": "f16",
+        "mathDtype": "f16",
+        "accumDtype": "f16",
+        "outputDtype": "f16"
+      }
+    },
+    "kvcache": {
+      "kvDtype": "f16",
+      "layout": "contiguous",
+      "pageSize": 256,
+      "tiering": {
+        "mode": "off"
+      }
+    },
+    "decodeLoop": {
+      "batchSize": 8,
+      "stopCheckMode": "batch",
+      "readbackInterval": 8,
+      "readbackMode": "overlapped",
+      "ringTokens": 2,
+      "ringStop": 1,
+      "ringStaging": 2,
+      "disableCommandBatching": false
+    },
+    "perLayerInputs": {
+      "materialization": "auto",
+      "rowCache": {
+        "mode": "lru",
+        "maxRows": 1,
+        "maxBytes": 1,
+        "decodedDtype": "f16"
+      },
+      "prefetch": {
+        "mode": "off",
+        "rowsAhead": 1
+      },
+      "gpuUpload": {
+        "mode": "per_step_slices",
+        "stagingRows": 1
+      },
+      "hotCache": {
+        "mode": "off",
+        "maxTokens": 1,
+        "maxBytes": 1,
+        "outputDtype": "f16"
+      }
+    },
+    "prefillChunkSubmitMode": "async",
+    "useFlashPrefillAttention": true,
+    "useWideTileQ4KPrefill": true,
+    "retainQ4KMaterialization": true
+  },
+  "execution": {
+    "kernels": {
+      "embed": {
+        "kernel": "gather.wgsl",
+        "entry": "main",
+        "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6"
+      },
+      "rmsnorm": {
+        "kernel": "rmsnorm.wgsl",
+        "entry": "main",
+        "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+      },
+      "final_norm_stable": {
+        "kernel": "rmsnorm.wgsl",
+        "entry": "main",
+        "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1",
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        }
+      },
+      "gemv": {
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_vec4",
+        "digest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011"
+      },
+      "q4_decode_gemv": {
+        "kernel": "fused_matmul_q4.wgsl",
+        "entry": "main_gemv",
+        "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        }
+      },
+      "rope": {
+        "kernel": "rope.wgsl",
+        "entry": "main",
+        "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+      },
+      "attn_decode": {
+        "kernel": "attention_decode_online_f16kv.wgsl",
+        "entry": "main",
+        "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
+        "precision": {
+          "kvDtype": "f16"
+        }
+      },
+      "residual": {
+        "kernel": "residual.wgsl",
+        "entry": "main",
+        "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+      },
+      "gelu": {
+        "kernel": "gelu.wgsl",
+        "entry": "main",
+        "digest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+        "constants": {
+          "HAS_GATE": true
+        }
+      },
+      "tiled": {
+        "kernel": "matmul_f16w_f32a.wgsl",
+        "entry": "main",
+        "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
+      },
+      "q4_prefill_shared": {
+        "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+        "entry": "main",
+        "digest": "sha256:142817adcacb28750a92793996cd15c2d9fe13d03e0c2d0aadf3e674dc7a35d6"
+      },
+      "q4_widetile": {
+        "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+        "entry": "main",
+        "digest": "sha256:fd0fb3e0a5aeb8189674cfdf450181ca132e4a2db899a122ef93ec0b4abf9b1d",
+        "precision": {
+          "inputDtype": "f16",
+          "outputDtype": "f16"
+        }
+      },
+      "attn_stream": {
+        "kernel": "attention_streaming_f16kv.wgsl",
+        "entry": "main",
+        "digest": "sha256:c3ec920699a81ee6df04a64eb0ea2477bec168ebb809af29f2d4b0924a4bdf8f",
+        "precision": {
+          "kvDtype": "f16"
+        }
+      },
+      "attn_small": {
+        "kernel": "attention_small_f16kv.wgsl",
+        "entry": "main",
+        "digest": "sha256:ad3bb913c17167eb28fefc6abd24602ea0f148bc22a2b5f437eeffcc6f7fc668",
+        "precision": {
+          "kvDtype": "f16"
+        }
+      },
+      "attn_head256": {
+        "kernel": "attention_head256_f16kv.wgsl",
+        "entry": "main",
+        "digest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+        "precision": {
+          "kvDtype": "f16"
+        }
+      },
+      "attn_head512": {
+        "kernel": "attention_head512_f16.wgsl",
+        "entry": "main",
+        "digest": "sha256:e6d5ad9ebeb226524a9f9e664110b3ecd37374e11201f36b8d2683e28254ee0a",
+        "precision": {
+          "activationDtype": "f16",
+          "kvDtype": "f16"
+        }
+      },
+      "lm_head_gemv": {
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_multicol",
+        "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
+        "constants": {
+          "MULTICOL_COLS_PER_WG": 64,
+          "MULTICOL_THREADS_PER_COL": 4
+        }
+      },
+      "lm_head_gemv_stable": {
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_multicol",
+        "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
+        "constants": {
+          "MULTICOL_COLS_PER_WG": 64,
+          "MULTICOL_THREADS_PER_COL": 4
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        }
+      },
+      "lm_head_prefill_stable": {
+        "kernel": "matmul_f16w_f32a.wgsl",
+        "entry": "main",
+        "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        }
+      },
+      "prefill_embedding_override_cast": {
+        "kernel": "cast_f32_to_f16.wgsl",
+        "entry": "main",
+        "digest": "sha256:5ce9708402e1a01aa892f1519b5be967076bc3b3d91366cacbc9f0d37dcc5add",
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f16"
+        }
+      },
+      "sample": {
+        "kernel": "sample.wgsl",
+        "entry": "sample_single_pass",
+        "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
+      }
+    },
+    "preLayer": [
+      [
+        "embed",
+        "embed",
+        "embed_tokens"
+      ],
+      [
+        "cast",
+        "prefill_embedding_override_cast"
+      ]
+    ],
+    "decode": [
+      [
+        "input_norm",
+        "rmsnorm"
+      ],
+      [
+        "q_proj",
+        "q4_decode_gemv",
+        "layer.{L}.self_attn.q_proj"
+      ],
+      [
+        "k_proj",
+        "q4_decode_gemv",
+        "layer.{L}.self_attn.k_proj"
+      ],
+      [
+        "v_proj",
+        "q4_decode_gemv",
+        "layer.{L}.self_attn.v_proj"
+      ],
+      [
+        "rope_q",
+        "rope"
+      ],
+      [
+        "rope_k",
+        "rope"
+      ],
+      [
+        "attention",
+        "attn_decode"
+      ],
+      [
+        "o_proj",
+        "q4_decode_gemv",
+        "layer.{L}.self_attn.o_proj"
+      ],
+      [
+        "attn_residual",
+        "residual"
+      ],
+      [
+        "post_attn_norm",
+        "rmsnorm"
+      ],
+      [
+        "gate_proj",
+        "q4_decode_gemv",
+        "layer.{L}.mlp.gate_proj"
+      ],
+      [
+        "up_proj",
+        "q4_decode_gemv",
+        "layer.{L}.mlp.up_proj"
+      ],
+      [
+        "activation",
+        "gelu"
+      ],
+      [
+        "down_proj",
+        "q4_decode_gemv",
+        "layer.{L}.mlp.down_proj"
+      ],
+      [
+        "ffn_residual",
+        "residual"
+      ]
+    ],
+    "prefill": [
+      {
+        "layers": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6,
+          7,
+          8,
+          9,
+          10,
+          12,
+          13,
+          14,
+          15,
+          16,
+          18,
+          19,
+          20,
+          21,
+          22,
+          24,
+          25,
+          26,
+          27,
+          28
+        ],
+        "steps": [
+          [
+            "input_norm",
+            "rmsnorm"
+          ],
+          [
+            "q_proj",
+            "q4_widetile",
+            "layer.{L}.self_attn.q_proj"
+          ],
+          [
+            "k_proj",
+            "q4_widetile",
+            "layer.{L}.self_attn.k_proj"
+          ],
+          [
+            "v_proj",
+            "q4_widetile",
+            "layer.{L}.self_attn.v_proj"
+          ],
+          [
+            "rope_q",
+            "rope"
+          ],
+          [
+            "rope_k",
+            "rope"
+          ],
+          [
+            "attention",
+            "attn_head256"
+          ],
+          [
+            "o_proj",
+            "q4_widetile",
+            "layer.{L}.self_attn.o_proj"
+          ],
+          [
+            "attn_residual",
+            "residual"
+          ],
+          [
+            "post_attn_norm",
+            "rmsnorm"
+          ],
+          [
+            "gate_proj",
+            "q4_widetile",
+            "layer.{L}.mlp.gate_proj"
+          ],
+          [
+            "up_proj",
+            "q4_widetile",
+            "layer.{L}.mlp.up_proj"
+          ],
+          [
+            "activation",
+            "gelu"
+          ],
+          [
+            "down_proj",
+            "q4_widetile",
+            "layer.{L}.mlp.down_proj"
+          ],
+          [
+            "ffn_residual",
+            "residual"
+          ]
+        ]
+      },
+      {
+        "layers": [
+          5,
+          11,
+          17,
+          23,
+          29
+        ],
+        "steps": [
+          [
+            "input_norm",
+            "rmsnorm"
+          ],
+          [
+            "q_proj",
+            "q4_widetile",
+            "layer.{L}.self_attn.q_proj"
+          ],
+          [
+            "k_proj",
+            "q4_widetile",
+            "layer.{L}.self_attn.k_proj"
+          ],
+          [
+            "v_proj",
+            "q4_widetile",
+            "layer.{L}.self_attn.v_proj"
+          ],
+          [
+            "rope_q",
+            "rope"
+          ],
+          [
+            "rope_k",
+            "rope"
+          ],
+          [
+            "attention",
+            "attn_head512"
+          ],
+          [
+            "o_proj",
+            "q4_widetile",
+            "layer.{L}.self_attn.o_proj"
+          ],
+          [
+            "attn_residual",
+            "residual"
+          ],
+          [
+            "post_attn_norm",
+            "rmsnorm"
+          ],
+          [
+            "gate_proj",
+            "q4_widetile",
+            "layer.{L}.mlp.gate_proj"
+          ],
+          [
+            "up_proj",
+            "q4_widetile",
+            "layer.{L}.mlp.up_proj"
+          ],
+          [
+            "activation",
+            "gelu"
+          ],
+          [
+            "down_proj",
+            "q4_widetile",
+            "layer.{L}.mlp.down_proj"
+          ],
+          [
+            "ffn_residual",
+            "residual"
+          ]
+        ]
+      }
+    ],
+    "postLayer": [
+      [
+        "final_norm",
+        "final_norm_stable"
+      ],
+      [
+        "lm_head",
+        "lm_head_gemv_stable",
+        "lm_head"
+      ],
+      [
+        "lm_head_prefill",
+        "lm_head_prefill_stable",
+        "lm_head"
+      ],
+      [
+        "sample",
+        "sample"
+      ]
+    ],
+    "policies": {
+      "unsupportedPrecision": "error",
+      "dtypeTransition": "require_cast_step",
+      "unresolvedKernel": "error"
+    }
+  },
+  "modelType": "diffusion_gemma"
+}

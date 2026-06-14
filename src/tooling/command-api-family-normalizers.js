@@ -420,10 +420,13 @@ export function normalizeSuiteCommand(raw, command) {
   if (programBundleParityMode && programBundleParityMode !== 'contract' && programBundleParityMode !== 'execute') {
     throw new Error('tooling command: programBundleParityMode must be "contract" or "execute".');
   }
+  const workloadTypeMatches = workload === 'diffusion'
+    ? (inputWorkloadType === 'diffusion' || inputWorkloadType === 'diffusion_gemma')
+    : inputWorkloadType === workload;
   if (
     inputWorkloadType
     && (workload === 'training' || workload === 'diffusion')
-    && inputWorkloadType !== workload
+    && !workloadTypeMatches
   ) {
     throw new Error(
       `tooling command: workloadType "${inputWorkloadType}" does not match workload "${workload}".`

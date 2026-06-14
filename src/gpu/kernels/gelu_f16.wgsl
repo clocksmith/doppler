@@ -34,22 +34,26 @@ fn gelu(x: f16) -> f16 {
 fn main(
     @builtin(global_invocation_id) global_id: vec3<u32>
 ) {
-    let idx = global_id.x;
-    if (idx >= u.size) {
-        return;
-    }
-
     if (USE_ROWSPLIT) {
         if (u.rowsplit_dim == 0u) {
             return;
         }
         let dim = u.rowsplit_dim;
-        let token_idx = idx / dim;
-        let dim_idx = idx % dim;
+        let token_idx = global_id.y;
+        let dim_idx = global_id.x;
+        let idx = token_idx * dim + dim_idx;
+        if (idx >= u.size || dim_idx >= dim) {
+            return;
+        }
         let row_base = token_idx * dim * 2u;
         let g = input[row_base + dim_idx];
         let up = input[row_base + dim + dim_idx];
         output[idx] = gelu(g) * up;
+        return;
+    }
+
+    let idx = global_id.x;
+    if (idx >= u.size) {
         return;
     }
 

@@ -418,6 +418,20 @@ function usesMixedGeometryKVCache(modelConfig) {
   return hasExplicitLayerTypes && (hasMixedAttentionGeometry || hasSharedKvLayers);
 }
 
+function resolveMixedGeometrySlidingLayerLayout(modelConfig) {
+  const diffusionGemmaContract = modelConfig?.diffusionGemma ?? null;
+  if (diffusionGemmaContract == null) {
+    return 'ring';
+  }
+  if (diffusionGemmaContract.decoderCacheMode === 'encoder_kv_readonly_canvas_concat') {
+    return 'contiguous';
+  }
+  throw new Error(
+    `Unsupported DiffusionGemma decoderCacheMode="${String(diffusionGemmaContract.decoderCacheMode)}" ` +
+    'for mixed-geometry KV cache.'
+  );
+}
+
 function getRequiredKernelMaxKVLen(operation, variant, label) {
   const config = getKernelConfig(operation, variant);
   const maxKVLen = config.variantMetadata?.maxKVLen;
@@ -693,6 +707,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
       globalNumHeads: modelConfig.numGlobalKVHeads ?? modelConfig.numKVHeads,
       globalHeadDim: modelConfig.globalHeadDim ?? null,
       slidingWindow,
+      slidingLayerLayout: resolveMixedGeometrySlidingLayerLayout(modelConfig),
       layerTypes: modelConfig.layerTypes,
     });
   } else if (modelConfig.slidingWindow && !forceContiguousKVCache && cacheLayout !== 'paged' && cacheLayout !== 'tiered' && cacheLayout !== 'bdpa') {
@@ -942,6 +957,8 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
         layerRouterWeights.set(l, {
           weight: weights.routerWeight,
           bias: weights.routerBias || null,
+          scale: weights.routerScale || null,
+          perExpertScale: weights.routerPerExpertScale || null,
         });
       }
     }
@@ -954,6 +971,7 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
     lmHead: dopplerLoader.lmHead,
     finalNorm: dopplerLoader.finalNorm,
     embeddingPostprocessor: dopplerLoader.embeddingPostprocessor,
+    diffusionGemmaSelfConditioning: dopplerLoader.diffusionGemmaSelfConditioning,
     perLayerInputWeights: dopplerLoader.perLayerInputWeights,
     layerRouterWeights,
   };
@@ -978,7 +996,12 @@ export function initMoERouter(modelConfig, moeRoutingConfig, layerWeights) {
   for (let l = 0; l < modelConfig.numLayers; l++) {
     const weights = layerWeights.get(`layer_${l}`);
     if (weights?.routerWeight) {
-      router.loadWeights(weights.routerWeight, weights.routerBias || null);
+      router.loadWeights(
+        weights.routerWeight,
+        weights.routerBias || null,
+        weights.routerScale || null,
+        weights.routerPerExpertScale || null
+      );
       log.debug('Pipeline', `Loaded MoE router from layer ${l}${weights.routerBias ? ' (with bias)' : ''}`);
       break;
     }

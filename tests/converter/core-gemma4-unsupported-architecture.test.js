@@ -54,6 +54,21 @@ const baseOptions = {
   }),
 };
 
+const diffusionGemmaGenerationConfig = {
+  max_denoising_steps: 48,
+  max_new_tokens: 256,
+  t_min: 0.4,
+  t_max: 0.8,
+  stability_threshold: 1,
+  confidence_threshold: 0.005,
+  sampler_config: {
+    _cls_name: 'EntropyBoundSamplerConfig',
+    entropy_bound: 0.1,
+  },
+  pad_token_id: 0,
+  eos_token_id: [1, 106, 50],
+};
+
 await assert.rejects(
   () => convertModel({
     name: 'gemma4-e2b-test',
@@ -151,5 +166,96 @@ await assert.rejects(
   /Gemma 4 MoE decoder blocks require Gemma-specific router scaling and dual dense\+MoE FFN execution/i,
   'Gemma 4 MoE models should fail fast during conversion'
 );
+
+{
+  let capturedManifest = null;
+  const diffusionIo = {
+    async readTensorData(tensor) {
+      return new ArrayBuffer(tensor.size);
+    },
+    async writeShard(_index, _data) {
+      return 'hash';
+    },
+    async writeManifest(manifest) {
+      capturedManifest = manifest;
+    },
+  };
+
+  await convertModel({
+    name: 'diffusiongemma-26b-a4b-test',
+    modelId: 'diffusiongemma-26b-a4b-test',
+    quantization: 'F16',
+    tensors: [
+      {
+        name: 'model.decoder.layers.0.experts.gate_up_proj',
+        shape: [128, 16, 4],
+        dtype: 'F16',
+        size: 128 * 16 * 4 * 2,
+        offset: 0,
+      },
+      {
+        name: 'model.decoder.layers.0.router.scale',
+        shape: [4],
+        dtype: 'F16',
+        size: 8,
+        offset: 1,
+      },
+      {
+        name: 'model.decoder.layers.0.post_feedforward_layernorm_1.weight',
+        shape: [4],
+        dtype: 'F16',
+        size: 8,
+        offset: 2,
+      },
+      {
+        name: 'model.encoder.language_model.layers.0.self_attn.q_proj.weight',
+        shape: [4, 4],
+        dtype: 'F16',
+        size: 32,
+        offset: 3,
+      },
+    ],
+    config: {
+      model_type: 'diffusion_gemma',
+      canvas_length: 256,
+      boi_token_id: 255999,
+      eoi_token_id: 258882,
+      image_token_id: 258880,
+      text_config: {
+        model_type: 'diffusion_gemma_text',
+        num_experts: 128,
+        top_k_experts: 8,
+        num_hidden_layers: 1,
+        hidden_size: 4,
+        intermediate_size: 8,
+        moe_intermediate_size: 4,
+        num_attention_heads: 1,
+        num_key_value_heads: 1,
+        head_dim: 4,
+        vocab_size: 16,
+        max_position_embeddings: 32,
+      },
+    },
+    generationConfig: diffusionGemmaGenerationConfig,
+  }, diffusionIo, {
+    ...baseOptions,
+    modelId: 'diffusiongemma-26b-a4b-test',
+    modelType: 'diffusion_gemma',
+  });
+
+  assert.ok(capturedManifest, 'DiffusionGemma conversion should emit a manifest');
+  assert.equal(capturedManifest.modelType, 'diffusion_gemma');
+  assert.deepEqual(
+    capturedManifest.moeConfig,
+    { numExperts: 128, numExpertsPerToken: 8, expertFormat: 'gemma4', expertIntermediateSize: 4 }
+  );
+  assert.equal(capturedManifest.inference.diffusionGemma.canvasLength, 256);
+  assert.equal(capturedManifest.inference.diffusionGemma.padTokenId, 0);
+  assert.deepEqual(capturedManifest.inference.diffusionGemma.eosTokenIds, [1, 106, 50]);
+  assert.equal(
+    capturedManifest.inference.diffusionGemma.decoderCacheMode,
+    'encoder_kv_readonly_canvas_concat'
+  );
+}
 
 console.log('core-gemma4-unsupported-architecture.test: ok');

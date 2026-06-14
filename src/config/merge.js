@@ -149,6 +149,12 @@ function mergeFFN(
       runtime?.gatedActivation,
       sources
     ),
+    branchMode: overlay(
+      `${prefix}.branchMode`,
+      manifest.branchMode,
+      runtime?.branchMode,
+      sources
+    ),
     useDoubleWideMlp: overlay(
       `${prefix}.useDoubleWideMlp`,
       manifest.useDoubleWideMlp,
@@ -393,6 +399,11 @@ function mergeLargeWeights(manifest, runtime, sources) {
   };
 }
 
+function mergeDiffusionGemmaContract(manifest, sources) {
+  sources.set('inference.diffusionGemma', 'manifest');
+  return manifest ?? null;
+}
+
 // =============================================================================
 // Main Merge Function
 // =============================================================================
@@ -438,6 +449,7 @@ export function mergeConfig(
     output: mergeOutput(manifestInf.output, runtimeOverrides?.output, sources),
     session: mergeSession(manifestInf.session, runtimeOverrides?.session, sources),
     largeWeights: mergeLargeWeights(manifestInf.largeWeights, runtimeOverrides?.largeWeights, sources),
+    diffusionGemma: mergeDiffusionGemmaContract(manifestInf.diffusionGemma, sources),
     pipeline,
     layerPattern,
     chatTemplate,

@@ -134,13 +134,24 @@ function buildExecutionContractFixtureManifest() {
       },
       execution: {
         kernels: {
+          cast: {
+            kernel: 'cast_f32_to_f16.wgsl',
+            entry: 'main',
+            digest: D('b'),
+            precision: {
+              inputDtype: 'f32',
+              outputDtype: 'f16',
+            },
+          },
           attn: {
             kernel: 'attention_streaming_f16kv.wgsl',
             entry: 'main',
             digest: D('a'),
           },
         },
-        preLayer: [],
+        preLayer: [
+          ['cast', 'cast'],
+        ],
         decode: [
           ['attention', 'attn'],
         ],

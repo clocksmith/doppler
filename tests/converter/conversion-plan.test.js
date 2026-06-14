@@ -277,6 +277,44 @@ const converterConfig = createConverterConfig();
     }),
     /attention\.valueNorm is required/
   );
+
+  const diffusionGemmaConfig = structuredClone(gemma4Config);
+  diffusionGemmaConfig.modelType = 'diffusion_gemma';
+  diffusionGemmaConfig.inference.diffusionGemma = {
+    canvasLength: 256,
+    maxDenoisingSteps: 48,
+    maxNewTokens: 256,
+    tMin: 0.4,
+    tMax: 0.8,
+    entropyBound: 0.1,
+    confidenceThreshold: 0.005,
+    stabilityThreshold: 1,
+    padTokenId: 0,
+    eosTokenIds: [1, 106, 50],
+    boiTokenId: 255999,
+    eoiTokenId: 258882,
+    imageTokenId: 258880,
+    selfConditioning: true,
+    decoderCacheMode: 'encoder_kv_readonly_canvas_concat',
+    router: {
+      scaleHiddenStates: true,
+      normalizeTopK: true,
+      perExpertScale: true,
+    },
+  };
+  const diffusionGemmaPlan = resolveConversionPlan({
+    rawConfig: { model_type: 'diffusion_gemma' },
+    tensors: [
+      { name: 'model.decoder.embed_tokens.weight', dtype: 'F16' },
+      { name: 'model.decoder.layers.0.self_attn.q_proj.weight', dtype: 'F16' },
+    ],
+    converterConfig: diffusionGemmaConfig,
+  });
+  assert.equal(diffusionGemmaPlan.modelType, 'diffusion_gemma');
+  assert.deepEqual(
+    diffusionGemmaPlan.manifestInference.diffusionGemma,
+    diffusionGemmaConfig.inference.diffusionGemma
+  );
 }
 
 console.log('conversion-plan.test: ok');

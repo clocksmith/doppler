@@ -61,6 +61,7 @@ export interface MergedInferenceConfig {
   rope: ManifestRoPESchema;
   output: ManifestOutputSchema;
   session: ExecutionV1SessionSchema | null;
+  diffusionGemma: ManifestInferenceSchema['diffusionGemma'];
   pipeline: ManifestInferenceSchema['pipeline'];
   layerPattern: ManifestLayerPatternSchema | null;
   chatTemplate: ManifestChatTemplateSchema;

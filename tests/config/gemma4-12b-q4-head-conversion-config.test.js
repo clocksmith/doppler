@@ -108,7 +108,7 @@ assert.deepEqual(q4HeadConfig.execution?.kernels?.rope, {
 assert.deepEqual(q4HeadConfig.execution?.kernels?.gelu, {
   kernel: 'gelu_f16.wgsl',
   entry: 'main',
-  digest: 'sha256:9472489a6cd998bce165bacc486c4bbf91320f0aecdf29de9410f715ab791d62',
+  digest: 'sha256:01202f6b628ba5b5a1ede8c4c424001c9f59d73a970b41d609a66455cb2b2fea',
   constants: {
     HAS_GATE: true,
   },

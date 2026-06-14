@@ -17,6 +17,20 @@ import { isBufferActive, releaseBuffer } from '../../memory/buffer-pool.js';
 
 
 export async function preloadShardsForExpert(ctx, layerIdx, expertIdx, options) {
+  const packedShardIndices = getPackedExpertShardIndices(ctx, layerIdx);
+  if (packedShardIndices.length > 0) {
+    for (const shardIndex of packedShardIndices) {
+      if (!ctx.shardCache.has(shardIndex)) {
+        await ctx.loadShard(shardIndex, options);
+      }
+    }
+    return;
+  }
+
+  if (isPackedExpertFormat(ctx.manifest?.moeConfig?.expertFormat)) {
+    return;
+  }
+
   // Get required shards from manifest mapping
   const shardIndices = getShardsForExpert(layerIdx, expertIdx, ctx.manifest);
   if (shardIndices.length === 0) {
@@ -87,7 +101,7 @@ export async function loadExpert(ctx, layerIdx, expertIdx) {
     }
   }
 
-  // Fall back to simple map for non-cached experts (GPT-OSS packed weights)
+  // Fall back to simple map for non-cached packed experts.
   const key = `layer_${layerIdx}_expert_${expertIdx}`;
   if (ctx.experts.has(key)) {
     return ctx.experts.get(key);
@@ -99,16 +113,19 @@ export async function loadExpert(ctx, layerIdx, expertIdx) {
   await preloadShardsForExpert(ctx, layerIdx, expertIdx);
 
   // Get tensor names from manifest if available (for logging/debugging)
-  const tensorNames = getTensorsForExpert(layerIdx, expertIdx, ctx.manifest);
+  const expertFormat = resolveExpertFormat(ctx);
+  const tensorNames = getExpertTensorNames(ctx, layerIdx, expertIdx, expertFormat);
   if (tensorNames.length > 0) {
     debugTrace.loader(`Expert ${layerIdx}_${expertIdx} tensors: ${tensorNames.length}`);
   }
 
-  const expertFormat = resolveExpertFormat(ctx);
   let weights;
   if (expertFormat === 'gpt-oss') {
     weights = await loadGptOssStyleExpert(ctx, layerIdx, expertIdx);
     assertGptOssWeights(weights, layerIdx, expertIdx);
+  } else if (expertFormat === 'gemma4') {
+    weights = await loadGemma4StyleExpert(ctx, layerIdx, expertIdx);
+    assertGemma4Weights(weights, layerIdx, expertIdx);
   } else {
     weights = await loadMixtralStyleExpert(ctx, layerIdx, expertIdx);
     assertMixtralWeights(weights, layerIdx, expertIdx);
@@ -125,7 +142,7 @@ export async function loadExpert(ctx, layerIdx, expertIdx) {
     const sizeBytes = calculateExpertSize(weights);
     ctx.expertCache.put(layerIdx, expertIdx, weights, sizeBytes);
   } else {
-    // GPT-OSS packed weights use the simple map (shared across experts)
+    // Packed expert formats use the simple map (shared across experts).
     ctx.experts.set(key, weights);
   }
 
@@ -151,6 +168,10 @@ async function loadMixtralStyleExpert(ctx, layerIdx, expertIdx) {
   };
 }
 
+function isPackedExpertFormat(expertFormat) {
+  return expertFormat === 'gpt-oss' || expertFormat === 'gemma4';
+}
+
 function resolveExpertFormat(ctx) {
   const manifest = ctx.manifest ?? {};
   const moeConfig = manifest.moeConfig ?? null;
@@ -163,7 +184,7 @@ function resolveExpertFormat(ctx) {
   }
 
   const expertFormat = moeConfig.expertFormat;
-  if (expertFormat === 'gpt-oss' || expertFormat === 'mixtral') {
+  if (expertFormat === 'gpt-oss' || expertFormat === 'mixtral' || expertFormat === 'gemma4') {
     return expertFormat;
   }
   if (expertFormat == null) {
@@ -173,6 +194,89 @@ function resolveExpertFormat(ctx) {
     );
   }
   throw new Error(`[MoE] Manifest "${modelId}" has invalid expertFormat "${expertFormat}".`);
+}
+
+function getShardIndicesForLocation(location) {
+  if (!location) return [];
+  if (Array.isArray(location.spans) && location.spans.length > 0) {
+    return Array.from(new Set(location.spans.map((span) => span?.shardIndex).filter(Number.isInteger)));
+  }
+  return Number.isInteger(location.shardIndex) ? [location.shardIndex] : [];
+}
+
+function getExistingTensorNames(ctx, candidates) {
+  const tensorLocations = ctx.tensorLocations;
+  if (!tensorLocations || typeof tensorLocations.get !== 'function') {
+    return [];
+  }
+  const names = [];
+  for (const candidateGroup of candidates) {
+    const found = candidateGroup.find((name) => tensorLocations.has(name));
+    if (found) {
+      names.push(found);
+    }
+  }
+  return names;
+}
+
+function getGemma4ExpertTensorCandidates(layerIdx) {
+  return [
+    [
+      `model.decoder.layers.${layerIdx}.experts.gate_up_proj`,
+      `model.encoder.language_model.layers.${layerIdx}.experts.gate_up_proj`,
+      `model.layers.${layerIdx}.experts.gate_up_proj`,
+    ],
+    [
+      `model.decoder.layers.${layerIdx}.experts.down_proj`,
+      `model.encoder.language_model.layers.${layerIdx}.experts.down_proj`,
+      `model.layers.${layerIdx}.experts.down_proj`,
+    ],
+  ];
+}
+
+function getGptOssExpertTensorCandidates(layerIdx) {
+  const prefix = `model.layers.${layerIdx}.mlp.experts`;
+  return [
+    [`${prefix}.gate_up_proj_blocks`],
+    [`${prefix}.gate_up_proj_scales`],
+    [`${prefix}.gate_up_proj_bias`],
+    [`${prefix}.down_proj_blocks`],
+    [`${prefix}.down_proj_scales`],
+    [`${prefix}.down_proj_bias`],
+  ];
+}
+
+function getPackedExpertTensorNames(ctx, layerIdx, expertFormat = ctx.manifest?.moeConfig?.expertFormat) {
+  if (expertFormat === 'gemma4') {
+    return getExistingTensorNames(ctx, getGemma4ExpertTensorCandidates(layerIdx));
+  }
+  if (expertFormat === 'gpt-oss') {
+    return getExistingTensorNames(ctx, getGptOssExpertTensorCandidates(layerIdx));
+  }
+  return [];
+}
+
+function getPackedExpertShardIndices(ctx, layerIdx) {
+  const tensorNames = getPackedExpertTensorNames(ctx, layerIdx);
+  const shardIndices = new Set();
+  for (const name of tensorNames) {
+    const location = ctx.tensorLocations?.get?.(name);
+    for (const shardIndex of getShardIndicesForLocation(location)) {
+      shardIndices.add(shardIndex);
+    }
+  }
+  return Array.from(shardIndices);
+}
+
+function getExpertTensorNames(ctx, layerIdx, expertIdx, expertFormat) {
+  const packedTensorNames = getPackedExpertTensorNames(ctx, layerIdx, expertFormat);
+  if (packedTensorNames.length > 0) {
+    return packedTensorNames;
+  }
+  if (isPackedExpertFormat(expertFormat) && !ctx.manifest?.groups?.[`layer.${layerIdx}.expert.${expertIdx}`]) {
+    return [];
+  }
+  return getTensorsForExpert(layerIdx, expertIdx, ctx.manifest);
 }
 
 function resolveGptOssNumExperts(ctx) {
@@ -185,6 +289,34 @@ function resolveGptOssNumExperts(ctx) {
   }
 
   return numExperts;
+}
+
+function resolveGemma4NumExperts(ctx) {
+  const manifest = ctx.manifest ?? {};
+  const numExperts = manifest.moeConfig?.numExperts ?? null;
+  if (numExperts == null) {
+    const modelId = manifest.modelId ?? 'unknown';
+    throw new Error(`[MoE] Gemma-style manifest "${modelId}" missing moeConfig.numExperts`);
+  }
+  return numExperts;
+}
+
+function resolveGemma4ExpertIntermediateSize(ctx) {
+  const manifest = ctx.manifest ?? {};
+  const expertIntermediateSize = manifest.moeConfig?.expertIntermediateSize ?? null;
+  if (expertIntermediateSize == null) {
+    const modelId = manifest.modelId ?? 'unknown';
+    throw new Error(`[MoE] Gemma-style manifest "${modelId}" missing moeConfig.expertIntermediateSize`);
+  }
+  return expertIntermediateSize;
+}
+
+async function loadFirstTensor(ctx, names) {
+  for (const name of names) {
+    const tensor = await ctx.loadTensor(name);
+    if (tensor) return tensor;
+  }
+  return null;
 }
 
 function assertMixtralWeights(weights, layerIdx, expertIdx) {
@@ -211,6 +343,43 @@ function assertGptOssWeights(weights, layerIdx, expertIdx) {
       `[MoE] GPT-OSS expert ${layerIdx}_${expertIdx} missing tensors: ${missing.join(', ')}`
     );
   }
+}
+
+function assertGemma4Weights(weights, layerIdx, expertIdx) {
+  const missing = [];
+  if (!weights.gateUp) missing.push('experts.gate_up_proj');
+  if (!weights.down) missing.push('experts.down_proj');
+  if (!weights.expertIntermediateSize) missing.push('expertIntermediateSize');
+  if (missing.length > 0) {
+    throw new Error(
+      `[MoE] Gemma-style expert ${layerIdx}_${expertIdx} missing tensors: ${missing.join(', ')}`
+    );
+  }
+}
+
+async function loadGemma4StyleExpert(ctx, layerIdx, expertIdx) {
+  const packedKey = `layer_${layerIdx}_gemma4_packed`;
+  let packed = ctx.experts.get(packedKey);
+
+  if (!packed) {
+    packed = {
+      expertFormat: 'gemma4',
+      numExperts: resolveGemma4NumExperts(ctx),
+      expertIntermediateSize: resolveGemma4ExpertIntermediateSize(ctx),
+      gateUp: await loadFirstTensor(ctx, getGemma4ExpertTensorCandidates(layerIdx)[0]),
+      down: await loadFirstTensor(ctx, getGemma4ExpertTensorCandidates(layerIdx)[1]),
+    };
+    ctx.experts.set(packedKey, packed);
+  }
+
+  return {
+    expertFormat: 'gemma4',
+    expertIdx,
+    numExperts: packed.numExperts,
+    expertIntermediateSize: packed.expertIntermediateSize,
+    gateUp: packed.gateUp,
+    down: packed.down,
+  };
 }
 
 

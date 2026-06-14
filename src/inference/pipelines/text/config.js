@@ -727,6 +727,15 @@ export function validateRequiredInferenceFields(inf, modelId) {
   if (inf.ffn.gatedActivation == null) {
     errors.push('ffn.gatedActivation is required');
   }
+  if (inf.ffn.branchMode !== undefined) {
+    const normalizedBranchMode = typeof inf.ffn.branchMode === 'string'
+      ? inf.ffn.branchMode.trim().toLowerCase()
+      : '';
+    const supportedBranchModes = new Set(['auto', 'dense', 'moe', 'dense_plus_moe']);
+    if (!supportedBranchModes.has(normalizedBranchMode)) {
+      errors.push('ffn.branchMode must be one of: auto, dense, moe, dense_plus_moe');
+    }
+  }
   if (inf.ffn.useDoubleWideMlp == null) {
     errors.push('ffn.useDoubleWideMlp is required');
   }
@@ -1475,6 +1484,16 @@ function toParsedConfigFromMerged(merged, manifest) {
   const numExperts = useMoE ? moeConfig.numExperts : 0;
   const moeTopK = useMoE ? moeConfig.numExpertsPerToken : 0;
   const expertFormat = useMoE ? moeConfig.expertFormat : null;
+  const moeExpertIntermediateSize = useMoE && moeConfig.expertIntermediateSize != null
+    ? Number(moeConfig.expertIntermediateSize)
+    : resolvedIntermediateSize;
+  if (
+    useMoE
+    && expertFormat === 'gemma4'
+    && (!Number.isFinite(moeExpertIntermediateSize) || moeExpertIntermediateSize <= 0)
+  ) {
+    throw new Error(`Manifest "${manifest.modelId}" has invalid moeConfig.expertIntermediateSize for Gemma-style experts.`);
+  }
 
   // RoPE scaling - use manifest inference as source of truth (not raw config)
   const ropeScale = inf.rope.ropeScalingFactor;
@@ -1636,8 +1655,10 @@ function toParsedConfigFromMerged(merged, manifest) {
   const perLayerInputsSession = resolvePerLayerInputsSession(inf, merged.modelId);
   const sessionSettings = resolveSessionSettings(inf, merged.modelId);
   const largeWeightsConfig = resolveLargeWeightsConfig(inf, merged.modelId);
+  const diffusionGemma = inf.diffusionGemma ?? null;
 
   return {
+    modelType: manifest.modelType,
     numLayers: arch.numLayers,
     hiddenSize: arch.hiddenSize,
     intermediateSize: resolvedIntermediateSize,
@@ -1657,6 +1678,7 @@ function toParsedConfigFromMerged(merged, manifest) {
     numExperts,
     moeTopK,
     expertFormat,
+    moeExpertIntermediateSize,
     slidingWindow: inf.attention.slidingWindow,
     ropeTheta: inf.rope.ropeTheta,
     ropeLocalTheta: inf.rope.ropeLocalTheta,
@@ -1688,6 +1710,7 @@ function toParsedConfigFromMerged(merged, manifest) {
     embeddingVocabSize: inf.output.embeddingVocabSize,
     embeddingPostprocessor,
     hiddenActivation,
+    ffnBranchMode: inf.ffn.branchMode ?? 'auto',
     useDoubleWideMlp: inf.ffn.useDoubleWideMlp,
     swigluLimit: inf.ffn.swigluLimit,
     stopTokenIds,
@@ -1714,6 +1737,7 @@ function toParsedConfigFromMerged(merged, manifest) {
     chatTemplateEnabled,
     chatTemplateThinking,
     decodeStrategy,
+    diffusionGemma,
     perLayerInputsSession,
     sessionSettings,
     largeWeightsConfig,

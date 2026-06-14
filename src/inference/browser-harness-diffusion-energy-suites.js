@@ -13,6 +13,261 @@ import {
   buildTimingDiagnostics,
 } from './browser-harness-suite-helpers.js';
 
+function isDiffusionGemmaManifest(manifest) {
+  return manifest?.modelType === 'diffusion_gemma';
+}
+
+function readOptionalPositiveInteger(source, field, label) {
+  const value = source?.[field];
+  if (value == null) return null;
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`${label}.${field} must be a positive integer when provided.`);
+  }
+  return value;
+}
+
+function readOptionalInteger(source, field, label) {
+  const value = source?.[field];
+  if (value == null) return null;
+  if (!Number.isInteger(value)) {
+    throw new Error(`${label}.${field} must be an integer when provided.`);
+  }
+  return value;
+}
+
+function resolveDiffusionGemmaRunConfig(runtimeConfig, manifest) {
+  const label = 'runtime.inference.diffusionGemma';
+  const source = runtimeConfig?.inference?.diffusionGemma ?? null;
+  if (source != null && (typeof source !== 'object' || Array.isArray(source))) {
+    throw new Error(`${label} must be an object when provided.`);
+  }
+  const contract = manifest?.inference?.diffusionGemma ?? null;
+  const maxNewTokens = readOptionalPositiveInteger(source, 'maxNewTokens', label)
+    ?? contract?.maxNewTokens
+    ?? null;
+  const canvasLength = readOptionalPositiveInteger(source, 'canvasLength', label)
+    ?? contract?.canvasLength
+    ?? null;
+  const maxDenoisingSteps = readOptionalPositiveInteger(source, 'maxDenoisingSteps', label)
+    ?? contract?.maxDenoisingSteps
+    ?? null;
+  const seed = readOptionalInteger(source, 'seed', label);
+  return {
+    maxNewTokens,
+    canvasLength,
+    maxDenoisingSteps,
+    seed,
+  };
+}
+
+function decodeDiffusionGemmaOutput(pipeline, tokenIds) {
+  const ids = Array.from(tokenIds);
+  if (typeof pipeline?.tokenizer?.decode === 'function') {
+    return pipeline.tokenizer.decode(ids);
+  }
+  return ids.join(' ');
+}
+
+function averageRounded(values) {
+  if (!values.length) return 0;
+  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+}
+
+async function runDiffusionGemmaSuite(options, context) {
+  const {
+    startTime,
+    runtimeConfig,
+    captureOutput,
+    cacheMode,
+    loadMode,
+    warmupRuns,
+    timedRuns,
+    harness,
+  } = context;
+  const prompt = resolvePrompt(runtimeConfig);
+  const runConfig = resolveDiffusionGemmaRunConfig(runtimeConfig, harness.manifest);
+  const totalMs = [];
+  const prefillMs = [];
+  const denoiseMs = [];
+  const vaeMs = [];
+  const prefillTokens = [];
+  const decodeTokens = [];
+  const denoiseSteps = [];
+  const tokensPerForward = [];
+  let output = null;
+
+  for (let i = 0; i < warmupRuns + timedRuns; i += 1) {
+    harness.pipeline.reset?.();
+    const generateOptions = {};
+    if (runConfig.maxNewTokens != null) {
+      generateOptions.maxNewTokens = runConfig.maxNewTokens;
+    }
+    if (runConfig.seed != null) {
+      generateOptions.seed = runConfig.seed;
+    }
+    if (runConfig.canvasLength != null) {
+      generateOptions.canvasLength = runConfig.canvasLength;
+    }
+    if (runConfig.maxDenoisingSteps != null) {
+      generateOptions.maxDenoisingSteps = runConfig.maxDenoisingSteps;
+    }
+    const runStart = performance.now();
+    const tokenIds = await harness.pipeline.generateTokenIds(prompt, generateOptions);
+    const wallMs = Math.max(0, performance.now() - runStart);
+    const stats = harness.pipeline.getStats?.() ?? {};
+
+    if (captureOutput && i === warmupRuns + timedRuns - 1) {
+      output = {
+        tokenIds: Array.from(tokenIds),
+        text: decodeDiffusionGemmaOutput(harness.pipeline, tokenIds),
+      };
+    }
+
+    if (i < warmupRuns) continue;
+
+    totalMs.push(Number.isFinite(stats.totalTimeMs) ? stats.totalTimeMs : wallMs);
+    prefillMs.push(Number.isFinite(stats.prefillTimeMs) ? stats.prefillTimeMs : 0);
+    denoiseMs.push(Number.isFinite(stats.decodeTimeMs) ? stats.decodeTimeMs : wallMs);
+    vaeMs.push(0);
+    prefillTokens.push(Number.isFinite(stats.prefillTokens) ? stats.prefillTokens : 0);
+    decodeTokens.push(Number.isFinite(stats.decodeTokens) ? stats.decodeTokens : tokenIds.length);
+    denoiseSteps.push(Number.isFinite(stats.denoiseSteps) ? stats.denoiseSteps : 0);
+    if (Number.isFinite(stats.tokensPerForward)) {
+      tokensPerForward.push(stats.tokensPerForward);
+    }
+  }
+
+  const memoryStats = typeof harness.pipeline?.getMemoryStats === 'function'
+    ? harness.pipeline.getMemoryStats()
+    : null;
+
+  if (typeof harness.pipeline.unload === 'function' && !options.keepPipeline) {
+    await harness.pipeline.unload();
+  }
+
+  const results = [
+    {
+      name: 'diffusion_gemma',
+      passed: totalMs.length > 0 && decodeTokens.some((value) => value > 0),
+      duration: totalMs.reduce((sum, value) => sum + value, 0),
+      error: totalMs.length === 0
+        ? 'No DiffusionGemma runs completed'
+        : (decodeTokens.some((value) => value > 0) ? undefined : 'No DiffusionGemma tokens generated'),
+    },
+  ];
+
+  const summary = buildSuiteSummary('diffusion', results, startTime);
+  const cpuStats = {
+    totalMs: computeSampleStats(totalMs),
+    prefillMs: computeSampleStats(prefillMs),
+    denoiseMs: computeSampleStats(denoiseMs),
+    vaeMs: computeSampleStats(vaeMs),
+  };
+  const gpuStats = { available: false };
+  const avgPrefillTokens = averageRounded(prefillTokens);
+  const avgDecodeTokens = averageRounded(decodeTokens);
+  const avgDenoiseSteps = averageRounded(denoiseSteps);
+  const basePerformanceArtifact = buildDiffusionPerformanceArtifact({
+    warmupRuns,
+    timedRuns,
+    width: null,
+    height: null,
+    steps: avgDenoiseSteps,
+    guidanceScale: null,
+    avgPrefillTokens,
+    avgDecodeTokens,
+    cpuStats,
+    gpuStats,
+    modality: 'text',
+  });
+  const diffusionPerformanceArtifact = {
+    ...basePerformanceArtifact,
+    diffusionGemma: {
+      canvasLength: runConfig.canvasLength,
+      maxDenoisingSteps: runConfig.maxDenoisingSteps,
+      maxNewTokens: runConfig.maxNewTokens,
+      tokensPerForward: computeSampleStats(tokensPerForward),
+      denoiseSteps: computeSampleStats(denoiseSteps),
+    },
+  };
+  const prefillMsMedian = safeStatsValue(cpuStats.prefillMs?.median);
+  const denoiseMsMedian = safeStatsValue(cpuStats.denoiseMs?.median);
+  const totalMsMedian = safeStatsValue(cpuStats.totalMs?.median);
+  const timing = buildCanonicalTiming({
+    modelLoadMs: harness.modelLoadMs ?? 0,
+    firstTokenMs: null,
+    firstResponseMs: null,
+    prefillMs: prefillMsMedian,
+    decodeMs: denoiseMsMedian,
+    totalRunMs: totalMsMedian,
+    prefillTokensPerSec: diffusionPerformanceArtifact.throughput.prefillTokensPerSec,
+    decodeTokensPerSec: diffusionPerformanceArtifact.throughput.decodeTokensPerSec,
+    cacheMode,
+    loadMode,
+  });
+  const timingDiagnostics = buildTimingDiagnostics(timing, {
+    source: 'doppler',
+    prefillSemantics: 'diffusion_gemma_encoder_prefill_phase',
+    decodeSemantics: 'diffusion_gemma_canvas_denoising_phase',
+  });
+  const metricsWithContracts = buildSuiteContractMetrics(
+    'diffusion',
+    {
+      warmupRuns,
+      timedRuns,
+      prompt,
+      width: null,
+      height: null,
+      steps: avgDenoiseSteps,
+      guidanceScale: null,
+      maxNewTokens: runConfig.maxNewTokens,
+      canvasLength: runConfig.canvasLength,
+      avgPrefillTokens,
+      avgDecodeTokens,
+      tokensPerForward: computeSampleStats(tokensPerForward),
+      latency: {
+        totalMs: cpuStats.totalMs,
+        prefillMs: cpuStats.prefillMs,
+        denoiseMs: cpuStats.denoiseMs,
+        vaeMs: cpuStats.vaeMs,
+      },
+      throughput: {
+        prefillTokensPerSec: diffusionPerformanceArtifact.throughput.prefillTokensPerSec,
+        decodeTokensPerSec: diffusionPerformanceArtifact.throughput.decodeTokensPerSec,
+        decodeStepsPerSec: diffusionPerformanceArtifact.throughput.decodeStepsPerSec,
+        tokensPerForward: diffusionPerformanceArtifact.diffusionGemma.tokensPerForward,
+      },
+      cpu: cpuStats,
+      gpu: gpuStats,
+      performanceArtifact: diffusionPerformanceArtifact,
+    },
+    harness.manifest
+  );
+
+  return {
+    ...summary,
+    modelId: options.modelId || harness.manifest?.modelId || 'unknown',
+    cacheMode,
+    loadMode,
+    env: {
+      library: 'doppler',
+      runtime: 'browser',
+      device: 'webgpu',
+      browserUserAgent: typeof navigator !== 'undefined' ? (navigator.userAgent || null) : null,
+      browserPlatform: typeof navigator !== 'undefined' ? (navigator.platform || null) : null,
+      browserLanguage: typeof navigator !== 'undefined' ? (navigator.language || null) : null,
+      browserVendor: typeof navigator !== 'undefined' ? (navigator.vendor || null) : null,
+    },
+    timing,
+    timingDiagnostics,
+    output,
+    metrics: metricsWithContracts,
+    memoryStats,
+    deviceInfo: resolveDeviceInfo(),
+    pipeline: options.keepPipeline ? harness.pipeline : null,
+  };
+}
+
 export async function runDiffusionSuite(options = {}) {
   const startTime = performance.now();
   const runtimeConfig = getRuntimeConfig();
@@ -22,6 +277,20 @@ export async function runDiffusionSuite(options = {}) {
   const benchConfig = runtimeConfig.shared?.benchmark?.run || {};
   const warmupRuns = Math.max(0, Math.floor(benchConfig.warmupRuns ?? 0));
   const timedRuns = Math.max(1, Math.floor(benchConfig.timedRuns ?? 1));
+  const harness = await initializeSuiteModel(options);
+
+  if (isDiffusionGemmaManifest(harness.manifest)) {
+    return runDiffusionGemmaSuite(options, {
+      startTime,
+      runtimeConfig,
+      captureOutput,
+      cacheMode,
+      loadMode,
+      warmupRuns,
+      timedRuns,
+      harness,
+    });
+  }
 
   const diffusionConfig = runtimeConfig.inference?.diffusion;
   if (!diffusionConfig) {
@@ -50,7 +319,6 @@ export async function runDiffusionSuite(options = {}) {
     throw new Error('runtime.inference.diffusion.scheduler.guidanceScale must be set for diffusion harness runs.');
   }
 
-  const harness = await initializeSuiteModel(options);
   const totalMs = [];
   const prefillMs = [];
   const denoiseMs = [];

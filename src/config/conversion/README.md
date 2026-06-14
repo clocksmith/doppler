@@ -38,6 +38,7 @@ Checked-in config inventory:
 | `gemma4/gemma-4-12b-it-text-q4k-ehf16-af16.json` | `gemma-4-12b-it-text-q4k-ehf16-af16` | Gemma 4 12B text-only Q4K f16 activation sibling over the existing weight pack |
 | `gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16.json` | `gemma-4-12b-it-text-w4a16-ct-ehf16-af16` | Gemma 4 12B official W4A16 compressed-tensors QAT reference-dequant lane |
 | `gemma4/gemma-4-moe-q4k-ehf16-af32.json` | `gemma-4-moe-q4k-ehf16-af32` | Gemma 4 MoE Q4K |
+| `diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16.json` | `diffusiongemma-26b-a4b-it-q4k-ehf16-af16` | DiffusionGemma text-only Q4K f16 activation block-diffusion artifact |
 | `gpt-oss-20b-f16-xmxfp4.json` | `gpt-oss-20b-f16-xmxfp4` | GPT-OSS F16/XMXFP4 config |
 | `janus/janus-pro-1b-text-q4k-ehaf16.json` | `janus-pro-1b-text-q4k-ehaf16` | Janus text-only Q4K artifact |
 | `lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json` | `lfm2.5-1.2b-instruct-q4k-ehf16-af32` | LFM2 hybrid conv/attention scheduling |

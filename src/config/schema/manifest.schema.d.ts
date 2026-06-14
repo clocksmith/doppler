@@ -48,6 +48,7 @@ export type ModelType =
   | 'mixtral'      // MoE transformer (Mixtral, Arctic)
   | 'deepseek'     // MoE with shared experts
   | 'diffusion'    // Diffusion pipelines (Stable Diffusion, SD3)
+  | 'diffusion_gemma' // Block-diffusion Gemma text generation
   | 'energy'       // Energy-based models (EBM/JEM-style demos)
   | string;        // Allow future extensions
 
@@ -298,6 +299,8 @@ export interface ManifestFFNSchema {
   activation: 'silu' | 'gelu' | 'geglu' | 'swiglu' | 'relu';
   /** Whether activation is gated (e.g., SwiGLU, GeGLU) */
   gatedActivation: boolean;
+  /** FFN branch composition. `auto` preserves legacy dense-or-MoE routing. */
+  branchMode?: 'auto' | 'dense' | 'moe' | 'dense_plus_moe';
   /** Double the FFN intermediate width on KV-shared layers. */
   useDoubleWideMlp: boolean;
   /** Clamp SwiGLU output (null = disabled) */
@@ -417,6 +420,45 @@ export interface ManifestUnsupportedSchema {
   recommendation?: string | null;
 }
 
+export interface ManifestDiffusionGemmaSchema {
+  /** Fixed decoder canvas length for block diffusion. */
+  canvasLength: number;
+  /** Maximum denoising iterations per canvas. */
+  maxDenoisingSteps: number;
+  /** Default generation cap in new tokens. */
+  maxNewTokens: number;
+  /** Lower bound for the linear denoising temperature schedule. */
+  tMin: number;
+  /** Upper bound for the linear denoising temperature schedule. */
+  tMax: number;
+  /** Entropy budget used by the entropy-bound sampler. */
+  entropyBound: number;
+  /** Mean-entropy threshold for adaptive canvas stopping. */
+  confidenceThreshold: number;
+  /** Number of stable argmax steps required before adaptive stopping can finish. */
+  stabilityThreshold: number;
+  /** Token used for padding completed canvases. */
+  padTokenId: number;
+  /** End-of-sequence token set used to terminate generated canvases. */
+  eosTokenIds: number[];
+  /** Beginning-of-image token id for multimodal inputs, null when unsupported by the artifact. */
+  boiTokenId: number | null;
+  /** End-of-image token id for multimodal inputs, null when unsupported by the artifact. */
+  eoiTokenId: number | null;
+  /** Image placeholder token id for multimodal inputs, null when unsupported by the artifact. */
+  imageTokenId: number | null;
+  /** Whether decoder self-conditioning logits are part of the runtime contract. */
+  selfConditioning: boolean;
+  /** Decoder attention must read encoder KV plus canvas K/V without committing the canvas to encoder cache. */
+  decoderCacheMode: 'encoder_kv_readonly_canvas_concat';
+  /** Router contract for DiffusionGemma/Gemma 4 MoE layers. */
+  router: {
+    scaleHiddenStates: boolean;
+    normalizeTopK: boolean;
+    perExpertScale: boolean;
+  };
+}
+
 /**
  * Complete inference configuration embedded in manifest.
  * All fields are required - converter must populate everything.
@@ -441,6 +483,8 @@ export interface ManifestInferenceSchema {
   layerPattern: ManifestLayerPatternSchema;
   /** Chat template configuration */
   chatTemplate: ManifestChatTemplateSchema;
+  /** DiffusionGemma block-diffusion runtime contract, null for non-DiffusionGemma models. */
+  diffusionGemma: ManifestDiffusionGemmaSchema | null;
   /** Layer pipeline override (null = use optimized hardcoded path) */
   pipeline: LayerPipelineSchema | null;
   /** Explicit session policy for execution v1 manifests */
@@ -588,7 +632,9 @@ export interface MoEConfigSchema {
   numExperts: number;
   numExpertsPerToken: number;
   /** Expert tensor format (required for MoE models) */
-  expertFormat: 'mixtral' | 'gpt-oss';
+  expertFormat: 'mixtral' | 'gpt-oss' | 'gemma4';
+  /** Expert hidden width when it differs from architecture.intermediateSize. */
+  expertIntermediateSize?: number;
   sharedExperts?: number[];
   expertShardMap?: Record<string, number[]>;
   expertTensors?: Record<string, string[]>;

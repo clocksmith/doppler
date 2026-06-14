@@ -53,6 +53,8 @@ interface LoadBalanceStats {
   totalTokens: number;
 }
 
+type RouterVector = Float32Array | GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer;
+
 /**
  * Expert utilization stats
  */
@@ -77,6 +79,10 @@ export declare class MoERouter {
   gateWeight: Float32Array | GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | null;
   // Router bias (optional, used by GPT-OSS)
   gateBias: Float32Array | GPUBuffer | null;
+  // Optional DiffusionGemma router input scale
+  gateScale: RouterVector | null;
+  // Optional DiffusionGemma per-expert output scale
+  perExpertScale: RouterVector | null;
 
   // Track active experts for the current batch
   activeExperts: Set<number>;
@@ -91,8 +97,15 @@ export declare class MoERouter {
    * Load router gate weights from model
    * @param weights - Gate weight matrix [hidden_size, num_experts]
    * @param bias - Optional gate bias vector [num_experts]
+   * @param scale - Optional router input scale vector [hidden_size]
+   * @param perExpertScale - Optional selected-expert weight scale [num_experts]
    */
-  loadWeights(weights: Float32Array | GPUBuffer, bias?: Float32Array | GPUBuffer | null): void;
+  loadWeights(
+    weights: Float32Array | GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer,
+    bias?: Float32Array | GPUBuffer | null,
+    scale?: RouterVector | null,
+    perExpertScale?: RouterVector | null
+  ): void;
 
   /**
    * Compute router logits from hidden states (CPU fallback)

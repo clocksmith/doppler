@@ -19,6 +19,135 @@ async function debugFFNBuffer(context, layerIdx, label, tensor, numTokens, hidde
   await context.debugCheckBuffer(tensor.buffer, `L${layerIdx} ${label} (GPU)`, numTokens, hiddenSize);
 }
 
+function shouldUseDensePlusMoeFFN(layerIdx, config, layerWeights) {
+  return config.ffnBranchMode === 'dense_plus_moe'
+    && config.useMoE
+    && isMoELayerLocal(layerIdx, config, layerWeights);
+}
+
+function shouldUseLegacyMoeOnlyFFN(layerIdx, config, layerWeights) {
+  return config.ffnBranchMode !== 'dense'
+    && config.ffnBranchMode !== 'dense_plus_moe'
+    && config.useMoE
+    && isMoELayerLocal(layerIdx, config, layerWeights);
+}
+
+function requireNormWeight(layerIdx, layerWeights, key) {
+  const weight = layerWeights?.[key];
+  if (!weight) {
+    throw new Error(`Layer ${layerIdx} dense_plus_moe FFN is missing ${key}. Re-convert the model.`);
+  }
+  return weight;
+}
+
+async function applyBranchRMSNorm(layerIdx, tensor, layerWeights, key, label, context, numTokens, hiddenSize) {
+  const { config, weightConfig, debugFlags, recorder } = context;
+  const weight = requireNormWeight(layerIdx, layerWeights, key);
+  const normWeightBuf = getNormWeightBuffer(weight, label, weightConfig, debugFlags);
+  const output = await doRMSNorm(tensor, normWeightBuf, config.rmsNormEps, {
+    batchSize: numTokens,
+    hiddenSize,
+    label: `L${layerIdx}.${label}`,
+    layerIdx,
+    rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+  }, recorder);
+  if (!isGpuBufferInstance(weight) && !isWeightBuffer(weight)) {
+    releaseOrTrack(recorder, normWeightBuf);
+  }
+  return output;
+}
+
+async function runDensePlusMoeFFN(
+  layerIdx,
+  postAttn,
+  ffnInput,
+  numTokens,
+  size,
+  context,
+  layerWeights,
+  decodeOutputBuffer,
+  finalOutputScale
+) {
+  const { config, recorder, weightConfig, debugFlags } = context;
+  const { hiddenSize, rmsNormEps } = config;
+  const denseRaw = await runDenseFFNGPU(layerIdx, ffnInput, numTokens, context, layerWeights);
+  const denseNorm = await applyBranchRMSNorm(
+    layerIdx,
+    denseRaw,
+    layerWeights,
+    'postFeedforwardNorm1',
+    'post_feedforward_norm_1',
+    context,
+    numTokens,
+    hiddenSize
+  );
+  releaseOrTrack(recorder, denseRaw.buffer, context.decodeBuffers);
+
+  const expertInput = await applyBranchRMSNorm(
+    layerIdx,
+    postAttn,
+    layerWeights,
+    'preFeedforwardNorm2',
+    'pre_feedforward_norm_2',
+    context,
+    numTokens,
+    hiddenSize
+  );
+  const expertRaw = await runMoEFFNGPU(layerIdx, expertInput, numTokens, context, {
+    routerInputTensor: postAttn,
+  });
+  releaseOrTrack(recorder, expertInput.buffer, context.decodeBuffers);
+
+  const expertNorm = await applyBranchRMSNorm(
+    layerIdx,
+    expertRaw,
+    layerWeights,
+    'postFeedforwardNorm2',
+    'post_feedforward_norm_2',
+    context,
+    numTokens,
+    hiddenSize
+  );
+  releaseOrTrack(recorder, expertRaw.buffer, context.decodeBuffers);
+
+  const combined = await doResidualAdd(denseNorm, expertNorm, size, recorder, {
+    label: `L${layerIdx}.ffn_dense_plus_moe`,
+    layerIdx,
+    executionPolicies: context.executionPolicies ?? null,
+  });
+  releaseOrTrack(recorder, denseNorm.buffer, context.decodeBuffers);
+  releaseOrTrack(recorder, expertNorm.buffer, context.decodeBuffers);
+
+  const finalNormWeight = requireNormWeight(layerIdx, layerWeights, 'postFeedforwardNorm');
+  const finalNormWeightBuf = getNormWeightBuffer(finalNormWeight, 'post_feedforward_norm', weightConfig, debugFlags);
+  const rmsNormOutputScale = finalOutputScale !== 1
+    && combined.dtype === context.activationDtype
+    && !context.debugProbes?.length
+    ? finalOutputScale
+    : 1;
+  const output = await doRMSNorm(combined, finalNormWeightBuf, rmsNormEps, {
+    batchSize: numTokens,
+    hiddenSize,
+    residual: postAttn,
+    outputBuffer: decodeOutputBuffer,
+    outputScale: rmsNormOutputScale,
+    label: `L${layerIdx}.post_ffn_norm`,
+    layerIdx,
+    rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+  }, recorder);
+  if (rmsNormOutputScale !== 1) {
+    context.__layerScalarFusedFired = true;
+  }
+  if (!isGpuBufferInstance(finalNormWeight) && !isWeightBuffer(finalNormWeight)) {
+    releaseOrTrack(recorder, finalNormWeightBuf);
+  }
+
+  return {
+    ffnOutput: combined,
+    output,
+  };
+}
+
 
 export async function processFFNWithSandwichNorm(
   layerIdx,
@@ -112,9 +241,24 @@ export async function processFFNWithSandwichNorm(
   }
 
   let ffnOutput;
+  let combinedDenseMoeOutput = null;
   let usedFusedDownNorm = false;
 
-  if (config.useMoE && isMoELayerLocal(layerIdx, config, layerWeights)) {
+  if (shouldUseDensePlusMoeFFN(layerIdx, config, layerWeights)) {
+    const result = await runDensePlusMoeFFN(
+      layerIdx,
+      postAttn,
+      ffnInput,
+      numTokens,
+      size,
+      context,
+      layerWeights,
+      decodeOutputBuffer,
+      requestedFinalOutputScale
+    );
+    ffnOutput = result.ffnOutput;
+    combinedDenseMoeOutput = result.output;
+  } else if (shouldUseLegacyMoeOnlyFFN(layerIdx, config, layerWeights)) {
     ffnOutput = await runMoEFFNGPU(layerIdx, ffnInput, numTokens, context);
   } else if (canUseFusedDownNorm && layerWeights?.down && layerWeights?.postFeedforwardNorm &&
     (layerWeights?.gateUp || (layerWeights?.gate && layerWeights?.up))) {
@@ -165,7 +309,10 @@ export async function processFFNWithSandwichNorm(
   // 3. Post-FFN norm
 
   let output;
-  if (usedFusedDownNorm) {
+  if (combinedDenseMoeOutput) {
+    output = combinedDenseMoeOutput;
+    releaseOrTrack(recorder, ffnOutput.buffer, decodeBuffers);
+  } else if (usedFusedDownNorm) {
     output = ffnOutput;
   } else if (sandwichNorm.hasPostFeedforwardNorm && layerWeights?.postFeedforwardNorm) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.postFeedforwardNorm, 'post_feedforward_norm', weightConfig, debugFlags);

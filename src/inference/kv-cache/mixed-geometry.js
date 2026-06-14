@@ -19,6 +19,12 @@ function buildLayerSpecs(config, bytesPerElem) {
       'MixedGeometryKVCache requires explicit layerTypes for every layer so per-layer KV geometry stays manifest-owned.'
     );
   }
+  const slidingLayerLayout = config.slidingLayerLayout;
+  if (slidingLayerLayout !== 'ring' && slidingLayerLayout !== 'contiguous') {
+    throw new Error(
+      'MixedGeometryKVCache requires slidingLayerLayout to be "ring" or "contiguous".'
+    );
+  }
 
   const baseHeadDim = Number(config.headDim);
   const globalHeadDim = Number.isFinite(config.globalHeadDim) && config.globalHeadDim > 0
@@ -46,7 +52,10 @@ function buildLayerSpecs(config, bytesPerElem) {
   return layerTypes.map((layerType, layerIdx) => {
     const isSliding = isSlidingLayerType(layerType);
     const headDim = isSliding ? baseHeadDim : globalHeadDim;
-    const capacityTokens = isSliding && slidingWindow != null
+    const layout = isSliding && slidingWindow != null && slidingLayerLayout === 'ring'
+      ? 'ring'
+      : 'contiguous';
+    const capacityTokens = layout === 'ring'
       ? slidingWindow
       : maxSeqLen;
     const layerNumHeads = isSliding ? numHeads : globalNumHeads;
@@ -55,7 +64,7 @@ function buildLayerSpecs(config, bytesPerElem) {
     return {
       layerIdx,
       layerType,
-      layout: isSliding && slidingWindow != null ? 'ring' : 'contiguous',
+      layout,
       headDim,
       numHeads: layerNumHeads,
       kvSize,
@@ -154,6 +163,7 @@ export class MixedGeometryKVCache {
       globalHeadDim: Number.isFinite(config.globalHeadDim) ? Math.trunc(config.globalHeadDim) : null,
       maxSeqLen: this.maxSeqLen,
       pageSize: this.pageSize,
+      slidingLayerLayout: config.slidingLayerLayout,
     };
     this.layerSpecs = buildLayerSpecs(this._config, this.bytesPerElem);
     this.layers = new Array(this.numLayers);

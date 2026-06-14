@@ -12,6 +12,10 @@ function isGpuBufferInstance(value) {
   return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
 }
 
+function isRouterVector(value) {
+  return value instanceof Float32Array || isGpuBufferInstance(value) || isWeightBuffer(value);
+}
+
 
 
 
@@ -37,6 +41,10 @@ export class MoERouter {
 
   
   gateBias = null;
+
+  gateScale = null;
+
+  perExpertScale = null;
 
   
   activeExperts;
@@ -95,12 +103,18 @@ export class MoERouter {
   }
 
   
-  loadWeights(weights, bias = null) {
+  loadWeights(weights, bias = null, scale = null, perExpertScale = null) {
     if (!weights) {
       throw new Error('MoERouter.loadWeights requires non-null weights.');
     }
     if (bias != null && !(bias instanceof Float32Array) && !isGpuBufferInstance(bias)) {
       throw new Error('MoERouter.loadWeights bias must be a Float32Array or GPUBuffer.');
+    }
+    if (scale != null && !isRouterVector(scale)) {
+      throw new Error('MoERouter.loadWeights scale must be a Float32Array, GPUBuffer, or WeightBuffer.');
+    }
+    if (perExpertScale != null && !isRouterVector(perExpertScale)) {
+      throw new Error('MoERouter.loadWeights perExpertScale must be a Float32Array, GPUBuffer, or WeightBuffer.');
     }
     if (this._gateBiasGPU) {
       this._gateBiasGPU.destroy();
@@ -110,6 +124,8 @@ export class MoERouter {
     }
     this.gateWeight = weights;
     this.gateBias = bias;
+    this.gateScale = scale;
+    this.perExpertScale = perExpertScale;
     // Clear cached GPU uploads when swapping router parameters (e.g., per-layer routers).
     this._gateBiasGPU = null;
     this._gateWeightGPU = null;
@@ -126,6 +142,8 @@ export class MoERouter {
     this._gateWeightGPU = null;
     this.gateWeight = null;
     this.gateBias = null;
+    this.gateScale = null;
+    this.perExpertScale = null;
     this._biasAddPipelines.clear();
   }
 
@@ -434,6 +452,11 @@ export class MoERouter {
       }
       for (let i = 0; i < this.topK; i++) {
         weights[i] /= weightSum;
+      }
+    }
+    if (this.perExpertScale instanceof Float32Array) {
+      for (let i = 0; i < this.topK; i++) {
+        weights[i] *= this.perExpertScale[indices[i]];
       }
     }
 

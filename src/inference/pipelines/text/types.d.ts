@@ -66,6 +66,8 @@ export interface LayerContext {
   currentSeqLen: number;
   /** Token IDs for the current micro-batch (required by BDPA ingestion). */
   currentTokenIds?: number[] | null;
+  /** DiffusionGemma canvas decoder pass: read encoder KV and do not mutate cache. */
+  diffusionGemmaDecoder?: boolean;
   /** Absolute-position multimodal span that should remain bidirectional during causal prefill. */
   multimodalBidirectionalSpan?: {
     start: number;
@@ -493,12 +495,17 @@ export interface LayerWeights {
 
   // Sandwich norms (Gemma 3)
   preFeedforwardNorm?: GPUBuffer | Float32Array;
+  preFeedforwardNorm2?: GPUBuffer | Float32Array;
   postFeedforwardNorm?: GPUBuffer | Float32Array;
+  postFeedforwardNorm1?: GPUBuffer | Float32Array;
+  postFeedforwardNorm2?: GPUBuffer | Float32Array;
   layerScalar?: Float32Array | null;
 
   // MoE
   routerWeight?: GPUBuffer | import('../../../gpu/weight-buffer.js').WeightBuffer | Float32Array;
   routerBias?: GPUBuffer | Float32Array | null;
+  routerScale?: GPUBuffer | Float32Array | null;
+  routerPerExpertScale?: GPUBuffer | Float32Array | null;
   qNorm?: GPUBuffer | Float32Array;
   kNorm?: GPUBuffer | Float32Array;
   experts?: ExpertWeights[];
@@ -508,11 +515,13 @@ export interface LayerWeights {
  * Weights for a single MoE expert.
  */
 export interface ExpertWeights {
-  expertFormat?: 'mixtral' | 'gpt-oss';
+  expertFormat?: 'mixtral' | 'gpt-oss' | 'gemma4';
   gate?: LayerWeightBuffer;
   up?: LayerWeightBuffer;
   down?: LayerWeightBuffer;
+  gateUp?: LayerWeightBuffer;
   numExperts?: number;
+  expertIntermediateSize?: number;
   gateUpBlocks?: GPUBuffer;
   gateUpScales?: GPUBuffer;
   gateUpBias?: GPUBuffer;
@@ -525,8 +534,10 @@ export interface ExpertWeights {
  * Router weights for MoE layers.
  */
 export interface RouterWeights {
-  weight: GPUBuffer | Float32Array;
+  weight: GPUBuffer | Float32Array | import('../../../gpu/weight-buffer.js').WeightBuffer;
   bias?: GPUBuffer | Float32Array | null;
+  scale?: GPUBuffer | Float32Array | import('../../../gpu/weight-buffer.js').WeightBuffer | null;
+  perExpertScale?: GPUBuffer | Float32Array | import('../../../gpu/weight-buffer.js').WeightBuffer | null;
 }
 
 // ============================================================================

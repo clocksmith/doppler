@@ -24,6 +24,11 @@ import type { StructuredJsonHeadPipeline } from './structured/json-head-pipeline
 import type { EnergyRowHeadPipeline } from './energy-head/row-head-pipeline.js';
 import { getBufferPool as getGlobalBufferPool } from '../../memory/buffer-pool.js';
 import type { EmulationStats } from '../../config/schema/index.js';
+import type {
+  DiffusionGemmaCanvasLogitsInput,
+  DiffusionGemmaCanvasStepInput,
+  DiffusionGemmaCanvasStepResult,
+} from './text/generator.js';
 
 // Re-export types for external use
 export type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, PrefillEmbeddingResult, AdvanceEmbeddingResult, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats };
@@ -88,6 +93,8 @@ export declare class InferencePipeline extends PipelineState {
     options?: GenerateOptions
   ): Promise<{ tokenIds: number[]; stats: PipelineStats }>;
 
+  resetToSeqLen(seqLen: number): void;
+
   decodeStepLogits(currentIds: number[], options?: GenerateOptions): Promise<LogitsStepResult>;
 
   advanceWithToken(tokenId: number, options?: GenerateOptions): Promise<void>;
@@ -95,6 +102,16 @@ export declare class InferencePipeline extends PipelineState {
   advanceWithTokenAndEmbedding(tokenId: number, options?: GenerateOptions): Promise<AdvanceEmbeddingResult>;
 
   prefillKVOnly(prompt: PromptInput, options?: GenerateOptions): Promise<KVCacheSnapshot>;
+
+  computeDiffusionGemmaCanvasLogits(
+    args: DiffusionGemmaCanvasLogitsInput,
+    options?: GenerateOptions & { __internalGenerate?: boolean }
+  ): Promise<Float32Array>;
+
+  computeDiffusionGemmaCanvasStep(
+    args: DiffusionGemmaCanvasStepInput,
+    options?: GenerateOptions & { __internalGenerate?: boolean }
+  ): Promise<DiffusionGemmaCanvasStepResult>;
 
   prefillWithEmbedding(prompt: PromptInput, options?: GenerateOptions): Promise<PrefillEmbeddingResult>;
 

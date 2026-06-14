@@ -41,10 +41,11 @@ export declare function quantizeQ4KBlock(data: Float32Array, offset: number): Ui
 export declare function quantizeToQ4KM(data: Float32Array, shape: number[]): QuantizeResult;
 
 /**
- * Row-wise Q4K quantization for 2D weight matrices.
- * Each row is padded to 256-element boundary before quantization.
+ * Row-wise Q4K quantization for matrix-like tensors.
+ * Leading dimensions are treated as batches of rows; each row is padded to
+ * the 256-element boundary before quantization.
  */
-export declare function quantizeToQ4KMRowWise(data: Float32Array, shape: [number, number]): QuantizeResult;
+export declare function quantizeToQ4KMRowWise(data: Float32Array, shape: number[]): QuantizeResult;
 
 /**
  * Transpose a 2D F32 matrix.
@@ -75,7 +76,7 @@ export declare function dequantizeQ4KM(
 
 export declare function dequantizeQ4KMRowWise(
   quantized: Uint8Array,
-  shape: [number, number]
+  shape: number[]
 ): Float32Array;
 
 export declare function calculateQuantizationError(

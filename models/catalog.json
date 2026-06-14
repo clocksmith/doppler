@@ -1,7 +1,7 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-04-28",
+  "updatedAt": "2026-06-12",
   "models": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
@@ -483,6 +483,125 @@
       "artifactCompleteness": "weights-ref",
       "runtimePromotionState": "manifest-owned",
       "weightsRefAllowed": true
+    },
+    {
+      "modelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
+      "family": "gemma4",
+      "label": "Gemma 4 12B Instruct Text (W4A16 QAT/F16a)",
+      "description": "Gemma 4 12B text-only RDRR lane from Google's W4A16 QAT compressed-tensors checkpoint. W4A16 weights, F16 embeddings/head, F16 activation contract.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "gemma4-12b-w4a16",
+        "gemma4-12b-qat-w4a16",
+        "google/gemma-4-12B-it-qat-w4a16-ct"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "path": "models/gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
+        "revision": "21476587d77976ed3dd9859ba8baf97b66e9a327"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 10173636932,
+      "recommended": false,
+      "sortOrder": 15.7,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-06-08",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU verified from /home/x/models/rdrr/gemma-4-12b-it-text-w4a16-ct-ehf16-af16 with deterministic greedy output. Report reports/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/2026-06-08T22-33-51.728Z.json produced coherent text, executionContractOk=true, manifest-owned decodeBatchSize=8/readbackInterval=8, and batched decode only with 2 batched forward calls and 0 unbatched calls.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "google/gemma-4-12B-it-qat-w4a16-ct",
+      "weightPackId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16-wp-catalog-v1",
+      "manifestVariantId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16-mv-w4a16-ct-reference-f16-dequant-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
+      "family": "diffusiongemma",
+      "label": "DiffusionGemma 26B A4B Instruct (Q4K/F16a)",
+      "description": "DiffusionGemma 26B A4B text-only block-diffusion MoE artifact. Q4K weights, F16 embeddings/head, F16 activation contract, and DiffusionGemma throughput runtime profile.",
+      "modes": [
+        "diffusion",
+        "text"
+      ],
+      "aliases": [
+        "diffusiongemma",
+        "diffusiongemma-26b",
+        "google/diffusiongemma-26B-A4B-it"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 15694066921,
+      "recommended": false,
+      "sortOrder": 15.8,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-06-12",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU on AMD RDNA-3 verified with DiffusionGemma compact denoising and throughput profile runs. Reports include reports/diffusiongemma-26b-a4b-it-q4k-ehf16-af16/2026-06-12T07-45-58.680Z.json for deterministic topk-readback output and reports/diffusiongemma-26b-a4b-it-q4k-ehf16-af16/2026-06-12T07-56-00.089Z.json for the profile-driven 64-token canvas benchmark.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "google/diffusiongemma-26B-A4B-it",
+      "weightPackId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16-wp-34a45084026a",
+      "manifestVariantId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16-mv-f5de4fbe6653",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
     },
     {
       "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",

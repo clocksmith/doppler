@@ -38,6 +38,7 @@ export interface RuntimeInferenceConfigSchema {
   largeWeights: LargeWeightConfigSchema;
   kvcache: Record<string, unknown>;
   diffusion: Record<string, unknown>;
+  diffusionGemma: Record<string, unknown>;
   energy: Record<string, unknown>;
   moe: Record<string, unknown>;
   speculative: Record<string, unknown>;

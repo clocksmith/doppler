@@ -626,6 +626,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     let attentionNumKVHeads = resolveAttentionNumKVHeads(config, layerType, layerWeights, attentionHeadDim);
     let disableRoPE = false;
     let queryKeyNorm = config.queryKeyNorm === true;
+    const diffusionGemmaDecoder = context.diffusionGemmaDecoder === true;
     if (queryKeyNorm && Array.isArray(config.queryKeyNormLayers)) {
       queryKeyNorm = config.queryKeyNormLayers.includes(layerIdx);
     }
@@ -654,8 +655,8 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       valueNorm: config.valueNorm,
       attentionOutputGate: config.attentionOutputGate,
       outputGateType: config.outputGateType ?? null,
-      causalAttention: config.causalAttention,
-      multimodalBidirectionalSpan: isSlidingLayerType(layerType)
+      causalAttention: diffusionGemmaDecoder ? false : config.causalAttention,
+      multimodalBidirectionalSpan: !diffusionGemmaDecoder && isSlidingLayerType(layerType)
         ? (context.multimodalBidirectionalSpan ?? null)
         : null,
       rmsNormWeightOffset: config.rmsNormWeightOffset,
@@ -668,6 +669,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       disableRoPE,
       sharedKVSourceLayerIdx,
       storeSharedKV,
+      diffusionGemmaDecoder,
     };
 
     validateAttnConfig(attnConfig, `L${layerIdx}`);

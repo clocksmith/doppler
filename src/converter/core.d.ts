@@ -191,6 +191,7 @@ export interface CreateManifestOptions {
   manifestConfig?: ConverterManifestConfigSchema | null;
   artifactIdentity?: ManifestArtifactIdentitySchema | null;
   weightsRef?: ManifestWeightsRefSchema | null;
+  textOnly?: boolean;
 }
 
 /**

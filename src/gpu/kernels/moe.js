@@ -145,26 +145,46 @@ function getMoEGatherBindGroupLayout(device) {
 // Required because auto layout can omit bindings in some driver/compiler paths.
 let scatterAddDynamicBindGroupLayout = null;
 let scatterAddDynamicBindGroupLayoutEpoch = -1;
+let scatterAddDynamicScaledBindGroupLayout = null;
+let scatterAddDynamicScaledBindGroupLayoutEpoch = -1;
 
-function getScatterAddDynamicBindGroupLayout(device) {
+function getScatterAddDynamicBindGroupLayout(device, hasExpertScale = false) {
   const epoch = getDeviceEpoch();
-  if (scatterAddDynamicBindGroupLayout && scatterAddDynamicBindGroupLayoutEpoch === epoch) {
+  if (!hasExpertScale && scatterAddDynamicBindGroupLayout && scatterAddDynamicBindGroupLayoutEpoch === epoch) {
     return scatterAddDynamicBindGroupLayout;
   }
+  if (hasExpertScale && scatterAddDynamicScaledBindGroupLayout && scatterAddDynamicScaledBindGroupLayoutEpoch === epoch) {
+    return scatterAddDynamicScaledBindGroupLayout;
+  }
 
-  scatterAddDynamicBindGroupLayout = device.createBindGroupLayout({
-    label: 'scatter_add_dynamic_explicit_layout',
+  const layout = device.createBindGroupLayout({
+    label: hasExpertScale
+      ? 'scatter_add_dynamic_scaled_explicit_layout'
+      : 'scatter_add_dynamic_explicit_layout',
     entries: [
       { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
       { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
       { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
       { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
       { binding: 4, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
-      { binding: 5, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+      ...(hasExpertScale
+        ? [
+            { binding: 5, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+            { binding: 6, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+          ]
+        : [
+            { binding: 5, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+          ]),
     ],
   });
-  scatterAddDynamicBindGroupLayoutEpoch = epoch;
-  return scatterAddDynamicBindGroupLayout;
+  if (hasExpertScale) {
+    scatterAddDynamicScaledBindGroupLayout = layout;
+    scatterAddDynamicScaledBindGroupLayoutEpoch = epoch;
+  } else {
+    scatterAddDynamicBindGroupLayout = layout;
+    scatterAddDynamicBindGroupLayoutEpoch = epoch;
+  }
+  return layout;
 }
 
 let moeOffsetsBindGroupLayout = null;
@@ -450,8 +470,9 @@ export async function recordMoEBuildTokenOffsets(recorder, tokenCounts, tokenMap
 
 async function executeScatterAddDynamic(recorder, expertOutputs, indices, weights, tokenOffsets, numTokens, hiddenSize, topK, options = {}) {
   const execution = resolveExecution(recorder);
-  const { outputBuffer = null, weightsDtype = 'f32' } = options;
+  const { outputBuffer = null, weightsDtype = 'f32', perExpertScale = null } = options;
   const ownsOutput = outputBuffer == null;
+  const hasExpertScale = perExpertScale != null;
 
   if (weightsDtype === 'f16' && expertOutputs.dtype !== 'f16') {
     throw new Error('ScatterAddDynamic f16 weights require f16 expert outputs');
@@ -460,8 +481,9 @@ async function executeScatterAddDynamic(recorder, expertOutputs, indices, weight
   const variant = selectKernelRuleValue('moe', 'scatterAddVariant', {
     outputDtype: expertOutputs.dtype,
     weightsDtype,
+    hasExpertScale,
   });
-  const explicitLayout = getScatterAddDynamicBindGroupLayout(execution.device);
+  const explicitLayout = getScatterAddDynamicBindGroupLayout(execution.device, hasExpertScale);
   const pipeline = await createPipeline('scatter_add', variant, explicitLayout);
 
   const bytesPerElement = expertOutputs.dtype === 'f16' ? 2 : 4;
@@ -475,17 +497,24 @@ async function executeScatterAddDynamic(recorder, expertOutputs, indices, weight
   });
 
   try {
+    const entries = [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: expertOutputs.buffer } },
+      { binding: 2, resource: { buffer: indices } },
+      { binding: 3, resource: { buffer: weights } },
+      { binding: 4, resource: { buffer: tokenOffsets } },
+    ];
+    if (hasExpertScale) {
+      entries.push({ binding: 5, resource: { buffer: perExpertScale } });
+      entries.push({ binding: 6, resource: { buffer: outputBuf } });
+    } else {
+      entries.push({ binding: 5, resource: { buffer: outputBuf } });
+    }
+
     const bindGroup = await createBindGroupWithValidation(execution.device, {
       label: 'scatter_add_dynamic_bind_group',
       layout: pipeline.getBindGroupLayout(0),
-      entries: [
-        { binding: 0, resource: { buffer: uniformBuffer } },
-        { binding: 1, resource: { buffer: expertOutputs.buffer } },
-        { binding: 2, resource: { buffer: indices } },
-        { binding: 3, resource: { buffer: weights } },
-        { binding: 4, resource: { buffer: tokenOffsets } },
-        { binding: 5, resource: { buffer: outputBuf } },
-      ],
+      entries,
     }, `scatter_add_dynamic:${variant}`);
 
     const workgroups = Math.ceil((numTokens * topK * hiddenSize) / WORKGROUP_SIZES.DEFAULT);
@@ -523,5 +552,4 @@ async function executeScatterAddDynamic(recorder, expertOutputs, indices, weight
 export async function runScatterAddDynamic(expertOutputs, indices, weights, tokenOffsets, numTokens, hiddenSize, topK, options = {}) {
   return executeScatterAddDynamic(null, expertOutputs, indices, weights, tokenOffsets, numTokens, hiddenSize, topK, options);
 }
-
 

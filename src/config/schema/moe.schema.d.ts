@@ -10,6 +10,9 @@
 /** Supported data types for router computation */
 export type RouterDtype = 'f16' | 'f32';
 
+/** Expert execution scheduling policy after Top-K routing */
+export type ActiveExpertSelection = 'all' | 'topk-readback' | 'topk-route';
+
 /**
  * Configuration for MoE routing behavior.
  *
@@ -45,6 +48,16 @@ export interface MoERoutingConfigSchema {
    * Useful to limit buffer sizes on constrained devices.
    */
   maxTokensPerExpertCap: number;
+
+  /**
+   * Expert execution scheduling policy.
+   * "all" executes every expert with the configured row budget.
+   * "topk-readback" reads the compact Top-K index buffer and executes only
+   * experts selected by the current batch.
+   * "topk-route" executes each Top-K route directly on GPU without CPU
+   * scheduling readback when the model format supports route-wise kernels.
+   */
+  activeExpertSelection: ActiveExpertSelection;
 }
 
 /** Default MoE routing configuration */

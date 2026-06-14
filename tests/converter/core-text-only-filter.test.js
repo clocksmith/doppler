@@ -16,6 +16,7 @@ const sourceBytes = new Uint8Array(sourceTensor.buffer);
 
 const languageTensorName = 'language_model.model.embed_tokens.weight';
 const visionTensorName = 'vision_tower.vision_model.encoder.layers.0.self_attn.q_proj.weight';
+const nestedVisionTensorName = 'model.encoder.vision_tower.encoder.layers.0.self_attn.q_proj.linear.weight';
 const projectorTensorName = 'multi_modal_projector.mm_input_projection_weight';
 const embedVisionTensorName = 'model.embed_vision.embedding_projection.weight';
 
@@ -39,22 +40,33 @@ const model = {
       offset: 16,
     },
     {
-      name: projectorTensorName,
+      name: nestedVisionTensorName,
       shape: [2, 2],
       dtype: 'F32',
       size: 16,
       offset: 32,
     },
     {
-      name: embedVisionTensorName,
+      name: projectorTensorName,
       shape: [2, 2],
       dtype: 'F32',
       size: 16,
       offset: 48,
     },
+    {
+      name: embedVisionTensorName,
+      shape: [2, 2],
+      dtype: 'F32',
+      size: 16,
+      offset: 64,
+    },
   ],
   config: {
     model_type: 'gemma3',
+    vision_config: {
+      model_type: 'gemma3_vision',
+      vision_architecture: 'gemma4',
+    },
     text_config: {
       model_type: 'gemma3_text',
       num_hidden_layers: 1,
@@ -121,8 +133,10 @@ assert.deepEqual(readTensorNames, [languageTensorName]);
 assert.ok(capturedManifest, 'manifest should be written');
 assert.ok(capturedManifest.tensors?.[languageTensorName], 'language tensor should be in manifest');
 assert.equal(capturedManifest.tensors?.[visionTensorName], undefined);
+assert.equal(capturedManifest.tensors?.[nestedVisionTensorName], undefined);
 assert.equal(capturedManifest.tensors?.[projectorTensorName], undefined);
 assert.equal(capturedManifest.tensors?.[embedVisionTensorName], undefined);
 assert.equal(Object.keys(capturedManifest.tensors ?? {}).length, 1);
+assert.equal(capturedManifest.config, undefined, 'text-only manifest should not retain vision_config');
 
 console.log('core-text-only-filter.test: ok');

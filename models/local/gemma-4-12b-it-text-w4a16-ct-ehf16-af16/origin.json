@@ -1,0 +1,9 @@
+{
+  "sourceModel": "gemma-4-12b-it-qat-w4a16-ct",
+  "sourceRepo": "google/gemma-4-12B-it-qat-w4a16-ct",
+  "sourceFormat": "safetensors",
+  "sourceRevision": "dcfe12254e8fb98c743f21efa05ff64937926c64",
+  "variant": "text-w4a16-ct-ehf16-af16",
+  "convertedAt": "2026-06-08T01:09:28.984Z",
+  "notes": "Text-only RDRR artifact converted from Google's W4A16 QAT compressed-tensors Gemma 4 12B checkpoint."
+}

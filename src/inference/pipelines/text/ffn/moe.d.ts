@@ -17,5 +17,8 @@ export declare function runMoEFFNGPU(
   layerIdx: number,
   inputTensor: Tensor,
   numTokens: number,
-  context: LayerContext
+  context: LayerContext,
+  options?: {
+    routerInputTensor?: Tensor | null;
+  }
 ): Promise<Tensor>;

@@ -3,6 +3,8 @@
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 import { SlidingWindowKVCache } from '../../../kv-cache.js';
+import { getDevice } from '../../../../gpu/device.js';
+import { acquireBuffer, releaseBuffer } from '../../../../memory/buffer-pool.js';
 
 // ============================================================================
 // Layer Type Helpers
@@ -139,6 +141,173 @@ export function resolveKVCacheState(state, layerIdx, kTensor, vTensor, currentSe
   }
 
   return kvState;
+}
+
+function resolveDecoderEncoderWindow(encoderSeqLen, slidingWindow, layerType) {
+  if (!isSlidingLayerType(layerType)) {
+    return encoderSeqLen;
+  }
+  if (!Number.isFinite(slidingWindow) || slidingWindow <= 1) {
+    return encoderSeqLen;
+  }
+  return Math.min(encoderSeqLen, Math.max(0, Math.trunc(slidingWindow) - 1));
+}
+
+function resolveDecoderKVCacheBuffers(state, layerIdx) {
+  if (!state.kvCache?.hasGPUCache?.()) {
+    throw new Error(
+      `DiffusionGemma decoder attention at layer ${layerIdx} requires an initialized encoder KV cache.`
+    );
+  }
+  const gpuBuffers = state.kvCache.getGPUBuffers(layerIdx);
+  const layout = gpuBuffers?.layout ?? state.kvCache?.layout ?? 'contiguous';
+  if (layout !== 'contiguous' && layout !== undefined && layout !== null) {
+    throw new Error(
+      `DiffusionGemma decoder attention requires contiguous encoder KV cache at layer ${layerIdx}; got "${layout}".`
+    );
+  }
+  if (!gpuBuffers?.keysGPU || !gpuBuffers?.valuesGPU) {
+    throw new Error(
+      `DiffusionGemma decoder attention missing contiguous GPU KV buffers at layer ${layerIdx}.`
+    );
+  }
+  if (!Number.isFinite(gpuBuffers.seqLen) || gpuBuffers.seqLen < 0) {
+    throw new Error(
+      `DiffusionGemma decoder attention received invalid encoder KV length at layer ${layerIdx}: ${String(gpuBuffers.seqLen)}.`
+    );
+  }
+  return gpuBuffers;
+}
+
+function copyKVRange(encoder, source, sourceOffset, target, targetOffset, size) {
+  if (size <= 0) return;
+  encoder.copyBufferToBuffer(source, sourceOffset, target, targetOffset, size);
+}
+
+export async function createDiffusionGemmaDecoderKVState({
+  state,
+  layerIdx,
+  kTensor,
+  vTensor,
+  currentSeqLen,
+  numTokens,
+  numKVHeads,
+  headDim,
+  layerType,
+  slidingWindow,
+  kvDtype,
+  recorder = null,
+}) {
+  const gpuBuffers = resolveDecoderKVCacheBuffers(state, layerIdx);
+  const encoderSeqLen = Math.trunc(gpuBuffers.seqLen);
+  if (encoderSeqLen !== currentSeqLen) {
+    throw new Error(
+      `DiffusionGemma decoder attention expected currentSeqLen=${encoderSeqLen} from encoder KV cache, ` +
+      `got ${currentSeqLen}.`
+    );
+  }
+
+  const encoderWindow = resolveDecoderEncoderWindow(encoderSeqLen, slidingWindow, layerType);
+  const concatSeqLen = encoderWindow + numTokens;
+  if (concatSeqLen <= 0) {
+    throw new Error(`DiffusionGemma decoder attention has empty KV span at layer ${layerIdx}.`);
+  }
+
+  const dtype = kvDtype ?? kTensor.dtype;
+  const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
+  const rowBytes = numKVHeads * headDim * bytesPerElement;
+  const encoderStart = encoderSeqLen - encoderWindow;
+  const encoderBytes = encoderWindow * rowBytes;
+  const canvasBytes = numTokens * rowBytes;
+  const concatBytes = concatSeqLen * rowBytes;
+  let keysGPU = null;
+  let valuesGPU = null;
+  try {
+    keysGPU = acquireBuffer(concatBytes, undefined, 'diffusion_gemma_decoder_keys');
+    valuesGPU = acquireBuffer(concatBytes, undefined, 'diffusion_gemma_decoder_values');
+    const device = recorder?.device ?? getDevice();
+    if (!device) {
+      throw new Error('DiffusionGemma decoder attention requires a GPU device.');
+    }
+    const encoder = recorder ? recorder.getEncoder() : device.createCommandEncoder();
+    copyKVRange(
+      encoder,
+      gpuBuffers.keysGPU,
+      encoderStart * rowBytes,
+      keysGPU,
+      0,
+      encoderBytes
+    );
+    copyKVRange(
+      encoder,
+      gpuBuffers.valuesGPU,
+      encoderStart * rowBytes,
+      valuesGPU,
+      0,
+      encoderBytes
+    );
+    copyKVRange(
+      encoder,
+      kTensor.buffer,
+      0,
+      keysGPU,
+      encoderBytes,
+      canvasBytes
+    );
+    copyKVRange(
+      encoder,
+      vTensor.buffer,
+      0,
+      valuesGPU,
+      encoderBytes,
+      canvasBytes
+    );
+    if (!recorder) {
+      device.queue.submit([encoder.finish()]);
+    }
+  } catch (error) {
+    if (keysGPU) releaseBuffer(keysGPU);
+    if (valuesGPU && valuesGPU !== keysGPU) releaseBuffer(valuesGPU);
+    throw error;
+  }
+
+  return {
+    cachedK: keysGPU,
+    cachedV: valuesGPU,
+    kvLenForAttention: concatSeqLen,
+    causalForAttention: false,
+    startPosForMask: encoderSeqLen,
+    kvStart: 0,
+    kvLayout: 'contiguous',
+    kvPageTable: null,
+    kvPageSize: 0,
+    cachedKHot: undefined,
+    cachedVHot: undefined,
+    cachedKCold: undefined,
+    cachedVCold: undefined,
+    coldScalesK: null,
+    coldScalesV: null,
+    coldPackedStride: 0,
+    coldQuantMode: 'none',
+    coldLen: 0,
+    hotLen: 0,
+    hotStart: 0,
+    hotWindow: 0,
+    coldPageTable: null,
+    coldPageSize: 0,
+    bdpaBasisK: null,
+    bdpaBasisV: null,
+    bdpaPagedK: null,
+    bdpaPagedV: null,
+    bdpaIndex: null,
+    bdpaBasisCount: 0,
+    hasCache: true,
+    totalSeqLen: concatSeqLen,
+    diffusionGemmaDecoder: true,
+    ownedBuffers: [keysGPU, valuesGPU],
+    encoderSeqLen,
+    encoderWindow,
+  };
 }
 
 // ============================================================================

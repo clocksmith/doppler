@@ -16,6 +16,7 @@ import type {
   ConversionInfoSchema,
   ManifestArtifactIdentitySchema,
   ManifestWeightsRefSchema,
+  MoEConfigSchema,
 } from './manifest.schema.js';
 import type {
   ExecutionV1GraphSchema,
@@ -111,6 +112,10 @@ export interface ConverterConfigSchema {
   manifest: ConverterManifestConfigSchema;
   inference: ConverterInferenceConfigSchema;
   output: ConverterOutputConfigSchema;
+  moeConfig?: MoEConfigSchema | null;
+  execution?: ExecutionV1GraphSchema;
+  session?: ExecutionV1SessionSchema;
+  modelType?: string;
 }
 
 export declare const DEFAULT_CONVERTER_QUANTIZATION_CONFIG: ConverterQuantizationConfigSchema;

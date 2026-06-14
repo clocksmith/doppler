@@ -116,7 +116,11 @@ export async function processFFNStandard(
   context.__ffnResidualFusedFired = false;
 
   let ffnOutput;
-  if (config.useMoE && isMoELayerLocal(layerIdx, config, layerWeights)) {
+  const useLegacyMoeOnlyFFN = config.ffnBranchMode !== 'dense'
+    && config.ffnBranchMode !== 'dense_plus_moe'
+    && config.useMoE
+    && isMoELayerLocal(layerIdx, config, layerWeights);
+  if (useLegacyMoeOnlyFFN) {
     ffnOutput = await runMoEFFNGPU(layerIdx, normedTensor, numTokens, context);
   } else {
     ffnOutput = await runDenseFFNGPU(layerIdx, normedTensor, numTokens, context, layerWeights);

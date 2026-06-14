@@ -282,30 +282,45 @@ function shouldExcludeTextOnlyTensor(name) {
   const lower = name.toLowerCase();
   return lower.startsWith('vision_tower.')
     || lower.startsWith('model.vision_tower.')
+    || lower.startsWith('model.encoder.vision_tower.')
     || lower.startsWith('vision_model.')
     || lower.startsWith('model.vision_model.')
+    || lower.startsWith('model.encoder.vision_model.')
     || lower.startsWith('visual.')
     || lower.startsWith('model.visual.')
+    || lower.startsWith('model.encoder.visual.')
     || lower.startsWith('embed_vision.')
     || lower.startsWith('model.embed_vision.')
+    || lower.startsWith('model.encoder.embed_vision.')
     || lower.startsWith('vision.')
     || lower.startsWith('model.vision.')
+    || lower.startsWith('model.encoder.vision.')
     || lower.startsWith('vision_encoder.')
+    || lower.startsWith('model.encoder.vision_encoder.')
     || lower.startsWith('image_encoder.')
+    || lower.startsWith('model.encoder.image_encoder.')
     || lower.startsWith('image_tower.')
+    || lower.startsWith('model.encoder.image_tower.')
     || lower.startsWith('image.')
     || lower.startsWith('model.image.')
+    || lower.startsWith('model.encoder.image.')
     || lower.startsWith('audio_tower.')
     || lower.startsWith('model.audio_tower.')
+    || lower.startsWith('model.encoder.audio_tower.')
     || lower.startsWith('audio_model.')
     || lower.startsWith('model.audio_model.')
+    || lower.startsWith('model.encoder.audio_model.')
     || lower.startsWith('audio.')
     || lower.startsWith('model.audio.')
+    || lower.startsWith('model.encoder.audio.')
     || lower.startsWith('audio_encoder.')
+    || lower.startsWith('model.encoder.audio_encoder.')
     || lower.startsWith('multi_modal_projector.')
     || lower.startsWith('model.multi_modal_projector.')
+    || lower.startsWith('model.encoder.multi_modal_projector.')
     || lower.startsWith('mm_projector.')
-    || lower.startsWith('model.mm_projector.');
+    || lower.startsWith('model.mm_projector.')
+    || lower.startsWith('model.encoder.mm_projector.');
 }
 
 function resolveConversionTensors(model, converterConfig) {
@@ -565,6 +580,15 @@ function resolveTiedLmHeadName(embeddingName) {
   if (name === 'model.language_model.embed_tokens.weight') {
     return 'model.language_model.lm_head.weight';
   }
+  if (name === 'model.decoder.embed_tokens.weight') {
+    return 'lm_head.weight';
+  }
+  if (name === 'decoder.embed_tokens.weight') {
+    return 'lm_head.weight';
+  }
+  if (name === 'model.encoder.language_model.embed_tokens.weight') {
+    return 'lm_head.weight';
+  }
   if (name === 'language_model.embed_tokens.weight') {
     return 'language_model.lm_head.weight';
   }
@@ -801,6 +825,9 @@ function resolveMoEExpertFormat(rawConfig, resolvedModelType, quantizationInfo, 
   if (modelType.includes('gpt_oss') || modelType.includes('gpt-oss') || modelType.includes('gptoss')) {
     return 'gpt-oss';
   }
+  if (modelType === 'diffusion_gemma' || modelType === 'diffusion_gemma_text') {
+    return 'gemma4';
+  }
   return 'mixtral';
 }
 
@@ -809,7 +836,10 @@ function normalizeMoEConfig(config, contextLabel) {
   const numExperts = Number(config.numExperts);
   const numExpertsPerToken = Number(config.numExpertsPerToken);
   const expertFormat = String(config.expertFormat || '').trim();
-  const allowedExpertFormat = expertFormat === 'gpt-oss' || expertFormat === 'mixtral';
+  const expertIntermediateSize = config.expertIntermediateSize == null
+    ? null
+    : Number(config.expertIntermediateSize);
+  const allowedExpertFormat = expertFormat === 'gpt-oss' || expertFormat === 'mixtral' || expertFormat === 'gemma4';
   if (!Number.isFinite(numExperts) || numExperts <= 0) {
     throw new Error(`Invalid moeConfig.numExperts for ${contextLabel}`);
   }
@@ -822,10 +852,20 @@ function normalizeMoEConfig(config, contextLabel) {
   if (!allowedExpertFormat) {
     throw new Error(`Invalid moeConfig.expertFormat for ${contextLabel}: "${expertFormat}"`);
   }
+  if (
+    expertIntermediateSize != null
+    && (!Number.isFinite(expertIntermediateSize) || expertIntermediateSize <= 0)
+  ) {
+    throw new Error(`Invalid moeConfig.expertIntermediateSize for ${contextLabel}`);
+  }
+  if (expertFormat === 'gemma4' && expertIntermediateSize == null) {
+    throw new Error(`Invalid moeConfig for ${contextLabel}: gemma4 experts require expertIntermediateSize`);
+  }
   return {
     numExperts,
     numExpertsPerToken,
     expertFormat,
+    ...(expertIntermediateSize == null ? {} : { expertIntermediateSize }),
   };
 }
 
@@ -870,9 +910,17 @@ export function resolveManifestMoEConfig(model, options, rawConfig, resolvedMode
     options?.quantizationInfo ?? null,
     null
   );
+  const expertIntermediateSize = expertFormat === 'gemma4'
+    ? resolveMoEConfigNumber(rawConfig, 'moe_intermediate_size', 'expert_intermediate_size')
+    : null;
 
   return normalizeMoEConfig(
-    { numExperts, numExpertsPerToken, expertFormat },
+    {
+      numExperts,
+      numExpertsPerToken,
+      expertFormat,
+      ...(expertIntermediateSize == null ? {} : { expertIntermediateSize }),
+    },
     options?.modelId ?? 'model'
   );
 }
@@ -1302,9 +1350,15 @@ export function transformTensorBytes(tensor, rawData, options = {}) {
 
   if (tensorTargetQuant === 'q4k') {
     const sourceQuant = normalizeStorageQuant(sourceDtype);
+    const tensorRole = resolveTensorRole(tensor);
+    const isMatrixLikeShape = Array.isArray(tensor.shape) && tensor.shape.length >= 2;
+    const is2DMatrixShape = Array.isArray(tensor.shape) && tensor.shape.length === 2;
+    const useQ4KRowWise = isMatrixLikeShape
+      && q4kLayout === 'row'
+      && (is2DMatrixShape || tensorRole === 'expert');
     if (sourceQuant === 'q4k') {
       outDtype = 'Q4_K_M';
-      if (Array.isArray(tensor.shape) && tensor.shape.length === 2) {
+      if (is2DMatrixShape) {
         outLayout = q4kLayout;
       }
       return {
@@ -1326,15 +1380,17 @@ export function transformTensorBytes(tensor, rawData, options = {}) {
     if (shouldQuantizeTensor) {
       const f32Data = toFloat32ForQ4K(tensorData, sourceDtype, tensor.name);
       const quantized = (
-        Array.isArray(tensor.shape) && tensor.shape.length === 2
+        is2DMatrixShape
           ? (q4kLayout === 'col'
             ? quantizeToQ4KMColumnWise(f32Data, tensor.shape)
             : quantizeToQ4KMRowWise(f32Data, tensor.shape))
+          : useQ4KRowWise
+            ? quantizeToQ4KMRowWise(f32Data, tensor.shape)
           : quantizeToQ4KM(f32Data, tensor.shape)
       );
       tensorData = quantized.quantized;
       outDtype = 'Q4_K_M';
-      if (Array.isArray(tensor.shape) && tensor.shape.length === 2) {
+      if (is2DMatrixShape || useQ4KRowWise) {
         outLayout = q4kLayout;
       }
     } else if (sourceDtype === 'BF16') {
@@ -1666,6 +1722,26 @@ function resolveGemma4TextConfig(rawConfig) {
   return textConfig ?? rawConfig ?? null;
 }
 
+function resolveDiffusionGemmaConfig(rawConfig, resolvedModelType = null) {
+  const textConfig = getNestedTextConfig(rawConfig);
+  const modelType = String(
+    resolvedModelType
+    ?? rawConfig?.model_type
+    ?? textConfig?.model_type
+    ?? ''
+  ).trim().toLowerCase();
+  const textModelType = String(textConfig?.model_type ?? '').trim().toLowerCase();
+  if (
+    modelType !== 'diffusion_gemma'
+    && modelType !== 'diffusion_gemma_text'
+    && textModelType !== 'diffusion_gemma'
+    && textModelType !== 'diffusion_gemma_text'
+  ) {
+    return null;
+  }
+  return textConfig ?? rawConfig ?? {};
+}
+
 function collectGemma4UnsupportedTensorFlags(tensors) {
   const names = Array.isArray(tensors) ? tensors.map((tensor) => normalizeTensorName(tensor).toLowerCase()) : [];
   const flags = [];
@@ -1735,6 +1811,143 @@ function assertSupportedGemma4Conversion(model, tensors, modelId) {
     'only supports Mixtral/GPT-OSS semantics. ' +
     `Detected: ${unsupportedFlags.length > 0 ? unsupportedFlags.join(', ') : 'Gemma 4 MoE tensors'}.`
   );
+}
+
+function readDiffusionGemmaPositiveInteger(value, label, modelId) {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`DiffusionGemma model "${modelId}" requires ${label} to be a positive integer.`);
+  }
+  return value;
+}
+
+function readDiffusionGemmaNonNegativeNumber(value, label, modelId) {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+    throw new Error(`DiffusionGemma model "${modelId}" requires ${label} to be a non-negative finite number.`);
+  }
+  return value;
+}
+
+function readDiffusionGemmaEntropyBound(generationConfig, modelId) {
+  if (generationConfig && Object.hasOwn(generationConfig, 'entropy_bound')) {
+    return readDiffusionGemmaNonNegativeNumber(
+      generationConfig.entropy_bound,
+      'generation_config.entropy_bound',
+      modelId
+    );
+  }
+  return readDiffusionGemmaNonNegativeNumber(
+    generationConfig?.sampler_config?.entropy_bound,
+    'generation_config.sampler_config.entropy_bound',
+    modelId
+  );
+}
+
+function readDiffusionGemmaNullableTokenId(value, label, modelId) {
+  if (value == null) return null;
+  if (!Number.isInteger(value) || value < 0) {
+    throw new Error(`DiffusionGemma model "${modelId}" requires ${label} to be null or a non-negative integer.`);
+  }
+  return value;
+}
+
+function readDiffusionGemmaTokenId(value, label, modelId) {
+  if (!Number.isInteger(value) || value < 0) {
+    throw new Error(`DiffusionGemma model "${modelId}" requires ${label} to be a non-negative integer.`);
+  }
+  return value;
+}
+
+function readDiffusionGemmaEosTokenIds(rawConfig, generationConfig, modelId) {
+  const eos = resolveTokenizerIds(
+    generationConfig?.eos_token_id
+    ?? generationConfig?.eos_token_ids
+    ?? rawConfig?.eos_token_id
+    ?? rawConfig?.eos_token_ids
+  );
+  if (!Array.isArray(eos) || eos.length === 0) {
+    throw new Error(`DiffusionGemma model "${modelId}" requires generation_config.eos_token_id.`);
+  }
+  return eos;
+}
+
+function resolveDiffusionGemmaInferenceContract(rawConfig, generationConfig, modelId) {
+  const canvasLength = readDiffusionGemmaPositiveInteger(
+    rawConfig?.canvas_length,
+    'config.canvas_length',
+    modelId
+  );
+  const maxDenoisingSteps = readDiffusionGemmaPositiveInteger(
+    generationConfig?.max_denoising_steps,
+    'generation_config.max_denoising_steps',
+    modelId
+  );
+  const maxNewTokens = readDiffusionGemmaPositiveInteger(
+    generationConfig?.max_new_tokens,
+    'generation_config.max_new_tokens',
+    modelId
+  );
+  const stabilityThreshold = readDiffusionGemmaPositiveInteger(
+    generationConfig?.stability_threshold,
+    'generation_config.stability_threshold',
+    modelId
+  );
+  const padTokenId = readDiffusionGemmaTokenId(
+    generationConfig?.pad_token_id ?? rawConfig?.pad_token_id,
+    'generation_config.pad_token_id',
+    modelId
+  );
+  const tMin = readDiffusionGemmaNonNegativeNumber(
+    generationConfig?.t_min,
+    'generation_config.t_min',
+    modelId
+  );
+  const tMax = readDiffusionGemmaNonNegativeNumber(
+    generationConfig?.t_max,
+    'generation_config.t_max',
+    modelId
+  );
+  if (tMax < tMin) {
+    throw new Error(`DiffusionGemma model "${modelId}" requires generation_config.t_max >= t_min.`);
+  }
+  return {
+    canvasLength,
+    maxDenoisingSteps,
+    maxNewTokens,
+    tMin,
+    tMax,
+    entropyBound: readDiffusionGemmaEntropyBound(generationConfig, modelId),
+    confidenceThreshold: readDiffusionGemmaNonNegativeNumber(
+      generationConfig?.confidence_threshold,
+      'generation_config.confidence_threshold',
+      modelId
+    ),
+    stabilityThreshold,
+    padTokenId,
+    eosTokenIds: readDiffusionGemmaEosTokenIds(rawConfig, generationConfig, modelId),
+    boiTokenId: readDiffusionGemmaNullableTokenId(rawConfig?.boi_token_id, 'config.boi_token_id', modelId),
+    eoiTokenId: readDiffusionGemmaNullableTokenId(rawConfig?.eoi_token_id, 'config.eoi_token_id', modelId),
+    imageTokenId: readDiffusionGemmaNullableTokenId(rawConfig?.image_token_id, 'config.image_token_id', modelId),
+    selfConditioning: true,
+    decoderCacheMode: 'encoder_kv_readonly_canvas_concat',
+    router: {
+      scaleHiddenStates: true,
+      normalizeTopK: true,
+      perExpertScale: true,
+    },
+  };
+}
+
+function applyDiffusionGemmaInferenceContract(inference, rawConfig, generationConfig, modelId, resolvedModelType) {
+  if (!resolveDiffusionGemmaConfig(rawConfig, resolvedModelType)) {
+    return inference;
+  }
+  if (inference?.diffusionGemma && typeof inference.diffusionGemma === 'object') {
+    return inference;
+  }
+  return {
+    ...inference,
+    diffusionGemma: resolveDiffusionGemmaInferenceContract(rawConfig, generationConfig, modelId),
+  };
 }
 
 
@@ -2067,6 +2280,13 @@ export function createManifest(
   if (!inference) {
     throw new Error('inference config is required — use a v1 conversion config');
   }
+  inference = applyDiffusionGemmaInferenceContract(
+    inference,
+    rawConfig,
+    generationConfig,
+    modelId,
+    resolvedModelType
+  );
 
   const embeddingOutput = inferEmbeddingOutputConfig(tensorLocations);
   const hasExplicitEmbeddingPostprocessor = Object.prototype.hasOwnProperty.call(
@@ -2106,7 +2326,8 @@ export function createManifest(
     throw new Error('Missing hashAlgorithm for manifest');
   }
 
-  const multimodalConfig = isDiffusion
+  const isTextOnlyArtifact = options.textOnly === true;
+  const multimodalConfig = isDiffusion || isTextOnlyArtifact
     ? { vision_config: null, audio_config: null }
     : resolveManifestMultimodalConfig(rawConfig, manifestPolicy);
   const manifestConfig = isDiffusion
@@ -2573,6 +2794,7 @@ export async function convertModel(model, io, options = {}) {
     modelType: options.modelType,
     quantization: effectiveManifestQuantization,
     quantizationInfo: effectiveQuantizationInfo,
+    moeConfig: converterConfig?.moeConfig ?? options.moeConfig ?? null,
     artifactIdentity,
     weightsRef: converterConfig?.manifest?.weightsRef ?? options.weightsRef ?? null,
     hashAlgorithm: converterConfig.manifest.hashAlgorithm,
@@ -2582,6 +2804,7 @@ export async function convertModel(model, io, options = {}) {
     convertedAt: converterConfig?.manifest?.conversion?.convertedAt ?? null,
     conversionInfo: converterConfig?.manifest?.conversion ?? null,
     manifestConfig: converterConfig?.manifest ?? null,
+    textOnly: converterConfig?.output?.textOnly === true,
   });
 
   // Write manifest

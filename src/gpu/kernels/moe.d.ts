@@ -16,6 +16,7 @@ export interface MoEOptions extends OutputBufferOptions {
   normalize?: boolean;
   maxTokensPerExpert?: number;
   weightsDtype?: 'f16' | 'f32';
+  perExpertScale?: GPUBuffer | null;
 }
 
 /** MoE gather result */

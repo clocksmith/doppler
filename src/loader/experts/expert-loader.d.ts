@@ -10,6 +10,7 @@
 
 import type { RDRRManifest } from '../../formats/rdrr/index.js';
 import type { ExpertCache } from './expert-cache.js';
+import type { TensorLocation } from '../loader-types.js';
 import type { ExpertWeights } from '../weights.js';
 import type { WeightBuffer } from '../../gpu/weight-buffer.js';
 import type { ShardLoadOptions } from '../loader-types.js';
@@ -38,6 +39,8 @@ export interface ShardCacheInterface {
 export interface ExpertLoaderContext {
   /** Model manifest */
   manifest: RDRRManifest | null;
+  /** Resolved tensor locations from manifest.tensors or tensors.json */
+  tensorLocations?: Map<string, TensorLocation>;
   /** Load a tensor by name */
   loadTensor: TensorLoader;
   /** Load a shard by index */
@@ -46,7 +49,7 @@ export interface ExpertLoaderContext {
   shardCache: ShardCacheInterface;
   /** Expert LRU cache */
   expertCache: ExpertCache | null;
-  /** Simple map for GPT-OSS packed experts */
+  /** Simple map for packed experts */
   experts: Map<string, ExpertWeights>;
   /** GPU buffers to track for cleanup */
   gpuBuffers: Set<GPUBuffer>;

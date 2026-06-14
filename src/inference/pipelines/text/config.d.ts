@@ -120,6 +120,7 @@ export interface ParsedSessionSettings {
 export type Manifest = RuntimeModelContract;
 
 export interface ParsedModelConfig {
+  modelType: string;
   numLayers: number;
   hiddenSize: number;
   intermediateSize: number;
@@ -138,7 +139,8 @@ export interface ParsedModelConfig {
   useMoE: boolean;
   numExperts: number;
   moeTopK: number;
-  expertFormat: 'mixtral' | 'gpt-oss' | null;
+  expertFormat: 'mixtral' | 'gpt-oss' | 'gemma4' | null;
+  moeExpertIntermediateSize: number;
   slidingWindow: number | null;
   ropeTheta: number;
   ropeLocalTheta: number | null;
@@ -170,6 +172,7 @@ export interface ParsedModelConfig {
   embeddingVocabSize: number | null;
   embeddingPostprocessor: ManifestEmbeddingPostprocessorSchema | null;
   hiddenActivation: ActivationType;
+  ffnBranchMode: 'auto' | 'dense' | 'moe' | 'dense_plus_moe';
   useDoubleWideMlp: boolean;
   swigluLimit: number | null;
   stopTokenIds: number[];
@@ -196,6 +199,7 @@ export interface ParsedModelConfig {
   chatTemplateEnabled: boolean;
   chatTemplateThinking: boolean | null;
   decodeStrategy: 'incremental' | 'replay_prefill';
+  diffusionGemma: ManifestInferenceSchema['diffusionGemma'];
   perLayerInputsSession: ExecutionV1PerLayerInputsSessionSchema;
   sessionSettings: ParsedSessionSettings;
   kernelPath?: KernelPathRef;
@@ -257,6 +261,7 @@ export interface AudioEncoderConfig {
 
 export function getStopTokenIds(manifest: Manifest): number[];
 export function resolveLayerIntermediateSize(config: ParsedModelConfig, layerIdx: number): number;
+export function assertSupportedManifestInference(manifest: Manifest): void;
 
 /**
  * Extended manifest with inference config for manifest-first parsing.

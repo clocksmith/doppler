@@ -73,6 +73,18 @@ export {
   recordSoftmax,
 } from './softmax.js';
 
+export {
+  runSoftEmbeddingSplitF16,
+} from './soft-embedding.js';
+
+export {
+  runDiffusionGemmaCanvasStats,
+} from './diffusion-gemma-sampling.js';
+export {
+  runGemma4RouteQ4MatmulF16A,
+  runScatterAddRoutesF16ExpertScale,
+} from './gemma4-route-expert.js';
+
 // KV Quantization
 export {
   runKVQuantize,

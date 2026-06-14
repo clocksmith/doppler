@@ -142,6 +142,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
@@ -319,6 +320,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
@@ -440,6 +442,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
@@ -821,6 +824,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
@@ -890,6 +894,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16",
@@ -1135,6 +1140,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16"
             ],
             "ruleChains": [],
@@ -2338,6 +2344,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
@@ -2373,6 +2380,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
@@ -2412,6 +2420,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
@@ -2490,6 +2499,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"
             ],
             "ruleChains": [],
@@ -2559,6 +2569,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
@@ -2599,6 +2610,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
@@ -2671,6 +2683,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
@@ -3646,6 +3659,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
@@ -4274,6 +4288,184 @@
         }
       }
     },
+    "soft_embedding": {
+      "description": "Soft embedding helpers for block-diffusion self-conditioning",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "softmax_rows",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "embedding_section",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "output",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          {
+            "name": "canvas_length",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "hidden_size",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "vocab_size",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "row_start",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "row_count",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "output_mode",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 28
+          }
+        ]
+      },
+      "variants": {
+        "split_f16": {
+          "wgsl": "soft_embedding_split_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            8,
+            8,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
+    "diffusion_gemma_sampling": {
+      "description": "Block-diffusion canvas sampling stats for DiffusionGemma",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "logits",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "argmax_tokens",
+          "type": "storage"
+        },
+        {
+          "index": 3,
+          "name": "entropies",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          {
+            "name": "vocab_size",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "canvas_length",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "pad_token_id",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "temperature",
+            "type": "f32",
+            "offset": 16
+          },
+          {
+            "name": "logit_softcap",
+            "type": "f32",
+            "offset": 20
+          },
+          {
+            "name": "_pad1",
+            "type": "f32",
+            "offset": 24
+          },
+          {
+            "name": "_pad2",
+            "type": "f32",
+            "offset": 28
+          }
+        ]
+      },
+      "variants": {
+        "entropy_stats": {
+          "wgsl": "diffusion_gemma_sampling.wgsl",
+          "entryPoint": "entropy_stats",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
     "rope": {
       "description": "Rotary position embeddings kernels",
       "baseBindings": [
@@ -4376,6 +4568,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
@@ -4703,6 +4896,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
@@ -5660,6 +5854,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
@@ -6081,6 +6276,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
@@ -6454,6 +6650,49 @@
             "wgslOnDisk": true
           }
         },
+        "dynamic_expert_scale": {
+          "wgsl": "scatter_add_dynamic_expert_scale.wgsl",
+          "entryPoint": "scatter_add_dynamic",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [],
+          "bindingsOverride": [
+            {
+              "index": 2,
+              "name": "routing_indices",
+              "type": "read-only-storage"
+            },
+            {
+              "index": 3,
+              "name": "routing_weights",
+              "type": "read-only-storage"
+            },
+            {
+              "index": 4,
+              "name": "token_offsets",
+              "type": "read-only-storage"
+            },
+            {
+              "index": 5,
+              "name": "expert_scales",
+              "type": "read-only-storage"
+            },
+            {
+              "index": 6,
+              "name": "output",
+              "type": "storage"
+            }
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
         "dynamic_f16": {
           "wgsl": "scatter_add_dynamic_f16.wgsl",
           "entryPoint": "scatter_add_dynamic",
@@ -6483,6 +6722,51 @@
             },
             {
               "index": 5,
+              "name": "output",
+              "type": "storage"
+            }
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
+        "dynamic_f16_expert_scale": {
+          "wgsl": "scatter_add_dynamic_f16_expert_scale.wgsl",
+          "entryPoint": "scatter_add_dynamic",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "bindingsOverride": [
+            {
+              "index": 2,
+              "name": "routing_indices",
+              "type": "read-only-storage"
+            },
+            {
+              "index": 3,
+              "name": "routing_weights",
+              "type": "read-only-storage"
+            },
+            {
+              "index": 4,
+              "name": "token_offsets",
+              "type": "read-only-storage"
+            },
+            {
+              "index": 5,
+              "name": "expert_scales",
+              "type": "read-only-storage"
+            },
+            {
+              "index": 6,
               "name": "output",
               "type": "storage"
             }
@@ -6534,6 +6818,51 @@
             "wgslOnDisk": true
           }
         },
+        "dynamic_f16_w16_expert_scale": {
+          "wgsl": "scatter_add_dynamic_f16_weights_expert_scale.wgsl",
+          "entryPoint": "scatter_add_dynamic",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "bindingsOverride": [
+            {
+              "index": 2,
+              "name": "routing_indices",
+              "type": "read-only-storage"
+            },
+            {
+              "index": 3,
+              "name": "routing_weights",
+              "type": "read-only-storage"
+            },
+            {
+              "index": 4,
+              "name": "token_offsets",
+              "type": "read-only-storage"
+            },
+            {
+              "index": 5,
+              "name": "expert_scales",
+              "type": "read-only-storage"
+            },
+            {
+              "index": 6,
+              "name": "output",
+              "type": "storage"
+            }
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
         "accumulate": {
           "wgsl": "scatter_add.wgsl",
           "entryPoint": "scatter_add_accumulate",
@@ -6543,6 +6872,186 @@
             1
           ],
           "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
+    "gemma4_route_q4_matmul": {
+      "description": "Route-wise Gemma4 packed Q4_K expert matmul kernels",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "input",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "route_indices",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "weights",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "output",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          {
+            "name": "num_routes",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "top_k",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "N",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "K",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "num_blocks_per_row",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "input_mode",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "alpha",
+            "type": "f32",
+            "offset": 24
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 28
+          }
+        ]
+      },
+      "variants": {
+        "f16a": {
+          "wgsl": "gemma4_route_q4_matmul_f16a.wgsl",
+          "entryPoint": "route_matmul_f16a",
+          "workgroup": [
+            64,
+            4,
+            1
+          ],
+          "requires": [
+            "shader-f16",
+            "subgroups"
+          ],
+          "wgslOverrides": {
+            "TILE_M": 4,
+            "THREADS_PER_COL": 64
+          },
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
+    "scatter_add_routes": {
+      "description": "Route-wise MoE output combination kernels",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "route_outputs",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "routing_indices",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "routing_weights",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "expert_scales",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 5,
+          "name": "output",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          {
+            "name": "num_tokens",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "hidden_size",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "top_k",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 12
+          }
+        ]
+      },
+      "variants": {
+        "f16_w16_expert_scale": {
+          "wgsl": "scatter_add_routes_f16_weights_expert_scale.wgsl",
+          "entryPoint": "scatter_add_routes",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -7015,8 +7524,10 @@
             "shader-f16"
           ],
           "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -7553,6 +8064,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",

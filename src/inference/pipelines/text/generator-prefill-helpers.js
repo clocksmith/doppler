@@ -16,6 +16,50 @@ function isStructuredChatRequest(prompt) {
     && Array.isArray(prompt.messages);
 }
 
+function normalizePrefixEmbeddingOverrideExecutionOptions(options) {
+  if (
+    options != null
+    && typeof options === 'object'
+    && !Array.isArray(options)
+    && (
+      Object.prototype.hasOwnProperty.call(options, 'executionPolicies')
+      || Object.prototype.hasOwnProperty.call(options, 'transitionDeclaredBy')
+    )
+  ) {
+    return {
+      executionPolicies: options.executionPolicies ?? null,
+      transitionDeclaredBy: options.transitionDeclaredBy ?? null,
+    };
+  }
+  return {
+    executionPolicies: options ?? null,
+    transitionDeclaredBy: null,
+  };
+}
+
+function normalizeExecutionDtype(value) {
+  const normalized = typeof value === 'string' ? value.trim().toLowerCase() : '';
+  return normalized === 'f16' || normalized === 'f32' ? normalized : null;
+}
+
+export function resolvePrefixEmbeddingOverrideTransitionDeclaredBy(executionV1State) {
+  const steps = executionV1State?.resolvedSteps?.all;
+  if (!Array.isArray(steps)) {
+    return null;
+  }
+  for (const step of steps) {
+    if (step?.op !== 'cast' || step?.section !== 'preLayer') {
+      continue;
+    }
+    const fromDtype = normalizeExecutionDtype(step.fromDtype ?? step.precision?.inputDtype);
+    const toDtype = normalizeExecutionDtype(step.toDtype ?? step.precision?.outputDtype);
+    if (fromDtype === 'f32' && toDtype === 'f16') {
+      return 'explicit_cast_step';
+    }
+  }
+  return null;
+}
+
 export function resolvePromptInput(state, prompt, useChatTemplate, contextLabel) {
   const chatOptions = state.modelConfig.chatTemplateThinking === true ? { thinking: true } : undefined;
   if (typeof prompt === 'string') {
@@ -204,10 +248,14 @@ export function resolvePrefillMultimodalBidirectionalSpan(inputIds, bidirectiona
   return { offset, length };
 }
 
-export async function applyPrefixEmbeddingOverride(baseTensor, override, hiddenSize, contextLabel, executionPolicies = null) {
+export async function applyPrefixEmbeddingOverride(baseTensor, override, hiddenSize, contextLabel, executionOptions = null) {
   if (!override) {
     return baseTensor;
   }
+  const {
+    executionPolicies,
+    transitionDeclaredBy,
+  } = normalizePrefixEmbeddingOverrideExecutionOptions(executionOptions);
   if (baseTensor.dtype !== 'f32' && baseTensor.dtype !== 'f16') {
     throw new Error(
       `[Pipeline] ${contextLabel}: embedding overrides require f32 or f16 activations, got ${baseTensor.dtype}.`
@@ -249,6 +297,7 @@ export async function applyPrefixEmbeddingOverride(baseTensor, override, hiddenS
         toDtype: 'f16',
         op: 'prefill_embedding_override',
         detail: 'Prefix embedding override would pack GPU-provided f32 features into an f16 activation buffer.',
+        transitionDeclaredBy,
       });
       const castedOverride = await castF32ToF16(overrideTensor);
       try {
@@ -270,6 +319,7 @@ export async function applyPrefixEmbeddingOverride(baseTensor, override, hiddenS
         toDtype: 'f16',
         op: 'prefill_embedding_override',
         detail: 'Prefix embedding override would pack CPU-provided f32 features into an f16 activation buffer.',
+        transitionDeclaredBy,
       });
       const packedOverride = f32ToF16Array(override.embeddings);
       device.queue.submit([encoder.finish()]);

@@ -24,6 +24,11 @@ const FINAL_NORM_ROLE = 'norm';
 const LM_HEAD_ROLE = 'lm_head';
 const EMBEDDING_MODEL_TYPE = 'embedding';
 const DENSE_TIED_LM_HEAD_DTYPES = new Set(['F16', 'F32']);
+const DIFFUSION_GEMMA_SELF_CONDITIONING_PREFIXES = [
+  'model.decoder.self_conditioning',
+  'decoder.self_conditioning',
+  'self_conditioning',
+];
 
 function isGpuBufferInstance(value) {
   return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
@@ -139,6 +144,8 @@ function isLikelyFinalNormName(name) {
 
   return (
     lower === 'norm.weight' ||
+    lower === 'model.decoder.norm.weight' ||
+    lower === 'model.encoder.language_model.norm.weight' ||
     lower.includes('model.norm.weight') ||
     lower.includes('language_model.norm.weight') ||
     lower.includes('model.language_model.norm.weight') ||
@@ -148,6 +155,67 @@ function isLikelyFinalNormName(name) {
     lower.includes('final_layer_norm.weight') ||
     lower.includes('norm_f.weight')
   );
+}
+
+async function loadFirstExistingTensor(ctx, prefixes, suffixes, options = {}) {
+  for (const prefix of prefixes) {
+    for (const suffix of suffixes) {
+      const tensor = await ctx.loadTensor(`${prefix}.${suffix}`, options.toGPU !== false, true);
+      if (tensor) return tensor;
+    }
+  }
+  return null;
+}
+
+async function loadDiffusionGemmaSelfConditioning(ctx) {
+  const preNorm = await loadFirstExistingTensor(
+    ctx,
+    DIFFUSION_GEMMA_SELF_CONDITIONING_PREFIXES,
+    ['pre_norm.weight']
+  );
+  const gateProj = await loadFirstExistingTensor(
+    ctx,
+    DIFFUSION_GEMMA_SELF_CONDITIONING_PREFIXES,
+    ['gate_proj.weight']
+  );
+  const upProj = await loadFirstExistingTensor(
+    ctx,
+    DIFFUSION_GEMMA_SELF_CONDITIONING_PREFIXES,
+    ['up_proj.weight']
+  );
+  const downProj = await loadFirstExistingTensor(
+    ctx,
+    DIFFUSION_GEMMA_SELF_CONDITIONING_PREFIXES,
+    ['down_proj.weight']
+  );
+  const postNorm = await loadFirstExistingTensor(
+    ctx,
+    DIFFUSION_GEMMA_SELF_CONDITIONING_PREFIXES,
+    ['post_norm.weight']
+  );
+
+  const anyPresent = preNorm || gateProj || upProj || downProj || postNorm;
+  if (!anyPresent) {
+    return null;
+  }
+  const missing = [];
+  if (!preNorm) missing.push('pre_norm.weight');
+  if (!gateProj) missing.push('gate_proj.weight');
+  if (!upProj) missing.push('up_proj.weight');
+  if (!downProj) missing.push('down_proj.weight');
+  if (missing.length > 0) {
+    throw new Error(
+      `[Loader] DiffusionGemma self-conditioning weights are incomplete. Missing: ${missing.join(', ')}.`
+    );
+  }
+
+  return {
+    preNorm,
+    postNorm,
+    gateProj,
+    upProj,
+    downProj,
+  };
 }
 
 // ============================================================================
@@ -167,11 +235,13 @@ export async function loadFinalWeights(ctx) {
   // Load LM head
   const lmHead = await loadLmHead(ctx);
   const embeddingPostprocessor = await loadEmbeddingPostprocessor(ctx);
+  const diffusionGemmaSelfConditioning = await loadDiffusionGemmaSelfConditioning(ctx);
 
   return {
     finalNorm,
     lmHead,
     embeddingPostprocessor,
+    diffusionGemmaSelfConditioning,
     normOffsetDebugLogged,
   };
 }

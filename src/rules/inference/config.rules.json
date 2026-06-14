@@ -9,6 +9,7 @@
     { "match": {}, "value": "debug-sync" }
   ],
   "pipelineModules": [
+    { "match": { "modelTypeLower": { "in": ["diffusion_gemma"] } }, "value": ["./diffusion-gemma/pipeline.js"] },
     { "match": { "modelTypeLower": { "in": ["diffusion"] } }, "value": ["./diffusion/pipeline.js"] },
     { "match": { "modelTypeLower": { "in": ["energy"] } }, "value": ["./energy/pipeline.js"] },
     {

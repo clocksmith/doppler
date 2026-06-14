@@ -90,6 +90,7 @@ export const DEFAULT_CONVERTER_CONFIG = {
   manifest: DEFAULT_CONVERTER_MANIFEST_CONFIG,
   inference: DEFAULT_CONVERTER_INFERENCE_CONFIG,
   output: DEFAULT_CONVERTER_OUTPUT_CONFIG,
+  moeConfig: null,
 };
 
 export function createConverterConfig(overrides) {
@@ -131,6 +132,9 @@ export function createConverterConfig(overrides) {
     output: overrides.output
       ? { ...DEFAULT_CONVERTER_OUTPUT_CONFIG, ...overrides.output }
       : { ...DEFAULT_CONVERTER_OUTPUT_CONFIG },
+    moeConfig: Object.prototype.hasOwnProperty.call(overrides, 'moeConfig')
+      ? (overrides.moeConfig ?? null)
+      : null,
   };
   // V1 conversion configs place execution, session, and modelType at the top level.
   // Pass them through so isV1Config() can detect the v1 format and resolveConversionPlanV1

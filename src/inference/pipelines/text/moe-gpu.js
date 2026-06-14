@@ -1,24 +1,31 @@
 import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
-import { acquireBuffer, releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
+import { acquireBuffer, BufferUsage, releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { castF16ToF32, castF32ToF16 } from '../../../gpu/kernels/cast.js';
 import {
   runMatmul,
   runSiLU,
+  runSiLURowSplit,
   runGeLU,
   dequantizeMXFP4Expert,
   runBiasAdd,
+  runRMSNorm,
+  runScale,
   runSoftmaxTopK,
   runMoEGather,
   runMoEBuildTokenOffsets,
   runScatterAddDynamic,
   runSwiGLURowsplitBias,
+  runGemma4RouteQ4MatmulF16A,
+  runScatterAddRoutesF16ExpertScale,
 } from '../../../gpu/kernel-selector.js';
+import { getBuffer, getWeightDtype, isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { trace, isTraceEnabled } from '../../../debug/index.js';
 import { f16ToF32Array } from '../../kv-cache/types.js';
 import { resolveMaxTokensPerExpert, getCachedDequant, setCachedDequant, getDequantCacheStats } from './moe-cache.js';
 import { ensureExpertLoaded } from './moe-helpers.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import { getRuntimeConfig } from '../../../config/runtime.js';
 import {
   validateMoeShape,
   resolveMoeVendorProfile,
@@ -26,6 +33,100 @@ import {
   resolveMixtralKernelPathProfile,
 } from './moe-shape-validator.js';
 import { assertImplicitDtypeTransitionAllowed } from './dtype-contract.js';
+import { QK_K, Q4K_BLOCK_BYTES } from '../../../config/schema/index.js';
+
+function resolveMoEActiveExpertSelection() {
+  const selection = getRuntimeConfig()?.inference?.moe?.routing?.activeExpertSelection;
+  if (selection === 'all' || selection === 'topk-readback' || selection === 'topk-route') {
+    return selection;
+  }
+  throw new Error(
+    '[MoE] runtime.inference.moe.routing.activeExpertSelection must be ' +
+    `"all", "topk-readback", or "topk-route", got ${String(selection)}.`
+  );
+}
+
+async function resolveActiveExpertSchedule(indicesBuffer, numTokens, numExperts, topK, maxTokensPerExpert) {
+  const selection = resolveMoEActiveExpertSelection();
+  if (selection === 'all') {
+    return {
+      selection,
+      activeExperts: Array.from({ length: numExperts }, (_, expertIdx) => expertIdx),
+      tokenCounts: null,
+    };
+  }
+
+  const indicesBytes = numTokens * topK * 4;
+  const indicesData = await readBuffer(indicesBuffer, indicesBytes);
+  return buildActiveExpertScheduleFromIndices(
+    new Uint32Array(indicesData),
+    numExperts,
+    maxTokensPerExpert,
+    selection
+  );
+}
+
+export function buildActiveExpertScheduleFromIndices(
+  indices,
+  numExperts,
+  maxTokensPerExpert,
+  selection = 'topk-readback'
+) {
+  const tokenCounts = new Uint32Array(numExperts);
+
+  for (let i = 0; i < indices.length; i++) {
+    const expertIdx = indices[i];
+    if (expertIdx >= numExperts) {
+      throw new Error(
+        `[MoE] Top-K routing produced expert index ${expertIdx} outside numExperts=${numExperts}.`
+      );
+    }
+    tokenCounts[expertIdx] += 1;
+  }
+
+  const activeExperts = [];
+  for (let expertIdx = 0; expertIdx < numExperts; expertIdx++) {
+    const count = tokenCounts[expertIdx];
+    if (count === 0) {
+      continue;
+    }
+    if (count > maxTokensPerExpert) {
+      throw new Error(
+        `[MoE] Expert ${expertIdx} received ${count} tokens but maxTokensPerExpert=${maxTokensPerExpert}. ` +
+        'Increase runtime.inference.moe.routing.maxTokensPerExpert or its headroom/cap settings.'
+      );
+    }
+    activeExperts.push(expertIdx);
+  }
+
+  return { selection, activeExperts, tokenCounts };
+}
+
+function resolvePerExpertScaleBuffer(device, value) {
+  if (value == null) {
+    return { buffer: null, ownedBuffer: null };
+  }
+  if (value instanceof Float32Array) {
+    const buffer = acquireBuffer(value.byteLength, BufferUsage.STORAGE_READ, 'moe_per_expert_scale_f32');
+    try {
+      device.queue.writeBuffer(buffer, 0, value);
+    } catch (error) {
+      releaseBuffer(buffer);
+      throw error;
+    }
+    return { buffer, ownedBuffer: buffer };
+  }
+
+  const dtype = getWeightDtype(value);
+  if (dtype != null && dtype !== 'f32') {
+    throw new Error(`[MoE] per-expert router scale must be f32 for scatter-add, got ${dtype}.`);
+  }
+  const buffer = getBuffer(value);
+  if (!isGpuBufferInstance(buffer)) {
+    throw new Error('[MoE] per-expert router scale must resolve to a GPUBuffer.');
+  }
+  return { buffer, ownedBuffer: null };
+}
 
 export async function moeFeedForwardGPU(
   inputBuffer,
@@ -40,8 +141,11 @@ export async function moeFeedForwardGPU(
   const device = getDevice();
   if (!device) throw new Error('No GPU device for MoE');
 
-  const { hiddenSize, numExperts, intermediateSize, moeTopK, hiddenActivation } = config;
+  const { hiddenSize, numExperts, moeTopK, hiddenActivation } = config;
   const expertFormat = config.expertFormat;
+  const intermediateSize = expertFormat === 'gemma4'
+    ? config.expertIntermediateSize
+    : config.intermediateSize;
   const swigluLimit = config.swigluLimit;
   const kernelPath = config.kernelPath ?? null;
   if (!expertFormat) {
@@ -49,6 +153,9 @@ export async function moeFeedForwardGPU(
   }
   if (swigluLimit === undefined) {
     throw new Error('MoE swigluLimit must be explicitly set (null or number).');
+  }
+  if (!Number.isFinite(intermediateSize) || intermediateSize <= 0) {
+    throw new Error(`[MoE] Invalid expert intermediate size for ${expertFormat}: ${String(intermediateSize)}.`);
   }
   const topK = moeTopK ?? moeRouter.topK;
   if (topK == null) {
@@ -86,6 +193,12 @@ export async function moeFeedForwardGPU(
   };
 
   const inputTensor = createTensor(inputBuffer, activationDtype, [numTokens, hiddenSize], 'moe_input');
+  const routerSourceTensor = createTensor(
+    config.routerInputBuffer ?? inputBuffer,
+    config.routerInputDtype ?? activationDtype,
+    [numTokens, hiddenSize],
+    'moe_router_input'
+  );
   let logitsBuffer = null;
   let indicesBuffer = null;
   let weightsBuffer = null;
@@ -95,18 +208,65 @@ export async function moeFeedForwardGPU(
   let expertOutputs = null;
   let tokenOffsets = null;
   let outputTensor = null;
+  let routerNormTensor = null;
+  let routerScaledTensor = null;
+  let ownedPerExpertScaleBuffer = null;
+  let activeExpertSchedule = null;
 
   const layerRouter = layerRouterWeights?.get(layerIdx) || null;
   if (layerRouter) {
-    moeRouter.loadWeights(layerRouter.weight, layerRouter.bias || null);
+    moeRouter.loadWeights(
+      layerRouter.weight,
+      layerRouter.bias || null,
+      layerRouter.scale || null,
+      layerRouter.perExpertScale || null
+    );
   }
 
   try {
+    const needsGemmaRouterScale = modelType === 'diffusion_gemma'
+      || layerRouter?.scale != null
+      || layerRouter?.perExpertScale != null;
+    let routerInputTensor = routerSourceTensor;
+    if (needsGemmaRouterScale) {
+      if (!layerRouter?.scale) {
+        throw new Error(`[MoE] DiffusionGemma router scale missing for layer ${layerIdx}.`);
+      }
+      if (!layerRouter?.perExpertScale) {
+        throw new Error(`[MoE] DiffusionGemma per-expert router scale missing for layer ${layerIdx}.`);
+      }
+      if (!Number.isFinite(config.rmsNormEps) || config.rmsNormEps <= 0) {
+        throw new Error(`[MoE] DiffusionGemma router RMSNorm eps is invalid: ${String(config.rmsNormEps)}.`);
+      }
+      routerNormTensor = await runRMSNorm(
+        inputTensor,
+        layerRouter.scale,
+        config.rmsNormEps,
+        {
+          batchSize: numTokens,
+          hiddenSize,
+          rmsNormWeightOffset: false,
+        }
+      );
+      routerScaledTensor = await runScale(
+        routerNormTensor,
+        1 / Math.sqrt(hiddenSize),
+        { count: numTokens * hiddenSize }
+      );
+      releaseBuffer(routerNormTensor.buffer);
+      routerNormTensor = null;
+      routerInputTensor = routerScaledTensor;
+    }
+
     let stepStart = perfMark();
-    logitsBuffer = await moeRouter.computeRouterLogitsGPU(inputTensor.buffer, numTokens, null, {
-      inputDtype: activationDtype,
+    logitsBuffer = await moeRouter.computeRouterLogitsGPU(routerInputTensor.buffer, numTokens, null, {
+      inputDtype: routerInputTensor.dtype,
       outputDtype: activationDtype,
     });
+    if (routerScaledTensor) {
+      releaseBuffer(routerScaledTensor.buffer);
+      routerScaledTensor = null;
+    }
   const logitsDtype = moeRouter.lastLogitsDtype ?? activationDtype;
   perfLog(`MoE L${layerIdx} router`, stepStart, { numTokens, logitsDtype });
 
@@ -227,6 +387,40 @@ export async function moeFeedForwardGPU(
     releaseBuffer(logitsBuffer);
     logitsBuffer = null;
 
+  const activeExpertSelection = resolveMoEActiveExpertSelection();
+  if (activeExpertSelection === 'topk-route') {
+    if (expertFormat !== 'gemma4') {
+      throw new Error(`[MoE] topk-route active expert selection requires gemma4 expert format, got ${expertFormat}.`);
+    }
+    stepStart = perfMark();
+    await ensureExpertLoaded(layerIdx, 0, expertWeights, expertLoader);
+    const routeWeights = expertWeights.get(`layer_${layerIdx}_expert_0`);
+    perfLog(`MoE L${layerIdx} route_weight_load`, stepStart, { expertFormat, topK });
+    stepStart = perfMark();
+    outputTensor = await runGemma4RouteExperts(
+      inputTensor,
+      indicesBuffer,
+      weightsBuffer,
+      layerRouter,
+      routeWeights,
+      layerIdx,
+      numTokens,
+      topK,
+      hiddenSize,
+      intermediateSize,
+      activationDtype,
+      swigluLimit
+    );
+    perfLog(`MoE L${layerIdx} route_experts`, stepStart, {
+      numTokens,
+      topK,
+      numRoutes: numTokens * topK,
+      hiddenSize,
+      intermediateSize,
+    });
+    return outputTensor.buffer;
+  }
+
   const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
   const bytesPerToken = hiddenSize * bytesPerElement;
   let maxTokensPerExpert = resolveMaxTokensPerExpert(numTokens, numExperts, topK, hiddenSize, activationDtype);
@@ -236,6 +430,21 @@ export async function moeFeedForwardGPU(
       Math.round(maxTokensPerExpert * vendorProfile.maxTokensPerExpertScale)
     );
   }
+
+    stepStart = perfMark();
+    activeExpertSchedule = await resolveActiveExpertSchedule(
+      indicesBuffer,
+      numTokens,
+      numExperts,
+      topK,
+      maxTokensPerExpert
+    );
+  perfLog(`MoE L${layerIdx} active_experts`, stepStart, {
+    selection: activeExpertSchedule.selection,
+    activeExperts: activeExpertSchedule.activeExperts.length,
+    numExperts,
+    maxTokensPerExpert,
+  });
 
     stepStart = perfMark();
     ({ gathered, tokenCounts, tokenMap } = await runMoEGather(
@@ -254,10 +463,6 @@ export async function moeFeedForwardGPU(
       undefined,
       'moe_expert_outputs_gathered'
     );
-
-  const zeroEncoder = device.createCommandEncoder({ label: 'zero_moe_expert_outputs' });
-  zeroEncoder.clearBuffer(expertOutputs, 0, numExperts * maxTokensPerExpert * hiddenSize * bytesPerElement);
-  device.queue.submit([zeroEncoder.finish()]);
 
     stepStart = perfMark();
     tokenOffsets = await runMoEBuildTokenOffsets(
@@ -279,11 +484,13 @@ export async function moeFeedForwardGPU(
   const expertStrideBytes = maxTokensPerExpert * bytesPerToken;
   const rowsPerExpert = maxTokensPerExpert;
 
-  // GPU-first execution path: avoid CPU readback of tokenCounts for scheduling.
-  // Each expert executes with a fixed row budget (maxTokensPerExpert); gathered
-  // unused rows are zero-filled and never consumed by scatter_add_dynamic.
-  for (let expertIdx = 0; expertIdx < numExperts; expertIdx++) {
-    const count = rowsPerExpert;
+  const scheduledExperts = activeExpertSchedule?.activeExperts ?? [];
+  const scheduledTokenCounts = activeExpertSchedule?.tokenCounts ?? null;
+  for (const expertIdx of scheduledExperts) {
+    const count = scheduledTokenCounts ? scheduledTokenCounts[expertIdx] : rowsPerExpert;
+    if (count <= 0) {
+      continue;
+    }
 
     stepStart = perfMark();
     await ensureExpertLoaded(layerIdx, expertIdx, expertWeights, expertLoader);
@@ -328,6 +535,22 @@ export async function moeFeedForwardGPU(
         vendorProfile,
         gptOssKernelPathProfile
       );
+    } else if (expertFormat === 'gemma4' && weights.gateUp && weights.down) {
+      await runGemma4Expert(
+        gathered,
+        expertOutputs,
+        weights,
+        count,
+        inputOffset,
+        outputOffset,
+        hiddenSize,
+        intermediateSize,
+        activationDtype,
+        swigluLimit,
+        kernelPath
+      );
+    } else if (expertFormat === 'gemma4') {
+      throw new Error(`[MoE] Missing Gemma-style packed weights for ${expertKey}`);
     } else if (expertFormat === 'mixtral' && weights.gate && weights.up && weights.down) {
       await runMixtralExpert(
         gathered,
@@ -355,6 +578,8 @@ export async function moeFeedForwardGPU(
       [numExperts, maxTokensPerExpert, hiddenSize],
       'moe_expert_outputs'
     );
+    const perExpertScale = resolvePerExpertScaleBuffer(device, layerRouter?.perExpertScale || null);
+    ownedPerExpertScaleBuffer = perExpertScale.ownedBuffer;
     stepStart = perfMark();
     outputTensor = await runScatterAddDynamic(
       expertOutputsTensor,
@@ -364,7 +589,10 @@ export async function moeFeedForwardGPU(
       numTokens,
       hiddenSize,
       topK,
-      { weightsDtype: activationDtype }
+      {
+        weightsDtype: activationDtype,
+        perExpertScale: perExpertScale.buffer,
+      }
     );
   perfLog(`MoE L${layerIdx} scatter`, stepStart, { numTokens, hiddenSize });
 
@@ -386,7 +614,9 @@ export async function moeFeedForwardGPU(
       trace.perf(`MoE L${layerIdx} done`, {
         numTokens,
         topK,
-        executedExperts: numExperts,
+        executedExperts: scheduledExperts.length,
+        activeExperts: scheduledExperts.length,
+        activeExpertSelection: activeExpertSchedule?.selection ?? null,
         rowsPerExpert,
         maxTokensPerExpert,
         dequantCacheHits: cacheStats.hits,
@@ -400,6 +630,8 @@ export async function moeFeedForwardGPU(
     return outputTensor.buffer;
   } finally {
     if (logitsBuffer) releaseBuffer(logitsBuffer);
+    if (routerNormTensor?.buffer) releaseBuffer(routerNormTensor.buffer);
+    if (routerScaledTensor?.buffer) releaseBuffer(routerScaledTensor.buffer);
     if (tokenCounts) releaseBuffer(tokenCounts);
     if (gathered?.buffer) releaseBuffer(gathered.buffer);
     if (tokenMap) releaseBuffer(tokenMap);
@@ -407,12 +639,125 @@ export async function moeFeedForwardGPU(
     if (tokenOffsets) releaseBuffer(tokenOffsets);
     if (indicesBuffer) releaseBuffer(indicesBuffer);
     if (weightsBuffer) releaseBuffer(weightsBuffer);
+    if (ownedPerExpertScaleBuffer) releaseBuffer(ownedPerExpertScaleBuffer);
   }
 }
 
 function inferBufferDtype(buffer, expectedElements) {
+  if (isWeightBuffer(buffer)) {
+    return getWeightDtype(buffer);
+  }
+  const dtype = getWeightDtype(buffer);
+  if (dtype) return dtype;
   const bytesPerElement = Math.round(buffer.size / expectedElements);
   return selectRuleValue('inference', 'dtype', 'f16OrF32FromBytes', { bytesPerElement });
+}
+
+function alignTo4(value) {
+  return Math.ceil(value / 4) * 4;
+}
+
+function resolveMatrixStorageStrideBytes(buffer, rows, cols, label) {
+  const dtype = inferBufferDtype(buffer, rows * cols, label);
+  if (dtype === 'q4k') {
+    return alignTo4(rows * Math.ceil(cols / QK_K) * Q4K_BLOCK_BYTES);
+  }
+  const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
+  return alignTo4(rows * cols * bytesPerElement);
+}
+
+async function runGemma4RouteExperts(
+  inputTensor,
+  indicesBuffer,
+  weightsBuffer,
+  layerRouter,
+  weights,
+  layerIdx,
+  numTokens,
+  topK,
+  hiddenSize,
+  intermediateSize,
+  activationDtype,
+  swigluLimit
+) {
+  if (activationDtype !== 'f16') {
+    throw new Error(`[MoE] topk-route Gemma4 expert path requires f16 activations, got ${activationDtype}.`);
+  }
+  if (!weights?.gateUp || !weights?.down || weights.expertFormat !== 'gemma4') {
+    throw new Error(`[MoE] topk-route Gemma4 expert path missing packed weights for layer ${layerIdx}.`);
+  }
+  if (!layerRouter?.perExpertScale) {
+    throw new Error(`[MoE] topk-route Gemma4 expert path requires per-expert router scale for layer ${layerIdx}.`);
+  }
+
+  const device = getDevice();
+  const numRoutes = numTokens * topK;
+  const gateUpOutDim = intermediateSize * 2;
+  let gateUpOut = null;
+  let activated = null;
+  let routeDown = null;
+  let ownedPerExpertScaleBuffer = null;
+
+  try {
+    gateUpOut = await runGemma4RouteQ4MatmulF16A(
+      inputTensor,
+      indicesBuffer,
+      weights.gateUp,
+      {
+        numRoutes,
+        topK,
+        N: gateUpOutDim,
+        K: hiddenSize,
+        inputMode: 'token',
+        label: `moe_l${layerIdx}_route_gate_up`,
+      }
+    );
+    activated = await runSiLURowSplit(gateUpOut, {
+      numTokens: numRoutes,
+      dim: intermediateSize,
+      activation: 'gelu',
+      swigluLimit,
+    });
+    releaseBuffer(gateUpOut.buffer);
+    gateUpOut = null;
+
+    routeDown = await runGemma4RouteQ4MatmulF16A(
+      activated,
+      indicesBuffer,
+      weights.down,
+      {
+        numRoutes,
+        topK,
+        N: hiddenSize,
+        K: intermediateSize,
+        inputMode: 'route',
+        label: `moe_l${layerIdx}_route_down`,
+      }
+    );
+    releaseBuffer(activated.buffer);
+    activated = null;
+
+    const perExpertScale = resolvePerExpertScaleBuffer(device, layerRouter.perExpertScale);
+    ownedPerExpertScaleBuffer = perExpertScale.ownedBuffer;
+    const outputTensor = await runScatterAddRoutesF16ExpertScale(
+      routeDown,
+      indicesBuffer,
+      weightsBuffer,
+      perExpertScale.buffer,
+      numTokens,
+      hiddenSize,
+      topK,
+      { label: `moe_l${layerIdx}_route_scatter` }
+    );
+    releaseBuffer(routeDown.buffer);
+    routeDown = null;
+    return outputTensor;
+  } finally {
+    if (gateUpOut?.buffer) releaseBuffer(gateUpOut.buffer);
+    if (activated?.buffer) releaseBuffer(activated.buffer);
+    if (routeDown?.buffer) releaseBuffer(routeDown.buffer);
+    if (ownedPerExpertScaleBuffer) releaseBuffer(ownedPerExpertScaleBuffer);
+  }
 }
 
 async function runGptOssExpert(
@@ -585,6 +930,90 @@ async function runGptOssExpert(
       biasOffset: downBiasOffset,
     });
   }
+}
+
+async function runGemma4Expert(
+  gathered,
+  expertOutputs,
+  weights,
+  count,
+  inputOffset,
+  outputOffset,
+  hiddenSize,
+  intermediateSize,
+  activationDtype,
+  swigluLimit,
+  kernelPath
+) {
+  const numExperts = weights.numExperts;
+  const expertIdx = weights.expertIdx;
+  if (!Number.isFinite(numExperts) || numExperts <= 0) {
+    throw new Error(`[MoE] Gemma-style expert ${expertIdx} missing numExperts.`);
+  }
+  if (!Number.isFinite(expertIdx) || expertIdx < 0) {
+    throw new Error('[MoE] Gemma-style expert missing expertIdx.');
+  }
+  if (expertIdx >= numExperts) {
+    throw new Error(`[MoE] Gemma-style expert index ${expertIdx} out of range for ${numExperts} experts.`);
+  }
+
+  const gateUpOutDim = intermediateSize * 2;
+  const gateUpStrideBytes = resolveMatrixStorageStrideBytes(
+    weights.gateUp,
+    gateUpOutDim,
+    hiddenSize,
+    'Gemma gate_up_proj'
+  );
+  const gateUpOffset = expertIdx * gateUpStrideBytes;
+  const downStrideBytes = resolveMatrixStorageStrideBytes(
+    weights.down,
+    hiddenSize,
+    intermediateSize,
+    'Gemma down_proj'
+  );
+  const downOffset = expertIdx * downStrideBytes;
+
+  const gateUpOut = await runMatmul(
+    gathered,
+    weights.gateUp,
+    count,
+    gateUpOutDim,
+    hiddenSize,
+    {
+      transposeB: true,
+      aOffset: inputOffset,
+      bOffset: gateUpOffset,
+      outputDtype: activationDtype,
+      role: 'moe_gate_up',
+      kernelPath,
+    }
+  );
+
+  const activated = await runSiLURowSplit(gateUpOut, {
+    numTokens: count,
+    dim: intermediateSize,
+    activation: 'gelu',
+    swigluLimit,
+  });
+  releaseBuffer(gateUpOut.buffer);
+
+  await runMatmul(
+    activated,
+    weights.down,
+    count,
+    hiddenSize,
+    intermediateSize,
+    {
+      transposeB: true,
+      bOffset: downOffset,
+      outputBuffer: expertOutputs,
+      cOffset: outputOffset,
+      outputDtype: activationDtype,
+      role: 'moe_down',
+      kernelPath,
+    }
+  );
+  releaseBuffer(activated.buffer);
 }
 
 async function runMixtralExpert(

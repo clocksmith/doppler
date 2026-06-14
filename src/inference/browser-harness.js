@@ -732,7 +732,7 @@ async function runBenchSuite(options = {}) {
     };
   }
 
-  if (workloadType === 'diffusion') {
+  if (workloadType === 'diffusion' || workloadType === 'diffusion_gemma') {
     const diffusionBench = await runDiffusionSuite({
       ...options,
       command: 'bench',
@@ -759,7 +759,7 @@ async function runBenchSuite(options = {}) {
       results: benchResults,
       metrics: {
         ...(diffusionBench.metrics || {}),
-        workloadType: 'diffusion',
+        workloadType,
       },
     };
   }

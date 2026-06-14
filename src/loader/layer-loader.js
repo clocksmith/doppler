@@ -22,6 +22,8 @@ import { dequantizeQ4KM, dequantizeQ4KMRowWise } from '../converter/quantizer.js
 
 
 const LAYER_PREFIXES = (layerIdx) => [
+  `model.decoder.layers.${layerIdx}`,
+  `model.encoder.language_model.layers.${layerIdx}`,
   `model.language_model.layers.${layerIdx}`,
   `language_model.layers.${layerIdx}`,
   `language_model.model.layers.${layerIdx}`,
@@ -41,7 +43,10 @@ const ATTN_SUFFIXES = {
   kNorm: ['self_attn.k_norm.weight', 'self_attn.k_layernorm.weight', 'attn_k_norm.weight'],
   postAttentionNorm: ['post_attention_layernorm.weight', 'post_attention_norm.weight', 'ffn_norm.weight'],
   preFeedforwardNorm: ['pre_feedforward_layernorm.weight'],
+  preFeedforwardNorm2: ['pre_feedforward_layernorm_2.weight'],
   postFeedforwardNorm: ['post_feedforward_layernorm.weight', 'post_ffw_norm.weight'],
+  postFeedforwardNorm1: ['post_feedforward_layernorm_1.weight'],
+  postFeedforwardNorm2: ['post_feedforward_layernorm_2.weight'],
   postPerLayerInputNorm: ['post_per_layer_input_norm.weight'],
   layerScalar: ['layer_scalar'],
 };
@@ -76,8 +81,10 @@ const FFN_SUFFIXES = {
 
 
 const ROUTER_SUFFIXES = {
-  routerWeight: ['mlp.router.weight', 'block_sparse_moe.gate.weight'],
+  routerWeight: ['mlp.router.weight', 'block_sparse_moe.gate.weight', 'router.proj.weight'],
   routerBias: ['mlp.router.bias'],
+  routerScale: ['router.scale'],
+  routerPerExpertScale: ['router.per_expert_scale'],
 };
 
 
@@ -345,7 +352,10 @@ export async function loadLayer(ctx, layerIdx) {
     kNorm: null,
     postAttentionNorm: null,
     preFeedforwardNorm: null,
+    preFeedforwardNorm2: null,
     postFeedforwardNorm: null,
+    postFeedforwardNorm1: null,
+    postFeedforwardNorm2: null,
     postNorm: null,
     postAttnNorm: null,
     convInProj: null,
@@ -368,14 +378,14 @@ export async function loadLayer(ctx, layerIdx) {
   // Load attention weights in parallel
   await loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm);
 
-  // Load FFN weights (unless MoE expert layer)
-  if (!ctx.isMoE || !ctx.isExpertLayer(layerIdx)) {
+  // Load FFN weights (unless MoE expert layer owns only routed experts).
+  if (!ctx.isMoE || !ctx.isExpertLayer(layerIdx) || ctx.loadDenseFfnForMoeLayers === true) {
     await loadFfnWeights(ctx, weights, layerIdx, tryLoad, prefixes);
   }
 
   // Load MoE router weights
   if (ctx.isMoE && ctx.isExpertLayer(layerIdx)) {
-    await loadRouterWeights(weights, tryLoad);
+    await loadRouterWeights(ctx, weights, layerIdx, tryLoad);
   }
 
   // Load attention sinks
@@ -448,7 +458,10 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
     kNorm,
     postAttentionNorm,
     preFeedforwardNorm,
+    preFeedforwardNorm2,
     postFeedforwardNorm,
+    postFeedforwardNorm1,
+    postFeedforwardNorm2,
     postPerLayerInputNorm,
     layerScalar,
     convInProj,
@@ -474,7 +487,10 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
     tryLoadNorm(ATTN_SUFFIXES.kNorm),
     tryLoadNorm(ATTN_SUFFIXES.postAttentionNorm),
     tryLoadNorm(ATTN_SUFFIXES.preFeedforwardNorm),
+    tryLoadNorm(ATTN_SUFFIXES.preFeedforwardNorm2),
     tryLoadNorm(ATTN_SUFFIXES.postFeedforwardNorm),
+    tryLoadNorm(ATTN_SUFFIXES.postFeedforwardNorm1),
+    tryLoadNorm(ATTN_SUFFIXES.postFeedforwardNorm2),
     tryLoadNorm(ATTN_SUFFIXES.postPerLayerInputNorm),
     tryLoadCpu(ATTN_SUFFIXES.layerScalar),
     tryLoad(CONV_SUFFIXES.convInProj),
@@ -510,7 +526,10 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
 
   weights.postAttentionNorm = postAttentionNorm;
   weights.preFeedforwardNorm = preFeedforwardNorm;
+  weights.preFeedforwardNorm2 = preFeedforwardNorm2;
   weights.postFeedforwardNorm = postFeedforwardNorm;
+  weights.postFeedforwardNorm1 = postFeedforwardNorm1;
+  weights.postFeedforwardNorm2 = postFeedforwardNorm2;
   weights.postPerLayerInputNorm = postPerLayerInputNorm;
   weights.layerScalar = layerScalar;
   weights.postNorm = weights.postAttentionNorm || weights.preFeedforwardNorm;
@@ -607,14 +626,63 @@ async function loadStablePerLayerInputGate(ctx, layerIdx, prefixes, tryLoad) {
 }
 
 
-async function loadRouterWeights(weights, tryLoad) {
-  const [routerWeight, routerBias] = await Promise.all([
+function getVectorElementCount(shape, label) {
+  if (!Array.isArray(shape) || shape.length === 0) {
+    throw new Error(`[LayerLoader] ${label} requires a non-empty shape.`);
+  }
+  return shape.reduce((product, dim) => {
+    if (!Number.isInteger(dim) || dim <= 0) {
+      throw new Error(`[LayerLoader] ${label} has invalid shape dimension: ${String(dim)}.`);
+    }
+    return product * dim;
+  }, 1);
+}
+
+async function materializeRouterPerExpertScale(ctx, weight, layerIdx) {
+  if (!weight || !isWeightBuffer(weight)) return weight;
+  const dtype = getWeightDtype(weight);
+  if (dtype === 'f32') return weight;
+  if (dtype !== 'f16') {
+    throw new Error(
+      `[LayerLoader] Layer ${layerIdx} router per-expert scale must be f16 or f32, got ${String(dtype)}.`
+    );
+  }
+
+  const shape = [...weight.shape];
+  const numElements = getVectorElementCount(shape, 'router per-expert scale');
+  const inputTensor = createTensor(
+    weight.buffer,
+    'f16',
+    [numElements],
+    `${weight.label ?? `layer_${layerIdx}_router_per_expert_scale`}_f16`
+  );
+  const f32Tensor = await castF16ToF32(inputTensor);
+  ctx.gpuBuffers.add(f32Tensor.buffer);
+  debugTrace.loader(`Layer ${layerIdx} materialized router per-expert scale F16->F32`);
+
+  return createWeightBuffer(
+    f32Tensor.buffer,
+    'f32',
+    weight.layout,
+    shape,
+    weight.label ?? `layer_${layerIdx}_router_per_expert_scale`,
+    cloneWeightMaterializations(weight, ['f32']),
+    weight.metadata ?? null
+  );
+}
+
+async function loadRouterWeights(ctx, weights, layerIdx, tryLoad) {
+  const [routerWeight, routerBias, routerScale, routerPerExpertScale] = await Promise.all([
     tryLoad(ROUTER_SUFFIXES.routerWeight),
     tryLoad(ROUTER_SUFFIXES.routerBias),
+    tryLoad(ROUTER_SUFFIXES.routerScale),
+    tryLoad(ROUTER_SUFFIXES.routerPerExpertScale),
   ]);
   // Router weights follow matmul dtype/layout rules when present
   weights.routerWeight =  (routerWeight);
   weights.routerBias =  (routerBias);
+  weights.routerScale =  (routerScale);
+  weights.routerPerExpertScale =  (await materializeRouterPerExpertScale(ctx, routerPerExpertScale, layerIdx));
 }
 
 // ============================================================================

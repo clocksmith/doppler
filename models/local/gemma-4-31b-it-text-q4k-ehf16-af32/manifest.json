@@ -12,7 +12,7 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:8675e1779c8b6a77d2e6c3d0e3969bc82d434def3322659c60f34a9fe95615ea",
+    "conversionConfigDigest": "sha256:fe0246782b31f48161074472b33a014b500de0d1976225687e1bd1df79e9e8ab",
     "conversionConfigPath": "src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af32.json",
     "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af32-mv-q4-fused-v1",
     "materializationProfile": "gpu_split_tables",
@@ -291,7 +291,7 @@
         "gelu": {
           "kernel": "gelu.wgsl",
           "entry": "main",
-          "digest": "sha256:a9007ea08aaff98f9be08f1e0490a6bcf252883eac5513de876ab9ce918865e6",
+          "digest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
           "constants": {
             "HAS_GATE": true
           }

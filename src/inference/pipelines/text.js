@@ -570,6 +570,7 @@ export class InferencePipeline extends PipelineState {
     this.weights.set('embed', result.embeddings);
     this.weights.set('lm_head', result.lmHead);
     this.weights.set('final_norm', result.finalNorm);
+    this.weights.set('diffusion_gemma_self_conditioning', result.diffusionGemmaSelfConditioning);
     this.weights.set('per_layer_inputs', result.perLayerInputWeights);
     this.embeddingPostprocessor = result.embeddingPostprocessor;
 
@@ -1434,6 +1435,10 @@ export class InferencePipeline extends PipelineState {
     return this.generator.generateTokenIds(prompt, options);
   }
 
+  resetToSeqLen(seqLen) {
+    return this.generator.resetToSeqLen(seqLen);
+  }
+
   decodeStepLogits(currentIds, options = {}) {
     assertNotAborted(options?.signal);
     return this.generator.decodeStepLogits(currentIds, options);
@@ -1453,6 +1458,16 @@ export class InferencePipeline extends PipelineState {
   prefillKVOnly(prompt, options = {}) {
     assertNotAborted(options?.signal);
     return this.generator.prefillKVOnly(prompt, options);
+  }
+
+  computeDiffusionGemmaCanvasLogits(args, options = {}) {
+    assertNotAborted(options?.signal);
+    return this.generator.computeDiffusionGemmaCanvasLogits(args, options);
+  }
+
+  computeDiffusionGemmaCanvasStep(args, options = {}) {
+    assertNotAborted(options?.signal);
+    return this.generator.computeDiffusionGemmaCanvasStep(args, options);
   }
 
   prefillWithEmbedding(prompt, options = {}) {

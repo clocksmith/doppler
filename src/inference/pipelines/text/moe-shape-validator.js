@@ -15,6 +15,14 @@ export function resolveMoeVendorProfile(modelType) {
   if (modelType === 'mixtral') {
     return selectRuleValue('kernels', 'moeMixtral', 'vendorQuirkProfile', { vendor });
   }
+  if (modelType === 'gemma4' || modelType === 'diffusion_gemma') {
+    return {
+      preferVec4Dequant: false,
+      dequantTileShape: null,
+      routerWorkgroupSize: 256,
+      maxTokensPerExpertScale: 1.0,
+    };
+  }
   throw new Error(`[MoE] Unknown modelType "${modelType}" for vendor profile resolution.`);
 }
 
@@ -66,7 +74,11 @@ export function validateMoeShape(config, options = {}) {
     numExperts,
     expertFormat,
   } = config;
-  const modelType = options.modelType ?? (expertFormat === 'gpt-oss' ? 'gpt-oss' : 'mixtral');
+  const modelType = options.modelType ?? (
+    expertFormat === 'gpt-oss'
+      ? 'gpt-oss'
+      : (expertFormat === 'gemma4' ? 'gemma4' : 'mixtral')
+  );
 
   if (!Number.isFinite(hiddenSize) || hiddenSize <= 0) {
     throw new Error(`[MoE] hiddenSize must be > 0, got ${hiddenSize}.`);

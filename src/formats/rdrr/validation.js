@@ -388,7 +388,7 @@ export function validateManifest(manifest) {
     }
     if (typeof moe.expertFormat !== 'string') {
       errors.push('Invalid moeConfig.expertFormat');
-    } else if (moe.expertFormat !== 'mixtral' && moe.expertFormat !== 'gpt-oss') {
+    } else if (moe.expertFormat !== 'mixtral' && moe.expertFormat !== 'gpt-oss' && moe.expertFormat !== 'gemma4') {
       errors.push(`Invalid moeConfig.expertFormat: ${moe.expertFormat}`);
     }
     if (moe.numExpertsPerToken > moe.numExperts) {

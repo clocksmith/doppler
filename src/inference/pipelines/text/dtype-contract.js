@@ -102,7 +102,10 @@ export function assertImplicitDtypeTransitionAllowed(options = {}) {
   if (policy !== 'require_cast_step') {
     return;
   }
-  if (options.transitionDeclaredBy === 'step_precision') {
+  if (
+    options.transitionDeclaredBy === 'step_precision'
+    || options.transitionDeclaredBy === 'explicit_cast_step'
+  ) {
     return;
   }
 

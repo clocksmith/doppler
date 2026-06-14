@@ -97,6 +97,27 @@ import {
 }
 
 {
+  const shape = [2, 2, 300];
+  const data = new Float32Array(shape[0] * shape[1] * shape[2]);
+  for (let i = 0; i < data.length; i += 1) {
+    data[i] = ((i % 37) - 18) / 9;
+  }
+
+  const row = quantizeToQ4KMRowWise(data, shape);
+  const dequantized = dequantizeQ4KMRowWise(row.quantized, shape);
+
+  assert.equal(row.quantized.length, getQ4KSize(shape, 'row'));
+  assert.ok(
+    getQ4KSize(shape, 'row') > getQ4KSize(shape, 'flat'),
+    'batched row-wise Q4K should preserve per-row padding'
+  );
+  assert.equal(dequantized.length, data.length);
+  const err = calculateQuantizationError(data, dequantized);
+  assert.ok(Number.isFinite(err.mse));
+  assert.ok(Number.isFinite(err.maxError));
+}
+
+{
   await assert.rejects(
     async () => quantizeToQ4KM(new Float32Array(3), [2, 2]),
     /doesn't match shape/

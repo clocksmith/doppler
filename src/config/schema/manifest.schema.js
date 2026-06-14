@@ -84,6 +84,7 @@ export const DEFAULT_MANIFEST_INFERENCE = {
   ffn: {
     activation: 'silu',
     gatedActivation: true,
+    branchMode: 'auto',
     useDoubleWideMlp: false,
     swigluLimit: null,
   },
@@ -129,6 +130,7 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     type: null,  // No chat template (null = disabled)
     enabled: false,
   },
+  diffusionGemma: null,
   pipeline: null,
   session: null,
   execution: null,

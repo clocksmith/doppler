@@ -53,7 +53,10 @@ export interface LayerWeights {
   kNorm: GPUBuffer | Float32Array | null;
   postAttentionNorm: GPUBuffer | Float32Array | null;
   preFeedforwardNorm: GPUBuffer | Float32Array | null;
+  preFeedforwardNorm2?: GPUBuffer | Float32Array | null;
   postFeedforwardNorm: GPUBuffer | Float32Array | null;
+  postFeedforwardNorm1?: GPUBuffer | Float32Array | null;
+  postFeedforwardNorm2?: GPUBuffer | Float32Array | null;
   postNorm: GPUBuffer | Float32Array | null;
   postAttnNorm: GPUBuffer | Float32Array | null;
   convInProj?: GPUBuffer | WeightBuffer | Float32Array | null;
@@ -72,11 +75,21 @@ export interface LayerWeights {
   gateUp?: GPUBuffer | WeightBuffer | Float32Array | null;
   routerWeight?: GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | Float32Array | null;
   routerBias?: GPUBuffer | Float32Array | null;
+  routerScale?: GPUBuffer | Float32Array | null;
+  routerPerExpertScale?: GPUBuffer | Float32Array | null;
   attentionSinks?: GPUBuffer | Float32Array | null;
   perLayerInputGate?: GPUBuffer | WeightBuffer | Float32Array | null;
   perLayerProjection?: GPUBuffer | WeightBuffer | Float32Array | null;
   postPerLayerInputNorm?: GPUBuffer | Float32Array | null;
   layerScalar?: GPUBuffer | Float32Array | null;
+}
+
+export interface DiffusionGemmaSelfConditioningWeights {
+  preNorm: GPUBuffer | Float32Array;
+  postNorm: GPUBuffer | Float32Array | null;
+  gateProj: GPUBuffer | WeightBuffer | Float32Array;
+  upProj: GPUBuffer | WeightBuffer | Float32Array;
+  downProj: GPUBuffer | WeightBuffer | Float32Array;
 }
 
 export interface PerLayerInputWeights {

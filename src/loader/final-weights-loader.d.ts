@@ -19,6 +19,7 @@ import type {
   ManifestEmbeddingProjectionSchema,
 } from '../config/schema/index.js';
 import type { TensorLocation } from './loader-types.js';
+import type { DiffusionGemmaSelfConditioningWeights } from './loader-types.js';
 
 /** Tensor loading function signature */
 export type TensorLoader = (
@@ -75,6 +76,8 @@ export interface FinalWeightsResult {
   lmHead: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
   /** Optional embedding-only postprocessor weights */
   embeddingPostprocessor: LoadedEmbeddingPostprocessor | null;
+  /** Optional DiffusionGemma decoder self-conditioning weights */
+  diffusionGemmaSelfConditioning: DiffusionGemmaSelfConditioningWeights | null;
   /** Whether norm offset debug was logged */
   normOffsetDebugLogged: boolean;
 }

@@ -322,10 +322,11 @@ function dequantizeW4A16ToF16(shardData, location, name) {
 
 
 export function isPackedQ4K(location) {
-  if (!Array.isArray(location.shape) || location.shape.length !== 2) {
+  if (!Array.isArray(location.shape) || location.shape.length < 2) {
     return false;
   }
-  const [rows, cols] = location.shape;
+  const cols = location.shape[location.shape.length - 1];
+  const rows = location.shape.slice(0, -1).reduce((a, b) => a * b, 1);
   const expectedRowwise = rows * Math.ceil(cols / QK_K) * Q4K_BLOCK_BYTES;
   return location.size < expectedRowwise;
 }
@@ -679,7 +680,7 @@ async function materializeQ4KDenseBuffer(quantBuffer, shardData, location, name,
   let numBlocks = null;
   let dequantizedTensor;
   if (needsRowwise) {
-    const rows = location.shape[0];
+    const rows = location.shape.slice(0, -1).reduce((a, b) => a * b, 1);
     debugTrace.loader(
       `Dequantizing ${name} (row-wise): [${rows},${K}], K not 256-aligned, ` +
       `outputDtype=${outputDtype}`
@@ -845,10 +846,10 @@ async function loadQ4KMixed(shardData, location, name, config) {
 
 function getQ4KCpuReferenceContext(shardData, location, config) {
   const outputDtype = getQ4KOutputDtype(location, config);
-  const is2DMatrix = Array.isArray(location.shape) && location.shape.length === 2;
-  const K = is2DMatrix ? location.shape[1] : 0;
-  const needsRowwise = is2DMatrix && K > 0 && K % QK_K !== 0;
+  const isMatrixLike = Array.isArray(location.shape) && location.shape.length >= 2;
+  const K = isMatrixLike ? location.shape[location.shape.length - 1] : 0;
   const layout = getWeightLayout(location, config);
+  const needsRowwise = isMatrixLike && layout === 'row' && K > 0 && K % QK_K !== 0;
   const eligible = outputDtype === 'f32'
     && !isGpuBufferInstance(shardData)
     && (!needsRowwise || layout === 'row');

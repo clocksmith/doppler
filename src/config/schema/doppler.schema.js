@@ -54,6 +54,7 @@ export const DEFAULT_RUNTIME_CONFIG = {
     largeWeights: DEFAULT_LARGE_WEIGHT_CONFIG,
     kvcache: DEFAULT_KVCACHE_CONFIG,
     diffusion: {},
+    diffusionGemma: {},
     energy: {},
     moe: DEFAULT_MOE_RUNTIME_CONFIG,
     speculative: DEFAULT_SPECULATIVE_CONFIG,
@@ -317,6 +318,7 @@ function mergeInferenceConfig(
   const overrideKernelPathPolicy = overrides.kernelPathPolicy ?? {};
   const baseDiffusion = base.diffusion ?? {};
   const baseDiffusionDecode = baseDiffusion.decode ?? {};
+  const baseDiffusionGemma = base.diffusionGemma ?? {};
   const baseEnergy = base.energy ?? {};
   const baseEnergyQuintel = baseEnergy.quintel ?? {};
   const baseMoe = base.moe ?? {};
@@ -350,6 +352,7 @@ function mergeInferenceConfig(
           quantization: { ...baseDiffusion.quantization, ...overrides.diffusion.quantization },
         }
       : { ...baseDiffusion },
+    diffusionGemma: { ...baseDiffusionGemma, ...overrides.diffusionGemma },
     energy: overrides.energy
       ? {
           ...baseEnergy,

@@ -162,6 +162,17 @@ function expandTuple(tuple, kernels, phase, section, layers, context) {
     throw new Error(`${context}: step weights must be a string if provided.`);
   }
   const decl = resolveKernel(kernels, kernelKey, `${context}[${op}]`);
+  const precision = decl.precision ?? null;
+  const castDtypes = {};
+  if (op === 'cast') {
+    if (!precision?.inputDtype || !precision?.outputDtype) {
+      throw new Error(
+        `${context}[cast]: cast steps require kernel precision.inputDtype and precision.outputDtype.`
+      );
+    }
+    castDtypes.fromDtype = precision.inputDtype;
+    castDtypes.toDtype = precision.outputDtype;
+  }
   return {
     op,
     src: 'state',
@@ -171,7 +182,8 @@ function expandTuple(tuple, kernels, phase, section, layers, context) {
     digest: decl.digest,
     weights: weights ?? null,
     constants: decl.constants ?? null,
-    ...(decl.precision ? { precision: decl.precision } : {}),
+    ...(precision ? { precision } : {}),
+    ...castDtypes,
     layers,
     phase,
     section,

@@ -56,6 +56,7 @@ export function buildDiffusionPerformanceArtifact({
   avgDecodeTokens,
   cpuStats,
   gpuStats,
+  modality = 'image',
 }) {
   const cpuPrefillMs = safeStatsValue(cpuStats?.prefillMs?.median);
   const cpuDenoiseMs = safeStatsValue(cpuStats?.denoiseMs?.median);
@@ -73,6 +74,7 @@ export function buildDiffusionPerformanceArtifact({
     schemaVersion: 1,
     warmupRuns,
     timedRuns,
+    modality,
     shape: {
       width,
       height,
@@ -205,6 +207,7 @@ export function buildCanonicalTiming(overrides = {}) {
 
 export function buildTimingDiagnostics(timing = {}, options = {}) {
   const prefillSemantics = String(options.prefillSemantics || 'internal_prefill_phase');
+  const decodeSemantics = String(options.decodeSemantics || 'time after first token');
   const source = String(options.source || 'doppler');
   const modelLoadMs = Number.isFinite(timing.modelLoadMs) ? toTimingNumber(timing.modelLoadMs) : null;
   const firstTokenMs = Number.isFinite(timing.firstTokenMs) ? toTimingNumber(timing.firstTokenMs) : null;
@@ -243,7 +246,7 @@ export function buildTimingDiagnostics(timing = {}, options = {}) {
       firstTokenMs: 'ttft from generation start',
       firstResponseMs: 'modelLoadMs + firstTokenMs',
       prefillMs: prefillSemantics,
-      decodeMs: 'time after first token',
+      decodeMs: decodeSemantics,
       totalRunMs: 'prefillMs + decodeMs',
     },
     componentsMs: {

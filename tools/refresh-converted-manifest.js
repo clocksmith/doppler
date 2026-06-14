@@ -360,10 +360,12 @@ async function main() {
 
   const refreshed = {
     ...manifest,
+    ...(converterConfig?.output?.textOnly === true ? { config: undefined } : {}),
     modelId: nextModelId,
     modelType: plan.modelType || manifest.modelType,
     quantization: plan.manifestQuantization || manifest.quantization,
     quantizationInfo: plan.quantizationInfo || manifest.quantizationInfo || null,
+    moeConfig: plan.moeConfig ?? manifest.moeConfig ?? null,
     inference: plan.manifestInference || manifest.inference,
     metadata: mergeMetadata(manifest, conversionConfigPath),
   };

@@ -95,6 +95,7 @@
     "verify:gemma-3-270m-it-wq4k-ef16": "node tools/run-registry-verify.js gemma-3-270m-it-wq4k-ef16",
     "verify:gemma-3-270m-it-wq4k-ef16-hf16": "node tools/run-registry-verify.js gemma-3-270m-it-wq4k-ef16-hf16",
     "verify:gemma-3-270m-it-wq4k-ef16-hf16-f32": "node tools/run-registry-verify.js gemma-3-270m-it-wq4k-ef16-hf16-f32",
+    "verify:gemma-4-12b-it-text-w4a16-ct-ehf16-af16": "node tools/run-registry-verify.js gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
     "verify:gemma-4-31b-it-text-q4k-ehf16-af16": "node tools/run-registry-verify.js gemma-4-31b-it-text-q4k-ehf16-af16",
     "verify:gemma-4-31b-it-text-q4k-ehf16-af32": "node tools/run-registry-verify.js gemma-4-31b-it-text-q4k-ehf16-af32",
     "verify:gemma-4-e2b-int4ple": "node tools/run-registry-verify.js gemma-4-e2b-int4ple",
@@ -102,6 +103,8 @@
     "verify:gemma-4-e2b-it-q4k-ehf16-af32-int4ple": "node tools/run-registry-verify.js gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
     "verify:gemma3-1b": "node tools/run-registry-verify.js gemma3-1b",
     "verify:gemma3-270m": "node tools/run-registry-verify.js gemma3-270m",
+    "verify:gemma4-12b-qat-w4a16": "node tools/run-registry-verify.js gemma4-12b-qat-w4a16",
+    "verify:gemma4-12b-w4a16": "node tools/run-registry-verify.js gemma4-12b-w4a16",
     "verify:gemma4-31b": "node tools/run-registry-verify.js gemma4-31b",
     "verify:gemma4-31b-af16": "node tools/run-registry-verify.js gemma4-31b-af16",
     "verify:gemma4-31b-f16": "node tools/run-registry-verify.js gemma4-31b-f16",
@@ -112,6 +115,7 @@
     "verify:google-embeddinggemma-300m-wq4k-ef16": "node tools/run-registry-verify.js google-embeddinggemma-300m-wq4k-ef16",
     "verify:google-gemma-3-1b-it": "node tools/run-registry-verify.js google-gemma-3-1b-it",
     "verify:google-gemma-3-270m-it": "node tools/run-registry-verify.js google-gemma-3-270m-it",
+    "verify:google-gemma-4-12b-it-qat-w4a16-ct": "node tools/run-registry-verify.js google-gemma-4-12b-it-qat-w4a16-ct",
     "verify:google-gemma-4-31b-it": "node tools/run-registry-verify.js google-gemma-4-31b-it",
     "verify:google-gemma-4-e2b-it": "node tools/run-registry-verify.js google-gemma-4-e2b-it",
     "verify:google-translategemma-4b-it": "node tools/run-registry-verify.js google-translategemma-4b-it",
@@ -182,6 +186,10 @@
     "./models/gemma4": {
       "types": "./src/models/gemma4.d.ts",
       "import": "./src/models/gemma4.js"
+    },
+    "./models/diffusiongemma": {
+      "types": "./src/models/diffusiongemma.d.ts",
+      "import": "./src/models/diffusiongemma.js"
     },
     "./models/embeddinggemma": {
       "types": "./src/models/embeddinggemma.d.ts",

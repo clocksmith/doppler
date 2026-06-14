@@ -4,6 +4,7 @@ import {
   EXECUTION_V1_SCHEMA_ID,
   DEFAULT_EXECUTION_V1_POLICIES,
 } from '../../src/config/schema/index.js';
+import assert from 'node:assert/strict';
 import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
 import { applyExecutionV1RuntimeConfig, compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
 import { readFileSync } from 'fs';
@@ -102,6 +103,32 @@ if (!decodeAttention) throw new Error('Missing decode attention');
 if (decodeAttention.precision?.kvDtype !== 'f16') {
   throw new Error(`Expected attention precision.kvDtype=f16, got ${JSON.stringify(decodeAttention.precision)}`);
 }
+
+const castGraph = makeGraph();
+castGraph.kernels.cast = {
+  kernel: 'cast_f32_to_f16.wgsl',
+  entry: 'main',
+  digest: D('4'),
+  precision: { inputDtype: 'f32', outputDtype: 'f16' },
+};
+castGraph.preLayer.push(['cast', 'cast']);
+const castStep = expandExecutionV1(castGraph).find((s) => s.section === 'preLayer' && s.op === 'cast');
+if (!castStep) throw new Error('Missing expanded cast step');
+if (castStep.fromDtype !== 'f32' || castStep.toDtype !== 'f16') {
+  throw new Error(`Expected cast f32->f16, got ${castStep.fromDtype}->${castStep.toDtype}`);
+}
+
+const invalidCastGraph = makeGraph();
+invalidCastGraph.kernels.cast = {
+  kernel: 'cast_f32_to_f16.wgsl',
+  entry: 'main',
+  digest: D('5'),
+};
+invalidCastGraph.preLayer.push(['cast', 'cast']);
+assert.throws(
+  () => expandExecutionV1(invalidCastGraph),
+  /cast steps require kernel precision\.inputDtype and precision\.outputDtype/
+);
 
 // Constants propagation (gelu has HAS_GATE)
 const activation = expanded.find((s) => s.phase === 'decode' && s.op === 'activation');

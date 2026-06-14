@@ -150,7 +150,9 @@ const runtimeKV = {
   assert.equal(cache.getGPUBuffers(4)?.layout, 'contiguous');
   assert.equal(cache.getGPUBuffers(0)?.seqLen, 0);
   assert.equal(cache.getGPUBuffers(4)?.seqLen, 0);
+}
 
+{
   const device = createMockDevice();
   setDevice(device, { platformConfig: null });
   const ringCache = createKVCache(modelConfig, true, false, runtimeKV);
@@ -174,6 +176,28 @@ const runtimeKV = {
   assert.ok(cloned instanceof MixedGeometryKVCache);
   assert.equal(cloned.getGPUBuffers(0)?.seqLen, 512);
   assert.equal(cloned.getGPUBuffers(4)?.seqLen, 4);
+}
+
+{
+  const device = createMockDevice();
+  setDevice(device, { platformConfig: null });
+  const diffusionGemmaCache = createKVCache({
+    ...modelConfig,
+    diffusionGemma: {
+      decoderCacheMode: 'encoder_kv_readonly_canvas_concat',
+    },
+  }, true, false, runtimeKV);
+  assert.ok(diffusionGemmaCache instanceof MixedGeometryKVCache);
+  assert.equal(diffusionGemmaCache.getGPUBuffers(0)?.layout, 'contiguous');
+  assert.equal(diffusionGemmaCache.layerSpecs[0].capacityTokens, runtimeKV.maxSeqLen);
+  assert.equal(diffusionGemmaCache.getGPUBuffers(4)?.layout, 'contiguous');
+
+  const slidingSpec = diffusionGemmaCache.layerSpecs[0];
+  const keys = createSourceBuffer(device, slidingSpec.bytesPerToken * 600, 17);
+  const values = createSourceBuffer(device, slidingSpec.bytesPerToken * 600, 19);
+  diffusionGemmaCache.updateFromGPU(0, keys, values, 0, 600);
+  assert.equal(diffusionGemmaCache.getGPUBuffers(0)?.seqLen, 600);
+  assert.equal(diffusionGemmaCache.currentSeqLen, 600);
 }
 
 console.log('mixed-geometry-kvcache.test: ok');

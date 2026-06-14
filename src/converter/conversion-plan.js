@@ -10,7 +10,7 @@ import {
   resolveModelId,
 } from './quantization-info.js';
 import { cloneJsonValue } from '../utils/clone-json.js';
-import { sanitizeModelId } from './core.js';
+import { resolveManifestMoEConfig, sanitizeModelId } from './core.js';
 import { resolveTensorRole } from '../formats/rdrr/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { log } from '../debug/index.js';
@@ -178,6 +178,16 @@ function resolveConversionPlanV1(options) {
     rawConfig
   );
   const manifestQuantization = resolveManifestQuantization(weightOverride, sourceQuantization);
+  const moeConfig = resolveManifestMoEConfig(
+    { tensors, config: rawConfig },
+    {
+      modelId,
+      moeConfig: converterConfig?.moeConfig ?? null,
+      quantizationInfo,
+    },
+    rawConfig,
+    modelType
+  );
 
   // Warn if tensor count seems low for the declared architecture.
   // A typical transformer layer has at least 4 weight tensors (QKV + O projections),
@@ -206,6 +216,10 @@ function resolveConversionPlanV1(options) {
     output: inference.output,
     layerPattern: inference.layerPattern ?? { type: 'uniform', globalPattern: null, period: null, offset: null, layerTypes: null },
     chatTemplate: inference.chatTemplate,
+    supportsEmbedding: inference.supportsEmbedding ?? false,
+    supportsTranscription: inference.supportsTranscription ?? false,
+    supportsVision: inference.supportsVision ?? false,
+    diffusionGemma: inference.diffusionGemma ?? null,
     pipeline: inference.pipeline ?? null,
     session,
     execution,
@@ -215,6 +229,7 @@ function resolveConversionPlanV1(options) {
     modelType,
     sourceQuantization,
     quantizationInfo,
+    moeConfig,
     manifestQuantization,
     manifestInference,
     headDim: options?.headDim ?? options?.architectureConfig?.headDim ?? null,

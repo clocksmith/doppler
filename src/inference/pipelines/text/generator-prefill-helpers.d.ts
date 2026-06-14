@@ -18,6 +18,16 @@ export interface InputSpan {
   length: number;
 }
 
+export type PrefixEmbeddingOverrideTransitionDeclaration =
+  | 'step_precision'
+  | 'explicit_cast_step'
+  | null;
+
+export interface PrefixEmbeddingOverrideExecutionOptions {
+  executionPolicies?: Record<string, unknown> | null;
+  transitionDeclaredBy?: PrefixEmbeddingOverrideTransitionDeclaration;
+}
+
 export declare function resolvePromptInput(
   state: Record<string, unknown>,
   prompt: string | unknown[] | StructuredPromptRequest,
@@ -55,12 +65,16 @@ export declare function resolvePrefillMultimodalBidirectionalSpan(
   contextLabel: string
 ): InputSpan | null;
 
+export declare function resolvePrefixEmbeddingOverrideTransitionDeclaredBy(
+  executionV1State: Record<string, unknown> | null | undefined
+): PrefixEmbeddingOverrideTransitionDeclaration;
+
 export declare function applyPrefixEmbeddingOverride(
   baseTensor: Tensor,
   override: PrefixEmbeddingOverride | null,
   hiddenSize: number,
   contextLabel: string,
-  executionPolicies?: Record<string, unknown> | null
+  executionOptions?: Record<string, unknown> | PrefixEmbeddingOverrideExecutionOptions | null
 ): Promise<Tensor>;
 
 export declare function shouldDisablePrefillCommandBatching(

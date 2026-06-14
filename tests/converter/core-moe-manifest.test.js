@@ -58,6 +58,21 @@ const BASE_MANIFEST_OPTIONS = {
   inference: DEFAULT_MANIFEST_INFERENCE,
 };
 
+const DIFFUSION_GEMMA_GENERATION_CONFIG = {
+  max_denoising_steps: 48,
+  max_new_tokens: 256,
+  t_min: 0.4,
+  t_max: 0.8,
+  stability_threshold: 1,
+  confidence_threshold: 0.005,
+  sampler_config: {
+    _cls_name: 'EntropyBoundSamplerConfig',
+    entropy_bound: 0.1,
+  },
+  pad_token_id: 0,
+  eos_token_id: [1, 106, 50],
+};
+
 {
   const manifest = createManifest(
     'gpt-oss-moe-test',
@@ -117,6 +132,80 @@ const BASE_MANIFEST_OPTIONS = {
     manifest.moeConfig,
     { numExperts: 128, numExpertsPerToken: 8, expertFormat: 'mixtral' },
     'manifest should derive Gemma 4 moeConfig from top_k_experts'
+  );
+}
+
+{
+  const manifest = createManifest(
+    'diffusiongemma-26b-a4b-test',
+    {
+      name: 'diffusiongemma-26b-a4b-test',
+      modelId: 'diffusiongemma-26b-a4b-test',
+      quantization: 'F16',
+      tensors: [
+        {
+          name: 'model.decoder.layers.0.experts.gate_up_proj',
+          shape: [128, 16, 4],
+          dtype: 'F16',
+          size: 128 * 16 * 4 * 2,
+        },
+      ],
+      config: {
+        model_type: 'diffusion_gemma',
+        canvas_length: 256,
+        boi_token_id: 255999,
+        eoi_token_id: 258882,
+        image_token_id: 258880,
+        text_config: {
+          model_type: 'diffusion_gemma_text',
+          num_experts: 128,
+          top_k_experts: 8,
+          moe_intermediate_size: 4,
+          eos_token_id: 1,
+        },
+      },
+      generationConfig: DIFFUSION_GEMMA_GENERATION_CONFIG,
+      architecture: BASE_ARCH,
+    },
+    SHARDS,
+    MOE_TENSOR_LOCATIONS,
+    {
+      ...BASE_MANIFEST_OPTIONS,
+      modelType: 'diffusion_gemma',
+    }
+  );
+
+  assert.equal(manifest.modelType, 'diffusion_gemma');
+  assert.deepEqual(
+    manifest.moeConfig,
+    { numExperts: 128, numExpertsPerToken: 8, expertFormat: 'gemma4', expertIntermediateSize: 4 },
+    'manifest should derive DiffusionGemma MoE contract with Gemma 4 expert format'
+  );
+  assert.deepEqual(
+    manifest.inference.diffusionGemma,
+    {
+      canvasLength: 256,
+      maxDenoisingSteps: 48,
+      maxNewTokens: 256,
+      tMin: 0.4,
+      tMax: 0.8,
+      entropyBound: 0.1,
+      confidenceThreshold: 0.005,
+      stabilityThreshold: 1,
+      padTokenId: 0,
+      eosTokenIds: [1, 106, 50],
+      boiTokenId: 255999,
+      eoiTokenId: 258882,
+      imageTokenId: 258880,
+      selfConditioning: true,
+      decoderCacheMode: 'encoder_kv_readonly_canvas_concat',
+      router: {
+        scaleHiddenStates: true,
+        normalizeTopK: true,
+        perExpertScale: true,
+      },
+    },
+    'manifest should stamp DiffusionGemma block-diffusion inference contract'
   );
 }
 

@@ -10,6 +10,7 @@
  */
 
 import type { Tensor } from '../../../../gpu/tensor.js';
+import type { CommandRecorder } from '../../../../gpu/command-recorder.js';
 import type { AttentionState } from './types.js';
 
 /**
@@ -47,6 +48,10 @@ export interface KVCacheDispatchState {
   bdpaBasisCount: number;
   hasCache: boolean;
   totalSeqLen: number;
+  diffusionGemmaDecoder?: boolean;
+  ownedBuffers?: GPUBuffer[] | null;
+  encoderSeqLen?: number;
+  encoderWindow?: number;
 }
 
 /**
@@ -113,6 +118,25 @@ export function resolveKVCacheState(
   currentSeqLen: number,
   numTokens: number
 ): KVCacheDispatchState;
+
+export interface DiffusionGemmaDecoderKVStateInput {
+  state: AttentionState;
+  layerIdx: number;
+  kTensor: Tensor;
+  vTensor: Tensor;
+  currentSeqLen: number;
+  numTokens: number;
+  numKVHeads: number;
+  headDim: number;
+  layerType?: string | null;
+  slidingWindow?: number | null;
+  kvDtype?: string | null;
+  recorder?: CommandRecorder | null;
+}
+
+export function createDiffusionGemmaDecoderKVState(
+  args: DiffusionGemmaDecoderKVStateInput
+): Promise<KVCacheDispatchState>;
 
 /**
  * Build attention dispatch parameters from the KV cache state and layer config.

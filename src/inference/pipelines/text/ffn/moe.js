@@ -7,7 +7,8 @@ export async function runMoEFFNGPU(
   layerIdx,
   inputTensor,
   numTokens,
-  context
+  context,
+  options = {}
 ) {
   const { config, moeRouter, expertWeights, expertLoader, layerRouterWeights } = context;
 
@@ -27,15 +28,21 @@ export async function runMoEFFNGPU(
     inputTensor.buffer,
     numTokens,
     {
-      modelType: config.modelType ?? (config.expertFormat === 'gpt-oss' ? 'gpt-oss' : null),
+      modelType: config.modelType ?? (
+        config.expertFormat === 'gpt-oss' ? 'gpt-oss' : (config.expertFormat === 'mixtral' ? 'mixtral' : 'gemma4')
+      ),
       hiddenSize: config.hiddenSize,
       intermediateSize: config.intermediateSize,
+      rmsNormEps: config.rmsNormEps,
+      expertIntermediateSize: config.moeExpertIntermediateSize,
       numExperts: config.numExperts,
       moeTopK: config.moeTopK,
       expertFormat: config.expertFormat,
       hiddenActivation: config.hiddenActivation,
       swigluLimit: config.swigluLimit,
       activationDtype: inputTensor.dtype,
+      routerInputBuffer: options.routerInputTensor?.buffer ?? null,
+      routerInputDtype: options.routerInputTensor?.dtype ?? null,
       kernelPath: context.kernelPath ?? null,
       executionPolicies: context.executionPolicies ?? null,
     },

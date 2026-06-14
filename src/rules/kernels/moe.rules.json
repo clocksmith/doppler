@@ -4,6 +4,9 @@
     { "match": {}, "value": "" }
   ],
   "scatterAddVariant": [
+    { "match": { "outputDtype": "f16", "weightsDtype": "f16", "hasExpertScale": true }, "value": "dynamic_f16_w16_expert_scale" },
+    { "match": { "outputDtype": "f16", "hasExpertScale": true }, "value": "dynamic_f16_expert_scale" },
+    { "match": { "hasExpertScale": true }, "value": "dynamic_expert_scale" },
     { "match": { "outputDtype": "f16", "weightsDtype": "f16" }, "value": "dynamic_f16_w16" },
     { "match": { "outputDtype": "f16" }, "value": "dynamic_f16" },
     { "match": {}, "value": "dynamic" }
