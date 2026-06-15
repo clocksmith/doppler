@@ -374,6 +374,23 @@ try {
   );
   assert.equal(selectedLmHeadPrefillPhaseOverride.variant, 'f16w_f32a');
 
+  const selectedLmHeadPrefillRole = selectMatmulVariantAndFlags(
+    'run',
+    1,
+    64,
+    32,
+    'f32',
+    'f16',
+    true,
+    'f32',
+    {
+      role: 'lm_head_prefill',
+      phaseOverride: 'prefill',
+      kernelPath: lmHeadKernelPath,
+    }
+  );
+  assert.equal(selectedLmHeadPrefillRole.variant, 'f16w_f32a');
+
   const resolvedPhase = resolveMatmulPhase(1, 'prefill');
   assert.equal(resolvedPhase, 'prefill');
   assert.equal(

@@ -2214,9 +2214,11 @@ export class PipelineGenerator {
           const batchResult = await this._generateNTokensGPU(lastToken, thisBatchSize, generatedIds, batchOpts);
           let batchTokens = [];
           let hitStop = false;
+          let stopTokenId = null;
           for (const tokenId of batchResult.tokens) {
             if (isStopToken(tokenId, stopTokenIds, eosToken)) {
               hitStop = true;
+              stopTokenId = tokenId;
               break;
             }
             generatedIds.push(tokenId);
@@ -2245,7 +2247,7 @@ export class PipelineGenerator {
             }
           }
           if (hitStop) {
-            this._recordStopReason('stop-token');
+            this._recordStopReason('stop-token', stopTokenId);
             break;
           }
           if (shouldDisableBatchDecodeAfterShortBatch({

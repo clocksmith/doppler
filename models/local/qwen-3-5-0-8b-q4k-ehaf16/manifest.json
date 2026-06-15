@@ -477,7 +477,7 @@
         ],
         [
           "lm_head_prefill",
-          "tiled",
+          "q4_prefill",
           "lm_head"
         ],
         [
@@ -6579,7 +6579,10 @@
   },
   "totalSize": 1146048704,
   "hashAlgorithm": "blake3",
-  "eos_token_id": 248044,
+  "eos_token_id": [
+    248046,
+    248044
+  ],
   "image_token_id": 248056,
   "video_token_id": 248057,
   "config": {

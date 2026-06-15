@@ -31,7 +31,7 @@ import {
 import { parseManifest } from "doppler-gpu/tooling/manifest";
 
 // Per-family static metadata (no runtime weight — kilobyte-scale)
-import { KNOWN_MODELS, resolveHfBaseUrl } from "doppler-gpu/models/qwen3";
+import { KNOWN_MODELS, resolveHfBaseUrl } from "doppler-gpu/models/gemma3";
 ```
 
 Available narrow entry points:
@@ -77,9 +77,12 @@ After `registerShaderSources` runs, the runtime bypasses the HTTP fetch path ent
 
 ## Model artifacts
 
-Model shards (hundreds of MB to several GB) are **not** in the npm package; they live on Hugging Face at `Clocksmith/rdrr`. Use one of:
+Model shards (hundreds of MB to several GB) are **not** in the npm package.
+Hosted quickstart artifacts live on Hugging Face at `Clocksmith/rdrr`; catalog
+lanes marked local-only must be supplied from your own artifact location. Use
+one of:
 
-- `resolveHfBaseUrl(modelId)` from the family module → fetch manifest + shards directly from HF at runtime (OPFS-cached).
+- `resolveHfBaseUrl(modelId)` from a hosted family module → fetch manifest + shards directly from HF at runtime (OPFS-cached).
 - Self-host a copy and pass a `file://` or HTTPS `modelUrl` to the pipeline.
 - The CLI's auto-resolution (external-drive root) works only for CLI consumers; library consumers must pass an explicit URL.
 

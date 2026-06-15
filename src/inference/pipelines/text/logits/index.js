@@ -62,6 +62,10 @@ function resolvePostLayerStepDtype(op, phase, kernelPath, fallback, field) {
   return resolvePrecisionFieldDtype(precision, fallback, field);
 }
 
+function resolveLmHeadMatmulRole(phase) {
+  return phase === 'prefill' ? 'lm_head_prefill' : 'lm_head';
+}
+
 async function coerceTensorDtype(tensor, targetDtype, options = {}) {
   if (!targetDtype || tensor.dtype === targetDtype) {
     return tensor;
@@ -418,6 +422,7 @@ export async function computeLogits(
   const { lastPositionOnly, matmulRows } = lastTokenMatmul;
   const matmulPhaseOverride = lastTokenMatmul.phaseOverride;
   const lmHeadPhase = matmulPhaseOverride ?? (matmulRows === 1 ? 'decode' : 'prefill');
+  const lmHeadRole = resolveLmHeadMatmulRole(lmHeadPhase);
 
   let matmulInputTensor = finalNormTensor;
   let matmulInputOwned = false;
@@ -502,10 +507,10 @@ export async function computeLogits(
 
   const lmHeadInputDtype = forceStableF32Logits
     ? matmulInputTensor.dtype
-    : resolveMatmulStepDtype('lm_head', lmHeadPhase, stableKernelPath, matmulInputTensor.dtype, 'inputDtype');
+    : resolveMatmulStepDtype(lmHeadRole, lmHeadPhase, stableKernelPath, matmulInputTensor.dtype, 'inputDtype');
   const lmHeadOutputDtype = forceStableF32Logits
     ? matmulInputTensor.dtype
-    : resolveMatmulStepDtype('lm_head', lmHeadPhase, stableKernelPath, matmulInputTensor.dtype, 'outputDtype');
+    : resolveMatmulStepDtype(lmHeadRole, lmHeadPhase, stableKernelPath, matmulInputTensor.dtype, 'outputDtype');
   if (lmHeadInputDtype !== matmulInputTensor.dtype) {
     const coercedInput = await coerceTensorDtype(matmulInputTensor, lmHeadInputDtype, {
       executionPolicies: config.executionPolicies ?? null,
@@ -522,7 +527,7 @@ export async function computeLogits(
   // HuggingFace models store lm_head as [vocabSize, hiddenSize], so transposeB=true
   const logitsTensor = await runMatmul(matmulInputTensor, lmHeadBuffer, matmulRows, matmulVocabSize, hiddenSize, {
     transposeB: 'auto',
-    role: 'lm_head',
+    role: lmHeadRole,
     phaseOverride: matmulPhaseOverride,
     kernelPath: stableKernelPath,
     outputDtype: lmHeadOutputDtype,

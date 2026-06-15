@@ -47,6 +47,7 @@ export const DEFAULT_CONVERTER_MANIFEST_CONFIG = {
   conversion: null,
   artifactIdentity: null,
   weightsRef: null,
+  eosTokenId: null,
   visionConfig: null,
   audioConfig: null,
 };

@@ -97,8 +97,10 @@ function parseBody(res) {
   const modelIds = body.data.map((m) => m.id);
   assert.ok(modelIds.includes('gemma-3-270m-it-q4k-ehf16-af32'));
   assert.ok(modelIds.includes('gemma-3-1b-it-q4k-ehf16-af32'));
-  assert.ok(modelIds.includes('qwen-3-5-0-8b-q4k-ehaf16'));
-  assert.ok(modelIds.includes('qwen-3-5-2b-q4k-ehaf16'));
+  assert.ok(modelIds.includes('gemma-4-e2b-it-q4k-ehf16-af32'));
+  assert.ok(modelIds.includes('gemma-4-e2b-it-q4k-ehf16-af32-int4ple'));
+  assert.ok(!modelIds.includes('qwen-3-5-0-8b-q4k-ehaf16'));
+  assert.ok(!modelIds.includes('qwen-3-5-2b-q4k-ehaf16'));
   for (const entry of body.data) {
     assert.equal(entry.object, 'model');
     assert.equal(entry.owned_by, 'doppler');

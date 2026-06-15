@@ -509,7 +509,7 @@
         ],
         [
           "lm_head_prefill",
-          "tiled",
+          "q4_prefill",
           "lm_head"
         ],
         [

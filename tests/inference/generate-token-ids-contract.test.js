@@ -125,6 +125,12 @@ const DIAGNOSTICS_CONTRACT = [
   'operatorDiagnostics.emitter.length',
 ];
 
+const BATCH_STOP_DIAGNOSTICS_CONTRACT = [
+  'let stopTokenId = null',
+  'stopTokenId = tokenId',
+  "_recordStopReason('stop-token', stopTokenId)",
+];
+
 // === 1. generateTokenIds has all decode contract points ===
 
 for (const { id, description, generateTokenIdsPattern } of DECODE_CONTRACT) {
@@ -158,6 +164,13 @@ for (const stat of STATS_CONTRACT) {
   assert.ok(
     runDecodeLoopBody.includes(stat),
     `_runDecodeLoop must track ${stat}`
+  );
+}
+
+for (const pattern of BATCH_STOP_DIAGNOSTICS_CONTRACT) {
+  assert.ok(
+    runDecodeLoopBody.includes(pattern),
+    `_runDecodeLoop batch stop path must preserve stop token id: ${pattern}`
   );
 }
 

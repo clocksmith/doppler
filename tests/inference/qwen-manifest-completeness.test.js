@@ -73,7 +73,7 @@ const EXPECTED_QWEN_PER_LAYER_INPUTS = Object.freeze({
     outputDtype: 'f32',
   },
 });
-const EXPECTED_QWEN_EOS_TOKEN_ID = 248044;
+const EXPECTED_QWEN_EOS_TOKEN_ID = Object.freeze([248046, 248044]);
 const EXPECTED_QWEN_CONVERSION_DECODE_LOOPS = Object.freeze({
   'qwen-3-5-0-8b-q4k-ehaf16': {
     batchSize: 4,
@@ -361,7 +361,7 @@ if (!hasLocalQ4KManifest) {
 // --- Manifest: Qwen EOS resolves to <|im_end|>, not pad/endoftext ---
 
 {
-  assert.equal(
+  assert.deepEqual(
     q4kManifest.eos_token_id,
     EXPECTED_QWEN_EOS_TOKEN_ID,
     `${q4kManifest.modelId} eos_token_id`

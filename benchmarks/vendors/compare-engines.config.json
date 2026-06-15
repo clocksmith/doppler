@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-03-29",
+  "updated": "2026-06-15",
   "defaults": {
     "warmLoadMode": "opfs",
     "coldLoadMode": "http"
@@ -123,8 +123,8 @@
     {
       "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "defaultTjsModelId": "onnx-community/Qwen3.5-0.8B-ONNX",
-      "defaultDopplerSource": "quickstart-registry",
-      "modelBaseDir": null,
+      "defaultDopplerSource": "local",
+      "modelBaseDir": "local",
       "defaultDopplerSurface": "browser",
       "defaultDopplerFormat": "rdrr",
       "defaultTjsFormat": "onnx",
@@ -138,8 +138,8 @@
     {
       "dopplerModelId": "qwen-3-5-2b-q4k-ehaf16",
       "defaultTjsModelId": "onnx-community/Qwen3.5-2B-ONNX",
-      "defaultDopplerSource": "quickstart-registry",
-      "modelBaseDir": null,
+      "defaultDopplerSource": "local",
+      "modelBaseDir": "local",
       "defaultDopplerSurface": "browser",
       "defaultDopplerFormat": "rdrr",
       "defaultTjsFormat": "onnx",

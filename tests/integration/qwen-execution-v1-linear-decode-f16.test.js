@@ -115,6 +115,14 @@ assert.deepEqual(
     THREADS_PER_COL_GEMV: 4,
   }
 );
+assert.equal(
+  kernelPath.postLayer.find((step) => step.op === 'lm_head_prefill')?.kernel,
+  'fused_matmul_q4_batched_multicol_shared.wgsl'
+);
+assert.equal(
+  kernelPath.postLayer.find((step) => step.op === 'lm_head_prefill')?.entry,
+  'main'
+);
 
 const linearDecodeSteps = getLayerSteps(kernelPath, 0, 'decode');
 const linearDecodeOProj = linearDecodeSteps.find((step) => step.op === 'o_proj');

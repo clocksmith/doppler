@@ -1,9 +1,9 @@
-// Online Softmax Kernel
+// Softmax Kernels
 //
-// Numerically stable softmax using online algorithm:
-// 1. Track running max while iterating
-// 2. Compute exp(x - max) and sum in same pass
-// 3. Normalize by sum
+// Numerically stable softmax:
+// 1. Reduce max for each row.
+// 2. Compute exp(x - max) and reduce sum.
+// 3. Normalize by the reduced sum.
 //
 // Supports softmax along last dimension (axis=-1).
 // Subgroup variants use subgroupMax/subgroupAdd for faster reductions.
@@ -171,78 +171,3 @@ fn softmax_small(
         output[base_offset + thread_idx] = exp_val * inv_sum;
     }
 }
-
-// Online softmax - single pass algorithm
-// More memory efficient but requires careful implementation
-@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
-fn softmax_online(
-    @builtin(local_invocation_id) local_id: vec3<u32>,
-    @builtin(workgroup_id) wg_id: vec3<u32>
-) {
-    let row_idx = wg_id.x;
-    let thread_idx = local_id.x;
-    let inner_size = u.inner_size;
-    let temperature = u.temperature;
-
-    if (row_idx >= u.outer_size) {
-        return;
-    }
-
-    let base_offset = row_idx * inner_size;
-    let elements_per_thread = (inner_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
-
-    // Online algorithm: track max and sum simultaneously
-    var m: f32 = NEG_INF;  // Running max
-    var d: f32 = 0.0;            // Running sum of exp(x - m)
-
-    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
-        let idx = thread_idx * elements_per_thread + i;
-        if (idx < inner_size) {
-            let x = input[base_offset + idx] / temperature;
-
-            // Update running max and rescale sum
-            let m_new = max(m, x);
-            d = d * exp(m - m_new) + exp(x - m_new);
-            m = m_new;
-        }
-    }
-
-    // Store for reduction
-    shared_max[thread_idx] = m;
-    shared_sum[thread_idx] = d;
-    workgroupBarrier();
-
-    // Pairwise reduction combining (max, sum) pairs
-    for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
-        if (thread_idx < stride) {
-            let m1 = shared_max[thread_idx];
-            let d1 = shared_sum[thread_idx];
-            let m2 = shared_max[thread_idx + stride];
-            let d2 = shared_sum[thread_idx + stride];
-
-            let m_new = max(m1, m2);
-            let d_new = d1 * exp(m1 - m_new) + d2 * exp(m2 - m_new);
-
-            shared_max[thread_idx] = m_new;
-            shared_sum[thread_idx] = d_new;
-        }
-        workgroupBarrier();
-    }
-
-    let global_max = shared_max[0];
-    let global_sum = shared_sum[0];
-    // Guard against division by zero when all exp values underflow
-    let inv_sum = select(0.0, 1.0 / global_sum, global_sum > 0.0);
-
-    workgroupBarrier();
-
-    // Write normalized output
-    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
-        let idx = thread_idx * elements_per_thread + i;
-        if (idx < inner_size) {
-            let x = input[base_offset + idx] / temperature;
-            output[base_offset + idx] = exp(x - global_max) * inv_sum;
-        }
-    }
-}
-

@@ -4269,22 +4269,6 @@
             ],
             "wgslOnDisk": true
           }
-        },
-        "online": {
-          "wgsl": "softmax.wgsl",
-          "entryPoint": "softmax_online",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [],
-          "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
-            "ruleChains": [],
-            "wgslOnDisk": true
-          }
         }
       }
     },

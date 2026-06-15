@@ -126,6 +126,9 @@ await convertModel(model, io, {
     output: {
       textOnly: true,
     },
+    manifest: {
+      eosTokenId: [3, 1],
+    },
   }),
 });
 
@@ -138,5 +141,6 @@ assert.equal(capturedManifest.tensors?.[projectorTensorName], undefined);
 assert.equal(capturedManifest.tensors?.[embedVisionTensorName], undefined);
 assert.equal(Object.keys(capturedManifest.tensors ?? {}).length, 1);
 assert.equal(capturedManifest.config, undefined, 'text-only manifest should not retain vision_config');
+assert.deepEqual(capturedManifest.eos_token_id, [3, 1], 'manifest.eosTokenId config should override fallback eosTokenId option');
 
 console.log('core-text-only-filter.test: ok');

@@ -41,8 +41,8 @@ import { parseServeArgs } from '../../src/cli/doppler-serve.js';
 
 // Combined flags
 {
-  const args = parseServeArgs(['--model', 'qwen3-0.8b', '--port', '9090', '--host', '0.0.0.0']);
-  assert.equal(args.model, 'qwen3-0.8b');
+  const args = parseServeArgs(['--model', 'gemma4-e2b', '--port', '9090', '--host', '0.0.0.0']);
+  assert.equal(args.model, 'gemma4-e2b');
   assert.equal(args.port, 9090);
   assert.equal(args.host, '0.0.0.0');
 }

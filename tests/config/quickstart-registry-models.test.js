@@ -7,8 +7,8 @@ import {
 const BROKEN_GEMMA_1B_QUICKSTART_REVISION = 'dfbe333a262f00050eebb6704827cad4839c6825';
 const models = await listQuickstartModels();
 
-// Registry should have 7 quickstart models, including the hosted Gemma 4 INT4 PLE variant.
-assert.equal(models.length, 7, `Expected 7 quickstart models, got ${models.length}`);
+// Registry should have 5 hosted quickstart models, including the hosted Gemma 4 INT4 PLE variant.
+assert.equal(models.length, 5, `Expected 5 quickstart models, got ${models.length}`);
 
 const modelIds = models.map((m) => m.modelId);
 assert.ok(modelIds.includes('gemma-3-270m-it-q4k-ehf16-af32'), 'Gemma 3 270M missing');
@@ -16,8 +16,8 @@ assert.ok(modelIds.includes('google-embeddinggemma-300m-q4k-ehf16-af32'), 'Embed
 assert.ok(modelIds.includes('gemma-3-1b-it-q4k-ehf16-af32'), 'Gemma 3 1B missing');
 assert.ok(modelIds.includes('gemma-4-e2b-it-q4k-ehf16-af32'), 'Gemma 4 E2B missing');
 assert.ok(modelIds.includes('gemma-4-e2b-it-q4k-ehf16-af32-int4ple'), 'Gemma 4 E2B INT4 PLE missing');
-assert.ok(modelIds.includes('qwen-3-5-0-8b-q4k-ehaf16'), 'Qwen 3.5 0.8B missing');
-assert.ok(modelIds.includes('qwen-3-5-2b-q4k-ehaf16'), 'Qwen 3.5 2B missing');
+assert.ok(!modelIds.includes('qwen-3-5-0-8b-q4k-ehaf16'), 'Qwen 3.5 0.8B must stay out of quickstart until HF is republished');
+assert.ok(!modelIds.includes('qwen-3-5-2b-q4k-ehaf16'), 'Qwen 3.5 2B must stay out of quickstart until HF is republished');
 
 for (const entry of models) {
   assert.ok(entry.sourceCheckpointId, `${entry.modelId}: sourceCheckpointId missing`);
@@ -55,26 +55,19 @@ for (const entry of models) {
   assert.ok(entry.modes.includes('vision'));
 }
 
-{
-  const entry = await resolveQuickstartModel('qwen3-0.8b');
-  assert.equal(entry.modelId, 'qwen-3-5-0-8b-q4k-ehaf16');
-  assert.ok(entry.modes.includes('text'));
-}
-
-{
-  const entry = await resolveQuickstartModel('qwen3-2b');
-  assert.equal(entry.modelId, 'qwen-3-5-2b-q4k-ehaf16');
-  assert.ok(entry.modes.includes('text'));
-}
-
 // HF coordinates present
 {
-  const entry = await resolveQuickstartModel('qwen3-0.8b');
+  const entry = await resolveQuickstartModel('gemma4-e2b-int4ple');
   assert.ok(entry.hf);
   assert.equal(entry.hf.repoId, 'Clocksmith/rdrr');
   assert.ok(entry.hf.revision.length > 0);
-  assert.ok(entry.hf.path.includes('qwen'));
+  assert.ok(entry.hf.path.includes('gemma-4-e2b'));
 }
+
+await assert.rejects(
+  () => resolveQuickstartModel('qwen3-0.8b'),
+  /Unknown quickstart model/
+);
 
 // Unknown model throws
 await assert.rejects(

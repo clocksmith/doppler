@@ -36,7 +36,11 @@
       "artifactRoot": "../qwen-3-6-27b-q4k-ehaf16",
       "manifestDigest": "sha256:77d21b7c7b8886279e2ff36b8d27b8fb37ef16df888f1c73457cb628510e46e3",
       "shardSetHash": "sha256:f355a595b115d4a40041bcb2fbe4d131316e422e65df28e5ed4573d2c9051108"
-    }
+    },
+    "eosTokenId": [
+      248046,
+      248044
+    ]
   },
   "inference": {
     "attention": {
@@ -500,7 +504,7 @@
       ],
       [
         "lm_head_prefill",
-        "tiled",
+        "q4_prefill",
         "lm_head"
       ],
       [

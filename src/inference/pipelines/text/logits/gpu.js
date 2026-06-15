@@ -58,6 +58,10 @@ function resolvePostLayerStepDtype(op, phase, kernelPath, fallback, field) {
   return resolvePrecisionFieldDtype(precision, fallback, field);
 }
 
+function resolveLmHeadMatmulRole(phase) {
+  return phase === 'prefill' ? 'lm_head_prefill' : 'lm_head';
+}
+
 async function coerceTensorDtype(tensor, targetDtype, recorder = null, options = {}) {
   if (!targetDtype || tensor.dtype === targetDtype) {
     return tensor;
@@ -543,8 +547,9 @@ export async function computeChunkedLogitsGPU(
 
   const chunkRows = resolveLmHeadChunkRows(device, numTokens, hiddenSize, largeWeightConfig);
   const phase = numTokens === 1 ? 'decode' : 'prefill';
-  const lmHeadInputDtype = resolveMatmulStepDtype('lm_head', phase, kernelPath, normedTensor.dtype, 'inputDtype');
-  const lmHeadOutputDtype = resolveMatmulStepDtype('lm_head', phase, kernelPath, normedTensor.dtype, 'outputDtype');
+  const lmHeadRole = resolveLmHeadMatmulRole(phase);
+  const lmHeadInputDtype = resolveMatmulStepDtype(lmHeadRole, phase, kernelPath, normedTensor.dtype, 'inputDtype');
+  const lmHeadOutputDtype = resolveMatmulStepDtype(lmHeadRole, phase, kernelPath, normedTensor.dtype, 'outputDtype');
   const caps = getKernelCapabilities();
   const weightDtype = selectRuleValue('inference', 'dtype', 'lmHeadChunkWeightDtype', {
     preferF16: largeWeightConfig.preferF16,
@@ -613,7 +618,7 @@ export async function computeChunkedLogitsGPU(
 
     const logitsTensor = await runMatmul(matmulInput, weightBuffer, numTokens, rowCount, hiddenSize, {
       transposeB: 'auto',
-      role: 'lm_head',
+      role: lmHeadRole,
       kernelPath,
       outputDtype: lmHeadOutputDtype,
       executionPolicies,
@@ -673,8 +678,9 @@ export async function computeSplitLogitsGPU(
   }
 
   const phase = numTokens === 1 ? 'decode' : 'prefill';
-  const lmHeadInputDtype = resolveMatmulStepDtype('lm_head', phase, kernelPath, normedTensor.dtype, 'inputDtype');
-  const lmHeadOutputDtype = resolveMatmulStepDtype('lm_head', phase, kernelPath, normedTensor.dtype, 'outputDtype');
+  const lmHeadRole = resolveLmHeadMatmulRole(phase);
+  const lmHeadInputDtype = resolveMatmulStepDtype(lmHeadRole, phase, kernelPath, normedTensor.dtype, 'inputDtype');
+  const lmHeadOutputDtype = resolveMatmulStepDtype(lmHeadRole, phase, kernelPath, normedTensor.dtype, 'outputDtype');
   const logits = new Float32Array(numTokens * vocabSize);
   let matmulInput = normedTensor;
   let matmulInputOwned = false;
@@ -710,7 +716,7 @@ export async function computeSplitLogitsGPU(
       );
       const logitsTensor = await runMatmul(matmulInput, weightBuffer, numTokens, rowCount, hiddenSize, {
         transposeB: 'auto',
-        role: 'lm_head',
+        role: lmHeadRole,
         kernelPath,
         outputDtype: lmHeadOutputDtype,
         executionPolicies,
@@ -892,12 +898,13 @@ export async function computeLogitsGPU(
       releaseBuffer(normInputTensor.buffer);
       normInputOwned = false;
     }
+    const lmHeadRole = resolveLmHeadMatmulRole(phase);
     const lmHeadInputDtype = forceStableF32Logits
       ? finalNormTensor.dtype
-      : resolveMatmulStepDtype('lm_head', phase, stableKernelPath, finalNormTensor.dtype, 'inputDtype');
+      : resolveMatmulStepDtype(lmHeadRole, phase, stableKernelPath, finalNormTensor.dtype, 'inputDtype');
     const lmHeadOutputDtype = forceStableF32Logits
       ? finalNormTensor.dtype
-      : resolveMatmulStepDtype('lm_head', phase, stableKernelPath, finalNormTensor.dtype, 'outputDtype');
+      : resolveMatmulStepDtype(lmHeadRole, phase, stableKernelPath, finalNormTensor.dtype, 'outputDtype');
     lmHeadInputTensor = lmHeadInputDtype !== finalNormTensor.dtype
       ? await coerceTensorDtype(finalNormTensor, lmHeadInputDtype, null, {
         executionPolicies: config.executionPolicies ?? null,
@@ -925,7 +932,7 @@ export async function computeLogitsGPU(
 
     const logitsTensor = await runMatmul(lmHeadInputTensor, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
       transposeB: 'auto',
-      role: 'lm_head',
+      role: lmHeadRole,
       kernelPath: stableKernelPath,
       outputDtype: lmHeadOutputDtype,
       executionPolicies: config.executionPolicies ?? null,
@@ -1071,12 +1078,13 @@ export async function recordLogitsGPU(
     operatorDiagnostics,
     dtype: finalNormTensor.dtype,
   });
+  const lmHeadRole = resolveLmHeadMatmulRole(phase);
   const lmHeadInputDtype = forceStableF32Logits
     ? finalNormTensor.dtype
-    : resolveMatmulStepDtype('lm_head', phase, stableKernelPath, finalNormTensor.dtype, 'inputDtype');
+    : resolveMatmulStepDtype(lmHeadRole, phase, stableKernelPath, finalNormTensor.dtype, 'inputDtype');
   const lmHeadOutputDtype = forceStableF32Logits
     ? finalNormTensor.dtype
-    : resolveMatmulStepDtype('lm_head', phase, stableKernelPath, finalNormTensor.dtype, 'outputDtype');
+    : resolveMatmulStepDtype(lmHeadRole, phase, stableKernelPath, finalNormTensor.dtype, 'outputDtype');
   const lmHeadInputTensor = lmHeadInputDtype !== finalNormTensor.dtype
     ? await coerceTensorDtype(finalNormTensor, lmHeadInputDtype, recorder, {
       executionPolicies: config.executionPolicies ?? null,
@@ -1103,7 +1111,7 @@ export async function recordLogitsGPU(
   // Record matmul (no submit)
   const logitsTensor = await recordMatmul(recorder, lmHeadInputTensor, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
     transposeB: 'auto',
-    role: 'lm_head',
+    role: lmHeadRole,
     kernelPath: stableKernelPath,
     outputDtype: lmHeadOutputDtype,
     executionPolicies: config.executionPolicies ?? null,

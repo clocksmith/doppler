@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-04-22T18:16:21.005Z",
+  "generatedAt": "2026-06-15T00:17:08.111Z",
   "release": {
     "channel": "main-snapshot",
     "version": "0.4.3",
-    "commitSha": "d243adc2803b71b0239ae57e20bc44fe3d5a74f4",
+    "commitSha": "4dd758f37d283cc161d45969243de8e6fe2cfc0c",
     "dirty": true
   },
   "sources": {
@@ -28,9 +28,9 @@
     },
     "compareConfig": {
       "path": "benchmarks/vendors/compare-engines.config.json",
-      "sha256": "689775e722c9e740106cca7e2bc96af38a1378e5700c3510391c20fc9bcecce2",
-      "bytes": 5867,
-      "updated": "2026-03-29"
+      "sha256": "1b2f908ccde766d1e70750be098750c964143f445ac488488377a529bdacc742",
+      "bytes": 5926,
+      "updated": "2026-06-15"
     },
     "compareMetricContract": {
       "path": "benchmarks/vendors/compare-metrics.json",
@@ -46,9 +46,9 @@
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "99f4e75e326b5aff71c8f1a14b5c5e24fc289d226fa1ee87a4a9e9b9aaedfc7e",
-      "bytes": 16609,
-      "updated": "2026-04-20"
+      "sha256": "2a8c6c4cc867f31259706d328fca16645d4724972f7bfd67648ef2a886a0f384",
+      "bytes": 28859,
+      "updated": "2026-06-15"
     },
     "harness:doppler": {
       "path": "benchmarks/vendors/harnesses/doppler.json",
@@ -149,9 +149,9 @@
   },
   "summary": {
     "targetCount": 16,
-    "modelCoverageCount": 8,
+    "modelCoverageCount": 15,
     "compareProfileCount": 12,
-    "catalogModelCount": 10,
+    "catalogModelCount": 18,
     "workloadCount": 5,
     "committedChartCount": 2,
     "hasLatestCompareResult": true
@@ -1080,6 +1080,24 @@
   ],
   "modelCoverage": [
     {
+      "dopplerModelId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "DiffusionGemma 26B A4B Instruct (Q4K/F16a)",
+      "catalogModes": [
+        "diffusion",
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 15694066921
+    },
+    {
       "dopplerModelId": "gemma-3-1b-it-q4k-ehf16-af32",
       "dopplerModelBaseDir": null,
       "dopplerSource": "quickstart-registry",
@@ -1112,6 +1130,74 @@
       ],
       "catalogBaseUrl": null,
       "catalogSizeBytes": 418518521
+    },
+    {
+      "dopplerModelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "Gemma 4 12B Instruct Text (W4A16 QAT/F16a)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 10173636932
+    },
+    {
+      "dopplerModelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "Gemma 4 31B Instruct Text (Q4K/F16a)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 19295019640
+    },
+    {
+      "dopplerModelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "Gemma 4 31B Instruct Text (Q4K/F32a)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 19295019640
+    },
+    {
+      "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "Gemma 4 E2B Instruct (Q4K/F16a/INT4 PLE)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 4009916310
     },
     {
       "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af32",
@@ -1165,8 +1251,8 @@
     },
     {
       "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
-      "dopplerModelBaseDir": null,
-      "dopplerSource": "quickstart-registry",
+      "dopplerModelBaseDir": "local",
+      "dopplerSource": "local",
       "defaultTjsModelId": "onnx-community/Qwen3.5-0.8B-ONNX",
       "defaultDopplerSurface": "browser",
       "compareLane": "performance_comparable",
@@ -1178,16 +1264,16 @@
         "translate"
       ],
       "catalogBaseUrl": null,
-      "catalogSizeBytes": 798093788
+      "catalogSizeBytes": 1155348912
     },
     {
       "dopplerModelId": "qwen-3-5-2b-q4k-ehaf16",
-      "dopplerModelBaseDir": null,
-      "dopplerSource": "quickstart-registry",
+      "dopplerModelBaseDir": "local",
+      "dopplerSource": "local",
       "defaultTjsModelId": "onnx-community/Qwen3.5-2B-ONNX",
       "defaultDopplerSurface": "browser",
-      "compareLane": "performance_comparable",
-      "compareLaneReason": null,
+      "compareLane": "capability_only",
+      "compareLaneReason": "Qwen 3.5 2B has no committed correctness-clean fixture for the claimable compare lane yet.",
       "inCatalog": true,
       "catalogLabel": "Qwen 3.5 2B (Q4K)",
       "catalogModes": [
@@ -1196,6 +1282,40 @@
       ],
       "catalogBaseUrl": null,
       "catalogSizeBytes": 2496068973
+    },
+    {
+      "dopplerModelId": "qwen-3-6-27b-q4k-eaf16",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "Qwen 3.6 27B (Q4K/F16a)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 16994352128
+    },
+    {
+      "dopplerModelId": "qwen-3-6-27b-q4k-ehaf16",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "Qwen 3.6 27B (Q4K)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 16994352128
     },
     {
       "dopplerModelId": "translategemma-4b-it-q4k-ehf16-af32",
@@ -1291,7 +1411,7 @@
       "dopplerModelSource": "local",
       "tjsModelId": "onnx-community/gemma-4-E2B-it-ONNX",
       "compareLane": "performance_comparable",
-      "compareLaneReason": null,
+      "compareLaneReason": "Doppler and the paired Transformers.js ONNX q4f16 runner both produce coherent Gemma 4 output, but current greedy text is not exact-match; this lane is claimable for compute-throughput comparisons, not correctness-parity claims.",
       "dopplerKernelPath": "manifest-default",
       "workloadId": null,
       "workload": {

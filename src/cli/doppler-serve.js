@@ -29,7 +29,7 @@ function usage() {
     '',
     'Examples:',
     '  node src/cli/doppler-serve.js --model gemma3-270m',
-    '  node src/cli/doppler-serve.js --model qwen3-0.8b --port 3000',
+    '  node src/cli/doppler-serve.js --model gemma4-e2b --port 3000',
     '',
     'Then use with any OpenAI-compatible client:',
     '  curl http://localhost:8080/v1/chat/completions \\',

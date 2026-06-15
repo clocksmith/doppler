@@ -38,6 +38,7 @@ const REFERENCE_SCAN_EXCLUDED_SEGMENTS = new Set([
   'tools/data',
 ]);
 const SESSION_ONLY_TRANSFORMS = new Set(['disableRetainQ4KMaterialization']);
+const REJECTION_TRANSFORMS = new Set(['failClosedLaneMismatch']);
 const REACHABILITY_PROTECTED_STATUSES = new Set(['pinned', 'model-selectable', 'selectable']);
 const ALLOWLIST_MATCH_FIELDS = new Set([
   'keys',
@@ -259,6 +260,7 @@ function hasTextReferenceExtension(fileName, extensions) {
 async function collectRepoReferenceIndex(registryEntries) {
   const contractFiles = await collectReferenceFiles(REPO_CONTRACT_REFERENCE_ROOTS, TEXT_REFERENCE_EXTENSIONS);
   const jsDispatchFiles = await collectReferenceFiles(JS_DISPATCH_REFERENCE_ROOTS, new Set(['.js']));
+  const registryVariantsByOperation = buildRegistryVariantsByOperation(registryEntries);
   const byWgsl = new Map();
   const byEntryId = new Map();
 
@@ -278,6 +280,9 @@ async function collectRepoReferenceIndex(registryEntries) {
     for (const pair of collectStaticDispatchPairs(text)) {
       pushSetMap(byEntryId, registryEntryId(pair), source);
     }
+    for (const pair of collectKernelWrapperVariantLiteralPairs(source, text, registryVariantsByOperation)) {
+      pushSetMap(byEntryId, registryEntryId(pair), source);
+    }
   }
 
   return {
@@ -292,6 +297,40 @@ async function collectRepoReferenceIndex(registryEntries) {
       jsDispatch: JS_DISPATCH_REFERENCE_ROOTS,
     },
   };
+}
+
+function buildRegistryVariantsByOperation(registryEntries) {
+  const byOperation = new Map();
+  for (const entry of registryEntries) {
+    if (!byOperation.has(entry.operation)) byOperation.set(entry.operation, new Set());
+    byOperation.get(entry.operation).add(entry.variant);
+  }
+  return byOperation;
+}
+
+function collectKernelWrapperVariantLiteralPairs(source, text, registryVariantsByOperation) {
+  const prefix = 'src/gpu/kernels/';
+  if (!source.startsWith(prefix) || !source.endsWith('.js')) return [];
+  const operation = path.basename(source, '.js').replaceAll('-', '_');
+  const variants = registryVariantsByOperation.get(operation);
+  if (!variants) return [];
+
+  const pairs = [];
+  for (const variant of variants) {
+    if (containsQuotedLiteral(text, variant)) {
+      pairs.push({ operation, variant });
+    }
+  }
+  return pairs;
+}
+
+function containsQuotedLiteral(text, value) {
+  const escaped = escapeRegExp(value);
+  return new RegExp(`(['"\`])${escaped}\\1`).test(text);
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 async function collectReferenceFiles(roots, extensions) {
@@ -1051,6 +1090,8 @@ function collectCapabilityTransformRefs(loadedModels, capabilityRules, options) 
     const baseKeys = new Set(model.kernels.map((ref) => ref.key));
     for (const rule of rules) {
       if (!Array.isArray(rule?.transforms) || rule.transforms.length === 0) continue;
+      validateCapabilityTransformNames(rule.transforms);
+      if (rule.transforms.some((name) => REJECTION_TRANSFORMS.has(name))) continue;
       const context = buildCapabilityRuleContext(rule, model.capabilityContext, options);
       if (!context) continue;
       const applied = applyCapabilityTransforms(model.execution, context, rule.transforms);
@@ -1076,6 +1117,14 @@ function collectCapabilityTransformRefs(loadedModels, capabilityRules, options) 
   }
 
   return { refs, applications };
+}
+
+function validateCapabilityTransformNames(transformNames) {
+  for (const name of transformNames) {
+    if (!TRANSFORMS[name]) {
+      throw new Error(`Unknown capability transform "${name}".`);
+    }
+  }
 }
 
 function buildCapabilityRuleContext(rule, baseContext, options) {

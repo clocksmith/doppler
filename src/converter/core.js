@@ -2800,7 +2800,7 @@ export async function convertModel(model, io, options = {}) {
     hashAlgorithm: converterConfig.manifest.hashAlgorithm,
     architecture: options.architecture,
     inference: options.inference,
-    eosTokenId: options.eosTokenId,
+    eosTokenId: converterConfig?.manifest?.eosTokenId ?? options.eosTokenId,
     convertedAt: converterConfig?.manifest?.conversion?.convertedAt ?? null,
     conversionInfo: converterConfig?.manifest?.conversion ?? null,
     manifestConfig: converterConfig?.manifest ?? null,

@@ -30,7 +30,11 @@
       "manifestVariantId": "qwen-3-6-27b-q4k-ehaf16-mv-exec-v1",
       "artifactCompleteness": "complete",
       "shardSetHash": "sha256:f355a595b115d4a40041bcb2fbe4d131316e422e65df28e5ed4573d2c9051108"
-    }
+    },
+    "eosTokenId": [
+      248046,
+      248044
+    ]
   },
   "inference": {
     "attention": {
@@ -494,7 +498,7 @@
       ],
       [
         "lm_head_prefill",
-        "tiled",
+        "q4_prefill",
         "lm_head"
       ],
       [

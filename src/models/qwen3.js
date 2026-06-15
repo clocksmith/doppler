@@ -16,7 +16,7 @@ const family = createFamily({
       sourceModel: 'Qwen/Qwen3.5-0.8B',
       hfPath: 'models/qwen-3-5-0-8b-q4k-ehaf16',
       defaultRuntimeProfile: 'profiles/throughput',
-      modes: ['text', 'vision'],
+      modes: ['text'],
     },
     {
       modelId: 'qwen-3-5-2b-q4k-ehaf16',
@@ -24,7 +24,7 @@ const family = createFamily({
       sourceModel: 'Qwen/Qwen3.5-2B',
       hfPath: 'models/qwen-3-5-2b-q4k-ehaf16',
       defaultRuntimeProfile: 'profiles/throughput',
-      modes: ['text', 'vision'],
+      modes: ['text'],
     },
   ],
 });

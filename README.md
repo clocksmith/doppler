@@ -34,7 +34,7 @@ first run; set `DOPPLER_QUICKSTART_CACHE_DIR` to move the cache or
 
 ```bash
 npx doppler-gpu "Summarize WebGPU in one sentence"
-npx doppler-gpu --model qwen3-0.8b --prompt "Write a haiku about GPUs"
+npx doppler-gpu --model gemma3-270m --prompt "Write a haiku about GPUs"
 npx doppler-gpu --list-models
 ```
 
@@ -112,7 +112,9 @@ The tier1 proof surface is the hosted browser demo, the root `doppler` API, the 
 
 ## Quickstart-supported models
 
-All models below are verified with deterministic greedy decoding on WebGPU hardware.
+All models below have verified WebGPU quickstart evidence. Text-generation
+models use deterministic greedy decoding; EmbeddingGemma uses the embedding
+verification contract.
 These registry IDs resolve to hosted RDRR artifacts automatically from the browser demo,
 `npx doppler-gpu`, or `doppler.load(...)`.
 
@@ -121,12 +123,11 @@ These registry IDs resolve to hosted RDRR artifacts automatically from the brows
 | Gemma 3 270M IT | `gemma3-270m` | Q4K | 270M | Gemma |
 | Gemma 3 1B IT | `gemma3-1b` | Q4K | 1B | Gemma |
 | Gemma 4 E2B IT | `gemma4-e2b` | Q4K | E2B | Gemma |
+| Gemma 4 E2B IT INT4PLE | `gemma4-e2b-int4ple` | Q4K | E2B | Gemma |
 | EmbeddingGemma 300M | `embeddinggemma-300m` | Q4K | 300M | Gemma |
-| Qwen 3.5 0.8B | `qwen3-0.8b` | Q4K | 0.8B | Qwen |
-| Qwen 3.5 2B | `qwen3-2b` | Q4K | 2B | Qwen |
 
-Additional verified local-artifact models (TranslateGemma 4B, LFM2.5 1.2B) are
-available outside the quickstart registry, including Gemma 4 E2B INT4PLE.
+Additional local-artifact models, including TranslateGemma 4B and Qwen 3.5
+lanes, are tracked outside the quickstart registry.
 Conversion configs exist for Gemma 4 MoE and Janus but are not yet in the
 quickstart registry.
 See the
