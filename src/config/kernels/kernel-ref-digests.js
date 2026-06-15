@@ -249,6 +249,8 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "scatter_add.wgsl#scatter_add_accumulate": "561800af22dedae63f1abe69b757b0ef6c7832a2bff228c2262e0b7111d89247",
   "silu_f16.wgsl#main": "1b6895a818c3b834dbe164e62d610d523ee76da824026678551afb1201c822f8",
   "silu.wgsl#main": "7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
+  "soft_embedding_logits_f16.wgsl#logits_norm_stats": "192f32e03b36cc0bc6dfec771bad3153d484c8ac1cab62da1b0c1aa32e536883",
+  "soft_embedding_logits_f16.wgsl#logits_probability_chunk": "697db38c5b3980572ecca55e11ada2a2ccc22b5ac52408137305b1a60981f3b7",
   "soft_embedding_split_f16.wgsl#main": "5683cfc3fcd0e3e6e86d2227a836bb31a4e61f4bd6b9207afedaca375cd0e679",
   "softmax_subgroup.wgsl#main_subgroup": "88472c0dab5f81c5f045f0ee79c4c3bb484791a4a2b84af398c019851438f091",
   "softmax_subgroup.wgsl#softmax_small_subgroup": "5d7bd1b698910a437197bf6c8b7f8b259036dd006ad5470f767b539dba8538f8",

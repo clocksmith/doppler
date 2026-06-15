@@ -6,10 +6,19 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { DOPPLER_VERSION, doppler } from '../index.js';
-import { listQuickstartModels } from '../client/doppler-registry.js';
+import { listQuickstartModels, resolveQuickstartModel } from '../client/doppler-registry.js';
 
 const DEFAULT_PORT = 8080;
 const DEFAULT_HOST = '127.0.0.1';
+
+export class ServeRequestError extends Error {
+  constructor(message, statusCode = 400, type = 'invalid_request_error') {
+    super(message);
+    this.name = 'ServeRequestError';
+    this.statusCode = statusCode;
+    this.type = type;
+  }
+}
 
 function usage() {
   return [
@@ -114,6 +123,10 @@ function jsonResponse(res, statusCode, data) {
   res.end(body);
 }
 
+function requestError(message, statusCode = 400, type = 'invalid_request_error') {
+  return new ServeRequestError(message, statusCode, type);
+}
+
 async function readRequestBody(req) {
   const chunks = [];
   for await (const chunk of req) {
@@ -121,29 +134,29 @@ async function readRequestBody(req) {
   }
   const raw = Buffer.concat(chunks).toString('utf8');
   if (!raw || raw.trim().length === 0) {
-    throw new Error('Request body is empty.');
+    throw requestError('Request body is empty.');
   }
   try {
     return JSON.parse(raw);
   } catch {
-    throw new Error('Request body is not valid JSON.');
+    throw requestError('Request body is not valid JSON.');
   }
 }
 
 function validateMessages(messages) {
   if (!Array.isArray(messages) || messages.length === 0) {
-    throw new Error('"messages" must be a non-empty array.');
+    throw requestError('"messages" must be a non-empty array.');
   }
   for (let i = 0; i < messages.length; i += 1) {
     const msg = messages[i];
     if (!msg || typeof msg !== 'object') {
-      throw new Error(`messages[${i}] must be an object.`);
+      throw requestError(`messages[${i}] must be an object.`);
     }
     if (typeof msg.role !== 'string' || msg.role.trim().length === 0) {
-      throw new Error(`messages[${i}].role must be a non-empty string.`);
+      throw requestError(`messages[${i}].role must be a non-empty string.`);
     }
     if (typeof msg.content !== 'string') {
-      throw new Error(`messages[${i}].content must be a string.`);
+      throw requestError(`messages[${i}].content must be a string.`);
     }
   }
   return messages.map((msg) => ({ role: msg.role.trim(), content: msg.content }));
@@ -153,36 +166,107 @@ function extractGenerationOptions(body) {
   const options = {};
   if (body.max_tokens != null) {
     const n = Number(body.max_tokens);
-    if (!Number.isFinite(n) || n < 1) {
-      throw new Error('"max_tokens" must be a positive integer.');
+    if (!Number.isFinite(n) || n < 1 || Math.floor(n) !== n) {
+      throw requestError('"max_tokens" must be a positive integer.');
     }
-    options.maxTokens = Math.floor(n);
+    options.maxTokens = n;
   }
   if (body.temperature != null) {
     const t = Number(body.temperature);
     if (!Number.isFinite(t) || t < 0) {
-      throw new Error('"temperature" must be a non-negative number.');
+      throw requestError('"temperature" must be a non-negative number.');
     }
     options.temperature = t;
   }
   if (body.top_p != null) {
     const p = Number(body.top_p);
     if (!Number.isFinite(p) || p <= 0 || p > 1) {
-      throw new Error('"top_p" must be a number between 0 (exclusive) and 1 (inclusive).');
+      throw requestError('"top_p" must be a number between 0 (exclusive) and 1 (inclusive).');
     }
     options.topP = p;
   }
   if (body.top_k != null) {
     const k = Number(body.top_k);
-    if (!Number.isFinite(k) || k < 1) {
-      throw new Error('"top_k" must be a positive integer.');
+    if (!Number.isFinite(k) || k < 1 || Math.floor(k) !== k) {
+      throw requestError('"top_k" must be a positive integer.');
     }
-    options.topK = Math.floor(k);
+    options.topK = k;
   }
   return options;
 }
 
-async function handleChatCompletions(req, res) {
+function resolveIncludeReceipt(body) {
+  const includeReceipt = body.include_receipt;
+  const dopplerReceipt = body.doppler_receipt;
+  if (includeReceipt == null && dopplerReceipt == null) {
+    return false;
+  }
+  if (includeReceipt != null && typeof includeReceipt !== 'boolean') {
+    throw requestError('"include_receipt" must be a boolean when provided.');
+  }
+  if (dopplerReceipt != null && typeof dopplerReceipt !== 'boolean') {
+    throw requestError('"doppler_receipt" must be a boolean when provided.');
+  }
+  if (includeReceipt != null && dopplerReceipt != null && includeReceipt !== dopplerReceipt) {
+    throw requestError('"include_receipt" and "doppler_receipt" must agree when both are provided.');
+  }
+  return includeReceipt ?? dopplerReceipt;
+}
+
+async function resolveTextModelEntry(modelId, resolveModel) {
+  let entry;
+  try {
+    entry = await resolveModel(modelId);
+  } catch {
+    throw requestError(`Unknown model "${modelId}". Use GET /v1/models for supported chat models.`);
+  }
+  if (!entry.modes.includes('text')) {
+    throw requestError(`Model "${modelId}" is not text-generative. Use GET /v1/models for supported chat models.`);
+  }
+  return entry;
+}
+
+function buildGenerationOptionsReceipt(generationOptions) {
+  return {
+    maxTokens: generationOptions.maxTokens ?? null,
+    temperature: generationOptions.temperature ?? null,
+    topP: generationOptions.topP ?? null,
+    topK: generationOptions.topK ?? null,
+  };
+}
+
+export function buildServeReceipt({ requestedModel, registryEntry, generationOptions, usage }) {
+  return {
+    schemaVersion: 1,
+    runtime: 'doppler-gpu',
+    runtimeVersion: DOPPLER_VERSION,
+    requestedModel,
+    resolvedModel: registryEntry.modelId,
+    artifact: {
+      format: 'rdrr',
+      source: 'quickstart-registry',
+      sourceCheckpointId: registryEntry.sourceCheckpointId,
+      weightPackId: registryEntry.weightPackId,
+      manifestVariantId: registryEntry.manifestVariantId,
+      artifactCompleteness: registryEntry.artifactCompleteness,
+      runtimePromotionState: registryEntry.runtimePromotionState,
+      weightsRefAllowed: registryEntry.weightsRefAllowed,
+      hf: registryEntry.hf,
+    },
+    generation: buildGenerationOptionsReceipt(generationOptions),
+    usage,
+  };
+}
+
+function resolveServeDependencies(dependencies = {}) {
+  return {
+    dopplerClient: dependencies.dopplerClient ?? doppler,
+    listModels: dependencies.listModels ?? listQuickstartModels,
+    resolveModel: dependencies.resolveModel ?? resolveQuickstartModel,
+  };
+}
+
+async function handleChatCompletions(req, res, dependencies) {
   const body = await readRequestBody(req);
   if (typeof body.model !== 'string' || body.model.trim().length === 0) {
     return jsonError(res, 400, '"model" is required and must be a non-empty string.');
@@ -190,23 +274,48 @@ async function handleChatCompletions(req, res) {
   const modelId = body.model.trim();
   const messages = validateMessages(body.messages);
   const generationOptions = extractGenerationOptions(body);
+  const includeReceipt = resolveIncludeReceipt(body);
   const stream = body.stream === true;
+  if (includeReceipt && stream) {
+    throw requestError('"include_receipt" is not supported with streaming responses.');
+  }
+  const registryEntry = await resolveTextModelEntry(modelId, dependencies.resolveModel);
   const completionId = generateCompletionId();
   const created = Math.floor(Date.now() / 1000);
 
   if (stream) {
-    return handleStreamingCompletion(res, modelId, messages, generationOptions, completionId, created);
+    return handleStreamingCompletion(res, registryEntry.modelId, messages, generationOptions, completionId, created, dependencies);
   }
-  return handleNonStreamingCompletion(res, modelId, messages, generationOptions, completionId, created);
+  return handleNonStreamingCompletion(
+    res,
+    modelId,
+    registryEntry,
+    messages,
+    generationOptions,
+    completionId,
+    created,
+    includeReceipt,
+    dependencies
+  );
 }
 
-async function handleNonStreamingCompletion(res, modelId, messages, generationOptions, completionId, created) {
-  const result = await doppler.chatText(messages, { model: modelId, ...generationOptions });
-  jsonResponse(res, 200, {
+async function handleNonStreamingCompletion(
+  res,
+  requestedModel,
+  registryEntry,
+  messages,
+  generationOptions,
+  completionId,
+  created,
+  includeReceipt,
+  dependencies
+) {
+  const result = await dependencies.dopplerClient.chatText(messages, { model: registryEntry.modelId, ...generationOptions });
+  const body = {
     id: completionId,
     object: 'chat.completion',
     created,
-    model: modelId,
+    model: registryEntry.modelId,
     choices: [
       {
         index: 0,
@@ -222,10 +331,19 @@ async function handleNonStreamingCompletion(res, modelId, messages, generationOp
       completion_tokens: result.usage.completionTokens,
       total_tokens: result.usage.totalTokens,
     },
-  });
+  };
+  if (includeReceipt) {
+    body.doppler_receipt = buildServeReceipt({
+      requestedModel,
+      registryEntry,
+      generationOptions,
+      usage: result.usage,
+    });
+  }
+  jsonResponse(res, 200, body);
 }
 
-async function handleStreamingCompletion(res, modelId, messages, generationOptions, completionId, created) {
+async function handleStreamingCompletion(res, modelId, messages, generationOptions, completionId, created, dependencies) {
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
@@ -251,7 +369,7 @@ async function handleStreamingCompletion(res, modelId, messages, generationOptio
     ],
   });
 
-  const stream = doppler.chat(messages, { model: modelId, ...generationOptions });
+  const stream = dependencies.dopplerClient.chat(messages, { model: modelId, ...generationOptions });
   for await (const token of stream) {
     if (res.destroyed) {
       break;
@@ -288,8 +406,8 @@ async function handleStreamingCompletion(res, modelId, messages, generationOptio
   res.end();
 }
 
-async function handleListModels(res) {
-  const models = await listQuickstartModels();
+async function handleListModels(res, dependencies) {
+  const models = await dependencies.listModels();
   const textModels = models.filter((entry) => entry.modes.includes('text'));
   jsonResponse(res, 200, {
     object: 'list',
@@ -298,6 +416,15 @@ async function handleListModels(res) {
       object: 'model',
       created: 0,
       owned_by: 'doppler',
+      doppler: {
+        sourceCheckpointId: entry.sourceCheckpointId,
+        weightPackId: entry.weightPackId,
+        manifestVariantId: entry.manifestVariantId,
+        artifactCompleteness: entry.artifactCompleteness,
+        runtimePromotionState: entry.runtimePromotionState,
+        weightsRefAllowed: entry.weightsRefAllowed,
+        modes: entry.modes,
+      },
     })),
   });
 }
@@ -319,7 +446,8 @@ function handleCors(req, res) {
   res.end();
 }
 
-export function createServeHandler() {
+export function createServeHandler(dependencies = {}) {
+  const resolvedDependencies = resolveServeDependencies(dependencies);
   return async (req, res) => {
     if (req.method === 'OPTIONS') {
       return handleCors(req, res);
@@ -330,10 +458,10 @@ export function createServeHandler() {
 
     try {
       if (pathname === '/v1/chat/completions' && req.method === 'POST') {
-        return await handleChatCompletions(req, res);
+        return await handleChatCompletions(req, res, resolvedDependencies);
       }
       if (pathname === '/v1/models' && req.method === 'GET') {
-        return await handleListModels(res);
+        return await handleListModels(res, resolvedDependencies);
       }
       if ((pathname === '/health' || pathname === '/') && req.method === 'GET') {
         return handleHealth(res);
@@ -343,7 +471,11 @@ export function createServeHandler() {
       const message = error?.message || String(error);
       console.error(`[doppler-serve] ${req.method} ${pathname}: ${message}`);
       if (!res.headersSent) {
-        jsonError(res, 500, message, 'server_error');
+        if (error instanceof ServeRequestError) {
+          jsonError(res, error.statusCode, message, error.type);
+        } else {
+          jsonError(res, 500, message, 'server_error');
+        }
       }
     }
   };

@@ -75,6 +75,7 @@ export {
 
 export {
   runSoftEmbeddingSplitF16,
+  runSoftEmbeddingLogitsF16,
 } from './soft-embedding.js';
 
 export {

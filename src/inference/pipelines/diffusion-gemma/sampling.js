@@ -243,6 +243,12 @@ export function updateStabilityState(previousArgmaxCanvas, argmaxCanvas, previou
   };
 }
 
+function releaseSelfConditioningState(state) {
+  if (state && !ArrayBuffer.isView(state) && typeof state.release === 'function') {
+    state.release();
+  }
+}
+
 export async function denoiseCanvas(config, options) {
   const logitsProvider = options?.logitsProvider;
   const random = options?.random;
@@ -326,53 +332,64 @@ export async function denoiseCanvasWithStatsProvider(config, options) {
   assertCanvas(canvas, config.canvasLength, 'initialCanvas');
   let previousArgmaxCanvas = null;
   let stabilityCounts = null;
-  let selfConditioningLogits = options.selfConditioningLogits ?? null;
+  const initialSelfConditioningLogits = options.selfConditioningLogits ?? null;
+  let selfConditioningLogits = initialSelfConditioningLogits;
   let lastStep = null;
   let stepsRun = 0;
+  let completed = false;
 
-  for (let step = config.maxDenoisingSteps; step >= 1; step -= 1) {
-    stepsRun += 1;
-    const temperature = resolveDenoisingTemperature(config, step);
-    const stats = await statsProvider({
+  try {
+    for (let step = config.maxDenoisingSteps; step >= 1; step -= 1) {
+      stepsRun += 1;
+      const temperature = resolveDenoisingTemperature(config, step);
+      const inputSelfConditioningLogits = selfConditioningLogits;
+      selfConditioningLogits = null;
+      const stats = await statsProvider({
+        canvas,
+        step,
+        temperature,
+        selfConditioningLogits: inputSelfConditioningLogits,
+        canvasIndex: options.canvasIndex ?? 0,
+        inputIds: options.inputIds ?? null,
+      });
+      selfConditioningLogits = stats.selfConditioningLogits ?? null;
+      const stepResult = applyEntropyBoundStatsStep(canvas, stats, config, {
+        temperature,
+        random,
+      });
+      const stability = updateStabilityState(
+        previousArgmaxCanvas,
+        stepResult.argmaxCanvas,
+        stabilityCounts,
+        config
+      );
+
+      canvas = stepResult.canvas;
+      previousArgmaxCanvas = stepResult.argmaxCanvas;
+      stabilityCounts = stability.counts;
+      lastStep = {
+        ...stepResult,
+        step,
+        temperature,
+        stability,
+      };
+
+      if (stability.allStable && stepResult.meanEntropy < config.confidenceThreshold) {
+        break;
+      }
+    }
+
+    completed = true;
+    return {
       canvas,
-      step,
-      temperature,
+      argmaxCanvas: previousArgmaxCanvas,
       selfConditioningLogits,
-      canvasIndex: options.canvasIndex ?? 0,
-      inputIds: options.inputIds ?? null,
-    });
-    const stepResult = applyEntropyBoundStatsStep(canvas, stats, config, {
-      temperature,
-      random,
-    });
-    const stability = updateStabilityState(
-      previousArgmaxCanvas,
-      stepResult.argmaxCanvas,
-      stabilityCounts,
-      config
-    );
-
-    canvas = stepResult.canvas;
-    previousArgmaxCanvas = stepResult.argmaxCanvas;
-    stabilityCounts = stability.counts;
-    selfConditioningLogits = stats.selfConditioningLogits ?? null;
-    lastStep = {
-      ...stepResult,
-      step,
-      temperature,
-      stability,
+      lastStep,
+      stepsRun,
     };
-
-    if (stability.allStable && stepResult.meanEntropy < config.confidenceThreshold) {
-      break;
+  } finally {
+    if (!completed && selfConditioningLogits !== initialSelfConditioningLogits) {
+      releaseSelfConditioningState(selfConditioningLogits);
     }
   }
-
-  return {
-    canvas,
-    argmaxCanvas: previousArgmaxCanvas,
-    selfConditioningLogits,
-    lastStep,
-    stepsRun,
-  };
 }

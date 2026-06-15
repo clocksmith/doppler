@@ -4359,6 +4359,81 @@
             "ruleChains": [],
             "wgslOnDisk": true
           }
+        },
+        "logits_norm_stats": {
+          "wgsl": "soft_embedding_logits_f16.wgsl",
+          "entryPoint": "logits_norm_stats",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "bindingsOverride": [
+            {
+              "index": 1,
+              "name": "logits",
+              "type": "read-only-storage"
+            },
+            {
+              "index": 2,
+              "name": "row_max",
+              "type": "storage"
+            },
+            {
+              "index": 3,
+              "name": "row_sum",
+              "type": "storage"
+            }
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
+        "logits_probability_chunk": {
+          "wgsl": "soft_embedding_logits_f16.wgsl",
+          "entryPoint": "logits_probability_chunk",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "bindingsOverride": [
+            {
+              "index": 1,
+              "name": "logits",
+              "type": "read-only-storage"
+            },
+            {
+              "index": 2,
+              "name": "row_max",
+              "type": "storage"
+            },
+            {
+              "index": 3,
+              "name": "row_sum",
+              "type": "storage"
+            },
+            {
+              "index": 4,
+              "name": "probabilities",
+              "type": "storage"
+            }
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
         }
       }
     },

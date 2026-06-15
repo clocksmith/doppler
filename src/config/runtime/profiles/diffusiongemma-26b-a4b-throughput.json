@@ -1,7 +1,7 @@
 {
   "id": "profiles/diffusiongemma-26b-a4b-throughput",
   "name": "diffusiongemma-26b-a4b-throughput",
-  "description": "DiffusionGemma calibration profile that selects the measured active-expert scheduler for the Gemma 4 A4B MoE block-diffusion artifact.",
+  "description": "DiffusionGemma calibration profile that selects the GPU route-expert scheduler for the Gemma 4 A4B MoE block-diffusion artifact.",
   "intent": "calibrate",
   "stability": "experimental",
   "owner": "doppler-core",
@@ -10,10 +10,15 @@
   "model": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
   "runtime": {
     "inference": {
+      "batching": {
+        "maxTokens": 16
+      },
+      "diffusionGemma": {
+        "softEmbeddingLogitsChunkRows": 4096
+      },
       "moe": {
         "routing": {
-          "activeExpertSelection": "topk-readback",
-          "maxTokensPerExpert": 64
+          "activeExpertSelection": "topk-route"
         }
       }
     }

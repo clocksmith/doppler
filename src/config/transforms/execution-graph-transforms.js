@@ -1814,7 +1814,13 @@ export function useQwen36F16Activations(graph, ctx) {
   const lmHeadPrefillStep = findPhaseStep(result.postLayer, 'lm_head_prefill');
   const lmHeadPrefillKey = lmHeadPrefillStep?.[1] ?? null;
   const lmHeadPrefillEntry = lmHeadPrefillKey ? result.kernels[lmHeadPrefillKey] : null;
-  if (
+  const lmHeadPrefillF16Entry =
+    deriveQ4WideTilePrefillF16KernelEntry(lmHeadPrefillEntry)
+    ?? deriveQ4PrefillF16AccumKernelEntry(lmHeadPrefillEntry)
+    ?? deriveQ4PrefillF16KernelEntry(lmHeadPrefillEntry);
+  if (lmHeadPrefillF16Entry) {
+    replaceKernelEntry(lmHeadPrefillKey, lmHeadPrefillF16Entry);
+  } else if (
     lmHeadPrefillEntry?.kernel === 'matmul_f16w_f32a.wgsl'
     || lmHeadPrefillEntry?.kernel === 'matmul_f16w_f32a_tiled.wgsl'
   ) {

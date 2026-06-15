@@ -27,13 +27,23 @@ assert.equal(profile.intent, 'calibrate');
 assert.equal(profile.model, 'diffusiongemma-26b-a4b-it-q4k-ehf16-af16');
 assert.equal(
   profile.runtime?.inference?.moe?.routing?.activeExpertSelection,
-  'topk-readback',
-  'DiffusionGemma throughput profile must pin the fast active-expert scheduler.'
+  'topk-route',
+  'DiffusionGemma throughput profile must pin the GPU route-expert scheduler.'
 );
 assert.equal(
-  profile.runtime?.inference?.moe?.routing?.maxTokensPerExpert,
-  64,
-  'DiffusionGemma throughput profile must pin the measured active-expert slot budget.'
+  profile.runtime?.inference?.batching?.maxTokens,
+  16,
+  'DiffusionGemma throughput profile must cap canvas token chunks for 4GB WebGPU adapters.'
+);
+assert.equal(
+  profile.runtime?.inference?.diffusionGemma?.softEmbeddingLogitsChunkRows,
+  4096,
+  'DiffusionGemma throughput profile must cap self-conditioning soft-embedding chunks.'
+);
+assert.equal(
+  Object.hasOwn(profile.runtime?.inference?.moe?.routing ?? {}, 'maxTokensPerExpert'),
+  false,
+  'DiffusionGemma topk-route profile must not carry the readback slot budget.'
 );
 
 console.log('diffusiongemma-runtime-profile-contract.test: ok');

@@ -116,8 +116,7 @@ function createStats(modelLoadMs = 0) {
 }
 
 function releaseSelfConditioningState(state) {
-  const buffer = state?.logitsBuffer ?? null;
-  if (buffer && typeof state.release === 'function') {
+  if (state && !ArrayBuffer.isView(state) && typeof state.release === 'function') {
     state.release();
   }
 }

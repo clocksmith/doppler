@@ -104,6 +104,29 @@ assert.equal(resolveDenoisingTemperature(config, 1), 0.6000000000000001);
 }
 
 {
+  const released = [];
+  await assert.rejects(
+    () => denoiseCanvasWithStatsProvider(config, {
+      initialCanvas: [1, 1, 1],
+      random: createSeededRandom(456),
+      statsProvider: async () => ({
+        argmaxCanvas: Int32Array.from([5, 6]),
+        entropies: new Float32Array([0.001, 0.002]),
+        selfConditioningLogits: {
+          kind: 'soft_embedding',
+          buffer: {},
+          release() {
+            released.push('owned');
+          },
+        },
+      }),
+    }),
+    /argmaxCanvas length 2 does not match canvasLength 3/
+  );
+  assert.deepEqual(released, ['owned']);
+}
+
+{
   const result = await denoiseCanvas(config, {
     initialCanvas: [1, 1, 1],
     random: createSeededRandom(456),

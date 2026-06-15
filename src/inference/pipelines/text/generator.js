@@ -16,6 +16,7 @@ import {
   runScale,
   runSoftmax,
   runSoftEmbeddingSplitF16,
+  runSoftEmbeddingLogitsF16,
 } from '../../../gpu/kernel-selector.js';
 import { runDiffusionGemmaCanvasStats } from '../../../gpu/kernels/diffusion-gemma-sampling.js';
 import {
@@ -33,7 +34,7 @@ import { embed } from './embed.js';
 import { processLayer } from './layer.js';
 import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from './logits/index.js';
 import { OperatorEventEmitter } from './operator-events.js';
-import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, getWeightMetadata } from '../../../gpu/weight-buffer.js';
+import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, getWeightMetadata, getLayout } from '../../../gpu/weight-buffer.js';
 import {
   decodeStep,
   decodeStepLogits,
@@ -251,6 +252,27 @@ function releaseBorrowedWeight(borrowed) {
   releaseBuffer(isWeightBuffer(value) ? value.buffer : value);
 }
 
+function canUseChunkedSoftEmbeddingLogits(logitsState, embeddingWeight, embeddingTranspose) {
+  return logitsState != null
+    && isWeightBuffer(embeddingWeight)
+    && getWeightDtype(embeddingWeight) === 'f16'
+    && getLayout(embeddingWeight) === 'row'
+    && embeddingTranspose !== true;
+}
+
+function resolveDiffusionGemmaSoftEmbeddingChunkRows(runtimeConfig) {
+  const value = runtimeConfig?.inference?.diffusionGemma?.softEmbeddingLogitsChunkRows;
+  if (value == null) {
+    return undefined;
+  }
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(
+      'runtime.inference.diffusionGemma.softEmbeddingLogitsChunkRows must be a positive integer.'
+    );
+  }
+  return value;
+}
+
 function normalizeCanvasTokenIds(canvas, context) {
   if (!Array.isArray(canvas) && !ArrayBuffer.isView(canvas)) {
     throw new Error(`[DiffusionGemma] ${context}.canvas must be an array or typed array of token IDs.`);
@@ -309,6 +331,37 @@ function normalizeSelfConditioningLogitsState(logits, canvasLength, vocabSize) {
     logitsDtype: dtype,
     temperature,
     releaseOnUse: logits.releaseOnUse !== false,
+  };
+}
+
+function normalizeSelfConditioningSoftEmbeddingState(state, canvasLength, hiddenSize) {
+  if (state?.kind !== 'soft_embedding') {
+    return null;
+  }
+  if (!isGpuBufferInstance(state.buffer)) {
+    throw new Error('[DiffusionGemma] GPU selfConditioning soft embedding requires a GPU buffer.');
+  }
+  const dtype = state.dtype ?? 'f32';
+  if (dtype !== 'f32') {
+    throw new Error(`[DiffusionGemma] GPU selfConditioning soft embedding requires f32 dtype, got "${dtype}".`);
+  }
+  if (state.canvasLength !== canvasLength) {
+    throw new Error(
+      `[DiffusionGemma] GPU selfConditioning soft embedding canvas mismatch: ` +
+      `expected ${canvasLength}, got ${state.canvasLength}.`
+    );
+  }
+  if (state.hiddenSize !== hiddenSize) {
+    throw new Error(
+      `[DiffusionGemma] GPU selfConditioning soft embedding hidden mismatch: ` +
+      `expected ${hiddenSize}, got ${state.hiddenSize}.`
+    );
+  }
+  return {
+    buffer: state.buffer,
+    dtype,
+    releaseOnUse: state.releaseOnUse !== false,
+    scaled: state.scaled === true,
   };
 }
 
@@ -1123,8 +1176,15 @@ export class PipelineGenerator {
     const hiddenSize = config.hiddenSize;
     const vocabSize = config.vocabSize;
     const elementCount = canvasLength * hiddenSize;
-    const logitsState = normalizeSelfConditioningLogitsState(selfConditioningLogits, canvasLength, vocabSize);
-    const logits = logitsState
+    const softEmbeddingState = normalizeSelfConditioningSoftEmbeddingState(
+      selfConditioningLogits,
+      canvasLength,
+      hiddenSize
+    );
+    const logitsState = softEmbeddingState
+      ? null
+      : normalizeSelfConditioningLogitsState(selfConditioningLogits, canvasLength, vocabSize);
+    const logits = (softEmbeddingState || logitsState)
       ? null
       : normalizeSelfConditioningLogits(selfConditioningLogits, canvasLength, vocabSize);
     const weights = this.#state.weights.get('diffusion_gemma_self_conditioning');
@@ -1148,6 +1208,8 @@ export class PipelineGenerator {
     };
     let softLogitsTensor = null;
     let softLogitsOwned = true;
+    let softEmbeddingStateTensor = null;
+    let softEmbeddingStateOwned = false;
     let softmaxTensor = null;
     let softEmbeddings = null;
     let scaledSoftEmbeddings = null;
@@ -1203,7 +1265,27 @@ export class PipelineGenerator {
         operatorDiagnostics: this.#state.operatorDiagnostics,
       });
 
-      if (logitsState || logits) {
+      if (softEmbeddingState) {
+        softEmbeddingStateOwned = softEmbeddingState.releaseOnUse;
+        softEmbeddings = createTensor(
+          softEmbeddingState.buffer,
+          softEmbeddingState.dtype,
+          [canvasLength, hiddenSize],
+          'diffusion_gemma_self_conditioning_soft_embedding'
+        );
+        softEmbeddingStateTensor = softEmbeddings;
+        if (!softEmbeddingState.scaled) {
+          scaledSoftEmbeddings = await runScale(softEmbeddings, Math.sqrt(hiddenSize), {
+            count: elementCount,
+          });
+          if (softEmbeddingStateOwned) {
+            releaseTensorOnce(softEmbeddings);
+          }
+          softEmbeddings = scaledSoftEmbeddings;
+          softEmbeddingStateTensor = null;
+          scaledSoftEmbeddings = null;
+        }
+      } else if (logitsState || logits) {
         const softmaxTemperature = logitsState?.temperature ?? 1.0;
         if (logitsState) {
           softLogitsOwned = logitsState.releaseOnUse;
@@ -1218,36 +1300,56 @@ export class PipelineGenerator {
           uploadData(logitsBuffer, logits);
           softLogitsTensor = createTensor(logitsBuffer, 'f32', [canvasLength, vocabSize], 'diffusion_gemma_self_conditioning_logits');
         }
-        softmaxTensor = await runSoftmax(softLogitsTensor, -1, {
-          batchSize: canvasLength,
-          size: vocabSize,
-          temperature: softmaxTemperature,
-        });
-        softEmbeddings = isSplitWeightBuffer(embedBufferRaw)
-          ? await runSoftEmbeddingSplitF16(
-            softmaxTensor,
-            embedBufferRaw,
-            canvasLength,
-            hiddenSize,
-            vocabSize
-          )
-          : await runMatmul(
-            softmaxTensor,
+        if (canUseChunkedSoftEmbeddingLogits(
+          logitsState,
+          borrowed.softEmbedding?.value,
+          this.#state.embeddingTranspose
+        )) {
+          softEmbeddings = await runSoftEmbeddingLogitsF16(
+            softLogitsTensor,
             borrowed.softEmbedding.value,
             canvasLength,
             hiddenSize,
             vocabSize,
             {
-              transposeB: this.#state.embeddingTranspose === true,
-              role: 'diffusion_gemma_self_conditioning_embed',
-              outputDtype: 'f32',
-              executionPolicies: this.#state.executionV1State?.policies ?? null,
+              temperature: softmaxTemperature,
+              chunkRows: resolveDiffusionGemmaSoftEmbeddingChunkRows(this.#state.runtimeConfig),
             }
           );
+        } else {
+          softmaxTensor = await runSoftmax(softLogitsTensor, -1, {
+            batchSize: canvasLength,
+            size: vocabSize,
+            temperature: softmaxTemperature,
+          });
+          softEmbeddings = isSplitWeightBuffer(embedBufferRaw)
+            ? await runSoftEmbeddingSplitF16(
+              softmaxTensor,
+              embedBufferRaw,
+              canvasLength,
+              hiddenSize,
+              vocabSize
+            )
+            : await runMatmul(
+              softmaxTensor,
+              borrowed.softEmbedding.value,
+              canvasLength,
+              hiddenSize,
+              vocabSize,
+              {
+                transposeB: this.#state.embeddingTranspose === true,
+                role: 'diffusion_gemma_self_conditioning_embed',
+                outputDtype: 'f32',
+                executionPolicies: this.#state.executionV1State?.policies ?? null,
+              }
+            );
+        }
         scaledSoftEmbeddings = await runScale(softEmbeddings, Math.sqrt(hiddenSize), {
           count: elementCount,
         });
-        releaseTensorOnce(softEmbeddings);
+        if (softEmbeddings !== softEmbeddingStateTensor || softEmbeddingStateOwned) {
+          releaseTensorOnce(softEmbeddings);
+        }
         softEmbeddings = scaledSoftEmbeddings;
         scaledSoftEmbeddings = null;
       } else {
@@ -1331,7 +1433,9 @@ export class PipelineGenerator {
       releaseTensorOnce(up);
       releaseTensorOnce(gate);
       releaseTensorOnce(normedSoft);
-      releaseTensorOnce(softEmbeddings);
+      if (softEmbeddings !== softEmbeddingStateTensor || softEmbeddingStateOwned) {
+        releaseTensorOnce(softEmbeddings);
+      }
       releaseTensorOnce(softmaxTensor);
       if (softLogitsOwned) {
         releaseTensorOnce(softLogitsTensor);
@@ -1343,6 +1447,61 @@ export class PipelineGenerator {
       releaseBorrowedWeight(borrowed.gateProj);
       releaseBorrowedWeight(borrowed.preNorm);
       releaseBorrowedWeight(borrowed.softEmbedding);
+    }
+  }
+
+  async _createDiffusionGemmaSelfConditioningSoftEmbeddingState(logitsState, canvasLength, hiddenSize, vocabSize) {
+    const embedBufferRaw = this.#state.weights.get('embed');
+    if (!canUseChunkedSoftEmbeddingLogits(
+      logitsState,
+      embedBufferRaw,
+      this.#state.embeddingTranspose
+    )) {
+      return null;
+    }
+
+    const borrowed = borrowLinearWeight(embedBufferRaw, 'diffusion_gemma_self_conditioning.embed_tokens');
+    let softEmbedding = null;
+    let scaledSoftEmbedding = null;
+    try {
+      const logitsTensor = createTensor(
+        logitsState.logitsBuffer,
+        logitsState.logitsDtype,
+        [canvasLength, vocabSize],
+        'diffusion_gemma_self_conditioning_logits'
+      );
+      softEmbedding = await runSoftEmbeddingLogitsF16(
+        logitsTensor,
+        borrowed.value,
+        canvasLength,
+        hiddenSize,
+        vocabSize,
+        {
+          temperature: logitsState.temperature,
+          chunkRows: resolveDiffusionGemmaSoftEmbeddingChunkRows(this.#state.runtimeConfig),
+        }
+      );
+      scaledSoftEmbedding = await runScale(softEmbedding, Math.sqrt(hiddenSize), {
+        count: canvasLength * hiddenSize,
+      });
+      const returnedBuffer = scaledSoftEmbedding.buffer;
+      return {
+        kind: 'soft_embedding',
+        buffer: returnedBuffer,
+        dtype: scaledSoftEmbedding.dtype,
+        canvasLength,
+        hiddenSize,
+        scaled: true,
+        releaseOnUse: true,
+        release() {
+          releaseBuffer(returnedBuffer);
+        },
+      };
+    } finally {
+      if (softEmbedding?.buffer && softEmbedding.buffer !== scaledSoftEmbedding?.buffer) {
+        releaseBuffer(softEmbedding.buffer);
+      }
+      releaseBorrowedWeight(borrowed);
     }
   }
 
@@ -1483,6 +1642,10 @@ export class PipelineGenerator {
           await device.queue.onSubmittedWorkDone();
         }
       }
+      if (selfConditioned?.buffer) {
+        releaseBuffer(selfConditioned.buffer);
+        selfConditioned = null;
+      }
 
       const logitsResult = await computeLogitsGPU(
         currentHiddenBuffer,
@@ -1496,6 +1659,10 @@ export class PipelineGenerator {
         throw new Error('[DiffusionGemma] GPU canvas step requires GPU logits.');
       }
       logitsBuffer = logitsResult.logitsBuffer;
+      if (currentHiddenBuffer) {
+        releaseBuffer(currentHiddenBuffer);
+        currentHiddenBuffer = null;
+      }
       if (logitsResult.logitsDtype !== 'f32') {
         throw new Error(
           `[DiffusionGemma] GPU canvas stats require f32 logits, got "${logitsResult.logitsDtype}".`
@@ -1521,22 +1688,35 @@ export class PipelineGenerator {
       ]);
       const argmaxCanvas = Int32Array.from(new Uint32Array(argmaxData));
       const entropies = new Float32Array(entropyData);
-      const returnedLogitsBuffer = logitsBuffer;
-      logitsBuffer = null;
+      const logitsState = {
+        logitsBuffer,
+        logitsDtype: logitsResult.logitsDtype,
+        vocabSize: logitsResult.vocabSize,
+        canvasLength: canvasIds.length,
+        temperature,
+        releaseOnUse: true,
+      };
+      const selfConditioningState =
+        await this._createDiffusionGemmaSelfConditioningSoftEmbeddingState(
+          logitsState,
+          canvasIds.length,
+          this.#state.modelConfig.hiddenSize,
+          logitsResult.vocabSize
+        );
+      if (selfConditioningState) {
+        releaseBuffer(logitsBuffer);
+        logitsBuffer = null;
+      } else {
+        const returnedLogitsBuffer = logitsBuffer;
+        logitsBuffer = null;
+        logitsState.release = () => {
+          releaseBuffer(returnedLogitsBuffer);
+        };
+      }
       return {
         argmaxCanvas,
         entropies,
-        selfConditioningLogits: {
-          logitsBuffer: returnedLogitsBuffer,
-          logitsDtype: logitsResult.logitsDtype,
-          vocabSize: logitsResult.vocabSize,
-          canvasLength: canvasIds.length,
-          temperature,
-          releaseOnUse: true,
-          release() {
-            releaseBuffer(returnedLogitsBuffer);
-          },
-        },
+        selfConditioningLogits: selfConditioningState ?? logitsState,
       };
     } finally {
       this.#state.currentSeqLen = seqLenBefore;

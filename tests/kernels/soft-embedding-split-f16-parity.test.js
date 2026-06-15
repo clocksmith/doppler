@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import { probeNodeGPU } from '../helpers/gpu-probe.js';
 import { destroyDevice, getDevice } from '../../src/gpu/device.js';
 import { createTensor } from '../../src/gpu/tensor.js';
-import { createSplitWeightBuffer } from '../../src/gpu/weight-buffer.js';
+import { createSplitWeightBuffer, createWeightBuffer } from '../../src/gpu/weight-buffer.js';
 import { readBuffer, releaseBuffer } from '../../src/memory/buffer-pool.js';
-import { runSoftEmbeddingSplitF16 } from '../../src/gpu/kernels/soft-embedding.js';
+import { runSoftEmbeddingLogitsF16, runSoftEmbeddingSplitF16 } from '../../src/gpu/kernels/soft-embedding.js';
 import { f32ToF16Array, f16ToF32Bits } from '../../src/inference/kv-cache/types.js';
 
 const gpu = await probeNodeGPU();
@@ -25,6 +25,30 @@ function makeStorageBuffer(data, label) {
   });
   device.queue.writeBuffer(buffer, 0, data);
   return buffer;
+}
+
+function computeSoftEmbeddingReference(logits, embeddingRows, rows, cols, hidden, temperature) {
+  const expected = new Float32Array(rows * hidden);
+  for (let token = 0; token < rows; token += 1) {
+    let max = -Infinity;
+    for (let vocab = 0; vocab < cols; vocab += 1) {
+      max = Math.max(max, logits[(token * cols) + vocab] / temperature);
+    }
+    let sum = 0;
+    const probs = new Float32Array(cols);
+    for (let vocab = 0; vocab < cols; vocab += 1) {
+      const probability = Math.exp((logits[(token * cols) + vocab] / temperature) - max);
+      probs[vocab] = probability;
+      sum += probability;
+    }
+    for (let vocab = 0; vocab < cols; vocab += 1) {
+      const probability = probs[vocab] / sum;
+      for (let h = 0; h < hidden; h += 1) {
+        expected[(token * hidden) + h] += probability * embeddingRows[(vocab * hidden) + h];
+      }
+    }
+  }
+  return expected;
 }
 
 const numTokens = 2;
@@ -77,6 +101,7 @@ const splitEmbedding = createSplitWeightBuffer(
 );
 
 let output = null;
+let logitsOutput = null;
 try {
   const softmaxTensor = createTensor(
     softmaxBuffer,
@@ -99,6 +124,61 @@ try {
   }
   console.log(`soft-embedding-split-f16-parity: max_abs_diff=${maxAbsDiff.toExponential(3)}`);
   assert.ok(maxAbsDiff < 1e-5, `split soft embedding diverged: max_abs_diff=${maxAbsDiff}`);
+
+  const logitsVocabSize = 96;
+  const logitsHiddenSize = 4;
+  const logitsNumTokens = 2;
+  const temperature = 0.7;
+  const logits = new Float32Array(logitsNumTokens * logitsVocabSize);
+  for (let i = 0; i < logits.length; i += 1) {
+    logits[i] = Math.sin(i * 0.173) * 4.0 + Math.cos(i * 0.037) * 1.5;
+  }
+  const logitsEmbeddingF32 = new Float32Array(logitsVocabSize * logitsHiddenSize);
+  for (let i = 0; i < logitsEmbeddingF32.length; i += 1) {
+    logitsEmbeddingF32[i] = Math.sin(i * 0.071) * 0.75 + Math.cos(i * 0.113) * 0.25;
+  }
+  const logitsEmbeddingF16 = f32ToF16Array(logitsEmbeddingF32);
+  const logitsEmbeddingRounded = new Float32Array(logitsEmbeddingF16.length);
+  for (let i = 0; i < logitsEmbeddingF16.length; i += 1) {
+    logitsEmbeddingRounded[i] = f16ToF32Bits(logitsEmbeddingF16[i]);
+  }
+  const logitsExpected = computeSoftEmbeddingReference(
+    logits,
+    logitsEmbeddingRounded,
+    logitsNumTokens,
+    logitsVocabSize,
+    logitsHiddenSize,
+    temperature
+  );
+  const logitsBuffer = makeStorageBuffer(logits, 'soft_embedding_logits');
+  const logitsEmbeddingBuffer = makeStorageBuffer(logitsEmbeddingF16, 'soft_embedding_logits_embedding');
+  try {
+    logitsOutput = await runSoftEmbeddingLogitsF16(
+      createTensor(logitsBuffer, 'f32', [logitsNumTokens, logitsVocabSize], 'soft_embedding_logits'),
+      createWeightBuffer(
+        logitsEmbeddingBuffer,
+        'f16',
+        'row',
+        [logitsVocabSize, logitsHiddenSize],
+        'embed_tokens'
+      ),
+      logitsNumTokens,
+      logitsHiddenSize,
+      logitsVocabSize,
+      { temperature, chunkRows: 32 }
+    );
+    const logitsActual = new Float32Array(await readBuffer(logitsOutput.buffer, logitsExpected.byteLength));
+    let logitsMaxAbsDiff = 0;
+    for (let i = 0; i < logitsExpected.length; i += 1) {
+      logitsMaxAbsDiff = Math.max(logitsMaxAbsDiff, Math.abs(logitsActual[i] - logitsExpected[i]));
+    }
+    console.log(`soft-embedding-logits-f16-parity: max_abs_diff=${logitsMaxAbsDiff.toExponential(3)}`);
+    assert.ok(logitsMaxAbsDiff < 1e-4, `logits soft embedding diverged: max_abs_diff=${logitsMaxAbsDiff}`);
+  } finally {
+    if (logitsOutput?.buffer) releaseBuffer(logitsOutput.buffer);
+    logitsBuffer.destroy();
+    logitsEmbeddingBuffer.destroy();
+  }
 } finally {
   if (output?.buffer) releaseBuffer(output.buffer);
   softmaxBuffer.destroy();

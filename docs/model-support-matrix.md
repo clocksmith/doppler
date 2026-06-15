@@ -21,7 +21,6 @@ This section answers "which models work now?" from `models/catalog.json` lifecyc
 | gemma-4-e2b-it-q4k-ehf16-af16-int4ple | gemma4 | text, vision | 2026-05-07 | browser, node | Manifest-only f16 activation sibling over the verified Gemma 4 E2B INT4 PLE weight pack. The demo preflights execution-v1 capability rules and uses the AF32 primary when this lane is rejected, including the Apple Metal fused-q4k/f16 NaN guard. |
 | translategemma-4b-it-q4k-ehf16-af32 | translategemma | translate | 2026-03-20 | browser, node | Browser/WebGPU on Apple M3 and Node/WebGPU on AMD RDNA-3 verified through 2026-03-20 with structured TranslateGemma requests. en->fr 'Hello world.' -> 'Bonjour le monde.' The working Q4K path is gemma3-q4k-dequant-f32w-f32a-online; the prior failure remained isolated to the older q4k_dequant F16-weight path. |
 | gemma-4-12b-it-text-w4a16-ct-ehf16-af16 | gemma4 | text | 2026-06-08 | node | Node/WebGPU verified from /home/x/models/rdrr/gemma-4-12b-it-text-w4a16-ct-ehf16-af16 with deterministic greedy output. Report reports/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/2026-06-08T22-33-51.728Z.json produced coherent text, executionContractOk=true, manifest-owned decodeBatchSize=8/readbackInterval=8, and batched decode only with 2 batched forward calls and 0 unbatched calls. |
-| diffusiongemma-26b-a4b-it-q4k-ehf16-af16 | diffusiongemma | diffusion, text | 2026-06-12 | node | Node/WebGPU on AMD RDNA-3 verified with DiffusionGemma compact denoising and throughput profile runs. Reports include reports/diffusiongemma-26b-a4b-it-q4k-ehf16-af16/2026-06-12T07-45-58.680Z.json for deterministic topk-readback output and reports/diffusiongemma-26b-a4b-it-q4k-ehf16-af16/2026-06-12T07-56-00.089Z.json for the profile-driven 64-token canvas benchmark. |
 | gemma-4-31b-it-text-q4k-ehf16-af32 | gemma4 | text | 2026-04-29 | browser, node | Complete Q4K weight pack is the hosted primary for the Gemma 4 31B f16 demo lane. The visible demo card prefers the f16 sibling on f16/subgroup-capable GPUs and uses this complete primary lane otherwise. |
 | gemma-4-31b-it-text-q4k-ehf16-af16 | gemma4 | text | 2026-04-29 | browser, node | Browser/WebGPU report reports/gemma-4-31b-it-text-q4k-ehf16-af16/2026-04-29T17-25-41.735Z.json and program-bundle references both decode the sky prompt to blue with f16 compute. |
 | qwen-3-5-0-8b-q4k-ehaf16 | qwen3 | text | 2026-06-15 | browser, node | Node/WebGPU on AMD Strix Halo / Radeon 8060S re-verified 2026-06-15 after making Qwen ChatML stop tokens explicit in the manifest and preserving batch-path stopTokenId receipts. Local receipt reports/qwen-3-5-0-8b-q4k-ehaf16/2026-06-15T00-06-08.527Z.json produced "The sky is blue.", stopReason=stop-token, stopTokenId=248046, executionContractOk=true. Existing comparable claim still rests on the 2026-04-21 vendor compare receipt benchmarks/vendors/results/compare_20260421T002103.json: exact output match against Transformers.js, 64/64 prompt tokens, Doppler decode 61.76 vs TJS 36.14 tok/s, TTFT 541.0 ms vs 7019.3 ms. Hosted Clocksmith/rdrr revision 95a01447eecbf13fc5964986f507b08ded0cd40f still exposes scalar eos_token_id=248044 rather than [248046, 248044], so HF/quickstart availability is disabled until republished. The local artifact includes qwen3vl vision weights, but release-facing modes stay text-only until Qwen vision has an end-to-end receipt. |
@@ -47,6 +46,7 @@ None right now.
 | --- | --- | --- | --- |
 | gemma-4-12b-it-text-q4k-ehf16-af32 | catalog model | experimental | Cataloged model without a verified or failing inference lifecycle result. |
 | gemma-4-12b-it-text-q4k-ehf16-af16 | catalog model | experimental | Cataloged model without a verified or failing inference lifecycle result. |
+| diffusiongemma-26b-a4b-it-q4k-ehf16-af16 | catalog model | experimental | Cataloged model without a verified or failing inference lifecycle result. |
 | lfm2-5-1-2b-instruct-q4k-ehf16-af32 | catalog model | experimental | Cataloged model without a verified or failing inference lifecycle result. |
 | gpt_oss | model family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
 | janus_text | model family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
@@ -61,7 +61,7 @@ None right now.
 | gemma4 | transformer | active | 10 (src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af16.json, src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af32.json, src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16.json, +7 more) | 8 (gemma-4-12b-it-text-q4k-ehf16-af16, gemma-4-12b-it-text-q4k-ehf16-af32, gemma-4-12b-it-text-w4a16-ct-ehf16-af16, +5 more) | yes | none | partially verified (6/8) | verified | catalog verification applies only to cataloged models (8/10 conversion configs cataloged); partial verification (6/8 catalog models verified) |
 | qwen3 | transformer | active | 4 (src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json, src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json, src/config/conversion/qwen3/qwen-3-6-27b-q4k-eaf16.json, +1 more) | 4 (qwen-3-5-0-8b-q4k-ehaf16, qwen-3-5-2b-q4k-ehaf16, qwen-3-6-27b-q4k-eaf16, +1 more) | yes | none | verified (2026-06-15) | verified | - |
 | lfm2 | transformer | active | 1 (src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json) | 1 (lfm2-5-1-2b-instruct-q4k-ehf16-af32) | no | none | unknown | verification-pending | not verified in catalog lifecycle |
-| diffusiongemma | transformer | active | 1 (src/config/conversion/diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16.json) | 1 (diffusiongemma-26b-a4b-it-q4k-ehf16-af16) | no | none | verified (2026-06-12) | verified | - |
+| diffusiongemma | transformer | active | 1 (src/config/conversion/diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16.json) | 1 (diffusiongemma-26b-a4b-it-q4k-ehf16-af16) | no | none | unknown | verification-pending | not verified in catalog lifecycle |
 | gpt_oss | transformer | active | 1 (src/config/conversion/gpt-oss-20b-f16-xmxfp4.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | janus_text | transformer | active | 1 (src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 
@@ -70,10 +70,10 @@ None right now.
 - Families tracked: 9
 - Families with conversion configs: 9
 - Families present in catalog: 7
-- Verified families (active runtime + conversion + catalog + passing verification): 6
-- Cataloged families pending verification: 1
+- Verified families (active runtime + conversion + catalog + passing verification): 5
+- Cataloged families pending verification: 2
 - Families with HF-hosted catalog entries: 5
-- Families with verified catalog lifecycle: 6
+- Families with verified catalog lifecycle: 5
 - Families with failed catalog verification: 0
 - Blocked runtime families: 0
 - Catalog entries: 18
