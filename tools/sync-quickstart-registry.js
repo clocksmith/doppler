@@ -25,6 +25,40 @@ function isPlainObject(value) {
   return value != null && typeof value === 'object' && !Array.isArray(value);
 }
 
+function normalizeLifecycle(entry) {
+  const lifecycle = isPlainObject(entry?.lifecycle) ? entry.lifecycle : {};
+  const availability = isPlainObject(lifecycle.availability) ? lifecycle.availability : {};
+  const status = isPlainObject(lifecycle.status) ? lifecycle.status : {};
+  const tested = isPlainObject(lifecycle.tested) ? lifecycle.tested : {};
+  const contracts = isPlainObject(tested.contracts) ? tested.contracts : {};
+  return {
+    availability,
+    runtime: normalizeText(status.runtime),
+    statusTested: normalizeText(status.tested),
+    result: normalizeText(tested.result),
+    executionContractOk: contracts.executionContractOk === true,
+  };
+}
+
+function assertQuickstartLifecycle(entry, modelId) {
+  const lifecycle = normalizeLifecycle(entry);
+  if (lifecycle.availability.hf !== true) {
+    throw new Error(`${modelId}: quickstart catalog entries require lifecycle.availability.hf=true`);
+  }
+  if (lifecycle.runtime !== 'active') {
+    throw new Error(`${modelId}: quickstart catalog entries require lifecycle.status.runtime="active"`);
+  }
+  if (lifecycle.statusTested !== 'verified' || lifecycle.result !== 'pass') {
+    throw new Error(
+      `${modelId}: quickstart catalog entries require lifecycle.status.tested="verified" ` +
+      'and lifecycle.tested.result="pass"'
+    );
+  }
+  if (lifecycle.executionContractOk !== true) {
+    throw new Error(`${modelId}: quickstart catalog entries require lifecycle.tested.contracts.executionContractOk=true`);
+  }
+}
+
 export function parseArgs(argv) {
   const args = {
     check: false,
@@ -78,6 +112,7 @@ function toQuickstartEntry(entry) {
   if (!modelId) {
     throw new Error('quickstart catalog entry must include modelId');
   }
+  assertQuickstartLifecycle(entry, modelId);
   const sourceCheckpointId = normalizeText(entry?.sourceCheckpointId);
   const weightPackId = normalizeText(entry?.weightPackId);
   const manifestVariantId = normalizeText(entry?.manifestVariantId);
@@ -94,6 +129,10 @@ function toQuickstartEntry(entry) {
   }
   if (entry?.weightsRefAllowed !== false) {
     throw new Error(`${modelId}: quickstart catalog entries require weightsRefAllowed=false`);
+  }
+  const modes = normalizeStringList(entry?.modes);
+  if (!modes.includes('text') && !modes.includes('embedding')) {
+    throw new Error(`${modelId}: quickstart catalog entries require a text or embedding mode`);
   }
   const hf = isPlainObject(entry?.hf) ? entry.hf : null;
   const repoId = normalizeText(hf?.repoId);
@@ -114,7 +153,7 @@ function toQuickstartEntry(entry) {
     runtimePromotionState: entry.runtimePromotionState,
     weightsRefAllowed: entry.weightsRefAllowed,
     aliases: normalizeStringList(entry?.aliases),
-    modes: normalizeStringList(entry?.modes),
+    modes,
     hf: {
       repoId,
       revision,

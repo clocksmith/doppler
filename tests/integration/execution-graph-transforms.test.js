@@ -837,8 +837,10 @@ function buildF16WeightProjectionGraph() {
     'Qwen 3.6 f16 lane should move final norm to f16');
   equal(postKernel('lm_head').kernel, 'fused_matmul_q4_multicol_f16a.wgsl',
     'Qwen 3.6 f16 lane should move Q4 lm_head to f16 activations');
-  equal(postKernel('lm_head_prefill').kernel, 'matmul_f16.wgsl',
-    'Qwen 3.6 f16 lane should move prefill lm_head to f16 activations');
+  equal(postKernel('lm_head_prefill').kernel, 'fused_matmul_q4_batched_f16acc_f16a.wgsl',
+    'Qwen 3.6 f16 lane should keep Q4 prefill lm_head while moving activations to f16');
+  deepEqual(postKernel('lm_head_prefill').precision, { inputDtype: 'f16', outputDtype: 'f16' },
+    'Qwen 3.6 f16 lane should declare f16 activation precision for prefill lm_head');
   equal(postKernel('sample').kernel, 'sample_f16.wgsl',
     'Qwen 3.6 f16 lane should sample from f16 logits');
 

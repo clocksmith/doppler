@@ -576,24 +576,12 @@
           "hf": false
         },
         "status": {
-          "runtime": "active",
+          "runtime": "experimental",
           "conversion": "ready",
           "demo": "none",
-          "tested": "verified"
+          "tested": "none"
         },
-        "tested": {
-          "suite": "inference",
-          "surface": [
-            "node"
-          ],
-          "result": "pass",
-          "lastVerifiedAt": "2026-06-12",
-          "source": "runtime-verify",
-          "notes": "Node/WebGPU on AMD RDNA-3 verified with DiffusionGemma compact denoising and throughput profile runs. Reports include reports/diffusiongemma-26b-a4b-it-q4k-ehf16-af16/2026-06-12T07-45-58.680Z.json for deterministic topk-readback output and reports/diffusiongemma-26b-a4b-it-q4k-ehf16-af16/2026-06-12T07-56-00.089Z.json for the profile-driven 64-token canvas benchmark.",
-          "contracts": {
-            "executionContractOk": true
-          }
-        }
+        "tested": null
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/diffusiongemma-26B-A4B-it",

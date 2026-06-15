@@ -97,7 +97,9 @@ export {
 
 export {
   runSoftEmbeddingSplitF16,
+  runSoftEmbeddingLogitsF16,
   type SoftEmbeddingSplitOptions,
+  type SoftEmbeddingLogitsOptions,
 } from './soft-embedding.js';
 
 export {
