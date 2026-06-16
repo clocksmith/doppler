@@ -86,15 +86,27 @@ assert.strictEqual(
   576,
   `Expected 576 tensors, got ${bundle.manifest.tensorCount}.`
 );
-assert.strictEqual(bundle.manifest.tokenizer?.type, 'sentencepiece');
-assert.strictEqual(bundle.manifest.tokenizer?.sentencepieceModel, 'TOKENIZER_MODEL');
-assert.strictEqual(bundle.manifest.tokenizer?.padTokenId, 0);
-assert.strictEqual(bundle.manifest.tokenizer?.eosTokenId, 1);
-assert.deepStrictEqual(bundle.manifest.tokenizer?.eosTokens, [1, 106, 50]);
-assert.strictEqual(bundle.manifest.tokenizer?.bosTokenId, 2);
-assert.strictEqual(bundle.manifest.tokenizer?.unkTokenId, 3);
+assert.strictEqual(bundle.manifest.tokenizer?.type, 'bundled');
+assert.strictEqual(bundle.manifest.tokenizer?.file, 'tokenizer.json');
+assert.strictEqual(bundle.manifest.tokenizer?.vocabSize, 262144);
 assert.strictEqual(bundle.manifest.tokenizer?.addBosToken, false);
 assert.strictEqual(bundle.manifest.tokenizer?.addEosToken, false);
+assert.strictEqual(
+  bundle.manifest.metadata?.sourceRuntime?.tokenizer?.jsonPath,
+  'tokenizer.json'
+);
+assert.strictEqual(
+  bundle.manifest.metadata?.sourceRuntime?.tokenizer?.modelPath,
+  'TOKENIZER_MODEL'
+);
+const tokenizerJson = await bundle.storageContext.loadTokenizerJson();
+assert.strictEqual(tokenizerJson?.model?.type, 'BPE');
+assert.strictEqual(
+  Array.isArray(tokenizerJson?.model?.vocab)
+    ? tokenizerJson.model.vocab.length
+    : Object.keys(tokenizerJson?.model?.vocab ?? {}).length,
+  262144
+);
 
 const tensors = bundle.manifest.tensors;
 assert.ok(tensors, 'Manifest must have a tensors map.');

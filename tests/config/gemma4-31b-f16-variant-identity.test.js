@@ -131,7 +131,7 @@ assert.equal(af16Claim.artifactFormat, af16Entry.artifact?.format);
 assert.equal(af16Claim.evidence?.kind, 'browser-node-webgpu-smoke');
 assert.equal(
   af16Claim.evidence?.reportPath,
-  'reports/gemma-4-31b-it-text-q4k-ehf16-af16/2026-04-29T17-25-41.735Z.json'
+  'reports/program-bundles/gemma-4-31b-it-text-q4k-ehf16-af16/capture.node.reference.json'
 );
 
 console.log('gemma4-31b-f16-variant-identity.test: ok');
