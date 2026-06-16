@@ -521,21 +521,9 @@
           "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "verified"
+          "tested": "none"
         },
-        "tested": {
-          "suite": "inference",
-          "surface": [
-            "node"
-          ],
-          "result": "pass",
-          "lastVerifiedAt": "2026-06-08",
-          "source": "runtime-verify",
-          "notes": "Node/WebGPU verified from /home/x/models/rdrr/gemma-4-12b-it-text-w4a16-ct-ehf16-af16 with deterministic greedy output. Report reports/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/2026-06-08T22-33-51.728Z.json produced coherent text, executionContractOk=true, manifest-owned decodeBatchSize=8/readbackInterval=8, and batched decode only with 2 batched forward calls and 0 unbatched calls.",
-          "contracts": {
-            "executionContractOk": true
-          }
-        }
+        "tested": null
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/gemma-4-12B-it-qat-w4a16-ct",
@@ -632,22 +620,9 @@
           "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "verified"
+          "tested": "none"
         },
-        "tested": {
-          "suite": "inference",
-          "surface": [
-            "browser",
-            "node"
-          ],
-          "result": "pass",
-          "lastVerifiedAt": "2026-04-29",
-          "source": "f16-lane-weight-pack-primary",
-          "notes": "Complete Q4K weight pack is the hosted primary for the Gemma 4 31B f16 demo lane. The visible demo card prefers the f16 sibling on f16/subgroup-capable GPUs and uses this complete primary lane otherwise.",
-          "contracts": {
-            "executionContractOk": true
-          }
-        }
+        "tested": null
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/gemma-4-31B-it",

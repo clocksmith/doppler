@@ -142,7 +142,7 @@ assert.equal(af16Claim.artifactFormat, af16Entry.artifact?.format);
 assert.equal(af16Claim.evidence?.kind, 'browser-node-webgpu-smoke');
 assert.equal(
   af16Claim.evidence?.reportPath,
-  'reports/qwen-3-6-27b-q4k-eaf16/2026-04-29T17-28-17.095Z.json'
+  'reports/program-bundles/qwen-3-6-27b-q4k-eaf16/capture.node.reference.json'
 );
 
 console.log('qwen36-f16-variant-identity.test: ok');

@@ -21,8 +21,9 @@ const MODELS = [
   },
   {
     id: 'gemma-4-e2b-it-q4k-ehf16-af16-int4ple',
-    description: 'af16-int4ple manifest default (formerly fail-closed on Apple Metal pre-2026-05-07)',
+    description: 'af16-int4ple manifest default must fail closed on Apple Metal',
     runtimeConfigOverrides: {},
+    expectedAppleError: /lane mismatch/,
   },
 ];
 
@@ -49,22 +50,55 @@ for (const model of MODELS) {
     continue;
   }
 
-  const result = await runNodeCommand({
-    command: 'debug',
-    workload: 'inference',
-    modelId: model.id,
-    modelUrl: `file://${localPath}`,
-    cacheMode: 'warm',
-    runtimeConfig: {
-      shared: { tooling: { intent: 'investigate' } },
-      inference: {
-        ...(model.runtimeConfigOverrides.inference || {}),
-        generation: { maxTokens: 24 },
-        sampling: { temperature: 0, topK: 1, topP: 1, repetitionPenalty: 1, greedyThreshold: 0 },
-        prompt: PROMPT,
+  let result = null;
+  try {
+    result = await runNodeCommand({
+      command: 'debug',
+      workload: 'inference',
+      modelId: model.id,
+      modelUrl: `file://${localPath}`,
+      cacheMode: 'warm',
+      runtimeConfig: {
+        shared: { tooling: { intent: 'investigate' } },
+        inference: {
+          ...(model.runtimeConfigOverrides.inference || {}),
+          generation: { maxTokens: 24 },
+          sampling: { temperature: 0, topK: 1, topP: 1, repetitionPenalty: 1, greedyThreshold: 0 },
+          prompt: PROMPT,
+        },
       },
-    },
-  });
+    });
+  } catch (error) {
+    if (!model.expectedAppleError) {
+      throw error;
+    }
+    assert.match(
+      error?.message ?? '',
+      model.expectedAppleError,
+      `${model.id}: Apple rejection must explain the lane mismatch`
+    );
+    console.log(
+      `gemma4-e2b-q4k-apple-retain-regression: ${model.id} correctly rejected (${error?.message})`
+    );
+    continue;
+  }
+
+  if (model.expectedAppleError) {
+    assert.equal(
+      result.ok,
+      false,
+      `${model.id}: command unexpectedly succeeded; Apple Metal must reject this lane instead of running the intermittent fused-q4k/f16 path`
+    );
+    assert.match(
+      result.error?.message ?? '',
+      model.expectedAppleError,
+      `${model.id}: Apple rejection must explain the lane mismatch`
+    );
+    console.log(
+      `gemma4-e2b-q4k-apple-retain-regression: ${model.id} correctly rejected (${result.error?.message})`
+    );
+    continue;
+  }
 
   assert.equal(result.ok, true, `${model.id}: command failed: ${result.error?.message}`);
   const output = result.result?.output ?? '';
