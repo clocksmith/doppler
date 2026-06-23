@@ -128,7 +128,7 @@ assert.deepEqual(af16Claim.surface, af16Entry.lifecycle?.tested?.surface);
 assert.equal(af16Claim.verificationSource, af16Entry.lifecycle?.tested?.source);
 assert.equal(af16Claim.lastVerifiedAt, af16Entry.lifecycle?.tested?.lastVerifiedAt);
 assert.equal(af16Claim.artifactFormat, af16Entry.artifact?.format);
-assert.equal(af16Claim.evidence?.kind, 'browser-node-webgpu-smoke');
+assert.equal(af16Claim.evidence?.kind, 'browser-webgpu-smoke');
 assert.equal(
   af16Claim.evidence?.reportPath,
   'reports/program-bundles/gemma-4-31b-it-text-q4k-ehf16-af16/capture.node.reference.json'

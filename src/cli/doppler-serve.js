@@ -4,7 +4,7 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 import path from 'node:path';
 import process from 'node:process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { DOPPLER_VERSION, doppler } from '../index.js';
 import { listQuickstartModels, resolveQuickstartModel } from '../client/doppler-registry.js';
 
@@ -27,6 +27,7 @@ function usage() {
     '',
     'Options:',
     '  --model <id>     Pre-load a model at startup (optional, lazy-loads on request otherwise)',
+    '  --model-url <url> Explicit local or remote RDRR artifact URL for --model',
     '  --port <n>       Port to listen on (default: 8080)',
     '  --host <addr>    Host to bind to (default: 127.0.0.1)',
     '  --help           Show this help',
@@ -52,6 +53,7 @@ export function parseServeArgs(argv) {
     port: DEFAULT_PORT,
     host: DEFAULT_HOST,
     model: null,
+    modelUrl: null,
     help: false,
   };
   for (let i = 0; i < argv.length; i += 1) {
@@ -63,7 +65,7 @@ export function parseServeArgs(argv) {
     if (!token.startsWith('--')) {
       throw new Error(`Unexpected positional argument: ${token}`);
     }
-    if (token !== '--port' && token !== '--host' && token !== '--model') {
+    if (token !== '--port' && token !== '--host' && token !== '--model' && token !== '--model-url') {
       throw new Error(`Unknown flag ${token}.`);
     }
     const nextValue = argv[i + 1];
@@ -89,24 +91,81 @@ export function parseServeArgs(argv) {
       i += 1;
       continue;
     }
+    if (token === '--model-url') {
+      flags.modelUrl = normalizeModelUrl(nextValue.trim());
+      i += 1;
+      continue;
+    }
     throw new Error(`Unknown flag ${token}.`);
   }
+  if (flags.modelUrl && !flags.model) {
+    throw new Error('--model-url requires --model so the served model identity remains explicit.');
+  }
   return flags;
+}
+
+function normalizeModelUrl(value) {
+  if (!value) {
+    throw new Error('--model-url must be non-empty.');
+  }
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(value)) {
+    return value;
+  }
+  return pathToFileURL(path.resolve(value)).href;
 }
 
 function generateCompletionId() {
   return `chatcmpl-${crypto.randomBytes(12).toString('base64url')}`;
 }
 
-function jsonError(res, statusCode, message, type) {
-  const body = JSON.stringify({
+function sha256Hex(value) {
+  return crypto.createHash('sha256').update(value).digest('hex');
+}
+
+function utf8ByteLength(value) {
+  return Buffer.byteLength(String(value ?? ''), 'utf8');
+}
+
+function stableJson(value) {
+  if (value === null || typeof value !== 'object') {
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map((entry) => stableJson(entry)).join(',')}]`;
+  }
+  const keys = Object.keys(value).sort();
+  const entries = keys
+    .filter((key) => value[key] !== undefined)
+    .map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`);
+  return `{${entries.join(',')}}`;
+}
+
+function buildSha256Evidence(value) {
+  const text = String(value ?? '');
+  return {
+    algorithm: 'sha256',
+    value: sha256Hex(text),
+    bytes: utf8ByteLength(text),
+  };
+}
+
+function buildJsonSha256Evidence(value) {
+  return buildSha256Evidence(stableJson(value));
+}
+
+function jsonError(res, statusCode, message, type, extra = null) {
+  const payload = {
     error: {
       message,
       type: type ?? 'invalid_request_error',
       param: null,
       code: null,
     },
-  });
+  };
+  if (extra && typeof extra === 'object' && !Array.isArray(extra)) {
+    Object.assign(payload, extra);
+  }
+  const body = JSON.stringify(payload);
   res.writeHead(statusCode, {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
@@ -235,11 +294,46 @@ function buildGenerationOptionsReceipt(generationOptions) {
   };
 }
 
-export function buildServeReceipt({ requestedModel, registryEntry, generationOptions, usage }) {
+function normalizeRuntimeModelSource(runtimeModel, registryEntry) {
+  if (typeof runtimeModel === 'string') {
+    return {
+      kind: 'quickstart-registry',
+      modelId: runtimeModel,
+    };
+  }
+  if (runtimeModel && typeof runtimeModel === 'object' && typeof runtimeModel.url === 'string') {
+    return {
+      kind: 'url',
+      url: runtimeModel.url,
+    };
+  }
+  if (runtimeModel && typeof runtimeModel === 'object' && runtimeModel.manifest && typeof runtimeModel.manifest === 'object') {
+    return {
+      kind: 'inline-manifest',
+      modelId: typeof runtimeModel.manifest.modelId === 'string'
+        ? runtimeModel.manifest.modelId
+        : registryEntry.modelId,
+      baseUrl: typeof runtimeModel.baseUrl === 'string' ? runtimeModel.baseUrl : null,
+    };
+  }
   return {
+    kind: 'quickstart-registry',
+    modelId: registryEntry.modelId,
+  };
+}
+
+function buildServeReceiptBase({ requestedModel, registryEntry, messages, generationOptions, runtimeModel = null }) {
+  const generation = buildGenerationOptionsReceipt(generationOptions);
+  return {
+    receiptVersion: 'doppler_serve_receipt_v1',
     schemaVersion: 1,
+    surface: 'serve',
+    endpoint: '/v1/chat/completions',
     runtime: 'doppler-gpu',
     runtimeVersion: DOPPLER_VERSION,
+    runtimePath: 'doppler-gpu.chatText',
+    runtimeModelSource: normalizeRuntimeModelSource(runtimeModel ?? registryEntry.modelId, registryEntry),
+    modelId: registryEntry.modelId,
     requestedModel,
     resolvedModel: registryEntry.modelId,
     artifact: {
@@ -253,8 +347,142 @@ export function buildServeReceipt({ requestedModel, registryEntry, generationOpt
       weightsRefAllowed: registryEntry.weightsRefAllowed,
       hf: registryEntry.hf,
     },
-    generation: buildGenerationOptionsReceipt(generationOptions),
+    request: {
+      messages: {
+        count: messages.length,
+        digest: buildJsonSha256Evidence(messages),
+      },
+      generationDigest: buildJsonSha256Evidence(generation),
+    },
+    generation,
+  };
+}
+
+export function buildServeReceipt({
+  requestedModel,
+  registryEntry,
+  messages,
+  generationOptions,
+  outputContent,
+  usage,
+  runtimeModel = null,
+}) {
+  const baseReceipt = buildServeReceiptBase({
+    requestedModel,
+    registryEntry,
+    messages,
+    generationOptions,
+    runtimeModel,
+  });
+  const outputText = String(outputContent ?? '');
+  return {
+    ...baseReceipt,
+    status: 'pass',
+    output: {
+      role: 'assistant',
+      digest: buildSha256Evidence(outputText),
+      textLength: outputText.length,
+      empty: outputText.length === 0,
+    },
+    transcript: {
+      digest: buildJsonSha256Evidence({
+        messages,
+        generation: baseReceipt.generation,
+        output: outputText,
+        usage,
+      }),
+    },
     usage,
+  };
+}
+
+function normalizeWeightLoadFailure(error) {
+  const failure = error?.details?.weightLoadFailure ?? error?.cause?.details?.weightLoadFailure;
+  if (!failure || typeof failure !== 'object') {
+    return null;
+  }
+  const deviceLimitFailure = failure.deviceLimitFailure && typeof failure.deviceLimitFailure === 'object'
+    ? {
+        kind: typeof failure.deviceLimitFailure.kind === 'string' ? failure.deviceLimitFailure.kind : null,
+        maxGpuResidentBytes: Number.isFinite(failure.deviceLimitFailure.maxGpuResidentBytes)
+          ? failure.deviceLimitFailure.maxGpuResidentBytes
+          : null,
+        maxStorageBufferBindingSize: Number.isFinite(failure.deviceLimitFailure.maxStorageBufferBindingSize)
+          ? failure.deviceLimitFailure.maxStorageBufferBindingSize
+          : null,
+        maxBufferSize: Number.isFinite(failure.deviceLimitFailure.maxBufferSize)
+          ? failure.deviceLimitFailure.maxBufferSize
+          : null,
+        maxStorageBuffersPerShaderStage: Number.isFinite(failure.deviceLimitFailure.maxStorageBuffersPerShaderStage)
+          ? failure.deviceLimitFailure.maxStorageBuffersPerShaderStage
+          : null,
+        largeWeightMaxBytes: Number.isFinite(failure.deviceLimitFailure.largeWeightMaxBytes)
+          ? failure.deviceLimitFailure.largeWeightMaxBytes
+          : null,
+        embeddingKernel: failure.deviceLimitFailure.embeddingKernel
+          && typeof failure.deviceLimitFailure.embeddingKernel === 'object'
+          ? {
+              kernel: typeof failure.deviceLimitFailure.embeddingKernel.kernel === 'string'
+                ? failure.deviceLimitFailure.embeddingKernel.kernel
+                : null,
+              entry: typeof failure.deviceLimitFailure.embeddingKernel.entry === 'string'
+                ? failure.deviceLimitFailure.embeddingKernel.entry
+                : null,
+            }
+          : null,
+        splitKernelExpected: typeof failure.deviceLimitFailure.splitKernelExpected === 'boolean'
+          ? failure.deviceLimitFailure.splitKernelExpected
+          : null,
+        activeSplitKernelMaxSections: Number.isFinite(failure.deviceLimitFailure.activeSplitKernelMaxSections)
+          ? failure.deviceLimitFailure.activeSplitKernelMaxSections
+          : null,
+        maxSplitEmbeddingSections: Number.isFinite(failure.deviceLimitFailure.maxSplitEmbeddingSections)
+          ? failure.deviceLimitFailure.maxSplitEmbeddingSections
+          : null,
+        requiredSplitSections: Number.isFinite(failure.deviceLimitFailure.requiredSplitSections)
+          ? failure.deviceLimitFailure.requiredSplitSections
+          : null,
+      }
+    : null;
+  return {
+    tensorName: typeof failure.tensorName === 'string' ? failure.tensorName : null,
+    tensorRole: typeof failure.tensorRole === 'string' ? failure.tensorRole : null,
+    tensorDtype: typeof failure.tensorDtype === 'string' ? failure.tensorDtype : null,
+    tensorShape: Array.isArray(failure.tensorShape) ? [...failure.tensorShape] : null,
+    tensorSizeBytes: Number.isFinite(failure.tensorSizeBytes) ? failure.tensorSizeBytes : null,
+    tensorLoadStage: typeof failure.tensorLoadStage === 'string' ? failure.tensorLoadStage : null,
+    toGPU: typeof failure.toGPU === 'boolean' ? failure.toGPU : null,
+    streamedUpload: typeof failure.streamedUpload === 'boolean' ? failure.streamedUpload : null,
+    deviceLimitFailure,
+  };
+}
+
+function normalizeServeFailure(error, registryEntry) {
+  const message = error?.message || String(error);
+  const pipelineLoadPhase = typeof error?.details?.pipelineLoadPhase === 'string'
+    ? error.details.pipelineLoadPhase
+    : null;
+  return {
+    code: pipelineLoadPhase ? 'pipeline-load-failed' : 'runtime-error',
+    stage: pipelineLoadPhase ?? 'runtime',
+    message,
+    modelId: typeof error?.details?.modelId === 'string' ? error.details.modelId : registryEntry.modelId,
+    weightLoadFailure: normalizeWeightLoadFailure(error),
+  };
+}
+
+export function buildServeFailureReceipt({
+  requestedModel,
+  registryEntry,
+  messages,
+  generationOptions,
+  error,
+  runtimeModel = null,
+}) {
+  return {
+    ...buildServeReceiptBase({ requestedModel, registryEntry, messages, generationOptions, runtimeModel }),
+    status: 'diagnostic',
+    failure: normalizeServeFailure(error, registryEntry),
   };
 }
 
@@ -263,6 +491,9 @@ function resolveServeDependencies(dependencies = {}) {
     dopplerClient: dependencies.dopplerClient ?? doppler,
     listModels: dependencies.listModels ?? listQuickstartModels,
     resolveModel: dependencies.resolveModel ?? resolveQuickstartModel,
+    resolveRuntimeModel: typeof dependencies.resolveRuntimeModel === 'function'
+      ? dependencies.resolveRuntimeModel
+      : (registryEntry) => registryEntry.modelId,
   };
 }
 
@@ -284,7 +515,16 @@ async function handleChatCompletions(req, res, dependencies) {
   const created = Math.floor(Date.now() / 1000);
 
   if (stream) {
-    return handleStreamingCompletion(res, registryEntry.modelId, messages, generationOptions, completionId, created, dependencies);
+    return handleStreamingCompletion(
+      res,
+      modelId,
+      registryEntry,
+      messages,
+      generationOptions,
+      completionId,
+      created,
+      dependencies
+    );
   }
   return handleNonStreamingCompletion(
     res,
@@ -310,7 +550,31 @@ async function handleNonStreamingCompletion(
   includeReceipt,
   dependencies
 ) {
-  const result = await dependencies.dopplerClient.chatText(messages, { model: registryEntry.modelId, ...generationOptions });
+  let result;
+  const runtimeModel = dependencies.resolveRuntimeModel(registryEntry, requestedModel);
+  try {
+    result = await dependencies.dopplerClient.chatText(messages, { model: runtimeModel, ...generationOptions });
+  } catch (error) {
+    if (includeReceipt) {
+      return jsonError(
+        res,
+        500,
+        error?.message || String(error),
+        'server_error',
+        {
+          doppler_receipt: buildServeFailureReceipt({
+            requestedModel,
+            registryEntry,
+            messages,
+            generationOptions,
+            error,
+            runtimeModel,
+          }),
+        }
+      );
+    }
+    throw error;
+  }
   const body = {
     id: completionId,
     object: 'chat.completion',
@@ -336,14 +600,27 @@ async function handleNonStreamingCompletion(
     body.doppler_receipt = buildServeReceipt({
       requestedModel,
       registryEntry,
+      messages,
       generationOptions,
+      outputContent: result.content,
       usage: result.usage,
+      runtimeModel,
     });
   }
   jsonResponse(res, 200, body);
 }
 
-async function handleStreamingCompletion(res, modelId, messages, generationOptions, completionId, created, dependencies) {
+async function handleStreamingCompletion(
+  res,
+  requestedModel,
+  registryEntry,
+  messages,
+  generationOptions,
+  completionId,
+  created,
+  dependencies
+) {
+  const runtimeModel = dependencies.resolveRuntimeModel(registryEntry, requestedModel);
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
@@ -359,7 +636,7 @@ async function handleStreamingCompletion(res, modelId, messages, generationOptio
     id: completionId,
     object: 'chat.completion.chunk',
     created,
-    model: modelId,
+    model: registryEntry.modelId,
     choices: [
       {
         index: 0,
@@ -369,7 +646,7 @@ async function handleStreamingCompletion(res, modelId, messages, generationOptio
     ],
   });
 
-  const stream = dependencies.dopplerClient.chat(messages, { model: modelId, ...generationOptions });
+  const stream = dependencies.dopplerClient.chat(messages, { model: runtimeModel, ...generationOptions });
   for await (const token of stream) {
     if (res.destroyed) {
       break;
@@ -378,7 +655,7 @@ async function handleStreamingCompletion(res, modelId, messages, generationOptio
       id: completionId,
       object: 'chat.completion.chunk',
       created,
-      model: modelId,
+      model: registryEntry.modelId,
       choices: [
         {
           index: 0,
@@ -393,7 +670,7 @@ async function handleStreamingCompletion(res, modelId, messages, generationOptio
     id: completionId,
     object: 'chat.completion.chunk',
     created,
-    model: modelId,
+    model: registryEntry.modelId,
     choices: [
       {
         index: 0,
@@ -481,14 +758,31 @@ export function createServeHandler(dependencies = {}) {
   };
 }
 
+function createRuntimeModelResolver(localModelSourceByModelId = new Map()) {
+  return (registryEntry) => localModelSourceByModelId.get(registryEntry.modelId) ?? registryEntry.modelId;
+}
+
+async function resolveLocalModelSourceMap(settings) {
+  const localModelSourceByModelId = new Map();
+  if (!settings.modelUrl) {
+    return localModelSourceByModelId;
+  }
+  const registryEntry = await resolveQuickstartModel(settings.model);
+  localModelSourceByModelId.set(registryEntry.modelId, { url: settings.modelUrl });
+  return localModelSourceByModelId;
+}
+
 async function startServer(settings) {
+  const localModelSourceByModelId = await resolveLocalModelSourceMap(settings);
+  const resolveRuntimeModel = createRuntimeModelResolver(localModelSourceByModelId);
   if (settings.model) {
     console.error(`[doppler-serve] pre-loading model: ${settings.model}`);
-    await doppler.load(settings.model);
+    const registryEntry = await resolveQuickstartModel(settings.model);
+    await doppler.load(resolveRuntimeModel(registryEntry));
     console.error(`[doppler-serve] model ready: ${settings.model}`);
   }
 
-  const handler = createServeHandler();
+  const handler = createServeHandler({ resolveRuntimeModel });
   const server = http.createServer(handler);
 
   return new Promise((resolve, reject) => {

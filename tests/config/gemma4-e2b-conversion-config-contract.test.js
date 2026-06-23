@@ -48,6 +48,8 @@ assert.equal(config.inference?.output?.embeddingPostprocessor, null);
 
 const expanded = expandExecutionV1(config.execution);
 assert.ok(expanded.length > 0, 'execution must expand to at least one step');
+assert.equal(config.execution?.kernels?.embed?.kernel, 'gather_split8_f16_vec4_f32_out.wgsl');
+assert.equal(config.execution?.kernels?.embed?.entry, 'gather_vec4_f32_out');
 assert.equal(config.execution?.kernels?.attn_decode?.kernel, 'attention_decode_online_f16kv.wgsl');
 assert.equal(config.execution?.kernels?.attn_decode?.entry, 'main');
 assert.equal(config.execution?.kernels?.attn_decode?.precision?.kvDtype, 'f16');
@@ -105,6 +107,8 @@ assert.equal(int4PleConfig.quantization?.embeddings, 'f16');
 assert.equal(int4PleConfig.quantization?.lmHead, 'f16');
 assert.equal(int4PleConfig.quantization?.perLayerEmbeddings, 'int4_per_row');
 assert.equal(int4PleConfig.session?.retainQ4KMaterialization, false);
+assert.equal(int4PleConfig.execution?.kernels?.embed?.kernel, 'gather_split8_f16_vec4_f32_out.wgsl');
+assert.equal(int4PleConfig.execution?.kernels?.embed?.entry, 'gather_vec4_f32_out');
 // INT4 PLE rows stay range-backed; conversion rejects split-table materialization
 // for packed INT4 PLE tensors.
 assert.equal(int4PleConfig.session?.perLayerInputs?.materialization, 'range_backed');

@@ -136,7 +136,8 @@ export function createSplitWeightBuffer(
   dtype,
   layout,
   shape,
-  label
+  label,
+  metadata = null
 ) {
   if (!Array.isArray(sections) || sections.length === 0) {
     throw new Error('[WeightBuffer] split weight buffer requires at least one section.');
@@ -158,6 +159,7 @@ export function createSplitWeightBuffer(
       rowCount: section.rowCount,
     });
   });
+  const normalizedMetadata = normalizeWeightMetadata(metadata);
   return Object.freeze({
     kind: 'split_weight_buffer',
     sections: Object.freeze(normalizedSections),
@@ -165,6 +167,7 @@ export function createSplitWeightBuffer(
     layout,
     shape: Object.freeze([...shape]),
     label,
+    ...(normalizedMetadata ? { metadata: normalizedMetadata } : {}),
   });
 }
 

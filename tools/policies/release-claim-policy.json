@@ -11,11 +11,11 @@
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "runtime-verify",
-        "reportPath": "reports/gemma-3-1b-it-q4k-ehf16-af32/2026-04-13T14-01-59.094Z.json"
+        "reportPath": "reports/gemma-3-1b-it-q4k-ehf16-af32/2026-04-27T03-35-56.775Z.json"
       },
       "performanceEvidence": {
         "kind": "runtime-report",
-        "reportPath": "reports/gemma-3-1b-it-q4k-ehf16-af32/2026-04-13T14-01-59.094Z.json",
+        "reportPath": "reports/gemma-3-1b-it-q4k-ehf16-af32/2026-04-27T03-35-56.775Z.json",
         "metricPath": "metrics.decodeTokensPerSec",
         "minValue": 0,
         "unit": "tokens/sec"
@@ -30,11 +30,11 @@
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "manual-report",
-        "reportPath": "reports/gemma-3-270m-it-q4k-ehf16-af32/2026-04-05T15-33-09.147Z.json"
+        "reportPath": "reports/gemma-3-270m-it-q4k-ehf16-af32/2026-06-14T23-55-18.785Z.json"
       },
       "performanceEvidence": {
         "kind": "runtime-report",
-        "reportPath": "reports/gemma-3-270m-it-q4k-ehf16-af32/2026-04-05T15-33-09.147Z.json",
+        "reportPath": "reports/gemma-3-270m-it-q4k-ehf16-af32/2026-06-14T23-55-18.785Z.json",
         "metricPath": "metrics.decodeTokensPerSec",
         "minValue": 0,
         "unit": "tokens/sec"
@@ -43,20 +43,17 @@
     {
       "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
       "mode": "text",
-      "surface": ["browser", "node"],
-      "verificationSource": "vendor-compare",
-      "lastVerifiedAt": "2026-04-21",
+      "surface": ["node"],
+      "verificationSource": "runtime-verify",
+      "lastVerifiedAt": "2026-05-07",
       "artifactFormat": "rdrr",
       "evidence": {
-        "kind": "vendor-compare",
-        "reportPath": "reports/gemma-4-e2b-it-q4k-ehf16-af32/2026-04-18T19-17-45.997Z.json",
-        "receiptPaths": [
-          "benchmarks/vendors/results/compare_20260415T205511.json"
-        ]
+        "kind": "runtime-verify",
+        "reportPath": "reports/gemma-4-e2b-it-q4k-ehf16-af32/2026-05-07T14-35-06.195Z.json"
       },
       "performanceEvidence": {
         "kind": "runtime-report",
-        "reportPath": "reports/gemma-4-e2b-it-q4k-ehf16-af32/2026-04-18T19-17-45.997Z.json",
+        "reportPath": "reports/gemma-4-e2b-it-q4k-ehf16-af32/2026-04-20T12-00-45.543Z.json",
         "metricPath": "metrics.decodeTokensPerSec",
         "minValue": 0,
         "unit": "tokens/sec"
@@ -65,17 +62,17 @@
     {
       "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
       "mode": "text",
-      "surface": ["browser", "node"],
-      "verificationSource": "vendor-compare",
-      "lastVerifiedAt": "2026-04-20",
+      "surface": ["node"],
+      "verificationSource": "runtime-verify",
+      "lastVerifiedAt": "2026-05-07",
       "artifactFormat": "rdrr",
       "evidence": {
-        "kind": "vendor-compare",
-        "reportPath": "reports/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-04-22T18-09-10.471Z.reference.json"
+        "kind": "runtime-verify",
+        "reportPath": "reports/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-05-07T17-03-36.276Z.json"
       },
       "performanceEvidence": {
         "kind": "runtime-benchmark",
-        "reportPath": "reports/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-04-22T18-09-10.471Z.reference.json",
+        "reportPath": "reports/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-05-07T17-23-56.781Z.json",
         "metricPath": "metrics.decodeTokensPerSec",
         "minValue": 0,
         "unit": "tokens/sec"
@@ -84,17 +81,55 @@
     {
       "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
       "mode": "text",
-      "surface": ["browser", "node"],
+      "surface": ["node"],
       "verificationSource": "manifest-variant-identity",
       "lastVerifiedAt": "2026-05-07",
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "manifest-variant-identity",
-        "reportPath": "reports/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-05-07T20-23-37.261Z.json"
+        "reportPath": "reports/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-05-07T17-14-52.263Z.json"
       },
       "performanceEvidence": {
         "kind": "runtime-benchmark",
-        "reportPath": "reports/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-05-07T20-23-37.261Z.json",
+        "reportPath": "reports/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-05-07T17-23-16.704Z.json",
+        "metricPath": "metrics.decodeTokensPerSec",
+        "minValue": 0,
+        "unit": "tokens/sec"
+      }
+    },
+    {
+      "modelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
+      "mode": "text",
+      "surface": ["node"],
+      "verificationSource": "runtime-verify",
+      "lastVerifiedAt": "2026-06-08",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "runtime-verify",
+        "reportPath": "reports/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/2026-06-08T22-33-51.728Z.json"
+      },
+      "performanceEvidence": {
+        "kind": "runtime-report",
+        "reportPath": "reports/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/2026-06-08T22-33-51.728Z.json",
+        "metricPath": "metrics.decodeTokensPerSec",
+        "minValue": 0,
+        "unit": "tokens/sec"
+      }
+    },
+    {
+      "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
+      "mode": "text",
+      "surface": ["browser"],
+      "verificationSource": "f16-lane-weight-pack-primary",
+      "lastVerifiedAt": "2026-04-29",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "f16-lane-weight-pack-primary",
+        "reportPath": "reports/gemma-4-31b-it-text-q4k-ehf16-af32/2026-04-28T22-40-53.165Z.json"
+      },
+      "performanceEvidence": {
+        "kind": "runtime-report",
+        "reportPath": "reports/gemma-4-31b-it-text-q4k-ehf16-af32/2026-04-28T22-40-53.165Z.json",
         "metricPath": "metrics.decodeTokensPerSec",
         "minValue": 0,
         "unit": "tokens/sec"
@@ -103,12 +138,12 @@
     {
       "modelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
       "mode": "text",
-      "surface": ["browser", "node"],
-      "verificationSource": "browser-node-webgpu-smoke",
+      "surface": ["browser"],
+      "verificationSource": "browser-webgpu-smoke",
       "lastVerifiedAt": "2026-04-29",
       "artifactFormat": "rdrr",
       "evidence": {
-        "kind": "browser-node-webgpu-smoke",
+        "kind": "browser-webgpu-smoke",
         "reportPath": "reports/program-bundles/gemma-4-31b-it-text-q4k-ehf16-af16/capture.node.reference.json"
       },
       "performanceEvidence": {
@@ -128,11 +163,11 @@
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "runtime-verify",
-        "reportPath": "reports/google-embeddinggemma-300m-q4k-ehf16-af32/2026-05-02T18-23-38.665Z.json"
+        "reportPath": "reports/google-embeddinggemma-300m-q4k-ehf16-af32/2026-04-04T21-09-43.331Z.json"
       },
       "performanceEvidence": {
         "kind": "embedding-runtime-report",
-        "reportPath": "reports/google-embeddinggemma-300m-q4k-ehf16-af32/2026-05-02T18-23-38.665Z.json",
+        "reportPath": "reports/google-embeddinggemma-300m-q4k-ehf16-af32/2026-04-04T21-09-43.331Z.json",
         "metricPath": "metrics.embeddingMs",
         "minValue": 0,
         "unit": "ms"
@@ -147,11 +182,11 @@
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "local-node-webgpu-verify",
-        "reportPath": "reports/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json"
+        "reportPath": "reports/qwen-3-5-0-8b-q4k-ehaf16/2026-06-15T00-06-08.527Z.json"
       },
       "performanceEvidence": {
         "kind": "runtime-report",
-        "reportPath": "reports/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json",
+        "reportPath": "reports/qwen-3-5-0-8b-q4k-ehaf16/2026-06-15T00-06-08.527Z.json",
         "metricPath": "metrics.decodeTokensPerSec",
         "minValue": 0,
         "unit": "tokens/sec"
@@ -166,11 +201,11 @@
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "local-node-webgpu-verify",
-        "reportPath": "reports/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json"
+        "reportPath": "reports/qwen-3-5-2b-q4k-ehaf16/2026-06-15T00-07-18.449Z.json"
       },
       "performanceEvidence": {
         "kind": "runtime-report",
-        "reportPath": "reports/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json",
+        "reportPath": "reports/qwen-3-5-2b-q4k-ehaf16/2026-06-15T00-07-18.449Z.json",
         "metricPath": "metrics.decodeTokensPerSec",
         "minValue": 0,
         "unit": "tokens/sec"
@@ -185,14 +220,14 @@
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "browser-webgpu-smoke",
-        "reportPath": "reports/program-bundles/qwen-3-6-27b-q4k-ehaf16/2026-04-28T01-19-10.497Z.reference.json",
+        "reportPath": "reports/qwen-3-6-27b-q4k-ehaf16/2026-04-28T01-19-10.624Z.json",
         "contracts": {
           "executionContractOk": true
         }
       },
       "performanceEvidence": {
         "kind": "runtime-report",
-        "reportPath": "reports/program-bundles/qwen-3-6-27b-q4k-ehaf16/2026-04-28T01-19-10.497Z.reference.json",
+        "reportPath": "reports/qwen-3-6-27b-q4k-ehaf16/2026-04-28T01-19-10.624Z.json",
         "metricPath": "metrics.decodeTokensPerSec",
         "minValue": 0,
         "unit": "tokens/sec"
@@ -226,11 +261,11 @@
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "manual-report",
-        "reportPath": "reports/translategemma-4b-it-q4k-ehf16-af32/2026-03-22T14-48-13.935Z.json"
+        "reportPath": "reports/translategemma-4b-it-q4k-ehf16-af32/2026-03-20T18-46-33.691Z.json"
       },
       "performanceEvidence": {
         "kind": "runtime-report",
-        "reportPath": "reports/translategemma-4b-it-q4k-ehf16-af32/2026-03-22T14-48-13.935Z.json",
+        "reportPath": "reports/translategemma-4b-it-q4k-ehf16-af32/2026-03-20T18-46-33.691Z.json",
         "metricPath": "metrics.decodeTokensPerSec",
         "minValue": 0,
         "unit": "tokens/sec"

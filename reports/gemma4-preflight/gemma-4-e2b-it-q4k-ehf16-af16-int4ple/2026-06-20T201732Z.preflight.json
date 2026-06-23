@@ -1,0 +1,54 @@
+{
+  "receiptVersion": "doppler_gemma4_preflight_receipt_v1",
+  "schemaVersion": 1,
+  "surface": "node",
+  "runtime": "doppler-gpu",
+  "target": "gpuResidentEmbeddingLimit",
+  "status": "pass",
+  "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+  "generatedAt": "2026-06-20T20:17:32.000Z",
+  "observedWith": "node WebGPU provider plus resolveManifestGpuResidentEmbeddingLimitError",
+  "manifest": {
+    "path": "models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/manifest.json",
+    "sha256": "sha256:874ed445e2744289a6faa7576bc0eede92b4bd214dd08ca8edb8f846197ed6e9"
+  },
+  "adapterInfo": {
+    "vendor": "mesa",
+    "architecture": "software",
+    "device": "llvmpipe-llvm-21-1-8-256-bits-",
+    "description": "llvmpipe: Mesa 26.0.3-1ubuntu1 (LLVM 21.1.8)"
+  },
+  "capabilities": {
+    "hasF16": true,
+    "hasSubgroups": true
+  },
+  "deviceLimits": {
+    "maxStorageBufferBindingSize": 134217728,
+    "maxBufferSize": 4294967295,
+    "maxStorageBuffersPerShaderStage": 16
+  },
+  "embedding": {
+    "tensorName": "model.language_model.embed_tokens.weight",
+    "dtype": "F16",
+    "shape": [
+      262144,
+      1536
+    ],
+    "tensorSizeBytes": 805306368,
+    "kernel": {
+      "kernel": "gather_split8_f16_vec4_f16_out.wgsl",
+      "entry": "gather_vec4_f16_out",
+      "digest": "sha256:ce77263ace3099526665174b0fba1d93696bf782268d172d6b71b63a8021338d"
+    }
+  },
+  "preflight": {
+    "ok": true,
+    "splitKernelExpected": true,
+    "activeSplitKernelMaxSections": 8,
+    "maxSplitEmbeddingSections": 8,
+    "requiredSplitSections": 7,
+    "requiredStorageBuffers": 10,
+    "largeWeightMaxBytes": 120795955,
+    "rowsPerSplitSection": 39321
+  }
+}

@@ -1,4 +1,4 @@
-import { getKernelCapabilities } from '../device.js';
+import { getDevice, getKernelCapabilities } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { WORKGROUP_SIZES, VEC4_ELEMENTS_PER_WG } from './constants.js';
 import { unifiedKernelWrapper } from './utils.js';
@@ -8,7 +8,9 @@ import { DTYPE_SIZES, padToQ4KBlock } from '../../config/schema/index.js';
 import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
 
-const SPLIT_GATHER_SECTION_COUNT = 4;
+const SPLIT_GATHER_STORAGE_BUFFER_OVERHEAD = 2;
+const SPLIT4_GATHER_SECTION_COUNT = 4;
+const SPLIT8_GATHER_SECTION_COUNT = 8;
 
 function selectGatherVariant(useF16Input, useF16Output, useVec4, useLiteRTInt4Input = false) {
   return selectKernelRuleValue(
@@ -29,15 +31,15 @@ function resolveLiteRTInt4StorageEncoding(storageEncoding) {
   return normalized;
 }
 
-function normalizeSplitGatherSections(splitEmbedding) {
+function normalizeSplitGatherSections(splitEmbedding, sectionCount, label) {
   const sections = splitEmbedding?.sections;
   if (!Array.isArray(sections) || sections.length === 0) {
     throw new Error('[Gather] split embeddings require at least one GPU section.');
   }
-  if (sections.length > SPLIT_GATHER_SECTION_COUNT) {
+  if (sections.length > sectionCount) {
     throw new Error(
       `[Gather] split embeddings have ${sections.length} sections; ` +
-      `gather_split4 supports at most ${SPLIT_GATHER_SECTION_COUNT}.`
+      `${label} supports at most ${sectionCount}.`
     );
   }
   let nextRowStart = 0;
@@ -57,13 +59,69 @@ function normalizeSplitGatherSections(splitEmbedding) {
     nextRowStart += section.rowCount;
   }
   const padded = [...sections];
-  while (padded.length < SPLIT_GATHER_SECTION_COUNT) {
+  while (padded.length < sectionCount) {
     padded.push({ buffer: sections[0].buffer, rowStart: nextRowStart, rowCount: 0 });
   }
   return padded;
 }
 
-async function _gatherSplit4(
+function selectSplitGatherConfig(splitEmbedding, outputDtype, forcedSectionCount = null) {
+  const sectionCount = Array.isArray(splitEmbedding?.sections) ? splitEmbedding.sections.length : 0;
+  if (sectionCount <= 0) {
+    throw new Error('[Gather] split embeddings require at least one GPU section.');
+  }
+  if (
+    forcedSectionCount != null
+    && forcedSectionCount !== SPLIT4_GATHER_SECTION_COUNT
+    && forcedSectionCount !== SPLIT8_GATHER_SECTION_COUNT
+  ) {
+    throw new Error(`[Gather] unsupported split gather section count ${forcedSectionCount}.`);
+  }
+  if (sectionCount > SPLIT8_GATHER_SECTION_COUNT) {
+    throw new Error(
+      `[Gather] split embeddings have ${sectionCount} sections; ` +
+      `gather_split8 supports at most ${SPLIT8_GATHER_SECTION_COUNT}.`
+    );
+  }
+  const config = selectKernelRuleValue('gather', 'splitConfig', {
+    forcedSectionCount,
+    outputDtype,
+    sectionCount,
+  });
+  if (sectionCount > config.sectionCount) {
+    throw new Error(
+      `[Gather] split embeddings have ${sectionCount} sections; ` +
+      `${config.label} supports at most ${config.sectionCount}.`
+    );
+  }
+  return config;
+}
+
+function assertSplitGatherBindingLimit(config) {
+  const maxStorageBuffersPerShaderStage = getDevice()?.limits?.maxStorageBuffersPerShaderStage;
+  const requiredStorageBuffers = config.sectionCount + SPLIT_GATHER_STORAGE_BUFFER_OVERHEAD;
+  if (
+    Number.isFinite(maxStorageBuffersPerShaderStage)
+    && maxStorageBuffersPerShaderStage < requiredStorageBuffers
+  ) {
+    throw new Error(
+      `[Gather] ${config.label} requires ${requiredStorageBuffers} storage buffers per shader stage; ` +
+      `device reports maxStorageBuffersPerShaderStage=${maxStorageBuffersPerShaderStage}.`
+    );
+  }
+}
+
+function createSplitGatherUniforms(base, sections, sectionCount) {
+  const uniforms = { ...base };
+  for (let index = 0; index < sectionCount; index++) {
+    uniforms[`section${index}_rows`] = sections[index].rowCount;
+  }
+  uniforms._pad0 = 0;
+  uniforms._pad1 = 0;
+  return uniforms;
+}
+
+async function _gatherSplit(
   target,
   indices,
   splitEmbedding,
@@ -82,6 +140,7 @@ async function _gatherSplit4(
     hiddenOffset = 0,
     indirectBuffer = null,
     indirectOffset = 0,
+    splitGatherSectionCount = null,
   } = options;
 
   if (embeddingDtype == null) {
@@ -90,7 +149,16 @@ async function _gatherSplit4(
   if (outputDtype == null) {
     throw new Error('[Gather] outputDtype is required.');
   }
-  const sections = normalizeSplitGatherSections(splitEmbedding);
+  const config = selectSplitGatherConfig(
+    splitEmbedding,
+    outputDtype,
+    splitGatherSectionCount ?? splitEmbedding?.metadata?.splitGatherSectionCount ?? null
+  );
+  const variant = config.variants[outputDtype];
+  if (!variant) {
+    throw new Error(`[Gather] ${config.label} does not support outputDtype=${outputDtype}.`);
+  }
+  const sections = normalizeSplitGatherSections(splitEmbedding, config.sectionCount, config.label);
   const logicalRows = sections.reduce((sum, section) => sum + section.rowCount, 0);
   if (logicalRows < vocabSize) {
     throw new Error(
@@ -100,19 +168,16 @@ async function _gatherSplit4(
 
   const caps = getKernelCapabilities();
   if (!caps.hasF16) {
-    throw new Error('[Gather] gather_split4 requires shader-f16 support.');
+    throw new Error(`[Gather] ${config.label} requires shader-f16 support.`);
   }
   if (splitEmbedding?.dtype !== 'f16' || embeddingDtype !== 'f16') {
-    throw new Error('[Gather] gather_split4 requires f16 split embeddings.');
-  }
-  if (outputDtype !== 'f16') {
-    throw new Error('[Gather] gather_split4 requires outputDtype=f16.');
+    throw new Error(`[Gather] ${config.label} requires f16 split embeddings.`);
   }
   if (splitEmbedding?.layout !== 'row' || transpose) {
-    throw new Error('[Gather] gather_split4 requires row-major embeddings.');
+    throw new Error(`[Gather] ${config.label} requires row-major embeddings.`);
   }
   if (hiddenSize % 4 !== 0) {
-    throw new Error('[Gather] gather_split4 requires hiddenSize to be divisible by 4.');
+    throw new Error(`[Gather] ${config.label} requires hiddenSize to be divisible by 4.`);
   }
   if (!Number.isFinite(inputHiddenSize) || inputHiddenSize < hiddenSize) {
     throw new Error('[Gather] inputHiddenSize must be >= hiddenSize.');
@@ -120,34 +185,29 @@ async function _gatherSplit4(
   if (!Number.isFinite(hiddenOffset) || hiddenOffset < 0 || (hiddenOffset + hiddenSize) > inputHiddenSize) {
     throw new Error('[Gather] hiddenOffset must select a valid hidden slice inside inputHiddenSize.');
   }
+  assertSplitGatherBindingLimit(config);
 
   trace.embed(
-    `GatherSplit4: numTokens=${numTokens}, hiddenSize=${hiddenSize}, vocabSize=${vocabSize}, ` +
+    `${config.label}: numTokens=${numTokens}, hiddenSize=${hiddenSize}, vocabSize=${vocabSize}, ` +
     `indexOffset=${indexOffset}, inputHiddenSize=${inputHiddenSize}, hiddenOffset=${hiddenOffset}, ` +
     `sections=${splitEmbedding.sections.length}, embeddingDtype=${embeddingDtype}, outputDtype=${outputDtype}`
   );
 
-  const actualDtype = 'f16';
+  const actualDtype = outputDtype;
   const bytesPerElement = DTYPE_SIZES[actualDtype];
   const paddedHiddenSize = padToQ4KBlock(hiddenSize);
   const outputSize = numTokens * paddedHiddenSize * bytesPerElement;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'gather_split4_output');
+  const output = outputBuffer || acquireBuffer(outputSize, undefined, `${config.label}_output`);
   const ownedOutput = outputBuffer ? null : output;
 
-  const uniforms = {
+  const uniforms = createSplitGatherUniforms({
     num_tokens: numTokens,
     hidden_size: hiddenSize,
     vocab_size: vocabSize,
     index_offset: indexOffset,
     input_hidden_size: inputHiddenSize,
     hidden_offset: hiddenOffset,
-    section0_rows: sections[0].rowCount,
-    section1_rows: sections[1].rowCount,
-    section2_rows: sections[2].rowCount,
-    section3_rows: sections[3].rowCount,
-    _pad0: 0,
-    _pad1: 0,
-  };
+  }, sections, config.sectionCount);
 
   const workgroups = indirectBuffer
     ? { indirectBuffer, indirectOffset }
@@ -155,21 +215,18 @@ async function _gatherSplit4(
 
   try {
     await unifiedKernelWrapper(
-      'gather_split4',
+      config.op,
       target,
-      'f16_vec4_f16_out',
+      variant,
       [
         indices,
-        sections[0].buffer,
-        sections[1].buffer,
-        sections[2].buffer,
-        sections[3].buffer,
+        ...sections.map((section) => section.buffer),
         output,
       ],
       uniforms,
       workgroups
     );
-    return createTensor(output, actualDtype, [numTokens, hiddenSize], 'gather_split4_output');
+    return createTensor(output, actualDtype, [numTokens, hiddenSize], `${config.label}_output`);
   } catch (error) {
     if (ownedOutput) {
       releaseBuffer(ownedOutput);
@@ -341,7 +398,16 @@ export async function runGatherSplit4(
   vocabSize,
   options = {}
 ) {
-  return _gatherSplit4(null, indices, splitEmbedding, numTokens, hiddenSize, vocabSize, options);
+  if ((splitEmbedding?.sections?.length ?? 0) > SPLIT4_GATHER_SECTION_COUNT) {
+    throw new Error(
+      `[Gather] split embeddings have ${splitEmbedding.sections.length} sections; ` +
+      `gather_split4 supports at most ${SPLIT4_GATHER_SECTION_COUNT}.`
+    );
+  }
+  return _gatherSplit(null, indices, splitEmbedding, numTokens, hiddenSize, vocabSize, {
+    ...options,
+    splitGatherSectionCount: SPLIT4_GATHER_SECTION_COUNT,
+  });
 }
 
 export async function recordGatherSplit4(
@@ -353,5 +419,78 @@ export async function recordGatherSplit4(
   vocabSize,
   options = {}
 ) {
-  return _gatherSplit4(recorder, indices, splitEmbedding, numTokens, hiddenSize, vocabSize, options);
+  if ((splitEmbedding?.sections?.length ?? 0) > SPLIT4_GATHER_SECTION_COUNT) {
+    throw new Error(
+      `[Gather] split embeddings have ${splitEmbedding.sections.length} sections; ` +
+      `gather_split4 supports at most ${SPLIT4_GATHER_SECTION_COUNT}.`
+    );
+  }
+  return _gatherSplit(recorder, indices, splitEmbedding, numTokens, hiddenSize, vocabSize, {
+    ...options,
+    splitGatherSectionCount: SPLIT4_GATHER_SECTION_COUNT,
+  });
+}
+
+export async function runGatherSplit8(
+  indices,
+  splitEmbedding,
+  numTokens,
+  hiddenSize,
+  vocabSize,
+  options = {}
+) {
+  if ((splitEmbedding?.sections?.length ?? 0) > SPLIT8_GATHER_SECTION_COUNT) {
+    throw new Error(
+      `[Gather] split embeddings have ${splitEmbedding.sections.length} sections; ` +
+      `gather_split8 supports at most ${SPLIT8_GATHER_SECTION_COUNT}.`
+    );
+  }
+  return _gatherSplit(null, indices, splitEmbedding, numTokens, hiddenSize, vocabSize, {
+    ...options,
+    splitGatherSectionCount: SPLIT8_GATHER_SECTION_COUNT,
+  });
+}
+
+export async function recordGatherSplit8(
+  recorder,
+  indices,
+  splitEmbedding,
+  numTokens,
+  hiddenSize,
+  vocabSize,
+  options = {}
+) {
+  if ((splitEmbedding?.sections?.length ?? 0) > SPLIT8_GATHER_SECTION_COUNT) {
+    throw new Error(
+      `[Gather] split embeddings have ${splitEmbedding.sections.length} sections; ` +
+      `gather_split8 supports at most ${SPLIT8_GATHER_SECTION_COUNT}.`
+    );
+  }
+  return _gatherSplit(recorder, indices, splitEmbedding, numTokens, hiddenSize, vocabSize, {
+    ...options,
+    splitGatherSectionCount: SPLIT8_GATHER_SECTION_COUNT,
+  });
+}
+
+export async function runGatherSplit(
+  indices,
+  splitEmbedding,
+  numTokens,
+  hiddenSize,
+  vocabSize,
+  options = {}
+) {
+  return _gatherSplit(null, indices, splitEmbedding, numTokens, hiddenSize, vocabSize, options);
+}
+
+export async function recordGatherSplit(
+  recorder,
+  indices,
+  splitEmbedding,
+  numTokens,
+  hiddenSize,
+  vocabSize,
+  options = {}
+) {
+  return _gatherSplit(recorder, indices, splitEmbedding, numTokens, hiddenSize, vocabSize, options);
 }

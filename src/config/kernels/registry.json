@@ -5921,10 +5921,7 @@
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
-              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
-              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
-              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
-              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "gather.rules.json#variant"
@@ -6276,6 +6273,198 @@
             "status": "pinned",
             "inlineConfigs": [
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16"
+            ],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
+    "gather_split8": {
+      "description": "Row-split embedding lookup kernels with up to eight sections",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "indices",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "embeddings0",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "embeddings1",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "embeddings2",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 5,
+          "name": "embeddings3",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 6,
+          "name": "embeddings4",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 7,
+          "name": "embeddings5",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 8,
+          "name": "embeddings6",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 9,
+          "name": "embeddings7",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 10,
+          "name": "output",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 64,
+        "fields": [
+          {
+            "name": "num_tokens",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "hidden_size",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "vocab_size",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "index_offset",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "input_hidden_size",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "hidden_offset",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "section0_rows",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "section1_rows",
+            "type": "u32",
+            "offset": 28
+          },
+          {
+            "name": "section2_rows",
+            "type": "u32",
+            "offset": 32
+          },
+          {
+            "name": "section3_rows",
+            "type": "u32",
+            "offset": 36
+          },
+          {
+            "name": "section4_rows",
+            "type": "u32",
+            "offset": 40
+          },
+          {
+            "name": "section5_rows",
+            "type": "u32",
+            "offset": 44
+          },
+          {
+            "name": "section6_rows",
+            "type": "u32",
+            "offset": 48
+          },
+          {
+            "name": "section7_rows",
+            "type": "u32",
+            "offset": 52
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 56
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 60
+          }
+        ]
+      },
+      "variants": {
+        "f16_vec4_f16_out": {
+          "wgsl": "gather_split8_f16_vec4_f16_out.wgsl",
+          "entryPoint": "gather_vec4_f16_out",
+          "workgroup": [
+            64,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f16",
+          "description": "F16 split8 embeddings -> F16 output",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple"
+            ],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
+        "f16_vec4_f32_out": {
+          "wgsl": "gather_split8_f16_vec4_f32_out.wgsl",
+          "entryPoint": "gather_vec4_f32_out",
+          "workgroup": [
+            64,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f32",
+          "description": "F16 split8 embeddings -> F32 output",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
+              "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
             ],
             "ruleChains": [],
             "wgslOnDisk": true

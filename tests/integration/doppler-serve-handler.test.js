@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
-import { createServeHandler } from '../../src/cli/doppler-serve.js';
+import crypto from 'node:crypto';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { createServeHandler, parseServeArgs } from '../../src/cli/doppler-serve.js';
 
 const handler = createServeHandler();
 const mockTextModel = {
@@ -35,7 +38,7 @@ const mockEmbeddingModel = {
   },
 };
 
-function createMockHandler() {
+function createMockHandler(overrides = {}) {
   const calls = [];
   const mockHandler = createServeHandler({
     listModels: async () => [mockTextModel, mockEmbeddingModel],
@@ -65,8 +68,30 @@ function createMockHandler() {
         yield 'Hello';
       },
     },
+    ...overrides,
   });
   return { handler: mockHandler, calls };
+}
+
+function createFailingMockHandler(error) {
+  const mockHandler = createServeHandler({
+    listModels: async () => [mockTextModel],
+    resolveModel: async (model) => {
+      if (model === mockTextModel.modelId || mockTextModel.aliases.includes(model)) {
+        return mockTextModel;
+      }
+      throw new Error(`Unknown quickstart model "${model}".`);
+    },
+    dopplerClient: {
+      async chatText() {
+        throw error;
+      },
+      async *chat() {
+        throw error;
+      },
+    },
+  });
+  return mockHandler;
 }
 
 function createMockReq(method, url, body) {
@@ -127,6 +152,63 @@ function createMockRes() {
 
 function parseBody(res) {
   return JSON.parse(res.state.chunks.join(''));
+}
+
+function sha256Hex(value) {
+  return crypto.createHash('sha256').update(value).digest('hex');
+}
+
+function createLoadFailure() {
+  const error = new Error(
+    'Pipeline load phase "loadWeights" failed: Storage buffer size 805306368 exceeds device maxStorageBufferBindingSize (134217728).'
+  );
+  error.details = {
+    pipelineLoadPhase: 'loadWeights',
+    modelId: mockTextModel.modelId,
+    weightLoadFailure: {
+      tensorName: 'model.language_model.embed_tokens.weight',
+      tensorRole: 'embedding',
+      tensorDtype: 'F16',
+      tensorShape: [262144, 1536],
+      tensorSizeBytes: 805306368,
+      tensorLoadStage: 'streamShardToGpuBuffer',
+      toGPU: true,
+      streamedUpload: true,
+      deviceLimitFailure: {
+        kind: 'gpu_resident_embedding_exceeds_device_limit',
+        maxGpuResidentBytes: 134217728,
+        maxStorageBufferBindingSize: 134217728,
+        maxBufferSize: 134217728,
+        maxStorageBuffersPerShaderStage: null,
+        largeWeightMaxBytes: 107374182,
+        embeddingKernel: {
+          kernel: 'gather.wgsl',
+          entry: 'main',
+        },
+        splitKernelExpected: false,
+        activeSplitKernelMaxSections: null,
+        maxSplitEmbeddingSections: 8,
+        requiredSplitSections: 8,
+      },
+    },
+  };
+  return error;
+}
+
+// CLI args - model URL requires an explicit model identity
+{
+  assert.throws(
+    () => parseServeArgs(['--model-url', 'models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple']),
+    /--model-url requires --model/
+  );
+}
+
+// CLI args - local model path is normalized to file URL
+{
+  const localPath = 'models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple';
+  const settings = parseServeArgs(['--model', 'gemma4-e2b-int4ple', '--model-url', localPath]);
+  assert.equal(settings.model, 'gemma4-e2b-int4ple');
+  assert.equal(settings.modelUrl, pathToFileURL(path.resolve(localPath)).href);
 }
 
 // Health endpoint
@@ -265,6 +347,68 @@ function parseBody(res) {
   assert.ok(body.error.message.includes('not text-generative'));
 }
 
+// Chat completions - explicit runtime model source keeps response identity canonical
+{
+  const runtimeModel = { url: 'file:///models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/' };
+  const runtimeCalls = [];
+  const mock = createMockHandler({
+    resolveRuntimeModel(registryEntry, requestedModel) {
+      runtimeCalls.push({ registryEntry, requestedModel });
+      return runtimeModel;
+    },
+  });
+  const req = createMockReq('POST', '/v1/chat/completions', {
+    model: 'gemma3-270m',
+    messages: [{ role: 'user', content: 'hi' }],
+    include_receipt: true,
+  });
+  const res = createMockRes();
+  await mock.handler(req, res);
+  assert.equal(res.state.statusCode, 200);
+  assert.equal(runtimeCalls.length, 1);
+  assert.equal(runtimeCalls[0].registryEntry.modelId, mockTextModel.modelId);
+  assert.equal(runtimeCalls[0].requestedModel, 'gemma3-270m');
+  assert.equal(mock.calls.length, 1);
+  assert.deepEqual(mock.calls[0].options.model, runtimeModel);
+  const body = parseBody(res);
+  assert.equal(body.model, mockTextModel.modelId);
+  assert.equal(body.doppler_receipt.requestedModel, 'gemma3-270m');
+  assert.equal(body.doppler_receipt.resolvedModel, mockTextModel.modelId);
+  assert.deepEqual(body.doppler_receipt.runtimeModelSource, {
+    kind: 'url',
+    url: runtimeModel.url,
+  });
+  assert.equal(body.doppler_receipt.artifact.source, 'quickstart-registry');
+}
+
+// Chat completions - streaming uses explicit runtime model source too
+{
+  const runtimeModel = { url: 'file:///models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/' };
+  const runtimeCalls = [];
+  const mock = createMockHandler({
+    resolveRuntimeModel(registryEntry, requestedModel) {
+      runtimeCalls.push({ registryEntry, requestedModel });
+      return runtimeModel;
+    },
+  });
+  const req = createMockReq('POST', '/v1/chat/completions', {
+    model: 'gemma3-270m',
+    messages: [{ role: 'user', content: 'hi' }],
+    stream: true,
+  });
+  const res = createMockRes();
+  await mock.handler(req, res);
+  assert.equal(res.state.statusCode, 200);
+  assert.equal(runtimeCalls.length, 1);
+  assert.equal(runtimeCalls[0].registryEntry.modelId, mockTextModel.modelId);
+  assert.equal(runtimeCalls[0].requestedModel, 'gemma3-270m');
+  assert.equal(mock.calls.length, 1);
+  assert.deepEqual(mock.calls[0].options.model, runtimeModel);
+  const streamText = res.state.chunks.join('');
+  assert.ok(streamText.includes(`"model":"${mockTextModel.modelId}"`));
+  assert.ok(streamText.includes('data: [DONE]'));
+}
+
 // Chat completions - optional Doppler receipt
 {
   const mock = createMockHandler();
@@ -286,10 +430,35 @@ function parseBody(res) {
   assert.equal(body.model, mockTextModel.modelId);
   assert.equal(body.choices[0].message.content, 'Hello from Doppler.');
   assert.equal(body.usage.total_tokens, 7);
+  assert.equal(body.doppler_receipt.receiptVersion, 'doppler_serve_receipt_v1');
+  assert.equal(body.doppler_receipt.schemaVersion, 1);
+  assert.equal(body.doppler_receipt.surface, 'serve');
+  assert.equal(body.doppler_receipt.endpoint, '/v1/chat/completions');
+  assert.equal(body.doppler_receipt.status, 'pass');
+  assert.equal(body.doppler_receipt.runtime, 'doppler-gpu');
+  assert.equal(body.doppler_receipt.runtimePath, 'doppler-gpu.chatText');
+  assert.deepEqual(body.doppler_receipt.runtimeModelSource, {
+    kind: 'quickstart-registry',
+    modelId: mockTextModel.modelId,
+  });
+  assert.equal(body.doppler_receipt.modelId, mockTextModel.modelId);
   assert.equal(body.doppler_receipt.requestedModel, 'gemma3-270m');
   assert.equal(body.doppler_receipt.resolvedModel, mockTextModel.modelId);
   assert.equal(body.doppler_receipt.artifact.weightPackId, mockTextModel.weightPackId);
   assert.equal(body.doppler_receipt.artifact.hf.repoId, 'Clocksmith/rdrr');
+  assert.equal(body.doppler_receipt.request.messages.count, 1);
+  assert.equal(body.doppler_receipt.request.messages.digest.algorithm, 'sha256');
+  assert.match(body.doppler_receipt.request.messages.digest.value, /^[0-9a-f]{64}$/);
+  assert.equal(body.doppler_receipt.request.messages.digest.bytes, 32);
+  assert.equal(body.doppler_receipt.request.generationDigest.algorithm, 'sha256');
+  assert.match(body.doppler_receipt.request.generationDigest.value, /^[0-9a-f]{64}$/);
+  assert.equal(body.doppler_receipt.output.role, 'assistant');
+  assert.equal(body.doppler_receipt.output.digest.value, sha256Hex('Hello from Doppler.'));
+  assert.equal(body.doppler_receipt.output.digest.bytes, 19);
+  assert.equal(body.doppler_receipt.output.textLength, 19);
+  assert.equal(body.doppler_receipt.output.empty, false);
+  assert.equal(body.doppler_receipt.transcript.digest.algorithm, 'sha256');
+  assert.match(body.doppler_receipt.transcript.digest.value, /^[0-9a-f]{64}$/);
   assert.equal(body.doppler_receipt.generation.maxTokens, 8);
   assert.equal(body.doppler_receipt.generation.temperature, 0);
   assert.equal(body.doppler_receipt.generation.topK, 1);
@@ -298,6 +467,53 @@ function parseBody(res) {
     completionTokens: 3,
     totalTokens: 7,
   });
+}
+
+// Chat completions - failed receipt keeps runtime blocker attributable
+{
+  const failingHandler = createFailingMockHandler(createLoadFailure());
+  const req = createMockReq('POST', '/v1/chat/completions', {
+    model: 'gemma3-270m',
+    messages: [{ role: 'user', content: 'hi' }],
+    max_tokens: 8,
+    temperature: 0,
+    top_k: 1,
+    include_receipt: true,
+  });
+  const res = createMockRes();
+  await failingHandler(req, res);
+  assert.equal(res.state.statusCode, 500);
+  const body = parseBody(res);
+  assert.ok(body.error.message.includes('loadWeights'));
+  assert.equal(body.doppler_receipt.receiptVersion, 'doppler_serve_receipt_v1');
+  assert.equal(body.doppler_receipt.surface, 'serve');
+  assert.equal(body.doppler_receipt.status, 'diagnostic');
+  assert.equal(body.doppler_receipt.runtimePath, 'doppler-gpu.chatText');
+  assert.equal(body.doppler_receipt.modelId, mockTextModel.modelId);
+  assert.equal(body.doppler_receipt.request.messages.count, 1);
+  assert.equal(body.doppler_receipt.request.messages.digest.algorithm, 'sha256');
+  assert.match(body.doppler_receipt.request.messages.digest.value, /^[0-9a-f]{64}$/);
+  assert.equal(body.doppler_receipt.generation.maxTokens, 8);
+  assert.equal(body.doppler_receipt.failure.code, 'pipeline-load-failed');
+  assert.equal(body.doppler_receipt.failure.stage, 'loadWeights');
+  assert.equal(body.doppler_receipt.failure.modelId, mockTextModel.modelId);
+  assert.equal(body.doppler_receipt.failure.weightLoadFailure.tensorRole, 'embedding');
+  assert.equal(body.doppler_receipt.failure.weightLoadFailure.tensorSizeBytes, 805306368);
+  assert.equal(
+    body.doppler_receipt.failure.weightLoadFailure.deviceLimitFailure.kind,
+    'gpu_resident_embedding_exceeds_device_limit'
+  );
+  assert.equal(
+    body.doppler_receipt.failure.weightLoadFailure.deviceLimitFailure.maxGpuResidentBytes,
+    134217728
+  );
+  assert.deepEqual(
+    body.doppler_receipt.failure.weightLoadFailure.deviceLimitFailure.embeddingKernel,
+    {
+      kernel: 'gather.wgsl',
+      entry: 'main',
+    }
+  );
 }
 
 // Chat completions - receipt is explicit and unavailable on stream responses

@@ -1,4 +1,83 @@
 {
+  "splitConfig": [
+    {
+      "match": {
+        "forcedSectionCount": 4
+      },
+      "value": {
+        "op": "gather_split4",
+        "label": "gather_split4",
+        "sectionCount": 4,
+        "variants": {
+          "f16": "f16_vec4_f16_out"
+        }
+      }
+    },
+    {
+      "match": {
+        "forcedSectionCount": 8
+      },
+      "value": {
+        "op": "gather_split8",
+        "label": "gather_split8",
+        "sectionCount": 8,
+        "variants": {
+          "f16": "f16_vec4_f16_out",
+          "f32": "f16_vec4_f32_out"
+        }
+      }
+    },
+    {
+      "match": {
+        "outputDtype": "f32",
+        "sectionCount": {
+          "lte": 8
+        }
+      },
+      "value": {
+        "op": "gather_split8",
+        "label": "gather_split8",
+        "sectionCount": 8,
+        "variants": {
+          "f16": "f16_vec4_f16_out",
+          "f32": "f16_vec4_f32_out"
+        }
+      }
+    },
+    {
+      "match": {
+        "outputDtype": "f16",
+        "sectionCount": {
+          "lte": 4
+        }
+      },
+      "value": {
+        "op": "gather_split4",
+        "label": "gather_split4",
+        "sectionCount": 4,
+        "variants": {
+          "f16": "f16_vec4_f16_out"
+        }
+      }
+    },
+    {
+      "match": {
+        "outputDtype": "f16",
+        "sectionCount": {
+          "lte": 8
+        }
+      },
+      "value": {
+        "op": "gather_split8",
+        "label": "gather_split8",
+        "sectionCount": 8,
+        "variants": {
+          "f16": "f16_vec4_f16_out",
+          "f32": "f16_vec4_f32_out"
+        }
+      }
+    }
+  ],
   "variant": [
     { "match": { "useLiteRTInt4Input": true, "useF16Output": false, "useVec4": true }, "value": "litert_int4_vec4_f32_out" },
     { "match": { "useLiteRTInt4Input": true, "useF16Output": true, "useVec4": true }, "value": "litert_int4_vec4_f16_out" },

@@ -225,6 +225,10 @@ export {
   recordGather,
   runGatherSplit4,
   recordGatherSplit4,
+  runGatherSplit8,
+  recordGatherSplit8,
+  runGatherSplit,
+  recordGatherSplit,
   type GatherOptions,
 } from './gather.js';
 

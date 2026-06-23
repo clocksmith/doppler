@@ -166,9 +166,9 @@
     "execution": {
       "kernels": {
         "embed": {
-          "kernel": "gather.wgsl",
-          "entry": "main",
-          "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6"
+          "kernel": "gather_split8_f16_vec4_f16_out.wgsl",
+          "entry": "gather_vec4_f16_out",
+          "digest": "sha256:ce77263ace3099526665174b0fba1d93696bf782268d172d6b71b63a8021338d"
         },
         "rmsnorm": {
           "kernel": "rmsnorm.wgsl",
@@ -25350,7 +25350,7 @@
   },
   "conversion": {
     "conversionConfigPath": "src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json",
-    "conversionConfigDigest": "sha256:a1aa38d7ae45a6a79f35a23f5eb0c40fdc117265b124d87abfe53f2243ec727d",
+    "conversionConfigDigest": "sha256:161df8415299cb00684278933dbf50f314cd37fb6e3745d6ad76f9291d07b7ff",
     "sourceManifestId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
     "siblingMode": "weights-ref"
   },
@@ -25375,7 +25375,7 @@
     "shardSetHash": "sha256:7575f4e89b3938a3ca4f8d7fc50fb46d4cfbd1d4dcc3b6ed62b6fb53424678ea",
     "artifactCompleteness": "weights-ref",
     "conversionConfigPath": "src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json",
-    "conversionConfigDigest": "sha256:a1aa38d7ae45a6a79f35a23f5eb0c40fdc117265b124d87abfe53f2243ec727d"
+    "conversionConfigDigest": "sha256:161df8415299cb00684278933dbf50f314cd37fb6e3745d6ad76f9291d07b7ff"
   },
   "integrityExtensions": {
     "contractVersion": 1,
@@ -27399,7 +27399,7 @@
   "weightsRef": {
     "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
     "artifactRoot": "../gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
-    "manifestDigest": "sha256:22d7d942436738ba7c0ea35e30f2a3f305fc57da2a4c41b247ad194b9ccbfef4",
+    "manifestDigest": "sha256:2af2275cf89d0da9f1539bc8a1105850f2f7f4c8f63d41da35593510f1b59cc2",
     "shardSetHash": "sha256:7575f4e89b3938a3ca4f8d7fc50fb46d4cfbd1d4dcc3b6ed62b6fb53424678ea"
   }
 }

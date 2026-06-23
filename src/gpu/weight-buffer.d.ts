@@ -20,6 +20,12 @@ export interface WeightMetadata {
   readonly scaleBuffer?: GPUBuffer;
   readonly scaleDtype?: WeightScaleDtype;
   readonly groupsPerRow?: number;
+  readonly splitGatherSectionCount?: number;
+  readonly sourceKernel?: {
+    readonly kernel?: string | null;
+    readonly entry?: string | null;
+    readonly digest?: string | null;
+  };
 }
 
 export interface CpuTensorRangeSource {
@@ -141,7 +147,8 @@ export function createSplitWeightBuffer(
   dtype: WeightDtype,
   layout: WeightLayout,
   shape: number[],
-  label?: string
+  label?: string,
+  metadata?: WeightMetadata | null
 ): SplitWeightBuffer;
 
 /**

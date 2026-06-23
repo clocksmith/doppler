@@ -36,6 +36,8 @@ export interface GatherOptions extends OutputBufferOptions {
   indirectOffset?: number;
   /** Required when embeddingDtype is 'litert_int4'. */
   storageEncoding?: WeightStorageEncoding | null;
+  /** Optional authored split gather section count, usually stamped from the manifest-selected embedding kernel. */
+  splitGatherSectionCount?: number | null;
 }
 
 /**
@@ -79,6 +81,59 @@ export declare function runGatherSplit4(
  * Record gather against a row-split F16 embedding table.
  */
 export declare function recordGatherSplit4(
+  recorder: CommandRecorder,
+  indices: GPUBuffer,
+  splitEmbedding: SplitWeightBuffer,
+  numTokens: number,
+  hiddenSize: number,
+  vocabSize: number,
+  options?: GatherOptions
+): Promise<Tensor>;
+
+/**
+ * Run gather/embedding lookup against a row-split F16 embedding table with up
+ * to eight sections.
+ */
+export declare function runGatherSplit8(
+  indices: GPUBuffer,
+  splitEmbedding: SplitWeightBuffer,
+  numTokens: number,
+  hiddenSize: number,
+  vocabSize: number,
+  options?: GatherOptions
+): Promise<Tensor>;
+
+/**
+ * Record gather against a row-split F16 embedding table with up to eight sections.
+ */
+export declare function recordGatherSplit8(
+  recorder: CommandRecorder,
+  indices: GPUBuffer,
+  splitEmbedding: SplitWeightBuffer,
+  numTokens: number,
+  hiddenSize: number,
+  vocabSize: number,
+  options?: GatherOptions
+): Promise<Tensor>;
+
+/**
+ * Run gather/embedding lookup against a row-split F16 embedding table, honoring
+ * the manifest-stamped split variant when the split buffer provides one.
+ */
+export declare function runGatherSplit(
+  indices: GPUBuffer,
+  splitEmbedding: SplitWeightBuffer,
+  numTokens: number,
+  hiddenSize: number,
+  vocabSize: number,
+  options?: GatherOptions
+): Promise<Tensor>;
+
+/**
+ * Record gather against a row-split F16 embedding table, honoring the
+ * manifest-stamped split variant when the split buffer provides one.
+ */
+export declare function recordGatherSplit(
   recorder: CommandRecorder,
   indices: GPUBuffer,
   splitEmbedding: SplitWeightBuffer,
