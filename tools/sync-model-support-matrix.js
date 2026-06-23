@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
@@ -11,8 +12,34 @@ const REPO_ROOT = path.resolve(__dirname, '..');
 const DEFAULT_OUTPUT_PATH = path.join(REPO_ROOT, 'docs/model-support-matrix.md');
 const CONVERSION_CONFIG_DIR = path.join(REPO_ROOT, 'src/config/conversion');
 const CATALOG_PATH = path.join(REPO_ROOT, 'models/catalog.json');
+const GEMMA4_TARGETS_PATH = path.join(REPO_ROOT, 'models/gemma4-targets.json');
 const QUICKSTART_REGISTRY_PATH = path.join(REPO_ROOT, 'src', 'client', 'doppler-registry.json');
 const RUNTIME_BLOCKED_MODEL_TYPES = new Set(['mamba', 'rwkv']);
+const GEMMA4_TARGET_STATUS = new Set(['partially_verified', 'gap']);
+const GEMMA4_SURFACE_STATUS = new Set(['verified', 'unverified', 'unsupported']);
+const GEMMA4_CLAIM_STATUS = new Set(['verified', 'verified-local', 'experimental']);
+const GEMMA4_MTP_STATUS = new Set(['not_implemented']);
+const GEMMA4_SERVE_STATUS = new Set(['verified', 'unverified', 'unsupported']);
+const GEMMA4_EVIDENCE_STATUS = new Set(['pass', 'performance_evidence', 'diagnostic']);
+const GEMMA4_EVIDENCE_SURFACE = new Set(['browser', 'electron', 'node']);
+const GEMMA4_SERVE_EVIDENCE_STATUS = new Set(['pass', 'diagnostic']);
+const GEMMA4_PREFLIGHT_EVIDENCE_STATUS = new Set(['pass', 'diagnostic']);
+const GEMMA4_SOURCE_PACKAGE_STATUS = new Set(['blocked', 'unverified', 'verified']);
+const GEMMA4_BLOCKER_STATE = new Set(['missing', 'unsupported', 'unverified', 'diagnostic', 'not_implemented', 'incomplete']);
+const GEMMA4_BLOCKER_SURFACE = new Set(['browser', 'electron', 'node', 'serve', 'mtp', 'model', 'benchmark']);
+const GEMMA4_BLOCKER_CODE_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const GEMMA4_REQUIRED_SOURCE_URLS = Object.freeze([
+  'https://ai.google.dev/gemma/docs/core',
+  'https://ai.google.dev/gemma/docs/releases',
+  'https://developers.google.com/edge/litert-lm/models/gemma-4',
+]);
+const GEMMA4_REQUIRED_TARGET_IDS = Object.freeze([
+  'gemma-4-e2b',
+  'gemma-4-e4b',
+  'gemma-4-12b-unified',
+  'gemma-4-31b',
+  'gemma-4-26b-a4b',
+]);
 const FAMILY_ORDER = Object.freeze([
   'embeddinggemma',
   'gemma3',
@@ -64,6 +91,163 @@ function normalizeModelId(value) {
 
 function normalizeFamily(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : 'unknown';
+}
+
+function isObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function hasText(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function hasFiniteNumber(value) {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function isRepoRelativeJsonPath(value) {
+  const candidate = typeof value === 'string' ? value.trim() : '';
+  return !!(
+    candidate
+    && !path.isAbsolute(candidate)
+    && !candidate.includes('\\')
+    && !candidate.split('/').includes('..')
+    && candidate.endsWith('.json')
+  );
+}
+
+function sha256Hex(text) {
+  return crypto.createHash('sha256').update(text).digest('hex');
+}
+
+function hasGemma4Blocker(blockers, query) {
+  return Array.isArray(blockers) && blockers.some((blocker) => {
+    if (query.code && blocker?.code !== query.code) return false;
+    if (query.surface && blocker?.surface !== query.surface) return false;
+    if (query.state && blocker?.state !== query.state) return false;
+    return true;
+  });
+}
+
+function hasGemma4VerifiedSurfaceEvidence(runtimeReceipts, surface) {
+  return Array.isArray(runtimeReceipts)
+    && runtimeReceipts.some((receipt) => normalizeText(receipt?.surface) === surface && normalizeText(receipt?.status) === 'pass');
+}
+
+function hasGemma4VerifiedServeEvidence(serveReceipts) {
+  return Array.isArray(serveReceipts)
+    && serveReceipts.some((receipt) => normalizeText(receipt?.status) === 'pass');
+}
+
+function resolveReceiptModelId(payload) {
+  return normalizeModelId(payload?.modelId || payload?.dopplerModelId);
+}
+
+function resolveRuntimeOutputEvidence(payload) {
+  if (hasText(payload?.output)) return true;
+  if (hasText(payload?.metrics?.generatedText)) return true;
+  if (hasFiniteNumber(payload?.referenceTranscript?.output?.tokensGenerated)) return payload.referenceTranscript.output.tokensGenerated > 0;
+  return false;
+}
+
+function resolveRuntimeContractEvidence(payload) {
+  if (payload?.metrics?.executionContractArtifact?.ok === true) return true;
+  if (payload?.executionContractArtifact?.ok === true) return true;
+  if (payload?.schema === 'doppler.program-bundle/v1') {
+    return hasText(payload?.sources?.manifest?.hash)
+      && hasText(payload?.sources?.executionGraph?.hash)
+      && hasText(payload?.execution?.graphHash)
+      && Array.isArray(payload?.execution?.steps)
+      && payload.execution.steps.length > 0;
+  }
+  return false;
+}
+
+function resolveServeReceiptModelId(payload) {
+  return normalizeModelId(payload?.modelId || payload?.resolvedModel || payload?.dopplerModelId);
+}
+
+function resolveSha256Evidence(value) {
+  return isObject(value)
+    && normalizeText(value?.algorithm) === 'sha256'
+    && /^[0-9a-f]{64}$/.test(String(value?.value || ''))
+    && hasFiniteNumber(value?.bytes);
+}
+
+function resolveServeRequestEvidence(payload) {
+  const messages = payload?.request?.messages;
+  return isObject(messages)
+    && hasFiniteNumber(messages?.count)
+    && messages.count > 0
+    && resolveSha256Evidence(messages?.digest)
+    && resolveSha256Evidence(payload?.request?.generationDigest);
+}
+
+function resolveServeOutputEvidence(payload) {
+  const output = payload?.output;
+  return isObject(output)
+    && normalizeText(output?.role) === 'assistant'
+    && resolveSha256Evidence(output?.digest)
+    && hasFiniteNumber(output?.textLength)
+    && typeof output?.empty === 'boolean';
+}
+
+function resolveServeTranscriptEvidence(payload) {
+  return resolveSha256Evidence(payload?.transcript?.digest);
+}
+
+function resolveServeFailureEvidence(payload) {
+  const failure = payload?.failure;
+  return isObject(failure)
+    && hasText(failure?.code)
+    && hasText(failure?.stage)
+    && hasText(failure?.message)
+    && hasText(failure?.modelId);
+}
+
+function resolveServeRuntimeModelSourceEvidence(payload) {
+  const source = payload?.runtimeModelSource;
+  if (!isObject(source)) {
+    return false;
+  }
+  const kind = normalizeText(source.kind);
+  if (kind === 'quickstart-registry') {
+    return hasText(source.modelId);
+  }
+  if (kind === 'url') {
+    return hasText(source.url);
+  }
+  if (kind === 'inline-manifest') {
+    return hasText(source.modelId) && (source.baseUrl === null || hasText(source.baseUrl));
+  }
+  return false;
+}
+
+function resolveBenchmarkFields(payload) {
+  const compareParity = payload?.sections?.compute?.parity;
+  if (isObject(compareParity?.doppler?.result)) {
+    const result = compareParity.doppler.result;
+    return {
+      modelId: normalizeModelId(payload?.dopplerModelId || result?.modelId),
+      timing: result.timing,
+      memoryStats: result.memoryStats,
+      cacheMode: compareParity.cacheMode || result.cacheMode || result.timing?.cacheMode,
+      loadMode: compareParity.loadMode || result.loadMode || result.timing?.loadMode,
+      outputText: result.metrics?.generatedText || payload?.correctness?.doppler,
+      correctnessStatus: payload?.correctness?.status,
+      decodeValidityOk: compareParity?.decodeValidity?.ok,
+    };
+  }
+  return {
+    modelId: normalizeModelId(payload?.modelId),
+    timing: payload?.timing,
+    memoryStats: payload?.memoryStats,
+    cacheMode: payload?.cacheMode || payload?.timing?.cacheMode,
+    loadMode: payload?.loadMode || payload?.timing?.loadMode,
+    outputText: payload?.metrics?.generatedText || payload?.output,
+    correctnessStatus: null,
+    decodeValidityOk: null,
+  };
 }
 
 function compareFamilies(left, right) {
@@ -157,6 +341,680 @@ export function validateCatalogMatrixInputs(payload) {
     }
   }
 
+  return errors;
+}
+
+export function validateGemma4TargetMatrixInputs(payload, catalogModels, quickstartModels = []) {
+  const errors = [];
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return ['Gemma 4 target matrix payload must be a JSON object'];
+  }
+  if (payload.schemaVersion !== 1) {
+    errors.push('Gemma 4 target matrix schemaVersion must be 1');
+  }
+  const sourceUrls = Array.isArray(payload.sourceUrls) ? payload.sourceUrls : [];
+  for (const sourceUrl of GEMMA4_REQUIRED_SOURCE_URLS) {
+    if (!sourceUrls.includes(sourceUrl)) {
+      errors.push(`Gemma 4 target matrix sourceUrls must include ${sourceUrl}`);
+    }
+  }
+  if (!Array.isArray(payload.targets)) {
+    errors.push('Gemma 4 target matrix must include a targets array');
+    return errors;
+  }
+  const catalogById = new Map(
+    (Array.isArray(catalogModels) ? catalogModels : [])
+      .map((model) => [normalizeModelId(model?.modelId), model])
+  );
+  const quickstartById = new Map(
+    (Array.isArray(quickstartModels) ? quickstartModels : [])
+      .map((model) => [normalizeModelId(model?.modelId), model])
+  );
+  const seenTargetIds = new Set();
+
+  for (const target of payload.targets) {
+    const targetId = normalizeModelId(target?.targetId);
+    if (!targetId || targetId === 'unknown-model') {
+      errors.push('Gemma 4 target entries must include targetId');
+      continue;
+    }
+    if (seenTargetIds.has(targetId)) {
+      errors.push(`duplicate Gemma 4 targetId: ${targetId}`);
+    }
+    seenTargetIds.add(targetId);
+    if (!GEMMA4_REQUIRED_TARGET_IDS.includes(targetId)) {
+      errors.push(`${targetId}: unexpected Gemma 4 targetId`);
+    }
+    if (!normalizeText(target?.officialName)) {
+      errors.push(`${targetId}: officialName is required`);
+    }
+    if (!GEMMA4_TARGET_STATUS.has(target?.dopplerStatus)) {
+      errors.push(`${targetId}: invalid dopplerStatus`);
+    }
+    if (!GEMMA4_MTP_STATUS.has(target?.mtpStatus)) {
+      errors.push(`${targetId}: invalid mtpStatus`);
+    }
+    if (target?.officialMtp !== true) {
+      errors.push(`${targetId}: officialMtp must be true`);
+    }
+    const evidence = target?.evidence && typeof target.evidence === 'object' && !Array.isArray(target.evidence)
+      ? target.evidence
+      : null;
+    if (!evidence) {
+      errors.push(`${targetId}: evidence is required`);
+    }
+    const runtimeReceipts = Array.isArray(evidence?.runtimeReceipts) ? evidence.runtimeReceipts : null;
+    const benchmarkReceipts = Array.isArray(evidence?.benchmarkReceipts) ? evidence.benchmarkReceipts : null;
+    const serveReceipts = Array.isArray(evidence?.serveReceipts) ? evidence.serveReceipts : null;
+    const preflightReceipts = Array.isArray(evidence?.preflightReceipts) ? evidence.preflightReceipts : null;
+    if (!runtimeReceipts) {
+      errors.push(`${targetId}: evidence.runtimeReceipts must be an array`);
+    }
+    if (!benchmarkReceipts) {
+      errors.push(`${targetId}: evidence.benchmarkReceipts must be an array`);
+    }
+    if (!serveReceipts) {
+      errors.push(`${targetId}: evidence.serveReceipts must be an array`);
+    }
+    if (!preflightReceipts) {
+      errors.push(`${targetId}: evidence.preflightReceipts must be an array`);
+    }
+    if (!GEMMA4_SERVE_STATUS.has(target?.serveStatus)) {
+      errors.push(`${targetId}: invalid serveStatus`);
+    }
+    for (const surface of ['browser', 'electron', 'node']) {
+      if (!GEMMA4_SURFACE_STATUS.has(target?.surfaceStatus?.[surface])) {
+        errors.push(`${targetId}: invalid ${surface} surfaceStatus`);
+      }
+    }
+    const lanes = Array.isArray(target?.currentLanes) ? target.currentLanes : null;
+    if (!lanes) {
+      errors.push(`${targetId}: currentLanes must be an array`);
+      continue;
+    }
+    const sourcePackages = target?.sourcePackages;
+    if (sourcePackages !== undefined) {
+      if (!Array.isArray(sourcePackages)) {
+        errors.push(`${targetId}: sourcePackages must be an array when present`);
+      } else {
+        const seenSourcePackageIds = new Set();
+        for (const sourcePackage of sourcePackages) {
+          const sourcePackageId = typeof sourcePackage?.id === 'string' ? sourcePackage.id.trim() : '';
+          const sourcePackageStatus = normalizeText(sourcePackage?.status);
+          const blockerCode = typeof sourcePackage?.blockerCode === 'string' ? sourcePackage.blockerCode.trim() : '';
+          if (!sourcePackageId) {
+            errors.push(`${targetId}: source package id is required`);
+          } else if (seenSourcePackageIds.has(sourcePackageId)) {
+            errors.push(`${targetId}: duplicate source package ${sourcePackageId}`);
+          }
+          seenSourcePackageIds.add(sourcePackageId);
+          if (!GEMMA4_SOURCE_PACKAGE_STATUS.has(sourcePackageStatus)) {
+            errors.push(`${targetId}: source package ${sourcePackageId || 'unknown'} has invalid status`);
+          }
+          if (sourcePackageStatus === 'blocked' && !GEMMA4_BLOCKER_CODE_PATTERN.test(blockerCode)) {
+            errors.push(`${targetId}: blocked source package ${sourcePackageId || 'unknown'} requires blockerCode`);
+          }
+          if (typeof sourcePackage?.reason !== 'string' || !sourcePackage.reason.trim()) {
+            errors.push(`${targetId}: source package ${sourcePackageId || 'unknown'} reason is required`);
+          }
+        }
+      }
+    }
+    const laneIds = new Set(lanes.map((lane) => normalizeModelId(lane?.modelId)));
+    const servedLanes = Array.isArray(target?.servedLanes) ? target.servedLanes : null;
+    if (!servedLanes) {
+      errors.push(`${targetId}: servedLanes must be an array`);
+    } else if ((target.serveStatus === 'verified' || target.serveStatus === 'unverified') && servedLanes.length === 0) {
+      errors.push(`${targetId}: ${target.serveStatus} serveStatus must list servedLanes`);
+    } else if (target.serveStatus === 'unsupported' && servedLanes.length !== 0) {
+      errors.push(`${targetId}: unsupported serveStatus must not list servedLanes`);
+    }
+    const missing = Array.isArray(target?.missing) ? target.missing : null;
+    if (!missing) {
+      errors.push(`${targetId}: missing must be an array`);
+    } else if (target.dopplerStatus === 'gap' && missing.length === 0) {
+      errors.push(`${targetId}: gap targets must explain missing work`);
+    }
+    const blockers = Array.isArray(target?.blockers) ? target.blockers : null;
+    if (!blockers) {
+      errors.push(`${targetId}: blockers must be an array`);
+    } else {
+      const seenBlockerCodes = new Set();
+      for (const blocker of blockers) {
+        const code = typeof blocker?.code === 'string' ? blocker.code.trim() : '';
+        const surface = normalizeText(blocker?.surface);
+        const state = normalizeText(blocker?.state);
+        const reason = typeof blocker?.reason === 'string' ? blocker.reason.trim() : '';
+        if (!GEMMA4_BLOCKER_CODE_PATTERN.test(code)) {
+          errors.push(`${targetId}: blocker code must be kebab-case`);
+        } else if (seenBlockerCodes.has(code)) {
+          errors.push(`${targetId}: duplicate blocker ${code}`);
+        }
+        seenBlockerCodes.add(code);
+        if (!GEMMA4_BLOCKER_SURFACE.has(surface)) {
+          errors.push(`${targetId}: blocker ${code || 'unknown'} has invalid surface`);
+        }
+        if (!GEMMA4_BLOCKER_STATE.has(state)) {
+          errors.push(`${targetId}: blocker ${code || 'unknown'} has invalid state`);
+        }
+        if (!reason) {
+          errors.push(`${targetId}: blocker ${code || 'unknown'} reason is required`);
+        }
+      }
+      if (target.dopplerStatus === 'gap' && blockers.length === 0) {
+        errors.push(`${targetId}: gap targets must list blockers`);
+      }
+      for (const surface of ['browser', 'electron', 'node']) {
+        const surfaceStatus = target?.surfaceStatus?.[surface];
+        if ((surfaceStatus === 'unverified' || surfaceStatus === 'unsupported')
+          && !hasGemma4Blocker(blockers, { surface, state: surfaceStatus })) {
+          errors.push(`${targetId}: ${surface} ${surfaceStatus} status must have a matching blocker`);
+        }
+      }
+      if (target.serveStatus === 'unverified' && !hasGemma4Blocker(blockers, { surface: 'serve', state: 'unverified' })) {
+        errors.push(`${targetId}: unverified serveStatus must have a matching blocker`);
+      }
+      if (target.serveStatus === 'unsupported' && !hasGemma4Blocker(blockers, { surface: 'serve', state: 'unsupported' })) {
+        errors.push(`${targetId}: unsupported serveStatus must have a matching blocker`);
+      }
+      if (target.mtpStatus === 'not_implemented' && !hasGemma4Blocker(blockers, { surface: 'mtp', state: 'not_implemented' })) {
+        errors.push(`${targetId}: not_implemented MTP status must have a matching blocker`);
+      }
+      if (target.dopplerStatus === 'gap' && !blockers.some((blocker) => blocker?.surface === 'model')) {
+        errors.push(`${targetId}: gap targets must include at least one model blocker`);
+      }
+    }
+    if (target.dopplerStatus === 'gap' && lanes.length !== 0) {
+      errors.push(`${targetId}: gap targets must not list current lanes`);
+    }
+    if (target.dopplerStatus !== 'gap' && lanes.length === 0) {
+      errors.push(`${targetId}: non-gap targets must list current lanes`);
+    }
+    if (target.dopplerStatus !== 'gap' && runtimeReceipts && runtimeReceipts.length === 0) {
+      errors.push(`${targetId}: non-gap targets must list runtime receipt evidence`);
+    }
+    if (target.dopplerStatus === 'gap') {
+      if (runtimeReceipts && runtimeReceipts.length !== 0) {
+        errors.push(`${targetId}: gap targets must not list runtime receipt evidence`);
+      }
+      if (benchmarkReceipts && benchmarkReceipts.length !== 0) {
+        errors.push(`${targetId}: gap targets must not list benchmark receipt evidence`);
+      }
+      if (serveReceipts && serveReceipts.length !== 0) {
+        errors.push(`${targetId}: gap targets must not list serve receipt evidence`);
+      }
+      if (preflightReceipts && preflightReceipts.length !== 0) {
+        errors.push(`${targetId}: gap targets must not list preflight receipt evidence`);
+      }
+    }
+    if (target.mtpStatus === 'not_implemented' && missing && !missing.includes('mtp lane')) {
+      errors.push(`${targetId}: not_implemented MTP status must list missing "mtp lane"`);
+    }
+    if (target.serveStatus === 'verified' && !hasGemma4VerifiedServeEvidence(serveReceipts)) {
+      errors.push(`${targetId}: verified serveStatus must list serve pass receipt evidence`);
+    }
+    if (target.serveStatus === 'unverified' && missing && !missing.includes('doppler-serve runtime pass receipt')) {
+      errors.push(`${targetId}: unverified serveStatus must list missing "doppler-serve runtime pass receipt"`);
+    }
+    if (target.serveStatus === 'unsupported' && missing && lanes.length > 0 && !missing.includes('doppler-serve quickstart lane')) {
+      errors.push(`${targetId}: unsupported serveStatus with current lanes must list missing "doppler-serve quickstart lane"`);
+    }
+    const seenLaneIds = new Set();
+    for (const lane of lanes) {
+      const laneModelId = normalizeModelId(lane?.modelId);
+      if (seenLaneIds.has(laneModelId)) {
+        errors.push(`${targetId}: duplicate lane ${laneModelId}`);
+      }
+      seenLaneIds.add(laneModelId);
+      if (!normalizeText(lane?.role)) {
+        errors.push(`${targetId}: lane ${laneModelId} role is required`);
+      }
+      const catalogModel = catalogById.get(laneModelId);
+      if (!catalogModel) {
+        errors.push(`${targetId}: lane ${laneModelId} is missing from models/catalog.json`);
+        continue;
+      }
+      if (catalogModel.family !== 'gemma4') {
+        errors.push(`${targetId}: lane ${laneModelId} is not a gemma4 catalog model`);
+      }
+      if (!GEMMA4_CLAIM_STATUS.has(lane?.claimStatus)) {
+        errors.push(`${targetId}: lane ${laneModelId} has invalid claimStatus`);
+      }
+      if (lane.claimStatus === 'verified' && catalogModel.lifecycle?.status?.tested !== 'verified') {
+        errors.push(`${targetId}: lane ${laneModelId} is marked verified but catalog lifecycle is not verified`);
+      }
+    }
+    const evidenceLaneIds = new Set();
+    for (const receipt of [...(runtimeReceipts || []), ...(benchmarkReceipts || [])]) {
+      const receiptPath = typeof receipt?.path === 'string' ? receipt.path.trim() : '';
+      const receiptModelId = normalizeModelId(receipt?.modelId);
+      const receiptSurface = normalizeText(receipt?.surface);
+      const receiptStatus = normalizeText(receipt?.status);
+      if (!receiptPath) {
+        errors.push(`${targetId}: evidence receipt path is required`);
+      } else if (path.isAbsolute(receiptPath) || receiptPath.includes('\\') || receiptPath.split('/').includes('..')) {
+        errors.push(`${targetId}: evidence receipt path must be a repo-relative JSON path`);
+      } else if (!receiptPath.endsWith('.json')) {
+        errors.push(`${targetId}: evidence receipt ${receiptPath} must be a JSON file`);
+      }
+      if (!laneIds.has(receiptModelId)) {
+        errors.push(`${targetId}: evidence receipt model ${receiptModelId} must be listed in currentLanes`);
+      }
+      if (!GEMMA4_EVIDENCE_SURFACE.has(receiptSurface)) {
+        errors.push(`${targetId}: evidence receipt ${receiptPath || receiptModelId} has invalid surface`);
+      }
+      if (!GEMMA4_EVIDENCE_STATUS.has(receiptStatus)) {
+        errors.push(`${targetId}: evidence receipt ${receiptPath || receiptModelId} has invalid status`);
+      }
+      if (receiptStatus === 'pass') {
+        evidenceLaneIds.add(receiptModelId);
+      }
+    }
+    const servedLaneIds = new Set((servedLanes || []).map((laneId) => normalizeModelId(laneId)));
+    for (const receipt of serveReceipts || []) {
+      const receiptPath = typeof receipt?.path === 'string' ? receipt.path.trim() : '';
+      const receiptModelId = normalizeModelId(receipt?.modelId);
+      const receiptSurface = normalizeText(receipt?.surface);
+      const receiptStatus = normalizeText(receipt?.status);
+      if (!receiptPath) {
+        errors.push(`${targetId}: serve receipt path is required`);
+      } else if (path.isAbsolute(receiptPath) || receiptPath.includes('\\') || receiptPath.split('/').includes('..')) {
+        errors.push(`${targetId}: serve receipt path must be a repo-relative JSON path`);
+      } else if (!receiptPath.endsWith('.json')) {
+        errors.push(`${targetId}: serve receipt ${receiptPath} must be a JSON file`);
+      }
+      if (!laneIds.has(receiptModelId)) {
+        errors.push(`${targetId}: serve receipt model ${receiptModelId} must be listed in currentLanes`);
+      }
+      if (!servedLaneIds.has(receiptModelId)) {
+        errors.push(`${targetId}: serve receipt model ${receiptModelId} must be listed in servedLanes`);
+      }
+      if (receiptSurface !== 'serve') {
+        errors.push(`${targetId}: serve receipt ${receiptPath || receiptModelId} must use surface "serve"`);
+      }
+      if (!GEMMA4_SERVE_EVIDENCE_STATUS.has(receiptStatus)) {
+        errors.push(`${targetId}: serve receipt ${receiptPath || receiptModelId} has invalid status`);
+      }
+    }
+    for (const receipt of preflightReceipts || []) {
+      const receiptPath = typeof receipt?.path === 'string' ? receipt.path.trim() : '';
+      const receiptModelId = normalizeModelId(receipt?.modelId);
+      const receiptSurface = normalizeText(receipt?.surface);
+      const receiptStatus = normalizeText(receipt?.status);
+      if (!receiptPath) {
+        errors.push(`${targetId}: preflight receipt path is required`);
+      } else if (path.isAbsolute(receiptPath) || receiptPath.includes('\\') || receiptPath.split('/').includes('..')) {
+        errors.push(`${targetId}: preflight receipt path must be a repo-relative JSON path`);
+      } else if (!receiptPath.endsWith('.json')) {
+        errors.push(`${targetId}: preflight receipt ${receiptPath} must be a JSON file`);
+      }
+      if (!laneIds.has(receiptModelId)) {
+        errors.push(`${targetId}: preflight receipt model ${receiptModelId} must be listed in currentLanes`);
+      }
+      if (!GEMMA4_EVIDENCE_SURFACE.has(receiptSurface)) {
+        errors.push(`${targetId}: preflight receipt ${receiptPath || receiptModelId} has invalid surface`);
+      }
+      if (!GEMMA4_PREFLIGHT_EVIDENCE_STATUS.has(receiptStatus)) {
+        errors.push(`${targetId}: preflight receipt ${receiptPath || receiptModelId} has invalid status`);
+      }
+    }
+    for (const lane of lanes) {
+      const laneModelId = normalizeModelId(lane?.modelId);
+      if ((lane?.claimStatus === 'verified' || lane?.claimStatus === 'verified-local') && !evidenceLaneIds.has(laneModelId)) {
+        errors.push(`${targetId}: verified lane ${laneModelId} must have passing receipt evidence`);
+      }
+    }
+    for (const surface of ['browser', 'node']) {
+      if (target?.surfaceStatus?.[surface] !== 'verified') {
+        continue;
+      }
+      if (!hasGemma4VerifiedSurfaceEvidence(runtimeReceipts, surface)) {
+        errors.push(`${targetId}: verified ${surface} surface must have same-surface runtime pass evidence`);
+      }
+    }
+    if (servedLanes) {
+      const seenServedLaneIds = new Set();
+      for (const servedLaneIdValue of servedLanes) {
+        const servedLaneId = normalizeModelId(servedLaneIdValue);
+        if (seenServedLaneIds.has(servedLaneId)) {
+          errors.push(`${targetId}: duplicate served lane ${servedLaneId}`);
+        }
+        seenServedLaneIds.add(servedLaneId);
+        if (!laneIds.has(servedLaneId)) {
+          errors.push(`${targetId}: served lane ${servedLaneId} must be listed in currentLanes`);
+        }
+        const quickstartModel = quickstartById.get(servedLaneId);
+        if (!quickstartModel) {
+          errors.push(`${targetId}: served lane ${servedLaneId} is missing from src/client/doppler-registry.json`);
+          continue;
+        }
+        const modes = Array.isArray(quickstartModel?.modes) ? quickstartModel.modes : [];
+        if (!modes.includes('text')) {
+          errors.push(`${targetId}: served lane ${servedLaneId} must include text mode in quickstart registry`);
+        }
+      }
+    }
+  }
+  for (const targetId of GEMMA4_REQUIRED_TARGET_IDS) {
+    if (!seenTargetIds.has(targetId)) {
+      errors.push(`missing Gemma 4 targetId: ${targetId}`);
+    }
+  }
+
+  return errors;
+}
+
+function validateGemma4RuntimeReceiptPayload(targetId, receipt, payload) {
+  const errors = [];
+  const receiptPath = typeof receipt?.path === 'string' ? receipt.path.trim() : '';
+  const receiptModelId = normalizeModelId(receipt?.modelId);
+  const payloadModelId = resolveReceiptModelId(payload);
+  if (payloadModelId !== receiptModelId) {
+    errors.push(`${targetId}: runtime receipt ${receiptPath} modelId mismatch (${payloadModelId} != ${receiptModelId})`);
+  }
+  if (receipt?.status === 'pass' && !resolveRuntimeContractEvidence(payload)) {
+    errors.push(`${targetId}: runtime receipt ${receiptPath} pass status requires execution-contract or program-bundle evidence`);
+  }
+  if (receipt?.status === 'pass' && !resolveRuntimeOutputEvidence(payload)) {
+    errors.push(`${targetId}: runtime receipt ${receiptPath} pass status requires output or transcript evidence`);
+  }
+  const hasAdapter = isObject(payload?.deviceInfo?.adapterInfo)
+    || isObject(payload?.captureProfile?.adapter?.deviceInfo?.adapterInfo);
+  if (receipt?.status === 'pass' && !hasAdapter) {
+    errors.push(`${targetId}: runtime receipt ${receiptPath} pass status requires adapter identity evidence`);
+  }
+  return errors;
+}
+
+function validateGemma4BenchmarkReceiptPayload(targetId, receipt, payload) {
+  const errors = [];
+  const receiptPath = typeof receipt?.path === 'string' ? receipt.path.trim() : '';
+  const receiptModelId = normalizeModelId(receipt?.modelId);
+  const fields = resolveBenchmarkFields(payload);
+  if (fields.modelId !== receiptModelId) {
+    errors.push(`${targetId}: benchmark receipt ${receiptPath} modelId mismatch (${fields.modelId} != ${receiptModelId})`);
+  }
+  const timing = isObject(fields.timing) ? fields.timing : {};
+  for (const metric of ['decodeTokensPerSec', 'firstTokenMs', 'totalRunMs']) {
+    if (!hasFiniteNumber(timing[metric])) {
+      errors.push(`${targetId}: benchmark receipt ${receiptPath} missing numeric timing.${metric}`);
+    }
+  }
+  const memoryStats = isObject(fields.memoryStats) ? fields.memoryStats : {};
+  if (!hasFiniteNumber(memoryStats.used)) {
+    errors.push(`${targetId}: benchmark receipt ${receiptPath} missing numeric memoryStats.used`);
+  }
+  if (!isObject(memoryStats.kvCache)) {
+    errors.push(`${targetId}: benchmark receipt ${receiptPath} missing memoryStats.kvCache`);
+  }
+  if (!hasText(fields.cacheMode)) {
+    errors.push(`${targetId}: benchmark receipt ${receiptPath} missing cacheMode evidence`);
+  }
+  if (!hasText(fields.loadMode)) {
+    errors.push(`${targetId}: benchmark receipt ${receiptPath} missing loadMode evidence`);
+  }
+  if (!hasText(fields.outputText)) {
+    errors.push(`${targetId}: benchmark receipt ${receiptPath} missing generated output evidence`);
+  }
+  if (receipt?.status === 'performance_evidence') {
+    if (!hasText(fields.correctnessStatus)) {
+      errors.push(`${targetId}: benchmark receipt ${receiptPath} performance evidence requires correctness status`);
+    }
+    if (fields.decodeValidityOk !== true) {
+      errors.push(`${targetId}: benchmark receipt ${receiptPath} performance evidence requires decode validity`);
+    }
+  }
+  return errors;
+}
+
+function validateGemma4ServeReceiptPayload(targetId, receipt, payload) {
+  const errors = [];
+  const receiptPath = typeof receipt?.path === 'string' ? receipt.path.trim() : '';
+  const receiptModelId = normalizeModelId(receipt?.modelId);
+  const payloadModelId = resolveServeReceiptModelId(payload);
+  if (payloadModelId !== receiptModelId) {
+    errors.push(`${targetId}: serve receipt ${receiptPath} modelId mismatch (${payloadModelId} != ${receiptModelId})`);
+  }
+  if (payload?.receiptVersion !== 'doppler_serve_receipt_v1' || payload?.schemaVersion !== 1) {
+    errors.push(`${targetId}: serve receipt ${receiptPath} requires doppler_serve_receipt_v1 schema`);
+  }
+  if (normalizeText(payload?.surface) !== 'serve' || normalizeText(payload?.status) !== normalizeText(receipt?.status)) {
+    errors.push(`${targetId}: serve receipt ${receiptPath} requires matching surface=serve and status`);
+  }
+  if (normalizeText(payload?.runtime) !== 'doppler-gpu' || normalizeText(payload?.runtimePath) !== 'doppler-gpu.chattext') {
+    errors.push(`${targetId}: serve receipt ${receiptPath} requires doppler-gpu chatText runtime path evidence`);
+  }
+  if (!isObject(payload?.artifact)
+    || !hasText(payload.artifact?.sourceCheckpointId)
+    || !hasText(payload.artifact?.weightPackId)
+    || !hasText(payload.artifact?.manifestVariantId)) {
+    errors.push(`${targetId}: serve receipt ${receiptPath} requires artifact identity evidence`);
+  }
+  if (!resolveServeRequestEvidence(payload)) {
+    errors.push(`${targetId}: serve receipt ${receiptPath} requires request digest evidence`);
+  }
+  if (receipt?.status !== 'pass') {
+    if (!resolveServeFailureEvidence(payload)) {
+      errors.push(`${targetId}: serve receipt ${receiptPath} diagnostic status requires failure evidence`);
+    }
+    const failure = payload?.failure;
+    const failureStage = normalizeText(failure?.stage);
+    if (failureStage === 'loadweights') {
+      const weightFailure = failure?.weightLoadFailure;
+      if (!isObject(weightFailure)
+        || !hasText(weightFailure?.tensorName)
+        || !hasText(weightFailure?.tensorRole)
+        || !hasText(weightFailure?.tensorDtype)
+        || !Array.isArray(weightFailure?.tensorShape)
+        || !hasFiniteNumber(weightFailure?.tensorSizeBytes)
+        || !hasText(weightFailure?.tensorLoadStage)) {
+        errors.push(`${targetId}: serve receipt ${receiptPath} loadWeights diagnostic requires tensor failure evidence`);
+      }
+      if (normalizeText(weightFailure?.tensorLoadStage) === 'gpuresidentembeddinglimitpreflight') {
+        const limitFailure = weightFailure?.deviceLimitFailure;
+        if (!isObject(limitFailure)
+          || normalizeText(limitFailure?.kind) !== 'gpu_resident_embedding_exceeds_device_limit'
+          || !hasFiniteNumber(limitFailure?.maxGpuResidentBytes)
+          || !hasFiniteNumber(limitFailure?.maxStorageBufferBindingSize)
+          || !hasFiniteNumber(limitFailure?.maxBufferSize)
+          || !hasFiniteNumber(limitFailure?.largeWeightMaxBytes)
+          || !hasFiniteNumber(limitFailure?.requiredSplitSections)
+          || !isObject(limitFailure?.embeddingKernel)
+          || !hasText(limitFailure.embeddingKernel?.kernel)
+          || !hasText(limitFailure.embeddingKernel?.entry)) {
+          errors.push(`${targetId}: serve receipt ${receiptPath} embedding limit diagnostic requires device limit evidence`);
+        }
+      }
+    }
+    return errors;
+  }
+  if (!resolveServeRuntimeModelSourceEvidence(payload)) {
+    errors.push(`${targetId}: serve receipt ${receiptPath} pass status requires runtime model source evidence`);
+  }
+  if (!resolveServeOutputEvidence(payload)) {
+    errors.push(`${targetId}: serve receipt ${receiptPath} pass status requires assistant output digest evidence`);
+  }
+  if (!resolveServeTranscriptEvidence(payload)) {
+    errors.push(`${targetId}: serve receipt ${receiptPath} pass status requires transcript digest evidence`);
+  }
+  if (!isObject(payload?.usage)
+    || !hasFiniteNumber(payload.usage?.promptTokens)
+    || !hasFiniteNumber(payload.usage?.completionTokens)
+    || !hasFiniteNumber(payload.usage?.totalTokens)) {
+    errors.push(`${targetId}: serve receipt ${receiptPath} pass status requires token usage evidence`);
+  }
+  return errors;
+}
+
+async function validateGemma4PreflightReceiptPayload(targetId, receipt, payload) {
+  const errors = [];
+  const receiptPath = typeof receipt?.path === 'string' ? receipt.path.trim() : '';
+  const receiptModelId = normalizeModelId(receipt?.modelId);
+  const payloadModelId = normalizeModelId(payload?.modelId);
+  if (payloadModelId !== receiptModelId) {
+    errors.push(`${targetId}: preflight receipt ${receiptPath} modelId mismatch (${payloadModelId} != ${receiptModelId})`);
+  }
+  if (payload?.receiptVersion !== 'doppler_gemma4_preflight_receipt_v1' || payload?.schemaVersion !== 1) {
+    errors.push(`${targetId}: preflight receipt ${receiptPath} requires doppler_gemma4_preflight_receipt_v1 schema`);
+  }
+  if (normalizeText(payload?.surface) !== normalizeText(receipt?.surface) || normalizeText(payload?.status) !== normalizeText(receipt?.status)) {
+    errors.push(`${targetId}: preflight receipt ${receiptPath} requires matching surface and status`);
+  }
+  if (normalizeText(payload?.runtime) !== 'doppler-gpu') {
+    errors.push(`${targetId}: preflight receipt ${receiptPath} requires doppler-gpu runtime evidence`);
+  }
+  if (normalizeText(payload?.target) !== 'gpuresidentembeddinglimit') {
+    errors.push(`${targetId}: preflight receipt ${receiptPath} requires gpuResidentEmbeddingLimit target`);
+  }
+  if (!isObject(payload?.manifest)
+    || !hasText(payload.manifest?.path)
+    || !/^sha256:[0-9a-f]{64}$/.test(String(payload.manifest?.sha256 || ''))) {
+    errors.push(`${targetId}: preflight receipt ${receiptPath} requires manifest path and sha256`);
+  } else if (!isRepoRelativeJsonPath(payload.manifest.path)) {
+    errors.push(`${targetId}: preflight receipt ${receiptPath} manifest path must be a repo-relative JSON path`);
+  } else {
+    const manifestPath = payload.manifest.path.trim();
+    const manifestRaw = await fs.readFile(path.join(REPO_ROOT, manifestPath), 'utf8');
+    const manifestSha256 = `sha256:${sha256Hex(manifestRaw)}`;
+    if (manifestSha256 !== payload.manifest.sha256) {
+      errors.push(`${targetId}: preflight receipt ${receiptPath} manifest sha256 mismatch (${payload.manifest.sha256} != ${manifestSha256})`);
+    }
+    const manifest = JSON.parse(manifestRaw);
+    const manifestModelId = normalizeModelId(manifest?.modelId);
+    if (manifestModelId !== receiptModelId) {
+      errors.push(`${targetId}: preflight receipt ${receiptPath} manifest modelId mismatch (${manifestModelId} != ${receiptModelId})`);
+    }
+    const embedding = payload?.embedding;
+    const tensorName = typeof embedding?.tensorName === 'string' ? embedding.tensorName.trim() : '';
+    const tensorLocation = tensorName ? manifest?.tensors?.[tensorName] : null;
+    if (!tensorLocation || typeof tensorLocation !== 'object') {
+      errors.push(`${targetId}: preflight receipt ${receiptPath} embedding tensor ${tensorName || '(missing)'} is absent from manifest`);
+    } else {
+      if (normalizeText(tensorLocation?.dtype) !== normalizeText(embedding?.dtype)) {
+        errors.push(`${targetId}: preflight receipt ${receiptPath} embedding dtype mismatch (${embedding?.dtype} != ${tensorLocation?.dtype})`);
+      }
+      if (JSON.stringify(tensorLocation?.shape ?? null) !== JSON.stringify(embedding?.shape ?? null)) {
+        errors.push(`${targetId}: preflight receipt ${receiptPath} embedding shape mismatch`);
+      }
+      if (hasFiniteNumber(tensorLocation?.size) && tensorLocation.size !== embedding?.tensorSizeBytes) {
+        errors.push(`${targetId}: preflight receipt ${receiptPath} embedding tensorSizeBytes mismatch (${embedding?.tensorSizeBytes} != ${tensorLocation.size})`);
+      }
+      const overrides = manifest?.inference?.largeWeights?.gpuResidentOverrides;
+      if (!Array.isArray(overrides) || !overrides.includes(tensorName)) {
+        errors.push(`${targetId}: preflight receipt ${receiptPath} manifest must force the preflight embedding through gpuResidentOverrides`);
+      }
+    }
+    const manifestKernel = manifest?.inference?.execution?.kernels?.embed;
+    if (!isObject(manifestKernel)) {
+      errors.push(`${targetId}: preflight receipt ${receiptPath} manifest is missing inference.execution.kernels.embed`);
+    } else {
+      const receiptKernel = payload?.embedding?.kernel;
+      for (const field of ['kernel', 'entry', 'digest']) {
+        if (manifestKernel?.[field] !== receiptKernel?.[field]) {
+          errors.push(`${targetId}: preflight receipt ${receiptPath} embedding kernel ${field} mismatch (${receiptKernel?.[field] ?? 'missing'} != ${manifestKernel?.[field] ?? 'missing'})`);
+        }
+      }
+    }
+  }
+  if (!isObject(payload?.adapterInfo)
+    || !hasText(payload.adapterInfo?.vendor)
+    || !hasText(payload.adapterInfo?.architecture)) {
+    errors.push(`${targetId}: preflight receipt ${receiptPath} requires adapter identity evidence`);
+  }
+  if (!isObject(payload?.deviceLimits)
+    || !hasFiniteNumber(payload.deviceLimits?.maxStorageBufferBindingSize)
+    || !hasFiniteNumber(payload.deviceLimits?.maxBufferSize)
+    || !hasFiniteNumber(payload.deviceLimits?.maxStorageBuffersPerShaderStage)) {
+    errors.push(`${targetId}: preflight receipt ${receiptPath} requires numeric device limit evidence`);
+  }
+  const embedding = payload?.embedding;
+  if (!isObject(embedding)
+    || !hasText(embedding?.tensorName)
+    || !hasText(embedding?.dtype)
+    || !Array.isArray(embedding?.shape)
+    || !hasFiniteNumber(embedding?.tensorSizeBytes)
+    || !isObject(embedding?.kernel)
+    || !hasText(embedding.kernel?.kernel)
+    || !hasText(embedding.kernel?.entry)
+    || !/^sha256:[0-9a-f]{64}$/.test(String(embedding.kernel?.digest || ''))) {
+    errors.push(`${targetId}: preflight receipt ${receiptPath} requires embedding tensor and kernel identity evidence`);
+  }
+  const preflight = payload?.preflight;
+  if (!isObject(preflight)
+    || typeof preflight?.ok !== 'boolean'
+    || preflight?.splitKernelExpected !== true
+    || !hasFiniteNumber(preflight?.activeSplitKernelMaxSections)
+    || !hasFiniteNumber(preflight?.maxSplitEmbeddingSections)
+    || !hasFiniteNumber(preflight?.requiredSplitSections)) {
+    errors.push(`${targetId}: preflight receipt ${receiptPath} requires split-kernel preflight evidence`);
+    return errors;
+  }
+  if (receipt?.status === 'pass') {
+    if (preflight.ok !== true) {
+      errors.push(`${targetId}: preflight receipt ${receiptPath} pass status requires preflight.ok=true`);
+    }
+    if (preflight.requiredSplitSections > preflight.maxSplitEmbeddingSections) {
+      errors.push(`${targetId}: preflight receipt ${receiptPath} pass status requires requiredSplitSections <= maxSplitEmbeddingSections`);
+    }
+  }
+  return errors;
+}
+
+export async function validateGemma4EvidenceFiles(payload) {
+  const errors = [];
+  const targets = Array.isArray(payload?.targets) ? payload.targets : [];
+  for (const target of targets) {
+    const targetId = normalizeModelId(target?.targetId);
+    const evidence = target?.evidence && typeof target.evidence === 'object' && !Array.isArray(target.evidence)
+      ? target.evidence
+      : {};
+    const receiptGroups = [
+      {
+        kind: 'runtime',
+        entries: Array.isArray(evidence.runtimeReceipts) ? evidence.runtimeReceipts : [],
+        validate: validateGemma4RuntimeReceiptPayload,
+      },
+      {
+        kind: 'benchmark',
+        entries: Array.isArray(evidence.benchmarkReceipts) ? evidence.benchmarkReceipts : [],
+        validate: validateGemma4BenchmarkReceiptPayload,
+      },
+      {
+        kind: 'serve',
+        entries: Array.isArray(evidence.serveReceipts) ? evidence.serveReceipts : [],
+        validate: validateGemma4ServeReceiptPayload,
+      },
+      {
+        kind: 'preflight',
+        entries: Array.isArray(evidence.preflightReceipts) ? evidence.preflightReceipts : [],
+        validate: validateGemma4PreflightReceiptPayload,
+      },
+    ];
+    for (const group of receiptGroups) {
+      for (const receipt of group.entries) {
+        const receiptPath = typeof receipt?.path === 'string' ? receipt.path.trim() : '';
+        if (!receiptPath || path.isAbsolute(receiptPath) || receiptPath.includes('\\') || receiptPath.split('/').includes('..')) {
+          continue;
+        }
+        try {
+          const fullPath = path.join(REPO_ROOT, receiptPath);
+          const stat = await fs.stat(fullPath);
+          if (!stat.isFile()) {
+            errors.push(`${targetId}: evidence receipt ${receiptPath} is not a file`);
+            continue;
+          }
+          const payload = await readJson(fullPath);
+          errors.push(...await group.validate(targetId, receipt, payload));
+        } catch (error) {
+          if (error && error.code === 'ENOENT') {
+            errors.push(`${targetId}: evidence receipt ${receiptPath} is missing`);
+            continue;
+          }
+          throw error;
+        }
+      }
+    }
+  }
   return errors;
 }
 
@@ -443,6 +1301,33 @@ function pushTable(lines, headers, rows) {
   lines.push('');
 }
 
+function summarizeGemma4Evidence(entries) {
+  if (!Array.isArray(entries) || entries.length === 0) {
+    return 'none';
+  }
+  return entries
+    .map((entry) => `${entry.modelId} (${entry.surface}, ${entry.status})`)
+    .join('<br>');
+}
+
+function summarizeGemma4Blockers(entries) {
+  if (!Array.isArray(entries) || entries.length === 0) {
+    return 'none';
+  }
+  return entries
+    .map((entry) => `${entry.code} (${entry.surface}, ${entry.state})`)
+    .join('<br>');
+}
+
+function summarizeGemma4SourcePackages(entries) {
+  if (!Array.isArray(entries) || entries.length === 0) {
+    return 'none';
+  }
+  return entries
+    .map((entry) => `${entry.id} (${entry.status})`)
+    .join('<br>');
+}
+
 function renderCurrentInferenceStatus(lines, buckets) {
   lines.push('## Current Inference Status');
   lines.push('');
@@ -534,16 +1419,68 @@ function renderCurrentInferenceStatus(lines, buckets) {
   }
 }
 
-function renderMatrix(rows, metadata, buckets) {
+function renderGemma4TargetCoverage(lines, targetMatrix) {
+  if (!targetMatrix || !Array.isArray(targetMatrix.targets)) {
+    return;
+  }
+  lines.push('## Gemma 4 Target Coverage');
+  lines.push('');
+  lines.push('Generated from `models/gemma4-targets.json`. This section tracks the latest official Gemma 4 target set separately from the catalog, so unsupported or unverified targets stay visible.');
+  lines.push('');
+  pushTable(lines,
+    [
+      'Target',
+      'Doppler status',
+      'Browser',
+      'Electron',
+      'Node',
+      'Serve',
+      'Official MTP',
+      'Doppler MTP',
+      'Runtime receipts',
+      'Benchmark receipts',
+      'Serve receipts',
+      'Preflight receipts',
+      'Current lanes',
+      'Source packages',
+      'Missing',
+      'Blockers',
+    ],
+    targetMatrix.targets.map((target) => [
+      target.officialName || target.targetId,
+      target.dopplerStatus,
+      target.surfaceStatus?.browser,
+      target.surfaceStatus?.electron,
+      target.surfaceStatus?.node,
+      target.serveStatus,
+      target.officialMtp === true ? 'yes' : 'no',
+      target.mtpStatus,
+      summarizeGemma4Evidence(target.evidence?.runtimeReceipts),
+      summarizeGemma4Evidence(target.evidence?.benchmarkReceipts),
+      summarizeGemma4Evidence(target.evidence?.serveReceipts),
+      summarizeGemma4Evidence(target.evidence?.preflightReceipts),
+      target.currentLanes.length === 0
+        ? 'none'
+        : target.currentLanes.map((lane) => `${lane.modelId} (${lane.claimStatus})`).join('<br>'),
+      summarizeGemma4SourcePackages(target.sourcePackages),
+      Array.isArray(target.missing) && target.missing.length > 0
+        ? target.missing.join('<br>')
+        : null,
+      summarizeGemma4Blockers(target.blockers),
+    ]));
+}
+
+function renderMatrix(rows, metadata, buckets, gemma4TargetMatrix) {
   const lines = [];
   lines.push('# Model Support Matrix');
   lines.push('');
-  lines.push('Auto-generated from conversion configs (`src/config/conversion/**`) and `models/catalog.json`.');
-  lines.push('Run `npm run support:matrix:sync` after editing `models/catalog.json` or changing conversion configs.');
+  lines.push('Auto-generated from conversion configs (`src/config/conversion/**`), `models/catalog.json`, and `models/gemma4-targets.json`.');
+  lines.push('Run `npm run support:matrix:sync` after editing `models/catalog.json`, `models/gemma4-targets.json`, or changing conversion configs.');
   lines.push('');
   lines.push(`Updated at: ${metadata.generatedAt}`);
   lines.push('');
   renderCurrentInferenceStatus(lines, buckets);
+  renderGemma4TargetCoverage(lines, gemma4TargetMatrix);
   lines.push('## Family Coverage Matrix');
   lines.push('');
   lines.push('| Family | Runtime modelType | Runtime | Conversion configs | Catalog models | Hosted (HF) | Demo | Tested | Status | Notes |');
@@ -631,6 +1568,17 @@ async function main() {
     throw new Error(`Catalog lifecycle metadata is invalid:\n${catalogInputErrors.join('\n')}`);
   }
   const catalogModels = Array.isArray(catalogPayload?.models) ? catalogPayload.models : [];
+  const quickstartRegistry = await readJson(QUICKSTART_REGISTRY_PATH);
+  const quickstartModels = Array.isArray(quickstartRegistry?.models) ? quickstartRegistry.models : [];
+  const gemma4TargetMatrix = await readJson(GEMMA4_TARGETS_PATH);
+  const gemma4TargetErrors = validateGemma4TargetMatrixInputs(gemma4TargetMatrix, catalogModels, quickstartModels);
+  if (gemma4TargetErrors.length > 0) {
+    throw new Error(`Gemma 4 target matrix is invalid:\n${gemma4TargetErrors.join('\n')}`);
+  }
+  const gemma4EvidenceErrors = await validateGemma4EvidenceFiles(gemma4TargetMatrix);
+  if (gemma4EvidenceErrors.length > 0) {
+    throw new Error(`Gemma 4 target matrix evidence is invalid:\n${gemma4EvidenceErrors.join('\n')}`);
+  }
   const catalogByFamily = new Map(familyIds.map((family) => [family, []]));
   const lifecycleByFamily = new Map(familyIds.map((family) => [family, createEmptyLifecycleAggregate()]));
   const unmappedCatalogModels = [];
@@ -695,7 +1643,6 @@ async function main() {
     };
   });
 
-  const quickstartRegistry = await readJson(QUICKSTART_REGISTRY_PATH);
   const quickStartModelIds = Array.isArray(quickstartRegistry?.models)
     ? quickstartRegistry.models
       .map((entry) => normalizeText(entry?.modelId) ? String(entry.modelId).trim() : null)
@@ -723,7 +1670,7 @@ async function main() {
     blockedCount: rows.filter((row) => row.runtimeStatus === 'blocked').length,
     catalogCount: catalogModels.length,
   };
-  const nextContent = renderMatrix(rows, metadata, buckets);
+  const nextContent = renderMatrix(rows, metadata, buckets, gemma4TargetMatrix);
 
   if (args.check) {
     let currentContent;

@@ -191,9 +191,9 @@
   "execution": {
     "kernels": {
       "embed": {
-        "kernel": "gather.wgsl",
-        "entry": "main",
-        "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6"
+        "kernel": "gather_split8_f16_vec4_f32_out.wgsl",
+        "entry": "gather_vec4_f32_out",
+        "digest": "sha256:18dce4731aa3c3cbde6a969cc54d63de4e545e7dce43204774323b6bfffc5c41"
       },
       "rmsnorm": {
         "kernel": "rmsnorm.wgsl",

@@ -1,0 +1,370 @@
+{
+  "id": "litert/gemma-4-e4b-it",
+  "runtime": {
+    "modelType": "gemma4",
+    "architecture": {
+      "numLayers": 42,
+      "hiddenSize": 2560,
+      "intermediateSize": 10240,
+      "numAttentionHeads": 8,
+      "numKeyValueHeads": 2,
+      "headDim": 256,
+      "vocabSize": 262144,
+      "maxSeqLen": 131072,
+      "linearNumKeyHeads": null,
+      "linearNumValueHeads": null,
+      "linearKeyHeadDim": null,
+      "linearValueHeadDim": null,
+      "linearConvKernelDim": null,
+      "hiddenSizePerLayerInput": 256,
+      "vocabSizePerLayerInput": 262144,
+      "globalHeadDim": 512,
+      "numKvSharedLayers": 18
+    },
+    "rawConfig": {
+      "architectures": [
+        "Gemma4ForConditionalGeneration"
+      ],
+      "model_type": "gemma4",
+      "text_config": {
+        "model_type": "gemma4_text",
+        "hidden_size": 2560,
+        "intermediate_size": 10240,
+        "num_hidden_layers": 42,
+        "num_attention_heads": 8,
+        "num_key_value_heads": 2,
+        "num_kv_shared_layers": 18,
+        "head_dim": 256,
+        "global_head_dim": 512,
+        "hidden_size_per_layer_input": 256,
+        "vocab_size_per_layer_input": 262144,
+        "hidden_activation": "gelu_pytorch_tanh",
+        "sliding_window": 512,
+        "rms_norm_eps": 0.000001,
+        "rope_parameters": {
+          "full_attention": {
+            "partial_rotary_factor": 0.25,
+            "rope_theta": 1000000,
+            "rope_type": "proportional"
+          },
+          "sliding_attention": {
+            "rope_theta": 10000,
+            "rope_type": "default"
+          }
+        },
+        "attention_k_eq_v": false,
+        "attention_bias": false,
+        "use_double_wide_mlp": false,
+        "tie_word_embeddings": true,
+        "final_logit_softcapping": 30,
+        "layer_types": [
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention"
+        ]
+      },
+      "eos_token_id": [
+        1,
+        106
+      ],
+      "image_token_id": 258880,
+      "audio_token_id": 258881,
+      "video_token_id": 258884,
+      "vision_config": {
+        "model_type": "gemma4_vision",
+        "hidden_size": 768,
+        "num_attention_heads": 12,
+        "num_hidden_layers": 16,
+        "num_key_value_heads": 12,
+        "head_dim": 64,
+        "global_head_dim": 64,
+        "intermediate_size": 3072,
+        "patch_size": 16,
+        "pooling_kernel_size": 3,
+        "position_embedding_size": 10240,
+        "default_output_length": 280,
+        "rms_norm_eps": 0.000001,
+        "hidden_activation": "gelu_pytorch_tanh",
+        "use_clipped_linears": true,
+        "standardize": false,
+        "rope_parameters": {
+          "rope_theta": 100
+        }
+      },
+      "audio_config": {
+        "model_type": "gemma4_audio",
+        "num_hidden_layers": 12,
+        "hidden_size": 1024,
+        "num_attention_heads": 8,
+        "conv_kernel_size": 5,
+        "subsampling_conv_channels": [
+          128,
+          32
+        ],
+        "output_proj_dims": 1536,
+        "attention_context_left": 13,
+        "attention_context_right": 0,
+        "attention_chunk_size": 12,
+        "attention_logit_cap": 50,
+        "attention_invalid_logits_value": -1000000000,
+        "residual_weight": 0.5,
+        "rms_norm_eps": 0.000001,
+        "hidden_act": "silu",
+        "use_clipped_linears": true
+      }
+    },
+    "manifestConfig": {
+      "visionConfig": {
+        "vision_architecture": "gemma4",
+        "hidden_size": 768,
+        "num_attention_heads": 12,
+        "num_hidden_layers": 16,
+        "num_key_value_heads": 12,
+        "head_dim": 64,
+        "intermediate_size": 3072,
+        "patch_size": 16,
+        "pooling_kernel_size": 3,
+        "position_embedding_size": 10240,
+        "default_output_length": 280,
+        "rms_norm_eps": 0.000001,
+        "hidden_activation": "gelu_pytorch_tanh",
+        "use_clipped_linears": true,
+        "standardize": false,
+        "rope_parameters": {
+          "rope_theta": 100
+        }
+      },
+      "audioConfig": {
+        "audio_architecture": "gemma4",
+        "num_hidden_layers": 12,
+        "hidden_size": 1024,
+        "num_attention_heads": 8,
+        "conv_kernel_size": 5,
+        "subsampling_conv_channels": [
+          128,
+          32
+        ],
+        "output_proj_dims": 1536,
+        "attention_context_left": 13,
+        "attention_context_right": 0,
+        "attention_chunk_size": 12,
+        "attention_logit_cap": 50,
+        "attention_invalid_logits_value": -1000000000,
+        "residual_weight": 0.5,
+        "rms_norm_eps": 0.000001,
+        "hidden_act": "silu",
+        "use_clipped_linears": true
+      }
+    },
+    "manifestInference": {
+      "schema": "doppler.execution/v1",
+      "attention": {
+        "queryPreAttnScalar": 1,
+        "attnLogitSoftcapping": null,
+        "slidingWindow": 512,
+        "queryKeyNorm": true,
+        "valueNorm": true,
+        "causal": true,
+        "attentionBias": false,
+        "attentionOutputGate": false
+      },
+      "normalization": {
+        "rmsNormEps": 0.000001,
+        "rmsNormWeightOffset": false,
+        "postAttentionNorm": true,
+        "preFeedforwardNorm": true,
+        "postFeedforwardNorm": true
+      },
+      "ffn": {
+        "activation": "gelu",
+        "gatedActivation": true,
+        "useDoubleWideMlp": false,
+        "swigluLimit": null
+      },
+      "rope": {
+        "ropeTheta": 1000000,
+        "ropeLocalTheta": 10000,
+        "ropeInterleaved": false,
+        "mropeInterleaved": false,
+        "mropeSection": null,
+        "partialRotaryFactor": 0.25,
+        "ropeLocalPartialRotaryFactor": null,
+        "ropeFrequencyBaseDim": 512,
+        "ropeLocalFrequencyBaseDim": null,
+        "ropeScalingType": null,
+        "ropeScalingFactor": 1,
+        "ropeLocalScalingType": null,
+        "ropeLocalScalingFactor": 1,
+        "yarnBetaFast": null,
+        "yarnBetaSlow": null,
+        "yarnOriginalMaxPos": null,
+        "ropeLocalYarnBetaFast": null,
+        "ropeLocalYarnBetaSlow": null,
+        "ropeLocalYarnOriginalMaxPos": null
+      },
+      "output": {
+        "finalLogitSoftcapping": 30,
+        "tieWordEmbeddings": true,
+        "scaleEmbeddings": true,
+        "embeddingTranspose": false,
+        "embeddingVocabSize": null,
+        "embeddingPostprocessor": null
+      },
+      "layerPattern": {
+        "type": "every_n",
+        "globalPattern": null,
+        "period": 6,
+        "offset": 5,
+        "layerTypes": null
+      },
+      "chatTemplate": {
+        "type": "gemma4",
+        "enabled": true
+      },
+      "pipeline": null,
+      "session": {
+        "compute": {
+          "defaults": {
+            "activationDtype": "f32",
+            "mathDtype": "f32",
+            "accumDtype": "f32",
+            "outputDtype": "f32"
+          }
+        },
+        "kvcache": {
+          "kvDtype": "f16",
+          "layout": "contiguous",
+          "pageSize": 256,
+          "tiering": {
+            "mode": "off"
+          }
+        },
+        "decodeLoop": {
+          "batchSize": 1,
+          "stopCheckMode": "batch",
+          "readbackInterval": 1,
+          "readbackMode": "overlapped",
+          "ringTokens": 2,
+          "ringStop": 1,
+          "ringStaging": 2,
+          "disableCommandBatching": false
+        },
+        "perLayerInputs": {
+          "materialization": "range_backed",
+          "rowCache": {
+            "mode": "lru",
+            "maxRows": 512,
+            "maxBytes": 268435456,
+            "decodedDtype": "f32"
+          },
+          "prefetch": {
+            "mode": "next_token",
+            "rowsAhead": 1
+          },
+          "gpuUpload": {
+            "mode": "per_step_slices",
+            "stagingRows": 2
+          },
+          "hotCache": {
+            "mode": "prepared_tokens",
+            "maxTokens": 4096,
+            "maxBytes": 268435456,
+            "outputDtype": "f32"
+          }
+        }
+      }
+    },
+    "tokenizer": {
+      "task": {
+        "sentencepieceModel": "TOKENIZER_MODEL",
+        "vocabSize": 262144,
+        "padTokenId": 0,
+        "eosTokenId": 1,
+        "eosTokens": [
+          1,
+          106
+        ],
+        "bosTokenId": 2,
+        "unkTokenId": 3,
+        "addBosToken": false,
+        "addEosToken": false
+      },
+      "litertlm": {
+        "sentencepieceModel": "TOKENIZER_MODEL",
+        "vocabSize": 262144,
+        "padTokenId": 0,
+        "eosTokenId": 1,
+        "eosTokens": [
+          1,
+          106
+        ],
+        "bosTokenId": 2,
+        "unkTokenId": 3,
+        "addBosToken": false,
+        "addEosToken": false
+      }
+    }
+  },
+  "package": {
+    "task": {
+      "tfliteEntry": "TF_LITE_PREFILL_DECODE",
+      "tokenizerModelEntry": "TOKENIZER_MODEL",
+      "metadataEntry": "METADATA",
+      "unsupported": {
+        "code": "gemma4-e4b-litert-direct-source-unverified",
+        "message": "The public Gemma 4 E4B LiteRT web package is registered for discovery, but Doppler has no E4B direct-source parity receipt yet and external reports show tokenizer/detokenizer mismatch risk on this package family.",
+        "recommendation": "Use this profile only to keep package detection explicit. Enable execution after adding a source-package parity receipt, tokenizer round-trip receipt, and RDRR conversion path."
+      }
+    },
+    "litertlm": {
+      "tfliteModelType": "TF_LITE_PREFILL_DECODE",
+      "tokenizerSectionType": "SP_Tokenizer",
+      "metadataSectionType": "LlmMetadataProto",
+      "executionTemplateProfileId": "litert/gemma-4-e2b-it",
+      "unsupported": {
+        "code": "gemma4-e4b-litert-direct-source-unverified",
+        "message": "The public Gemma 4 E4B LiteRT-LM package is registered for discovery, but Doppler has no E4B direct-source parity receipt or RDRR conversion path yet.",
+        "recommendation": "Add an explicit E4B LiteRT graph contraction map, tokenizer receipt, and text-generation parity receipt before enabling direct-source execution."
+      }
+    }
+  }
+}

@@ -245,13 +245,12 @@
         "tested": {
           "suite": "inference",
           "surface": [
-            "browser",
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-04-21",
-          "source": "vendor-compare",
-          "notes": "Browser/WebGPU on AMD Strix Halo / Radeon 8060S re-verified 2026-04-21 with compare-owned Gemma 4 prompt rendering. Compare receipt benchmarks/vendors/results/compare_20260421T001902.json shows valid non-empty output and Doppler decode throughput ahead of the paired Transformers.js ONNX/q4f16 runner on warm OPFS (15.49 vs 10.58 tok/s), but exact generated text still mismatches TJS, so this is performance evidence rather than correctness-parity evidence. Apple M3 / Node WebGPU darwin execution contract pass remains from reports/gemma-4-e2b-it-q4k-ehf16-af32/2026-04-18T19-17-45.997Z.json. Full artifact republished to HF 2026-04-21 at revision 2070777c77047d54e6eae105f6dcb1891cf6f21a.",
+          "lastVerifiedAt": "2026-05-07",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU execution-contract evidence is present in reports/gemma-4-e2b-it-q4k-ehf16-af32/2026-05-07T14-35-06.195Z.json. Browser compare receipt benchmarks/vendors/results/compare_20260421T001902.json shows valid non-empty output and warm OPFS performance evidence, but exact generated text still mismatches TJS, so browser remains performance evidence rather than verified support until a browser runtime pass receipt is listed. Full artifact republished to HF 2026-04-21 at revision 2070777c77047d54e6eae105f6dcb1891cf6f21a.",
           "contracts": {
             "executionContractOk": true
           }
@@ -312,13 +311,12 @@
         "tested": {
           "suite": "debug",
           "surface": [
-            "browser",
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-04-20",
-          "source": "vendor-compare",
-          "notes": "Browser/WebGPU on AMD Strix Halo / Radeon 8060S re-verified 2026-04-20 with release decode cadence. Compare receipts benchmarks/vendors/results/compare_20260420T162233.json (t=0 greedy) and benchmarks/vendors/results/compare_20260420T163016.json (t=1 topK50) show Doppler decode throughput ahead of the paired Transformers.js ONNX/q4f16 runner on warm OPFS. Node/WebGPU on AMD RDNA-3 was previously verified from the repo-local INT4 PLE artifact with deterministic greedy text smokes. Direct LiteRT .task source still loads but remains numerically wrong.",
+          "lastVerifiedAt": "2026-05-07",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU execution-contract evidence is present in reports/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-05-07T17-03-36.276Z.json. Browser compare receipts benchmarks/vendors/results/compare_20260420T162233.json (t=0 greedy) and benchmarks/vendors/results/compare_20260420T163016.json (t=1 topK50) remain performance evidence only until a browser runtime pass receipt is listed. Direct LiteRT .task source still loads but remains numerically wrong.",
           "contracts": {
             "executionContractOk": true,
             "layerPatternContractOk": true
@@ -376,13 +374,12 @@
         "tested": {
           "suite": "inference",
           "surface": [
-            "browser",
             "node"
           ],
           "result": "pass",
           "lastVerifiedAt": "2026-05-07",
           "source": "manifest-variant-identity",
-          "notes": "Manifest-only f16 activation sibling over the verified Gemma 4 E2B INT4 PLE weight pack. The demo preflights execution-v1 capability rules and uses the AF32 primary when this lane is rejected, including the Apple Metal fused-q4k/f16 NaN guard.",
+          "notes": "Manifest-only f16 activation sibling over the verified Gemma 4 E2B INT4 PLE weight pack. Node/WebGPU execution-contract evidence is present in reports/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-05-07T17-14-52.263Z.json. Browser remains unverified until a browser runtime pass receipt is listed. The demo preflights execution-v1 capability rules and uses the AF32 primary when this lane is rejected, including the Apple Metal fused-q4k/f16 NaN guard.",
           "contracts": {
             "executionContractOk": true
           }
@@ -521,9 +518,21 @@
           "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "none"
+          "tested": "verified"
         },
-        "tested": null
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-06-08",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU verified from /home/x/models/rdrr/gemma-4-12b-it-text-w4a16-ct-ehf16-af16 with deterministic greedy output. Report reports/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/2026-06-08T22-33-51.728Z.json produced coherent text, executionContractOk=true, manifest-owned decodeBatchSize=8/readbackInterval=8, and batched decode only with 2 batched forward calls and 0 unbatched calls.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/gemma-4-12B-it-qat-w4a16-ct",
@@ -620,9 +629,21 @@
           "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "none"
+          "tested": "verified"
         },
-        "tested": null
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "browser"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-04-29",
+          "source": "f16-lane-weight-pack-primary",
+          "notes": "Complete Q4K weight pack is the hosted primary for the Gemma 4 31B f16 demo lane. Browser/WebGPU debug receipt reports/gemma-4-31b-it-text-q4k-ehf16-af32/2026-04-28T22-40-53.165Z.json has executionContractOk=true; a committed Node receipt is still missing.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/gemma-4-31B-it",
@@ -673,13 +694,12 @@
         "tested": {
           "suite": "inference",
           "surface": [
-            "browser",
-            "node"
+            "browser"
           ],
           "result": "pass",
           "lastVerifiedAt": "2026-04-29",
-          "source": "browser-node-webgpu-smoke",
-          "notes": "Browser/WebGPU report reports/gemma-4-31b-it-text-q4k-ehf16-af16/2026-04-29T17-25-41.735Z.json and program-bundle references both decode the sky prompt to blue with f16 compute.",
+          "source": "browser-webgpu-smoke",
+          "notes": "Browser/WebGPU report reports/gemma-4-31b-it-text-q4k-ehf16-af16/2026-04-29T17-25-41.735Z.json and program-bundle references both decode the sky prompt to blue with f16 compute. A committed Node receipt is still missing.",
           "contracts": {
             "executionContractOk": true
           }

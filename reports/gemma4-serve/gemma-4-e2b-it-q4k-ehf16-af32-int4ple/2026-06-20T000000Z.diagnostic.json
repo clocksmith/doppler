@@ -1,0 +1,92 @@
+{
+  "receiptVersion": "doppler_serve_receipt_v1",
+  "schemaVersion": 1,
+  "surface": "serve",
+  "endpoint": "/v1/chat/completions",
+  "runtime": "doppler-gpu",
+  "runtimeVersion": "0.4.3",
+  "runtimePath": "doppler-gpu.chatText",
+  "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+  "requestedModel": "gemma4-e2b-int4ple",
+  "resolvedModel": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+  "generatedAt": "2026-06-20T19:43:01.000Z",
+  "evidenceKind": "doppler-serve-diagnostic",
+  "hostObservation": {
+    "adapterVendor": "mesa",
+    "adapterArchitecture": "software",
+    "maxStorageBufferBindingSize": 134217728,
+    "observedWith": "node doppler-serve handler local artifact probe"
+  },
+  "artifact": {
+    "format": "rdrr",
+    "source": "quickstart-registry",
+    "sourceCheckpointId": "google/gemma-4-E2B-it",
+    "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
+    "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-mv-exec-v1",
+    "artifactCompleteness": "complete",
+    "runtimePromotionState": "manifest-owned",
+    "weightsRefAllowed": false,
+    "hf": {
+      "repoId": "Clocksmith/rdrr",
+      "revision": "dbb354acb00108965c5324ca7b6fecc198d12501",
+      "path": "models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+    }
+  },
+  "request": {
+    "messages": {
+      "count": 1,
+      "digest": {
+        "algorithm": "sha256",
+        "value": "fbe8a0e0a64d5da488250600aff0bb971c04df8acb89407848c2199f2b58da5c",
+        "bytes": 46
+      }
+    },
+    "generationDigest": {
+      "algorithm": "sha256",
+      "value": "13d751621a58a5cd0729e69f5e0e7b0c70e587d50e9984a44a5b131cf9b4caa4",
+      "bytes": 52
+    }
+  },
+  "generation": {
+    "maxTokens": 1,
+    "temperature": 0,
+    "topP": null,
+    "topK": 1
+  },
+  "status": "diagnostic",
+  "failure": {
+    "code": "pipeline-load-failed",
+    "stage": "loadWeights",
+    "message": "[Loader] Embedding \"model.language_model.embed_tokens.weight\" cannot be GPU-resident on this device: requires 805306368 bytes but max storage binding is 134217728 bytes. Configure a split embedding kernel that fits this device or use a device with a larger storage binding limit.",
+    "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+    "weightLoadFailure": {
+      "tensorName": "model.language_model.embed_tokens.weight",
+      "tensorRole": "embedding",
+      "tensorDtype": "F16",
+      "tensorShape": [
+        262144,
+        1536
+      ],
+      "tensorSizeBytes": 805306368,
+      "tensorLoadStage": "gpuResidentEmbeddingLimitPreflight",
+      "toGPU": true,
+      "streamedUpload": false,
+      "deviceLimitFailure": {
+        "kind": "gpu_resident_embedding_exceeds_device_limit",
+        "maxGpuResidentBytes": 134217728,
+        "maxStorageBufferBindingSize": 134217728,
+        "maxBufferSize": 4294967295,
+        "maxStorageBuffersPerShaderStage": null,
+        "largeWeightMaxBytes": 120795955,
+        "embeddingKernel": {
+          "kernel": "gather.wgsl",
+          "entry": "main"
+        },
+        "splitKernelExpected": false,
+        "activeSplitKernelMaxSections": null,
+        "maxSplitEmbeddingSections": 8,
+        "requiredSplitSections": 7
+      }
+    }
+  }
+}

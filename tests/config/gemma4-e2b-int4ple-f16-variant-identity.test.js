@@ -97,5 +97,9 @@ assert.deepEqual(
 );
 assert.equal(af16Manifest.inference?.session?.perLayerInputs?.materialization, 'range_backed');
 assert.equal(af16Manifest.inference?.session?.perLayerInputs?.hotCache?.outputDtype, 'f16');
+assert.equal(af16Config.execution?.kernels?.embed?.kernel, 'gather_split8_f16_vec4_f16_out.wgsl');
+assert.equal(af16Config.execution?.kernels?.embed?.entry, 'gather_vec4_f16_out');
+assert.equal(af16Manifest.inference?.execution?.kernels?.embed?.kernel, 'gather_split8_f16_vec4_f16_out.wgsl');
+assert.equal(af16Manifest.inference?.execution?.kernels?.embed?.entry, 'gather_vec4_f16_out');
 
 console.log('gemma4-e2b-int4ple-f16-variant-identity.test: ok');

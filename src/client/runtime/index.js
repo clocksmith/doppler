@@ -14,6 +14,8 @@ import {
   createNodeFileArtifactStorageContext,
 } from '../../storage/artifact-storage-context.js';
 import { isNodeRuntime } from '../../utils/runtime-env.js';
+import { resolveManifestGpuResidentEmbeddingLimitError } from '../../loader/embedding-limit-preflight.js';
+import { initDevice } from '../../gpu/device.js';
 
 function emitLoadProgress(callback, phase, percent, message) {
   if (typeof callback !== 'function') return;
@@ -94,6 +96,17 @@ export function createDopplerRuntimeService({
       ? { text: JSON.stringify(resolved.manifest), manifest: resolved.manifest }
       : await fetchManifestPayloadFromBaseUrl(resolved.baseUrl);
     const resolvedArtifactSource = await resolveManifestArtifactSource(resolved, manifestPayload);
+    await initDevice();
+    const embeddingLimitError = resolveManifestGpuResidentEmbeddingLimitError(
+      resolvedArtifactSource.manifest,
+      {
+        storageManifest: resolvedArtifactSource.storageManifest,
+        runtimeConfig: options.runtimeConfig,
+      }
+    );
+    if (embeddingLimitError) {
+      throw embeddingLimitError;
+    }
     const cachedResolved = manifestPayload.manifest?.weightsRef == null
       ? await resolveCachedNodeQuickstartSource(
         resolvedArtifactSource,

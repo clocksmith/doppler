@@ -2,7 +2,7 @@
 
 import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
-import { runGather, recordGather, runGatherSplit4, recordGatherSplit4, runScale, recordScale } from '../../../gpu/kernel-selector.js';
+import { runGather, recordGather, runGatherSplit, recordGatherSplit, runScale, recordScale } from '../../../gpu/kernel-selector.js';
 import { log, trace } from '../../../debug/index.js';
 import { runProbes } from './probes.js';
 import { decodeReadback } from './debug-utils/index.js';
@@ -336,8 +336,8 @@ export async function embed(tokenIds, embedBuffer, config) {
   const gatherOutput = isSplitWeightBuffer(embedBuffer)
     ? (
       recorder
-        ? await recordGatherSplit4(recorder, tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions)
-        : await runGatherSplit4(tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions)
+        ? await recordGatherSplit(recorder, tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions)
+        : await runGatherSplit(tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions)
     )
     : (
       recorder

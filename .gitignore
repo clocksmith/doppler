@@ -57,6 +57,7 @@ downloads/
 !demo/ui/downloads/index.d.ts
 /models/*
 !/models/catalog.json
+!/models/gemma4-targets.json
 !/models/README.md
 !/models/local/
 /models/local/**
@@ -84,6 +85,12 @@ reports/**
 !reports/program-bundles/
 !reports/program-bundles/**/
 !reports/program-bundles/**/*.reference.json
+!reports/gemma4-serve/
+!reports/gemma4-serve/**/
+!reports/gemma4-serve/**/*.json
+!reports/gemma4-preflight/
+!reports/gemma4-preflight/**/
+!reports/gemma4-preflight/**/*.json
 !reports/f16-precision-collapse/
 reports/f16-precision-collapse/**
 !reports/f16-precision-collapse/stable/

@@ -32,7 +32,26 @@ export function resolveLoadProgressHandlers(options = {}, defaultLoadProgressLog
 }
 
 export async function fetchManifestPayloadFromBaseUrl(baseUrl) {
-  const response = await fetch(getManifestUrl(baseUrl));
+  const manifestUrl = getManifestUrl(baseUrl);
+  if (/^file:\/\//i.test(manifestUrl)) {
+    let text;
+    try {
+      const [{ readFile }, { fileURLToPath }] = await Promise.all([
+        import('node:fs/promises'),
+        import('node:url'),
+      ]);
+      text = await readFile(fileURLToPath(manifestUrl), 'utf8');
+    } catch (error) {
+      throw new Error(
+        `Failed to read manifest from ${baseUrl}: ${error?.message || String(error)}`
+      );
+    }
+    return {
+      text,
+      manifest: parseManifest(text),
+    };
+  }
+  const response = await fetch(manifestUrl);
   if (!response.ok) {
     throw new Error(`Failed to fetch manifest from ${baseUrl}: ${response.status}`);
   }

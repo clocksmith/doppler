@@ -22,6 +22,13 @@ import { releaseBuffer } from '../memory/buffer-pool.js';
 import { assembleShardData, loadTensorRange } from './tensors/tensor-reader.js';
 import { hasSourceTransform } from './tensors/source-transform.js';
 import { getLargeWeightMaxBytes } from './manifest-config.js';
+import {
+  createGpuResidentEmbeddingLimitError,
+  expectsSplitGpuEmbeddingKernel,
+  getEmbeddingFloatDtype,
+  getSplitGpuEmbeddingKernelSectionCount,
+  getSplitGpuEmbeddingRequiredStorageBuffers,
+} from './embedding-limit-preflight.js';
 
 // ============================================================================
 // Constants
@@ -30,7 +37,6 @@ import { getLargeWeightMaxBytes } from './manifest-config.js';
 
 const EMBEDDING_ROLE = 'embedding';
 const EMBEDDING_GROUP = 'embed';
-const MAX_SPLIT_EMBEDDING_SECTIONS = 4;
 const SPLIT_UPLOAD_CHUNK_BYTES = 64 * 1024 * 1024;
 
 function isPerLayerEmbeddingTensor(name) {
@@ -160,12 +166,6 @@ async function createLiteRTInt4GpuEmbeddingWeightBuffer(ctx, name, location) {
   });
 }
 
-function getEmbeddingFloatDtype(location) {
-  return selectRuleValue('loader', 'weights', 'floatLocationDtype', {
-    locationDtype: location?.dtype,
-  });
-}
-
 function alignByteLength(byteLength) {
   return Math.ceil(byteLength / 4) * 4;
 }
@@ -178,8 +178,7 @@ function writeBufferInChunks(queue, buffer, bytes) {
 }
 
 function expectsSplitGpuEmbedding(ctx) {
-  return ctx.embeddingKernel?.kernel === 'gather_split4_f16_vec4_f16_out.wgsl'
-    && ctx.embeddingKernel?.entry === 'gather_vec4_f16_out';
+  return expectsSplitGpuEmbeddingKernel(ctx.embeddingKernel);
 }
 
 async function createSplitGpuEmbeddingWeightBuffer(ctx, name, location) {
@@ -214,10 +213,16 @@ async function createSplitGpuEmbeddingWeightBuffer(ctx, name, location) {
   if (!device || !maxBytes) {
     return null;
   }
-  if ((device.limits.maxStorageBuffersPerShaderStage ?? 0) < 6) {
+  const maxSplitSections = getSplitGpuEmbeddingKernelSectionCount(ctx.embeddingKernel);
+  if (maxSplitSections <= 0) {
+    return null;
+  }
+  const requiredStorageBuffers = getSplitGpuEmbeddingRequiredStorageBuffers(maxSplitSections);
+  if ((device.limits.maxStorageBuffersPerShaderStage ?? 0) < requiredStorageBuffers) {
     log.warn(
       'Loader',
-      `Embedding "${name}" cannot use split GPU residency: maxStorageBuffersPerShaderStage is below 6.`
+      `Embedding "${name}" cannot use split GPU residency: ` +
+      `maxStorageBuffersPerShaderStage is below ${requiredStorageBuffers}.`
     );
     return null;
   }
@@ -239,10 +244,11 @@ async function createSplitGpuEmbeddingWeightBuffer(ctx, name, location) {
     return null;
   }
   const sectionCount = Math.ceil(rows / rowsPerSection);
-  if (sectionCount > MAX_SPLIT_EMBEDDING_SECTIONS) {
+  if (sectionCount > maxSplitSections) {
     log.warn(
       'Loader',
-      `Embedding "${name}" needs ${sectionCount} GPU sections; split4 supports at most ${MAX_SPLIT_EMBEDDING_SECTIONS}. ` +
+      `Embedding "${name}" needs ${sectionCount} GPU sections; active split kernel supports ` +
+      `at most ${maxSplitSections}. ` +
       'Using CPU-backed streaming.'
     );
     return null;
@@ -277,7 +283,10 @@ async function createSplitGpuEmbeddingWeightBuffer(ctx, name, location) {
       'Loader',
       `Embedding "${name}" stored as split GPU sections (${sections.length} sections, dtype=${dtype}, layout=${layout}).`
     );
-    return createSplitWeightBuffer(sections, dtype, layout, location.shape, name);
+    return createSplitWeightBuffer(sections, dtype, layout, location.shape, name, {
+      splitGatherSectionCount: maxSplitSections,
+      sourceKernel: ctx.embeddingKernel,
+    });
   } catch (error) {
     for (const buffer of createdBuffers) {
       try {
@@ -343,6 +352,16 @@ export async function loadEmbeddings(ctx) {
     const packedLiteRTTensor = await createLiteRTInt4GpuEmbeddingWeightBuffer(ctx, name, loc);
     const shouldStream = packedLiteRTTensor ? false : shouldUseRangeBackedEmbeddingSource(ctx, name, loc);
     const splitGpuTensor = packedLiteRTTensor ? null : await createSplitGpuEmbeddingWeightBuffer(ctx, name, loc);
+    if (!packedLiteRTTensor && !splitGpuTensor && !shouldStream) {
+      const limitError = createGpuResidentEmbeddingLimitError({
+        name,
+        location: loc,
+        embeddingKernel: ctx.embeddingKernel,
+      });
+      if (limitError) {
+        throw limitError;
+      }
+    }
 
     // Load tensor (to CPU if streaming, to GPU otherwise)
     const tensor = packedLiteRTTensor ?? splitGpuTensor ?? (shouldStream

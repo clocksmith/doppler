@@ -1,0 +1,547 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-06-23",
+  "sourceUrls": [
+    "https://ai.google.dev/gemma/docs/core",
+    "https://ai.google.dev/gemma/docs/releases",
+    "https://developers.google.com/edge/litert-lm/models/gemma-4"
+  ],
+  "targets": [
+    {
+      "targetId": "gemma-4-e2b",
+      "officialName": "Gemma 4 E2B",
+      "dopplerStatus": "partially_verified",
+      "surfaceStatus": {
+        "browser": "unverified",
+        "electron": "unverified",
+        "node": "verified"
+      },
+      "currentLanes": [
+        {
+          "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+          "role": "complete-q4k-text-vision-weight-pack",
+          "claimStatus": "verified"
+        },
+        {
+          "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+          "role": "int4-ple-q4k-text-vision-weight-pack",
+          "claimStatus": "verified"
+        },
+        {
+          "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+          "role": "f16-activation-manifest-variant",
+          "claimStatus": "verified-local"
+        }
+      ],
+      "serveStatus": "verified",
+      "servedLanes": [
+        "gemma-4-e2b-it-q4k-ehf16-af32",
+        "gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+      ],
+      "evidence": {
+        "runtimeReceipts": [
+          {
+            "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+            "surface": "node",
+            "status": "pass",
+            "path": "reports/gemma-4-e2b-it-q4k-ehf16-af32/2026-05-07T14-35-06.195Z.json"
+          },
+          {
+            "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+            "surface": "node",
+            "status": "pass",
+            "path": "reports/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-05-07T17-03-36.276Z.json"
+          },
+          {
+            "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+            "surface": "node",
+            "status": "pass",
+            "path": "reports/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-05-07T17-14-52.263Z.json"
+          }
+        ],
+        "benchmarkReceipts": [
+          {
+            "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+            "surface": "browser",
+            "status": "performance_evidence",
+            "path": "benchmarks/vendors/results/compare_20260421T001902.json"
+          },
+          {
+            "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+            "surface": "browser",
+            "status": "performance_evidence",
+            "path": "benchmarks/vendors/results/compare_20260420T162233.json"
+          },
+          {
+            "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+            "surface": "node",
+            "status": "diagnostic",
+            "path": "benchmarks/vendors/results/gemma-4-e2b-it-q4k-ehf16-af16-int4ple_20260507T171520.json"
+          }
+        ],
+        "serveReceipts": [
+          {
+            "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+            "surface": "serve",
+            "status": "pass",
+            "path": "reports/gemma4-serve/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/20260623T135452Z.pass.json"
+          },
+          {
+            "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+            "surface": "serve",
+            "status": "diagnostic",
+            "path": "reports/gemma4-serve/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-06-20T000000Z.diagnostic.json"
+          }
+        ],
+        "preflightReceipts": [
+          {
+            "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+            "surface": "node",
+            "status": "pass",
+            "path": "reports/gemma4-preflight/gemma-4-e2b-it-q4k-ehf16-af32/2026-06-20T201732Z.preflight.json"
+          },
+          {
+            "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+            "surface": "node",
+            "status": "pass",
+            "path": "reports/gemma4-preflight/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-06-20T201732Z.preflight.json"
+          },
+          {
+            "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+            "surface": "node",
+            "status": "pass",
+            "path": "reports/gemma4-preflight/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-06-20T201732Z.preflight.json"
+          }
+        ]
+      },
+      "missing": [
+        "browser runtime pass receipt",
+        "hosted quickstart artifact refresh",
+        "electron receipt",
+        "mtp lane",
+        "full multimodal browser receipt"
+      ],
+      "blockers": [
+        {
+          "code": "browser-runtime-pass-receipt-missing",
+          "surface": "browser",
+          "state": "unverified",
+          "reason": "Browser benchmark evidence exists, but no browser runtime pass receipt is listed for this target."
+        },
+        {
+          "code": "hosted-quickstart-artifact-stale",
+          "surface": "serve",
+          "state": "diagnostic",
+          "reason": "A doppler-serve pass receipt exists for the local explicit model URL path with runtimeModelSource.kind=url and the split8 gather manifest. The older hosted quickstart diagnostic is retained because that path observed a stale hosted manifest that still pinned single-buffer gather.wgsl and stopped at gpuResidentEmbeddingLimitPreflight. Republish or refresh the hosted quickstart artifact before treating default hosted serve as verified."
+        },
+        {
+          "code": "electron-receipt-missing",
+          "surface": "electron",
+          "state": "unverified",
+          "reason": "No committed Electron runtime or benchmark receipt is listed for this target."
+        },
+        {
+          "code": "mtp-lane-not-implemented",
+          "surface": "mtp",
+          "state": "not_implemented",
+          "reason": "Official Gemma 4 MTP exists, but Doppler has no MTP execution lane or receipt for this target."
+        },
+        {
+          "code": "multimodal-browser-receipt-incomplete",
+          "surface": "browser",
+          "state": "incomplete",
+          "reason": "Browser evidence covers current text/vision weight-pack lanes, but no complete multimodal receipt is listed."
+        }
+      ],
+      "officialMtp": true,
+      "mtpStatus": "not_implemented"
+    },
+    {
+      "targetId": "gemma-4-e4b",
+      "officialName": "Gemma 4 E4B",
+      "dopplerStatus": "gap",
+      "surfaceStatus": {
+        "browser": "unsupported",
+        "electron": "unsupported",
+        "node": "unsupported"
+      },
+      "currentLanes": [],
+      "sourcePackages": [
+        {
+          "id": "litert/gemma-4-e4b-it",
+          "status": "blocked",
+          "blockerCode": "gemma4-e4b-litert-direct-source-unverified",
+          "reason": "LiteRT .task and .litertlm package identity is known, but direct-source parsing fails closed until a parity receipt and graph contraction map exist."
+        }
+      ],
+      "serveStatus": "unsupported",
+      "servedLanes": [],
+      "evidence": {
+        "runtimeReceipts": [],
+        "benchmarkReceipts": [],
+        "serveReceipts": [],
+        "preflightReceipts": []
+      },
+      "missing": [
+        "conversion config",
+        "catalog model",
+        "RDRR artifact",
+        "runtime receipt",
+        "benchmark receipt",
+        "mtp lane"
+      ],
+      "blockers": [
+        {
+          "code": "browser-runtime-unsupported",
+          "surface": "browser",
+          "state": "unsupported",
+          "reason": "No Doppler Gemma 4 E4B artifact, conversion config, or runtime receipt is listed for browser execution."
+        },
+        {
+          "code": "electron-runtime-unsupported",
+          "surface": "electron",
+          "state": "unsupported",
+          "reason": "No Doppler Gemma 4 E4B artifact, conversion config, or runtime receipt is listed for Electron execution."
+        },
+        {
+          "code": "node-runtime-unsupported",
+          "surface": "node",
+          "state": "unsupported",
+          "reason": "No Doppler Gemma 4 E4B artifact, conversion config, or runtime receipt is listed for Node execution."
+        },
+        {
+          "code": "serve-runtime-unsupported",
+          "surface": "serve",
+          "state": "unsupported",
+          "reason": "No doppler-serve lane is available because no current Gemma 4 E4B lane is listed."
+        },
+        {
+          "code": "conversion-config-missing",
+          "surface": "model",
+          "state": "missing",
+          "reason": "No Gemma 4 E4B conversion config is listed."
+        },
+        {
+          "code": "catalog-model-missing",
+          "surface": "model",
+          "state": "missing",
+          "reason": "No Gemma 4 E4B catalog model is listed."
+        },
+        {
+          "code": "rdrr-artifact-missing",
+          "surface": "model",
+          "state": "missing",
+          "reason": "No Gemma 4 E4B RDRR artifact is listed."
+        },
+        {
+          "code": "runtime-receipt-missing",
+          "surface": "model",
+          "state": "missing",
+          "reason": "No Gemma 4 E4B runtime receipt is listed."
+        },
+        {
+          "code": "benchmark-receipt-missing",
+          "surface": "benchmark",
+          "state": "missing",
+          "reason": "No Gemma 4 E4B benchmark receipt is listed."
+        },
+        {
+          "code": "mtp-lane-not-implemented",
+          "surface": "mtp",
+          "state": "not_implemented",
+          "reason": "Official Gemma 4 MTP exists, but Doppler has no MTP execution lane or receipt for this target."
+        }
+      ],
+      "officialMtp": true,
+      "mtpStatus": "not_implemented"
+    },
+    {
+      "targetId": "gemma-4-12b-unified",
+      "officialName": "Gemma 4 12B Unified",
+      "dopplerStatus": "partially_verified",
+      "surfaceStatus": {
+        "browser": "unverified",
+        "electron": "unverified",
+        "node": "verified"
+      },
+      "currentLanes": [
+        {
+          "modelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
+          "role": "qat-w4a16-text-node-lane",
+          "claimStatus": "verified"
+        },
+        {
+          "modelId": "gemma-4-12b-it-text-q4k-ehf16-af32",
+          "role": "q4k-text-weight-pack",
+          "claimStatus": "experimental"
+        },
+        {
+          "modelId": "gemma-4-12b-it-text-q4k-ehf16-af16",
+          "role": "q4k-f16-activation-manifest-variant",
+          "claimStatus": "experimental"
+        }
+      ],
+      "serveStatus": "unsupported",
+      "servedLanes": [],
+      "evidence": {
+        "runtimeReceipts": [
+          {
+            "modelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
+            "surface": "node",
+            "status": "pass",
+            "path": "reports/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/2026-06-08T22-33-51.728Z.json"
+          }
+        ],
+        "benchmarkReceipts": [
+          {
+            "modelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
+            "surface": "browser",
+            "status": "diagnostic",
+            "path": "benchmarks/vendors/results/gemma-4-12b-it-text-w4a16-ct-ehf16-af16_20260608T061634.json"
+          }
+        ],
+        "serveReceipts": [],
+        "preflightReceipts": []
+      },
+      "missing": [
+        "browser receipt",
+        "electron receipt",
+        "doppler-serve quickstart lane",
+        "q4k correctness receipt",
+        "q4k benchmark receipt",
+        "mtp lane"
+      ],
+      "blockers": [
+        {
+          "code": "browser-receipt-missing",
+          "surface": "browser",
+          "state": "unverified",
+          "reason": "The listed browser benchmark receipt is diagnostic and does not prove browser runtime correctness for the target."
+        },
+        {
+          "code": "electron-receipt-missing",
+          "surface": "electron",
+          "state": "unverified",
+          "reason": "No committed Electron runtime or benchmark receipt is listed for this target."
+        },
+        {
+          "code": "serve-quickstart-lane-missing",
+          "surface": "serve",
+          "state": "unsupported",
+          "reason": "Current 12B lanes are not listed in the doppler-serve quickstart registry."
+        },
+        {
+          "code": "q4k-correctness-receipt-missing",
+          "surface": "model",
+          "state": "missing",
+          "reason": "Q4K 12B lanes are listed as experimental without a passing correctness receipt."
+        },
+        {
+          "code": "q4k-benchmark-receipt-missing",
+          "surface": "benchmark",
+          "state": "missing",
+          "reason": "Q4K 12B lanes do not have benchmark receipts."
+        },
+        {
+          "code": "mtp-lane-not-implemented",
+          "surface": "mtp",
+          "state": "not_implemented",
+          "reason": "Official Gemma 4 MTP exists, but Doppler has no MTP execution lane or receipt for this target."
+        }
+      ],
+      "officialMtp": true,
+      "mtpStatus": "not_implemented"
+    },
+    {
+      "targetId": "gemma-4-31b",
+      "officialName": "Gemma 4 31B",
+      "dopplerStatus": "partially_verified",
+      "surfaceStatus": {
+        "browser": "verified",
+        "electron": "unverified",
+        "node": "unverified"
+      },
+      "currentLanes": [
+        {
+          "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
+          "role": "complete-q4k-text-weight-pack",
+          "claimStatus": "verified"
+        },
+        {
+          "modelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
+          "role": "f16-activation-manifest-variant",
+          "claimStatus": "verified"
+        }
+      ],
+      "serveStatus": "unsupported",
+      "servedLanes": [],
+      "evidence": {
+        "runtimeReceipts": [
+          {
+            "modelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
+            "surface": "browser",
+            "status": "pass",
+            "path": "reports/gemma-4-31b-it-text-q4k-ehf16-af16/2026-04-29T17-25-41.735Z.json"
+          },
+          {
+            "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
+            "surface": "browser",
+            "status": "pass",
+            "path": "reports/program-bundles/doe-overnight/20260425T175736Z/wg-31b-doppler-reference-bundle/gemma-4-31b-program-bundle.json"
+          }
+        ],
+        "benchmarkReceipts": [
+          {
+            "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
+            "surface": "browser",
+            "status": "diagnostic",
+            "path": "reports/benchmarks/gemma4-31b-f16-activations/gemma-4-31b-it-text-q4k-ehf16-af32_20260428T214416.json"
+          }
+        ],
+        "serveReceipts": [],
+        "preflightReceipts": []
+      },
+      "missing": [
+        "electron receipt",
+        "doppler-serve quickstart lane",
+        "node receipt",
+        "mtp lane",
+        "current benchmark receipt"
+      ],
+      "blockers": [
+        {
+          "code": "electron-receipt-missing",
+          "surface": "electron",
+          "state": "unverified",
+          "reason": "No committed Electron runtime or benchmark receipt is listed for this target."
+        },
+        {
+          "code": "serve-quickstart-lane-missing",
+          "surface": "serve",
+          "state": "unsupported",
+          "reason": "Current 31B lanes are not listed in the doppler-serve quickstart registry."
+        },
+        {
+          "code": "node-receipt-missing",
+          "surface": "node",
+          "state": "unverified",
+          "reason": "No committed Node runtime or benchmark receipt is listed for this target."
+        },
+        {
+          "code": "mtp-lane-not-implemented",
+          "surface": "mtp",
+          "state": "not_implemented",
+          "reason": "Official Gemma 4 MTP exists, but Doppler has no MTP execution lane or receipt for this target."
+        },
+        {
+          "code": "current-benchmark-receipt-missing",
+          "surface": "benchmark",
+          "state": "missing",
+          "reason": "Only older diagnostic benchmark evidence is listed for the current 31B lanes."
+        }
+      ],
+      "officialMtp": true,
+      "mtpStatus": "not_implemented"
+    },
+    {
+      "targetId": "gemma-4-26b-a4b",
+      "officialName": "Gemma 4 26B A4B",
+      "dopplerStatus": "gap",
+      "surfaceStatus": {
+        "browser": "unsupported",
+        "electron": "unsupported",
+        "node": "unsupported"
+      },
+      "currentLanes": [],
+      "serveStatus": "unsupported",
+      "servedLanes": [],
+      "evidence": {
+        "runtimeReceipts": [],
+        "benchmarkReceipts": [],
+        "serveReceipts": [],
+        "preflightReceipts": []
+      },
+      "missing": [
+        "source package profile",
+        "conversion config",
+        "catalog model",
+        "MoE runtime receipt",
+        "benchmark receipt",
+        "mtp lane"
+      ],
+      "blockers": [
+        {
+          "code": "browser-runtime-unsupported",
+          "surface": "browser",
+          "state": "unsupported",
+          "reason": "No Doppler Gemma 4 26B A4B artifact, conversion config, or runtime receipt is listed for browser execution."
+        },
+        {
+          "code": "electron-runtime-unsupported",
+          "surface": "electron",
+          "state": "unsupported",
+          "reason": "No Doppler Gemma 4 26B A4B artifact, conversion config, or runtime receipt is listed for Electron execution."
+        },
+        {
+          "code": "node-runtime-unsupported",
+          "surface": "node",
+          "state": "unsupported",
+          "reason": "No Doppler Gemma 4 26B A4B artifact, conversion config, or runtime receipt is listed for Node execution."
+        },
+        {
+          "code": "serve-runtime-unsupported",
+          "surface": "serve",
+          "state": "unsupported",
+          "reason": "No doppler-serve lane is available because no current Gemma 4 26B A4B lane is listed."
+        },
+        {
+          "code": "source-package-profile-missing",
+          "surface": "model",
+          "state": "missing",
+          "reason": "No Gemma 4 26B A4B source-package profile is listed."
+        },
+        {
+          "code": "conversion-config-missing",
+          "surface": "model",
+          "state": "missing",
+          "reason": "No Gemma 4 26B A4B conversion config is listed."
+        },
+        {
+          "code": "catalog-model-missing",
+          "surface": "model",
+          "state": "missing",
+          "reason": "No Gemma 4 26B A4B catalog model is listed."
+        },
+        {
+          "code": "official-moe-topology-unsupported",
+          "surface": "model",
+          "state": "unsupported",
+          "reason": "Official Gemma 4 26B A4B uses 128 total experts with top-8 routing; the existing generic Gemma 4 MoE config is not equivalent."
+        },
+        {
+          "code": "moe-runtime-receipt-missing",
+          "surface": "model",
+          "state": "missing",
+          "reason": "No passing Gemma 4 26B A4B MoE runtime receipt is listed."
+        },
+        {
+          "code": "benchmark-receipt-missing",
+          "surface": "benchmark",
+          "state": "missing",
+          "reason": "No Gemma 4 26B A4B benchmark receipt is listed."
+        },
+        {
+          "code": "mtp-lane-not-implemented",
+          "surface": "mtp",
+          "state": "not_implemented",
+          "reason": "Official Gemma 4 MTP exists, but Doppler has no MTP execution lane or receipt for this target."
+        }
+      ],
+      "relatedButNotEquivalent": [
+        "diffusiongemma-26b-a4b-it-q4k-ehf16-af16"
+      ],
+      "officialMtp": true,
+      "mtpStatus": "not_implemented"
+    }
+  ]
+}

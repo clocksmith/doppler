@@ -1,10 +1,12 @@
 import sourcePackageRegistry from '../config/source-packages/registry.json' with { type: 'json' };
 import gemma4E2BPackageProfile from '../config/source-packages/litert/gemma-4-e2b-it.json' with { type: 'json' };
+import gemma4E4BPackageProfile from '../config/source-packages/litert/gemma-4-e4b-it.json' with { type: 'json' };
 import gemma412BPackageProfile from '../config/source-packages/litert/gemma-4-12b-it.json' with { type: 'json' };
 import { cloneJsonValue } from '../utils/clone-json.js';
 
 const PROFILE_MAP = new Map([
   ['litert/gemma-4-e2b-it', gemma4E2BPackageProfile],
+  ['litert/gemma-4-e4b-it', gemma4E4BPackageProfile],
   ['litert/gemma-4-12b-it', gemma412BPackageProfile],
 ]);
 
