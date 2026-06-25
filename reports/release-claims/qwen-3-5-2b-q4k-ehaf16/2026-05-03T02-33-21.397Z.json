@@ -1,0 +1,614 @@
+{
+  "mode": "bench",
+  "workload": "inference",
+  "suite": "bench",
+  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "runtimeProfile": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": true,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967295,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.3 (Build 25D125)"
+    },
+    "submitProbeMs": 1.5961250000000007
+  },
+  "results": [
+    {
+      "name": "benchmark",
+      "passed": true,
+      "duration": 56195.974291000006
+    }
+  ],
+  "durationMs": 92847.881125,
+  "timestamp": "2026-05-03T02:33:21.397Z",
+  "metrics": {
+    "warmupRuns": 2,
+    "timedRuns": 3,
+    "prompt": "You are a careful technical writer. Explain in detail how a transformer language model performs autoregressive decoding. Cover the following points in order, using complete sentences and concrete examples where appropriate. First, describe the prefill phase: the entire prompt is tokenized, embedded, and processed through every layer in a single forward pass; the resulting key and value projections from each attention layer are stored in a key value cache for later reuse. Second, describe the decode phase: at each step the most recent token is embedded, projected to query key and value vectors, and attended against the full cached history; new key and value entries are appended to the cache and a single logit vector is produced. Third, discuss why this caching matters for throughput: prefill cost scales with prompt length squared in the naive case but cached decode cost per token scales linearly. Fourth, mention common kernel choices: fused matmul kernels for projections, online or streaming attention kernels for memory bound decode, and gated SiLU MLP for the feed forward block. Conclude with one sentence on how rotary position embeddings interact with the cache.",
+    "maxTokens": 256,
+    "decodeTokensPerSec": 14.89,
+    "avgTokensGenerated": 256,
+    "avgPrefillTokens": 231,
+    "avgDecodeTokens": 256,
+    "medianPrefillTokensPerSec": 167.27,
+    "avgPrefillTokensPerSec": 163.4,
+    "medianPrefillTokensPerSecTtft": 166.88,
+    "avgPrefillTokensPerSecTtft": 163.19,
+    "avgDecodeTokensPerSec": 14.8,
+    "firstTokenMs": 1384.26,
+    "firstResponseMs": 3440.31,
+    "prefillMs": 1381.02,
+    "decodeMs": 17193.45,
+    "totalRunMs": 18578.01,
+    "decodeMsPerTokenP50": 67.16,
+    "decodeMsPerTokenP95": 70.35,
+    "decodeMsPerTokenP99": 70.63,
+    "avgPrefillMs": 1415.78,
+    "modelLoadMs": 2056.05,
+    "throughput": {
+      "tokensPerSec": {
+        "mean": 13.67827634167829,
+        "median": 13.779734315890227,
+        "min": 13.14580455201711,
+        "max": 14.109290157127532,
+        "p95": 14.076334573003802,
+        "p99": 14.102699040302786,
+        "stdDev": 0.48969012468309175,
+        "ci95": 0.8481681759158535,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefillTokensPerSec": {
+        "mean": 163.40366878783615,
+        "median": 167.26746993699945,
+        "min": 154.64027941707064,
+        "max": 168.30325700943837,
+        "p95": 168.19967830219449,
+        "p99": 168.2825412679896,
+        "stdDev": 7.606967770576679,
+        "ci95": 13.17565467017776,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefillTokensPerSecTtft": {
+        "mean": 163.18939954707707,
+        "median": 166.87599912263656,
+        "min": 154.49409787401774,
+        "max": 168.19810164457692,
+        "p95": 168.0658913923829,
+        "p99": 168.1716595941381,
+        "stdDev": 7.559311619371277,
+        "ci95": 13.093111794996819,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeTokensPerSec": {
+        "mean": 14.803255527944733,
+        "median": 14.88938751775215,
+        "min": 14.143380178852263,
+        "max": 15.376998887229782,
+        "p95": 15.328237750282018,
+        "p99": 15.367246659840228,
+        "stdDev": 0.621303322996017,
+        "ci95": 1.0761289223404784,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "latency": {
+      "totalMs": {
+        "mean": 18731.991430333335,
+        "median": 18578.006957999998,
+        "min": 18144.073667000004,
+        "max": 19473.893666000004,
+        "p95": 19384.304995200004,
+        "p99": 19455.975931840003,
+        "stdDev": 678.1509571805689,
+        "ci95": 1174.5919130382115,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefillMs": {
+        "mean": 1415.7778193333336,
+        "median": 1381.0216660000006,
+        "min": 1372.5224579999995,
+        "max": 1493.789334000001,
+        "p95": 1482.5125672000008,
+        "p99": 1491.533980640001,
+        "stdDev": 67.69347420244847,
+        "ci95": 117.24853665949385,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeMs": {
+        "mean": 17314.012278,
+        "median": 17193.454041999998,
+        "min": 16648.242083999998,
+        "max": 18100.340708000003,
+        "p95": 18009.652041400004,
+        "p99": 18082.202974680004,
+        "stdDev": 733.5177705115614,
+        "ci95": 1270.4900467806724,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "firstTokenMs": {
+        "mean": 1417.6148889999993,
+        "median": 1384.2613750000019,
+        "min": 1373.380541999999,
+        "max": 1495.2027499999967,
+        "p95": 1484.1086124999972,
+        "p99": 1492.9839224999969,
+        "stdDev": 67.41294580872203,
+        "ci95": 116.76264722859395,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "tokens": {
+      "generated": {
+        "mean": 256,
+        "median": 256,
+        "min": 256,
+        "max": 256,
+        "p95": 256,
+        "p99": 256,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefill": {
+        "mean": 231,
+        "median": 231,
+        "min": 231,
+        "max": 231,
+        "p95": 231,
+        "p99": 231,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decode": {
+        "mean": 256,
+        "median": 256,
+        "min": 256,
+        "max": 256,
+        "p95": 256,
+        "p99": 256,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "gpu": {
+      "prefillMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 0,
+        "samplesAfterOutlierRemoval": 0,
+        "outliersRemoved": 0
+      },
+      "decodeMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 0,
+        "samplesAfterOutlierRemoval": 0,
+        "outliersRemoved": 0
+      },
+      "decodeRecordMs": {
+        "mean": 4732.352276999986,
+        "median": 4784.402664999987,
+        "min": 4222.936832999971,
+        "max": 5189.7173330000005,
+        "p95": 5149.1858661999995,
+        "p99": 5181.61103964,
+        "stdDev": 485.487451911262,
+        "ci95": 840.8889331474579,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeSubmitWaitMs": {
+        "mean": 12486.305667333321,
+        "median": 12340.168250999996,
+        "min": 12323.211957999993,
+        "max": 12795.536792999977,
+        "p95": 12749.99993879998,
+        "p99": 12786.429422159978,
+        "stdDev": 267.93617855540845,
+        "ci95": 464.07907444381414,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeReadbackWaitMs": {
+        "mean": 11709.110582333333,
+        "median": 11687.010832999993,
+        "min": 11527.755206999995,
+        "max": 11912.565707000009,
+        "p95": 11890.010219600008,
+        "p99": 11908.054609520008,
+        "stdDev": 193.35480190058001,
+        "ci95": 334.9003407792199,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "decodeOrchestrationMs": {
+        "mean": -11613.756248666641,
+        "median": -11601.873832999961,
+        "min": -11797.479124999983,
+        "max": -11441.915787999977,
+        "p95": -11457.911592499975,
+        "p99": -11445.114948899976,
+        "stdDev": 178.07923940258144,
+        "ci95": 308.44229041849263,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefillRecordMs": {
+        "mean": 1164.6624586666705,
+        "median": 1131.3131249999933,
+        "min": 1121.7982110000303,
+        "max": 1240.8760399999883,
+        "p95": 1229.9197484999888,
+        "p99": 1238.6847816999884,
+        "stdDev": 66.17413302676766,
+        "ci95": 114.61696054918326,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "prefillSubmitWaitMs": {
+        "mean": 2.3359583333318974,
+        "median": 2.1261669999948936,
+        "min": 1.914082999996026,
+        "max": 2.967625000004773,
+        "p95": 2.883479200003785,
+        "p99": 2.9507958400045755,
+        "stdDev": 0.557222566936315,
+        "ci95": 0.9651377970576471,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "singleTokenSubmitWaitMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "singleTokenReadbackWaitMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "singleTokenOrchestrationMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "batching": {
+      "batchedForwardCalls": {
+        "mean": 8,
+        "median": 8,
+        "min": 8,
+        "max": 8,
+        "p95": 8,
+        "p99": 8,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "unbatchedForwardCalls": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "totalBatchedTimeMs": {
+        "mean": 17312.388527000003,
+        "median": 17191.95725,
+        "min": 16646.659375000003,
+        "max": 18098.548956000006,
+        "p95": 18007.889785400006,
+        "p99": 18080.417121880007,
+        "stdDev": 733.3986693565647,
+        "ci95": 1270.283757528978,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "totalUnbatchedTimeMs": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "gpuSubmissions": {
+        "mean": 8,
+        "median": 8,
+        "min": 8,
+        "max": 8,
+        "p95": 8,
+        "p99": 8,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "plePreparedTokenCache": {
+      "hits": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "misses": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "entries": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      },
+      "bytes": {
+        "mean": 0,
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "p95": 0,
+        "p99": 0,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 3,
+        "samplesAfterOutlierRemoval": 3,
+        "outliersRemoved": 0
+      }
+    },
+    "decodeMode": "batched_gpu",
+    "batchGuardReason": null,
+    "generatedText": "The user's request is not an instruction to perform tasks or actions; it is a request to provide a detailed explanation of how a transformer language model performs autoregressive decoding. I will follow this instructions in order, using complete sentences and concrete examples where appropriate. first, describe the prefill phase: the entire prompt is tokenized, embedded, and processed through every layer in a single forward pass; resulting key and value projections from each attention layer are stored in a key value cache for later reuse. second, describe the decode phase: at each step the most recent token is embedded, projected to query key and value vectors, and attended against the full cached history; new key and value entries are appended to the cache and a single logit vector is produced. third discuss why this caching matters for throughput: prefill cost scales with prompt length squared in the naive case but cached decode cost per token scales linearly fourth mention common kernel choices: fused matmul kernels for projections, online or streaming attention kernels for memory bound decode and gated SiLU MLP for the feed forward block conclude with one sentence on how rotary position embeddings interact with the cache\n\n I will follow this instructions in order, using complete sentences and concrete examples where appropriate first describe the prefill phase: the entire prompt is tokenized",
+    "promptInput": "You are a careful technical writer. Explain in detail how a transformer language model performs autoregressive decoding. Cover the following points in order, using complete sentences and concrete examples where appropriate. First, describe the prefill phase: the entire prompt is tokenized, embedded, and processed through every layer in a single forward pass; the resulting key and value projections from each attention layer are stored in a key value cache for later reuse. Second, describe the decode phase: at each step the most recent token is embedded, projected to query key and value vectors, and attended against the full cached history; new key and value entries are appended to the cache and a single logit vector is produced. Third, discuss why this caching matters for throughput: prefill cost scales with prompt length squared in the naive case but cached decode cost per token scales linearly. Fourth, mention common kernel choices: fused matmul kernels for projections, online or streaming attention kernels for memory bound decode, and gated SiLU MLP for the feed forward block. Conclude with one sentence on how rotary position embeddings interact with the cache.",
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "bench",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-2b-q4k-ehaf16.steps",
+          "ok": true
+        },
+        {
+          "id": "qwen-3-5-2b-q4k-ehaf16.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 12,
+        "headDim": 256,
+        "kvLen": 8192,
+        "coldQuantMode": "none",
+        "contiguousQuantMode": "none"
+      },
+      "steps": {
+        "total": 35,
+        "attention": 2,
+        "attentionPhases": {
+          "prefill": 1,
+          "decode": 1,
+          "both": 0
+        }
+      }
+    },
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "qwen-3-5-2b-q4k-ehaf16.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-2b-q4k-ehaf16.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 44,
+        "nullableCases": 23,
+        "nonNullableCases": 21
+      }
+    }
+  },
+  "output": null,
+  "memory": {
+    "used": 8797445888,
+    "pool": {
+      "allocations": 474324,
+      "reuses": 49301,
+      "totalBytesAllocated": 17413278464,
+      "peakBytesAllocated": 8796884992,
+      "currentBytesAllocated": 8596119296,
+      "totalBytesRequested": 14363040512,
+      "peakBytesRequested": 7020545024,
+      "currentBytesRequested": 6842165248,
+      "activeBuffers": 2088,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "9.4%"
+    },
+    "kvCache": {
+      "theoretical": 201326592,
+      "allocated": 201326592,
+      "used": 23887872,
+      "efficiency": 0.11865234375,
+      "seqLen": 486,
+      "maxSeqLen": 4096,
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 0,
+        "recordedGpuUpdateCalls": 7680,
+        "tokensWritten": 14580
+      }
+    }
+  },
+  "debugSnapshot": null
+}

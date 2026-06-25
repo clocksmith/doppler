@@ -95,9 +95,10 @@ assert.equal(
 );
 assert.equal(af16Entry.weightPackId, af32Manifest.artifactIdentity?.weightPackId);
 assert.equal(af16Entry.weightsRefAllowed, true);
-assert.equal(af16Entry.lifecycle?.availability?.hf, true);
+assert.equal(af16Entry.lifecycle?.availability?.hf, false);
 assert.equal(af16Entry.lifecycle?.status?.runtime, 'active');
-assert.equal(af16Entry.lifecycle?.status?.tested, 'verified');
+assert.equal(af16Entry.lifecycle?.status?.tested, 'none');
+assert.equal(af16Entry.lifecycle?.tested, null);
 assert.equal(af16Entry.demoVisible, false);
 
 assert.equal(af16Manifest.quantizationInfo?.compute, 'f16');
@@ -122,16 +123,10 @@ assert.deepEqual(
 assert.equal(af16Manifest.inference?.session?.kvcache?.kvDtype, 'f16');
 assert.deepEqual(af16Manifest.inference?.largeWeights?.gpuResidentOverrides, []);
 
-assert.ok(af16Claim, 'af16 verified catalog entry must have an explicit release claim');
-assert.equal(af16Claim.mode, 'text');
-assert.deepEqual(af16Claim.surface, af16Entry.lifecycle?.tested?.surface);
-assert.equal(af16Claim.verificationSource, af16Entry.lifecycle?.tested?.source);
-assert.equal(af16Claim.lastVerifiedAt, af16Entry.lifecycle?.tested?.lastVerifiedAt);
-assert.equal(af16Claim.artifactFormat, af16Entry.artifact?.format);
-assert.equal(af16Claim.evidence?.kind, 'browser-webgpu-smoke');
 assert.equal(
-  af16Claim.evidence?.reportPath,
-  'reports/program-bundles/gemma-4-31b-it-text-q4k-ehf16-af16/capture.node.reference.json'
+  af16Claim,
+  null,
+  'af16 weights-ref sibling must stay out of release claims until the af32 primary has package-visible runtime evidence'
 );
 
 console.log('gemma4-31b-f16-variant-identity.test: ok');

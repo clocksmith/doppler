@@ -1,0 +1,471 @@
+{
+  "mode": "debug",
+  "workload": "inference",
+  "suite": "debug",
+  "modelId": "translategemma-4b-it-q4k-ehf16-af32",
+  "runtimeProfile": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": false,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 14302248960,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.3 (Build 25D125)"
+    }
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 3355.2300419999992
+    }
+  ],
+  "durationMs": 9931.119583,
+  "timestamp": "2026-03-22T14:48:13.935Z",
+  "metrics": {
+    "prompt": "en -> fr: Hello world.",
+    "maxTokens": 16,
+    "tokensGenerated": 4,
+    "tokensPerSec": 1.19,
+    "totalRunMs": 3354.64,
+    "firstTokenMs": 2672.4,
+    "firstResponseMs": 9242.22,
+    "prefillMs": 2667.24,
+    "decodeMs": 681.58,
+    "prefillTokens": 78,
+    "decodeTokens": 4,
+    "prefillTokensPerSec": 29.24,
+    "prefillTokensPerSecTtft": 29.19,
+    "decodeTokensPerSec": 5.87,
+    "modelLoadMs": 6569.82,
+    "gpu": {
+      "decodeRecordMs": 94.27445799999987,
+      "decodeSubmitWaitMs": 583.5841669999991,
+      "decodeReadbackWaitMs": 555.1654170000002
+    },
+    "decodeProfileSteps": [],
+    "executionPlan": {
+      "primary": {
+        "id": "primary",
+        "kernelPathId": "translategemma-4b-it-q4k-ehf16-af32-execution-inline",
+        "kernelPathSource": "execution-v1",
+        "activationDtype": "f32",
+        "readbackInterval": 1,
+        "batchSize": 4,
+        "stopCheckMode": "batch",
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "fallback": null,
+      "activePlanIdAtStart": null,
+      "finalActivePlanId": null,
+      "transitions": []
+    },
+    "kernelPathId": "translategemma-4b-it-q4k-ehf16-af32-execution-inline",
+    "kernelPathSource": "execution-v1",
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 53406,
+          "text": "Bonjour",
+          "fallbackText": "Bonjour"
+        },
+        {
+          "id": 674,
+          "text": " le",
+          "fallbackText": " le"
+        },
+        {
+          "id": 22150,
+          "text": " monde",
+          "fallbackText": " monde"
+        },
+        {
+          "id": 236761,
+          "text": ".",
+          "fallbackText": "."
+        }
+      ],
+      "total": 4,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 131072,
+        "coldQuantMode": "none"
+      },
+      "steps": {
+        "total": 0,
+        "attention": 0,
+        "attentionPhases": {
+          "prefill": 0,
+          "decode": 0,
+          "both": 0
+        }
+      }
+    },
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "translategemma-4b-it-q4k-ehf16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "translategemma-4b-it-q4k-ehf16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 36,
+        "nullableCases": 17,
+        "nonNullableCases": 19
+      }
+    }
+  },
+  "output": "Bonjour le monde.",
+  "memory": {
+    "used": 10731726080,
+    "pool": {
+      "allocations": 3399,
+      "reuses": 446,
+      "totalBytesAllocated": 11043566848,
+      "peakBytesAllocated": 10995618816,
+      "currentBytesAllocated": 10161300736,
+      "totalBytesRequested": 8895901184,
+      "peakBytesRequested": 8537971200,
+      "currentBytesRequested": 7895480320,
+      "activeBuffers": 446,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "11.6%"
+    },
+    "kvCache": {
+      "theoretical": 570425344,
+      "allocated": 570425344,
+      "used": 11419648,
+      "efficiency": 0.02001953125,
+      "seqLen": 82,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": {
+    "timestamp": "2026-03-22T14:48:23.868Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "113.2",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Initializing WebGPU..."
+      },
+      {
+        "time": "116.6",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "GPU: hasF16=true, hasSubgroups=true"
+      },
+      {
+        "time": "116.6",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Fetching manifest..."
+      },
+      {
+        "time": "126.3",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Model: transformer"
+      },
+      {
+        "time": "126.5",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Creating pipeline..."
+      },
+      {
+        "time": "128.3",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)"
+      },
+      {
+        "time": "128.3",
+        "level": "INFO",
+        "module": "Config",
+        "message": "Using manifest-first config (source of truth)"
+      },
+      {
+        "time": "129.3",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "KernelPath: translategemma-4b-it-q4k-ehf16-af32-execution-inline (15 decode steps, 10 kernels, source=execution-v1)"
+      },
+      {
+        "time": "129.7",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "34L/2560H/8heads (256dim), kernelPath=translategemma-4b-it-q4k-ehf16-af32-execution-inline"
+      },
+      {
+        "time": "129.9",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "Loading bundled tokenizer from tokenizer.json"
+      },
+      {
+        "time": "354.7",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "HuggingFace model.type=\"BPE\", using type=\"bpe\""
+      },
+      {
+        "time": "605.3",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "Loaded HuggingFace 262145 tokens (bpe), 6413 special patterns, 514906 merges"
+      },
+      {
+        "time": "605.4",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Tokenizer vocabSize=262145 differs from model=262208, using model size"
+      },
+      {
+        "time": "606.3",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Execution plan: active=primary, dtype=f32, kernelPath=translategemma-4b-it-q4k-ehf16-af32-execution-inline"
+      },
+      {
+        "time": "606.7",
+        "level": "INFO",
+        "module": "ShardCache",
+        "message": "Custom shard loader configured"
+      },
+      {
+        "time": "606.8",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Initializing..."
+      },
+      {
+        "time": "699.5",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Allocated segment 0: 1024MB"
+      },
+      {
+        "time": "699.5",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Segmented heap: 1GB per segment"
+      },
+      {
+        "time": "699.6",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Initialized with strategy: SEGMENTED"
+      },
+      {
+        "time": "699.6",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Initialized (f16, subgroups, unified)"
+      },
+      {
+        "time": "699.8",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Loading: translategemma-4b-it-q4k-ehf16-af32"
+      },
+      {
+        "time": "700.1",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[0.0s] Memory (start): | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+      },
+      {
+        "time": "2447.4",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Embeddings tensor loaded: name=language_model.model.embed_tokens.weight, hasShape=true, shape=[262208,2560], isWeightBuffer=true"
+      },
+      {
+        "time": "2447.8",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 0-33"
+      },
+      {
+        "time": "6180.3",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "All 47 shards loaded: 3002.3MB in 6.1s (496 MB/s avg)"
+      },
+      {
+        "time": "6274.6",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 34 complete (3.83s)"
+      },
+      {
+        "time": "6278.4",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Complete: 1.68 GB in 5.58s (308.76 MB/s)"
+      },
+      {
+        "time": "6280.2",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[5.6s] Memory (complete): | GPU=9.30 GB (444 active, 13 pooled, peak=9.30 GB) | ShardCache=0 B (0 shards) | Layers=34, GPUBuffers=444"
+      },
+      {
+        "time": "6682.4",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Model loaded successfully (6555ms)"
+      },
+      {
+        "time": "6682.4",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Pipeline ready"
+      },
+      {
+        "time": "6682.9",
+        "level": "WARN",
+        "module": "Harness",
+        "message": "Running with default inference parameters (no runtime config override):\n  prompt: \"The color of the sky is\"\n  maxTokens: 32\n  temperature: 1\n  topK: 50\n  topP: 0.95\n  See: src/config/schema/inference-defaults.schema.js"
+      },
+      {
+        "time": "6723.7",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=f16w_f32a reason=path_override"
+      },
+      {
+        "time": "6732.8",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=prefill_streaming_f16kv reason=path_override:streaming"
+      },
+      {
+        "time": "9360.1",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=gemv_subgroup_vec4 reason=path_override"
+      },
+      {
+        "time": "9365.3",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=decode_online_f16kv reason=path_override:subgroup"
+      },
+      {
+        "time": "9388.8",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=gemv_subgroup_multicol reason=path_override"
+      },
+      {
+        "time": "10040.7",
+        "level": "INFO",
+        "module": "Perf",
+        "message": "Load: 6555ms | TTFT: 2672ms | Prefill: 2667ms | Decode: 682ms (3 tokens @ 4.4 tok/s)"
+      },
+      {
+        "time": "10043.7",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Unloaded"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 1
+  }
+}

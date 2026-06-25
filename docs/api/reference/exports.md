@@ -218,6 +218,20 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `resolveHfBaseUrl`
   - `resolveModel`
 
+## `doppler-gpu/models/diffusiongemma`
+
+- Audience: unspecified
+- Stability: unspecified
+- Types: [src/models/diffusiongemma.d.ts](../../../src/models/diffusiongemma.d.ts)
+- Implementation: [src/models/diffusiongemma.js](../../../src/models/diffusiongemma.js)
+- Notes: No manual classification recorded for this export path.
+- Exported symbols:
+  - `FAMILY_ID`
+  - `HF_REPO_ID`
+  - `KNOWN_MODELS`
+  - `resolveHfBaseUrl`
+  - `resolveModel`
+
 ## `doppler-gpu/models/embeddinggemma`
 
 - Audience: unspecified
@@ -310,14 +324,32 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Notes: Diffusion/image pipeline surface.
 - Support tier source: `src/config/support-tiers/subsystems.json` (api.diffusion-subpath)
 - Exported symbols:
+  - `applyEntropyBoundStep`
   - `assertImageRegressionWithinTolerance`
   - `computeImageFingerprint`
   - `computeImageRegressionMetrics`
   - `createDiffusionPipeline`
   - `createDiffusionWeightLoader`
+  - `createSeededRandom`
+  - `denoiseCanvas`
+  - `DiffusionGemmaConfig`
+  - `DiffusionGemmaDenoiseResult`
+  - `DiffusionGemmaGenerateOptions`
+  - `DiffusionGemmaLogitsProvider`
+  - `DiffusionGemmaLogitsRequest`
+  - `DiffusionGemmaPipeline`
+  - `DiffusionGemmaPipelineContexts`
+  - `DiffusionGemmaRouterContract`
+  - `DiffusionGemmaStabilityState`
+  - `DiffusionGemmaStats`
+  - `DiffusionGemmaStepResult`
   - `DiffusionPipeline`
+  - `initializeCanvas`
   - `initializeDiffusion`
   - `mergeDiffusionConfig`
+  - `parseDiffusionGemmaConfig`
+  - `resolveDenoisingTemperature`
+  - `updateStabilityState`
 
 ## `doppler-gpu/energy`
 

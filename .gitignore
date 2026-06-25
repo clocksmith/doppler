@@ -85,6 +85,9 @@ reports/**
 !reports/program-bundles/
 !reports/program-bundles/**/
 !reports/program-bundles/**/*.reference.json
+!reports/release-claims/
+!reports/release-claims/**/
+!reports/release-claims/**/*.json
 !reports/gemma4-serve/
 !reports/gemma4-serve/**/
 !reports/gemma4-serve/**/*.json

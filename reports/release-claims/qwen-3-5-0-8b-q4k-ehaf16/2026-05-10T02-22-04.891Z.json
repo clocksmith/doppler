@@ -1,0 +1,720 @@
+{
+  "mode": "debug",
+  "workload": "inference",
+  "suite": "debug",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "runtimeProfile": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": true,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967295,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.3 (Build 25D125)"
+    },
+    "submitProbeMs": 2.247417000000013
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 899.7150000000001
+    }
+  ],
+  "durationMs": 2761.7104999999997,
+  "timestamp": "2026-05-10T02:22:04.891Z",
+  "metrics": {
+    "prompt": "Return JSON: {\"findings\":[]}",
+    "maxTokens": 8,
+    "tokensGenerated": 8,
+    "tokensPerSec": 8.89,
+    "totalRunMs": 772.69,
+    "firstTokenMs": 552.33,
+    "firstResponseMs": 2399.96,
+    "prefillMs": 426.58,
+    "decodeMs": 346.11,
+    "wallRunMs": 899.09,
+    "prefillTokens": 16,
+    "decodeTokens": 8,
+    "stopReason": "max-tokens",
+    "stopTokenId": null,
+    "prefillTokensPerSec": 37.51,
+    "prefillTokensPerSecTtft": 28.97,
+    "decodeTokensPerSec": 23.11,
+    "modelLoadMs": 1847.63,
+    "gpu": {
+      "decodeRecordMs": 125.63783300000023,
+      "decodeSubmitWaitMs": 217.19183299999986,
+      "decodeReadbackWaitMs": 178.12337499999967,
+      "prefillRecordMs": 188.9564580000001,
+      "prefillSubmitWaitMs": 3.157916000000114,
+      "decodeOrchestrationMs": 3.27862499999992,
+      "singleTokenSubmitWaitMs": 0,
+      "singleTokenReadbackWaitMs": 0,
+      "singleTokenOrchestrationMs": 0
+    },
+    "plePreparedTokenCache": {
+      "hits": 0,
+      "misses": 0,
+      "entries": 0,
+      "bytes": 0
+    },
+    "prefillProfileSteps": [],
+    "decodeProfileSteps": [],
+    "executionPlan": {
+      "primary": {
+        "id": "primary",
+        "kernelPathId": "qwen-3-5-0-8b-q4k-ehaf16-execution-inline",
+        "kernelPathSource": "execution-v1",
+        "activationDtype": "f32",
+        "readbackInterval": 32,
+        "batchSize": 4,
+        "stopCheckMode": "batch",
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "fallback": null,
+      "activePlanIdAtStart": null,
+      "finalActivePlanId": null,
+      "transitions": []
+    },
+    "kernelPathId": "qwen-3-5-0-8b-q4k-ehaf16-execution-inline",
+    "kernelPathSource": "execution-v1",
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 9764,
+          "text": "Let",
+          "fallbackText": "Let"
+        },
+        {
+          "id": 579,
+          "text": "'s",
+          "fallbackText": "'s"
+        },
+        {
+          "id": 22903,
+          "text": " analyze",
+          "fallbackText": " analyze"
+        },
+        {
+          "id": 279,
+          "text": " the",
+          "fallbackText": " the"
+        },
+        {
+          "id": 1156,
+          "text": " user",
+          "fallbackText": " user"
+        },
+        {
+          "id": 8242,
+          "text": " requirements",
+          "fallbackText": " requirements"
+        },
+        {
+          "id": 321,
+          "text": " and",
+          "fallbackText": " and"
+        },
+        {
+          "id": 3418,
+          "text": " understand",
+          "fallbackText": " understand"
+        }
+      ],
+      "total": 8,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "kvCache": {
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "seqLen": 23,
+      "maxSeqLen": 4096,
+      "usedBytes": 1130496,
+      "allocatedBytes": 201326592,
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 0,
+        "recordedGpuUpdateCalls": 48,
+        "tokensWritten": 138
+      }
+    },
+    "referenceTranscript": {
+      "schema": "doppler.reference-transcript/v1",
+      "source": {
+        "kind": "inline-browser-suite",
+        "path": "inline",
+        "hash": "sha256:bd809eeee68fa1c84891005705e05cb3f31d49748729db20a0c81f0e551438a9"
+      },
+      "executionGraphHash": "sha256:246a472e16a18534e255f42f909de624fb423cb967ac1406cd80bc2daea0cf35",
+      "surface": "browser-webgpu",
+      "prompt": {
+        "identity": "Return JSON: {\"findings\":[]}",
+        "hash": "sha256:0f810d936612e1fb01c2dc7749223fd7388ed219a6633eec3202ea141f4e6ca2",
+        "tokenIdsHash": "sha256:961e42a1885e9c7dbd740f51fe3e77f821f8c93533f0678ec8c19bec1bb27219",
+        "tokenCount": 16
+      },
+      "output": {
+        "textHash": "sha256:8056f2afecfc2c7ab46b731cd63bc556f38c5fa5545f0b0f3fc05fab6250ee14",
+        "tokensGenerated": 8,
+        "stopReason": "max-tokens",
+        "stopTokenId": null
+      },
+      "tokens": {
+        "ids": [
+          9764,
+          579,
+          22903,
+          279,
+          1156,
+          8242,
+          321,
+          3418
+        ],
+        "generatedTokenIdsHash": "sha256:10a5def1bb92e76d0bb34309696ff9c0faa312c14e3a159b39eaf4f811eacc34",
+        "generatedTextHash": "sha256:8056f2afecfc2c7ab46b731cd63bc556f38c5fa5545f0b0f3fc05fab6250ee14",
+        "preview": [
+          {
+            "id": 9764,
+            "text": "Let",
+            "fallbackText": "Let"
+          },
+          {
+            "id": 579,
+            "text": "'s",
+            "fallbackText": "'s"
+          },
+          {
+            "id": 22903,
+            "text": " analyze",
+            "fallbackText": " analyze"
+          },
+          {
+            "id": 279,
+            "text": " the",
+            "fallbackText": " the"
+          },
+          {
+            "id": 1156,
+            "text": " user",
+            "fallbackText": " user"
+          },
+          {
+            "id": 8242,
+            "text": " requirements",
+            "fallbackText": " requirements"
+          },
+          {
+            "id": 321,
+            "text": " and",
+            "fallbackText": " and"
+          },
+          {
+            "id": 3418,
+            "text": " understand",
+            "fallbackText": " understand"
+          }
+        ],
+        "perStep": [
+          {
+            "index": 0,
+            "tokenId": 9764,
+            "tokenHash": "sha256:ab121de95ebe7043439de62ed937f2a53ee5378af6caca87e4726b3784d170ed"
+          },
+          {
+            "index": 1,
+            "tokenId": 579,
+            "tokenHash": "sha256:63624d08891e7c698615fc8c10f31fc6d459908fcb88be96d87da1d6fed759b0"
+          },
+          {
+            "index": 2,
+            "tokenId": 22903,
+            "tokenHash": "sha256:bbc32d39ce53ad297f195352d51dca379dd8b79b8726481b70d81a25c27b1da6"
+          },
+          {
+            "index": 3,
+            "tokenId": 279,
+            "tokenHash": "sha256:f9e09f4a4f6e4081553db78c4ef78881bf894811035fec85dc9f3ed69aa18d7d"
+          },
+          {
+            "index": 4,
+            "tokenId": 1156,
+            "tokenHash": "sha256:371189c8527af1488a5981cca1136b214ed1c72076570c13c236edd093cb495e"
+          },
+          {
+            "index": 5,
+            "tokenId": 8242,
+            "tokenHash": "sha256:79b1228731302cc3dcc1b4cab0b7f12af8a301435a23472e368f5cf8cd0ae274"
+          },
+          {
+            "index": 6,
+            "tokenId": 321,
+            "tokenHash": "sha256:1501b7b9d8dc9b3b5a40aa874ec9e0c91060c6efdd76465289ccf133a1f75d92"
+          },
+          {
+            "index": 7,
+            "tokenId": 3418,
+            "tokenHash": "sha256:25df6187d7992ea359aa9f96981f0d8f9a86dc8b813253eebde3bc50b0f8b95e"
+          }
+        ],
+        "coverage": {
+          "mode": "full-token-ids",
+          "omitted": 0
+        }
+      },
+      "phase": {
+        "prefillMs": 426.5843749999999,
+        "decodeMs": 346.108291,
+        "prefillTokens": 16,
+        "decodeTokens": 8
+      },
+      "kvCache": {
+        "mode": "stats",
+        "layout": "contiguous",
+        "kvDtype": "f16",
+        "seqLen": 23,
+        "maxSeqLen": 4096,
+        "usedBytes": 1130496,
+        "allocatedBytes": 201326592,
+        "counters": {
+          "updateCalls": 0,
+          "gpuUpdateCalls": 0,
+          "recordedGpuUpdateCalls": 48,
+          "tokensWritten": 138
+        },
+        "byteDigestMode": null,
+        "byteDigest": null,
+        "byteDigests": null,
+        "stateHash": "sha256:c992adbb22afc4aa88dc31fcf195a8e51c3044c735e52f87b641a87c6df31c00"
+      },
+      "logits": {
+        "mode": "not-captured",
+        "reason": "Per-step logits digests were not requested for this browser harness run.",
+        "perStepDigests": null
+      },
+      "tolerance": {
+        "tokenPolicy": "exact generated token IDs",
+        "logitsPolicy": "not captured",
+        "kvPolicy": "metadata hash only; KV tensor bytes are not read back by default"
+      }
+    },
+    "operatorDiagnostics": null,
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16.steps",
+          "ok": true
+        },
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 8192,
+        "coldQuantMode": "none",
+        "contiguousQuantMode": "none"
+      },
+      "steps": {
+        "total": 35,
+        "attention": 2,
+        "attentionPhases": {
+          "prefill": 1,
+          "decode": 1,
+          "both": 0
+        }
+      }
+    },
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "qwen-3-5-0-8b-q4k-ehaf16.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 44,
+        "nullableCases": 23,
+        "nonNullableCases": 21
+      }
+    }
+  },
+  "output": "Let's analyze the user requirements and understand",
+  "memory": {
+    "used": 1549316864,
+    "pool": {
+      "allocations": 3086,
+      "reuses": 379,
+      "totalBytesAllocated": 1377288448,
+      "peakBytesAllocated": 1374404864,
+      "currentBytesAllocated": 1347990272,
+      "totalBytesRequested": 1367830784,
+      "peakBytesRequested": 1358238976,
+      "currentBytesRequested": 1334290688,
+      "activeBuffers": 764,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "10.9%"
+    },
+    "kvCache": {
+      "theoretical": 201326592,
+      "allocated": 201326592,
+      "used": 1130496,
+      "efficiency": 0.005615234375,
+      "seqLen": 23,
+      "maxSeqLen": 4096,
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 0,
+        "recordedGpuUpdateCalls": 48,
+        "tokensWritten": 138
+      }
+    }
+  },
+  "debugSnapshot": {
+    "timestamp": "2026-05-10T02:22:07.654Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "142.2",
+        "level": "INFO",
+        "module": "Harness",
+        "message": "Suite model init: loadMode=file, modelId=qwen-3-5-0-8b-q4k-ehaf16, hasModelUrl=yes"
+      },
+      {
+        "time": "144.0",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Initializing WebGPU..."
+      },
+      {
+        "time": "161.6",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "GPU: hasF16=true, hasSubgroups=true"
+      },
+      {
+        "time": "161.7",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Fetching manifest..."
+      },
+      {
+        "time": "165.8",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Model: transformer"
+      },
+      {
+        "time": "166.3",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Creating pipeline..."
+      },
+      {
+        "time": "169.0",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)"
+      },
+      {
+        "time": "169.0",
+        "level": "INFO",
+        "module": "Config",
+        "message": "Using manifest-first config (source of truth)"
+      },
+      {
+        "time": "170.9",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=32, disableCommandBatching=false"
+      },
+      {
+        "time": "171.0",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Vision capable: imageTokenId=248056"
+      },
+      {
+        "time": "171.3",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)"
+      },
+      {
+        "time": "171.5",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline"
+      },
+      {
+        "time": "171.6",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "Loading bundled tokenizer from tokenizer.json"
+      },
+      {
+        "time": "260.0",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "HuggingFace model.type=\"BPE\", using type=\"bpe\""
+      },
+      {
+        "time": "423.7",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges"
+      },
+      {
+        "time": "423.8",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Tokenizer vocabSize=248070 differs from model=248320, using model size"
+      },
+      {
+        "time": "424.7",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096"
+      },
+      {
+        "time": "425.1",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline"
+      },
+      {
+        "time": "456.8",
+        "level": "INFO",
+        "module": "ShardCache",
+        "message": "Custom shard loader configured"
+      },
+      {
+        "time": "456.9",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Initializing..."
+      },
+      {
+        "time": "588.3",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Allocated segment 0: 1024MB"
+      },
+      {
+        "time": "588.4",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Segmented heap: 1GB per segment"
+      },
+      {
+        "time": "588.4",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Initialized with strategy: SEGMENTED"
+      },
+      {
+        "time": "588.5",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Initialized (f16, subgroups, unified)"
+      },
+      {
+        "time": "588.8",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Loading: qwen-3-5-0-8b-q4k-ehaf16"
+      },
+      {
+        "time": "593.7",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[0.0s] Memory (start): | RSS=1.21 GB (heap=56.33 MB/90.64 MB, external=1.00 GB, arrayBuffers=1.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+      },
+      {
+        "time": "595.2",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Embedding \"model.language_model.embed_tokens.weight\" GPU-resident: shouldStreamLargeWeight returned false."
+      },
+      {
+        "time": "766.5",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true"
+      },
+      {
+        "time": "766.7",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 0-23"
+      },
+      {
+        "time": "952.9",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 24 complete (0.19s)"
+      },
+      {
+        "time": "1060.1",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Complete: 0 B in 0.47s (0 B/s)"
+      },
+      {
+        "time": "1060.4",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[0.5s] Memory (complete): | RSS=1.31 GB (heap=58.22 MB/97.39 MB, external=1.02 GB, arrayBuffers=1.02 GB) | GPU=893.06 MB (321 active, 0 pooled, peak=893.06 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=321"
+      },
+      {
+        "time": "1989.6",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Model loaded successfully (1823ms)"
+      },
+      {
+        "time": "1989.6",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Pipeline ready"
+      },
+      {
+        "time": "1989.9",
+        "level": "WARN",
+        "module": "Harness",
+        "message": "Running with default inference parameters for missing fields: prompt, generation.maxTokens.\n  prompt: \"The color of the sky is\"\n  maxTokens: 32\n  Provide explicit runtime.inference.sampling and generation.maxTokens if you want harness-stable settings."
+      },
+      {
+        "time": "2016.9",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=q4_fused_widetile reason=path_override"
+      },
+      {
+        "time": "2020.0",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=f16w_f32a reason=default"
+      },
+      {
+        "time": "2045.3",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=prefill_head256_f16kv reason=path_override:tiled_small"
+      },
+      {
+        "time": "2216.2",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=q4_fused_gemv reason=path_override"
+      },
+      {
+        "time": "2554.2",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=gemv_subgroup reason=gemv"
+      },
+      {
+        "time": "2567.9",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=decode_online_f16kv reason=path_override:subgroup"
+      },
+      {
+        "time": "2898.7",
+        "level": "INFO",
+        "module": "Perf",
+        "message": "Load: 1823ms | TTFT: 552ms | Prefill: 427ms | Decode: 346ms (7 tokens @ 20.2 tok/s)"
+      },
+      {
+        "time": "2903.6",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Unloaded"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 1
+  }
+}

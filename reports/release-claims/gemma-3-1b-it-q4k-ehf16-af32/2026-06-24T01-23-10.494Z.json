@@ -1,0 +1,1157 @@
+{
+  "mode": "verify",
+  "workload": "inference",
+  "suite": "inference",
+  "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
+  "runtimeProfile": "profiles/verbose-trace",
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": true,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967295,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.3 (Build 25D125)"
+    },
+    "submitProbeMs": 1.7276670000000252
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 2179.855707999988
+    }
+  ],
+  "durationMs": 192775.623167,
+  "timestamp": "2026-06-24T01:23:10.494Z",
+  "metrics": {
+    "prompt": "The color of the sky is",
+    "maxTokens": 32,
+    "tokensGenerated": 32,
+    "tokensPerSec": 14.68,
+    "totalRunMs": 2078.81,
+    "firstTokenMs": 401.76,
+    "firstResponseMs": 190983.38,
+    "prefillMs": 302.16,
+    "decodeMs": 1776.65,
+    "wallRunMs": 2179.38,
+    "prefillTokens": 15,
+    "decodeTokens": 32,
+    "stopReason": "max-tokens",
+    "stopTokenId": null,
+    "prefillTokensPerSec": 49.64,
+    "prefillTokensPerSecTtft": 37.34,
+    "decodeTokensPerSec": 18.01,
+    "modelLoadMs": 190581.62,
+    "gpu": {
+      "decodeRecordMs": 720.1172499999811,
+      "decodeSubmitWaitMs": 1008.9351679999963,
+      "decodeReadbackWaitMs": 954.8965420000022,
+      "prefillRecordMs": 54.69916699992609,
+      "prefillSubmitWaitMs": 210.6826670000446,
+      "decodeOrchestrationMs": 47.59412400002475,
+      "singleTokenSubmitWaitMs": 0,
+      "singleTokenReadbackWaitMs": 0,
+      "singleTokenOrchestrationMs": 0
+    },
+    "batching": {
+      "batchedForwardCalls": 8,
+      "unbatchedForwardCalls": 0,
+      "totalBatchedTimeMs": 1774.677291000029,
+      "totalUnbatchedTimeMs": 0,
+      "gpuSubmissions": 8,
+      "requestedBatchTokens": 4,
+      "effectiveBatchTokens": 4,
+      "batchClampCount": 1
+    },
+    "plePreparedTokenCache": {
+      "hits": 0,
+      "misses": 0,
+      "entries": 0,
+      "bytes": 0
+    },
+    "prefillProfileSteps": [],
+    "decodeProfileSteps": [],
+    "executionPlan": {
+      "primary": {
+        "id": "primary",
+        "kernelPathId": "gemma-3-1b-it-q4k-ehf16-af32-execution-inline",
+        "kernelPathSource": "execution-v1",
+        "activationDtype": "f32",
+        "readbackInterval": 1,
+        "batchSize": 4,
+        "stopCheckMode": "batch",
+        "disableCommandBatching": false,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "fallback": null,
+      "activePlanIdAtStart": null,
+      "finalActivePlanId": null,
+      "transitions": []
+    },
+    "kernelPathId": "gemma-3-1b-it-q4k-ehf16-af32-execution-inline",
+    "kernelPathSource": "execution-v1",
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 818,
+          "text": "The",
+          "fallbackText": "The"
+        },
+        {
+          "id": 2258,
+          "text": " color",
+          "fallbackText": " color"
+        },
+        {
+          "id": 529,
+          "text": " of",
+          "fallbackText": " of"
+        },
+        {
+          "id": 506,
+          "text": " the",
+          "fallbackText": " the"
+        },
+        {
+          "id": 7217,
+          "text": " sky",
+          "fallbackText": " sky"
+        },
+        {
+          "id": 563,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 496,
+          "text": " a",
+          "fallbackText": " a"
+        },
+        {
+          "id": 4148,
+          "text": " beautiful",
+          "fallbackText": " beautiful"
+        },
+        {
+          "id": 532,
+          "text": " and",
+          "fallbackText": " and"
+        },
+        {
+          "id": 3996,
+          "text": " complex",
+          "fallbackText": " complex"
+        },
+        {
+          "id": 3210,
+          "text": " thing",
+          "fallbackText": " thing"
+        },
+        {
+          "id": 236888,
+          "text": "!",
+          "fallbackText": "!"
+        },
+        {
+          "id": 1030,
+          "text": " It",
+          "fallbackText": " It"
+        },
+        {
+          "id": 236789,
+          "text": "'",
+          "fallbackText": "'"
+        },
+        {
+          "id": 236751,
+          "text": "s",
+          "fallbackText": "s"
+        },
+        {
+          "id": 2126,
+          "text": " really",
+          "fallbackText": " really"
+        },
+        {
+          "id": 27858,
+          "text": " fascinating",
+          "fallbackText": " fascinating"
+        },
+        {
+          "id": 1547,
+          "text": " because",
+          "fallbackText": " because"
+        },
+        {
+          "id": 625,
+          "text": " it",
+          "fallbackText": " it"
+        },
+        {
+          "id": 3731,
+          "text": " changes",
+          "fallbackText": " changes"
+        },
+        {
+          "id": 10167,
+          "text": " depending",
+          "fallbackText": " depending"
+        },
+        {
+          "id": 580,
+          "text": " on",
+          "fallbackText": " on"
+        },
+        {
+          "id": 1551,
+          "text": " many",
+          "fallbackText": " many"
+        },
+        {
+          "id": 5872,
+          "text": " factors",
+          "fallbackText": " factors"
+        },
+        {
+          "id": 236761,
+          "text": ".",
+          "fallbackText": "."
+        },
+        {
+          "id": 5715,
+          "text": " Here",
+          "fallbackText": " Here"
+        },
+        {
+          "id": 236858,
+          "text": "’",
+          "fallbackText": "’"
+        },
+        {
+          "id": 236751,
+          "text": "s",
+          "fallbackText": "s"
+        },
+        {
+          "id": 496,
+          "text": " a",
+          "fallbackText": " a"
+        },
+        {
+          "id": 25890,
+          "text": " breakdown",
+          "fallbackText": " breakdown"
+        },
+        {
+          "id": 236787,
+          "text": ":",
+          "fallbackText": ":"
+        },
+        {
+          "id": 108,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        }
+      ],
+      "total": 32,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "kvCache": {
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "seqLen": 46,
+      "maxSeqLen": 4096,
+      "usedBytes": 1224704,
+      "allocatedBytes": 109051904,
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 0,
+        "recordedGpuUpdateCalls": 832,
+        "tokensWritten": 1196
+      }
+    },
+    "referenceTranscript": {
+      "schema": "doppler.reference-transcript/v1",
+      "source": {
+        "kind": "inline-browser-suite",
+        "path": "inline",
+        "hash": "sha256:047bba2340b85150ff41c8c46f3f9b21a9d37ac89fa4b9102e5018f66cec40f6"
+      },
+      "executionGraphHash": "sha256:f21b9548b8f5b126642ebb0d83838a06122ceb3ca81e33fac12ce8ff0c1c727e",
+      "surface": "browser-webgpu",
+      "prompt": {
+        "identity": "The color of the sky is",
+        "hash": "sha256:c2912dd49373207ca1d000f8d1a9045103e23c881916136efdf95190a54893ff",
+        "tokenIdsHash": "sha256:98a6bc8c6b261ff5c6ec26d7920313fdd0909878936ab5eb23758d8204a1a4d9",
+        "tokenCount": 15
+      },
+      "output": {
+        "textHash": "sha256:63ff68d9dd2bccabe1699fb34c0e4c3e6c0c3fbaad1f271bc1530abf052a24b8",
+        "tokensGenerated": 32,
+        "stopReason": "max-tokens",
+        "stopTokenId": null
+      },
+      "tokens": {
+        "ids": [
+          818,
+          2258,
+          529,
+          506,
+          7217,
+          563,
+          496,
+          4148,
+          532,
+          3996,
+          3210,
+          236888,
+          1030,
+          236789,
+          236751,
+          2126,
+          27858,
+          1547,
+          625,
+          3731,
+          10167,
+          580,
+          1551,
+          5872,
+          236761,
+          5715,
+          236858,
+          236751,
+          496,
+          25890,
+          236787,
+          108
+        ],
+        "generatedTokenIdsHash": "sha256:b2a5cfdeb068e70298e8e600b306d7f615ef0c0c88eb7acd8d12cb1b02cfd016",
+        "generatedTextHash": "sha256:63ff68d9dd2bccabe1699fb34c0e4c3e6c0c3fbaad1f271bc1530abf052a24b8",
+        "preview": [
+          {
+            "id": 818,
+            "text": "The",
+            "fallbackText": "The"
+          },
+          {
+            "id": 2258,
+            "text": " color",
+            "fallbackText": " color"
+          },
+          {
+            "id": 529,
+            "text": " of",
+            "fallbackText": " of"
+          },
+          {
+            "id": 506,
+            "text": " the",
+            "fallbackText": " the"
+          },
+          {
+            "id": 7217,
+            "text": " sky",
+            "fallbackText": " sky"
+          },
+          {
+            "id": 563,
+            "text": " is",
+            "fallbackText": " is"
+          },
+          {
+            "id": 496,
+            "text": " a",
+            "fallbackText": " a"
+          },
+          {
+            "id": 4148,
+            "text": " beautiful",
+            "fallbackText": " beautiful"
+          },
+          {
+            "id": 532,
+            "text": " and",
+            "fallbackText": " and"
+          },
+          {
+            "id": 3996,
+            "text": " complex",
+            "fallbackText": " complex"
+          },
+          {
+            "id": 3210,
+            "text": " thing",
+            "fallbackText": " thing"
+          },
+          {
+            "id": 236888,
+            "text": "!",
+            "fallbackText": "!"
+          },
+          {
+            "id": 1030,
+            "text": " It",
+            "fallbackText": " It"
+          },
+          {
+            "id": 236789,
+            "text": "'",
+            "fallbackText": "'"
+          },
+          {
+            "id": 236751,
+            "text": "s",
+            "fallbackText": "s"
+          },
+          {
+            "id": 2126,
+            "text": " really",
+            "fallbackText": " really"
+          },
+          {
+            "id": 27858,
+            "text": " fascinating",
+            "fallbackText": " fascinating"
+          },
+          {
+            "id": 1547,
+            "text": " because",
+            "fallbackText": " because"
+          },
+          {
+            "id": 625,
+            "text": " it",
+            "fallbackText": " it"
+          },
+          {
+            "id": 3731,
+            "text": " changes",
+            "fallbackText": " changes"
+          },
+          {
+            "id": 10167,
+            "text": " depending",
+            "fallbackText": " depending"
+          },
+          {
+            "id": 580,
+            "text": " on",
+            "fallbackText": " on"
+          },
+          {
+            "id": 1551,
+            "text": " many",
+            "fallbackText": " many"
+          },
+          {
+            "id": 5872,
+            "text": " factors",
+            "fallbackText": " factors"
+          },
+          {
+            "id": 236761,
+            "text": ".",
+            "fallbackText": "."
+          },
+          {
+            "id": 5715,
+            "text": " Here",
+            "fallbackText": " Here"
+          },
+          {
+            "id": 236858,
+            "text": "’",
+            "fallbackText": "’"
+          },
+          {
+            "id": 236751,
+            "text": "s",
+            "fallbackText": "s"
+          },
+          {
+            "id": 496,
+            "text": " a",
+            "fallbackText": " a"
+          },
+          {
+            "id": 25890,
+            "text": " breakdown",
+            "fallbackText": " breakdown"
+          },
+          {
+            "id": 236787,
+            "text": ":",
+            "fallbackText": ":"
+          },
+          {
+            "id": 108,
+            "text": "\n\n",
+            "fallbackText": "\n\n"
+          }
+        ],
+        "perStep": [
+          {
+            "index": 0,
+            "tokenId": 818,
+            "tokenHash": "sha256:a720503f3310752f33fbfcf2a56f5aed118d6573e54b44c2e687c0eadb98b87f"
+          },
+          {
+            "index": 1,
+            "tokenId": 2258,
+            "tokenHash": "sha256:c0383cbedf978567e584262e25452143059128990a9ff94da488cfc4eab5ab6a"
+          },
+          {
+            "index": 2,
+            "tokenId": 529,
+            "tokenHash": "sha256:bbe33143200f31da4982a0c2209cc1f1b871f76ec04a0605cc353b223ab90313"
+          },
+          {
+            "index": 3,
+            "tokenId": 506,
+            "tokenHash": "sha256:da24c3693c12414040ad8af5ca8d31dba246be2bf7237a7a0ae4d235b9fd3d95"
+          },
+          {
+            "index": 4,
+            "tokenId": 7217,
+            "tokenHash": "sha256:da6a723fe6cb129ce9f939908f1c4764f7deed7dc7ebe8e7fd304395250c28fa"
+          },
+          {
+            "index": 5,
+            "tokenId": 563,
+            "tokenHash": "sha256:fc6211da6e22c8b458b40b9b2d7d93f5ebf6cfc954066c042328ed78b1d1323b"
+          },
+          {
+            "index": 6,
+            "tokenId": 496,
+            "tokenHash": "sha256:63ed785e6e4a39d61ef98c979f021547fac26d22b5d406adb0411c45faa8fa17"
+          },
+          {
+            "index": 7,
+            "tokenId": 4148,
+            "tokenHash": "sha256:dd1628b39f223501ab7eef475d6f7a0cd92a07045829a6fc04c906a1af0efbfc"
+          },
+          {
+            "index": 8,
+            "tokenId": 532,
+            "tokenHash": "sha256:e7dbff64e9c3b08c044749eae4a058f7f02b5a42b6ce3affe8243ffd48ceceed"
+          },
+          {
+            "index": 9,
+            "tokenId": 3996,
+            "tokenHash": "sha256:e9e5afe2e1b97e65b42bf9539d91d217a00c47c239131a672f679776822b4c1b"
+          },
+          {
+            "index": 10,
+            "tokenId": 3210,
+            "tokenHash": "sha256:d868b151667a643372dfa61cb8e1d2d34d12abfab62ee3af5addcc948cd3b3a5"
+          },
+          {
+            "index": 11,
+            "tokenId": 236888,
+            "tokenHash": "sha256:e4f81a766c0d676b706707beb20a79de4e668abf7488481a6c7c0e1d3f556e53"
+          },
+          {
+            "index": 12,
+            "tokenId": 1030,
+            "tokenHash": "sha256:d680f6a3786265d2138c4e2ad4b774298855c827b194ea8285b0959ee0dfe8fb"
+          },
+          {
+            "index": 13,
+            "tokenId": 236789,
+            "tokenHash": "sha256:1caa8e4cbb4ed74dfb5fc2137837b43165ef8f42971c3915ce2ab66ec2b84139"
+          },
+          {
+            "index": 14,
+            "tokenId": 236751,
+            "tokenHash": "sha256:c3dfc79d22690e13785dc374b70447f4515d0aac75d0a412ddba088a0fafc2b6"
+          },
+          {
+            "index": 15,
+            "tokenId": 2126,
+            "tokenHash": "sha256:9e084cda68bec377aa14a705e48787820fd01639b66840a9fa2f362100e45854"
+          },
+          {
+            "index": 16,
+            "tokenId": 27858,
+            "tokenHash": "sha256:aa5fc8d53453312fc2ad2dfa89ae4f5eb04c1bca35f18e84543eff4be05bfa43"
+          },
+          {
+            "index": 17,
+            "tokenId": 1547,
+            "tokenHash": "sha256:c8f502c80ece13e8edaedd5c9031c11c18e1119be3ee0d539b5b2c22f72a780d"
+          },
+          {
+            "index": 18,
+            "tokenId": 625,
+            "tokenHash": "sha256:5de0b9229bd251eafb8279cbbdc300a9d5cd565bb4dcb33ea76712342ff454b9"
+          },
+          {
+            "index": 19,
+            "tokenId": 3731,
+            "tokenHash": "sha256:733b2814c01d5620c0d3efae7b4ef5eec334ee9833a5f28ad3b9b5a3b94c5184"
+          },
+          {
+            "index": 20,
+            "tokenId": 10167,
+            "tokenHash": "sha256:ab45f1d28ed76d70bb4c5443b210a1058f2a30a8a30e28e2d81c185845b4cde6"
+          },
+          {
+            "index": 21,
+            "tokenId": 580,
+            "tokenHash": "sha256:d4cd0357456cd2da8138ba642c4bc57604155fca8f7987b93ad81abb01dcf3e6"
+          },
+          {
+            "index": 22,
+            "tokenId": 1551,
+            "tokenHash": "sha256:c6172866baeaf45b67bc4831bc418f689a896ae8fd300bc49ee51f78cd6b0485"
+          },
+          {
+            "index": 23,
+            "tokenId": 5872,
+            "tokenHash": "sha256:1b86a82f5ae792000576221bc7144d1698e1fb62c7fa6b64b9c3b73a43e8f610"
+          },
+          {
+            "index": 24,
+            "tokenId": 236761,
+            "tokenHash": "sha256:affd114dc7d0005a37070db70ff674d7b4ffad37fe0c183ce5bbb444fe619af6"
+          },
+          {
+            "index": 25,
+            "tokenId": 5715,
+            "tokenHash": "sha256:2dfb86090629317a2bb38711874d0c982222aa4f1024fe7acc8b38ff998f9660"
+          },
+          {
+            "index": 26,
+            "tokenId": 236858,
+            "tokenHash": "sha256:0ed6f19a146fbeb8fd5bc562eadf90f31dbe69a25d3805d0fa236ed054b781a2"
+          },
+          {
+            "index": 27,
+            "tokenId": 236751,
+            "tokenHash": "sha256:0d21e9e1f818205209307a7f22af2003909eb1a1d66c000b659c2069ff6e9457"
+          },
+          {
+            "index": 28,
+            "tokenId": 496,
+            "tokenHash": "sha256:0dacaf0a443fdc683dd1e46956908c9a4e0b63350f09531ce30c08f72bf51b01"
+          },
+          {
+            "index": 29,
+            "tokenId": 25890,
+            "tokenHash": "sha256:6ae984ffa434f10c16fc175842c4864d3a17148e86a11eb4ae9722b3d53642e8"
+          },
+          {
+            "index": 30,
+            "tokenId": 236787,
+            "tokenHash": "sha256:4bf42078a0bbfd18eddcd0a8a128049ff5ae3a134b02a2742bd47fb90dd99e9d"
+          },
+          {
+            "index": 31,
+            "tokenId": 108,
+            "tokenHash": "sha256:7177e092531718de892589c96212c1d64d4885edfa93d1ff4b4a864c93858144"
+          }
+        ],
+        "coverage": {
+          "mode": "full-token-ids",
+          "omitted": 0
+        }
+      },
+      "phase": {
+        "prefillMs": 302.164958999987,
+        "decodeMs": 1776.6465420000022,
+        "prefillTokens": 15,
+        "decodeTokens": 32
+      },
+      "kvCache": {
+        "mode": "stats",
+        "layout": "contiguous",
+        "kvDtype": "f16",
+        "seqLen": 46,
+        "maxSeqLen": 4096,
+        "usedBytes": 1224704,
+        "allocatedBytes": 109051904,
+        "counters": {
+          "updateCalls": 0,
+          "gpuUpdateCalls": 0,
+          "recordedGpuUpdateCalls": 832,
+          "tokensWritten": 1196
+        },
+        "byteDigestMode": null,
+        "byteDigest": null,
+        "byteDigests": null,
+        "stateHash": "sha256:d946262c8a45c14c33b3fb48ee53beeef13c7fc514e5f0d84fa666cc9016b4a0"
+      },
+      "logits": {
+        "mode": "not-captured",
+        "reason": "Per-step logits digests were not requested for this browser harness run.",
+        "perStepDigests": null
+      },
+      "tolerance": {
+        "tokenPolicy": "exact generated token IDs",
+        "logitsPolicy": "not captured",
+        "kvPolicy": "metadata hash only; KV tensor bytes are not read back by default"
+      }
+    },
+    "operatorDiagnostics": null,
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "inference",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "gemma-3-1b-it-q4k-ehf16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "gemma-3-1b-it-q4k-ehf16-af32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 32768,
+        "coldQuantMode": "none",
+        "contiguousQuantMode": "none"
+      },
+      "steps": {
+        "total": 35,
+        "attention": 2,
+        "attentionPhases": {
+          "prefill": 1,
+          "decode": 1,
+          "both": 0
+        }
+      }
+    },
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "gemma-3-1b-it-q4k-ehf16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "gemma-3-1b-it-q4k-ehf16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 44,
+        "nullableCases": 23,
+        "nonNullableCases": 21
+      }
+    }
+  },
+  "output": "The color of the sky is a beautiful and complex thing! It's really fascinating because it changes depending on many factors. Here’s a breakdown:\n\n",
+  "memory": {
+    "used": 2221399808,
+    "pool": {
+      "allocations": 14840,
+      "reuses": 6117,
+      "totalBytesAllocated": 2285295360,
+      "peakBytesAllocated": 2134201088,
+      "currentBytesAllocated": 2112347904,
+      "totalBytesRequested": 2253925888,
+      "peakBytesRequested": 2114777600,
+      "currentBytesRequested": 2096511488,
+      "activeBuffers": 350,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "29.2%"
+    },
+    "kvCache": {
+      "theoretical": 109051904,
+      "allocated": 109051904,
+      "used": 1224704,
+      "efficiency": 0.01123046875,
+      "seqLen": 46,
+      "maxSeqLen": 4096,
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 0,
+        "recordedGpuUpdateCalls": 832,
+        "tokensWritten": 1196
+      }
+    }
+  },
+  "debugSnapshot": {
+    "timestamp": "2026-06-24T01:26:23.272Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14793 size=8192 req=4608 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14797 size=32768 req=27648 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14798 size=32768 req=27648 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14799 size=32768 req=27648 usage=140 label=gelu_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14796 size=8192 req=5120 usage=140 label=rmsnorm_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14800 size=8192 req=4608 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14795 size=8192 req=4608 usage=140 label=residual_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14802 size=8192 req=6144 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14803 size=4096 req=4096 usage=140 label=Q action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14804 size=1024 req=1024 usage=140 label=K action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14801 size=8192 req=5120 usage=140 label=rmsnorm_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14808 size=512 req=512 usage=140 label=cast_f32_to_f16_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14809 size=512 req=512 usage=140 label=cast_f32_to_f16_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14806 size=4096 req=4096 usage=140 label=rmsnorm_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14807 size=1024 req=1024 usage=140 label=rmsnorm_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14805 size=1024 req=1024 usage=140 label=V action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14810 size=4096 req=4096 usage=140 label=attention_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14812 size=8192 req=5120 usage=140 label=rmsnorm_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14811 size=8192 req=4608 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14815 size=32768 req=27648 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14816 size=32768 req=27648 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14817 size=32768 req=27648 usage=140 label=gelu_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14814 size=8192 req=5120 usage=140 label=rmsnorm_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14818 size=8192 req=4608 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14813 size=8192 req=4608 usage=140 label=residual_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14820 size=8192 req=6144 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14821 size=4096 req=4096 usage=140 label=Q action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14822 size=1024 req=1024 usage=140 label=K action=destroy"
+      },
+      {
+        "time": "192929.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14819 size=8192 req=5120 usage=140 label=rmsnorm_output action=destroy"
+      },
+      {
+        "time": "192929.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14826 size=512 req=512 usage=140 label=cast_f32_to_f16_output action=destroy"
+      },
+      {
+        "time": "192929.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14827 size=512 req=512 usage=140 label=cast_f32_to_f16_output action=destroy"
+      },
+      {
+        "time": "192929.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14824 size=4096 req=4096 usage=140 label=rmsnorm_output action=destroy"
+      },
+      {
+        "time": "192929.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14825 size=1024 req=1024 usage=140 label=rmsnorm_output action=destroy"
+      },
+      {
+        "time": "192929.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14823 size=1024 req=1024 usage=140 label=V action=destroy"
+      },
+      {
+        "time": "192929.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14828 size=4096 req=4096 usage=140 label=attention_output action=destroy"
+      },
+      {
+        "time": "192929.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14830 size=8192 req=5120 usage=140 label=rmsnorm_output action=destroy"
+      },
+      {
+        "time": "192929.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14829 size=8192 req=4608 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "192929.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14833 size=32768 req=27648 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "192929.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14834 size=32768 req=27648 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "192929.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14835 size=32768 req=27648 usage=140 label=gelu_output action=destroy"
+      },
+      {
+        "time": "192929.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14832 size=8192 req=5120 usage=140 label=rmsnorm_output action=destroy"
+      },
+      {
+        "time": "192929.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14836 size=8192 req=4608 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "192929.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14831 size=8192 req=4608 usage=140 label=residual_output action=destroy"
+      },
+      {
+        "time": "192929.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14837 size=8192 req=5120 usage=140 label=rmsnorm_output action=destroy"
+      },
+      {
+        "time": "192929.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14839 size=1024 req=1024 usage=140 label=topk_logits action=destroy"
+      },
+      {
+        "time": "192929.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14840 size=1024 req=1024 usage=140 label=topk_indices action=destroy"
+      },
+      {
+        "time": "192929.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=14838 size=1048576 req=1048576 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "192930.4",
+        "level": "INFO",
+        "module": "Perf",
+        "message": "Load: 190443ms | TTFT: 402ms | Prefill: 302ms | Decode: 1777ms (31 tokens @ 17.4 tok/s)"
+      },
+      {
+        "time": "192930.4",
+        "level": "TRACE:perf",
+        "module": "Perf",
+        "message": "Decode summary"
+      },
+      {
+        "time": "192935.5",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Unloaded"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
