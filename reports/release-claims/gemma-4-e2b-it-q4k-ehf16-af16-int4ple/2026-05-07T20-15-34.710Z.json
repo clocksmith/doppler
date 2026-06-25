@@ -1,0 +1,955 @@
+{
+  "mode": "debug",
+  "workload": "inference",
+  "suite": "debug",
+  "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+  "runtimeProfile": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": true,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967295,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.3 (Build 25D125)"
+    },
+    "submitProbeMs": 1.5919169999999951
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 6387.138291000001
+    }
+  ],
+  "durationMs": 9249.0475,
+  "timestamp": "2026-05-07T20:15:34.710Z",
+  "metrics": {
+    "prompt": "The color of the sky is clear because sunlight scatters through the atmosphere. The color of the sky is clear because sunlight scatters through the atmosphere. The color of the sky is clear because sunlight scatters through the atmosphere.",
+    "maxTokens": 24,
+    "tokensGenerated": 24,
+    "tokensPerSec": 3.76,
+    "totalRunMs": 6380.5,
+    "firstTokenMs": 461.97,
+    "firstResponseMs": 3307.96,
+    "prefillMs": 456.37,
+    "decodeMs": 5924.13,
+    "wallRunMs": 6386.81,
+    "prefillTokens": 58,
+    "decodeTokens": 24,
+    "stopReason": "max-tokens",
+    "stopTokenId": null,
+    "prefillTokensPerSec": 127.09,
+    "prefillTokensPerSecTtft": 125.55,
+    "decodeTokensPerSec": 4.05,
+    "modelLoadMs": 2845.99,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0,
+      "prefillRecordMs": 54.76429300000382,
+      "prefillSubmitWaitMs": 12.48479099999713,
+      "decodeOrchestrationMs": 5924.132333,
+      "singleTokenSubmitWaitMs": 145.1300850000007,
+      "singleTokenReadbackWaitMs": 4778.200499999999,
+      "singleTokenOrchestrationMs": 999.9118730000027
+    },
+    "plePreparedTokenCache": {
+      "hits": 3,
+      "misses": 20,
+      "entries": 20,
+      "bytes": 358400
+    },
+    "prefillProfileSteps": [],
+    "decodeProfileSteps": [],
+    "executionPlan": {
+      "primary": {
+        "id": "primary",
+        "kernelPathId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple-execution-inline",
+        "kernelPathSource": "execution-v1",
+        "activationDtype": "f16",
+        "readbackInterval": 8,
+        "batchSize": 8,
+        "stopCheckMode": "batch",
+        "ringTokens": 2,
+        "ringStop": 1,
+        "ringStaging": 2
+      },
+      "fallback": null,
+      "activePlanIdAtStart": null,
+      "finalActivePlanId": null,
+      "transitions": []
+    },
+    "kernelPathId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple-execution-inline",
+    "kernelPathSource": "execution-v1",
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 818,
+          "text": "The",
+          "fallbackText": "The"
+        },
+        {
+          "id": 4338,
+          "text": " correct",
+          "fallbackText": " correct"
+        },
+        {
+          "id": 13315,
+          "text": " sentence",
+          "fallbackText": " sentence"
+        },
+        {
+          "id": 563,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 236787,
+          "text": ":",
+          "fallbackText": ":"
+        },
+        {
+          "id": 5213,
+          "text": " **",
+          "fallbackText": " **"
+        },
+        {
+          "id": 818,
+          "text": "The",
+          "fallbackText": "The"
+        },
+        {
+          "id": 2258,
+          "text": " color",
+          "fallbackText": " color"
+        },
+        {
+          "id": 529,
+          "text": " of",
+          "fallbackText": " of"
+        },
+        {
+          "id": 506,
+          "text": " the",
+          "fallbackText": " the"
+        },
+        {
+          "id": 7217,
+          "text": " sky",
+          "fallbackText": " sky"
+        },
+        {
+          "id": 563,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 3582,
+          "text": " clear",
+          "fallbackText": " clear"
+        },
+        {
+          "id": 1547,
+          "text": " because",
+          "fallbackText": " because"
+        },
+        {
+          "id": 26808,
+          "text": " sunlight",
+          "fallbackText": " sunlight"
+        },
+        {
+          "id": 141891,
+          "text": " scat",
+          "fallbackText": " scat"
+        },
+        {
+          "id": 1826,
+          "text": "ters",
+          "fallbackText": "ters"
+        },
+        {
+          "id": 1343,
+          "text": " through",
+          "fallbackText": " through"
+        },
+        {
+          "id": 506,
+          "text": " the",
+          "fallbackText": " the"
+        },
+        {
+          "id": 11661,
+          "text": " atmosphere",
+          "fallbackText": " atmosphere"
+        },
+        {
+          "id": 99382,
+          "text": ".**",
+          "fallbackText": ".**"
+        },
+        {
+          "id": 108,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        },
+        {
+          "id": 8291,
+          "text": "Here",
+          "fallbackText": "Here"
+        },
+        {
+          "id": 236789,
+          "text": "'",
+          "fallbackText": "'"
+        }
+      ],
+      "total": 24,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "kvCache": {
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "seqLen": 81,
+      "maxSeqLen": 4096,
+      "usedBytes": 3483648,
+      "allocatedBytes": 73400320,
+      "counters": null
+    },
+    "referenceTranscript": {
+      "schema": "doppler.reference-transcript/v1",
+      "source": {
+        "kind": "inline-browser-suite",
+        "path": "inline",
+        "hash": "sha256:2fcd598b5a4545e8f471968172b1a37c56a08288f82772c48104c6f527874495"
+      },
+      "executionGraphHash": "sha256:72162d3c26be656b34a43d6e84b27be64e6ccfcf8bf3ac7333fe805362cc4711",
+      "surface": "browser-webgpu",
+      "prompt": {
+        "identity": "The color of the sky is clear because sunlight scatters through the atmosphere. The color of the sky is clear because sunlight scatters through the atmosphere. The color of the sky is clear because sunlight scatters through the atmosphere.",
+        "hash": "sha256:161b2e4509bb2d9b4fede4a11a8dae2bf81b920138259a9e25c0994d0c45e676",
+        "tokenIdsHash": "sha256:2a071349ff9a50d841e66ed00fe707c39162717e9b734737425533b2c52f90b7",
+        "tokenCount": 58
+      },
+      "output": {
+        "textHash": "sha256:457a5ae64ba189780f6f40bc2bbae53820d72fff7a0dc6a4876c9630e9f2d654",
+        "tokensGenerated": 24,
+        "stopReason": "max-tokens",
+        "stopTokenId": null
+      },
+      "tokens": {
+        "ids": [
+          818,
+          4338,
+          13315,
+          563,
+          236787,
+          5213,
+          818,
+          2258,
+          529,
+          506,
+          7217,
+          563,
+          3582,
+          1547,
+          26808,
+          141891,
+          1826,
+          1343,
+          506,
+          11661,
+          99382,
+          108,
+          8291,
+          236789
+        ],
+        "generatedTokenIdsHash": "sha256:f5842e9e6caea73f6c786525a2b450806574e96468d23a03cd103d104e815440",
+        "generatedTextHash": "sha256:457a5ae64ba189780f6f40bc2bbae53820d72fff7a0dc6a4876c9630e9f2d654",
+        "preview": [
+          {
+            "id": 818,
+            "text": "The",
+            "fallbackText": "The"
+          },
+          {
+            "id": 4338,
+            "text": " correct",
+            "fallbackText": " correct"
+          },
+          {
+            "id": 13315,
+            "text": " sentence",
+            "fallbackText": " sentence"
+          },
+          {
+            "id": 563,
+            "text": " is",
+            "fallbackText": " is"
+          },
+          {
+            "id": 236787,
+            "text": ":",
+            "fallbackText": ":"
+          },
+          {
+            "id": 5213,
+            "text": " **",
+            "fallbackText": " **"
+          },
+          {
+            "id": 818,
+            "text": "The",
+            "fallbackText": "The"
+          },
+          {
+            "id": 2258,
+            "text": " color",
+            "fallbackText": " color"
+          },
+          {
+            "id": 529,
+            "text": " of",
+            "fallbackText": " of"
+          },
+          {
+            "id": 506,
+            "text": " the",
+            "fallbackText": " the"
+          },
+          {
+            "id": 7217,
+            "text": " sky",
+            "fallbackText": " sky"
+          },
+          {
+            "id": 563,
+            "text": " is",
+            "fallbackText": " is"
+          },
+          {
+            "id": 3582,
+            "text": " clear",
+            "fallbackText": " clear"
+          },
+          {
+            "id": 1547,
+            "text": " because",
+            "fallbackText": " because"
+          },
+          {
+            "id": 26808,
+            "text": " sunlight",
+            "fallbackText": " sunlight"
+          },
+          {
+            "id": 141891,
+            "text": " scat",
+            "fallbackText": " scat"
+          },
+          {
+            "id": 1826,
+            "text": "ters",
+            "fallbackText": "ters"
+          },
+          {
+            "id": 1343,
+            "text": " through",
+            "fallbackText": " through"
+          },
+          {
+            "id": 506,
+            "text": " the",
+            "fallbackText": " the"
+          },
+          {
+            "id": 11661,
+            "text": " atmosphere",
+            "fallbackText": " atmosphere"
+          },
+          {
+            "id": 99382,
+            "text": ".**",
+            "fallbackText": ".**"
+          },
+          {
+            "id": 108,
+            "text": "\n\n",
+            "fallbackText": "\n\n"
+          },
+          {
+            "id": 8291,
+            "text": "Here",
+            "fallbackText": "Here"
+          },
+          {
+            "id": 236789,
+            "text": "'",
+            "fallbackText": "'"
+          }
+        ],
+        "perStep": [
+          {
+            "index": 0,
+            "tokenId": 818,
+            "tokenHash": "sha256:a720503f3310752f33fbfcf2a56f5aed118d6573e54b44c2e687c0eadb98b87f"
+          },
+          {
+            "index": 1,
+            "tokenId": 4338,
+            "tokenHash": "sha256:b0fcfbb4d65dff1960064b6058b73d2425916c309fa5cf72b8f99e168016d7a2"
+          },
+          {
+            "index": 2,
+            "tokenId": 13315,
+            "tokenHash": "sha256:d398c767b62b1d86c53c39dd86feeb69a29cb4bc65a9fb3c06e4398f943d2c25"
+          },
+          {
+            "index": 3,
+            "tokenId": 563,
+            "tokenHash": "sha256:66e9ab8eaa9b6ef876a9edc2c7fa2d426fed1fc41b4315a01d497b93376531cc"
+          },
+          {
+            "index": 4,
+            "tokenId": 236787,
+            "tokenHash": "sha256:bf0da3dec23a66e5a65c581223fee6dafa5511045e577451fce4925fadc69ad0"
+          },
+          {
+            "index": 5,
+            "tokenId": 5213,
+            "tokenHash": "sha256:838e5c7242817252355ce97c8ef764aaa09f8deda8d15272e27c9c7d25ea8ca3"
+          },
+          {
+            "index": 6,
+            "tokenId": 818,
+            "tokenHash": "sha256:8abd355e10b1fa46acc8b19171a9bba0bb1849b80c1c9d5184449dd96b3fe0cf"
+          },
+          {
+            "index": 7,
+            "tokenId": 2258,
+            "tokenHash": "sha256:8347b21ed6d4e120114050407f8acad6fc5f55397cf135901cf6e573667155de"
+          },
+          {
+            "index": 8,
+            "tokenId": 529,
+            "tokenHash": "sha256:0e4e8289fe2ed5c9fb3a58a0814ea16b413b04b54f5f54813d10357228ea852f"
+          },
+          {
+            "index": 9,
+            "tokenId": 506,
+            "tokenHash": "sha256:005ac0a1a256922d64247fbf1c500409e26cbace66494a1d3a4b75612bef1d20"
+          },
+          {
+            "index": 10,
+            "tokenId": 7217,
+            "tokenHash": "sha256:d262b810a84894a7204ec9918809068ff36c6a0da71e53927e8b2c626f58fe56"
+          },
+          {
+            "index": 11,
+            "tokenId": 563,
+            "tokenHash": "sha256:1b051a1b6265c7e858120ba4704be3d2bc8ce9b745d8063ba800af00f5cea437"
+          },
+          {
+            "index": 12,
+            "tokenId": 3582,
+            "tokenHash": "sha256:1a70e779e84b1788bed3aa9bef2dad1e299a6b03fc05c1c03e9bb95049414e45"
+          },
+          {
+            "index": 13,
+            "tokenId": 1547,
+            "tokenHash": "sha256:8efdee327e623364a48648e340ec53efb705dc78dc923a68a50b440607b2e190"
+          },
+          {
+            "index": 14,
+            "tokenId": 26808,
+            "tokenHash": "sha256:0283821a43c33c5de682336105077d02bcabc983b49c6905786200bceddef460"
+          },
+          {
+            "index": 15,
+            "tokenId": 141891,
+            "tokenHash": "sha256:a0c8aed3a2d92efb5c4cf75d5ab7589400abe07bd0dcabc04f2df92685b1db10"
+          },
+          {
+            "index": 16,
+            "tokenId": 1826,
+            "tokenHash": "sha256:37a944d6d3771344cbcc2d3fc25921c4d21caf554585e84282cba7aef050ffd4"
+          },
+          {
+            "index": 17,
+            "tokenId": 1343,
+            "tokenHash": "sha256:4fa27bf332bf7e390cea825ad180ee4e30cbb023a15a26be3ed6bcbf165c6ac9"
+          },
+          {
+            "index": 18,
+            "tokenId": 506,
+            "tokenHash": "sha256:70339939e5d7d2d86c5d9d3eac5bb806a758a0f4c1e9d9a3dea1c3ce4bde4574"
+          },
+          {
+            "index": 19,
+            "tokenId": 11661,
+            "tokenHash": "sha256:4e474737737527fd372f1627d3adb4f482ce3fa88643ba9f005a2a4fd13a2320"
+          },
+          {
+            "index": 20,
+            "tokenId": 99382,
+            "tokenHash": "sha256:056261cb618fe43d7c92b540b0ab910a0a1ecf8ee084dabc5739853a75cdef26"
+          },
+          {
+            "index": 21,
+            "tokenId": 108,
+            "tokenHash": "sha256:fb7d3e97b1fa010c13bc2f87d925147f75e40d52c3953ce34eba1a33dd2c6399"
+          },
+          {
+            "index": 22,
+            "tokenId": 8291,
+            "tokenHash": "sha256:c77461911963ae4cb57dfd381bb0c7b147887bfece0fa91dc7f0446d0a6e687a"
+          },
+          {
+            "index": 23,
+            "tokenId": 236789,
+            "tokenHash": "sha256:0453461e4b952e761fec2e1519de39c63d46de1498f9a86a6f270059c8f9c7a6"
+          }
+        ],
+        "coverage": {
+          "mode": "full-token-ids",
+          "omitted": 0
+        }
+      },
+      "phase": {
+        "prefillMs": 456.36612500000047,
+        "decodeMs": 5924.132333,
+        "prefillTokens": 58,
+        "decodeTokens": 24
+      },
+      "kvCache": {
+        "mode": "stats",
+        "layout": "contiguous",
+        "kvDtype": "f16",
+        "seqLen": 81,
+        "maxSeqLen": 4096,
+        "usedBytes": 3483648,
+        "allocatedBytes": 73400320,
+        "counters": null,
+        "byteDigestMode": null,
+        "byteDigest": null,
+        "byteDigests": null,
+        "stateHash": "sha256:1bdee6ca90d3dc604f7d393bc809cc8ca6cbc4db54f95880da2061f297eb54ac"
+      },
+      "logits": {
+        "mode": "not-captured",
+        "reason": "Per-step logits digests were not requested for this browser harness run.",
+        "perStepDigests": null
+      },
+      "tolerance": {
+        "tokenPolicy": "exact generated token IDs",
+        "logitsPolicy": "not captured",
+        "kvPolicy": "metadata hash only; KV tensor bytes are not read back by default"
+      }
+    },
+    "operatorDiagnostics": null,
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple.steps",
+          "ok": true
+        },
+        {
+          "id": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 8,
+        "headDim": 256,
+        "kvLen": 131072,
+        "coldQuantMode": "none",
+        "contiguousQuantMode": "none"
+      },
+      "steps": {
+        "total": 47,
+        "attention": 3,
+        "attentionPhases": {
+          "prefill": 2,
+          "decode": 1,
+          "both": 0
+        }
+      }
+    },
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": null
+  },
+  "output": "The correct sentence is: **The color of the sky is clear because sunlight scatters through the atmosphere.**\n\nHere'",
+  "memory": {
+    "used": 2655607808,
+    "pool": {
+      "allocations": 22828,
+      "reuses": 7145,
+      "totalBytesAllocated": 2738721792,
+      "peakBytesAllocated": 2591436288,
+      "currentBytesAllocated": 2582207488,
+      "totalBytesRequested": 2686030336,
+      "peakBytesRequested": 2568866048,
+      "currentBytesRequested": 2542229760,
+      "activeBuffers": 2485,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "23.8%"
+    },
+    "kvCache": {
+      "theoretical": 73400320,
+      "allocated": 73400320,
+      "used": 3483648,
+      "efficiency": 0.0474609375,
+      "seqLen": 81,
+      "maxSeqLen": 4096,
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "counters": null
+    }
+  },
+  "debugSnapshot": {
+    "timestamp": "2026-05-07T20:15:43.960Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "9577.8",
+        "level": "INFO",
+        "module": "Harness",
+        "message": "Suite model init: loadMode=file, modelId=gemma-4-e2b-it-q4k-ehf16-af16-int4ple, hasModelUrl=yes"
+      },
+      {
+        "time": "9578.2",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Initializing WebGPU..."
+      },
+      {
+        "time": "9578.2",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "GPU: hasF16=true, hasSubgroups=true"
+      },
+      {
+        "time": "9578.2",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Fetching manifest..."
+      },
+      {
+        "time": "9588.8",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Model: gemma4"
+      },
+      {
+        "time": "9589.3",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Creating pipeline..."
+      },
+      {
+        "time": "9590.6",
+        "level": "INFO",
+        "module": "ExecutionV1",
+        "message": "Capability transforms applied: [useGemma4Int4PleAf16Activations] (af16-int4ple manifest variant on shader-f16 GPU — dispatch the all-f16 lane (q4_widetile_f16a + decode multicol_f16a + lm_head_gemv_subgroup_f16a))"
+      },
+      {
+        "time": "9591.7",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Execution v1 enabled (steps=47, kernelPathInline=yes, pipelineInline=no, transforms=[useGemma4Int4PleAf16Activations])"
+      },
+      {
+        "time": "9591.8",
+        "level": "INFO",
+        "module": "Config",
+        "message": "Using manifest-first config (source of truth)"
+      },
+      {
+        "time": "9593.8",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Resolved session applied (gemma-4-e2b-it-q4k-ehf16-af16-int4ple): batchSize=8, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false"
+      },
+      {
+        "time": "9593.8",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Vision capable: imageTokenId=258880"
+      },
+      {
+        "time": "9593.8",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Audio capable: audioTokenId=258881"
+      },
+      {
+        "time": "9594.1",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "KernelPath: gemma-4-e2b-it-q4k-ehf16-af16-int4ple-execution-inline (12 decode steps, 12 kernels, source=execution-v1)"
+      },
+      {
+        "time": "9594.2",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "35L/1536H/8heads (256dim), kernelPath=gemma-4-e2b-it-q4k-ehf16-af16-int4ple-execution-inline"
+      },
+      {
+        "time": "9594.3",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "Loading bundled tokenizer from tokenizer.json"
+      },
+      {
+        "time": "9816.0",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "HuggingFace model.type=\"BPE\", using type=\"bpe\""
+      },
+      {
+        "time": "10316.4",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "Loaded HuggingFace 262144 tokens (bpe), 24 special patterns, 514906 merges"
+      },
+      {
+        "time": "10317.6",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=131072, requestedKvDtype=f16, requestedMaxSeqLen=4096"
+      },
+      {
+        "time": "10317.8",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Execution plan: active=primary, dtype=f16, kernelPath=gemma-4-e2b-it-q4k-ehf16-af16-int4ple-execution-inline"
+      },
+      {
+        "time": "10481.1",
+        "level": "INFO",
+        "module": "ShardCache",
+        "message": "Custom shard loader configured"
+      },
+      {
+        "time": "10481.2",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Initializing..."
+      },
+      {
+        "time": "10483.1",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Initialized (f16, subgroups, unified)"
+      },
+      {
+        "time": "10607.6",
+        "level": "INFO",
+        "module": "ExpertCache",
+        "message": "Cache cleared"
+      },
+      {
+        "time": "10607.8",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Loading: gemma-4-e2b-it-q4k-ehf16-af16-int4ple"
+      },
+      {
+        "time": "10608.0",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[0.0s] Memory (start): | RSS=717.16 MB (heap=299.71 MB/359.09 MB, external=2.00 GB, arrayBuffers=2.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+      },
+      {
+        "time": "10622.1",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Embedding weight \"model.language_model.embed_tokens.weight\" forced GPU-resident via inference.largeWeights.gpuResidentOverrides."
+      },
+      {
+        "time": "10622.2",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Embedding \"model.language_model.embed_tokens.weight\" GPU-resident: shouldStreamLargeWeight returned false."
+      },
+      {
+        "time": "10851.7",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[262144,1536], isWeightBuffer=true"
+      },
+      {
+        "time": "10852.4",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Per-layer input tensor loaded: perLayerProjectionNorm <- model.language_model.per_layer_projection_norm.weight"
+      },
+      {
+        "time": "10954.3",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Per-layer input tensor loaded: perLayerModelProjection <- model.language_model.per_layer_model_projection.weight (reference q4k -> f32)"
+      },
+      {
+        "time": "10954.5",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.embed_tokens_per_layer.weight (range-backed CPU source)"
+      },
+      {
+        "time": "10954.6",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 0-34"
+      },
+      {
+        "time": "11657.1",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 35 complete (0.70s)"
+      },
+      {
+        "time": "11658.0",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Complete: 0 B in 1.04s (0 B/s)"
+      },
+      {
+        "time": "11658.3",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[1.1s] Memory (complete): | RSS=945.23 MB (heap=126.80 MB/163.03 MB, external=1.11 GB, arrayBuffers=1.10 GB) | GPU=1.93 GB (634 active, 0 pooled, peak=1.93 GB) | ShardCache=0 B (0 shards) | Layers=35, GPUBuffers=634"
+      },
+      {
+        "time": "12423.4",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Model loaded successfully (2834ms)"
+      },
+      {
+        "time": "12423.5",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Pipeline ready"
+      },
+      {
+        "time": "12479.0",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=q4_fused_widetile_f16a reason=path_override"
+      },
+      {
+        "time": "12484.7",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=prefill_small_f16 reason=path_override:tiled_small"
+      },
+      {
+        "time": "12500.9",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=prefill_head512_f16 reason=path_override:tiled_small"
+      },
+      {
+        "time": "12858.2",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=gemv_subgroup_multicol_f16a reason=path_override"
+      },
+      {
+        "time": "12896.4",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=q4_fused_multicol_f16a reason=path_override"
+      },
+      {
+        "time": "12901.1",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=decode_online_f16 reason=path_override:subgroup"
+      },
+      {
+        "time": "18817.4",
+        "level": "INFO",
+        "module": "Perf",
+        "message": "Load: 2834ms | TTFT: 462ms | Prefill: 456ms | Decode: 5924ms (23 tokens @ 3.9 tok/s)"
+      },
+      {
+        "time": "18826.5",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Unloaded"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}

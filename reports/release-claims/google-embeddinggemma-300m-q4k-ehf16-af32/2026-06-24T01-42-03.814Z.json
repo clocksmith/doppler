@@ -1,0 +1,2065 @@
+{
+  "mode": "verify",
+  "workload": "embedding",
+  "suite": "embedding",
+  "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+  "runtimeProfile": "profiles/vector-stability",
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": true,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967295,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.3 (Build 25D125)"
+    },
+    "submitProbeMs": 1.773458000000005
+  },
+  "results": [
+    {
+      "name": "embedding",
+      "passed": true,
+      "duration": 236.62662500000442
+    },
+    {
+      "name": "embedding-semantic",
+      "passed": true,
+      "duration": 15354.352375000002
+    }
+  ],
+  "durationMs": 85220.35166700001,
+  "timestamp": "2026-06-24T01:42:03.814Z",
+  "metrics": {
+    "prompt": "Search query: local-first AI with WebGPU inference.",
+    "embeddingTokens": 14,
+    "embeddingDim": 768,
+    "finiteValues": 768,
+    "finiteRatio": 1,
+    "nonFiniteValues": 0,
+    "embeddingMin": -0.135026,
+    "embeddingMax": 0.153115,
+    "embeddingMaxAbs": 0.153115,
+    "embeddingMean": 0.000473,
+    "embeddingStdDev": 0.036081,
+    "embeddingL2Norm": 1,
+    "embeddingMs": 236.63,
+    "semanticPassed": true,
+    "semanticDurationMs": 15354.35,
+    "semanticRetrievalTop1Acc": 0.95,
+    "semanticPairAcc": 0.6429,
+    "semanticRetrievalPassed": 19,
+    "semanticRetrievalTotal": 20,
+    "semanticPairPassed": 9,
+    "semanticPairTotal": 14,
+    "semanticMinRetrievalTop1Acc": 0.75,
+    "semanticMinPairAcc": 0.64,
+    "semanticPairMarginThreshold": 0.02,
+    "semanticStyle": "embeddinggemma",
+    "semanticFailedCases": [
+      "retrieval:hard_civil_vs_criminal",
+      "pair:adversarial_negation_loan",
+      "pair:adversarial_negation_test",
+      "pair:adversarial_entity_swap",
+      "pair:adversarial_tense_flip",
+      "pair:adversarial_quantity",
+      "length:climate_change_short_medium_long",
+      "length:photosynthesis_short_medium_long",
+      "length:encryption_short_medium_long"
+    ],
+    "semanticDetails": {
+      "retrieval": [
+        {
+          "id": "library_search",
+          "query": "Where can I borrow books and study quietly?",
+          "formattedQuery": "task: search result | query: Where can I borrow books and study quietly?",
+          "docs": [
+            {
+              "text": "The city library lends books, provides study rooms, and offers free Wi-Fi.",
+              "formattedText": "title: None | text: The city library lends books, provides study rooms, and offers free Wi-Fi."
+            },
+            {
+              "text": "The cafe serves coffee, pastries, and sandwiches all day.",
+              "formattedText": "title: None | text: The cafe serves coffee, pastries, and sandwiches all day."
+            },
+            {
+              "text": "The bike repair shop fixes flat tires and broken chains.",
+              "formattedText": "title: None | text: The bike repair shop fixes flat tires and broken chains."
+            }
+          ],
+          "passed": true,
+          "expectedDoc": 0,
+          "topDoc": 0,
+          "sims": [
+            0.432242,
+            0.145098,
+            0.147266
+          ]
+        },
+        {
+          "id": "password_reset",
+          "query": "How do I reset my account password?",
+          "formattedQuery": "task: search result | query: How do I reset my account password?",
+          "docs": [
+            {
+              "text": "To reset your password, open account settings and choose the forgot-password flow.",
+              "formattedText": "title: None | text: To reset your password, open account settings and choose the forgot-password flow."
+            },
+            {
+              "text": "Our shipping policy explains delivery timelines and tracking updates.",
+              "formattedText": "title: None | text: Our shipping policy explains delivery timelines and tracking updates."
+            },
+            {
+              "text": "The recipe combines tomatoes, basil, and olive oil.",
+              "formattedText": "title: None | text: The recipe combines tomatoes, basil, and olive oil."
+            }
+          ],
+          "passed": true,
+          "expectedDoc": 0,
+          "topDoc": 0,
+          "sims": [
+            0.651726,
+            0.061352,
+            0.066314
+          ]
+        },
+        {
+          "id": "damaged_package",
+          "query": "What should I do if my package arrives damaged?",
+          "formattedQuery": "task: search result | query: What should I do if my package arrives damaged?",
+          "docs": [
+            {
+              "text": "Contact support within seven days with photos to request a replacement for damaged items.",
+              "formattedText": "title: None | text: Contact support within seven days with photos to request a replacement for damaged items."
+            },
+            {
+              "text": "The concert starts at 8 PM at the downtown arena.",
+              "formattedText": "title: None | text: The concert starts at 8 PM at the downtown arena."
+            },
+            {
+              "text": "Plant roses in spring and water them twice a week.",
+              "formattedText": "title: None | text: Plant roses in spring and water them twice a week."
+            }
+          ],
+          "passed": true,
+          "expectedDoc": 0,
+          "topDoc": 0,
+          "sims": [
+            0.561066,
+            0.02962,
+            0.082802
+          ]
+        },
+        {
+          "id": "flight_change_policy",
+          "query": "Can I change my flight after booking?",
+          "formattedQuery": "task: search result | query: Can I change my flight after booking?",
+          "docs": [
+            {
+              "text": "The museum opens daily at 10 AM and offers guided tours on weekends.",
+              "formattedText": "title: None | text: The museum opens daily at 10 AM and offers guided tours on weekends."
+            },
+            {
+              "text": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied.",
+              "formattedText": "title: None | text: You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied."
+            },
+            {
+              "text": "Our gym membership includes group classes and access to the pool.",
+              "formattedText": "title: None | text: Our gym membership includes group classes and access to the pool."
+            }
+          ],
+          "passed": true,
+          "expectedDoc": 1,
+          "topDoc": 1,
+          "sims": [
+            0.058604,
+            0.653465,
+            0.025716
+          ]
+        },
+        {
+          "id": "wifi_troubleshoot",
+          "query": "Why does my home Wi-Fi keep disconnecting?",
+          "formattedQuery": "task: search result | query: Why does my home Wi-Fi keep disconnecting?",
+          "docs": [
+            {
+              "text": "The dessert menu includes cheesecake, brownies, and fruit tart.",
+              "formattedText": "title: None | text: The dessert menu includes cheesecake, brownies, and fruit tart."
+            },
+            {
+              "text": "You can review your recent orders in your account purchase history.",
+              "formattedText": "title: None | text: You can review your recent orders in your account purchase history."
+            },
+            {
+              "text": "Frequent Wi-Fi drops can be fixed by restarting the router, updating firmware, and changing the wireless channel.",
+              "formattedText": "title: None | text: Frequent Wi-Fi drops can be fixed by restarting the router, updating firmware, and changing the wireless channel."
+            }
+          ],
+          "passed": true,
+          "expectedDoc": 2,
+          "topDoc": 2,
+          "sims": [
+            0.040216,
+            0.093898,
+            0.535067
+          ]
+        },
+        {
+          "id": "refund_deadline",
+          "query": "How long do I have to request a refund?",
+          "formattedQuery": "task: search result | query: How long do I have to request a refund?",
+          "docs": [
+            {
+              "text": "Refund requests are accepted within 30 days of purchase when the item is in original condition.",
+              "formattedText": "title: None | text: Refund requests are accepted within 30 days of purchase when the item is in original condition."
+            },
+            {
+              "text": "The conference keynote starts at 9 AM in the main hall.",
+              "formattedText": "title: None | text: The conference keynote starts at 9 AM in the main hall."
+            },
+            {
+              "text": "Use a medium grind when brewing coffee with a drip machine.",
+              "formattedText": "title: None | text: Use a medium grind when brewing coffee with a drip machine."
+            }
+          ],
+          "passed": true,
+          "expectedDoc": 0,
+          "topDoc": 0,
+          "sims": [
+            0.606871,
+            0.11115,
+            0.0764
+          ]
+        },
+        {
+          "id": "passport_renewal_docs",
+          "query": "What documents do I need to renew a passport?",
+          "formattedQuery": "task: search result | query: What documents do I need to renew a passport?",
+          "docs": [
+            {
+              "text": "To care for houseplants, water only when the top soil is dry.",
+              "formattedText": "title: None | text: To care for houseplants, water only when the top soil is dry."
+            },
+            {
+              "text": "Passport renewal usually requires the application form, current passport, compliant photo, and payment.",
+              "formattedText": "title: None | text: Passport renewal usually requires the application form, current passport, compliant photo, and payment."
+            },
+            {
+              "text": "The train to downtown runs every 20 minutes during peak hours.",
+              "formattedText": "title: None | text: The train to downtown runs every 20 minutes during peak hours."
+            }
+          ],
+          "passed": true,
+          "expectedDoc": 1,
+          "topDoc": 1,
+          "sims": [
+            0.036003,
+            0.697559,
+            0.040627
+          ]
+        },
+        {
+          "id": "hard_flight_cancel_vs_change",
+          "query": "How do I cancel my flight reservation?",
+          "formattedQuery": "task: search result | query: How do I cancel my flight reservation?",
+          "docs": [
+            {
+              "text": "To cancel a flight, go to Manage Booking and select the cancellation option within 24 hours for a full refund.",
+              "formattedText": "title: None | text: To cancel a flight, go to Manage Booking and select the cancellation option within 24 hours for a full refund."
+            },
+            {
+              "text": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied.",
+              "formattedText": "title: None | text: You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied."
+            },
+            {
+              "text": "Flight status updates are available in the airline app under trip notifications.",
+              "formattedText": "title: None | text: Flight status updates are available in the airline app under trip notifications."
+            }
+          ],
+          "passed": true,
+          "expectedDoc": 0,
+          "topDoc": 0,
+          "sims": [
+            0.638765,
+            0.468709,
+            0.327488
+          ]
+        },
+        {
+          "id": "hard_return_vs_exchange",
+          "query": "Can I exchange a product instead of returning it?",
+          "formattedQuery": "task: search result | query: Can I exchange a product instead of returning it?",
+          "docs": [
+            {
+              "text": "To return an item, ship it back within 30 days in its original packaging for a refund.",
+              "formattedText": "title: None | text: To return an item, ship it back within 30 days in its original packaging for a refund."
+            },
+            {
+              "text": "Exchanges are available in-store or online; select the replacement item and ship the original back within 14 days.",
+              "formattedText": "title: None | text: Exchanges are available in-store or online; select the replacement item and ship the original back within 14 days."
+            },
+            {
+              "text": "Gift cards can be purchased in any denomination and never expire.",
+              "formattedText": "title: None | text: Gift cards can be purchased in any denomination and never expire."
+            }
+          ],
+          "passed": true,
+          "expectedDoc": 1,
+          "topDoc": 1,
+          "sims": [
+            0.500102,
+            0.618434,
+            0.290019
+          ]
+        },
+        {
+          "id": "hard_savings_vs_checking",
+          "query": "What is the interest rate on a savings account?",
+          "formattedQuery": "task: search result | query: What is the interest rate on a savings account?",
+          "docs": [
+            {
+              "text": "Checking accounts offer unlimited transactions with no minimum balance and a debit card.",
+              "formattedText": "title: None | text: Checking accounts offer unlimited transactions with no minimum balance and a debit card."
+            },
+            {
+              "text": "Savings accounts currently earn 4.5% APY with interest compounded daily and paid monthly.",
+              "formattedText": "title: None | text: Savings accounts currently earn 4.5% APY with interest compounded daily and paid monthly."
+            },
+            {
+              "text": "Credit card rewards include cashback, travel points, and purchase protection.",
+              "formattedText": "title: None | text: Credit card rewards include cashback, travel points, and purchase protection."
+            }
+          ],
+          "passed": true,
+          "expectedDoc": 1,
+          "topDoc": 1,
+          "sims": [
+            0.271683,
+            0.584992,
+            0.12457
+          ]
+        },
+        {
+          "id": "hard_migraine_vs_tension",
+          "query": "What triggers a migraine headache?",
+          "formattedQuery": "task: search result | query: What triggers a migraine headache?",
+          "docs": [
+            {
+              "text": "Tension headaches are caused by muscle contraction in the head and neck and respond well to over-the-counter painkillers.",
+              "formattedText": "title: None | text: Tension headaches are caused by muscle contraction in the head and neck and respond well to over-the-counter painkillers."
+            },
+            {
+              "text": "Migraines can be triggered by stress, certain foods, hormonal changes, and bright lights, often presenting with aura and nausea.",
+              "formattedText": "title: None | text: Migraines can be triggered by stress, certain foods, hormonal changes, and bright lights, often presenting with aura and nausea."
+            },
+            {
+              "text": "Cluster headaches occur in cyclical patterns and cause severe pain around one eye.",
+              "formattedText": "title: None | text: Cluster headaches occur in cyclical patterns and cause severe pain around one eye."
+            }
+          ],
+          "passed": true,
+          "expectedDoc": 1,
+          "topDoc": 1,
+          "sims": [
+            0.527904,
+            0.669423,
+            0.51711
+          ]
+        },
+        {
+          "id": "hard_python_sort_vs_filter",
+          "query": "How do I sort a list in Python?",
+          "formattedQuery": "task: search result | query: How do I sort a list in Python?",
+          "docs": [
+            {
+              "text": "Use the built-in sorted() function or list.sort() method to sort a list; both accept a key argument for custom ordering.",
+              "formattedText": "title: None | text: Use the built-in sorted() function or list.sort() method to sort a list; both accept a key argument for custom ordering."
+            },
+            {
+              "text": "Use list comprehensions or the filter() built-in to select elements from a list that match a condition.",
+              "formattedText": "title: None | text: Use list comprehensions or the filter() built-in to select elements from a list that match a condition."
+            },
+            {
+              "text": "The map() function applies a transformation to every element in an iterable and returns a new iterator.",
+              "formattedText": "title: None | text: The map() function applies a transformation to every element in an iterable and returns a new iterator."
+            }
+          ],
+          "passed": true,
+          "expectedDoc": 0,
+          "topDoc": 0,
+          "sims": [
+            0.625663,
+            0.45457,
+            0.246702
+          ]
+        },
+        {
+          "id": "hard_civil_vs_criminal",
+          "query": "What is the difference between civil and criminal law?",
+          "formattedQuery": "task: search result | query: What is the difference between civil and criminal law?",
+          "docs": [
+            {
+              "text": "Civil law handles disputes between individuals or organizations, such as contracts, property, and family matters, with remedies like damages or injunctions.",
+              "formattedText": "title: None | text: Civil law handles disputes between individuals or organizations, such as contracts, property, and family matters, with remedies like damages or injunctions."
+            },
+            {
+              "text": "Criminal law addresses offenses against the state, where the government prosecutes the accused, and penalties include fines, probation, or imprisonment.",
+              "formattedText": "title: None | text: Criminal law addresses offenses against the state, where the government prosecutes the accused, and penalties include fines, probation, or imprisonment."
+            },
+            {
+              "text": "Administrative law governs the actions of government agencies, including rulemaking, enforcement, and adjudication of regulatory matters.",
+              "formattedText": "title: None | text: Administrative law governs the actions of government agencies, including rulemaking, enforcement, and adjudication of regulatory matters."
+            }
+          ],
+          "passed": false,
+          "expectedDoc": 0,
+          "topDoc": 1,
+          "sims": [
+            0.504595,
+            0.514343,
+            0.272197
+          ]
+        },
+        {
+          "id": "cross_medical",
+          "query": "What are the symptoms of type 2 diabetes?",
+          "formattedQuery": "task: search result | query: What are the symptoms of type 2 diabetes?",
+          "docs": [
+            {
+              "text": "Type 2 diabetes symptoms include increased thirst, frequent urination, fatigue, blurred vision, and slow-healing wounds.",
+              "formattedText": "title: None | text: Type 2 diabetes symptoms include increased thirst, frequent urination, fatigue, blurred vision, and slow-healing wounds."
+            },
+            {
+              "text": "The quarterly earnings report showed a 12% increase in revenue driven by cloud services.",
+              "formattedText": "title: None | text: The quarterly earnings report showed a 12% increase in revenue driven by cloud services."
+            },
+            {
+              "text": "Sourdough bread requires a mature starter, strong flour, water, and salt with a 12-hour bulk fermentation.",
+              "formattedText": "title: None | text: Sourdough bread requires a mature starter, strong flour, water, and salt with a 12-hour bulk fermentation."
+            }
+          ],
+          "passed": true,
+          "expectedDoc": 0,
+          "topDoc": 0,
+          "sims": [
+            0.683852,
+            -0.000051,
+            0.104853
+          ]
+        },
+        {
+          "id": "cross_finance",
+          "query": "How does compound interest work?",
+          "formattedQuery": "task: search result | query: How does compound interest work?",
+          "docs": [
+            {
+              "text": "Photosynthesis converts carbon dioxide and water into glucose and oxygen using sunlight energy.",
+              "formattedText": "title: None | text: Photosynthesis converts carbon dioxide and water into glucose and oxygen using sunlight energy."
+            },
+            {
+              "text": "Compound interest calculates interest on both the initial principal and the accumulated interest from previous periods, causing exponential growth over time.",
+              "formattedText": "title: None | text: Compound interest calculates interest on both the initial principal and the accumulated interest from previous periods, causing exponential growth over time."
+            },
+            {
+              "text": "The novel follows three generations of a family through war, migration, and reconciliation.",
+              "formattedText": "title: None | text: The novel follows three generations of a family through war, migration, and reconciliation."
+            }
+          ],
+          "passed": true,
+          "expectedDoc": 1,
+          "topDoc": 1,
+          "sims": [
+            0.168304,
+            0.681598,
+            0.05173
+          ]
+        },
+        {
+          "id": "cross_legal",
+          "query": "When does a contract become legally binding?",
+          "formattedQuery": "task: search result | query: When does a contract become legally binding?",
+          "docs": [
+            {
+              "text": "A contract becomes legally binding when there is an offer, acceptance, consideration, and mutual intent to be bound, with capacity and lawful purpose.",
+              "formattedText": "title: None | text: A contract becomes legally binding when there is an offer, acceptance, consideration, and mutual intent to be bound, with capacity and lawful purpose."
+            },
+            {
+              "text": "The CPU executes instructions by fetching them from memory, decoding the opcode, and performing the operation in the ALU.",
+              "formattedText": "title: None | text: The CPU executes instructions by fetching them from memory, decoding the opcode, and performing the operation in the ALU."
+            },
+            {
+              "text": "Grilled salmon pairs well with lemon butter sauce, roasted asparagus, and wild rice.",
+              "formattedText": "title: None | text: Grilled salmon pairs well with lemon butter sauce, roasted asparagus, and wild rice."
+            }
+          ],
+          "passed": true,
+          "expectedDoc": 0,
+          "topDoc": 0,
+          "sims": [
+            0.644445,
+            0.052557,
+            -0.024376
+          ]
+        },
+        {
+          "id": "cross_science",
+          "query": "Why do heavy objects fall at the same rate as light ones in a vacuum?",
+          "formattedQuery": "task: search result | query: Why do heavy objects fall at the same rate as light ones in a vacuum?",
+          "docs": [
+            {
+              "text": "In a vacuum, gravitational acceleration is constant regardless of mass, so all objects fall at the same rate because there is no air resistance.",
+              "formattedText": "title: None | text: In a vacuum, gravitational acceleration is constant regardless of mass, so all objects fall at the same rate because there is no air resistance."
+            },
+            {
+              "text": "The museum collection includes Impressionist paintings, Ancient Greek pottery, and contemporary sculpture.",
+              "formattedText": "title: None | text: The museum collection includes Impressionist paintings, Ancient Greek pottery, and contemporary sculpture."
+            },
+            {
+              "text": "To propagate succulents, remove a healthy leaf, let it callus for two days, then place it on moist soil.",
+              "formattedText": "title: None | text: To propagate succulents, remove a healthy leaf, let it callus for two days, then place it on moist soil."
+            }
+          ],
+          "passed": true,
+          "expectedDoc": 0,
+          "topDoc": 0,
+          "sims": [
+            0.639224,
+            0.027467,
+            0.056613
+          ]
+        },
+        {
+          "id": "cross_code",
+          "query": "What is a race condition in concurrent programming?",
+          "formattedQuery": "task: search result | query: What is a race condition in concurrent programming?",
+          "docs": [
+            {
+              "text": "A race condition occurs when two or more threads access shared data simultaneously and the outcome depends on the order of execution, leading to unpredictable behavior.",
+              "formattedText": "title: None | text: A race condition occurs when two or more threads access shared data simultaneously and the outcome depends on the order of execution, leading to unpredictable behavior."
+            },
+            {
+              "text": "Annual rainfall in the Pacific Northwest averages 150 centimeters, supporting dense temperate rainforests.",
+              "formattedText": "title: None | text: Annual rainfall in the Pacific Northwest averages 150 centimeters, supporting dense temperate rainforests."
+            },
+            {
+              "text": "The yoga class starts with sun salutations and ends with a five-minute guided meditation.",
+              "formattedText": "title: None | text: The yoga class starts with sun salutations and ends with a five-minute guided meditation."
+            }
+          ],
+          "passed": true,
+          "expectedDoc": 0,
+          "topDoc": 0,
+          "sims": [
+            0.652185,
+            0.064805,
+            0.064358
+          ]
+        },
+        {
+          "id": "cross_cooking",
+          "query": "What temperature should I roast a chicken at?",
+          "formattedQuery": "task: search result | query: What temperature should I roast a chicken at?",
+          "docs": [
+            {
+              "text": "Roast a whole chicken at 425°F (220°C) for about 20 minutes per pound until the internal temperature reaches 165°F (74°C) in the thickest part of the thigh.",
+              "formattedText": "title: None | text: Roast a whole chicken at 425°F (220°C) for about 20 minutes per pound until the internal temperature reaches 165°F (74°C) in the thickest part of the thigh."
+            },
+            {
+              "text": "Kubernetes orchestrates container workloads across a cluster using pods, services, and deployments.",
+              "formattedText": "title: None | text: Kubernetes orchestrates container workloads across a cluster using pods, services, and deployments."
+            },
+            {
+              "text": "The treaty established trade agreements, mutual defense obligations, and cultural exchange programs between the two nations.",
+              "formattedText": "title: None | text: The treaty established trade agreements, mutual defense obligations, and cultural exchange programs between the two nations."
+            }
+          ],
+          "passed": true,
+          "expectedDoc": 0,
+          "topDoc": 0,
+          "sims": [
+            0.711911,
+            0.011681,
+            -0.089736
+          ]
+        },
+        {
+          "id": "pool_ten_docs",
+          "query": "How do vaccines work?",
+          "formattedQuery": "task: search result | query: How do vaccines work?",
+          "docs": [
+            {
+              "text": "Vaccines introduce a weakened or inactivated pathogen to train the immune system to recognize and fight future infections without causing disease.",
+              "formattedText": "title: None | text: Vaccines introduce a weakened or inactivated pathogen to train the immune system to recognize and fight future infections without causing disease."
+            },
+            {
+              "text": "The impressionist movement emerged in Paris during the 1860s as artists rejected academic conventions.",
+              "formattedText": "title: None | text: The impressionist movement emerged in Paris during the 1860s as artists rejected academic conventions."
+            },
+            {
+              "text": "Reinforced concrete uses steel rebar embedded in concrete to resist both compression and tension forces.",
+              "formattedText": "title: None | text: Reinforced concrete uses steel rebar embedded in concrete to resist both compression and tension forces."
+            },
+            {
+              "text": "Dividends are periodic payments made by corporations to shareholders from profits or retained earnings.",
+              "formattedText": "title: None | text: Dividends are periodic payments made by corporations to shareholders from profits or retained earnings."
+            },
+            {
+              "text": "The alpine ecosystem supports specialized plants and animals adapted to cold temperatures, thin air, and intense UV radiation.",
+              "formattedText": "title: None | text: The alpine ecosystem supports specialized plants and animals adapted to cold temperatures, thin air, and intense UV radiation."
+            },
+            {
+              "text": "Merge sort divides the array recursively and merges sorted halves, achieving O(n log n) time complexity.",
+              "formattedText": "title: None | text: Merge sort divides the array recursively and merges sorted halves, achieving O(n log n) time complexity."
+            },
+            {
+              "text": "The symphony orchestra consists of four instrument families: strings, woodwinds, brass, and percussion.",
+              "formattedText": "title: None | text: The symphony orchestra consists of four instrument families: strings, woodwinds, brass, and percussion."
+            },
+            {
+              "text": "Glacial erosion carves U-shaped valleys and deposits moraines as the ice retreats.",
+              "formattedText": "title: None | text: Glacial erosion carves U-shaped valleys and deposits moraines as the ice retreats."
+            },
+            {
+              "text": "Probate is the legal process of validating a will and distributing the deceased person's assets.",
+              "formattedText": "title: None | text: Probate is the legal process of validating a will and distributing the deceased person's assets."
+            },
+            {
+              "text": "The combustion engine converts chemical energy from fuel into mechanical energy through controlled explosions in cylinders.",
+              "formattedText": "title: None | text: The combustion engine converts chemical energy from fuel into mechanical energy through controlled explosions in cylinders."
+            }
+          ],
+          "passed": true,
+          "expectedDoc": 0,
+          "topDoc": 0,
+          "sims": [
+            0.567766,
+            0.037748,
+            0.144385,
+            0.082055,
+            0.06931,
+            0.061771,
+            0.055163,
+            0.076138,
+            0.126779,
+            0.220223
+          ]
+        }
+      ],
+      "pairs": [
+        {
+          "id": "bike_paraphrase",
+          "anchor": "The child is riding a bicycle through the park.",
+          "formattedAnchor": "task: search result | query: The child is riding a bicycle through the park.",
+          "positive": "A kid bikes along a path in the park.",
+          "formattedPositive": "task: search result | query: A kid bikes along a path in the park.",
+          "negative": "The stock market closed lower after interest-rate news.",
+          "formattedNegative": "task: search result | query: The stock market closed lower after interest-rate news.",
+          "passed": true,
+          "simPos": 0.837812,
+          "simNeg": 0.065545,
+          "margin": 0.772268
+        },
+        {
+          "id": "cancel_subscription",
+          "anchor": "Please cancel my subscription before renewal.",
+          "formattedAnchor": "task: search result | query: Please cancel my subscription before renewal.",
+          "positive": "I want to stop the plan so it does not renew.",
+          "formattedPositive": "task: search result | query: I want to stop the plan so it does not renew.",
+          "negative": "The mountain trail is closed after heavy snow.",
+          "formattedNegative": "task: search result | query: The mountain trail is closed after heavy snow.",
+          "passed": true,
+          "simPos": 0.665425,
+          "simNeg": 0.126513,
+          "margin": 0.538912
+        },
+        {
+          "id": "battery_drain",
+          "anchor": "The laptop battery drains very quickly.",
+          "formattedAnchor": "task: search result | query: The laptop battery drains very quickly.",
+          "positive": "My notebook loses charge fast.",
+          "formattedPositive": "task: search result | query: My notebook loses charge fast.",
+          "negative": "This pasta sauce tastes sweet and spicy.",
+          "formattedNegative": "task: search result | query: This pasta sauce tastes sweet and spicy.",
+          "passed": true,
+          "simPos": 0.770571,
+          "simNeg": 0.090631,
+          "margin": 0.67994
+        },
+        {
+          "id": "order_tracking",
+          "anchor": "I need to track where my order is.",
+          "formattedAnchor": "task: search result | query: I need to track where my order is.",
+          "positive": "How can I check my package delivery status?",
+          "formattedPositive": "task: search result | query: How can I check my package delivery status?",
+          "negative": "The violin concerto was composed in the 1800s.",
+          "formattedNegative": "task: search result | query: The violin concerto was composed in the 1800s.",
+          "passed": true,
+          "simPos": 0.608378,
+          "simNeg": 0.050578,
+          "margin": 0.5578
+        },
+        {
+          "id": "account_lockout",
+          "anchor": "My account is locked after too many login attempts.",
+          "formattedAnchor": "task: search result | query: My account is locked after too many login attempts.",
+          "positive": "I cannot sign in because the system temporarily blocked my account.",
+          "formattedPositive": "task: search result | query: I cannot sign in because the system temporarily blocked my account.",
+          "negative": "Bake the cake at 350 degrees for thirty minutes.",
+          "formattedNegative": "task: search result | query: Bake the cake at 350 degrees for thirty minutes.",
+          "passed": true,
+          "simPos": 0.703645,
+          "simNeg": 0.135967,
+          "margin": 0.567678
+        },
+        {
+          "id": "invoice_request",
+          "anchor": "Please send me the invoice for last month.",
+          "formattedAnchor": "task: search result | query: Please send me the invoice for last month.",
+          "positive": "Can you provide the billing statement for the previous month?",
+          "formattedPositive": "task: search result | query: Can you provide the billing statement for the previous month?",
+          "negative": "The hiking trail follows the river for five miles.",
+          "formattedNegative": "task: search result | query: The hiking trail follows the river for five miles.",
+          "passed": true,
+          "simPos": 0.74122,
+          "simNeg": 0.05708,
+          "margin": 0.68414
+        },
+        {
+          "id": "slow_internet",
+          "anchor": "The internet speed is much slower tonight.",
+          "formattedAnchor": "task: search result | query: The internet speed is much slower tonight.",
+          "positive": "My connection is unusually slow this evening.",
+          "formattedPositive": "task: search result | query: My connection is unusually slow this evening.",
+          "negative": "The novel explores themes of memory and loss.",
+          "formattedNegative": "task: search result | query: The novel explores themes of memory and loss.",
+          "passed": true,
+          "simPos": 0.817874,
+          "simNeg": 0.194794,
+          "margin": 0.62308
+        },
+        {
+          "id": "adversarial_negation_loan",
+          "anchor": "The bank approved the loan application.",
+          "formattedAnchor": "task: search result | query: The bank approved the loan application.",
+          "positive": "The lending institution accepted the borrower's request for funds.",
+          "formattedPositive": "task: search result | query: The lending institution accepted the borrower's request for funds.",
+          "negative": "The bank rejected the loan application.",
+          "formattedNegative": "task: search result | query: The bank rejected the loan application.",
+          "passed": false,
+          "simPos": 0.749282,
+          "simNeg": 0.829268,
+          "margin": -0.079986
+        },
+        {
+          "id": "adversarial_negation_test",
+          "anchor": "The patient tested positive for the infection.",
+          "formattedAnchor": "task: search result | query: The patient tested positive for the infection.",
+          "positive": "Lab results confirmed the presence of the pathogen.",
+          "formattedPositive": "task: search result | query: Lab results confirmed the presence of the pathogen.",
+          "negative": "The patient tested negative for the infection.",
+          "formattedNegative": "task: search result | query: The patient tested negative for the infection.",
+          "passed": false,
+          "simPos": 0.681342,
+          "simNeg": 0.778532,
+          "margin": -0.097191
+        },
+        {
+          "id": "adversarial_entity_swap",
+          "anchor": "France exported wine to Germany last quarter.",
+          "formattedAnchor": "task: search result | query: France exported wine to Germany last quarter.",
+          "positive": "French wine shipments to Germany increased in the recent period.",
+          "formattedPositive": "task: search result | query: French wine shipments to Germany increased in the recent period.",
+          "negative": "Germany exported wine to France last quarter.",
+          "formattedNegative": "task: search result | query: Germany exported wine to France last quarter.",
+          "passed": false,
+          "simPos": 0.810611,
+          "simNeg": 0.985752,
+          "margin": -0.17514
+        },
+        {
+          "id": "adversarial_tense_flip",
+          "anchor": "The company plans to open a new office in Tokyo.",
+          "formattedAnchor": "task: search result | query: The company plans to open a new office in Tokyo.",
+          "positive": "A new Tokyo branch is scheduled to launch soon.",
+          "formattedPositive": "task: search result | query: A new Tokyo branch is scheduled to launch soon.",
+          "negative": "The company closed its Tokyo office last year.",
+          "formattedNegative": "task: search result | query: The company closed its Tokyo office last year.",
+          "passed": false,
+          "simPos": 0.730287,
+          "simNeg": 0.755067,
+          "margin": -0.024781
+        },
+        {
+          "id": "adversarial_quantity",
+          "anchor": "The recipe calls for two tablespoons of sugar.",
+          "formattedAnchor": "task: search result | query: The recipe calls for two tablespoons of sugar.",
+          "positive": "Add a couple of spoonfuls of sugar to the mixture.",
+          "formattedPositive": "task: search result | query: Add a couple of spoonfuls of sugar to the mixture.",
+          "negative": "The recipe calls for two cups of sugar.",
+          "formattedNegative": "task: search result | query: The recipe calls for two cups of sugar.",
+          "passed": false,
+          "simPos": 0.782845,
+          "simNeg": 0.901437,
+          "margin": -0.118592
+        },
+        {
+          "id": "technical_paraphrase_gpu",
+          "anchor": "WebGPU provides low-level access to the graphics processor for compute workloads.",
+          "formattedAnchor": "task: search result | query: WebGPU provides low-level access to the graphics processor for compute workloads.",
+          "positive": "The WebGPU API exposes GPU hardware for parallel computation tasks.",
+          "formattedPositive": "task: search result | query: The WebGPU API exposes GPU hardware for parallel computation tasks.",
+          "negative": "WebSocket provides full-duplex communication channels over a single TCP connection.",
+          "formattedNegative": "task: search result | query: WebSocket provides full-duplex communication channels over a single TCP connection.",
+          "passed": true,
+          "simPos": 0.788933,
+          "simNeg": 0.370947,
+          "margin": 0.417986
+        },
+        {
+          "id": "technical_paraphrase_ml",
+          "anchor": "Gradient descent minimizes the loss function by iteratively updating model parameters.",
+          "formattedAnchor": "task: search result | query: Gradient descent minimizes the loss function by iteratively updating model parameters.",
+          "positive": "The optimizer reduces error by adjusting weights in the direction of steepest descent.",
+          "formattedPositive": "task: search result | query: The optimizer reduces error by adjusting weights in the direction of steepest descent.",
+          "negative": "The garbage collector reclaims memory by tracing reachable objects from root references.",
+          "formattedNegative": "task: search result | query: The garbage collector reclaims memory by tracing reachable objects from root references.",
+          "passed": true,
+          "simPos": 0.575591,
+          "simNeg": 0.283678,
+          "margin": 0.291913
+        }
+      ]
+    },
+    "modelLoadMs": 69627.02,
+    "endToEndMs": 69863.65,
+    "embeddingPreview": [
+      -0.100944,
+      -0.034961,
+      -0.011669,
+      -0.017105,
+      0.016727,
+      0.062914,
+      0.00207,
+      0.05063,
+      0.005223,
+      -0.065227,
+      -0.04362,
+      0.044705,
+      0.002382,
+      -0.051292,
+      -0.018416,
+      -0.006934
+    ],
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "embedding",
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": null
+  },
+  "output": {
+    "mode": "embedding",
+    "tokens": 14,
+    "embeddingDim": 768,
+    "finiteValues": 768,
+    "nonFiniteValues": 0,
+    "finiteRatio": 1,
+    "min": -0.135026,
+    "max": 0.153115,
+    "maxAbs": 0.153115,
+    "mean": 0.000473,
+    "stdDev": 0.036081,
+    "l2Norm": 1,
+    "preview": [
+      -0.100944,
+      -0.034961,
+      -0.011669,
+      -0.017105,
+      0.016727,
+      0.062914,
+      0.00207,
+      0.05063,
+      0.005223,
+      -0.065227,
+      -0.04362,
+      0.044705,
+      0.002382,
+      -0.051292,
+      -0.018416,
+      -0.006934
+    ],
+    "semantic": {
+      "passed": true,
+      "style": "embeddinggemma",
+      "retrievalTop1Acc": 0.95,
+      "pairAcc": 0.6429,
+      "failedCaseIds": [
+        "retrieval:hard_civil_vs_criminal",
+        "pair:adversarial_negation_loan",
+        "pair:adversarial_negation_test",
+        "pair:adversarial_entity_swap",
+        "pair:adversarial_tense_flip",
+        "pair:adversarial_quantity",
+        "length:climate_change_short_medium_long",
+        "length:photosynthesis_short_medium_long",
+        "length:encryption_short_medium_long"
+      ],
+      "details": {
+        "retrieval": [
+          {
+            "id": "library_search",
+            "query": "Where can I borrow books and study quietly?",
+            "formattedQuery": "task: search result | query: Where can I borrow books and study quietly?",
+            "docs": [
+              {
+                "text": "The city library lends books, provides study rooms, and offers free Wi-Fi.",
+                "formattedText": "title: None | text: The city library lends books, provides study rooms, and offers free Wi-Fi."
+              },
+              {
+                "text": "The cafe serves coffee, pastries, and sandwiches all day.",
+                "formattedText": "title: None | text: The cafe serves coffee, pastries, and sandwiches all day."
+              },
+              {
+                "text": "The bike repair shop fixes flat tires and broken chains.",
+                "formattedText": "title: None | text: The bike repair shop fixes flat tires and broken chains."
+              }
+            ],
+            "passed": true,
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "sims": [
+              0.432242,
+              0.145098,
+              0.147266
+            ]
+          },
+          {
+            "id": "password_reset",
+            "query": "How do I reset my account password?",
+            "formattedQuery": "task: search result | query: How do I reset my account password?",
+            "docs": [
+              {
+                "text": "To reset your password, open account settings and choose the forgot-password flow.",
+                "formattedText": "title: None | text: To reset your password, open account settings and choose the forgot-password flow."
+              },
+              {
+                "text": "Our shipping policy explains delivery timelines and tracking updates.",
+                "formattedText": "title: None | text: Our shipping policy explains delivery timelines and tracking updates."
+              },
+              {
+                "text": "The recipe combines tomatoes, basil, and olive oil.",
+                "formattedText": "title: None | text: The recipe combines tomatoes, basil, and olive oil."
+              }
+            ],
+            "passed": true,
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "sims": [
+              0.651726,
+              0.061352,
+              0.066314
+            ]
+          },
+          {
+            "id": "damaged_package",
+            "query": "What should I do if my package arrives damaged?",
+            "formattedQuery": "task: search result | query: What should I do if my package arrives damaged?",
+            "docs": [
+              {
+                "text": "Contact support within seven days with photos to request a replacement for damaged items.",
+                "formattedText": "title: None | text: Contact support within seven days with photos to request a replacement for damaged items."
+              },
+              {
+                "text": "The concert starts at 8 PM at the downtown arena.",
+                "formattedText": "title: None | text: The concert starts at 8 PM at the downtown arena."
+              },
+              {
+                "text": "Plant roses in spring and water them twice a week.",
+                "formattedText": "title: None | text: Plant roses in spring and water them twice a week."
+              }
+            ],
+            "passed": true,
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "sims": [
+              0.561066,
+              0.02962,
+              0.082802
+            ]
+          },
+          {
+            "id": "flight_change_policy",
+            "query": "Can I change my flight after booking?",
+            "formattedQuery": "task: search result | query: Can I change my flight after booking?",
+            "docs": [
+              {
+                "text": "The museum opens daily at 10 AM and offers guided tours on weekends.",
+                "formattedText": "title: None | text: The museum opens daily at 10 AM and offers guided tours on weekends."
+              },
+              {
+                "text": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied.",
+                "formattedText": "title: None | text: You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied."
+              },
+              {
+                "text": "Our gym membership includes group classes and access to the pool.",
+                "formattedText": "title: None | text: Our gym membership includes group classes and access to the pool."
+              }
+            ],
+            "passed": true,
+            "expectedDoc": 1,
+            "topDoc": 1,
+            "sims": [
+              0.058604,
+              0.653465,
+              0.025716
+            ]
+          },
+          {
+            "id": "wifi_troubleshoot",
+            "query": "Why does my home Wi-Fi keep disconnecting?",
+            "formattedQuery": "task: search result | query: Why does my home Wi-Fi keep disconnecting?",
+            "docs": [
+              {
+                "text": "The dessert menu includes cheesecake, brownies, and fruit tart.",
+                "formattedText": "title: None | text: The dessert menu includes cheesecake, brownies, and fruit tart."
+              },
+              {
+                "text": "You can review your recent orders in your account purchase history.",
+                "formattedText": "title: None | text: You can review your recent orders in your account purchase history."
+              },
+              {
+                "text": "Frequent Wi-Fi drops can be fixed by restarting the router, updating firmware, and changing the wireless channel.",
+                "formattedText": "title: None | text: Frequent Wi-Fi drops can be fixed by restarting the router, updating firmware, and changing the wireless channel."
+              }
+            ],
+            "passed": true,
+            "expectedDoc": 2,
+            "topDoc": 2,
+            "sims": [
+              0.040216,
+              0.093898,
+              0.535067
+            ]
+          },
+          {
+            "id": "refund_deadline",
+            "query": "How long do I have to request a refund?",
+            "formattedQuery": "task: search result | query: How long do I have to request a refund?",
+            "docs": [
+              {
+                "text": "Refund requests are accepted within 30 days of purchase when the item is in original condition.",
+                "formattedText": "title: None | text: Refund requests are accepted within 30 days of purchase when the item is in original condition."
+              },
+              {
+                "text": "The conference keynote starts at 9 AM in the main hall.",
+                "formattedText": "title: None | text: The conference keynote starts at 9 AM in the main hall."
+              },
+              {
+                "text": "Use a medium grind when brewing coffee with a drip machine.",
+                "formattedText": "title: None | text: Use a medium grind when brewing coffee with a drip machine."
+              }
+            ],
+            "passed": true,
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "sims": [
+              0.606871,
+              0.11115,
+              0.0764
+            ]
+          },
+          {
+            "id": "passport_renewal_docs",
+            "query": "What documents do I need to renew a passport?",
+            "formattedQuery": "task: search result | query: What documents do I need to renew a passport?",
+            "docs": [
+              {
+                "text": "To care for houseplants, water only when the top soil is dry.",
+                "formattedText": "title: None | text: To care for houseplants, water only when the top soil is dry."
+              },
+              {
+                "text": "Passport renewal usually requires the application form, current passport, compliant photo, and payment.",
+                "formattedText": "title: None | text: Passport renewal usually requires the application form, current passport, compliant photo, and payment."
+              },
+              {
+                "text": "The train to downtown runs every 20 minutes during peak hours.",
+                "formattedText": "title: None | text: The train to downtown runs every 20 minutes during peak hours."
+              }
+            ],
+            "passed": true,
+            "expectedDoc": 1,
+            "topDoc": 1,
+            "sims": [
+              0.036003,
+              0.697559,
+              0.040627
+            ]
+          },
+          {
+            "id": "hard_flight_cancel_vs_change",
+            "query": "How do I cancel my flight reservation?",
+            "formattedQuery": "task: search result | query: How do I cancel my flight reservation?",
+            "docs": [
+              {
+                "text": "To cancel a flight, go to Manage Booking and select the cancellation option within 24 hours for a full refund.",
+                "formattedText": "title: None | text: To cancel a flight, go to Manage Booking and select the cancellation option within 24 hours for a full refund."
+              },
+              {
+                "text": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied.",
+                "formattedText": "title: None | text: You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied."
+              },
+              {
+                "text": "Flight status updates are available in the airline app under trip notifications.",
+                "formattedText": "title: None | text: Flight status updates are available in the airline app under trip notifications."
+              }
+            ],
+            "passed": true,
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "sims": [
+              0.638765,
+              0.468709,
+              0.327488
+            ]
+          },
+          {
+            "id": "hard_return_vs_exchange",
+            "query": "Can I exchange a product instead of returning it?",
+            "formattedQuery": "task: search result | query: Can I exchange a product instead of returning it?",
+            "docs": [
+              {
+                "text": "To return an item, ship it back within 30 days in its original packaging for a refund.",
+                "formattedText": "title: None | text: To return an item, ship it back within 30 days in its original packaging for a refund."
+              },
+              {
+                "text": "Exchanges are available in-store or online; select the replacement item and ship the original back within 14 days.",
+                "formattedText": "title: None | text: Exchanges are available in-store or online; select the replacement item and ship the original back within 14 days."
+              },
+              {
+                "text": "Gift cards can be purchased in any denomination and never expire.",
+                "formattedText": "title: None | text: Gift cards can be purchased in any denomination and never expire."
+              }
+            ],
+            "passed": true,
+            "expectedDoc": 1,
+            "topDoc": 1,
+            "sims": [
+              0.500102,
+              0.618434,
+              0.290019
+            ]
+          },
+          {
+            "id": "hard_savings_vs_checking",
+            "query": "What is the interest rate on a savings account?",
+            "formattedQuery": "task: search result | query: What is the interest rate on a savings account?",
+            "docs": [
+              {
+                "text": "Checking accounts offer unlimited transactions with no minimum balance and a debit card.",
+                "formattedText": "title: None | text: Checking accounts offer unlimited transactions with no minimum balance and a debit card."
+              },
+              {
+                "text": "Savings accounts currently earn 4.5% APY with interest compounded daily and paid monthly.",
+                "formattedText": "title: None | text: Savings accounts currently earn 4.5% APY with interest compounded daily and paid monthly."
+              },
+              {
+                "text": "Credit card rewards include cashback, travel points, and purchase protection.",
+                "formattedText": "title: None | text: Credit card rewards include cashback, travel points, and purchase protection."
+              }
+            ],
+            "passed": true,
+            "expectedDoc": 1,
+            "topDoc": 1,
+            "sims": [
+              0.271683,
+              0.584992,
+              0.12457
+            ]
+          },
+          {
+            "id": "hard_migraine_vs_tension",
+            "query": "What triggers a migraine headache?",
+            "formattedQuery": "task: search result | query: What triggers a migraine headache?",
+            "docs": [
+              {
+                "text": "Tension headaches are caused by muscle contraction in the head and neck and respond well to over-the-counter painkillers.",
+                "formattedText": "title: None | text: Tension headaches are caused by muscle contraction in the head and neck and respond well to over-the-counter painkillers."
+              },
+              {
+                "text": "Migraines can be triggered by stress, certain foods, hormonal changes, and bright lights, often presenting with aura and nausea.",
+                "formattedText": "title: None | text: Migraines can be triggered by stress, certain foods, hormonal changes, and bright lights, often presenting with aura and nausea."
+              },
+              {
+                "text": "Cluster headaches occur in cyclical patterns and cause severe pain around one eye.",
+                "formattedText": "title: None | text: Cluster headaches occur in cyclical patterns and cause severe pain around one eye."
+              }
+            ],
+            "passed": true,
+            "expectedDoc": 1,
+            "topDoc": 1,
+            "sims": [
+              0.527904,
+              0.669423,
+              0.51711
+            ]
+          },
+          {
+            "id": "hard_python_sort_vs_filter",
+            "query": "How do I sort a list in Python?",
+            "formattedQuery": "task: search result | query: How do I sort a list in Python?",
+            "docs": [
+              {
+                "text": "Use the built-in sorted() function or list.sort() method to sort a list; both accept a key argument for custom ordering.",
+                "formattedText": "title: None | text: Use the built-in sorted() function or list.sort() method to sort a list; both accept a key argument for custom ordering."
+              },
+              {
+                "text": "Use list comprehensions or the filter() built-in to select elements from a list that match a condition.",
+                "formattedText": "title: None | text: Use list comprehensions or the filter() built-in to select elements from a list that match a condition."
+              },
+              {
+                "text": "The map() function applies a transformation to every element in an iterable and returns a new iterator.",
+                "formattedText": "title: None | text: The map() function applies a transformation to every element in an iterable and returns a new iterator."
+              }
+            ],
+            "passed": true,
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "sims": [
+              0.625663,
+              0.45457,
+              0.246702
+            ]
+          },
+          {
+            "id": "hard_civil_vs_criminal",
+            "query": "What is the difference between civil and criminal law?",
+            "formattedQuery": "task: search result | query: What is the difference between civil and criminal law?",
+            "docs": [
+              {
+                "text": "Civil law handles disputes between individuals or organizations, such as contracts, property, and family matters, with remedies like damages or injunctions.",
+                "formattedText": "title: None | text: Civil law handles disputes between individuals or organizations, such as contracts, property, and family matters, with remedies like damages or injunctions."
+              },
+              {
+                "text": "Criminal law addresses offenses against the state, where the government prosecutes the accused, and penalties include fines, probation, or imprisonment.",
+                "formattedText": "title: None | text: Criminal law addresses offenses against the state, where the government prosecutes the accused, and penalties include fines, probation, or imprisonment."
+              },
+              {
+                "text": "Administrative law governs the actions of government agencies, including rulemaking, enforcement, and adjudication of regulatory matters.",
+                "formattedText": "title: None | text: Administrative law governs the actions of government agencies, including rulemaking, enforcement, and adjudication of regulatory matters."
+              }
+            ],
+            "passed": false,
+            "expectedDoc": 0,
+            "topDoc": 1,
+            "sims": [
+              0.504595,
+              0.514343,
+              0.272197
+            ]
+          },
+          {
+            "id": "cross_medical",
+            "query": "What are the symptoms of type 2 diabetes?",
+            "formattedQuery": "task: search result | query: What are the symptoms of type 2 diabetes?",
+            "docs": [
+              {
+                "text": "Type 2 diabetes symptoms include increased thirst, frequent urination, fatigue, blurred vision, and slow-healing wounds.",
+                "formattedText": "title: None | text: Type 2 diabetes symptoms include increased thirst, frequent urination, fatigue, blurred vision, and slow-healing wounds."
+              },
+              {
+                "text": "The quarterly earnings report showed a 12% increase in revenue driven by cloud services.",
+                "formattedText": "title: None | text: The quarterly earnings report showed a 12% increase in revenue driven by cloud services."
+              },
+              {
+                "text": "Sourdough bread requires a mature starter, strong flour, water, and salt with a 12-hour bulk fermentation.",
+                "formattedText": "title: None | text: Sourdough bread requires a mature starter, strong flour, water, and salt with a 12-hour bulk fermentation."
+              }
+            ],
+            "passed": true,
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "sims": [
+              0.683852,
+              -0.000051,
+              0.104853
+            ]
+          },
+          {
+            "id": "cross_finance",
+            "query": "How does compound interest work?",
+            "formattedQuery": "task: search result | query: How does compound interest work?",
+            "docs": [
+              {
+                "text": "Photosynthesis converts carbon dioxide and water into glucose and oxygen using sunlight energy.",
+                "formattedText": "title: None | text: Photosynthesis converts carbon dioxide and water into glucose and oxygen using sunlight energy."
+              },
+              {
+                "text": "Compound interest calculates interest on both the initial principal and the accumulated interest from previous periods, causing exponential growth over time.",
+                "formattedText": "title: None | text: Compound interest calculates interest on both the initial principal and the accumulated interest from previous periods, causing exponential growth over time."
+              },
+              {
+                "text": "The novel follows three generations of a family through war, migration, and reconciliation.",
+                "formattedText": "title: None | text: The novel follows three generations of a family through war, migration, and reconciliation."
+              }
+            ],
+            "passed": true,
+            "expectedDoc": 1,
+            "topDoc": 1,
+            "sims": [
+              0.168304,
+              0.681598,
+              0.05173
+            ]
+          },
+          {
+            "id": "cross_legal",
+            "query": "When does a contract become legally binding?",
+            "formattedQuery": "task: search result | query: When does a contract become legally binding?",
+            "docs": [
+              {
+                "text": "A contract becomes legally binding when there is an offer, acceptance, consideration, and mutual intent to be bound, with capacity and lawful purpose.",
+                "formattedText": "title: None | text: A contract becomes legally binding when there is an offer, acceptance, consideration, and mutual intent to be bound, with capacity and lawful purpose."
+              },
+              {
+                "text": "The CPU executes instructions by fetching them from memory, decoding the opcode, and performing the operation in the ALU.",
+                "formattedText": "title: None | text: The CPU executes instructions by fetching them from memory, decoding the opcode, and performing the operation in the ALU."
+              },
+              {
+                "text": "Grilled salmon pairs well with lemon butter sauce, roasted asparagus, and wild rice.",
+                "formattedText": "title: None | text: Grilled salmon pairs well with lemon butter sauce, roasted asparagus, and wild rice."
+              }
+            ],
+            "passed": true,
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "sims": [
+              0.644445,
+              0.052557,
+              -0.024376
+            ]
+          },
+          {
+            "id": "cross_science",
+            "query": "Why do heavy objects fall at the same rate as light ones in a vacuum?",
+            "formattedQuery": "task: search result | query: Why do heavy objects fall at the same rate as light ones in a vacuum?",
+            "docs": [
+              {
+                "text": "In a vacuum, gravitational acceleration is constant regardless of mass, so all objects fall at the same rate because there is no air resistance.",
+                "formattedText": "title: None | text: In a vacuum, gravitational acceleration is constant regardless of mass, so all objects fall at the same rate because there is no air resistance."
+              },
+              {
+                "text": "The museum collection includes Impressionist paintings, Ancient Greek pottery, and contemporary sculpture.",
+                "formattedText": "title: None | text: The museum collection includes Impressionist paintings, Ancient Greek pottery, and contemporary sculpture."
+              },
+              {
+                "text": "To propagate succulents, remove a healthy leaf, let it callus for two days, then place it on moist soil.",
+                "formattedText": "title: None | text: To propagate succulents, remove a healthy leaf, let it callus for two days, then place it on moist soil."
+              }
+            ],
+            "passed": true,
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "sims": [
+              0.639224,
+              0.027467,
+              0.056613
+            ]
+          },
+          {
+            "id": "cross_code",
+            "query": "What is a race condition in concurrent programming?",
+            "formattedQuery": "task: search result | query: What is a race condition in concurrent programming?",
+            "docs": [
+              {
+                "text": "A race condition occurs when two or more threads access shared data simultaneously and the outcome depends on the order of execution, leading to unpredictable behavior.",
+                "formattedText": "title: None | text: A race condition occurs when two or more threads access shared data simultaneously and the outcome depends on the order of execution, leading to unpredictable behavior."
+              },
+              {
+                "text": "Annual rainfall in the Pacific Northwest averages 150 centimeters, supporting dense temperate rainforests.",
+                "formattedText": "title: None | text: Annual rainfall in the Pacific Northwest averages 150 centimeters, supporting dense temperate rainforests."
+              },
+              {
+                "text": "The yoga class starts with sun salutations and ends with a five-minute guided meditation.",
+                "formattedText": "title: None | text: The yoga class starts with sun salutations and ends with a five-minute guided meditation."
+              }
+            ],
+            "passed": true,
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "sims": [
+              0.652185,
+              0.064805,
+              0.064358
+            ]
+          },
+          {
+            "id": "cross_cooking",
+            "query": "What temperature should I roast a chicken at?",
+            "formattedQuery": "task: search result | query: What temperature should I roast a chicken at?",
+            "docs": [
+              {
+                "text": "Roast a whole chicken at 425°F (220°C) for about 20 minutes per pound until the internal temperature reaches 165°F (74°C) in the thickest part of the thigh.",
+                "formattedText": "title: None | text: Roast a whole chicken at 425°F (220°C) for about 20 minutes per pound until the internal temperature reaches 165°F (74°C) in the thickest part of the thigh."
+              },
+              {
+                "text": "Kubernetes orchestrates container workloads across a cluster using pods, services, and deployments.",
+                "formattedText": "title: None | text: Kubernetes orchestrates container workloads across a cluster using pods, services, and deployments."
+              },
+              {
+                "text": "The treaty established trade agreements, mutual defense obligations, and cultural exchange programs between the two nations.",
+                "formattedText": "title: None | text: The treaty established trade agreements, mutual defense obligations, and cultural exchange programs between the two nations."
+              }
+            ],
+            "passed": true,
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "sims": [
+              0.711911,
+              0.011681,
+              -0.089736
+            ]
+          },
+          {
+            "id": "pool_ten_docs",
+            "query": "How do vaccines work?",
+            "formattedQuery": "task: search result | query: How do vaccines work?",
+            "docs": [
+              {
+                "text": "Vaccines introduce a weakened or inactivated pathogen to train the immune system to recognize and fight future infections without causing disease.",
+                "formattedText": "title: None | text: Vaccines introduce a weakened or inactivated pathogen to train the immune system to recognize and fight future infections without causing disease."
+              },
+              {
+                "text": "The impressionist movement emerged in Paris during the 1860s as artists rejected academic conventions.",
+                "formattedText": "title: None | text: The impressionist movement emerged in Paris during the 1860s as artists rejected academic conventions."
+              },
+              {
+                "text": "Reinforced concrete uses steel rebar embedded in concrete to resist both compression and tension forces.",
+                "formattedText": "title: None | text: Reinforced concrete uses steel rebar embedded in concrete to resist both compression and tension forces."
+              },
+              {
+                "text": "Dividends are periodic payments made by corporations to shareholders from profits or retained earnings.",
+                "formattedText": "title: None | text: Dividends are periodic payments made by corporations to shareholders from profits or retained earnings."
+              },
+              {
+                "text": "The alpine ecosystem supports specialized plants and animals adapted to cold temperatures, thin air, and intense UV radiation.",
+                "formattedText": "title: None | text: The alpine ecosystem supports specialized plants and animals adapted to cold temperatures, thin air, and intense UV radiation."
+              },
+              {
+                "text": "Merge sort divides the array recursively and merges sorted halves, achieving O(n log n) time complexity.",
+                "formattedText": "title: None | text: Merge sort divides the array recursively and merges sorted halves, achieving O(n log n) time complexity."
+              },
+              {
+                "text": "The symphony orchestra consists of four instrument families: strings, woodwinds, brass, and percussion.",
+                "formattedText": "title: None | text: The symphony orchestra consists of four instrument families: strings, woodwinds, brass, and percussion."
+              },
+              {
+                "text": "Glacial erosion carves U-shaped valleys and deposits moraines as the ice retreats.",
+                "formattedText": "title: None | text: Glacial erosion carves U-shaped valleys and deposits moraines as the ice retreats."
+              },
+              {
+                "text": "Probate is the legal process of validating a will and distributing the deceased person's assets.",
+                "formattedText": "title: None | text: Probate is the legal process of validating a will and distributing the deceased person's assets."
+              },
+              {
+                "text": "The combustion engine converts chemical energy from fuel into mechanical energy through controlled explosions in cylinders.",
+                "formattedText": "title: None | text: The combustion engine converts chemical energy from fuel into mechanical energy through controlled explosions in cylinders."
+              }
+            ],
+            "passed": true,
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "sims": [
+              0.567766,
+              0.037748,
+              0.144385,
+              0.082055,
+              0.06931,
+              0.061771,
+              0.055163,
+              0.076138,
+              0.126779,
+              0.220223
+            ]
+          }
+        ],
+        "pairs": [
+          {
+            "id": "bike_paraphrase",
+            "anchor": "The child is riding a bicycle through the park.",
+            "formattedAnchor": "task: search result | query: The child is riding a bicycle through the park.",
+            "positive": "A kid bikes along a path in the park.",
+            "formattedPositive": "task: search result | query: A kid bikes along a path in the park.",
+            "negative": "The stock market closed lower after interest-rate news.",
+            "formattedNegative": "task: search result | query: The stock market closed lower after interest-rate news.",
+            "passed": true,
+            "simPos": 0.837812,
+            "simNeg": 0.065545,
+            "margin": 0.772268
+          },
+          {
+            "id": "cancel_subscription",
+            "anchor": "Please cancel my subscription before renewal.",
+            "formattedAnchor": "task: search result | query: Please cancel my subscription before renewal.",
+            "positive": "I want to stop the plan so it does not renew.",
+            "formattedPositive": "task: search result | query: I want to stop the plan so it does not renew.",
+            "negative": "The mountain trail is closed after heavy snow.",
+            "formattedNegative": "task: search result | query: The mountain trail is closed after heavy snow.",
+            "passed": true,
+            "simPos": 0.665425,
+            "simNeg": 0.126513,
+            "margin": 0.538912
+          },
+          {
+            "id": "battery_drain",
+            "anchor": "The laptop battery drains very quickly.",
+            "formattedAnchor": "task: search result | query: The laptop battery drains very quickly.",
+            "positive": "My notebook loses charge fast.",
+            "formattedPositive": "task: search result | query: My notebook loses charge fast.",
+            "negative": "This pasta sauce tastes sweet and spicy.",
+            "formattedNegative": "task: search result | query: This pasta sauce tastes sweet and spicy.",
+            "passed": true,
+            "simPos": 0.770571,
+            "simNeg": 0.090631,
+            "margin": 0.67994
+          },
+          {
+            "id": "order_tracking",
+            "anchor": "I need to track where my order is.",
+            "formattedAnchor": "task: search result | query: I need to track where my order is.",
+            "positive": "How can I check my package delivery status?",
+            "formattedPositive": "task: search result | query: How can I check my package delivery status?",
+            "negative": "The violin concerto was composed in the 1800s.",
+            "formattedNegative": "task: search result | query: The violin concerto was composed in the 1800s.",
+            "passed": true,
+            "simPos": 0.608378,
+            "simNeg": 0.050578,
+            "margin": 0.5578
+          },
+          {
+            "id": "account_lockout",
+            "anchor": "My account is locked after too many login attempts.",
+            "formattedAnchor": "task: search result | query: My account is locked after too many login attempts.",
+            "positive": "I cannot sign in because the system temporarily blocked my account.",
+            "formattedPositive": "task: search result | query: I cannot sign in because the system temporarily blocked my account.",
+            "negative": "Bake the cake at 350 degrees for thirty minutes.",
+            "formattedNegative": "task: search result | query: Bake the cake at 350 degrees for thirty minutes.",
+            "passed": true,
+            "simPos": 0.703645,
+            "simNeg": 0.135967,
+            "margin": 0.567678
+          },
+          {
+            "id": "invoice_request",
+            "anchor": "Please send me the invoice for last month.",
+            "formattedAnchor": "task: search result | query: Please send me the invoice for last month.",
+            "positive": "Can you provide the billing statement for the previous month?",
+            "formattedPositive": "task: search result | query: Can you provide the billing statement for the previous month?",
+            "negative": "The hiking trail follows the river for five miles.",
+            "formattedNegative": "task: search result | query: The hiking trail follows the river for five miles.",
+            "passed": true,
+            "simPos": 0.74122,
+            "simNeg": 0.05708,
+            "margin": 0.68414
+          },
+          {
+            "id": "slow_internet",
+            "anchor": "The internet speed is much slower tonight.",
+            "formattedAnchor": "task: search result | query: The internet speed is much slower tonight.",
+            "positive": "My connection is unusually slow this evening.",
+            "formattedPositive": "task: search result | query: My connection is unusually slow this evening.",
+            "negative": "The novel explores themes of memory and loss.",
+            "formattedNegative": "task: search result | query: The novel explores themes of memory and loss.",
+            "passed": true,
+            "simPos": 0.817874,
+            "simNeg": 0.194794,
+            "margin": 0.62308
+          },
+          {
+            "id": "adversarial_negation_loan",
+            "anchor": "The bank approved the loan application.",
+            "formattedAnchor": "task: search result | query: The bank approved the loan application.",
+            "positive": "The lending institution accepted the borrower's request for funds.",
+            "formattedPositive": "task: search result | query: The lending institution accepted the borrower's request for funds.",
+            "negative": "The bank rejected the loan application.",
+            "formattedNegative": "task: search result | query: The bank rejected the loan application.",
+            "passed": false,
+            "simPos": 0.749282,
+            "simNeg": 0.829268,
+            "margin": -0.079986
+          },
+          {
+            "id": "adversarial_negation_test",
+            "anchor": "The patient tested positive for the infection.",
+            "formattedAnchor": "task: search result | query: The patient tested positive for the infection.",
+            "positive": "Lab results confirmed the presence of the pathogen.",
+            "formattedPositive": "task: search result | query: Lab results confirmed the presence of the pathogen.",
+            "negative": "The patient tested negative for the infection.",
+            "formattedNegative": "task: search result | query: The patient tested negative for the infection.",
+            "passed": false,
+            "simPos": 0.681342,
+            "simNeg": 0.778532,
+            "margin": -0.097191
+          },
+          {
+            "id": "adversarial_entity_swap",
+            "anchor": "France exported wine to Germany last quarter.",
+            "formattedAnchor": "task: search result | query: France exported wine to Germany last quarter.",
+            "positive": "French wine shipments to Germany increased in the recent period.",
+            "formattedPositive": "task: search result | query: French wine shipments to Germany increased in the recent period.",
+            "negative": "Germany exported wine to France last quarter.",
+            "formattedNegative": "task: search result | query: Germany exported wine to France last quarter.",
+            "passed": false,
+            "simPos": 0.810611,
+            "simNeg": 0.985752,
+            "margin": -0.17514
+          },
+          {
+            "id": "adversarial_tense_flip",
+            "anchor": "The company plans to open a new office in Tokyo.",
+            "formattedAnchor": "task: search result | query: The company plans to open a new office in Tokyo.",
+            "positive": "A new Tokyo branch is scheduled to launch soon.",
+            "formattedPositive": "task: search result | query: A new Tokyo branch is scheduled to launch soon.",
+            "negative": "The company closed its Tokyo office last year.",
+            "formattedNegative": "task: search result | query: The company closed its Tokyo office last year.",
+            "passed": false,
+            "simPos": 0.730287,
+            "simNeg": 0.755067,
+            "margin": -0.024781
+          },
+          {
+            "id": "adversarial_quantity",
+            "anchor": "The recipe calls for two tablespoons of sugar.",
+            "formattedAnchor": "task: search result | query: The recipe calls for two tablespoons of sugar.",
+            "positive": "Add a couple of spoonfuls of sugar to the mixture.",
+            "formattedPositive": "task: search result | query: Add a couple of spoonfuls of sugar to the mixture.",
+            "negative": "The recipe calls for two cups of sugar.",
+            "formattedNegative": "task: search result | query: The recipe calls for two cups of sugar.",
+            "passed": false,
+            "simPos": 0.782845,
+            "simNeg": 0.901437,
+            "margin": -0.118592
+          },
+          {
+            "id": "technical_paraphrase_gpu",
+            "anchor": "WebGPU provides low-level access to the graphics processor for compute workloads.",
+            "formattedAnchor": "task: search result | query: WebGPU provides low-level access to the graphics processor for compute workloads.",
+            "positive": "The WebGPU API exposes GPU hardware for parallel computation tasks.",
+            "formattedPositive": "task: search result | query: The WebGPU API exposes GPU hardware for parallel computation tasks.",
+            "negative": "WebSocket provides full-duplex communication channels over a single TCP connection.",
+            "formattedNegative": "task: search result | query: WebSocket provides full-duplex communication channels over a single TCP connection.",
+            "passed": true,
+            "simPos": 0.788933,
+            "simNeg": 0.370947,
+            "margin": 0.417986
+          },
+          {
+            "id": "technical_paraphrase_ml",
+            "anchor": "Gradient descent minimizes the loss function by iteratively updating model parameters.",
+            "formattedAnchor": "task: search result | query: Gradient descent minimizes the loss function by iteratively updating model parameters.",
+            "positive": "The optimizer reduces error by adjusting weights in the direction of steepest descent.",
+            "formattedPositive": "task: search result | query: The optimizer reduces error by adjusting weights in the direction of steepest descent.",
+            "negative": "The garbage collector reclaims memory by tracing reachable objects from root references.",
+            "formattedNegative": "task: search result | query: The garbage collector reclaims memory by tracing reachable objects from root references.",
+            "passed": true,
+            "simPos": 0.575591,
+            "simNeg": 0.283678,
+            "margin": 0.291913
+          }
+        ]
+      }
+    }
+  },
+  "memory": {
+    "used": 677963520,
+    "pool": {
+      "allocations": 56297,
+      "reuses": 50785,
+      "totalBytesAllocated": 7050651392,
+      "peakBytesAllocated": 656467712,
+      "currentBytesAllocated": 627631872,
+      "totalBytesRequested": 5434628096,
+      "peakBytesRequested": 644114176,
+      "currentBytesRequested": 610591744,
+      "activeBuffers": 319,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "47.4%"
+    },
+    "kvCache": {
+      "theoretical": 50331648,
+      "allocated": 50331648,
+      "used": 1228800,
+      "efficiency": 0.0244140625,
+      "seqLen": 25,
+      "maxSeqLen": 1024,
+      "layout": "contiguous",
+      "kvDtype": "f32",
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 0,
+        "recordedGpuUpdateCalls": 4536,
+        "tokensWritten": 118440
+      }
+    }
+  },
+  "debugSnapshot": {
+    "timestamp": "2026-06-24T01:43:29.036Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "81413.8",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "81500.1",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "81575.3",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "81652.7",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "81727.3",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "81809.5",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "81887.6",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "81970.8",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "82051.1",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "82129.0",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "82205.1",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "82287.6",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "82365.1",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "82448.5",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "82545.1",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "82629.1",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "82706.6",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "82785.8",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "82863.8",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "82946.3",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "83023.7",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "83102.5",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "83184.8",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "83264.4",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "83341.7",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "83423.6",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "83503.1",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "83584.0",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "83665.4",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "83745.7",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "83824.7",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "83905.5",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "83985.5",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "84069.7",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "84145.8",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "84224.5",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "84303.9",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "84390.0",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "84466.8",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "84551.4",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "84631.2",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "84713.3",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "84793.5",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "84874.3",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "84953.6",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "85034.5",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "85114.2",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "85195.9",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "85276.1",
+        "level": "DEBUG",
+        "module": "Weights",
+        "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+      },
+      {
+        "time": "85356.9",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Unloaded"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 1
+  }
+}

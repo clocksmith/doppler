@@ -1,0 +1,293 @@
+{
+  "mode": "verify",
+  "workload": "inference",
+  "suite": "inference",
+  "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+  "runtimeProfile": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": true,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967295,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.3 (Build 25D125)"
+    },
+    "submitProbeMs": 2.364417000000003
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 6358.407375
+    }
+  ],
+  "durationMs": 9044.380541,
+  "timestamp": "2026-04-18T19:17:45.997Z",
+  "metrics": {
+    "prompt": "What color is the sky?",
+    "maxTokens": 16,
+    "tokensGenerated": 16,
+    "tokensPerSec": 2.52,
+    "totalRunMs": 6357.93,
+    "firstTokenMs": 494.4,
+    "firstResponseMs": 3176.34,
+    "prefillMs": 402.96,
+    "decodeMs": 2389.2,
+    "prefillTokens": 15,
+    "decodeTokens": 16,
+    "prefillTokensPerSec": 37.22,
+    "prefillTokensPerSecTtft": 30.34,
+    "decodeTokensPerSec": 6.7,
+    "modelLoadMs": 2681.94,
+    "gpu": {
+      "decodeRecordMs": 507.2572089999994,
+      "decodeSubmitWaitMs": 1871.4184160000023,
+      "decodeReadbackWaitMs": 1760.2137909999992,
+      "prefillRecordMs": 56.218377000001965,
+      "prefillSubmitWaitMs": 270.5678329999996,
+      "decodeOrchestrationMs": -1749.6905410000008,
+      "singleTokenSubmitWaitMs": 0,
+      "singleTokenReadbackWaitMs": 0,
+      "singleTokenOrchestrationMs": 0
+    },
+    "plePreparedTokenCache": {
+      "hits": 0,
+      "misses": 4,
+      "entries": 4,
+      "bytes": 143360,
+      "writeBufferCount": 35,
+      "writeBufferBytes": 537600
+    },
+    "prefillProfileSteps": [],
+    "decodeProfileSteps": [],
+    "executionPlan": {
+      "primary": {
+        "id": "primary",
+        "kernelPathId": "gemma-4-e2b-it-q4k-ehf16-af32-execution-inline",
+        "kernelPathSource": "execution-v1",
+        "activationDtype": "f32",
+        "readbackInterval": 8,
+        "batchSize": 8,
+        "stopCheckMode": "batch",
+        "ringTokens": 2,
+        "ringStop": 1,
+        "ringStaging": 2
+      },
+      "fallback": null,
+      "activePlanIdAtStart": null,
+      "finalActivePlanId": null,
+      "transitions": []
+    },
+    "kernelPathId": "gemma-4-e2b-it-q4k-ehf16-af32-execution-inline",
+    "kernelPathSource": "execution-v1",
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 818,
+          "text": "The",
+          "fallbackText": "The"
+        },
+        {
+          "id": 7217,
+          "text": " sky",
+          "fallbackText": " sky"
+        },
+        {
+          "id": 563,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 5213,
+          "text": " **",
+          "fallbackText": " **"
+        },
+        {
+          "id": 9503,
+          "text": "blue",
+          "fallbackText": "blue"
+        },
+        {
+          "id": 1018,
+          "text": "**",
+          "fallbackText": "**"
+        },
+        {
+          "id": 580,
+          "text": " on",
+          "fallbackText": " on"
+        },
+        {
+          "id": 496,
+          "text": " a",
+          "fallbackText": " a"
+        },
+        {
+          "id": 3582,
+          "text": " clear",
+          "fallbackText": " clear"
+        },
+        {
+          "id": 1719,
+          "text": " day",
+          "fallbackText": " day"
+        },
+        {
+          "id": 236761,
+          "text": ".",
+          "fallbackText": "."
+        },
+        {
+          "id": 108,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        },
+        {
+          "id": 9675,
+          "text": "However",
+          "fallbackText": "However"
+        },
+        {
+          "id": 236764,
+          "text": ",",
+          "fallbackText": ","
+        },
+        {
+          "id": 625,
+          "text": " it",
+          "fallbackText": " it"
+        },
+        {
+          "id": 740,
+          "text": " can",
+          "fallbackText": " can"
+        }
+      ],
+      "total": 16,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "operatorDiagnostics": null,
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "inference",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "gemma-4-e2b-it-q4k-ehf16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "gemma-4-e2b-it-q4k-ehf16-af32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 8,
+        "headDim": 256,
+        "kvLen": 131072,
+        "coldQuantMode": "none",
+        "contiguousQuantMode": "none"
+      },
+      "steps": {
+        "total": 41,
+        "attention": 3,
+        "attentionPhases": {
+          "prefill": 2,
+          "decode": 1,
+          "both": 0
+        }
+      }
+    },
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": null
+  },
+  "output": "The sky is **blue** on a clear day.\n\nHowever, it can",
+  "memory": {
+    "used": 11593236224,
+    "pool": {
+      "allocations": 13879,
+      "reuses": 5118,
+      "totalBytesAllocated": 11760658176,
+      "peakBytesAllocated": 11566466816,
+      "currentBytesAllocated": 11519835904,
+      "totalBytesRequested": 9957598976,
+      "peakBytesRequested": 9800145920,
+      "currentBytesRequested": 9765663744,
+      "activeBuffers": 899,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "26.9%"
+    },
+    "kvCache": {
+      "theoretical": 73400320,
+      "allocated": 73400320,
+      "used": 1290240,
+      "efficiency": 0.017578125,
+      "seqLen": 30,
+      "maxSeqLen": 4096,
+      "layout": "contiguous"
+    }
+  },
+  "debugSnapshot": null
+}

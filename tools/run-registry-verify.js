@@ -7,12 +7,13 @@ import { fileURLToPath } from 'node:url';
 
 const DEFAULT_REGISTRY_URL = process.env.DOPPLER_HF_REGISTRY_URL
   || 'https://huggingface.co/Clocksmith/rdrr/resolve/main/registry/catalog.json';
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const THIS_FILE = fileURLToPath(import.meta.url);
+const REPO_ROOT = path.resolve(path.dirname(THIS_FILE), '..');
 const DEFAULT_CATALOG_FILE = path.join(REPO_ROOT, 'models', 'catalog.json');
 
-function usage() {
-  console.error(
-    'Usage: node tools/run-registry-verify.js <model-alias-or-id> [--registry-url <url>] [--surface <auto|node|browser>] [--update-catalog] [--catalog-file <path>]'
+function usage(stream = process.stderr) {
+  stream.write(
+    'Usage: node tools/run-registry-verify.js <model-alias-or-id> [--registry-url <url>] [--surface <auto|node|browser>] [--update-catalog] [--catalog-file <path>]\n'
   );
 }
 
@@ -25,7 +26,7 @@ function normalizePath(pathValue) {
   return pathValue.trim().replace(/^\/+/, '');
 }
 
-function resolveModelUrl(entry) {
+export function resolveModelUrl(entry) {
   const hf = entry?.hf;
   if (hf && typeof hf === 'object') {
     const repoId = typeof hf.repoId === 'string' ? hf.repoId.trim() : '';
@@ -43,7 +44,7 @@ function resolveModelUrl(entry) {
   throw new Error(`Registry entry "${entry?.modelId || 'unknown'}" does not expose a remote HF URL.`);
 }
 
-function findRegistryEntry(registry, token) {
+export function findRegistryEntry(registry, token) {
   const models = Array.isArray(registry?.models) ? registry.models : [];
   const needle = normalizeToken(token);
   if (!needle) return null;
@@ -63,8 +64,9 @@ function findRegistryEntry(registry, token) {
 
 const VALID_SURFACES = new Set(['auto', 'node', 'browser']);
 
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const out = {
+    help: false,
     model: '',
     registryUrl: DEFAULT_REGISTRY_URL,
     surface: 'auto',
@@ -83,6 +85,10 @@ function parseArgs(argv) {
       i += 1;
       return String(value).trim();
     };
+    if (arg === '--help' || arg === '-h') {
+      out.help = true;
+      continue;
+    }
     if (arg === '--registry-url') {
       out.registryUrl = nextValue();
       continue;
@@ -149,6 +155,34 @@ function extractContractGateStatus(payload) {
   return {
     contractOk,
     executionContractArtifact,
+  };
+}
+
+export function resolveRegistryVerifyWorkload(entry) {
+  const modes = Array.isArray(entry?.modes)
+    ? entry.modes.map((mode) => normalizeToken(mode)).filter(Boolean)
+    : [];
+  if (modes.includes('embedding')) {
+    return 'embedding';
+  }
+  return 'inference';
+}
+
+export function resolveRegistryVerifyRuntimeProfile(entry) {
+  if (resolveRegistryVerifyWorkload(entry) === 'embedding') {
+    return 'profiles/vector-stability';
+  }
+  return 'profiles/verbose-trace';
+}
+
+export function buildRegistryVerifyRequest(entry) {
+  return {
+    workload: resolveRegistryVerifyWorkload(entry),
+    modelId: entry.modelId,
+    modelUrl: resolveModelUrl(entry),
+    loadMode: 'http',
+    cacheMode: 'warm',
+    runtimeProfile: resolveRegistryVerifyRuntimeProfile(entry),
   };
 }
 
@@ -261,6 +295,10 @@ async function updateCatalogTestStatus(options) {
 
 async function main() {
   const parsed = parseArgs(process.argv.slice(2));
+  if (parsed.help) {
+    usage(process.stdout);
+    process.exit(0);
+  }
   if (!parsed.model) {
     usage();
     process.exit(2);
@@ -282,15 +320,7 @@ async function main() {
     );
   }
 
-  const modelUrl = resolveModelUrl(entry);
-  const request = {
-    workload: 'inference',
-    modelId: entry.modelId,
-    modelUrl,
-    loadMode: 'http',
-    cacheMode: 'warm',
-    runtimeProfile: 'profiles/verbose-trace',
-  };
+  const request = buildRegistryVerifyRequest(entry);
   const run = { surface: parsed.surface };
 
   let verifyResult = {
@@ -333,7 +363,9 @@ async function main() {
   process.exit(exitCode);
 }
 
-main().catch((error) => {
-  console.error(`[registry-verify] ${error.message}`);
-  process.exit(1);
-});
+if (process.argv[1] && path.resolve(process.argv[1]) === THIS_FILE) {
+  main().catch((error) => {
+    console.error(`[registry-verify] ${error.message}`);
+    process.exit(1);
+  });
+}

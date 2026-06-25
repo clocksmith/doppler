@@ -51,9 +51,9 @@
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-03-20",
-          "source": "manual-review",
-          "notes": "Browser/WebGPU on Apple M3 and Node/WebGPU on AMD RDNA-3 re-verified through 2026-03-20 with deterministic greedy decoding. Produces coherent sky-color answers on simple prompts. The lm_head_prefill phase-drop bug was the one confirmed runtime defect (now fixed and regression-covered). Remaining factual drift on harder prompts is a model-capacity limitation, not a runtime bug.",
+          "lastVerifiedAt": "2026-06-24",
+          "source": "runtime-verify",
+          "notes": "Browser/WebGPU quickstart smoke is package-visible at reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json. The report produced a coherent sky-color answer, stopReason=stop-token, executionContractOk=true, and decodeTokensPerSec > 0.",
           "contracts": {
             "executionContractOk": true
           }
@@ -116,12 +116,12 @@
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-04-04",
+          "lastVerifiedAt": "2026-06-24",
           "source": "runtime-verify",
           "contracts": {
             "executionContractOk": true
           },
-          "notes": "Sentence-transformers embedding postprocessor is included in the artifact. Node/WebGPU on AMD RDNA-3 re-verified on 2026-04-04 after refreshing the manifest-owned execution-v1 session baseline and embedding postprocessor stamp. Produced finite 768-dim unit-norm embeddings and matched the local 20 retrieval / 14 pair semantic suite thresholds (0.95 retrieval, 0.6429 pair). Republished to HF 2026-04-04."
+          "notes": "Node/WebGPU embedding verification is package-visible at reports/release-claims/google-embeddinggemma-300m-q4k-ehf16-af32/2026-06-24T01-42-03.814Z.json. The report produced finite 768-dimensional unit-norm embeddings and passed the semantic retrieval/pair suite thresholds. Registry verification uses profiles/vector-stability so the manifest-owned f32 KV-cache contract is preserved."
         }
       },
       "vendorBenchmark": {
@@ -182,9 +182,9 @@
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-04-13",
+          "lastVerifiedAt": "2026-06-24",
           "source": "runtime-verify",
-          "notes": "Node/WebGPU on Apple M3 re-verified on 2026-04-13 after syncing the refreshed manifest-owned session baseline and republishing the hosted artifact. Produces coherent sky-color output on the execution-inline Q4K path, and the hosted manifest now matches the refreshed local artifact. Earlier browser verification remains from the 2026-03-20 review cycle.",
+          "notes": "Node/WebGPU quickstart smoke is package-visible at reports/release-claims/gemma-3-1b-it-q4k-ehf16-af32/2026-06-24T01-23-10.494Z.json. The report produced coherent text, executionContractOk=true, and decodeTokensPerSec > 0.",
           "contracts": {
             "executionContractOk": true
           }
@@ -248,9 +248,9 @@
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-05-07",
+          "lastVerifiedAt": "2026-04-18",
           "source": "runtime-verify",
-          "notes": "Node/WebGPU execution-contract evidence is present in reports/gemma-4-e2b-it-q4k-ehf16-af32/2026-05-07T14-35-06.195Z.json. Browser compare receipt benchmarks/vendors/results/compare_20260421T001902.json shows valid non-empty output and warm OPFS performance evidence, but exact generated text still mismatches TJS, so browser remains performance evidence rather than verified support until a browser runtime pass receipt is listed. Full artifact republished to HF 2026-04-21 at revision 2070777c77047d54e6eae105f6dcb1891cf6f21a.",
+          "notes": "Package-visible runtime evidence is staged at reports/release-claims/gemma-4-e2b-it-q4k-ehf16-af32/2026-04-18T19-17-45.997Z.json. Browser and Electron remain unverified in the Gemma 4 target matrix until same-surface runtime receipts are promoted.",
           "contracts": {
             "executionContractOk": true
           }
@@ -309,14 +309,14 @@
           "tested": "verified"
         },
         "tested": {
-          "suite": "debug",
+          "suite": "inference",
           "surface": [
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-05-07",
+          "lastVerifiedAt": "2026-04-22",
           "source": "runtime-verify",
-          "notes": "Node/WebGPU execution-contract evidence is present in reports/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-05-07T17-03-36.276Z.json. Browser compare receipts benchmarks/vendors/results/compare_20260420T162233.json (t=0 greedy) and benchmarks/vendors/results/compare_20260420T163016.json (t=1 topK50) remain performance evidence only until a browser runtime pass receipt is listed. Direct LiteRT .task source still loads but remains numerically wrong.",
+          "notes": "Committed program-bundle reference reports/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-04-22T18-09-10.471Z.reference.json decodes the sky prompt to blue with executionContractOk=true. Browser and Electron remain unverified in the Gemma 4 target matrix until same-surface runtime receipts are promoted.",
           "contracts": {
             "executionContractOk": true,
             "layerPatternContractOk": true
@@ -379,7 +379,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-05-07",
           "source": "manifest-variant-identity",
-          "notes": "Manifest-only f16 activation sibling over the verified Gemma 4 E2B INT4 PLE weight pack. Node/WebGPU execution-contract evidence is present in reports/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-05-07T17-14-52.263Z.json. Browser remains unverified until a browser runtime pass receipt is listed. The demo preflights execution-v1 capability rules and uses the AF32 primary when this lane is rejected, including the Apple Metal fused-q4k/f16 NaN guard.",
+          "notes": "F16 activation sibling over the verified Gemma 4 E2B INT4 PLE weight pack. Package-visible runtime evidence is staged at reports/release-claims/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-05-07T20-15-34.710Z.json; Apple Metal capability resolution still fails closed to the AF32 primary when this lane is incompatible.",
           "contracts": {
             "executionContractOk": true
           }
@@ -497,11 +497,7 @@
       "artifact": {
         "format": "rdrr"
       },
-      "hf": {
-        "repoId": "Clocksmith/rdrr",
-        "path": "models/gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
-        "revision": "21476587d77976ed3dd9859ba8baf97b66e9a327"
-      },
+      "hf": null,
       "baseUrl": null,
       "quickstart": false,
       "demoVisible": false,
@@ -512,27 +508,15 @@
         "availability": {
           "curated": false,
           "local": true,
-          "hf": true
+          "hf": false
         },
         "status": {
           "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "verified"
+          "tested": "none"
         },
-        "tested": {
-          "suite": "inference",
-          "surface": [
-            "node"
-          ],
-          "result": "pass",
-          "lastVerifiedAt": "2026-06-08",
-          "source": "runtime-verify",
-          "notes": "Node/WebGPU verified from /home/x/models/rdrr/gemma-4-12b-it-text-w4a16-ct-ehf16-af16 with deterministic greedy output. Report reports/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/2026-06-08T22-33-51.728Z.json produced coherent text, executionContractOk=true, manifest-owned decodeBatchSize=8/readbackInterval=8, and batched decode only with 2 batched forward calls and 0 unbatched calls.",
-          "contracts": {
-            "executionContractOk": true
-          }
-        }
+        "tested": null
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/gemma-4-12B-it-qat-w4a16-ct",
@@ -540,7 +524,8 @@
       "manifestVariantId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16-mv-w4a16-ct-reference-f16-dequant-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
-      "weightsRefAllowed": false
+      "weightsRefAllowed": false,
+      "releaseNotes": "The prior verified 12B W4A16 claim points at a non-committed report path. Keep the artifact active/ready, but remove the release-ready claim until a package-visible runtime receipt is promoted."
     },
     {
       "modelId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
@@ -603,11 +588,7 @@
       "artifact": {
         "format": "rdrr"
       },
-      "hf": {
-        "repoId": "Clocksmith/rdrr",
-        "revision": "6d0914e3d0fef18b1aa12607bc963d700feed02c",
-        "path": "models/gemma-4-31b-it-text-q4k-ehf16-af32"
-      },
+      "hf": null,
       "baseUrl": null,
       "quickstart": false,
       "demoVisible": true,
@@ -623,27 +604,15 @@
         "availability": {
           "curated": false,
           "local": true,
-          "hf": true
+          "hf": false
         },
         "status": {
           "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "verified"
+          "tested": "none"
         },
-        "tested": {
-          "suite": "inference",
-          "surface": [
-            "browser"
-          ],
-          "result": "pass",
-          "lastVerifiedAt": "2026-04-29",
-          "source": "f16-lane-weight-pack-primary",
-          "notes": "Complete Q4K weight pack is the hosted primary for the Gemma 4 31B f16 demo lane. Browser/WebGPU debug receipt reports/gemma-4-31b-it-text-q4k-ehf16-af32/2026-04-28T22-40-53.165Z.json has executionContractOk=true; a committed Node receipt is still missing.",
-          "contracts": {
-            "executionContractOk": true
-          }
-        }
+        "tested": null
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/gemma-4-31B-it",
@@ -651,7 +620,8 @@
       "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af32-mv-q4-fused-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
-      "weightsRefAllowed": false
+      "weightsRefAllowed": false,
+      "releaseNotes": "The AF32 31B catalog entry remains the source weight-pack lane for the AF16 variant, but the prior verified claim points at a non-committed report path. Keep the lane active/ready without a release-ready claim."
     },
     {
       "modelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
@@ -668,11 +638,7 @@
       "artifact": {
         "format": "rdrr"
       },
-      "hf": {
-        "repoId": "Clocksmith/rdrr",
-        "revision": "e6f36589da5f860d9da9b10efdc945434f1f1be2",
-        "path": "models/gemma-4-31b-it-text-q4k-ehf16-af16"
-      },
+      "hf": null,
       "baseUrl": null,
       "quickstart": false,
       "demoVisible": false,
@@ -683,27 +649,15 @@
         "availability": {
           "curated": false,
           "local": true,
-          "hf": true
+          "hf": false
         },
         "status": {
           "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "verified"
+          "tested": "none"
         },
-        "tested": {
-          "suite": "inference",
-          "surface": [
-            "browser"
-          ],
-          "result": "pass",
-          "lastVerifiedAt": "2026-04-29",
-          "source": "browser-webgpu-smoke",
-          "notes": "Browser/WebGPU report reports/gemma-4-31b-it-text-q4k-ehf16-af16/2026-04-29T17-25-41.735Z.json and program-bundle references both decode the sky prompt to blue with f16 compute. A committed Node receipt is still missing.",
-          "contracts": {
-            "executionContractOk": true
-          }
-        }
+        "tested": null
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/gemma-4-31B-it",
@@ -711,7 +665,8 @@
       "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af16-mv-f16-activations-v1",
       "artifactCompleteness": "weights-ref",
       "runtimePromotionState": "manifest-owned",
-      "weightsRefAllowed": true
+      "weightsRefAllowed": true,
+      "releaseNotes": "The AF16 31B variant has a committed program-bundle receipt, but it is a weights-ref sibling of the AF32 primary. Keep it out of release-ready claims until the primary lane has package-visible runtime evidence too."
     },
     {
       "modelId": "translategemma-4b-it-q4k-ehf16-af32",
@@ -822,7 +777,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-06-15",
           "source": "local-node-webgpu-verify",
-          "notes": "Node/WebGPU on AMD Strix Halo / Radeon 8060S re-verified 2026-06-15 after making Qwen ChatML stop tokens explicit in the manifest and preserving batch-path stopTokenId receipts. Local receipt reports/qwen-3-5-0-8b-q4k-ehaf16/2026-06-15T00-06-08.527Z.json produced \"The sky is blue.\", stopReason=stop-token, stopTokenId=248046, executionContractOk=true. Existing comparable claim still rests on the 2026-04-21 vendor compare receipt benchmarks/vendors/results/compare_20260421T002103.json: exact output match against Transformers.js, 64/64 prompt tokens, Doppler decode 61.76 vs TJS 36.14 tok/s, TTFT 541.0 ms vs 7019.3 ms. Hosted Clocksmith/rdrr revision 95a01447eecbf13fc5964986f507b08ded0cd40f still exposes scalar eos_token_id=248044 rather than [248046, 248044], so HF/quickstart availability is disabled until republished. The local artifact includes qwen3vl vision weights, but release-facing modes stay text-only until Qwen vision has an end-to-end receipt.",
+          "notes": "Browser/Node release evidence is package-visible at reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json. Qwen ChatML stop-token fixes remain local-catalog verified, but HF and quickstart availability stay disabled until the hosted artifact is republished with the explicit stop-token list.",
           "contracts": {
             "executionContractOk": true
           }
@@ -884,7 +839,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-06-15",
           "source": "local-node-webgpu-verify",
-          "notes": "Node/WebGPU on AMD Strix Halo / Radeon 8060S re-verified 2026-06-15 after making Qwen ChatML stop tokens explicit in the manifest. Local receipt reports/qwen-3-5-2b-q4k-ehaf16/2026-06-15T00-07-18.449Z.json produced a coherent sky-color answer, executionContractOk=true, required inference fields pass, and decode 34.48 tok/s on a 24-token capped run. Current execution-v1 uses the fixed fused-Q4 main_gemv transformer decode path, keeps stable fused-Q4 main_multicol declared as fallback, upgrades the tied LM head to Q4 via optimized lm_head_q4 GEMV 64x4, upgrades prefill projections to q4_widetile, and upgrades prefill attention to attn_head256. The 2026-04-21 compare receipt benchmarks/vendors/results/compare_20260421T002238.json showed exact output match against Transformers.js with --allow-non-comparable-lane; the release lane remains capability_only until a correctness-clean comparable fixture is committed. Hosted Clocksmith/rdrr revision a8c45dd885a789042d3b82c95b471d66ca8d5152 still exposes scalar eos_token_id=248044 rather than [248046, 248044], so HF/quickstart availability is disabled until republished.",
+          "notes": "Browser/Node release evidence is package-visible at reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json. The execution-v1 lane keeps the fixed fused-Q4 decode path and q4 LM-head/prefill kernels. HF and quickstart availability stay disabled until the hosted artifact is republished with the explicit stop-token list.",
           "contracts": {
             "executionContractOk": true
           }
@@ -955,7 +910,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-04-28",
           "source": "browser-webgpu-smoke",
-          "notes": "Local browser/WebGPU smoke report reports/qwen-3-6-27b-q4k-ehaf16/2026-04-28T01-19-10.624Z.json captured a 4-token deterministic reference transcript and executionContractOk=true. Hosted artifact is enabled for web demo download; quickstart remains disabled.",
+          "notes": "Committed program-bundle reference reports/program-bundles/qwen-3-6-27b-q4k-ehaf16/2026-04-28T01-19-10.497Z.reference.json captured a deterministic reference transcript and executionContractOk=true. Hosted artifact is enabled for web demo download; quickstart remains disabled.",
           "contracts": {
             "executionContractOk": true
           }
@@ -1016,7 +971,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-04-29",
           "source": "browser-node-webgpu-smoke",
-          "notes": "Browser/WebGPU report reports/qwen-3-6-27b-q4k-eaf16/2026-04-29T17-28-17.095Z.json and the Node program-bundle reference produce coherent sky prompt output with f16 compute.",
+          "notes": "Committed program-bundle reference reports/program-bundles/qwen-3-6-27b-q4k-eaf16/capture.node.reference.json produces coherent sky prompt output with f16 compute.",
           "contracts": {
             "executionContractOk": true
           }
