@@ -9,6 +9,8 @@
 export interface RecorderOptions {
   /** Enable GPU timestamp profiling (requires 'timestamp-query' feature) */
   profile?: boolean;
+  /** Collect per-label operation counts for diagnostics. Defaults to true. */
+  recordLabels?: boolean;
 }
 
 /** Profiling result - maps kernel label to time in milliseconds */
@@ -82,6 +84,33 @@ export declare class CommandRecorder {
   beginComputePass(label?: string): GPUComputePassEncoder;
 
   /**
+   * Close the active coalesced compute pass, if one is open.
+   */
+  closeActiveComputePass(): void;
+
+  /**
+   * Record a simple dispatch. Non-profiling recorders coalesce consecutive
+   * dispatches into one compute pass until a raw encoder boundary.
+   */
+  recordDispatch(
+    pipeline: GPUComputePipeline,
+    bindGroup: GPUBindGroup,
+    workgroups: [number, number, number],
+    label?: string
+  ): void;
+
+  /**
+   * Record an indirect dispatch with the same pass coalescing behavior.
+   */
+  recordDispatchIndirect(
+    pipeline: GPUComputePipeline,
+    bindGroup: GPUBindGroup,
+    indirectBuffer: GPUBuffer,
+    indirectOffset?: number,
+    label?: string
+  ): void;
+
+  /**
    * Get the raw encoder for advanced use cases.
    * @returns GPUCommandEncoder
    */
@@ -125,7 +154,14 @@ export declare class CommandRecorder {
    * Get statistics about recorded operations.
    * @returns Statistics object
    */
-  getStats(): { opCount: number; tempBufferCount: number; pooledBufferCount: number; submitted: boolean };
+  getStats(): {
+    opCount: number;
+    opLabelCounts: Record<string, number>;
+    computePassCount: number;
+    tempBufferCount: number;
+    pooledBufferCount: number;
+    submitted: boolean;
+  };
 
   /**
    * Get the submit completion latency in milliseconds (null if not resolved yet).
