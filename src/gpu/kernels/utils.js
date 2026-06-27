@@ -1,5 +1,7 @@
 
 
+export const RECORD_STAGE_DEBUG_ENABLED = typeof process !== 'undefined' && process.env?.DOPPLER_DBG_RECORD === '1';
+
 const __DBG_REC = { byOp: new Map(), totalCount: 0, total: { pipeline: 0, prep: 0, bg: 0, dispatch: 0 }, firstCallByOp: new Map() };
 export function __dbgRecord(op, variant, pipelineMs, prepMs, bgMs, dispatchMs) {
   const key = `${op}/${variant}`;
@@ -17,7 +19,7 @@ export function __dbgRecord(op, variant, pipelineMs, prepMs, bgMs, dispatchMs) {
   __DBG_REC.total.bg += bgMs;
   __DBG_REC.total.dispatch += dispatchMs;
 }
-if (typeof process !== "undefined" && process?.env?.DOPPLER_DBG_RECORD === '1') {
+if (RECORD_STAGE_DEBUG_ENABLED) {
   process.on('exit', () => {
     const t = __DBG_REC.total;
     const sum = t.pipeline + t.prep + t.bg + t.dispatch;
@@ -63,6 +65,7 @@ export {
   getOrCreatePipelineLayout,
   getCachedPipeline,
   getPipelineFast,
+  getPipelineBindGroupLayout,
   createPipeline,
   clearPipelineCaches,
   getPipelineCacheStats,
@@ -103,20 +106,46 @@ export {
 // ============================================================================
 
 import { getKernelConfig } from './kernel-configs.js';
-import { getPipelineFast } from './pipeline-cache.js';
+import { getCachedPipeline, getPipelineFast, getPipelineBindGroupLayout } from './pipeline-cache.js';
 import { getDevice } from '../device.js';
 import { dispatchKernel, dispatchIndirect, recordDispatchIndirect } from './dispatch.js';
 import { createUniformBufferWithView as createUniformBuffer } from './uniform-utils.js';
 import { getUniformByteLength } from './uniform-utils.js';
 import { writeUniformsFromObject } from './uniform-utils.js';
 
-export async function unifiedKernelWrapper(opName, target, variant, bindings, uniforms, workgroups, constants = null, extraBindings = null) {
-  const __dbg = (typeof process !== "undefined" && process?.env?.DOPPLER_DBG_RECORD === '1');
+const dataBindingsByConfig = new WeakMap();
+
+function getDataBindings(config) {
+  let cached = dataBindingsByConfig.get(config);
+  if (cached) {
+    return cached;
+  }
+  cached = config.bindings
+    .filter(b => b.type !== 'uniform')
+    .slice()
+    .sort((a, b) => a.index - b.index);
+  dataBindingsByConfig.set(config, cached);
+  return cached;
+}
+
+export async function unifiedKernelWrapper(
+  opName,
+  target,
+  variant,
+  bindings,
+  uniforms,
+  workgroups,
+  constants = null,
+  extraBindings = null,
+  dispatchLabel = null
+) {
+  const __dbg = RECORD_STAGE_DEBUG_ENABLED;
   const __t0 = __dbg ? performance.now() : 0;
   const device = target?.device || getDevice();
   const recorder = target && typeof target.beginComputePass === 'function' ? target : null;
   const config = getKernelConfig(opName, variant);
-  const pipeline = await getPipelineFast(opName, variant, null, constants);
+  const pipeline = getCachedPipeline(opName, variant, constants)
+    ?? await getPipelineFast(opName, variant, null, constants);
   const __tPipeline = __dbg ? performance.now() : 0;
 
   const uniformBuffer = createUniformBuffer(
@@ -131,10 +160,7 @@ export async function unifiedKernelWrapper(opName, target, variant, bindings, un
     { binding: 0, resource: { buffer: uniformBuffer } }
   ];
 
-  const dataBindings = config.bindings
-    .filter(b => b.type !== 'uniform')
-    .slice()
-    .sort((a, b) => a.index - b.index);
+  const dataBindings = getDataBindings(config);
 
   if (bindings.length !== dataBindings.length) {
     throw new Error(
@@ -189,20 +215,23 @@ export async function unifiedKernelWrapper(opName, target, variant, bindings, un
     const __tBgStart = __dbg ? performance.now() : 0;
     const bindGroup = device.createBindGroup({
       label: `${opName}_bind_group`,
-      layout: pipeline.getBindGroupLayout(0),
+      layout: getPipelineBindGroupLayout(pipeline, 0),
       entries: bindGroupEntries,
     });
     const __tBg = __dbg ? performance.now() : 0;
 
+    const label = typeof dispatchLabel === 'string' && dispatchLabel.length > 0
+      ? dispatchLabel
+      : opName;
     if (workgroups && typeof workgroups === 'object' && workgroups.indirectBuffer) {
       const indirectOffset = workgroups.indirectOffset ?? 0;
       if (recorder) {
-        recordDispatchIndirect(recorder, pipeline, bindGroup, workgroups.indirectBuffer, indirectOffset, opName);
+        recordDispatchIndirect(recorder, pipeline, bindGroup, workgroups.indirectBuffer, indirectOffset, label);
       } else {
-        dispatchIndirect(device, pipeline, bindGroup, workgroups.indirectBuffer, indirectOffset, opName);
+        dispatchIndirect(device, pipeline, bindGroup, workgroups.indirectBuffer, indirectOffset, label);
       }
     } else {
-      dispatchKernel(target, pipeline, bindGroup, workgroups, opName);
+      dispatchKernel(target, pipeline, bindGroup, workgroups, label);
     }
     if (__dbg) {
       const __tEnd = performance.now();

@@ -33,6 +33,14 @@ export declare function getOrCreatePipelineLayout(
   deviceOverride?: GPUDevice | null
 ): GPUPipelineLayout;
 
+/**
+ * Get a cached bind group layout from a compute pipeline.
+ */
+export declare function getPipelineBindGroupLayout(
+  pipeline: GPUComputePipeline,
+  index?: number
+): GPUBindGroupLayout;
+
 // ============================================================================
 // Pipeline Creation
 // ============================================================================
