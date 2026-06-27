@@ -438,6 +438,23 @@ try {
     'q4_fused_multicol_f16a'
   );
 
+  const mutableActivePath = {
+    id: 'mutable-active-path',
+    name: 'Mutable active path',
+    activationDtype: 'f16',
+    decode: {
+      steps: [
+        { op: 'q_proj', kernel: 'matmul_f16.wgsl', entry: 'main' },
+      ],
+    },
+    postLayer: [],
+  };
+  setActiveKernelPath(mutableActivePath, 'runtime');
+  assert.equal(getKernelPathMatmulVariant('q_proj', 'decode', 0), 'f16');
+  mutableActivePath.decode.steps[0] = { op: 'q_proj', kernel: 'matmul_f32.wgsl', entry: 'main' };
+  setActiveKernelPath(mutableActivePath, 'runtime');
+  assert.equal(getKernelPathMatmulVariant('q_proj', 'decode', 0), 'f32');
+
   assert.equal(isKernelPathFusedQ4K(fusedPath), true);
   assert.equal(isKernelPathFusedQ4K(dequantPath), false);
   assert.equal(isKernelPathDequant(fusedPath), true);
