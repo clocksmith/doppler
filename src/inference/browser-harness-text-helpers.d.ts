@@ -18,6 +18,40 @@ export declare function resolveBenchmarkRunSettings(
   sampling: Record<string, unknown>;
   seed?: number;
 };
+export declare function normalizeDecodeRecordOpLabels(
+  value: unknown
+): Record<string, number> | null;
+export declare function buildDecodeRecordTopOps(
+  labelCounts: unknown,
+  totalOps?: number | null,
+  limit?: number
+): Array<{
+  label: string;
+  count: number;
+  shareOfOps: number | null;
+}>;
+export declare function groupDecodeRecordOpLabels(
+  labelCounts: unknown
+): Record<string, number> | null;
+export declare function buildDecodeRecordTopOpGroups(
+  labelCounts: unknown,
+  totalOps?: number | null,
+  limit?: number
+): Array<{
+  label: string;
+  count: number;
+  shareOfOps: number | null;
+}>;
+export declare function normalizeUniformCacheStats(value: unknown): {
+  hits?: number;
+  misses?: number;
+  totalLookups?: number;
+  hitRateRatio?: number;
+  hitRate?: string;
+  evictions?: number;
+  currentSize?: number;
+  pendingDestruction?: number;
+} | null;
 export declare function runEmbeddingSemanticChecks(
   pipeline: Record<string, unknown>,
   options?: Record<string, unknown> | null

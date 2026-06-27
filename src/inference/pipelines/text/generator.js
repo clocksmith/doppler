@@ -132,6 +132,24 @@ import {
 const SPECIAL_LIKE_TOKEN_RE = /^(<pad>|<unused\d*>|<eos>|<bos>|<s>|<\/s>|\[PAD\]|\[UNK\]|\[SEP\]|\[CLS\]|<[^>\n]{1,32}>)$/i;
 const FINITENESS_RESET_WORDS = new Uint32Array(4);
 const tokenizerSuppressionCache = new WeakMap();
+const PREFILL_CHUNK_SUBMIT_MODES = new Set(['sync', 'async']);
+
+export function resolvePrefillChunkSubmitMode(runtimeConfig, modelConfig) {
+  const runtimeSubmit = runtimeConfig?.inference?.session?.prefillChunkSubmitMode;
+  const manifestSubmit = modelConfig?.sessionSettings?.prefillChunkSubmitMode;
+  const submit = (runtimeSubmit !== undefined && runtimeSubmit !== null)
+    ? runtimeSubmit
+    : manifestSubmit;
+  if (submit === undefined || submit === null) {
+    throw new Error('[Pipeline] runtime.inference.session.prefillChunkSubmitMode is required.');
+  }
+  if (!PREFILL_CHUNK_SUBMIT_MODES.has(submit)) {
+    throw new Error(
+      `[Pipeline] runtime.inference.session.prefillChunkSubmitMode must be "sync" or "async"; got "${String(submit)}".`
+    );
+  }
+  return submit;
+}
 
 function getTokenizerSuppressionCache(tokenizer) {
   let cache = tokenizerSuppressionCache.get(tokenizer);
@@ -510,8 +528,14 @@ export class PipelineGenerator {
     this.#state.stats.ttftMs = 0;
     this.#state.stats.decodeTimeMs = 0;
     this.#state.stats.decodeRecordMs = 0;
+    this.#state.stats.decodeRecordOps = 0;
+    this.#state.stats.decodeRecordPasses = 0;
+    this.#state.stats.decodeRecordOpLabels = {};
     this.#state.stats.decodeSubmitWaitMs = 0;
     this.#state.stats.decodeReadbackWaitMs = 0;
+    this.#state.stats.decodeReadbackMapWaitMs = 0;
+    this.#state.stats.decodeReadbackCleanupMs = 0;
+    this.#state.stats.decodeReadbackCopyMs = 0;
     this.#state.decodeStepCount = 0;
     this.#state.disableRecordedLogits = false;
     this.#state.disableFusedDecode = false;
@@ -523,6 +547,8 @@ export class PipelineGenerator {
       gpuSubmissions: 0,
       requestedBatchTokens: 0,
       effectiveBatchTokens: 0,
+      executedBatchTokens: 0,
+      resolvedBatchTokens: 0,
       maxBatchTokenCap: null,
       batchClampCount: 0,
     };
@@ -742,12 +768,21 @@ export class PipelineGenerator {
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.gpuTimeDecodeMs = undefined;
     this.#state.stats.decodeRecordMs = 0;
+    this.#state.stats.decodeRecordOps = 0;
+    this.#state.stats.decodeRecordPasses = 0;
+    this.#state.stats.decodeRecordOpLabels = {};
     this.#state.stats.decodeSubmitWaitMs = 0;
     this.#state.stats.decodeReadbackWaitMs = 0;
+    this.#state.stats.decodeReadbackMapWaitMs = 0;
+    this.#state.stats.decodeReadbackCleanupMs = 0;
+    this.#state.stats.decodeReadbackCopyMs = 0;
     this.#state.stats.prefillRecordMs = 0;
     this.#state.stats.prefillSubmitWaitMs = 0;
     this.#state.stats.singleTokenSubmitWaitMs = 0;
     this.#state.stats.singleTokenReadbackWaitMs = 0;
+    this.#state.stats.singleTokenReadbackMapWaitMs = 0;
+    this.#state.stats.singleTokenReadbackCleanupMs = 0;
+    this.#state.stats.singleTokenReadbackCopyMs = 0;
     this.#state.stats.singleTokenOrchestrationMs = 0;
     this.#state.stats.pleHotVocabularyHits = 0;
     this.#state.stats.pleHotVocabularyMisses = 0;
@@ -1757,12 +1792,21 @@ export class PipelineGenerator {
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.gpuTimeDecodeMs = undefined;
     this.#state.stats.decodeRecordMs = 0;
+    this.#state.stats.decodeRecordOps = 0;
+    this.#state.stats.decodeRecordPasses = 0;
+    this.#state.stats.decodeRecordOpLabels = {};
     this.#state.stats.decodeSubmitWaitMs = 0;
     this.#state.stats.decodeReadbackWaitMs = 0;
+    this.#state.stats.decodeReadbackMapWaitMs = 0;
+    this.#state.stats.decodeReadbackCleanupMs = 0;
+    this.#state.stats.decodeReadbackCopyMs = 0;
     this.#state.stats.prefillRecordMs = 0;
     this.#state.stats.prefillSubmitWaitMs = 0;
     this.#state.stats.singleTokenSubmitWaitMs = 0;
     this.#state.stats.singleTokenReadbackWaitMs = 0;
+    this.#state.stats.singleTokenReadbackMapWaitMs = 0;
+    this.#state.stats.singleTokenReadbackCleanupMs = 0;
+    this.#state.stats.singleTokenReadbackCopyMs = 0;
     this.#state.stats.singleTokenOrchestrationMs = 0;
     this.#state.stats.pleHotVocabularyHits = 0;
     this.#state.stats.pleHotVocabularyMisses = 0;
@@ -2151,8 +2195,14 @@ export class PipelineGenerator {
     this.#state.stats.prefillProfileSteps = [];
     this.#state.decodeRing?.reset();
     this.#state.stats.decodeRecordMs = 0;
+    this.#state.stats.decodeRecordOps = 0;
+    this.#state.stats.decodeRecordPasses = 0;
+    this.#state.stats.decodeRecordOpLabels = {};
     this.#state.stats.decodeSubmitWaitMs = 0;
     this.#state.stats.decodeReadbackWaitMs = 0;
+    this.#state.stats.decodeReadbackMapWaitMs = 0;
+    this.#state.stats.decodeReadbackCleanupMs = 0;
+    this.#state.stats.decodeReadbackCopyMs = 0;
     this.#state.stats.ttftMs = 0;
     const startTime = performance.now();
 
@@ -2723,7 +2773,9 @@ export class PipelineGenerator {
     );
     const createRecorder = (label) => {
       if (!device || disableCommandBatching) return undefined;
-      return opts.profile ? createProfilingRecorder(label, device) : createCommandRecorder(label, undefined, device);
+      return opts.profile
+        ? createProfilingRecorder(label, device)
+        : createCommandRecorder(label, { recordLabels: opts.debug === true }, device);
     };
     const recorder = createRecorder('prefill');
     const debugCheckBuffer = this.#state.debug
@@ -3043,10 +3095,10 @@ export class PipelineGenerator {
           // tracked buffers when GPU work completes. Profile runs keep the
           // sync path because resolveProfileTimings requires the submitted
           // work to be done.
-          const manifestSubmit = this.#state.modelConfig?.sessionSettings?.prefillChunkSubmitMode;
-          const chunkSubmitMode = (manifestSubmit !== null && manifestSubmit !== undefined)
-            ? manifestSubmit
-            : (this.#state.runtimeConfig?.inference?.session?.prefillChunkSubmitMode ?? 'sync');
+          const chunkSubmitMode = resolvePrefillChunkSubmitMode(
+            this.#state.runtimeConfig,
+            this.#state.modelConfig
+          );
           const chunkSubmitStart = performance.now();
           if (chunkSubmitMode === 'async' && !opts.profile) {
             currentRecorder.submit({ cleanup: 'deferred' });
