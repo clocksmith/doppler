@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-06-15T00:17:08.111Z",
+  "generatedAt": "2026-06-27T20:43:26.666Z",
   "release": {
     "channel": "main-snapshot",
     "version": "0.4.3",
-    "commitSha": "4dd758f37d283cc161d45969243de8e6fe2cfc0c",
+    "commitSha": "a9008ba1ab2ae8f92b12fde2df3a67b003acf5a1",
     "dirty": true
   },
   "sources": {
@@ -28,8 +28,8 @@
     },
     "compareConfig": {
       "path": "benchmarks/vendors/compare-engines.config.json",
-      "sha256": "1b2f908ccde766d1e70750be098750c964143f445ac488488377a529bdacc742",
-      "bytes": 5926,
+      "sha256": "b82253e37213914ed40662520e34a5c4ea59bcb8c894f476b82571ea5a54f34f",
+      "bytes": 6099,
       "updated": "2026-06-15"
     },
     "compareMetricContract": {
@@ -40,14 +40,20 @@
     },
     "benchmarkPolicy": {
       "path": "benchmarks/vendors/benchmark-policy.json",
-      "sha256": "8db2c2cc5d3eb1bf1aa55a4fddf9e43705bf7edf65eb3692ac9264eafe775dcb",
-      "bytes": 2529,
+      "sha256": "dd6c3d3ca91cf79e739e5075e80129eb90c7cea5c2819a1f4d1722e4717e71ac",
+      "bytes": 2928,
       "updated": "2026-03-29"
+    },
+    "localInferenceClaimMatrix": {
+      "path": "benchmarks/vendors/local-inference-claim-matrix.json",
+      "sha256": "3f15aa41e882c0da45c3859e5fa32bf5b62e86a412686d8fcbb214ad9a15ecc0",
+      "bytes": 23605,
+      "updated": "2026-06-27"
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "2a8c6c4cc867f31259706d328fca16645d4724972f7bfd67648ef2a886a0f384",
-      "bytes": 28859,
+      "sha256": "4fa149e82c03a4a5629a7823fdc106b89d989dc057bd39cb9a9d6bd0cbc3ae2f",
+      "bytes": 24990,
       "updated": "2026-06-15"
     },
     "harness:doppler": {
@@ -149,11 +155,11 @@
   },
   "summary": {
     "targetCount": 16,
-    "modelCoverageCount": 15,
+    "modelCoverageCount": 11,
     "compareProfileCount": 12,
     "catalogModelCount": 18,
     "workloadCount": 5,
-    "committedChartCount": 2,
+    "committedChartCount": 13,
     "hasLatestCompareResult": true
   },
   "targets": [
@@ -1080,24 +1086,6 @@
   ],
   "modelCoverage": [
     {
-      "dopplerModelId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
-      "dopplerModelBaseDir": null,
-      "dopplerSource": null,
-      "defaultTjsModelId": null,
-      "defaultDopplerSurface": "auto",
-      "compareLane": null,
-      "compareLaneReason": null,
-      "inCatalog": true,
-      "catalogLabel": "DiffusionGemma 26B A4B Instruct (Q4K/F16a)",
-      "catalogModes": [
-        "diffusion",
-        "run",
-        "translate"
-      ],
-      "catalogBaseUrl": null,
-      "catalogSizeBytes": 15694066921
-    },
-    {
       "dopplerModelId": "gemma-3-1b-it-q4k-ehf16-af32",
       "dopplerModelBaseDir": null,
       "dopplerSource": "quickstart-registry",
@@ -1130,57 +1118,6 @@
       ],
       "catalogBaseUrl": null,
       "catalogSizeBytes": 418518521
-    },
-    {
-      "dopplerModelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
-      "dopplerModelBaseDir": null,
-      "dopplerSource": null,
-      "defaultTjsModelId": null,
-      "defaultDopplerSurface": "auto",
-      "compareLane": null,
-      "compareLaneReason": null,
-      "inCatalog": true,
-      "catalogLabel": "Gemma 4 12B Instruct Text (W4A16 QAT/F16a)",
-      "catalogModes": [
-        "run",
-        "translate"
-      ],
-      "catalogBaseUrl": null,
-      "catalogSizeBytes": 10173636932
-    },
-    {
-      "dopplerModelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
-      "dopplerModelBaseDir": null,
-      "dopplerSource": null,
-      "defaultTjsModelId": null,
-      "defaultDopplerSurface": "auto",
-      "compareLane": null,
-      "compareLaneReason": null,
-      "inCatalog": true,
-      "catalogLabel": "Gemma 4 31B Instruct Text (Q4K/F16a)",
-      "catalogModes": [
-        "run",
-        "translate"
-      ],
-      "catalogBaseUrl": null,
-      "catalogSizeBytes": 19295019640
-    },
-    {
-      "dopplerModelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
-      "dopplerModelBaseDir": null,
-      "dopplerSource": null,
-      "defaultTjsModelId": null,
-      "defaultDopplerSurface": "auto",
-      "compareLane": null,
-      "compareLaneReason": null,
-      "inCatalog": true,
-      "catalogLabel": "Gemma 4 31B Instruct Text (Q4K/F32a)",
-      "catalogModes": [
-        "run",
-        "translate"
-      ],
-      "catalogBaseUrl": null,
-      "catalogSizeBytes": 19295019640
     },
     {
       "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
@@ -1392,31 +1329,421 @@
       }
     }
   ],
+  "localClaimLanes": [
+    {
+      "laneId": "gemma-3-1b-it-q4k-rdrr",
+      "status": "candidate",
+      "claimReady": false,
+      "statusReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "missingBackendIds": [
+        "chromium-webgpu"
+      ],
+      "missingWorkloadIds": [
+        "p064-d064-t0-k1",
+        "p256-d128-t0-k1",
+        "p512-d128-t0-k1"
+      ],
+      "missingDecodeProfileIds": [
+        "parity",
+        "throughput"
+      ],
+      "missingSurfaceWorkloads": [
+        "chromium-webgpu:p064-d064-t0-k1",
+        "chromium-webgpu:p256-d128-t0-k1",
+        "chromium-webgpu:p512-d128-t0-k1"
+      ],
+      "dopplerModelId": "gemma-3-1b-it-q4k-ehf16-af32",
+      "modelLabel": "Gemma 3 1B Instruct (Q4K/F32a)",
+      "surfaces": []
+    },
+    {
+      "laneId": "gemma-3-270m-it-q4k-rdrr",
+      "status": "candidate",
+      "claimReady": false,
+      "statusReason": "Fresh 2026-06-27 15-run throughput receipts cover p064, p256, and p512 on Chromium/browser, Node, and Bun with exact output match, nonzero decode, pinned local manifest hash 9c54c2092b1c4c077ebe1cac9960ce97bedee82c884c3596209a0cfcf500dba0, and the declared 8x8 overlapped readback cadence. Doppler leads TJS q4 on every p064 surface and every p512 surface, and leads the p256 browser surface. The lane remains candidate because p256 Node and Bun decode are TJS-leading despite passing correctness and throughput gates, with command recording as the dominant Doppler bottleneck. Node and Bun comparisons also carry the compare tool's cross-surface warning because TJS still runs in Chromium.",
+      "missingBackendIds": [],
+      "missingWorkloadIds": [],
+      "missingDecodeProfileIds": [],
+      "missingSurfaceWorkloads": [],
+      "dopplerModelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "modelLabel": "Gemma 3 270M Instruct (Q4K/F32a)",
+      "surfaces": [
+        {
+          "backendId": "bun-webgpu",
+          "surface": "bun",
+          "compareResult": "benchmarks/vendors/results/compare_20260627T202736.json",
+          "summarySvg": null,
+          "workloadId": "p064-d064-t0-k1",
+          "decodeProfile": "throughput",
+          "correctness": "exact",
+          "dopplerDecodeTokensPerSec": 115.53,
+          "transformersjsDecodeTokensPerSec": 110.4381590166501,
+          "decodeLeader": "doppler",
+          "dopplerPromptTokensPerSecToFirstToken": 968.41,
+          "transformersjsPromptTokensPerSecToFirstToken": 832.520325203252,
+          "promptLeader": "doppler",
+          "bottleneck": "command recording",
+          "bottleneckClass": "command-recording",
+          "computeSectionIds": [
+            "parity",
+            "throughput"
+          ]
+        },
+        {
+          "backendId": "bun-webgpu",
+          "surface": "bun",
+          "compareResult": "benchmarks/vendors/results/compare_20260627T203220.json",
+          "summarySvg": null,
+          "workloadId": "p256-d128-t0-k1",
+          "decodeProfile": "throughput",
+          "correctness": "exact",
+          "dopplerDecodeTokensPerSec": 108.39,
+          "transformersjsDecodeTokensPerSec": 109.93148758213273,
+          "decodeLeader": "transformersjs",
+          "dopplerPromptTokensPerSecToFirstToken": 1969.8,
+          "transformersjsPromptTokensPerSecToFirstToken": 992.2480620155038,
+          "promptLeader": "doppler",
+          "bottleneck": "command recording",
+          "bottleneckClass": "command-recording",
+          "computeSectionIds": [
+            "parity",
+            "throughput"
+          ]
+        },
+        {
+          "backendId": "bun-webgpu",
+          "surface": "bun",
+          "compareResult": "benchmarks/vendors/results/compare_20260627T200603.json",
+          "summarySvg": "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-bun-p512-d128-t0-k1-strix-halo-20260627T200603.svg",
+          "workloadId": "p512-d128-t0-k1",
+          "decodeProfile": "throughput",
+          "correctness": "exact",
+          "dopplerDecodeTokensPerSec": 105.55,
+          "transformersjsDecodeTokensPerSec": 97.65625000304358,
+          "decodeLeader": "doppler",
+          "dopplerPromptTokensPerSecToFirstToken": 2323.66,
+          "transformersjsPromptTokensPerSecToFirstToken": 1003.9707828345771,
+          "promptLeader": "doppler",
+          "bottleneck": "command recording",
+          "bottleneckClass": "command-recording",
+          "computeSectionIds": [
+            "parity",
+            "throughput"
+          ]
+        },
+        {
+          "backendId": "chromium-webgpu",
+          "surface": "browser",
+          "compareResult": "benchmarks/vendors/results/compare_20260627T202837.json",
+          "summarySvg": null,
+          "workloadId": "p064-d064-t0-k1",
+          "decodeProfile": "throughput",
+          "correctness": "exact",
+          "dopplerDecodeTokensPerSec": 175.82,
+          "transformersjsDecodeTokensPerSec": 107.08640002676256,
+          "decodeLeader": "doppler",
+          "dopplerPromptTokensPerSecToFirstToken": 1036.45,
+          "transformersjsPromptTokensPerSecToFirstToken": 840.3913075181378,
+          "promptLeader": "doppler",
+          "bottleneck": "readback map wait",
+          "bottleneckClass": "submit-readback-wait",
+          "computeSectionIds": [
+            "parity",
+            "throughput"
+          ]
+        },
+        {
+          "backendId": "chromium-webgpu",
+          "surface": "browser",
+          "compareResult": "benchmarks/vendors/results/compare_20260627T203348.json",
+          "summarySvg": null,
+          "workloadId": "p256-d128-t0-k1",
+          "decodeProfile": "throughput",
+          "correctness": "exact",
+          "dopplerDecodeTokensPerSec": 164.23,
+          "transformersjsDecodeTokensPerSec": 113.01546621008613,
+          "decodeLeader": "doppler",
+          "dopplerPromptTokensPerSecToFirstToken": 2071.2,
+          "transformersjsPromptTokensPerSecToFirstToken": 1021.4871415927153,
+          "promptLeader": "doppler",
+          "bottleneck": "readback map wait",
+          "bottleneckClass": "submit-readback-wait",
+          "computeSectionIds": [
+            "parity",
+            "throughput"
+          ]
+        },
+        {
+          "backendId": "chromium-webgpu",
+          "surface": "browser",
+          "compareResult": "benchmarks/vendors/results/compare_20260627T200811.json",
+          "summarySvg": "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-browser-p512-d128-t0-k1-strix-halo-20260627T200811.svg",
+          "workloadId": "p512-d128-t0-k1",
+          "decodeProfile": "throughput",
+          "correctness": "exact",
+          "dopplerDecodeTokensPerSec": 156.51,
+          "transformersjsDecodeTokensPerSec": 96.08073808111845,
+          "decodeLeader": "doppler",
+          "dopplerPromptTokensPerSecToFirstToken": 2426.55,
+          "transformersjsPromptTokensPerSecToFirstToken": 1023.9692809508675,
+          "promptLeader": "doppler",
+          "bottleneck": "readback map wait",
+          "bottleneckClass": "submit-readback-wait",
+          "computeSectionIds": [
+            "parity",
+            "throughput"
+          ]
+        },
+        {
+          "backendId": "node-webgpu",
+          "surface": "node",
+          "compareResult": "benchmarks/vendors/results/compare_20260627T202549.json",
+          "summarySvg": null,
+          "workloadId": "p064-d064-t0-k1",
+          "decodeProfile": "throughput",
+          "correctness": "exact",
+          "dopplerDecodeTokensPerSec": 112.49,
+          "transformersjsDecodeTokensPerSec": 108.16471941689541,
+          "decodeLeader": "doppler",
+          "dopplerPromptTokensPerSecToFirstToken": 1105.97,
+          "transformersjsPromptTokensPerSecToFirstToken": 831.871059959923,
+          "promptLeader": "doppler",
+          "bottleneck": "command recording",
+          "bottleneckClass": "command-recording",
+          "computeSectionIds": [
+            "parity",
+            "throughput"
+          ]
+        },
+        {
+          "backendId": "node-webgpu",
+          "surface": "node",
+          "compareResult": "benchmarks/vendors/results/compare_20260627T203031.json",
+          "summarySvg": null,
+          "workloadId": "p256-d128-t0-k1",
+          "decodeProfile": "throughput",
+          "correctness": "exact",
+          "dopplerDecodeTokensPerSec": 105.99,
+          "transformersjsDecodeTokensPerSec": 109.18344538181455,
+          "decodeLeader": "transformersjs",
+          "dopplerPromptTokensPerSecToFirstToken": 2156.26,
+          "transformersjsPromptTokensPerSecToFirstToken": 1008.4099816452958,
+          "promptLeader": "doppler",
+          "bottleneck": "command recording",
+          "bottleneckClass": "command-recording",
+          "computeSectionIds": [
+            "parity",
+            "throughput"
+          ]
+        },
+        {
+          "backendId": "node-webgpu",
+          "surface": "node",
+          "compareResult": "benchmarks/vendors/results/compare_20260627T200323.json",
+          "summarySvg": "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-node-p512-d128-t0-k1-strix-halo-20260627T200323.svg",
+          "workloadId": "p512-d128-t0-k1",
+          "decodeProfile": "throughput",
+          "correctness": "exact",
+          "dopplerDecodeTokensPerSec": 103,
+          "transformersjsDecodeTokensPerSec": 97.15273633911693,
+          "decodeLeader": "doppler",
+          "dopplerPromptTokensPerSecToFirstToken": 2453.29,
+          "transformersjsPromptTokensPerSecToFirstToken": 1021.5279025197415,
+          "promptLeader": "doppler",
+          "bottleneck": "command recording",
+          "bottleneckClass": "command-recording",
+          "computeSectionIds": [
+            "parity",
+            "throughput"
+          ]
+        }
+      ]
+    },
+    {
+      "laneId": "gemma-4-e2b-it-int4ple-rdrr",
+      "status": "candidate",
+      "claimReady": false,
+      "statusReason": "Local reference execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "missingBackendIds": [
+        "chromium-webgpu"
+      ],
+      "missingWorkloadIds": [
+        "p064-d064-t0-k1",
+        "p256-d128-t0-k1",
+        "p512-d128-t0-k1"
+      ],
+      "missingDecodeProfileIds": [
+        "parity",
+        "throughput"
+      ],
+      "missingSurfaceWorkloads": [
+        "chromium-webgpu:p064-d064-t0-k1",
+        "chromium-webgpu:p256-d128-t0-k1",
+        "chromium-webgpu:p512-d128-t0-k1"
+      ],
+      "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+      "modelLabel": "Gemma 4 E2B Instruct (Q4K/F32a/INT4 PLE)",
+      "surfaces": []
+    },
+    {
+      "laneId": "gemma-4-e2b-it-q4k-rdrr",
+      "status": "candidate",
+      "claimReady": false,
+      "statusReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "missingBackendIds": [
+        "chromium-webgpu"
+      ],
+      "missingWorkloadIds": [
+        "p064-d064-t0-k1",
+        "p256-d128-t0-k1",
+        "p512-d128-t0-k1"
+      ],
+      "missingDecodeProfileIds": [
+        "parity",
+        "throughput"
+      ],
+      "missingSurfaceWorkloads": [
+        "chromium-webgpu:p064-d064-t0-k1",
+        "chromium-webgpu:p256-d128-t0-k1",
+        "chromium-webgpu:p512-d128-t0-k1"
+      ],
+      "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+      "modelLabel": "Gemma 4 E2B Instruct (Q4K/F32a)",
+      "surfaces": []
+    },
+    {
+      "laneId": "qwen-3-5-0-8b-q4k-rdrr",
+      "status": "candidate",
+      "claimReady": false,
+      "statusReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "missingBackendIds": [
+        "chromium-webgpu"
+      ],
+      "missingWorkloadIds": [
+        "p064-d064-t0-k1",
+        "p256-d128-t0-k1",
+        "p512-d128-t0-k1"
+      ],
+      "missingDecodeProfileIds": [
+        "parity",
+        "throughput"
+      ],
+      "missingSurfaceWorkloads": [
+        "chromium-webgpu:p064-d064-t0-k1",
+        "chromium-webgpu:p256-d128-t0-k1",
+        "chromium-webgpu:p512-d128-t0-k1"
+      ],
+      "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "modelLabel": "Qwen 3.5 0.8B (Q4K)",
+      "surfaces": []
+    },
+    {
+      "laneId": "qwen-3-5-2b-q4k-rdrr",
+      "status": "candidate",
+      "claimReady": false,
+      "statusReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "missingBackendIds": [
+        "chromium-webgpu"
+      ],
+      "missingWorkloadIds": [
+        "p064-d064-t0-k1",
+        "p256-d128-t0-k1",
+        "p512-d128-t0-k1"
+      ],
+      "missingDecodeProfileIds": [
+        "parity",
+        "throughput"
+      ],
+      "missingSurfaceWorkloads": [
+        "chromium-webgpu:p064-d064-t0-k1",
+        "chromium-webgpu:p256-d128-t0-k1",
+        "chromium-webgpu:p512-d128-t0-k1"
+      ],
+      "dopplerModelId": "qwen-3-5-2b-q4k-ehaf16",
+      "modelLabel": "Qwen 3.5 2B (Q4K)",
+      "surfaces": []
+    },
+    {
+      "laneId": "translategemma-4b-it-q4k-rdrr",
+      "status": "candidate",
+      "claimReady": false,
+      "statusReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "missingBackendIds": [
+        "chromium-webgpu"
+      ],
+      "missingWorkloadIds": [
+        "p064-d064-t0-k1",
+        "p256-d128-t0-k1",
+        "p512-d128-t0-k1"
+      ],
+      "missingDecodeProfileIds": [
+        "parity",
+        "throughput"
+      ],
+      "missingSurfaceWorkloads": [
+        "chromium-webgpu:p064-d064-t0-k1",
+        "chromium-webgpu:p256-d128-t0-k1",
+        "chromium-webgpu:p512-d128-t0-k1"
+      ],
+      "dopplerModelId": "translategemma-4b-it-q4k-ehf16-af32",
+      "modelLabel": "TranslateGemma 4B Instruct (Q4K)",
+      "surfaces": []
+    }
+  ],
   "evidence": {
     "committedCharts": [
       "benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg",
-      "benchmarks/vendors/results/compare_gemma4_e2b_warm_cold_phases.svg"
+      "benchmarks/vendors/results/compare_gemma4_e2b_warm_cold_phases.svg",
+      "benchmarks/vendors/results/doppler-goat-claim-grid-20260627.svg",
+      "benchmarks/vendors/results/doppler-goat-surface-sweep-p512-20260627.svg",
+      "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-browser-p512-d128-t0-k1-strix-halo-20260627T200811.svg",
+      "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-bun-p512-d128-t0-k1-strix-halo-20260627.svg",
+      "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-bun-p512-d128-t0-k1-strix-halo-20260627T200603.svg",
+      "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-local-p512-d128-t0-k1-strix-halo-20260627.svg",
+      "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-node-p512-d128-t0-k1-strix-halo-20260627.svg",
+      "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-node-p512-d128-t0-k1-strix-halo-20260627T200323.svg",
+      "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-p064-d064-t0-k1-strix-halo-20260626.svg",
+      "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-p256-d128-t0-k1-strix-halo-20260626.svg",
+      "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-p512-d128-t0-k1-strix-halo-20260626.svg"
     ],
     "latestCompareResult": {
-      "path": "benchmarks/vendors/fixtures/gemma4-e2b-sky-t032-chat.compare.json",
-      "timestamp": "2026-04-10T01:26:49.765Z",
+      "path": "benchmarks/vendors/results/compare_20260627T203348.json",
+      "timestamp": "2026-06-27T20:32:38.248Z",
       "mode": "compute",
-      "section": "compute/parity",
-      "cacheMode": null,
-      "loadMode": null,
+      "section": "compute/throughput",
+      "cacheMode": "warm",
+      "loadMode": "opfs",
       "pairedComparable": true,
       "invalidReason": null,
-      "decodeProfile": "parity",
-      "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af32",
-      "dopplerModelSource": "local",
-      "tjsModelId": "onnx-community/gemma-4-E2B-it-ONNX",
+      "decodeProfile": "throughput",
+      "computeSectionIds": [
+        "parity",
+        "throughput"
+      ],
+      "dopplerSurface": "browser",
+      "dopplerExecution": {
+        "requestedSurface": "browser",
+        "commandSurface": "browser",
+        "cliExecutor": "node",
+        "commandSurfaceReason": "matches-requested-surface"
+      },
+      "dopplerModelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "dopplerModelSource": "explicit",
+      "tjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
       "compareLane": "performance_comparable",
-      "compareLaneReason": "Doppler and the paired Transformers.js ONNX q4f16 runner both produce coherent Gemma 4 output, but current greedy text is not exact-match; this lane is claimable for compute-throughput comparisons, not correctness-parity claims.",
+      "compareLaneReason": null,
       "dopplerKernelPath": "manifest-default",
-      "workloadId": null,
+      "correctness": {
+        "status": "match",
+        "exactMatch": true,
+        "normalizedMatch": true,
+        "matchingPrefixTokens": 128,
+        "firstMismatchTokenIndex": -1
+      },
+      "workloadId": "p256-d128-t0-k1",
       "workload": {
-        "prefillTokenTarget": 0,
-        "decodeTokenTarget": 32
+        "prefillTokenTarget": 256,
+        "decodeTokenTarget": 128
       },
       "environment": {
         "host": {
@@ -1476,8 +1803,8 @@
             "surface": null,
             "runtime": {
               "device": "webgpu",
-              "dtype": "q4f16",
-              "requestedDtype": "q4f16",
+              "dtype": "q4",
+              "requestedDtype": "q4",
               "executionProviderMode": "webgpu-only"
             },
             "browser": {
@@ -1502,47 +1829,145 @@
       },
       "metrics": {
         "decodeTokensPerSec": {
-          "doppler": 13.57,
-          "transformersjs": 11.389040436763992
+          "doppler": 164.23,
+          "transformersjs": 113.01546621008613
         },
         "promptTokensPerSecToFirstToken": {
-          "doppler": null,
-          "transformersjs": 102.01652665912545
+          "doppler": 2071.2,
+          "transformersjs": 1021.4871415927153
         },
         "firstTokenMs": {
-          "doppler": 237.6,
-          "transformersjs": 147.03500002622604
+          "doppler": 123.6,
+          "transformersjs": 250.61500000953674
         },
         "firstResponseMs": {
-          "doppler": 2396.6,
-          "transformersjs": 2504.060000002384
+          "doppler": 1160.4,
+          "transformersjs": 875.1800000071526
         },
         "decodeMs": {
-          "doppler": 2358.3,
-          "transformersjs": 2721.914999961853
+          "doppler": 779.4,
+          "transformersjs": 1123.7400000095367
         },
         "totalRunMs": {
-          "doppler": 2594.8,
-          "transformersjs": 2868.949999988079
+          "doppler": 910,
+          "transformersjs": 1411.3599999547005
         },
         "modelLoadMs": {
-          "doppler": 2159,
-          "transformersjs": 2357.024999976158
+          "doppler": 1036.8,
+          "transformersjs": 624.5649999976158
         },
         "decodeMsPerTokenP50": {
-          "doppler": 73.7,
-          "transformersjs": 88.2049999833107
+          "doppler": 6.09,
+          "transformersjs": 6.694999992847443
         },
         "decodeMsPerTokenP95": {
-          "doppler": 73.78,
-          "transformersjs": 93.8369999885559
+          "doppler": 6.3,
+          "transformersjs": 13.223999953269955
         },
         "decodeMsPerTokenP99": {
-          "doppler": 73.79,
-          "transformersjs": 95.15959998369216
+          "doppler": 6.38,
+          "transformersjs": 64.85759999990465
         }
       },
-      "origin": "fixture"
+      "dopplerBottleneck": {
+        "schemaVersion": 1,
+        "bottleneckClass": "submit-readback-wait",
+        "dominant": {
+          "id": "readback_map_wait",
+          "label": "readback map wait",
+          "ms": 491.207,
+          "shareOfDecode": 0.63
+        },
+        "decodeWallMs": 779.4,
+        "componentsMs": {
+          "commandRecordMs": 283.979,
+          "submitWaitMs": 491.357,
+          "readbackWaitMs": 498.347,
+          "effectiveSubmitReadbackWaitMs": 498.347,
+          "readbackMapWaitMs": 491.207,
+          "readbackCleanupMs": 6.607,
+          "readbackCopyMs": 0.073,
+          "gpuTimestampMs": null,
+          "orchestrationMs": 1.286,
+          "residualMs": 0
+        },
+        "recording": {
+          "opCount": 19177,
+          "passCount": 2,
+          "uniqueOpLabels": 67,
+          "msPerOp": 0.015,
+          "msPerPass": 141.989,
+          "opsPerExecutedBatchToken": 151,
+          "passesPerExecutedBatchToken": 0.016,
+          "topOps": [
+            {
+              "label": "attention",
+              "count": 2286,
+              "shareOfOps": 0.119
+            },
+            {
+              "label": "fused_ffn",
+              "count": 2286,
+              "shareOfOps": 0.119
+            },
+            {
+              "label": "rmsnorm_pair:post_attn_pre_ffn_norm",
+              "count": 2286,
+              "shareOfOps": 0.119
+            },
+            {
+              "label": "split_qkv_rmsnorm_rope_qk:f16kv_cache",
+              "count": 2286,
+              "shareOfOps": 0.119
+            },
+            {
+              "label": "rmsnorm_pair:post_ffn_next_input_norm",
+              "count": 2159,
+              "shareOfOps": 0.113
+            },
+            {
+              "label": "argmax_phase1",
+              "count": 127,
+              "shareOfOps": 0.007
+            },
+            {
+              "label": "argmax_phase2",
+              "count": 127,
+              "shareOfOps": 0.007
+            },
+            {
+              "label": "gather",
+              "count": 127,
+              "shareOfOps": 0.007
+            }
+          ]
+        }
+      },
+      "bottlenecks": [
+        {
+          "metricId": "modelLoadMs",
+          "label": "model load",
+          "unit": "ms",
+          "higherBetter": false,
+          "leader": "transformersjs",
+          "doppler": 1036.8,
+          "transformersjs": 624.5649999976158,
+          "gapRatio": 0.660035,
+          "gapPercent": 66.003538
+        },
+        {
+          "metricId": "firstResponseMs",
+          "label": "first response (first token + load)",
+          "unit": "ms",
+          "higherBetter": false,
+          "leader": "transformersjs",
+          "doppler": 1160.4,
+          "transformersjs": 875.1800000071526,
+          "gapRatio": 0.325899,
+          "gapPercent": 32.589867
+        }
+      ],
+      "origin": "local"
     }
   }
 }

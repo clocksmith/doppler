@@ -65,7 +65,7 @@
           },
           "defaultDopplerSurface": {
             "type": ["string", "null"],
-            "enum": ["auto", "node", "browser", null]
+            "enum": ["auto", "node", "browser", "bun", null]
           },
           "defaultUseChatTemplate": {
             "type": ["boolean", "null"]
@@ -106,6 +106,10 @@
                 "minLength": 1
               },
               "throughput": {
+                "type": ["string", "null"],
+                "minLength": 1
+              },
+              "custom": {
                 "type": ["string", "null"],
                 "minLength": 1
               }

@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="720" viewBox="0 0 960 720" role="img" aria-labelledby="chart-title-1 chart-desc-1">
+  <title id="chart-title-1">Local inference compare</title>
+  <desc id="chart-desc-1">Gemma 3 270m • 512 prompt tokens, 128 decode tokens, greedy • Section: compute/throughput</desc>
+  <defs><style>
+  text { fill: #111111; font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; letter-spacing: 0; }
+</style></defs>
+  <rect x="0" y="0" width="960" height="720" fill="#ffffff" />
+  <rect x="14" y="14" width="932" height="692" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.25" />
+  <text x="32" y="90" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="13">decode tok/s</text>
+<text x="32" y="106" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">higher is better</text>
+<line x1="240" y1="128" x2="908" y2="128" stroke="#d8d8d8" stroke-width="1" />
+<rect x="320" y="100" width="668" height="16" fill="#111111" />
+<text x="996" y="113" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">105.55 tok/s</text>
+<rect x="320" y="120" width="618.0423969875236" height="16" fill="#9bb7d6" />
+<text x="946.0423969875236" y="133" fill="#9bb7d6" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">97.66 tok/s</text>
+<text x="32" y="145" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="13">prompt tok/s to first token</text>
+<text x="32" y="161" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">higher is better</text>
+<line x1="240" y1="183" x2="908" y2="183" stroke="#d8d8d8" stroke-width="1" />
+<rect x="320" y="155" width="668" height="16" fill="#111111" />
+<text x="996" y="168" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">2323.7 tok/s</text>
+<rect x="320" y="175" width="288.61902469961075" height="16" fill="#9bb7d6" />
+<text x="616.6190246996107" y="188" fill="#9bb7d6" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">1004.0 tok/s</text>
+<text x="32" y="200" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="13">first token (TTFT)</text>
+<text x="32" y="216" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">lower is better</text>
+<line x1="240" y1="238" x2="908" y2="238" stroke="#d8d8d8" stroke-width="1" />
+<rect x="320" y="210" width="288.6163439249352" height="16" fill="#111111" />
+<text x="616.6163439249352" y="223" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">220.34 ms</text>
+<rect x="320" y="230" width="668" height="16" fill="#9bb7d6" />
+<text x="996" y="243" fill="#9bb7d6" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">509.98 ms</text>
+<text x="32" y="255" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="13">first response (first token + load)</text>
+<text x="32" y="271" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">lower is better</text>
+<line x1="240" y1="293" x2="908" y2="293" stroke="#d8d8d8" stroke-width="1" />
+<rect x="320" y="265" width="551.0841059863487" height="16" fill="#111111" />
+<text x="879.0841059863487" y="278" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">992.50 ms</text>
+<rect x="320" y="285" width="668" height="16" fill="#9bb7d6" />
+<text x="996" y="298" fill="#9bb7d6" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">1203.1 ms</text>
+<text x="32" y="310" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="13">decode ms</text>
+<text x="32" y="326" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">lower is better</text>
+<line x1="240" y1="348" x2="908" y2="348" stroke="#d8d8d8" stroke-width="1" />
+<rect x="320" y="320" width="622.9009596650828" height="16" fill="#111111" />
+<text x="950.9009596650828" y="333" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">1212.7 ms</text>
+<rect x="320" y="340" width="668" height="16" fill="#9bb7d6" />
+<text x="996" y="353" fill="#9bb7d6" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">1300.5 ms</text>
+<text x="32" y="365" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="13">total run ms</text>
+<text x="32" y="381" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">lower is better</text>
+<line x1="240" y1="403" x2="908" y2="403" stroke="#d8d8d8" stroke-width="1" />
+<rect x="320" y="375" width="530.7297129164062" height="16" fill="#111111" />
+<text x="858.7297129164062" y="388" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">1437.6 ms</text>
+<rect x="320" y="395" width="668" height="16" fill="#9bb7d6" />
+<text x="996" y="408" fill="#9bb7d6" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">1809.5 ms</text>
+<text x="32" y="420" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="13">model load</text>
+<text x="32" y="436" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">lower is better</text>
+<line x1="240" y1="458" x2="908" y2="458" stroke="#d8d8d8" stroke-width="1" />
+<rect x="320" y="430" width="668" height="16" fill="#111111" />
+<text x="996" y="443" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">772.16 ms</text>
+<rect x="320" y="450" width="599.5960941026432" height="16" fill="#9bb7d6" />
+<text x="927.5960941026432" y="463" fill="#9bb7d6" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">693.09 ms</text>
+<text x="32" y="475" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="13">decode p50 ms/token</text>
+<text x="32" y="491" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">lower is better</text>
+<line x1="240" y1="513" x2="908" y2="513" stroke="#d8d8d8" stroke-width="1" />
+<rect x="320" y="485" width="668" height="16" fill="#111111" />
+<text x="996" y="498" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">9.47 ms</text>
+<rect x="320" y="505" width="545.6156293089564" height="16" fill="#9bb7d6" />
+<text x="873.6156293089564" y="518" fill="#9bb7d6" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">7.74 ms</text>
+<text x="32" y="530" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="13">decode p95 ms/token</text>
+<text x="32" y="546" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">lower is better</text>
+<line x1="240" y1="568" x2="908" y2="568" stroke="#d8d8d8" stroke-width="1" />
+<rect x="320" y="540" width="418.58441558441575" height="16" fill="#111111" />
+<text x="746.5844155844158" y="553" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">9.65 ms</text>
+<rect x="320" y="560" width="668" height="16" fill="#9bb7d6" />
+<text x="996" y="573" fill="#9bb7d6" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">15.40 ms</text>
+<text x="32" y="585" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="13">decode p99 ms/token</text>
+<text x="32" y="601" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">lower is better</text>
+<line x1="240" y1="623" x2="908" y2="623" stroke="#d8d8d8" stroke-width="1" />
+<rect x="320" y="595" width="95.93330417398975" height="16" fill="#111111" />
+<text x="423.93330417398977" y="608" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">9.65 ms</text>
+<rect x="320" y="615" width="668" height="16" fill="#9bb7d6" />
+<text x="996" y="628" fill="#9bb7d6" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">67.19 ms</text>
+<text x="320" y="52" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="14">Doppler.js</text>
+<text x="410" y="52" fill="#9bb7d6" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="14">Transformers.js (v4)</text>
+<text x="40" y="36" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="18" font-weight="bold">Local inference compare</text>
+<text x="40" y="54" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">Gemma 3 270m • 512 prompt tokens, 128 decode tokens, greedy</text>
+<text x="40" y="698" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">Section: compute/throughput</text>
+
+</svg>

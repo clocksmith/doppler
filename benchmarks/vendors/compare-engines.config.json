@@ -25,6 +25,10 @@
       "defaultDopplerFormat": "rdrr",
       "defaultTjsFormat": "onnx",
       "safetensorsSourceId": "google/gemma-3-270m-it",
+      "dopplerRuntimeProfileByDecodeProfile": {
+        "throughput": "profiles/gemma3-270m-q4k-throughput-overlapped-probe",
+        "custom": "profiles/gemma3-270m-q4k-throughput-overlapped-probe"
+      },
       "compareLane": "performance_comparable",
       "compareLaneReason": null
     },

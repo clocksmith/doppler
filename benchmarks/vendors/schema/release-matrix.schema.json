@@ -11,6 +11,7 @@
     "targets",
     "modelCoverage",
     "workloads",
+    "localClaimLanes",
     "evidence"
   ],
   "properties": {
@@ -399,6 +400,200 @@
         "additionalProperties": false
       }
     },
+    "localClaimLanes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "laneId",
+          "status",
+          "claimReady",
+          "statusReason",
+          "missingBackendIds",
+          "missingWorkloadIds",
+          "missingDecodeProfileIds",
+          "missingSurfaceWorkloads",
+          "dopplerModelId",
+          "modelLabel",
+          "surfaces"
+        ],
+        "properties": {
+          "laneId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "claimReady": {
+            "type": "boolean"
+          },
+          "statusReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "missingBackendIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "missingWorkloadIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "missingDecodeProfileIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "missingSurfaceWorkloads": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "dopplerModelId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "modelLabel": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "surfaces": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "backendId",
+                "surface",
+                "compareResult",
+                "summarySvg",
+                "workloadId",
+                "decodeProfile",
+                "correctness",
+                "dopplerDecodeTokensPerSec",
+                "transformersjsDecodeTokensPerSec",
+                "decodeLeader",
+                "dopplerPromptTokensPerSecToFirstToken",
+                "transformersjsPromptTokensPerSecToFirstToken",
+                "promptLeader",
+                "bottleneck",
+                "bottleneckClass",
+                "computeSectionIds"
+              ],
+              "properties": {
+                "backendId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "surface": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "compareResult": {
+                  "type": "string"
+                },
+                "summarySvg": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "workloadId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "decodeProfile": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "correctness": {
+                  "type": "string"
+                },
+                "dopplerDecodeTokensPerSec": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "transformersjsDecodeTokensPerSec": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "decodeLeader": {
+                  "enum": [
+                    "doppler",
+                    "transformersjs",
+                    "tie",
+                    null
+                  ]
+                },
+                "dopplerPromptTokensPerSecToFirstToken": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "transformersjsPromptTokensPerSecToFirstToken": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "promptLeader": {
+                  "enum": [
+                    "doppler",
+                    "transformersjs",
+                    "tie",
+                    null
+                  ]
+                },
+                "bottleneck": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "bottleneckClass": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "computeSectionIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
     "evidence": {
       "type": "object",
       "required": [
@@ -424,12 +619,18 @@
             "mode",
             "section",
             "decodeProfile",
+            "computeSectionIds",
+            "dopplerSurface",
+            "dopplerExecution",
             "dopplerModelId",
             "tjsModelId",
             "dopplerKernelPath",
+            "correctness",
             "workloadId",
             "workload",
             "environment",
+            "dopplerBottleneck",
+            "bottlenecks",
             "metrics"
           ],
           "properties": {
@@ -489,6 +690,54 @@
                 "null"
               ]
             },
+            "computeSectionIds": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "dopplerSurface": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "dopplerExecution": {
+              "type": "object",
+              "required": [
+                "requestedSurface",
+                "commandSurface",
+                "cliExecutor",
+                "commandSurfaceReason"
+              ],
+              "properties": {
+                "requestedSurface": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "commandSurface": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "cliExecutor": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "commandSurfaceReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
             "dopplerModelId": {
               "type": [
                 "string",
@@ -524,6 +773,43 @@
                 "string",
                 "null"
               ]
+            },
+            "correctness": {
+              "type": "object",
+              "required": [
+                "status",
+                "exactMatch",
+                "normalizedMatch",
+                "matchingPrefixTokens",
+                "firstMismatchTokenIndex"
+              ],
+              "properties": {
+                "status": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "exactMatch": {
+                  "type": "boolean"
+                },
+                "normalizedMatch": {
+                  "type": "boolean"
+                },
+                "matchingPrefixTokens": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "firstMismatchTokenIndex": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "additionalProperties": false
             },
             "workloadId": {
               "type": [
@@ -1063,6 +1349,295 @@
                 }
               },
               "additionalProperties": false
+            },
+            "dopplerBottleneck": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "required": [
+                "schemaVersion",
+                "bottleneckClass",
+                "dominant",
+                "decodeWallMs",
+                "componentsMs",
+                "recording"
+              ],
+              "properties": {
+                "schemaVersion": {
+                  "type": "integer"
+                },
+                "bottleneckClass": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "dominant": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "label",
+                    "ms",
+                    "shareOfDecode"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "label": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "ms": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "shareOfDecode": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "decodeWallMs": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "componentsMs": {
+                  "type": "object",
+                  "required": [
+                    "commandRecordMs",
+                    "submitWaitMs",
+                    "readbackWaitMs",
+                    "effectiveSubmitReadbackWaitMs",
+                    "readbackMapWaitMs",
+                    "readbackCleanupMs",
+                    "readbackCopyMs",
+                    "gpuTimestampMs",
+                    "orchestrationMs",
+                    "residualMs"
+                  ],
+                  "properties": {
+                    "commandRecordMs": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "submitWaitMs": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "readbackWaitMs": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "effectiveSubmitReadbackWaitMs": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "readbackMapWaitMs": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "readbackCleanupMs": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "readbackCopyMs": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "gpuTimestampMs": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "orchestrationMs": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "residualMs": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "recording": {
+                  "type": "object",
+                  "required": [
+                    "opCount",
+                    "passCount",
+                    "uniqueOpLabels",
+                    "msPerOp",
+                    "msPerPass",
+                    "opsPerExecutedBatchToken",
+                    "passesPerExecutedBatchToken",
+                    "topOps"
+                  ],
+                  "properties": {
+                    "opCount": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "passCount": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "uniqueOpLabels": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "msPerOp": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "msPerPass": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "opsPerExecutedBatchToken": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "passesPerExecutedBatchToken": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "topOps": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "label",
+                          "count",
+                          "shareOfOps"
+                        ],
+                        "properties": {
+                          "label": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "count": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "shareOfOps": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "bottlenecks": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "metricId",
+                  "label",
+                  "unit",
+                  "higherBetter",
+                  "leader",
+                  "doppler",
+                  "transformersjs",
+                  "gapRatio",
+                  "gapPercent"
+                ],
+                "properties": {
+                  "metricId": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "unit": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "higherBetter": {
+                    "type": "boolean"
+                  },
+                  "leader": {
+                    "type": "string",
+                    "enum": [
+                      "transformersjs"
+                    ]
+                  },
+                  "doppler": {
+                    "type": "number"
+                  },
+                  "transformersjs": {
+                    "type": "number"
+                  },
+                  "gapRatio": {
+                    "type": "number"
+                  },
+                  "gapPercent": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              }
             },
             "metrics": {
               "type": "object",

@@ -3,13 +3,13 @@
   "benchmarkPolicy": {
     "source": "benchmarks/vendors/benchmark-policy.json",
     "schemaVersion": 1,
-    "sourceSha256": "f5053f65272002f5f2bd8ba379b5de5f5c64c0a19657908f36974dfeefcdcba3",
+    "sourceSha256": "6e0e81bc2571a0a1eb6451f0f9a6a3165b015bff9ba4537a4f5a6f2b1a9b93c8",
     "updated": "2026-03-29"
   },
   "compareConfig": {
     "source": "benchmarks/vendors/compare-engines.config.json",
     "schemaVersion": 1,
-    "sourceSha256": "a30e04c3f4ad7479cd22e8683c5fe8c5b85e73847f82aa241d61b9573dd1957e",
+    "sourceSha256": "3ca46c79387e23929940a5b0dd99440487049d253ef469037f0c8ede98dd1973",
     "profileSource": "config",
     "updated": "2026-03-08"
   },

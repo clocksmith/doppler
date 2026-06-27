@@ -1,0 +1,907 @@
+{
+  "schemaVersion": 1,
+  "matrixId": "local-medium-inference-2026-06-26",
+  "updated": "2026-06-27",
+  "refreshedAt": "2026-06-26T22:26:00.000Z",
+  "refreshSources": [
+    {
+      "id": "local:catalog",
+      "kind": "local-json",
+      "locator": "models/catalog.json",
+      "checkedAt": "2026-06-26T15:55:59.000Z",
+      "purpose": "Doppler local model availability, tested state, cataloged Transformers.js mapping, and artifact byte size."
+    },
+    {
+      "id": "local:manifests",
+      "kind": "local-manifest",
+      "locator": "models/local/*/manifest.json",
+      "checkedAt": "2026-06-26T22:26:00.000Z",
+      "purpose": "Manifest hashes, tokenizer hashes, weight-pack identity, quantization, and shard-set identity."
+    },
+    {
+      "id": "hf:google-gemma-4",
+      "kind": "huggingface-collection",
+      "locator": "https://huggingface.co/collections/google/gemma-4",
+      "checkedAt": "2026-06-26T15:55:59.000Z",
+      "purpose": "Current Gemma 4 medium-model selection scan for local inference candidates."
+    },
+    {
+      "id": "hf:qwen3-5",
+      "kind": "huggingface-collection",
+      "locator": "https://huggingface.co/collections/Qwen/qwen35",
+      "checkedAt": "2026-06-26T15:55:59.000Z",
+      "purpose": "Current Qwen 3.5 compact and medium model selection scan."
+    },
+    {
+      "id": "hf:translategemma",
+      "kind": "huggingface-collection",
+      "locator": "https://huggingface.co/collections/google/translategemma",
+      "checkedAt": "2026-06-26T15:55:59.000Z",
+      "purpose": "Current TranslateGemma model selection scan."
+    }
+  ],
+  "selectionPolicy": {
+    "scope": "current local text-generation models that fit on this Strix Halo UMA machine without paging or hidden CPU fallback",
+    "machineClass": "linux-x64-amd-strix-halo-uma-128gb",
+    "maxArtifactBytes": 8589934592,
+    "minSystemMemoryBytes": 68719476736,
+    "requiresLocalManifest": true,
+    "requiresArtifactHashes": true,
+    "requiresCompareProfile": true,
+    "requiresVerifiedLocalExecution": true,
+    "allowedRuntimeStatuses": [
+      "active"
+    ],
+    "allowedCompressionFormats": [
+      "rdrr"
+    ],
+    "excludedModelTypes": [
+      "embedding",
+      "diffusion",
+      "energy"
+    ]
+  },
+  "sharedRunContract": {
+    "promptSet": "benchmarks/vendors/workloads.json",
+    "workloads": [
+      "p064-d064-t0-k1",
+      "p256-d128-t0-k1",
+      "p512-d128-t0-k1"
+    ],
+    "contextLengths": [
+      2048,
+      8192
+    ],
+    "warmupRuns": 1,
+    "timedRuns": 15,
+    "minTimedSamplesForPercentiles": 15,
+    "minDecodeTokens": 1,
+    "samplingPolicy": {
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "seed": 0
+    },
+    "batchDecodeProfiles": [
+      {
+        "id": "parity",
+        "batchSize": 4,
+        "readbackInterval": 4,
+        "disableMultiTokenDecode": false,
+        "stopCheckMode": "batch"
+      },
+      {
+        "id": "throughput",
+        "batchSize": 8,
+        "readbackInterval": 8,
+        "disableMultiTokenDecode": false,
+        "stopCheckMode": "batch"
+      }
+    ],
+    "requiredRuntimeBackends": [
+      {
+        "id": "chromium-webgpu",
+        "target": "doppler",
+        "surface": "browser",
+        "backend": "webgpu",
+        "format": "rdrr",
+        "feature": "browser_webgpu",
+        "requiredForPromotion": true
+      },
+      {
+        "id": "node-webgpu",
+        "target": "doppler",
+        "surface": "node",
+        "backend": "webgpu",
+        "format": "rdrr",
+        "feature": "node_webgpu",
+        "requiredForPromotion": true
+      },
+      {
+        "id": "bun-webgpu",
+        "target": "doppler-bun",
+        "surface": "bun",
+        "backend": "webgpu",
+        "format": "rdrr",
+        "feature": "bun_webgpu",
+        "requiredForPromotion": true
+      }
+    ],
+    "timingScope": {
+      "prefill": "model-input prompt token evaluation only; tokenizer/rendering time is recorded separately",
+      "decode": "generated token loop after prefill, including scheduled GPU submit/readback work",
+      "endToEnd": "model load plus prefill plus decode under the declared cache/load mode",
+      "load": "manifest, tokenizer, weights, runtime session creation, and residency setup",
+      "readbackAccounting": "readback interval, tokens per readback, p50, p95, and p99 must be present"
+    },
+    "memoryResidency": {
+      "loadModes": [
+        "opfs",
+        "http"
+      ],
+      "cacheModes": [
+        "cold",
+        "warm"
+      ],
+      "requireResidentWeights": true,
+      "forbidCpuFallback": true,
+      "recordPeakMemory": true,
+      "recordResidentMemory": true
+    },
+    "competitorPolicy": {
+      "targets": [
+        "transformersjs"
+      ],
+      "samePrompts": true,
+      "sameSampling": true,
+      "sameHardware": true,
+      "sameThermalPolicy": true,
+      "sameReportShape": true,
+      "sameArtifactsWherePossible": true
+    }
+  },
+  "promotionGates": {
+    "nonZeroExecution": true,
+    "providerImportsOk": true,
+    "noCpuFallback": true,
+    "promptSemanticsMatch": true,
+    "outputSemanticsMatch": true,
+    "stableReadbackAccounting": true,
+    "percentilesPresent": true,
+    "artifactHashesMatch": true,
+    "memoryBudgetRespected": true,
+    "compareArtifactRequired": true,
+    "throughputCadence": {
+      "requireBatchAccounting": true,
+      "minDecodeTokensPerSecRatioVsParity": 1,
+      "minBatchResolutionEfficiency": 0.95,
+      "maxBatchOverrunTokens": 0,
+      "description": "A throughput decode cadence is promotable only when it is not slower than parity cadence and its reported batch work resolves almost all executed batch decode tokens before returning to the generation loop."
+    }
+  },
+  "requiredMeasurements": [
+    "prefillTokensPerSec",
+    "decodeTokensPerSec",
+    "promptTokensPerSecToFirstToken",
+    "firstTokenMs",
+    "firstResponseMs",
+    "prefillMs",
+    "decodeMs",
+    "totalRunMs",
+    "modelLoadMs",
+    "decodeMsPerTokenP50",
+    "decodeMsPerTokenP95",
+    "decodeMsPerTokenP99",
+    "peakMemoryBytes",
+    "residentMemoryBytes",
+    "cacheReuse",
+    "compressionRatio",
+    "qualityParity",
+    "failureCount"
+  ],
+  "lanes": [
+    {
+      "id": "gemma-3-270m-it-q4k-rdrr",
+      "status": "candidate",
+      "statusReason": "Fresh 2026-06-27 15-run throughput receipts cover p064, p256, and p512 on Chromium/browser, Node, and Bun with exact output match, nonzero decode, pinned local manifest hash 9c54c2092b1c4c077ebe1cac9960ce97bedee82c884c3596209a0cfcf500dba0, and the declared 8x8 overlapped readback cadence. Doppler leads TJS q4 on every p064 surface and every p512 surface, and leads the p256 browser surface. The lane remains candidate because p256 Node and Bun decode are TJS-leading despite passing correctness and throughput gates, with command recording as the dominant Doppler bottleneck. Node and Bun comparisons also carry the compare tool's cross-surface warning because TJS still runs in Chromium.",
+      "model": {
+        "dopplerModelId": "gemma-3-270m-it-q4k-ehf16-af32",
+        "label": "Gemma 3 270M Instruct (Q4K/F32a)",
+        "family": "gemma3",
+        "parameterClass": "270m",
+        "sourceCheckpointId": "google/gemma-3-270m-it",
+        "sourceRevision": null,
+        "tokenizer": {
+          "type": "bundled",
+          "file": "tokenizer.json",
+          "sha256": "be6955513a2509d69d18e82180c2a477ad99358d15212fb81d957566d8186075",
+          "vocabSize": 262144
+        }
+      },
+      "artifact": {
+        "format": "rdrr",
+        "compression": "q4k-ehf16-af32",
+        "quantization": "Q4_K_M",
+        "manifestPath": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
+        "manifestSha256": "9c54c2092b1c4c077ebe1cac9960ce97bedee82c884c3596209a0cfcf500dba0",
+        "weightPackId": "gemma-3-270m-it-q4k-ehf16-af32-wp-catalog-v1",
+        "weightPackHash": null,
+        "manifestVariantId": "gemma-3-270m-it-q4k-ehf16-af32-mv-exec-v1",
+        "shardSetHash": "sha256:c41b842878dbae11b1d6a052b193b0307c7c1518c41f00df99992f51f9a86fff",
+        "sizeBytes": 418518521,
+        "compressionRatio": null
+      },
+      "run": {
+        "contextLengths": [
+          2048,
+          8192
+        ],
+        "workloads": [
+          "p064-d064-t0-k1",
+          "p256-d128-t0-k1",
+          "p512-d128-t0-k1"
+        ],
+        "decodeProfiles": [
+          "parity",
+          "throughput"
+        ],
+        "runtimeProfileByDecodeProfile": {
+          "throughput": "profiles/gemma3-270m-q4k-throughput-overlapped-probe"
+        },
+        "runtimeBackends": [
+          {
+            "target": "doppler",
+            "surface": "browser",
+            "backend": "webgpu",
+            "format": "rdrr",
+            "loadModes": [
+              "opfs",
+              "http"
+            ]
+          },
+          {
+            "target": "doppler",
+            "surface": "node",
+            "backend": "webgpu",
+            "format": "rdrr",
+            "loadModes": [
+              "opfs"
+            ]
+          },
+          {
+            "target": "doppler-bun",
+            "surface": "bun",
+            "backend": "webgpu",
+            "format": "rdrr",
+            "loadModes": [
+              "opfs"
+            ]
+          }
+        ],
+        "graphTransforms": [
+          "manifest-default"
+        ]
+      },
+      "compare": {
+        "competitors": [
+          {
+            "target": "transformersjs",
+            "modelId": "onnx-community/gemma-3-270m-it-ONNX",
+            "format": "onnx",
+            "dtype": "q4f16",
+            "expectedArtifactHash": "sha256:tree-nocache-v1:c612c90ae4fb27dbd3a45cdbb9ef565d95e3b4505b1e4a4d2f3fa07d8465f1a7"
+          }
+        ],
+        "sameArtifactWherePossible": false,
+        "promptSemantics": "compare-engines shared rendered prompt contract",
+        "outputSemantics": "non-empty generated text with nonzero decode tokens and matching stop-policy accounting",
+        "parityCheck": "greedy lane requires coherent output plus prompt/token accounting match; exact text match is required only for parity-labelled claims"
+      },
+      "memoryBudget": {
+        "artifactBytes": 418518521,
+        "maxResidentBytes": 805306368,
+        "maxPeakBytes": 1073741824
+      },
+      "evidence": {
+        "localExecutionReport": "reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json",
+        "compareResult": "benchmarks/vendors/results/compare_20260627T200811.json",
+        "summarySvg": "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-browser-p512-d128-t0-k1-strix-halo-20260627T200811.svg",
+        "surfaceCompareResults": [
+          {
+            "backendId": "chromium-webgpu",
+            "compareResult": "benchmarks/vendors/results/compare_20260627T200811.json",
+            "summarySvg": "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-browser-p512-d128-t0-k1-strix-halo-20260627T200811.svg"
+          },
+          {
+            "backendId": "node-webgpu",
+            "compareResult": "benchmarks/vendors/results/compare_20260627T200323.json",
+            "summarySvg": "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-node-p512-d128-t0-k1-strix-halo-20260627T200323.svg"
+          },
+          {
+            "backendId": "bun-webgpu",
+            "compareResult": "benchmarks/vendors/results/compare_20260627T200603.json",
+            "summarySvg": "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-bun-p512-d128-t0-k1-strix-halo-20260627T200603.svg"
+          }
+        ],
+        "workloadCompareResults": [
+          {
+            "backendId": "chromium-webgpu",
+            "workloadId": "p064-d064-t0-k1",
+            "compareResult": "benchmarks/vendors/results/compare_20260627T202837.json",
+            "summarySvg": null
+          },
+          {
+            "backendId": "chromium-webgpu",
+            "workloadId": "p256-d128-t0-k1",
+            "compareResult": "benchmarks/vendors/results/compare_20260627T203348.json",
+            "summarySvg": null
+          },
+          {
+            "backendId": "chromium-webgpu",
+            "workloadId": "p512-d128-t0-k1",
+            "compareResult": "benchmarks/vendors/results/compare_20260627T200811.json",
+            "summarySvg": "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-browser-p512-d128-t0-k1-strix-halo-20260627T200811.svg"
+          },
+          {
+            "backendId": "node-webgpu",
+            "workloadId": "p064-d064-t0-k1",
+            "compareResult": "benchmarks/vendors/results/compare_20260627T202549.json",
+            "summarySvg": null
+          },
+          {
+            "backendId": "node-webgpu",
+            "workloadId": "p256-d128-t0-k1",
+            "compareResult": "benchmarks/vendors/results/compare_20260627T203031.json",
+            "summarySvg": null
+          },
+          {
+            "backendId": "node-webgpu",
+            "workloadId": "p512-d128-t0-k1",
+            "compareResult": "benchmarks/vendors/results/compare_20260627T200323.json",
+            "summarySvg": "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-node-p512-d128-t0-k1-strix-halo-20260627T200323.svg"
+          },
+          {
+            "backendId": "bun-webgpu",
+            "workloadId": "p064-d064-t0-k1",
+            "compareResult": "benchmarks/vendors/results/compare_20260627T202736.json",
+            "summarySvg": null
+          },
+          {
+            "backendId": "bun-webgpu",
+            "workloadId": "p256-d128-t0-k1",
+            "compareResult": "benchmarks/vendors/results/compare_20260627T203220.json",
+            "summarySvg": null
+          },
+          {
+            "backendId": "bun-webgpu",
+            "workloadId": "p512-d128-t0-k1",
+            "compareResult": "benchmarks/vendors/results/compare_20260627T200603.json",
+            "summarySvg": "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-bun-p512-d128-t0-k1-strix-halo-20260627T200603.svg"
+          }
+        ]
+      }
+    },
+    {
+      "id": "gemma-3-1b-it-q4k-rdrr",
+      "status": "candidate",
+      "statusReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "model": {
+        "dopplerModelId": "gemma-3-1b-it-q4k-ehf16-af32",
+        "label": "Gemma 3 1B Instruct (Q4K/F32a)",
+        "family": "gemma3",
+        "parameterClass": "1b",
+        "sourceCheckpointId": "google/gemma-3-1b-it",
+        "sourceRevision": null,
+        "tokenizer": {
+          "type": "bundled",
+          "file": "tokenizer.json",
+          "sha256": "8ef59ebecae680b6ab1ebc65c3855238032d55dea31d27968a6eacf458144ee9",
+          "vocabSize": 262144
+        }
+      },
+      "artifact": {
+        "format": "rdrr",
+        "compression": "q4k-ehf16-af32",
+        "quantization": "Q4_K_M",
+        "manifestPath": "models/local/gemma-3-1b-it-q4k-ehf16-af32/manifest.json",
+        "manifestSha256": "68ac303bc52fc5ae87953a6e13e8cc0af940b0071bd3e2bc81583bd8e3974b67",
+        "weightPackId": "gemma-3-1b-it-q4k-ehf16-af32-wp-catalog-v1",
+        "weightPackHash": null,
+        "manifestVariantId": "gemma-3-1b-it-q4k-ehf16-af32-mv-exec-v1",
+        "shardSetHash": "sha256:76ded25226c2ce4ae77229866d3fb8305e033fd0f96a0a0d28febe264ade7b3e",
+        "sizeBytes": 1044786820,
+        "compressionRatio": null
+      },
+      "run": {
+        "contextLengths": [
+          2048,
+          8192
+        ],
+        "workloads": [
+          "p064-d064-t0-k1",
+          "p256-d128-t0-k1",
+          "p512-d128-t0-k1"
+        ],
+        "decodeProfiles": [
+          "parity",
+          "throughput"
+        ],
+        "runtimeBackends": [
+          {
+            "target": "doppler",
+            "surface": "browser",
+            "backend": "webgpu",
+            "format": "rdrr",
+            "loadModes": [
+              "opfs",
+              "http"
+            ]
+          }
+        ],
+        "graphTransforms": [
+          "manifest-default"
+        ]
+      },
+      "compare": {
+        "competitors": [
+          {
+            "target": "transformersjs",
+            "modelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+            "format": "onnx",
+            "dtype": "q4f16",
+            "expectedArtifactHash": null
+          }
+        ],
+        "sameArtifactWherePossible": false,
+        "promptSemantics": "compare-engines shared rendered prompt contract",
+        "outputSemantics": "non-empty generated text with nonzero decode tokens and matching stop-policy accounting",
+        "parityCheck": "greedy lane requires coherent output plus prompt/token accounting match; exact text match is required only for parity-labelled claims"
+      },
+      "memoryBudget": {
+        "artifactBytes": 1044786820,
+        "maxResidentBytes": 2147483648,
+        "maxPeakBytes": 3221225472
+      },
+      "evidence": {
+        "localExecutionReport": "reports/release-claims/gemma-3-1b-it-q4k-ehf16-af32/2026-06-24T01-23-10.494Z.json",
+        "compareResult": null,
+        "summarySvg": null
+      }
+    },
+    {
+      "id": "qwen-3-5-0-8b-q4k-rdrr",
+      "status": "candidate",
+      "statusReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "model": {
+        "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "label": "Qwen 3.5 0.8B (Q4K)",
+        "family": "qwen3.5",
+        "parameterClass": "0.8b",
+        "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
+        "sourceRevision": "2fc06364715b967f1860aea9cf38778875588b17",
+        "tokenizer": {
+          "type": "bundled",
+          "file": "tokenizer.json",
+          "sha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+          "vocabSize": 248044
+        }
+      },
+      "artifact": {
+        "format": "rdrr",
+        "compression": "q4k-ehaf16",
+        "quantization": "Q4_K_M",
+        "manifestPath": "models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
+        "manifestSha256": "595cb5f90e81d57470d86a94740c99a10f11204df8e85a8e4210bef77161a713",
+        "weightPackId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
+        "weightPackHash": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
+        "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
+        "shardSetHash": "sha256:cf96ba93f47cdbf90282683996e4d2bbc5733d82fca8f270cd90d9527b7e9e1d",
+        "sizeBytes": 1155348912,
+        "compressionRatio": null
+      },
+      "run": {
+        "contextLengths": [
+          2048,
+          8192
+        ],
+        "workloads": [
+          "p064-d064-t0-k1",
+          "p256-d128-t0-k1",
+          "p512-d128-t0-k1"
+        ],
+        "decodeProfiles": [
+          "parity",
+          "throughput"
+        ],
+        "runtimeBackends": [
+          {
+            "target": "doppler",
+            "surface": "browser",
+            "backend": "webgpu",
+            "format": "rdrr",
+            "loadModes": [
+              "opfs",
+              "http"
+            ]
+          }
+        ],
+        "graphTransforms": [
+          "manifest-default"
+        ]
+      },
+      "compare": {
+        "competitors": [
+          {
+            "target": "transformersjs",
+            "modelId": "onnx-community/Qwen3.5-0.8B-ONNX",
+            "format": "onnx",
+            "dtype": "q4f16",
+            "expectedArtifactHash": null
+          }
+        ],
+        "sameArtifactWherePossible": false,
+        "promptSemantics": "compare-engines shared rendered prompt contract",
+        "outputSemantics": "non-empty generated text with nonzero decode tokens and matching stop-policy accounting",
+        "parityCheck": "greedy lane requires coherent output plus prompt/token accounting match; exact text match is required only for parity-labelled claims"
+      },
+      "memoryBudget": {
+        "artifactBytes": 1155348912,
+        "maxResidentBytes": 2147483648,
+        "maxPeakBytes": 3221225472
+      },
+      "evidence": {
+        "localExecutionReport": "reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json",
+        "compareResult": null,
+        "summarySvg": null
+      }
+    },
+    {
+      "id": "qwen-3-5-2b-q4k-rdrr",
+      "status": "candidate",
+      "statusReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "model": {
+        "dopplerModelId": "qwen-3-5-2b-q4k-ehaf16",
+        "label": "Qwen 3.5 2B (Q4K)",
+        "family": "qwen3.5",
+        "parameterClass": "2b",
+        "sourceCheckpointId": "Qwen/Qwen3.5-2B",
+        "sourceRevision": null,
+        "tokenizer": {
+          "type": "bundled",
+          "file": "tokenizer.json",
+          "sha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+          "vocabSize": 248044
+        }
+      },
+      "artifact": {
+        "format": "rdrr",
+        "compression": "q4k-ehaf16",
+        "quantization": "Q4_K_M",
+        "manifestPath": "models/local/qwen-3-5-2b-q4k-ehaf16/manifest.json",
+        "manifestSha256": "b80f12413c5a00fd0ecc32cf6315a2e1c1e1133fc0babcf0d490335863235719",
+        "weightPackId": "qwen-3-5-2b-q4k-ehaf16-wp-catalog-v1",
+        "weightPackHash": null,
+        "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-exec-v1",
+        "shardSetHash": "sha256:f417b798da84ba5232807dc0a3b664f1a5e20dd9016cf3b7b550c09fce62d987",
+        "sizeBytes": 2496068973,
+        "compressionRatio": null
+      },
+      "run": {
+        "contextLengths": [
+          2048,
+          8192
+        ],
+        "workloads": [
+          "p064-d064-t0-k1",
+          "p256-d128-t0-k1",
+          "p512-d128-t0-k1"
+        ],
+        "decodeProfiles": [
+          "parity",
+          "throughput"
+        ],
+        "runtimeBackends": [
+          {
+            "target": "doppler",
+            "surface": "browser",
+            "backend": "webgpu",
+            "format": "rdrr",
+            "loadModes": [
+              "opfs",
+              "http"
+            ]
+          }
+        ],
+        "graphTransforms": [
+          "manifest-default"
+        ]
+      },
+      "compare": {
+        "competitors": [
+          {
+            "target": "transformersjs",
+            "modelId": "onnx-community/Qwen3.5-2B-ONNX",
+            "format": "onnx",
+            "dtype": "q4f16",
+            "expectedArtifactHash": null
+          }
+        ],
+        "sameArtifactWherePossible": false,
+        "promptSemantics": "compare-engines shared rendered prompt contract",
+        "outputSemantics": "non-empty generated text with nonzero decode tokens and matching stop-policy accounting",
+        "parityCheck": "greedy lane requires coherent output plus prompt/token accounting match; exact text match is required only for parity-labelled claims"
+      },
+      "memoryBudget": {
+        "artifactBytes": 2496068973,
+        "maxResidentBytes": 4294967296,
+        "maxPeakBytes": 6442450944
+      },
+      "evidence": {
+        "localExecutionReport": "reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json",
+        "compareResult": null,
+        "summarySvg": null
+      }
+    },
+    {
+      "id": "translategemma-4b-it-q4k-rdrr",
+      "status": "candidate",
+      "statusReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "model": {
+        "dopplerModelId": "translategemma-4b-it-q4k-ehf16-af32",
+        "label": "TranslateGemma 4B Instruct (Q4K)",
+        "family": "translategemma",
+        "parameterClass": "4b",
+        "sourceCheckpointId": "google/translategemma-4b-it",
+        "sourceRevision": null,
+        "tokenizer": {
+          "type": "bundled",
+          "file": "tokenizer.json",
+          "sha256": "be6955513a2509d69d18e82180c2a477ad99358d15212fb81d957566d8186075",
+          "vocabSize": 262144
+        }
+      },
+      "artifact": {
+        "format": "rdrr",
+        "compression": "q4k-ehf16-af32",
+        "quantization": "Q4_K_M",
+        "manifestPath": "models/local/translategemma-4b-it-q4k-ehf16-af32/manifest.json",
+        "manifestSha256": "87b18875a215b8ec9925de1676dc78a40a20bb23c82b49eb02d4bd3a26d689a6",
+        "weightPackId": "translategemma-4b-it-q4k-ehf16-af32-wp-catalog-v1",
+        "weightPackHash": null,
+        "manifestVariantId": "translategemma-4b-it-q4k-ehf16-af32-mv-exec-v1",
+        "shardSetHash": "sha256:5975cdd5789c951bd91ec189592fee2bcd2cc92b669a8f6e5c3afe9c7dc73949",
+        "sizeBytes": 3167500395,
+        "compressionRatio": null
+      },
+      "run": {
+        "contextLengths": [
+          2048,
+          8192
+        ],
+        "workloads": [
+          "p064-d064-t0-k1",
+          "p256-d128-t0-k1",
+          "p512-d128-t0-k1"
+        ],
+        "decodeProfiles": [
+          "parity",
+          "throughput"
+        ],
+        "runtimeBackends": [
+          {
+            "target": "doppler",
+            "surface": "browser",
+            "backend": "webgpu",
+            "format": "rdrr",
+            "loadModes": [
+              "opfs",
+              "http"
+            ]
+          }
+        ],
+        "graphTransforms": [
+          "manifest-default"
+        ]
+      },
+      "compare": {
+        "competitors": [
+          {
+            "target": "transformersjs",
+            "modelId": "onnx-community/translategemma-text-4b-it-ONNX",
+            "format": "onnx",
+            "dtype": "q4f16",
+            "expectedArtifactHash": null
+          }
+        ],
+        "sameArtifactWherePossible": false,
+        "promptSemantics": "compare-engines shared rendered prompt contract",
+        "outputSemantics": "non-empty generated text with nonzero decode tokens and matching stop-policy accounting",
+        "parityCheck": "translation lanes require a task-appropriate semantic parity check before promotion"
+      },
+      "memoryBudget": {
+        "artifactBytes": 3167500395,
+        "maxResidentBytes": 5368709120,
+        "maxPeakBytes": 7516192768
+      },
+      "evidence": {
+        "localExecutionReport": "reports/release-claims/translategemma-4b-it-q4k-ehf16-af32/2026-03-22T14-48-13.935Z.json",
+        "compareResult": null,
+        "summarySvg": null
+      }
+    },
+    {
+      "id": "gemma-4-e2b-it-q4k-rdrr",
+      "status": "candidate",
+      "statusReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "model": {
+        "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+        "label": "Gemma 4 E2B Instruct (Q4K/F32a)",
+        "family": "gemma4",
+        "parameterClass": "e2b",
+        "sourceCheckpointId": "google/gemma-4-E2B-it",
+        "sourceRevision": null,
+        "tokenizer": {
+          "type": "bundled",
+          "file": "tokenizer.json",
+          "sha256": "4453a86456cdf02b3c8f79091ffda7ca017619ff5da495b9eda12141d5793962",
+          "vocabSize": 262144
+        }
+      },
+      "artifact": {
+        "format": "rdrr",
+        "compression": "q4k-ehf16-af32",
+        "quantization": "Q4_K_M",
+        "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32/manifest.json",
+        "manifestSha256": "8fabd3a53a9ba6ab042eb31e4887e3dba1af8b05645761c73cd68ee59d1ab090",
+        "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-wp-catalog-v1",
+        "weightPackHash": null,
+        "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af32-mv-exec-v1",
+        "shardSetHash": "sha256:87998a5b537e64b8127adbf8909dd9caded5503ee8a424651d5d630dd5a2c268",
+        "sizeBytes": 7094076955,
+        "compressionRatio": null
+      },
+      "run": {
+        "contextLengths": [
+          2048,
+          8192
+        ],
+        "workloads": [
+          "p064-d064-t0-k1",
+          "p256-d128-t0-k1",
+          "p512-d128-t0-k1"
+        ],
+        "decodeProfiles": [
+          "parity",
+          "throughput"
+        ],
+        "runtimeBackends": [
+          {
+            "target": "doppler",
+            "surface": "browser",
+            "backend": "webgpu",
+            "format": "rdrr",
+            "loadModes": [
+              "opfs",
+              "http"
+            ]
+          }
+        ],
+        "graphTransforms": [
+          "manifest-default"
+        ]
+      },
+      "compare": {
+        "competitors": [
+          {
+            "target": "transformersjs",
+            "modelId": "onnx-community/gemma-4-E2B-it-ONNX",
+            "format": "onnx",
+            "dtype": "q4f16",
+            "expectedArtifactHash": null
+          }
+        ],
+        "sameArtifactWherePossible": false,
+        "promptSemantics": "compare-engines shared rendered prompt contract",
+        "outputSemantics": "non-empty generated text with nonzero decode tokens and matching stop-policy accounting",
+        "parityCheck": "Gemma 4 compute-throughput claims require coherent output and prompt/token accounting; exact-match parity requires a separate promoted parity receipt"
+      },
+      "memoryBudget": {
+        "artifactBytes": 7094076955,
+        "maxResidentBytes": 10737418240,
+        "maxPeakBytes": 12884901888
+      },
+      "evidence": {
+        "localExecutionReport": "reports/release-claims/gemma-4-e2b-it-q4k-ehf16-af32/2026-04-18T19-17-45.997Z.json",
+        "compareResult": null,
+        "summarySvg": null
+      }
+    },
+    {
+      "id": "gemma-4-e2b-it-int4ple-rdrr",
+      "status": "candidate",
+      "statusReason": "Local reference execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "model": {
+        "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+        "label": "Gemma 4 E2B Instruct (Q4K/F32a/INT4 PLE)",
+        "family": "gemma4",
+        "parameterClass": "e2b",
+        "sourceCheckpointId": "google/gemma-4-E2B-it",
+        "sourceRevision": null,
+        "tokenizer": {
+          "type": "bundled",
+          "file": "tokenizer.json",
+          "sha256": "4453a86456cdf02b3c8f79091ffda7ca017619ff5da495b9eda12141d5793962",
+          "vocabSize": 262144
+        }
+      },
+      "artifact": {
+        "format": "rdrr",
+        "compression": "q4k-ehf16-af32-int4ple",
+        "quantization": "Q4_K_M",
+        "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json",
+        "manifestSha256": "2af2275cf89d0da9f1539bc8a1105850f2f7f4c8f63d41da35593510f1b59cc2",
+        "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
+        "weightPackHash": null,
+        "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-mv-exec-v1",
+        "shardSetHash": "sha256:7575f4e89b3938a3ca4f8d7fc50fb46d4cfbd1d4dcc3b6ed62b6fb53424678ea",
+        "sizeBytes": 4009916310,
+        "compressionRatio": null
+      },
+      "run": {
+        "contextLengths": [
+          2048,
+          8192
+        ],
+        "workloads": [
+          "p064-d064-t0-k1",
+          "p256-d128-t0-k1",
+          "p512-d128-t0-k1"
+        ],
+        "decodeProfiles": [
+          "parity",
+          "throughput"
+        ],
+        "runtimeBackends": [
+          {
+            "target": "doppler",
+            "surface": "browser",
+            "backend": "webgpu",
+            "format": "rdrr",
+            "loadModes": [
+              "opfs",
+              "http"
+            ]
+          }
+        ],
+        "graphTransforms": [
+          "manifest-default"
+        ]
+      },
+      "compare": {
+        "competitors": [
+          {
+            "target": "transformersjs",
+            "modelId": "onnx-community/gemma-4-E2B-it-ONNX",
+            "format": "onnx",
+            "dtype": "q4f16",
+            "expectedArtifactHash": null
+          }
+        ],
+        "sameArtifactWherePossible": false,
+        "promptSemantics": "compare-engines shared rendered prompt contract",
+        "outputSemantics": "non-empty generated text with nonzero decode tokens and matching stop-policy accounting",
+        "parityCheck": "INT4 PLE compute-throughput claims require coherent output and prompt/token accounting; exact-match parity requires a separate promoted parity receipt"
+      },
+      "memoryBudget": {
+        "artifactBytes": 4009916310,
+        "maxResidentBytes": 6442450944,
+        "maxPeakBytes": 8589934592
+      },
+      "evidence": {
+        "localExecutionReport": "reports/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-04-22T18-09-10.471Z.reference.json",
+        "compareResult": null,
+        "summarySvg": null
+      }
+    }
+  ]
+}

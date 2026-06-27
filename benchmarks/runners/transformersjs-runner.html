@@ -581,6 +581,15 @@ function normalizeGeneratedTokenIds(tokens) {
   if (Array.isArray(tokens)) {
     return tokens.map((token) => Number(token)).filter((token) => Number.isInteger(token));
   }
+  if (ArrayBuffer.isView(tokens)) {
+    return Array.from(tokens).map((token) => Number(token)).filter((token) => Number.isInteger(token));
+  }
+  if (Array.isArray(tokens?.data)) {
+    return tokens.data.map((token) => Number(token)).filter((token) => Number.isInteger(token));
+  }
+  if (ArrayBuffer.isView(tokens?.data)) {
+    return Array.from(tokens.data).map((token) => Number(token)).filter((token) => Number.isInteger(token));
+  }
   const tokenId = Number(tokens);
   return Number.isInteger(tokenId) ? [tokenId] : [];
 }
@@ -740,6 +749,7 @@ window.__runBench = async (config) => {
   const totalRuns = warmupRuns + timedRuns;
   const timedResults = [];
   let generatedText = null;
+  let generatedTokenIds = null;
 
   for (let i = 0; i < totalRuns; i++) {
     const isWarmup = i < warmupRuns;
@@ -750,6 +760,7 @@ window.__runBench = async (config) => {
     let newTokenCount = 0;
     const tokenTimestamps = [];
     const lastRunParts = isLastRun ? [] : null;
+    const lastRunTokenIds = isLastRun ? [] : null;
 
     // TextStreamer: use token_callback_function for true token-level timing/counting.
     const streamer = new TextStreamer(generator.tokenizer, {
@@ -758,8 +769,14 @@ window.__runBench = async (config) => {
       callback_function: isLastRun ? (text) => { lastRunParts.push(text); } : () => {},
       token_callback_function: (tokens) => {
         const now = performance.now();
-        const count = Array.isArray(tokens) ? tokens.length : 1;
+        const tokenIds = normalizeGeneratedTokenIds(tokens);
+        const count = tokenIds.length > 0
+          ? tokenIds.length
+          : (Array.isArray(tokens) || ArrayBuffer.isView(tokens) ? tokens.length : 1);
         newTokenCount += count;
+        if (lastRunTokenIds !== null) {
+          lastRunTokenIds.push(...tokenIds);
+        }
         for (let i = 0; i < count; i++) {
           tokenTimestamps.push(now);
         }
@@ -782,6 +799,7 @@ window.__runBench = async (config) => {
     const totalMs = genEnd - genStart;
     if (isLastRun && lastRunParts !== null) {
       generatedText = lastRunParts.join('');
+      generatedTokenIds = lastRunTokenIds;
     }
 
     // TTFT = time until first streamer callback
@@ -905,6 +923,7 @@ window.__runBench = async (config) => {
     modelId,
     seed,
     generatedText,
+    generatedTokenIds,
     modelLoadMs,
     warmupRuns,
     timedRuns,

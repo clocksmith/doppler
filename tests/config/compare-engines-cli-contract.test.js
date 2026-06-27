@@ -7,21 +7,31 @@ import { spawnSync } from 'node:child_process';
 import { mergeKernelPathPolicy } from '../../src/config/merge-helpers.js';
 import {
   buildCompareSection,
+  buildDiagnosticSharedBenchmarkContract,
+  buildDopplerBottleneckDiagnostic,
+  buildDopplerManifestFreshnessArtifact,
+  buildDopplerBottleneckDiagnosticRuntimeOverlay,
   buildDopplerRuntimeConfig,
   buildSharedBenchmarkContract,
+  assertDopplerDecodeCadence,
   loadModelCatalogBundle,
   normalizeCompareLoadModeDefaults,
   parseArgs as parseCompareArgs,
   parseJsonBlock,
   parseOnOff as parseCompareOnOff,
   redactSecrets,
+  resolveComputeDecodeCadence,
   usage as renderCompareUsage,
   renderComparePrompt,
   resolveCompareOwnedPromptRenderer,
   resolveCatalogTransformersjsBenchmarkTarget,
   resolveCompareProfile,
   resolveCompareLoadModes,
+  resolveDopplerBenchmarkKvCachePlan,
+  resolveDopplerExecutionIdentity,
   resolveDopplerModelSource,
+  resolveDopplerThroughputCadenceGate,
+  summarizeDopplerDecodeProfileSteps,
 } from '../../tools/compare-engines.js';
 import { buildTokenAccurateSyntheticPrompt } from '../../benchmarks/vendors/workload-prompt.js';
 
@@ -59,6 +69,11 @@ function assertCommandOutputMatches(result, pattern) {
       .map((entry) => entry?.dopplerModelId)
       .filter(Boolean)
   );
+  const gemma3Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'gemma-3-270m-it-q4k-ehf16-af32') || null;
+  const gemma3Q4kThroughputProfile = JSON.parse(await fs.readFile(
+    path.join(repoRoot, 'src', 'config', 'runtime', 'profiles', 'gemma3-270m-q4k-throughput-overlapped-probe.json'),
+    'utf8'
+  ));
   const qwen08Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'qwen-3-5-0-8b-q4k-ehaf16') || null;
   const qwen2Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'qwen-3-5-2b-q4k-ehaf16') || null;
   const gemma4Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'gemma-4-e2b-it-q4k-ehf16-af32') || null;
@@ -70,6 +85,804 @@ function assertCommandOutputMatches(result, pattern) {
     warmLoadMode: 'opfs',
     coldLoadMode: 'http',
   });
+  {
+    const parityRuntimeBaseConfig = {
+      profile: 'parity-runtime',
+      inference: {
+        batching: {
+          readbackMode: 'sequential',
+        },
+        session: {
+          decodeLoop: {
+            readbackMode: 'sequential',
+          },
+        },
+      },
+    };
+    const customRuntimeBaseConfig = {
+      profile: 'custom-runtime',
+      inference: {
+        batching: {
+          readbackMode: 'overlapped',
+        },
+        session: {
+          decodeLoop: {
+            readbackMode: 'overlapped',
+          },
+        },
+      },
+    };
+    const customCadence = {
+      batchSize: 8,
+      readbackInterval: 6,
+      stopCheckMode: 'batch',
+      readbackMode: 'overlapped',
+      disableMultiTokenDecode: false,
+      speculationMode: null,
+    };
+    assert.deepEqual(
+      resolveComputeDecodeCadence('custom', 'parity', customCadence, customRuntimeBaseConfig),
+      {
+        batchSize: 8,
+        readbackInterval: 6,
+        stopCheckMode: 'batch',
+        readbackMode: 'overlapped',
+        disableMultiTokenDecode: false,
+        speculationMode: null,
+        runtimeBaseConfig: customRuntimeBaseConfig,
+      }
+    );
+    assert.deepEqual(
+      resolveComputeDecodeCadence('parity', 'parity', customCadence, parityRuntimeBaseConfig),
+      {
+        batchSize: benchmarkPolicy.decodeProfiles.profiles.parity.batchSize,
+        readbackInterval: benchmarkPolicy.decodeProfiles.profiles.parity.readbackInterval,
+        stopCheckMode: benchmarkPolicy.decodeProfiles.profiles.parity.stopCheckMode,
+        readbackMode: 'sequential',
+        disableMultiTokenDecode: benchmarkPolicy.decodeProfiles.profiles.parity.disableMultiTokenDecode === true,
+        speculationMode: benchmarkPolicy.decodeProfiles.profiles.parity.speculationMode ?? null,
+        runtimeBaseConfig: parityRuntimeBaseConfig,
+      }
+    );
+    const matchingDopplerResult = {
+      request: {
+        runtimeConfig: {
+          inference: {
+            generation: {
+              disableMultiTokenDecode: false,
+            },
+            batching: {
+              batchSize: 8,
+              readbackInterval: 6,
+              stopCheckMode: 'batch',
+              readbackMode: 'overlapped',
+            },
+            session: {
+              decodeLoop: {
+                batchSize: 8,
+                readbackInterval: 6,
+                stopCheckMode: 'batch',
+                readbackMode: 'overlapped',
+                disableCommandBatching: false,
+              },
+            },
+          },
+        },
+      },
+    };
+    assert.doesNotThrow(() => {
+      assertDopplerDecodeCadence(matchingDopplerResult, customCadence, 'unit/custom');
+    });
+    const cadenceSection = buildCompareSection({
+      cacheMode: 'warm',
+      loadMode: 'opfs',
+      doppler: matchingDopplerResult,
+      transformersjs: { runs: [] },
+    });
+    assert.deepEqual(cadenceSection.dopplerDecodeCadence, {
+      batchSize: 8,
+      readbackInterval: 6,
+      stopCheckMode: 'batch',
+      readbackMode: 'overlapped',
+      disableCommandBatching: false,
+      disableMultiTokenDecode: false,
+      speculationMode: null,
+      tokensPerReadback: 48,
+      runtimeMirror: {
+        batching: {
+          batchSize: 8,
+          readbackInterval: 6,
+          stopCheckMode: 'batch',
+          readbackMode: 'overlapped',
+        },
+        decodeLoop: {
+          batchSize: 8,
+          readbackInterval: 6,
+          stopCheckMode: 'batch',
+          readbackMode: 'overlapped',
+        },
+      },
+    });
+    const measuredCadenceSection = buildCompareSection({
+      cacheMode: 'warm',
+      loadMode: 'opfs',
+      doppler: {
+        request: {
+          runtimeConfig: {
+            inference: {
+              generation: {
+                disableMultiTokenDecode: false,
+              },
+              batching: {
+                batchSize: 4,
+                readbackInterval: 4,
+                stopCheckMode: 'batch',
+              },
+              session: {
+                decodeLoop: {
+                  batchSize: 4,
+                  readbackInterval: 4,
+                  stopCheckMode: 'batch',
+                  disableCommandBatching: false,
+                },
+              },
+            },
+          },
+        },
+        result: {
+          metrics: {
+            decodeCadence: {
+              batchSize: 4,
+              readbackInterval: 4,
+              stopCheckMode: 'batch',
+              readbackMode: 'sequential',
+              disableCommandBatching: false,
+              disableMultiTokenDecode: false,
+              speculationMode: null,
+              tokensPerReadback: 16,
+              runtimeMirror: {
+                batching: {
+                  batchSize: 4,
+                  readbackInterval: 4,
+                  stopCheckMode: 'batch',
+                  readbackMode: null,
+                },
+                decodeLoop: {
+                  batchSize: 4,
+                  readbackInterval: 4,
+                  stopCheckMode: 'batch',
+                  readbackMode: null,
+                },
+              },
+              executionPlan: {
+                id: 'resolved-parity-plan',
+                batchSize: 4,
+                readbackInterval: 4,
+                stopCheckMode: 'batch',
+                readbackMode: 'sequential',
+                disableCommandBatching: false,
+                ringTokens: null,
+                ringStop: null,
+                ringStaging: null,
+              },
+            },
+          },
+        },
+      },
+      transformersjs: { runs: [] },
+    });
+    assert.equal(measuredCadenceSection.dopplerDecodeCadence.readbackMode, 'sequential');
+    assert.equal(measuredCadenceSection.dopplerDecodeCadence.runtimeMirror.decodeLoop.readbackMode, null);
+    assert.equal(measuredCadenceSection.dopplerDecodeCadence.executionPlan.id, 'resolved-parity-plan');
+    const bottleneckSection = buildCompareSection({
+      cacheMode: 'warm',
+      loadMode: 'opfs',
+      maxTokens: 64,
+      prefillTokenTarget: 64,
+      promptContract: {
+        promptRendered: 'unit prompt',
+        enginesReceiveRenderedPrompt: true,
+      },
+      doppler: {
+        result: {
+          timing: {
+            decodeMs: 100,
+            decodeTokensPerSec: 120,
+          },
+          metrics: {
+            avgPrefillTokens: 64,
+            avgDecodeTokens: 64,
+            generatedText: 'ok',
+            batching: {
+              requestedBatchTokens: { mean: 32, samples: 5 },
+              effectiveBatchTokens: { mean: 32, samples: 5 },
+              executedBatchTokens: { mean: 80, samples: 5 },
+              resolvedBatchTokens: { mean: 64, samples: 5 },
+              gpuSubmissions: { mean: 3, samples: 5 },
+            },
+            gpu: {
+              decodeRecordMs: { mean: 35, samples: 5 },
+              decodeRecordOps: { mean: 140, samples: 5 },
+              decodeRecordPasses: { mean: 7, samples: 5 },
+              decodeRecordUniqueOpLabels: 2,
+              decodeRecordTopOps: [
+                { label: 'matmul', count: 100, shareOfOps: 0.7142857142857143 },
+                { label: 'sample', count: 40, shareOfOps: 0.2857142857142857 },
+              ],
+              decodeRecordMsPerOp: { mean: 0.25, samples: 5 },
+              decodeRecordMsPerPass: { mean: 5, samples: 5 },
+              decodeRecordPassesPerOp: { mean: 0.05, samples: 5 },
+              decodeRecordMsPerExecutedBatchToken: { mean: 0.4375, samples: 5 },
+              decodeRecordOpsPerExecutedBatchToken: { mean: 1.75, samples: 5 },
+              decodeRecordPassesPerExecutedBatchToken: { mean: 0.0875, samples: 5 },
+              decodeSubmitWaitMs: { mean: 50, samples: 5 },
+              decodeReadbackWaitMs: { mean: 55, samples: 5 },
+              decodeReadbackMapWaitMs: { mean: 42, samples: 5 },
+              decodeReadbackCleanupMs: { mean: 2, samples: 5 },
+              decodeReadbackCopyMs: { mean: 1, samples: 5 },
+              decodeOrchestrationMs: { mean: 5, samples: 5 },
+              decodeMs: { mean: 10, samples: 5 },
+            },
+          },
+          memoryStats: {
+            used: 9000,
+            pool: {
+              peakBytesAllocated: 12000,
+              peakBytesRequested: 10000,
+              currentBytesAllocated: 8000,
+              currentBytesRequested: 7000,
+              activeBuffers: 12,
+              pooledBuffers: 3,
+            },
+            kvCache: {
+              theoretical: 4096,
+              allocated: 4096,
+              used: 1024,
+              efficiency: 0.25,
+              seqLen: 64,
+              maxSeqLen: 256,
+              layout: 'contiguous',
+              kvDtype: 'f16',
+            },
+          },
+        },
+      },
+      transformersjs: {
+        generatedText: 'ok',
+        memoryInfo: {
+          before: {
+            usedJSHeapSize: 5000,
+            totalJSHeapSize: 8000,
+            jsHeapSizeLimit: 64000,
+          },
+          after: {
+            usedJSHeapSize: 5600,
+            totalJSHeapSize: 9000,
+            jsHeapSizeLimit: 64000,
+          },
+        },
+        runs: [
+          {
+            prefillTokens: 64,
+            decodeTokens: 64,
+          },
+        ],
+      },
+    });
+    assert.equal(bottleneckSection.pairedComparable, true);
+    assert.deepEqual(bottleneckSection.outputParity, {
+      schemaVersion: 1,
+      status: 'match',
+      reason: null,
+      exactMatch: true,
+      normalizedMatch: true,
+      charMismatchIndex: -1,
+      tokenMatch: {
+        leftTokenCount: 1,
+        rightTokenCount: 1,
+        matchingPrefixTokens: 1,
+        firstMismatchTokenIndex: -1,
+      },
+      tokenIdMatch: null,
+      lengths: {
+        dopplerChars: 2,
+        transformersjsChars: 2,
+      },
+    });
+    assert.deepEqual(bottleneckSection.dopplerBottleneck.componentsMs, {
+      commandRecordMs: 35,
+      submitWaitMs: 50,
+      readbackWaitMs: 55,
+      effectiveSubmitReadbackWaitMs: 55,
+      readbackMapWaitMs: 42,
+      readbackCleanupMs: 2,
+      readbackCopyMs: 1,
+      readbackUnattributedMs: 10,
+      gpuTimestampMs: 10,
+      submitReadbackSlackMs: 45,
+      orchestrationMs: 5,
+      residualMs: 5,
+    });
+    assert.equal(bottleneckSection.dopplerBottleneck.dominant.id, 'readback_map_wait');
+    assert.equal(bottleneckSection.dopplerBottleneck.bottleneckClass, 'submit-readback-wait');
+    assert.equal(bottleneckSection.dopplerBottleneck.dominant.shareOfDecode, 0.42);
+    assert.equal(bottleneckSection.dopplerBottleneck.shares.commandRecord, 0.35);
+    assert.equal(bottleneckSection.dopplerBottleneck.shares.effectiveSubmitReadbackWait, 0.55);
+    assert.equal(bottleneckSection.dopplerBottleneck.shares.readbackMapWait, 0.42);
+    assert.deepEqual(bottleneckSection.dopplerBottleneck.recording, {
+      opCount: 140,
+      passCount: 7,
+      uniqueOpLabels: 2,
+      msPerOp: 0.25,
+      msPerPass: 5,
+      passesPerOp: 0.05,
+      msPerExecutedBatchToken: 0.438,
+      opsPerExecutedBatchToken: 1.75,
+      passesPerExecutedBatchToken: 0.088,
+      topOps: [
+        { label: 'matmul', count: 100, shareOfOps: 0.714 },
+        { label: 'sample', count: 40, shareOfOps: 0.286 },
+      ],
+      semantics: {
+        opCount: 'Logical compute dispatches recorded into batch-decode command buffers.',
+        passCount: 'Actual WebGPU compute passes opened while recording batch-decode command buffers.',
+        uniqueOpLabels: 'Number of distinct exact compute-pass labels recorded in batch-decode command buffers.',
+        msPerOp: 'decodeRecordMs divided by logical recorded compute dispatches.',
+        msPerPass: 'decodeRecordMs divided by actual WebGPU compute passes.',
+        passesPerOp: 'Actual WebGPU compute passes divided by logical recorded compute dispatches.',
+        msPerExecutedBatchToken: 'decodeRecordMs divided by batch-path tokens submitted for execution.',
+        opsPerExecutedBatchToken: 'Logical recorded compute dispatches divided by batch-path tokens submitted for execution.',
+        passesPerExecutedBatchToken: 'Actual WebGPU compute passes divided by batch-path tokens submitted for execution.',
+        topOps: 'Highest-count exact compute-pass labels observed during command recording.',
+      },
+    });
+    assert.deepEqual(bottleneckSection.dopplerBatchAccounting, {
+      schemaVersion: 1,
+      requestedBatchTokens: 32,
+      effectiveBatchTokens: 32,
+      executedBatchTokens: 80,
+      resolvedBatchTokens: 64,
+      outputDecodeTokens: 64,
+      gpuSubmissions: 3,
+      batchResolutionEfficiency: 0.8,
+      outputEfficiency: 0.8,
+      batchOverrunTokens: 16,
+      outputOverrunTokens: 16,
+      semantics: {
+        executedBatchTokens: 'Total GPU batch-path decode tokens recorded/submitted for execution.',
+        resolvedBatchTokens: 'Batch-path tokens retained by stop resolution before returning to the generation loop.',
+        outputDecodeTokens: 'Decode tokens credited to output throughput metrics.',
+      },
+    });
+    assert.deepEqual(bottleneckSection.memoryAccounting, {
+      schemaVersion: 1,
+      gpuMemoryComparable: false,
+      doppler: {
+        schemaVersion: 1,
+        source: 'doppler-memoryStats',
+        gpuMemoryComparable: true,
+        usedBytes: 9000,
+        pool: {
+          peakBytesAllocated: 12000,
+          peakBytesRequested: 10000,
+          currentBytesAllocated: 8000,
+          currentBytesRequested: 7000,
+          activeBuffers: 12,
+          pooledBuffers: 3,
+        },
+        kvCache: {
+          allocatedBytes: 4096,
+          usedBytes: 1024,
+          theoreticalBytes: 4096,
+          efficiency: 0.25,
+          seqLen: 64,
+          maxSeqLen: 256,
+          layout: 'contiguous',
+          kvDtype: 'f16',
+        },
+      },
+      transformersjs: {
+        schemaVersion: 1,
+        source: 'browser-performance-memory',
+        gpuMemoryComparable: false,
+        usedJSHeapBeforeBytes: 5000,
+        usedJSHeapAfterBytes: 5600,
+        usedJSHeapDeltaBytes: 600,
+        totalJSHeapBeforeBytes: 8000,
+        totalJSHeapAfterBytes: 9000,
+        jsHeapSizeLimitBytes: 64000,
+      },
+      comparability: {
+        gpuMemory: false,
+        reason: 'Doppler reports GPU buffer-pool/KV memory; Transformers.js exposes browser JS heap here, not WebGPU allocation residency.',
+      },
+    });
+    const gateParitySection = buildCompareSection({
+      cacheMode: 'warm',
+      loadMode: 'opfs',
+      maxTokens: 64,
+      prefillTokenTarget: 64,
+      promptContract: {
+        promptRendered: 'unit prompt',
+        enginesReceiveRenderedPrompt: true,
+      },
+      doppler: {
+        result: {
+          timing: {
+            decodeTokensPerSec: 100,
+          },
+          metrics: {
+            avgPrefillTokens: 64,
+            avgDecodeTokens: 64,
+            generatedText: 'ok',
+          },
+        },
+      },
+      transformersjs: {
+        generatedText: 'ok',
+        runs: [
+          {
+            prefillTokens: 64,
+            decodeTokens: 64,
+          },
+        ],
+      },
+    });
+    const promotableThroughputSection = buildCompareSection({
+      cacheMode: 'warm',
+      loadMode: 'opfs',
+      maxTokens: 64,
+      prefillTokenTarget: 64,
+      promptContract: {
+        promptRendered: 'unit prompt',
+        enginesReceiveRenderedPrompt: true,
+      },
+      doppler: {
+        result: {
+          timing: {
+            decodeTokensPerSec: 110,
+          },
+          metrics: {
+            avgPrefillTokens: 64,
+            avgDecodeTokens: 64,
+            generatedText: 'ok',
+            batching: {
+              executedBatchTokens: { mean: 64, samples: 5 },
+              resolvedBatchTokens: { mean: 64, samples: 5 },
+              gpuSubmissions: { mean: 2, samples: 5 },
+            },
+          },
+        },
+      },
+      transformersjs: {
+        generatedText: 'ok',
+        runs: [
+          {
+            prefillTokens: 64,
+            decodeTokens: 64,
+          },
+        ],
+      },
+    });
+    const promotableGate = resolveDopplerThroughputCadenceGate({
+      paritySection: gateParitySection,
+      throughputSection: promotableThroughputSection,
+    });
+    assert.equal(promotableGate.ok, true);
+    assert.deepEqual(promotableGate.invalidReasons, []);
+    assert.equal(promotableGate.observed.decodeTokensPerSecRatioVsParity, 1.1);
+    assert.equal(promotableGate.observed.batchResolutionEfficiency, 1);
+
+    const overrunGate = resolveDopplerThroughputCadenceGate({
+      paritySection: gateParitySection,
+      throughputSection: bottleneckSection,
+    });
+    assert.equal(overrunGate.ok, false);
+    assert.ok(overrunGate.invalidReasons.includes('throughput-batch-resolution-efficiency-below-threshold'));
+    assert.ok(overrunGate.invalidReasons.includes('throughput-batch-overrun-exceeds-threshold'));
+    assert.equal(
+      overrunGate.thresholds.minBatchResolutionEfficiency,
+      benchmarkPolicy.promotionGates.throughputCadence.minBatchResolutionEfficiency
+    );
+    const invalidParityGate = resolveDopplerThroughputCadenceGate({
+      paritySection: {
+        ...gateParitySection,
+        pairedComparable: false,
+        invalidReason: 'output-parity-mismatch',
+      },
+      throughputSection: promotableThroughputSection,
+    });
+    assert.equal(invalidParityGate.ok, false);
+    assert.ok(invalidParityGate.invalidReasons.includes('parity-section-not-comparable'));
+    assert.equal(invalidParityGate.observed.parityInvalidReason, 'output-parity-mismatch');
+
+    const zeroSampleTimestampSection = buildCompareSection({
+      cacheMode: 'warm',
+      loadMode: 'opfs',
+      maxTokens: 64,
+      prefillTokenTarget: 64,
+      promptContract: {
+        promptRendered: 'unit prompt',
+        enginesReceiveRenderedPrompt: true,
+      },
+      doppler: {
+        result: {
+          timing: {
+            decodeMs: 100,
+          },
+          metrics: {
+            avgPrefillTokens: 64,
+            avgDecodeTokens: 64,
+            generatedText: 'ok',
+            gpu: {
+              decodeSubmitWaitMs: { mean: 60, samples: 5 },
+              decodeReadbackWaitMs: { mean: 50, samples: 5 },
+              decodeMs: { mean: 0, samples: 0 },
+            },
+          },
+        },
+      },
+      transformersjs: {
+        generatedText: 'ok',
+        runs: [
+          {
+            prefillTokens: 64,
+            decodeTokens: 64,
+          },
+        ],
+      },
+    });
+    assert.equal(zeroSampleTimestampSection.dopplerBottleneck.componentsMs.gpuTimestampMs, null);
+    assert.equal(zeroSampleTimestampSection.dopplerBottleneck.componentsMs.submitReadbackSlackMs, null);
+    assert.equal(zeroSampleTimestampSection.dopplerBottleneck.componentsMs.readbackMapWaitMs, null);
+    assert.equal(zeroSampleTimestampSection.dopplerBottleneck.dominant.id, 'submit_readback_wait');
+
+    const diagnosticSharedContract = buildDiagnosticSharedBenchmarkContract(buildSharedBenchmarkContract({
+      prompt: 'unit prompt',
+      maxTokens: 64,
+      warmupRuns: 4,
+      timedRuns: 9,
+      seed: 0,
+      sampling: {
+        temperature: 0,
+        topK: 1,
+        topP: 1,
+        repetitionPenalty: 1,
+        greedyThreshold: 0.01,
+      },
+      useChatTemplate: false,
+      loadMode: 'opfs',
+      promptContract: {
+        promptRaw: 'unit prompt',
+        promptRendered: 'unit prompt',
+        promptRenderedSha256: 'unit-sha',
+        enginesReceiveRenderedPrompt: true,
+      },
+    }));
+    assert.equal(diagnosticSharedContract.warmupRuns, 0);
+    assert.equal(diagnosticSharedContract.timedRuns, 1);
+    const profileSummary = summarizeDopplerDecodeProfileSteps([
+      {
+        timings: {
+          attention: 10,
+          'matmul:lm_head': 5,
+        },
+      },
+      {
+        timings: {
+          attention: 11,
+          rmsnorm: 2,
+        },
+      },
+    ]);
+    assert.equal(profileSummary.profileStepCount, 2);
+    assert.equal(profileSummary.profileOperationCount, 4);
+    assert.equal(profileSummary.averageOperationsPerStep, 2);
+    assert.equal(profileSummary.totalTimestampMs, 28);
+    assert.deepEqual(profileSummary.topOperations[0], {
+      operation: 'attention',
+      operationKind: 'attention',
+      totalMs: 21,
+      count: 2,
+    });
+    const diagnostic = buildDopplerBottleneckDiagnostic({
+      sourceSection: 'compute/throughput',
+      sharedContract: diagnosticSharedContract,
+      doppler: {
+        request: matchingDopplerResult.request,
+        result: {
+          timing: {
+            decodeMs: 100,
+            decodeTokensPerSec: 120,
+          },
+          metrics: {
+            firstTokenMs: 20,
+            modelLoadMs: 50,
+            batching: {
+              executedBatchTokens: { mean: 64, samples: 5 },
+              resolvedBatchTokens: { mean: 64, samples: 5 },
+            },
+            gpu: {
+              decodeRecordMs: { mean: 35, samples: 5 },
+              decodeRecordOps: { mean: 140, samples: 5 },
+              decodeRecordPasses: { mean: 7, samples: 5 },
+              decodeRecordUniqueOpLabels: 2,
+              decodeRecordTopOps: [
+                { label: 'matmul', count: 100, shareOfOps: 0.7142857142857143 },
+                { label: 'sample', count: 40, shareOfOps: 0.2857142857142857 },
+              ],
+              decodeRecordMsPerOp: { mean: 0.25, samples: 5 },
+              decodeRecordMsPerPass: { mean: 5, samples: 5 },
+              decodeRecordPassesPerOp: { mean: 0.05, samples: 5 },
+              decodeRecordMsPerExecutedBatchToken: { mean: 0.4375, samples: 5 },
+              decodeRecordOpsPerExecutedBatchToken: { mean: 1.75, samples: 5 },
+              decodeRecordPassesPerExecutedBatchToken: { mean: 0.109375, samples: 5 },
+              decodeSubmitWaitMs: { mean: 50, samples: 5 },
+              decodeReadbackWaitMs: { mean: 55, samples: 5 },
+              decodeReadbackMapWaitMs: { mean: 42, samples: 5 },
+              decodeReadbackCleanupMs: { mean: 2, samples: 5 },
+              decodeReadbackCopyMs: { mean: 1, samples: 5 },
+              decodeOrchestrationMs: { mean: 5, samples: 5 },
+              decodeMs: { mean: 28, samples: 5 },
+            },
+            decodeProfileSteps: [
+              {
+                timings: {
+                  attention: 10,
+                  'matmul:lm_head': 5,
+                },
+              },
+              {
+                timings: {
+                  attention: 11,
+                  rmsnorm: 2,
+                },
+              },
+            ],
+          },
+        },
+      },
+    });
+    assert.equal(diagnostic.kind, 'doppler-bottleneck-profile');
+    assert.equal(diagnostic.claimUse, 'diagnostic-only');
+    assert.equal(diagnostic.sourceSection, 'compute/throughput');
+    assert.equal(diagnostic.complete, true);
+    assert.equal(diagnostic.invalidReason, null);
+    assert.deepEqual(diagnostic.invalidReasons, []);
+    assert.equal(diagnostic.command.dopplerCommand, 'debug');
+    assert.equal(diagnostic.command.workload, 'inference');
+    assert.equal(diagnostic.command.profileEnabled, true);
+    assert.equal(diagnostic.command.warmupRuns, 0);
+    assert.equal(diagnostic.command.timedRuns, 1);
+    assert.equal(diagnostic.decodeTokensPerSec, 120);
+    assert.equal(diagnostic.firstTokenMs, 20);
+    assert.equal(diagnostic.modelLoadMs, 50);
+    assert.equal(diagnostic.dopplerBottleneck.componentsMs.gpuTimestampMs, 28);
+    assert.equal(diagnostic.dopplerBottleneck.componentsMs.submitReadbackSlackMs, 27);
+    assert.equal(diagnostic.dopplerBottleneck.recording.msPerOp, 0.25);
+    assert.equal(diagnostic.dopplerBottleneck.recording.passCount, 7);
+    assert.equal(diagnostic.dopplerBottleneck.recording.topOps[0].label, 'matmul');
+    assert.equal(diagnostic.profile.topOperations[0].operation, 'attention');
+    assert.equal(diagnostic.coverage.completeDecodeTarget, true);
+    assert.equal(diagnostic.coverage.expectedBatchDecodeTokens, 63);
+    assert.equal(diagnostic.coverage.warning, null);
+    const partialDiagnostic = buildDopplerBottleneckDiagnostic({
+      sourceSection: 'compute/throughput',
+      sharedContract: {
+        ...diagnosticSharedContract,
+        maxTokens: 128,
+      },
+      doppler: {
+        request: matchingDopplerResult.request,
+        result: {
+          timing: {
+            decodeMs: 100,
+            decodeTokensPerSec: 60,
+          },
+          metrics: {
+            batching: {
+              executedBatchTokens: { mean: 31, samples: 1 },
+              resolvedBatchTokens: { mean: 31, samples: 1 },
+            },
+            gpu: {
+              decodeMs: { mean: 10, samples: 1 },
+            },
+          },
+        },
+      },
+    });
+    assert.equal(partialDiagnostic.coverage.completeDecodeTarget, false);
+    assert.equal(partialDiagnostic.coverage.expectedBatchDecodeTokens, 127);
+    assert.equal(partialDiagnostic.coverage.resolvedBatchTokens, 31);
+    assert.equal(partialDiagnostic.coverage.profileCoverage, 0.244);
+    assert.equal(partialDiagnostic.coverage.warning, 'diagnostic-run-ended-before-source-decode-target');
+    assert.equal(partialDiagnostic.complete, false);
+    assert.equal(partialDiagnostic.invalidReason, 'diagnostic-run-ended-before-source-decode-target');
+    assert.deepEqual(partialDiagnostic.invalidReasons, [
+      'diagnostic-run-ended-before-source-decode-target',
+      'missing-doppler-decode-profile-steps',
+    ]);
+    const diagnosticOverlay = buildDopplerBottleneckDiagnosticRuntimeOverlay();
+    assert.equal(diagnosticOverlay.shared.debug.profiler.enabled, true);
+    assert.equal(diagnosticOverlay.shared.debug.profiler.logEveryDecodeSteps, 1);
+    assert.equal(diagnosticOverlay.shared.tooling?.diagnostics, undefined);
+    assert.throws(
+      () => assertDopplerDecodeCadence(
+        {
+          request: {
+            runtimeConfig: {
+              inference: {
+                generation: {
+                  disableMultiTokenDecode: false,
+                },
+                batching: {
+                  batchSize: 4,
+                  readbackInterval: 6,
+                  stopCheckMode: 'batch',
+                },
+                session: {
+                  decodeLoop: {
+                    batchSize: 8,
+                    readbackInterval: 6,
+                    stopCheckMode: 'batch',
+                    disableCommandBatching: false,
+                  },
+                },
+              },
+            },
+          },
+        },
+        customCadence,
+        'unit/custom'
+      ),
+      /inference\.batching\.batchSize/
+    );
+  }
+  assert.ok(gemma3Profile, 'compare config must include gemma-3-270m-it-q4k-ehf16-af32');
+  assert.equal(
+    gemma3Profile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
+    'profiles/gemma3-270m-q4k-throughput-overlapped-probe'
+  );
+  assert.equal(
+    gemma3Profile?.dopplerRuntimeProfileByDecodeProfile?.custom,
+    'profiles/gemma3-270m-q4k-throughput-overlapped-probe'
+  );
+  assert.equal(gemma3Q4kThroughputProfile.extends, 'profiles/throughput');
+  assert.equal(gemma3Q4kThroughputProfile.intent, 'calibrate');
+  assert.equal(gemma3Q4kThroughputProfile.stability, 'experimental');
+  const throughputDecodeProfile = benchmarkPolicy.decodeProfiles.profiles.throughput;
+  const expectedGemma3Q4kThroughputRuntime = {
+    inference: {
+      generation: {
+        disableMultiTokenDecode: throughputDecodeProfile.disableMultiTokenDecode,
+      },
+      batching: {
+        batchSize: throughputDecodeProfile.batchSize,
+        readbackInterval: throughputDecodeProfile.readbackInterval,
+        stopCheckMode: throughputDecodeProfile.stopCheckMode,
+        readbackMode: 'overlapped',
+      },
+      session: {
+        prefillChunkSubmitMode: 'sync',
+        retainQ4KMaterialization: true,
+        useWideTileQ4KPrefill: true,
+        useSandwichRMSNormPairFusion: true,
+        usePostFfnNextInputRMSNormPairFusion: true,
+        useFusedQKVSplitQKNormRoPE: true,
+        decodeLoop: {
+          batchSize: throughputDecodeProfile.batchSize,
+          stopCheckMode: throughputDecodeProfile.stopCheckMode,
+          readbackInterval: throughputDecodeProfile.readbackInterval,
+          readbackMode: 'overlapped',
+          ringTokens: 2,
+          ringStop: 1,
+          ringStaging: 2,
+          disableCommandBatching: false,
+        },
+      },
+    },
+  };
+  assert.deepEqual(gemma3Q4kThroughputProfile.runtime, expectedGemma3Q4kThroughputRuntime);
   assert.ok(qwen08Profile, 'compare config must include qwen-3-5-0-8b-q4k-ehaf16');
   assert.equal(qwen08Profile.defaultDopplerSurface, 'browser');
   assert.equal(
@@ -172,9 +985,11 @@ function assertCommandOutputMatches(result, pattern) {
   assert.equal(benchmarkPolicy?.browser?.compareChannelByPlatform?.linux, 'chromium');
   assert.equal(benchmarkPolicy?.browser?.compareChannelByPlatform?.win32, 'chromium');
   assert.equal(benchmarkPolicy?.decodeProfiles?.profiles?.parity?.stopCheckMode, 'batch');
+  assert.equal(benchmarkPolicy?.decodeProfiles?.profiles?.parity?.batchSize, 4);
   assert.equal(benchmarkPolicy?.decodeProfiles?.profiles?.parity?.readbackInterval, 4);
   assert.equal(benchmarkPolicy?.decodeProfiles?.profiles?.throughput?.stopCheckMode, 'batch');
-  assert.equal(benchmarkPolicy?.decodeProfiles?.profiles?.throughput?.readbackInterval, 4);
+  assert.equal(benchmarkPolicy?.decodeProfiles?.profiles?.throughput?.batchSize, 8);
+  assert.equal(benchmarkPolicy?.decodeProfiles?.profiles?.throughput?.readbackInterval, 8);
   assert.deepEqual(
     benchmarkPolicy?.doppler?.loadModeRuntimeOverlays?.http?.runtimeConfig?.loading?.distribution?.sourceOrder,
     ['http']
@@ -229,7 +1044,33 @@ function assertCommandOutputMatches(result, pattern) {
 {
   const result = runCompareEngines(['--help']);
   assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout || renderCompareUsage(), /--doppler-surface <surface>\s+auto\|node\|browser\|bun/);
   assert.match(result.stdout || renderCompareUsage(), /--doppler-stop-check-mode <batch\|per-token>/);
+  assert.match(result.stdout || renderCompareUsage(), /--doppler-bottleneck-profile <on\|off>/);
+}
+
+{
+  assert.deepEqual(resolveDopplerExecutionIdentity('node', 'rdrr'), {
+    requestedSurface: 'node',
+    commandSurface: 'node',
+    cliExecutor: 'node',
+    format: 'rdrr',
+    commandSurfaceReason: 'matches-requested-surface',
+  });
+  assert.deepEqual(resolveDopplerExecutionIdentity('bun', 'rdrr'), {
+    requestedSurface: 'bun',
+    commandSurface: 'node',
+    cliExecutor: 'bun',
+    format: 'rdrr',
+    commandSurfaceReason: 'bun-executor-node-command-surface',
+  });
+  assert.deepEqual(resolveDopplerExecutionIdentity('browser', 'safetensors'), {
+    requestedSurface: 'browser',
+    commandSurface: 'node',
+    cliExecutor: 'node',
+    format: 'safetensors',
+    commandSurfaceReason: 'safetensors-format-node-command-surface',
+  });
 }
 
 {
@@ -338,6 +1179,20 @@ function assertCommandOutputMatches(result, pattern) {
   assert.equal(section.loadMode, 'opfs');
   assert.equal(section.pairedComparable, false);
   assert.equal(section.invalidReason, 'transformersjs-failed');
+  assert.deepEqual(section.outputParity, {
+    schemaVersion: 1,
+    status: 'unavailable',
+    reason: 'engine-run-missing-or-failed',
+    exactMatch: null,
+    normalizedMatch: null,
+    charMismatchIndex: null,
+    tokenMatch: null,
+    tokenIdMatch: null,
+    lengths: {
+      dopplerChars: null,
+      transformersjsChars: null,
+    },
+  });
 }
 
 {
@@ -507,7 +1362,7 @@ function assertCommandOutputMatches(result, pattern) {
       },
     },
     transformersjs: {
-      generatedText: 'Coherent TJS output.',
+      generatedText: 'Coherent Doppler output.',
       runs: [
         {
           prefillTokens: 64,
@@ -518,6 +1373,16 @@ function assertCommandOutputMatches(result, pattern) {
   });
   assert.equal(section.pairedComparable, true, 'tokenizer delta of 1 must be tolerated when every other gate passes');
   assert.equal(section.invalidReason, null);
+  assert.equal(section.outputParity.status, 'match');
+  assert.equal(section.outputParity.exactMatch, true);
+  assert.equal(section.outputParity.normalizedMatch, true);
+  assert.deepEqual(section.outputParity.tokenMatch, {
+    leftTokenCount: 3,
+    rightTokenCount: 3,
+    matchingPrefixTokens: 3,
+    firstMismatchTokenIndex: -1,
+  });
+  assert.equal(section.outputParity.tokenIdMatch, null);
   assert.equal(section.promptTokens.ok, false, 'strict ok stays false so the evidence is preserved');
   assert.equal(section.promptTokens.invalidReason, 'prompt-token-count-mismatch');
   assert.equal(section.promptTokens.tokenizerDelta, 1);
@@ -527,6 +1392,100 @@ function assertCommandOutputMatches(result, pattern) {
   assert.equal(section.promptTokens.toleratedTokenizerDelta.maxAllowed, 1);
   assert.equal(section.promptTokens.toleratedTokenizerDelta.doppler, 63);
   assert.equal(section.promptTokens.toleratedTokenizerDelta.transformersjs, 64);
+}
+
+{
+  const promptContract = renderComparePrompt({
+    modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
+    prompt: 'the sky is clear',
+    useChatTemplate: true,
+  });
+  const section = buildCompareSection({
+    cacheMode: 'warm',
+    loadMode: 'opfs',
+    maxTokens: 64,
+    promptContract,
+    prefillTokenTarget: 64,
+    outputParityPolicy: {
+      schemaVersion: 1,
+      requireMatch: true,
+      matchMode: 'exact-or-normalized',
+      reason: 'deterministic-greedy-sampling',
+    },
+    doppler: {
+      result: {
+        result: {
+          metrics: {
+            avgPrefillTokens: 64,
+            avgDecodeTokens: 64,
+            generatedText: 'Coherent Doppler output.',
+          },
+        },
+      },
+    },
+    transformersjs: {
+      generatedText: 'Coherent TJS output.',
+      runs: [
+        {
+          prefillTokens: 64,
+          decodeTokens: 64,
+        },
+      ],
+    },
+  });
+  assert.equal(section.pairedComparable, false);
+  assert.equal(section.invalidReason, 'output-parity-mismatch');
+  assert.equal(section.outputParity.status, 'mismatch');
+  assert.equal(section.outputParityPolicy.requireMatch, true);
+}
+
+{
+  const section = buildCompareSection({
+    cacheMode: 'warm',
+    loadMode: 'opfs',
+    maxTokens: 64,
+    outputParityPolicy: {
+      schemaVersion: 1,
+      requireMatch: true,
+      matchMode: 'exact-or-normalized',
+      reason: 'deterministic-greedy-sampling',
+    },
+    doppler: {
+      result: {
+        metrics: {
+          avgPrefillTokens: 64,
+          avgDecodeTokens: 64,
+          generatedText: 'same text with hidden token drift',
+          referenceTranscript: {
+            tokens: {
+              ids: [10, 20, 30, 40],
+            },
+          },
+        },
+      },
+    },
+    transformersjs: {
+      generatedText: 'same text with hidden token drift',
+      generatedTokenIds: [10, 20, 31, 40],
+      runs: [
+        {
+          prefillTokens: 64,
+          decodeTokens: 64,
+        },
+      ],
+    },
+  });
+  assert.equal(section.outputParity.status, 'match');
+  assert.deepEqual(section.outputParity.tokenIdMatch, {
+    leftTokenCount: 4,
+    rightTokenCount: 4,
+    matchingPrefixTokens: 2,
+    firstMismatchTokenIndex: 2,
+    firstMismatch: {
+      doppler: 30,
+      transformersjs: 31,
+    },
+  });
 }
 
 // Tolerance gate must NOT fire when decodeValidity fails — zero decode tokens
@@ -685,6 +1644,93 @@ function assertCommandOutputMatches(result, pattern) {
 }
 
 {
+  const remoteManifest = {
+    schemaVersion: 1,
+    inference: {
+      layerPattern: {
+        every: 1,
+        offset: null,
+      },
+      execution: {
+        steps: [
+          {
+            op: 'attn_decode',
+            kernel: 'attention_decode_online_f16kv.wgsl',
+          },
+        ],
+      },
+    },
+  };
+  const localManifest = {
+    inference: {
+      execution: {
+        steps: [
+          {
+            kernel: 'attention_decode_online_f16kv.wgsl',
+            op: 'attn_decode',
+          },
+        ],
+      },
+      layerPattern: {
+        offset: null,
+        every: 1,
+      },
+    },
+    schemaVersion: 1,
+  };
+  const freshness = buildDopplerManifestFreshnessArtifact({
+    dopplerModelId: 'unit-model',
+    manifestSourceType: 'remote',
+    activeManifest: remoteManifest,
+    activeManifestSource: 'https://example.test/unit-model/manifest.json',
+    activeManifestSha256: 'remote-raw',
+    localManifest,
+    localManifestSource: path.join(process.cwd(), 'models', 'local', 'unit-model', 'manifest.json'),
+    localManifestSha256: 'local-raw',
+    enforced: true,
+  });
+  assert.equal(freshness.checked, true);
+  assert.equal(freshness.ok, true);
+  assert.equal(freshness.enforced, true);
+  assert.equal(freshness.reason, 'remote-matches-local-current-manifest');
+  assert.equal(freshness.active.manifestSha256, 'remote-raw');
+  assert.equal(freshness.localCurrent.manifestSha256, 'local-raw');
+  assert.equal(freshness.active.canonicalManifestSha256, freshness.localCurrent.canonicalManifestSha256);
+}
+
+{
+  const freshness = buildDopplerManifestFreshnessArtifact({
+    dopplerModelId: 'unit-model',
+    manifestSourceType: 'remote',
+    activeManifest: {
+      inference: {
+        layerPattern: {
+          offset: null,
+        },
+      },
+    },
+    activeManifestSource: 'https://example.test/unit-model/manifest.json',
+    activeManifestSha256: 'remote-raw',
+    localManifest: {
+      inference: {
+        layerPattern: {
+          offset: 5,
+        },
+      },
+    },
+    localManifestSource: path.join(process.cwd(), 'models', 'local', 'unit-model', 'manifest.json'),
+    localManifestSha256: 'local-raw',
+    enforced: true,
+  });
+  assert.equal(freshness.checked, true);
+  assert.equal(freshness.ok, false);
+  assert.equal(freshness.enforced, true);
+  assert.equal(freshness.reason, 'remote-differs-from-local-current-manifest');
+  assert.match(freshness.errors[0], /Remote Doppler manifest for "unit-model" does not match the current local manifest/);
+  assert.match(freshness.errors[0], /--allow-non-comparable-lane/);
+}
+
+{
   const compareProfile = resolveCompareProfile({
     modelProfileById: new Map([
       ['gemma-4-e2b-it-q4k-ehf16-af32', {
@@ -756,6 +1802,7 @@ function assertCommandOutputMatches(result, pattern) {
     },
     runtimeConfigJson: null,
   });
+  assert.equal(runtimeConfig.inference.generation.maxTokens, 8);
   assert.equal(runtimeConfig.inference.generation.disableMultiTokenDecode, true);
   assert.deepEqual(runtimeConfig.inference.session.decodeLoop, {
     batchSize: 4,
@@ -776,6 +1823,105 @@ function assertCommandOutputMatches(result, pattern) {
   assert.equal(runtimeConfig.inference.session.decodeLoop.readbackInterval, 4);
   assert.equal(runtimeConfig.inference.session.perLayerInputs.materialization, 'gpu_split_tables');
   assert.equal(runtimeConfig.shared.bufferPool.budget.maxTotalBytes, 1234);
+}
+
+{
+  const kvCachePlan = resolveDopplerBenchmarkKvCachePlan({
+    prefillTokenTarget: 64,
+    maxTokens: 8,
+    promptContract: {
+      enginesReceiveRenderedPrompt: true,
+    },
+  });
+  assert.deepEqual(kvCachePlan, {
+    schemaVersion: 1,
+    enabled: true,
+    source: 'declared-workload-token-budget',
+    maxSeqLen: 73,
+    promptTokenTarget: 64,
+    decodeTokenTarget: 8,
+    tokenizerDeltaMargin: 1,
+    runtimePaths: [
+      'inference.kvcache.maxSeqLen',
+      'inference.session.kvcache.maxSeqLen',
+    ],
+    reason: 'tokenizer-accurate synthetic prompt budget plus decode target and tokenizer tolerance',
+  });
+  assert.equal(
+    resolveDopplerBenchmarkKvCachePlan({
+      prefillTokenTarget: null,
+      maxTokens: 8,
+      promptContract: {
+        enginesReceiveRenderedPrompt: true,
+      },
+    }).reason,
+    'prefill-token-target-unavailable'
+  );
+  assert.equal(
+    resolveDopplerBenchmarkKvCachePlan({
+      prefillTokenTarget: 64,
+      maxTokens: 8,
+      promptContract: {
+        enginesReceiveRenderedPrompt: false,
+      },
+    }).reason,
+    'prompt-rendering-not-shared'
+  );
+}
+
+{
+  const sharedContract = buildSharedBenchmarkContract({
+    prompt: 'unit prompt',
+    maxTokens: 8,
+    warmupRuns: 0,
+    timedRuns: 1,
+    seed: 7,
+    sampling: {
+      temperature: 0,
+      topK: 1,
+      topP: 1,
+    },
+    useChatTemplate: false,
+  });
+  const runtimeConfig = buildDopplerRuntimeConfig(sharedContract, {
+    batchSize: 1,
+    readbackInterval: 1,
+    disableMultiTokenDecode: true,
+    speculationMode: 'none',
+    stopCheckMode: 'per-token',
+    kernelPath: null,
+    kernelPathPolicy: null,
+    kvCachePlan: resolveDopplerBenchmarkKvCachePlan({
+      prefillTokenTarget: 64,
+      maxTokens: 8,
+      promptContract: {
+        enginesReceiveRenderedPrompt: true,
+      },
+    }),
+    runtimeBaseConfigJson: {
+      inference: {
+        kvcache: {
+          maxSeqLen: 4096,
+          layout: 'contiguous',
+        },
+        session: {
+          kvcache: {
+            maxSeqLen: 4096,
+            kvDtype: 'f16',
+          },
+        },
+      },
+    },
+    runtimeConfigJson: null,
+  });
+  assert.deepEqual(runtimeConfig.inference.kvcache, {
+    maxSeqLen: 73,
+    layout: 'contiguous',
+  });
+  assert.deepEqual(runtimeConfig.inference.session.kvcache, {
+    maxSeqLen: 73,
+    kvDtype: 'f16',
+  });
 }
 
 {
@@ -858,6 +2004,73 @@ function assertCommandOutputMatches(result, pattern) {
 
 {
   const result = runCompareEngines([
+    '--doppler-surface', 'bun',
+    '--doppler-no-opfs-cache',
+    '--json',
+  ]);
+  assert.notEqual(result.status, 0);
+  assertCommandOutputMatches(result, /--doppler-no-opfs-cache is browser-only/);
+}
+
+{
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-compare-config-'));
+  const bunConfigPath = path.join(tempDir, 'bun-surface-compare-config.json');
+  const bunConfig = {
+    schemaVersion: 1,
+    updated: '2026-06-27',
+    defaults: {
+      warmLoadMode: 'opfs',
+      coldLoadMode: 'http',
+    },
+    modelProfiles: [
+      {
+        dopplerModelId: 'unit-bun-surface-model',
+        defaultTjsModelId: null,
+        defaultDopplerSource: 'local',
+        modelBaseDir: 'local',
+        defaultDopplerSurface: 'bun',
+        defaultDopplerFormat: 'rdrr',
+        defaultTjsFormat: null,
+        safetensorsSourceId: null,
+        compareLane: 'capability_only',
+        compareLaneReason: 'unit-test bun surface schema coverage',
+      },
+    ],
+  };
+  await fs.writeFile(bunConfigPath, `${JSON.stringify(bunConfig, null, 2)}\n`, 'utf8');
+  const result = runCompareEngines([
+    '--compare-config', bunConfigPath,
+    '--model-id', 'unit-bun-surface-model',
+    '--json',
+  ]);
+  assert.notEqual(result.status, 0);
+  assertCommandOutputMatches(result, /allow-non-comparable-lane/);
+}
+
+{
+  const result = runCompareEngines([
+    '--mode', 'warm',
+    '--doppler-bottleneck-profile', 'on',
+    '--json',
+  ]);
+  assert.notEqual(result.status, 0);
+  assertCommandOutputMatches(result, /--doppler-bottleneck-profile requires --mode compute or --mode all/);
+}
+
+{
+  const result = runCompareEngines([
+    '--mode', 'compute',
+    '--doppler-format', 'rdrr',
+    '--load-mode', 'memory',
+    '--json',
+  ]);
+  assert.notEqual(result.status, 0);
+  assertCommandOutputMatches(result, /RDRR compare lanes do not support --load-mode memory/);
+  assertCommandOutputMatches(result, /--doppler-format safetensors/);
+}
+
+{
+  const result = runCompareEngines([
     '--runtime-config-json',
     '{"inference":{"prompt":"override"}}',
     '--json',
@@ -874,6 +2087,16 @@ function assertCommandOutputMatches(result, pattern) {
   ]);
   assert.notEqual(result.status, 0);
   assertCommandOutputMatches(result, /--runtime-config-json must not override compare-managed fairness or cadence fields/);
+}
+
+{
+  const result = runCompareEngines([
+    '--runtime-config-json',
+    '{"inference":{"kvcache":{"maxSeqLen":4096},"session":{"kvcache":{"maxSeqLen":4096}}}}',
+    '--json',
+  ]);
+  assert.notEqual(result.status, 0);
+  assertCommandOutputMatches(result, /Doppler KV cache capacity is compare-managed/);
 }
 
 {

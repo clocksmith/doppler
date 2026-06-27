@@ -108,7 +108,10 @@ The tier1 proof surface is the hosted browser demo, the root `doppler` API, the 
 
 ## Benchmark evidence
 
-![Doppler vs Transformers.js phase timing on Gemma 4 and Qwen 3.5 0.8B workloads](./benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
+Current local claim grid for Gemma 3 270M IT Q4K, `p064`/`p256`/`p512`
+throughput lanes, 15 timed runs per surface, exact output match:
+
+![Doppler vs Transformers.js local claim grid on Gemma 3 270M across Chromium, Node, and Bun](./benchmarks/vendors/results/doppler-goat-claim-grid-20260627.svg)
 
 ## Quickstart-supported models
 
