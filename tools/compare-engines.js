@@ -132,6 +132,9 @@ const DEFAULT_MAX_TOKENS = 64;
 const DEFAULT_WARMUP = 1;
 const DEFAULT_RUNS = 3;
 const DEFAULT_SEED = 0;
+const DEFAULT_DOPPLER_RUN_MAX_BUFFER_BYTES = 10 * 1024 * 1024;
+const DEFAULT_DOPPLER_DIAGNOSTIC_MAX_BUFFER_BYTES = 64 * 1024 * 1024;
+const DOPPLER_COMPARE_COMMANDS = Object.freeze(['bench', 'debug']);
 const DEFAULT_SHARED_SAMPLING = Object.freeze({
   temperature: 0,
   topK: 1,
@@ -141,7 +144,7 @@ const DEFAULT_SHARED_SAMPLING = Object.freeze({
 });
 const DOPPLER_MODEL_SOURCES = Object.freeze(['local', 'quickstart-registry']);
 const COMPARE_LANES = Object.freeze(['performance_comparable', 'capability_only']);
-const COMPARE_PROFILE_RUNTIME_DECODE_PROFILES = Object.freeze(['parity', 'throughput']);
+const COMPARE_PROFILE_RUNTIME_DECODE_PROFILES = Object.freeze(['parity', 'throughput', 'custom']);
 const DOPPLER_LOAD_MODES = Object.freeze(['opfs', 'http', 'memory']);
 const DEFAULT_COMPARE_LANE = 'performance_comparable';
 const DEFAULT_DOPPLER_MODEL_SOURCE = 'local';
@@ -188,13 +191,22 @@ const DEFAULT_BENCHMARK_POLICY = Object.freeze({
         label: 'TJS-like per-token cadence',
       }),
       throughput: Object.freeze({
-        batchSize: 4,
-        readbackInterval: 4,
+        batchSize: 8,
+        readbackInterval: 8,
         disableMultiTokenDecode: false,
         speculationMode: 'none',
         stopCheckMode: 'batch',
-        label: 'Doppler throughput-tuned cadence',
+        label: 'Doppler 8x8 throughput-tuned cadence',
       }),
+    }),
+  }),
+  promotionGates: Object.freeze({
+    throughputCadence: Object.freeze({
+      requireBatchAccounting: true,
+      minDecodeTokensPerSecRatioVsParity: 1,
+      minBatchResolutionEfficiency: 0.95,
+      maxBatchOverrunTokens: 0,
+      description: 'A throughput decode cadence is promotable only when it is not slower than parity cadence and its reported batch work resolves almost all executed batch decode tokens before returning to the generation loop.',
     }),
   }),
   browser: Object.freeze({
@@ -266,6 +278,37 @@ function normalizePositiveInteger(value, label) {
     throw new Error(`${label} must be a positive integer`);
   }
   return parsed;
+}
+
+function normalizePositiveNumber(value, label) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new Error(`${label} must be a positive number`);
+  }
+  return parsed;
+}
+
+function normalizeNonNegativeNumber(value, label) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    throw new Error(`${label} must be a non-negative number`);
+  }
+  return parsed;
+}
+
+function normalizeUnitIntervalNumber(value, label) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0 || parsed > 1) {
+    throw new Error(`${label} must be between 0 and 1`);
+  }
+  return parsed;
+}
+
+function normalizeRequiredBoolean(value, label) {
+  if (typeof value !== 'boolean') {
+    throw new Error(`${label} must be a boolean`);
+  }
+  return value;
 }
 
 function normalizeStopCheckMode(value, label) {
@@ -351,6 +394,35 @@ function normalizeDecodeProfiles(raw) {
     default: defaultId,
     profiles: Object.freeze(profiles),
   };
+}
+
+function normalizeThroughputCadencePromotionGate(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new Error('promotionGates.throughputCadence must be an object');
+  }
+  const description = typeof raw.description === 'string' ? raw.description.trim() : '';
+  if (!description) {
+    throw new Error('promotionGates.throughputCadence.description must be a non-empty string');
+  }
+  return Object.freeze({
+    requireBatchAccounting: normalizeRequiredBoolean(
+      raw.requireBatchAccounting,
+      'promotionGates.throughputCadence.requireBatchAccounting'
+    ),
+    minDecodeTokensPerSecRatioVsParity: normalizePositiveNumber(
+      raw.minDecodeTokensPerSecRatioVsParity,
+      'promotionGates.throughputCadence.minDecodeTokensPerSecRatioVsParity'
+    ),
+    minBatchResolutionEfficiency: normalizeUnitIntervalNumber(
+      raw.minBatchResolutionEfficiency,
+      'promotionGates.throughputCadence.minBatchResolutionEfficiency'
+    ),
+    maxBatchOverrunTokens: normalizeNonNegativeNumber(
+      raw.maxBatchOverrunTokens,
+      'promotionGates.throughputCadence.maxBatchOverrunTokens'
+    ),
+    description,
+  });
 }
 
 function normalizeKnownBadKernelPaths(raw) {
@@ -472,6 +544,10 @@ function loadBenchmarkPolicy() {
   const decodeProfiles = normalizeDecodeProfiles(
     parsed.decodeProfiles ?? DEFAULT_BENCHMARK_POLICY.decodeProfiles
   );
+  const throughputCadencePromotionGate = normalizeThroughputCadencePromotionGate(
+    parsed?.promotionGates?.throughputCadence
+      ?? DEFAULT_BENCHMARK_POLICY.promotionGates.throughputCadence
+  );
   const stableArgs = Object.freeze(
     normalizeStringArray(
       parsed?.browser?.stableArgs ?? DEFAULT_BENCHMARK_POLICY.browser.stableArgs,
@@ -509,6 +585,9 @@ function loadBenchmarkPolicy() {
     requiredTimingFields,
     requiredCompareMetricIds,
     decodeProfiles,
+    promotionGates: Object.freeze({
+      throughputCadence: throughputCadencePromotionGate,
+    }),
     browser: Object.freeze({ stableArgs, compareChannelByPlatform }),
     kernelPathPolicy: Object.freeze({ compareRuntime, knownBadByModel }),
     doppler: Object.freeze({ loadModeRuntimeOverlays }),
@@ -535,7 +614,8 @@ const schemaCache = new Map();
 const REQUIRED_CANONICAL_TIMING_FIELDS = BENCHMARK_POLICY.requiredTimingFields;
 const REQUIRED_COMPARE_METRIC_IDS = BENCHMARK_POLICY.requiredCompareMetricIds;
 const DECODE_PROFILE_CONFIGS = BENCHMARK_POLICY.decodeProfiles.profiles;
-const DOPPLER_SURFACES = Object.freeze(['auto', 'node', 'browser']);
+const THROUGHPUT_CADENCE_PROMOTION_GATE = BENCHMARK_POLICY.promotionGates.throughputCadence;
+const DOPPLER_SURFACES = Object.freeze(['auto', 'node', 'browser', 'bun']);
 const DOPPLER_FORMATS = Object.freeze(['rdrr', 'safetensors']);
 const TJS_FORMATS = Object.freeze(['onnx', 'safetensors']);
 const TJS_DTYPES = Object.freeze(['fp16', 'q4', 'q4f16']);
@@ -563,6 +643,17 @@ function resolveFormatSourcePath(modelIndex, format, sourceId) {
   const volumeRoot = modelIndex.volumeRoot || DEFAULT_EXTERNAL_MODELS_ROOT;
   return path.join(volumeRoot, relative);
 }
+
+function assertDopplerLoadModeSupportedForFormat(format, loadMode) {
+  if (format === 'rdrr' && loadMode === 'memory') {
+    throw new Error(
+      'Doppler RDRR compare lanes do not support --load-mode memory. '
+      + 'Use --load-mode opfs or --load-mode http for RDRR artifacts, '
+      + 'or use --doppler-format safetensors for direct-source memory loading.'
+    );
+  }
+}
+
 const VALID_DECODE_PROFILES = Object.freeze([
   ...Object.keys(DECODE_PROFILE_CONFIGS),
   'custom',
@@ -570,6 +661,93 @@ const VALID_DECODE_PROFILES = Object.freeze([
 const DEFAULT_DOPPLER_BATCH_SIZE = DECODE_PROFILE_CONFIGS[DEFAULT_DECODE_PROFILE].batchSize;
 const DEFAULT_DOPPLER_READBACK_INTERVAL = DECODE_PROFILE_CONFIGS[DEFAULT_DECODE_PROFILE].readbackInterval;
 const DEFAULT_DOPPLER_STOP_CHECK_MODE = DECODE_PROFILE_CONFIGS[DEFAULT_DECODE_PROFILE].stopCheckMode;
+
+function resolveComputeDecodeCadence(decodeProfile, profileName, customCadence, runtimeBaseConfig) {
+  const readbackMode = resolveRuntimeReadbackMode(runtimeBaseConfig);
+  if (decodeProfile === 'custom') {
+    return {
+      batchSize: customCadence.batchSize,
+      readbackInterval: customCadence.readbackInterval,
+      stopCheckMode: customCadence.stopCheckMode,
+      readbackMode,
+      disableMultiTokenDecode: customCadence.disableMultiTokenDecode === true,
+      speculationMode: customCadence.speculationMode ?? null,
+      runtimeBaseConfig,
+    };
+  }
+  const profileConfig = DECODE_PROFILE_CONFIGS[profileName];
+  if (!profileConfig) {
+    throw new Error(`Unknown compute decode profile: ${profileName}`);
+  }
+  return {
+    batchSize: profileConfig.batchSize,
+    readbackInterval: profileConfig.readbackInterval,
+    stopCheckMode: profileConfig.stopCheckMode,
+    readbackMode,
+    disableMultiTokenDecode: profileConfig.disableMultiTokenDecode === true,
+    speculationMode: profileConfig.speculationMode ?? null,
+    runtimeBaseConfig,
+  };
+}
+
+function resolveRuntimeReadbackMode(runtimeConfig) {
+  const mode = runtimeConfig?.inference?.session?.decodeLoop?.readbackMode
+    ?? runtimeConfig?.inference?.batching?.readbackMode
+    ?? null;
+  return typeof mode === 'string' && mode.length > 0 ? mode : null;
+}
+
+function resolveDopplerBenchmarkKvCachePlan({
+  prefillTokenTarget,
+  maxTokens,
+  promptContract = null,
+}) {
+  const promptIsShared = promptContract?.enginesReceiveRenderedPrompt === true;
+  const prefill = Number.isFinite(prefillTokenTarget) ? Math.trunc(prefillTokenTarget) : null;
+  const decode = Number.isFinite(maxTokens) ? Math.trunc(maxTokens) : null;
+  const basePlan = {
+    schemaVersion: 1,
+    enabled: false,
+    source: 'uncapped',
+    maxSeqLen: null,
+    promptTokenTarget: prefill,
+    decodeTokenTarget: decode,
+    tokenizerDeltaMargin: MAX_TOLERATED_TOKENIZER_DELTA,
+    runtimePaths: [
+      'inference.kvcache.maxSeqLen',
+      'inference.session.kvcache.maxSeqLen',
+    ],
+    reason: null,
+  };
+
+  if (prefill == null || prefill <= 0) {
+    return {
+      ...basePlan,
+      reason: 'prefill-token-target-unavailable',
+    };
+  }
+  if (decode == null || decode <= 0) {
+    return {
+      ...basePlan,
+      reason: 'decode-token-target-unavailable',
+    };
+  }
+  if (promptIsShared !== true) {
+    return {
+      ...basePlan,
+      reason: 'prompt-rendering-not-shared',
+    };
+  }
+
+  return {
+    ...basePlan,
+    enabled: true,
+    source: 'declared-workload-token-budget',
+    maxSeqLen: prefill + decode + MAX_TOLERATED_TOKENIZER_DELTA,
+    reason: 'tokenizer-accurate synthetic prompt budget plus decode target and tokenizer tolerance',
+  };
+}
+
 const PROTECTED_RUNTIME_CONFIG_PREFIXES = Object.freeze([
   {
     prefix: 'shared.benchmark',
@@ -600,6 +778,14 @@ const PROTECTED_RUNTIME_CONFIG_PREFIXES = Object.freeze([
     reason: 'decode token budget is a shared fairness axis; use --max-tokens or --workload',
   },
   {
+    prefix: 'inference.kvcache.maxSeqLen',
+    reason: 'Doppler KV cache capacity is compare-managed from the declared workload token budget',
+  },
+  {
+    prefix: 'inference.session.kvcache.maxSeqLen',
+    reason: 'Doppler KV cache capacity is compare-managed from the declared workload token budget',
+  },
+  {
     prefix: 'inference.generation.disableMultiTokenDecode',
     reason: 'decode token grouping is compare-managed for apples-to-apples decode semantics',
   },
@@ -616,6 +802,10 @@ const PROTECTED_RUNTIME_CONFIG_PREFIXES = Object.freeze([
     reason: 'decode cadence is compare-managed; use --decode-profile or --doppler-readback-interval',
   },
   {
+    prefix: 'inference.batching.readbackMode',
+    reason: 'decode readback mode is compare-managed by the selected runtime profile',
+  },
+  {
     prefix: 'inference.session.decodeLoop.stopCheckMode',
     reason: 'decode stop-check cadence is compare-managed for consistent semantics',
   },
@@ -626,6 +816,10 @@ const PROTECTED_RUNTIME_CONFIG_PREFIXES = Object.freeze([
   {
     prefix: 'inference.session.decodeLoop.readbackInterval',
     reason: 'decode cadence is compare-managed; use --decode-profile or --doppler-readback-interval',
+  },
+  {
+    prefix: 'inference.session.decodeLoop.readbackMode',
+    reason: 'decode readback mode is compare-managed by the selected runtime profile',
   },
   {
     prefix: 'inference.session.decodeLoop.disableCommandBatching',
@@ -663,7 +857,7 @@ function usage() {
     '  --warmup <n>                  Warmup runs per engine',
     '  --runs <n>                    Timed runs per engine',
     '  --decode-profile <profile>     parity|throughput|custom (default: parity)',
-    '  --doppler-surface <surface>     auto|node|browser (default: from compare profile, fallback auto)',
+    '  --doppler-surface <surface>     auto|node|browser|bun (default: from compare profile, fallback auto)',
     '  --compare-config <path>        Compare model profile config path',
     '  --compare-metric-contract <path> Compare metric contract path',
     '  --seed <n>                    Deterministic seed',
@@ -674,19 +868,20 @@ function usage() {
     '  --doppler-no-opfs-cache        Disable Doppler OPFS cache for browser runs',
     '  --use-chat-template <on|off>   Enable/disable chat template handling',
     '  --tjs-local-model-path <path>   Path override for local TJS model files',
-    '  --load-mode <opfs|http|memory>  Asset-load mode override for both engines (default: compare config defaults)',
+    '  --load-mode <opfs|http|memory>  Asset-load mode override (memory requires --doppler-format safetensors)',
   '  --doppler-browser-user-data <path> Doppler Chromium profile dir',
   '  --doppler-browser-port <n>      Doppler browser relay static port (0 = random)',
   '  --doppler-browser-channel <id>   Doppler browser channel override (default: benchmark policy)',
   '  --browser-base-url <url>         Base URL for both benchmark runners (skips local server startup)',
   '  --browser-executable <path>      Browser executable for both benchmark runners',
   '  --runtime-config-json <json>      Engine-only JSON overlay merged into Doppler runtime config (fairness axes protected)',
+  '  --doppler-bottleneck-profile <on|off> Run a Doppler debug-profiler pass as a diagnostic artifact',
   '  --timestamp <iso|ms>               Report timestamp override (ISO-8601 or epoch milliseconds)',
     '  --tjs-profile-ops <on|off>       TJS ORT op profiling',
   '  --timeout-ms <ms>                 Shared benchmark timeout',
   '  --doppler-timeout-ms <ms>         Doppler-only benchmark timeout',
   '  --tjs-timeout-ms <ms>             TJS-only benchmark timeout',
-    '  --allow-non-comparable-lane      Allow capability-only diagnostic lanes from compare-engines.config.json',
+    '  --allow-non-comparable-lane      Allow capability-only or stale-artifact diagnostic lanes',
     '  --tjs-server-port <n>             TJS server port (0 = random)',
     '  --tjs-browser-console             Stream browser console on TJS failures',
     '  --save                           Save results to benchmarks/vendors/results/',
@@ -1598,6 +1793,83 @@ function firstFiniteNumber(objectValue, paths) {
   return null;
 }
 
+function finiteStatNumber(value) {
+  if (Number.isFinite(value)) {
+    return value;
+  }
+  if (value == null || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  if (Number.isFinite(value.samples) && value.samples <= 0) {
+    return null;
+  }
+  for (const key of ['mean', 'median', 'p50', 'value']) {
+    if (Number.isFinite(value[key])) {
+      return value[key];
+    }
+  }
+  return null;
+}
+
+function firstFiniteStatNumber(objectValue, paths) {
+  for (const dottedPath of paths || []) {
+    const candidate = finiteStatNumber(getByPath(objectValue, dottedPath));
+    if (Number.isFinite(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+function firstArrayValue(objectValue, paths) {
+  for (const dottedPath of paths || []) {
+    const candidate = getByPath(objectValue, dottedPath);
+    if (Array.isArray(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+function roundBottleneckNumber(value) {
+  if (!Number.isFinite(value)) {
+    return null;
+  }
+  return Math.round(value * 1000) / 1000;
+}
+
+function normalizeCommandRecordTopOps(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const normalized = [];
+  for (const entry of value) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      continue;
+    }
+    const label = typeof entry.label === 'string' && entry.label.length > 0
+      ? entry.label
+      : null;
+    const count = finiteStatNumber(entry.count);
+    if (!label || !Number.isFinite(count) || count <= 0) {
+      continue;
+    }
+    normalized.push({
+      label,
+      count: roundBottleneckNumber(count),
+      shareOfOps: roundBottleneckNumber(finiteStatNumber(entry.shareOfOps)),
+    });
+  }
+  return normalized;
+}
+
+function shareOfDecode(value, decodeMs) {
+  if (!Number.isFinite(value) || !Number.isFinite(decodeMs) || decodeMs <= 0) {
+    return null;
+  }
+  return roundBottleneckNumber(value / decodeMs);
+}
+
 function clipTail(text, maxChars = 3000) {
   if (text == null) return '';
   const str = redactSecrets(String(text));
@@ -1716,6 +1988,16 @@ function buildComparabilityWarnings({ dopplerSurface }) {
   return warnings;
 }
 
+function formatDopplerRuntimeCacheLabel(dopplerSurface, loadMode) {
+  if (dopplerSurface === 'browser' || dopplerSurface === 'auto') {
+    return `Doppler browser load mode ${loadMode}`;
+  }
+  if (dopplerSurface === 'bun') {
+    return 'Doppler bun runtime cache';
+  }
+  return 'Doppler node runtime cache';
+}
+
 const DTYPE_PATTERN = /^(f\d+a?|q\d+[a-z]*|bf16|fp16|fp32|int[48])$/i;
 
 function parseDopplerDtype(modelId) {
@@ -1823,6 +2105,25 @@ function hashJsonPayload(payload) {
   return crypto.createHash('sha256').update(text).digest('hex');
 }
 
+function normalizeJsonPayload(value) {
+  if (Array.isArray(value)) {
+    return value.map((entry) => normalizeJsonPayload(entry));
+  }
+  if (value && typeof value === 'object') {
+    const normalized = {};
+    for (const key of Object.keys(value).sort()) {
+      normalized[key] = normalizeJsonPayload(value[key]);
+    }
+    return normalized;
+  }
+  return value;
+}
+
+function hashStableJsonPayload(payload) {
+  const text = JSON.stringify(normalizeJsonPayload(payload), null, 0);
+  return crypto.createHash('sha256').update(text).digest('hex');
+}
+
 function resolveDopplerLoadModeRuntimeOverlay(loadMode) {
   const normalized = String(loadMode ?? '').trim().toLowerCase();
   if (!normalized) return null;
@@ -1886,7 +2187,103 @@ async function loadManifestForCompareSource(dopplerModelSource) {
   return readJsonFileWithHash(dopplerModelSource.manifestSource, 'compare Doppler manifest');
 }
 
-async function preflightDopplerManifestContract(dopplerModelSource, dopplerModelId) {
+function buildDopplerManifestFreshnessArtifact({
+  dopplerModelId,
+  manifestSourceType,
+  activeManifest,
+  activeManifestSource,
+  activeManifestSha256,
+  localManifest,
+  localManifestSource,
+  localManifestSha256,
+  enforced = false,
+} = {}) {
+  const active = {
+    manifestSource: toRepoRelativeSourcePath(activeManifestSource ?? null),
+    manifestSha256: activeManifestSha256 ?? null,
+    canonicalManifestSha256: activeManifest == null ? null : hashStableJsonPayload(activeManifest),
+  };
+  const localCurrent = {
+    manifestSource: toRepoRelativeSourcePath(localManifestSource ?? null),
+    manifestSha256: localManifestSha256 ?? null,
+    canonicalManifestSha256: localManifest == null ? null : hashStableJsonPayload(localManifest),
+    present: localManifest != null,
+  };
+  if (manifestSourceType !== 'remote') {
+    return {
+      schemaVersion: 1,
+      checked: false,
+      ok: true,
+      enforced,
+      reason: 'active-manifest-is-local',
+      active,
+      localCurrent,
+      errors: [],
+    };
+  }
+  if (localManifest == null) {
+    return {
+      schemaVersion: 1,
+      checked: false,
+      ok: true,
+      enforced,
+      reason: 'local-current-manifest-missing',
+      active,
+      localCurrent,
+      errors: [],
+    };
+  }
+  const ok = active.canonicalManifestSha256 === localCurrent.canonicalManifestSha256;
+  return {
+    schemaVersion: 1,
+    checked: true,
+    ok,
+    enforced,
+    reason: ok ? 'remote-matches-local-current-manifest' : 'remote-differs-from-local-current-manifest',
+    active,
+    localCurrent,
+    errors: ok ? [] : [
+      `Remote Doppler manifest for "${dopplerModelId}" does not match the current local manifest. `
+      + `Use --model-url ${pathToFileURL(path.dirname(localManifestSource)).href} for a current-local claim run, `
+      + 'refresh the hosted artifact, or pass --allow-non-comparable-lane for diagnostic-only stale-artifact evidence.',
+    ],
+  };
+}
+
+async function resolveDopplerManifestFreshnessArtifact(dopplerModelSource, dopplerModelId, manifestBundle, options = {}) {
+  if (dopplerModelSource.manifestSourceType !== 'remote') {
+    return buildDopplerManifestFreshnessArtifact({
+      dopplerModelId,
+      manifestSourceType: dopplerModelSource.manifestSourceType,
+      activeManifest: manifestBundle.payload,
+      activeManifestSource: manifestBundle.source,
+      activeManifestSha256: manifestBundle.sourceSha256,
+      enforced: options.enforceLocalManifestFreshness === true,
+    });
+  }
+  const localManifestSource = path.join(DOPPLER_ROOT, 'models', 'local', dopplerModelId, 'manifest.json');
+  let localManifestBundle = null;
+  try {
+    localManifestBundle = await readJsonFileWithHash(localManifestSource, 'local current Doppler manifest freshness candidate');
+  } catch (error) {
+    if (error?.code !== 'ENOENT') {
+      throw error;
+    }
+  }
+  return buildDopplerManifestFreshnessArtifact({
+    dopplerModelId,
+    manifestSourceType: dopplerModelSource.manifestSourceType,
+    activeManifest: manifestBundle.payload,
+    activeManifestSource: manifestBundle.source,
+    activeManifestSha256: manifestBundle.sourceSha256,
+    localManifest: localManifestBundle?.payload ?? null,
+    localManifestSource,
+    localManifestSha256: localManifestBundle?.sourceSha256 ?? null,
+    enforced: options.enforceLocalManifestFreshness === true,
+  });
+}
+
+async function preflightDopplerManifestContract(dopplerModelSource, dopplerModelId, options = {}) {
   const manifestBundle = await loadManifestForCompareSource(dopplerModelSource);
   const manifest = manifestBundle.payload;
   const requiredInferenceFieldsArtifact = buildManifestRequiredInferenceFieldsArtifact(
@@ -1895,6 +2292,13 @@ async function preflightDopplerManifestContract(dopplerModelSource, dopplerModel
   );
   const executionContractArtifact = buildExecutionContractArtifact(manifest);
   const executionContractOk = executionContractArtifact == null || executionContractArtifact.ok === true;
+  const artifactFreshness = await resolveDopplerManifestFreshnessArtifact(
+    dopplerModelSource,
+    dopplerModelId,
+    manifestBundle,
+    options
+  );
+  const artifactFreshnessOk = artifactFreshness.ok === true || artifactFreshness.enforced !== true;
   const artifactIdentity = manifest?.artifactIdentity && typeof manifest.artifactIdentity === 'object'
     ? {
       sourceCheckpointId: manifest.artifactIdentity.sourceCheckpointId ?? null,
@@ -1907,6 +2311,7 @@ async function preflightDopplerManifestContract(dopplerModelSource, dopplerModel
   const errors = [
     ...(Array.isArray(requiredInferenceFieldsArtifact?.errors) ? requiredInferenceFieldsArtifact.errors : []),
     ...(Array.isArray(executionContractArtifact?.errors) ? executionContractArtifact.errors : []),
+    ...(artifactFreshness.enforced === true && Array.isArray(artifactFreshness.errors) ? artifactFreshness.errors : []),
     ...(!artifactIdentity ? [`${dopplerModelId}.manifest.artifactIdentity is required for compare evidence`] : []),
   ];
   return {
@@ -1916,7 +2321,8 @@ async function preflightDopplerManifestContract(dopplerModelSource, dopplerModel
     weightsRef: manifest?.weightsRef ?? null,
     requiredInferenceFieldsArtifact,
     executionContractArtifact,
-    ok: requiredInferenceFieldsArtifact.ok === true && executionContractOk && artifactIdentity !== null,
+    artifactFreshness,
+    ok: requiredInferenceFieldsArtifact.ok === true && executionContractOk && artifactFreshnessOk && artifactIdentity !== null,
     errors,
   };
 }
@@ -2028,6 +2434,56 @@ function assertKernelPathAllowedForModel(modelId, kernelPath) {
     `Kernel path "${kernelPath}" is blocked for model "${modelId}" in compare runs due to deterministic correctness failures. `
     + 'Use the manifest execution-v1 graph.'
   );
+}
+
+function resolveDopplerCliExecutor(surface) {
+  if (surface === 'bun') return 'bun';
+  return 'node';
+}
+
+function resolveDopplerCommandSurface(surface, isSafetensorsFormat) {
+  if (isSafetensorsFormat || surface === 'bun') return 'node';
+  return surface;
+}
+
+function resolveDopplerExecutionIdentity(surface, format = DEFAULT_DOPPLER_FORMAT) {
+  const requestedSurface = parseChoice(
+    surface,
+    DOPPLER_SURFACES,
+    '--doppler-surface',
+    'auto'
+  );
+  const resolvedFormat = parseChoice(
+    format,
+    DOPPLER_FORMATS,
+    '--doppler-format',
+    DEFAULT_DOPPLER_FORMAT
+  );
+  const commandSurface = resolveDopplerCommandSurface(
+    requestedSurface,
+    resolvedFormat === 'safetensors'
+  );
+  const cliExecutor = resolveDopplerCliExecutor(requestedSurface);
+  const commandSurfaceReason = (() => {
+    if (resolvedFormat === 'safetensors' && commandSurface === 'node') {
+      return 'safetensors-format-node-command-surface';
+    }
+    if (requestedSurface === 'bun' && commandSurface === 'node') {
+      return 'bun-executor-node-command-surface';
+    }
+    return 'matches-requested-surface';
+  })();
+  return {
+    requestedSurface,
+    commandSurface,
+    cliExecutor,
+    format: resolvedFormat,
+    commandSurfaceReason,
+  };
+}
+
+function isDopplerBrowserCommandSurface(surface) {
+  return surface === 'auto' || surface === 'browser';
 }
 
 function parseArgs(argv) {
@@ -2154,6 +2610,11 @@ function resolveCompareLoadModes(sharedLoadMode, compareLoadModeDefaults) {
 
 function buildDopplerRuntimeConfig(sharedContract, engineOverlay) {
   const resolvedLoadMode = engineOverlay.loadMode ?? sharedContract.loadMode ?? null;
+  const kvCachePlan = engineOverlay.kvCachePlan?.enabled === true
+    && Number.isFinite(engineOverlay.kvCachePlan.maxSeqLen)
+    && engineOverlay.kvCachePlan.maxSeqLen > 0
+    ? engineOverlay.kvCachePlan
+    : null;
   const sampling = {
     temperature: sharedContract.sampling.temperature,
     topK: sharedContract.sampling.topK,
@@ -2182,19 +2643,36 @@ function buildDopplerRuntimeConfig(sharedContract, engineOverlay) {
         enabled: sharedContract.useChatTemplate,
       },
       generation: {
+        maxTokens: sharedContract.maxTokens,
         disableMultiTokenDecode: engineOverlay.disableMultiTokenDecode === true,
       },
+      ...(kvCachePlan
+        ? {
+            kvcache: {
+              maxSeqLen: Math.trunc(kvCachePlan.maxSeqLen),
+            },
+          }
+        : {}),
       batching: {
         maxTokens: sharedContract.maxTokens,
         batchSize: engineOverlay.batchSize,
         readbackInterval: engineOverlay.readbackInterval,
         stopCheckMode: engineOverlay.stopCheckMode,
+        ...(engineOverlay.readbackMode ? { readbackMode: engineOverlay.readbackMode } : {}),
       },
       session: {
+        ...(kvCachePlan
+          ? {
+              kvcache: {
+                maxSeqLen: Math.trunc(kvCachePlan.maxSeqLen),
+              },
+            }
+          : {}),
         decodeLoop: {
           batchSize: engineOverlay.batchSize,
           stopCheckMode: engineOverlay.stopCheckMode,
           readbackInterval: engineOverlay.readbackInterval,
+          ...(engineOverlay.readbackMode ? { readbackMode: engineOverlay.readbackMode } : {}),
           disableCommandBatching: false,
         },
         ...(engineOverlay.speculationMode
@@ -2250,13 +2728,30 @@ function buildDopplerRuntimeConfig(sharedContract, engineOverlay) {
       throw new Error('--runtime-config-json override is expected to be a parsed JSON object');
     }
     assertAllowedRuntimeConfigOverride(engineOverlay.runtimeConfigJson);
-    return mergeRuntimeValues(runtimeConfig, engineOverlay.runtimeConfigJson);
+    runtimeConfig = mergeRuntimeValues(runtimeConfig, engineOverlay.runtimeConfigJson);
   }
 
+  if (engineOverlay.runtimeDiagnosticConfigJson != null) {
+    if (
+      typeof engineOverlay.runtimeDiagnosticConfigJson !== 'object'
+      || engineOverlay.runtimeDiagnosticConfigJson == null
+      || Array.isArray(engineOverlay.runtimeDiagnosticConfigJson)
+    ) {
+      throw new Error('compare-owned diagnostic runtime overlay is expected to be a parsed JSON object');
+    }
+    runtimeConfig = mergeRuntimeValues(runtimeConfig, engineOverlay.runtimeDiagnosticConfigJson);
+  }
   return runtimeConfig;
 }
 
 async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options = {}) {
+  const resolvedCommand = parseChoice(
+    options.command,
+    DOPPLER_COMPARE_COMMANDS,
+    'runDoppler command',
+    'bench'
+  );
+  const resolvedWorkload = options.workload ?? (resolvedCommand === 'debug' ? 'inference' : null);
   const resolvedSurface = parseChoice(
     options.surface,
     DOPPLER_SURFACES,
@@ -2295,9 +2790,15 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
     DEFAULT_DOPPLER_BROWSER_PORT,
     '--doppler-browser-port'
   );
+  const resolvedMaxBufferBytes = parsePositiveInt(
+    options.maxBufferBytes,
+    DEFAULT_DOPPLER_RUN_MAX_BUFFER_BYTES,
+    'runDoppler maxBufferBytes'
+  );
   const resolvedBrowserChannel = resolveBrowserChannelOverride(options.browserChannel);
   const resolvedBrowserBaseUrl = options.browserBaseUrl || null;
   const resolvedBrowserExecutable = options.browserExecutable || null;
+  const dopplerExecution = resolveDopplerExecutionIdentity(resolvedSurface, resolvedFormat);
   const loadModeRuntimeOverlay = resolveDopplerLoadModeRuntimeOverlay(resolvedLoadMode);
   const runtimeConfig = buildDopplerRuntimeConfig(sharedContract, {
     kernelPath: resolvedKernelPath,
@@ -2308,20 +2809,24 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
     speculationMode: resolvedSpeculationMode || null,
     stopCheckMode: resolvedStopCheckMode,
     loadMode: resolvedLoadMode,
+    kvCachePlan: options.kvCachePlan ?? null,
     runtimeBaseConfigJson: options.runtimeBaseConfigJson ?? null,
     runtimeLoadModeConfigJson: loadModeRuntimeOverlay?.runtimeConfig ?? null,
     runtimeConfigJson: options.runtimeConfigJson,
+    runtimeDiagnosticConfigJson: options.runtimeDiagnosticConfigJson,
   });
   const stableBrowserArgs = appendBrowserArgs([], STABLE_BROWSER_ARGS);
+  const cliExecutor = dopplerExecution.cliExecutor;
 
   const buildCliConfig = () => {
     const resolvedModelUrl = isSafetensorsFormat && options.safetensorsSourcePath
       ? options.safetensorsSourcePath
       : modelUrl;
+    const commandSurface = dopplerExecution.commandSurface;
     const run = {
-      surface: isSafetensorsFormat ? 'node' : resolvedSurface,
+      surface: commandSurface,
     };
-    if (run.surface !== 'node') {
+    if (isDopplerBrowserCommandSurface(commandSurface)) {
       run.browser = {
         ...(resolvedBrowserBaseUrl
           ? { baseUrl: String(resolvedBrowserBaseUrl) }
@@ -2335,6 +2840,7 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
     }
     return {
       request: {
+        ...(resolvedWorkload ? { workload: resolvedWorkload } : {}),
         modelId,
         modelUrl: resolvedModelUrl,
         cacheMode,
@@ -2344,31 +2850,38 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
     };
   };
 
-  console.error(`[compare] running Doppler (${cacheMode})...`);
+  const diagnosticLabel = options.diagnosticLabel ? `, ${options.diagnosticLabel}` : '';
+  console.error(`[compare] running Doppler ${resolvedCommand} (${cacheMode}${diagnosticLabel})...`);
   const runOnce = async () => {
     const cliConfig = buildCliConfig();
     const args = [
       path.join(DOPPLER_ROOT, 'src', 'cli', 'doppler-cli.js'),
-      'bench',
+      resolvedCommand,
       '--config',
       JSON.stringify(cliConfig),
       '--runtime-config',
       JSON.stringify(runtimeConfig),
       '--json',
     ];
-    const { stdout } = await execFileAsync('node', args, {
+    const { stdout } = await execFileAsync(cliExecutor, args, {
       cwd: DOPPLER_ROOT,
       timeout: resolvedTimeoutMs,
-      maxBuffer: 10 * 1024 * 1024,
+      maxBuffer: resolvedMaxBufferBytes,
     });
-    return parseJsonBlock(stdout, `Doppler (${cacheMode})`);
+    return {
+      ...parseJsonBlock(stdout, `Doppler ${resolvedCommand} (${cacheMode})`),
+      dopplerExecution,
+    };
   };
 
   try {
     return await runOnce();
   } catch (error) {
-    console.error(`[compare] Doppler (${cacheMode}) failed: ${redactSecrets(error.message)}`);
-    return toFailurePayload('doppler', error);
+    console.error(`[compare] Doppler ${resolvedCommand} (${cacheMode}) failed: ${redactSecrets(error.message)}`);
+    return {
+      ...toFailurePayload('doppler', error),
+      dopplerExecution,
+    };
   }
 }
 
@@ -2465,6 +2978,1074 @@ function assertRequiredHarnessMetrics(result, harnessMetricConfig, phaseLabel, e
   }
 }
 
+function resolveDopplerRuntimeConfigFromResult(result) {
+  const candidates = [
+    result?.request?.runtimeConfig,
+    result?.result?.request?.runtimeConfig,
+    result?.result?.result?.request?.runtimeConfig,
+  ];
+  for (const candidate of candidates) {
+    if (candidate && typeof candidate === 'object' && !Array.isArray(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+function isComparePlainObject(value) {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function resolveDopplerMetricsDecodeCadenceFromResult(result) {
+  const candidates = [
+    result?.metrics?.decodeCadence,
+    result?.result?.metrics?.decodeCadence,
+    result?.result?.result?.metrics?.decodeCadence,
+  ];
+  for (const candidate of candidates) {
+    if (isComparePlainObject(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+function resolveDopplerDecodeCadenceFromRuntimeConfig(runtimeConfig) {
+  const batching = runtimeConfig?.inference?.batching;
+  const decodeLoop = runtimeConfig?.inference?.session?.decodeLoop;
+  const generation = runtimeConfig?.inference?.generation;
+  const speculation = runtimeConfig?.inference?.session?.speculation;
+  if (
+    !batching || typeof batching !== 'object' || Array.isArray(batching)
+    || !decodeLoop || typeof decodeLoop !== 'object' || Array.isArray(decodeLoop)
+  ) {
+    return null;
+  }
+  return {
+    batchSize: decodeLoop.batchSize,
+    readbackInterval: decodeLoop.readbackInterval,
+    stopCheckMode: decodeLoop.stopCheckMode,
+    readbackMode: decodeLoop.readbackMode ?? batching.readbackMode ?? null,
+    disableCommandBatching: decodeLoop.disableCommandBatching,
+    disableMultiTokenDecode: generation?.disableMultiTokenDecode === true,
+    speculationMode: speculation?.mode ?? null,
+    tokensPerReadback: Number.isFinite(decodeLoop.batchSize) && Number.isFinite(decodeLoop.readbackInterval)
+      ? decodeLoop.batchSize * decodeLoop.readbackInterval
+      : null,
+    runtimeMirror: {
+      batching: {
+        batchSize: batching.batchSize,
+        readbackInterval: batching.readbackInterval,
+        stopCheckMode: batching.stopCheckMode,
+        readbackMode: batching.readbackMode ?? null,
+      },
+      decodeLoop: {
+        batchSize: decodeLoop.batchSize,
+        readbackInterval: decodeLoop.readbackInterval,
+        stopCheckMode: decodeLoop.stopCheckMode,
+        readbackMode: decodeLoop.readbackMode ?? null,
+      },
+    },
+  };
+}
+
+function mergeDopplerDecodeCadence(runtimeCadence, metricsCadence) {
+  if (!metricsCadence) {
+    return runtimeCadence;
+  }
+  if (!runtimeCadence) {
+    return metricsCadence;
+  }
+  return {
+    batchSize: metricsCadence.batchSize ?? runtimeCadence.batchSize,
+    readbackInterval: metricsCadence.readbackInterval ?? runtimeCadence.readbackInterval,
+    stopCheckMode: metricsCadence.stopCheckMode ?? runtimeCadence.stopCheckMode,
+    readbackMode: metricsCadence.readbackMode ?? runtimeCadence.readbackMode,
+    disableCommandBatching: metricsCadence.disableCommandBatching ?? runtimeCadence.disableCommandBatching,
+    disableMultiTokenDecode: metricsCadence.disableMultiTokenDecode ?? runtimeCadence.disableMultiTokenDecode,
+    speculationMode: metricsCadence.speculationMode ?? runtimeCadence.speculationMode,
+    tokensPerReadback: metricsCadence.tokensPerReadback ?? runtimeCadence.tokensPerReadback,
+    runtimeMirror: metricsCadence.runtimeMirror ?? runtimeCadence.runtimeMirror,
+    executionPlan: metricsCadence.executionPlan ?? null,
+  };
+}
+
+function resolveDopplerDecodeCadenceFromResult(result) {
+  if (result?.failed) {
+    return null;
+  }
+  const runtimeConfig = resolveDopplerRuntimeConfigFromResult(result);
+  const runtimeCadence = resolveDopplerDecodeCadenceFromRuntimeConfig(runtimeConfig);
+  const metricsCadence = resolveDopplerMetricsDecodeCadenceFromResult(result);
+  return mergeDopplerDecodeCadence(runtimeCadence, metricsCadence);
+}
+
+function resolveDopplerMemoryAccountingFromResult(result) {
+  if (result?.failed) {
+    return null;
+  }
+  const usedBytes = firstFiniteStatNumber(result, [
+    'result.memoryStats.used',
+    'memoryStats.used',
+    'result.result.memoryStats.used',
+  ]);
+  const peakBytesAllocated = firstFiniteStatNumber(result, [
+    'result.memoryStats.pool.peakBytesAllocated',
+    'memoryStats.pool.peakBytesAllocated',
+    'result.result.memoryStats.pool.peakBytesAllocated',
+  ]);
+  const peakBytesRequested = firstFiniteStatNumber(result, [
+    'result.memoryStats.pool.peakBytesRequested',
+    'memoryStats.pool.peakBytesRequested',
+    'result.result.memoryStats.pool.peakBytesRequested',
+  ]);
+  const currentBytesAllocated = firstFiniteStatNumber(result, [
+    'result.memoryStats.pool.currentBytesAllocated',
+    'memoryStats.pool.currentBytesAllocated',
+    'result.result.memoryStats.pool.currentBytesAllocated',
+  ]);
+  const currentBytesRequested = firstFiniteStatNumber(result, [
+    'result.memoryStats.pool.currentBytesRequested',
+    'memoryStats.pool.currentBytesRequested',
+    'result.result.memoryStats.pool.currentBytesRequested',
+  ]);
+  const activeBuffers = firstFiniteStatNumber(result, [
+    'result.memoryStats.pool.activeBuffers',
+    'memoryStats.pool.activeBuffers',
+    'result.result.memoryStats.pool.activeBuffers',
+  ]);
+  const pooledBuffers = firstFiniteStatNumber(result, [
+    'result.memoryStats.pool.pooledBuffers',
+    'memoryStats.pool.pooledBuffers',
+    'result.result.memoryStats.pool.pooledBuffers',
+  ]);
+  const kvAllocatedBytes = firstFiniteStatNumber(result, [
+    'result.memoryStats.kvCache.allocated',
+    'memoryStats.kvCache.allocated',
+    'result.result.memoryStats.kvCache.allocated',
+  ]);
+  const kvUsedBytes = firstFiniteStatNumber(result, [
+    'result.memoryStats.kvCache.used',
+    'memoryStats.kvCache.used',
+    'result.result.memoryStats.kvCache.used',
+  ]);
+  const kvTheoreticalBytes = firstFiniteStatNumber(result, [
+    'result.memoryStats.kvCache.theoretical',
+    'memoryStats.kvCache.theoretical',
+    'result.result.memoryStats.kvCache.theoretical',
+  ]);
+  const kvEfficiency = firstFiniteStatNumber(result, [
+    'result.memoryStats.kvCache.efficiency',
+    'memoryStats.kvCache.efficiency',
+    'result.result.memoryStats.kvCache.efficiency',
+  ]);
+  const kvSeqLen = firstFiniteStatNumber(result, [
+    'result.memoryStats.kvCache.seqLen',
+    'memoryStats.kvCache.seqLen',
+    'result.result.memoryStats.kvCache.seqLen',
+  ]);
+  const kvMaxSeqLen = firstFiniteStatNumber(result, [
+    'result.memoryStats.kvCache.maxSeqLen',
+    'memoryStats.kvCache.maxSeqLen',
+    'result.result.memoryStats.kvCache.maxSeqLen',
+  ]);
+  const kvLayout = getByPath(result, 'result.memoryStats.kvCache.layout')
+    ?? getByPath(result, 'memoryStats.kvCache.layout')
+    ?? getByPath(result, 'result.result.memoryStats.kvCache.layout')
+    ?? null;
+  const kvDtype = getByPath(result, 'result.memoryStats.kvCache.kvDtype')
+    ?? getByPath(result, 'memoryStats.kvCache.kvDtype')
+    ?? getByPath(result, 'result.result.memoryStats.kvCache.kvDtype')
+    ?? null;
+  if (
+    !Number.isFinite(usedBytes)
+    && !Number.isFinite(peakBytesAllocated)
+    && !Number.isFinite(kvAllocatedBytes)
+  ) {
+    return null;
+  }
+  return {
+    schemaVersion: 1,
+    source: 'doppler-memoryStats',
+    gpuMemoryComparable: true,
+    usedBytes: Number.isFinite(usedBytes) ? usedBytes : null,
+    pool: {
+      peakBytesAllocated: Number.isFinite(peakBytesAllocated) ? peakBytesAllocated : null,
+      peakBytesRequested: Number.isFinite(peakBytesRequested) ? peakBytesRequested : null,
+      currentBytesAllocated: Number.isFinite(currentBytesAllocated) ? currentBytesAllocated : null,
+      currentBytesRequested: Number.isFinite(currentBytesRequested) ? currentBytesRequested : null,
+      activeBuffers: Number.isFinite(activeBuffers) ? activeBuffers : null,
+      pooledBuffers: Number.isFinite(pooledBuffers) ? pooledBuffers : null,
+    },
+    kvCache: {
+      allocatedBytes: Number.isFinite(kvAllocatedBytes) ? kvAllocatedBytes : null,
+      usedBytes: Number.isFinite(kvUsedBytes) ? kvUsedBytes : null,
+      theoreticalBytes: Number.isFinite(kvTheoreticalBytes) ? kvTheoreticalBytes : null,
+      efficiency: Number.isFinite(kvEfficiency) ? roundBottleneckNumber(kvEfficiency) : null,
+      seqLen: Number.isFinite(kvSeqLen) ? kvSeqLen : null,
+      maxSeqLen: Number.isFinite(kvMaxSeqLen) ? kvMaxSeqLen : null,
+      layout: typeof kvLayout === 'string' ? kvLayout : null,
+      kvDtype: typeof kvDtype === 'string' ? kvDtype : null,
+    },
+  };
+}
+
+function resolveTransformersjsMemoryAccountingFromResult(result) {
+  if (result?.failed) {
+    return null;
+  }
+  const beforeUsed = firstFiniteStatNumber(result, [
+    'memoryInfo.before.usedJSHeapSize',
+    'metrics.memoryInfo.before.usedJSHeapSize',
+    'result.memoryInfo.before.usedJSHeapSize',
+  ]);
+  const afterUsed = firstFiniteStatNumber(result, [
+    'memoryInfo.after.usedJSHeapSize',
+    'metrics.memoryInfo.after.usedJSHeapSize',
+    'result.memoryInfo.after.usedJSHeapSize',
+  ]);
+  const beforeTotal = firstFiniteStatNumber(result, [
+    'memoryInfo.before.totalJSHeapSize',
+    'metrics.memoryInfo.before.totalJSHeapSize',
+    'result.memoryInfo.before.totalJSHeapSize',
+  ]);
+  const afterTotal = firstFiniteStatNumber(result, [
+    'memoryInfo.after.totalJSHeapSize',
+    'metrics.memoryInfo.after.totalJSHeapSize',
+    'result.memoryInfo.after.totalJSHeapSize',
+  ]);
+  const heapLimit = firstFiniteStatNumber(result, [
+    'memoryInfo.after.jsHeapSizeLimit',
+    'memoryInfo.before.jsHeapSizeLimit',
+    'metrics.memoryInfo.after.jsHeapSizeLimit',
+    'metrics.memoryInfo.before.jsHeapSizeLimit',
+    'result.memoryInfo.after.jsHeapSizeLimit',
+    'result.memoryInfo.before.jsHeapSizeLimit',
+  ]);
+  if (
+    !Number.isFinite(beforeUsed)
+    && !Number.isFinite(afterUsed)
+    && !Number.isFinite(afterTotal)
+  ) {
+    return null;
+  }
+  return {
+    schemaVersion: 1,
+    source: 'browser-performance-memory',
+    gpuMemoryComparable: false,
+    usedJSHeapBeforeBytes: Number.isFinite(beforeUsed) ? beforeUsed : null,
+    usedJSHeapAfterBytes: Number.isFinite(afterUsed) ? afterUsed : null,
+    usedJSHeapDeltaBytes: Number.isFinite(beforeUsed) && Number.isFinite(afterUsed)
+      ? afterUsed - beforeUsed
+      : null,
+    totalJSHeapBeforeBytes: Number.isFinite(beforeTotal) ? beforeTotal : null,
+    totalJSHeapAfterBytes: Number.isFinite(afterTotal) ? afterTotal : null,
+    jsHeapSizeLimitBytes: Number.isFinite(heapLimit) ? heapLimit : null,
+  };
+}
+
+function buildMemoryAccounting(doppler, transformersjs) {
+  const dopplerMemory = resolveDopplerMemoryAccountingFromResult(doppler);
+  const transformersjsMemory = resolveTransformersjsMemoryAccountingFromResult(transformersjs);
+  if (!dopplerMemory && !transformersjsMemory) {
+    return null;
+  }
+  return {
+    schemaVersion: 1,
+    gpuMemoryComparable: dopplerMemory?.gpuMemoryComparable === true
+      && transformersjsMemory?.gpuMemoryComparable === true,
+    doppler: dopplerMemory,
+    transformersjs: transformersjsMemory,
+    comparability: {
+      gpuMemory: dopplerMemory?.gpuMemoryComparable === true
+        && transformersjsMemory?.gpuMemoryComparable === true,
+      reason: dopplerMemory?.gpuMemoryComparable === true && transformersjsMemory?.gpuMemoryComparable !== true
+        ? 'Doppler reports GPU buffer-pool/KV memory; Transformers.js exposes browser JS heap here, not WebGPU allocation residency.'
+        : null,
+    },
+  };
+}
+
+function resolveDopplerBottleneckClass(componentId) {
+  if (
+    componentId === 'submit_readback_wait'
+    || componentId === 'submit_readback_slack'
+    || componentId === 'submit_readback_unattributed'
+    || componentId === 'readback_map_wait'
+    || componentId === 'readback_cleanup'
+    || componentId === 'readback_copy'
+  ) {
+    return 'submit-readback-wait';
+  }
+  if (componentId === 'command_record') {
+    return 'command-recording';
+  }
+  if (componentId === 'gpu_compute') {
+    return 'gpu-compute';
+  }
+  if (componentId === 'orchestration') {
+    return 'orchestration';
+  }
+  if (componentId === 'unattributed') {
+    return 'unattributed';
+  }
+  return null;
+}
+
+function resolveDopplerBottleneckFromResult(result) {
+  if (result?.failed) {
+    return null;
+  }
+
+  const decodeWallMs = firstFiniteStatNumber(result, [
+    'result.timing.decodeMs',
+    'timing.decodeMs',
+    'result.metrics.decodeMs',
+    'metrics.decodeMs',
+    'result.result.timing.decodeMs',
+    'result.result.metrics.decodeMs',
+  ]);
+  if (!Number.isFinite(decodeWallMs) || decodeWallMs <= 0) {
+    return null;
+  }
+
+  const commandRecordMs = firstFiniteStatNumber(result, [
+    'result.metrics.gpu.decodeRecordMs',
+    'metrics.gpu.decodeRecordMs',
+    'result.result.metrics.gpu.decodeRecordMs',
+  ]);
+  const commandRecordOps = firstFiniteStatNumber(result, [
+    'result.metrics.gpu.decodeRecordOps',
+    'metrics.gpu.decodeRecordOps',
+    'result.result.metrics.gpu.decodeRecordOps',
+  ]);
+  const commandRecordPasses = firstFiniteStatNumber(result, [
+    'result.metrics.gpu.decodeRecordPasses',
+    'metrics.gpu.decodeRecordPasses',
+    'result.result.metrics.gpu.decodeRecordPasses',
+    'result.phase.gpu.decodeRecordPasses',
+    'phase.gpu.decodeRecordPasses',
+  ]);
+  const commandRecordMsPerOp = firstFiniteStatNumber(result, [
+    'result.metrics.gpu.decodeRecordMsPerOp',
+    'metrics.gpu.decodeRecordMsPerOp',
+    'result.result.metrics.gpu.decodeRecordMsPerOp',
+  ]);
+  const commandRecordMsPerPass = firstFiniteStatNumber(result, [
+    'result.metrics.gpu.decodeRecordMsPerPass',
+    'metrics.gpu.decodeRecordMsPerPass',
+    'result.result.metrics.gpu.decodeRecordMsPerPass',
+    'result.phase.gpu.decodeRecordMsPerPass',
+    'phase.gpu.decodeRecordMsPerPass',
+  ]);
+  const commandRecordPassesPerOp = firstFiniteStatNumber(result, [
+    'result.metrics.gpu.decodeRecordPassesPerOp',
+    'metrics.gpu.decodeRecordPassesPerOp',
+    'result.result.metrics.gpu.decodeRecordPassesPerOp',
+    'result.phase.gpu.decodeRecordPassesPerOp',
+    'phase.gpu.decodeRecordPassesPerOp',
+  ]);
+  const commandRecordMsPerExecutedBatchToken = firstFiniteStatNumber(result, [
+    'result.metrics.gpu.decodeRecordMsPerExecutedBatchToken',
+    'metrics.gpu.decodeRecordMsPerExecutedBatchToken',
+    'result.result.metrics.gpu.decodeRecordMsPerExecutedBatchToken',
+  ]);
+  const commandRecordOpsPerExecutedBatchToken = firstFiniteStatNumber(result, [
+    'result.metrics.gpu.decodeRecordOpsPerExecutedBatchToken',
+    'metrics.gpu.decodeRecordOpsPerExecutedBatchToken',
+    'result.result.metrics.gpu.decodeRecordOpsPerExecutedBatchToken',
+  ]);
+  const commandRecordPassesPerExecutedBatchToken = firstFiniteStatNumber(result, [
+    'result.metrics.gpu.decodeRecordPassesPerExecutedBatchToken',
+    'metrics.gpu.decodeRecordPassesPerExecutedBatchToken',
+    'result.result.metrics.gpu.decodeRecordPassesPerExecutedBatchToken',
+    'result.phase.gpu.decodeRecordPassesPerExecutedBatchToken',
+    'phase.gpu.decodeRecordPassesPerExecutedBatchToken',
+  ]);
+  const commandRecordUniqueOpLabels = firstFiniteStatNumber(result, [
+    'result.metrics.gpu.decodeRecordUniqueOpLabels',
+    'metrics.gpu.decodeRecordUniqueOpLabels',
+    'result.result.metrics.gpu.decodeRecordUniqueOpLabels',
+    'result.phase.gpu.decodeRecordUniqueOpLabels',
+    'phase.gpu.decodeRecordUniqueOpLabels',
+  ]);
+  const commandRecordTopOps = normalizeCommandRecordTopOps(firstArrayValue(result, [
+    'result.metrics.gpu.decodeRecordTopOps',
+    'metrics.gpu.decodeRecordTopOps',
+    'result.result.metrics.gpu.decodeRecordTopOps',
+    'result.phase.gpu.decodeRecordTopOps',
+    'phase.gpu.decodeRecordTopOps',
+  ]));
+  const submitWaitMs = firstFiniteStatNumber(result, [
+    'result.metrics.gpu.decodeSubmitWaitMs',
+    'metrics.gpu.decodeSubmitWaitMs',
+    'result.result.metrics.gpu.decodeSubmitWaitMs',
+  ]);
+  const readbackWaitMs = firstFiniteStatNumber(result, [
+    'result.metrics.gpu.decodeReadbackWaitMs',
+    'metrics.gpu.decodeReadbackWaitMs',
+    'result.result.metrics.gpu.decodeReadbackWaitMs',
+  ]);
+  const readbackMapWaitMs = firstFiniteStatNumber(result, [
+    'result.metrics.gpu.decodeReadbackMapWaitMs',
+    'metrics.gpu.decodeReadbackMapWaitMs',
+    'result.result.metrics.gpu.decodeReadbackMapWaitMs',
+  ]);
+  const readbackCleanupMs = firstFiniteStatNumber(result, [
+    'result.metrics.gpu.decodeReadbackCleanupMs',
+    'metrics.gpu.decodeReadbackCleanupMs',
+    'result.result.metrics.gpu.decodeReadbackCleanupMs',
+  ]);
+  const readbackCopyMs = firstFiniteStatNumber(result, [
+    'result.metrics.gpu.decodeReadbackCopyMs',
+    'metrics.gpu.decodeReadbackCopyMs',
+    'result.result.metrics.gpu.decodeReadbackCopyMs',
+  ]);
+  const orchestrationMs = firstFiniteStatNumber(result, [
+    'result.metrics.gpu.decodeOrchestrationMs',
+    'metrics.gpu.decodeOrchestrationMs',
+    'result.result.metrics.gpu.decodeOrchestrationMs',
+  ]);
+  const gpuTimestampMs = firstFiniteStatNumber(result, [
+    'result.metrics.gpu.decodeMs',
+    'metrics.gpu.decodeMs',
+    'result.result.metrics.gpu.decodeMs',
+  ]);
+
+  const waitCandidates = [submitWaitMs, readbackWaitMs].filter(Number.isFinite);
+  const effectiveSubmitReadbackWaitMs = waitCandidates.length > 0
+    ? Math.max(...waitCandidates)
+    : null;
+  const submitReadbackSlackMs = Number.isFinite(effectiveSubmitReadbackWaitMs) && Number.isFinite(gpuTimestampMs)
+    ? Math.max(0, effectiveSubmitReadbackWaitMs - gpuTimestampMs)
+    : null;
+  const readbackSubcomponentMs = [
+    readbackMapWaitMs,
+    readbackCleanupMs,
+    readbackCopyMs,
+  ]
+    .filter(Number.isFinite)
+    .reduce((sum, value) => sum + value, 0);
+  const hasReadbackSubcomponents = readbackSubcomponentMs > 0;
+  const readbackUnattributedMs = hasReadbackSubcomponents && Number.isFinite(effectiveSubmitReadbackWaitMs)
+    ? Math.max(0, effectiveSubmitReadbackWaitMs - readbackSubcomponentMs)
+    : null;
+  const accountedMs = [
+    commandRecordMs,
+    effectiveSubmitReadbackWaitMs,
+    orchestrationMs,
+  ]
+    .filter(Number.isFinite)
+    .reduce((sum, value) => sum + value, 0);
+  const residualMs = Math.max(0, decodeWallMs - accountedMs);
+  const components = [
+    {
+      id: 'command_record',
+      label: 'command recording',
+      ms: commandRecordMs,
+    },
+    {
+      id: Number.isFinite(gpuTimestampMs) ? 'submit_readback_slack' : 'submit_readback_wait',
+      label: Number.isFinite(gpuTimestampMs) ? 'submit/readback slack' : 'submit/readback wait',
+      ms: hasReadbackSubcomponents
+        ? null
+        : (Number.isFinite(gpuTimestampMs) ? submitReadbackSlackMs : effectiveSubmitReadbackWaitMs),
+    },
+    {
+      id: 'readback_map_wait',
+      label: 'readback map wait',
+      ms: readbackMapWaitMs,
+    },
+    {
+      id: 'readback_cleanup',
+      label: 'readback cleanup',
+      ms: readbackCleanupMs,
+    },
+    {
+      id: 'readback_copy',
+      label: 'readback CPU copy',
+      ms: readbackCopyMs,
+    },
+    {
+      id: 'submit_readback_unattributed',
+      label: 'submit/readback unattributed',
+      ms: readbackUnattributedMs,
+    },
+    {
+      id: 'gpu_compute',
+      label: 'GPU timestamp work',
+      ms: gpuTimestampMs,
+    },
+    {
+      id: 'orchestration',
+      label: 'decode orchestration',
+      ms: orchestrationMs,
+    },
+    {
+      id: 'unattributed',
+      label: 'unattributed decode wall',
+      ms: residualMs,
+    },
+  ]
+    .filter((component) => Number.isFinite(component.ms) && component.ms > 0);
+  const dominant = components.length > 0
+    ? components.reduce((best, component) => component.ms > best.ms ? component : best, components[0])
+    : null;
+  const dominantRecord = dominant
+    ? {
+        id: dominant.id,
+        label: dominant.label,
+        ms: roundBottleneckNumber(dominant.ms),
+        shareOfDecode: shareOfDecode(dominant.ms, decodeWallMs),
+      }
+    : null;
+
+  return {
+    schemaVersion: 1,
+    dominant: dominantRecord,
+    bottleneckClass: dominantRecord ? resolveDopplerBottleneckClass(dominantRecord.id) : null,
+    decodeWallMs: roundBottleneckNumber(decodeWallMs),
+    componentsMs: {
+      commandRecordMs: roundBottleneckNumber(commandRecordMs),
+      submitWaitMs: roundBottleneckNumber(submitWaitMs),
+      readbackWaitMs: roundBottleneckNumber(readbackWaitMs),
+      effectiveSubmitReadbackWaitMs: roundBottleneckNumber(effectiveSubmitReadbackWaitMs),
+      readbackMapWaitMs: roundBottleneckNumber(readbackMapWaitMs),
+      readbackCleanupMs: roundBottleneckNumber(readbackCleanupMs),
+      readbackCopyMs: roundBottleneckNumber(readbackCopyMs),
+      readbackUnattributedMs: roundBottleneckNumber(readbackUnattributedMs),
+      gpuTimestampMs: roundBottleneckNumber(gpuTimestampMs),
+      submitReadbackSlackMs: roundBottleneckNumber(submitReadbackSlackMs),
+      orchestrationMs: roundBottleneckNumber(orchestrationMs),
+      residualMs: roundBottleneckNumber(residualMs),
+    },
+    recording: {
+      opCount: roundBottleneckNumber(commandRecordOps),
+      passCount: roundBottleneckNumber(commandRecordPasses),
+      uniqueOpLabels: roundBottleneckNumber(commandRecordUniqueOpLabels),
+      msPerOp: roundBottleneckNumber(commandRecordMsPerOp),
+      msPerPass: roundBottleneckNumber(commandRecordMsPerPass),
+      passesPerOp: roundBottleneckNumber(commandRecordPassesPerOp),
+      msPerExecutedBatchToken: roundBottleneckNumber(commandRecordMsPerExecutedBatchToken),
+      opsPerExecutedBatchToken: roundBottleneckNumber(commandRecordOpsPerExecutedBatchToken),
+      passesPerExecutedBatchToken: roundBottleneckNumber(commandRecordPassesPerExecutedBatchToken),
+      topOps: commandRecordTopOps,
+      semantics: {
+        opCount: 'Logical compute dispatches recorded into batch-decode command buffers.',
+        passCount: 'Actual WebGPU compute passes opened while recording batch-decode command buffers.',
+        uniqueOpLabels: 'Number of distinct exact compute-pass labels recorded in batch-decode command buffers.',
+        msPerOp: 'decodeRecordMs divided by logical recorded compute dispatches.',
+        msPerPass: 'decodeRecordMs divided by actual WebGPU compute passes.',
+        passesPerOp: 'Actual WebGPU compute passes divided by logical recorded compute dispatches.',
+        msPerExecutedBatchToken: 'decodeRecordMs divided by batch-path tokens submitted for execution.',
+        opsPerExecutedBatchToken: 'Logical recorded compute dispatches divided by batch-path tokens submitted for execution.',
+        passesPerExecutedBatchToken: 'Actual WebGPU compute passes divided by batch-path tokens submitted for execution.',
+        topOps: 'Highest-count exact compute-pass labels observed during command recording.',
+      },
+    },
+    shares: {
+      commandRecord: shareOfDecode(commandRecordMs, decodeWallMs),
+      submitWait: shareOfDecode(submitWaitMs, decodeWallMs),
+      readbackWait: shareOfDecode(readbackWaitMs, decodeWallMs),
+      effectiveSubmitReadbackWait: shareOfDecode(effectiveSubmitReadbackWaitMs, decodeWallMs),
+      readbackMapWait: shareOfDecode(readbackMapWaitMs, decodeWallMs),
+      readbackCleanup: shareOfDecode(readbackCleanupMs, decodeWallMs),
+      readbackCopy: shareOfDecode(readbackCopyMs, decodeWallMs),
+      readbackUnattributed: shareOfDecode(readbackUnattributedMs, decodeWallMs),
+      gpuTimestamp: shareOfDecode(gpuTimestampMs, decodeWallMs),
+      submitReadbackSlack: shareOfDecode(submitReadbackSlackMs, decodeWallMs),
+      orchestration: shareOfDecode(orchestrationMs, decodeWallMs),
+      residual: shareOfDecode(residualMs, decodeWallMs),
+    },
+    semantics: {
+      effectiveSubmitReadbackWaitMs: 'max(decodeSubmitWaitMs, decodeReadbackWaitMs); submit and readback waits overlap.',
+      readbackMapWaitMs: 'Wall time awaiting staging-buffer mapAsync; usually includes GPU completion behind the readback.',
+      gpuTimestampMs: 'Timestamp-query GPU work when available; null means it was not captured.',
+    },
+  };
+}
+
+function divideOrNull(numerator, denominator) {
+  if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator <= 0) {
+    return null;
+  }
+  return roundBottleneckNumber(numerator / denominator);
+}
+
+function resolveDopplerBatchAccountingFromResult(result) {
+  if (result?.failed) {
+    return null;
+  }
+  const requestedBatchTokens = firstFiniteStatNumber(result, [
+    'result.metrics.batching.requestedBatchTokens',
+    'metrics.batching.requestedBatchTokens',
+    'result.result.metrics.batching.requestedBatchTokens',
+  ]);
+  const effectiveBatchTokens = firstFiniteStatNumber(result, [
+    'result.metrics.batching.effectiveBatchTokens',
+    'metrics.batching.effectiveBatchTokens',
+    'result.result.metrics.batching.effectiveBatchTokens',
+  ]);
+  const executedBatchTokens = firstFiniteStatNumber(result, [
+    'result.metrics.batching.executedBatchTokens',
+    'metrics.batching.executedBatchTokens',
+    'result.result.metrics.batching.executedBatchTokens',
+  ]);
+  const resolvedBatchTokens = firstFiniteStatNumber(result, [
+    'result.metrics.batching.resolvedBatchTokens',
+    'metrics.batching.resolvedBatchTokens',
+    'result.result.metrics.batching.resolvedBatchTokens',
+  ]);
+  const outputDecodeTokens = firstFiniteStatNumber(result, [
+    'result.metrics.avgDecodeTokens',
+    'metrics.avgDecodeTokens',
+    'result.result.metrics.avgDecodeTokens',
+    'result.metrics.tokens.decode',
+    'metrics.tokens.decode',
+    'result.result.metrics.tokens.decode',
+  ]);
+  const gpuSubmissions = firstFiniteStatNumber(result, [
+    'result.metrics.batching.gpuSubmissions',
+    'metrics.batching.gpuSubmissions',
+    'result.result.metrics.batching.gpuSubmissions',
+  ]);
+  if (
+    !Number.isFinite(requestedBatchTokens)
+    && !Number.isFinite(effectiveBatchTokens)
+    && !Number.isFinite(executedBatchTokens)
+    && !Number.isFinite(resolvedBatchTokens)
+    && !Number.isFinite(outputDecodeTokens)
+  ) {
+    return null;
+  }
+  return {
+    schemaVersion: 1,
+    requestedBatchTokens: roundBottleneckNumber(requestedBatchTokens),
+    effectiveBatchTokens: roundBottleneckNumber(effectiveBatchTokens),
+    executedBatchTokens: roundBottleneckNumber(executedBatchTokens),
+    resolvedBatchTokens: roundBottleneckNumber(resolvedBatchTokens),
+    outputDecodeTokens: roundBottleneckNumber(outputDecodeTokens),
+    gpuSubmissions: roundBottleneckNumber(gpuSubmissions),
+    batchResolutionEfficiency: divideOrNull(resolvedBatchTokens, executedBatchTokens),
+    outputEfficiency: divideOrNull(outputDecodeTokens, executedBatchTokens),
+    batchOverrunTokens: Number.isFinite(executedBatchTokens) && Number.isFinite(resolvedBatchTokens)
+      ? roundBottleneckNumber(Math.max(0, executedBatchTokens - resolvedBatchTokens))
+      : null,
+    outputOverrunTokens: Number.isFinite(executedBatchTokens) && Number.isFinite(outputDecodeTokens)
+      ? roundBottleneckNumber(Math.max(0, executedBatchTokens - outputDecodeTokens))
+      : null,
+    semantics: {
+      executedBatchTokens: 'Total GPU batch-path decode tokens recorded/submitted for execution.',
+      resolvedBatchTokens: 'Batch-path tokens retained by stop resolution before returning to the generation loop.',
+      outputDecodeTokens: 'Decode tokens credited to output throughput metrics.',
+    },
+  };
+}
+
+function extractDopplerDecodeTokensPerSecFromResult(result) {
+  return firstFiniteNumber(result, [
+    'result.timing.decodeTokensPerSec',
+    'timing.decodeTokensPerSec',
+    'result.metrics.decodeTokensPerSec',
+    'metrics.decodeTokensPerSec',
+    'result.result.timing.decodeTokensPerSec',
+    'result.result.metrics.decodeTokensPerSec',
+  ]);
+}
+
+function buildDopplerDiagnosticCoverage(sharedContract, batchAccounting) {
+  const maxTokens = Number.isFinite(sharedContract?.maxTokens)
+    ? Math.max(1, Math.floor(sharedContract.maxTokens))
+    : null;
+  const expectedBatchDecodeTokens = Number.isFinite(maxTokens)
+    ? Math.max(0, maxTokens - 1)
+    : null;
+  const resolvedBatchTokens = Number.isFinite(batchAccounting?.resolvedBatchTokens)
+    ? batchAccounting.resolvedBatchTokens
+    : null;
+  const executedBatchTokens = Number.isFinite(batchAccounting?.executedBatchTokens)
+    ? batchAccounting.executedBatchTokens
+    : null;
+  const profileCoverage = Number.isFinite(resolvedBatchTokens)
+    && Number.isFinite(expectedBatchDecodeTokens)
+    && expectedBatchDecodeTokens > 0
+      ? roundBottleneckNumber(resolvedBatchTokens / expectedBatchDecodeTokens)
+      : null;
+  const completeDecodeTarget = Number.isFinite(resolvedBatchTokens)
+    && Number.isFinite(expectedBatchDecodeTokens)
+    && resolvedBatchTokens >= expectedBatchDecodeTokens;
+
+  return {
+    schemaVersion: 1,
+    maxTokens,
+    expectedBatchDecodeTokens,
+    executedBatchTokens,
+    resolvedBatchTokens,
+    profileCoverage,
+    completeDecodeTarget,
+    warning: completeDecodeTarget === false
+      ? 'diagnostic-run-ended-before-source-decode-target'
+      : null,
+    semantics: {
+      expectedBatchDecodeTokens: 'maxTokens - 1 because the first generated token is produced by the prefill logits path.',
+      completeDecodeTarget: 'false means the diagnostic profiler captured a shorter generated path than the source compare section.',
+    },
+  };
+}
+
+function resolveDopplerThroughputCadenceGate({
+  paritySection,
+  throughputSection,
+  policy = THROUGHPUT_CADENCE_PROMOTION_GATE,
+}) {
+  const thresholds = {
+    requireBatchAccounting: policy.requireBatchAccounting === true,
+    minDecodeTokensPerSecRatioVsParity: policy.minDecodeTokensPerSecRatioVsParity,
+    minBatchResolutionEfficiency: policy.minBatchResolutionEfficiency,
+    maxBatchOverrunTokens: policy.maxBatchOverrunTokens,
+  };
+  const parityDecodeTokensPerSec = extractDopplerDecodeTokensPerSecFromResult(paritySection?.doppler);
+  const throughputDecodeTokensPerSec = extractDopplerDecodeTokensPerSecFromResult(throughputSection?.doppler);
+  const decodeTokensPerSecRatioVsParity = Number.isFinite(parityDecodeTokensPerSec)
+    && parityDecodeTokensPerSec > 0
+    && Number.isFinite(throughputDecodeTokensPerSec)
+      ? roundBottleneckNumber(throughputDecodeTokensPerSec / parityDecodeTokensPerSec)
+      : null;
+  const accounting = throughputSection?.dopplerBatchAccounting ?? null;
+  const batchResolutionEfficiency = Number.isFinite(accounting?.batchResolutionEfficiency)
+    ? accounting.batchResolutionEfficiency
+    : null;
+  const batchOverrunTokens = Number.isFinite(accounting?.batchOverrunTokens)
+    ? accounting.batchOverrunTokens
+    : null;
+  const invalidReasons = [];
+
+  if (paritySection && paritySection.pairedComparable !== true) {
+    invalidReasons.push('parity-section-not-comparable');
+  }
+  if (throughputSection && throughputSection.pairedComparable !== true) {
+    invalidReasons.push('throughput-section-not-comparable');
+  }
+  if (!Number.isFinite(parityDecodeTokensPerSec)) {
+    invalidReasons.push('missing-parity-decode-tokens-per-sec');
+  }
+  if (!Number.isFinite(throughputDecodeTokensPerSec)) {
+    invalidReasons.push('missing-throughput-decode-tokens-per-sec');
+  }
+  if (
+    Number.isFinite(decodeTokensPerSecRatioVsParity)
+    && decodeTokensPerSecRatioVsParity < thresholds.minDecodeTokensPerSecRatioVsParity
+  ) {
+    invalidReasons.push('throughput-decode-not-faster-than-parity');
+  }
+  if (!accounting && thresholds.requireBatchAccounting) {
+    invalidReasons.push('missing-throughput-batch-accounting');
+  }
+  if (accounting && !Number.isFinite(batchResolutionEfficiency)) {
+    invalidReasons.push('missing-throughput-batch-resolution-efficiency');
+  }
+  if (
+    Number.isFinite(batchResolutionEfficiency)
+    && batchResolutionEfficiency < thresholds.minBatchResolutionEfficiency
+  ) {
+    invalidReasons.push('throughput-batch-resolution-efficiency-below-threshold');
+  }
+  if (accounting && !Number.isFinite(batchOverrunTokens)) {
+    invalidReasons.push('missing-throughput-batch-overrun-tokens');
+  }
+  if (Number.isFinite(batchOverrunTokens) && batchOverrunTokens > thresholds.maxBatchOverrunTokens) {
+    invalidReasons.push('throughput-batch-overrun-exceeds-threshold');
+  }
+
+  return {
+    schemaVersion: 1,
+    ok: invalidReasons.length === 0,
+    invalidReasons,
+    thresholds,
+    observed: {
+      parityDecodeTokensPerSec: roundBottleneckNumber(parityDecodeTokensPerSec),
+      throughputDecodeTokensPerSec: roundBottleneckNumber(throughputDecodeTokensPerSec),
+      decodeTokensPerSecRatioVsParity,
+      batchResolutionEfficiency,
+      batchOverrunTokens,
+      executedBatchTokens: accounting?.executedBatchTokens ?? null,
+      resolvedBatchTokens: accounting?.resolvedBatchTokens ?? null,
+      outputDecodeTokens: accounting?.outputDecodeTokens ?? null,
+      parityInvalidReason: paritySection?.invalidReason ?? null,
+      throughputInvalidReason: throughputSection?.invalidReason ?? null,
+    },
+    semantics: {
+      ok: 'true means the throughput cadence is promotable as a claim lane; false means it remains tuning evidence.',
+      minDecodeTokensPerSecRatioVsParity: 'throughput decode tok/s divided by parity decode tok/s.',
+      batchResolutionEfficiency: 'resolved batch-path decode tokens divided by executed batch-path decode tokens.',
+    },
+  };
+}
+
+function buildDiagnosticSharedBenchmarkContract(sharedContract) {
+  return {
+    prompt: sharedContract.prompt,
+    promptRaw: sharedContract.promptRaw,
+    promptContract: sharedContract.promptContract,
+    maxTokens: sharedContract.maxTokens,
+    warmupRuns: 0,
+    timedRuns: 1,
+    seed: sharedContract.seed,
+    sampling: sharedContract.sampling,
+    useChatTemplate: sharedContract.useChatTemplate,
+    loadMode: sharedContract.loadMode,
+  };
+}
+
+function buildDopplerBottleneckDiagnosticRuntimeOverlay() {
+  return {
+    shared: {
+      debug: {
+        logOutput: {
+          stdout: false,
+          file: null,
+        },
+        logLevel: {
+          defaultLogLevel: 'silent',
+        },
+        trace: {
+          enabled: false,
+        },
+        profiler: {
+          enabled: true,
+          logEveryDecodeSteps: 1,
+        },
+      },
+    },
+  };
+}
+
+function resolveDopplerMetricsPayload(result) {
+  const candidates = [
+    result?.result?.metrics,
+    result?.metrics,
+    result?.result?.result?.metrics,
+  ];
+  for (const candidate of candidates) {
+    if (candidate && typeof candidate === 'object' && !Array.isArray(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+function resolveDopplerDecodeProfileStepsFromResult(result) {
+  const metrics = resolveDopplerMetricsPayload(result);
+  const candidates = [
+    metrics?.decodeProfileSteps,
+    result?.result?.phase?.decodeProfileSteps,
+    result?.phase?.decodeProfileSteps,
+  ];
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) {
+      return candidate;
+    }
+  }
+  return [];
+}
+
+function summarizeDopplerDecodeProfileSteps(steps, limit = 12) {
+  const totals = new Map();
+  let profileStepCount = 0;
+  let profileOperationCount = 0;
+
+  for (const step of Array.isArray(steps) ? steps : []) {
+    const timings = step?.timings;
+    if (!timings || typeof timings !== 'object' || Array.isArray(timings)) {
+      continue;
+    }
+    profileStepCount += 1;
+    for (const [operation, value] of Object.entries(timings)) {
+      if (!Number.isFinite(value)) continue;
+      profileOperationCount += 1;
+      const existing = totals.get(operation) ?? {
+        operation,
+        operationKind: String(operation).split(':')[0],
+        totalMs: 0,
+        count: 0,
+      };
+      existing.totalMs += value;
+      existing.count += 1;
+      totals.set(operation, existing);
+    }
+  }
+
+  const topOperations = [...totals.values()]
+    .map((entry) => ({
+      operation: entry.operation,
+      operationKind: entry.operationKind,
+      totalMs: roundBottleneckNumber(entry.totalMs),
+      count: entry.count,
+    }))
+    .sort((a, b) => b.totalMs - a.totalMs)
+    .slice(0, limit);
+  const totalTimestampMs = roundBottleneckNumber(
+    [...totals.values()].reduce((sum, entry) => sum + entry.totalMs, 0)
+  );
+
+  return {
+    schemaVersion: 1,
+    captured: profileStepCount > 0,
+    profileStepCount,
+    profileOperationCount,
+    averageOperationsPerStep: profileStepCount > 0
+      ? roundBottleneckNumber(profileOperationCount / profileStepCount)
+      : null,
+    totalTimestampMs,
+    topOperations,
+  };
+}
+
+function buildDopplerBottleneckDiagnostic({
+  doppler,
+  sourceSection = 'compute/throughput',
+  sharedContract = null,
+}) {
+  const failed = doppler?.failed === true;
+  const profile = summarizeDopplerDecodeProfileSteps(
+    resolveDopplerDecodeProfileStepsFromResult(doppler)
+  );
+  const batchAccounting = resolveDopplerBatchAccountingFromResult(doppler);
+  const coverage = buildDopplerDiagnosticCoverage(sharedContract, batchAccounting);
+  const invalidReasons = [];
+  if (failed) {
+    invalidReasons.push(doppler?.error?.message || 'doppler-diagnostic-failed');
+  }
+  if (coverage.completeDecodeTarget === false) {
+    invalidReasons.push(coverage.warning || 'diagnostic-run-ended-before-source-decode-target');
+  }
+  if (profile.captured !== true) {
+    invalidReasons.push('missing-doppler-decode-profile-steps');
+  }
+  return {
+    schemaVersion: 1,
+    kind: 'doppler-bottleneck-profile',
+    claimUse: 'diagnostic-only',
+    sourceSection,
+    failed,
+    complete: failed === false && invalidReasons.length === 0,
+    invalidReason: invalidReasons[0] ?? null,
+    invalidReasons,
+    command: {
+      dopplerCommand: 'debug',
+      workload: 'inference',
+      profileEnabled: true,
+      warmupRuns: sharedContract?.warmupRuns ?? null,
+      timedRuns: sharedContract?.timedRuns ?? null,
+      promptRenderedSha256: sharedContract?.promptContract?.promptRenderedSha256 ?? null,
+      maxTokens: sharedContract?.maxTokens ?? null,
+      sampling: sharedContract?.sampling ?? null,
+      loadMode: sharedContract?.loadMode ?? null,
+    },
+    decodeTokensPerSec: roundBottleneckNumber(extractDopplerDecodeTokensPerSecFromResult(doppler)),
+    firstTokenMs: roundBottleneckNumber(firstFiniteStatNumber(doppler, [
+      'result.metrics.firstTokenMs',
+      'metrics.firstTokenMs',
+      'result.result.metrics.firstTokenMs',
+    ])),
+    modelLoadMs: roundBottleneckNumber(firstFiniteStatNumber(doppler, [
+      'result.metrics.modelLoadMs',
+      'metrics.modelLoadMs',
+      'result.result.metrics.modelLoadMs',
+    ])),
+    dopplerDecodeCadence: resolveDopplerDecodeCadenceFromResult(doppler),
+    dopplerBottleneck: resolveDopplerBottleneckFromResult(doppler),
+    dopplerBatchAccounting: batchAccounting,
+    coverage,
+    profile,
+    semantics: {
+      claimUse: 'This diagnostic is not used for compare rows, correctness gates, or promoted throughput claims.',
+      complete: 'true means the diagnostic covered the requested decode target and captured timestamp profile steps.',
+      profile: 'Timestamp-query operation totals captured by a separate Doppler debug run with the same prompt, sampling, model artifact, load mode, and decode cadence as the source section.',
+    },
+  };
+}
+
+function assertCadenceField(actual, expected, label) {
+  if (actual !== expected) {
+    throw new Error(`${label}: expected ${String(expected)}, got ${String(actual)}`);
+  }
+}
+
+function assertDopplerDecodeCadence(result, expectedCadence, phaseLabel) {
+  if (result?.failed) return;
+  const runtimeConfig = resolveDopplerRuntimeConfigFromResult(result);
+  if (!runtimeConfig) {
+    throw new Error(`Doppler result missing runtimeConfig during ${phaseLabel}; cannot prove declared decode cadence`);
+  }
+  const batching = runtimeConfig.inference?.batching;
+  const decodeLoop = runtimeConfig.inference?.session?.decodeLoop;
+  const generation = runtimeConfig.inference?.generation;
+  if (!batching || typeof batching !== 'object' || Array.isArray(batching)) {
+    throw new Error(`Doppler result missing runtimeConfig.inference.batching during ${phaseLabel}`);
+  }
+  if (!decodeLoop || typeof decodeLoop !== 'object' || Array.isArray(decodeLoop)) {
+    throw new Error(`Doppler result missing runtimeConfig.inference.session.decodeLoop during ${phaseLabel}`);
+  }
+  if (!generation || typeof generation !== 'object' || Array.isArray(generation)) {
+    throw new Error(`Doppler result missing runtimeConfig.inference.generation during ${phaseLabel}`);
+  }
+  assertCadenceField(
+    batching.batchSize,
+    expectedCadence.batchSize,
+    `Doppler declared cadence mismatch during ${phaseLabel}: inference.batching.batchSize`
+  );
+  assertCadenceField(
+    batching.readbackInterval,
+    expectedCadence.readbackInterval,
+    `Doppler declared cadence mismatch during ${phaseLabel}: inference.batching.readbackInterval`
+  );
+  assertCadenceField(
+    batching.stopCheckMode,
+    expectedCadence.stopCheckMode,
+    `Doppler declared cadence mismatch during ${phaseLabel}: inference.batching.stopCheckMode`
+  );
+  if (expectedCadence.readbackMode != null) {
+    assertCadenceField(
+      batching.readbackMode,
+      expectedCadence.readbackMode,
+      `Doppler declared cadence mismatch during ${phaseLabel}: inference.batching.readbackMode`
+    );
+  }
+  assertCadenceField(
+    decodeLoop.batchSize,
+    expectedCadence.batchSize,
+    `Doppler declared cadence mismatch during ${phaseLabel}: inference.session.decodeLoop.batchSize`
+  );
+  assertCadenceField(
+    decodeLoop.readbackInterval,
+    expectedCadence.readbackInterval,
+    `Doppler declared cadence mismatch during ${phaseLabel}: inference.session.decodeLoop.readbackInterval`
+  );
+  assertCadenceField(
+    decodeLoop.stopCheckMode,
+    expectedCadence.stopCheckMode,
+    `Doppler declared cadence mismatch during ${phaseLabel}: inference.session.decodeLoop.stopCheckMode`
+  );
+  if (expectedCadence.readbackMode != null) {
+    assertCadenceField(
+      decodeLoop.readbackMode,
+      expectedCadence.readbackMode,
+      `Doppler declared cadence mismatch during ${phaseLabel}: inference.session.decodeLoop.readbackMode`
+    );
+  }
+  assertCadenceField(
+    decodeLoop.disableCommandBatching,
+    false,
+    `Doppler declared cadence mismatch during ${phaseLabel}: inference.session.decodeLoop.disableCommandBatching`
+  );
+  assertCadenceField(
+    generation.disableMultiTokenDecode,
+    expectedCadence.disableMultiTokenDecode,
+    `Doppler declared cadence mismatch during ${phaseLabel}: inference.generation.disableMultiTokenDecode`
+  );
+}
+
 function resolveCanonicalTimingContainer(result) {
   const candidates = [
     result,
@@ -2541,11 +4122,47 @@ function getDopplerGeneratedText(result) {
   if (typeof result?.result?.result?.output === 'string' && result.result.result.output.trim()) {
     return result.result.result.output;
   }
+  if (typeof result?.result?.result?.metrics?.generatedText === 'string') {
+    return result.result.result.metrics.generatedText;
+  }
   return result?.result?.metrics?.generatedText ?? result?.metrics?.generatedText ?? null;
 }
 
 function getTjsGeneratedText(result) {
   return result?.generatedText ?? result?.output ?? null;
+}
+
+function normalizeTokenIdArray(value) {
+  if (!Array.isArray(value)) return null;
+  const normalized = value
+    .map((entry) => Number(entry))
+    .filter((entry) => Number.isInteger(entry));
+  return normalized.length === value.length ? normalized : null;
+}
+
+function getDopplerGeneratedTokenIds(result) {
+  return normalizeTokenIdArray(firstArrayValue(result, [
+    'result.metrics.referenceTranscript.tokens.ids',
+    'metrics.referenceTranscript.tokens.ids',
+    'result.result.metrics.referenceTranscript.tokens.ids',
+    'result.result.result.metrics.referenceTranscript.tokens.ids',
+    'result.referenceTranscript.tokens.ids',
+    'referenceTranscript.tokens.ids',
+    'result.metrics.generatedTokenIds',
+    'metrics.generatedTokenIds',
+    'generatedTokenIds',
+  ]));
+}
+
+function getTjsGeneratedTokenIds(result) {
+  return normalizeTokenIdArray(firstArrayValue(result, [
+    'generatedTokenIds',
+    'result.generatedTokenIds',
+    'metrics.generatedTokenIds',
+    'result.metrics.generatedTokenIds',
+    'runs.0.generatedTokenIds',
+    'result.runs.0.generatedTokenIds',
+  ]));
 }
 
 function normalizeWhitespace(value) {
@@ -2592,6 +4209,32 @@ function computeTokenPrefixMatch(a, b) {
   };
 }
 
+function computeTokenIdPrefixMatch(leftIds, rightIds) {
+  if (!Array.isArray(leftIds) || !Array.isArray(rightIds)) {
+    return null;
+  }
+  const limit = Math.min(leftIds.length, rightIds.length);
+  let prefix = 0;
+  while (prefix < limit && leftIds[prefix] === rightIds[prefix]) {
+    prefix += 1;
+  }
+  const mismatchIndex = prefix < limit
+    ? prefix
+    : (leftIds.length === rightIds.length ? -1 : limit);
+  return {
+    leftTokenCount: leftIds.length,
+    rightTokenCount: rightIds.length,
+    matchingPrefixTokens: prefix,
+    firstMismatchTokenIndex: mismatchIndex,
+    firstMismatch: mismatchIndex >= 0
+      ? {
+          doppler: leftIds[mismatchIndex] ?? null,
+          transformersjs: rightIds[mismatchIndex] ?? null,
+        }
+      : null,
+  };
+}
+
 function buildCorrectnessReport(dopplerResult, tjsResult, prompt) {
   const dopplerFailed = dopplerResult?.failed === true;
   const tjsFailed = tjsResult?.failed === true;
@@ -2631,6 +4274,10 @@ function buildCorrectnessReport(dopplerResult, tjsResult, prompt) {
     : null;
   const charMismatchIndex = firstMismatchIndex(dopplerText, tjsText);
   const tokenMatch = computeTokenPrefixMatch(dopplerText, tjsText);
+  const tokenIdMatch = computeTokenIdPrefixMatch(
+    getDopplerGeneratedTokenIds(dopplerResult),
+    getTjsGeneratedTokenIds(tjsResult)
+  );
   const status = exactMatch === true || normalizedMatch === true ? 'match' : 'mismatch';
   return {
     prompt: typeof prompt === 'string' ? prompt.slice(0, 120) : null,
@@ -2641,6 +4288,78 @@ function buildCorrectnessReport(dopplerResult, tjsResult, prompt) {
     normalizedMatch,
     charMismatchIndex,
     tokenMatch,
+    tokenIdMatch,
+  };
+}
+
+function buildOutputParitySummary(dopplerResult, tjsResult) {
+  const dopplerFailed = dopplerResult?.failed === true;
+  const tjsFailed = tjsResult?.failed === true;
+  const dopplerText = getDopplerGeneratedText(dopplerResult);
+  const tjsText = getTjsGeneratedText(tjsResult);
+  if (dopplerFailed || tjsFailed) {
+    return {
+      schemaVersion: 1,
+      status: 'unavailable',
+      reason: 'engine-run-failed',
+      exactMatch: null,
+      normalizedMatch: null,
+      charMismatchIndex: null,
+      tokenMatch: null,
+      tokenIdMatch: null,
+      lengths: {
+        dopplerChars: typeof dopplerText === 'string' ? dopplerText.length : null,
+        transformersjsChars: typeof tjsText === 'string' ? tjsText.length : null,
+      },
+    };
+  }
+  if (dopplerText == null || tjsText == null) {
+    return {
+      schemaVersion: 1,
+      status: 'unavailable',
+      reason: 'missing-generated-text',
+      exactMatch: null,
+      normalizedMatch: null,
+      charMismatchIndex: null,
+      tokenMatch: null,
+      tokenIdMatch: null,
+      lengths: {
+        dopplerChars: typeof dopplerText === 'string' ? dopplerText.length : null,
+        transformersjsChars: typeof tjsText === 'string' ? tjsText.length : null,
+      },
+    };
+  }
+  const exactMatch = dopplerText === tjsText;
+  const normalizedMatch = normalizeWhitespace(dopplerText) === normalizeWhitespace(tjsText);
+  return {
+    schemaVersion: 1,
+    status: exactMatch === true || normalizedMatch === true ? 'match' : 'mismatch',
+    reason: null,
+    exactMatch,
+    normalizedMatch,
+    charMismatchIndex: firstMismatchIndex(dopplerText, tjsText),
+    tokenMatch: computeTokenPrefixMatch(dopplerText, tjsText),
+    tokenIdMatch: computeTokenIdPrefixMatch(
+      getDopplerGeneratedTokenIds(dopplerResult),
+      getTjsGeneratedTokenIds(tjsResult)
+    ),
+    lengths: {
+      dopplerChars: dopplerText.length,
+      transformersjsChars: tjsText.length,
+    },
+  };
+}
+
+function resolveOutputParityPolicy(sharedContract) {
+  const temperature = Number(sharedContract?.sampling?.temperature);
+  const deterministicGreedy = Number.isFinite(temperature) && temperature <= 0;
+  return {
+    schemaVersion: 1,
+    requireMatch: deterministicGreedy,
+    matchMode: 'exact-or-normalized',
+    reason: deterministicGreedy
+      ? 'deterministic-greedy-sampling'
+      : 'stochastic-or-non-greedy-sampling',
   };
 }
 
@@ -2857,6 +4576,7 @@ function buildCompareSection({
   prefillTokenTarget = null,
   maxTokens = null,
   promptContract = null,
+  outputParityPolicy = null,
 }) {
   const dopplerFailed = doppler?.failed === true;
   const tjsFailed = transformersjs?.failed === true;
@@ -2882,6 +4602,37 @@ function buildCompareSection({
         doppler: null,
         transformersjs: null,
       };
+  const outputParity = baseComparable
+    ? buildOutputParitySummary(doppler, transformersjs)
+    : {
+        schemaVersion: 1,
+        status: 'unavailable',
+        reason: 'engine-run-missing-or-failed',
+        exactMatch: null,
+        normalizedMatch: null,
+        charMismatchIndex: null,
+        tokenMatch: null,
+        tokenIdMatch: null,
+        lengths: {
+          dopplerChars: null,
+          transformersjsChars: null,
+        },
+      };
+  const resolvedOutputParityPolicy = outputParityPolicy && typeof outputParityPolicy === 'object'
+    ? {
+        schemaVersion: outputParityPolicy.schemaVersion ?? 1,
+        requireMatch: outputParityPolicy.requireMatch === true,
+        matchMode: outputParityPolicy.matchMode ?? 'exact-or-normalized',
+        reason: outputParityPolicy.reason ?? null,
+      }
+    : {
+        schemaVersion: 1,
+        requireMatch: false,
+        matchMode: 'exact-or-normalized',
+        reason: 'not-required-by-section',
+      };
+  const outputParityOk = resolvedOutputParityPolicy.requireMatch !== true
+    || outputParity.status === 'match';
 
   // Structured tokenizer-delta tolerance gate.
   //
@@ -2930,7 +4681,8 @@ function buildCompareSection({
   const pairedComparable = baseComparable
     && promptTokens.pairedComparable === true
     && promptContractValidity.ok === true
-    && decodeValidity.ok === true;
+    && decodeValidity.ok === true
+    && outputParityOk === true;
 
   // invalidReason cascade — report the most evidence-breaking failure first.
   // Engine failures dominate because they mean the lane never ran. Decode
@@ -2956,6 +4708,10 @@ function buildCompareSection({
       invalidReason = promptContractValidity.invalidReason || 'prompt-contract-invalid';
     } else if (promptTokens.pairedComparable !== true) {
       invalidReason = promptTokens.invalidReason || 'prompt-token-contract-invalid';
+    } else if (outputParityOk !== true) {
+      invalidReason = outputParity.status === 'unavailable'
+        ? (outputParity.reason || 'output-parity-unavailable')
+        : 'output-parity-mismatch';
     } else {
       invalidReason = 'compare-contract-invalid';
     }
@@ -2969,6 +4725,12 @@ function buildCompareSection({
     promptTokens,
     promptContract: promptContractEvidence,
     decodeValidity,
+    outputParity,
+    outputParityPolicy: resolvedOutputParityPolicy,
+    dopplerDecodeCadence: resolveDopplerDecodeCadenceFromResult(doppler),
+    dopplerBottleneck: resolveDopplerBottleneckFromResult(doppler),
+    dopplerBatchAccounting: resolveDopplerBatchAccountingFromResult(doppler),
+    memoryAccounting: buildMemoryAccounting(doppler, transformersjs),
     doppler: doppler ?? null,
     transformersjs: transformersjs ?? null,
   };
@@ -2993,6 +4755,23 @@ function printRow(label, dopplerVal, tjsVal, unit, higherBetter) {
   console.log(`  ${label.padEnd(20)} ${dStr.padStart(14)} ${tStr.padStart(14)} ${delta.padStart(18)}`);
 }
 
+function formatBottleneckShare(value) {
+  if (!Number.isFinite(value)) {
+    return '-';
+  }
+  return `${(value * 100).toFixed(0)}%`;
+}
+
+function formatNumber(value) {
+  if (!Number.isFinite(value)) {
+    return '-';
+  }
+  if (Number.isInteger(value)) {
+    return String(value);
+  }
+  return String(roundBottleneckNumber(value));
+}
+
 function printSection(title, section, rows) {
   const dopplerResult = section?.doppler ?? null;
   const tjsResult = section?.transformersjs ?? section?.tjs ?? null;
@@ -3012,12 +4791,113 @@ function printSection(title, section, rows) {
   if (tjsResult?.failed === true) {
     console.log(`  TJS failed:     ${tjsResult?.error?.message || 'failed'}`);
   }
+  if (section?.dopplerBottleneck?.dominant) {
+    const dominant = section.dopplerBottleneck.dominant;
+    console.log(
+      `  Doppler bottleneck: ${dominant.label} `
+      + `${formatVal(dominant.ms, 'ms')} (${formatBottleneckShare(dominant.shareOfDecode)} of decode wall)`
+    );
+  }
+  if (section?.dopplerBottleneck?.recording?.opCount != null) {
+    const recording = section.dopplerBottleneck.recording;
+    console.log(
+      `  Doppler command recording: ops=${formatNumber(recording.opCount)} `
+      + `passes=${formatNumber(recording.passCount)} `
+      + `ms/op=${formatNumber(recording.msPerOp)} `
+      + `ms/pass=${formatNumber(recording.msPerPass)} `
+      + `ms/executedToken=${formatNumber(recording.msPerExecutedBatchToken)}`
+    );
+    if (Array.isArray(recording.topOps) && recording.topOps.length > 0) {
+      const topOps = recording.topOps.slice(0, 3)
+        .map((entry) => `${entry.label}=${formatNumber(entry.count)}`)
+        .join(', ');
+      console.log(`  Doppler recorded top ops: ${topOps}`);
+    }
+  }
+  if (section?.dopplerBatchAccounting?.executedBatchTokens != null) {
+    const accounting = section.dopplerBatchAccounting;
+    console.log(
+      `  Doppler batch work: executed=${formatNumber(accounting.executedBatchTokens)} `
+      + `resolved=${formatNumber(accounting.resolvedBatchTokens)} `
+      + `output=${formatNumber(accounting.outputDecodeTokens)}`
+    );
+  }
   console.log(`  ${''.padEnd(20)} ${'Doppler'.padStart(14)} ${'TJS'.padStart(14)} ${'delta'.padStart(18)}`);
   for (const row of rows) {
     const dVal = resolveMetric(dopplerResult, row, 'doppler');
     const tVal = resolveMetric(tjsResult, row, 'transformersjs');
     printRow(row.label, dVal, tVal, row.unit, row.higherBetter);
   }
+}
+
+function printThroughputCadenceGate(gate) {
+  if (!gate || typeof gate !== 'object') return;
+  const status = gate.ok === true ? 'promotable' : 'tuning-only';
+  const observed = gate.observed || {};
+  const reasons = Array.isArray(gate.invalidReasons) && gate.invalidReasons.length > 0
+    ? ` (${gate.invalidReasons.join(', ')})`
+    : '';
+  console.log(
+    `\n=== THROUGHPUT CADENCE GATE ===\n`
+    + `  status: ${status}${reasons}\n`
+    + `  decode ratio vs parity: ${formatNumber(observed.decodeTokensPerSecRatioVsParity)}\n`
+    + `  batch resolution efficiency: ${formatBottleneckShare(observed.batchResolutionEfficiency)}\n`
+    + `  batch overrun tokens: ${formatNumber(observed.batchOverrunTokens)}`
+  );
+}
+
+function printDopplerBottleneckDiagnostic(diagnostic) {
+  if (!diagnostic || typeof diagnostic !== 'object') return;
+  const bottleneck = diagnostic.dopplerBottleneck?.dominant;
+  const profile = diagnostic.profile || {};
+  const coverage = diagnostic.coverage || {};
+  const topOperation = Array.isArray(profile.topOperations) ? profile.topOperations[0] : null;
+  const status = diagnostic.failed === true
+    ? 'failed'
+    : (coverage.completeDecodeTarget === false ? 'partial' : 'captured');
+  const lines = [
+    '',
+    '=== DOPPLER BOTTLENECK DIAGNOSTIC ===',
+    `  status: ${status}`,
+    `  source section: ${diagnostic.sourceSection ?? '-'}`,
+    `  claim use: ${diagnostic.claimUse ?? 'diagnostic-only'}`,
+    `  decode tok/s: ${formatNumber(diagnostic.decodeTokensPerSec)}`,
+  ];
+  if (diagnostic.invalidReason) {
+    lines.push(`  invalid reason: ${diagnostic.invalidReason}`);
+  }
+  if (coverage.completeDecodeTarget === false) {
+    lines.push(
+      `  decode target coverage: ${formatBottleneckShare(coverage.profileCoverage)} `
+      + `(${formatNumber(coverage.resolvedBatchTokens)}/${formatNumber(coverage.expectedBatchDecodeTokens)} batch tokens)`
+    );
+  }
+  if (bottleneck) {
+    lines.push(
+      `  dominant wall component: ${bottleneck.label} `
+      + `${formatVal(bottleneck.ms, 'ms')} (${formatBottleneckShare(bottleneck.shareOfDecode)} of decode wall)`
+    );
+  }
+  if (profile.captured === true) {
+    lines.push(
+      `  timestamped GPU work: ${formatVal(profile.totalTimestampMs, 'ms')} `
+      + `across ${formatNumber(profile.profileOperationCount)} profiled ops`
+    );
+  }
+  if (topOperation) {
+    lines.push(
+      `  top timestamp op: ${topOperation.operation} ${formatVal(topOperation.totalMs, 'ms')}`
+    );
+  }
+  const topRecordedOps = diagnostic.dopplerBottleneck?.recording?.topOps;
+  if (Array.isArray(topRecordedOps) && topRecordedOps.length > 0) {
+    lines.push(
+      `  top recorded ops: ${topRecordedOps.slice(0, 3)
+        .map((entry) => `${entry.label}=${formatNumber(entry.count)}`)
+        .join(', ')}`
+    );
+  }
+  console.log(lines.join('\n'));
 }
 
 function compactTimestamp(timestamp = null) {
@@ -3092,6 +4972,33 @@ async function main() {
     );
   }
   const compareProfileDefaultDopplerSurface = compareProfile.defaultDopplerSurface || 'auto';
+  const dopplerSurface = parseChoice(
+    flags['doppler-surface'],
+    DOPPLER_SURFACES,
+    '--doppler-surface',
+    compareProfileDefaultDopplerSurface
+  );
+  const dopplerNoOpfsCache = flags['doppler-no-opfs-cache'] === true;
+  if (dopplerNoOpfsCache && !isDopplerBrowserCommandSurface(dopplerSurface)) {
+    throw new Error('--doppler-no-opfs-cache is browser-only; use --doppler-surface browser|auto or remove this flag.');
+  }
+  const mode = flags.mode || 'all';
+  const validModes = ['compute', 'cold', 'warm', 'all'];
+  if (!validModes.includes(mode)) {
+    console.error(`Invalid --mode "${mode}". Must be one of: ${validModes.join(', ')}`);
+    process.exit(1);
+  }
+  const needCompute = mode === 'compute' || mode === 'all';
+  const needWarm = mode === 'warm' || mode === 'all';
+  const needCold = mode === 'cold' || mode === 'all';
+  const dopplerBottleneckProfile = parseOnOff(
+    flags['doppler-bottleneck-profile'],
+    false,
+    '--doppler-bottleneck-profile'
+  );
+  if (dopplerBottleneckProfile && !needCompute) {
+    throw new Error('--doppler-bottleneck-profile requires --mode compute or --mode all.');
+  }
   const compareMetricContractConfig = await loadCompareMetricContract(flags['compare-metric-contract']);
   assertCompareMetricContractCompleteness(compareMetricContractConfig.metrics);
   const [dopplerHarnessMetricPaths, tjsHarnessMetricPaths] = await Promise.all([
@@ -3123,6 +5030,14 @@ async function main() {
     '--tjs-format',
     compareProfile.defaultTjsFormat
   );
+  const flagLoadMode = parseLoadMode(flags['load-mode'], '--load-mode', null);
+  const sharedLoadMode = flagLoadMode ?? compareProfile.defaultLoadMode ?? null;
+  const sharedLoadModeSource = flagLoadMode != null
+    ? 'flag'
+    : (compareProfile.defaultLoadMode != null ? 'compare-profile' : null);
+  const resolvedLoadModes = resolveCompareLoadModes(sharedLoadMode, compareProfileConfig.defaults);
+  assertDopplerLoadModeSupportedForFormat(dopplerFormat, resolvedLoadModes.warm);
+  assertDopplerLoadModeSupportedForFormat(dopplerFormat, resolvedLoadModes.cold);
   const safetensorsSourceId = flags['safetensors-source'] || compareProfile.safetensorsSourceId || null;
   const needsSafetensors = dopplerFormat === 'safetensors' || tjsFormat === 'safetensors';
   if (needsSafetensors && !safetensorsSourceId) {
@@ -3156,9 +5071,16 @@ async function main() {
         manifestSource: null,
       }
     : await resolveDopplerModelSource(compareProfile, dopplerModelId, flags['model-url']);
+  const enforceLocalManifestFreshness = dopplerModelSource.manifestSourceType === 'remote'
+    && compareProfile.compareLane === 'performance_comparable'
+    && allowNonComparableLane !== true;
   const dopplerManifestPreflight = dopplerFormat === 'safetensors'
     ? null
-    : await preflightDopplerManifestContract(dopplerModelSource, dopplerModelId);
+    : await preflightDopplerManifestContract(
+      dopplerModelSource,
+      dopplerModelId,
+      { enforceLocalManifestFreshness }
+    );
   if (dopplerManifestPreflight && dopplerManifestPreflight.ok !== true) {
     throw new Error(
       `Doppler compare preflight failed for "${dopplerModelId}" from ${dopplerManifestPreflight.manifestSource}:\n`
@@ -3230,17 +5152,11 @@ async function main() {
   const effectivePrefillTokenTarget = promptContract?.promptSource === 'tokenizer-accurate-synthetic'
     ? promptContract.prefillTokens
     : null;
-  const mode = flags.mode || 'all';
   const promptRenderContract = renderComparePrompt({
     modelId: dopplerModelId,
     prompt: promptInput,
     useChatTemplate,
   });
-  const flagLoadMode = parseLoadMode(flags['load-mode'], '--load-mode', null);
-  const sharedLoadMode = flagLoadMode ?? compareProfile.defaultLoadMode ?? null;
-  const sharedLoadModeSource = flagLoadMode != null
-    ? 'flag'
-    : (compareProfile.defaultLoadMode != null ? 'compare-profile' : null);
   const sharedContract = buildSharedBenchmarkContract({
     prompt: promptRenderContract.promptRendered,
     maxTokens: maxTokensInput,
@@ -3252,12 +5168,17 @@ async function main() {
     useChatTemplate: promptRenderContract.enginesReceiveRenderedPrompt ? false : useChatTemplate,
     promptContract: promptRenderContract,
   });
-  const resolvedLoadModes = resolveCompareLoadModes(sharedContract.loadMode, compareProfileConfig.defaults);
   const prompt = sharedContract.promptRaw;
   const maxTokens = sharedContract.maxTokens;
   const warmupRuns = sharedContract.warmupRuns;
   const runs = sharedContract.timedRuns;
   const seed = sharedContract.seed;
+  const dopplerKvCachePlan = resolveDopplerBenchmarkKvCachePlan({
+    prefillTokenTarget: effectivePrefillTokenTarget,
+    maxTokens,
+    promptContract: sharedContract.promptContract,
+  });
+  const outputParityPolicy = resolveOutputParityPolicy(sharedContract);
   const decodeProfile = parseDecodeProfile(flags['decode-profile']);
   const resolveCompareProfileRuntimeBundle = (profileId) => compareProfileRuntimeBundles.get(profileId) || null;
   const compareProfileRuntimeBundleMetadata = Object.fromEntries(
@@ -3305,12 +5226,6 @@ async function main() {
   const tjsBrowserConsole = flags['tjs-browser-console'] === true;
   const browserBaseUrl = flags['browser-base-url'] || null;
   const browserExecutable = flags['browser-executable'] || null;
-  const dopplerSurface = parseChoice(
-    flags['doppler-surface'],
-    DOPPLER_SURFACES,
-    '--doppler-surface',
-    compareProfileDefaultDopplerSurface
-  );
   const hasCustomDopplerBatchSize = flags['doppler-batch-size'] != null;
   const hasCustomDopplerReadbackInterval = flags['doppler-readback-interval'] != null;
   const hasCustomDopplerStopCheckMode = flags['doppler-stop-check-mode'] != null;
@@ -3324,7 +5239,9 @@ async function main() {
       'Use --decode-profile custom when setting Doppler decode cadence flags.'
     );
   }
-  const decodeProfileConfig = DECODE_PROFILE_CONFIGS[decodeProfile] || DECODE_PROFILE_CONFIGS[DEFAULT_DECODE_PROFILE];
+  const decodeProfileConfig = decodeProfile === 'custom'
+    ? DECODE_PROFILE_CONFIGS.throughput
+    : (DECODE_PROFILE_CONFIGS[decodeProfile] || DECODE_PROFILE_CONFIGS[DEFAULT_DECODE_PROFILE]);
     const dopplerKernelPathOverride = flags['doppler-kernel-path'] ?? DEFAULT_DOPPLER_KERNEL_PATH;
     const dopplerKernelResolution = resolveDopplerKernelPath(compareProfile, dopplerKernelPathOverride);
     const dopplerKernelPath = dopplerKernelResolution.kernelPath;
@@ -3344,10 +5261,13 @@ async function main() {
     '--doppler-stop-check-mode'
   );
   const dopplerTokensPerReadback = dopplerBatchSize * dopplerReadbackInterval;
-  const dopplerNoOpfsCache = flags['doppler-no-opfs-cache'] === true;
-  if (dopplerNoOpfsCache && dopplerSurface === 'node') {
-    throw new Error('--doppler-no-opfs-cache is browser-only; use --doppler-surface browser|auto or remove this flag.');
-  }
+  const selectedDopplerDecodeCadence = {
+    batchSize: dopplerBatchSize,
+    readbackInterval: dopplerReadbackInterval,
+    stopCheckMode: dopplerStopCheckMode,
+    disableMultiTokenDecode: decodeProfileConfig.disableMultiTokenDecode === true,
+    speculationMode: decodeProfileConfig.speculationMode ?? null,
+  };
   const dopplerBrowserChannel = resolveBrowserChannelOverride(flags['doppler-browser-channel']);
   const dopplerBrowserUserData = flags['doppler-browser-user-data'] || null;
     const dopplerBrowserPort = flags['doppler-browser-port'] != null
@@ -3361,12 +5281,6 @@ async function main() {
   const shouldSave = flags.save === true;
   const skipMatrixUpdate = flags['skip-matrix-update'] === true;
   const saveDir = flags['save-dir'] || path.join(DOPPLER_ROOT, 'benchmarks', 'vendors', 'results');
-
-  const validModes = ['compute', 'cold', 'warm', 'all'];
-  if (!validModes.includes(mode)) {
-    console.error(`Invalid --mode "${mode}". Must be one of: ${validModes.join(', ')}`);
-    process.exit(1);
-  }
 
   console.error(`[compare] Doppler model: ${dopplerModelId} (format=${dopplerFormat})`);
   console.error(`[compare] TJS model:     ${tjsModelId} (v${tjsVersion}, format=${tjsFormat})`);
@@ -3424,7 +5338,16 @@ async function main() {
       + `tokenizerSource=${promptContract?.tokenizerResolutionSource ?? 'n/a'})`
     );
   }
+  if (dopplerKvCachePlan.enabled === true) {
+    console.error(
+      `[compare] Doppler KV cache maxSeqLen: ${dopplerKvCachePlan.maxSeqLen} `
+      + `(source=${dopplerKvCachePlan.source}, prompt=${dopplerKvCachePlan.promptTokenTarget}, `
+      + `decode=${dopplerKvCachePlan.decodeTokenTarget}, margin=${dopplerKvCachePlan.tokenizerDeltaMargin})`
+    );
+  }
 
+  const selectedMethodologyRuntimeBaseConfig = resolveCompareProfileRuntimeBundle(decodeProfile)?.resolvedRuntime ?? null;
+  const dopplerExecution = resolveDopplerExecutionIdentity(dopplerSurface, dopplerFormat);
   const report = {
     timestamp: runTimestamp ?? new Date().toISOString(),
     benchmarkPolicy: {
@@ -3432,6 +5355,9 @@ async function main() {
       schemaVersion: BENCHMARK_POLICY.schemaVersion,
       sourceSha256: BENCHMARK_POLICY.sourceSha256,
       updated: BENCHMARK_POLICY.updated,
+      promotionGates: {
+        throughputCadence: THROUGHPUT_CADENCE_PROMOTION_GATE,
+      },
     },
     compareConfig: {
       source: toRepoRelativeSourcePath(compareProfileConfig.source || 'benchmarks/vendors/compare-engines.config.json'),
@@ -3477,6 +5403,7 @@ async function main() {
         warm: summarizeDopplerLoadModeRuntimeOverlay(resolvedLoadModes.warm),
         cold: summarizeDopplerLoadModeRuntimeOverlay(resolvedLoadModes.cold),
       },
+      dopplerKvCachePlan,
       compareProfileSchemaVersion: compareProfileConfig.schemaVersion ?? DEFAULT_COMPARE_CONFIG_SCHEMA_VERSION,
     },
     compareLane: {
@@ -3498,6 +5425,7 @@ async function main() {
     },
     dopplerManifestPreflight,
     dopplerSurface,
+    dopplerExecution,
     dopplerKernelPath: dopplerKernelPath ?? 'manifest-default',
     dopplerKernelPathSource: dopplerKernelResolution.source,
     decodeProfile,
@@ -3571,6 +5499,7 @@ async function main() {
         repetitionPenalty: sharedContract.sampling.repetitionPenalty,
         greedyThreshold: sharedContract.sampling.greedyThreshold,
       },
+      outputParity: outputParityPolicy,
       promptParity: {
         promptRenderer: sharedContract.promptContract?.promptRenderer ?? 'unknown',
         chatTemplateSource: sharedContract.promptContract?.chatTemplateSource ?? 'unknown',
@@ -3582,12 +5511,8 @@ async function main() {
       },
       loadMode: sharedContract.loadMode,
       cacheSemantics: {
-        warm: dopplerSurface === 'node'
-          ? `Prime engine cache before timed run, then run from local persistent cache only (loadMode=${resolvedLoadModes.warm}; Doppler node runtime cache; TJS persistent browser cache).`
-          : `Prime engine cache before timed run, then run from local persistent cache only (loadMode=${resolvedLoadModes.warm}; Doppler browser load mode ${resolvedLoadModes.warm}; TJS persistent browser cache).`,
-        cold: dopplerSurface === 'node'
-          ? `Wipe engine-specific persistent cache state before run (loadMode=${resolvedLoadModes.cold}; Doppler node runtime cache/profile wipe; TJS profile wipe).`
-          : `Wipe engine-specific persistent cache state before run (loadMode=${resolvedLoadModes.cold}; Doppler browser load mode ${resolvedLoadModes.cold}; TJS profile wipe).`,
+        warm: `Prime engine cache before timed run, then run from local persistent cache only (loadMode=${resolvedLoadModes.warm}; ${formatDopplerRuntimeCacheLabel(dopplerSurface, resolvedLoadModes.warm)}; TJS persistent browser cache).`,
+        cold: `Wipe engine-specific persistent cache state before run (loadMode=${resolvedLoadModes.cold}; ${formatDopplerRuntimeCacheLabel(dopplerSurface, resolvedLoadModes.cold)}/profile wipe; TJS profile wipe).`,
       },
       formats: {
         doppler: dopplerFormat,
@@ -3598,6 +5523,7 @@ async function main() {
         batchSize: dopplerBatchSize,
         readbackInterval: dopplerReadbackInterval,
         stopCheckMode: dopplerStopCheckMode,
+        readbackMode: resolveRuntimeReadbackMode(selectedMethodologyRuntimeBaseConfig),
         disableMultiTokenDecode: DECODE_PROFILE_CONFIGS[decodeProfile]?.disableMultiTokenDecode === true,
         speculationMode: DECODE_PROFILE_CONFIGS[decodeProfile]?.speculationMode ?? 'inherit',
         tokensPerReadback: dopplerTokensPerReadback,
@@ -3612,12 +5538,9 @@ async function main() {
   };
 
   // Compute measures warm-cache behavior and reports both parity/throughput Doppler cadence.
-  const needCompute = mode === 'compute' || mode === 'all';
-  const needWarm = mode === 'warm' || mode === 'all';
-  const needCold = mode === 'cold' || mode === 'all';
-
   let dopplerComputeParity = null;
   let dopplerComputeThroughput = null;
+  let dopplerComputeThroughputDiagnostic = null;
   let tjsCompute = null;
   let dopplerWarm = null;
   let tjsWarm = null;
@@ -3626,6 +5549,25 @@ async function main() {
   const parityRuntimeBaseConfig = resolveCompareProfileRuntimeBundle('parity')?.resolvedRuntime ?? null;
   const throughputRuntimeBaseConfig = resolveCompareProfileRuntimeBundle('throughput')?.resolvedRuntime ?? null;
   const selectedRuntimeBaseConfig = resolveCompareProfileRuntimeBundle(decodeProfile)?.resolvedRuntime ?? null;
+  const customComputeCadence = {
+    batchSize: dopplerBatchSize,
+    readbackInterval: dopplerReadbackInterval,
+    stopCheckMode: dopplerStopCheckMode,
+    disableMultiTokenDecode: decodeProfileConfig.disableMultiTokenDecode === true,
+    speculationMode: decodeProfileConfig.speculationMode ?? null,
+  };
+  const computeParityCadence = resolveComputeDecodeCadence(
+    decodeProfile,
+    'parity',
+    customComputeCadence,
+    decodeProfile === 'custom' ? selectedRuntimeBaseConfig : parityRuntimeBaseConfig
+  );
+  const computeThroughputCadence = resolveComputeDecodeCadence(
+    decodeProfile,
+    'throughput',
+    customComputeCadence,
+    decodeProfile === 'custom' ? selectedRuntimeBaseConfig : throughputRuntimeBaseConfig
+  );
 
   if (needCompute) {
     tjsCompute = await runTjs(
@@ -3653,11 +5595,11 @@ async function main() {
       'warm',
       {
         kernelPath: dopplerKernelPath,
-        batchSize: DECODE_PROFILE_CONFIGS.parity.batchSize,
-        readbackInterval: DECODE_PROFILE_CONFIGS.parity.readbackInterval,
-        stopCheckMode: DECODE_PROFILE_CONFIGS.parity.stopCheckMode,
-        disableMultiTokenDecode: DECODE_PROFILE_CONFIGS.parity.disableMultiTokenDecode === true,
-        speculationMode: DECODE_PROFILE_CONFIGS.parity.speculationMode ?? null,
+        batchSize: computeParityCadence.batchSize,
+        readbackInterval: computeParityCadence.readbackInterval,
+        stopCheckMode: computeParityCadence.stopCheckMode,
+        disableMultiTokenDecode: computeParityCadence.disableMultiTokenDecode,
+        speculationMode: computeParityCadence.speculationMode,
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
         browserPort: dopplerBrowserPort,
@@ -3665,14 +5607,16 @@ async function main() {
         browserExecutable,
         browserBaseUrl,
         timeoutMs: compareDopplerTimeoutMs,
-        runtimeBaseConfigJson: parityRuntimeBaseConfig,
+        runtimeBaseConfigJson: computeParityCadence.runtimeBaseConfig,
         runtimeConfigJson: runtimeConfigOverride,
+        kvCachePlan: dopplerKvCachePlan,
         surface: dopplerSurface,
         format: dopplerFormat,
         safetensorsSourcePath,
         loadMode: resolvedLoadModes.warm,
       }
     );
+    assertDopplerDecodeCadence(dopplerComputeParity, computeParityCadence, 'compute/parity');
 
     assertRequiredHarnessMetrics(
       dopplerComputeParity,
@@ -3695,11 +5639,11 @@ async function main() {
       'warm',
       {
         kernelPath: dopplerKernelPath,
-        batchSize: DECODE_PROFILE_CONFIGS.throughput.batchSize,
-        readbackInterval: DECODE_PROFILE_CONFIGS.throughput.readbackInterval,
-        stopCheckMode: DECODE_PROFILE_CONFIGS.throughput.stopCheckMode,
-        disableMultiTokenDecode: DECODE_PROFILE_CONFIGS.throughput.disableMultiTokenDecode === true,
-        speculationMode: DECODE_PROFILE_CONFIGS.throughput.speculationMode ?? null,
+        batchSize: computeThroughputCadence.batchSize,
+        readbackInterval: computeThroughputCadence.readbackInterval,
+        stopCheckMode: computeThroughputCadence.stopCheckMode,
+        disableMultiTokenDecode: computeThroughputCadence.disableMultiTokenDecode,
+        speculationMode: computeThroughputCadence.speculationMode,
         noOpfsCache: dopplerNoOpfsCache,
         browserUserData: dopplerBrowserUserData,
         browserPort: dopplerBrowserPort,
@@ -3707,14 +5651,16 @@ async function main() {
         browserExecutable,
         browserBaseUrl,
         timeoutMs: compareDopplerTimeoutMs,
-        runtimeBaseConfigJson: throughputRuntimeBaseConfig,
+        runtimeBaseConfigJson: computeThroughputCadence.runtimeBaseConfig,
         runtimeConfigJson: runtimeConfigOverride,
+        kvCachePlan: dopplerKvCachePlan,
         surface: dopplerSurface,
         format: dopplerFormat,
         safetensorsSourcePath,
         loadMode: resolvedLoadModes.warm,
       }
     );
+    assertDopplerDecodeCadence(dopplerComputeThroughput, computeThroughputCadence, 'compute/throughput');
 
     assertRequiredHarnessMetrics(
       dopplerComputeThroughput,
@@ -3723,26 +5669,83 @@ async function main() {
       'Doppler'
     );
 
+    const computeParitySection = buildCompareSection({
+      cacheMode: 'warm',
+      loadMode: resolvedLoadModes.warm,
+      doppler: dopplerComputeParity,
+      transformersjs: tjsCompute,
+      prefillTokenTarget: effectivePrefillTokenTarget,
+      maxTokens,
+      promptContract: sharedContract.promptContract,
+      outputParityPolicy,
+    });
+    const computeThroughputSection = buildCompareSection({
+      cacheMode: 'warm',
+      loadMode: resolvedLoadModes.warm,
+      doppler: dopplerComputeThroughput,
+      transformersjs: tjsCompute,
+      prefillTokenTarget: effectivePrefillTokenTarget,
+      maxTokens,
+      promptContract: sharedContract.promptContract,
+      outputParityPolicy,
+    });
     report.sections.compute = {
-      parity: buildCompareSection({
-        cacheMode: 'warm',
-        loadMode: resolvedLoadModes.warm,
-        doppler: dopplerComputeParity,
-        transformersjs: tjsCompute,
-        prefillTokenTarget: effectivePrefillTokenTarget,
-        maxTokens,
-        promptContract: sharedContract.promptContract,
-      }),
-      throughput: buildCompareSection({
-        cacheMode: 'warm',
-        loadMode: resolvedLoadModes.warm,
-        doppler: dopplerComputeThroughput,
-        transformersjs: tjsCompute,
-        prefillTokenTarget: effectivePrefillTokenTarget,
-        maxTokens,
-        promptContract: sharedContract.promptContract,
+      parity: computeParitySection,
+      throughput: computeThroughputSection,
+      throughputCadenceGate: resolveDopplerThroughputCadenceGate({
+        paritySection: computeParitySection,
+        throughputSection: computeThroughputSection,
       }),
     };
+    if (dopplerBottleneckProfile) {
+      const diagnosticSharedContract = buildDiagnosticSharedBenchmarkContract(sharedContract);
+      dopplerComputeThroughputDiagnostic = await runDoppler(
+        dopplerModelId,
+        dopplerModelSource.modelUrl,
+        diagnosticSharedContract,
+        'warm',
+        {
+          command: 'debug',
+          workload: 'inference',
+          diagnosticLabel: 'bottleneck-profile',
+          kernelPath: dopplerKernelPath,
+          batchSize: computeThroughputCadence.batchSize,
+          readbackInterval: computeThroughputCadence.readbackInterval,
+          stopCheckMode: computeThroughputCadence.stopCheckMode,
+          disableMultiTokenDecode: computeThroughputCadence.disableMultiTokenDecode,
+          speculationMode: computeThroughputCadence.speculationMode,
+          noOpfsCache: dopplerNoOpfsCache,
+          browserUserData: dopplerBrowserUserData,
+          browserPort: dopplerBrowserPort,
+          browserChannel: dopplerBrowserChannel,
+          browserExecutable,
+          browserBaseUrl,
+          timeoutMs: compareDopplerTimeoutMs,
+          maxBufferBytes: DEFAULT_DOPPLER_DIAGNOSTIC_MAX_BUFFER_BYTES,
+          runtimeBaseConfigJson: computeThroughputCadence.runtimeBaseConfig,
+          runtimeConfigJson: runtimeConfigOverride,
+          kvCachePlan: dopplerKvCachePlan,
+          runtimeDiagnosticConfigJson: buildDopplerBottleneckDiagnosticRuntimeOverlay(),
+          surface: dopplerSurface,
+          format: dopplerFormat,
+          safetensorsSourcePath,
+          loadMode: resolvedLoadModes.warm,
+        }
+      );
+      assertDopplerDecodeCadence(
+        dopplerComputeThroughputDiagnostic,
+        computeThroughputCadence,
+        'diagnostics/doppler-bottleneck'
+      );
+      report.diagnostics = {
+        ...(report.diagnostics ?? {}),
+        dopplerBottleneck: buildDopplerBottleneckDiagnostic({
+          doppler: dopplerComputeThroughputDiagnostic,
+          sourceSection: 'compute/throughput',
+          sharedContract: diagnosticSharedContract,
+        }),
+      };
+    }
     report.correctness = buildCorrectnessReport(dopplerComputeParity, tjsCompute, sharedContract.promptRaw);
   }
 
@@ -3768,12 +5771,14 @@ async function main() {
         timeoutMs: compareDopplerTimeoutMs,
         runtimeBaseConfigJson: selectedRuntimeBaseConfig,
         runtimeConfigJson: runtimeConfigOverride,
+        kvCachePlan: dopplerKvCachePlan,
         surface: dopplerSurface,
         format: dopplerFormat,
         safetensorsSourcePath,
         loadMode: resolvedLoadModes.warm,
       }
     );
+    assertDopplerDecodeCadence(dopplerWarm, selectedDopplerDecodeCadence, 'warm');
     assertRequiredHarnessMetrics(
       dopplerWarm,
       { ...dopplerHarnessMetricPaths, requiredMetrics: requiredMetricIds },
@@ -3815,6 +5820,7 @@ async function main() {
       prefillTokenTarget: effectivePrefillTokenTarget,
       maxTokens,
       promptContract: sharedContract.promptContract,
+      outputParityPolicy,
     });
   }
 
@@ -3840,12 +5846,14 @@ async function main() {
         timeoutMs: compareDopplerTimeoutMs,
         runtimeBaseConfigJson: selectedRuntimeBaseConfig,
         runtimeConfigJson: runtimeConfigOverride,
+        kvCachePlan: dopplerKvCachePlan,
         surface: dopplerSurface,
         format: dopplerFormat,
         safetensorsSourcePath,
         loadMode: resolvedLoadModes.cold,
       }
     );
+    assertDopplerDecodeCadence(dopplerCold, selectedDopplerDecodeCadence, 'cold');
     assertRequiredHarnessMetrics(
       dopplerCold,
       { ...dopplerHarnessMetricPaths, requiredMetrics: requiredMetricIds },
@@ -3887,13 +5895,16 @@ async function main() {
       prefillTokenTarget: effectivePrefillTokenTarget,
       maxTokens,
       promptContract: sharedContract.promptContract,
+      outputParityPolicy,
     });
   }
 
   if (jsonOutput) {
     console.log(JSON.stringify(report, null, 2));
   } else {
-    const decodeProfileLabel = decodeProfileConfig?.label || 'custom decode cadence';
+    const decodeProfileLabel = decodeProfile === 'custom'
+      ? 'custom decode cadence'
+      : (decodeProfileConfig?.label || 'custom decode cadence');
     console.log(
       `[method] prompt tok/s uses prompt_tokens / firstTokenMs, decodeProfile=${decodeProfile} ` +
       `(${decodeProfileLabel}), Doppler tokens/readback=${dopplerTokensPerReadback}, ` +
@@ -3904,6 +5915,8 @@ async function main() {
     if (mode === 'compute' || mode === 'all') {
       printSection('COMPUTE (PARITY)', report.sections.compute?.parity, computeRows);
       printSection('COMPUTE (THROUGHPUT)', report.sections.compute?.throughput, computeRows);
+      printThroughputCadenceGate(report.sections.compute?.throughputCadenceGate);
+      printDopplerBottleneckDiagnostic(report.diagnostics?.dopplerBottleneck);
     }
     if (mode === 'warm' || mode === 'all') {
       printSection('WARM START', report.sections.warm, computeRows);
@@ -3984,20 +5997,30 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 
 export {
   buildCompareSection,
+  buildDiagnosticSharedBenchmarkContract,
+  buildDopplerBottleneckDiagnostic,
+  buildDopplerManifestFreshnessArtifact,
+  buildDopplerBottleneckDiagnosticRuntimeOverlay,
   buildDopplerRuntimeConfig,
   buildSharedBenchmarkContract,
+  assertDopplerDecodeCadence,
   loadModelCatalogBundle,
   normalizeCompareLoadModeDefaults,
   parseArgs,
   parseJsonBlock,
   parseOnOff,
   redactSecrets,
+  resolveComputeDecodeCadence,
   resolveCatalogTransformersjsBenchmarkTarget,
   renderComparePrompt,
   resolveCompareOwnedPromptRenderer,
   resolveCompareProfile,
   resolveCompareLoadModes,
+  resolveDopplerBenchmarkKvCachePlan,
+  resolveDopplerExecutionIdentity,
   resolveDopplerModelSource,
+  resolveDopplerThroughputCadenceGate,
+  summarizeDopplerDecodeProfileSteps,
   resolveRunLoadMode,
   usage,
 };

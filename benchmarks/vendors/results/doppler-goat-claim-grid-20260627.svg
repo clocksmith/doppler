@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="850" viewBox="0 0 1200 850" role="img" aria-labelledby="title desc">
+<title id="title">Doppler local inference claim grid</title>
+<desc id="desc">Gemma 3 270M Q4K throughput receipts across p064, p256, p512 and Chromium, Node, Bun, with TJS-leading p256 Node and Bun cells shown as blockers.</desc>
+<defs><style>
+text{font-family:Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;letter-spacing:0}.mono{font-family:SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace}
+</style></defs>
+<rect x="0" y="0" width="1200" height="850" rx="5" fill="#ffffff" />
+<rect x="18" y="18" width="1164" height="814" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5" />
+<text x="42" y="58" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="800">CURRENT LOCAL CLAIM GRID</text>
+<text x="42" y="96" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="34" font-weight="850">Doppler wins 7 of 9 measured decode lanes</text>
+<text x="42" y="126" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="15">Gemma 3 270M IT Q4K • greedy • warm cache • 15 timed runs • exact output match • no hidden fallback</text>
+<rect x="900" y="50" width="230" height="58" rx="5" fill="#111111" />
+<text x="1015" y="73" fill="#ffffff" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="850" text-anchor="middle">7 Doppler wins</text>
+<text x="1015" y="96" fill="#ffffff" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="800" text-anchor="middle">2 TJS blockers</text>
+<text x="315" y="166" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="800" text-anchor="middle">Chromium</text>
+<text x="663" y="166" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="800" text-anchor="middle">Node</text>
+<text x="1011" y="166" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="800" text-anchor="middle">Bun</text>
+<text x="42" y="272" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="850">p064 / d064</text>
+<text x="42" y="294" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">p064-d064-t0-k1</text>
+<rect x="150" y="198" width="330" height="160" rx="5" fill="#f0f7f2" stroke="#91c7a1" stroke-width="1.25" />
+<text x="168" y="226" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="800">Chromium</text>
+<text x="462" y="226" fill="#27824b" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="800" text-anchor="end">Doppler +64.2%</text>
+<rect x="172" y="246" width="286" height="20" rx="5" fill="#111111" />
+<text x="180" y="261" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="800">Doppler 175.8 tok/s</text>
+<rect x="172" y="276" width="174.1935525404055" height="20" rx="5" fill="#9bb7d6" />
+<text x="180" y="291" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="800">TJS 107.1 tok/s</text>
+<text x="168" y="320" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">prefill 1060.5 / 840.4 tok/s</text>
+<text x="168" y="341" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12">exact • 15 runs • readback map wait</text>
+<rect x="498" y="198" width="330" height="160" rx="5" fill="#f0f7f2" stroke="#91c7a1" stroke-width="1.25" />
+<text x="516" y="226" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="800">Node</text>
+<text x="810" y="226" fill="#27824b" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="800" text-anchor="end">Doppler +4.0%</text>
+<rect x="520" y="246" width="182.9833921055625" height="20" rx="5" fill="#111111" />
+<text x="528" y="261" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="800">Doppler 112.5 tok/s</text>
+<rect x="520" y="276" width="175.94761547737508" height="20" rx="5" fill="#9bb7d6" />
+<text x="528" y="291" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="800">TJS 108.2 tok/s</text>
+<text x="516" y="320" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">prefill 1130.1 / 831.9 tok/s</text>
+<text x="516" y="341" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12">exact • 15 runs • command recording</text>
+<rect x="846" y="198" width="330" height="160" rx="5" fill="#f0f7f2" stroke="#91c7a1" stroke-width="1.25" />
+<text x="864" y="226" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="800">Bun</text>
+<text x="1158" y="226" fill="#27824b" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="800" text-anchor="end">Doppler +4.6%</text>
+<rect x="868" y="246" width="187.92844955067682" height="20" rx="5" fill="#111111" />
+<text x="876" y="261" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="800">Doppler 115.5 tok/s</text>
+<rect x="868" y="276" width="179.64573699671215" height="20" rx="5" fill="#9bb7d6" />
+<text x="876" y="291" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="800">TJS 110.4 tok/s</text>
+<text x="864" y="320" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">prefill 970.7 / 832.5 tok/s</text>
+<text x="864" y="341" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12">exact • 15 runs • command recording</text>
+<text x="42" y="450" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="850">p256 / d128</text>
+<text x="42" y="472" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">p256-d128-t0-k1</text>
+<rect x="150" y="376" width="330" height="160" rx="5" fill="#f0f7f2" stroke="#91c7a1" stroke-width="1.25" />
+<text x="168" y="404" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="800">Chromium</text>
+<text x="462" y="404" fill="#27824b" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="800" text-anchor="end">Doppler +45.3%</text>
+<rect x="172" y="424" width="267.14696849050165" height="20" rx="5" fill="#111111" />
+<text x="180" y="439" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="800">Doppler 164.2 tok/s</text>
+<rect x="172" y="454" width="183.83814888001726" height="20" rx="5" fill="#9bb7d6" />
+<text x="180" y="469" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="800">TJS 113.0 tok/s</text>
+<text x="168" y="498" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">prefill 2094.9 / 1021.5 tok/s</text>
+<text x="168" y="519" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12">exact • 15 runs • readback map wait</text>
+<rect x="498" y="376" width="330" height="160" rx="5" fill="#fff0f0" stroke="#d98b8b" stroke-width="1.25" />
+<text x="516" y="404" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="800">Node</text>
+<text x="810" y="404" fill="#b94b4b" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="800" text-anchor="end">TJS +3.0%</text>
+<rect x="520" y="424" width="172.4100784893641" height="20" rx="5" fill="#111111" />
+<text x="528" y="439" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="800">Doppler 106.0 tok/s</text>
+<rect x="520" y="454" width="177.60473995676807" height="20" rx="5" fill="#9bb7d6" />
+<text x="528" y="469" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="800">TJS 109.2 tok/s</text>
+<text x="516" y="498" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">prefill 2170.0 / 1008.4 tok/s</text>
+<text x="516" y="519" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12">exact • 15 runs • command recording</text>
+<rect x="846" y="376" width="330" height="160" rx="5" fill="#fff0f0" stroke="#d98b8b" stroke-width="1.25" />
+<text x="864" y="404" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="800">Bun</text>
+<text x="1158" y="404" fill="#b94b4b" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="800" text-anchor="end">TJS +1.4%</text>
+<rect x="868" y="424" width="176.3140712091912" height="20" rx="5" fill="#111111" />
+<text x="876" y="439" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="800">Doppler 108.4 tok/s</text>
+<rect x="868" y="454" width="178.8215530001704" height="20" rx="5" fill="#9bb7d6" />
+<text x="876" y="469" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="800">TJS 109.9 tok/s</text>
+<text x="864" y="498" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">prefill 1993.9 / 992.2 tok/s</text>
+<text x="864" y="519" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12">exact • 15 runs • command recording</text>
+<text x="42" y="628" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="850">p512 / d128</text>
+<text x="42" y="650" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="11">p512-d128-t0-k1</text>
+<rect x="150" y="554" width="330" height="160" rx="5" fill="#f0f7f2" stroke="#91c7a1" stroke-width="1.25" />
+<text x="168" y="582" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="800">Chromium</text>
+<text x="462" y="582" fill="#27824b" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="800" text-anchor="end">Doppler +62.9%</text>
+<rect x="172" y="602" width="254.5891252417245" height="20" rx="5" fill="#111111" />
+<text x="180" y="617" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="800">Doppler 156.5 tok/s</text>
+<rect x="172" y="632" width="156.29104249345855" height="20" rx="5" fill="#9bb7d6" />
+<text x="180" y="647" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="800">TJS 96.1 tok/s</text>
+<text x="168" y="676" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">prefill 2441.6 / 1024.0 tok/s</text>
+<text x="168" y="697" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12">exact • 15 runs • readback map wait</text>
+<rect x="498" y="554" width="330" height="160" rx="5" fill="#f0f7f2" stroke="#91c7a1" stroke-width="1.25" />
+<text x="516" y="582" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="800">Node</text>
+<text x="810" y="582" fill="#27824b" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="800" text-anchor="end">Doppler +6.0%</text>
+<rect x="520" y="602" width="167.5463542259129" height="20" rx="5" fill="#111111" />
+<text x="528" y="617" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="800">Doppler 103 tok/s</text>
+<rect x="520" y="632" width="158.0348230746641" height="20" rx="5" fill="#9bb7d6" />
+<text x="528" y="647" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="800">TJS 97.2 tok/s</text>
+<text x="516" y="676" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">prefill 2462.1 / 1021.5 tok/s</text>
+<text x="516" y="697" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12">exact • 15 runs • command recording</text>
+<rect x="846" y="554" width="330" height="160" rx="5" fill="#f0f7f2" stroke="#91c7a1" stroke-width="1.25" />
+<text x="864" y="582" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="800">Bun</text>
+<text x="1158" y="582" fill="#27824b" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="800" text-anchor="end">Doppler +8.1%</text>
+<rect x="868" y="602" width="171.69434649072915" height="20" rx="5" fill="#111111" />
+<text x="876" y="617" fill="#ffffff" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="800">Doppler 105.5 tok/s</text>
+<rect x="868" y="632" width="158.85387044062375" height="20" rx="5" fill="#9bb7d6" />
+<text x="876" y="647" fill="#111111" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="800">TJS 97.7 tok/s</text>
+<text x="864" y="676" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">prefill 2326.4 / 1004.0 tok/s</text>
+<text x="864" y="697" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12">exact • 15 runs • command recording</text>
+<line x1="42" y1="770" x2="1158" y2="770" stroke="#d8d8d8" />
+<text x="42" y="798" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13">Read as decode throughput, higher is better. Green cells are Doppler-leading; red cells are the current GOAT blockers.</text>
+<text x="42" y="820" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">Receipts: compare_20260627T202549..203348 plus p512 200323/200603/200811. Broader medium-model claim remains gated.</text>
+</svg>

@@ -51,13 +51,22 @@
         "label": "Doppler release decode cadence"
       },
       "throughput": {
-        "batchSize": 4,
-        "readbackInterval": 4,
+        "batchSize": 8,
+        "readbackInterval": 8,
         "disableMultiTokenDecode": false,
         "speculationMode": "none",
         "stopCheckMode": "batch",
-        "label": "Doppler throughput-tuned cadence"
+        "label": "Doppler 8x8 throughput-tuned cadence"
       }
+    }
+  },
+  "promotionGates": {
+    "throughputCadence": {
+      "requireBatchAccounting": true,
+      "minDecodeTokensPerSecRatioVsParity": 1,
+      "minBatchResolutionEfficiency": 0.95,
+      "maxBatchOverrunTokens": 0,
+      "description": "A throughput decode cadence is promotable only when it is not slower than parity cadence and its reported batch work resolves almost all executed batch decode tokens before returning to the generation loop."
     }
   },
   "browser": {

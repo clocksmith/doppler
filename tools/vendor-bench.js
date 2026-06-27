@@ -18,6 +18,7 @@ const CAPABILITIES_PATH = path.join(REGISTRY_DIR, 'capabilities.json');
 const COMPARE_CONFIG_PATH = path.join(REGISTRY_DIR, 'compare-engines.config.json');
 const COMPARE_METRIC_CONTRACT_PATH = path.join(REGISTRY_DIR, 'compare-metrics.json');
 const BENCHMARK_POLICY_PATH = path.join(REGISTRY_DIR, 'benchmark-policy.json');
+const LOCAL_INFERENCE_CLAIM_MATRIX_PATH = path.join(REGISTRY_DIR, 'local-inference-claim-matrix.json');
 const MODEL_CATALOG_PATH = path.join(ROOT_DIR, 'models', 'catalog.json');
 const PACKAGE_JSON_PATH = path.join(ROOT_DIR, 'package.json');
 const RESULTS_DIR = path.join(REGISTRY_DIR, 'results');
@@ -31,6 +32,7 @@ const COMPARE_METRIC_CONTRACT_SCHEMA_PATH = path.join(SCHEMA_DIR, 'metric-contra
 const HARNESS_SCHEMA_PATH = path.join(SCHEMA_DIR, 'harness.schema.json');
 const RESULT_SCHEMA_PATH = path.join(SCHEMA_DIR, 'result.schema.json');
 const RELEASE_MATRIX_SCHEMA_PATH = path.join(SCHEMA_DIR, 'release-matrix.schema.json');
+const LOCAL_INFERENCE_CLAIM_MATRIX_SCHEMA_PATH = path.join(SCHEMA_DIR, 'local-inference-claim-matrix.schema.json');
 const DEFAULT_RELEASE_MATRIX_OUTPUT_PATH = path.join(REGISTRY_DIR, 'release-matrix.json');
 const DEFAULT_RELEASE_MATRIX_MARKDOWN_PATH = path.join(ROOT_DIR, 'docs', 'release-matrix.md');
 const DEFAULT_COMMAND_TIMEOUT_MS = 600_000;
@@ -251,6 +253,20 @@ function ensureSchemaMatch(value, schema, trace) {
   }
   if (typeof schema.minProperties === 'number' && isJsonObject(value) && Object.keys(value).length < schema.minProperties) {
     throw new Error(`${label}: minimum properties is ${schema.minProperties}`);
+  }
+  if (typeof value === 'number') {
+    if (typeof schema.minimum === 'number' && value < schema.minimum) {
+      throw new Error(`${label}: minimum is ${schema.minimum}`);
+    }
+    if (typeof schema.exclusiveMinimum === 'number' && value <= schema.exclusiveMinimum) {
+      throw new Error(`${label}: exclusive minimum is ${schema.exclusiveMinimum}`);
+    }
+    if (typeof schema.maximum === 'number' && value > schema.maximum) {
+      throw new Error(`${label}: maximum is ${schema.maximum}`);
+    }
+    if (typeof schema.exclusiveMaximum === 'number' && value >= schema.exclusiveMaximum) {
+      throw new Error(`${label}: exclusive maximum is ${schema.exclusiveMaximum}`);
+    }
   }
 
   if (isJsonObject(value) && schema.required) {
@@ -1447,10 +1463,923 @@ async function loadCompareMetricBundle() {
   return {
     path: toPosixRelative(COMPARE_METRIC_CONTRACT_PATH),
     sourceSha256: hashTextBytes(raw).sha256,
+    metrics,
     metricIds: metrics
       .map((entry) => (typeof entry?.id === 'string' ? entry.id.trim() : ''))
       .filter(Boolean),
   };
+}
+
+function requireTrue(value, label) {
+  if (value !== true) {
+    throw new Error(`${label} must be true`);
+  }
+}
+
+function assertKnownId(value, knownIds, label) {
+  const normalized = asNonEmptyStringValue(value);
+  if (!normalized || !knownIds.has(normalized)) {
+    throw new Error(`${label} references unknown id: ${value}`);
+  }
+}
+
+function repoPathToAbsolute(repoPath, label) {
+  const normalized = asNonEmptyStringValue(repoPath);
+  if (!normalized) {
+    throw new Error(`${label} must be a non-empty repo-relative path`);
+  }
+  if (/^https?:\/\//i.test(normalized)) {
+    throw new Error(`${label} must be repo-relative, got URL: ${normalized}`);
+  }
+  if (path.isAbsolute(normalized)) {
+    throw new Error(`${label} must be repo-relative, got absolute path: ${normalized}`);
+  }
+  return path.resolve(ROOT_DIR, normalized);
+}
+
+async function assertRepoPathExists(repoPath, label) {
+  const absolutePath = repoPathToAbsolute(repoPath, label);
+  if (!(await fileExists(absolutePath))) {
+    throw new Error(`${label} references missing file: ${repoPath}`);
+  }
+  return absolutePath;
+}
+
+function runtimeProfileIdToRepoPath(profileId) {
+  const normalized = asNonEmptyStringValue(profileId)?.replace(/\.json$/u, '') || null;
+  if (!normalized) return null;
+  if (!normalized.startsWith('profiles/')) return null;
+  return `src/config/runtime/profiles/${normalized.slice('profiles/'.length)}.json`;
+}
+
+async function hashRepoFileBytes(repoPath, label) {
+  const absolutePath = await assertRepoPathExists(repoPath, label);
+  const bytes = await fs.readFile(absolutePath);
+  return crypto.createHash('sha256').update(bytes).digest('hex');
+}
+
+function computeShardSetHash(manifest) {
+  const shards = Array.isArray(manifest?.shards) ? manifest.shards : [];
+  if (shards.length === 0) return null;
+  const shardHashInput = shards
+    .map((shard) => {
+      const filename = typeof shard?.filename === 'string' ? shard.filename : '';
+      const size = Number.isFinite(Number(shard?.size)) ? Number(shard.size) : '';
+      const hash = typeof shard?.hash === 'string'
+        ? shard.hash
+        : (typeof shard?.blake3 === 'string' ? shard.blake3 : '');
+      return `${filename}:${size}:${hash}`;
+    })
+    .join('\n');
+  return `sha256:${crypto.createHash('sha256').update(shardHashInput).digest('hex')}`;
+}
+
+function rawCatalogEntryByModelId(catalog, modelId) {
+  const entries = Array.isArray(catalog?.entries) ? catalog.entries : [];
+  return entries.find((entry) => entry?.modelId === modelId) || null;
+}
+
+function normalizeCatalogRuntimeStatus(entry) {
+  return asNonEmptyStringValue(entry?.lifecycle?.status?.runtime)?.toLowerCase() || null;
+}
+
+function normalizeCatalogAvailabilityLocal(entry) {
+  return entry?.lifecycle?.availability?.local === true;
+}
+
+function normalizeCatalogVerifiedExecution(entry) {
+  const tested = entry?.lifecycle?.tested;
+  const testedStatus = normalizeCatalogTestedState(tested?.result ?? entry?.lifecycle?.status?.tested);
+  return testedStatus === 'verified';
+}
+
+function assertCompareEvidenceMetricCoverage(compareReport, metricIds, label) {
+  if (!Array.isArray(metricIds) || metricIds.length === 0) return;
+  const section = resolveCompareSection(compareReport);
+  const dopplerPayload = resolveCompareEnginePayload(section?.payload, 'doppler');
+  const tjsPayload = resolveCompareEnginePayload(section?.payload, 'transformersjs');
+  if (!section?.payload || !dopplerPayload || !tjsPayload) {
+    throw new Error(`${label} must contain a comparable Doppler and Transformers.js section`);
+  }
+
+  const missing = [];
+  for (const metricId of metricIds) {
+    if (readCompareMetric(dopplerPayload, metricId) == null) {
+      missing.push(`doppler.${metricId}`);
+    }
+    if (readCompareMetric(tjsPayload, metricId) == null) {
+      missing.push(`transformersjs.${metricId}`);
+    }
+  }
+  if (missing.length > 0) {
+    throw new Error(`${label} is missing required compare metrics: ${missing.join(', ')}`);
+  }
+}
+
+function assertCompareEvidenceRequiredMeasurements(compareReport, requiredMeasurements, label) {
+  const required = new Set(Array.isArray(requiredMeasurements) ? requiredMeasurements : []);
+  const section = resolveCompareSection(compareReport);
+  const dopplerPayload = resolveCompareEnginePayload(section?.payload, 'doppler');
+  const tjsPayload = resolveCompareEnginePayload(section?.payload, 'transformersjs');
+  if (!section?.payload || !dopplerPayload || !tjsPayload) {
+    throw new Error(`${label} must contain a comparable Doppler and Transformers.js section`);
+  }
+
+  const missing = [];
+  for (const metricId of ['peakMemoryBytes', 'residentMemoryBytes']) {
+    if (!required.has(metricId)) continue;
+    if (readCompareMetric(dopplerPayload, metricId) == null) {
+      missing.push(`doppler.${metricId}`);
+    }
+    if (readCompareMetric(tjsPayload, metricId) == null) {
+      missing.push(`transformersjs.${metricId}`);
+    }
+  }
+  if (required.has('qualityParity')) {
+    const exactMatch = compareReport?.correctness?.exactMatch === true;
+    const normalizedMatch = compareReport?.correctness?.normalizedMatch === true;
+    if (!exactMatch && !normalizedMatch) {
+      missing.push('qualityParity');
+    }
+  }
+  if (required.has('failureCount')) {
+    if (dopplerPayload.failed === true) missing.push('doppler.failureCount');
+    if (tjsPayload.failed === true) missing.push('transformersjs.failureCount');
+  }
+  if (missing.length > 0) {
+    throw new Error(`${label} is missing required claim measurements: ${missing.join(', ')}`);
+  }
+}
+
+function resolveClaimCompareSection(compareReport, decodeProfileId) {
+  if (!isJsonObject(compareReport?.sections)) return null;
+  const computeSection = isJsonObject(compareReport.sections.compute)
+    ? compareReport.sections.compute
+    : null;
+  if (computeSection && isJsonObject(computeSection[decodeProfileId])) {
+    return computeSection[decodeProfileId];
+  }
+  if (
+    asNonEmptyStringValue(compareReport.decodeProfile) === decodeProfileId
+    && isJsonObject(compareReport.sections.warm)
+  ) {
+    return compareReport.sections.warm;
+  }
+  if (
+    asNonEmptyStringValue(compareReport.decodeProfile) === decodeProfileId
+    && isJsonObject(compareReport.sections.compute)
+    && hasComparableSectionPayload(compareReport.sections.compute)
+  ) {
+    return compareReport.sections.compute;
+  }
+  return null;
+}
+
+function assertClaimCompareScalar(actual, expected, label) {
+  if (actual !== expected) {
+    throw new Error(`${label} must be ${expected}, got ${actual}`);
+  }
+}
+
+function assertClaimCompareNumber(actual, expected, label) {
+  const parsedActual = asFiniteNumber(actual);
+  const parsedExpected = asFiniteNumber(expected);
+  if (parsedActual == null || parsedExpected == null || parsedActual !== parsedExpected) {
+    throw new Error(`${label} must be ${expected}, got ${actual}`);
+  }
+}
+
+function assertClaimCompareSection(
+  section,
+  decodeProfile,
+  sharedRunContract,
+  workload,
+  label
+) {
+  if (!isJsonObject(section)) {
+    throw new Error(`${label} must contain sections.compute.${decodeProfile.id}`);
+  }
+  if (section.pairedComparable !== true) {
+    throw new Error(`${label} sections.compute.${decodeProfile.id}.pairedComparable must be true`);
+  }
+  if (section.invalidReason != null) {
+    throw new Error(`${label} sections.compute.${decodeProfile.id}.invalidReason must be null`);
+  }
+  if (!resolveCompareEnginePayload(section, 'doppler')) {
+    throw new Error(`${label} sections.compute.${decodeProfile.id} must contain Doppler payload`);
+  }
+  if (!resolveCompareEnginePayload(section, 'transformersjs')) {
+    throw new Error(`${label} sections.compute.${decodeProfile.id} must contain Transformers.js payload`);
+  }
+
+  const promptTokens = section.promptTokens || {};
+  assertClaimCompareScalar(
+    promptTokens.ok,
+    true,
+    `${label} sections.compute.${decodeProfile.id}.promptTokens.ok`
+  );
+  assertClaimCompareScalar(
+    promptTokens.pairedComparable,
+    true,
+    `${label} sections.compute.${decodeProfile.id}.promptTokens.pairedComparable`
+  );
+  if (workload) {
+    assertClaimCompareNumber(
+      promptTokens.target,
+      workload.prefillTokens,
+      `${label} sections.compute.${decodeProfile.id}.promptTokens.target`
+    );
+  }
+
+  const decodeValidity = section.decodeValidity || {};
+  assertClaimCompareScalar(
+    decodeValidity.ok,
+    true,
+    `${label} sections.compute.${decodeProfile.id}.decodeValidity.ok`
+  );
+  for (const engineId of ['doppler', 'transformersjs']) {
+    const decodeTokens = asFiniteNumber(decodeValidity?.[engineId]?.decodeTokens);
+    if (decodeTokens == null || decodeTokens <= 0) {
+      throw new Error(`${label} sections.compute.${decodeProfile.id}.decodeValidity.${engineId}.decodeTokens must be positive`);
+    }
+    if (decodeValidity?.[engineId]?.generatedTextEmpty === true) {
+      throw new Error(`${label} sections.compute.${decodeProfile.id}.decodeValidity.${engineId}.generatedTextEmpty must not be true`);
+    }
+  }
+
+  const cadence = section.dopplerDecodeCadence || {};
+  assertClaimCompareNumber(
+    cadence.batchSize,
+    decodeProfile.batchSize,
+    `${label} sections.compute.${decodeProfile.id}.dopplerDecodeCadence.batchSize`
+  );
+  assertClaimCompareNumber(
+    cadence.readbackInterval,
+    decodeProfile.readbackInterval,
+    `${label} sections.compute.${decodeProfile.id}.dopplerDecodeCadence.readbackInterval`
+  );
+  assertClaimCompareScalar(
+    cadence.disableMultiTokenDecode,
+    decodeProfile.disableMultiTokenDecode,
+    `${label} sections.compute.${decodeProfile.id}.dopplerDecodeCadence.disableMultiTokenDecode`
+  );
+  assertClaimCompareScalar(
+    cadence.stopCheckMode,
+    decodeProfile.stopCheckMode,
+    `${label} sections.compute.${decodeProfile.id}.dopplerDecodeCadence.stopCheckMode`
+  );
+
+  const accounting = section.dopplerBatchAccounting || {};
+  if (sharedRunContract?.promotionGates?.throughputCadence?.requireBatchAccounting === true) {
+    assertClaimCompareScalar(
+      accounting.schemaVersion,
+      1,
+      `${label} sections.compute.${decodeProfile.id}.dopplerBatchAccounting.schemaVersion`
+    );
+  }
+  if (accounting.batchResolutionEfficiency != null) {
+    const efficiency = asFiniteNumber(accounting.batchResolutionEfficiency);
+    if (efficiency == null || efficiency < 0 || efficiency > 1) {
+      throw new Error(`${label} sections.compute.${decodeProfile.id}.dopplerBatchAccounting.batchResolutionEfficiency must be between 0 and 1`);
+    }
+  }
+  if (accounting.batchOverrunTokens != null) {
+    const overrun = asFiniteNumber(accounting.batchOverrunTokens);
+    if (overrun == null || overrun < 0) {
+      throw new Error(`${label} sections.compute.${decodeProfile.id}.dopplerBatchAccounting.batchOverrunTokens must be non-negative`);
+    }
+  }
+
+  const loadModes = new Set(sharedRunContract?.memoryResidency?.loadModes || []);
+  if (loadModes.size > 0) {
+    assertKnownId(section.loadMode, loadModes, `${label} sections.compute.${decodeProfile.id}.loadMode`);
+  }
+  const cacheModes = new Set(sharedRunContract?.memoryResidency?.cacheModes || []);
+  if (cacheModes.size > 0) {
+    assertKnownId(section.cacheMode, cacheModes, `${label} sections.compute.${decodeProfile.id}.cacheMode`);
+  }
+}
+
+function assertClaimCompareThroughputGate(compareReport, matrix, label) {
+  const gate = compareReport?.sections?.compute?.throughputCadenceGate;
+  if (!isJsonObject(gate)) {
+    throw new Error(`${label} sections.compute.throughputCadenceGate is required when throughput decode profile is cited`);
+  }
+  if (gate.ok !== true) {
+    throw new Error(`${label} sections.compute.throughputCadenceGate.ok must be true`);
+  }
+  const thresholds = gate.thresholds || {};
+  const expected = matrix.promotionGates?.throughputCadence || {};
+  for (const field of [
+    'requireBatchAccounting',
+    'minDecodeTokensPerSecRatioVsParity',
+    'minBatchResolutionEfficiency',
+    'maxBatchOverrunTokens',
+  ]) {
+    if (thresholds[field] !== expected[field]) {
+      throw new Error(`${label} sections.compute.throughputCadenceGate.thresholds.${field} must match local-inference-claim-matrix`);
+    }
+  }
+}
+
+function assertClaimMatrixCompareEvidence(compareReport, lane, matrix, workloads, label, evidenceLabel = null) {
+  const compareEvidenceLabel = evidenceLabel || `${label}.evidence.compareResult`;
+  const workloadId = asNonEmptyStringValue(compareReport?.workload?.id);
+  const laneWorkloads = new Set(lane?.run?.workloads || []);
+  if (!workloadId || !laneWorkloads.has(workloadId)) {
+    throw new Error(`${compareEvidenceLabel} workload.id must be one of lane.run.workloads`);
+  }
+  const workload = (workloads?.workloads || []).find((entry) => entry?.id === workloadId) || null;
+  if (!workload) {
+    throw new Error(`${compareEvidenceLabel} workload.id references unknown workload: ${workloadId}`);
+  }
+
+  assertClaimCompareScalar(
+    compareReport.dopplerModelId,
+    lane.model.dopplerModelId,
+    `${compareEvidenceLabel} dopplerModelId`
+  );
+  const tjsCompetitor = (lane.compare?.competitors || [])
+    .find((competitor) => competitor?.target === 'transformersjs') || null;
+  if (tjsCompetitor) {
+    assertClaimCompareScalar(
+      compareReport.tjsModelId,
+      tjsCompetitor.modelId,
+      `${compareEvidenceLabel} tjsModelId`
+    );
+  }
+
+  const manifestSha256 = asNonEmptyStringValue(compareReport?.dopplerManifestPreflight?.manifestSha256)
+    || asNonEmptyStringValue(compareReport?.dopplerModelSource?.manifestSha256);
+  assertClaimCompareScalar(
+    manifestSha256,
+    lane.artifact.manifestSha256,
+    `${compareEvidenceLabel} manifestSha256`
+  );
+  const manifestSource = asNonEmptyStringValue(compareReport?.dopplerModelSource?.manifestSource);
+  if (manifestSource && manifestSource !== lane.artifact.manifestPath) {
+    throw new Error(`${compareEvidenceLabel} manifestSource must match artifact.manifestPath`);
+  }
+
+  assertClaimCompareNumber(
+    compareReport.maxTokens,
+    workload.decodeTokens,
+    `${compareEvidenceLabel} maxTokens`
+  );
+  assertClaimCompareNumber(
+    compareReport.warmupRuns,
+    matrix.sharedRunContract.warmupRuns,
+    `${compareEvidenceLabel} warmupRuns`
+  );
+  const runs = asFiniteNumber(compareReport.runs);
+  if (runs == null || runs < matrix.sharedRunContract.minTimedSamplesForPercentiles) {
+    throw new Error(`${compareEvidenceLabel} runs must satisfy minTimedSamplesForPercentiles`);
+  }
+  assertClaimCompareNumber(
+    compareReport.seed,
+    matrix.sharedRunContract.samplingPolicy.seed,
+    `${compareEvidenceLabel} seed`
+  );
+  const deterministic = compareReport?.methodology?.deterministicDecoding || {};
+  assertClaimCompareNumber(
+    deterministic.temperature,
+    matrix.sharedRunContract.samplingPolicy.temperature,
+    `${compareEvidenceLabel} methodology.deterministicDecoding.temperature`
+  );
+  assertClaimCompareNumber(
+    deterministic.topK,
+    matrix.sharedRunContract.samplingPolicy.topK,
+    `${compareEvidenceLabel} methodology.deterministicDecoding.topK`
+  );
+  assertClaimCompareNumber(
+    deterministic.topP,
+    matrix.sharedRunContract.samplingPolicy.topP,
+    `${compareEvidenceLabel} methodology.deterministicDecoding.topP`
+  );
+
+  if (compareReport?.correctness?.status !== 'match') {
+    throw new Error(`${compareEvidenceLabel} correctness.status must be match`);
+  }
+  assertClaimCompareScalar(
+    compareReport?.correctness?.exactMatch,
+    true,
+    `${compareEvidenceLabel} correctness.exactMatch`
+  );
+  assertClaimCompareScalar(
+    compareReport?.correctness?.normalizedMatch,
+    true,
+    `${compareEvidenceLabel} correctness.normalizedMatch`
+  );
+
+  const decodeProfileById = new Map(
+    (matrix.sharedRunContract.batchDecodeProfiles || [])
+      .map((profile) => [profile.id, profile])
+  );
+  for (const decodeProfileId of lane.run?.decodeProfiles || []) {
+    const decodeProfile = decodeProfileById.get(decodeProfileId);
+    if (!decodeProfile) {
+      throw new Error(`${label}.run.decodeProfiles references unknown decode profile: ${decodeProfileId}`);
+    }
+    const section = resolveClaimCompareSection(compareReport, decodeProfileId);
+    assertClaimCompareSection(
+      section,
+      decodeProfile,
+      {
+        ...matrix.sharedRunContract,
+        promotionGates: matrix.promotionGates,
+      },
+      workload,
+      compareEvidenceLabel
+    );
+  }
+  if ((lane.run?.decodeProfiles || []).includes('throughput')) {
+    assertClaimCompareThroughputGate(compareReport, matrix, compareEvidenceLabel);
+  }
+}
+
+function getLaneRequiredBackendIds(lane, matrix) {
+  const laneBackends = lane?.run?.runtimeBackends || [];
+  const requiredBackends = matrix?.sharedRunContract?.requiredRuntimeBackends || [];
+  return requiredBackends
+    .filter((requiredBackend) => laneBackends.some((runtimeBackend) => (
+      runtimeBackendMatchesRequired(runtimeBackend, requiredBackend)
+    )))
+    .map((requiredBackend) => requiredBackend.id);
+}
+
+async function assertClaimSurfaceCompareResult(
+  entry,
+  lane,
+  matrix,
+  workloads,
+  label,
+  compareMetricIds,
+  requiredMeasurements,
+  requiredBackendById,
+  laneRequiredBackendIds,
+  options = {}
+) {
+  const backendId = asNonEmptyStringValue(entry?.backendId);
+  const evidenceCollection = asNonEmptyStringValue(options.evidenceCollection) || 'surfaceCompareResults';
+  const evidenceKey = asNonEmptyStringValue(options.evidenceKey) || backendId || 'unknown';
+  const evidenceLabel = `${label}.evidence.${evidenceCollection}.${evidenceKey}`;
+  const requiredBackend = requiredBackendById.get(backendId);
+  if (!requiredBackend) {
+    throw new Error(`${evidenceLabel}.backendId must reference sharedRunContract.requiredRuntimeBackends`);
+  }
+  if (!laneRequiredBackendIds.has(backendId)) {
+    throw new Error(`${evidenceLabel}.backendId is not declared by lane.run.runtimeBackends`);
+  }
+
+  const compareResultPath = await assertRepoPathExists(entry.compareResult, `${evidenceLabel}.compareResult`);
+  const compareReport = await readJson(compareResultPath);
+  await assertCompareArtifactContracts(compareReport, entry.compareResult);
+  assertCompareEvidenceMetricCoverage(compareReport, compareMetricIds, `${evidenceLabel}.compareResult`);
+  assertCompareEvidenceRequiredMeasurements(compareReport, requiredMeasurements, `${evidenceLabel}.compareResult`);
+  assertClaimMatrixCompareEvidence(compareReport, lane, matrix, workloads, label, `${evidenceLabel}.compareResult`);
+
+  const actualSurface = asNonEmptyStringValue(compareReport?.dopplerSurface);
+  if (actualSurface !== requiredBackend.surface) {
+    throw new Error(
+      `${evidenceLabel}.compareResult dopplerSurface must be ${requiredBackend.surface}, got ${actualSurface || 'missing'}`
+    );
+  }
+
+  const expectedWorkloadId = asNonEmptyStringValue(options.expectedWorkloadId);
+  if (expectedWorkloadId) {
+    const actualWorkloadId = asNonEmptyStringValue(compareReport?.workload?.id);
+    if (actualWorkloadId !== expectedWorkloadId) {
+      throw new Error(
+        `${evidenceLabel}.compareResult workload.id must be ${expectedWorkloadId}, got ${actualWorkloadId || 'missing'}`
+      );
+    }
+  }
+
+  if (entry.summarySvg != null) {
+    await assertRepoPathExists(entry.summarySvg, `${evidenceLabel}.summarySvg`);
+  } else if (options.requireSummarySvg === true) {
+    throw new Error(`${evidenceLabel}.summarySvg is required`);
+  }
+}
+
+async function assertClaimMatrixEvidence(lane, matrix, workloads, label, compareMetricIds, requiredMeasurements) {
+  const evidence = lane?.evidence || {};
+  if (evidence.localExecutionReport != null) {
+    await assertRepoPathExists(evidence.localExecutionReport, `${label}.evidence.localExecutionReport`);
+  }
+  if (evidence.compareResult != null) {
+    const compareResultPath = await assertRepoPathExists(evidence.compareResult, `${label}.evidence.compareResult`);
+    const compareReport = await readJson(compareResultPath);
+    await assertCompareArtifactContracts(compareReport, evidence.compareResult);
+    assertCompareEvidenceMetricCoverage(
+      compareReport,
+      compareMetricIds,
+      `${label}.evidence.compareResult`
+    );
+    assertCompareEvidenceRequiredMeasurements(
+      compareReport,
+      requiredMeasurements,
+      `${label}.evidence.compareResult`
+    );
+    assertClaimMatrixCompareEvidence(compareReport, lane, matrix, workloads, label);
+  }
+  if (evidence.summarySvg != null) {
+    await assertRepoPathExists(evidence.summarySvg, `${label}.evidence.summarySvg`);
+  }
+
+  const surfaceCompareResults = Array.isArray(evidence.surfaceCompareResults)
+    ? evidence.surfaceCompareResults
+    : [];
+  const workloadCompareResults = Array.isArray(evidence.workloadCompareResults)
+    ? evidence.workloadCompareResults
+    : [];
+  const requiredBackendById = new Map(
+    (matrix.sharedRunContract?.requiredRuntimeBackends || []).map((backend) => [backend.id, backend])
+  );
+  const laneRequiredBackendIds = new Set(getLaneRequiredBackendIds(lane, matrix));
+  const laneWorkloadIds = new Set(Array.isArray(lane?.run?.workloads) ? lane.run.workloads : []);
+  const seenBackendIds = new Set();
+  for (const entry of surfaceCompareResults) {
+    const backendId = asNonEmptyStringValue(entry?.backendId);
+    if (seenBackendIds.has(backendId)) {
+      throw new Error(`${label}.evidence.surfaceCompareResults contains duplicate backendId ${backendId}`);
+    }
+    seenBackendIds.add(backendId);
+    await assertClaimSurfaceCompareResult(
+      entry,
+      lane,
+      matrix,
+      workloads,
+      label,
+      compareMetricIds,
+      requiredMeasurements,
+      requiredBackendById,
+      laneRequiredBackendIds,
+      {
+        evidenceCollection: 'surfaceCompareResults',
+        evidenceKey: backendId,
+        requireSummarySvg: true,
+      }
+    );
+  }
+  const seenBackendWorkloadIds = new Set();
+  for (const entry of workloadCompareResults) {
+    const backendId = asNonEmptyStringValue(entry?.backendId);
+    const workloadId = asNonEmptyStringValue(entry?.workloadId);
+    const evidenceKey = `${backendId || 'unknown'}:${workloadId || 'unknown'}`;
+    if (!laneWorkloadIds.has(workloadId)) {
+      throw new Error(`${label}.evidence.workloadCompareResults.${evidenceKey}.workloadId is not declared by lane.run.workloads`);
+    }
+    if (seenBackendWorkloadIds.has(evidenceKey)) {
+      throw new Error(`${label}.evidence.workloadCompareResults contains duplicate backend/workload ${evidenceKey}`);
+    }
+    seenBackendWorkloadIds.add(evidenceKey);
+    await assertClaimSurfaceCompareResult(
+      entry,
+      lane,
+      matrix,
+      workloads,
+      label,
+      compareMetricIds,
+      requiredMeasurements,
+      requiredBackendById,
+      laneRequiredBackendIds,
+      {
+        evidenceCollection: 'workloadCompareResults',
+        evidenceKey,
+        expectedWorkloadId: workloadId,
+        requireSummarySvg: false,
+      }
+    );
+  }
+  if (evidence.compareResult != null && laneRequiredBackendIds.size > 1) {
+    for (const backendId of laneRequiredBackendIds) {
+      if (!seenBackendIds.has(backendId)) {
+        throw new Error(`${label}.evidence.surfaceCompareResults is missing backendId ${backendId}`);
+      }
+    }
+  }
+}
+
+function assertRequiredRuntimeBackends(matrix, context, label) {
+  const requiredBackends = matrix.sharedRunContract?.requiredRuntimeBackends || [];
+  const productIds = context.productIds;
+  const capabilities = context.capabilities;
+  const benchFeatureIds = new Set(
+    (capabilities?.featureCatalog?.bench || [])
+      .map((entry) => asNonEmptyStringValue(entry?.id))
+      .filter(Boolean)
+  );
+  const targetById = new Map(
+    (capabilities?.targets || [])
+      .map((target) => [asNonEmptyStringValue(target?.id), target])
+      .filter(([targetId]) => Boolean(targetId))
+  );
+  collectUniqueIds(
+    requiredBackends.map((backend) => backend.id),
+    `${label} sharedRunContract.requiredRuntimeBackends`
+  );
+  for (const backend of requiredBackends) {
+    const backendLabel = `${label} sharedRunContract.requiredRuntimeBackends.${backend.id}`;
+    assertKnownId(backend.target, productIds, `${backendLabel}.target`);
+    if (!benchFeatureIds.has(backend.feature)) {
+      throw new Error(`${backendLabel}.feature references unknown bench capability: ${backend.feature}`);
+    }
+    const target = targetById.get(backend.target);
+    if (!target) {
+      throw new Error(`${backendLabel}.target has no capabilities entry: ${backend.target}`);
+    }
+    if (!isCapabilityFeatureSupported(target.bench?.features?.[backend.feature])) {
+      throw new Error(`${backendLabel}.feature is not supported by capabilities target ${backend.target}`);
+    }
+  }
+}
+
+function runtimeBackendMatchesRequired(candidate, required) {
+  return candidate?.target === required.target
+    && candidate?.surface === required.surface
+    && candidate?.backend === required.backend
+    && candidate?.format === required.format;
+}
+
+function assertPromotedRuntimeBackendCoverage(lane, requiredBackends, label) {
+  if (lane.status !== 'promoted') return;
+  const laneBackends = Array.isArray(lane.run?.runtimeBackends) ? lane.run.runtimeBackends : [];
+  for (const required of requiredBackends) {
+    if (required.requiredForPromotion !== true) continue;
+    const matches = laneBackends.some((backend) => runtimeBackendMatchesRequired(backend, required));
+    if (!matches) {
+      throw new Error(
+        `${label} is promoted but run.runtimeBackends is missing required coverage `
+        + `${required.id} (${required.target}/${required.surface}/${required.backend}/${required.format})`
+      );
+    }
+  }
+}
+
+async function assertClaimMatrixArtifact(lane, catalogEntry, label) {
+  const manifestPath = lane?.artifact?.manifestPath;
+  const manifestHash = await hashRepoFileBytes(manifestPath, `${label}.artifact.manifestPath`);
+  if (manifestHash !== lane?.artifact?.manifestSha256) {
+    throw new Error(
+      `${label}.artifact.manifestSha256 mismatch for ${manifestPath} `
+      + `(expected ${lane.artifact.manifestSha256}, current ${manifestHash})`
+    );
+  }
+
+  const manifest = await readJson(repoPathToAbsolute(manifestPath, `${label}.artifact.manifestPath`));
+  const manifestModelId = asNonEmptyStringValue(manifest?.modelId);
+  if (manifestModelId !== lane?.model?.dopplerModelId) {
+    throw new Error(`${label}.artifact.manifestPath modelId mismatch: expected ${lane.model.dopplerModelId}, got ${manifestModelId}`);
+  }
+
+  const tokenizerFile = asNonEmptyStringValue(lane?.model?.tokenizer?.file);
+  if (tokenizerFile) {
+    const tokenizerPath = path.posix.join(path.posix.dirname(manifestPath), tokenizerFile);
+    const tokenizerHash = await hashRepoFileBytes(tokenizerPath, `${label}.model.tokenizer.file`);
+    if (tokenizerHash !== lane?.model?.tokenizer?.sha256) {
+      throw new Error(
+        `${label}.model.tokenizer.sha256 mismatch for ${tokenizerPath} `
+        + `(expected ${lane.model.tokenizer.sha256}, current ${tokenizerHash})`
+      );
+    }
+  }
+
+  const identity = manifest?.artifactIdentity || {};
+  const expectedSourceCheckpoint = asNonEmptyStringValue(identity.sourceCheckpointId);
+  if (expectedSourceCheckpoint && lane.model.sourceCheckpointId !== expectedSourceCheckpoint) {
+    throw new Error(`${label}.model.sourceCheckpointId must match manifest artifactIdentity.sourceCheckpointId`);
+  }
+  const expectedSourceRevision = asNonEmptyStringValue(identity.sourceRevision);
+  if (expectedSourceRevision && lane.model.sourceRevision !== expectedSourceRevision) {
+    throw new Error(`${label}.model.sourceRevision must match manifest artifactIdentity.sourceRevision`);
+  }
+  const expectedWeightPackId = asNonEmptyStringValue(identity.weightPackId);
+  if (expectedWeightPackId && lane.artifact.weightPackId !== expectedWeightPackId) {
+    throw new Error(`${label}.artifact.weightPackId must match manifest artifactIdentity.weightPackId`);
+  }
+  const expectedWeightPackHash = asNonEmptyStringValue(identity.weightPackHash);
+  if (expectedWeightPackHash && lane.artifact.weightPackHash !== expectedWeightPackHash) {
+    throw new Error(`${label}.artifact.weightPackHash must match manifest artifactIdentity.weightPackHash`);
+  }
+  const expectedManifestVariantId = asNonEmptyStringValue(identity.manifestVariantId);
+  if (expectedManifestVariantId && lane.artifact.manifestVariantId !== expectedManifestVariantId) {
+    throw new Error(`${label}.artifact.manifestVariantId must match manifest artifactIdentity.manifestVariantId`);
+  }
+  const expectedShardSetHash = asNonEmptyStringValue(identity.shardSetHash) || computeShardSetHash(manifest);
+  if (expectedShardSetHash && lane.artifact.shardSetHash !== expectedShardSetHash) {
+    throw new Error(`${label}.artifact.shardSetHash must match manifest shard identity`);
+  }
+
+  const catalogSizeBytes = Number(catalogEntry?.sizeBytes);
+  if (Number.isFinite(catalogSizeBytes) && lane.artifact.sizeBytes !== catalogSizeBytes) {
+    throw new Error(`${label}.artifact.sizeBytes must match models/catalog.json sizeBytes`);
+  }
+}
+
+async function assertLocalInferenceClaimMatrixShape(matrix, context) {
+  const {
+    registry,
+    workloads,
+    compareConfig,
+    compareMetricBundle,
+    benchmarkPolicy,
+    catalog,
+    capabilities,
+  } = context;
+  if (matrix.schemaVersion !== 1) {
+    throw new Error(`local-inference-claim-matrix schemaVersion must be 1, got ${matrix.schemaVersion}`);
+  }
+
+  const productIds = new Set((registry.products || []).map((entry) => entry.id));
+  const workloadIds = new Set((workloads.workloads || []).map((entry) => entry.id));
+  const compareProfileByModelId = new Map(
+    (compareConfig.modelProfiles || []).map((profile) => [profile.dopplerModelId, profile])
+  );
+  const decodeProfileIds = new Set((matrix.sharedRunContract.batchDecodeProfiles || []).map((profile) => profile.id));
+  const benchmarkDecodeProfiles = benchmarkPolicy?.decodeProfiles?.profiles || {};
+  const allowedRuntimeStatuses = new Set(matrix.selectionPolicy.allowedRuntimeStatuses || []);
+  const allowedFormats = new Set(matrix.selectionPolicy.allowedCompressionFormats || []);
+  const requiredRuntimeBackends = matrix.sharedRunContract?.requiredRuntimeBackends || [];
+
+  for (const requiredGate of [
+    'nonZeroExecution',
+    'providerImportsOk',
+    'noCpuFallback',
+    'promptSemanticsMatch',
+    'outputSemanticsMatch',
+    'stableReadbackAccounting',
+    'percentilesPresent',
+    'artifactHashesMatch',
+    'memoryBudgetRespected',
+    'compareArtifactRequired',
+  ]) {
+    requireTrue(matrix.promotionGates?.[requiredGate], `local-inference-claim-matrix promotionGates.${requiredGate}`);
+  }
+  const matrixThroughputGate = matrix.promotionGates?.throughputCadence;
+  if (!isJsonObject(matrixThroughputGate)) {
+    throw new Error('local-inference-claim-matrix promotionGates.throughputCadence must be an object');
+  }
+  const benchmarkThroughputGate = benchmarkPolicy?.promotionGates?.throughputCadence;
+  if (!isJsonObject(benchmarkThroughputGate)) {
+    throw new Error('benchmark-policy promotionGates.throughputCadence must be an object');
+  }
+  for (const field of [
+    'requireBatchAccounting',
+    'minDecodeTokensPerSecRatioVsParity',
+    'minBatchResolutionEfficiency',
+    'maxBatchOverrunTokens',
+  ]) {
+    if (matrixThroughputGate[field] !== benchmarkThroughputGate[field]) {
+      throw new Error(`local-inference-claim-matrix promotionGates.throughputCadence.${field} must match benchmark-policy promotionGates.throughputCadence.${field}`);
+    }
+  }
+  requireTrue(matrix.sharedRunContract.memoryResidency?.forbidCpuFallback, 'local-inference-claim-matrix sharedRunContract.memoryResidency.forbidCpuFallback');
+  requireTrue(matrix.sharedRunContract.memoryResidency?.recordPeakMemory, 'local-inference-claim-matrix sharedRunContract.memoryResidency.recordPeakMemory');
+  requireTrue(matrix.sharedRunContract.memoryResidency?.recordResidentMemory, 'local-inference-claim-matrix sharedRunContract.memoryResidency.recordResidentMemory');
+  requireTrue(matrix.sharedRunContract.competitorPolicy?.samePrompts, 'local-inference-claim-matrix sharedRunContract.competitorPolicy.samePrompts');
+  requireTrue(matrix.sharedRunContract.competitorPolicy?.sameSampling, 'local-inference-claim-matrix sharedRunContract.competitorPolicy.sameSampling');
+  requireTrue(matrix.sharedRunContract.competitorPolicy?.sameHardware, 'local-inference-claim-matrix sharedRunContract.competitorPolicy.sameHardware');
+  requireTrue(matrix.sharedRunContract.competitorPolicy?.sameReportShape, 'local-inference-claim-matrix sharedRunContract.competitorPolicy.sameReportShape');
+
+  for (const workloadId of matrix.sharedRunContract.workloads || []) {
+    assertKnownId(workloadId, workloadIds, `local-inference-claim-matrix sharedRunContract.workloads`);
+  }
+  for (const targetId of matrix.sharedRunContract.competitorPolicy.targets || []) {
+    assertKnownId(targetId, productIds, `local-inference-claim-matrix sharedRunContract.competitorPolicy.targets`);
+  }
+  for (const profile of matrix.sharedRunContract.batchDecodeProfiles || []) {
+    const label = `local-inference-claim-matrix sharedRunContract.batchDecodeProfiles.${profile.id}`;
+    const benchmarkProfile = benchmarkDecodeProfiles[profile.id];
+    if (!benchmarkProfile || typeof benchmarkProfile !== 'object' || Array.isArray(benchmarkProfile)) {
+      throw new Error(`${label} must exist in benchmark-policy decodeProfiles.profiles`);
+    }
+    for (const field of ['batchSize', 'readbackInterval', 'disableMultiTokenDecode', 'stopCheckMode']) {
+      if (profile[field] !== benchmarkProfile[field]) {
+        throw new Error(`${label}.${field} must match benchmark-policy decodeProfiles.profiles.${profile.id}.${field}`);
+      }
+    }
+  }
+  assertRequiredRuntimeBackends(matrix, { productIds, capabilities }, 'local-inference-claim-matrix');
+  for (const metricId of compareMetricBundle.metricIds || []) {
+    if (!matrix.requiredMeasurements.includes(metricId)) {
+      throw new Error(`local-inference-claim-matrix requiredMeasurements must include compare metric "${metricId}"`);
+    }
+  }
+
+  const laneIds = matrix.lanes.map((lane) => lane.id);
+  collectUniqueIds(laneIds, 'local inference claim lane');
+
+  for (const [index, lane] of matrix.lanes.entries()) {
+    const label = `local-inference-claim-matrix lanes[${index}] (${lane.id})`;
+    const dopplerModelId = lane.model.dopplerModelId;
+    const catalogEntry = rawCatalogEntryByModelId(catalog, dopplerModelId);
+    if (!catalogEntry) {
+      throw new Error(`${label} references model absent from models/catalog.json: ${dopplerModelId}`);
+    }
+    if (matrix.selectionPolicy.requiresLocalManifest && !normalizeCatalogAvailabilityLocal(catalogEntry)) {
+      throw new Error(`${label} requires local catalog availability`);
+    }
+    const runtimeStatus = normalizeCatalogRuntimeStatus(catalogEntry);
+    if (!allowedRuntimeStatuses.has(runtimeStatus)) {
+      throw new Error(`${label} runtime status "${runtimeStatus}" is not allowed by selectionPolicy`);
+    }
+    if (matrix.selectionPolicy.requiresVerifiedLocalExecution && !normalizeCatalogVerifiedExecution(catalogEntry)) {
+      throw new Error(`${label} requires verified local execution in models/catalog.json`);
+    }
+    if (lane.artifact.sizeBytes > matrix.selectionPolicy.maxArtifactBytes) {
+      throw new Error(`${label} artifact size exceeds selectionPolicy.maxArtifactBytes`);
+    }
+    if (lane.memoryBudget.artifactBytes !== lane.artifact.sizeBytes) {
+      throw new Error(`${label}.memoryBudget.artifactBytes must match artifact.sizeBytes`);
+    }
+    if (lane.memoryBudget.maxResidentBytes < lane.artifact.sizeBytes) {
+      throw new Error(`${label}.memoryBudget.maxResidentBytes must be at least artifact.sizeBytes`);
+    }
+    if (!allowedFormats.has(lane.artifact.format)) {
+      throw new Error(`${label}.artifact.format is not allowed by selectionPolicy`);
+    }
+
+    const compareProfile = compareProfileByModelId.get(dopplerModelId);
+    if (matrix.selectionPolicy.requiresCompareProfile && !compareProfile) {
+      throw new Error(`${label} requires compare-engines.config.json profile`);
+    }
+    await assertClaimMatrixArtifact(lane, catalogEntry, label);
+    await assertClaimMatrixEvidence(
+      lane,
+      matrix,
+      workloads,
+      label,
+      compareMetricBundle.metricIds || [],
+      matrix.requiredMeasurements || []
+    );
+
+    for (const workloadId of lane.run.workloads || []) {
+      assertKnownId(workloadId, workloadIds, `${label}.run.workloads`);
+    }
+    for (const decodeProfileId of lane.run.decodeProfiles || []) {
+      assertKnownId(decodeProfileId, decodeProfileIds, `${label}.run.decodeProfiles`);
+    }
+    const laneRuntimeProfiles = lane.run.runtimeProfileByDecodeProfile || {};
+    for (const [decodeProfileId, runtimeProfileId] of Object.entries(laneRuntimeProfiles)) {
+      assertKnownId(decodeProfileId, decodeProfileIds, `${label}.run.runtimeProfileByDecodeProfile`);
+      if (!(lane.run.decodeProfiles || []).includes(decodeProfileId)) {
+        throw new Error(`${label}.run.runtimeProfileByDecodeProfile.${decodeProfileId} must also appear in run.decodeProfiles`);
+      }
+      if (runtimeProfileId == null) continue;
+      const runtimeProfilePath = runtimeProfileIdToRepoPath(runtimeProfileId);
+      if (!runtimeProfilePath) {
+        throw new Error(`${label}.run.runtimeProfileByDecodeProfile.${decodeProfileId} must be a profiles/* runtime profile id`);
+      }
+      await assertRepoPathExists(
+        runtimeProfilePath,
+        `${label}.run.runtimeProfileByDecodeProfile.${decodeProfileId}`
+      );
+      const compareRuntimeProfileId = compareProfile?.dopplerRuntimeProfileByDecodeProfile?.[decodeProfileId] ?? null;
+      if (compareRuntimeProfileId !== runtimeProfileId) {
+        throw new Error(
+          `${label}.run.runtimeProfileByDecodeProfile.${decodeProfileId} must match compare-engines.config.json`
+        );
+      }
+    }
+    for (const backend of lane.run.runtimeBackends || []) {
+      assertKnownId(backend.target, productIds, `${label}.run.runtimeBackends.target`);
+    }
+    assertPromotedRuntimeBackendCoverage(lane, requiredRuntimeBackends, label);
+    for (const competitor of lane.compare.competitors || []) {
+      assertKnownId(competitor.target, productIds, `${label}.compare.competitors.target`);
+      if (competitor.target === 'transformersjs' && compareProfile?.defaultTjsModelId) {
+        if (competitor.modelId !== compareProfile.defaultTjsModelId) {
+          throw new Error(`${label}.compare.competitors modelId must match compare-engines.config.json defaultTjsModelId`);
+        }
+      }
+    }
+
+    if (lane.status === 'promoted') {
+      if (!asNonEmptyStringValue(lane.evidence.compareResult)) {
+        throw new Error(`${label} is promoted but evidence.compareResult is missing`);
+      }
+      if (!asNonEmptyStringValue(lane.evidence.summarySvg)) {
+        throw new Error(`${label} is promoted but evidence.summarySvg is missing`);
+      }
+      for (const competitor of lane.compare.competitors || []) {
+        if (!asNonEmptyStringValue(competitor.expectedArtifactHash)) {
+          throw new Error(`${label} is promoted but competitor ${competitor.target} expectedArtifactHash is missing`);
+        }
+      }
+    }
+  }
+}
+
+async function loadLocalInferenceClaimMatrixBundle(context) {
+  const matrix = await readJson(LOCAL_INFERENCE_CLAIM_MATRIX_PATH);
+  await assertMatchesSchema(
+    matrix,
+    LOCAL_INFERENCE_CLAIM_MATRIX_SCHEMA_PATH,
+    'local-inference-claim-matrix.json'
+  );
+  await assertLocalInferenceClaimMatrixShape(matrix, context);
+  return matrix;
 }
 
 async function loadModelCatalogBundle() {
@@ -1490,8 +2419,8 @@ function resolveCompareSection(report) {
   const sections = report.sections;
   if (!sections || typeof sections !== 'object') return null;
   const candidates = [
-    ['compute', 'parity'],
     ['compute', 'throughput'],
+    ['compute', 'parity'],
     ['warm'],
     ['cold'],
   ];
@@ -1534,14 +2463,61 @@ function asFiniteNumber(value) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function asOptionalFiniteNumber(value) {
+  if (value === null || value === undefined || value === '') return null;
+  return asFiniteNumber(value);
+}
+
 function readCompareMetric(payload, metricId) {
   if (!payload || typeof payload !== 'object') return null;
   const metricPaths = [
     ['result', 'timing', metricId],
+    ['result', 'metrics', metricId],
     ['timing', metricId],
+    ['metrics', metricId],
     ['result', metricId],
     [metricId],
   ];
+  if (metricId === 'promptTokensPerSecToFirstToken') {
+    metricPaths.push(
+      ['result', 'metrics', 'medianPrefillTokensPerSecTtft'],
+      ['result', 'metrics', 'avgPrefillTokensPerSecTtft'],
+      ['result', 'timing', 'prefillTokensPerSecTtft'],
+      ['result', 'timing', 'prefillTokensPerSec'],
+      ['metrics', 'medianPrefillTokensPerSecTtft'],
+      ['metrics', 'avgPrefillTokensPerSecTtft'],
+      ['timing', 'prefillTokensPerSecTtft'],
+      ['timing', 'prefillTokensPerSec']
+    );
+  }
+  if (metricId === 'peakMemoryBytes') {
+    metricPaths.push(
+      ['result', 'memoryStats', 'pool', 'peakBytesAllocated'],
+      ['result', 'memoryStats', 'pool', 'peakBytesRequested'],
+      ['result', 'memoryStats', 'used'],
+      ['memoryStats', 'pool', 'peakBytesAllocated'],
+      ['memoryStats', 'pool', 'peakBytesRequested'],
+      ['memoryStats', 'used'],
+      ['memoryInfo', 'after', 'usedJSHeapSize'],
+      ['memoryInfo', 'before', 'usedJSHeapSize'],
+      ['result', 'memoryInfo', 'after', 'usedJSHeapSize'],
+      ['result', 'memoryInfo', 'before', 'usedJSHeapSize']
+    );
+  }
+  if (metricId === 'residentMemoryBytes') {
+    metricPaths.push(
+      ['result', 'memoryStats', 'pool', 'currentBytesAllocated'],
+      ['result', 'memoryStats', 'pool', 'currentBytesRequested'],
+      ['result', 'memoryStats', 'used'],
+      ['memoryStats', 'pool', 'currentBytesAllocated'],
+      ['memoryStats', 'pool', 'currentBytesRequested'],
+      ['memoryStats', 'used'],
+      ['memoryInfo', 'after', 'usedJSHeapSize'],
+      ['memoryInfo', 'before', 'usedJSHeapSize'],
+      ['result', 'memoryInfo', 'after', 'usedJSHeapSize'],
+      ['result', 'memoryInfo', 'before', 'usedJSHeapSize']
+    );
+  }
   for (const pathParts of metricPaths) {
     let cursor = payload;
     for (const key of pathParts) {
@@ -1555,6 +2531,64 @@ function readCompareMetric(payload, metricId) {
     if (value != null) return value;
   }
   return null;
+}
+
+function summarizeDopplerBottleneck(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const dominant = raw.dominant && typeof raw.dominant === 'object' && !Array.isArray(raw.dominant)
+    ? raw.dominant
+    : {};
+  const dominantId = asNonEmptyString(dominant.id);
+  const dominantMs = asOptionalFiniteNumber(dominant.ms);
+  if (!dominantId && dominantMs == null) return null;
+
+  const components = raw.componentsMs && typeof raw.componentsMs === 'object' && !Array.isArray(raw.componentsMs)
+    ? raw.componentsMs
+    : {};
+  const recording = raw.recording && typeof raw.recording === 'object' && !Array.isArray(raw.recording)
+    ? raw.recording
+    : {};
+  const topOps = Array.isArray(recording.topOps)
+    ? recording.topOps.slice(0, 8).map((entry) => ({
+        label: asNonEmptyString(entry?.label) || null,
+        count: asOptionalFiniteNumber(entry?.count),
+        shareOfOps: asOptionalFiniteNumber(entry?.shareOfOps),
+      })).filter((entry) => entry.label || entry.count != null)
+    : [];
+
+  return {
+    schemaVersion: Number.isInteger(raw.schemaVersion) ? raw.schemaVersion : 1,
+    bottleneckClass: asNonEmptyString(raw.bottleneckClass) || null,
+    dominant: {
+      id: dominantId || null,
+      label: asNonEmptyString(dominant.label) || null,
+      ms: dominantMs,
+      shareOfDecode: asOptionalFiniteNumber(dominant.shareOfDecode),
+    },
+    decodeWallMs: asOptionalFiniteNumber(raw.decodeWallMs),
+    componentsMs: {
+      commandRecordMs: asOptionalFiniteNumber(components.commandRecordMs),
+      submitWaitMs: asOptionalFiniteNumber(components.submitWaitMs),
+      readbackWaitMs: asOptionalFiniteNumber(components.readbackWaitMs),
+      effectiveSubmitReadbackWaitMs: asOptionalFiniteNumber(components.effectiveSubmitReadbackWaitMs),
+      readbackMapWaitMs: asOptionalFiniteNumber(components.readbackMapWaitMs),
+      readbackCleanupMs: asOptionalFiniteNumber(components.readbackCleanupMs),
+      readbackCopyMs: asOptionalFiniteNumber(components.readbackCopyMs),
+      gpuTimestampMs: asOptionalFiniteNumber(components.gpuTimestampMs),
+      orchestrationMs: asOptionalFiniteNumber(components.orchestrationMs),
+      residualMs: asOptionalFiniteNumber(components.residualMs),
+    },
+    recording: {
+      opCount: asOptionalFiniteNumber(recording.opCount),
+      passCount: asOptionalFiniteNumber(recording.passCount),
+      uniqueOpLabels: asOptionalFiniteNumber(recording.uniqueOpLabels),
+      msPerOp: asOptionalFiniteNumber(recording.msPerOp),
+      msPerPass: asOptionalFiniteNumber(recording.msPerPass),
+      opsPerExecutedBatchToken: asOptionalFiniteNumber(recording.opsPerExecutedBatchToken),
+      passesPerExecutedBatchToken: asOptionalFiniteNumber(recording.passesPerExecutedBatchToken),
+      topOps,
+    },
+  };
 }
 
 function firstStringByPaths(payload, dottedPaths) {
@@ -1788,7 +2822,11 @@ function summarizeCompareEngineEnvironment(payload, engineId) {
   };
 }
 
-async function maybeLoadCompareResultSummary(compareResultPath, compareMetricIds = null) {
+async function maybeLoadCompareResultSummary(
+  compareResultPath,
+  compareMetricIds = null,
+  compareMetricDefinitions = null
+) {
   if (!compareResultPath) return null;
   const resolved = path.resolve(compareResultPath);
   const repoPath = toPosixRelative(resolved);
@@ -1904,6 +2942,16 @@ async function maybeLoadCompareResultSummary(compareResultPath, compareMetricIds
       ? section.payload.invalidReason
       : null,
     decodeProfile: typeof report.decodeProfile === 'string' ? report.decodeProfile : null,
+    computeSectionIds: Object.keys(isJsonObject(report?.sections?.compute) ? report.sections.compute : {})
+      .filter((sectionId) => sectionId !== 'throughputCadenceGate')
+      .filter((sectionId) => isJsonObject(report.sections.compute[sectionId])),
+    dopplerSurface: asNonEmptyString(report.dopplerSurface),
+    dopplerExecution: {
+      requestedSurface: asNonEmptyString(report?.dopplerExecution?.requestedSurface),
+      commandSurface: asNonEmptyString(report?.dopplerExecution?.commandSurface),
+      cliExecutor: asNonEmptyString(report?.dopplerExecution?.cliExecutor),
+      commandSurfaceReason: asNonEmptyString(report?.dopplerExecution?.commandSurfaceReason),
+    },
     dopplerModelId: typeof report.dopplerModelId === 'string' ? report.dopplerModelId : null,
     dopplerModelSource: typeof report?.dopplerModelSource?.source === 'string'
       ? report.dopplerModelSource.source
@@ -1916,6 +2964,13 @@ async function maybeLoadCompareResultSummary(compareResultPath, compareMetricIds
       ? report.compareLane.reason
       : null,
     dopplerKernelPath: typeof report.dopplerKernelPath === 'string' ? report.dopplerKernelPath : null,
+    correctness: {
+      status: asNonEmptyString(report?.correctness?.status) || null,
+      exactMatch: report?.correctness?.exactMatch === true,
+      normalizedMatch: report?.correctness?.normalizedMatch === true,
+      matchingPrefixTokens: asFiniteNumber(report?.correctness?.tokenMatch?.matchingPrefixTokens),
+      firstMismatchTokenIndex: asFiniteNumber(report?.correctness?.tokenMatch?.firstMismatchTokenIndex),
+    },
     workloadId: typeof report?.workload?.id === 'string' ? report.workload.id : null,
     workload: report?.workload && typeof report.workload === 'object'
       ? {
@@ -1933,7 +2988,56 @@ async function maybeLoadCompareResultSummary(compareResultPath, compareMetricIds
       },
     },
     metrics,
+    dopplerBottleneck: summarizeDopplerBottleneck(section?.payload?.dopplerBottleneck),
+    bottlenecks: buildCompareMetricBottlenecks(metrics, compareMetricDefinitions),
   };
+}
+
+function roundMetricRatio(value) {
+  if (!Number.isFinite(value)) return null;
+  return Math.round(value * 1_000_000) / 1_000_000;
+}
+
+function buildCompareMetricBottlenecks(metrics, compareMetricDefinitions) {
+  if (!metrics || typeof metrics !== 'object' || Array.isArray(metrics)) return [];
+  const definitions = Array.isArray(compareMetricDefinitions) ? compareMetricDefinitions : [];
+  const rows = [];
+  for (const definition of definitions) {
+    const metricId = typeof definition?.id === 'string' ? definition.id.trim() : '';
+    if (!metricId) continue;
+    const metric = metrics[metricId];
+    const doppler = asFiniteNumber(metric?.doppler);
+    const transformersjs = asFiniteNumber(metric?.transformersjs);
+    if (doppler == null || transformersjs == null) continue;
+    const higherBetter = definition.higherBetter !== false;
+    const tjsLeads = higherBetter
+      ? transformersjs > doppler
+      : transformersjs < doppler;
+    if (!tjsLeads) continue;
+    const denominator = Math.abs(higherBetter ? doppler : transformersjs);
+    if (denominator === 0) continue;
+    const gapRatio = higherBetter
+      ? (transformersjs - doppler) / denominator
+      : (doppler - transformersjs) / denominator;
+    rows.push({
+      metricId,
+      label: typeof definition.label === 'string' ? definition.label : metricId,
+      unit: typeof definition.unit === 'string' ? definition.unit : null,
+      higherBetter,
+      leader: 'transformersjs',
+      doppler,
+      transformersjs,
+      gapRatio: roundMetricRatio(gapRatio),
+      gapPercent: roundMetricRatio(gapRatio * 100),
+    });
+  }
+  return rows
+    .filter((row) => row.gapRatio != null && row.gapRatio > 0)
+    .sort((left, right) => {
+      const byGap = right.gapRatio - left.gapRatio;
+      if (byGap !== 0) return byGap;
+      return left.metricId.localeCompare(right.metricId);
+    });
 }
 
 async function listCommittedCharts() {
@@ -2031,9 +3135,13 @@ function compareResultRuntimeTypeKey(summary) {
   const browser = summary?.environment?.browser || {};
   const gpu = summary?.environment?.gpu || {};
   const browserLabel = normalizeBrowserLabel(browser);
+  const dopplerExecution = summary?.dopplerExecution || {};
   const values = [
     asNonEmptyString(host.platform) || 'unknown',
     asNonEmptyString(host.arch) || 'unknown',
+    asNonEmptyString(summary?.dopplerSurface) || 'unknown',
+    asNonEmptyString(dopplerExecution.commandSurface) || 'unknown',
+    asNonEmptyString(dopplerExecution.cliExecutor) || 'unknown',
     browserLabel,
     asNonEmptyString(gpu.backend) || 'unknown',
     asNonEmptyString(gpu.vendor) || 'unknown',
@@ -2078,6 +3186,9 @@ function selectLatestCompareResult(compareResults) {
 async function loadCompareResultSummaries(options = {}) {
   const compareResultFlag = options.compareResultFlag ?? null;
   const compareMetricIds = Array.isArray(options.compareMetricIds) ? options.compareMetricIds : null;
+  const compareMetricDefinitions = Array.isArray(options.compareMetricDefinitions)
+    ? options.compareMetricDefinitions
+    : null;
   const includeLocalResults = options.includeLocalResults === true;
   const strictCompareArtifacts = options.strictCompareArtifacts === true;
   const candidateEntries = await listCompareResultCandidateEntries({ includeLocalResults });
@@ -2100,7 +3211,11 @@ async function loadCompareResultSummaries(options = {}) {
   for (const candidateEntry of [...candidateMap.values()].sort((left, right) => left.absolutePath.localeCompare(right.absolutePath))) {
     const candidatePath = candidateEntry.absolutePath;
     try {
-      const summary = await maybeLoadCompareResultSummary(candidatePath, compareMetricIds);
+      const summary = await maybeLoadCompareResultSummary(
+        candidatePath,
+        compareMetricIds,
+        compareMetricDefinitions
+      );
       if (!summary) continue;
       summary.origin = candidateEntry.origin || resolveCompareArtifactOrigin(candidatePath);
       summaries.push(summary);
@@ -2334,6 +3449,16 @@ function formatSizeLabel(sizeBytes) {
   return `${Math.round(size)} B`;
 }
 
+function formatMetricValue(value, unit) {
+  const numeric = asFiniteNumber(value);
+  if (numeric == null) return '';
+  const absValue = Math.abs(numeric);
+  const digits = absValue >= 100 ? 1 : (absValue >= 10 ? 2 : 3);
+  const valueText = trimTrailingZeros(numeric.toFixed(digits));
+  if (unit === '%') return `${valueText}%`;
+  return unit ? `${valueText} ${unit}` : valueText;
+}
+
 function formatWorkloadModelLabel(compareResultSummary, modelCoverageById) {
   if (!compareResultSummary || typeof compareResultSummary !== 'object') return 'not captured';
   const modelId = asNonEmptyString(compareResultSummary.dopplerModelId);
@@ -2349,6 +3474,7 @@ function formatRuntimeComboLabel(compareResultSummary) {
   const host = compareResultSummary?.environment?.host || {};
   const browser = compareResultSummary?.environment?.browser || {};
   const gpu = compareResultSummary?.environment?.gpu || {};
+  const dopplerExecution = compareResultSummary?.dopplerExecution || {};
   const gpuVendor = normalizeVendorLabel(gpu.vendor);
   const gpuArchitecture = asNonEmptyString(gpu.architecture);
   const gpuDevice = normalizeGpuDeviceLabel(gpu);
@@ -2368,7 +3494,264 @@ function formatRuntimeComboLabel(compareResultSummary) {
   const backendValue = backendLabel || 'unknown';
   const osValue = hostPlatform || 'unknown';
   const browserValue = browserLabel || 'unknown';
-  return `${gpuValue}; ${backendValue}; ${osValue}; ${browserValue}`;
+  const dopplerSurface = asNonEmptyString(compareResultSummary?.dopplerSurface);
+  const cliExecutor = asNonEmptyString(dopplerExecution.cliExecutor);
+  const commandSurface = asNonEmptyString(dopplerExecution.commandSurface);
+  const dopplerParts = [
+    dopplerSurface ? `doppler ${dopplerSurface}` : null,
+    cliExecutor && dopplerSurface !== 'browser' && cliExecutor !== dopplerSurface ? `exec ${cliExecutor}` : null,
+    commandSurface && commandSurface !== dopplerSurface ? `command ${commandSurface}` : null,
+  ].filter(Boolean);
+  const dopplerLabel = dopplerParts.length > 0 ? `; ${dopplerParts.join(' / ')}` : '';
+  return `${gpuValue}; ${backendValue}; ${osValue}; ${browserValue}${dopplerLabel}`;
+}
+
+function formatCorrectnessLabel(compareResultSummary) {
+  if (!compareResultSummary || typeof compareResultSummary !== 'object') return 'not captured';
+  const correctness = compareResultSummary.correctness || {};
+  if (correctness.exactMatch === true) return 'exact';
+  if (correctness.normalizedMatch === true) return 'normalized';
+  const status = asNonEmptyString(correctness.status);
+  if (status) return status;
+  return 'unknown';
+}
+
+function compareMetricLeader(metrics, metricId, higherBetter = true) {
+  const metric = metrics && typeof metrics === 'object' && !Array.isArray(metrics)
+    ? metrics[metricId]
+    : null;
+  const doppler = asFiniteNumber(metric?.doppler);
+  const transformersjs = asFiniteNumber(metric?.transformersjs);
+  if (doppler == null || transformersjs == null) return null;
+  if (doppler === transformersjs) return 'tie';
+  const dopplerLeads = higherBetter ? doppler > transformersjs : doppler < transformersjs;
+  return dopplerLeads ? 'doppler' : 'transformersjs';
+}
+
+function formatMetricPair(doppler, transformersjs, unit) {
+  const left = formatMetricValue(doppler, unit);
+  const right = formatMetricValue(transformersjs, unit);
+  if (!left && !right) return '';
+  return `${left || 'n/a'} / ${right || 'n/a'}`;
+}
+
+function formatLeaderLabel(leader) {
+  if (leader === 'doppler') return 'Doppler';
+  if (leader === 'transformersjs') return 'TJS';
+  if (leader === 'tie') return 'tie';
+  return '';
+}
+
+function summarizeBottleneckLabel(bottleneck) {
+  if (!bottleneck || typeof bottleneck !== 'object' || Array.isArray(bottleneck)) return null;
+  const dominant = bottleneck.dominant || {};
+  return asNonEmptyString(dominant.label) || asNonEmptyString(dominant.id);
+}
+
+function formatDopplerBottleneckLine(bottleneck) {
+  if (!bottleneck || typeof bottleneck !== 'object' || Array.isArray(bottleneck)) return null;
+  const dominant = bottleneck.dominant || {};
+  const label = asNonEmptyString(dominant.label) || asNonEmptyString(dominant.id);
+  if (!label) return null;
+  const dominantMs = formatMetricValue(dominant.ms, 'ms');
+  const share = asFiniteNumber(dominant.shareOfDecode);
+  const shareText = share == null ? null : formatMetricValue(share * 100, '%');
+  const commandRecordMs = asFiniteNumber(bottleneck.componentsMs?.commandRecordMs);
+  const opCount = asFiniteNumber(bottleneck.recording?.opCount);
+  const passCount = asFiniteNumber(bottleneck.recording?.passCount);
+  const fragments = [`Doppler internal: ${label} ${dominantMs}`];
+  if (shareText) {
+    fragments.push(`${shareText} of decode`);
+  }
+  const dominantIsCommandRecord = /^command[ _-]?record/i.test(String(dominant.id || label || ''));
+  if (commandRecordMs != null && !dominantIsCommandRecord) {
+    fragments.push(`command recording ${formatMetricValue(commandRecordMs, 'ms')}`);
+  }
+  if (opCount != null && passCount != null) {
+    fragments.push(`${formatMetricValue(opCount, null)} ops / ${formatMetricValue(passCount, null)} passes`);
+  }
+  return fragments.join('; ');
+}
+
+function summarizeClaimLaneGaps(lane, surfaces, laneRequiredBackendIds) {
+  const capturedBackendIds = new Set(
+    surfaces
+      .map((surface) => asNonEmptyString(surface.backendId))
+      .filter(Boolean)
+  );
+  const capturedWorkloadIds = new Set(
+    surfaces
+      .map((surface) => asNonEmptyString(surface.workloadId))
+      .filter(Boolean)
+  );
+  const capturedDecodeProfileIds = new Set();
+  for (const surface of surfaces) {
+    const sectionIds = Array.isArray(surface.computeSectionIds) ? surface.computeSectionIds : [];
+    for (const sectionId of sectionIds) {
+      const normalized = asNonEmptyString(sectionId);
+      if (normalized) capturedDecodeProfileIds.add(normalized);
+    }
+    const decodeProfile = asNonEmptyString(surface.decodeProfile);
+    if (decodeProfile) capturedDecodeProfileIds.add(decodeProfile);
+  }
+  const requiredBackendIds = Array.from(laneRequiredBackendIds).sort();
+  const requiredWorkloadIds = Array.isArray(lane?.run?.workloads) ? lane.run.workloads : [];
+  const requiredDecodeProfileIds = Array.isArray(lane?.run?.decodeProfiles) ? lane.run.decodeProfiles : [];
+  const capturedSurfaceWorkloads = new Set(
+    surfaces
+      .map((surface) => {
+        const backendId = asNonEmptyString(surface.backendId);
+        const workloadId = asNonEmptyString(surface.workloadId);
+        return backendId && workloadId ? `${backendId}:${workloadId}` : null;
+      })
+      .filter(Boolean)
+  );
+  const requiredSurfaceWorkloads = [];
+  for (const backendId of requiredBackendIds) {
+    for (const workloadId of requiredWorkloadIds) {
+      requiredSurfaceWorkloads.push(`${backendId}:${workloadId}`);
+    }
+  }
+  const missingBackendIds = requiredBackendIds.filter((backendId) => !capturedBackendIds.has(backendId));
+  const missingWorkloadIds = requiredWorkloadIds.filter((workloadId) => !capturedWorkloadIds.has(workloadId));
+  const missingDecodeProfileIds = requiredDecodeProfileIds.filter(
+    (decodeProfileId) => !capturedDecodeProfileIds.has(decodeProfileId)
+  );
+  const missingSurfaceWorkloads = requiredSurfaceWorkloads.filter((entry) => !capturedSurfaceWorkloads.has(entry));
+  const claimReady = lane?.status === 'promoted'
+    && missingBackendIds.length === 0
+    && missingWorkloadIds.length === 0
+    && missingDecodeProfileIds.length === 0
+    && missingSurfaceWorkloads.length === 0
+    && surfaces.length > 0;
+  return {
+    claimReady,
+    missingBackendIds,
+    missingWorkloadIds,
+    missingDecodeProfileIds,
+    missingSurfaceWorkloads,
+  };
+}
+
+function formatClaimGapList(values) {
+  if (!Array.isArray(values)) return '';
+  if (values.length <= 6) return values.join(', ');
+  return `${values.slice(0, 6).join(', ')} +${values.length - 6} more`;
+}
+
+function formatClaimLaneGateGaps(lane) {
+  if (lane?.claimReady === true) return 'ready';
+  const parts = [];
+  if (asNonEmptyString(lane?.status) && lane.status !== 'promoted') {
+    parts.push(`status ${lane.status}`);
+  }
+  if (Array.isArray(lane?.missingBackendIds) && lane.missingBackendIds.length > 0) {
+    parts.push(`missing backends ${lane.missingBackendIds.join(', ')}`);
+  }
+  if (Array.isArray(lane?.missingWorkloadIds) && lane.missingWorkloadIds.length > 0) {
+    parts.push(`missing workloads ${lane.missingWorkloadIds.join(', ')}`);
+  }
+  if (Array.isArray(lane?.missingDecodeProfileIds) && lane.missingDecodeProfileIds.length > 0) {
+    parts.push(`missing decode profiles ${lane.missingDecodeProfileIds.join(', ')}`);
+  }
+  if (Array.isArray(lane?.missingSurfaceWorkloads) && lane.missingSurfaceWorkloads.length > 0) {
+    parts.push(`missing backend/workload ${formatClaimGapList(lane.missingSurfaceWorkloads)}`);
+  }
+  return parts.length > 0 ? parts.join('; ') : 'not promoted';
+}
+
+async function buildLocalClaimLaneSummaries(localInferenceClaimMatrix, compareMetricBundle) {
+  const requiredBackendById = new Map(
+    (Array.isArray(localInferenceClaimMatrix?.sharedRunContract?.requiredRuntimeBackends)
+      ? localInferenceClaimMatrix.sharedRunContract.requiredRuntimeBackends
+      : [])
+      .map((entry) => [entry.id, entry])
+  );
+  const metricIds = Array.isArray(compareMetricBundle?.metricIds) ? compareMetricBundle.metricIds : null;
+  const metricDefinitions = Array.isArray(compareMetricBundle?.metrics) ? compareMetricBundle.metrics : null;
+  const out = [];
+  const lanes = Array.isArray(localInferenceClaimMatrix?.lanes) ? localInferenceClaimMatrix.lanes : [];
+  for (const lane of lanes) {
+    const laneLabel = `local claim lane ${lane?.id || 'unknown'}`;
+    const evidence = lane?.evidence && typeof lane.evidence === 'object' && !Array.isArray(lane.evidence)
+      ? lane.evidence
+      : {};
+    const surfaceEntries = Array.isArray(evidence.workloadCompareResults) && evidence.workloadCompareResults.length > 0
+      ? evidence.workloadCompareResults
+      : Array.isArray(evidence.surfaceCompareResults) && evidence.surfaceCompareResults.length > 0
+        ? evidence.surfaceCompareResults
+      : (evidence.compareResult
+          ? [{
+              backendId: null,
+              compareResult: evidence.compareResult,
+              summarySvg: evidence.summarySvg ?? null,
+            }]
+          : []);
+    const surfaces = [];
+    for (const [surfaceIndex, surfaceEvidence] of surfaceEntries.entries()) {
+      const evidenceCollection = surfaceEvidence.workloadId ? 'workloadCompareResults' : 'surfaceCompareResults';
+      const evidenceLabel = `${laneLabel}.evidence.${evidenceCollection}[${surfaceIndex}]`;
+      const compareResultPath = await assertRepoPathExists(
+        surfaceEvidence.compareResult,
+        `${evidenceLabel}.compareResult`
+      );
+      if (surfaceEvidence.summarySvg != null) {
+        await assertRepoPathExists(surfaceEvidence.summarySvg, `${evidenceLabel}.summarySvg`);
+      }
+      const summary = await maybeLoadCompareResultSummary(
+        compareResultPath,
+        metricIds,
+        metricDefinitions
+      );
+      const backendId = asNonEmptyString(surfaceEvidence.backendId);
+      const requiredBackend = backendId ? requiredBackendById.get(backendId) || null : null;
+      const decodeMetric = summary?.metrics?.decodeTokensPerSec || {};
+      const promptMetric = summary?.metrics?.promptTokensPerSecToFirstToken || {};
+      surfaces.push({
+        backendId,
+        surface: asNonEmptyString(requiredBackend?.surface) || asNonEmptyString(summary?.dopplerSurface),
+        compareResult: summary?.path || toPosixRelative(compareResultPath),
+        summarySvg: asNonEmptyString(surfaceEvidence.summarySvg),
+        workloadId: asNonEmptyString(surfaceEvidence.workloadId) || asNonEmptyString(summary?.workloadId),
+        decodeProfile: asNonEmptyString(summary?.decodeProfile),
+        correctness: formatCorrectnessLabel(summary),
+        dopplerDecodeTokensPerSec: asFiniteNumber(decodeMetric.doppler),
+        transformersjsDecodeTokensPerSec: asFiniteNumber(decodeMetric.transformersjs),
+        decodeLeader: compareMetricLeader(summary?.metrics, 'decodeTokensPerSec', true),
+        dopplerPromptTokensPerSecToFirstToken: asFiniteNumber(promptMetric.doppler),
+        transformersjsPromptTokensPerSecToFirstToken: asFiniteNumber(promptMetric.transformersjs),
+        promptLeader: compareMetricLeader(summary?.metrics, 'promptTokensPerSecToFirstToken', true),
+        bottleneck: summarizeBottleneckLabel(summary?.dopplerBottleneck),
+        bottleneckClass: asNonEmptyString(summary?.dopplerBottleneck?.bottleneckClass),
+        computeSectionIds: Array.isArray(summary?.computeSectionIds) ? summary.computeSectionIds : [],
+      });
+    }
+    surfaces.sort((left, right) => {
+      const leftKey = asNonEmptyString(left.backendId) || asNonEmptyString(left.surface) || '';
+      const rightKey = asNonEmptyString(right.backendId) || asNonEmptyString(right.surface) || '';
+      const byBackend = leftKey.localeCompare(rightKey);
+      if (byBackend !== 0) return byBackend;
+      const leftWorkload = asNonEmptyString(left.workloadId) || '';
+      const rightWorkload = asNonEmptyString(right.workloadId) || '';
+      return leftWorkload.localeCompare(rightWorkload);
+    });
+    const laneRequiredBackendIds = new Set(getLaneRequiredBackendIds(lane, localInferenceClaimMatrix));
+    const claimGaps = summarizeClaimLaneGaps(lane, surfaces, laneRequiredBackendIds);
+    out.push({
+      laneId: lane.id,
+      status: asNonEmptyString(lane.status) || 'unknown',
+      claimReady: claimGaps.claimReady,
+      statusReason: asNonEmptyString(lane.statusReason),
+      missingBackendIds: claimGaps.missingBackendIds,
+      missingWorkloadIds: claimGaps.missingWorkloadIds,
+      missingDecodeProfileIds: claimGaps.missingDecodeProfileIds,
+      missingSurfaceWorkloads: claimGaps.missingSurfaceWorkloads,
+      dopplerModelId: asNonEmptyString(lane?.model?.dopplerModelId) || null,
+      modelLabel: asNonEmptyString(lane?.model?.label) || null,
+      surfaces,
+    });
+  }
+  return out.sort((left, right) => left.laneId.localeCompare(right.laneId));
 }
 
 function renderReleaseMatrixMarkdown(matrix, options = {}) {
@@ -2439,8 +3822,8 @@ function renderReleaseMatrixMarkdown(matrix, options = {}) {
   lines.push('');
   lines.push('## Workloads');
   lines.push('');
-  lines.push('| Workload ID | Model | Prefill | Decode | Sampling | Runtime (GPU/Backend/OS/Browser) | Date |');
-  lines.push('|---|---|---:|---:|---|---|---|');
+  lines.push('| Workload ID | Model | Prefill | Decode | Sampling | Correctness | Runtime (GPU/Backend/OS/Browser) | Date |');
+  lines.push('|---|---|---:|---:|---|---|---|---|');
   for (const workload of matrix.workloads) {
     const workloadRuns = compareResultsByWorkload.get(workload.id) || [];
     const sortedRuns = [...workloadRuns].sort((left, right) => {
@@ -2457,15 +3840,96 @@ function renderReleaseMatrixMarkdown(matrix, options = {}) {
       const runtimeComboCell = selectedRun
         ? markdownTableCell(formatRuntimeComboLabel(selectedRun))
         : 'not captured';
+      const correctnessCell = selectedRun
+        ? markdownTableCell(formatCorrectnessLabel(selectedRun))
+        : 'not captured';
       const dateCell = selectedRun && typeof selectedRun.timestamp === 'string' && selectedRun.timestamp.length >= 10
         ? markdownTableCell(selectedRun.timestamp.slice(0, 10))
         : (selectedRun ? 'captured' : 'not captured');
       lines.push(
         `| ${workloadIdCell} | ${modelCell} | `
         + `${workload.prefillTokens ?? ''} | ${workload.decodeTokens ?? ''} | `
-        + `${markdownTableCell(formatSamplingLabel(workload.sampling))} | ${runtimeComboCell} | ${dateCell} |`
+        + `${markdownTableCell(formatSamplingLabel(workload.sampling))} | ${correctnessCell} | `
+        + `${runtimeComboCell} | ${dateCell} |`
       );
     }
+  }
+  lines.push('');
+  lines.push('## Local Claim Lanes');
+  lines.push('');
+  lines.push('| Lane | Status | Gate gaps | Backend | Surface | Workload | Decode tok/s (Doppler/TJS) | Prompt tok/s (Doppler/TJS) | Leaders | Bottleneck | Evidence |');
+  lines.push('|---|---|---|---|---|---|---:|---:|---|---|---|');
+  const localClaimLanes = Array.isArray(matrix.localClaimLanes) ? matrix.localClaimLanes : [];
+  if (localClaimLanes.length > 0) {
+    for (const lane of localClaimLanes) {
+      const laneLabel = lane.modelLabel
+        ? `${lane.laneId} (${lane.modelLabel})`
+        : lane.laneId;
+      const gateGapCell = formatClaimLaneGateGaps(lane);
+      const surfaces = Array.isArray(lane.surfaces) && lane.surfaces.length > 0
+        ? lane.surfaces
+        : [null];
+      for (const surface of surfaces) {
+        const evidenceCell = surface?.compareResult
+          ? [
+              formatRepoPathLink(surface.compareResult, markdownPath, 'compare'),
+              surface.summarySvg ? formatRepoPathLink(surface.summarySvg, markdownPath, 'svg') : null,
+            ].filter(Boolean).join(' / ')
+          : 'missing';
+        const bottleneckCell = surface?.bottleneck
+          ? [
+              surface.bottleneck,
+              surface.bottleneckClass ? `(${surface.bottleneckClass})` : null,
+            ].filter(Boolean).join(' ')
+          : '';
+        const leaderCell = [
+          surface?.decodeLeader ? `decode ${formatLeaderLabel(surface.decodeLeader)}` : null,
+          surface?.promptLeader ? `prompt ${formatLeaderLabel(surface.promptLeader)}` : null,
+        ].filter(Boolean).join('; ');
+        lines.push(
+          `| \`${markdownTableCell(laneLabel)}\` | ${markdownTableCell(lane.status)} | `
+          + `${markdownTableCell(gateGapCell)} | `
+          + `${markdownTableCell(surface?.backendId || 'not captured')} | `
+          + `${markdownTableCell(surface?.surface || 'not captured')} | `
+          + `${markdownTableCell(surface?.workloadId || 'not captured')} | `
+          + `${markdownTableCell(formatMetricPair(surface?.dopplerDecodeTokensPerSec, surface?.transformersjsDecodeTokensPerSec, 'tok/s'))} | `
+          + `${markdownTableCell(formatMetricPair(surface?.dopplerPromptTokensPerSecToFirstToken, surface?.transformersjsPromptTokensPerSecToFirstToken, 'tok/s'))} | `
+          + `${markdownTableCell(leaderCell)} | ${markdownTableCell(bottleneckCell)} | ${evidenceCell} |`
+        );
+      }
+    }
+  } else {
+    lines.push('| not captured | not captured | not captured | not captured | not captured | not captured |  |  |  |  | missing |');
+  }
+  lines.push('');
+  lines.push('## Latest Bottlenecks');
+  lines.push('');
+  const latestCompareResult = matrix.evidence?.latestCompareResult || null;
+  const latestBottlenecks = Array.isArray(latestCompareResult?.bottlenecks)
+    ? latestCompareResult.bottlenecks.slice(0, 6)
+    : [];
+  if (latestBottlenecks.length > 0) {
+    const latestPath = formatRepoPathLink(latestCompareResult.path, markdownPath);
+    lines.push(`Source: ${latestPath}`);
+    lines.push('');
+    const dopplerBottleneckLine = formatDopplerBottleneckLine(latestCompareResult.dopplerBottleneck);
+    if (dopplerBottleneckLine) {
+      lines.push(dopplerBottleneckLine);
+      lines.push('');
+    }
+    lines.push('| Metric | Leader | Gap | Doppler | Transformers.js |');
+    lines.push('|---|---|---:|---:|---:|');
+    for (const bottleneck of latestBottlenecks) {
+      lines.push(
+        `| ${markdownTableCell(bottleneck.label || bottleneck.metricId)} | `
+        + `${markdownTableCell(bottleneck.leader)} | `
+        + `${formatMetricValue(bottleneck.gapPercent, '%')} | `
+        + `${markdownTableCell(formatMetricValue(bottleneck.doppler, bottleneck.unit))} | `
+        + `${markdownTableCell(formatMetricValue(bottleneck.transformersjs, bottleneck.unit))} |`
+      );
+    }
+  } else {
+    lines.push('- no TJS-leading metrics in the latest selected compare result');
   }
   lines.push('');
   lines.push('## Charts');
@@ -2486,6 +3950,16 @@ async function doMatrix(flags, timestamp = null) {
   const compareConfig = await loadCompareConfigBundle();
   const compareMetricBundle = await loadCompareMetricBundle();
   const catalog = await loadModelCatalogBundle();
+  const benchmarkPolicy = await readJson(BENCHMARK_POLICY_PATH);
+  const localInferenceClaimMatrix = await loadLocalInferenceClaimMatrixBundle({
+    registry,
+    workloads,
+    compareConfig,
+    compareMetricBundle,
+    benchmarkPolicy,
+    catalog,
+    capabilities,
+  });
 
   const compareResultFlag = flags['compare-result'] ?? null;
   const includeLocalResults = parseBooleanFlag(
@@ -2495,7 +3969,7 @@ async function doMatrix(flags, timestamp = null) {
   );
   const strictCompareArtifacts = parseBooleanFlag(
     flags['strict-compare-artifacts'],
-    true,
+    false,
     '--strict-compare-artifacts'
   );
   const {
@@ -2505,6 +3979,7 @@ async function doMatrix(flags, timestamp = null) {
   } = await loadCompareResultSummaries({
     compareResultFlag,
     compareMetricIds: compareMetricBundle.metricIds,
+    compareMetricDefinitions: compareMetricBundle.metrics,
     includeLocalResults,
     strictCompareArtifacts,
   });
@@ -2632,6 +4107,7 @@ async function doMatrix(flags, timestamp = null) {
     ['compareConfig', COMPARE_CONFIG_PATH],
     ['compareMetricContract', COMPARE_METRIC_CONTRACT_PATH],
     ['benchmarkPolicy', BENCHMARK_POLICY_PATH],
+    ['localInferenceClaimMatrix', LOCAL_INFERENCE_CLAIM_MATRIX_PATH],
     ['modelCatalog', MODEL_CATALOG_PATH],
   ];
   for (const product of registry.products) {
@@ -2674,6 +4150,10 @@ async function doMatrix(flags, timestamp = null) {
     targets,
     modelCoverage,
     workloads: normalizedWorkloads,
+    localClaimLanes: await buildLocalClaimLaneSummaries(
+      localInferenceClaimMatrix,
+      compareMetricBundle
+    ),
     evidence: {
       committedCharts,
       latestCompareResult: latestReleaseCompareResult,
@@ -2791,7 +4271,20 @@ async function assertReleaseMatrixSourceHashes(matrix) {
 
 async function doValidate() {
   const { registry, workloads } = await loadRegistryBundle();
-  await loadCapabilitiesBundle(registry);
+  const capabilities = await loadCapabilitiesBundle(registry);
+  const compareConfig = await loadCompareConfigBundle();
+  const compareMetricBundle = await loadCompareMetricBundle();
+  const catalog = await loadModelCatalogBundle();
+  const benchmarkPolicy = await readJson(BENCHMARK_POLICY_PATH);
+  await loadLocalInferenceClaimMatrixBundle({
+    registry,
+    workloads,
+    compareConfig,
+    compareMetricBundle,
+    benchmarkPolicy,
+    catalog,
+    capabilities,
+  });
   for (const product of registry.products) {
     const harnessPath = path.join(REGISTRY_DIR, product.harness);
     const exists = await fileExists(harnessPath);

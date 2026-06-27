@@ -18,7 +18,9 @@ const EMPTY_STRING = '';
 const DEFAULT_UNIT = EMPTY_STRING;
 const DEFAULT_SAFE_TITLE = EMPTY_STRING;
 const CANVAS_PADDING = 14;
-const STATIC_CHART_TITLE = 'Latency timeline on MacBook Air M3';
+const PHASE_WORKLOAD_PANEL_HEIGHT = 236;
+const PHASE_EVIDENCE_LINE_HEIGHT = 16;
+const STATIC_CHART_TITLE = 'Local inference compare';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const COMPARE_METRICS_PATH = path.join(__dirname, 'compare-metrics.json');
 const DOPPLER_HARNESS_PATH = path.join(__dirname, 'harnesses', 'doppler.json');
@@ -1208,6 +1210,12 @@ function formatThroughputCompact(value) {
   return `${value.toFixed(decimals)} tok/s`;
 }
 
+function formatTokenCountCompact(value) {
+  if (!isFiniteNumber(value)) return 'n/a';
+  if (Number.isInteger(value)) return String(value);
+  return value.toFixed(Math.abs(value) >= 100 ? 1 : 2);
+}
+
 function computePhaseRaceSummary(dopplerPhases, transformersPhases) {
   if (!dopplerPhases || !transformersPhases) return null;
   if (!isFiniteNumber(dopplerPhases.endToEnd) || !isFiniteNumber(transformersPhases.endToEnd)) return null;
@@ -1232,6 +1240,101 @@ function formatPhaseSegmentValue(segmentTitle, resolved) {
     return `${formatDurationCompact(resolved.decodeMs)} • ${formatThroughputCompact(resolved.decodeTokensPerSec)}`;
   }
   return formatDurationCompact(resolved.modelLoadMs);
+}
+
+function formatPercentCompact(value) {
+  if (!isFiniteNumber(value)) return 'n/a';
+  return `${(value * 100).toFixed(0)}%`;
+}
+
+function resolveDopplerBottleneck(sectionPayload) {
+  const bottleneck = sectionPayload?.dopplerBottleneck;
+  const dominant = bottleneck?.dominant;
+  if (!dominant || typeof dominant !== 'object') return null;
+  if (typeof dominant.label !== 'string' || dominant.label.trim() === '') return null;
+  return {
+    label: dominant.label,
+    ms: toNumber(dominant.ms),
+    shareOfDecode: toNumber(dominant.shareOfDecode),
+  };
+}
+
+function resolveDopplerBatchAccounting(sectionPayload) {
+  const accounting = sectionPayload?.dopplerBatchAccounting;
+  if (!accounting || typeof accounting !== 'object') return null;
+  const executedBatchTokens = toNumber(accounting.executedBatchTokens);
+  const resolvedBatchTokens = toNumber(accounting.resolvedBatchTokens);
+  const outputDecodeTokens = toNumber(accounting.outputDecodeTokens);
+  if (!isFiniteNumber(executedBatchTokens) && !isFiniteNumber(resolvedBatchTokens) && !isFiniteNumber(outputDecodeTokens)) {
+    return null;
+  }
+  let computedOutputEfficiency = null;
+  if (isFiniteNumber(executedBatchTokens) && executedBatchTokens > 0 && isFiniteNumber(outputDecodeTokens)) {
+    computedOutputEfficiency = outputDecodeTokens / executedBatchTokens;
+  }
+  let computedOutputOverrun = null;
+  if (isFiniteNumber(executedBatchTokens) && isFiniteNumber(outputDecodeTokens)) {
+    computedOutputOverrun = executedBatchTokens - outputDecodeTokens;
+  }
+  return {
+    executedBatchTokens,
+    resolvedBatchTokens,
+    outputDecodeTokens,
+    batchResolutionEfficiency: firstFinite([
+      accounting.batchResolutionEfficiency,
+      isFiniteNumber(executedBatchTokens) && executedBatchTokens > 0 && isFiniteNumber(resolvedBatchTokens)
+        ? resolvedBatchTokens / executedBatchTokens
+        : null,
+    ]),
+    batchOverrunTokens: firstFinite([
+      accounting.batchOverrunTokens,
+      isFiniteNumber(executedBatchTokens) && isFiniteNumber(resolvedBatchTokens)
+        ? Math.max(0, executedBatchTokens - resolvedBatchTokens)
+        : null,
+    ]),
+    outputEfficiency: firstFinite([
+      accounting.outputEfficiency,
+      computedOutputEfficiency,
+    ]),
+    outputOverrunTokens: firstFinite([
+      accounting.outputOverrunTokens,
+      computedOutputOverrun,
+    ]),
+  };
+}
+
+function formatDopplerBottleneckLine(bottleneck) {
+  if (!bottleneck) return '';
+  return `Doppler bottleneck: ${bottleneck.label} ${formatDurationCompact(bottleneck.ms)} (${formatPercentCompact(bottleneck.shareOfDecode)} of decode)`;
+}
+
+function formatDopplerBatchAccountingLine(accounting) {
+  if (!accounting) return '';
+  const parts = [
+    `executed ${formatTokenCountCompact(accounting.executedBatchTokens)}`,
+    `resolved ${formatTokenCountCompact(accounting.resolvedBatchTokens)}`,
+    `output ${formatTokenCountCompact(accounting.outputDecodeTokens)}`,
+  ];
+  const details = [];
+  if (isFiniteNumber(accounting.batchResolutionEfficiency)) {
+    details.push(`${formatPercentCompact(accounting.batchResolutionEfficiency)} batch efficiency`);
+  }
+  if (isFiniteNumber(accounting.batchOverrunTokens) && accounting.batchOverrunTokens > 0) {
+    details.push(`+${formatTokenCountCompact(accounting.batchOverrunTokens)} batch tok overrun`);
+  }
+  const suffix = details.length > 0 ? ` (${details.join(', ')})` : '';
+  return `Doppler batch work: ${parts.join(' / ')}${suffix}`;
+}
+
+function renderDopplerEvidenceLines(x, bottomY, bottleneck, accounting) {
+  const lines = [
+    formatDopplerBottleneckLine(bottleneck),
+    formatDopplerBatchAccountingLine(accounting),
+  ].filter((line) => line.length > 0);
+  const startY = bottomY - Math.max(0, lines.length - 1) * PHASE_EVIDENCE_LINE_HEIGHT;
+  return lines.map((line, index) => (
+    `<text x="${x}" y="${startY + index * PHASE_EVIDENCE_LINE_HEIGHT}" fill="${PALETTE.muted}" font-family="${FONT_UI}" font-size="12">${escapeXml(line)}</text>\n`
+  )).join('');
 }
 
 function phaseSegmentTextFill(fill) {
@@ -1307,14 +1410,24 @@ function renderPhaseLane({ x, y, width, engine, resolved, globalMax }) {
   return body;
 }
 
-function renderPhaseWorkloadPanel({ x, y, width, workloadLabel, dopplerPhases, transformersPhases, globalMax }) {
+function renderPhaseWorkloadPanel({
+  x,
+  y,
+  width,
+  workloadLabel,
+  dopplerPhases,
+  transformersPhases,
+  globalMax,
+  dopplerBottleneck,
+  dopplerBatchAccounting,
+}) {
   const headerHeight = 54;
   const laneGap = 16;
   const laneHeight = 56;
   const laneX = x + 24;
   const laneWidth = width - 48;
   const race = computePhaseRaceSummary(dopplerPhases, transformersPhases);
-  const panelHeight = 190;
+  const panelHeight = PHASE_WORKLOAD_PANEL_HEIGHT;
 
   let body = '';
   body += `<rect x="${x}" y="${y}" width="${width}" height="${panelHeight}" rx="${SVG_THEME.radius.panel}" fill="${PALETTE.panelAlt}" stroke="${PALETTE.border}" stroke-width="${SVG_THEME.stroke.thin}" />\n`;
@@ -1345,6 +1458,12 @@ function renderPhaseWorkloadPanel({ x, y, width, workloadLabel, dopplerPhases, t
     resolved: transformersPhases,
     globalMax,
   });
+  body += renderDopplerEvidenceLines(
+    x + 26,
+    y + panelHeight - 18,
+    dopplerBottleneck,
+    dopplerBatchAccounting,
+  );
   return { body, panelHeight };
 }
 
@@ -1368,6 +1487,8 @@ function renderPhases(rows, width, height, title, subtitle, sectionLabel, sectio
     dopplerPhases,
     transformersPhases,
     globalMax,
+    dopplerBottleneck: resolveDopplerBottleneck(sectionPayload),
+    dopplerBatchAccounting: resolveDopplerBatchAccounting(sectionPayload),
   }).body;
   return svgWrap(width, height, body, title, `${subtitle} • Section: ${displaySectionLabel}`);
 }
@@ -1386,13 +1507,15 @@ function renderMultiPhases(entries, width, title, subtitle) {
         : buildWorkloadPanelLabel(entry.report, fallbackWorkload),
       dopplerPhases,
       transformersPhases,
+      dopplerBottleneck: resolveDopplerBottleneck(entry.sectionPayload),
+      dopplerBatchAccounting: resolveDopplerBatchAccounting(entry.sectionPayload),
     };
   });
 
   if (globalMax <= 0) globalMax = 1;
 
   const panelGap = 22;
-  const panelHeight = 190;
+  const panelHeight = PHASE_WORKLOAD_PANEL_HEIGHT;
   const headerTop = 128;
   const legendHeight = 56;
   const footerHeight = 20;
@@ -1415,6 +1538,8 @@ function renderMultiPhases(entries, width, title, subtitle) {
       dopplerPhases: workload.dopplerPhases,
       transformersPhases: workload.transformersPhases,
       globalMax,
+      dopplerBottleneck: workload.dopplerBottleneck,
+      dopplerBatchAccounting: workload.dopplerBatchAccounting,
     }).body;
   });
 

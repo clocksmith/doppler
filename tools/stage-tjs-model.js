@@ -128,7 +128,9 @@ function buildDownloadArgs(cli, modelId, outputDir, revision, forceDownload, inc
     args.push('--force-download');
   }
   if (Array.isArray(includePatterns) && includePatterns.length > 0) {
-    args.push('--include', ...includePatterns);
+    for (const pattern of includePatterns) {
+      args.push('--include', pattern);
+    }
   }
   return args;
 }
@@ -156,19 +158,45 @@ function buildTextGenerationIncludePatterns(dtype) {
 
 function buildTextGenerationRequiredSnapshotFiles(dtype) {
   const normalizedDtype = normalizeDtype(dtype);
-  return {
+  const commonFiles = [
+    'config.json',
+    'tokenizer_config.json',
+  ];
+  const splitLayout = {
+    id: 'split-decoder-embed',
     requiredFiles: [
-      'config.json',
-      'tokenizer_config.json',
       `onnx/embed_tokens_${normalizedDtype}.onnx`,
       `onnx/decoder_model_merged_${normalizedDtype}.onnx`,
+    ],
+    requiredDataPrefixes: [
+      `onnx/embed_tokens_${normalizedDtype}.onnx_data`,
+      `onnx/decoder_model_merged_${normalizedDtype}.onnx_data`,
+    ],
+  };
+  const monolithicLayout = {
+    id: 'monolithic-model',
+    requiredFiles: [
+      `onnx/model_${normalizedDtype}.onnx`,
+    ],
+    requiredDataPrefixes: [
+      `onnx/model_${normalizedDtype}.onnx_data`,
+    ],
+  };
+  return {
+    commonFiles,
+    requiredFiles: [
+      ...commonFiles,
+      ...splitLayout.requiredFiles,
     ],
     requiredOneOf: [
       ['tokenizer.json', 'tokenizer.model'],
     ],
     requiredDataPrefixes: [
-      `onnx/embed_tokens_${normalizedDtype}.onnx_data`,
-      `onnx/decoder_model_merged_${normalizedDtype}.onnx_data`,
+      ...splitLayout.requiredDataPrefixes,
+    ],
+    requiredLayouts: [
+      splitLayout,
+      monolithicLayout,
     ],
   };
 }
@@ -264,7 +292,7 @@ function validateStagedSnapshot(outputDir, preset, dtype) {
   }
   const required = buildTextGenerationRequiredSnapshotFiles(dtype);
   const missing = [];
-  for (const relativePath of required.requiredFiles) {
+  for (const relativePath of required.commonFiles || []) {
     if (!fs.existsSync(path.join(outputDir, relativePath))) {
       missing.push(relativePath);
     }
@@ -275,10 +303,28 @@ function validateStagedSnapshot(outputDir, preset, dtype) {
       missing.push(options.join(' | '));
     }
   }
-  for (const prefix of required.requiredDataPrefixes) {
-    if (!hasMatchingDataShard(outputDir, prefix)) {
-      missing.push(`${prefix}*`);
+
+  const layoutErrors = [];
+  const hasCompleteLayout = required.requiredLayouts.some((layout) => {
+    const layoutMissing = [];
+    for (const relativePath of layout.requiredFiles || []) {
+      if (!fs.existsSync(path.join(outputDir, relativePath))) {
+        layoutMissing.push(relativePath);
+      }
     }
+    for (const prefix of layout.requiredDataPrefixes || []) {
+      if (!hasMatchingDataShard(outputDir, prefix)) {
+        layoutMissing.push(`${prefix}*`);
+      }
+    }
+    if (layoutMissing.length === 0) {
+      return true;
+    }
+    layoutErrors.push(`${layout.id}: ${layoutMissing.join(', ')}`);
+    return false;
+  });
+  if (!hasCompleteLayout) {
+    missing.push(`one complete ONNX layout (${layoutErrors.join(' | ')})`);
   }
   if (missing.length > 0) {
     throw new Error(
@@ -351,6 +397,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 }
 
 export {
+  buildDownloadArgs,
   buildTextGenerationIncludePatterns,
   buildTextGenerationRequiredSnapshotFiles,
   loadCatalogTransformersjsRepoDtypes,

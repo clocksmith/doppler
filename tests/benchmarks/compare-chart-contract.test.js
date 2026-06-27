@@ -64,7 +64,10 @@ import {
   assert.match(source, /title: 'First token'/);
   assert.match(source, /SHORTER BAR = FASTER/);
   assert.match(source, /normalized === 'warm' \|\| normalized === 'compute\/parity'/);
-  assert.match(source, /font-weight="bold" stroke="none">TOTAL<\/text>/);
+  assert.match(source, /font-weight="bold">TOTAL<\/text>/);
+  assert.match(source, /Doppler bottleneck:/);
+  assert.match(source, /Doppler batch work:/);
+  assert.match(source, /batch efficiency/);
 }
 
 for (const fixtureName of [

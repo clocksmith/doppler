@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-06-15T00:17:08.111Z
-Release: channel=main-snapshot, version=0.4.3, commit=4dd758f37d283cc161d45969243de8e6fe2cfc0c, dirty=yes
+Generated: 2026-06-27T20:43:26.666Z
+Release: channel=main-snapshot, version=0.4.3, commit=a9008ba1ab2ae8f92b12fde2df3a67b003acf5a1, dirty=yes
 
 ## Engine Matrix
 
@@ -28,12 +28,8 @@ Release: channel=main-snapshot, version=0.4.3, commit=4dd758f37d283cc161d4596924
 
 | Doppler Model | In Catalog | Catalog Modes | TJS Mapping | Surface | Source | Compare Lane | Notes |
 |---|---|---|---|---|---|---|---|
-| `diffusiongemma-26b-a4b-it-q4k-ehf16-af16` | yes | diffusion, run, translate |  | auto |  |  |  |
 | `gemma-3-1b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-1b-it-ONNX-GQA` | auto | quickstart-registry | performance_comparable |  |
 | `gemma-3-270m-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` | auto | quickstart-registry | performance_comparable |  |
-| `gemma-4-12b-it-text-w4a16-ct-ehf16-af16` | yes | run, translate |  | auto |  |  |  |
-| `gemma-4-31b-it-text-q4k-ehf16-af16` | yes | run, translate |  | auto |  |  |  |
-| `gemma-4-31b-it-text-q4k-ehf16-af32` | yes | run, translate |  | auto |  |  |  |
 | `gemma-4-e2b-it-q4k-ehf16-af16-int4ple` | yes | run, translate |  | auto |  |  |  |
 | `gemma-4-e2b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-4-E2B-it-ONNX` | browser | local | performance_comparable | Doppler and the paired Transformers.js ONNX q4f16 runner both produce coherent Gemma 4 output, but current greedy text is not exact-match; this lane is claimable for compute-throughput comparisons, not correctness-parity claims. |
 | `gemma-4-e2b-it-q4k-ehf16-af32-int4ple` | yes | run, translate | `onnx-community/gemma-4-E2B-it-ONNX` | browser | local | performance_comparable | Doppler uses INT4 per-row PLE quantization (closer to TFLite shape); TJS uses standard ONNX q4f16. Both produce coherent Gemma 4 output on matching prompts — lane remains performance_comparable as compute-throughput comparison is meaningful. |
@@ -46,16 +42,68 @@ Release: channel=main-snapshot, version=0.4.3, commit=4dd758f37d283cc161d4596924
 
 ## Workloads
 
-| Workload ID | Model | Prefill | Decode | Sampling | Runtime (GPU/Backend/OS/Browser) | Date |
-|---|---|---:|---:|---|---|---|
-| [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/g3-1b-p064-d064-t0-k1.compare.json) | Gemma 3 1B Instruct (Q4K/F32a) (996.4 MiB) | 64 | 64 | greedy (t=0) | Apple M3; metal; darwin; chromium | 2026-03-29 |
-| [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/qwen3-5-0-8b-p064-d064-t0-k1.compare.json) | Qwen 3.5 0.8B (Q4K) (1.08 GiB) | 64 | 64 | greedy (t=0) | Apple M3; metal; darwin; chromium | 2026-03-30 |
-| `p064-d064-t1-k32` | not captured | 64 | 64 | t=1, k=32, p=1 | not captured | not captured |
-| `p256-d128-t0-k1` | not captured | 256 | 128 | greedy (t=0) | not captured | not captured |
-| `p512-d128-t0-k1` | not captured | 512 | 128 | greedy (t=0) | not captured | not captured |
-| `p256-d128-t1-k32` | not captured | 256 | 128 | t=1, k=32, p=1 | not captured | not captured |
+| Workload ID | Model | Prefill | Decode | Sampling | Correctness | Runtime (GPU/Backend/OS/Browser) | Date |
+|---|---|---:|---:|---|---|---|---|
+| [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/g3-1b-p064-d064-t0-k1.compare.json) | Gemma 3 1B Instruct (Q4K/F32a) (996.4 MiB) | 64 | 64 | greedy (t=0) | exact | Apple M3; metal; darwin; chromium; doppler browser | 2026-03-29 |
+| [`p064-d064-t0-k1`](../benchmarks/vendors/results/compare_20260627T202837.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 64 | 64 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler browser | 2026-06-27 |
+| [`p064-d064-t0-k1`](../benchmarks/vendors/results/compare_20260627T202736.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 64 | 64 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler bun / command node | 2026-06-27 |
+| [`p064-d064-t0-k1`](../benchmarks/vendors/results/compare_20260627T202549.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 64 | 64 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler node | 2026-06-27 |
+| [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-p064-d064-t0-k1-strix-halo-20260627.compare.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 64 | 64 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler browser | 2026-06-27 |
+| [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/qwen3-5-0-8b-p064-d064-t0-k1.compare.json) | Qwen 3.5 0.8B (Q4K) (1.08 GiB) | 64 | 64 | greedy (t=0) | exact | Apple M3; metal; darwin; chromium; doppler browser | 2026-03-30 |
+| `p064-d064-t1-k32` | not captured | 64 | 64 | t=1, k=32, p=1 | not captured | not captured | not captured |
+| [`p256-d128-t0-k1`](../benchmarks/vendors/results/compare_20260627T203348.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 256 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler browser | 2026-06-27 |
+| [`p256-d128-t0-k1`](../benchmarks/vendors/results/compare_20260627T203220.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 256 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler bun / command node | 2026-06-27 |
+| [`p256-d128-t0-k1`](../benchmarks/vendors/results/compare_20260627T203031.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 256 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler node | 2026-06-27 |
+| [`p256-d128-t0-k1`](../benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-p256-d128-t0-k1-strix-halo-20260626.compare.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 256 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler browser | 2026-06-27 |
+| [`p512-d128-t0-k1`](../benchmarks/vendors/results/compare_20260627T200811.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 512 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler browser | 2026-06-27 |
+| [`p512-d128-t0-k1`](../benchmarks/vendors/results/compare_20260627T200603.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 512 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler bun / command node | 2026-06-27 |
+| [`p512-d128-t0-k1`](../benchmarks/vendors/results/compare_20260627T200323.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 512 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler node | 2026-06-27 |
+| [`p512-d128-t0-k1`](../benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-p512-d128-t0-k1-strix-halo-20260626.compare.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 512 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler browser | 2026-06-27 |
+| `p256-d128-t1-k32` | not captured | 256 | 128 | t=1, k=32, p=1 | not captured | not captured | not captured |
+
+## Local Claim Lanes
+
+| Lane | Status | Gate gaps | Backend | Surface | Workload | Decode tok/s (Doppler/TJS) | Prompt tok/s (Doppler/TJS) | Leaders | Bottleneck | Evidence |
+|---|---|---|---|---|---|---:|---:|---|---|---|
+| `gemma-3-1b-it-q4k-rdrr (Gemma 3 1B Instruct (Q4K/F32a))` | candidate | status candidate; missing backends chromium-webgpu; missing workloads p064-d064-t0-k1, p256-d128-t0-k1, p512-d128-t0-k1; missing decode profiles parity, throughput; missing backend/workload chromium-webgpu:p064-d064-t0-k1, chromium-webgpu:p256-d128-t0-k1, chromium-webgpu:p512-d128-t0-k1 | not captured | not captured | not captured |  |  |  |  | missing |
+| `gemma-3-270m-it-q4k-rdrr (Gemma 3 270M Instruct (Q4K/F32a))` | candidate | status candidate | bun-webgpu | bun | p064-d064-t0-k1 | 115.5 tok/s / 110.4 tok/s | 968.4 tok/s / 832.5 tok/s | decode Doppler; prompt Doppler | command recording (command-recording) | [compare](../benchmarks/vendors/results/compare_20260627T202736.json) |
+| `gemma-3-270m-it-q4k-rdrr (Gemma 3 270M Instruct (Q4K/F32a))` | candidate | status candidate | bun-webgpu | bun | p256-d128-t0-k1 | 108.4 tok/s / 109.9 tok/s | 1969.8 tok/s / 992.2 tok/s | decode TJS; prompt Doppler | command recording (command-recording) | [compare](../benchmarks/vendors/results/compare_20260627T203220.json) |
+| `gemma-3-270m-it-q4k-rdrr (Gemma 3 270M Instruct (Q4K/F32a))` | candidate | status candidate | bun-webgpu | bun | p512-d128-t0-k1 | 105.5 tok/s / 97.66 tok/s | 2323.7 tok/s / 1004 tok/s | decode Doppler; prompt Doppler | command recording (command-recording) | [compare](../benchmarks/vendors/results/compare_20260627T200603.json) / [svg](../benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-bun-p512-d128-t0-k1-strix-halo-20260627T200603.svg) |
+| `gemma-3-270m-it-q4k-rdrr (Gemma 3 270M Instruct (Q4K/F32a))` | candidate | status candidate | chromium-webgpu | browser | p064-d064-t0-k1 | 175.8 tok/s / 107.1 tok/s | 1036.5 tok/s / 840.4 tok/s | decode Doppler; prompt Doppler | readback map wait (submit-readback-wait) | [compare](../benchmarks/vendors/results/compare_20260627T202837.json) |
+| `gemma-3-270m-it-q4k-rdrr (Gemma 3 270M Instruct (Q4K/F32a))` | candidate | status candidate | chromium-webgpu | browser | p256-d128-t0-k1 | 164.2 tok/s / 113 tok/s | 2071.2 tok/s / 1021.5 tok/s | decode Doppler; prompt Doppler | readback map wait (submit-readback-wait) | [compare](../benchmarks/vendors/results/compare_20260627T203348.json) |
+| `gemma-3-270m-it-q4k-rdrr (Gemma 3 270M Instruct (Q4K/F32a))` | candidate | status candidate | chromium-webgpu | browser | p512-d128-t0-k1 | 156.5 tok/s / 96.08 tok/s | 2426.6 tok/s / 1024 tok/s | decode Doppler; prompt Doppler | readback map wait (submit-readback-wait) | [compare](../benchmarks/vendors/results/compare_20260627T200811.json) / [svg](../benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-browser-p512-d128-t0-k1-strix-halo-20260627T200811.svg) |
+| `gemma-3-270m-it-q4k-rdrr (Gemma 3 270M Instruct (Q4K/F32a))` | candidate | status candidate | node-webgpu | node | p064-d064-t0-k1 | 112.5 tok/s / 108.2 tok/s | 1106 tok/s / 831.9 tok/s | decode Doppler; prompt Doppler | command recording (command-recording) | [compare](../benchmarks/vendors/results/compare_20260627T202549.json) |
+| `gemma-3-270m-it-q4k-rdrr (Gemma 3 270M Instruct (Q4K/F32a))` | candidate | status candidate | node-webgpu | node | p256-d128-t0-k1 | 106 tok/s / 109.2 tok/s | 2156.3 tok/s / 1008.4 tok/s | decode TJS; prompt Doppler | command recording (command-recording) | [compare](../benchmarks/vendors/results/compare_20260627T203031.json) |
+| `gemma-3-270m-it-q4k-rdrr (Gemma 3 270M Instruct (Q4K/F32a))` | candidate | status candidate | node-webgpu | node | p512-d128-t0-k1 | 103 tok/s / 97.15 tok/s | 2453.3 tok/s / 1021.5 tok/s | decode Doppler; prompt Doppler | command recording (command-recording) | [compare](../benchmarks/vendors/results/compare_20260627T200323.json) / [svg](../benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-node-p512-d128-t0-k1-strix-halo-20260627T200323.svg) |
+| `gemma-4-e2b-it-int4ple-rdrr (Gemma 4 E2B Instruct (Q4K/F32a/INT4 PLE))` | candidate | status candidate; missing backends chromium-webgpu; missing workloads p064-d064-t0-k1, p256-d128-t0-k1, p512-d128-t0-k1; missing decode profiles parity, throughput; missing backend/workload chromium-webgpu:p064-d064-t0-k1, chromium-webgpu:p256-d128-t0-k1, chromium-webgpu:p512-d128-t0-k1 | not captured | not captured | not captured |  |  |  |  | missing |
+| `gemma-4-e2b-it-q4k-rdrr (Gemma 4 E2B Instruct (Q4K/F32a))` | candidate | status candidate; missing backends chromium-webgpu; missing workloads p064-d064-t0-k1, p256-d128-t0-k1, p512-d128-t0-k1; missing decode profiles parity, throughput; missing backend/workload chromium-webgpu:p064-d064-t0-k1, chromium-webgpu:p256-d128-t0-k1, chromium-webgpu:p512-d128-t0-k1 | not captured | not captured | not captured |  |  |  |  | missing |
+| `qwen-3-5-0-8b-q4k-rdrr (Qwen 3.5 0.8B (Q4K))` | candidate | status candidate; missing backends chromium-webgpu; missing workloads p064-d064-t0-k1, p256-d128-t0-k1, p512-d128-t0-k1; missing decode profiles parity, throughput; missing backend/workload chromium-webgpu:p064-d064-t0-k1, chromium-webgpu:p256-d128-t0-k1, chromium-webgpu:p512-d128-t0-k1 | not captured | not captured | not captured |  |  |  |  | missing |
+| `qwen-3-5-2b-q4k-rdrr (Qwen 3.5 2B (Q4K))` | candidate | status candidate; missing backends chromium-webgpu; missing workloads p064-d064-t0-k1, p256-d128-t0-k1, p512-d128-t0-k1; missing decode profiles parity, throughput; missing backend/workload chromium-webgpu:p064-d064-t0-k1, chromium-webgpu:p256-d128-t0-k1, chromium-webgpu:p512-d128-t0-k1 | not captured | not captured | not captured |  |  |  |  | missing |
+| `translategemma-4b-it-q4k-rdrr (TranslateGemma 4B Instruct (Q4K))` | candidate | status candidate; missing backends chromium-webgpu; missing workloads p064-d064-t0-k1, p256-d128-t0-k1, p512-d128-t0-k1; missing decode profiles parity, throughput; missing backend/workload chromium-webgpu:p064-d064-t0-k1, chromium-webgpu:p256-d128-t0-k1, chromium-webgpu:p512-d128-t0-k1 | not captured | not captured | not captured |  |  |  |  | missing |
+
+## Latest Bottlenecks
+
+Source: [compare_20260627T203348.json](../benchmarks/vendors/results/compare_20260627T203348.json)
+
+Doppler internal: readback map wait 491.2 ms; 63% of decode; command recording 284 ms; 19177 ops / 2 passes
+
+| Metric | Leader | Gap | Doppler | Transformers.js |
+|---|---|---:|---:|---:|
+| model load | transformersjs | 66% | 1036.8 ms | 624.6 ms |
+| first response (first token + load) | transformersjs | 32.59% | 1160.4 ms | 875.2 ms |
 
 ## Charts
 
 - [compare_1b_multi-workload_favorable_phases.svg](../benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
 - [compare_gemma4_e2b_warm_cold_phases.svg](../benchmarks/vendors/results/compare_gemma4_e2b_warm_cold_phases.svg)
+- [doppler-goat-claim-grid-20260627.svg](../benchmarks/vendors/results/doppler-goat-claim-grid-20260627.svg)
+- [doppler-goat-surface-sweep-p512-20260627.svg](../benchmarks/vendors/results/doppler-goat-surface-sweep-p512-20260627.svg)
+- [gemma-3-270m-it-q4k-rdrr-browser-p512-d128-t0-k1-strix-halo-20260627T200811.svg](../benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-browser-p512-d128-t0-k1-strix-halo-20260627T200811.svg)
+- [gemma-3-270m-it-q4k-rdrr-bun-p512-d128-t0-k1-strix-halo-20260627.svg](../benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-bun-p512-d128-t0-k1-strix-halo-20260627.svg)
+- [gemma-3-270m-it-q4k-rdrr-bun-p512-d128-t0-k1-strix-halo-20260627T200603.svg](../benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-bun-p512-d128-t0-k1-strix-halo-20260627T200603.svg)
+- [gemma-3-270m-it-q4k-rdrr-local-p512-d128-t0-k1-strix-halo-20260627.svg](../benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-local-p512-d128-t0-k1-strix-halo-20260627.svg)
+- [gemma-3-270m-it-q4k-rdrr-node-p512-d128-t0-k1-strix-halo-20260627.svg](../benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-node-p512-d128-t0-k1-strix-halo-20260627.svg)
+- [gemma-3-270m-it-q4k-rdrr-node-p512-d128-t0-k1-strix-halo-20260627T200323.svg](../benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-node-p512-d128-t0-k1-strix-halo-20260627T200323.svg)
+- [gemma-3-270m-it-q4k-rdrr-p064-d064-t0-k1-strix-halo-20260626.svg](../benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-p064-d064-t0-k1-strix-halo-20260626.svg)
+- [gemma-3-270m-it-q4k-rdrr-p256-d128-t0-k1-strix-halo-20260626.svg](../benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-p256-d128-t0-k1-strix-halo-20260626.svg)
+- [gemma-3-270m-it-q4k-rdrr-p512-d128-t0-k1-strix-halo-20260626.svg](../benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-p512-d128-t0-k1-strix-halo-20260626.svg)

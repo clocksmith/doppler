@@ -1,0 +1,42 @@
+{
+  "id": "profiles/gemma3-270m-q4k-throughput-overlapped-probe",
+  "name": "gemma3-270m-q4k-throughput-overlapped-probe",
+  "description": "Gemma 3 270M calibration profile that uses the Q4K 8x8 throughput cadence, overlapped decode readback, fused packed-QKV QK-norm/RoPE decode path, and sandwich RMSNorm-pair fusion for readback-bound browser diagnostics. Used to reduce decode readback submissions and dispatch count without changing shared prompt or sampling semantics.",
+  "intent": "calibrate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-06-26T00:00:00Z",
+  "extends": "profiles/throughput",
+  "model": "gemma-3-270m-it-q4k-ehf16-af32",
+  "runtime": {
+    "inference": {
+      "generation": {
+        "disableMultiTokenDecode": false
+      },
+      "batching": {
+        "batchSize": 8,
+        "readbackInterval": 8,
+        "stopCheckMode": "batch",
+        "readbackMode": "overlapped"
+      },
+      "session": {
+        "prefillChunkSubmitMode": "sync",
+        "retainQ4KMaterialization": true,
+        "useWideTileQ4KPrefill": true,
+        "useSandwichRMSNormPairFusion": true,
+        "usePostFfnNextInputRMSNormPairFusion": true,
+        "useFusedQKVSplitQKNormRoPE": true,
+        "decodeLoop": {
+          "batchSize": 8,
+          "stopCheckMode": "batch",
+          "readbackInterval": 8,
+          "readbackMode": "overlapped",
+          "ringTokens": 2,
+          "ringStop": 1,
+          "ringStaging": 2,
+          "disableCommandBatching": false
+        }
+      }
+    }
+  }
+}

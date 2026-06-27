@@ -8,5 +8,8 @@ assert.match(runnerSource, /window\.__runGreedyPromptPack\s*=\s*async/);
 assert.match(runnerSource, /generatedTokenIds\.push\(\.\.\.normalizeGeneratedTokenIds\(tokens\)\)/);
 assert.match(runnerSource, /firstTokenId:\s*generatedTokenIds\[0\]\s*\?\?\s*null/);
 assert.match(runnerSource, /strictDeterministicGreedy:\s*generationSettings\.strictDeterministicGreedy/);
+assert.match(runnerSource, /let generatedTokenIds = null;/);
+assert.match(runnerSource, /const lastRunTokenIds = isLastRun \? \[\] : null;/);
+assert.match(runnerSource, /generatedTokenIds = lastRunTokenIds;/);
 
 console.log('transformersjs-runner-greedy-pack-contract.test: ok');

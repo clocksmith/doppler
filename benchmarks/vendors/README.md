@@ -10,6 +10,7 @@ Claim methodology and fairness policy are canonical in [docs/benchmark-methodolo
 - Example compare artifact: [fixtures/g3-p064-d064-t0-k1.compare.json](./fixtures/g3-p064-d064-t0-k1.compare.json)
 - Target registry: [registry.json](./registry.json)
 - Capability matrix: [capabilities.json](./capabilities.json)
+- Local inference claim matrix: [local-inference-claim-matrix.json](./local-inference-claim-matrix.json)
 - Harness definitions: [harnesses/](./harnesses)
 - Latest generated matrix: [release-matrix.json](./release-matrix.json)
 - Published matrix doc: [docs/release-matrix.md](../../docs/release-matrix.md)
@@ -74,9 +75,14 @@ Use these before turning a compare result into README copy, a chart, or a releas
   - `prefillTokens` is an enforced model-input token target, not a raw word-count hint.
 - [capabilities.json](./capabilities.json): capability matrix for bench/profiling coverage by target.
   Feature values are tri-state: `supported`, `unsupported`, `unknown`.
+- [local-inference-claim-matrix.json](./local-inference-claim-matrix.json): versioned model-lane selection for local medium inference claims.
+  It pins local manifests, tokenizer hashes, shard-set identity, memory budgets, shared workloads, sampling, decode profiles, timing scope, and promotion gates.
+  `sharedRunContract.requiredRuntimeBackends` declares the Doppler Chromium/browser, Node, and Bun WebGPU surfaces required before a lane can be promoted.
+  Lanes stay `candidate` until competitor artifact hashes, compare JSON, and the summary SVG are present.
 - [harnesses/](./harnesses): one harness definition per vendor.
 - [schema/](./schema): schemas for registry, workloads, harness, capabilities, metric contract, and normalized result records.
 - [schema/compare-engines-config.schema.json](./schema/compare-engines-config.schema.json): schema for `compare-engines.config.json`.
+- [schema/local-inference-claim-matrix.schema.json](./schema/local-inference-claim-matrix.schema.json): schema for local medium inference claim-lane selection.
 - [schema/release-matrix.schema.json](./schema/release-matrix.schema.json): schema for generated release/support matrix payload.
 - [results/](./results/): generated normalized outputs and committed chart snapshots. Some JSON compare artifacts may also be committed here when they are part of published evidence.
 - [fixtures/](./fixtures/): committed sample compare payloads for clean-checkout chart and matrix smoke checks.
@@ -307,8 +313,9 @@ When `--compare-result` is provided, matrix generation also captures host/browse
 - Harness mappings allow ordered fallback path arrays (`normalization.metricPaths` / `metadataPaths`).
 - Path order is canonicalized in harness files and validated before comparison.
 - Metric paths are canonicalized through [harnesses/](./harnesses) and validated as required before any comparison.
-- [tools/compare-engines.js](../../tools/compare-engines.js) defaults to `--decode-profile parity` with the release decode cadence from [benchmark-policy.json](./benchmark-policy.json) (currently Doppler `batchSize=4`, `readbackInterval=4`, `disableMultiTokenDecode=false`, `session.speculation.mode=none`); use `--decode-profile throughput` for the same cadence with throughput-lane labeling.
+- [tools/compare-engines.js](../../tools/compare-engines.js) defaults to `--decode-profile parity` with the release decode cadence from [benchmark-policy.json](./benchmark-policy.json) (currently Doppler `batchSize=4`, `readbackInterval=4`, `disableMultiTokenDecode=false`, `session.speculation.mode=none`); use `--decode-profile throughput` for the policy-defined throughput cadence, currently Doppler `batchSize=8`, `readbackInterval=8`, with throughput-lane labeling.
 - When a compare model profile declares `dopplerRuntimeProfileByDecodeProfile`, [tools/compare-engines.js](../../tools/compare-engines.js) loads that runtime profile first and then reapplies compare-managed prompt/sampling/cadence fields on top, so model-specific tuning stays explicit without silently changing the lane contract.
+- Doppler compare cadence receipts include both the request-level `runtimeMirror` and the resolved execution-plan cadence. A promoted lane should use the resolved `readbackMode`/batch/readback fields, while the mirror proves which fields were explicit in the runtime overlay.
 - [tools/compare-engines.js](../../tools/compare-engines.js) records the exact installed Transformers.js / ONNX Runtime stack in each compare artifact and validates that the v4 runner is pinned to the same nested ORT modules before timing starts.
 - [tools/compare-engines.js](../../tools/compare-engines.js) applies the explicit Doppler compare-lane `runtime.inference.kernelPathPolicy` from [benchmark-policy.json](./benchmark-policy.json); capability-aware remaps used for known platform/runtime constraints are therefore part of the recorded engine overlay, not a hidden runtime fallback.
 - [tools/compare-engines.js](../../tools/compare-engines.js) also applies the explicit Doppler browser channel from [benchmark-policy.json](./benchmark-policy.json) unless `--doppler-browser-channel` overrides it, so compare runs do not silently drift across locally installed browser channels.
@@ -319,7 +326,7 @@ When `--compare-result` is provided, matrix generation also captures host/browse
 - For large browser-side Transformers.js compare lanes, prefer a staged local snapshot over live HF/Xet fetches. Use [tools/stage-tjs-model.js](../../tools/stage-tjs-model.js) and pass the snapshot root with `--tjs-local-model-path`. The staging helper now validates the required decoder/embed shards for the selected dtype and fails closed when the local snapshot is incomplete.
 - [tools/compare-engines.js](../../tools/compare-engines.js) does not mutate compare-lane semantics on retry. If an engine fails, the section is recorded with `pairedComparable: false` and an `invalidReason`.
 - Compare artifacts pin harness + metric-contract hashes; stale compare JSON is dropped from `vendor-bench matrix` unless you refresh it.
-- Doppler surface is now explicit in compare runs: `--doppler-surface auto|node|browser` (default from `compare-engines.config.json` per model profile via `defaultDopplerSurface`, fallback `auto`).
+- Doppler surface is now explicit in compare runs: `--doppler-surface auto|node|browser|bun` (default from `compare-engines.config.json` per model profile via `defaultDopplerSurface`, fallback `auto`). The `bun` surface executes the Doppler CLI through Bun while preserving the same compare-managed runtime payload; it remains a cross-surface diagnostic against browser-based Transformers.js unless a matching TJS Bun lane is added.
 
 ## Visualization
 
@@ -329,9 +336,11 @@ Use [benchmarks/vendors/compare-chart.js](./compare-chart.js) to turn a saved co
 node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json
 node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json --chart stacked
 node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json --chart radar --section compute/parity
+node benchmarks/vendors/generate-local-claim-summary-svg.js --lane gemma-3-270m-it-q4k-rdrr --output benchmarks/vendors/results/doppler-goat-claim-grid-20260627.svg
 ```
 
-Use `--section` to choose the section, `--chart` (`bar|stacked|radar`) to pick the renderer, and `--metrics` to limit metric IDs.
+Use `--section` to choose the section, `--chart` (`bar|stacked|radar|phases`) to pick the renderer, and `--metrics` to limit metric IDs.
+Use `generate-local-claim-summary-svg.js` for the compact README claim grid; it reads `local-inference-claim-matrix.json` workload evidence so blockers remain visible.
 
 ## Change Checklist
 
