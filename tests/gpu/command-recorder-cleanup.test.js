@@ -70,6 +70,7 @@ class FakeQuerySet {
 function createFakeDevice(options = {}) {
   const createdBuffers = [];
   const createdQuerySets = [];
+  const computePasses = [];
   const rejectSubmitted = options.rejectSubmitted === true;
   const rejectMapRead = options.rejectMapRead === true;
   const submitThrows = options.submitThrows === true;
@@ -97,6 +98,7 @@ function createFakeDevice(options = {}) {
   return {
     createdBuffers,
     createdQuerySets,
+    computePasses,
     queue,
     features,
     limits: {
@@ -112,8 +114,8 @@ function createFakeDevice(options = {}) {
       maxComputeWorkgroupsPerDimension: 65535,
       maxQuerySetSize: 64,
     },
-    createBindGroup() {
-      return {};
+    createBindGroup(descriptor = {}) {
+      return { descriptor };
     },
     createQuerySet() {
       const querySet = new FakeQuerySet();
@@ -132,9 +134,29 @@ function createFakeDevice(options = {}) {
     },
     createCommandEncoder() {
       return {
-        beginComputePass() {
+        beginComputePass(descriptor = {}) {
+          const passRecord = {
+            label: descriptor.label ?? null,
+            ended: false,
+            dispatches: [],
+          };
+          computePasses.push(passRecord);
           return {
-            end() {},
+            setPipeline(pipeline) {
+              passRecord.pipeline = pipeline;
+            },
+            setBindGroup(index, bindGroup) {
+              passRecord.bindGroup = { index, bindGroup };
+            },
+            dispatchWorkgroups(x, y, z) {
+              passRecord.dispatches.push({ type: 'direct', x, y, z });
+            },
+            dispatchWorkgroupsIndirect(buffer, offset) {
+              passRecord.dispatches.push({ type: 'indirect', buffer, offset });
+            },
+            end() {
+              passRecord.ended = true;
+            },
           };
         },
         copyBufferToBuffer() {},
@@ -204,6 +226,94 @@ configurePerfGuards({
   await recorder.completeDeferredCleanup();
   assert.equal(completed, true);
   assert.equal(device.getSubmittedWorkDoneCount(), 1);
+}
+
+{
+  const device = createFakeDevice();
+  const recorder = new CommandRecorder(device, 'coalesced_dispatch');
+  const pipeline = {};
+  const bindGroup = {};
+  const indirect = new FakeBuffer({ size: 12, usage: GPUBufferUsage.INDIRECT });
+
+  recorder.recordDispatch(pipeline, bindGroup, [1, 1, 1], 'first');
+  recorder.recordDispatch(pipeline, bindGroup, [2, 1, 1], 'second');
+  recorder.recordDispatchIndirect(pipeline, bindGroup, indirect, 4, 'third');
+
+  assert.equal(device.computePasses.length, 1);
+  assert.equal(device.computePasses[0].ended, false);
+  assert.deepEqual(device.computePasses[0].dispatches, [
+    { type: 'direct', x: 1, y: 1, z: 1 },
+    { type: 'direct', x: 2, y: 1, z: 1 },
+    { type: 'indirect', buffer: indirect, offset: 4 },
+  ]);
+  assert.deepEqual(recorder.getStats().opLabelCounts, {
+    first: 1,
+    second: 1,
+    third: 1,
+  });
+  assert.equal(recorder.getStats().opCount, 3);
+  assert.equal(recorder.getStats().computePassCount, 1);
+
+  recorder.getEncoder();
+  assert.equal(device.computePasses[0].ended, true);
+
+  recorder.recordDispatch(pipeline, bindGroup, [3, 1, 1], 'after_copy_boundary');
+  assert.equal(device.computePasses.length, 2);
+  recorder.submit();
+
+  assert.equal(device.computePasses[1].ended, true);
+  assert.equal(recorder.getStats().opCount, 4);
+  assert.equal(recorder.getStats().computePassCount, 2);
+}
+
+{
+  const device = createFakeDevice();
+  const recorder = new CommandRecorder(device, 'counts_without_labels', { recordLabels: false });
+  const pipeline = {};
+  const bindGroup = {};
+
+  recorder.recordDispatch(pipeline, bindGroup, [1, 1, 1], 'first');
+  recorder.recordDispatch(pipeline, bindGroup, [2, 1, 1], 'second');
+
+  assert.deepEqual(recorder.getStats().opLabelCounts, {});
+  assert.equal(recorder.getStats().opCount, 2);
+  assert.equal(recorder.getStats().computePassCount, 1);
+
+  recorder.abort();
+}
+
+{
+  setRuntimeConfig({
+    shared: {
+      debug: {
+        profiler: {
+          maxQueries: 8,
+          defaultQueryLimit: 8,
+        },
+      },
+    },
+  });
+
+  const device = createFakeDevice({
+    features: [FEATURES.TIMESTAMP_QUERY],
+  });
+  setDevice(device, { platformConfig: null });
+  const recorder = new CommandRecorder(device, 'profile_dispatch', { profile: true });
+  const pipeline = {};
+  const bindGroup = {};
+
+  recorder.recordDispatch(pipeline, bindGroup, [1, 1, 1], 'first');
+  recorder.recordDispatch(pipeline, bindGroup, [2, 1, 1], 'second');
+
+  assert.equal(device.computePasses.length, 2);
+  assert.equal(device.computePasses[0].ended, true);
+  assert.equal(device.computePasses[1].ended, true);
+  assert.equal(recorder.getStats().opCount, 2);
+  assert.equal(recorder.getStats().computePassCount, 2);
+
+  recorder.abort();
+  resetRuntimeConfig();
+  setDevice(null);
 }
 
 {

@@ -10,6 +10,9 @@ function normalizeWorkgroups(workgroups) {
   if (!Array.isArray(workgroups) || workgroups.length === 0) {
     throw new Error('dispatch requires workgroups as a number or [x, y, z]');
   }
+  if (workgroups.length >= 3 && workgroups[1] !== undefined && workgroups[2] !== undefined) {
+    return workgroups;
+  }
   const x = workgroups[0] ?? 1;
   const y = workgroups[1] ?? 1;
   const z = workgroups[2] ?? 1;
@@ -72,7 +75,12 @@ export function recordDispatch(
   workgroups,
   label = 'compute'
 ) {
-  const [x, y, z] = assertWorkgroupLimits(recorder.device, workgroups, label);
+  const dispatchWorkgroups = assertWorkgroupLimits(recorder.device, workgroups, label);
+  if (typeof recorder.recordDispatch === 'function') {
+    recorder.recordDispatch(pipeline, bindGroup, dispatchWorkgroups, label);
+    return;
+  }
+  const [x, y, z] = dispatchWorkgroups;
   const pass = recorder.beginComputePass(label);
   pass.setPipeline(pipeline);
   pass.setBindGroup(0, bindGroup);
@@ -108,11 +116,13 @@ export function recordDispatchIndirect(
   indirectOffset = 0,
   label = 'compute'
 ) {
+  if (typeof recorder.recordDispatchIndirect === 'function') {
+    recorder.recordDispatchIndirect(pipeline, bindGroup, indirectBuffer, indirectOffset, label);
+    return;
+  }
   const pass = recorder.beginComputePass(label);
   pass.setPipeline(pipeline);
   pass.setBindGroup(0, bindGroup);
   pass.dispatchWorkgroupsIndirect(indirectBuffer, indirectOffset);
   pass.end();
 }
-
-

@@ -11,8 +11,6 @@ let didLogQueryClamp = false;
 let didLogQueryFallback = false;
 
 
-
-
 export class CommandRecorder {
   
   device;
@@ -38,11 +36,18 @@ export class CommandRecorder {
 
   #completionTasks;
 
-  
   #submitted;
 
   
   #opCount;
+
+  #opLabelCounts;
+
+  #recordLabels;
+
+  #computePassCount;
+
+  #activeComputePass = null;
 
   // Profiling state
   
@@ -89,7 +94,10 @@ export class CommandRecorder {
 
     // Operation count for debugging
     this.#opCount = 0;
-
+    this.#opLabelCounts = Object.create(null);
+    this.#recordLabels = options.recordLabels !== false;
+    this.#computePassCount = 0;
+    this.#activeComputePass = null;
     // Initialize profiling if requested and available
     this.#profilingEnabled = options.profile === true && hasFeature(FEATURES.TIMESTAMP_QUERY);
     if (this.#profilingEnabled) {
@@ -221,24 +229,32 @@ export class CommandRecorder {
     return getUniformCache().getOrCreate(toUniformArrayBuffer(data), label);
   }
 
-  
-  beginComputePass(label = 'compute_pass') {
-    if (this.#submitted) {
-      throw new Error('[CommandRecorder] Cannot begin pass after submit');
-    }
+  #normalizeOperationLabel(label) {
+    return typeof label === 'string' && label.length > 0
+      ? label
+      : 'compute_pass';
+  }
+
+  #recordOperation(label) {
+    const opLabel = this.#normalizeOperationLabel(label);
     this.#opCount++;
+    if (this.#recordLabels) {
+      this.#opLabelCounts[opLabel] = (this.#opLabelCounts[opLabel] ?? 0) + 1;
+    }
+    return opLabel;
+  }
 
-    const passLabel = `${this.label}_${label}_${this.#opCount}`;
+  #beginRawComputePass(opLabel) {
+    this.#computePassCount++;
+    const passLabel = `${this.label}_${opLabel}_${this.#computePassCount}`;
 
-    // If profiling enabled, add timestamp writes
     if (this.#profilingEnabled && this.#querySet && this.#nextQueryIndex + 2 <= this.#queryCapacity) {
       const startIndex = this.#nextQueryIndex;
       const endIndex = startIndex + 1;
       this.#nextQueryIndex += 2;
 
-      // Track this entry for later resolution
       this.#profileEntries.push({
-        label,
+        label: opLabel,
         startQueryIndex: startIndex,
         endQueryIndex: endIndex,
       });
@@ -253,10 +269,71 @@ export class CommandRecorder {
       });
     }
 
-    // Non-profiling path
     return this.#encoder.beginComputePass({
       label: passLabel,
     });
+  }
+
+  closeActiveComputePass() {
+    if (!this.#activeComputePass) {
+      return;
+    }
+    const pass = this.#activeComputePass;
+    this.#activeComputePass = null;
+    pass.end();
+  }
+
+  #ensureActiveComputePass() {
+    if (!this.#activeComputePass) {
+      this.#activeComputePass = this.#beginRawComputePass('coalesced_compute');
+    }
+    return this.#activeComputePass;
+  }
+
+  beginComputePass(label = 'compute_pass') {
+    if (this.#submitted) {
+      throw new Error('[CommandRecorder] Cannot begin pass after submit');
+    }
+    this.closeActiveComputePass();
+    return this.#beginRawComputePass(this.#recordOperation(label));
+  }
+
+  recordDispatch(pipeline, bindGroup, workgroups, label = 'compute') {
+    if (this.#submitted) {
+      throw new Error('[CommandRecorder] Cannot record dispatch after submit');
+    }
+    const opLabel = this.#recordOperation(label);
+    if (this.#profilingEnabled) {
+      const pass = this.#beginRawComputePass(opLabel);
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(0, bindGroup);
+      pass.dispatchWorkgroups(workgroups[0], workgroups[1], workgroups[2]);
+      pass.end();
+      return;
+    }
+    const pass = this.#ensureActiveComputePass();
+    pass.setPipeline(pipeline);
+    pass.setBindGroup(0, bindGroup);
+    pass.dispatchWorkgroups(workgroups[0], workgroups[1], workgroups[2]);
+  }
+
+  recordDispatchIndirect(pipeline, bindGroup, indirectBuffer, indirectOffset = 0, label = 'compute') {
+    if (this.#submitted) {
+      throw new Error('[CommandRecorder] Cannot record dispatch after submit');
+    }
+    const opLabel = this.#recordOperation(label);
+    if (this.#profilingEnabled) {
+      const pass = this.#beginRawComputePass(opLabel);
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(0, bindGroup);
+      pass.dispatchWorkgroupsIndirect(indirectBuffer, indirectOffset);
+      pass.end();
+      return;
+    }
+    const pass = this.#ensureActiveComputePass();
+    pass.setPipeline(pipeline);
+    pass.setBindGroup(0, bindGroup);
+    pass.dispatchWorkgroupsIndirect(indirectBuffer, indirectOffset);
   }
 
   
@@ -264,6 +341,7 @@ export class CommandRecorder {
     if (this.#submitted) {
       throw new Error('[CommandRecorder] Cannot access encoder after submit');
     }
+    this.closeActiveComputePass();
     return this.#encoder;
   }
 
@@ -358,6 +436,7 @@ export class CommandRecorder {
     }
 
     const submitStart = performance.now();
+    this.closeActiveComputePass();
     const { buffersToDestroy, buffersToRelease } = this.#takeTrackedBuffers();
     try {
       this.device.queue.submit([this.#encoder.finish()]);
@@ -421,8 +500,16 @@ export class CommandRecorder {
 
 
   getStats() {
+    const opLabelCounts = Object.fromEntries(
+      Object.entries(this.#opLabelCounts).sort((a, b) => {
+        const countDelta = b[1] - a[1];
+        return countDelta !== 0 ? countDelta : a[0].localeCompare(b[0]);
+      })
+    );
     return {
       opCount: this.#opCount,
+      opLabelCounts,
+      computePassCount: this.#computePassCount,
       tempBufferCount: this.#tempBuffers.length,
       pooledBufferCount: this.#pooledBuffers.length,
       submitted: this.#submitted,
@@ -436,6 +523,8 @@ export class CommandRecorder {
 
   abort() {
     if (this.#submitted) return;
+
+    this.closeActiveComputePass();
 
     // Destroy temp buffers without submitting
     for (const buffer of this.#tempBuffers) {
