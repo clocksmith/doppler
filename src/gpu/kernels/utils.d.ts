@@ -45,6 +45,7 @@ export {
   getOrCreatePipelineLayout,
   getCachedPipeline,
   getPipelineFast,
+  getPipelineBindGroupLayout,
   createPipeline,
   clearPipelineCaches,
   getPipelineCacheStats,
@@ -86,6 +87,9 @@ export {
 // Combined Cache Management
 // ============================================================================
 
+/** Whether debug-only kernel record-stage timing is enabled for this process. */
+export declare const RECORD_STAGE_DEBUG_ENABLED: boolean;
+
 /** Debug-only kernel timing recorder enabled by DOPPLER_DBG_RECORD. */
 export declare function __dbgRecord(
   op: string,
@@ -109,7 +113,8 @@ export declare function unifiedKernelWrapper(
   uniforms: Record<string, number>,
   workgroups: number | [number, number, number],
   constants?: Record<string, number> | null,
-  extraBindings?: unknown[] | null
+  extraBindings?: unknown[] | null,
+  dispatchLabel?: string | null
 ): Promise<void>;
 
 /**

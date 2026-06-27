@@ -19,6 +19,8 @@ const bindGroupLayoutCache = new Map();
 
 const pipelineLayoutCache = new Map();
 
+let pipelineBindGroupLayoutCache = new WeakMap();
+
 let pipelineCacheEpoch = -1;
 const deviceIds = new WeakMap();
 let nextDeviceId = 1;
@@ -38,6 +40,7 @@ function ensureCacheEpoch() {
     pipelineCache.clear();
     bindGroupLayoutCache.clear();
     pipelineLayoutCache.clear();
+    pipelineBindGroupLayoutCache = new WeakMap();
     pipelineCacheEpoch = epoch;
   }
 }
@@ -97,6 +100,26 @@ export function getOrCreatePipelineLayout(
   });
 
   pipelineLayoutCache.set(scopedLabel, layout);
+  return layout;
+}
+
+export function getPipelineBindGroupLayout(pipeline, index = 0) {
+  ensureCacheEpoch();
+  if (!pipeline || typeof pipeline.getBindGroupLayout !== 'function') {
+    throw new Error('getPipelineBindGroupLayout requires a GPUComputePipeline');
+  }
+  const normalizedIndex = Number.isInteger(index) && index >= 0 ? index : 0;
+  let layoutsByIndex = pipelineBindGroupLayoutCache.get(pipeline);
+  if (!layoutsByIndex) {
+    layoutsByIndex = new Map();
+    pipelineBindGroupLayoutCache.set(pipeline, layoutsByIndex);
+  }
+  const cached = layoutsByIndex.get(normalizedIndex);
+  if (cached) {
+    return cached;
+  }
+  const layout = pipeline.getBindGroupLayout(normalizedIndex);
+  layoutsByIndex.set(normalizedIndex, layout);
   return layout;
 }
 
@@ -292,6 +315,7 @@ export function clearPipelineCaches() {
   pipelineCache.clear();
   bindGroupLayoutCache.clear();
   pipelineLayoutCache.clear();
+  pipelineBindGroupLayoutCache = new WeakMap();
   pipelineCacheEpoch = getDeviceEpoch();
 }
 
