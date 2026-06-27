@@ -77,6 +77,9 @@ Prompt-target note:
   `dopplerRuntimeProfileByDecodeProfile`.
 - Compare-managed prompt, sampling, and decode-cadence fields must override any
   model-scoped Doppler runtime profile values so the reported lane contract stays stable.
+- Doppler compare artifacts must distinguish request-level cadence from resolved
+  execution-plan cadence. `runtimeMirror` records the runtime overlay, while the
+  top-level cadence fields and `executionPlan` record what actually executed.
 - Canonical Transformers.js compare repo/dtype defaults come from `models/catalog.json` `vendorBenchmark.transformersjs`, not ad hoc runner fallbacks.
 - Warm `opfs` lanes must fully prime the lazy generation path before the timed pass. A load-only warmup is not a valid warm-load comparison for models that fetch decoder assets on first token.
 - Browser-side claim lanes must not depend on live remote asset fetches when a staged local snapshot is required for stability. When the TJS model is staged locally, the compare contract should use `--tjs-local-model-path` so warm comparisons are reproducible.
