@@ -1,5 +1,6 @@
 
 import { getDevice, initDevice, getKernelCapabilities } from '../../gpu/device.js';
+import { getUniformCacheStats } from '../../gpu/uniform-cache.js';
 import { getBufferPool as getGlobalBufferPool, readBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { log } from '../../debug/index.js';
 import { configurePerfGuards } from '../../gpu/perf-guards.js';
@@ -108,6 +109,51 @@ async function withPipelineLoadPhase(phase, context, run) {
       throw error;
     }
     throw createPipelineLoadPhaseError(error, phase, context);
+  }
+}
+
+function roundPipelineTimingMs(value) {
+  return Number.isFinite(value) ? Number(value.toFixed(3)) : null;
+}
+
+function createPipelineLoadTiming(modelId) {
+  return {
+    schemaVersion: 1,
+    source: 'doppler-pipeline',
+    modelId: typeof modelId === 'string' ? modelId : null,
+    status: 'running',
+    phasesMs: {
+      reset: null,
+      configResolution: null,
+      kernelWarmup: null,
+      tokenizer: null,
+      executionSetup: null,
+      loadWeights: null,
+      rope: null,
+      convStates: null,
+    },
+    details: {
+      tokenizer: null,
+    },
+    totalMs: null,
+  };
+}
+
+function finishPipelineLoadTimingPhase(loadTiming, phase, startMs) {
+  if (!loadTiming?.phasesMs || !phase) return;
+  const elapsedMs = roundPipelineTimingMs(performance.now() - startMs);
+  const currentMs = loadTiming.phasesMs[phase];
+  loadTiming.phasesMs[phase] = Number.isFinite(currentMs)
+    ? roundPipelineTimingMs(currentMs + elapsedMs)
+    : elapsedMs;
+}
+
+async function timedPipelineLoadPhase(loadTiming, phase, context, run) {
+  const startMs = performance.now();
+  try {
+    return await withPipelineLoadPhase(phase, context, run);
+  } finally {
+    finishPipelineLoadTimingPhase(loadTiming, phase, startMs);
   }
 }
 
@@ -265,6 +311,9 @@ export class InferencePipeline extends PipelineState {
 
   async loadModel(manifest) {
     const loadStart = performance.now();
+    const pipelineLoadTiming = createPipelineLoadTiming(manifest?.modelId ?? null);
+    const resetStart = performance.now();
+    this.stats.pipelineLoadTiming = pipelineLoadTiming;
     this.manifest = manifest;
     this.decodeRing?.release();
     if (this.sampleReadbackBuffer) {
@@ -274,6 +323,7 @@ export class InferencePipeline extends PipelineState {
     this.linearAttentionRuntime = resetLinearAttentionRuntime(this.linearAttentionRuntime);
     destroyMoERouter(this.moeRouter);
     this.moeRouter = null;
+    finishPipelineLoadTimingPhase(pipelineLoadTiming, 'reset', resetStart);
 
     // ========================================================================
     // Config Resolution Passes
@@ -306,6 +356,7 @@ export class InferencePipeline extends PipelineState {
     // ========================================================================
 
     let configResolutionPhase = 0;
+    const configResolutionStart = performance.now();
 
     // Phase 1: execution-v1 runtime config
     configResolutionPhase = 1;
@@ -407,13 +458,20 @@ export class InferencePipeline extends PipelineState {
     } else {
       this.audioCapable = false;
     }
+    finishPipelineLoadTimingPhase(pipelineLoadTiming, 'configResolution', configResolutionStart);
 
-    await runKernelWarmup({
-      useGPU: this.useGPU,
-      kernelWarmup: this.runtimeConfig.shared?.kernelWarmup,
-      modelConfig: this.modelConfig,
-    });
+    await timedPipelineLoadPhase(
+      pipelineLoadTiming,
+      'kernelWarmup',
+      { modelId: manifest.modelId ?? null },
+      () => runKernelWarmup({
+        useGPU: this.useGPU,
+        kernelWarmup: this.runtimeConfig.shared?.kernelWarmup,
+        modelConfig: this.modelConfig,
+      })
+    );
 
+    const executionSetupStart = performance.now();
     // Phase 3: kernel path resolution + dtype contract
     configResolutionPhase = 3;
     log.debug('Pipeline', `Config resolution phase ${configResolutionPhase}: resolveKernelPathState`);
@@ -437,8 +495,10 @@ export class InferencePipeline extends PipelineState {
     const moeStr = cfg.useMoE ? `, MoE(${cfg.numExperts}x${cfg.moeTopK})` : '';
     const kernelInfo = this.resolvedKernelPath ? `kernelPath=${this.resolvedKernelPath.id}` : 'kernelPath=none';
     log.info('Pipeline', `${cfg.numLayers}L/${cfg.hiddenSize}H/${cfg.numHeads}heads (${cfg.headDim}dim)${moeStr}, ${kernelInfo}`);
+    finishPipelineLoadTimingPhase(pipelineLoadTiming, 'executionSetup', executionSetupStart);
 
-    this.tokenizer = await withPipelineLoadPhase(
+    this.tokenizer = await timedPipelineLoadPhase(
+      pipelineLoadTiming,
       'tokenizer',
       { modelId: manifest.modelId ?? null },
       () => initTokenizerFromManifest(
@@ -447,6 +507,9 @@ export class InferencePipeline extends PipelineState {
         this.storageContext
       )
     );
+    pipelineLoadTiming.details.tokenizer = typeof this.tokenizer?.getLoadTiming === 'function'
+      ? this.tokenizer.getLoadTiming()
+      : null;
     const tokenizerVocabSize = this.tokenizer.getVocabSize();
     if (Number.isFinite(tokenizerVocabSize) && tokenizerVocabSize > 0) {
       if (tokenizerVocabSize !== this.modelConfig.vocabSize) {
@@ -454,6 +517,7 @@ export class InferencePipeline extends PipelineState {
       }
     }
 
+    const postTokenizerExecutionSetupStart = performance.now();
     // Manifest quantizationInfo.compute is the binding lane identity.
     assertManifestComputeLaneBinding({ manifest, runtimeConfig: this.runtimeConfig });
 
@@ -512,23 +576,41 @@ export class InferencePipeline extends PipelineState {
         this.runtimeConfig.inference.speculative
       );
     }
+    finishPipelineLoadTimingPhase(
+      pipelineLoadTiming,
+      'executionSetup',
+      postTokenizerExecutionSetupStart
+    );
 
     // Load weights
-    await withPipelineLoadPhase(
+    await timedPipelineLoadPhase(
+      pipelineLoadTiming,
       'loadWeights',
       { modelId: manifest.modelId ?? null },
       () => this._loadWeights()
     );
 
     // Initialize RoPE frequencies
-    await this._initRoPE();
+    await timedPipelineLoadPhase(
+      pipelineLoadTiming,
+      'rope',
+      { modelId: manifest.modelId ?? null },
+      () => this._initRoPE()
+    );
 
     // Initialize conv layer states for gated short conv layers (LFM2)
-    await this._initConvLayerStates();
+    await timedPipelineLoadPhase(
+      pipelineLoadTiming,
+      'convStates',
+      { modelId: manifest.modelId ?? null },
+      () => this._initConvLayerStates()
+    );
 
     this.isLoaded = true;
     const loadMs = performance.now() - loadStart;
     this.stats.modelLoadMs = loadMs;
+    pipelineLoadTiming.totalMs = roundPipelineTimingMs(loadMs);
+    pipelineLoadTiming.status = 'complete';
     log.info('Pipeline', `Model loaded successfully (${loadMs.toFixed(0)}ms)`);
   }
 
@@ -577,6 +659,7 @@ export class InferencePipeline extends PipelineState {
     this.layerRouterWeights = result.layerRouterWeights;
 
     this.dopplerLoader = getDopplerLoader(this.runtimeConfig.loading);
+    this.stats.loadTiming = result.loadTiming ?? this.dopplerLoader?.getLoadTiming?.() ?? null;
 
     if ((this.modelConfig).useMoE && this.moeRouter) {
       this.moeRouter = initMoERouter(
@@ -1691,6 +1774,7 @@ export class InferencePipeline extends PipelineState {
             kernelPathSource: this.executionPlanState.primaryPlan.kernelPathSource ?? 'none',
             activationDtype: this.executionPlanState.primaryPlan.activationDtype,
             readbackInterval: this.executionPlanState.primaryPlan.readbackInterval ?? null,
+            readbackMode: this.executionPlanState.primaryPlan.readbackMode ?? null,
             batchSize: this.executionPlanState.primaryPlan.defaultBatchSize,
             stopCheckMode: this.executionPlanState.primaryPlan.defaultStopCheckMode,
             disableCommandBatching: this.executionPlanState.primaryPlan.defaultDisableCommandBatching === true,
@@ -1706,6 +1790,7 @@ export class InferencePipeline extends PipelineState {
             kernelPathSource: this.executionPlanState.fallbackPlan.kernelPathSource ?? 'none',
             activationDtype: this.executionPlanState.fallbackPlan.activationDtype,
             readbackInterval: this.executionPlanState.fallbackPlan.readbackInterval ?? null,
+            readbackMode: this.executionPlanState.fallbackPlan.readbackMode ?? null,
             batchSize: this.executionPlanState.fallbackPlan.defaultBatchSize,
             stopCheckMode: this.executionPlanState.fallbackPlan.defaultStopCheckMode,
             disableCommandBatching: this.executionPlanState.fallbackPlan.defaultDisableCommandBatching === true,
@@ -1729,6 +1814,10 @@ export class InferencePipeline extends PipelineState {
     const ringStats = this.decodeRing?.getStats();
     if (ringStats) {
       stats.decodeRing = ringStats;
+    }
+    const uniformCacheStats = getUniformCacheStats();
+    if (uniformCacheStats) {
+      stats.uniformCache = uniformCacheStats;
     }
     return stats;
   }

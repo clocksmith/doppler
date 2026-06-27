@@ -31,7 +31,9 @@ import type {
 } from '../../kv-cache.js';
 import type { DecodeRingStats } from '../../decode-ring.js';
 import type { LinearAttentionRuntime } from './linear-attention.js';
-import type { PerLayerInputWeights } from '../../../loader/loader-types.js';
+import type { TokenizerLoadTiming } from '../../tokenizer.js';
+import type { LoaderLoadTiming, PerLayerInputWeights } from '../../../loader/loader-types.js';
+import type { UniformCacheStats } from '../../../gpu/uniform-cache.js';
 
 // ============================================================================
 // Core Context Types
@@ -94,6 +96,14 @@ export interface LayerContext {
   __pendingFfnResidualTensor?: unknown;
   __ffnResidualFusedFired?: boolean;
   __layerScalarFusedFired?: boolean;
+  __precomputedInputNorm?: {
+    layerIdx: number;
+    tensor: unknown;
+  } | null;
+  __postFfnNextInputNorm?: {
+    layerIdx: number;
+    weight: unknown;
+  } | null;
   /** RoPE frequency buffers (global for full_attention layers) */
   ropeFreqsCos: GPUBuffer | Float32Array | null;
   ropeFreqsSin: GPUBuffer | Float32Array | null;
@@ -547,6 +557,28 @@ export interface RouterWeights {
 /**
  * Pipeline performance statistics.
  */
+export type PipelineLoadTimingPhase =
+  | 'reset'
+  | 'configResolution'
+  | 'kernelWarmup'
+  | 'tokenizer'
+  | 'executionSetup'
+  | 'loadWeights'
+  | 'rope'
+  | 'convStates';
+
+export interface PipelineLoadTiming {
+  schemaVersion: 1;
+  source: 'doppler-pipeline';
+  modelId: string | null;
+  status: 'running' | 'complete' | 'failed';
+  phasesMs: Record<PipelineLoadTimingPhase, number | null>;
+  details: {
+    tokenizer: TokenizerLoadTiming | null;
+  };
+  totalMs: number | null;
+}
+
 export interface PipelineStats {
   /** Total prefill time in milliseconds */
   prefillTimeMs: number;
@@ -567,17 +599,30 @@ export interface PipelineStats {
   memoryUsageBytes: number;
 
   // Fields from pipeline.ts
+  modelLoadMs?: number;
+  loadTiming?: LoaderLoadTiming | null;
+  pipelineLoadTiming?: PipelineLoadTiming | null;
   tokensGenerated: number;
   totalTimeMs: number;
   gpuTimePrefillMs?: number;
   gpuTimeDecodeMs?: number;
   decodeRecordMs?: number;
+  decodeRecordOps?: number;
+  decodeRecordPasses?: number;
+  decodeRecordOpLabels?: Record<string, number>;
+  uniformCache?: UniformCacheStats | null;
   decodeSubmitWaitMs?: number;
   decodeReadbackWaitMs?: number;
+  decodeReadbackMapWaitMs?: number;
+  decodeReadbackCleanupMs?: number;
+  decodeReadbackCopyMs?: number;
   decodeMode?: 'single_token' | 'batched_gpu' | 'batched_gpu_stepwise_ple' | null;
   batchGuardReason?: string | null;
   singleTokenSubmitWaitMs?: number;
   singleTokenReadbackWaitMs?: number;
+  singleTokenReadbackMapWaitMs?: number;
+  singleTokenReadbackCleanupMs?: number;
+  singleTokenReadbackCopyMs?: number;
   singleTokenOrchestrationMs?: number;
   batching?: BatchingStats | null;
   plePreparedTokenCacheHits?: number;
@@ -594,8 +639,10 @@ export interface PipelineStats {
       kernelPathSource: string;
       activationDtype: string;
       readbackInterval: number | null;
+      readbackMode: string | null;
       batchSize: number;
       stopCheckMode: string;
+      disableCommandBatching?: boolean;
       ringTokens: number | null;
       ringStop: number | null;
       ringStaging: number | null;
@@ -606,8 +653,10 @@ export interface PipelineStats {
       kernelPathSource: string;
       activationDtype: string;
       readbackInterval: number | null;
+      readbackMode: string | null;
       batchSize: number;
       stopCheckMode: string;
+      disableCommandBatching?: boolean;
       ringTokens: number | null;
       ringStop: number | null;
       ringStaging: number | null;
@@ -666,6 +715,12 @@ export interface BatchingStats {
 
   /** Largest actual decode burst submitted in tokens after runtime safety bounding */
   effectiveBatchTokens?: number;
+
+  /** Total GPU batch-path decode tokens recorded/submitted for execution */
+  executedBatchTokens?: number;
+
+  /** Total batch-path decode tokens retained by stop resolution */
+  resolvedBatchTokens?: number;
 
   /** Active max decode-burst cap selected by execution rules, when present */
   maxBatchTokenCap?: number | null;

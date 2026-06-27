@@ -47,7 +47,106 @@ const DEFAULT_IMAGE_TRANSCRIPTION_SOFT_TOKEN_BUDGET = 70;
 const DEFAULT_HARNESS_MAX_TOKENS = 32;
 const EMBEDDING_PREVIEW_LENGTH = 16;
 const GENERATION_TOKEN_DIAGNOSTIC_LIMIT = 32;
+const DECODE_RECORD_TOP_OP_LIMIT = 20;
 let defaultsWarningEmitted = false;
+
+export function normalizeDecodeRecordOpLabels(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  const entries = [];
+  for (const [label, rawCount] of Object.entries(value)) {
+    const count = Number(rawCount);
+    if (typeof label !== 'string' || label.length === 0 || !Number.isFinite(count) || count <= 0) {
+      continue;
+    }
+    entries.push([label, count]);
+  }
+  if (entries.length === 0) {
+    return null;
+  }
+  entries.sort((a, b) => {
+    const countDelta = b[1] - a[1];
+    return countDelta !== 0 ? countDelta : a[0].localeCompare(b[0]);
+  });
+  return Object.fromEntries(entries);
+}
+
+export function buildDecodeRecordTopOps(labelCounts, totalOps = null, limit = DECODE_RECORD_TOP_OP_LIMIT) {
+  const normalized = normalizeDecodeRecordOpLabels(labelCounts);
+  if (!normalized) {
+    return [];
+  }
+  const entries = Object.entries(normalized);
+  const denominator = Number.isFinite(totalOps) && totalOps > 0
+    ? totalOps
+    : entries.reduce((sum, [, count]) => sum + count, 0);
+  const maxEntries = Number.isFinite(limit) && limit > 0
+    ? Math.floor(limit)
+    : DECODE_RECORD_TOP_OP_LIMIT;
+  return entries.slice(0, maxEntries).map(([label, count]) => ({
+    label,
+    count,
+    shareOfOps: denominator > 0 ? count / denominator : null,
+  }));
+}
+
+function normalizeDecodeRecordOpGroupLabel(label) {
+  const grouped = label
+    .replace(/^L\d+[.:]/, '')
+    .replace(/:L\d+(?=:|$)/g, '');
+  return grouped.length > 0 ? grouped : label;
+}
+
+export function groupDecodeRecordOpLabels(labelCounts) {
+  const normalized = normalizeDecodeRecordOpLabels(labelCounts);
+  if (!normalized) {
+    return null;
+  }
+  const groups = {};
+  for (const [label, count] of Object.entries(normalized)) {
+    const groupLabel = normalizeDecodeRecordOpGroupLabel(label);
+    groups[groupLabel] = (groups[groupLabel] ?? 0) + count;
+  }
+  return normalizeDecodeRecordOpLabels(groups);
+}
+
+export function buildDecodeRecordTopOpGroups(labelCounts, totalOps = null, limit = DECODE_RECORD_TOP_OP_LIMIT) {
+  return buildDecodeRecordTopOps(
+    groupDecodeRecordOpLabels(labelCounts),
+    totalOps,
+    limit
+  );
+}
+
+function nonNegativeFiniteNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : null;
+}
+
+export function normalizeUniformCacheStats(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  const hits = nonNegativeFiniteNumber(value.hits);
+  const misses = nonNegativeFiniteNumber(value.misses);
+  const evictions = nonNegativeFiniteNumber(value.evictions);
+  const currentSize = nonNegativeFiniteNumber(value.currentSize);
+  const pendingDestruction = nonNegativeFiniteNumber(value.pendingDestruction);
+  const totalLookups = Number.isFinite(hits) && Number.isFinite(misses)
+    ? hits + misses
+    : null;
+  const stats = {};
+  if (Number.isFinite(hits)) stats.hits = hits;
+  if (Number.isFinite(misses)) stats.misses = misses;
+  if (Number.isFinite(totalLookups)) stats.totalLookups = totalLookups;
+  if (Number.isFinite(totalLookups) && totalLookups > 0) stats.hitRateRatio = hits / totalLookups;
+  if (typeof value.hitRate === 'string' && value.hitRate.length > 0) stats.hitRate = value.hitRate;
+  if (Number.isFinite(evictions)) stats.evictions = evictions;
+  if (Number.isFinite(currentSize)) stats.currentSize = currentSize;
+  if (Number.isFinite(pendingDestruction)) stats.pendingDestruction = pendingDestruction;
+  return Object.keys(stats).length > 0 ? stats : null;
+}
 
 function normalizeTokenIdArray(value, label) {
   const raw = ArrayBuffer.isView(value) ? Array.from(value) : value;
@@ -256,15 +355,24 @@ export async function captureKvCacheByteProof(pipeline, enabled) {
   };
 }
 
-function warnIfUsingDefaults(runtimeConfig) {
+function hasPromptInput(value) {
+  return (typeof value === 'string' && value.trim().length > 0)
+    || (Array.isArray(value) && value.length > 0)
+    || isStructuredPromptInput(value);
+}
+
+function warnIfUsingDefaults(runtimeConfig, runOverrides = null) {
   if (defaultsWarningEmitted) return;
   const promptOverride = runtimeConfig?.inference?.prompt;
-  const hasPrompt = (typeof promptOverride === 'string' && promptOverride.trim().length > 0)
-    || (Array.isArray(promptOverride) && promptOverride.length > 0)
-    || isStructuredPromptInput(promptOverride);
-  const hasSampling = isPlainObject(runtimeConfig?.inference?.sampling)
+  const hasPrompt = hasPromptInput(runOverrides?.prompt)
+    || hasPromptInput(promptOverride);
+  const hasRuntimeSampling = isPlainObject(runtimeConfig?.inference?.sampling)
     && Object.keys(runtimeConfig.inference.sampling).length > 0;
-  const hasMaxTokens = Number.isFinite(runtimeConfig?.inference?.generation?.maxTokens);
+  const hasRunSampling = isPlainObject(runOverrides?.sampling)
+    && Object.keys(runOverrides.sampling).length > 0;
+  const hasSampling = hasRuntimeSampling || hasRunSampling;
+  const hasMaxTokens = Number.isFinite(runOverrides?.maxTokens)
+    || Number.isFinite(runtimeConfig?.inference?.generation?.maxTokens);
   if (hasPrompt && hasSampling && hasMaxTokens) return;
   defaultsWarningEmitted = true;
   const missingFields = [];
@@ -1242,8 +1350,68 @@ function buildGenerationPhaseFromStats(pipeline, durationMs, tokenCount) {
   if (Number.isFinite(stats.gpuTimePrefillMs)) gpu.prefillMs = stats.gpuTimePrefillMs;
   if (Number.isFinite(stats.gpuTimeDecodeMs)) gpu.decodeMs = stats.gpuTimeDecodeMs;
   if (Number.isFinite(stats.decodeRecordMs)) gpu.decodeRecordMs = stats.decodeRecordMs;
+  if (Number.isFinite(stats.decodeRecordOps)) gpu.decodeRecordOps = stats.decodeRecordOps;
+  if (Number.isFinite(stats.decodeRecordPasses)) gpu.decodeRecordPasses = stats.decodeRecordPasses;
+  const decodeRecordOpLabels = normalizeDecodeRecordOpLabels(stats.decodeRecordOpLabels);
+  if (decodeRecordOpLabels) {
+    const decodeRecordTopOps = buildDecodeRecordTopOps(decodeRecordOpLabels, stats.decodeRecordOps);
+    const decodeRecordTopOpGroups = buildDecodeRecordTopOpGroups(decodeRecordOpLabels, stats.decodeRecordOps);
+    gpu.decodeRecordOpLabels = decodeRecordOpLabels;
+    gpu.decodeRecordUniqueOpLabels = Object.keys(decodeRecordOpLabels).length;
+    gpu.decodeRecordTopOps = decodeRecordTopOps;
+    gpu.decodeRecordTopOpGroups = decodeRecordTopOpGroups;
+  }
+  if (
+    Number.isFinite(stats.decodeRecordMs) &&
+    Number.isFinite(stats.decodeRecordOps) &&
+    stats.decodeRecordOps > 0
+  ) {
+    gpu.decodeRecordMsPerOp = stats.decodeRecordMs / stats.decodeRecordOps;
+  }
+  if (
+    Number.isFinite(stats.decodeRecordMs) &&
+    Number.isFinite(stats.decodeRecordPasses) &&
+    stats.decodeRecordPasses > 0
+  ) {
+    gpu.decodeRecordMsPerPass = stats.decodeRecordMs / stats.decodeRecordPasses;
+  }
+  if (
+    Number.isFinite(stats.decodeRecordOps) &&
+    Number.isFinite(stats.decodeRecordPasses) &&
+    stats.decodeRecordOps > 0
+  ) {
+    gpu.decodeRecordPassesPerOp = stats.decodeRecordPasses / stats.decodeRecordOps;
+  }
+  if (
+    Number.isFinite(stats.decodeRecordPasses) &&
+    Number.isFinite(stats.batching?.executedBatchTokens) &&
+    stats.batching.executedBatchTokens > 0
+  ) {
+    gpu.decodeRecordPassesPerExecutedBatchToken = stats.decodeRecordPasses / stats.batching.executedBatchTokens;
+  }
+  if (
+    Number.isFinite(stats.decodeRecordMs) &&
+    Number.isFinite(stats.batching?.executedBatchTokens) &&
+    stats.batching.executedBatchTokens > 0
+  ) {
+    gpu.decodeRecordMsPerExecutedBatchToken = stats.decodeRecordMs / stats.batching.executedBatchTokens;
+  }
+  if (
+    Number.isFinite(stats.decodeRecordOps) &&
+    Number.isFinite(stats.batching?.executedBatchTokens) &&
+    stats.batching.executedBatchTokens > 0
+  ) {
+    gpu.decodeRecordOpsPerExecutedBatchToken = stats.decodeRecordOps / stats.batching.executedBatchTokens;
+  }
+  const uniformCacheStats = normalizeUniformCacheStats(stats.uniformCache);
+  if (uniformCacheStats) {
+    gpu.uniformCache = uniformCacheStats;
+  }
   if (Number.isFinite(stats.decodeSubmitWaitMs)) gpu.decodeSubmitWaitMs = stats.decodeSubmitWaitMs;
   if (Number.isFinite(stats.decodeReadbackWaitMs)) gpu.decodeReadbackWaitMs = stats.decodeReadbackWaitMs;
+  if (Number.isFinite(stats.decodeReadbackMapWaitMs)) gpu.decodeReadbackMapWaitMs = stats.decodeReadbackMapWaitMs;
+  if (Number.isFinite(stats.decodeReadbackCleanupMs)) gpu.decodeReadbackCleanupMs = stats.decodeReadbackCleanupMs;
+  if (Number.isFinite(stats.decodeReadbackCopyMs)) gpu.decodeReadbackCopyMs = stats.decodeReadbackCopyMs;
   if (Number.isFinite(stats.prefillRecordMs)) gpu.prefillRecordMs = stats.prefillRecordMs;
   if (Number.isFinite(stats.prefillSubmitWaitMs)) gpu.prefillSubmitWaitMs = stats.prefillSubmitWaitMs;
   if (
@@ -1257,6 +1425,9 @@ function buildGenerationPhaseFromStats(pipeline, durationMs, tokenCount) {
   }
   if (Number.isFinite(stats.singleTokenSubmitWaitMs)) gpu.singleTokenSubmitWaitMs = stats.singleTokenSubmitWaitMs;
   if (Number.isFinite(stats.singleTokenReadbackWaitMs)) gpu.singleTokenReadbackWaitMs = stats.singleTokenReadbackWaitMs;
+  if (Number.isFinite(stats.singleTokenReadbackMapWaitMs)) gpu.singleTokenReadbackMapWaitMs = stats.singleTokenReadbackMapWaitMs;
+  if (Number.isFinite(stats.singleTokenReadbackCleanupMs)) gpu.singleTokenReadbackCleanupMs = stats.singleTokenReadbackCleanupMs;
+  if (Number.isFinite(stats.singleTokenReadbackCopyMs)) gpu.singleTokenReadbackCopyMs = stats.singleTokenReadbackCopyMs;
   if (Number.isFinite(stats.singleTokenOrchestrationMs)) gpu.singleTokenOrchestrationMs = stats.singleTokenOrchestrationMs;
   const gpuPhase = Object.keys(gpu).length > 0 ? gpu : null;
   const batching = {};
@@ -1280,6 +1451,12 @@ function buildGenerationPhaseFromStats(pipeline, durationMs, tokenCount) {
   }
   if (Number.isFinite(stats.batching?.effectiveBatchTokens)) {
     batching.effectiveBatchTokens = stats.batching.effectiveBatchTokens;
+  }
+  if (Number.isFinite(stats.batching?.executedBatchTokens)) {
+    batching.executedBatchTokens = stats.batching.executedBatchTokens;
+  }
+  if (Number.isFinite(stats.batching?.resolvedBatchTokens)) {
+    batching.resolvedBatchTokens = stats.batching.resolvedBatchTokens;
   }
   if (Number.isFinite(stats.batching?.maxBatchTokenCap)) {
     batching.maxBatchTokenCap = stats.batching.maxBatchTokenCap;
@@ -1368,7 +1545,7 @@ export function isCoherentOutput(tokens, output) {
 }
 
 export async function runGeneration(pipeline, runtimeConfig, runOverrides = null) {
-  warnIfUsingDefaults(runtimeConfig);
+  warnIfUsingDefaults(runtimeConfig, runOverrides);
   const tokens = [];
   const tokenIds = [];
   const tokenRecords = [];

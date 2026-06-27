@@ -38,6 +38,8 @@ import {
   safeToFixed,
   sampleTimingNumber,
   buildCanonicalTiming,
+  buildLoadTimingDiagnostics,
+  buildDecodeBottleneckDiagnostics,
   buildTimingDiagnostics,
 } from './browser-harness-suite-helpers.js';
 import {
@@ -47,6 +49,10 @@ import {
 } from './browser-harness-model-helpers.js';
 import {
   resolveBenchmarkRunSettings,
+  normalizeDecodeRecordOpLabels,
+  normalizeUniformCacheStats,
+  buildDecodeRecordTopOps,
+  buildDecodeRecordTopOpGroups,
   runEmbeddingSemanticChecks,
   isCoherentOutput,
   runTextInference,
@@ -63,6 +69,21 @@ import { stableSortObject } from '../utils/stable-sort-object.js';
 
 const TRAINING_SUITE_MODULE_PATH = '../experimental/training/suite.js';
 let trainingSuiteModulePromise = null;
+
+function resolvePipelineLoadTimings(pipeline) {
+  if (!pipeline || typeof pipeline.getStats !== 'function') {
+    return { loadTiming: null, pipelineLoadTiming: null };
+  }
+  try {
+    const stats = pipeline.getStats() ?? {};
+    return {
+      loadTiming: stats.loadTiming ?? null,
+      pipelineLoadTiming: stats.pipelineLoadTiming ?? null,
+    };
+  } catch {
+    return { loadTiming: null, pipelineLoadTiming: null };
+  }
+}
 
 async function loadTrainingSuiteModule() {
   if (!trainingSuiteModulePromise) {
@@ -124,6 +145,83 @@ const BROWSER_WORKLOAD_DISPATCH_MAP = Object.freeze({
     diffusion: 'runBenchSuite(diffusion)',
   }),
 });
+
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function resolveExecutionPlanCadence(executionPlan) {
+  if (!isPlainObject(executionPlan)) {
+    return null;
+  }
+  const finalActivePlanId = typeof executionPlan.finalActivePlanId === 'string'
+    ? executionPlan.finalActivePlanId
+    : null;
+  for (const candidate of [executionPlan.primary, executionPlan.fallback]) {
+    if (!isPlainObject(candidate)) {
+      continue;
+    }
+    if (finalActivePlanId == null || candidate.id === finalActivePlanId) {
+      return candidate;
+    }
+  }
+  return isPlainObject(executionPlan.primary) ? executionPlan.primary : null;
+}
+
+function resolveDecodeCadence(runtimeConfig, executionPlan = null) {
+  const inference = runtimeConfig?.inference;
+  const batching = inference?.batching;
+  const session = inference?.session;
+  const decodeLoop = session?.decodeLoop;
+  if (!isPlainObject(batching) || !isPlainObject(decodeLoop)) {
+    return null;
+  }
+  const executionPlanCadence = resolveExecutionPlanCadence(executionPlan);
+  const batchSize = executionPlanCadence?.batchSize ?? decodeLoop.batchSize ?? batching.batchSize ?? null;
+  const readbackInterval = executionPlanCadence?.readbackInterval ?? decodeLoop.readbackInterval ?? batching.readbackInterval ?? null;
+  return {
+    batchSize,
+    readbackInterval,
+    stopCheckMode: executionPlanCadence?.stopCheckMode ?? decodeLoop.stopCheckMode ?? batching.stopCheckMode ?? null,
+    readbackMode: executionPlanCadence?.readbackMode ?? decodeLoop.readbackMode ?? batching.readbackMode ?? null,
+    disableCommandBatching: executionPlanCadence?.disableCommandBatching ?? decodeLoop.disableCommandBatching ?? null,
+    disableMultiTokenDecode: inference?.generation?.disableMultiTokenDecode === true,
+    speculationMode: session?.speculation?.mode ?? null,
+    tokensPerReadback: Number.isFinite(batchSize) && Number.isFinite(readbackInterval)
+      ? batchSize * readbackInterval
+      : null,
+    runtimeMirror: {
+      batching: {
+        batchSize: batching.batchSize ?? null,
+        readbackInterval: batching.readbackInterval ?? null,
+        stopCheckMode: batching.stopCheckMode ?? null,
+        readbackMode: batching.readbackMode ?? null,
+      },
+      decodeLoop: {
+        batchSize: decodeLoop.batchSize ?? null,
+        readbackInterval: decodeLoop.readbackInterval ?? null,
+        stopCheckMode: decodeLoop.stopCheckMode ?? null,
+        readbackMode: decodeLoop.readbackMode ?? null,
+        ringTokens: decodeLoop.ringTokens ?? null,
+        ringStop: decodeLoop.ringStop ?? null,
+        ringStaging: decodeLoop.ringStaging ?? null,
+      },
+    },
+    executionPlan: executionPlanCadence
+      ? {
+        id: executionPlanCadence.id ?? null,
+        batchSize: executionPlanCadence.batchSize ?? null,
+        readbackInterval: executionPlanCadence.readbackInterval ?? null,
+        stopCheckMode: executionPlanCadence.stopCheckMode ?? null,
+        readbackMode: executionPlanCadence.readbackMode ?? null,
+        disableCommandBatching: executionPlanCadence.disableCommandBatching ?? null,
+        ringTokens: executionPlanCadence.ringTokens ?? null,
+        ringStop: executionPlanCadence.ringStop ?? null,
+        ringStaging: executionPlanCadence.ringStaging ?? null,
+      }
+      : null,
+  };
+}
 
 export function getBrowserSupportedSuites() {
   return [...BROWSER_WORKLOAD_SET];
@@ -596,6 +694,12 @@ async function runInferenceSuite(options = {}) {
   const memoryStats = typeof harness.pipeline?.getMemoryStats === 'function'
     ? harness.pipeline.getMemoryStats()
     : null;
+  const loadTimings = resolvePipelineLoadTimings(harness.pipeline);
+  const loadDiagnostics = buildLoadTimingDiagnostics(
+    safeModelLoadMs,
+    loadTimings.loadTiming,
+    loadTimings.pipelineLoadTiming
+  );
   if (typeof harness.pipeline.unload === 'function' && !options.keepPipeline) {
     await harness.pipeline.unload();
   }
@@ -621,7 +725,16 @@ async function runInferenceSuite(options = {}) {
   const timingDiagnostics = buildTimingDiagnostics(timing, {
     source: 'doppler',
     prefillSemantics: 'internal_prefill_phase',
+    loadTiming: loadTimings.loadTiming,
+    pipelineLoadTiming: loadTimings.pipelineLoadTiming,
   });
+  const decodeBottleneck = buildDecodeBottleneckDiagnostics(metrics, timing);
+  const metricsWithTimingDiagnostics = decodeBottleneck
+    ? { ...metrics, decodeBottleneck }
+    : metrics;
+  if (decodeBottleneck) {
+    timingDiagnostics.decodeBottleneck = decodeBottleneck;
+  }
   const firstLoad = buildFirstLoadComposition({
     modelLoadMs: timing.modelLoadMs,
     firstTokenMs: timing.firstTokenMs,
@@ -629,7 +742,9 @@ async function runInferenceSuite(options = {}) {
   });
   const metricsWithContracts = buildSuiteContractMetrics(
     options.suiteName || 'inference',
-    metrics,
+    loadDiagnostics
+      ? { ...metricsWithTimingDiagnostics, load: loadDiagnostics }
+      : metricsWithTimingDiagnostics,
     harness.manifest
   );
   return {
@@ -909,13 +1024,29 @@ async function runBenchSuite(options = {}) {
     const gpuPrefillMs = [];
     const gpuDecodeMs = [];
     const gpuDecodeRecordMs = [];
+    const gpuDecodeRecordOps = [];
+    const gpuDecodeRecordPasses = [];
+    const gpuDecodeRecordMsPerOp = [];
+    const gpuDecodeRecordMsPerPass = [];
+    const gpuDecodeRecordPassesPerOp = [];
+    const gpuDecodeRecordMsPerExecutedBatchToken = [];
+    const gpuDecodeRecordOpsPerExecutedBatchToken = [];
+    const gpuDecodeRecordPassesPerExecutedBatchToken = [];
+    const gpuDecodeRecordOpLabels = {};
+    let hasGpuDecodeRecordOpLabels = false;
     const gpuDecodeSubmitWaitMs = [];
     const gpuDecodeReadbackWaitMs = [];
+    const gpuDecodeReadbackMapWaitMs = [];
+    const gpuDecodeReadbackCleanupMs = [];
+    const gpuDecodeReadbackCopyMs = [];
     const gpuDecodeOrchestrationMs = [];
     const gpuPrefillRecordMs = [];
     const gpuPrefillSubmitWaitMs = [];
     const singleTokenSubmitWaitMs = [];
     const singleTokenReadbackWaitMs = [];
+    const singleTokenReadbackMapWaitMs = [];
+    const singleTokenReadbackCleanupMs = [];
+    const singleTokenReadbackCopyMs = [];
     const singleTokenOrchestrationMs = [];
     const batchedForwardCalls = [];
     const unbatchedForwardCalls = [];
@@ -924,6 +1055,8 @@ async function runBenchSuite(options = {}) {
     const gpuSubmissions = [];
     const requestedBatchTokens = [];
     const effectiveBatchTokens = [];
+    const executedBatchTokens = [];
+    const resolvedBatchTokens = [];
     const maxBatchTokenCap = [];
     const batchClampCount = [];
     const plePreparedTokenCacheHits = [];
@@ -933,10 +1066,13 @@ async function runBenchSuite(options = {}) {
 
     let generatedText = null;
     let generatedPromptInput = null;
+    let generatedReferenceTranscript = null;
     let lastPromptLabel = benchRun.promptLabel;
     let lastMaxTokens = benchRun.maxTokens;
     let lastDecodeMode = null;
     let lastBatchGuardReason = null;
+    let lastExecutionPlan = null;
+    let lastGpuUniformCache = null;
     for (let i = 0; i < warmupRuns + timedRuns; i++) {
       harness.pipeline.reset?.();
       const run = await withHarnessPhase(
@@ -956,10 +1092,15 @@ async function runBenchSuite(options = {}) {
       if (i === warmupRuns + timedRuns - 1) {
         generatedText = run?.output ?? null;
         generatedPromptInput = run?.promptInput ?? null;
+        generatedReferenceTranscript = buildReferenceTranscriptSeed(run, {
+          executionGraphHash: resolveExecutionGraphHash(harness.manifest),
+          kvCache: run?.phase?.kvCache ?? null,
+        });
         lastPromptLabel = run?.prompt ?? benchRun.promptLabel;
         lastMaxTokens = Number.isFinite(run?.maxTokens) ? run.maxTokens : benchRun.maxTokens;
         lastDecodeMode = run?.phase?.decodeMode ?? null;
         lastBatchGuardReason = run?.phase?.batchGuardReason ?? null;
+        lastExecutionPlan = run?.phase?.executionPlan ?? null;
       }
       if (i >= warmupRuns) {
         const phase = run?.phase ?? {};
@@ -982,11 +1123,45 @@ async function runBenchSuite(options = {}) {
         if (phase.decodeMs > 0 && phase.decodeTokens > 0) {
           decodeMsPerToken.push(phase.decodeMs / phase.decodeTokens);
         }
+        const phaseGpuUniformCache = normalizeUniformCacheStats(phaseGpu?.uniformCache);
+        if (phaseGpuUniformCache) {
+          lastGpuUniformCache = phaseGpuUniformCache;
+        }
         if (Number.isFinite(phaseGpu?.prefillMs)) gpuPrefillMs.push(phaseGpu.prefillMs);
         if (Number.isFinite(phaseGpu?.decodeMs)) gpuDecodeMs.push(phaseGpu.decodeMs);
         if (Number.isFinite(phaseGpu?.decodeRecordMs)) gpuDecodeRecordMs.push(phaseGpu.decodeRecordMs);
+        if (Number.isFinite(phaseGpu?.decodeRecordOps)) gpuDecodeRecordOps.push(phaseGpu.decodeRecordOps);
+        if (Number.isFinite(phaseGpu?.decodeRecordPasses)) gpuDecodeRecordPasses.push(phaseGpu.decodeRecordPasses);
+        const phaseDecodeRecordOpLabels = normalizeDecodeRecordOpLabels(phaseGpu?.decodeRecordOpLabels);
+        if (phaseDecodeRecordOpLabels) {
+          hasGpuDecodeRecordOpLabels = true;
+          for (const [label, count] of Object.entries(phaseDecodeRecordOpLabels)) {
+            gpuDecodeRecordOpLabels[label] = (gpuDecodeRecordOpLabels[label] ?? 0) + count;
+          }
+        }
+        if (Number.isFinite(phaseGpu?.decodeRecordMsPerOp)) {
+          gpuDecodeRecordMsPerOp.push(phaseGpu.decodeRecordMsPerOp);
+        }
+        if (Number.isFinite(phaseGpu?.decodeRecordMsPerPass)) {
+          gpuDecodeRecordMsPerPass.push(phaseGpu.decodeRecordMsPerPass);
+        }
+        if (Number.isFinite(phaseGpu?.decodeRecordPassesPerOp)) {
+          gpuDecodeRecordPassesPerOp.push(phaseGpu.decodeRecordPassesPerOp);
+        }
+        if (Number.isFinite(phaseGpu?.decodeRecordMsPerExecutedBatchToken)) {
+          gpuDecodeRecordMsPerExecutedBatchToken.push(phaseGpu.decodeRecordMsPerExecutedBatchToken);
+        }
+        if (Number.isFinite(phaseGpu?.decodeRecordOpsPerExecutedBatchToken)) {
+          gpuDecodeRecordOpsPerExecutedBatchToken.push(phaseGpu.decodeRecordOpsPerExecutedBatchToken);
+        }
+        if (Number.isFinite(phaseGpu?.decodeRecordPassesPerExecutedBatchToken)) {
+          gpuDecodeRecordPassesPerExecutedBatchToken.push(phaseGpu.decodeRecordPassesPerExecutedBatchToken);
+        }
         if (Number.isFinite(phaseGpu?.decodeSubmitWaitMs)) gpuDecodeSubmitWaitMs.push(phaseGpu.decodeSubmitWaitMs);
         if (Number.isFinite(phaseGpu?.decodeReadbackWaitMs)) gpuDecodeReadbackWaitMs.push(phaseGpu.decodeReadbackWaitMs);
+        if (Number.isFinite(phaseGpu?.decodeReadbackMapWaitMs)) gpuDecodeReadbackMapWaitMs.push(phaseGpu.decodeReadbackMapWaitMs);
+        if (Number.isFinite(phaseGpu?.decodeReadbackCleanupMs)) gpuDecodeReadbackCleanupMs.push(phaseGpu.decodeReadbackCleanupMs);
+        if (Number.isFinite(phaseGpu?.decodeReadbackCopyMs)) gpuDecodeReadbackCopyMs.push(phaseGpu.decodeReadbackCopyMs);
         if (Number.isFinite(phaseGpu?.prefillRecordMs)) gpuPrefillRecordMs.push(phaseGpu.prefillRecordMs);
         if (Number.isFinite(phaseGpu?.prefillSubmitWaitMs)) gpuPrefillSubmitWaitMs.push(phaseGpu.prefillSubmitWaitMs);
         if (Number.isFinite(phaseGpu?.decodeOrchestrationMs)) {
@@ -994,6 +1169,9 @@ async function runBenchSuite(options = {}) {
         }
         if (Number.isFinite(phaseGpu?.singleTokenSubmitWaitMs)) singleTokenSubmitWaitMs.push(phaseGpu.singleTokenSubmitWaitMs);
         if (Number.isFinite(phaseGpu?.singleTokenReadbackWaitMs)) singleTokenReadbackWaitMs.push(phaseGpu.singleTokenReadbackWaitMs);
+        if (Number.isFinite(phaseGpu?.singleTokenReadbackMapWaitMs)) singleTokenReadbackMapWaitMs.push(phaseGpu.singleTokenReadbackMapWaitMs);
+        if (Number.isFinite(phaseGpu?.singleTokenReadbackCleanupMs)) singleTokenReadbackCleanupMs.push(phaseGpu.singleTokenReadbackCleanupMs);
+        if (Number.isFinite(phaseGpu?.singleTokenReadbackCopyMs)) singleTokenReadbackCopyMs.push(phaseGpu.singleTokenReadbackCopyMs);
         if (Number.isFinite(phaseGpu?.singleTokenOrchestrationMs)) singleTokenOrchestrationMs.push(phaseGpu.singleTokenOrchestrationMs);
         if (Number.isFinite(phaseBatching?.batchedForwardCalls)) batchedForwardCalls.push(phaseBatching.batchedForwardCalls);
         if (Number.isFinite(phaseBatching?.unbatchedForwardCalls)) unbatchedForwardCalls.push(phaseBatching.unbatchedForwardCalls);
@@ -1002,6 +1180,8 @@ async function runBenchSuite(options = {}) {
         if (Number.isFinite(phaseBatching?.gpuSubmissions)) gpuSubmissions.push(phaseBatching.gpuSubmissions);
         if (Number.isFinite(phaseBatching?.requestedBatchTokens)) requestedBatchTokens.push(phaseBatching.requestedBatchTokens);
         if (Number.isFinite(phaseBatching?.effectiveBatchTokens)) effectiveBatchTokens.push(phaseBatching.effectiveBatchTokens);
+        if (Number.isFinite(phaseBatching?.executedBatchTokens)) executedBatchTokens.push(phaseBatching.executedBatchTokens);
+        if (Number.isFinite(phaseBatching?.resolvedBatchTokens)) resolvedBatchTokens.push(phaseBatching.resolvedBatchTokens);
         if (Number.isFinite(phaseBatching?.maxBatchTokenCap)) maxBatchTokenCap.push(phaseBatching.maxBatchTokenCap);
         if (Number.isFinite(phaseBatching?.batchClampCount)) batchClampCount.push(phaseBatching.batchClampCount);
         if (Number.isFinite(phasePlePreparedTokenCache?.hits)) plePreparedTokenCacheHits.push(phasePlePreparedTokenCache.hits);
@@ -1024,23 +1204,74 @@ async function runBenchSuite(options = {}) {
     const tokensGeneratedStats = computeSampleStats(tokensGenerated);
     const prefillTokensStats = computeSampleStats(prefillTokens);
     const decodeTokensStats = computeSampleStats(decodeTokens);
+    const gpuDecodeRecordOpsStats = computeSampleStats(gpuDecodeRecordOps);
+    const gpuDecodeRecordPassesStats = computeSampleStats(gpuDecodeRecordPasses);
+    const gpuDecodeRecordOpLabelSampleCount = gpuDecodeRecordOps.length > 0
+      ? gpuDecodeRecordOps.length
+      : 1;
+    const gpuDecodeRecordMeanOpLabels = {};
+    if (hasGpuDecodeRecordOpLabels) {
+      for (const [label, count] of Object.entries(gpuDecodeRecordOpLabels)) {
+        gpuDecodeRecordMeanOpLabels[label] = count / gpuDecodeRecordOpLabelSampleCount;
+      }
+    }
     const hasGpuStats = gpuPrefillMs.length > 0 || gpuDecodeMs.length > 0 || gpuDecodeRecordMs.length > 0
+      || gpuDecodeRecordOps.length > 0 || gpuDecodeRecordPasses.length > 0
+      || gpuDecodeRecordMsPerOp.length > 0 || gpuDecodeRecordMsPerPass.length > 0
+      || gpuDecodeRecordPassesPerOp.length > 0
+      || gpuDecodeRecordMsPerExecutedBatchToken.length > 0
+      || gpuDecodeRecordOpsPerExecutedBatchToken.length > 0
+      || gpuDecodeRecordPassesPerExecutedBatchToken.length > 0
+      || hasGpuDecodeRecordOpLabels
       || gpuDecodeSubmitWaitMs.length > 0 || gpuDecodeReadbackWaitMs.length > 0
+      || gpuDecodeReadbackMapWaitMs.length > 0 || gpuDecodeReadbackCleanupMs.length > 0
+      || gpuDecodeReadbackCopyMs.length > 0
       || gpuDecodeOrchestrationMs.length > 0
+      || lastGpuUniformCache
       || singleTokenSubmitWaitMs.length > 0 || singleTokenReadbackWaitMs.length > 0
+      || singleTokenReadbackMapWaitMs.length > 0 || singleTokenReadbackCleanupMs.length > 0
+      || singleTokenReadbackCopyMs.length > 0
       || singleTokenOrchestrationMs.length > 0;
     const gpuPhaseStats = hasGpuStats
       ? {
         prefillMs: computeSampleStats(gpuPrefillMs),
         decodeMs: computeSampleStats(gpuDecodeMs),
         decodeRecordMs: computeSampleStats(gpuDecodeRecordMs),
+        decodeRecordOps: gpuDecodeRecordOpsStats,
+        decodeRecordPasses: gpuDecodeRecordPassesStats,
+        decodeRecordMsPerOp: computeSampleStats(gpuDecodeRecordMsPerOp),
+        decodeRecordMsPerPass: computeSampleStats(gpuDecodeRecordMsPerPass),
+        decodeRecordPassesPerOp: computeSampleStats(gpuDecodeRecordPassesPerOp),
+        decodeRecordMsPerExecutedBatchToken: computeSampleStats(gpuDecodeRecordMsPerExecutedBatchToken),
+        decodeRecordOpsPerExecutedBatchToken: computeSampleStats(gpuDecodeRecordOpsPerExecutedBatchToken),
+        decodeRecordPassesPerExecutedBatchToken: computeSampleStats(gpuDecodeRecordPassesPerExecutedBatchToken),
+        decodeRecordUniqueOpLabels: hasGpuDecodeRecordOpLabels ? Object.keys(gpuDecodeRecordOpLabels).length : null,
+        decodeRecordTopOps: hasGpuDecodeRecordOpLabels
+          ? buildDecodeRecordTopOps(
+            gpuDecodeRecordMeanOpLabels,
+            gpuDecodeRecordOpsStats?.mean
+          )
+          : [],
+        decodeRecordTopOpGroups: hasGpuDecodeRecordOpLabels
+          ? buildDecodeRecordTopOpGroups(
+            gpuDecodeRecordMeanOpLabels,
+            gpuDecodeRecordOpsStats?.mean
+          )
+          : [],
         decodeSubmitWaitMs: computeSampleStats(gpuDecodeSubmitWaitMs),
         decodeReadbackWaitMs: computeSampleStats(gpuDecodeReadbackWaitMs),
+        decodeReadbackMapWaitMs: computeSampleStats(gpuDecodeReadbackMapWaitMs),
+        decodeReadbackCleanupMs: computeSampleStats(gpuDecodeReadbackCleanupMs),
+        decodeReadbackCopyMs: computeSampleStats(gpuDecodeReadbackCopyMs),
         decodeOrchestrationMs: computeSampleStats(gpuDecodeOrchestrationMs),
         prefillRecordMs: computeSampleStats(gpuPrefillRecordMs),
         prefillSubmitWaitMs: computeSampleStats(gpuPrefillSubmitWaitMs),
+        uniformCache: lastGpuUniformCache,
         singleTokenSubmitWaitMs: computeSampleStats(singleTokenSubmitWaitMs),
         singleTokenReadbackWaitMs: computeSampleStats(singleTokenReadbackWaitMs),
+        singleTokenReadbackMapWaitMs: computeSampleStats(singleTokenReadbackMapWaitMs),
+        singleTokenReadbackCleanupMs: computeSampleStats(singleTokenReadbackCleanupMs),
+        singleTokenReadbackCopyMs: computeSampleStats(singleTokenReadbackCopyMs),
         singleTokenOrchestrationMs: computeSampleStats(singleTokenOrchestrationMs),
       }
       : null;
@@ -1051,6 +1282,8 @@ async function runBenchSuite(options = {}) {
       || gpuSubmissions.length > 0
       || requestedBatchTokens.length > 0
       || effectiveBatchTokens.length > 0
+      || executedBatchTokens.length > 0
+      || resolvedBatchTokens.length > 0
       || maxBatchTokenCap.length > 0
       || batchClampCount.length > 0;
     const batchingPhaseStats = hasBatchingStats
@@ -1062,6 +1295,8 @@ async function runBenchSuite(options = {}) {
         gpuSubmissions: computeSampleStats(gpuSubmissions),
         requestedBatchTokens: computeSampleStats(requestedBatchTokens),
         effectiveBatchTokens: computeSampleStats(effectiveBatchTokens),
+        executedBatchTokens: computeSampleStats(executedBatchTokens),
+        resolvedBatchTokens: computeSampleStats(resolvedBatchTokens),
         maxBatchTokenCap: computeSampleStats(maxBatchTokenCap),
         batchClampCount: computeSampleStats(batchClampCount),
       }
@@ -1136,10 +1371,13 @@ async function runBenchSuite(options = {}) {
       },
       gpu: gpuPhaseStats,
       batching: batchingPhaseStats,
+      decodeCadence: resolveDecodeCadence(getRuntimeConfig(), lastExecutionPlan),
       plePreparedTokenCache: plePreparedTokenCacheStats,
       decodeMode: lastDecodeMode,
       batchGuardReason: lastBatchGuardReason,
+      executionPlan: lastExecutionPlan,
       generatedText,
+      referenceTranscript: generatedReferenceTranscript,
       promptInput: generatedPromptInput,
     };
 
@@ -1166,6 +1404,16 @@ async function runBenchSuite(options = {}) {
   const memoryStats = typeof harness.pipeline?.getMemoryStats === 'function'
     ? harness.pipeline.getMemoryStats()
     : null;
+  const loadTimings = resolvePipelineLoadTimings(harness.pipeline);
+  const loadDiagnostics = buildLoadTimingDiagnostics(
+    safeModelLoadMs,
+    loadTimings.loadTiming,
+    loadTimings.pipelineLoadTiming
+  );
+  const decodeBottleneck = buildDecodeBottleneckDiagnostics(metrics, timing);
+  if (decodeBottleneck) {
+    metrics.decodeBottleneck = decodeBottleneck;
+  }
 
   if (typeof harness.pipeline.unload === 'function' && !options.keepPipeline) {
     await harness.pipeline.unload();
@@ -1175,13 +1423,22 @@ async function runBenchSuite(options = {}) {
   const timingDiagnostics = buildTimingDiagnostics(timing, {
     source: 'doppler',
     prefillSemantics: 'internal_prefill_phase',
+    loadTiming: loadTimings.loadTiming,
+    pipelineLoadTiming: loadTimings.pipelineLoadTiming,
   });
+  if (decodeBottleneck) {
+    timingDiagnostics.decodeBottleneck = decodeBottleneck;
+  }
   const firstLoad = buildFirstLoadComposition({
     modelLoadMs: timing.modelLoadMs,
     firstTokenMs: timing.firstTokenMs,
     firstResponseMs: timing.firstResponseMs,
   });
-  const metricsWithContracts = buildSuiteContractMetrics('bench', metrics, harness.manifest);
+  const metricsWithContracts = buildSuiteContractMetrics(
+    'bench',
+    loadDiagnostics ? { ...metrics, load: loadDiagnostics } : metrics,
+    harness.manifest
+  );
   return {
     ...summary,
     modelId: options.modelId || harness.manifest?.modelId || 'unknown',

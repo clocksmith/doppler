@@ -13,11 +13,13 @@ interface UniformCacheEntry {
   refCount: number;
 }
 
-interface UniformCacheStats {
+export interface UniformCacheStats {
   hits: number;
   misses: number;
   evictions: number;
   currentSize: number;
+  hitRate?: string;
+  pendingDestruction?: number;
 }
 
 /**
@@ -93,6 +95,11 @@ export function releaseUniformBuffer(buffer: GPUBuffer): void;
  * Get the global uniform buffer cache instance
  */
 export function getUniformCache(): UniformBufferCache;
+
+/**
+ * Get stats for the current global uniform cache without creating one.
+ */
+export function getUniformCacheStats(): (UniformCacheStats & { hitRate: string; pendingDestruction: number }) | null;
 
 /**
  * Reset the global uniform cache (useful for testing or device loss)

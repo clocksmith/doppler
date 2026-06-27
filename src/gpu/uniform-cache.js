@@ -4,8 +4,7 @@ import { getDevice, getDeviceEpoch } from './device.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 
 
-function hashArrayBuffer(data) {
-  const view = new Uint8Array(data);
+function hashUniformBytes(view) {
   let hash = 2166136261; // FNV offset basis
 
   for (let i = 0; i < view.length; i++) {
@@ -17,8 +16,8 @@ function hashArrayBuffer(data) {
   return (hash >>> 0).toString(16).padStart(8, '0');
 }
 
-function copyUniformBytes(data) {
-  return new Uint8Array(data.slice(0));
+function copyUniformBytes(view) {
+  return new Uint8Array(view);
 }
 
 export function toUniformArrayBuffer(data) {
@@ -75,14 +74,14 @@ export class UniformBufferCache {
 
   
   getOrCreate(data, label) {
-    const baseKey = `${data.byteLength}:${hashArrayBuffer(data)}`;
-    const dataBytes = copyUniformBytes(data);
+    const dataView = new Uint8Array(data);
+    const baseKey = `${data.byteLength}:${hashUniformBytes(dataView)}`;
     let key = baseKey;
     let suffix = 0;
     let existing = this.#cache.get(key);
 
     while (existing) {
-      if (equalUniformBytes(existing.bytes, dataBytes)) {
+      if (equalUniformBytes(existing.bytes, dataView)) {
         existing.lastUsed = performance.now();
         existing.refCount++;
         this.#stats.hits++;
@@ -92,6 +91,8 @@ export class UniformBufferCache {
       key = `${baseKey}#${suffix}`;
       existing = this.#cache.get(key);
     }
+
+    const dataBytes = copyUniformBytes(dataView);
 
     // Cache miss - create new buffer
     this.#stats.misses++;
@@ -241,6 +242,10 @@ export function getUniformCache() {
     globalUniformCacheEpoch = epoch;
   }
   return globalUniformCache;
+}
+
+export function getUniformCacheStats() {
+  return globalUniformCache ? globalUniformCache.getStats() : null;
 }
 
 
