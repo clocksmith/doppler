@@ -12,14 +12,33 @@
 // Canonical base rule registry: src/rules/rule-registry.js
 // ============================================================================
 import { getRuleSet as getBaseRuleSet, selectRuleValue as selectBaseRuleValue } from '../../rules/rule-registry.js';
-import { getKernelCapabilities, getPlatformConfig } from '../device.js';
+import { getDeviceEpoch, getKernelCapabilities, getPlatformConfig } from '../device.js';
+
+let cachedKernelRuleContextBase = null;
+let cachedKernelRuleContextEpoch = null;
 
 export function getRuleSet(group, name) {
   return getBaseRuleSet('kernels', group, name);
 }
 
-function enrichKernelRuleContext(context) {
-  const next = (context && typeof context === 'object') ? { ...context } : {};
+function getKernelRuleContextBase() {
+  let epoch = null;
+  try {
+    epoch = getDeviceEpoch();
+  } catch {
+    epoch = null;
+  }
+
+  if (
+    epoch !== null
+    && cachedKernelRuleContextEpoch === epoch
+    && cachedKernelRuleContextBase
+  ) {
+    return cachedKernelRuleContextBase;
+  }
+
+  const base = {};
+  let cacheable = false;
 
   let capabilities = null;
   try {
@@ -28,9 +47,10 @@ function enrichKernelRuleContext(context) {
     capabilities = null;
   }
   if (capabilities) {
-    if (next.hasSubgroups === undefined) next.hasSubgroups = capabilities.hasSubgroups;
-    if (next.hasSubgroupsF16 === undefined) next.hasSubgroupsF16 = capabilities.hasSubgroupsF16;
-    if (next.hasF16 === undefined) next.hasF16 = capabilities.hasF16;
+    base.hasSubgroups = capabilities.hasSubgroups;
+    base.hasSubgroupsF16 = capabilities.hasSubgroupsF16;
+    base.hasF16 = capabilities.hasF16;
+    cacheable = true;
   }
 
   let platform = null;
@@ -40,12 +60,32 @@ function enrichKernelRuleContext(context) {
     platform = null;
   }
   if (platform) {
-    if (next.platformId === undefined) next.platformId = platform.id;
-    if (next.platformVendor === undefined) next.platformVendor = platform.detection?.vendor ?? null;
-    if (next.platformArchitecture === undefined) next.platformArchitecture = platform.detection?.architecture ?? null;
-    if (next.platformDevice === undefined) next.platformDevice = platform.detection?.device ?? null;
+    base.platformId = platform.id;
+    base.platformVendor = platform.detection?.vendor ?? null;
+    base.platformArchitecture = platform.detection?.architecture ?? null;
+    base.platformDevice = platform.detection?.device ?? null;
   }
 
+  if (epoch !== null && cacheable) {
+    cachedKernelRuleContextEpoch = epoch;
+    cachedKernelRuleContextBase = Object.freeze(base);
+    return cachedKernelRuleContextBase;
+  }
+
+  return base;
+}
+
+function enrichKernelRuleContext(context) {
+  const base = getKernelRuleContextBase();
+  const next = { ...base };
+  if (!context || typeof context !== 'object') {
+    return next;
+  }
+  for (const [key, value] of Object.entries(context)) {
+    if (value !== undefined || !(key in base)) {
+      next[key] = value;
+    }
+  }
   return next;
 }
 

@@ -2,6 +2,58 @@ import { DEFAULT_ENTRY } from './schema/kernel-path.schema.js';
 import { KERNEL_CONFIGS } from '../gpu/kernels/utils.js';
 import { mergeKernelPathPolicy } from './merge-helpers.js';
 
+const PATH_LOOKUP_CACHE = new WeakMap();
+const STEP_BY_OP_CACHE = new WeakMap();
+const NORMALIZED_KERNEL_FILE_CACHE = new Map();
+const CONSTANTS_CACHE_KEYS = new WeakMap();
+const KERNEL_VARIANT_CACHE = new Map();
+const MAX_KERNEL_VARIANT_CACHE_ENTRIES = 512;
+
+function getPathLookupCache(path) {
+  if (!path || typeof path !== 'object') return null;
+  let cache = PATH_LOOKUP_CACHE.get(path);
+  if (!cache) {
+    cache = {
+      attentionPrecision: new Map(),
+      attentionVariant: new Map(),
+      kernelSteps: null,
+      layerSteps: new Map(),
+      matmulSteps: new Map(),
+      stepPrecision: new Map(),
+    };
+    PATH_LOOKUP_CACHE.set(path, cache);
+  }
+  return cache;
+}
+
+function collectKernelPathStepArrays(path) {
+  if (!path || typeof path !== 'object') return [];
+  const arrays = [
+    path.decode?.steps,
+    path.prefill?.steps,
+    path.preLayer,
+    path.postLayer,
+    path.sampling,
+  ];
+  for (const override of path.layerOverrides ?? []) {
+    arrays.push(
+      override?.steps,
+      override?.decode?.steps,
+      override?.prefill?.steps
+    );
+  }
+  return arrays.filter(Array.isArray);
+}
+
+function invalidateKernelPathCache(path) {
+  if (path && typeof path === 'object') {
+    PATH_LOOKUP_CACHE.delete(path);
+    for (const steps of collectKernelPathStepArrays(path)) {
+      STEP_BY_OP_CACHE.delete(steps);
+    }
+  }
+}
+
 // =============================================================================
 // Public API (registry removed — Phase 3)
 // =============================================================================
@@ -51,6 +103,12 @@ export function getLayerSteps(
   layerIndex,
   phase
 ) {
+  const cache = getPathLookupCache(path);
+  const cacheKey = `${phase}:${layerIndex}`;
+  if (cache?.layerSteps.has(cacheKey)) {
+    return cache.layerSteps.get(cacheKey);
+  }
+
   const resolveOverrideSteps = (override) => {
     const phaseSteps = phase === 'prefill'
       ? override.prefill?.steps
@@ -69,6 +127,7 @@ export function getLayerSteps(
       if (override.layers.includes(layerIndex)) {
         const overrideSteps = resolveOverrideSteps(override);
         if (overrideSteps) {
+          cache?.layerSteps.set(cacheKey, overrideSteps);
           return overrideSteps;
         }
         break;
@@ -78,7 +137,9 @@ export function getLayerSteps(
 
   // Use phase-specific or decode as fallback
   const layerPath = phase === 'prefill' && path.prefill ? path.prefill : path.decode;
-  return layerPath.steps;
+  const steps = layerPath.steps;
+  cache?.layerSteps.set(cacheKey, steps);
+  return steps;
 }
 
 export function validateKernelPath(path) {
@@ -140,10 +201,17 @@ const FUSED_FFN_PRECISION_FALLBACK_ROLES = new Set([
 ]);
 
 function normalizeKernelFile(kernel) {
+  const cached = NORMALIZED_KERNEL_FILE_CACHE.get(kernel);
+  if (cached !== undefined) return cached;
   const trimmed = kernel.trim();
-  if (!trimmed) return trimmed;
+  if (!trimmed) {
+    NORMALIZED_KERNEL_FILE_CACHE.set(kernel, trimmed);
+    return trimmed;
+  }
   const parts = trimmed.split('/');
-  return parts[parts.length - 1] ?? trimmed;
+  const normalized = parts[parts.length - 1] ?? trimmed;
+  NORMALIZED_KERNEL_FILE_CACHE.set(kernel, normalized);
+  return normalized;
 }
 
 function getKernelPathStepsForSection(
@@ -166,7 +234,17 @@ function getKernelPathStepsForSection(
 }
 
 function findStepByOp(steps, op) {
-  return steps.find((step) => step.op === op) ?? null;
+  let cache = STEP_BY_OP_CACHE.get(steps);
+  if (!cache) {
+    cache = new Map();
+    STEP_BY_OP_CACHE.set(steps, cache);
+  }
+  if (cache.has(op)) {
+    return cache.get(op);
+  }
+  const step = steps.find((entry) => entry.op === op) ?? null;
+  cache.set(op, step);
+  return step;
 }
 
 function pickOverrideConstants(constants, overrideKeys) {
@@ -190,17 +268,28 @@ function overridesEqual(a, b) {
   return true;
 }
 
-function findKernelVariant(
+function getConstantsCacheKey(constants) {
+  if (!constants || typeof constants !== 'object') return '';
+  const cached = CONSTANTS_CACHE_KEYS.get(constants);
+  if (cached !== undefined) return cached;
+  const keys = Object.keys(constants).sort();
+  const key = keys.map((name) => {
+    const value = constants[name];
+    return `${name}:${typeof value}:${String(value)}`;
+  }).join(',');
+  CONSTANTS_CACHE_KEYS.set(constants, key);
+  return key;
+}
+
+function resolveKernelVariant(
   operation,
-  kernel,
-  entry,
+  normalizedKernel,
+  normalizedEntry,
   phase,
   constants
 ) {
   const variants = KERNEL_CONFIGS[operation];
   if (!variants) return null;
-  const normalizedKernel = normalizeKernelFile(kernel);
-  const normalizedEntry = entry ?? DEFAULT_ENTRY;
 
   const entryMatches = [];
   let fallbackVariant = null;
@@ -246,6 +335,41 @@ function findKernelVariant(
     return fallbackVariant;
   }
   return null;
+}
+
+function findKernelVariant(
+  operation,
+  kernel,
+  entry,
+  phase,
+  constants
+) {
+  const normalizedKernel = normalizeKernelFile(kernel);
+  const normalizedEntry = entry ?? DEFAULT_ENTRY;
+  const cacheKey = [
+    operation,
+    normalizedKernel,
+    normalizedEntry,
+    phase ?? '',
+    getConstantsCacheKey(constants),
+  ].join('|');
+
+  if (KERNEL_VARIANT_CACHE.has(cacheKey)) {
+    return KERNEL_VARIANT_CACHE.get(cacheKey);
+  }
+
+  const variant = resolveKernelVariant(
+    operation,
+    normalizedKernel,
+    normalizedEntry,
+    phase,
+    constants
+  );
+  if (KERNEL_VARIANT_CACHE.size >= MAX_KERNEL_VARIANT_CACHE_ENTRIES) {
+    KERNEL_VARIANT_CACHE.clear();
+  }
+  KERNEL_VARIANT_CACHE.set(cacheKey, variant);
+  return variant;
 }
 
 export function getKernelPathMatmulVariant(
@@ -295,9 +419,16 @@ export function getKernelPathStepPrecision(
 ) {
   const lookupPath = path === undefined ? activeKernelPath : path;
   if (!lookupPath || !op || !section) return null;
+  const cache = getPathLookupCache(lookupPath);
+  const cacheKey = `${section}:${op}:${phase}:${layerIndex ?? 0}`;
+  if (cache?.stepPrecision.has(cacheKey)) {
+    return cache.stepPrecision.get(cacheKey);
+  }
   const steps = getKernelPathStepsForSection(lookupPath, section, phase, layerIndex ?? 0);
   const step = findStepByOp(steps, op);
-  return step?.precision ?? null;
+  const precision = step?.precision ?? null;
+  cache?.stepPrecision.set(cacheKey, precision);
+  return precision;
 }
 
 function getKernelPathMatmulStep(
@@ -309,20 +440,33 @@ function getKernelPathMatmulStep(
 ) {
   const lookupPath = path === undefined ? activeKernelPath : path;
   if (!lookupPath || !role) return null;
+  const aliasMapId = aliasMap === MATMUL_STEP_ROLE_ALIASES
+    ? 'step'
+    : aliasMap === MATMUL_PRECISION_ROLE_ALIASES
+      ? 'precision'
+      : null;
+  const cache = aliasMapId ? getPathLookupCache(lookupPath) : null;
+  const cacheKey = `${aliasMapId}:${role}:${phase}:${layerIndex ?? 0}`;
+  if (cache?.matmulSteps.has(cacheKey)) {
+    return cache.matmulSteps.get(cacheKey);
+  }
   const alias = aliasMap[role] ?? { section: 'layer', ops: [role] };
   const steps = getKernelPathStepsForSection(lookupPath, alias.section, phase, layerIndex ?? 0);
   if (role === 'lm_head' && phase === 'prefill') {
     const prefillStep = findStepByOp(steps, 'lm_head_prefill');
     if (prefillStep) {
+      cache?.matmulSteps.set(cacheKey, prefillStep);
       return prefillStep;
     }
   }
   for (const op of alias.ops) {
     const step = findStepByOp(steps, op);
     if (step) {
+      cache?.matmulSteps.set(cacheKey, step);
       return step;
     }
   }
+  cache?.matmulSteps.set(cacheKey, null);
   return null;
 }
 
@@ -333,10 +477,20 @@ export function getKernelPathAttentionVariant(
 ) {
   const lookupPath = path === undefined ? activeKernelPath : path;
   if (!lookupPath) return null;
+  const cache = getPathLookupCache(lookupPath);
+  const cacheKey = `${phase}:${layerIndex ?? 0}`;
+  if (cache?.attentionVariant.has(cacheKey)) {
+    return cache.attentionVariant.get(cacheKey);
+  }
   const steps = getKernelPathStepsForSection(lookupPath, 'layer', phase, layerIndex ?? 0);
   const step = findStepByOp(steps, 'attention');
-  if (!step) return null;
-  return findKernelVariant('attention', step.kernel, step.entry, phase, step.constants);
+  if (!step) {
+    cache?.attentionVariant.set(cacheKey, null);
+    return null;
+  }
+  const variant = findKernelVariant('attention', step.kernel, step.entry, phase, step.constants);
+  cache?.attentionVariant.set(cacheKey, variant);
+  return variant;
 }
 
 export function getKernelPathAttentionPrecision(
@@ -346,9 +500,16 @@ export function getKernelPathAttentionPrecision(
 ) {
   const lookupPath = path === undefined ? activeKernelPath : path;
   if (!lookupPath) return null;
+  const cache = getPathLookupCache(lookupPath);
+  const cacheKey = `${phase}:${layerIndex ?? 0}`;
+  if (cache?.attentionPrecision.has(cacheKey)) {
+    return cache.attentionPrecision.get(cacheKey);
+  }
   const steps = getKernelPathStepsForSection(lookupPath, 'layer', phase, layerIndex ?? 0);
   const step = findStepByOp(steps, 'attention');
-  return step?.precision ?? null;
+  const precision = step?.precision ?? null;
+  cache?.attentionPrecision.set(cacheKey, precision);
+  return precision;
 }
 
 // =============================================================================
@@ -365,6 +526,8 @@ const DEFAULT_ACTIVE_KERNEL_PATH_POLICY = {
 let activeKernelPathPolicy = DEFAULT_ACTIVE_KERNEL_PATH_POLICY;
 
 export function setActiveKernelPath(path, source = 'none', policy = undefined) {
+  invalidateKernelPathCache(activeKernelPath);
+  invalidateKernelPathCache(path);
   activeKernelPath = path;
   activeKernelPathSource = path ? source : 'none';
   activeKernelPathPolicy = mergeKernelPathPolicy(DEFAULT_ACTIVE_KERNEL_PATH_POLICY, policy);
@@ -392,9 +555,9 @@ export function getKernelPathStrict() {
   return true;
 }
 
-export function isKernelPathFusedQ4K(path = undefined) {
-  const lookupPath = path === undefined ? activeKernelPath : path;
-  if (!lookupPath) return false;
+function getKernelPathKernelSteps(lookupPath) {
+  const cache = getPathLookupCache(lookupPath);
+  if (cache?.kernelSteps) return cache.kernelSteps;
   const kernelSteps = [
     ...(lookupPath.decode?.steps ?? []),
     ...(lookupPath.prefill?.steps ?? []),
@@ -406,23 +569,23 @@ export function isKernelPathFusedQ4K(path = undefined) {
       ...(override?.prefill?.steps ?? []),
     ]) ?? []),
   ];
+  if (cache) {
+    cache.kernelSteps = kernelSteps;
+  }
+  return kernelSteps;
+}
+
+export function isKernelPathFusedQ4K(path = undefined) {
+  const lookupPath = path === undefined ? activeKernelPath : path;
+  if (!lookupPath) return false;
+  const kernelSteps = getKernelPathKernelSteps(lookupPath);
   return kernelSteps.some((step) => step.kernel.includes('fused_matmul_q4'));
 }
 
 export function kernelPathRequiresF32MatmulWeights(path = undefined) {
   const lookupPath = path === undefined ? activeKernelPath : path;
   if (!lookupPath) return false;
-  const kernelSteps = [
-    ...(lookupPath.decode?.steps ?? []),
-    ...(lookupPath.prefill?.steps ?? []),
-    ...(lookupPath.preLayer ?? []),
-    ...(lookupPath.postLayer ?? []),
-    ...(lookupPath.layerOverrides?.flatMap((override) => [
-      ...(override?.steps ?? []),
-      ...(override?.decode?.steps ?? []),
-      ...(override?.prefill?.steps ?? []),
-    ]) ?? []),
-  ];
+  const kernelSteps = getKernelPathKernelSteps(lookupPath);
   return kernelSteps.some((step) => normalizeKernelFile(step.kernel) === 'matmul_f32.wgsl');
 }
 
@@ -433,17 +596,7 @@ export function isActiveKernelPathFusedQ4K() {
 export function isKernelPathDequant(path = undefined) {
   const lookupPath = path === undefined ? activeKernelPath : path;
   if (!lookupPath) return false;
-  const kernelSteps = [
-    ...(lookupPath.decode?.steps ?? []),
-    ...(lookupPath.prefill?.steps ?? []),
-    ...(lookupPath.preLayer ?? []),
-    ...(lookupPath.postLayer ?? []),
-    ...(lookupPath.layerOverrides?.flatMap((override) => [
-      ...(override?.steps ?? []),
-      ...(override?.decode?.steps ?? []),
-      ...(override?.prefill?.steps ?? []),
-    ]) ?? []),
-  ];
+  const kernelSteps = getKernelPathKernelSteps(lookupPath);
   return kernelSteps.some((step) => step.kernel.startsWith('matmul_'));
 }
 

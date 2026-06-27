@@ -123,6 +123,8 @@ export class BufferPool {
   
   #pools;
 
+  #totalPooledBuffers;
+
   // Active buffers (currently in use)
   
   #activeBuffers;
@@ -186,6 +188,7 @@ export class BufferPool {
       throw new Error('BufferPool schemaConfig.bucket must include minBucketSizeBytes.');
     }
     this.#pools = new Map();
+    this.#totalPooledBuffers = 0;
     this.#activeBuffers = new Set();
     this.#bufferMetadata = new Map();
     this.#requestedSizes = new Map();
@@ -410,6 +413,7 @@ export class BufferPool {
     if (bucketPool.length < this.#config.maxPoolSizePerBucket &&
         this.#getTotalPooledCount() < this.#config.maxTotalPooledBuffers) {
       bucketPool.push(buffer);
+      this.#totalPooledBuffers++;
       pooled = true;
     } else {
       this.#deferDestroy(buffer);
@@ -454,18 +458,16 @@ export class BufferPool {
     const bucketPool = usagePool.get(bucket);
     if (!bucketPool || bucketPool.length === 0) return null;
 
-    return bucketPool.pop();
+    const buffer = bucketPool.pop();
+    if (buffer) {
+      this.#totalPooledBuffers--;
+    }
+    return buffer;
   }
 
   
   #getTotalPooledCount() {
-    let count = 0;
-    for (const usagePool of this.#pools.values()) {
-      for (const bucketPool of usagePool.values()) {
-        count += bucketPool.length;
-      }
-    }
-    return count;
+    return this.#totalPooledBuffers;
   }
 
   #getBudgetConfig() {
@@ -516,6 +518,7 @@ export class BufferPool {
         }
         const buffer = bucketPool.pop();
         if (buffer) {
+          this.#totalPooledBuffers--;
           this.#deferDestroy(buffer);
           this.#stats.currentBytesAllocated -= buffer.size;
           return true;
@@ -705,6 +708,7 @@ export class BufferPool {
       }
     }
     this.#pools.clear();
+    this.#totalPooledBuffers = 0;
     // Keep existing deferred-destruction contract: anything already queued
     // should still be destroyed after submitted work completes.
   }
@@ -867,5 +871,4 @@ export const readBufferSlice = (buffer, offset, size) =>
 
 export const forceBufferPoolReclaim = (targetRatio) =>
   getBufferPool().forceReclaim(targetRatio);
-
 
