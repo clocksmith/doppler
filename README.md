@@ -3,17 +3,29 @@
 Browser-native inference on raw WebGPU. Pure JS + WGSL.
 
 **[Try the live demo](https://d4da.com/doppler)** | **[npm](https://www.npmjs.com/package/doppler-gpu)** | **[docs](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)**
-Broader model status and the surrounding compare evidence live in the support
-and release matrices. See the
+Broader model status and compare evidence live in the support and release
+matrices. See the
 [benchmark methodology](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
 for the receipt contract and disclosure rules.
 
-## New in 0.4.3
+## What it is
 
-- `sideEffects` is now scoped to `*.wgsl` and `src/gpu/device.js`, making most modules tree-shakeable.
-- Tooling and support-surface APIs are split into smaller subpaths (`doppler-gpu/tooling/device`, `doppler-gpu/tooling/storage`, `doppler-gpu/tooling/manifest`, `doppler-gpu/structured`, and `doppler-gpu/client/model-manager`).
-- New per-family metadata modules for `gemma3`, `gemma4`, `embeddinggemma`, and `qwen3` add model-family constants plus `resolveModel` and `resolveHfBaseUrl` helpers.
-- Added direct shader-seeding support via `registerShaderSources(map)` and `hasPreseededShaderSource(name)`.
+- A WebGPU inference engine written in JavaScript and WGSL.
+- A shared browser, Node, Bun, CLI, and OpenAI-compatible server surface.
+- An RDRR model loader for sharded weights, manifest-owned config, and tokenizer
+  metadata.
+- A runtime that keeps kernel paths, dtype policy, and benchmark contracts
+  visible in JSON, JavaScript, and WGSL.
+
+## How it works
+
+1. A registry ID or model URL resolves to an RDRR manifest and weight shards.
+2. The manifest owns model parameters, tokenizer metadata, session policy, and
+   execution graph.
+3. The loader caches shards in OPFS or disk and uploads weights to WebGPU
+   buffers.
+4. JavaScript orchestrates prefill, decode, KV cache, and streaming.
+5. WGSL kernels run the tensor work selected by the manifest and runtime config.
 
 ## Quick start
 
@@ -92,26 +104,14 @@ Doppler keeps model support and subsystem support separate:
 
 The tier1 proof surface is the hosted browser demo, the root `doppler` API, the quickstart CLI, the OpenAI-compatible localhost server, and the verified text-inference path behind them.
 
-## Why Doppler
-
-**Browser-native.** Runs in a WebGPU browser tab with OPFS caching, so models stay available offline after the first load.
-
-**JavaScript-first execution.** JSON resolves policy, JavaScript handles orchestration, and WGSL kernels handle compute. Kernel paths, dtype choices, and runtime behavior stay visible in the shipped source.
-
-**Fast iteration.** JS, WGSL, and JSON changes run directly through the same stack used by the browser and Node surfaces, which keeps debugging and profiling close to real runtime behavior.
-
-**`for await` streaming.** Generation uses a native `AsyncGenerator` that fits normal app control flow.
-
-**LoRA hot-swap.** Experimental advanced surface for swapping adapters at runtime without reloading the base model.
-
-**Independent model instances.** Run multiple models concurrently. Each owns its pipeline, buffers, and KV cache.
-
 ## Benchmark evidence
 
-Current local claim grid for Gemma 3 270M IT Q4K, `p064`/`p256`/`p512`
-throughput lanes, 15 timed runs per surface, exact output match:
+The release matrix lists checked benchmark fixtures with hardware and backend,
+including Apple Metal and AMD Vulkan rows. The chart below is the current AMD
+Vulkan Gemma 3 270M IT Q4K decode grid against Transformers.js across Chromium,
+Node, and Bun:
 
-![Doppler vs Transformers.js local claim grid on Gemma 3 270M across Chromium, Node, and Bun](./benchmarks/vendors/results/doppler-goat-claim-grid-20260627.svg)
+![Doppler vs Transformers.js AMD Vulkan decode throughput on Gemma 3 270M across Chromium, Node, and Bun](./benchmarks/vendors/results/doppler-vulkan-decode-grid-20260627.svg)
 
 ## Quickstart-supported models
 
@@ -138,14 +138,6 @@ See the
 Subsystem support tiers for direct-source inputs, advanced subpaths, diffusion,
 energy, and training live in the
 [subsystem support matrix](https://github.com/clocksmith/doppler/blob/main/docs/subsystem-support-matrix.md).
-
-## Under the hood
-
-- Sharded weight loading via OPFS moves multi-GB weights into VRAM without blocking the main thread.
-- Quantized inference (Q4K, F16) runs practical model sizes on consumer GPUs.
-- TurboQuant KV-cache profiles are available for quantized decode-cache runs.
-- Kernel hot-swap between prefill and decode paths with zero graph recompilation.
-- Config-driven runtime with explicit profiles, kernel-path selection, and sampling.
 
 ## Documentation
 

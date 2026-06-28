@@ -10,7 +10,7 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_LANE_ID = 'gemma-3-270m-it-q4k-rdrr';
-const DEFAULT_OUTPUT = path.join(__dirname, 'results', 'doppler-goat-claim-grid-20260627.svg');
+const DEFAULT_OUTPUT = path.join(__dirname, 'results', 'doppler-vulkan-decode-grid-20260627.svg');
 const CLAIM_MATRIX_PATH = path.join(__dirname, 'local-inference-claim-matrix.json');
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const WIDTH = 1200;
@@ -224,24 +224,24 @@ function renderSvg(rows) {
   const gap = 18;
   const left = 150;
   const top = 198;
-  const dopplerWins = rows.filter((row) => row.leader === 'doppler').length;
-  const tjsWins = rows.filter((row) => row.leader === 'tjs').length;
+  const dopplerLeading = rows.filter((row) => row.leader === 'doppler').length;
+  const tjsLeading = rows.filter((row) => row.leader === 'tjs').length;
 
   const body = [];
   body.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" role="img" aria-labelledby="title desc">`);
-  body.push(`<title id="title">Doppler local inference claim grid</title>`);
-  body.push(`<desc id="desc">Gemma 3 270M Q4K throughput receipts across p064, p256, p512 and Chromium, Node, Bun, with TJS-leading p256 Node and Bun cells shown as blockers.</desc>`);
+  body.push(`<title id="title">Doppler AMD Vulkan decode throughput grid</title>`);
+  body.push(`<desc id="desc">Gemma 3 270M Q4K throughput receipts on AMD Vulkan across p064, p256, p512 and Chromium, Node, Bun, with Doppler-leading and TJS-leading cells marked.</desc>`);
   body.push('<defs><style>');
   body.push(`text{font-family:${FONT_UI};letter-spacing:0}.mono{font-family:${FONT_MONO}}`);
   body.push('</style></defs>');
   body.push(rect(0, 0, WIDTH, HEIGHT, '#ffffff', ''));
   body.push(rect(18, 18, WIDTH - 36, HEIGHT - 36, '#ffffff', ` stroke="${PALETTE.border}" stroke-width="1.5"`));
-  body.push(text(42, 58, 'CURRENT LOCAL CLAIM GRID', { size: 12, weight: 800 }));
-  body.push(text(42, 96, 'Doppler wins 7 of 9 measured decode lanes', { size: 34, weight: 850 }));
-  body.push(text(42, 126, 'Gemma 3 270M IT Q4K • greedy • warm cache • 15 timed runs • exact output match • no hidden fallback', { size: 15, fill: PALETTE.muted }));
+  body.push(text(42, 58, 'AMD VULKAN DECODE GRID', { size: 12, weight: 800 }));
+  body.push(text(42, 96, 'Doppler / Transformers.js decode throughput', { size: 34, weight: 850 }));
+  body.push(text(42, 126, 'Gemma 3 270M IT Q4K - greedy - warm cache - 15 timed runs - exact output match - no hidden fallback', { size: 15, fill: PALETTE.muted }));
   body.push(rect(900, 50, 230, 58, '#111111'));
-  body.push(text(1015, 73, `${dopplerWins} Doppler wins`, { size: 16, weight: 850, fill: '#ffffff', anchor: 'middle' }));
-  body.push(text(1015, 96, `${tjsWins} TJS blockers`, { size: 13, weight: 800, fill: '#ffffff', anchor: 'middle' }));
+  body.push(text(1015, 73, `${dopplerLeading} Doppler-leading`, { size: 16, weight: 850, fill: '#ffffff', anchor: 'middle' }));
+  body.push(text(1015, 96, `${tjsLeading} TJS-leading`, { size: 13, weight: 800, fill: '#ffffff', anchor: 'middle' }));
 
   for (const [index, backendId] of backends.entries()) {
     body.push(text(left + index * (cellWidth + gap) + cellWidth / 2, 166, BACKEND_LABELS[backendId] || backendId, {
@@ -265,7 +265,7 @@ function renderSvg(rows) {
   }
 
   body.push(`<line x1="42" y1="770" x2="1158" y2="770" stroke="${PALETTE.grid}" />`);
-  body.push(text(42, 798, 'Read as decode throughput, higher is better. Green cells are Doppler-leading; red cells are the current GOAT blockers.', {
+  body.push(text(42, 798, 'Read as decode throughput, higher is better. Green cells are Doppler-leading; red cells are TJS-leading.', {
     size: 13,
     fill: PALETTE.muted,
   }));

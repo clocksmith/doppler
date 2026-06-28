@@ -336,11 +336,11 @@ Use [benchmarks/vendors/compare-chart.js](./compare-chart.js) to turn a saved co
 node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json
 node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json --chart stacked
 node benchmarks/vendors/compare-chart.js --input benchmarks/vendors/fixtures/g3-p064-d064-t0-k1.compare.json --chart radar --section compute/parity
-node benchmarks/vendors/generate-local-claim-summary-svg.js --lane gemma-3-270m-it-q4k-rdrr --output benchmarks/vendors/results/doppler-goat-claim-grid-20260627.svg
+node benchmarks/vendors/generate-local-claim-summary-svg.js --lane gemma-3-270m-it-q4k-rdrr --output benchmarks/vendors/results/doppler-vulkan-decode-grid-20260627.svg
 ```
 
 Use `--section` to choose the section, `--chart` (`bar|stacked|radar|phases`) to pick the renderer, and `--metrics` to limit metric IDs.
-Use `generate-local-claim-summary-svg.js` for the compact README claim grid; it reads `local-inference-claim-matrix.json` workload evidence so blockers remain visible.
+Use `generate-local-claim-summary-svg.js` for the compact README throughput grid; it reads `local-inference-claim-matrix.json` workload evidence so Doppler-leading and TJS-leading cells remain visible.
 
 ## Change Checklist
 

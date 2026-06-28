@@ -1,17 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="850" viewBox="0 0 1200 850" role="img" aria-labelledby="title desc">
-<title id="title">Doppler local inference claim grid</title>
-<desc id="desc">Gemma 3 270M Q4K throughput receipts across p064, p256, p512 and Chromium, Node, Bun, with TJS-leading p256 Node and Bun cells shown as blockers.</desc>
+<title id="title">Doppler AMD Vulkan decode throughput grid</title>
+<desc id="desc">Gemma 3 270M Q4K throughput receipts on AMD Vulkan across p064, p256, p512 and Chromium, Node, Bun, with Doppler-leading and TJS-leading cells marked.</desc>
 <defs><style>
 text{font-family:Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;letter-spacing:0}.mono{font-family:SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace}
 </style></defs>
 <rect x="0" y="0" width="1200" height="850" rx="5" fill="#ffffff" />
 <rect x="18" y="18" width="1164" height="814" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5" />
-<text x="42" y="58" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="800">CURRENT LOCAL CLAIM GRID</text>
-<text x="42" y="96" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="34" font-weight="850">Doppler wins 7 of 9 measured decode lanes</text>
-<text x="42" y="126" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="15">Gemma 3 270M IT Q4K • greedy • warm cache • 15 timed runs • exact output match • no hidden fallback</text>
+<text x="42" y="58" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="800">AMD VULKAN DECODE GRID</text>
+<text x="42" y="96" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="34" font-weight="850">Doppler / Transformers.js decode throughput</text>
+<text x="42" y="126" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="15">Gemma 3 270M IT Q4K - greedy - warm cache - 15 timed runs - exact output match - no hidden fallback</text>
 <rect x="900" y="50" width="230" height="58" rx="5" fill="#111111" />
-<text x="1015" y="73" fill="#ffffff" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="850" text-anchor="middle">7 Doppler wins</text>
-<text x="1015" y="96" fill="#ffffff" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="800" text-anchor="middle">2 TJS blockers</text>
+<text x="1015" y="73" fill="#ffffff" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="850" text-anchor="middle">7 Doppler-leading</text>
+<text x="1015" y="96" fill="#ffffff" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="800" text-anchor="middle">2 TJS-leading</text>
 <text x="315" y="166" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="800" text-anchor="middle">Chromium</text>
 <text x="663" y="166" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="800" text-anchor="middle">Node</text>
 <text x="1011" y="166" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="800" text-anchor="middle">Bun</text>
@@ -103,6 +103,6 @@ text{font-family:Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;letter-s
 <text x="864" y="676" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">prefill 2326.4 / 1004.0 tok/s</text>
 <text x="864" y="697" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12">exact • 15 runs • command recording</text>
 <line x1="42" y1="770" x2="1158" y2="770" stroke="#d8d8d8" />
-<text x="42" y="798" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13">Read as decode throughput, higher is better. Green cells are Doppler-leading; red cells are the current GOAT blockers.</text>
+<text x="42" y="798" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13">Read as decode throughput, higher is better. Green cells are Doppler-leading; red cells are TJS-leading.</text>
 <text x="42" y="820" fill="#5a5a5a" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">Receipts: compare_20260627T202549..203348 plus p512 200323/200603/200811. Broader medium-model claim remains gated.</text>
 </svg>
