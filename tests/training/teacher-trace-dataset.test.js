@@ -15,10 +15,18 @@ const dataset = await loadTeacherTraceDataset(fixturePath);
 assert.equal(dataset.rowCount, 3);
 assert.deepEqual(dataset.lineage.teacherModelIds, ['zai-org/GLM-5.2']);
 assert.deepEqual(dataset.lineage.gepaCandidateIds, ['gepa-pareto-0001', 'gepa-pareto-0002']);
+assert.deepEqual(dataset.lineage.policyIds, ['doppler-agent-policy-v1', 'doppler-review-policy-v1']);
 assert.deepEqual(dataset.lineage.taskKinds, ['cross_cutting_review', 'js_json_write', 'wgsl_write']);
+assert.deepEqual(dataset.rows[0].sourceFiles, [
+  'src/experimental/training/workloads.js',
+  'tests/config/training-workload-loader-v2.test.js',
+]);
+assert.equal(dataset.rows[0].generationParams.maxTokens, 512);
+assert.equal(dataset.rows[0].license, 'Apache-2.0');
 assert.equal(dataset.rows[1].promptField, 'messages');
 assert.match(dataset.rows[1].prompt, /system: You are a Doppler WGSL patching assistant/);
 assert.equal(dataset.textPairs[0].teacherModelId, 'zai-org/GLM-5.2');
+assert.equal(dataset.textPairs[0].policyId, 'doppler-agent-policy-v1');
 
 assert.throws(
   () => parseTeacherTraceDataset('{"prompt":"a","completion":"b"}\n'),

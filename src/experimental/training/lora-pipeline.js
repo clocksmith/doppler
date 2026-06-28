@@ -17,6 +17,7 @@ import { OpType, AutogradTape } from './autograd.js';
 import { loadCheckpoint } from './checkpoint.js';
 import { exportLoRAAdapter } from './export.js';
 import { computeEvalMetrics } from './operator-eval.js';
+import { summarizeAgentEvalReportRequirements } from './operator-agent-eval.js';
 import { appendScoreboardRow } from './operator-scoreboard.js';
 import {
   buildArtifactBase,
@@ -1381,6 +1382,9 @@ function normalizeProviderEvalReport(entry, index, context) {
         improved: loss <= baselineScore,
         requireImprovement: false,
       });
+  const agentEval = isObjectRecord(entry.agentEval)
+    ? entry.agentEval
+    : (isObjectRecord(entry.heldoutGate) ? entry.heldoutGate : null);
   return {
     artifactType: 'training_eval_report',
     schemaVersion: 1,
@@ -1410,6 +1414,7 @@ function normalizeProviderEvalReport(entry, index, context) {
     loss,
     baseline: isObjectRecord(entry.baseline) ? entry.baseline : null,
     qualityClaim,
+    agentEval,
   };
 }
 
@@ -1438,9 +1443,11 @@ async function writeProviderEvalReports(context) {
       primaryScore: materialized.primaryScore,
       loss: materialized.loss,
       qualityClaim: materialized.qualityClaim || null,
+      agentEval: materialized.agentEval || null,
       metrics: {
         [materialized.primaryMetric]: materialized.primaryScore,
         primaryScore: materialized.primaryScore,
+        agent_heldout_gate: materialized.agentEval?.passRate ?? null,
       },
     }, {
       selectionMetric: context.workload.selectionMetric,
@@ -2356,6 +2363,7 @@ export async function compareLoraRun(options) {
       baseline: report.baseline || null,
       qualityClaim: report.qualityClaim || null,
       accuracy: report.accuracy ?? null,
+      agentEval: report.agentEval || report.heldoutGate || null,
       reportPath: report.reportPath || null,
     })),
   };
@@ -2403,6 +2411,7 @@ export async function qualityGateLoraRun(options) {
   const workload = await loadRunWorkloadForComparison(runRoot);
   const evalReports = await loadTrainingEvalReports(join(runRoot, 'eval'));
   const qualitySummary = summarizeQualityClaims(evalReports);
+  const agentEvalSummary = summarizeAgentEvalReportRequirements(workload, evalReports);
   const requiredImprovementEvalIds = collectRequiredImprovementEvalIds(workload);
   if (evalReports.length > 0) {
     checks.push({
@@ -2429,6 +2438,17 @@ export async function qualityGateLoraRun(options) {
       error: 'No baseline quality claims were written for eval datasets that require improvement.',
     });
   }
+  if (agentEvalSummary.requiredCount > 0) {
+    checks.push({
+      name: 'agent_heldout_eval',
+      path: join(runRoot, 'eval'),
+      ok: agentEvalSummary.failedCount === 0,
+      ...agentEvalSummary,
+      error: agentEvalSummary.failedCount === 0
+        ? null
+        : 'One or more required agent held-out eval gates are missing or failing.',
+    });
+  }
   const passed = checks.every((entry) => entry.ok === true);
   const payload = {
     artifactType: 'training_quality_gate',
@@ -2437,6 +2457,7 @@ export async function qualityGateLoraRun(options) {
     runRoot,
     passed,
     qualitySummary,
+    agentEvalSummary,
     checks,
   };
   const artifact = await writeJsonArtifact(join(runRoot, 'quality-gate', 'quality-gate.json'), payload);

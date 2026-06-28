@@ -12,6 +12,12 @@ export { TrainingRunner, runTraining } from './runner.js';
 export { runTrainingSuite, runTrainingBenchSuite, trainingHarness } from './suite.js';
 export { runTrainingOperatorCommand } from './operator-command.js';
 export {
+  evaluateAgentHeldoutRows,
+  extractFileReferences,
+  extractToolReferences,
+  summarizeAgentEvalReportRequirements,
+} from './operator-agent-eval.js';
+export {
   LORA_RUNNER_SUPPORT_CONTRACT,
   LORA_RUNNER_BASE_MODEL_REGISTRY,
   LORA_RUNNER_DATASET_FORMAT_REGISTRY,

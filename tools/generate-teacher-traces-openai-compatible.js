@@ -30,6 +30,31 @@ function requireString(value, label) {
   return value.trim();
 }
 
+function optionalString(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function parseStringList(value, label) {
+  if (value === undefined || value === null || value === '') {
+    return [];
+  }
+  if (Array.isArray(value)) {
+    return value.map((entry, index) => {
+      if (typeof entry !== 'string' || !entry.trim()) {
+        throw new Error(`${label}[${index}] must be a non-empty string.`);
+      }
+      return entry.trim();
+    });
+  }
+  if (typeof value !== 'string') {
+    throw new Error(`${label} must be a comma-separated string or an array of strings.`);
+  }
+  return String(value)
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
 function normalizeRow(record, index) {
   if (!record || typeof record !== 'object' || Array.isArray(record)) {
     throw new Error(`Teacher seed row ${index + 1} must be an object.`);
@@ -41,8 +66,14 @@ function normalizeRow(record, index) {
   return {
     id: String(record.id || record.rowId || `trace-${index + 1}`),
     prompt: prompt.trim(),
-    taskKind: typeof record.taskKind === 'string' ? record.taskKind : null,
-    domain: typeof record.domain === 'string' ? record.domain : null,
+    taskKind: optionalString(record.taskKind),
+    domain: optionalString(record.domain),
+    policyId: optionalString(record.policyId) || optionalString(record.sourcePolicyId),
+    sourceFiles: parseStringList(record.sourceFiles ?? record.source_files, `Teacher seed row ${index + 1} sourceFiles`),
+    license: optionalString(record.license),
+    provenance: record.provenance && typeof record.provenance === 'object' && !Array.isArray(record.provenance)
+      ? record.provenance
+      : null,
   };
 }
 
@@ -97,18 +128,37 @@ async function callTeacher(row, options) {
 }
 
 function serializeTrace(row, completion, options) {
+  const policyId = row.policyId || options.policyId;
+  const sourceFiles = row.sourceFiles.length > 0 ? row.sourceFiles : options.sourceFiles;
   return JSON.stringify({
+    schemaVersion: 1,
+    artifactType: 'teacher_trace',
+    traceFormat: 'doppler_teacher_trace_v1',
     id: row.id,
+    teacherModel: options.model,
     teacherModelId: options.model,
     studentBaseModelId: options.studentBaseModelId,
     domain: row.domain || options.domain,
     taskKind: row.taskKind || options.taskKind,
-    sourcePolicyId: options.sourcePolicyId,
+    policyId,
+    sourcePolicyId: policyId,
+    sourceFiles,
+    generationParams: {
+      temperature: options.temperature,
+      maxTokens: options.maxTokens,
+      systemPrompt: options.systemPrompt,
+      endpoint: 'chat/completions',
+    },
+    license: row.license || options.license,
     prompt: row.prompt,
     completion,
     provenance: {
+      ...(row.provenance || {}),
       provider: options.provider,
       baseUrl: options.baseUrl,
+      inputPath: options.inputPath,
+      seedId: row.id,
+      sourceFiles,
       generatedAt: new Date().toISOString(),
     },
   });
@@ -133,7 +183,10 @@ async function main() {
     studentBaseModelId: String(args['student-base-model-id'] || '').trim() || null,
     domain: String(args.domain || '').trim() || null,
     taskKind: String(args['task-kind'] || '').trim() || null,
-    sourcePolicyId: String(args['source-policy-id'] || '').trim() || null,
+    policyId: String(args['policy-id'] || args['source-policy-id'] || '').trim() || null,
+    sourceFiles: parseStringList(args['source-files'], '--source-files'),
+    license: String(args.license || '').trim() || null,
+    inputPath: resolve(inputPath),
     systemPrompt: typeof args['system-prompt'] === 'string' ? args['system-prompt'] : null,
     temperature: Number.isFinite(Number(args.temperature)) ? Number(args.temperature) : 0.2,
     maxTokens: Number.isInteger(Number(args['max-tokens'])) ? Number(args['max-tokens']) : 512,

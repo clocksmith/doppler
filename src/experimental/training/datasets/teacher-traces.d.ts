@@ -8,14 +8,20 @@ export interface TeacherTraceRow {
   studentBaseModelId: string | null;
   domain: string | null;
   taskKind: string | null;
+  policyId: string | null;
   sourcePolicyId: string | null;
   gepaCandidateId: string | null;
+  sourceFiles: string[] | null;
+  generationParams: Record<string, unknown> | null;
+  license: string | null;
+  provenance: Record<string, unknown> | null;
 }
 
 export interface TeacherTraceLineageSummary {
   teacherModelIds: string[];
   studentBaseModelIds: string[];
   taskKinds: string[];
+  policyIds: string[];
   sourcePolicyIds: string[];
   gepaCandidateIds: string[];
 }

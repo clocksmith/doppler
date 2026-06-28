@@ -10,6 +10,19 @@ function normalizeOptionalString(value) {
   return text || null;
 }
 
+function normalizeOptionalStringArray(value, label) {
+  if (value === undefined || value === null) return null;
+  if (!Array.isArray(value)) {
+    throw new Error(`${label} must be an array of strings.`);
+  }
+  return value.map((entry, index) => {
+    if (typeof entry !== 'string') {
+      throw new Error(`${label}[${index}] must be a string.`);
+    }
+    return entry.trim();
+  }).filter(Boolean);
+}
+
 function normalizeScores(value) {
   if (!isObjectRecord(value)) return {};
   const scores = {};
@@ -136,15 +149,30 @@ export function buildTeacherTracesFromGepaFrontier(candidates, options = {}) {
       const taskInput = normalizeTraceInput(trace, traceIndex, candidate.id);
       const completion = normalizeTraceOutput(trace, traceIndex, candidate.id);
       rows.push({
+        schemaVersion: 1,
+        artifactType: 'teacher_trace',
+        traceFormat: 'doppler_teacher_trace_v1',
         id: `${candidate.id}-trace-${traceIndex + 1}`,
+        teacherModel: teacherModelId,
         teacherModelId,
         studentBaseModelId: normalizeOptionalString(options.studentBaseModelId),
         domain: normalizeOptionalString(options.domain),
         taskKind: normalizeOptionalString(options.taskKind) || normalizeOptionalString(trace.taskKind),
+        policyId: candidate.sourcePolicyId,
         sourcePolicyId: candidate.sourcePolicyId,
         gepaCandidateId: candidate.id,
+        sourceFiles: normalizeOptionalStringArray(trace.sourceFiles ?? trace.source_files ?? options.sourceFiles, 'GEPA trace sourceFiles'),
+        generationParams: isObjectRecord(trace.generationParams ?? trace.generation_params)
+          ? { ...(trace.generationParams ?? trace.generation_params) }
+          : null,
+        license: normalizeOptionalString(trace.license) || normalizeOptionalString(options.license),
         prompt: `${candidate.content}\n\nTask:\n${taskInput}`,
         completion,
+        provenance: {
+          provider: 'gepa-frontier',
+          candidateId: candidate.id,
+          traceIndex,
+        },
         scores: candidate.scores,
         metrics: candidate.metrics,
       });

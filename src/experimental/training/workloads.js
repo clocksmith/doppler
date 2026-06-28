@@ -22,6 +22,15 @@ export const TRAINING_EVAL_KINDS = Object.freeze([
   'custom',
 ]);
 
+export const TRAINING_AGENT_EVAL_CATEGORIES = Object.freeze([
+  'js_patching',
+  'wgsl_review',
+  'manifest_config_review',
+  'reploid_vfs_status_tool_loop',
+  'patch_applies',
+  'no_hallucinated_files_tools',
+]);
+
 const LEGACY_DISTILL_TEST_IDS = Object.freeze(['distill-stage-a', 'distill-stage-b']);
 
 function stableSortObject(value) {
@@ -101,6 +110,15 @@ function asFiniteNumber(value, label, options = {}) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) {
     throw new Error(`${label} must be a finite number.`);
+  }
+  return parsed;
+}
+
+function asUnitInterval(value, label, options = {}) {
+  const parsed = asFiniteNumber(value, label, options);
+  if (parsed === null) return null;
+  if (parsed < 0 || parsed > 1) {
+    throw new Error(`${label} must be between 0 and 1.`);
   }
   return parsed;
 }
@@ -248,11 +266,39 @@ function normalizeEvalDatasets(value, label) {
         { optional: true, allowEmpty: true }
       ) ?? [],
       quality: normalizeEvalQualityConfig(dataset.quality, `${label}[${index}].quality`),
+      agentEval: normalizeAgentEvalConfig(dataset.agentEval, `${label}[${index}].agentEval`),
       sourceLangs: asStringArray(dataset.sourceLangs, `${label}[${index}].sourceLangs`, { optional: true, allowEmpty: true }),
       targetLangs: asStringArray(dataset.targetLangs, `${label}[${index}].targetLangs`, { optional: true, allowEmpty: true }),
       pairAllowlist: asStringArray(dataset.pairAllowlist, `${label}[${index}].pairAllowlist`, { optional: true, allowEmpty: true }),
     };
   });
+}
+
+function normalizeAgentEvalConfig(value, label) {
+  const config = asObject(value, label, { optional: true });
+  if (!config) return null;
+  const categories = asStringArray(config.categories, `${label}.categories`);
+  for (const category of categories) {
+    if (!TRAINING_AGENT_EVAL_CATEGORIES.includes(category)) {
+      throw new Error(`${label}.categories contains unsupported category "${category}".`);
+    }
+  }
+  return {
+    suiteId: asNonEmptyString(config.suiteId, `${label}.suiteId`),
+    categories,
+    minPassRate: asUnitInterval(config.minPassRate, `${label}.minPassRate`),
+    requirePatchApplies: asBoolean(config.requirePatchApplies, `${label}.requirePatchApplies`),
+    requireNoHallucinatedFiles: asBoolean(
+      config.requireNoHallucinatedFiles,
+      `${label}.requireNoHallucinatedFiles`
+    ),
+    requireNoHallucinatedTools: asBoolean(
+      config.requireNoHallucinatedTools,
+      `${label}.requireNoHallucinatedTools`
+    ),
+    allowedFiles: asStringArray(config.allowedFiles, `${label}.allowedFiles`, { allowEmpty: true }),
+    allowedTools: asStringArray(config.allowedTools, `${label}.allowedTools`, { allowEmpty: true }),
+  };
 }
 
 function normalizeEvalQualityConfig(value, label) {

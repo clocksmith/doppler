@@ -88,6 +88,7 @@ const LANE_MAP = Object.freeze({
         'tests/config/distill-studio-quality-gate.test.js',
         'tests/config/training-workload-packs.test.js',
         'tests/config/training-report-id-publication.test.js',
+        'tests/training/agent-heldout-eval.test.js',
       ],
     },
     {

@@ -16,7 +16,8 @@
       "datasetPath": "tests/fixtures/training/doppler-review-heldout-tiny.jsonl",
       "evalKind": "text_generation",
       "metrics": [
-        "loss"
+        "loss",
+        "agent_heldout_gate"
       ],
       "decodePolicy": {
         "maxTokens": 160,
@@ -25,7 +26,8 @@
       "scoreboardColumns": [
         "loss",
         "baseline.loss",
-        "qualityClaim.absoluteImprovement"
+        "qualityClaim.absoluteImprovement",
+        "agentEval.passRate"
       ],
       "quality": {
         "baseline": "base_model",
@@ -35,7 +37,33 @@
       },
       "sourceLangs": [],
       "targetLangs": [],
-      "pairAllowlist": []
+      "pairAllowlist": [],
+      "agentEval": {
+        "suiteId": "doppler-review-heldout-v1",
+        "categories": [
+          "manifest_config_review",
+          "wgsl_review",
+          "no_hallucinated_files_tools"
+        ],
+        "minPassRate": 1,
+        "requirePatchApplies": false,
+        "requireNoHallucinatedFiles": true,
+        "requireNoHallucinatedTools": true,
+        "allowedFiles": [
+          "src/config/schema/manifest.schema.js",
+          "src/converter/manifest-inference.js",
+          "src/config/merge.js",
+          "src/gpu/kernels/matmul.wgsl"
+        ],
+        "allowedTools": [
+          "rg",
+          "node",
+          "npm",
+          "git",
+          "exec_command",
+          "apply_patch"
+        ]
+      }
     }
   ],
   "trainingSchemaVersion": 1,

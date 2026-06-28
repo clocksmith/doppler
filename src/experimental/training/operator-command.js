@@ -18,6 +18,7 @@ import {
   runLoraPipeline,
   watchLoraCheckpoints,
 } from './lora-pipeline.js';
+import { summarizeAgentEvalReportRequirements } from './operator-agent-eval.js';
 import {
   buildDistillArtifactBase,
   writeDistillCompareReport,
@@ -341,6 +342,7 @@ async function compareDistillRun(runRoot) {
       loss: report.loss ?? null,
       baseline: report.baseline || null,
       qualityClaim: report.qualityClaim || null,
+      agentEval: report.agentEval || report.heldoutGate || null,
       bleu: report.bleu ?? null,
       chrf: report.chrf ?? null,
       reportPath: report.reportPath || null,
@@ -382,6 +384,7 @@ async function qualityGateDistillRun(runRoot, loadedWorkload) {
   });
   const evalReports = await loadTrainingEvalReports(runRoot);
   const qualitySummary = summarizeQualityClaims(evalReports);
+  const agentEvalSummary = summarizeAgentEvalReportRequirements(loadedWorkload.workload, evalReports);
   const requiredImprovementEvalIds = collectRequiredImprovementEvalIds(loadedWorkload.workload);
   if (evalReports.length > 0) {
     checks.push({
@@ -408,6 +411,17 @@ async function qualityGateDistillRun(runRoot, loadedWorkload) {
       error: 'No baseline quality claims were written for eval datasets that require improvement.',
     });
   }
+  if (agentEvalSummary.requiredCount > 0) {
+    checks.push({
+      name: 'agent_heldout_eval',
+      path: runRoot,
+      ok: agentEvalSummary.failedCount === 0,
+      ...agentEvalSummary,
+      error: agentEvalSummary.failedCount === 0
+        ? null
+        : 'One or more required agent held-out eval gates are missing or failing.',
+    });
+  }
   const passed = checks.every((entry) => entry.ok === true);
   const payload = {
     artifactType: 'training_quality_gate',
@@ -416,6 +430,7 @@ async function qualityGateDistillRun(runRoot, loadedWorkload) {
     runRoot,
     passed,
     qualitySummary,
+    agentEvalSummary,
     checks,
   };
   const artifact = await writeDistillQualityGateReport({

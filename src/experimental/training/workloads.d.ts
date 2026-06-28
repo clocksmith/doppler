@@ -8,6 +8,25 @@ export type TrainingEvalKind =
   | 'retrieval'
   | 'custom';
 
+export type TrainingAgentEvalCategory =
+  | 'js_patching'
+  | 'wgsl_review'
+  | 'manifest_config_review'
+  | 'reploid_vfs_status_tool_loop'
+  | 'patch_applies'
+  | 'no_hallucinated_files_tools';
+
+export interface TrainingAgentEvalConfig {
+  suiteId: string;
+  categories: TrainingAgentEvalCategory[];
+  minPassRate: number;
+  requirePatchApplies: boolean;
+  requireNoHallucinatedFiles: boolean;
+  requireNoHallucinatedTools: boolean;
+  allowedFiles: string[];
+  allowedTools: string[];
+}
+
 export interface TrainingEvalDataset {
   id: string;
   datasetPath: string;
@@ -24,6 +43,7 @@ export interface TrainingEvalDataset {
     minAbsoluteImprovement: number;
     minRelativeImprovement: number;
   } | null;
+  agentEval: TrainingAgentEvalConfig | null;
   sourceLangs: string[] | null;
   targetLangs: string[] | null;
   pairAllowlist: string[] | null;
@@ -164,6 +184,7 @@ export declare const TRAINING_WORKLOAD_KINDS: readonly TrainingWorkloadKind[];
 export declare const TRAINING_WORKLOAD_SURFACE_SUPPORT: readonly TrainingSurfaceSupport[];
 export declare const TRAINING_SELECTION_GOALS: readonly TrainingSelectionGoal[];
 export declare const TRAINING_EVAL_KINDS: readonly TrainingEvalKind[];
+export declare const TRAINING_AGENT_EVAL_CATEGORIES: readonly TrainingAgentEvalCategory[];
 
 export declare function normalizeTrainingWorkloadPack(
   payload: Record<string, unknown>,

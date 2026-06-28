@@ -11,6 +11,9 @@ function parseArgs(argv) {
     domain: null,
     taskKind: null,
     sourcePolicyId: null,
+    policyId: null,
+    sourceFiles: null,
+    license: null,
     gepaCandidateId: null,
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -49,6 +52,18 @@ function parseArgs(argv) {
     }
     if (arg === '--source-policy-id') {
       options.sourcePolicyId = readValue();
+      continue;
+    }
+    if (arg === '--policy-id') {
+      options.policyId = readValue();
+      continue;
+    }
+    if (arg === '--source-files') {
+      options.sourceFiles = readValue().split(',').map((entry) => entry.trim()).filter(Boolean);
+      continue;
+    }
+    if (arg === '--license') {
+      options.license = readValue();
       continue;
     }
     if (arg === '--gepa-candidate-id') {
