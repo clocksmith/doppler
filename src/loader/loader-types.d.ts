@@ -133,6 +133,41 @@ export interface LoadOptions {
   verifyHashes: boolean;
 }
 
+export type LoaderLoadTimingPhase =
+  | 'preflight'
+  | 'tensorLocations'
+  | 'embeddings'
+  | 'layers'
+  | 'finalWeights'
+  | 'cleanup';
+
+export interface LoaderLayerLoadTiming {
+  count: number | null;
+  totalMs: number | null;
+  meanMs: number | null;
+  maxMs: number | null;
+  maxLayer: number | null;
+}
+
+export interface LoaderLoadTiming {
+  schemaVersion: 1;
+  source: 'doppler-loader';
+  modelId: string | null;
+  status: 'running' | 'complete' | 'failed';
+  customShardLoader: boolean;
+  byteAccountingMode: 'full-shard-progress' | 'custom-loader-progress-unavailable';
+  totalBytes: number | null;
+  totalShards: number | null;
+  bytesLoaded: number;
+  shardsLoaded: number;
+  bytesPerSecond: number | null;
+  phasesMs: Record<LoaderLoadTimingPhase, number | null>;
+  layers: LoaderLayerLoadTiming;
+  totalMs: number | null;
+  failedPhase: LoaderLoadTimingPhase | null;
+  error: string | null;
+}
+
 /**
  * Shard load priority.
  */
@@ -198,6 +233,7 @@ export interface LoaderStats {
   layersLoaded: number;
   expertsLoaded: number;
   gpuBuffers: number;
+  loadTiming?: LoaderLoadTiming | null;
 }
 
 /**

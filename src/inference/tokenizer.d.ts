@@ -32,6 +32,30 @@ export interface TokenizerInitOptions {
   loadTokenizerModel?: ((path?: string) => Promise<ArrayBuffer | Uint8Array | null | undefined>) | null;
 }
 
+export type TokenizerLoadTimingPhase =
+  | 'configResolution'
+  | 'cacheLookup'
+  | 'backendCreate'
+  | 'assetLoad'
+  | 'assetParse'
+  | 'backendLoad'
+  | 'cacheStore';
+
+export interface TokenizerLoadTiming {
+  schemaVersion: 1;
+  source: 'doppler-tokenizer';
+  modelId: string | null;
+  status: 'running' | 'complete' | 'failed';
+  tokenizerType: string | null;
+  tokenizerFile: string | null;
+  backend: string | null;
+  assetSource: string | null;
+  cacheHit: boolean;
+  phasesMs: Record<TokenizerLoadTimingPhase, number | null>;
+  totalMs: number | null;
+  error: string | null;
+}
+
 /**
  * Tokenizer wrapper that auto-detects backend from model manifest
  * This is a thin wrapper over the backend implementations
@@ -39,6 +63,7 @@ export interface TokenizerInitOptions {
 export declare class Tokenizer {
   private backend;
   private config;
+  private loadTiming;
 
   /**
    * Initialize from model manifest.
@@ -72,6 +97,11 @@ export declare class Tokenizer {
    * Get high-priority token IDs for bounded runtime hot caches, or null when unavailable
    */
   getHotTokenIds(limit: number): number[] | null;
+
+  /**
+   * Get report-only tokenizer initialization timing.
+   */
+  getLoadTiming(): TokenizerLoadTiming | null;
 }
 
 export default Tokenizer;

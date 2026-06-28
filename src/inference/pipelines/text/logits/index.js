@@ -4,7 +4,7 @@
 export { rmsNormCPU, matmulCPU, applySoftcapping, f16ToF32, f16BufferToF32 } from './cpu.js';
 
 // Re-export GPU functions
-export { computeLogitsGPU, recordLogitsGPU, computeChunkedLogitsGPU, resolveCpuWeightDims, resolveLmHeadChunkRows, extractLmHeadChunk, writeChunkLogits } from './gpu.js';
+export { computeLogitsGPU, recordLogitsGPU, recordGreedyLmHeadArgmaxGPU, computeChunkedLogitsGPU, resolveCpuWeightDims, resolveLmHeadChunkRows, extractLmHeadChunk, writeChunkLogits } from './gpu.js';
 
 // Re-export utilities
 export { extractLastPositionLogits, finalizeLogits, readBufferWithCleanup } from './utils.js';
@@ -169,7 +169,7 @@ export function resolveLmHeadMatmulConfig(numTokens, options = null) {
   return {
     lastPositionOnly,
     matmulRows: lastPositionOnly ? 1 : numTokens,
-    phaseOverride: lastPositionOnly ? 'decode' : null,
+    phaseOverride: lastPositionOnly ? 'prefill' : null,
   };
 }
 

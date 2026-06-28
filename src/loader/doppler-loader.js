@@ -46,6 +46,7 @@ import { loadEmbeddings } from './embedding-loader.js';
 import { loadPerLayerInputWeights } from './per-layer-input-loader.js';
 import { loadLayer } from './layer-loader.js';
 import { loadFinalWeights } from './final-weights-loader.js';
+import { cloneJsonValue } from '../utils/clone-json.js';
 import {
   loadExpert as loadExpertFromModule,
   prefetchExperts as prefetchExpertsFromModule,
@@ -95,6 +96,71 @@ function detectMoE(manifest) {
 
 function isGpuBufferInstance(value) {
   return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
+}
+
+function nowMs() {
+  return typeof performance !== 'undefined' && typeof performance.now === 'function'
+    ? performance.now()
+    : Date.now();
+}
+
+function roundLoadTimingMs(value) {
+  return Number.isFinite(value) ? Number(value.toFixed(3)) : null;
+}
+
+function createLoadTiming(modelId, hasCustomLoader) {
+  return {
+    schemaVersion: 1,
+    source: 'doppler-loader',
+    modelId: typeof modelId === 'string' ? modelId : null,
+    status: 'running',
+    customShardLoader: hasCustomLoader === true,
+    byteAccountingMode: hasCustomLoader === true
+      ? 'custom-loader-progress-unavailable'
+      : 'full-shard-progress',
+    totalBytes: null,
+    totalShards: null,
+    bytesLoaded: 0,
+    shardsLoaded: 0,
+    bytesPerSecond: null,
+    phasesMs: {
+      preflight: null,
+      tensorLocations: null,
+      embeddings: null,
+      layers: null,
+      finalWeights: null,
+      cleanup: null,
+    },
+    layers: {
+      count: null,
+      totalMs: null,
+      meanMs: null,
+      maxMs: null,
+      maxLayer: null,
+    },
+    totalMs: null,
+    failedPhase: null,
+    error: null,
+  };
+}
+
+function finishLoadPhase(loadTiming, phase, startMs) {
+  if (!loadTiming?.phasesMs || !phase) return;
+  loadTiming.phasesMs[phase] = roundLoadTimingMs(nowMs() - startMs);
+}
+
+function finishLoadTiming(loadTiming, status, startMs, error = null, failedPhase = null) {
+  if (!loadTiming) return;
+  const totalMs = nowMs() - startMs;
+  loadTiming.status = status;
+  loadTiming.totalMs = roundLoadTimingMs(totalMs);
+  loadTiming.bytesPerSecond = totalMs > 0 && Number.isFinite(loadTiming.bytesLoaded)
+    ? Math.round((loadTiming.bytesLoaded / totalMs) * 1000)
+    : null;
+  if (status === 'failed') {
+    loadTiming.failedPhase = failedPhase;
+    loadTiming.error = error?.message ?? String(error ?? 'unknown load error');
+  }
 }
 
 function getTensorShardIndices(location) {
@@ -178,6 +244,8 @@ export class DopplerLoader {
   loadedShards = new Set();
   
   tensorLocations = new Map();
+
+  loadTiming = null;
 
   // Shard cache (LRU with request deduplication)
   
@@ -455,6 +523,10 @@ export class DopplerLoader {
 
     log.info('Loader', `Loading: ${modelId}`);
     this.modelId = modelId;
+    const loadTimingStart = nowMs();
+    let activeLoadPhase = 'preflight';
+    let phaseStart = loadTimingStart;
+    this.loadTiming = createLoadTiming(modelId, this.shardCache.hasCustomLoader);
 
     this.#startMemoryLogging();
     this.#assertResidentBudget('load start');
@@ -491,10 +563,17 @@ export class DopplerLoader {
       }
     }
 
-    await this.#buildTensorLocations();
-
     const totalBytes = (this.manifest.shards || []).reduce((sum, s) => sum + (s.size || 0), 0);
     const totalShards = this.manifest.shards?.length || 0;
+    this.loadTiming.totalBytes = totalBytes;
+    this.loadTiming.totalShards = totalShards;
+    finishLoadPhase(this.loadTiming, activeLoadPhase, phaseStart);
+
+    activeLoadPhase = 'tensorLocations';
+    phaseStart = nowMs();
+    await this.#buildTensorLocations();
+    finishLoadPhase(this.loadTiming, activeLoadPhase, phaseStart);
+
     const loadStartTime = Date.now();
     let bytesLoaded = 0;
     let shardsLoaded = 0;
@@ -552,6 +631,8 @@ export class DopplerLoader {
         loadedShardIndices.add(shardIndex);
         bytesLoaded += shardSize;
         shardsLoaded++;
+        this.loadTiming.bytesLoaded = bytesLoaded;
+        this.loadTiming.shardsLoaded = shardsLoaded;
         if (!inLayerPhase) {
           const pct = 0.1 + Math.min(bytesLoaded / totalBytes, 1.0) * 0.7;
           const elapsed = (Date.now() - loadStartTime) / 1000;
@@ -585,7 +666,10 @@ export class DopplerLoader {
     let loadError = null;
     try {
       reportProgress('shards', 0.1, 'Loading embeddings...');
+      activeLoadPhase = 'embeddings';
+      phaseStart = nowMs();
       await this.#loadEmbeddings(onProgress);
+      finishLoadPhase(this.loadTiming, activeLoadPhase, phaseStart);
       this.#assertResidentBudget('embeddings');
 
       const resolveNumLayers = (value) => {
@@ -619,14 +703,24 @@ export class DopplerLoader {
       log.info('Loader', `Layers: 0-${numLayers - 1}`);
 
       inLayerPhase = true;
+      activeLoadPhase = 'layers';
       const layersStartTime = performance.now();
+      let layerTotalMs = 0;
+      let maxLayerMs = 0;
+      let maxLayer = null;
 
       for (let l = 0; l < numLayers; l++) {
         const layerStart = performance.now();
         const layerPromise = this.#loadLayer(l, onProgress);
         this.#prefetchLayerShards(l);
         await layerPromise;
-        const layerElapsed = ((performance.now() - layerStart) / 1000).toFixed(2);
+        const layerElapsedMs = performance.now() - layerStart;
+        layerTotalMs += layerElapsedMs;
+        if (layerElapsedMs > maxLayerMs) {
+          maxLayerMs = layerElapsedMs;
+          maxLayer = l;
+        }
+        const layerElapsed = (layerElapsedMs / 1000).toFixed(2);
         log.verbose('Loader', `  Layer ${l}: ${layerElapsed}s`);
 
         await new Promise(r => setTimeout(r, 0));
@@ -664,10 +758,21 @@ export class DopplerLoader {
       }
 
       const layersTotalTime = ((performance.now() - layersStartTime) / 1000).toFixed(2);
+      this.loadTiming.layers = {
+        count: numLayers,
+        totalMs: roundLoadTimingMs(layerTotalMs),
+        meanMs: numLayers > 0 ? roundLoadTimingMs(layerTotalMs / numLayers) : null,
+        maxMs: maxLayer == null ? null : roundLoadTimingMs(maxLayerMs),
+        maxLayer,
+      };
+      finishLoadPhase(this.loadTiming, activeLoadPhase, layersStartTime);
       log.info('Loader', `Layers: ${numLayers} complete (${layersTotalTime}s)`);
 
       reportProgress('gpu_transfer', 0.85, 'Loading final weights...');
+      activeLoadPhase = 'finalWeights';
+      phaseStart = nowMs();
       await this.#loadFinalWeights(onProgress);
+      finishLoadPhase(this.loadTiming, activeLoadPhase, phaseStart);
       this.#assertResidentBudget('final weights');
 
       if (onProgress) {
@@ -679,11 +784,16 @@ export class DopplerLoader {
       const avgSpeed = formatBytes(bytesLoaded / (Date.now() - loadStartTime) * 1000);
       log.info('Loader', `Complete: ${formatBytes(bytesLoaded)} in ${totalTime}s (${avgSpeed}/s)`);
 
+      activeLoadPhase = 'cleanup';
+      phaseStart = nowMs();
       this.shardCache.clear();
+      finishLoadPhase(this.loadTiming, activeLoadPhase, phaseStart);
+      finishLoadTiming(this.loadTiming, 'complete', loadTimingStart);
 
       return  (this.manifest.config) || {};
     } catch (error) {
       loadError = error;
+      finishLoadTiming(this.loadTiming, 'failed', loadTimingStart, error, activeLoadPhase);
     } finally {
       this.#loadShardOverride = null;
       if (this.#memoryMonitor) {
@@ -1204,7 +1314,12 @@ export class DopplerLoader {
       layersLoaded: this.layers.size,
       expertsLoaded: this.experts.size + expertCacheCount,
       gpuBuffers: this.gpuBuffers.size,
+      loadTiming: this.getLoadTiming(),
     };
+  }
+
+  getLoadTiming() {
+    return this.loadTiming ? cloneJsonValue(this.loadTiming) : null;
   }
 
   
@@ -1285,6 +1400,7 @@ export class DopplerLoader {
     this.modelId = null;
     this.loadedShards.clear();
     this.isLoaded = false;
+    this.loadTiming = null;
     this.tensorLocations.clear();
     this.#layerShardMap.clear();
     this.shardCache.clear();

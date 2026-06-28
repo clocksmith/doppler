@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "kind": "lora",
+  "id": "lora-doppler-code-agent-tiny",
+  "description": "Tiny Doppler/Reploid code-agent LoRA workload for JavaScript, JSON, WGSL, review, and harness traces.",
+  "claimBoundary": "Operator workload shape for causal-LM LoRA adapter training on code-agent text-pair traces; not a model-quality claim.",
+  "seed": 1337,
+  "baseModelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "studentModelId": null,
+  "teacherModelId": "zai-org/GLM-5.2",
+  "datasetId": "doppler-code-agent-sft-tiny",
+  "datasetPath": "tests/fixtures/training/doppler-code-agent-sft-tiny.jsonl",
+  "evalDatasets": [
+    {
+      "id": "doppler-code-agent-heldout-tiny-eval",
+      "datasetPath": "tests/fixtures/training/doppler-code-agent-heldout-tiny.jsonl",
+      "evalKind": "text_generation",
+      "metrics": [
+        "loss"
+      ],
+      "decodePolicy": {
+        "maxTokens": 192,
+        "stopOnEos": true
+      },
+      "scoreboardColumns": [
+        "loss",
+        "baseline.loss",
+        "qualityClaim.absoluteImprovement"
+      ],
+      "quality": {
+        "baseline": "base_model",
+        "requireImprovement": true,
+        "minAbsoluteImprovement": 0,
+        "minRelativeImprovement": 0
+      },
+      "sourceLangs": [],
+      "targetLangs": [],
+      "pairAllowlist": []
+    }
+  ],
+  "trainingSchemaVersion": 1,
+  "checkpointEvery": 1,
+  "selectionMetric": "loss",
+  "selectionGoal": "min",
+  "surfaceSupport": "node",
+  "training": {
+    "optimizer": {
+      "type": "adamw",
+      "lr": 0.0001,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "eps": 1e-8,
+      "weightDecay": 0,
+      "scheduler": {
+        "enabled": false,
+        "type": "constant",
+        "warmupSteps": 0,
+        "stepSize": 1,
+        "gamma": 1,
+        "totalSteps": 1,
+        "minLr": 0
+      }
+    },
+    "batchSize": 1,
+    "accumSteps": 1,
+    "steps": 1,
+    "precision": {
+      "activations": "f16",
+      "gradients": "f16",
+      "loraParams": "f32"
+    },
+    "gradientClipping": {
+      "maxNorm": 1
+    }
+  },
+  "lora": {
+    "datasetFormat": "text-pairs",
+    "taskType": "text_generation",
+    "maxLength": 512,
+    "joinWith": "\n",
+    "adapter": {
+      "rank": 8,
+      "alpha": 16,
+      "dropout": 0,
+      "targetModules": [
+        "q_proj",
+        "v_proj"
+      ]
+    },
+    "freeze": {
+      "encoder": false,
+      "prior": false,
+      "decoder": false,
+      "base": true,
+      "lora": false
+    },
+    "export": {
+      "enabled": true,
+      "atCheckpoints": false,
+      "select": "final",
+      "id": "doppler-code-agent-qwen35-08b-lora",
+      "name": "Doppler Code Agent Qwen 3.5 0.8B LoRA",
+      "format": "manifest_json"
+    },
+    "activation": {
+      "enabled": false,
+      "autoActivate": false,
+      "smokePrompt": "Review this WGSL bounds-check patch."
+    }
+  }
+}

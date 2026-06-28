@@ -4,6 +4,7 @@ export interface ExecutionPlanSummary {
   kernelPathSource: string;
   activationDtype: string;
   readbackInterval: number | null;
+  readbackMode: string | null;
   batchSize: number | undefined;
   stopCheckMode: string | undefined;
   ringTokens: number | null;

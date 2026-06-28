@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-06-27T20:43:26.666Z
-Release: channel=main-snapshot, version=0.4.3, commit=a9008ba1ab2ae8f92b12fde2df3a67b003acf5a1, dirty=yes
+Generated: 2026-06-27T21:39:49.407Z
+Release: channel=main-snapshot, version=0.4.3, commit=ed0213e1f767dd48c20e4fa1b5fb4d9ab13da765, dirty=yes
 
 ## Engine Matrix
 
@@ -45,19 +45,13 @@ Release: channel=main-snapshot, version=0.4.3, commit=a9008ba1ab2ae8f92b12fde2df
 | Workload ID | Model | Prefill | Decode | Sampling | Correctness | Runtime (GPU/Backend/OS/Browser) | Date |
 |---|---|---:|---:|---|---|---|---|
 | [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/g3-1b-p064-d064-t0-k1.compare.json) | Gemma 3 1B Instruct (Q4K/F32a) (996.4 MiB) | 64 | 64 | greedy (t=0) | exact | Apple M3; metal; darwin; chromium; doppler browser | 2026-03-29 |
-| [`p064-d064-t0-k1`](../benchmarks/vendors/results/compare_20260627T202837.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 64 | 64 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler browser | 2026-06-27 |
-| [`p064-d064-t0-k1`](../benchmarks/vendors/results/compare_20260627T202736.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 64 | 64 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler bun / command node | 2026-06-27 |
-| [`p064-d064-t0-k1`](../benchmarks/vendors/results/compare_20260627T202549.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 64 | 64 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler node | 2026-06-27 |
 | [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-p064-d064-t0-k1-strix-halo-20260627.compare.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 64 | 64 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler browser | 2026-06-27 |
 | [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/qwen3-5-0-8b-p064-d064-t0-k1.compare.json) | Qwen 3.5 0.8B (Q4K) (1.08 GiB) | 64 | 64 | greedy (t=0) | exact | Apple M3; metal; darwin; chromium; doppler browser | 2026-03-30 |
 | `p064-d064-t1-k32` | not captured | 64 | 64 | t=1, k=32, p=1 | not captured | not captured | not captured |
-| [`p256-d128-t0-k1`](../benchmarks/vendors/results/compare_20260627T203348.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 256 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler browser | 2026-06-27 |
-| [`p256-d128-t0-k1`](../benchmarks/vendors/results/compare_20260627T203220.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 256 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler bun / command node | 2026-06-27 |
-| [`p256-d128-t0-k1`](../benchmarks/vendors/results/compare_20260627T203031.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 256 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler node | 2026-06-27 |
 | [`p256-d128-t0-k1`](../benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-p256-d128-t0-k1-strix-halo-20260626.compare.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 256 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler browser | 2026-06-27 |
-| [`p512-d128-t0-k1`](../benchmarks/vendors/results/compare_20260627T200811.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 512 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler browser | 2026-06-27 |
-| [`p512-d128-t0-k1`](../benchmarks/vendors/results/compare_20260627T200603.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 512 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler bun / command node | 2026-06-27 |
-| [`p512-d128-t0-k1`](../benchmarks/vendors/results/compare_20260627T200323.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 512 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler node | 2026-06-27 |
+| [`p512-d128-t0-k1`](../benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-local-p512-d128-t0-k1-strix-halo-20260627.compare.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 512 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler browser | 2026-06-27 |
+| [`p512-d128-t0-k1`](../benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-bun-p512-d128-t0-k1-strix-halo-20260627.compare.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 512 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler bun / command node | 2026-06-27 |
+| [`p512-d128-t0-k1`](../benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-node-p512-d128-t0-k1-strix-halo-20260627.compare.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 512 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler node | 2026-06-27 |
 | [`p512-d128-t0-k1`](../benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-p512-d128-t0-k1-strix-halo-20260626.compare.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 512 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler browser | 2026-06-27 |
 | `p256-d128-t1-k32` | not captured | 256 | 128 | t=1, k=32, p=1 | not captured | not captured | not captured |
 
@@ -83,14 +77,14 @@ Release: channel=main-snapshot, version=0.4.3, commit=a9008ba1ab2ae8f92b12fde2df
 
 ## Latest Bottlenecks
 
-Source: [compare_20260627T203348.json](../benchmarks/vendors/results/compare_20260627T203348.json)
+Source: [gemma-3-270m-it-q4k-rdrr-local-p512-d128-t0-k1-strix-halo-20260627.compare.json](../benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-local-p512-d128-t0-k1-strix-halo-20260627.compare.json)
 
-Doppler internal: readback map wait 491.2 ms; 63% of decode; command recording 284 ms; 19177 ops / 2 passes
+Doppler internal: readback map wait 530.9 ms; 63.4% of decode; command recording 302.5 ms; 19177 ops / 2 passes
 
 | Metric | Leader | Gap | Doppler | Transformers.js |
 |---|---|---:|---:|---:|
-| model load | transformersjs | 66% | 1036.8 ms | 624.6 ms |
-| first response (first token + load) | transformersjs | 32.59% | 1160.4 ms | 875.2 ms |
+| model load | transformersjs | 81.7% | 1106.1 ms | 608.8 ms |
+| first response (first token + load) | transformersjs | 53.97% | 1317.1 ms | 855.4 ms |
 
 ## Charts
 

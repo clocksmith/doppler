@@ -83,12 +83,9 @@ export function generateCacheKey(kernelName, inputSizes) {
 
 
 export function loadCache(capabilities) {
-  // Clear stale cache when the device epoch has advanced (device reset/loss).
   const currentEpoch = getDeviceEpoch();
   if (cacheDeviceEpoch !== -1 && cacheDeviceEpoch !== currentEpoch) {
-    log.debug('KernelTuner', 'Device epoch changed (' + cacheDeviceEpoch + ' -> ' + currentEpoch + '), clearing tuner cache');
-    cacheDeviceEpoch = currentEpoch;
-    return new Map();
+    log.debug('KernelTuner', 'Device epoch changed (' + cacheDeviceEpoch + ' -> ' + currentEpoch + '), reloading tuner cache');
   }
   cacheDeviceEpoch = currentEpoch;
 
@@ -145,5 +142,4 @@ export function clearCacheStorage(capabilities) {
   const signature = getDeviceSignature(capabilities);
   localStorage.removeItem(getTunerConfig().cacheKeyPrefix + signature);
 }
-
 

@@ -72,6 +72,69 @@ export function resolveProjectionSliceOffsetBytes(
   inputCols: number
 ): number;
 
+export interface AttentionQKNormState {
+  wantsQKNorm: boolean;
+  hasQNorm: boolean;
+  hasKNorm: boolean;
+  allowUnitQKNorm: boolean;
+  skipKNorm: boolean;
+}
+
+export function hasAttentionProjectionDiagnostics(state: {
+  operatorDiagnostics?: {
+    enabled?: boolean;
+    tsirFixture?: { dir?: string | null } | null;
+  } | null;
+  debugProbes?: Array<{ stage?: string | null }> | null;
+} | null | undefined): boolean;
+
+export function hasAttentionStageDiagnostics(
+  state: {
+    operatorDiagnostics?: {
+      enabled?: boolean;
+      tsirFixture?: { dir?: string | null } | null;
+    } | null;
+    debugProbes?: Array<{ stage?: string | null }> | null;
+  } | null | undefined,
+  stages: string[]
+): boolean;
+
+export function resolveAttentionQKNormState(options: {
+  config: {
+    queryKeyNorm?: boolean;
+    queryKeyNormWeightLayers?: number[] | null;
+  };
+  layerWeights: LayerWeights;
+  layerIdx: number;
+  reusesSharedKV: boolean;
+}): AttentionQKNormState;
+
+export interface ProjectAttentionQKNormFusionOptions {
+  enabled: boolean;
+  getNormWeightBuffer?: (weight: GPUBuffer | Float32Array | ArrayBuffer | CpuWeightBuffer, label: string) => GPUBuffer;
+  rmsNormEps: number;
+  rmsNormWeightOffset?: boolean;
+  skipKNorm?: boolean;
+  allowUnitQKNorm?: boolean;
+  projectionDiagnosticsEnabled?: boolean;
+}
+
+export interface ProjectAttentionQKNormRoPEFusionOptions extends ProjectAttentionQKNormFusionOptions {
+  freqsCos?: GPUBuffer | Tensor | null;
+  freqsSin?: GPUBuffer | Tensor | null;
+  headDim?: number;
+  startPos?: number;
+  rotaryDim?: number;
+  pairSpanDim?: number;
+  interleaved?: boolean;
+  reusesSharedKV?: boolean;
+  f16KVCacheWrite?: {
+    keysBuffer: GPUBuffer;
+    valuesBuffer: GPUBuffer;
+    dstOffset: number;
+  } | null;
+}
+
 export interface ProjectAttentionQKVOptions {
   recorder?: CommandRecorder | null;
   normed: Tensor;
@@ -88,15 +151,20 @@ export interface ProjectAttentionQKVOptions {
   releaseTemporary: (buffer: GPUBuffer) => void;
   matmulDebug?: MatmulDebugConfigSchema | null;
   onFusedQKV?: ((info: { qSize: number; kSize: number; vSize: number; totalSize: number }) => void) | null;
+  qkNormFusion?: ProjectAttentionQKNormFusionOptions | null;
+  qkNormRoPEFusion?: ProjectAttentionQKNormRoPEFusionOptions | null;
 }
 
 export interface ProjectAttentionQKVResult {
   qTensor: Tensor;
   qGateTensor: Tensor | null;
-  kTensor: Tensor;
-  vTensor: Tensor;
+  kTensor: Tensor | null;
+  vTensor: Tensor | null;
   usedFusedQKV: boolean;
   valueAliasesKey: boolean;
+  qkNormApplied: boolean;
+  ropeApplied: boolean;
+  kvCacheWriteFused: boolean;
 }
 
 export function projectAttentionQKV(options: ProjectAttentionQKVOptions): Promise<ProjectAttentionQKVResult>;

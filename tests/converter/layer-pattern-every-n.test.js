@@ -77,7 +77,7 @@ const manifest = {
       type: 'every_n',
       globalPattern: null,
       period: 6,
-      offset: 0,
+      offset: 5,
     },
     chatTemplate: {
       type: 'gemma',
@@ -94,7 +94,6 @@ const parsed = parseModelConfig(manifest, null);
 const firstTwelve = parsed.layerTypes.slice(0, 12);
 
 assert.deepEqual(firstTwelve, [
-  'full_attention',
   'sliding_attention',
   'sliding_attention',
   'sliding_attention',
@@ -106,6 +105,7 @@ assert.deepEqual(firstTwelve, [
   'sliding_attention',
   'sliding_attention',
   'sliding_attention',
+  'full_attention',
 ]);
 
 const offsetManifest = {
@@ -115,7 +115,7 @@ const offsetManifest = {
     ...manifest.inference,
     layerPattern: {
       ...manifest.inference.layerPattern,
-      offset: 5,
+      offset: 0,
     },
   },
 };
@@ -124,11 +124,6 @@ const parsedOffset = parseModelConfig(offsetManifest, null);
 const firstTwelveOffset = parsedOffset.layerTypes.slice(0, 12);
 
 assert.deepEqual(firstTwelveOffset, [
-  'sliding_attention',
-  'sliding_attention',
-  'sliding_attention',
-  'sliding_attention',
-  'sliding_attention',
   'full_attention',
   'sliding_attention',
   'sliding_attention',
@@ -136,6 +131,11 @@ assert.deepEqual(firstTwelveOffset, [
   'sliding_attention',
   'sliding_attention',
   'full_attention',
+  'sliding_attention',
+  'sliding_attention',
+  'sliding_attention',
+  'sliding_attention',
+  'sliding_attention',
 ]);
 
 console.log('layer-pattern-every-n.test: ok');

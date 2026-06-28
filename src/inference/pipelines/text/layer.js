@@ -1,13 +1,14 @@
 
 
 import { log, trace } from '../../../debug/index.js';
+import { getRuntimeConfig } from '../../../config/runtime.js';
 import { getDevice } from '../../../gpu/device.js';
 import { releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { allowReadback } from '../../../gpu/perf-guards.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { recordScale, runScale } from '../../../gpu/kernel-selector.js';
 import {
-  doAttention, doRMSNorm, doResidualAdd, doMatmul, doGeLU,
+  doAttention, doRMSNorm, doSandwichRMSNormPair, doResidualAdd, doMatmul, doGeLU,
   doConv,
   doCast,
   releaseOrTrack
@@ -21,6 +22,7 @@ import { logLayer, logAttn, getBufferStats, isKernelDebugEnabled, dumpTokenVecto
 import { runProbes } from './probes.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { recordCheckFiniteness } from '../../../gpu/kernels/check-finiteness.js';
+import { RMSNORM_PAIR_CACHE_LIMIT } from '../../../gpu/kernel-selector.js';
 import { shouldRunFinitenessGuard } from './finiteness-policy.js';
 import { runLinearAttentionLayer } from './linear-attention.js';
 import { validateAttnConfig } from './attention/attn-config.js';
@@ -44,6 +46,122 @@ export function detectSandwichNorm(config) {
     hasPostFeedforwardNorm,
     hasPostAttentionNorm,
   };
+}
+
+function shouldUseSandwichRMSNormPairFusion({
+  context,
+  sandwichNorm,
+  layerWeights,
+  numTokens,
+  hiddenSize,
+  attnOutput,
+  inputTensor,
+}) {
+  const mergedSession = getRuntimeConfig()?.inference?.session;
+  if (mergedSession?.useSandwichRMSNormPairFusion !== true) {
+    return false;
+  }
+  if (numTokens !== 1) {
+    return false;
+  }
+  if (!sandwichNorm.useSandwichNorm || !sandwichNorm.hasPostAttentionNorm || !sandwichNorm.hasPreFeedforwardNorm) {
+    return false;
+  }
+  if (!layerWeights?.postAttentionNorm || !layerWeights?.preFeedforwardNorm) {
+    return false;
+  }
+  if (attnOutput?.dtype !== 'f32' || (inputTensor && inputTensor.dtype !== 'f32')) {
+    throw new Error(
+      'useSandwichRMSNormPairFusion requires f32 attention and residual tensors ' +
+      `(attn=${String(attnOutput?.dtype)}, residual=${String(inputTensor?.dtype)}).`
+    );
+  }
+  if (!Number.isInteger(hiddenSize) || hiddenSize <= 0 || hiddenSize > RMSNORM_PAIR_CACHE_LIMIT) {
+    throw new Error(
+      `useSandwichRMSNormPairFusion requires hiddenSize in 1..${RMSNORM_PAIR_CACHE_LIMIT}; got ${String(hiddenSize)}.`
+    );
+  }
+  return true;
+}
+
+function releasePrecomputedInputNorm(context, recorder) {
+  const precomputed = context.__precomputedInputNorm ?? null;
+  context.__precomputedInputNorm = null;
+  const buffer = precomputed?.tensor?.buffer ?? null;
+  if (buffer) {
+    releaseOrTrack(recorder, buffer, context.decodeBuffers);
+  }
+}
+
+function takePrecomputedInputNorm(context, layerIdx, recorder) {
+  const precomputed = context.__precomputedInputNorm ?? null;
+  if (!precomputed) {
+    return null;
+  }
+  context.__precomputedInputNorm = null;
+  if (precomputed.layerIdx !== layerIdx) {
+    const buffer = precomputed?.tensor?.buffer ?? null;
+    if (buffer) {
+      releaseOrTrack(recorder, buffer, context.decodeBuffers);
+    }
+    throw new Error(
+      `Layer ${layerIdx} received stale precomputed input norm for layer ${String(precomputed.layerIdx)}.`
+    );
+  }
+  return precomputed.tensor;
+}
+
+function shouldUsePostFfnNextInputRMSNormPairFusion({
+  context,
+  config,
+  sandwichNorm,
+  layerIdx,
+  layerWeights,
+  nextLayerWeights,
+  numTokens,
+  hiddenSize,
+  activationDtype,
+  layerScalar,
+}) {
+  const mergedSession = getRuntimeConfig()?.inference?.session;
+  if (mergedSession?.usePostFfnNextInputRMSNormPairFusion !== true) {
+    return false;
+  }
+  if (numTokens !== 1 || context.phase !== 'decode' || context.diffusionGemmaDecoder === true) {
+    return false;
+  }
+  if (context.debug === true || context.debugProbes?.length || context.operatorDiagnostics?.enabled === true) {
+    return false;
+  }
+  if (!context.decodeBuffers || context.pipelinePlan || hasPerLayerInputBlock(config)) {
+    return false;
+  }
+  if (layerScalar !== 1 || activationDtype !== 'f32') {
+    return false;
+  }
+  const nextLayerIdx = layerIdx + 1;
+  if (nextLayerIdx >= config.numLayers) {
+    return false;
+  }
+  const nextLayerType = config.layerTypes?.[nextLayerIdx];
+  if (isConvLayerType(nextLayerType) || isLinearLayerType(nextLayerType)) {
+    return false;
+  }
+  if (!sandwichNorm.useSandwichNorm || !sandwichNorm.hasPostFeedforwardNorm) {
+    return false;
+  }
+  if (!layerWeights?.postFeedforwardNorm || !nextLayerWeights?.inputNorm) {
+    return false;
+  }
+  if (config.useMoE && isMoELayer(layerIdx, config)) {
+    return false;
+  }
+  if (!Number.isInteger(hiddenSize) || hiddenSize <= 0 || hiddenSize > RMSNORM_PAIR_CACHE_LIMIT) {
+    throw new Error(
+      `usePostFfnNextInputRMSNormPairFusion requires hiddenSize in 1..${RMSNORM_PAIR_CACHE_LIMIT}; got ${String(hiddenSize)}.`
+    );
+  }
+  return true;
 }
 
 
@@ -673,6 +791,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     };
 
     validateAttnConfig(attnConfig, `L${layerIdx}`);
+    attnConfig.precomputedInputNorm = takePrecomputedInputNorm(context, layerIdx, recorder);
 
     const attnState = {
       ropeFreqsCos: (isLocalLayer && context.ropeLocalCos)
@@ -754,9 +873,37 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
 
   // 2. Handle residual connection based on architecture
 
+  let precomputedFfnInput = null;
   if (residualFused) {
     postAttn = attnOutput;
-    if (sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm && layerWeights?.postAttentionNorm) {
+    if (shouldUseSandwichRMSNormPairFusion({
+      context,
+      sandwichNorm,
+      layerWeights,
+      numTokens,
+      hiddenSize,
+      attnOutput,
+      inputTensor: null,
+    })) {
+      const postNormWeightBuf = getNormWeightBuffer(layerWeights.postAttentionNorm, 'post_attention_norm', weightConfig, debugFlags);
+      const preNormWeightBuf = getNormWeightBuffer(layerWeights.preFeedforwardNorm, 'pre_feedforward_norm', weightConfig, debugFlags);
+      const pair = await doSandwichRMSNormPair(attnOutput, null, postNormWeightBuf, preNormWeightBuf, rmsNormEps, {
+        batchSize: numTokens,
+        hiddenSize,
+        label: `L${layerIdx}.post_attn_pre_ffn_norm`,
+        layerIdx,
+        rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+      }, recorder);
+      postAttn = pair.postAttn;
+      precomputedFfnInput = pair.ffnInput;
+      if (!isGpuBufferInstance(layerWeights.postAttentionNorm) && !isWeightBuffer(layerWeights.postAttentionNorm)) releaseOrTrack(recorder, postNormWeightBuf);
+      if (!isGpuBufferInstance(layerWeights.preFeedforwardNorm) && !isWeightBuffer(layerWeights.preFeedforwardNorm)) releaseOrTrack(recorder, preNormWeightBuf);
+      if (recorder) {
+        recorder.trackTemporaryBuffer(attnOutput.buffer);
+      } else {
+        releaseBuffer(attnOutput.buffer);
+      }
+    } else if (sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm && layerWeights?.postAttentionNorm) {
       const normWeightBuf = getNormWeightBuffer(layerWeights.postAttentionNorm, 'post_attention_norm', weightConfig, debugFlags);
       postAttn = await doRMSNorm(attnOutput, normWeightBuf, rmsNormEps, {
         batchSize: numTokens,
@@ -774,21 +921,52 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     }
   } else if (sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm && layerWeights?.postAttentionNorm) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.postAttentionNorm, 'post_attention_norm', weightConfig, debugFlags);
-    const normalizedAttn = await doRMSNorm(attnOutput, normWeightBuf, rmsNormEps, {
-      batchSize: numTokens,
+    if (shouldUseSandwichRMSNormPairFusion({
+      context,
+      sandwichNorm,
+      layerWeights,
+      numTokens,
       hiddenSize,
-      label: `L${layerIdx}.post_attn_norm`,
-      layerIdx,
-      rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
-    }, recorder);
-    postAttn = await doResidualAdd(normalizedAttn, inputTensor, size, recorder, {
-      label: `L${layerIdx}.post_attn_residual`,
-      layerIdx,
-      executionPolicies: context.executionPolicies ?? null,
-    });
+      attnOutput,
+      inputTensor,
+    })) {
+      const preNormWeightBuf = getNormWeightBuffer(layerWeights.preFeedforwardNorm, 'pre_feedforward_norm', weightConfig, debugFlags);
+      const pair = await doSandwichRMSNormPair(attnOutput, inputTensor, normWeightBuf, preNormWeightBuf, rmsNormEps, {
+        batchSize: numTokens,
+        hiddenSize,
+        label: `L${layerIdx}.post_attn_pre_ffn_norm`,
+        layerIdx,
+        rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+      }, recorder);
+      postAttn = pair.postAttn;
+      precomputedFfnInput = pair.ffnInput;
+      if (!isGpuBufferInstance(layerWeights.preFeedforwardNorm) && !isWeightBuffer(layerWeights.preFeedforwardNorm)) releaseOrTrack(recorder, preNormWeightBuf);
+    } else if (attnOutput.dtype === inputTensor.dtype) {
+      postAttn = await doRMSNorm(attnOutput, normWeightBuf, rmsNormEps, {
+        batchSize: numTokens,
+        hiddenSize,
+        residual: inputTensor,
+        label: `L${layerIdx}.post_attn_norm`,
+        layerIdx,
+        rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+      }, recorder);
+    } else {
+      const normalizedAttn = await doRMSNorm(attnOutput, normWeightBuf, rmsNormEps, {
+        batchSize: numTokens,
+        hiddenSize,
+        label: `L${layerIdx}.post_attn_norm`,
+        layerIdx,
+        rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+      }, recorder);
+      postAttn = await doResidualAdd(normalizedAttn, inputTensor, size, recorder, {
+        label: `L${layerIdx}.post_attn_residual`,
+        layerIdx,
+        executionPolicies: context.executionPolicies ?? null,
+      });
+      releaseOrTrack(recorder, normalizedAttn.buffer, context.decodeBuffers);
+    }
 
     if (!isGpuBufferInstance(layerWeights.postAttentionNorm) && !isWeightBuffer(layerWeights.postAttentionNorm)) releaseOrTrack(recorder, normWeightBuf);
-    releaseOrTrack(recorder, normalizedAttn.buffer, context.decodeBuffers);
     if (recorder) {
       recorder.trackTemporaryBuffer(attnOutput.buffer);
     } else {
@@ -838,18 +1016,42 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   const layerScalar = resolveLayerScalarValue(layerWeights?.layerScalar ?? null);
   const requestFfnLayerScalarFusion = layerScalar !== 1
     && !hasPerLayerInputBlock(config);
+  const nextLayerIdx = layerIdx + 1;
+  const nextLayerWeights = nextLayerIdx < config.numLayers
+    ? weights.get(`layer_${nextLayerIdx}`)
+    : null;
+  const usePostFfnNextInputNormPair = shouldUsePostFfnNextInputRMSNormPairFusion({
+    context,
+    config,
+    sandwichNorm,
+    layerIdx,
+    layerWeights,
+    nextLayerWeights,
+    numTokens,
+    hiddenSize,
+    activationDtype,
+    layerScalar,
+  });
   let layerScalarFused = false;
   if (sandwichNorm.useSandwichNorm) {
-    outputTensor = await processFFNWithSandwichNorm(
-      layerIdx,
-      postAttn,
-      numTokens,
-      size,
-      context,
-      layerWeights,
-      sandwichNorm,
-      requestFfnLayerScalarFusion ? layerScalar : 1
-    );
+    context.__postFfnNextInputNorm = usePostFfnNextInputNormPair
+      ? { layerIdx: nextLayerIdx, weight: nextLayerWeights.inputNorm }
+      : null;
+    try {
+      outputTensor = await processFFNWithSandwichNorm(
+        layerIdx,
+        postAttn,
+        numTokens,
+        size,
+        context,
+        layerWeights,
+        sandwichNorm,
+        requestFfnLayerScalarFusion ? layerScalar : 1,
+        precomputedFfnInput
+      );
+    } finally {
+      context.__postFfnNextInputNorm = null;
+    }
     layerScalarFused = context.__layerScalarFusedFired === true;
     context.__layerScalarFusedFired = false;
   } else {
@@ -948,6 +1150,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       released.add(buf);
       releaseOrTrack(recorder, buf);
     };
+    releasePrecomputedInputNorm(context, recorder);
     if (postAttn?.buffer) releaseOnce(postAttn.buffer);
     if (attnOutput?.buffer && attnOutput.buffer !== postAttn?.buffer) releaseOnce(attnOutput.buffer);
     throw error;

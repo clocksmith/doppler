@@ -95,6 +95,31 @@ export class KVCache {
   ): void | Promise<void>;
 
   /**
+   * Record direct f32 source to f16 GPU KV cache update.
+   * Does NOT submit - caller is responsible for submitting the recorder.
+   */
+  recordUpdateF32ToF16FromGPU(
+    recorder: import('../../gpu/kernel-selector.js').CommandRecorder,
+    layerIdx: number,
+    keysBuffer: GPUBuffer,
+    valuesBuffer: GPUBuffer,
+    startPos: number,
+    numTokens: number,
+    tokenIds?: number[] | null
+  ): void | Promise<void>;
+
+  /**
+   * Record metadata for a fused projection kernel that already wrote f16 K/V
+   * into the contiguous GPU cache through storage-buffer side effects.
+   */
+  recordF16UpdateAlreadyWrittenFromGPU(
+    layerIdx: number,
+    startPos: number,
+    numTokens: number,
+    tokenIds?: number[] | null
+  ): void;
+
+  /**
    * Get cached keys and values for a layer
    */
   get(layerIdx: number, startPos?: number, endPos?: number): KVGetResult;

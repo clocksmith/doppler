@@ -18,6 +18,12 @@ export interface TrainingEvalDataset {
     stopOnEos: boolean;
   } | null;
   scoreboardColumns: string[];
+  quality: {
+    baseline: string;
+    requireImprovement: boolean;
+    minAbsoluteImprovement: number;
+    minRelativeImprovement: number;
+  } | null;
   sourceLangs: string[] | null;
   targetLangs: string[] | null;
   pairAllowlist: string[] | null;
@@ -119,6 +125,7 @@ export interface DistillWorkloadPipelineConfig {
   pairAllowlist: string[] | null;
   strictPairContract: boolean;
   subsetSpec: Record<string, unknown> | null;
+  sftLora: LoRAWorkloadPipelineConfig | null;
 }
 
 export interface TrainingWorkloadPack {

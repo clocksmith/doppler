@@ -7,6 +7,8 @@ import { createPipeline, createUniformBufferWithView, getOrCreateBindGroupLayout
 import { allowReadback } from '../perf-guards.js';
 import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
+import { getKernelThresholds } from '../../config/schema/index.js';
+import { recordDispatch } from './dispatch.js';
 
 
 function getSampleBindGroupLayout(device) {
@@ -93,8 +95,10 @@ function assertSampleOptions(options, recordMode = false) {
 
 async function resolveArgmaxPipelines(device, vocabSize, variants) {
   const argmaxPipeline = await createSamplePipeline(device, variants.argmax);
-  const numWorkgroups = Math.min(WORKGROUP_SIZES.DEFAULT, Math.ceil(vocabSize / WORKGROUP_SIZES.DEFAULT));
-  const useSinglePassArgmax = numWorkgroups === 1;
+  const reduceWorkgroups = Math.min(WORKGROUP_SIZES.DEFAULT, Math.ceil(vocabSize / WORKGROUP_SIZES.DEFAULT));
+  const { argmaxReduceVocabThreshold } = getKernelThresholds().sample;
+  const useSinglePassArgmax = vocabSize <= argmaxReduceVocabThreshold;
+  const numWorkgroups = useSinglePassArgmax ? 1 : reduceWorkgroups;
   const reducePipeline = useSinglePassArgmax
     ? null
     : await createSamplePipeline(device, variants.argmaxReduce);
@@ -296,11 +300,13 @@ async function executeArgmaxRecord(recorder, logits, vocabSize, options) {
       entries,
     });
 
-    const pass1 = recorder.beginComputePass('argmax_phase1');
-    pass1.setPipeline(singlePassPipeline ?? argmaxPipeline);
-    pass1.setBindGroup(0, bindGroup);
-    pass1.dispatchWorkgroups(useSinglePassArgmax ? 1 : numWorkgroups);
-    pass1.end();
+    recordDispatch(
+      recorder,
+      singlePassPipeline ?? argmaxPipeline,
+      bindGroup,
+      useSinglePassArgmax ? 1 : numWorkgroups,
+      'argmax_phase1'
+    );
 
     if (reducePipeline) {
       const reduceBindGroup = device.createBindGroup({
@@ -308,12 +314,7 @@ async function executeArgmaxRecord(recorder, logits, vocabSize, options) {
         layout: bindGroupLayout,
         entries,
       });
-
-      const pass2 = recorder.beginComputePass('argmax_phase2');
-      pass2.setPipeline(reducePipeline);
-      pass2.setBindGroup(0, reduceBindGroup);
-      pass2.dispatchWorkgroups(1);
-      pass2.end();
+      recordDispatch(recorder, reducePipeline, reduceBindGroup, 1, 'argmax_phase2');
     }
 
     recorder.trackTemporaryBuffer(tempLogits);
@@ -546,23 +547,9 @@ export async function recordGPUSample(
       ],
     });
 
-    const pass1 = recorder.beginComputePass('sample_phase1');
-    pass1.setPipeline(phase1Pipeline);
-    pass1.setBindGroup(0, bindGroup);
-    pass1.dispatchWorkgroups(numWorkgroups);
-    pass1.end();
-
-    const pass2 = recorder.beginComputePass('sample_phase2');
-    pass2.setPipeline(phase2Pipeline);
-    pass2.setBindGroup(0, bindGroup);
-    pass2.dispatchWorkgroups(1);
-    pass2.end();
-
-    const pass3 = recorder.beginComputePass('sample_phase3');
-    pass3.setPipeline(phase3Pipeline);
-    pass3.setBindGroup(0, bindGroup);
-    pass3.dispatchWorkgroups(1);
-    pass3.end();
+    recordDispatch(recorder, phase1Pipeline, bindGroup, numWorkgroups, 'sample_phase1');
+    recordDispatch(recorder, phase2Pipeline, bindGroup, 1, 'sample_phase2');
+    recordDispatch(recorder, phase3Pipeline, bindGroup, 1, 'sample_phase3');
 
     recorder.trackTemporaryBuffer(topkLogits);
     recorder.trackTemporaryBuffer(topkIndices);

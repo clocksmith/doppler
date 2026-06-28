@@ -73,8 +73,14 @@ export const DEFAULT_EXECUTION_V1_SESSION = {
   prefillTokenChunkSize: null,
   useFlashPrefillAttention: false,
   useWideTileQ4KPrefill: false,
+  useWideTileQ4KDecode: false,
+  useSandwichRMSNormPairFusion: false,
+  usePostFfnNextInputRMSNormPairFusion: false,
+  useFusedQKVSplitQKNorm: false,
+  useFusedQKVSplitQKNormRoPE: false,
   retainQ4KMaterialization: false,
   useF32AccumF16ioMatmul: false,
+  useGreedyLmHeadArgmaxFusion: false,
 };
 
 export const DEFAULT_EXECUTION_V1_POLICIES = {
@@ -84,6 +90,7 @@ export const DEFAULT_EXECUTION_V1_POLICIES = {
 };
 
 export const DEFAULT_EXECUTION_V1_PATCH = {
+  addKernels: [],
   set: [],
   remove: [],
   add: [],

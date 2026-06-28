@@ -1,13 +1,15 @@
 
 
 import { isGpuBufferInstance, isWeightBuffer, getWeightDtype } from '../../../../gpu/weight-buffer.js';
-import { getDevice } from '../../../../gpu/device.js';
+import { getDevice, getKernelCapabilities } from '../../../../gpu/device.js';
 import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { acquireBuffer, releaseBuffer } from '../../../../memory/buffer-pool.js';
 import {
   runMatmul,
   runRMSNorm,
   runRoPE,
+  canUseRoPEQK,
+  runRoPEQK,
   runAttention,
   runAttentionBDPA,
   runAttentionTieredQuant,
@@ -34,6 +36,9 @@ import {
   projectAttentionQKV,
   applyAttentionQKNorm,
   applyAttentionValueNorm,
+  hasAttentionProjectionDiagnostics,
+  hasAttentionStageDiagnostics,
+  resolveAttentionQKNormState,
 } from './projections.js';
 import { prepareAttentionProjectionInput } from './output-projection.js';
 
@@ -63,6 +68,26 @@ import {
 import { canUseRmsNormWideTileProjectionFusion } from './rmsnorm-fusion-gate.js';
 
 const ATTENTION_DTYPE_LOGGED = new Set();
+
+function isWideTileQ4KPhaseEnabled(session, phase) {
+  return phase === 'decode'
+    ? session?.useWideTileQ4KDecode === true
+    : session?.useWideTileQ4KPrefill === true;
+}
+
+function canUseQ4KWideTileResidualFusion(options = {}) {
+  return options.hasResidual === true
+    && options.oProjDtype === 'q4k'
+    && options.inputDtype === 'f32'
+    && options.outputDtype === 'f32'
+    && options.residualMatches === true
+    && options.hasLoRA !== true
+    && getKernelCapabilities().hasF16 === true
+    && getKernelCapabilities().hasSubgroups === true
+    && options.session?.useWideTileResidualFusion === true
+    && options.session?.retainQ4KMaterialization === true
+    && isWideTileQ4KPhaseEnabled(options.session, options.phase);
+}
 
 function assertAttentionDtypeTransitionAllowed(state, fromDtype, toDtype, detail, transitionDeclaredBy = null) {
   assertImplicitDtypeTransitionAllowed({
@@ -110,6 +135,7 @@ export async function runLayerAttentionGPU(
     sharedKVSourceLayerIdx = null,
     storeSharedKV = false,
     diffusionGemmaDecoder = false,
+    precomputedInputNorm = null,
   } = config;
 
   const device = getDevice();
@@ -225,7 +251,28 @@ export async function runLayerAttentionGPU(
     && attentionInput.dtype === 'f32';
 
   try {
-  if (canFuseInputNormIntoProjections) {
+  if (precomputedInputNorm) {
+    if (
+      isPrefill
+      || numTokens !== 1
+      || skipInputNorm
+      || !layerWeights.inputNorm
+      || !getNormWeightBuffer
+      || precomputedInputNorm.dtype !== attentionInput.dtype
+      || precomputedInputNorm.dtype !== 'f32'
+    ) {
+      throw new Error(`Layer ${layerIdx} received an incompatible precomputed input norm tensor.`);
+    }
+    normed = precomputedInputNorm;
+    await runProbes('post_input_norm', normed.buffer, {
+      layerIdx,
+      numTokens,
+      hiddenSize,
+      probes: state.debugProbes,
+      operatorDiagnostics: state.operatorDiagnostics,
+      dtype: normed.dtype,
+    });
+  } else if (canFuseInputNormIntoProjections) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
     fusedNormWeight = normWeightBuf;
     fusedNormEps = rmsNormEps;
@@ -314,7 +361,24 @@ export async function runLayerAttentionGPU(
     }),
   });
   let usedFusedQKV = false;
-  ({ qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV, valueAliasesKey } = await projectAttentionQKV({
+  let qkNormApplied = false;
+  let ropeApplied = false;
+  const qkNormState = resolveAttentionQKNormState({ config, layerWeights, layerIdx, reusesSharedKV });
+  const qkNormProjectionDiagnostics = hasAttentionProjectionDiagnostics(state)
+    || kernelTrace.enabled
+    || isKernelDebugEnabled(layerIdx)
+    || (isPrefill && shouldDebugLayer(layerIdx, debugFlags.debugLayers) && !!debugCheckBuffer);
+  const qkNormRoPEDiagnostics = hasAttentionStageDiagnostics(
+    state,
+    ['q_proj', 'k_proj', 'v_proj', 'q_norm', 'k_norm']
+  )
+    || kernelTrace.enabled
+    || isKernelDebugEnabled(layerIdx)
+    || (isPrefill && shouldDebugLayer(layerIdx, debugFlags.debugLayers) && !!debugCheckBuffer);
+  const runtimeSession = getRuntimeConfig()?.inference?.session;
+  const qkNormFusionFlag = runtimeSession?.useFusedQKVSplitQKNorm === true;
+  const qkNormRoPEFusionFlag = runtimeSession?.useFusedQKVSplitQKNormRoPE === true;
+  ({ qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV, valueAliasesKey, qkNormApplied, ropeApplied } = await projectAttentionQKV({
     recorder: null,
     normed,
     layerWeights,
@@ -342,6 +406,35 @@ export async function runLayerAttentionGPU(
     fusedNormWeight,
     fusedNormEps,
     fusedNormOffset,
+    qkNormFusion: {
+      enabled: qkNormFusionFlag && qkNormState.wantsQKNorm,
+      getNormWeightBuffer,
+      rmsNormEps,
+      rmsNormWeightOffset: config.rmsNormWeightOffset,
+      skipKNorm: qkNormState.skipKNorm,
+      allowUnitQKNorm: qkNormState.allowUnitQKNorm,
+      projectionDiagnosticsEnabled: qkNormProjectionDiagnostics,
+    },
+    qkNormRoPEFusion: {
+      enabled: qkNormRoPEFusionFlag
+        && qkNormState.wantsQKNorm
+        && !disableRoPE
+        && !!state.ropeFreqsCos
+        && !!state.ropeFreqsSin,
+      getNormWeightBuffer,
+      rmsNormEps,
+      rmsNormWeightOffset: config.rmsNormWeightOffset,
+      skipKNorm: qkNormState.skipKNorm,
+      allowUnitQKNorm: qkNormState.allowUnitQKNorm,
+      projectionDiagnosticsEnabled: qkNormRoPEDiagnostics,
+      freqsCos: state.ropeFreqsCos,
+      freqsSin: state.ropeFreqsSin,
+      startPos: currentSeqLen,
+      rotaryDim: config.ropeRotaryDim,
+      pairSpanDim: config.ropeFrequencyBaseDim ?? config.ropeRotaryDim,
+      interleaved: config.ropeInterleaved,
+      reusesSharedKV,
+    },
   }));
   // Release the in-flight norm weight buffer used by the fused projections.
   if (fusedNormWeight && fusedNormWeightOwned) {
@@ -415,33 +508,18 @@ export async function runLayerAttentionGPU(
   }
 
   // Optional per-head Q/K normalization
-  const wantsQKNorm = config.queryKeyNorm === true;
-  const hasQNorm = !!layerWeights.qNorm;
-  const hasKNorm = !!layerWeights.kNorm;
-  const qkNormWeightLayers = Array.isArray(config.queryKeyNormWeightLayers)
-    ? config.queryKeyNormWeightLayers
-    : null;
-  const expectsWeightedQKNorm = qkNormWeightLayers
-    ? qkNormWeightLayers.includes(layerIdx)
-    : true;
-  const allowUnitQKNorm = wantsQKNorm && qkNormWeightLayers !== null && !expectsWeightedQKNorm;
   if (isKernelDebugEnabled(layerIdx)) {
-    logKernelStep('qk_norm', { layerIdx, label: `hasQ=${hasQNorm} hasK=${hasKNorm} wants=${wantsQKNorm} unit=${allowUnitQKNorm}` });
-  }
-  if (wantsQKNorm && allowUnitQKNorm && (hasQNorm || hasKNorm)) {
-    throw new Error(
-      `Layer ${layerIdx} declares unit-scale Q/K norm but companion weights are present ` +
-      `(hasQ=${hasQNorm}, hasK=${hasKNorm}). Check manifest.inference.attention.queryKeyNormWeightLayers.`
-    );
-  }
-  if (wantsQKNorm && expectsWeightedQKNorm && (!hasQNorm || (!hasKNorm && !reusesSharedKV))) {
-    throw new Error(
-      `Layer ${layerIdx} requested Q/K norm but companion weights are missing ` +
-      `(hasQ=${hasQNorm}, hasK=${hasKNorm}). Check manifest.inference.attention.queryKeyNormWeightLayers.`
+    logKernelStep(
+      'qk_norm',
+      {
+        layerIdx,
+        label: `hasQ=${qkNormState.hasQNorm} hasK=${qkNormState.hasKNorm} ` +
+          `wants=${qkNormState.wantsQKNorm} unit=${qkNormState.allowUnitQKNorm}`,
+      }
     );
   }
 
-  if (wantsQKNorm) {
+  if (qkNormState.wantsQKNorm && !qkNormApplied) {
     ({ qTensor, kTensor } = await applyAttentionQKNorm({
     recorder: null,
     qTensor,
@@ -455,7 +533,7 @@ export async function runLayerAttentionGPU(
     headDim,
     rmsNormWeightOffset: config.rmsNormWeightOffset,
     releaseTemporary: (buffer) => releaseBuffer(buffer),
-    skipKNorm: reusesSharedKV,
+    skipKNorm: qkNormState.skipKNorm,
     onQNormApplied: isKernelDebugEnabled(layerIdx)
       ? async (tensor) => {
         await dumpTokenVector(tensor.buffer, 'Q_norm', {
@@ -477,7 +555,7 @@ export async function runLayerAttentionGPU(
       }
       : null,
     retainKInput: valueAliasesKey,
-    allowUnitQKNorm,
+    allowUnitQKNorm: qkNormState.allowUnitQKNorm,
     }));
   }
 
@@ -506,7 +584,7 @@ export async function runLayerAttentionGPU(
     });
   }
 
-  if (wantsQKNorm) {
+  if (qkNormState.wantsQKNorm) {
     await runProbes('q_norm', qTensor.buffer, {
       layerIdx,
       numTokens,
@@ -532,26 +610,32 @@ export async function runLayerAttentionGPU(
 
   // 3. RoPE (modifies tensor in-place)
 
-  if (!disableRoPE && state.ropeFreqsCos && state.ropeFreqsSin) {
-    await runRoPE(qTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
-      numHeads,
+  if (!ropeApplied && !disableRoPE && state.ropeFreqsCos && state.ropeFreqsSin) {
+    const ropeOptions = {
       headDim,
       rotaryDim: config.ropeRotaryDim,
       pairSpanDim: config.ropeFrequencyBaseDim ?? config.ropeRotaryDim,
       interleaved: config.ropeInterleaved,
       startPos: currentSeqLen,
       executionPolicies: state.executionPolicies ?? null,
-    });
-    if (!reusesSharedKV) {
-      await runRoPE(kTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
-        numHeads: numKVHeads,
-        headDim,
-        rotaryDim: config.ropeRotaryDim,
-        pairSpanDim: config.ropeFrequencyBaseDim ?? config.ropeRotaryDim,
-        interleaved: config.ropeInterleaved,
-        startPos: currentSeqLen,
-        executionPolicies: state.executionPolicies ?? null,
+    };
+    if (canUseRoPEQK(qTensor, kTensor, { reusesSharedKV })) {
+      await runRoPEQK(qTensor, kTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
+        ...ropeOptions,
+        numQHeads: numHeads,
+        numKVHeads,
       });
+    } else {
+      await runRoPE(qTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
+        ...ropeOptions,
+        numHeads,
+      });
+      if (!reusesSharedKV) {
+        await runRoPE(kTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
+          ...ropeOptions,
+          numHeads: numKVHeads,
+        });
+      }
     }
 
     // Trace RoPE outputs
@@ -1041,6 +1125,7 @@ export async function runLayerAttentionGPU(
     // Use fused o_proj + residual for decode when possible
     // Note: dtype from WeightBuffer metadata (buffer-dtypes WeakMap removed)
     const oProjDtype = getWeightDtype(oProjBuf);
+    const mergedSession = getRuntimeConfig()?.inference?.session;
     const canUseFused = selectRuleValue('inference', 'attention', 'useFusedOProjResidual', {
       allowFusedResidual: shouldUseFusedMatmulResidual(numTokens),
       hasResidual: Boolean(residualTensor),
@@ -1050,7 +1135,16 @@ export async function runLayerAttentionGPU(
       hasLoRA: Boolean(loraO),
       oProjIsF16: oProjDtype === 'f16',
     });  // GEMV kernel expects f16 weights
-
+    const canUseWideTileResidual = canUseQ4KWideTileResidualFusion({
+      phase,
+      session: mergedSession,
+      hasResidual: Boolean(residualTensor),
+      residualMatches: Boolean(residualTensor && residualTensor.dtype === oProjInput.dtype),
+      inputDtype: oProjInput.dtype,
+      outputDtype: oProjOutputDtype,
+      oProjDtype,
+      hasLoRA: Boolean(loraO),
+    });
     if (canUseFused && residualTensor) {
       // FUSED PATH: o_proj matmul + residual add in one dispatch
       output = await runMatmulResidualFused(oProjInput, oProjBuf, residualTensor, {
@@ -1063,7 +1157,7 @@ export async function runLayerAttentionGPU(
         trace.attn(layerIdx, `Using fused o_proj+residual path`);
       }
     } else {
-      // STANDARD PATH: o_proj matmul only (residual will be added by layer.ts)
+      // STANDARD PATH: o_proj matmul only unless Q4K WideTile fuses residual in the epilogue
       output = await runMatmul(oProjInput, oProjBuf, numTokens, hiddenSize, numHeads * headDim, {
         transposeB: 'auto',
         role: 'o_proj',
@@ -1071,7 +1165,9 @@ export async function runLayerAttentionGPU(
         kernelPath,
         outputDtype: oProjOutputDtype,
         executionPolicies: state.executionPolicies ?? null,
+        residualTensor: canUseWideTileResidual ? residualTensor : null,
       });
+      residualFused = canUseWideTileResidual;
     }
     // Release temporary buffer if we created it (original was not already on GPU)
     if (!isGpuBufferInstance(layerWeights.oProj) && !isWeightBuffer(layerWeights.oProj)) {

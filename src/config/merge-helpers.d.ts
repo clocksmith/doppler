@@ -45,6 +45,7 @@ export declare function mergeKernelPathPolicy<T extends {
 };
 
 export declare function mergeExecutionPatchLists<T extends {
+  addKernels?: unknown;
   set?: unknown;
   remove?: unknown;
   add?: unknown;
@@ -52,6 +53,7 @@ export declare function mergeExecutionPatchLists<T extends {
   basePatch: T | null | undefined,
   overridePatch: T | null | undefined
 ): {
+  addKernels: unknown;
   set: unknown;
   remove: unknown;
   add: unknown;

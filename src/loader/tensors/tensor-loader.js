@@ -678,16 +678,23 @@ async function materializeQ4KDenseBuffer(quantBuffer, shardData, location, name,
   }
 
   let numBlocks = null;
+  let rowCount = null;
+  let blocksPerRow = null;
+  let denseElementCount = null;
   let dequantizedTensor;
   if (needsRowwise) {
-    const rows = location.shape.slice(0, -1).reduce((a, b) => a * b, 1);
+    rowCount = location.shape.slice(0, -1).reduce((a, b) => a * b, 1);
+    blocksPerRow = Math.ceil(K / QK_K);
+    numBlocks = rowCount * blocksPerRow;
+    denseElementCount = rowCount * K;
     debugTrace.loader(
-      `Dequantizing ${name} (row-wise): [${rows},${K}], K not 256-aligned, ` +
+      `Dequantizing ${name} (row-wise): [${rowCount},${K}], K not 256-aligned, ` +
       `outputDtype=${outputDtype}`
     );
-    dequantizedTensor = await dequantizeRowwise(quantBuffer, rows, K, { outputDtype });
+    dequantizedTensor = await dequantizeRowwise(quantBuffer, rowCount, K, { outputDtype });
   } else {
     numBlocks = Math.ceil(location.size / Q4K_BLOCK_BYTES);
+    denseElementCount = numBlocks * QK_K;
     debugTrace.loader(
       `Dequantizing ${name}: size=${location.size}, numBlocks=${numBlocks}, ` +
       `outputDtype=${outputDtype}, expectedOutput=${numBlocks * QK_K * (outputDtype === 'f16' ? 2 : 4)}`
@@ -706,9 +713,9 @@ async function materializeQ4KDenseBuffer(quantBuffer, shardData, location, name,
     if (isProbeTarget) {
       try {
         const bytesPerElem = outputDtype === 'f16' ? 2 : 4;
-        const requestedOutputBytes = numBlocks * QK_K * bytesPerElem;
+        const requestedOutputBytes = denseElementCount * bytesPerElem;
         const sampleCount = paritySamples;
-        const readSize = Math.min(sampleCount * bytesPerElem, dequantized.size);
+        const readSize = Math.min(sampleCount * bytesPerElem, requestedOutputBytes, dequantized.size);
         const gpuRaw = await readBuffer(dequantized, readSize);
         const gpuBytes = gpuRaw instanceof ArrayBuffer
           ? new Uint8Array(gpuRaw)
@@ -744,7 +751,8 @@ async function materializeQ4KDenseBuffer(quantBuffer, shardData, location, name,
 
         log.warn('DequantProbe',
           `tensor="${name}" shape=[${location.shape}] ` +
-          `location.size=${location.size} numBlocks=${numBlocks} outputDtype=${outputDtype} ` +
+          `location.size=${location.size} numBlocks=${numBlocks} blocksPerRow=${blocksPerRow} ` +
+          `rows=${rowCount} K=${K} denseElements=${denseElementCount} outputDtype=${outputDtype} ` +
           `bytesPerElem=${bytesPerElem} requestedOutputBytes=${requestedOutputBytes} bufSize=${dequantized.size} ` +
           `runParity=true sampleCount=${sampleCount}`
         );

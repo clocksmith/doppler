@@ -12,6 +12,7 @@ const {
   finalizeCliCommandResponse,
   resolveBrowserModelUrl,
   resolveNodeModelUrl,
+  withJsonStdoutIsolation,
 } = await import('../../src/cli/doppler-cli.js');
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -356,6 +357,69 @@ await assert.rejects(
     },
   }, request);
   assert.deepEqual(response.request, request);
+}
+
+{
+  const originalConsole = {
+    log: console.log,
+    info: console.info,
+    debug: console.debug,
+    warn: console.warn,
+    error: console.error,
+  };
+  const stdout = [];
+  const stderr = [];
+  const captureStdout = (...args) => stdout.push(args.map(String).join(' '));
+  const captureStderr = (...args) => stderr.push(args.map(String).join(' '));
+  console.log = captureStdout;
+  console.info = captureStdout;
+  console.debug = captureStdout;
+  console.warn = captureStdout;
+  console.error = captureStderr;
+
+  try {
+    const value = await withJsonStdoutIsolation(true, async () => {
+      console.log('runtime log');
+      console.info('runtime info');
+      console.debug('runtime debug');
+      console.warn('runtime warn');
+      return 42;
+    });
+    assert.equal(value, 42);
+    console.log('final-json');
+  } finally {
+    console.log = originalConsole.log;
+    console.info = originalConsole.info;
+    console.debug = originalConsole.debug;
+    console.warn = originalConsole.warn;
+    console.error = originalConsole.error;
+  }
+
+  assert.deepEqual(stdout, ['final-json']);
+  assert.deepEqual(stderr, [
+    'runtime log',
+    'runtime info',
+    'runtime debug',
+    'runtime warn',
+  ]);
+}
+
+{
+  const originalLog = console.log;
+  const stdout = [];
+  console.log = (...args) => stdout.push(args.map(String).join(' '));
+
+  try {
+    const value = await withJsonStdoutIsolation(false, async () => {
+      console.log('pretty log');
+      return 'ok';
+    });
+    assert.equal(value, 'ok');
+  } finally {
+    console.log = originalLog;
+  }
+
+  assert.deepEqual(stdout, ['pretty log']);
 }
 
 {

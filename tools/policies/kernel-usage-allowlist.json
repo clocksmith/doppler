@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-04-28",
+  "updated": "2026-06-26",
   "description": "Allowlist for registry kernels that are intentionally retained even when they are not live in supported text manifests or capability fallback graphs. The supported-manifest report uses this file to separate protected non-text, utility, branch-local, legacy, or experimental lanes from delete candidates.",
   "fields": {
     "id": "Stable identifier for this allowlist entry.",
@@ -203,6 +203,7 @@
           "attention_contiguous_quant",
           "attention_tiered",
           "attention_tiered_quant",
+          "kv_cache_write",
           "kv_quantize"
         ]
       }

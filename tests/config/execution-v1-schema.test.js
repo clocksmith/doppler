@@ -289,6 +289,145 @@ if (compiled.runtimeInferencePatch.batching) {
   throw new Error('Execution-v1 runtime patch must not pre-apply decodeLoop batching defaults');
 }
 
+const greedyLmHeadFusionConfig = createDopplerConfig({
+  runtime: {
+    inference: {
+      session: {
+        useGreedyLmHeadArgmaxFusion: true,
+        useWideTileQ4KDecode: true,
+        useSandwichRMSNormPairFusion: true,
+        usePostFfnNextInputRMSNormPairFusion: true,
+        useFusedQKVSplitQKNorm: true,
+        useFusedQKVSplitQKNormRoPE: true,
+      },
+    },
+  },
+});
+if (createDopplerConfig().runtime.inference.session.useGreedyLmHeadArgmaxFusion !== false) {
+  throw new Error('useGreedyLmHeadArgmaxFusion must default false');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.useGreedyLmHeadArgmaxFusion !== true) {
+  throw new Error('runtime session override must enable useGreedyLmHeadArgmaxFusion');
+}
+if (createDopplerConfig().runtime.inference.session.useWideTileQ4KDecode !== false) {
+  throw new Error('useWideTileQ4KDecode must default false');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.useWideTileQ4KDecode !== true) {
+  throw new Error('runtime session override must enable useWideTileQ4KDecode');
+}
+if (createDopplerConfig().runtime.inference.session.useSandwichRMSNormPairFusion !== false) {
+  throw new Error('useSandwichRMSNormPairFusion must default false');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.useSandwichRMSNormPairFusion !== true) {
+  throw new Error('runtime session override must enable useSandwichRMSNormPairFusion');
+}
+if (createDopplerConfig().runtime.inference.session.usePostFfnNextInputRMSNormPairFusion !== false) {
+  throw new Error('usePostFfnNextInputRMSNormPairFusion must default false');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.usePostFfnNextInputRMSNormPairFusion !== true) {
+  throw new Error('runtime session override must enable usePostFfnNextInputRMSNormPairFusion');
+}
+if (createDopplerConfig().runtime.inference.session.useFusedQKVSplitQKNorm !== false) {
+  throw new Error('useFusedQKVSplitQKNorm must default false');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.useFusedQKVSplitQKNorm !== true) {
+  throw new Error('runtime session override must enable useFusedQKVSplitQKNorm');
+}
+if (createDopplerConfig().runtime.inference.session.useFusedQKVSplitQKNormRoPE !== false) {
+  throw new Error('useFusedQKVSplitQKNormRoPE must default false');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.useFusedQKVSplitQKNormRoPE !== true) {
+  throw new Error('runtime session override must enable useFusedQKVSplitQKNormRoPE');
+}
+const patchedRuntimeConfig = applyExecutionV1RuntimeConfig({
+  runtimeConfig: createDopplerConfig({
+    runtime: {
+      inference: {
+        executionPatch: {
+          addKernels: [{
+            key: 'attn_chunked',
+            kernel: {
+              kernel: 'attention_decode_chunked_f16kv.wgsl',
+              entry: 'main',
+              digest: D('4'),
+              precision: { kvDtype: 'f16' },
+            },
+          }],
+          set: [{ section: 'decode', op: 'attention', kernelKey: 'attn_chunked' }],
+        },
+      },
+    },
+  }).runtime,
+  runtimeOverrides: null,
+  manifest: {
+    modelId: 'test-model-execution-patch',
+    architecture: {
+      numLayers: 26,
+      headDim: 256,
+    },
+    inference: {
+      schema: EXECUTION_V1_SCHEMA_ID,
+      execution: makeGraph(),
+      session: {
+        compute: {
+          defaults: { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' },
+        },
+        kvcache: { kvDtype: 'f16' },
+        decodeLoop: null,
+      },
+    },
+  },
+  modelId: 'test-model-execution-patch',
+  numLayers: 26,
+});
+
+const patchedDecodeAttention = patchedRuntimeConfig.runtimeConfig
+  .inference?.kernelPath?.decode?.steps?.find((step) => step.op === 'attention');
+if (patchedDecodeAttention?.kernel !== 'attention_decode_chunked_f16kv.wgsl') {
+  throw new Error('executionPatch.set must update section-scoped decode attention kernel');
+}
+const patchedPrefillAttention = patchedRuntimeConfig.runtimeConfig
+  .inference?.kernelPath?.prefill?.steps?.find((step) => step.op === 'attention');
+if (patchedPrefillAttention?.kernel !== 'attention_decode_online_f16kv.wgsl') {
+  throw new Error('executionPatch.set with section=decode must not update prefill attention');
+}
+
+assert.throws(
+  () => applyExecutionV1RuntimeConfig({
+    runtimeConfig: createDopplerConfig({
+      runtime: {
+        inference: {
+          executionPatch: {
+            remove: [{ op: 'attention' }],
+          },
+        },
+      },
+    }).runtime,
+    runtimeOverrides: null,
+    manifest: {
+      modelId: 'test-model-execution-patch-remove',
+      architecture: {
+        numLayers: 26,
+        headDim: 256,
+      },
+      inference: {
+        schema: EXECUTION_V1_SCHEMA_ID,
+        execution: makeGraph(),
+        session: {
+          compute: {
+            defaults: { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' },
+          },
+          kvcache: { kvDtype: 'f16' },
+          decodeLoop: null,
+        },
+      },
+    },
+    modelId: 'test-model-execution-patch-remove',
+    numLayers: 26,
+  }),
+  /executionPatch\.remove is not supported/
+);
+
 const f16Graph = makeGraph();
 f16Graph.kernels.attn = {
   kernel: 'attention_streaming_f16.wgsl',

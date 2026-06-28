@@ -22,6 +22,7 @@ export interface RMSNormOptions extends OutputBufferOptions {
   outputScale?: number | null;
   /** Use (1+w)*x normalization for Gemma 2/3 */
   rmsNormWeightOffset?: boolean;
+  label?: string;
 }
 
 /**
@@ -31,6 +32,22 @@ export declare function residualVariantBypassesCache(
   residual: Tensor | GPUBuffer | WeightBuffer | TensorLike | null | undefined,
   hiddenSize: number | null | undefined
 ): boolean;
+
+export declare function resolveNormWeightDtype(
+  weight: GPUBuffer | WeightBuffer | TensorLike,
+  hiddenSize: number | null | undefined
+): string;
+
+export declare function assertRMSNormWeightBuffer(
+  weight: GPUBuffer | WeightBuffer | TensorLike,
+  weightBuffer: GPUBuffer | null | undefined,
+  hiddenSize: number | null | undefined
+): void;
+
+export declare function planRMSNormDispatch(
+  target: CommandRecorder | null | undefined,
+  numTokens: number
+): { tokenStride: number; workgroups: [number, number, number] };
 
 /**
  * Select RMSNorm kernel variant based on options, tensor dtypes, and GPU capabilities.

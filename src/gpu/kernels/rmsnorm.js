@@ -41,7 +41,7 @@ function normalizeNormWeightDtype(dtype) {
   return null;
 }
 
-function resolveNormWeightDtype(weight, hiddenSize) {
+export function resolveNormWeightDtype(weight, hiddenSize) {
   const explicitDtype = normalizeNormWeightDtype(getWeightDtype(weight));
   if (explicitDtype) {
     return explicitDtype;
@@ -76,7 +76,7 @@ function resolveNormWeightDtype(weight, hiddenSize) {
   return DEFAULT_DTYPE;
 }
 
-function assertRMSNormWeightBuffer(weight, weightBuffer, hiddenSize) {
+export function assertRMSNormWeightBuffer(weight, weightBuffer, hiddenSize) {
   const isGpuBuffer = weightBuffer && (
     typeof GPUBuffer === 'undefined'
       ? true
@@ -94,7 +94,7 @@ function assertRMSNormWeightBuffer(weight, weightBuffer, hiddenSize) {
   );
 }
 
-function planRMSNormDispatch(target, numTokens) {
+export function planRMSNormDispatch(target, numTokens) {
   const device = target?.device;
   const maxPerDim = Number.isFinite(device?.limits?.maxComputeWorkgroupsPerDimension)
     ? device.limits.maxComputeWorkgroupsPerDimension
@@ -115,6 +115,14 @@ function resolveRMSNormOutputScale(outputScale) {
     throw new Error(`[rmsnorm] outputScale must be finite; got "${String(outputScale)}".`);
   }
   return value;
+}
+
+function resolveRMSNormDispatchLabel(label) {
+  if (typeof label !== 'string' || label.length === 0) {
+    return 'rmsnorm';
+  }
+  const normalized = label.replace(/^L\d+\./, '').replace(/\s+/g, '_');
+  return `rmsnorm:${normalized}`;
 }
 
 export function selectRMSNormKernel(options = {}, isF16 = false) {
@@ -197,7 +205,8 @@ export async function runRMSNorm(
         PRE_RESIDUAL: !!preResidual,
         OUTPUT_PRENORM: hasPrenormOutput,
       },
-      extraBindings
+      extraBindings,
+      resolveRMSNormDispatchLabel(options.label)
     );
 
     if (ownedPrenormPlaceholder) releaseBuffer(ownedPrenormPlaceholder);
@@ -272,7 +281,8 @@ export async function recordRMSNorm(
         PRE_RESIDUAL: !!preResidual,
         OUTPUT_PRENORM: hasPrenormOutput,
       },
-      extraBindings
+      extraBindings,
+      resolveRMSNormDispatchLabel(options.label)
     );
 
     if (ownedPrenormPlaceholder) releaseBuffer(ownedPrenormPlaceholder);

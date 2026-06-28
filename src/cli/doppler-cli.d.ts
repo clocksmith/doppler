@@ -27,6 +27,11 @@ export declare function finalizeCliCommandResponse(
   request: Record<string, unknown>
 ): Record<string, unknown>;
 
+export declare function withJsonStdoutIsolation<T>(
+  enabled: boolean,
+  callback: () => T | Promise<T>
+): Promise<T>;
+
 export declare function performIntake(options?: {
   convertConfigValue?: string | Record<string, unknown> | null;
   manifestFlag?: string | null;

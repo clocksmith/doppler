@@ -2,6 +2,7 @@
  * Decode ring buffer pool for GPU batch decode.
  *
  * Preallocates fixed GPUBuffer rings for token outputs, stop flags, and staging readback.
+ * Token staging buffers reserve trailing bytes for packed finiteness status.
  * Ring sizing derives from runtime batching config (batchSize × readbackInterval).
  */
 

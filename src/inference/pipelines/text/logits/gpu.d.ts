@@ -139,3 +139,24 @@ export function recordLogitsGPU(
   weights: LogitsWeights,
   config: LogitsConfig,
 ): Promise<{ logitsBuffer: GPUBuffer; vocabSize: number; logitsDtype: 'f16' | 'f32' }>;
+
+export interface GreedyLmHeadArgmaxOptions {
+  padTokenId: number | null;
+  logitSoftcap: number;
+  outputBuffer: GPUBuffer;
+  outputIndex: number;
+}
+
+/**
+ * Record final norm plus fused LM-head argmax for strict greedy decode.
+ *
+ * Writes the selected token id into options.outputBuffer[outputIndex].
+ */
+export function recordGreedyLmHeadArgmaxGPU(
+  recorder: CommandRecorder,
+  hiddenStates: GPUBuffer,
+  numTokens: number,
+  weights: LogitsWeights,
+  config: LogitsConfig,
+  options: GreedyLmHeadArgmaxOptions,
+): Promise<GPUBuffer>;

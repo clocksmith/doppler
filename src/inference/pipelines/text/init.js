@@ -974,6 +974,9 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
     diffusionGemmaSelfConditioning: dopplerLoader.diffusionGemmaSelfConditioning,
     perLayerInputWeights: dopplerLoader.perLayerInputWeights,
     layerRouterWeights,
+    loadTiming: typeof dopplerLoader.getLoadTiming === 'function'
+      ? dopplerLoader.getLoadTiming()
+      : null,
   };
 }
 

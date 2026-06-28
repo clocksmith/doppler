@@ -32,6 +32,7 @@ assert.deepEqual(LORA_RUNNER_SUPPORT_CONTRACT, {
   supportedDatasetFormat: 'toy_linear_classification_jsonl',
   registeredBaseModelIds: [
     'training-toy',
+    'gemma-3-270m-it-f16-af32',
     'gemma-3-270m-it-q4k-ehf16-af32',
     'gemma4-e2b-it',
     'gemma-4-e2b-it-q4k-ehf16-af32',
@@ -47,6 +48,7 @@ assert.deepEqual(LORA_RUNNER_SUPPORT_CONTRACT, {
   ],
   implementedRunnerKeys: [
     'training-toy::toy_linear_classification_jsonl::classification',
+    'gemma-3-270m-it-f16-af32::text-pairs::text_generation',
     'gemma-3-270m-it-q4k-ehf16-af32::text-pairs::text_generation',
     'gemma4-e2b-it::text-pairs::text_generation',
     'gemma-4-e2b-it-q4k-ehf16-af32::text-pairs::text_generation',
@@ -58,8 +60,10 @@ assert.deepEqual(LORA_RUNNER_SUPPORT_CONTRACT, {
   ],
 });
 assert.equal(LORA_RUNNER_BASE_MODEL_REGISTRY['gemma4-e2b-it'].family, 'gemma4');
+assert.equal(LORA_RUNNER_BASE_MODEL_REGISTRY['gemma-3-270m-it-f16-af32'].family, 'gemma3');
 assert.equal(LORA_RUNNER_BASE_MODEL_REGISTRY['gemma-3-270m-it-q4k-ehf16-af32'].family, 'gemma3');
 assert.equal(LORA_RUNNER_BASE_MODEL_REGISTRY['qwen-3-5-0-8b-q4k-ehaf16'].family, 'qwen3');
+assert.equal(LORA_RUNNER_BASE_MODEL_REGISTRY['qwen-3-5-0-8b-q4k-ehaf16'].requiresExternalTrainer, true);
 assert.equal(LORA_RUNNER_DATASET_FORMAT_REGISTRY['text-pairs'].datasetKind, 'causal_lm_text_pairs');
 
 assert.equal(getLoraRunnerCompatibility(toyWorkload).supported, true);
@@ -72,6 +76,7 @@ assert.equal(compatibility.observed.taskType, 'text_generation');
 assert.equal(compatibility.observed.registeredBaseModel, true);
 assert.equal(compatibility.observed.registeredDatasetFormat, true);
 assert.equal(compatibility.observed.baseModelRunnerKind, 'causal_lm_text_generation');
+assert.equal(compatibility.observed.requiresExternalTrainer, true);
 assert.equal(compatibility.observed.datasetKind, 'causal_lm_text_pairs');
 assert.deepEqual(compatibility.blockedReasons, []);
 

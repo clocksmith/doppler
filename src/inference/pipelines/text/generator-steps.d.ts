@@ -74,6 +74,11 @@ export declare function readSampledTokenFromStagingBuffer(
     triggered: boolean;
     metadata: string;
   };
+  timing: {
+    mapWaitMs: number;
+    cleanupMs: number;
+    copyMs: number;
+  };
 }>;
 
 export declare function readMappedBufferCopy(
@@ -87,6 +92,7 @@ export declare function readBatchTokensFromStagingBuffers(options: {
   tokensStagingBuffer: SampledTokenStagingBuffer;
   stopStagingBuffer?: SampledTokenStagingBuffer | null;
   finitenessStagingBuffer?: SampledTokenStagingBuffer | null;
+  finitenessOffsetBytes?: number | null;
   tokenCount: number;
   ownsTokensStaging?: boolean;
   ownsStopStaging?: boolean;
@@ -99,6 +105,11 @@ export declare function readBatchTokensFromStagingBuffers(options: {
   finitenessStatus: {
     triggered: boolean;
     metadata: string;
+  };
+  timing: {
+    mapWaitMs: number;
+    cleanupMs: number;
+    copyMs: number;
   };
 }>;
 

@@ -20,7 +20,7 @@ export type { LogitsConfig, LogitsWeights, LogitsDebugFlags } from './types.js';
 export { rmsNormCPU, matmulCPU, applySoftcapping, f16ToF32, f16BufferToF32 } from './cpu.js';
 
 // Re-export GPU functions
-export { computeLogitsGPU, recordLogitsGPU, computeChunkedLogitsGPU, resolveCpuWeightDims, resolveLmHeadChunkRows, extractLmHeadChunk, writeChunkLogits } from './gpu.js';
+export { computeLogitsGPU, recordLogitsGPU, recordGreedyLmHeadArgmaxGPU, computeChunkedLogitsGPU, resolveCpuWeightDims, resolveLmHeadChunkRows, extractLmHeadChunk, writeChunkLogits } from './gpu.js';
 
 // Re-export utilities
 export { extractLastPositionLogits, finalizeLogits, readBufferWithCleanup } from './utils.js';
@@ -32,7 +32,7 @@ export interface ComputeLogitsOptions {
 export interface ResolvedLmHeadMatmulConfig {
   lastPositionOnly: boolean;
   matmulRows: number;
-  phaseOverride: 'decode' | null;
+  phaseOverride: 'decode' | 'prefill' | null;
 }
 
 export function resolveLmHeadMatmulConfig(

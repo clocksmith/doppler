@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "kind": "distill",
+  "id": "distill-glm52-doppler-wgsl-gemma270m-f16-sft-tiny",
+  "description": "Tiny GLM-5.2-to-Gemma 270M f16 SFT workload for Doppler WGSL writing behavior.",
+  "claimBoundary": "Executable SFT distillation receipt for WGSL teacher traces into a Doppler f16 LoRA adapter; not a model-quality claim.",
+  "seed": 1337,
+  "baseModelId": "gemma-3-270m-it-f16-af32",
+  "studentModelId": "gemma-3-270m-it-f16-af32",
+  "teacherModelId": "zai-org/GLM-5.2",
+  "datasetId": "doppler-wgsl-sft-tiny",
+  "datasetPath": "tests/fixtures/training/doppler-wgsl-sft-tiny.jsonl",
+  "evalDatasets": [
+    {
+      "id": "doppler-wgsl-heldout-tiny-eval",
+      "datasetPath": "tests/fixtures/training/doppler-wgsl-heldout-tiny.jsonl",
+      "evalKind": "text_generation",
+      "metrics": [
+        "loss"
+      ],
+      "decodePolicy": {
+        "maxTokens": 160,
+        "stopOnEos": true
+      },
+      "scoreboardColumns": [
+        "loss",
+        "baseline.loss",
+        "qualityClaim.absoluteImprovement"
+      ],
+      "quality": {
+        "baseline": "base_model",
+        "requireImprovement": true,
+        "minAbsoluteImprovement": 0,
+        "minRelativeImprovement": 0
+      },
+      "sourceLangs": [],
+      "targetLangs": [],
+      "pairAllowlist": []
+    }
+  ],
+  "trainingSchemaVersion": 1,
+  "checkpointEvery": 1,
+  "selectionMetric": "loss",
+  "selectionGoal": "min",
+  "surfaceSupport": "node",
+  "training": {
+    "optimizer": {
+      "type": "adamw",
+      "lr": 0.0001,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "eps": 1e-8,
+      "weightDecay": 0,
+      "scheduler": {
+        "enabled": false,
+        "type": "constant",
+        "warmupSteps": 0,
+        "stepSize": 1,
+        "gamma": 1,
+        "totalSteps": 1,
+        "minLr": 0
+      }
+    },
+    "batchSize": 1,
+    "accumSteps": 1,
+    "steps": 1,
+    "precision": {
+      "activations": "f16",
+      "gradients": "f16",
+      "loraParams": "f32"
+    },
+    "gradientClipping": {
+      "maxNorm": 1
+    }
+  },
+  "distill": {
+    "stagePlan": [
+      {
+        "id": "sft_lora",
+        "trainingStage": "sft",
+        "objective": "sft",
+        "steps": 1,
+        "checkpointEvery": 1,
+        "selectionMetric": "loss",
+        "selectionGoal": "min",
+        "evalSchedule": "final"
+      }
+    ],
+    "studentGraphMode": "causal_lm_lora",
+    "temperature": 1,
+    "alphaKd": 0,
+    "alphaCe": 1,
+    "tripletMargin": 0.2,
+    "sourceLangs": [],
+    "targetLangs": [],
+    "pairAllowlist": [],
+    "strictPairContract": false,
+    "sftLora": {
+      "datasetFormat": "text-pairs",
+      "taskType": "text_generation",
+      "maxLength": 128,
+      "joinWith": "\n",
+      "adapter": {
+        "rank": 4,
+        "alpha": 8,
+        "dropout": 0,
+        "targetModules": [
+          "q_proj",
+          "v_proj"
+        ]
+      },
+      "freeze": {
+        "encoder": false,
+        "prior": false,
+        "decoder": false,
+        "base": true,
+        "lora": false
+      },
+      "export": {
+        "enabled": true,
+        "atCheckpoints": false,
+        "select": "final",
+        "id": "glm52-doppler-wgsl-gemma270m-f16-lora",
+        "name": "GLM-5.2 Doppler WGSL Gemma 270M F16 LoRA",
+        "format": "manifest_json"
+      },
+      "activation": {
+        "enabled": false,
+        "autoActivate": false,
+        "smokePrompt": "Patch this WGSL bounds check."
+      }
+    }
+  }
+}

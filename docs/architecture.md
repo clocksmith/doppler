@@ -612,7 +612,7 @@ Conversion configs define layer patterns in one format; the converter transforms
 |---------------|-----------------|---------|
 | `type: "all_attention"` | `type: "uniform"` | All layers use global attention |
 | `type: "alternating", globalPattern: "odd"` | `type: "alternating"` | Odd layers use global attention |
-| `type: "alternating", globalPatternN: 6` | `type: "every_n", period: 6` | Every 6th layer uses global attention (Gemma 3) |
+| `type: "alternating", globalPatternN: 6` | `type: "every_n", period: 6, offset: 5` | Every 6th layer uses global attention at layers 5, 11, 17 (Gemma 3) |
 
 The converter (`src/converter/manifest-inference.js`) performs this mapping. Conversion configs use `globalPatternN` for readability; manifests use `period` for runtime efficiency.
 

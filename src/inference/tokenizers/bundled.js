@@ -95,6 +95,72 @@ function resolveByteLevelPretokenizerConfig(preTokenizer) {
   };
 }
 
+function hexNibble(code) {
+  if (code >= 48 && code <= 57) return code - 48;
+  if (code >= 65 && code <= 70) return code - 55;
+  if (code >= 97 && code <= 102) return code - 87;
+  return -1;
+}
+
+function parseByteTokenValue(token) {
+  if (
+    typeof token !== 'string'
+    || token.length !== 6
+    || token.charCodeAt(0) !== 60
+    || token.charCodeAt(1) !== 48
+    || token.charCodeAt(2) !== 120
+    || token.charCodeAt(5) !== 62
+  ) {
+    return null;
+  }
+  const hi = hexNibble(token.charCodeAt(3));
+  const lo = hexNibble(token.charCodeAt(4));
+  return hi >= 0 && lo >= 0 ? (hi << 4) | lo : null;
+}
+
+function appendVocabEntry(token, id, vocab, reverseVocab, byteTokens) {
+  const numId = typeof id === 'number' ? id : parseInt( (id), 10);
+  vocab.set(token, numId);
+  reverseVocab.set(numId, token);
+  const byteVal = parseByteTokenValue(token);
+  if (byteVal !== null) {
+    byteTokens.set(byteVal, numId);
+  }
+  return numId;
+}
+
+function loadObjectVocab(vocabObject, vocab, reverseVocab, byteTokens) {
+  let maxId = -1;
+  const hasOwn = Object.prototype.hasOwnProperty;
+  for (const token in vocabObject) {
+    if (!hasOwn.call(vocabObject, token)) {
+      continue;
+    }
+    const numId = appendVocabEntry(token, vocabObject[token], vocab, reverseVocab, byteTokens);
+    if (Number.isFinite(numId) && numId > maxId) {
+      maxId = numId;
+    }
+  }
+  return maxId;
+}
+
+function normalizeMergeKey(merge) {
+  if (!Array.isArray(merge)) {
+    return merge;
+  }
+  return merge.length === 2 ? `${merge[0]} ${merge[1]}` : merge.join(' ');
+}
+
+function buildMergeRanks(merges, mergeRanks) {
+  const normalizedMerges = new Array(merges.length);
+  for (let i = 0; i < merges.length; i++) {
+    const mergeKey = normalizeMergeKey(merges[i]);
+    normalizedMerges[i] = mergeKey;
+    mergeRanks.set(mergeKey, i);
+  }
+  return normalizedMerges;
+}
+
 function isSpecialLikeHotTokenCandidate(token) {
   if (typeof token !== 'string' || token.length === 0) {
     return true;
@@ -413,31 +479,13 @@ export class BundledTokenizer extends BaseTokenizer {
       // Unigram format: [[token, score], ...]
       for (let i = 0; i < model.vocab.length; i++) {
         const [token, score] = model.vocab[i];
-        this.#vocab.set(token, i);
-        this.#reverseVocab.set(i, token);
+        appendVocabEntry(token, i, this.#vocab, this.#reverseVocab, this.#byteTokens);
         this.#scores.push(score);
         if (i > maxId) maxId = i;
-
-        // Track byte tokens
-        if (token.match(/^<0x[0-9A-Fa-f]{2}>$/)) {
-          const byteVal = parseInt(token.slice(3, 5), 16);
-          this.#byteTokens.set(byteVal, i);
-        }
       }
     } else if (this.#type === 'bpe' && model.vocab && typeof model.vocab === 'object') {
       // BPE format: { token: id }
-      for (const [token, id] of Object.entries(model.vocab)) {
-        const numId = typeof id === 'number' ? id : parseInt( (id), 10);
-        this.#vocab.set(token, numId);
-        this.#reverseVocab.set(numId, token);
-        if (Number.isFinite(numId) && numId > maxId) maxId = numId;
-
-        // Track byte tokens
-        if (token.match(/^<0x[0-9A-Fa-f]{2}>$/)) {
-          const byteVal = parseInt(token.slice(3, 5), 16);
-          this.#byteTokens.set(byteVal, numId);
-        }
-      }
+      maxId = loadObjectVocab(model.vocab, this.#vocab, this.#reverseVocab, this.#byteTokens);
     } else {
       throw new Error(`[Tokenizer] Missing vocab for tokenizer type: ${model.type}`);
     }
@@ -447,13 +495,7 @@ export class BundledTokenizer extends BaseTokenizer {
     // Load merges from model.merges
     // Handle both string format ("token1 token2") and array format (["token1", "token2"])
     if (model.merges && model.merges.length > 0) {
-      for (let i = 0; i < model.merges.length; i++) {
-        const merge = model.merges[i];
-        // Convert array format to string format for consistent lookup
-        const mergeKey = Array.isArray(merge) ? merge.join(' ') : merge;
-        this.#merges.push(mergeKey);
-        this.#mergeRanks.set(mergeKey, i);
-      }
+      this.#merges = buildMergeRanks(model.merges, this.#mergeRanks);
     }
 
     const addedTokens = Array.isArray(hf.added_tokens) ? hf.added_tokens : [];
@@ -609,26 +651,13 @@ export class BundledTokenizer extends BaseTokenizer {
     }
 
     // Build vocab maps
-    for (const [token, id] of Object.entries(tokenizerJson.vocab)) {
-      const numId = typeof id === 'number' ? id : parseInt( (id), 10);
-      this.#vocab.set(token, numId);
-      this.#reverseVocab.set(numId, token);
-
-      // Track byte tokens for fallback
-      if (token.match(/^<0x[0-9A-Fa-f]{2}>$/)) {
-        const byteVal = parseInt(token.slice(3, 5), 16);
-        this.#byteTokens.set(byteVal, numId);
-      }
-    }
+    let maxId = loadObjectVocab(tokenizerJson.vocab, this.#vocab, this.#reverseVocab, this.#byteTokens);
 
     this.vocabSize = this.#vocab.size;
 
     // Load merges for BPE
     if (tokenizerJson.merges && tokenizerJson.merges.length > 0) {
-      this.#merges = tokenizerJson.merges;
-      for (let i = 0; i < this.#merges.length; i++) {
-        this.#mergeRanks.set(this.#merges[i], i);
-      }
+      this.#merges = buildMergeRanks(tokenizerJson.merges, this.#mergeRanks);
     }
 
     // Load scores for Unigram
@@ -639,13 +668,6 @@ export class BundledTokenizer extends BaseTokenizer {
     // Load token types if available
     if (tokenizerJson.tokenTypes) {
       this.#tokenTypes = tokenizerJson.tokenTypes;
-    }
-
-    let maxId = -1;
-    for (const id of this.#vocab.values()) {
-      if (Number.isFinite(id) && id > maxId) {
-        maxId = id;
-      }
     }
 
     const addedTokens = Array.isArray(tokenizerJson.added_tokens) ? tokenizerJson.added_tokens : [];

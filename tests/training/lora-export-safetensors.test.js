@@ -66,4 +66,29 @@ assert.equal(layer.q_proj.a.length, 6);
 assert.equal(layer.q_proj.b.length, 8);
 assert.equal(layer.q_proj.scale, 2);
 
+const padded = await exportLoRAAdapter({
+  id: 'columbo_padded_export_test',
+  name: 'Columbo padded export test',
+  baseModel: 'gemma4-e2b-it',
+  rank: 2,
+  alpha: 4,
+  targetModules: ['q_proj'],
+  tensors: [{
+    name: 'layers.0.q_proj.lora_a',
+    shape: [3, 2],
+    tensor: new Float32Array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 99, 100]),
+  }, {
+    name: 'layers.0.q_proj.lora_b',
+    shape: [2, 4],
+    tensor: new Float32Array([0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 99, 100]),
+  }],
+  weightsFormat: 'safetensors',
+  weightsPath: 'padded.adapters.safetensors',
+});
+const paddedLoaded = await loadLoRAFromManifest(padded.manifest, {
+  readFile: async () => padded.weights,
+});
+assert.equal(paddedLoaded.layers.get(0).q_proj.a.length, 6);
+assert.equal(paddedLoaded.layers.get(0).q_proj.b.length, 8);
+
 console.log('lora-export-safetensors.test: ok');

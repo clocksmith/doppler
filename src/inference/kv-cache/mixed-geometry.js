@@ -1,4 +1,5 @@
 import { getDevice } from '../../gpu/device.js';
+import { recordKVCacheWriteF32ToF16 } from '../../gpu/kernel-selector.js';
 
 function normalizeLayerType(layerType) {
   return typeof layerType === 'string' ? layerType.trim().toLowerCase() : '';
@@ -216,6 +217,27 @@ export class MixedGeometryKVCache {
     encoder.copyBufferToBuffer(valuesBuffer, 0, layer.valuesGPU, byteOffset, byteSize);
   }
 
+  async _recordContiguousF32ToF16(recorder, layer, spec, keysBuffer, valuesBuffer, startPos, numTokens) {
+    const endPos = startPos + numTokens;
+    if (endPos > spec.capacityTokens) {
+      throw new Error(
+        `MixedGeometryKVCache overflow at layer ${spec.layerIdx}: ${endPos} > ${spec.capacityTokens}.`
+      );
+    }
+    await recordKVCacheWriteF32ToF16(
+      recorder,
+      keysBuffer,
+      valuesBuffer,
+      layer.keysGPU,
+      layer.valuesGPU,
+      {
+        srcOffset: 0,
+        dstOffset: startPos * spec.kvSize,
+        elementCount: numTokens * spec.kvSize,
+      }
+    );
+  }
+
   _recordRingCopy(encoder, layer, spec, keysBuffer, valuesBuffer, startPos, numTokens) {
     const windowSize = spec.capacityTokens;
     const bytesPerToken = spec.bytesPerToken;
@@ -249,6 +271,60 @@ export class MixedGeometryKVCache {
       const srcByteOffset2 = srcByteOffset + firstChunkBytes;
       encoder.copyBufferToBuffer(keysBuffer, srcByteOffset2, layer.keysGPU, 0, secondChunkBytes);
       encoder.copyBufferToBuffer(valuesBuffer, srcByteOffset2, layer.valuesGPU, 0, secondChunkBytes);
+    }
+
+    const seen = Math.max(this.totalTokensSeen, fullStart + fullTokens);
+    layer.seqLen = Math.min(windowSize, Math.max(layer.seqLen, seen));
+  }
+
+  async _recordRingF32ToF16(recorder, layer, spec, keysBuffer, valuesBuffer, startPos, numTokens) {
+    const windowSize = spec.capacityTokens;
+    const fullStart = startPos;
+    const fullTokens = numTokens;
+    let srcElementOffset = 0;
+
+    if (numTokens > windowSize) {
+      const dropTokens = numTokens - windowSize;
+      startPos += dropTokens;
+      numTokens = windowSize;
+      srcElementOffset = dropTokens * spec.kvSize;
+    }
+
+    const sourceBytesNeeded = (srcElementOffset + (numTokens * spec.kvSize)) * 4;
+    if (sourceBytesNeeded > keysBuffer.size || sourceBytesNeeded > valuesBuffer.size) {
+      throw new Error('MixedGeometryKVCache ring f32-to-f16 write buffer is smaller than the requested write.');
+    }
+
+    const writePos = startPos % windowSize;
+    const firstChunkTokens = Math.min(numTokens, windowSize - writePos);
+    const secondChunkTokens = numTokens - firstChunkTokens;
+
+    await recordKVCacheWriteF32ToF16(
+      recorder,
+      keysBuffer,
+      valuesBuffer,
+      layer.keysGPU,
+      layer.valuesGPU,
+      {
+        srcOffset: srcElementOffset,
+        dstOffset: writePos * spec.kvSize,
+        elementCount: firstChunkTokens * spec.kvSize,
+      }
+    );
+
+    if (secondChunkTokens > 0) {
+      await recordKVCacheWriteF32ToF16(
+        recorder,
+        keysBuffer,
+        valuesBuffer,
+        layer.keysGPU,
+        layer.valuesGPU,
+        {
+          srcOffset: srcElementOffset + (firstChunkTokens * spec.kvSize),
+          dstOffset: 0,
+          elementCount: secondChunkTokens * spec.kvSize,
+        }
+      );
     }
 
     const seen = Math.max(this.totalTokensSeen, fullStart + fullTokens);
@@ -310,6 +386,27 @@ export class MixedGeometryKVCache {
       this._recordRingCopy(encoder, layer, spec, keysBuffer, valuesBuffer, startPos, numTokens);
     } else {
       this._recordContiguousCopy(encoder, layer, spec, keysBuffer, valuesBuffer, startPos, numTokens);
+    }
+    this._updateMetadata(layer, spec, startPos, numTokens);
+  }
+
+  async recordUpdateF32ToF16FromGPU(recorder, layerIdx, keysBuffer, valuesBuffer, startPos, numTokens) {
+    this._assertLayerIndex(layerIdx);
+    this._assertStartPos(startPos);
+    if (this.kvDtype !== 'f16') {
+      throw new Error('MixedGeometryKVCache recordUpdateF32ToF16FromGPU requires an f16 KV cache.');
+    }
+    this._assertTokenCount(numTokens, 'MixedGeometryKVCache recordUpdateF32ToF16FromGPU');
+    if (numTokens === 0) {
+      return;
+    }
+
+    const spec = this.layerSpecs[layerIdx];
+    const layer = this.layers[layerIdx];
+    if (spec.layout === 'ring') {
+      await this._recordRingF32ToF16(recorder, layer, spec, keysBuffer, valuesBuffer, startPos, numTokens);
+    } else {
+      await this._recordContiguousF32ToF16(recorder, layer, spec, keysBuffer, valuesBuffer, startPos, numTokens);
     }
     this._updateMetadata(layer, spec, startPos, numTokens);
   }

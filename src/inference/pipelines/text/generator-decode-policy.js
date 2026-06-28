@@ -150,6 +150,7 @@ export function summarizeExecutionPlan(plan) {
     kernelPathSource: plan.kernelPathSource ?? 'none',
     activationDtype: plan.activationDtype,
     readbackInterval: plan.readbackInterval ?? null,
+    readbackMode: plan.readbackMode ?? null,
     batchSize: plan.defaultBatchSize,
     stopCheckMode: plan.defaultStopCheckMode,
     disableCommandBatching: plan.defaultDisableCommandBatching === true,

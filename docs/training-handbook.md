@@ -91,35 +91,60 @@ Action requirements:
 
 - `lora` and `distill` are currently Node-only in the command API and fail closed on browser surfaces.
 - `lora run` executes the built-in `baseModelId="training-toy"` /
-  `datasetFormat="toy_linear_classification_jsonl"` fixture and the
-  provider-backed causal-LM LoRA contract for registered Gemma/Qwen
+  `datasetFormat="toy_linear_classification_jsonl"` fixture, the native
+  full-graph causal-LM runner for `gemma-3-270m-it-f16-af32`, and the
+  provider-backed causal-LM LoRA contract for registered q4k Gemma/Qwen
   `text-pairs` workloads.
 - The LoRA runner support contract is executable via
   `LORA_RUNNER_SUPPORT_CONTRACT`, `getLoraRunnerCompatibility()`, and
   `assertLoraRunnerCompatibility()` from
   `src/experimental/training/lora-pipeline.js`. Registered Columbo base-model
-  ids include `gemma4-e2b-it`, `gemma-4-e2b-it-q4k-ehf16-af32`,
+  ids include `gemma-3-270m-it-f16-af32`, `gemma4-e2b-it`,
+  `gemma-4-e2b-it-q4k-ehf16-af32`,
   `gemma-4-e2b-it-q4k-ehf16-af32-int4ple`,
   `qwen-3-5-0-8b-q4k-ehaf16`, `qwen-3-5-2b-q4k-ehaf16`,
   `qwen-3-6-27b-q4k-ehaf16`, and `qwen-3-6-27b-q4k-eaf16`.
   The `text-pairs` dataset mapper and loader accept `{prompt, completion}`,
   `{source, target}`, and `{input, output}` rows. Gemma/Qwen causal-LM
   workloads (`datasetFormat="text-pairs"`, `taskType="text_generation"`) are
-  supported by Doppler's causal-LM LoRA runner/export path. The internal runner
-  loads the registered base model, tokenizes text-pair rows, trains LoRA
-  tensors, and writes verified external safetensors adapter packages. Causal-LM
-  workloads must declare `training.batchSize=1`, `lora.maxLength` or
-  `lora.sequenceLength`, and `lora.joinWith`. A browser/Dream trainer can
-  override the internal runner with `runLoraPipeline({ causalLmTrainer })` or
-  `lora.trainer.modulePath`; that trainer must return named LoRA `lora_a` /
+  supported by Doppler's causal-LM LoRA runner/export path. The native internal
+  runner loads the f16 base model, tokenizes text-pair rows, trains LoRA
+  tensors, and writes verified external safetensors adapter packages. Registered
+  q4k bases require `runLoraPipeline({ causalLmTrainer })` or
+  `lora.trainer.modulePath`; the internal full-graph runner does not train
+  packed q4k base weights. Causal-LM workloads must declare
+  `training.batchSize=1`, `lora.maxLength` or `lora.sequenceLength`, and
+  `lora.joinWith`. A browser/Dream trainer must return named LoRA `lora_a` /
   `lora_b` tensors for every requested target module.
 - `exportLoRAAdapter({ weightsFormat: "safetensors" })` returns a Doppler
   adapter manifest with `weightsPath`, `weightsSize`, `checksum`, and
   `checksumAlgorithm`, plus the external safetensors bytes. `lora run` writes
   checkpoint exports as `<checkpoint>.adapter.manifest.json`,
   `<checkpoint>.adapters.safetensors`, and `<checkpoint>.export.json`.
-- `distill` currently resolves workload stages into the internal `stage_a` / `stage_b` runner contract.
-- Distillation workloads that declare `sft` fail closed today; use `objective="kd"` with `trainingStage="stage_a"` or `objective="triplet"` with `trainingStage="stage_b"` until a plain-SFT runner exists.
+- `lora run` writes base-model eval reports before training for causal-LM
+  workloads, then writes adapter eval reports with `baseline`, loss delta, and
+  `qualityClaim` fields. Workload eval datasets can declare
+  `quality.requireImprovement=true`; `quality-gate` fails if the required
+  baseline comparison is missing or the adapter does not improve on the
+  declared metric.
+- Provider-backed q4k Gemma/Qwen trainers may return `evalReports`; Doppler
+  materializes those reports under `eval/`, adds them to the scoreboard, and
+  includes them in compare/quality-gate artifacts. This is the supported path
+  for q4k student receipts until a native packed-q4k trainer exists.
+- GLM/Qwen/other teacher traces can be normalized into LoRA `text-pairs` with
+  `tools/build-teacher-trace-text-pairs.js`. Trace rows preserve
+  `teacherModelId`, `studentBaseModelId`, `taskKind`, `sourcePolicyId`, and
+  `gepaCandidateId` metadata.
+- Fresh teacher traces from an OpenAI-compatible GLM/Qwen endpoint can be
+  generated with `tools/generate-teacher-traces-openai-compatible.js`; it
+  requires an explicit `--base-url`, `--model`, and `--api-key-env` and fails
+  closed when credentials are missing.
+- Reploid GEPA frontier exports can be converted into teacher traces with
+  `tools/build-gepa-teacher-traces.js`. Doppler treats GEPA as a prompt/policy
+  frontier source; the resulting `sourcePolicyId` and `gepaCandidateId` values
+  travel with the training rows and adapter lineage.
+- `distill` resolves KD and triplet workload stages into the internal `stage_a` / `stage_b` runner contract.
+- Distillation workloads that declare `objective="sft"` or `trainingStage="sft"` must provide `distill.sftLora`; those stages route through the registered causal-LM LoRA `text-pairs` runner/export path and still write a distill stage manifest under the run root.
 - Distillation translation eval is currently implemented for `studentGraphMode="transformer_full"` only.
 
 Legacy Distill Studio helpers are compatibility tooling only:

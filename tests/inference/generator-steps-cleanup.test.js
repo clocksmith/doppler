@@ -1,4 +1,10 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+
+const generatorStepsSource = readFileSync(
+  new URL('../../src/inference/pipelines/text/generator-steps.js', import.meta.url),
+  'utf8'
+);
 
 globalThis.GPUMapMode = {
   READ: 0x0001,
@@ -58,6 +64,22 @@ function createStagingBuffer(words, options = {}) {
 }
 
 {
+  assert.ok(
+    generatorStepsSource.includes("createCommandRecorder('decode', undefined, device)"),
+    'single-token decode recorder must keep default label collection in normal runs'
+  );
+  assert.ok(
+    generatorStepsSource.includes("createCommandRecorder('batch_decode', undefined, device)"),
+    'batch decode recorder must keep default label collection in normal runs'
+  );
+  assert.equal(
+    generatorStepsSource.includes("recordLabels: opts.debug === true"),
+    false,
+    'decode recorder labels must not be gated on debug mode'
+  );
+}
+
+{
   const ring = createRingTracker();
   const cleanupRecorder = createCleanupRecorder();
   const stagingBuffer = createStagingBuffer([0], {
@@ -95,6 +117,9 @@ function createStagingBuffer(words, options = {}) {
   assert.equal(result.nextToken, 42);
   assert.equal(result.finitenessStatus.triggered, true);
   assert.equal(result.finitenessStatus.metadata, ' (layer 7, step 9)');
+  assert.ok(Number.isFinite(result.timing.mapWaitMs));
+  assert.ok(Number.isFinite(result.timing.cleanupMs));
+  assert.ok(Number.isFinite(result.timing.copyMs));
   assert.equal(stagingBuffer.unmapCount, 1);
   assert.equal(stagingBuffer.destroyCount, 0);
   assert.equal(ring.advanceCount, 1);
@@ -172,6 +197,9 @@ function createStagingBuffer(words, options = {}) {
   assert.deepEqual(Array.from(result.tokens), [5, 6, 7]);
   assert.deepEqual(Array.from(result.stopFlags || []), [0, 1, 0]);
   assert.equal(result.finitenessStatus.metadata, ' (layer 3, step 4)');
+  assert.ok(Number.isFinite(result.timing.mapWaitMs));
+  assert.ok(Number.isFinite(result.timing.cleanupMs));
+  assert.ok(Number.isFinite(result.timing.copyMs));
   assert.equal(tokensStagingBuffer.unmapCount, 1);
   assert.equal(stopStagingBuffer.unmapCount, 1);
   assert.equal(tokensStagingBuffer.destroyCount, 1);
@@ -255,6 +283,36 @@ function createStagingBuffer(words, options = {}) {
   assert.equal(finitenessStagingBuffer.destroyCount, 0);
   assert.equal(finitenessStagingBuffer.unmapCount, 1);
   assert.equal(ring.advanceCount, 1);
+}
+
+{
+  const ring = createRingTracker();
+  const cleanupRecorder = createCleanupRecorder();
+  const tokensStagingBuffer = createStagingBuffer([5, 6, 7, 1, 3, 4, 0]);
+  const finitenessStagingBuffer = createStagingBuffer([1, 9, 9, 0]);
+
+  const result = await readBatchTokensFromStagingBuffers({
+    tokensStagingBuffer,
+    finitenessStagingBuffer,
+    finitenessOffsetBytes: 12,
+    tokenCount: 3,
+    ownsTokensStaging: false,
+    ownsFinitenessStaging: false,
+    cleanupRecorder,
+    ring,
+  });
+
+  assert.deepEqual(Array.from(result.tokens), [5, 6, 7]);
+  assert.equal(result.finitenessStatus.triggered, true);
+  assert.equal(result.finitenessStatus.metadata, ' (layer 3, step 4)');
+  assert.equal(tokensStagingBuffer.mapCount, 1);
+  assert.equal(tokensStagingBuffer.unmapCount, 1);
+  assert.equal(tokensStagingBuffer.destroyCount, 0);
+  assert.equal(finitenessStagingBuffer.mapCount, 0);
+  assert.equal(finitenessStagingBuffer.unmapCount, 0);
+  assert.equal(finitenessStagingBuffer.destroyCount, 0);
+  assert.equal(ring.advanceCount, 1);
+  assert.deepEqual(cleanupRecorder.calls, [{ discardPooled: false }]);
 }
 
 {

@@ -131,6 +131,33 @@ const result = await runLoraPipeline({
       metrics: {
         trainLoss: 0.125,
       },
+      evalReports: [{
+        evalDatasetId: 'dream-heldout',
+        datasetPath,
+        primaryMetric: 'loss',
+        primaryScore: 0.2,
+        loss: 0.2,
+        baseline: {
+          stage: 'base_model',
+          primaryMetric: 'loss',
+          primaryScore: 0.3,
+          loss: 0.3,
+        },
+        qualityClaim: {
+          baseline: 'base_model',
+          metric: 'loss',
+          selectionGoal: 'min',
+          adapterScore: 0.2,
+          baselineScore: 0.3,
+          delta: -0.1,
+          absoluteImprovement: 0.1,
+          relativeImprovement: 1 / 3,
+          minAbsoluteImprovement: 0,
+          minRelativeImprovement: 0,
+          improved: true,
+          requireImprovement: true,
+        },
+      }],
       receipts: [{
         backend: 'test-provider',
         datasetHash: input.dataset.datasetHash,
@@ -149,6 +176,8 @@ assert.equal(result.ok, true);
 assert.equal(result.runnerKind, 'causal_lm_lora');
 assert.equal(result.preflight.runnerKey, 'gemma4-e2b-it::text-pairs::text_generation');
 assert.equal(result.exports.length, 1);
+assert.equal(result.evalReports.length, 1);
+assert.equal(result.evalReports[0].qualityClaim.improved, true);
 assert.match(result.exports[0].weightsSha256, /^[a-f0-9]{64}$/);
 
 const exportManifest = JSON.parse(await readFile(result.exports[0].manifestPath, 'utf8'));
@@ -215,5 +244,79 @@ assert.equal(moduleResult.exports.length, 1);
 const moduleManifest = JSON.parse(await readFile(moduleResult.exports[0].manifestPath, 'utf8'));
 assert.equal(moduleManifest.metadata.runnerId, 'module-causal-lm-lora');
 assert.equal(moduleManifest.metadata.trainerId, 'module-provider');
+
+const qwenResult = await runLoraPipeline({
+  loadedWorkload: {
+    absolutePath: join(tmpRoot, 'qwen-q4k-provider.workload.json'),
+    path: join(tmpRoot, 'qwen-q4k-provider.workload.json'),
+    raw: JSON.stringify({
+      ...workload,
+      id: 'qwen-q4k-provider',
+      baseModelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+    }),
+    workloadSha256: 'sha256:qwen-q4k-provider',
+    workload: {
+      ...workload,
+      id: 'qwen-q4k-provider',
+      baseModelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+    },
+  },
+  runRoot: join(tmpRoot, 'qwen-q4k-provider-run'),
+  causalLmTrainer: async (input) => ({
+    checkpointId: 'checkpoint-qwen-provider',
+    checkpointStep: input.training.steps,
+    trainerId: 'qwen-provider',
+    runnerId: 'qwen-q4k-causal-lm-lora',
+    metrics: { trainLoss: 0.3 },
+    evalReports: [{
+      evalDatasetId: 'dream-heldout',
+      primaryMetric: 'loss',
+      primaryScore: 0.21,
+      loss: 0.21,
+      baseline: { primaryMetric: 'loss', primaryScore: 0.25, loss: 0.25 },
+    }],
+    tensors: [
+      tensor('layers.0.q_proj.lora_a', [3, 2], 40),
+      tensor('layers.0.q_proj.lora_b', [2, 4], 50),
+      tensor('layers.0.v_proj.lora_a', [3, 2], 60),
+      tensor('layers.0.v_proj.lora_b', [2, 4], 70),
+    ],
+  }),
+});
+
+assert.equal(qwenResult.ok, true);
+assert.equal(qwenResult.preflight.runnerKey, 'qwen-3-5-0-8b-q4k-ehaf16::text-pairs::text_generation');
+assert.equal(qwenResult.evalReports.length, 1);
+assert.equal(qwenResult.evalReports[0].qualityClaim.improved, true);
+
+await assert.rejects(
+  () => runLoraPipeline({
+    loadedWorkload: {
+      absolutePath: join(tmpRoot, 'qwen-q4k.workload.json'),
+      path: join(tmpRoot, 'qwen-q4k.workload.json'),
+      raw: JSON.stringify({
+        ...workload,
+        id: 'qwen-q4k-internal-blocked',
+        baseModelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+        pipeline: {
+          ...workload.pipeline,
+          trainer: null,
+        },
+      }),
+      workloadSha256: 'sha256:qwen-q4k',
+      workload: {
+        ...workload,
+        id: 'qwen-q4k-internal-blocked',
+        baseModelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+        pipeline: {
+          ...workload.pipeline,
+          trainer: null,
+        },
+      },
+    },
+    runRoot: join(tmpRoot, 'qwen-q4k-run'),
+  }),
+  /requires lora\.trainer\.modulePath/
+);
 
 console.log('lora-causal-lm-provider-runner.test: ok');

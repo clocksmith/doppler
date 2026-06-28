@@ -311,10 +311,19 @@ try {
     const cache = new UniformBufferCache(8, 1000);
     const first = cache.getOrCreate(new Uint8Array([0, 0, 0, 1]).buffer, 'u0');
     cache.release(first);
+    const repeated = cache.getOrCreate(new Uint8Array([0, 0, 0, 1]).buffer, 'u0-repeat');
+    assert.equal(first, repeated);
+    cache.release(repeated);
     const second = cache.getOrCreate(new Uint8Array([0, 0, 0, 2]).buffer, 'u1');
+    const mutable = new Uint8Array([0, 0, 0, 3]);
+    const third = cache.getOrCreate(mutable.buffer, 'u2');
+    mutable[3] = 4;
+    const fourth = cache.getOrCreate(mutable.buffer, 'u3');
 
     assert.notEqual(first, second);
-    assert.equal(cache.getStats().misses, 2);
+    assert.notEqual(third, fourth);
+    assert.equal(cache.getStats().hits, 1);
+    assert.equal(cache.getStats().misses, 4);
   }
 
   {

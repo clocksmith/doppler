@@ -136,6 +136,9 @@ export function compareBenchResults(current, baseline) {
       { label: 'gpu record ms', cur: cg.decodeRecordMs?.median, base: bg.decodeRecordMs?.median, higherBetter: false },
       { label: 'gpu submit_wait', cur: cg.decodeSubmitWaitMs?.median, base: bg.decodeSubmitWaitMs?.median, higherBetter: false },
       { label: 'gpu readback', cur: cg.decodeReadbackWaitMs?.median, base: bg.decodeReadbackWaitMs?.median, higherBetter: false },
+      { label: 'gpu readback_map', cur: cg.decodeReadbackMapWaitMs?.median, base: bg.decodeReadbackMapWaitMs?.median, higherBetter: false },
+      { label: 'gpu readback_cleanup', cur: cg.decodeReadbackCleanupMs?.median, base: bg.decodeReadbackCleanupMs?.median, higherBetter: false },
+      { label: 'gpu readback_copy', cur: cg.decodeReadbackCopyMs?.median, base: bg.decodeReadbackCopyMs?.median, higherBetter: false },
     );
   }
 
@@ -213,11 +216,27 @@ function printGpuPhases(metrics) {
   }
   const gpu = metrics?.gpu;
   if (!gpu) return;
+  const bottleneck = metrics?.decodeBottleneck?.dominant;
+  if (bottleneck && typeof bottleneck === 'object') {
+    const share = Number.isFinite(bottleneck.shareOfDecode)
+      ? ` share=${formatNumber(bottleneck.shareOfDecode * 100)}%`
+      : '';
+    console.log(`[gpu] bottleneck=${bottleneck.label || bottleneck.id || 'unknown'} ms=${formatMs(bottleneck.ms)}${share}`);
+  }
   const rm = gpu.decodeRecordMs?.median;
   const sw = gpu.decodeSubmitWaitMs?.median;
   const rw = gpu.decodeReadbackWaitMs?.median;
   if (Number.isFinite(rm) || Number.isFinite(sw) || Number.isFinite(rw)) {
     console.log(`[gpu] decode record=${formatMs(rm)} submit_wait=${formatMs(sw)} readback_wait=${formatMs(rw)} (median)`);
+  }
+  const rwm = gpu.decodeReadbackMapWaitMs?.median;
+  const rwc = gpu.decodeReadbackCleanupMs?.median;
+  const rwcopy = gpu.decodeReadbackCopyMs?.median;
+  if (Number.isFinite(rwm) || Number.isFinite(rwc) || Number.isFinite(rwcopy)) {
+    console.log(
+      `[gpu] decode readback map_wait=${formatMs(rwm)} cleanup=${formatMs(rwc)} ` +
+      `copy=${formatMs(rwcopy)} (median)`
+    );
   }
   const pm = gpu.prefillMs?.median;
   const dm = gpu.decodeMs?.median;
@@ -233,23 +252,37 @@ function printGpuPhases(metrics) {
       `orchestration=${formatMs(sto)} (median)`
     );
   }
+  const strm = gpu.singleTokenReadbackMapWaitMs?.median;
+  const strc = gpu.singleTokenReadbackCleanupMs?.median;
+  const strcopy = gpu.singleTokenReadbackCopyMs?.median;
+  if (Number.isFinite(strm) || Number.isFinite(strc) || Number.isFinite(strcopy)) {
+    console.log(
+      `[gpu] single-token readback map_wait=${formatMs(strm)} cleanup=${formatMs(strc)} ` +
+      `copy=${formatMs(strcopy)} (median)`
+    );
+  }
   const batching = metrics?.batching;
   const batchedCalls = batching?.batchedForwardCalls?.median;
   const unbatchedCalls = batching?.unbatchedForwardCalls?.median;
   const batchedTime = batching?.totalBatchedTimeMs?.median;
   const unbatchedTime = batching?.totalUnbatchedTimeMs?.median;
   const submissions = batching?.gpuSubmissions?.median;
+  const executedTokens = batching?.executedBatchTokens?.median;
+  const resolvedTokens = batching?.resolvedBatchTokens?.median;
   if (
     Number.isFinite(batchedCalls)
     || Number.isFinite(unbatchedCalls)
     || Number.isFinite(batchedTime)
     || Number.isFinite(unbatchedTime)
     || Number.isFinite(submissions)
+    || Number.isFinite(executedTokens)
+    || Number.isFinite(resolvedTokens)
   ) {
     console.log(
       `[batching] batched_calls=${formatNumber(batchedCalls)} unbatched_calls=${formatNumber(unbatchedCalls)} ` +
       `batched_time=${formatMs(batchedTime)} unbatched_time=${formatMs(unbatchedTime)} ` +
-      `gpu_submissions=${formatNumber(submissions)}`
+      `gpu_submissions=${formatNumber(submissions)} executed_tokens=${formatNumber(executedTokens)} ` +
+      `resolved_tokens=${formatNumber(resolvedTokens)}`
     );
   }
 }

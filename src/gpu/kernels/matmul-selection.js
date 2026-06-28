@@ -568,6 +568,17 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
       q4kVariant = 'q4_fused_widetile';
     }
   }
+  if (
+    options.useWideTileQ4KDecode === true
+    && phase === 'decode'
+    && M === 1
+    && aDtype === 'f32'
+    && !wantF16Output
+    && capabilities.hasF16 === true
+    && (q4kVariant === 'q4_fused_multicol' || q4kVariant === 'q4_fused')
+  ) {
+    q4kVariant = 'q4_fused_widetile';
+  }
   // Residual-fused WideTile override: when the caller passes a residualTensor
   // and opts into the fusion via useWideTileResidualFusion, route the
   // f32-output WideTile variant to its residual-epilogue twin. Saves one

@@ -30,6 +30,7 @@ Checked-in config inventory:
 | `gemma3/gemma-3-1b-it-f16-af32.json` | `gemma-3-1b-it-f16-af32` | F16 weights, F32 activation policy |
 | `gemma3/gemma-3-1b-it-q4k-ehf16-af32.json` | `gemma-3-1b-it-q4k-ehf16-af32` | Q4K row layout with execution-v1 graph |
 | `gemma3/gemma-3-270m-it-q4k-ehf16-af32.json` | `gemma-3-270m-it-q4k-ehf16-af32` | Q4K row layout with execution-v1 graph |
+| `gemma3/gemma-3-270m-it-q4k-ehf16-af16.json` | `gemma-3-270m-it-q4k-ehf16-af16` | Experimental Q4K f16 activation repro; blocked by layer-8 prefill attention-core NaNs on local verify |
 | `gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json` | `translategemma-4b-1b-enes-q4k-ehf16-af32` | TranslateGemma distill/variant artifact |
 | `gemma3/translategemma-4b-it-q4k-ehf16-af32.json` | `translategemma-4b-it-q4k-ehf16-af32` | Text-only TranslateGemma artifact |
 | `gemma4/gemma-4-e2b-it-q4k-ehf16-af32.json` | `gemma-4-e2b-it-q4k-ehf16-af32` | Gemma 4 E2B Q4K, execution-v1 graph |

@@ -41,6 +41,10 @@ export {
   isFusedQ4KDisabled,
   type MatmulOptions,
 } from './matmul.js';
+export {
+  recordLmHeadArgmaxF16,
+  type LmHeadArgmaxF16Options,
+} from './lm-head-argmax.js';
 
 // Dequantization
 export {
@@ -78,6 +82,34 @@ export {
   recordRMSNorm,
   type RMSNormOptions,
 } from './rmsnorm.js';
+export {
+  canUseRMSNormQK,
+  runRMSNormQK,
+  recordRMSNormQK,
+  type RMSNormQKOptions,
+  type RMSNormQKResult,
+} from './rmsnorm-qk.js';
+export {
+  canUseSplitQKVRMSNormQK,
+  runSplitQKVRMSNormQK,
+  recordSplitQKVRMSNormQK,
+  type SplitQKVRMSNormQKOptions,
+  type SplitQKVRMSNormQKResult,
+} from './split-qkv-rmsnorm-qk.js';
+export {
+  canUseSplitQKVRMSNormRoPEQK,
+  runSplitQKVRMSNormRoPEQK,
+  recordSplitQKVRMSNormRoPEQK,
+  type SplitQKVRMSNormRoPEQKOptions,
+  type SplitQKVRMSNormRoPEQKResult,
+} from './split-qkv-rmsnorm-rope-qk.js';
+export {
+  RMSNORM_PAIR_CACHE_LIMIT,
+  runSandwichRMSNormPair,
+  recordSandwichRMSNormPair,
+  type SandwichRMSNormPairOptions,
+  type SandwichRMSNormPairResult,
+} from './rmsnorm-pair.js';
 
 // LayerNorm
 export {
@@ -121,6 +153,12 @@ export {
   type KVQuantizeOptions,
 } from './kv-quantize.js';
 
+export {
+  runKVCacheWriteF32ToF16,
+  recordKVCacheWriteF32ToF16,
+  type KVCacheWriteF32ToF16Options,
+} from './kv-cache-write.js';
+
 // Loss
 export {
   runCrossEntropyLoss,
@@ -134,6 +172,13 @@ export {
   recordRoPE,
   type RoPEOptions,
 } from './rope.js';
+export {
+  canUseRoPEQK,
+  runRoPEQK,
+  recordRoPEQK,
+  type RoPEQKOptions,
+  type RoPEQKResult,
+} from './rope-qk.js';
 
 // SiLU Activation
 export {

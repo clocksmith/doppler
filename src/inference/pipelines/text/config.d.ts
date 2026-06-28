@@ -114,6 +114,11 @@ export interface ParsedSessionSettings {
   prefillTokenChunkSize: number | null;
   useFlashPrefillAttention: boolean | null;
   useWideTileQ4KPrefill: boolean | null;
+  useWideTileQ4KDecode: boolean | null;
+  useSandwichRMSNormPairFusion: boolean | null;
+  usePostFfnNextInputRMSNormPairFusion: boolean | null;
+  useFusedQKVSplitQKNorm: boolean | null;
+  useFusedQKVSplitQKNormRoPE: boolean | null;
   retainQ4KMaterialization: boolean | null;
 }
 

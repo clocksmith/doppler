@@ -28,9 +28,12 @@ const {
   recordArgmax,
   recordGPUSample,
 } = await import('../../src/gpu/kernels/sample.js');
+const { CommandRecorder } = await import('../../src/gpu/command-recorder.js');
 const { setDevice } = await import('../../src/gpu/device.js');
 const { configurePerfGuards } = await import('../../src/gpu/perf-guards.js');
 const { destroyBufferPool, getBufferPool } = await import('../../src/memory/buffer-pool.js');
+const { resetKernelThresholds, setKernelThresholds } = await import('../../src/config/schema/index.js');
+const { resetUniformCache } = await import('../../src/gpu/uniform-cache.js');
 
 class FakeBuffer {
   constructor({ size, usage, mapReject = false, mappedValue = 0 }) {
@@ -147,14 +150,22 @@ function createFakeDevice({ mapReject = false, createBindGroupThrowAt = null } =
     createCommandEncoder() {
       const encoder = {
         passes: [],
-        beginComputePass() {
-          const pass = { label: null };
+        beginComputePass(descriptor = {}) {
+          const pass = {
+            dispatches: [],
+            label: descriptor.label ?? null,
+            ended: false,
+          };
           encoder.passes.push(pass);
           return {
             setPipeline() {},
             setBindGroup() {},
-            dispatchWorkgroups() {},
-            end() {},
+            dispatchWorkgroups(...args) {
+              pass.dispatches.push(args);
+            },
+            end() {
+              pass.ended = true;
+            },
           };
         },
         copyBufferToBuffer() {},
@@ -197,6 +208,8 @@ function createFakeRecorder(device) {
 
 function resetRuntimeState(device) {
   destroyBufferPool();
+  resetUniformCache();
+  resetKernelThresholds();
   setDevice(device, { platformConfig: null });
   getBufferPool().configure({ enablePooling: false });
   configurePerfGuards({
@@ -377,7 +390,80 @@ function resetRuntimeState(device) {
   });
 
   const totalPasses = device.encoders.reduce((count, encoder) => count + encoder.passes.length, 0);
+  const dispatches = device.encoders.flatMap((encoder) => encoder.passes.flatMap((pass) => pass.dispatches));
+  assert.equal(totalPasses, 1);
+  assert.deepEqual(dispatches.map(([x]) => x), [1]);
+}
+
+{
+  const device = createFakeDevice();
+  resetRuntimeState(device);
+  setKernelThresholds({
+    sample: {
+      argmaxReduceVocabThreshold: 32,
+    },
+  });
+
+  const logits = new FakeBuffer({
+    size: 65536 * Float32Array.BYTES_PER_ELEMENT,
+    usage: GPUBufferUsage.STORAGE,
+  });
+
+  await runArgmax(logits, 65536, {
+    padTokenId: null,
+    logitSoftcap: 0,
+    logitsDtype: 'f32',
+    outputIndex: 0,
+  });
+
+  const totalPasses = device.encoders.reduce((count, encoder) => count + encoder.passes.length, 0);
+  const dispatches = device.encoders.flatMap((encoder) => encoder.passes.flatMap((pass) => pass.dispatches));
   assert.equal(totalPasses, 2);
+  assert.deepEqual(dispatches.map(([x]) => x), [256, 1]);
+}
+
+{
+  const device = createFakeDevice();
+  resetRuntimeState(device);
+  setKernelThresholds({
+    sample: {
+      argmaxReduceVocabThreshold: 32,
+    },
+  });
+
+  const recorder = new CommandRecorder(device, 'argmax_coalesced');
+  const logits = new FakeBuffer({
+    size: 65536 * Float32Array.BYTES_PER_ELEMENT,
+    usage: GPUBufferUsage.STORAGE,
+  });
+  const output = new FakeBuffer({
+    size: Uint32Array.BYTES_PER_ELEMENT,
+    usage: GPUBufferUsage.STORAGE,
+  });
+
+  await recordArgmax(recorder, logits, 65536, {
+    padTokenId: null,
+    logitSoftcap: 0,
+    logitsDtype: 'f32',
+    outputBuffer: output,
+    outputIndex: 0,
+  });
+
+  assert.equal(device.encoders.length, 1);
+  assert.equal(device.encoders[0].passes.length, 1);
+  assert.equal(device.encoders[0].passes[0].ended, false);
+  assert.deepEqual(
+    device.encoders[0].passes[0].dispatches.map(([x]) => x),
+    [256, 1]
+  );
+  assert.deepEqual(recorder.getStats().opLabelCounts, {
+    argmax_phase1: 1,
+    argmax_phase2: 1,
+  });
+  assert.equal(recorder.getStats().opCount, 2);
+  assert.equal(recorder.getStats().computePassCount, 1);
+
+  recorder.abort();
 }
 
 destroyBufferPool();

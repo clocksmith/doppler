@@ -22,5 +22,6 @@ export declare function processFFNWithSandwichNorm(
   context: LayerContext,
   layerWeights: LayerWeights | undefined,
   sandwichNorm: SandwichNormInfo,
-  finalOutputScale?: number | null
+  finalOutputScale?: number | null,
+  precomputedFfnInput?: Tensor | null
 ): Promise<Tensor>;

@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "kind": "lora",
+  "id": "lora-doppler-agent-harness-gemma270m-f16-tiny",
+  "description": "Tiny native local LoRA workload for Reploid/Doppler agent harness behavior.",
+  "claimBoundary": "Executable local LoRA adapter training receipt for agent harness traces on a Doppler f16 base; not a model-quality claim.",
+  "seed": 1337,
+  "baseModelId": "gemma-3-270m-it-f16-af32",
+  "studentModelId": null,
+  "teacherModelId": "zai-org/GLM-5.2",
+  "datasetId": "doppler-agent-harness-sft-tiny",
+  "datasetPath": "tests/fixtures/training/doppler-agent-harness-sft-tiny.jsonl",
+  "evalDatasets": [
+    {
+      "id": "doppler-agent-harness-heldout-tiny-eval",
+      "datasetPath": "tests/fixtures/training/doppler-agent-harness-heldout-tiny.jsonl",
+      "evalKind": "text_generation",
+      "metrics": [
+        "loss"
+      ],
+      "decodePolicy": {
+        "maxTokens": 160,
+        "stopOnEos": true
+      },
+      "scoreboardColumns": [
+        "loss",
+        "baseline.loss",
+        "qualityClaim.absoluteImprovement"
+      ],
+      "quality": {
+        "baseline": "base_model",
+        "requireImprovement": true,
+        "minAbsoluteImprovement": 0,
+        "minRelativeImprovement": 0
+      },
+      "sourceLangs": [],
+      "targetLangs": [],
+      "pairAllowlist": []
+    }
+  ],
+  "trainingSchemaVersion": 1,
+  "checkpointEvery": 1,
+  "selectionMetric": "loss",
+  "selectionGoal": "min",
+  "surfaceSupport": "node",
+  "training": {
+    "optimizer": {
+      "type": "adamw",
+      "lr": 0.0001,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "eps": 1e-8,
+      "weightDecay": 0,
+      "scheduler": {
+        "enabled": false,
+        "type": "constant",
+        "warmupSteps": 0,
+        "stepSize": 1,
+        "gamma": 1,
+        "totalSteps": 1,
+        "minLr": 0
+      }
+    },
+    "batchSize": 1,
+    "accumSteps": 1,
+    "steps": 1,
+    "precision": {
+      "activations": "f16",
+      "gradients": "f16",
+      "loraParams": "f32"
+    },
+    "gradientClipping": {
+      "maxNorm": 1
+    }
+  },
+  "lora": {
+    "datasetFormat": "text-pairs",
+    "taskType": "text_generation",
+    "maxLength": 128,
+    "joinWith": "\n",
+    "adapter": {
+      "rank": 4,
+      "alpha": 8,
+      "dropout": 0,
+      "targetModules": [
+        "q_proj",
+        "v_proj"
+      ]
+    },
+    "freeze": {
+      "encoder": false,
+      "prior": false,
+      "decoder": false,
+      "base": true,
+      "lora": false
+    },
+    "export": {
+      "enabled": true,
+      "atCheckpoints": false,
+      "select": "final",
+      "id": "doppler-agent-harness-gemma270m-f16-lora",
+      "name": "Doppler Agent Harness Gemma 270M F16 LoRA",
+      "format": "manifest_json"
+    },
+    "activation": {
+      "enabled": false,
+      "autoActivate": false,
+      "smokePrompt": "Handle a VFS hydration edit request."
+    }
+  }
+}

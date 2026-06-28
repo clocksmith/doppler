@@ -1,0 +1,39 @@
+{
+  "id": "profiles/gemma3-270m-q4k-throughput-probe",
+  "name": "gemma3-270m-q4k-throughput-probe",
+  "description": "Gemma 3 270M calibration profile that keeps the Q4K 8x4 throughput cadence and opts the Q4K lane into sync prefill, retained Q4K materialization, the wide-tile Q4K prefill path, and sequential decode readback. Used to measure reusable decode/prefill bottlenecks without changing shared prompt or sampling semantics.",
+  "intent": "calibrate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-06-26T00:00:00Z",
+  "extends": "profiles/throughput",
+  "model": "gemma-3-270m-it-q4k-ehf16-af32",
+  "runtime": {
+    "inference": {
+      "generation": {
+        "disableMultiTokenDecode": false
+      },
+      "batching": {
+        "batchSize": 8,
+        "readbackInterval": 4,
+        "stopCheckMode": "batch",
+        "readbackMode": "sequential"
+      },
+      "session": {
+        "prefillChunkSubmitMode": "sync",
+        "retainQ4KMaterialization": true,
+        "useWideTileQ4KPrefill": true,
+        "decodeLoop": {
+          "batchSize": 8,
+          "stopCheckMode": "batch",
+          "readbackInterval": 4,
+          "readbackMode": "sequential",
+          "ringTokens": 2,
+          "ringStop": 1,
+          "ringStaging": 2,
+          "disableCommandBatching": false
+        }
+      }
+    }
+  }
+}

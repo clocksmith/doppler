@@ -191,6 +191,8 @@
             "inlineConfigs": [
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-f16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
             ],
@@ -323,6 +325,8 @@
               "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-f16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
@@ -445,6 +449,8 @@
               "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-f16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
@@ -2347,6 +2353,8 @@
               "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-f16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
@@ -2383,6 +2391,8 @@
               "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-f16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
@@ -2423,6 +2433,9 @@
               "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-f16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16",
@@ -2686,7 +2699,7 @@
               "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
-              "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
@@ -2709,6 +2722,35 @@
             "ruleChains": [
               "attention.rules.json#optimizedVariant"
             ],
+            "wgslOnDisk": true
+          }
+        },
+        "decode_online_head256_f16kv": {
+          "wgsl": "attention_decode_online_head256_f16kv.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16",
+            "subgroups"
+          ],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "tier": "subgroup",
+            "exactHeadDim": 256,
+            "maxHeadDim": 256
+          },
+          "description": "Online decode kernel specialized for head_dim=256 with f32 Q, f16 KV, and subgroup reductions",
+          "reachability": {
+            "status": "pinned",
+            "inlineConfigs": [
+              "gemma3/gemma-3-270m-it-f16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af32"
+            ],
+            "ruleChains": [],
             "wgslOnDisk": true
           }
         },
@@ -3572,6 +3614,129 @@
         }
       }
     },
+    "lm_head_argmax": {
+      "description": "Fused LM-head f16-weight GEMV plus greedy argmax",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "hidden",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "weights",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "output",
+          "type": "storage"
+        },
+        {
+          "index": 4,
+          "name": "temp_indices",
+          "type": "storage"
+        },
+        {
+          "index": 5,
+          "name": "temp_logits",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          {
+            "name": "vocab_size",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "hidden_size",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "transpose_b",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "workgroups_x",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "pad_token_id",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "logit_softcap",
+            "type": "f32",
+            "offset": 20
+          },
+          {
+            "name": "output_index",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "num_groups",
+            "type": "u32",
+            "offset": 28
+          }
+        ]
+      },
+      "variants": {
+        "phase1_f16w_f32a": {
+          "wgsl": "lm_head_argmax_f16.wgsl",
+          "entryPoint": "phase1",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "weightDtype": "f16",
+          "variantMetadata": {
+            "colsPerWg": 64,
+            "threadsPerCol": 4
+          },
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
+        "phase2": {
+          "wgsl": "lm_head_argmax_f16.wgsl",
+          "entryPoint": "phase2",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
     "rmsnorm": {
       "description": "RMS normalization kernels",
       "baseBindings": [
@@ -3663,6 +3828,8 @@
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-f16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
@@ -3804,6 +3971,252 @@
             "inlineConfigs": [],
             "ruleChains": [
               "rmsnorm.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
+    "rmsnorm_pair": {
+      "description": "Two-output sandwich RMSNorm decode kernel: post_attn_norm plus pre_ffn_norm",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "input",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "residual",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "post_weight",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "pre_weight",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 5,
+          "name": "post_output",
+          "type": "storage"
+        },
+        {
+          "index": 6,
+          "name": "pre_output",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          {
+            "name": "hidden_size",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "num_tokens",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "eps",
+            "type": "f32",
+            "offset": 8
+          },
+          {
+            "name": "has_residual",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "token_stride",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "_pad2",
+            "type": "u32",
+            "offset": 28
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "rmsnorm_pair.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
+        "subgroup": {
+          "wgsl": "rmsnorm_pair.wgsl",
+          "entryPoint": "main_subgroup",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "subgroups"
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
+    "rmsnorm_qk": {
+      "description": "Fused Q/K RMS normalization kernel",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "q_input",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "q_weight",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "q_output",
+          "type": "storage"
+        },
+        {
+          "index": 4,
+          "name": "k_input",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 5,
+          "name": "k_weight",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 6,
+          "name": "k_output",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          {
+            "name": "q_rows",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "k_rows",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "head_dim",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "row_stride",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "eps",
+            "type": "f32",
+            "offset": 16
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "_pad2",
+            "type": "u32",
+            "offset": 28
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "rmsnorm_qk.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "rmsnorm-qk.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "default_f16": {
+          "wgsl": "rmsnorm_qk_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "rmsnorm-qk.rules.json#variant"
             ],
             "wgslOnDisk": true
           }
@@ -4631,6 +5044,8 @@
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-f16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
@@ -4818,6 +5233,121 @@
         }
       }
     },
+    "rope_qk": {
+      "description": "Rotary position embeddings for separate Q/K buffers",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "q_input",
+          "type": "storage"
+        },
+        {
+          "index": 2,
+          "name": "k_input",
+          "type": "storage"
+        },
+        {
+          "index": 3,
+          "name": "freqs_cos",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "freqs_sin",
+          "type": "read-only-storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          {
+            "name": "seq_len",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "num_q_heads",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "num_kv_heads",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "head_dim",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "start_pos",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "rotary_dim",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "interleaved",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "pair_span_dim",
+            "type": "u32",
+            "offset": 28
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "rope_qk.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "rope-qk.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "default_f16": {
+          "wgsl": "rope_qk_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "rope-qk.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
     "silu": {
       "description": "SiLU activation kernels",
       "baseBindings": [
@@ -4959,6 +5489,8 @@
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-f16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
@@ -5916,6 +6448,8 @@
               "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
               "gemma3/gemma-3-1b-it-f16-af32",
+              "gemma3/gemma-3-270m-it-f16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
@@ -6528,6 +7062,8 @@
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-f16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
@@ -7800,6 +8336,81 @@
         }
       }
     },
+    "kv_cache_write": {
+      "description": "Direct KV cache write kernels",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "input_k",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "input_v",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "output_k",
+          "type": "storage"
+        },
+        {
+          "index": 4,
+          "name": "output_v",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          {
+            "name": "src_offset",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "dst_offset",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "count",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 12
+          }
+        ]
+      },
+      "variants": {
+        "f32_to_f16": {
+          "wgsl": "kv_cache_write_f32_to_f16.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
     "split_qkv": {
       "description": "Split fused QKV output into separate Q, K, V buffers",
       "baseBindings": [
@@ -7890,6 +8501,437 @@
             "ruleChains": [
               "split-qkv.rules.json#variant"
             ],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
+    "split_qkv_rmsnorm_qk": {
+      "description": "Split fused QKV output and apply weighted RMSNorm to Q and K buffers",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "fused_qkv",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "q_weight",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "k_weight",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "Q",
+          "type": "storage"
+        },
+        {
+          "index": 5,
+          "name": "K",
+          "type": "storage"
+        },
+        {
+          "index": 6,
+          "name": "V",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 48,
+        "fields": [
+          {
+            "name": "num_tokens",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "q_size",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "k_size",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "v_size",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "num_heads",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "num_kv_heads",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "head_dim",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "workgroup_stride",
+            "type": "u32",
+            "offset": 28
+          },
+          {
+            "name": "qk_rows",
+            "type": "u32",
+            "offset": 32
+          },
+          {
+            "name": "total_v",
+            "type": "u32",
+            "offset": 36
+          },
+          {
+            "name": "eps",
+            "type": "f32",
+            "offset": 40
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 44
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "split_qkv_rmsnorm_qk.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
+    "split_qkv_rmsnorm_rope_qk": {
+      "description": "Split fused QKV output and apply weighted RMSNorm plus full-head RoPE to Q and K buffers",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "fused_qkv",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "q_weight",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "k_weight",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "freqs_cos",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 5,
+          "name": "freqs_sin",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 6,
+          "name": "Q",
+          "type": "storage"
+        },
+        {
+          "index": 7,
+          "name": "K",
+          "type": "storage"
+        },
+        {
+          "index": 8,
+          "name": "V",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 64,
+        "fields": [
+          {
+            "name": "num_tokens",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "q_size",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "k_size",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "v_size",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "num_heads",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "num_kv_heads",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "head_dim",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "workgroup_stride",
+            "type": "u32",
+            "offset": 28
+          },
+          {
+            "name": "qk_rows",
+            "type": "u32",
+            "offset": 32
+          },
+          {
+            "name": "total_v",
+            "type": "u32",
+            "offset": 36
+          },
+          {
+            "name": "start_pos",
+            "type": "u32",
+            "offset": 40
+          },
+          {
+            "name": "half_dim",
+            "type": "u32",
+            "offset": 44
+          },
+          {
+            "name": "eps",
+            "type": "f32",
+            "offset": 48
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 52
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 56
+          },
+          {
+            "name": "_pad2",
+            "type": "u32",
+            "offset": 60
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "split_qkv_rmsnorm_rope_qk.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
+    "split_qkv_rmsnorm_rope_qk_f16kv_cache": {
+      "description": "Split fused QKV output, apply weighted RMSNorm plus full-head RoPE to Q/K, and write K/V directly to contiguous f16 KV cache",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "fused_qkv",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "q_weight",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "k_weight",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "freqs_cos",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 5,
+          "name": "freqs_sin",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 6,
+          "name": "Q",
+          "type": "storage"
+        },
+        {
+          "index": 7,
+          "name": "kv_cache_k",
+          "type": "storage"
+        },
+        {
+          "index": 8,
+          "name": "kv_cache_v",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 64,
+        "fields": [
+          {
+            "name": "num_tokens",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "q_size",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "k_size",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "v_size",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "num_heads",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "num_kv_heads",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "head_dim",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "workgroup_stride",
+            "type": "u32",
+            "offset": 28
+          },
+          {
+            "name": "qk_rows",
+            "type": "u32",
+            "offset": 32
+          },
+          {
+            "name": "total_v",
+            "type": "u32",
+            "offset": 36
+          },
+          {
+            "name": "start_pos",
+            "type": "u32",
+            "offset": 40
+          },
+          {
+            "name": "half_dim",
+            "type": "u32",
+            "offset": 44
+          },
+          {
+            "name": "eps",
+            "type": "f32",
+            "offset": 48
+          },
+          {
+            "name": "kv_dst_offset",
+            "type": "u32",
+            "offset": 52
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 56
+          },
+          {
+            "name": "_pad2",
+            "type": "u32",
+            "offset": 60
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "split_qkv_rmsnorm_rope_qk_f16kv_cache.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
             "wgslOnDisk": true
           }
         }
@@ -8315,6 +9357,8 @@
               "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
+              "gemma3/gemma-3-270m-it-f16-af32",
+              "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",

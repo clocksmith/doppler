@@ -186,6 +186,19 @@ export function canUseNativeF16FusedGateUp(options = {}) {
   return options.gateDtype === 'f16' || options.gateDtype === 'q4k';
 }
 
+function isWideTileQ4KPhaseEnabled(session, phase) {
+  return phase === 'decode'
+    ? session?.useWideTileQ4KDecode === true
+    : session?.useWideTileQ4KPrefill === true;
+}
+
+function shouldMarkWideTileResidualFused(session, phase) {
+  return getKernelCapabilities().hasF16 === true
+    && session?.useWideTileResidualFusion === true
+    && session?.retainQ4KMaterialization === true
+    && isWideTileQ4KPhaseEnabled(session, phase);
+}
+
 async function coerceTensorDtype(tensor, targetDtype, recorder, options = {}) {
   if (!targetDtype || tensor.dtype === targetDtype) {
     return tensor;
@@ -477,7 +490,6 @@ export async function runDenseFFNGPU(
     const mergedSession = getRuntimeConfig().inference?.session;
     const tryFuseDownResidual = pendingResidual != null
       && !downLoraProbe
-      && numTokens > 1
       && activatedOutput.dtype === 'f32'
       && downOutputDtype === 'f32'
       && pendingResidual.dtype === 'f32';
@@ -504,10 +516,7 @@ export async function runDenseFFNGPU(
     // dense.js paths; this local signal is enough for correctness.)
     {
       if (tryFuseDownResidual
-          && getKernelCapabilities().hasF16 === true
-          && mergedSession?.useWideTileResidualFusion === true
-          && mergedSession?.useWideTileQ4KPrefill === true
-          && mergedSession?.retainQ4KMaterialization === true
+          && shouldMarkWideTileResidualFused(mergedSession, phase)
       ) {
         residualFusedHere = true;
         context.__ffnResidualFusedFired = true;
@@ -682,7 +691,6 @@ export async function runDenseFFNGPU(
     const mergedSessionFused = getRuntimeConfig().inference?.session;
     const tryFuseDownResidualFused = pendingResidualFused != null
       && !downLoraProbeFused
-      && numTokens > 1
       && downInput.dtype === 'f32'
       && fusedDownOutputDtype === 'f32'
       && pendingResidualFused.dtype === 'f32';
@@ -707,10 +715,7 @@ export async function runDenseFFNGPU(
     enqueueRecordedDenseHealth(context, layerIdx, 'ffn_down', output, numTokens * hiddenSize);
     {
       if (tryFuseDownResidualFused
-          && getKernelCapabilities().hasF16 === true
-          && mergedSessionFused?.useWideTileResidualFusion === true
-          && mergedSessionFused?.useWideTileQ4KPrefill === true
-          && mergedSessionFused?.retainQ4KMaterialization === true
+          && shouldMarkWideTileResidualFused(mergedSessionFused, phase)
       ) {
         context.__ffnResidualFusedFired = true;
       }

@@ -1,6 +1,6 @@
 
 
-import { doRMSNorm, doResidualAdd, releaseOrTrack } from '../ops.js';
+import { doRMSNorm, doResidualAdd, doSandwichRMSNormPair, releaseOrTrack } from '../ops.js';
 import { getLayout, getWeightDtype, isCpuWeightBuffer, isGpuBufferInstance, isWeightBuffer } from '../../../../gpu/weight-buffer.js';
 import { trace } from '../../../../debug/index.js';
 import { isKernelDebugEnabled, dumpTokenVector, logFFN, getBufferStats } from '../debug-utils.js';
@@ -157,7 +157,8 @@ export async function processFFNWithSandwichNorm(
   context,
   layerWeights,
   sandwichNorm,
-  finalOutputScale = 1
+  finalOutputScale = 1,
+  precomputedFfnInput = null
 ) {
   const { config, weightConfig, debugFlags, recorder, decodeBuffers } = context;
   const { hiddenSize, rmsNormEps } = config;
@@ -174,8 +175,8 @@ export async function processFFNWithSandwichNorm(
   const lastTokenIdx = Math.max(0, numTokens - 1);
 
   // 1. Pre-FFN norm (applied to residual stream before FFN)
-  let ffnInput = postAttn;
-  if (sandwichNorm.hasPreFeedforwardNorm && layerWeights?.preFeedforwardNorm) {
+  let ffnInput = precomputedFfnInput ?? postAttn;
+  if (!precomputedFfnInput && sandwichNorm.hasPreFeedforwardNorm && layerWeights?.preFeedforwardNorm) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.preFeedforwardNorm, 'pre_feedforward_norm', weightConfig, debugFlags);
 
     ffnInput = await doRMSNorm(postAttn, normWeightBuf, rmsNormEps, {
@@ -277,6 +278,7 @@ export async function processFFNWithSandwichNorm(
   } else {
     ffnOutput = await runDenseFFNGPU(layerIdx, ffnInput, numTokens, context, layerWeights);
   }
+
   await runProbes('ffn_out', ffnOutput.buffer, {
     layerIdx,
     numTokens,
@@ -309,6 +311,7 @@ export async function processFFNWithSandwichNorm(
   // 3. Post-FFN norm
 
   let output;
+  const postFfnNextInputNorm = context.__postFfnNextInputNorm ?? null;
   if (combinedDenseMoeOutput) {
     output = combinedDenseMoeOutput;
     releaseOrTrack(recorder, ffnOutput.buffer, decodeBuffers);
@@ -322,18 +325,65 @@ export async function processFFNWithSandwichNorm(
       ? requestedFinalOutputScale
       : 1;
 
-    output = await doRMSNorm(ffnOutput, normWeightBuf, rmsNormEps, {
-      batchSize: numTokens,
-      hiddenSize,
-      residual: postAttn,
-      outputBuffer: decodeOutputBuffer,
-      outputScale: rmsNormOutputScale,
-      label: `L${layerIdx}.post_ffn_norm`,
-      layerIdx,
-      rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
-    }, recorder);
-    if (rmsNormOutputScale !== 1) {
-      context.__layerScalarFusedFired = true;
+    if (postFfnNextInputNorm && rmsNormOutputScale === 1) {
+      if (ffnOutput.dtype !== 'f32' || postAttn.dtype !== 'f32') {
+        throw new Error(
+          'usePostFfnNextInputRMSNormPairFusion requires f32 FFN output and residual tensors ' +
+          `(ffn=${String(ffnOutput.dtype)}, residual=${String(postAttn.dtype)}).`
+        );
+      }
+      let nextInputNormWeightBuf = null;
+      try {
+        nextInputNormWeightBuf = getNormWeightBuffer(
+          postFfnNextInputNorm.weight,
+          'next_input_norm',
+          weightConfig,
+          debugFlags
+        );
+        const pair = await doSandwichRMSNormPair(
+          ffnOutput,
+          postAttn,
+          normWeightBuf,
+          nextInputNormWeightBuf,
+          rmsNormEps,
+          {
+            batchSize: numTokens,
+            hiddenSize,
+            postOutputBuffer: decodeOutputBuffer,
+            label: `L${layerIdx}.post_ffn_next_input_norm`,
+            layerIdx,
+            rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+          },
+          recorder
+        );
+        output = pair.postAttn;
+        context.__precomputedInputNorm = {
+          layerIdx: postFfnNextInputNorm.layerIdx,
+          tensor: pair.ffnInput,
+        };
+      } finally {
+        if (
+          nextInputNormWeightBuf
+          && !isGpuBufferInstance(postFfnNextInputNorm.weight)
+          && !isWeightBuffer(postFfnNextInputNorm.weight)
+        ) {
+          releaseOrTrack(recorder, nextInputNormWeightBuf);
+        }
+      }
+    } else {
+      output = await doRMSNorm(ffnOutput, normWeightBuf, rmsNormEps, {
+        batchSize: numTokens,
+        hiddenSize,
+        residual: postAttn,
+        outputBuffer: decodeOutputBuffer,
+        outputScale: rmsNormOutputScale,
+        label: `L${layerIdx}.post_ffn_norm`,
+        layerIdx,
+        rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+      }, recorder);
+      if (rmsNormOutputScale !== 1) {
+        context.__layerScalarFusedFired = true;
+      }
     }
 
     if (!isGpuBufferInstance(layerWeights.postFeedforwardNorm) && !isWeightBuffer(layerWeights.postFeedforwardNorm)) releaseOrTrack(recorder, normWeightBuf);

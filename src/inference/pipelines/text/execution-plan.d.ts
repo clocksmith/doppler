@@ -20,6 +20,7 @@ export interface StaticExecutionPlan {
   defaultStopCheckMode: 'batch' | 'per-token';
   defaultMaxTokens: number;
   readbackInterval: number | null;
+  readbackMode: 'sequential' | 'overlapped' | 'auto';
   ringTokens: number | null;
   ringStop: number | null;
   ringStaging: number | null;
@@ -51,6 +52,7 @@ export interface ExecutionSessionPlan {
   stopCheckMode: 'batch' | 'per-token';
   maxTokens: number;
   readbackInterval: number | null;
+  readbackMode: 'sequential' | 'overlapped' | 'auto';
   ringTokens: number | null;
   ringStop: number | null;
   ringStaging: number | null;

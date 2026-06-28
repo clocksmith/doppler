@@ -124,6 +124,8 @@ export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, de
     currentSeqLen: state.currentSeqLen,
     currentTokenIds: state.currentTokenIds ?? null,
     diffusionGemmaDecoder: false,
+    __precomputedInputNorm: null,
+    __postFfnNextInputNorm: null,
     useGPU: state.useGPU,
     debug: state.debug,
     stats: state.stats,

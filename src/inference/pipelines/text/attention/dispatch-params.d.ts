@@ -113,8 +113,8 @@ export function isSlidingLayerType(layerType: string | undefined): boolean;
 export function resolveKVCacheState(
   state: AttentionState,
   layerIdx: number,
-  kTensor: Tensor,
-  vTensor: Tensor,
+  kTensor: Tensor | null,
+  vTensor: Tensor | null,
   currentSeqLen: number,
   numTokens: number
 ): KVCacheDispatchState;
@@ -148,8 +148,8 @@ export function createDiffusionGemmaDecoderKVState(
 export function buildAttentionDispatchParams(
   config: DispatchParamsConfig,
   state: AttentionState,
-  kTensor: Tensor,
-  vTensor: Tensor,
+  kTensor: Tensor | null,
+  vTensor: Tensor | null,
   kvState: KVCacheDispatchState
 ): AttentionDispatchParams;
 
