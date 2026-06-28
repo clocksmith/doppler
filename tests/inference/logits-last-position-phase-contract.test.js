@@ -9,7 +9,7 @@ assert.deepEqual(
   {
     lastPositionOnly: true,
     matmulRows: 1,
-    phaseOverride: 'decode',
+    phaseOverride: 'prefill',
   }
 );
 

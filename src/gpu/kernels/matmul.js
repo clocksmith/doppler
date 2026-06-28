@@ -38,7 +38,7 @@ import {
   createMatmulBindGroupLayout,
   getMatmulPipeline,
 } from './matmul-dispatch.js';
-import { __dbgRecord } from './utils.js';
+import { RECORD_STAGE_DEBUG_ENABLED, __dbgRecord, getPipelineBindGroupLayout } from './utils.js';
 
 export { isFusedQ4KDisabled, selectMatmulKernel };
 export { createMatmulBindGroupLayout };
@@ -140,10 +140,10 @@ function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuff
     || variant === 'q4_fused_prefill_tiled_f16'
     || variant === 'q4_fused_widetile_f16'
     || variant === 'q4_fused_widetile_f16a';
-  // 5-entry WideTile epilogue/prologue variants: output at binding 3 + one
+  // 5-entry Q4K epilogue/prologue variants: output at binding 3 + one
   // extra read-only buffer at binding 4 (residual for _residual, norm weight
   // for _rmsnorm). Distinct from isQ4KF16 (which puts output at binding 4).
-  const isWideTileResidual = variant === 'q4_fused_widetile_residual';
+  const isQ4KResidual = variant === 'q4_fused_widetile_residual';
   const isWideTileRmsnorm = variant === 'q4_fused_rmsnorm_widetile';
   const isW4A16 = variant.startsWith('w4a16_');
 
@@ -157,7 +157,7 @@ function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuff
     assertBindGroupBuffer('matmul', variant, 3, 'scales', scaleBuffer);
   }
   assertBindGroupBuffer('matmul', variant, (isQ4KF16 || isW4A16) ? 4 : 3, 'output', outputBuffer);
-  if (isWideTileResidual) {
+  if (isQ4KResidual) {
     if (!residualBuffer) {
       throw new Error(`[Matmul] variant "${variant}" requires a residual buffer but none was provided.`);
     }
@@ -195,7 +195,7 @@ function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuff
       binding: 3,
       resource: { buffer: outputBuffer, offset: offsets.cOffset, size: bindingSizes.cBindingSize },
     });
-    if (isWideTileResidual) {
+    if (isQ4KResidual) {
       entries.push({
         binding: 4,
         resource: { buffer: residualBuffer },
@@ -298,6 +298,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   const effectiveOptions = (
     options.useTiledQ4KPrefill == null
     || options.useWideTileQ4KPrefill == null
+    || options.useWideTileQ4KDecode == null
     || options.useWideTileResidualFusion == null
     || options.useFusedRmsnormWideTile == null
   )
@@ -305,6 +306,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
         ...options,
         useTiledQ4KPrefill: options.useTiledQ4KPrefill ?? (runtimeSession?.useTiledQ4KPrefill === true),
         useWideTileQ4KPrefill: options.useWideTileQ4KPrefill ?? (runtimeSession?.useWideTileQ4KPrefill === true),
+        useWideTileQ4KDecode: options.useWideTileQ4KDecode ?? (runtimeSession?.useWideTileQ4KDecode === true),
         useWideTileResidualFusion: options.useWideTileResidualFusion ?? (runtimeSession?.useWideTileResidualFusion === true),
         useFusedRmsnormWideTile: options.useFusedRmsnormWideTile ?? (runtimeSession?.useFusedRmsnormWideTile === true),
       }
@@ -491,7 +493,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   let ownsOutput = false;
   let dispatchPlan;
   try {
-    __dbg = (typeof process !== "undefined" ? process : { env: {} }).env.DOPPLER_DBG_RECORD === '1';
+    __dbg = RECORD_STAGE_DEBUG_ENABLED;
     __t0 = __dbg ? performance.now() : 0;
     config = getMatmulConfig(variant, constants);
     kernel = new MatmulKernel(device);
@@ -580,7 +582,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
     const __tBgStart = __dbg ? performance.now() : 0;
     const bindGroup = device.createBindGroup({
       label: 'matmul_bind_group',
-      layout: pipeline.getBindGroupLayout(0),
+      layout: getPipelineBindGroupLayout(pipeline, 0),
       entries,
     });
     const __tBg = __dbg ? performance.now() : 0;

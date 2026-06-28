@@ -24,6 +24,12 @@ const { getKernelConfig } = await import('../../src/gpu/kernels/kernel-configs.j
 const { dequantize } = await import('../../src/gpu/kernels/dequant.js');
 const { runSoftmax, runSoftmaxTopK } = await import('../../src/gpu/kernels/softmax.js');
 const { runRoPE } = await import('../../src/gpu/kernels/rope.js');
+const { canUseRoPEQK, runRoPEQK } = await import('../../src/gpu/kernels/rope-qk.js');
+const { canUseRMSNormQK, runRMSNormQK } = await import('../../src/gpu/kernels/rmsnorm-qk.js');
+const {
+  canUseSplitQKVRMSNormRoPEQK,
+  runSplitQKVRMSNormRoPEQK,
+} = await import('../../src/gpu/kernels/split-qkv-rmsnorm-rope-qk.js');
 const { runSiLU } = await import('../../src/gpu/kernels/silu.js');
 const { runMatmul } = await import('../../src/gpu/kernels/matmul.js');
 const { runScale, selectScaleKernel } = await import('../../src/gpu/kernels/scale.js');
@@ -174,10 +180,114 @@ try {
   }
 
   {
+    const ropeQKConfig = getKernelConfig('rope_qk', 'default');
+    assert.equal(ropeQKConfig.uniforms.size, 32);
+    assert.deepEqual(
+      ropeQKConfig.uniforms.fields.map((field) => field.name),
+      [
+        'seq_len',
+        'num_q_heads',
+        'num_kv_heads',
+        'head_dim',
+        'start_pos',
+        'rotary_dim',
+        'interleaved',
+        'pair_span_dim',
+      ]
+    );
+    const ropeQKF16Config = getKernelConfig('rope_qk', 'default_f16');
+    assert.deepEqual(ropeQKF16Config.requires, ['shader-f16']);
+  }
+
+  {
+    const rmsnormQKConfig = getKernelConfig('rmsnorm_qk', 'default');
+    assert.equal(rmsnormQKConfig.uniforms.size, 32);
+    assert.deepEqual(
+      rmsnormQKConfig.uniforms.fields.map((field) => field.name),
+      [
+        'q_rows',
+        'k_rows',
+        'head_dim',
+        'row_stride',
+        'eps',
+        '_pad0',
+        '_pad1',
+        '_pad2',
+      ]
+    );
+    const rmsnormQKF16Config = getKernelConfig('rmsnorm_qk', 'default_f16');
+    assert.deepEqual(rmsnormQKF16Config.requires, ['shader-f16']);
+  }
+
+  {
+    const splitQKVRMSNormRoPEQKConfig = getKernelConfig('split_qkv_rmsnorm_rope_qk', 'default');
+    assert.equal(splitQKVRMSNormRoPEQKConfig.uniforms.size, 64);
+    assert.deepEqual(
+      splitQKVRMSNormRoPEQKConfig.uniforms.fields.map((field) => field.name),
+      [
+        'num_tokens',
+        'q_size',
+        'k_size',
+        'v_size',
+        'num_heads',
+        'num_kv_heads',
+        'head_dim',
+        'workgroup_stride',
+        'qk_rows',
+        'total_v',
+        'start_pos',
+        'half_dim',
+        'eps',
+        '_pad0',
+        '_pad1',
+        '_pad2',
+      ]
+    );
+    const splitQKVRMSNormRoPEQKF16CacheConfig = getKernelConfig('split_qkv_rmsnorm_rope_qk_f16kv_cache', 'default');
+    assert.equal(splitQKVRMSNormRoPEQKF16CacheConfig.uniforms.size, 64);
+    assert.deepEqual(splitQKVRMSNormRoPEQKF16CacheConfig.requires, ['shader-f16']);
+    assert.deepEqual(
+      splitQKVRMSNormRoPEQKF16CacheConfig.uniforms.fields.map((field) => field.name),
+      [
+        'num_tokens',
+        'q_size',
+        'k_size',
+        'v_size',
+        'num_heads',
+        'num_kv_heads',
+        'head_dim',
+        'workgroup_stride',
+        'qk_rows',
+        'total_v',
+        'start_pos',
+        'half_dim',
+        'eps',
+        'kv_dst_offset',
+        '_pad1',
+        '_pad2',
+      ]
+    );
+    assert.equal(
+      splitQKVRMSNormRoPEQKF16CacheConfig.bindings.filter((binding) => binding.type !== 'uniform').length,
+      8
+    );
+  }
+
+  {
     const scaleF16Config = getKernelConfig('scale', 'default_f16');
     assert.deepEqual(scaleF16Config.requires, ['shader-f16']);
     assert.equal(selectScaleKernel({ inplace: false }, true), 'default_f16');
     assert.equal(selectScaleKernel({ inplace: true }, true), 'inplace_f16');
+  }
+
+  {
+    const kvCacheWriteConfig = getKernelConfig('kv_cache_write', 'f32_to_f16');
+    assert.equal(kvCacheWriteConfig.uniforms.size, 16);
+    assert.deepEqual(kvCacheWriteConfig.requires, ['shader-f16']);
+    assert.deepEqual(
+      kvCacheWriteConfig.uniforms.fields.map((field) => field.name),
+      ['src_offset', 'dst_offset', 'count', '_pad0']
+    );
   }
 
   assert.equal(hasRequiredFeatures(['subgroups', 'shader-f16'], {
@@ -207,6 +317,162 @@ try {
         rotaryDim: 4,
         executionPolicies: { dtypeTransition: 'require_cast_step' },
       })
+    );
+    resetRuntime();
+  }
+
+  {
+    const device = createFakeDevice();
+    resetRuntime(device);
+    const qTensor = createExternalTensor(8, 'f32', 'rope_q');
+    const kTensor = createExternalTensor(4, 'f32', 'rope_k');
+    const freqsCos = createExternalTensor(2, 'f32', 'rope_qk_cos');
+    const freqsSin = createExternalTensor(2, 'f32', 'rope_qk_sin');
+    assert.equal(canUseRoPEQK(qTensor, kTensor), true);
+    assert.equal(canUseRoPEQK(qTensor, kTensor, { reusesSharedKV: true }), false);
+    await assert.doesNotReject(
+      () => runRoPEQK(qTensor, kTensor, freqsCos, freqsSin, 1, {
+        numQHeads: 2,
+        numKVHeads: 1,
+        headDim: 4,
+        rotaryDim: 4,
+      })
+    );
+    const kF16Tensor = createExternalTensor(4, 'f16', 'rope_k_f16');
+    await assert.rejects(
+      () => runRoPEQK(qTensor, kF16Tensor, freqsCos, freqsSin, 1, {
+        numQHeads: 2,
+        numKVHeads: 1,
+        headDim: 4,
+        rotaryDim: 4,
+      }),
+      /matching Q\/K dtypes/
+    );
+    resetRuntime();
+  }
+
+  {
+    const device = createFakeDevice();
+    resetRuntime(device);
+    const qkvTensor = createExternalTensor(16, 'f32', 'split_qkv_rmsnorm_rope_qk_input');
+    const qWeight = new FakeBuffer({
+      size: 16,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+    const kWeight = new FakeBuffer({
+      size: 16,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+    const freqsCos = createExternalTensor(2, 'f32', 'split_qkv_rmsnorm_rope_qk_cos');
+    const freqsSin = createExternalTensor(2, 'f32', 'split_qkv_rmsnorm_rope_qk_sin');
+    const options = {
+      numTokens: 1,
+      numHeads: 2,
+      numKVHeads: 1,
+      headDim: 4,
+      qSize: 8,
+      kSize: 4,
+      vSize: 4,
+      rotaryDim: 4,
+      pairSpanDim: 4,
+      interleaved: false,
+    };
+    assert.equal(canUseSplitQKVRMSNormRoPEQK(qkvTensor, options), true);
+    assert.equal(canUseSplitQKVRMSNormRoPEQK(qkvTensor, { ...options, interleaved: true }), false);
+    assert.equal(canUseSplitQKVRMSNormRoPEQK(qkvTensor, { ...options, rotaryDim: 2 }), false);
+    assert.equal(canUseSplitQKVRMSNormRoPEQK(qkvTensor, { ...options, reusesSharedKV: true }), false);
+    const result = await runSplitQKVRMSNormRoPEQK(qkvTensor, qWeight, kWeight, freqsCos, freqsSin, 1e-6, options);
+    assert.deepEqual(result.Q.shape, [2, 4]);
+    assert.deepEqual(result.K.shape, [1, 4]);
+    assert.deepEqual(result.V.shape, [1, 4]);
+    releaseBuffer(result.Q.buffer);
+    releaseBuffer(result.K.buffer);
+    releaseBuffer(result.V.buffer);
+    resetRuntime();
+  }
+
+  {
+    const device = createFakeDevice({ features: ['shader-f16'] });
+    resetRuntime(device);
+    const qkvTensor = createExternalTensor(16, 'f32', 'split_qkv_rmsnorm_rope_qk_f16cache_input');
+    const qWeight = new FakeBuffer({
+      size: 16,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+    const kWeight = new FakeBuffer({
+      size: 16,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+    const freqsCos = createExternalTensor(2, 'f32', 'split_qkv_rmsnorm_rope_qk_f16cache_cos');
+    const freqsSin = createExternalTensor(2, 'f32', 'split_qkv_rmsnorm_rope_qk_f16cache_sin');
+    const keysCache = new FakeBuffer({
+      size: 16,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+    const valuesCache = new FakeBuffer({
+      size: 16,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+    const result = await runSplitQKVRMSNormRoPEQK(qkvTensor, qWeight, kWeight, freqsCos, freqsSin, 1e-6, {
+      numTokens: 1,
+      numHeads: 2,
+      numKVHeads: 1,
+      headDim: 4,
+      qSize: 8,
+      kSize: 4,
+      vSize: 4,
+      rotaryDim: 4,
+      pairSpanDim: 4,
+      interleaved: false,
+      f16KVCacheWrite: {
+        keysBuffer: keysCache,
+        valuesBuffer: valuesCache,
+        dstOffset: 4,
+      },
+    });
+    assert.deepEqual(result.Q.shape, [2, 4]);
+    assert.equal(result.K, null);
+    assert.equal(result.V, null);
+    assert.equal(result.wroteF16KVCache, true);
+    releaseBuffer(result.Q.buffer);
+    resetRuntime();
+  }
+
+  {
+    const device = createFakeDevice();
+    resetRuntime(device);
+    const qTensor = createExternalTensor(8, 'f32', 'rmsnorm_q');
+    const kTensor = createExternalTensor(4, 'f32', 'rmsnorm_k');
+    const qWeight = new FakeBuffer({
+      size: 16,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+    const kWeight = new FakeBuffer({
+      size: 16,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+    assert.equal(canUseRMSNormQK(qTensor, kTensor), true);
+    assert.equal(canUseRMSNormQK(qTensor, kTensor, { skipKNorm: true }), false);
+    const result = await runRMSNormQK(qTensor, kTensor, qWeight, kWeight, 1e-6, {
+      numTokens: 1,
+      numHeads: 2,
+      numKVHeads: 1,
+      headDim: 4,
+      rmsNormWeightOffset: true,
+    });
+    assert.deepEqual(result.q.shape, [2, 4]);
+    assert.deepEqual(result.k.shape, [1, 4]);
+    releaseBuffer(result.q.buffer);
+    releaseBuffer(result.k.buffer);
+    const kF16Tensor = createExternalTensor(4, 'f16', 'rmsnorm_k_f16');
+    await assert.rejects(
+      () => runRMSNormQK(qTensor, kF16Tensor, qWeight, kWeight, 1e-6, {
+        numTokens: 1,
+        numHeads: 2,
+        numKVHeads: 1,
+        headDim: 4,
+      }),
+      /matching Q\/K dtypes/
     );
     resetRuntime();
   }

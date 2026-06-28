@@ -53,6 +53,7 @@ export declare function compileExecutionV1(options?: {
   runtimeSession?: ExecutionV1SessionSchema | null;
   runtimeCompute?: Record<string, unknown> | null;
   kernelPathPolicy?: Record<string, unknown> | null;
+  executionPatch?: Record<string, unknown> | null;
   capabilities?: {
     hasSubgroups?: boolean;
     hasF16?: boolean;

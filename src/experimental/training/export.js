@@ -24,26 +24,38 @@ async function resolveTensorData(entry) {
   if (!shape) {
     throw new Error(`Missing shape for tensor ${entry.name}`);
   }
+  shape = [...shape];
+  const expectedElements = shape.reduce((acc, value) => acc * Number(value), 1);
+  if (!Number.isInteger(expectedElements) || expectedElements < 1) {
+    throw new Error(`Invalid shape for tensor ${entry.name}`);
+  }
+  const bytesPerElement = dtype === 'f16' ? 2 : 4;
+  const expectedBytes = expectedElements * bytesPerElement;
 
   const hasGPUBuffer = typeof GPUBuffer !== 'undefined';
   let data;
   if (entry.tensor instanceof Float32Array) {
-    data = entry.tensor;
+    data = entry.tensor.length === expectedElements
+      ? entry.tensor
+      : entry.tensor.slice(0, expectedElements);
   } else if (hasGPUBuffer && entry.tensor?.buffer instanceof GPUBuffer) {
     const raw = await readBuffer(entry.tensor.buffer);
     data = dtype === 'f16'
-      ? f16ToF32Array(new Uint16Array(raw))
-      : new Float32Array(raw);
+      ? f16ToF32Array(new Uint16Array(raw.slice(0, expectedBytes)))
+      : new Float32Array(raw.slice(0, expectedBytes));
   } else if (hasGPUBuffer && entry.tensor instanceof GPUBuffer) {
     const raw = await readBuffer(entry.tensor);
     data = dtype === 'f16'
-      ? f16ToF32Array(new Uint16Array(raw))
-      : new Float32Array(raw);
+      ? f16ToF32Array(new Uint16Array(raw.slice(0, expectedBytes)))
+      : new Float32Array(raw.slice(0, expectedBytes));
   } else {
     throw new Error(`Unsupported tensor type for ${entry.name}`);
   }
+  if (data.length !== expectedElements) {
+    throw new Error(`Tensor ${entry.name} data length mismatch: expected ${expectedElements}, got ${data.length}.`);
+  }
 
-  return { dtype: 'f32', shape: [...shape], data };
+  return { dtype: 'f32', shape, data };
 }
 
 function float32ToBytes(values) {

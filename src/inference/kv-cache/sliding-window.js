@@ -1,6 +1,7 @@
 
 
 import { getDevice } from '../../gpu/device.js';
+import { recordKVCacheWriteF32ToF16 } from '../../gpu/kernel-selector.js';
 import { KVCache } from './base.js';
 
 // ============================================================================
@@ -188,6 +189,93 @@ export class SlidingWindowKVCache extends KVCache {
     }
 
     // Update metadata (copies happen when encoder is submitted)
+    const seen = Math.max(this.totalTokensSeen, fullStart + fullTokens);
+    const storedLen = Math.min(windowSize, Math.max(0, seen));
+    this.totalTokensSeen = Math.max(this.totalTokensSeen, seen);
+    const prevLayerSeqLen = Math.min(Math.max(layer.seqLen || 0, 0), windowSize);
+
+    layer.seqLen = Math.max(prevLayerSeqLen, storedLen);
+    if (layerIdx === this.numLayers - 1) {
+      this.currentSeqLen = Math.min(this.currentSeqLen, windowSize);
+      this.currentSeqLen = Math.max(this.currentSeqLen, storedLen);
+    }
+  }
+
+
+  async recordUpdateF32ToF16FromGPU(
+    recorder,
+    layerIdx,
+    keysBuffer,
+    valuesBuffer,
+    startPos,
+    numTokens
+  ) {
+    this._assertLayerIndex(layerIdx);
+    this._assertStartPos(startPos);
+    if (this.kvDtype !== 'f16') {
+      throw new Error('SlidingWindowKVCache recordUpdateF32ToF16FromGPU requires an f16 KV cache.');
+    }
+    if (!Number.isInteger(numTokens) || numTokens < 0) {
+      throw new Error('SlidingWindowKVCache recordUpdateF32ToF16FromGPU requires a non-negative integer token count.');
+    }
+    if (numTokens === 0) {
+      return;
+    }
+
+    const layer =  (this.layers[layerIdx]);
+    if (!layer.keysGPU) {
+      throw new Error('GPU cache not initialized');
+    }
+
+    const windowSize = this.windowSize;
+    const sourceBytesPerToken = this.kvSize * 4;
+    const fullStart = startPos;
+    const fullTokens = numTokens;
+    let srcElementOffset = 0;
+
+    if (numTokens > windowSize) {
+      const dropTokens = numTokens - windowSize;
+      startPos += dropTokens;
+      numTokens = windowSize;
+      srcElementOffset = dropTokens * this.kvSize;
+    }
+    const writePos = startPos % windowSize;
+    const sourceBytesNeeded = (srcElementOffset * 4) + (numTokens * sourceBytesPerToken);
+    if (sourceBytesNeeded > keysBuffer.size || sourceBytesNeeded > valuesBuffer.size) {
+      throw new Error('SlidingWindowKVCache recordUpdateF32ToF16FromGPU buffer size is smaller than requested write.');
+    }
+
+    const firstChunkTokens = Math.min(numTokens, windowSize - writePos);
+    const secondChunkTokens = numTokens - firstChunkTokens;
+
+    await recordKVCacheWriteF32ToF16(
+      recorder,
+      keysBuffer,
+      valuesBuffer,
+      layer.keysGPU,
+      layer.valuesGPU,
+      {
+        srcOffset: srcElementOffset,
+        dstOffset: writePos * this.kvSize,
+        elementCount: firstChunkTokens * this.kvSize,
+      }
+    );
+
+    if (secondChunkTokens > 0) {
+      await recordKVCacheWriteF32ToF16(
+        recorder,
+        keysBuffer,
+        valuesBuffer,
+        layer.keysGPU,
+        layer.valuesGPU,
+        {
+          srcOffset: srcElementOffset + (firstChunkTokens * this.kvSize),
+          dstOffset: 0,
+          elementCount: secondChunkTokens * this.kvSize,
+        }
+      );
+    }
+
     const seen = Math.max(this.totalTokensSeen, fullStart + fullTokens);
     const storedLen = Math.min(windowSize, Math.max(0, seen));
     this.totalTokensSeen = Math.max(this.totalTokensSeen, seen);

@@ -181,10 +181,22 @@ export interface ExecutionV1SessionSchema {
   useFlashPrefillAttention: boolean;
   /** Opt into WideTile Q4_K prefill matmul. Requires f32 activations + Q4_K weights + shader-f16 + M>=TILE_M. */
   useWideTileQ4KPrefill: boolean;
+  /** Opt into WideTile Q4_K decode matmul. Requires f32 activations + Q4_K weights + shader-f16 + M=1. */
+  useWideTileQ4KDecode: boolean;
+  /** Opt into two-output sandwich RMSNorm decode fusion. Requires f32 activations + post/pre FFN sandwich norm weights + M=1. */
+  useSandwichRMSNormPairFusion: boolean;
+  /** Opt into post-FFN plus next-layer input RMSNorm decode fusion. Requires f32 activations + M=1. */
+  usePostFfnNextInputRMSNormPairFusion: boolean;
+  /** Opt into fused packed-QKV split plus weighted Q/K RMSNorm. Requires f32 QKV output and weighted Q/K norm. */
+  useFusedQKVSplitQKNorm: boolean;
+  /** Opt into fused packed-QKV split plus weighted Q/K RMSNorm and full-head non-interleaved RoPE. */
+  useFusedQKVSplitQKNormRoPE: boolean;
   /** Retain Q4_K packed weights alongside dense buffer (mixed materialization). ~50% extra Q4_K memory. */
   retainQ4KMaterialization: boolean;
   /** Use f32-accumulator twin of fused-Q4K f16a multicol gemv. Closes the f16-accum decode gap on AMD RDNA3 where f32 accumulation outperforms f16 by ~60% at FFN gemv shape. Gated by capability rule. */
   useF32AccumF16ioMatmul: boolean;
+  /** Fuse greedy decode LM-head f16-weight GEMV with top-1 selection. Requires greedy sampling with no repetition penalty. */
+  useGreedyLmHeadArgmaxFusion: boolean;
 }
 
 // === Policies ===
@@ -244,6 +256,8 @@ export interface ExecutionV1ConfigSchema {
 export interface ExecutionV1PatchSetSchema {
   /** Op name to target (matches step[0]) */
   op: string;
+  /** Optional graph section to target */
+  section?: 'decode' | 'prefill' | 'preLayer' | 'postLayer' | null;
   /** Replace kernel key */
   kernelKey?: string;
   /** Replace weights */
@@ -255,6 +269,8 @@ export interface ExecutionV1PatchSetSchema {
 export interface ExecutionV1PatchRemoveSchema {
   /** Op name to remove */
   op: string;
+  /** Optional graph section to target */
+  section?: 'decode' | 'prefill' | 'preLayer' | 'postLayer' | null;
   /** Target specific layers only (null = all matching ops) */
   layers?: number[] | null;
 }
@@ -262,6 +278,8 @@ export interface ExecutionV1PatchRemoveSchema {
 export interface ExecutionV1PatchAddSchema {
   /** Step to insert */
   step: ExecutionV1StepTuple;
+  /** Optional graph section to target */
+  section?: 'decode' | 'prefill' | 'preLayer' | 'postLayer' | null;
   /** Insert before this op */
   insertBefore?: string;
   /** Insert after this op */

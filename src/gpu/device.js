@@ -203,8 +203,19 @@ function validateBindGroupDescriptor(descriptor) {
   }
 }
 
+function shouldValidateBindGroupDescriptors() {
+  const env = typeof process !== 'undefined' ? process?.env?.DOPPLER_VALIDATE_BIND_GROUPS : null;
+  if (env === '1' || env === 'true') {
+    return true;
+  }
+  return false;
+}
+
 function wrapDeviceCreateBindGroup(device) {
   if (!device || device.__dopplerBindGroupValidationWrapped) {
+    return device;
+  }
+  if (!shouldValidateBindGroupDescriptors()) {
     return device;
   }
   const originalCreateBindGroup = device.createBindGroup.bind(device);

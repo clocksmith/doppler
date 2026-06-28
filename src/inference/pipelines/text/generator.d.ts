@@ -45,6 +45,11 @@ export interface DiffusionGemmaCanvasStepResult {
   selfConditioningLogits: DiffusionGemmaGpuLogitsState;
 }
 
+export declare function resolvePrefillChunkSubmitMode(
+  runtimeConfig: unknown,
+  modelConfig: unknown
+): 'sync' | 'async';
+
 export declare class PipelineGenerator {
   constructor(state: PipelineState);
 

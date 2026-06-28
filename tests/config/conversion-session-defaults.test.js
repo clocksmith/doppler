@@ -83,6 +83,54 @@ const EXPLICIT_TEXT_DEFAULTS = [
     perLayerInputs: DEFAULT_PER_LAYER_INPUTS,
   },
   {
+    path: 'src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af16.json',
+    computeDefaults: {
+      activationDtype: 'f16',
+      mathDtype: 'f16',
+      accumDtype: 'f16',
+      outputDtype: 'f16',
+    },
+    kvcache: {
+      kvDtype: 'f16',
+      layout: 'contiguous',
+      pageSize: 256,
+      tiering: { mode: 'off' },
+    },
+    decodeLoop: {
+      batchSize: 1,
+      stopCheckMode: 'batch',
+      readbackInterval: 1,
+      readbackMode: 'sequential',
+      ringTokens: 1,
+      ringStop: 1,
+      ringStaging: 1,
+      disableCommandBatching: false,
+    },
+    perLayerInputs: {
+      materialization: 'auto',
+      rowCache: {
+        mode: 'lru',
+        maxRows: 256,
+        maxBytes: 134217728,
+        decodedDtype: 'f16',
+      },
+      prefetch: {
+        mode: 'next_token',
+        rowsAhead: 1,
+      },
+      gpuUpload: {
+        mode: 'per_step_slices',
+        stagingRows: 2,
+      },
+      hotCache: {
+        mode: 'prepared_tokens',
+        maxTokens: 1024,
+        maxBytes: 134217728,
+        outputDtype: 'f16',
+      },
+    },
+  },
+  {
     path: 'src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json',
     computeDefaults: {
       activationDtype: 'f32',

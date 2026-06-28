@@ -118,6 +118,22 @@ export const DEFAULT_RUNTIME_CONFIG = {
       // Default false until correctness + perf parity validated on target
       // hardware.
       useWideTileQ4KPrefill: false,
+      // Opt into the WideTile Q4_K decode matmul. This reuses the WideTile
+      // register kernel for one-row decode matmuls when explicitly enabled.
+      // Default false until correctness + perf parity validated on target
+      // hardware.
+      useWideTileQ4KDecode: false,
+      // Opt into a two-output sandwich RMSNorm decode kernel:
+      // post_attn_norm and pre_ffn_norm execute in one dispatch while still
+      // materializing both tensors for the downstream residual and FFN paths.
+      // Default false until correctness + perf validated.
+      useSandwichRMSNormPairFusion: false,
+      // Opt into a decode-only cross-layer RMSNorm pair:
+      // post_ffn_norm for layer N and input_norm for layer N+1 execute in one
+      // dispatch. The next layer consumes the precomputed input-norm tensor at
+      // its normal observation point. Default false until correctness + perf
+      // validated.
+      usePostFfnNextInputRMSNormPairFusion: false,
       // Opt into the single-pass flash attention prefill kernel adapted from
       // ORT's flash_attention.wgsl.template. 64 threads = 64 queries per WG;
       // private Q/O tiles, shared K/V tiles, online softmax, no reduce pass.
@@ -128,19 +144,26 @@ export const DEFAULT_RUNTIME_CONFIG = {
       useOrtFlashPrefillAttention: false,
       // Opt into the WideTile Q4_K matmul + residual fusion at the ffn_down
       // + ffn_residual call site (dense.js). Eliminates one separate residual
-      // dispatch per layer (~0.85 ms bubble × 35 layers ≈ 30 ms prefill
-      // savings). Requires f32 activations + Q4_K weights retained + prefill.
+      // dispatch per layer. Requires f32 activations + retained Q4_K weights
+      // plus an enabled WideTile phase.
       // Default false until correctness + perf validated.
       useWideTileResidualFusion: false,
       // Opt into the RMSNorm + WideTile Q4_K matmul fusion at pre-matmul
       // norm sites (input_norm→q/k/v_proj, pre_feedforward_norm→gate/up).
       // Each fused call recomputes RMS internally (redundant across q/k/v
       // but negligible) and skips the standalone rmsnorm dispatch upstream.
-      // Saves ~2 dispatches/layer × 35 layers = 70 dispatches × ~0.85 ms
-      // bubble ≈ 60 ms prefill savings. Requires f32 activations + Q4_K
-      // weights retained + prefill. Default false until wiring lands and
-      // correctness validates.
+      // Requires f32 activations + Q4_K weights retained + prefill. Default
+      // false until wiring lands and correctness validates.
       useFusedRmsnormWideTile: false,
+      // Opt into fused packed-QKV split plus weighted Q/K RMSNorm. Replaces
+      // split_qkv + rmsnorm_qk when diagnostics do not need raw Q/K projection
+      // readbacks. Requires f32 QKV output and weighted Q/K norm.
+      useFusedQKVSplitQKNorm: false,
+      // Opt into fused packed-QKV split plus weighted Q/K RMSNorm and full-head
+      // non-interleaved RoPE. Replaces split_qkv + rmsnorm_qk + rope_qk when
+      // diagnostics do not need intermediate Q/K stage readbacks.
+      useFusedQKVSplitQKNormRoPE: false,
+      useGreedyLmHeadArgmaxFusion: false,
     },
     executionPatch: {},
   },

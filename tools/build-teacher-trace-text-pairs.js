@@ -1,0 +1,84 @@
+#!/usr/bin/env node
+
+import { writeTeacherTraceTextPairs } from '../src/experimental/training/datasets/teacher-traces.js';
+
+function parseArgs(argv) {
+  const options = {
+    input: null,
+    out: null,
+    teacherModelId: null,
+    studentBaseModelId: null,
+    domain: null,
+    taskKind: null,
+    sourcePolicyId: null,
+    gepaCandidateId: null,
+  };
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    const readValue = () => {
+      const value = argv[index + 1];
+      if (!value) {
+        throw new Error(`${arg} requires a value.`);
+      }
+      index += 1;
+      return value;
+    };
+    if (arg === '--input') {
+      options.input = readValue();
+      continue;
+    }
+    if (arg === '--out') {
+      options.out = readValue();
+      continue;
+    }
+    if (arg === '--teacher-model-id') {
+      options.teacherModelId = readValue();
+      continue;
+    }
+    if (arg === '--student-base-model-id') {
+      options.studentBaseModelId = readValue();
+      continue;
+    }
+    if (arg === '--domain') {
+      options.domain = readValue();
+      continue;
+    }
+    if (arg === '--task-kind') {
+      options.taskKind = readValue();
+      continue;
+    }
+    if (arg === '--source-policy-id') {
+      options.sourcePolicyId = readValue();
+      continue;
+    }
+    if (arg === '--gepa-candidate-id') {
+      options.gepaCandidateId = readValue();
+      continue;
+    }
+    throw new Error(`Unknown argument: ${arg}`);
+  }
+  if (!options.input) {
+    throw new Error('--input is required.');
+  }
+  if (!options.out) {
+    throw new Error('--out is required.');
+  }
+  return options;
+}
+
+async function main() {
+  const options = parseArgs(process.argv.slice(2));
+  const result = await writeTeacherTraceTextPairs(options.input, options.out, options);
+  console.log(JSON.stringify({
+    ok: true,
+    inputPath: result.inputPath,
+    outputPath: result.outputPath,
+    rowCount: result.rowCount,
+    lineage: result.lineage,
+  }, null, 2));
+}
+
+main().catch((error) => {
+  console.error(`[teacher-traces] ${error.message}`);
+  process.exit(1);
+});

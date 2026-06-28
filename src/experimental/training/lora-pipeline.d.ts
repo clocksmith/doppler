@@ -13,6 +13,7 @@ export declare const LORA_RUNNER_BASE_MODEL_REGISTRY: Readonly<Record<string, Re
   modelRef?: string;
   family: string;
   runnerKind: string;
+  requiresExternalTrainer?: boolean;
 }>>>;
 
 export declare const LORA_RUNNER_DATASET_FORMAT_REGISTRY: Readonly<Record<string, Readonly<{
@@ -31,6 +32,7 @@ export declare function getLoraRunnerCompatibility(workload: unknown): {
     runnerKey: string;
     baseModelFamily: string | null;
     baseModelRunnerKind: string | null;
+    requiresExternalTrainer: boolean;
     datasetKind: string | null;
     registeredBaseModel: boolean;
     registeredDatasetFormat: boolean;
@@ -49,6 +51,7 @@ export declare function assertLoraRunnerCompatibility(workload: unknown): {
     runnerKey: string;
     baseModelFamily: string | null;
     baseModelRunnerKind: string | null;
+    requiresExternalTrainer: boolean;
     datasetKind: string | null;
     registeredBaseModel: boolean;
     registeredDatasetFormat: boolean;
@@ -111,6 +114,7 @@ export interface CausalLmLoraTrainerResult {
   runnerId?: string | null;
   metrics?: Record<string, unknown>;
   receipts?: unknown[];
+  evalReports?: Array<Record<string, unknown>>;
   tensors?: CausalLmLoraTrainerTensor[];
   weights?: CausalLmLoraTrainerTensor[];
 }

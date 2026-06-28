@@ -1496,6 +1496,35 @@ export function finalizeCliCommandResponse(response, request) {
   };
 }
 
+export async function withJsonStdoutIsolation(enabled, callback) {
+  if (!enabled) {
+    return callback();
+  }
+
+  const previousConsole = {
+    log: console.log,
+    info: console.info,
+    debug: console.debug,
+    warn: console.warn,
+    error: console.error,
+  };
+  const writeDiagnostic = (...args) => previousConsole.error(...args);
+
+  console.log = writeDiagnostic;
+  console.info = writeDiagnostic;
+  console.debug = writeDiagnostic;
+  console.warn = writeDiagnostic;
+
+  try {
+    return await callback();
+  } finally {
+    console.log = previousConsole.log;
+    console.info = previousConsole.info;
+    console.debug = previousConsole.debug;
+    console.warn = previousConsole.warn;
+  }
+}
+
 async function runCommandOnSurface(request, surface, runConfig, jsonOutput) {
   if (surface === 'node') {
     const nodeRequest = await resolveNodeModelUrl(request);
@@ -1717,26 +1746,30 @@ async function main() {
 
     if (manifestPath) {
       const manifest = await loadManifest(String(manifestPath));
-      const results = await runManifestSweep(
-        manifest,
-        {
-          request,
-          runConfig,
-          surface,
-          surfaceFromCli,
-        },
-        jsonOutput,
-        cliPolicy
-      );
+      const results = await withJsonStdoutIsolation(jsonOutput, async () => {
+        const sweepResults = await runManifestSweep(
+          manifest,
+          {
+            request,
+            runConfig,
+            surface,
+            surfaceFromCli,
+          },
+          jsonOutput,
+          cliPolicy
+        );
 
-      if (shouldSave) {
-        for (const r of results) {
-          if (r.response?.result) {
-            const savedPath = await saveBenchResult(r.response.result, saveDir);
-            if (!jsonOutput) console.error(`[save] ${r.label}: ${savedPath}`);
+        if (shouldSave) {
+          for (const r of sweepResults) {
+            if (r.response?.result) {
+              const savedPath = await saveBenchResult(r.response.result, saveDir);
+              if (!jsonOutput) console.error(`[save] ${r.label}: ${savedPath}`);
+            }
           }
         }
-      }
+
+        return sweepResults;
+      });
 
       if (jsonOutput) {
         console.log(JSON.stringify(results.map((r) => r.response ?? r.error), null, 2));
@@ -1753,28 +1786,28 @@ async function main() {
       return;
     }
 
-    let response;
-    if (surface === 'auto') {
-      response = await runWithAutoSurface(request, runConfig, jsonOutput, cliPolicy);
-    } else {
-      response = await runCommandOnSurface(request, surface, runConfig, jsonOutput);
-    }
+    const response = await withJsonStdoutIsolation(jsonOutput, async () => {
+      const commandResponse = surface === 'auto'
+        ? await runWithAutoSurface(request, runConfig, jsonOutput, cliPolicy)
+        : await runCommandOnSurface(request, surface, runConfig, jsonOutput);
+      const isBench = commandResponse.result?.suite === 'bench';
 
-    const isBench = response.result?.suite === 'bench';
-
-    if (comparePath && isBench) {
-      const baseline = await loadBaseline(String(comparePath), saveDir);
-      if (baseline) {
-        compareBenchResults(response.result, baseline);
+      if (comparePath && isBench) {
+        const baseline = await loadBaseline(String(comparePath), saveDir);
+        if (baseline) {
+          compareBenchResults(commandResponse.result, baseline);
+        }
       }
-    }
 
-    if (shouldSave && isBench) {
-      const savedPath = await saveBenchResult(response.result, saveDir);
-      if (!jsonOutput) {
-        console.error(`[save] ${savedPath}`);
+      if (shouldSave && isBench) {
+        const savedPath = await saveBenchResult(commandResponse.result, saveDir);
+        if (!jsonOutput) {
+          console.error(`[save] ${savedPath}`);
+        }
       }
-    }
+
+      return commandResponse;
+    });
 
     if (jsonOutput) {
       const output = response?.result?.report !== undefined

@@ -27,6 +27,9 @@ export {
   recordMatmul,
   isFusedQ4KDisabled,
 } from './matmul.js';
+export {
+  recordLmHeadArgmaxF16,
+} from './lm-head-argmax.js';
 
 // Dequantization
 export {
@@ -58,6 +61,26 @@ export {
   runRMSNorm,
   recordRMSNorm,
 } from './rmsnorm.js';
+export {
+  canUseRMSNormQK,
+  runRMSNormQK,
+  recordRMSNormQK,
+} from './rmsnorm-qk.js';
+export {
+  canUseSplitQKVRMSNormQK,
+  runSplitQKVRMSNormQK,
+  recordSplitQKVRMSNormQK,
+} from './split-qkv-rmsnorm-qk.js';
+export {
+  canUseSplitQKVRMSNormRoPEQK,
+  runSplitQKVRMSNormRoPEQK,
+  recordSplitQKVRMSNormRoPEQK,
+} from './split-qkv-rmsnorm-rope-qk.js';
+export {
+  RMSNORM_PAIR_CACHE_LIMIT,
+  runSandwichRMSNormPair,
+  recordSandwichRMSNormPair,
+} from './rmsnorm-pair.js';
 
 // LayerNorm
 export {
@@ -92,6 +115,11 @@ export {
   recordKVQuantize,
 } from './kv-quantize.js';
 
+export {
+  runKVCacheWriteF32ToF16,
+  recordKVCacheWriteF32ToF16,
+} from './kv-cache-write.js';
+
 // Loss
 export {
   runCrossEntropyLoss,
@@ -103,6 +131,11 @@ export {
   runRoPE,
   recordRoPE,
 } from './rope.js';
+export {
+  canUseRoPEQK,
+  runRoPEQK,
+  recordRoPEQK,
+} from './rope-qk.js';
 
 // SiLU Activation
 export {

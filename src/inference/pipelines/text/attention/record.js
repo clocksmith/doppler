@@ -1,11 +1,14 @@
 
 
 import { isGpuBufferInstance, isWeightBuffer, getWeightDtype } from '../../../../gpu/weight-buffer.js';
+import { getKernelCapabilities } from '../../../../gpu/device.js';
 import { acquireBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
 import {
   recordMatmul,
   recordRMSNorm,
   recordRoPE,
+  canUseRoPEQK,
+  recordRoPEQK,
   recordAttention,
   recordAttentionTiered,
   recordAttentionTieredQuant,
@@ -29,6 +32,9 @@ import {
   projectAttentionQKV,
   applyAttentionQKNorm,
   applyAttentionValueNorm,
+  hasAttentionProjectionDiagnostics,
+  hasAttentionStageDiagnostics,
+  resolveAttentionQKNormState,
 } from './projections.js';
 import { prepareAttentionProjectionInput } from './output-projection.js';
 import { runProbes } from '../probes.js';
@@ -59,6 +65,26 @@ import { canUseRmsNormWideTileProjectionFusion } from './rmsnorm-fusion-gate.js'
 
 const ATTENTION_DTYPE_LOGGED = new Set();
 
+function isWideTileQ4KPhaseEnabled(session, phase) {
+  return phase === 'decode'
+    ? session?.useWideTileQ4KDecode === true
+    : session?.useWideTileQ4KPrefill === true;
+}
+
+function canUseQ4KWideTileResidualFusion(options = {}) {
+  return options.hasResidual === true
+    && options.oProjDtype === 'q4k'
+    && options.inputDtype === 'f32'
+    && options.outputDtype === 'f32'
+    && options.residualMatches === true
+    && options.hasLoRA !== true
+    && getKernelCapabilities().hasF16 === true
+    && getKernelCapabilities().hasSubgroups === true
+    && options.session?.useWideTileResidualFusion === true
+    && options.session?.retainQ4KMaterialization === true
+    && isWideTileQ4KPhaseEnabled(options.session, options.phase);
+}
+
 function shouldTraceRecordedHealth(layerIdx, debugFlags) {
   const debugLayers = debugFlags?.debugLayers;
   return isTraceEnabled('logits')
@@ -75,6 +101,55 @@ function enqueueRecordedTensorHealth(recorder, label, tensor, dtype, elementCoun
     const data = await readBuffer(tensor.buffer, elementCount * bytesPerElement);
     trace.logits(label, getLogitsHealth(decodeReadback(data, dtype)));
   });
+}
+
+function resolveDirectF16KVCacheWrite(options) {
+  const {
+    state,
+    layerIdx,
+    currentSeqLen,
+    numTokens,
+    numKVHeads,
+    headDim,
+    reusesSharedKV,
+    storeSharedKV,
+    diffusionGemmaDecoder,
+    valueNorm,
+    diagnosticsEnabled,
+    disableRoPE,
+  } = options;
+  if (
+    numTokens !== 1
+    || reusesSharedKV === true
+    || storeSharedKV === true
+    || diffusionGemmaDecoder === true
+    || valueNorm === true
+    || diagnosticsEnabled === true
+    || disableRoPE === true
+  ) {
+    return null;
+  }
+  const cache = state?.kvCache;
+  if (
+    !cache?.hasGPUCache?.()
+    || cache.kvDtype !== 'f16'
+    || cache.layout !== 'contiguous'
+    || cache.windowSize != null
+    || cache.layerSpecs != null
+    || typeof cache.recordF16UpdateAlreadyWrittenFromGPU !== 'function'
+  ) {
+    return null;
+  }
+  const gpuBuffers = cache.getGPUBuffers(layerIdx);
+  const layout = gpuBuffers?.layout ?? cache.layout;
+  if (layout !== 'contiguous' || !gpuBuffers?.keysGPU || !gpuBuffers?.valuesGPU) {
+    return null;
+  }
+  return {
+    keysBuffer: gpuBuffers.keysGPU,
+    valuesBuffer: gpuBuffers.valuesGPU,
+    dstOffset: currentSeqLen * numKVHeads * headDim,
+  };
 }
 
 function assertAttentionDtypeTransitionAllowed(state, fromDtype, toDtype, detail, transitionDeclaredBy = null) {
@@ -125,6 +200,7 @@ export async function recordLayerAttentionGPU(
     sharedKVSourceLayerIdx = null,
     storeSharedKV = false,
     diffusionGemmaDecoder = false,
+    precomputedInputNorm = null,
   } = config;
 
   const phase = isPrefill ? 'prefill' : 'decode';
@@ -216,7 +292,25 @@ export async function recordLayerAttentionGPU(
     && attentionInput.dtype === 'f32';
 
   try {
-  if (canFuseInputNormProjRec) {
+  if (precomputedInputNorm) {
+    if (
+      isPrefill
+      || numTokens !== 1
+      || skipInputNorm
+      || !layerWeights.inputNorm
+      || !getNormWeightBuffer
+      || precomputedInputNorm.dtype !== attentionInput.dtype
+      || precomputedInputNorm.dtype !== 'f32'
+    ) {
+      throw new Error(`Layer ${layerIdx} received an incompatible precomputed input norm tensor.`);
+    }
+    normed = precomputedInputNorm;
+    await runProbes('post_input_norm', normed.buffer, {
+      layerIdx, numTokens, hiddenSize,
+      probes: state.debugProbes, recorder,
+      operatorDiagnostics: state.operatorDiagnostics, dtype: normed.dtype,
+    });
+  } else if (canFuseInputNormProjRec) {
     fusedNormWeightRec = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
     fusedNormEpsRec = rmsNormEps;
     fusedNormOffsetRec = config.rmsNormWeightOffset === true;
@@ -228,6 +322,7 @@ export async function recordLayerAttentionGPU(
       batchSize: numTokens,
       hiddenSize,
       rmsNormWeightOffset: config.rmsNormWeightOffset,
+      label: 'input_norm',
     });
     if (!isGpuBufferInstance(layerWeights.inputNorm) && !isWeightBuffer(layerWeights.inputNorm)) releaseOrTrack(recorder, normWeightBuf);
     await runProbes('post_input_norm', normed.buffer, {
@@ -282,7 +377,35 @@ export async function recordLayerAttentionGPU(
   }
   const reusesSharedKV = sharedKVEntry != null;
   retainSharedKvBuffers = reusesSharedKV || storeSharedKV;
-  ({ qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV, valueAliasesKey } = await projectAttentionQKV({
+  let qkNormApplied = false;
+  let ropeApplied = false;
+  const qkNormState = resolveAttentionQKNormState({ config, layerWeights, layerIdx, reusesSharedKV });
+  const qkNormProjectionDiagnostics = hasAttentionProjectionDiagnostics(state)
+    || shouldTraceRecordedHealth(layerIdx, debugFlags);
+  const qkNormRoPEDiagnostics = hasAttentionStageDiagnostics(
+    state,
+    ['q_proj', 'k_proj', 'v_proj', 'q_norm', 'k_norm']
+  )
+    || shouldTraceRecordedHealth(layerIdx, debugFlags);
+  const runtimeSession = getRuntimeConfig()?.inference?.session;
+  const qkNormFusionFlag = runtimeSession?.useFusedQKVSplitQKNorm === true;
+  const qkNormRoPEFusionFlag = runtimeSession?.useFusedQKVSplitQKNormRoPE === true;
+  const directF16KVCacheWrite = resolveDirectF16KVCacheWrite({
+    state,
+    layerIdx,
+    currentSeqLen,
+    numTokens,
+    numKVHeads,
+    headDim,
+    reusesSharedKV,
+    storeSharedKV,
+    diffusionGemmaDecoder,
+    valueNorm: config.valueNorm === true,
+    diagnosticsEnabled: qkNormRoPEDiagnostics,
+    disableRoPE,
+  });
+  let kvCacheWriteFused = false;
+  ({ qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV, valueAliasesKey, qkNormApplied, ropeApplied, kvCacheWriteFused } = await projectAttentionQKV({
     recorder,
     normed,
     layerWeights,
@@ -310,16 +433,51 @@ export async function recordLayerAttentionGPU(
     fusedNormWeight: fusedNormWeightRec,
     fusedNormEps: fusedNormEpsRec,
     fusedNormOffset: fusedNormOffsetRec,
+    qkNormFusion: {
+      enabled: qkNormFusionFlag && qkNormState.wantsQKNorm,
+      getNormWeightBuffer,
+      rmsNormEps,
+      rmsNormWeightOffset: config.rmsNormWeightOffset,
+      skipKNorm: qkNormState.skipKNorm,
+      allowUnitQKNorm: qkNormState.allowUnitQKNorm,
+      projectionDiagnosticsEnabled: qkNormProjectionDiagnostics,
+    },
+    qkNormRoPEFusion: {
+      enabled: qkNormRoPEFusionFlag
+        && qkNormState.wantsQKNorm
+        && !disableRoPE
+        && !!state.ropeFreqsCos
+        && !!state.ropeFreqsSin,
+      getNormWeightBuffer,
+      rmsNormEps,
+      rmsNormWeightOffset: config.rmsNormWeightOffset,
+      skipKNorm: qkNormState.skipKNorm,
+      allowUnitQKNorm: qkNormState.allowUnitQKNorm,
+      projectionDiagnosticsEnabled: qkNormRoPEDiagnostics,
+      freqsCos: state.ropeFreqsCos,
+      freqsSin: state.ropeFreqsSin,
+      startPos: currentSeqLen,
+      rotaryDim: config.ropeRotaryDim,
+      pairSpanDim: config.ropeFrequencyBaseDim ?? config.ropeRotaryDim,
+      interleaved: config.ropeInterleaved,
+      reusesSharedKV,
+      f16KVCacheWrite: directF16KVCacheWrite,
+    },
   }));
+  if (!kvCacheWriteFused && (!kTensor || !vTensor)) {
+    throw new Error('Recorded attention projection returned missing K/V tensors without a fused KV cache write.');
+  }
   // Deferred release of the norm weight buffer for fused path.
   if (fusedNormWeightRec && fusedNormOwnedRec) {
     releaseOrTrack(recorder, fusedNormWeightRec);
   }
-  await runProbes('q_proj', qTensor.buffer, {
-    layerIdx, numTokens, hiddenSize: numHeads * headDim,
-    probes: state.debugProbes, recorder,
-    operatorDiagnostics: state.operatorDiagnostics, dtype: qTensor.dtype,
-  });
+  if (qTensor) {
+    await runProbes('q_proj', qTensor.buffer, {
+      layerIdx, numTokens, hiddenSize: numHeads * headDim,
+      probes: state.debugProbes, recorder,
+      operatorDiagnostics: state.operatorDiagnostics, dtype: qTensor.dtype,
+    });
+  }
   if (kTensor) {
     await runProbes('k_proj', kTensor.buffer, {
       layerIdx, numTokens, hiddenSize: numKVHeads * headDim,
@@ -334,7 +492,7 @@ export async function recordLayerAttentionGPU(
       operatorDiagnostics: state.operatorDiagnostics, dtype: vTensor.dtype,
     });
   }
-  if (shouldTraceRecordedHealth(layerIdx, debugFlags)) {
+  if (qTensor && shouldTraceRecordedHealth(layerIdx, debugFlags)) {
     enqueueRecordedTensorHealth(
       recorder,
       `L${layerIdx}.q_proj_HEALTH`,
@@ -346,43 +504,21 @@ export async function recordLayerAttentionGPU(
       recorder,
       `L${layerIdx}.k_proj_HEALTH`,
       kTensor,
-      kTensor.dtype,
+      kTensor?.dtype ?? null,
       numTokens * numKVHeads * headDim
     );
     enqueueRecordedTensorHealth(
       recorder,
       `L${layerIdx}.v_proj_HEALTH`,
       vTensor,
-      vTensor.dtype,
+      vTensor?.dtype ?? null,
       numTokens * numKVHeads * headDim
     );
   }
 
   // Optional per-head Q/K normalization.
   // Some models use RMSNorm with (1+weight) offset formula, controlled by rmsNormWeightOffset.
-  const wantsQKNorm = config.queryKeyNorm === true;
-  const hasQNorm = !!layerWeights.qNorm;
-  const hasKNorm = !!layerWeights.kNorm;
-  const qkNormWeightLayers = Array.isArray(config.queryKeyNormWeightLayers)
-    ? config.queryKeyNormWeightLayers
-    : null;
-  const expectsWeightedQKNorm = qkNormWeightLayers
-    ? qkNormWeightLayers.includes(layerIdx)
-    : true;
-  const allowUnitQKNorm = wantsQKNorm && qkNormWeightLayers !== null && !expectsWeightedQKNorm;
-  if (wantsQKNorm && allowUnitQKNorm && (hasQNorm || hasKNorm)) {
-    throw new Error(
-      `Layer ${layerIdx} declares unit-scale Q/K norm but companion weights are present ` +
-      `(hasQ=${hasQNorm}, hasK=${hasKNorm}). Check manifest.inference.attention.queryKeyNormWeightLayers.`
-    );
-  }
-  if (wantsQKNorm && expectsWeightedQKNorm && (!hasQNorm || (!hasKNorm && !reusesSharedKV))) {
-    throw new Error(
-      `Layer ${layerIdx} requested Q/K norm but companion weights are missing ` +
-      `(hasQ=${hasQNorm}, hasK=${hasKNorm}). Check manifest.inference.attention.queryKeyNormWeightLayers.`
-    );
-  }
-  if (wantsQKNorm) {
+  if (qkNormState.wantsQKNorm && !qkNormApplied) {
     ({ qTensor, kTensor } = await applyAttentionQKNorm({
       recorder,
       qTensor,
@@ -396,10 +532,12 @@ export async function recordLayerAttentionGPU(
       headDim,
       rmsNormWeightOffset: config.rmsNormWeightOffset,
       releaseTemporary: (buffer) => releaseOrTrack(recorder, buffer),
-      skipKNorm: reusesSharedKV,
+      skipKNorm: qkNormState.skipKNorm,
       retainKInput: valueAliasesKey,
-      allowUnitQKNorm,
+      allowUnitQKNorm: qkNormState.allowUnitQKNorm,
     }));
+  }
+  if (qkNormState.wantsQKNorm) {
     await runProbes('q_norm', qTensor.buffer, {
       layerIdx, numTokens, hiddenSize: numHeads * headDim,
       probes: state.debugProbes, recorder,
@@ -424,13 +562,13 @@ export async function recordLayerAttentionGPU(
         recorder,
         `L${layerIdx}.k_norm_HEALTH`,
         kTensor,
-        kTensor.dtype,
+        kTensor?.dtype ?? null,
         numTokens * numKVHeads * headDim
       );
     }
   }
 
-  if (config.valueNorm === true && !reusesSharedKV) {
+  if (!kvCacheWriteFused && config.valueNorm === true && !reusesSharedKV) {
     const valueNormInputAliasesKey = vTensor.buffer === kTensor.buffer;
     vTensor = await applyAttentionValueNorm({
       recorder,
@@ -456,26 +594,32 @@ export async function recordLayerAttentionGPU(
   if (attentionInputTemp) recorder.trackTemporaryBuffer(attentionInput.buffer);
 
   // 3. RoPE (modifies tensor in-place)
-  if (!disableRoPE && state.ropeFreqsCos && state.ropeFreqsSin) {
-    await recordRoPE(recorder, qTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
-      numHeads,
+  if (!ropeApplied && !disableRoPE && state.ropeFreqsCos && state.ropeFreqsSin) {
+    const ropeOptions = {
       headDim,
       rotaryDim: config.ropeRotaryDim,
       pairSpanDim: config.ropeFrequencyBaseDim ?? config.ropeRotaryDim,
       interleaved: config.ropeInterleaved,
       startPos: currentSeqLen,
       executionPolicies: state.executionPolicies ?? null,
-    });
-    if (!reusesSharedKV) {
-      await recordRoPE(recorder, kTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
-        numHeads: numKVHeads,
-        headDim,
-        rotaryDim: config.ropeRotaryDim,
-        pairSpanDim: config.ropeFrequencyBaseDim ?? config.ropeRotaryDim,
-        interleaved: config.ropeInterleaved,
-        startPos: currentSeqLen,
-        executionPolicies: state.executionPolicies ?? null,
+    };
+    if (canUseRoPEQK(qTensor, kTensor, { reusesSharedKV })) {
+      await recordRoPEQK(recorder, qTensor, kTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
+        ...ropeOptions,
+        numQHeads: numHeads,
+        numKVHeads,
       });
+    } else {
+      await recordRoPE(recorder, qTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
+        ...ropeOptions,
+        numHeads,
+      });
+      if (!reusesSharedKV) {
+        await recordRoPE(recorder, kTensor, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
+          ...ropeOptions,
+          numHeads: numKVHeads,
+        });
+      }
     }
   }
   if (shouldTraceRecordedHealth(layerIdx, debugFlags)) {
@@ -490,7 +634,7 @@ export async function recordLayerAttentionGPU(
       recorder,
       `L${layerIdx}.k_rope_HEALTH`,
       kTensor,
-      kTensor.dtype,
+      kTensor?.dtype ?? null,
       numTokens * numKVHeads * headDim
     );
   }
@@ -506,9 +650,9 @@ export async function recordLayerAttentionGPU(
 
   // 4. Update KV cache (cache stores raw GPUBuffers for memory efficiency)
   if (!diffusionGemmaDecoder && state.kvCache?.hasGPUCache?.()) {
-    // Use recordUpdateFromGPU to record copy operations to the recorder's encoder
-    // This ensures K/V buffers are populated before copying (all ops submitted together)
-    if (state.kvCache.kvDtype === 'f16') {
+    if (kvCacheWriteFused) {
+      state.kvCache.recordF16UpdateAlreadyWrittenFromGPU(layerIdx, currentSeqLen, numTokens, tokenIds);
+    } else if (state.kvCache.kvDtype === 'f16') {
       const hasExplicitF16KvContract = isAttentionKvDtypeExplicit(attentionPrecisionContract, 'f16');
       if (kTensor.dtype !== 'f16' && !hasExplicitF16KvContract) {
         assertAttentionDtypeTransitionAllowed(state, kTensor.dtype, 'f16', 'K would be narrowed implicitly for KV cache storage.');
@@ -516,13 +660,28 @@ export async function recordLayerAttentionGPU(
       if (vTensor.dtype !== 'f16' && !hasExplicitF16KvContract) {
         assertAttentionDtypeTransitionAllowed(state, vTensor.dtype, 'f16', 'V would be narrowed implicitly for KV cache storage.');
       }
-      const kCasted = kTensor.dtype === 'f16' ? kTensor : await recordCastF32ToF16(recorder, kTensor);
-      const vCasted = vTensor.dtype === 'f16' ? vTensor : await recordCastF32ToF16(recorder, vTensor);
+      const canWriteDirectF32ToF16 = kTensor.dtype === 'f32'
+        && vTensor.dtype === 'f32'
+        && typeof state.kvCache.recordUpdateF32ToF16FromGPU === 'function';
+      if (canWriteDirectF32ToF16) {
+        await state.kvCache.recordUpdateF32ToF16FromGPU(
+          recorder,
+          layerIdx,
+          kTensor.buffer,
+          vTensor.buffer,
+          currentSeqLen,
+          numTokens,
+          tokenIds
+        );
+      } else {
+        const kCasted = kTensor.dtype === 'f16' ? kTensor : await recordCastF32ToF16(recorder, kTensor);
+        const vCasted = vTensor.dtype === 'f16' ? vTensor : await recordCastF32ToF16(recorder, vTensor);
 
-      await state.kvCache.recordUpdateFromGPU(recorder, layerIdx, kCasted.buffer, vCasted.buffer, currentSeqLen, numTokens, tokenIds);
+        await state.kvCache.recordUpdateFromGPU(recorder, layerIdx, kCasted.buffer, vCasted.buffer, currentSeqLen, numTokens, tokenIds);
 
-      if (kTensor.dtype !== 'f16') recorder.trackTemporaryBuffer(kCasted.buffer);
-      if (vTensor.dtype !== 'f16') recorder.trackTemporaryBuffer(vCasted.buffer);
+        if (kTensor.dtype !== 'f16') recorder.trackTemporaryBuffer(kCasted.buffer);
+        if (vTensor.dtype !== 'f16') recorder.trackTemporaryBuffer(vCasted.buffer);
+      }
     } else {
       await state.kvCache.recordUpdateFromGPU(recorder, layerIdx, kTensor.buffer, vTensor.buffer, currentSeqLen, numTokens, tokenIds);
     }
@@ -607,6 +766,7 @@ export async function recordLayerAttentionGPU(
     { useF16Activations, matmulOutputDtype },
     usedFusedQKV, qTensor, kTensor, vTensor,
   ));
+  const mergedSessionRec = getRuntimeConfig()?.inference?.session;
 
   const attentionKernelRunners = {
     bdpa: async () => {
@@ -761,7 +921,6 @@ export async function recordLayerAttentionGPU(
       // Kernel enforces head_dim=256, f16 KV, contiguous layout; only applies
       // when numTokens > 1 (prefill). Same flag semantics as the non-recorder
       // path in ./run.js.
-      const mergedSessionRec = getRuntimeConfig()?.inference?.session;
       const useFlashPrefillRec = !diffusionGemmaDecoder && mergedSessionRec?.useFlashPrefillAttention === true && numTokens > 1;
       const useOrtFlashPrefillRec = !diffusionGemmaDecoder && mergedSessionRec?.useOrtFlashPrefillAttention === true && numTokens > 1;
       return recordAttention(recorder, qTensor, kForAttn, vForAttn, null, numHeads, headDim, {
@@ -873,7 +1032,16 @@ export async function recordLayerAttentionGPU(
       hasLoRA: Boolean(loraO),
       oProjIsF16: oProjDtype === 'f16',
     });
-
+    const canUseWideTileResidual = canUseQ4KWideTileResidualFusion({
+      phase,
+      session: mergedSessionRec,
+      hasResidual: Boolean(residualTensor),
+      residualMatches: Boolean(residualTensor && residualTensor.dtype === oProjInput.dtype),
+      inputDtype: oProjInput.dtype,
+      outputDtype: oProjOutputDtype,
+      oProjDtype,
+      hasLoRA: Boolean(loraO),
+    });
     if (canUseFused && residualTensor) {
       // FUSED PATH: o_proj matmul + residual add in one dispatch
       output = await recordMatmulResidualFused(recorder, oProjInput, oProjBuf, residualTensor, {
@@ -882,7 +1050,7 @@ export async function recordLayerAttentionGPU(
       });
       residualFused = true;
     } else {
-      // STANDARD PATH: o_proj matmul only
+      // STANDARD PATH: o_proj matmul only unless Q4K WideTile fuses residual in the epilogue
       output = await recordMatmul(recorder, oProjInput, oProjBuf, numTokens, hiddenSize, numHeads * headDim, {
         transposeB: 'auto',
         role: 'o_proj',
@@ -890,7 +1058,9 @@ export async function recordLayerAttentionGPU(
         kernelPath,
         outputDtype: oProjOutputDtype,
         executionPolicies: state.executionPolicies ?? null,
+        residualTensor: canUseWideTileResidual ? residualTensor : null,
       });
+      residualFused = canUseWideTileResidual;
     }
     // Release temporary buffer if we created it (original was not already on GPU)
     if (!isGpuBufferInstance(layerWeights.oProj) && !isWeightBuffer(layerWeights.oProj)) {
@@ -951,13 +1121,17 @@ export async function recordLayerAttentionGPU(
   // These buffers are used by recorded operations that haven't executed yet.
   // Releasing them back to the pool would allow reuse before the encoder is submitted,
   // causing data corruption (especially for small decode buffers).
-  recorder.trackTemporaryBuffer(qTensor.buffer);
+  if (qTensor) {
+    recorder.trackTemporaryBuffer(qTensor.buffer);
+  }
   if (qGateTensor) {
     recorder.trackTemporaryBuffer(qGateTensor.buffer);
   }
   if (!retainSharedKvBuffers) {
-    recorder.trackTemporaryBuffer(kTensor.buffer);
-    if (vTensor.buffer !== kTensor.buffer) {
+    if (kTensor) {
+      recorder.trackTemporaryBuffer(kTensor.buffer);
+    }
+    if (vTensor?.buffer && vTensor.buffer !== kTensor?.buffer) {
       recorder.trackTemporaryBuffer(vTensor.buffer);
     }
   }

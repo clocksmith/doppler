@@ -66,7 +66,7 @@
       "type": "every_n",
       "globalPattern": null,
       "period": 6,
-      "offset": null,
+      "offset": 5,
       "layerTypes": null
     },
     "chatTemplate": {
@@ -152,9 +152,9 @@
         "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
       },
       "attn_decode": {
-        "kernel": "attention_decode_online_f16kv.wgsl",
+        "kernel": "attention_decode_online_head256_f16kv.wgsl",
         "entry": "main",
-        "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
+        "digest": "sha256:fa4a40535b2aa1389b0510329fb31675d4da50ddfdfbf1e8125c7213c7ffb525",
         "precision": {
           "kvDtype": "f16"
         }
@@ -185,13 +185,21 @@
           "kvDtype": "f16"
         }
       },
+      "attn_head256": {
+        "kernel": "attention_head256_f16kv.wgsl",
+        "entry": "main",
+        "digest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+        "precision": {
+          "kvDtype": "f16"
+        }
+      },
       "lm_head_gemv": {
         "kernel": "matmul_gemv_subgroup.wgsl",
         "entry": "main_multicol",
         "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
         "constants": {
-          "MULTICOL_COLS_PER_WG": 64,
-          "MULTICOL_THREADS_PER_COL": 4
+          "MULTICOL_COLS_PER_WG": 8,
+          "MULTICOL_THREADS_PER_COL": 32
         }
       },
       "sample": {
@@ -306,7 +314,7 @@
       ],
       [
         "attention",
-        "attn_small"
+        "attn_head256"
       ],
       [
         "o_proj",

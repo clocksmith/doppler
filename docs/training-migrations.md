@@ -67,9 +67,12 @@ Core replay context fields remain part of the metrics contract:
 ## Current Compatibility Notes
 
 - browser surfaces still fail closed for `lora` and `distill`
-- `lora run` currently supports the toy training backend only
-- distill stage entries still resolve to the internal `stage_a` / `stage_b` contract
-- plain `sft` distill workloads are rejected by the current JS distill runner
+- `lora run` supports the toy backend, the native `gemma-3-270m-it-f16-af32` causal-LM `text-pairs` runner, and provider-backed q4k Gemma/Qwen causal-LM `text-pairs` workloads
+- distill KD/triplet stage entries resolve to the internal `stage_a` / `stage_b` contract
+- `sft` distill stages require `distill.sftLora` and route through the causal-LM LoRA `text-pairs` runner/export path
+- teacher-trace and GEPA-frontier import tools preserve source model, student base, task kind, policy, and Pareto candidate metadata before training
+- causal-LM LoRA eval reports now distinguish base-model loss from adapter loss; required improvement is declared per eval dataset and enforced by quality gates
+- q4k Qwen/Gemma students require provider-backed trainer modules or injected trainers; the trainer may return held-out eval reports that Doppler writes into compare and quality-gate artifacts
 
 ## Migration Guidance
 

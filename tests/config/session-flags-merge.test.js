@@ -84,14 +84,30 @@ function buildManifest(sessionOverrides = {}, largeWeightsOverrides = undefined)
       decodeLoop: { batchSize: 8, readbackInterval: 8 },
       useFlashPrefillAttention: true,
     }),
-    { session: { retainQ4KMaterialization: true } }
+    {
+      session: {
+        retainQ4KMaterialization: true,
+        useSandwichRMSNormPairFusion: true,
+        usePostFfnNextInputRMSNormPairFusion: true,
+        useFusedQKVSplitQKNorm: true,
+        useFusedQKVSplitQKNormRoPE: true,
+      },
+    }
   );
   assert.equal(merged.inference.session.decodeLoop.batchSize, 8, 'manifest decodeLoop preserved');
   assert.equal(merged.inference.session.useFlashPrefillAttention, true, 'manifest flag preserved');
   assert.equal(merged.inference.session.retainQ4KMaterialization, true, 'runtime flag applied');
+  assert.equal(merged.inference.session.useSandwichRMSNormPairFusion, true, 'runtime sandwich RMSNorm pair flag applied');
+  assert.equal(merged.inference.session.usePostFfnNextInputRMSNormPairFusion, true, 'runtime post-FFN next input RMSNorm pair flag applied');
+  assert.equal(merged.inference.session.useFusedQKVSplitQKNorm, true, 'runtime fused split QK norm flag applied');
+  assert.equal(merged.inference.session.useFusedQKVSplitQKNormRoPE, true, 'runtime fused split QK norm RoPE flag applied');
   assert.equal(merged._sources.get('inference.session.decodeLoop'), 'manifest');
   assert.equal(merged._sources.get('inference.session.useFlashPrefillAttention'), 'manifest');
   assert.equal(merged._sources.get('inference.session.retainQ4KMaterialization'), 'runtime');
+  assert.equal(merged._sources.get('inference.session.useSandwichRMSNormPairFusion'), 'runtime');
+  assert.equal(merged._sources.get('inference.session.usePostFfnNextInputRMSNormPairFusion'), 'runtime');
+  assert.equal(merged._sources.get('inference.session.useFusedQKVSplitQKNorm'), 'runtime');
+  assert.equal(merged._sources.get('inference.session.useFusedQKVSplitQKNormRoPE'), 'runtime');
 }
 
 // Case 5: inference.largeWeights is merged as a sibling of session (not nested under session).

@@ -9,6 +9,15 @@ import {
   recordSplitQG,
   runRMSNorm,
   recordRMSNorm,
+  canUseRMSNormQK,
+  runRMSNormQK,
+  recordRMSNormQK,
+  canUseSplitQKVRMSNormQK,
+  runSplitQKVRMSNormQK,
+  recordSplitQKVRMSNormQK,
+  canUseSplitQKVRMSNormRoPEQK,
+  runSplitQKVRMSNormRoPEQK,
+  recordSplitQKVRMSNormRoPEQK,
   castF16ToF32,
   castF32ToF16,
   recordCastF16ToF32,
@@ -50,6 +59,51 @@ function getRmsNormRunner(recorder) {
   return (input, weight, eps, options) => recordRMSNorm(recorder, input, weight, eps, options);
 }
 
+function getRmsNormQKRunner(recorder) {
+  if (!recorder) {
+    return (q, k, qWeight, kWeight, eps, options) => runRMSNormQK(q, k, qWeight, kWeight, eps, options);
+  }
+  return (q, k, qWeight, kWeight, eps, options) => recordRMSNormQK(recorder, q, k, qWeight, kWeight, eps, options);
+}
+
+function getSplitQKVRMSNormQKRunner(recorder) {
+  if (!recorder) {
+    return (qkvTensor, qWeight, kWeight, eps, options) => runSplitQKVRMSNormQK(qkvTensor, qWeight, kWeight, eps, options);
+  }
+  return (qkvTensor, qWeight, kWeight, eps, options) => recordSplitQKVRMSNormQK(
+    recorder,
+    qkvTensor,
+    qWeight,
+    kWeight,
+    eps,
+    options
+  );
+}
+
+function getSplitQKVRMSNormRoPEQKRunner(recorder) {
+  if (!recorder) {
+    return (qkvTensor, qWeight, kWeight, freqsCos, freqsSin, eps, options) => runSplitQKVRMSNormRoPEQK(
+      qkvTensor,
+      qWeight,
+      kWeight,
+      freqsCos,
+      freqsSin,
+      eps,
+      options
+    );
+  }
+  return (qkvTensor, qWeight, kWeight, freqsCos, freqsSin, eps, options) => recordSplitQKVRMSNormRoPEQK(
+    recorder,
+    qkvTensor,
+    qWeight,
+    kWeight,
+    freqsCos,
+    freqsSin,
+    eps,
+    options
+  );
+}
+
 function releaseOwnedWeightBuffer(layerWeight, resolvedWeightBuffer, releaseTemporary) {
   if (isGpuBufferInstance(layerWeight) || isWeightBuffer(layerWeight)) {
     return;
@@ -59,6 +113,73 @@ function releaseOwnedWeightBuffer(layerWeight, resolvedWeightBuffer, releaseTemp
   }
   const buffer = isWeightBuffer(resolvedWeightBuffer) ? resolvedWeightBuffer.buffer : resolvedWeightBuffer;
   releaseTemporary(buffer);
+}
+
+function normBufferMatchesHeadDim(buffer, headDim) {
+  if (!buffer || !Number.isFinite(buffer.size)) {
+    return false;
+  }
+  const elemsF32 = buffer.size / 4;
+  const elemsF16 = buffer.size / 2;
+  return elemsF32 === headDim || elemsF16 === headDim;
+}
+
+function ownsNormBuffer(layerWeight) {
+  return layerWeight && !isGpuBufferInstance(layerWeight) && !isWeightBuffer(layerWeight);
+}
+
+function releaseOwnedNormBuffer(buffer, owned, releaseTemporary, releasedBuffers) {
+  if (!owned || !buffer || releasedBuffers.has(buffer)) {
+    return;
+  }
+  releasedBuffers.add(buffer);
+  releaseTemporary(buffer);
+}
+
+export function hasAttentionProjectionDiagnostics(state) {
+  return hasAttentionStageDiagnostics(state, ['q_proj', 'k_proj', 'v_proj']);
+}
+
+export function hasAttentionStageDiagnostics(state, stages) {
+  const diagnostics = state?.operatorDiagnostics ?? null;
+  if (diagnostics?.enabled || diagnostics?.tsirFixture?.dir) {
+    return true;
+  }
+  const stageSet = new Set(stages);
+  const probes = state?.debugProbes;
+  return Array.isArray(probes) && probes.some((probe) => stageSet.has(probe?.stage));
+}
+
+export function resolveAttentionQKNormState({ config, layerWeights, layerIdx, reusesSharedKV }) {
+  const wantsQKNorm = config.queryKeyNorm === true;
+  const hasQNorm = !!layerWeights.qNorm;
+  const hasKNorm = !!layerWeights.kNorm;
+  const qkNormWeightLayers = Array.isArray(config.queryKeyNormWeightLayers)
+    ? config.queryKeyNormWeightLayers
+    : null;
+  const expectsWeightedQKNorm = qkNormWeightLayers
+    ? qkNormWeightLayers.includes(layerIdx)
+    : true;
+  const allowUnitQKNorm = wantsQKNorm && qkNormWeightLayers !== null && !expectsWeightedQKNorm;
+  if (wantsQKNorm && allowUnitQKNorm && (hasQNorm || hasKNorm)) {
+    throw new Error(
+      `Layer ${layerIdx} declares unit-scale Q/K norm but companion weights are present ` +
+      `(hasQ=${hasQNorm}, hasK=${hasKNorm}). Check manifest.inference.attention.queryKeyNormWeightLayers.`
+    );
+  }
+  if (wantsQKNorm && expectsWeightedQKNorm && (!hasQNorm || (!hasKNorm && !reusesSharedKV))) {
+    throw new Error(
+      `Layer ${layerIdx} requested Q/K norm but companion weights are missing ` +
+      `(hasQ=${hasQNorm}, hasK=${hasKNorm}). Check manifest.inference.attention.queryKeyNormWeightLayers.`
+    );
+  }
+  return {
+    wantsQKNorm,
+    hasQNorm,
+    hasKNorm,
+    allowUnitQKNorm,
+    skipKNorm: reusesSharedKV,
+  };
 }
 
 function normalizeProjectionMatmulDtype(value, precisionField = 'dtype') {
@@ -438,9 +559,13 @@ export async function projectAttentionQKV({
   fusedNormWeight = null,
   fusedNormEps = null,
   fusedNormOffset = false,
+  qkNormFusion = null,
+  qkNormRoPEFusion = null,
 }) {
   const runMatmulForMode = getMatmulRunner(recorder);
   const runSplitForMode = getSplitRunner(recorder);
+  const runSplitQKVRMSNormQKForMode = getSplitQKVRMSNormQKRunner(recorder);
+  const runSplitQKVRMSNormRoPEQKForMode = getSplitQKVRMSNormRoPEQKRunner(recorder);
   const reuseSharedKV = sharedKTensor != null || sharedVTensor != null;
   if (reuseSharedKV && (!sharedKTensor || !sharedVTensor)) {
     throw new Error('projectAttentionQKV requires both sharedKTensor and sharedVTensor when reusing shared KV.');
@@ -481,6 +606,9 @@ export async function projectAttentionQKV({
     const [qSizeFused, kSizeFused, vSizeFused] = layerWeights.qkvSizes;
     const qkvSizeTotal = qSizeFused + kSizeFused + vSizeFused;
     let qkvTensor = null;
+    let qNormBuf = null;
+    let kNormBuf = null;
+    const releasedNormBuffers = new Set();
     try {
       qkvTensor = await runMatmulForMode(projectionInput, layerWeights.qkvProj, numTokens, qkvSizeTotal, hiddenSize, {
         transposeB: 'auto',
@@ -497,6 +625,114 @@ export async function projectAttentionQKV({
         rmsNormEps: fusedNormEps,
         rmsNormOffset: fusedNormOffset,
       });
+      const qkNormRoPEOptions = qkNormRoPEFusion
+        ? { ...qkNormRoPEFusion, headDim }
+        : null;
+      const canFuseSplitQKNormAndRoPE = qkNormRoPEFusion?.enabled === true
+        && qkNormRoPEFusion.projectionDiagnosticsEnabled !== true
+        && qkNormRoPEFusion.skipKNorm !== true
+        && qkNormRoPEFusion.allowUnitQKNorm !== true
+        && layerWeights.qNorm
+        && layerWeights.kNorm
+        && qkNormRoPEFusion.getNormWeightBuffer
+        && qkNormRoPEFusion.freqsCos
+        && qkNormRoPEFusion.freqsSin
+        && canUseSplitQKVRMSNormRoPEQK(qkvTensor, qkNormRoPEOptions);
+      if (canFuseSplitQKNormAndRoPE) {
+        qNormBuf = qkNormRoPEFusion.getNormWeightBuffer(layerWeights.qNorm, 'q_norm');
+        kNormBuf = qkNormRoPEFusion.getNormWeightBuffer(layerWeights.kNorm, 'k_norm');
+        const qNormApplies = normBufferMatchesHeadDim(qNormBuf, headDim);
+        const kNormApplies = normBufferMatchesHeadDim(kNormBuf, headDim);
+        if (qNormApplies && kNormApplies) {
+          const fused = await runSplitQKVRMSNormRoPEQKForMode(
+            qkvTensor,
+            qNormBuf,
+            kNormBuf,
+            qkNormRoPEFusion.freqsCos,
+            qkNormRoPEFusion.freqsSin,
+            qkNormRoPEFusion.rmsNormEps,
+            {
+              numTokens,
+              numHeads,
+              numKVHeads,
+              headDim,
+              qSize: qSizeFused,
+              kSize: kSizeFused,
+              vSize: vSizeFused,
+              startPos: qkNormRoPEFusion.startPos,
+              rotaryDim: qkNormRoPEFusion.rotaryDim,
+              pairSpanDim: qkNormRoPEFusion.pairSpanDim,
+              interleaved: qkNormRoPEFusion.interleaved,
+              rmsNormWeightOffset: qkNormRoPEFusion.rmsNormWeightOffset === true,
+              f16KVCacheWrite: qkNormRoPEFusion.f16KVCacheWrite ?? null,
+            }
+          );
+          releaseTemporary(qkvTensor.buffer);
+          qkvTensor = null;
+          if (onFusedQKV) {
+            onFusedQKV({ qSize: qSizeFused, kSize: kSizeFused, vSize: vSizeFused, totalSize: qkvSizeTotal });
+          }
+          return {
+            qTensor: fused.Q,
+            qGateTensor: null,
+            kTensor: fused.K,
+            vTensor: fused.V,
+            usedFusedQKV: true,
+            valueAliasesKey: false,
+            qkNormApplied: true,
+            ropeApplied: true,
+            kvCacheWriteFused: fused.wroteF16KVCache === true,
+          };
+        }
+      }
+      const canFuseSplitAndQKNorm = qkNormFusion?.enabled === true
+        && qkNormFusion.projectionDiagnosticsEnabled !== true
+        && qkNormFusion.skipKNorm !== true
+        && qkNormFusion.allowUnitQKNorm !== true
+        && layerWeights.qNorm
+        && layerWeights.kNorm
+        && qkNormFusion.getNormWeightBuffer
+        && canUseSplitQKVRMSNormQK(qkvTensor, qkNormFusion);
+      if (canFuseSplitAndQKNorm) {
+        qNormBuf = qkNormFusion.getNormWeightBuffer(layerWeights.qNorm, 'q_norm');
+        kNormBuf = qkNormFusion.getNormWeightBuffer(layerWeights.kNorm, 'k_norm');
+        const qNormApplies = normBufferMatchesHeadDim(qNormBuf, headDim);
+        const kNormApplies = normBufferMatchesHeadDim(kNormBuf, headDim);
+        if (qNormApplies && kNormApplies) {
+          const fused = await runSplitQKVRMSNormQKForMode(
+            qkvTensor,
+            qNormBuf,
+            kNormBuf,
+            qkNormFusion.rmsNormEps,
+            {
+              numTokens,
+              numHeads,
+              numKVHeads,
+              headDim,
+              qSize: qSizeFused,
+              kSize: kSizeFused,
+              vSize: vSizeFused,
+              rmsNormWeightOffset: qkNormFusion.rmsNormWeightOffset === true,
+            }
+          );
+          releaseTemporary(qkvTensor.buffer);
+          qkvTensor = null;
+          if (onFusedQKV) {
+            onFusedQKV({ qSize: qSizeFused, kSize: kSizeFused, vSize: vSizeFused, totalSize: qkvSizeTotal });
+          }
+          return {
+            qTensor: fused.Q,
+            qGateTensor: null,
+            kTensor: fused.K,
+            vTensor: fused.V,
+            usedFusedQKV: true,
+            valueAliasesKey: false,
+            qkNormApplied: true,
+            ropeApplied: false,
+            kvCacheWriteFused: false,
+          };
+        }
+      }
       const split = await runSplitForMode(qkvTensor, {
         numTokens,
         qSize: qSizeFused,
@@ -514,6 +750,9 @@ export async function projectAttentionQKV({
         vTensor: split.V,
         usedFusedQKV: true,
         valueAliasesKey: false,
+        qkNormApplied: false,
+        ropeApplied: false,
+        kvCacheWriteFused: false,
       };
     } catch (error) {
       if (qkvTensor) {
@@ -521,6 +760,8 @@ export async function projectAttentionQKV({
       }
       throw error;
     } finally {
+      releaseOwnedNormBuffer(qNormBuf, ownsNormBuffer(layerWeights.qNorm), releaseTemporary, releasedNormBuffers);
+      releaseOwnedNormBuffer(kNormBuf, ownsNormBuffer(layerWeights.kNorm), releaseTemporary, releasedNormBuffers);
       if (projectionInputOwned) {
         releaseTemporary(projectionInput.buffer);
       }
@@ -562,6 +803,9 @@ export async function projectAttentionQKV({
         vTensor: sharedVTensor,
         usedFusedQKV: false,
         valueAliasesKey: false,
+        qkNormApplied: false,
+        ropeApplied: false,
+        kvCacheWriteFused: false,
       };
     }
 
@@ -619,7 +863,17 @@ export async function projectAttentionQKV({
       valueAliasesKey = true;
     }
 
-    return { qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV: false, valueAliasesKey };
+    return {
+      qTensor,
+      qGateTensor,
+      kTensor,
+      vTensor,
+      usedFusedQKV: false,
+      valueAliasesKey,
+      qkNormApplied: false,
+      ropeApplied: false,
+      kvCacheWriteFused: false,
+    };
   } catch (error) {
     for (const tensor of [qTensor, qGateTensor]) {
       if (tensor?.buffer) {
@@ -683,21 +937,63 @@ export async function applyAttentionQKNorm({
   allowUnitQKNorm = false,
 }) {
   const runRmsNormForMode = getRmsNormRunner(recorder);
+  const runRmsNormQKForMode = getRmsNormQKRunner(recorder);
   let nextQ = qTensor;
   let nextK = kTensor;
+  let qNormBuf = null;
+  let kNormBuf = null;
+  const releasedNormBuffers = new Set();
 
-  if ((layerWeights.qNorm && getNormWeightBuffer) || allowUnitQKNorm) {
-    const qNormBuf = layerWeights.qNorm && getNormWeightBuffer
-      ? getNormWeightBuffer(layerWeights.qNorm, 'q_norm')
-      : getQKNormOnesBuffer(headDim);
-    const qElemsF32 = qNormBuf.size / 4;
-    const qElemsF16 = qNormBuf.size / 2;
-    const qElems = qElemsF32 === headDim ? qElemsF32 : qElemsF16;
-    if (qElems === headDim) {
+  try {
+    const wantsQNorm = (layerWeights.qNorm && getNormWeightBuffer) || allowUnitQKNorm;
+    const wantsKNorm = !skipKNorm && ((layerWeights.kNorm && getNormWeightBuffer) || allowUnitQKNorm);
+
+    if (wantsQNorm) {
+      qNormBuf = layerWeights.qNorm && getNormWeightBuffer
+        ? getNormWeightBuffer(layerWeights.qNorm, 'q_norm')
+        : getQKNormOnesBuffer(headDim);
+    }
+    if (wantsKNorm) {
+      kNormBuf = layerWeights.kNorm && getNormWeightBuffer
+        ? getNormWeightBuffer(layerWeights.kNorm, 'k_norm')
+        : getQKNormOnesBuffer(headDim);
+    }
+
+    const qNormApplies = normBufferMatchesHeadDim(qNormBuf, headDim);
+    const kNormApplies = normBufferMatchesHeadDim(kNormBuf, headDim);
+    if (
+      qNormApplies
+      && kNormApplies
+      && canUseRMSNormQK(nextQ, nextK, { skipKNorm })
+    ) {
+      const fused = await runRmsNormQKForMode(nextQ, nextK, qNormBuf, kNormBuf, rmsNormEps, {
+        numTokens,
+        numHeads,
+        numKVHeads,
+        headDim,
+        rmsNormWeightOffset,
+      });
+      releaseTemporary(nextQ.buffer);
+      if (!retainKInput) {
+        releaseTemporary(nextK.buffer);
+      }
+      nextQ = fused.q;
+      nextK = fused.k;
+      if (onQNormApplied) {
+        await onQNormApplied(nextQ);
+      }
+      if (onKNormApplied) {
+        await onKNormApplied(nextK);
+      }
+      return { qTensor: nextQ, kTensor: nextK };
+    }
+
+    if (qNormApplies) {
       const qNormedTensor = await runRmsNormForMode(nextQ, qNormBuf, rmsNormEps, {
         batchSize: numTokens * numHeads,
         hiddenSize: headDim,
         rmsNormWeightOffset,
+        label: 'q_norm',
       });
       releaseTemporary(nextQ.buffer);
       nextQ = qNormedTensor;
@@ -705,23 +1001,13 @@ export async function applyAttentionQKNorm({
         await onQNormApplied(nextQ);
       }
     }
-    if (layerWeights.qNorm && !isGpuBufferInstance(layerWeights.qNorm) && !isWeightBuffer(layerWeights.qNorm)) {
-      releaseTemporary(qNormBuf);
-    }
-  }
 
-  if (!skipKNorm && ((layerWeights.kNorm && getNormWeightBuffer) || allowUnitQKNorm)) {
-    const kNormBuf = layerWeights.kNorm && getNormWeightBuffer
-      ? getNormWeightBuffer(layerWeights.kNorm, 'k_norm')
-      : getQKNormOnesBuffer(headDim);
-    const kElemsF32 = kNormBuf.size / 4;
-    const kElemsF16 = kNormBuf.size / 2;
-    const kElems = kElemsF32 === headDim ? kElemsF32 : kElemsF16;
-    if (kElems === headDim) {
+    if (kNormApplies) {
       const kNormedTensor = await runRmsNormForMode(nextK, kNormBuf, rmsNormEps, {
         batchSize: numTokens * numKVHeads,
         hiddenSize: headDim,
         rmsNormWeightOffset,
+        label: 'k_norm',
       });
       if (!retainKInput) {
         releaseTemporary(nextK.buffer);
@@ -731,10 +1017,9 @@ export async function applyAttentionQKNorm({
         await onKNormApplied(nextK);
       }
     }
-    if (layerWeights.kNorm && !isGpuBufferInstance(layerWeights.kNorm) && !isWeightBuffer(layerWeights.kNorm)) {
-      releaseTemporary(kNormBuf);
-    }
+    return { qTensor: nextQ, kTensor: nextK };
+  } finally {
+    releaseOwnedNormBuffer(qNormBuf, ownsNormBuffer(layerWeights?.qNorm), releaseTemporary, releasedNormBuffers);
+    releaseOwnedNormBuffer(kNormBuf, ownsNormBuffer(layerWeights?.kNorm), releaseTemporary, releasedNormBuffers);
   }
-
-  return { qTensor: nextQ, kTensor: nextK };
 }

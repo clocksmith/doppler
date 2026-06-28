@@ -66,7 +66,7 @@
       "type": "every_n",
       "globalPattern": null,
       "period": 6,
-      "offset": null,
+      "offset": 5,
       "layerTypes": null
     },
     "chatTemplate": {

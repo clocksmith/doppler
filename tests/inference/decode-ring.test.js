@@ -173,7 +173,9 @@ function makeConfig(overrides = {}) {
   assert.equal(ring.buffers.tokens.length, 2);
   assert.equal(ring.buffers.stop.length, 2);
   assert.equal(ring.buffers.stagingTokens.length, 2);
+  assert.equal(ring.buffers.stagingTokens[0].size, 32);
   assert.equal(ring.buffers.stagingStop.length, 2);
+  assert.equal(ring.buffers.stagingStop[0].size, 16);
   assert.equal(ring.buffers.stagingFiniteness.length, 2);
   assert.equal(ring.index, 0);
   assert.equal(ring.ringSize, 2);
@@ -196,6 +198,7 @@ function makeConfig(overrides = {}) {
   assert.equal(ring.buffers.tokens.length, 2);
   assert.equal(ring.buffers.stop, null);
   assert.equal(ring.buffers.stagingTokens.length, 2);
+  assert.equal(ring.buffers.stagingTokens[0].size, 32);
   assert.equal(ring.buffers.stagingStop, null);
   assert.equal(ring.buffers.stagingFiniteness.length, 2);
   assert.equal(ring.zeroStopData, null);

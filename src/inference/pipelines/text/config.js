@@ -230,6 +230,26 @@ function resolveSessionSettings(inferenceConfig, modelId) {
   if (wide !== undefined && wide !== null && typeof wide !== 'boolean') {
     throw new Error(`Manifest "${modelId}" has invalid inference.session.useWideTileQ4KPrefill "${String(wide)}"; expected boolean.`);
   }
+  const wideDecode = session?.useWideTileQ4KDecode;
+  if (wideDecode !== undefined && wideDecode !== null && typeof wideDecode !== 'boolean') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.useWideTileQ4KDecode "${String(wideDecode)}"; expected boolean.`);
+  }
+  const sandwichRmsNormPair = session?.useSandwichRMSNormPairFusion;
+  if (sandwichRmsNormPair !== undefined && sandwichRmsNormPair !== null && typeof sandwichRmsNormPair !== 'boolean') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.useSandwichRMSNormPairFusion "${String(sandwichRmsNormPair)}"; expected boolean.`);
+  }
+  const postFfnNextInputRmsNormPair = session?.usePostFfnNextInputRMSNormPairFusion;
+  if (postFfnNextInputRmsNormPair !== undefined && postFfnNextInputRmsNormPair !== null && typeof postFfnNextInputRmsNormPair !== 'boolean') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.usePostFfnNextInputRMSNormPairFusion "${String(postFfnNextInputRmsNormPair)}"; expected boolean.`);
+  }
+  const fusedQKVSplitQKNorm = session?.useFusedQKVSplitQKNorm;
+  if (fusedQKVSplitQKNorm !== undefined && fusedQKVSplitQKNorm !== null && typeof fusedQKVSplitQKNorm !== 'boolean') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.useFusedQKVSplitQKNorm "${String(fusedQKVSplitQKNorm)}"; expected boolean.`);
+  }
+  const fusedQKVSplitQKNormRoPE = session?.useFusedQKVSplitQKNormRoPE;
+  if (fusedQKVSplitQKNormRoPE !== undefined && fusedQKVSplitQKNormRoPE !== null && typeof fusedQKVSplitQKNormRoPE !== 'boolean') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.useFusedQKVSplitQKNormRoPE "${String(fusedQKVSplitQKNormRoPE)}"; expected boolean.`);
+  }
   const retain = session?.retainQ4KMaterialization;
   if (retain !== undefined && retain !== null && typeof retain !== 'boolean') {
     throw new Error(`Manifest "${modelId}" has invalid inference.session.retainQ4KMaterialization "${String(retain)}"; expected boolean.`);
@@ -239,6 +259,11 @@ function resolveSessionSettings(inferenceConfig, modelId) {
     prefillTokenChunkSize: tokenChunk ?? null,
     useFlashPrefillAttention: flash ?? null,
     useWideTileQ4KPrefill: wide ?? null,
+    useWideTileQ4KDecode: wideDecode ?? null,
+    useSandwichRMSNormPairFusion: sandwichRmsNormPair ?? null,
+    usePostFfnNextInputRMSNormPairFusion: postFfnNextInputRmsNormPair ?? null,
+    useFusedQKVSplitQKNorm: fusedQKVSplitQKNorm ?? null,
+    useFusedQKVSplitQKNormRoPE: fusedQKVSplitQKNormRoPE ?? null,
     retainQ4KMaterialization: retain ?? null,
   };
 }

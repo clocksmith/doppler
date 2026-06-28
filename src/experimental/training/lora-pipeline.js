@@ -36,6 +36,7 @@ import { createDistillStudentRuntimeModelFixture } from './distillation/student-
 import { f16ToF32Array } from '../../inference/kv-cache/types.js';
 
 const CAUSAL_LM_TEXT_PAIR_RUNNER_KEYS = Object.freeze([
+  'gemma-3-270m-it-f16-af32::text-pairs::text_generation',
   'gemma-3-270m-it-q4k-ehf16-af32::text-pairs::text_generation',
   'gemma4-e2b-it::text-pairs::text_generation',
   'gemma-4-e2b-it-q4k-ehf16-af32::text-pairs::text_generation',
@@ -51,6 +52,7 @@ export const LORA_RUNNER_SUPPORT_CONTRACT = Object.freeze({
   supportedDatasetFormat: 'toy_linear_classification_jsonl',
   registeredBaseModelIds: Object.freeze([
     'training-toy',
+    'gemma-3-270m-it-f16-af32',
     'gemma-3-270m-it-q4k-ehf16-af32',
     'gemma4-e2b-it',
     'gemma-4-e2b-it-q4k-ehf16-af32',
@@ -76,53 +78,67 @@ export const LORA_RUNNER_BASE_MODEL_REGISTRY = Object.freeze({
     family: 'training_fixture',
     runnerKind: 'toy_linear_classification',
   }),
+  'gemma-3-270m-it-f16-af32': Object.freeze({
+    baseModelId: 'gemma-3-270m-it-f16-af32',
+    modelRef: 'gemma-3-270m-it-f16-af32',
+    family: 'gemma3',
+    runnerKind: 'causal_lm_text_generation',
+  }),
   'gemma-3-270m-it-q4k-ehf16-af32': Object.freeze({
     baseModelId: 'gemma-3-270m-it-q4k-ehf16-af32',
     modelRef: 'gemma-3-270m-it-q4k-ehf16-af32',
     family: 'gemma3',
     runnerKind: 'causal_lm_text_generation',
+    requiresExternalTrainer: true,
   }),
   'gemma4-e2b-it': Object.freeze({
     baseModelId: 'gemma4-e2b-it',
     modelRef: 'gemma-4-e2b-it-q4k-ehf16-af32',
     family: 'gemma4',
     runnerKind: 'causal_lm_text_generation',
+    requiresExternalTrainer: true,
   }),
   'gemma-4-e2b-it-q4k-ehf16-af32': Object.freeze({
     baseModelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
     modelRef: 'gemma-4-e2b-it-q4k-ehf16-af32',
     family: 'gemma4',
     runnerKind: 'causal_lm_text_generation',
+    requiresExternalTrainer: true,
   }),
   'gemma-4-e2b-it-q4k-ehf16-af32-int4ple': Object.freeze({
     baseModelId: 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
     modelRef: 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
     family: 'gemma4',
     runnerKind: 'causal_lm_text_generation',
+    requiresExternalTrainer: true,
   }),
   'qwen-3-5-0-8b-q4k-ehaf16': Object.freeze({
     baseModelId: 'qwen-3-5-0-8b-q4k-ehaf16',
     modelRef: 'qwen-3-5-0-8b-q4k-ehaf16',
     family: 'qwen3',
     runnerKind: 'causal_lm_text_generation',
+    requiresExternalTrainer: true,
   }),
   'qwen-3-5-2b-q4k-ehaf16': Object.freeze({
     baseModelId: 'qwen-3-5-2b-q4k-ehaf16',
     modelRef: 'qwen-3-5-2b-q4k-ehaf16',
     family: 'qwen3',
     runnerKind: 'causal_lm_text_generation',
+    requiresExternalTrainer: true,
   }),
   'qwen-3-6-27b-q4k-ehaf16': Object.freeze({
     baseModelId: 'qwen-3-6-27b-q4k-ehaf16',
     modelRef: 'qwen-3-6-27b-q4k-ehaf16',
     family: 'qwen3',
     runnerKind: 'causal_lm_text_generation',
+    requiresExternalTrainer: true,
   }),
   'qwen-3-6-27b-q4k-eaf16': Object.freeze({
     baseModelId: 'qwen-3-6-27b-q4k-eaf16',
     modelRef: 'qwen-3-6-27b-q4k-eaf16',
     family: 'qwen3',
     runnerKind: 'causal_lm_text_generation',
+    requiresExternalTrainer: true,
   }),
 });
 
@@ -210,6 +226,7 @@ export function getLoraRunnerCompatibility(workload) {
       runnerKey,
       baseModelFamily: baseModel?.family || null,
       baseModelRunnerKind: baseModel?.runnerKind || null,
+      requiresExternalTrainer: baseModel?.requiresExternalTrainer === true,
       datasetKind: dataset?.datasetKind || null,
       registeredBaseModel: Boolean(baseModel),
       registeredDatasetFormat: Boolean(dataset),
@@ -941,6 +958,56 @@ async function readLossMean(loss) {
   return sum / data.length;
 }
 
+function finiteMetric(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function buildLossQualityClaim(evalDataset, meanLoss, baselineReport) {
+  const baselineLoss = finiteMetric(baselineReport?.loss ?? baselineReport?.primaryScore);
+  const adapterLoss = finiteMetric(meanLoss);
+  if (baselineLoss === null || adapterLoss === null) {
+    return null;
+  }
+  const quality = evalDataset.quality || null;
+  const absoluteImprovement = baselineLoss - adapterLoss;
+  const relativeImprovement = baselineLoss === 0 ? 0 : absoluteImprovement / Math.abs(baselineLoss);
+  const minAbsoluteImprovement = finiteMetric(quality?.minAbsoluteImprovement) ?? 0;
+  const minRelativeImprovement = finiteMetric(quality?.minRelativeImprovement) ?? 0;
+  const improved = absoluteImprovement >= minAbsoluteImprovement
+    && relativeImprovement >= minRelativeImprovement;
+  return {
+    baseline: quality?.baseline || 'base_model',
+    metric: 'loss',
+    selectionGoal: 'min',
+    adapterScore: adapterLoss,
+    baselineScore: baselineLoss,
+    delta: adapterLoss - baselineLoss,
+    absoluteImprovement,
+    relativeImprovement,
+    minAbsoluteImprovement,
+    minRelativeImprovement,
+    improved,
+    requireImprovement: quality?.requireImprovement === true,
+  };
+}
+
+async function computeCausalLmTextPairLosses(workload, fixture, samples, protectedBuffers) {
+  const losses = [];
+  for await (const resolvedBatch of createCausalLmDatasetBatches(samples).batches()) {
+    const tape = new AutogradTape(loadBackwardRegistry());
+    let loss = null;
+    try {
+      const { logits } = await fixture.model.forwardCausalLm(resolvedBatch, tape);
+      loss = await crossEntropyLoss(logits, resolvedBatch.targets, { training: { precision: workload.training.precision } }, tape);
+      losses.push(await readLossMean(loss));
+    } finally {
+      disposeTapeOutputs(tape, protectedBuffers);
+    }
+  }
+  return losses;
+}
+
 async function evaluateCausalLmLoraModel(workload, fixture, dataset, layout = null, checkpointMeta = {}) {
   const protectedBuffers = collectProtectedBuffers(fixture.model);
   const evalReports = [];
@@ -955,21 +1022,18 @@ async function evaluateCausalLmLoraModel(workload, fixture, dataset, layout = nu
     const evalDatasetMaterialized = evalDataset.datasetPath === dataset.absolutePath
       ? dataset
       : await loadCausalLmTextPairSamples(workload, evalDatasetPath, fixture.tokenizer);
-    const losses = [];
-    for await (const resolvedBatch of createCausalLmDatasetBatches(evalDatasetMaterialized.samples).batches()) {
-      const tape = new AutogradTape(loadBackwardRegistry());
-      let loss = null;
-      try {
-        const { logits } = await fixture.model.forwardCausalLm(resolvedBatch, tape);
-        loss = await crossEntropyLoss(logits, resolvedBatch.targets, { training: { precision: workload.training.precision } }, tape);
-        losses.push(await readLossMean(loss));
-      } finally {
-        disposeTapeOutputs(tape, protectedBuffers);
-      }
-    }
+    const losses = await computeCausalLmTextPairLosses(
+      workload,
+      fixture,
+      evalDatasetMaterialized.samples,
+      protectedBuffers
+    );
     const meanLoss = losses.length
       ? losses.reduce((sum, value) => sum + value, 0) / losses.length
       : null;
+    const baselineReports = checkpointMeta.baselineReportsByEvalDatasetId || {};
+    const baselineReport = baselineReports[evalDataset.id] || null;
+    const qualityClaim = buildLossQualityClaim(evalDataset, meanLoss, baselineReport);
     const reportPayload = {
       artifactType: 'training_eval_report',
       schemaVersion: 1,
@@ -982,8 +1046,9 @@ async function evaluateCausalLmLoraModel(workload, fixture, dataset, layout = nu
       datasetHash: evalDatasetMaterialized.datasetHash,
       baseModelId: workload.baseModelId,
       baseModelRef: fixture.baseModelRef,
-      stage: 'lora',
+      stage: checkpointMeta.stage || 'lora',
       checkpointStep: checkpointMeta.checkpointStep ?? null,
+      checkpointId: checkpointMeta.checkpointId || null,
       evalDatasetId: evalDataset.id,
       metrics: {
         loss: {
@@ -994,6 +1059,17 @@ async function evaluateCausalLmLoraModel(workload, fixture, dataset, layout = nu
       primaryMetric: 'loss',
       primaryScore: meanLoss,
       loss: meanLoss,
+      baseline: baselineReport
+        ? {
+          checkpointId: baselineReport.checkpointId || null,
+          stage: baselineReport.stage || null,
+          primaryMetric: baselineReport.primaryMetric || null,
+          primaryScore: baselineReport.primaryScore ?? null,
+          loss: baselineReport.loss ?? null,
+          reportPath: baselineReport.reportPath || null,
+        }
+        : null,
+      qualityClaim,
     };
     const reportFile = layout
       ? await writeJsonArtifact(
@@ -1264,8 +1340,114 @@ function normalizeCausalLmTrainerOutput(output, workload) {
     runnerId: String(output.runnerId || '').trim() || null,
     metrics: isObjectRecord(output.metrics) ? output.metrics : {},
     receipts: Array.isArray(output.receipts) ? output.receipts.slice() : [],
+    evalReports: Array.isArray(output.evalReports) ? output.evalReports.slice() : [],
     tensors,
   };
+}
+
+function normalizeProviderEvalReport(entry, index, context) {
+  if (!isObjectRecord(entry)) {
+    throw new Error(`Causal-LM trainer evalReports[${index}] must be an object.`);
+  }
+  const evalDatasetId = String(entry.evalDatasetId || entry.id || '').trim();
+  if (!evalDatasetId) {
+    throw new Error(`Causal-LM trainer evalReports[${index}].evalDatasetId is required.`);
+  }
+  const primaryMetric = String(entry.primaryMetric || 'loss').trim();
+  if (!primaryMetric) {
+    throw new Error(`Causal-LM trainer evalReports[${index}].primaryMetric is required.`);
+  }
+  const primaryScore = finiteMetric(entry.primaryScore ?? entry.score ?? entry.loss);
+  if (primaryScore === null) {
+    throw new Error(`Causal-LM trainer evalReports[${index}].primaryScore must be finite.`);
+  }
+  const loss = finiteMetric(entry.loss ?? (primaryMetric === 'loss' ? primaryScore : null));
+  const baselineScore = finiteMetric(entry.baseline?.primaryScore ?? entry.baseline?.loss);
+  const qualityClaim = isObjectRecord(entry.qualityClaim)
+    ? entry.qualityClaim
+    : (baselineScore === null || loss === null
+      ? null
+      : {
+        baseline: entry.baseline?.stage || 'base_model',
+        metric: 'loss',
+        selectionGoal: 'min',
+        adapterScore: loss,
+        baselineScore,
+        delta: loss - baselineScore,
+        absoluteImprovement: baselineScore - loss,
+        relativeImprovement: baselineScore === 0 ? 0 : (baselineScore - loss) / Math.abs(baselineScore),
+        minAbsoluteImprovement: 0,
+        minRelativeImprovement: 0,
+        improved: loss <= baselineScore,
+        requireImprovement: false,
+      });
+  return {
+    artifactType: 'training_eval_report',
+    schemaVersion: 1,
+    generatedAt: new Date().toISOString(),
+    workloadId: context.workload.id,
+    workloadPath: context.loadedWorkload.absolutePath || null,
+    workloadSha256: context.loadedWorkload.workloadSha256 || null,
+    configHash: context.workload.configHash,
+    datasetPath: entry.datasetPath || context.dataset.absolutePath,
+    datasetHash: entry.datasetHash || context.datasetHash,
+    baseModelId: context.workload.baseModelId,
+    baseModelRef: context.preflight.baseModelId,
+    stage: entry.stage || 'lora',
+    checkpointId: context.checkpointId,
+    checkpointStep: context.checkpointStep,
+    evalDatasetId,
+    metrics: isObjectRecord(entry.metrics)
+      ? entry.metrics
+      : {
+        [primaryMetric]: {
+          score: primaryScore,
+          samples: finiteMetric(entry.samples) ?? context.dataset.rowCount,
+        },
+      },
+    primaryMetric,
+    primaryScore,
+    loss,
+    baseline: isObjectRecord(entry.baseline) ? entry.baseline : null,
+    qualityClaim,
+  };
+}
+
+async function writeProviderEvalReports(context) {
+  const reports = [];
+  for (let index = 0; index < context.trainerOutput.evalReports.length; index += 1) {
+    const report = normalizeProviderEvalReport(context.trainerOutput.evalReports[index], index, context);
+    const reportFile = await writeJsonArtifact(
+      join(context.layout.eval, `${context.checkpointId}__${report.evalDatasetId}.json`),
+      report
+    );
+    const materialized = {
+      ...report,
+      reportPath: reportFile.path,
+    };
+    reports.push(materialized);
+    await appendScoreboardRow(context.layout.scoreboard, {
+      artifactType: 'training_scoreboard',
+      schemaVersion: 1,
+      generatedAt: new Date().toISOString(),
+      checkpointId: materialized.checkpointId,
+      checkpointStep: materialized.checkpointStep,
+      stage: materialized.stage,
+      evalDatasetId: materialized.evalDatasetId,
+      primaryMetric: materialized.primaryMetric,
+      primaryScore: materialized.primaryScore,
+      loss: materialized.loss,
+      qualityClaim: materialized.qualityClaim || null,
+      metrics: {
+        [materialized.primaryMetric]: materialized.primaryScore,
+        primaryScore: materialized.primaryScore,
+      },
+    }, {
+      selectionMetric: context.workload.selectionMetric,
+      selectionGoal: context.workload.selectionGoal,
+    });
+  }
+  return reports;
 }
 
 async function resolveCausalLmTrainer(loadedWorkload, options = {}) {
@@ -1400,6 +1582,14 @@ function hasExternalCausalLmTrainer(loadedWorkload, options = {}) {
     || Boolean(getPipelineConfig(loadedWorkload.workload).trainer);
 }
 
+function assertInternalCausalLmTrainerAllowed(workload, compatibility) {
+  if (compatibility.observed.requiresExternalTrainer !== true) return;
+  throw new Error(
+    `Causal-LM LoRA base "${workload.baseModelId}" requires lora.trainer.modulePath or runLoraPipeline({ causalLmTrainer }) ` +
+    'because the internal full-graph runner does not train packed q4k base weights.'
+  );
+}
+
 async function runInternalCausalLmLoraPipeline(options, layout, compatibility) {
   const loadedWorkload = options.loadedWorkload;
   const workload = loadedWorkload.workload;
@@ -1413,6 +1603,7 @@ async function runInternalCausalLmLoraPipeline(options, layout, compatibility) {
   if (!preflight.supported || preflight.blockedReasons.length > 0) {
     throw new Error(`Causal-LM LoRA workload is blocked: ${preflight.blockedReasons.join(',')}`);
   }
+  assertInternalCausalLmTrainerAllowed(workload, compatibility);
   if (Math.floor(Number(workload.training.batchSize)) !== 1) {
     throw new Error('Causal-LM LoRA workload requires training.batchSize=1.');
   }
@@ -1423,6 +1614,40 @@ async function runInternalCausalLmLoraPipeline(options, layout, compatibility) {
     const evalReports = [];
     const checkpointArtifacts = [];
     const exports = [];
+    const baselineEvalReports = await evaluateCausalLmLoraModel(workload, fixture, dataset, layout, {
+      checkpointId: 'base-model',
+      checkpointStep: 0,
+      stage: 'base_model',
+      configHash: workload.configHash,
+      workloadPath: loadedWorkload.absolutePath,
+      workloadSha256: loadedWorkload.workloadSha256,
+    });
+    for (const report of baselineEvalReports) {
+      evalReports.push(report);
+      await appendScoreboardRow(layout.scoreboard, {
+        artifactType: 'training_scoreboard',
+        schemaVersion: 1,
+        generatedAt: new Date().toISOString(),
+        checkpointId: report.checkpointId,
+        checkpointStep: report.checkpointStep,
+        stage: report.stage,
+        evalDatasetId: report.evalDatasetId,
+        primaryMetric: report.primaryMetric,
+        primaryScore: report.primaryScore,
+        loss: report.loss,
+        metrics: {
+          loss: report.loss,
+          primaryScore: report.primaryScore,
+        },
+      }, {
+        selectionMetric: workload.selectionMetric,
+        selectionGoal: workload.selectionGoal,
+      });
+    }
+    const baselineReportsByEvalDatasetId = Object.fromEntries(
+      baselineEvalReports.map((report) => [report.evalDatasetId, report])
+    );
+    const finalizedCheckpointIds = new Set();
     const runner = new TrainingRunner(createLoraRunnerTrainingConfig(workload, freeze), {
       optimizer: createLoraOptimizer(workload),
       crossEntropyLoss,
@@ -1430,6 +1655,8 @@ async function runInternalCausalLmLoraPipeline(options, layout, compatibility) {
       trainingObjective: createCausalLmTrainingObjective(),
       onCheckpoint: async (checkpoint) => {
         const checkpointId = `checkpoint-${String(checkpoint.step).padStart(6, '0')}`;
+        if (finalizedCheckpointIds.has(checkpointId)) return;
+        finalizedCheckpointIds.add(checkpointId);
         const checkpointPayload = {
           ...buildArtifact(loadedWorkload, {
             prefix: 'lora_ckpt',
@@ -1478,6 +1705,7 @@ async function runInternalCausalLmLoraPipeline(options, layout, compatibility) {
           configHash: workload.configHash,
           workloadPath: loadedWorkload.absolutePath,
           workloadSha256: loadedWorkload.workloadSha256,
+          baselineReportsByEvalDatasetId,
         });
         for (const report of reports) {
           evalReports.push(report);
@@ -1487,10 +1715,12 @@ async function runInternalCausalLmLoraPipeline(options, layout, compatibility) {
             generatedAt: new Date().toISOString(),
             checkpointId,
             checkpointStep: checkpoint.step,
+            stage: report.stage,
             evalDatasetId: report.evalDatasetId,
             primaryMetric: report.primaryMetric,
             primaryScore: report.primaryScore,
             loss: report.loss,
+            qualityClaim: report.qualityClaim || null,
             metrics: {
               loss: report.loss,
               primaryScore: report.primaryScore,
@@ -1653,6 +1883,17 @@ async function runProviderCausalLmLoraPipeline(options, compatibility) {
       trainerInfo,
       preflight
     );
+  const evalReports = await writeProviderEvalReports({
+    loadedWorkload,
+    workload,
+    layout,
+    dataset,
+    datasetHash,
+    preflight,
+    trainerOutput,
+    checkpointId: trainerOutput.checkpointId,
+    checkpointStep: trainerOutput.checkpointStep,
+  });
   return {
     ok: true,
     kind: 'lora',
@@ -1667,7 +1908,7 @@ async function runProviderCausalLmLoraPipeline(options, compatibility) {
       markerPath: checkpointArtifact.path,
       checkpointStep: trainerOutput.checkpointStep,
     }],
-    evalReports: [],
+    evalReports,
     exports: exported ? [exported] : [],
     metrics: trainerOutput.metrics,
     lastCheckpoint: {
@@ -1731,6 +1972,7 @@ export async function runLoraPipeline(options) {
     const evalReports = [];
     const checkpointArtifacts = [];
     const exports = [];
+    const finalizedCheckpointIds = new Set();
     const runner = new TrainingRunner({
       training: {
         enabled: true,
@@ -1814,6 +2056,8 @@ export async function runLoraPipeline(options) {
       },
       onCheckpoint: async (checkpoint) => {
         const checkpointId = `checkpoint-${String(checkpoint.step).padStart(6, '0')}`;
+        if (finalizedCheckpointIds.has(checkpointId)) return;
+        finalizedCheckpointIds.add(checkpointId);
         const checkpointPayload = {
           ...buildArtifact(loadedWorkload, {
             prefix: 'lora_ckpt',
@@ -2010,42 +2254,134 @@ export async function watchLoraCheckpoints(options) {
   });
 }
 
-export async function compareLoraRun(options) {
-  const evalDir = join(options.runRoot, 'eval');
-  const entries = await readdir(evalDir, { withFileTypes: true });
-  const reports = [];
-  for (const entry of entries) {
-    if (!entry.isFile() || !entry.name.endsWith('.json')) continue;
-    const raw = await readFile(join(evalDir, entry.name), 'utf8');
-    reports.push(JSON.parse(raw));
+async function listJsonFilesRecursive(rootDir) {
+  const results = [];
+  let entries = [];
+  try {
+    entries = await readdir(rootDir, { withFileTypes: true });
+  } catch (error) {
+    if (error?.code === 'ENOENT') return results;
+    throw error;
   }
-  const sorted = reports
+  for (const entry of entries) {
+    const absolutePath = join(rootDir, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...await listJsonFilesRecursive(absolutePath));
+      continue;
+    }
+    if (entry.isFile() && entry.name.endsWith('.json')) {
+      results.push(absolutePath);
+    }
+  }
+  return results.sort((left, right) => left.localeCompare(right));
+}
+
+function resolveComparableReportMetric(report, metric) {
+  if (!report || typeof report !== 'object') return null;
+  const direct = report[metric];
+  if (typeof direct === 'number' && Number.isFinite(direct)) {
+    return direct;
+  }
+  const nested = report.metrics?.[metric];
+  if (typeof nested === 'number' && Number.isFinite(nested)) {
+    return nested;
+  }
+  if (nested && typeof nested === 'object' && typeof nested.score === 'number' && Number.isFinite(nested.score)) {
+    return nested.score;
+  }
+  return null;
+}
+
+async function loadRunWorkloadForComparison(runRoot) {
+  try {
+    const raw = await readFile(join(runRoot, 'workload.lock.json'), 'utf8');
+    const lock = JSON.parse(raw);
+    return lock.workload || null;
+  } catch (error) {
+    if (error?.code === 'ENOENT') return null;
+    throw error;
+  }
+}
+
+function sortTrainingReports(reports, workload = null) {
+  const metric = String(workload?.selectionMetric || reports[0]?.primaryMetric || 'primaryScore').trim();
+  const goal = String(workload?.selectionGoal || (metric === 'loss' ? 'min' : 'max')).trim();
+  return reports
     .slice()
     .sort((left, right) => {
-      const leftScore = Number(left?.primaryScore ?? Number.NEGATIVE_INFINITY);
-      const rightScore = Number(right?.primaryScore ?? Number.NEGATIVE_INFINITY);
+      const missingScore = goal === 'min' ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
+      const leftScore = resolveComparableReportMetric(left, metric) ?? missingScore;
+      const rightScore = resolveComparableReportMetric(right, metric) ?? missingScore;
+      if (goal === 'min') return leftScore - rightScore;
       return rightScore - leftScore;
     });
+}
+
+async function loadTrainingEvalReports(rootDir) {
+  const files = await listJsonFilesRecursive(rootDir);
+  const reports = [];
+  for (const filePath of files) {
+    const raw = await readFile(filePath, 'utf8');
+    const report = JSON.parse(raw);
+    if (report?.artifactType === 'training_eval_report') {
+      reports.push({
+        ...report,
+        reportPath: report.reportPath || filePath,
+      });
+    }
+  }
+  return reports;
+}
+
+export async function compareLoraRun(options) {
+  const runRoot = resolve(String(options.runRoot));
+  const workload = await loadRunWorkloadForComparison(runRoot);
+  const sorted = sortTrainingReports(await loadTrainingEvalReports(join(runRoot, 'eval')), workload);
   const payload = {
     artifactType: 'training_compare_report',
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
-    runRoot: options.runRoot,
+    runRoot,
+    selectionMetric: workload?.selectionMetric || sorted[0]?.primaryMetric || null,
+    selectionGoal: workload?.selectionGoal || null,
     count: sorted.length,
     best: sorted[0] || null,
     reports: sorted.map((report) => ({
+      stage: report.stage || null,
       checkpointId: report.checkpointId || null,
       evalDatasetId: report.evalDatasetId || null,
       primaryMetric: report.primaryMetric || null,
       primaryScore: report.primaryScore ?? null,
+      loss: report.loss ?? null,
+      baseline: report.baseline || null,
+      qualityClaim: report.qualityClaim || null,
       accuracy: report.accuracy ?? null,
       reportPath: report.reportPath || null,
     })),
   };
-  const artifact = await writeJsonArtifact(join(options.runRoot, 'compare', 'compare.json'), payload);
+  const artifact = await writeJsonArtifact(join(runRoot, 'compare', 'compare.json'), payload);
   return {
     ...payload,
     comparePath: artifact.path,
+  };
+}
+
+function collectRequiredImprovementEvalIds(workload) {
+  const evalDatasets = Array.isArray(workload?.evalDatasets) ? workload.evalDatasets : [];
+  return evalDatasets
+    .filter((entry) => entry?.quality?.requireImprovement === true)
+    .map((entry) => entry.id);
+}
+
+function summarizeQualityClaims(reports) {
+  const claims = reports
+    .map((report) => report.qualityClaim)
+    .filter((claim) => claim && typeof claim === 'object');
+  return {
+    count: claims.length,
+    improvedCount: claims.filter((claim) => claim.improved === true).length,
+    requiredCount: claims.filter((claim) => claim.requireImprovement === true).length,
+    failedRequiredCount: claims.filter((claim) => claim.requireImprovement === true && claim.improved !== true).length,
   };
 }
 
@@ -2064,6 +2400,35 @@ export async function qualityGateLoraRun(options) {
       checks.push({ path: filePath, ok: false, error: error?.message || String(error) });
     }
   }
+  const workload = await loadRunWorkloadForComparison(runRoot);
+  const evalReports = await loadTrainingEvalReports(join(runRoot, 'eval'));
+  const qualitySummary = summarizeQualityClaims(evalReports);
+  const requiredImprovementEvalIds = collectRequiredImprovementEvalIds(workload);
+  if (evalReports.length > 0) {
+    checks.push({
+      name: 'eval_reports',
+      path: join(runRoot, 'eval'),
+      ok: true,
+      count: evalReports.length,
+    });
+  }
+  if (qualitySummary.count > 0) {
+    checks.push({
+      name: 'baseline_quality_claims',
+      path: join(runRoot, 'eval'),
+      ok: qualitySummary.failedRequiredCount === 0,
+      ...qualitySummary,
+    });
+  }
+  if (requiredImprovementEvalIds.length > 0 && qualitySummary.count === 0) {
+    checks.push({
+      name: 'required_improvement_claims',
+      path: join(runRoot, 'eval'),
+      ok: false,
+      requiredEvalDatasetIds: requiredImprovementEvalIds,
+      error: 'No baseline quality claims were written for eval datasets that require improvement.',
+    });
+  }
   const passed = checks.every((entry) => entry.ok === true);
   const payload = {
     artifactType: 'training_quality_gate',
@@ -2071,6 +2436,7 @@ export async function qualityGateLoraRun(options) {
     generatedAt: new Date().toISOString(),
     runRoot,
     passed,
+    qualitySummary,
     checks,
   };
   const artifact = await writeJsonArtifact(join(runRoot, 'quality-gate', 'quality-gate.json'), payload);

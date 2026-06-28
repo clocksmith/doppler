@@ -390,13 +390,18 @@ export function buildAttentionDispatchParams(config, state, kTensor, vTensor, kv
   const attnScale = queryPreAttnScalar ? 1.0 / Math.sqrt(queryPreAttnScalar) : 1.0 / Math.sqrt(headDim);
 
   // Cached K/V dtypes
+  const kFallbackDtype = kTensor?.dtype ?? resolvedKvCacheDtype;
+  const vFallbackDtype = vTensor?.dtype ?? resolvedKvCacheDtype;
+  if (!kFallbackDtype || !vFallbackDtype) {
+    throw new Error('Attention dispatch requires K/V tensor dtypes or an explicit KV cache dtype.');
+  }
   const cachedKDtype = selectRuleValue('inference', 'dtype', 'f16OrFallback', {
     kvDtype: resolvedKvCacheDtype,
-    fallback: kTensor.dtype,
+    fallback: kFallbackDtype,
   });
   const cachedVDtype = selectRuleValue('inference', 'dtype', 'f16OrFallback', {
     kvDtype: resolvedKvCacheDtype,
-    fallback: vTensor.dtype,
+    fallback: vFallbackDtype,
   });
 
   // Cached K/V tensors (null for tiered, contiguousQuant, and prefill-fallback paths)

@@ -1,0 +1,59 @@
+{
+  "frontier": [
+    {
+      "id": "gepa-pareto-0001",
+      "content": "Use Doppler's local conventions. Inspect files first, patch the smallest surface, and verify with focused commands.",
+      "scores": {
+        "accuracy": 0.9,
+        "efficiency": 0.8,
+        "robustness": 0.85,
+        "cost": 0.7
+      },
+      "generation": 2,
+      "rank": 0,
+      "dominatedBy": 0,
+      "crowdingDistance": 1.5,
+      "traces": [
+        {
+          "taskKind": "js_json_write",
+          "input": "Patch a JavaScript config normalizer for optional JSON fields.",
+          "actualOutput": "Normalize optional arrays at the boundary, preserve required-field validation, and add a focused config-loader test.",
+          "success": true
+        },
+        {
+          "taskKind": "wgsl_write",
+          "input": "Fix a WGSL partial tile load.",
+          "actualOutput": "Guard the row and column before the storage read, write zero for inactive lanes, and preserve shared-memory barriers.",
+          "success": true
+        }
+      ]
+    },
+    {
+      "id": "gepa-pareto-0002",
+      "content": "Review cross-cutting Doppler patches by tracing schema, runtime, shader, and test contracts together.",
+      "scores": {
+        "accuracy": 0.82,
+        "efficiency": 0.9,
+        "robustness": 0.88,
+        "cost": 0.75
+      },
+      "generation": 3,
+      "rank": 0,
+      "dominatedBy": 0,
+      "traces": [
+        {
+          "taskKind": "cross_cutting_review",
+          "input": "Review a JSON profile and WGSL dispatch patch.",
+          "actualOutput": "Check precedence, schema compatibility, dispatch grid rounding, shader bounds, and fixture coverage for non-divisible dimensions.",
+          "success": true
+        },
+        {
+          "taskKind": "cross_cutting_review",
+          "input": "Review a failing patch with no tests.",
+          "actualOutput": "Reject the patch until it includes the missing focused regression.",
+          "success": false
+        }
+      ]
+    }
+  ]
+}

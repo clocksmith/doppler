@@ -5,7 +5,7 @@ import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { KernelBase } from './kernel-base.js';
 import { FFN_DISPATCH } from './constants.js';
-import { createUniformBufferWithView } from './utils.js';
+import { createUniformBufferWithView, getPipelineBindGroupLayout } from './utils.js';
 import { trace, isTraceEnabled } from '../../debug/index.js';
 import { getBuffer, getWeightDtype } from '../weight-buffer.js';
 import { isFusedQ4KDisabled } from './matmul.js';
@@ -49,7 +49,6 @@ const F16_OUTPUT_VARIANTS = new Set([
   'f16_native',
   'f16_native_batched',
 ]);
-
 
 function selectFFNVariant(batchSize, weightDtype, intermediateSize, hiddenSize, inputDtype) {
   const { multiOutputThreshold } = getKernelThresholds().ffn;
@@ -227,7 +226,7 @@ export async function runFusedFFN(
   try {
     const bindGroup = device.createBindGroup({
       label: 'fused_ffn_bind_group',
-      layout: pipeline.getBindGroupLayout(0),
+      layout: getPipelineBindGroupLayout(pipeline, 0),
       entries: [
         { binding: 0, resource: { buffer: uniformBuffer } },
         { binding: 1, resource: { buffer: input.buffer } },
@@ -319,7 +318,7 @@ export async function recordFusedFFN(
   try {
     const bindGroup = device.createBindGroup({
       label: 'fused_ffn_bind_group',
-      layout: pipeline.getBindGroupLayout(0),
+      layout: getPipelineBindGroupLayout(pipeline, 0),
       entries: [
         { binding: 0, resource: { buffer: uniformBuffer } },
         { binding: 1, resource: { buffer: input.buffer } },

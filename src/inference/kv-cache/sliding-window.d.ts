@@ -68,5 +68,19 @@ export class SlidingWindowKVCache extends KVCache {
     tokenIds?: number[] | null
   ): void;
 
+  /**
+   * Record direct f32 source to f16 GPU KV cache update with ring-buffer semantics.
+   * Does NOT submit - caller is responsible for submitting the recorder.
+   */
+  recordUpdateF32ToF16FromGPU(
+    recorder: import('../../gpu/kernel-selector.js').CommandRecorder,
+    layerIdx: number,
+    keysBuffer: GPUBuffer,
+    valuesBuffer: GPUBuffer,
+    startPos: number,
+    numTokens: number,
+    tokenIds?: number[] | null
+  ): void | Promise<void>;
+
   getMemoryStats(): MemoryStats & { windowSize: number; totalTokensSeen: number };
 }

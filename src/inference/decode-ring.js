@@ -1,6 +1,7 @@
 import { getDevice, getDeviceLimits } from '../gpu/device.js';
 
 const TOKEN_BYTES = 4;
+const FINITENESS_STATUS_BYTES = 16;
 
 function clampRingSize(size) {
   if (size == null) return 0;
@@ -124,13 +125,14 @@ export class DecodeRing {
 
     const tokensBytes = (normalized.tokensPerInterval + 1) * TOKEN_BYTES;
     const stopBytes = (normalized.tokensPerInterval + 1) * TOKEN_BYTES;
-    const stagingBytes = normalized.tokensPerInterval * TOKEN_BYTES;
+    const tokenStagingBytes = normalized.tokensPerInterval * TOKEN_BYTES + FINITENESS_STATUS_BYTES;
+    const stopStagingBytes = normalized.tokensPerInterval * TOKEN_BYTES;
 
     assertBufferFits('tokens', tokensBytes, true, limits);
-    assertBufferFits('stagingTokens', stagingBytes, false, limits);
+    assertBufferFits('stagingTokens', tokenStagingBytes, false, limits);
     if (normalized.stopCheckMode === 'per-token') {
       assertBufferFits('stop', stopBytes, true, limits);
-      assertBufferFits('stagingStop', stagingBytes, false, limits);
+      assertBufferFits('stagingStop', stopStagingBytes, false, limits);
     }
 
     const buffers = {
@@ -155,7 +157,7 @@ export class DecodeRing {
       buffers.stagingTokens = Array.from({ length: normalized.ringStaging }, (_, i) => (
         device.createBuffer({
           label: `decode_ring_staging_tokens_${i}`,
-          size: stagingBytes,
+          size: tokenStagingBytes,
           usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
         })
       ));
@@ -175,7 +177,7 @@ export class DecodeRing {
       buffers.stagingStop = Array.from({ length: normalized.ringStaging }, (_, i) => (
         device.createBuffer({
           label: `decode_ring_staging_stop_${i}`,
-          size: stagingBytes,
+          size: stopStagingBytes,
           usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
         })
       ));

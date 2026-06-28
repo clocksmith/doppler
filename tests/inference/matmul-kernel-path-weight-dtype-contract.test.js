@@ -234,6 +234,44 @@ try {
   );
   assert.equal(selectedQ4KDecode.variant, 'q4_fused_multicol');
 
+  const selectedQ4KDecodeWideTile = selectMatmulVariantAndFlags(
+    'run',
+    1,
+    16,
+    32,
+    'f32',
+    'q4k',
+    true,
+    'f32',
+    {
+      role: 'q_proj',
+      layerIdx: 0,
+      kernelPath,
+      useWideTileQ4KDecode: true,
+    }
+  );
+  assert.equal(selectedQ4KDecodeWideTile.variant, 'q4_fused_widetile');
+
+  const selectedQ4KDecodeWideTileResidual = selectMatmulVariantAndFlags(
+    'run',
+    1,
+    16,
+    32,
+    'f32',
+    'q4k',
+    true,
+    'f32',
+    {
+      role: 'q_proj',
+      layerIdx: 0,
+      kernelPath,
+      residualTensor: {},
+      useWideTileQ4KDecode: true,
+      useWideTileResidualFusion: true,
+    }
+  );
+  assert.equal(selectedQ4KDecodeWideTileResidual.variant, 'q4_fused_widetile_residual');
+
   assert.throws(
     () => selectMatmulVariantAndFlags(
       'run',

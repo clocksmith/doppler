@@ -247,11 +247,29 @@ function normalizeEvalDatasets(value, label) {
         `${label}[${index}].scoreboardColumns`,
         { optional: true, allowEmpty: true }
       ) ?? [],
+      quality: normalizeEvalQualityConfig(dataset.quality, `${label}[${index}].quality`),
       sourceLangs: asStringArray(dataset.sourceLangs, `${label}[${index}].sourceLangs`, { optional: true, allowEmpty: true }),
       targetLangs: asStringArray(dataset.targetLangs, `${label}[${index}].targetLangs`, { optional: true, allowEmpty: true }),
       pairAllowlist: asStringArray(dataset.pairAllowlist, `${label}[${index}].pairAllowlist`, { optional: true, allowEmpty: true }),
     };
   });
+}
+
+function normalizeEvalQualityConfig(value, label) {
+  const quality = asObject(value, label, { optional: true });
+  if (!quality) return null;
+  return {
+    baseline: asNonEmptyString(quality.baseline ?? 'base_model', `${label}.baseline`),
+    requireImprovement: asBoolean(quality.requireImprovement ?? false, `${label}.requireImprovement`),
+    minAbsoluteImprovement: asFiniteNumber(
+      quality.minAbsoluteImprovement ?? 0,
+      `${label}.minAbsoluteImprovement`
+    ),
+    minRelativeImprovement: asFiniteNumber(
+      quality.minRelativeImprovement ?? 0,
+      `${label}.minRelativeImprovement`
+    ),
+  };
 }
 
 function normalizeFreezeConfig(value, label) {
@@ -309,6 +327,12 @@ function normalizeStagePlan(value, label) {
   });
 }
 
+function isSftStageEntry(stage) {
+  const trainingStage = String(stage?.trainingStage || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+  const objective = String(stage?.objective || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+  return trainingStage === 'sft' || objective === 'sft';
+}
+
 function normalizeLoraConfig(value, label) {
   const lora = asObject(value, label);
   const adapter = asObject(lora.adapter, `${label}.adapter`);
@@ -355,6 +379,11 @@ function normalizeLoraConfig(value, label) {
   };
 }
 
+function normalizeDistillSftLoraConfig(value, label) {
+  if (value === undefined || value === null) return null;
+  return normalizeLoraConfig(value, label);
+}
+
 function normalizeDistillConfig(value, label) {
   const distill = asObject(value, label);
   return {
@@ -369,6 +398,7 @@ function normalizeDistillConfig(value, label) {
     pairAllowlist: asStringArray(distill.pairAllowlist, `${label}.pairAllowlist`, { optional: true, allowEmpty: true }),
     strictPairContract: asBoolean(distill.strictPairContract, `${label}.strictPairContract`),
     subsetSpec: asObject(distill.subsetSpec, `${label}.subsetSpec`, { optional: true }),
+    sftLora: normalizeDistillSftLoraConfig(distill.sftLora, `${label}.sftLora`),
   };
 }
 
@@ -491,12 +521,16 @@ export function normalizeTrainingWorkloadPack(payload, context = {}) {
     workload.pipeline = normalizeLoraConfig(payload.lora ?? payload.pipeline, `${contextLabel}.lora`);
   } else if (kind === 'distill') {
     workload.pipeline = normalizeDistillConfig(payload.distill ?? payload.pipeline, `${contextLabel}.distill`);
-    const stageRequiresTeacher = workload.pipeline.stagePlan.some((stage) => stage.objective !== 'sft');
+    const hasSftStage = workload.pipeline.stagePlan.some((stage) => isSftStageEntry(stage));
+    const stageRequiresTeacher = workload.pipeline.stagePlan.some((stage) => !isSftStageEntry(stage));
     if (stageRequiresTeacher && !workload.teacherModelId) {
       throw new Error(`${contextLabel}.teacherModelId is required when stagePlan includes non-SFT stages.`);
     }
     if (!workload.studentModelId) {
       throw new Error(`${contextLabel}.studentModelId is required for distill workloads.`);
+    }
+    if (hasSftStage && !workload.pipeline.sftLora) {
+      throw new Error(`${contextLabel}.distill.sftLora is required when stagePlan includes SFT stages.`);
     }
   }
 

@@ -29,6 +29,7 @@ import type {
   CustomShardLoader,
   CustomShardLoaderOptions,
   LoaderStats,
+  LoaderLoadTiming,
   KernelCapabilities,
   Q4KConfig,
   ModelConfig,
@@ -47,6 +48,7 @@ export type {
   CustomShardLoader,
   CustomShardLoaderOptions,
   LoaderStats,
+  LoaderLoadTiming,
 } from './loader-types.js';
 
 // ============================================================================
@@ -88,6 +90,7 @@ export declare class DopplerLoader {
   // Loading state
   loadedShards: Set<number>;
   tensorLocations: Map<string, TensorLocation>;
+  loadTiming: LoaderLoadTiming | null;
 
   // Shard cache (LRU with request deduplication)
   shardCache: ShardCache;
@@ -138,6 +141,8 @@ export declare class DopplerLoader {
   canRunDense(): boolean;
 
   getStats(): LoaderStats;
+
+  getLoadTiming(): LoaderLoadTiming | null;
 
   getExpertCacheStats(): CacheStats | null;
 

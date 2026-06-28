@@ -229,14 +229,15 @@ assert.throws(
 // Both undefined returns empty defaults
 {
   const result = mergeExecutionPatchLists(undefined, undefined);
-  assert.deepEqual(result, { set: [], remove: [], add: [] });
+  assert.deepEqual(result, { addKernels: [], set: [], remove: [], add: [] });
 }
 
 // Override replaces base
 {
-  const base = { set: [1], remove: [2], add: [3] };
+  const base = { addKernels: [0], set: [1], remove: [2], add: [3] };
   const override = { set: [10] };
   const result = mergeExecutionPatchLists(base, override);
+  assert.deepEqual(result.addKernels, [0]);
   assert.deepEqual(result.set, [10]);
   assert.deepEqual(result.remove, [2]);
   assert.deepEqual(result.add, [3]);
@@ -246,6 +247,7 @@ assert.throws(
 {
   const base = { set: [1] };
   const result = mergeExecutionPatchLists(base, undefined);
+  assert.deepEqual(result.addKernels, []);
   assert.deepEqual(result.set, [1]);
   assert.deepEqual(result.remove, []);
   assert.deepEqual(result.add, []);

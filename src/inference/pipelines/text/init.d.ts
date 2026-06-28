@@ -16,7 +16,11 @@ import type { ParsedModelConfig, Manifest } from './config.js';
 import type { KernelCapabilities } from '../../../gpu/device.js';
 import type { WeightBuffer, CpuWeightBuffer } from '../../../gpu/weight-buffer.js';
 import type { LoadedEmbeddingPostprocessor } from '../../../loader/final-weights-loader.js';
-import type { DiffusionGemmaSelfConditioningWeights, PerLayerInputWeights } from '../../../loader/loader-types.js';
+import type {
+  DiffusionGemmaSelfConditioningWeights,
+  LoaderLoadTiming,
+  PerLayerInputWeights,
+} from '../../../loader/loader-types.js';
 import {
   KVCache,
   SlidingWindowKVCache,
@@ -222,6 +226,7 @@ export interface WeightLoadResult {
   diffusionGemmaSelfConditioning: DiffusionGemmaSelfConditioningWeights | null;
   perLayerInputWeights: PerLayerInputWeights | null;
   layerRouterWeights: Map<number, RouterWeights>;
+  loadTiming: LoaderLoadTiming | null;
 }
 
 export interface ResolvedQ4KConfig {

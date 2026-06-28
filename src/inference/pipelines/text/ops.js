@@ -5,6 +5,7 @@ import {
   recordRMSNorm, recordResidualAdd, recordMatmul, recordSiLU, recordGeLU,
   runSiLURowSplit, recordSiLURowSplit,
   runMatmulRMSNormFused, recordMatmulRMSNormFused,
+  runSandwichRMSNormPair, recordSandwichRMSNormPair,
   runConv2D, recordConv2D,
 } from '../../../gpu/kernel-selector.js';
 import {
@@ -52,6 +53,21 @@ export async function doRMSNorm(input, weight, eps, options, recorder) {
     const layer = options.layerIdx ?? -1;
     const label = options.label ?? 'rmsnorm';
     await traceStep('rmsnorm', label, layer, result.buffer, [options.batchSize, options.hiddenSize]);
+  }
+
+  return result;
+}
+
+export async function doSandwichRMSNormPair(input, residual, postWeight, preWeight, eps, options, recorder) {
+  const result = recorder
+    ? await recordSandwichRMSNormPair(recorder, input, residual, postWeight, preWeight, eps, options)
+    : await runSandwichRMSNormPair(input, residual, postWeight, preWeight, eps, options);
+
+  if (kernelTrace.enabled && !recorder) {
+    const layer = options.layerIdx ?? -1;
+    const label = options.label ?? 'rmsnorm_pair';
+    await traceStep('rmsnorm_pair.post_attn', label, layer, result.postAttn.buffer, [options.batchSize, options.hiddenSize]);
+    await traceStep('rmsnorm_pair.pre_ffn', label, layer, result.ffnInput.buffer, [options.batchSize, options.hiddenSize]);
   }
 
   return result;

@@ -7,7 +7,12 @@
  * @module inference/pipelines/text/ops
  */
 
-import type { SiLURowSplitOptions, CommandRecorder } from '../../../gpu/kernel-selector.js';
+import type {
+  SiLURowSplitOptions,
+  CommandRecorder,
+  SandwichRMSNormPairOptions,
+  SandwichRMSNormPairResult,
+} from '../../../gpu/kernel-selector.js';
 import type { Tensor } from '../../../gpu/tensor.js';
 import type { WeightBuffer, CpuWeightBuffer } from '../../../gpu/weight-buffer.js';
 import type { DecodeBufferManager } from '../../decode-buffers.js';
@@ -49,6 +54,16 @@ export function doRMSNorm(
   },
   recorder?: CommandRecorder
 ): Promise<Tensor>;
+
+export function doSandwichRMSNormPair(
+  input: Tensor,
+  residual: Tensor | null,
+  postWeight: GPUBuffer | WeightBuffer | CpuWeightBuffer,
+  preWeight: GPUBuffer | WeightBuffer | CpuWeightBuffer,
+  eps: number,
+  options?: SandwichRMSNormPairOptions,
+  recorder?: CommandRecorder
+): Promise<SandwichRMSNormPairResult>;
 
 /**
  * ResidualAdd that uses record variant when recorder is provided.

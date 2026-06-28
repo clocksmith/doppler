@@ -6,7 +6,12 @@ import { createTensor } from '../tensor.js';
 import { KernelBase } from './kernel-base.js';
 import { TILE_SIZES } from './constants.js';
 import { getKernelThresholds, padToQ4KBlock } from '../../config/schema/index.js';
-import { createUniformBufferWithView, getKernelConfig, hasRequiredFeatures } from './utils.js';
+import {
+  createUniformBufferWithView,
+  getKernelConfig,
+  getPipelineBindGroupLayout,
+  hasRequiredFeatures,
+} from './utils.js';
 import { dispatchIndirect, recordDispatchIndirect } from './dispatch.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import { log, trace } from '../../debug/index.js';
@@ -215,7 +220,6 @@ class AttentionBDPAKernel extends KernelBase {
     this.recordKernel(recorder, pipeline, bindGroup, workgroups, 'attention_bdpa');
   }
 }
-
 
 function selectAttentionTier(
   headDim,
@@ -472,9 +476,13 @@ function validateAttentionVariant(
   }
 
   if (normalized.startsWith('decode_online')) {
+    const exactHeadDim = config.variantMetadata?.exactHeadDim;
     const maxHeadDim = config.variantMetadata?.maxHeadDim ?? thresholds.subgroupMaxHeadDim;
     if (!caps.hasSubgroups) {
       throw new Error(`Attention kernel "${variant}" requires subgroup support.`);
+    }
+    if (Number.isFinite(exactHeadDim) && headDim !== exactHeadDim) {
+      throw new Error(`Attention kernel "${variant}" requires headDim == ${exactHeadDim} but got ${headDim}.`);
     }
     if (headDim > maxHeadDim) {
       throw new Error(`Attention kernel "${variant}" requires headDim <= ${maxHeadDim} but got ${headDim}.`);
@@ -986,7 +994,7 @@ async function executeAttentionBDPA(
 
   const bindGroup = execution.device.createBindGroup({
     label: 'attention_bdpa_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
+    layout: getPipelineBindGroupLayout(pipeline, 0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: Q.buffer } },
@@ -1208,7 +1216,7 @@ async function executeAttention(
   ]);
   const bindGroup = execution.device.createBindGroup({
     label: 'attention_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
+    layout: getPipelineBindGroupLayout(pipeline, 0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: Q.buffer } },
@@ -1562,9 +1570,9 @@ async function executeOrtFlashAttentionPrefill(recorder, Q, K, V, numHeads, head
   const kvLenBinding = kvLenBuffer || getKvLenFallbackBuffer(device);
   const pageTableBinding = kvPageTable || getPageTableFallbackBuffer(device);
 
-  const bindGroup = device.createBindGroup({
+  const bindGroup = execution.device.createBindGroup({
     label: 'attention_ort_flash_prefill_bg',
-    layout: pipeline.getBindGroupLayout(0),
+    layout: getPipelineBindGroupLayout(pipeline, 0),
     entries: [
       { binding: 0, resource: { buffer: uniform } },
       { binding: 1, resource: { buffer: Q.buffer } },
@@ -1697,7 +1705,7 @@ async function executeAttentionTiered(
   ]);
   const bindGroup = execution.device.createBindGroup({
     label: 'attention_tiered_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
+    layout: getPipelineBindGroupLayout(pipeline, 0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: Q.buffer } },
@@ -1898,7 +1906,7 @@ async function executeAttentionTieredQuant(
 
   const bindGroup = execution.device.createBindGroup({
     label: 'attention_tiered_quant_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
+    layout: getPipelineBindGroupLayout(pipeline, 0),
     entries,
   });
 
@@ -2174,7 +2182,7 @@ async function executeAttentionContiguousQuant(
 
   const bindGroup = execution.device.createBindGroup({
     label: 'attention_contiguous_quant_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
+    layout: getPipelineBindGroupLayout(pipeline, 0),
     entries,
   });
 

@@ -1,6 +1,6 @@
 
-
 import { getDevice } from '../../gpu/device.js';
+import { recordKVCacheWriteF32ToF16 } from '../../gpu/kernel-selector.js';
 import { allowReadback } from '../../gpu/perf-guards.js';
 import { log } from '../../debug/index.js';
 import { readBuffer } from '../../memory/buffer-pool.js';
@@ -470,6 +470,114 @@ export class KVCache {
     layer.seqLen = Math.max(layer.seqLen, startPos + numTokens);
     this.totalTokensSeen = Math.max(this.totalTokensSeen, startPos + numTokens);
 
+    this.currentSeqLen = Math.max(this.currentSeqLen, startPos + numTokens);
+  }
+
+
+  async recordUpdateF32ToF16FromGPU(
+    recorder,
+    layerIdx,
+    keysBuffer,
+    valuesBuffer,
+    startPos,
+    numTokens
+  ) {
+    this._assertLayerIndex(layerIdx);
+    this._assertStartPos(startPos);
+    if (this.kvDtype !== 'f16') {
+      throw new Error('KVCache recordUpdateF32ToF16FromGPU requires an f16 KV cache.');
+    }
+    if (!Number.isInteger(numTokens) || numTokens < 0) {
+      throw new Error('KVCache recordUpdateF32ToF16FromGPU requires a non-negative integer token count.');
+    }
+    if (numTokens === 0) {
+      return;
+    }
+    this.counters.recordedGpuUpdateCalls += 1;
+    this.counters.tokensWritten += numTokens;
+
+    const layer =  (this.layers[layerIdx]);
+    if (!layer.keysGPU) {
+      throw new Error('GPU cache not initialized');
+    }
+
+    if (startPos + numTokens > this.maxSeqLen) {
+      throw new Error(
+        `Cache overflow: ${startPos + numTokens} > ${this.maxSeqLen}`
+      );
+    }
+
+    const elementCount = numTokens * this.kvSize;
+    await recordKVCacheWriteF32ToF16(
+      recorder,
+      keysBuffer,
+      valuesBuffer,
+      layer.keysGPU,
+      layer.valuesGPU,
+      {
+        srcOffset: 0,
+        dstOffset: startPos * this.kvSize,
+        elementCount,
+      }
+    );
+
+    if (this.layout === 'paged') {
+      const neededPages = Math.ceil((startPos + numTokens) / this.pageSize);
+      if (Number.isFinite(layer.allocatedPages)) {
+        layer.allocatedPages = Math.max(layer.allocatedPages, neededPages);
+      } else {
+        layer.allocatedPages = neededPages;
+      }
+    }
+
+    layer.seqLen = Math.max(layer.seqLen, startPos + numTokens);
+    this.totalTokensSeen = Math.max(this.totalTokensSeen, startPos + numTokens);
+
+    this.currentSeqLen = Math.max(this.currentSeqLen, startPos + numTokens);
+  }
+
+  recordF16UpdateAlreadyWrittenFromGPU(
+    layerIdx,
+    startPos,
+    numTokens
+  ) {
+    this._assertLayerIndex(layerIdx);
+    this._assertStartPos(startPos);
+    if (this.kvDtype !== 'f16') {
+      throw new Error('KVCache recordF16UpdateAlreadyWrittenFromGPU requires an f16 KV cache.');
+    }
+    if (this.layout !== 'contiguous') {
+      throw new Error('KVCache recordF16UpdateAlreadyWrittenFromGPU requires contiguous layout.');
+    }
+    if (!Number.isInteger(numTokens) || numTokens < 0) {
+      throw new Error('KVCache recordF16UpdateAlreadyWrittenFromGPU requires a non-negative integer token count.');
+    }
+    if (numTokens === 0) {
+      return;
+    }
+
+    const layer =  (this.layers[layerIdx]);
+    if (!isContiguousLayer(layer) || !layer.keysGPU || !layer.valuesGPU) {
+      throw new Error('GPU cache not initialized');
+    }
+    if (startPos + numTokens > this.maxSeqLen) {
+      throw new Error(
+        `Cache overflow: ${startPos + numTokens} > ${this.maxSeqLen}`
+      );
+    }
+
+    const requiredBytes = (startPos + numTokens) * this.kvSize * this.bytesPerElem;
+    if (Number.isFinite(layer.keysGPU.size) && requiredBytes > layer.keysGPU.size) {
+      throw new Error('KVCache direct f16 keys write exceeds GPU cache buffer size.');
+    }
+    if (Number.isFinite(layer.valuesGPU.size) && requiredBytes > layer.valuesGPU.size) {
+      throw new Error('KVCache direct f16 values write exceeds GPU cache buffer size.');
+    }
+
+    this.counters.recordedGpuUpdateCalls += 1;
+    this.counters.tokensWritten += numTokens;
+    layer.seqLen = Math.max(layer.seqLen, startPos + numTokens);
+    this.totalTokensSeen = Math.max(this.totalTokensSeen, startPos + numTokens);
     this.currentSeqLen = Math.max(this.currentSeqLen, startPos + numTokens);
   }
 

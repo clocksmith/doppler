@@ -382,6 +382,11 @@ function mergeSession(
     prefillTokenChunkSize: overlay(`${prefix}.prefillTokenChunkSize`, manifestSession.prefillTokenChunkSize, runtimeSession.prefillTokenChunkSize, sources),
     useFlashPrefillAttention: overlay(`${prefix}.useFlashPrefillAttention`, manifestSession.useFlashPrefillAttention, runtimeSession.useFlashPrefillAttention, sources),
     useWideTileQ4KPrefill: overlay(`${prefix}.useWideTileQ4KPrefill`, manifestSession.useWideTileQ4KPrefill, runtimeSession.useWideTileQ4KPrefill, sources),
+    useWideTileQ4KDecode: overlay(`${prefix}.useWideTileQ4KDecode`, manifestSession.useWideTileQ4KDecode, runtimeSession.useWideTileQ4KDecode, sources),
+    useSandwichRMSNormPairFusion: overlay(`${prefix}.useSandwichRMSNormPairFusion`, manifestSession.useSandwichRMSNormPairFusion, runtimeSession.useSandwichRMSNormPairFusion, sources),
+    usePostFfnNextInputRMSNormPairFusion: overlay(`${prefix}.usePostFfnNextInputRMSNormPairFusion`, manifestSession.usePostFfnNextInputRMSNormPairFusion, runtimeSession.usePostFfnNextInputRMSNormPairFusion, sources),
+    useFusedQKVSplitQKNorm: overlay(`${prefix}.useFusedQKVSplitQKNorm`, manifestSession.useFusedQKVSplitQKNorm, runtimeSession.useFusedQKVSplitQKNorm, sources),
+    useFusedQKVSplitQKNormRoPE: overlay(`${prefix}.useFusedQKVSplitQKNormRoPE`, manifestSession.useFusedQKVSplitQKNormRoPE, runtimeSession.useFusedQKVSplitQKNormRoPE, sources),
     retainQ4KMaterialization: overlay(`${prefix}.retainQ4KMaterialization`, manifestSession.retainQ4KMaterialization, runtimeSession.retainQ4KMaterialization, sources),
   };
 }
