@@ -12,6 +12,35 @@ function normalizeOptionalString(value) {
   return text || null;
 }
 
+function normalizeOptionalStringArray(value, index, label) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  if (!Array.isArray(value)) {
+    throw new Error(`teacher trace row ${index + 1} ${label} must be an array of strings.`);
+  }
+  const normalized = [];
+  for (let entryIndex = 0; entryIndex < value.length; entryIndex += 1) {
+    const entry = value[entryIndex];
+    if (typeof entry !== 'string') {
+      throw new Error(`teacher trace row ${index + 1} ${label}[${entryIndex}] must be a string.`);
+    }
+    const text = entry.trim();
+    if (text) normalized.push(text);
+  }
+  return normalized;
+}
+
+function normalizeOptionalObject(value, index, label) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  if (!isObjectRecord(value)) {
+    throw new Error(`teacher trace row ${index + 1} ${label} must be an object.`);
+  }
+  return value;
+}
+
 function readStringField(record, names, index, label) {
   for (const name of names) {
     if (Object.prototype.hasOwnProperty.call(record, name)) {
@@ -93,6 +122,12 @@ export function normalizeTeacherTrace(record, index = 0, options = {}) {
   const prompt = resolvePrompt(record, index);
   const completion = resolveCompletion(record, index);
   const teacherModelId = resolveTeacherModelId(record, options, index);
+  const policyId = normalizeOptionalString(record.policyId)
+    || normalizeOptionalString(record.policy_id)
+    || normalizeOptionalString(record.sourcePolicyId)
+    || normalizeOptionalString(record.source_policy_id)
+    || normalizeOptionalString(options.policyId)
+    || normalizeOptionalString(options.sourcePolicyId);
   const traceId = normalizeOptionalString(record.id)
     || normalizeOptionalString(record.traceId)
     || normalizeOptionalString(record.trace_id)
@@ -111,12 +146,15 @@ export function normalizeTeacherTrace(record, index = 0, options = {}) {
     taskKind: normalizeOptionalString(record.taskKind)
       || normalizeOptionalString(record.task_kind)
       || normalizeOptionalString(options.taskKind),
-    sourcePolicyId: normalizeOptionalString(record.sourcePolicyId)
-      || normalizeOptionalString(record.source_policy_id)
-      || normalizeOptionalString(options.sourcePolicyId),
+    policyId,
+    sourcePolicyId: policyId,
     gepaCandidateId: normalizeOptionalString(record.gepaCandidateId)
       || normalizeOptionalString(record.gepa_candidate_id)
       || normalizeOptionalString(options.gepaCandidateId),
+    sourceFiles: normalizeOptionalStringArray(record.sourceFiles ?? record.source_files ?? options.sourceFiles, index, 'sourceFiles'),
+    generationParams: normalizeOptionalObject(record.generationParams ?? record.generation_params ?? options.generationParams, index, 'generationParams'),
+    license: normalizeOptionalString(record.license) || normalizeOptionalString(options.license),
+    provenance: normalizeOptionalObject(record.provenance ?? options.provenance, index, 'provenance'),
   };
 }
 
@@ -146,8 +184,13 @@ export function parseTeacherTraceDataset(text, options = {}) {
       studentBaseModelId: row.studentBaseModelId,
       domain: row.domain,
       taskKind: row.taskKind,
+      policyId: row.policyId,
       sourcePolicyId: row.sourcePolicyId,
       gepaCandidateId: row.gepaCandidateId,
+      sourceFiles: row.sourceFiles,
+      generationParams: row.generationParams,
+      license: row.license,
+      provenance: row.provenance,
     })),
     lineage: summarizeTeacherTraceLineage(rows),
   };
@@ -187,8 +230,13 @@ export function serializeTeacherTraceTextPairs(rows) {
       studentBaseModelId: normalized.studentBaseModelId,
       domain: normalized.domain,
       taskKind: normalized.taskKind,
+      policyId: normalized.policyId,
       sourcePolicyId: normalized.sourcePolicyId,
       gepaCandidateId: normalized.gepaCandidateId,
+      sourceFiles: normalized.sourceFiles,
+      generationParams: normalized.generationParams,
+      license: normalized.license,
+      provenance: normalized.provenance,
     });
   }).join('\n')}\n`;
 }
@@ -210,11 +258,13 @@ export function summarizeTeacherTraceLineage(rows) {
   const studentBaseModelIds = new Set();
   const taskKinds = new Set();
   const sourcePolicyIds = new Set();
+  const policyIds = new Set();
   const gepaCandidateIds = new Set();
   for (const row of rows) {
     if (row.teacherModelId) teacherModelIds.add(row.teacherModelId);
     if (row.studentBaseModelId) studentBaseModelIds.add(row.studentBaseModelId);
     if (row.taskKind) taskKinds.add(row.taskKind);
+    if (row.policyId) policyIds.add(row.policyId);
     if (row.sourcePolicyId) sourcePolicyIds.add(row.sourcePolicyId);
     if (row.gepaCandidateId) gepaCandidateIds.add(row.gepaCandidateId);
   }
@@ -222,6 +272,7 @@ export function summarizeTeacherTraceLineage(rows) {
     teacherModelIds: [...teacherModelIds].sort(),
     studentBaseModelIds: [...studentBaseModelIds].sort(),
     taskKinds: [...taskKinds].sort(),
+    policyIds: [...policyIds].sort(),
     sourcePolicyIds: [...sourcePolicyIds].sort(),
     gepaCandidateIds: [...gepaCandidateIds].sort(),
   };

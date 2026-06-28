@@ -131,10 +131,19 @@ Action requirements:
   materializes those reports under `eval/`, adds them to the scoreboard, and
   includes them in compare/quality-gate artifacts. This is the supported path
   for q4k student receipts until a native packed-q4k trainer exists.
+- Code-agent held-out eval datasets can declare `agentEval` gates. These gates
+  require a matching `training_eval_report.agentEval` receipt with passing row
+  checks before `quality-gate` passes. The gate covers JS patching, WGSL review,
+  manifest/config review, Reploid VFS/status/tool-loop behavior, patch
+  application evidence, and no-hallucinated-files/tools checks.
+- `tools/run-agent-heldout-eval.js` converts held-out candidate completions into
+  a normal `training_eval_report`; when rows require patch evidence it verifies
+  unified diffs with `git apply --check` against the explicit `--patch-root`.
 - GLM/Qwen/other teacher traces can be normalized into LoRA `text-pairs` with
   `tools/build-teacher-trace-text-pairs.js`. Trace rows preserve
-  `teacherModelId`, `studentBaseModelId`, `taskKind`, `sourcePolicyId`, and
-  `gepaCandidateId` metadata.
+  `schemaVersion`, `teacherModelId`, `studentBaseModelId`, `taskKind`,
+  `policyId` / `sourcePolicyId`, `sourceFiles`, `generationParams`,
+  `license`, provenance, and `gepaCandidateId` metadata.
 - Fresh teacher traces from an OpenAI-compatible GLM/Qwen endpoint can be
   generated with `tools/generate-teacher-traces-openai-compatible.js`; it
   requires an explicit `--base-url`, `--model`, and `--api-key-env` and fails
@@ -164,6 +173,10 @@ Each pack is the source of truth for:
 - `schemaVersion`, `kind`, `id`, `description`, `claimBoundary`, `seed`
 - `baseModelId`, `studentModelId`, `teacherModelId`
 - `datasetId`, `datasetPath`, `evalDatasets`
+- `evalDatasets[].agentEval` for code-agent held-out promotion gates:
+  `suiteId`, `categories`, `minPassRate`, `requirePatchApplies`,
+  `requireNoHallucinatedFiles`, `requireNoHallucinatedTools`, `allowedFiles`,
+  and `allowedTools`
 - `trainingSchemaVersion`, `checkpointEvery`, `selectionMetric`, `selectionGoal`, `surfaceSupport`
 - `training.optimizer`, `training.batchSize`, `training.accumSteps`, `training.steps`, `training.precision`, `training.gradientClipping`
 - pipeline-specific fields in `lora.*` or `distill.*`

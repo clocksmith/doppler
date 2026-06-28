@@ -16,7 +16,8 @@
       "datasetPath": "tests/fixtures/training/doppler-js-json-heldout-tiny.jsonl",
       "evalKind": "text_generation",
       "metrics": [
-        "loss"
+        "loss",
+        "agent_heldout_gate"
       ],
       "decodePolicy": {
         "maxTokens": 160,
@@ -25,7 +26,8 @@
       "scoreboardColumns": [
         "loss",
         "baseline.loss",
-        "qualityClaim.absoluteImprovement"
+        "qualityClaim.absoluteImprovement",
+        "agentEval.passRate"
       ],
       "quality": {
         "baseline": "base_model",
@@ -35,7 +37,31 @@
       },
       "sourceLangs": [],
       "targetLangs": [],
-      "pairAllowlist": []
+      "pairAllowlist": [],
+      "agentEval": {
+        "suiteId": "doppler-js-json-heldout-v1",
+        "categories": [
+          "js_patching",
+          "manifest_config_review",
+          "no_hallucinated_files_tools"
+        ],
+        "minPassRate": 1,
+        "requirePatchApplies": false,
+        "requireNoHallucinatedFiles": true,
+        "requireNoHallucinatedTools": true,
+        "allowedFiles": [
+          "src/experimental/training/workloads.js",
+          "src/config/merge.js"
+        ],
+        "allowedTools": [
+          "rg",
+          "node",
+          "npm",
+          "git",
+          "exec_command",
+          "apply_patch"
+        ]
+      }
     }
   ],
   "trainingSchemaVersion": 1,

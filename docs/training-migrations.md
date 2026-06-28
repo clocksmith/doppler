@@ -73,6 +73,7 @@ Core replay context fields remain part of the metrics contract:
 - teacher-trace and GEPA-frontier import tools preserve source model, student base, task kind, policy, and Pareto candidate metadata before training
 - causal-LM LoRA eval reports now distinguish base-model loss from adapter loss; required improvement is declared per eval dataset and enforced by quality gates
 - q4k Qwen/Gemma students require provider-backed trainer modules or injected trainers; the trainer may return held-out eval reports that Doppler writes into compare and quality-gate artifacts
+- code-agent held-out eval datasets may declare `agentEval`; compare artifacts preserve the receipt and quality gates require passing `agentEval` reports for those datasets
 
 ## Migration Guidance
 
