@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="956" viewBox="0 0 1200 956" role="img" aria-labelledby="chart-title-1 chart-desc-1">
-  <title id="chart-title-1">Local inference compare</title>
-  <desc id="chart-desc-1">Gemma 3 270m • warm cache • 512 prompt / 128 decode • greedy</desc>
+  <title id="chart-title-1">AMD Vulkan p512 inference compare</title>
+  <desc id="chart-desc-1">Gemma 3 270m, warm cache, 512 prompt / 128 decode, greedy</desc>
   <defs><style>
   text { fill: #111111; font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; letter-spacing: 0; }
 </style></defs>
   <rect x="0" y="0" width="1200" height="956" fill="#ffffff" />
   <rect x="14" y="14" width="1172" height="928" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.25" />
   <text x="36" y="48" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="bold">TIMELINE</text>
-<text x="36" y="86" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="30" font-weight="bold">Local inference compare</text>
-<text x="36" y="110" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13">Gemma 3 270m • warm cache • 512 prompt / 128 decode • greedy</text>
+<text x="36" y="86" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="30" font-weight="bold">AMD Vulkan p512 inference compare</text>
+<text x="36" y="110" fill="#5a5a5a" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13">Gemma 3 270m, warm cache, 512 prompt / 128 decode, greedy</text>
 <rect x="896" y="36" width="268" height="34" rx="3" fill="#f7f7f7" stroke="#111111" stroke-width="1.25" />
 <text x="1030" y="57" text-anchor="middle" fill="#111111" font-family="Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="bold">SHORTER BAR = FASTER</text>
 <rect x="24" y="128" width="1152" height="236" rx="4" fill="#f7f7f7" stroke="#111111" stroke-width="1.25" />
