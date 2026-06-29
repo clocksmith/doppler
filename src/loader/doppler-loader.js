@@ -8,6 +8,8 @@ import {
   openModelStore,
   verifyIntegrity,
   loadManifestFromStore,
+  loadAuxFile,
+  computeHash,
 } from '../storage/shard-manager.js';
 import { clearManifest, parseManifest, setManifest as setCurrentManifest } from '../formats/rdrr/index.js';
 import { initDevice, getDevice, getKernelCapabilities } from '../gpu/device.js';
@@ -47,6 +49,7 @@ import { loadPerLayerInputWeights } from './per-layer-input-loader.js';
 import { loadLayer } from './layer-loader.js';
 import { loadFinalWeights } from './final-weights-loader.js';
 import { cloneJsonValue } from '../utils/clone-json.js';
+import { assertFunctionalDescriptorManifest } from '../formats/rdrr/functional-descriptor.js';
 import {
   loadExpert as loadExpertFromModule,
   prefetchExperts as prefetchExpertsFromModule,
@@ -257,6 +260,7 @@ export class DopplerLoader {
   #loaderDebug = null;
 
   #perLayerInputSession = null;
+  #loadAuxiliaryFile = null;
 
   // Fused Q4_K matmul: skip dequantization for matmul weights, use fused kernel
   
@@ -386,6 +390,13 @@ export class DopplerLoader {
       loadRange: options.loadShardRange ?? null,
       streamRange: options.streamShardRange ?? null,
     });
+    this.#loadAuxiliaryFile = typeof options.loadAuxiliaryFile === 'function'
+      ? options.loadAuxiliaryFile
+      : null;
+  }
+
+  setAuxiliaryFileLoader(loadAuxiliaryFile) {
+    this.#loadAuxiliaryFile = typeof loadAuxiliaryFile === 'function' ? loadAuxiliaryFile : null;
   }
 
   
@@ -847,12 +858,8 @@ export class DopplerLoader {
         this.#layerShardMap.set(layerIdx, shards);
       }
 
-      if (location.spans) {
-        for (const span of location.spans) {
-          shards.add(span.shardIndex);
-        }
-      } else {
-        shards.add(location.shardIndex);
+      for (const shardIndex of getTensorShardIndices(location)) {
+        shards.add(shardIndex);
       }
     }
   }
@@ -943,7 +950,9 @@ export class DopplerLoader {
       const preserveRawSourceBytes = toGPU && isLiteRTAffineInt4FusedEligible(location, {
         gpuCapabilities: this.gpuCapabilities,
       });
-      shardData = streamedUpload
+      shardData = this.#isFunctionalDescriptorLocation(location)
+        ? await this.#assembleFunctionalDescriptorData(location, name)
+        : streamedUpload
         ? await this.#assembleShardDataToGpuBuffer(location, name)
         : await this.#assembleShardData(location, name, {
             materializeSourceTransform: !preserveRawSourceBytes,
@@ -964,7 +973,7 @@ export class DopplerLoader {
           releaseBuffer(shardData);
           shardData = await this.#assembleShardData(location, name);
         }
-        return loadTensorToCPU(shardData, location);
+        return loadTensorToCPU(shardData, location, name);
       }
 
       
@@ -1009,7 +1018,106 @@ export class DopplerLoader {
       releaseBuffer(shardData);
       shardData = await this.#assembleShardData(location, name);
     }
-    return loadTensorToCPU(shardData, location);
+    return loadTensorToCPU(shardData, location, name);
+  }
+
+  #isFunctionalDescriptorLocation(location) {
+    return String(location?.dtype || '').trim().toUpperCase() === 'FUNCTIONAL_DESCRIPTOR';
+  }
+
+  #getDescriptorShardFiles(location, name) {
+    if (!location?.descriptorManifest) {
+      throw new Error(
+        `[DopplerLoader] FUNCTIONAL_DESCRIPTOR tensor "${name}" is missing descriptorManifest.`
+      );
+    }
+    const manifest = assertFunctionalDescriptorManifest(
+      location.descriptorManifest,
+      `FUNCTIONAL_DESCRIPTOR tensor "${name}" descriptorManifest`
+    );
+    const components = manifest.components;
+    if (!components || typeof components !== 'object') {
+      throw new Error(
+        `[DopplerLoader] FUNCTIONAL_DESCRIPTOR tensor "${name}" descriptorManifest.components is required.`
+      );
+    }
+    const files = [
+      components.kronecker_sum?.shard_file,
+      components.coordinate_inr?.shard_file,
+      components.sparse_outliers?.shard_file,
+    ];
+    if (files.some((file) => typeof file !== 'string' || file.trim().length === 0)) {
+      throw new Error(
+        `[DopplerLoader] FUNCTIONAL_DESCRIPTOR tensor "${name}" must declare kronecker, SIREN, and sparse shard_file values.`
+      );
+    }
+    return files.map((file) => file.trim());
+  }
+
+  async #loadDescriptorShardFile(file, name) {
+    const loadAuxiliaryFile = this.#loadAuxiliaryFile;
+    const payload = loadAuxiliaryFile
+      ? await loadAuxiliaryFile(file)
+      : await loadAuxFile(file);
+    if (payload == null) {
+      throw new Error(
+        `[DopplerLoader] Descriptor shard "${file}" for tensor "${name}" was not found.`
+      );
+    }
+    if (payload instanceof Uint8Array) {
+      return payload;
+    }
+    if (ArrayBuffer.isView(payload)) {
+      return new Uint8Array(payload.buffer, payload.byteOffset, payload.byteLength);
+    }
+    if (payload instanceof ArrayBuffer) {
+      return new Uint8Array(payload);
+    }
+    throw new Error(
+      `[DopplerLoader] Descriptor shard "${file}" for tensor "${name}" must load as ArrayBuffer or Uint8Array.`
+    );
+  }
+
+  async #assertDescriptorHash(location, name, descriptorShards) {
+    const descriptorHash = location?.descriptorManifest?.descriptor_hash;
+    if (typeof descriptorHash !== 'string' || !descriptorHash.trim()) {
+      return;
+    }
+    const match = /^sha256:([a-f0-9]{64})$/i.exec(descriptorHash.trim());
+    if (!match) {
+      throw new Error(
+        `[DopplerLoader] FUNCTIONAL_DESCRIPTOR tensor "${name}" descriptor_hash must be sha256:<64 hex chars>.`
+      );
+    }
+    const totalBytes = Array.from(descriptorShards.values()).reduce((sum, bytes) => sum + bytes.byteLength, 0);
+    const combined = new Uint8Array(totalBytes);
+    let offset = 0;
+    for (const bytes of descriptorShards.values()) {
+      combined.set(bytes, offset);
+      offset += bytes.byteLength;
+    }
+    const actual = await computeHash(combined, 'sha256');
+    if (actual.toLowerCase() !== match[1].toLowerCase()) {
+      throw new Error(
+        `[DopplerLoader] FUNCTIONAL_DESCRIPTOR tensor "${name}" descriptor hash mismatch. ` +
+        `Expected ${descriptorHash}, got sha256:${actual}.`
+      );
+    }
+  }
+
+  async #assembleFunctionalDescriptorData(location, name) {
+    const shardFiles = this.#getDescriptorShardFiles(location, name);
+    const descriptorShards = new Map();
+    for (const file of shardFiles) {
+      descriptorShards.set(file, await this.#loadDescriptorShardFile(file, name));
+    }
+    await this.#assertDescriptorHash(location, name, descriptorShards);
+    const data = new Uint8Array(0);
+    Object.defineProperty(data, 'descriptorShards', {
+      value: descriptorShards,
+      enumerable: false,
+    });
+    return data;
   }
 
   
@@ -1045,6 +1153,7 @@ export class DopplerLoader {
   }
 
   #shouldStreamUploadToGPU(location) {
+    if (this.#isFunctionalDescriptorLocation(location)) return false;
     if (!location?.size || location.size <= 0) return false;
     if (hasSourceTransform(location)) return false;
     if (Array.isArray(location?.storage?.companions) && location.storage.companions.length > 0) return false;
@@ -1266,6 +1375,7 @@ export class DopplerLoader {
       resolveWeightLayout: (loc) => this.#resolveWeightLayout(loc),
       embeddings: this.embeddings,
       embeddingPostprocessor: this.manifest?.inference?.output?.embeddingPostprocessor ?? null,
+      diffusionGemmaSelfConditioning: this.manifest?.inference?.diffusionGemma?.selfConditioning === true,
       modelType: this.manifest?.modelType ?? null,
       tieWordEmbeddings,
       gpuBuffers: this.gpuBuffers,

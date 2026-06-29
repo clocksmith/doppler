@@ -14,6 +14,34 @@ import {
   parseTensorMap,
 } from '../../src/formats/rdrr/parsing.js';
 
+function createDescriptorManifest() {
+  return {
+    schema_version: 'manifoldgguf.v0.1',
+    storage_type: 'functional_descriptor',
+    slice_shape: [1, 2],
+    crop_shape: [1, 2],
+    padded_shape: [64, 64],
+    components: {
+      prng_substrate: {
+        algorithm: 'coord_hash_normal_v1',
+        seed: 7,
+        learned_scale: 0,
+        learned_scale_frozen: true,
+      },
+      kronecker_sum: {
+        shard_file: 'layer0.kron',
+      },
+      coordinate_inr: {
+        type: 'siren',
+        shard_file: 'layer0.siren',
+      },
+      sparse_outliers: {
+        shard_file: 'layer0.sparse',
+      },
+    },
+  };
+}
+
 // ============================================================================
 // classifyTensor: embedding patterns
 // ============================================================================
@@ -402,6 +430,40 @@ import {
       'tensor1': { shardIndex: 0, offset: 0, size: 100, shape: [10] },
     })),
     /missing role/
+  );
+}
+
+// ============================================================================
+// parseTensorMap: functional descriptor tensors use auxiliary shards
+// ============================================================================
+
+{
+  const map = parseTensorMap(JSON.stringify({
+    'model.layers.0.mlp.down_proj.weight': {
+      dtype: 'FUNCTIONAL_DESCRIPTOR',
+      shape: [1, 2],
+      role: 'matmul',
+      descriptorManifest: createDescriptorManifest(),
+    },
+  }));
+
+  const location = map['model.layers.0.mlp.down_proj.weight'];
+  assert.equal(location.shardIndex, undefined);
+  assert.equal(location.offset, undefined);
+  assert.equal(location.size, 0);
+  assert.equal(location.descriptorManifest.storage_type, 'functional_descriptor');
+}
+
+{
+  assert.throws(
+    () => parseTensorMap(JSON.stringify({
+      'model.layers.0.mlp.down_proj.weight': {
+        dtype: 'FUNCTIONAL_DESCRIPTOR',
+        shape: [1, 2],
+        role: 'matmul',
+      },
+    })),
+    /descriptorManifest/
   );
 }
 

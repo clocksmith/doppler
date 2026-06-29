@@ -33,6 +33,7 @@ export interface CreateArtifactStorageContextOptions {
 
 export interface ArtifactStorageContext extends SourceStorageContext {
   preflight?: () => Promise<void>;
+  loadAuxiliaryFile: ((path: string) => Promise<ArrayBuffer | null>) | null;
 }
 
 export interface CreateHttpArtifactStorageContextOptions {

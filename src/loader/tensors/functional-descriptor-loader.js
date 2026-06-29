@@ -1,5 +1,6 @@
 import { acquireBuffer, uploadData } from '../../memory/buffer-pool.js';
 import { createWeightBuffer } from '../../gpu/weight-buffer.js';
+import { assertFunctionalDescriptorManifest } from '../../formats/rdrr/functional-descriptor.js';
 import { log } from '../../debug/index.js';
 
 // Reconstruct a functional_descriptor tensor from its component shards and
@@ -164,6 +165,85 @@ function reconstructSIREN(layers, rows, cols) {
   return out;
 }
 
+function cropMatrix(matrix, rows, cols, cropRows, cropCols) {
+  if (rows === cropRows && cols === cropCols) {
+    return matrix;
+  }
+  const out = new Float32Array(cropRows * cropCols);
+  for (let r = 0; r < cropRows; r += 1) {
+    out.set(
+      matrix.subarray(r * cols, (r * cols) + cropCols),
+      r * cropCols
+    );
+  }
+  return out;
+}
+
+function normalizeShape2(value, label) {
+  if (!Array.isArray(value) || value.length !== 2) {
+    throw new Error(`[FunctionalDescriptor] ${label} must be [rows, cols].`);
+  }
+  const rows = Number(value[0]);
+  const cols = Number(value[1]);
+  if (!Number.isInteger(rows) || rows <= 0 || !Number.isInteger(cols) || cols <= 0) {
+    throw new Error(`[FunctionalDescriptor] ${label} has invalid shape [${value.join(',')}].`);
+  }
+  return [rows, cols];
+}
+
+function getDescriptorShardBytes(shards) {
+  let total = 0;
+  for (const bytes of shards.values()) {
+    total += bytes.byteLength;
+  }
+  return total;
+}
+
+function assertOptionalIntegerEquals(value, expected, label, name) {
+  if (value === undefined) {
+    return;
+  }
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed !== expected) {
+    throw new Error(
+      `[FunctionalDescriptor] ${label} for "${name}" must equal ${expected}, got ${value}.`
+    );
+  }
+}
+
+function assertRuntimeProofGates(manifest, name, descriptorBytes, denseF16Bytes) {
+  assertOptionalIntegerEquals(manifest.descriptor_bytes, descriptorBytes, 'descriptor_bytes', name);
+  assertOptionalIntegerEquals(manifest.dense_f16_bytes, denseF16Bytes, 'dense_f16_bytes', name);
+
+  const gate = manifest.proof_status_gate;
+  const proofStatus = typeof manifest.proof_status === 'string'
+    ? manifest.proof_status.trim().toLowerCase()
+    : null;
+  const sensitivityGate = typeof gate?.sensitivity === 'string'
+    ? gate.sensitivity.trim().toLowerCase()
+    : null;
+  const compressionGate = typeof gate?.compression === 'string'
+    ? gate.compression.trim().toLowerCase()
+    : null;
+
+  if (proofStatus === 'passed' && sensitivityGate !== 'passed') {
+    throw new Error(
+      `[FunctionalDescriptor] proof_status is "passed" for "${name}" but proof_status_gate.sensitivity is not "passed".`
+    );
+  }
+  if (proofStatus === 'passed' && compressionGate !== 'passed') {
+    throw new Error(
+      `[FunctionalDescriptor] proof_status is "passed" for "${name}" but proof_status_gate.compression is not "passed".`
+    );
+  }
+  if (compressionGate === 'passed' && descriptorBytes >= denseF16Bytes) {
+    throw new Error(
+      `[FunctionalDescriptor] compression proof gate failed for "${name}": ` +
+      `descriptor_bytes=${descriptorBytes} must be lower than dense_f16_bytes=${denseF16Bytes}.`
+    );
+  }
+}
+
 // ============================================================================
 // Sparse component
 // Binary layout: [nnz u32][rowIdx i32...][colIdx i32...][values f32...]
@@ -191,13 +271,16 @@ function applySparse(out, sparse, cols) {
 // ============================================================================
 
 export async function loadFunctionalDescriptor(shardData, location, name) {
-  const manifest = location.descriptorManifest;
-  if (!manifest) {
+  if (!location.descriptorManifest) {
     throw new Error(
       `[FunctionalDescriptor] location.descriptorManifest is required for tensor "${name}". ` +
       'The layer loader must parse the manifoldgguf manifest and attach it before calling loadTensorToGPU.'
     );
   }
+  const manifest = assertFunctionalDescriptorManifest(
+    location.descriptorManifest,
+    `FUNCTIONAL_DESCRIPTOR tensor "${name}" descriptorManifest`
+  );
 
   const shards = shardData?.descriptorShards;
   if (!shards || typeof shards.get !== 'function') {
@@ -207,16 +290,32 @@ export async function loadFunctionalDescriptor(shardData, location, name) {
     );
   }
 
-  const { components, slice_shape: [rows, cols] } = manifest;
+  const { components } = manifest;
+  const [rows, cols] = normalizeShape2(
+    manifest.padded_shape ?? manifest.slice_shape,
+    'descriptor reconstruction shape'
+  );
+  const [cropRows, cropCols] = normalizeShape2(
+    manifest.crop_shape ?? location.shape ?? manifest.slice_shape,
+    'descriptor crop shape'
+  );
+  if (cropRows > rows || cropCols > cols) {
+    throw new Error(
+      `[FunctionalDescriptor] crop shape [${cropRows},${cropCols}] exceeds descriptor shape [${rows},${cols}] for "${name}".`
+    );
+  }
+  const descriptorBytes = getDescriptorShardBytes(shards);
+  const denseF16Bytes = cropRows * cropCols * 2;
+  assertRuntimeProofGates(manifest, name, descriptorBytes, denseF16Bytes);
 
   log.debug('FunctionalDescriptor', `Reconstructing "${name}" [${rows}x${cols}]`);
 
-  const out = new Float32Array(rows * cols);
+  const reconstructed = new Float32Array(rows * cols);
 
   // PRNG substrate
   const prngSpec = components.prng_substrate;
   const prng = buildPRNG(prngSpec, rows, cols);
-  for (let i = 0; i < out.length; i++) out[i] += prng[i];
+  for (let i = 0; i < reconstructed.length; i++) reconstructed[i] += prng[i];
 
   // Kronecker sum
   const kronSpec = components.kronecker_sum;
@@ -228,7 +327,7 @@ export async function loadFunctionalDescriptor(shardData, location, name) {
     kronShard instanceof Uint8Array ? kronShard : new Uint8Array(kronShard)
   );
   const kron = reconstructKronecker(kronFactors, rows, cols);
-  for (let i = 0; i < out.length; i++) out[i] += kron[i];
+  for (let i = 0; i < reconstructed.length; i++) reconstructed[i] += kron[i];
 
   // SIREN INR
   const sirenSpec = components.coordinate_inr;
@@ -240,7 +339,7 @@ export async function loadFunctionalDescriptor(shardData, location, name) {
     sirenShard instanceof Uint8Array ? sirenShard : new Uint8Array(sirenShard)
   );
   const siren = reconstructSIREN(sirenLayers, rows, cols);
-  for (let i = 0; i < out.length; i++) out[i] += siren[i];
+  for (let i = 0; i < reconstructed.length; i++) reconstructed[i] += siren[i];
 
   // Sparse residuals
   const sparseSpec = components.sparse_outliers;
@@ -251,16 +350,28 @@ export async function loadFunctionalDescriptor(shardData, location, name) {
   const sparse = deserializeSparse(
     sparseShard instanceof Uint8Array ? sparseShard : new Uint8Array(sparseShard)
   );
-  applySparse(out, sparse, cols);
+  applySparse(reconstructed, sparse, cols);
 
   log.debug('FunctionalDescriptor', `"${name}" reconstructed, uploading to GPU`);
+  const out = cropMatrix(reconstructed, rows, cols, cropRows, cropCols);
 
   // Upload as dense F32 weight buffer
   const gpuBuf = acquireBuffer(out.byteLength, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST);
   uploadData(gpuBuf, out);
 
-  return createWeightBuffer(gpuBuf, 'f32', 'row', [rows, cols], name, null, {
+  const data = createWeightBuffer(gpuBuf, 'f32', 'row', [cropRows, cropCols], name, null, {
     storageType: 'functional_descriptor',
     descriptorHash: manifest.descriptor_hash,
+    descriptorBytes,
+    denseF16Bytes,
+    compressionRatio: descriptorBytes > 0 ? denseF16Bytes / descriptorBytes : null,
+    proofStatus: manifest.proof_status ?? null,
+    proofStatusGate: manifest.proof_status_gate ?? null,
+    descriptorShape: [rows, cols],
+    cropShape: [cropRows, cropCols],
   });
+  return {
+    data,
+    allocatedBuffers: [gpuBuf],
+  };
 }

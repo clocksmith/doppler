@@ -192,5 +192,6 @@ export declare function loadTensorToGPU(
  */
 export declare function loadTensorToCPU(
   shardData: Uint8Array,
-  location: TensorLocation
+  location: TensorLocation,
+  name?: string | null
 ): Float32Array | Uint8Array;

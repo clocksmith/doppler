@@ -258,7 +258,7 @@ resetRuntimeState(null);
   assert.equal(result.data.dtype, 'q4k');
   assert.equal(result.data.layout, 'row');
   assert.deepEqual(result.data.shape, shape);
-  assert.equal(result.data.buffer.size, 1 << 20);
+  assert.equal(result.data.buffer.size, quantized.byteLength);
   assert.equal(result.allocatedBuffers.length, 1);
 }
 

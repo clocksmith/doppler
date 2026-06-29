@@ -218,6 +218,10 @@ async function loadDiffusionGemmaSelfConditioning(ctx) {
   };
 }
 
+function shouldLoadDiffusionGemmaSelfConditioning(ctx) {
+  return ctx.diffusionGemmaSelfConditioning === true;
+}
+
 // ============================================================================
 // Main Function
 // ============================================================================
@@ -235,7 +239,9 @@ export async function loadFinalWeights(ctx) {
   // Load LM head
   const lmHead = await loadLmHead(ctx);
   const embeddingPostprocessor = await loadEmbeddingPostprocessor(ctx);
-  const diffusionGemmaSelfConditioning = await loadDiffusionGemmaSelfConditioning(ctx);
+  const diffusionGemmaSelfConditioning = shouldLoadDiffusionGemmaSelfConditioning(ctx)
+    ? await loadDiffusionGemmaSelfConditioning(ctx)
+    : null;
 
   return {
     finalNorm,

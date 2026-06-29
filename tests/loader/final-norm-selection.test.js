@@ -48,6 +48,36 @@ function createFakeGpuBuffer(size) {
   assert.equal(result.normOffsetDebugLogged, false);
 }
 
+// DiffusionGemma self-conditioning is loaded only when explicitly enabled
+{
+  const tensorLocations = new Map([
+    ['model.language_model.norm.weight', { role: 'norm', group: 'head', shape: [2], dtype: 'F32' }],
+    ['lm_head.weight', { role: 'lm_head', group: 'head', shape: [2, 2], dtype: 'F32' }],
+  ]);
+
+  await assert.rejects(
+    () => loadFinalWeights({
+      tensorLocations,
+      tieWordEmbeddings: false,
+      diffusionGemmaSelfConditioning: true,
+      loadTensor: async (name) => {
+        if (name === 'model.language_model.norm.weight') return new Float32Array([1, 2]);
+        if (name === 'lm_head.weight') return new Float32Array([1, 2, 3, 4]);
+        if (name.endsWith('pre_norm.weight')) return new Float32Array([1, 2]);
+        return null;
+      },
+      shouldStreamLargeWeight: () => false,
+      needsNormWeightOffset: () => false,
+      resolveWeightLayout: () => 'row',
+      embeddings: null,
+      gpuBuffers: new Set(),
+      keepF32Weights: false,
+      normOffsetDebugLogged: false,
+    }),
+    /self-conditioning weights are incomplete/
+  );
+}
+
 // Missing final norm throws
 {
   const tensorLocations = new Map([

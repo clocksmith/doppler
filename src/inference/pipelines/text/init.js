@@ -910,6 +910,9 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
       verify: verifyHashes,
       loadShardRange,
       streamShardRange,
+      loadAuxiliaryFile: typeof runtimeStorageContext?.loadAuxiliaryFile === 'function'
+        ? (path) => runtimeStorageContext.loadAuxiliaryFile(path)
+        : null,
     });
     if (isRDRRManifest(manifest)) {
       dopplerLoader.setManifest(manifest);

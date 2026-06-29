@@ -3,6 +3,11 @@
 import { validateManifest } from './validation.js';
 import { RDRR_VERSION } from './types.js';
 import { normalizeTensorStorageDescriptor } from './storage-descriptor.js';
+import {
+  assertFunctionalDescriptorManifest,
+  getFunctionalDescriptorManifest,
+  isFunctionalDescriptorDtype,
+} from './functional-descriptor.js';
 import { log } from '../../debug/index.js';
 
 const KNOWN_MANIFEST_VERSIONS = new Set([RDRR_VERSION]);
@@ -79,16 +84,17 @@ export function parseTensorMap(jsonString) {
     const normalizedTensorMap = {};
 
     for (const [name, loc] of Object.entries(tensorMap)) {
+      const isFunctionalDescriptor = isFunctionalDescriptorDtype(loc?.dtype);
       const shardIndex = typeof loc.shardIndex === 'number'
         ? loc.shardIndex
         : loc.shard;
-      if (typeof shardIndex !== 'number') {
+      if (!isFunctionalDescriptor && typeof shardIndex !== 'number') {
         throw new Error(`Tensor '${name}' missing shard index`);
       }
-      if (typeof loc.offset !== 'number') {
+      if (!isFunctionalDescriptor && typeof loc.offset !== 'number') {
         throw new Error(`Tensor '${name}' missing offset`);
       }
-      if (typeof loc.size !== 'number') {
+      if (!isFunctionalDescriptor && typeof loc.size !== 'number') {
         throw new Error(`Tensor '${name}' missing size`);
       }
       if (!Array.isArray(loc.shape)) {
@@ -97,6 +103,12 @@ export function parseTensorMap(jsonString) {
       if (typeof loc.role !== 'string') {
         throw new Error(`Tensor '${name}' missing role`);
       }
+      const descriptorManifest = isFunctionalDescriptor
+        ? assertFunctionalDescriptorManifest(
+          getFunctionalDescriptorManifest(loc),
+          `Tensor '${name}' descriptorManifest`
+        )
+        : null;
 
       let spans = undefined;
       if (loc.spans !== undefined) {
@@ -126,9 +138,11 @@ export function parseTensorMap(jsonString) {
 
       normalizedTensorMap[name] = {
         ...loc,
-        shard: shardIndex,
-        shardIndex,
+        ...(typeof shardIndex === 'number' ? { shard: shardIndex, shardIndex } : {}),
+        ...(typeof loc.offset === 'number' ? { offset: loc.offset } : {}),
+        ...(typeof loc.size === 'number' ? { size: loc.size } : { size: 0 }),
         spans,
+        ...(descriptorManifest ? { descriptorManifest } : {}),
         ...(loc.storage === undefined
           ? {}
           : { storage: normalizeTensorStorageDescriptor(loc.storage, `tensor "${name}"`) }),

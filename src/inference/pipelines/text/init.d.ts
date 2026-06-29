@@ -61,6 +61,7 @@ export interface PipelineStorageContext {
   ) => AsyncIterable<ArrayBuffer | Uint8Array>;
   loadTokenizerJson?: () => Promise<Record<string, unknown> | string | null | undefined>;
   loadTokenizerModel?: (path?: string) => Promise<ArrayBuffer | Uint8Array | null | undefined>;
+  loadAuxiliaryFile?: (path: string) => Promise<ArrayBuffer | Uint8Array | null | undefined>;
   loadTensorsJson?: () => Promise<string | Record<string, unknown> | null | undefined>;
   verifyHashes?: boolean;
   close?: () => Promise<void>;

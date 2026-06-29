@@ -27,3 +27,13 @@ export {
   buildP2PAlertsFromSummary,
   buildP2PDashboardSnapshot,
 } from './experimental/distribution/p2p-observability.js';
+export {
+  DESCRIPTOR_TRANSPORT_CONTRACT_VERSION,
+  normalizePeerCapabilityProfile,
+  getDescriptorRequiredGenerators,
+  assertPeerSupportsDescriptor,
+  getDescriptorRequiredShards,
+  negotiateDescriptorShardCache,
+  validateActivationTransportPayload,
+  createDescriptorPeerAssignment,
+} from './experimental/distribution/descriptor-transport.js';
