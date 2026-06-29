@@ -1,5 +1,6 @@
 {
   "gpuLoaderPath": [
+    { "match": { "dtype": "FUNCTIONAL_DESCRIPTOR" }, "value": "functional_descriptor" },
     { "match": { "litertAffineInt4FusedEligible": true }, "value": "litert_int4_fused" },
     { "match": { "w4a16FusedEligible": true }, "value": "w4a16_fused" },
     {
