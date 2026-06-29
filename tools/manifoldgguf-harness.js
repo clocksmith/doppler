@@ -761,7 +761,7 @@ async function main() {
         shard_hash: `sha256:${sirenHash}`,
       },
       sparse_outliers: {
-        format: 'csr_v1',
+        format: 'coo_v1',
         selection: 'residual_x_activation_sensitivity',
         nnz_fraction: args.sparseFrac,
         value_dtype: 'f32',

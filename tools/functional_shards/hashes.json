@@ -1,0 +1,7 @@
+{
+  "source_tensor": "sha256:b1d0c90f847f8bdbc3934fcc27e49b6faad376dced42cf9f456855eaa6495c1e",
+  "kron_shard": "sha256:b941fabe7f453f020e04c3b8af3467774bc1317b0c77367f24e759eb327ca3dc",
+  "siren_shard": "sha256:d855e290e6529f23cd265a16237dd1c29ce2b52ecad2a5df54af930eb04b40b1",
+  "sparse_shard": "sha256:a80462152156bd6d27965e9dfd5fcd031f1d58f2de977c2b0eec79ef06d10afe",
+  "descriptor": "sha256:4205a7a185465319b4564d3da3b80bc2db5654cc048a173f93511cf04157ec3f"
+}

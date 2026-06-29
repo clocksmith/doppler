@@ -30,6 +30,7 @@ const descriptorManifest = {
       shard_file: 'layer0.siren',
     },
     sparse_outliers: {
+      format: 'coo_v1',
       shard_file: 'layer0.sparse',
     },
   },

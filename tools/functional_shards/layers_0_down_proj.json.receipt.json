@@ -1,8 +1,0 @@
-{
-  "schema": "simulatte.indexBuildReceipt.v1",
-  "byteSize": 4949036,
-  "entryCount": 1,
-  "embeddingDimension": 64,
-  "buildTimeMs": 498069.3440437317,
-  "sha256": "cab489b280e4d328d136baf35c1bedd141f3fc6be568e99c0050fd13dc572c09"
-}

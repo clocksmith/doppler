@@ -13,6 +13,9 @@ import {
   getExpectedShardHash,
   parseTensorMap,
 } from '../../src/formats/rdrr/parsing.js';
+import {
+  validateFunctionalDescriptorManifest,
+} from '../../src/formats/rdrr/functional-descriptor.js';
 
 function createDescriptorManifest() {
   return {
@@ -36,6 +39,7 @@ function createDescriptorManifest() {
         shard_file: 'layer0.siren',
       },
       sparse_outliers: {
+        format: 'coo_v1',
         shard_file: 'layer0.sparse',
       },
     },
@@ -464,6 +468,17 @@ function createDescriptorManifest() {
       },
     })),
     /descriptorManifest/
+  );
+}
+
+{
+  const manifest = createDescriptorManifest();
+  manifest.components.sparse_outliers.format = 'csr_v1';
+  const validation = validateFunctionalDescriptorManifest(manifest);
+  assert.equal(validation.valid, false);
+  assert.match(
+    validation.errors.join('\n'),
+    /sparse_outliers\.format must be "coo_v1"/
   );
 }
 

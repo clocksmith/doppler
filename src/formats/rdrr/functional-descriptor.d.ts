@@ -46,7 +46,7 @@ export interface FunctionalDescriptorManifest {
     sparse_outliers: {
       shard_file: string;
       shard_hash?: string;
-      format?: string;
+      format?: 'coo_v1';
       value_dtype?: string;
       actual_nnz?: number;
     };
