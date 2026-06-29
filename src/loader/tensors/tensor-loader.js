@@ -11,6 +11,7 @@ import { log, trace as debugTrace } from '../../debug/index.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
 import { dequantizeQ4KM, dequantizeQ4KMRowWise, float32ToFloat16 } from '../../converter/quantizer.js';
 import { hasSourceTransform } from './source-transform.js';
+import { loadFunctionalDescriptor } from './functional-descriptor-loader.js';
 
 // ============================================================================
 // Q4K Detection
@@ -1158,6 +1159,11 @@ const GPU_LOADER_DISPATCH = {
 };
 
 export async function loadTensorToGPU(shardData, location, name, config) {
+  if (location.dtype === 'FUNCTIONAL_DESCRIPTOR') {
+    debugTrace.loader(`Loading functional descriptor: ${name}`);
+    return loadFunctionalDescriptor(shardData, location, name, config);
+  }
+
   const dtype = location.dtype;
   const useFusedQ4K = shouldUseFusedQ4K(location, config);
   const requiresFusedQ4KRole = Array.isArray(config?.q4kFusedRoles)
