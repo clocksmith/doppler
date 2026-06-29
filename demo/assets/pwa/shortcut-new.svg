@@ -1,5 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
   <title id="title">New prompt shortcut icon</title>
-  <rect width="96" height="96" rx="24" fill="#000000"/>
-  <path d="M48 24v48M24 48h48" stroke="#ffffff" stroke-linecap="round" stroke-width="10"/>
+  <defs>
+    <linearGradient id="spectrum" x1="24" y1="24" x2="72" y2="72" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff6b7a"/>
+      <stop offset="0.5" stop-color="#5d8dff"/>
+      <stop offset="1" stop-color="#b98cff"/>
+    </linearGradient>
+  </defs>
+  <rect width="96" height="96" rx="24" fill="#08090c"/>
+  <path d="M48 24v48M24 48h48" stroke="#ffffff" stroke-linecap="round" stroke-width="13"/>
+  <path d="M48 26v44M26 48h44" stroke="url(#spectrum)" stroke-linecap="round" stroke-width="6"/>
 </svg>

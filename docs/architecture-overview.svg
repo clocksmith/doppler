@@ -1,92 +1,77 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="700" viewBox="0 0 1400 700" role="img" aria-labelledby="title desc">
-  <title id="title">Doppler Architecture Overview</title>
-  <desc id="desc">Two-column architecture: internal load-model orchestration on the left and public inference calls on the right, each with its own Config as Code node and a shared WebGPU lifecycle link.</desc>
-
+  <title id="title">Doppler execution map</title>
+  <desc id="desc">Doppler model, WebGPU, Metal, and Vulkan execution lanes.</desc>
   <defs>
-  <style>
-    text { fill: #111111; font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; letter-spacing: 0; }
-    .title { font-size: 32px; font-weight: 700; font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
-    .section { font-size: 24px; font-weight: 700; font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
-    .node-title { font-size: 20px; font-weight: 700; font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
-    .node-text { font-size: 17px; font-weight: 500; font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
-    .code-text { font-size: 15px; font-weight: 500; font-family: SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
-    .edge-label { font-size: 15px; font-weight: 500; font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; fill: #111111; }
-    .column-left { fill: #ffffff; stroke: #111111; stroke-width: 1.75; }
-    .column-right { fill: #ffffff; stroke: #111111; stroke-width: 1.75; }
-    .node { fill: #f6f7ff; stroke-width: 1.25; }
-    .node-load { stroke: #111111; }
-    .node-infer { stroke: #111111; }
-    .edge { stroke: #17358f; stroke-width: 1.75; fill: none; }
-    .edge-dashed { stroke: #6b4ee6; stroke-width: 1.75; fill: none; stroke-dasharray: 8 8; }
-  </style>
+    <linearGradient id="spectrum" x1="92" y1="92" x2="1308" y2="608" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff6b7a"/>
+      <stop offset="0.5" stop-color="#5d8dff"/>
+      <stop offset="1" stop-color="#b98cff"/>
+    </linearGradient>
+    <linearGradient id="wash" x1="0" y1="0" x2="1400" y2="700" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff3f4"/>
+      <stop offset="0.55" stop-color="#eef4ff"/>
+      <stop offset="1" stop-color="#f8f1ff"/>
+    </linearGradient>
+    <style>
+      text { font-family: "Space Grotesk", "Azeret Mono", "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif; fill: #08090c; }
+      .title { font-size: 44px; font-weight: 900; letter-spacing: -1px; }
+      .eyebrow { font-size: 13px; font-weight: 850; letter-spacing: 4px; fill: #3a3d46; }
+      .node-title { font-size: 24px; font-weight: 850; }
+      .node-text { font-size: 16px; font-weight: 650; fill: #30323a; }
+      .mono { font-family: "Azeret Mono", "IBM Plex Mono", Menlo, Consolas, monospace; font-size: 14px; font-weight: 750; fill: #30323a; }
+      .chip { font-size: 14px; font-weight: 850; letter-spacing: 3px; }
+    </style>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto">
+      <path d="M1 1 L13 7 L1 13 Z" fill="#08090c"/>
+    </marker>
+  </defs>
 
-  <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
-    <path d="M 0 0 L 12 6 L 0 12 z" fill="#17358f" />
-  </marker>
+  <rect width="1400" height="700" fill="#ffffff"/>
+  <rect x="36" y="36" width="1328" height="628" rx="32" fill="url(#wash)" opacity="0.78"/>
+  <rect x="36" y="36" width="1328" height="628" rx="32" fill="none" stroke="#08090c" stroke-width="2"/>
 
-  <marker id="arrow-muted" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
-    <path d="M 0 0 L 12 6 L 0 12 z" fill="#6b4ee6" />
-  </marker>
-</defs>
+  <text x="86" y="104" class="eyebrow">DOPPLER</text>
+  <text x="86" y="154" class="title">Execution map</text>
+  <text x="86" y="190" class="node-text">Model data stays explicit; backend lanes stay visible.</text>
 
-  <rect x="0" y="0" width="1400" height="700" fill="#ffffff" />
+  <g transform="translate(86 254)">
+    <rect x="0" y="0" width="330" height="248" rx="24" fill="#ffffff" stroke="#08090c" stroke-width="2"/>
+    <text x="32" y="52" class="eyebrow">LOAD</text>
+    <text x="32" y="91" class="node-title">Model graph</text>
+    <text x="32" y="128" class="node-text">RDRR shards</text>
+    <text x="32" y="158" class="node-text">typed weights</text>
+    <text x="32" y="188" class="node-text">kernel policy</text>
+    <rect x="32" y="204" width="128" height="28" rx="14" fill="#08090c"/>
+    <text x="96" y="224" text-anchor="middle" class="mono" style="fill:#ffffff">manifest</text>
+  </g>
 
-  <text x="700" y="52" text-anchor="middle" class="title">Doppler Architecture Overview</text>
+  <g transform="translate(536 222)">
+    <rect x="0" y="0" width="328" height="312" rx="28" fill="#08090c"/>
+    <rect x="18" y="18" width="292" height="276" rx="22" fill="#ffffff"/>
+    <path d="M70 198c54-112 134-112 188 0" fill="none" stroke="#08090c" stroke-width="16" stroke-linecap="round"/>
+    <path d="M70 198c54-112 134-112 188 0" fill="none" stroke="url(#spectrum)" stroke-width="7" stroke-linecap="round"/>
+    <text x="164" y="72" text-anchor="middle" class="eyebrow">CONTRACT</text>
+    <text x="164" y="116" text-anchor="middle" class="node-title">WebGPU</text>
+    <text x="164" y="148" text-anchor="middle" class="node-text">buffers + WGSL kernels</text>
+    <circle cx="70" cy="198" r="14" fill="#ff6b7a" stroke="#08090c" stroke-width="2"/>
+    <circle cx="164" cy="87" r="14" fill="#5d8dff" stroke="#08090c" stroke-width="2"/>
+    <circle cx="258" cy="198" r="14" fill="#b98cff" stroke="#08090c" stroke-width="2"/>
+  </g>
 
-  <rect x="70" y="70" width="610" height="560" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75" />
-  <rect x="720" y="70" width="610" height="560" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75" />
+  <g transform="translate(984 254)">
+    <rect x="0" y="0" width="330" height="248" rx="24" fill="#ffffff" stroke="#08090c" stroke-width="2"/>
+    <text x="32" y="52" class="eyebrow">BACKENDS</text>
+    <text x="32" y="91" class="node-title">Native lanes</text>
+    <rect x="32" y="124" width="118" height="38" rx="19" fill="#08090c"/>
+    <text x="91" y="149" text-anchor="middle" class="chip" style="fill:#ffffff">METAL</text>
+    <rect x="166" y="124" width="132" height="38" rx="19" fill="#ffffff" stroke="#08090c" stroke-width="2"/>
+    <text x="232" y="149" text-anchor="middle" class="chip">VULKAN</text>
+    <text x="32" y="202" class="node-text">same graph boundary</text>
+    <text x="32" y="228" class="node-text">separate hardware path</text>
+  </g>
 
-  <text x="375" y="120" text-anchor="middle" class="section">Load Model (one-time)</text>
-  <text x="1025" y="120" text-anchor="middle" class="section">Inference (per-session)</text>
-
-  <rect x="125" y="150" width="500" height="82" rx="4" fill="#f6f7ff" stroke="#111111" stroke-width="1.25" />
-  <text x="375" y="184" text-anchor="middle" class="node-title">Config</text>
-  <text x="375" y="210" text-anchor="middle" class="node-text">weight/attention dtypes, kernels</text>
-
-  <rect x="125" y="270" width="500" height="72" rx="4" fill="#f6f7ff" stroke="#111111" stroke-width="1.25" />
-  <text x="375" y="302" text-anchor="middle" class="node-title">Internal Call</text>
-  <text x="375" y="322" text-anchor="middle" class="code-text">&#96;createInitializedPipeline()&#96;</text>
-  <text x="375" y="338" text-anchor="middle" class="code-text">&#96;pipeline.loadModel()&#96;</text>
-
-  <rect x="125" y="380" width="500" height="82" rx="4" fill="#f6f7ff" stroke="#111111" stroke-width="1.25" />
-  <text x="375" y="414" text-anchor="middle" class="node-title">Model Loader</text>
-  <text x="375" y="440" text-anchor="middle" class="node-text">shard cache + dequant + upload</text>
-
-  <rect x="125" y="520" width="240" height="82" rx="4" fill="#f6f7ff" stroke="#111111" stroke-width="1.25" />
-  <text x="245" y="554" text-anchor="middle" class="node-title">Storage</text>
-  <text x="245" y="580" text-anchor="middle" class="node-text">RDRR / OPFS / Downloader</text>
-
-  <rect x="385" y="520" width="240" height="82" rx="4" fill="#f6f7ff" stroke="#111111" stroke-width="1.25" />
-  <text x="505" y="554" text-anchor="middle" class="node-title">WebGPU</text>
-  <text x="505" y="580" text-anchor="middle" class="node-text">upload + buffers</text>
-
-  <line x1="375" y1="232" x2="375" y2="270" stroke="#17358f" stroke-width="2.5" />
-  <line x1="375" y1="342" x2="375" y2="380" stroke="#17358f" stroke-width="2.5" />
-
-  <polyline points="375,462 375,488 245,488 245,520" stroke="#17358f" stroke-width="2.5" fill="none" />
-  <line x1="505" y1="462" x2="505" y2="520" stroke="#17358f" stroke-width="2.5" />
-
-  <rect x="775" y="150" width="500" height="82" rx="4" fill="#f6f7ff" stroke="#111111" stroke-width="1.25" />
-  <text x="1025" y="184" text-anchor="middle" class="node-title">Config</text>
-  <text x="1025" y="210" text-anchor="middle" class="node-text">attention mechanism, batching, kernel overrides</text>
-
-  <rect x="775" y="270" width="500" height="72" rx="4" fill="#f6f7ff" stroke="#111111" stroke-width="1.25" />
-  <text x="1025" y="302" text-anchor="middle" class="node-title">Public API Call</text>
-  <text x="1025" y="326" text-anchor="middle" class="code-text">&#96;generate() / dopplerChat()&#96;</text>
-
-  <rect x="775" y="380" width="500" height="104" rx="4" fill="#f6f7ff" stroke="#111111" stroke-width="1.25" />
-  <text x="1025" y="415" text-anchor="middle" class="node-title">Inference Pipeline</text>
-  <text x="1025" y="442" text-anchor="middle" class="node-text">tokenizer -&gt; KV cache -&gt; attention/FFN -&gt; sampling</text>
-
-  <rect x="775" y="530" width="500" height="82" rx="4" fill="#f6f7ff" stroke="#111111" stroke-width="1.25" />
-  <text x="1025" y="564" text-anchor="middle" class="node-title">WebGPU</text>
-  <text x="1025" y="590" text-anchor="middle" class="node-text">WGSL kernels + buffer pools</text>
-
-  <line x1="1025" y1="232" x2="1025" y2="270" stroke="#17358f" stroke-width="2.5" />
-  <line x1="1025" y1="342" x2="1025" y2="380" stroke="#17358f" stroke-width="2.5" />
-  <line x1="1025" y1="484" x2="1025" y2="530" stroke="#17358f" stroke-width="2.5" />
-
-  <line x1="625" y1="561" x2="775" y2="561" stroke="#6b4ee6" stroke-width="2.5" stroke-dasharray="8 8" />
-  <text x="700" y="545" text-anchor="middle" class="edge-label">shared WebGPU lifecycle</text>
+  <path d="M416 378H526" stroke="#08090c" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M864 378H974" stroke="#08090c" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M394 214C500 120 900 120 1006 214" fill="none" stroke="url(#spectrum)" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
+  <text x="700" y="124" text-anchor="middle" class="mono">config in, receipts out</text>
 </svg>
