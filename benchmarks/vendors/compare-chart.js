@@ -1035,7 +1035,7 @@ function renderStackedBars(rows, width, height, title, subtitle, sectionLabel) {
       const label = `${metric.label}: ${formatValue(metric[engine.key].value, metric.unit)}`;
       const safeLabel = escapeXml(label.length > 34 ? `${label.substring(0, 31)}...` : label);
       if (segmentWidth > 40) {
-        body += `<text x="${cursor + 4}" y="${base + 23}" fill="#000" font-family="${FONT_MONO}" font-size="10">${safeLabel}</text>\n`;
+        body += `<text x="${cursor + 4}" y="${base + 23}" fill="${PALETTE.text}" font-family="${FONT_MONO}" font-size="10">${safeLabel}</text>\n`;
       }
       cursor += segmentWidth;
     });
