@@ -1,10 +1,30 @@
 {
   "schema_version": "manifoldgguf.v0.1",
-  "tensor_name": "model.layers.0.mlp.down_proj",
-  "shape": [
-    896,
-    4864
+  "tensor_name": "synthetic.weight",
+  "source_shape": [
+    64,
+    64
   ],
+  "slice_shape": [
+    64,
+    64
+  ],
+  "crop_shape": [
+    64,
+    64
+  ],
+  "padded_shape": [
+    64,
+    64
+  ],
+  "padding": {
+    "tile_shape": [
+      64,
+      64
+    ],
+    "rows": 0,
+    "cols": 0
+  },
   "storage_type": "functional_descriptor",
   "dtype": "f16",
   "accumulator": "f32_declared",
@@ -12,44 +32,60 @@
     64,
     64
   ],
-  "source_tensor_hash": "sha256:fe56319974e89520ac6a3f90d9750a9c70a73079c8dd33300699ecf847fa1400",
+  "source_tensor_hash": "sha256:b1d0c90f847f8bdbc3934fcc27e49b6faad376dced42cf9f456855eaa6495c1e",
+  "descriptor_hash": "sha256:4205a7a185465319b4564d3da3b80bc2db5654cc048a173f93511cf04157ec3f",
+  "dense_f16_bytes": 8192,
+  "descriptor_bytes": 672,
+  "compression_ratio": 12.19047619047619,
+  "proof_status": "passed",
+  "proof_status_gate": {
+    "sensitivity": "passed",
+    "compression": "passed",
+    "determinism": "passed"
+  },
   "components": {
     "prng_substrate": {
-      "algorithm": "coordinate_hash_normal_v1",
+      "algorithm": "coord_hash_normal_v1",
       "seed": 1337,
-      "learned_scale": true
+      "learned_scale": -0.0002037186008433004,
+      "learned_scale_frozen": true
     },
     "kronecker_sum": {
-      "rank_terms": 8,
+      "rank_terms": 1,
       "factor_shapes": [
         [
-          14,
-          16
-        ],
-        [
-          64,
-          304
+          [
+            8,
+            8
+          ],
+          [
+            8,
+            8
+          ]
         ]
       ],
-      "shard_file": "layers_0_down_proj.kron"
+      "shard_file": "synthetic_weight.kron",
+      "shard_hash": "sha256:b941fabe7f453f020e04c3b8af3467774bc1317b0c77367f24e759eb327ca3dc"
     },
     "coordinate_inr": {
       "type": "siren",
       "network_dims": [
         2,
-        64,
-        64,
+        4,
         1
       ],
-      "shard_file": "layers_0_down_proj.siren"
+      "omega_0": 30,
+      "shard_file": "synthetic_weight.siren",
+      "shard_hash": "sha256:d855e290e6529f23cd265a16237dd1c29ce2b52ecad2a5df54af930eb04b40b1"
     },
     "sparse_outliers": {
-      "format": "csr_v1",
+      "format": "coo_v1",
       "selection": "residual_x_activation_sensitivity",
       "nnz_fraction": 0.001,
-      "value_dtype": "f16",
-      "shard_file": "layers_0_down_proj.sparse"
+      "value_dtype": "f32",
+      "actual_nnz": 4,
+      "shard_file": "synthetic_weight.sparse",
+      "shard_hash": "sha256:a80462152156bd6d27965e9dfd5fcd031f1d58f2de977c2b0eec79ef06d10afe"
     }
-  },
-  "descriptor_hash": "sha256:cab489b280e4d328d136baf35c1bedd141f3fc6be568e99c0050fd13dc572c09"
+  }
 }

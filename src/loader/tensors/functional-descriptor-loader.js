@@ -245,7 +245,7 @@ function assertRuntimeProofGates(manifest, name, descriptorBytes, denseF16Bytes)
 }
 
 // ============================================================================
-// Sparse component
+// Sparse component (coo_v1)
 // Binary layout: [nnz u32][rowIdx i32...][colIdx i32...][values f32...]
 // ============================================================================
 

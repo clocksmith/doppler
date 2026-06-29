@@ -147,6 +147,7 @@ const descriptorManifest = {
       shard_file: 'tiny.siren',
     },
     sparse_outliers: {
+      format: 'coo_v1',
       shard_file: 'tiny.sparse',
     },
   },
@@ -248,6 +249,7 @@ resetRuntimeState(null);
         shard_file: 'loader.siren',
       },
       sparse_outliers: {
+        format: 'coo_v1',
         shard_file: 'loader.sparse',
         actual_nnz: 2,
       },

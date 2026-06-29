@@ -2,6 +2,7 @@ const DESCRIPTOR_SCHEMA_VERSION = 'manifoldgguf.v0.1';
 const DESCRIPTOR_STORAGE_TYPE = 'functional_descriptor';
 const DESCRIPTOR_PRNG_ALGORITHM = 'coord_hash_normal_v1';
 const DESCRIPTOR_COORDINATE_INR_TYPE = 'siren';
+const DESCRIPTOR_SPARSE_FORMAT = 'coo_v1';
 
 function isPlainObject(value) {
   return value != null && typeof value === 'object' && !Array.isArray(value);
@@ -207,6 +208,10 @@ export function validateFunctionalDescriptorManifest(value, label = 'descriptorM
 
   validateShardFile(errors, components.sparse_outliers, `${label}.components.sparse_outliers`);
   if (isPlainObject(components.sparse_outliers)) {
+    if (components.sparse_outliers.format !== undefined &&
+        components.sparse_outliers.format !== DESCRIPTOR_SPARSE_FORMAT) {
+      errors.push(`${label}.components.sparse_outliers.format must be "${DESCRIPTOR_SPARSE_FORMAT}"`);
+    }
     validateOptionalNonNegativeInteger(errors, components.sparse_outliers, 'actual_nnz', `${label}.components.sparse_outliers`);
   }
 
