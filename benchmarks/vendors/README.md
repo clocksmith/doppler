@@ -22,6 +22,11 @@ Claim methodology and fairness policy are canonical in [docs/benchmark-methodolo
 - Normalize external benchmark outputs into a shared comparison record.
 - Gate benchmark claims through reproducible CI checks and normalized result artifacts.
 
+This registry enforces Doppler's third main goal: correctness and performance
+claims must be evidence-backed. README copy, release notes, charts, and support
+matrices should point at compare artifacts, receipts, and generated matrices
+rather than restating unsupported speed claims in prose.
+
 ## How to interpret results
 
 What these benchmarks prove:
@@ -40,6 +45,8 @@ Claim format to keep reports auditable:
 - Include the exact command plus artifact paths:
   - generated outputs under [results/](./results/)
   - committed fixture evidence under [fixtures/](./fixtures/) when publishing stable claims
+- State whether the row is `claimable`, `candidate`, `diagnostic`, or
+  `capability_only` when that status exists in the source artifact or matrix.
 
 ## Claimable Evidence Rules
 

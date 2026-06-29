@@ -12,6 +12,15 @@ from `src/config/support-tiers/subsystems.json`; see
 
 See also: [INDEX.md](INDEX.md)
 
+The mainline product/technical goals are defined in [goals.md](goals.md):
+
+1. make local WebGPU inference a real product surface,
+2. own the model artifact and runtime contract,
+3. make correctness and performance evidence-backed.
+
+Architecture changes should map to one of those goals or stay clearly marked as
+experimental/internal in the subsystem support matrix.
+
 ## Overview
 
 ![Doppler architecture overview](architecture-overview.svg)
@@ -57,6 +66,9 @@ DOPPLER makes deliberate architectural tradeoffs that diverge from pre-compiled 
 | **Progressive Fusion** | Swap atomic kernels for fused kernels via config | Get the best of both worlds: hackability default, performance peaks |
 | **Minimal Readback** | Logit readback is cadence-controlled | Avoids unnecessary GPU→CPU transfer overhead during decode |
 | **JavaScript Orchestration** | JS dispatches GPU work, handles sampling | Debugging, rapid iteration, browser integration |
+
+These principles are not independent product claims. Public claims require the
+support matrices and benchmark receipts named in [goals.md](goals.md).
 
 ## Execution Planes
 

@@ -5,6 +5,7 @@ Primary documentation index.
 ## Start Here
 
 - [Getting Started](getting-started.md) - canonical first-run workflow.
+- [Goals](goals.md) - compact product and technical contract for Doppler's mainline work.
 - [Developer Guides](developer-guides/README.md) - task-oriented extension playbooks for adding models, kernels, commands, and pipeline features.
 - [Performance and Sizing](performance-sizing.md) - hardware tiers and planning guidance.
 

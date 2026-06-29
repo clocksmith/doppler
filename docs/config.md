@@ -49,6 +49,11 @@ Behavior-changing execution choices must be present in the manifest or explicit
 runtime config before execution. No hidden runtime fallbacks or command-owned
 runtime rewrites are allowed.
 
+This config boundary is the enforcement layer for Doppler's second main goal:
+owning the model artifact and runtime contract. Manifest/config/schema/rule
+assets may provide defaults. Runtime code must not invent behavior from model
+names, missing fields, surface identity, or local cache state.
+
 ## Multimodal config contract
 
 Multimodal encoder behavior is config-owned, not runtime-inferred.
@@ -100,6 +105,11 @@ intent, diagnostics), but may not rewrite conversion-owned storage facts
 (quantization layout, emitted tensor set, shard hashing policy).
 
 If a change requires different storage artifacts, reconvert the model.
+
+Runtime overlays are allowed only for runtime-owned policy. A field that changes
+artifact bytes, shard identity, tokenizer identity, quantization layout, or
+emitted tensor shape belongs to conversion, catalog migration, or manifest
+migration rather than a per-run override.
 
 For investigate/verify text-generation runs, `runtime.shared.tooling.diagnostics="always"`
 enables operator-timeline capture without switching the harness mode to

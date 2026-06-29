@@ -17,6 +17,23 @@ for the receipt contract and disclosure rules.
 - A runtime that keeps kernel paths, dtype policy, and benchmark contracts
   visible in JSON, JavaScript, and WGSL.
 
+## Main goals
+
+Doppler's mainline work is organized around three goals:
+
+1. Make local WebGPU inference a real product surface across the hosted browser
+   demo, `npx doppler-gpu`, root API, CLI, Node/Bun, and OpenAI-compatible
+   localhost server.
+2. Own the model artifact and runtime contract through RDRR manifests, hosted
+   registry IDs, explicit runtime config, tokenizer/shard identity, and support
+   matrices.
+3. Make correctness and performance evidence-backed through release receipts,
+   benchmark artifacts, command parity, explicit kernel paths, and fail-closed
+   unsupported paths.
+
+See [docs/goals.md](docs/goals.md) for the compact product and technical
+contract behind those goals.
+
 ## How it works
 
 1. A registry ID or model URL resolves to an RDRR manifest and weight shards.
@@ -103,6 +120,10 @@ Doppler keeps model support and subsystem support separate:
 - [subsystem support matrix](https://github.com/clocksmith/doppler/blob/main/docs/subsystem-support-matrix.md): which runtime and API surfaces are `tier1`, `experimental`, or `internal-only`
 
 The tier1 proof surface is the hosted browser demo, the root `doppler` API, the quickstart CLI, the OpenAI-compatible localhost server, and the verified text-inference path behind them.
+
+Defaults and policy choices must be represented in schema, manifest, config,
+profile, or rule assets. Runtime code must not invent hidden fallbacks or
+surface-specific behavior.
 
 ## Benchmark evidence
 
