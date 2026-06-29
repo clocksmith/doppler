@@ -173,9 +173,9 @@ function text(x, y, value, options = {}) {
 }
 
 function renderCell(row, x, y, width, height, maxDecode) {
-  const leaderColor = row.leader === 'doppler' ? '#27824b' : '#b94b4b';
-  const fill = row.leader === 'doppler' ? '#f0f7f2' : '#fff0f0';
-  const stroke = row.leader === 'doppler' ? '#91c7a1' : '#d98b8b';
+  const leaderColor = row.leader === 'doppler' ? PALETTE.doppler : PALETTE.bad;
+  const fill = row.leader === 'doppler' ? PALETTE.leaderDoppler : PALETTE.leaderTjs;
+  const stroke = row.leader === 'doppler' ? PALETTE.doppler : PALETTE.bad;
   const barX = x + 22;
   const barWidth = width - 44;
   const dopplerWidth = Math.max(2, (row.dopplerDecode / maxDecode) * barWidth);
@@ -192,14 +192,14 @@ function renderCell(row, x, y, width, height, maxDecode) {
     text(barX + 8, y + 63, `Doppler ${formatNumber(row.dopplerDecode)} tok/s`, {
       size: 12,
       weight: 800,
-      fill: '#ffffff',
+      fill: PALETTE.bg,
       mono: true,
     }),
     rect(barX, y + 78, tjsWidth, 20, PALETTE.transformersjs),
     text(barX + 8, y + 93, `TJS ${formatNumber(row.tjsDecode)} tok/s`, {
       size: 12,
       weight: 800,
-      fill: '#111111',
+      fill: PALETTE.text,
       mono: true,
     }),
     text(x + 18, y + 122, `prefill ${formatNumber(row.dopplerPrefill)} / ${formatNumber(row.tjsPrefill)} tok/s`, {
@@ -234,14 +234,14 @@ function renderSvg(rows) {
   body.push('<defs><style>');
   body.push(`text{font-family:${FONT_UI};letter-spacing:0}.mono{font-family:${FONT_MONO}}`);
   body.push('</style></defs>');
-  body.push(rect(0, 0, WIDTH, HEIGHT, '#ffffff', ''));
-  body.push(rect(18, 18, WIDTH - 36, HEIGHT - 36, '#ffffff', ` stroke="${PALETTE.border}" stroke-width="1.5"`));
+  body.push(rect(0, 0, WIDTH, HEIGHT, PALETTE.bg, ''));
+  body.push(rect(18, 18, WIDTH - 36, HEIGHT - 36, PALETTE.bg, ` stroke="${PALETTE.border}" stroke-width="1.5"`));
   body.push(text(42, 58, 'AMD VULKAN DECODE GRID', { size: 12, weight: 800 }));
   body.push(text(42, 96, 'Doppler / Transformers.js decode throughput', { size: 34, weight: 850 }));
   body.push(text(42, 126, 'Gemma 3 270M IT Q4K - greedy - warm cache - 15 timed runs - exact output match - no hidden fallback', { size: 15, fill: PALETTE.muted }));
-  body.push(rect(900, 50, 230, 58, '#111111'));
-  body.push(text(1015, 73, `${dopplerLeading} Doppler-leading`, { size: 16, weight: 850, fill: '#ffffff', anchor: 'middle' }));
-  body.push(text(1015, 96, `${tjsLeading} TJS-leading`, { size: 13, weight: 800, fill: '#ffffff', anchor: 'middle' }));
+  body.push(rect(900, 50, 230, 58, PALETTE.text));
+  body.push(text(1015, 73, `${dopplerLeading} Doppler-leading`, { size: 16, weight: 850, fill: PALETTE.bg, anchor: 'middle' }));
+  body.push(text(1015, 96, `${tjsLeading} TJS-leading`, { size: 13, weight: 800, fill: PALETTE.bg, anchor: 'middle' }));
 
   for (const [index, backendId] of backends.entries()) {
     body.push(text(left + index * (cellWidth + gap) + cellWidth / 2, 166, BACKEND_LABELS[backendId] || backendId, {
@@ -265,7 +265,7 @@ function renderSvg(rows) {
   }
 
   body.push(`<line x1="42" y1="770" x2="1158" y2="770" stroke="${PALETTE.grid}" />`);
-  body.push(text(42, 798, 'Read as decode throughput, higher is better. Green cells are Doppler-leading; red cells are TJS-leading.', {
+  body.push(text(42, 798, 'Read as decode throughput, higher is better. Blue cells are Doppler-leading; red cells are TJS-leading.', {
     size: 13,
     fill: PALETTE.muted,
   }));
