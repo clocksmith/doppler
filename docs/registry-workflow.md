@@ -40,16 +40,26 @@ To run only the hosted registry validation:
 npm run registry:hf:check
 ```
 
+To probe live hosted manifests and sidecars as well:
+
+```bash
+npm run registry:hf:probe
+```
+
 Validation guarantees:
 - every approved hosted entry has `hf.repoId`, `hf.revision`, and `hf.path`
 - every approved hosted entry carries artifact identity metadata:
   `sourceCheckpointId`, `weightPackId`, `manifestVariantId`,
   `artifactCompleteness`, `runtimePromotionState`, and `weightsRefAllowed`
+- the remote registry does not contain extra models outside the approved canonical hosted set
+- remote registry metadata matches the approved canonical hosted set
+- documented remote-only registry drift must be listed in `tools/policies/hf-registry-remote-drift-allowlist.json`
+
+`npm run registry:hf:probe` additionally verifies:
 - the remote manifest resolves
 - the remote manifest artifact identity matches the approved catalog entry
-- every declared remote shard resolves
-- the remote registry does not contain extra models outside the approved canonical hosted set
-- the live demo will not surface non-fetchable remote registry entries
+- each manifest declares shard filenames, positive sizes, and digests
+- required sidecars such as tokenizer and tensor metadata resolve
 
 ## Regenerate the external volume index
 

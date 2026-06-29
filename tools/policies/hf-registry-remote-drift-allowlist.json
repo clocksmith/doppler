@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-06-29",
+  "entries": [
+    {
+      "modelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
+      "remoteState": "hosted-verified",
+      "localState": "active-unverified",
+      "reason": "Remote registry still exposes an older W4A16 12B verified entry. Local catalog keeps the lane unverified until package-visible release-claim evidence is promoted through the current claim policy."
+    },
+    {
+      "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
+      "remoteState": "hosted-verified",
+      "localState": "active-unverified",
+      "reason": "Remote registry still exposes the 31B AF32 primary. Local catalog keeps it unverified because current package-visible AF32 text receipts are not release-quality."
+    },
+    {
+      "modelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
+      "remoteState": "hosted-verified",
+      "localState": "active-unverified",
+      "reason": "Remote registry still exposes the 31B AF16 weights-ref sibling. Local catalog keeps it unverified until the AF32 primary has package-visible release-quality evidence under the current claim policy."
+    }
+  ]
+}

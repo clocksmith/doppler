@@ -799,8 +799,13 @@
       "artifact": {
         "format": "rdrr"
       },
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "95a01447eecbf13fc5964986f507b08ded0cd40f",
+        "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
+      },
       "baseUrl": null,
-      "quickstart": false,
+      "quickstart": true,
       "sizeBytes": 1155348912,
       "recommended": false,
       "sortOrder": 20,
@@ -808,7 +813,7 @@
         "availability": {
           "curated": false,
           "local": true,
-          "hf": false
+          "hf": true
         },
         "status": {
           "runtime": "active",
@@ -825,7 +830,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-06-15",
           "source": "local-node-webgpu-verify",
-          "notes": "Browser/Node release evidence is package-visible at reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json. Qwen ChatML stop-token fixes remain local-catalog verified, but HF and quickstart availability stay disabled until the hosted artifact is republished with the explicit stop-token list.",
+          "notes": "Browser/Node release evidence is package-visible at reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json. The hosted Clocksmith/rdrr artifact is approved for quickstart resolution with explicit stop-token metadata.",
           "contracts": {
             "executionContractOk": true
           }
@@ -861,8 +866,13 @@
       "artifact": {
         "format": "rdrr"
       },
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "a8c45dd885a789042d3b82c95b471d66ca8d5152",
+        "path": "models/qwen-3-5-2b-q4k-ehaf16"
+      },
       "baseUrl": null,
-      "quickstart": false,
+      "quickstart": true,
       "sizeBytes": 2496068973,
       "recommended": false,
       "sortOrder": 21,
@@ -870,7 +880,7 @@
         "availability": {
           "curated": false,
           "local": true,
-          "hf": false
+          "hf": true
         },
         "status": {
           "runtime": "active",
@@ -887,7 +897,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-06-15",
           "source": "local-node-webgpu-verify",
-          "notes": "Browser/Node release evidence is package-visible at reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json. The execution-v1 lane keeps the fixed fused-Q4 decode path and q4 LM-head/prefill kernels. HF and quickstart availability stay disabled until the hosted artifact is republished with the explicit stop-token list.",
+          "notes": "Browser/Node release evidence is package-visible at reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json. The execution-v1 lane keeps the fixed fused-Q4 decode path and q4 LM-head/prefill kernels; the hosted Clocksmith/rdrr artifact is approved for quickstart resolution with explicit stop-token metadata.",
           "contracts": {
             "executionContractOk": true
           }

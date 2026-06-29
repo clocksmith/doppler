@@ -129,8 +129,10 @@ These registry IDs resolve to hosted RDRR artifacts automatically from the brows
 | Gemma 4 E2B IT | `gemma4-e2b` | Q4K | E2B | Gemma |
 | Gemma 4 E2B IT INT4PLE | `gemma4-e2b-int4ple` | Q4K | E2B | Gemma |
 | EmbeddingGemma 300M | `embeddinggemma-300m` | Q4K | 300M | Gemma |
+| Qwen 3.5 0.8B | `qwen3-0.8b` | Q4K | 0.8B | Qwen |
+| Qwen 3.5 2B | `qwen3-2b` | Q4K | 2B | Qwen |
 
-Additional local-artifact models, including TranslateGemma 4B and Qwen 3.5
+Additional local-artifact models, including TranslateGemma 4B and Qwen 3.6
 lanes, are tracked outside the quickstart registry.
 Conversion configs exist for Gemma 4 MoE and Janus but are not yet in the
 quickstart registry.
