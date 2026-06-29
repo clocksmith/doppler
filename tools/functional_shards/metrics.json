@@ -1,0 +1,9 @@
+{
+  "rmse": 1.9414713382720947,
+  "relative_frobenius_error": 104.83448228213172,
+  "activation_mse": 0.008510098792612553,
+  "dense_f16_bytes": 8716288,
+  "descriptor_bytes": 4949036,
+  "compression_ratio": 0.5677917021557801,
+  "build_time_ms": 498069.3440437317
+}

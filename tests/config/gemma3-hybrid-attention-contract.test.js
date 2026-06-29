@@ -20,7 +20,7 @@ for (const filePath of gemma3Configs) {
   assert.equal(inference.rope?.ropeLocalTheta, 10000, `${filePath}: ropeLocalTheta`);
   assert.equal(inference.layerPattern?.type, 'every_n', `${filePath}: layerPattern.type`);
   assert.equal(inference.layerPattern?.period, 6, `${filePath}: layerPattern.period`);
-  assert.equal(inference.layerPattern?.offset, null, `${filePath}: layerPattern.offset`);
+  assert.equal(inference.layerPattern?.offset, 5, `${filePath}: layerPattern.offset`);
 }
 
 console.log('gemma3-hybrid-attention-contract.test: ok');

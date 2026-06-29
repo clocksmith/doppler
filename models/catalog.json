@@ -73,6 +73,54 @@
       "weightsRefAllowed": false
     },
     {
+      "modelId": "gemma-3-270m-it-f16-af32",
+      "family": "gemma3",
+      "label": "Gemma 3 270M Instruct (F16/F32a)",
+      "description": "Gemma 3 270M text model. F16 weights, F16 embeddings/head, F32 accumulation.",
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "aliases": [
+        "gemma-3-270m-it-f16",
+        "gemma-3-270m-it-f16-hf16",
+        "gemma-3-270m-it-f16-hf16-f32"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
+        "path": "models/gemma-3-270m-it-f16-af32"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "sizeBytes": 540000000,
+      "recommended": false,
+      "sortOrder": 9,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "none"
+        },
+        "tested": null
+      },
+      "sourceCheckpointId": "google/gemma-3-270m-it",
+      "weightPackId": "gemma-3-270m-it-f16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-3-270m-it-f16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
       "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
       "family": "embeddinggemma",
       "label": "EmbeddingGemma 300M (Q4K)",
