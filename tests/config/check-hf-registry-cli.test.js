@@ -208,6 +208,81 @@ try {
   });
   assert.deepEqual(remoteValidation.errors, []);
 
+  const remoteDriftValidation = await validateRemoteRegistry({
+    models: [
+      {
+        modelId: 'toy-model',
+        ...catalogIdentity,
+        baseUrl: `${baseUrl}/models/toy-model`,
+      },
+      {
+        modelId: 'stale-remote-model',
+      },
+    ],
+  }, `${baseUrl}/registry/catalog.json`, {
+    models: [
+      {
+        modelId: 'toy-model',
+        ...catalogIdentity,
+        baseUrl: `${baseUrl}/models/toy-model`,
+        lifecycle: {
+          availability: {
+            hf: true,
+          },
+          status: {
+            runtime: 'active',
+            tested: 'verified',
+          },
+        },
+      },
+    ],
+  });
+  assert.deepEqual(remoteDriftValidation.errors, [
+    'stale-remote-model: remote registry contains a model that is not approved in the canonical support registry',
+  ]);
+
+  const allowedRemoteDriftValidation = await validateRemoteRegistry({
+    models: [
+      {
+        modelId: 'toy-model',
+        ...catalogIdentity,
+        baseUrl: `${baseUrl}/models/toy-model`,
+      },
+      {
+        modelId: 'stale-remote-model',
+      },
+    ],
+  }, `${baseUrl}/registry/catalog.json`, {
+    models: [
+      {
+        modelId: 'toy-model',
+        ...catalogIdentity,
+        baseUrl: `${baseUrl}/models/toy-model`,
+        lifecycle: {
+          availability: {
+            hf: true,
+          },
+          status: {
+            runtime: 'active',
+            tested: 'verified',
+          },
+        },
+      },
+    ],
+  }, {
+    remoteDriftAllowlist: {
+      schemaVersion: 1,
+      entries: [
+        {
+          modelId: 'stale-remote-model',
+          reason: 'unit-test documented remote drift',
+        },
+      ],
+    },
+  });
+  assert.deepEqual(allowedRemoteDriftValidation.errors, []);
+  assert.deepEqual(allowedRemoteDriftValidation.allowedDrifts, ['stale-remote-model']);
+
   // weights-ref variant must coexist with its primary lane in the same payload.
   const weightsRefValidation = await validateRemoteRegistry({
     models: [
@@ -263,6 +338,8 @@ try {
         },
       },
     ],
+  }, {
+    probeArtifacts: true,
   });
   assert.deepEqual(weightsRefValidation.errors, []);
 
@@ -291,6 +368,8 @@ try {
         },
       },
     ],
+  }, {
+    probeArtifacts: true,
   });
   assert.deepEqual(mismatchedManifestValidation.errors, [
     'approved-toy-model: demo-visible registry entry is not fetchable (approved-toy-model: manifest modelId "toy-model" does not match the approved support entry modelId)',
@@ -302,6 +381,7 @@ try {
       '--catalog-file',
       catalogFile,
       '--remote-only',
+      '--probe-artifacts',
       '--registry-url',
       `${baseUrl}/registry/catalog.json`,
     ], {
@@ -332,7 +412,7 @@ try {
   });
 
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /remote demo-visible entries verified: 1/);
+  assert.match(result.stdout, /remote demo-visible entries probed: 1/);
 } finally {
   server.closeIdleConnections?.();
   server.closeAllConnections?.();

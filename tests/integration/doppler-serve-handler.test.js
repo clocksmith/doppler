@@ -241,14 +241,19 @@ function createLoadFailure() {
   const body = parseBody(res);
   assert.equal(body.object, 'list');
   assert.ok(Array.isArray(body.data));
-  assert.ok(body.data.length >= 4, `Expected at least 4 text models, got ${body.data.length}`);
+  assert.ok(body.data.length >= 6, `Expected at least 6 text models, got ${body.data.length}`);
   const modelIds = body.data.map((m) => m.id);
-  assert.ok(modelIds.includes('gemma-3-270m-it-q4k-ehf16-af32'));
-  assert.ok(modelIds.includes('gemma-3-1b-it-q4k-ehf16-af32'));
-  assert.ok(modelIds.includes('gemma-4-e2b-it-q4k-ehf16-af32'));
-  assert.ok(modelIds.includes('gemma-4-e2b-it-q4k-ehf16-af32-int4ple'));
-  assert.ok(!modelIds.includes('qwen-3-5-0-8b-q4k-ehaf16'));
-  assert.ok(!modelIds.includes('qwen-3-5-2b-q4k-ehaf16'));
+  const expectedTextModelIds = [
+    'gemma-3-270m-it-q4k-ehf16-af32',
+    'gemma-3-1b-it-q4k-ehf16-af32',
+    'gemma-4-e2b-it-q4k-ehf16-af32',
+    'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
+    'qwen-3-5-0-8b-q4k-ehaf16',
+    'qwen-3-5-2b-q4k-ehaf16',
+  ];
+  for (const modelId of expectedTextModelIds) {
+    assert.ok(modelIds.includes(modelId), `${modelId} missing from text model list`);
+  }
   for (const entry of body.data) {
     assert.equal(entry.object, 'model');
     assert.equal(entry.owned_by, 'doppler');
