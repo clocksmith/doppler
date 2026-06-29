@@ -93,20 +93,15 @@ assert.strictEqual(bundle.manifest.tokenizer?.addBosToken, false);
 assert.strictEqual(bundle.manifest.tokenizer?.addEosToken, false);
 assert.strictEqual(
   bundle.manifest.metadata?.sourceRuntime?.tokenizer?.jsonPath,
-  'tokenizer.json'
+  null
 );
 assert.strictEqual(
   bundle.manifest.metadata?.sourceRuntime?.tokenizer?.modelPath,
   'TOKENIZER_MODEL'
 );
-const tokenizerJson = await bundle.storageContext.loadTokenizerJson();
-assert.strictEqual(tokenizerJson?.model?.type, 'BPE');
-assert.strictEqual(
-  Array.isArray(tokenizerJson?.model?.vocab)
-    ? tokenizerJson.model.vocab.length
-    : Object.keys(tokenizerJson?.model?.vocab ?? {}).length,
-  262144
-);
+const tokenizerModel = await bundle.storageContext.loadTokenizerModel?.('TOKENIZER_MODEL');
+assert.ok(tokenizerModel instanceof ArrayBuffer, 'SentencePiece tokenizer model must load as ArrayBuffer.');
+assert.ok(tokenizerModel.byteLength > 0, 'SentencePiece tokenizer model must not be empty.');
 
 const tensors = bundle.manifest.tensors;
 assert.ok(tensors, 'Manifest must have a tensors map.');
