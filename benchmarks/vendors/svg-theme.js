@@ -2,47 +2,47 @@ export const SVG_THEME = Object.freeze({
   palette: Object.freeze({
     bg: '#ffffff',
     panel: '#ffffff',
-    panelAlt: '#f6f7ff',
+    panelAlt: '#fafafa',
     border: '#111111',
     text: '#111111',
-    muted: '#111111',
-    grid: '#111111',
-    accent: '#17358f',
-    good: '#5c6fff',
-    warn: '#6b4ee6',
-    bad: '#cc3e45',
-    doppler: '#17358f',
-    transformersjs: '#5c6fff',
-    fail: '#cc3e45',
-    failFill: '#cc3e45',
-    leaderDoppler: '#17358f',
-    leaderTjs: '#cc3e45',
+    muted: '#4b5563',
+    grid: '#e5e7eb',
+    accent: '#8b5cf6',
+    good: '#3b82f6',
+    warn: '#8b5cf6',
+    bad: '#f87171',
+    doppler: '#3b82f6',          // Blue
+    transformersjs: '#f87171',   // Light Red
+    fail: '#ef4444',
+    failFill: '#fee2e2',
+    leaderDoppler: '#eff6ff',
+    leaderTjs: '#fef2f2',
     metric: Object.freeze([
-      '#17358f',
-      '#5c6fff',
-      '#6b4ee6',
-      '#cc3e45',
-      '#111111',
+      '#3b82f6', // Blue
+      '#8b5cf6', // Purple
+      '#f87171', // Light Red
+      '#111111', // Black
+      '#4b5563', // Gray
     ]),
     phase: Object.freeze({
-      warmLoad: '#17358f',
-      prefill: '#6b4ee6',
+      warmLoad: '#3b82f6', // Blue
+      prefill: '#8b5cf6',  // Purple
       ttftMarker: '#111111',
-      decode: '#5c6fff',
+      decode: '#f87171',   // Light Red
     }),
     architecture: Object.freeze({
       loadBorder: '#111111',
       inferBorder: '#111111',
-      edge: '#111111',
-      arrow: '#17358f',
-      arrowMuted: '#6b4ee6',
-      nodeLoad: '#111111',
-      nodeInfer: '#111111',
+      edge: '#4b5563',
+      arrow: '#3b82f6',
+      arrowMuted: '#8b5cf6',
+      nodeLoad: '#ffffff',
+      nodeInfer: '#ffffff',
     }),
   }),
   fonts: Object.freeze({
-    ui: 'Inter, Segoe UI, Helvetica Neue, Arial, sans-serif',
-    mono: 'SFMono-Regular, Menlo, Consolas, Liberation Mono, monospace',
+    ui: 'Outfit, Inter, system-ui, -apple-system, sans-serif',
+    mono: 'JetBrains Mono, Fira Code, SFMono-Regular, Consolas, monospace',
   }),
   stroke: Object.freeze({
     thin: 1.25,
@@ -50,8 +50,8 @@ export const SVG_THEME = Object.freeze({
     heavy: 2.5,
   }),
   radius: Object.freeze({
-    panel: 4,
-    badge: 3,
+    panel: 6,
+    badge: 4,
   }),
 });
 
@@ -73,7 +73,7 @@ const FONT_STACKS = Object.freeze({
 export function makeSvgTextStyle(selector = 'text') {
   const palette = SVG_THEME.palette;
   return `<defs><style>
-  ${selector} { fill: ${palette.text}; font-family: ${SVG_FONTS.uiCss}; letter-spacing: 0; }
+  ${selector} { fill: ${palette.text}; font-family: ${SVG_FONTS.uiCss}; letter-spacing: -0.01em; }
 </style></defs>`;
 }
 

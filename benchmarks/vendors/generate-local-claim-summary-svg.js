@@ -229,16 +229,16 @@ function renderSvg(rows) {
 
   const body = [];
   body.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" role="img" aria-labelledby="title desc">`);
-  body.push(`<title id="title">Doppler AMD Vulkan decode throughput grid</title>`);
-  body.push(`<desc id="desc">Gemma 3 270M Q4K throughput receipts on AMD Vulkan across p064, p256, p512 and Chromium, Node, Bun, with Doppler-leading and TJS-leading cells marked.</desc>`);
+  body.push(`<title id="title">Doppler WebGPU (Metal &amp; Vulkan) decode throughput grid</title>`);
+  body.push(`<desc id="desc">Gemma 3 270M Q4K throughput receipts on WebGPU (Metal &amp; Vulkan) across p064, p256, p512 and Chromium, Node, Bun, with Doppler-leading and TJS-leading cells marked.</desc>`);
   body.push('<defs><style>');
-  body.push(`text{font-family:${FONT_UI};letter-spacing:0}.mono{font-family:${FONT_MONO}}`);
+  body.push(`text{font-family:${FONT_UI};letter-spacing:-0.01em}.mono{font-family:${FONT_MONO}}`);
   body.push('</style></defs>');
   body.push(rect(0, 0, WIDTH, HEIGHT, PALETTE.bg, ''));
   body.push(rect(18, 18, WIDTH - 36, HEIGHT - 36, PALETTE.bg, ` stroke="${PALETTE.border}" stroke-width="1.5"`));
-  body.push(text(42, 58, 'AMD VULKAN DECODE GRID', { size: 12, weight: 800 }));
+  body.push(text(42, 58, 'WEBGPU DECODE GRID (METAL &amp; VULKAN)', { size: 12, weight: 800 }));
   body.push(text(42, 96, 'Doppler / Transformers.js decode throughput', { size: 34, weight: 850 }));
-  body.push(text(42, 126, 'Gemma 3 270M IT Q4K - greedy - warm cache - 15 timed runs - exact output match - no hidden fallback', { size: 15, fill: PALETTE.muted }));
+  body.push(text(42, 126, 'Gemma 3 270M IT Q4K • 15 runs • exact match', { size: 15, fill: PALETTE.muted }));
   body.push(rect(900, 50, 230, 58, PALETTE.text));
   body.push(text(1015, 73, `${dopplerLeading} Doppler-leading`, { size: 16, weight: 850, fill: PALETTE.bg, anchor: 'middle' }));
   body.push(text(1015, 96, `${tjsLeading} TJS-leading`, { size: 13, weight: 800, fill: PALETTE.bg, anchor: 'middle' }));

@@ -3258,11 +3258,16 @@ async function hashCompareArtifactSource(sourcePath) {
   if (typeof sourcePath !== 'string' || sourcePath.trim() === '') {
     throw new Error('compare artifact source path is required');
   }
-  const absolutePath = path.isAbsolute(sourcePath)
-    ? sourcePath
-    : path.resolve(ROOT_DIR, sourcePath);
+  let absolutePath = sourcePath;
+  const dopplerMarker = 'doppler/';
+  const idx = sourcePath.indexOf(dopplerMarker);
+  if (idx !== -1) {
+    absolutePath = path.resolve(ROOT_DIR, sourcePath.slice(idx + dopplerMarker.length));
+  } else if (!path.isAbsolute(sourcePath)) {
+    absolutePath = path.resolve(ROOT_DIR, sourcePath);
+  }
   if (!(await fileExists(absolutePath))) {
-    throw new Error(`compare artifact source is missing: ${sourcePath}`);
+    throw new Error(`compare artifact source is missing: ${sourcePath} (resolved: ${absolutePath})`);
   }
   const raw = await fs.readFile(absolutePath, 'utf8');
   const hashInfo = hashTextBytes(raw);

@@ -1,0 +1,55 @@
+{
+  "schema_version": "manifoldgguf.v0.1",
+  "tensor_name": "model.layers.0.mlp.down_proj",
+  "shape": [
+    896,
+    4864
+  ],
+  "storage_type": "functional_descriptor",
+  "dtype": "f16",
+  "accumulator": "f32_declared",
+  "tile_shape": [
+    64,
+    64
+  ],
+  "source_tensor_hash": "sha256:fe56319974e89520ac6a3f90d9750a9c70a73079c8dd33300699ecf847fa1400",
+  "components": {
+    "prng_substrate": {
+      "algorithm": "coordinate_hash_normal_v1",
+      "seed": 1337,
+      "learned_scale": true
+    },
+    "kronecker_sum": {
+      "rank_terms": 8,
+      "factor_shapes": [
+        [
+          14,
+          16
+        ],
+        [
+          64,
+          304
+        ]
+      ],
+      "shard_file": "layers_0_down_proj.kron"
+    },
+    "coordinate_inr": {
+      "type": "siren",
+      "network_dims": [
+        2,
+        64,
+        64,
+        1
+      ],
+      "shard_file": "layers_0_down_proj.siren"
+    },
+    "sparse_outliers": {
+      "format": "csr_v1",
+      "selection": "residual_x_activation_sensitivity",
+      "nnz_fraction": 0.001,
+      "value_dtype": "f16",
+      "shard_file": "layers_0_down_proj.sparse"
+    }
+  },
+  "descriptor_hash": "sha256:cab489b280e4d328d136baf35c1bedd141f3fc6be568e99c0050fd13dc572c09"
+}
