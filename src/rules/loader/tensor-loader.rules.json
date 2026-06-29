@@ -31,6 +31,7 @@
     { "match": {}, "value": "float" }
   ],
   "cpuLoaderPath": [
+    { "match": { "dtype": "FUNCTIONAL_DESCRIPTOR" }, "value": "unsupported_functional_descriptor" },
     { "match": { "dtype": { "in": ["Q4_K_M", "Q4_K", "Q6_K"] } }, "value": "raw" },
     { "match": { "dtype": "W4A16" }, "value": "w4a16_dequant_reference" },
     { "match": { "dtype": { "in": ["Q4_0", "WNA8O8"] } }, "value": "unsupported_packed_quantization" },

@@ -2,6 +2,11 @@ import { validateTensorConfigConsistency } from './tensor-config-validator.js';
 import { validateManifestExecutionContract } from '../../config/execution-contract-check.js';
 import { validateManifestInference } from '../../config/schema/index.js';
 import { validateTensorStorageDescriptor } from './storage-descriptor.js';
+import {
+  getFunctionalDescriptorManifest,
+  isFunctionalDescriptorDtype,
+  validateFunctionalDescriptorManifest,
+} from './functional-descriptor.js';
 
 const ARTIFACT_COMPLETENESS_VALUES = new Set([
   'complete',
@@ -370,6 +375,15 @@ export function validateManifest(manifest) {
     for (const [name, tensor] of Object.entries(manifest.tensors)) {
       if (!tensor.role || typeof tensor.role !== 'string') {
         errors.push(`Tensor "${name}" missing role`);
+      }
+      if (isFunctionalDescriptorDtype(tensor.dtype)) {
+        const descriptorValidation = validateFunctionalDescriptorManifest(
+          getFunctionalDescriptorManifest(tensor),
+          `Tensor "${name}" descriptorManifest`
+        );
+        for (const descriptorError of descriptorValidation.errors) {
+          errors.push(descriptorError);
+        }
       }
       if (tensor.storage !== undefined) {
         validateTensorStorageDescriptor(tensor.storage, `tensor "${name}"`, errors);

@@ -407,6 +407,16 @@ function createPathBackedStorageContext(options) {
         return payload == null ? null : payload;
       }
       : null,
+    loadAuxiliaryFile: readBinary
+      ? async (targetPath) => {
+        const selectedPath = normalizeArtifactPath(targetPath);
+        if (!selectedPath) {
+          throw new Error('artifact storage context: loadAuxiliaryFile(path) requires a non-empty path.');
+        }
+        const payload = await readBinary(selectedPath);
+        return payload == null ? null : toArrayBuffer(payload, `readBinary(${selectedPath})`);
+      }
+      : null,
     verifyHashes,
     close,
   };

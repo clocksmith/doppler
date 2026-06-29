@@ -29,6 +29,7 @@ export * from './merkle.js';
 export * from './integrity.js';
 export * from './lowerings.js';
 export * from './slice-compiler.js';
+export * from './functional-descriptor.js';
 
 // Distributed plans
 export * from './distributed/index.js';

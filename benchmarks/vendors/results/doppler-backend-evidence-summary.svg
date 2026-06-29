@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="620" viewBox="0 0 1280 620" role="img" aria-labelledby="title desc">
+  <title id="title">Doppler backend evidence summary</title>
+  <desc id="desc">Backend evidence table for Doppler README reporting. Rows show backend, surface, comparison, metric direction, result, claim state, and evidence path for Apple Metal and AMD Vulkan.</desc>
+  <defs>
+    <style>
+      text { fill: #111111; font-family: Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; }
+      .mono { font-family: SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace; }
+      .title { font-size: 30px; font-weight: 850; }
+      .sub { font-size: 14px; font-weight: 600; fill: #343a40; }
+      .eyebrow { font-size: 12px; font-weight: 850; letter-spacing: .08em; }
+      .head { font-size: 12px; font-weight: 850; letter-spacing: .04em; fill: #343a40; }
+      .cell { font-size: 13px; font-weight: 650; }
+      .small { font-size: 11px; font-weight: 650; fill: #343a40; }
+      .path { font-size: 10.5px; font-weight: 650; fill: #343a40; }
+      .status { font-size: 12px; font-weight: 850; }
+    </style>
+  </defs>
+  <rect x="0" y="0" width="1280" height="620" fill="#fbfaf6" />
+  <rect x="18" y="18" width="1244" height="584" rx="7" fill="#ffffff" stroke="#111111" stroke-width="1.35" />
+
+  <text x="42" y="58" class="eyebrow">DOPPLER BACKEND REPORTING</text>
+  <text x="42" y="94" class="title">Metal and Vulkan evidence, one reporting contract</text>
+  <text x="42" y="122" class="sub">Rows state backend, surface, comparator, metric direction, result, claim state, and artifact pointer. Compare only within a row.</text>
+  <rect x="960" y="46" width="250" height="52" rx="5" fill="#f4f7ff" stroke="#17358f" stroke-width="1.25" />
+  <text x="1085" y="68" text-anchor="middle" class="status" fill="#17358f">MIXED METRICS</text>
+  <text x="1085" y="88" text-anchor="middle" class="small mono">direction shown per row</text>
+
+  <line x1="42" y1="150" x2="1238" y2="150" stroke="#111111" stroke-width="1" />
+  <text x="56" y="178" class="head">BACKEND</text>
+  <text x="176" y="178" class="head">SURFACE</text>
+  <text x="334" y="178" class="head">COMPARISON</text>
+  <text x="500" y="178" class="head">METRIC</text>
+  <text x="686" y="178" class="head">RESULT</text>
+  <text x="888" y="178" class="head">CLAIM STATE</text>
+  <text x="1030" y="178" class="head">EVIDENCE</text>
+  <line x1="42" y1="194" x2="1238" y2="194" stroke="#111111" stroke-width="1" />
+
+  <rect x="42" y="204" width="1196" height="52" rx="4" fill="#f6f7ff" stroke="#d8ddf0" />
+  <text x="56" y="235" class="cell">Apple Metal</text>
+  <text x="176" y="228" class="cell">Browser warm</text>
+  <text x="176" y="246" class="small">Gemma 4 E2B</text>
+  <text x="334" y="235" class="cell">Doppler vs TJS</text>
+  <text x="500" y="228" class="cell">E2E latency</text>
+  <text x="500" y="246" class="small">lower is better</text>
+  <text x="686" y="228" class="cell">11.2s vs 6.72s</text>
+  <text x="686" y="246" class="status" fill="#9a3412">TJS 40% faster</text>
+  <text x="888" y="235" class="status" fill="#5c6fff">artifact-backed</text>
+  <text x="1030" y="235" class="path mono">compare_20260415T170108.json</text>
+
+  <rect x="42" y="266" width="1196" height="52" rx="4" fill="#ffffff" stroke="#e6e1d8" />
+  <text x="56" y="297" class="cell">Apple Metal</text>
+  <text x="176" y="290" class="cell">Browser cold</text>
+  <text x="176" y="308" class="small">Gemma 4 E2B</text>
+  <text x="334" y="297" class="cell">Doppler vs TJS</text>
+  <text x="500" y="290" class="cell">E2E latency</text>
+  <text x="500" y="308" class="small">lower is better</text>
+  <text x="686" y="290" class="cell">24.1s vs 59.8s</text>
+  <text x="686" y="308" class="status" fill="#0f766e">Doppler 2.5x faster</text>
+  <text x="888" y="297" class="status" fill="#5c6fff">artifact-backed</text>
+  <text x="1030" y="297" class="path mono">compare_20260415T170108.json</text>
+
+  <rect x="42" y="328" width="1196" height="52" rx="4" fill="#f3fbf8" stroke="#b7ded1" />
+  <text x="56" y="359" class="cell">AMD Vulkan</text>
+  <text x="176" y="352" class="cell">Chromium</text>
+  <text x="176" y="370" class="small">Gemma 3 270M</text>
+  <text x="334" y="359" class="cell">Doppler vs TJS</text>
+  <text x="500" y="352" class="cell">decode tok/s</text>
+  <text x="500" y="370" class="small">higher is better</text>
+  <text x="686" y="352" class="cell">175.8 / 164.2 / 156.5</text>
+  <text x="686" y="370" class="status" fill="#0f766e">Doppler leads 3/3</text>
+  <text x="888" y="359" class="status" fill="#5c6fff">candidate</text>
+  <text x="1030" y="359" class="path mono">compare_20260627T202837/203348/200811</text>
+
+  <rect x="42" y="390" width="1196" height="52" rx="4" fill="#ffffff" stroke="#e6e1d8" />
+  <text x="56" y="421" class="cell">AMD Vulkan</text>
+  <text x="176" y="414" class="cell">Node</text>
+  <text x="176" y="432" class="small">Gemma 3 270M</text>
+  <text x="334" y="421" class="cell">Doppler vs TJS</text>
+  <text x="500" y="414" class="cell">decode tok/s</text>
+  <text x="500" y="432" class="small">higher is better</text>
+  <text x="686" y="414" class="cell">112.5 / 106.0 / 103.0</text>
+  <text x="686" y="432" class="status" fill="#0f766e">Doppler leads 2/3</text>
+  <text x="888" y="421" class="status" fill="#5c6fff">candidate</text>
+  <text x="1030" y="421" class="path mono">compare_20260627T202549/203031/200323</text>
+
+  <rect x="42" y="452" width="1196" height="52" rx="4" fill="#f3fbf8" stroke="#b7ded1" />
+  <text x="56" y="483" class="cell">AMD Vulkan</text>
+  <text x="176" y="476" class="cell">Bun</text>
+  <text x="176" y="494" class="small">Gemma 3 270M</text>
+  <text x="334" y="483" class="cell">Doppler vs TJS</text>
+  <text x="500" y="476" class="cell">decode tok/s</text>
+  <text x="500" y="494" class="small">higher is better</text>
+  <text x="686" y="476" class="cell">115.5 / 108.4 / 105.5</text>
+  <text x="686" y="494" class="status" fill="#0f766e">Doppler leads 2/3</text>
+  <text x="888" y="483" class="status" fill="#5c6fff">candidate</text>
+  <text x="1030" y="483" class="path mono">compare_20260627T202736/203220/200603</text>
+
+  <rect x="42" y="514" width="1196" height="52" rx="4" fill="#ffffff" stroke="#e6e1d8" />
+  <text x="56" y="545" class="cell">AMD Vulkan</text>
+  <text x="176" y="538" class="cell">Release matrix</text>
+  <text x="176" y="556" class="small">Gemma 3 270M</text>
+  <text x="334" y="545" class="cell">claim promotion</text>
+  <text x="500" y="538" class="cell">gates</text>
+  <text x="500" y="556" class="small">correctness + receipts</text>
+  <text x="686" y="538" class="cell">exact output, 15 runs</text>
+  <text x="686" y="556" class="cell">broader medium claim gated</text>
+  <text x="888" y="545" class="status" fill="#5c6fff">candidate</text>
+  <text x="1030" y="545" class="path mono">local-inference-claim-matrix.json</text>
+
+  <text x="42" y="592" class="small">Disclosure: Metal and Vulkan rows are separate evidence lanes with different models and timing scopes. Compare only within a row.</text>
+</svg>

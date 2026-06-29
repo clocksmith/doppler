@@ -21,6 +21,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 
+const TILE_ROWS = 64;
+const TILE_COLS = 64;
+
 // ============================================================================
 // CLI
 // ============================================================================
@@ -551,6 +554,14 @@ function computeMetrics(W, Wapprox, rows, cols, sensitivity) {
   };
 }
 
+function cropMatrix(W, rows, cols, cropRows, cropCols) {
+  const out = new Float32Array(cropRows * cropCols);
+  for (let r = 0; r < cropRows; r++) {
+    out.set(W.subarray(r * cols, r * cols + cropCols), r * cropCols);
+  }
+  return out;
+}
+
 function sha256hex(buf) {
   return createHash('sha256').update(buf).digest('hex');
 }
@@ -570,17 +581,24 @@ async function main() {
   const fullW = toF32(raw.dtype, raw.data);
   const [fullRows, fullCols] = raw.shape;
 
-  const rows = Math.min(fullRows, args.maxSliceDim);
-  const cols = Math.min(fullCols, args.maxSliceDim);
-  let W;
-  if (rows === fullRows && cols === fullCols) {
-    W = fullW;
-  } else {
-    W = new Float32Array(rows * cols);
-    for (let r = 0; r < rows; r++) {
-      W.set(fullW.subarray(r * fullCols, r * fullCols + cols), r * cols);
-    }
-    console.log(`[manifoldgguf] Sliced to [${rows}, ${cols}] (--max-slice-dim ${args.maxSliceDim})`);
+  const cropRows = Math.min(fullRows, args.maxSliceDim);
+  const cropCols = Math.min(fullCols, args.maxSliceDim);
+  const padRows = (TILE_ROWS - (cropRows % TILE_ROWS)) % TILE_ROWS;
+  const padCols = (TILE_COLS - (cropCols % TILE_COLS)) % TILE_COLS;
+  const rows = cropRows + padRows;
+  const cols = cropCols + padCols;
+  const W = new Float32Array(rows * cols);
+  for (let r = 0; r < cropRows; r++) {
+    W.set(fullW.subarray(r * fullCols, r * fullCols + cropCols), r * cols);
+  }
+  if (cropRows !== fullRows || cropCols !== fullCols) {
+    console.log(`[manifoldgguf] Sliced to crop [${cropRows}, ${cropCols}] (--max-slice-dim ${args.maxSliceDim})`);
+  }
+  if (padRows !== 0 || padCols !== 0) {
+    console.log(
+      `[manifoldgguf] Padded crop [${cropRows}, ${cropCols}] to tile-aligned [${rows}, ${cols}] ` +
+      `(padRows=${padRows}, padCols=${padCols})`
+    );
   }
 
   // Calibration activations (Fix D)
@@ -588,23 +606,25 @@ async function main() {
   let sensitivityMode = 'mock_l2_proxy';
   if (args.calibActivations) {
     const buf = await fs.readFile(args.calibActivations);
-    if (buf.byteLength !== cols * 4) {
+    if (buf.byteLength !== cropCols * 4) {
       throw new Error(
-        `Calibration activations file must contain ${cols} F32 values (${cols * 4} bytes), ` +
+        `Calibration activations file must contain ${cropCols} F32 values (${cropCols * 4} bytes), ` +
         `got ${buf.byteLength} bytes. Capture with: mean(abs(X[:, j])) over calibration batch.`
       );
     }
-    sensitivity = new Float32Array(buf.buffer, buf.byteOffset, cols);
+    const cropSensitivity = new Float32Array(buf.buffer, buf.byteOffset, cropCols);
+    sensitivity = new Float32Array(cols);
+    sensitivity.set(cropSensitivity);
     sensitivityMode = 'real_calibration';
-    console.log(`[manifoldgguf] Real calibration activations loaded (${cols} dims)`);
+    console.log(`[manifoldgguf] Real calibration activations loaded (${cropCols} dims)`);
   } else {
     sensitivity = new Float32Array(cols);
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
+    for (let r = 0; r < cropRows; r++) {
+      for (let c = 0; c < cropCols; c++) {
         sensitivity[c] += Math.abs(W[r * cols + c]);
       }
     }
-    for (let c = 0; c < cols; c++) sensitivity[c] /= rows;
+    for (let c = 0; c < cropCols; c++) sensitivity[c] /= cropRows;
     console.warn(
       '[manifoldgguf] WARNING: Using mock sensitivity (mean |W| per column).\n' +
       '  Pass --calib-activations <f32bin> for proof-grade activation-weighted scoring.\n' +
@@ -648,7 +668,15 @@ async function main() {
     Wapprox[sparse.rowIdx[k] * cols + sparse.colIdx[k]] += sparse.values[k];
   }
 
-  const metrics = computeMetrics(W, Wapprox, rows, cols, sensitivity);
+  const Wcrop = cropMatrix(W, rows, cols, cropRows, cropCols);
+  const WapproxCrop = cropMatrix(Wapprox, rows, cols, cropRows, cropCols);
+  const metrics = computeMetrics(
+    Wcrop,
+    WapproxCrop,
+    cropRows,
+    cropCols,
+    sensitivity.subarray(0, cropCols)
+  );
 
   // Serialize shards (Fix E)
   const kronBuf = serializeKronecker(kronFactors);
@@ -675,20 +703,43 @@ async function main() {
   const descHash = sha256hex(Buffer.concat([kronBuf, sirenBuf, sparseBuf]));
 
   // Byte accounting (Fix F)
-  const denseBf16Bytes = fullRows * fullCols * 2;
+  const denseF16Bytes = cropRows * cropCols * 2;
   const descBytes = kronBuf.length + sirenBuf.length + sparseBuf.length;
+  const compressionRatio = descBytes > 0 ? denseF16Bytes / descBytes : null;
+  const sensitivityGate = sensitivityMode === 'real_calibration' ? 'passed' : 'incomplete';
+  const compressionGate = descBytes < denseF16Bytes ? 'passed' : 'failed';
+  const proofStatus = sensitivityGate === 'passed' && compressionGate === 'passed'
+    ? 'passed'
+    : (sensitivityGate !== 'passed' ? 'incomplete_mock_sensitivity' : 'failed_compression');
+  const proofStatusGate = {
+    sensitivity: sensitivityGate,
+    compression: compressionGate,
+    determinism: 'passed',
+  };
 
   const manifest = {
     schema_version: 'manifoldgguf.v0.1',
     tensor_name: args.tensor,
     source_shape: raw.shape,
-    slice_shape: [rows, cols],
+    slice_shape: [cropRows, cropCols],
+    crop_shape: [cropRows, cropCols],
+    padded_shape: [rows, cols],
+    padding: {
+      tile_shape: [TILE_ROWS, TILE_COLS],
+      rows: padRows,
+      cols: padCols,
+    },
     storage_type: 'functional_descriptor',
     dtype: 'f16',
     accumulator: 'f32_declared',
-    tile_shape: [64, 64],
+    tile_shape: [TILE_ROWS, TILE_COLS],
     source_tensor_hash: `sha256:${sourceHash}`,
     descriptor_hash: `sha256:${descHash}`,
+    dense_f16_bytes: denseF16Bytes,
+    descriptor_bytes: descBytes,
+    compression_ratio: compressionRatio,
+    proof_status: proofStatus,
+    proof_status_gate: proofStatusGate,
     components: {
       prng_substrate: {
         algorithm: PRNG_ALGO,
@@ -700,12 +751,14 @@ async function main() {
         rank_terms: kronFactors.length,
         factor_shapes: kronFactors.map(f => [[f.a, f.c], [f.b, f.d]]),
         shard_file: kronFile,
+        shard_hash: `sha256:${kronHash}`,
       },
       coordinate_inr: {
         type: 'siren',
         network_dims: [2, ...Array(args.sirenDepth - 1).fill(args.sirenWidth), 1],
         omega_0: 30.0,
         shard_file: sirenFile,
+        shard_hash: `sha256:${sirenHash}`,
       },
       sparse_outliers: {
         format: 'csr_v1',
@@ -714,6 +767,7 @@ async function main() {
         value_dtype: 'f32',
         actual_nnz: sparse.values.length,
         shard_file: sparseFile,
+        shard_hash: `sha256:${sparseHash}`,
       },
     },
   };
@@ -727,15 +781,19 @@ async function main() {
   };
 
   const metricsOut = {
-    dense_f16_bytes: denseBf16Bytes,
+    dense_f16_bytes: denseF16Bytes,
     descriptor_bytes: descBytes,
-    compression_ratio: (descBytes / denseBf16Bytes).toFixed(4),
+    compression_ratio: compressionRatio == null ? null : compressionRatio.toFixed(4),
     rmse: metrics.rmse.toFixed(7),
     relative_frobenius: metrics.relativeFrobenius.toFixed(7),
     activation_mse: metrics.activationMse.toFixed(7),
     sensitivity_mode: sensitivityMode,
+    proof_status: proofStatus,
+    proof_status_gate: proofStatusGate,
     source_shape: raw.shape,
-    slice_shape: [rows, cols],
+    slice_shape: [cropRows, cropCols],
+    padded_shape: [rows, cols],
+    padding: { rows: padRows, cols: padCols },
     kron_rank: kronFactors.length,
     siren_param_count: sirenLayers.reduce((s, l) => s + l.W.length + l.b.length, 0),
     sparse_nnz: sparse.values.length,
@@ -748,9 +806,9 @@ async function main() {
   ]);
 
   console.log('\n[manifoldgguf] === RESULTS ===');
-  console.log(`  Dense F16 bytes : ${denseBf16Bytes.toLocaleString()} (full ${fullRows}x${fullCols})`);
+  console.log(`  Dense F16 bytes : ${denseF16Bytes.toLocaleString()} (crop ${cropRows}x${cropCols})`);
   console.log(`  Descriptor bytes: ${descBytes.toLocaleString()} (kron=${kronBuf.length} siren=${sirenBuf.length} sparse=${sparseBuf.length})`);
-  console.log(`  Compression     : ${metricsOut.compression_ratio}x (slice ${rows}x${cols})`);
+  console.log(`  Compression     : ${metricsOut.compression_ratio}x dense/descriptor (padded ${rows}x${cols})`);
   console.log(`  RMSE            : ${metricsOut.rmse}`);
   console.log(`  Rel. Frobenius  : ${metricsOut.relative_frobenius}`);
   console.log(`  Activation MSE  : ${metricsOut.activation_mse} [${sensitivityMode}]`);
@@ -761,7 +819,7 @@ async function main() {
     console.log('  Supply --calib-activations to qualify as proof-grade.');
   } else {
     console.log('\n[manifoldgguf] PROOF STATUS: sensitivity gate passed.');
-    if (descBytes < denseBf16Bytes) {
+    if (descBytes < denseF16Bytes) {
       console.log('  Compression gate passed (descriptor < dense).');
     } else {
       console.log('  WARNING: descriptor_bytes >= dense_f16_bytes. Increase rank or reduce siren width.');

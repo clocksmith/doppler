@@ -22,6 +22,7 @@ import type {
   ManifestInferenceSchema,
   type TensorRole as SchemaTensorRole,
 } from '../../config/schema/index.js';
+import type { FunctionalDescriptorManifest } from './functional-descriptor.js';
 
 // =============================================================================
 // Re-exports from Schema
@@ -133,9 +134,9 @@ export interface LayerConfig {
 export interface ComponentGroup extends ComponentGroupSchema {}
 
 export interface TensorLocation {
-  shard: number;
+  shard?: number;
   shardIndex?: number;
-  offset: number;
+  offset?: number;
   size: number;
   shape: number[];
   dtype: string;
@@ -146,6 +147,7 @@ export interface TensorLocation {
   originalShape?: number[];
   sourceTransform?: TensorSourceTransform;
   storage?: TensorPhysicalStorageDescriptor;
+  descriptorManifest?: FunctionalDescriptorManifest;
 }
 
 export interface ConversionInfo {

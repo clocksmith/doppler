@@ -1,5 +1,10 @@
 import { loadTensorsFromStore } from '../storage/shard-manager.js';
 import { parseTensorMap } from '../formats/rdrr/index.js';
+import {
+  assertFunctionalDescriptorManifest,
+  getFunctionalDescriptorManifest,
+  isFunctionalDescriptorDtype,
+} from '../formats/rdrr/functional-descriptor.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 
 function normalizeLocationSpans(spans, name, sourceLabel) {
@@ -22,6 +27,22 @@ function normalizeLocationSpans(spans, name, sourceLabel) {
       size: span.size,
     };
   });
+}
+
+function normalizeDescriptorManifest(info, name, sourceLabel) {
+  const descriptorManifest = getFunctionalDescriptorManifest(info);
+  if (descriptorManifest == null) {
+    return null;
+  }
+  return assertFunctionalDescriptorManifest(
+    descriptorManifest,
+    `Tensor "${name}" ${sourceLabel} descriptorManifest`
+  );
+}
+
+function normalizeShardIndex(info, fallback = undefined) {
+  const shardIndex = info?.shardIndex ?? info?.shard;
+  return typeof shardIndex === 'number' ? shardIndex : fallback;
 }
 
 /**
@@ -101,10 +122,14 @@ export async function buildTensorLocations(manifest, options = {}) {
         if (!info.role) {
           throw new Error(`Tensor "${name}" missing role in tensors.json`);
         }
+        const descriptorManifest = normalizeDescriptorManifest(info, name, 'tensors.json');
+        if (isFunctionalDescriptorDtype(info.dtype) && descriptorManifest == null) {
+          throw new Error(`Tensor "${name}" missing descriptorManifest in tensors.json`);
+        }
         locations.set(name, {
-          shardIndex: info.shardIndex ?? info.shard,
+          shardIndex: normalizeShardIndex(info),
           offset: info.offset,
-          size: info.size,
+          size: info.size ?? 0,
           shape: info.shape,
           dtype: info.dtype,
           role: info.role,
@@ -114,6 +139,7 @@ export async function buildTensorLocations(manifest, options = {}) {
           originalShape: info.originalShape,
           storage: info.storage,
           sourceTransform: info.sourceTransform,
+          descriptorManifest,
         });
       }
       const resolvedSource = trace.find((entry) => entry.outcome === 'resolved')?.source ?? 'unknown';
@@ -142,10 +168,14 @@ export async function buildTensorLocations(manifest, options = {}) {
     if (!tensorInfo.role) {
       throw new Error(`Tensor "${name}" missing role in manifest.tensors`);
     }
+    const descriptorManifest = normalizeDescriptorManifest(tensorInfo, name, 'manifest.tensors');
+    if (isFunctionalDescriptorDtype(tensorInfo.dtype) && descriptorManifest == null) {
+      throw new Error(`Tensor "${name}" missing descriptorManifest in manifest.tensors`);
+    }
     locations.set(name, {
-      shardIndex: tensorInfo.shardIndex ?? tensorInfo.shard ?? 0,
+      shardIndex: normalizeShardIndex(tensorInfo, isFunctionalDescriptorDtype(tensorInfo.dtype) ? undefined : 0),
       offset: tensorInfo.offset,
-      size: tensorInfo.size,
+      size: tensorInfo.size ?? 0,
       shape: tensorInfo.shape,
       dtype: tensorInfo.dtype,
       role: tensorInfo.role,
@@ -155,6 +185,7 @@ export async function buildTensorLocations(manifest, options = {}) {
       originalShape: tensorInfo.originalShape,
       storage: tensorInfo.storage,
       sourceTransform: tensorInfo.sourceTransform,
+      descriptorManifest,
     });
   }
   debugTrace.loader(`Tensor map: ${locations.size} tensors (inline)`);

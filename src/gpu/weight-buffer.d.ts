@@ -26,6 +26,15 @@ export interface WeightMetadata {
     readonly entry?: string | null;
     readonly digest?: string | null;
   };
+  readonly storageType?: 'functional_descriptor' | string;
+  readonly descriptorHash?: string;
+  readonly descriptorBytes?: number;
+  readonly denseF16Bytes?: number;
+  readonly compressionRatio?: number | null;
+  readonly proofStatus?: string | null;
+  readonly proofStatusGate?: Record<string, string> | null;
+  readonly descriptorShape?: readonly [number, number];
+  readonly cropShape?: readonly [number, number];
 }
 
 export interface CpuTensorRangeSource {

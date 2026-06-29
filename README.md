@@ -107,11 +107,12 @@ The tier1 proof surface is the hosted browser demo, the root `doppler` API, the 
 ## Benchmark evidence
 
 The release matrix lists checked benchmark fixtures with hardware and backend,
-including Apple Metal and AMD Vulkan rows. The chart below is the current AMD
-Vulkan Gemma 3 270M IT Q4K decode grid against Transformers.js across Chromium,
-Node, and Bun:
+including Apple Metal and AMD Vulkan rows. The README chart uses one reporting
+contract across backends: each row states backend, surface, comparator, metric
+direction, result, claim state, and evidence path. Metal and Vulkan rows are
+separate evidence lanes and should only be compared within a row.
 
-![Doppler vs Transformers.js AMD Vulkan decode throughput on Gemma 3 270M across Chromium, Node, and Bun](./benchmarks/vendors/results/doppler-vulkan-decode-grid-20260627.svg)
+![Doppler backend evidence summary](./benchmarks/vendors/results/doppler-backend-evidence-summary.svg)
 
 ## Quickstart-supported models
 

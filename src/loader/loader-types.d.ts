@@ -9,13 +9,14 @@
 import type { CpuWeightBuffer, WeightBuffer } from '../gpu/weight-buffer.js';
 import type { TensorRole } from '../config/schema/index.js';
 import type { TensorSourceTransform } from '../formats/rdrr/index.js';
+import type { FunctionalDescriptorManifest } from '../formats/rdrr/functional-descriptor.js';
 
 /**
  * Tensor location in loaded model
  */
 export interface TensorLocation {
-  shardIndex: number;
-  offset: number;
+  shardIndex?: number;
+  offset?: number;
   size: number;
   shape: number[];
   dtype: string;
@@ -28,6 +29,8 @@ export interface TensorLocation {
   originalShape?: number[];
   /** Optional direct-source transform applied before dtype-specific loading */
   sourceTransform?: TensorSourceTransform;
+  /** Parsed manifoldgguf descriptor for FUNCTIONAL_DESCRIPTOR tensors */
+  descriptorManifest?: FunctionalDescriptorManifest;
 }
 
 /**
@@ -187,6 +190,7 @@ export interface CustomShardLoaderOptions {
   verify?: boolean;
   loadShardRange?: CustomShardRangeLoader;
   streamShardRange?: CustomShardStreamLoader;
+  loadAuxiliaryFile?: CustomAuxiliaryFileLoader | null;
 }
 
 /**
@@ -221,6 +225,10 @@ export type CustomShardStreamLoader = (
   length?: number | null,
   options?: CustomShardStreamOptions
 ) => AsyncIterable<Uint8Array>;
+
+export type CustomAuxiliaryFileLoader = (
+  path: string
+) => Promise<ArrayBuffer | Uint8Array | null | undefined>;
 
 /**
  * Loader statistics

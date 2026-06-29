@@ -1114,6 +1114,10 @@ export async function loadW4A16Dequant(shardData, location, name, config) {
 
 
 const GPU_LOADER_DISPATCH = {
+  functional_descriptor: (shardData, location, name, config) => {
+    debugTrace.loader(`Loading functional descriptor: ${name}`);
+    return loadFunctionalDescriptor(shardData, location, name, config);
+  },
   litert_int4_fused: (shardData, location, name, config) => {
     debugTrace.loader(`Loading LiteRT INT4 weight (fused): ${name} (size=${location.size})`);
     return loadLiteRTInt4Fused(shardData, location, name, config);
@@ -1159,11 +1163,6 @@ const GPU_LOADER_DISPATCH = {
 };
 
 export async function loadTensorToGPU(shardData, location, name, config) {
-  if (location.dtype === 'FUNCTIONAL_DESCRIPTOR') {
-    debugTrace.loader(`Loading functional descriptor: ${name}`);
-    return loadFunctionalDescriptor(shardData, location, name, config);
-  }
-
   const dtype = location.dtype;
   const useFusedQ4K = shouldUseFusedQ4K(location, config);
   const requiresFusedQ4KRole = Array.isArray(config?.q4kFusedRoles)
@@ -1201,6 +1200,11 @@ export async function loadTensorToGPU(shardData, location, name, config) {
 
 
 const CPU_LOADER_DISPATCH = {
+  unsupported_functional_descriptor: (_shardData, _location, name) => {
+    throw new Error(
+      `FUNCTIONAL_DESCRIPTOR tensor "${name ?? 'unknown'}" requires GPU materialization through loadTensorToGPU.`
+    );
+  },
   raw: (shardData, _location) => shardData,
   w4a16_dequant_reference: (shardData, location) => {
     const f16Bytes = dequantizeW4A16ToF16(shardData, location, 'cpu');
@@ -1221,12 +1225,12 @@ const CPU_LOADER_DISPATCH = {
   f32: (shardData, _location) => toFloat32View(shardData, 'F32 CPU tensor load'),
 };
 
-export function loadTensorToCPU(shardData, location) {
+export function loadTensorToCPU(shardData, location, name = null) {
   const dtype = location.dtype;
   const loaderPath = selectRuleValue('loader', 'tensorLoader', 'cpuLoaderPath', { dtype });
   const loader = CPU_LOADER_DISPATCH[loaderPath];
   if (!loader) {
     throw new Error(`Unknown CPU loader path: "${loaderPath}" for dtype "${dtype}"`);
   }
-  return loader(shardData, location);
+  return loader(shardData, location, name);
 }

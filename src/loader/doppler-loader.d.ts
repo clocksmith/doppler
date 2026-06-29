@@ -116,6 +116,10 @@ export declare class DopplerLoader {
 
   setCustomShardLoader(loadShardFn: CustomShardLoader, options?: CustomShardLoaderOptions): void;
 
+  setAuxiliaryFileLoader(
+    loadAuxiliaryFile: ((path: string) => Promise<ArrayBuffer | Uint8Array | null | undefined>) | null
+  ): void;
+
   setTensorsJsonUrl(url: string | null): void;
 
   setTensorsJsonLoader(loadTensorsJson: (() => Promise<string | Record<string, unknown> | null | undefined>) | null): void;

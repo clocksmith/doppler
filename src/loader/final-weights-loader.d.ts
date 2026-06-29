@@ -56,6 +56,8 @@ export interface FinalWeightsContext {
   embeddings: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
   /** Optional embedding postprocessor declared by manifest */
   embeddingPostprocessor?: ManifestEmbeddingPostprocessorSchema | null;
+  /** Manifest-owned DiffusionGemma self-conditioning enablement */
+  diffusionGemmaSelfConditioning?: boolean;
   /** Manifest model type */
   modelType?: string | null;
   /** Whether LM head should fall back to tied embeddings */
