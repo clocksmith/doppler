@@ -1,8 +1,11 @@
 # doppler-gpu
 
-Browser-native inference on raw WebGPU. Pure JS + WGSL.
+WebGPU inference runtime for browser, Node, Bun, CLI, and local server use.
+Doppler runs JavaScript orchestration over WGSL kernels and loads models from
+RDRR manifests.
 
 **[Try the live demo](https://d4da.com/doppler)** | **[npm](https://www.npmjs.com/package/doppler-gpu)** | **[docs](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)**
+
 Broader model status and compare evidence live in the support and release
 matrices. See the
 [benchmark methodology](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
@@ -17,9 +20,9 @@ for the receipt contract and disclosure rules.
 - A runtime that keeps kernel paths, dtype policy, and benchmark contracts
   visible in JSON, JavaScript, and WGSL.
 
-## Main goals
+## Goals
 
-Doppler's mainline work is organized around three goals:
+Doppler's mainline work is organized around three concrete surfaces:
 
 1. Make local WebGPU inference a real product surface across the hosted browser
    demo, `npx doppler-gpu`, root API, CLI, Node/Bun, and OpenAI-compatible
@@ -31,9 +34,11 @@ Doppler's mainline work is organized around three goals:
    benchmark artifacts, command parity, explicit kernel paths, and fail-closed
    unsupported paths.
 
-See [docs/goals.md](docs/goals.md) for the compact product and technical
-contract behind those goals. The current completion gate is
-`src/config/goal-completion-matrix.json`, checked by `npm run goals:check`.
+See
+[docs/goals.md](https://github.com/clocksmith/doppler/blob/main/docs/goals.md)
+for the product and technical contract behind those goals. The current
+completion gate is `src/config/goal-completion-matrix.json`, checked by
+`npm run goals:check`.
 
 ## How it works
 
@@ -128,13 +133,20 @@ surface-specific behavior.
 
 ## Benchmark evidence
 
-The release matrix lists checked benchmark fixtures with hardware and backend,
-including Apple Metal and AMD Vulkan rows. The README chart uses one reporting
-contract across backends: each row states backend, surface, comparator, metric
-direction, result, claim state, and evidence path. Metal and Vulkan rows are
-separate evidence lanes and should only be compared within a row.
+The npm package includes the runtime, config contracts, schemas, and quickstart
+surface. It does not bundle the full benchmark result tree, local hardware
+artifacts, browser run outputs, or release evidence reports.
 
-![Doppler backend evidence summary](./benchmarks/vendors/results/doppler-backend-evidence-summary.svg)
+The GitHub release matrix lists checked benchmark fixtures with hardware and
+backend, including Apple Metal and AMD Vulkan rows. Each row states backend,
+surface, comparator, metric direction, result, claim state, and evidence path.
+Metal and Vulkan rows are separate evidence lanes and should only be compared
+within a row.
+
+- Benchmark methodology:
+  [docs/benchmark-methodology.md](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
+- Backend evidence summary:
+  [benchmarks/vendors/results/doppler-backend-evidence-summary.svg](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/doppler-backend-evidence-summary.svg)
 
 ## Quickstart-supported models
 

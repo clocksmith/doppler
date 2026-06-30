@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const { compileExecutionV1 } = await import('../../src/inference/pipelines/text/execution-v1.js');
+const {
+  applyExecutionV1RuntimeConfig,
+  compileExecutionV1,
+} = await import('../../src/inference/pipelines/text/execution-v1.js');
+const {
+  applyModelBatchingRuntimeDefaults,
+  resolveKernelPathState,
+} = await import('../../src/inference/pipelines/text/model-load.js');
 
 const kernelRegistry = JSON.parse(readFileSync('src/config/kernels/registry.json', 'utf8'));
 const shaderF16KernelFiles = new Set();
@@ -213,6 +220,76 @@ assertNoShaderF16KernelSteps(
   qwen08NoF16.runtimeInferencePatch.kernelPath,
   'Qwen 0.8B no-f16 compile must not emit shader-f16 kernel path steps'
 );
+
+{
+  const qwen08Manifest = {
+    modelId: qwen08Config.output.modelBaseId,
+    architecture: {
+      numLayers: qwen08Config.inference.layerPattern.layerTypes.length,
+      headDim: 256,
+    },
+    inference: {
+      ...qwen08Config.inference,
+      schema: 'doppler.execution/v1',
+      session: qwen08Config.session,
+      execution: qwen08Config.execution,
+    },
+  };
+  const runtimeOverrides = {
+    inference: {
+      kernelPathPolicy: {
+        mode: 'capability-aware',
+        sourceScope: ['manifest', 'model'],
+        onIncompatible: 'remap',
+      },
+    },
+  };
+  const phase1 = applyExecutionV1RuntimeConfig({
+    runtimeConfig: structuredClone(runtimeOverrides),
+    runtimeOverrides,
+    manifest: qwen08Manifest,
+    capabilities: {
+      hasSubgroups: true,
+      hasF16: false,
+      hasSubgroupsF16: false,
+    },
+    platform: {
+      id: 'swiftshader',
+      vendor: 'google',
+      architecture: 'swiftshader',
+    },
+  });
+  const phase2Runtime = applyModelBatchingRuntimeDefaults(
+    phase1.runtimeConfig,
+    qwen08Manifest,
+    null,
+    runtimeOverrides
+  );
+  assert.equal(
+    phase2Runtime.inference.session.kvcache.kvDtype,
+    'f32',
+    'Qwen 0.8B no-f16 batching defaults must preserve the execution-v1 f32 KV session'
+  );
+  assert.equal(
+    phase2Runtime.inference.session.compute.defaults.outputDtype,
+    'f32',
+    'Qwen 0.8B no-f16 batching defaults must preserve the execution-v1 f32 output session'
+  );
+  assert.doesNotThrow(
+    () => resolveKernelPathState({
+      manifest: qwen08Manifest,
+      runtimeConfig: phase2Runtime,
+      runtimeOverrides,
+      modelConfig: { kernelPath: null },
+      kernelCapabilities: {
+        hasSubgroups: true,
+        hasF16: false,
+        hasSubgroupsF16: false,
+      },
+    }),
+    'Qwen 0.8B no-f16 kernel-path dtype validation must see the execution-v1 f32 session'
+  );
+}
 
 // Lane integrity: synthetic af16-style manifest dispatched on a GPU lacking
 // shader-f16. The capability resolver must install widenToF32Activations and

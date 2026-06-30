@@ -91,8 +91,12 @@ function requireSessionDecodeLoopStopCheckMode(value, modelId) {
 }
 
 function resolveDecodeLoopRuntimeSession(runtimeConfig, runtimeOverrides, useExplicitRuntimeOverrides) {
+  const runtimeSession = runtimeConfig?.inference?.session ?? null;
+  if (runtimeConfig?.inference?.kernelPathSource === 'execution-v1') {
+    return runtimeSession;
+  }
   if (!useExplicitRuntimeOverrides) {
-    return runtimeConfig?.inference?.session ?? null;
+    return runtimeSession;
   }
   const inferenceOverrides = runtimeOverrides?.inference;
   if (!inferenceOverrides || typeof inferenceOverrides !== 'object' || Array.isArray(inferenceOverrides)) {
