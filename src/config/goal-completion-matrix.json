@@ -1,0 +1,552 @@
+{
+  "schemaVersion": 1,
+  "source": "doppler",
+  "updatedAtUtc": "2026-06-29T00:00:00.000Z",
+  "goals": [
+    {
+      "id": "local-webgpu-product-surface",
+      "label": "Make local WebGPU inference a real product surface",
+      "status": "partial",
+      "claimAllowed": false,
+      "evidencePaths": [
+        "README.md",
+        "docs/goals.md",
+        "docs/subsystem-support-matrix.md"
+      ],
+      "blockers": [
+        "bun-runtime-tier-experimental"
+      ],
+      "rows": [
+        {
+          "id": "hosted-browser-demo",
+          "label": "Hosted browser demo",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": "demo.browser-workspace",
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run test:gpu:browser",
+          "evidencePaths": [
+            "README.md",
+            "demo/index.html",
+            "src/config/support-tiers/subsystems.json",
+            "tools/policies/subsystem-support-contract.json",
+            "tools/check-subsystem-support-contract.js"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "npx-doppler-gpu",
+          "label": "npx doppler-gpu quickstart",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": "cli.quickstart",
+          "packageBin": "doppler-gpu",
+          "packageExport": null,
+          "smokeCommand": "npm run quickstart:check",
+          "evidencePaths": [
+            "README.md",
+            "package.json",
+            "src/cli/doppler-quickstart.js",
+            "src/config/support-tiers/subsystems.json"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "root-api",
+          "label": "Root Doppler API",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": "api.root-facade",
+          "packageBin": null,
+          "packageExport": ".",
+          "smokeCommand": "npm run exports:parity:check",
+          "evidencePaths": [
+            "README.md",
+            "docs/api/root.md",
+            "package.json",
+            "src/index.js",
+            "src/config/support-tiers/subsystems.json"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "cli",
+          "label": "Public CLI",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": "doppler",
+          "packageExport": null,
+          "smokeCommand": "npm run public:boundaries:check",
+          "evidencePaths": [
+            "docs/cli.md",
+            "package.json",
+            "src/cli/doppler-cli.js",
+            "src/tooling/command-api.js"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "node-runtime",
+          "label": "Node WebGPU runtime",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": "runtime.text-inference",
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run release-claims:check",
+          "evidencePaths": [
+            "README.md",
+            "docs/architecture.md",
+            "docs/subsystem-support-matrix.md",
+            "src/inference/pipelines/text.js",
+            "src/config/support-tiers/subsystems.json"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "bun-runtime",
+          "label": "Bun WebGPU runtime",
+          "tier": "experimental",
+          "status": "experimental",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/release-matrix.md",
+            "benchmarks/vendors/release-matrix.json",
+            "docs/subsystem-support-matrix.md"
+          ],
+          "blockers": [
+            "bun-runtime-tier-experimental"
+          ]
+        },
+        {
+          "id": "openai-compatible-server",
+          "label": "OpenAI-compatible localhost server",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": "cli.openai-compatible-server",
+          "packageBin": "doppler-serve",
+          "packageExport": null,
+          "smokeCommand": "npm run public:boundaries:check",
+          "evidencePaths": [
+            "README.md",
+            "docs/cli.md",
+            "package.json",
+            "src/cli/doppler-serve.js",
+            "src/config/support-tiers/subsystems.json"
+          ],
+          "blockers": []
+        }
+      ]
+    },
+    {
+      "id": "model-artifact-runtime-contract",
+      "label": "Own the model artifact and runtime contract",
+      "status": "partial",
+      "claimAllowed": false,
+      "evidencePaths": [
+        "README.md",
+        "docs/goals.md",
+        "docs/model-support-matrix.md",
+        "docs/rdrr-format.md"
+      ],
+      "blockers": [
+        "broad-model-receipts-missing",
+        "gemma4-target-receipts-missing"
+      ],
+      "rows": [
+        {
+          "id": "rdrr-manifest-runtime",
+          "label": "RDRR manifest runtime",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": "format.rdrr-runtime",
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run support:matrix:check",
+          "evidencePaths": [
+            "docs/rdrr-format.md",
+            "docs/architecture.md",
+            "src/formats/rdrr/manifest.js",
+            "src/storage/shard-manager.js",
+            "src/config/support-tiers/subsystems.json"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "hosted-registry-ids",
+          "label": "Hosted registry IDs",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run artifact:contract:check",
+          "evidencePaths": [
+            "src/client/doppler-registry.json",
+            "models/catalog.json",
+            "docs/registry-workflow.md",
+            "docs/model-support-matrix.md",
+            "tools/policies/model-artifact-contract.json",
+            "tools/check-model-artifact-contract.js",
+            "src/config/schema/model-artifact-contract.schema.json"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "sharded-weights",
+          "label": "Sharded weight loading",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run support:matrix:check",
+          "evidencePaths": [
+            "docs/rdrr-format.md",
+            "src/storage/shard-manager.js",
+            "src/loader/shard-resolver.js"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "tokenizer-metadata",
+          "label": "Tokenizer metadata",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run support:matrix:check",
+          "evidencePaths": [
+            "docs/rdrr-format.md",
+            "src/formats/tokenizer/types.js",
+            "src/inference/tokenizer.js"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "quantization-contract",
+          "label": "Quantization contract",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run test:unit",
+          "evidencePaths": [
+            "docs/model-support-matrix.md",
+            "src/config/schema/quantization.schema.js",
+            "src/config/quantization-contract-check.js"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "execution-graph-kernel-refs",
+          "label": "Execution graph and kernel references",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run kernels:digests:check",
+          "evidencePaths": [
+            "src/config/schema/execution-v1.schema.js",
+            "src/config/kernels/registry.json",
+            "tools/sync-kernel-ref-digests.js"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "dtype-session-policy",
+          "label": "Dtype and session policy",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run config:single-source:check",
+          "evidencePaths": [
+            "docs/style/config-style-guide.md",
+            "src/config/schema/inference.schema.js",
+            "src/config/runtime/profiles/turboquant-contiguous-prod.json",
+            "src/config/schema/policy-schema-registry.json",
+            "tools/check-policy-schema-registry.js"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "model-support-matrix",
+          "label": "Model support matrix",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run support:matrix:check",
+          "evidencePaths": [
+            "docs/model-support-matrix.md",
+            "tools/sync-model-support-matrix.js",
+            "models/catalog.json"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "model-coverage-breadth",
+          "label": "Broad model coverage breadth",
+          "tier": "tier1",
+          "status": "partial",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/model-support-matrix.md",
+            "docs/release-matrix.md",
+            "models/catalog.json",
+            "tools/policies/release-claim-policy.json"
+          ],
+          "blockers": [
+            "broad-model-receipts-missing",
+            "gemma4-target-receipts-missing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "correctness-performance-claims",
+      "label": "Make correctness and performance evidence-backed",
+      "status": "partial",
+      "claimAllowed": false,
+      "evidencePaths": [
+        "README.md",
+        "docs/goals.md",
+        "docs/release-matrix.md",
+        "docs/benchmark-methodology.md"
+      ],
+      "blockers": [
+        "candidate-benchmark-lanes",
+        "gemma4-target-receipts-missing"
+      ],
+      "rows": [
+        {
+          "id": "release-receipts",
+          "label": "Release receipts",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run release-claims:check",
+          "evidencePaths": [
+            "docs/release-matrix.md",
+            "benchmarks/vendors/release-matrix.json",
+            "tools/check-release-claims.js",
+            "tools/policies/claim-evidence-contract.json",
+            "tools/check-claim-evidence-contract.js",
+            "src/config/schema/claim-evidence-contract.schema.json"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "benchmark-artifacts",
+          "label": "Benchmark artifacts",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run bench:vendors:validate",
+          "evidencePaths": [
+            "docs/benchmark-methodology.md",
+            "benchmarks/vendors/benchmark-policy.json",
+            "benchmarks/vendors/local-inference-claim-matrix.json",
+            "tools/policies/claim-evidence-contract.json",
+            "tools/check-claim-evidence-contract.js"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "command-parity",
+          "label": "Command parity",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run test:unit",
+          "evidencePaths": [
+            "docs/cli.md",
+            "src/tooling/command-api.js",
+            "tests/config/vendor-bench-cli-contract.test.js",
+            "tools/policies/command-surface-contract.json",
+            "tools/check-command-surface-contract.js",
+            "src/config/schema/command-surface-contract.schema.json"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "support-matrices",
+          "label": "Support matrices",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run support:matrix:check",
+          "evidencePaths": [
+            "docs/model-support-matrix.md",
+            "docs/subsystem-support-matrix.md",
+            "tools/sync-model-support-matrix.js",
+            "tools/sync-subsystem-support-matrix.js",
+            "tools/policies/subsystem-support-contract.json",
+            "tools/check-subsystem-support-contract.js",
+            "src/config/schema/subsystem-support-contract.schema.json"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "explicit-kernel-paths",
+          "label": "Explicit kernel paths",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run kernels:registry:check",
+          "evidencePaths": [
+            "src/config/schema/execution-v1.schema.js",
+            "src/config/kernels/registry.json",
+            "tools/sync-kernel-reachability.js"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "apples-to-apples-compare-rules",
+          "label": "Apples-to-apples compare rules",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run bench:vendors:validate",
+          "evidencePaths": [
+            "docs/benchmark-methodology.md",
+            "benchmarks/vendors/benchmark-policy.json",
+            "benchmarks/vendors/compare-engines.config.json"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "fail-closed-unsupported-paths",
+          "label": "Fail-closed unsupported paths",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run test:unit",
+          "evidencePaths": [
+            "docs/style/general-style-guide.md",
+            "docs/style/config-style-guide.md",
+            "tests/config/claimed-text-models-failfast-contract.test.js",
+            "src/rules/loader/tensor-loader.rules.json"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "claim-promotion-coverage",
+          "label": "Claim promotion coverage",
+          "tier": "tier1",
+          "status": "partial",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/release-matrix.md",
+            "benchmarks/vendors/local-inference-claim-matrix.json",
+            "docs/model-support-matrix.md",
+            "tools/policies/release-claim-policy.json",
+            "tools/policies/claim-evidence-contract.json",
+            "tools/check-claim-evidence-contract.js"
+          ],
+          "blockers": [
+            "candidate-benchmark-lanes",
+            "gemma4-target-receipts-missing"
+          ]
+        }
+      ]
+    }
+  ],
+  "blockers": [
+    {
+      "code": "bun-runtime-tier-experimental",
+      "description": "Bun WebGPU rows exist as evidence lanes, but Bun is not a tier1 Doppler product surface.",
+      "exitCriteria": "Promote Bun through the support-tier registry and release matrix with committed runtime and compare receipts.",
+      "evidencePaths": [
+        "docs/subsystem-support-matrix.md",
+        "docs/release-matrix.md",
+        "benchmarks/vendors/release-matrix.json"
+      ]
+    },
+    {
+      "code": "broad-model-receipts-missing",
+      "description": "Active catalog lanes have release-claim coverage, but experimental local lanes remain non-claimable until they produce coherent runtime evidence.",
+      "exitCriteria": "Promote experimental local lanes only after catalog metadata, support matrix rows, and release-claim evidence agree on a coherent runtime result.",
+      "evidencePaths": [
+        "docs/model-support-matrix.md",
+        "docs/release-matrix.md",
+        "models/catalog.json",
+        "tools/policies/release-claim-policy.json"
+      ]
+    },
+    {
+      "code": "gemma4-target-receipts-missing",
+      "description": "Current Gemma 4 12B and 31B Node lanes have release receipts, but browser, Electron, serve, benchmark, MTP, E4B, and A4B target rows remain unsupported or unverified.",
+      "exitCriteria": "Add same-surface Gemma 4 target receipts, source artifacts, benchmark receipts, and MTP/runtime lanes or keep those rows explicitly unverified in the support matrix.",
+      "evidencePaths": [
+        "docs/model-support-matrix.md",
+        "docs/release-matrix.md"
+      ]
+    },
+    {
+      "code": "candidate-benchmark-lanes",
+      "description": "Several benchmark lanes remain candidate evidence instead of promoted product speed claims.",
+      "exitCriteria": "Promote only comparable lanes with clean correctness, traceable artifacts, and release-claim policy coverage.",
+      "evidencePaths": [
+        "docs/release-matrix.md",
+        "benchmarks/vendors/local-inference-claim-matrix.json",
+        "benchmarks/vendors/benchmark-policy.json"
+      ]
+    }
+  ]
+}

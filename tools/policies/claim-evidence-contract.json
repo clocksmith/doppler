@@ -1,0 +1,26 @@
+{
+  "$schema": "../../src/config/schema/claim-evidence-contract.schema.json",
+  "schemaVersion": 1,
+  "source": "doppler",
+  "releaseClaimPolicyPath": "tools/policies/release-claim-policy.json",
+  "benchmarkPolicyPath": "benchmarks/vendors/benchmark-policy.json",
+  "localInferenceClaimMatrixPath": "benchmarks/vendors/local-inference-claim-matrix.json",
+  "releaseMatrixPath": "benchmarks/vendors/release-matrix.json",
+  "goalMatrixPath": "src/config/goal-completion-matrix.json",
+  "requiredScripts": [
+    "release-claims:check",
+    "bench:vendors:validate",
+    "support:matrix:check"
+  ],
+  "requiredGoalEvidence": [
+    "tools/policies/release-claim-policy.json",
+    "benchmarks/vendors/benchmark-policy.json",
+    "benchmarks/vendors/local-inference-claim-matrix.json",
+    "benchmarks/vendors/release-matrix.json"
+  ],
+  "requiredReleaseMatrixSources": [
+    "benchmarkPolicy",
+    "localInferenceClaimMatrix",
+    "modelCatalog"
+  ]
+}

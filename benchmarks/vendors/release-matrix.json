@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-06-27T20:43:26.666Z",
+  "generatedAt": "2026-06-29T22:30:28.231Z",
   "release": {
     "channel": "main-snapshot",
     "version": "0.4.3",
-    "commitSha": "a9008ba1ab2ae8f92b12fde2df3a67b003acf5a1",
+    "commitSha": "fc0e5d9470210ef35f5bec71160501fe9ce0eae1",
     "dirty": true
   },
   "sources": {
@@ -52,9 +52,9 @@
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "4fa149e82c03a4a5629a7823fdc106b89d989dc057bd39cb9a9d6bd0cbc3ae2f",
-      "bytes": 24990,
-      "updated": "2026-06-15"
+      "sha256": "68d4e1c2cc51003ff022b4763b90c9a96e66c68e71d8be7965587a7f6affb953",
+      "bytes": 27978,
+      "updated": "2026-06-29"
     },
     "harness:doppler": {
       "path": "benchmarks/vendors/harnesses/doppler.json",
@@ -155,11 +155,11 @@
   },
   "summary": {
     "targetCount": 16,
-    "modelCoverageCount": 11,
+    "modelCoverageCount": 17,
     "compareProfileCount": 12,
-    "catalogModelCount": 18,
+    "catalogModelCount": 19,
     "workloadCount": 5,
-    "committedChartCount": 13,
+    "committedChartCount": 14,
     "hasLatestCompareResult": true
   },
   "targets": [
@@ -1103,6 +1103,23 @@
       "catalogSizeBytes": 1044786820
     },
     {
+      "dopplerModelId": "gemma-3-270m-it-f16-af32",
+      "dopplerModelBaseDir": "local",
+      "dopplerSource": "local",
+      "defaultTjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
+      "defaultDopplerSurface": "auto",
+      "compareLane": "performance_comparable",
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "Gemma 3 270M Instruct (F16/F32a)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 540000000
+    },
+    {
       "dopplerModelId": "gemma-3-270m-it-q4k-ehf16-af32",
       "dopplerModelBaseDir": null,
       "dopplerSource": "quickstart-registry",
@@ -1118,6 +1135,91 @@
       ],
       "catalogBaseUrl": null,
       "catalogSizeBytes": 418518521
+    },
+    {
+      "dopplerModelId": "gemma-4-12b-it-text-q4k-ehf16-af16",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "Gemma 4 12B Instruct Text (Q4K/F16a)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 8159955902
+    },
+    {
+      "dopplerModelId": "gemma-4-12b-it-text-q4k-ehf16-af32",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "Gemma 4 12B Instruct Text (Q4K/F32a)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 8159955902
+    },
+    {
+      "dopplerModelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "Gemma 4 12B Instruct Text (W4A16 QAT/F16a)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 10173636932
+    },
+    {
+      "dopplerModelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "Gemma 4 31B Instruct Text (Q4K/F16a)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 19295019640
+    },
+    {
+      "dopplerModelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "Gemma 4 31B Instruct Text (Q4K/F32a)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 19295019640
     },
     {
       "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
@@ -1694,6 +1796,7 @@
     "committedCharts": [
       "benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg",
       "benchmarks/vendors/results/compare_gemma4_e2b_warm_cold_phases.svg",
+      "benchmarks/vendors/results/doppler-backend-evidence-summary.svg",
       "benchmarks/vendors/results/doppler-vulkan-decode-grid-20260627.svg",
       "benchmarks/vendors/results/doppler-vulkan-p512-surface-sweep-20260627.svg",
       "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-browser-p512-d128-t0-k1-strix-halo-20260627T200811.svg",
@@ -1707,8 +1810,8 @@
       "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-p512-d128-t0-k1-strix-halo-20260626.svg"
     ],
     "latestCompareResult": {
-      "path": "benchmarks/vendors/results/compare_20260627T203348.json",
-      "timestamp": "2026-06-27T20:32:38.248Z",
+      "path": "benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-local-p512-d128-t0-k1-strix-halo-20260627.compare.json",
+      "timestamp": "2026-06-27T12:03:26.840Z",
       "mode": "compute",
       "section": "compute/throughput",
       "cacheMode": "warm",
@@ -1740,9 +1843,9 @@
         "matchingPrefixTokens": 128,
         "firstMismatchTokenIndex": -1
       },
-      "workloadId": "p256-d128-t0-k1",
+      "workloadId": "p512-d128-t0-k1",
       "workload": {
-        "prefillTokenTarget": 256,
+        "prefillTokenTarget": 512,
         "decodeTokenTarget": 128
       },
       "environment": {
@@ -1803,8 +1906,8 @@
             "surface": null,
             "runtime": {
               "device": "webgpu",
-              "dtype": "q4",
-              "requestedDtype": "q4",
+              "dtype": "q4f16",
+              "requestedDtype": "q4f16",
               "executionProviderMode": "webgpu-only"
             },
             "browser": {
@@ -1829,44 +1932,44 @@
       },
       "metrics": {
         "decodeTokensPerSec": {
-          "doppler": 164.23,
-          "transformersjs": 113.01546621008613
+          "doppler": 152.84,
+          "transformersjs": 112.1779300968395
         },
         "promptTokensPerSecToFirstToken": {
-          "doppler": 2071.2,
-          "transformersjs": 1021.4871415927153
+          "doppler": 2426.54,
+          "transformersjs": 2075.9000974282194
         },
         "firstTokenMs": {
-          "doppler": 123.6,
-          "transformersjs": 250.61500000953674
+          "doppler": 211,
+          "transformersjs": 246.63999998569489
         },
         "firstResponseMs": {
-          "doppler": 1160.4,
-          "transformersjs": 875.1800000071526
+          "doppler": 1317.1,
+          "transformersjs": 855.3999999761581
         },
         "decodeMs": {
-          "doppler": 779.4,
-          "transformersjs": 1123.7400000095367
+          "doppler": 837.5,
+          "transformersjs": 1132.1299999952316
         },
         "totalRunMs": {
-          "doppler": 910,
-          "transformersjs": 1411.3599999547005
+          "doppler": 1052.7,
+          "transformersjs": 1375.2949999570847
         },
         "modelLoadMs": {
-          "doppler": 1036.8,
-          "transformersjs": 624.5649999976158
+          "doppler": 1106.1,
+          "transformersjs": 608.7599999904633
         },
         "decodeMsPerTokenP50": {
-          "doppler": 6.09,
-          "transformersjs": 6.694999992847443
+          "doppler": 6.54,
+          "transformersjs": 8.495000004768372
         },
         "decodeMsPerTokenP95": {
-          "doppler": 6.3,
-          "transformersjs": 13.223999953269955
+          "doppler": 6.77,
+          "transformersjs": 9.925999999046324
         },
         "decodeMsPerTokenP99": {
-          "doppler": 6.38,
-          "transformersjs": 64.85759999990465
+          "doppler": 6.85,
+          "transformersjs": 23.88979998588562
         }
       },
       "dopplerBottleneck": {
@@ -1875,28 +1978,28 @@
         "dominant": {
           "id": "readback_map_wait",
           "label": "readback map wait",
-          "ms": 491.207,
-          "shareOfDecode": 0.63
+          "ms": 530.913,
+          "shareOfDecode": 0.634
         },
-        "decodeWallMs": 779.4,
+        "decodeWallMs": 837.5,
         "componentsMs": {
-          "commandRecordMs": 283.979,
-          "submitWaitMs": 491.357,
-          "readbackWaitMs": 498.347,
-          "effectiveSubmitReadbackWaitMs": 498.347,
-          "readbackMapWaitMs": 491.207,
-          "readbackCleanupMs": 6.607,
-          "readbackCopyMs": 0.073,
+          "commandRecordMs": 302.514,
+          "submitWaitMs": 530.967,
+          "readbackWaitMs": 537.587,
+          "effectiveSubmitReadbackWaitMs": 537.587,
+          "readbackMapWaitMs": 530.913,
+          "readbackCleanupMs": 6.529,
+          "readbackCopyMs": 0.053,
           "gpuTimestampMs": null,
-          "orchestrationMs": 1.286,
+          "orchestrationMs": 1.3,
           "residualMs": 0
         },
         "recording": {
           "opCount": 19177,
           "passCount": 2,
           "uniqueOpLabels": 67,
-          "msPerOp": 0.015,
-          "msPerPass": 141.989,
+          "msPerOp": 0.016,
+          "msPerPass": 151.257,
           "opsPerExecutedBatchToken": 151,
           "passesPerExecutedBatchToken": 0.016,
           "topOps": [
@@ -1950,10 +2053,10 @@
           "unit": "ms",
           "higherBetter": false,
           "leader": "transformersjs",
-          "doppler": 1036.8,
-          "transformersjs": 624.5649999976158,
-          "gapRatio": 0.660035,
-          "gapPercent": 66.003538
+          "doppler": 1106.1,
+          "transformersjs": 608.7599999904633,
+          "gapRatio": 0.816972,
+          "gapPercent": 81.697221
         },
         {
           "metricId": "firstResponseMs",
@@ -1961,13 +2064,13 @@
           "unit": "ms",
           "higherBetter": false,
           "leader": "transformersjs",
-          "doppler": 1160.4,
-          "transformersjs": 875.1800000071526,
-          "gapRatio": 0.325899,
-          "gapPercent": 32.589867
+          "doppler": 1317.1,
+          "transformersjs": 855.3999999761581,
+          "gapRatio": 0.539747,
+          "gapPercent": 53.974749
         }
       ],
-      "origin": "local"
+      "origin": "fixture"
     }
   }
 }

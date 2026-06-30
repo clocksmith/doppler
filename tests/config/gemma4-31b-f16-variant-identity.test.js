@@ -53,6 +53,7 @@ const profile = readJson('src/config/runtime/profiles/gemma4-31b-f16-activations
 const af32Entry = catalogEntry(catalog, AF32_MODEL_ID);
 const af16Entry = catalogEntry(catalog, AF16_MODEL_ID);
 const qwenEntry = catalogEntry(catalog, QWEN_MODEL_ID);
+const af32Claim = releaseClaims.claims.find((claim) => claim.modelId === AF32_MODEL_ID) ?? null;
 const af16Claim = releaseClaims.claims.find((claim) => claim.modelId === AF16_MODEL_ID) ?? null;
 
 assert.ok(af32Entry, `${AF32_MODEL_ID}: existing catalog entry must remain present`);
@@ -97,8 +98,11 @@ assert.equal(af16Entry.weightPackId, af32Manifest.artifactIdentity?.weightPackId
 assert.equal(af16Entry.weightsRefAllowed, true);
 assert.equal(af16Entry.lifecycle?.availability?.hf, false);
 assert.equal(af16Entry.lifecycle?.status?.runtime, 'active');
-assert.equal(af16Entry.lifecycle?.status?.tested, 'none');
-assert.equal(af16Entry.lifecycle?.tested, null);
+assert.equal(af16Entry.lifecycle?.status?.tested, 'verified');
+assert.equal(af16Entry.lifecycle?.tested?.suite, 'inference');
+assert.deepEqual(af16Entry.lifecycle?.tested?.surface, ['node']);
+assert.equal(af16Entry.lifecycle?.tested?.result, 'pass');
+assert.equal(af16Entry.lifecycle?.tested?.contracts?.executionContractOk, true);
 assert.equal(af16Entry.demoVisible, false);
 
 assert.equal(af16Manifest.quantizationInfo?.compute, 'f16');
@@ -123,10 +127,16 @@ assert.deepEqual(
 assert.equal(af16Manifest.inference?.session?.kvcache?.kvDtype, 'f16');
 assert.deepEqual(af16Manifest.inference?.largeWeights?.gpuResidentOverrides, []);
 
+assert.ok(af32Claim, 'af32 primary must have package-visible runtime evidence before the af16 sibling is claimable');
 assert.equal(
-  af16Claim,
-  null,
-  'af16 weights-ref sibling must stay out of release claims until the af32 primary has package-visible runtime evidence'
+  af32Claim.evidence?.reportPath,
+  'reports/release-claims/gemma-4-31b-it-text-q4k-ehf16-af32/2026-06-29T22-07-45.149Z.json'
 );
+assert.ok(af16Claim, 'af16 weights-ref sibling is claimable after the af32 primary has package-visible runtime evidence');
+assert.equal(
+  af16Claim.evidence?.reportPath,
+  'reports/release-claims/gemma-4-31b-it-text-q4k-ehf16-af16/2026-06-29T22-09-42.445Z.json'
+);
+assert.equal(af16Claim.performanceEvidence?.metricPath, 'metrics.decodeTokensPerSec');
 
 console.log('gemma4-31b-f16-variant-identity.test: ok');

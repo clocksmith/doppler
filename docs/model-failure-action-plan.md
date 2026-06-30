@@ -1,6 +1,6 @@
 # Model Failure Action Plan
 
-Last updated: 2026-03-17T17:20:00Z
+Last updated: 2026-06-29T22:23:16Z
 Plan status: active
 Current resume point: `WS6.1` — `lfm2` decode-collapse investigation
 Current highest-priority ready step: `WS6.1` — keep `lfm2` and `translategemma-4b-it` on the promotion path
@@ -127,6 +127,7 @@ Repo-backed facts as of 2026-03-12:
     - `gemma-3-1b-it-q4k-ehf16-af32`: `"\n\nA. Blue\nB. Green"` — **correct** (OPFS report `2026-03-12T20:15Z`)
 
     The 270M F16 model is already wrong on this factual prompt without any quantization, which proves the "remaining semantic drift" is not a Q4K artifact, not a kernel-path bug, and not a Doppler runtime issue — it is a model capacity limitation at 270M scale. Additionally, `gemma-3-270m-it-q4k-ehf16-af32` produces perfectly coherent greedy output on simpler prompts (e.g., `"Hello, how are you?"` → `"\n\nI'm happy to help!\n\nWhat's your favorite food?"`), confirming the Q4K runtime path is functionally correct.
+24. Fresh Class `A`/`B` node/WebGPU work on 2026-06-29 clears two hard LFM2 contract failures but does not clear model-quality promotion. The local `lfm2-5-1-2b-instruct-q4k-ehf16-af32` manifest now carries the conversion-owned `inference.session.perLayerInputs` block and explicit `precision.kvDtype: "f16"` on both attention kernels, matching the checked-in conversion config. The verify profile now puts token budget under `runtime.inference.generation.maxTokens` and uses the bounded prompt framing. Real node/WebGPU smokes reach execution with `executionContractArtifact.ok=true`, but outputs remain incoherent in [`reports/lfm2-5-1-2b-instruct-q4k-ehf16-af32/2026-06-29T22-22-50.132Z.json`](../reports/lfm2-5-1-2b-instruct-q4k-ehf16-af32/2026-06-29T22-22-50.132Z.json) and the single-token readback control [`reports/lfm2-5-1-2b-instruct-q4k-ehf16-af32/2026-06-29T22-23-16.300Z.json`](../reports/lfm2-5-1-2b-instruct-q4k-ehf16-af32/2026-06-29T22-23-16.300Z.json). Keep LFM2 experimental and unpromoted.
 
 ## Hypothesis Register
 
@@ -536,7 +537,7 @@ Exit gate:
 
 Steps:
 
-- [ ] `WS6.1` Keep `lfm2` on the promotion path. The argmax reduction bug is fixed, but `lfm2` still collapses into repetitive output on real node/WebGPU smokes. Recorder-backed fused sampling is now disabled for conv models to remove the bogus `token 0` branch, leaving the remaining conv/decode collapse as the active issue.
+- [ ] `WS6.1` Keep `lfm2` on the promotion path. The argmax reduction bug is fixed, stale local-manifest session metadata is repaired, attention KV dtype policy is explicit, and the verify profile now uses generation-owned token budget. Real node/WebGPU smokes still produce incoherent output, leaving the conv/decode quality issue active.
 - [ ] `WS6.2` Keep `translategemma-4b-it` on the promotion path. Metadata and index-sync issues are fixed, and F16 diagnostic coherence is passing; remaining work is isolating the Q4K dequant/matmul correctness split via layer/runtime-path debug.
 - [ ] `WS6.3` Re-sync repo-visible status docs after the next human-reviewed verification result.
 
@@ -619,3 +620,4 @@ Template:
 | 2026-03-12T22:30:00Z | agent/claude | `WS5.D` | `ready -> done` | `B` | Audited catalog: fixed false `local: true` and `baseUrl` on `translategemma-4b-1b-enes-q4k-ehf16-af32` (artifact doesn't exist). Support matrix re-synced. All workstreams complete | none |
 | 2026-03-16T00:50:00Z | agent/codex | `WS6.1` | `ready -> in_progress` | `A`,`B` | Reproduced current `lfm2` collapse on real node/WebGPU AMD RDNA-3. Disabling recorder-backed fused sampling for conv models removes the bogus fused-sampler branch, but coherent decode is still unresolved. Reopened the plan with `lfm2` and `translategemma-4b-it` as active promotion targets | `WS6.1` |
 | 2026-03-17T17:20:00Z | agent/codex | `WS2.10` | `ready -> done` | `A` | Documented March 17 split evidence: F16 diagnostic artifact outputs remain coherent on the same deterministic prompt framing, while Q4K artifact output remains incoherent; Python dequant parity checks still align with HF on both 1B and 4B contexts, shifting focus to Q4K dequant/matmul runtime-path split | `WS6.2` |
+| 2026-06-29T22:23:16Z | agent/codex | `WS6.1` | `in_progress -> in_progress` | `A`,`B` | Fixed LFM2 hard contract failures in the local manifest and verify profile: `perLayerInputs` is present, attention kernels declare `kvDtype: "f16"`, and token budget is generation-owned. Fresh node/WebGPU smokes execute with `executionContractArtifact.ok=true`, but bounded greedy outputs remain incoherent, so LFM2 stays experimental and unpromoted | `WS6.1` |

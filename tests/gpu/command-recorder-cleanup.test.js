@@ -317,6 +317,42 @@ configurePerfGuards({
 }
 
 {
+  setRuntimeConfig({
+    shared: {
+      debug: {
+        profiler: {
+          maxQueries: 8,
+          defaultQueryLimit: 8,
+        },
+      },
+    },
+  });
+
+  const device = createFakeDevice({
+    features: [FEATURES.TIMESTAMP_QUERY],
+  });
+  setDevice(device, { platformConfig: null });
+  const recorder = new CommandRecorder(device, 'profile_without_counts', {
+    profile: true,
+    recordLabels: false,
+  });
+  const pipeline = {};
+  const bindGroup = {};
+
+  recorder.recordDispatch(pipeline, bindGroup, [1, 1, 1], 'first');
+  recorder.recordDispatch(pipeline, bindGroup, [2, 1, 1], 'second');
+
+  assert.equal(device.computePasses[0].label, 'profile_without_counts_first_1');
+  assert.equal(device.computePasses[1].label, 'profile_without_counts_second_2');
+  assert.deepEqual(recorder.getStats().opLabelCounts, {});
+  assert.equal(recorder.getStats().opCount, 2);
+
+  recorder.abort();
+  resetRuntimeConfig();
+  setDevice(null);
+}
+
+{
   const device = createFakeDevice();
   const recorder = new CommandRecorder(device, 'external_buffer_preserved');
   const external = new FakeBuffer({ size: 64, usage: GPUBufferUsage.STORAGE });

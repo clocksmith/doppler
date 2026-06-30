@@ -1,0 +1,31 @@
+{
+  "$schema": "../../src/config/schema/model-artifact-contract.schema.json",
+  "schemaVersion": 1,
+  "source": "doppler",
+  "catalogPath": "models/catalog.json",
+  "quickstartRegistryPath": "src/client/doppler-registry.json",
+  "registrySelection": {
+    "quickstart": true,
+    "artifactFormat": "rdrr",
+    "artifactCompleteness": "complete",
+    "runtimePromotionState": "manifest-owned",
+    "weightsRefAllowed": false,
+    "hfAvailability": true,
+    "runtimeStatus": "active",
+    "testedStatus": "verified",
+    "testedResult": "pass",
+    "executionContractOk": true
+  },
+  "mirroredFields": [
+    "modelId",
+    "sourceCheckpointId",
+    "weightPackId",
+    "manifestVariantId",
+    "artifactCompleteness",
+    "runtimePromotionState",
+    "weightsRefAllowed",
+    "aliases",
+    "modes",
+    "hf"
+  ]
+}

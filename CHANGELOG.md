@@ -8,8 +8,36 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 
 ## [Unreleased]
 
+## [0.4.4] - 2026-06-30
+
 ### Added
 
+- Product-readiness contract stack:
+  - `npm run goals:check` validates the top-level goal matrix.
+  - `npm run goals:report` renders the goal matrix as markdown or JSON.
+  - `npm run product:readiness:report` combines goal, claim, command,
+    model-artifact, policy-schema, and subsystem-support status.
+  - `npm run artifact:contract:check` verifies the quickstart registry is a
+    checked mirror of verified catalog artifacts.
+  - `npm run commands:surface:check` verifies browser/node command support
+    policy against the command API and CLI usage text.
+  - `npm run claims:evidence:check` verifies release-claim and benchmark
+    evidence wiring.
+  - `npm run support:subsystems:check` verifies support-tier subsystem docs,
+    entrypoints, package exports, package bins, tiers, and claim visibility.
+  - `npm run policy:schemas:check` verifies policy files advertise their
+    registered JSON Schemas.
+- `docs/goals.md` — canonical top-three Doppler goals, completion matrix
+  contract, and machine-reporting workflow.
+- `src/config/goal-completion-matrix.json` — machine-readable goal status for
+  local WebGPU product surface, model artifact/runtime contract, and
+  evidence-backed correctness/performance claims.
+- JSON policy/schema pairs for product-readiness contracts:
+  - command surface contract
+  - model artifact contract
+  - claim evidence contract
+  - subsystem support contract
+  - policy schema registry
 - `npm run check:green` — documented PR-gate chain that runs
   `agents:verify`, `public:boundaries:check`, `api:docs:check`,
   `imports:check:browser`, `pending:check`, and `exports:parity:check`

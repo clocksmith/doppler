@@ -1,0 +1,74 @@
+{
+  "$schema": "../../src/config/schema/command-surface-contract.schema.json",
+  "schemaVersion": 1,
+  "source": "doppler",
+  "commands": [
+    {
+      "id": "convert",
+      "surfaces": [
+        "node"
+      ],
+      "cliUsageRequired": true,
+      "reason": "Conversion owns local filesystem and Node converter plumbing."
+    },
+    {
+      "id": "refresh-integrity",
+      "surfaces": [
+        "node"
+      ],
+      "cliUsageRequired": true,
+      "reason": "Manifest integrity refresh mutates local artifact metadata."
+    },
+    {
+      "id": "debug",
+      "surfaces": [
+        "browser",
+        "node"
+      ],
+      "cliUsageRequired": true,
+      "reason": "Debug is a harnessed runtime command and must preserve browser/node parity."
+    },
+    {
+      "id": "bench",
+      "surfaces": [
+        "browser",
+        "node"
+      ],
+      "cliUsageRequired": true,
+      "reason": "Benchmark is a harnessed runtime command and must preserve browser/node parity."
+    },
+    {
+      "id": "verify",
+      "surfaces": [
+        "browser",
+        "node"
+      ],
+      "cliUsageRequired": true,
+      "reason": "Verification is the shared correctness surface for runtime and program-bundle claims."
+    },
+    {
+      "id": "lora",
+      "surfaces": [
+        "node"
+      ],
+      "cliUsageRequired": true,
+      "reason": "LoRA operator commands rely on Node-side training/operator plumbing."
+    },
+    {
+      "id": "distill",
+      "surfaces": [
+        "node"
+      ],
+      "cliUsageRequired": true,
+      "reason": "Distillation operator commands rely on Node-side training/operator plumbing."
+    },
+    {
+      "id": "diagnose",
+      "surfaces": [
+        "node"
+      ],
+      "cliUsageRequired": true,
+      "reason": "Diagnose currently uses Node diagnostics and must fail closed in browser."
+    }
+  ]
+}

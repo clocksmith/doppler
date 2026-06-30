@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-06-24",
+  "updatedAt": "2026-06-29",
   "sourceUrls": [
     "https://ai.google.dev/gemma/docs/core",
     "https://ai.google.dev/gemma/docs/releases",
@@ -240,27 +240,60 @@
     {
       "targetId": "gemma-4-12b-unified",
       "officialName": "Gemma 4 12B Unified",
-      "dopplerStatus": "gap",
+      "dopplerStatus": "partially_verified",
       "surfaceStatus": {
         "browser": "unsupported",
         "electron": "unsupported",
-        "node": "unsupported"
+        "node": "verified"
       },
-      "currentLanes": [],
+      "currentLanes": [
+        {
+          "modelId": "gemma-4-12b-it-text-q4k-ehf16-af32",
+          "role": "complete-q4k-text-weight-pack",
+          "claimStatus": "verified"
+        },
+        {
+          "modelId": "gemma-4-12b-it-text-q4k-ehf16-af16",
+          "role": "f16-activation-manifest-variant",
+          "claimStatus": "verified"
+        },
+        {
+          "modelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
+          "role": "w4a16-qat-text-weight-pack",
+          "claimStatus": "verified"
+        }
+      ],
       "serveStatus": "unsupported",
       "servedLanes": [],
       "evidence": {
-        "runtimeReceipts": [],
+        "runtimeReceipts": [
+          {
+            "modelId": "gemma-4-12b-it-text-q4k-ehf16-af32",
+            "surface": "node",
+            "status": "pass",
+            "path": "reports/release-claims/gemma-4-12b-it-text-q4k-ehf16-af32/2026-06-29T22-13-57.102Z.json"
+          },
+          {
+            "modelId": "gemma-4-12b-it-text-q4k-ehf16-af16",
+            "surface": "node",
+            "status": "pass",
+            "path": "reports/release-claims/gemma-4-12b-it-text-q4k-ehf16-af16/2026-06-29T22-14-43.963Z.json"
+          },
+          {
+            "modelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
+            "surface": "node",
+            "status": "pass",
+            "path": "reports/release-claims/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/2026-06-29T22-04-29.156Z.json"
+          }
+        ],
         "benchmarkReceipts": [],
         "serveReceipts": [],
         "preflightReceipts": []
       },
       "missing": [
-        "package-visible runtime receipt",
         "browser receipt",
         "electron receipt",
         "doppler-serve quickstart lane",
-        "q4k correctness receipt",
         "q4k benchmark receipt",
         "mtp lane"
       ],
@@ -278,28 +311,10 @@
           "reason": "No package-visible 12B Electron runtime receipt is listed."
         },
         {
-          "code": "node-runtime-unsupported",
-          "surface": "node",
-          "state": "unsupported",
-          "reason": "The prior 12B Node verified claim pointed at a non-committed report path."
-        },
-        {
-          "code": "serve-runtime-unsupported",
+          "code": "serve-quickstart-lane-missing",
           "surface": "serve",
           "state": "unsupported",
-          "reason": "No doppler-serve lane is available because no current 12B release lane is listed."
-        },
-        {
-          "code": "runtime-receipt-missing",
-          "surface": "model",
-          "state": "missing",
-          "reason": "No package-visible 12B runtime receipt is listed."
-        },
-        {
-          "code": "q4k-correctness-receipt-missing",
-          "surface": "model",
-          "state": "missing",
-          "reason": "Q4K 12B lanes remain cataloged without a passing correctness receipt."
+          "reason": "The verified 12B W4A16 lane is not listed in the doppler-serve quickstart registry."
         },
         {
           "code": "q4k-benchmark-receipt-missing",
@@ -324,18 +339,18 @@
       "surfaceStatus": {
         "browser": "unverified",
         "electron": "unverified",
-        "node": "unverified"
+        "node": "verified"
       },
       "currentLanes": [
         {
           "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
           "role": "complete-q4k-text-weight-pack",
-          "claimStatus": "experimental"
+          "claimStatus": "verified"
         },
         {
           "modelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
           "role": "f16-activation-manifest-variant",
-          "claimStatus": "experimental"
+          "claimStatus": "verified"
         }
       ],
       "serveStatus": "unsupported",
@@ -343,10 +358,16 @@
       "evidence": {
         "runtimeReceipts": [
           {
-            "modelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
-            "surface": "browser",
+            "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
+            "surface": "node",
             "status": "pass",
-            "path": "reports/program-bundles/gemma-4-31b-it-text-q4k-ehf16-af16/capture.node.reference.json"
+            "path": "reports/release-claims/gemma-4-31b-it-text-q4k-ehf16-af32/2026-06-29T22-07-45.149Z.json"
+          },
+          {
+            "modelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
+            "surface": "node",
+            "status": "pass",
+            "path": "reports/release-claims/gemma-4-31b-it-text-q4k-ehf16-af16/2026-06-29T22-09-42.445Z.json"
           }
         ],
         "benchmarkReceipts": [],
@@ -354,11 +375,8 @@
         "preflightReceipts": []
       },
       "missing": [
-        "AF16 release claim receipt",
-        "AF32 runtime pass receipt",
         "electron receipt",
         "doppler-serve quickstart lane",
-        "node receipt",
         "mtp lane",
         "current benchmark receipt"
       ],
@@ -367,7 +385,7 @@
           "code": "browser-release-claim-missing",
           "surface": "browser",
           "state": "unverified",
-          "reason": "The prior browser 31B receipts do not make a release-claimable hosted pair because the AF32 primary lane lacks package-visible runtime evidence."
+          "reason": "The 31B target has a Node AF32 release receipt, but no same-surface browser release receipt is listed."
         },
         {
           "code": "electron-receipt-missing",
@@ -376,28 +394,10 @@
           "reason": "No committed Electron runtime or benchmark receipt is listed for this target."
         },
         {
-          "code": "af16-release-claim-missing",
-          "surface": "model",
-          "state": "missing",
-          "reason": "The AF16 31B weights-ref sibling has receipt evidence, but the AF32 primary lane lacks a package-visible runtime pass receipt, so neither 31B lane is release-claimable."
-        },
-        {
           "code": "serve-quickstart-lane-missing",
           "surface": "serve",
           "state": "unsupported",
           "reason": "Current 31B lanes are not listed in the doppler-serve quickstart registry."
-        },
-        {
-          "code": "node-receipt-missing",
-          "surface": "node",
-          "state": "unverified",
-          "reason": "No committed Node runtime or benchmark receipt is listed for this target."
-        },
-        {
-          "code": "af32-runtime-receipt-missing",
-          "surface": "model",
-          "state": "missing",
-          "reason": "The AF32 31B lane remains cataloged as the source weight-pack lane, but has no package-visible runtime pass receipt."
         },
         {
           "code": "mtp-lane-not-implemented",

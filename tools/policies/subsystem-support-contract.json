@@ -1,0 +1,6 @@
+{
+  "$schema": "../../src/config/schema/subsystem-support-contract.schema.json",
+  "schemaVersion": 1,
+  "source": "doppler",
+  "subsystemsPath": "src/config/support-tiers/subsystems.json"
+}

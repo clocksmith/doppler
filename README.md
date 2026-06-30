@@ -32,7 +32,8 @@ Doppler's mainline work is organized around three goals:
    unsupported paths.
 
 See [docs/goals.md](docs/goals.md) for the compact product and technical
-contract behind those goals.
+contract behind those goals. The current completion gate is
+`src/config/goal-completion-matrix.json`, checked by `npm run goals:check`.
 
 ## How it works
 

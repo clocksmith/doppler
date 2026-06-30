@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-06-27T21:39:49.407Z
-Release: channel=main-snapshot, version=0.4.3, commit=ed0213e1f767dd48c20e4fa1b5fb4d9ab13da765, dirty=yes
+Generated: 2026-06-29T22:30:28.231Z
+Release: channel=main-snapshot, version=0.4.3, commit=fc0e5d9470210ef35f5bec71160501fe9ce0eae1, dirty=yes
 
 ## Engine Matrix
 
@@ -29,7 +29,13 @@ Release: channel=main-snapshot, version=0.4.3, commit=ed0213e1f767dd48c20e4fa1b5
 | Doppler Model | In Catalog | Catalog Modes | TJS Mapping | Surface | Source | Compare Lane | Notes |
 |---|---|---|---|---|---|---|---|
 | `gemma-3-1b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-1b-it-ONNX-GQA` | auto | quickstart-registry | performance_comparable |  |
+| `gemma-3-270m-it-f16-af32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` | auto | local | performance_comparable |  |
 | `gemma-3-270m-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` | auto | quickstart-registry | performance_comparable |  |
+| `gemma-4-12b-it-text-q4k-ehf16-af16` | yes | run, translate |  | auto |  |  |  |
+| `gemma-4-12b-it-text-q4k-ehf16-af32` | yes | run, translate |  | auto |  |  |  |
+| `gemma-4-12b-it-text-w4a16-ct-ehf16-af16` | yes | run, translate |  | auto |  |  |  |
+| `gemma-4-31b-it-text-q4k-ehf16-af16` | yes | run, translate |  | auto |  |  |  |
+| `gemma-4-31b-it-text-q4k-ehf16-af32` | yes | run, translate |  | auto |  |  |  |
 | `gemma-4-e2b-it-q4k-ehf16-af16-int4ple` | yes | run, translate |  | auto |  |  |  |
 | `gemma-4-e2b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-4-E2B-it-ONNX` | browser | local | performance_comparable | Doppler and the paired Transformers.js ONNX q4f16 runner both produce coherent Gemma 4 output, but current greedy text is not exact-match; this lane is claimable for compute-throughput comparisons, not correctness-parity claims. |
 | `gemma-4-e2b-it-q4k-ehf16-af32-int4ple` | yes | run, translate | `onnx-community/gemma-4-E2B-it-ONNX` | browser | local | performance_comparable | Doppler uses INT4 per-row PLE quantization (closer to TFLite shape); TJS uses standard ONNX q4f16. Both produce coherent Gemma 4 output on matching prompts — lane remains performance_comparable as compute-throughput comparison is meaningful. |
@@ -90,6 +96,7 @@ Doppler internal: readback map wait 530.9 ms; 63.4% of decode; command recording
 
 - [compare_1b_multi-workload_favorable_phases.svg](../benchmarks/vendors/results/compare_1b_multi-workload_favorable_phases.svg)
 - [compare_gemma4_e2b_warm_cold_phases.svg](../benchmarks/vendors/results/compare_gemma4_e2b_warm_cold_phases.svg)
+- [doppler-backend-evidence-summary.svg](../benchmarks/vendors/results/doppler-backend-evidence-summary.svg)
 - [doppler-vulkan-decode-grid-20260627.svg](../benchmarks/vendors/results/doppler-vulkan-decode-grid-20260627.svg)
 - [doppler-vulkan-p512-surface-sweep-20260627.svg](../benchmarks/vendors/results/doppler-vulkan-p512-surface-sweep-20260627.svg)
 - [gemma-3-270m-it-q4k-rdrr-browser-p512-d128-t0-k1-strix-halo-20260627T200811.svg](../benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-browser-p512-d128-t0-k1-strix-halo-20260627T200811.svg)
