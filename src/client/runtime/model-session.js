@@ -115,6 +115,15 @@ export function createModelHandle(pipeline, resolved) {
     async unloadLoRA() {
       return unloadLoRAAdapterForPipeline(pipeline);
     },
+    resetGenerationState() {
+      if (typeof pipeline.resetGenerationState === 'function') {
+        return pipeline.resetGenerationState();
+      }
+      if (typeof pipeline.resetToSeqLen === 'function') {
+        return pipeline.resetToSeqLen(0);
+      }
+      throw new Error('Loaded Doppler pipeline does not expose generation-state reset');
+    },
     async unload() {
       await pipeline.unload();
     },

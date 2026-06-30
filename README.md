@@ -1,5 +1,7 @@
 # doppler-gpu
 
+![Doppler WebGPU inference runtime](./assets/doppler-readme-hero.svg)
+
 WebGPU inference runtime for browser, Node, Bun, CLI, and local server use.
 Doppler runs JavaScript orchestration over WGSL kernels and loads models from
 RDRR manifests.
@@ -41,6 +43,8 @@ completion gate is `src/config/goal-completion-matrix.json`, checked by
 `npm run goals:check`.
 
 ## How it works
+
+![Doppler runtime contract map](./assets/doppler-runtime-map.svg)
 
 1. A registry ID or model URL resolves to an RDRR manifest and weight shards.
 2. The manifest owns model parameters, tokenizer metadata, session policy, and
