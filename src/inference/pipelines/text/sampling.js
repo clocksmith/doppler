@@ -58,24 +58,65 @@ export function softmax(logits) {
   return exps;
 }
 
-function countFiniteCandidates(logits) {
-  let finiteCandidateCount = 0;
+function summarizeLogitHealth(logits) {
+  const health = {
+    length: logits.length,
+    finite: 0,
+    nan: 0,
+    posInf: 0,
+    negInf: 0,
+    min: Infinity,
+    max: -Infinity,
+  };
   for (let i = 0; i < logits.length; i++) {
-    if (Number.isFinite(logits[i])) {
-      finiteCandidateCount += 1;
+    const value = logits[i];
+    if (Number.isNaN(value)) {
+      health.nan += 1;
+      continue;
+    }
+    if (value === Infinity) {
+      health.posInf += 1;
+      continue;
+    }
+    if (value === -Infinity) {
+      health.negInf += 1;
+      continue;
+    }
+    if (Number.isFinite(value)) {
+      health.finite += 1;
+      if (value < health.min) health.min = value;
+      if (value > health.max) health.max = value;
     }
   }
-  return finiteCandidateCount;
+  if (health.finite === 0) {
+    health.min = null;
+    health.max = null;
+  }
+  return health;
 }
 
-function assertFiniteSamplingCandidates(logits, label) {
-  const finiteCandidateCount = countFiniteCandidates(logits);
-  if (finiteCandidateCount > 0) {
+function formatLogitHealth(health) {
+  return [
+    `len=${health.length}`,
+    `finite=${health.finite}`,
+    `nan=${health.nan}`,
+    `posInf=${health.posInf}`,
+    `negInf=${health.negInf}`,
+    `min=${health.min === null ? 'n/a' : Number(health.min).toPrecision(6)}`,
+    `max=${health.max === null ? 'n/a' : Number(health.max).toPrecision(6)}`,
+  ].join(',');
+}
+
+function assertFiniteSamplingCandidates(logits, label, beforeMaskHealth) {
+  const afterMaskHealth = summarizeLogitHealth(logits);
+  if (afterMaskHealth.finite > 0) {
     return;
   }
   throw new Error(
     `[Sampling] ${label} has no finite candidate logits after masking suppressed tokens. ` +
-    'Upstream decode likely produced NaN/Inf or an all-masked distribution.'
+    'Upstream decode likely produced NaN/Inf or an all-masked distribution. ' +
+    `beforeMask={${formatLogitHealth(beforeMaskHealth || afterMaskHealth)}} ` +
+    `afterMask={${formatLogitHealth(afterMaskHealth)}}`
   );
 }
 
@@ -215,6 +256,7 @@ function sampleFromLogitCandidates(candidates, temperature, seed, decode, debug,
 
 export function sample(logits, opts) {
   const { temperature, topP, topK, decode, debug = false, padTokenId, seed, suppressTokenIds } = opts;
+  const beforeMaskHealth = summarizeLogitHealth(logits);
 
   if (padTokenId !== undefined && padTokenId >= 0 && padTokenId < logits.length) {
     logits[padTokenId] = -Infinity;
@@ -227,7 +269,7 @@ export function sample(logits, opts) {
     }
   }
 
-  assertFiniteSamplingCandidates(logits, 'Logits');
+  assertFiniteSamplingCandidates(logits, 'Logits', beforeMaskHealth);
 
   // Greedy (argmax) when temperature = 0
   if (temperature === 0) {

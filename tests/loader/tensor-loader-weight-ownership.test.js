@@ -30,9 +30,9 @@ class FakeBuffer {
   }
 }
 
-function createFakeDevice() {
+function createFakeDevice(options = {}) {
   return {
-    features: new Set(['shader-f16']),
+    features: new Set(options.features ?? ['shader-f16']),
     limits: {
       maxBufferSize: 1 << 20,
       maxStorageBufferBindingSize: 1 << 20,
@@ -91,15 +91,41 @@ async function loadRetainedBuffer(bytes, location, name, config = {}) {
 
   const first = await loadFloat(firstBytes, location, 'gate_proj', {
     allowF32UpcastNonMatmul: false,
+    gpuCapabilities: { hasF16: true },
   });
   const second = await loadFloat(secondBytes, location, 'up_proj', {
     allowF32UpcastNonMatmul: false,
+    gpuCapabilities: { hasF16: true },
   });
 
   assert.notEqual(first.data.buffer, second.data.buffer);
   assert.deepEqual(Array.from(first.data.buffer.bytes.slice(0, firstBytes.length)), Array.from(firstBytes));
   assert.deepEqual(Array.from(second.data.buffer.bytes.slice(0, secondBytes.length)), Array.from(secondBytes));
   assert.equal(getBufferPool().getStats().activeBuffers, 2);
+}
+
+{
+  const device = createFakeDevice({ features: [] });
+  resetRuntimeState(device);
+
+  const halfValues = new Uint16Array([0x3c00, 0x4000, 0xc000, 0x0000]);
+  const bytes = new Uint8Array(halfValues.buffer);
+  const result = await loadFloat(bytes, {
+    size: bytes.byteLength,
+    shape: [2, 2],
+    dtype: 'F16',
+    role: 'matmul',
+  }, 'linear_attn.in_proj_a.weight', {
+    allowF32UpcastNonMatmul: false,
+    gpuCapabilities: { hasF16: false },
+  });
+
+  assert.equal(result.data.dtype, 'f32');
+  assert.deepEqual(result.data.shape, [2, 2]);
+  assert.ok(result.data.buffer.size >= 16);
+  assert.deepEqual(Array.from(new Float32Array(result.data.buffer.bytes.buffer, 0, 4)), [1, 2, -2, 0]);
+  assert.equal(result.allocatedBuffers.length, 1);
+  assert.equal(result.allocatedBuffers[0], result.data.buffer);
 }
 
 {
