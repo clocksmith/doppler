@@ -203,7 +203,44 @@ function shouldUseGreedyLmHeadArgmaxFusion(state, opts, samplingDefaults, repeti
     && !(Array.isArray(probes) && probes.length > 0);
 }
 
-function resolveBatchStop(tokens, stopFlags, stopTokenIds, eosTokenId) {
+export function createStopTokenLookup(stopTokenIds, eosTokenId) {
+  if (!Array.isArray(stopTokenIds)) {
+    throw new Error('[Pipeline] stopTokenIds must be an array.');
+  }
+
+  const tokenIds = [];
+  for (const tokenId of stopTokenIds) {
+    if (!tokenIds.includes(tokenId)) {
+      tokenIds.push(tokenId);
+    }
+  }
+  if (typeof eosTokenId === 'number' && !tokenIds.includes(eosTokenId)) {
+    tokenIds.push(eosTokenId);
+  }
+
+  if (tokenIds.length === 0) {
+    return { firstTokenId: null, secondTokenId: null, tokenSet: null };
+  }
+  if (tokenIds.length === 1) {
+    return { firstTokenId: tokenIds[0], secondTokenId: null, tokenSet: null };
+  }
+  if (tokenIds.length === 2) {
+    return { firstTokenId: tokenIds[0], secondTokenId: tokenIds[1], tokenSet: null };
+  }
+  return { firstTokenId: null, secondTokenId: null, tokenSet: new Set(tokenIds) };
+}
+
+function lookupHasStopToken(token, stopTokenLookup) {
+  if (stopTokenLookup.tokenSet) {
+    return stopTokenLookup.tokenSet.has(token);
+  }
+  if (stopTokenLookup.firstTokenId !== null && token === stopTokenLookup.firstTokenId) {
+    return true;
+  }
+  return stopTokenLookup.secondTokenId !== null && token === stopTokenLookup.secondTokenId;
+}
+
+export function resolveBatchStop(tokens, stopFlags, stopTokenLookup) {
   let actualCount = tokens.length;
   if (stopFlags) {
     const maxFlags = Math.min(stopFlags.length, tokens.length);
@@ -216,7 +253,7 @@ function resolveBatchStop(tokens, stopFlags, stopTokenIds, eosTokenId) {
   }
 
   for (let i = 0; i < actualCount; i++) {
-    if (isStopToken(tokens[i], stopTokenIds, eosTokenId)) {
+    if (lookupHasStopToken(tokens[i], stopTokenLookup)) {
       actualCount = i + 1;
       break;
     }
@@ -502,7 +539,7 @@ function createDecodeRecorder(state, opts) {
   if (recorderEnabled) {
     recorder = opts.profile
       ? createProfilingRecorder('decode', device)
-      : createCommandRecorder('decode', undefined, device);
+      : createCommandRecorder('decode', { recordLabels: opts.debug === true }, device);
   }
   if (state.decodeStepCount === 1) {
     const path = selectRuleValue('inference', 'config', 'tracePath', { useRecorder: Boolean(recorder) });
@@ -1284,7 +1321,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   const tokensPerInterval = batchSize * readbackInterval;
   const recorder = opts.profile
     ? createProfilingRecorder('batch_decode', device)
-    : createCommandRecorder('batch_decode', undefined, device);
+    : createCommandRecorder('batch_decode', { recordLabels: opts.debug === true }, device);
   const lmHead = state.weights.get('lm_head');
   if (lmHead && isCpuWeightBuffer(lmHead)) {
     throw new Error('[Pipeline] GPU-only decode not supported with CPU-resident LM head.');
@@ -1338,6 +1375,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   if (eosTokenId == null) {
     throw new Error('[Pipeline] Missing EOS token. Ensure tokenizer or manifest provides stop tokens.');
   }
+  const stopTokenLookup = createStopTokenLookup(stopTokenIds, eosToken);
   const maxTokens = executionPlan?.maxTokens
     ?? opts.maxTokens
     ?? state.runtimeConfig.inference.generation.maxTokens;
@@ -1730,8 +1768,10 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
       log.debug('Pipeline', `[STOP] N=${N} flags=[${Array.from(stopFlags).join(',')}] tokens=[${tokens.join(',')}] eos=${eosTokenId}`);
     }
 
-    const actualCount = resolveBatchStop(tokens, stopFlags, stopTokenIds, eosToken);
-    const generatedTokens = tokens.slice(0, actualCount);
+    const actualCount = resolveBatchStop(tokens, stopFlags, stopTokenLookup);
+    const generatedTokens = actualCount === tokens.length
+      ? tokens
+      : tokens.subarray(0, actualCount);
     const invalidToken = findInvalidGeneratedToken(generatedTokens, config.vocabSize, padTokenId);
 
     if (isInfinite) {

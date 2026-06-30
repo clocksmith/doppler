@@ -1,7 +1,7 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-06-15",
+  "updatedAt": "2026-06-29",
   "models": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
@@ -89,11 +89,7 @@
       "artifact": {
         "format": "rdrr"
       },
-      "hf": {
-        "repoId": "Clocksmith/rdrr",
-        "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
-        "path": "models/gemma-3-270m-it-f16-af32"
-      },
+      "hf": null,
       "baseUrl": null,
       "quickstart": false,
       "sizeBytes": 540000000,
@@ -103,15 +99,27 @@
         "availability": {
           "curated": false,
           "local": true,
-          "hf": true
+          "hf": false
         },
         "status": {
           "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "none"
+          "tested": "verified"
         },
-        "tested": null
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-06-29",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU verification is package-visible at reports/release-claims/gemma-3-270m-it-f16-af32/2026-06-29T22-02-14.821Z.json. The report produced the coherent answer \"The sky is blue.\", stopReason=stop-token, executionContractOk=true, and decodeTokensPerSec > 0.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
       },
       "sourceCheckpointId": "google/gemma-3-270m-it",
       "weightPackId": "gemma-3-270m-it-f16-af32-wp-catalog-v1",
@@ -470,12 +478,24 @@
           "hf": false
         },
         "status": {
-          "runtime": "experimental",
+          "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "none"
+          "tested": "verified"
         },
-        "tested": null
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-06-29",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU verification is package-visible at reports/release-claims/gemma-4-12b-it-text-q4k-ehf16-af32/2026-06-29T22-13-57.102Z.json. The safe-single report produced a coherent sky-color answer, stopReason=max-tokens, executionContractOk=true, and decodeTokensPerSec > 0.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/gemma-4-12B-it",
@@ -514,12 +534,24 @@
           "hf": false
         },
         "status": {
-          "runtime": "experimental",
+          "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "none"
+          "tested": "verified"
         },
-        "tested": null
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-06-29",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU verification is package-visible at reports/release-claims/gemma-4-12b-it-text-q4k-ehf16-af16/2026-06-29T22-14-43.963Z.json. The f16 activation safe-single report produced a coherent sky-color answer, stopReason=max-tokens, executionContractOk=true, and decodeTokensPerSec > 0.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/gemma-4-12B-it",
@@ -562,9 +594,21 @@
           "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "none"
+          "tested": "verified"
         },
-        "tested": null
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-06-29",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU verification is package-visible at reports/release-claims/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/2026-06-29T22-04-29.156Z.json. The report produced a coherent sky-color answer, stopReason=max-tokens, executionContractOk=true, and decodeTokensPerSec > 0.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/gemma-4-12B-it-qat-w4a16-ct",
@@ -572,8 +616,7 @@
       "manifestVariantId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16-mv-w4a16-ct-reference-f16-dequant-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
-      "weightsRefAllowed": false,
-      "releaseNotes": "The prior verified 12B W4A16 claim points at a non-committed report path. Keep the artifact active/ready, but remove the release-ready claim until a package-visible runtime receipt is promoted."
+      "weightsRefAllowed": false
     },
     {
       "modelId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
@@ -658,9 +701,21 @@
           "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "none"
+          "tested": "verified"
         },
-        "tested": null
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-06-29",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU verification is package-visible at reports/release-claims/gemma-4-31b-it-text-q4k-ehf16-af32/2026-06-29T22-07-45.149Z.json. The safe single-token report produced the coherent completion \"blue\", stopReason=stop-token, executionContractOk=true, and decodeTokensPerSec > 0.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/gemma-4-31B-it",
@@ -668,8 +723,7 @@
       "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af32-mv-q4-fused-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
-      "weightsRefAllowed": false,
-      "releaseNotes": "The AF32 31B catalog entry remains the source weight-pack lane for the AF16 variant, but the prior verified claim points at a non-committed report path. Keep the lane active/ready without a release-ready claim."
+      "weightsRefAllowed": false
     },
     {
       "modelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
@@ -703,9 +757,21 @@
           "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "none"
+          "tested": "verified"
         },
-        "tested": null
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-06-29",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU verification is package-visible at reports/release-claims/gemma-4-31b-it-text-q4k-ehf16-af16/2026-06-29T22-09-42.445Z.json. The f16 activation report produced the coherent completion \"blue\", stopReason=stop-token, executionContractOk=true, and decodeTokensPerSec > 0.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/gemma-4-31B-it",
@@ -713,8 +779,7 @@
       "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af16-mv-f16-activations-v1",
       "artifactCompleteness": "weights-ref",
       "runtimePromotionState": "manifest-owned",
-      "weightsRefAllowed": true,
-      "releaseNotes": "The AF16 31B variant has a committed program-bundle receipt, but it is a weights-ref sibling of the AF32 primary. Keep it out of release-ready claims until the primary lane has package-visible runtime evidence too."
+      "weightsRefAllowed": true
     },
     {
       "modelId": "translategemma-4b-it-q4k-ehf16-af32",

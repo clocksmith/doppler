@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/model-artifact-contract-v1.schema.json",
+  "title": "Doppler Model Artifact Contract v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "source",
+    "catalogPath",
+    "quickstartRegistryPath",
+    "registrySelection",
+    "mirroredFields"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "source": {
+      "const": "doppler"
+    },
+    "catalogPath": {
+      "$ref": "#/$defs/repoRelativeJsonPath"
+    },
+    "quickstartRegistryPath": {
+      "$ref": "#/$defs/repoRelativeJsonPath"
+    },
+    "registrySelection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "quickstart",
+        "artifactFormat",
+        "artifactCompleteness",
+        "runtimePromotionState",
+        "weightsRefAllowed",
+        "hfAvailability",
+        "runtimeStatus",
+        "testedStatus",
+        "testedResult",
+        "executionContractOk"
+      ],
+      "properties": {
+        "quickstart": {
+          "const": true
+        },
+        "artifactFormat": {
+          "const": "rdrr"
+        },
+        "artifactCompleteness": {
+          "const": "complete"
+        },
+        "runtimePromotionState": {
+          "const": "manifest-owned"
+        },
+        "weightsRefAllowed": {
+          "const": false
+        },
+        "hfAvailability": {
+          "const": true
+        },
+        "runtimeStatus": {
+          "const": "active"
+        },
+        "testedStatus": {
+          "const": "verified"
+        },
+        "testedResult": {
+          "const": "pass"
+        },
+        "executionContractOk": {
+          "const": true
+        }
+      }
+    },
+    "mirroredFields": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "enum": [
+          "modelId",
+          "sourceCheckpointId",
+          "weightPackId",
+          "manifestVariantId",
+          "artifactCompleteness",
+          "runtimePromotionState",
+          "weightsRefAllowed",
+          "aliases",
+          "modes",
+          "hf"
+        ]
+      },
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "repoRelativeJsonPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\.json$",
+      "not": {
+        "anyOf": [
+          {
+            "pattern": "^/"
+          },
+          {
+            "pattern": "\\\\"
+          },
+          {
+            "pattern": "(^|/)\\.\\.(/|$)"
+          }
+        ]
+      }
+    }
+  }
+}

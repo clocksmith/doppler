@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "source": "doppler",
+  "policies": [
+    {
+      "id": "claim-evidence-contract",
+      "policyPath": "tools/policies/claim-evidence-contract.json",
+      "schemaPath": "src/config/schema/claim-evidence-contract.schema.json"
+    },
+    {
+      "id": "command-surface-contract",
+      "policyPath": "tools/policies/command-surface-contract.json",
+      "schemaPath": "src/config/schema/command-surface-contract.schema.json"
+    },
+    {
+      "id": "model-artifact-contract",
+      "policyPath": "tools/policies/model-artifact-contract.json",
+      "schemaPath": "src/config/schema/model-artifact-contract.schema.json"
+    },
+    {
+      "id": "subsystem-support-contract",
+      "policyPath": "tools/policies/subsystem-support-contract.json",
+      "schemaPath": "src/config/schema/subsystem-support-contract.schema.json"
+    }
+  ]
+}

@@ -94,8 +94,8 @@ export class CommandRecorder {
 
     // Operation count for debugging
     this.#opCount = 0;
-    this.#opLabelCounts = Object.create(null);
     this.#recordLabels = options.recordLabels !== false;
+    this.#opLabelCounts = this.#recordLabels ? Object.create(null) : null;
     this.#computePassCount = 0;
     this.#activeComputePass = null;
     // Initialize profiling if requested and available
@@ -244,6 +244,19 @@ export class CommandRecorder {
     return opLabel;
   }
 
+  #recordDispatchOperation(label) {
+    this.#opCount++;
+    if (!this.#recordLabels && !this.#profilingEnabled) {
+      return null;
+    }
+
+    const opLabel = this.#normalizeOperationLabel(label);
+    if (this.#recordLabels) {
+      this.#opLabelCounts[opLabel] = (this.#opLabelCounts[opLabel] ?? 0) + 1;
+    }
+    return opLabel;
+  }
+
   #beginRawComputePass(opLabel) {
     this.#computePassCount++;
     const passLabel = `${this.label}_${opLabel}_${this.#computePassCount}`;
@@ -302,7 +315,7 @@ export class CommandRecorder {
     if (this.#submitted) {
       throw new Error('[CommandRecorder] Cannot record dispatch after submit');
     }
-    const opLabel = this.#recordOperation(label);
+    const opLabel = this.#recordDispatchOperation(label);
     if (this.#profilingEnabled) {
       const pass = this.#beginRawComputePass(opLabel);
       pass.setPipeline(pipeline);
@@ -321,7 +334,7 @@ export class CommandRecorder {
     if (this.#submitted) {
       throw new Error('[CommandRecorder] Cannot record dispatch after submit');
     }
-    const opLabel = this.#recordOperation(label);
+    const opLabel = this.#recordDispatchOperation(label);
     if (this.#profilingEnabled) {
       const pass = this.#beginRawComputePass(opLabel);
       pass.setPipeline(pipeline);
@@ -500,12 +513,14 @@ export class CommandRecorder {
 
 
   getStats() {
-    const opLabelCounts = Object.fromEntries(
-      Object.entries(this.#opLabelCounts).sort((a, b) => {
-        const countDelta = b[1] - a[1];
-        return countDelta !== 0 ? countDelta : a[0].localeCompare(b[0]);
-      })
-    );
+    const opLabelCounts = this.#opLabelCounts
+      ? Object.fromEntries(
+        Object.entries(this.#opLabelCounts).sort((a, b) => {
+          const countDelta = b[1] - a[1];
+          return countDelta !== 0 ? countDelta : a[0].localeCompare(b[0]);
+        })
+      )
+      : {};
     return {
       opCount: this.#opCount,
       opLabelCounts,

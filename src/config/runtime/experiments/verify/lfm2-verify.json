@@ -29,12 +29,12 @@
         "messages": [
           {
             "role": "user",
-            "content": "What color is the sky on a clear day?"
+            "content": "What color is the sky on a clear day? Answer in one short sentence."
           }
         ]
       },
-      "batching": {
-        "maxTokens": 32
+      "generation": {
+        "maxTokens": 12
       },
       "sampling": {
         "temperature": 0,

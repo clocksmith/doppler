@@ -1,0 +1,928 @@
+{
+  "mode": "verify",
+  "workload": "inference",
+  "suite": "inference",
+  "modelId": "gemma-3-270m-it-f16-af32",
+  "runtimeProfile": "profiles/verbose-trace",
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": true,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "radeon-8060s-graphics-radv-strix-halo-",
+      "description": "radv: Mesa 26.0.3-1ubuntu1"
+    },
+    "submitProbeMs": 0.5513100000000009
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 859.8541690000002
+    }
+  ],
+  "durationMs": 1895.085005,
+  "timestamp": "2026-06-29T22:02:14.821Z",
+  "metrics": {
+    "prompt": "The color of the sky is",
+    "maxTokens": 32,
+    "tokensGenerated": 6,
+    "tokensPerSec": 6.98,
+    "totalRunMs": 750.19,
+    "firstTokenMs": 259.74,
+    "firstResponseMs": 1280.54,
+    "prefillMs": 151.92,
+    "decodeMs": 598.27,
+    "wallRunMs": 859.03,
+    "prefillTokens": 15,
+    "decodeTokens": 6,
+    "stopReason": "stop-token",
+    "stopTokenId": 106,
+    "prefillTokensPerSec": 98.74,
+    "prefillTokensPerSecTtft": 57.75,
+    "decodeTokensPerSec": 10.03,
+    "modelLoadMs": 1020.8,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeRecordOps": 0,
+      "decodeRecordPasses": 0,
+      "uniformCache": {
+        "hits": 1584,
+        "misses": 38,
+        "totalLookups": 1622,
+        "hitRateRatio": 0.9765721331689272,
+        "hitRate": "97.7%",
+        "evictions": 0,
+        "currentSize": 38,
+        "pendingDestruction": 0
+      },
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0,
+      "decodeReadbackMapWaitMs": 0,
+      "decodeReadbackCleanupMs": 0,
+      "decodeReadbackCopyMs": 0,
+      "prefillRecordMs": 68.27996600000006,
+      "prefillSubmitWaitMs": 45.742385000000695,
+      "decodeOrchestrationMs": 598.274171,
+      "singleTokenSubmitWaitMs": 0,
+      "singleTokenReadbackWaitMs": 0,
+      "singleTokenReadbackMapWaitMs": 0,
+      "singleTokenReadbackCleanupMs": 0,
+      "singleTokenReadbackCopyMs": 0,
+      "singleTokenOrchestrationMs": 0
+    },
+    "batching": {
+      "batchedForwardCalls": 0,
+      "unbatchedForwardCalls": 0,
+      "totalBatchedTimeMs": 0,
+      "totalUnbatchedTimeMs": 0,
+      "gpuSubmissions": 0,
+      "requestedBatchTokens": 0,
+      "effectiveBatchTokens": 0,
+      "executedBatchTokens": 0,
+      "resolvedBatchTokens": 0,
+      "batchClampCount": 0
+    },
+    "plePreparedTokenCache": {
+      "hits": 0,
+      "misses": 0,
+      "entries": 0,
+      "bytes": 0
+    },
+    "prefillProfileSteps": [],
+    "decodeProfileSteps": [],
+    "executionPlan": {
+      "primary": {
+        "id": "primary",
+        "kernelPathId": "gemma-3-270m-it-f16-af32-execution-inline",
+        "kernelPathSource": "execution-v1",
+        "activationDtype": "f32",
+        "readbackInterval": 1,
+        "readbackMode": "sequential",
+        "batchSize": 1,
+        "stopCheckMode": "batch",
+        "disableCommandBatching": false,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "fallback": null,
+      "activePlanIdAtStart": null,
+      "finalActivePlanId": null,
+      "transitions": []
+    },
+    "kernelPathId": "gemma-3-270m-it-f16-af32-execution-inline",
+    "kernelPathSource": "execution-v1",
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 818,
+          "text": "The",
+          "fallbackText": "The"
+        },
+        {
+          "id": 7217,
+          "text": " sky",
+          "fallbackText": " sky"
+        },
+        {
+          "id": 563,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 3730,
+          "text": " blue",
+          "fallbackText": " blue"
+        },
+        {
+          "id": 236761,
+          "text": ".",
+          "fallbackText": "."
+        },
+        {
+          "id": 106,
+          "text": "",
+          "fallbackText": "<end_of_turn>"
+        }
+      ],
+      "total": 6,
+      "omitted": 0,
+      "emptyTextCount": 1,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 1
+    },
+    "kvCache": {
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "seqLen": 20,
+      "maxSeqLen": 4096,
+      "usedBytes": 368640,
+      "allocatedBytes": 75497472,
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 0,
+        "recordedGpuUpdateCalls": 108,
+        "tokensWritten": 360
+      }
+    },
+    "referenceTranscript": {
+      "schema": "doppler.reference-transcript/v1",
+      "source": {
+        "kind": "inline-browser-suite",
+        "path": "inline",
+        "hash": "sha256:9f31a744c1f54c8d7289667551fa9ee3fdb40c9c1e0439c37d70842aeca665ec"
+      },
+      "executionGraphHash": "sha256:eeb1a27bbb2c81c10aec5f498c746e1f804152952e1497c8c0c0513c60c8de94",
+      "surface": "browser-webgpu",
+      "prompt": {
+        "identity": "The color of the sky is",
+        "hash": "sha256:c2912dd49373207ca1d000f8d1a9045103e23c881916136efdf95190a54893ff",
+        "tokenIdsHash": "sha256:98a6bc8c6b261ff5c6ec26d7920313fdd0909878936ab5eb23758d8204a1a4d9",
+        "tokenCount": 15
+      },
+      "output": {
+        "textHash": "sha256:52ae4fd504d855f1dd094ab54e2da8402c96250ef75ef775a3cf20ff39d0cb2b",
+        "tokensGenerated": 6,
+        "stopReason": "stop-token",
+        "stopTokenId": 106
+      },
+      "tokens": {
+        "ids": [
+          818,
+          7217,
+          563,
+          3730,
+          236761,
+          106
+        ],
+        "generatedTokenIdsHash": "sha256:d21169e8b6f404dc5aa0c4367864b1b59e3056b59f8eabcc26184ab4a3e4882d",
+        "generatedTextHash": "sha256:52ae4fd504d855f1dd094ab54e2da8402c96250ef75ef775a3cf20ff39d0cb2b",
+        "preview": [
+          {
+            "id": 818,
+            "text": "The",
+            "fallbackText": "The"
+          },
+          {
+            "id": 7217,
+            "text": " sky",
+            "fallbackText": " sky"
+          },
+          {
+            "id": 563,
+            "text": " is",
+            "fallbackText": " is"
+          },
+          {
+            "id": 3730,
+            "text": " blue",
+            "fallbackText": " blue"
+          },
+          {
+            "id": 236761,
+            "text": ".",
+            "fallbackText": "."
+          },
+          {
+            "id": 106,
+            "text": "",
+            "fallbackText": "<end_of_turn>"
+          }
+        ],
+        "perStep": [
+          {
+            "index": 0,
+            "tokenId": 818,
+            "tokenHash": "sha256:a720503f3310752f33fbfcf2a56f5aed118d6573e54b44c2e687c0eadb98b87f"
+          },
+          {
+            "index": 1,
+            "tokenId": 7217,
+            "tokenHash": "sha256:88a4e600c0f2ec9d975378471f5da7d4c1dd94fa78304086f76ef518459b6915"
+          },
+          {
+            "index": 2,
+            "tokenId": 563,
+            "tokenHash": "sha256:36afc8b3fed2bc967f16210cf10c275972a39055c31438f211a0e93687b93cfd"
+          },
+          {
+            "index": 3,
+            "tokenId": 3730,
+            "tokenHash": "sha256:8cb3f685e26e04544a73aa0c76449db0ba7d50deffb7796b84aab761909f87f2"
+          },
+          {
+            "index": 4,
+            "tokenId": 236761,
+            "tokenHash": "sha256:f2eb7b90340d34061b5fe5f02cd4c0af58fb397f71cf8944e3d311ee03295899"
+          },
+          {
+            "index": 5,
+            "tokenId": 106,
+            "tokenHash": "sha256:7417b7503131a5240722aa5b12c0356ff06535c5548f8dea3a9ec8e7e43c91cb"
+          }
+        ],
+        "coverage": {
+          "mode": "full-token-ids",
+          "omitted": 0
+        }
+      },
+      "phase": {
+        "prefillMs": 151.91506400000003,
+        "decodeMs": 598.274171,
+        "prefillTokens": 15,
+        "decodeTokens": 6
+      },
+      "kvCache": {
+        "mode": "stats",
+        "layout": "contiguous",
+        "kvDtype": "f16",
+        "seqLen": 20,
+        "maxSeqLen": 4096,
+        "usedBytes": 368640,
+        "allocatedBytes": 75497472,
+        "counters": {
+          "updateCalls": 0,
+          "gpuUpdateCalls": 0,
+          "recordedGpuUpdateCalls": 108,
+          "tokensWritten": 360
+        },
+        "byteDigestMode": null,
+        "byteDigest": null,
+        "byteDigests": null,
+        "stateHash": "sha256:4056958d3bf712244da9ec3b5c9b96f4e331de0a6b1c0192e055061582b49471"
+      },
+      "logits": {
+        "mode": "not-captured",
+        "reason": "Per-step logits digests were not requested for this browser harness run.",
+        "perStepDigests": null
+      },
+      "tolerance": {
+        "tokenPolicy": "exact generated token IDs",
+        "logitsPolicy": "not captured",
+        "kvPolicy": "metadata hash only; KV tensor bytes are not read back by default"
+      }
+    },
+    "operatorDiagnostics": null,
+    "decodeBottleneck": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "dominant": {
+        "id": "orchestration",
+        "label": "decode orchestration",
+        "ms": 598.27,
+        "shareOfDecode": 1
+      },
+      "bottleneckClass": "orchestration",
+      "decodeWallMs": 598.27,
+      "componentsMs": {
+        "commandRecordMs": 0,
+        "submitWaitMs": 0,
+        "readbackWaitMs": 0,
+        "effectiveSubmitReadbackWaitMs": 0,
+        "readbackMapWaitMs": 0,
+        "readbackCleanupMs": 0,
+        "readbackCopyMs": 0,
+        "readbackUnattributedMs": null,
+        "gpuTimestampMs": null,
+        "submitReadbackSlackMs": null,
+        "orchestrationMs": 598.27,
+        "residualMs": 0
+      },
+      "recording": {
+        "opCount": 0,
+        "passCount": 0,
+        "uniqueOpLabels": null,
+        "msPerOp": null,
+        "msPerPass": null,
+        "passesPerOp": null,
+        "msPerExecutedBatchToken": null,
+        "opsPerExecutedBatchToken": null,
+        "passesPerExecutedBatchToken": null,
+        "topOps": [],
+        "topOpGroups": [],
+        "uniformCache": {
+          "hits": 1584,
+          "misses": 38,
+          "totalLookups": 1622,
+          "hitRateRatio": 0.9765721331689272,
+          "evictions": 0,
+          "currentSize": 38,
+          "pendingDestruction": 0,
+          "hitRate": "97.7%"
+        }
+      },
+      "shares": {
+        "commandRecord": 0,
+        "submitWait": 0,
+        "readbackWait": 0,
+        "effectiveSubmitReadbackWait": 0,
+        "readbackMapWait": 0,
+        "readbackCleanup": 0,
+        "readbackCopy": 0,
+        "readbackUnattributed": null,
+        "gpuTimestamp": null,
+        "submitReadbackSlack": null,
+        "orchestration": 1,
+        "residual": 0
+      },
+      "semantics": {
+        "effectiveSubmitReadbackWaitMs": "max(decodeSubmitWaitMs, decodeReadbackWaitMs); submit and readback waits overlap.",
+        "readbackMapWaitMs": "Wall time awaiting staging-buffer mapAsync; usually includes GPU completion behind the readback.",
+        "gpuTimestampMs": "Timestamp-query GPU work when available; null means it was not captured.",
+        "topOps": "Highest-count exact compute-pass labels observed during command recording.",
+        "topOpGroups": "Highest-count compute-pass labels after grouping repeated per-layer labels.",
+        "uniformCache": "Current uniform-buffer cache counters at the end of the measured suite."
+      }
+    },
+    "load": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "semantics": {
+        "modelLoadMs": "suite initialization time before generation",
+        "loaderTotalMs": "DopplerLoader.load() weight-loader wall time",
+        "pipelineTotalMs": "InferencePipeline.loadModel() wall time",
+        "modelLoadMinusPipelineMs": "modelLoadMs - pipeline.totalMs; harness, storage, manifest, GPU init, and pipeline construction",
+        "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
+        "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
+      },
+      "modelLoadMs": 1020.8,
+      "loader": {
+        "schemaVersion": 1,
+        "source": "doppler-loader",
+        "modelId": "gemma-3-270m-it-f16-af32",
+        "status": "complete",
+        "customShardLoader": true,
+        "byteAccountingMode": "custom-loader-progress-unavailable",
+        "totalBytes": 536196352,
+        "totalShards": 8,
+        "bytesLoaded": 0,
+        "shardsLoaded": 0,
+        "bytesPerSecond": 0,
+        "phasesMs": {
+          "preflight": 1.55,
+          "tensorLocations": 1.22,
+          "embeddings": 91.51,
+          "layers": 108.94,
+          "finalWeights": 0.92,
+          "cleanup": 0.05
+        },
+        "layers": {
+          "count": 18,
+          "totalMs": 99.02,
+          "meanMs": 5.5,
+          "maxMs": 10.31,
+          "maxLayer": 0
+        },
+        "totalMs": 204.56,
+        "failedPhase": null,
+        "error": null
+      },
+      "pipeline": {
+        "schemaVersion": 1,
+        "source": "doppler-pipeline",
+        "modelId": "gemma-3-270m-it-f16-af32",
+        "status": "complete",
+        "phasesMs": {
+          "reset": 0.08,
+          "configResolution": 6.54,
+          "kernelWarmup": 0.08,
+          "tokenizer": 554.34,
+          "executionSetup": 2.91,
+          "loadWeights": 273.82,
+          "rope": 162.93,
+          "convStates": 0.71
+        },
+        "details": {
+          "tokenizer": {
+            "schemaVersion": 1,
+            "source": "doppler-tokenizer",
+            "modelId": "gemma-3-270m-it-f16-af32",
+            "status": "complete",
+            "tokenizerType": "bundled",
+            "tokenizerFile": "tokenizer.json",
+            "backend": "bundled",
+            "assetSource": "custom-loader",
+            "cacheHit": false,
+            "phasesMs": {
+              "configResolution": 0.06,
+              "cacheLookup": 0.06,
+              "backendCreate": 0.1,
+              "assetLoad": 313.82,
+              "assetParse": 0.21,
+              "backendLoad": 239.46,
+              "cacheStore": 0.01
+            },
+            "totalMs": 553.94,
+            "error": null
+          }
+        },
+        "totalMs": 1001.65
+      },
+      "residualsMs": {
+        "modelLoadMinusLoaderMs": 816.24,
+        "modelLoadMinusPipelineMs": 19.15,
+        "pipelineMinusLoaderMs": 797.09
+      },
+      "consistent": {
+        "loaderWithinModelLoad": true,
+        "pipelineWithinModelLoad": true,
+        "loaderWithinPipeline": true
+      }
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "inference",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "gemma-3-270m-it-f16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "gemma-3-270m-it-f16-af32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 1,
+        "headDim": 256,
+        "kvLen": 32768,
+        "coldQuantMode": "none",
+        "contiguousQuantMode": "none"
+      },
+      "steps": {
+        "total": 35,
+        "attention": 2,
+        "attentionPhases": {
+          "prefill": 1,
+          "decode": 1,
+          "both": 0
+        }
+      }
+    },
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "gemma-3-270m-it-f16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "gemma-3-270m-it-f16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 44,
+        "nullableCases": 23,
+        "nonNullableCases": 21
+      }
+    }
+  },
+  "output": "The sky is blue.",
+  "memory": {
+    "used": 686420736,
+    "pool": {
+      "allocations": 1557,
+      "reuses": 830,
+      "totalBytesAllocated": 619055872,
+      "peakBytesAllocated": 611003136,
+      "currentBytesAllocated": 610923264,
+      "totalBytesRequested": 617685504,
+      "peakBytesRequested": 609596672,
+      "currentBytesRequested": 608548096,
+      "activeBuffers": 245,
+      "pooledBuffers": 44,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "34.8%"
+    },
+    "kvCache": {
+      "theoretical": 75497472,
+      "allocated": 75497472,
+      "used": 368640,
+      "efficiency": 0.0048828125,
+      "seqLen": 20,
+      "maxSeqLen": 4096,
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 0,
+        "recordedGpuUpdateCalls": 108,
+        "tokensWritten": 360
+      }
+    }
+  },
+  "debugSnapshot": {
+    "timestamp": "2026-06-29T22:02:16.719Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "2101.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1519 size=4096 req=4096 usage=140 label=attention_output action=destroy"
+      },
+      {
+        "time": "2101.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1520 size=4096 req=2560 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "2101.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1523 size=8192 req=8192 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "2101.7",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1524 size=8192 req=8192 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1525 size=8192 req=8192 usage=140 label=gelu_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1522 size=4096 req=3072 usage=140 label=rmsnorm_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1526 size=4096 req=2560 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1521 size=4096 req=3072 usage=140 label=rmsnorm_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1528 size=8192 req=6144 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1529 size=4096 req=4096 usage=140 label=Q action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1530 size=1024 req=1024 usage=140 label=K action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1527 size=4096 req=3072 usage=140 label=rmsnorm_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1532 size=4096 req=4096 usage=140 label=rmsnorm_qk_q_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1533 size=1024 req=1024 usage=140 label=rmsnorm_qk_k_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1531 size=1024 req=1024 usage=140 label=V action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1534 size=4096 req=4096 usage=140 label=attention_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1535 size=4096 req=2560 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1538 size=8192 req=8192 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1539 size=8192 req=8192 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1540 size=8192 req=8192 usage=140 label=gelu_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1537 size=4096 req=3072 usage=140 label=rmsnorm_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1541 size=4096 req=2560 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1536 size=4096 req=3072 usage=140 label=rmsnorm_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1543 size=8192 req=6144 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1544 size=4096 req=4096 usage=140 label=Q action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1545 size=1024 req=1024 usage=140 label=K action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1542 size=4096 req=3072 usage=140 label=rmsnorm_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1547 size=4096 req=4096 usage=140 label=rmsnorm_qk_q_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1548 size=1024 req=1024 usage=140 label=rmsnorm_qk_k_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1546 size=1024 req=1024 usage=140 label=V action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1549 size=4096 req=4096 usage=140 label=attention_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1550 size=4096 req=2560 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1553 size=8192 req=8192 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1554 size=8192 req=8192 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1555 size=8192 req=8192 usage=140 label=gelu_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1552 size=4096 req=3072 usage=140 label=rmsnorm_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1556 size=4096 req=2560 usage=140 label=matmul_output action=destroy"
+      },
+      {
+        "time": "2101.8",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=1551 size=4096 req=3072 usage=140 label=rmsnorm_output action=destroy"
+      },
+      {
+        "time": "2101.9",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Acquire reuse id=817 size=4096 req=3072 usage=140 label=rmsnorm_output"
+      },
+      {
+        "time": "2102.0",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Acquire reuse id=241 size=256 req=256 usage=140 label=rmsnorm_prenorm_placeholder"
+      },
+      {
+        "time": "2102.1",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=241 size=256 req=256 usage=140 label=rmsnorm_prenorm_placeholder action=pool"
+      },
+      {
+        "time": "2102.1",
+        "level": "TRACE:kernels",
+        "module": "Kernels",
+        "message": "runMatmul: M=1, N=262144, K=640, transposeBOption=auto, weightLayout=row, weightDtype=f16"
+      },
+      {
+        "time": "2102.2",
+        "level": "TRACE:kernels",
+        "module": "Kernels",
+        "message": "MATMUL_LARGE: N=262144, variant=gemv_subgroup_multicol, aDtype=f32, bDtype=f16, transposeB=true"
+      },
+      {
+        "time": "2102.2",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Acquire new id=1557 size=1048576 req=1048576 usage=140 label=matmul_output"
+      },
+      {
+        "time": "2102.3",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=817 size=4096 req=3072 usage=140 label=rmsnorm_output action=pool"
+      },
+      {
+        "time": "2102.3",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Acquire reuse id=300 size=1048576 req=1048576 usage=9 label=staging_read"
+      },
+      {
+        "time": "2103.9",
+        "level": "TRACE:buffers",
+        "module": "Buffers",
+        "message": "Release id=300 size=1048576 req=1048576 usage=9 label=staging_read action=pool"
+      },
+      {
+        "time": "2180.8",
+        "level": "INFO",
+        "module": "Perf",
+        "message": "Load: 1002ms | TTFT: 260ms | Prefill: 152ms | Decode: 598ms (5 tokens @ 8.4 tok/s)"
+      },
+      {
+        "time": "2180.9",
+        "level": "TRACE:perf",
+        "module": "Perf",
+        "message": "Decode summary"
+      },
+      {
+        "time": "2186.2",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Unloaded"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 2
+  }
+}

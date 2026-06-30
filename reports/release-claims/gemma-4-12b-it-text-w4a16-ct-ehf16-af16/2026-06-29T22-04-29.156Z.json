@@ -1,0 +1,1644 @@
+{
+  "mode": "verify",
+  "workload": "inference",
+  "suite": "inference",
+  "modelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
+  "runtimeProfile": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": true,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "radeon-8060s-graphics-radv-strix-halo-",
+      "description": "radv: Mesa 26.0.3-1ubuntu1"
+    },
+    "submitProbeMs": 0.5698350000000119
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 7028.358272
+    }
+  ],
+  "durationMs": 14530.322472,
+  "timestamp": "2026-06-29T22:04:29.156Z",
+  "metrics": {
+    "prompt": "The color of the sky is",
+    "maxTokens": 32,
+    "tokensGenerated": 32,
+    "tokensPerSec": 4.55,
+    "totalRunMs": 6914.76,
+    "firstTokenMs": 840.42,
+    "firstResponseMs": 8323.51,
+    "prefillMs": 728.59,
+    "decodeMs": 6186.17,
+    "wallRunMs": 7027.61,
+    "prefillTokens": 19,
+    "decodeTokens": 32,
+    "stopReason": "max-tokens",
+    "stopTokenId": null,
+    "prefillTokensPerSec": 26.08,
+    "prefillTokensPerSecTtft": 22.61,
+    "decodeTokensPerSec": 5.17,
+    "modelLoadMs": 7483.09,
+    "gpu": {
+      "decodeRecordMs": 1279.7240749999983,
+      "decodeRecordOps": 25327,
+      "decodeRecordPasses": 1554,
+      "decodeRecordOpLabels": {
+        "attention": 1488,
+        "check_finiteness": 1488,
+        "gelu": 1488,
+        "rmsnorm": 1488,
+        "rmsnorm_qk": 1488,
+        "rmsnorm:input_norm": 1488,
+        "rmsnorm:post_attn_norm": 1488,
+        "rmsnorm:post_ffn_norm": 1488,
+        "rmsnorm:pre_ffn_norm": 1488,
+        "rope_qk": 1488,
+        "cast_f16_to_f32": 31,
+        "gather": 31,
+        "matmul:ffn_down:L0": 31,
+        "matmul:ffn_down:L1": 31,
+        "matmul:ffn_down:L10": 31,
+        "matmul:ffn_down:L11": 31,
+        "matmul:ffn_down:L12": 31,
+        "matmul:ffn_down:L13": 31,
+        "matmul:ffn_down:L14": 31,
+        "matmul:ffn_down:L15": 31,
+        "matmul:ffn_down:L16": 31,
+        "matmul:ffn_down:L17": 31,
+        "matmul:ffn_down:L18": 31,
+        "matmul:ffn_down:L19": 31,
+        "matmul:ffn_down:L2": 31,
+        "matmul:ffn_down:L20": 31,
+        "matmul:ffn_down:L21": 31,
+        "matmul:ffn_down:L22": 31,
+        "matmul:ffn_down:L23": 31,
+        "matmul:ffn_down:L24": 31,
+        "matmul:ffn_down:L25": 31,
+        "matmul:ffn_down:L26": 31,
+        "matmul:ffn_down:L27": 31,
+        "matmul:ffn_down:L28": 31,
+        "matmul:ffn_down:L29": 31,
+        "matmul:ffn_down:L3": 31,
+        "matmul:ffn_down:L30": 31,
+        "matmul:ffn_down:L31": 31,
+        "matmul:ffn_down:L32": 31,
+        "matmul:ffn_down:L33": 31,
+        "matmul:ffn_down:L34": 31,
+        "matmul:ffn_down:L35": 31,
+        "matmul:ffn_down:L36": 31,
+        "matmul:ffn_down:L37": 31,
+        "matmul:ffn_down:L38": 31,
+        "matmul:ffn_down:L39": 31,
+        "matmul:ffn_down:L4": 31,
+        "matmul:ffn_down:L40": 31,
+        "matmul:ffn_down:L41": 31,
+        "matmul:ffn_down:L42": 31,
+        "matmul:ffn_down:L43": 31,
+        "matmul:ffn_down:L44": 31,
+        "matmul:ffn_down:L45": 31,
+        "matmul:ffn_down:L46": 31,
+        "matmul:ffn_down:L47": 31,
+        "matmul:ffn_down:L5": 31,
+        "matmul:ffn_down:L6": 31,
+        "matmul:ffn_down:L7": 31,
+        "matmul:ffn_down:L8": 31,
+        "matmul:ffn_down:L9": 31,
+        "matmul:ffn_gate:L0": 31,
+        "matmul:ffn_gate:L1": 31,
+        "matmul:ffn_gate:L10": 31,
+        "matmul:ffn_gate:L11": 31,
+        "matmul:ffn_gate:L12": 31,
+        "matmul:ffn_gate:L13": 31,
+        "matmul:ffn_gate:L14": 31,
+        "matmul:ffn_gate:L15": 31,
+        "matmul:ffn_gate:L16": 31,
+        "matmul:ffn_gate:L17": 31,
+        "matmul:ffn_gate:L18": 31,
+        "matmul:ffn_gate:L19": 31,
+        "matmul:ffn_gate:L2": 31,
+        "matmul:ffn_gate:L20": 31,
+        "matmul:ffn_gate:L21": 31,
+        "matmul:ffn_gate:L22": 31,
+        "matmul:ffn_gate:L23": 31,
+        "matmul:ffn_gate:L24": 31,
+        "matmul:ffn_gate:L25": 31,
+        "matmul:ffn_gate:L26": 31,
+        "matmul:ffn_gate:L27": 31,
+        "matmul:ffn_gate:L28": 31,
+        "matmul:ffn_gate:L29": 31,
+        "matmul:ffn_gate:L3": 31,
+        "matmul:ffn_gate:L30": 31,
+        "matmul:ffn_gate:L31": 31,
+        "matmul:ffn_gate:L32": 31,
+        "matmul:ffn_gate:L33": 31,
+        "matmul:ffn_gate:L34": 31,
+        "matmul:ffn_gate:L35": 31,
+        "matmul:ffn_gate:L36": 31,
+        "matmul:ffn_gate:L37": 31,
+        "matmul:ffn_gate:L38": 31,
+        "matmul:ffn_gate:L39": 31,
+        "matmul:ffn_gate:L4": 31,
+        "matmul:ffn_gate:L40": 31,
+        "matmul:ffn_gate:L41": 31,
+        "matmul:ffn_gate:L42": 31,
+        "matmul:ffn_gate:L43": 31,
+        "matmul:ffn_gate:L44": 31,
+        "matmul:ffn_gate:L45": 31,
+        "matmul:ffn_gate:L46": 31,
+        "matmul:ffn_gate:L47": 31,
+        "matmul:ffn_gate:L5": 31,
+        "matmul:ffn_gate:L6": 31,
+        "matmul:ffn_gate:L7": 31,
+        "matmul:ffn_gate:L8": 31,
+        "matmul:ffn_gate:L9": 31,
+        "matmul:ffn_up:L0": 31,
+        "matmul:ffn_up:L1": 31,
+        "matmul:ffn_up:L10": 31,
+        "matmul:ffn_up:L11": 31,
+        "matmul:ffn_up:L12": 31,
+        "matmul:ffn_up:L13": 31,
+        "matmul:ffn_up:L14": 31,
+        "matmul:ffn_up:L15": 31,
+        "matmul:ffn_up:L16": 31,
+        "matmul:ffn_up:L17": 31,
+        "matmul:ffn_up:L18": 31,
+        "matmul:ffn_up:L19": 31,
+        "matmul:ffn_up:L2": 31,
+        "matmul:ffn_up:L20": 31,
+        "matmul:ffn_up:L21": 31,
+        "matmul:ffn_up:L22": 31,
+        "matmul:ffn_up:L23": 31,
+        "matmul:ffn_up:L24": 31,
+        "matmul:ffn_up:L25": 31,
+        "matmul:ffn_up:L26": 31,
+        "matmul:ffn_up:L27": 31,
+        "matmul:ffn_up:L28": 31,
+        "matmul:ffn_up:L29": 31,
+        "matmul:ffn_up:L3": 31,
+        "matmul:ffn_up:L30": 31,
+        "matmul:ffn_up:L31": 31,
+        "matmul:ffn_up:L32": 31,
+        "matmul:ffn_up:L33": 31,
+        "matmul:ffn_up:L34": 31,
+        "matmul:ffn_up:L35": 31,
+        "matmul:ffn_up:L36": 31,
+        "matmul:ffn_up:L37": 31,
+        "matmul:ffn_up:L38": 31,
+        "matmul:ffn_up:L39": 31,
+        "matmul:ffn_up:L4": 31,
+        "matmul:ffn_up:L40": 31,
+        "matmul:ffn_up:L41": 31,
+        "matmul:ffn_up:L42": 31,
+        "matmul:ffn_up:L43": 31,
+        "matmul:ffn_up:L44": 31,
+        "matmul:ffn_up:L45": 31,
+        "matmul:ffn_up:L46": 31,
+        "matmul:ffn_up:L47": 31,
+        "matmul:ffn_up:L5": 31,
+        "matmul:ffn_up:L6": 31,
+        "matmul:ffn_up:L7": 31,
+        "matmul:ffn_up:L8": 31,
+        "matmul:ffn_up:L9": 31,
+        "matmul:k_proj:L0": 31,
+        "matmul:k_proj:L1": 31,
+        "matmul:k_proj:L10": 31,
+        "matmul:k_proj:L11": 31,
+        "matmul:k_proj:L12": 31,
+        "matmul:k_proj:L13": 31,
+        "matmul:k_proj:L14": 31,
+        "matmul:k_proj:L15": 31,
+        "matmul:k_proj:L16": 31,
+        "matmul:k_proj:L17": 31,
+        "matmul:k_proj:L18": 31,
+        "matmul:k_proj:L19": 31,
+        "matmul:k_proj:L2": 31,
+        "matmul:k_proj:L20": 31,
+        "matmul:k_proj:L21": 31,
+        "matmul:k_proj:L22": 31,
+        "matmul:k_proj:L23": 31,
+        "matmul:k_proj:L24": 31,
+        "matmul:k_proj:L25": 31,
+        "matmul:k_proj:L26": 31,
+        "matmul:k_proj:L27": 31,
+        "matmul:k_proj:L28": 31,
+        "matmul:k_proj:L29": 31,
+        "matmul:k_proj:L3": 31,
+        "matmul:k_proj:L30": 31,
+        "matmul:k_proj:L31": 31,
+        "matmul:k_proj:L32": 31,
+        "matmul:k_proj:L33": 31,
+        "matmul:k_proj:L34": 31,
+        "matmul:k_proj:L35": 31,
+        "matmul:k_proj:L36": 31,
+        "matmul:k_proj:L37": 31,
+        "matmul:k_proj:L38": 31,
+        "matmul:k_proj:L39": 31,
+        "matmul:k_proj:L4": 31,
+        "matmul:k_proj:L40": 31,
+        "matmul:k_proj:L41": 31,
+        "matmul:k_proj:L42": 31,
+        "matmul:k_proj:L43": 31,
+        "matmul:k_proj:L44": 31,
+        "matmul:k_proj:L45": 31,
+        "matmul:k_proj:L46": 31,
+        "matmul:k_proj:L47": 31,
+        "matmul:k_proj:L5": 31,
+        "matmul:k_proj:L6": 31,
+        "matmul:k_proj:L7": 31,
+        "matmul:k_proj:L8": 31,
+        "matmul:k_proj:L9": 31,
+        "matmul:lm_head": 31,
+        "matmul:o_proj:L0": 31,
+        "matmul:o_proj:L1": 31,
+        "matmul:o_proj:L10": 31,
+        "matmul:o_proj:L11": 31,
+        "matmul:o_proj:L12": 31,
+        "matmul:o_proj:L13": 31,
+        "matmul:o_proj:L14": 31,
+        "matmul:o_proj:L15": 31,
+        "matmul:o_proj:L16": 31,
+        "matmul:o_proj:L17": 31,
+        "matmul:o_proj:L18": 31,
+        "matmul:o_proj:L19": 31,
+        "matmul:o_proj:L2": 31,
+        "matmul:o_proj:L20": 31,
+        "matmul:o_proj:L21": 31,
+        "matmul:o_proj:L22": 31,
+        "matmul:o_proj:L23": 31,
+        "matmul:o_proj:L24": 31,
+        "matmul:o_proj:L25": 31,
+        "matmul:o_proj:L26": 31,
+        "matmul:o_proj:L27": 31,
+        "matmul:o_proj:L28": 31,
+        "matmul:o_proj:L29": 31,
+        "matmul:o_proj:L3": 31,
+        "matmul:o_proj:L30": 31,
+        "matmul:o_proj:L31": 31,
+        "matmul:o_proj:L32": 31,
+        "matmul:o_proj:L33": 31,
+        "matmul:o_proj:L34": 31,
+        "matmul:o_proj:L35": 31,
+        "matmul:o_proj:L36": 31,
+        "matmul:o_proj:L37": 31,
+        "matmul:o_proj:L38": 31,
+        "matmul:o_proj:L39": 31,
+        "matmul:o_proj:L4": 31,
+        "matmul:o_proj:L40": 31,
+        "matmul:o_proj:L41": 31,
+        "matmul:o_proj:L42": 31,
+        "matmul:o_proj:L43": 31,
+        "matmul:o_proj:L44": 31,
+        "matmul:o_proj:L45": 31,
+        "matmul:o_proj:L46": 31,
+        "matmul:o_proj:L47": 31,
+        "matmul:o_proj:L5": 31,
+        "matmul:o_proj:L6": 31,
+        "matmul:o_proj:L7": 31,
+        "matmul:o_proj:L8": 31,
+        "matmul:o_proj:L9": 31,
+        "matmul:q_proj:L0": 31,
+        "matmul:q_proj:L1": 31,
+        "matmul:q_proj:L10": 31,
+        "matmul:q_proj:L11": 31,
+        "matmul:q_proj:L12": 31,
+        "matmul:q_proj:L13": 31,
+        "matmul:q_proj:L14": 31,
+        "matmul:q_proj:L15": 31,
+        "matmul:q_proj:L16": 31,
+        "matmul:q_proj:L17": 31,
+        "matmul:q_proj:L18": 31,
+        "matmul:q_proj:L19": 31,
+        "matmul:q_proj:L2": 31,
+        "matmul:q_proj:L20": 31,
+        "matmul:q_proj:L21": 31,
+        "matmul:q_proj:L22": 31,
+        "matmul:q_proj:L23": 31,
+        "matmul:q_proj:L24": 31,
+        "matmul:q_proj:L25": 31,
+        "matmul:q_proj:L26": 31,
+        "matmul:q_proj:L27": 31,
+        "matmul:q_proj:L28": 31,
+        "matmul:q_proj:L29": 31,
+        "matmul:q_proj:L3": 31,
+        "matmul:q_proj:L30": 31,
+        "matmul:q_proj:L31": 31,
+        "matmul:q_proj:L32": 31,
+        "matmul:q_proj:L33": 31,
+        "matmul:q_proj:L34": 31,
+        "matmul:q_proj:L35": 31,
+        "matmul:q_proj:L36": 31,
+        "matmul:q_proj:L37": 31,
+        "matmul:q_proj:L38": 31,
+        "matmul:q_proj:L39": 31,
+        "matmul:q_proj:L4": 31,
+        "matmul:q_proj:L40": 31,
+        "matmul:q_proj:L41": 31,
+        "matmul:q_proj:L42": 31,
+        "matmul:q_proj:L43": 31,
+        "matmul:q_proj:L44": 31,
+        "matmul:q_proj:L45": 31,
+        "matmul:q_proj:L46": 31,
+        "matmul:q_proj:L47": 31,
+        "matmul:q_proj:L5": 31,
+        "matmul:q_proj:L6": 31,
+        "matmul:q_proj:L7": 31,
+        "matmul:q_proj:L8": 31,
+        "matmul:q_proj:L9": 31,
+        "matmul:v_proj:L0": 31,
+        "matmul:v_proj:L1": 31,
+        "matmul:v_proj:L10": 31,
+        "matmul:v_proj:L12": 31,
+        "matmul:v_proj:L13": 31,
+        "matmul:v_proj:L14": 31,
+        "matmul:v_proj:L15": 31,
+        "matmul:v_proj:L16": 31,
+        "matmul:v_proj:L18": 31,
+        "matmul:v_proj:L19": 31,
+        "matmul:v_proj:L2": 31,
+        "matmul:v_proj:L20": 31,
+        "matmul:v_proj:L21": 31,
+        "matmul:v_proj:L22": 31,
+        "matmul:v_proj:L24": 31,
+        "matmul:v_proj:L25": 31,
+        "matmul:v_proj:L26": 31,
+        "matmul:v_proj:L27": 31,
+        "matmul:v_proj:L28": 31,
+        "matmul:v_proj:L3": 31,
+        "matmul:v_proj:L30": 31,
+        "matmul:v_proj:L31": 31,
+        "matmul:v_proj:L32": 31,
+        "matmul:v_proj:L33": 31,
+        "matmul:v_proj:L34": 31,
+        "matmul:v_proj:L36": 31,
+        "matmul:v_proj:L37": 31,
+        "matmul:v_proj:L38": 31,
+        "matmul:v_proj:L39": 31,
+        "matmul:v_proj:L4": 31,
+        "matmul:v_proj:L40": 31,
+        "matmul:v_proj:L42": 31,
+        "matmul:v_proj:L43": 31,
+        "matmul:v_proj:L44": 31,
+        "matmul:v_proj:L45": 31,
+        "matmul:v_proj:L46": 31,
+        "matmul:v_proj:L6": 31,
+        "matmul:v_proj:L7": 31,
+        "matmul:v_proj:L8": 31,
+        "matmul:v_proj:L9": 31,
+        "rep_penalty": 31,
+        "rmsnorm:final_norm": 31,
+        "sample_phase1": 31,
+        "sample_phase2": 31,
+        "sample_phase3": 31,
+        "scale": 31
+      },
+      "decodeRecordUniqueOpLabels": 347,
+      "decodeRecordTopOps": [
+        {
+          "label": "attention",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "check_finiteness",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "gelu",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "rmsnorm",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "rmsnorm_qk",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "rmsnorm:input_norm",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "rmsnorm:post_attn_norm",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "rmsnorm:post_ffn_norm",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "rmsnorm:pre_ffn_norm",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "rope_qk",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "cast_f16_to_f32",
+          "count": 31,
+          "shareOfOps": 0.0012239902080783353
+        },
+        {
+          "label": "gather",
+          "count": 31,
+          "shareOfOps": 0.0012239902080783353
+        },
+        {
+          "label": "matmul:ffn_down:L0",
+          "count": 31,
+          "shareOfOps": 0.0012239902080783353
+        },
+        {
+          "label": "matmul:ffn_down:L1",
+          "count": 31,
+          "shareOfOps": 0.0012239902080783353
+        },
+        {
+          "label": "matmul:ffn_down:L10",
+          "count": 31,
+          "shareOfOps": 0.0012239902080783353
+        },
+        {
+          "label": "matmul:ffn_down:L11",
+          "count": 31,
+          "shareOfOps": 0.0012239902080783353
+        },
+        {
+          "label": "matmul:ffn_down:L12",
+          "count": 31,
+          "shareOfOps": 0.0012239902080783353
+        },
+        {
+          "label": "matmul:ffn_down:L13",
+          "count": 31,
+          "shareOfOps": 0.0012239902080783353
+        },
+        {
+          "label": "matmul:ffn_down:L14",
+          "count": 31,
+          "shareOfOps": 0.0012239902080783353
+        },
+        {
+          "label": "matmul:ffn_down:L15",
+          "count": 31,
+          "shareOfOps": 0.0012239902080783353
+        }
+      ],
+      "decodeRecordTopOpGroups": [
+        {
+          "label": "attention",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "check_finiteness",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "gelu",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "matmul:ffn_down",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "matmul:ffn_gate",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "matmul:ffn_up",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "matmul:k_proj",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "matmul:o_proj",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "matmul:q_proj",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "rmsnorm",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "rmsnorm_qk",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "rmsnorm:input_norm",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "rmsnorm:post_attn_norm",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "rmsnorm:post_ffn_norm",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "rmsnorm:pre_ffn_norm",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "rope_qk",
+          "count": 1488,
+          "shareOfOps": 0.0587515299877601
+        },
+        {
+          "label": "matmul:v_proj",
+          "count": 1240,
+          "shareOfOps": 0.04895960832313342
+        },
+        {
+          "label": "cast_f16_to_f32",
+          "count": 31,
+          "shareOfOps": 0.0012239902080783353
+        },
+        {
+          "label": "gather",
+          "count": 31,
+          "shareOfOps": 0.0012239902080783353
+        },
+        {
+          "label": "matmul:lm_head",
+          "count": 31,
+          "shareOfOps": 0.0012239902080783353
+        }
+      ],
+      "decodeRecordMsPerOp": 0.05052805602716462,
+      "decodeRecordMsPerPass": 0.8235032657657646,
+      "decodeRecordPassesPerOp": 0.06135744462431397,
+      "decodeRecordPassesPerExecutedBatchToken": 50.12903225806452,
+      "decodeRecordMsPerExecutedBatchToken": 41.28142177419349,
+      "decodeRecordOpsPerExecutedBatchToken": 817,
+      "uniformCache": {
+        "hits": 24963,
+        "misses": 302,
+        "totalLookups": 25265,
+        "hitRateRatio": 0.9880467049277657,
+        "hitRate": "98.8%",
+        "evictions": 46,
+        "currentSize": 256,
+        "pendingDestruction": 0
+      },
+      "decodeSubmitWaitMs": 4869.650276,
+      "decodeReadbackWaitMs": 4857.4935460000015,
+      "decodeReadbackMapWaitMs": 4829.849832,
+      "decodeReadbackCleanupMs": 26.62559500000134,
+      "decodeReadbackCopyMs": 0.2446509999990667,
+      "prefillRecordMs": 629.5398609999984,
+      "prefillSubmitWaitMs": 0,
+      "decodeOrchestrationMs": 36.79081600000063,
+      "singleTokenSubmitWaitMs": 0,
+      "singleTokenReadbackWaitMs": 0,
+      "singleTokenReadbackMapWaitMs": 0,
+      "singleTokenReadbackCleanupMs": 0,
+      "singleTokenReadbackCopyMs": 0,
+      "singleTokenOrchestrationMs": 0
+    },
+    "batching": {
+      "batchedForwardCalls": 4,
+      "unbatchedForwardCalls": 0,
+      "totalBatchedTimeMs": 6183.659432,
+      "totalUnbatchedTimeMs": 0,
+      "gpuSubmissions": 4,
+      "requestedBatchTokens": 64,
+      "effectiveBatchTokens": 8,
+      "executedBatchTokens": 31,
+      "resolvedBatchTokens": 31,
+      "maxBatchTokenCap": 8,
+      "batchClampCount": 4
+    },
+    "plePreparedTokenCache": {
+      "hits": 0,
+      "misses": 0,
+      "entries": 0,
+      "bytes": 0
+    },
+    "prefillProfileSteps": [],
+    "decodeProfileSteps": [],
+    "executionPlan": {
+      "primary": {
+        "id": "primary",
+        "kernelPathId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16-execution-inline",
+        "kernelPathSource": "execution-v1",
+        "activationDtype": "f16",
+        "readbackInterval": 8,
+        "readbackMode": "overlapped",
+        "batchSize": 8,
+        "stopCheckMode": "batch",
+        "disableCommandBatching": false,
+        "ringTokens": 2,
+        "ringStop": 1,
+        "ringStaging": 2
+      },
+      "fallback": null,
+      "activePlanIdAtStart": null,
+      "finalActivePlanId": null,
+      "transitions": []
+    },
+    "kernelPathId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16-execution-inline",
+    "kernelPathSource": "execution-v1",
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 818,
+          "text": "The",
+          "fallbackText": "The"
+        },
+        {
+          "id": 2258,
+          "text": " color",
+          "fallbackText": " color"
+        },
+        {
+          "id": 529,
+          "text": " of",
+          "fallbackText": " of"
+        },
+        {
+          "id": 506,
+          "text": " the",
+          "fallbackText": " the"
+        },
+        {
+          "id": 7217,
+          "text": " sky",
+          "fallbackText": " sky"
+        },
+        {
+          "id": 3731,
+          "text": " changes",
+          "fallbackText": " changes"
+        },
+        {
+          "id": 10167,
+          "text": " depending",
+          "fallbackText": " depending"
+        },
+        {
+          "id": 580,
+          "text": " on",
+          "fallbackText": " on"
+        },
+        {
+          "id": 506,
+          "text": " the",
+          "fallbackText": " the"
+        },
+        {
+          "id": 258882,
+          "text": "",
+          "fallbackText": "<image|>"
+        },
+        {
+          "id": 2289,
+          "text": "time",
+          "fallbackText": "time"
+        },
+        {
+          "id": 529,
+          "text": " of",
+          "fallbackText": " of"
+        },
+        {
+          "id": 1719,
+          "text": " day",
+          "fallbackText": " day"
+        },
+        {
+          "id": 532,
+          "text": " and",
+          "fallbackText": " and"
+        },
+        {
+          "id": 7606,
+          "text": " weather",
+          "fallbackText": " weather"
+        },
+        {
+          "id": 3439,
+          "text": " conditions",
+          "fallbackText": " conditions"
+        },
+        {
+          "id": 236787,
+          "text": ":",
+          "fallbackText": ":"
+        },
+        {
+          "id": 108,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        },
+        {
+          "id": 236829,
+          "text": "*",
+          "fallbackText": "*"
+        },
+        {
+          "id": 139,
+          "text": "   ",
+          "fallbackText": "   "
+        },
+        {
+          "id": 1018,
+          "text": "**",
+          "fallbackText": "**"
+        },
+        {
+          "id": 14521,
+          "text": "During",
+          "fallbackText": "During"
+        },
+        {
+          "id": 506,
+          "text": " the",
+          "fallbackText": " the"
+        },
+        {
+          "id": 1719,
+          "text": " day",
+          "fallbackText": " day"
+        },
+        {
+          "id": 53121,
+          "text": ":**",
+          "fallbackText": ":**"
+        },
+        {
+          "id": 669,
+          "text": " The",
+          "fallbackText": " The"
+        },
+        {
+          "id": 7217,
+          "text": " sky",
+          "fallbackText": " sky"
+        },
+        {
+          "id": 11082,
+          "text": " typically",
+          "fallbackText": " typically"
+        },
+        {
+          "id": 7412,
+          "text": " appears",
+          "fallbackText": " appears"
+        },
+        {
+          "id": 5213,
+          "text": " **",
+          "fallbackText": " **"
+        },
+        {
+          "id": 9503,
+          "text": "blue",
+          "fallbackText": "blue"
+        },
+        {
+          "id": 84750,
+          "text": "**.",
+          "fallbackText": "**."
+        }
+      ],
+      "total": 32,
+      "omitted": 0,
+      "emptyTextCount": 1,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 1
+    },
+    "kvCache": {
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "seqLen": 50,
+      "maxSeqLen": 4096,
+      "usedBytes": 17203200,
+      "allocatedBytes": 402653184,
+      "counters": null
+    },
+    "referenceTranscript": {
+      "schema": "doppler.reference-transcript/v1",
+      "source": {
+        "kind": "inline-browser-suite",
+        "path": "inline",
+        "hash": "sha256:7e358d0b8ddb8d7f51e4e3e77eb08355f8ffd741db689f9ec609f8ddf4565e0b"
+      },
+      "executionGraphHash": "sha256:141aaef01d3cd684101dbbe9a755df41f87b91c41472f5d7f7e678adaa0042ef",
+      "surface": "browser-webgpu",
+      "prompt": {
+        "identity": "The color of the sky is",
+        "hash": "sha256:c2912dd49373207ca1d000f8d1a9045103e23c881916136efdf95190a54893ff",
+        "tokenIdsHash": "sha256:85b8d0e590815c3e97f346806977853e3d0528a232fd7c781d1e9cfcb92a8b55",
+        "tokenCount": 19
+      },
+      "output": {
+        "textHash": "sha256:7af3e174039510f0ed0d4d5286b73466cd41b048e4eb9bae3cc5aa1b35cad4ee",
+        "tokensGenerated": 32,
+        "stopReason": "max-tokens",
+        "stopTokenId": null
+      },
+      "tokens": {
+        "ids": [
+          818,
+          2258,
+          529,
+          506,
+          7217,
+          3731,
+          10167,
+          580,
+          506,
+          258882,
+          2289,
+          529,
+          1719,
+          532,
+          7606,
+          3439,
+          236787,
+          108,
+          236829,
+          139,
+          1018,
+          14521,
+          506,
+          1719,
+          53121,
+          669,
+          7217,
+          11082,
+          7412,
+          5213,
+          9503,
+          84750
+        ],
+        "generatedTokenIdsHash": "sha256:565bc2e330c292f47e50049ab76ce0d536eaac98c37339a6c12f2e764e0f49ab",
+        "generatedTextHash": "sha256:7af3e174039510f0ed0d4d5286b73466cd41b048e4eb9bae3cc5aa1b35cad4ee",
+        "preview": [
+          {
+            "id": 818,
+            "text": "The",
+            "fallbackText": "The"
+          },
+          {
+            "id": 2258,
+            "text": " color",
+            "fallbackText": " color"
+          },
+          {
+            "id": 529,
+            "text": " of",
+            "fallbackText": " of"
+          },
+          {
+            "id": 506,
+            "text": " the",
+            "fallbackText": " the"
+          },
+          {
+            "id": 7217,
+            "text": " sky",
+            "fallbackText": " sky"
+          },
+          {
+            "id": 3731,
+            "text": " changes",
+            "fallbackText": " changes"
+          },
+          {
+            "id": 10167,
+            "text": " depending",
+            "fallbackText": " depending"
+          },
+          {
+            "id": 580,
+            "text": " on",
+            "fallbackText": " on"
+          },
+          {
+            "id": 506,
+            "text": " the",
+            "fallbackText": " the"
+          },
+          {
+            "id": 258882,
+            "text": "",
+            "fallbackText": "<image|>"
+          },
+          {
+            "id": 2289,
+            "text": "time",
+            "fallbackText": "time"
+          },
+          {
+            "id": 529,
+            "text": " of",
+            "fallbackText": " of"
+          },
+          {
+            "id": 1719,
+            "text": " day",
+            "fallbackText": " day"
+          },
+          {
+            "id": 532,
+            "text": " and",
+            "fallbackText": " and"
+          },
+          {
+            "id": 7606,
+            "text": " weather",
+            "fallbackText": " weather"
+          },
+          {
+            "id": 3439,
+            "text": " conditions",
+            "fallbackText": " conditions"
+          },
+          {
+            "id": 236787,
+            "text": ":",
+            "fallbackText": ":"
+          },
+          {
+            "id": 108,
+            "text": "\n\n",
+            "fallbackText": "\n\n"
+          },
+          {
+            "id": 236829,
+            "text": "*",
+            "fallbackText": "*"
+          },
+          {
+            "id": 139,
+            "text": "   ",
+            "fallbackText": "   "
+          },
+          {
+            "id": 1018,
+            "text": "**",
+            "fallbackText": "**"
+          },
+          {
+            "id": 14521,
+            "text": "During",
+            "fallbackText": "During"
+          },
+          {
+            "id": 506,
+            "text": " the",
+            "fallbackText": " the"
+          },
+          {
+            "id": 1719,
+            "text": " day",
+            "fallbackText": " day"
+          },
+          {
+            "id": 53121,
+            "text": ":**",
+            "fallbackText": ":**"
+          },
+          {
+            "id": 669,
+            "text": " The",
+            "fallbackText": " The"
+          },
+          {
+            "id": 7217,
+            "text": " sky",
+            "fallbackText": " sky"
+          },
+          {
+            "id": 11082,
+            "text": " typically",
+            "fallbackText": " typically"
+          },
+          {
+            "id": 7412,
+            "text": " appears",
+            "fallbackText": " appears"
+          },
+          {
+            "id": 5213,
+            "text": " **",
+            "fallbackText": " **"
+          },
+          {
+            "id": 9503,
+            "text": "blue",
+            "fallbackText": "blue"
+          },
+          {
+            "id": 84750,
+            "text": "**.",
+            "fallbackText": "**."
+          }
+        ],
+        "perStep": [
+          {
+            "index": 0,
+            "tokenId": 818,
+            "tokenHash": "sha256:a720503f3310752f33fbfcf2a56f5aed118d6573e54b44c2e687c0eadb98b87f"
+          },
+          {
+            "index": 1,
+            "tokenId": 2258,
+            "tokenHash": "sha256:c0383cbedf978567e584262e25452143059128990a9ff94da488cfc4eab5ab6a"
+          },
+          {
+            "index": 2,
+            "tokenId": 529,
+            "tokenHash": "sha256:bbe33143200f31da4982a0c2209cc1f1b871f76ec04a0605cc353b223ab90313"
+          },
+          {
+            "index": 3,
+            "tokenId": 506,
+            "tokenHash": "sha256:da24c3693c12414040ad8af5ca8d31dba246be2bf7237a7a0ae4d235b9fd3d95"
+          },
+          {
+            "index": 4,
+            "tokenId": 7217,
+            "tokenHash": "sha256:da6a723fe6cb129ce9f939908f1c4764f7deed7dc7ebe8e7fd304395250c28fa"
+          },
+          {
+            "index": 5,
+            "tokenId": 3731,
+            "tokenHash": "sha256:9a1a25b372cc95a4692840885d00bd52209f4bd135c5279b475eb00d676ac144"
+          },
+          {
+            "index": 6,
+            "tokenId": 10167,
+            "tokenHash": "sha256:f8ee932946365c1288ca1b9a19086680fba132ce16ea46c967372b13f7eb149c"
+          },
+          {
+            "index": 7,
+            "tokenId": 580,
+            "tokenHash": "sha256:f1cfa942170337b8fca60696f5f80a3c320b92242a3eb1cf75b5be9e38269065"
+          },
+          {
+            "index": 8,
+            "tokenId": 506,
+            "tokenHash": "sha256:ae3ed60f8e2e503188e31dca8ded23393fcf7b5e3d4bb2333965d890edb643ef"
+          },
+          {
+            "index": 9,
+            "tokenId": 258882,
+            "tokenHash": "sha256:8f5fb0341cc4d1ce049df6bfd8b2d51ef18c6d6027c6904ce346b49766b2638d"
+          },
+          {
+            "index": 10,
+            "tokenId": 2289,
+            "tokenHash": "sha256:cd9ba4b7a4a799109ac2c2f906a0c3f2d6d2014e86bbd2ea40bfd864b0ae677c"
+          },
+          {
+            "index": 11,
+            "tokenId": 529,
+            "tokenHash": "sha256:0ff3cff27d2160afeb50fb1a539a44646f191986beba26f28aebc13553e7dd33"
+          },
+          {
+            "index": 12,
+            "tokenId": 1719,
+            "tokenHash": "sha256:757be2ced152ae5fe94f987f0bd016476749da96c201c54e2d8798f1a3e53e5b"
+          },
+          {
+            "index": 13,
+            "tokenId": 532,
+            "tokenHash": "sha256:f7f9510b27a02f6eb511f4d22b12799fdb282f3b39159637a4a04dd2e1f148ea"
+          },
+          {
+            "index": 14,
+            "tokenId": 7606,
+            "tokenHash": "sha256:ce18404194794b7329f17430579ea56f87c79da97652baae5e5c97f82dd2e65a"
+          },
+          {
+            "index": 15,
+            "tokenId": 3439,
+            "tokenHash": "sha256:c6d041388fe8911c6f2a30672a7fd8112d8a535ab5e3a5ff89070a6bc0870ae9"
+          },
+          {
+            "index": 16,
+            "tokenId": 236787,
+            "tokenHash": "sha256:a70971ecebc9ff8e9ae885cd71340bc56773919703a2e76cb634d2017a36e796"
+          },
+          {
+            "index": 17,
+            "tokenId": 108,
+            "tokenHash": "sha256:fb38fe7f8ba74f28ddff4efc99cc6c79a763183dc3f4c68cbfb64d037d0f9bbf"
+          },
+          {
+            "index": 18,
+            "tokenId": 236829,
+            "tokenHash": "sha256:ad3692c5621a78edd51a1be65490999b09aa8d8ea254446dd46e48a050efbccd"
+          },
+          {
+            "index": 19,
+            "tokenId": 139,
+            "tokenHash": "sha256:350872861245fa3f7f2bbd5b5b20560c2c3bffc55d679665cd1128bebf893c85"
+          },
+          {
+            "index": 20,
+            "tokenId": 1018,
+            "tokenHash": "sha256:57914ff9a9e616d6b13e9e5997cca091a13f2908ea97848d414263c8620fe47d"
+          },
+          {
+            "index": 21,
+            "tokenId": 14521,
+            "tokenHash": "sha256:fcfd484650a373298ab1d0e0161385b5646d159076a9560fe943ec0a535aad5f"
+          },
+          {
+            "index": 22,
+            "tokenId": 506,
+            "tokenHash": "sha256:9d0edfe0ecf404e01310320b97646539fb92884049a40b938ecce2e820fa4824"
+          },
+          {
+            "index": 23,
+            "tokenId": 1719,
+            "tokenHash": "sha256:e45904a87f3c272709bf7d4a99dd5a087d74dd6a738306f614889f9ebf064722"
+          },
+          {
+            "index": 24,
+            "tokenId": 53121,
+            "tokenHash": "sha256:ce710eda3e19a8ef6b4f0326508f2705c2e1a44ad3e932be374cf7ae168d8966"
+          },
+          {
+            "index": 25,
+            "tokenId": 669,
+            "tokenHash": "sha256:f2f19047ea4a57091eaacc0197264885b5944be22e02c154899d508b0dabd2f8"
+          },
+          {
+            "index": 26,
+            "tokenId": 7217,
+            "tokenHash": "sha256:80e3c1acd1ac5eeba151df519bfc6df1a0040dcdcf43e88d06f076e96196ece5"
+          },
+          {
+            "index": 27,
+            "tokenId": 11082,
+            "tokenHash": "sha256:33ea6a6597ceddca0c3a0b8f71bd7a9761f48dd7a0afb7fdb7aaf3da4f0bd8be"
+          },
+          {
+            "index": 28,
+            "tokenId": 7412,
+            "tokenHash": "sha256:85baa6cdc536c84347ccf37004fe4ca753eb905c7bc58c09f6aec4fd3b3eda2e"
+          },
+          {
+            "index": 29,
+            "tokenId": 5213,
+            "tokenHash": "sha256:08018b06e73dabbd8bc15fce76680030e5ead61a6d1cf474eae8390baa1aa43f"
+          },
+          {
+            "index": 30,
+            "tokenId": 9503,
+            "tokenHash": "sha256:04f594d2a301614c618d9ccc67e6dd9aa6a5644b79a758b9d87d6440088ed0ab"
+          },
+          {
+            "index": 31,
+            "tokenId": 84750,
+            "tokenHash": "sha256:5e7963129d6f9e0c39ebef4ab69751ca3bfd16648a497317b23141932ee77ad4"
+          }
+        ],
+        "coverage": {
+          "mode": "full-token-ids",
+          "omitted": 0
+        }
+      },
+      "phase": {
+        "prefillMs": 728.5921240000007,
+        "decodeMs": 6186.165166999999,
+        "prefillTokens": 19,
+        "decodeTokens": 32
+      },
+      "kvCache": {
+        "mode": "stats",
+        "layout": "contiguous",
+        "kvDtype": "f16",
+        "seqLen": 50,
+        "maxSeqLen": 4096,
+        "usedBytes": 17203200,
+        "allocatedBytes": 402653184,
+        "counters": null,
+        "byteDigestMode": null,
+        "byteDigest": null,
+        "byteDigests": null,
+        "stateHash": "sha256:11bb211768706af9075afb282c801449812d75be1eb9f18fbba7d10a5ab28b52"
+      },
+      "logits": {
+        "mode": "not-captured",
+        "reason": "Per-step logits digests were not requested for this browser harness run.",
+        "perStepDigests": null
+      },
+      "tolerance": {
+        "tokenPolicy": "exact generated token IDs",
+        "logitsPolicy": "not captured",
+        "kvPolicy": "metadata hash only; KV tensor bytes are not read back by default"
+      }
+    },
+    "operatorDiagnostics": null,
+    "decodeBottleneck": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "dominant": {
+        "id": "readback_map_wait",
+        "label": "readback map wait",
+        "ms": 4829.85,
+        "shareOfDecode": 0.7807
+      },
+      "bottleneckClass": "submit-readback-wait",
+      "decodeWallMs": 6186.17,
+      "componentsMs": {
+        "commandRecordMs": 1279.72,
+        "submitWaitMs": 4869.65,
+        "readbackWaitMs": 4857.49,
+        "effectiveSubmitReadbackWaitMs": 4869.65,
+        "readbackMapWaitMs": 4829.85,
+        "readbackCleanupMs": 26.63,
+        "readbackCopyMs": 0.24,
+        "readbackUnattributedMs": 12.93,
+        "gpuTimestampMs": null,
+        "submitReadbackSlackMs": null,
+        "orchestrationMs": 36.79,
+        "residualMs": 0
+      },
+      "recording": {
+        "opCount": 25327,
+        "passCount": 1554,
+        "uniqueOpLabels": 347,
+        "msPerOp": 0.05,
+        "msPerPass": 0.82,
+        "passesPerOp": 0.06,
+        "msPerExecutedBatchToken": 41.28,
+        "opsPerExecutedBatchToken": 817,
+        "passesPerExecutedBatchToken": 50.13,
+        "topOps": [
+          {
+            "label": "attention",
+            "count": 1488,
+            "shareOfOps": 0.0587515299877601
+          },
+          {
+            "label": "check_finiteness",
+            "count": 1488,
+            "shareOfOps": 0.0587515299877601
+          },
+          {
+            "label": "gelu",
+            "count": 1488,
+            "shareOfOps": 0.0587515299877601
+          },
+          {
+            "label": "rmsnorm",
+            "count": 1488,
+            "shareOfOps": 0.0587515299877601
+          },
+          {
+            "label": "rmsnorm_qk",
+            "count": 1488,
+            "shareOfOps": 0.0587515299877601
+          },
+          {
+            "label": "rmsnorm:input_norm",
+            "count": 1488,
+            "shareOfOps": 0.0587515299877601
+          },
+          {
+            "label": "rmsnorm:post_attn_norm",
+            "count": 1488,
+            "shareOfOps": 0.0587515299877601
+          },
+          {
+            "label": "rmsnorm:post_ffn_norm",
+            "count": 1488,
+            "shareOfOps": 0.0587515299877601
+          }
+        ],
+        "topOpGroups": [
+          {
+            "label": "attention",
+            "count": 1488,
+            "shareOfOps": 0.0587515299877601
+          },
+          {
+            "label": "check_finiteness",
+            "count": 1488,
+            "shareOfOps": 0.0587515299877601
+          },
+          {
+            "label": "gelu",
+            "count": 1488,
+            "shareOfOps": 0.0587515299877601
+          },
+          {
+            "label": "matmul:ffn_down",
+            "count": 1488,
+            "shareOfOps": 0.0587515299877601
+          },
+          {
+            "label": "matmul:ffn_gate",
+            "count": 1488,
+            "shareOfOps": 0.0587515299877601
+          },
+          {
+            "label": "matmul:ffn_up",
+            "count": 1488,
+            "shareOfOps": 0.0587515299877601
+          },
+          {
+            "label": "matmul:k_proj",
+            "count": 1488,
+            "shareOfOps": 0.0587515299877601
+          },
+          {
+            "label": "matmul:o_proj",
+            "count": 1488,
+            "shareOfOps": 0.0587515299877601
+          }
+        ],
+        "uniformCache": {
+          "hits": 24963,
+          "misses": 302,
+          "totalLookups": 25265,
+          "hitRateRatio": 0.9880467049277657,
+          "evictions": 46,
+          "currentSize": 256,
+          "pendingDestruction": 0,
+          "hitRate": "98.8%"
+        }
+      },
+      "shares": {
+        "commandRecord": 0.2069,
+        "submitWait": 0.7872,
+        "readbackWait": 0.7852,
+        "effectiveSubmitReadbackWait": 0.7872,
+        "readbackMapWait": 0.7807,
+        "readbackCleanup": 0.0043,
+        "readbackCopy": 0,
+        "readbackUnattributed": 0.0021,
+        "gpuTimestamp": null,
+        "submitReadbackSlack": null,
+        "orchestration": 0.0059,
+        "residual": 0
+      },
+      "semantics": {
+        "effectiveSubmitReadbackWaitMs": "max(decodeSubmitWaitMs, decodeReadbackWaitMs); submit and readback waits overlap.",
+        "readbackMapWaitMs": "Wall time awaiting staging-buffer mapAsync; usually includes GPU completion behind the readback.",
+        "gpuTimestampMs": "Timestamp-query GPU work when available; null means it was not captured.",
+        "topOps": "Highest-count exact compute-pass labels observed during command recording.",
+        "topOpGroups": "Highest-count compute-pass labels after grouping repeated per-layer labels.",
+        "uniformCache": "Current uniform-buffer cache counters at the end of the measured suite."
+      }
+    },
+    "load": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "semantics": {
+        "modelLoadMs": "suite initialization time before generation",
+        "loaderTotalMs": "DopplerLoader.load() weight-loader wall time",
+        "pipelineTotalMs": "InferencePipeline.loadModel() wall time",
+        "modelLoadMinusPipelineMs": "modelLoadMs - pipeline.totalMs; harness, storage, manifest, GPU init, and pipeline construction",
+        "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
+        "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
+      },
+      "modelLoadMs": 7483.09,
+      "loader": {
+        "schemaVersion": 1,
+        "source": "doppler-loader",
+        "modelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
+        "status": "complete",
+        "customShardLoader": true,
+        "byteAccountingMode": "custom-loader-progress-unavailable",
+        "totalBytes": 10159297248,
+        "totalShards": 152,
+        "bytesLoaded": 0,
+        "shardsLoaded": 0,
+        "bytesPerSecond": 0,
+        "phasesMs": {
+          "preflight": 1.31,
+          "tensorLocations": 2.46,
+          "embeddings": 1315.25,
+          "layers": 4229.42,
+          "finalWeights": 1.49,
+          "cleanup": 0.04
+        },
+        "layers": {
+          "count": 48,
+          "totalMs": 4096.54,
+          "meanMs": 85.34,
+          "maxMs": 115.63,
+          "maxLayer": 5
+        },
+        "totalMs": 5550.48,
+        "failedPhase": null,
+        "error": null
+      },
+      "pipeline": {
+        "schemaVersion": 1,
+        "source": "doppler-pipeline",
+        "modelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
+        "status": "complete",
+        "phasesMs": {
+          "reset": 0.08,
+          "configResolution": 8.55,
+          "kernelWarmup": 0.07,
+          "tokenizer": 528.8,
+          "executionSetup": 14.8,
+          "loadWeights": 5701.72,
+          "rope": 1199.32,
+          "convStates": 1.02
+        },
+        "details": {
+          "tokenizer": {
+            "schemaVersion": 1,
+            "source": "doppler-tokenizer",
+            "modelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
+            "status": "complete",
+            "tokenizerType": "bundled",
+            "tokenizerFile": "tokenizer.json",
+            "backend": "bundled",
+            "assetSource": "custom-loader",
+            "cacheHit": false,
+            "phasesMs": {
+              "configResolution": 0.09,
+              "cacheLookup": 0.07,
+              "backendCreate": 0.12,
+              "assetLoad": 284.39,
+              "assetParse": 0.22,
+              "backendLoad": 242.87,
+              "cacheStore": 0.01
+            },
+            "totalMs": 528.16,
+            "error": null
+          }
+        },
+        "totalMs": 7454.65
+      },
+      "residualsMs": {
+        "modelLoadMinusLoaderMs": 1932.61,
+        "modelLoadMinusPipelineMs": 28.44,
+        "pipelineMinusLoaderMs": 1904.17
+      },
+      "consistent": {
+        "loaderWithinModelLoad": true,
+        "pipelineWithinModelLoad": true,
+        "loaderWithinPipeline": true
+      }
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "inference",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16.steps",
+          "ok": true
+        },
+        {
+          "id": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 8,
+        "headDim": 256,
+        "kvLen": 262144,
+        "coldQuantMode": "none",
+        "contiguousQuantMode": "none"
+      },
+      "steps": {
+        "total": 50,
+        "attention": 3,
+        "attentionPhases": {
+          "prefill": 2,
+          "decode": 1,
+          "both": 0
+        }
+      }
+    },
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": null
+  },
+  "output": "The color of the sky changes depending on thetime of day and weather conditions:\n\n*   **During the day:** The sky typically appears **blue**.",
+  "memory": {
+    "used": 8975328768,
+    "pool": {
+      "allocations": 23084,
+      "reuses": 8894,
+      "totalBytesAllocated": 8846122496,
+      "peakBytesAllocated": 8643495424,
+      "currentBytesAllocated": 8572675584,
+      "totalBytesRequested": 8822755840,
+      "peakBytesRequested": 8625515520,
+      "currentBytesRequested": 8550218752,
+      "activeBuffers": 950,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "27.8%"
+    },
+    "kvCache": {
+      "theoretical": 402653184,
+      "allocated": 402653184,
+      "used": 17203200,
+      "efficiency": 0.042724609375,
+      "seqLen": 50,
+      "maxSeqLen": 4096,
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "counters": null
+    }
+  },
+  "debugSnapshot": null
+}

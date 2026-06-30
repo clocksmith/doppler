@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/goal-completion-matrix-v1.schema.json",
+  "title": "Doppler Goal Completion Matrix v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "source",
+    "updatedAtUtc",
+    "goals",
+    "blockers"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "source": {
+      "const": "doppler"
+    },
+    "updatedAtUtc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "goals": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "$ref": "#/$defs/goal"
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/blocker"
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "repoRelativePath": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "anyOf": [
+          {
+            "pattern": "^/"
+          },
+          {
+            "pattern": "\\\\"
+          },
+          {
+            "pattern": "(^|/)\\.\\.(/|$)"
+          }
+        ]
+      }
+    },
+    "nullableString": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "evidencePaths": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/repoRelativePath"
+      },
+      "uniqueItems": true
+    },
+    "blockerRefList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "goal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "status",
+        "claimAllowed",
+        "evidencePaths",
+        "blockers",
+        "rows"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "complete",
+            "partial"
+          ]
+        },
+        "claimAllowed": {
+          "type": "boolean"
+        },
+        "evidencePaths": {
+          "$ref": "#/$defs/evidencePaths"
+        },
+        "blockers": {
+          "$ref": "#/$defs/blockerRefList"
+        },
+        "rows": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/row"
+          }
+        }
+      }
+    },
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "tier",
+        "status",
+        "claimAllowed",
+        "supportSubsystemId",
+        "packageBin",
+        "packageExport",
+        "smokeCommand",
+        "evidencePaths",
+        "blockers"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tier": {
+          "enum": [
+            "tier1",
+            "experimental",
+            "internal-only",
+            "not-applicable"
+          ]
+        },
+        "status": {
+          "enum": [
+            "covered",
+            "complete",
+            "partial",
+            "experimental",
+            "blocked",
+            "diagnostic"
+          ]
+        },
+        "claimAllowed": {
+          "type": "boolean"
+        },
+        "supportSubsystemId": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "packageBin": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "packageExport": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "smokeCommand": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "evidencePaths": {
+          "$ref": "#/$defs/evidencePaths"
+        },
+        "blockers": {
+          "$ref": "#/$defs/blockerRefList"
+        }
+      }
+    },
+    "blocker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "description",
+        "exitCriteria",
+        "evidencePaths"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/id"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exitCriteria": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidencePaths": {
+          "$ref": "#/$defs/evidencePaths"
+        }
+      }
+    }
+  }
+}

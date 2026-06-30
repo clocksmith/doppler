@@ -43,8 +43,25 @@ export interface FusedDecodeSamplingConfig {
 
 export declare function shouldUseFusedDecodeSampling(config: FusedDecodeSamplingConfig): boolean;
 
+export interface StopTokenLookup {
+  firstTokenId: number | null;
+  secondTokenId: number | null;
+  tokenSet: Set<number> | null;
+}
+
+export declare function createStopTokenLookup(
+  stopTokenIds: number[],
+  eosTokenId?: number | null
+): StopTokenLookup;
+
+export declare function resolveBatchStop(
+  tokens: ArrayLike<number>,
+  stopFlags: ArrayLike<number> | null,
+  stopTokenLookup: StopTokenLookup
+): number;
+
 export declare function findInvalidGeneratedToken(
-  tokens: number[],
+  tokens: ArrayLike<number>,
   vocabSize: number,
   padTokenId?: number | null
 ): { index: number; tokenId: number } | null;

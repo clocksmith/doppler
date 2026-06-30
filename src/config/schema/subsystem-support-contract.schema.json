@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/subsystem-support-contract-v1.schema.json",
+  "title": "Doppler Subsystem Support Contract v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "source",
+    "subsystemsPath"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "source": {
+      "const": "doppler"
+    },
+    "subsystemsPath": {
+      "$ref": "#/$defs/repoRelativeJsonPath"
+    }
+  },
+  "$defs": {
+    "repoRelativeJsonPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\.json$",
+      "not": {
+        "anyOf": [
+          {
+            "pattern": "^/"
+          },
+          {
+            "pattern": "\\\\"
+          },
+          {
+            "pattern": "(^|/)\\.\\.(/|$)"
+          }
+        ]
+      }
+    }
+  }
+}

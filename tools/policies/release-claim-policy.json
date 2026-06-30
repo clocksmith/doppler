@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-06-24",
+  "updatedAt": "2026-06-29",
   "claims": [
     {
       "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
@@ -40,6 +40,132 @@
       "performanceEvidence": {
         "kind": "runtime-report",
         "reportPath": "reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json",
+        "metricPath": "metrics.decodeTokensPerSec",
+        "minValue": 0,
+        "unit": "tokens/sec"
+      }
+    },
+    {
+      "modelId": "gemma-3-270m-it-f16-af32",
+      "mode": "text",
+      "surface": [
+        "node"
+      ],
+      "verificationSource": "runtime-verify",
+      "lastVerifiedAt": "2026-06-29",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "runtime-verify",
+        "reportPath": "reports/release-claims/gemma-3-270m-it-f16-af32/2026-06-29T22-02-14.821Z.json"
+      },
+      "performanceEvidence": {
+        "kind": "runtime-report",
+        "reportPath": "reports/release-claims/gemma-3-270m-it-f16-af32/2026-06-29T22-02-14.821Z.json",
+        "metricPath": "metrics.decodeTokensPerSec",
+        "minValue": 0,
+        "unit": "tokens/sec"
+      }
+    },
+    {
+      "modelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
+      "mode": "text",
+      "surface": [
+        "node"
+      ],
+      "verificationSource": "runtime-verify",
+      "lastVerifiedAt": "2026-06-29",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "runtime-verify",
+        "reportPath": "reports/release-claims/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/2026-06-29T22-04-29.156Z.json"
+      },
+      "performanceEvidence": {
+        "kind": "runtime-report",
+        "reportPath": "reports/release-claims/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/2026-06-29T22-04-29.156Z.json",
+        "metricPath": "metrics.decodeTokensPerSec",
+        "minValue": 0,
+        "unit": "tokens/sec"
+      }
+    },
+    {
+      "modelId": "gemma-4-12b-it-text-q4k-ehf16-af32",
+      "mode": "text",
+      "surface": [
+        "node"
+      ],
+      "verificationSource": "runtime-verify",
+      "lastVerifiedAt": "2026-06-29",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "runtime-verify",
+        "reportPath": "reports/release-claims/gemma-4-12b-it-text-q4k-ehf16-af32/2026-06-29T22-13-57.102Z.json"
+      },
+      "performanceEvidence": {
+        "kind": "runtime-report",
+        "reportPath": "reports/release-claims/gemma-4-12b-it-text-q4k-ehf16-af32/2026-06-29T22-13-57.102Z.json",
+        "metricPath": "metrics.decodeTokensPerSec",
+        "minValue": 0,
+        "unit": "tokens/sec"
+      }
+    },
+    {
+      "modelId": "gemma-4-12b-it-text-q4k-ehf16-af16",
+      "mode": "text",
+      "surface": [
+        "node"
+      ],
+      "verificationSource": "runtime-verify",
+      "lastVerifiedAt": "2026-06-29",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "runtime-verify",
+        "reportPath": "reports/release-claims/gemma-4-12b-it-text-q4k-ehf16-af16/2026-06-29T22-14-43.963Z.json"
+      },
+      "performanceEvidence": {
+        "kind": "runtime-report",
+        "reportPath": "reports/release-claims/gemma-4-12b-it-text-q4k-ehf16-af16/2026-06-29T22-14-43.963Z.json",
+        "metricPath": "metrics.decodeTokensPerSec",
+        "minValue": 0,
+        "unit": "tokens/sec"
+      }
+    },
+    {
+      "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
+      "mode": "text",
+      "surface": [
+        "node"
+      ],
+      "verificationSource": "runtime-verify",
+      "lastVerifiedAt": "2026-06-29",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "runtime-verify",
+        "reportPath": "reports/release-claims/gemma-4-31b-it-text-q4k-ehf16-af32/2026-06-29T22-07-45.149Z.json"
+      },
+      "performanceEvidence": {
+        "kind": "runtime-report",
+        "reportPath": "reports/release-claims/gemma-4-31b-it-text-q4k-ehf16-af32/2026-06-29T22-07-45.149Z.json",
+        "metricPath": "metrics.decodeTokensPerSec",
+        "minValue": 0,
+        "unit": "tokens/sec"
+      }
+    },
+    {
+      "modelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
+      "mode": "text",
+      "surface": [
+        "node"
+      ],
+      "verificationSource": "runtime-verify",
+      "lastVerifiedAt": "2026-06-29",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "runtime-verify",
+        "reportPath": "reports/release-claims/gemma-4-31b-it-text-q4k-ehf16-af16/2026-06-29T22-09-42.445Z.json"
+      },
+      "performanceEvidence": {
+        "kind": "runtime-report",
+        "reportPath": "reports/release-claims/gemma-4-31b-it-text-q4k-ehf16-af16/2026-06-29T22-09-42.445Z.json",
         "metricPath": "metrics.decodeTokensPerSec",
         "minValue": 0,
         "unit": "tokens/sec"

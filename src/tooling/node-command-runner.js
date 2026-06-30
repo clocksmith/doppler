@@ -12,8 +12,11 @@ import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { bootstrapNodeWebGPU } from './node-webgpu.js';
 import { runDiagnoseCommand } from './diagnose-runner.js';
 import { checkProgramBundleParity } from './program-bundle-parity.js';
-import { applyRuntimeInputs, buildSuiteOptions } from './command-runner-shared.js';
-import { runWithRuntimeIsolation } from './command-runner-shared.js';
+import {
+  applyRuntimeInputs,
+  buildSuiteOptions,
+  runWithRuntimeIsolation,
+} from './command-runner-shared.js';
 import { refreshManifestIntegrity } from './rdrr-integrity-refresh.js';
 import { loadRuntimeConfigFromRef } from '../inference/browser-harness-runtime-helpers.js';
 import { isPlainObject } from '../utils/plain-object.js';

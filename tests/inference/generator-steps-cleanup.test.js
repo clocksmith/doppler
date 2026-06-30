@@ -11,10 +11,12 @@ globalThis.GPUMapMode = {
 };
 
 const {
+  createStopTokenLookup,
   findInvalidGeneratedToken,
   readSampledTokenFromStagingBuffer,
   readMappedBufferCopy,
   readBatchTokensFromStagingBuffers,
+  resolveBatchStop,
   shouldUseFusedDecodeSampling,
 } = await import('../../src/inference/pipelines/text/generator-steps.js');
 
@@ -65,17 +67,21 @@ function createStagingBuffer(words, options = {}) {
 
 {
   assert.ok(
-    generatorStepsSource.includes("createCommandRecorder('decode', undefined, device)"),
-    'single-token decode recorder must keep default label collection in normal runs'
+    generatorStepsSource.includes("createCommandRecorder('decode', { recordLabels: opts.debug === true }, device)"),
+    'single-token decode recorder must skip label collection outside debug runs'
   );
   assert.ok(
-    generatorStepsSource.includes("createCommandRecorder('batch_decode', undefined, device)"),
-    'batch decode recorder must keep default label collection in normal runs'
+    generatorStepsSource.includes("createCommandRecorder('batch_decode', { recordLabels: opts.debug === true }, device)"),
+    'batch decode recorder must skip label collection outside debug runs'
   );
   assert.equal(
-    generatorStepsSource.includes("recordLabels: opts.debug === true"),
-    false,
-    'decode recorder labels must not be gated on debug mode'
+    generatorStepsSource.includes("createProfilingRecorder('batch_decode', device)"),
+    true,
+    'batch decode profiling must keep labeled profile recorder path'
+  );
+  assert.ok(
+    generatorStepsSource.includes('tokens.subarray(0, actualCount)'),
+    'batch decode must return accepted token views without copying a second typed array'
   );
 }
 
@@ -313,6 +319,46 @@ function createStagingBuffer(words, options = {}) {
   assert.equal(finitenessStagingBuffer.destroyCount, 0);
   assert.equal(ring.advanceCount, 1);
   assert.deepEqual(cleanupRecorder.calls, [{ discardPooled: false }]);
+}
+
+{
+  const oneTokenLookup = createStopTokenLookup([7], null);
+  assert.equal(oneTokenLookup.firstTokenId, 7);
+  assert.equal(oneTokenLookup.secondTokenId, null);
+  assert.equal(oneTokenLookup.tokenSet, null);
+  assert.equal(
+    resolveBatchStop(new Uint32Array([5, 6, 7, 8]), null, oneTokenLookup),
+    3
+  );
+
+  const twoTokenLookup = createStopTokenLookup([9], 7);
+  assert.equal(twoTokenLookup.firstTokenId, 9);
+  assert.equal(twoTokenLookup.secondTokenId, 7);
+  assert.equal(twoTokenLookup.tokenSet, null);
+  assert.equal(
+    resolveBatchStop(new Uint32Array([5, 7, 9]), null, twoTokenLookup),
+    2
+  );
+
+  const setLookup = createStopTokenLookup([9, 7, 5], 2);
+  assert.ok(setLookup.tokenSet instanceof Set);
+  assert.equal(
+    resolveBatchStop(new Uint32Array([1, 3, 2, 9]), null, setLookup),
+    3
+  );
+  assert.equal(
+    resolveBatchStop(
+      new Uint32Array([1, 3, 2, 9]),
+      new Uint32Array([0, 1, 0, 0]),
+      setLookup
+    ),
+    2
+  );
+
+  assert.throws(
+    () => createStopTokenLookup(null, 7),
+    /stopTokenIds must be an array/
+  );
 }
 
 {
