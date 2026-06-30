@@ -430,6 +430,14 @@ export class PipelineGenerator {
     this.#state.currentSeqLen = 0;
   }
 
+  resetGenerationState() {
+    if (this.#state.isGenerating) {
+      throw new Error('InferencePipeline.resetGenerationState: cannot reset while generation is in progress');
+    }
+    this._resetReplayPrefillRuntimeState();
+    this._resetDecodeRuntimeState();
+  }
+
   async _replayPrefillDecodeLogits(currentIds, opts) {
     // Guard: cap replay-prefill sequence length to the config-owned maxSeqLen.
     // Without KV cache creation, this bound is not enforced elsewhere.

@@ -22,6 +22,7 @@ export interface DopplerModelHandle {
   generateText(prompt: string, options?: DopplerGenerateOptions): Promise<string>;
   chat(messages: ChatMessage[], options?: DopplerGenerateOptions): AsyncGenerator<string, void, void>;
   chatText(messages: ChatMessage[], options?: DopplerGenerateOptions): Promise<DopplerChatResponse>;
+  resetGenerationState(): void;
   loadLoRA(adapter: LoRAManifest | RDRRManifest | string, loadOptions?: LoRALoadOptions): Promise<void>;
   activateLoRAFromTrainingOutput(
     trainingOutput:

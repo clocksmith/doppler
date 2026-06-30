@@ -62,6 +62,7 @@ export declare class PipelineGenerator {
     prompt: PromptInput,
     options?: GenerateOptions
   ): Promise<{ tokenIds: number[]; stats: import('./types.js').PipelineStats }>;
+  resetGenerationState(): void;
   resetToSeqLen(seqLen: number): void;
   prefillKVOnly(prompt: PromptInput, options?: GenerateOptions): Promise<KVCacheSnapshot>;
   computeDiffusionGemmaCanvasLogits(
