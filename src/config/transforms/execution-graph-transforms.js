@@ -509,9 +509,24 @@ function deriveQ4DecodeF32ActivationKernelEntry(base) {
   return null;
 }
 
-function deriveQ4PrefillF32ActivationKernelEntry(base) {
+function deriveQ4PrefillF32ActivationKernelEntry(base, options = {}) {
   if (typeof base?.kernel !== 'string') {
     return null;
+  }
+  const replacement = options.fullF32 === true
+    ? {
+      kernel: 'fused_matmul_q4_batched_multicol_shared.wgsl',
+      entry: 'main',
+    }
+    : {
+      kernel: 'fused_matmul_q4_widetile.wgsl',
+      entry: 'main',
+    };
+  if (base.kernel === 'fused_matmul_q4_widetile.wgsl' && options.fullF32 === true) {
+    return deriveKernelEntryWithPrecision(
+      deriveKernelEntry(base, replacement.kernel, replacement.entry, null),
+      { inputDtype: 'f32', outputDtype: 'f32' }
+    );
   }
   if (
     base.kernel !== 'fused_matmul_q4_batched_f16.wgsl'
@@ -522,7 +537,7 @@ function deriveQ4PrefillF32ActivationKernelEntry(base) {
   }
   if (base.kernel === 'fused_matmul_q4_widetile_f16a.wgsl') {
     return deriveKernelEntryWithPrecision(
-      deriveKernelEntry(base, 'fused_matmul_q4_widetile.wgsl', 'main', null),
+      deriveKernelEntry(base, replacement.kernel, replacement.entry, null),
       { inputDtype: 'f32', outputDtype: 'f32' }
     );
   }
@@ -785,9 +800,12 @@ export function widenToF32Activations(graph, ctx) {
   const shaderMap = ctx.capabilities?.hasF16 === false
     ? FULL_F32_SHADER_MAP
     : F16_TO_F32_ACTIVATION_MAP;
+  const fullF32 = ctx.capabilities?.hasF16 === false;
 
   const hasTargetShader = Object.values(graph.kernels).some(
     (entry) => shaderMap.has(entry.kernel)
+      || deriveQ4DecodeF32ActivationKernelEntry(entry)
+      || deriveQ4PrefillF32ActivationKernelEntry(entry, { fullF32 })
   );
   if (!hasTargetShader) {
     return null;
@@ -797,7 +815,7 @@ export function widenToF32Activations(graph, ctx) {
 
   for (const [key, entry] of Object.entries(result.kernels)) {
     const q4FallbackEntry = deriveQ4DecodeF32ActivationKernelEntry(entry)
-      ?? deriveQ4PrefillF32ActivationKernelEntry(entry);
+      ?? deriveQ4PrefillF32ActivationKernelEntry(entry, { fullF32 });
     if (q4FallbackEntry) {
       result.kernels[key] = q4FallbackEntry;
       continue;

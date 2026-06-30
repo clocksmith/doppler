@@ -3,6 +3,35 @@ import { readFileSync } from 'node:fs';
 
 const { compileExecutionV1 } = await import('../../src/inference/pipelines/text/execution-v1.js');
 
+const kernelRegistry = JSON.parse(readFileSync('src/config/kernels/registry.json', 'utf8'));
+const shaderF16KernelFiles = new Set();
+for (const operation of Object.values(kernelRegistry.operations ?? {})) {
+  for (const variant of Object.values(operation.variants ?? {})) {
+    if (Array.isArray(variant.requires) && variant.requires.includes('shader-f16')) {
+      shaderF16KernelFiles.add(variant.wgsl);
+    }
+  }
+}
+
+function collectKernelPathSteps(path) {
+  return [
+    ...(path?.decode?.steps ?? []),
+    ...(path?.prefill?.steps ?? []),
+    ...(path?.layerOverrides?.flatMap((override) => [
+      ...(override?.steps ?? []),
+      ...(override?.decode?.steps ?? []),
+      ...(override?.prefill?.steps ?? []),
+    ]) ?? []),
+  ];
+}
+
+function assertNoShaderF16KernelSteps(path, label) {
+  const blocked = collectKernelPathSteps(path)
+    .filter((step) => shaderF16KernelFiles.has(step.kernel))
+    .map((step) => `${step.op}:${step.kernel}`);
+  assert.deepEqual(blocked, [], label);
+}
+
 const SUBGROUP_MANIFEST = {
   schema: 'doppler.execution/v1',
   session: {
@@ -133,6 +162,57 @@ assert.equal(gemma3NoF16.laneIntegrity.status, 'transformed',
   'fullF32 widening on hasF16=false flips KV dtype f16→f32 — must show as transformed');
 assert.ok(Array.isArray(gemma3NoF16.laneIntegrity.transforms));
 assert.ok(gemma3NoF16.laneIntegrity.transforms.includes('widenToF32Activations'));
+
+const qwen08Config = JSON.parse(
+  readFileSync('src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json', 'utf8')
+);
+
+const qwen08NoF16 = compileExecutionV1({
+  manifestInference: {
+    ...qwen08Config.inference,
+    schema: 'doppler.execution/v1',
+    session: qwen08Config.session,
+    execution: qwen08Config.execution,
+  },
+  modelId: qwen08Config.output.modelBaseId,
+  numLayers: qwen08Config.inference.layerPattern.layerTypes.length,
+  headDim: 256,
+  capabilities: {
+    hasSubgroups: true,
+    hasF16: false,
+    hasSubgroupsF16: false,
+  },
+  platform: {
+    id: 'swiftshader',
+    vendor: 'google',
+    architecture: 'swiftshader',
+  },
+  kernelPathPolicy: {
+    mode: 'capability-aware',
+    sourceScope: ['manifest', 'model'],
+    onIncompatible: 'remap',
+  },
+});
+
+assert.ok(qwen08NoF16.appliedTransforms.includes('widenToF32Activations'),
+  'Qwen 0.8B no-f16 compile must apply the manifest capability widening transform');
+assert.equal(qwen08NoF16.laneIntegrity.declared.kvDtype, 'f16');
+assert.equal(qwen08NoF16.laneIntegrity.executed.kvDtype, 'f32',
+  'Qwen 0.8B no-f16 compile must widen f16 KV to f32');
+assert.equal(
+  qwen08NoF16.runtimeInferencePatch.kernelPath.prefill.steps.find((step) => step.op === 'q_proj')?.kernel,
+  'fused_matmul_q4_batched_multicol_shared.wgsl',
+  'Qwen 0.8B no-f16 prefill q_proj must remap off the shader-f16 WideTile kernel'
+);
+assert.equal(
+  qwen08NoF16.runtimeInferencePatch.kernelPath.prefill.steps.find((step) => step.op === 'gate_proj')?.kernel,
+  'fused_matmul_q4_batched_multicol_shared.wgsl',
+  'Qwen 0.8B no-f16 prefill gate_proj must remap off the shader-f16 WideTile kernel'
+);
+assertNoShaderF16KernelSteps(
+  qwen08NoF16.runtimeInferencePatch.kernelPath,
+  'Qwen 0.8B no-f16 compile must not emit shader-f16 kernel path steps'
+);
 
 // Lane integrity: synthetic af16-style manifest dispatched on a GPU lacking
 // shader-f16. The capability resolver must install widenToF32Activations and
