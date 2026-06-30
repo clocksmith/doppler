@@ -334,7 +334,11 @@ function resolveMatmulOverride(
   if (!weightDtypeOk) {
     const overridePolicy = selectKernelRuleValue(
       'matmul', 'weightDtypeMismatchPolicy',
-      { requiredWeightDtype, actualWeightDtype: bDtype }
+      {
+        requiredWeightDtype,
+        actualWeightDtype: bDtype,
+        hasSubgroups: capabilities?.hasSubgroups === true,
+      }
     );
     if (overridePolicy === 'fallthrough') {
       return null;

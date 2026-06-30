@@ -19,6 +19,7 @@ globalThis.GPUShaderStage = {
 
 const { createTensor } = await import('../../src/gpu/tensor.js');
 const { setDevice } = await import('../../src/gpu/device.js');
+const { createWeightBuffer } = await import('../../src/gpu/weight-buffer.js');
 const { hasRequiredFeatures } = await import('../../src/gpu/kernels/feature-check.js');
 const { getKernelConfig } = await import('../../src/gpu/kernels/kernel-configs.js');
 const { dequantize } = await import('../../src/gpu/kernels/dequant.js');
@@ -518,6 +519,47 @@ try {
       }),
       /f16 weights require shader-f16 support/
     );
+    resetRuntime();
+  }
+
+  {
+    const device = createFakeDevice({ features: ['subgroups'] });
+    resetRuntime(device);
+    const input = createExternalTensor(256, 'f32', 'qwen_lm_head_input');
+    const denseF16 = new FakeBuffer({
+      size: 512,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+    const packedQ4K = new FakeBuffer({
+      size: 144,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+    const lmHead = createWeightBuffer(
+      denseF16,
+      'f16',
+      'row',
+      [1, 256],
+      'model.language_model.lm_head.weight',
+      {
+        q4k: { buffer: packedQ4K, layout: 'row' },
+      }
+    );
+    const result = await runMatmul(input, lmHead, 1, 1, 256, {
+      transposeB: true,
+      role: 'lm_head',
+      outputDtype: 'f32',
+      kernelPath: {
+        id: 'unit-qwen-q4-lm-head',
+        name: 'unit-qwen-q4-lm-head',
+        activationDtype: 'f32',
+        decode: { steps: [] },
+        postLayer: [
+          { op: 'lm_head', kernel: 'fused_matmul_q4.wgsl', entry: 'main_gemv' },
+        ],
+      },
+    });
+    assert.equal(result.dtype, 'f32');
+    releaseBuffer(result.buffer);
     resetRuntime();
   }
 

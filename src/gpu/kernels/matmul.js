@@ -212,7 +212,7 @@ function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuff
   return entries;
 }
 
-function resolvePreferredWeightDtype(variant, hasQ4KMaterialization) {
+function resolvePreferredWeightDtype(variant, hasQ4KMaterialization, capabilities) {
   if (typeof variant !== 'string' || variant.length === 0) {
     return null;
   }
@@ -232,6 +232,7 @@ function resolvePreferredWeightDtype(variant, hasQ4KMaterialization) {
   return selectKernelRuleValue('matmul', 'preferredWeightDtype', {
     variantWeightDtype,
     hasQ4KMaterialization,
+    hasSubgroups: capabilities?.hasSubgroups === true,
   });
 }
 
@@ -254,7 +255,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   const phase = resolveMatmulPhase(M, options.phaseOverride ?? null);
   const pathVariant = getKernelPathMatmulVariant(options.role, phase, options.layerIdx, options.kernelPath);
   const hasQ4KMat = isWeightBuffer(B) && B.materializations?.q4k?.buffer != null;
-  const preferredWeightDtype = resolvePreferredWeightDtype(pathVariant, hasQ4KMat);
+  const preferredWeightDtype = resolvePreferredWeightDtype(pathVariant, hasQ4KMat, capabilities);
   const resolvedWeight = resolveWeightBufferMaterialization(B, preferredWeightDtype);
   const bBuffer = getBuffer(resolvedWeight);
   const weightDtype = getWeightDtype(resolvedWeight);
