@@ -1742,6 +1742,45 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
+// Test 18b: Q4 WideTile falls back to the no-f16 shared prefill kernel
+// ===========================================================================
+{
+  const graph = {
+    kernels: {
+      q_prefill: {
+        kernel: 'fused_matmul_q4_widetile.wgsl',
+        entry: 'main',
+        digest: 'sha256:qprefwide',
+        precision: { inputDtype: 'f32', outputDtype: 'f32' },
+      },
+      attn_prefill: {
+        kernel: 'attention_head256_f16kv.wgsl',
+        entry: 'main',
+        digest: 'sha256:attnpref',
+        precision: { activationDtype: 'f32', kvDtype: 'f16' },
+      },
+    },
+    decode: [],
+    prefill: [
+      ['q_proj', 'q_prefill'],
+      ['attention', 'attn_prefill'],
+    ],
+    policies: { unsupportedPrecision: 'error' },
+  };
+
+  const result = widenToF32Activations(graph, { ...CTX_F16, capabilities: { hasF16: false } });
+  ok(result !== null, 'q4 widening: no-f16 WideTile graph should remap');
+  equal(result.kernels.q_prefill.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl',
+    'q4 widening: no-f16 prefill must use the shared-A Q4 kernel');
+  equal(result.kernels.q_prefill.entry, 'main',
+    'q4 widening: no-f16 shared-A Q4 kernel uses the main entry');
+  equal(result.kernels.q_prefill.digest, null,
+    'q4 widening: no-f16 q4 prefill remap clears the original WideTile digest');
+  deepEqual(result.kernels.q_prefill.precision, { inputDtype: 'f32', outputDtype: 'f32' },
+    'q4 widening: no-f16 q4 prefill fallback declares f32 input/output');
+}
+
+// ===========================================================================
 // Test 19: digest is nulled on modified kernels
 // ===========================================================================
 {
