@@ -39,4 +39,16 @@ import { sample } from '../../src/inference/pipelines/text/sampling.js';
   );
 }
 
+{
+  const logits = new Float32Array([Number.NaN, Infinity, -Infinity]);
+  assert.throws(
+    () => sample(logits, {
+      temperature: 0,
+      topP: 1,
+      topK: 1,
+    }),
+    /beforeMask=\{len=3,finite=0,nan=1,posInf=1,negInf=1,min=n\/a,max=n\/a\}/i
+  );
+}
+
 console.log('sampling-nan-guard.test: ok');

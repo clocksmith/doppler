@@ -1019,14 +1019,48 @@ export async function loadFloat(shardData, location, name, config) {
       writeBufferAligned(device, buffer, shardData);
     }
 
-    const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
-      locationDtype: location.dtype,
-    });
     const layout = selectRuleValue('loader', 'weights', 'weightLayout', {
       layout: location.layout ?? null,
       useColumnWise: false,
     });
     const isMatmulWeight = shouldDequantizeToF16(location);
+    const caps = config.gpuCapabilities || getKernelCapabilities();
+    const dtype = isMatmulWeight
+      ? selectRuleValue('loader', 'weights', 'matmulWeightDtype', {
+        locationDtype: location.dtype,
+        hasF16: Boolean(caps?.hasF16),
+        isMatmulWeight,
+        keepF32Weights: Boolean(config.keepF32Weights),
+      })
+      : selectRuleValue('loader', 'weights', 'floatLocationDtype', {
+        locationDtype: location.dtype,
+      });
+
+    if (location.dtype === 'F16' && dtype === 'f32') {
+      if (isGpuBufferInstance(shardData)) {
+        throw new Error(
+          `Tensor "${name}" requires CPU F16->F32 materialization on this runtime, ` +
+          'but the source was already uploaded to a GPU buffer.'
+        );
+      }
+      const f32Values = convertF16ToF32CPU(toUint16View(shardData, `F16 tensor load for ${name}`));
+      const f32Buffer = acquireAlignedBuffer(f32Values.byteLength, `${name}_f32`);
+      resultBuffer = f32Buffer;
+      writeBufferAligned(device, f32Buffer, new Uint8Array(f32Values.buffer, f32Values.byteOffset, f32Values.byteLength));
+      releaseOwnedGpuBuffer(buffer, ownsBuffer);
+      ownsBuffer = false;
+      resultBuffer = null;
+      if (isMatmulWeight) {
+        return {
+          data: createWeightBuffer(f32Buffer, 'f32', layout, location.shape, name),
+          allocatedBuffers: [f32Buffer],
+        };
+      }
+      return {
+        data: applyBufferLayout(f32Buffer, location, 'f32'),
+        allocatedBuffers: [f32Buffer],
+      };
+    }
 
     if (isMatmulWeight) {
       ownsBuffer = false;

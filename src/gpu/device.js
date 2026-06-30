@@ -369,6 +369,59 @@ function buildFeatureRequests(available) {
   return requested;
 }
 
+function addFeatureRequestCandidate(candidates, seen, features) {
+  const unique = features.filter((feature, index) => features.indexOf(feature) === index);
+  const key = unique.join('|');
+  if (seen.has(key)) return;
+  seen.add(key);
+  candidates.push(unique);
+}
+
+function buildFeatureRequestCandidates(requestedFeatures) {
+  const requested = Array.isArray(requestedFeatures) ? requestedFeatures : [];
+  const candidates = [];
+  const seen = new Set();
+  addFeatureRequestCandidate(candidates, seen, requested);
+  addFeatureRequestCandidate(
+    candidates,
+    seen,
+    requested.filter((feature) => feature !== FEATURES.TIMESTAMP_QUERY)
+  );
+  addFeatureRequestCandidate(
+    candidates,
+    seen,
+    requested.filter((feature) => feature !== FEATURES.TIMESTAMP_QUERY && feature !== FEATURES.SUBGROUPS)
+  );
+  addFeatureRequestCandidate(
+    candidates,
+    seen,
+    requested.filter((feature) => feature !== FEATURES.TIMESTAMP_QUERY && feature !== FEATURES.SHADER_F16)
+  );
+  addFeatureRequestCandidate(candidates, seen, []);
+  return candidates;
+}
+
+async function requestDeviceWithFeatureFallback(adapter, requestedFeatures, limits) {
+  const candidates = buildFeatureRequestCandidates(requestedFeatures);
+  let lastError = null;
+  for (const features of candidates) {
+    try {
+      if (features.length === 0) {
+        return await adapter.requestDevice();
+      }
+      return await adapter.requestDevice({
+        requiredFeatures: features,
+        requiredLimits: limits,
+      });
+    } catch (error) {
+      lastError = error;
+      const label = features.length > 0 ? features.join(', ') : 'none';
+      log.warn('GPU', 'Failed to request device with features [' + label + ']: ' + error.message);
+    }
+  }
+  throw lastError || new Error('Failed to request WebGPU device');
+}
+
 
 function buildLimits(adapter) {
   const adapterLimits = adapter.limits;
@@ -457,17 +510,7 @@ export async function initDevice() {
   // Get adapter info (adapter.info is synchronous in modern WebGPU)
   const adapterInfo = adapter.info || { vendor: 'unknown', architecture: 'unknown', device: 'unknown', description: '' };
 
-  try {
-    gpuDevice = await adapter.requestDevice({
-      requiredFeatures: requestedFeatures,
-      requiredLimits: limits,
-    });
-  } catch (e) {
-    // Fallback: request device without optional features
-    const lostFeatures = requestedFeatures.length > 0 ? requestedFeatures.join(', ') : 'none';
-    log.warn('GPU', 'Failed to request device with features [' + lostFeatures + '], trying minimal config: ' + (e).message);
-    gpuDevice = await adapter.requestDevice();
-  }
+  gpuDevice = await requestDeviceWithFeatureFallback(adapter, requestedFeatures, limits);
 
   if (!gpuDevice) {
     throw createDopplerError(ERROR_CODES.GPU_DEVICE_FAILED, 'Failed to create WebGPU device');

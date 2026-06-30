@@ -236,6 +236,30 @@ function resolvePreferredWeightDtype(variant, hasQ4KMaterialization, capabilitie
   });
 }
 
+function buildF16CapabilityErrorDetail({
+  role,
+  layerIdx,
+  pathVariant,
+  preferredWeightDtype,
+  weightDtype,
+  weightLabel,
+  weightLayout,
+  weightShape,
+  hasQ4KMaterialization,
+}) {
+  const parts = [];
+  if (role) parts.push(`role=${role}`);
+  if (Number.isFinite(layerIdx)) parts.push(`layer=${layerIdx}`);
+  if (pathVariant) parts.push(`variant=${pathVariant}`);
+  if (preferredWeightDtype) parts.push(`preferredWeightDtype=${preferredWeightDtype}`);
+  if (weightDtype) parts.push(`weightDtype=${weightDtype}`);
+  if (weightLabel) parts.push(`label=${weightLabel}`);
+  if (weightLayout) parts.push(`layout=${weightLayout}`);
+  if (weightShape) parts.push(`shape=${weightShape}`);
+  if (hasQ4KMaterialization) parts.push('q4kMaterialization=true');
+  return parts.length > 0 ? ` (${parts.join(', ')})` : '';
+}
+
 async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   const isRecord = Boolean(recorder);
   const mode = isRecord ? 'record' : 'run';
@@ -283,7 +307,18 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   const requestedOutputDtype = options.outputDtype || A.dtype;
 
   if (bDtype === 'f16' && capabilities?.hasF16 !== true) {
-    throw new Error(`[${opLabel}] f16 weights require shader-f16 support.`);
+    const detail = buildF16CapabilityErrorDetail({
+      role: options.role,
+      layerIdx: options.layerIdx,
+      pathVariant,
+      preferredWeightDtype,
+      weightDtype,
+      weightLabel,
+      weightLayout,
+      weightShape,
+      hasQ4KMaterialization: hasQ4KMat,
+    });
+    throw new Error(`[${opLabel}] f16 weights require shader-f16 support.${detail}`);
   }
   if (requestedOutputDtype === 'f16' && capabilities?.hasF16 !== true) {
     throw new Error(`[${opLabel}] f16 output requires shader-f16 support.`);
