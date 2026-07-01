@@ -69,6 +69,9 @@ Any new inference knob must be wired end-to-end:
 - Add tests that assert manifest values and runtime overrides
 
 Do not reintroduce runtime model detection or hidden family fallbacks.
+If a field affects inference behavior, absence is a configuration error at the
+runtime boundary. Do not use `??` or destructuring defaults to fill manifest or
+runtime tunables in pipeline, cache, execution-plan, or kernel-dispatch code.
 
 ## Nullable Required Fields
 

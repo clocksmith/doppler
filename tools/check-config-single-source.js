@@ -42,6 +42,159 @@ const TEXT_RULES = Object.freeze([
   },
 ]);
 
+const CODE_RULES = Object.freeze([
+  {
+    file: 'src/inference/kv-cache/quantized.js',
+    label: 'QuantizedKVCache kvDtype runtime fallback',
+    pattern: /config\.kvDtype\s*\?\?\s*['"]f16['"]/g,
+  },
+  {
+    file: 'src/inference/kv-cache/quantized.js',
+    label: 'QuantizedKVCache bitWidth runtime fallback',
+    pattern: /config\.bitWidth\s*\?\?\s*4/g,
+  },
+  {
+    file: 'src/inference/kv-cache/tiered.js',
+    label: 'TieredKVCache coldDtype runtime fallback',
+    pattern: /tiering\.coldDtype\s*\?\?\s*this\.kvDtype/g,
+  },
+  {
+    file: 'src/inference/kv-cache/tiered.js',
+    label: 'TieredKVCache compression object runtime fallback',
+    pattern: /tiering\.compression\s*\?\?/g,
+  },
+  {
+    file: 'src/inference/kv-cache/tiered.js',
+    label: 'TieredKVCache gating object runtime fallback',
+    pattern: /tiering\.gating\s*\?\?/g,
+  },
+  {
+    file: 'src/inference/kv-cache/tiered.js',
+    label: 'TieredKVCache compression mode runtime fallback',
+    pattern: /compression\?\.mode\s*\?\?\s*['"]none['"]/g,
+  },
+  {
+    file: 'src/inference/pipelines/text/init.js',
+    label: 'KV tiering mode runtime fallback',
+    pattern: /tiering\?\.mode\s*\?\?\s*['"]off['"]/g,
+  },
+  {
+    file: 'src/inference/pipelines/text/init.js',
+    label: 'KV compression mode runtime fallback',
+    pattern: /compression\?\.mode\s*\?\?/g,
+  },
+  {
+    file: 'src/inference/pipelines/text/init.js',
+    label: 'KV quantization mode runtime fallback',
+    pattern: /quantization\?\.mode\s*\?\?\s*['"]none['"]/g,
+  },
+  {
+    file: 'src/inference/pipelines/text/init.js',
+    label: 'Quantized KV bitWidth runtime fallback',
+    pattern: /quantCfg\.bitWidth\s*\?\?\s*4/g,
+  },
+  {
+    file: 'src/gpu/kernels/turboquant-codebook.js',
+    label: 'TurboQuant shared buffer bitWidth runtime fallback',
+    pattern: /options\.bitWidth\s*\?\?\s*4/g,
+  },
+  {
+    file: 'src/inference/pipelines/text.js',
+    label: 'Multimodal generation maxTokens runtime fallback',
+    pattern: /maxTokens\s*\?\?\s*512/g,
+  },
+  {
+    file: 'src/inference/pipelines/text/execution-plan.js',
+    label: 'Execution plan maxTokens runtime fallback',
+    pattern: /DEFAULT_MAX_TOKENS|generationConfig\.maxTokens\s*\?\?/g,
+  },
+  {
+    file: 'src/gpu/profiler.js',
+    label: 'Profiler maxHistoryLabels runtime fallback',
+    pattern: /maxHistoryLabels\s*\?\?\s*1024/g,
+  },
+  {
+    file: 'src/inference/pipelines/text/config.js',
+    label: 'Audio hidden activation runtime fallback',
+    pattern: /hidden_act\s*\?\?\s*['"]silu['"]/g,
+  },
+  {
+    file: 'src/inference/pipelines/text/config.js',
+    label: 'FFN branchMode runtime fallback',
+    pattern: /branchMode\s*\?\?\s*['"]auto['"]/g,
+  },
+  {
+    file: 'src/inference/pipelines/diffusion/text-encoder-gpu.js',
+    label: 'CLIP hidden activation runtime fallback',
+    pattern: /DEFAULT_CLIP_HIDDEN_ACT|hidden_act\s*\?\?\s*['"]gelu['"]/g,
+  },
+  {
+    file: 'src/config/execution-contract-check.js',
+    label: 'Execution contract tiering mode runtime fallback',
+    pattern: /tiering\?\.mode\s*\?\?\s*['"]off['"]/g,
+  },
+  {
+    file: 'src/config/execution-contract-check.js',
+    label: 'Execution contract gating mode runtime fallback',
+    pattern: /gating\?\.mode\s*\?\?\s*['"]auto['"]/g,
+  },
+  {
+    file: 'src/config/execution-contract-check.js',
+    label: 'Execution contract compression mode runtime fallback',
+    pattern: /compression\?\.mode\s*\?\?/g,
+  },
+  {
+    file: 'src/config/execution-contract-check.js',
+    label: 'Execution contract quantization mode runtime fallback',
+    pattern: /quantization\?\.mode\s*\?\?\s*['"]none['"]/g,
+  },
+  {
+    file: 'src/inference/moe-router.js',
+    label: 'MoE router input dtype runtime fallback',
+    pattern: /inputDtype\s*=\s*['"]f32['"]/g,
+  },
+  {
+    file: 'src/inference/moe-router.js',
+    label: 'MoE router output dtype runtime fallback',
+    pattern: /outputDtype\s*=\s*['"]f32['"]/g,
+  },
+  {
+    file: 'src/inference/moe-router.js',
+    label: 'MoE router last logits dtype runtime fallback',
+    pattern: /lastLogitsDtype\s*=\s*['"]f32['"]/g,
+  },
+  {
+    file: 'src/inference/pipelines/text/generator-runtime.js',
+    label: 'Generator runtime local dtype default',
+    pattern: /DEFAULT_DTYPE|fallback:\s*['"]f32['"]/g,
+  },
+  {
+    file: 'src/inference/pipelines/text/generator-runtime.js',
+    label: 'Generator self-speculation runtime fallback',
+    pattern: /sessionSpeculation\?\.mode\s*\?\?\s*['"]none['"]|sessionSpeculation\?\.tokens\s*\?\?\s*1|sessionSpeculation\?\.verify\s*\?\?\s*['"]greedy['"]|sessionSpeculation\?\.rollbackOnReject\s*\?\?\s*true/g,
+  },
+  {
+    file: 'src/inference/pipelines/text/generator.js',
+    label: 'Self-speculation token runtime fallback',
+    pattern: /speculation\?\.tokens\s*\?\?\s*1/g,
+  },
+  {
+    file: 'src/inference/pipelines/text/logits/gpu.js',
+    label: 'LM head CPU source dtype runtime fallback',
+    pattern: /sourceDtype\s*=\s*['"]f32['"]|sourceDtype\s*\?\?\s*['"]f32['"]/g,
+  },
+  {
+    file: 'src/inference/pipelines/text/ffn/dense.js',
+    label: 'FFN fused gate dtype runtime fallback',
+    pattern: /gateDtype\s*=\s*fusedGateUpWeights\.gateDtype\s*\?\?\s*['"]f32['"]|gateDtype\s*=\s*fusedGateUpWeights\.gateDtype\s*\?\?\s*\(hasGate\s*\?\s*['"]f32['"]/g,
+  },
+  {
+    file: 'src/inference/pipelines/text/ffn/dense.js',
+    label: 'FFN fused up dtype runtime fallback',
+    pattern: /upDtype\s*=\s*fusedGateUpWeights\.upDtype\s*\?\?\s*['"]f32['"]|upDtype\s*=\s*fusedGateUpWeights\.upDtype\s*\?\?\s*\(hasUp\s*\?\s*['"]f32['"]/g,
+  },
+]);
+
 const issues = [];
 
 function toRepoPath(filePath) {
@@ -113,6 +266,21 @@ async function checkTextFiles() {
   }
 }
 
+async function checkCodeRules() {
+  for (const rule of CODE_RULES) {
+    const filePath = path.join(ROOT, rule.file);
+    if (!await pathExists(filePath)) {
+      recordIssue(filePath, 'expected source file is missing');
+      continue;
+    }
+    const text = await fs.readFile(filePath, 'utf8');
+    const matches = text.match(rule.pattern);
+    if (matches?.length) {
+      recordIssue(filePath, `${rule.label} appears ${matches.length} time(s)`);
+    }
+  }
+}
+
 async function checkRuntimeConfigs() {
   const runtimeRoot = path.join(ROOT, 'src/config/runtime');
   const files = await collectJsonFiles(runtimeRoot);
@@ -131,6 +299,7 @@ async function checkRuntimeConfigs() {
 
 async function main() {
   await checkTextFiles();
+  await checkCodeRules();
   await checkRuntimeConfigs();
 
   if (issues.length > 0) {

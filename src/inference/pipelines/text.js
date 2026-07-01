@@ -245,6 +245,23 @@ export function buildConservativeMultimodalGenerationOptions(options = {}) {
   };
 }
 
+function resolveMultimodalMaxTokens(runtimeConfig, requestedMaxTokens) {
+  if (requestedMaxTokens !== undefined) {
+    return requirePositiveInteger(requestedMaxTokens, 'maxTokens');
+  }
+  return requirePositiveInteger(
+    runtimeConfig?.inference?.generation?.multimodalMaxTokens,
+    'runtime.inference.generation.multimodalMaxTokens'
+  );
+}
+
+function requirePositiveInteger(value, label) {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`${label} must be a positive integer.`);
+  }
+  return value;
+}
+
 // ============================================================================
 // Main Inference Pipeline Class
 // ============================================================================
@@ -1145,7 +1162,7 @@ export class InferencePipeline extends PipelineState {
 
     // Step 3: Generate with embedding override at the image token offset.
     const tokens = [];
-    const maxGen = maxTokens ?? 512;
+    const maxGen = resolveMultimodalMaxTokens(this.runtimeConfig, maxTokens);
     const stopTokenIds = this.modelConfig.stopTokenIds;
 
     try {
@@ -1274,7 +1291,7 @@ export class InferencePipeline extends PipelineState {
 
     // Step 3: Generate with embedding override at the video token offset
     const tokens = [];
-    const maxGen = maxTokens ?? 512;
+    const maxGen = resolveMultimodalMaxTokens(this.runtimeConfig, maxTokens);
     const stopTokenIds = this.modelConfig.stopTokenIds;
 
     try {
@@ -1404,7 +1421,7 @@ export class InferencePipeline extends PipelineState {
 
     // Step 4: Generate with embedding override at the audio token offset
     const tokens = [];
-    const maxGen = maxTokens ?? 512;
+    const maxGen = resolveMultimodalMaxTokens(this.runtimeConfig, maxTokens);
     const stopTokenIds = this.modelConfig.stopTokenIds;
 
     try {

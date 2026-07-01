@@ -41,6 +41,7 @@ const manifest = {
     ffn: {
       activation: 'silu',
       gatedActivation: true,
+      branchMode: 'auto',
       useDoubleWideMlp: false,
       swigluLimit: null,
     },
@@ -122,5 +123,14 @@ assert.equal(modelConfig.visionConfig.spatialMergeSize, 2);
 assert.equal(modelConfig.visionConfig.minPixels, 65536);
 assert.equal(modelConfig.visionConfig.maxPixels, 16777216);
 assert.equal(modelConfig.visionConfig.visionArchitecture, 'qwen3vl');
+
+assert.throws(
+  () => parseModelConfigFromManifest(manifest, {
+    rope: {
+      ropeTheta: 1,
+    },
+  }),
+  /runtime\.inference\.modelOverrides may only override vision_config, audio_config[\s\S]*rope\.ropeTheta/
+);
 
 console.log('qwen-vision-config-runtime-override.test: ok');

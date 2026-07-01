@@ -12,7 +12,7 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "weights-ref",
-    "conversionConfigDigest": "sha256:af4cf694346f1199058842984047fa35ed59ef0d520201fe7523e548bf335850",
+    "conversionConfigDigest": "sha256:b503f5550b76199e4afe17589515ef451db647cc0c1378c9c18fd0849c155d98",
     "conversionConfigPath": "src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af16.json",
     "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af16-mv-f16-activations-v1",
     "materializationProfile": "gpu_split_tables",
@@ -70,6 +70,7 @@
     "ffn": {
       "activation": "gelu",
       "gatedActivation": true,
+      "branchMode": "auto",
       "useDoubleWideMlp": false,
       "swigluLimit": null
     },
@@ -192,7 +193,25 @@
         "layout": "contiguous",
         "pageSize": 256,
         "tiering": {
-          "mode": "off"
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
         }
       },
       "decodeLoop": {
@@ -16545,7 +16564,7 @@
   "weightsRef": {
     "weightPackId": "gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1",
     "artifactRoot": "../gemma-4-31b-it-text-q4k-ehf16-af32",
-    "manifestDigest": "sha256:90a8ec45c327428456f8dacc601b6597bbf2f847ad47c7cca0b2746e15649a7b",
+    "manifestDigest": "sha256:4a84ba42bb906160b7b0c478c0b12ed87cfb19c575d149c1d26ded6e479a636d",
     "shardSetHash": "sha256:54933058e14fa0be4480912e641b897730db3e8ee7e871bdb2a92fd404ade146"
   }
 }

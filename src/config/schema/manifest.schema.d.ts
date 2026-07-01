@@ -300,7 +300,7 @@ export interface ManifestFFNSchema {
   /** Whether activation is gated (e.g., SwiGLU, GeGLU) */
   gatedActivation: boolean;
   /** FFN branch composition. `auto` preserves legacy dense-or-MoE routing. */
-  branchMode?: 'auto' | 'dense' | 'moe' | 'dense_plus_moe';
+  branchMode: 'auto' | 'dense' | 'moe' | 'dense_plus_moe';
   /** Double the FFN intermediate width on KV-shared layers. */
   useDoubleWideMlp: boolean;
   /** Clamp SwiGLU output (null = disabled) */

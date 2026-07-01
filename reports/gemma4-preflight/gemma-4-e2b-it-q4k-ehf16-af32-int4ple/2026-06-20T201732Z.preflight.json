@@ -10,7 +10,7 @@
   "observedWith": "node WebGPU provider plus resolveManifestGpuResidentEmbeddingLimitError",
   "manifest": {
     "path": "models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json",
-    "sha256": "sha256:2af2275cf89d0da9f1539bc8a1105850f2f7f4c8f63d41da35593510f1b59cc2"
+    "sha256": "sha256:9d6d08271f126f7a64fddb5ff0a2a30261e1676d9369baa1039b215cf8fd32d9"
   },
   "adapterInfo": {
     "vendor": "mesa",

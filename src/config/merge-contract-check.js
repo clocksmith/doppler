@@ -33,6 +33,7 @@ function buildWitnessMergeManifest() {
       ffn: {
         activation: 'gelu',
         gatedActivation: false,
+        branchMode: 'auto',
         swigluLimit: null,
       },
       rope: {

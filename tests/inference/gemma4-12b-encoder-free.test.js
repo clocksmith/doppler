@@ -39,6 +39,7 @@ function createBaseManifest() {
       ffn: {
         activation: 'silu',
         gatedActivation: true,
+        branchMode: 'auto',
         useDoubleWideMlp: false,
         swigluLimit: null,
       },
@@ -126,7 +127,18 @@ function createBaseManifest() {
         audio_architecture: 'gemma4',
         num_hidden_layers: 0,
         hidden_size: 4096,
+        num_attention_heads: 1,
+        conv_kernel_size: 1,
+        subsampling_conv_channels: [1, 1],
         output_proj_dims: 640,
+        attention_context_left: 13,
+        attention_context_right: 0,
+        attention_chunk_size: 1,
+        attention_logit_cap: 50,
+        attention_invalid_logits_value: -1000000000,
+        residual_weight: 1,
+        rms_norm_eps: 1e-6,
+        hidden_act: 'silu',
         use_clipped_linears: true,
       },
     },
@@ -137,7 +149,7 @@ function createBaseManifest() {
   assert.equal(parsed.audioConfig.depth, 0);
   assert.equal(parsed.audioConfig.hiddenSize, 4096);
   assert.equal(parsed.audioConfig.outputProjDims, 640);
-  assert.equal(parsed.audioConfig.convKernelSize, 1); // Check default fallback
+  assert.equal(parsed.audioConfig.convKernelSize, 1);
 }
 
 // 3. Validate manifest-owned prefill token chunk size is parsed into session settings

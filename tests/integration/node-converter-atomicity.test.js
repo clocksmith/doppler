@@ -145,6 +145,7 @@ const minimalV1Inference = {
   ffn: {
     activation: 'gelu',
     gatedActivation: true,
+    branchMode: 'auto',
     useDoubleWideMlp: false,
     swigluLimit: null,
   },

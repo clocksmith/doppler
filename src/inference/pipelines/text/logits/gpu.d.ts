@@ -38,7 +38,7 @@ export function extractLmHeadChunk(
   vocabSize: number,
   rowOffset: number,
   rowCount: number,
-  sourceDtype?: 'f16' | 'f32' | 'bf16'
+  sourceDtype: 'f16' | 'f32' | 'bf16'
 ): Promise<Float32Array>;
 
 /**

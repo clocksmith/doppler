@@ -54,6 +54,7 @@ function createExecutionV1ContractManifest(overrides = {}) {
     session: {
       kvcache: {
         layout: 'bdpa',
+        maxSeqLen: 131072,
         tiering: {
           mode: 'off',
         },

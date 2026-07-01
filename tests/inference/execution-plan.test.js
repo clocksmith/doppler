@@ -124,6 +124,19 @@ const planState = compileExecutionPlanState({
 const container = { executionPlanState: planState };
 
 {
+  const missingMaxTokensRuntime = createRuntimeConfig('f16');
+  delete missingMaxTokensRuntime.inference.generation.maxTokens;
+  assert.throws(
+    () => compileExecutionPlanState({
+      runtimeConfig: missingMaxTokensRuntime,
+      resolvedKernelPath: minimalKernelPath,
+      kernelPathSource: 'model',
+    }),
+    /runtime\.inference\.generation\.maxTokens must be a positive integer/
+  );
+}
+
+{
   assert.equal(hasFallbackExecutionPlan(container), true);
   assert.equal(hasFallbackExecutionPlan(planState), true);
 }

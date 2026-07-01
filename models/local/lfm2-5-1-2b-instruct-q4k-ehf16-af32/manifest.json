@@ -44,6 +44,7 @@
     "ffn": {
       "activation": "silu",
       "gatedActivation": true,
+      "branchMode": "auto",
       "swigluLimit": null,
       "useDoubleWideMlp": false
     },
@@ -118,7 +119,25 @@
         "layout": "contiguous",
         "pageSize": 256,
         "tiering": {
-          "mode": "off"
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
         }
       },
       "decodeLoop": {
@@ -181,13 +200,13 @@
           "entry": "main",
           "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
         },
-    "attn_decode": {
-      "kernel": "attention_decode_online_f16kv.wgsl",
-      "entry": "main",
-      "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
-      "precision": {
-        "kvDtype": "f16"
-      }
+        "attn_decode": {
+          "kernel": "attention_decode_online_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
+          "precision": {
+            "kvDtype": "f16"
+          }
         },
         "residual": {
           "kernel": "residual.wgsl",
@@ -207,14 +226,14 @@
           "entry": "main",
           "digest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c"
         },
-    "attn_small": {
-      "kernel": "attention_small_f16kv.wgsl",
-      "entry": "main",
-      "digest": "sha256:ad3bb913c17167eb28fefc6abd24602ea0f148bc22a2b5f437eeffcc6f7fc668",
-      "precision": {
-        "kvDtype": "f16"
-      }
-    },
+        "attn_small": {
+          "kernel": "attention_small_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:ad3bb913c17167eb28fefc6abd24602ea0f148bc22a2b5f437eeffcc6f7fc668",
+          "precision": {
+            "kvDtype": "f16"
+          }
+        },
         "lm_head_gemv": {
           "kernel": "matmul_gemv_subgroup.wgsl",
           "entry": "main_multicol",

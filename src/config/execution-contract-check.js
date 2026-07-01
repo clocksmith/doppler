@@ -114,20 +114,22 @@ function getContiguousQuantMaxKVLen(mode) {
 }
 
 function normalizeTieredQuantMode(kvcache) {
-  const tieringMode = String(kvcache?.tiering?.mode ?? 'off').trim().toLowerCase();
+  const tiering = assertRequiredValue(kvcache?.tiering, 'session.kvcache.tiering');
+  const tieringMode = String(
+    assertRequiredValue(tiering.mode, 'session.kvcache.tiering.mode')
+  ).trim().toLowerCase();
   assertSupportedTurboQuantMode(tieringMode, 'session.kvcache.tiering.mode');
-  const gatingMode = String(kvcache?.tiering?.gating?.mode ?? 'auto').trim().toLowerCase();
+  const gatingMode = String(
+    assertRequiredValue(kvcache?.tiering?.gating?.mode, 'session.kvcache.tiering.gating.mode')
+  ).trim().toLowerCase();
   if (gatingMode === 'force_off' || tieringMode === 'off' || tieringMode === 'fp16') {
     return 'none';
   }
   const compressionMode = String(
-    kvcache?.tiering?.compression?.mode
-    ?? (tieringMode === 'int8'
-      || tieringMode === 'int4'
-      || tieringMode === 'turboquant'
-      || tieringMode === 'turboquant_prod'
-      ? tieringMode
-      : 'none')
+    assertRequiredValue(
+      kvcache?.tiering?.compression?.mode,
+      'session.kvcache.tiering.compression.mode'
+    )
   ).trim().toLowerCase();
   assertSupportedTurboQuantMode(compressionMode, 'session.kvcache.tiering.compression.mode');
   if (!TIERED_QUANT_MODES.has(compressionMode)) {
@@ -139,7 +141,9 @@ function normalizeTieredQuantMode(kvcache) {
 }
 
 function normalizeContiguousQuantMode(kvcache) {
-  const quantMode = String(kvcache?.quantization?.mode ?? 'none').trim().toLowerCase();
+  const quantMode = String(
+    assertRequiredValue(kvcache?.quantization?.mode, 'session.kvcache.quantization.mode')
+  ).trim().toLowerCase();
   assertSupportedTurboQuantMode(quantMode, 'session.kvcache.quantization.mode');
   if (!CONTIGUOUS_QUANT_MODES.has(quantMode)) {
     throw new Error(

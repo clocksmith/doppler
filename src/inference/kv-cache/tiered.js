@@ -59,7 +59,7 @@ export class TieredKVCache {
     
     this.layout = 'tiered';
     
-    this.kvDtype = config.kvDtype;
+    this.kvDtype = requireNonEmptyString(config.kvDtype, 'TieredKVCache config.kvDtype');
     
     this.bytesPerElem = this.kvDtype === 'f16' ? 2 : 4;
     
@@ -69,17 +69,19 @@ export class TieredKVCache {
     
     this.coldPageSize = tiering.coldPageSize;
     
-    this.coldDtype = tiering.coldDtype ?? this.kvDtype;
+    this.coldDtype = requireNonEmptyString(tiering.coldDtype, 'TieredKVCache tiering.coldDtype');
     
-    this.tieringMode = tiering.mode;
+    this.tieringMode = requireNonEmptyString(tiering.mode, 'TieredKVCache tiering.mode');
     
-    const turboQuantModes = ['turboquant', 'turboquant_prod'];
-    const defaultCompressionMode = turboQuantModes.includes(tiering.mode)
-      ? tiering.mode
-      : (tiering.mode === 'int8' ? 'int8' : (tiering.mode === 'int4' ? 'int4' : 'none'));
-    this.compression = tiering.compression ?? { mode: defaultCompressionMode, blockSize: 1 };
+    this.compression = requirePlainObject(
+      tiering.compression,
+      'TieredKVCache tiering.compression'
+    );
     
-    this.gating = tiering.gating ?? { mode: 'force_off', minAluBwRatio: 0.0 };
+    this.gating = requirePlainObject(
+      tiering.gating,
+      'TieredKVCache tiering.gating'
+    );
     
     this.currentSeqLen = 0;
     
@@ -102,7 +104,10 @@ export class TieredKVCache {
     }
 
     assertSupportedTurboQuantMode(this.tieringMode, 'tiering.mode');
-    assertSupportedTurboQuantMode(this.compression?.mode ?? 'none', 'tiering.compression.mode');
+    assertSupportedTurboQuantMode(
+      requireNonEmptyString(this.compression.mode, 'TieredKVCache tiering.compression.mode'),
+      'tiering.compression.mode'
+    );
     this.coldQuantMode = this._resolveCompressionMode(this.compression, this.gating);
     assertSupportedTurboQuantMode(this.coldQuantMode, 'resolved cold quant mode');
     if (this.coldQuantMode !== 'none' && this.compression.blockSize !== 1) {
@@ -111,7 +116,9 @@ export class TieredKVCache {
 
     this.isTurboQuant = isTurboQuantMode(this.coldQuantMode);
     this.isProdMode = this.coldQuantMode === 'turboquant_prod';
-    this.turboQuantBitWidth = this.compression.bitWidth ?? 4;
+    this.turboQuantBitWidth = this.isTurboQuant
+      ? requirePositiveInteger(this.compression.bitWidth, 'TieredKVCache tiering.compression.bitWidth')
+      : null;
 
     if (this.isTurboQuant) {
       this.coldPackedStride = computePackedStride(this.headDim, this.turboQuantBitWidth);
@@ -184,10 +191,17 @@ export class TieredKVCache {
 
   
   _resolveCompressionMode(compression, gating) {
-    const requested = compression?.mode ?? 'none';
-    if (gating?.mode === 'force_off') return 'none';
-    if (gating?.mode === 'force_on') return requested;
-    if (gating?.mode === 'auto' && gating.minAluBwRatio > 0) {
+    const requested = requireNonEmptyString(
+      compression?.mode,
+      'TieredKVCache tiering.compression.mode'
+    );
+    const gatingMode = requireNonEmptyString(
+      gating?.mode,
+      'TieredKVCache tiering.gating.mode'
+    );
+    if (gatingMode === 'force_off') return 'none';
+    if (gatingMode === 'force_on') return requested;
+    if (gatingMode === 'auto' && gating.minAluBwRatio > 0) {
       throw new Error(
         'TieredKVCache auto compression gating requires an explicit measured ALU/BW ratio. ' +
         'Use gating.mode="force_on"/"force_off" or set minAluBwRatio to 0.'
@@ -718,4 +732,25 @@ export class TieredKVCache {
     cloned.totalTokensSeen = this.totalTokensSeen;
     return cloned;
   }
+}
+
+function requirePlainObject(value, label) {
+  if (value == null || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`${label} is required.`);
+  }
+  return value;
+}
+
+function requireNonEmptyString(value, label) {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    throw new Error(`${label} is required.`);
+  }
+  return value.trim();
+}
+
+function requirePositiveInteger(value, label) {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`${label} must be a positive integer.`);
+  }
+  return value;
 }

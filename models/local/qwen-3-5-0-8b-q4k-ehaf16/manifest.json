@@ -14,7 +14,7 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:01083d6518cee0445c7114402dade2b2ea0cd39acac0b61cad7dc2dece958f85",
+    "conversionConfigDigest": "sha256:5d953ef36783ceba5b5a8d0e287a22b5cd357e720df50dc7174ba3f2f0df3147",
     "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
     "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
     "materializationProfile": "auto",
@@ -72,6 +72,7 @@
     "ffn": {
       "activation": "silu",
       "gatedActivation": true,
+      "branchMode": "auto",
       "useDoubleWideMlp": false,
       "swigluLimit": null
     },
@@ -159,7 +160,25 @@
         "maxSeqLen": 8192,
         "pageSize": 256,
         "tiering": {
-          "mode": "off"
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
         }
       },
       "decodeLoop": {

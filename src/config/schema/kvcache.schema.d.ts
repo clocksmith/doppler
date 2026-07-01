@@ -23,7 +23,7 @@ export type KVDtype = 'f16' | 'f32';
  * - 'tiered': Hot ring + cold paged tiers
  * - 'bdpa': Basis-decomposed paged layout (experimental)
  */
-export type KVLayout = 'contiguous' | 'paged' | 'tiered' | 'bdpa';
+export type KVLayout = 'contiguous' | 'paged' | 'tiered' | 'bdpa' | 'contiguous_quantized';
 
 /**
  * Tiered KV cache mode.
@@ -33,7 +33,7 @@ export type KVLayout = 'contiguous' | 'paged' | 'tiered' | 'bdpa';
  * - 'int8': Cold tier compressed to int8
  * - 'int4': Cold tier compressed to int4 (experimental)
  */
-export type KVTieringMode = 'off' | 'fp16' | 'int8' | 'int4';
+export type KVTieringMode = 'off' | 'fp16' | 'int8' | 'int4' | 'turboquant' | 'turboquant_prod';
 
 /**
  * Cold tier compression mode.
@@ -42,7 +42,7 @@ export type KVTieringMode = 'off' | 'fp16' | 'int8' | 'int4';
  * - 'int8': Block-wise int8 compression
  * - 'int4': Block-wise int4 compression
  */
-export type KVCompressionMode = 'none' | 'int8' | 'int4';
+export type KVCompressionMode = 'none' | 'int8' | 'int4' | 'turboquant' | 'turboquant_prod';
 
 /**
  * Gating mode for tiered compression.
@@ -58,6 +58,19 @@ export interface KVTieringCompressionSchema {
   mode: KVCompressionMode;
   /** Compression block size (tokens). Currently only 1 is supported. */
   blockSize: number;
+  /** TurboQuant bit width, required for turboquant compression modes */
+  bitWidth: number;
+  /** Enable TurboQuant production packing */
+  prodMode: boolean;
+}
+
+export interface KVQuantizationConfigSchema {
+  /** Contiguous quantized KV cache mode */
+  mode: 'none' | 'turboquant' | 'turboquant_prod';
+  /** Quantized cache bit width */
+  bitWidth: number;
+  /** Enable TurboQuant production packing */
+  prodMode: boolean;
 }
 
 export interface KVTieringGatingSchema {
@@ -119,6 +132,9 @@ export interface KVCacheConfigSchema {
 
   /** Tiered cache configuration (hot ring + cold pages) */
   tiering: KVTieringConfigSchema;
+
+  /** Contiguous quantized KV cache configuration */
+  quantization: KVQuantizationConfigSchema;
 }
 
 /** Default KV cache configuration */

@@ -220,12 +220,12 @@
     "modelUrl": "file:///home/x/deco/doppler/models/local/gemma-3-270m-it-q4k-ehf16-af32",
     "modelBaseDir": null,
     "manifestSource": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
-    "manifestSha256": "9c54c2092b1c4c077ebe1cac9960ce97bedee82c884c3596209a0cfcf500dba0",
+    "manifestSha256": "4bb1af0de9a0367a3d036e485622917209b54b4ed2f877048b9ce015ea8c1511",
     "registrySource": null
   },
   "dopplerManifestPreflight": {
     "manifestSource": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
-    "manifestSha256": "9c54c2092b1c4c077ebe1cac9960ce97bedee82c884c3596209a0cfcf500dba0",
+    "manifestSha256": "4bb1af0de9a0367a3d036e485622917209b54b4ed2f877048b9ce015ea8c1511",
     "artifactIdentity": {
       "sourceCheckpointId": "google/gemma-3-270m-it",
       "weightPackId": "gemma-3-270m-it-q4k-ehf16-af32-wp-catalog-v1",
@@ -295,7 +295,7 @@
       "reason": "active-manifest-is-local",
       "active": {
         "manifestSource": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
-        "manifestSha256": "9c54c2092b1c4c077ebe1cac9960ce97bedee82c884c3596209a0cfcf500dba0",
+        "manifestSha256": "4bb1af0de9a0367a3d036e485622917209b54b4ed2f877048b9ce015ea8c1511",
         "canonicalManifestSha256": "3bcb70b1d7b15fee439c7f674273f525b5ef41ef1338f272ab90f3fbd0847de4"
       },
       "localCurrent": {

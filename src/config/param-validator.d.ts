@@ -7,6 +7,11 @@ export function validateRuntimeOverrides(overrides?: {
   } | null;
 } | null): void;
 
+export function validateModelOverrides(
+  modelOverrides?: Record<string, unknown> | null,
+  label?: string
+): void;
+
 export function validateRuntimeConfig(runtimeConfig?: {
   shared?: {
     debug?: {

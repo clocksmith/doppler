@@ -72,8 +72,7 @@ export function resolveAdvanceEmbeddingMode(
 
 export function resolveFloatDtypeFromByteSize(
   totalBytes: number,
-  expectedLength: number,
-  fallback?: 'f16' | 'f32'
+  expectedLength: number
 ): 'f16' | 'f32';
 
 export function getFinalNormWeights(state: PipelineState): Promise<Float32Array>;

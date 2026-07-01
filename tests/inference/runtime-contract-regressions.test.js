@@ -91,8 +91,12 @@ try {
         schema: EXECUTION_V1_SCHEMA_ID,
         session: {
           kvcache: {
+            ...structuredClone(DEFAULT_KVCACHE_CONFIG),
             layout: 'contiguous',
-            tiering: { mode: 'off' },
+            tiering: {
+              ...structuredClone(DEFAULT_KVCACHE_CONFIG).tiering,
+              mode: 'off',
+            },
           },
           decodeLoop: {
             batchSize: 1,
@@ -196,6 +200,7 @@ try {
         tiering: {
           hotWindow: 32,
           coldPageSize: 64,
+          coldDtype: 'f16',
           mode: 'int8',
           compression: { mode: 'int8', blockSize: 1 },
           gating: { mode: 'auto', minAluBwRatio: 1.5 },
@@ -244,6 +249,7 @@ try {
           ffn: {
             activation: 'silu',
             gatedActivation: true,
+            branchMode: 'auto',
             useDoubleWideMlp: false,
             swigluLimit: null,
           },
@@ -327,6 +333,7 @@ try {
           ffn: {
             activation: 'silu',
             gatedActivation: true,
+            branchMode: 'auto',
             useDoubleWideMlp: false,
             swigluLimit: null,
           },
@@ -416,6 +423,7 @@ try {
         ffn: {
           activation: 'gelu',
           gatedActivation: true,
+          branchMode: 'auto',
           useDoubleWideMlp: true,
           swigluLimit: null,
         },
@@ -520,6 +528,7 @@ try {
         ffn: {
           activation: 'gelu',
           gatedActivation: true,
+          branchMode: 'auto',
           useDoubleWideMlp: true,
           swigluLimit: null,
         },
@@ -637,6 +646,7 @@ try {
           ffn: {
             activation: 'gelu',
             gatedActivation: true,
+            branchMode: 'auto',
             useDoubleWideMlp: true,
             swigluLimit: null,
           },
@@ -751,6 +761,7 @@ try {
           ffn: {
             activation: 'gelu',
             gatedActivation: true,
+            branchMode: 'auto',
             useDoubleWideMlp: true,
             swigluLimit: null,
           },

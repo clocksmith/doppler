@@ -20,6 +20,8 @@ export const DEFAULT_KVCACHE_CONFIG = {
     compression: {
       mode: 'none',
       blockSize: 1,
+      bitWidth: 4,
+      prodMode: false,
     },
     gating: {
       mode: 'auto',
@@ -36,4 +38,3 @@ export const DEFAULT_KVCACHE_CONFIG = {
 };
 
 export const PAGED_LAYOUT_SEQ_LEN_THRESHOLD = 8192;
-

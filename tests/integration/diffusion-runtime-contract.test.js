@@ -174,6 +174,10 @@ function createManifest({ includeTransformer = true } = {}) {
   assert.doesNotThrow(() => assertClipHiddenActivationSupported({ hidden_act: 'gelu' }));
   assert.doesNotThrow(() => assertClipHiddenActivationSupported({ hidden_act: 'quick_gelu' }));
   assert.throws(
+    () => assertClipHiddenActivationSupported({}),
+    /config\.hidden_act is required/
+  );
+  assert.throws(
     () => assertClipHiddenActivationSupported({ hidden_act: 'relu' }),
     /Unsupported CLIP hidden_act/
   );

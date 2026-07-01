@@ -29,6 +29,36 @@ const DEFAULT_PER_LAYER_INPUTS = {
   },
 };
 
+function expectedKVCache({ kvDtype, layout, maxSeqLen }) {
+  return {
+    kvDtype,
+    layout,
+    ...(maxSeqLen !== undefined ? { maxSeqLen } : {}),
+    pageSize: 256,
+    tiering: {
+      mode: 'off',
+      hotWindow: 1024,
+      coldPageSize: 256,
+      coldDtype: 'f16',
+      compression: {
+        mode: 'none',
+        blockSize: 1,
+        bitWidth: 4,
+        prodMode: false,
+      },
+      gating: {
+        mode: 'auto',
+        minAluBwRatio: 0,
+      },
+    },
+    quantization: {
+      mode: 'none',
+      bitWidth: 4,
+      prodMode: false,
+    },
+  };
+}
+
 const EXPLICIT_TEXT_DEFAULTS = [
   {
     path: 'src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json',
@@ -38,12 +68,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       accumDtype: 'f32',
       outputDtype: 'f32',
     },
-    kvcache: {
-      kvDtype: 'f16',
-      layout: 'contiguous',
-      pageSize: 256,
-      tiering: { mode: 'off' },
-    },
+    kvcache: expectedKVCache({ kvDtype: 'f16', layout: 'contiguous' }),
     decodeLoop: {
       batchSize: 4,
       stopCheckMode: 'batch',
@@ -64,12 +89,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       accumDtype: 'f32',
       outputDtype: 'f32',
     },
-    kvcache: {
-      kvDtype: 'f16',
-      layout: 'contiguous',
-      pageSize: 256,
-      tiering: { mode: 'off' },
-    },
+    kvcache: expectedKVCache({ kvDtype: 'f16', layout: 'contiguous' }),
     decodeLoop: {
       batchSize: 1,
       stopCheckMode: 'batch',
@@ -90,12 +110,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       accumDtype: 'f16',
       outputDtype: 'f16',
     },
-    kvcache: {
-      kvDtype: 'f16',
-      layout: 'contiguous',
-      pageSize: 256,
-      tiering: { mode: 'off' },
-    },
+    kvcache: expectedKVCache({ kvDtype: 'f16', layout: 'contiguous' }),
     decodeLoop: {
       batchSize: 1,
       stopCheckMode: 'batch',
@@ -138,12 +153,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       accumDtype: 'f32',
       outputDtype: 'f32',
     },
-    kvcache: {
-      kvDtype: 'f16',
-      layout: 'contiguous',
-      pageSize: 256,
-      tiering: { mode: 'off' },
-    },
+    kvcache: expectedKVCache({ kvDtype: 'f16', layout: 'contiguous' }),
     decodeLoop: {
       batchSize: 4,
       stopCheckMode: 'batch',
@@ -164,12 +174,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       accumDtype: 'f32',
       outputDtype: 'f32',
     },
-    kvcache: {
-      kvDtype: 'f16',
-      layout: 'contiguous',
-      pageSize: 256,
-      tiering: { mode: 'off' },
-    },
+    kvcache: expectedKVCache({ kvDtype: 'f16', layout: 'contiguous' }),
     decodeLoop: {
       batchSize: 4,
       stopCheckMode: 'batch',
@@ -190,12 +195,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       accumDtype: 'f32',
       outputDtype: 'f32',
     },
-    kvcache: {
-      kvDtype: 'f16',
-      layout: 'contiguous',
-      pageSize: 256,
-      tiering: { mode: 'off' },
-    },
+    kvcache: expectedKVCache({ kvDtype: 'f16', layout: 'contiguous' }),
     decodeLoop: {
       batchSize: 4,
       stopCheckMode: 'batch',
@@ -216,12 +216,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       accumDtype: 'f32',
       outputDtype: 'f32',
     },
-    kvcache: {
-      kvDtype: 'f16',
-      layout: 'contiguous',
-      pageSize: 256,
-      tiering: { mode: 'off' },
-    },
+    kvcache: expectedKVCache({ kvDtype: 'f16', layout: 'contiguous' }),
     decodeLoop: {
       batchSize: 8,
       stopCheckMode: 'batch',
@@ -264,12 +259,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       accumDtype: 'f32',
       outputDtype: 'f32',
     },
-    kvcache: {
-      kvDtype: 'f16',
-      layout: 'contiguous',
-      pageSize: 256,
-      tiering: { mode: 'off' },
-    },
+    kvcache: expectedKVCache({ kvDtype: 'f16', layout: 'contiguous' }),
     decodeLoop: {
       batchSize: 4,
       stopCheckMode: 'batch',
@@ -290,12 +280,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       accumDtype: 'f16',
       outputDtype: 'f16',
     },
-    kvcache: {
-      kvDtype: 'f16',
-      layout: 'contiguous',
-      pageSize: 256,
-      tiering: { mode: 'off' },
-    },
+    kvcache: expectedKVCache({ kvDtype: 'f16', layout: 'contiguous' }),
     decodeLoop: {
       batchSize: 4,
       stopCheckMode: 'batch',
@@ -316,12 +301,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       accumDtype: 'f16',
       outputDtype: 'f16',
     },
-    kvcache: {
-      kvDtype: 'f16',
-      layout: 'contiguous',
-      pageSize: 256,
-      tiering: { mode: 'off' },
-    },
+    kvcache: expectedKVCache({ kvDtype: 'f16', layout: 'contiguous' }),
     decodeLoop: {
       batchSize: 4,
       stopCheckMode: 'batch',
@@ -342,12 +322,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       accumDtype: 'f32',
       outputDtype: 'f32',
     },
-    kvcache: {
-      kvDtype: 'f16',
-      layout: 'contiguous',
-      pageSize: 256,
-      tiering: { mode: 'off' },
-    },
+    kvcache: expectedKVCache({ kvDtype: 'f16', layout: 'contiguous' }),
     decodeLoop: {
       batchSize: 8,
       stopCheckMode: 'batch',
@@ -368,13 +343,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       accumDtype: 'f32',
       outputDtype: 'f32',
     },
-    kvcache: {
-      kvDtype: 'f16',
-      layout: 'contiguous',
-      maxSeqLen: 8192,
-      pageSize: 256,
-      tiering: { mode: 'off' },
-    },
+    kvcache: expectedKVCache({ kvDtype: 'f16', layout: 'contiguous', maxSeqLen: 8192 }),
     decodeLoop: {
       batchSize: 4,
       stopCheckMode: 'batch',
@@ -403,12 +372,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       accumDtype: 'f32',
       outputDtype: 'f32',
     },
-    kvcache: {
-      kvDtype: 'f32',
-      layout: 'contiguous',
-      pageSize: 256,
-      tiering: { mode: 'off' },
-    },
+    kvcache: expectedKVCache({ kvDtype: 'f32', layout: 'contiguous' }),
     decodeLoop: {
       batchSize: 4,
       stopCheckMode: 'batch',
@@ -429,13 +393,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       accumDtype: 'f32',
       outputDtype: 'f32',
     },
-    kvcache: {
-      kvDtype: 'f16',
-      layout: 'contiguous',
-      maxSeqLen: 8192,
-      pageSize: 256,
-      tiering: { mode: 'off' },
-    },
+    kvcache: expectedKVCache({ kvDtype: 'f16', layout: 'contiguous', maxSeqLen: 8192 }),
     decodeLoop: {
       batchSize: 12,
       stopCheckMode: 'batch',
@@ -464,13 +422,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       accumDtype: 'f32',
       outputDtype: 'f32',
     },
-    kvcache: {
-      kvDtype: 'f16',
-      layout: 'contiguous',
-      maxSeqLen: 8192,
-      pageSize: 256,
-      tiering: { mode: 'off' },
-    },
+    kvcache: expectedKVCache({ kvDtype: 'f16', layout: 'contiguous', maxSeqLen: 8192 }),
     decodeLoop: {
       batchSize: 12,
       stopCheckMode: 'batch',
@@ -499,13 +451,7 @@ const EXPLICIT_TEXT_DEFAULTS = [
       accumDtype: 'f16',
       outputDtype: 'f16',
     },
-    kvcache: {
-      kvDtype: 'f16',
-      layout: 'contiguous',
-      maxSeqLen: 8192,
-      pageSize: 256,
-      tiering: { mode: 'off' },
-    },
+    kvcache: expectedKVCache({ kvDtype: 'f16', layout: 'contiguous', maxSeqLen: 8192 }),
     decodeLoop: {
       batchSize: 3,
       stopCheckMode: 'batch',

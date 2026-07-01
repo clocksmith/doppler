@@ -146,7 +146,12 @@ function resetDevice(device = null) {
   router.loadWeights(new Float32Array([1, 2, 3, 4]));
 
   await assert.rejects(
-    () => router.computeRouterLogitsGPU(new FakeBuffer({ size: 8, usage: GPUBufferUsage.STORAGE }), 1),
+    () => router.computeRouterLogitsGPU(
+      new FakeBuffer({ size: 8, usage: GPUBufferUsage.STORAGE }),
+      1,
+      null,
+      { inputDtype: 'f32', outputDtype: 'f32' }
+    ),
     /writeBuffer failed at 1/
   );
 

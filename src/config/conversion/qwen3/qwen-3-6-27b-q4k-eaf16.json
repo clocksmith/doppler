@@ -34,7 +34,7 @@
     "weightsRef": {
       "weightPackId": "qwen-3-6-27b-q4k-ehaf16-wp-catalog-v1",
       "artifactRoot": "../qwen-3-6-27b-q4k-ehaf16",
-      "manifestDigest": "sha256:9f2ddc5c4fb46e8da9c9ebded352ea8fabb2489fa936418d139222f261df8110",
+      "manifestDigest": "sha256:de3ca27ccf26a57b1a23675dd19b05d87286f1c2f829221dca22abaa802641fe",
       "shardSetHash": "sha256:f355a595b115d4a40041bcb2fbe4d131316e422e65df28e5ed4573d2c9051108"
     },
     "eosTokenId": [
@@ -64,6 +64,7 @@
     "ffn": {
       "activation": "silu",
       "gatedActivation": true,
+      "branchMode": "auto",
       "useDoubleWideMlp": false,
       "swigluLimit": null
     },
@@ -191,7 +192,25 @@
       "maxSeqLen": 8192,
       "pageSize": 256,
       "tiering": {
-        "mode": "off"
+        "mode": "off",
+        "hotWindow": 1024,
+        "coldPageSize": 256,
+        "coldDtype": "f16",
+        "compression": {
+          "mode": "none",
+          "blockSize": 1,
+          "bitWidth": 4,
+          "prodMode": false
+        },
+        "gating": {
+          "mode": "auto",
+          "minAluBwRatio": 0
+        }
+      },
+      "quantization": {
+        "mode": "none",
+        "bitWidth": 4,
+        "prodMode": false
       }
     },
     "decodeLoop": {

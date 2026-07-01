@@ -211,6 +211,21 @@ function baseRuntimeKV(overrides = {}) {
 
 console.log('turboquant-config-merge: merge tests passed');
 
+assert.throws(
+  () => new QuantizedKVCache({
+    numLayers: 1,
+    numHeads: 1,
+    headDim: 8,
+    maxSeqLen: 16,
+    useGPU: true,
+    kvDtype: 'f16',
+    quantMode: 'turboquant',
+    prodMode: false,
+  }),
+  /QuantizedKVCache config\.bitWidth must be a positive integer/,
+  'QuantizedKVCache must not invent a bitWidth when handed unresolved config'
+);
+
 // ===========================================================================
 // Part 2: createKVCache layout resolution for contiguous_quantized
 // ===========================================================================

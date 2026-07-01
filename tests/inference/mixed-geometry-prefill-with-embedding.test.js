@@ -156,6 +156,7 @@ function createGemma4EveryNManifest() {
       ffn: {
         activation: 'gelu',
         gatedActivation: true,
+        branchMode: 'auto',
         useDoubleWideMlp: true,
         swigluLimit: null,
       },

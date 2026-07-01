@@ -12,7 +12,7 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:fe0246782b31f48161074472b33a014b500de0d1976225687e1bd1df79e9e8ab",
+    "conversionConfigDigest": "sha256:bb6930226a45bff1126c66e12921c86874381a009a1b71e630522924d5d72018",
     "conversionConfigPath": "src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af32.json",
     "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af32-mv-q4-fused-v1",
     "materializationProfile": "gpu_split_tables",
@@ -70,6 +70,7 @@
     "ffn": {
       "activation": "gelu",
       "gatedActivation": true,
+      "branchMode": "auto",
       "useDoubleWideMlp": false,
       "swigluLimit": null
     },
@@ -194,7 +195,25 @@
         "layout": "contiguous",
         "pageSize": 256,
         "tiering": {
-          "mode": "off"
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
         }
       },
       "decodeLoop": {

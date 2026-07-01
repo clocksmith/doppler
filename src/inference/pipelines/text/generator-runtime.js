@@ -4,9 +4,10 @@ import { isGpuBufferInstance, isWeightBuffer, isCpuWeightBuffer } from '../../..
 import { decodeReadback } from './debug-utils/index.js';
 import { resolveExecutionSessionPlan } from './execution-plan.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import { validateSelfSpeculationConfig } from '../../../config/schema/speculation-self.schema.js';
 
 const UNKNOWN_TOKENIZER_VOCAB_SIZE = 'unknown';
-const DEFAULT_DTYPE = 'f32';
+const INVALID_DTYPE_SENTINEL = '__invalid_dtype__';
 
 function resolveConfiguredValue(value, defaultValue, context, validate) {
   if (value === undefined) {
@@ -242,16 +243,28 @@ export function resolveGenerateOptions(state, options = {}) {
 }
 
 function resolveSpeculationConfig(state, options) {
-  const sessionSpeculation = state.runtimeConfig?.inference?.session?.speculation ?? null;
+  const sessionSpeculation = state.runtimeConfig?.inference?.session?.speculation;
   const callSpeculation = options.speculation ?? null;
-  if (!sessionSpeculation && !callSpeculation) return null;
-  return {
-    mode: callSpeculation?.mode ?? sessionSpeculation?.mode ?? 'none',
-    tokens: callSpeculation?.tokens ?? sessionSpeculation?.tokens ?? 1,
-    verify: callSpeculation?.verify ?? sessionSpeculation?.verify ?? 'greedy',
-    threshold: callSpeculation?.threshold ?? sessionSpeculation?.threshold ?? null,
-    rollbackOnReject: callSpeculation?.rollbackOnReject ?? sessionSpeculation?.rollbackOnReject ?? true,
+  if (sessionSpeculation === undefined) {
+    throw new Error('[Pipeline] runtime.inference.session.speculation is required.');
+  }
+  if (callSpeculation === null) {
+    if (sessionSpeculation === null) return null;
+    validateSelfSpeculationConfig(sessionSpeculation);
+    return sessionSpeculation.mode === 'none' ? null : sessionSpeculation;
+  }
+  if (!sessionSpeculation || typeof sessionSpeculation !== 'object') {
+    throw new Error('[Pipeline] options.speculation requires runtime.inference.session.speculation defaults.');
+  }
+  if (!callSpeculation || typeof callSpeculation !== 'object') {
+    throw new Error('[Pipeline] options.speculation must be an object.');
+  }
+  const merged = {
+    ...sessionSpeculation,
+    ...callSpeculation,
   };
+  validateSelfSpeculationConfig(merged);
+  return merged.mode === 'none' ? null : merged;
 }
 
 export function resolvePrefillOptions(state, options = {}) {
@@ -333,22 +346,32 @@ export function resolveAdvanceEmbeddingMode(state, options = {}) {
 
 function resolveFloatDtypeFromAlias(dtype) {
   const normalized = typeof dtype === 'string' ? dtype.trim().toLowerCase() : '';
-  if (!normalized) return DEFAULT_DTYPE;
-  return selectRuleValue('inference', 'dtype', 'dtypeFromAlias', {
+  if (!normalized) {
+    throw new Error('[Pipeline] float weight dtype is required.');
+  }
+  const resolved = selectRuleValue('inference', 'dtype', 'dtypeFromAlias', {
     dtype: normalized,
-    fallback: DEFAULT_DTYPE,
+    fallback: INVALID_DTYPE_SENTINEL,
   });
+  if (resolved === INVALID_DTYPE_SENTINEL) {
+    throw new Error(`[Pipeline] Unsupported float weight dtype "${dtype}".`);
+  }
+  return resolved;
 }
 
 export function resolveFloatDtypeFromByteSize(totalBytes, expectedLength) {
   if (!Number.isFinite(totalBytes) || totalBytes <= 0 || !Number.isFinite(expectedLength) || expectedLength <= 0) {
-    return DEFAULT_DTYPE;
+    throw new Error(
+      `[Pipeline] Cannot infer float dtype from invalid size metadata (totalBytes=${totalBytes}, expectedLength=${expectedLength}).`
+    );
   }
   const bytesPerElement = totalBytes / expectedLength;
-  return selectRuleValue('inference', 'dtype', 'f16OrF32FromBytesOrFallback', {
-    bytesPerElement,
-    fallback: DEFAULT_DTYPE,
-  });
+  if (bytesPerElement !== 2 && bytesPerElement !== 4) {
+    throw new Error(
+      `[Pipeline] Cannot infer float dtype from bytesPerElement=${bytesPerElement}; expected 2 or 4.`
+    );
+  }
+  return selectRuleValue('inference', 'dtype', 'f16OrF32FromBytes', { bytesPerElement });
 }
 
 function decodeFloatWeights(data, dtype, expectedLength, label) {
@@ -385,8 +408,11 @@ export async function getFinalNormWeights(state) {
     const dtypeValue = typeof finalNorm.dtype === 'string' ? finalNorm.dtype.trim().toLowerCase() : '';
     const dtype = selectRuleValue('inference', 'dtype', 'f16OrF32FromDtypeAlias', {
       dtype: dtypeValue === '' ? undefined : dtypeValue,
-      fallback: DEFAULT_DTYPE,
+      fallback: INVALID_DTYPE_SENTINEL,
     });
+    if (dtype === INVALID_DTYPE_SENTINEL) {
+      throw new Error(`[Pipeline] Unsupported final_norm dtype "${finalNorm.dtype}".`);
+    }
     const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
     const readSize = hiddenSize * bytesPerElement;
     const data = await readBuffer(finalNorm.buffer, readSize);

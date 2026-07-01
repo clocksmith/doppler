@@ -44,6 +44,24 @@ const expectedSession = {
     pageSize: 256,
     tiering: {
       mode: 'off',
+      hotWindow: 1024,
+      coldPageSize: 256,
+      coldDtype: 'f16',
+      compression: {
+        mode: 'none',
+        blockSize: 1,
+        bitWidth: 4,
+        prodMode: false,
+      },
+      gating: {
+        mode: 'auto',
+        minAluBwRatio: 0,
+      },
+    },
+    quantization: {
+      mode: 'none',
+      bitWidth: 4,
+      prodMode: false,
     },
   },
   decodeLoop: {

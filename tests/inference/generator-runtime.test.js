@@ -116,6 +116,18 @@ function createTestPlanState(maxTokens = 128) {
   };
 }
 
+function createTestSession() {
+  return {
+    speculation: {
+      mode: 'none',
+      tokens: 1,
+      verify: 'greedy',
+      threshold: null,
+      rollbackOnReject: true,
+    },
+  };
+}
+
 {
   const state = {
     debug: false,
@@ -124,7 +136,7 @@ function createTestPlanState(maxTokens = 128) {
         sampling: { temperature: 0.7, topP: 0.95, topK: 40, repetitionPenalty: 1.0 },
         generation: { maxTokens: 128, useSpeculative: false, profile: false, benchmark: false, embeddingMode: 'last' },
         chatTemplate: { enabled: false },
-        session: {},
+        session: createTestSession(),
       },
     },
     modelConfig: { chatTemplateEnabled: false },
@@ -152,7 +164,7 @@ function createTestPlanState(maxTokens = 128) {
         sampling: { temperature: 0.7, topP: 0.95, topK: 40, repetitionPenalty: 1.0 },
         generation: { maxTokens: 128, useSpeculative: false, profile: false, benchmark: false, embeddingMode: 'last' },
         chatTemplate: { enabled: undefined },
-        session: {},
+        session: createTestSession(),
       },
     },
     modelConfig: { chatTemplateEnabled: true },
@@ -186,7 +198,7 @@ function createTestPlanState(maxTokens = 128) {
         sampling: { temperature: 0.7, topP: 0.95, topK: 40, repetitionPenalty: 1.0 },
         generation: { maxTokens: 128, useSpeculative: false, profile: false, benchmark: false, embeddingMode: 'last' },
         chatTemplate: { enabled: false },
-        session: {},
+        session: createTestSession(),
       },
     },
     modelConfig: { chatTemplateEnabled: false },
@@ -212,7 +224,7 @@ function createTestPlanState(maxTokens = 128) {
         sampling: { temperature: 0.7, topP: 0.95, topK: 40, repetitionPenalty: 1.0 },
         generation: { maxTokens: 128, useSpeculative: false, profile: false, benchmark: false, embeddingMode: 'last' },
         chatTemplate: { enabled: undefined },
-        session: {},
+        session: createTestSession(),
       },
     },
     modelConfig: { chatTemplateEnabled: true },
@@ -235,7 +247,7 @@ function createTestPlanState(maxTokens = 128) {
         sampling: { temperature: 0.7, topP: 0.95, topK: 40, repetitionPenalty: 1.0 },
         generation: { maxTokens: 128, useSpeculative: false, profile: false, benchmark: false, embeddingMode: 'last' },
         chatTemplate: { enabled: false },
-        session: {},
+        session: createTestSession(),
       },
     },
     modelConfig: { chatTemplateEnabled: false },
@@ -258,7 +270,7 @@ function createTestPlanState(maxTokens = 128) {
       inference: {
         sampling: { temperature: 0, topP: 1, topK: 1, repetitionPenalty: 1.0 },
         generation: { profile: false, embeddingMode: 'last' },
-        session: {},
+        session: createTestSession(),
       },
     },
     modelConfig: {},
@@ -326,10 +338,13 @@ assert.throws(
 
 // === resolveFloatDtypeFromByteSize ===
 
-assert.equal(resolveFloatDtypeFromByteSize(0, 10), 'f32');
-assert.equal(resolveFloatDtypeFromByteSize(NaN, 10), 'f32');
-assert.equal(resolveFloatDtypeFromByteSize(-1, 10), 'f32');
-assert.equal(resolveFloatDtypeFromByteSize(10, 0), 'f32');
+assert.equal(resolveFloatDtypeFromByteSize(20, 10), 'f16');
+assert.equal(resolveFloatDtypeFromByteSize(40, 10), 'f32');
+assert.throws(() => resolveFloatDtypeFromByteSize(0, 10), /invalid size metadata/);
+assert.throws(() => resolveFloatDtypeFromByteSize(NaN, 10), /invalid size metadata/);
+assert.throws(() => resolveFloatDtypeFromByteSize(-1, 10), /invalid size metadata/);
+assert.throws(() => resolveFloatDtypeFromByteSize(10, 0), /invalid size metadata/);
+assert.throws(() => resolveFloatDtypeFromByteSize(30, 10), /bytesPerElement=3/);
 
 // === extractEmbeddingFromHidden ===
 
@@ -339,7 +354,7 @@ assert.equal(resolveFloatDtypeFromByteSize(10, 0), 'f32');
       inference: {
         generation: { profile: false, embeddingMode: 'last' },
         chatTemplate: { enabled: false },
-        session: {},
+        session: createTestSession(),
       },
     },
     modelConfig: {
@@ -365,7 +380,7 @@ assert.throws(
         inference: {
           generation: { profile: false, embeddingMode: 'last' },
           chatTemplate: { enabled: false },
-          session: {},
+        session: createTestSession(),
         },
       },
       modelConfig: {

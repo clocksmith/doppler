@@ -48,6 +48,11 @@ assert.equal(
   true
 );
 
+await assert.rejects(
+  () => extractLmHeadChunk(new Float32Array(4), 'row', 2, 2, 0, 1),
+  /source dtype is required/
+);
+
 {
   const values = new Float32Array([
     1, 2, 3, 4,

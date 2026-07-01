@@ -69,7 +69,7 @@
     "weightsRef": {
       "weightPackId": "gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1",
       "artifactRoot": "../gemma-4-31b-it-text-q4k-ehf16-af32",
-      "manifestDigest": "sha256:90a8ec45c327428456f8dacc601b6597bbf2f847ad47c7cca0b2746e15649a7b",
+      "manifestDigest": "sha256:4a84ba42bb906160b7b0c478c0b12ed87cfb19c575d149c1d26ded6e479a636d",
       "shardSetHash": "sha256:54933058e14fa0be4480912e641b897730db3e8ee7e871bdb2a92fd404ade146"
     }
   },
@@ -94,6 +94,7 @@
     "ffn": {
       "activation": "gelu",
       "gatedActivation": true,
+      "branchMode": "auto",
       "useDoubleWideMlp": false,
       "swigluLimit": null
     },
@@ -213,7 +214,25 @@
       "layout": "contiguous",
       "pageSize": 256,
       "tiering": {
-        "mode": "off"
+        "mode": "off",
+        "hotWindow": 1024,
+        "coldPageSize": 256,
+        "coldDtype": "f16",
+        "compression": {
+          "mode": "none",
+          "blockSize": 1,
+          "bitWidth": 4,
+          "prodMode": false
+        },
+        "gating": {
+          "mode": "auto",
+          "minAluBwRatio": 0
+        }
+      },
+      "quantization": {
+        "mode": "none",
+        "bitWidth": 4,
+        "prodMode": false
       }
     },
     "decodeLoop": {

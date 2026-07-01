@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { DEFAULT_KVCACHE_CONFIG } from '../../src/config/schema/index.js';
 import { runSweep } from '../../tools/lean-execution-contract-config-sweep.js';
 
 const root = mkdtempSync(path.join(tmpdir(), 'doppler-lean-execution-contract-config-sweep-'));
@@ -24,7 +25,7 @@ try {
   const v1Inference = {
     attention: { slidingWindow: null, attnLogitSoftcapping: null, queryKeyNorm: false, valueNorm: false, attentionOutputGate: false, causal: true, attentionBias: false, queryPreAttnScalar: 1 },
     normalization: { rmsNormWeightOffset: true, rmsNormEps: 1e-6, postAttentionNorm: false, preFeedforwardNorm: false, postFeedforwardNorm: false },
-    ffn: { activation: 'gelu', gatedActivation: true, useDoubleWideMlp: false, swigluLimit: null },
+    ffn: { activation: 'gelu', gatedActivation: true, branchMode: 'auto', useDoubleWideMlp: false, swigluLimit: null },
     rope: {
       ropeTheta: 1000000,
       ropeScalingFactor: 1,
@@ -51,9 +52,11 @@ try {
   const v1Session = {
     compute: { defaults: { activationDtype: 'f16', mathDtype: 'f16', accumDtype: 'f32', outputDtype: 'f16' } },
     kvcache: {
+      ...structuredClone(DEFAULT_KVCACHE_CONFIG),
       layout: 'paged',
       kvDtype: 'f16',
       tiering: {
+        ...structuredClone(DEFAULT_KVCACHE_CONFIG).tiering,
         mode: 'off',
       },
     },
