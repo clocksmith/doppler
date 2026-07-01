@@ -3,8 +3,8 @@
   "generatedAt": "2026-06-29T22:30:28.231Z",
   "release": {
     "channel": "main-snapshot",
-    "version": "0.4.3",
-    "commitSha": "fc0e5d9470210ef35f5bec71160501fe9ce0eae1",
+    "version": "0.4.4",
+    "commitSha": "c6363814d698a8adb3b150d024b1257cf2f678f3",
     "dirty": true
   },
   "sources": {
@@ -46,7 +46,7 @@
     },
     "localInferenceClaimMatrix": {
       "path": "benchmarks/vendors/local-inference-claim-matrix.json",
-      "sha256": "3f15aa41e882c0da45c3859e5fa32bf5b62e86a412686d8fcbb214ad9a15ecc0",
+      "sha256": "c5f217e0a57db0dda511613582a6e83280bba3cde0e3b282c3cecbc38e106ed8",
       "bytes": 23605,
       "updated": "2026-06-27"
     },
@@ -1462,7 +1462,7 @@
       "laneId": "gemma-3-270m-it-q4k-rdrr",
       "status": "candidate",
       "claimReady": false,
-      "statusReason": "Fresh 2026-06-27 15-run throughput receipts cover p064, p256, and p512 on Chromium/browser, Node, and Bun with exact output match, nonzero decode, pinned local manifest hash 9c54c2092b1c4c077ebe1cac9960ce97bedee82c884c3596209a0cfcf500dba0, and the declared 8x8 overlapped readback cadence. Doppler leads TJS q4 on every p064 surface and every p512 surface, and leads the p256 browser surface. The lane remains candidate because p256 Node and Bun decode are TJS-leading despite passing correctness and throughput gates, with command recording as the dominant Doppler bottleneck. Node and Bun comparisons also carry the compare tool's cross-surface warning because TJS still runs in Chromium.",
+      "statusReason": "Fresh 2026-06-27 15-run throughput receipts cover p064, p256, and p512 on Chromium/browser, Node, and Bun with exact output match, nonzero decode, pinned local manifest hash 4bb1af0de9a0367a3d036e485622917209b54b4ed2f877048b9ce015ea8c1511, and the declared 8x8 overlapped readback cadence. Doppler leads TJS q4 on every p064 surface and every p512 surface, and leads the p256 browser surface. The lane remains candidate because p256 Node and Bun decode are TJS-leading despite passing correctness and throughput gates, with command recording as the dominant Doppler bottleneck. Node and Bun comparisons also carry the compare tool's cross-surface warning because TJS still runs in Chromium.",
       "missingBackendIds": [],
       "missingWorkloadIds": [],
       "missingDecodeProfileIds": [],

@@ -47,20 +47,33 @@ export function createExecutionV1Session(overrides = {}) {
 }
 
 export function createExecutionContractSession(overrides = {}) {
+  const baseKVCache = cloneJson(DEFAULT_KVCACHE_CONFIG);
+  const overrideKVCache = overrides.kvcache ?? {};
   return createExecutionV1Session({
+    ...overrides,
     kvcache: {
-      ...cloneJson(DEFAULT_KVCACHE_CONFIG),
+      ...baseKVCache,
       layout: 'contiguous',
       kvDtype: 'f16',
+      ...overrideKVCache,
       tiering: {
-        ...cloneJson(DEFAULT_KVCACHE_CONFIG).tiering,
+        ...baseKVCache.tiering,
         mode: 'off',
+        ...(overrideKVCache.tiering ?? {}),
+        compression: {
+          ...baseKVCache.tiering.compression,
+          ...(overrideKVCache.tiering?.compression ?? {}),
+        },
+        gating: {
+          ...baseKVCache.tiering.gating,
+          ...(overrideKVCache.tiering?.gating ?? {}),
+        },
       },
       quantization: {
-        ...cloneJson(DEFAULT_KVCACHE_CONFIG).quantization,
-        mode: 'none',
+        ...baseKVCache.quantization,
+      mode: 'none',
+        ...(overrideKVCache.quantization ?? {}),
       },
-      ...(overrides.kvcache ?? {}),
     },
     decodeLoop: {
       batchSize: 1,
@@ -73,6 +86,5 @@ export function createExecutionContractSession(overrides = {}) {
       disableCommandBatching: false,
       ...(overrides.decodeLoop ?? {}),
     },
-    ...overrides,
   });
 }

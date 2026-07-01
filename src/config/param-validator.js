@@ -4,6 +4,11 @@ import { TOOLING_INTENTS, TOOLING_DIAGNOSTICS } from './schema/tooling.schema.js
 import { validateEcosystemConfig } from './schema/ecosystem.schema.js';
 import { isPlainObject } from '../utils/plain-object.js';
 
+const MODEL_OVERRIDE_ALLOWED_PREFIXES = Object.freeze([
+  'vision_config',
+  'audio_config',
+]);
+
 export function validateCallTimeOptions(options) {
   if (!options) return;
 
@@ -23,7 +28,7 @@ export function validateCallTimeOptions(options) {
 
   const violation = violations[0];
   const guidance = violation.category === 'model'
-    ? 'Set via runtime.inference.modelOverrides (experimental) or manifest.'
+    ? 'Set in the conversion config/manifest. Runtime modelOverrides are limited to an explicit allowlist.'
     : 'Set via setRuntimeConfig() before generation.';
 
   throw new Error(
@@ -39,25 +44,39 @@ export function validateRuntimeOverrides(overrides) {
   }
 
   for (const key of ['shared', 'loading', 'inference', 'emulation']) {
-    assertRequiredRuntimeOverrideNotNull(overrides, key);
+    assertRuntimeOverrideObject(overrides, key);
   }
   for (const key of ['batching', 'compute', 'generation', 'kernelPathPolicy']) {
-    assertRequiredRuntimeOverrideNotNull(overrides?.inference, key, 'runtime.inference');
+    assertRuntimeOverrideObject(overrides?.inference, key, 'runtime.inference');
   }
   validateRuntimeKernelPath('runtime.inference.kernelPath', overrides?.inference?.kernelPath);
 
   const modelOverrides = overrides?.inference?.modelOverrides;
+  validateModelOverrides(modelOverrides, 'runtime.inference.modelOverrides');
+}
+
+export function validateModelOverrides(modelOverrides, label = 'runtime.inference.modelOverrides') {
   if (modelOverrides !== undefined && modelOverrides !== null && !isPlainObject(modelOverrides)) {
-    throw new Error('DopplerConfigError: runtime.inference.modelOverrides must be an object when provided.');
+    throw new Error(`DopplerConfigError: ${label} must be an object when provided.`);
   }
   if (!modelOverrides) return;
 
   const params = flattenObject(modelOverrides);
   if (params.length === 0) return;
 
+  const disallowed = params.filter((param) => !isAllowedModelOverridePath(param));
+  if (disallowed.length > 0) {
+    throw new Error(
+      `DopplerConfigError: ${label} may only override ` +
+      `${MODEL_OVERRIDE_ALLOWED_PREFIXES.join(', ')}. ` +
+      `Disallowed model param(s): ${disallowed.join(', ')}. ` +
+      'Move model inference params to the conversion config/manifest.'
+    );
+  }
+
   log.warn(
     'Config',
-    `Experimental: Overriding ${params.length} model param(s) via runtime: ${params.join(', ')}. ` +
+    `Experimental: Overriding ${params.length} allowlisted model param(s) via runtime: ${params.join(', ')}. ` +
       'Manifest values are recommended.'
   );
 }
@@ -88,6 +107,12 @@ export function validateRuntimeConfig(runtimeConfig) {
   }
   if (compute?.deferredRoundingWindowTokens !== undefined) {
     assertPositiveInt('runtime.inference.compute.deferredRoundingWindowTokens', compute.deferredRoundingWindowTokens);
+  }
+  if (generation?.maxTokens !== undefined) {
+    assertPositiveInt('runtime.inference.generation.maxTokens', generation.maxTokens);
+  }
+  if (generation?.multimodalMaxTokens !== undefined) {
+    assertPositiveInt('runtime.inference.generation.multimodalMaxTokens', generation.multimodalMaxTokens);
   }
   if (session?.prefillTokenChunkSize !== undefined) {
     assertNullablePositiveInt('runtime.inference.session.prefillTokenChunkSize', session.prefillTokenChunkSize);
@@ -194,15 +219,21 @@ function validateToolingIntent(runtimeConfig) {
 function flattenObject(obj, prefix = '') {
   const result = [];
   for (const [key, value] of Object.entries(obj)) {
-    if (value === undefined || value === null) continue;
+    if (value === undefined) continue;
     const path = prefix ? `${prefix}.${key}` : key;
-    if (typeof value === 'object' && !Array.isArray(value)) {
+    if (isPlainObject(value)) {
       result.push(...flattenObject(value, path));
     } else {
       result.push(path);
     }
   }
   return result;
+}
+
+function isAllowedModelOverridePath(path) {
+  return MODEL_OVERRIDE_ALLOWED_PREFIXES.some((prefix) => {
+    return path === prefix || path.startsWith(`${prefix}.`);
+  });
 }
 
 function isDebugMode(debug) {
@@ -290,12 +321,15 @@ function validateKernelPathPolicy(label, value) {
   }
 }
 
-function assertRequiredRuntimeOverrideNotNull(container, key, prefix = 'runtime') {
+function assertRuntimeOverrideObject(container, key, prefix = 'runtime') {
   if (!isPlainObject(container) || !Object.prototype.hasOwnProperty.call(container, key)) {
     return;
   }
   if (container[key] === null) {
     throw new Error(`DopplerConfigError: ${prefix}.${key} must not be null.`);
+  }
+  if (!isPlainObject(container[key])) {
+    throw new Error(`DopplerConfigError: ${prefix}.${key} must be an object when provided.`);
   }
 }
 

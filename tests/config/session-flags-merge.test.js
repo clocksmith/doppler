@@ -23,7 +23,7 @@ function buildManifest(sessionOverrides = {}, largeWeightsOverrides = undefined)
         preFeedforwardNorm: true,
         postFeedforwardNorm: false,
       },
-      ffn: { activation: 'gelu', gatedActivation: false, swigluLimit: null },
+      ffn: { activation: 'gelu', gatedActivation: false, branchMode: 'auto', swigluLimit: null },
       rope: {
         ropeTheta: 1000000, ropeLocalTheta: null, ropeFrequencyBaseDim: null,
         ropeLocalFrequencyBaseDim: null, ropeScalingType: null, ropeScalingFactor: null,

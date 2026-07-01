@@ -304,9 +304,12 @@ export async function extractLmHeadChunk(
   vocabSize,
   rowOffset,
   rowCount,
-  sourceDtype = 'f32'
+  sourceDtype
 ) {
-  const normalizedSourceDtype = String(sourceDtype ?? 'f32').toLowerCase();
+  if (typeof sourceDtype !== 'string' || sourceDtype.trim() === '') {
+    throw new Error('[Logits] CPU LM head source dtype is required.');
+  }
+  const normalizedSourceDtype = sourceDtype.trim().toLowerCase();
   if (normalizedSourceDtype !== 'f32' && normalizedSourceDtype !== 'f16' && normalizedSourceDtype !== 'bf16') {
     throw new Error(`[Logits] Unsupported CPU LM head source dtype "${sourceDtype}".`);
   }

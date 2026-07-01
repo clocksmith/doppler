@@ -5,9 +5,11 @@ import { DEFAULT_EMULATION_CONFIG, createEmulationConfig } from './emulation.sch
 import { DEFAULT_KVCACHE_CONFIG } from './kvcache.schema.js';
 import { DEFAULT_MOE_RUNTIME_CONFIG } from './moe.schema.js';
 import { DEFAULT_SPECULATIVE_CONFIG } from './speculative.schema.js';
-import { mergeEcosystemConfig } from './ecosystem.schema.js';
+import { DEFAULT_SELF_SPECULATION_CONFIG } from './speculation-self.schema.js';
+import { mergeRuntimeValues } from '../runtime-merge.js';
+import { validateRuntimeOverrides } from '../param-validator.js';
+import { isPlainObject } from '../../utils/plain-object.js';
 import {
-  chooseNullish,
   chooseDefined,
   mergeExecutionPatchLists,
   mergeKernelPathPolicy,
@@ -59,6 +61,8 @@ export const DEFAULT_RUNTIME_CONFIG = {
     moe: DEFAULT_MOE_RUNTIME_CONFIG,
     speculative: DEFAULT_SPECULATIVE_CONFIG,
     generation: {
+      maxTokens: 256,
+      multimodalMaxTokens: 512,
       disableMultiTokenDecode: false,
     },
     kernelPathPolicy: mergeKernelPathPolicy(undefined, {
@@ -69,6 +73,7 @@ export const DEFAULT_RUNTIME_CONFIG = {
     chatTemplate: DEFAULT_CHAT_TEMPLATE_CONFIG,
     session: {
       kvcache: DEFAULT_KVCACHE_CONFIG,
+      speculation: { ...DEFAULT_SELF_SPECULATION_CONFIG },
       // "sync" (default): wait for each prefill chunk to finish on GPU before
       //   recording the next. Required when profile timings are being
       //   resolved and when low-memory constraints demand deterministic
@@ -186,17 +191,18 @@ export const DEFAULT_DOPPLER_CONFIG = {
 export function createDopplerConfig(
   overrides
 ) {
+  const runtimeBase = cloneConfigTree(DEFAULT_RUNTIME_CONFIG);
+
   if (!overrides) {
     return {
       model: DEFAULT_DOPPLER_CONFIG.model,
-      runtime: cloneConfigTree(DEFAULT_RUNTIME_CONFIG),
+      runtime: runtimeBase,
     };
   }
 
   const runtimeOverrides = overrides.runtime ?? {};
-  const runtimeBase = cloneConfigTree(DEFAULT_RUNTIME_CONFIG);
   const runtime = overrides.runtime
-    ? mergeRuntimeConfig(runtimeBase, runtimeOverrides)
+    ? createRuntimeConfig(runtimeBase, runtimeOverrides)
     : runtimeBase;
   const config = {
     model: overrides.model ?? DEFAULT_DOPPLER_CONFIG.model,
@@ -205,234 +211,85 @@ export function createDopplerConfig(
   return config;
 }
 
-function mergeRuntimeConfig(
-  base,
-  overrides
-) {
-  return {
-    shared: overrides.shared
-      ? mergeSharedRuntimeConfig(base.shared, overrides.shared)
-      : { ...base.shared },
-    loading: overrides.loading
-      ? mergeLoadingConfig(base.loading, overrides.loading)
-      : { ...base.loading },
-    inference: overrides.inference
-      ? mergeInferenceConfig(base.inference, overrides.inference)
-      : { ...base.inference },
-    emulation: overrides.emulation
-      ? mergeEmulationConfig(base.emulation, overrides.emulation)
-      : { ...base.emulation },
-  };
+function createRuntimeConfig(base, overrides) {
+  validateRuntimeOverrides(overrides);
+  const runtime = mergeRuntimeValues(base, overrides);
+  normalizeRuntimeContracts(runtime, base, overrides);
+  return runtime;
 }
 
-function mergeSharedRuntimeConfig(
-  base,
-  overrides
-) {
-  return {
-    debug: overrides.debug
-      ? mergeDebugConfig(base.debug, overrides.debug)
-      : { ...base.debug },
-    benchmark: overrides.benchmark
-      ? mergeBenchmarkConfig(base.benchmark, overrides.benchmark)
-      : { ...base.benchmark },
-    harness: overrides.harness
-      ? { ...base.harness, ...overrides.harness }
-      : { ...base.harness },
-    tooling: overrides.tooling
-      ? { ...base.tooling, ...overrides.tooling }
-      : { ...base.tooling },
-    ecosystem: overrides.ecosystem
-      ? mergeEcosystemConfig(base.ecosystem, overrides.ecosystem)
-      : mergeEcosystemConfig(base.ecosystem, {}),
-    platform: overrides.platform ?? base.platform,
-    kernelRegistry: { ...base.kernelRegistry, ...overrides.kernelRegistry },
-    kernelThresholds: overrides.kernelThresholds
-      ? mergeKernelThresholds(base.kernelThresholds, overrides.kernelThresholds)
-      : { ...base.kernelThresholds },
-    kernelWarmup: overrides.kernelWarmup
-      ? { ...base.kernelWarmup, ...overrides.kernelWarmup }
-      : { ...base.kernelWarmup },
-    bufferPool: overrides.bufferPool
-      ? {
-          bucket: { ...base.bufferPool.bucket, ...overrides.bufferPool.bucket },
-          limits: { ...base.bufferPool.limits, ...overrides.bufferPool.limits },
-          alignment: { ...base.bufferPool.alignment, ...overrides.bufferPool.alignment },
-          budget: { ...base.bufferPool.budget, ...overrides.bufferPool.budget },
-        }
-      : { ...base.bufferPool },
-    gpuCache: { ...base.gpuCache, ...overrides.gpuCache },
-    tuner: { ...base.tuner, ...overrides.tuner },
-    memory: overrides.memory
-      ? {
-          heapTesting: { ...base.memory.heapTesting, ...overrides.memory.heapTesting },
-          segmentTesting: { ...base.memory.segmentTesting, ...overrides.memory.segmentTesting },
-          addressSpace: { ...base.memory.addressSpace, ...overrides.memory.addressSpace },
-          segmentAllocation: { ...base.memory.segmentAllocation, ...overrides.memory.segmentAllocation },
-        }
-      : { ...base.memory },
-    hotSwap: overrides.hotSwap
-      ? {
-          ...base.hotSwap,
-          ...overrides.hotSwap,
-          trustedSigners: overrides.hotSwap.trustedSigners ?? base.hotSwap.trustedSigners,
-        }
-      : { ...base.hotSwap },
-    intentBundle: overrides.intentBundle
-      ? { ...base.intentBundle, ...overrides.intentBundle }
-      : { ...base.intentBundle },
-    bridge: { ...base.bridge, ...overrides.bridge },
-  };
+function normalizeRuntimeContracts(runtime, base, overrides) {
+  if (isPlainObject(overrides.inference)) {
+    normalizeInferenceContracts(runtime.inference, base.inference, overrides.inference);
+  }
+  if (isPlainObject(overrides.emulation)) {
+    runtime.emulation = createEmulationConfig(overrides.emulation);
+  }
 }
 
-function mergeLoadingConfig(
-  base,
-  overrides
-) {
-  return {
-    storage: overrides.storage
-      ? {
-          quota: { ...base.storage.quota, ...overrides.storage.quota },
-          vramEstimation: { ...base.storage.vramEstimation, ...overrides.storage.vramEstimation },
-          alignment: { ...base.storage.alignment, ...overrides.storage.alignment },
-          backend: overrides.storage.backend
-            ? {
-                backend: overrides.storage.backend.backend ?? base.storage.backend.backend,
-                opfs: { ...base.storage.backend.opfs, ...overrides.storage.backend.opfs },
-                indexeddb: { ...base.storage.backend.indexeddb, ...overrides.storage.backend.indexeddb },
-                memory: { ...base.storage.backend.memory, ...overrides.storage.backend.memory },
-                streaming: { ...base.storage.backend.streaming, ...overrides.storage.backend.streaming },
-              }
-            : { ...base.storage.backend },
-        }
-      : { ...base.storage },
-    distribution: { ...base.distribution, ...overrides.distribution },
-    shardCache: { ...base.shardCache, ...overrides.shardCache },
-    memoryManagement: overrides.memoryManagement
-      ? {
-          ...base.memoryManagement,
-          ...overrides.memoryManagement,
-          budget: {
-            ...base.memoryManagement.budget,
-            ...overrides.memoryManagement.budget,
-          },
-        }
-      : { ...base.memoryManagement },
-    prefetch: { ...base.prefetch, ...overrides.prefetch },
-    opfsPath: { ...base.opfsPath, ...overrides.opfsPath },
-    expertCache: { ...base.expertCache, ...overrides.expertCache },
-    allowF32UpcastNonMatmul: overrides.allowF32UpcastNonMatmul ?? base.allowF32UpcastNonMatmul,
-  };
+function normalizeInferenceContracts(inference, base, overrides) {
+  if (hasOwn(overrides, 'kernelPath')) {
+    inference.kernelPath = mergeRuntimeKernelPath(base.kernelPath, overrides.kernelPath);
+  }
+  if (hasOwn(overrides, 'kernelPathPolicy')) {
+    inference.kernelPathPolicy = mergeKernelPathPolicy(
+      base.kernelPathPolicy ?? {},
+      overrides.kernelPathPolicy ?? {}
+    );
+  }
+  if (hasOwn(overrides, 'chatTemplate')) {
+    inference.chatTemplate = mergeShallowObject(base.chatTemplate, overrides.chatTemplate);
+  }
+  if (hasOwn(overrides, 'executionPatch')) {
+    inference.executionPatch = mergeExecutionPatchLists(
+      base.executionPatch ?? {},
+      overrides.executionPatch ?? {}
+    );
+  }
+  if (hasOwn(overrides, 'modelOverrides')) {
+    inference.modelOverrides = chooseDefined(overrides.modelOverrides, base.modelOverrides);
+  }
+  normalizeSessionContracts(inference, base, overrides);
 }
 
-function mergeInferenceConfig(
-  base,
-  overrides
-) {
+function normalizeSessionContracts(inference, base, overrides) {
+  if (!isPlainObject(overrides.session) || !isPlainObject(inference.session)) {
+    return;
+  }
+
   const baseSession = base.session ?? {};
-  const overrideSession = overrides.session ?? {};
-  const baseSessionCompute = baseSession.compute ?? {};
-  const overrideSessionCompute = overrideSession.compute ?? {};
-  const baseSessionComputeDefaults = baseSessionCompute.defaults ?? {};
-  const overrideSessionComputeDefaults = overrideSessionCompute.defaults ?? {};
-  const baseExecutionPatch = base.executionPatch ?? {};
-  const overrideExecutionPatch = overrides.executionPatch ?? {};
-  const baseKernelPathPolicy = base.kernelPathPolicy ?? {};
-  const overrideKernelPathPolicy = overrides.kernelPathPolicy ?? {};
-  const baseDiffusion = base.diffusion ?? {};
-  const baseDiffusionDecode = baseDiffusion.decode ?? {};
-  const baseDiffusionGemma = base.diffusionGemma ?? {};
-  const baseEnergy = base.energy ?? {};
-  const baseEnergyQuintel = baseEnergy.quintel ?? {};
-  const baseMoe = base.moe ?? {};
-  const hasRuntimeKernelProfiles = Object.prototype.hasOwnProperty.call(
-    overrideSessionCompute,
-    'kernelProfiles'
-  );
+  const overrideSession = overrides.session;
+  if (hasOwn(overrideSession, 'kvcache')) {
+    inference.session.kvcache = replaceSubtree(overrideSession.kvcache, baseSession.kvcache);
+  }
+  if (hasOwn(overrideSession, 'decodeLoop')) {
+    inference.session.decodeLoop = replaceSubtree(overrideSession.decodeLoop, baseSession.decodeLoop);
+  }
+  if (hasOwn(overrideSession, 'perLayerInputs')) {
+    inference.session.perLayerInputs = replaceSubtree(
+      overrideSession.perLayerInputs,
+      baseSession.perLayerInputs
+    );
+  }
+  if (hasOwn(overrideSession, 'speculation')) {
+    inference.session.speculation = replaceSubtree(
+      overrideSession.speculation,
+      baseSession.speculation
+    );
+  }
 
-  return {
-    prompt: overrides.prompt ?? base.prompt,
-    debugTokens: overrides.debugTokens ?? base.debugTokens,
-    batching: { ...base.batching, ...overrides.batching },
-    sampling: { ...base.sampling, ...overrides.sampling },
-    compute: { ...base.compute, ...overrides.compute },
-    tokenizer: { ...base.tokenizer, ...overrides.tokenizer },
-    largeWeights: { ...base.largeWeights, ...overrides.largeWeights },
-    kvcache: { ...base.kvcache, ...overrides.kvcache },
-    diffusion: overrides.diffusion
-      ? {
-          ...baseDiffusion,
-          ...overrides.diffusion,
-          scheduler: { ...baseDiffusion.scheduler, ...overrides.diffusion.scheduler },
-          latent: { ...baseDiffusion.latent, ...overrides.diffusion.latent },
-          textEncoder: { ...baseDiffusion.textEncoder, ...overrides.diffusion.textEncoder },
-          decode: {
-            ...baseDiffusionDecode,
-            ...overrides.diffusion.decode,
-            tiling: { ...baseDiffusionDecode.tiling, ...overrides.diffusion.decode?.tiling },
-          },
-          swapper: { ...baseDiffusion.swapper, ...overrides.diffusion.swapper },
-          quantization: { ...baseDiffusion.quantization, ...overrides.diffusion.quantization },
-        }
-      : { ...baseDiffusion },
-    diffusionGemma: { ...baseDiffusionGemma, ...overrides.diffusionGemma },
-    energy: overrides.energy
-      ? {
-          ...baseEnergy,
-          ...overrides.energy,
-          problem: overrides.energy.problem ?? baseEnergy.problem,
-          state: { ...baseEnergy.state, ...overrides.energy.state },
-          init: { ...baseEnergy.init, ...overrides.energy.init },
-          target: { ...baseEnergy.target, ...overrides.energy.target },
-          loop: { ...baseEnergy.loop, ...overrides.energy.loop },
-          diagnostics: { ...baseEnergy.diagnostics, ...overrides.energy.diagnostics },
-          quintel: overrides.energy.quintel
-            ? {
-                ...baseEnergyQuintel,
-                ...overrides.energy.quintel,
-                rules: { ...baseEnergyQuintel.rules, ...overrides.energy.quintel.rules },
-                weights: { ...baseEnergyQuintel.weights, ...overrides.energy.quintel.weights },
-                clamp: { ...baseEnergyQuintel.clamp, ...overrides.energy.quintel.clamp },
-              }
-            : { ...baseEnergyQuintel },
-        }
-      : { ...baseEnergy },
-    moe: overrides.moe
-      ? {
-          routing: { ...baseMoe.routing, ...overrides.moe.routing },
-          cache: { ...baseMoe.cache, ...overrides.moe.cache },
-        }
-      : { ...baseMoe },
-    speculative: { ...base.speculative, ...overrides.speculative },
-    generation: { ...base.generation, ...overrides.generation },
-    pipeline: overrides.pipeline ?? base.pipeline,
-    kernelPath: mergeRuntimeKernelPath(base.kernelPath, overrides.kernelPath),
-    kernelPathSource: overrides.kernelPathSource ?? base.kernelPathSource,
-    kernelPathPolicy: mergeKernelPathPolicy(baseKernelPathPolicy, overrideKernelPathPolicy),
-    chatTemplate: mergeShallowObject(base.chatTemplate, overrides.chatTemplate),
-    session: {
-      ...baseSession,
-      ...overrideSession,
-      compute: {
-        ...baseSessionCompute,
-        ...overrideSessionCompute,
-        defaults: {
-          ...baseSessionComputeDefaults,
-          ...overrideSessionComputeDefaults,
-        },
-        ...(hasRuntimeKernelProfiles
-          ? { kernelProfiles: overrideSessionCompute.kernelProfiles }
-          : { kernelProfiles: baseSessionCompute.kernelProfiles }),
-      },
-      kvcache: replaceSubtree(overrideSession.kvcache, baseSession.kvcache),
-      decodeLoop: replaceSubtree(overrideSession.decodeLoop, baseSession.decodeLoop),
-      perLayerInputs: replaceSubtree(overrideSession.perLayerInputs, baseSession.perLayerInputs),
-      prefillTokenChunkSize: overrideSession.prefillTokenChunkSize ?? baseSession.prefillTokenChunkSize,
-    },
-    executionPatch: mergeExecutionPatchLists(baseExecutionPatch, overrideExecutionPatch),
-    // Model-specific inference overrides (merged with manifest.inference at load time)
-    modelOverrides: overrides.modelOverrides ?? base.modelOverrides,
-  };
+  const overrideSessionCompute = overrideSession.compute;
+  if (isPlainObject(overrideSessionCompute) && hasOwn(overrideSessionCompute, 'kernelProfiles')) {
+    const compute = isPlainObject(inference.session.compute) ? inference.session.compute : {};
+    inference.session.compute = {
+      ...compute,
+      kernelProfiles: overrideSessionCompute.kernelProfiles,
+    };
+  }
+}
+
+function hasOwn(container, key) {
+  return Object.prototype.hasOwnProperty.call(container, key);
 }
 
 function mergeRuntimeKernelPath(
@@ -459,71 +316,4 @@ function assertRuntimeKernelPath(kernelPath) {
       'DopplerConfigError: runtime.inference.kernelPath must be an inline kernel path object or null.'
     );
   }
-}
-
-function mergeKernelThresholds(
-  base,
-  overrides
-) {
-  return {
-    ...base,
-    ...overrides,
-    matmul: { ...base.matmul, ...overrides.matmul },
-    rmsnorm: { ...base.rmsnorm, ...overrides.rmsnorm },
-    rope: { ...base.rope, ...overrides.rope },
-    attention: { ...base.attention, ...overrides.attention },
-    fusedMatmul: { ...base.fusedMatmul, ...overrides.fusedMatmul },
-    cast: { ...base.cast, ...overrides.cast },
-  };
-}
-
-function mergeDebugConfig(
-  base,
-  overrides
-) {
-  if (!overrides) {
-    return { ...base };
-  }
-
-  return {
-    logOutput: { ...base.logOutput, ...overrides.logOutput },
-    logHistory: { ...base.logHistory, ...overrides.logHistory },
-    logLevel: { ...base.logLevel, ...overrides.logLevel },
-    trace: { ...base.trace, ...overrides.trace },
-    pipeline: { ...base.pipeline, ...overrides.pipeline },
-    loader: { ...base.loader, ...overrides.loader },
-    matmul: { ...base.matmul, ...overrides.matmul },
-    kernelTrace: { ...base.kernelTrace, ...overrides.kernelTrace },
-    probes: overrides.probes ?? base.probes,
-    profiler: { ...base.profiler, ...overrides.profiler },
-    perfGuards: { ...base.perfGuards, ...overrides.perfGuards },
-  };
-}
-
-function mergeBenchmarkConfig(
-  base,
-  overrides
-) {
-  if (!overrides) {
-    return { ...base };
-  }
-
-  return {
-    output: { ...base.output, ...overrides.output },
-    run: { ...base.run, ...overrides.run },
-    stats: { ...base.stats, ...overrides.stats },
-    comparison: { ...base.comparison, ...overrides.comparison },
-    baselines: { ...base.baselines, ...overrides.baselines },
-  };
-}
-
-function mergeEmulationConfig(
-  base,
-  overrides
-) {
-  if (!overrides) {
-    return { ...base };
-  }
-
-  return createEmulationConfig(overrides);
 }

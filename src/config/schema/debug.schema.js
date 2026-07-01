@@ -102,6 +102,7 @@ export const DEFAULT_PROFILER_CONFIG = {
   maxSamples: 100,
   maxDurationMs: 60000,
   logEveryDecodeSteps: 64,
+  maxHistoryLabels: 1024,
 };
 
 // =============================================================================

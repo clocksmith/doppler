@@ -6,10 +6,25 @@ import {
   validateExecutionContractFacts,
   validateManifestExecutionContract,
 } from '../../src/config/execution-contract-check.js';
-import { EXECUTION_V1_SCHEMA_ID } from '../../src/config/schema/index.js';
+import { DEFAULT_KVCACHE_CONFIG, EXECUTION_V1_SCHEMA_ID } from '../../src/config/schema/index.js';
 import { validateManifest } from '../../src/formats/rdrr/validation.js';
 
 const D = (char) => `sha256:${char.repeat(64)}`;
+
+function createResolvedKVCache(overrides = {}) {
+  return {
+    ...structuredClone(DEFAULT_KVCACHE_CONFIG),
+    ...overrides,
+    tiering: {
+      ...structuredClone(DEFAULT_KVCACHE_CONFIG).tiering,
+      ...(overrides.tiering ?? {}),
+    },
+    quantization: {
+      ...structuredClone(DEFAULT_KVCACHE_CONFIG).quantization,
+      ...(overrides.quantization ?? {}),
+    },
+  };
+}
 
 function buildExecutionContractFixtureManifest() {
   return {
@@ -66,6 +81,7 @@ function buildExecutionContractFixtureManifest() {
       ffn: {
         activation: 'gelu',
         gatedActivation: true,
+        branchMode: 'auto',
         useDoubleWideMlp: false,
         swigluLimit: null,
       },
@@ -118,13 +134,13 @@ function buildExecutionContractFixtureManifest() {
             outputDtype: 'f32',
           },
         },
-        kvcache: {
+        kvcache: createResolvedKVCache({
           layout: 'paged',
           kvDtype: 'f16',
           tiering: {
             mode: 'off',
           },
-        },
+        }),
         decodeLoop: {
           batchSize: 1,
           stopCheckMode: 'batch',
@@ -227,7 +243,7 @@ const translateGemmaManifest = buildExecutionContractFixtureManifest();
 
 {
   const turboquantManifest = structuredClone(translateGemmaManifest);
-  turboquantManifest.inference.session.kvcache = {
+  turboquantManifest.inference.session.kvcache = createResolvedKVCache({
     layout: 'contiguous',
     kvDtype: 'f16',
     maxSeqLen: 2048,
@@ -239,7 +255,7 @@ const translateGemmaManifest = buildExecutionContractFixtureManifest();
       bitWidth: 4,
       prodMode: false,
     },
-  };
+  });
 
   const facts = extractExecutionContractFacts(turboquantManifest);
   assert.equal(facts.session.kvLen, 2048, 'session maxSeqLen should clamp execution-contract KV len');
@@ -251,7 +267,7 @@ const translateGemmaManifest = buildExecutionContractFixtureManifest();
 
 {
   const invalidTurboquantManifest = structuredClone(translateGemmaManifest);
-  invalidTurboquantManifest.inference.session.kvcache = {
+  invalidTurboquantManifest.inference.session.kvcache = createResolvedKVCache({
     layout: 'contiguous',
     kvDtype: 'f16',
     maxSeqLen: 4096,
@@ -263,7 +279,7 @@ const translateGemmaManifest = buildExecutionContractFixtureManifest();
       bitWidth: 4,
       prodMode: false,
     },
-  };
+  });
 
   const evaluation = validateManifestExecutionContract(invalidTurboquantManifest);
   assert.equal(evaluation.ok, false);
@@ -276,7 +292,7 @@ const translateGemmaManifest = buildExecutionContractFixtureManifest();
 
 {
   const unsupportedOutlierManifest = structuredClone(translateGemmaManifest);
-  unsupportedOutlierManifest.inference.session.kvcache = {
+  unsupportedOutlierManifest.inference.session.kvcache = createResolvedKVCache({
     layout: 'contiguous',
     kvDtype: 'f16',
     maxSeqLen: 2048,
@@ -288,7 +304,7 @@ const translateGemmaManifest = buildExecutionContractFixtureManifest();
       bitWidth: 4,
       prodMode: false,
     },
-  };
+  });
 
   assert.throws(
     () => validateManifestExecutionContract(unsupportedOutlierManifest),
@@ -299,7 +315,7 @@ const translateGemmaManifest = buildExecutionContractFixtureManifest();
 
 {
   const tieredTurboquantManifest = structuredClone(translateGemmaManifest);
-  tieredTurboquantManifest.inference.session.kvcache = {
+  tieredTurboquantManifest.inference.session.kvcache = createResolvedKVCache({
     layout: 'tiered',
     kvDtype: 'f16',
     maxSeqLen: 2048,
@@ -318,7 +334,7 @@ const translateGemmaManifest = buildExecutionContractFixtureManifest();
         mode: 'force_on',
       },
     },
-  };
+  });
 
   const facts = extractExecutionContractFacts(tieredTurboquantManifest);
   assert.equal(facts.session.coldQuantMode, 'turboquant');

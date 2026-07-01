@@ -442,22 +442,35 @@ function getRequiredKernelMaxKVLen(operation, variant, label) {
 }
 
 function resolveTieredRequestedQuantMode(runtimeKV) {
-  const tieringMode = String(runtimeKV?.tiering?.mode ?? 'off').trim().toLowerCase();
+  const tiering = requirePlainObject(
+    runtimeKV?.tiering,
+    'runtime.inference.session.kvcache.tiering'
+  );
+  const tieringMode = requireNonEmptyString(
+    tiering.mode,
+    'runtime.inference.session.kvcache.tiering.mode'
+  ).toLowerCase();
   assertSupportedTurboQuantMode(tieringMode, 'runtime.inference.session.kvcache.tiering.mode');
-  const compressionMode = String(
-    runtimeKV?.tiering?.compression?.mode
-    ?? (tieringMode === 'int8'
-      || tieringMode === 'int4'
-      || tieringMode === 'turboquant'
-      || tieringMode === 'turboquant_prod'
-      ? tieringMode
-      : 'none')
-  ).trim().toLowerCase();
+  const compression = requirePlainObject(
+    tiering.compression,
+    'runtime.inference.session.kvcache.tiering.compression'
+  );
+  const compressionMode = requireNonEmptyString(
+    compression.mode,
+    'runtime.inference.session.kvcache.tiering.compression.mode'
+  ).toLowerCase();
   assertSupportedTurboQuantMode(
     compressionMode,
     'runtime.inference.session.kvcache.tiering.compression.mode'
   );
-  const gatingMode = String(runtimeKV?.tiering?.gating?.mode ?? 'auto').trim().toLowerCase();
+  const gating = requirePlainObject(
+    tiering.gating,
+    'runtime.inference.session.kvcache.tiering.gating'
+  );
+  const gatingMode = requireNonEmptyString(
+    gating.mode,
+    'runtime.inference.session.kvcache.tiering.gating.mode'
+  ).toLowerCase();
   if (gatingMode === 'force_off') {
     return 'none';
   }
@@ -465,7 +478,14 @@ function resolveTieredRequestedQuantMode(runtimeKV) {
 }
 
 function resolveContiguousRequestedQuantMode(runtimeKV) {
-  const quantMode = String(runtimeKV?.quantization?.mode ?? 'none').trim().toLowerCase();
+  const quantization = requirePlainObject(
+    runtimeKV?.quantization,
+    'runtime.inference.session.kvcache.quantization'
+  );
+  const quantMode = requireNonEmptyString(
+    quantization.mode,
+    'runtime.inference.session.kvcache.quantization.mode'
+  ).toLowerCase();
   assertSupportedTurboQuantMode(
     quantMode,
     'runtime.inference.session.kvcache.quantization.mode'
@@ -725,17 +745,24 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
       tiering: runtimeKV.tiering,
     });
   } else if (cacheLayout === 'contiguous_quantized') {
-    const quantCfg = runtimeKV.quantization ?? {};
+    const quantCfg = requirePlainObject(
+      runtimeKV.quantization,
+      'runtime.inference.kvcache.quantization'
+    );
+    const bitWidth = requirePositiveInteger(
+      quantCfg.bitWidth,
+      'runtime.inference.kvcache.quantization.bitWidth'
+    );
     const qCache = new QuantizedKVCache({
       ...cacheConfig,
       quantMode,
-      bitWidth: quantCfg.bitWidth ?? 4,
+      bitWidth,
       prodMode: quantCfg.prodMode === true,
     });
     const device = getDevice();
     qCache.setSharedBuffers(retainTurboQuantSharedBuffers(device, {
       headDim: modelConfig.headDim,
-      bitWidth: quantCfg.bitWidth ?? 4,
+      bitWidth,
       prodMode: quantCfg.prodMode === true,
     }));
     kvCache = qCache;
@@ -781,6 +808,27 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   }
 
   return kvCache;
+}
+
+function requirePlainObject(value, label) {
+  if (!isPlainObject(value)) {
+    throw new Error(`${label} is required.`);
+  }
+  return value;
+}
+
+function requireNonEmptyString(value, label) {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    throw new Error(`${label} is required.`);
+  }
+  return value.trim();
+}
+
+function requirePositiveInteger(value, label) {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`${label} must be a positive integer.`);
+  }
+  return value;
 }
 
 // ============================================================================

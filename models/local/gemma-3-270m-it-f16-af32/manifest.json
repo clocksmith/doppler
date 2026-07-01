@@ -11,7 +11,7 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:ab9b394bbb6793409918ea9cb79c675bd8fdbef0f5e5b3627928fc92e9d4dfca",
+    "conversionConfigDigest": "sha256:ca7e016cebcbb4a391ff5267eaacc01dcd48fe1110ddca565726b78b84973781",
     "conversionConfigPath": "src/config/conversion/gemma3/gemma-3-270m-it-f16-af32.json",
     "manifestVariantId": "gemma-3-270m-it-f16-af32-mv-control-v1",
     "materializationProfile": "auto",
@@ -67,6 +67,7 @@
     "ffn": {
       "activation": "gelu",
       "gatedActivation": true,
+      "branchMode": "auto",
       "swigluLimit": null,
       "useDoubleWideMlp": false
     },
@@ -128,7 +129,25 @@
         "layout": "contiguous",
         "pageSize": 256,
         "tiering": {
-          "mode": "off"
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
         }
       },
       "decodeLoop": {

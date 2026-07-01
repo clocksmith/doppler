@@ -2537,7 +2537,10 @@ export class PipelineGenerator {
         // and speculative use the same weights and state. The benefit is
         // amortizing per-iteration overhead for models where batch decode is
         // disabled (e.g., linear attention).
-        const speculativeBurstTokens = Math.max(1, Math.trunc(opts.speculation?.tokens ?? 1));
+        const speculativeBurstTokens = opts.speculation.tokens;
+        if (!Number.isInteger(speculativeBurstTokens) || speculativeBurstTokens < 1) {
+          throw new Error('[Pipeline] resolved self-speculation tokens must be a positive integer.');
+        }
         const doSpecDecode = hasLinearLayers
           ? () => this._decodeStep(generatedIds, opts)
           : decodeSingleTokenViaLogits;

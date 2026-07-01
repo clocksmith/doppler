@@ -1,5 +1,6 @@
 import { log } from '../../../debug/index.js';
 import { mergeConfig, dumpConfigSources } from '../../../config/merge.js';
+import { validateModelOverrides } from '../../../config/param-validator.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import {
   PER_LAYER_INPUT_MATERIALIZATION_MODES,
@@ -752,7 +753,9 @@ export function validateRequiredInferenceFields(inf, modelId) {
   if (inf.ffn.gatedActivation == null) {
     errors.push('ffn.gatedActivation is required');
   }
-  if (inf.ffn.branchMode !== undefined) {
+  if (inf.ffn.branchMode == null) {
+    errors.push('ffn.branchMode is required');
+  } else {
     const normalizedBranchMode = typeof inf.ffn.branchMode === 'string'
       ? inf.ffn.branchMode.trim().toLowerCase()
       : '';
@@ -1228,6 +1231,25 @@ function resolveAudioConfig(rawConfig, manifest) {
     }
     return number;
   };
+  const resolveRequiredFiniteNumber = (value, label) => {
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      throw new Error(
+        `Manifest "${modelId}" has invalid audio_config.${label}=${JSON.stringify(value)}. ` +
+        'Expected a finite number.'
+      );
+    }
+    return number;
+  };
+  const resolveRequiredString = (value, label) => {
+    if (typeof value !== 'string' || value.trim().length === 0) {
+      throw new Error(
+        `Manifest "${modelId}" has invalid audio_config.${label}=${JSON.stringify(value)}. ` +
+        'Expected a non-empty string.'
+      );
+    }
+    return value.trim();
+  };
   const audioArchitecture = String(ac.audio_architecture ?? '').trim();
   if (audioArchitecture !== 'gemma4') {
     throw new Error(
@@ -1240,9 +1262,7 @@ function resolveAudioConfig(rawConfig, manifest) {
   const isEncoderFree = (depth === 0);
 
   const hiddenSize = resolveRequiredPositiveInteger(ac.hidden_size, 'hidden_size');
-  const numAttentionHeads = isEncoderFree
-    ? (ac.num_attention_heads !== undefined ? resolveRequiredPositiveInteger(ac.num_attention_heads, 'num_attention_heads') : 1)
-    : resolveRequiredPositiveInteger(ac.num_attention_heads, 'num_attention_heads');
+  const numAttentionHeads = resolveRequiredPositiveInteger(ac.num_attention_heads, 'num_attention_heads');
   const headDim = Math.trunc(hiddenSize / numAttentionHeads);
 
   if (!isEncoderFree) {
@@ -1259,29 +1279,17 @@ function resolveAudioConfig(rawConfig, manifest) {
     hiddenSize,
     numAttentionHeads,
     headDim,
-    convKernelSize: isEncoderFree
-      ? (ac.conv_kernel_size !== undefined ? resolveRequiredPositiveInteger(ac.conv_kernel_size, 'conv_kernel_size') : 1)
-      : resolveRequiredPositiveInteger(ac.conv_kernel_size, 'conv_kernel_size'),
-    subsamplingConvChannels: isEncoderFree
-      ? (ac.subsampling_conv_channels ? ac.subsampling_conv_channels.map(Number) : [])
-      : ac.subsampling_conv_channels.map(Number),
+    convKernelSize: resolveRequiredPositiveInteger(ac.conv_kernel_size, 'conv_kernel_size'),
+    subsamplingConvChannels: ac.subsampling_conv_channels.map(Number),
     outputProjDims: resolveRequiredPositiveInteger(ac.output_proj_dims, 'output_proj_dims'),
-    attentionContextLeft: isEncoderFree
-      ? (ac.attention_context_left !== undefined ? resolveRequiredPositiveInteger(ac.attention_context_left, 'attention_context_left') : 1)
-      : resolveRequiredPositiveInteger(ac.attention_context_left, 'attention_context_left'),
-    attentionContextRight: Number(ac.attention_context_right ?? 0),
-    attentionChunkSize: isEncoderFree
-      ? (ac.attention_chunk_size !== undefined ? resolveRequiredPositiveInteger(ac.attention_chunk_size, 'attention_chunk_size') : 1)
-      : resolveRequiredPositiveInteger(ac.attention_chunk_size, 'attention_chunk_size'),
-    attentionLogitCap: isEncoderFree
-      ? (ac.attention_logit_cap !== undefined ? resolveRequiredPositiveNumber(ac.attention_logit_cap, 'attention_logit_cap') : 1.0)
-      : resolveRequiredPositiveNumber(ac.attention_logit_cap, 'attention_logit_cap'),
-    attentionInvalidLogitsValue: Number(ac.attention_invalid_logits_value ?? -1e9),
-    residualWeight: isEncoderFree
-      ? (ac.residual_weight !== undefined ? resolveRequiredPositiveNumber(ac.residual_weight, 'residual_weight') : 1.0)
-      : resolveRequiredPositiveNumber(ac.residual_weight, 'residual_weight'),
-    rmsNormEps: resolveRequiredPositiveNumber(ac.rms_norm_eps ?? 1e-6, 'rms_norm_eps'),
-    hiddenAct: String(ac.hidden_act ?? 'silu').trim(),
+    attentionContextLeft: resolveRequiredPositiveInteger(ac.attention_context_left, 'attention_context_left'),
+    attentionContextRight: resolveRequiredNonNegativeInteger(ac.attention_context_right, 'attention_context_right'),
+    attentionChunkSize: resolveRequiredPositiveInteger(ac.attention_chunk_size, 'attention_chunk_size'),
+    attentionLogitCap: resolveRequiredPositiveNumber(ac.attention_logit_cap, 'attention_logit_cap'),
+    attentionInvalidLogitsValue: resolveRequiredFiniteNumber(ac.attention_invalid_logits_value, 'attention_invalid_logits_value'),
+    residualWeight: resolveRequiredPositiveNumber(ac.residual_weight, 'residual_weight'),
+    rmsNormEps: resolveRequiredPositiveNumber(ac.rms_norm_eps, 'rms_norm_eps'),
+    hiddenAct: resolveRequiredString(ac.hidden_act, 'hidden_act'),
     useClippedLinears: ac.use_clipped_linears === true,
     audioTokenId: rawConfig?.audio_token_id ?? manifest?.audio_token_id ?? null,
   };
@@ -1735,7 +1743,7 @@ function toParsedConfigFromMerged(merged, manifest) {
     embeddingVocabSize: inf.output.embeddingVocabSize,
     embeddingPostprocessor,
     hiddenActivation,
-    ffnBranchMode: inf.ffn.branchMode ?? 'auto',
+    ffnBranchMode: inf.ffn.branchMode,
     useDoubleWideMlp: inf.ffn.useDoubleWideMlp,
     swigluLimit: inf.ffn.swigluLimit,
     stopTokenIds,
@@ -1775,6 +1783,7 @@ function toParsedConfigFromMerged(merged, manifest) {
 
 export function parseModelConfigFromManifest(manifest, runtimeOverrides) {
   assertSupportedRuntimeModelType(manifest);
+  validateModelOverrides(runtimeOverrides, 'runtime.inference.modelOverrides');
 
   // Merge manifest inference with runtime overrides
   const merged = mergeConfig(

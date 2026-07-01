@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { DEFAULT_MANIFEST_INFERENCE } from '../../src/config/schema/index.js';
+import { DEFAULT_KVCACHE_CONFIG, DEFAULT_MANIFEST_INFERENCE } from '../../src/config/schema/index.js';
 import { setRuntimeConfig, resetRuntimeConfig } from '../../src/config/runtime.js';
 import { cleanup, loadManifestFromStore, openModelStore, saveManifest } from '../../src/storage/shard-manager.js';
 import { ensureModelCached } from '../../src/tooling/opfs-cache.js';
@@ -45,11 +45,16 @@ function createManifest(modelId) {
           },
         },
         kvcache: {
+          ...clone(DEFAULT_KVCACHE_CONFIG),
           layout: 'contiguous',
           kvDtype: 'f16',
           pageSize: 256,
           tiering: {
+            ...clone(DEFAULT_KVCACHE_CONFIG).tiering,
             mode: 'off',
+          },
+          quantization: {
+            ...clone(DEFAULT_KVCACHE_CONFIG).quantization,
           },
         },
         decodeLoop: {

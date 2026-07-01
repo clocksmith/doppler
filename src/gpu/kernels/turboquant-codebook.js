@@ -435,7 +435,7 @@ function retainSharedBuffer(cache, key, factory) {
 
 export function retainTurboQuantSharedBuffers(device, options = {}) {
   const headDim = Number(options.headDim);
-  const bitWidth = Number(options.bitWidth ?? 4);
+  const bitWidth = Number(options.bitWidth);
   const prodMode = options.prodMode === true;
   if (!device) {
     throw new Error('TurboQuant shared buffers require a GPU device.');

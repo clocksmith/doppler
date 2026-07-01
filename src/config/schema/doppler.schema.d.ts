@@ -49,7 +49,7 @@ export interface RuntimeInferenceConfigSchema {
   kernelPath?: KernelPathSchema | null;
   kernelPathSource?: 'config' | 'model' | 'manifest' | 'execution-v1' | 'execution-v1-transform' | 'none';
   kernelPathPolicy?: Record<string, unknown> | null;
-  modelOverrides?: Record<string, unknown>;
+  modelOverrides?: Record<string, unknown> | null;
   pipeline?: Record<string, unknown> | null;
 }
 

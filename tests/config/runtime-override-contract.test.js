@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
 import { mergeKernelPathPolicy } from '../../src/config/merge-helpers.js';
-import { validateRuntimeConfig } from '../../src/config/param-validator.js';
+import { validateModelOverrides, validateRuntimeConfig } from '../../src/config/param-validator.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../../src/config/runtime.js';
 
 const originalRuntime = structuredClone(getRuntimeConfig());
@@ -61,6 +61,30 @@ try {
   assert.throws(
     () => setRuntimeConfig({
       inference: {
+        modelOverrides: {
+          inference: {
+            rope: {
+              ropeTheta: 1,
+            },
+          },
+        },
+      },
+    }),
+    /runtime\.inference\.modelOverrides may only override vision_config, audio_config[\s\S]*inference\.rope\.ropeTheta/
+  );
+
+  assert.doesNotThrow(() => validateModelOverrides({
+    vision_config: {
+      image_size: null,
+    },
+    audio_config: {
+      sample_rate: 16000,
+    },
+  }));
+
+  assert.throws(
+    () => setRuntimeConfig({
+      inference: {
         kernelPathPolicy: null,
       },
     }),
@@ -85,6 +109,17 @@ try {
       },
     }),
     /runtime\.inference\.kernelPath must be an inline kernel path object or null/
+  );
+
+  assert.throws(
+    () => createDopplerConfig({
+      runtime: {
+        inference: {
+          batching: null,
+        },
+      },
+    }),
+    /runtime\.inference\.batching must not be null/
   );
 
   assert.throws(
@@ -114,6 +149,31 @@ try {
   );
 
   const runtimeConfig = createDopplerConfig().runtime;
+  assert.equal(
+    runtimeConfig.inference.generation.maxTokens,
+    256,
+    'Default runtime config must own the text generation max token budget.'
+  );
+  assert.equal(
+    runtimeConfig.inference.generation.multimodalMaxTokens,
+    512,
+    'Default runtime config must own the multimodal generation max token budget.'
+  );
+  assert.equal(
+    runtimeConfig.inference.kvcache.quantization.bitWidth,
+    4,
+    'Default runtime config must own quantized KV bit width.'
+  );
+  assert.equal(
+    runtimeConfig.inference.kvcache.tiering.compression.bitWidth,
+    4,
+    'Default runtime config must own tiered KV compression bit width.'
+  );
+  assert.equal(
+    runtimeConfig.shared.debug.profiler.maxHistoryLabels,
+    1024,
+    'Default runtime config must own profiler label history length.'
+  );
   assert.deepEqual(
     runtimeConfig.inference.kernelPathPolicy,
     {
@@ -142,6 +202,20 @@ try {
     /runtime\.inference\.generation\.disableCommandBatching.*runtime\.inference\.session\.decodeLoop\.disableCommandBatching/
   );
 
+  const invalidGenerationMaxTokensRuntime = createDopplerConfig().runtime;
+  invalidGenerationMaxTokensRuntime.inference.generation.maxTokens = 0;
+  assert.throws(
+    () => validateRuntimeConfig(invalidGenerationMaxTokensRuntime),
+    /runtime\.inference\.generation\.maxTokens/
+  );
+
+  const invalidMultimodalMaxTokensRuntime = createDopplerConfig().runtime;
+  invalidMultimodalMaxTokensRuntime.inference.generation.multimodalMaxTokens = 0;
+  assert.throws(
+    () => validateRuntimeConfig(invalidMultimodalMaxTokensRuntime),
+    /runtime\.inference\.generation\.multimodalMaxTokens/
+  );
+
   const updatedRuntime = setRuntimeConfig({
     inference: {
       batching: {
@@ -157,6 +231,35 @@ try {
     },
   });
   assert.equal(nullKernelPathRuntime.inference.kernelPath, null);
+
+  const allowlistedModelOverrideRuntime = setRuntimeConfig({
+    inference: {
+      modelOverrides: {
+        vision_config: {
+          image_size: 384,
+        },
+      },
+    },
+  });
+  assert.equal(
+    allowlistedModelOverrideRuntime.inference.modelOverrides.vision_config.image_size,
+    384
+  );
+
+  const nullScalarSchemaConfig = createDopplerConfig({
+    runtime: {
+      loading: {
+        allowF32UpcastNonMatmul: null,
+      },
+      inference: {
+        prompt: null,
+        modelOverrides: null,
+      },
+    },
+  });
+  assert.equal(nullScalarSchemaConfig.runtime.loading.allowF32UpcastNonMatmul, null);
+  assert.equal(nullScalarSchemaConfig.runtime.inference.prompt, null);
+  assert.equal(nullScalarSchemaConfig.runtime.inference.modelOverrides, null);
 
   const nullSessionSubtreeConfig = createDopplerConfig({
     runtime: {

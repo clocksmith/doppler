@@ -99,7 +99,10 @@ export async function resolveKernelPathForModel(options = {}) {
 
   if (!manifest) return null;
 
-  const modelConfig = parseModelConfigFromManifest(manifest, runtimeConfig);
+  const modelConfig = parseModelConfigFromManifest(
+    manifest,
+    runtimeConfig?.inference?.modelOverrides ?? null
+  );
   const kernelPathState = resolveKernelPathState({
     manifest,
     runtimeConfig,

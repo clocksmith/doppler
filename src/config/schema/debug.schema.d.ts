@@ -206,6 +206,8 @@ export interface ProfilerConfigSchema {
   maxDurationMs: number;
   /** Log every N decode profile steps (<=1 logs all steps) */
   logEveryDecodeSteps: number;
+  /** Maximum number of distinct labels retained in history */
+  maxHistoryLabels: number;
 }
 
 /** Default profiler configuration */

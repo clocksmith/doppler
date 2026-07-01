@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { DEFAULT_KVCACHE_CONFIG } from '../../src/config/schema/index.js';
+import { runSweep } from '../../tools/lean-execution-contract-sweep.js';
 
 const root = mkdtempSync(path.join(tmpdir(), 'doppler-lean-execution-contract-sweep-'));
 
@@ -22,9 +23,15 @@ try {
     inference: {
       session: {
         kvcache: {
+          ...structuredClone(DEFAULT_KVCACHE_CONFIG),
           layout: 'paged',
           tiering: {
+            ...structuredClone(DEFAULT_KVCACHE_CONFIG).tiering,
             mode: 'off',
+          },
+          quantization: {
+            ...structuredClone(DEFAULT_KVCACHE_CONFIG).quantization,
+            mode: 'none',
           },
         },
         decodeLoop: {
@@ -45,17 +52,7 @@ try {
     modelType: 'diffusion',
   }, null, 2), 'utf8');
 
-  const result = spawnSync(
-    process.execPath,
-    ['tools/lean-execution-contract-sweep.js', '--root', root, '--json', '--no-check'],
-    {
-      cwd: process.cwd(),
-      encoding: 'utf8',
-    }
-  );
-
-  assert.equal(result.status, 0, result.stderr);
-  const summary = JSON.parse(result.stdout);
+  const summary = await runSweep(root, { check: false });
   assert.equal(summary.schemaVersion, 1);
   assert.equal(summary.ok, true);
   assert.equal(summary.totals.manifests, 2);

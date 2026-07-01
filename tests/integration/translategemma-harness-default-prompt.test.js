@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 
+import { DEFAULT_KVCACHE_CONFIG } from '../../src/config/schema/index.js';
+
 const { runBrowserSuite } = await import('../../src/inference/browser-harness.js');
 
 const EXPECTED_TRANSLATEGEMMA_PROMPT = {
@@ -63,6 +65,7 @@ function createHarnessOverride() {
         inference: {
           session: {
             kvcache: {
+              ...structuredClone(DEFAULT_KVCACHE_CONFIG),
               layout: 'contiguous',
             },
             decodeLoop: {

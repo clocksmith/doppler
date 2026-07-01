@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
+import { DEFAULT_KVCACHE_CONFIG } from '../../src/config/schema/index.js';
 import { convertSafetensorsDirectory } from '../../src/tooling/node-converter.js';
 
 function createTempDir(prefix) {
@@ -125,9 +126,11 @@ const minimalV1SessionDefaults = {
     },
   },
   kvcache: {
+    ...structuredClone(DEFAULT_KVCACHE_CONFIG),
     layout: 'contiguous',
     kvDtype: 'f16',
     tiering: {
+      ...structuredClone(DEFAULT_KVCACHE_CONFIG).tiering,
       mode: 'off',
     },
   },
@@ -160,6 +163,7 @@ const minimalV1Inference = {
   ffn: {
     activation: 'gelu',
     gatedActivation: true,
+    branchMode: 'auto',
     useDoubleWideMlp: false,
     swigluLimit: null,
   },

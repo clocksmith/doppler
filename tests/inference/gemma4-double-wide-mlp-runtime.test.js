@@ -48,6 +48,7 @@ function createGemma4E2BManifest(useDoubleWideMlp) {
       ffn: {
         activation: 'gelu',
         gatedActivation: true,
+        branchMode: 'auto',
         useDoubleWideMlp,
         swigluLimit: null,
       },

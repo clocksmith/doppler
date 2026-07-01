@@ -25,9 +25,9 @@ export class QuantizedKVCache {
     this.maxSeqLen = config.maxSeqLen;
     this.useGPU = config.useGPU;
     this.layout = 'contiguous_quantized';
-    this.kvDtype = config.kvDtype ?? 'f16';
+    this.kvDtype = requireString(config.kvDtype, 'QuantizedKVCache config.kvDtype');
     this.quantMode = config.quantMode;
-    this.bitWidth = config.bitWidth ?? 4;
+    this.bitWidth = requirePositiveInteger(config.bitWidth, 'QuantizedKVCache config.bitWidth');
     this.prodMode = config.prodMode === true;
     this.currentSeqLen = 0;
     this.totalTokensSeen = 0;
@@ -382,4 +382,18 @@ export class QuantizedKVCache {
       this.qjlMatrixBuffer?.destroy();
     }
   }
+}
+
+function requireString(value, label) {
+  if (typeof value !== 'string' || value.length === 0) {
+    throw new Error(`${label} is required.`);
+  }
+  return value;
+}
+
+function requirePositiveInteger(value, label) {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`${label} must be a positive integer.`);
+  }
+  return value;
 }

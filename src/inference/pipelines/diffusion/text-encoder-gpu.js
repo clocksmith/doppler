@@ -44,8 +44,6 @@ import {
 const QUICK_GELU_ALPHA = 1.702;
 const DEFAULT_TIMESTEP_EMBED_DIM = 256;
 const SUPPORTED_CLIP_HIDDEN_ACTIVATIONS = new Set(['gelu', 'quick_gelu']);
-// Standard CLIP hidden activation per OpenAI CLIP specification.
-const DEFAULT_CLIP_HIDDEN_ACT = 'gelu';
 
 function padTokens(tokens, maxLength, padTokenId) {
   if (!Number.isFinite(maxLength) || maxLength <= 0) {
@@ -140,14 +138,18 @@ function createKernelOps(recorder) {
 }
 
 function resolveClipHiddenActivation(config) {
-  const hiddenAct = config?.hidden_act ?? DEFAULT_CLIP_HIDDEN_ACT;
-  if (!SUPPORTED_CLIP_HIDDEN_ACTIVATIONS.has(hiddenAct)) {
+  const hiddenAct = config?.hidden_act;
+  if (typeof hiddenAct !== 'string' || hiddenAct.trim().length === 0) {
+    throw new Error('CLIP text encoder config.hidden_act is required.');
+  }
+  const normalizedHiddenAct = hiddenAct.trim();
+  if (!SUPPORTED_CLIP_HIDDEN_ACTIVATIONS.has(normalizedHiddenAct)) {
     throw new Error(
-      `Unsupported CLIP hidden_act "${hiddenAct}". ` +
+      `Unsupported CLIP hidden_act "${normalizedHiddenAct}". ` +
       `Expected one of: ${Array.from(SUPPORTED_CLIP_HIDDEN_ACTIVATIONS).join(', ')}.`
     );
   }
-  return hiddenAct;
+  return normalizedHiddenAct;
 }
 
 async function runClipMlpActivation(input, hiddenAct, count, ops, release) {

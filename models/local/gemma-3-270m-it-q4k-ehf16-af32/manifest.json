@@ -49,6 +49,7 @@
     "ffn": {
       "activation": "gelu",
       "gatedActivation": true,
+      "branchMode": "auto",
       "swigluLimit": null,
       "useDoubleWideMlp": false
     },
@@ -106,7 +107,25 @@
         "layout": "contiguous",
         "pageSize": 256,
         "tiering": {
-          "mode": "off"
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
         }
       },
       "decodeLoop": {
@@ -3357,7 +3376,8 @@
     "sourceCheckpointId": "google/gemma-3-270m-it",
     "weightPackId": "gemma-3-270m-it-q4k-ehf16-af32-wp-catalog-v1",
     "manifestVariantId": "gemma-3-270m-it-q4k-ehf16-af32-mv-exec-v1",
-    "artifactCompleteness": "complete"
+    "artifactCompleteness": "complete",
+    "conversionConfigDigest": "sha256:d3895907b9e7b17f1e6b015a66858c39889e1683b533fb0dde65f309d6a5854e"
   },
   "integrityExtensions": {
     "contractVersion": 1,

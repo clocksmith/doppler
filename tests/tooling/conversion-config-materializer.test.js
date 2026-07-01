@@ -68,12 +68,12 @@ if (!fs.existsSync(qwenManifestPath)) {
   assert.equal(materialized.modelType, 'transformer');
   assert.equal(materialized.inference?.schema, 'doppler.execution/v1');
   assert.equal(materialized.inference?.execution?.inlineKernelPath, true);
-  // Qwen 3.5 0.8B decodeLoop values are manifest-owned: bs=4/rbi=32
+  // Qwen 3.5 0.8B decodeLoop values are conversion-config-owned: bs=4/rbi=8
   // with sequential readback. Runtime profiles must not be the source of truth.
   assert.deepEqual(materialized.inference?.session?.decodeLoop, {
     batchSize: 4,
     stopCheckMode: 'batch',
-    readbackInterval: 32,
+    readbackInterval: 8,
     readbackMode: 'sequential',
     submitLatencyThresholdMs: null,
     ringTokens: 1,
@@ -198,9 +198,9 @@ if (!fs.existsSync(gemma4ManifestPath)) {
   const groupedSmallPrefill = materialized.inference?.execution?.prefill?.[0]?.steps?.find((step) => step[0] === 'attention');
   assert.ok(groupedSmallPrefill, 'gemma 4 materialized grouped small prefill attention step missing');
   assert.equal(groupedSmallPrefill[1], 'attn_head256');
-  const groupedStreamPrefill = materialized.inference?.execution?.prefill?.[1]?.steps?.find((step) => step[0] === 'attention');
-  assert.ok(groupedStreamPrefill, 'gemma 4 materialized grouped streaming prefill attention step missing');
-  assert.equal(groupedStreamPrefill[1], 'attn_stream');
+  const groupedHead512Prefill = materialized.inference?.execution?.prefill?.[1]?.steps?.find((step) => step[0] === 'attention');
+  assert.ok(groupedHead512Prefill, 'gemma 4 materialized grouped head512 prefill attention step missing');
+  assert.equal(groupedHead512Prefill[1], 'attn_head512');
   assert.equal(manifest.inference?.execution?.kernels?.attn_head256?.kernel, 'attention_head256_f16kv.wgsl');
   const manifestGroupedSmallPrefill = manifest.inference?.execution?.prefill?.[0]?.steps?.find((step) => step[0] === 'attention');
   assert.ok(manifestGroupedSmallPrefill, 'gemma 4 manifest grouped small prefill attention step missing');

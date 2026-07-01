@@ -291,6 +291,13 @@ export function resolveFusedGateUpWeights(layerWeights, options = {}) {
   };
 }
 
+function requireFusedWeightDtype(dtype, label) {
+  if (dtype !== 'f16' && dtype !== 'f32' && dtype !== 'q4k') {
+    throw new Error(`[FFN] ${label} dtype metadata is required for fused gate/up planning.`);
+  }
+  return dtype;
+}
+
 async function dispatchActivation(hiddenActivation, input, options, recorder) {
   const op = resolveActivationOp(hiddenActivation);
   const fn = ACTIVATION_FN_MAP[op];
@@ -591,8 +598,12 @@ export async function runDenseFFNGPU(
     phase,
     layerIdx,
   });
-  const gateDtype = fusedGateUpWeights.gateDtype ?? (hasGate ? 'f32' : null);
-  const upDtype = fusedGateUpWeights.upDtype ?? (hasUp ? 'f32' : null);
+  const gateDtype = hasGate
+    ? requireFusedWeightDtype(fusedGateUpWeights.gateDtype, 'gate')
+    : null;
+  const upDtype = hasUp
+    ? requireFusedWeightDtype(fusedGateUpWeights.upDtype, 'up')
+    : null;
   const dtypeMatches = gateDtype != null && upDtype != null && gateDtype === upDtype;
   const q4kFusedAllowed = gateDtype !== 'q4k' || !isFusedQ4KDisabled({ kernelPath });
   const dtypeSupported = gateDtype === 'f16' || gateDtype === 'f32' || (gateDtype === 'q4k' && q4kFusedAllowed);
@@ -1309,8 +1320,8 @@ export async function runDenseFFNWithFusedPostNormGPU(
     });
     const fusedGateWeight = getWeightBuffer(fusedGateUpWeights.gate ?? layerWeights.gate, 'ffn_gate');
     const fusedUpWeight = getWeightBuffer(fusedGateUpWeights.up ?? layerWeights.up, 'ffn_up');
-    const gateDtype = fusedGateUpWeights.gateDtype ?? 'f32';
-    const upDtype = fusedGateUpWeights.upDtype ?? 'f32';
+    const gateDtype = requireFusedWeightDtype(fusedGateUpWeights.gateDtype, 'gate');
+    const upDtype = requireFusedWeightDtype(fusedGateUpWeights.upDtype, 'up');
     const hasLoRAGate = Boolean(getLoRAModule(lora, layerIdx, 'gate_proj'));
     const hasLoRAUp = Boolean(getLoRAModule(lora, layerIdx, 'up_proj'));
     const dtypeMatches = gateDtype != null && upDtype != null && gateDtype === upDtype;

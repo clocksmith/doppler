@@ -84,6 +84,7 @@
       "rms_norm_eps": 0.000001,
       "audio_architecture": "gemma4",
       "num_hidden_layers": 0,
+      "num_attention_heads": 1,
       "conv_kernel_size": 1,
       "subsampling_conv_channels": [
         1,
@@ -128,6 +129,7 @@
     "ffn": {
       "activation": "gelu",
       "gatedActivation": true,
+      "branchMode": "auto",
       "useDoubleWideMlp": false,
       "swigluLimit": null
     },
@@ -235,7 +237,25 @@
       "layout": "contiguous",
       "pageSize": 256,
       "tiering": {
-        "mode": "off"
+        "mode": "off",
+        "hotWindow": 1024,
+        "coldPageSize": 256,
+        "coldDtype": "f16",
+        "compression": {
+          "mode": "none",
+          "blockSize": 1,
+          "bitWidth": 4,
+          "prodMode": false
+        },
+        "gating": {
+          "mode": "auto",
+          "minAluBwRatio": 0
+        }
+      },
+      "quantization": {
+        "mode": "none",
+        "bitWidth": 4,
+        "prodMode": false
       }
     },
     "decodeLoop": {

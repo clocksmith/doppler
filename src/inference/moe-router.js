@@ -16,6 +16,21 @@ function isRouterVector(value) {
   return value instanceof Float32Array || isGpuBufferInstance(value) || isWeightBuffer(value);
 }
 
+function requireRouterDtype(value, label) {
+  if (value !== 'f16' && value !== 'f32') {
+    throw new Error(`MoERouter requires ${label} to be "f16" or "f32", got ${value}.`);
+  }
+  return value;
+}
+
+function inferRouterBufferDtypeFromElementCount(buffer, elementCount, label) {
+  const bytesPerElement = buffer.size / elementCount;
+  if (bytesPerElement !== 2 && bytesPerElement !== 4) {
+    throw new Error(`MoERouter cannot infer ${label} dtype from bytesPerElement=${bytesPerElement}.`);
+  }
+  return selectRuleValue('inference', 'dtype', 'f16OrF32FromBytes', { bytesPerElement });
+}
+
 
 
 
@@ -62,7 +77,7 @@ export class MoERouter {
   _gateWeightGPU = null;
 
   
-  lastLogitsDtype = 'f32';
+  lastLogitsDtype = null;
 
   
   constructor(config) {
@@ -213,7 +228,8 @@ export class MoERouter {
       gateWeightBuffer = uploaded;
     }
 
-    const { inputDtype = 'f32', outputDtype = 'f32' } = options;
+    const inputDtype = requireRouterDtype(options.inputDtype, 'options.inputDtype');
+    const outputDtype = requireRouterDtype(options.outputDtype, 'options.outputDtype');
     const gateWeightDtype = isWeightBuffer(gateWeightBuffer) ? getWeightDtype(gateWeightBuffer) : null;
 
     // Matrix multiply: hidden_states [numTokens, hiddenSize] @ gate_weight [hiddenSize, numExperts]
@@ -274,9 +290,9 @@ export class MoERouter {
     if (bias instanceof Float32Array) return 'f32';
     if (isGpuBufferInstance(bias)) {
       const bytesPerElement = Math.round(bias.size / this.numExperts);
-      return selectRuleValue('inference', 'dtype', 'f16OrF32FromBytes', { bytesPerElement });
+      return inferRouterBufferDtypeFromElementCount(bias, this.numExperts, 'gate bias');
     }
-    return 'f32';
+    throw new Error('MoERouter cannot infer gate bias dtype.');
   }
 
   _getBiasAddPipeline(logitsDtype, biasDtype, device) {
@@ -368,9 +384,9 @@ export class MoERouter {
   }
 
   
-  async routeGPU(hiddenStates, numTokens) {
+  async routeGPU(hiddenStates, numTokens, options = {}) {
     // Compute router logits on GPU
-    const logitsBuffer = await this.computeRouterLogitsGPU(hiddenStates, numTokens);
+    const logitsBuffer = await this.computeRouterLogitsGPU(hiddenStates, numTokens, null, options);
     try {
       const logitsData = await readBuffer(logitsBuffer);
       const logits = this.lastLogitsDtype === 'f16'

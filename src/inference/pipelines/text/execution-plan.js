@@ -8,7 +8,6 @@ import { log } from '../../../debug/index.js';
 
 const PRIMARY_EXECUTION_PLAN_ID = 'primary';
 const FINITENESS_FALLBACK_EXECUTION_PLAN_ID = 'finiteness_fallback';
-const DEFAULT_MAX_TOKENS = 256;
 
 function assertOptionalBoolean(value, label) {
   if (value === undefined) {
@@ -26,6 +25,13 @@ function assertOptionalPositiveInt(value, label) {
   }
   if (!Number.isInteger(value) || value < 1) {
     throw new Error(`[ExecutionPlan] ${label} must be a positive integer when provided; got ${JSON.stringify(value)}.`);
+  }
+  return value;
+}
+
+function assertRequiredPositiveInt(value, label) {
+  if (!Number.isInteger(value) || value < 1) {
+    throw new Error(`[ExecutionPlan] ${label} must be a positive integer; got ${JSON.stringify(value)}.`);
   }
   return value;
 }
@@ -215,7 +221,7 @@ export function compileExecutionPlanState(options) {
   const batchingConfig = {
     batchSize: decodeLoopConfig.batchSize,
     stopCheckMode: decodeLoopConfig.stopCheckMode,
-    maxTokens: generationConfig.maxTokens ?? DEFAULT_MAX_TOKENS,
+    maxTokens: assertRequiredPositiveInt(generationConfig.maxTokens, 'runtime.inference.generation.maxTokens'),
     readbackInterval: decodeLoopConfig.readbackInterval,
     readbackMode: assertReadbackMode(decodeLoopConfig.readbackMode),
     ringTokens: decodeLoopConfig.ringTokens,

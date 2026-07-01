@@ -13,7 +13,7 @@ Rules that cause bugs when violated. Each has a fuller section below with ration
 - **Execution Plane Contract** — JSON owns policy; JS owns orchestration; WGSL owns compute only. Missing or ambiguous contract must fail fast. See [Execution Plane Contract](#execution-plane-contract).
 - **No Runtime Defaults in Code** — runtime code reads resolved config values directly. No literal fallbacks for tunables in JS. Missing policy raises a typed configuration error. See [No Runtime Defaults in Code](#no-runtime-defaults-in-code).
 - **Nullable Required Fields** — `null` = explicitly disabled (valid); `undefined` = not specified (validation error, fail fast).
-- **Manifest as Source of Truth** — converter embeds all model-specific inference params in `manifest.json`. Runtime never detects model family in pipeline code. See [Manifest as Source of Truth](#manifest-as-source-of-truth).
+- **Runtime Reads the Manifest, Never Infers** — converter embeds all model-specific inference params in `manifest.json`. Runtime never detects model family in pipeline code. See [Runtime Reads the Manifest, Never Infers](#runtime-reads-the-manifest-never-infers).
 - **Kernel Selection** — fully explicit in the manifest execution graph. Each step pins exact WGSL file, entry point, and content digest. `defaultKernelPath` does not exist in v1 manifests. See [Kernel Selection](#kernel-selection).
 - **Performance Invariants (F32 Policy)** — F32 is a correctness fallback, not a performance default. When `shader-f16` is available, prefer `f16` for activations/KV cache/intermediates. Any `f32` path must be explicitly configured and logged once per session.
 - **No Ad-Hoc Debug Logging** — no temporary log statements. Use existing trace categories, config-driven probes, or permanent trace extensions. Use the debug module (`src/debug/index.js`), not raw `console.*` in runtime code. See [Logging](#logging).
@@ -196,6 +196,15 @@ For all behavior-changing choices (kernel selection, precision mode, fallback va
 the only fallback source is explicit config/rule assets. If policy is not present,
 raise a typed configuration error instead of silently selecting an alternate behavior.
 
+This applies to direct constructors and helper entry points too. If a test or
+internal caller passes a partial object, the callee must require the resolved
+field and fail with an actionable message; it must not recreate schema defaults
+with `??`, destructuring defaults, or object literals in runtime code.
+
+Allowed local defaults are limited to non-policy presentation labels, test/tool
+CLI defaults, or pure constants that do not change runtime behavior. Keep those
+out of inference paths and do not use them to stand in for config.
+
 ### Reuse Config Merge Utilities
 
 Do not duplicate ad-hoc deep-merge helpers across command runners or harnesses.
@@ -225,7 +234,7 @@ Example:
 ```
 Both fields are explicitly disabled (valid). Omitting either field is invalid.
 
-### Manifest as Source of Truth
+### Runtime Reads the Manifest, Never Infers
 
 - Converter embeds all model-specific inference params in `manifest.json`
 - Runtime never detects model family in pipeline code

@@ -12,7 +12,7 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:00ec1cecace0af41a5a731ba330b20bb08a47aeba9c194f20fce829e8b8025fc",
+    "conversionConfigDigest": "sha256:e1b204d9d1ec15f2d73c56355fc1da7c8c3677cec7cfb5a9a5f8fe11720f2a5a",
     "conversionConfigPath": "src/config/conversion/diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16.json",
     "manifestVariantId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16-mv-f5de4fbe6653",
     "materializationProfile": "auto",
@@ -192,7 +192,25 @@
         "layout": "contiguous",
         "pageSize": 256,
         "tiering": {
-          "mode": "off"
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
         }
       },
       "decodeLoop": {

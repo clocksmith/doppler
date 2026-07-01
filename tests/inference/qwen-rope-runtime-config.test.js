@@ -152,6 +152,7 @@ import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
       ffn: {
         activation: 'silu',
         gatedActivation: false,
+        branchMode: 'auto',
         useDoubleWideMlp: false,
         swigluLimit: null,
       },
@@ -256,6 +257,7 @@ import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
       ffn: {
         activation: 'gelu',
         gatedActivation: true,
+        branchMode: 'auto',
         useDoubleWideMlp: false,
         swigluLimit: null,
       },

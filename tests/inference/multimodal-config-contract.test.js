@@ -40,6 +40,7 @@ function createBaseManifest() {
       ffn: {
         activation: 'silu',
         gatedActivation: true,
+        branchMode: 'auto',
         useDoubleWideMlp: false,
         swigluLimit: null,
       },

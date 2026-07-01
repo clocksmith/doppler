@@ -86,7 +86,7 @@ InferenceConfigSchema (runtime.inference)
 | Category | Resolution Order | Call-time | Runtime | Manifest |
 | --- | --- | --- | --- | --- |
 | Generation | call → runtime | ✓ | ✓ | n/a |
-| Model | runtime (experimental) → manifest | ✗ (throw) | ✓ (warn) | ✓ |
+| Model | manifest; allowlisted multimodal runtime overlay only | ✗ (throw) | allowlist only | ✓ |
 | Session | runtime → manifest | ✗ (throw) | ✓ | n/a¹ |
 | Hybrid | call → runtime → manifest | ✓ | ✓ | ✓ |
 
@@ -105,11 +105,19 @@ InferenceConfigSchema (runtime.inference)
 ## Fallback Rule: What Is Allowed
 
 - No behavior-changing fallback may be implemented as ad-hoc JS branching.
+- Runtime defaults for tunables live in `src/config/schema/*.schema.js` and
+  checked-in runtime profiles/config assets. Manifest defaults live in the
+  conversion config and stamped manifest. Runtime code consumes the resolved
+  object only.
+- Direct constructors, browser helpers, and execution-plan builders must reject
+  missing resolved config fields. They may not recreate schema defaults locally.
 - All allowed fallbacks are explicit in config/rule assets:
   - manifest and conversion/runtime config assets (for supported model/config combinations)
   - rule-map alias entries
   - capability-based kernel and dtype policy in registry overlays
 - Any unresolvable choice must raise a typed error before execution begins.
+- `npm run config:single-source:check` owns the inventory for known fallback
+  drift patterns; extend it whenever a new prose-only config rule is fixed.
 
 ---
 
@@ -135,7 +143,13 @@ When you need a change, create a profile or pass a runtime config file via `runt
 Runtime config merge order:
 
 ```
-runtimeConfig = merge(runtimeProfileConfig, runtimeOverrideConfig)
+runtimeConfig = merge(
+  runtimeDefaultConfig,
+  configChainRuntimeConfig,
+  runtimeProfileConfig,
+  runtimeConfigUrl,
+  runtimeOverrideConfig
+)
 ```
 
 Manifest inference config merge order:
@@ -249,7 +263,7 @@ Invalid usage throws immediately:
 
 ```
 DopplerConfigError: "slidingWindow" is a model param. Cannot override at call-time.
-Set via runtime.inference.modelOverrides (experimental) or manifest.
+Set in the conversion config/manifest. Runtime modelOverrides are limited to an explicit allowlist.
 ```
 
 ```

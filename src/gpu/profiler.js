@@ -65,7 +65,10 @@ export class GPUProfiler {
     this.#queryCapacity = runtimeProfiler.queryCapacity;
     this.#maxSamples = runtimeProfiler.maxSamples;
     this.#maxDurationMs = runtimeProfiler.maxDurationMs;
-    this.#maxHistoryLabels = runtimeProfiler.maxHistoryLabels ?? 1024;
+    this.#maxHistoryLabels = requirePositiveInteger(
+      runtimeProfiler.maxHistoryLabels,
+      'runtime.shared.debug.profiler.maxHistoryLabels'
+    );
 
     // Initialize query resources if timestamp queries available
     if (this.#hasTimestampQuery && this.#device) {
@@ -366,6 +369,13 @@ export class GPUProfiler {
     this.#pendingResolves = [];
     this.#nextQueryIndex = 0;
   }
+}
+
+function requirePositiveInteger(value, label) {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`${label} must be a positive integer.`);
+  }
+  return value;
 }
 
 

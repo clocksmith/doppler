@@ -362,7 +362,7 @@ const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/ru
     readbackMode: 'sequential',
     disableCommandBatching: false,
     disableMultiTokenDecode: false,
-    speculationMode: null,
+    speculationMode: 'none',
     tokensPerReadback: 32,
     runtimeMirror: {
       batching: {
