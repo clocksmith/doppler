@@ -5,6 +5,8 @@ import { join } from 'node:path';
 
 const { runTrainingBenchSuite } = await import('../../src/experimental/training/suite.js');
 const { runBrowserSuite } = await import('../../src/inference/browser-harness.js');
+const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/runtime.js');
+const { destroyDevice } = await import('../../src/gpu/device.js');
 const { probeNodeGPU } = await import('../helpers/gpu-probe.js');
 
 function isUnavailableNodeWebGPUError(value) {
@@ -12,12 +14,13 @@ function isUnavailableNodeWebGPUError(value) {
 }
 
 const gpuProbe = await probeNodeGPU();
-if (!gpuProbe.ready) {
-  console.log(`training-force-resume-lineage.test: skipped (${gpuProbe.reason})`);
-} else {
-  const tempDir = mkdtempSync(join(tmpdir(), 'doppler-force-resume-lineage-'));
-  try {
-    const checkpointPath = join(tempDir, 'training.latest.checkpoint.json');
+try {
+  if (!gpuProbe.ready) {
+    console.log(`training-force-resume-lineage.test: skipped (${gpuProbe.reason})`);
+  } else {
+    const tempDir = mkdtempSync(join(tmpdir(), 'doppler-force-resume-lineage-'));
+    try {
+      const checkpointPath = join(tempDir, 'training.latest.checkpoint.json');
 
     try {
       await runTrainingBenchSuite({
@@ -36,27 +39,46 @@ if (!gpuProbe.ready) {
         },
       });
 
-      const forced = await runBrowserSuite({
-        suite: 'bench',
-        command: 'bench',
-        surface: 'node',
-        trainingSchemaVersion: 1,
-        workloadType: 'training',
-        trainingBenchSteps: 1,
-        benchRun: {
-          warmupRuns: 0,
-          timedRuns: 1,
-        },
-        ulArtifactDir: tempDir,
-        resumeFrom: checkpointPath,
-        forceResume: true,
-        forceResumeReason: 'force-resume-lineage-test',
-        trainingConfig: {
-          telemetry: {
-            windowSize: 3,
+      const previousRuntimeConfig = getRuntimeConfig();
+      setRuntimeConfig({
+        inference: {
+          prompt: 'training force resume prompt',
+          generation: {
+            maxTokens: 1,
+          },
+          sampling: {
+            temperature: 0,
+            topK: 1,
+            topP: 1,
           },
         },
       });
+      let forced;
+      try {
+        forced = await runBrowserSuite({
+          suite: 'bench',
+          command: 'bench',
+          surface: 'node',
+          trainingSchemaVersion: 1,
+          workloadType: 'training',
+          trainingBenchSteps: 1,
+          benchRun: {
+            warmupRuns: 0,
+            timedRuns: 1,
+          },
+          ulArtifactDir: tempDir,
+          resumeFrom: checkpointPath,
+          forceResume: true,
+          forceResumeReason: 'force-resume-lineage-test',
+          trainingConfig: {
+            telemetry: {
+              windowSize: 3,
+            },
+          },
+        });
+      } finally {
+        setRuntimeConfig(previousRuntimeConfig);
+      }
 
       const timeline = forced?.metrics?.checkpointResumeTimeline;
       assert.ok(Array.isArray(timeline), 'forced run should include checkpoint resume timeline');
@@ -79,9 +101,12 @@ if (!gpuProbe.ready) {
         throw error;
       }
     }
-  } finally {
-    rmSync(tempDir, { recursive: true, force: true });
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
   }
+} finally {
+  destroyDevice();
 }
 
 console.log('training-force-resume-lineage.test: ok');

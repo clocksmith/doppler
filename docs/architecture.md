@@ -78,6 +78,9 @@ support matrices and benchmark receipts named in [goals.md](goals.md).
 
 This section is a system overview. The normative execution-plane contract lives
 in [`style/general-style-guide.md`](style/general-style-guide.md).
+The practical management map for config, kernels, model registry, hosted HF
+entries, and generated mirrors lives in
+[`developer-guides/config-source-of-truth.md`](developer-guides/config-source-of-truth.md).
 
 Behavior-changing choices must be fully represented before dispatch:
 

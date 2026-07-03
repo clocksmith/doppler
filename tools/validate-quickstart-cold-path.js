@@ -62,7 +62,7 @@ step('quickstart entry point', async () => {
 });
 
 // Step 3: quickstart config exists and has valid defaults
-step('quickstart config defaults', async () => {
+step('quickstart config contract', async () => {
   const configPath = path.join(REPO_ROOT, 'src/cli/config/doppler-quickstart.json');
   const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
   const d = config.defaults;
@@ -76,7 +76,7 @@ step('quickstart config defaults', async () => {
     fail('quickstart config missing defaults.model');
   }
   if (typeof d.prompt === 'string' && d.prompt.length > 0) {
-    pass(`default prompt: "${d.prompt.slice(0, 50)}..."`);
+    pass(`configured quickstart prompt: "${d.prompt.slice(0, 50)}..."`);
   } else {
     fail('quickstart config missing defaults.prompt');
   }

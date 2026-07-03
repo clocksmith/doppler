@@ -133,7 +133,11 @@
     {
       "match": {
         "modelId": {
-          "contains": "gemma-4-12b"
+          "in": [
+            "gemma-4-12b-it-text-q4k-ehf16-af16",
+            "gemma-4-12b-it-text-q4k-ehf16-hq4k-af16",
+            "gemma-4-12b-it-text-w4a16-ct-ehf16-af16"
+          ]
         },
         "activationDtype": "f16",
         "numLayers": {
@@ -186,24 +190,6 @@
     {
       "match": {},
       "value": "f32"
-    }
-  ],
-  "modelBatchingDefaults": [
-    {
-      "match": {
-        "modelId": {
-          "contains": "lfm2"
-        }
-      },
-      "value": {
-        "batchSize": 8,
-        "stopCheckMode": "batch",
-        "readbackInterval": 8
-      }
-    },
-    {
-      "match": {},
-      "value": null
     }
   ]
 }

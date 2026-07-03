@@ -19,6 +19,10 @@ export interface MoEOptions extends OutputBufferOptions {
   perExpertScale?: GPUBuffer | null;
 }
 
+export interface MoEScatterOptions extends MoEOptions {
+  weightsDtype: 'f16' | 'f32';
+}
+
 /** MoE gather result */
 export interface MoEGatherResult {
   gathered: Tensor;
@@ -105,5 +109,5 @@ export declare function runScatterAddDynamic(
   numTokens: number,
   hiddenSize: number,
   topK: number,
-  options?: MoEOptions
+  options: MoEScatterOptions
 ): Promise<Tensor>;

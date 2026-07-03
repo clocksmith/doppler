@@ -263,7 +263,11 @@ configurePerfGuards({
   });
 
   await assert.rejects(
-    () => runMatmul(input, weight, 1, 1, 4, { transposeB: false }),
+    () => runMatmul(input, weight, 1, 1, 4, {
+      transposeB: false,
+      bDtype: 'f32',
+      outputDtype: 'f32',
+    }),
     /createBindGroup failed at 1/
   );
 

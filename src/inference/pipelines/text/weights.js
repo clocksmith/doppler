@@ -42,14 +42,19 @@ export function getWeightBuffer(weight, label, deviceOverride = null) {
 
   
   let data;
-  let bufferDtype = 'f32';
+  let bufferDtype;
   if (isCpuWeightBuffer(weight)) {
     data = weight.data;
-    bufferDtype = weight.dtype ?? 'f32';
+    if (!weight.dtype) {
+      throw new Error(`Weight buffer "${label}" is missing dtype metadata.`);
+    }
+    bufferDtype = weight.dtype;
   } else if (weight instanceof Float32Array) {
     data = weight;
+    bufferDtype = 'f32';
   } else {
     data = new Float32Array( (weight));
+    bufferDtype = 'f32';
   }
 
   const buf = acquireBuffer(data.byteLength, undefined, label);

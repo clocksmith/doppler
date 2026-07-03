@@ -140,8 +140,15 @@ const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/ru
   setRuntimeConfig(createDopplerConfig({
     runtime: {
       inference: {
+        prompt: 'The sky is',
         generation: {
+          maxTokens: 1,
           disableMultiTokenDecode: false,
+        },
+        sampling: {
+          temperature: 0,
+          topK: 1,
+          topP: 1,
         },
         batching: {
           batchSize: 8,
@@ -566,6 +573,17 @@ const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/ru
           profiler: {
             enabled: true,
           },
+        },
+      },
+      inference: {
+        prompt: 'The sky is',
+        generation: {
+          maxTokens: 1,
+        },
+        sampling: {
+          temperature: 0,
+          topK: 1,
+          topP: 1,
         },
       },
     },

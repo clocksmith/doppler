@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { DEFAULT_KVCACHE_CONFIG } from '../../src/config/schema/index.js';
 
 const { runBrowserSuite } = await import('../../src/inference/browser-harness.js');
+const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/runtime.js');
 
 const EXPECTED_TRANSLATEGEMMA_PROMPT = {
   messages: [
@@ -19,6 +20,22 @@ const EXPECTED_TRANSLATEGEMMA_PROMPT = {
     },
   ],
 };
+
+function explicitRuntimeConfig(prompt = EXPECTED_TRANSLATEGEMMA_PROMPT) {
+  return {
+    inference: {
+      prompt: structuredClone(prompt),
+      generation: {
+        maxTokens: 1,
+      },
+      sampling: {
+        temperature: 0,
+        topK: 1,
+        topP: 1,
+      },
+    },
+  };
+}
 
 function createHarnessOverride() {
   const prompts = [];
@@ -103,11 +120,7 @@ function createHarnessOverride() {
   const { prompts, harnessOverride } = createHarnessOverride();
   const result = await runBrowserSuite({
     runtime: {
-      runtimeConfig: {
-        inference: {
-          prompt: 'Hello from Doppler.',
-        },
-      },
+      runtimeConfig: explicitRuntimeConfig(),
     },
     suite: 'inference',
     command: 'verify',
@@ -134,6 +147,9 @@ function createHarnessOverride() {
     suite: 'debug',
     command: 'debug',
     surface: 'node',
+    runtime: {
+      runtimeConfig: explicitRuntimeConfig(),
+    },
     harnessOverride,
   });
 
@@ -152,11 +168,7 @@ function createHarnessOverride() {
 await assert.rejects(
   () => runBrowserSuite({
     runtime: {
-      runtimeConfig: {
-        inference: {
-          prompt: 'Translate from English to French: Hello world.',
-        },
-      },
+      runtimeConfig: explicitRuntimeConfig('Translate from English to French: Hello world.'),
     },
     suite: 'debug',
     command: 'debug',
@@ -168,12 +180,19 @@ await assert.rejects(
 
 {
   const { prompts, harnessOverride } = createHarnessOverride();
-  const result = await runBrowserSuite({
-    suite: 'bench',
-    command: 'bench',
-    surface: 'node',
-    harnessOverride,
-  });
+  const previousRuntimeConfig = getRuntimeConfig();
+  setRuntimeConfig(explicitRuntimeConfig());
+  let result;
+  try {
+    result = await runBrowserSuite({
+      suite: 'bench',
+      command: 'bench',
+      surface: 'node',
+      harnessOverride,
+    });
+  } finally {
+    setRuntimeConfig(previousRuntimeConfig);
+  }
 
   assert.ok(prompts.length > 0);
   for (const promptInput of prompts) {
@@ -189,4 +208,4 @@ await assert.rejects(
   assert.equal(result.metrics.requiredInferenceFieldsArtifact, null);
 }
 
-console.log('translategemma-harness-default-prompt.test: ok');
+console.log('translategemma-harness-explicit-prompt.test: ok');

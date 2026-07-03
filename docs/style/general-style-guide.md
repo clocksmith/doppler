@@ -35,7 +35,9 @@ Any mirrors or convenience registries must be generated from that source and cov
 Release-facing model claims follow the same rule:
 
 - `models/catalog.json` is the source of truth for model editorial metadata, lifecycle status, and HF revision pointers.
-- The external models volume is the source of truth for RDRR artifacts (manifests, shards, origin metadata). `VOLUME_INDEX.json` on the volume is a generated inventory used for cross-validation.
+- The external models volume is the source of truth for RDRR artifact bytes
+  (manifests, shards, origin metadata). `npm run artifact-identity:check`
+  cross-validates it against catalog identity.
 - HF `Clocksmith/rdrr` is a published subset of the catalog, filtered to approved entries.
 - A model must not be surfaced as verified/release-ready unless its claim is backed by explicit smoke evidence (for example a registry verify record or committed manual-review report artifact).
 
@@ -240,6 +242,9 @@ Both fields are explicitly disabled (valid). Omitting either field is invalid.
 - Runtime never detects model family in pipeline code
 - Pipeline reads config values directly, no architecture-string inference
 - Runtime must not infer model parameters from tensor names, shapes, or heuristics
+- Model-specific runtime policy must live in JSON rule assets and use exact
+  manifest fields or explicit variant ID lists. Do not use substring, prefix, or
+  suffix matching on model identity.
 
 ```javascript
 // DON'T: infer behavior from model family strings

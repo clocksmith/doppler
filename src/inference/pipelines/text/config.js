@@ -377,90 +377,8 @@ function normalizeFfnTensorShape(value) {
   return [Math.trunc(rows), Math.trunc(cols)];
 }
 
-function isExpertTensorName(name) {
-  const lower = String(name || '').toLowerCase();
-  return lower.includes('.experts.') || lower.includes('.expert.') || lower.includes('block_sparse_moe');
-}
-
-function inferLfm2IntermediateSizeFromManifest(manifest) {
-  const tensors = manifest?.tensors;
-  if (!tensors || typeof tensors !== 'object') return null;
-  const candidates = [];
-  for (const [name, entry] of Object.entries(tensors)) {
-    if (!name || isExpertTensorName(name)) continue;
-    const shape = normalizeFfnTensorShape(entry?.shape);
-    if (!shape) continue;
-    const lower = name.toLowerCase();
-    if (
-      lower.endsWith('.feed_forward.w1.weight')
-      || lower.endsWith('.feed_forward.w3.weight')
-      || lower.endsWith('.ffn_gate.weight')
-      || lower.endsWith('.ffn_up.weight')
-      || lower.endsWith('.ffn.gate_proj.weight')
-      || lower.endsWith('.ffn.up_proj.weight')
-      || lower.endsWith('.mlp.gate_proj.weight')
-      || lower.endsWith('.mlp.up_proj.weight')
-    ) {
-      candidates.push(shape[0]);
-      continue;
-    }
-    if (
-      lower.endsWith('.feed_forward.w2.weight')
-      || lower.endsWith('.ffn_down.weight')
-      || lower.endsWith('.ffn.down_proj.weight')
-      || lower.endsWith('.mlp.down_proj.weight')
-    ) {
-      candidates.push(shape[1]);
-      continue;
-    }
-    if (
-      lower.endsWith('.feed_forward.w1_w3.weight')
-      || lower.endsWith('.ffn_gate_up.weight')
-      || lower.endsWith('.ffn.gate_up_proj.weight')
-      || lower.endsWith('.mlp.gate_up_proj.weight')
-    ) {
-      if (shape[0] % 2 === 0) {
-        candidates.push(Math.trunc(shape[0] / 2));
-      }
-    }
-  }
-  if (candidates.length === 0) return null;
-  const counts = new Map();
-  for (const value of candidates) {
-    counts.set(value, (counts.get(value) ?? 0) + 1);
-  }
-  const result = [...counts.entries()]
-    .sort((a, b) => {
-      if (b[1] !== a[1]) return b[1] - a[1];
-      return a[0] - b[0];
-    })[0]?.[0] ?? null;
-  if (result != null && (!Number.isInteger(result) || result <= 0)) {
-    log.warn(
-      'Config',
-      `inferLfm2IntermediateSizeFromManifest: inferred intermediateSize ${result} is not a positive integer, discarding`
-    );
-    return null;
-  }
-  return result;
-}
-
-function resolveIntermediateSizeForRuntime(manifest, inf, arch, modelId) {
-  const fromArch = arch?.intermediateSize;
-  if (typeof fromArch !== 'number' || !Number.isFinite(fromArch) || fromArch <= 0) {
-    return fromArch;
-  }
-  const normalizedModelId = String(modelId ?? manifest?.modelId ?? '').toLowerCase();
-  if (!normalizedModelId.includes('lfm2')) {
-    return fromArch;
-  }
-  const inferred = inferLfm2IntermediateSizeFromManifest(manifest);
-  if (inferred == null || inferred === fromArch) {
-    return fromArch;
-  }
-  throw new Error(
-    `Manifest "${modelId}" has intermediateSize=${fromArch}, but FFN tensors imply ${inferred}. ` +
-    'Re-convert the model so manifest architecture matches the weights.'
-  );
+function resolveIntermediateSizeForRuntime(arch) {
+  return arch?.intermediateSize;
 }
 
 function buildPerLayerIntermediateSizes({
@@ -556,6 +474,8 @@ function validateLayerIntermediateSizesAgainstManifest(manifest, hiddenSize, lay
       `${genericPrefix}.mlp.gate_proj.weight`,
       `${languagePrefix}.ffn.gate_proj.weight`,
       `${languagePrefix}.ffn_gate.weight`,
+      `${languagePrefix}.feed_forward.w1.weight`,
+      `${genericPrefix}.feed_forward.w1.weight`,
       `layers.${layerIdx}.feed_forward.w1.weight`,
     ]);
     const upShape = getDenseFfnTensorShape(tensors, [
@@ -563,6 +483,8 @@ function validateLayerIntermediateSizesAgainstManifest(manifest, hiddenSize, lay
       `${genericPrefix}.mlp.up_proj.weight`,
       `${languagePrefix}.ffn.up_proj.weight`,
       `${languagePrefix}.ffn_up.weight`,
+      `${languagePrefix}.feed_forward.w3.weight`,
+      `${genericPrefix}.feed_forward.w3.weight`,
       `layers.${layerIdx}.feed_forward.w3.weight`,
     ]);
     const downShape = getDenseFfnTensorShape(tensors, [
@@ -570,6 +492,8 @@ function validateLayerIntermediateSizesAgainstManifest(manifest, hiddenSize, lay
       `${genericPrefix}.mlp.down_proj.weight`,
       `${languagePrefix}.ffn.down_proj.weight`,
       `${languagePrefix}.ffn_down.weight`,
+      `${languagePrefix}.feed_forward.w2.weight`,
+      `${genericPrefix}.feed_forward.w2.weight`,
       `layers.${layerIdx}.feed_forward.w2.weight`,
     ]);
     const gateUpShape = getDenseFfnTensorShape(tensors, [
@@ -577,6 +501,8 @@ function validateLayerIntermediateSizesAgainstManifest(manifest, hiddenSize, lay
       `${genericPrefix}.mlp.gate_up_proj.weight`,
       `${languagePrefix}.ffn.gate_up_proj.weight`,
       `${languagePrefix}.ffn_gate_up.weight`,
+      `${languagePrefix}.feed_forward.w1_w3.weight`,
+      `${genericPrefix}.feed_forward.w1_w3.weight`,
       `layers.${layerIdx}.feed_forward.w1_w3.weight`,
     ]);
 
@@ -1372,7 +1298,7 @@ function toParsedConfigFromMerged(merged, manifest) {
       `Re-convert the model using the latest converter to add manifest.architecture.`
     );
   }
-  const resolvedIntermediateSize = resolveIntermediateSizeForRuntime(manifest, inf, arch, merged.modelId);
+  const resolvedIntermediateSize = resolveIntermediateSizeForRuntime(arch);
   const archNumHeads = Number(arch.numAttentionHeads ?? arch.numHeads);
   const archNumKVHeads = Number(arch.numKeyValueHeads ?? arch.numKVHeads);
   const archHeadDim = Number(arch.headDim);

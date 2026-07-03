@@ -232,7 +232,9 @@ If they differ, do not proceed with catalog or support-matrix updates.
 
 ### 8. Update external trackers
 
-Each model directory on the external volume must have an `origin.json` file. `tools/sync-external-rdrr-index.js` throws if `origin.json` (or equivalent `manifest.metadata.sourceModel`/`variant`) is missing — the index cannot be regenerated until all models have provenance metadata.
+Each model directory on the external volume must have an `origin.json` file or
+equivalent manifest provenance metadata. `npm run artifact-identity:check`
+fails if provenance or artifact identity is incomplete.
 
 Required fields in `origin.json`:
 
@@ -247,13 +249,15 @@ Required fields in `origin.json`:
 }
 ```
 
-After all `origin.json` files are present, regenerate the volume index:
+After all `origin.json` files are present, audit the artifact identity inventory:
 
 ```bash
-npm run external:index
+npm run artifact-identity:inventory -- --root /media/x/models/rdrr --json --pretty
+npm run artifact-identity:check -- --root /media/x/models/rdrr
 ```
 
-This writes `VOLUME_INDEX.json` and `VOLUME_INDEX.md` on the external volume.
+This scans the external volume against the catalog without creating another
+registry file.
 
 ### 9. Re-pin repo metadata to the published HF revision
 
@@ -304,5 +308,6 @@ Do not leave ghost model IDs in place and route around them.
 - Update `models/catalog.json` with lifecycle metadata + HF pointers.
 - Publish from the external-volume artifact.
 - Re-pin `hf.revision` in `models/catalog.json` to the published commit SHA.
-- Run `npm run external:index` to regenerate volume index.
+- Run `npm run artifact-identity:check -- --root /media/x/models/rdrr` to
+  verify external-volume identity.
 - Run `npm run ci:catalog:check` for hosted/catalog validation.

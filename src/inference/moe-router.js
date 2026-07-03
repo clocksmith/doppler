@@ -24,7 +24,11 @@ function requireRouterDtype(value, label) {
 }
 
 function inferRouterBufferDtypeFromElementCount(buffer, elementCount, label) {
-  const bytesPerElement = buffer.size / elementCount;
+  const byteLength = Number.isFinite(buffer?.size) ? buffer.size : buffer?.byteLength;
+  if (!Number.isFinite(byteLength)) {
+    throw new Error(`MoERouter requires ${label} byte size to resolve dtype.`);
+  }
+  const bytesPerElement = byteLength / elementCount;
   if (bytesPerElement !== 2 && bytesPerElement !== 4) {
     throw new Error(`MoERouter cannot infer ${label} dtype from bytesPerElement=${bytesPerElement}.`);
   }
@@ -75,6 +79,8 @@ export class MoERouter {
 
   
   _gateWeightGPU = null;
+
+  _gateWeightDtype = null;
 
   
   lastLogitsDtype = null;
@@ -137,6 +143,9 @@ export class MoERouter {
     if (this._gateWeightGPU) {
       this._gateWeightGPU.destroy();
     }
+    this._gateWeightDtype = isWeightBuffer(weights)
+      ? getWeightDtype(weights)
+      : inferRouterBufferDtypeFromElementCount(weights, this.numExperts * this.hiddenSize, 'gate weight');
     this.gateWeight = weights;
     this.gateBias = bias;
     this.gateScale = scale;
@@ -155,6 +164,7 @@ export class MoERouter {
     }
     this._gateBiasGPU = null;
     this._gateWeightGPU = null;
+    this._gateWeightDtype = null;
     this.gateWeight = null;
     this.gateBias = null;
     this.gateScale = null;
@@ -212,6 +222,8 @@ export class MoERouter {
       throw new Error('Router gate weights not loaded');
     }
     if (!isWeightBuffer(gateWeightBuffer) && !isGpuBufferInstance(gateWeightBuffer)) {
+      const sourceWeightDtype = this._gateWeightDtype
+        ?? inferRouterBufferDtypeFromElementCount(gateWeightBuffer, this.numExperts * this.hiddenSize, 'gate weight');
       const uploaded = device.createBuffer({
         label: 'moe_gate_weight',
         size: gateWeightBuffer.byteLength,
@@ -224,13 +236,16 @@ export class MoERouter {
         throw error;
       }
       this._gateWeightGPU = uploaded;
+      this._gateWeightDtype = sourceWeightDtype;
       this.gateWeight = uploaded;
       gateWeightBuffer = uploaded;
     }
 
     const inputDtype = requireRouterDtype(options.inputDtype, 'options.inputDtype');
     const outputDtype = requireRouterDtype(options.outputDtype, 'options.outputDtype');
-    const gateWeightDtype = isWeightBuffer(gateWeightBuffer) ? getWeightDtype(gateWeightBuffer) : null;
+    const gateWeightDtype = isWeightBuffer(gateWeightBuffer)
+      ? getWeightDtype(gateWeightBuffer)
+      : this._gateWeightDtype;
 
     // Matrix multiply: hidden_states [numTokens, hiddenSize] @ gate_weight [hiddenSize, numExperts]
     // Result: [numTokens, numExperts]

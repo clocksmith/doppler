@@ -38,6 +38,12 @@ export interface ExecutionKernelPrecision {
   outputDtype?: 'f16' | 'f32';
 }
 
+export declare function getKernelFilePrecisionPatch(
+  kernel: string
+): Pick<ExecutionKernelPrecision, 'inputDtype' | 'outputDtype'> | null;
+
+export declare function resolveF16ToF32ActivationKernel(kernel: string): string | null;
+
 /**
  * An execution graph kernel entry from manifest.inference.execution.kernels.
  */

@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/support-rollout-policy.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "updated",
+    "ordering",
+    "sizeTiers",
+    "gateOrder",
+    "benchmarkCommands",
+    "preferredArchitecture"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "schema/support-rollout-policy.schema.json"
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "updated": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ordering": {
+      "type": "string",
+      "const": "artifact-size-ascending"
+    },
+    "sizeTiers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "label",
+          "minSizeBytesInclusive",
+          "maxSizeBytesExclusive"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minSizeBytesInclusive": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "maxSizeBytesExclusive": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "gateOrder": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "label"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "benchmarkCommands": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "warmupRuns",
+        "timedRuns",
+        "workloads",
+        "decodeProfiles",
+        "save",
+        "json"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "compute",
+            "warm",
+            "cold",
+            "all"
+          ]
+        },
+        "warmupRuns": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "timedRuns": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "workloads": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "decodeProfiles": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "save": {
+          "type": "boolean"
+        },
+        "json": {
+          "type": "boolean"
+        }
+      }
+    },
+    "preferredArchitecture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selection",
+        "requiredEvidence",
+        "unselectedStatus"
+      ],
+      "properties": {
+        "selection": {
+          "type": "string",
+          "const": "benchmark-evidence-only"
+        },
+        "requiredEvidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "runtimeReport",
+              "compareResult",
+              "summarySvg"
+            ]
+          }
+        },
+        "unselectedStatus": {
+          "type": "string",
+          "const": "pending-benchmark-comparison"
+        }
+      }
+    }
+  }
+}

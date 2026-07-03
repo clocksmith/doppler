@@ -153,8 +153,11 @@ function maxBatchDecodeTokensSemantic(context) {
     return 8;
   }
   if (
-    typeof context.modelId === 'string'
-    && context.modelId.includes('gemma-4-12b')
+    (
+      context.modelId === 'gemma-4-12b-it-text-q4k-ehf16-af16'
+      || context.modelId === 'gemma-4-12b-it-text-q4k-ehf16-hq4k-af16'
+      || context.modelId === 'gemma-4-12b-it-text-w4a16-ct-ehf16-af16'
+    )
     && context.activationDtype === 'f16'
     && context.numLayers >= 48
     && context.hiddenSize >= 3840
@@ -441,7 +444,13 @@ export function buildInferenceExecutionRulesContractArtifact(ruleGroup) {
     }
     if (
       !matchesExactObject(gemma412BAf16DenseRule?.match, {
-        modelId: { contains: 'gemma-4-12b' },
+        modelId: {
+          in: [
+            'gemma-4-12b-it-text-q4k-ehf16-af16',
+            'gemma-4-12b-it-text-q4k-ehf16-hq4k-af16',
+            'gemma-4-12b-it-text-w4a16-ct-ehf16-af16',
+          ],
+        },
         activationDtype: 'f16',
         numLayers: { gte: 48 },
         hiddenSize: { gte: 3840 },

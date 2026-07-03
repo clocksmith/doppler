@@ -11,10 +11,17 @@ import { releaseUniformBuffer } from '../uniform-cache.js';
 import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
 
+function requireOutputDtype(value, label) {
+  if (value !== 'f16' && value !== 'f32') {
+    throw new Error(`[${label}] outputDtype is required and must be "f16" or "f32", got ${String(value)}.`);
+  }
+  return value;
+}
 
 export function selectDequantKernel(options = {}) {
   const capabilities = getKernelCapabilities();
-  const { useVec4 = true, outputDtype = 'f32' } = options;
+  const { useVec4 = true } = options;
+  const outputDtype = requireOutputDtype(options.outputDtype, 'selectDequantKernel');
 
   const wantsF16Out = outputDtype === 'f16' && capabilities.hasF16;
   return selectKernelRuleValue(
@@ -90,8 +97,8 @@ export async function dequantize(
   const {
     outputOffset = 0,
     outputBuffer = null,
-    outputDtype = 'f32',
   } = options;
+  const outputDtype = requireOutputDtype(options.outputDtype, 'dequantize');
 
   if (outputDtype === 'f16' && capabilities?.hasF16 !== true) {
     throw new Error('[dequantize] f16 output requires shader-f16 support.');
@@ -160,7 +167,8 @@ export async function dequantizeRowwise(
 ) {
   const device = getDevice();
   const capabilities = getKernelCapabilities();
-  const { outputBuffer = null, outputDtype = 'f16' } = options;
+  const { outputBuffer = null } = options;
+  const outputDtype = requireOutputDtype(options.outputDtype, 'dequantizeRowwise');
   if (outputDtype === 'f16' && capabilities?.hasF16 !== true) {
     throw new Error('[dequantizeRowwise] f16 output requires shader-f16 support.');
   }
@@ -296,11 +304,11 @@ export async function dequantizeMXFP4Expert(
   const device = getDevice();
   const {
     outputBuffer = null,
-    outputDtype = 'f32',
     modelType = null,
     groupSize = 32,
     dequantTileShape = 'scalar',
   } = options;
+  const outputDtype = requireOutputDtype(options.outputDtype, 'dequantizeMXFP4Expert');
   const caps = getKernelCapabilities();
 
   const variant = selectKernelRuleValue('dequant', 'mxfp4ExpertVariant', {
@@ -375,8 +383,11 @@ export async function dequantizeQ6K(
   const {
     outputOffset = 0,
     outputBuffer = null,
-    outputDtype = 'f16',  // Q6_K always outputs f16 for now
   } = options;
+  const outputDtype = requireOutputDtype(options.outputDtype, 'dequantizeQ6K');
+  if (outputDtype !== 'f16') {
+    throw new Error(`[dequantizeQ6K] outputDtype must be "f16", got ${outputDtype}.`);
+  }
 
   // Q6_K only has f16 output kernel currently
   const pipeline = await getPipelineFast('dequant', 'q6k_f16out');
@@ -451,8 +462,8 @@ export async function recordDequantize(
   const {
     outputOffset = 0,
     outputBuffer = null,
-    outputDtype = 'f32',
   } = options;
+  const outputDtype = requireOutputDtype(options.outputDtype, 'recordDequantize');
 
   // Select kernel
   const variant = selectDequantKernel({ ...options, outputDtype });

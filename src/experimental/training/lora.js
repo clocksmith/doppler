@@ -68,13 +68,13 @@ export class LoraAdapter {
     const [tokens] = input.shape;
     const down = await tape.record(
       OpType.MATMUL,
-      (a, b) => runMatmul(a, b, tokens, this.rank, this.A.shape[0]),
+      (a, b) => runMatmul(a, b, tokens, this.rank, this.A.shape[0], { outputDtype: input.dtype }),
       [input, this.A],
       { M: tokens, N: this.rank, K: this.A.shape[0] }
     );
     const up = await tape.record(
       OpType.MATMUL,
-      (a, b) => runMatmul(a, b, tokens, this.B.shape[1], this.rank),
+      (a, b) => runMatmul(a, b, tokens, this.B.shape[1], this.rank, { outputDtype: down.dtype }),
       [down, this.B],
       { M: tokens, N: this.B.shape[1], K: this.rank }
     );

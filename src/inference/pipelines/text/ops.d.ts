@@ -162,6 +162,9 @@ export function doConv(
     layerIdx?: number;
     label?: string;
     kernelPath?: unknown;
+    weightDtype?: 'f16' | 'f32' | 'q4k';
+    convInProjDtype?: 'f16' | 'f32' | 'q4k';
+    convOutProjDtype?: 'f16' | 'f32' | 'q4k';
     conv2d?: {
       enabled: boolean;
       inChannels: number;

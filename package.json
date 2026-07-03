@@ -90,9 +90,15 @@
     "registry:publish:hf:all": "node tools/publish-hf-registry-model.js --all-approved",
     "support:matrix:sync": "node tools/sync-model-support-matrix.js",
     "support:matrix:check": "node tools/sync-model-support-matrix.js --check",
+    "support:inventory:sync": "node tools/sync-model-support-inventory.js",
+    "support:inventory:check": "node tools/sync-model-support-inventory.js --check",
     "support:subsystems:sync": "node tools/sync-subsystem-support-matrix.js",
     "support:subsystems:check": "node tools/check-subsystem-support-contract.js",
-    "ci:catalog:check": "npm run registry:sync:scripts:check && npm run model-lanes:check && npm run release-claims:check && npm run support:matrix:check && npm run support:subsystems:check && npm run goals:check && npm run registry:hf:check",
+    "ci:catalog:check": "npm run registry:sync:scripts:check && npm run model-lanes:check && npm run release-claims:check && npm run support:matrix:check && npm run support:inventory:check && npm run support:subsystems:check && npm run goals:check && npm run registry:hf:check",
+    "artifact:contract:check": "node tools/check-model-artifact-contract.js",
+    "product:readiness:report": "node tools/render-product-readiness-report.js",
+    "claims:evidence:check": "node tools/check-claim-evidence-contract.js",
+    "policy:schemas:check": "node tools/check-policy-schema-registry.js",
     "verify:embeddinggemma-300m": "node tools/run-registry-verify.js embeddinggemma-300m",
     "verify:gemma-3-1b-it-q4k-ehf16-af32": "node tools/run-registry-verify.js gemma-3-1b-it-q4k-ehf16-af32",
     "verify:gemma-3-1b-it-wq4k-ef16-hf16": "node tools/run-registry-verify.js gemma-3-1b-it-wq4k-ef16-hf16",
@@ -144,11 +150,7 @@
     "verify:translategemma": "node tools/run-registry-verify.js translategemma",
     "verify:translategemma-4b": "node tools/run-registry-verify.js translategemma-4b",
     "verify:translategemma-4b-it-q4k-ehf16-af32": "node tools/run-registry-verify.js translategemma-4b-it-q4k-ehf16-af32",
-    "verify:translategemma-4b-it-wq4k-ef16-hf16": "node tools/run-registry-verify.js translategemma-4b-it-wq4k-ef16-hf16",
-    "artifact:contract:check": "node tools/check-model-artifact-contract.js",
-    "product:readiness:report": "node tools/render-product-readiness-report.js",
-    "claims:evidence:check": "node tools/check-claim-evidence-contract.js",
-    "policy:schemas:check": "node tools/check-policy-schema-registry.js"
+    "verify:translategemma-4b-it-wq4k-ef16-hf16": "node tools/run-registry-verify.js translategemma-4b-it-wq4k-ef16-hf16"
   },
   "exports": {
     ".": {

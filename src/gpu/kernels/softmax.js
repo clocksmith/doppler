@@ -62,10 +62,17 @@ export async function runSoftmaxTopK(logits, numTokens, numExperts, topK, option
   const device = getDevice();
   const {
     normalize = true,
-    inputDtype = 'f32',
-    weightsDtype = 'f32',
     modelType = null,
   } = options;
+  const inputDtype = options.inputDtype;
+  const weightsDtype = options.weightsDtype;
+
+  if (inputDtype !== 'f16' && inputDtype !== 'f32') {
+    throw new Error(`SoftmaxTopK requires options.inputDtype to be "f16" or "f32", got ${String(inputDtype)}.`);
+  }
+  if (weightsDtype !== 'f16' && weightsDtype !== 'f32') {
+    throw new Error(`SoftmaxTopK requires options.weightsDtype to be "f16" or "f32", got ${String(weightsDtype)}.`);
+  }
 
   if (weightsDtype === 'f16' && inputDtype !== 'f16') {
     throw new Error('SoftmaxTopK f16 weights require f16 logits');

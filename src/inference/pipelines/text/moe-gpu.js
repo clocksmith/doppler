@@ -28,9 +28,10 @@ import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { getRuntimeConfig } from '../../../config/runtime.js';
 import {
   validateMoeShape,
+  resolveMoeExecutionProfile,
+  resolveMoeIntermediateSize,
   resolveMoeVendorProfile,
-  resolveGptOssKernelPathProfile,
-  resolveMixtralKernelPathProfile,
+  resolveMoeKernelPathProfile,
 } from './moe-shape-validator.js';
 import { assertImplicitDtypeTransitionAllowed } from './dtype-contract.js';
 import { QK_K, Q4K_BLOCK_BYTES } from '../../../config/schema/index.js';
@@ -128,6 +129,92 @@ function resolvePerExpertScaleBuffer(device, value) {
   return { buffer, ownedBuffer: null };
 }
 
+const MOE_ROUTE_EXECUTORS = Object.freeze({
+  'gemma4-route': runGemma4RouteExperts,
+});
+
+const MOE_EXPERT_EXECUTORS = Object.freeze({
+  'gpt-oss': runGptOssProfileExpert,
+  'gemma4-packed': runGemma4ProfileExpert,
+  mixtral: runMixtralProfileExpert,
+});
+
+function requireMoeExecutor(registry, id, label) {
+  const executor = registry[id];
+  if (typeof executor !== 'function') {
+    throw new Error(`[MoE] Unknown ${label} "${String(id)}".`);
+  }
+  return executor;
+}
+
+function assertMoeExpertWeights(moeProfile, weights, expertKey) {
+  if (moeProfile.expertExecutor === 'gemma4-packed' && !weights.gateUp) {
+    throw new Error(`[MoE] Missing Gemma-style packed weights for ${expertKey}`);
+  }
+  if (moeProfile.expertExecutor === 'gemma4-packed' && !weights.down) {
+    throw new Error(`[MoE] Missing Gemma-style packed weights for ${expertKey}`);
+  }
+  if (moeProfile.expertExecutor === 'mixtral' && (!weights.gate || !weights.up || !weights.down)) {
+    throw new Error(`[MoE] Missing Mixtral weights for ${expertKey}`);
+  }
+}
+
+async function runGptOssProfileExpert(args) {
+  return runGptOssExpert(
+    args.gathered,
+    args.expertOutputs,
+    args.weights,
+    args.layerIdx,
+    args.expertIdx,
+    args.count,
+    args.inputOffset,
+    args.outputOffset,
+    args.hiddenSize,
+    args.intermediateSize,
+    args.numExperts,
+    args.activationDtype,
+    args.swigluLimit,
+    args.kernelPath,
+    args.executionPolicies,
+    args.modelType,
+    args.vendorProfile,
+    args.moeKernelPathProfile
+  );
+}
+
+async function runGemma4ProfileExpert(args) {
+  return runGemma4Expert(
+    args.gathered,
+    args.expertOutputs,
+    args.weights,
+    args.count,
+    args.inputOffset,
+    args.outputOffset,
+    args.hiddenSize,
+    args.intermediateSize,
+    args.activationDtype,
+    args.swigluLimit,
+    args.kernelPath
+  );
+}
+
+async function runMixtralProfileExpert(args) {
+  return runMixtralExpert(
+    args.gathered,
+    args.expertOutputs,
+    args.weights,
+    args.count,
+    args.inputOffset,
+    args.outputOffset,
+    args.hiddenSize,
+    args.intermediateSize,
+    args.hiddenActivation,
+    args.activationDtype,
+    args.swigluLimit,
+    args.kernelPath
+  );
+}
+
 export async function moeFeedForwardGPU(
   inputBuffer,
   numTokens,
@@ -143,9 +230,6 @@ export async function moeFeedForwardGPU(
 
   const { hiddenSize, numExperts, moeTopK, hiddenActivation } = config;
   const expertFormat = config.expertFormat;
-  const intermediateSize = expertFormat === 'gemma4'
-    ? config.expertIntermediateSize
-    : config.intermediateSize;
   const swigluLimit = config.swigluLimit;
   const kernelPath = config.kernelPath ?? null;
   if (!expertFormat) {
@@ -153,9 +237,6 @@ export async function moeFeedForwardGPU(
   }
   if (swigluLimit === undefined) {
     throw new Error('MoE swigluLimit must be explicitly set (null or number).');
-  }
-  if (!Number.isFinite(intermediateSize) || intermediateSize <= 0) {
-    throw new Error(`[MoE] Invalid expert intermediate size for ${expertFormat}: ${String(intermediateSize)}.`);
   }
   const topK = moeTopK ?? moeRouter.topK;
   if (topK == null) {
@@ -165,15 +246,17 @@ export async function moeFeedForwardGPU(
     throw new Error('MoE config.modelType is required; got null/undefined.');
   }
   const modelType = config.modelType;
+  const moeProfile = resolveMoeExecutionProfile(config, { modelType });
+  const intermediateSize = resolveMoeIntermediateSize(config, moeProfile);
   validateMoeShape(
     { hiddenSize, intermediateSize, moeTopK: topK, numExperts, expertFormat },
-    { modelType }
+    { modelType, moeProfile }
   );
-  const vendorProfile = resolveMoeVendorProfile(modelType);
+  const vendorProfile = resolveMoeVendorProfile(moeProfile);
   const caps = getKernelCapabilities();
-  if (modelType === 'gpt-oss' && !caps.hasF16) {
+  if (moeProfile.requiresShaderF16 && !caps.hasF16) {
     throw new Error(
-      '[MoE] GPT-OSS routing requires shader-f16 support. ' +
+      `[MoE] ${moeProfile.label} requires shader-f16 support. ` +
       `Adapter: ${caps.adapterInfo?.vendor ?? 'unknown'} ${caps.adapterInfo?.architecture ?? ''}`.trim()
     );
   }
@@ -224,19 +307,19 @@ export async function moeFeedForwardGPU(
   }
 
   try {
-    const needsGemmaRouterScale = modelType === 'diffusion_gemma'
+    const needsRouterScale = moeProfile.routerScaleMode === 'required'
       || layerRouter?.scale != null
       || layerRouter?.perExpertScale != null;
     let routerInputTensor = routerSourceTensor;
-    if (needsGemmaRouterScale) {
+    if (needsRouterScale) {
       if (!layerRouter?.scale) {
-        throw new Error(`[MoE] DiffusionGemma router scale missing for layer ${layerIdx}.`);
+        throw new Error(`[MoE] ${moeProfile.label} router scale missing for layer ${layerIdx}.`);
       }
       if (!layerRouter?.perExpertScale) {
-        throw new Error(`[MoE] DiffusionGemma per-expert router scale missing for layer ${layerIdx}.`);
+        throw new Error(`[MoE] ${moeProfile.label} per-expert router scale missing for layer ${layerIdx}.`);
       }
       if (!Number.isFinite(config.rmsNormEps) || config.rmsNormEps <= 0) {
-        throw new Error(`[MoE] DiffusionGemma router RMSNorm eps is invalid: ${String(config.rmsNormEps)}.`);
+        throw new Error(`[MoE] ${moeProfile.label} router RMSNorm eps is invalid: ${String(config.rmsNormEps)}.`);
       }
       routerNormTensor = await runRMSNorm(
         inputTensor,
@@ -295,32 +378,16 @@ export async function moeFeedForwardGPU(
     trace.buffers(`MoE L${layerIdx} router_logits`, { min, max, nanCount, dtype: logitsDtype });
   }
 
-  // Profile resolution: routerTopK/dequantExpert are resolved for tracing and
-  // forward validation. Actual kernel dispatch uses the generic softmax.rules.json
-  // topkVariant rules (keyed by modelType) and format-specific dequant paths.
-  // GPT-OSS: dequantTileShape actively steers MXFP4 dequant; routerTopK is trace-only.
-  // Mixtral: expert weights are pre-loaded (no runtime dequant); both fields are trace-only.
-  let gptOssKernelPathProfile = null;
-  let mixtralKernelPathProfile = null;
-  if (modelType === 'gpt-oss') {
-    gptOssKernelPathProfile = await resolveGptOssKernelPathProfile({
-      hasF16: caps.hasF16,
-      hasSubgroups: caps.hasSubgroups,
-      routerDtype: logitsDtype,
-      weightsDtype: activationDtype,
-      outputDtype: activationDtype,
-      groupSize: 32,
-      tileShape: vendorProfile.dequantTileShape,
-    });
-  } else if (modelType === 'mixtral') {
-    mixtralKernelPathProfile = await resolveMixtralKernelPathProfile({
-      hasF16: caps.hasF16,
-      hasSubgroups: caps.hasSubgroups,
-      routerDtype: logitsDtype,
-      weightsDtype: activationDtype,
-      outputDtype: activationDtype,
-    });
-  }
+  const moeKernelPathProfile = await resolveMoeKernelPathProfile(moeProfile, {
+    hasF16: caps.hasF16,
+    hasSubgroups: caps.hasSubgroups,
+    routerDtype: logitsDtype,
+    inputDtype: logitsDtype,
+    weightsDtype: activationDtype,
+    outputDtype: activationDtype,
+    groupSize: 32,
+    tileShape: vendorProfile.dequantTileShape,
+  });
 
   stepStart = perfMark();
     ({ indices: indicesBuffer, weights: weightsBuffer } = await runSoftmaxTopK(
@@ -338,7 +405,7 @@ export async function moeFeedForwardGPU(
   perfLog(`MoE L${layerIdx} topk`, stepStart, {
     topK,
     modelType,
-    routerTopKKernel: gptOssKernelPathProfile?.routerTopK ?? mixtralKernelPathProfile?.routerTopK ?? null,
+    routerTopKKernel: moeKernelPathProfile?.routerTopK ?? null,
   });
 
   if (isTraceEnabled('buffers')) {
@@ -389,28 +456,31 @@ export async function moeFeedForwardGPU(
 
   const activeExpertSelection = resolveMoEActiveExpertSelection();
   if (activeExpertSelection === 'topk-route') {
-    if (expertFormat !== 'gemma4') {
-      throw new Error(`[MoE] topk-route active expert selection requires gemma4 expert format, got ${expertFormat}.`);
+    if (moeProfile.topkRouteExecutor == null) {
+      throw new Error(`[MoE] topk-route active expert selection is not supported by profile "${moeProfile.id}".`);
     }
+    const routeExecutor = requireMoeExecutor(MOE_ROUTE_EXECUTORS, moeProfile.topkRouteExecutor, 'route executor');
     stepStart = perfMark();
     await ensureExpertLoaded(layerIdx, 0, expertWeights, expertLoader);
     const routeWeights = expertWeights.get(`layer_${layerIdx}_expert_0`);
     perfLog(`MoE L${layerIdx} route_weight_load`, stepStart, { expertFormat, topK });
     stepStart = perfMark();
-    outputTensor = await runGemma4RouteExperts(
+    outputTensor = await routeExecutor({
       inputTensor,
       indicesBuffer,
       weightsBuffer,
       layerRouter,
-      routeWeights,
+      weights: routeWeights,
+      expectedExpertFormat: expertFormat,
+      profile: moeProfile,
       layerIdx,
       numTokens,
       topK,
       hiddenSize,
       intermediateSize,
       activationDtype,
-      swigluLimit
-    );
+      swigluLimit,
+    });
     perfLog(`MoE L${layerIdx} route_experts`, stepStart, {
       numTokens,
       topK,
@@ -503,6 +573,7 @@ export async function moeFeedForwardGPU(
     if (!weights.expertFormat) {
       throw new Error(`[MoE] Expert ${expertKey} missing expertFormat.`);
     }
+    assertMoeExpertWeights(moeProfile, weights, expertKey);
 
     const inputOffset = expertIdx * expertStrideBytes;
     const outputOffset = expertIdx * expertStrideBytes;
@@ -515,8 +586,8 @@ export async function moeFeedForwardGPU(
       );
     }
 
-    if (expertFormat === 'gpt-oss') {
-      await runGptOssExpert(
+    const expertExecutor = requireMoeExecutor(MOE_EXPERT_EXECUTORS, moeProfile.expertExecutor, 'expert executor');
+    await expertExecutor({
         gathered,
         expertOutputs,
         weights,
@@ -531,44 +602,12 @@ export async function moeFeedForwardGPU(
         activationDtype,
         swigluLimit,
         kernelPath,
+        executionPolicies: config.executionPolicies ?? null,
         modelType,
         vendorProfile,
-        gptOssKernelPathProfile
-      );
-    } else if (expertFormat === 'gemma4' && weights.gateUp && weights.down) {
-      await runGemma4Expert(
-        gathered,
-        expertOutputs,
-        weights,
-        count,
-        inputOffset,
-        outputOffset,
-        hiddenSize,
-        intermediateSize,
-        activationDtype,
-        swigluLimit,
-        kernelPath
-      );
-    } else if (expertFormat === 'gemma4') {
-      throw new Error(`[MoE] Missing Gemma-style packed weights for ${expertKey}`);
-    } else if (expertFormat === 'mixtral' && weights.gate && weights.up && weights.down) {
-      await runMixtralExpert(
-        gathered,
-        expertOutputs,
-        weights,
-        count,
-        inputOffset,
-        outputOffset,
-        hiddenSize,
-        intermediateSize,
+        moeKernelPathProfile,
         hiddenActivation,
-        activationDtype,
-        swigluLimit,
-        kernelPath
-      );
-    } else if (expertFormat === 'mixtral') {
-      throw new Error(`[MoE] Missing Mixtral weights for ${expertKey}`);
-    }
+      });
     perfLog(`MoE L${layerIdx} expert_exec`, stepStart, { expertIdx, count });
   }
 
@@ -666,28 +705,39 @@ function resolveMatrixStorageStrideBytes(buffer, rows, cols, label) {
   return alignTo4(rows * cols * bytesPerElement);
 }
 
-async function runGemma4RouteExperts(
+async function runGemma4RouteExperts({
   inputTensor,
   indicesBuffer,
   weightsBuffer,
   layerRouter,
   weights,
+  expectedExpertFormat,
+  profile,
   layerIdx,
   numTokens,
   topK,
   hiddenSize,
   intermediateSize,
   activationDtype,
-  swigluLimit
-) {
+  swigluLimit,
+}) {
+  const profileLabel = typeof profile?.label === 'string' && profile.label.length > 0
+    ? profile.label
+    : 'unknown MoE profile';
   if (activationDtype !== 'f16') {
-    throw new Error(`[MoE] topk-route Gemma4 expert path requires f16 activations, got ${activationDtype}.`);
+    throw new Error(`[MoE] topk-route ${profileLabel} path requires f16 activations, got ${activationDtype}.`);
   }
-  if (!weights?.gateUp || !weights?.down || weights.expertFormat !== 'gemma4') {
-    throw new Error(`[MoE] topk-route Gemma4 expert path missing packed weights for layer ${layerIdx}.`);
+  if (!weights?.gateUp || !weights?.down) {
+    throw new Error(`[MoE] topk-route ${profileLabel} path missing packed weights for layer ${layerIdx}.`);
+  }
+  if (weights.expertFormat !== expectedExpertFormat) {
+    throw new Error(
+      `[MoE] topk-route ${profileLabel} expert format mismatch for layer ${layerIdx}: ` +
+      `weights=${weights.expertFormat}, config=${expectedExpertFormat}`
+    );
   }
   if (!layerRouter?.perExpertScale) {
-    throw new Error(`[MoE] topk-route Gemma4 expert path requires per-expert router scale for layer ${layerIdx}.`);
+    throw new Error(`[MoE] topk-route ${profileLabel} path requires per-expert router scale for layer ${layerIdx}.`);
   }
 
   const device = getDevice();
@@ -775,9 +825,10 @@ async function runGptOssExpert(
   activationDtype,
   swigluLimit,
   kernelPath,
+  executionPolicies,
   modelType,
   vendorProfile,
-  gptOssKernelPathProfile
+  moeKernelPathProfile
 ) {
   const perfEnabled = isTraceEnabled('perf');
   const perfMark = () => (perfEnabled ? performance.now() : 0);
@@ -849,7 +900,7 @@ async function runGptOssExpert(
     perfLog(`MoE L${layerIdx} expert ${expertIdx} dequant`, stepStart, {
       hit: false,
       dequantTileShape: vendorProfile.dequantTileShape,
-      dequantKernel: gptOssKernelPathProfile?.dequantExpert ?? null,
+      dequantKernel: moeKernelPathProfile?.dequantExpert ?? null,
     });
   }
 
@@ -875,7 +926,7 @@ async function runGptOssExpert(
   let biasTemp = null;
   if (biasTensor.dtype !== activationDtype) {
     assertImplicitDtypeTransitionAllowed({
-      executionPolicies: config.executionPolicies ?? null,
+      executionPolicies,
       fromDtype: biasTensor.dtype,
       toDtype: activationDtype,
       op: 'moe_gate_up_bias',

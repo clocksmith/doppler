@@ -68,6 +68,17 @@ async function runDebugSnapshot(marker) {
     surface: 'node',
     runtime: {
       runtimeConfig: {
+        inference: {
+          prompt: 'debug snapshot prompt',
+          generation: {
+            maxTokens: 1,
+          },
+          sampling: {
+            temperature: 0,
+            topK: 1,
+            topP: 1,
+          },
+        },
         shared: {
           debug: {
             logLevel: {

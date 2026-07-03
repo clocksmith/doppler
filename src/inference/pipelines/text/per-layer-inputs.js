@@ -431,7 +431,7 @@ export async function ensurePleScaledProjectionNormWeight(context, combineScale 
     }
     scaledProjectionNormWeight = createPleProjectionNormTensor(
       scaledBuffer,
-      getPleProjectionNormDtype(projectionNormWeight) ?? 'f32',
+      inferPleProjectionNormDtype(projectionNormWeight, hiddenSizePerLayerInput),
       hiddenSizePerLayerInput,
       'per_layer_projection_norm_scaled'
     );
@@ -472,6 +472,17 @@ function getEmbeddingDtype(weight) {
     return weight.dtype;
   }
   return getWeightDtype(weight);
+}
+
+function requirePleSourceDtype(rawDtype, label, allowed = ['f16', 'f32']) {
+  if (rawDtype == null) {
+    throw new Error(`${label} requires source dtype metadata.`);
+  }
+  const sourceDtype = String(rawDtype).toLowerCase();
+  if (!allowed.includes(sourceDtype)) {
+    throw new Error(`${label} requires ${allowed.join('/')} source rows; got "${sourceDtype}".`);
+  }
+  return sourceDtype;
 }
 
 function getEmbeddingTranspose(weight) {
@@ -721,11 +732,12 @@ function storePreparedTokenEntry(cache, tokenId, buffers, sessionConfig, activat
 }
 
 function getPleRangeRowLoadConfig(embedTokensPerLayer, totalPerLayerHiddenSize) {
-  const sourceDtype = String(
+  const sourceDtype = requirePleSourceDtype(
     (isCpuWeightBuffer(embedTokensPerLayer) ? embedTokensPerLayer.data?.sourceDtype : null)
-      ?? embedTokensPerLayer?.dtype
-      ?? 'f32'
-  ).toLowerCase();
+      ?? embedTokensPerLayer?.dtype,
+    'Gemma 4 range-backed per-layer input rows',
+    ['f16', 'bf16', 'f32']
+  );
   const bytesPerElement = (sourceDtype === 'f16' || sourceDtype === 'bf16') ? 2 : 4;
   return {
     sourceDtype,
@@ -916,12 +928,10 @@ export async function ensurePleGpuSplitTablesRuntime(context) {
     throw new Error('Gemma 4 gpu_split_tables materialization requires a range-backed CPU embedTokensPerLayer source.');
   }
 
-  const sourceDtype = String(embedTokensPerLayer.data?.sourceDtype ?? embedTokensPerLayer.dtype ?? 'f32').toLowerCase();
-  if (sourceDtype !== 'f16' && sourceDtype !== 'f32') {
-    throw new Error(
-      `Gemma 4 gpu_split_tables materialization requires f16/f32 source rows; got "${sourceDtype}".`
-    );
-  }
+  const sourceDtype = requirePleSourceDtype(
+    embedTokensPerLayer.data?.sourceDtype ?? embedTokensPerLayer.dtype,
+    'Gemma 4 gpu_split_tables materialization'
+  );
 
   const device = getDevice();
   if (!device) {
@@ -1124,7 +1134,11 @@ export async function ensurePleGpuHotVocabularyRuntime(context) {
     return null;
   }
 
-  const sourceDtype = String(embedTokensPerLayer.data?.sourceDtype ?? embedTokensPerLayer.dtype ?? 'f32').toLowerCase();
+  const sourceDtype = requirePleSourceDtype(
+    embedTokensPerLayer.data?.sourceDtype ?? embedTokensPerLayer.dtype,
+    'Gemma 4 hot vocabulary cache',
+    [policy.outputDtype]
+  );
   if (sourceDtype !== policy.outputDtype) {
     throw new Error(
       `Gemma 4 hot vocabulary cache requires source dtype "${policy.outputDtype}" for zero-copy row packing; ` +

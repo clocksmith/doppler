@@ -400,7 +400,7 @@ function createToyLoraModel(workload) {
       const batchSize = Number.isInteger(inputTensor?.shape?.[0]) ? inputTensor.shape[0] : 1;
       const baseLogits = await tape.record(
         OpType.MATMUL,
-        (a, b) => runMatmul(a, b, batchSize, 2, 3, { transposeB: false }),
+        (a, b) => runMatmul(a, b, batchSize, 2, 3, { transposeB: false, outputDtype: 'f32' }),
         [inputTensor, baseWeight],
         { M: batchSize, N: 2, K: 3, transposeB: false }
       );

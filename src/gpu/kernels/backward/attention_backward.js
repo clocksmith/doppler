@@ -141,12 +141,14 @@ async function runAttentionBackwardCore(
           dV = await runMatmul(sTransposed, dHead.buffer, seqLen, headDim, seqLen, {
             transposeB: false,
             bDtype: 'f32',
+            outputDtype: 'f32',
           });
 
           vTransposed = await runTranspose(vHead, seqLen, headDim);
           dS = await runMatmul(dHead, vTransposed.buffer, seqLen, seqLen, headDim, {
             transposeB: false,
             bDtype: 'f32',
+            outputDtype: 'f32',
           });
           dQK = causal
             ? await runBackwardKernel(
@@ -166,12 +168,14 @@ async function runAttentionBackwardCore(
             transposeB: false,
             alpha: scale,
             bDtype: 'f32',
+            outputDtype: 'f32',
           });
           dQKTransposed = await runTranspose(dQK, seqLen, seqLen);
           dK = await runMatmul(dQKTransposed, qHead.buffer, seqLen, headDim, seqLen, {
             transposeB: false,
             alpha: scale,
             bDtype: 'f32',
+            outputDtype: 'f32',
           });
 
           const copyEncoder = getDevice().createCommandEncoder();
@@ -240,12 +244,14 @@ async function runAttentionBackwardCore(
           dV = await recordMatmul(recorder, sTransposed, dHead.buffer, seqLen, headDim, seqLen, {
             transposeB: false,
             bDtype: 'f32',
+            outputDtype: 'f32',
           });
 
           vTransposed = await recordTranspose(recorder, vHead, seqLen, headDim);
           dS = await recordMatmul(recorder, dHead, vTransposed.buffer, seqLen, seqLen, headDim, {
             transposeB: false,
             bDtype: 'f32',
+            outputDtype: 'f32',
           });
           dQK = causal
             ? await recordBackwardKernel(
@@ -266,12 +272,14 @@ async function runAttentionBackwardCore(
             transposeB: false,
             alpha: scale,
             bDtype: 'f32',
+            outputDtype: 'f32',
           });
           dQKTransposed = await recordTranspose(recorder, dQK, seqLen, seqLen);
           dK = await recordMatmul(recorder, dQKTransposed, qHead.buffer, seqLen, headDim, seqLen, {
             transposeB: false,
             alpha: scale,
             bDtype: 'f32',
+            outputDtype: 'f32',
           });
 
           encoder.copyBufferToBuffer(dQ.buffer, 0, gradQBuf, qOffset, headBytes);

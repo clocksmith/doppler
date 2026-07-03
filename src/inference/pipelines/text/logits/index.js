@@ -26,23 +26,7 @@ import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { getKernelPathMatmulPrecision, getKernelPathStepPrecision } from '../../../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
-
-function shouldForceStableF32Logits(config, inputDtype) {
-  if (inputDtype !== 'f16') {
-    return false;
-  }
-  // Softcapped output heads are numerically sensitive in pure F16 on the
-  // final RMSNorm + LM-head path. Widen only the logits tail so the main
-  // layer stack and KV cache can stay on the faster F16 lane.
-  if (Number.isFinite(config.finalLogitSoftcapping) && config.finalLogitSoftcapping > 0) {
-    return true;
-  }
-  // Small Gemma-family checkpoints can also overflow in pure F16 logits path
-  // after RMSNorm offset even without output softcapping.
-  return config.rmsNormWeightOffset === true
-    && Number.isFinite(config.hiddenSize)
-    && config.hiddenSize <= 768;
-}
+import { shouldForceStableF32Logits, createStableF32LogitsKernelPath } from './precision-policy.js';
 
 function resolvePrecisionFieldDtype(precision, fallback, field) {
   const requested = precision?.[field] ?? fallback;
@@ -85,68 +69,6 @@ async function coerceTensorDtype(tensor, targetDtype, options = {}) {
     return castF16ToF32(tensor);
   }
   throw new Error(`Unsupported logits matmul dtype coercion: ${tensor.dtype} -> ${targetDtype}`);
-}
-
-const STABLE_F32_LOGITS_KERNEL_MAP = new Map([
-  ['matmul_gemv_subgroup_f16a.wgsl', 'matmul_gemv_subgroup.wgsl'],
-  ['matmul_f16.wgsl', 'matmul_f16w_f32a.wgsl'],
-  ['matmul_f16_tiled.wgsl', 'matmul_f16w_f32a_tiled.wgsl'],
-]);
-
-function createStableF32LogitsKernelPath(kernelPath) {
-  if (!kernelPath?.postLayer) {
-    return kernelPath;
-  }
-  let changed = false;
-  const postLayer = kernelPath.postLayer.map((step) => {
-    if (step?.op === 'final_norm') {
-      const precision = {
-        ...(step.precision ?? {}),
-        inputDtype: 'f32',
-        outputDtype: 'f32',
-      };
-      if (
-        step.precision?.inputDtype === precision.inputDtype
-        && step.precision?.outputDtype === precision.outputDtype
-      ) {
-        return step;
-      }
-      changed = true;
-      return {
-        ...step,
-        precision,
-      };
-    }
-    if (step?.op !== 'lm_head' && step?.op !== 'lm_head_prefill') {
-      return step;
-    }
-    const replacement = STABLE_F32_LOGITS_KERNEL_MAP.get(step.kernel) ?? step.kernel;
-    const precision = {
-      ...(step.precision ?? {}),
-      inputDtype: 'f32',
-      outputDtype: 'f32',
-    };
-    if (
-      replacement === step.kernel
-      && step.precision?.inputDtype === precision.inputDtype
-      && step.precision?.outputDtype === precision.outputDtype
-    ) {
-      return step;
-    }
-    changed = true;
-    return {
-      ...step,
-      kernel: replacement,
-      precision,
-    };
-  });
-  if (!changed) {
-    return kernelPath;
-  }
-  return {
-    ...kernelPath,
-    postLayer,
-  };
 }
 
 async function traceTensorHealth(label, tensor, elementCount) {

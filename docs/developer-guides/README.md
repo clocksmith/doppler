@@ -32,6 +32,7 @@ Every guide in this directory should answer the same four questions:
 
 | Goal | Start with | Notes |
 | --- | --- | --- |
+| Understand ownership before changing config, kernels, registries, or hosted models | [config-source-of-truth.md](config-source-of-truth.md) | Front door for layered ownership and single-source checks |
 | Add a model end to end with research, debug, verify, and bench discipline | [model-onboarding-playbook.md](model-onboarding-playbook.md) | Use this before picking the smaller atomic/composite guides |
 | Tune runtime behavior without code changes | [01-runtime-profile.md](01-runtime-profile.md) | JSON-only runtime profile work |
 | Put an existing chat format on a model | [02-assign-chat-template.md](02-assign-chat-template.md) | Uses an existing built-in formatter |
@@ -40,7 +41,7 @@ Every guide in this directory should answer the same four questions:
 | Publish a verified artifact | [05-promote-model-artifact.md](05-promote-model-artifact.md) | Curated metadata + external storage + HF |
 | Migrate model artifacts to source/weight/manifest identity | [artifact-identity-migration-plan.md](artifact-identity-migration-plan.md) | Resumable checklist for replacing modelId-as-artifact-identity |
 | Compose existing kernels differently | [06-kernel-path-config.md](06-kernel-path-config.md) | New execution identity, no new WGSL |
-| Check config ownership before cross-runtime work | [config-source-of-truth.md](config-source-of-truth.md) | Source-of-truth map for conversion/runtime/harness/kernel policy |
+| Check config ownership before cross-runtime work | [config-source-of-truth.md](config-source-of-truth.md) | Source-of-truth map for conversion, runtime, harness, kernel, model, hosted registry, and evidence policy |
 | Export a portable Doe/Cerebras model program | [../integration/program-bundle.md](../integration/program-bundle.md) | Program Bundle schema, exporter, transcript gate |
 | Add a new config/manifest field | [07-manifest-runtime-field.md](07-manifest-runtime-field.md) | Schema + merge + parser + tests |
 | Add a new built-in chat formatter | [08-chat-template-formatter.md](08-chat-template-formatter.md) | New formatter function and registry key |

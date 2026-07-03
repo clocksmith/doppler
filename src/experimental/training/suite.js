@@ -821,7 +821,7 @@ export function createToyModelFixture(overrides = {}) {
     async forward(inputTensor, tape) {
       return tape.record(
         OpType.MATMUL,
-        (a, b) => runMatmul(a, b, 2, 2, 3, { transposeB: false }),
+        (a, b) => runMatmul(a, b, 2, 2, 3, { transposeB: false, outputDtype: 'f32' }),
         [inputTensor, baseWeight],
         { M: 2, N: 2, K: 3, transposeB: false }
       );

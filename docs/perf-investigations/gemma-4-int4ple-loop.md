@@ -288,7 +288,13 @@ Iter 3 work:
 ```json
 {
   "match": {
-    "modelId": { "startsWith": "gemma-4-e2b-it-q4k-" },
+    "modelId": {
+      "in": [
+        "gemma-4-e2b-it-q4k-ehf16-af32",
+        "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+        "gemma-4-e2b-it-q4k-ehf16-af16-int4ple"
+      ]
+    },
     "platformVendor": "apple",
     "retainQ4KMaterialization": true
   },
@@ -455,4 +461,3 @@ Three real paths forward, all expensive:
 | 5    | bs=4 / bs=16 / bs=32 / ortFlashPrefill                  |   9.92–10.25 |   yes   |
 
 No win shipped yet. The wall is real and clean: ~70% of GPU compute is on q4k-fusion-blocked kernels.
-
