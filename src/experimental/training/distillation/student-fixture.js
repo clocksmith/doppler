@@ -421,7 +421,7 @@ function createDistillStudentProjectionModelFixture(overrides = {}, options = {}
     const rows = Number.isFinite(inputTensor?.shape?.[0]) ? inputTensor.shape[0] : 1;
     return tape.record(
       OpType.MATMUL,
-      (a, b) => runMatmul(a, b, rows, outputDim, embeddingDim, { transposeB: false }),
+      (a, b) => runMatmul(a, b, rows, outputDim, embeddingDim, { transposeB: false, outputDtype: 'f32' }),
       [inputTensor, projectionWeight],
       { M: rows, N: outputDim, K: embeddingDim, transposeB: false }
     );

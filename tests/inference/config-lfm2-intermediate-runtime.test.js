@@ -52,10 +52,18 @@ const baseManifest = {
   },
 };
 
+const matchingManifest = {
+  ...baseManifest,
+  architecture: {
+    ...baseManifest.architecture,
+    intermediateSize: 8192,
+  },
+};
+
 {
   assert.throws(
     () => parseModelConfig(baseManifest, {}),
-    /FFN tensors imply 8192/
+    /FFN tensor shapes agree/
   );
 }
 
@@ -64,16 +72,18 @@ const baseManifest = {
     ...baseManifest,
     modelId: 'gemma-3-runtime-test',
   };
-  const parsed = parseModelConfig(nonLfm2, {});
-  assert.equal(parsed.intermediateSize, 12288);
+  assert.throws(
+    () => parseModelConfig(nonLfm2, {}),
+    /FFN tensor shapes agree/
+  );
 }
 
 {
   const linearNormFromArchitecture = {
-    ...baseManifest,
+    ...matchingManifest,
     modelId: 'linear-norm-mode-arch-test',
     architecture: {
-      ...baseManifest.architecture,
+      ...matchingManifest.architecture,
       linearNumKeyHeads: 16,
       linearNumValueHeads: 16,
       linearKeyHeadDim: 128,
@@ -88,7 +98,7 @@ const baseManifest = {
 
 {
   const linearNormFromConfig = {
-    ...baseManifest,
+    ...matchingManifest,
     modelId: 'linear-norm-mode-config-test',
     config: {
       model_type: 'qwen2',
@@ -101,7 +111,7 @@ const baseManifest = {
 
 {
   const invalidLinearNormMode = {
-    ...baseManifest,
+    ...matchingManifest,
     modelId: 'linear-norm-mode-invalid-test',
     config: {
       model_type: 'qwen2',

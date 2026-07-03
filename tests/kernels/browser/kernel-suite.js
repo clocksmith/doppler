@@ -644,7 +644,11 @@ export async function runKernelSuite(harness) {
       const topK = 4;
       const logits = h.generateTestData(numTokens * numExperts, 602);
       const expected = h.references.softmaxTopkRef(logits, numTokens, numExperts, topK, true);
-      const actual = await h.runSoftmaxTopK(null, logits, numTokens, numExperts, topK, { normalize: true });
+      const actual = await h.runSoftmaxTopK(null, logits, numTokens, numExperts, topK, {
+        normalize: true,
+        inputDtype: 'f32',
+        weightsDtype: 'f32',
+      });
       const indicesMatch = compareExact(expected.indices, actual.indices);
       const weightsMatch = h.compareArrays(
         expected.weights,

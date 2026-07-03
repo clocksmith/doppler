@@ -16,9 +16,9 @@ Move a verified runtime artifact into catalog metadata, external-volume storage,
 ## Required Touch Points
 
 - External-volume artifact directory (`/media/x/models/rdrr/<model-id>/`)
-- `models/catalog.json` (repo metadata mirror — no weights)
+- `models/catalog.json` (repo model registry metadata — no weights)
 - `docs/model-support-matrix.md` via sync tooling
-- External RDRR index via sync tooling
+- Artifact identity inventory via sync/check tooling
 - Manifest `artifactIdentity` and catalog identity fields:
   `sourceCheckpointId`, `weightPackId`, `manifestVariantId`,
   `artifactCompleteness`, `runtimePromotionState`, `weightsRefAllowed`
@@ -29,8 +29,10 @@ Move a verified runtime artifact into catalog metadata, external-volume storage,
 2. Get human review on deterministic output quality before touching catalog or hosted state.
 3. For raw SafeTensors/GGUF release candidates, materialize the persisted direct-source manifest with `node tools/materialize-source-manifest.js <source-path>`.
 4. Copy the verified artifact to the external volume (`/media/x/models/rdrr/<model-id>/`).
-5. Update the canonical external support registry entry first. Treat `models/catalog.json` as the repo mirror, not the primary edit surface.
-6. Run support-matrix and external-index sync if catalog or external storage changed.
+5. Update `models/catalog.json` for repo-visible model metadata and HF
+   coordinates. The external volume remains the source for artifact bytes.
+6. Run support-matrix, support-inventory, and artifact-identity checks if
+   catalog or external storage changed.
 7. Run catalog validation before any Hugging Face publication.
 8. Publish with `npm run registry:publish:hf` only after the metadata state is clean. The remote registry catalog should be rebuilt from the approved hosted subset, not patched from a stale local mirror.
 9. Publish manifest-only updates only when the manifest declares a valid `weightsRef` and the referenced weight pack is already hosted and checker-verified. Otherwise hosted publication requires every manifest-declared artifact file to be present.
@@ -39,7 +41,9 @@ Move a verified runtime artifact into catalog metadata, external-volume storage,
 
 - `npm run ci:catalog:check`
 - `npm run support:matrix:sync` if catalog changed
-- `npm run external:index` if external-volume tracking changed
+- `npm run support:inventory:sync` if catalog, compare profiles, claim lanes,
+  release claims, or benchmark policy changed
+- `npm run artifact-identity:check` if external-volume tracking changed
 - Re-run a verify or debug pass against the repo-local or hosted artifact if publication changed the delivery path
 
 ## Common Misses

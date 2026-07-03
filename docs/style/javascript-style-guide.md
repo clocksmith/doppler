@@ -48,6 +48,9 @@ Any selection of kernel variants, dtype strings, or op names must use JSON rule 
 - Use `selectRuleValue()` from `src/rules/rule-registry.js` (or `src/gpu/kernels/rule-registry.js` for kernel-only call sites).
 - Avoid inline ternaries/if-else for choosing variant strings or dtypes.
 - Keep rule maps consistent and reusable: `match` + `value` keys only, no ad-hoc fields.
+- Do not duplicate the same rule-backed condition in multiple JS modules. Put
+  shared normalization/validation in one helper and keep the selection condition
+  in the JSON rule map.
 
 Example:
 

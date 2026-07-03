@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 const { runBrowserSuite } = await import('../../src/inference/browser-harness.js');
 
-const EXPECTED_QWEN_PROMPT = {
+const QWEN_PROMPT = {
   messages: [
     {
       role: 'user',
@@ -10,6 +10,22 @@ const EXPECTED_QWEN_PROMPT = {
     },
   ],
 };
+
+function explicitRuntimeConfig(prompt = QWEN_PROMPT) {
+  return {
+    inference: {
+      prompt: structuredClone(prompt),
+      generation: {
+        maxTokens: 1,
+      },
+      sampling: {
+        temperature: 0,
+        topK: 1,
+        topP: 1,
+      },
+    },
+  };
+}
 
 function createHarnessOverride() {
   const prompts = [];
@@ -74,11 +90,14 @@ function createHarnessOverride() {
     suite: 'debug',
     command: 'debug',
     surface: 'node',
+    runtime: {
+      runtimeConfig: explicitRuntimeConfig(),
+    },
     harnessOverride,
   });
 
   assert.equal(prompts.length, 1);
-  assert.deepEqual(prompts[0], EXPECTED_QWEN_PROMPT);
+  assert.deepEqual(prompts[0], QWEN_PROMPT);
   assert.equal(
     result.metrics.prompt,
     'user: Answer in one short sentence: What color is the sky on a clear day?'
@@ -89,11 +108,7 @@ function createHarnessOverride() {
   const { prompts, harnessOverride } = createHarnessOverride();
   await runBrowserSuite({
     runtime: {
-      runtimeConfig: {
-        inference: {
-          prompt: 'Hello from Doppler.',
-        },
-      },
+      runtimeConfig: explicitRuntimeConfig(),
     },
     suite: 'inference',
     command: 'verify',
@@ -102,7 +117,7 @@ function createHarnessOverride() {
   });
 
   assert.equal(prompts.length, 1);
-  assert.deepEqual(prompts[0], EXPECTED_QWEN_PROMPT);
+  assert.deepEqual(prompts[0], QWEN_PROMPT);
 }
 
-console.log('qwen-harness-default-prompt.test: ok');
+console.log('qwen-harness-explicit-prompt.test: ok');

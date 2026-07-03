@@ -34,9 +34,7 @@ function normalizeLinearNormMode(value) {
 }
 
 function bytesFromDtype(dtype) {
-  const normalized = String(dtype ?? '').toLowerCase();
-  if (normalized === 'f16' || normalized === 'bf16') return 2;
-  return 4;
+  return selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
 }
 
 function resolveMatmulStepDtype(role, phase, layerIdx, kernelPath, fallback, field) {
@@ -199,13 +197,19 @@ function inferLinearNormModeFromWeight(weight, projectionLayout) {
   if (weight instanceof ArrayBuffer) {
     return classify(Math.trunc(weight.byteLength / Float32Array.BYTES_PER_ELEMENT));
   }
+  if (!weight || typeof weight !== 'object') {
+    return null;
+  }
   const explicitDtype = typeof weight?.dtype === 'string' ? weight.dtype.toLowerCase() : null;
   const trackedDtype = isGpuBuffer(weight) ? String(getBufferDtype(weight) ?? '').toLowerCase() : '';
-  const bytesPerElement = bytesFromDtype(explicitDtype || trackedDtype || null);
-  const sizedElements = Number.isFinite(weight?.size)
-    ? Math.trunc(Number(weight.size) / bytesPerElement)
-    : null;
-  if (sizedElements && Number(weight.size) % bytesPerElement === 0) {
+  const sourceDtype = explicitDtype || trackedDtype;
+  if (!sourceDtype || !Number.isFinite(weight?.size)) {
+    return null;
+  }
+  const bytesPerElement = bytesFromDtype(sourceDtype);
+  const size = Number(weight.size);
+  const sizedElements = Math.trunc(size / bytesPerElement);
+  if (sizedElements && size % bytesPerElement === 0) {
     return classify(sizedElements);
   }
   return null;

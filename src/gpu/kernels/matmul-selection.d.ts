@@ -26,10 +26,10 @@ export declare function isFusedQ4KDisabled(options?: {
 
 export declare function toMatmulDtype(dtype: string | null | undefined): 'f16' | 'f32' | 'q4k' | 'litert_int4' | 'w4a16';
 
-export declare function selectMatmulKernel(options?: {
+export declare function selectMatmulKernel(options: {
   preferF16?: boolean;
   useVec4?: boolean;
-  outputDtype?: TensorDtype | 'f16' | 'f32';
+  outputDtype: TensorDtype | 'f16' | 'f32';
   aDtype?: 'f16' | 'f32' | null;
   bDtype?: 'f16' | 'f32' | 'q4k' | 'litert_int4' | 'w4a16' | null;
   isPrefill?: boolean;

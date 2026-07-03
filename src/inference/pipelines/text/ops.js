@@ -16,7 +16,7 @@ import {
 } from '../../../gpu/kernels/cast.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { releaseBuffer, readBuffer, acquireBuffer, uploadData } from '../../../memory/buffer-pool.js';
-import { isGpuBufferInstance } from '../../../gpu/weight-buffer.js';
+import { getWeightDtype, isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { kernelTrace, traceStep } from './kernel-trace.js';
 import {
   runLayerAttentionGPU,
@@ -180,6 +180,17 @@ export async function doMatmulRMSNormFused(input, weight, normWeight, options, r
   return resultTensor;
 }
 
+function requireProjectionWeightDtype(weight, declared, label) {
+  if (isWeightBuffer(weight)) {
+    return getWeightDtype(weight);
+  }
+  const dtype = declared ?? weight?.dtype;
+  if (dtype === 'f16' || dtype === 'f32' || dtype === 'q4k') {
+    return dtype;
+  }
+  throw new Error(`${label} requires explicit weight dtype.`);
+}
+
 export async function doConv(
   inputTensor,
   convInProj,
@@ -200,6 +211,16 @@ export async function doConv(
   if (!Number.isFinite(hiddenSize) || hiddenSize <= 0) {
     throw new Error('doConv requires hiddenSize > 0.');
   }
+  const convInProjDtype = requireProjectionWeightDtype(
+    convInProj,
+    options.convInProjDtype ?? options.weightDtype,
+    `${label}.in_proj`
+  );
+  const convOutProjDtype = requireProjectionWeightDtype(
+    convOutProj,
+    options.convOutProjDtype ?? options.weightDtype,
+    `${label}.out_proj`
+  );
 
   // LFM2 gated short convolution (GPU-native):
   // in_proj → 3×hidden → GPU kernel: split(B,C,x) + B*x + causal conv1d + C*conv_out → out_proj
@@ -225,6 +246,8 @@ export async function doConv(
         kernelPath,
         role: 'conv_in_proj',
         executionPolicies: options.executionPolicies ?? null,
+        bDtype: convInProjDtype,
+        outputDtype: inputTensor.dtype,
       },
       recorder
     );
@@ -265,6 +288,8 @@ export async function doConv(
         kernelPath,
         role: 'conv_out_proj',
         executionPolicies: options.executionPolicies ?? null,
+        bDtype: convOutProjDtype,
+        outputDtype: convOut.dtype,
       },
       recorder
     );

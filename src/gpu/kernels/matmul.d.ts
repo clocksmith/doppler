@@ -56,7 +56,7 @@ export declare function isFusedQ4KDisabled(): boolean;
 /**
  * Select the best matmul kernel variant
  */
-export declare function selectMatmulKernel(options?: MatmulOptions): string;
+export declare function selectMatmulKernel(options: MatmulOptions): string;
 
 /**
  * Create bind group layout for matmul operation

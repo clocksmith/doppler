@@ -470,10 +470,14 @@ export async function recordMoEBuildTokenOffsets(recorder, tokenCounts, tokenMap
 
 async function executeScatterAddDynamic(recorder, expertOutputs, indices, weights, tokenOffsets, numTokens, hiddenSize, topK, options = {}) {
   const execution = resolveExecution(recorder);
-  const { outputBuffer = null, weightsDtype = 'f32', perExpertScale = null } = options;
+  const { outputBuffer = null, perExpertScale = null } = options;
+  const weightsDtype = options.weightsDtype;
   const ownsOutput = outputBuffer == null;
   const hasExpertScale = perExpertScale != null;
 
+  if (weightsDtype !== 'f16' && weightsDtype !== 'f32') {
+    throw new Error(`ScatterAddDynamic requires options.weightsDtype to be "f16" or "f32", got ${String(weightsDtype)}.`);
+  }
   if (weightsDtype === 'f16' && expertOutputs.dtype !== 'f16') {
     throw new Error('ScatterAddDynamic f16 weights require f16 expert outputs');
   }
@@ -552,4 +556,3 @@ async function executeScatterAddDynamic(recorder, expertOutputs, indices, weight
 export async function runScatterAddDynamic(expertOutputs, indices, weights, tokenOffsets, numTokens, hiddenSize, topK, options = {}) {
   return executeScatterAddDynamic(null, expertOutputs, indices, weights, tokenOffsets, numTokens, hiddenSize, topK, options);
 }
-

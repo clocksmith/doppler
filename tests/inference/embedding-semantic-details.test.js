@@ -15,6 +15,9 @@ const vectors = new Map([
 const pipeline = {
   manifest: {
     modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
+    config: {
+      model_type: 'embeddinggemma',
+    },
   },
   runtimeConfig: {},
   reset() {},

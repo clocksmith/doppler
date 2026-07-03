@@ -193,7 +193,14 @@ export async function embed(tokenIds, embedBuffer, config) {
       ? cpuEmbeddings
       : null;
     if (rangeBackedSource) {
-      const sourceDtype = String(rangeBackedSource.sourceDtype ?? embedBuffer.dtype ?? 'f32').toLowerCase();
+      const rawSourceDtype = rangeBackedSource.sourceDtype ?? embedBuffer.dtype;
+      if (rawSourceDtype == null) {
+        throw new Error('[Embed] CPU embedding range source requires sourceDtype or embedding buffer dtype metadata.');
+      }
+      const sourceDtype = String(rawSourceDtype).toLowerCase();
+      if (sourceDtype !== 'f16' && sourceDtype !== 'bf16' && sourceDtype !== 'f32') {
+        throw new Error(`[Embed] CPU embedding range source dtype "${sourceDtype}" is unsupported.`);
+      }
       const bytesPerElement = sourceDtype === 'f16' || sourceDtype === 'bf16' ? 2 : 4;
       if (!transpose) {
         for (let t = 0; t < numTokens; t++) {

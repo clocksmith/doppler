@@ -293,7 +293,7 @@ try {
           },
         },
       }),
-      /FFN tensors imply 12/
+      /FFN tensor shapes agree/
     );
   }
 

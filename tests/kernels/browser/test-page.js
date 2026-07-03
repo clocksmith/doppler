@@ -322,7 +322,12 @@ const testHarness = {
 
     // Test uses standard layout B [K, N], so transposeB = false
     // (GPU kernel defaults to transposeB=true for SafeTensors [N, K] layout)
-    const resultTensor = await runMatmul(tensorA, bufB, M, N, K, { alpha, transposeB: false });
+    const resultTensor = await runMatmul(tensorA, bufB, M, N, K, {
+      alpha,
+      transposeB: false,
+      bDtype: 'f32',
+      outputDtype: 'f32',
+    });
 
     const result = new Float32Array(await readBufferData(resultTensor.buffer, M * N * 4));
 
@@ -360,7 +365,11 @@ const testHarness = {
 
     // Run matmul - kernel auto-detects q4k and uses fused variant
     // transposeB is implicit for Q4K (weight matrix stored as [N, K])
-    const resultTensor = await runMatmul(tensorA, bufB, M, N, K, { alpha, bDtype: 'q4k' });
+    const resultTensor = await runMatmul(tensorA, bufB, M, N, K, {
+      alpha,
+      bDtype: 'q4k',
+      outputDtype: 'f32',
+    });
 
     const result = new Float32Array(await readBufferData(resultTensor.buffer, M * N * 4));
 
@@ -407,7 +416,11 @@ const testHarness = {
       numTokens,
       numExperts,
       topK,
-      { normalize: options.normalize !== false }
+      {
+        normalize: options.normalize !== false,
+        inputDtype: options.inputDtype ?? 'f32',
+        weightsDtype: options.weightsDtype ?? 'f32',
+      }
     );
 
     const indices = new Uint32Array(await readBufferData(indicesBuf, numTokens * topK * 4));
@@ -2301,7 +2314,7 @@ const testHarness = {
         return padded;
       })();
     const qBuf = makeBuffer(alignedBytes, GPUBufferUsage.STORAGE);
-    const outTensor = await dequantizeQ6K(qBuf, numBlocks, { outputOffset: 0 });
+    const outTensor = await dequantizeQ6K(qBuf, numBlocks, { outputOffset: 0, outputDtype: 'f16' });
 
     const outBuf = outTensor.buffer;
     // Q6K outputs f16 - read raw bytes and convert
@@ -2339,6 +2352,7 @@ const testHarness = {
       bDtype: 'f16',
       preferF16: true,
       transposeB: true,
+      outputDtype: 'f32',
     });
 
     const result = new Float32Array(await readBufferData(resultTensor.buffer, M * N * 4));
@@ -2370,6 +2384,7 @@ const testHarness = {
       bDtype: 'f16',
       preferF16: true,
       transposeB: true,
+      outputDtype: 'f32',
     });
 
     const result = new Float32Array(await readBufferData(resultTensor.buffer, M * N * 4));

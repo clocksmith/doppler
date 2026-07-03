@@ -49,6 +49,10 @@ const KERNEL_FILE_PRECISION_PATCHES = new Map([
   ['gather_f16_vec4_f16_out.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
 ]);
 
+export function getKernelFilePrecisionPatch(kernel) {
+  return KERNEL_FILE_PRECISION_PATCHES.get(kernel) ?? null;
+}
+
 /*
  * Check whether a kernel entry requires subgroup support.
  */
@@ -685,6 +689,10 @@ const F16_TO_F32_ACTIVATION_MAP = new Map([
   ['attention_streaming_f16.wgsl', 'attention_streaming_f16kv.wgsl'],
   ['attention_head512_f16.wgsl', 'attention_head512_f16kv.wgsl'],
 ]);
+
+export function resolveF16ToF32ActivationKernel(kernel) {
+  return F16_TO_F32_ACTIVATION_MAP.get(kernel) ?? null;
+}
 
 /*
  * Activation-only narrowing: f32-activation shaders that still consume f16

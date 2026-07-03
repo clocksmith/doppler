@@ -15,7 +15,8 @@
   ],
   "f16OrF32FromDtype": [
     { "match": { "dtype": "f16" }, "value": "f16" },
-    { "match": {}, "value": "f32" }
+    { "match": { "dtype": "f32" }, "value": "f32" },
+    { "match": {}, "value": { "context": "fallback" } }
   ],
   "embeddingDtype": [
     { "match": { "dtype": "litert_int4" }, "value": "litert_int4" },
@@ -71,22 +72,28 @@
   ],
   "bytesPerElement": [
     { "match": { "dtype": "f16" }, "value": 2 },
-    { "match": {}, "value": 4 }
+    { "match": { "dtype": "bf16" }, "value": 2 },
+    { "match": { "dtype": "f32" }, "value": 4 },
+    { "match": {}, "value": { "context": "fallback" } }
   ],
   "dtypeFromSize": [
     { "match": { "bytesPerElement": 2 }, "value": "f16" },
-    { "match": {}, "value": "f32" }
+    { "match": { "bytesPerElement": 4 }, "value": "f32" },
+    { "match": {}, "value": { "context": "fallback" } }
   ],
   "bytesFromDtype": [
     { "match": { "dtype": "f16" }, "value": 2 },
-    { "match": {}, "value": 4 }
+    { "match": { "dtype": "bf16" }, "value": 2 },
+    { "match": { "dtype": "f32" }, "value": 4 },
+    { "match": {}, "value": { "context": "fallback" } }
   ],
   "matmulDtype": [
     { "match": { "dtype": { "in": ["f16", "bf16"] } }, "value": "f16" },
+    { "match": { "dtype": "f32" }, "value": "f32" },
     { "match": { "dtype": "q4k" }, "value": "q4k" },
     { "match": { "dtype": "litert_int4" }, "value": "litert_int4" },
     { "match": { "dtype": "w4a16" }, "value": "w4a16" },
-    { "match": {}, "value": "f32" }
+    { "match": {}, "value": { "context": "fallback" } }
   ],
   "logitsDtype": [
     { "match": { "logitsDtype": "f16" }, "value": "f16" },

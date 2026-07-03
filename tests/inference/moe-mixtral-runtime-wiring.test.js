@@ -1,8 +1,22 @@
 import assert from 'node:assert/strict';
 
 import { selectRuleValue } from '../../src/rules/rule-registry.js';
+import { validateMoeShape } from '../../src/inference/pipelines/text/moe-shape-validator.js';
 
 // === moeMixtral rule group is registered and selectable ===
+
+{
+  assert.throws(
+    () => validateMoeShape({
+      hiddenSize: 4096,
+      intermediateSize: 14336,
+      moeTopK: 2,
+      numExperts: 8,
+      expertFormat: 'mixtral',
+    }),
+    /requires options\.modelType/
+  );
+}
 
 {
   const vendorProfile = selectRuleValue('kernels', 'moeMixtral', 'vendorQuirkProfile', {
@@ -130,6 +144,7 @@ import { selectRuleValue } from '../../src/rules/rule-registry.js';
     '../../src/inference/pipelines/text/moe-shape-validator.js'
   );
   const profile = await resolveMixtralKernelPathProfile({
+    modelType: 'mixtral',
     hasF16: true,
     hasSubgroups: true,
     routerDtype: 'f32',
@@ -147,6 +162,7 @@ import { selectRuleValue } from '../../src/rules/rule-registry.js';
     '../../src/inference/pipelines/text/moe-shape-validator.js'
   );
   const profile = await resolveMixtralKernelPathProfile({
+    modelType: 'mixtral',
     hasF16: true,
     hasSubgroups: false,
     routerDtype: 'f32',

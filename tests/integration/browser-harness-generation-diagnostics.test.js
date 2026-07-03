@@ -2,6 +2,21 @@ import assert from 'node:assert/strict';
 
 const { runBrowserSuite } = await import('../../src/inference/browser-harness.js');
 const { runGeneration } = await import('../../src/inference/browser-harness-text-helpers.js');
+const { setRuntimeConfig } = await import('../../src/config/runtime.js');
+
+setRuntimeConfig({
+  inference: {
+    prompt: 'The sky is',
+    generation: {
+      maxTokens: 1,
+    },
+    sampling: {
+      temperature: 0,
+      topK: 1,
+      topP: 1,
+    },
+  },
+});
 
 function createHarnessOverride(records) {
   let recordIndex = 0;
@@ -63,6 +78,54 @@ function createHarnessOverride(records) {
     },
     pipeline,
   };
+}
+
+{
+  const failClosedPipeline = {
+    async *generate() {
+      yield 'unreachable';
+    },
+    getStats() {
+      return {
+        prefillTimeMs: 1,
+        ttftMs: 1,
+        decodeTimeMs: 1,
+        prefillTokens: 1,
+        decodeTokens: 1,
+        decodeProfileSteps: [],
+      };
+    },
+  };
+
+  await assert.rejects(
+    () => runGeneration(failClosedPipeline, {
+      inference: {
+        generation: {
+          maxTokens: 1,
+        },
+        sampling: {
+          temperature: 0,
+          topK: 1,
+          topP: 1,
+        },
+      },
+    }),
+    /Harness generation requires explicit runOverrides\.prompt or runtime\.inference\.prompt\./
+  );
+
+  await assert.rejects(
+    () => runGeneration(failClosedPipeline, {
+      inference: {
+        prompt: 'The sky is',
+        sampling: {
+          temperature: 0,
+          topK: 1,
+          topP: 1,
+        },
+      },
+    }),
+    /Harness generation requires explicit runtime\.inference\.generation\.maxTokens\./
+  );
 }
 
 {
@@ -338,6 +401,10 @@ function createHarnessOverride(records) {
   // run.seed takes precedence over run.sampling.seed and inference.sampling.seed.
   // Validates the three-level precedence: run.seed > run.sampling.seed > inference.sampling.seed.
   const { resolveBenchmarkRunSettings } = await import('../../src/inference/browser-harness-text-helpers.js');
+  const benchmarkBaseInference = {
+    prompt: 'The sky is',
+    generation: { maxTokens: 1 },
+  };
 
   const settingsRunSeed = resolveBenchmarkRunSettings({
     shared: {
@@ -348,7 +415,7 @@ function createHarnessOverride(records) {
         },
       },
     },
-    inference: { sampling: { seed: 55 } },
+    inference: { ...benchmarkBaseInference, sampling: { seed: 55 } },
   });
   assert.equal(settingsRunSeed.seed, 99, 'run.seed must win over run.sampling.seed');
   assert.equal(settingsRunSeed.sampling.seed, 99, 'run.seed must propagate into sampling.seed');
@@ -361,12 +428,12 @@ function createHarnessOverride(records) {
         },
       },
     },
-    inference: { sampling: { seed: 55 } },
+    inference: { ...benchmarkBaseInference, sampling: { seed: 55 } },
   });
   assert.equal(settingsBenchSamplingWins.seed, 77, 'run.sampling.seed must win over inference.sampling.seed');
 
   const settingsRuntimeOnly = resolveBenchmarkRunSettings({
-    inference: { sampling: { seed: 55 } },
+    inference: { ...benchmarkBaseInference, sampling: { seed: 55 } },
   });
   assert.equal(settingsRuntimeOnly.seed, 55, 'inference.sampling.seed used when no bench seed present');
 
@@ -379,6 +446,7 @@ function createHarnessOverride(records) {
         },
       },
     },
+    inference: benchmarkBaseInference,
   });
   assert.equal(
     settingsPrompt.prompt,
@@ -388,6 +456,7 @@ function createHarnessOverride(records) {
 
   const settingsRuntimePrompt = resolveBenchmarkRunSettings({
     inference: {
+      generation: { maxTokens: 1 },
       prompt: renderedPrompt,
     },
   });

@@ -50,7 +50,10 @@ Three ways to make kernels flexible:
 | Change per dispatch | select different | recompile | yes |
 | Code duplication | high | minimal | none |
 
-**DOPPLER uses entry points** over override constants - more code duplication but simpler pipeline management.
+Use the topology test from the WGSL style guide. Entry points are for algorithm
+or synchronization changes. Override constants are for model/load-time
+parameters. Uniforms are for per-dispatch values. The registry records which
+choice a variant made; WGSL files must not become a second policy layer.
 
 ## Entry Points
 
@@ -122,6 +125,10 @@ fn main() {
 Kernel operation IDs, variant IDs, WGSL filenames, entry points, feature
 requirements, bindings, uniforms, and metadata are defined in
 `src/config/kernels/registry.json`.
+
+The management front door is
+[`docs/developer-guides/config-source-of-truth.md`](../../../docs/developer-guides/config-source-of-truth.md#wgsl-kernel-management).
+Do not add separate kernel inventories in docs, scripts, or runtime helpers.
 
 Use `npm run kernels:registry:check` to audit the on-disk WGSL inventory
 against the registry. This README must not define separate filename suffix

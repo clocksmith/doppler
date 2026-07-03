@@ -240,6 +240,9 @@ per-field runtime tuning outside the config payload.
 
 ## Rules
 
+- For the practical owner map across conversion, runtime, kernels, model
+  registry, hosted HF entries, and evidence policy, use
+  `docs/developer-guides/config-source-of-truth.md`.
 - Converter → manifest is the only bridge into runtime.
 - Execution steps require explicit `src` and `dst`.
 - Non-cast steps require explicit `kernel` and pinned `kernelRef`.
@@ -251,6 +254,10 @@ per-field runtime tuning outside the config payload.
 - Shared runtime is the only cross-cutting config between loader and inference.
 - Session policy lives in manifest/config assets; runtime code should not hardcode fallbacks.
 - Rule maps are config assets: JSON-only, data-only, and loaded via the rule registry.
+- Rule maps must not pattern-match model identity with `contains`, `startsWith`,
+  or `endsWith`. If a model-specific workaround is unavoidable, match an exact
+  manifest field value or list explicit variant IDs with the evidence in the
+  rule name/test.
 - Runtime must not silently escalate precision to `f32`.
 - Any `f32` activation path must be explicit in config/manifest and documented as a stability or capability choice.
 - Runtime execution overlay is strict: only `runtime.inference.session` feeds execution compile.

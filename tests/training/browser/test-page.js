@@ -247,7 +247,10 @@ async function testMatmulBackwardGradient() {
   const inputTensor = makeTensorFromFloat32(input, [M, K], 'matmul_input');
   const weightTensor = makeTensorFromFloat32(weight, [K, N], 'matmul_weight');
 
-  const forward = await runMatmul(inputTensor, weightTensor, M, N, K, { transposeB: false });
+  const forward = await runMatmul(inputTensor, weightTensor, M, N, K, {
+    transposeB: false,
+    outputDtype: 'f32',
+  });
   const gradOutput = new Float32Array(M * N).fill(1);
   const gradTensor = makeTensorFromFloat32(gradOutput, [M, N], 'matmul_grad');
   const grads = await runMatmulBackward(inputTensor, weightTensor, gradTensor, { M, N, K, transposeB: false });
@@ -404,7 +407,7 @@ async function testEBMStateOptimizeSmoke() {
 
     const hidden = await tape.record(
       OpType.MATMUL,
-      (a, b) => runMatmul(a, b, M, H, K, { transposeB: false }),
+      (a, b) => runMatmul(a, b, M, H, K, { transposeB: false, outputDtype: 'f32' }),
       [state, w1],
       { M, N: H, K, transposeB: false, computeGradWeight: false }
     );
@@ -418,7 +421,7 @@ async function testEBMStateOptimizeSmoke() {
 
     const out = await tape.record(
       OpType.MATMUL,
-      (a, b) => runMatmul(a, b, M, O, H, { transposeB: false }),
+      (a, b) => runMatmul(a, b, M, O, H, { transposeB: false, outputDtype: 'f32' }),
       [activated, w2],
       { M, N: O, K: H, transposeB: false, computeGradWeight: false }
     );
@@ -499,9 +502,17 @@ async function benchEBMRecordedIteration(state, w1, w2, moments, opt, dims) {
   const step = opt.step;
 
   const forwardRecorder = createCommandRecorder('ebm_fwd');
-  const hidden = await recordMatmul(forwardRecorder, state, w1, M, H, K, { transposeB: false, role: 'fwd_w1' });
+  const hidden = await recordMatmul(forwardRecorder, state, w1, M, H, K, {
+    transposeB: false,
+    role: 'fwd_w1',
+    outputDtype: 'f32',
+  });
   const activated = await recordGeLU(forwardRecorder, hidden, { size: hiddenSize });
-  const out = await recordMatmul(forwardRecorder, activated, w2, M, O, H, { transposeB: false, role: 'fwd_w2' });
+  const out = await recordMatmul(forwardRecorder, activated, w2, M, O, H, {
+    transposeB: false,
+    role: 'fwd_w2',
+    outputDtype: 'f32',
+  });
 
   const forwardStart = performance.now();
   await forwardRecorder.submitAndWait();
@@ -693,7 +704,7 @@ async function testTrainingLoopLeakAndPerf() {
     async forward(input, tape) {
       return tape.record(
         OpType.MATMUL,
-        (a, b) => runMatmul(a, b, 2, 2, 3, { transposeB: false }),
+        (a, b) => runMatmul(a, b, 2, 2, 3, { transposeB: false, outputDtype: 'f32' }),
         [input, weight],
         { M: 2, N: 2, K: 3, transposeB: false }
       );

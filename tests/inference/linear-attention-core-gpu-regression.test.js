@@ -220,7 +220,7 @@ async function runCase(inputDtype) {
       createTensor(aBuffer, inputDtype, [numTokens, layerState.numVHeads], `linear_a_${inputDtype}`),
       createTensor(bBuffer, inputDtype, [numTokens, layerState.numVHeads], `linear_b_${inputDtype}`),
       gpuLayerState,
-      { numTokens, qkL2NormEps }
+      { numTokens, qkL2NormEps, outputDtype: 'f32' }
     );
 
     const gpuOutput = new Float32Array(await readBuffer(outputTensor.buffer, reference.output.byteLength));

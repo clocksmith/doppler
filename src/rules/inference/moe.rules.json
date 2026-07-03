@@ -1,4 +1,101 @@
 {
+  "executionProfile": [
+    {
+      "match": { "expertFormat": "gpt-oss" },
+      "value": {
+        "id": "gpt-oss-mxfp4",
+        "label": "GPT-OSS MXFP4 experts",
+        "expertExecutor": "gpt-oss",
+        "intermediateSizeSource": "architecture",
+        "requiresShaderF16": true,
+        "routerScaleMode": "none",
+        "topkRouteExecutor": null,
+        "vendorProfile": {
+          "kind": "rule",
+          "domain": "kernels",
+          "group": "moeGptoss",
+          "name": "vendorQuirkProfile"
+        },
+        "kernelPathProfileResolver": "gpt-oss",
+        "kernelRuleModelType": "gpt-oss",
+        "shapePolicy": {
+          "kind": "rule",
+          "domain": "kernels",
+          "group": "moeGptoss",
+          "name": "shapePolicy"
+        }
+      }
+    },
+    {
+      "match": { "expertFormat": "mixtral" },
+      "value": {
+        "id": "mixtral-dense",
+        "label": "Mixtral dense experts",
+        "expertExecutor": "mixtral",
+        "intermediateSizeSource": "architecture",
+        "requiresShaderF16": false,
+        "routerScaleMode": "none",
+        "topkRouteExecutor": null,
+        "vendorProfile": {
+          "kind": "rule",
+          "domain": "kernels",
+          "group": "moeMixtral",
+          "name": "vendorQuirkProfile"
+        },
+        "kernelPathProfileResolver": "mixtral",
+        "kernelRuleModelType": "mixtral",
+        "shapePolicy": null
+      }
+    },
+    {
+      "match": { "modelType": "diffusion_gemma", "expertFormat": "gemma4" },
+      "value": {
+        "id": "diffusion-gemma-packed",
+        "label": "DiffusionGemma packed experts",
+        "expertExecutor": "gemma4-packed",
+        "intermediateSizeSource": "expert",
+        "requiresShaderF16": false,
+        "routerScaleMode": "required",
+        "topkRouteExecutor": "gemma4-route",
+        "vendorProfile": {
+          "kind": "static",
+          "value": {
+            "preferVec4Dequant": false,
+            "dequantTileShape": null,
+            "routerWorkgroupSize": 256,
+            "maxTokensPerExpertScale": 1.0
+          }
+        },
+        "kernelPathProfileResolver": null,
+        "kernelRuleModelType": null,
+        "shapePolicy": null
+      }
+    },
+    {
+      "match": { "expertFormat": "gemma4" },
+      "value": {
+        "id": "gemma4-packed",
+        "label": "Gemma packed experts",
+        "expertExecutor": "gemma4-packed",
+        "intermediateSizeSource": "expert",
+        "requiresShaderF16": false,
+        "routerScaleMode": "optional",
+        "topkRouteExecutor": "gemma4-route",
+        "vendorProfile": {
+          "kind": "static",
+          "value": {
+            "preferVec4Dequant": false,
+            "dequantTileShape": null,
+            "routerWorkgroupSize": 256,
+            "maxTokensPerExpertScale": 1.0
+          }
+        },
+        "kernelPathProfileResolver": null,
+        "kernelRuleModelType": null,
+        "shapePolicy": null
+      }
+    }
+  ],
   "biasAddCode": [
     {
       "match": { "logitsDtype": "f16", "biasDtype": "f16" },

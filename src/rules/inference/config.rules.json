@@ -51,8 +51,25 @@
     { "match": {}, "value": [] }
   ],
   "embeddingSemanticStyle": [
-    { "match": { "modelId": { "contains": "embeddinggemma" } }, "value": "embeddinggemma" },
-    { "match": { "manifestModelType": { "contains": "embeddinggemma" } }, "value": "embeddinggemma" },
+    { "match": { "manifestModelType": "embeddinggemma" }, "value": "embeddinggemma" },
     { "match": {}, "value": "default" }
+  ],
+  "stableF32Logits": [
+    {
+      "match": {
+        "inputDtype": "f16",
+        "finalLogitSoftcapping": { "gt": 0 }
+      },
+      "value": true
+    },
+    {
+      "match": {
+        "inputDtype": "f16",
+        "rmsNormWeightOffset": true,
+        "hiddenSize": { "lte": 768 }
+      },
+      "value": true
+    },
+    { "match": {}, "value": false }
   ]
 }

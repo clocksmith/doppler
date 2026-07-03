@@ -11,6 +11,8 @@ Claim methodology and fairness policy are canonical in [docs/benchmark-methodolo
 - Target registry: [registry.json](./registry.json)
 - Capability matrix: [capabilities.json](./capabilities.json)
 - Local inference claim matrix: [local-inference-claim-matrix.json](./local-inference-claim-matrix.json)
+- Support rollout policy: [support-rollout-policy.json](./support-rollout-policy.json)
+- Smallest-first support inventory: [model-support-inventory.json](./model-support-inventory.json) and [docs/model-support-inventory.md](../../docs/model-support-inventory.md)
 - Harness definitions: [harnesses/](./harnesses)
 - Latest generated matrix: [release-matrix.json](./release-matrix.json)
 - Published matrix doc: [docs/release-matrix.md](../../docs/release-matrix.md)
@@ -86,6 +88,10 @@ Use these before turning a compare result into README copy, a chart, or a releas
   It pins local manifests, tokenizer hashes, shard-set identity, memory budgets, shared workloads, sampling, decode profiles, timing scope, and promotion gates.
   `sharedRunContract.requiredRuntimeBackends` declares the Doppler Chromium/browser, Node, and Bun WebGPU surfaces required before a lane can be promoted.
   Lanes stay `candidate` until competitor artifact hashes, compare JSON, and the summary SVG are present.
+- [support-rollout-policy.json](./support-rollout-policy.json): support-inventory gate order and artifact-size tiers.
+  It is separate from [benchmark-policy.json](./benchmark-policy.json) so support queue edits do not invalidate saved compare artifact policy hashes.
+- [model-support-inventory.json](./model-support-inventory.json): generated smallest-first support queue from catalog lifecycle, conversion configs, HF publication fields, compare profiles, local claim lanes, release matrix rows, and release-claim receipts.
+  The rendered doc is [docs/model-support-inventory.md](../../docs/model-support-inventory.md).
 - [harnesses/](./harnesses): one harness definition per vendor.
 - [schema/](./schema): schemas for registry, workloads, harness, capabilities, metric contract, and normalized result records.
 - [schema/compare-engines-config.schema.json](./schema/compare-engines-config.schema.json): schema for `compare-engines.config.json`.

@@ -1,0 +1,87 @@
+{
+  "$schema": "schema/support-rollout-policy.schema.json",
+  "schemaVersion": 1,
+  "updated": "2026-07-01",
+  "ordering": "artifact-size-ascending",
+  "sizeTiers": [
+    {
+      "id": "small",
+      "label": "Small",
+      "minSizeBytesInclusive": 0,
+      "maxSizeBytesExclusive": 2147483648
+    },
+    {
+      "id": "medium",
+      "label": "Medium",
+      "minSizeBytesInclusive": 2147483648,
+      "maxSizeBytesExclusive": 8589934592
+    },
+    {
+      "id": "large",
+      "label": "Large",
+      "minSizeBytesInclusive": 8589934592,
+      "maxSizeBytesExclusive": null
+    },
+    {
+      "id": "unknown",
+      "label": "Unknown Size",
+      "minSizeBytesInclusive": null,
+      "maxSizeBytesExclusive": null
+    }
+  ],
+  "gateOrder": [
+    {
+      "id": "conversion-config",
+      "label": "Checked-in conversion config exists."
+    },
+    {
+      "id": "manifest-weights",
+      "label": "Manifest and weight identity are complete, or the manifest explicitly references a hosted weight pack."
+    },
+    {
+      "id": "runtime-verify",
+      "label": "A deterministic runtime verification receipt is committed."
+    },
+    {
+      "id": "hf-publish",
+      "label": "Public support has a Hugging Face repo, revision, and artifact path."
+    },
+    {
+      "id": "compare-profile",
+      "label": "A cross-engine compare profile exists."
+    },
+    {
+      "id": "benchmark-receipts",
+      "label": "Compare JSON and summary SVG receipts exist for the lane."
+    },
+    {
+      "id": "preferred-architecture",
+      "label": "Preferred architecture is selected only from benchmark receipts."
+    }
+  ],
+  "benchmarkCommands": {
+    "mode": "compute",
+    "warmupRuns": 1,
+    "timedRuns": 3,
+    "workloads": [
+      "p064-d064-t0-k1",
+      "p256-d128-t0-k1",
+      "p512-d128-t0-k1"
+    ],
+    "decodeProfiles": [
+      "parity",
+      "throughput"
+    ],
+    "save": true,
+    "json": true
+  },
+  "preferredArchitecture": {
+    "selection": "benchmark-evidence-only",
+    "requiredEvidence": [
+      "runtimeReport",
+      "compareResult",
+      "summarySvg"
+    ],
+    "unselectedStatus": "pending-benchmark-comparison"
+  }
+}

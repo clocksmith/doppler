@@ -13,7 +13,7 @@ export interface OutputOffsetOptions {
 }
 
 export interface OutputDtypeOptions {
-  outputDtype?: 'f16' | 'f32';
+  outputDtype: 'f16' | 'f32';
 }
 
 export interface Vec4Options {

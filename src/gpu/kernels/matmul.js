@@ -260,6 +260,23 @@ function buildF16CapabilityErrorDetail({
   return parts.length > 0 ? ` (${parts.join(', ')})` : '';
 }
 
+function requireMatmulOutputDtype(dtype, opLabel) {
+  if (dtype === 'f16' || dtype === 'f32') {
+    return dtype;
+  }
+  throw new Error(`[${opLabel}] options.outputDtype is required and must be "f16" or "f32", got ${String(dtype)}.`);
+}
+
+function requireMatmulWeightDtype(dtype, opLabel, details = []) {
+  if (dtype != null && dtype !== '') {
+    return dtype;
+  }
+  const suffix = details.filter(Boolean).length > 0
+    ? ` (${details.filter(Boolean).join(', ')})`
+    : '';
+  throw new Error(`[${opLabel}] B dtype is required for matmul dispatch${suffix}.`);
+}
+
 async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   const isRecord = Boolean(recorder);
   const mode = isRecord ? 'record' : 'run';
@@ -303,8 +320,13 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   validateMatmulDimensions(opLabel, M, N, K);
 
   const aDtype = toMatmulDtype(A.dtype);
-  const bDtype = toMatmulDtype(weightDtype ?? options.bDtype);
-  const requestedOutputDtype = options.outputDtype || A.dtype;
+  const rawBDtype = requireMatmulWeightDtype(weightDtype ?? options.bDtype, opLabel, [
+    options.role ? `role=${options.role}` : null,
+    Number.isFinite(options.layerIdx) ? `layer=${options.layerIdx}` : null,
+    weightLabel ? `label=${weightLabel}` : null,
+  ]);
+  const bDtype = toMatmulDtype(rawBDtype);
+  const requestedOutputDtype = requireMatmulOutputDtype(options.outputDtype, opLabel);
 
   if (bDtype === 'f16' && capabilities?.hasF16 !== true) {
     const detail = buildF16CapabilityErrorDetail({
@@ -322,10 +344,6 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   }
   if (requestedOutputDtype === 'f16' && capabilities?.hasF16 !== true) {
     throw new Error(`[${opLabel}] f16 output requires shader-f16 support.`);
-  }
-
-  if (!isRecord && isTraceEnabled('kernels') && !weightDtype && !options.bDtype && M <= 2) {
-    log.warn('Matmul', `runMatmul: B buffer dtype unknown! size=${bBuffer.size}, M=${M}, N=${N}, K=${K}. Assuming f32.`);
   }
 
   validateMatmulOffsets(opLabel, aOffset, bOffset, cOffset);

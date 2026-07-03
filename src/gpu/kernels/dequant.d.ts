@@ -22,7 +22,7 @@ export interface DequantOptions extends OutputBufferOptions, OutputOffsetOptions
 /**
  * Select the best dequantization kernel variant
  */
-export declare function selectDequantKernel(options?: DequantOptions): string;
+export declare function selectDequantKernel(options: DequantOptions): string;
 
 /**
  * Create bind group layout for dequant operation
@@ -35,7 +35,7 @@ export declare function createDequantBindGroupLayout(): GPUBindGroupLayout;
 export declare function dequantize(
   quantized: GPUBuffer,
   numBlocks: number,
-  options?: DequantOptions
+  options: DequantOptions
 ): Promise<Tensor>;
 
 /**
@@ -45,7 +45,7 @@ export declare function dequantizeRowwise(
   quantized: GPUBuffer,
   rows: number,
   K: number,
-  options?: OutputBufferOptions & OutputDtypeOptions
+  options: OutputBufferOptions & OutputDtypeOptions
 ): Promise<Tensor>;
 
 /**
@@ -69,7 +69,7 @@ export declare function dequantizeMXFP4Expert(
   numExperts: number,
   outDim: number,
   numGroups: number,
-  options?: DequantOptions
+  options: DequantOptions
 ): Promise<Tensor>;
 
 /**
@@ -78,7 +78,7 @@ export declare function dequantizeMXFP4Expert(
 export declare function dequantizeQ6K(
   quantized: GPUBuffer,
   numBlocks: number,
-  options?: DequantOptions
+  options: DequantOptions
 ): Promise<Tensor>;
 
 /**
@@ -88,5 +88,5 @@ export declare function recordDequantize(
   recorder: CommandRecorder,
   quantized: GPUBuffer,
   numBlocks: number,
-  options?: DequantOptions
+  options: DequantOptions
 ): Promise<Tensor>;

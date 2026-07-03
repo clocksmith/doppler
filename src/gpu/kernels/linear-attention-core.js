@@ -374,12 +374,7 @@ function requireGpuBuffer(buffer, label) {
 }
 
 function resolveOutputDtype(outputDtype) {
-  const normalized = selectRuleValue(
-    'shared',
-    'dtype',
-    'f16OrF32FromDtype',
-    { dtype: outputDtype === undefined ? 'f32' : outputDtype }
-  );
+  const normalized = selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: outputDtype });
   if (normalized === 'f16' || normalized === 'f32') {
     return normalized;
   }

@@ -86,21 +86,20 @@ assert.strictEqual(
   576,
   `Expected 576 tensors, got ${bundle.manifest.tensorCount}.`
 );
-assert.strictEqual(bundle.manifest.tokenizer?.type, 'bundled');
-assert.strictEqual(bundle.manifest.tokenizer?.file, 'tokenizer.json');
+assert.strictEqual(bundle.manifest.tokenizer?.type, 'sentencepiece');
+assert.strictEqual(bundle.manifest.tokenizer?.sentencepieceModel, 'TOKENIZER_MODEL');
 assert.strictEqual(bundle.manifest.tokenizer?.vocabSize, 262144);
 assert.strictEqual(bundle.manifest.tokenizer?.addBosToken, false);
 assert.strictEqual(bundle.manifest.tokenizer?.addEosToken, false);
 assert.strictEqual(
   bundle.manifest.metadata?.sourceRuntime?.tokenizer?.jsonPath,
-  'tokenizer.json'
+  null
 );
 assert.strictEqual(
   bundle.manifest.metadata?.sourceRuntime?.tokenizer?.modelPath,
   'TOKENIZER_MODEL'
 );
-const tokenizerJson = await bundle.storageContext.loadTokenizerJson?.();
-assert.ok(tokenizerJson && typeof tokenizerJson === 'object', 'Sibling tokenizer JSON must load.');
+assert.strictEqual(bundle.storageContext.loadTokenizerJson, null);
 const tokenizerModel = await bundle.storageContext.loadTokenizerModel?.('TOKENIZER_MODEL');
 assert.ok(tokenizerModel instanceof ArrayBuffer, 'Embedded tokenizer model must load as ArrayBuffer.');
 assert.ok(tokenizerModel.byteLength > 0, 'Embedded tokenizer model must not be empty.');

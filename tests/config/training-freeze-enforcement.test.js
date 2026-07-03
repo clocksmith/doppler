@@ -69,13 +69,13 @@ if (!gpuProbe.ready) {
     async forward(inputTensor, tape) {
       const hidden = await tape.record(
         OpType.MATMUL,
-        (a, b) => runMatmul(a, b, 2, 3, 3, { transposeB: false }),
+        (a, b) => runMatmul(a, b, 2, 3, 3, { transposeB: false, outputDtype: 'f32' }),
         [inputTensor, encoderWeight],
         { M: 2, N: 3, K: 3, transposeB: false }
       );
       return tape.record(
         OpType.MATMUL,
-        (a, b) => runMatmul(a, b, 2, 2, 3, { transposeB: false }),
+        (a, b) => runMatmul(a, b, 2, 2, 3, { transposeB: false, outputDtype: 'f32' }),
         [hidden, baseWeight],
         { M: 2, N: 2, K: 3, transposeB: false }
       );

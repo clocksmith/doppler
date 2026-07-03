@@ -290,7 +290,7 @@ Key files:
 
 - [`src/config/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json`](../src/config/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json)
 - [`src/inference/pipelines/text/init.js`](../src/inference/pipelines/text/init.js)
-- [`tests/integration/translategemma-harness-default-prompt.test.js`](../tests/integration/translategemma-harness-default-prompt.test.js)
+- [`tests/integration/translategemma-harness-explicit-prompt.test.js`](../tests/integration/translategemma-harness-explicit-prompt.test.js)
 - [`models/catalog.json`](../models/catalog.json)
 - [`docs/model-support-matrix.md`](./model-support-matrix.md)
 

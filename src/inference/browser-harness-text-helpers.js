@@ -1,4 +1,3 @@
-import { log as debugLog } from '../debug/index.js';
 import { readBuffer } from '../memory/buffer-pool.js';
 import { CAPTURE_LEVELS, createDefaultCaptureConfig } from '../debug/capture-policy.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
@@ -8,47 +7,11 @@ import { cloneJsonValue } from '../utils/clone-json.js';
 import { sha256BytesHex } from '../utils/sha256.js';
 import { resolvePromptInput } from './pipelines/text/generator-prefill-helpers.js';
 
-const DEFAULT_SAMPLING_DEFAULTS = Object.freeze({
-  temperature: 1.0,
-  topP: 0.95,
-  topK: 50,
-  repetitionPenalty: 1.1,
-  greedyThreshold: 0.01,
-  repetitionPenaltyWindow: 100,
-});
-
-const DEFAULT_HARNESS_PROMPT = 'The color of the sky is';
-const DEFAULT_RUNTIME_PLACEHOLDER_PROMPT = 'Hello from Doppler.';
-const DEFAULT_QWEN_PROMPT = Object.freeze({
-  messages: Object.freeze([
-    Object.freeze({
-      role: 'user',
-      content: 'Answer in one short sentence: What color is the sky on a clear day?',
-    }),
-  ]),
-});
-const DEFAULT_TRANSLATEGEMMA_PROMPT = Object.freeze({
-  messages: Object.freeze([
-    Object.freeze({
-      role: 'user',
-      content: Object.freeze([
-        Object.freeze({
-          type: 'text',
-          source_lang_code: 'en',
-          target_lang_code: 'fr',
-          text: 'Hello world.',
-        }),
-      ]),
-    }),
-  ]),
-});
 const DEFAULT_IMAGE_TRANSCRIPTION_PROMPT = 'Describe the image in one short sentence.';
 const DEFAULT_IMAGE_TRANSCRIPTION_SOFT_TOKEN_BUDGET = 70;
-const DEFAULT_HARNESS_MAX_TOKENS = 32;
 const EMBEDDING_PREVIEW_LENGTH = 16;
 const GENERATION_TOKEN_DIAGNOSTIC_LIMIT = 32;
 const DECODE_RECORD_TOP_OP_LIMIT = 20;
-let defaultsWarningEmitted = false;
 
 export function normalizeDecodeRecordOpLabels(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -355,48 +318,6 @@ export async function captureKvCacheByteProof(pipeline, enabled) {
   };
 }
 
-function hasPromptInput(value) {
-  return (typeof value === 'string' && value.trim().length > 0)
-    || (Array.isArray(value) && value.length > 0)
-    || isStructuredPromptInput(value);
-}
-
-function warnIfUsingDefaults(runtimeConfig, runOverrides = null) {
-  if (defaultsWarningEmitted) return;
-  const promptOverride = runtimeConfig?.inference?.prompt;
-  const hasPrompt = hasPromptInput(runOverrides?.prompt)
-    || hasPromptInput(promptOverride);
-  const hasRuntimeSampling = isPlainObject(runtimeConfig?.inference?.sampling)
-    && Object.keys(runtimeConfig.inference.sampling).length > 0;
-  const hasRunSampling = isPlainObject(runOverrides?.sampling)
-    && Object.keys(runOverrides.sampling).length > 0;
-  const hasSampling = hasRuntimeSampling || hasRunSampling;
-  const hasMaxTokens = Number.isFinite(runOverrides?.maxTokens)
-    || Number.isFinite(runtimeConfig?.inference?.generation?.maxTokens);
-  if (hasPrompt && hasSampling && hasMaxTokens) return;
-  defaultsWarningEmitted = true;
-  const missingFields = [];
-  const defaults = [];
-  if (!hasPrompt) {
-    missingFields.push('prompt');
-    defaults.push(`  prompt: "${DEFAULT_HARNESS_PROMPT}"`);
-  }
-  if (!hasMaxTokens) {
-    missingFields.push('generation.maxTokens');
-    defaults.push(`  maxTokens: ${DEFAULT_HARNESS_MAX_TOKENS}`);
-  }
-  if (!hasSampling) {
-    missingFields.push('sampling');
-    defaults.push(`  temperature: ${DEFAULT_SAMPLING_DEFAULTS.temperature}`);
-    defaults.push(`  topK: ${DEFAULT_SAMPLING_DEFAULTS.topK}`);
-    defaults.push(`  topP: ${DEFAULT_SAMPLING_DEFAULTS.topP}`);
-  }
-  debugLog.warn('Harness',
-    `Running with default inference parameters for missing fields: ${missingFields.join(', ')}.\n`
-    + defaults.join('\n')
-    + '\n  Provide explicit runtime.inference.sampling and generation.maxTokens if you want harness-stable settings.'
-  );
-}
 const embeddingSemanticFixtureAsset = await loadJson(
   './fixtures/embedding-semantic-fixtures.json',
   import.meta.url,
@@ -565,7 +486,6 @@ function resolveEmbeddingSemanticFixtures(runtimeConfig, options = null) {
 function resolveEmbeddingSemanticStyle(pipeline) {
   const manifest = pipeline?.manifest ?? null;
   const style = selectRuleValue('inference', 'config', 'embeddingSemanticStyle', {
-    modelId: String(manifest?.modelId ?? '').toLowerCase(),
     manifestModelType: String(
       manifest?.config?.model_type
       ?? manifest?.config?.text_config?.model_type
@@ -595,7 +515,7 @@ export function resolvePrompt(runtimeConfig) {
   if (typeof runtimePrompt === 'string' && runtimePrompt.trim()) {
     return runtimePrompt.trim();
   }
-  return DEFAULT_HARNESS_PROMPT;
+  throw new Error('Harness embedding requires explicit runtime.inference.prompt.');
 }
 
 function isStructuredPromptInput(value) {
@@ -624,26 +544,6 @@ function resolvePromptTemplateType(source) {
   return asText(source?.manifest?.inference?.chatTemplate?.type);
 }
 
-function buildDefaultGenerationPrompt(templateType) {
-  if (templateType === 'qwen') {
-    return clonePromptInput(DEFAULT_QWEN_PROMPT);
-  }
-  if (templateType === 'translategemma') {
-    return clonePromptInput(DEFAULT_TRANSLATEGEMMA_PROMPT);
-  }
-  return DEFAULT_HARNESS_PROMPT;
-}
-
-function shouldPreferModelDefaultPrompt(runtimePrompt, templateType) {
-  if (templateType !== 'translategemma' && templateType !== 'qwen') {
-    return false;
-  }
-  if (typeof runtimePrompt !== 'string') {
-    return false;
-  }
-  return runtimePrompt.trim() === DEFAULT_RUNTIME_PLACEHOLDER_PROMPT;
-}
-
 function assertPromptContract(runtimePrompt, templateType, source = 'runtime.inference.prompt') {
   if (templateType !== 'translategemma') {
     return;
@@ -652,10 +552,6 @@ function assertPromptContract(runtimePrompt, templateType, source = 'runtime.inf
     return;
   }
   if (typeof runtimePrompt === 'string') {
-    const trimmed = runtimePrompt.trim();
-    if (!trimmed || trimmed === DEFAULT_RUNTIME_PLACEHOLDER_PROMPT) {
-      return;
-    }
     throw new Error(
       `TranslateGemma harness prompt contract violation: ${source} must be ` +
       '{ messages: [...] } with source_lang_code/target_lang_code blocks, not a plain string.'
@@ -671,7 +567,7 @@ function assertPromptContract(runtimePrompt, templateType, source = 'runtime.inf
 
 function describePromptInput(promptInput) {
   if (typeof promptInput === 'string') {
-    return promptInput.trim() || DEFAULT_HARNESS_PROMPT;
+    return promptInput.trim() || '[empty prompt]';
   }
   if (isPlainObject(promptInput?.image) && typeof promptInput?.prompt === 'string') {
     const width = Number.isFinite(promptInput.image.width) ? promptInput.image.width : '?';
@@ -924,9 +820,6 @@ function resolveGenerationPromptInput(runtimeConfig, runOverrides = null, source
 
   const runtimePrompt = runtimeConfig?.inference?.prompt;
   assertPromptContract(runtimePrompt, templateType, 'runtimeConfig.inference.prompt');
-  if (shouldPreferModelDefaultPrompt(runtimePrompt, templateType)) {
-    return buildDefaultGenerationPrompt(templateType);
-  }
   if (typeof runtimePrompt === 'string' && runtimePrompt.trim()) {
     return runtimePrompt;
   }
@@ -934,15 +827,15 @@ function resolveGenerationPromptInput(runtimeConfig, runOverrides = null, source
     return clonePromptInput(runtimePrompt);
   }
 
-  return buildDefaultGenerationPrompt(templateType);
+  throw new Error('Harness generation requires explicit runOverrides.prompt or runtime.inference.prompt.');
 }
 
 function resolveMaxTokens(runtimeConfig) {
   const runtimeMax = runtimeConfig?.inference?.generation?.maxTokens;
-  if (Number.isFinite(runtimeMax)) {
-    return Math.max(1, Math.floor(runtimeMax));
+  if (Number.isFinite(runtimeMax) && runtimeMax > 0) {
+    return Math.floor(runtimeMax);
   }
-  return DEFAULT_HARNESS_MAX_TOKENS;
+  throw new Error('Harness generation requires explicit runtime.inference.generation.maxTokens.');
 }
 
 function resolveAutomaticGenerationDiagnostics(runtimeConfig, runOverrides = null) {
@@ -1545,7 +1438,6 @@ export function isCoherentOutput(tokens, output) {
 }
 
 export async function runGeneration(pipeline, runtimeConfig, runOverrides = null) {
-  warnIfUsingDefaults(runtimeConfig, runOverrides);
   const tokens = [];
   const tokenIds = [];
   const tokenRecords = [];
@@ -1558,7 +1450,6 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     ? Math.max(1, Math.floor(runOverrides.maxTokens))
     : resolveMaxTokens(runtimeConfig);
   const sampling = {
-    ...DEFAULT_SAMPLING_DEFAULTS,
     ...(runtimeConfig.inference?.sampling || {}),
     ...(isPlainObject(runOverrides?.sampling) ? runOverrides.sampling : {}),
   };
@@ -1706,7 +1597,6 @@ export async function runTextInference(pipeline, runtimeConfig, runOverrides = n
 }
 
 export async function runEmbedding(pipeline, runtimeConfig, runOverrides = null) {
-  warnIfUsingDefaults(runtimeConfig);
   const prompt = typeof runOverrides?.prompt === 'string' && runOverrides.prompt.trim()
     ? runOverrides.prompt.trim()
     : resolvePrompt(runtimeConfig);

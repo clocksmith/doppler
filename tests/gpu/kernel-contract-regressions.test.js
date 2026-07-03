@@ -516,6 +516,7 @@ try {
         bDtype: 'f16',
         preferF16: true,
         transposeB: true,
+        outputDtype: 'f32',
       }),
       /f16 weights require shader-f16 support/
     );
@@ -583,7 +584,10 @@ try {
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
     });
     await assert.rejects(
-      () => runSoftmaxTopK(logits, 1, 4, 2),
+      () => runSoftmaxTopK(logits, 1, 4, 2, {
+        inputDtype: 'f32',
+        weightsDtype: 'f32',
+      }),
       /createBindGroup failed at 1/
     );
     for (const buffer of device.createdBuffers) {

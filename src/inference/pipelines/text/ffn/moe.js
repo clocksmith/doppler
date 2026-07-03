@@ -23,14 +23,15 @@ export async function runMoEFFNGPU(
   }
 
   const { moeFeedForwardGPU } = await import('../moe-impl.js');
+  if (typeof config.modelType !== 'string' || config.modelType.length === 0) {
+    throw new Error('MoE config.modelType is required; re-convert the model with an explicit manifest modelType.');
+  }
 
   const outputBuffer = await moeFeedForwardGPU(
     inputTensor.buffer,
     numTokens,
     {
-      modelType: config.modelType ?? (
-        config.expertFormat === 'gpt-oss' ? 'gpt-oss' : (config.expertFormat === 'mixtral' ? 'mixtral' : 'gemma4')
-      ),
+      modelType: config.modelType,
       hiddenSize: config.hiddenSize,
       intermediateSize: config.intermediateSize,
       rmsNormEps: config.rmsNormEps,

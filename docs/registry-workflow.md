@@ -6,20 +6,23 @@ For the end-to-end promotion workflow across repo metadata, external-volume RDRR
 
 ## Architecture
 
-Two files, one direction:
+Three surfaces, one direction:
 
-1. **External volume** (`$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/`) — source of truth for RDRR artifacts (manifests, shards, origin metadata)
-2. **`models/catalog.json`** (repo) — source of truth for editorial + lifecycle metadata (labels, aliases, HF revisions, verification status)
-3. **HF `Clocksmith/rdrr`** — published subset of catalog, filtered to approved entries
+1. **External volume** (`$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/`) — source of truth for RDRR artifact bytes and local complete artifact directories.
+2. **`models/catalog.json`** (repo) — source of truth for repo-visible model registry metadata: labels, aliases, lifecycle, artifact identity, benchmark mapping, quickstart/demo visibility, and HF coordinates.
+3. **HF `Clocksmith/rdrr`** — published subset generated from approved catalog entries and verified artifact directories.
 
 ```
-External volume scan → VOLUME_INDEX.json (what's physically on disk)
+External volume scan → artifact-identity inventory (what's physically on disk)
 
-models/catalog.json (hand-edited, versioned in repo)
-  ↓ cross-validated against VOLUME_INDEX.json
+models/catalog.json (repo model registry)
+  ↓ cross-validated against artifact identity
   ↓ filtered + published to
 HF registry/catalog.json
 ```
+
+For the full layer map, use
+[`developer-guides/config-source-of-truth.md`](developer-guides/config-source-of-truth.md#model-registry-management).
 
 ## Validate catalog and hosted registry
 
@@ -32,6 +35,7 @@ npm run ci:catalog:check
 This runs:
 - `npm run registry:sync:scripts:check`
 - `npm run support:matrix:check`
+- `npm run support:inventory:check`
 - `npm run registry:hf:check`
 
 To run only the hosted registry validation:
@@ -61,15 +65,17 @@ Validation guarantees:
 - each manifest declares shard filenames, positive sizes, and digests
 - required sidecars such as tokenizer and tensor metadata resolve
 
-## Regenerate the external volume index
+## Audit external volume artifact identity
 
 After adding or removing models on the external volume:
 
 ```bash
-npm run external:index
+npm run artifact-identity:inventory -- --root /media/x/models/rdrr --json --pretty
+npm run artifact-identity:check -- --root /media/x/models/rdrr
 ```
 
-This scans `rdrr/*/manifest.json` + `origin.json` and writes `VOLUME_INDEX.json` + `VOLUME_INDEX.md` on the volume.
+This scans manifests, shards, `weightsRef` links, catalog entries, and identity
+metadata without creating another registry file.
 
 ## Publish a hosted model to Hugging Face
 

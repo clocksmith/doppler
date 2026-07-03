@@ -167,8 +167,11 @@ try {
         new Map([
           ['layer_0_expert_0', {
             gate: new FakeBuffer({ size: 4, usage: GPUBufferUsage.STORAGE }),
+            gateDtype: 'f32',
             up: new FakeBuffer({ size: 4, usage: GPUBufferUsage.STORAGE }),
+            upDtype: 'f32',
             down: new FakeBuffer({ size: 4, usage: GPUBufferUsage.STORAGE }),
+            downDtype: 'f32',
           }],
         ]),
         null,
@@ -199,6 +202,7 @@ try {
           label: 'conv_cleanup',
           kernelPath: null,
           swigluLimit: null,
+          weightDtype: 'f32',
         }
       ),
       /createBindGroup failed at 2/

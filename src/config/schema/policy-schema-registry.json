@@ -18,6 +18,11 @@
       "schemaPath": "src/config/schema/model-artifact-contract.schema.json"
     },
     {
+      "id": "support-rollout-policy",
+      "policyPath": "benchmarks/vendors/support-rollout-policy.json",
+      "schemaPath": "benchmarks/vendors/schema/support-rollout-policy.schema.json"
+    },
+    {
       "id": "subsystem-support-contract",
       "policyPath": "tools/policies/subsystem-support-contract.json",
       "schemaPath": "src/config/schema/subsystem-support-contract.schema.json"

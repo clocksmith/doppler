@@ -396,7 +396,7 @@ function assertCreatedBufferDestroyed(device, label) {
 {
   resetRuntimeState(createFakeDevice({ createBindGroupThrowAt: 1 }));
   await assert.rejects(
-    () => dequantize(new FakeBuffer({ size: 144, usage: GPUBufferUsage.STORAGE }), 1, {}),
+    () => dequantize(new FakeBuffer({ size: 144, usage: GPUBufferUsage.STORAGE }), 1, { outputDtype: 'f32' }),
     /createBindGroup failed at 1/
   );
   assertPoolIsClean();
@@ -408,7 +408,7 @@ function assertCreatedBufferDestroyed(device, label) {
   resetRuntimeState(device);
   const recorder = new CommandRecorder(device, 'dequant_record');
   await assert.rejects(
-    () => recordDequantize(recorder, new FakeBuffer({ size: 144, usage: GPUBufferUsage.STORAGE }), 1, {}),
+    () => recordDequantize(recorder, new FakeBuffer({ size: 144, usage: GPUBufferUsage.STORAGE }), 1, { outputDtype: 'f32' }),
     /createBindGroup failed at 1/
   );
   assertPoolIsClean();
@@ -684,7 +684,8 @@ function assertCreatedBufferDestroyed(device, label) {
       new FakeBuffer({ size: 4, usage: GPUBufferUsage.STORAGE }),
       1,
       4,
-      1
+      1,
+      { weightsDtype: 'f32' }
     ),
     /createBindGroup failed at 1/
   );

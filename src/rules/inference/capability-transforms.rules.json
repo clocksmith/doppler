@@ -10,7 +10,13 @@
     },
     {
       "match": {
-        "modelId": { "startsWith": "gemma-4-e2b-it-q4k-" },
+        "modelId": {
+          "in": [
+            "gemma-4-e2b-it-q4k-ehf16-af32",
+            "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+            "gemma-4-e2b-it-q4k-ehf16-af16-int4ple"
+          ]
+        },
         "platformVendor": "apple",
         "retainQ4KMaterialization": true
       },
@@ -111,7 +117,13 @@
     },
     {
       "match": {
-        "modelId": { "contains": "gemma-4-e2b" },
+        "modelId": {
+          "in": [
+            "gemma-4-e2b-it-q4k-ehf16-af32",
+            "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+            "gemma-4-e2b-it-q4k-ehf16-af16-int4ple"
+          ]
+        },
         "activationDtype": "f32",
         "headDim": 256,
         "kvDtype": "f16",

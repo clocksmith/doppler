@@ -129,13 +129,16 @@ export function selectMatmulKernel(options = {}) {
   const {
     preferF16 = true,
     useVec4 = false,
-    outputDtype = 'f32',
     aDtype = null,
     bDtype = null,
     isPrefill = false,
     prefillRows = 0,
     transposeB = true,
   } = options;
+  const outputDtype = options.outputDtype;
+  if (outputDtype !== 'f16' && outputDtype !== 'f32') {
+    throw new Error(`[Matmul] selectMatmulKernel requires outputDtype "f16" or "f32", got ${String(outputDtype)}.`);
+  }
   const { tiledPrefillMinRows } = getKernelThresholds().matmul;
 
   const inputsAreF16 = aDtype === 'f16' && bDtype === 'f16';
