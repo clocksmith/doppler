@@ -29,6 +29,11 @@ const policy = JSON.parse(
 const catalog = JSON.parse(
   fs.readFileSync(path.join(repoRoot, 'models/catalog.json'), 'utf8')
 );
+const catalogByModelId = new Map(
+  (Array.isArray(catalog?.models) ? catalog.models : [])
+    .filter((entry) => typeof entry?.modelId === 'string' && entry.modelId.length > 0)
+    .map((entry) => [entry.modelId, entry])
+);
 
 const expectedUpdated = [catalog.updatedAt, policy.updated]
   .filter((value) => /^\d{4}-\d{2}-\d{2}$/.test(String(value)))
@@ -42,6 +47,15 @@ function assertIncludes(value, expected, context) {
     true,
     `${context} must include ${expected}: ${value}`
   );
+}
+
+function assertRepoRelativeExistingFile(repoPath, context) {
+  const value = String(repoPath ?? '');
+  assert.equal(value.length > 0, true, `${context} must be a non-empty path`);
+  assert.equal(path.isAbsolute(value), false, `${context} must be repo-relative`);
+  assert.equal(value.includes('\\'), false, `${context} must use forward slashes`);
+  assert.equal(value.split('/').includes('..'), false, `${context} must not escape the repo`);
+  assert.equal(fs.existsSync(path.join(repoRoot, value)), true, `${context} must exist: ${value}`);
 }
 
 assert.equal(policy.ordering, 'artifact-size-ascending');
@@ -83,6 +97,20 @@ for (const sourceModel of inventory.sourceModels) {
 }
 
 let sourceCommandCount = 0;
+for (const catalogEntry of catalogByModelId.values()) {
+  const evidence = catalogEntry.benchmarkEvidence;
+  if (evidence == null) continue;
+  assert.equal(evidence.status, 'benchmark-selected', `${catalogEntry.modelId}: benchmarkEvidence.status`);
+  assert.equal(
+    typeof evidence.localClaimLaneId === 'string' && evidence.localClaimLaneId.length > 0,
+    true,
+    `${catalogEntry.modelId}: benchmarkEvidence.localClaimLaneId must be set`
+  );
+  assertRepoRelativeExistingFile(evidence.runtimeReport, `${catalogEntry.modelId}: benchmarkEvidence.runtimeReport`);
+  assertRepoRelativeExistingFile(evidence.compareResult, `${catalogEntry.modelId}: benchmarkEvidence.compareResult`);
+  assertRepoRelativeExistingFile(evidence.summarySvg, `${catalogEntry.modelId}: benchmarkEvidence.summarySvg`);
+}
+
 for (const sourceModel of inventory.sourceModels) {
   const smallestVariant = sourceModel.variants[0] || null;
   assert.equal(
@@ -105,6 +133,19 @@ for (const sourceModel of inventory.sourceModels) {
   assert.equal(selected.evidence.runtimeReportExists, true, `${selected.modelId}: runtime report must exist`);
   assert.equal(selected.evidence.compareResultExists, true, `${selected.modelId}: compare result must exist`);
   assert.equal(selected.evidence.summarySvgExists, true, `${selected.modelId}: summary SVG must exist`);
+  const catalogEntry = catalogByModelId.get(selected.modelId);
+  assert.ok(catalogEntry, `${selected.modelId}: selected architecture must exist in models/catalog.json`);
+  assert.deepEqual(
+    catalogEntry.benchmarkEvidence ?? null,
+    {
+      status: 'benchmark-selected',
+      localClaimLaneId: selected.evidence.localClaimLaneId,
+      runtimeReport: selected.evidence.runtimeReport,
+      compareResult: selected.evidence.compareResult,
+      summarySvg: selected.evidence.summarySvg,
+    },
+    `${selected.modelId}: models/catalog.json must cite the selected benchmark receipts`
+  );
 }
 assert.equal(sourceCommandCount > 0, true, 'at least one source model must expose a next command recipe');
 

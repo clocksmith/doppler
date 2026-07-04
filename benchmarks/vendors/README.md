@@ -7,6 +7,7 @@ Claim methodology and fairness policy are canonical in [docs/benchmark-methodolo
 ## Quick Links
 
 - Shared workloads: [workloads.json](./workloads.json)
+- Embedding compare profiles: [embedding-compare.config.json](./embedding-compare.config.json)
 - Example compare artifact: [fixtures/g3-p064-d064-t0-k1.compare.json](./fixtures/g3-p064-d064-t0-k1.compare.json)
 - Target registry: [registry.json](./registry.json)
 - Capability matrix: [capabilities.json](./capabilities.json)
@@ -16,6 +17,13 @@ Claim methodology and fairness policy are canonical in [docs/benchmark-methodolo
 - Harness definitions: [harnesses/](./harnesses)
 - Latest generated matrix: [release-matrix.json](./release-matrix.json)
 - Published matrix doc: [docs/release-matrix.md](../../docs/release-matrix.md)
+
+Embedding compare runs use the embedding-specific workload contract:
+
+```bash
+node tools/compare-embeddings.js --model-id google-embeddinggemma-300m-q4k-ehf16-af32 --save --json
+node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --save --json
+```
 
 ## Purpose
 
@@ -212,6 +220,8 @@ the root `defaults` block defines:
 each model profile has:
 - `defaultDopplerSource` (`quickstart-registry|local`) so compare runs resolve the same artifact source on every machine
 - `compareLane` (`performance_comparable|capability_only`) so support-only rows do not turn into accidental speed claims
+- `releaseClaimable` (`true|false`) so local passing comparisons do not become
+  release claims until the model artifact is promoted
 - `dopplerRuntimeProfileByDecodeProfile` so model-scoped Doppler tuning is explicit for parity/throughput lanes
 - `defaultLoadMode` and `defaultLoadModeReason` when a model needs a
   shared load-mode override to keep both engines runnable under the same
@@ -222,6 +232,12 @@ each model profile has:
 Canonical Transformers.js compare metadata comes from [models/catalog.json](../../models/catalog.json):
 - `vendorBenchmark.transformersjs.repoId` is the canonical repo mapping fallback when a compare profile omits `defaultTjsModelId`
 - `vendorBenchmark.transformersjs.dtype` is the canonical default `--tjs-dtype` for claim lanes unless the caller overrides it explicitly
+
+Embedding compare metadata lives in [embedding-compare.config.json](./embedding-compare.config.json).
+It uses the same split: shared prompt/run/cache policy at the root, model-specific
+Doppler engine overlays and embedding call semantics in each profile, catalog-owned
+`vendorBenchmark.transformersjs` repo/dtype resolution, and explicit
+`releaseClaimable` state for every row.
 
 `tools/compare-engines.js` resolves the Doppler model from that declared source
 and preflights the selected manifest before timing. Hosted quickstart models

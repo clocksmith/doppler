@@ -1,6 +1,6 @@
 import { readBuffer } from '../../../memory/buffer-pool.js';
 import { matmulCPU, rmsNormCPU } from './logits/index.js';
-import { isGpuBufferInstance, isWeightBuffer, isCpuWeightBuffer } from '../../../gpu/weight-buffer.js';
+import { isGpuBufferInstance, isWeightBuffer, isCpuWeightBuffer, getBufferDtype } from '../../../gpu/weight-buffer.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { resolveExecutionSessionPlan } from './execution-plan.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
@@ -374,6 +374,13 @@ export function resolveFloatDtypeFromByteSize(totalBytes, expectedLength) {
   return selectRuleValue('inference', 'dtype', 'f16OrF32FromBytes', { bytesPerElement });
 }
 
+export function resolveFloatDtypeFromBufferMetadata(buffer, expectedLength) {
+  const taggedDtype = getBufferDtype(buffer);
+  return taggedDtype
+    ? resolveFloatDtypeFromAlias(taggedDtype)
+    : resolveFloatDtypeFromByteSize(buffer?.size, expectedLength);
+}
+
 function decodeFloatWeights(data, dtype, expectedLength, label) {
   const decodeDtype = resolveFloatDtypeFromAlias(dtype);
   const decoded = decodeReadback(data, decodeDtype);
@@ -421,7 +428,7 @@ export async function getFinalNormWeights(state) {
     }
     weights = decodeFloatWeights(data, dtype, hiddenSize, 'final_norm');
   } else if (isGpuBufferInstance(finalNorm)) {
-    const dtype = resolveFloatDtypeFromByteSize(finalNorm.size, hiddenSize);
+    const dtype = resolveFloatDtypeFromBufferMetadata(finalNorm, hiddenSize);
     const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
     const readSize = hiddenSize * bytesPerElement;
     const data = await readBuffer(finalNorm, readSize);

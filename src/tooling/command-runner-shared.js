@@ -109,7 +109,9 @@ function resolveExecutionMode(request) {
 }
 
 function resolveExpectedModelType(request) {
-  return request.workload === 'embedding' ? 'embedding' : undefined;
+  if (request.workload === 'embedding') return 'embedding';
+  if (request.workload === 'rerank') return 'rerank';
+  return undefined;
 }
 
 export async function applyRuntimeInputs(request, runtimeBridge, options = {}) {

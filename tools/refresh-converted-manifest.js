@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -114,6 +115,42 @@ function toSafeString(value) {
   if (typeof value !== 'string') return '';
   const trimmed = value.trim();
   return trimmed || '';
+}
+
+function isPlainRecord(value) {
+  return value != null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function stripUndefined(value) {
+  if (Array.isArray(value)) {
+    return value.map((entry) => stripUndefined(entry));
+  }
+  if (!isPlainRecord(value)) {
+    return value;
+  }
+  const out = {};
+  for (const key of Object.keys(value).sort()) {
+    const item = value[key];
+    if (item !== undefined) {
+      out[key] = stripUndefined(item);
+    }
+  }
+  return out;
+}
+
+function canonicalJson(value) {
+  return JSON.stringify(stripUndefined(value));
+}
+
+function sha256JsonDigest(value) {
+  return `sha256:${createHash('sha256').update(canonicalJson(value)).digest('hex')}`;
+}
+
+function toRepoRelativePath(filePath) {
+  const relative = path.relative(process.cwd(), filePath);
+  return relative && !relative.startsWith('..')
+    ? relative.split(path.sep).join('/')
+    : filePath.split(path.sep).join('/');
 }
 
 function normalizeQuantizationTag(value) {
@@ -316,6 +353,29 @@ function assertRefreshManifestContract(manifest, rawConfig) {
   return sourceQuantization;
 }
 
+function buildArtifactIdentityRefreshPatch(manifest, rawConversionConfig, conversionConfigPath) {
+  const explicit = rawConversionConfig?.manifest?.artifactIdentity;
+  if (!isPlainRecord(explicit)) {
+    return manifest.artifactIdentity;
+  }
+
+  const previous = isPlainRecord(manifest.artifactIdentity) ? manifest.artifactIdentity : {};
+  const conversionConfigDigest = explicit.conversionConfigDigest ?? sha256JsonDigest(rawConversionConfig);
+  const conversionConfigPathValue = explicit.conversionConfigPath ?? toRepoRelativePath(conversionConfigPath);
+
+  return stripUndefined({
+    ...previous,
+    ...explicit,
+    conversionConfigPath: conversionConfigPathValue,
+    conversionConfigDigest,
+    sourceFormat: explicit.sourceFormat ?? previous.sourceFormat,
+    weightPackHash: explicit.weightPackHash ?? previous.weightPackHash,
+    shardSetHash: explicit.shardSetHash ?? previous.shardSetHash,
+    modalitySet: explicit.modalitySet ?? previous.modalitySet,
+    materializationProfile: explicit.materializationProfile ?? previous.materializationProfile,
+  });
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
 
@@ -365,6 +425,7 @@ async function main() {
     modelType: plan.modelType || manifest.modelType,
     quantization: plan.manifestQuantization || manifest.quantization,
     quantizationInfo: plan.quantizationInfo || manifest.quantizationInfo || null,
+    artifactIdentity: buildArtifactIdentityRefreshPatch(manifest, rawConversionConfig, conversionConfigPath),
     moeConfig: plan.moeConfig ?? manifest.moeConfig ?? null,
     inference: plan.manifestInference || manifest.inference,
     metadata: mergeMetadata(manifest, conversionConfigPath),
@@ -401,6 +462,7 @@ async function main() {
 
 export {
   buildRefreshRawConfig,
+  buildArtifactIdentityRefreshPatch,
   extractSourceQuantization,
 };
 

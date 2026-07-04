@@ -1565,6 +1565,7 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
           hiddenSize: hiddenSizePerLayerInput,
           vocabSize: useHotVocabularyTables ? (hotVocabularyRuntime.sentinelIndex + 1) : vocabSizePerLayerInput,
           scaleEmbeddings: true,
+          embeddingScale: null,
           probeStage: 'per_layer_embed_out',
           recorder,
           numTokens,

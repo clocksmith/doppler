@@ -12,6 +12,7 @@ export interface EmbedConfig {
   hiddenSize: number;
   vocabSize: number;
   scaleEmbeddings: boolean;
+  embeddingScale: number | null;
   debug?: boolean;
   recorder?: CommandRecorder;
   debugProbes?: ProbeConfigSchema[];

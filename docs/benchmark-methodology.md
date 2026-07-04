@@ -81,6 +81,9 @@ Prompt-target note:
   execution-plan cadence. `runtimeMirror` records the runtime overlay, while the
   top-level cadence fields and `executionPlan` record what actually executed.
 - Canonical Transformers.js compare repo/dtype defaults come from `models/catalog.json` `vendorBenchmark.transformersjs`, not ad hoc runner fallbacks.
+- Benchmark-selected model registry lanes must cite their checked-in runtime
+  report, compare result, and SVG summary through `models/catalog.json`
+  `benchmarkEvidence`.
 - Warm `opfs` lanes must fully prime the lazy generation path before the timed pass. A load-only warmup is not a valid warm-load comparison for models that fetch decoder assets on first token.
 - Browser-side claim lanes must not depend on live remote asset fetches when a staged local snapshot is required for stability. When the TJS model is staged locally, the compare contract should use `--tjs-local-model-path` so warm comparisons are reproducible.
 - A compare lane is claim-valid only when both engines finish under the same resolved contract.

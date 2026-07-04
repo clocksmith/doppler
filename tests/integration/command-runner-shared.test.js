@@ -298,6 +298,51 @@ function mergeRuntime(base, patch) {
 }
 
 {
+  const suiteOptions = buildSuiteOptions({
+    command: 'bench',
+    workload: 'rerank',
+    inferenceInput: null,
+    modelId: 'qwen-3-reranker-0-6b-f16-af32',
+    workloadType: null,
+    trainingTests: null,
+    trainingStage: null,
+    trainingConfig: null,
+    stage1Artifact: null,
+    stage1ArtifactHash: null,
+    ulArtifactDir: null,
+    stageAArtifact: null,
+    stageAArtifactHash: null,
+    distillArtifactDir: null,
+    teacherModelId: null,
+    studentModelId: null,
+    distillDatasetId: null,
+    distillDatasetPath: null,
+    distillLanguagePair: null,
+    distillSourceLangs: null,
+    distillTargetLangs: null,
+    distillPairAllowlist: null,
+    strictPairContract: null,
+    trainingSchemaVersion: null,
+    trainingBenchSteps: null,
+    checkpointEvery: null,
+    modelUrl: null,
+    runtimeProfile: 'profiles/rerank-throughput',
+    captureOutput: false,
+    keepPipeline: false,
+    report: null,
+    timestamp: null,
+    searchParams: null,
+  }, 'browser');
+
+  assert.equal(suiteOptions.mode, 'bench');
+  assert.equal(suiteOptions.workload, 'rerank');
+  assert.equal(suiteOptions.command, 'bench');
+  assert.equal(suiteOptions.expectedModelType, 'rerank');
+  assert.equal(suiteOptions.inferenceInput, undefined);
+  assert.equal(suiteOptions.runtimeProfile, 'profiles/rerank-throughput');
+}
+
+{
   const trainingSuiteOptions = buildSuiteOptions({
     command: 'verify',
     workload: 'training',

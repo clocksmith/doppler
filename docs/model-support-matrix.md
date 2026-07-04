@@ -3,7 +3,7 @@
 Auto-generated from conversion configs (`src/config/conversion/**`), `models/catalog.json`, and `models/gemma4-targets.json`.
 Run `npm run support:matrix:sync` after editing `models/catalog.json`, `models/gemma4-targets.json`, or changing conversion configs.
 
-Updated at: 2026-06-29
+Updated at: 2026-07-04
 
 ## Current Inference Status
 
@@ -26,6 +26,8 @@ This section answers "which models work now?" from `models/catalog.json` lifecyc
 | gemma-4-12b-it-text-w4a16-ct-ehf16-af16 | gemma4 | text | 2026-06-29 | node | Node/WebGPU verification is package-visible at reports/release-claims/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/2026-06-29T22-04-29.156Z.json. The report produced a coherent sky-color answer, stopReason=max-tokens, executionContractOk=true, and decodeTokensPerSec > 0. |
 | gemma-4-31b-it-text-q4k-ehf16-af32 | gemma4 | text | 2026-06-29 | node | Node/WebGPU verification is package-visible at reports/release-claims/gemma-4-31b-it-text-q4k-ehf16-af32/2026-06-29T22-07-45.149Z.json. The safe single-token report produced the coherent completion "blue", stopReason=stop-token, executionContractOk=true, and decodeTokensPerSec > 0. |
 | gemma-4-31b-it-text-q4k-ehf16-af16 | gemma4 | text | 2026-06-29 | node | Node/WebGPU verification is package-visible at reports/release-claims/gemma-4-31b-it-text-q4k-ehf16-af16/2026-06-29T22-09-42.445Z.json. The f16 activation report produced the coherent completion "blue", stopReason=stop-token, executionContractOk=true, and decodeTokensPerSec > 0. |
+| qwen-3-embedding-0-6b-q4k-ehf16-af32 | qwen3 | embedding | 2026-07-04 | node | Release evidence: reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-04T00-36-00.000Z.json. Semantic retrieval top-1 accuracy 0.90, semantic pair accuracy 0.7143, finite ratio 1.0, 1024-dimensional unit-norm embeddings. Speed evidence: reports/benchmarks/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-04T02-10-00.000Z.json (medianEmbeddingMs 462.5) and comparable local benchmark benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260704T004107.json (Doppler medianEmbeddingMs 360.2; Transformers.js q4f16 medianEmbeddingMs 263.43). |
+| qwen-3-reranker-0-6b-f16-af32 | qwen3 | rerank | 2026-07-04 | node | Release evidence: reports/release-claims/qwen-3-reranker-0-6b-f16-af32/2026-07-04T02-00-00.000Z.json. Semantic pair accuracy 1.0 (5/5), WebGPU query topDocumentIndex 0, rerankMs 4057.56 for the three-document smoke request. Speed evidence: reports/benchmarks/qwen-3-reranker-0-6b-f16-af32/2026-07-04T02-15-00.000Z.json (medianRerankMs 3977.72 for the same three-document request). |
 | qwen-3-5-0-8b-q4k-ehaf16 | qwen3 | text | 2026-06-15 | browser, node | Browser/Node release evidence is package-visible at reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json. The hosted Clocksmith/rdrr artifact is approved for quickstart resolution with explicit stop-token metadata. |
 | qwen-3-5-2b-q4k-ehaf16 | qwen3 | text | 2026-06-15 | browser, node | Browser/Node release evidence is package-visible at reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json. The execution-v1 lane keeps the fixed fused-Q4 decode path and q4 LM-head/prefill kernels; the hosted Clocksmith/rdrr artifact is approved for quickstart resolution with explicit stop-token metadata. |
 | qwen-3-6-27b-q4k-ehaf16 | qwen3 | text | 2026-04-28 | browser | Committed program-bundle reference reports/program-bundles/qwen-3-6-27b-q4k-ehaf16/2026-04-28T01-19-10.497Z.reference.json captured a deterministic reference transcript and executionContractOk=true. Hosted artifact is enabled for web demo download; quickstart remains disabled. |
@@ -37,7 +39,10 @@ None right now.
 
 ### 3. Known Failing
 
-None right now.
+| Model ID | Family | Modes | Last checked | Surface | Notes |
+| --- | --- | --- | --- | --- | --- |
+| qwen-3-reranker-0-6b-q4k-ehf16-af32 | qwen3 | rerank | 2026-07-04 | node | Failure evidence: reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-04T00-56-00.000Z.failed.json. The WebGPU smoke query ranks the expected document first, but semantic pair accuracy is 0.20 (1/5), so this quantized lane is not publishable. |
+| minicpm4-0-5b-f16-af32 | minicpm | text | 2026-07-04 | node | Failure evidence: reports/release-claims/minicpm4-0-5b-f16-af32/2026-07-04T01-07-00.000Z.failed.json and reports/debug/minicpm4-0-5b-f16-af32/2026-07-04T02-25-00.000Z.json. The prompt "Q: What color is the sky on a clear day? A:" produced "This problem question: When是我国 an an", so the artifact remains local-only until tokenizer/template/config correctness is fixed. |
 
 ### 4. Quickstart-Supported Only
 
@@ -72,21 +77,22 @@ Generated from `models/gemma4-targets.json`. This section tracks the latest offi
 | gemma3 | transformer | active | 5 (src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json, src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json, src/config/conversion/gemma3/gemma-3-270m-it-f16-af32.json, +2 more) | 3 (gemma-3-1b-it-q4k-ehf16-af32, gemma-3-270m-it-f16-af32, gemma-3-270m-it-q4k-ehf16-af32) | yes | none | verified (2026-06-29) | verified | catalog verification applies only to cataloged models (3/5 conversion configs cataloged) |
 | translategemma | transformer | active | 2 (src/config/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json, src/config/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json) | 1 (translategemma-4b-it-q4k-ehf16-af32) | yes | none | verified (2026-03-20) | verified | catalog verification applies only to cataloged models (1/2 conversion configs cataloged) |
 | gemma4 | transformer | active | 10 (src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af16.json, src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af32.json, src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16.json, +7 more) | 8 (gemma-4-12b-it-text-q4k-ehf16-af16, gemma-4-12b-it-text-q4k-ehf16-af32, gemma-4-12b-it-text-w4a16-ct-ehf16-af16, +5 more) | yes | none | verified (2026-06-29) | verified | catalog verification applies only to cataloged models (8/10 conversion configs cataloged) |
-| qwen3 | transformer | active | 4 (src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json, src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json, src/config/conversion/qwen3/qwen-3-6-27b-q4k-eaf16.json, +1 more) | 4 (qwen-3-5-0-8b-q4k-ehaf16, qwen-3-5-2b-q4k-ehaf16, qwen-3-6-27b-q4k-eaf16, +1 more) | yes | none | verified (2026-06-15) | verified | - |
+| qwen3 | transformer | active | 7 (src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json, src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json, src/config/conversion/qwen3/qwen-3-6-27b-q4k-eaf16.json, +4 more) | 7 (qwen-3-5-0-8b-q4k-ehaf16, qwen-3-5-2b-q4k-ehaf16, qwen-3-6-27b-q4k-eaf16, +4 more) | yes | none | partially failing (1/7) | verification-failed | partial verification (6/7 catalog models verified); mixed verification state (1/7 catalog models failing) |
 | lfm2 | transformer | active | 1 (src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json) | 1 (lfm2-5-1-2b-instruct-q4k-ehf16-af32) | no | none | unknown | verification-pending | not verified in catalog lifecycle |
 | diffusiongemma | transformer | active | 1 (src/config/conversion/diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16.json) | 1 (diffusiongemma-26b-a4b-it-q4k-ehf16-af16) | no | none | unknown | verification-pending | not verified in catalog lifecycle |
 | gpt_oss | transformer | active | 1 (src/config/conversion/gpt-oss-20b-f16-xmxfp4.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | janus_text | transformer | active | 1 (src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
+| minicpm | transformer | active | 1 (src/config/conversion/minicpm/minicpm4-0-5b-f16-af32.json) | 1 (minicpm4-0-5b-f16-af32) | no | none | failed | verification-failed | - |
 
 ## Summary
 
-- Families tracked: 9
-- Families with conversion configs: 9
-- Families present in catalog: 7
-- Verified families (active runtime + conversion + catalog + passing verification): 5
+- Families tracked: 10
+- Families with conversion configs: 10
+- Families present in catalog: 8
+- Verified families (active runtime + conversion + catalog + passing verification): 4
 - Cataloged families pending verification: 2
 - Families with HF-hosted catalog entries: 5
-- Families with verified catalog lifecycle: 5
-- Families with failed catalog verification: 0
+- Families with verified catalog lifecycle: 4
+- Families with failed catalog verification: 2
 - Blocked runtime families: 0
-- Catalog entries: 19
+- Catalog entries: 23

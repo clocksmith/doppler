@@ -50,6 +50,9 @@ const manifestArtifact = buildManifestRequiredInferenceFieldsArtifact({
     yarnBetaFast: null,
     yarnBetaSlow: null,
     yarnOriginalMaxPos: null,
+    longropeShortFactor: null,
+    longropeLongFactor: null,
+    longropeOriginalMaxPos: null,
     ropeLocalYarnBetaFast: null,
     ropeLocalYarnBetaSlow: null,
     ropeLocalYarnOriginalMaxPos: null,
@@ -57,6 +60,8 @@ const manifestArtifact = buildManifestRequiredInferenceFieldsArtifact({
   output: {
     tieWordEmbeddings: true,
     scaleEmbeddings: true,
+    embeddingScale: null,
+    logitInputScale: 1,
     embeddingTranspose: false,
     finalLogitSoftcapping: null,
     embeddingVocabSize: null,
@@ -67,6 +72,7 @@ const manifestArtifact = buildManifestRequiredInferenceFieldsArtifact({
     globalPattern: null,
     period: 6,
     offset: 0,
+    residualBranchScale: 1,
   },
   chatTemplate: {
     type: null,

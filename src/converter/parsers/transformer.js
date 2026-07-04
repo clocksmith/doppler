@@ -54,6 +54,22 @@ function renameDenseTensor(tensor, tensorName) {
   };
 }
 
+function resolveLogitScoreConfig(config, modulePath) {
+  const trueTokenId = Number(config?.true_token_id ?? config?.trueTokenId);
+  const falseTokenId = Number(config?.false_token_id ?? config?.falseTokenId);
+  if (!Number.isInteger(trueTokenId) || trueTokenId < 0) {
+    throw new Error(`transformer parser: ${modulePath}/config.json must declare non-negative integer true_token_id.`);
+  }
+  if (!Number.isInteger(falseTokenId) || falseTokenId < 0) {
+    throw new Error(`transformer parser: ${modulePath}/config.json must declare non-negative integer false_token_id.`);
+  }
+  return {
+    kind: 'logit_score',
+    trueTokenId,
+    falseTokenId,
+  };
+}
+
 async function parseSentenceTransformersModules(adapter) {
   const {
     readJson,
@@ -69,6 +85,7 @@ async function parseSentenceTransformersModules(adapter) {
   let normalize = null;
   const projections = [];
   const extraTensors = [];
+  let rerankScoring = null;
 
   for (const moduleEntry of modules) {
     const type = asNonEmptyString(moduleEntry?.type, 'modules.json type');
@@ -139,6 +156,12 @@ async function parseSentenceTransformersModules(adapter) {
       continue;
     }
 
+    if (isSentenceTransformerModuleType(type, '.LogitScore')) {
+      const config = await readJson(`${modulePath}/config.json`, `${modulePath}/config.json`);
+      rerankScoring = resolveLogitScoreConfig(config, modulePath);
+      continue;
+    }
+
     throw new Error(`transformer parser: unsupported sentence-transformers module type "${type}".`);
   }
 
@@ -146,6 +169,7 @@ async function parseSentenceTransformersModules(adapter) {
     return {
       extraTensors: [],
       embeddingPostprocessor: null,
+      rerankScoring,
     };
   }
   if (poolingMode == null) {
@@ -160,6 +184,7 @@ async function parseSentenceTransformersModules(adapter) {
       projections,
       normalize,
     },
+    rerankScoring,
   };
 }
 
@@ -178,7 +203,7 @@ export async function parseTransformerModel(adapter) {
   const architectureHint = config.architectures?.[0] ?? config.model_type ?? '';
   const sentenceTransformersModules = await fileExists('modules.json')
     ? await parseSentenceTransformersModules(adapter)
-    : { extraTensors: [], embeddingPostprocessor: null };
+    : { extraTensors: [], embeddingPostprocessor: null, rerankScoring: null };
 
   let tensors = null;
   if (await fileExists('model.safetensors.index.json')) {
@@ -194,5 +219,6 @@ export async function parseTransformerModel(adapter) {
     tensors: [...tensors, ...sentenceTransformersModules.extraTensors],
     architectureHint,
     embeddingPostprocessor: sentenceTransformersModules.embeddingPostprocessor,
+    rerankScoring: sentenceTransformersModules.rerankScoring ?? null,
   };
 }

@@ -21,6 +21,7 @@ export interface LogitsConfig {
   useTiedEmbeddings: boolean;
   embeddingVocabSize: number | null;
   finalLogitSoftcapping: number | null;  // Gemma 2: 30.0 - applies tanh(x/cap)*cap
+  logitInputScale: number;
   largeWeights?: LargeWeightConfigSchema;
   /** Dtype for hidden state activations */
   activationDtype?: 'f16' | 'f32';

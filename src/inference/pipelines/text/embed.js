@@ -63,6 +63,28 @@ export function decodeRangeChunkIntoOutput(bytes, sourceDtype, output, dstOffset
   }
 }
 
+function resolveEmbeddingScale(config, hiddenSize) {
+  const embeddingScale = config.embeddingScale;
+  const scaleEmbeddings = config.scaleEmbeddings;
+  if (embeddingScale === undefined) {
+    throw new Error('[Embed] embeddingScale must be explicitly set (null to use scaleEmbeddings semantics).');
+  }
+  if (scaleEmbeddings == null) {
+    throw new Error('[Embed] scaleEmbeddings is required.');
+  }
+  if (embeddingScale !== null) {
+    const value = Number(embeddingScale);
+    if (!Number.isFinite(value) || value <= 0) {
+      throw new Error(`[Embed] embeddingScale must be a positive finite number or null; got "${String(embeddingScale)}".`);
+    }
+    if (scaleEmbeddings === true) {
+      throw new Error('[Embed] embeddingScale cannot be set when scaleEmbeddings is true.');
+    }
+    return value;
+  }
+  return scaleEmbeddings === true ? Math.sqrt(hiddenSize) : 1;
+}
+
 async function readGpuTokenIdsForCpuEmbeddingGather(tokenIds, numTokens, indexOffset) {
   if (numTokens <= 0) {
     throw new Error('[Embed] numTokens must be provided when tokenIds is a GPUBuffer.');
@@ -77,6 +99,7 @@ export async function embed(tokenIds, embedBuffer, config) {
     hiddenSize,
     vocabSize,
     scaleEmbeddings,
+    embeddingScale,
     debug = false,
     recorder,
     outputBuffer: preAllocatedOutput,
@@ -91,6 +114,7 @@ export async function embed(tokenIds, embedBuffer, config) {
     embeddingStorageEncoding = null,
   } = config;
   const device = getDevice();
+  const resolvedEmbeddingScale = resolveEmbeddingScale({ scaleEmbeddings, embeddingScale }, hiddenSize);
   const tokenBufferInput = isGpuBufferInstance(tokenIds);
   let tokenIdArray = tokenBufferInput ? null :  (tokenIds);
   const numTokens = tokenBufferInput
@@ -263,10 +287,9 @@ export async function embed(tokenIds, embedBuffer, config) {
     }
     } // end else (non-preloaded path)
 
-    if (scaleEmbeddings) {
-      const scaleFactor = Math.sqrt(hiddenSize);
+    if (resolvedEmbeddingScale !== 1) {
       for (let i = 0; i < output.length; i++) {
-        output[i] *= scaleFactor;
+        output[i] *= resolvedEmbeddingScale;
       }
     }
 
@@ -382,7 +405,7 @@ export async function embed(tokenIds, embedBuffer, config) {
     }
   }
 
-  if (!scaleEmbeddings) {
+  if (resolvedEmbeddingScale === 1) {
     await runProbes(probeStage, gatherOutput.buffer, {
       numTokens,
       hiddenSize,
@@ -393,9 +416,6 @@ export async function embed(tokenIds, embedBuffer, config) {
     });
     return gatherOutput;
   }
-
-  // Apply embedding scaling: sqrt(hiddenSize)
-  const scaleFactor = Math.sqrt(hiddenSize);
 
   // Debug: check raw embedding values before scaling
   if (debug && !recorder) {
@@ -408,7 +428,7 @@ export async function embed(tokenIds, embedBuffer, config) {
       const abs = Math.abs(f32[i]);
       if (abs > maxAbs) maxAbs = abs;
     }
-    trace.embed(`RAW (before scale): maxAbs=${maxAbs.toFixed(4)}, scaleFactor=${scaleFactor.toFixed(4)}`);
+    trace.embed(`RAW (before scale): maxAbs=${maxAbs.toFixed(4)}, scaleFactor=${resolvedEmbeddingScale.toFixed(4)}`);
   }
 
   const gatheredTensor = createTensor(
@@ -418,10 +438,10 @@ export async function embed(tokenIds, embedBuffer, config) {
     'embed_gather_output'
   );
   const scaledTensor = recorder
-    ? await recordScale(recorder, gatheredTensor, scaleFactor, {
+    ? await recordScale(recorder, gatheredTensor, resolvedEmbeddingScale, {
       count: numTokens * hiddenSize,
     })
-    : await runScale(gatheredTensor, scaleFactor, {
+    : await runScale(gatheredTensor, resolvedEmbeddingScale, {
       count: numTokens * hiddenSize,
     });
   const scaledBuffer = scaledTensor.buffer;
@@ -448,7 +468,7 @@ export async function embed(tokenIds, embedBuffer, config) {
       const abs = Math.abs(f32[i]);
       if (abs > maxAbs) maxAbs = abs;
     }
-    trace.embed(`SCALED (after *${scaleFactor.toFixed(2)}): maxAbs=${maxAbs.toFixed(4)}, buffer.label=${scaledBuffer.label}, buffer.size=${scaledBuffer.size}`);
+    trace.embed(`SCALED (after *${resolvedEmbeddingScale.toFixed(2)}): maxAbs=${maxAbs.toFixed(4)}, buffer.label=${scaledBuffer.label}, buffer.size=${scaledBuffer.size}`);
     trace.embed(`RETURNING buffer with first8=[${Array.from(f32).slice(0, 8).map(x => x.toFixed(4)).join(', ')}]`);
     if (f32.some(x => !Number.isFinite(x))) {
       throw new Error('[Embed] Scaled embedding contains NaN/Inf');

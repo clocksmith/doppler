@@ -25,6 +25,10 @@ function isPlainObject(value) {
   return value != null && typeof value === 'object' && !Array.isArray(value);
 }
 
+function clonePlainObject(value) {
+  return isPlainObject(value) ? structuredClone(value) : null;
+}
+
 function normalizeLifecycle(entry) {
   const lifecycle = isPlainObject(entry?.lifecycle) ? entry.lifecycle : {};
   const availability = isPlainObject(lifecycle.availability) ? lifecycle.availability : {};
@@ -143,6 +147,8 @@ function toQuickstartEntry(entry) {
       `${modelId}: quickstart catalog entries require complete hf.repoId, hf.revision, and hf.path metadata`
     );
   }
+  const vendorBenchmark = clonePlainObject(entry?.vendorBenchmark);
+  const benchmarkEvidence = clonePlainObject(entry?.benchmarkEvidence);
 
   return {
     modelId,
@@ -159,6 +165,8 @@ function toQuickstartEntry(entry) {
       revision,
       path: repoPath,
     },
+    ...(vendorBenchmark ? { vendorBenchmark } : {}),
+    ...(benchmarkEvidence ? { benchmarkEvidence } : {}),
   };
 }
 

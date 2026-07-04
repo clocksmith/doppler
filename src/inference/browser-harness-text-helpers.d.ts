@@ -6,6 +6,11 @@ export declare function getDefaultEmbeddingSemanticFixtures(): {
   minPairAcc: number;
   pairMargin: number;
 };
+export declare function getDefaultRerankSemanticFixtures(): {
+  cases: Array<Record<string, unknown>>;
+  minPairAcc: number;
+  minScoreMargin: number;
+};
 export declare function resolveBenchmarkRunSettings(
   runtimeConfig: Record<string, unknown>,
   source?: Record<string, unknown> | null
@@ -53,6 +58,29 @@ export declare function normalizeUniformCacheStats(value: unknown): {
   pendingDestruction?: number;
 } | null;
 export declare function runEmbeddingSemanticChecks(
+  pipeline: Record<string, unknown>,
+  options?: Record<string, unknown> | null
+): Promise<Record<string, unknown>>;
+export declare function resolveRerankScoringConfig(
+  pipeline: Record<string, unknown>
+): Record<string, unknown>;
+export declare function formatRerankPrompt(
+  query: string,
+  document: string,
+  scoringConfig: Record<string, unknown>
+): string;
+export declare function scoreRerankDocument(
+  pipeline: Record<string, unknown>,
+  query: string,
+  document: string,
+  scoringConfig?: Record<string, unknown> | null
+): Promise<Record<string, unknown>>;
+export declare function runRerank(
+  pipeline: Record<string, unknown>,
+  runtimeConfig: Record<string, unknown>,
+  runOverrides?: Record<string, unknown> | null
+): Promise<Record<string, unknown>>;
+export declare function runRerankSemanticChecks(
   pipeline: Record<string, unknown>,
   options?: Record<string, unknown> | null
 ): Promise<Record<string, unknown>>;

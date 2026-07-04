@@ -12,7 +12,10 @@ function isBosLikeLabel(value) {
 
 function isEosLikeLabel(value) {
   const normalized = normalizeSpecialTokenLabel(value);
-  return normalized === '<eos>' || normalized === '</s>' || normalized.includes('eos');
+  return normalized === '<eos>'
+    || normalized === '</s>'
+    || normalized.includes('eos')
+    || normalized.includes('endoftext');
 }
 
 function classifySpecialTokenReference(ref, specialTokens) {
@@ -84,7 +87,25 @@ export function inferBundledTokenizerBehaviorFlags(tokenizerJson, specialTokens 
     return { addBosToken: null, addEosToken: null };
   }
 
-  const postProcessor = tokenizerJson.post_processor;
+  const findTemplateProcessing = (postProcessor) => {
+    if (!postProcessor || typeof postProcessor !== 'object' || Array.isArray(postProcessor)) {
+      return null;
+    }
+    if (postProcessor.type === 'TemplateProcessing') {
+      return postProcessor;
+    }
+    if (postProcessor.type === 'Sequence' && Array.isArray(postProcessor.processors)) {
+      for (const child of postProcessor.processors) {
+        const template = findTemplateProcessing(child);
+        if (template) {
+          return template;
+        }
+      }
+    }
+    return null;
+  };
+
+  const postProcessor = findTemplateProcessing(tokenizerJson.post_processor);
   if (!postProcessor || postProcessor.type !== 'TemplateProcessing') {
     return { addBosToken: null, addEosToken: null };
   }

@@ -54,7 +54,10 @@
       "yarnOriginalMaxPos": null,
       "ropeLocalYarnBetaFast": null,
       "ropeLocalYarnBetaSlow": null,
-      "ropeLocalYarnOriginalMaxPos": null
+      "ropeLocalYarnOriginalMaxPos": null,
+      "longropeShortFactor": null,
+      "longropeLongFactor": null,
+      "longropeOriginalMaxPos": null
     },
     "output": {
       "finalLogitSoftcapping": null,
@@ -82,14 +85,17 @@
           }
         ],
         "normalize": "l2"
-      }
+      },
+      "embeddingScale": null,
+      "logitInputScale": 1
     },
     "layerPattern": {
       "type": "every_n",
       "globalPattern": null,
       "period": 6,
       "offset": null,
-      "layerTypes": null
+      "layerTypes": null,
+      "residualBranchScale": 1
     },
     "chatTemplate": {
       "type": null,

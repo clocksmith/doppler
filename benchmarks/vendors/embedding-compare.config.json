@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "updated": "2026-07-03",
+  "defaults": {
+    "prompt": "A small red cube rests on a wooden table beside a blue sphere.",
+    "warmupRuns": 1,
+    "timedRuns": 3,
+    "cacheMode": "warm",
+    "loadMode": "http",
+    "dopplerSurface": "auto",
+    "dopplerRuntimeProfile": "profiles/vector-throughput",
+    "dopplerVerifyRuntimeProfile": "profiles/vector-stability"
+  },
+  "modelProfiles": [
+    {
+      "dopplerModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+      "defaultDopplerSource": "local",
+      "defaultTjsFormat": "onnx",
+      "embeddingMode": "sentence-embedding",
+      "embeddingPooling": "none",
+      "embeddingNormalize": true,
+      "embeddingStyle": "embeddinggemma",
+      "compareLane": "performance_comparable",
+      "releaseClaimable": true,
+      "compareLaneReason": "Embedding-specific lane using shared prompt, semantic fixture, and browser WebGPU Transformers.js ONNX baseline."
+    },
+    {
+      "dopplerModelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+      "defaultDopplerSource": "local",
+      "defaultTjsFormat": "onnx",
+      "embeddingMode": "feature-extraction",
+      "embeddingPooling": "last_token",
+      "embeddingNormalize": true,
+      "embeddingStyle": "qwen3_embedding",
+      "dopplerRuntimeProfile": null,
+      "dopplerVerifyRuntimeProfile": null,
+      "compareLane": "performance_comparable",
+      "releaseClaimable": false,
+      "compareLaneReason": "Local Doppler artifact compared against the browser WebGPU Transformers.js ONNX embedding baseline; release claims remain gated on artifact promotion."
+    }
+  ]
+}

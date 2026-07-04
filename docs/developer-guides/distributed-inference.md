@@ -17,6 +17,23 @@ separately in [`MoM Layer Draft`](../distribution/mom-layer-draft.md).
   - `artifactIdentity`
   - `transcriptRoot`
 
+## Ordering Constraint
+
+Distributed inference should prove whole-model replicated execution before
+remote model partitioning. The first claimable P2P lane is several peers running
+the same canonical artifact and producing deterministic receipts for the same
+request. Split-layer execution and remote expert hosting are additive lanes
+after that receipt format is stable and reproducible.
+
+MoE storage can progress earlier as local expert paging, but it is still a
+storage/runtime capability until runtime receipts exist:
+
+- shared backbone, router, and tokenizer come from the canonical artifact
+- expert shards are content-addressed and bound to the artifact identity
+- active expert tiles are cache-managed by config-owned policy
+- router path receipts record selected expert IDs and shard hashes
+- P2P expert hosting is a separate distributed-execution extension
+
 ## Phase 0 completion
 
 1. canonical hash utility

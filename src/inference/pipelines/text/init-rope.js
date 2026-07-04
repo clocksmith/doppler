@@ -28,6 +28,8 @@ function computeRoPEFreqsForTheta(
   // Compute per-dimension scaling factors
   const scales = new Float32Array(halfDim);
   const isYarn = ropeScalingType === 'yarn';
+  const isLongRoPE = ropeScalingType === 'longrope';
+  let magnitudeScale = 1;
   if (isYarn) {
     // YARN scaling - validate ALL required params (fail fast on incomplete manifest)
     if (ropeScaling?.factor == null ||
@@ -61,13 +63,53 @@ function computeRoPEFreqsForTheta(
         scales[i] = 1.0 + (yarnFactor - 1.0) * t;
       }
     }
+  } else if (isLongRoPE) {
+    if (
+      !Array.isArray(ropeScaling?.short_factor)
+      || !Array.isArray(ropeScaling?.long_factor)
+      || ropeScaling?.original_max_position_embeddings == null
+    ) {
+      throw new Error(
+        `RoPE scaling type is 'longrope' but LongRoPE params are missing. ` +
+        `Manifest must provide short_factor, long_factor, and original_max_position_embeddings. ` +
+        `Got: short_factor=${Array.isArray(ropeScaling?.short_factor) ? ropeScaling.short_factor.length : ropeScaling?.short_factor}, ` +
+        `long_factor=${Array.isArray(ropeScaling?.long_factor) ? ropeScaling.long_factor.length : ropeScaling?.long_factor}, ` +
+        `original_max_position_embeddings=${ropeScaling?.original_max_position_embeddings}`
+      );
+    }
+    if (ropeScaling.short_factor.length !== halfDim || ropeScaling.long_factor.length !== halfDim) {
+      throw new Error(
+        `LongRoPE factor length mismatch: expected ${halfDim}, ` +
+        `got short_factor=${ropeScaling.short_factor.length}, long_factor=${ropeScaling.long_factor.length}.`
+      );
+    }
+    const originalMaxPos = Number(ropeScaling.original_max_position_embeddings);
+    if (!Number.isFinite(originalMaxPos) || originalMaxPos <= 0) {
+      throw new Error(`LongRoPE original_max_position_embeddings must be positive; got "${String(originalMaxPos)}".`);
+    }
+    const selectedFactors = maxSeqLen > originalMaxPos
+      ? ropeScaling.long_factor
+      : ropeScaling.short_factor;
+    for (let i = 0; i < halfDim; i++) {
+      const factor = Number(selectedFactors[i]);
+      if (!Number.isFinite(factor) || factor <= 0) {
+        throw new Error(`LongRoPE factor[${i}] must be a positive finite number; got "${String(selectedFactors[i])}".`);
+      }
+      scales[i] = factor;
+    }
+    magnitudeScale = Math.sqrt(1 + Math.log(maxSeqLen / originalMaxPos) / Math.log(originalMaxPos));
+    if (!Number.isFinite(magnitudeScale) || magnitudeScale <= 0) {
+      throw new Error(
+        `LongRoPE magnitude scale is invalid for maxSeqLen=${maxSeqLen}, ` +
+        `original_max_position_embeddings=${originalMaxPos}.`
+      );
+    }
   } else {
     // Linear scaling: uniform across all dimensions
     if (ropeScalingType != null && ropeScalingType !== 'linear') {
-      log.warn(
-        'Pipeline',
-        `Unrecognized RoPE scaling type "${ropeScalingType}"; falling back to linear scaling. ` +
-        'Known types: "linear", "yarn".'
+      throw new Error(
+        `Unsupported RoPE scaling type "${ropeScalingType}". ` +
+        'Supported types: null, "linear", "yarn", "longrope".'
       );
     }
     for (let i = 0; i < halfDim; i++) {
@@ -83,8 +125,8 @@ function computeRoPEFreqsForTheta(
     for (let i = 0; i < halfDim; i++) {
       const scaledPos = pos / scales[i];
       const angle = scaledPos * freqs[i];
-      cosValues[pos * halfDim + i] = Math.cos(angle);
-      sinValues[pos * halfDim + i] = Math.sin(angle);
+      cosValues[pos * halfDim + i] = Math.cos(angle) * magnitudeScale;
+      sinValues[pos * halfDim + i] = Math.sin(angle) * magnitudeScale;
     }
   }
 
@@ -101,6 +143,12 @@ function isSameRoPEScalingConfig(
 ) {
   if (leftType !== rightType) return false;
   if (leftScale !== rightScale) return false;
+  if (leftType === 'longrope') {
+    return JSON.stringify(leftScaling?.short_factor ?? null) === JSON.stringify(rightScaling?.short_factor ?? null)
+      && JSON.stringify(leftScaling?.long_factor ?? null) === JSON.stringify(rightScaling?.long_factor ?? null)
+      && (leftScaling?.original_max_position_embeddings ?? null)
+        === (rightScaling?.original_max_position_embeddings ?? null);
+  }
   if (leftType !== 'yarn') return true;
   return (leftScaling?.beta_fast ?? null) === (rightScaling?.beta_fast ?? null)
     && (leftScaling?.beta_slow ?? null) === (rightScaling?.beta_slow ?? null)

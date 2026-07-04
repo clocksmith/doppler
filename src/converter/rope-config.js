@@ -28,6 +28,15 @@ function asNumberArray(value) {
   return normalized.map((entry) => Math.trunc(entry));
 }
 
+function asPositiveNumberArray(value) {
+  if (!Array.isArray(value)) return null;
+  const normalized = value.map((entry) => asFiniteNumber(entry));
+  if (normalized.some((entry) => entry == null || entry <= 0)) {
+    return null;
+  }
+  return normalized.map((entry) => Number(entry));
+}
+
 function normalizeRoPEType(value) {
   if (typeof value !== 'string') return null;
   const normalized = value.trim().toLowerCase();
@@ -90,6 +99,9 @@ function resolveScalingConfig(ropeScalingConfig, options = {}) {
       yarnBetaFast: null,
       yarnBetaSlow: null,
       yarnOriginalMaxPos: null,
+      longropeShortFactor: null,
+      longropeLongFactor: null,
+      longropeOriginalMaxPos: null,
     };
   }
 
@@ -98,6 +110,9 @@ function resolveScalingConfig(ropeScalingConfig, options = {}) {
   let yarnBetaFast = null;
   let yarnBetaSlow = null;
   let yarnOriginalMaxPos = null;
+  let longropeShortFactor = null;
+  let longropeLongFactor = null;
+  let longropeOriginalMaxPos = null;
 
   if (ropeScalingType == null) {
     if (factor != null && factor > 0 && factor !== 1.0) {
@@ -123,6 +138,23 @@ function resolveScalingConfig(ropeScalingConfig, options = {}) {
     yarnBetaSlow = betaSlow;
     yarnOriginalMaxPos = origMaxPos;
   }
+  if (ropeScalingType === 'longrope') {
+    const shortFactor = asPositiveNumberArray(ropeScalingConfig.short_factor);
+    const longFactor = asPositiveNumberArray(ropeScalingConfig.long_factor);
+    const origMaxPos = asFiniteNumber(ropeScalingConfig.original_max_position_embeddings);
+    if (!shortFactor || !longFactor || origMaxPos == null) {
+      throw new Error(
+        'LongRoPE scaling detected but required params missing in HF config. ' +
+        'LongRoPE requires short_factor, long_factor, and original_max_position_embeddings. ' +
+        `Got: short_factor=${Array.isArray(ropeScalingConfig.short_factor) ? ropeScalingConfig.short_factor.length : ropeScalingConfig.short_factor}, ` +
+        `long_factor=${Array.isArray(ropeScalingConfig.long_factor) ? ropeScalingConfig.long_factor.length : ropeScalingConfig.long_factor}, ` +
+        `original_max_position_embeddings=${origMaxPos}`
+      );
+    }
+    longropeShortFactor = shortFactor;
+    longropeLongFactor = longFactor;
+    longropeOriginalMaxPos = origMaxPos;
+  }
 
   return {
     ropeScalingType,
@@ -130,6 +162,9 @@ function resolveScalingConfig(ropeScalingConfig, options = {}) {
     yarnBetaFast,
     yarnBetaSlow,
     yarnOriginalMaxPos,
+    longropeShortFactor,
+    longropeLongFactor,
+    longropeOriginalMaxPos,
   };
 }
 
@@ -140,7 +175,9 @@ function hasScalingDirective(ropeScalingConfig) {
     || ropeScalingConfig.factor != null
     || ropeScalingConfig.beta_fast != null
     || ropeScalingConfig.beta_slow != null
-    || ropeScalingConfig.original_max_position_embeddings != null;
+    || ropeScalingConfig.original_max_position_embeddings != null
+    || ropeScalingConfig.short_factor != null
+    || ropeScalingConfig.long_factor != null;
 }
 
 function hasMeaningfulScalingConfig(resolvedScaling) {
@@ -149,7 +186,10 @@ function hasMeaningfulScalingConfig(resolvedScaling) {
     || resolvedScaling.ropeScalingFactor !== DEFAULT_MANIFEST_INFERENCE.rope.ropeScalingFactor
     || resolvedScaling.yarnBetaFast != null
     || resolvedScaling.yarnBetaSlow != null
-    || resolvedScaling.yarnOriginalMaxPos != null;
+    || resolvedScaling.yarnOriginalMaxPos != null
+    || resolvedScaling.longropeShortFactor != null
+    || resolvedScaling.longropeLongFactor != null
+    || resolvedScaling.longropeOriginalMaxPos != null;
 }
 
 function isSameScalingConfig(left, right) {
@@ -157,7 +197,10 @@ function isSameScalingConfig(left, right) {
     && left.ropeScalingFactor === right.ropeScalingFactor
     && left.yarnBetaFast === right.yarnBetaFast
     && left.yarnBetaSlow === right.yarnBetaSlow
-    && left.yarnOriginalMaxPos === right.yarnOriginalMaxPos;
+    && left.yarnOriginalMaxPos === right.yarnOriginalMaxPos
+    && JSON.stringify(left.longropeShortFactor ?? null) === JSON.stringify(right.longropeShortFactor ?? null)
+    && JSON.stringify(left.longropeLongFactor ?? null) === JSON.stringify(right.longropeLongFactor ?? null)
+    && left.longropeOriginalMaxPos === right.longropeOriginalMaxPos;
 }
 
 function failOnConflictingScaling(sourceLabel, canonicalScaling, candidateScaling) {
@@ -210,6 +253,9 @@ export function buildRoPEConfig(converterInference, config) {
     yarnBetaFast: configuredRoPE.yarnBetaFast ?? null,
     yarnBetaSlow: configuredRoPE.yarnBetaSlow ?? null,
     yarnOriginalMaxPos: configuredRoPE.yarnOriginalMaxPos ?? null,
+    longropeShortFactor: configuredRoPE.longropeShortFactor ?? null,
+    longropeLongFactor: configuredRoPE.longropeLongFactor ?? null,
+    longropeOriginalMaxPos: configuredRoPE.longropeOriginalMaxPos ?? null,
   };
 
   if (ropeScaling) {
@@ -253,6 +299,9 @@ export function buildRoPEConfig(converterInference, config) {
         yarnBetaFast: configuredRoPE.ropeLocalYarnBetaFast ?? globalScaling.yarnBetaFast,
         yarnBetaSlow: configuredRoPE.ropeLocalYarnBetaSlow ?? globalScaling.yarnBetaSlow,
         yarnOriginalMaxPos: configuredRoPE.ropeLocalYarnOriginalMaxPos ?? globalScaling.yarnOriginalMaxPos,
+        longropeShortFactor: globalScaling.longropeShortFactor,
+        longropeLongFactor: globalScaling.longropeLongFactor,
+        longropeOriginalMaxPos: globalScaling.longropeOriginalMaxPos,
       }
     : { ...globalScaling };
   if (ropeScaling) {
@@ -323,6 +372,9 @@ export function buildRoPEConfig(converterInference, config) {
     yarnBetaFast: globalScaling.yarnBetaFast,
     yarnBetaSlow: globalScaling.yarnBetaSlow,
     yarnOriginalMaxPos: globalScaling.yarnOriginalMaxPos,
+    longropeShortFactor: globalScaling.longropeShortFactor,
+    longropeLongFactor: globalScaling.longropeLongFactor,
+    longropeOriginalMaxPos: globalScaling.longropeOriginalMaxPos,
     ropeLocalScalingType: localScaling.ropeScalingType,
     ropeLocalScalingFactor: localScaling.ropeScalingFactor,
     ropeLocalYarnBetaFast: localScaling.yarnBetaFast,

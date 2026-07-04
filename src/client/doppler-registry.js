@@ -4,6 +4,12 @@ import { loadJson } from '../utils/load-json.js';
 
 let registryPromise = null;
 
+function cloneOptionalObject(value) {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? JSON.parse(JSON.stringify(value))
+    : null;
+}
+
 function normalizeEntry(entry) {
   if (!entry || typeof entry !== 'object') {
     return null;
@@ -17,6 +23,8 @@ function normalizeEntry(entry) {
   const manifestVariantId = typeof entry.manifestVariantId === 'string' ? entry.manifestVariantId.trim() : '';
   const artifactCompleteness = typeof entry.artifactCompleteness === 'string' ? entry.artifactCompleteness.trim() : '';
   const runtimePromotionState = typeof entry.runtimePromotionState === 'string' ? entry.runtimePromotionState.trim() : '';
+  const vendorBenchmark = cloneOptionalObject(entry.vendorBenchmark);
+  const benchmarkEvidence = cloneOptionalObject(entry.benchmarkEvidence);
   if (
     !sourceCheckpointId
     || !weightPackId
@@ -50,6 +58,8 @@ function normalizeEntry(entry) {
         path: typeof entry.hf.path === 'string' ? entry.hf.path.trim() : '',
       }
       : null,
+    ...(vendorBenchmark ? { vendorBenchmark } : {}),
+    ...(benchmarkEvidence ? { benchmarkEvidence } : {}),
   };
 }
 
@@ -81,6 +91,8 @@ export async function listQuickstartModels() {
     weightsRefAllowed: entry.weightsRefAllowed,
     aliases: [...entry.aliases],
     modes: [...entry.modes],
+    ...(entry.vendorBenchmark ? { vendorBenchmark: cloneOptionalObject(entry.vendorBenchmark) } : {}),
+    ...(entry.benchmarkEvidence ? { benchmarkEvidence: cloneOptionalObject(entry.benchmarkEvidence) } : {}),
   }));
 }
 

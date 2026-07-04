@@ -1,0 +1,686 @@
+{
+  "suite": "rerank",
+  "passed": 2,
+  "failed": 0,
+  "skipped": 0,
+  "duration": 19375.734248,
+  "results": [
+    {
+      "name": "rerank",
+      "passed": true,
+      "duration": 4196.296208
+    },
+    {
+      "name": "rerank-semantic",
+      "passed": true,
+      "duration": 13138.311115999999
+    }
+  ],
+  "modelId": "qwen-3-reranker-0-6b-f16-af32",
+  "cacheMode": "warm",
+  "loadMode": "http",
+  "env": {
+    "library": "doppler",
+    "runtime": "browser",
+    "device": "webgpu",
+    "browserUserAgent": "Node.js/22",
+    "browserPlatform": "Linux x86_64",
+    "browserLanguage": "en-US",
+    "browserVendor": null
+  },
+  "timing": {
+    "modelLoadMs": 1977.03,
+    "firstTokenMs": null,
+    "firstResponseMs": 1977.03,
+    "prefillMs": 0,
+    "decodeMs": 0,
+    "decodeMsPerTokenP50": null,
+    "decodeMsPerTokenP95": null,
+    "decodeMsPerTokenP99": null,
+    "decodeTokensPerSec": null,
+    "prefillTokensPerSec": null,
+    "totalRunMs": 0,
+    "cacheMode": "warm",
+    "loadMode": "http"
+  },
+  "timingDiagnostics": {
+    "schemaVersion": 1,
+    "source": "doppler",
+    "semantics": {
+      "modelLoadMs": "model initialization/load before generation",
+      "firstTokenMs": "ttft from generation start",
+      "firstResponseMs": "modelLoadMs + firstTokenMs",
+      "prefillMs": "internal_prefill_phase",
+      "decodeMs": "time after first token",
+      "totalRunMs": "prefillMs + decodeMs"
+    },
+    "componentsMs": {
+      "modelLoadMs": 1977.03,
+      "firstTokenMs": null,
+      "firstResponseMs": 1977.03,
+      "prefillMs": 0,
+      "decodeMs": 0,
+      "totalRunMs": 0
+    },
+    "sumsMs": {
+      "firstResponseFromLoadAndFirstTokenMs": null,
+      "runFromPrefillAndDecodeMs": 0
+    },
+    "residualsMs": {
+      "firstResponseResidualMs": null,
+      "runResidualMs": 0
+    },
+    "consistent": {
+      "firstResponse": null,
+      "totalRun": true
+    },
+    "load": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "semantics": {
+        "modelLoadMs": "suite initialization time before generation",
+        "loaderTotalMs": "DopplerLoader.load() weight-loader wall time",
+        "pipelineTotalMs": "InferencePipeline.loadModel() wall time",
+        "modelLoadMinusPipelineMs": "modelLoadMs - pipeline.totalMs; harness, storage, manifest, GPU init, and pipeline construction",
+        "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
+        "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
+      },
+      "modelLoadMs": 1977.03,
+      "loader": {
+        "schemaVersion": 1,
+        "source": "doppler-loader",
+        "modelId": "qwen-3-reranker-0-6b-f16-af32",
+        "status": "complete",
+        "customShardLoader": true,
+        "byteAccountingMode": "custom-loader-progress-unavailable",
+        "totalBytes": 1191553024,
+        "totalShards": 18,
+        "bytesLoaded": 0,
+        "shardsLoaded": 0,
+        "bytesPerSecond": 0,
+        "phasesMs": {
+          "preflight": 3.58,
+          "tensorLocations": 3.03,
+          "embeddings": 236.33,
+          "layers": 765.85,
+          "finalWeights": 4.29,
+          "cleanup": 0.12
+        },
+        "layers": {
+          "count": 28,
+          "totalMs": 742.32,
+          "meanMs": 26.51,
+          "maxMs": 37.29,
+          "maxLayer": 23
+        },
+        "totalMs": 1014.55,
+        "failedPhase": null,
+        "error": null
+      },
+      "pipeline": {
+        "schemaVersion": 1,
+        "source": "doppler-pipeline",
+        "modelId": "qwen-3-reranker-0-6b-f16-af32",
+        "status": "complete",
+        "phasesMs": {
+          "reset": 0.25,
+          "configResolution": 11.9,
+          "kernelWarmup": 0.11,
+          "tokenizer": 654.3,
+          "executionSetup": 29.47,
+          "loadWeights": 1131.73,
+          "rope": 85.27,
+          "convStates": 0.49
+        },
+        "details": {
+          "tokenizer": {
+            "schemaVersion": 1,
+            "source": "doppler-tokenizer",
+            "modelId": "qwen-3-reranker-0-6b-f16-af32",
+            "status": "complete",
+            "tokenizerType": "bundled",
+            "tokenizerFile": "tokenizer.json",
+            "backend": "bundled",
+            "assetSource": "custom-loader",
+            "cacheHit": false,
+            "phasesMs": {
+              "configResolution": 0.09,
+              "cacheLookup": 0.14,
+              "backendCreate": 0.17,
+              "assetLoad": 293.62,
+              "assetParse": 0.27,
+              "backendLoad": 358.83,
+              "cacheStore": 0.03
+            },
+            "totalMs": 653.66,
+            "error": null
+          }
+        },
+        "totalMs": 1914.03
+      },
+      "residualsMs": {
+        "modelLoadMinusLoaderMs": 962.48,
+        "modelLoadMinusPipelineMs": 63,
+        "pipelineMinusLoaderMs": 899.48
+      },
+      "consistent": {
+        "loaderWithinModelLoad": true,
+        "pipelineWithinModelLoad": true,
+        "loaderWithinPipeline": true
+      }
+    }
+  },
+  "firstLoad": {
+    "schemaVersion": 1,
+    "semantics": {
+      "browserLaunchMs": "node launch request -> browser/context ready",
+      "pageReadyMs": "runner navigation + startup",
+      "cachePrimeMs": "untimed warm-opfs prefetch/load pass",
+      "modelLoadMs": "model initialization/load before generation",
+      "firstTokenMs": "ttft from generation start",
+      "firstResponseMs": "modelLoadMs + firstTokenMs",
+      "harnessWarmStartToFirstResponseMs": "pageReadyMs + cachePrimeMs + firstResponseMs",
+      "endToEndFirstResponseMs": "browserLaunchMs + pageReadyMs + cachePrimeMs + firstResponseMs"
+    },
+    "componentsMs": {
+      "browserLaunchMs": null,
+      "pageReadyMs": null,
+      "cachePrimeMs": null,
+      "modelLoadMs": 1977.03,
+      "firstTokenMs": null,
+      "firstResponseMs": 1977.03
+    },
+    "sumsMs": {
+      "firstResponseFromLoadAndFirstTokenMs": null,
+      "harnessWarmStartToFirstResponseMs": null,
+      "endToEndFirstResponseMs": null
+    },
+    "residualsMs": {
+      "firstResponseResidualMs": null
+    },
+    "consistent": {
+      "firstResponse": null
+    }
+  },
+  "output": {
+    "mode": "rerank",
+    "query": "What API exposes GPU hardware for browser compute workloads?",
+    "documentCount": 3,
+    "topDocument": {
+      "index": 0,
+      "document": "WebGPU provides low-level access to graphics processors for compute workloads.",
+      "score": 0.7892723083496094,
+      "probability": 0.6876750597219301
+    },
+    "ranking": [
+      {
+        "rank": 1,
+        "index": 0,
+        "document": "WebGPU provides low-level access to graphics processors for compute workloads.",
+        "score": 0.789272,
+        "probability": 0.687675,
+        "trueLogit": 5.080065,
+        "falseLogit": 4.290792,
+        "tokenCount": 96
+      },
+      {
+        "rank": 2,
+        "index": 2,
+        "document": "CSS grid arranges page layout rows and columns.",
+        "score": 0.45651,
+        "probability": 0.612186,
+        "trueLogit": 1.995818,
+        "falseLogit": 1.539308,
+        "tokenCount": 92
+      },
+      {
+        "rank": 3,
+        "index": 1,
+        "document": "WebSocket provides full-duplex communication over TCP.",
+        "score": -0.653939,
+        "probability": 0.342103,
+        "trueLogit": 1.851059,
+        "falseLogit": 2.504998,
+        "tokenCount": 92
+      }
+    ],
+    "semantic": {
+      "passed": true,
+      "pairAcc": 1,
+      "failedCaseIds": [],
+      "details": {
+        "pairs": [
+          {
+            "id": "china_capital",
+            "query": "What is the capital of China?",
+            "positive": "The capital of China is Beijing.",
+            "negative": "Gravity is a force that attracts two bodies towards each other.",
+            "passed": true,
+            "positiveScore": 1.268018,
+            "negativeScore": -0.641017,
+            "positiveProbability": 0.780403,
+            "negativeProbability": 0.345017,
+            "margin": 1.909036
+          },
+          {
+            "id": "password_reset",
+            "query": "How do I reset my account password?",
+            "positive": "To reset your password, open account settings and choose the forgot-password flow.",
+            "negative": "The recipe combines tomatoes, basil, and olive oil.",
+            "passed": true,
+            "positiveScore": 0.128421,
+            "negativeScore": -1.490032,
+            "positiveProbability": 0.532061,
+            "negativeProbability": 0.183917,
+            "margin": 1.618453
+          },
+          {
+            "id": "python_sort",
+            "query": "How do I sort a list in Python?",
+            "positive": "Use sorted() or list.sort() to sort a list in Python.",
+            "negative": "The cafe serves coffee and pastries.",
+            "passed": true,
+            "positiveScore": 0.302988,
+            "negativeScore": -1.213464,
+            "positiveProbability": 0.575173,
+            "negativeProbability": 0.229089,
+            "margin": 1.516452
+          },
+          {
+            "id": "webgpu_compute",
+            "query": "What API exposes GPU hardware for browser compute workloads?",
+            "positive": "WebGPU provides low-level access to graphics processors for compute workloads.",
+            "negative": "WebSocket provides full-duplex communication over TCP.",
+            "passed": true,
+            "positiveScore": 0.789272,
+            "negativeScore": -0.653939,
+            "positiveProbability": 0.687675,
+            "negativeProbability": 0.342103,
+            "margin": 1.443211
+          },
+          {
+            "id": "vaccines",
+            "query": "How do vaccines work?",
+            "positive": "Vaccines train the immune system to recognize future infections.",
+            "negative": "The symphony orchestra has strings, woodwinds, brass, and percussion.",
+            "passed": true,
+            "positiveScore": -0.010561,
+            "negativeScore": -0.401054,
+            "positiveProbability": 0.49736,
+            "negativeProbability": 0.401059,
+            "margin": 0.390494
+          }
+        ]
+      }
+    }
+  },
+  "metrics": {
+    "query": "What API exposes GPU hardware for browser compute workloads?",
+    "documentCount": 3,
+    "topDocumentIndex": 0,
+    "topDocumentScore": 0.789272,
+    "topDocumentProbability": 0.687675,
+    "rerankMs": 4196.3,
+    "rerankRanking": [
+      {
+        "rank": 1,
+        "index": 0,
+        "document": "WebGPU provides low-level access to graphics processors for compute workloads.",
+        "score": 0.789272,
+        "probability": 0.687675,
+        "trueLogit": 5.080065,
+        "falseLogit": 4.290792,
+        "tokenCount": 96
+      },
+      {
+        "rank": 2,
+        "index": 2,
+        "document": "CSS grid arranges page layout rows and columns.",
+        "score": 0.45651,
+        "probability": 0.612186,
+        "trueLogit": 1.995818,
+        "falseLogit": 1.539308,
+        "tokenCount": 92
+      },
+      {
+        "rank": 3,
+        "index": 1,
+        "document": "WebSocket provides full-duplex communication over TCP.",
+        "score": -0.653939,
+        "probability": 0.342103,
+        "trueLogit": 1.851059,
+        "falseLogit": 2.504998,
+        "tokenCount": 92
+      }
+    ],
+    "semanticPassed": true,
+    "semanticDurationMs": 13138.31,
+    "semanticPairAcc": 1,
+    "semanticPairPassed": 5,
+    "semanticPairTotal": 5,
+    "semanticMinPairAcc": 0.8,
+    "semanticMinScoreMargin": 0,
+    "semanticFailedCases": [],
+    "semanticDetails": {
+      "pairs": [
+        {
+          "id": "china_capital",
+          "query": "What is the capital of China?",
+          "positive": "The capital of China is Beijing.",
+          "negative": "Gravity is a force that attracts two bodies towards each other.",
+          "passed": true,
+          "positiveScore": 1.268018,
+          "negativeScore": -0.641017,
+          "positiveProbability": 0.780403,
+          "negativeProbability": 0.345017,
+          "margin": 1.909036
+        },
+        {
+          "id": "password_reset",
+          "query": "How do I reset my account password?",
+          "positive": "To reset your password, open account settings and choose the forgot-password flow.",
+          "negative": "The recipe combines tomatoes, basil, and olive oil.",
+          "passed": true,
+          "positiveScore": 0.128421,
+          "negativeScore": -1.490032,
+          "positiveProbability": 0.532061,
+          "negativeProbability": 0.183917,
+          "margin": 1.618453
+        },
+        {
+          "id": "python_sort",
+          "query": "How do I sort a list in Python?",
+          "positive": "Use sorted() or list.sort() to sort a list in Python.",
+          "negative": "The cafe serves coffee and pastries.",
+          "passed": true,
+          "positiveScore": 0.302988,
+          "negativeScore": -1.213464,
+          "positiveProbability": 0.575173,
+          "negativeProbability": 0.229089,
+          "margin": 1.516452
+        },
+        {
+          "id": "webgpu_compute",
+          "query": "What API exposes GPU hardware for browser compute workloads?",
+          "positive": "WebGPU provides low-level access to graphics processors for compute workloads.",
+          "negative": "WebSocket provides full-duplex communication over TCP.",
+          "passed": true,
+          "positiveScore": 0.789272,
+          "negativeScore": -0.653939,
+          "positiveProbability": 0.687675,
+          "negativeProbability": 0.342103,
+          "margin": 1.443211
+        },
+        {
+          "id": "vaccines",
+          "query": "How do vaccines work?",
+          "positive": "Vaccines train the immune system to recognize future infections.",
+          "negative": "The symphony orchestra has strings, woodwinds, brass, and percussion.",
+          "passed": true,
+          "positiveScore": -0.010561,
+          "negativeScore": -0.401054,
+          "positiveProbability": 0.49736,
+          "negativeProbability": 0.401059,
+          "margin": 0.390494
+        }
+      ]
+    },
+    "modelLoadMs": 1977.03,
+    "endToEndMs": 6173.33,
+    "load": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "semantics": {
+        "modelLoadMs": "suite initialization time before generation",
+        "loaderTotalMs": "DopplerLoader.load() weight-loader wall time",
+        "pipelineTotalMs": "InferencePipeline.loadModel() wall time",
+        "modelLoadMinusPipelineMs": "modelLoadMs - pipeline.totalMs; harness, storage, manifest, GPU init, and pipeline construction",
+        "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
+        "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
+      },
+      "modelLoadMs": 1977.03,
+      "loader": {
+        "schemaVersion": 1,
+        "source": "doppler-loader",
+        "modelId": "qwen-3-reranker-0-6b-f16-af32",
+        "status": "complete",
+        "customShardLoader": true,
+        "byteAccountingMode": "custom-loader-progress-unavailable",
+        "totalBytes": 1191553024,
+        "totalShards": 18,
+        "bytesLoaded": 0,
+        "shardsLoaded": 0,
+        "bytesPerSecond": 0,
+        "phasesMs": {
+          "preflight": 3.58,
+          "tensorLocations": 3.03,
+          "embeddings": 236.33,
+          "layers": 765.85,
+          "finalWeights": 4.29,
+          "cleanup": 0.12
+        },
+        "layers": {
+          "count": 28,
+          "totalMs": 742.32,
+          "meanMs": 26.51,
+          "maxMs": 37.29,
+          "maxLayer": 23
+        },
+        "totalMs": 1014.55,
+        "failedPhase": null,
+        "error": null
+      },
+      "pipeline": {
+        "schemaVersion": 1,
+        "source": "doppler-pipeline",
+        "modelId": "qwen-3-reranker-0-6b-f16-af32",
+        "status": "complete",
+        "phasesMs": {
+          "reset": 0.25,
+          "configResolution": 11.9,
+          "kernelWarmup": 0.11,
+          "tokenizer": 654.3,
+          "executionSetup": 29.47,
+          "loadWeights": 1131.73,
+          "rope": 85.27,
+          "convStates": 0.49
+        },
+        "details": {
+          "tokenizer": {
+            "schemaVersion": 1,
+            "source": "doppler-tokenizer",
+            "modelId": "qwen-3-reranker-0-6b-f16-af32",
+            "status": "complete",
+            "tokenizerType": "bundled",
+            "tokenizerFile": "tokenizer.json",
+            "backend": "bundled",
+            "assetSource": "custom-loader",
+            "cacheHit": false,
+            "phasesMs": {
+              "configResolution": 0.09,
+              "cacheLookup": 0.14,
+              "backendCreate": 0.17,
+              "assetLoad": 293.62,
+              "assetParse": 0.27,
+              "backendLoad": 358.83,
+              "cacheStore": 0.03
+            },
+            "totalMs": 653.66,
+            "error": null
+          }
+        },
+        "totalMs": 1914.03
+      },
+      "residualsMs": {
+        "modelLoadMinusLoaderMs": 962.48,
+        "modelLoadMinusPipelineMs": 63,
+        "pipelineMinusLoaderMs": 899.48
+      },
+      "consistent": {
+        "loaderWithinModelLoad": true,
+        "pipelineWithinModelLoad": true,
+        "loaderWithinPipeline": true
+      }
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "rerank",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-reranker-0-6b-f16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "qwen-3-reranker-0-6b-f16-af32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 4,
+        "headDim": 128,
+        "kvLen": 8192,
+        "coldQuantMode": "none",
+        "contiguousQuantMode": "none"
+      },
+      "steps": {
+        "total": 35,
+        "attention": 2,
+        "attentionPhases": {
+          "prefill": 1,
+          "decode": 1,
+          "both": 0
+        }
+      }
+    },
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "qwen-3-reranker-0-6b-f16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-reranker-0-6b-f16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 51,
+        "nullableCases": 27,
+        "nonNullableCases": 24
+      }
+    }
+  },
+  "memoryStats": {
+    "used": 1743852544,
+    "pool": {
+      "allocations": 3728,
+      "reuses": 2967,
+      "totalBytesAllocated": 3304133632,
+      "peakBytesAllocated": 1302664192,
+      "currentBytesAllocated": 1274090496,
+      "totalBytesRequested": 3236347904,
+      "peakBytesRequested": 1262070272,
+      "currentBytesRequested": 1212524544,
+      "activeBuffers": 312,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "44.3%"
+    },
+    "kvCache": {
+      "theoretical": 469762048,
+      "allocated": 469762048,
+      "used": 10551296,
+      "efficiency": 0.0224609375,
+      "seqLen": 92,
+      "maxSeqLen": 4096,
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 0,
+        "recordedGpuUpdateCalls": 364,
+        "tokensWritten": 33264
+      }
+    }
+  },
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": true,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "radeon-8060s-graphics-radv-strix-halo-",
+      "description": "radv: Mesa 26.0.3-1ubuntu1"
+    },
+    "submitProbeMs": 0.9967900000000327
+  },
+  "pipeline": null,
+  "mode": "verify",
+  "workload": "rerank",
+  "debugSnapshot": null,
+  "reportInfo": {
+    "backend": "node-fs",
+    "path": "reports/qwen-3-reranker-0-6b-f16-af32/2026-07-04T00-31-19.844Z.json"
+  }
+}

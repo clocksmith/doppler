@@ -4,6 +4,17 @@ import { readBuffer } from '../../../../memory/buffer-pool.js';
 import { runProbes } from '../probes.js';
 import { applySoftcapping } from './cpu.js';
 
+export function resolveLogitInputScale(config) {
+  const value = config?.logitInputScale;
+  if (value == null) {
+    throw new Error('[Logits] logitInputScale is required.');
+  }
+  const scale = Number(value);
+  if (!Number.isFinite(scale) || scale <= 0) {
+    throw new Error(`[Logits] logitInputScale must be a positive finite number; got "${String(value)}".`);
+  }
+  return scale;
+}
 
 export function extractLastPositionLogits(
   logits,

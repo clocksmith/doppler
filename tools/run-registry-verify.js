@@ -148,6 +148,10 @@ function parseJsonPayload(stdout) {
   }
 }
 
+function cloneJson(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
 function extractContractGateStatus(payload) {
   const result = payload?.result;
   const executionContractArtifact = result?.metrics?.executionContractArtifact ?? null;
@@ -159,9 +163,16 @@ function extractContractGateStatus(payload) {
 }
 
 export function resolveRegistryVerifyWorkload(entry) {
+  const explicitWorkload = normalizeToken(entry?.verify?.workload);
+  if (explicitWorkload) {
+    return explicitWorkload;
+  }
   const modes = Array.isArray(entry?.modes)
     ? entry.modes.map((mode) => normalizeToken(mode)).filter(Boolean)
     : [];
+  if (modes.includes('rerank')) {
+    return 'rerank';
+  }
   if (modes.includes('embedding')) {
     return 'embedding';
   }
@@ -169,20 +180,40 @@ export function resolveRegistryVerifyWorkload(entry) {
 }
 
 export function resolveRegistryVerifyRuntimeProfile(entry) {
-  if (resolveRegistryVerifyWorkload(entry) === 'embedding') {
-    return 'profiles/vector-stability';
+  const verifyProfile = typeof entry?.verify?.runtimeProfile === 'string'
+    ? entry.verify.runtimeProfile.trim()
+    : '';
+  if (verifyProfile) return verifyProfile;
+  const legacyProfile = typeof entry?.verifyRuntimeProfile === 'string'
+    ? entry.verifyRuntimeProfile.trim()
+    : '';
+  return legacyProfile || null;
+}
+
+export function resolveRegistryVerifyRuntimeConfig(entry) {
+  const runtimeConfig = entry?.verify?.runtimeConfig;
+  if (runtimeConfig === undefined) return null;
+  if (!isPlainObject(runtimeConfig)) {
+    throw new Error(`${entry?.modelId || 'unknown'}: verify.runtimeConfig must be an object when present.`);
   }
-  return 'profiles/verbose-trace';
+  return cloneJson(runtimeConfig);
 }
 
 export function buildRegistryVerifyRequest(entry) {
+  const workload = resolveRegistryVerifyWorkload(entry);
+  const runtimeProfile = resolveRegistryVerifyRuntimeProfile(entry);
+  const runtimeConfig = resolveRegistryVerifyRuntimeConfig(entry);
+  if (workload === 'rerank' && !isPlainObject(runtimeConfig?.inference?.rerank)) {
+    throw new Error(`${entry?.modelId || 'unknown'}: rerank registry verify requires verify.runtimeConfig.inference.rerank.`);
+  }
   return {
-    workload: resolveRegistryVerifyWorkload(entry),
+    workload,
     modelId: entry.modelId,
     modelUrl: resolveModelUrl(entry),
     loadMode: 'http',
     cacheMode: 'warm',
-    runtimeProfile: resolveRegistryVerifyRuntimeProfile(entry),
+    ...(runtimeProfile ? { runtimeProfile } : {}),
+    ...(runtimeConfig ? { runtimeConfig } : {}),
   };
 }
 

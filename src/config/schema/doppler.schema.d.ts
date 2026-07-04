@@ -30,6 +30,10 @@ export interface LargeWeightConfigSchema {
 
 export interface RuntimeInferenceConfigSchema {
   prompt?: string | null;
+  rerank?: {
+    query?: string | null;
+    documents?: string[] | null;
+  } | null;
   debugTokens?: boolean;
   batching: Record<string, unknown>;
   sampling: Record<string, unknown>;

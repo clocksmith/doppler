@@ -19,8 +19,8 @@ export interface RuntimeConfigLoadOptions {
 }
 
 export type BrowserHarnessMode = 'verify' | 'debug' | 'bench';
-export type BrowserWorkload = 'kernels' | 'inference' | 'embedding' | 'training' | 'diffusion' | 'energy';
-export type BrowserSuite = 'kernels' | 'inference' | 'embedding' | 'training' | 'bench' | 'debug' | 'diffusion' | 'energy';
+export type BrowserWorkload = 'kernels' | 'inference' | 'embedding' | 'rerank' | 'training' | 'diffusion' | 'energy';
+export type BrowserSuite = 'kernels' | 'inference' | 'embedding' | 'rerank' | 'training' | 'bench' | 'debug' | 'diffusion' | 'energy';
 
 export interface SuiteTestResult {
   name: string;
@@ -64,7 +64,7 @@ export interface BrowserSuiteOptions extends InferenceHarnessOptions {
   suite?: BrowserSuite;
   command?: string;
   surface?: string;
-  expectedModelType?: 'embedding';
+  expectedModelType?: 'embedding' | 'rerank';
   modelUrl?: string;
   modelId?: string;
   workloadType?: string;

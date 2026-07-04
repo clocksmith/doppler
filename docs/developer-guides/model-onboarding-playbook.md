@@ -169,6 +169,35 @@ Additional Gemma 3 / Qwen retros that matter:
 
 Only touch catalog/publication state after correctness is proven.
 
+## Consumer Priority Intake
+
+Consumer priority packets are demand signals, not support metadata. They can
+name workloads and candidates, but they must not duplicate lifecycle state,
+hosted coordinates, benchmark status, artifact sizes, or verification claims
+from `models/catalog.json`, `docs/model-support-inventory.md`, or
+`docs/model-support-matrix.md`.
+
+Use these packets to choose onboarding order:
+
+- retrieval-heavy consumers such as Simulatte and Reploid can prioritize
+  embedding first, reranking second, and small structured extraction after the
+  retrieval path is evidence-backed
+- browser-local execution consumers such as Poolday and P2P inference can
+  prioritize a small whole-model generation target before model partitioning
+- MoE work starts as storage/runtime capability design, not as a support claim
+
+When a candidate belongs to an unrepresented family, keep it in the research
+packet until the family has a checked-in conversion config. Do not add a catalog
+row just because several consumers want the model.
+
+For MoE storage research, the first clean target is expert paging:
+
+- content-address expert shards against the canonical artifact identity
+- record router-selected expert IDs and expert shard hashes in receipts
+- keep hot expert cache policy in config, not inline runtime heuristics
+- defer remote expert serving until whole-model replicated P2P inference has
+  deterministic receipts
+
 ## Recommended Order
 
 1. Decide the support target before writing code.

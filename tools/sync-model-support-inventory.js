@@ -428,10 +428,11 @@ function buildCompareCommands(modelId, benchmarkCommands) {
   return commands;
 }
 
-function buildActions(modelId, compareProfile, benchmarkComparable, supportRollout) {
+function buildActions(modelId, compareProfile, benchmarkComparable, supportRollout, options = {}) {
+  const bootstrapFlag = options.hfPublished === false ? ' --bootstrap' : '';
   return {
     verifyCommand: `node tools/run-registry-verify.js ${modelId} --surface auto`,
-    hfDryRunCommand: `node tools/publish-hf-registry-model.js --model-id ${modelId} --dry-run`,
+    hfDryRunCommand: `node tools/publish-hf-registry-model.js --model-id ${modelId} --dry-run${bootstrapFlag}`,
     compareCommands: compareProfile && benchmarkComparable
       ? buildCompareCommands(modelId, supportRollout.benchmarkCommands)
       : [],
@@ -510,7 +511,7 @@ async function buildVariant(model, context) {
   if (evidence.summarySvg && !evidence.summarySvgExists) missing.push('summary-svg-missing-on-disk');
 
   const nextGate = missing[0] || (benchmarkEvidenceOk ? 'preferred-architecture' : 'benchmark-receipts');
-  const actions = buildActions(modelId, compareProfile, benchmarkComparable, context.supportRollout);
+  const actions = buildActions(modelId, compareProfile, benchmarkComparable, context.supportRollout, { hfPublished });
   actions.primaryNextCommand = resolvePrimaryNextCommand(nextGate, actions);
   return {
     modelId,
@@ -531,6 +532,7 @@ async function buildVariant(model, context) {
       runtime: normalizeText(model?.lifecycle?.status?.runtime) || null,
       conversion: normalizeText(model?.lifecycle?.status?.conversion) || null,
       tested: tested || null,
+      result: normalizeText(model?.lifecycle?.tested?.result) || null,
       lastVerifiedAt: normalizeText(model?.lifecycle?.tested?.lastVerifiedAt) || null,
       surfaces: Array.isArray(model?.lifecycle?.tested?.surface)
         ? model.lifecycle.tested.surface.map(normalizeText).filter(Boolean)
@@ -595,6 +597,18 @@ function choosePreferredArchitecture(variants, supportRollout) {
       },
     };
   }
+  if (variants.some((variant) => variant.lifecycle.tested === 'failed')) {
+    return {
+      status: 'verification-failed',
+      modelId: null,
+      architecture: null,
+      evidence: {
+        runtimeReport: null,
+        compareResult: null,
+        summarySvg: null,
+      },
+    };
+  }
   return {
     status: supportRollout.preferredArchitecture.unselectedStatus,
     modelId: null,
@@ -629,6 +643,9 @@ function summarizeSourceStatus(variants, preferred) {
   if (variants.some((variant) => variant.lifecycle.tested === 'verified')) {
     return 'benchmark-comparison-needed';
   }
+  if (variants.some((variant) => variant.lifecycle.tested === 'failed')) {
+    return 'verification-failed';
+  }
   if (variants.some((variant) => variant.conversionConfig)) {
     return 'runtime-verification-needed';
   }
@@ -649,6 +666,9 @@ function sourceNextAction(sourceModel) {
     return `Refresh manifest and weight identity for ${smallest.modelId}.`;
   }
   if (smallest.missing.includes('runtime-verify')) {
+    if (smallest.lifecycle.tested === 'failed' || smallest.lifecycle.result === 'fail') {
+      return `Fix failed runtime verification for ${smallest.modelId}; keep it unpromoted until a passing receipt exists.`;
+    }
     return `Run deterministic runtime verification for ${smallest.modelId}.`;
   }
   if (smallest.missing.includes('hf-publish')) {
@@ -813,6 +833,9 @@ function renderPreferred(preferred) {
   if (preferred.modelId) {
     return `${preferred.modelId} candidate; benchmark comparison pending`;
   }
+  if (preferred.status === 'verification-failed') {
+    return 'failed verification';
+  }
   return 'pending verification';
 }
 
@@ -908,7 +931,11 @@ function renderMarkdown(inventory) {
           variant.family,
           variant.sizeLabel,
           variant.architecture.label,
-          variant.lifecycle.tested === 'verified' ? `${variant.lifecycle.lastVerifiedAt || 'verified'} (${variant.lifecycle.surfaces.join('+') || 'surface-unlisted'})` : 'missing',
+          variant.lifecycle.tested === 'verified'
+            ? `${variant.lifecycle.lastVerifiedAt || 'verified'} (${variant.lifecycle.surfaces.join('+') || 'surface-unlisted'})`
+            : (variant.lifecycle.tested === 'failed'
+              ? `${variant.lifecycle.lastVerifiedAt || 'failed'} failed`
+              : 'missing'),
           variant.hf.published ? `${variant.hf.repoId}@${variant.hf.revision}` : 'missing',
           variant.compare.profile ? `${variant.compare.profile.lane || 'unknown'} / ${variant.compare.profile.tjsModelId || 'no TJS mapping'}` : 'missing',
           variant.compare.benchmarkEvidenceOk ? `${variant.evidence.compareResult}<br>${variant.evidence.summarySvg}` : 'missing',

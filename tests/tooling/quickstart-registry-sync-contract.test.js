@@ -20,6 +20,19 @@ function quickstartModel(overrides = {}) {
     artifactCompleteness: 'complete',
     runtimePromotionState: 'manifest-owned',
     weightsRefAllowed: false,
+    vendorBenchmark: {
+      transformersjs: {
+        repoId: 'onnx-community/verified-text-model-ONNX',
+        dtype: 'q4f16',
+      },
+    },
+    benchmarkEvidence: {
+      status: 'benchmark-selected',
+      localClaimLaneId: 'verified-text-model-rdrr',
+      runtimeReport: 'reports/release-claims/verified-text-model/report.json',
+      compareResult: 'benchmarks/vendors/results/compare_unit.json',
+      summarySvg: 'benchmarks/vendors/results/verified-text-model.svg',
+    },
     lifecycle: {
       availability: {
         hf: true,
@@ -44,6 +57,19 @@ function quickstartModel(overrides = {}) {
   assert.equal(payload.models.length, 1);
   assert.equal(payload.models[0].modelId, 'verified-text-model');
   assert.equal(payload.models[0].artifactCompleteness, 'complete');
+  assert.deepEqual(payload.models[0].vendorBenchmark, {
+    transformersjs: {
+      repoId: 'onnx-community/verified-text-model-ONNX',
+      dtype: 'q4f16',
+    },
+  });
+  assert.deepEqual(payload.models[0].benchmarkEvidence, {
+    status: 'benchmark-selected',
+    localClaimLaneId: 'verified-text-model-rdrr',
+    runtimeReport: 'reports/release-claims/verified-text-model/report.json',
+    compareResult: 'benchmarks/vendors/results/compare_unit.json',
+    summarySvg: 'benchmarks/vendors/results/verified-text-model.svg',
+  });
 }
 
 assert.throws(

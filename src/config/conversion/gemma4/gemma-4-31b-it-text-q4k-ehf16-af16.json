@@ -117,7 +117,10 @@
       "yarnOriginalMaxPos": null,
       "ropeLocalYarnBetaFast": null,
       "ropeLocalYarnBetaSlow": null,
-      "ropeLocalYarnOriginalMaxPos": null
+      "ropeLocalYarnOriginalMaxPos": null,
+      "longropeShortFactor": null,
+      "longropeLongFactor": null,
+      "longropeOriginalMaxPos": null
     },
     "output": {
       "finalLogitSoftcapping": 30,
@@ -125,7 +128,9 @@
       "scaleEmbeddings": true,
       "embeddingTranspose": false,
       "embeddingVocabSize": 262144,
-      "embeddingPostprocessor": null
+      "embeddingPostprocessor": null,
+      "embeddingScale": null,
+      "logitInputScale": 1
     },
     "layerPattern": {
       "type": "custom",
@@ -193,7 +198,8 @@
         "sliding_attention",
         "sliding_attention",
         "full_attention"
-      ]
+      ],
+      "residualBranchScale": 1
     },
     "chatTemplate": {
       "type": "gemma4",

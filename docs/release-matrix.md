@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-06-29T22:30:28.231Z
-Release: channel=main-snapshot, version=0.4.3, commit=fc0e5d9470210ef35f5bec71160501fe9ce0eae1, dirty=yes
+Generated: 2026-07-04T00:47:41.651Z
+Release: channel=main-snapshot, version=0.4.6, commit=5a1a83578f3989f12c0cbc90b3ca0e3d34e6acd5, dirty=yes
 
 ## Engine Matrix
 
@@ -44,6 +44,8 @@ Release: channel=main-snapshot, version=0.4.3, commit=fc0e5d9470210ef35f5bec7116
 | `qwen-3-5-2b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-2B-ONNX` | browser | local | capability_only | Qwen 3.5 2B has no committed correctness-clean fixture for the claimable compare lane yet. |
 | `qwen-3-6-27b-q4k-eaf16` | yes | run, translate |  | auto |  |  |  |
 | `qwen-3-6-27b-q4k-ehaf16` | yes | run, translate |  | auto |  |  |  |
+| `qwen-3-embedding-0-6b-q4k-ehf16-af32` | yes | embedding |  | auto |  |  |  |
+| `qwen-3-reranker-0-6b-f16-af32` | yes | run, translate |  | auto |  |  |  |
 | `translategemma-4b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/translategemma-text-4b-it-ONNX` | auto | local | performance_comparable |  |
 
 ## Workloads

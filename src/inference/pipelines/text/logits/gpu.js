@@ -2,7 +2,7 @@
 
 import { getDevice, getKernelCapabilities } from '../../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../../../memory/buffer-pool.js';
-import { runMatmul, runRMSNorm } from '../../../../gpu/kernel-selector.js';
+import { runMatmul, runRMSNorm, runScale, recordScale } from '../../../../gpu/kernel-selector.js';
 import { recordMatmul } from '../../../../gpu/kernels/matmul.js';
 import { recordRMSNorm } from '../../../../gpu/kernels/rmsnorm.js';
 import { recordLmHeadArgmaxF16 } from '../../../../gpu/kernels/lm-head-argmax.js';
@@ -21,7 +21,7 @@ import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { runProbes } from '../probes.js';
 import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
 import { f16BufferToF32 } from './cpu.js';
-import { readBufferWithCleanup } from './utils.js';
+import { readBufferWithCleanup, resolveLogitInputScale } from './utils.js';
 import { f16ToF32 } from '../../../../loader/dtype-utils.js';
 import { shouldForceStableF32Logits, createStableF32LogitsKernelPath } from './precision-policy.js';
 
@@ -94,6 +94,26 @@ function writeBufferInChunks(queue, buffer, bytes) {
   for (let offset = 0; offset < bytes.byteLength; offset += SPLIT_UPLOAD_CHUNK_BYTES) {
     const end = Math.min(offset + SPLIT_UPLOAD_CHUNK_BYTES, bytes.byteLength);
     queue.writeBuffer(buffer, offset, bytes, offset, end - offset);
+  }
+}
+
+function resolveFinalNormGpuBuffer(finalNorm, queue, label) {
+  if (isWeightBuffer(finalNorm)) {
+    return { buffer: finalNorm.buffer, owned: false };
+  }
+  if (isGpuBufferInstance(finalNorm)) {
+    return { buffer: finalNorm, owned: false };
+  }
+  if (!ArrayBuffer.isView(finalNorm)) {
+    throw new Error('[Logits] final_norm must be a GPU buffer, typed array, or WeightBuffer.');
+  }
+  const buffer = acquireBuffer(finalNorm.byteLength, undefined, label);
+  try {
+    queue.writeBuffer(buffer, 0, finalNorm);
+    return { buffer, owned: true };
+  } catch (error) {
+    releaseBuffer(buffer);
+    throw error;
   }
 }
 
@@ -725,6 +745,8 @@ export async function computeLogitsGPU(
   let normInputOwned = false;
   let normedTensor;
   let finalNormTensor;
+  let logitInputTensor;
+  let logitInputOwned = false;
   let lmHeadInputTensor;
   let lmHeadInputOwned = false;
   let lmHeadBuffer;
@@ -740,13 +762,9 @@ export async function computeLogitsGPU(
     }
 
     // Apply final RMSNorm
-    if (isGpuBufferInstance(finalNorm)) {
-      normWeightBuffer = finalNorm;
-    } else {
-      normWeightBuffer = acquireBuffer( (finalNorm).byteLength, undefined, 'final_norm_w');
-      device.queue.writeBuffer(normWeightBuffer, 0,  (finalNorm));
-      normWeightBufferOwned = true;
-    }
+    const resolvedFinalNorm = resolveFinalNormGpuBuffer(finalNorm, device.queue, 'final_norm_w');
+    normWeightBuffer = resolvedFinalNorm.buffer;
+    normWeightBufferOwned = resolvedFinalNorm.owned;
 
     const inputDtype = isGpuBufferInstance(hiddenStates) ? activationDtype : 'f32';
     const inputTensor = createTensor(inputBuffer, inputDtype, [numTokens, hiddenSize], 'logits_input');
@@ -824,21 +842,29 @@ export async function computeLogitsGPU(
       releaseBuffer(normInputTensor.buffer);
       normInputOwned = false;
     }
+    const logitInputScale = resolveLogitInputScale(config);
+    logitInputTensor = finalNormTensor;
+    if (logitInputScale !== 1) {
+      logitInputTensor = await runScale(finalNormTensor, logitInputScale, {
+        count: numTokens * hiddenSize,
+      });
+      logitInputOwned = true;
+    }
     const lmHeadRole = resolveLmHeadMatmulRole(phase);
     const lmHeadInputDtype = forceStableF32Logits
-      ? finalNormTensor.dtype
-      : resolveMatmulStepDtype(lmHeadRole, phase, stableKernelPath, finalNormTensor.dtype, 'inputDtype');
+      ? logitInputTensor.dtype
+      : resolveMatmulStepDtype(lmHeadRole, phase, stableKernelPath, logitInputTensor.dtype, 'inputDtype');
     const lmHeadOutputDtype = forceStableF32Logits
-      ? finalNormTensor.dtype
-      : resolveMatmulStepDtype(lmHeadRole, phase, stableKernelPath, finalNormTensor.dtype, 'outputDtype');
-    lmHeadInputTensor = lmHeadInputDtype !== finalNormTensor.dtype
-      ? await coerceTensorDtype(finalNormTensor, lmHeadInputDtype, null, {
+      ? logitInputTensor.dtype
+      : resolveMatmulStepDtype(lmHeadRole, phase, stableKernelPath, logitInputTensor.dtype, 'outputDtype');
+    lmHeadInputTensor = lmHeadInputDtype !== logitInputTensor.dtype
+      ? await coerceTensorDtype(logitInputTensor, lmHeadInputDtype, null, {
         executionPolicies: config.executionPolicies ?? null,
         op: 'lm_head',
         transitionDeclaredBy: 'step_precision',
       })
-      : finalNormTensor;
-    lmHeadInputOwned = lmHeadInputTensor !== finalNormTensor;
+      : logitInputTensor;
+    lmHeadInputOwned = lmHeadInputTensor !== logitInputTensor;
 
     // Project to vocab via LM head
     if (isGpuBufferInstance(lmHead)) {
@@ -873,6 +899,7 @@ export async function computeLogitsGPU(
     // Cleanup intermediate buffers (but keep logitsBuffer)
     if (inputBufferOwned) { releaseBuffer(inputBuffer); inputBufferOwned = false; }
     if (lmHeadInputOwned) { releaseBuffer(lmHeadInputTensor.buffer); lmHeadInputOwned = false; }
+    if (logitInputOwned) { releaseBuffer(logitInputTensor.buffer); logitInputOwned = false; }
     if (finalNormTensor) {
       releaseBuffer(finalNormTensor.buffer);
       finalNormTensor = null;
@@ -886,6 +913,7 @@ export async function computeLogitsGPU(
     if (inputBufferOwned && inputBuffer) releaseBuffer(inputBuffer);
     if (normInputOwned && normInputTensor) releaseBuffer(normInputTensor.buffer);
     if (lmHeadInputOwned && lmHeadInputTensor) releaseBuffer(lmHeadInputTensor.buffer);
+    if (logitInputOwned && logitInputTensor) releaseBuffer(logitInputTensor.buffer);
     if (finalNormTensor) releaseBuffer(finalNormTensor.buffer);
     if (normedTensor) releaseBuffer(normedTensor.buffer);
     if (normWeightBufferOwned && normWeightBuffer) releaseBuffer(normWeightBuffer);
@@ -924,13 +952,9 @@ async function recordLogitsTailGPU(
   
   let normWeightBuffer;
   let normWeightOwned = false;
-  if (isGpuBufferInstance(finalNorm)) {
-    normWeightBuffer = finalNorm;
-  } else {
-    normWeightBuffer = acquireBuffer( (finalNorm).byteLength, undefined, 'final_norm_w');
-    recorder.device.queue.writeBuffer(normWeightBuffer, 0,  (finalNorm));
-    normWeightOwned = true;
-  }
+  const resolvedFinalNorm = resolveFinalNormGpuBuffer(finalNorm, recorder.device.queue, 'final_norm_w');
+  normWeightBuffer = resolvedFinalNorm.buffer;
+  normWeightOwned = resolvedFinalNorm.owned;
 
   
   const inputDtype = activationDtype;
@@ -1005,20 +1029,29 @@ async function recordLogitsTailGPU(
     operatorDiagnostics,
     dtype: finalNormTensor.dtype,
   });
+  const logitInputScale = resolveLogitInputScale(config);
+  let logitInputTensor = finalNormTensor;
+  let logitInputOwned = false;
+  if (logitInputScale !== 1) {
+    logitInputTensor = await recordScale(recorder, finalNormTensor, logitInputScale, {
+      count: numTokens * hiddenSize,
+    });
+    logitInputOwned = true;
+  }
   const lmHeadRole = resolveLmHeadMatmulRole(phase);
   const lmHeadInputDtype = forceStableF32Logits
-    ? finalNormTensor.dtype
-    : resolveMatmulStepDtype(lmHeadRole, phase, stableKernelPath, finalNormTensor.dtype, 'inputDtype');
+    ? logitInputTensor.dtype
+    : resolveMatmulStepDtype(lmHeadRole, phase, stableKernelPath, logitInputTensor.dtype, 'inputDtype');
   const lmHeadOutputDtype = forceStableF32Logits
-    ? finalNormTensor.dtype
-    : resolveMatmulStepDtype(lmHeadRole, phase, stableKernelPath, finalNormTensor.dtype, 'outputDtype');
-  const lmHeadInputTensor = lmHeadInputDtype !== finalNormTensor.dtype
-    ? await coerceTensorDtype(finalNormTensor, lmHeadInputDtype, recorder, {
+    ? logitInputTensor.dtype
+    : resolveMatmulStepDtype(lmHeadRole, phase, stableKernelPath, logitInputTensor.dtype, 'outputDtype');
+  const lmHeadInputTensor = lmHeadInputDtype !== logitInputTensor.dtype
+    ? await coerceTensorDtype(logitInputTensor, lmHeadInputDtype, recorder, {
       executionPolicies: config.executionPolicies ?? null,
       op: 'lm_head',
       transitionDeclaredBy: 'step_precision',
     })
-    : finalNormTensor;
+    : logitInputTensor;
 
   // Get LM head buffer
   
@@ -1044,6 +1077,8 @@ async function recordLogitsTailGPU(
     lmHeadOutputDtype,
     normedTensor,
     finalNormTensor,
+    logitInputTensor,
+    logitInputOwned,
     normInputTensor,
     normInputOwned,
     normWeightBuffer,
@@ -1067,7 +1102,10 @@ function trackRecordedLogitsTail(recorder, tail) {
     trackTempBufferOnce(tail.normedTensor.buffer);
   }
   trackTempBufferOnce(tail.finalNormTensor.buffer);
-  if (tail.lmHeadInputTensor !== tail.finalNormTensor) {
+  if (tail.logitInputOwned) {
+    trackTempBufferOnce(tail.logitInputTensor.buffer);
+  }
+  if (tail.lmHeadInputTensor !== tail.logitInputTensor) {
     trackTempBufferOnce(tail.lmHeadInputTensor.buffer);
   }
   if (tail.normWeightOwned) {

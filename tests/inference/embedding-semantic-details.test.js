@@ -96,4 +96,103 @@ assert.deepEqual(semantic.pairs[0], {
   margin: 1,
 });
 
+const qwenQueryPrefix = 'Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: ';
+const qwenVectors = new Map([
+  [`${qwenQueryPrefix}Find a quiet place to borrow books.`, Float32Array.from([1, 0])],
+  ['The public library lends books and has silent study rooms.', Float32Array.from([1, 0])],
+  ['The bakery sells bread and cakes.', Float32Array.from([0, 1])],
+  ['The auto shop repairs brakes and tires.', Float32Array.from([-1, 0])],
+  [`${qwenQueryPrefix}Cancel my subscription before it renews.`, Float32Array.from([0, 1])],
+  [`${qwenQueryPrefix}Stop the plan so it does not renew.`, Float32Array.from([0, 1])],
+  [`${qwenQueryPrefix}Rain is expected along the coast tonight.`, Float32Array.from([1, 0])],
+]);
+
+const qwenPipeline = {
+  manifest: {
+    modelId: 'qwen-3-embedding-0-6b-q4k-ehf16-af32',
+    modelType: 'embedding',
+    config: {
+      model_type: 'qwen3',
+    },
+    artifactIdentity: {
+      sourceCheckpointId: 'Qwen/Qwen3-Embedding-0.6B',
+    },
+  },
+  runtimeConfig: {},
+  reset() {},
+  async embed(text) {
+    const embedding = qwenVectors.get(text) ?? Float32Array.from([0.5, 0.5]);
+    return { embedding };
+  },
+};
+
+const qwenSemantic = await runEmbeddingSemanticChecks(qwenPipeline, {
+  embeddingSemantic: {
+    retrievalCases: [
+      {
+        id: 'library_lookup',
+        query: 'Find a quiet place to borrow books.',
+        docs: [
+          'The public library lends books and has silent study rooms.',
+          'The bakery sells bread and cakes.',
+          'The auto shop repairs brakes and tires.',
+        ],
+        expectedDoc: 0,
+      },
+    ],
+    pairCases: [
+      {
+        id: 'cancel_plan',
+        anchor: 'Cancel my subscription before it renews.',
+        positive: 'Stop the plan so it does not renew.',
+        negative: 'Rain is expected along the coast tonight.',
+      },
+    ],
+    minRetrievalTop1Acc: 1,
+    minPairAcc: 1,
+    pairMargin: 0.1,
+  },
+});
+
+assert.equal(qwenSemantic.passed, true);
+assert.equal(qwenSemantic.style, 'qwen3_embedding');
+
+assert.deepEqual(qwenSemantic.retrieval[0], {
+  id: 'library_lookup',
+  query: 'Find a quiet place to borrow books.',
+  formattedQuery: `${qwenQueryPrefix}Find a quiet place to borrow books.`,
+  docs: [
+    {
+      text: 'The public library lends books and has silent study rooms.',
+      formattedText: 'The public library lends books and has silent study rooms.',
+    },
+    {
+      text: 'The bakery sells bread and cakes.',
+      formattedText: 'The bakery sells bread and cakes.',
+    },
+    {
+      text: 'The auto shop repairs brakes and tires.',
+      formattedText: 'The auto shop repairs brakes and tires.',
+    },
+  ],
+  passed: true,
+  expectedDoc: 0,
+  topDoc: 0,
+  sims: [1, 0, -1],
+});
+
+assert.deepEqual(qwenSemantic.pairs[0], {
+  id: 'cancel_plan',
+  anchor: 'Cancel my subscription before it renews.',
+  formattedAnchor: `${qwenQueryPrefix}Cancel my subscription before it renews.`,
+  positive: 'Stop the plan so it does not renew.',
+  formattedPositive: `${qwenQueryPrefix}Stop the plan so it does not renew.`,
+  negative: 'Rain is expected along the coast tonight.',
+  formattedNegative: `${qwenQueryPrefix}Rain is expected along the coast tonight.`,
+  passed: true,
+  simPos: 1,
+  simNeg: 0,
+  margin: 1,
+});
+
 console.log('embedding-semantic-details.test: ok');

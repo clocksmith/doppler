@@ -47,6 +47,10 @@ Checked-in config inventory:
 | `qwen3/qwen-3-5-2b-q4k-ehaf16.json` | `qwen-3-5-2b-q4k-ehaf16` | Qwen hybrid linear/full attention graph |
 | `qwen3/qwen-3-6-27b-q4k-ehaf16.json` | `qwen-3-6-27b-q4k-ehaf16` | Qwen 3.6 27B f32 activation lane |
 | `qwen3/qwen-3-6-27b-q4k-eaf16.json` | `qwen-3-6-27b-q4k-eaf16` | Qwen 3.6 27B f16 sibling over the existing Q4K weight pack |
+| `qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32.json` | `qwen-3-embedding-0-6b-q4k-ehf16-af32` | Qwen3 SentenceTransformers embedding target with last-token L2 postprocessing |
+| `qwen3/qwen-3-reranker-0-6b-f16-af32.json` | `qwen-3-reranker-0-6b-f16-af32` | Qwen3 SentenceTransformers reranker target; F16 lane passes semantic rerank verification |
+| `qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json` | `qwen-3-reranker-0-6b-q4k-ehf16-af32` | Qwen3 SentenceTransformers reranker Q4K onboarding lane; artifact complete but semantic rerank accuracy fails |
+| `minicpm/minicpm4-0-5b-f16-af32.json` | `minicpm4-0-5b-f16-af32` | MiniCPM4 0.5B text onboarding lane; artifact complete but coherence verification fails |
 
 LFM2.5 q4 kernel planning notes:
 

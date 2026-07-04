@@ -11,7 +11,7 @@ import {
   getActiveKernelPathPolicy,
 } from '../config/kernel-path-loader.js';
 import { validateTrainingMetricsReport } from '../config/schema/training-metrics.schema.js';
-import { modelSupportsEmbedding } from '../config/schema/manifest.schema.js';
+import { modelSupportsEmbedding, modelSupportsRerank } from '../config/schema/manifest.schema.js';
 import {
   resolveReportTimestamp,
   resolveRuntime,
@@ -54,6 +54,8 @@ import {
   buildDecodeRecordTopOps,
   buildDecodeRecordTopOpGroups,
   runEmbeddingSemanticChecks,
+  runRerank,
+  runRerankSemanticChecks,
   isCoherentOutput,
   runTextInference,
   runEmbedding,
@@ -115,6 +117,7 @@ const BROWSER_WORKLOAD_SET = Object.freeze([
   'kernels',
   'inference',
   'embedding',
+  'rerank',
   'training',
   'diffusion',
   'energy',
@@ -127,6 +130,7 @@ const BROWSER_WORKLOAD_DISPATCH_MAP = Object.freeze({
     kernels: 'runKernelSuite',
     inference: 'runInferenceSuite',
     embedding: 'runEmbeddingSuite',
+    rerank: 'runRerankSuite',
     training: 'runTrainingSuite',
     diffusion: 'runDiffusionSuite',
     energy: 'runEnergySuite',
@@ -141,6 +145,7 @@ const BROWSER_WORKLOAD_DISPATCH_MAP = Object.freeze({
   bench: Object.freeze({
     inference: 'runBenchSuite',
     embedding: 'runBenchSuite',
+    rerank: 'runBenchSuite',
     training: 'runBenchSuite(training)',
     diffusion: 'runBenchSuite(diffusion)',
   }),
@@ -530,10 +535,17 @@ async function runInferenceSuite(options = {}) {
   const runtimeConfig = getRuntimeConfig();
   const modelType = harness.manifest?.modelType || 'transformer';
   const supportsEmbedding = modelSupportsEmbedding(harness.manifest);
+  const supportsRerank = modelSupportsRerank(harness.manifest);
   if (options.expectedModelType === 'embedding' && !supportsEmbedding) {
     throw new Error(
       `Expected an embedding-capable model for workload "${options.workload || 'inference'}", got modelType="${modelType}". ` +
       `Set inference.supportsEmbedding=true in the manifest for text-generation models that should expose pipeline.embed().`
+    );
+  }
+  if (options.expectedModelType === 'rerank' && !supportsRerank) {
+    throw new Error(
+      `Expected a rerank-capable model for workload "${options.workload || 'inference'}", got modelType="${modelType}". ` +
+      'Set inference.supportsRerank=true and inference.rerank in the manifest for models that should expose rerank scoring.'
     );
   }
   const safeModelLoadMs = toTimingNumber(harness.modelLoadMs, 0);
@@ -542,7 +554,78 @@ async function runInferenceSuite(options = {}) {
   let output = null;
   let metrics;
 
-  if (modelType === 'embedding' || (options.workload === 'embedding' && supportsEmbedding)) {
+  if (options.workload === 'rerank' && supportsRerank) {
+    const run = await runRerank(harness.pipeline, runtimeConfig);
+    const semantic = await runRerankSemanticChecks(harness.pipeline, options);
+    const allScoresFinite = run.scores.every((entry) => (
+      Number.isFinite(entry.score)
+      && Number.isFinite(entry.probability)
+      && Number.isFinite(entry.trueLogit)
+      && Number.isFinite(entry.falseLogit)
+    ));
+    const hasRanking = Array.isArray(run.ranking) && run.ranking.length === run.documentCount;
+    const isValidRerank = allScoresFinite && hasRanking && run.documentCount > 0;
+    const isSemanticValid = semantic.passed;
+    output = {
+      mode: 'rerank',
+      query: run.query,
+      documentCount: run.documentCount,
+      topDocument: run.topDocument,
+      ranking: run.ranking,
+      semantic: {
+        passed: isSemanticValid,
+        pairAcc: Number(semantic.pairAcc.toFixed(4)),
+        failedCaseIds: semantic.failedCaseIds,
+        details: {
+          pairs: semantic.pairs,
+        },
+      },
+    };
+    results = [
+      {
+        name: 'rerank',
+        passed: isValidRerank,
+        duration: run.durationMs,
+        error: isValidRerank
+          ? undefined
+          : 'Rerank scores must be finite and produce a full ranking.',
+      },
+      {
+        name: 'rerank-semantic',
+        passed: isSemanticValid,
+        duration: semantic.durationMs,
+        error: isSemanticValid
+          ? undefined
+          : (
+            `Rerank semantic checks below threshold: pairs=${(semantic.pairAcc * 100).toFixed(1)}% `
+            + `(min ${(semantic.minPairAcc * 100).toFixed(1)}%). `
+            + (semantic.failedCaseIds.length > 0 ? `Failed: ${semantic.failedCaseIds.join(', ')}` : '')
+          ),
+      },
+    ];
+    metrics = {
+      query: run.query,
+      documentCount: run.documentCount,
+      topDocumentIndex: run.topDocument?.index ?? null,
+      topDocumentScore: run.topDocument?.score == null ? null : Number(run.topDocument.score.toFixed(6)),
+      topDocumentProbability: run.topDocument?.probability == null ? null : Number(run.topDocument.probability.toFixed(6)),
+      rerankMs: Number(run.durationMs.toFixed(2)),
+      rerankRanking: run.ranking,
+      semanticPassed: isSemanticValid,
+      semanticDurationMs: Number(semantic.durationMs.toFixed(2)),
+      semanticPairAcc: Number(semantic.pairAcc.toFixed(4)),
+      semanticPairPassed: semantic.pairPassed,
+      semanticPairTotal: semantic.pairTotal,
+      semanticMinPairAcc: Number(semantic.minPairAcc.toFixed(4)),
+      semanticMinScoreMargin: Number(semantic.minScoreMargin.toFixed(4)),
+      semanticFailedCases: semantic.failedCaseIds,
+      semanticDetails: {
+        pairs: semantic.pairs,
+      },
+      modelLoadMs: safeModelLoadMs,
+      endToEndMs: safeToFixed(safeModelLoadMs + run.durationMs),
+    };
+  } else if (modelType === 'embedding' || (options.workload === 'embedding' && supportsEmbedding)) {
     const run = await runEmbedding(harness.pipeline, runtimeConfig);
     const semantic = await runEmbeddingSemanticChecks(harness.pipeline, options);
     const isValidEmbedding = run.embeddingDim > 0 && run.nonFiniteCount === 0;
@@ -772,12 +855,20 @@ async function runInferenceSuite(options = {}) {
   };
 }
 
+function resolveBenchmarkIterationSettings(runtimeConfig) {
+  const benchConfig = runtimeConfig?.shared?.benchmark?.run || {};
+  return {
+    warmupRuns: Math.max(0, Math.floor(benchConfig.warmupRuns ?? 0)),
+    timedRuns: Math.max(1, Math.floor(benchConfig.timedRuns ?? 1)),
+  };
+}
+
 async function runBenchSuite(options = {}) {
   const startTime = performance.now();
   const runtimeConfig = getRuntimeConfig();
-  const defaultBenchRun = resolveBenchmarkRunSettings(runtimeConfig);
-  const warmupRuns = defaultBenchRun.warmupRuns;
-  const timedRuns = defaultBenchRun.timedRuns;
+  const iterationSettings = resolveBenchmarkIterationSettings(runtimeConfig);
+  const warmupRuns = iterationSettings.warmupRuns;
+  const timedRuns = iterationSettings.timedRuns;
   const cacheMode = normalizeCacheMode(options.cacheMode);
   const loadMode = normalizeLoadMode(options.loadMode, !!options.modelUrl, options.modelUrl);
   const workloadType = normalizeWorkloadType(
@@ -792,7 +883,7 @@ async function runBenchSuite(options = {}) {
   if (workloadType === 'training') {
     const trainingBench = await runTrainingBenchSuite({
       ...options,
-      benchRun: defaultBenchRun,
+      benchRun: iterationSettings,
       workloadType,
     });
     const trainingReport = trainingBench?.metrics?.trainingMetricsReport;
@@ -888,13 +979,22 @@ async function runBenchSuite(options = {}) {
     },
     () => initializeSuiteModel(options)
   );
-  const benchRun = resolveBenchmarkRunSettings(runtimeConfig, harness.pipeline ?? harness);
+  const benchRun = options.workload === 'rerank'
+    ? iterationSettings
+    : resolveBenchmarkRunSettings(runtimeConfig, harness.pipeline ?? harness);
   const modelType = harness.manifest?.modelType || 'transformer';
   const supportsEmbedding = modelSupportsEmbedding(harness.manifest);
+  const supportsRerank = modelSupportsRerank(harness.manifest);
   if (options.expectedModelType === 'embedding' && !supportsEmbedding) {
     throw new Error(
       `Expected an embedding-capable model for bench workload "${options.workload || 'inference'}", got modelType="${modelType}". ` +
       `Set inference.supportsEmbedding=true in the manifest for text-generation models that should expose pipeline.embed().`
+    );
+  }
+  if (options.expectedModelType === 'rerank' && !supportsRerank) {
+    throw new Error(
+      `Expected a rerank-capable model for bench workload "${options.workload || 'inference'}", got modelType="${modelType}". ` +
+      'Set inference.supportsRerank=true and inference.rerank in the manifest for models that should expose rerank scoring.'
     );
   }
   const safeModelLoadMs = toTimingNumber(harness.modelLoadMs, 0);
@@ -904,7 +1004,155 @@ async function runBenchSuite(options = {}) {
   let output = null;
   let timing;
 
-  if (modelType === 'embedding' || (options.workload === 'embedding' && supportsEmbedding)) {
+  if (options.workload === 'rerank' && supportsRerank) {
+    const durations = [];
+    const timedDurations = [];
+    const documentCounts = [];
+    const topDocumentScores = [];
+    const topDocumentProbabilities = [];
+    let invalidRuns = 0;
+    let nonFiniteScores = 0;
+    let lastRun = null;
+
+    for (let i = 0; i < warmupRuns + timedRuns; i++) {
+      harness.pipeline.reset?.();
+      const run = await runRerank(harness.pipeline, runtimeConfig, benchRun);
+      if (i >= warmupRuns) {
+        timedDurations.push(run.durationMs);
+        const finiteScores = run.scores.filter((entry) => (
+          Number.isFinite(entry.score)
+          && Number.isFinite(entry.probability)
+          && Number.isFinite(entry.trueLogit)
+          && Number.isFinite(entry.falseLogit)
+        ));
+        nonFiniteScores += run.scores.length - finiteScores.length;
+        const hasRanking = Array.isArray(run.ranking) && run.ranking.length === run.documentCount;
+        if (finiteScores.length === run.scores.length && hasRanking && run.documentCount > 0) {
+          durations.push(run.durationMs);
+          documentCounts.push(run.documentCount);
+          if (Number.isFinite(run.topDocument?.score)) {
+            topDocumentScores.push(run.topDocument.score);
+          }
+          if (Number.isFinite(run.topDocument?.probability)) {
+            topDocumentProbabilities.push(run.topDocument.probability);
+          }
+        } else {
+          invalidRuns++;
+        }
+        lastRun = run;
+      }
+    }
+
+    const semantic = await runRerankSemanticChecks(harness.pipeline, options);
+    const rerankMsStats = computeSampleStats(durations);
+    const timedRerankMsStats = computeSampleStats(timedDurations);
+    const documentCountStats = computeSampleStats(documentCounts);
+    const topScoreStats = computeSampleStats(topDocumentScores);
+    const topProbabilityStats = computeSampleStats(topDocumentProbabilities);
+    const avgMs = rerankMsStats.mean;
+    const semanticPassed = semantic.passed;
+
+    results = [
+      {
+        name: 'benchmark-rerank',
+        passed: durations.length > 0 && invalidRuns === 0,
+        duration: durations.reduce((sum, value) => sum + value, 0),
+        error: durations.length > 0
+          ? (
+            invalidRuns === 0
+              ? undefined
+              : `Invalid rerank runs: ${invalidRuns} (non-finite scores or incomplete ranking observed)`
+          )
+          : 'No valid rerank benchmark runs completed',
+      },
+      {
+        name: 'benchmark-rerank-semantic',
+        passed: semanticPassed,
+        duration: semantic.durationMs,
+        error: semanticPassed
+          ? undefined
+          : (
+            `Rerank semantic checks below threshold: pairs=${(semantic.pairAcc * 100).toFixed(1)}% `
+            + `(min ${(semantic.minPairAcc * 100).toFixed(1)}%). `
+            + (semantic.failedCaseIds.length > 0 ? `Failed: ${semantic.failedCaseIds.join(', ')}` : '')
+          ),
+      },
+    ];
+
+    output = {
+      mode: 'rerank',
+      query: lastRun?.query ?? null,
+      documentCount: lastRun?.documentCount ?? null,
+      topDocument: lastRun?.topDocument ?? null,
+      ranking: lastRun?.ranking ?? [],
+      semantic: {
+        passed: semanticPassed,
+        pairAcc: Number(semantic.pairAcc.toFixed(4)),
+        failedCaseIds: semantic.failedCaseIds,
+        details: {
+          pairs: semantic.pairs,
+        },
+      },
+    };
+
+    metrics = {
+      warmupRuns,
+      timedRuns,
+      validRuns: durations.length,
+      invalidRuns,
+      invalidRatePct: Number((timedRuns > 0 ? (invalidRuns / timedRuns) * 100 : 0).toFixed(2)),
+      query: lastRun?.query ?? null,
+      documentCount: Math.round(documentCountStats.mean),
+      topDocumentIndex: lastRun?.topDocument?.index ?? null,
+      topDocumentScore: lastRun?.topDocument?.score == null ? null : Number(lastRun.topDocument.score.toFixed(6)),
+      topDocumentProbability: lastRun?.topDocument?.probability == null ? null : Number(lastRun.topDocument.probability.toFixed(6)),
+      topDocumentScoreStats: topScoreStats,
+      topDocumentProbabilityStats: topProbabilityStats,
+      nonFiniteScores,
+      firstTimedRerankMs: Number((timedDurations[0] ?? 0).toFixed(2)),
+      minRerankMs: Number(rerankMsStats.min.toFixed(2)),
+      medianRerankMs: Number(rerankMsStats.median.toFixed(2)),
+      p95RerankMs: Number(rerankMsStats.p95.toFixed(2)),
+      p99RerankMs: Number(rerankMsStats.p99.toFixed(2)),
+      maxRerankMs: Number(rerankMsStats.max.toFixed(2)),
+      stdDevRerankMs: Number(rerankMsStats.stdDev.toFixed(2)),
+      ci95RerankMs: Number(rerankMsStats.ci95.toFixed(2)),
+      avgRerankMs: Number(avgMs.toFixed(2)),
+      avgReranksPerSec: Number((avgMs > 0 ? (1000 / avgMs) : 0).toFixed(2)),
+      semanticPassed,
+      semanticDurationMs: Number(semantic.durationMs.toFixed(2)),
+      semanticPairAcc: Number(semantic.pairAcc.toFixed(4)),
+      semanticPairPassed: semantic.pairPassed,
+      semanticPairTotal: semantic.pairTotal,
+      semanticMinPairAcc: Number(semantic.minPairAcc.toFixed(4)),
+      semanticMinScoreMargin: Number(semantic.minScoreMargin.toFixed(4)),
+      semanticFailedCases: semantic.failedCaseIds,
+      semanticDetails: {
+        pairs: semantic.pairs,
+      },
+      modelLoadMs: safeModelLoadMs,
+      latency: {
+        timedRerankMs: timedRerankMsStats,
+        rerankMs: rerankMsStats,
+      },
+      documents: {
+        count: documentCountStats,
+      },
+    };
+
+    timing = buildCanonicalTiming({
+      modelLoadMs: safeModelLoadMs,
+      firstTokenMs: null,
+      firstResponseMs: Number.isFinite(timedDurations[0])
+        ? safeModelLoadMs + timedDurations[0]
+        : null,
+      prefillMs: null,
+      decodeMs: null,
+      totalRunMs: rerankMsStats.median,
+      cacheMode,
+      loadMode,
+    });
+  } else if (modelType === 'embedding' || (options.workload === 'embedding' && supportsEmbedding)) {
     const durations = [];
     const timedDurations = [];
     const embeddingDims = [];
@@ -1468,6 +1716,9 @@ async function dispatchBrowserSuite(mode, workload, options) {
   if (mode === 'verify' && workload === 'kernels') {
     return runKernelSuite(options);
   }
+  if (mode === 'bench') {
+    return runBenchSuite(options);
+  }
   if (workload === 'embedding') {
     return runInferenceSuite({
       ...options,
@@ -1475,11 +1726,15 @@ async function dispatchBrowserSuite(mode, workload, options) {
       expectedModelType: options.expectedModelType ?? 'embedding',
     });
   }
+  if (workload === 'rerank') {
+    return runInferenceSuite({
+      ...options,
+      suiteName: 'rerank',
+      expectedModelType: options.expectedModelType ?? 'rerank',
+    });
+  }
   if (mode === 'verify' && workload === 'training') {
     return runTrainingSuite(options);
-  }
-  if (mode === 'bench') {
-    return runBenchSuite(options);
   }
   if (mode === 'verify' && workload === 'diffusion') {
     return runDiffusionSuite(options);
