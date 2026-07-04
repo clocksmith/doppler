@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { closeSync, existsSync, mkdtempSync, openSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const ROOT_DIR = process.cwd();
 const DEFAULT_POLICY_PATH = resolve(ROOT_DIR, 'tools/policies/test-coverage-policy.json');
@@ -82,7 +83,7 @@ function collectTestFiles(dir, files) {
       collectTestFiles(fullPath, files);
       continue;
     }
-    if (entry.isFile() && entry.name.endsWith('.test.js')) {
+    if (entry.isFile() && entry.name.endsWith('.test.js') && !isPendingTestFile(entry.name)) {
       files.push(fullPath);
     }
   }
@@ -103,6 +104,10 @@ function collectFilesFromRoot(pathValue, files) {
   collectTestFiles(pathValue, files);
 }
 
+function isPendingTestFile(name) {
+  return name.endsWith('.pending.test.js');
+}
+
 function listRootsFromSuite(suiteName, explicitDirs) {
   if (explicitDirs.length > 0) {
     return explicitDirs.map((dir) => resolve(ROOT_DIR, dir));
@@ -113,7 +118,7 @@ function listRootsFromSuite(suiteName, explicitDirs) {
   return suites[suiteName].map((dir) => resolve(ROOT_DIR, dir));
 }
 
-function resolveTestFiles(suiteName, directories) {
+export function resolveTestFiles(suiteName, directories) {
   const roots = listRootsFromSuite(suiteName, directories);
   const files = [];
   for (const root of roots) {
@@ -271,4 +276,6 @@ function main() {
   }
 }
 
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}

@@ -481,7 +481,7 @@ export interface ManifestRerankSchema {
   trueTokenId: number;
   falseToken: string;
   falseTokenId: number;
-  score: 'logit_difference' | string;
+  score: 'logit_difference' | 'true_logit' | string;
   probability: 'sigmoid' | string;
 }
 

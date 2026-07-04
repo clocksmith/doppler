@@ -1577,7 +1577,10 @@ export class InferencePipeline extends PipelineState {
 
   async embed(prompt, options = {}) {
     assertNotAborted(options?.signal);
-    const result = await this.prefillWithEmbedding(prompt, options);
+    const result = await this.prefillWithEmbedding(prompt, {
+      ...options,
+      __skipStateSnapshot: true,
+    });
     assertNotAborted(options?.signal);
     return {
       embedding: result.embedding,

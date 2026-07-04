@@ -12,7 +12,7 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "weights-ref",
-    "conversionConfigDigest": "sha256:767a202853ae745370dac768e8b45d55a2f80eb8b4cf31f914f3afa59662ebbd",
+    "conversionConfigDigest": "sha256:bb55b4619a12b348810f06257dbf5f557751b140dd0a2f2290619e57b0ad0a0e",
     "conversionConfigPath": "src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af16.json",
     "manifestVariantId": "gemma-4-12b-it-text-q4k-ehf16-af16-mv-f16-activations-v1",
     "materializationProfile": "gpu_split_tables",
@@ -11366,7 +11366,7 @@
   "weightsRef": {
     "weightPackId": "gemma-4-12b-it-text-q4k-ehf16-af32-wp-catalog-v1",
     "artifactRoot": "../gemma-4-12b-it-text-q4k-ehf16-af32",
-    "manifestDigest": "sha256:0d22d0f41ba9e399c66163e5399171a4b43bb0efc5d31567a97b3b56458a9897",
+    "manifestDigest": "sha256:c1ec0ae77689b35c77d49e83de2a2cef745b097529aca4a64755c5feac23e0f5",
     "shardSetHash": "sha256:f596ba07a842e5925807c0a1b45428f08fc5bad483015ae3bf887bf2522fc3e0"
   }
 }

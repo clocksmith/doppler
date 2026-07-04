@@ -277,6 +277,27 @@
       }
     },
     {
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "mode": "rerank",
+      "surface": [
+        "node"
+      ],
+      "verificationSource": "runtime-verify",
+      "lastVerifiedAt": "2026-07-04",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "runtime-verify",
+        "reportPath": "reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-04T18-42-51.669Z.json"
+      },
+      "performanceEvidence": {
+        "kind": "rerank-runtime-report",
+        "reportPath": "reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-04T18-43-20.530Z.bench.json",
+        "metricPath": "metrics.medianRerankMs",
+        "minValue": 0,
+        "unit": "ms"
+      }
+    },
+    {
       "modelId": "qwen-3-reranker-0-6b-f16-af32",
       "mode": "rerank",
       "surface": [

@@ -530,6 +530,7 @@ async function runOne({ modelId, flags, configBundle, catalogBundle, timestamp }
   const dopplerVerify = unwrapToolingResult(await runNodeJson(dopplerVerifyArgs, `${modelId} Doppler embedding verify`, timeoutMs));
   const tjsBench = await runNodeJson(tjsArgs, `${modelId} Transformers.js embedding bench`, timeoutMs);
   const summary = buildSummary(dopplerBench, dopplerVerify, tjsBench);
+  const releaseClaimable = profile.releaseClaimable === true && dopplerSource === 'quickstart-registry';
 
   const result = {
     schemaVersion: 1,
@@ -561,10 +562,10 @@ async function runOne({ modelId, flags, configBundle, catalogBundle, timestamp }
       reason: profile.compareLaneReason,
       correctnessOk: summary.correctnessOk,
       localComparable: summary.correctnessOk === true && profile.compareLane === 'performance_comparable',
-      releaseClaimable: profile.releaseClaimable,
+      releaseClaimable,
       claimable: summary.correctnessOk === true
         && profile.compareLane === 'performance_comparable'
-        && profile.releaseClaimable === true,
+        && releaseClaimable,
     },
     sources: {
       config: {

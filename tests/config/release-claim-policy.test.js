@@ -50,6 +50,13 @@ function getPath(value, pathExpression) {
   }, value);
 }
 
+function hasFiniteNumberAtAnyPath(value, paths) {
+  return paths.some((pathExpression) => {
+    const candidate = getPath(value, pathExpression);
+    return typeof candidate === 'number' && Number.isFinite(candidate);
+  });
+}
+
 function artifactModelIds(artifact) {
   return [
     artifact.modelId,
@@ -161,10 +168,13 @@ function assertPerformanceEvidence(claim) {
       true,
       `${claim.modelId}: rerank performance evidence must preserve semanticPassed=true`
     );
-    assert.equal(
-      typeof getPath(artifact, 'metrics.rerankMs'),
-      'number',
-      `${claim.modelId}: rerank performance evidence must preserve rerankMs`
+    assert.ok(
+      hasFiniteNumberAtAnyPath(artifact, [
+        'metrics.rerankMs',
+        'metrics.medianRerankMs',
+        'metrics.latency.rerankMs.median',
+      ]),
+      `${claim.modelId}: rerank performance evidence must preserve rerank timing`
     );
   }
 

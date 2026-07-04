@@ -184,12 +184,17 @@ const minimalV1Inference = {
     yarnBetaFast: null,
     yarnBetaSlow: null,
     yarnOriginalMaxPos: null,
+    longropeShortFactor: null,
+    longropeLongFactor: null,
+    longropeOriginalMaxPos: null,
     ropeLocalYarnBetaFast: null,
     ropeLocalYarnBetaSlow: null,
     ropeLocalYarnOriginalMaxPos: null,
   },
   output: {
     scaleEmbeddings: false,
+    embeddingScale: null,
+    logitInputScale: 1,
     tieWordEmbeddings: false,
     embeddingTranspose: false,
     embeddingVocabSize: null,
@@ -197,7 +202,7 @@ const minimalV1Inference = {
     embeddingPostprocessor: null,
   },
   chatTemplate: { type: null, enabled: true },
-  layerPattern: { type: 'uniform', globalPattern: null, period: null, offset: null },
+  layerPattern: { type: 'uniform', globalPattern: null, period: null, offset: null, residualBranchScale: 1 },
 };
 
 {

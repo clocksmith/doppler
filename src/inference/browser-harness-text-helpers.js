@@ -12,6 +12,7 @@ const DEFAULT_IMAGE_TRANSCRIPTION_SOFT_TOKEN_BUDGET = 70;
 const EMBEDDING_PREVIEW_LENGTH = 16;
 const GENERATION_TOKEN_DIAGNOSTIC_LIMIT = 32;
 const DECODE_RECORD_TOP_OP_LIMIT = 20;
+const RERANK_SCORE_POLICIES = new Set(['logit_difference', 'true_logit']);
 
 export function normalizeDecodeRecordOpLabels(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -619,7 +620,7 @@ export function resolveRerankScoringConfig(pipeline) {
     throw new Error('Manifest rerank config trueTokenId and falseTokenId must be distinct.');
   }
   const score = assertRerankText(config.score, 'score');
-  if (score !== 'logit_difference') {
+  if (!RERANK_SCORE_POLICIES.has(score)) {
     throw new Error(`Unsupported rerank score policy "${score}".`);
   }
   const probability = assertRerankText(config.probability, 'probability');
@@ -672,6 +673,16 @@ function sigmoid(value) {
   return 1 / (1 + Math.exp(-value));
 }
 
+function computeRerankScore(scoringConfig, trueLogit, falseLogit) {
+  if (scoringConfig.score === 'logit_difference') {
+    return trueLogit - falseLogit;
+  }
+  if (scoringConfig.score === 'true_logit') {
+    return trueLogit;
+  }
+  throw new Error(`Unsupported rerank score policy "${scoringConfig.score}".`);
+}
+
 function assertLogitsVector(value) {
   if (!ArrayBuffer.isView(value) && !Array.isArray(value)) {
     throw new Error('Rerank prefillWithLogits result must include a logits vector.');
@@ -695,7 +706,7 @@ export async function scoreRerankDocument(pipeline, query, document, scoringConf
       `Rerank logits missing finite yes/no scores at token IDs ${config.trueTokenId}/${config.falseTokenId}.`
     );
   }
-  const score = trueLogit - falseLogit;
+  const score = computeRerankScore(config, trueLogit, falseLogit);
   const probability = sigmoid(score);
   return {
     query,

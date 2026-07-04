@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-04T00:47:41.651Z",
+  "generatedAt": "2026-07-04T15:20:52.603Z",
   "release": {
     "channel": "main-snapshot",
     "version": "0.4.6",
-    "commitSha": "5a1a83578f3989f12c0cbc90b3ca0e3d34e6acd5",
+    "commitSha": "b73f217927e1645818842c6b4a42e7d3fc97b5a3",
     "dirty": true
   },
   "sources": {
@@ -46,14 +46,14 @@
     },
     "localInferenceClaimMatrix": {
       "path": "benchmarks/vendors/local-inference-claim-matrix.json",
-      "sha256": "c5f217e0a57db0dda511613582a6e83280bba3cde0e3b282c3cecbc38e106ed8",
+      "sha256": "c780c43c82e786a42811bee71f55db4a3ffcefd4928ae1156f392d3250a7edc8",
       "bytes": 23605,
       "updated": "2026-06-27"
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "3a015b9bb5aa11d29e0a6d6698cc7003360b10aa8d7ca0b88bf10191e7869a54",
-      "bytes": 35981,
+      "sha256": "86a265e0837d6fce4a4d0f8fc95df6ecb6dde24f1fa241d2170c13e209b848b2",
+      "bytes": 36039,
       "updated": "2026-07-04"
     },
     "harness:doppler": {

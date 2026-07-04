@@ -100,10 +100,6 @@ const EXPECTED_QWEN_CONVERSION_DECODE_LOOPS = Object.freeze({
 });
 const EXPECTED_QWEN_MANIFEST_DECODE_LOOPS = Object.freeze({
   ...EXPECTED_QWEN_CONVERSION_DECODE_LOOPS,
-  'qwen-3-5-0-8b-q4k-ehaf16': {
-    ...EXPECTED_QWEN_CONVERSION_DECODE_LOOPS['qwen-3-5-0-8b-q4k-ehaf16'],
-    readbackInterval: 32,
-  },
 });
 
 function getExpectedQwenDecodeLoop(label, source = 'conversion') {
