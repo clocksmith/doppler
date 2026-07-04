@@ -85,6 +85,7 @@ try {
       queryKeyNorm: false,
       attentionOutputGate: false,
       causalAttention: true,
+      residualBranchScale: 1,
       rmsNormWeightOffset: 0,
       ropeRotaryDim: hiddenSize,
       ropeInterleaved: false,

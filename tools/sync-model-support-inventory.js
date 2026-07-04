@@ -12,6 +12,7 @@ const CONVERSION_CONFIG_DIR = path.join(REPO_ROOT, 'src', 'config', 'conversion'
 const CATALOG_PATH = path.join(REPO_ROOT, 'models', 'catalog.json');
 const SUPPORT_ROLLOUT_POLICY_PATH = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'support-rollout-policy.json');
 const COMPARE_CONFIG_PATH = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'compare-engines.config.json');
+const EMBEDDING_COMPARE_CONFIG_PATH = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'embedding-compare.config.json');
 const CLAIM_MATRIX_PATH = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'local-inference-claim-matrix.json');
 const RELEASE_MATRIX_PATH = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'release-matrix.json');
 const RELEASE_CLAIM_POLICY_PATH = path.join(REPO_ROOT, 'tools', 'policies', 'release-claim-policy.json');
@@ -349,6 +350,37 @@ function mapByModelId(entries, getModelId) {
   return out;
 }
 
+function buildCompareProfileIndex(catalog, compareConfig, embeddingCompareConfig) {
+  const index = new Map();
+  const catalogByModelId = mapByModelId(catalog?.models, (entry) => entry?.modelId);
+  for (const entry of Array.isArray(compareConfig?.modelProfiles) ? compareConfig.modelProfiles : []) {
+    const modelId = normalizeText(entry?.dopplerModelId);
+    if (!modelId) continue;
+    index.set(modelId, {
+      ...entry,
+      profileKind: 'generation',
+    });
+  }
+  for (const entry of Array.isArray(embeddingCompareConfig?.modelProfiles) ? embeddingCompareConfig.modelProfiles : []) {
+    const modelId = normalizeText(entry?.dopplerModelId);
+    if (!modelId) continue;
+    const catalogEntry = catalogByModelId.get(modelId);
+    const modes = Array.isArray(catalogEntry?.modes) ? catalogEntry.modes.map(normalizeText) : [];
+    if (!modes.includes('embedding')) continue;
+    index.set(modelId, {
+      ...entry,
+      defaultTjsModelId: normalizeText(entry?.defaultTjsModelId)
+        || normalizeText(catalogEntry?.vendorBenchmark?.transformersjs?.repoId)
+        || null,
+      defaultTjsDtype: normalizeText(entry?.defaultTjsDtype)
+        || normalizeText(catalogEntry?.vendorBenchmark?.transformersjs?.dtype)
+        || null,
+      profileKind: 'embedding',
+    });
+  }
+  return index;
+}
+
 function resolveTier(sizeBytes, sizeTiers) {
   if (!hasFiniteNumber(sizeBytes)) {
     return 'unknown';
@@ -428,13 +460,55 @@ function buildCompareCommands(modelId, benchmarkCommands) {
   return commands;
 }
 
+function buildEmbeddingCompareCommands(modelId, compareProfile, embeddingDefaults) {
+  const args = [
+    'node',
+    'tools/compare-embeddings.js',
+    '--model-id',
+    modelId,
+    '--warmup',
+    String(compareProfile.warmupRuns ?? embeddingDefaults.warmupRuns ?? 1),
+    '--runs',
+    String(compareProfile.timedRuns ?? embeddingDefaults.timedRuns ?? 3),
+  ];
+  const dopplerSource = normalizeText(compareProfile.defaultDopplerSource);
+  if (dopplerSource) {
+    args.push('--doppler-source', dopplerSource);
+  }
+  const dopplerSurface = normalizeText(compareProfile.defaultDopplerSurface || embeddingDefaults.dopplerSurface);
+  if (dopplerSurface) {
+    args.push('--doppler-surface', dopplerSurface);
+  }
+  const cacheMode = normalizeText(compareProfile.cacheMode || embeddingDefaults.cacheMode);
+  if (cacheMode) {
+    args.push('--cache-mode', cacheMode);
+  }
+  const loadMode = normalizeText(compareProfile.loadMode || embeddingDefaults.loadMode);
+  if (loadMode) {
+    args.push('--load-mode', loadMode);
+  }
+  args.push('--save', '--json');
+  return [{
+    workloadId: 'embedding',
+    decodeProfile: null,
+    command: args.join(' '),
+  }];
+}
+
+function buildCompareCommandsForProfile(modelId, compareProfile, supportRollout, embeddingDefaults) {
+  if (compareProfile?.profileKind === 'embedding') {
+    return buildEmbeddingCompareCommands(modelId, compareProfile, embeddingDefaults);
+  }
+  return buildCompareCommands(modelId, supportRollout.benchmarkCommands);
+}
+
 function buildActions(modelId, compareProfile, benchmarkComparable, supportRollout, options = {}) {
   const bootstrapFlag = options.hfPublished === false ? ' --bootstrap' : '';
   return {
     verifyCommand: `node tools/run-registry-verify.js ${modelId} --surface auto`,
     hfDryRunCommand: `node tools/publish-hf-registry-model.js --model-id ${modelId} --dry-run${bootstrapFlag}`,
     compareCommands: compareProfile && benchmarkComparable
-      ? buildCompareCommands(modelId, supportRollout.benchmarkCommands)
+      ? buildCompareCommandsForProfile(modelId, compareProfile, supportRollout, options.embeddingDefaults || {})
       : [],
     primaryNextCommand: null,
   };
@@ -467,6 +541,7 @@ async function buildVariant(model, context) {
   const runtimeReport = normalizeText(claimLane?.evidence?.localExecutionReport) || resolveReleaseClaimPath(modelId, context.releaseClaimByModelId);
   const compareResult = normalizeText(claimLane?.evidence?.compareResult);
   const summarySvg = normalizeText(claimLane?.evidence?.summarySvg);
+  const profileKind = normalizeText(compareProfile?.profileKind) || null;
   const hfPublished = model?.lifecycle?.availability?.hf === true;
   const tested = normalizeText(model?.lifecycle?.status?.tested);
   const artifactCompleteness = normalizeText(model?.artifactCompleteness);
@@ -490,7 +565,7 @@ async function buildVariant(model, context) {
     missing.push('compare-profile');
   }
   if (benchmarkComparable) {
-    if (!claimLane) missing.push('claim-lane');
+    if (!claimLane && profileKind !== 'embedding') missing.push('claim-lane');
     if (!hasText(compareResult)) missing.push('compare-result');
     if (!hasText(summarySvg)) missing.push('summary-svg');
   } else if (compareProfile) {
@@ -511,7 +586,10 @@ async function buildVariant(model, context) {
   if (evidence.summarySvg && !evidence.summarySvgExists) missing.push('summary-svg-missing-on-disk');
 
   const nextGate = missing[0] || (benchmarkEvidenceOk ? 'preferred-architecture' : 'benchmark-receipts');
-  const actions = buildActions(modelId, compareProfile, benchmarkComparable, context.supportRollout, { hfPublished });
+  const actions = buildActions(modelId, compareProfile, benchmarkComparable, context.supportRollout, {
+    hfPublished,
+    embeddingDefaults: context.embeddingCompareDefaults,
+  });
   actions.primaryNextCommand = resolvePrimaryNextCommand(nextGate, actions);
   return {
     modelId,
@@ -547,9 +625,11 @@ async function buildVariant(model, context) {
     quickstart: model.quickstart === true,
     compare: {
       profile: compareProfile ? {
+        kind: profileKind,
         dopplerSource: normalizeText(compareProfile.defaultDopplerSource) || null,
         dopplerFormat: normalizeText(compareProfile.defaultDopplerFormat) || null,
         tjsModelId: normalizeText(compareProfile.defaultTjsModelId) || null,
+        tjsDtype: normalizeText(compareProfile.defaultTjsDtype) || null,
         tjsFormat: normalizeText(compareProfile.defaultTjsFormat) || null,
         lane: compareLane || null,
         laneReason: normalizeText(compareProfile.compareLaneReason) || null,
@@ -704,6 +784,7 @@ async function buildInventory() {
     catalog,
     supportRolloutPolicy,
     compareConfig,
+    embeddingCompareConfig,
     claimMatrix,
     releaseMatrix,
     releaseClaimPolicy,
@@ -714,6 +795,7 @@ async function buildInventory() {
     readJson(CATALOG_PATH),
     readJson(SUPPORT_ROLLOUT_POLICY_PATH),
     readJson(COMPARE_CONFIG_PATH),
+    readJson(EMBEDDING_COMPARE_CONFIG_PATH),
     readJson(CLAIM_MATRIX_PATH),
     readJson(RELEASE_MATRIX_PATH),
     readJson(RELEASE_CLAIM_POLICY_PATH),
@@ -724,7 +806,7 @@ async function buildInventory() {
   const supportRollout = validateSupportRolloutPolicy(supportRolloutPolicy);
   validateBenchmarkCommandReferences(supportRollout, workloads, benchmarkPolicy);
   const conversionIndex = buildConversionIndex(conversionRecords);
-  const compareProfileByModelId = mapByModelId(compareConfig.modelProfiles, (entry) => entry?.dopplerModelId);
+  const compareProfileByModelId = buildCompareProfileIndex(catalog, compareConfig, embeddingCompareConfig);
   const claimLaneByModelId = mapByModelId(claimMatrix.lanes, (entry) => entry?.model?.dopplerModelId);
   const releaseCoverageByModelId = mapByModelId(releaseMatrix.modelCoverage, (entry) => entry?.dopplerModelId);
   const releaseClaimByModelId = mapByModelId(releaseClaimPolicy.claims, (entry) => entry?.modelId);
@@ -732,6 +814,7 @@ async function buildInventory() {
     supportRollout,
     conversionIndex,
     compareProfileByModelId,
+    embeddingCompareDefaults: embeddingCompareConfig.defaults || {},
     claimLaneByModelId,
     releaseCoverageByModelId,
     releaseClaimByModelId,
@@ -808,6 +891,7 @@ async function buildInventory() {
       'benchmarks/vendors/benchmark-policy.json',
       'benchmarks/vendors/workloads.json',
       'benchmarks/vendors/compare-engines.config.json',
+      'benchmarks/vendors/embedding-compare.config.json',
       'benchmarks/vendors/local-inference-claim-matrix.json',
       'benchmarks/vendors/release-matrix.json',
       'tools/policies/release-claim-policy.json',

@@ -11,14 +11,100 @@
     "embeddings": "f16",
     "lmHead": "f16",
     "computePrecision": "f32",
-    "q4kLayout": "row"
+    "q4kLayout": "row",
+    "modulesToNotConvert": [
+      "model.layers.0.mlp.gate_proj.weight",
+      "model.layers.0.mlp.up_proj.weight",
+      "model.layers.0.mlp.down_proj.weight",
+      "model.layers.1.mlp.gate_proj.weight",
+      "model.layers.1.mlp.up_proj.weight",
+      "model.layers.1.mlp.down_proj.weight",
+      "model.layers.2.mlp.gate_proj.weight",
+      "model.layers.2.mlp.up_proj.weight",
+      "model.layers.2.mlp.down_proj.weight",
+      "model.layers.3.mlp.gate_proj.weight",
+      "model.layers.3.mlp.up_proj.weight",
+      "model.layers.3.mlp.down_proj.weight",
+      "model.layers.4.mlp.gate_proj.weight",
+      "model.layers.4.mlp.up_proj.weight",
+      "model.layers.4.mlp.down_proj.weight",
+      "model.layers.5.mlp.gate_proj.weight",
+      "model.layers.5.mlp.up_proj.weight",
+      "model.layers.5.mlp.down_proj.weight",
+      "model.layers.6.mlp.gate_proj.weight",
+      "model.layers.6.mlp.up_proj.weight",
+      "model.layers.6.mlp.down_proj.weight",
+      "model.layers.7.mlp.gate_proj.weight",
+      "model.layers.7.mlp.up_proj.weight",
+      "model.layers.7.mlp.down_proj.weight",
+      "model.layers.8.mlp.gate_proj.weight",
+      "model.layers.8.mlp.up_proj.weight",
+      "model.layers.8.mlp.down_proj.weight",
+      "model.layers.9.mlp.gate_proj.weight",
+      "model.layers.9.mlp.up_proj.weight",
+      "model.layers.9.mlp.down_proj.weight",
+      "model.layers.10.mlp.gate_proj.weight",
+      "model.layers.10.mlp.up_proj.weight",
+      "model.layers.10.mlp.down_proj.weight",
+      "model.layers.11.mlp.gate_proj.weight",
+      "model.layers.11.mlp.up_proj.weight",
+      "model.layers.11.mlp.down_proj.weight",
+      "model.layers.12.mlp.gate_proj.weight",
+      "model.layers.12.mlp.up_proj.weight",
+      "model.layers.12.mlp.down_proj.weight",
+      "model.layers.13.mlp.gate_proj.weight",
+      "model.layers.13.mlp.up_proj.weight",
+      "model.layers.13.mlp.down_proj.weight",
+      "model.layers.14.mlp.gate_proj.weight",
+      "model.layers.14.mlp.up_proj.weight",
+      "model.layers.14.mlp.down_proj.weight",
+      "model.layers.15.mlp.gate_proj.weight",
+      "model.layers.15.mlp.up_proj.weight",
+      "model.layers.15.mlp.down_proj.weight",
+      "model.layers.16.mlp.gate_proj.weight",
+      "model.layers.16.mlp.up_proj.weight",
+      "model.layers.16.mlp.down_proj.weight",
+      "model.layers.17.mlp.gate_proj.weight",
+      "model.layers.17.mlp.up_proj.weight",
+      "model.layers.17.mlp.down_proj.weight",
+      "model.layers.18.mlp.gate_proj.weight",
+      "model.layers.18.mlp.up_proj.weight",
+      "model.layers.18.mlp.down_proj.weight",
+      "model.layers.19.mlp.gate_proj.weight",
+      "model.layers.19.mlp.up_proj.weight",
+      "model.layers.19.mlp.down_proj.weight",
+      "model.layers.20.mlp.gate_proj.weight",
+      "model.layers.20.mlp.up_proj.weight",
+      "model.layers.20.mlp.down_proj.weight",
+      "model.layers.21.mlp.gate_proj.weight",
+      "model.layers.21.mlp.up_proj.weight",
+      "model.layers.21.mlp.down_proj.weight",
+      "model.layers.22.mlp.gate_proj.weight",
+      "model.layers.22.mlp.up_proj.weight",
+      "model.layers.22.mlp.down_proj.weight",
+      "model.layers.23.mlp.gate_proj.weight",
+      "model.layers.23.mlp.up_proj.weight",
+      "model.layers.23.mlp.down_proj.weight",
+      "model.layers.24.mlp.gate_proj.weight",
+      "model.layers.24.mlp.up_proj.weight",
+      "model.layers.24.mlp.down_proj.weight",
+      "model.layers.25.mlp.gate_proj.weight",
+      "model.layers.25.mlp.up_proj.weight",
+      "model.layers.25.mlp.down_proj.weight",
+      "model.layers.26.mlp.gate_proj.weight",
+      "model.layers.26.mlp.up_proj.weight",
+      "model.layers.26.mlp.down_proj.weight",
+      "model.layers.27.mlp.gate_proj.weight",
+      "model.layers.27.mlp.up_proj.weight",
+      "model.layers.27.mlp.down_proj.weight"
+    ]
   },
   "manifest": {
     "hashAlgorithm": "blake3",
     "artifactIdentity": {
       "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
-      "weightPackId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-catalog-v1",
-      "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-exec-v1",
+      "weightPackId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-catalog-v2",
+      "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-exec-v2",
       "artifactCompleteness": "complete"
     },
     "eosTokenId": 151645
@@ -104,7 +190,7 @@
       "trueTokenId": 9693,
       "falseToken": "no",
       "falseTokenId": 2152,
-      "score": "logit_difference",
+      "score": "true_logit",
       "probability": "sigmoid"
     }
   },
@@ -266,17 +352,22 @@
       "residual": {
         "kernel": "residual.wgsl",
         "entry": "main",
-        "digest": "sha256:f67e3730ae48bf18b1cac8b97c6ca8a6c8db6bff3de369fe8eb8be904a431a77"
+        "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
       },
       "silu": {
         "kernel": "silu.wgsl",
         "entry": "main",
-        "digest": "sha256:d30a71436f0be40ec7ffda90a1005d7f37fd6323ebdb782114c0a42d1c544d63"
+        "digest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5"
       },
       "sample": {
         "kernel": "sample.wgsl",
         "entry": "sample_single_pass",
         "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
+      },
+      "gemv": {
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_vec4",
+        "digest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011"
       }
     },
     "preLayer": [
@@ -333,12 +424,12 @@
       ],
       [
         "gate_proj",
-        "q4_decode_gemv",
+        "gemv",
         "layer.{L}.mlp.gate_proj"
       ],
       [
         "up_proj",
-        "q4_decode_gemv",
+        "gemv",
         "layer.{L}.mlp.up_proj"
       ],
       [
@@ -347,7 +438,7 @@
       ],
       [
         "down_proj",
-        "q4_decode_gemv",
+        "gemv",
         "layer.{L}.mlp.down_proj"
       ],
       [
@@ -402,12 +493,12 @@
       ],
       [
         "gate_proj",
-        "q4_widetile",
+        "tiled",
         "layer.{L}.mlp.gate_proj"
       ],
       [
         "up_proj",
-        "q4_widetile",
+        "tiled",
         "layer.{L}.mlp.up_proj"
       ],
       [
@@ -416,7 +507,7 @@
       ],
       [
         "down_proj",
-        "q4_widetile",
+        "tiled",
         "layer.{L}.mlp.down_proj"
       ],
       [

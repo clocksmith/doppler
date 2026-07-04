@@ -12,7 +12,7 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:b216d377aa0d586f76d5646e111a5ecc9a2b28eb39245efa397a395575f37fcb",
+    "conversionConfigDigest": "sha256:89ad955de8c2cfcb481826a9a6001ce781cd57ddd47475ef2cd02f2fc078bb95",
     "conversionConfigPath": "src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af32.json",
     "manifestVariantId": "gemma-4-12b-it-text-q4k-ehf16-af32-mv-q4-fused-v1",
     "materializationProfile": "gpu_split_tables",

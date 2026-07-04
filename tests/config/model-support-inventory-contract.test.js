@@ -163,8 +163,9 @@ for (const sourceModel of inventory.sourceModels) {
       `${variant.modelId}: HF dry-run command`
     );
 
+    const isEmbeddingCompare = variant.compare.profile?.kind === 'embedding';
     const expectedCompareCommandCount = variant.compare.profile && variant.compare.benchmarkComparable
-      ? policy.benchmarkCommands.workloads.length * policy.benchmarkCommands.decodeProfiles.length
+      ? (isEmbeddingCompare ? 1 : policy.benchmarkCommands.workloads.length * policy.benchmarkCommands.decodeProfiles.length)
       : 0;
     assert.equal(
       variant.actions.compareCommands.length,
@@ -173,11 +174,17 @@ for (const sourceModel of inventory.sourceModels) {
     );
     for (const command of variant.actions.compareCommands) {
       assertIncludes(command.command, `--model-id ${variant.modelId}`, `${variant.modelId}: compare command`);
-      assertIncludes(command.command, `--mode ${policy.benchmarkCommands.mode}`, `${variant.modelId}: compare command`);
       assertIncludes(command.command, `--warmup ${policy.benchmarkCommands.warmupRuns}`, `${variant.modelId}: compare command`);
       assertIncludes(command.command, `--runs ${policy.benchmarkCommands.timedRuns}`, `${variant.modelId}: compare command`);
       assertIncludes(command.command, '--save', `${variant.modelId}: compare command`);
       assertIncludes(command.command, '--json', `${variant.modelId}: compare command`);
+      if (isEmbeddingCompare) {
+        assertIncludes(command.command, 'node tools/compare-embeddings.js', `${variant.modelId}: embedding compare command`);
+        assertIncludes(command.command, '--load-mode http', `${variant.modelId}: embedding compare command`);
+      } else {
+        assertIncludes(command.command, 'node tools/compare-engines.js', `${variant.modelId}: generation compare command`);
+        assertIncludes(command.command, `--mode ${policy.benchmarkCommands.mode}`, `${variant.modelId}: compare command`);
+      }
     }
 
     if (variant.nextGate === 'runtime-verify') {
@@ -192,8 +199,12 @@ for (const sourceModel of inventory.sourceModels) {
         variant.actions.compareCommands[0]?.command || null,
         `${variant.modelId}: compare gate must use the first policy-generated compare command`
       );
-      assertIncludes(variant.actions.primaryNextCommand, 'node tools/compare-engines.js', `${variant.modelId}: compare gate command`);
-      assertIncludes(variant.actions.primaryNextCommand, '--decode-profile parity', `${variant.modelId}: compare gate command`);
+      if (isEmbeddingCompare) {
+        assertIncludes(variant.actions.primaryNextCommand, 'node tools/compare-embeddings.js', `${variant.modelId}: compare gate command`);
+      } else {
+        assertIncludes(variant.actions.primaryNextCommand, 'node tools/compare-engines.js', `${variant.modelId}: compare gate command`);
+        assertIncludes(variant.actions.primaryNextCommand, '--decode-profile parity', `${variant.modelId}: compare gate command`);
+      }
     }
     if ([
       'conversion-config',
@@ -210,6 +221,22 @@ for (const sourceModel of inventory.sourceModels) {
     }
   }
 }
+
+const qwenEmbedding = inventory.sourceModels
+  .flatMap((sourceModel) => sourceModel.variants)
+  .find((variant) => variant.modelId === 'qwen-3-embedding-0-6b-q4k-ehf16-af32');
+assert.ok(qwenEmbedding, 'qwen-3-embedding-0-6b-q4k-ehf16-af32 must be present in support inventory');
+assert.equal(qwenEmbedding.compare.profile?.kind, 'embedding');
+assert.equal(qwenEmbedding.compare.profile?.lane, 'performance_comparable');
+assert.equal(qwenEmbedding.compare.profile?.tjsModelId, 'onnx-community/Qwen3-Embedding-0.6B-ONNX');
+assert.equal(qwenEmbedding.actions.compareCommands.length, 1);
+assertIncludes(
+  qwenEmbedding.actions.compareCommands[0].command,
+  'node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32',
+  'qwen embedding compare command'
+);
+assert.equal(qwenEmbedding.missing.includes('compare-profile'), false);
+assert.equal(qwenEmbedding.nextGate, 'hf-publish');
 
 const conversionOnlyIds = new Set(inventory.conversionOnly.map((entry) => entry.modelBaseId));
 for (const expected of ['gpt-oss-20b-f16-xmxfp4', 'janus-pro-1b-text-q4k-ehaf16']) {

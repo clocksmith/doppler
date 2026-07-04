@@ -14,7 +14,7 @@
   "modelProfiles": [
     {
       "dopplerModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
-      "defaultDopplerSource": "local",
+      "defaultDopplerSource": "quickstart-registry",
       "defaultTjsFormat": "onnx",
       "embeddingMode": "sentence-embedding",
       "embeddingPooling": "none",

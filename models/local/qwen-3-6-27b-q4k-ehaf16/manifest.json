@@ -13,7 +13,7 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:09633b8b10a992efe9ae7c39b1c52b1f076fb321affb7fff19727580038f6d35",
+    "conversionConfigDigest": "sha256:8a255b55caafea5ebb1106787455b37f75068c716cb61c4cd40f7f3f33af0585",
     "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-6-27b-q4k-ehaf16.json",
     "manifestVariantId": "qwen-3-6-27b-q4k-ehaf16-mv-exec-v1",
     "materializationProfile": "auto",

@@ -15,7 +15,7 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:df6bcbb441dda45739beb25be54b5fa33e36c088818f25b06b3351b7c337b0e4",
+    "conversionConfigDigest": "sha256:38c7dd9811660839d580f198b4dd6f3e10d4f577c00052fc75565e18ea1cd5ec",
     "conversionConfigPath": "src/config/conversion/gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16.json",
     "manifestVariantId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16-mv-w4a16-ct-reference-f16-dequant-v1",
     "materializationProfile": "gpu_split_tables",

@@ -41,13 +41,16 @@ try {
       yarnBetaFast: null,
       yarnBetaSlow: null,
       yarnOriginalMaxPos: null,
+      longropeShortFactor: null,
+      longropeLongFactor: null,
+      longropeOriginalMaxPos: null,
       ropeLocalYarnBetaFast: null,
       ropeLocalYarnBetaSlow: null,
       ropeLocalYarnOriginalMaxPos: null,
     },
-    output: { scaleEmbeddings: true, tieWordEmbeddings: false, embeddingTranspose: false, embeddingVocabSize: null, finalLogitSoftcapping: null, embeddingPostprocessor: null },
+    output: { scaleEmbeddings: true, embeddingScale: null, logitInputScale: 1, tieWordEmbeddings: false, embeddingTranspose: false, embeddingVocabSize: null, finalLogitSoftcapping: null, embeddingPostprocessor: null },
     chatTemplate: { type: 'gemma', enabled: true },
-    layerPattern: { type: 'every_n', globalPattern: null, period: 6, offset: 0 },
+    layerPattern: { type: 'every_n', globalPattern: null, period: 6, offset: 0, residualBranchScale: 1 },
   };
   const v1Session = {
     compute: { defaults: { activationDtype: 'f16', mathDtype: 'f16', accumDtype: 'f32', outputDtype: 'f16' } },

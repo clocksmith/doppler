@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 
 import {
   formatRerankPrompt,
+  resolveRerankScoringConfig,
   runRerank,
   runRerankSemanticChecks,
   scoreRerankDocument,
@@ -75,6 +76,43 @@ assert.equal(score.score, 6);
 assert.ok(score.probability > 0.99);
 assert.equal(pipeline.resetCount, 1);
 
+const trueLogitScoringConfig = {
+  ...scoringConfig,
+  score: 'true_logit',
+};
+const trueLogitPipeline = {
+  manifest: {
+    inference: {
+      supportsRerank: true,
+      rerank: trueLogitScoringConfig,
+    },
+  },
+  resetCount: 0,
+  reset() {
+    this.resetCount++;
+  },
+  async prefillWithLogits(_prompt, options) {
+    assert.equal(options.useChatTemplate, false);
+    const logits = new Float32Array(4);
+    logits[trueLogitScoringConfig.trueTokenId] = 1.25;
+    logits[trueLogitScoringConfig.falseTokenId] = 99;
+    return { tokens: [1, 2], logits };
+  },
+};
+const trueLogitResolvedConfig = resolveRerankScoringConfig(trueLogitPipeline);
+assert.equal(trueLogitResolvedConfig.score, 'true_logit');
+const trueLogitScore = await scoreRerankDocument(
+  trueLogitPipeline,
+  'q',
+  'd',
+  trueLogitResolvedConfig
+);
+assert.equal(trueLogitScore.score, 1.25);
+assert.equal(trueLogitScore.trueLogit, 1.25);
+assert.equal(trueLogitScore.falseLogit, 99);
+assert.ok(trueLogitScore.probability > 0.77);
+assert.equal(trueLogitPipeline.resetCount, 1);
+
 const run = await runRerank(pipeline, {
   inference: {
     rerank: {
@@ -111,6 +149,19 @@ assert.equal(semantic.pairs[0].margin, 12);
 assert.throws(
   () => formatRerankPrompt('q', 'd', { ...scoringConfig, inputTemplate: '{query} {document}' }),
   /inputTemplate is missing \{instruction\}/
+);
+assert.throws(
+  () => resolveRerankScoringConfig({
+    manifest: {
+      inference: {
+        rerank: {
+          ...scoringConfig,
+          score: 'implicit_default',
+        },
+      },
+    },
+  }),
+  /Unsupported rerank score policy "implicit_default"/
 );
 
 console.log('rerank-scoring-details.test: ok');

@@ -1,0 +1,546 @@
+{
+  "mode": "bench",
+  "workload": "rerank",
+  "suite": "bench",
+  "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+  "runtimeProfile": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": true,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "radeon-8060s-graphics-radv-strix-halo-",
+      "description": "radv: Mesa 26.0.3-1ubuntu1"
+    },
+    "submitProbeMs": 0.5960899999999754
+  },
+  "results": [
+    {
+      "name": "benchmark-rerank",
+      "passed": true,
+      "duration": 7734.428180999998
+    },
+    {
+      "name": "benchmark-rerank-semantic",
+      "passed": true,
+      "duration": 5042.2646110000005
+    }
+  ],
+  "durationMs": 15150.289514999999,
+  "timestamp": "2026-07-04T18:43:20.530Z",
+  "metrics": {
+    "warmupRuns": 1,
+    "timedRuns": 5,
+    "validRuns": 5,
+    "invalidRuns": 0,
+    "invalidRatePct": 0,
+    "query": "What API exposes GPU hardware for browser compute workloads?",
+    "documentCount": 3,
+    "topDocumentIndex": 0,
+    "topDocumentScore": 4.378829,
+    "topDocumentProbability": 0.987615,
+    "topDocumentScoreStats": {
+      "mean": 4.378829002380371,
+      "median": 4.378829002380371,
+      "min": 4.378829002380371,
+      "max": 4.378829002380371,
+      "p95": 4.378829002380371,
+      "p99": 4.378829002380371,
+      "stdDev": 0,
+      "ci95": 0,
+      "samples": 5,
+      "samplesAfterOutlierRemoval": 5,
+      "outliersRemoved": 0
+    },
+    "topDocumentProbabilityStats": {
+      "mean": 0.9876152705558165,
+      "median": 0.9876152705558167,
+      "min": 0.9876152705558167,
+      "max": 0.9876152705558167,
+      "p95": 0.9876152705558167,
+      "p99": 0.9876152705558167,
+      "stdDev": 1.2412670766236366e-16,
+      "ci95": 1.4432899320127036e-16,
+      "samples": 5,
+      "samplesAfterOutlierRemoval": 5,
+      "outliersRemoved": 0
+    },
+    "nonFiniteScores": 0,
+    "firstTimedRerankMs": 1552.38,
+    "minRerankMs": 1539.5,
+    "medianRerankMs": 1546.27,
+    "p95RerankMs": 1552.7,
+    "p99RerankMs": 1552.76,
+    "maxRerankMs": 1552.77,
+    "stdDevRerankMs": 5.73,
+    "ci95RerankMs": 6.66,
+    "avgRerankMs": 1546.89,
+    "avgReranksPerSec": 0.65,
+    "semanticPassed": true,
+    "semanticDurationMs": 5042.26,
+    "semanticPairAcc": 1,
+    "semanticPairPassed": 5,
+    "semanticPairTotal": 5,
+    "semanticMinPairAcc": 0.8,
+    "semanticMinScoreMargin": 0,
+    "semanticFailedCases": [],
+    "semanticDetails": {
+      "pairs": [
+        {
+          "id": "china_capital",
+          "query": "What is the capital of China?",
+          "positive": "The capital of China is Beijing.",
+          "negative": "Gravity is a force that attracts two bodies towards each other.",
+          "passed": true,
+          "positiveScore": 4.094617,
+          "negativeScore": 2.950048,
+          "positiveProbability": 0.983611,
+          "negativeProbability": 0.950266,
+          "margin": 1.144569
+        },
+        {
+          "id": "password_reset",
+          "query": "How do I reset my account password?",
+          "positive": "To reset your password, open account settings and choose the forgot-password flow.",
+          "negative": "The recipe combines tomatoes, basil, and olive oil.",
+          "passed": true,
+          "positiveScore": 3.652201,
+          "negativeScore": 2.377709,
+          "positiveProbability": 0.974722,
+          "negativeProbability": 0.915112,
+          "margin": 1.274492
+        },
+        {
+          "id": "python_sort",
+          "query": "How do I sort a list in Python?",
+          "positive": "Use sorted() or list.sort() to sort a list in Python.",
+          "negative": "The cafe serves coffee and pastries.",
+          "passed": true,
+          "positiveScore": 3.244926,
+          "negativeScore": 2.612016,
+          "positiveProbability": 0.96249,
+          "negativeProbability": 0.931631,
+          "margin": 0.63291
+        },
+        {
+          "id": "webgpu_compute",
+          "query": "What API exposes GPU hardware for browser compute workloads?",
+          "positive": "WebGPU provides low-level access to graphics processors for compute workloads.",
+          "negative": "WebSocket provides full-duplex communication over TCP.",
+          "passed": true,
+          "positiveScore": 4.378829,
+          "negativeScore": 3.613758,
+          "positiveProbability": 0.987615,
+          "negativeProbability": 0.973757,
+          "margin": 0.765071
+        },
+        {
+          "id": "vaccines",
+          "query": "How do vaccines work?",
+          "positive": "Vaccines train the immune system to recognize future infections.",
+          "negative": "The symphony orchestra has strings, woodwinds, brass, and percussion.",
+          "passed": true,
+          "positiveScore": 4.325874,
+          "negativeScore": 2.778361,
+          "positiveProbability": 0.986951,
+          "negativeProbability": 0.941495,
+          "margin": 1.547513
+        }
+      ]
+    },
+    "modelLoadMs": 678.95,
+    "latency": {
+      "timedRerankMs": {
+        "mean": 1546.8856361999997,
+        "median": 1546.2650999999996,
+        "min": 1539.5036839999993,
+        "max": 1552.7748909999991,
+        "p95": 1552.6959379999994,
+        "p99": 1552.7591003999992,
+        "stdDev": 5.726777392440244,
+        "ci95": 6.658841041582796,
+        "samples": 5,
+        "samplesAfterOutlierRemoval": 5,
+        "outliersRemoved": 0
+      },
+      "rerankMs": {
+        "mean": 1546.8856361999997,
+        "median": 1546.2650999999996,
+        "min": 1539.5036839999993,
+        "max": 1552.7748909999991,
+        "p95": 1552.6959379999994,
+        "p99": 1552.7591003999992,
+        "stdDev": 5.726777392440244,
+        "ci95": 6.658841041582796,
+        "samples": 5,
+        "samplesAfterOutlierRemoval": 5,
+        "outliersRemoved": 0
+      }
+    },
+    "documents": {
+      "count": {
+        "mean": 3,
+        "median": 3,
+        "min": 3,
+        "max": 3,
+        "p95": 3,
+        "p99": 3,
+        "stdDev": 0,
+        "ci95": 0,
+        "samples": 5,
+        "samplesAfterOutlierRemoval": 5,
+        "outliersRemoved": 0
+      }
+    },
+    "load": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "semantics": {
+        "modelLoadMs": "suite initialization time before generation",
+        "loaderTotalMs": "DopplerLoader.load() weight-loader wall time",
+        "pipelineTotalMs": "InferencePipeline.loadModel() wall time",
+        "modelLoadMinusPipelineMs": "modelLoadMs - pipeline.totalMs; harness, storage, manifest, GPU init, and pipeline construction",
+        "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
+        "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
+      },
+      "modelLoadMs": 678.95,
+      "loader": {
+        "schemaVersion": 1,
+        "source": "doppler-loader",
+        "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+        "status": "complete",
+        "customShardLoader": true,
+        "byteAccountingMode": "custom-loader-progress-unavailable",
+        "totalBytes": 938321920,
+        "totalShards": 14,
+        "bytesLoaded": 0,
+        "shardsLoaded": 0,
+        "bytesPerSecond": 0,
+        "phasesMs": {
+          "preflight": 1.28,
+          "tensorLocations": 1.23,
+          "embeddings": 91.85,
+          "layers": 284.57,
+          "finalWeights": 0.99,
+          "cleanup": 0.05
+        },
+        "layers": {
+          "count": 28,
+          "totalMs": 264.25,
+          "meanMs": 9.44,
+          "maxMs": 18.08,
+          "maxLayer": 0
+        },
+        "totalMs": 380.37,
+        "failedPhase": null,
+        "error": null
+      },
+      "pipeline": {
+        "schemaVersion": 1,
+        "source": "doppler-pipeline",
+        "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+        "status": "complete",
+        "phasesMs": {
+          "reset": 0.07,
+          "configResolution": 5.3,
+          "kernelWarmup": 0.05,
+          "tokenizer": 162.51,
+          "executionSetup": 19.11,
+          "loadWeights": 422.22,
+          "rope": 49.5,
+          "convStates": 0.46
+        },
+        "details": {
+          "tokenizer": {
+            "schemaVersion": 1,
+            "source": "doppler-tokenizer",
+            "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+            "status": "complete",
+            "tokenizerType": "bundled",
+            "tokenizerFile": "tokenizer.json",
+            "backend": "bundled",
+            "assetSource": "custom-loader",
+            "cacheHit": false,
+            "phasesMs": {
+              "configResolution": 0.04,
+              "cacheLookup": 0.04,
+              "backendCreate": 0.07,
+              "assetLoad": 78.63,
+              "assetParse": 0.18,
+              "backendLoad": 83.1,
+              "cacheStore": 0.01
+            },
+            "totalMs": 162.23,
+            "error": null
+          }
+        },
+        "totalMs": 659.49
+      },
+      "residualsMs": {
+        "modelLoadMinusLoaderMs": 298.58,
+        "modelLoadMinusPipelineMs": 19.46,
+        "pipelineMinusLoaderMs": 279.12
+      },
+      "consistent": {
+        "loaderWithinModelLoad": true,
+        "pipelineWithinModelLoad": true,
+        "loaderWithinPipeline": true
+      }
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "bench",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-reranker-0-6b-q4k-ehf16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "qwen-3-reranker-0-6b-q4k-ehf16-af32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 4,
+        "headDim": 128,
+        "kvLen": 8192,
+        "coldQuantMode": "none",
+        "contiguousQuantMode": "none"
+      },
+      "steps": {
+        "total": 35,
+        "attention": 2,
+        "attentionPhases": {
+          "prefill": 1,
+          "decode": 1,
+          "both": 0
+        }
+      }
+    },
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "qwen-3-reranker-0-6b-q4k-ehf16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "qwen-3-reranker-0-6b-q4k-ehf16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 51,
+        "nullableCases": 27,
+        "nonNullableCases": 24
+      }
+    }
+  },
+  "output": {
+    "mode": "rerank",
+    "query": "What API exposes GPU hardware for browser compute workloads?",
+    "documentCount": 3,
+    "topDocument": {
+      "index": 0,
+      "document": "WebGPU provides low-level access to graphics processors for compute workloads.",
+      "score": 4.378829002380371,
+      "probability": 0.9876152705558167
+    },
+    "ranking": [
+      {
+        "rank": 1,
+        "index": 0,
+        "document": "WebGPU provides low-level access to graphics processors for compute workloads.",
+        "score": 4.378829,
+        "probability": 0.987615,
+        "trueLogit": 4.378829,
+        "falseLogit": 3.667482,
+        "tokenCount": 96
+      },
+      {
+        "rank": 2,
+        "index": 2,
+        "document": "CSS grid arranges page layout rows and columns.",
+        "score": 3.930842,
+        "probability": 0.980751,
+        "trueLogit": 3.930842,
+        "falseLogit": 2.149146,
+        "tokenCount": 92
+      },
+      {
+        "rank": 3,
+        "index": 1,
+        "document": "WebSocket provides full-duplex communication over TCP.",
+        "score": 3.613758,
+        "probability": 0.973757,
+        "trueLogit": 3.613758,
+        "falseLogit": 2.606903,
+        "tokenCount": 92
+      }
+    ],
+    "semantic": {
+      "passed": true,
+      "pairAcc": 1,
+      "failedCaseIds": [],
+      "details": {
+        "pairs": [
+          {
+            "id": "china_capital",
+            "query": "What is the capital of China?",
+            "positive": "The capital of China is Beijing.",
+            "negative": "Gravity is a force that attracts two bodies towards each other.",
+            "passed": true,
+            "positiveScore": 4.094617,
+            "negativeScore": 2.950048,
+            "positiveProbability": 0.983611,
+            "negativeProbability": 0.950266,
+            "margin": 1.144569
+          },
+          {
+            "id": "password_reset",
+            "query": "How do I reset my account password?",
+            "positive": "To reset your password, open account settings and choose the forgot-password flow.",
+            "negative": "The recipe combines tomatoes, basil, and olive oil.",
+            "passed": true,
+            "positiveScore": 3.652201,
+            "negativeScore": 2.377709,
+            "positiveProbability": 0.974722,
+            "negativeProbability": 0.915112,
+            "margin": 1.274492
+          },
+          {
+            "id": "python_sort",
+            "query": "How do I sort a list in Python?",
+            "positive": "Use sorted() or list.sort() to sort a list in Python.",
+            "negative": "The cafe serves coffee and pastries.",
+            "passed": true,
+            "positiveScore": 3.244926,
+            "negativeScore": 2.612016,
+            "positiveProbability": 0.96249,
+            "negativeProbability": 0.931631,
+            "margin": 0.63291
+          },
+          {
+            "id": "webgpu_compute",
+            "query": "What API exposes GPU hardware for browser compute workloads?",
+            "positive": "WebGPU provides low-level access to graphics processors for compute workloads.",
+            "negative": "WebSocket provides full-duplex communication over TCP.",
+            "passed": true,
+            "positiveScore": 4.378829,
+            "negativeScore": 3.613758,
+            "positiveProbability": 0.987615,
+            "negativeProbability": 0.973757,
+            "margin": 0.765071
+          },
+          {
+            "id": "vaccines",
+            "query": "How do vaccines work?",
+            "positive": "Vaccines train the immune system to recognize future infections.",
+            "negative": "The symphony orchestra has strings, woodwinds, brass, and percussion.",
+            "passed": true,
+            "positiveScore": 4.325874,
+            "negativeScore": 2.778361,
+            "positiveProbability": 0.986951,
+            "negativeProbability": 0.941495,
+            "margin": 1.547513
+          }
+        ]
+      }
+    }
+  },
+  "memory": {
+    "used": 1839797248,
+    "pool": {
+      "allocations": 7040,
+      "reuses": 6348,
+      "totalBytesAllocated": 4910683136,
+      "peakBytesAllocated": 1390810112,
+      "currentBytesAllocated": 1370035200,
+      "totalBytesRequested": 4799340544,
+      "peakBytesRequested": 1354869248,
+      "currentBytesRequested": 1311614976,
+      "activeBuffers": 424,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "47.4%"
+    },
+    "kvCache": {
+      "theoretical": 469762048,
+      "allocated": 469762048,
+      "used": 10551296,
+      "efficiency": 0.0224609375,
+      "seqLen": 92,
+      "maxSeqLen": 4096,
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 0,
+        "recordedGpuUpdateCalls": 784,
+        "tokensWritten": 72464
+      }
+    }
+  },
+  "debugSnapshot": null
+}

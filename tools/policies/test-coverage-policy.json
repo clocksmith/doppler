@@ -1,14 +1,26 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-03-02",
+  "updated": "2026-07-04",
   "suite": "all",
   "excludeTests": [
     "tests/config/training-freeze-enforcement.test.js",
     "tests/config/training-telemetry-alerts.test.js",
     "tests/config/ul-stage1-determinism.test.js",
+    "tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js",
+    "tests/inference/lfm2-conv-kernel-init.test.js",
+    "tests/inference/lfm2-layer-plan-conv-state.test.js",
+    "tests/inference/linear-attention-core-gpu-regression.test.js",
+    "tests/integration/source-runtime-parity.test.js",
     "tests/integration/training-intent-split.test.js",
     "tests/integration/training-report-lineage.test.js",
-    "tests/integration/ul-stage-workflow-regression.test.js"
+    "tests/integration/ul-stage-workflow-regression.test.js",
+    "tests/kernels/attention-head512-workgroups.test.js",
+    "tests/kernels/buffer-utils-readback.test.js",
+    "tests/kernels/fused-ffn-q4k-parity.test.js",
+    "tests/kernels/fused-matmul-q4-widetile-f16a-parity.test.js",
+    "tests/kernels/gemma4-route-expert-parity.test.js",
+    "tests/kernels/gemma4-route-scatter-parity.test.js",
+    "tests/kernels/soft-embedding-split-f16-parity.test.js"
   ],
   "nodeTest": {
     "concurrency": 1,

@@ -176,6 +176,9 @@ function createGemma4EveryNManifest() {
         yarnBetaFast: null,
         yarnBetaSlow: null,
         yarnOriginalMaxPos: null,
+        longropeShortFactor: null,
+        longropeLongFactor: null,
+        longropeOriginalMaxPos: null,
         ropeLocalYarnBetaFast: null,
         ropeLocalYarnBetaSlow: null,
         ropeLocalYarnOriginalMaxPos: null,
@@ -183,6 +186,8 @@ function createGemma4EveryNManifest() {
       output: {
         tieWordEmbeddings: true,
         scaleEmbeddings: true,
+        embeddingScale: null,
+        logitInputScale: 1,
         embeddingTranspose: false,
         finalLogitSoftcapping: 30,
         embeddingVocabSize: null,
@@ -194,6 +199,7 @@ function createGemma4EveryNManifest() {
         period: 5,
         offset: 4,
         layerTypes: null,
+        residualBranchScale: 1,
       },
       chatTemplate: {
         type: 'gemma4',

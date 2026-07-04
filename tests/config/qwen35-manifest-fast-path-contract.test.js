@@ -108,7 +108,7 @@ const qwen08ConfigDecodeLoop = Object.freeze({
 const qwen08ManifestDecodeLoop = Object.freeze({
   batchSize: 4,
   stopCheckMode: 'batch',
-  readbackInterval: 32,
+  readbackInterval: 8,
   readbackMode: 'sequential',
   submitLatencyThresholdMs: null,
   ringTokens: 1,

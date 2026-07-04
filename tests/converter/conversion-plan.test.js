@@ -32,6 +32,27 @@ const converterConfig = createConverterConfig();
 }
 
 {
+  const reconciled = resolveEffectiveQuantizationInfo(
+    {
+      weights: 'q4k',
+      embeddings: 'f16',
+      compute: 'f32',
+      layout: 'row',
+      variantTag: 'q4k-ehf16-af32',
+    },
+    [
+      { name: 'model.embed_tokens.weight', role: 'embedding', dtype: 'F16' },
+      { name: 'model.layers.0.mlp.down_proj.weight', role: 'matmul', dtype: 'F16' },
+      { name: 'model.layers.0.self_attn.q_proj.weight', role: 'matmul', dtype: 'Q4_K_M', layout: 'row' },
+    ]
+  );
+  assert.equal(reconciled.weights, 'q4k');
+  assert.equal(reconciled.embeddings, 'f16');
+  assert.equal(reconciled.layout, 'row');
+  assert.equal(reconciled.variantTag, 'q4k-ehf16-af32');
+}
+
+{
   // Legacy (non-v1) configs are rejected with an actionable error.
   assert.throws(
     () => resolveConversionPlan({
@@ -203,6 +224,9 @@ const converterConfig = createConverterConfig();
         yarnBetaFast: null,
         yarnBetaSlow: null,
         yarnOriginalMaxPos: null,
+        longropeShortFactor: null,
+        longropeLongFactor: null,
+        longropeOriginalMaxPos: null,
         ropeLocalYarnBetaFast: null,
         ropeLocalYarnBetaSlow: null,
         ropeLocalYarnOriginalMaxPos: null,
@@ -211,6 +235,8 @@ const converterConfig = createConverterConfig();
         finalLogitSoftcapping: 30,
         tieWordEmbeddings: true,
         scaleEmbeddings: true,
+        embeddingScale: null,
+        logitInputScale: 1,
         embeddingTranspose: false,
         embeddingVocabSize: null,
         embeddingPostprocessor: null,
@@ -221,6 +247,7 @@ const converterConfig = createConverterConfig();
         period: 5,
         offset: 4,
         layerTypes: null,
+        residualBranchScale: 1,
       },
       chatTemplate: {
         type: 'gemma4',

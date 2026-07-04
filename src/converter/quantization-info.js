@@ -570,7 +570,7 @@ export function resolveEffectiveQuantizationInfo(baseInfo, tensors) {
   const base = (baseInfo && typeof baseInfo === 'object') ? baseInfo : {};
   const entries = Array.isArray(tensors) ? tensors : [];
 
-  let detectedWeights = null;
+  const detectedWeightDtypes = new Set();
   let detectedEmbeddings = null;
   let detectedLmHead = null;
   let detectedLayout = null;
@@ -590,15 +590,27 @@ export function resolveEffectiveQuantizationInfo(baseInfo, tensors) {
       continue;
     }
     if (role === 'matmul' || role === 'expert' || role === 'router') {
-      detectedWeights = detectedWeights ?? dtype;
+      detectedWeightDtypes.add(dtype);
       if (detectedLayout == null && (dtype === 'q4k') && tensor?.layout) {
         detectedLayout = normalizeQ4KLayout(tensor.layout);
       }
     }
   }
 
-  const weights = detectedWeights
-    ?? normalizeQuantTag(base.weights ?? 'f16');
+  const baseWeights = normalizeQuantTag(base.weights ?? 'f16');
+  let weights = baseWeights;
+  if (detectedWeightDtypes.size === 1) {
+    weights = [...detectedWeightDtypes][0];
+  } else if (detectedWeightDtypes.size > 1) {
+    if (detectedWeightDtypes.has(baseWeights)) {
+      weights = baseWeights;
+    } else {
+      throw new Error(
+        `Ambiguous converted weight dtypes: ${[...detectedWeightDtypes].sort().join(', ')}. ` +
+        `Configured quantizationInfo.weights="${baseWeights}" is not present in converted matmul tensors.`
+      );
+    }
+  }
   const embeddings = detectedEmbeddings
     ?? normalizeQuantTag(base.embeddings ?? weights);
   const lmHead = detectedLmHead

@@ -84,6 +84,9 @@ function createDiffusionGemmaManifest(branchMode = 'dense_plus_moe') {
         ropeLocalYarnBetaFast: null,
         ropeLocalYarnBetaSlow: null,
         ropeLocalYarnOriginalMaxPos: null,
+        longropeShortFactor: null,
+        longropeLongFactor: null,
+        longropeOriginalMaxPos: null,
       },
       output: {
         tieWordEmbeddings: true,
@@ -92,6 +95,8 @@ function createDiffusionGemmaManifest(branchMode = 'dense_plus_moe') {
         finalLogitSoftcapping: 30,
         embeddingVocabSize: null,
         embeddingPostprocessor: null,
+        embeddingScale: null,
+        logitInputScale: 1,
       },
       layerPattern: {
         type: 'custom',
@@ -99,6 +104,7 @@ function createDiffusionGemmaManifest(branchMode = 'dense_plus_moe') {
         period: null,
         offset: null,
         layerTypes: Array.from({ length: 30 }, (_, index) => (index + 1) % 6 === 0 ? 'full_attention' : 'sliding_attention'),
+        residualBranchScale: 1,
       },
       chatTemplate: {
         type: 'gemma4',

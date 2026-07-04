@@ -241,12 +241,12 @@
       "residual": {
         "kernel": "residual.wgsl",
         "entry": "main",
-        "digest": "sha256:f67e3730ae48bf18b1cac8b97c6ca8a6c8db6bff3de369fe8eb8be904a431a77"
+        "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
       },
       "silu": {
         "kernel": "silu.wgsl",
         "entry": "main",
-        "digest": "sha256:d30a71436f0be40ec7ffda90a1005d7f37fd6323ebdb782114c0a42d1c544d63"
+        "digest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5"
       },
       "sample": {
         "kernel": "sample.wgsl",

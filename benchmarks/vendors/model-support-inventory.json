@@ -8,6 +8,7 @@
     "benchmarks/vendors/benchmark-policy.json",
     "benchmarks/vendors/workloads.json",
     "benchmarks/vendors/compare-engines.config.json",
+    "benchmarks/vendors/embedding-compare.config.json",
     "benchmarks/vendors/local-inference-claim-matrix.json",
     "benchmarks/vendors/release-matrix.json",
     "tools/policies/release-claim-policy.json"
@@ -107,7 +108,7 @@
     "sourceCheckpointCount": 16,
     "conversionOnlyConfigCount": 7,
     "hfPublishedModelCount": 10,
-    "verifiedModelCount": 19,
+    "verifiedModelCount": 20,
     "benchmarkSelectedSourceCount": 1,
     "benchmarkPendingSourceCount": 15,
     "tierCounts": {
@@ -182,9 +183,11 @@
           "quickstart": true,
           "compare": {
             "profile": {
+              "kind": "generation",
               "dopplerSource": "quickstart-registry",
               "dopplerFormat": "rdrr",
               "tjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
+              "tjsDtype": null,
               "tjsFormat": "onnx",
               "lane": "performance_comparable",
               "laneReason": null
@@ -286,9 +289,11 @@
           "quickstart": false,
           "compare": {
             "profile": {
+              "kind": "generation",
               "dopplerSource": "local",
               "dopplerFormat": "rdrr",
               "tjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
+              "tjsDtype": null,
               "tjsFormat": "onnx",
               "lane": "performance_comparable",
               "laneReason": null
@@ -417,14 +422,16 @@
           "quickstart": true,
           "compare": {
             "profile": {
+              "kind": "embedding",
               "dopplerSource": "quickstart-registry",
-              "dopplerFormat": "rdrr",
+              "dopplerFormat": null,
               "tjsModelId": "onnx-community/embeddinggemma-300m-ONNX",
+              "tjsDtype": "q4",
               "tjsFormat": "onnx",
-              "lane": "capability_only",
-              "laneReason": "Embedding models use a separate workload contract and are not part of the text-generation compare lane."
+              "lane": "performance_comparable",
+              "laneReason": "Embedding-specific lane using shared prompt, semantic fixture, and browser WebGPU Transformers.js ONNX baseline."
             },
-            "benchmarkComparable": false,
+            "benchmarkComparable": true,
             "benchmarkEvidenceOk": false
           },
           "evidence": {
@@ -439,18 +446,25 @@
           "actions": {
             "verifyCommand": "node tools/run-registry-verify.js google-embeddinggemma-300m-q4k-ehf16-af32 --surface auto",
             "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id google-embeddinggemma-300m-q4k-ehf16-af32 --dry-run",
-            "compareCommands": [],
-            "primaryNextCommand": null
+            "compareCommands": [
+              {
+                "workloadId": "embedding",
+                "decodeProfile": null,
+                "command": "node tools/compare-embeddings.js --model-id google-embeddinggemma-300m-q4k-ehf16-af32 --warmup 1 --runs 3 --doppler-source quickstart-registry --doppler-surface auto --cache-mode warm --load-mode http --save --json"
+              }
+            ],
+            "primaryNextCommand": "node tools/compare-embeddings.js --model-id google-embeddinggemma-300m-q4k-ehf16-af32 --warmup 1 --runs 3 --doppler-source quickstart-registry --doppler-surface auto --cache-mode warm --load-mode http --save --json"
           },
           "missing": [
-            "benchmark-lane-capability-only"
+            "compare-result",
+            "summary-svg"
           ],
-          "nextGate": "benchmark-lane-capability-only"
+          "nextGate": "compare-result"
         }
       ],
-      "nextAction": "Decide whether google-embeddinggemma-300m-q4k-ehf16-af32 needs a claimable generation compare lane or stays capability-only.",
-      "nextGate": "benchmark-lane-capability-only",
-      "nextCommand": null
+      "nextAction": "Run compare/bench receipts for google-embeddinggemma-300m-q4k-ehf16-af32.",
+      "nextGate": "compare-result",
+      "nextCommand": "node tools/compare-embeddings.js --model-id google-embeddinggemma-300m-q4k-ehf16-af32 --warmup 1 --runs 3 --doppler-source quickstart-registry --doppler-surface auto --cache-mode warm --load-mode http --save --json"
     },
     {
       "sourceCheckpointId": "LiquidAI/LFM2.5-1.2B-Instruct",
@@ -512,9 +526,11 @@
           "quickstart": false,
           "compare": {
             "profile": {
+              "kind": "generation",
               "dopplerSource": "local",
               "dopplerFormat": "rdrr",
               "tjsModelId": "LiquidAI/LFM2.5-1.2B-Instruct-ONNX",
+              "tjsDtype": null,
               "tjsFormat": "onnx",
               "lane": "performance_comparable",
               "laneReason": null
@@ -676,6 +692,165 @@
       "nextCommand": "node tools/run-registry-verify.js minicpm4-0-5b-f16-af32 --surface auto"
     },
     {
+      "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
+      "family": "qwen3",
+      "tier": "small",
+      "minSizeBytes": 938321920,
+      "minSizeLabel": "0.87 GiB",
+      "status": "benchmark-comparison-needed",
+      "preferredArchitecture": {
+        "status": "pending-benchmark-comparison",
+        "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "evidence": {
+          "runtimeReport": "reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-04T18-42-51.669Z.json",
+          "compareResult": null,
+          "summarySvg": null
+        }
+      },
+      "variants": [
+        {
+          "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+          "label": "Qwen3 Reranker 0.6B (Q4K/F32a)",
+          "family": "qwen3",
+          "modes": [
+            "rerank"
+          ],
+          "sizeBytes": 938321920,
+          "sizeLabel": "0.87 GiB",
+          "tier": "small",
+          "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
+          "weightPackId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-catalog-v2",
+          "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-exec-v2",
+          "artifactCompleteness": "complete",
+          "runtimePromotionState": "manifest-owned",
+          "conversionConfig": "src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json",
+          "architecture": {
+            "artifactFormat": "rdrr",
+            "weights": "q4k",
+            "embeddings": "f16",
+            "lmHead": "f16",
+            "computePrecision": "f32",
+            "q4kLayout": "row",
+            "label": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout"
+          },
+          "lifecycle": {
+            "runtime": "active",
+            "conversion": "ready",
+            "tested": "verified",
+            "result": "pass",
+            "lastVerifiedAt": "2026-07-04",
+            "surfaces": [
+              "node"
+            ]
+          },
+          "hf": {
+            "published": false,
+            "repoId": "Clocksmith/rdrr",
+            "revision": null,
+            "path": "models/qwen-3-reranker-0-6b-q4k-ehf16-af32"
+          },
+          "quickstart": false,
+          "compare": {
+            "profile": null,
+            "benchmarkComparable": false,
+            "benchmarkEvidenceOk": false
+          },
+          "evidence": {
+            "runtimeReport": "reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-04T18-42-51.669Z.json",
+            "runtimeReportExists": true,
+            "compareResult": null,
+            "compareResultExists": false,
+            "summarySvg": null,
+            "summarySvgExists": false,
+            "localClaimLaneId": null
+          },
+          "actions": {
+            "verifyCommand": "node tools/run-registry-verify.js qwen-3-reranker-0-6b-q4k-ehf16-af32 --surface auto",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-q4k-ehf16-af32 --dry-run --bootstrap",
+            "compareCommands": [],
+            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-q4k-ehf16-af32 --dry-run --bootstrap"
+          },
+          "missing": [
+            "hf-publish",
+            "compare-profile"
+          ],
+          "nextGate": "hf-publish"
+        },
+        {
+          "modelId": "qwen-3-reranker-0-6b-f16-af32",
+          "label": "Qwen3 Reranker 0.6B (F16/F32a)",
+          "family": "qwen3",
+          "modes": [
+            "rerank"
+          ],
+          "sizeBytes": 1191553024,
+          "sizeLabel": "1.11 GiB",
+          "tier": "small",
+          "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
+          "weightPackId": "qwen-3-reranker-0-6b-f16-af32-wp-catalog-v1",
+          "manifestVariantId": "qwen-3-reranker-0-6b-f16-af32-mv-exec-v1",
+          "artifactCompleteness": "complete",
+          "runtimePromotionState": "manifest-owned",
+          "conversionConfig": "src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-af32.json",
+          "architecture": {
+            "artifactFormat": "rdrr",
+            "weights": "f16",
+            "embeddings": "f16",
+            "lmHead": "f16",
+            "computePrecision": "f32",
+            "q4kLayout": null,
+            "label": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute"
+          },
+          "lifecycle": {
+            "runtime": "active",
+            "conversion": "ready",
+            "tested": "verified",
+            "result": "pass",
+            "lastVerifiedAt": "2026-07-04",
+            "surfaces": [
+              "node"
+            ]
+          },
+          "hf": {
+            "published": false,
+            "repoId": "Clocksmith/rdrr",
+            "revision": null,
+            "path": "models/qwen-3-reranker-0-6b-f16-af32"
+          },
+          "quickstart": false,
+          "compare": {
+            "profile": null,
+            "benchmarkComparable": false,
+            "benchmarkEvidenceOk": false
+          },
+          "evidence": {
+            "runtimeReport": "reports/release-claims/qwen-3-reranker-0-6b-f16-af32/2026-07-04T02-00-00.000Z.json",
+            "runtimeReportExists": true,
+            "compareResult": null,
+            "compareResultExists": false,
+            "summarySvg": null,
+            "summarySvgExists": false,
+            "localClaimLaneId": null
+          },
+          "actions": {
+            "verifyCommand": "node tools/run-registry-verify.js qwen-3-reranker-0-6b-f16-af32 --surface auto",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-f16-af32 --dry-run --bootstrap",
+            "compareCommands": [],
+            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-f16-af32 --dry-run --bootstrap"
+          },
+          "missing": [
+            "hf-publish",
+            "compare-profile"
+          ],
+          "nextGate": "hf-publish"
+        }
+      ],
+      "nextAction": "Publish or refresh the Hugging Face manifest/weights for qwen-3-reranker-0-6b-q4k-ehf16-af32.",
+      "nextGate": "hf-publish",
+      "nextCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-q4k-ehf16-af32 --dry-run --bootstrap"
+    },
+    {
       "sourceCheckpointId": "google/gemma-3-1b-it",
       "family": "gemma3",
       "tier": "small",
@@ -738,9 +913,11 @@
           "quickstart": true,
           "compare": {
             "profile": {
+              "kind": "generation",
               "dopplerSource": "quickstart-registry",
               "dopplerFormat": "rdrr",
               "tjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+              "tjsDtype": null,
               "tjsFormat": "onnx",
               "lane": "performance_comparable",
               "laneReason": null
@@ -868,9 +1045,11 @@
           "quickstart": true,
           "compare": {
             "profile": {
+              "kind": "generation",
               "dopplerSource": "local",
               "dopplerFormat": "rdrr",
               "tjsModelId": "onnx-community/Qwen3.5-0.8B-ONNX",
+              "tjsDtype": null,
               "tjsFormat": "onnx",
               "lane": "performance_comparable",
               "laneReason": null
@@ -936,166 +1115,6 @@
       "nextCommand": "node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
     },
     {
-      "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
-      "family": "qwen3",
-      "tier": "small",
-      "minSizeBytes": 1191553024,
-      "minSizeLabel": "1.11 GiB",
-      "status": "benchmark-comparison-needed",
-      "preferredArchitecture": {
-        "status": "pending-benchmark-comparison",
-        "modelId": "qwen-3-reranker-0-6b-f16-af32",
-        "architecture": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute",
-        "evidence": {
-          "runtimeReport": "reports/release-claims/qwen-3-reranker-0-6b-f16-af32/2026-07-04T02-00-00.000Z.json",
-          "compareResult": null,
-          "summarySvg": null
-        }
-      },
-      "variants": [
-        {
-          "modelId": "qwen-3-reranker-0-6b-f16-af32",
-          "label": "Qwen3 Reranker 0.6B (F16/F32a)",
-          "family": "qwen3",
-          "modes": [
-            "rerank"
-          ],
-          "sizeBytes": 1191553024,
-          "sizeLabel": "1.11 GiB",
-          "tier": "small",
-          "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
-          "weightPackId": "qwen-3-reranker-0-6b-f16-af32-wp-catalog-v1",
-          "manifestVariantId": "qwen-3-reranker-0-6b-f16-af32-mv-exec-v1",
-          "artifactCompleteness": "complete",
-          "runtimePromotionState": "manifest-owned",
-          "conversionConfig": "src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-af32.json",
-          "architecture": {
-            "artifactFormat": "rdrr",
-            "weights": "f16",
-            "embeddings": "f16",
-            "lmHead": "f16",
-            "computePrecision": "f32",
-            "q4kLayout": null,
-            "label": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute"
-          },
-          "lifecycle": {
-            "runtime": "active",
-            "conversion": "ready",
-            "tested": "verified",
-            "result": "pass",
-            "lastVerifiedAt": "2026-07-04",
-            "surfaces": [
-              "node"
-            ]
-          },
-          "hf": {
-            "published": false,
-            "repoId": "Clocksmith/rdrr",
-            "revision": null,
-            "path": "models/qwen-3-reranker-0-6b-f16-af32"
-          },
-          "quickstart": false,
-          "compare": {
-            "profile": null,
-            "benchmarkComparable": false,
-            "benchmarkEvidenceOk": false
-          },
-          "evidence": {
-            "runtimeReport": "reports/release-claims/qwen-3-reranker-0-6b-f16-af32/2026-07-04T02-00-00.000Z.json",
-            "runtimeReportExists": true,
-            "compareResult": null,
-            "compareResultExists": false,
-            "summarySvg": null,
-            "summarySvgExists": false,
-            "localClaimLaneId": null
-          },
-          "actions": {
-            "verifyCommand": "node tools/run-registry-verify.js qwen-3-reranker-0-6b-f16-af32 --surface auto",
-            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-f16-af32 --dry-run --bootstrap",
-            "compareCommands": [],
-            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-f16-af32 --dry-run --bootstrap"
-          },
-          "missing": [
-            "hf-publish",
-            "compare-profile"
-          ],
-          "nextGate": "hf-publish"
-        },
-        {
-          "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
-          "label": "Qwen3 Reranker 0.6B (Q4K/F32a)",
-          "family": "qwen3",
-          "modes": [
-            "rerank"
-          ],
-          "sizeBytes": 1191588280,
-          "sizeLabel": "1.11 GiB",
-          "tier": "small",
-          "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
-          "weightPackId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-catalog-v1",
-          "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-exec-v1",
-          "artifactCompleteness": "complete",
-          "runtimePromotionState": "unpromoted",
-          "conversionConfig": "src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json",
-          "architecture": {
-            "artifactFormat": "rdrr",
-            "weights": "q4k",
-            "embeddings": "f16",
-            "lmHead": "f16",
-            "computePrecision": "f32",
-            "q4kLayout": "row",
-            "label": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout"
-          },
-          "lifecycle": {
-            "runtime": "experimental",
-            "conversion": "ready",
-            "tested": "failed",
-            "result": "fail",
-            "lastVerifiedAt": "2026-07-04",
-            "surfaces": [
-              "node"
-            ]
-          },
-          "hf": {
-            "published": false,
-            "repoId": null,
-            "revision": null,
-            "path": null
-          },
-          "quickstart": false,
-          "compare": {
-            "profile": null,
-            "benchmarkComparable": false,
-            "benchmarkEvidenceOk": false
-          },
-          "evidence": {
-            "runtimeReport": null,
-            "runtimeReportExists": false,
-            "compareResult": null,
-            "compareResultExists": false,
-            "summarySvg": null,
-            "summarySvgExists": false,
-            "localClaimLaneId": null
-          },
-          "actions": {
-            "verifyCommand": "node tools/run-registry-verify.js qwen-3-reranker-0-6b-q4k-ehf16-af32 --surface auto",
-            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-q4k-ehf16-af32 --dry-run --bootstrap",
-            "compareCommands": [],
-            "primaryNextCommand": "node tools/run-registry-verify.js qwen-3-reranker-0-6b-q4k-ehf16-af32 --surface auto"
-          },
-          "missing": [
-            "runtime-verify",
-            "hf-publish",
-            "compare-profile"
-          ],
-          "nextGate": "runtime-verify"
-        }
-      ],
-      "nextAction": "Publish or refresh the Hugging Face manifest/weights for qwen-3-reranker-0-6b-f16-af32.",
-      "nextGate": "hf-publish",
-      "nextCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-f16-af32 --dry-run --bootstrap"
-    },
-    {
       "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
       "family": "qwen3",
       "tier": "small",
@@ -1156,8 +1175,17 @@
           },
           "quickstart": false,
           "compare": {
-            "profile": null,
-            "benchmarkComparable": false,
+            "profile": {
+              "kind": "embedding",
+              "dopplerSource": "local",
+              "dopplerFormat": null,
+              "tjsModelId": "onnx-community/Qwen3-Embedding-0.6B-ONNX",
+              "tjsDtype": "q4f16",
+              "tjsFormat": "onnx",
+              "lane": "performance_comparable",
+              "laneReason": "Local Doppler artifact compared against the browser WebGPU Transformers.js ONNX embedding baseline; release claims remain gated on artifact promotion."
+            },
+            "benchmarkComparable": true,
             "benchmarkEvidenceOk": false
           },
           "evidence": {
@@ -1172,12 +1200,19 @@
           "actions": {
             "verifyCommand": "node tools/run-registry-verify.js qwen-3-embedding-0-6b-q4k-ehf16-af32 --surface auto",
             "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --dry-run --bootstrap",
-            "compareCommands": [],
+            "compareCommands": [
+              {
+                "workloadId": "embedding",
+                "decodeProfile": null,
+                "command": "node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --warmup 1 --runs 3 --doppler-source local --doppler-surface auto --cache-mode warm --load-mode http --save --json"
+              }
+            ],
             "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --dry-run --bootstrap"
           },
           "missing": [
             "hf-publish",
-            "compare-profile"
+            "compare-result",
+            "summary-svg"
           ],
           "nextGate": "hf-publish"
         }
@@ -1249,9 +1284,11 @@
           "quickstart": true,
           "compare": {
             "profile": {
+              "kind": "generation",
               "dopplerSource": "local",
               "dopplerFormat": "rdrr",
               "tjsModelId": "onnx-community/Qwen3.5-2B-ONNX",
+              "tjsDtype": null,
               "tjsFormat": "onnx",
               "lane": "capability_only",
               "laneReason": "Qwen 3.5 2B has no committed correctness-clean fixture for the claimable compare lane yet."
@@ -1347,9 +1384,11 @@
           "quickstart": false,
           "compare": {
             "profile": {
+              "kind": "generation",
               "dopplerSource": "local",
               "dopplerFormat": "rdrr",
               "tjsModelId": "onnx-community/translategemma-text-4b-it-ONNX",
+              "tjsDtype": null,
               "tjsFormat": "onnx",
               "lane": "performance_comparable",
               "laneReason": null
@@ -1546,9 +1585,11 @@
           "quickstart": true,
           "compare": {
             "profile": {
+              "kind": "generation",
               "dopplerSource": "local",
               "dopplerFormat": "rdrr",
               "tjsModelId": "onnx-community/gemma-4-E2B-it-ONNX",
+              "tjsDtype": null,
               "tjsFormat": "onnx",
               "lane": "performance_comparable",
               "laneReason": "Doppler uses INT4 per-row PLE quantization (closer to TFLite shape); TJS uses standard ONNX q4f16. Both produce coherent Gemma 4 output on matching prompts — lane remains performance_comparable as compute-throughput comparison is meaningful."
@@ -1653,9 +1694,11 @@
           "quickstart": true,
           "compare": {
             "profile": {
+              "kind": "generation",
               "dopplerSource": "local",
               "dopplerFormat": "rdrr",
               "tjsModelId": "onnx-community/gemma-4-E2B-it-ONNX",
+              "tjsDtype": null,
               "tjsFormat": "onnx",
               "lane": "performance_comparable",
               "laneReason": "Doppler and the paired Transformers.js ONNX q4f16 runner both produce coherent Gemma 4 output, but current greedy text is not exact-match; this lane is claimable for compute-throughput comparisons, not correctness-parity claims."
