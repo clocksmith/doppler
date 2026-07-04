@@ -12,7 +12,7 @@ export { extractLastPositionLogits, finalizeLogits, readBufferWithCleanup } from
 // Imports for computeLogits orchestrator
 import { getDevice } from '../../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
-import { runMatmul, runRMSNorm, castF16ToF32, castF32ToF16 } from '../../../../gpu/kernel-selector.js';
+import { runMatmul, runRMSNorm, runScale, castF16ToF32, castF32ToF16 } from '../../../../gpu/kernel-selector.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype } from '../../../../gpu/weight-buffer.js';
 import { kernelTrace, traceStep } from '../kernel-trace.js';
@@ -20,7 +20,7 @@ import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
 import { runProbes } from '../probes.js';
 import { rmsNormCPU, matmulCPU, f16BufferToF32 } from './cpu.js';
 import { resolveCpuWeightDims, computeChunkedLogitsGPU, computeSplitLogitsGPU } from './gpu.js';
-import { finalizeLogits, readBufferWithCleanup } from './utils.js';
+import { finalizeLogits, readBufferWithCleanup, resolveLogitInputScale } from './utils.js';
 import { getLogitsHealth } from '../debug-utils/index.js';
 import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { getKernelPathMatmulPrecision, getKernelPathStepPrecision } from '../../../../config/kernel-path-loader.js';
@@ -93,6 +93,26 @@ export function resolveLmHeadMatmulConfig(numTokens, options = null) {
     matmulRows: lastPositionOnly ? 1 : numTokens,
     phaseOverride: lastPositionOnly ? 'prefill' : null,
   };
+}
+
+function resolveFinalNormGpuBuffer(finalNorm, device, label) {
+  if (isWeightBuffer(finalNorm)) {
+    return { buffer: finalNorm.buffer, owned: false };
+  }
+  if (isGpuBufferInstance(finalNorm)) {
+    return { buffer: finalNorm, owned: false };
+  }
+  if (!ArrayBuffer.isView(finalNorm)) {
+    throw new Error('[Logits] final_norm must be a GPU buffer, typed array, or WeightBuffer.');
+  }
+  const buffer = acquireBuffer(finalNorm.byteLength, undefined, label);
+  try {
+    device.queue.writeBuffer(buffer, 0, finalNorm);
+    return { buffer, owned: true };
+  } catch (error) {
+    releaseBuffer(buffer);
+    throw error;
+  }
 }
 
 
@@ -203,6 +223,12 @@ export async function computeLogits(
       rmsNormEps,
       config.rmsNormWeightOffset
     );
+    const logitInputScale = resolveLogitInputScale(config);
+    if (logitInputScale !== 1) {
+      for (let i = 0; i < normed.length; i += 1) {
+        normed[i] *= logitInputScale;
+      }
+    }
     const rawLogits = isCpuWeightBuffer(lmHead)
       ? matmulCPU(
         normed,
@@ -241,13 +267,13 @@ export async function computeLogits(
   // 2. Apply final RMSNorm
   
   let normWeightBuffer;
+  let normWeightBufferOwned = false;
   if (getNormWeightBuffer) {
     normWeightBuffer = getNormWeightBuffer(finalNorm, 'final_norm_w');
-  } else if (isGpuBufferInstance(finalNorm)) {
-    normWeightBuffer = finalNorm;
   } else {
-    normWeightBuffer = acquireBuffer((finalNorm).byteLength, undefined, 'final_norm_w');
-    device.queue.writeBuffer(normWeightBuffer, 0, (finalNorm));
+    const resolvedFinalNorm = resolveFinalNormGpuBuffer(finalNorm, device, 'final_norm_w');
+    normWeightBuffer = resolvedFinalNorm.buffer;
+    normWeightBufferOwned = resolvedFinalNorm.owned;
   }
 
   // Debug: Check hidden state before final norm
@@ -340,6 +366,15 @@ export async function computeLogits(
     await debugCheckBuffer(finalNormTensor.buffer, 'After final norm', numTokens, hiddenSize);
   }
 
+  const logitInputScale = resolveLogitInputScale(config);
+  if (logitInputScale !== 1) {
+    const unscaledFinalNormTensor = finalNormTensor;
+    finalNormTensor = await runScale(finalNormTensor, logitInputScale, {
+      count: numTokens * hiddenSize,
+    });
+    releaseBuffer(unscaledFinalNormTensor.buffer);
+  }
+
   const lastTokenMatmul = resolveLmHeadMatmulConfig(numTokens, options);
   const { lastPositionOnly, matmulRows } = lastTokenMatmul;
   const matmulPhaseOverride = lastTokenMatmul.phaseOverride;
@@ -395,7 +430,7 @@ export async function computeLogits(
     if (inputBufferOwned) releaseBuffer(inputBuffer);
     releaseBuffer(finalNormTensor.buffer);
     if (matmulInputOwned) releaseBuffer(matmulInputTensor.buffer);
-    if (!getNormWeightBuffer && !isGpuBufferInstance(finalNorm)) releaseBuffer(normWeightBuffer);
+    if (normWeightBufferOwned) releaseBuffer(normWeightBuffer);
 
     return finalizeLogits(rawLogits, matmulRows, matmulVocabSize, vocabSize, config, debugProbes, operatorDiagnostics);
   }
@@ -476,7 +511,7 @@ export async function computeLogits(
     releaseBuffer(finalNormTensor.buffer);
     if (matmulInputOwned) releaseBuffer(matmulInputTensor.buffer);
     releaseBuffer(logitsTensor.buffer);
-    if (!getNormWeightBuffer && !isGpuBufferInstance(finalNorm)) releaseBuffer(normWeightBuffer);
+    if (normWeightBufferOwned) releaseBuffer(normWeightBuffer);
     if (lmHeadBufferOwned) releaseBuffer(lmHeadGPU);
   });
 

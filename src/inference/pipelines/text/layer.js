@@ -628,6 +628,13 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
 
   assertSupportedLayerRuntime(layerIdx, config);
   const { hiddenSize, numHeads, numKVHeads, headDim, rmsNormEps } = config;
+  const residualBranchScale = Number(config.residualBranchScale);
+  if (!Number.isFinite(residualBranchScale) || residualBranchScale <= 0) {
+    throw new Error(
+      `Layer ${layerIdx} residualBranchScale must be a positive finite number; ` +
+      `got "${String(config.residualBranchScale)}".`
+    );
+  }
 
   // Determine activation dtype from context (defaults to f32)
 
@@ -638,6 +645,12 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
 
   const layerWeights = (weights.get(`layer_${layerIdx}`));
   const sandwichNorm = detectSandwichNorm(config);
+  if (sandwichNorm.useSandwichNorm && residualBranchScale !== 1) {
+    throw new Error(
+      `Layer ${layerIdx} uses sandwich norms with residualBranchScale=${residualBranchScale}. ` +
+      'Scaled residual branches for sandwich-norm layers are not implemented.'
+    );
+  }
   const lastTokenIdx = Math.max(0, numTokens - 1);
 
   await runProbes('layer_in', inputBuffer, {
@@ -651,6 +664,12 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   });
 
   if (context.pipelinePlan) {
+    if (residualBranchScale !== 1) {
+      throw new Error(
+        `Layer ${layerIdx} has residualBranchScale=${residualBranchScale}, but pipelinePlan execution ` +
+        'does not implement scaled residual branches.'
+      );
+    }
     return processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, size, context, layerWeights, sandwichNorm);
   }
 
@@ -763,7 +782,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       activationDtype,
       slidingWindow: config.slidingWindow,
       layerType,
-      residualTensor: (numTokens === 1 && !(sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm))
+      residualTensor: (numTokens === 1 && !(sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm) && residualBranchScale === 1)
         ? inputTensor
         : null,
       attnSoftcap: config.attnLogitSoftcapping === null ? 0 : config.attnLogitSoftcapping,
@@ -870,6 +889,13 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     operatorDiagnostics: context.operatorDiagnostics,
     dtype: attnOutput.dtype,
   });
+  if (!residualFused && residualBranchScale !== 1) {
+    const rawAttnOutput = attnOutput;
+    attnOutput = recorder
+      ? await recordScale(recorder, rawAttnOutput, residualBranchScale, { count: size })
+      : await runScale(rawAttnOutput, residualBranchScale, { count: size });
+    releaseOrTrack(recorder, rawAttnOutput.buffer, context.decodeBuffers);
+  }
 
   // 2. Handle residual connection based on architecture
 
@@ -1061,10 +1087,11 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       numTokens,
       size,
       context,
-      layerWeights,
-      fusedResidualForFFN,
-      requestFfnLayerScalarFusion ? layerScalar : 1
-    );
+	      layerWeights,
+	      fusedResidualForFFN,
+	      requestFfnLayerScalarFusion ? layerScalar : 1,
+	      residualBranchScale
+	    );
     layerScalarFused = context.__layerScalarFusedFired === true;
     context.__layerScalarFusedFired = false;
   }

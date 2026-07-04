@@ -51,6 +51,8 @@ for (const entry of Array.isArray(quickstartRegistry?.models) ? quickstartRegist
     'artifactCompleteness',
     'runtimePromotionState',
     'weightsRefAllowed',
+    'vendorBenchmark',
+    'benchmarkEvidence',
   ]) {
     assert.deepEqual(
       entry[field] ?? null,

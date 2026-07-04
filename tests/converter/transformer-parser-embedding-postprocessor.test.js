@@ -91,4 +91,45 @@ assert.equal(
   true
 );
 
+const parsedReranker = await parseTransformerModel({
+  async readJson(suffix) {
+    const files = {
+      'config.json': {
+        architectures: ['Qwen3ForCausalLM'],
+        model_type: 'qwen3',
+      },
+      'modules.json': [
+        { idx: 0, name: '0', path: '', type: 'sentence_transformers.base.modules.transformer.Transformer' },
+        { idx: 1, name: '1', path: '1_LogitScore', type: 'sentence_transformers.cross_encoder.modules.logit_score.LogitScore' },
+      ],
+      '1_LogitScore/config.json': {
+        true_token_id: 9693,
+        false_token_id: 2152,
+      },
+    };
+    return files[suffix];
+  },
+  async fileExists(suffix) {
+    return suffix === 'modules.json' || suffix === 'model.safetensors';
+  },
+  async loadSingleSafetensors(suffix) {
+    if (suffix === 'model.safetensors') {
+      return [
+        { name: 'embed_tokens.weight', shape: [16, 8], dtype: 'F32', size: 512, offset: 0, sourcePath: 'model.safetensors' },
+      ];
+    }
+    return [];
+  },
+  async loadShardedSafetensors() {
+    return [];
+  },
+});
+
+assert.equal(parsedReranker.embeddingPostprocessor, null);
+assert.deepEqual(parsedReranker.rerankScoring, {
+  kind: 'logit_score',
+  trueTokenId: 9693,
+  falseTokenId: 2152,
+});
+
 console.log('transformer-parser-embedding-postprocessor.test: ok');

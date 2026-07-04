@@ -49,6 +49,9 @@ export const DEFAULT_MANIFEST_INFERENCE = {
   // of modelType: dedicated embedding models (modelType="embedding") always
   // support embedding workloads; text-generation models opt in explicitly.
   supportsEmbedding: false,
+  // When true, allows workload="rerank" to dispatch through prefillWithLogits()
+  // using manifest-owned scoring metadata in inference.rerank.
+  supportsRerank: false,
   // When true, the pipeline exposes pipeline.transcribeAudio({audio,...}) and
   // pipeline.embedAudio({audio}). Requires audio_token_id and audio encoder
   // weights to be present in the manifest. Defaults to false; set to true on
@@ -106,6 +109,10 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     yarnBetaFast: null,
     yarnBetaSlow: null,
     yarnOriginalMaxPos: null,
+    // LongRoPE parameters - only relevant when ropeScalingType='longrope'
+    longropeShortFactor: null,
+    longropeLongFactor: null,
+    longropeOriginalMaxPos: null,
     // Local YARN parameters - only relevant when ropeLocalScalingType='yarn'
     ropeLocalYarnBetaFast: null,
     ropeLocalYarnBetaSlow: null,
@@ -115,6 +122,8 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     finalLogitSoftcapping: null,  // No softcapping (null = disabled)
     tieWordEmbeddings: false,
     scaleEmbeddings: false,
+    embeddingScale: null,
+    logitInputScale: 1,
     embeddingTranspose: false,
     embeddingVocabSize: null,
     embeddingPostprocessor: null,
@@ -125,12 +134,14 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     period: null,  // No periodic pattern (null = not applicable)
     offset: null,  // For every_n: first global layer index modulo period
     layerTypes: null,  // For custom: explicit per-layer tags
+    residualBranchScale: 1,
   },
   chatTemplate: {
     type: null,  // No chat template (null = disabled)
     enabled: false,
   },
   diffusionGemma: null,
+  rerank: null,
   pipeline: null,
   session: null,
   execution: null,
@@ -188,6 +199,13 @@ export function hasInferenceConfig(
 export function modelSupportsEmbedding(manifest) {
   if (manifest?.modelType === 'embedding') return true;
   return manifest?.inference?.supportsEmbedding === true;
+}
+
+export function modelSupportsRerank(manifest) {
+  return manifest?.inference?.supportsRerank === true
+    && manifest?.inference?.rerank != null
+    && typeof manifest.inference.rerank === 'object'
+    && !Array.isArray(manifest.inference.rerank);
 }
 
 // Returns true when the manifest declares audio-input capability. Pipelines

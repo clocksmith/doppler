@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 if (typeof globalThis.GPUBufferUsage === 'undefined') {
   globalThis.GPUBufferUsage = {
@@ -42,6 +43,21 @@ if (typeof globalThis.GPUTextureUsage === 'undefined') {
 
 const { runBrowserSuite, buildSuiteSummary } = await import('../../src/inference/browser-harness.js');
 const { trainingHarness } = await import('../../src/experimental/training/suite.js');
+
+{
+  const source = readFileSync(new URL('../../src/inference/browser-harness.js', import.meta.url), 'utf8');
+  const dispatchStart = source.indexOf('async function dispatchBrowserSuite');
+  const dispatchEnd = source.indexOf('export async function runBrowserSuite', dispatchStart);
+  const dispatchSource = source.slice(dispatchStart, dispatchEnd);
+  const benchBranch = dispatchSource.indexOf("if (mode === 'bench')");
+  const embeddingBranch = dispatchSource.indexOf("if (workload === 'embedding')");
+  const rerankBranch = dispatchSource.indexOf("if (workload === 'rerank')");
+  assert.ok(benchBranch >= 0, 'dispatchBrowserSuite must contain a bench branch');
+  assert.ok(embeddingBranch >= 0, 'dispatchBrowserSuite must contain an embedding branch');
+  assert.ok(rerankBranch >= 0, 'dispatchBrowserSuite must contain a rerank branch');
+  assert.ok(benchBranch < embeddingBranch, 'bench dispatch must not be shadowed by embedding dispatch');
+  assert.ok(benchBranch < rerankBranch, 'bench dispatch must not be shadowed by rerank dispatch');
+}
 
 {
   const startTime = performance.now() - 5;

@@ -16,6 +16,7 @@ const {
     'kernels',
     'inference',
     'embedding',
+    'rerank',
     'training',
     'diffusion',
     'energy',
@@ -30,6 +31,7 @@ const {
       kernels: 'runKernelSuite',
       inference: 'runInferenceSuite',
       embedding: 'runEmbeddingSuite',
+      rerank: 'runRerankSuite',
       training: 'runTrainingSuite',
       diffusion: 'runDiffusionSuite',
       energy: 'runEnergySuite',
@@ -41,6 +43,7 @@ const {
     bench: {
       inference: 'runBenchSuite',
       embedding: 'runBenchSuite',
+      rerank: 'runBenchSuite',
       training: 'runBenchSuite(training)',
       diffusion: 'runBenchSuite(diffusion)',
     },

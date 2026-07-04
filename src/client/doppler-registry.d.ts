@@ -1,3 +1,18 @@
+export interface QuickstartVendorBenchmark {
+  transformersjs?: {
+    repoId: string;
+    dtype?: string;
+  };
+}
+
+export interface QuickstartBenchmarkEvidence {
+  status: string;
+  localClaimLaneId: string;
+  runtimeReport: string;
+  compareResult: string;
+  summarySvg: string;
+}
+
 export interface QuickstartRegistryEntry {
   modelId: string;
   sourceCheckpointId: string;
@@ -13,6 +28,8 @@ export interface QuickstartRegistryEntry {
     revision: string | null;
     path: string;
   } | null;
+  vendorBenchmark?: QuickstartVendorBenchmark;
+  benchmarkEvidence?: QuickstartBenchmarkEvidence;
 }
 
 export declare function listQuickstartModels(): Promise<Array<{
@@ -25,6 +42,8 @@ export declare function listQuickstartModels(): Promise<Array<{
   weightsRefAllowed: boolean;
   aliases: string[];
   modes: string[];
+  vendorBenchmark?: QuickstartVendorBenchmark;
+  benchmarkEvidence?: QuickstartBenchmarkEvidence;
 }>>;
 
 export declare function resolveQuickstartModel(model: string): Promise<QuickstartRegistryEntry>;

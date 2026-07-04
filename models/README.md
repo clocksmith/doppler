@@ -6,7 +6,8 @@
 
 `models/catalog.json` is the repo source of truth for supported model metadata:
 model IDs, labels, aliases, lifecycle, artifact identity, quickstart/demo
-visibility, vendor benchmark mapping, and Hugging Face hosted coordinates.
+visibility, vendor benchmark mapping, benchmark evidence citations, and Hugging
+Face hosted coordinates.
 
 Generated mirrors include:
 
@@ -16,6 +17,13 @@ Generated mirrors include:
 - HF `Clocksmith/rdrr` `registry/catalog.json`
 
 Use `npm run ci:catalog:check` after catalog or hosted registry changes.
+
+Catalog rows are support metadata, not a general wishlist. A model may enter the
+catalog as an unpromoted onboarding target only when its family is already
+represented by a checked-in conversion config or the same change adds that
+conversion config. New-family candidates stay in the onboarding research packet
+until their family config exists, so generated support views do not imply a
+runtime path that cannot be traced to config-as-code.
 
 ### Repo `models/local/` (developer-local artifact cache)
 
@@ -73,6 +81,16 @@ Each entry supports:
 - `demoWarningBadges` (string array, optional): compact warning badges for demo model cards.
 - `demoWarningText` (string, optional): short warning text for demo model cards.
 - `hf` (object, optional): `repoId`, `revision`, `path` for Hugging Face hosted artifacts
+- `vendorBenchmark` (object or null, optional): comparable vendor baseline IDs
+  used by benchmark tooling; this is not runtime verification evidence.
+- `verify` (object, optional): registry-owned verification request inputs.
+  Use `workload` only when `modes` is ambiguous, `runtimeProfile` only for an
+  explicit checked-in profile, and `runtimeConfig` for workload payloads such as
+  embedding prompts or rerank query/documents. Tooling must not invent rerank
+  verification payloads.
+- `benchmarkEvidence` (object, optional): checked-in receipt paths for a
+  benchmark-selected lane: `status`, `localClaimLaneId`, `runtimeReport`,
+  `compareResult`, and `summarySvg`.
 - `lifecycle` (object, optional but recommended)
   - `availability` (object): `curated` | `local` | `hf` booleans
   - `status` (object): `runtime`, `conversion`, `demo`, `tested` labels

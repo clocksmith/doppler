@@ -10,6 +10,21 @@
     "layout": "row",
     "variantTag": "q4k-ehf16-af32"
   },
+  "artifactIdentity": {
+    "artifactCompleteness": "complete",
+    "conversionConfigDigest": "sha256:71c508f980be07cd74f461b32698bd9dff36eaf718adb88a1c6e9f0036c104af",
+    "conversionConfigPath": "src/config/conversion/embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32.json",
+    "manifestVariantId": "google-embeddinggemma-300m-q4k-ehf16-af32-mv-exec-v1",
+    "materializationProfile": "auto",
+    "modalitySet": [
+      "embedding"
+    ],
+    "shardSetHash": "sha256:49c936d36453cd0550585735ea1586aecaa0104020e002b2d822b6c080091180",
+    "sourceCheckpointId": "google/embeddinggemma-300m",
+    "sourceFormat": "safetensors",
+    "weightPackHash": "sha256:354a7b8166e6e633b2d2a9d9ed2bc509d66d9582bf3cca48866026c0d0172e7e",
+    "weightPackId": "google-embeddinggemma-300m-q4k-ehf16-af32-wp-catalog-v1"
+  },
   "architecture": {
     "numLayers": 24,
     "hiddenSize": 768,
@@ -24,7 +39,11 @@
     "linearNumValueHeads": null,
     "linearKeyHeadDim": null,
     "linearValueHeadDim": null,
-    "linearConvKernelDim": null
+    "linearConvKernelDim": null,
+    "hiddenSizePerLayerInput": null,
+    "vocabSizePerLayerInput": null,
+    "globalHeadDim": null,
+    "numKvSharedLayers": null
   },
   "moeConfig": null,
   "inference": {
@@ -71,7 +90,10 @@
       "yarnOriginalMaxPos": null,
       "ropeLocalYarnBetaFast": null,
       "ropeLocalYarnBetaSlow": null,
-      "ropeLocalYarnOriginalMaxPos": null
+      "ropeLocalYarnOriginalMaxPos": null,
+      "longropeShortFactor": null,
+      "longropeLongFactor": null,
+      "longropeOriginalMaxPos": null
     },
     "output": {
       "finalLogitSoftcapping": null,
@@ -99,19 +121,28 @@
           }
         ],
         "normalize": "l2"
-      }
+      },
+      "embeddingScale": null,
+      "logitInputScale": 1
     },
     "layerPattern": {
       "type": "every_n",
       "globalPattern": null,
       "period": 6,
       "offset": null,
-      "layerTypes": null
+      "layerTypes": null,
+      "residualBranchScale": 1
     },
     "chatTemplate": {
       "type": null,
       "enabled": false
     },
+    "supportsEmbedding": false,
+    "supportsRerank": false,
+    "supportsTranscription": false,
+    "supportsVision": false,
+    "rerank": null,
+    "diffusionGemma": null,
     "pipeline": null,
     "session": {
       "compute": {
@@ -209,9 +240,9 @@
           "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
         },
         "attn_small": {
-          "kernel": "attention_small_f16kv.wgsl",
+          "kernel": "attention_small.wgsl",
           "entry": "main",
-          "digest": "sha256:ad3bb913c17167eb28fefc6abd24602ea0f148bc22a2b5f437eeffcc6f7fc668"
+          "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4"
         },
         "residual": {
           "kernel": "residual.wgsl",
@@ -380,12 +411,9 @@
       ],
       "policies": {
         "unsupportedPrecision": "error",
-        "dtypeTransition": null,
+        "dtypeTransition": "require_cast_step",
         "unresolvedKernel": "error"
       }
-    },
-    "largeWeights": {
-      "gpuResidentOverrides": null
     }
   },
   "shards": [
@@ -4321,20 +4349,12 @@
   "eos_token_id": 1,
   "conversion": null,
   "metadata": {
-    "source": "convert-core",
-    "convertedAt": "2026-03-23T20:02:57.974Z",
+    "source": "file:///home/x/.cache/huggingface/hub/models--google--embeddinggemma-300m/snapshots/57c266a740f537b4dc058e1b0cda161fd15afa75",
+    "convertedAt": "2026-07-03T23:31:45.564Z",
     "hasTokenizer": true,
-    "executionGraphPatch": {
-      "at": "2026-03-23T23:27:43.068Z",
-      "config": "google-embeddinggemma-300m-q4k-ehf16-af32.json"
-    },
     "manifestRefresh": {
-      "at": "2026-04-10T23:43:07.897Z",
+      "at": "2026-07-04T00:21:06.092Z",
       "config": "google-embeddinggemma-300m-q4k-ehf16-af32.json"
-    },
-    "integrityRefresh": {
-      "at": "2026-04-23T22:48:41.217Z",
-      "blockSize": 1048576
     }
   },
   "tokenizer": {
@@ -4343,13 +4363,6 @@
     "file": "tokenizer.json",
     "addBosToken": true,
     "addEosToken": true
-  },
-  "artifactIdentity": {
-    "sourceCheckpointId": "google/embeddinggemma-300m",
-    "weightPackId": "google-embeddinggemma-300m-q4k-ehf16-af32-wp-catalog-v1",
-    "manifestVariantId": "google-embeddinggemma-300m-q4k-ehf16-af32-mv-exec-v1",
-    "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:83c70848825fb031d00a14640917a9c50cb378be38518a070403a08d0c093a85"
   },
   "integrityExtensions": {
     "contractVersion": 1,

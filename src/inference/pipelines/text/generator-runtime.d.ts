@@ -75,6 +75,11 @@ export function resolveFloatDtypeFromByteSize(
   expectedLength: number
 ): 'f16' | 'f32';
 
+export function resolveFloatDtypeFromBufferMetadata(
+  buffer: GPUBuffer,
+  expectedLength: number
+): 'f16' | 'f32';
+
 export function getFinalNormWeights(state: PipelineState): Promise<Float32Array>;
 
 export function extractEmbeddingFromHidden(

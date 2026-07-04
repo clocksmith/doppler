@@ -53,7 +53,10 @@
       "ropeLocalYarnOriginalMaxPos": null,
       "ropeLocalPartialRotaryFactor": null,
       "ropeFrequencyBaseDim": null,
-      "ropeLocalFrequencyBaseDim": null
+      "ropeLocalFrequencyBaseDim": null,
+      "longropeShortFactor": null,
+      "longropeLongFactor": null,
+      "longropeOriginalMaxPos": null
     },
     "output": {
       "finalLogitSoftcapping": null,
@@ -61,14 +64,17 @@
       "scaleEmbeddings": true,
       "embeddingTranspose": false,
       "embeddingVocabSize": null,
-      "embeddingPostprocessor": null
+      "embeddingPostprocessor": null,
+      "embeddingScale": null,
+      "logitInputScale": 1
     },
     "layerPattern": {
       "type": "every_n",
       "globalPattern": null,
       "period": 6,
       "offset": 5,
-      "layerTypes": null
+      "layerTypes": null,
+      "residualBranchScale": 1
     },
     "chatTemplate": {
       "type": "gemma",

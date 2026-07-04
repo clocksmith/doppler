@@ -64,6 +64,7 @@
     "onboarding:check": "node tools/onboarding-tooling.js check",
     "onboarding:check:strict": "node tools/onboarding-tooling.js check --strict",
     "bench:vendors:validate": "node tools/vendor-bench.js validate",
+    "bench:embeddings:compare": "node tools/compare-embeddings.js",
     "kernels:sync": "npm run kernels:codegen:sync && npm run kernels:registry:sync && npm run kernels:digests:sync",
     "kernels:check": "node tools/check-kernels.js",
     "kernels:codegen:sync": "node tools/generate-wgsl.js",

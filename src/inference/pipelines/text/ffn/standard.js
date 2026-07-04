@@ -7,6 +7,7 @@ import { isMoELayerLocal } from './types.js';
 import { runDenseFFNGPU } from './dense.js';
 import { runMoEFFNGPU } from './moe.js';
 import { acquireBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
+import { runScale, recordScale } from '../../../../gpu/kernel-selector.js';
 import { isGpuBufferInstance, isWeightBuffer } from '../../../../gpu/weight-buffer.js';
 import { shouldDebugLayerOutput, decodeReadback, getLogitsHealth } from '../debug-utils/index.js';
 import { trace, isTraceEnabled } from '../../../../debug/index.js';
@@ -44,13 +45,21 @@ export async function processFFNStandard(
   context,
   layerWeights,
   fusedResidualInput,
-  finalOutputScale = 1
+  finalOutputScale = 1,
+  residualBranchScale = 1
 ) {
   const { config, weightConfig, debugFlags, recorder, decodeBuffers } = context;
   const { hiddenSize, rmsNormEps } = config;
   const requestedFinalOutputScale = finalOutputScale == null ? 1 : Number(finalOutputScale);
   if (!Number.isFinite(requestedFinalOutputScale)) {
     throw new Error(`Layer ${layerIdx} finalOutputScale must be finite; got "${String(finalOutputScale)}".`);
+  }
+  const requestedResidualBranchScale = Number(residualBranchScale);
+  if (!Number.isFinite(requestedResidualBranchScale) || requestedResidualBranchScale <= 0) {
+    throw new Error(
+      `Layer ${layerIdx} residualBranchScale must be a positive finite number; ` +
+      `got "${String(residualBranchScale)}".`
+    );
   }
   context.__layerScalarFusedFired = false;
 
@@ -112,7 +121,9 @@ export async function processFFNStandard(
   const pendingResidualForFfn = prenormSumBuffer
     ? { buffer: prenormSumBuffer, dtype: postAttn.dtype, shape: postAttn.shape }
     : postAttn;
-  context.__pendingFfnResidualTensor = pendingResidualForFfn;
+  context.__pendingFfnResidualTensor = requestedResidualBranchScale === 1
+    ? pendingResidualForFfn
+    : null;
   context.__ffnResidualFusedFired = false;
 
   let ffnOutput;
@@ -155,6 +166,18 @@ export async function processFFNStandard(
     residualInputOwned = ffnOutput.dtype !== residualTensor.dtype;
     if (residualInputOwned) {
       residualInput = await doCast(ffnOutput, residualTensor.dtype, recorder);
+    }
+    if (requestedResidualBranchScale !== 1) {
+      const unscaledResidualInput = residualInput;
+      residualInput = recorder
+        ? await recordScale(recorder, unscaledResidualInput, requestedResidualBranchScale, { count: size })
+        : await runScale(unscaledResidualInput, requestedResidualBranchScale, { count: size });
+      if (residualInputOwned) {
+        releaseOrTrack(recorder, unscaledResidualInput.buffer, decodeBuffers);
+      } else if (unscaledResidualInput.buffer !== ffnOutput.buffer) {
+        releaseOrTrack(recorder, unscaledResidualInput.buffer, decodeBuffers);
+      }
+      residualInputOwned = true;
     }
     const residualOutputScale = requestedFinalOutputScale !== 1
       && residualTensor.dtype === context.activationDtype

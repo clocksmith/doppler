@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-06-29T22:30:28.231Z",
+  "generatedAt": "2026-07-04T00:47:41.651Z",
   "release": {
     "channel": "main-snapshot",
-    "version": "0.4.4",
-    "commitSha": "c6363814d698a8adb3b150d024b1257cf2f678f3",
+    "version": "0.4.6",
+    "commitSha": "5a1a83578f3989f12c0cbc90b3ca0e3d34e6acd5",
     "dirty": true
   },
   "sources": {
@@ -52,9 +52,9 @@
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "68d4e1c2cc51003ff022b4763b90c9a96e66c68e71d8be7965587a7f6affb953",
-      "bytes": 27978,
-      "updated": "2026-06-29"
+      "sha256": "3a015b9bb5aa11d29e0a6d6698cc7003360b10aa8d7ca0b88bf10191e7869a54",
+      "bytes": 35981,
+      "updated": "2026-07-04"
     },
     "harness:doppler": {
       "path": "benchmarks/vendors/harnesses/doppler.json",
@@ -155,9 +155,9 @@
   },
   "summary": {
     "targetCount": 16,
-    "modelCoverageCount": 17,
+    "modelCoverageCount": 19,
     "compareProfileCount": 12,
-    "catalogModelCount": 19,
+    "catalogModelCount": 23,
     "workloadCount": 5,
     "committedChartCount": 14,
     "hasLatestCompareResult": true
@@ -1355,6 +1355,39 @@
       ],
       "catalogBaseUrl": null,
       "catalogSizeBytes": 16994352128
+    },
+    {
+      "dopplerModelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "Qwen3 Embedding 0.6B (Q4K/F32a)",
+      "catalogModes": [
+        "embedding"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 1191586416
+    },
+    {
+      "dopplerModelId": "qwen-3-reranker-0-6b-f16-af32",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "Qwen3 Reranker 0.6B (F16/F32a)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 1191553024
     },
     {
       "dopplerModelId": "translategemma-4b-it-q4k-ehf16-af32",

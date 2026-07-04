@@ -141,6 +141,8 @@ function assertPerformanceEvidence(claim) {
   );
 
   if (claim.mode === 'embedding') {
+    const manifest = readLocalManifest(claim.modelId, `${claim.modelId}: embedding performance evidence`);
+    const expectedEmbeddingDim = manifest?.architecture?.hiddenSize;
     assert.equal(
       getPath(artifact, 'metrics.semanticPassed'),
       true,
@@ -148,8 +150,21 @@ function assertPerformanceEvidence(claim) {
     );
     assert.equal(
       getPath(artifact, 'metrics.embeddingDim'),
-      768,
-      `${claim.modelId}: embedding performance evidence must preserve 768-dimensional embeddings`
+      expectedEmbeddingDim,
+      `${claim.modelId}: embedding performance evidence must match the manifest hidden size`
+    );
+  }
+
+  if (claim.mode === 'rerank') {
+    assert.equal(
+      getPath(artifact, 'metrics.semanticPassed'),
+      true,
+      `${claim.modelId}: rerank performance evidence must preserve semanticPassed=true`
+    );
+    assert.equal(
+      typeof getPath(artifact, 'metrics.rerankMs'),
+      'number',
+      `${claim.modelId}: rerank performance evidence must preserve rerankMs`
     );
   }
 

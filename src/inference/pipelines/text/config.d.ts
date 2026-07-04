@@ -102,6 +102,8 @@ export interface RopeScalingConfig {
   beta_fast?: number;
   beta_slow?: number;
   original_max_position_embeddings?: number;
+  short_factor?: number[];
+  long_factor?: number[];
 }
 
 export interface TensorInfo {
@@ -172,6 +174,9 @@ export interface ParsedModelConfig {
   preFeedforwardNorm: boolean;
   postFeedforwardNorm: boolean;
   scaleEmbeddings: boolean;
+  embeddingScale: number | null;
+  logitInputScale: number;
+  residualBranchScale: number;
   useTiedEmbeddings: boolean;
   embeddingTranspose: boolean;
   embeddingVocabSize: number | null;
@@ -190,7 +195,6 @@ export interface ParsedModelConfig {
   linearNormMode: LinearNormMode | null;
   attentionBias: boolean;
   causalAttention: boolean;
-  embeddingScale?: number;
   finalLogitSoftcapping: number | null;
   attnLogitSoftcapping: number | null;
   queryKeyNorm: boolean;

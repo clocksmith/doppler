@@ -273,6 +273,24 @@ function mergeRoPE(
       runtime?.yarnOriginalMaxPos,
       sources
     ),
+    longropeShortFactor: overlay(
+      `${prefix}.longropeShortFactor`,
+      manifest.longropeShortFactor,
+      runtime?.longropeShortFactor,
+      sources
+    ),
+    longropeLongFactor: overlay(
+      `${prefix}.longropeLongFactor`,
+      manifest.longropeLongFactor,
+      runtime?.longropeLongFactor,
+      sources
+    ),
+    longropeOriginalMaxPos: overlay(
+      `${prefix}.longropeOriginalMaxPos`,
+      manifest.longropeOriginalMaxPos,
+      runtime?.longropeOriginalMaxPos,
+      sources
+    ),
     ropeLocalYarnBetaFast: overlay(
       `${prefix}.ropeLocalYarnBetaFast`,
       manifest.ropeLocalYarnBetaFast,
@@ -317,6 +335,18 @@ function mergeOutput(
       `${prefix}.scaleEmbeddings`,
       manifest.scaleEmbeddings,
       runtime?.scaleEmbeddings,
+      sources
+    ),
+    embeddingScale: overlay(
+      `${prefix}.embeddingScale`,
+      manifest.embeddingScale,
+      runtime?.embeddingScale,
+      sources
+    ),
+    logitInputScale: overlay(
+      `${prefix}.logitInputScale`,
+      manifest.logitInputScale,
+      runtime?.logitInputScale,
       sources
     ),
     embeddingTranspose: overlay(

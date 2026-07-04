@@ -1,7 +1,7 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-06-29",
+  "updatedAt": "2026-07-04",
   "models": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
@@ -64,6 +64,13 @@
           "repoId": "onnx-community/gemma-3-270m-it-ONNX",
           "dtype": "q4f16"
         }
+      },
+      "benchmarkEvidence": {
+        "status": "benchmark-selected",
+        "localClaimLaneId": "gemma-3-270m-it-q4k-rdrr",
+        "runtimeReport": "reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json",
+        "compareResult": "benchmarks/vendors/results/compare_20260627T200811.json",
+        "summarySvg": "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-browser-p512-d128-t0-k1-strix-halo-20260627T200811.svg"
       },
       "sourceCheckpointId": "google/gemma-3-270m-it",
       "weightPackId": "gemma-3-270m-it-q4k-ehf16-af32-wp-catalog-v1",
@@ -183,7 +190,7 @@
       "vendorBenchmark": {
         "transformersjs": {
           "repoId": "onnx-community/embeddinggemma-300m-ONNX",
-          "dtype": "q4f16"
+          "dtype": "q4"
         }
       },
       "sourceCheckpointId": "google/embeddinggemma-300m",
@@ -845,6 +852,286 @@
       "manifestVariantId": "translategemma-4b-it-q4k-ehf16-af32-mv-exec-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+      "family": "qwen3",
+      "label": "Qwen3 Embedding 0.6B (Q4K/F32a)",
+      "description": "Qwen3 0.6B SentenceTransformers embedding target with manifest-owned last-token pooling, prompt inclusion, and L2 normalization. Node/WebGPU verification passes semantic retrieval and pair thresholds; the local compare lane cites the Transformers.js ONNX WebGPU baseline.",
+      "modes": [
+        "embedding"
+      ],
+      "aliases": [
+        "qwen3-embedding-0.6b",
+        "qwen3-embedding-0-6b",
+        "Qwen/Qwen3-Embedding-0.6B"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": null,
+        "path": "models/qwen-3-embedding-0-6b-q4k-ehf16-af32"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 1191586416,
+      "recommended": false,
+      "sortOrder": 19,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "embedding",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-07-04",
+          "source": "runtime-verify",
+          "contracts": {
+            "executionContractOk": true
+          },
+          "notes": "Release evidence: reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-04T00-36-00.000Z.json. Semantic retrieval top-1 accuracy 0.90, semantic pair accuracy 0.7143, finite ratio 1.0, 1024-dimensional unit-norm embeddings. Speed evidence: reports/benchmarks/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-04T02-10-00.000Z.json (medianEmbeddingMs 462.5) and comparable local benchmark benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260704T004107.json (Doppler medianEmbeddingMs 360.2; Transformers.js q4f16 medianEmbeddingMs 263.43)."
+        }
+      },
+      "verify": {
+        "workload": "embedding",
+        "runtimeConfig": {
+          "inference": {
+            "prompt": "A small red cube rests on a wooden table beside a blue sphere."
+          }
+        }
+      },
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/Qwen3-Embedding-0.6B-ONNX",
+          "dtype": "q4f16"
+        }
+      },
+      "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
+      "weightPackId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "family": "qwen3",
+      "label": "Qwen3 Reranker 0.6B (Q4K/F32a)",
+      "description": "Qwen3 0.6B SentenceTransformers CrossEncoder reranker target. The artifact is complete and executes, but Q4K semantic rerank accuracy is not supportable yet; keep this lane unpromoted until quantized scoring is fixed.",
+      "modes": [
+        "rerank"
+      ],
+      "aliases": [
+        "qwen3-reranker-0.6b-q4k",
+        "qwen3-reranker-0-6b-q4k",
+        "Qwen/Qwen3-Reranker-0.6B:q4k"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 1191588280,
+      "recommended": false,
+      "sortOrder": 19.1,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "experimental",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "failed"
+        },
+        "tested": {
+          "suite": "rerank",
+          "surface": [
+            "node"
+          ],
+          "result": "fail",
+          "lastVerifiedAt": "2026-07-04",
+          "source": "runtime-verify",
+          "contracts": {
+            "executionContractOk": true
+          },
+          "notes": "Failure evidence: reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-04T00-56-00.000Z.failed.json. The WebGPU smoke query ranks the expected document first, but semantic pair accuracy is 0.20 (1/5), so this quantized lane is not publishable."
+        }
+      },
+      "verify": {
+        "workload": "rerank",
+        "runtimeConfig": {
+          "inference": {
+            "rerank": {
+              "query": "What API exposes GPU hardware for browser compute workloads?",
+              "documents": [
+                "WebGPU provides low-level access to graphics processors for compute workloads.",
+                "WebSocket provides full-duplex communication over TCP.",
+                "CSS grid arranges page layout rows and columns."
+              ]
+            }
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
+      "weightPackId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "unpromoted",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "qwen-3-reranker-0-6b-f16-af32",
+      "family": "qwen3",
+      "label": "Qwen3 Reranker 0.6B (F16/F32a)",
+      "description": "Qwen3 0.6B SentenceTransformers CrossEncoder reranker target with manifest-owned true/false token scoring. The F16 lane passes the semantic rerank suite and is the supported reranker variant for publication.",
+      "modes": [
+        "rerank"
+      ],
+      "aliases": [
+        "qwen3-reranker-0.6b",
+        "qwen3-reranker-0-6b",
+        "qwen3-reranker-0.6b-f16",
+        "Qwen/Qwen3-Reranker-0.6B"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": null,
+        "path": "models/qwen-3-reranker-0-6b-f16-af32"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 1191553024,
+      "recommended": false,
+      "sortOrder": 19.2,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "rerank",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-07-04",
+          "source": "runtime-verify",
+          "contracts": {
+            "executionContractOk": true
+          },
+          "notes": "Release evidence: reports/release-claims/qwen-3-reranker-0-6b-f16-af32/2026-07-04T02-00-00.000Z.json. Semantic pair accuracy 1.0 (5/5), WebGPU query topDocumentIndex 0, rerankMs 4057.56 for the three-document smoke request. Speed evidence: reports/benchmarks/qwen-3-reranker-0-6b-f16-af32/2026-07-04T02-15-00.000Z.json (medianRerankMs 3977.72 for the same three-document request)."
+        }
+      },
+      "verify": {
+        "workload": "rerank",
+        "runtimeConfig": {
+          "inference": {
+            "rerank": {
+              "query": "What API exposes GPU hardware for browser compute workloads?",
+              "documents": [
+                "WebGPU provides low-level access to graphics processors for compute workloads.",
+                "WebSocket provides full-duplex communication over TCP.",
+                "CSS grid arranges page layout rows and columns."
+              ]
+            }
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
+      "weightPackId": "qwen-3-reranker-0-6b-f16-af32-wp-catalog-v1",
+      "manifestVariantId": "qwen-3-reranker-0-6b-f16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "minicpm4-0-5b-f16-af32",
+      "family": "minicpm",
+      "label": "MiniCPM4 0.5B (F16/F32a)",
+      "description": "MiniCPM4 0.5B text onboarding artifact. The manifest and shards are complete, but the deterministic smoke prompt produced incoherent text, so this lane is not a supported generation model yet.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "minicpm4-0.5b",
+        "minicpm4-0-5b",
+        "openbmb/MiniCPM4-0.5B"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 867747840,
+      "recommended": false,
+      "sortOrder": 19.3,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "experimental",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "failed"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "fail",
+          "lastVerifiedAt": "2026-07-04",
+          "source": "runtime-verify",
+          "contracts": {
+            "executionContractOk": true
+          },
+          "notes": "Failure evidence: reports/release-claims/minicpm4-0-5b-f16-af32/2026-07-04T01-07-00.000Z.failed.json and reports/debug/minicpm4-0-5b-f16-af32/2026-07-04T02-25-00.000Z.json. The prompt \"Q: What color is the sky on a clear day? A:\" produced \"This problem question: When是我国 an an\", so the artifact remains local-only until tokenizer/template/config correctness is fixed."
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "openbmb/MiniCPM4-0.5B",
+      "weightPackId": "minicpm4-0-5b-f16-af32-wp-catalog-v1",
+      "manifestVariantId": "minicpm4-0-5b-f16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "unpromoted",
       "weightsRefAllowed": false
     },
     {

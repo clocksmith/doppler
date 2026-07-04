@@ -10,7 +10,7 @@ const DEFAULT_POLICY_PATH = path.join(REPO_ROOT, 'tools', 'policies', 'release-c
 const DEFAULT_CATALOG_PATH = path.join(REPO_ROOT, 'models', 'catalog.json');
 const DEFAULT_QUICKSTART_REGISTRY_PATH = path.join(REPO_ROOT, 'src', 'client', 'doppler-registry.json');
 const DEFAULT_SUBSYSTEMS_PATH = path.join(REPO_ROOT, 'src', 'config', 'support-tiers', 'subsystems.json');
-const CLAIM_MODES = new Set(['text', 'embedding', 'translate']);
+const CLAIM_MODES = new Set(['text', 'embedding', 'rerank', 'translate']);
 const CLAIM_SURFACES = new Set(['browser', 'node', 'bun', 'serve', 'electron']);
 const EVIDENCE_KINDS = new Set([
   'browser-node-webgpu-smoke',
@@ -22,6 +22,7 @@ const EVIDENCE_KINDS = new Set([
 ]);
 const PERFORMANCE_EVIDENCE_KINDS = new Set([
   'embedding-runtime-report',
+  'rerank-runtime-report',
   'runtime-report',
 ]);
 
@@ -155,9 +156,18 @@ function hasEmbeddingEvidence(payload) {
     && metrics.semanticPassed === true;
 }
 
+function hasRerankEvidence(payload) {
+  const metrics = isPlainObject(payload?.metrics) ? payload.metrics : {};
+  return metrics.semanticPassed === true
+    && Number.isFinite(metrics.semanticPairAcc)
+    && Number.isFinite(metrics.topDocumentIndex)
+    && Number.isFinite(metrics.rerankMs);
+}
+
 function expectedClaimMode(model) {
   const modes = uniqueNormalizedList(model?.modes);
   if (modes.includes('embedding')) return 'embedding';
+  if (modes.includes('rerank')) return 'rerank';
   if (modes.includes('translate') && !modes.includes('text')) return 'translate';
   if (modes.includes('text')) return 'text';
   return null;
@@ -309,6 +319,9 @@ function validateClaimCatalogContract(policy, catalog, quickstartRegistry) {
     if (mode === 'embedding' && !modes.includes('embedding')) {
       errors.push(`${modelId}: embedding release claim requires catalog embedding mode`);
     }
+    if (mode === 'rerank' && !modes.includes('rerank')) {
+      errors.push(`${modelId}: rerank release claim requires catalog rerank mode`);
+    }
     if (mode === 'translate' && !modes.includes('translate')) {
       errors.push(`${modelId}: translate release claim requires catalog translate mode`);
     }
@@ -347,7 +360,7 @@ async function validateClaimEvidenceFiles(policy) {
         errors.push(`${modelId}: evidence report requires adapter identity`);
       }
       const mode = normalizeLower(claim.mode);
-      if ((mode === 'text' || mode === 'translate') && !hasExecutionContractEvidence(evidencePayload)) {
+      if ((mode === 'text' || mode === 'translate' || mode === 'rerank') && !hasExecutionContractEvidence(evidencePayload)) {
         errors.push(`${modelId}: ${mode} evidence requires execution contract evidence`);
       }
       if ((mode === 'text' || mode === 'translate') && !hasTextOutputEvidence(evidencePayload)) {
@@ -355,6 +368,9 @@ async function validateClaimEvidenceFiles(policy) {
       }
       if (mode === 'embedding' && !hasEmbeddingEvidence(evidencePayload)) {
         errors.push(`${modelId}: embedding evidence requires finite semantic embedding evidence`);
+      }
+      if (mode === 'rerank' && !hasRerankEvidence(evidencePayload)) {
+        errors.push(`${modelId}: rerank evidence requires semantic rerank evidence`);
       }
     }
     const performancePayload = payloadByPath.get(performancePath);

@@ -345,6 +345,12 @@ export interface ManifestRoPESchema {
   yarnBetaSlow: number | null;
   /** YARN original max position embeddings (null if not YARN scaling) */
   yarnOriginalMaxPos: number | null;
+  /** LongRoPE short-context factors (null if not LongRoPE scaling) */
+  longropeShortFactor: number[] | null;
+  /** LongRoPE long-context factors (null if not LongRoPE scaling) */
+  longropeLongFactor: number[] | null;
+  /** LongRoPE original max position embeddings (null if not LongRoPE scaling) */
+  longropeOriginalMaxPos: number | null;
   /** Local YARN beta_fast parameter (null if not local YARN scaling) */
   ropeLocalYarnBetaFast: number | null;
   /** Local YARN beta_slow parameter (null if not local YARN scaling) */
@@ -364,6 +370,10 @@ export interface ManifestOutputSchema {
   tieWordEmbeddings: boolean;
   /** Scale embeddings by sqrt(hiddenSize) (Gemma models: true) */
   scaleEmbeddings: boolean;
+  /** Explicit embedding multiplier, null to use scaleEmbeddings semantics. */
+  embeddingScale: number | null;
+  /** Multiplier applied after final norm before LM head projection. */
+  logitInputScale: number;
   /** Whether embedding weights are stored as [hidden, vocab] (transpose on gather) */
   embeddingTranspose: boolean;
   /** Embedding vocab size from weight tensor (null = use architecture.vocabSize) */
@@ -402,6 +412,8 @@ export interface ManifestLayerPatternSchema {
   offset: number | null;
   /** For custom: explicit per-layer architecture tags, null if not applicable */
   layerTypes: LayerType[] | null;
+  /** Multiplier applied to attention and FFN branches before residual add. */
+  residualBranchScale: number;
 }
 
 /**
@@ -459,6 +471,20 @@ export interface ManifestDiffusionGemmaSchema {
   };
 }
 
+export interface ManifestRerankSchema {
+  format: 'qwen3_yes_no_logit' | string;
+  instruction: string;
+  inputTemplate: string;
+  prefix: string;
+  suffix: string;
+  trueToken: string;
+  trueTokenId: number;
+  falseToken: string;
+  falseTokenId: number;
+  score: 'logit_difference' | string;
+  probability: 'sigmoid' | string;
+}
+
 /**
  * Complete inference configuration embedded in manifest.
  * All fields are required - converter must populate everything.
@@ -483,8 +509,14 @@ export interface ManifestInferenceSchema {
   layerPattern: ManifestLayerPatternSchema;
   /** Chat template configuration */
   chatTemplate: ManifestChatTemplateSchema;
+  /** Whether this artifact exposes embedding workload support through pipeline.embed(). */
+  supportsEmbedding: boolean;
+  /** Whether this artifact exposes rerank workload support through prefillWithLogits(). */
+  supportsRerank: boolean;
   /** DiffusionGemma block-diffusion runtime contract, null for non-DiffusionGemma models. */
   diffusionGemma: ManifestDiffusionGemmaSchema | null;
+  /** Manifest-owned rerank scoring contract, null when rerank is unsupported. */
+  rerank: ManifestRerankSchema | null;
   /** Layer pipeline override (null = use optimized hardcoded path) */
   pipeline: LayerPipelineSchema | null;
   /** Explicit session policy for execution v1 manifests */
@@ -758,6 +790,11 @@ export declare function hasInferenceConfig<T extends { inference?: ManifestInfer
 
 /** Check if a manifest supports embedding workloads. */
 export declare function modelSupportsEmbedding(
+  manifest: Partial<ManifestSchema> | null | undefined
+): boolean;
+
+/** Check if a manifest supports rerank workloads. */
+export declare function modelSupportsRerank(
   manifest: Partial<ManifestSchema> | null | undefined
 ): boolean;
 

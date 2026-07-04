@@ -52,6 +52,13 @@
   ],
   "embeddingSemanticStyle": [
     { "match": { "manifestModelType": "embeddinggemma" }, "value": "embeddinggemma" },
+    {
+      "match": {
+        "modelType": "embedding",
+        "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B"
+      },
+      "value": "qwen3_embedding"
+    },
     { "match": {}, "value": "default" }
   ],
   "stableF32Logits": [

@@ -9,7 +9,7 @@ For the end-to-end promotion workflow across repo metadata, external-volume RDRR
 Three surfaces, one direction:
 
 1. **External volume** (`$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/`) — source of truth for RDRR artifact bytes and local complete artifact directories.
-2. **`models/catalog.json`** (repo) — source of truth for repo-visible model registry metadata: labels, aliases, lifecycle, artifact identity, benchmark mapping, quickstart/demo visibility, and HF coordinates.
+2. **`models/catalog.json`** (repo) — source of truth for repo-visible model registry metadata: labels, aliases, lifecycle, artifact identity, benchmark mapping, benchmark evidence citations, quickstart/demo visibility, and HF coordinates.
 3. **HF `Clocksmith/rdrr`** — published subset generated from approved catalog entries and verified artifact directories.
 
 ```

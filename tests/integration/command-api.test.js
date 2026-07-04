@@ -51,6 +51,18 @@ import {
 }
 
 {
+  const request = normalizeToolingCommandRequest({
+    command: 'verify',
+    workload: 'rerank',
+    modelId: 'qwen-3-reranker-0-6b-q4k-ehf16-af32',
+  });
+  assert.equal(request.command, 'verify');
+  assert.equal(request.workload, 'rerank');
+  assert.equal(request.intent, 'verify');
+  assert.equal(request.modelId, 'qwen-3-reranker-0-6b-q4k-ehf16-af32');
+}
+
+{
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'verify',
@@ -238,7 +250,7 @@ import {
       workload: 'kernels',
       modelId: 'gemma-3-1b-it-f16-af32',
     }),
-    /workload must be "inference", "embedding", "training", or "diffusion"/
+    /workload must be "inference", "embedding", "rerank", "training", or "diffusion"/
   );
 }
 

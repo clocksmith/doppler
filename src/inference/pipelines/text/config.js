@@ -769,6 +769,26 @@ export function validateRequiredInferenceFields(inf, modelId) {
   if (inf.output.scaleEmbeddings == null) {
     errors.push('output.scaleEmbeddings is required');
   }
+  if (inf.output.embeddingScale === undefined) {
+    errors.push('output.embeddingScale must be explicitly set (null for scaleEmbeddings semantics, or number)');
+  } else {
+    const embeddingScale = inf.output.embeddingScale;
+    if (embeddingScale !== null && (typeof embeddingScale !== 'number' || !Number.isFinite(embeddingScale) || embeddingScale <= 0)) {
+      errors.push('output.embeddingScale must be a positive finite number or null');
+    }
+    if (embeddingScale !== null && inf.output.scaleEmbeddings === true) {
+      errors.push('output.embeddingScale cannot be set when output.scaleEmbeddings is true');
+    }
+  }
+  if (inf.output.logitInputScale == null) {
+    errors.push('output.logitInputScale is required');
+  } else if (
+    typeof inf.output.logitInputScale !== 'number'
+    || !Number.isFinite(inf.output.logitInputScale)
+    || inf.output.logitInputScale <= 0
+  ) {
+    errors.push('output.logitInputScale must be a positive finite number');
+  }
   if (inf.output.embeddingTranspose == null) {
     errors.push('output.embeddingTranspose is required');
   }
@@ -838,6 +858,15 @@ export function validateRequiredInferenceFields(inf, modelId) {
   if (inf.layerPattern?.offset === undefined) {
     errors.push('layerPattern.offset must be explicitly set (null if not applicable)');
   }
+  if (inf.layerPattern?.residualBranchScale == null) {
+    errors.push('layerPattern.residualBranchScale is required');
+  } else if (
+    typeof inf.layerPattern.residualBranchScale !== 'number'
+    || !Number.isFinite(inf.layerPattern.residualBranchScale)
+    || inf.layerPattern.residualBranchScale <= 0
+  ) {
+    errors.push('layerPattern.residualBranchScale must be a positive finite number');
+  }
   if (inf.layerPattern?.type === 'custom' && inf.layerPattern?.layerTypes === undefined) {
     errors.push('layerPattern.layerTypes must be explicitly set for custom patterns');
   }
@@ -859,6 +888,36 @@ export function validateRequiredInferenceFields(inf, modelId) {
   }
   if (inf.rope.yarnOriginalMaxPos === undefined) {
     errors.push('rope.yarnOriginalMaxPos must be explicitly set (null if not YARN)');
+  }
+  if (inf.rope.longropeShortFactor === undefined) {
+    errors.push('rope.longropeShortFactor must be explicitly set (null if not LongRoPE)');
+  }
+  if (inf.rope.longropeLongFactor === undefined) {
+    errors.push('rope.longropeLongFactor must be explicitly set (null if not LongRoPE)');
+  }
+  if (inf.rope.longropeOriginalMaxPos === undefined) {
+    errors.push('rope.longropeOriginalMaxPos must be explicitly set (null if not LongRoPE)');
+  }
+  if (inf.rope.ropeScalingType === 'longrope') {
+    if (!Array.isArray(inf.rope.longropeShortFactor) || inf.rope.longropeShortFactor.length === 0) {
+      errors.push('rope.longropeShortFactor must be a non-empty number array for LongRoPE');
+    }
+    if (!Array.isArray(inf.rope.longropeLongFactor) || inf.rope.longropeLongFactor.length === 0) {
+      errors.push('rope.longropeLongFactor must be a non-empty number array for LongRoPE');
+    }
+    if (
+      typeof inf.rope.longropeOriginalMaxPos !== 'number'
+      || !Number.isFinite(inf.rope.longropeOriginalMaxPos)
+      || inf.rope.longropeOriginalMaxPos <= 0
+    ) {
+      errors.push('rope.longropeOriginalMaxPos must be a positive finite number for LongRoPE');
+    }
+  } else if (
+    inf.rope.longropeShortFactor !== null
+    || inf.rope.longropeLongFactor !== null
+    || inf.rope.longropeOriginalMaxPos !== null
+  ) {
+    errors.push('rope LongRoPE fields must be null unless rope.ropeScalingType is "longrope"');
   }
   if (inf.rope.ropeLocalYarnBetaFast === undefined) {
     errors.push('rope.ropeLocalYarnBetaFast must be explicitly set (null if not local YARN)');
@@ -1503,6 +1562,24 @@ function toParsedConfigFromMerged(merged, manifest) {
       );
     }
   }
+  const validateLongropeFactorArray = (value, label) => {
+    if (!Array.isArray(value)) {
+      throw new Error(`Manifest "${merged.modelId}" ${label} must be an array for LongRoPE.`);
+    }
+    if (value.length !== ropeRotaryDim / 2) {
+      throw new Error(
+        `Manifest "${merged.modelId}" ${label} length ${value.length} does not match ` +
+        `resolved RoPE half dim ${ropeRotaryDim / 2}.`
+      );
+    }
+    for (let i = 0; i < value.length; i += 1) {
+      const entry = Number(value[i]);
+      if (!Number.isFinite(entry) || entry <= 0) {
+        throw new Error(`Manifest "${merged.modelId}" ${label}[${i}] must be a positive finite number.`);
+      }
+    }
+    return value.map((entry) => Number(entry));
+  };
 
   // Build ropeScaling object from manifest values if scaling is enabled
   // Include YARN params when present
@@ -1514,6 +1591,11 @@ function toParsedConfigFromMerged(merged, manifest) {
     ...(ropeScalingType === 'yarn' && inf.rope.yarnBetaSlow != null && { beta_slow: inf.rope.yarnBetaSlow }),
     ...(ropeScalingType === 'yarn' && inf.rope.yarnOriginalMaxPos != null && {
       original_max_position_embeddings: inf.rope.yarnOriginalMaxPos
+    }),
+    ...(ropeScalingType === 'longrope' && {
+      short_factor: validateLongropeFactorArray(inf.rope.longropeShortFactor, 'rope.longropeShortFactor'),
+      long_factor: validateLongropeFactorArray(inf.rope.longropeLongFactor, 'rope.longropeLongFactor'),
+      original_max_position_embeddings: inf.rope.longropeOriginalMaxPos,
     }),
   } : null;
   const ropeLocalScaling = ropeLocalScalingType ? {
@@ -1615,6 +1697,9 @@ function toParsedConfigFromMerged(merged, manifest) {
   const sessionSettings = resolveSessionSettings(inf, merged.modelId);
   const largeWeightsConfig = resolveLargeWeightsConfig(inf, merged.modelId);
   const diffusionGemma = inf.diffusionGemma ?? null;
+  const embeddingScale = inf.output.embeddingScale;
+  const logitInputScale = inf.output.logitInputScale;
+  const residualBranchScale = inf.layerPattern.residualBranchScale;
 
   return {
     modelType: manifest.modelType,
@@ -1664,6 +1749,9 @@ function toParsedConfigFromMerged(merged, manifest) {
     preFeedforwardNorm: inf.normalization.preFeedforwardNorm,
     postFeedforwardNorm: inf.normalization.postFeedforwardNorm,
     scaleEmbeddings: inf.output.scaleEmbeddings,
+    embeddingScale,
+    logitInputScale,
+    residualBranchScale,
     useTiedEmbeddings: inf.output.tieWordEmbeddings,
     embeddingTranspose: inf.output.embeddingTranspose,
     embeddingVocabSize: inf.output.embeddingVocabSize,

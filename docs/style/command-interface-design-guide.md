@@ -57,6 +57,7 @@ Workload names describe the run family and are independent of command intent.
 Canonical workloads:
 - `inference`
 - `embedding`
+- `rerank`
 - `kernels`
 - `training`
 - `diffusion`
@@ -66,7 +67,7 @@ Rules:
 - `debug` is valid for `inference` and `embedding`.
 - `diagnose` is valid for `inference` and `embedding`; CLI execution is Node-only.
 - `bench` is valid for `inference`, `embedding`, `training`, `diffusion`, and `energy`.
-- `verify` is valid for `kernels`, `inference`, `embedding`, `training`, `diffusion`, and `energy`.
+- `verify` is valid for `kernels`, `inference`, `embedding`, `rerank`, `training`, `diffusion`, and `energy`.
 - `convert`, `refresh-integrity`, `lora`, and `distill` do not use workload-locked harness execution.
 - `workloadType` is reserved for submodes inside a workload family when a family needs it, such as training stage selection or diffusion lane selection.
 - `request.inferenceInput` is reserved for request-owned inference payloads such as prompt overrides and multimodal image inputs.

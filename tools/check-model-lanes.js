@@ -61,6 +61,15 @@ function hasAnyHfPointer(entry) {
   );
 }
 
+function hasBootstrapHfPointer(entry) {
+  const hf = isPlainObject(entry?.hf) ? entry.hf : null;
+  return Boolean(
+    normalizeText(hf?.repoId)
+    && !normalizeText(hf?.revision)
+    && normalizeText(hf?.path)
+  );
+}
+
 function isPrimaryLane(entry) {
   return entry?.artifactCompleteness === 'complete' && entry?.weightsRefAllowed === false;
 }
@@ -102,8 +111,19 @@ function validateCatalog(catalog) {
     if (hfAvailable && !hasCompleteHfPointer(entry)) {
       errors.push(`${modelId}: lifecycle.availability.hf=true requires hf.repoId, hf.revision, and hf.path`);
     }
-    if (!hfAvailable && hasAnyHfPointer(entry)) {
-      errors.push(`${modelId}: hf metadata must be absent unless lifecycle.availability.hf=true`);
+    if (!hfAvailable && hasAnyHfPointer(entry) && !hasBootstrapHfPointer(entry)) {
+      errors.push(`${modelId}: hf metadata must be absent or a bootstrap repo/path with no revision unless lifecycle.availability.hf=true`);
+    }
+    if (!hfAvailable && hasBootstrapHfPointer(entry)) {
+      const status = isPlainObject(entry?.lifecycle?.status) ? entry.lifecycle.status : {};
+      const tested = isPlainObject(entry?.lifecycle?.tested) ? entry.lifecycle.tested : {};
+      const contracts = isPlainObject(tested?.contracts) ? tested.contracts : {};
+      if (status.runtime !== 'active' || status.tested !== 'verified' || tested.result !== 'pass') {
+        errors.push(`${modelId}: bootstrap hf repo/path requires active verified/pass lifecycle`);
+      }
+      if (contracts.executionContractOk !== true) {
+        errors.push(`${modelId}: bootstrap hf repo/path requires lifecycle.tested.contracts.executionContractOk=true`);
+      }
     }
 
     if (entry?.runtimePromotionState === 'manifest-owned') {
@@ -161,6 +181,8 @@ export async function main(argv = process.argv.slice(2)) {
   }
   console.log('model-lanes: catalog lane metadata ok');
 }
+
+export { validateCatalog };
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((error) => {

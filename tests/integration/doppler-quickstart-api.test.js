@@ -26,6 +26,14 @@ assert.equal(typeof doppler.evict, 'function');
   const resolved = await resolveQuickstartModel('gemma3-270m');
   assert.equal(resolved.modelId, 'gemma-3-270m-it-q4k-ehf16-af32');
   assert.ok(resolved.aliases.includes('google/gemma-3-270m-it'));
+  assert.equal(resolved.vendorBenchmark?.transformersjs?.repoId, 'onnx-community/gemma-3-270m-it-ONNX');
+  assert.deepEqual(resolved.benchmarkEvidence, {
+    status: 'benchmark-selected',
+    localClaimLaneId: 'gemma-3-270m-it-q4k-rdrr',
+    runtimeReport: 'reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json',
+    compareResult: 'benchmarks/vendors/results/compare_20260627T200811.json',
+    summarySvg: 'benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-browser-p512-d128-t0-k1-strix-halo-20260627T200811.svg',
+  });
   assert.equal(
     buildQuickstartModelBaseUrl(resolved),
     `https://huggingface.co/${resolved.hf.repoId}/resolve/${resolved.hf.revision}/${resolved.hf.path}`

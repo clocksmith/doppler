@@ -46,7 +46,7 @@ export declare function buildSuiteOptions(
   workload: ToolingCommandRequest['workload'];
   command: ToolingCommandRequest['command'];
   surface: string | null;
-  expectedModelType?: 'embedding';
+  expectedModelType?: 'embedding' | 'rerank';
   modelId?: string;
   trainingTests?: string[];
   trainingStage?: 'stage1_joint' | 'stage2_base' | 'stage_a' | 'stage_b';

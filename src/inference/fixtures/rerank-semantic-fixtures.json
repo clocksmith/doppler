@@ -1,0 +1,38 @@
+{
+  "defaults": {
+    "minPairAcc": 0.8,
+    "minScoreMargin": 0,
+    "cases": [
+      {
+        "id": "china_capital",
+        "query": "What is the capital of China?",
+        "positive": "The capital of China is Beijing.",
+        "negative": "Gravity is a force that attracts two bodies towards each other."
+      },
+      {
+        "id": "password_reset",
+        "query": "How do I reset my account password?",
+        "positive": "To reset your password, open account settings and choose the forgot-password flow.",
+        "negative": "The recipe combines tomatoes, basil, and olive oil."
+      },
+      {
+        "id": "python_sort",
+        "query": "How do I sort a list in Python?",
+        "positive": "Use sorted() or list.sort() to sort a list in Python.",
+        "negative": "The cafe serves coffee and pastries."
+      },
+      {
+        "id": "webgpu_compute",
+        "query": "What API exposes GPU hardware for browser compute workloads?",
+        "positive": "WebGPU provides low-level access to graphics processors for compute workloads.",
+        "negative": "WebSocket provides full-duplex communication over TCP."
+      },
+      {
+        "id": "vaccines",
+        "query": "How do vaccines work?",
+        "positive": "Vaccines train the immune system to recognize future infections.",
+        "negative": "The symphony orchestra has strings, woodwinds, brass, and percussion."
+      }
+    ]
+  }
+}

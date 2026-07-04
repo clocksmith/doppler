@@ -84,7 +84,18 @@ Kernel management checks:
 
 Use `models/catalog.json` as the repo source of truth for supported model
 metadata: labels, aliases, lifecycle, artifact identity, quickstart/demo
-visibility, vendor benchmark mapping, and hosted Hugging Face coordinates.
+visibility, vendor benchmark mapping, benchmark evidence citations, and hosted
+Hugging Face coordinates.
+
+Catalog entries may be unpromoted, but they still require a real conversion
+family. Do not add a new-family candidate to the catalog until a checked-in
+conversion config exists for that family in the same change or an earlier one.
+Consumer priority lists can drive onboarding order; they must not become a
+second model registry.
+
+`vendorBenchmark` is the comparable baseline mapping. `benchmarkEvidence` is the
+checked-in citation set for a benchmark-selected lane and must point at the
+runtime report, compare result, and SVG summary receipts.
 
 Artifact bytes have a separate source of truth:
 

@@ -5,6 +5,11 @@ import { createDopplerConfig } from '../../src/config/schema/index.js';
 installNodeFileFetchShim();
 
 const {
+  tagBufferDtype,
+  isGpuBufferInstance,
+} = await import('../../src/gpu/weight-buffer.js');
+
+const {
   assertTokenIdsInRange,
   assertTokenIdInRange,
   resolveGenerateOptions,
@@ -13,6 +18,7 @@ const {
   resolveAdvanceEmbeddingMode,
   extractEmbeddingFromHidden,
   resolveFloatDtypeFromByteSize,
+  resolveFloatDtypeFromBufferMetadata,
 } = await import('../../src/inference/pipelines/text/generator-runtime.js');
 
 // === assertTokenIdsInRange ===
@@ -345,6 +351,28 @@ assert.throws(() => resolveFloatDtypeFromByteSize(NaN, 10), /invalid size metada
 assert.throws(() => resolveFloatDtypeFromByteSize(-1, 10), /invalid size metadata/);
 assert.throws(() => resolveFloatDtypeFromByteSize(10, 0), /invalid size metadata/);
 assert.throws(() => resolveFloatDtypeFromByteSize(30, 10), /bytesPerElement=3/);
+
+{
+  const PreviousGPUBuffer = globalThis.GPUBuffer;
+  class FakeGPUBuffer {
+    constructor(size) {
+      this.size = size;
+    }
+  }
+  globalThis.GPUBuffer = FakeGPUBuffer;
+  try {
+    const padded = new FakeGPUBuffer(4096);
+    assert.equal(isGpuBufferInstance(padded), true);
+    tagBufferDtype(padded, 'f16');
+    assert.equal(resolveFloatDtypeFromBufferMetadata(padded, 768), 'f16');
+  } finally {
+    if (PreviousGPUBuffer === undefined) {
+      delete globalThis.GPUBuffer;
+    } else {
+      globalThis.GPUBuffer = PreviousGPUBuffer;
+    }
+  }
+}
 
 // === extractEmbeddingFromHidden ===
 

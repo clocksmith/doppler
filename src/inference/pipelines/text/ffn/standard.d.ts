@@ -21,5 +21,6 @@ export declare function processFFNStandard(
   context: LayerContext,
   layerWeights: LayerWeights | undefined,
   fusedResidualInput?: Tensor | null,
-  finalOutputScale?: number | null
+  finalOutputScale?: number | null,
+  residualBranchScale?: number | null
 ): Promise<Tensor>;

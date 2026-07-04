@@ -20,11 +20,31 @@ for (const config of conversionConfigs) {
   );
 }
 
+const nonOffsetConversionConfigs = await Promise.all([
+  loadJson('../../src/config/conversion/qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32.json'),
+  loadJson('../../src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json'),
+  loadJson('../../src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-af32.json'),
+]);
+
+for (const config of nonOffsetConversionConfigs) {
+  assert.equal(
+    config.inference?.normalization?.rmsNormWeightOffset,
+    false,
+    `${config.output?.modelBaseId ?? 'unknown'} v1 config must keep source-declared non-offset RMSNorm weight semantics`
+  );
+}
+
 const localManifestPaths = [
   '../../models/local/qwen-3-5-0-8b-q4k-ehaf16-af32/manifest.json',
   '../../models/local/qwen-3-5-0-8b-wf16-ef16-hf16-f16/manifest.json',
   '../../models/local/qwen-3-5-0-8b-wq4k-ef16-hf16-f16/manifest.json',
   '../../models/local/qwen-3-5-2b-wq4k-ef16-hf16-f16/manifest.json',
+];
+
+const localNonOffsetManifestPaths = [
+  '../../models/local/qwen-3-embedding-0-6b-q4k-ehf16-af32/manifest.json',
+  '../../models/local/qwen-3-reranker-0-6b-q4k-ehf16-af32/manifest.json',
+  '../../models/local/qwen-3-reranker-0-6b-f16-af32/manifest.json',
 ];
 
 const existingManifestPaths = localManifestPaths.filter((relativePath) => (
@@ -37,6 +57,19 @@ for (const manifestPath of existingManifestPaths) {
     manifest.inference?.normalization?.rmsNormWeightOffset,
     true,
     `${manifest.modelId} must use offset RMSNorm weight semantics`
+  );
+}
+
+const existingNonOffsetManifestPaths = localNonOffsetManifestPaths.filter((relativePath) => (
+  existsSync(new URL(relativePath, import.meta.url))
+));
+
+for (const manifestPath of existingNonOffsetManifestPaths) {
+  const manifest = await loadJson(manifestPath);
+  assert.equal(
+    manifest.inference?.normalization?.rmsNormWeightOffset,
+    false,
+    `${manifest.modelId} must use source-declared non-offset RMSNorm weight semantics`
   );
 }
 

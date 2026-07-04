@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-07-01",
+  "updated": "2026-07-04",
   "sources": [
     "models/catalog.json",
     "src/config/conversion/**",
@@ -103,15 +103,15 @@
     }
   },
   "summary": {
-    "catalogModelCount": 19,
-    "sourceCheckpointCount": 13,
+    "catalogModelCount": 23,
+    "sourceCheckpointCount": 16,
     "conversionOnlyConfigCount": 7,
     "hfPublishedModelCount": 10,
-    "verifiedModelCount": 17,
+    "verifiedModelCount": 19,
     "benchmarkSelectedSourceCount": 1,
-    "benchmarkPendingSourceCount": 12,
+    "benchmarkPendingSourceCount": 15,
     "tierCounts": {
-      "small": 5,
+      "small": 8,
       "medium": 4,
       "large": 4,
       "unknown": 0
@@ -166,6 +166,7 @@
             "runtime": "active",
             "conversion": "ready",
             "tested": "verified",
+            "result": "pass",
             "lastVerifiedAt": "2026-06-24",
             "surfaces": [
               "browser",
@@ -270,6 +271,7 @@
             "runtime": "active",
             "conversion": "ready",
             "tested": "verified",
+            "result": "pass",
             "lastVerifiedAt": "2026-06-29",
             "surfaces": [
               "node"
@@ -305,7 +307,7 @@
           },
           "actions": {
             "verifyCommand": "node tools/run-registry-verify.js gemma-3-270m-it-f16-af32 --surface auto",
-            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id gemma-3-270m-it-f16-af32 --dry-run",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id gemma-3-270m-it-f16-af32 --dry-run --bootstrap",
             "compareCommands": [
               {
                 "workloadId": "p064-d064-t0-k1",
@@ -338,7 +340,7 @@
                 "command": "node tools/compare-engines.js --model-id gemma-3-270m-it-f16-af32 --workload p512-d128-t0-k1 --mode compute --decode-profile throughput --warmup 1 --runs 3 --save --json"
               }
             ],
-            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-3-270m-it-f16-af32 --dry-run"
+            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-3-270m-it-f16-af32 --dry-run --bootstrap"
           },
           "missing": [
             "hf-publish",
@@ -400,6 +402,7 @@
             "runtime": "active",
             "conversion": "ready",
             "tested": "verified",
+            "result": "pass",
             "lastVerifiedAt": "2026-06-24",
             "surfaces": [
               "node"
@@ -496,6 +499,7 @@
             "runtime": "experimental",
             "conversion": "ready",
             "tested": "none",
+            "result": null,
             "lastVerifiedAt": null,
             "surfaces": []
           },
@@ -529,7 +533,7 @@
           },
           "actions": {
             "verifyCommand": "node tools/run-registry-verify.js lfm2-5-1-2b-instruct-q4k-ehf16-af32 --surface auto",
-            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id lfm2-5-1-2b-instruct-q4k-ehf16-af32 --dry-run",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id lfm2-5-1-2b-instruct-q4k-ehf16-af32 --dry-run --bootstrap",
             "compareCommands": [
               {
                 "workloadId": "p064-d064-t0-k1",
@@ -580,6 +584,98 @@
       "nextCommand": null
     },
     {
+      "sourceCheckpointId": "openbmb/MiniCPM4-0.5B",
+      "family": "minicpm",
+      "tier": "small",
+      "minSizeBytes": 867747840,
+      "minSizeLabel": "0.81 GiB",
+      "status": "verification-failed",
+      "preferredArchitecture": {
+        "status": "verification-failed",
+        "modelId": null,
+        "architecture": null,
+        "evidence": {
+          "runtimeReport": null,
+          "compareResult": null,
+          "summarySvg": null
+        }
+      },
+      "variants": [
+        {
+          "modelId": "minicpm4-0-5b-f16-af32",
+          "label": "MiniCPM4 0.5B (F16/F32a)",
+          "family": "minicpm",
+          "modes": [
+            "text"
+          ],
+          "sizeBytes": 867747840,
+          "sizeLabel": "0.81 GiB",
+          "tier": "small",
+          "sourceCheckpointId": "openbmb/MiniCPM4-0.5B",
+          "weightPackId": "minicpm4-0-5b-f16-af32-wp-catalog-v1",
+          "manifestVariantId": "minicpm4-0-5b-f16-af32-mv-exec-v1",
+          "artifactCompleteness": "complete",
+          "runtimePromotionState": "unpromoted",
+          "conversionConfig": "src/config/conversion/minicpm/minicpm4-0-5b-f16-af32.json",
+          "architecture": {
+            "artifactFormat": "rdrr",
+            "weights": "f16",
+            "embeddings": "f16",
+            "lmHead": "f16",
+            "computePrecision": "f32",
+            "q4kLayout": null,
+            "label": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute"
+          },
+          "lifecycle": {
+            "runtime": "experimental",
+            "conversion": "ready",
+            "tested": "failed",
+            "result": "fail",
+            "lastVerifiedAt": "2026-07-04",
+            "surfaces": [
+              "node"
+            ]
+          },
+          "hf": {
+            "published": false,
+            "repoId": null,
+            "revision": null,
+            "path": null
+          },
+          "quickstart": false,
+          "compare": {
+            "profile": null,
+            "benchmarkComparable": false,
+            "benchmarkEvidenceOk": false
+          },
+          "evidence": {
+            "runtimeReport": null,
+            "runtimeReportExists": false,
+            "compareResult": null,
+            "compareResultExists": false,
+            "summarySvg": null,
+            "summarySvgExists": false,
+            "localClaimLaneId": null
+          },
+          "actions": {
+            "verifyCommand": "node tools/run-registry-verify.js minicpm4-0-5b-f16-af32 --surface auto",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id minicpm4-0-5b-f16-af32 --dry-run --bootstrap",
+            "compareCommands": [],
+            "primaryNextCommand": "node tools/run-registry-verify.js minicpm4-0-5b-f16-af32 --surface auto"
+          },
+          "missing": [
+            "runtime-verify",
+            "hf-publish",
+            "compare-profile"
+          ],
+          "nextGate": "runtime-verify"
+        }
+      ],
+      "nextAction": "Fix failed runtime verification for minicpm4-0-5b-f16-af32; keep it unpromoted until a passing receipt exists.",
+      "nextGate": "runtime-verify",
+      "nextCommand": "node tools/run-registry-verify.js minicpm4-0-5b-f16-af32 --surface auto"
+    },
+    {
       "sourceCheckpointId": "google/gemma-3-1b-it",
       "family": "gemma3",
       "tier": "small",
@@ -627,6 +723,7 @@
             "runtime": "active",
             "conversion": "ready",
             "tested": "verified",
+            "result": "pass",
             "lastVerifiedAt": "2026-06-24",
             "surfaces": [
               "node"
@@ -755,6 +852,7 @@
             "runtime": "active",
             "conversion": "ready",
             "tested": "verified",
+            "result": "pass",
             "lastVerifiedAt": "2026-06-15",
             "surfaces": [
               "browser",
@@ -838,6 +936,257 @@
       "nextCommand": "node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
     },
     {
+      "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
+      "family": "qwen3",
+      "tier": "small",
+      "minSizeBytes": 1191553024,
+      "minSizeLabel": "1.11 GiB",
+      "status": "benchmark-comparison-needed",
+      "preferredArchitecture": {
+        "status": "pending-benchmark-comparison",
+        "modelId": "qwen-3-reranker-0-6b-f16-af32",
+        "architecture": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute",
+        "evidence": {
+          "runtimeReport": "reports/release-claims/qwen-3-reranker-0-6b-f16-af32/2026-07-04T02-00-00.000Z.json",
+          "compareResult": null,
+          "summarySvg": null
+        }
+      },
+      "variants": [
+        {
+          "modelId": "qwen-3-reranker-0-6b-f16-af32",
+          "label": "Qwen3 Reranker 0.6B (F16/F32a)",
+          "family": "qwen3",
+          "modes": [
+            "rerank"
+          ],
+          "sizeBytes": 1191553024,
+          "sizeLabel": "1.11 GiB",
+          "tier": "small",
+          "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
+          "weightPackId": "qwen-3-reranker-0-6b-f16-af32-wp-catalog-v1",
+          "manifestVariantId": "qwen-3-reranker-0-6b-f16-af32-mv-exec-v1",
+          "artifactCompleteness": "complete",
+          "runtimePromotionState": "manifest-owned",
+          "conversionConfig": "src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-af32.json",
+          "architecture": {
+            "artifactFormat": "rdrr",
+            "weights": "f16",
+            "embeddings": "f16",
+            "lmHead": "f16",
+            "computePrecision": "f32",
+            "q4kLayout": null,
+            "label": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute"
+          },
+          "lifecycle": {
+            "runtime": "active",
+            "conversion": "ready",
+            "tested": "verified",
+            "result": "pass",
+            "lastVerifiedAt": "2026-07-04",
+            "surfaces": [
+              "node"
+            ]
+          },
+          "hf": {
+            "published": false,
+            "repoId": "Clocksmith/rdrr",
+            "revision": null,
+            "path": "models/qwen-3-reranker-0-6b-f16-af32"
+          },
+          "quickstart": false,
+          "compare": {
+            "profile": null,
+            "benchmarkComparable": false,
+            "benchmarkEvidenceOk": false
+          },
+          "evidence": {
+            "runtimeReport": "reports/release-claims/qwen-3-reranker-0-6b-f16-af32/2026-07-04T02-00-00.000Z.json",
+            "runtimeReportExists": true,
+            "compareResult": null,
+            "compareResultExists": false,
+            "summarySvg": null,
+            "summarySvgExists": false,
+            "localClaimLaneId": null
+          },
+          "actions": {
+            "verifyCommand": "node tools/run-registry-verify.js qwen-3-reranker-0-6b-f16-af32 --surface auto",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-f16-af32 --dry-run --bootstrap",
+            "compareCommands": [],
+            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-f16-af32 --dry-run --bootstrap"
+          },
+          "missing": [
+            "hf-publish",
+            "compare-profile"
+          ],
+          "nextGate": "hf-publish"
+        },
+        {
+          "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+          "label": "Qwen3 Reranker 0.6B (Q4K/F32a)",
+          "family": "qwen3",
+          "modes": [
+            "rerank"
+          ],
+          "sizeBytes": 1191588280,
+          "sizeLabel": "1.11 GiB",
+          "tier": "small",
+          "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
+          "weightPackId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-catalog-v1",
+          "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-exec-v1",
+          "artifactCompleteness": "complete",
+          "runtimePromotionState": "unpromoted",
+          "conversionConfig": "src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json",
+          "architecture": {
+            "artifactFormat": "rdrr",
+            "weights": "q4k",
+            "embeddings": "f16",
+            "lmHead": "f16",
+            "computePrecision": "f32",
+            "q4kLayout": "row",
+            "label": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout"
+          },
+          "lifecycle": {
+            "runtime": "experimental",
+            "conversion": "ready",
+            "tested": "failed",
+            "result": "fail",
+            "lastVerifiedAt": "2026-07-04",
+            "surfaces": [
+              "node"
+            ]
+          },
+          "hf": {
+            "published": false,
+            "repoId": null,
+            "revision": null,
+            "path": null
+          },
+          "quickstart": false,
+          "compare": {
+            "profile": null,
+            "benchmarkComparable": false,
+            "benchmarkEvidenceOk": false
+          },
+          "evidence": {
+            "runtimeReport": null,
+            "runtimeReportExists": false,
+            "compareResult": null,
+            "compareResultExists": false,
+            "summarySvg": null,
+            "summarySvgExists": false,
+            "localClaimLaneId": null
+          },
+          "actions": {
+            "verifyCommand": "node tools/run-registry-verify.js qwen-3-reranker-0-6b-q4k-ehf16-af32 --surface auto",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-q4k-ehf16-af32 --dry-run --bootstrap",
+            "compareCommands": [],
+            "primaryNextCommand": "node tools/run-registry-verify.js qwen-3-reranker-0-6b-q4k-ehf16-af32 --surface auto"
+          },
+          "missing": [
+            "runtime-verify",
+            "hf-publish",
+            "compare-profile"
+          ],
+          "nextGate": "runtime-verify"
+        }
+      ],
+      "nextAction": "Publish or refresh the Hugging Face manifest/weights for qwen-3-reranker-0-6b-f16-af32.",
+      "nextGate": "hf-publish",
+      "nextCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-f16-af32 --dry-run --bootstrap"
+    },
+    {
+      "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
+      "family": "qwen3",
+      "tier": "small",
+      "minSizeBytes": 1191586416,
+      "minSizeLabel": "1.11 GiB",
+      "status": "benchmark-comparison-needed",
+      "preferredArchitecture": {
+        "status": "pending-benchmark-comparison",
+        "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "evidence": {
+          "runtimeReport": "reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-04T00-36-00.000Z.json",
+          "compareResult": null,
+          "summarySvg": null
+        }
+      },
+      "variants": [
+        {
+          "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+          "label": "Qwen3 Embedding 0.6B (Q4K/F32a)",
+          "family": "qwen3",
+          "modes": [
+            "embedding"
+          ],
+          "sizeBytes": 1191586416,
+          "sizeLabel": "1.11 GiB",
+          "tier": "small",
+          "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
+          "weightPackId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-wp-catalog-v1",
+          "manifestVariantId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-mv-exec-v1",
+          "artifactCompleteness": "complete",
+          "runtimePromotionState": "manifest-owned",
+          "conversionConfig": "src/config/conversion/qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32.json",
+          "architecture": {
+            "artifactFormat": "rdrr",
+            "weights": "q4k",
+            "embeddings": "f16",
+            "lmHead": "f16",
+            "computePrecision": "f32",
+            "q4kLayout": "row",
+            "label": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout"
+          },
+          "lifecycle": {
+            "runtime": "active",
+            "conversion": "ready",
+            "tested": "verified",
+            "result": "pass",
+            "lastVerifiedAt": "2026-07-04",
+            "surfaces": [
+              "node"
+            ]
+          },
+          "hf": {
+            "published": false,
+            "repoId": "Clocksmith/rdrr",
+            "revision": null,
+            "path": "models/qwen-3-embedding-0-6b-q4k-ehf16-af32"
+          },
+          "quickstart": false,
+          "compare": {
+            "profile": null,
+            "benchmarkComparable": false,
+            "benchmarkEvidenceOk": false
+          },
+          "evidence": {
+            "runtimeReport": "reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-04T00-36-00.000Z.json",
+            "runtimeReportExists": true,
+            "compareResult": null,
+            "compareResultExists": false,
+            "summarySvg": null,
+            "summarySvgExists": false,
+            "localClaimLaneId": null
+          },
+          "actions": {
+            "verifyCommand": "node tools/run-registry-verify.js qwen-3-embedding-0-6b-q4k-ehf16-af32 --surface auto",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --dry-run --bootstrap",
+            "compareCommands": [],
+            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --dry-run --bootstrap"
+          },
+          "missing": [
+            "hf-publish",
+            "compare-profile"
+          ],
+          "nextGate": "hf-publish"
+        }
+      ],
+      "nextAction": "Publish or refresh the Hugging Face manifest/weights for qwen-3-embedding-0-6b-q4k-ehf16-af32.",
+      "nextGate": "hf-publish",
+      "nextCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --dry-run --bootstrap"
+    },
+    {
       "sourceCheckpointId": "Qwen/Qwen3.5-2B",
       "family": "qwen3",
       "tier": "medium",
@@ -884,6 +1233,7 @@
             "runtime": "active",
             "conversion": "ready",
             "tested": "verified",
+            "result": "pass",
             "lastVerifiedAt": "2026-06-15",
             "surfaces": [
               "browser",
@@ -981,6 +1331,7 @@
             "runtime": "active",
             "conversion": "ready",
             "tested": "verified",
+            "result": "pass",
             "lastVerifiedAt": "2026-03-20",
             "surfaces": [
               "browser",
@@ -1111,6 +1462,7 @@
             "runtime": "active",
             "conversion": "ready",
             "tested": "verified",
+            "result": "pass",
             "lastVerifiedAt": "2026-05-07",
             "surfaces": [
               "node"
@@ -1139,9 +1491,9 @@
           },
           "actions": {
             "verifyCommand": "node tools/run-registry-verify.js gemma-4-e2b-it-q4k-ehf16-af16-int4ple --surface auto",
-            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-e2b-it-q4k-ehf16-af16-int4ple --dry-run",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-e2b-it-q4k-ehf16-af16-int4ple --dry-run --bootstrap",
             "compareCommands": [],
-            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-e2b-it-q4k-ehf16-af16-int4ple --dry-run"
+            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-e2b-it-q4k-ehf16-af16-int4ple --dry-run --bootstrap"
           },
           "missing": [
             "hf-publish",
@@ -1179,6 +1531,7 @@
             "runtime": "active",
             "conversion": "ready",
             "tested": "verified",
+            "result": "pass",
             "lastVerifiedAt": "2026-04-22",
             "surfaces": [
               "node"
@@ -1285,6 +1638,7 @@
             "runtime": "active",
             "conversion": "ready",
             "tested": "verified",
+            "result": "pass",
             "lastVerifiedAt": "2026-04-18",
             "surfaces": [
               "node"
@@ -1364,7 +1718,7 @@
       ],
       "nextAction": "Publish or refresh the Hugging Face manifest/weights for gemma-4-e2b-it-q4k-ehf16-af16-int4ple.",
       "nextGate": "hf-publish",
-      "nextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-e2b-it-q4k-ehf16-af16-int4ple --dry-run"
+      "nextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-e2b-it-q4k-ehf16-af16-int4ple --dry-run --bootstrap"
     },
     {
       "sourceCheckpointId": "google/gemma-4-12B-it",
@@ -1413,6 +1767,7 @@
             "runtime": "active",
             "conversion": "ready",
             "tested": "verified",
+            "result": "pass",
             "lastVerifiedAt": "2026-06-29",
             "surfaces": [
               "node"
@@ -1441,9 +1796,9 @@
           },
           "actions": {
             "verifyCommand": "node tools/run-registry-verify.js gemma-4-12b-it-text-q4k-ehf16-af16 --surface auto",
-            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-q4k-ehf16-af16 --dry-run",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-q4k-ehf16-af16 --dry-run --bootstrap",
             "compareCommands": [],
-            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-q4k-ehf16-af16 --dry-run"
+            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-q4k-ehf16-af16 --dry-run --bootstrap"
           },
           "missing": [
             "hf-publish",
@@ -1480,6 +1835,7 @@
             "runtime": "active",
             "conversion": "ready",
             "tested": "verified",
+            "result": "pass",
             "lastVerifiedAt": "2026-06-29",
             "surfaces": [
               "node"
@@ -1508,9 +1864,9 @@
           },
           "actions": {
             "verifyCommand": "node tools/run-registry-verify.js gemma-4-12b-it-text-q4k-ehf16-af32 --surface auto",
-            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-q4k-ehf16-af32 --dry-run",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-q4k-ehf16-af32 --dry-run --bootstrap",
             "compareCommands": [],
-            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-q4k-ehf16-af32 --dry-run"
+            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-q4k-ehf16-af32 --dry-run --bootstrap"
           },
           "missing": [
             "hf-publish",
@@ -1521,7 +1877,7 @@
       ],
       "nextAction": "Publish or refresh the Hugging Face manifest/weights for gemma-4-12b-it-text-q4k-ehf16-af16.",
       "nextGate": "hf-publish",
-      "nextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-q4k-ehf16-af16 --dry-run"
+      "nextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-q4k-ehf16-af16 --dry-run --bootstrap"
     },
     {
       "sourceCheckpointId": "google/gemma-4-12B-it-qat-w4a16-ct",
@@ -1570,6 +1926,7 @@
             "runtime": "active",
             "conversion": "ready",
             "tested": "verified",
+            "result": "pass",
             "lastVerifiedAt": "2026-06-29",
             "surfaces": [
               "node"
@@ -1598,9 +1955,9 @@
           },
           "actions": {
             "verifyCommand": "node tools/run-registry-verify.js gemma-4-12b-it-text-w4a16-ct-ehf16-af16 --surface auto",
-            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-w4a16-ct-ehf16-af16 --dry-run",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-w4a16-ct-ehf16-af16 --dry-run --bootstrap",
             "compareCommands": [],
-            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-w4a16-ct-ehf16-af16 --dry-run"
+            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-w4a16-ct-ehf16-af16 --dry-run --bootstrap"
           },
           "missing": [
             "hf-publish",
@@ -1611,7 +1968,7 @@
       ],
       "nextAction": "Publish or refresh the Hugging Face manifest/weights for gemma-4-12b-it-text-w4a16-ct-ehf16-af16.",
       "nextGate": "hf-publish",
-      "nextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-w4a16-ct-ehf16-af16 --dry-run"
+      "nextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-w4a16-ct-ehf16-af16 --dry-run --bootstrap"
     },
     {
       "sourceCheckpointId": "google/diffusiongemma-26B-A4B-it",
@@ -1661,6 +2018,7 @@
             "runtime": "experimental",
             "conversion": "ready",
             "tested": "none",
+            "result": null,
             "lastVerifiedAt": null,
             "surfaces": []
           },
@@ -1687,7 +2045,7 @@
           },
           "actions": {
             "verifyCommand": "node tools/run-registry-verify.js diffusiongemma-26b-a4b-it-q4k-ehf16-af16 --surface auto",
-            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id diffusiongemma-26b-a4b-it-q4k-ehf16-af16 --dry-run",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id diffusiongemma-26b-a4b-it-q4k-ehf16-af16 --dry-run --bootstrap",
             "compareCommands": [],
             "primaryNextCommand": "node tools/run-registry-verify.js diffusiongemma-26b-a4b-it-q4k-ehf16-af16 --surface auto"
           },
@@ -1750,6 +2108,7 @@
             "runtime": "active",
             "conversion": "ready",
             "tested": "verified",
+            "result": "pass",
             "lastVerifiedAt": "2026-04-29",
             "surfaces": [
               "browser",
@@ -1817,6 +2176,7 @@
             "runtime": "active",
             "conversion": "ready",
             "tested": "verified",
+            "result": "pass",
             "lastVerifiedAt": "2026-04-28",
             "surfaces": [
               "browser"
@@ -1906,6 +2266,7 @@
             "runtime": "active",
             "conversion": "ready",
             "tested": "verified",
+            "result": "pass",
             "lastVerifiedAt": "2026-06-29",
             "surfaces": [
               "node"
@@ -1934,9 +2295,9 @@
           },
           "actions": {
             "verifyCommand": "node tools/run-registry-verify.js gemma-4-31b-it-text-q4k-ehf16-af16 --surface auto",
-            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-31b-it-text-q4k-ehf16-af16 --dry-run",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-31b-it-text-q4k-ehf16-af16 --dry-run --bootstrap",
             "compareCommands": [],
-            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-31b-it-text-q4k-ehf16-af16 --dry-run"
+            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-31b-it-text-q4k-ehf16-af16 --dry-run --bootstrap"
           },
           "missing": [
             "hf-publish",
@@ -1973,6 +2334,7 @@
             "runtime": "active",
             "conversion": "ready",
             "tested": "verified",
+            "result": "pass",
             "lastVerifiedAt": "2026-06-29",
             "surfaces": [
               "node"
@@ -2001,9 +2363,9 @@
           },
           "actions": {
             "verifyCommand": "node tools/run-registry-verify.js gemma-4-31b-it-text-q4k-ehf16-af32 --surface auto",
-            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-31b-it-text-q4k-ehf16-af32 --dry-run",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-31b-it-text-q4k-ehf16-af32 --dry-run --bootstrap",
             "compareCommands": [],
-            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-31b-it-text-q4k-ehf16-af32 --dry-run"
+            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-31b-it-text-q4k-ehf16-af32 --dry-run --bootstrap"
           },
           "missing": [
             "hf-publish",
@@ -2014,7 +2376,7 @@
       ],
       "nextAction": "Publish or refresh the Hugging Face manifest/weights for gemma-4-31b-it-text-q4k-ehf16-af16.",
       "nextGate": "hf-publish",
-      "nextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-31b-it-text-q4k-ehf16-af16 --dry-run"
+      "nextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-31b-it-text-q4k-ehf16-af16 --dry-run --bootstrap"
     }
   ],
   "conversionOnly": [

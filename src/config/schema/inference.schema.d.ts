@@ -40,13 +40,13 @@ export interface RoPEConfigSchema {
   ropeLocalFrequencyBaseDim?: number | null;
 
   /** RoPE scaling type */
-  ropeScalingType?: 'linear' | 'dynamic' | 'yarn' | null;
+  ropeScalingType?: 'linear' | 'dynamic' | 'yarn' | 'longrope' | null;
 
   /** RoPE scaling factor */
   ropeScalingFactor?: number;
 
   /** Local RoPE scaling type for sliding window layers */
-  ropeLocalScalingType?: 'linear' | 'dynamic' | 'yarn' | null;
+  ropeLocalScalingType?: 'linear' | 'dynamic' | 'yarn' | 'longrope' | null;
 
   /** Local RoPE scaling factor for sliding window layers */
   ropeLocalScalingFactor?: number;
@@ -59,6 +59,12 @@ export interface RoPEConfigSchema {
 
   /** YARN original max position embeddings */
   yarnOriginalMaxPos?: number;
+  /** LongRoPE short-context factors */
+  longropeShortFactor?: number[] | null;
+  /** LongRoPE long-context factors */
+  longropeLongFactor?: number[] | null;
+  /** LongRoPE original max position embeddings */
+  longropeOriginalMaxPos?: number | null;
 
   /** Local YARN beta_fast parameter */
   ropeLocalYarnBetaFast?: number;
@@ -87,7 +93,7 @@ export interface AttentionSchema {
   /** Apply sigmoid gate from q_proj split to attention output */
   attentionOutputGate?: boolean;
   /** @deprecated Use RoPEConfigSchema.ropeScalingType instead */
-  ropeScalingType?: 'linear' | 'dynamic' | 'yarn' | null;
+  ropeScalingType?: 'linear' | 'dynamic' | 'yarn' | 'longrope' | null;
   /** @deprecated Use RoPEConfigSchema.ropeScalingFactor instead */
   ropeScalingFactor?: number;
 }
@@ -218,6 +224,12 @@ export interface OutputSchema {
   finalLogitSoftcapping?: number | null;
   /** Tie embeddings to output */
   tieWordEmbeddings?: boolean;
+  /** Scale embeddings by sqrt(hiddenSize). */
+  scaleEmbeddings?: boolean;
+  /** Explicit embedding multiplier, null to use scaleEmbeddings semantics. */
+  embeddingScale?: number | null;
+  /** Multiplier applied after final norm before LM head projection. */
+  logitInputScale?: number;
 }
 
 /** Layer type for hybrid models */
@@ -255,6 +267,8 @@ export interface LayerPatternSchema {
   attentionLayers?: number[];
   /** For 'custom': explicit layer type mapping */
   layerTypes?: LayerType[];
+  /** Multiplier applied to attention and FFN branches before residual add. */
+  residualBranchScale?: number;
 }
 
 /**

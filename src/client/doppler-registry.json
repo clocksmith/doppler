@@ -25,6 +25,19 @@
         "repoId": "Clocksmith/rdrr",
         "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
         "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
+      },
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/gemma-3-270m-it-ONNX",
+          "dtype": "q4f16"
+        }
+      },
+      "benchmarkEvidence": {
+        "status": "benchmark-selected",
+        "localClaimLaneId": "gemma-3-270m-it-q4k-rdrr",
+        "runtimeReport": "reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json",
+        "compareResult": "benchmarks/vendors/results/compare_20260627T200811.json",
+        "summarySvg": "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-browser-p512-d128-t0-k1-strix-halo-20260627T200811.svg"
       }
     },
     {
@@ -47,6 +60,12 @@
         "repoId": "Clocksmith/rdrr",
         "revision": "95f0b29ec73dea70394c6bcfa8407bc6796df6c9",
         "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32"
+      },
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/embeddinggemma-300m-ONNX",
+          "dtype": "q4"
+        }
       }
     },
     {
@@ -70,6 +89,12 @@
         "repoId": "Clocksmith/rdrr",
         "revision": "7c3d30e300bcb02cbd68fb0db3eee64fbf738f99",
         "path": "models/gemma-3-1b-it-q4k-ehf16-af32"
+      },
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+          "dtype": "q4f16"
+        }
       }
     },
     {
@@ -92,6 +117,12 @@
         "repoId": "Clocksmith/rdrr",
         "revision": "2070777c77047d54e6eae105f6dcb1891cf6f21a",
         "path": "models/gemma-4-e2b-it-q4k-ehf16-af32"
+      },
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/gemma-4-E2B-it-ONNX",
+          "dtype": "q4f16"
+        }
       }
     },
     {
@@ -114,6 +145,12 @@
         "repoId": "Clocksmith/rdrr",
         "revision": "dbb354acb00108965c5324ca7b6fecc198d12501",
         "path": "models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+      },
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/gemma-4-E2B-it-ONNX",
+          "dtype": "q4f16"
+        }
       }
     },
     {
@@ -137,6 +174,12 @@
         "repoId": "Clocksmith/rdrr",
         "revision": "95a01447eecbf13fc5964986f507b08ded0cd40f",
         "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
+      },
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/Qwen3.5-0.8B-ONNX",
+          "dtype": "q4f16"
+        }
       }
     },
     {
@@ -160,6 +203,12 @@
         "repoId": "Clocksmith/rdrr",
         "revision": "a8c45dd885a789042d3b82c95b471d66ca8d5152",
         "path": "models/qwen-3-5-2b-q4k-ehaf16"
+      },
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/Qwen3.5-2B-ONNX",
+          "dtype": "q4f16"
+        }
       }
     }
   ]

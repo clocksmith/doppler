@@ -182,11 +182,12 @@ function resolveBenchRequestWorkload(raw) {
   if (
     workload !== 'inference'
     && workload !== 'embedding'
+    && workload !== 'rerank'
     && workload !== 'training'
     && workload !== 'diffusion'
   ) {
     throw new Error(
-      'tooling command: "bench" workload must be "inference", "embedding", "training", or "diffusion".'
+      'tooling command: "bench" workload must be "inference", "embedding", "rerank", "training", or "diffusion".'
     );
   }
   return workload;

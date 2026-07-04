@@ -1109,6 +1109,7 @@ export async function convertSafetensorsDirectory(options) {
   let tokenizerJson = null;
   let tokenizerConfig = null;
   let generationConfig = null;
+  let rerankScoring = null;
   let hasTokenizerModel = false;
   let tokenizerModelPath = null;
   let diffusionAuxFiles = [];
@@ -1339,6 +1340,7 @@ export async function convertSafetensorsDirectory(options) {
     tensors = parsedTransformer.tensors;
     architectureHint = parsedTransformer.architectureHint;
     embeddingPostprocessor = parsedTransformer.embeddingPostprocessor ?? null;
+    rerankScoring = parsedTransformer.rerankScoring ?? null;
     architecture = extractArchitecture(config, null);
     const tokenizerJsonPath = path.join(inputDir, 'tokenizer.json');
     tokenizerModelPath = path.join(inputDir, 'tokenizer.model');
@@ -1366,6 +1368,24 @@ export async function convertSafetensorsDirectory(options) {
   const targetQuantization = plan.manifestQuantization;
   const quantizationInfo = plan.quantizationInfo;
   const inference = plan.manifestInference;
+  if (rerankScoring) {
+    const rerankConfig = inference?.rerank;
+    if (!rerankConfig || typeof rerankConfig !== 'object' || Array.isArray(rerankConfig)) {
+      throw new Error(
+        'node convert: sentence-transformers LogitScore module requires explicit inference.rerank config.'
+      );
+    }
+    if (Number(rerankConfig.trueTokenId) !== rerankScoring.trueTokenId) {
+      throw new Error(
+        `node convert: inference.rerank.trueTokenId=${rerankConfig.trueTokenId} does not match LogitScore true_token_id=${rerankScoring.trueTokenId}.`
+      );
+    }
+    if (Number(rerankConfig.falseTokenId) !== rerankScoring.falseTokenId) {
+      throw new Error(
+        `node convert: inference.rerank.falseTokenId=${rerankConfig.falseTokenId} does not match LogitScore false_token_id=${rerankScoring.falseTokenId}.`
+      );
+    }
+  }
   const explicitModelId = resolveConfiguredModelId(options?.modelId, converterConfig);
   if (!explicitModelId) {
     throw new Error(

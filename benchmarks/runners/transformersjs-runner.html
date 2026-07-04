@@ -46,7 +46,7 @@ const cdnUrl = tjsVersion === '4'
 
 console.log(`[tjs-bench] loading transformers.js from ${cdnUrl}`);
 const tjs = await import(cdnUrl);
-const { pipeline, env, AutoTokenizer, Qwen3_5ForConditionalGeneration } = tjs;
+const { pipeline, env, AutoModel, AutoTokenizer, Qwen3_5ForConditionalGeneration } = tjs;
 const TextStreamer = tjs.TextStreamer;
 const loadedVersion = typeof tjs?.VERSION === 'string' ? tjs.VERSION : null;
 
@@ -438,6 +438,265 @@ async function loadGenerator(modelId, enableOrtProfiling, preferredDtype = 'fp16
   }
 }
 
+function normalizeEmbeddingDtype(dtype) {
+  const normalized = String(dtype || 'fp32').trim().toLowerCase();
+  if (normalized === 'fp32' || normalized === 'fp16' || normalized === 'q8' || normalized === 'q4' || normalized === 'q4f16') {
+    return normalized;
+  }
+  throw new Error(`Unsupported Transformers.js embedding dtype: ${String(dtype)}`);
+}
+
+function normalizeEmbeddingMode(mode) {
+  const normalized = String(mode || 'feature-extraction').trim().toLowerCase();
+  if (normalized === 'feature-extraction' || normalized === 'sentence-embedding') {
+    return normalized;
+  }
+  throw new Error(`Unsupported Transformers.js embedding mode: ${String(mode)}`);
+}
+
+function normalizeEmbeddingPooling(pooling) {
+  const normalized = String(pooling || 'mean').trim().toLowerCase();
+  if (normalized === 'mean' || normalized === 'last_token' || normalized === 'none') {
+    return normalized;
+  }
+  throw new Error(`Unsupported Transformers.js embedding pooling: ${String(pooling)}`);
+}
+
+function normalizeEmbeddingStyle(style) {
+  const normalized = String(style || 'default').trim().toLowerCase();
+  if (normalized === 'default' || normalized === 'embeddinggemma' || normalized === 'qwen3_embedding') {
+    return normalized;
+  }
+  throw new Error(`Unsupported embedding semantic style: ${String(style)}`);
+}
+
+function formatEmbeddingText(text, kind, style) {
+  if (style === 'embeddinggemma') {
+    if (kind === 'query') {
+      return `task: search result | query: ${text}`;
+    }
+    if (kind === 'document') {
+      return `title: None | text: ${text}`;
+    }
+  }
+  if (style === 'qwen3_embedding') {
+    if (kind === 'query') {
+      return `Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: ${text}`;
+    }
+    return text;
+  }
+  return text;
+}
+
+function tensorToRows(tensor) {
+  const data = ArrayBuffer.isView(tensor?.data)
+    ? tensor.data
+    : (ArrayBuffer.isView(tensor) ? tensor : null);
+  if (!data) {
+    throw new Error('Embedding output does not expose tensor data.');
+  }
+  const dims = Array.isArray(tensor?.dims) ? tensor.dims.map((value) => Number(value)) : [data.length];
+  const dim = dims.length >= 2 ? dims[dims.length - 1] : data.length;
+  if (!Number.isInteger(dim) || dim <= 0) {
+    throw new Error(`Invalid embedding output dimension: ${JSON.stringify(dims)}`);
+  }
+  const rowCount = Math.max(1, Math.floor(data.length / dim));
+  const rows = [];
+  for (let row = 0; row < rowCount; row += 1) {
+    const start = row * dim;
+    const end = start + dim;
+    rows.push(Array.from(data.slice(start, end), Number));
+  }
+  return rows;
+}
+
+function summarizeEmbeddingArray(values) {
+  const vector = Array.isArray(values) || ArrayBuffer.isView(values) ? values : [];
+  let finiteCount = 0;
+  let nonFiniteCount = 0;
+  let sumSquares = 0;
+  let min = Infinity;
+  let max = -Infinity;
+  for (const value of vector) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) {
+      nonFiniteCount += 1;
+      continue;
+    }
+    finiteCount += 1;
+    sumSquares += n * n;
+    if (n < min) min = n;
+    if (n > max) max = n;
+  }
+  const dim = vector.length;
+  return {
+    embeddingDim: dim,
+    finiteRatio: dim > 0 ? finiteCount / dim : 0,
+    nonFiniteCount,
+    l2Norm: Math.sqrt(sumSquares),
+    min: finiteCount > 0 ? min : null,
+    max: finiteCount > 0 ? max : null,
+  };
+}
+
+function cosineSimilarity(a, b) {
+  if (!a || !b || a.length !== b.length || a.length === 0) {
+    return NaN;
+  }
+  let dot = 0;
+  let a2 = 0;
+  let b2 = 0;
+  for (let i = 0; i < a.length; i += 1) {
+    const av = Number(a[i]);
+    const bv = Number(b[i]);
+    if (!Number.isFinite(av) || !Number.isFinite(bv)) {
+      return NaN;
+    }
+    dot += av * bv;
+    a2 += av * av;
+    b2 += bv * bv;
+  }
+  const denom = Math.sqrt(a2) * Math.sqrt(b2);
+  return denom > 0 ? dot / denom : NaN;
+}
+
+function top1Index(values) {
+  let bestIndex = -1;
+  let bestValue = -Infinity;
+  for (let i = 0; i < values.length; i += 1) {
+    const value = Number(values[i]);
+    if (Number.isFinite(value) && value > bestValue) {
+      bestValue = value;
+      bestIndex = i;
+    }
+  }
+  return bestIndex;
+}
+
+function computeStats(values) {
+  const samples = values.filter((value) => Number.isFinite(value)).sort((a, b) => a - b);
+  if (samples.length === 0) {
+    return {
+      samples: 0,
+      mean: 0,
+      median: 0,
+      min: 0,
+      max: 0,
+      p95: 0,
+      p99: 0,
+    };
+  }
+  const percentile = (p) => {
+    const idx = (p / 100) * (samples.length - 1);
+    const lo = Math.floor(idx);
+    const hi = Math.ceil(idx);
+    return lo === hi ? samples[lo] : samples[lo] + ((samples[hi] - samples[lo]) * (idx - lo));
+  };
+  const mean = samples.reduce((sum, value) => sum + value, 0) / samples.length;
+  return {
+    samples: samples.length,
+    mean,
+    median: percentile(50),
+    min: samples[0],
+    max: samples[samples.length - 1],
+    p95: percentile(95),
+    p99: percentile(99),
+  };
+}
+
+async function loadEmbeddingRuntime(modelId, config = {}) {
+  const mode = normalizeEmbeddingMode(config.mode);
+  const dtype = normalizeEmbeddingDtype(config.dtype);
+  const pooling = normalizeEmbeddingPooling(config.pooling);
+  const normalize = config.normalize !== false;
+  const format = String(config.format || 'onnx').trim() || 'onnx';
+  const loadOptions = format === 'safetensors'
+    ? { dtype }
+    : { device: 'webgpu', dtype, session_options: { executionProviders: ['webgpu'], enableMemPattern: false } };
+
+  if (mode === 'sentence-embedding') {
+    if (!AutoTokenizer || typeof AutoTokenizer.from_pretrained !== 'function') {
+      throw new Error('Transformers.js embedding sentence-embedding mode requires AutoTokenizer.');
+    }
+    if (!AutoModel || typeof AutoModel.from_pretrained !== 'function') {
+      throw new Error('Transformers.js embedding sentence-embedding mode requires AutoModel.');
+    }
+    const [tokenizer, model] = await Promise.all([
+      AutoTokenizer.from_pretrained(modelId),
+      AutoModel.from_pretrained(modelId, loadOptions),
+    ]);
+    return {
+      mode,
+      dtype,
+      format,
+      pooling,
+      normalize,
+      tokenizer,
+      model,
+      async embed(text) {
+        const inputs = await tokenizer([String(text ?? '')], { padding: true });
+        const output = await model(inputs);
+        const tensor = output?.sentence_embedding ?? output?.sentenceEmbedding ?? output?.last_hidden_state ?? null;
+        const row = tensorToRows(tensor)[0];
+        if (!row) throw new Error('sentence-embedding mode returned no embedding row.');
+        return row;
+      },
+      async countTokens(text) {
+        const encoded = await tokenizer([String(text ?? '')], { padding: true });
+        const inputIds = encoded?.input_ids ?? null;
+        const dims = Array.isArray(inputIds?.dims) ? inputIds.dims : null;
+        if (dims && Number.isFinite(Number(dims[dims.length - 1]))) {
+          return Number(dims[dims.length - 1]);
+        }
+        return Number(inputIds?.size ?? inputIds?.length ?? 0);
+      },
+      async release() {
+        if (typeof model?.dispose === 'function') await model.dispose();
+        if (typeof tokenizer?.dispose === 'function') await tokenizer.dispose();
+      },
+    };
+  }
+
+  const extractor = await pipeline('feature-extraction', modelId, loadOptions);
+  return {
+    mode,
+    dtype,
+    format,
+    pooling,
+    normalize,
+    extractor,
+    tokenizer: extractor?.tokenizer ?? null,
+    async embed(text) {
+      const callOptions = {
+        normalize,
+        ...(pooling !== 'none' ? { pooling } : {}),
+      };
+      const output = await extractor(String(text ?? ''), callOptions);
+      const row = tensorToRows(output)[0];
+      if (!row) throw new Error('feature-extraction mode returned no embedding row.');
+      return row;
+    },
+    async countTokens(text) {
+      try {
+        const encoded = extractor.tokenizer.encode(String(text ?? ''));
+        return encoded.length;
+      } catch {
+        return null;
+      }
+    },
+    async release() {
+      await releaseGenerator(extractor);
+    },
+  };
+}
+
+async function releaseEmbeddingRuntime(runtime) {
+  if (!runtime || typeof runtime.release !== 'function') return;
+  try {
+    await runtime.release();
+  } catch { /* ignore */ }
+}
+
 async function releaseGenerator(generator) {
   if (!generator || typeof generator !== 'object') return;
   const sessions = generator?.model?.sessions || {};
@@ -646,6 +905,284 @@ window.__primeBenchModel = async (config = {}) => {
     executionProviderFallbackUsed: load.executionProviderFallbackUsed === true,
     runnerKind: load.runnerKind || 'pipeline_text_generation',
   };
+};
+
+window.__primeEmbeddingModel = async (config = {}) => {
+  const modelId = String(config?.modelId || '').trim();
+  if (!modelId) {
+    throw new Error('modelId is required for embedding cache priming');
+  }
+  const prompt = typeof config?.prompt === 'string' && config.prompt.length > 0
+    ? config.prompt
+    : 'Search query: local-first AI with WebGPU inference.';
+  const start = performance.now();
+  const runtime = await loadEmbeddingRuntime(modelId, config);
+  let embeddingPrimed = false;
+  try {
+    await runtime.embed(prompt);
+    embeddingPrimed = true;
+  } finally {
+    await releaseEmbeddingRuntime(runtime);
+  }
+  return {
+    ok: true,
+    modelId,
+    primeMs: Math.max(0, performance.now() - start),
+    primeMode: 'load-and-embed',
+    embeddingPrimed,
+    requestedDtype: runtime.dtype,
+    effectiveDtype: runtime.dtype,
+    fallbackUsed: false,
+    runnerKind: runtime.mode,
+  };
+};
+
+async function runEmbeddingSemantic(runtime, fixture, style) {
+  const defaults = fixture?.defaults;
+  if (!defaults || typeof defaults !== 'object') {
+    return null;
+  }
+  const retrievalCases = Array.isArray(defaults.retrievalCases) ? defaults.retrievalCases : [];
+  const pairCases = Array.isArray(defaults.pairCases) ? defaults.pairCases : [];
+  const pairMargin = Number(defaults.pairMargin);
+  const minRetrievalTop1Acc = Number(defaults.minRetrievalTop1Acc);
+  const minPairAcc = Number(defaults.minPairAcc);
+  const start = performance.now();
+
+  const retrieval = [];
+  let retrievalPassed = 0;
+  for (const testCase of retrievalCases) {
+    const formattedQuery = formatEmbeddingText(testCase.query, 'query', style);
+    const queryEmbedding = await runtime.embed(formattedQuery);
+    const docs = [];
+    const docEmbeddings = [];
+    for (const doc of Array.isArray(testCase.docs) ? testCase.docs : []) {
+      const formattedDoc = formatEmbeddingText(doc, 'document', style);
+      docEmbeddings.push(await runtime.embed(formattedDoc));
+      docs.push({ text: doc, formattedText: formattedDoc });
+    }
+    const sims = docEmbeddings.map((embedding) => cosineSimilarity(queryEmbedding, embedding));
+    const topDoc = top1Index(sims);
+    const expectedDoc = Number(testCase.expectedDoc);
+    const passed = topDoc === expectedDoc;
+    if (passed) retrievalPassed += 1;
+    retrieval.push({
+      id: String(testCase.id ?? ''),
+      query: testCase.query,
+      formattedQuery,
+      docs,
+      expectedDoc,
+      topDoc,
+      passed,
+      sims: sims.map((value) => Number.isFinite(value) ? Number(value.toFixed(6)) : null),
+    });
+  }
+
+  const pairs = [];
+  let pairPassed = 0;
+  for (const testCase of pairCases) {
+    const formattedAnchor = formatEmbeddingText(testCase.anchor, 'query', style);
+    const formattedPositive = formatEmbeddingText(testCase.positive, 'query', style);
+    const formattedNegative = formatEmbeddingText(testCase.negative, 'query', style);
+    const anchor = await runtime.embed(formattedAnchor);
+    const positive = await runtime.embed(formattedPositive);
+    const negative = await runtime.embed(formattedNegative);
+    const simPos = cosineSimilarity(anchor, positive);
+    const simNeg = cosineSimilarity(anchor, negative);
+    const margin = simPos - simNeg;
+    const passed = Number.isFinite(margin) && margin > pairMargin;
+    if (passed) pairPassed += 1;
+    pairs.push({
+      id: String(testCase.id ?? ''),
+      anchor: testCase.anchor,
+      formattedAnchor,
+      positive: testCase.positive,
+      formattedPositive,
+      negative: testCase.negative,
+      formattedNegative,
+      passed,
+      simPos: Number.isFinite(simPos) ? Number(simPos.toFixed(6)) : null,
+      simNeg: Number.isFinite(simNeg) ? Number(simNeg.toFixed(6)) : null,
+      margin: Number.isFinite(margin) ? Number(margin.toFixed(6)) : null,
+    });
+  }
+
+  const retrievalTop1Acc = retrieval.length > 0 ? retrievalPassed / retrieval.length : 0;
+  const pairAcc = pairs.length > 0 ? pairPassed / pairs.length : 0;
+  const passed = retrievalTop1Acc >= minRetrievalTop1Acc && pairAcc >= minPairAcc;
+  return {
+    passed,
+    style,
+    retrievalTop1Acc,
+    pairAcc,
+    retrievalPassed,
+    retrievalTotal: retrieval.length,
+    pairPassed,
+    pairTotal: pairs.length,
+    minRetrievalTop1Acc,
+    minPairAcc,
+    pairMarginThreshold: pairMargin,
+    failedCaseIds: [
+      ...retrieval.filter((item) => !item.passed).map((item) => `retrieval:${item.id}`),
+      ...pairs.filter((item) => !item.passed).map((item) => `pair:${item.id}`),
+    ],
+    retrieval,
+    pairs,
+    durationMs: Math.max(1, performance.now() - start),
+  };
+}
+
+window.__runEmbeddingBench = async (config = {}) => {
+  const {
+    modelId,
+    prompt,
+    warmupRuns,
+    timedRuns,
+    cacheMode = 'warm',
+    loadMode = null,
+    seed = 0,
+    dtype = 'fp32',
+    format = 'onnx',
+    embeddingMode = 'feature-extraction',
+    embeddingPooling = 'mean',
+    embeddingNormalize = true,
+    embeddingStyle = 'default',
+    semanticFixture = null,
+  } = config;
+
+  let deviceInfo = null;
+  try {
+    const adapter = await navigator.gpu.requestAdapter();
+    if (adapter) {
+      const info = adapter.info || (await adapter.requestAdapterInfo?.()) || {};
+      deviceInfo = {
+        vendor: info.vendor || null,
+        architecture: info.architecture || null,
+        device: info.device || null,
+        description: info.description || null,
+        hasF16: adapter.features.has('shader-f16'),
+        hasSubgroups: adapter.features.has('subgroups'),
+        hasTimestampQuery: adapter.features.has('timestamp-query'),
+      };
+    }
+  } catch { /* best effort */ }
+
+  const requestedDtype = normalizeEmbeddingDtype(dtype);
+  const style = normalizeEmbeddingStyle(embeddingStyle);
+  const loadStart = performance.now();
+  const runtime = await loadEmbeddingRuntime(modelId, {
+    dtype: requestedDtype,
+    format,
+    mode: embeddingMode,
+    pooling: embeddingPooling,
+    normalize: embeddingNormalize !== false,
+  });
+  const modelLoadMs = performance.now() - loadStart;
+  const benchPrompt = String(prompt ?? '');
+  const formattedPrompt = formatEmbeddingText(benchPrompt, 'query', style);
+  const tokenCount = await runtime.countTokens(formattedPrompt);
+  const totalRuns = Number(warmupRuns) + Number(timedRuns);
+  const runs = [];
+  let lastEmbedding = null;
+
+  try {
+    for (let i = 0; i < totalRuns; i += 1) {
+      const isWarmup = i < Number(warmupRuns);
+      const start = performance.now();
+      const embedding = await runtime.embed(formattedPrompt);
+      const durationMs = Math.max(1, performance.now() - start);
+      const stats = summarizeEmbeddingArray(embedding);
+      if (!isWarmup) {
+        lastEmbedding = embedding;
+        runs.push({
+          embeddingMs: durationMs,
+          tokenCount,
+          ...stats,
+        });
+      }
+    }
+
+    const semantic = semanticFixture
+      ? await runEmbeddingSemantic(runtime, semanticFixture, style)
+      : null;
+    const durations = runs.map((run) => run.embeddingMs);
+    const stats = computeStats(durations);
+    const nonFiniteValues = runs.reduce((sum, run) => sum + run.nonFiniteCount, 0);
+    const embeddingDim = runs.find((run) => run.embeddingDim > 0)?.embeddingDim ?? 0;
+    const avgEmbeddingMs = stats.mean;
+    const avgEmbeddingsPerSec = avgEmbeddingMs > 0 ? 1000 / avgEmbeddingMs : 0;
+    const l2NormStats = computeStats(runs.map((run) => run.l2Norm));
+    const firstEmbeddingMs = durations[0] ?? null;
+
+    return {
+      modelId,
+      seed,
+      task: 'embedding',
+      prompt: benchPrompt,
+      promptRendered: formattedPrompt,
+      embeddingStyle: style,
+      embeddingMode: runtime.mode,
+      embeddingPooling: runtime.pooling,
+      embeddingNormalize: runtime.normalize,
+      warmupRuns,
+      timedRuns,
+      cacheMode,
+      loadMode,
+      modelLoadMs,
+      timing: {
+        modelLoadMs,
+        firstTokenMs: null,
+        firstResponseMs: Number.isFinite(firstEmbeddingMs) ? modelLoadMs + firstEmbeddingMs : null,
+        prefillMs: null,
+        decodeMs: null,
+        totalRunMs: stats.median,
+        embeddingMs: stats.median,
+        embeddingsPerSec: avgEmbeddingsPerSec,
+        cacheMode,
+        loadMode,
+      },
+      metrics: {
+        embeddingDim,
+        nonFiniteValues,
+        firstEmbeddingMs,
+        minEmbeddingMs: stats.min,
+        medianEmbeddingMs: stats.median,
+        p95EmbeddingMs: stats.p95,
+        p99EmbeddingMs: stats.p99,
+        maxEmbeddingMs: stats.max,
+        avgEmbeddingMs,
+        avgEmbeddingsPerSec,
+        avgEmbeddingTokens: Number.isFinite(tokenCount) ? tokenCount : null,
+        avgEmbeddingL2Norm: l2NormStats.mean,
+        modelLoadMs,
+      },
+      semantic,
+      runs,
+      embeddingPreview: Array.isArray(lastEmbedding)
+        ? lastEmbedding.slice(0, 8).map((value) => Number(Number(value).toFixed(6)))
+        : [],
+      deviceInfo,
+      env: {
+        library: 'transformers.js',
+        version: loadedVersion || (tjsVersion === '4' ? '4.x' : '3.x'),
+        device: 'webgpu',
+        browserUserAgent: typeof navigator !== 'undefined' ? (navigator.userAgent || null) : null,
+        browserPlatform: typeof navigator !== 'undefined' ? (navigator.platform || null) : null,
+        browserLanguage: typeof navigator !== 'undefined' ? (navigator.language || null) : null,
+        browserVendor: typeof navigator !== 'undefined' ? (navigator.vendor || null) : null,
+        dtype: runtime.dtype,
+        requestedDtype,
+        dtypeFallbackUsed: false,
+        executionProviderMode: 'webgpu-only',
+        executionProviderFallbackUsed: false,
+        ortProxyMode: 'off',
+        ortProxyFallbackUsed: false,
+        runnerKind: runtime.mode,
+      },
+    };
+  } finally {
+    await releaseEmbeddingRuntime(runtime);
+  }
 };
 
 window.__runBench = async (config) => {

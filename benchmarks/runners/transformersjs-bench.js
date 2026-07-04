@@ -26,8 +26,14 @@
 //   --profile-ops <on|off>  Enable ONNX Runtime op profiling (default: on)
 //   --profile-top <n>        Number of top ops in profiling summary (default: 20)
 //   --tjs-version <3|4>  Transformers.js major track (default: 4)
-//   --dtype <fp16|q4|q4f16>  Transformers.js model dtype (default: fp16)
+//   --dtype <dtype>      Transformers.js dtype. Text: fp16|q4|q4f16. Embedding: fp32|fp16|q8|q4|q4f16
 //   --format <fmt>       Model format: onnx|safetensors (default: onnx)
+//   --task <task>        text-generation|embedding (default: text-generation)
+//   --embedding-mode <mode> sentence-embedding|feature-extraction
+//   --embedding-pooling <mode> mean|last_token|none
+//   --embedding-normalize <on|off>
+//   --embedding-style <style> default|embeddinggemma|qwen3_embedding
+//   --semantic-fixture <path> Embedding semantic fixture JSON
 //   --browser-base-url <url>  Reuse an existing static base URL
 //   --use-chat-template   Apply model chat template before generation
 //   --save               Save result JSON to benchmarks/vendors/results/
@@ -71,6 +77,13 @@ const DEFAULT_RUNS = 3;
 const DEFAULT_PROFILE_TOP_N = 20;
 const DEFAULT_PROFILE_DIR = path.join(BENCHMARKS_ROOT, '.tjs-bench-profile');
 const DEFAULT_SEED = 0;
+const DEFAULT_TASK = 'text-generation';
+const BENCH_TASKS = Object.freeze(['text-generation', 'embedding']);
+const TJS_TEXT_DTYPES = Object.freeze(['fp16', 'q4', 'q4f16']);
+const TJS_EMBEDDING_DTYPES = Object.freeze(['fp32', 'fp16', 'q8', 'q4', 'q4f16']);
+const TJS_EMBEDDING_MODES = Object.freeze(['feature-extraction', 'sentence-embedding']);
+const TJS_EMBEDDING_POOLING = Object.freeze(['mean', 'last_token', 'none']);
+const TJS_EMBEDDING_STYLES = Object.freeze(['default', 'embeddinggemma', 'qwen3_embedding']);
 
 function redactSecrets(text) {
   if (text == null) return '';
@@ -418,11 +431,18 @@ function parseLoadMode(value, flag, fallback = null) {
   throw new Error(`${flag} must be one of: opfs, http, memory`);
 }
 
-function parseTjsDtype(value, flag, fallback = 'fp16') {
+function parseChoice(value, flag, allowed, fallback) {
   if (value == null || value === '') return fallback;
   const normalized = String(value).trim().toLowerCase();
-  if (normalized === 'fp16' || normalized === 'q4' || normalized === 'q4f16') return normalized;
-  throw new Error(`${flag} must be one of: fp16, q4, q4f16`);
+  if (allowed.includes(normalized)) return normalized;
+  throw new Error(`${flag} must be one of: ${allowed.join(', ')}`);
+}
+
+function parseTjsDtype(value, flag, fallback = 'fp16', allowed = TJS_TEXT_DTYPES) {
+  if (value == null || value === '') return fallback;
+  const normalized = String(value).trim().toLowerCase();
+  if (allowed.includes(normalized)) return normalized;
+  throw new Error(`${flag} must be one of: ${allowed.join(', ')}`);
 }
 
 async function loadWorkload(workloadId) {
@@ -779,7 +799,32 @@ async function main() {
   const profileOps = parseBooleanFlag(flags['profile-ops'], true, '--profile-ops');
   const profileTopN = parsePositiveInteger(flags['profile-top'], DEFAULT_PROFILE_TOP_N, '--profile-top');
   const useChatTemplate = flags['use-chat-template'] === true;
-  const tjsDtype = parseTjsDtype(flags.dtype, '--dtype', 'fp16');
+  const task = parseChoice(flags.task, '--task', BENCH_TASKS, DEFAULT_TASK);
+  const tjsDtype = parseTjsDtype(
+    flags.dtype,
+    '--dtype',
+    task === 'embedding' ? 'fp32' : 'fp16',
+    task === 'embedding' ? TJS_EMBEDDING_DTYPES : TJS_TEXT_DTYPES
+  );
+  const embeddingMode = parseChoice(
+    flags['embedding-mode'],
+    '--embedding-mode',
+    TJS_EMBEDDING_MODES,
+    'feature-extraction'
+  );
+  const embeddingPooling = parseChoice(
+    flags['embedding-pooling'],
+    '--embedding-pooling',
+    TJS_EMBEDDING_POOLING,
+    'mean'
+  );
+  const embeddingNormalize = parseBooleanFlag(flags['embedding-normalize'], true, '--embedding-normalize');
+  const embeddingStyle = parseChoice(
+    flags['embedding-style'],
+    '--embedding-style',
+    TJS_EMBEDDING_STYLES,
+    'default'
+  );
   const tjsFormat = normalizeFormat(flags.format);
   const persistentContextRequired = requiresPersistentBrowserContext(cacheMode, loadMode);
 
@@ -804,6 +849,15 @@ async function main() {
   const seed = parseNonNegativeInt(flags.seed, '--seed', DEFAULT_SEED);
   const localModelPath = flags['local-model-path'] || null;
   const browserBaseUrl = flags['browser-base-url'] || null;
+  const semanticFixturePath = flags['semantic-fixture'] || null;
+  const semanticFixture = semanticFixturePath
+    ? JSON.parse(await fs.readFile(
+        path.isAbsolute(semanticFixturePath)
+          ? semanticFixturePath
+          : path.resolve(process.cwd(), semanticFixturePath),
+        'utf-8'
+      ))
+    : null;
   if (browserBaseUrl && localModelPath) {
     throw new Error(
       '--local-model-path cannot be combined with --browser-base-url because the benchmark server cannot mount local files on an external base URL.'
@@ -850,7 +904,7 @@ async function main() {
     `[tjs-bench] tjs=v${tjsVersion} model=${modelId} maxTokens=${maxNewTokens} ` +
     `warmup=${warmupRuns} runs=${timedRuns} cache=${cacheMode} ` +
     `sampling=(temp=${temperature}, topK=${topK}, topP=${topP}) ` +
-    `chatTemplate=${useChatTemplate ? 'on' : 'off'} dtype=${tjsDtype} ` +
+    `task=${task} chatTemplate=${useChatTemplate ? 'on' : 'off'} dtype=${tjsDtype} ` +
     `format=${tjsFormat} profileOps=${profileOps ? 'on' : 'off'} timeout=${timeoutMs}ms`
   );
   if (strictWarmOpfs) {
@@ -1020,19 +1074,34 @@ async function main() {
     };
 
     if (cachePrimeEnabled) {
-      const primeResult = await page.evaluate(async (primeConfig) => {
-        if (typeof window.__primeBenchModel !== 'function') {
-          throw new Error('__primeBenchModel is not available in runner page');
-        }
-        return window.__primeBenchModel(primeConfig);
-      }, {
-        modelId,
-        dtype: tjsDtype,
-        format: tjsFormat,
-        prompt,
-        useChatTemplate,
-        maxNewTokens: 1,
-      });
+      const primeResult = task === 'embedding'
+        ? await page.evaluate(async (primeConfig) => {
+            if (typeof window.__primeEmbeddingModel !== 'function') {
+              throw new Error('__primeEmbeddingModel is not available in runner page');
+            }
+            return window.__primeEmbeddingModel(primeConfig);
+          }, {
+            modelId,
+            dtype: tjsDtype,
+            format: tjsFormat,
+            prompt,
+            embeddingMode,
+            embeddingPooling,
+            embeddingNormalize,
+          })
+        : await page.evaluate(async (primeConfig) => {
+            if (typeof window.__primeBenchModel !== 'function') {
+              throw new Error('__primeBenchModel is not available in runner page');
+            }
+            return window.__primeBenchModel(primeConfig);
+          }, {
+            modelId,
+            dtype: tjsDtype,
+            format: tjsFormat,
+            prompt,
+            useChatTemplate,
+            maxNewTokens: 1,
+          });
       const reportedPrimeMs = Number(primeResult?.primeMs);
       cachePrime.primed = primeResult?.ok === true;
       cachePrime.primeMs = Number.isFinite(reportedPrimeMs) ? reportedPrimeMs : 0;
@@ -1050,29 +1119,54 @@ async function main() {
 
     const benchStart = performance.now();
 
-    const result = await page.evaluate(
-      async (config) => window.__runBench(config),
-      {
-        modelId,
-        prompt,
-        maxNewTokens,
-        warmupRuns,
-        timedRuns,
-        cacheMode,
-        loadMode,
-        profileOps,
-        profileTopN,
-        seed,
-        sampling: {
-          temperature,
-          topK,
-          topP,
-        },
-        useChatTemplate,
-        dtype: tjsDtype,
-        format: tjsFormat,
-      },
-    );
+    const result = task === 'embedding'
+      ? await page.evaluate(
+          async (config) => {
+            if (typeof window.__runEmbeddingBench !== 'function') {
+              throw new Error('__runEmbeddingBench is not available in runner page');
+            }
+            return window.__runEmbeddingBench(config);
+          },
+          {
+            modelId,
+            prompt,
+            warmupRuns,
+            timedRuns,
+            cacheMode,
+            loadMode,
+            seed,
+            dtype: tjsDtype,
+            format: tjsFormat,
+            embeddingMode,
+            embeddingPooling,
+            embeddingNormalize,
+            embeddingStyle,
+            semanticFixture,
+          },
+        )
+      : await page.evaluate(
+          async (config) => window.__runBench(config),
+          {
+            modelId,
+            prompt,
+            maxNewTokens,
+            warmupRuns,
+            timedRuns,
+            cacheMode,
+            loadMode,
+            profileOps,
+            profileTopN,
+            seed,
+            sampling: {
+              temperature,
+              topK,
+              topP,
+            },
+            useChatTemplate,
+            dtype: tjsDtype,
+            format: tjsFormat,
+          },
+        );
 
     const totalBenchMs = performance.now() - benchStart;
     const extracted = profileOps
@@ -1093,12 +1187,22 @@ async function main() {
     };
     result.determinism = {
       seed,
-      decoding: {
-        do_sample: temperature > 0,
-        temperature,
-        topK,
-        topP,
-      },
+      decoding: task === 'embedding'
+        ? null
+        : {
+            do_sample: temperature > 0,
+            temperature,
+            topK,
+            topP,
+          },
+      embedding: task === 'embedding'
+        ? {
+            mode: embeddingMode,
+            pooling: embeddingPooling,
+            normalize: embeddingNormalize,
+            style: embeddingStyle,
+          }
+        : null,
     };
     result.profiling = {
       ...(result.profiling && typeof result.profiling === 'object' ? result.profiling : {}),

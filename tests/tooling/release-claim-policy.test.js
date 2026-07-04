@@ -64,6 +64,16 @@ function policy(claims = [releaseClaim()]) {
 
 {
   assert.deepEqual(validateReleaseClaimPolicyShape(policy()), []);
+  assert.deepEqual(validateReleaseClaimPolicyShape(policy([releaseClaim({
+    mode: 'rerank',
+    performanceEvidence: {
+      kind: 'rerank-runtime-report',
+      reportPath: 'reports/unit-rerank-model/pass.json',
+      metricPath: 'metrics.rerankMs',
+      minValue: 0,
+      unit: 'ms',
+    },
+  })])), []);
   assert.match(
     validateReleaseClaimPolicyShape(policy([releaseClaim({ surface: [] })])).join('\n'),
     /surface must be a non-empty array/
@@ -212,6 +222,102 @@ function policy(claims = [releaseClaim()]) {
   });
   assert.equal(failed.ok, false);
   assert.match(failed.errors.join('\n'), /generated output evidence/);
+  await fs.rm(tmp, { recursive: true, force: true });
+}
+
+{
+  const tmp = path.join(process.cwd(), `.tmp-rerank-release-claims-test-${process.pid}`);
+  await fs.rm(tmp, { recursive: true, force: true });
+  await fs.mkdir(tmp, { recursive: true });
+  const reportPath = path.join(tmp, 'report.json');
+  const policyPath = path.join(tmp, 'policy.json');
+  const catalogPath = path.join(tmp, 'catalog.json');
+  const quickstartPath = path.join(tmp, 'quickstart.json');
+  const subsystemsPath = path.join(tmp, 'subsystems.json');
+  const model = catalogModel({
+    modelId: 'unit-rerank-model',
+    modes: ['rerank'],
+    lifecycle: {
+      status: {
+        tested: 'verified',
+      },
+      tested: {
+        result: 'pass',
+        source: 'runtime-verify',
+        lastVerifiedAt: '2026-06-24',
+        surface: ['node'],
+      },
+    },
+  });
+  await fs.writeFile(reportPath, JSON.stringify({
+    modelId: 'unit-rerank-model',
+    deviceInfo: {
+      adapterInfo: {
+        vendor: 'unit',
+        architecture: 'test',
+      },
+    },
+    metrics: {
+      executionContractArtifact: {
+        ok: true,
+      },
+      semanticPassed: true,
+      semanticPairAcc: 1,
+      topDocumentIndex: 0,
+      rerankMs: 2,
+    },
+  }, null, 2));
+  await fs.writeFile(policyPath, JSON.stringify(policy([releaseClaim({
+    modelId: 'unit-rerank-model',
+    mode: 'rerank',
+    surface: ['node'],
+    evidence: {
+      kind: 'runtime-verify',
+      reportPath: path.relative(process.cwd(), reportPath),
+    },
+    performanceEvidence: {
+      kind: 'rerank-runtime-report',
+      reportPath: path.relative(process.cwd(), reportPath),
+      metricPath: 'metrics.rerankMs',
+      minValue: 0,
+      unit: 'ms',
+    },
+  })]), null, 2));
+  await fs.writeFile(catalogPath, JSON.stringify({ models: [model] }, null, 2));
+  await fs.writeFile(quickstartPath, JSON.stringify({ models: [] }, null, 2));
+  await fs.writeFile(subsystemsPath, JSON.stringify({ subsystems: [] }, null, 2));
+
+  const result = await checkReleaseClaims({
+    policyPath,
+    catalogPath,
+    quickstartRegistryPath: quickstartPath,
+    subsystemsPath,
+  });
+  assert.equal(result.ok, true, result.errors.join('\n'));
+
+  await fs.writeFile(reportPath, JSON.stringify({
+    modelId: 'unit-rerank-model',
+    deviceInfo: {
+      adapterInfo: {
+        vendor: 'unit',
+        architecture: 'test',
+      },
+    },
+    metrics: {
+      executionContractArtifact: {
+        ok: true,
+      },
+      rerankMs: 2,
+    },
+  }, null, 2));
+  const failed = await checkReleaseClaims({
+    policyPath,
+    catalogPath,
+    quickstartRegistryPath: quickstartPath,
+    subsystemsPath,
+  });
+  assert.equal(failed.ok, false);
+  assert.match(failed.errors.join('\n'), /semantic rerank evidence/);
   await fs.rm(tmp, { recursive: true, force: true });
 }
 

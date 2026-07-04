@@ -74,4 +74,59 @@ assert.equal(manifest.tokenizer?.file, 'tokenizer.json');
 assert.equal(manifest.tokenizer?.addBosToken, true);
 assert.equal(manifest.tokenizer?.addEosToken, true);
 
+const sequencePostProcessorModel = {
+  ...model,
+  tokenizerConfig: {},
+  tokenizerJson: {
+    post_processor: {
+      type: 'Sequence',
+      processors: [
+        {
+          type: 'ByteLevel',
+          add_prefix_space: false,
+          trim_offsets: false,
+          use_regex: false,
+        },
+        {
+          type: 'TemplateProcessing',
+          single: [
+            { Sequence: { id: 'A', type_id: 0 } },
+            { SpecialToken: { id: '<|endoftext|>', type_id: 0 } },
+          ],
+          special_tokens: {
+            '<|endoftext|>': {
+              id: '<|endoftext|>',
+              ids: [1],
+              tokens: ['<|endoftext|>'],
+            },
+          },
+        },
+      ],
+    },
+    model: {
+      vocab: {
+        a: 0,
+        '<|endoftext|>': 1,
+      },
+    },
+  },
+};
+
+const sequencePostProcessorManifest = createManifest(
+  'bundled-tokenizer-sequence-post-processor-test',
+  sequencePostProcessorModel,
+  [],
+  {},
+  {
+    source: 'unit-test',
+    modelType: 'transformer',
+    quantization: 'F16',
+    hashAlgorithm: 'blake3',
+    inference: { ...DEFAULT_MANIFEST_INFERENCE },
+  }
+);
+
+assert.equal(sequencePostProcessorManifest.tokenizer?.addBosToken, undefined);
+assert.equal(sequencePostProcessorManifest.tokenizer?.addEosToken, true);
+
 console.log('core-bundled-tokenizer-flags.test: ok');
