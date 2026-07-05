@@ -39,7 +39,7 @@ and `doppler-gpu/tooling`.
 
 `doppler.load()` accepts:
 
-- registry ID string, for example `'gemma3-270m'`
+- registry ID string, for example `'qwen3-0.8b'`
 - `{ url }`
 - `{ manifest, baseUrl? }`
 
@@ -115,7 +115,7 @@ Returns canonical quick-start `modelId` values known to the root facade.
 ```js
 import { doppler } from 'doppler-gpu';
 
-const model = await doppler.load('gemma3-270m');
+const model = await doppler.load('qwen3-0.8b');
 
 for await (const token of model.generate('Describe WebGPU briefly')) {
   process.stdout.write(token);
@@ -127,7 +127,7 @@ for await (const token of model.generate('Describe WebGPU briefly')) {
 ```js
 import { doppler } from 'doppler-gpu';
 
-const model = await doppler.load('gemma3-270m', {
+const model = await doppler.load('qwen3-0.8b', {
   onProgress: ({ message }) => console.log(`[doppler] ${message}`),
 });
 
@@ -147,7 +147,7 @@ the standard generation surface.
 ```js
 import { doppler } from 'doppler-gpu';
 
-const model = await doppler.load('gemma3-270m');
+const model = await doppler.load('qwen3-0.8b');
 
 const prefill = await model.advanced.prefillWithLogits('Write one word for GPU.');
 const topLogit = prefill.logits[0];

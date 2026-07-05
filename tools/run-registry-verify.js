@@ -13,7 +13,7 @@ const DEFAULT_CATALOG_FILE = path.join(REPO_ROOT, 'models', 'catalog.json');
 
 function usage(stream = process.stderr) {
   stream.write(
-    'Usage: node tools/run-registry-verify.js <model-alias-or-id> [--registry-url <url>] [--surface <auto|node|browser>] [--update-catalog] [--catalog-file <path>]\n'
+    'Usage: node tools/run-registry-verify.js <model-alias-or-id> [--registry-url <url>] [--surface <auto|node|browser>] [--update-catalog] [--catalog-file <path>] [--report-out <path>]\n'
   );
 }
 
@@ -72,6 +72,7 @@ export function parseArgs(argv) {
     surface: 'auto',
     updateCatalog: false,
     catalogFile: DEFAULT_CATALOG_FILE,
+    reportOut: '',
   };
 
   const positional = [];
@@ -105,6 +106,10 @@ export function parseArgs(argv) {
       out.catalogFile = nextValue();
       continue;
     }
+    if (arg === '--report-out') {
+      out.reportOut = nextValue();
+      continue;
+    }
     if (arg.startsWith('--')) {
       throw new Error(`Unknown flag: ${arg}`);
     }
@@ -121,6 +126,35 @@ export function parseArgs(argv) {
   }
 
   return out;
+}
+
+async function writeReportOut(reportOut, payload) {
+  const reportPath = typeof reportOut === 'string' ? reportOut.trim() : '';
+  if (!reportPath) return;
+  const resolvedPath = path.isAbsolute(reportPath)
+    ? reportPath
+    : path.resolve(REPO_ROOT, reportPath);
+  await fs.mkdir(path.dirname(resolvedPath), { recursive: true });
+  const reportPayload = buildReportOutPayload(payload);
+  await fs.writeFile(resolvedPath, `${JSON.stringify(reportPayload, null, 2)}\n`, 'utf8');
+  console.log(`[registry-verify] wrote report ${path.relative(REPO_ROOT, resolvedPath)}`);
+}
+
+function buildReportOutPayload(payload) {
+  if (!isPlainObject(payload)) {
+    return { ok: false, error: 'registry verify produced no JSON payload' };
+  }
+  if (!isPlainObject(payload.result)) {
+    return cloneJson(payload);
+  }
+  const reportPayload = cloneJson(payload.result);
+  reportPayload.registryVerify = {
+    ok: payload.ok === true,
+    schemaVersion: payload.schemaVersion ?? null,
+    surface: typeof payload.surface === 'string' ? payload.surface : null,
+    request: cloneJson(payload.request ?? null),
+  };
+  return reportPayload;
 }
 
 async function loadRegistry(registryUrl) {
@@ -375,6 +409,8 @@ async function main() {
     console.error('[registry-verify] execution-v0 graph gate failed.');
     exitCode = 1;
   }
+
+  await writeReportOut(parsed.reportOut, verifyResult.payload);
 
   if (parsed.updateCatalog) {
     const result = exitCode === 0 ? 'pass' : 'fail';

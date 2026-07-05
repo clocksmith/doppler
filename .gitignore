@@ -75,6 +75,9 @@ functiongemma-safetensors/
 bench-results/
 compare_*.json
 benchmarks/vendors/results/*.json
+!benchmarks/vendors/results/compare_20260705T160226.json
+!benchmarks/vendors/results/compare_20260705T161224.json
+!benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260705T152659.json
 .tjs-bench-profile/
 benchmarks/.tjs-bench-profile/
 

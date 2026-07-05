@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-04T15:20:52.603Z",
+  "generatedAt": "2026-07-05T16:48:44.769Z",
   "release": {
     "channel": "main-snapshot",
     "version": "0.4.6",
-    "commitSha": "b73f217927e1645818842c6b4a42e7d3fc97b5a3",
+    "commitSha": "064787de3c5855f78df5f3adf32efd7f36169e61",
     "dirty": true
   },
   "sources": {
@@ -46,15 +46,15 @@
     },
     "localInferenceClaimMatrix": {
       "path": "benchmarks/vendors/local-inference-claim-matrix.json",
-      "sha256": "c780c43c82e786a42811bee71f55db4a3ffcefd4928ae1156f392d3250a7edc8",
-      "bytes": 23605,
+      "sha256": "7c56cc6953c9751c27993714a70d8f1fc7c376142f26dea98e6b021e3b4dcb23",
+      "bytes": 24169,
       "updated": "2026-06-27"
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "86a265e0837d6fce4a4d0f8fc95df6ecb6dde24f1fa241d2170c13e209b848b2",
-      "bytes": 36039,
-      "updated": "2026-07-04"
+      "sha256": "85d9a88dccf3d9c78062d902efc314a62c9fc044867d069b695804883f57843a",
+      "bytes": 37406,
+      "updated": "2026-07-05"
     },
     "harness:doppler": {
       "path": "benchmarks/vendors/harnesses/doppler.json",
@@ -155,7 +155,7 @@
   },
   "summary": {
     "targetCount": 16,
-    "modelCoverageCount": 19,
+    "modelCoverageCount": 20,
     "compareProfileCount": 12,
     "catalogModelCount": 23,
     "workloadCount": 5,
@@ -1390,6 +1390,23 @@
       "catalogSizeBytes": 1191553024
     },
     {
+      "dopplerModelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "Qwen3 Reranker 0.6B (Q4K/F32a)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 938321920
+    },
+    {
       "dopplerModelId": "translategemma-4b-it-q4k-ehf16-af32",
       "dopplerModelBaseDir": "local",
       "dopplerSource": "local",
@@ -1750,27 +1767,61 @@
       "laneId": "qwen-3-5-0-8b-q4k-rdrr",
       "status": "candidate",
       "claimReady": false,
-      "statusReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
-      "missingBackendIds": [
-        "chromium-webgpu"
-      ],
+      "statusReason": "Local browser execution is verified and fresh local cross-engine compare receipts cover p064 and p256 with exact output match against Transformers.js q4f16. The p512 contract run is not claimable because the Transformers.js side failed, so the lane remains candidate and missing the p512 competitor receipt.",
+      "missingBackendIds": [],
       "missingWorkloadIds": [
-        "p064-d064-t0-k1",
-        "p256-d128-t0-k1",
         "p512-d128-t0-k1"
       ],
-      "missingDecodeProfileIds": [
-        "parity",
-        "throughput"
-      ],
+      "missingDecodeProfileIds": [],
       "missingSurfaceWorkloads": [
-        "chromium-webgpu:p064-d064-t0-k1",
-        "chromium-webgpu:p256-d128-t0-k1",
         "chromium-webgpu:p512-d128-t0-k1"
       ],
       "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "modelLabel": "Qwen 3.5 0.8B (Q4K)",
-      "surfaces": []
+      "surfaces": [
+        {
+          "backendId": "chromium-webgpu",
+          "surface": "browser",
+          "compareResult": "benchmarks/vendors/results/compare_20260705T160226.json",
+          "summarySvg": null,
+          "workloadId": "p064-d064-t0-k1",
+          "decodeProfile": "throughput",
+          "correctness": "exact",
+          "dopplerDecodeTokensPerSec": 75.87,
+          "transformersjsDecodeTokensPerSec": 41.57085025546628,
+          "decodeLeader": "doppler",
+          "dopplerPromptTokensPerSecToFirstToken": 184.6,
+          "transformersjsPromptTokensPerSecToFirstToken": 9.524567804085903,
+          "promptLeader": "doppler",
+          "bottleneck": "readback map wait",
+          "bottleneckClass": "submit-readback-wait",
+          "computeSectionIds": [
+            "parity",
+            "throughput"
+          ]
+        },
+        {
+          "backendId": "chromium-webgpu",
+          "surface": "browser",
+          "compareResult": "benchmarks/vendors/results/compare_20260705T161224.json",
+          "summarySvg": null,
+          "workloadId": "p256-d128-t0-k1",
+          "decodeProfile": "throughput",
+          "correctness": "exact",
+          "dopplerDecodeTokensPerSec": 73.74,
+          "transformersjsDecodeTokensPerSec": 43.171067906540074,
+          "decodeLeader": "doppler",
+          "dopplerPromptTokensPerSecToFirstToken": 432.94,
+          "transformersjsPromptTokensPerSecToFirstToken": 9.784305744257615,
+          "promptLeader": "doppler",
+          "bottleneck": "readback map wait",
+          "bottleneckClass": "submit-readback-wait",
+          "computeSectionIds": [
+            "parity",
+            "throughput"
+          ]
+        }
+      ]
     },
     {
       "laneId": "qwen-3-5-2b-q4k-rdrr",

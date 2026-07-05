@@ -1,0 +1,2045 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-07-05T16:48:44.769Z",
+  "sources": [
+    "models/catalog.json",
+    "benchmarks/vendors/model-support-inventory.json",
+    "benchmarks/vendors/release-matrix.json",
+    "benchmarks/vendors/embedding-compare.config.json",
+    "benchmarks/vendors/results/embedding_compare_*.json"
+  ],
+  "summary": {
+    "catalogModelCount": 23,
+    "scoreboardRowCount": 32,
+    "runtimeVerifiedModelCount": 20,
+    "hfPublishedModelCount": 13,
+    "failedModelCount": 1,
+    "verificationNeededModelCount": 2,
+    "platformVerifiedModelCount": {
+      "browser": 8,
+      "node": 20,
+      "bun": 0
+    },
+    "generationCompareRowCount": 11,
+    "generationCompareGapRowCount": 5,
+    "embeddingCompareRowCount": 2,
+    "supportGapRowCount": 14,
+    "dopplerDecodeLeaderRowCount": 9,
+    "transformersjsDecodeLeaderRowCount": 2,
+    "dopplerEmbeddingLatencyLeaderRowCount": 1,
+    "transformersjsEmbeddingLatencyLeaderRowCount": 1,
+    "claimReadyRowCount": 1,
+    "localComparableRowCount": 1,
+    "evidenceIncompleteRowCount": 28
+  },
+  "rows": [
+    {
+      "rowId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16:support",
+      "modelId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
+      "label": "DiffusionGemma 26B A4B Instruct (Q4K/F16a)",
+      "family": "diffusiongemma",
+      "modes": [
+        "diffusion",
+        "text"
+      ],
+      "sourceCheckpointId": "google/diffusiongemma-26B-A4B-it",
+      "workloadMode": "support",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f16 compute, row Q4K layout",
+        "sizeBytes": 15694066921,
+        "sizeLabel": "14.6 GiB",
+        "hf": {
+          "published": false,
+          "repoId": null,
+          "revision": null,
+          "path": null
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "missing",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": null,
+        "format": null,
+        "dtype": null
+      },
+      "correctness": "none",
+      "metrics": null,
+      "claimStatus": "verification-needed",
+      "claimReason": "Run deterministic runtime verification for diffusiongemma-26b-a4b-it-q4k-ehf16-af16.",
+      "evidence": {
+        "runtimeReport": null,
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "runtime-verify",
+        "hf-publish",
+        "compare-profile"
+      ],
+      "nextGate": "runtime-verify",
+      "nextCommand": "node tools/run-registry-verify.js diffusiongemma-26b-a4b-it-q4k-ehf16-af16 --surface auto"
+    },
+    {
+      "rowId": "google-embeddinggemma-300m-q4k-ehf16-af32:embedding:2026-07-04T15:45:00.000Z",
+      "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+      "label": "EmbeddingGemma 300M (Q4K)",
+      "family": "embeddinggemma",
+      "modes": [
+        "embedding"
+      ],
+      "sourceCheckpointId": "google/embeddinggemma-300m",
+      "workloadMode": "embedding",
+      "surface": "auto",
+      "workloadId": "embedding",
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 480563695,
+        "sizeLabel": "0.45 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "95f0b29ec73dea70394c6bcfa8407bc6796df6c9",
+          "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/embeddinggemma-300m-ONNX",
+        "format": "onnx",
+        "dtype": "q4"
+      },
+      "correctness": "semantic-pass",
+      "metrics": {
+        "doppler": {
+          "medianEmbeddingMs": 60.04,
+          "avgEmbeddingsPerSec": 16.74,
+          "p95EmbeddingMs": 60.24,
+          "modelLoadMs": 1037.58,
+          "embeddingDim": 768
+        },
+        "transformersjs": {
+          "medianEmbeddingMs": 25.42,
+          "avgEmbeddingsPerSec": 35.13,
+          "p95EmbeddingMs": 34.64,
+          "modelLoadMs": 11378.89,
+          "embeddingDim": 768
+        },
+        "ratios": {
+          "medianEmbeddingMsDopplerOverTransformersjs": 2.3615,
+          "avgEmbeddingsPerSecDopplerOverTransformersjs": 0.4765,
+          "modelLoadMsDopplerOverTransformersjs": 0.0912
+        },
+        "leader": {
+          "embeddingLatency": "transformersjs",
+          "embeddingThroughput": "transformersjs",
+          "modelLoad": "doppler"
+        }
+      },
+      "claimStatus": "claimable",
+      "claimReason": "Embedding-specific lane using shared prompt, semantic fixture, and browser WebGPU Transformers.js ONNX baseline.",
+      "evidence": {
+        "embeddingCompareResult": "benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260704T154500.json",
+        "embeddingCompareResultExists": true,
+        "timestamp": "2026-07-04T15:45:00.000Z"
+      },
+      "missing": [],
+      "nextGate": null,
+      "nextCommand": null
+    },
+    {
+      "rowId": "gemma-3-1b-it-q4k-ehf16-af32:generation:pending",
+      "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
+      "label": "Gemma 3 1B Instruct (Q4K/F32a)",
+      "family": "gemma3",
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "sourceCheckpointId": "google/gemma-3-1b-it",
+      "workloadMode": "generation",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 1044786820,
+        "sizeLabel": "0.97 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "7c3d30e300bcb02cbd68fb0db3eee64fbf738f99",
+          "path": "models/gemma-3-1b-it-q4k-ehf16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+        "format": "onnx",
+        "dtype": "q4f16"
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "candidate",
+      "claimReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/gemma-3-1b-it-q4k-ehf16-af32/2026-06-24T01-23-10.494Z.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": "gemma-3-1b-it-q4k-rdrr"
+      },
+      "missing": [
+        "chromium-webgpu",
+        "p064-d064-t0-k1",
+        "p256-d128-t0-k1",
+        "p512-d128-t0-k1",
+        "parity",
+        "throughput",
+        "chromium-webgpu:p064-d064-t0-k1",
+        "chromium-webgpu:p256-d128-t0-k1",
+        "chromium-webgpu:p512-d128-t0-k1"
+      ],
+      "nextGate": "compare-result",
+      "nextCommand": "node tools/compare-engines.js --model-id gemma-3-1b-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
+    },
+    {
+      "rowId": "gemma-3-270m-it-f16-af32:support",
+      "modelId": "gemma-3-270m-it-f16-af32",
+      "label": "Gemma 3 270M Instruct (F16/F32a)",
+      "family": "gemma3",
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "sourceCheckpointId": "google/gemma-3-270m-it",
+      "workloadMode": "support",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute",
+        "sizeBytes": 540000000,
+        "sizeLabel": "0.50 GiB",
+        "hf": {
+          "published": false,
+          "repoId": "Clocksmith/rdrr",
+          "revision": null,
+          "path": "models/gemma-3-270m-it-f16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/gemma-3-270m-it-ONNX",
+        "format": "onnx",
+        "dtype": null
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "compare-missing",
+      "claimReason": "gemma-3-270m-it-q4k-ehf16-af32 is selected from committed runtime, compare JSON, and SVG receipts.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/gemma-3-270m-it-f16-af32/2026-06-29T22-02-14.821Z.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "hf-publish",
+        "claim-lane",
+        "compare-result",
+        "summary-svg"
+      ],
+      "nextGate": "hf-publish",
+      "nextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-3-270m-it-f16-af32 --dry-run --bootstrap"
+    },
+    {
+      "rowId": "gemma-3-270m-it-q4k-ehf16-af32:generation:browser:p064-d064-t0-k1:throughput",
+      "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "label": "Gemma 3 270M Instruct (Q4K/F32a)",
+      "family": "gemma3",
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "sourceCheckpointId": "google/gemma-3-270m-it",
+      "workloadMode": "generation",
+      "surface": "browser",
+      "workloadId": "p064-d064-t0-k1",
+      "decodeProfile": "throughput",
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 418518521,
+        "sizeLabel": "0.39 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
+          "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "benchmarked",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/gemma-3-270m-it-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16"
+      },
+      "correctness": "exact",
+      "metrics": {
+        "doppler": {
+          "decodeTokensPerSec": 175.82,
+          "promptTokensPerSecToFirstToken": 1036.45
+        },
+        "transformersjs": {
+          "decodeTokensPerSec": 107.09,
+          "promptTokensPerSecToFirstToken": 840.39
+        },
+        "ratios": {
+          "decodeDopplerOverTransformersjs": 1.6419,
+          "promptDopplerOverTransformersjs": 1.2333
+        },
+        "leader": {
+          "decode": "doppler",
+          "prompt": "doppler"
+        },
+        "bottleneck": "readback map wait",
+        "bottleneckClass": "submit-readback-wait"
+      },
+      "claimStatus": "summary-svg-missing",
+      "claimReason": "Fresh 2026-06-27 15-run throughput receipts cover p064, p256, and p512 on Chromium/browser, Node, and Bun with exact output match, nonzero decode, pinned local manifest hash 4bb1af0de9a0367a3d036e485622917209b54b4ed2f877048b9ce015ea8c1511, and the declared 8x8 overlapped readback cadence. Doppler leads TJS q4 on every p064 surface and every p512 surface, and leads the p256 browser surface. The lane remains candidate because p256 Node and Bun decode are TJS-leading despite passing correctness and throughput gates, with command recording as the dominant Doppler bottleneck. Node and Bun comparisons also carry the compare tool's cross-surface warning because TJS still runs in Chromium.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json",
+        "compareResult": "benchmarks/vendors/results/compare_20260627T202837.json",
+        "compareResultExists": true,
+        "summarySvg": null,
+        "summarySvgExists": false,
+        "localClaimLaneId": "gemma-3-270m-it-q4k-rdrr"
+      },
+      "missing": [
+        "summary-svg"
+      ],
+      "nextGate": "summary-svg",
+      "nextCommand": "node tools/compare-engines.js --model-id gemma-3-270m-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
+    },
+    {
+      "rowId": "gemma-3-270m-it-q4k-ehf16-af32:generation:browser:p256-d128-t0-k1:throughput",
+      "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "label": "Gemma 3 270M Instruct (Q4K/F32a)",
+      "family": "gemma3",
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "sourceCheckpointId": "google/gemma-3-270m-it",
+      "workloadMode": "generation",
+      "surface": "browser",
+      "workloadId": "p256-d128-t0-k1",
+      "decodeProfile": "throughput",
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 418518521,
+        "sizeLabel": "0.39 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
+          "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "benchmarked",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/gemma-3-270m-it-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16"
+      },
+      "correctness": "exact",
+      "metrics": {
+        "doppler": {
+          "decodeTokensPerSec": 164.23,
+          "promptTokensPerSecToFirstToken": 2071.2
+        },
+        "transformersjs": {
+          "decodeTokensPerSec": 113.02,
+          "promptTokensPerSecToFirstToken": 1021.49
+        },
+        "ratios": {
+          "decodeDopplerOverTransformersjs": 1.4532,
+          "promptDopplerOverTransformersjs": 2.0276
+        },
+        "leader": {
+          "decode": "doppler",
+          "prompt": "doppler"
+        },
+        "bottleneck": "readback map wait",
+        "bottleneckClass": "submit-readback-wait"
+      },
+      "claimStatus": "summary-svg-missing",
+      "claimReason": "Fresh 2026-06-27 15-run throughput receipts cover p064, p256, and p512 on Chromium/browser, Node, and Bun with exact output match, nonzero decode, pinned local manifest hash 4bb1af0de9a0367a3d036e485622917209b54b4ed2f877048b9ce015ea8c1511, and the declared 8x8 overlapped readback cadence. Doppler leads TJS q4 on every p064 surface and every p512 surface, and leads the p256 browser surface. The lane remains candidate because p256 Node and Bun decode are TJS-leading despite passing correctness and throughput gates, with command recording as the dominant Doppler bottleneck. Node and Bun comparisons also carry the compare tool's cross-surface warning because TJS still runs in Chromium.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json",
+        "compareResult": "benchmarks/vendors/results/compare_20260627T203348.json",
+        "compareResultExists": true,
+        "summarySvg": null,
+        "summarySvgExists": false,
+        "localClaimLaneId": "gemma-3-270m-it-q4k-rdrr"
+      },
+      "missing": [
+        "summary-svg"
+      ],
+      "nextGate": "summary-svg",
+      "nextCommand": "node tools/compare-engines.js --model-id gemma-3-270m-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
+    },
+    {
+      "rowId": "gemma-3-270m-it-q4k-ehf16-af32:generation:browser:p512-d128-t0-k1:throughput",
+      "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "label": "Gemma 3 270M Instruct (Q4K/F32a)",
+      "family": "gemma3",
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "sourceCheckpointId": "google/gemma-3-270m-it",
+      "workloadMode": "generation",
+      "surface": "browser",
+      "workloadId": "p512-d128-t0-k1",
+      "decodeProfile": "throughput",
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 418518521,
+        "sizeLabel": "0.39 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
+          "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "benchmarked",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/gemma-3-270m-it-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16"
+      },
+      "correctness": "exact",
+      "metrics": {
+        "doppler": {
+          "decodeTokensPerSec": 156.51,
+          "promptTokensPerSecToFirstToken": 2426.55
+        },
+        "transformersjs": {
+          "decodeTokensPerSec": 96.08,
+          "promptTokensPerSecToFirstToken": 1023.97
+        },
+        "ratios": {
+          "decodeDopplerOverTransformersjs": 1.6289,
+          "promptDopplerOverTransformersjs": 2.3697
+        },
+        "leader": {
+          "decode": "doppler",
+          "prompt": "doppler"
+        },
+        "bottleneck": "readback map wait",
+        "bottleneckClass": "submit-readback-wait"
+      },
+      "claimStatus": "candidate",
+      "claimReason": "Fresh 2026-06-27 15-run throughput receipts cover p064, p256, and p512 on Chromium/browser, Node, and Bun with exact output match, nonzero decode, pinned local manifest hash 4bb1af0de9a0367a3d036e485622917209b54b4ed2f877048b9ce015ea8c1511, and the declared 8x8 overlapped readback cadence. Doppler leads TJS q4 on every p064 surface and every p512 surface, and leads the p256 browser surface. The lane remains candidate because p256 Node and Bun decode are TJS-leading despite passing correctness and throughput gates, with command recording as the dominant Doppler bottleneck. Node and Bun comparisons also carry the compare tool's cross-surface warning because TJS still runs in Chromium.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json",
+        "compareResult": "benchmarks/vendors/results/compare_20260627T200811.json",
+        "compareResultExists": true,
+        "summarySvg": "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-browser-p512-d128-t0-k1-strix-halo-20260627T200811.svg",
+        "summarySvgExists": true,
+        "localClaimLaneId": "gemma-3-270m-it-q4k-rdrr"
+      },
+      "missing": [],
+      "nextGate": "preferred-architecture",
+      "nextCommand": null
+    },
+    {
+      "rowId": "gemma-3-270m-it-q4k-ehf16-af32:generation:bun:p064-d064-t0-k1:throughput",
+      "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "label": "Gemma 3 270M Instruct (Q4K/F32a)",
+      "family": "gemma3",
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "sourceCheckpointId": "google/gemma-3-270m-it",
+      "workloadMode": "generation",
+      "surface": "bun",
+      "workloadId": "p064-d064-t0-k1",
+      "decodeProfile": "throughput",
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 418518521,
+        "sizeLabel": "0.39 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
+          "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "verified",
+        "node": "verified",
+        "bun": "benchmarked"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/gemma-3-270m-it-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16"
+      },
+      "correctness": "exact",
+      "metrics": {
+        "doppler": {
+          "decodeTokensPerSec": 115.53,
+          "promptTokensPerSecToFirstToken": 968.41
+        },
+        "transformersjs": {
+          "decodeTokensPerSec": 110.44,
+          "promptTokensPerSecToFirstToken": 832.52
+        },
+        "ratios": {
+          "decodeDopplerOverTransformersjs": 1.0461,
+          "promptDopplerOverTransformersjs": 1.1632
+        },
+        "leader": {
+          "decode": "doppler",
+          "prompt": "doppler"
+        },
+        "bottleneck": "command recording",
+        "bottleneckClass": "command-recording"
+      },
+      "claimStatus": "summary-svg-missing",
+      "claimReason": "Fresh 2026-06-27 15-run throughput receipts cover p064, p256, and p512 on Chromium/browser, Node, and Bun with exact output match, nonzero decode, pinned local manifest hash 4bb1af0de9a0367a3d036e485622917209b54b4ed2f877048b9ce015ea8c1511, and the declared 8x8 overlapped readback cadence. Doppler leads TJS q4 on every p064 surface and every p512 surface, and leads the p256 browser surface. The lane remains candidate because p256 Node and Bun decode are TJS-leading despite passing correctness and throughput gates, with command recording as the dominant Doppler bottleneck. Node and Bun comparisons also carry the compare tool's cross-surface warning because TJS still runs in Chromium.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json",
+        "compareResult": "benchmarks/vendors/results/compare_20260627T202736.json",
+        "compareResultExists": true,
+        "summarySvg": null,
+        "summarySvgExists": false,
+        "localClaimLaneId": "gemma-3-270m-it-q4k-rdrr"
+      },
+      "missing": [
+        "summary-svg"
+      ],
+      "nextGate": "summary-svg",
+      "nextCommand": "node tools/compare-engines.js --model-id gemma-3-270m-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
+    },
+    {
+      "rowId": "gemma-3-270m-it-q4k-ehf16-af32:generation:bun:p256-d128-t0-k1:throughput",
+      "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "label": "Gemma 3 270M Instruct (Q4K/F32a)",
+      "family": "gemma3",
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "sourceCheckpointId": "google/gemma-3-270m-it",
+      "workloadMode": "generation",
+      "surface": "bun",
+      "workloadId": "p256-d128-t0-k1",
+      "decodeProfile": "throughput",
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 418518521,
+        "sizeLabel": "0.39 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
+          "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "verified",
+        "node": "verified",
+        "bun": "benchmarked"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/gemma-3-270m-it-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16"
+      },
+      "correctness": "exact",
+      "metrics": {
+        "doppler": {
+          "decodeTokensPerSec": 108.39,
+          "promptTokensPerSecToFirstToken": 1969.8
+        },
+        "transformersjs": {
+          "decodeTokensPerSec": 109.93,
+          "promptTokensPerSecToFirstToken": 992.25
+        },
+        "ratios": {
+          "decodeDopplerOverTransformersjs": 0.986,
+          "promptDopplerOverTransformersjs": 1.9852
+        },
+        "leader": {
+          "decode": "transformersjs",
+          "prompt": "doppler"
+        },
+        "bottleneck": "command recording",
+        "bottleneckClass": "command-recording"
+      },
+      "claimStatus": "summary-svg-missing",
+      "claimReason": "Fresh 2026-06-27 15-run throughput receipts cover p064, p256, and p512 on Chromium/browser, Node, and Bun with exact output match, nonzero decode, pinned local manifest hash 4bb1af0de9a0367a3d036e485622917209b54b4ed2f877048b9ce015ea8c1511, and the declared 8x8 overlapped readback cadence. Doppler leads TJS q4 on every p064 surface and every p512 surface, and leads the p256 browser surface. The lane remains candidate because p256 Node and Bun decode are TJS-leading despite passing correctness and throughput gates, with command recording as the dominant Doppler bottleneck. Node and Bun comparisons also carry the compare tool's cross-surface warning because TJS still runs in Chromium.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json",
+        "compareResult": "benchmarks/vendors/results/compare_20260627T203220.json",
+        "compareResultExists": true,
+        "summarySvg": null,
+        "summarySvgExists": false,
+        "localClaimLaneId": "gemma-3-270m-it-q4k-rdrr"
+      },
+      "missing": [
+        "summary-svg"
+      ],
+      "nextGate": "summary-svg",
+      "nextCommand": "node tools/compare-engines.js --model-id gemma-3-270m-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
+    },
+    {
+      "rowId": "gemma-3-270m-it-q4k-ehf16-af32:generation:bun:p512-d128-t0-k1:throughput",
+      "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "label": "Gemma 3 270M Instruct (Q4K/F32a)",
+      "family": "gemma3",
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "sourceCheckpointId": "google/gemma-3-270m-it",
+      "workloadMode": "generation",
+      "surface": "bun",
+      "workloadId": "p512-d128-t0-k1",
+      "decodeProfile": "throughput",
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 418518521,
+        "sizeLabel": "0.39 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
+          "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "verified",
+        "node": "verified",
+        "bun": "benchmarked"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/gemma-3-270m-it-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16"
+      },
+      "correctness": "exact",
+      "metrics": {
+        "doppler": {
+          "decodeTokensPerSec": 105.55,
+          "promptTokensPerSecToFirstToken": 2323.66
+        },
+        "transformersjs": {
+          "decodeTokensPerSec": 97.66,
+          "promptTokensPerSecToFirstToken": 1003.97
+        },
+        "ratios": {
+          "decodeDopplerOverTransformersjs": 1.0808,
+          "promptDopplerOverTransformersjs": 2.3145
+        },
+        "leader": {
+          "decode": "doppler",
+          "prompt": "doppler"
+        },
+        "bottleneck": "command recording",
+        "bottleneckClass": "command-recording"
+      },
+      "claimStatus": "candidate",
+      "claimReason": "Fresh 2026-06-27 15-run throughput receipts cover p064, p256, and p512 on Chromium/browser, Node, and Bun with exact output match, nonzero decode, pinned local manifest hash 4bb1af0de9a0367a3d036e485622917209b54b4ed2f877048b9ce015ea8c1511, and the declared 8x8 overlapped readback cadence. Doppler leads TJS q4 on every p064 surface and every p512 surface, and leads the p256 browser surface. The lane remains candidate because p256 Node and Bun decode are TJS-leading despite passing correctness and throughput gates, with command recording as the dominant Doppler bottleneck. Node and Bun comparisons also carry the compare tool's cross-surface warning because TJS still runs in Chromium.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json",
+        "compareResult": "benchmarks/vendors/results/compare_20260627T200603.json",
+        "compareResultExists": true,
+        "summarySvg": "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-bun-p512-d128-t0-k1-strix-halo-20260627T200603.svg",
+        "summarySvgExists": true,
+        "localClaimLaneId": "gemma-3-270m-it-q4k-rdrr"
+      },
+      "missing": [],
+      "nextGate": "preferred-architecture",
+      "nextCommand": null
+    },
+    {
+      "rowId": "gemma-3-270m-it-q4k-ehf16-af32:generation:node:p064-d064-t0-k1:throughput",
+      "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "label": "Gemma 3 270M Instruct (Q4K/F32a)",
+      "family": "gemma3",
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "sourceCheckpointId": "google/gemma-3-270m-it",
+      "workloadMode": "generation",
+      "surface": "node",
+      "workloadId": "p064-d064-t0-k1",
+      "decodeProfile": "throughput",
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 418518521,
+        "sizeLabel": "0.39 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
+          "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "verified",
+        "node": "benchmarked",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/gemma-3-270m-it-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16"
+      },
+      "correctness": "exact",
+      "metrics": {
+        "doppler": {
+          "decodeTokensPerSec": 112.49,
+          "promptTokensPerSecToFirstToken": 1105.97
+        },
+        "transformersjs": {
+          "decodeTokensPerSec": 108.16,
+          "promptTokensPerSecToFirstToken": 831.87
+        },
+        "ratios": {
+          "decodeDopplerOverTransformersjs": 1.04,
+          "promptDopplerOverTransformersjs": 1.3295
+        },
+        "leader": {
+          "decode": "doppler",
+          "prompt": "doppler"
+        },
+        "bottleneck": "command recording",
+        "bottleneckClass": "command-recording"
+      },
+      "claimStatus": "summary-svg-missing",
+      "claimReason": "Fresh 2026-06-27 15-run throughput receipts cover p064, p256, and p512 on Chromium/browser, Node, and Bun with exact output match, nonzero decode, pinned local manifest hash 4bb1af0de9a0367a3d036e485622917209b54b4ed2f877048b9ce015ea8c1511, and the declared 8x8 overlapped readback cadence. Doppler leads TJS q4 on every p064 surface and every p512 surface, and leads the p256 browser surface. The lane remains candidate because p256 Node and Bun decode are TJS-leading despite passing correctness and throughput gates, with command recording as the dominant Doppler bottleneck. Node and Bun comparisons also carry the compare tool's cross-surface warning because TJS still runs in Chromium.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json",
+        "compareResult": "benchmarks/vendors/results/compare_20260627T202549.json",
+        "compareResultExists": true,
+        "summarySvg": null,
+        "summarySvgExists": false,
+        "localClaimLaneId": "gemma-3-270m-it-q4k-rdrr"
+      },
+      "missing": [
+        "summary-svg"
+      ],
+      "nextGate": "summary-svg",
+      "nextCommand": "node tools/compare-engines.js --model-id gemma-3-270m-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
+    },
+    {
+      "rowId": "gemma-3-270m-it-q4k-ehf16-af32:generation:node:p256-d128-t0-k1:throughput",
+      "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "label": "Gemma 3 270M Instruct (Q4K/F32a)",
+      "family": "gemma3",
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "sourceCheckpointId": "google/gemma-3-270m-it",
+      "workloadMode": "generation",
+      "surface": "node",
+      "workloadId": "p256-d128-t0-k1",
+      "decodeProfile": "throughput",
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 418518521,
+        "sizeLabel": "0.39 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
+          "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "verified",
+        "node": "benchmarked",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/gemma-3-270m-it-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16"
+      },
+      "correctness": "exact",
+      "metrics": {
+        "doppler": {
+          "decodeTokensPerSec": 105.99,
+          "promptTokensPerSecToFirstToken": 2156.26
+        },
+        "transformersjs": {
+          "decodeTokensPerSec": 109.18,
+          "promptTokensPerSecToFirstToken": 1008.41
+        },
+        "ratios": {
+          "decodeDopplerOverTransformersjs": 0.9708,
+          "promptDopplerOverTransformersjs": 2.1383
+        },
+        "leader": {
+          "decode": "transformersjs",
+          "prompt": "doppler"
+        },
+        "bottleneck": "command recording",
+        "bottleneckClass": "command-recording"
+      },
+      "claimStatus": "summary-svg-missing",
+      "claimReason": "Fresh 2026-06-27 15-run throughput receipts cover p064, p256, and p512 on Chromium/browser, Node, and Bun with exact output match, nonzero decode, pinned local manifest hash 4bb1af0de9a0367a3d036e485622917209b54b4ed2f877048b9ce015ea8c1511, and the declared 8x8 overlapped readback cadence. Doppler leads TJS q4 on every p064 surface and every p512 surface, and leads the p256 browser surface. The lane remains candidate because p256 Node and Bun decode are TJS-leading despite passing correctness and throughput gates, with command recording as the dominant Doppler bottleneck. Node and Bun comparisons also carry the compare tool's cross-surface warning because TJS still runs in Chromium.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json",
+        "compareResult": "benchmarks/vendors/results/compare_20260627T203031.json",
+        "compareResultExists": true,
+        "summarySvg": null,
+        "summarySvgExists": false,
+        "localClaimLaneId": "gemma-3-270m-it-q4k-rdrr"
+      },
+      "missing": [
+        "summary-svg"
+      ],
+      "nextGate": "summary-svg",
+      "nextCommand": "node tools/compare-engines.js --model-id gemma-3-270m-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
+    },
+    {
+      "rowId": "gemma-3-270m-it-q4k-ehf16-af32:generation:node:p512-d128-t0-k1:throughput",
+      "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "label": "Gemma 3 270M Instruct (Q4K/F32a)",
+      "family": "gemma3",
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "sourceCheckpointId": "google/gemma-3-270m-it",
+      "workloadMode": "generation",
+      "surface": "node",
+      "workloadId": "p512-d128-t0-k1",
+      "decodeProfile": "throughput",
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 418518521,
+        "sizeLabel": "0.39 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
+          "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "verified",
+        "node": "benchmarked",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/gemma-3-270m-it-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16"
+      },
+      "correctness": "exact",
+      "metrics": {
+        "doppler": {
+          "decodeTokensPerSec": 103,
+          "promptTokensPerSecToFirstToken": 2453.29
+        },
+        "transformersjs": {
+          "decodeTokensPerSec": 97.15,
+          "promptTokensPerSecToFirstToken": 1021.53
+        },
+        "ratios": {
+          "decodeDopplerOverTransformersjs": 1.0602,
+          "promptDopplerOverTransformersjs": 2.4016
+        },
+        "leader": {
+          "decode": "doppler",
+          "prompt": "doppler"
+        },
+        "bottleneck": "command recording",
+        "bottleneckClass": "command-recording"
+      },
+      "claimStatus": "candidate",
+      "claimReason": "Fresh 2026-06-27 15-run throughput receipts cover p064, p256, and p512 on Chromium/browser, Node, and Bun with exact output match, nonzero decode, pinned local manifest hash 4bb1af0de9a0367a3d036e485622917209b54b4ed2f877048b9ce015ea8c1511, and the declared 8x8 overlapped readback cadence. Doppler leads TJS q4 on every p064 surface and every p512 surface, and leads the p256 browser surface. The lane remains candidate because p256 Node and Bun decode are TJS-leading despite passing correctness and throughput gates, with command recording as the dominant Doppler bottleneck. Node and Bun comparisons also carry the compare tool's cross-surface warning because TJS still runs in Chromium.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json",
+        "compareResult": "benchmarks/vendors/results/compare_20260627T200323.json",
+        "compareResultExists": true,
+        "summarySvg": "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-node-p512-d128-t0-k1-strix-halo-20260627T200323.svg",
+        "summarySvgExists": true,
+        "localClaimLaneId": "gemma-3-270m-it-q4k-rdrr"
+      },
+      "missing": [],
+      "nextGate": "preferred-architecture",
+      "nextCommand": null
+    },
+    {
+      "rowId": "gemma-4-12b-it-text-q4k-ehf16-af16:support",
+      "modelId": "gemma-4-12b-it-text-q4k-ehf16-af16",
+      "label": "Gemma 4 12B Instruct Text (Q4K/F16a)",
+      "family": "gemma4",
+      "modes": [
+        "text"
+      ],
+      "sourceCheckpointId": "google/gemma-4-12B-it",
+      "workloadMode": "text",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f16 compute, row Q4K layout",
+        "sizeBytes": 8159955902,
+        "sizeLabel": "7.60 GiB",
+        "hf": {
+          "published": false,
+          "repoId": "Clocksmith/rdrr",
+          "revision": null,
+          "path": "models/gemma-4-12b-it-text-q4k-ehf16-af16"
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": null,
+        "format": null,
+        "dtype": null
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "verified-no-compare",
+      "claimReason": "Publish or refresh the Hugging Face manifest/weights for gemma-4-12b-it-text-q4k-ehf16-af16.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/gemma-4-12b-it-text-q4k-ehf16-af16/2026-06-29T22-14-43.963Z.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "hf-publish",
+        "compare-profile"
+      ],
+      "nextGate": "hf-publish",
+      "nextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-q4k-ehf16-af16 --dry-run --bootstrap"
+    },
+    {
+      "rowId": "gemma-4-12b-it-text-q4k-ehf16-af32:support",
+      "modelId": "gemma-4-12b-it-text-q4k-ehf16-af32",
+      "label": "Gemma 4 12B Instruct Text (Q4K/F32a)",
+      "family": "gemma4",
+      "modes": [
+        "text"
+      ],
+      "sourceCheckpointId": "google/gemma-4-12B-it",
+      "workloadMode": "text",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 8159955902,
+        "sizeLabel": "7.60 GiB",
+        "hf": {
+          "published": false,
+          "repoId": "Clocksmith/rdrr",
+          "revision": null,
+          "path": "models/gemma-4-12b-it-text-q4k-ehf16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": null,
+        "format": null,
+        "dtype": null
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "verified-no-compare",
+      "claimReason": "Publish or refresh the Hugging Face manifest/weights for gemma-4-12b-it-text-q4k-ehf16-af16.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/gemma-4-12b-it-text-q4k-ehf16-af32/2026-06-29T22-13-57.102Z.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "hf-publish",
+        "compare-profile"
+      ],
+      "nextGate": "hf-publish",
+      "nextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-q4k-ehf16-af32 --dry-run --bootstrap"
+    },
+    {
+      "rowId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16:support",
+      "modelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
+      "label": "Gemma 4 12B Instruct Text (W4A16 QAT/F16a)",
+      "family": "gemma4",
+      "modes": [
+        "text"
+      ],
+      "sourceCheckpointId": "google/gemma-4-12B-it-qat-w4a16-ct",
+      "workloadMode": "text",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, w4a16 weights, f16 embeddings, f16 LM head, f16 compute",
+        "sizeBytes": 10173636932,
+        "sizeLabel": "9.47 GiB",
+        "hf": {
+          "published": false,
+          "repoId": "Clocksmith/rdrr",
+          "revision": null,
+          "path": "models/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": null,
+        "format": null,
+        "dtype": null
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "verified-no-compare",
+      "claimReason": "Publish or refresh the Hugging Face manifest/weights for gemma-4-12b-it-text-w4a16-ct-ehf16-af16.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/2026-06-29T22-04-29.156Z.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "hf-publish",
+        "compare-profile"
+      ],
+      "nextGate": "hf-publish",
+      "nextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-w4a16-ct-ehf16-af16 --dry-run --bootstrap"
+    },
+    {
+      "rowId": "gemma-4-31b-it-text-q4k-ehf16-af16:support",
+      "modelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
+      "label": "Gemma 4 31B Instruct Text (Q4K/F16a)",
+      "family": "gemma4",
+      "modes": [
+        "text"
+      ],
+      "sourceCheckpointId": "google/gemma-4-31B-it",
+      "workloadMode": "text",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f16 compute, row Q4K layout",
+        "sizeBytes": 19295019640,
+        "sizeLabel": "18.0 GiB",
+        "hf": {
+          "published": false,
+          "repoId": "Clocksmith/rdrr",
+          "revision": null,
+          "path": "models/gemma-4-31b-it-text-q4k-ehf16-af16"
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": null,
+        "format": null,
+        "dtype": null
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "verified-no-compare",
+      "claimReason": "Publish or refresh the Hugging Face manifest/weights for gemma-4-31b-it-text-q4k-ehf16-af16.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/gemma-4-31b-it-text-q4k-ehf16-af16/2026-06-29T22-09-42.445Z.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "hf-publish",
+        "compare-profile"
+      ],
+      "nextGate": "hf-publish",
+      "nextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-31b-it-text-q4k-ehf16-af16 --dry-run --bootstrap"
+    },
+    {
+      "rowId": "gemma-4-31b-it-text-q4k-ehf16-af32:support",
+      "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
+      "label": "Gemma 4 31B Instruct Text (Q4K/F32a)",
+      "family": "gemma4",
+      "modes": [
+        "text"
+      ],
+      "sourceCheckpointId": "google/gemma-4-31B-it",
+      "workloadMode": "text",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 19295019640,
+        "sizeLabel": "18.0 GiB",
+        "hf": {
+          "published": false,
+          "repoId": "Clocksmith/rdrr",
+          "revision": null,
+          "path": "models/gemma-4-31b-it-text-q4k-ehf16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": null,
+        "format": null,
+        "dtype": null
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "verified-no-compare",
+      "claimReason": "Publish or refresh the Hugging Face manifest/weights for gemma-4-31b-it-text-q4k-ehf16-af16.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/gemma-4-31b-it-text-q4k-ehf16-af32/2026-06-29T22-07-45.149Z.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "hf-publish",
+        "compare-profile"
+      ],
+      "nextGate": "hf-publish",
+      "nextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-31b-it-text-q4k-ehf16-af32 --dry-run --bootstrap"
+    },
+    {
+      "rowId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple:support",
+      "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+      "label": "Gemma 4 E2B Instruct (Q4K/F16a/INT4 PLE)",
+      "family": "gemma4",
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "sourceCheckpointId": "google/gemma-4-E2B-it",
+      "workloadMode": "support",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f16 compute, row Q4K layout",
+        "sizeBytes": 4009916310,
+        "sizeLabel": "3.73 GiB",
+        "hf": {
+          "published": false,
+          "repoId": "Clocksmith/rdrr",
+          "revision": null,
+          "path": "models/gemma-4-e2b-it-q4k-ehf16-af16-int4ple"
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": null,
+        "format": null,
+        "dtype": null
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "verified-no-compare",
+      "claimReason": "Publish or refresh the Hugging Face manifest/weights for gemma-4-e2b-it-q4k-ehf16-af16-int4ple.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-05-07T20-15-34.710Z.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "hf-publish",
+        "compare-profile"
+      ],
+      "nextGate": "hf-publish",
+      "nextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-e2b-it-q4k-ehf16-af16-int4ple --dry-run --bootstrap"
+    },
+    {
+      "rowId": "gemma-4-e2b-it-q4k-ehf16-af32:generation:pending",
+      "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+      "label": "Gemma 4 E2B Instruct (Q4K/F32a)",
+      "family": "gemma4",
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "sourceCheckpointId": "google/gemma-4-E2B-it",
+      "workloadMode": "generation",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 7094076955,
+        "sizeLabel": "6.61 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "2070777c77047d54e6eae105f6dcb1891cf6f21a",
+          "path": "models/gemma-4-e2b-it-q4k-ehf16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/gemma-4-E2B-it-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16"
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "candidate",
+      "claimReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/gemma-4-e2b-it-q4k-ehf16-af32/2026-04-18T19-17-45.997Z.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": "gemma-4-e2b-it-q4k-rdrr"
+      },
+      "missing": [
+        "chromium-webgpu",
+        "p064-d064-t0-k1",
+        "p256-d128-t0-k1",
+        "p512-d128-t0-k1",
+        "parity",
+        "throughput",
+        "chromium-webgpu:p064-d064-t0-k1",
+        "chromium-webgpu:p256-d128-t0-k1",
+        "chromium-webgpu:p512-d128-t0-k1"
+      ],
+      "nextGate": "compare-result",
+      "nextCommand": "node tools/compare-engines.js --model-id gemma-4-e2b-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
+    },
+    {
+      "rowId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple:generation:pending",
+      "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+      "label": "Gemma 4 E2B Instruct (Q4K/F32a/INT4 PLE)",
+      "family": "gemma4",
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "sourceCheckpointId": "google/gemma-4-E2B-it",
+      "workloadMode": "generation",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 4009916310,
+        "sizeLabel": "3.73 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "dbb354acb00108965c5324ca7b6fecc198d12501",
+          "path": "models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/gemma-4-E2B-it-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16"
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "candidate",
+      "claimReason": "Local reference execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "evidence": {
+        "runtimeReport": "reports/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-04-22T18-09-10.471Z.reference.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": "gemma-4-e2b-it-int4ple-rdrr"
+      },
+      "missing": [
+        "chromium-webgpu",
+        "p064-d064-t0-k1",
+        "p256-d128-t0-k1",
+        "p512-d128-t0-k1",
+        "parity",
+        "throughput",
+        "chromium-webgpu:p064-d064-t0-k1",
+        "chromium-webgpu:p256-d128-t0-k1",
+        "chromium-webgpu:p512-d128-t0-k1"
+      ],
+      "nextGate": "compare-result",
+      "nextCommand": "node tools/compare-engines.js --model-id gemma-4-e2b-it-q4k-ehf16-af32-int4ple --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
+    },
+    {
+      "rowId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32:support",
+      "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
+      "label": "LFM2.5 1.2B Instruct (Q4K/F32a)",
+      "family": "lfm2",
+      "modes": [
+        "text"
+      ],
+      "sourceCheckpointId": "LiquidAI/LFM2.5-1.2B-Instruct",
+      "workloadMode": "text",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 853551378,
+        "sizeLabel": "0.79 GiB",
+        "hf": {
+          "published": false,
+          "repoId": null,
+          "revision": null,
+          "path": null
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "missing",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "LiquidAI/LFM2.5-1.2B-Instruct-ONNX",
+        "format": "onnx",
+        "dtype": null
+      },
+      "correctness": "none",
+      "metrics": null,
+      "claimStatus": "verification-needed",
+      "claimReason": "Refresh manifest and weight identity for lfm2-5-1-2b-instruct-q4k-ehf16-af32.",
+      "evidence": {
+        "runtimeReport": null,
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "manifest-weights",
+        "runtime-verify",
+        "hf-publish",
+        "claim-lane",
+        "compare-result",
+        "summary-svg"
+      ],
+      "nextGate": "manifest-weights",
+      "nextCommand": null
+    },
+    {
+      "rowId": "minicpm4-0-5b-f16-af32:support",
+      "modelId": "minicpm4-0-5b-f16-af32",
+      "label": "MiniCPM4 0.5B (F16/F32a)",
+      "family": "minicpm",
+      "modes": [
+        "text"
+      ],
+      "sourceCheckpointId": "openbmb/MiniCPM4-0.5B",
+      "workloadMode": "text",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute",
+        "sizeBytes": 867747840,
+        "sizeLabel": "0.81 GiB",
+        "hf": {
+          "published": false,
+          "repoId": null,
+          "revision": null,
+          "path": null
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": null,
+        "format": null,
+        "dtype": null
+      },
+      "correctness": "fail",
+      "metrics": null,
+      "claimStatus": "failed",
+      "claimReason": "Fix failed runtime verification for minicpm4-0-5b-f16-af32; keep it unpromoted until a passing receipt exists.",
+      "evidence": {
+        "runtimeReport": null,
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "runtime-verify",
+        "hf-publish",
+        "compare-profile"
+      ],
+      "nextGate": "runtime-verify",
+      "nextCommand": "node tools/run-registry-verify.js minicpm4-0-5b-f16-af32 --surface auto"
+    },
+    {
+      "rowId": "qwen-3-5-0-8b-q4k-ehaf16:generation:browser:p064-d064-t0-k1:throughput",
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "label": "Qwen 3.5 0.8B (Q4K)",
+      "family": "qwen3",
+      "modes": [
+        "text"
+      ],
+      "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
+      "workloadMode": "generation",
+      "surface": "browser",
+      "workloadId": "p064-d064-t0-k1",
+      "decodeProfile": "throughput",
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 1155348912,
+        "sizeLabel": "1.08 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "95a01447eecbf13fc5964986f507b08ded0cd40f",
+          "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
+        }
+      },
+      "platforms": {
+        "browser": "benchmarked",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/Qwen3.5-0.8B-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16"
+      },
+      "correctness": "exact",
+      "metrics": {
+        "doppler": {
+          "decodeTokensPerSec": 75.87,
+          "promptTokensPerSecToFirstToken": 184.6
+        },
+        "transformersjs": {
+          "decodeTokensPerSec": 41.57,
+          "promptTokensPerSecToFirstToken": 9.52
+        },
+        "ratios": {
+          "decodeDopplerOverTransformersjs": 1.8251,
+          "promptDopplerOverTransformersjs": 19.3815
+        },
+        "leader": {
+          "decode": "doppler",
+          "prompt": "doppler"
+        },
+        "bottleneck": "readback map wait",
+        "bottleneckClass": "submit-readback-wait"
+      },
+      "claimStatus": "summary-svg-missing",
+      "claimReason": "Local browser execution is verified and fresh local cross-engine compare receipts cover p064 and p256 with exact output match against Transformers.js q4f16. The p512 contract run is not claimable because the Transformers.js side failed, so the lane remains candidate and missing the p512 competitor receipt.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json",
+        "compareResult": "benchmarks/vendors/results/compare_20260705T160226.json",
+        "compareResultExists": true,
+        "summarySvg": null,
+        "summarySvgExists": false,
+        "localClaimLaneId": "qwen-3-5-0-8b-q4k-rdrr"
+      },
+      "missing": [
+        "summary-svg"
+      ],
+      "nextGate": "summary-svg",
+      "nextCommand": "node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
+    },
+    {
+      "rowId": "qwen-3-5-0-8b-q4k-ehaf16:generation:browser:p256-d128-t0-k1:throughput",
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "label": "Qwen 3.5 0.8B (Q4K)",
+      "family": "qwen3",
+      "modes": [
+        "text"
+      ],
+      "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
+      "workloadMode": "generation",
+      "surface": "browser",
+      "workloadId": "p256-d128-t0-k1",
+      "decodeProfile": "throughput",
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 1155348912,
+        "sizeLabel": "1.08 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "95a01447eecbf13fc5964986f507b08ded0cd40f",
+          "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
+        }
+      },
+      "platforms": {
+        "browser": "benchmarked",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/Qwen3.5-0.8B-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16"
+      },
+      "correctness": "exact",
+      "metrics": {
+        "doppler": {
+          "decodeTokensPerSec": 73.74,
+          "promptTokensPerSecToFirstToken": 432.94
+        },
+        "transformersjs": {
+          "decodeTokensPerSec": 43.17,
+          "promptTokensPerSecToFirstToken": 9.78
+        },
+        "ratios": {
+          "decodeDopplerOverTransformersjs": 1.7081,
+          "promptDopplerOverTransformersjs": 44.2484
+        },
+        "leader": {
+          "decode": "doppler",
+          "prompt": "doppler"
+        },
+        "bottleneck": "readback map wait",
+        "bottleneckClass": "submit-readback-wait"
+      },
+      "claimStatus": "summary-svg-missing",
+      "claimReason": "Local browser execution is verified and fresh local cross-engine compare receipts cover p064 and p256 with exact output match against Transformers.js q4f16. The p512 contract run is not claimable because the Transformers.js side failed, so the lane remains candidate and missing the p512 competitor receipt.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json",
+        "compareResult": "benchmarks/vendors/results/compare_20260705T161224.json",
+        "compareResultExists": true,
+        "summarySvg": null,
+        "summarySvgExists": false,
+        "localClaimLaneId": "qwen-3-5-0-8b-q4k-rdrr"
+      },
+      "missing": [
+        "summary-svg"
+      ],
+      "nextGate": "summary-svg",
+      "nextCommand": "node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
+    },
+    {
+      "rowId": "qwen-3-5-2b-q4k-ehaf16:generation:pending",
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "label": "Qwen 3.5 2B (Q4K)",
+      "family": "qwen3",
+      "modes": [
+        "text"
+      ],
+      "sourceCheckpointId": "Qwen/Qwen3.5-2B",
+      "workloadMode": "generation",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 2496068973,
+        "sizeLabel": "2.32 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "a8c45dd885a789042d3b82c95b471d66ca8d5152",
+          "path": "models/qwen-3-5-2b-q4k-ehaf16"
+        }
+      },
+      "platforms": {
+        "browser": "verified",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/Qwen3.5-2B-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16"
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "candidate",
+      "claimReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": "qwen-3-5-2b-q4k-rdrr"
+      },
+      "missing": [
+        "chromium-webgpu",
+        "p064-d064-t0-k1",
+        "p256-d128-t0-k1",
+        "p512-d128-t0-k1",
+        "parity",
+        "throughput",
+        "chromium-webgpu:p064-d064-t0-k1",
+        "chromium-webgpu:p256-d128-t0-k1",
+        "chromium-webgpu:p512-d128-t0-k1"
+      ],
+      "nextGate": "benchmark-lane-capability-only",
+      "nextCommand": null
+    },
+    {
+      "rowId": "qwen-3-6-27b-q4k-eaf16:support",
+      "modelId": "qwen-3-6-27b-q4k-eaf16",
+      "label": "Qwen 3.6 27B (Q4K/F16a)",
+      "family": "qwen3",
+      "modes": [
+        "text"
+      ],
+      "sourceCheckpointId": "Qwen/Qwen3.6-27B",
+      "workloadMode": "text",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, q4k LM head, f16 compute, row Q4K layout",
+        "sizeBytes": 16994352128,
+        "sizeLabel": "15.8 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "3dee21b3b12d65ac7fef9b24cbf759cacc953a67",
+          "path": "models/qwen-3-6-27b-q4k-eaf16"
+        }
+      },
+      "platforms": {
+        "browser": "verified",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": null,
+        "format": null,
+        "dtype": null
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "verified-no-compare",
+      "claimReason": "Add a compare profile for qwen-3-6-27b-q4k-eaf16.",
+      "evidence": {
+        "runtimeReport": "reports/program-bundles/qwen-3-6-27b-q4k-eaf16/capture.node.reference.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "compare-profile"
+      ],
+      "nextGate": "compare-profile",
+      "nextCommand": null
+    },
+    {
+      "rowId": "qwen-3-6-27b-q4k-ehaf16:support",
+      "modelId": "qwen-3-6-27b-q4k-ehaf16",
+      "label": "Qwen 3.6 27B (Q4K)",
+      "family": "qwen3",
+      "modes": [
+        "text"
+      ],
+      "sourceCheckpointId": "Qwen/Qwen3.6-27B",
+      "workloadMode": "text",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 16994352128,
+        "sizeLabel": "15.8 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "b402f6f27837857d51636da5f78c12bcd47e2a03",
+          "path": "models/qwen-3-6-27b-q4k-ehaf16"
+        }
+      },
+      "platforms": {
+        "browser": "verified",
+        "node": "missing",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": null,
+        "format": null,
+        "dtype": null
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "verified-no-compare",
+      "claimReason": "Add a compare profile for qwen-3-6-27b-q4k-eaf16.",
+      "evidence": {
+        "runtimeReport": "reports/program-bundles/qwen-3-6-27b-q4k-ehaf16/2026-04-28T01-19-10.497Z.reference.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "compare-profile"
+      ],
+      "nextGate": "compare-profile",
+      "nextCommand": null
+    },
+    {
+      "rowId": "qwen-3-embedding-0-6b-q4k-ehf16-af32:embedding:2026-07-05T15:26:59.274Z",
+      "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+      "label": "Qwen3 Embedding 0.6B (Q4K/F32a)",
+      "family": "qwen3",
+      "modes": [
+        "embedding"
+      ],
+      "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
+      "workloadMode": "embedding",
+      "surface": "auto",
+      "workloadId": "embedding",
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 1191586416,
+        "sizeLabel": "1.11 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "049000f49325dca7db2ed2c9de2c8881bd0f4603",
+          "path": "models/qwen-3-embedding-0-6b-q4k-ehf16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "verified",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/Qwen3-Embedding-0.6B-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16"
+      },
+      "correctness": "semantic-pass",
+      "metrics": {
+        "doppler": {
+          "medianEmbeddingMs": 67.6,
+          "avgEmbeddingsPerSec": 14.61,
+          "p95EmbeddingMs": 71.09,
+          "modelLoadMs": 112811.22,
+          "embeddingDim": 1024
+        },
+        "transformersjs": {
+          "medianEmbeddingMs": 155.68,
+          "avgEmbeddingsPerSec": 6.41,
+          "p95EmbeddingMs": 166.34,
+          "modelLoadMs": 41536.24,
+          "embeddingDim": 1024
+        },
+        "ratios": {
+          "medianEmbeddingMsDopplerOverTransformersjs": 0.4342,
+          "avgEmbeddingsPerSecDopplerOverTransformersjs": 2.2803,
+          "modelLoadMsDopplerOverTransformersjs": 2.716
+        },
+        "leader": {
+          "embeddingLatency": "doppler",
+          "embeddingThroughput": "doppler",
+          "modelLoad": "transformersjs"
+        }
+      },
+      "claimStatus": "local-comparable",
+      "claimReason": "Published Doppler artifact compared against the browser WebGPU Transformers.js ONNX embedding baseline; promote the compare receipt before claiming release-level competitor performance.",
+      "evidence": {
+        "embeddingCompareResult": "benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260705T152659.json",
+        "embeddingCompareResultExists": true,
+        "timestamp": "2026-07-05T15:26:59.274Z"
+      },
+      "missing": [
+        "release-claim-promotion"
+      ],
+      "nextGate": "release-claim-promotion",
+      "nextCommand": "node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --warmup 1 --runs 3 --doppler-source local --doppler-surface auto --cache-mode warm --load-mode http --save --json"
+    },
+    {
+      "rowId": "qwen-3-reranker-0-6b-f16-af32:support",
+      "modelId": "qwen-3-reranker-0-6b-f16-af32",
+      "label": "Qwen3 Reranker 0.6B (F16/F32a)",
+      "family": "qwen3",
+      "modes": [
+        "rerank"
+      ],
+      "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
+      "workloadMode": "rerank",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute",
+        "sizeBytes": 1191553024,
+        "sizeLabel": "1.11 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "cc1fafff8cda609372b608cd92e487f6a2c32bc8",
+          "path": "models/qwen-3-reranker-0-6b-f16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": null,
+        "format": null,
+        "dtype": null
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "verified-no-compare",
+      "claimReason": "Add a compare profile for qwen-3-reranker-0-6b-q4k-ehf16-af32.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/qwen-3-reranker-0-6b-f16-af32/2026-07-04T02-00-00.000Z.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "compare-profile"
+      ],
+      "nextGate": "compare-profile",
+      "nextCommand": null
+    },
+    {
+      "rowId": "qwen-3-reranker-0-6b-q4k-ehf16-af32:support",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "label": "Qwen3 Reranker 0.6B (Q4K/F32a)",
+      "family": "qwen3",
+      "modes": [
+        "rerank"
+      ],
+      "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
+      "workloadMode": "rerank",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 938321920,
+        "sizeLabel": "0.87 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "f86fe245b9bbc275cd69af46b1d45d47ea685a55",
+          "path": "models/qwen-3-reranker-0-6b-q4k-ehf16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "verified",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": null,
+        "format": null,
+        "dtype": null
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "verified-no-compare",
+      "claimReason": "Add a compare profile for qwen-3-reranker-0-6b-q4k-ehf16-af32.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-28-17.169Z.node.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "compare-profile"
+      ],
+      "nextGate": "compare-profile",
+      "nextCommand": null
+    },
+    {
+      "rowId": "translategemma-4b-it-q4k-ehf16-af32:generation:pending",
+      "modelId": "translategemma-4b-it-q4k-ehf16-af32",
+      "label": "TranslateGemma 4B Instruct (Q4K)",
+      "family": "translategemma",
+      "modes": [
+        "translate"
+      ],
+      "sourceCheckpointId": "google/translategemma-4b-it",
+      "workloadMode": "generation",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 3167500395,
+        "sizeLabel": "2.95 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "6fc46049882e961a57d1690ba1ffde21677d001a",
+          "path": "models/translategemma-4b-it-q4k-ehf16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "verified",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/translategemma-text-4b-it-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16"
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "candidate",
+      "claimReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/translategemma-4b-it-q4k-ehf16-af32/2026-03-22T14-48-13.935Z.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": "translategemma-4b-it-q4k-rdrr"
+      },
+      "missing": [
+        "chromium-webgpu",
+        "p064-d064-t0-k1",
+        "p256-d128-t0-k1",
+        "p512-d128-t0-k1",
+        "parity",
+        "throughput",
+        "chromium-webgpu:p064-d064-t0-k1",
+        "chromium-webgpu:p256-d128-t0-k1",
+        "chromium-webgpu:p512-d128-t0-k1"
+      ],
+      "nextGate": "compare-result",
+      "nextCommand": "node tools/compare-engines.js --model-id translategemma-4b-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
+    }
+  ]
+}

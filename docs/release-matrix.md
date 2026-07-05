@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-07-04T15:20:52.603Z
-Release: channel=main-snapshot, version=0.4.6, commit=b73f217927e1645818842c6b4a42e7d3fc97b5a3, dirty=yes
+Generated: 2026-07-05T16:48:44.769Z
+Release: channel=main-snapshot, version=0.4.6, commit=064787de3c5855f78df5f3adf32efd7f36169e61, dirty=yes
 
 ## Engine Matrix
 
@@ -46,6 +46,7 @@ Release: channel=main-snapshot, version=0.4.6, commit=b73f217927e1645818842c6b4a
 | `qwen-3-6-27b-q4k-ehaf16` | yes | run, translate |  | auto |  |  |  |
 | `qwen-3-embedding-0-6b-q4k-ehf16-af32` | yes | embedding |  | auto |  |  |  |
 | `qwen-3-reranker-0-6b-f16-af32` | yes | run, translate |  | auto |  |  |  |
+| `qwen-3-reranker-0-6b-q4k-ehf16-af32` | yes | run, translate |  | auto |  |  |  |
 | `translategemma-4b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/translategemma-text-4b-it-ONNX` | auto | local | performance_comparable |  |
 
 ## Workloads
@@ -79,7 +80,8 @@ Release: channel=main-snapshot, version=0.4.6, commit=b73f217927e1645818842c6b4a
 | `gemma-3-270m-it-q4k-rdrr (Gemma 3 270M Instruct (Q4K/F32a))` | candidate | status candidate | node-webgpu | node | p512-d128-t0-k1 | 103 tok/s / 97.15 tok/s | 2453.3 tok/s / 1021.5 tok/s | decode Doppler; prompt Doppler | command recording (command-recording) | [compare](../benchmarks/vendors/results/compare_20260627T200323.json) / [svg](../benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-node-p512-d128-t0-k1-strix-halo-20260627T200323.svg) |
 | `gemma-4-e2b-it-int4ple-rdrr (Gemma 4 E2B Instruct (Q4K/F32a/INT4 PLE))` | candidate | status candidate; missing backends chromium-webgpu; missing workloads p064-d064-t0-k1, p256-d128-t0-k1, p512-d128-t0-k1; missing decode profiles parity, throughput; missing backend/workload chromium-webgpu:p064-d064-t0-k1, chromium-webgpu:p256-d128-t0-k1, chromium-webgpu:p512-d128-t0-k1 | not captured | not captured | not captured |  |  |  |  | missing |
 | `gemma-4-e2b-it-q4k-rdrr (Gemma 4 E2B Instruct (Q4K/F32a))` | candidate | status candidate; missing backends chromium-webgpu; missing workloads p064-d064-t0-k1, p256-d128-t0-k1, p512-d128-t0-k1; missing decode profiles parity, throughput; missing backend/workload chromium-webgpu:p064-d064-t0-k1, chromium-webgpu:p256-d128-t0-k1, chromium-webgpu:p512-d128-t0-k1 | not captured | not captured | not captured |  |  |  |  | missing |
-| `qwen-3-5-0-8b-q4k-rdrr (Qwen 3.5 0.8B (Q4K))` | candidate | status candidate; missing backends chromium-webgpu; missing workloads p064-d064-t0-k1, p256-d128-t0-k1, p512-d128-t0-k1; missing decode profiles parity, throughput; missing backend/workload chromium-webgpu:p064-d064-t0-k1, chromium-webgpu:p256-d128-t0-k1, chromium-webgpu:p512-d128-t0-k1 | not captured | not captured | not captured |  |  |  |  | missing |
+| `qwen-3-5-0-8b-q4k-rdrr (Qwen 3.5 0.8B (Q4K))` | candidate | status candidate; missing workloads p512-d128-t0-k1; missing backend/workload chromium-webgpu:p512-d128-t0-k1 | chromium-webgpu | browser | p064-d064-t0-k1 | 75.87 tok/s / 41.57 tok/s | 184.6 tok/s / 9.525 tok/s | decode Doppler; prompt Doppler | readback map wait (submit-readback-wait) | [compare](../benchmarks/vendors/results/compare_20260705T160226.json) |
+| `qwen-3-5-0-8b-q4k-rdrr (Qwen 3.5 0.8B (Q4K))` | candidate | status candidate; missing workloads p512-d128-t0-k1; missing backend/workload chromium-webgpu:p512-d128-t0-k1 | chromium-webgpu | browser | p256-d128-t0-k1 | 73.74 tok/s / 43.17 tok/s | 432.9 tok/s / 9.784 tok/s | decode Doppler; prompt Doppler | readback map wait (submit-readback-wait) | [compare](../benchmarks/vendors/results/compare_20260705T161224.json) |
 | `qwen-3-5-2b-q4k-rdrr (Qwen 3.5 2B (Q4K))` | candidate | status candidate; missing backends chromium-webgpu; missing workloads p064-d064-t0-k1, p256-d128-t0-k1, p512-d128-t0-k1; missing decode profiles parity, throughput; missing backend/workload chromium-webgpu:p064-d064-t0-k1, chromium-webgpu:p256-d128-t0-k1, chromium-webgpu:p512-d128-t0-k1 | not captured | not captured | not captured |  |  |  |  | missing |
 | `translategemma-4b-it-q4k-rdrr (TranslateGemma 4B Instruct (Q4K))` | candidate | status candidate; missing backends chromium-webgpu; missing workloads p064-d064-t0-k1, p256-d128-t0-k1, p512-d128-t0-k1; missing decode profiles parity, throughput; missing backend/workload chromium-webgpu:p064-d064-t0-k1, chromium-webgpu:p256-d128-t0-k1, chromium-webgpu:p512-d128-t0-k1 | not captured | not captured | not captured |  |  |  |  | missing |
 
