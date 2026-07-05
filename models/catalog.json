@@ -1,7 +1,7 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-07-04",
+  "updatedAt": "2026-07-05",
   "models": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
@@ -96,7 +96,11 @@
       "artifact": {
         "format": "rdrr"
       },
-      "hf": null,
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": null,
+        "path": "models/gemma-3-270m-it-f16-af32"
+      },
       "baseUrl": null,
       "quickstart": false,
       "sizeBytes": 540000000,
@@ -416,6 +420,11 @@
       "artifact": {
         "format": "rdrr"
       },
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": null,
+        "path": "models/gemma-4-e2b-it-q4k-ehf16-af16-int4ple"
+      },
       "baseUrl": null,
       "quickstart": false,
       "demoVisible": false,
@@ -471,7 +480,11 @@
       "artifact": {
         "format": "rdrr"
       },
-      "hf": null,
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": null,
+        "path": "models/gemma-4-12b-it-text-q4k-ehf16-af32"
+      },
       "baseUrl": null,
       "quickstart": false,
       "demoVisible": false,
@@ -527,7 +540,11 @@
       "artifact": {
         "format": "rdrr"
       },
-      "hf": null,
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": null,
+        "path": "models/gemma-4-12b-it-text-q4k-ehf16-af16"
+      },
       "baseUrl": null,
       "quickstart": false,
       "demoVisible": false,
@@ -584,7 +601,11 @@
       "artifact": {
         "format": "rdrr"
       },
-      "hf": null,
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": null,
+        "path": "models/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"
+      },
       "baseUrl": null,
       "quickstart": false,
       "demoVisible": false,
@@ -686,7 +707,11 @@
       "artifact": {
         "format": "rdrr"
       },
-      "hf": null,
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": null,
+        "path": "models/gemma-4-31b-it-text-q4k-ehf16-af32"
+      },
       "baseUrl": null,
       "quickstart": false,
       "demoVisible": true,
@@ -747,7 +772,11 @@
       "artifact": {
         "format": "rdrr"
       },
-      "hf": null,
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "revision": null,
+        "path": "models/gemma-4-31b-it-text-q4k-ehf16-af16"
+      },
       "baseUrl": null,
       "quickstart": false,
       "demoVisible": false,
@@ -872,7 +901,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": null,
+        "revision": "049000f49325dca7db2ed2c9de2c8881bd0f4603",
         "path": "models/qwen-3-embedding-0-6b-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -885,7 +914,7 @@
         "availability": {
           "curated": false,
           "local": true,
-          "hf": false
+          "hf": true
         },
         "status": {
           "runtime": "active",
@@ -896,15 +925,16 @@
         "tested": {
           "suite": "embedding",
           "surface": [
+            "browser",
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-07-04",
+          "lastVerifiedAt": "2026-07-05",
           "source": "runtime-verify",
           "contracts": {
             "executionContractOk": true
           },
-          "notes": "Release evidence: reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-04T00-36-00.000Z.json. Semantic retrieval top-1 accuracy 0.90, semantic pair accuracy 0.7143, finite ratio 1.0, 1024-dimensional unit-norm embeddings. Fresh speed evidence: reports/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-04T15-18-33.371Z.json (medianEmbeddingMs 68.31) and local comparable benchmark benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260704T160000.json (Doppler medianEmbeddingMs 68.31; Transformers.js q4f16 medianEmbeddingMs 150.56; correctnessOk true; releaseClaimable false until HF promotion)."
+          "notes": "Fresh hosted registry verify receipts pass on node (reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-24-38.048Z.node.json) and browser (reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-26-35.664Z.browser.json). Semantic retrieval top-1 accuracy 0.90, semantic pair accuracy 0.7143, finite ratio 1.0, 1024-dimensional unit-norm embeddings. Fresh speed evidence: node embeddingMs 144.14, browser embeddingMs 184.70, and local comparable benchmark benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260705T152659.json (Doppler medianEmbeddingMs 67.60; Transformers.js q4f16 medianEmbeddingMs 155.68; correctnessOk true)."
         }
       },
       "verify": {
@@ -946,7 +976,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": null,
+        "revision": "f86fe245b9bbc275cd69af46b1d45d47ea685a55",
         "path": "models/qwen-3-reranker-0-6b-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -959,7 +989,7 @@
         "availability": {
           "curated": false,
           "local": true,
-          "hf": false
+          "hf": true
         },
         "status": {
           "runtime": "active",
@@ -970,15 +1000,16 @@
         "tested": {
           "suite": "rerank",
           "surface": [
+            "browser",
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-07-04",
+          "lastVerifiedAt": "2026-07-05",
           "source": "runtime-verify",
           "contracts": {
             "executionContractOk": true
           },
-          "notes": "Release evidence: reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-04T18-42-51.669Z.json. Semantic pair accuracy 1.0 (5/5), WebGPU query topDocumentIndex 0, rerankMs 1725.75 for the three-document smoke request. Speed evidence: reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-04T18-43-20.530Z.bench.json (medianRerankMs 1546.27 for the same three-document request)."
+          "notes": "Fresh hosted registry verify receipts pass on node (reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-28-17.169Z.node.json) and browser (reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-30-58.312Z.browser.json). Semantic pair accuracy 1.0 (5/5) on both receipts, WebGPU query topDocumentIndex 0, rerankMs 1665.34 on node and 1797.80 in browser for the three-document smoke request. Speed evidence: reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-04T18-43-20.530Z.bench.json (medianRerankMs 1546.27 for the same request). No external reranker competitor compare is claimed yet."
         }
       },
       "verify": {
@@ -1023,7 +1054,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": null,
+        "revision": "cc1fafff8cda609372b608cd92e487f6a2c32bc8",
         "path": "models/qwen-3-reranker-0-6b-f16-af32"
       },
       "baseUrl": null,
@@ -1036,7 +1067,7 @@
         "availability": {
           "curated": false,
           "local": true,
-          "hf": false
+          "hf": true
         },
         "status": {
           "runtime": "active",

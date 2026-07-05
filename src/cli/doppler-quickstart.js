@@ -21,7 +21,7 @@ function usage() {
     'Examples:',
     '  npx doppler-gpu',
     '  npx doppler-gpu "Summarize WebGPU in one sentence"',
-    '  npx doppler-gpu --model gemma3-270m --prompt "Write a haiku about GPUs"',
+    '  npx doppler-gpu --model qwen3-0.8b --prompt "Write a haiku about GPUs"',
     '  npx doppler-gpu --list-models',
     '',
     'Notes:',

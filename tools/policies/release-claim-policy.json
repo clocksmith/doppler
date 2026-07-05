@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-07-04",
+  "updatedAt": "2026-07-05",
   "claims": [
     {
       "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
@@ -259,18 +259,19 @@
       "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
       "mode": "embedding",
       "surface": [
+        "browser",
         "node"
       ],
       "verificationSource": "runtime-verify",
-      "lastVerifiedAt": "2026-07-04",
+      "lastVerifiedAt": "2026-07-05",
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "runtime-verify",
-        "reportPath": "reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-04T00-36-00.000Z.json"
+        "reportPath": "reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-24-38.048Z.node.json"
       },
       "performanceEvidence": {
         "kind": "embedding-runtime-report",
-        "reportPath": "reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-04T00-36-00.000Z.json",
+        "reportPath": "reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-24-38.048Z.node.json",
         "metricPath": "metrics.embeddingMs",
         "minValue": 0,
         "unit": "ms"
@@ -280,14 +281,15 @@
       "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
       "mode": "rerank",
       "surface": [
+        "browser",
         "node"
       ],
       "verificationSource": "runtime-verify",
-      "lastVerifiedAt": "2026-07-04",
+      "lastVerifiedAt": "2026-07-05",
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "runtime-verify",
-        "reportPath": "reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-04T18-42-51.669Z.json"
+        "reportPath": "reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-28-17.169Z.node.json"
       },
       "performanceEvidence": {
         "kind": "rerank-runtime-report",

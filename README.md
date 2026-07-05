@@ -73,7 +73,7 @@ first run; set `DOPPLER_QUICKSTART_CACHE_DIR` to move the cache or
 
 ```bash
 npx doppler-gpu "Summarize WebGPU in one sentence"
-npx doppler-gpu --model gemma3-270m --prompt "Write a haiku about GPUs"
+npx doppler-gpu --model qwen3-0.8b --prompt "Write a haiku about GPUs"
 npx doppler-gpu --list-models
 ```
 
@@ -90,7 +90,7 @@ than assumed from export shape alone.
 import { doppler } from 'doppler-gpu';
 
 // Stream tokens
-const model = await doppler.load('gemma3-270m');
+const model = await doppler.load('qwen3-0.8b');
 for await (const token of model.generate('Describe WebGPU briefly')) {
   process.stdout.write(token);
 }
@@ -104,7 +104,7 @@ const text = await model.generateText('Explain WebGPU in one sentence');
 For existing apps, SDKs, and eval stacks that speak the OpenAI protocol:
 
 ```bash
-npx doppler-serve --model gemma3-270m --port 8080
+npx doppler-serve --model qwen3-0.8b --port 8080
 ```
 
 Then point any OpenAI client at `http://localhost:8080/v1`:
@@ -113,7 +113,7 @@ Then point any OpenAI client at `http://localhost:8080/v1`:
 import OpenAI from 'openai';
 const client = new OpenAI({ baseURL: 'http://localhost:8080/v1', apiKey: 'unused' });
 const response = await client.chat.completions.create({
-  model: 'gemma3-270m',
+  model: 'qwen3-0.8b',
   messages: [{ role: 'user', content: 'Hello' }],
 });
 ```

@@ -14,6 +14,7 @@ Claim methodology and fairness policy are canonical in [docs/benchmark-methodolo
 - Local inference claim matrix: [local-inference-claim-matrix.json](./local-inference-claim-matrix.json)
 - Support rollout policy: [support-rollout-policy.json](./support-rollout-policy.json)
 - Smallest-first support inventory: [model-support-inventory.json](./model-support-inventory.json) and [docs/model-support-inventory.md](../../docs/model-support-inventory.md)
+- Competition scoreboard: [model-competition-scoreboard.json](./model-competition-scoreboard.json) and [docs/model-competition-scoreboard.md](../../docs/model-competition-scoreboard.md)
 - Harness definitions: [harnesses/](./harnesses)
 - Latest generated matrix: [release-matrix.json](./release-matrix.json)
 - Published matrix doc: [docs/release-matrix.md](../../docs/release-matrix.md)
@@ -100,6 +101,8 @@ Use these before turning a compare result into README copy, a chart, or a releas
   It is separate from [benchmark-policy.json](./benchmark-policy.json) so support queue edits do not invalidate saved compare artifact policy hashes.
 - [model-support-inventory.json](./model-support-inventory.json): generated smallest-first support queue from catalog lifecycle, conversion configs, HF publication fields, compare profiles, local claim lanes, release matrix rows, and release-claim receipts.
   The rendered doc is [docs/model-support-inventory.md](../../docs/model-support-inventory.md).
+- [model-competition-scoreboard.json](./model-competition-scoreboard.json): generated model/platform/competitor evidence ledger from the support inventory, release matrix, embedding compare config, and saved embedding compare receipts.
+  The rendered doc is [docs/model-competition-scoreboard.md](../../docs/model-competition-scoreboard.md).
 - [harnesses/](./harnesses): one harness definition per vendor.
 - [schema/](./schema): schemas for registry, workloads, harness, capabilities, metric contract, and normalized result records.
 - [schema/compare-engines-config.schema.json](./schema/compare-engines-config.schema.json): schema for `compare-engines.config.json`.

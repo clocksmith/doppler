@@ -1,19 +1,18 @@
 /**
- * Minimal chat example for @simulatte/doppler.
+ * Minimal chat example for doppler-gpu.
  *
- * Run in browser with an importmap pointing "@simulatte/doppler" to your
+ * Run in browser with an importmap pointing "doppler-gpu" to your
  * local or CDN build, or bundle with any ESM-aware toolchain.
  */
 
-import { doppler } from '@simulatte/doppler';
+import { doppler } from 'doppler-gpu';
 
-const MODEL_URL =
-  'https://huggingface.co/Clocksmith/rdrr/resolve/HEAD/models/gemma-3-270m-it-wq4k-ef16';
+const MODEL_ID = 'qwen3-0.8b';
 
 async function main() {
-  const model = await doppler.load({ url: MODEL_URL }, {
+  const model = await doppler.load(MODEL_ID, {
     onProgress(progress) {
-    console.log(`[${progress.stage}] ${progress.message}`);
+      console.log(`[${progress.stage}] ${progress.message}`);
     },
   });
 

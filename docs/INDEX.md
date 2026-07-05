@@ -22,6 +22,7 @@ Primary documentation index.
 - [Conversion Runtime Contract](conversion-runtime-contract.md) - conversion-static vs runtime-overridable ownership.
 - [Model Promotion Playbook](model-promotion-playbook.md) - canonical sync workflow for repo metadata, external-volume RDRR artifacts, and Hugging Face hosting.
 - [Model Support Matrix](model-support-matrix.md) - generated model status table from catalog, conversion coverage, and quickstart metadata.
+- [Model Competition Scoreboard](model-competition-scoreboard.md) - generated model/platform/Transformers.js evidence ledger from catalog support and benchmark receipts.
 - [Subsystem Support Matrix](subsystem-support-matrix.md) - generated support-tier contract for public, experimental, and internal-only subsystem surfaces.
 - [Registry Workflow](registry-workflow.md) - hosted catalog validation and Hugging Face publication workflow.
 - [Operations](operations.md) - troubleshooting and debug workflows.

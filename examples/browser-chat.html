@@ -18,7 +18,7 @@
     button:disabled { opacity: 0.5; cursor: not-allowed; }
   </style>
   <script type="importmap">
-    { "imports": { "@simulatte/doppler": "https://d4da.com/src/index-browser.js" } }
+    { "imports": { "doppler-gpu": "https://d4da.com/src/index-browser.js" } }
   </script>
 </head>
 <body>
@@ -31,9 +31,9 @@
   </form>
 
   <script type="module">
-    import { doppler } from '@simulatte/doppler';
+    import { doppler } from 'doppler-gpu';
 
-    const MODEL_URL = 'https://huggingface.co/Clocksmith/rdrr/resolve/HEAD/models/gemma-3-270m-it-wq4k-ef16';
+    const MODEL_ID = 'qwen3-0.8b';
 
     const status = document.getElementById('status');
     const messages = document.getElementById('messages');
@@ -50,7 +50,7 @@
     }
 
     status.textContent = 'Loading model (first run downloads to OPFS)...';
-    const model = await doppler.load({ url: MODEL_URL }, {
+    const model = await doppler.load(MODEL_ID, {
       onProgress(progress) {
         if (progress.percent != null) {
           status.textContent = `${progress.stage}: ${Math.round(progress.percent)}%`;

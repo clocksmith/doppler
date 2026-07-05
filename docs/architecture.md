@@ -993,7 +993,7 @@ Primary application-facing API for model loading and generation via the root fac
 ```javascript
 import { doppler } from 'doppler-gpu';
 
-const model = await doppler.load('gemma3-270m');
+const model = await doppler.load('qwen3-0.8b');
 
 for await (const token of model.generate('Hello')) {
   console.log(token);

@@ -2,7 +2,7 @@
 
 Generated from model catalog, conversion configs, support rollout policy, compare profiles, release matrix, claim lanes, and release-claim receipts.
 
-Updated at: 2026-07-04
+Updated at: 2026-07-05
 
 Policy: smallest artifact size first. Size tiers use catalog artifact bytes, not parameter class. A preferred architecture is selected only when runtime verification, compare JSON, and summary SVG evidence exist for that lane.
 
@@ -21,7 +21,7 @@ Policy: smallest artifact size first. Size tiers use catalog artifact bytes, not
 - Catalog models: 23
 - Source checkpoints: 16
 - Conversion-only configs: 7
-- HF-published catalog models: 10
+- HF-published catalog models: 13
 - Runtime-verified catalog models: 20
 - Benchmark-selected source architectures: 1
 - Sources pending benchmark-selected architecture: 15
@@ -34,10 +34,10 @@ Policy: smallest artifact size first. Size tiers use catalog artifact bytes, not
 | small | google/embeddinggemma-300m | 0.45 GiB | benchmark-comparison-needed | google-embeddinggemma-300m-q4k-ehf16-af32 candidate; benchmark comparison pending | reports/release-claims/google-embeddinggemma-300m-q4k-ehf16-af32/2026-06-24T01-42-03.814Z.json | Run compare/bench receipts for google-embeddinggemma-300m-q4k-ehf16-af32. |
 | small | LiquidAI/LFM2.5-1.2B-Instruct | 0.79 GiB | runtime-verification-needed | pending verification | none | Refresh manifest and weight identity for lfm2-5-1-2b-instruct-q4k-ehf16-af32. |
 | small | openbmb/MiniCPM4-0.5B | 0.81 GiB | verification-failed | failed verification | none | Fix failed runtime verification for minicpm4-0-5b-f16-af32; keep it unpromoted until a passing receipt exists. |
-| small | Qwen/Qwen3-Reranker-0.6B | 0.87 GiB | benchmark-comparison-needed | qwen-3-reranker-0-6b-q4k-ehf16-af32 candidate; benchmark comparison pending | reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-04T18-42-51.669Z.json | Publish or refresh the Hugging Face manifest/weights for qwen-3-reranker-0-6b-q4k-ehf16-af32. |
+| small | Qwen/Qwen3-Reranker-0.6B | 0.87 GiB | benchmark-comparison-needed | qwen-3-reranker-0-6b-q4k-ehf16-af32 candidate; benchmark comparison pending | reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-28-17.169Z.node.json | Add a compare profile for qwen-3-reranker-0-6b-q4k-ehf16-af32. |
 | small | google/gemma-3-1b-it | 0.97 GiB | benchmark-comparison-needed | gemma-3-1b-it-q4k-ehf16-af32 candidate; benchmark comparison pending | reports/release-claims/gemma-3-1b-it-q4k-ehf16-af32/2026-06-24T01-23-10.494Z.json | Run compare/bench receipts for gemma-3-1b-it-q4k-ehf16-af32. |
-| small | Qwen/Qwen3.5-0.8B | 1.08 GiB | benchmark-comparison-needed | qwen-3-5-0-8b-q4k-ehaf16 candidate; benchmark comparison pending | reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json | Run compare/bench receipts for qwen-3-5-0-8b-q4k-ehaf16. |
-| small | Qwen/Qwen3-Embedding-0.6B | 1.11 GiB | benchmark-comparison-needed | qwen-3-embedding-0-6b-q4k-ehf16-af32 candidate; benchmark comparison pending | reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-04T00-36-00.000Z.json | Publish or refresh the Hugging Face manifest/weights for qwen-3-embedding-0-6b-q4k-ehf16-af32. |
+| small | Qwen/Qwen3.5-0.8B | 1.08 GiB | benchmark-receipts-incomplete | qwen-3-5-0-8b-q4k-ehaf16 candidate; benchmark comparison pending | reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json | Run compare/bench receipts for qwen-3-5-0-8b-q4k-ehaf16. |
+| small | Qwen/Qwen3-Embedding-0.6B | 1.11 GiB | benchmark-comparison-needed | qwen-3-embedding-0-6b-q4k-ehf16-af32 candidate; benchmark comparison pending | reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-24-38.048Z.node.json | Run compare/bench receipts for qwen-3-embedding-0-6b-q4k-ehf16-af32. |
 | medium | Qwen/Qwen3.5-2B | 2.32 GiB | benchmark-comparison-needed | qwen-3-5-2b-q4k-ehaf16 candidate; benchmark comparison pending | reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json | Decide whether qwen-3-5-2b-q4k-ehaf16 needs a claimable generation compare lane or stays capability-only. |
 | medium | google/translategemma-4b-it | 2.95 GiB | benchmark-comparison-needed | translategemma-4b-it-q4k-ehf16-af32 candidate; benchmark comparison pending | reports/release-claims/translategemma-4b-it-q4k-ehf16-af32/2026-03-22T14-48-13.935Z.json | Run compare/bench receipts for translategemma-4b-it-q4k-ehf16-af32. |
 | medium | google/gemma-4-E2B-it | 3.73 GiB | benchmark-comparison-needed | gemma-4-e2b-it-q4k-ehf16-af16-int4ple candidate; benchmark comparison pending | reports/release-claims/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-05-07T20-15-34.710Z.json | Publish or refresh the Hugging Face manifest/weights for gemma-4-e2b-it-q4k-ehf16-af16-int4ple. |
@@ -55,10 +55,9 @@ These are policy-generated command recipes, not evidence. A command becomes supp
 | --- | --- | --- | --- |
 | small | google/embeddinggemma-300m | compare-result | `node tools/compare-embeddings.js --model-id google-embeddinggemma-300m-q4k-ehf16-af32 --warmup 1 --runs 3 --doppler-source quickstart-registry --doppler-surface auto --cache-mode warm --load-mode http --save --json` |
 | small | openbmb/MiniCPM4-0.5B | runtime-verify | `node tools/run-registry-verify.js minicpm4-0-5b-f16-af32 --surface auto` |
-| small | Qwen/Qwen3-Reranker-0.6B | hf-publish | `node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-q4k-ehf16-af32 --dry-run --bootstrap` |
 | small | google/gemma-3-1b-it | compare-result | `node tools/compare-engines.js --model-id gemma-3-1b-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
-| small | Qwen/Qwen3.5-0.8B | compare-result | `node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
-| small | Qwen/Qwen3-Embedding-0.6B | hf-publish | `node tools/publish-hf-registry-model.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --dry-run --bootstrap` |
+| small | Qwen/Qwen3.5-0.8B | summary-svg | `node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
+| small | Qwen/Qwen3-Embedding-0.6B | compare-result | `node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --warmup 1 --runs 3 --doppler-source local --doppler-surface auto --cache-mode warm --load-mode http --save --json` |
 | medium | google/translategemma-4b-it | compare-result | `node tools/compare-engines.js --model-id translategemma-4b-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
 | medium | google/gemma-4-E2B-it | hf-publish | `node tools/publish-hf-registry-model.js --model-id gemma-4-e2b-it-q4k-ehf16-af16-int4ple --dry-run --bootstrap` |
 | medium | google/gemma-4-12B-it | hf-publish | `node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-q4k-ehf16-af16 --dry-run --bootstrap` |
@@ -75,11 +74,11 @@ These are policy-generated command recipes, not evidence. A command becomes supp
 | google-embeddinggemma-300m-q4k-ehf16-af32 | embeddinggemma | 0.45 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | 2026-06-24 (node) | Clocksmith/rdrr@95f0b29ec73dea70394c6bcfa8407bc6796df6c9 | performance_comparable / onnx-community/embeddinggemma-300m-ONNX | missing | compare-result |
 | lfm2-5-1-2b-instruct-q4k-ehf16-af32 | lfm2 | 0.79 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | missing | missing | performance_comparable / LiquidAI/LFM2.5-1.2B-Instruct-ONNX | missing | manifest-weights |
 | minicpm4-0-5b-f16-af32 | minicpm | 0.81 GiB | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute | 2026-07-04 failed | missing | missing | missing | runtime-verify |
-| qwen-3-reranker-0-6b-q4k-ehf16-af32 | qwen3 | 0.87 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | 2026-07-04 (node) | missing | missing | missing | hf-publish |
-| qwen-3-reranker-0-6b-f16-af32 | qwen3 | 1.11 GiB | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute | 2026-07-04 (node) | missing | missing | missing | hf-publish |
+| qwen-3-reranker-0-6b-q4k-ehf16-af32 | qwen3 | 0.87 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | 2026-07-05 (browser+node) | Clocksmith/rdrr@f86fe245b9bbc275cd69af46b1d45d47ea685a55 | missing | missing | compare-profile |
+| qwen-3-reranker-0-6b-f16-af32 | qwen3 | 1.11 GiB | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute | 2026-07-04 (node) | Clocksmith/rdrr@cc1fafff8cda609372b608cd92e487f6a2c32bc8 | missing | missing | compare-profile |
 | gemma-3-1b-it-q4k-ehf16-af32 | gemma3 | 0.97 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | 2026-06-24 (node) | Clocksmith/rdrr@7c3d30e300bcb02cbd68fb0db3eee64fbf738f99 | performance_comparable / onnx-community/gemma-3-1b-it-ONNX-GQA | missing | compare-result |
-| qwen-3-5-0-8b-q4k-ehaf16 | qwen3 | 1.08 GiB | RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout | 2026-06-15 (browser+node) | Clocksmith/rdrr@95a01447eecbf13fc5964986f507b08ded0cd40f | performance_comparable / onnx-community/Qwen3.5-0.8B-ONNX | missing | compare-result |
-| qwen-3-embedding-0-6b-q4k-ehf16-af32 | qwen3 | 1.11 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | 2026-07-04 (node) | missing | performance_comparable / onnx-community/Qwen3-Embedding-0.6B-ONNX | missing | hf-publish |
+| qwen-3-5-0-8b-q4k-ehaf16 | qwen3 | 1.08 GiB | RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout | 2026-06-15 (browser+node) | Clocksmith/rdrr@95a01447eecbf13fc5964986f507b08ded0cd40f | performance_comparable / onnx-community/Qwen3.5-0.8B-ONNX | missing | summary-svg |
+| qwen-3-embedding-0-6b-q4k-ehf16-af32 | qwen3 | 1.11 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | 2026-07-05 (browser+node) | Clocksmith/rdrr@049000f49325dca7db2ed2c9de2c8881bd0f4603 | performance_comparable / onnx-community/Qwen3-Embedding-0.6B-ONNX | missing | compare-result |
 
 ## Medium Models
 

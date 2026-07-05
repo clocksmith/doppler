@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-07-04",
+  "updated": "2026-07-05",
   "sources": [
     "models/catalog.json",
     "src/config/conversion/**",
@@ -107,7 +107,7 @@
     "catalogModelCount": 23,
     "sourceCheckpointCount": 16,
     "conversionOnlyConfigCount": 7,
-    "hfPublishedModelCount": 10,
+    "hfPublishedModelCount": 13,
     "verifiedModelCount": 20,
     "benchmarkSelectedSourceCount": 1,
     "benchmarkPendingSourceCount": 15,
@@ -282,9 +282,9 @@
           },
           "hf": {
             "published": false,
-            "repoId": null,
+            "repoId": "Clocksmith/rdrr",
             "revision": null,
-            "path": null
+            "path": "models/gemma-3-270m-it-f16-af32"
           },
           "quickstart": false,
           "compare": {
@@ -703,7 +703,7 @@
         "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
         "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
         "evidence": {
-          "runtimeReport": "reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-04T18-42-51.669Z.json",
+          "runtimeReport": "reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-28-17.169Z.node.json",
           "compareResult": null,
           "summarySvg": null
         }
@@ -739,15 +739,16 @@
             "conversion": "ready",
             "tested": "verified",
             "result": "pass",
-            "lastVerifiedAt": "2026-07-04",
+            "lastVerifiedAt": "2026-07-05",
             "surfaces": [
+              "browser",
               "node"
             ]
           },
           "hf": {
-            "published": false,
+            "published": true,
             "repoId": "Clocksmith/rdrr",
-            "revision": null,
+            "revision": "f86fe245b9bbc275cd69af46b1d45d47ea685a55",
             "path": "models/qwen-3-reranker-0-6b-q4k-ehf16-af32"
           },
           "quickstart": false,
@@ -757,7 +758,7 @@
             "benchmarkEvidenceOk": false
           },
           "evidence": {
-            "runtimeReport": "reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-04T18-42-51.669Z.json",
+            "runtimeReport": "reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-28-17.169Z.node.json",
             "runtimeReportExists": true,
             "compareResult": null,
             "compareResultExists": false,
@@ -767,15 +768,14 @@
           },
           "actions": {
             "verifyCommand": "node tools/run-registry-verify.js qwen-3-reranker-0-6b-q4k-ehf16-af32 --surface auto",
-            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-q4k-ehf16-af32 --dry-run --bootstrap",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-q4k-ehf16-af32 --dry-run",
             "compareCommands": [],
-            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-q4k-ehf16-af32 --dry-run --bootstrap"
+            "primaryNextCommand": null
           },
           "missing": [
-            "hf-publish",
             "compare-profile"
           ],
-          "nextGate": "hf-publish"
+          "nextGate": "compare-profile"
         },
         {
           "modelId": "qwen-3-reranker-0-6b-f16-af32",
@@ -813,9 +813,9 @@
             ]
           },
           "hf": {
-            "published": false,
+            "published": true,
             "repoId": "Clocksmith/rdrr",
-            "revision": null,
+            "revision": "cc1fafff8cda609372b608cd92e487f6a2c32bc8",
             "path": "models/qwen-3-reranker-0-6b-f16-af32"
           },
           "quickstart": false,
@@ -835,20 +835,19 @@
           },
           "actions": {
             "verifyCommand": "node tools/run-registry-verify.js qwen-3-reranker-0-6b-f16-af32 --surface auto",
-            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-f16-af32 --dry-run --bootstrap",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-f16-af32 --dry-run",
             "compareCommands": [],
-            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-f16-af32 --dry-run --bootstrap"
+            "primaryNextCommand": null
           },
           "missing": [
-            "hf-publish",
             "compare-profile"
           ],
-          "nextGate": "hf-publish"
+          "nextGate": "compare-profile"
         }
       ],
-      "nextAction": "Publish or refresh the Hugging Face manifest/weights for qwen-3-reranker-0-6b-q4k-ehf16-af32.",
-      "nextGate": "hf-publish",
-      "nextCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-reranker-0-6b-q4k-ehf16-af32 --dry-run --bootstrap"
+      "nextAction": "Add a compare profile for qwen-3-reranker-0-6b-q4k-ehf16-af32.",
+      "nextGate": "compare-profile",
+      "nextCommand": null
     },
     {
       "sourceCheckpointId": "google/gemma-3-1b-it",
@@ -988,7 +987,7 @@
       "tier": "small",
       "minSizeBytes": 1155348912,
       "minSizeLabel": "1.08 GiB",
-      "status": "benchmark-comparison-needed",
+      "status": "benchmark-receipts-incomplete",
       "preferredArchitecture": {
         "status": "pending-benchmark-comparison",
         "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
@@ -1060,8 +1059,8 @@
           "evidence": {
             "runtimeReport": "reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json",
             "runtimeReportExists": true,
-            "compareResult": null,
-            "compareResultExists": false,
+            "compareResult": "benchmarks/vendors/results/compare_20260705T161224.json",
+            "compareResultExists": true,
             "summarySvg": null,
             "summarySvgExists": false,
             "localClaimLaneId": "qwen-3-5-0-8b-q4k-rdrr"
@@ -1104,14 +1103,13 @@
             "primaryNextCommand": "node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
           },
           "missing": [
-            "compare-result",
             "summary-svg"
           ],
-          "nextGate": "compare-result"
+          "nextGate": "summary-svg"
         }
       ],
       "nextAction": "Run compare/bench receipts for qwen-3-5-0-8b-q4k-ehaf16.",
-      "nextGate": "compare-result",
+      "nextGate": "summary-svg",
       "nextCommand": "node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
     },
     {
@@ -1126,7 +1124,7 @@
         "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
         "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
         "evidence": {
-          "runtimeReport": "reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-04T00-36-00.000Z.json",
+          "runtimeReport": "reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-24-38.048Z.node.json",
           "compareResult": null,
           "summarySvg": null
         }
@@ -1162,15 +1160,16 @@
             "conversion": "ready",
             "tested": "verified",
             "result": "pass",
-            "lastVerifiedAt": "2026-07-04",
+            "lastVerifiedAt": "2026-07-05",
             "surfaces": [
+              "browser",
               "node"
             ]
           },
           "hf": {
-            "published": false,
+            "published": true,
             "repoId": "Clocksmith/rdrr",
-            "revision": null,
+            "revision": "049000f49325dca7db2ed2c9de2c8881bd0f4603",
             "path": "models/qwen-3-embedding-0-6b-q4k-ehf16-af32"
           },
           "quickstart": false,
@@ -1189,7 +1188,7 @@
             "benchmarkEvidenceOk": false
           },
           "evidence": {
-            "runtimeReport": "reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-04T00-36-00.000Z.json",
+            "runtimeReport": "reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-24-38.048Z.node.json",
             "runtimeReportExists": true,
             "compareResult": null,
             "compareResultExists": false,
@@ -1199,7 +1198,7 @@
           },
           "actions": {
             "verifyCommand": "node tools/run-registry-verify.js qwen-3-embedding-0-6b-q4k-ehf16-af32 --surface auto",
-            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --dry-run --bootstrap",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --dry-run",
             "compareCommands": [
               {
                 "workloadId": "embedding",
@@ -1207,19 +1206,18 @@
                 "command": "node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --warmup 1 --runs 3 --doppler-source local --doppler-surface auto --cache-mode warm --load-mode http --save --json"
               }
             ],
-            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --dry-run --bootstrap"
+            "primaryNextCommand": "node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --warmup 1 --runs 3 --doppler-source local --doppler-surface auto --cache-mode warm --load-mode http --save --json"
           },
           "missing": [
-            "hf-publish",
             "compare-result",
             "summary-svg"
           ],
-          "nextGate": "hf-publish"
+          "nextGate": "compare-result"
         }
       ],
-      "nextAction": "Publish or refresh the Hugging Face manifest/weights for qwen-3-embedding-0-6b-q4k-ehf16-af32.",
-      "nextGate": "hf-publish",
-      "nextCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --dry-run --bootstrap"
+      "nextAction": "Run compare/bench receipts for qwen-3-embedding-0-6b-q4k-ehf16-af32.",
+      "nextGate": "compare-result",
+      "nextCommand": "node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --warmup 1 --runs 3 --doppler-source local --doppler-surface auto --cache-mode warm --load-mode http --save --json"
     },
     {
       "sourceCheckpointId": "Qwen/Qwen3.5-2B",
@@ -1509,9 +1507,9 @@
           },
           "hf": {
             "published": false,
-            "repoId": null,
+            "repoId": "Clocksmith/rdrr",
             "revision": null,
-            "path": null
+            "path": "models/gemma-4-e2b-it-q4k-ehf16-af16-int4ple"
           },
           "quickstart": false,
           "compare": {
@@ -1818,9 +1816,9 @@
           },
           "hf": {
             "published": false,
-            "repoId": null,
+            "repoId": "Clocksmith/rdrr",
             "revision": null,
-            "path": null
+            "path": "models/gemma-4-12b-it-text-q4k-ehf16-af16"
           },
           "quickstart": false,
           "compare": {
@@ -1886,9 +1884,9 @@
           },
           "hf": {
             "published": false,
-            "repoId": null,
+            "repoId": "Clocksmith/rdrr",
             "revision": null,
-            "path": null
+            "path": "models/gemma-4-12b-it-text-q4k-ehf16-af32"
           },
           "quickstart": false,
           "compare": {
@@ -1977,9 +1975,9 @@
           },
           "hf": {
             "published": false,
-            "repoId": null,
+            "repoId": "Clocksmith/rdrr",
             "revision": null,
-            "path": null
+            "path": "models/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"
           },
           "quickstart": false,
           "compare": {
@@ -2317,9 +2315,9 @@
           },
           "hf": {
             "published": false,
-            "repoId": null,
+            "repoId": "Clocksmith/rdrr",
             "revision": null,
-            "path": null
+            "path": "models/gemma-4-31b-it-text-q4k-ehf16-af16"
           },
           "quickstart": false,
           "compare": {
@@ -2385,9 +2383,9 @@
           },
           "hf": {
             "published": false,
-            "repoId": null,
+            "repoId": "Clocksmith/rdrr",
             "revision": null,
-            "path": null
+            "path": "models/gemma-4-31b-it-text-q4k-ehf16-af32"
           },
           "quickstart": false,
           "compare": {

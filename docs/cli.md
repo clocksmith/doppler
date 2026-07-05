@@ -198,7 +198,7 @@ For automation, use the default JSON output or pass `--json` explicitly.
 ### Hosted model (auto surface)
 
 ```bash
-node src/cli/doppler-cli.js verify --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json
+node src/cli/doppler-cli.js verify --config '{"request":{"workload":"inference","modelId":"qwen3-0.8b"}}' --json
 ```
 
 ### Local rebuilt artifact
@@ -220,7 +220,7 @@ node src/cli/doppler-cli.js verify --config '{
 
 ```bash
 node src/cli/doppler-cli.js debug \
-  --config '{"request":{"modelId":"gemma3-270m","workload":"inference"},"run":{"surface":"node"}}' \
+  --config '{"request":{"modelId":"qwen3-0.8b","workload":"inference"},"run":{"surface":"node"}}' \
   --runtime-config '{"inference":{"generation":{"maxTokens":8}}}' \
   --json
 ```

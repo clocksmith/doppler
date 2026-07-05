@@ -1,15 +1,14 @@
 /**
- * In-browser PII redaction example for @simulatte/doppler.
+ * In-browser PII redaction example for doppler-gpu.
  *
  * Loads a small instruction-tuned model and uses structured prompting
  * to detect and redact personally identifiable information from text.
  * All inference runs locally — no data leaves the browser.
  */
 
-import { doppler } from '@simulatte/doppler';
+import { doppler } from 'doppler-gpu';
 
-const MODEL_URL =
-  'https://huggingface.co/Clocksmith/rdrr/resolve/HEAD/models/gemma-3-270m-it-wq4k-ef16';
+const MODEL_ID = 'qwen3-0.8b';
 
 const REDACTION_PROMPT = `You are a PII redaction assistant. Given the following text, identify all personally identifiable information (names, emails, phone numbers, addresses, SSNs, dates of birth, account numbers) and return the text with each PII entity replaced by its category in square brackets.
 
@@ -37,11 +36,11 @@ async function redact(model, text) {
 
 async function main() {
   console.log('Loading model (cached after first download)...');
-  const model = await doppler.load({ url: MODEL_URL }, {
+  const model = await doppler.load(MODEL_ID, {
     onProgress(progress) {
-    if (progress.percent != null) {
-      console.log(`  ${progress.stage}: ${Math.round(progress.percent)}%`);
-    }
+      if (progress.percent != null) {
+        console.log(`  ${progress.stage}: ${Math.round(progress.percent)}%`);
+      }
     },
   });
 
