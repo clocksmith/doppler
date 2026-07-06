@@ -44,11 +44,13 @@ for (const profile of config.modelProfiles) {
     assert.equal(
       profile.defaultDopplerSource,
       'quickstart-registry',
-      `${modelId}: release-claimable embedding compares must measure the hosted quickstart artifact`
+      `${modelId}: release-claimable embedding compares must measure a hosted artifact`
     );
-    assert.equal(catalogEntry.quickstart, true, `${modelId}: release-claimable embedding compares must be quickstart-visible`);
     assert.equal(catalogEntry.lifecycle?.availability?.hf, true, `${modelId}: release-claimable embedding compares require hosted HF availability`);
     assert.equal(typeof catalogEntry.hf?.revision, 'string', `${modelId}: release-claimable embedding compares require pinned HF revision`);
+    assert.equal(catalogEntry.artifactCompleteness, 'complete', `${modelId}: release-claimable embedding compares require complete artifacts`);
+    assert.equal(catalogEntry.runtimePromotionState, 'manifest-owned', `${modelId}: release-claimable embedding compares require manifest-owned runtime metadata`);
+    assert.equal(catalogEntry.weightsRefAllowed, false, `${modelId}: release-claimable embedding compares must not depend on weightsRef fallback`);
   } else {
     assert.notEqual(
       profile.defaultDopplerSource,
@@ -62,7 +64,7 @@ const qwenEmbedding = config.modelProfiles.find(
   (entry) => entry.dopplerModelId === 'qwen-3-embedding-0-6b-q4k-ehf16-af32'
 );
 assert.ok(qwenEmbedding, 'qwen-3-embedding-0-6b-q4k-ehf16-af32 must have an embedding compare profile');
-assert.equal(qwenEmbedding.releaseClaimable, false);
-assert.equal(qwenEmbedding.defaultDopplerSource, 'local');
+assert.equal(qwenEmbedding.releaseClaimable, true);
+assert.equal(qwenEmbedding.defaultDopplerSource, 'quickstart-registry');
 
 console.log('embedding-compare-contract.test: ok');

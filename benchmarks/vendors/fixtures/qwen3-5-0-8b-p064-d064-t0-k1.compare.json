@@ -133,7 +133,17 @@
   "compareLane": {
     "declared": "performance_comparable",
     "reason": null,
-    "allowNonComparableLane": false
+    "allowNonComparableLane": false,
+    "lane": "performance_comparable",
+    "claimGrade": false,
+    "claimable": false,
+    "releaseClaimable": false,
+    "localComparable": false,
+    "correctnessOk": false,
+    "fairnessInvalidReason": "section-not-paired-comparable",
+    "fairnessInvalidReasons": [
+      "section-not-paired-comparable"
+    ]
   },
   "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
   "dopplerDtype": null,
@@ -4268,5 +4278,115 @@
       "firstMismatchTokenIndex": -1
     }
   },
-  "reproductionCommand": "node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --doppler-surface browser --mode all --warmup 1 --runs 1 --decode-profile parity --save --skip-matrix-update --json"
+  "reproductionCommand": "node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --doppler-surface browser --mode all --warmup 1 --runs 1 --decode-profile parity --save --skip-matrix-update --json",
+  "fairness": {
+    "schemaVersion": 1,
+    "claimGrade": false,
+    "releaseClaimable": false,
+    "localComparable": false,
+    "correctnessOk": false,
+    "primarySection": "compute/parity",
+    "invalidReason": "section-not-paired-comparable",
+    "invalidReasons": [
+      "section-not-paired-comparable"
+    ],
+    "formatFairness": {
+      "schemaVersion": 1,
+      "doppler": "rdrr",
+      "transformersjs": "onnx",
+      "sameFormat": false,
+      "class": "optimized-rdrr-vs-onnx",
+      "disclosureRequired": true,
+      "blocksClaim": false,
+      "reason": "formats differ and must be disclosed with any claim"
+    },
+    "surfaceFairness": {
+      "schemaVersion": 1,
+      "dopplerRequestedSurface": "browser",
+      "dopplerCommandSurface": "browser",
+      "transformersjsSurface": "browser",
+      "sameRuntimeSurface": true,
+      "blocksClaim": false
+    },
+    "sections": {
+      "compute/parity": {
+        "schemaVersion": 1,
+        "sectionId": "compute/parity",
+        "claimGrade": false,
+        "invalidReasons": [
+          "section-not-paired-comparable"
+        ],
+        "gates": {
+          "performanceComparableLane": true,
+          "sameRuntimeSurface": true,
+          "tjsModelPinned": true,
+          "pairedComparable": false,
+          "throughputCadencePromotable": null
+        },
+        "invalidReason": "section-not-paired-comparable"
+      },
+      "compute/throughput": {
+        "schemaVersion": 1,
+        "sectionId": "compute/throughput",
+        "claimGrade": false,
+        "invalidReasons": [
+          "section-not-paired-comparable",
+          "throughput-cadence-gate-failed"
+        ],
+        "gates": {
+          "performanceComparableLane": true,
+          "sameRuntimeSurface": true,
+          "tjsModelPinned": true,
+          "pairedComparable": false,
+          "throughputCadencePromotable": false
+        },
+        "invalidReason": "section-not-paired-comparable"
+      },
+      "warm": {
+        "schemaVersion": 1,
+        "sectionId": "warm",
+        "claimGrade": false,
+        "invalidReasons": [
+          "section-not-paired-comparable"
+        ],
+        "gates": {
+          "performanceComparableLane": true,
+          "sameRuntimeSurface": true,
+          "tjsModelPinned": true,
+          "pairedComparable": false,
+          "throughputCadencePromotable": null
+        },
+        "invalidReason": "section-not-paired-comparable"
+      },
+      "cold": {
+        "schemaVersion": 1,
+        "sectionId": "cold",
+        "claimGrade": false,
+        "invalidReasons": [
+          "section-not-paired-comparable"
+        ],
+        "gates": {
+          "performanceComparableLane": true,
+          "sameRuntimeSurface": true,
+          "tjsModelPinned": true,
+          "pairedComparable": false,
+          "throughputCadencePromotable": null
+        },
+        "invalidReason": "section-not-paired-comparable"
+      }
+    },
+    "semantics": {
+      "claimGrade": "true means the primary compare section passed paired correctness, prompt/decode validity, same runtime surface, pinned comparator model, and performance-comparable lane gates.",
+      "releaseClaimable": "true means claimGrade evidence measured the hosted quickstart-registry Doppler artifact.",
+      "localComparable": "true means claimGrade evidence exists but is local-artifact evidence, not a hosted release claim.",
+      "formatFairness": "different optimized formats are allowed only as disclosed product-format comparisons, not format-identical engine claims."
+    }
+  },
+  "dopplerExecution": {
+    "requestedSurface": "browser",
+    "commandSurface": "browser",
+    "cliExecutor": "node",
+    "format": "rdrr",
+    "commandSurfaceReason": "matches-requested-surface"
+  }
 }

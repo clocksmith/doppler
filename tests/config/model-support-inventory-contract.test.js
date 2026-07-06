@@ -236,7 +236,7 @@ assertIncludes(
   'qwen embedding compare command'
 );
 assert.equal(qwenEmbedding.missing.includes('compare-profile'), false);
-assert.equal(qwenEmbedding.nextGate, 'hf-publish');
+assert.equal(qwenEmbedding.nextGate, 'compare-result');
 
 const conversionOnlyIds = new Set(inventory.conversionOnly.map((entry) => entry.modelBaseId));
 for (const expected of ['gpt-oss-20b-f16-xmxfp4', 'janus-pro-1b-text-q4k-ehaf16']) {

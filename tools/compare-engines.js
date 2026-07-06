@@ -4912,6 +4912,114 @@ function buildCompareFairnessAudit({
   };
 }
 
+function normalizeFairnessCompareLane(compareLane) {
+  if (isJsonObject(compareLane)) {
+    return {
+      ...compareLane,
+      declared: typeof compareLane.declared === 'string' ? compareLane.declared : null,
+      reason: typeof compareLane.reason === 'string' ? compareLane.reason : null,
+      allowNonComparableLane: compareLane.allowNonComparableLane === true,
+    };
+  }
+  return {
+    declared: typeof compareLane === 'string' ? compareLane : null,
+    reason: null,
+    allowNonComparableLane: false,
+  };
+}
+
+function resolveReportFormatFairnessInput(report) {
+  const methodologyFormats = isJsonObject(report?.methodology?.formats)
+    ? report.methodology.formats
+    : {};
+  return {
+    dopplerFormat: typeof report?.dopplerExecution?.format === 'string'
+      ? report.dopplerExecution.format
+      : (typeof methodologyFormats.doppler === 'string' ? methodologyFormats.doppler : null),
+    tjsFormat: typeof methodologyFormats.transformersjs === 'string'
+      ? methodologyFormats.transformersjs
+      : null,
+  };
+}
+
+function resolveReportDopplerExecution(report) {
+  const current = isJsonObject(report?.dopplerExecution) ? report.dopplerExecution : {};
+  const fallbackSurface = typeof report?.dopplerSurface === 'string' ? report.dopplerSurface : null;
+  const { dopplerFormat } = resolveReportFormatFairnessInput(report);
+  let resolved = {};
+  if (fallbackSurface) {
+    try {
+      resolved = resolveDopplerExecutionIdentity(
+        fallbackSurface,
+        dopplerFormat || DEFAULT_DOPPLER_FORMAT
+      );
+    } catch {
+      resolved = {};
+    }
+  }
+  return {
+    ...current,
+    requestedSurface: typeof current.requestedSurface === 'string'
+      ? current.requestedSurface
+      : (resolved.requestedSurface ?? fallbackSurface),
+    commandSurface: typeof current.commandSurface === 'string'
+      ? current.commandSurface
+      : (resolved.commandSurface ?? fallbackSurface),
+    cliExecutor: typeof current.cliExecutor === 'string'
+      ? current.cliExecutor
+      : (resolved.cliExecutor ?? null),
+    format: typeof current.format === 'string'
+      ? current.format
+      : (resolved.format ?? dopplerFormat ?? null),
+    commandSurfaceReason: typeof current.commandSurfaceReason === 'string'
+      ? current.commandSurfaceReason
+      : (resolved.commandSurfaceReason ?? null),
+  };
+}
+
+function attachCompareFairnessAudit(report, options = {}) {
+  if (!isJsonObject(report)) {
+    throw new Error('compare fairness report must be an object');
+  }
+  const compareLane = normalizeFairnessCompareLane(report.compareLane);
+  const dopplerExecution = options.dopplerExecution || resolveReportDopplerExecution(report);
+  const { dopplerFormat, tjsFormat } = options.dopplerFormat || options.tjsFormat
+    ? {
+        dopplerFormat: options.dopplerFormat ?? null,
+        tjsFormat: options.tjsFormat ?? null,
+      }
+    : resolveReportFormatFairnessInput(report);
+  const tjsModelOverridden = options.tjsModelOverridden ?? (
+    report.transformersjsModelSource === 'flag'
+  );
+  const dopplerModelSource = options.dopplerModelSource || (
+    isJsonObject(report.dopplerModelSource) ? report.dopplerModelSource : null
+  );
+
+  report.dopplerExecution = dopplerExecution;
+  report.fairness = buildCompareFairnessAudit({
+    sections: report.sections,
+    compareLane,
+    dopplerExecution,
+    dopplerFormat,
+    tjsFormat,
+    tjsModelOverridden,
+    dopplerModelSource,
+  });
+  report.compareLane = {
+    ...compareLane,
+    lane: compareLane.declared,
+    claimGrade: report.fairness.claimGrade,
+    claimable: report.fairness.releaseClaimable,
+    releaseClaimable: report.fairness.releaseClaimable,
+    localComparable: report.fairness.localComparable,
+    correctnessOk: report.fairness.correctnessOk,
+    fairnessInvalidReason: report.fairness.invalidReason,
+    fairnessInvalidReasons: report.fairness.invalidReasons,
+  };
+  return report;
+}
+
 function formatDelta(dopplerVal, tjsVal, higherBetter) {
   if (dopplerVal == null || tjsVal == null || !Number.isFinite(dopplerVal) || !Number.isFinite(tjsVal)) return '-';
   if (tjsVal === 0 && dopplerVal === 0) return 'same';
@@ -6075,26 +6183,13 @@ async function main() {
     });
   }
 
-  report.fairness = buildCompareFairnessAudit({
-    sections: report.sections,
-    compareLane: report.compareLane,
+  attachCompareFairnessAudit(report, {
     dopplerExecution,
     dopplerFormat,
     tjsFormat,
     tjsModelOverridden,
     dopplerModelSource,
   });
-  report.compareLane = {
-    ...report.compareLane,
-    lane: report.compareLane.declared,
-    claimGrade: report.fairness.claimGrade,
-    claimable: report.fairness.releaseClaimable,
-    releaseClaimable: report.fairness.releaseClaimable,
-    localComparable: report.fairness.localComparable,
-    correctnessOk: report.fairness.correctnessOk,
-    fairnessInvalidReason: report.fairness.invalidReason,
-    fairnessInvalidReasons: report.fairness.invalidReasons,
-  };
 
   if (jsonOutput) {
     console.log(JSON.stringify(report, null, 2));
@@ -6193,6 +6288,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 }
 
 export {
+  attachCompareFairnessAudit,
   buildCompareSection,
   buildCompareFairnessAudit,
   buildDiagnosticSharedBenchmarkContract,

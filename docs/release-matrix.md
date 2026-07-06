@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-07-05T16:48:44.769Z
-Release: channel=main-snapshot, version=0.4.6, commit=064787de3c5855f78df5f3adf32efd7f36169e61, dirty=yes
+Generated: 2026-07-06T00:31:00.744Z
+Release: channel=main-snapshot, version=0.4.6, commit=ccc83ba5dad8627ab7ee1069f90208b725dc2db5, dirty=yes
 
 ## Engine Matrix
 
@@ -53,15 +53,10 @@ Release: channel=main-snapshot, version=0.4.6, commit=064787de3c5855f78df5f3adf3
 
 | Workload ID | Model | Prefill | Decode | Sampling | Correctness | Runtime (GPU/Backend/OS/Browser) | Date |
 |---|---|---:|---:|---|---|---|---|
-| [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/g3-1b-p064-d064-t0-k1.compare.json) | Gemma 3 1B Instruct (Q4K/F32a) (996.4 MiB) | 64 | 64 | greedy (t=0) | exact | Apple M3; metal; darwin; chromium; doppler browser | 2026-03-29 |
 | [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-p064-d064-t0-k1-strix-halo-20260627.compare.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 64 | 64 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler browser | 2026-06-27 |
-| [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/qwen3-5-0-8b-p064-d064-t0-k1.compare.json) | Qwen 3.5 0.8B (Q4K) (1.08 GiB) | 64 | 64 | greedy (t=0) | exact | Apple M3; metal; darwin; chromium; doppler browser | 2026-03-30 |
 | `p064-d064-t1-k32` | not captured | 64 | 64 | t=1, k=32, p=1 | not captured | not captured | not captured |
-| [`p256-d128-t0-k1`](../benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-p256-d128-t0-k1-strix-halo-20260626.compare.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 256 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler browser | 2026-06-27 |
-| [`p512-d128-t0-k1`](../benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-local-p512-d128-t0-k1-strix-halo-20260627.compare.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 512 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler browser | 2026-06-27 |
-| [`p512-d128-t0-k1`](../benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-bun-p512-d128-t0-k1-strix-halo-20260627.compare.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 512 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler bun / command node | 2026-06-27 |
-| [`p512-d128-t0-k1`](../benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-node-p512-d128-t0-k1-strix-halo-20260627.compare.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 512 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler node | 2026-06-27 |
-| [`p512-d128-t0-k1`](../benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-p512-d128-t0-k1-strix-halo-20260626.compare.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 512 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler browser | 2026-06-27 |
+| `p256-d128-t0-k1` | not captured | 256 | 128 | greedy (t=0) | not captured | not captured | not captured |
+| `p512-d128-t0-k1` | not captured | 512 | 128 | greedy (t=0) | not captured | not captured | not captured |
 | `p256-d128-t1-k32` | not captured | 256 | 128 | t=1, k=32, p=1 | not captured | not captured | not captured |
 
 ## Local Claim Lanes
@@ -87,14 +82,18 @@ Release: channel=main-snapshot, version=0.4.6, commit=064787de3c5855f78df5f3adf3
 
 ## Latest Bottlenecks
 
-Source: [gemma-3-270m-it-q4k-rdrr-local-p512-d128-t0-k1-strix-halo-20260627.compare.json](../benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-local-p512-d128-t0-k1-strix-halo-20260627.compare.json)
+Source: [gemma-3-270m-it-q4k-rdrr-p064-d064-t0-k1-strix-halo-20260627.compare.json](../benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-p064-d064-t0-k1-strix-halo-20260627.compare.json)
 
-Doppler internal: readback map wait 530.9 ms; 63.4% of decode; command recording 302.5 ms; 19177 ops / 2 passes
+Doppler internal: readback map wait 291.5 ms; 54.5% of decode; command recording 261.9 ms; 15120 ops / 189 passes
 
 | Metric | Leader | Gap | Doppler | Transformers.js |
 |---|---|---:|---:|---:|
-| model load | transformersjs | 81.7% | 1106.1 ms | 608.8 ms |
-| first response (first token + load) | transformersjs | 53.97% | 1317.1 ms | 855.4 ms |
+| prompt tok/s to first token | transformersjs | 145.2% | 616.6 tok/s | 1511.9 tok/s |
+| first token (TTFT) | transformersjs | 145.2% | 103.8 ms | 42.33 ms |
+| first response (first token + load) | transformersjs | 50.76% | 1237.4 ms | 820.8 ms |
+| model load | transformersjs | 45.62% | 1133.6 ms | 778.5 ms |
+| total run ms | transformersjs | 1.078% | 640.2 ms | 633.4 ms |
+| decode p50 ms/token | transformersjs | 0.18% | 8.36 ms | 8.345 ms |
 
 ## Charts
 

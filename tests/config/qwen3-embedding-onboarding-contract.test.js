@@ -21,7 +21,7 @@ assert.equal(catalogEntry.quickstart, false);
 assert.equal(catalogEntry.demoVisible, false);
 assert.equal(catalogEntry.hf?.repoId, 'Clocksmith/rdrr');
 assert.equal(catalogEntry.hf?.path, `models/${modelId}`);
-assert.equal(catalogEntry.hf?.revision, null);
+assert.equal(catalogEntry.hf?.revision, '049000f49325dca7db2ed2c9de2c8881bd0f4603');
 assert.equal(catalogEntry.runtimePromotionState, 'manifest-owned');
 assert.equal(catalogEntry.artifactCompleteness, 'complete');
 assert.equal(catalogEntry.verify?.workload, 'embedding');
