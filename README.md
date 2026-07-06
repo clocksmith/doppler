@@ -1,7 +1,5 @@
 # doppler-gpu
 
-![Doppler WebGPU inference runtime](./assets/doppler-readme-hero.svg)
-
 WebGPU inference runtime for browser, Node, Bun, CLI, and local server use.
 Doppler runs JavaScript orchestration over WGSL kernels and loads models from
 RDRR manifests.
