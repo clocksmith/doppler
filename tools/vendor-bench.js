@@ -2963,6 +2963,19 @@ async function maybeLoadCompareResultSummary(
     compareLaneReason: typeof report?.compareLane?.reason === 'string'
       ? report.compareLane.reason
       : null,
+    fairness: isJsonObject(report?.fairness)
+      ? {
+          claimGrade: report.fairness.claimGrade === true,
+          releaseClaimable: report.fairness.releaseClaimable === true,
+          localComparable: report.fairness.localComparable === true,
+          correctnessOk: report.fairness.correctnessOk === true,
+          primarySection: asNonEmptyString(report.fairness.primarySection),
+          invalidReason: asNonEmptyString(report.fairness.invalidReason),
+          invalidReasons: Array.isArray(report.fairness.invalidReasons)
+            ? report.fairness.invalidReasons.map((reason) => String(reason)).filter(Boolean)
+            : [],
+        }
+      : null,
     dopplerKernelPath: typeof report.dopplerKernelPath === 'string' ? report.dopplerKernelPath : null,
     correctness: {
       status: asNonEmptyString(report?.correctness?.status) || null,
@@ -4083,9 +4096,11 @@ async function doMatrix(flags, timestamp = null) {
   const releaseCompareResults = compareResults.filter((entry) => {
     const modelId = asNonEmptyString(entry?.dopplerModelId);
     const comparableLane = entry?.compareLane == null || entry.compareLane === 'performance_comparable';
+    const fairnessAllowsRelease = entry?.fairness == null || entry.fairness.releaseClaimable === true;
     return modelId != null
       && coveredModelIdSet.has(modelId)
       && comparableLane
+      && fairnessAllowsRelease
       && entry?.pairedComparable !== false;
   });
   const latestReleaseCompareResult = selectLatestCompareResult(releaseCompareResults);

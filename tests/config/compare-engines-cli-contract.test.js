@@ -7,6 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { mergeKernelPathPolicy } from '../../src/config/merge-helpers.js';
 import {
   buildCompareSection,
+  buildCompareFairnessAudit,
   buildDiagnosticSharedBenchmarkContract,
   buildDopplerBottleneckDiagnostic,
   buildDopplerManifestFreshnessArtifact,
@@ -595,6 +596,178 @@ function assertCommandOutputMatches(result, pattern) {
     assert.equal(invalidParityGate.ok, false);
     assert.ok(invalidParityGate.invalidReasons.includes('parity-section-not-comparable'));
     assert.equal(invalidParityGate.observed.parityInvalidReason, 'output-parity-mismatch');
+
+    const fairnessClaimSection = buildCompareSection({
+      cacheMode: 'warm',
+      loadMode: 'opfs',
+      maxTokens: 64,
+      prefillTokenTarget: 64,
+      promptContract: {
+        promptRendered: 'unit prompt',
+        enginesReceiveRenderedPrompt: true,
+      },
+      doppler: {
+        result: {
+          timing: {
+            decodeTokensPerSec: 100,
+          },
+          metrics: {
+            avgPrefillTokens: 64,
+            avgDecodeTokens: 64,
+            generatedText: 'same output',
+          },
+        },
+      },
+      transformersjs: {
+        generatedText: 'same output',
+        runs: [
+          {
+            prefillTokens: 64,
+            decodeTokens: 64,
+          },
+        ],
+      },
+    });
+    const browserFairness = buildCompareFairnessAudit({
+      sections: {
+        compute: {
+          parity: fairnessClaimSection,
+        },
+      },
+      compareLane: {
+        declared: 'performance_comparable',
+        allowNonComparableLane: false,
+      },
+      dopplerExecution: {
+        requestedSurface: 'browser',
+        commandSurface: 'browser',
+      },
+      dopplerFormat: 'rdrr',
+      tjsFormat: 'onnx',
+      tjsModelOverridden: false,
+      dopplerModelSource: {
+        source: 'quickstart-registry',
+      },
+    });
+    assert.equal(browserFairness.claimGrade, true);
+    assert.equal(browserFairness.releaseClaimable, true);
+    assert.equal(browserFairness.localComparable, false);
+    assert.equal(browserFairness.correctnessOk, true);
+    assert.equal(browserFairness.invalidReason, null);
+    assert.equal(browserFairness.primarySection, 'compute/parity');
+    assert.equal(browserFairness.formatFairness.class, 'optimized-rdrr-vs-onnx');
+    assert.equal(browserFairness.formatFairness.disclosureRequired, true);
+    assert.equal(browserFairness.formatFairness.blocksClaim, false);
+
+    const localFairness = buildCompareFairnessAudit({
+      sections: {
+        compute: {
+          parity: fairnessClaimSection,
+        },
+      },
+      compareLane: {
+        declared: 'performance_comparable',
+        allowNonComparableLane: false,
+      },
+      dopplerExecution: {
+        requestedSurface: 'browser',
+        commandSurface: 'browser',
+      },
+      dopplerFormat: 'safetensors',
+      tjsFormat: 'safetensors',
+      tjsModelOverridden: false,
+      dopplerModelSource: {
+        source: 'local',
+      },
+    });
+    assert.equal(localFairness.claimGrade, true);
+    assert.equal(localFairness.releaseClaimable, false);
+    assert.equal(localFairness.localComparable, true);
+    assert.equal(localFairness.formatFairness.class, 'neutral-safetensors-vs-safetensors');
+    assert.equal(localFairness.formatFairness.disclosureRequired, false);
+
+    const crossSurfaceFairness = buildCompareFairnessAudit({
+      sections: {
+        compute: {
+          parity: fairnessClaimSection,
+        },
+      },
+      compareLane: {
+        declared: 'performance_comparable',
+        allowNonComparableLane: false,
+      },
+      dopplerExecution: {
+        requestedSurface: 'node',
+        commandSurface: 'node',
+      },
+      dopplerFormat: 'rdrr',
+      tjsFormat: 'onnx',
+      tjsModelOverridden: false,
+      dopplerModelSource: {
+        source: 'quickstart-registry',
+      },
+    });
+    assert.equal(crossSurfaceFairness.claimGrade, false);
+    assert.equal(crossSurfaceFairness.releaseClaimable, false);
+    assert.equal(crossSurfaceFairness.surfaceFairness.blocksClaim, true);
+    assert.ok(crossSurfaceFairness.invalidReasons.includes('cross-surface-diagnostic:doppler-node-vs-transformersjs-browser'));
+
+    const overriddenTjsFairness = buildCompareFairnessAudit({
+      sections: {
+        compute: {
+          parity: fairnessClaimSection,
+        },
+      },
+      compareLane: {
+        declared: 'performance_comparable',
+        allowNonComparableLane: false,
+      },
+      dopplerExecution: {
+        requestedSurface: 'browser',
+        commandSurface: 'browser',
+      },
+      dopplerFormat: 'rdrr',
+      tjsFormat: 'onnx',
+      tjsModelOverridden: true,
+      dopplerModelSource: {
+        source: 'quickstart-registry',
+      },
+    });
+    assert.equal(overriddenTjsFairness.claimGrade, false);
+    assert.ok(overriddenTjsFairness.invalidReasons.includes('transformersjs-model-overridden'));
+
+    const throughputFairness = buildCompareFairnessAudit({
+      sections: {
+        compute: {
+          parity: fairnessClaimSection,
+          throughput: fairnessClaimSection,
+          throughputCadenceGate: {
+            ok: false,
+            invalidReasons: ['missing-throughput-batch-accounting'],
+          },
+        },
+      },
+      compareLane: {
+        declared: 'performance_comparable',
+        allowNonComparableLane: false,
+      },
+      dopplerExecution: {
+        requestedSurface: 'browser',
+        commandSurface: 'browser',
+      },
+      dopplerFormat: 'rdrr',
+      tjsFormat: 'onnx',
+      tjsModelOverridden: false,
+      dopplerModelSource: {
+        source: 'quickstart-registry',
+      },
+    });
+    assert.equal(throughputFairness.claimGrade, true, 'primary parity section remains claim-grade');
+    assert.equal(throughputFairness.sections['compute/throughput'].claimGrade, false);
+    assert.ok(
+      throughputFairness.sections['compute/throughput'].invalidReasons
+        .includes('throughput-cadence:missing-throughput-batch-accounting')
+    );
 
     const zeroSampleTimestampSection = buildCompareSection({
       cacheMode: 'warm',

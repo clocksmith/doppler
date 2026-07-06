@@ -768,6 +768,54 @@
                 "null"
               ]
             },
+            "fairness": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "required": [
+                "claimGrade",
+                "releaseClaimable",
+                "localComparable",
+                "correctnessOk",
+                "primarySection",
+                "invalidReason",
+                "invalidReasons"
+              ],
+              "properties": {
+                "claimGrade": {
+                  "type": "boolean"
+                },
+                "releaseClaimable": {
+                  "type": "boolean"
+                },
+                "localComparable": {
+                  "type": "boolean"
+                },
+                "correctnessOk": {
+                  "type": "boolean"
+                },
+                "primarySection": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "invalidReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "invalidReasons": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
             "dopplerKernelPath": {
               "type": [
                 "string",

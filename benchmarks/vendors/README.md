@@ -357,6 +357,11 @@ When `--compare-result` is provided, matrix generation also captures host/browse
 - The Transformers.js warm `opfs` lane now performs an untimed one-token generation prime, not just a bare model load, before the offline timed pass. This is required for models that lazily fetch generation assets on first decode.
 - For large browser-side Transformers.js compare lanes, prefer a staged local snapshot over live HF/Xet fetches. Use [tools/stage-tjs-model.js](../../tools/stage-tjs-model.js) and pass the snapshot root with `--tjs-local-model-path`. The staging helper now validates the required decoder/embed shards for the selected dtype and fails closed when the local snapshot is incomplete.
 - [tools/compare-engines.js](../../tools/compare-engines.js) does not mutate compare-lane semantics on retry. If an engine fails, the section is recorded with `pairedComparable: false` and an `invalidReason`.
+- [tools/compare-engines.js](../../tools/compare-engines.js) writes a top-level
+  `fairness` verdict. Release matrix import treats new compare artifacts as
+  release evidence only when that verdict has `releaseClaimable: true`; local,
+  cross-surface, overridden-comparator, failed, or throughput-gate-only lanes
+  remain diagnostic.
 - Compare artifacts pin harness + metric-contract hashes; stale compare JSON is dropped from `vendor-bench matrix` unless you refresh it.
 - Doppler surface is now explicit in compare runs: `--doppler-surface auto|node|browser|bun` (default from `compare-engines.config.json` per model profile via `defaultDopplerSurface`, fallback `auto`). The `bun` surface executes the Doppler CLI through Bun while preserving the same compare-managed runtime payload; it remains a cross-surface diagnostic against browser-based Transformers.js unless a matching TJS Bun lane is added.
 
