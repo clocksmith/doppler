@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-06T00:31:00.744Z",
+  "generatedAt": "2026-07-06T01:23:22.927Z",
   "release": {
     "channel": "main-snapshot",
     "version": "0.4.6",
-    "commitSha": "ccc83ba5dad8627ab7ee1069f90208b725dc2db5",
+    "commitSha": "dc6682e11f8369f869917aab730b2fbfe7089b3f",
     "dirty": true
   },
   "sources": {
@@ -28,8 +28,8 @@
     },
     "compareConfig": {
       "path": "benchmarks/vendors/compare-engines.config.json",
-      "sha256": "b82253e37213914ed40662520e34a5c4ea59bcb8c894f476b82571ea5a54f34f",
-      "bytes": 6099,
+      "sha256": "f83f9d65ff1abc8248460d4e54a1fe3d0dd342ed9071561a2429e3b43176630a",
+      "bytes": 6110,
       "updated": "2026-06-15"
     },
     "compareMetricContract": {
@@ -1290,8 +1290,8 @@
     },
     {
       "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
-      "dopplerModelBaseDir": "local",
-      "dopplerSource": "local",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": "quickstart-registry",
       "defaultTjsModelId": "onnx-community/Qwen3.5-0.8B-ONNX",
       "defaultDopplerSurface": "browser",
       "compareLane": "performance_comparable",
