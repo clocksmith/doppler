@@ -190,6 +190,17 @@ See `docs/agents/README.md` for the full index.
 - Keep parity and throughput lanes separate. Claimable compare work belongs to fairness-managed parity lanes; throughput-tuned runs are tuning evidence until promoted explicitly.
 - Before kernel edits, classify the wall: GPU compute vs submit/readback/orchestration. Do not assume a math-kernel bug when timing already shows orchestration dominating.
 
+### Intent-First Operations
+
+- Treat Doppler intent as real model/runtime capability and fair benchmark evidence, not README wording.
+- If the user asks what works, produce a scoreboard from current registry entries, manifests, sidecars, reports, and claim indexes before summarizing.
+- Preserve exact model/platform scope. If the user says browser-only, Node is not implied; if the user names embedding/reranker models, do those before adjacent generation models.
+- When the user distrusts a Doppler-vs-TJS or vendor benchmark, inspect and fix the harness fairness gates before editing public claims.
+- Fairness output must expose comparable surface, blocked lanes, overridden settings, failed runs, throughput-only rows, model identity, backend identity, and artifact paths.
+- Do not publish win/loss language until the claim-grade gate has mechanically passed.
+- If output quality is wrong, run the debug ladder and capture the first numerical or token divergence before refactoring broad runtime code.
+- Deployment/package status must be answered from `package.json`, npm/local package artifacts, source version files, and the actual publish/deploy command output.
+
 ### Correctness Regression Discipline
 
 When a code change (kernel swap, transform, dtype policy, materialization path) produces incorrect model output — garbled text, numerical divergence, repeated tokens, or silent quality loss:
