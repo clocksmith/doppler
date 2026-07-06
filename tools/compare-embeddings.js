@@ -257,6 +257,7 @@ function buildDopplerConfig({
   prompt,
   warmupRuns,
   timedRuns,
+  cacheMode,
   loadMode,
   surface,
   timestamp,
@@ -265,6 +266,8 @@ function buildDopplerConfig({
     workload: 'embedding',
     modelId,
     modelUrl,
+    cacheMode,
+    loadMode,
     runtimeConfig: {
       shared: {
         benchmark: {
@@ -291,6 +294,13 @@ function buildDopplerConfig({
     run: {
       surface,
       timestamp,
+      ...(loadMode === 'http'
+        ? {
+            browser: {
+              opfsCache: false,
+            },
+          }
+        : {}),
     },
   };
 }
@@ -393,6 +403,58 @@ function buildSummary(dopplerBench, dopplerVerify, tjsBench) {
   };
 }
 
+function buildEmbeddingFairnessAudit({ profile, dopplerSource, summary }) {
+  const invalidReasons = [];
+  const correctnessOk = summary.correctnessOk === true;
+  const performanceComparable = profile.compareLane === 'performance_comparable';
+  const hostedDopplerArtifact = dopplerSource === 'quickstart-registry';
+  const releaseConfigured = profile.releaseClaimable === true;
+
+  if (!correctnessOk) invalidReasons.push('correctness-failed');
+  if (!performanceComparable) invalidReasons.push('lane-not-performance-comparable');
+
+  const claimGrade = invalidReasons.length === 0;
+  const releaseClaimable = claimGrade && releaseConfigured && hostedDopplerArtifact;
+  const localComparable = claimGrade && releaseClaimable !== true;
+
+  return {
+    schemaVersion: 1,
+    claimGrade,
+    releaseClaimable,
+    localComparable,
+    correctnessOk,
+    primarySection: 'embedding',
+    invalidReason: invalidReasons[0] ?? null,
+    invalidReasons,
+    sourceFairness: {
+      schemaVersion: 1,
+      dopplerSource,
+      hostedDopplerArtifact,
+      releaseConfigured,
+      blocksReleaseClaim: releaseConfigured !== true || hostedDopplerArtifact !== true,
+    },
+    sections: {
+      embedding: {
+        schemaVersion: 1,
+        claimGrade,
+        invalidReason: invalidReasons[0] ?? null,
+        invalidReasons,
+        gates: {
+          correctnessOk,
+          performanceComparable,
+          hostedDopplerArtifact,
+          releaseConfigured,
+        },
+      },
+    },
+    semantics: {
+      claimGrade: 'true means the embedding compare passed shared semantic correctness and performance-comparable lane gates.',
+      releaseClaimable: 'true means claimGrade evidence measured the hosted Doppler artifact selected by the embedding compare profile.',
+      localComparable: 'true means claimGrade evidence exists but is not hosted release evidence.',
+    },
+  };
+}
+
 async function saveCompareResult(result, saveDir, timestamp) {
   await fs.mkdir(saveDir, { recursive: true });
   const modelSlug = String(result.model?.dopplerModelId ?? 'embedding').replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -454,6 +516,7 @@ async function runOne({ modelId, flags, configBundle, catalogBundle, timestamp }
     prompt,
     warmupRuns,
     timedRuns,
+    cacheMode,
     loadMode,
     surface: dopplerSurface,
     timestamp,
@@ -465,6 +528,7 @@ async function runOne({ modelId, flags, configBundle, catalogBundle, timestamp }
     prompt,
     warmupRuns: 0,
     timedRuns: 1,
+    cacheMode,
     loadMode,
     surface: dopplerSurface,
     timestamp,
@@ -530,7 +594,7 @@ async function runOne({ modelId, flags, configBundle, catalogBundle, timestamp }
   const dopplerVerify = unwrapToolingResult(await runNodeJson(dopplerVerifyArgs, `${modelId} Doppler embedding verify`, timeoutMs));
   const tjsBench = await runNodeJson(tjsArgs, `${modelId} Transformers.js embedding bench`, timeoutMs);
   const summary = buildSummary(dopplerBench, dopplerVerify, tjsBench);
-  const releaseClaimable = profile.releaseClaimable === true && dopplerSource === 'quickstart-registry';
+  const fairness = buildEmbeddingFairnessAudit({ profile, dopplerSource, summary });
 
   const result = {
     schemaVersion: 1,
@@ -560,13 +624,15 @@ async function runOne({ modelId, flags, configBundle, catalogBundle, timestamp }
     compareLane: {
       lane: profile.compareLane,
       reason: profile.compareLaneReason,
-      correctnessOk: summary.correctnessOk,
-      localComparable: summary.correctnessOk === true && profile.compareLane === 'performance_comparable',
-      releaseClaimable,
-      claimable: summary.correctnessOk === true
-        && profile.compareLane === 'performance_comparable'
-        && releaseClaimable,
+      claimGrade: fairness.claimGrade,
+      correctnessOk: fairness.correctnessOk,
+      localComparable: fairness.localComparable,
+      releaseClaimable: fairness.releaseClaimable,
+      claimable: fairness.releaseClaimable,
+      fairnessInvalidReason: fairness.invalidReason,
+      fairnessInvalidReasons: fairness.invalidReasons,
     },
+    fairness,
     sources: {
       config: {
         source: path.relative(ROOT_DIR, configBundle.source).split(path.sep).join('/'),
@@ -637,6 +703,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 }
 
 export {
+  buildEmbeddingFairnessAudit,
   buildSummary,
   parseArgs,
   main,

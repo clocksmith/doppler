@@ -127,8 +127,8 @@
     {
       "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "defaultTjsModelId": "onnx-community/Qwen3.5-0.8B-ONNX",
-      "defaultDopplerSource": "local",
-      "modelBaseDir": "local",
+      "defaultDopplerSource": "quickstart-registry",
+      "modelBaseDir": null,
       "defaultDopplerSurface": "browser",
       "defaultDopplerFormat": "rdrr",
       "defaultTjsFormat": "onnx",

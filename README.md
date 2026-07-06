@@ -152,30 +152,29 @@ within a row.
 - Backend evidence summary:
   [benchmarks/vendors/results/doppler-backend-evidence-summary.svg](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/doppler-backend-evidence-summary.svg)
 
-## Quickstart-supported models
+## Model roadmap
 
-All models below have verified WebGPU quickstart evidence. Text-generation
-models use deterministic greedy decoding; EmbeddingGemma uses the embedding
-verification contract.
-These registry IDs resolve to hosted RDRR artifacts automatically from the browser demo,
-`npx doppler-gpu`, or `doppler.load(...)`.
+The README tracks model priority by source model, not by implementation lane.
+Doppler selects the best RDRR/runtime implementation from committed verification
+and benchmark evidence.
 
-| Model | Registry ID | Quant | Size | Family |
-| --- | --- | --- | --- | --- |
-| Gemma 3 270M IT | `gemma3-270m` | Q4K | 270M | Gemma |
-| Gemma 3 1B IT | `gemma3-1b` | Q4K | 1B | Gemma |
-| Gemma 4 E2B IT | `gemma4-e2b` | Q4K | E2B | Gemma |
-| Gemma 4 E2B IT INT4PLE | `gemma4-e2b-int4ple` | Q4K | E2B | Gemma |
-| EmbeddingGemma 300M | `embeddinggemma-300m` | Q4K | 300M | Gemma |
-| Qwen 3.5 0.8B | `qwen3-0.8b` | Q4K | 0.8B | Qwen |
-| Qwen 3.5 2B | `qwen3-2b` | Q4K | 2B | Qwen |
+The current roadmap is maintained in
+[docs/model-roadmap.md](https://github.com/clocksmith/doppler/blob/main/docs/model-roadmap.md).
+It replaces the old README quickstart-model table as the product-facing model
+plan.
 
-Additional local-artifact models, including TranslateGemma 4B and Qwen 3.6
-lanes, are tracked outside the quickstart registry.
-Conversion configs exist for Gemma 4 MoE and Janus but are not yet in the
-quickstart registry.
-See the
-[model support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md).
+Current tiers:
+
+- Tier 1: Qwen 3.5 0.8B, Qwen 3 Embedding 0.6B, Qwen 3 Reranker 0.6B.
+- Tier 2: Qwen 3.5 2B, Gemma 4 E2B.
+- Tier 3A: Qwen 3.6 27B, Gemma 4 12B.
+- Tier 3B: DiffusionGemma 26B A4B, Gemma 4 MoE after a concrete catalog target exists.
+- Stretch: Gemma 4 31B and larger Qwen 3.6/3.7-class dense targets after a real catalog/HF target exists.
+
+For exact runtime evidence, supported registry IDs, and benchmark claims, use
+the [model support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md),
+[model support inventory](https://github.com/clocksmith/doppler/blob/main/docs/model-support-inventory.md),
+and [release matrix](https://github.com/clocksmith/doppler/blob/main/docs/release-matrix.md).
 Subsystem support tiers for direct-source inputs, advanced subpaths, diffusion,
 energy, and training live in the
 [subsystem support matrix](https://github.com/clocksmith/doppler/blob/main/docs/subsystem-support-matrix.md).
@@ -188,6 +187,7 @@ energy, and training live in the
 - CLI reference: [docs/cli.md](https://github.com/clocksmith/doppler/blob/main/docs/cli.md)
 - Runtime config contract: [docs/config.md](https://github.com/clocksmith/doppler/blob/main/docs/config.md)
 - Architecture: [docs/architecture.md](https://github.com/clocksmith/doppler/blob/main/docs/architecture.md)
+- Model roadmap: [docs/model-roadmap.md](https://github.com/clocksmith/doppler/blob/main/docs/model-roadmap.md)
 - Model support matrix: [docs/model-support-matrix.md](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md)
 
 ## Environment requirements

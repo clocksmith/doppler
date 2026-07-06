@@ -4096,7 +4096,7 @@ async function doMatrix(flags, timestamp = null) {
   const releaseCompareResults = compareResults.filter((entry) => {
     const modelId = asNonEmptyString(entry?.dopplerModelId);
     const comparableLane = entry?.compareLane == null || entry.compareLane === 'performance_comparable';
-    const fairnessAllowsRelease = entry?.fairness == null || entry.fairness.releaseClaimable === true;
+    const fairnessAllowsRelease = entry?.fairness?.releaseClaimable === true;
     return modelId != null
       && coveredModelIdSet.has(modelId)
       && comparableLane

@@ -203,5 +203,87 @@
       "doppler": "available inside Doppler payload timing.prefillMs as internal_prefill_phase",
       "transformersjs": "excluded from compare contract because runner prefillMs is a ttft_proxy"
     }
+  },
+  "fairness": {
+    "schemaVersion": 1,
+    "claimGrade": false,
+    "releaseClaimable": false,
+    "localComparable": false,
+    "correctnessOk": false,
+    "primarySection": "compute/parity",
+    "invalidReason": "non-performance-comparable-lane",
+    "invalidReasons": [
+      "non-performance-comparable-lane",
+      "cross-surface-diagnostic:doppler-unknown-vs-transformersjs-browser",
+      "section-not-paired-comparable"
+    ],
+    "formatFairness": {
+      "schemaVersion": 1,
+      "doppler": null,
+      "transformersjs": null,
+      "sameFormat": false,
+      "class": "mixed-format",
+      "disclosureRequired": true,
+      "blocksClaim": false,
+      "reason": "formats differ and must be disclosed with any claim"
+    },
+    "surfaceFairness": {
+      "schemaVersion": 1,
+      "dopplerRequestedSurface": null,
+      "dopplerCommandSurface": null,
+      "transformersjsSurface": "browser",
+      "sameRuntimeSurface": false,
+      "blocksClaim": true
+    },
+    "sections": {
+      "compute/parity": {
+        "schemaVersion": 1,
+        "sectionId": "compute/parity",
+        "claimGrade": false,
+        "invalidReasons": [
+          "non-performance-comparable-lane",
+          "cross-surface-diagnostic:doppler-unknown-vs-transformersjs-browser",
+          "section-not-paired-comparable"
+        ],
+        "gates": {
+          "performanceComparableLane": false,
+          "sameRuntimeSurface": false,
+          "tjsModelPinned": true,
+          "pairedComparable": false,
+          "throughputCadencePromotable": null
+        },
+        "invalidReason": "non-performance-comparable-lane"
+      }
+    },
+    "semantics": {
+      "claimGrade": "true means the primary compare section passed paired correctness, prompt/decode validity, same runtime surface, pinned comparator model, and performance-comparable lane gates.",
+      "releaseClaimable": "true means claimGrade evidence measured the hosted quickstart-registry Doppler artifact.",
+      "localComparable": "true means claimGrade evidence exists but is local-artifact evidence, not a hosted release claim.",
+      "formatFairness": "different optimized formats are allowed only as disclosed product-format comparisons, not format-identical engine claims."
+    }
+  },
+  "compareLane": {
+    "declared": null,
+    "reason": null,
+    "allowNonComparableLane": false,
+    "lane": null,
+    "claimGrade": false,
+    "claimable": false,
+    "releaseClaimable": false,
+    "localComparable": false,
+    "correctnessOk": false,
+    "fairnessInvalidReason": "non-performance-comparable-lane",
+    "fairnessInvalidReasons": [
+      "non-performance-comparable-lane",
+      "cross-surface-diagnostic:doppler-unknown-vs-transformersjs-browser",
+      "section-not-paired-comparable"
+    ]
+  },
+  "dopplerExecution": {
+    "requestedSurface": null,
+    "commandSurface": null,
+    "cliExecutor": null,
+    "format": null,
+    "commandSurfaceReason": null
   }
 }

@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { attachCompareFairnessAudit } from '../../tools/compare-engines.js';
 
 function runVendorBench(args) {
   return spawnSync(process.execPath, ['tools/vendor-bench.js', ...args], {
@@ -25,6 +26,10 @@ function normalizeCatalogTestedState(value) {
   const text = typeof value === 'string' ? value.trim().toLowerCase() : '';
   if (text === 'pass') return 'verified';
   return text || 'unknown';
+}
+
+function repoRelative(filePath) {
+  return path.relative(process.cwd(), filePath).split(path.sep).join('/');
 }
 
 async function readExpectedReleaseClaimableModelIds() {
@@ -194,6 +199,7 @@ async function readExpectedReleaseClaimableModelIds() {
   );
   assert.equal(typeof matrixPayload.evidence?.latestCompareResult?.dopplerSurface, 'string');
   assert.equal(typeof matrixPayload.evidence?.latestCompareResult?.dopplerExecution?.cliExecutor, 'string');
+  assert.equal(matrixPayload.evidence?.latestCompareResult?.fairness?.releaseClaimable, true);
   const bottlenecks = matrixPayload.evidence?.latestCompareResult?.bottlenecks;
   assert.ok(Array.isArray(bottlenecks), 'latest compare result must include bottlenecks');
   assert.ok(bottlenecks.length > 0, 'latest compare result must identify at least one TJS-leading bottleneck');
@@ -282,7 +288,70 @@ async function readExpectedReleaseClaimableModelIds() {
   assert.match(markdownPayload, /^## Latest Bottlenecks$/m);
   assert.match(markdownPayload, /Doppler internal:/);
   assert.match(markdownPayload, /doppler browser/);
-  assert.match(markdownPayload, /doppler bun \/ command node/);
+}
+
+{
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-vendor-bench-fairness-'));
+  const releaseFixturePath = path.join(
+    process.cwd(),
+    'benchmarks',
+    'vendors',
+    'fixtures',
+    'gemma-3-270m-it-q4k-rdrr-p064-d064-t0-k1-strix-halo-20260627.compare.json'
+  );
+  const fixturePayload = JSON.parse(await fs.readFile(releaseFixturePath, 'utf8'));
+
+  const missingFairnessPath = path.join(tempDir, 'newer-missing-fairness.compare.json');
+  const missingFairnessPayload = JSON.parse(JSON.stringify(fixturePayload));
+  missingFairnessPayload.timestamp = '2026-07-05T00:00:00.000Z';
+  delete missingFairnessPayload.fairness;
+  await fs.writeFile(
+    missingFairnessPath,
+    `${JSON.stringify(missingFairnessPayload, null, 2)}\n`,
+    'utf8'
+  );
+
+  const localFairnessPath = path.join(tempDir, 'newer-local-fairness.compare.json');
+  const localFairnessPayload = JSON.parse(JSON.stringify(fixturePayload));
+  localFairnessPayload.timestamp = '2026-07-05T00:00:01.000Z';
+  localFairnessPayload.dopplerModelSource = {
+    ...localFairnessPayload.dopplerModelSource,
+    source: 'local',
+    modelUrl: 'file:///tmp/doppler-local-model',
+    registrySource: null,
+  };
+  attachCompareFairnessAudit(localFairnessPayload);
+  assert.equal(localFairnessPayload.fairness.claimGrade, true);
+  assert.equal(localFairnessPayload.fairness.releaseClaimable, false);
+  assert.equal(localFairnessPayload.fairness.localComparable, true);
+  await fs.writeFile(
+    localFairnessPath,
+    `${JSON.stringify(localFairnessPayload, null, 2)}\n`,
+    'utf8'
+  );
+
+  for (const blockedPath of [missingFairnessPath, localFairnessPath]) {
+    const matrixPath = path.join(tempDir, `${path.basename(blockedPath)}.release-matrix.json`);
+    const markdownPath = path.join(tempDir, `${path.basename(blockedPath)}.release-matrix.md`);
+    const result = runVendorBench([
+      'matrix',
+      '--compare-result', blockedPath,
+      '--output', matrixPath,
+      '--markdown-output', markdownPath,
+    ]);
+    assert.equal(result.status, 0, result.stderr);
+    const matrixPayload = JSON.parse(await fs.readFile(matrixPath, 'utf8'));
+    assert.notEqual(
+      matrixPayload.evidence?.latestCompareResult?.path,
+      repoRelative(blockedPath),
+      `${path.basename(blockedPath)} must not become release evidence`
+    );
+    assert.equal(
+      matrixPayload.evidence?.latestCompareResult?.fairness?.releaseClaimable,
+      true,
+      'selected release compare result must carry an explicit release-claimable fairness verdict'
+    );
+  }
 }
 
 {
