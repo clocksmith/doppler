@@ -150,6 +150,14 @@ within a row.
 - Backend evidence summary:
   [benchmarks/vendors/results/doppler-backend-evidence-summary.svg](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/doppler-backend-evidence-summary.svg)
 
+### Current Qwen evidence
+
+| Model | Current evidence state | Receipt |
+| --- | --- | --- |
+| `qwen-3-5-0-8b-q4k-ehaf16` | Browser local-artifact compare is fair and exact-match against `onnx-community/Qwen3.5-0.8B-ONNX`; Doppler measured 78.31 decode tok/s in the throughput profile versus 41.37 decode tok/s for Transformers.js. This is not hosted/release-clean until the HF manifest is refreshed. | [compare_20260706T010026.json](./benchmarks/vendors/results/compare_20260706T010026.json) |
+| `qwen-3-embedding-0-6b-q4k-ehf16-af32` | Hosted browser compare is release-claimable; shared semantic correctness passed, with Doppler at 12.74 embeddings/s versus 6.51 embeddings/s for Transformers.js. | [embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260706T010957.json](./benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260706T010957.json) |
+| `qwen-3-reranker-0-6b-q4k-ehf16-af32` | Hosted runtime verify passes on Node and browser; semantic pair accuracy is 1.0 on both receipts. There is no competitor performance claim yet. | [node report](./reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-06T01-20-00.000Z.node.json), [browser report](./reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-06T01-23-00.000Z.browser.json) |
+
 ## Model roadmap
 
 The README tracks model priority by source model, not by implementation lane.

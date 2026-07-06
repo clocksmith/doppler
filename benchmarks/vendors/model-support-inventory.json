@@ -1045,7 +1045,7 @@
           "compare": {
             "profile": {
               "kind": "generation",
-              "dopplerSource": "local",
+              "dopplerSource": "quickstart-registry",
               "dopplerFormat": "rdrr",
               "tjsModelId": "onnx-community/Qwen3.5-0.8B-ONNX",
               "tjsDtype": null,
@@ -1176,13 +1176,13 @@
           "compare": {
             "profile": {
               "kind": "embedding",
-              "dopplerSource": "local",
+              "dopplerSource": "quickstart-registry",
               "dopplerFormat": null,
               "tjsModelId": "onnx-community/Qwen3-Embedding-0.6B-ONNX",
               "tjsDtype": "q4f16",
               "tjsFormat": "onnx",
               "lane": "performance_comparable",
-              "laneReason": "Local Doppler artifact compared against the browser WebGPU Transformers.js ONNX embedding baseline; release claims remain gated on artifact promotion."
+              "laneReason": "Hosted Clocksmith/rdrr Doppler artifact compared against the browser WebGPU Transformers.js ONNX embedding baseline with the shared semantic fixture."
             },
             "benchmarkComparable": true,
             "benchmarkEvidenceOk": false
@@ -1203,10 +1203,10 @@
               {
                 "workloadId": "embedding",
                 "decodeProfile": null,
-                "command": "node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --warmup 1 --runs 3 --doppler-source local --doppler-surface auto --cache-mode warm --load-mode http --save --json"
+                "command": "node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --warmup 1 --runs 3 --doppler-source quickstart-registry --doppler-surface auto --cache-mode warm --load-mode http --save --json"
               }
             ],
-            "primaryNextCommand": "node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --warmup 1 --runs 3 --doppler-source local --doppler-surface auto --cache-mode warm --load-mode http --save --json"
+            "primaryNextCommand": "node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --warmup 1 --runs 3 --doppler-source quickstart-registry --doppler-surface auto --cache-mode warm --load-mode http --save --json"
           },
           "missing": [
             "compare-result",
@@ -1217,7 +1217,7 @@
       ],
       "nextAction": "Run compare/bench receipts for qwen-3-embedding-0-6b-q4k-ehf16-af32.",
       "nextGate": "compare-result",
-      "nextCommand": "node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --warmup 1 --runs 3 --doppler-source local --doppler-surface auto --cache-mode warm --load-mode http --save --json"
+      "nextCommand": "node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --warmup 1 --runs 3 --doppler-source quickstart-registry --doppler-surface auto --cache-mode warm --load-mode http --save --json"
     },
     {
       "sourceCheckpointId": "Qwen/Qwen3.5-2B",

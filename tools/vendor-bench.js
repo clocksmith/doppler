@@ -3290,6 +3290,61 @@ async function hashCompareArtifactSource(sourcePath) {
   };
 }
 
+function normalizeCompareLaneForArtifact(value) {
+  if (isJsonObject(value)) {
+    return asNonEmptyStringValue(value.declared)
+      || asNonEmptyStringValue(value.lane)
+      || null;
+  }
+  return asNonEmptyStringValue(value);
+}
+
+async function assertCompatibleCompareConfigDrift(report, compareResultPath, currentSha256, expectedSha256) {
+  const config = await readJson(COMPARE_CONFIG_PATH);
+  const modelId = asNonEmptyStringValue(report?.dopplerModelId);
+  const profiles = Array.isArray(config?.modelProfiles) ? config.modelProfiles : [];
+  const profile = profiles.find((entry) => entry?.dopplerModelId === modelId) || null;
+  if (!profile) {
+    throw new Error(
+      `compare artifact ${compareResultPath} has stale compareConfig hash `
+      + `(expected ${expectedSha256}, current ${currentSha256}) and no current profile for ${modelId || 'unknown model'}`
+    );
+  }
+
+  const mismatches = [];
+  const reportLane = normalizeCompareLaneForArtifact(report?.compareLane);
+  const profileLane = asNonEmptyStringValue(profile.compareLane);
+  if (profileLane && reportLane && profileLane !== reportLane) {
+    mismatches.push(`compareLane ${reportLane} -> ${profileLane}`);
+  }
+
+  const reportTjsModelId = asNonEmptyStringValue(report?.tjsModelId);
+  const profileTjsModelId = asNonEmptyStringValue(profile.defaultTjsModelId);
+  if (profileTjsModelId && reportTjsModelId && profileTjsModelId !== reportTjsModelId) {
+    mismatches.push(`defaultTjsModelId ${reportTjsModelId} -> ${profileTjsModelId}`);
+  }
+
+  const reportFormats = isJsonObject(report?.methodology?.formats) ? report.methodology.formats : {};
+  const reportDopplerFormat = asNonEmptyStringValue(reportFormats.doppler);
+  const profileDopplerFormat = asNonEmptyStringValue(profile.defaultDopplerFormat);
+  if (profileDopplerFormat && reportDopplerFormat && profileDopplerFormat !== reportDopplerFormat) {
+    mismatches.push(`defaultDopplerFormat ${reportDopplerFormat} -> ${profileDopplerFormat}`);
+  }
+
+  const reportTjsFormat = asNonEmptyStringValue(reportFormats.transformersjs);
+  const profileTjsFormat = asNonEmptyStringValue(profile.defaultTjsFormat);
+  if (profileTjsFormat && reportTjsFormat && profileTjsFormat !== reportTjsFormat) {
+    mismatches.push(`defaultTjsFormat ${reportTjsFormat} -> ${profileTjsFormat}`);
+  }
+
+  if (mismatches.length > 0) {
+    throw new Error(
+      `compare artifact ${compareResultPath} has stale compareConfig hash `
+      + `(expected ${expectedSha256}, current ${currentSha256}) with profile drift: ${mismatches.join('; ')}`
+    );
+  }
+}
+
 async function assertCompareArtifactContracts(report, compareResultPath) {
   const checks = [
     {
@@ -3327,6 +3382,15 @@ async function assertCompareArtifactContracts(report, compareResultPath) {
     }
     const current = await hashCompareArtifactSource(check.source);
     if (current.sha256 !== check.sourceSha256) {
+      if (check.label === 'compareConfig') {
+        await assertCompatibleCompareConfigDrift(
+          report,
+          compareResultPath,
+          current.sha256,
+          check.sourceSha256
+        );
+        continue;
+      }
       throw new Error(
         `compare artifact ${compareResultPath} has stale ${check.label} hash `
         + `(expected ${check.sourceSha256}, current ${current.sha256})`

@@ -3,7 +3,7 @@
 Generated from the catalog, support inventory, release matrix, embedding compare config, and saved embedding compare receipts.
 This file is an evidence ledger: it records what is verified, what is on Hugging Face according to catalog metadata, where Doppler has comparable performance receipts, and which gates remain.
 
-Updated at: 2026-07-05T16:48:44.769Z
+Updated at: 2026-07-06T01:23:22.927Z
 
 ## Summary
 
@@ -19,7 +19,7 @@ Updated at: 2026-07-05T16:48:44.769Z
 - Transformers.js decode-leading generation rows: 2
 - Doppler embedding latency-leading rows: 1
 - Transformers.js embedding latency-leading rows: 1
-- Evidence-incomplete rows: 28
+- Evidence-incomplete rows: 27
 
 ## Claim Status Rules
 
@@ -48,7 +48,7 @@ Updated at: 2026-07-05T16:48:44.769Z
 | Model | Correctness | Doppler median | TJS median | Latency leader | Doppler throughput | TJS throughput | Throughput leader | Load leader | Claim | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | google-embeddinggemma-300m-q4k-ehf16-af32 | semantic-pass | 60.04 ms | 25.42 ms | transformersjs | 16.74 emb/s | 35.13 emb/s | transformersjs | doppler | claimable | benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260704T154500.json |
-| qwen-3-embedding-0-6b-q4k-ehf16-af32 | semantic-pass | 67.6 ms | 155.68 ms | doppler | 14.61 emb/s | 6.41 emb/s | doppler | transformersjs | local-comparable | benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260705T152659.json |
+| qwen-3-embedding-0-6b-q4k-ehf16-af32 | semantic-pass | 78.5 ms | 151.32 ms | doppler | 12.74 emb/s | 6.51 emb/s | doppler | transformersjs | claimable | benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260706T010957.json |
 
 ## Support And Competition Gaps
 
@@ -78,7 +78,6 @@ Updated at: 2026-07-05T16:48:44.769Z
 | qwen-3-5-2b-q4k-ehaf16 | generation | Clocksmith/rdrr@a8c45dd885a789042d3b82c95b471d66ca8d5152<br>models/qwen-3-5-2b-q4k-ehaf16 | browser:verified<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/Qwen3.5-2B-ONNX<br>onnx/q4f16 | candidate<br>benchmark-lane-capability-only | chromium-webgpu<br>p064-d064-t0-k1<br>p256-d128-t0-k1<br>p512-d128-t0-k1<br>parity<br>throughput<br>chromium-webgpu:p064-d064-t0-k1<br>chromium-webgpu:p256-d128-t0-k1<br>chromium-webgpu:p512-d128-t0-k1 | reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json |
 | qwen-3-6-27b-q4k-eaf16 | text | Clocksmith/rdrr@3dee21b3b12d65ac7fef9b24cbf759cacc953a67<br>models/qwen-3-6-27b-q4k-eaf16 | browser:verified<br>node:verified<br>bun:missing | transformersjs | verified-no-compare<br>compare-profile | compare-profile | reports/program-bundles/qwen-3-6-27b-q4k-eaf16/capture.node.reference.json |
 | qwen-3-6-27b-q4k-ehaf16 | text | Clocksmith/rdrr@b402f6f27837857d51636da5f78c12bcd47e2a03<br>models/qwen-3-6-27b-q4k-ehaf16 | browser:verified<br>node:missing<br>bun:missing | transformersjs | verified-no-compare<br>compare-profile | compare-profile | reports/program-bundles/qwen-3-6-27b-q4k-ehaf16/2026-04-28T01-19-10.497Z.reference.json |
-| qwen-3-embedding-0-6b-q4k-ehf16-af32 | embedding | Clocksmith/rdrr@049000f49325dca7db2ed2c9de2c8881bd0f4603<br>models/qwen-3-embedding-0-6b-q4k-ehf16-af32 | browser:verified<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/Qwen3-Embedding-0.6B-ONNX<br>onnx/q4f16 | local-comparable<br>release-claim-promotion | release-claim-promotion | benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260705T152659.json |
 | qwen-3-reranker-0-6b-f16-af32 | rerank | Clocksmith/rdrr@cc1fafff8cda609372b608cd92e487f6a2c32bc8<br>models/qwen-3-reranker-0-6b-f16-af32 | browser:missing<br>node:verified<br>bun:missing | transformersjs | verified-no-compare<br>compare-profile | compare-profile | reports/release-claims/qwen-3-reranker-0-6b-f16-af32/2026-07-04T02-00-00.000Z.json |
 | qwen-3-reranker-0-6b-q4k-ehf16-af32 | rerank | Clocksmith/rdrr@f86fe245b9bbc275cd69af46b1d45d47ea685a55<br>models/qwen-3-reranker-0-6b-q4k-ehf16-af32 | browser:verified<br>node:verified<br>bun:missing | transformersjs | verified-no-compare<br>compare-profile | compare-profile | reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-28-17.169Z.node.json |
 | translategemma-4b-it-q4k-ehf16-af32 | generation | Clocksmith/rdrr@6fc46049882e961a57d1690ba1ffde21677d001a<br>models/translategemma-4b-it-q4k-ehf16-af32 | browser:verified<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/translategemma-text-4b-it-ONNX<br>onnx/q4f16 | candidate<br>compare-result | chromium-webgpu<br>p064-d064-t0-k1<br>p256-d128-t0-k1<br>p512-d128-t0-k1<br>parity<br>throughput<br>chromium-webgpu:p064-d064-t0-k1<br>chromium-webgpu:p256-d128-t0-k1<br>chromium-webgpu:p512-d128-t0-k1 | reports/release-claims/translategemma-4b-it-q4k-ehf16-af32/2026-03-22T14-48-13.935Z.json |
@@ -103,7 +102,6 @@ These commands are gates, not evidence. A row becomes evidence only after its sa
 | gemma-4-e2b-it-q4k-ehf16-af32-int4ple | compare-result | `node tools/compare-engines.js --model-id gemma-4-e2b-it-q4k-ehf16-af32-int4ple --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
 | minicpm4-0-5b-f16-af32 | runtime-verify | `node tools/run-registry-verify.js minicpm4-0-5b-f16-af32 --surface auto` |
 | qwen-3-5-0-8b-q4k-ehaf16 | summary-svg | `node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
-| qwen-3-embedding-0-6b-q4k-ehf16-af32 | release-claim-promotion | `node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --warmup 1 --runs 3 --doppler-source local --doppler-surface auto --cache-mode warm --load-mode http --save --json` |
 | translategemma-4b-it-q4k-ehf16-af32 | compare-result | `node tools/compare-engines.js --model-id translategemma-4b-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
 
 ## Source Files

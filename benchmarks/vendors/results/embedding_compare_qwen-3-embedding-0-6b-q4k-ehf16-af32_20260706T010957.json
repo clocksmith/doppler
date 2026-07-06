@@ -1,0 +1,3739 @@
+{
+  "schemaVersion": 1,
+  "kind": "embedding-engine-compare",
+  "timestamp": "2026-07-06T01:09:57.475Z",
+  "model": {
+    "dopplerModelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+    "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
+    "dopplerSource": "quickstart-registry",
+    "dopplerLocator": "https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+    "transformersjsModelId": "onnx-community/Qwen3-Embedding-0.6B-ONNX",
+    "transformersjsDtype": "q4f16",
+    "transformersjsFormat": "onnx"
+  },
+  "workload": {
+    "prompt": "A small red cube rests on a wooden table beside a blue sphere.",
+    "warmupRuns": 1,
+    "timedRuns": 3,
+    "cacheMode": "warm",
+    "loadMode": "http",
+    "semanticFixture": "src/inference/fixtures/embedding-semantic-fixtures.json",
+    "embeddingMode": "feature-extraction",
+    "embeddingPooling": "last_token",
+    "embeddingNormalize": true,
+    "embeddingStyle": "qwen3_embedding"
+  },
+  "compareLane": {
+    "lane": "performance_comparable",
+    "reason": "Hosted Clocksmith/rdrr Doppler artifact compared against the browser WebGPU Transformers.js ONNX embedding baseline with the shared semantic fixture.",
+    "claimGrade": true,
+    "correctnessOk": true,
+    "localComparable": false,
+    "releaseClaimable": true,
+    "claimable": true,
+    "fairnessInvalidReason": null,
+    "fairnessInvalidReasons": []
+  },
+  "fairness": {
+    "schemaVersion": 1,
+    "claimGrade": true,
+    "releaseClaimable": true,
+    "localComparable": false,
+    "correctnessOk": true,
+    "primarySection": "embedding",
+    "invalidReason": null,
+    "invalidReasons": [],
+    "sourceFairness": {
+      "schemaVersion": 1,
+      "dopplerSource": "quickstart-registry",
+      "hostedDopplerArtifact": true,
+      "releaseConfigured": true,
+      "blocksReleaseClaim": false
+    },
+    "sections": {
+      "embedding": {
+        "schemaVersion": 1,
+        "claimGrade": true,
+        "invalidReason": null,
+        "invalidReasons": [],
+        "gates": {
+          "correctnessOk": true,
+          "performanceComparable": true,
+          "hostedDopplerArtifact": true,
+          "releaseConfigured": true
+        }
+      }
+    },
+    "semantics": {
+      "claimGrade": "true means the embedding compare passed shared semantic correctness and performance-comparable lane gates.",
+      "releaseClaimable": "true means claimGrade evidence measured the hosted Doppler artifact selected by the embedding compare profile.",
+      "localComparable": "true means claimGrade evidence exists but is not hosted release evidence."
+    }
+  },
+  "sources": {
+    "config": {
+      "source": "benchmarks/vendors/embedding-compare.config.json",
+      "sourceSha256": "fa29d4e53f0e25b7ac8b93cece2cf0f0edb81cc7a563b12ba5c9f23888fce24e"
+    },
+    "catalog": {
+      "source": "models/catalog.json",
+      "sourceSha256": "d8e553e7e251d06276756c1a23e9c87932a551635986310f70205c1683195d36"
+    }
+  },
+  "commands": {
+    "dopplerBench": [
+      "/usr/bin/node",
+      "/home/x/deco/doppler/src/cli/doppler-cli.js",
+      "bench",
+      "--config",
+      "{\"request\":{\"workload\":\"embedding\",\"modelId\":\"qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"modelUrl\":\"https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"cacheMode\":\"warm\",\"loadMode\":\"http\",\"runtimeConfig\":{\"shared\":{\"benchmark\":{\"run\":{\"customPrompt\":\"A small red cube rests on a wooden table beside a blue sphere.\",\"warmupRuns\":1,\"timedRuns\":3,\"loadMode\":\"http\"}}},\"inference\":{\"prompt\":\"A small red cube rests on a wooden table beside a blue sphere.\"}}},\"run\":{\"surface\":\"browser\",\"timestamp\":\"2026-07-06T01:09:57.475Z\",\"browser\":{\"opfsCache\":false}}}",
+      "--json"
+    ],
+    "dopplerVerify": [
+      "/usr/bin/node",
+      "/home/x/deco/doppler/src/cli/doppler-cli.js",
+      "verify",
+      "--config",
+      "{\"request\":{\"workload\":\"embedding\",\"modelId\":\"qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"modelUrl\":\"https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"cacheMode\":\"warm\",\"loadMode\":\"http\",\"runtimeConfig\":{\"shared\":{\"benchmark\":{\"run\":{\"customPrompt\":\"A small red cube rests on a wooden table beside a blue sphere.\",\"warmupRuns\":0,\"timedRuns\":1,\"loadMode\":\"http\"}}},\"inference\":{\"prompt\":\"A small red cube rests on a wooden table beside a blue sphere.\"}}},\"run\":{\"surface\":\"browser\",\"timestamp\":\"2026-07-06T01:09:57.475Z\",\"browser\":{\"opfsCache\":false}}}",
+      "--json"
+    ],
+    "transformersjsBench": [
+      "/usr/bin/node",
+      "/home/x/deco/doppler/benchmarks/runners/transformersjs-bench.js",
+      "--task",
+      "embedding",
+      "--model",
+      "onnx-community/Qwen3-Embedding-0.6B-ONNX",
+      "--prompt",
+      "A small red cube rests on a wooden table beside a blue sphere.",
+      "--warmup",
+      "1",
+      "--runs",
+      "3",
+      "--cache-mode",
+      "warm",
+      "--load-mode",
+      "http",
+      "--dtype",
+      "q4f16",
+      "--format",
+      "onnx",
+      "--embedding-mode",
+      "feature-extraction",
+      "--embedding-pooling",
+      "last_token",
+      "--embedding-normalize",
+      "on",
+      "--embedding-style",
+      "qwen3_embedding",
+      "--semantic-fixture",
+      "/home/x/deco/doppler/src/inference/fixtures/embedding-semantic-fixtures.json",
+      "--profile-ops",
+      "off",
+      "--timeout",
+      "900000",
+      "--timestamp",
+      "2026-07-06T01:09:57.475Z",
+      "--json"
+    ]
+  },
+  "summary": {
+    "correctnessOk": true,
+    "doppler": {
+      "speed": {
+        "embeddingDim": 1024,
+        "medianEmbeddingMs": 78.5,
+        "avgEmbeddingMs": 78.47,
+        "avgEmbeddingsPerSec": 12.74,
+        "p95EmbeddingMs": 79.49,
+        "modelLoadMs": 79618.3,
+        "nonFiniteValues": 0,
+        "avgEmbeddingL2Norm": 1
+      },
+      "correctness": {
+        "semanticPassed": true,
+        "semanticRetrievalTop1Acc": 0.9,
+        "semanticPairAcc": 0.7143,
+        "finiteRatio": 1,
+        "nonFiniteValues": 0,
+        "embeddingDim": 1024,
+        "embeddingL2Norm": 1
+      }
+    },
+    "transformersjs": {
+      "speed": {
+        "embeddingDim": 1024,
+        "medianEmbeddingMs": 151.3200000524521,
+        "avgEmbeddingMs": 153.51000003019968,
+        "avgEmbeddingsPerSec": 6.51423359913538,
+        "p95EmbeddingMs": 165.796499979496,
+        "modelLoadMs": 20968.99500000477,
+        "nonFiniteValues": 0,
+        "avgEmbeddingL2Norm": 0.9999998025649979
+      },
+      "correctness": {
+        "semanticPassed": true,
+        "semanticRetrievalTop1Acc": 1,
+        "semanticPairAcc": 0.6428571428571429,
+        "finiteRatio": 1,
+        "nonFiniteValues": 0,
+        "embeddingDim": 1024,
+        "embeddingL2Norm": 0.9999998025649979
+      }
+    },
+    "ratios": {
+      "medianEmbeddingMsDopplerOverTjs": 0.5188,
+      "avgEmbeddingsPerSecDopplerOverTjs": 1.9557,
+      "modelLoadMsDopplerOverTjs": 3.797
+    }
+  },
+  "raw": {
+    "dopplerBench": {
+      "suite": "bench",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 80044.29999995232,
+      "results": [
+        {
+          "name": "benchmark-embedding",
+          "passed": true,
+          "duration": 235.40000009536743
+        }
+      ],
+      "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+      "cacheMode": "warm",
+      "loadMode": "http",
+      "env": {
+        "library": "doppler",
+        "runtime": "browser",
+        "device": "webgpu",
+        "browserUserAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.0.0 Safari/537.36",
+        "browserPlatform": "Linux x86_64",
+        "browserLanguage": "en-US",
+        "browserVendor": "Google Inc."
+      },
+      "timing": {
+        "modelLoadMs": 79618.3,
+        "firstTokenMs": null,
+        "firstResponseMs": 79697.9,
+        "prefillMs": 0,
+        "decodeMs": 0,
+        "decodeMsPerTokenP50": null,
+        "decodeMsPerTokenP95": null,
+        "decodeMsPerTokenP99": null,
+        "decodeTokensPerSec": null,
+        "prefillTokensPerSec": null,
+        "totalRunMs": 78.5,
+        "cacheMode": "warm",
+        "loadMode": "http"
+      },
+      "timingDiagnostics": {
+        "schemaVersion": 1,
+        "source": "doppler",
+        "semantics": {
+          "modelLoadMs": "model initialization/load before generation",
+          "firstTokenMs": "ttft from generation start",
+          "firstResponseMs": "modelLoadMs + firstTokenMs",
+          "prefillMs": "internal_prefill_phase",
+          "decodeMs": "time after first token",
+          "totalRunMs": "prefillMs + decodeMs"
+        },
+        "componentsMs": {
+          "modelLoadMs": 79618.3,
+          "firstTokenMs": null,
+          "firstResponseMs": 79697.9,
+          "prefillMs": 0,
+          "decodeMs": 0,
+          "totalRunMs": 78.5
+        },
+        "sumsMs": {
+          "firstResponseFromLoadAndFirstTokenMs": null,
+          "runFromPrefillAndDecodeMs": 0
+        },
+        "residualsMs": {
+          "firstResponseResidualMs": null,
+          "runResidualMs": 78.5
+        },
+        "consistent": {
+          "firstResponse": null,
+          "totalRun": false
+        },
+        "load": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "semantics": {
+            "modelLoadMs": "suite initialization time before generation",
+            "loaderTotalMs": "DopplerLoader.load() weight-loader wall time",
+            "pipelineTotalMs": "InferencePipeline.loadModel() wall time",
+            "modelLoadMinusPipelineMs": "modelLoadMs - pipeline.totalMs; harness, storage, manifest, GPU init, and pipeline construction",
+            "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
+            "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
+          },
+          "modelLoadMs": 79618.3,
+          "loader": {
+            "schemaVersion": 1,
+            "source": "doppler-loader",
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "status": "complete",
+            "customShardLoader": true,
+            "byteAccountingMode": "custom-loader-progress-unavailable",
+            "totalBytes": 558475264,
+            "totalShards": 9,
+            "bytesLoaded": 0,
+            "shardsLoaded": 0,
+            "bytesPerSecond": 0,
+            "phasesMs": {
+              "preflight": 0.8,
+              "tensorLocations": 1.2,
+              "embeddings": 49719.8,
+              "layers": 27401.4,
+              "finalWeights": 165.2,
+              "cleanup": 0
+            },
+            "layers": {
+              "count": 28,
+              "totalMs": 27380.3,
+              "meanMs": 977.87,
+              "maxMs": 5028.6,
+              "maxLayer": 2
+            },
+            "totalMs": 77289,
+            "failedPhase": null,
+            "error": null
+          },
+          "pipeline": {
+            "schemaVersion": 1,
+            "source": "doppler-pipeline",
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "status": "complete",
+            "phasesMs": {
+              "reset": 0.2,
+              "configResolution": 6.1,
+              "kernelWarmup": 0,
+              "tokenizer": 573.8,
+              "executionSetup": 2.4,
+              "loadWeights": 78834.5,
+              "rope": 50.1,
+              "convStates": 0.2
+            },
+            "details": {
+              "tokenizer": {
+                "schemaVersion": 1,
+                "source": "doppler-tokenizer",
+                "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+                "status": "complete",
+                "tokenizerType": "bundled",
+                "tokenizerFile": "tokenizer.json",
+                "backend": "bundled",
+                "assetSource": "custom-loader",
+                "cacheHit": false,
+                "phasesMs": {
+                  "configResolution": 0,
+                  "cacheLookup": 0.1,
+                  "backendCreate": 0,
+                  "assetLoad": 477,
+                  "assetParse": 0.1,
+                  "backendLoad": 95.7,
+                  "cacheStore": 0.1
+                },
+                "totalMs": 573.5,
+                "error": null
+              }
+            },
+            "totalMs": 79467.3
+          },
+          "residualsMs": {
+            "modelLoadMinusLoaderMs": 2329.3,
+            "modelLoadMinusPipelineMs": 151,
+            "pipelineMinusLoaderMs": 2178.3
+          },
+          "consistent": {
+            "loaderWithinModelLoad": true,
+            "pipelineWithinModelLoad": true,
+            "loaderWithinPipeline": true
+          }
+        }
+      },
+      "firstLoad": {
+        "schemaVersion": 1,
+        "semantics": {
+          "browserLaunchMs": "node launch request -> browser/context ready",
+          "pageReadyMs": "runner navigation + startup",
+          "cachePrimeMs": "untimed warm-opfs prefetch/load pass",
+          "modelLoadMs": "model initialization/load before generation",
+          "firstTokenMs": "ttft from generation start",
+          "firstResponseMs": "modelLoadMs + firstTokenMs",
+          "harnessWarmStartToFirstResponseMs": "pageReadyMs + cachePrimeMs + firstResponseMs",
+          "endToEndFirstResponseMs": "browserLaunchMs + pageReadyMs + cachePrimeMs + firstResponseMs"
+        },
+        "componentsMs": {
+          "browserLaunchMs": null,
+          "pageReadyMs": null,
+          "cachePrimeMs": null,
+          "modelLoadMs": 79618.3,
+          "firstTokenMs": null,
+          "firstResponseMs": 79697.9
+        },
+        "sumsMs": {
+          "firstResponseFromLoadAndFirstTokenMs": null,
+          "harnessWarmStartToFirstResponseMs": null,
+          "endToEndFirstResponseMs": null
+        },
+        "residualsMs": {
+          "firstResponseResidualMs": null
+        },
+        "consistent": {
+          "firstResponse": null
+        }
+      },
+      "output": null,
+      "metrics": {
+        "warmupRuns": 1,
+        "timedRuns": 3,
+        "validRuns": 3,
+        "invalidRuns": 0,
+        "invalidRatePct": 0,
+        "prompt": "A small red cube rests on a wooden table beside a blue sphere.",
+        "embeddingDim": 1024,
+        "nonFiniteValues": 0,
+        "firstTimedEmbeddingMs": 79.6,
+        "minEmbeddingMs": 77.3,
+        "medianEmbeddingMs": 78.5,
+        "p95EmbeddingMs": 79.49,
+        "p99EmbeddingMs": 79.58,
+        "maxEmbeddingMs": 79.6,
+        "stdDevEmbeddingMs": 1.15,
+        "ci95EmbeddingMs": 1.99,
+        "avgEmbeddingMs": 78.47,
+        "avgEmbeddingsPerSec": 12.74,
+        "avgEmbeddingTokens": 15,
+        "avgEmbeddingL2Norm": 1,
+        "modelLoadMs": 79618.3,
+        "latency": {
+          "timedEmbeddingMs": {
+            "mean": 78.46666669845581,
+            "median": 78.5,
+            "min": 77.30000007152557,
+            "max": 79.60000002384186,
+            "p95": 79.49000002145767,
+            "p99": 79.57800002336502,
+            "stdDev": 1.1503622372572928,
+            "ci95": 1.9924858420382345,
+            "samples": 3,
+            "samplesAfterOutlierRemoval": 3,
+            "outliersRemoved": 0
+          },
+          "embeddingMs": {
+            "mean": 78.46666669845581,
+            "median": 78.5,
+            "min": 77.30000007152557,
+            "max": 79.60000002384186,
+            "p95": 79.49000002145767,
+            "p99": 79.57800002336502,
+            "stdDev": 1.1503622372572928,
+            "ci95": 1.9924858420382345,
+            "samples": 3,
+            "samplesAfterOutlierRemoval": 3,
+            "outliersRemoved": 0
+          }
+        },
+        "dimensions": {
+          "embedding": {
+            "mean": 1024,
+            "median": 1024,
+            "min": 1024,
+            "max": 1024,
+            "p95": 1024,
+            "p99": 1024,
+            "stdDev": 0,
+            "ci95": 0,
+            "samples": 3,
+            "samplesAfterOutlierRemoval": 3,
+            "outliersRemoved": 0
+          }
+        },
+        "embedding": {
+          "tokens": {
+            "mean": 15,
+            "median": 15,
+            "min": 15,
+            "max": 15,
+            "p95": 15,
+            "p99": 15,
+            "stdDev": 0,
+            "ci95": 0,
+            "samples": 3,
+            "samplesAfterOutlierRemoval": 3,
+            "outliersRemoved": 0
+          },
+          "l2Norm": {
+            "mean": 1.0000000015645096,
+            "median": 1.0000000015645096,
+            "min": 1.0000000015645096,
+            "max": 1.0000000015645096,
+            "p95": 1.0000000015645096,
+            "p99": 1.0000000015645096,
+            "stdDev": 0,
+            "ci95": 0,
+            "samples": 3,
+            "samplesAfterOutlierRemoval": 3,
+            "outliersRemoved": 0
+          }
+        },
+        "load": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "semantics": {
+            "modelLoadMs": "suite initialization time before generation",
+            "loaderTotalMs": "DopplerLoader.load() weight-loader wall time",
+            "pipelineTotalMs": "InferencePipeline.loadModel() wall time",
+            "modelLoadMinusPipelineMs": "modelLoadMs - pipeline.totalMs; harness, storage, manifest, GPU init, and pipeline construction",
+            "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
+            "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
+          },
+          "modelLoadMs": 79618.3,
+          "loader": {
+            "schemaVersion": 1,
+            "source": "doppler-loader",
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "status": "complete",
+            "customShardLoader": true,
+            "byteAccountingMode": "custom-loader-progress-unavailable",
+            "totalBytes": 558475264,
+            "totalShards": 9,
+            "bytesLoaded": 0,
+            "shardsLoaded": 0,
+            "bytesPerSecond": 0,
+            "phasesMs": {
+              "preflight": 0.8,
+              "tensorLocations": 1.2,
+              "embeddings": 49719.8,
+              "layers": 27401.4,
+              "finalWeights": 165.2,
+              "cleanup": 0
+            },
+            "layers": {
+              "count": 28,
+              "totalMs": 27380.3,
+              "meanMs": 977.87,
+              "maxMs": 5028.6,
+              "maxLayer": 2
+            },
+            "totalMs": 77289,
+            "failedPhase": null,
+            "error": null
+          },
+          "pipeline": {
+            "schemaVersion": 1,
+            "source": "doppler-pipeline",
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "status": "complete",
+            "phasesMs": {
+              "reset": 0.2,
+              "configResolution": 6.1,
+              "kernelWarmup": 0,
+              "tokenizer": 573.8,
+              "executionSetup": 2.4,
+              "loadWeights": 78834.5,
+              "rope": 50.1,
+              "convStates": 0.2
+            },
+            "details": {
+              "tokenizer": {
+                "schemaVersion": 1,
+                "source": "doppler-tokenizer",
+                "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+                "status": "complete",
+                "tokenizerType": "bundled",
+                "tokenizerFile": "tokenizer.json",
+                "backend": "bundled",
+                "assetSource": "custom-loader",
+                "cacheHit": false,
+                "phasesMs": {
+                  "configResolution": 0,
+                  "cacheLookup": 0.1,
+                  "backendCreate": 0,
+                  "assetLoad": 477,
+                  "assetParse": 0.1,
+                  "backendLoad": 95.7,
+                  "cacheStore": 0.1
+                },
+                "totalMs": 573.5,
+                "error": null
+              }
+            },
+            "totalMs": 79467.3
+          },
+          "residualsMs": {
+            "modelLoadMinusLoaderMs": 2329.3,
+            "modelLoadMinusPipelineMs": 151,
+            "pipelineMinusLoaderMs": 2178.3
+          },
+          "consistent": {
+            "loaderWithinModelLoad": true,
+            "pipelineWithinModelLoad": true,
+            "loaderWithinPipeline": true
+          }
+        },
+        "schemaVersion": 1,
+        "source": "doppler",
+        "suite": "bench",
+        "layerPatternContractArtifact": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "ok": true,
+          "checks": [
+            {
+              "id": "inference.layerPattern.patternKind.shape",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.patternKind.semantics",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.layerType.shape",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.layerType.semantics",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.computeGlobalLayers.even",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.computeGlobalLayers.odd",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "stats": {
+            "patternKindRules": 4,
+            "layerTypeRules": 6,
+            "patternKindContexts": 16,
+            "layerTypeContexts": 12
+          }
+        },
+        "requiredInferenceFieldsArtifact": null
+      },
+      "memoryStats": {
+        "used": 1049299712,
+        "pool": {
+          "allocations": 1273,
+          "reuses": 879,
+          "totalBytesAllocated": 662375168,
+          "peakBytesAllocated": 582552320,
+          "currentBytesAllocated": 579537664,
+          "totalBytesRequested": 657023744,
+          "peakBytesRequested": 582019072,
+          "currentBytesRequested": 575252480,
+          "activeBuffers": 312,
+          "pooledBuffers": 33,
+          "budgetMaxBytes": 0,
+          "budgetUtilization": 0,
+          "hitRate": "40.8%"
+        },
+        "kvCache": {
+          "theoretical": 469762048,
+          "allocated": 469762048,
+          "used": 1720320,
+          "efficiency": 0.003662109375,
+          "seqLen": 15,
+          "maxSeqLen": 4096,
+          "layout": "contiguous",
+          "kvDtype": "f16",
+          "counters": {
+            "updateCalls": 0,
+            "gpuUpdateCalls": 0,
+            "recordedGpuUpdateCalls": 112,
+            "tokensWritten": 1680
+          }
+        }
+      },
+      "deviceInfo": {
+        "hasSubgroups": true,
+        "hasSubgroupsF16": true,
+        "hasF16": true,
+        "hasTimestampQuery": true,
+        "maxBufferSize": 2147483648,
+        "maxWorkgroupSize": 1024,
+        "maxWorkgroupStorageSize": 65536,
+        "adapterInfo": {
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "device": "0x1586",
+          "description": "Radeon 8060S Graphics (RADV STRIX_HALO)"
+        },
+        "submitProbeMs": 1.7000000476837158
+      },
+      "pipeline": null,
+      "mode": "bench",
+      "workload": "embedding",
+      "debugSnapshot": null,
+      "reportInfo": {
+        "backend": "opfs",
+        "path": "reports/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-06T01-09-58.509Z.json"
+      }
+    },
+    "dopplerVerify": {
+      "suite": "embedding",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 89363.70000004768,
+      "results": [
+        {
+          "name": "embedding",
+          "passed": true,
+          "duration": 193.60000002384186
+        },
+        {
+          "name": "embedding-semantic",
+          "passed": true,
+          "duration": 19769.899999976158
+        }
+      ],
+      "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+      "cacheMode": "warm",
+      "loadMode": "http",
+      "env": {
+        "library": "doppler",
+        "runtime": "browser",
+        "device": "webgpu",
+        "browserUserAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.0.0 Safari/537.36",
+        "browserPlatform": "Linux x86_64",
+        "browserLanguage": "en-US",
+        "browserVendor": "Google Inc."
+      },
+      "timing": {
+        "modelLoadMs": 69396.6,
+        "firstTokenMs": null,
+        "firstResponseMs": 69396.6,
+        "prefillMs": 0,
+        "decodeMs": 0,
+        "decodeMsPerTokenP50": null,
+        "decodeMsPerTokenP95": null,
+        "decodeMsPerTokenP99": null,
+        "decodeTokensPerSec": null,
+        "prefillTokensPerSec": null,
+        "totalRunMs": 0,
+        "cacheMode": "warm",
+        "loadMode": "http"
+      },
+      "timingDiagnostics": {
+        "schemaVersion": 1,
+        "source": "doppler",
+        "semantics": {
+          "modelLoadMs": "model initialization/load before generation",
+          "firstTokenMs": "ttft from generation start",
+          "firstResponseMs": "modelLoadMs + firstTokenMs",
+          "prefillMs": "internal_prefill_phase",
+          "decodeMs": "time after first token",
+          "totalRunMs": "prefillMs + decodeMs"
+        },
+        "componentsMs": {
+          "modelLoadMs": 69396.6,
+          "firstTokenMs": null,
+          "firstResponseMs": 69396.6,
+          "prefillMs": 0,
+          "decodeMs": 0,
+          "totalRunMs": 0
+        },
+        "sumsMs": {
+          "firstResponseFromLoadAndFirstTokenMs": null,
+          "runFromPrefillAndDecodeMs": 0
+        },
+        "residualsMs": {
+          "firstResponseResidualMs": null,
+          "runResidualMs": 0
+        },
+        "consistent": {
+          "firstResponse": null,
+          "totalRun": true
+        },
+        "load": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "semantics": {
+            "modelLoadMs": "suite initialization time before generation",
+            "loaderTotalMs": "DopplerLoader.load() weight-loader wall time",
+            "pipelineTotalMs": "InferencePipeline.loadModel() wall time",
+            "modelLoadMinusPipelineMs": "modelLoadMs - pipeline.totalMs; harness, storage, manifest, GPU init, and pipeline construction",
+            "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
+            "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
+          },
+          "modelLoadMs": 69396.6,
+          "loader": {
+            "schemaVersion": 1,
+            "source": "doppler-loader",
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "status": "complete",
+            "customShardLoader": true,
+            "byteAccountingMode": "custom-loader-progress-unavailable",
+            "totalBytes": 558475264,
+            "totalShards": 9,
+            "bytesLoaded": 0,
+            "shardsLoaded": 0,
+            "bytesPerSecond": 0,
+            "phasesMs": {
+              "preflight": 1.1,
+              "tensorLocations": 1.1,
+              "embeddings": 41251.1,
+              "layers": 25903.3,
+              "finalWeights": 112.4,
+              "cleanup": 0
+            },
+            "layers": {
+              "count": 28,
+              "totalMs": 25870,
+              "meanMs": 923.93,
+              "maxMs": 5634.5,
+              "maxLayer": 2
+            },
+            "totalMs": 67269.9,
+            "failedPhase": null,
+            "error": null
+          },
+          "pipeline": {
+            "schemaVersion": 1,
+            "source": "doppler-pipeline",
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "status": "complete",
+            "phasesMs": {
+              "reset": 0.1,
+              "configResolution": 3.7,
+              "kernelWarmup": 0,
+              "tokenizer": 611.1,
+              "executionSetup": 1.7,
+              "loadWeights": 68606.8,
+              "rope": 50.2,
+              "convStates": 0.2
+            },
+            "details": {
+              "tokenizer": {
+                "schemaVersion": 1,
+                "source": "doppler-tokenizer",
+                "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+                "status": "complete",
+                "tokenizerType": "bundled",
+                "tokenizerFile": "tokenizer.json",
+                "backend": "bundled",
+                "assetSource": "custom-loader",
+                "cacheHit": false,
+                "phasesMs": {
+                  "configResolution": 0,
+                  "cacheLookup": 0.1,
+                  "backendCreate": 0,
+                  "assetLoad": 528,
+                  "assetParse": 0.1,
+                  "backendLoad": 82.2,
+                  "cacheStore": 0
+                },
+                "totalMs": 610.8,
+                "error": null
+              }
+            },
+            "totalMs": 69273.8
+          },
+          "residualsMs": {
+            "modelLoadMinusLoaderMs": 2126.7,
+            "modelLoadMinusPipelineMs": 122.8,
+            "pipelineMinusLoaderMs": 2003.9
+          },
+          "consistent": {
+            "loaderWithinModelLoad": true,
+            "pipelineWithinModelLoad": true,
+            "loaderWithinPipeline": true
+          }
+        }
+      },
+      "firstLoad": {
+        "schemaVersion": 1,
+        "semantics": {
+          "browserLaunchMs": "node launch request -> browser/context ready",
+          "pageReadyMs": "runner navigation + startup",
+          "cachePrimeMs": "untimed warm-opfs prefetch/load pass",
+          "modelLoadMs": "model initialization/load before generation",
+          "firstTokenMs": "ttft from generation start",
+          "firstResponseMs": "modelLoadMs + firstTokenMs",
+          "harnessWarmStartToFirstResponseMs": "pageReadyMs + cachePrimeMs + firstResponseMs",
+          "endToEndFirstResponseMs": "browserLaunchMs + pageReadyMs + cachePrimeMs + firstResponseMs"
+        },
+        "componentsMs": {
+          "browserLaunchMs": null,
+          "pageReadyMs": null,
+          "cachePrimeMs": null,
+          "modelLoadMs": 69396.6,
+          "firstTokenMs": null,
+          "firstResponseMs": 69396.6
+        },
+        "sumsMs": {
+          "firstResponseFromLoadAndFirstTokenMs": null,
+          "harnessWarmStartToFirstResponseMs": null,
+          "endToEndFirstResponseMs": null
+        },
+        "residualsMs": {
+          "firstResponseResidualMs": null
+        },
+        "consistent": {
+          "firstResponse": null
+        }
+      },
+      "output": {
+        "mode": "embedding",
+        "tokens": 15,
+        "embeddingDim": 1024,
+        "finiteValues": 1024,
+        "nonFiniteValues": 0,
+        "finiteRatio": 1,
+        "min": -0.095826,
+        "max": 0.152251,
+        "maxAbs": 0.152251,
+        "mean": 0.001948,
+        "stdDev": 0.031189,
+        "l2Norm": 1,
+        "preview": [
+          -0.0345,
+          0.008467,
+          -0.010215,
+          -0.095826,
+          0.021847,
+          0.061001,
+          -0.009778,
+          -0.048324,
+          -0.028499,
+          -0.012514,
+          -0.018639,
+          -0.040724,
+          -0.017123,
+          -0.011287,
+          -0.025542,
+          0.10197
+        ],
+        "semantic": {
+          "passed": true,
+          "style": "qwen3_embedding",
+          "retrievalTop1Acc": 0.9,
+          "pairAcc": 0.7143,
+          "failedCaseIds": [
+            "retrieval:hard_migraine_vs_tension",
+            "retrieval:hard_civil_vs_criminal",
+            "pair:adversarial_negation_loan",
+            "pair:adversarial_negation_test",
+            "pair:adversarial_entity_swap",
+            "pair:adversarial_quantity",
+            "length:photosynthesis_short_medium_long",
+            "length:encryption_short_medium_long"
+          ],
+          "details": {
+            "retrieval": [
+              {
+                "id": "library_search",
+                "query": "Where can I borrow books and study quietly?",
+                "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Where can I borrow books and study quietly?",
+                "docs": [
+                  {
+                    "text": "The city library lends books, provides study rooms, and offers free Wi-Fi.",
+                    "formattedText": "The city library lends books, provides study rooms, and offers free Wi-Fi."
+                  },
+                  {
+                    "text": "The cafe serves coffee, pastries, and sandwiches all day.",
+                    "formattedText": "The cafe serves coffee, pastries, and sandwiches all day."
+                  },
+                  {
+                    "text": "The bike repair shop fixes flat tires and broken chains.",
+                    "formattedText": "The bike repair shop fixes flat tires and broken chains."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.82184,
+                  0.704488,
+                  0.711768
+                ]
+              },
+              {
+                "id": "password_reset",
+                "query": "How do I reset my account password?",
+                "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How do I reset my account password?",
+                "docs": [
+                  {
+                    "text": "To reset your password, open account settings and choose the forgot-password flow.",
+                    "formattedText": "To reset your password, open account settings and choose the forgot-password flow."
+                  },
+                  {
+                    "text": "Our shipping policy explains delivery timelines and tracking updates.",
+                    "formattedText": "Our shipping policy explains delivery timelines and tracking updates."
+                  },
+                  {
+                    "text": "The recipe combines tomatoes, basil, and olive oil.",
+                    "formattedText": "The recipe combines tomatoes, basil, and olive oil."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.86011,
+                  0.657923,
+                  0.681741
+                ]
+              },
+              {
+                "id": "damaged_package",
+                "query": "What should I do if my package arrives damaged?",
+                "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What should I do if my package arrives damaged?",
+                "docs": [
+                  {
+                    "text": "Contact support within seven days with photos to request a replacement for damaged items.",
+                    "formattedText": "Contact support within seven days with photos to request a replacement for damaged items."
+                  },
+                  {
+                    "text": "The concert starts at 8 PM at the downtown arena.",
+                    "formattedText": "The concert starts at 8 PM at the downtown arena."
+                  },
+                  {
+                    "text": "Plant roses in spring and water them twice a week.",
+                    "formattedText": "Plant roses in spring and water them twice a week."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.811628,
+                  0.711401,
+                  0.72785
+                ]
+              },
+              {
+                "id": "flight_change_policy",
+                "query": "Can I change my flight after booking?",
+                "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Can I change my flight after booking?",
+                "docs": [
+                  {
+                    "text": "The museum opens daily at 10 AM and offers guided tours on weekends.",
+                    "formattedText": "The museum opens daily at 10 AM and offers guided tours on weekends."
+                  },
+                  {
+                    "text": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied.",
+                    "formattedText": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied."
+                  },
+                  {
+                    "text": "Our gym membership includes group classes and access to the pool.",
+                    "formattedText": "Our gym membership includes group classes and access to the pool."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 1,
+                "topDoc": 1,
+                "sims": [
+                  0.662347,
+                  0.851392,
+                  0.625925
+                ]
+              },
+              {
+                "id": "wifi_troubleshoot",
+                "query": "Why does my home Wi-Fi keep disconnecting?",
+                "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Why does my home Wi-Fi keep disconnecting?",
+                "docs": [
+                  {
+                    "text": "The dessert menu includes cheesecake, brownies, and fruit tart.",
+                    "formattedText": "The dessert menu includes cheesecake, brownies, and fruit tart."
+                  },
+                  {
+                    "text": "You can review your recent orders in your account purchase history.",
+                    "formattedText": "You can review your recent orders in your account purchase history."
+                  },
+                  {
+                    "text": "Frequent Wi-Fi drops can be fixed by restarting the router, updating firmware, and changing the wireless channel.",
+                    "formattedText": "Frequent Wi-Fi drops can be fixed by restarting the router, updating firmware, and changing the wireless channel."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 2,
+                "topDoc": 2,
+                "sims": [
+                  0.693266,
+                  0.721474,
+                  0.825541
+                ]
+              },
+              {
+                "id": "refund_deadline",
+                "query": "How long do I have to request a refund?",
+                "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How long do I have to request a refund?",
+                "docs": [
+                  {
+                    "text": "Refund requests are accepted within 30 days of purchase when the item is in original condition.",
+                    "formattedText": "Refund requests are accepted within 30 days of purchase when the item is in original condition."
+                  },
+                  {
+                    "text": "The conference keynote starts at 9 AM in the main hall.",
+                    "formattedText": "The conference keynote starts at 9 AM in the main hall."
+                  },
+                  {
+                    "text": "Use a medium grind when brewing coffee with a drip machine.",
+                    "formattedText": "Use a medium grind when brewing coffee with a drip machine."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.772322,
+                  0.654975,
+                  0.705577
+                ]
+              },
+              {
+                "id": "passport_renewal_docs",
+                "query": "What documents do I need to renew a passport?",
+                "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What documents do I need to renew a passport?",
+                "docs": [
+                  {
+                    "text": "To care for houseplants, water only when the top soil is dry.",
+                    "formattedText": "To care for houseplants, water only when the top soil is dry."
+                  },
+                  {
+                    "text": "Passport renewal usually requires the application form, current passport, compliant photo, and payment.",
+                    "formattedText": "Passport renewal usually requires the application form, current passport, compliant photo, and payment."
+                  },
+                  {
+                    "text": "The train to downtown runs every 20 minutes during peak hours.",
+                    "formattedText": "The train to downtown runs every 20 minutes during peak hours."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 1,
+                "topDoc": 1,
+                "sims": [
+                  0.668097,
+                  0.830092,
+                  0.694497
+                ]
+              },
+              {
+                "id": "hard_flight_cancel_vs_change",
+                "query": "How do I cancel my flight reservation?",
+                "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How do I cancel my flight reservation?",
+                "docs": [
+                  {
+                    "text": "To cancel a flight, go to Manage Booking and select the cancellation option within 24 hours for a full refund.",
+                    "formattedText": "To cancel a flight, go to Manage Booking and select the cancellation option within 24 hours for a full refund."
+                  },
+                  {
+                    "text": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied.",
+                    "formattedText": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied."
+                  },
+                  {
+                    "text": "Flight status updates are available in the airline app under trip notifications.",
+                    "formattedText": "Flight status updates are available in the airline app under trip notifications."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.893754,
+                  0.825525,
+                  0.781341
+                ]
+              },
+              {
+                "id": "hard_return_vs_exchange",
+                "query": "Can I exchange a product instead of returning it?",
+                "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Can I exchange a product instead of returning it?",
+                "docs": [
+                  {
+                    "text": "To return an item, ship it back within 30 days in its original packaging for a refund.",
+                    "formattedText": "To return an item, ship it back within 30 days in its original packaging for a refund."
+                  },
+                  {
+                    "text": "Exchanges are available in-store or online; select the replacement item and ship the original back within 14 days.",
+                    "formattedText": "Exchanges are available in-store or online; select the replacement item and ship the original back within 14 days."
+                  },
+                  {
+                    "text": "Gift cards can be purchased in any denomination and never expire.",
+                    "formattedText": "Gift cards can be purchased in any denomination and never expire."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 1,
+                "topDoc": 1,
+                "sims": [
+                  0.805148,
+                  0.848234,
+                  0.793358
+                ]
+              },
+              {
+                "id": "hard_savings_vs_checking",
+                "query": "What is the interest rate on a savings account?",
+                "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What is the interest rate on a savings account?",
+                "docs": [
+                  {
+                    "text": "Checking accounts offer unlimited transactions with no minimum balance and a debit card.",
+                    "formattedText": "Checking accounts offer unlimited transactions with no minimum balance and a debit card."
+                  },
+                  {
+                    "text": "Savings accounts currently earn 4.5% APY with interest compounded daily and paid monthly.",
+                    "formattedText": "Savings accounts currently earn 4.5% APY with interest compounded daily and paid monthly."
+                  },
+                  {
+                    "text": "Credit card rewards include cashback, travel points, and purchase protection.",
+                    "formattedText": "Credit card rewards include cashback, travel points, and purchase protection."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 1,
+                "topDoc": 1,
+                "sims": [
+                  0.814162,
+                  0.868304,
+                  0.759351
+                ]
+              },
+              {
+                "id": "hard_migraine_vs_tension",
+                "query": "What triggers a migraine headache?",
+                "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What triggers a migraine headache?",
+                "docs": [
+                  {
+                    "text": "Tension headaches are caused by muscle contraction in the head and neck and respond well to over-the-counter painkillers.",
+                    "formattedText": "Tension headaches are caused by muscle contraction in the head and neck and respond well to over-the-counter painkillers."
+                  },
+                  {
+                    "text": "Migraines can be triggered by stress, certain foods, hormonal changes, and bright lights, often presenting with aura and nausea.",
+                    "formattedText": "Migraines can be triggered by stress, certain foods, hormonal changes, and bright lights, often presenting with aura and nausea."
+                  },
+                  {
+                    "text": "Cluster headaches occur in cyclical patterns and cause severe pain around one eye.",
+                    "formattedText": "Cluster headaches occur in cyclical patterns and cause severe pain around one eye."
+                  }
+                ],
+                "passed": false,
+                "expectedDoc": 1,
+                "topDoc": 0,
+                "sims": [
+                  0.799227,
+                  0.764478,
+                  0.777117
+                ]
+              },
+              {
+                "id": "hard_python_sort_vs_filter",
+                "query": "How do I sort a list in Python?",
+                "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How do I sort a list in Python?",
+                "docs": [
+                  {
+                    "text": "Use the built-in sorted() function or list.sort() method to sort a list; both accept a key argument for custom ordering.",
+                    "formattedText": "Use the built-in sorted() function or list.sort() method to sort a list; both accept a key argument for custom ordering."
+                  },
+                  {
+                    "text": "Use list comprehensions or the filter() built-in to select elements from a list that match a condition.",
+                    "formattedText": "Use list comprehensions or the filter() built-in to select elements from a list that match a condition."
+                  },
+                  {
+                    "text": "The map() function applies a transformation to every element in an iterable and returns a new iterator.",
+                    "formattedText": "The map() function applies a transformation to every element in an iterable and returns a new iterator."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.829119,
+                  0.80719,
+                  0.715546
+                ]
+              },
+              {
+                "id": "hard_civil_vs_criminal",
+                "query": "What is the difference between civil and criminal law?",
+                "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What is the difference between civil and criminal law?",
+                "docs": [
+                  {
+                    "text": "Civil law handles disputes between individuals or organizations, such as contracts, property, and family matters, with remedies like damages or injunctions.",
+                    "formattedText": "Civil law handles disputes between individuals or organizations, such as contracts, property, and family matters, with remedies like damages or injunctions."
+                  },
+                  {
+                    "text": "Criminal law addresses offenses against the state, where the government prosecutes the accused, and penalties include fines, probation, or imprisonment.",
+                    "formattedText": "Criminal law addresses offenses against the state, where the government prosecutes the accused, and penalties include fines, probation, or imprisonment."
+                  },
+                  {
+                    "text": "Administrative law governs the actions of government agencies, including rulemaking, enforcement, and adjudication of regulatory matters.",
+                    "formattedText": "Administrative law governs the actions of government agencies, including rulemaking, enforcement, and adjudication of regulatory matters."
+                  }
+                ],
+                "passed": false,
+                "expectedDoc": 0,
+                "topDoc": 1,
+                "sims": [
+                  0.801564,
+                  0.81585,
+                  0.748993
+                ]
+              },
+              {
+                "id": "cross_medical",
+                "query": "What are the symptoms of type 2 diabetes?",
+                "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What are the symptoms of type 2 diabetes?",
+                "docs": [
+                  {
+                    "text": "Type 2 diabetes symptoms include increased thirst, frequent urination, fatigue, blurred vision, and slow-healing wounds.",
+                    "formattedText": "Type 2 diabetes symptoms include increased thirst, frequent urination, fatigue, blurred vision, and slow-healing wounds."
+                  },
+                  {
+                    "text": "The quarterly earnings report showed a 12% increase in revenue driven by cloud services.",
+                    "formattedText": "The quarterly earnings report showed a 12% increase in revenue driven by cloud services."
+                  },
+                  {
+                    "text": "Sourdough bread requires a mature starter, strong flour, water, and salt with a 12-hour bulk fermentation.",
+                    "formattedText": "Sourdough bread requires a mature starter, strong flour, water, and salt with a 12-hour bulk fermentation."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.835968,
+                  0.70213,
+                  0.72276
+                ]
+              },
+              {
+                "id": "cross_finance",
+                "query": "How does compound interest work?",
+                "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How does compound interest work?",
+                "docs": [
+                  {
+                    "text": "Photosynthesis converts carbon dioxide and water into glucose and oxygen using sunlight energy.",
+                    "formattedText": "Photosynthesis converts carbon dioxide and water into glucose and oxygen using sunlight energy."
+                  },
+                  {
+                    "text": "Compound interest calculates interest on both the initial principal and the accumulated interest from previous periods, causing exponential growth over time.",
+                    "formattedText": "Compound interest calculates interest on both the initial principal and the accumulated interest from previous periods, causing exponential growth over time."
+                  },
+                  {
+                    "text": "The novel follows three generations of a family through war, migration, and reconciliation.",
+                    "formattedText": "The novel follows three generations of a family through war, migration, and reconciliation."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 1,
+                "topDoc": 1,
+                "sims": [
+                  0.706262,
+                  0.822894,
+                  0.757724
+                ]
+              },
+              {
+                "id": "cross_legal",
+                "query": "When does a contract become legally binding?",
+                "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: When does a contract become legally binding?",
+                "docs": [
+                  {
+                    "text": "A contract becomes legally binding when there is an offer, acceptance, consideration, and mutual intent to be bound, with capacity and lawful purpose.",
+                    "formattedText": "A contract becomes legally binding when there is an offer, acceptance, consideration, and mutual intent to be bound, with capacity and lawful purpose."
+                  },
+                  {
+                    "text": "The CPU executes instructions by fetching them from memory, decoding the opcode, and performing the operation in the ALU.",
+                    "formattedText": "The CPU executes instructions by fetching them from memory, decoding the opcode, and performing the operation in the ALU."
+                  },
+                  {
+                    "text": "Grilled salmon pairs well with lemon butter sauce, roasted asparagus, and wild rice.",
+                    "formattedText": "Grilled salmon pairs well with lemon butter sauce, roasted asparagus, and wild rice."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.883589,
+                  0.692993,
+                  0.581191
+                ]
+              },
+              {
+                "id": "cross_science",
+                "query": "Why do heavy objects fall at the same rate as light ones in a vacuum?",
+                "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Why do heavy objects fall at the same rate as light ones in a vacuum?",
+                "docs": [
+                  {
+                    "text": "In a vacuum, gravitational acceleration is constant regardless of mass, so all objects fall at the same rate because there is no air resistance.",
+                    "formattedText": "In a vacuum, gravitational acceleration is constant regardless of mass, so all objects fall at the same rate because there is no air resistance."
+                  },
+                  {
+                    "text": "The museum collection includes Impressionist paintings, Ancient Greek pottery, and contemporary sculpture.",
+                    "formattedText": "The museum collection includes Impressionist paintings, Ancient Greek pottery, and contemporary sculpture."
+                  },
+                  {
+                    "text": "To propagate succulents, remove a healthy leaf, let it callus for two days, then place it on moist soil.",
+                    "formattedText": "To propagate succulents, remove a healthy leaf, let it callus for two days, then place it on moist soil."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.865646,
+                  0.691843,
+                  0.778644
+                ]
+              },
+              {
+                "id": "cross_code",
+                "query": "What is a race condition in concurrent programming?",
+                "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What is a race condition in concurrent programming?",
+                "docs": [
+                  {
+                    "text": "A race condition occurs when two or more threads access shared data simultaneously and the outcome depends on the order of execution, leading to unpredictable behavior.",
+                    "formattedText": "A race condition occurs when two or more threads access shared data simultaneously and the outcome depends on the order of execution, leading to unpredictable behavior."
+                  },
+                  {
+                    "text": "Annual rainfall in the Pacific Northwest averages 150 centimeters, supporting dense temperate rainforests.",
+                    "formattedText": "Annual rainfall in the Pacific Northwest averages 150 centimeters, supporting dense temperate rainforests."
+                  },
+                  {
+                    "text": "The yoga class starts with sun salutations and ends with a five-minute guided meditation.",
+                    "formattedText": "The yoga class starts with sun salutations and ends with a five-minute guided meditation."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.847506,
+                  0.69727,
+                  0.704215
+                ]
+              },
+              {
+                "id": "cross_cooking",
+                "query": "What temperature should I roast a chicken at?",
+                "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What temperature should I roast a chicken at?",
+                "docs": [
+                  {
+                    "text": "Roast a whole chicken at 425°F (220°C) for about 20 minutes per pound until the internal temperature reaches 165°F (74°C) in the thickest part of the thigh.",
+                    "formattedText": "Roast a whole chicken at 425°F (220°C) for about 20 minutes per pound until the internal temperature reaches 165°F (74°C) in the thickest part of the thigh."
+                  },
+                  {
+                    "text": "Kubernetes orchestrates container workloads across a cluster using pods, services, and deployments.",
+                    "formattedText": "Kubernetes orchestrates container workloads across a cluster using pods, services, and deployments."
+                  },
+                  {
+                    "text": "The treaty established trade agreements, mutual defense obligations, and cultural exchange programs between the two nations.",
+                    "formattedText": "The treaty established trade agreements, mutual defense obligations, and cultural exchange programs between the two nations."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.812555,
+                  0.57361,
+                  0.631997
+                ]
+              },
+              {
+                "id": "pool_ten_docs",
+                "query": "How do vaccines work?",
+                "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How do vaccines work?",
+                "docs": [
+                  {
+                    "text": "Vaccines introduce a weakened or inactivated pathogen to train the immune system to recognize and fight future infections without causing disease.",
+                    "formattedText": "Vaccines introduce a weakened or inactivated pathogen to train the immune system to recognize and fight future infections without causing disease."
+                  },
+                  {
+                    "text": "The impressionist movement emerged in Paris during the 1860s as artists rejected academic conventions.",
+                    "formattedText": "The impressionist movement emerged in Paris during the 1860s as artists rejected academic conventions."
+                  },
+                  {
+                    "text": "Reinforced concrete uses steel rebar embedded in concrete to resist both compression and tension forces.",
+                    "formattedText": "Reinforced concrete uses steel rebar embedded in concrete to resist both compression and tension forces."
+                  },
+                  {
+                    "text": "Dividends are periodic payments made by corporations to shareholders from profits or retained earnings.",
+                    "formattedText": "Dividends are periodic payments made by corporations to shareholders from profits or retained earnings."
+                  },
+                  {
+                    "text": "The alpine ecosystem supports specialized plants and animals adapted to cold temperatures, thin air, and intense UV radiation.",
+                    "formattedText": "The alpine ecosystem supports specialized plants and animals adapted to cold temperatures, thin air, and intense UV radiation."
+                  },
+                  {
+                    "text": "Merge sort divides the array recursively and merges sorted halves, achieving O(n log n) time complexity.",
+                    "formattedText": "Merge sort divides the array recursively and merges sorted halves, achieving O(n log n) time complexity."
+                  },
+                  {
+                    "text": "The symphony orchestra consists of four instrument families: strings, woodwinds, brass, and percussion.",
+                    "formattedText": "The symphony orchestra consists of four instrument families: strings, woodwinds, brass, and percussion."
+                  },
+                  {
+                    "text": "Glacial erosion carves U-shaped valleys and deposits moraines as the ice retreats.",
+                    "formattedText": "Glacial erosion carves U-shaped valleys and deposits moraines as the ice retreats."
+                  },
+                  {
+                    "text": "Probate is the legal process of validating a will and distributing the deceased person's assets.",
+                    "formattedText": "Probate is the legal process of validating a will and distributing the deceased person's assets."
+                  },
+                  {
+                    "text": "The combustion engine converts chemical energy from fuel into mechanical energy through controlled explosions in cylinders.",
+                    "formattedText": "The combustion engine converts chemical energy from fuel into mechanical energy through controlled explosions in cylinders."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.803734,
+                  0.604796,
+                  0.676995,
+                  0.65274,
+                  0.721899,
+                  0.692111,
+                  0.659094,
+                  0.714251,
+                  0.744636,
+                  0.66571
+                ]
+              }
+            ],
+            "pairs": [
+              {
+                "id": "bike_paraphrase",
+                "anchor": "The child is riding a bicycle through the park.",
+                "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The child is riding a bicycle through the park.",
+                "positive": "A kid bikes along a path in the park.",
+                "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: A kid bikes along a path in the park.",
+                "negative": "The stock market closed lower after interest-rate news.",
+                "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The stock market closed lower after interest-rate news.",
+                "passed": true,
+                "simPos": 0.93907,
+                "simNeg": 0.774268,
+                "margin": 0.164803
+              },
+              {
+                "id": "cancel_subscription",
+                "anchor": "Please cancel my subscription before renewal.",
+                "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Please cancel my subscription before renewal.",
+                "positive": "I want to stop the plan so it does not renew.",
+                "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: I want to stop the plan so it does not renew.",
+                "negative": "The mountain trail is closed after heavy snow.",
+                "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The mountain trail is closed after heavy snow.",
+                "passed": true,
+                "simPos": 0.833639,
+                "simNeg": 0.774387,
+                "margin": 0.059252
+              },
+              {
+                "id": "battery_drain",
+                "anchor": "The laptop battery drains very quickly.",
+                "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The laptop battery drains very quickly.",
+                "positive": "My notebook loses charge fast.",
+                "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: My notebook loses charge fast.",
+                "negative": "This pasta sauce tastes sweet and spicy.",
+                "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: This pasta sauce tastes sweet and spicy.",
+                "passed": true,
+                "simPos": 0.846962,
+                "simNeg": 0.809524,
+                "margin": 0.037439
+              },
+              {
+                "id": "order_tracking",
+                "anchor": "I need to track where my order is.",
+                "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: I need to track where my order is.",
+                "positive": "How can I check my package delivery status?",
+                "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How can I check my package delivery status?",
+                "negative": "The violin concerto was composed in the 1800s.",
+                "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The violin concerto was composed in the 1800s.",
+                "passed": true,
+                "simPos": 0.86252,
+                "simNeg": 0.755887,
+                "margin": 0.106632
+              },
+              {
+                "id": "account_lockout",
+                "anchor": "My account is locked after too many login attempts.",
+                "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: My account is locked after too many login attempts.",
+                "positive": "I cannot sign in because the system temporarily blocked my account.",
+                "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: I cannot sign in because the system temporarily blocked my account.",
+                "negative": "Bake the cake at 350 degrees for thirty minutes.",
+                "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Bake the cake at 350 degrees for thirty minutes.",
+                "passed": true,
+                "simPos": 0.875626,
+                "simNeg": 0.765679,
+                "margin": 0.109947
+              },
+              {
+                "id": "invoice_request",
+                "anchor": "Please send me the invoice for last month.",
+                "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Please send me the invoice for last month.",
+                "positive": "Can you provide the billing statement for the previous month?",
+                "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Can you provide the billing statement for the previous month?",
+                "negative": "The hiking trail follows the river for five miles.",
+                "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The hiking trail follows the river for five miles.",
+                "passed": true,
+                "simPos": 0.880302,
+                "simNeg": 0.727965,
+                "margin": 0.152337
+              },
+              {
+                "id": "slow_internet",
+                "anchor": "The internet speed is much slower tonight.",
+                "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The internet speed is much slower tonight.",
+                "positive": "My connection is unusually slow this evening.",
+                "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: My connection is unusually slow this evening.",
+                "negative": "The novel explores themes of memory and loss.",
+                "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The novel explores themes of memory and loss.",
+                "passed": true,
+                "simPos": 0.91042,
+                "simNeg": 0.800964,
+                "margin": 0.109455
+              },
+              {
+                "id": "adversarial_negation_loan",
+                "anchor": "The bank approved the loan application.",
+                "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The bank approved the loan application.",
+                "positive": "The lending institution accepted the borrower's request for funds.",
+                "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The lending institution accepted the borrower's request for funds.",
+                "negative": "The bank rejected the loan application.",
+                "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The bank rejected the loan application.",
+                "passed": false,
+                "simPos": 0.907367,
+                "simNeg": 0.972058,
+                "margin": -0.064691
+              },
+              {
+                "id": "adversarial_negation_test",
+                "anchor": "The patient tested positive for the infection.",
+                "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The patient tested positive for the infection.",
+                "positive": "Lab results confirmed the presence of the pathogen.",
+                "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Lab results confirmed the presence of the pathogen.",
+                "negative": "The patient tested negative for the infection.",
+                "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The patient tested negative for the infection.",
+                "passed": false,
+                "simPos": 0.817229,
+                "simNeg": 0.978018,
+                "margin": -0.160788
+              },
+              {
+                "id": "adversarial_entity_swap",
+                "anchor": "France exported wine to Germany last quarter.",
+                "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: France exported wine to Germany last quarter.",
+                "positive": "French wine shipments to Germany increased in the recent period.",
+                "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: French wine shipments to Germany increased in the recent period.",
+                "negative": "Germany exported wine to France last quarter.",
+                "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Germany exported wine to France last quarter.",
+                "passed": false,
+                "simPos": 0.935255,
+                "simNeg": 0.977491,
+                "margin": -0.042236
+              },
+              {
+                "id": "adversarial_tense_flip",
+                "anchor": "The company plans to open a new office in Tokyo.",
+                "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The company plans to open a new office in Tokyo.",
+                "positive": "A new Tokyo branch is scheduled to launch soon.",
+                "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: A new Tokyo branch is scheduled to launch soon.",
+                "negative": "The company closed its Tokyo office last year.",
+                "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The company closed its Tokyo office last year.",
+                "passed": true,
+                "simPos": 0.925874,
+                "simNeg": 0.891097,
+                "margin": 0.034777
+              },
+              {
+                "id": "adversarial_quantity",
+                "anchor": "The recipe calls for two tablespoons of sugar.",
+                "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The recipe calls for two tablespoons of sugar.",
+                "positive": "Add a couple of spoonfuls of sugar to the mixture.",
+                "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Add a couple of spoonfuls of sugar to the mixture.",
+                "negative": "The recipe calls for two cups of sugar.",
+                "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The recipe calls for two cups of sugar.",
+                "passed": false,
+                "simPos": 0.865867,
+                "simNeg": 0.96896,
+                "margin": -0.103094
+              },
+              {
+                "id": "technical_paraphrase_gpu",
+                "anchor": "WebGPU provides low-level access to the graphics processor for compute workloads.",
+                "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: WebGPU provides low-level access to the graphics processor for compute workloads.",
+                "positive": "The WebGPU API exposes GPU hardware for parallel computation tasks.",
+                "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The WebGPU API exposes GPU hardware for parallel computation tasks.",
+                "negative": "WebSocket provides full-duplex communication channels over a single TCP connection.",
+                "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: WebSocket provides full-duplex communication channels over a single TCP connection.",
+                "passed": true,
+                "simPos": 0.898414,
+                "simNeg": 0.795235,
+                "margin": 0.103179
+              },
+              {
+                "id": "technical_paraphrase_ml",
+                "anchor": "Gradient descent minimizes the loss function by iteratively updating model parameters.",
+                "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Gradient descent minimizes the loss function by iteratively updating model parameters.",
+                "positive": "The optimizer reduces error by adjusting weights in the direction of steepest descent.",
+                "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The optimizer reduces error by adjusting weights in the direction of steepest descent.",
+                "negative": "The garbage collector reclaims memory by tracing reachable objects from root references.",
+                "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The garbage collector reclaims memory by tracing reachable objects from root references.",
+                "passed": true,
+                "simPos": 0.872297,
+                "simNeg": 0.781383,
+                "margin": 0.090914
+              }
+            ]
+          }
+        }
+      },
+      "metrics": {
+        "prompt": "A small red cube rests on a wooden table beside a blue sphere.",
+        "embeddingTokens": 15,
+        "embeddingDim": 1024,
+        "finiteValues": 1024,
+        "finiteRatio": 1,
+        "nonFiniteValues": 0,
+        "embeddingMin": -0.095826,
+        "embeddingMax": 0.152251,
+        "embeddingMaxAbs": 0.152251,
+        "embeddingMean": 0.001948,
+        "embeddingStdDev": 0.031189,
+        "embeddingL2Norm": 1,
+        "embeddingMs": 193.6,
+        "semanticPassed": true,
+        "semanticDurationMs": 19769.9,
+        "semanticRetrievalTop1Acc": 0.9,
+        "semanticPairAcc": 0.7143,
+        "semanticRetrievalPassed": 18,
+        "semanticRetrievalTotal": 20,
+        "semanticPairPassed": 10,
+        "semanticPairTotal": 14,
+        "semanticMinRetrievalTop1Acc": 0.75,
+        "semanticMinPairAcc": 0.64,
+        "semanticPairMarginThreshold": 0.02,
+        "semanticStyle": "qwen3_embedding",
+        "semanticFailedCases": [
+          "retrieval:hard_migraine_vs_tension",
+          "retrieval:hard_civil_vs_criminal",
+          "pair:adversarial_negation_loan",
+          "pair:adversarial_negation_test",
+          "pair:adversarial_entity_swap",
+          "pair:adversarial_quantity",
+          "length:photosynthesis_short_medium_long",
+          "length:encryption_short_medium_long"
+        ],
+        "semanticDetails": {
+          "retrieval": [
+            {
+              "id": "library_search",
+              "query": "Where can I borrow books and study quietly?",
+              "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Where can I borrow books and study quietly?",
+              "docs": [
+                {
+                  "text": "The city library lends books, provides study rooms, and offers free Wi-Fi.",
+                  "formattedText": "The city library lends books, provides study rooms, and offers free Wi-Fi."
+                },
+                {
+                  "text": "The cafe serves coffee, pastries, and sandwiches all day.",
+                  "formattedText": "The cafe serves coffee, pastries, and sandwiches all day."
+                },
+                {
+                  "text": "The bike repair shop fixes flat tires and broken chains.",
+                  "formattedText": "The bike repair shop fixes flat tires and broken chains."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.82184,
+                0.704488,
+                0.711768
+              ]
+            },
+            {
+              "id": "password_reset",
+              "query": "How do I reset my account password?",
+              "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How do I reset my account password?",
+              "docs": [
+                {
+                  "text": "To reset your password, open account settings and choose the forgot-password flow.",
+                  "formattedText": "To reset your password, open account settings and choose the forgot-password flow."
+                },
+                {
+                  "text": "Our shipping policy explains delivery timelines and tracking updates.",
+                  "formattedText": "Our shipping policy explains delivery timelines and tracking updates."
+                },
+                {
+                  "text": "The recipe combines tomatoes, basil, and olive oil.",
+                  "formattedText": "The recipe combines tomatoes, basil, and olive oil."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.86011,
+                0.657923,
+                0.681741
+              ]
+            },
+            {
+              "id": "damaged_package",
+              "query": "What should I do if my package arrives damaged?",
+              "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What should I do if my package arrives damaged?",
+              "docs": [
+                {
+                  "text": "Contact support within seven days with photos to request a replacement for damaged items.",
+                  "formattedText": "Contact support within seven days with photos to request a replacement for damaged items."
+                },
+                {
+                  "text": "The concert starts at 8 PM at the downtown arena.",
+                  "formattedText": "The concert starts at 8 PM at the downtown arena."
+                },
+                {
+                  "text": "Plant roses in spring and water them twice a week.",
+                  "formattedText": "Plant roses in spring and water them twice a week."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.811628,
+                0.711401,
+                0.72785
+              ]
+            },
+            {
+              "id": "flight_change_policy",
+              "query": "Can I change my flight after booking?",
+              "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Can I change my flight after booking?",
+              "docs": [
+                {
+                  "text": "The museum opens daily at 10 AM and offers guided tours on weekends.",
+                  "formattedText": "The museum opens daily at 10 AM and offers guided tours on weekends."
+                },
+                {
+                  "text": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied.",
+                  "formattedText": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied."
+                },
+                {
+                  "text": "Our gym membership includes group classes and access to the pool.",
+                  "formattedText": "Our gym membership includes group classes and access to the pool."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 1,
+              "topDoc": 1,
+              "sims": [
+                0.662347,
+                0.851392,
+                0.625925
+              ]
+            },
+            {
+              "id": "wifi_troubleshoot",
+              "query": "Why does my home Wi-Fi keep disconnecting?",
+              "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Why does my home Wi-Fi keep disconnecting?",
+              "docs": [
+                {
+                  "text": "The dessert menu includes cheesecake, brownies, and fruit tart.",
+                  "formattedText": "The dessert menu includes cheesecake, brownies, and fruit tart."
+                },
+                {
+                  "text": "You can review your recent orders in your account purchase history.",
+                  "formattedText": "You can review your recent orders in your account purchase history."
+                },
+                {
+                  "text": "Frequent Wi-Fi drops can be fixed by restarting the router, updating firmware, and changing the wireless channel.",
+                  "formattedText": "Frequent Wi-Fi drops can be fixed by restarting the router, updating firmware, and changing the wireless channel."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 2,
+              "topDoc": 2,
+              "sims": [
+                0.693266,
+                0.721474,
+                0.825541
+              ]
+            },
+            {
+              "id": "refund_deadline",
+              "query": "How long do I have to request a refund?",
+              "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How long do I have to request a refund?",
+              "docs": [
+                {
+                  "text": "Refund requests are accepted within 30 days of purchase when the item is in original condition.",
+                  "formattedText": "Refund requests are accepted within 30 days of purchase when the item is in original condition."
+                },
+                {
+                  "text": "The conference keynote starts at 9 AM in the main hall.",
+                  "formattedText": "The conference keynote starts at 9 AM in the main hall."
+                },
+                {
+                  "text": "Use a medium grind when brewing coffee with a drip machine.",
+                  "formattedText": "Use a medium grind when brewing coffee with a drip machine."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.772322,
+                0.654975,
+                0.705577
+              ]
+            },
+            {
+              "id": "passport_renewal_docs",
+              "query": "What documents do I need to renew a passport?",
+              "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What documents do I need to renew a passport?",
+              "docs": [
+                {
+                  "text": "To care for houseplants, water only when the top soil is dry.",
+                  "formattedText": "To care for houseplants, water only when the top soil is dry."
+                },
+                {
+                  "text": "Passport renewal usually requires the application form, current passport, compliant photo, and payment.",
+                  "formattedText": "Passport renewal usually requires the application form, current passport, compliant photo, and payment."
+                },
+                {
+                  "text": "The train to downtown runs every 20 minutes during peak hours.",
+                  "formattedText": "The train to downtown runs every 20 minutes during peak hours."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 1,
+              "topDoc": 1,
+              "sims": [
+                0.668097,
+                0.830092,
+                0.694497
+              ]
+            },
+            {
+              "id": "hard_flight_cancel_vs_change",
+              "query": "How do I cancel my flight reservation?",
+              "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How do I cancel my flight reservation?",
+              "docs": [
+                {
+                  "text": "To cancel a flight, go to Manage Booking and select the cancellation option within 24 hours for a full refund.",
+                  "formattedText": "To cancel a flight, go to Manage Booking and select the cancellation option within 24 hours for a full refund."
+                },
+                {
+                  "text": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied.",
+                  "formattedText": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied."
+                },
+                {
+                  "text": "Flight status updates are available in the airline app under trip notifications.",
+                  "formattedText": "Flight status updates are available in the airline app under trip notifications."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.893754,
+                0.825525,
+                0.781341
+              ]
+            },
+            {
+              "id": "hard_return_vs_exchange",
+              "query": "Can I exchange a product instead of returning it?",
+              "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Can I exchange a product instead of returning it?",
+              "docs": [
+                {
+                  "text": "To return an item, ship it back within 30 days in its original packaging for a refund.",
+                  "formattedText": "To return an item, ship it back within 30 days in its original packaging for a refund."
+                },
+                {
+                  "text": "Exchanges are available in-store or online; select the replacement item and ship the original back within 14 days.",
+                  "formattedText": "Exchanges are available in-store or online; select the replacement item and ship the original back within 14 days."
+                },
+                {
+                  "text": "Gift cards can be purchased in any denomination and never expire.",
+                  "formattedText": "Gift cards can be purchased in any denomination and never expire."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 1,
+              "topDoc": 1,
+              "sims": [
+                0.805148,
+                0.848234,
+                0.793358
+              ]
+            },
+            {
+              "id": "hard_savings_vs_checking",
+              "query": "What is the interest rate on a savings account?",
+              "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What is the interest rate on a savings account?",
+              "docs": [
+                {
+                  "text": "Checking accounts offer unlimited transactions with no minimum balance and a debit card.",
+                  "formattedText": "Checking accounts offer unlimited transactions with no minimum balance and a debit card."
+                },
+                {
+                  "text": "Savings accounts currently earn 4.5% APY with interest compounded daily and paid monthly.",
+                  "formattedText": "Savings accounts currently earn 4.5% APY with interest compounded daily and paid monthly."
+                },
+                {
+                  "text": "Credit card rewards include cashback, travel points, and purchase protection.",
+                  "formattedText": "Credit card rewards include cashback, travel points, and purchase protection."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 1,
+              "topDoc": 1,
+              "sims": [
+                0.814162,
+                0.868304,
+                0.759351
+              ]
+            },
+            {
+              "id": "hard_migraine_vs_tension",
+              "query": "What triggers a migraine headache?",
+              "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What triggers a migraine headache?",
+              "docs": [
+                {
+                  "text": "Tension headaches are caused by muscle contraction in the head and neck and respond well to over-the-counter painkillers.",
+                  "formattedText": "Tension headaches are caused by muscle contraction in the head and neck and respond well to over-the-counter painkillers."
+                },
+                {
+                  "text": "Migraines can be triggered by stress, certain foods, hormonal changes, and bright lights, often presenting with aura and nausea.",
+                  "formattedText": "Migraines can be triggered by stress, certain foods, hormonal changes, and bright lights, often presenting with aura and nausea."
+                },
+                {
+                  "text": "Cluster headaches occur in cyclical patterns and cause severe pain around one eye.",
+                  "formattedText": "Cluster headaches occur in cyclical patterns and cause severe pain around one eye."
+                }
+              ],
+              "passed": false,
+              "expectedDoc": 1,
+              "topDoc": 0,
+              "sims": [
+                0.799227,
+                0.764478,
+                0.777117
+              ]
+            },
+            {
+              "id": "hard_python_sort_vs_filter",
+              "query": "How do I sort a list in Python?",
+              "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How do I sort a list in Python?",
+              "docs": [
+                {
+                  "text": "Use the built-in sorted() function or list.sort() method to sort a list; both accept a key argument for custom ordering.",
+                  "formattedText": "Use the built-in sorted() function or list.sort() method to sort a list; both accept a key argument for custom ordering."
+                },
+                {
+                  "text": "Use list comprehensions or the filter() built-in to select elements from a list that match a condition.",
+                  "formattedText": "Use list comprehensions or the filter() built-in to select elements from a list that match a condition."
+                },
+                {
+                  "text": "The map() function applies a transformation to every element in an iterable and returns a new iterator.",
+                  "formattedText": "The map() function applies a transformation to every element in an iterable and returns a new iterator."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.829119,
+                0.80719,
+                0.715546
+              ]
+            },
+            {
+              "id": "hard_civil_vs_criminal",
+              "query": "What is the difference between civil and criminal law?",
+              "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What is the difference between civil and criminal law?",
+              "docs": [
+                {
+                  "text": "Civil law handles disputes between individuals or organizations, such as contracts, property, and family matters, with remedies like damages or injunctions.",
+                  "formattedText": "Civil law handles disputes between individuals or organizations, such as contracts, property, and family matters, with remedies like damages or injunctions."
+                },
+                {
+                  "text": "Criminal law addresses offenses against the state, where the government prosecutes the accused, and penalties include fines, probation, or imprisonment.",
+                  "formattedText": "Criminal law addresses offenses against the state, where the government prosecutes the accused, and penalties include fines, probation, or imprisonment."
+                },
+                {
+                  "text": "Administrative law governs the actions of government agencies, including rulemaking, enforcement, and adjudication of regulatory matters.",
+                  "formattedText": "Administrative law governs the actions of government agencies, including rulemaking, enforcement, and adjudication of regulatory matters."
+                }
+              ],
+              "passed": false,
+              "expectedDoc": 0,
+              "topDoc": 1,
+              "sims": [
+                0.801564,
+                0.81585,
+                0.748993
+              ]
+            },
+            {
+              "id": "cross_medical",
+              "query": "What are the symptoms of type 2 diabetes?",
+              "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What are the symptoms of type 2 diabetes?",
+              "docs": [
+                {
+                  "text": "Type 2 diabetes symptoms include increased thirst, frequent urination, fatigue, blurred vision, and slow-healing wounds.",
+                  "formattedText": "Type 2 diabetes symptoms include increased thirst, frequent urination, fatigue, blurred vision, and slow-healing wounds."
+                },
+                {
+                  "text": "The quarterly earnings report showed a 12% increase in revenue driven by cloud services.",
+                  "formattedText": "The quarterly earnings report showed a 12% increase in revenue driven by cloud services."
+                },
+                {
+                  "text": "Sourdough bread requires a mature starter, strong flour, water, and salt with a 12-hour bulk fermentation.",
+                  "formattedText": "Sourdough bread requires a mature starter, strong flour, water, and salt with a 12-hour bulk fermentation."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.835968,
+                0.70213,
+                0.72276
+              ]
+            },
+            {
+              "id": "cross_finance",
+              "query": "How does compound interest work?",
+              "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How does compound interest work?",
+              "docs": [
+                {
+                  "text": "Photosynthesis converts carbon dioxide and water into glucose and oxygen using sunlight energy.",
+                  "formattedText": "Photosynthesis converts carbon dioxide and water into glucose and oxygen using sunlight energy."
+                },
+                {
+                  "text": "Compound interest calculates interest on both the initial principal and the accumulated interest from previous periods, causing exponential growth over time.",
+                  "formattedText": "Compound interest calculates interest on both the initial principal and the accumulated interest from previous periods, causing exponential growth over time."
+                },
+                {
+                  "text": "The novel follows three generations of a family through war, migration, and reconciliation.",
+                  "formattedText": "The novel follows three generations of a family through war, migration, and reconciliation."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 1,
+              "topDoc": 1,
+              "sims": [
+                0.706262,
+                0.822894,
+                0.757724
+              ]
+            },
+            {
+              "id": "cross_legal",
+              "query": "When does a contract become legally binding?",
+              "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: When does a contract become legally binding?",
+              "docs": [
+                {
+                  "text": "A contract becomes legally binding when there is an offer, acceptance, consideration, and mutual intent to be bound, with capacity and lawful purpose.",
+                  "formattedText": "A contract becomes legally binding when there is an offer, acceptance, consideration, and mutual intent to be bound, with capacity and lawful purpose."
+                },
+                {
+                  "text": "The CPU executes instructions by fetching them from memory, decoding the opcode, and performing the operation in the ALU.",
+                  "formattedText": "The CPU executes instructions by fetching them from memory, decoding the opcode, and performing the operation in the ALU."
+                },
+                {
+                  "text": "Grilled salmon pairs well with lemon butter sauce, roasted asparagus, and wild rice.",
+                  "formattedText": "Grilled salmon pairs well with lemon butter sauce, roasted asparagus, and wild rice."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.883589,
+                0.692993,
+                0.581191
+              ]
+            },
+            {
+              "id": "cross_science",
+              "query": "Why do heavy objects fall at the same rate as light ones in a vacuum?",
+              "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Why do heavy objects fall at the same rate as light ones in a vacuum?",
+              "docs": [
+                {
+                  "text": "In a vacuum, gravitational acceleration is constant regardless of mass, so all objects fall at the same rate because there is no air resistance.",
+                  "formattedText": "In a vacuum, gravitational acceleration is constant regardless of mass, so all objects fall at the same rate because there is no air resistance."
+                },
+                {
+                  "text": "The museum collection includes Impressionist paintings, Ancient Greek pottery, and contemporary sculpture.",
+                  "formattedText": "The museum collection includes Impressionist paintings, Ancient Greek pottery, and contemporary sculpture."
+                },
+                {
+                  "text": "To propagate succulents, remove a healthy leaf, let it callus for two days, then place it on moist soil.",
+                  "formattedText": "To propagate succulents, remove a healthy leaf, let it callus for two days, then place it on moist soil."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.865646,
+                0.691843,
+                0.778644
+              ]
+            },
+            {
+              "id": "cross_code",
+              "query": "What is a race condition in concurrent programming?",
+              "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What is a race condition in concurrent programming?",
+              "docs": [
+                {
+                  "text": "A race condition occurs when two or more threads access shared data simultaneously and the outcome depends on the order of execution, leading to unpredictable behavior.",
+                  "formattedText": "A race condition occurs when two or more threads access shared data simultaneously and the outcome depends on the order of execution, leading to unpredictable behavior."
+                },
+                {
+                  "text": "Annual rainfall in the Pacific Northwest averages 150 centimeters, supporting dense temperate rainforests.",
+                  "formattedText": "Annual rainfall in the Pacific Northwest averages 150 centimeters, supporting dense temperate rainforests."
+                },
+                {
+                  "text": "The yoga class starts with sun salutations and ends with a five-minute guided meditation.",
+                  "formattedText": "The yoga class starts with sun salutations and ends with a five-minute guided meditation."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.847506,
+                0.69727,
+                0.704215
+              ]
+            },
+            {
+              "id": "cross_cooking",
+              "query": "What temperature should I roast a chicken at?",
+              "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What temperature should I roast a chicken at?",
+              "docs": [
+                {
+                  "text": "Roast a whole chicken at 425°F (220°C) for about 20 minutes per pound until the internal temperature reaches 165°F (74°C) in the thickest part of the thigh.",
+                  "formattedText": "Roast a whole chicken at 425°F (220°C) for about 20 minutes per pound until the internal temperature reaches 165°F (74°C) in the thickest part of the thigh."
+                },
+                {
+                  "text": "Kubernetes orchestrates container workloads across a cluster using pods, services, and deployments.",
+                  "formattedText": "Kubernetes orchestrates container workloads across a cluster using pods, services, and deployments."
+                },
+                {
+                  "text": "The treaty established trade agreements, mutual defense obligations, and cultural exchange programs between the two nations.",
+                  "formattedText": "The treaty established trade agreements, mutual defense obligations, and cultural exchange programs between the two nations."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.812555,
+                0.57361,
+                0.631997
+              ]
+            },
+            {
+              "id": "pool_ten_docs",
+              "query": "How do vaccines work?",
+              "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How do vaccines work?",
+              "docs": [
+                {
+                  "text": "Vaccines introduce a weakened or inactivated pathogen to train the immune system to recognize and fight future infections without causing disease.",
+                  "formattedText": "Vaccines introduce a weakened or inactivated pathogen to train the immune system to recognize and fight future infections without causing disease."
+                },
+                {
+                  "text": "The impressionist movement emerged in Paris during the 1860s as artists rejected academic conventions.",
+                  "formattedText": "The impressionist movement emerged in Paris during the 1860s as artists rejected academic conventions."
+                },
+                {
+                  "text": "Reinforced concrete uses steel rebar embedded in concrete to resist both compression and tension forces.",
+                  "formattedText": "Reinforced concrete uses steel rebar embedded in concrete to resist both compression and tension forces."
+                },
+                {
+                  "text": "Dividends are periodic payments made by corporations to shareholders from profits or retained earnings.",
+                  "formattedText": "Dividends are periodic payments made by corporations to shareholders from profits or retained earnings."
+                },
+                {
+                  "text": "The alpine ecosystem supports specialized plants and animals adapted to cold temperatures, thin air, and intense UV radiation.",
+                  "formattedText": "The alpine ecosystem supports specialized plants and animals adapted to cold temperatures, thin air, and intense UV radiation."
+                },
+                {
+                  "text": "Merge sort divides the array recursively and merges sorted halves, achieving O(n log n) time complexity.",
+                  "formattedText": "Merge sort divides the array recursively and merges sorted halves, achieving O(n log n) time complexity."
+                },
+                {
+                  "text": "The symphony orchestra consists of four instrument families: strings, woodwinds, brass, and percussion.",
+                  "formattedText": "The symphony orchestra consists of four instrument families: strings, woodwinds, brass, and percussion."
+                },
+                {
+                  "text": "Glacial erosion carves U-shaped valleys and deposits moraines as the ice retreats.",
+                  "formattedText": "Glacial erosion carves U-shaped valleys and deposits moraines as the ice retreats."
+                },
+                {
+                  "text": "Probate is the legal process of validating a will and distributing the deceased person's assets.",
+                  "formattedText": "Probate is the legal process of validating a will and distributing the deceased person's assets."
+                },
+                {
+                  "text": "The combustion engine converts chemical energy from fuel into mechanical energy through controlled explosions in cylinders.",
+                  "formattedText": "The combustion engine converts chemical energy from fuel into mechanical energy through controlled explosions in cylinders."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.803734,
+                0.604796,
+                0.676995,
+                0.65274,
+                0.721899,
+                0.692111,
+                0.659094,
+                0.714251,
+                0.744636,
+                0.66571
+              ]
+            }
+          ],
+          "pairs": [
+            {
+              "id": "bike_paraphrase",
+              "anchor": "The child is riding a bicycle through the park.",
+              "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The child is riding a bicycle through the park.",
+              "positive": "A kid bikes along a path in the park.",
+              "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: A kid bikes along a path in the park.",
+              "negative": "The stock market closed lower after interest-rate news.",
+              "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The stock market closed lower after interest-rate news.",
+              "passed": true,
+              "simPos": 0.93907,
+              "simNeg": 0.774268,
+              "margin": 0.164803
+            },
+            {
+              "id": "cancel_subscription",
+              "anchor": "Please cancel my subscription before renewal.",
+              "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Please cancel my subscription before renewal.",
+              "positive": "I want to stop the plan so it does not renew.",
+              "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: I want to stop the plan so it does not renew.",
+              "negative": "The mountain trail is closed after heavy snow.",
+              "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The mountain trail is closed after heavy snow.",
+              "passed": true,
+              "simPos": 0.833639,
+              "simNeg": 0.774387,
+              "margin": 0.059252
+            },
+            {
+              "id": "battery_drain",
+              "anchor": "The laptop battery drains very quickly.",
+              "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The laptop battery drains very quickly.",
+              "positive": "My notebook loses charge fast.",
+              "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: My notebook loses charge fast.",
+              "negative": "This pasta sauce tastes sweet and spicy.",
+              "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: This pasta sauce tastes sweet and spicy.",
+              "passed": true,
+              "simPos": 0.846962,
+              "simNeg": 0.809524,
+              "margin": 0.037439
+            },
+            {
+              "id": "order_tracking",
+              "anchor": "I need to track where my order is.",
+              "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: I need to track where my order is.",
+              "positive": "How can I check my package delivery status?",
+              "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How can I check my package delivery status?",
+              "negative": "The violin concerto was composed in the 1800s.",
+              "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The violin concerto was composed in the 1800s.",
+              "passed": true,
+              "simPos": 0.86252,
+              "simNeg": 0.755887,
+              "margin": 0.106632
+            },
+            {
+              "id": "account_lockout",
+              "anchor": "My account is locked after too many login attempts.",
+              "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: My account is locked after too many login attempts.",
+              "positive": "I cannot sign in because the system temporarily blocked my account.",
+              "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: I cannot sign in because the system temporarily blocked my account.",
+              "negative": "Bake the cake at 350 degrees for thirty minutes.",
+              "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Bake the cake at 350 degrees for thirty minutes.",
+              "passed": true,
+              "simPos": 0.875626,
+              "simNeg": 0.765679,
+              "margin": 0.109947
+            },
+            {
+              "id": "invoice_request",
+              "anchor": "Please send me the invoice for last month.",
+              "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Please send me the invoice for last month.",
+              "positive": "Can you provide the billing statement for the previous month?",
+              "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Can you provide the billing statement for the previous month?",
+              "negative": "The hiking trail follows the river for five miles.",
+              "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The hiking trail follows the river for five miles.",
+              "passed": true,
+              "simPos": 0.880302,
+              "simNeg": 0.727965,
+              "margin": 0.152337
+            },
+            {
+              "id": "slow_internet",
+              "anchor": "The internet speed is much slower tonight.",
+              "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The internet speed is much slower tonight.",
+              "positive": "My connection is unusually slow this evening.",
+              "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: My connection is unusually slow this evening.",
+              "negative": "The novel explores themes of memory and loss.",
+              "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The novel explores themes of memory and loss.",
+              "passed": true,
+              "simPos": 0.91042,
+              "simNeg": 0.800964,
+              "margin": 0.109455
+            },
+            {
+              "id": "adversarial_negation_loan",
+              "anchor": "The bank approved the loan application.",
+              "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The bank approved the loan application.",
+              "positive": "The lending institution accepted the borrower's request for funds.",
+              "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The lending institution accepted the borrower's request for funds.",
+              "negative": "The bank rejected the loan application.",
+              "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The bank rejected the loan application.",
+              "passed": false,
+              "simPos": 0.907367,
+              "simNeg": 0.972058,
+              "margin": -0.064691
+            },
+            {
+              "id": "adversarial_negation_test",
+              "anchor": "The patient tested positive for the infection.",
+              "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The patient tested positive for the infection.",
+              "positive": "Lab results confirmed the presence of the pathogen.",
+              "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Lab results confirmed the presence of the pathogen.",
+              "negative": "The patient tested negative for the infection.",
+              "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The patient tested negative for the infection.",
+              "passed": false,
+              "simPos": 0.817229,
+              "simNeg": 0.978018,
+              "margin": -0.160788
+            },
+            {
+              "id": "adversarial_entity_swap",
+              "anchor": "France exported wine to Germany last quarter.",
+              "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: France exported wine to Germany last quarter.",
+              "positive": "French wine shipments to Germany increased in the recent period.",
+              "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: French wine shipments to Germany increased in the recent period.",
+              "negative": "Germany exported wine to France last quarter.",
+              "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Germany exported wine to France last quarter.",
+              "passed": false,
+              "simPos": 0.935255,
+              "simNeg": 0.977491,
+              "margin": -0.042236
+            },
+            {
+              "id": "adversarial_tense_flip",
+              "anchor": "The company plans to open a new office in Tokyo.",
+              "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The company plans to open a new office in Tokyo.",
+              "positive": "A new Tokyo branch is scheduled to launch soon.",
+              "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: A new Tokyo branch is scheduled to launch soon.",
+              "negative": "The company closed its Tokyo office last year.",
+              "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The company closed its Tokyo office last year.",
+              "passed": true,
+              "simPos": 0.925874,
+              "simNeg": 0.891097,
+              "margin": 0.034777
+            },
+            {
+              "id": "adversarial_quantity",
+              "anchor": "The recipe calls for two tablespoons of sugar.",
+              "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The recipe calls for two tablespoons of sugar.",
+              "positive": "Add a couple of spoonfuls of sugar to the mixture.",
+              "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Add a couple of spoonfuls of sugar to the mixture.",
+              "negative": "The recipe calls for two cups of sugar.",
+              "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The recipe calls for two cups of sugar.",
+              "passed": false,
+              "simPos": 0.865867,
+              "simNeg": 0.96896,
+              "margin": -0.103094
+            },
+            {
+              "id": "technical_paraphrase_gpu",
+              "anchor": "WebGPU provides low-level access to the graphics processor for compute workloads.",
+              "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: WebGPU provides low-level access to the graphics processor for compute workloads.",
+              "positive": "The WebGPU API exposes GPU hardware for parallel computation tasks.",
+              "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The WebGPU API exposes GPU hardware for parallel computation tasks.",
+              "negative": "WebSocket provides full-duplex communication channels over a single TCP connection.",
+              "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: WebSocket provides full-duplex communication channels over a single TCP connection.",
+              "passed": true,
+              "simPos": 0.898414,
+              "simNeg": 0.795235,
+              "margin": 0.103179
+            },
+            {
+              "id": "technical_paraphrase_ml",
+              "anchor": "Gradient descent minimizes the loss function by iteratively updating model parameters.",
+              "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Gradient descent minimizes the loss function by iteratively updating model parameters.",
+              "positive": "The optimizer reduces error by adjusting weights in the direction of steepest descent.",
+              "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The optimizer reduces error by adjusting weights in the direction of steepest descent.",
+              "negative": "The garbage collector reclaims memory by tracing reachable objects from root references.",
+              "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The garbage collector reclaims memory by tracing reachable objects from root references.",
+              "passed": true,
+              "simPos": 0.872297,
+              "simNeg": 0.781383,
+              "margin": 0.090914
+            }
+          ]
+        },
+        "modelLoadMs": 69396.6,
+        "endToEndMs": 69590.2,
+        "embeddingPreview": [
+          -0.0345,
+          0.008467,
+          -0.010215,
+          -0.095826,
+          0.021847,
+          0.061001,
+          -0.009778,
+          -0.048324,
+          -0.028499,
+          -0.012514,
+          -0.018639,
+          -0.040724,
+          -0.017123,
+          -0.011287,
+          -0.025542,
+          0.10197
+        ],
+        "load": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "semantics": {
+            "modelLoadMs": "suite initialization time before generation",
+            "loaderTotalMs": "DopplerLoader.load() weight-loader wall time",
+            "pipelineTotalMs": "InferencePipeline.loadModel() wall time",
+            "modelLoadMinusPipelineMs": "modelLoadMs - pipeline.totalMs; harness, storage, manifest, GPU init, and pipeline construction",
+            "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
+            "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
+          },
+          "modelLoadMs": 69396.6,
+          "loader": {
+            "schemaVersion": 1,
+            "source": "doppler-loader",
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "status": "complete",
+            "customShardLoader": true,
+            "byteAccountingMode": "custom-loader-progress-unavailable",
+            "totalBytes": 558475264,
+            "totalShards": 9,
+            "bytesLoaded": 0,
+            "shardsLoaded": 0,
+            "bytesPerSecond": 0,
+            "phasesMs": {
+              "preflight": 1.1,
+              "tensorLocations": 1.1,
+              "embeddings": 41251.1,
+              "layers": 25903.3,
+              "finalWeights": 112.4,
+              "cleanup": 0
+            },
+            "layers": {
+              "count": 28,
+              "totalMs": 25870,
+              "meanMs": 923.93,
+              "maxMs": 5634.5,
+              "maxLayer": 2
+            },
+            "totalMs": 67269.9,
+            "failedPhase": null,
+            "error": null
+          },
+          "pipeline": {
+            "schemaVersion": 1,
+            "source": "doppler-pipeline",
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "status": "complete",
+            "phasesMs": {
+              "reset": 0.1,
+              "configResolution": 3.7,
+              "kernelWarmup": 0,
+              "tokenizer": 611.1,
+              "executionSetup": 1.7,
+              "loadWeights": 68606.8,
+              "rope": 50.2,
+              "convStates": 0.2
+            },
+            "details": {
+              "tokenizer": {
+                "schemaVersion": 1,
+                "source": "doppler-tokenizer",
+                "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+                "status": "complete",
+                "tokenizerType": "bundled",
+                "tokenizerFile": "tokenizer.json",
+                "backend": "bundled",
+                "assetSource": "custom-loader",
+                "cacheHit": false,
+                "phasesMs": {
+                  "configResolution": 0,
+                  "cacheLookup": 0.1,
+                  "backendCreate": 0,
+                  "assetLoad": 528,
+                  "assetParse": 0.1,
+                  "backendLoad": 82.2,
+                  "cacheStore": 0
+                },
+                "totalMs": 610.8,
+                "error": null
+              }
+            },
+            "totalMs": 69273.8
+          },
+          "residualsMs": {
+            "modelLoadMinusLoaderMs": 2126.7,
+            "modelLoadMinusPipelineMs": 122.8,
+            "pipelineMinusLoaderMs": 2003.9
+          },
+          "consistent": {
+            "loaderWithinModelLoad": true,
+            "pipelineWithinModelLoad": true,
+            "loaderWithinPipeline": true
+          }
+        },
+        "schemaVersion": 1,
+        "source": "doppler",
+        "suite": "embedding",
+        "layerPatternContractArtifact": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "ok": true,
+          "checks": [
+            {
+              "id": "inference.layerPattern.patternKind.shape",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.patternKind.semantics",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.layerType.shape",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.layerType.semantics",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.computeGlobalLayers.even",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.computeGlobalLayers.odd",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "stats": {
+            "patternKindRules": 4,
+            "layerTypeRules": 6,
+            "patternKindContexts": 16,
+            "layerTypeContexts": 12
+          }
+        },
+        "requiredInferenceFieldsArtifact": null
+      },
+      "memoryStats": {
+        "used": 1060114688,
+        "pool": {
+          "allocations": 47458,
+          "reuses": 39794,
+          "totalBytesAllocated": 9847607552,
+          "peakBytesAllocated": 662049024,
+          "currentBytesAllocated": 590352640,
+          "totalBytesRequested": 8507934720,
+          "peakBytesRequested": 644245504,
+          "currentBytesRequested": 575252480,
+          "activeBuffers": 312,
+          "pooledBuffers": 64,
+          "budgetMaxBytes": 0,
+          "budgetUtilization": 0,
+          "hitRate": "45.6%"
+        },
+        "kvCache": {
+          "theoretical": 469762048,
+          "allocated": 469762048,
+          "used": 2293760,
+          "efficiency": 0.0048828125,
+          "seqLen": 20,
+          "maxSeqLen": 4096,
+          "layout": "contiguous",
+          "kvDtype": "f16",
+          "counters": {
+            "updateCalls": 0,
+            "gpuUpdateCalls": 0,
+            "recordedGpuUpdateCalls": 5292,
+            "tokensWritten": 135128
+          }
+        }
+      },
+      "deviceInfo": {
+        "hasSubgroups": true,
+        "hasSubgroupsF16": true,
+        "hasF16": true,
+        "hasTimestampQuery": true,
+        "maxBufferSize": 2147483648,
+        "maxWorkgroupSize": 1024,
+        "maxWorkgroupStorageSize": 65536,
+        "adapterInfo": {
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "device": "0x1586",
+          "description": "Radeon 8060S Graphics (RADV STRIX_HALO)"
+        },
+        "submitProbeMs": 1.2999999523162842
+      },
+      "pipeline": null,
+      "mode": "verify",
+      "workload": "embedding",
+      "debugSnapshot": null,
+      "reportInfo": {
+        "backend": "opfs",
+        "path": "reports/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-06T01-11-19.554Z.json"
+      }
+    },
+    "transformersjsBench": {
+      "modelId": "onnx-community/Qwen3-Embedding-0.6B-ONNX",
+      "seed": 0,
+      "task": "embedding",
+      "prompt": "A small red cube rests on a wooden table beside a blue sphere.",
+      "promptRendered": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: A small red cube rests on a wooden table beside a blue sphere.",
+      "embeddingStyle": "qwen3_embedding",
+      "embeddingMode": "feature-extraction",
+      "embeddingPooling": "last_token",
+      "embeddingNormalize": true,
+      "warmupRuns": 1,
+      "timedRuns": 3,
+      "cacheMode": "warm",
+      "loadMode": "http",
+      "modelLoadMs": 20968.99500000477,
+      "timing": {
+        "modelLoadMs": 20968.99500000477,
+        "firstTokenMs": null,
+        "firstResponseMs": 21120.31500005722,
+        "prefillMs": null,
+        "decodeMs": null,
+        "totalRunMs": 151.3200000524521,
+        "embeddingMs": 151.3200000524521,
+        "embeddingsPerSec": 6.51423359913538,
+        "cacheMode": "warm",
+        "loadMode": "http"
+      },
+      "metrics": {
+        "embeddingDim": 1024,
+        "nonFiniteValues": 0,
+        "firstEmbeddingMs": 151.3200000524521,
+        "minEmbeddingMs": 141.8050000667572,
+        "medianEmbeddingMs": 151.3200000524521,
+        "p95EmbeddingMs": 165.796499979496,
+        "p99EmbeddingMs": 167.083299973011,
+        "maxEmbeddingMs": 167.40499997138977,
+        "avgEmbeddingMs": 153.51000003019968,
+        "avgEmbeddingsPerSec": 6.51423359913538,
+        "avgEmbeddingTokens": 34,
+        "avgEmbeddingL2Norm": 0.9999998025649979,
+        "modelLoadMs": 20968.99500000477,
+        "ort_profiled_total_ms": 0,
+        "ort_profiled_event_count": 0,
+        "ort_top_op_total_ms": null
+      },
+      "semantic": {
+        "passed": true,
+        "style": "qwen3_embedding",
+        "retrievalTop1Acc": 1,
+        "pairAcc": 0.6428571428571429,
+        "retrievalPassed": 20,
+        "retrievalTotal": 20,
+        "pairPassed": 9,
+        "pairTotal": 14,
+        "minRetrievalTop1Acc": 0.75,
+        "minPairAcc": 0.64,
+        "pairMarginThreshold": 0.02,
+        "failedCaseIds": [
+          "pair:adversarial_negation_loan",
+          "pair:adversarial_negation_test",
+          "pair:adversarial_entity_swap",
+          "pair:adversarial_tense_flip",
+          "pair:adversarial_quantity"
+        ],
+        "retrieval": [
+          {
+            "id": "library_search",
+            "query": "Where can I borrow books and study quietly?",
+            "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Where can I borrow books and study quietly?",
+            "docs": [
+              {
+                "text": "The city library lends books, provides study rooms, and offers free Wi-Fi.",
+                "formattedText": "The city library lends books, provides study rooms, and offers free Wi-Fi."
+              },
+              {
+                "text": "The cafe serves coffee, pastries, and sandwiches all day.",
+                "formattedText": "The cafe serves coffee, pastries, and sandwiches all day."
+              },
+              {
+                "text": "The bike repair shop fixes flat tires and broken chains.",
+                "formattedText": "The bike repair shop fixes flat tires and broken chains."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.613828,
+              0.307064,
+              0.227296
+            ]
+          },
+          {
+            "id": "password_reset",
+            "query": "How do I reset my account password?",
+            "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How do I reset my account password?",
+            "docs": [
+              {
+                "text": "To reset your password, open account settings and choose the forgot-password flow.",
+                "formattedText": "To reset your password, open account settings and choose the forgot-password flow."
+              },
+              {
+                "text": "Our shipping policy explains delivery timelines and tracking updates.",
+                "formattedText": "Our shipping policy explains delivery timelines and tracking updates."
+              },
+              {
+                "text": "The recipe combines tomatoes, basil, and olive oil.",
+                "formattedText": "The recipe combines tomatoes, basil, and olive oil."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.721939,
+              0.206791,
+              0.205113
+            ]
+          },
+          {
+            "id": "damaged_package",
+            "query": "What should I do if my package arrives damaged?",
+            "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What should I do if my package arrives damaged?",
+            "docs": [
+              {
+                "text": "Contact support within seven days with photos to request a replacement for damaged items.",
+                "formattedText": "Contact support within seven days with photos to request a replacement for damaged items."
+              },
+              {
+                "text": "The concert starts at 8 PM at the downtown arena.",
+                "formattedText": "The concert starts at 8 PM at the downtown arena."
+              },
+              {
+                "text": "Plant roses in spring and water them twice a week.",
+                "formattedText": "Plant roses in spring and water them twice a week."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.520814,
+              0.198623,
+              0.227383
+            ]
+          },
+          {
+            "id": "flight_change_policy",
+            "query": "Can I change my flight after booking?",
+            "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Can I change my flight after booking?",
+            "docs": [
+              {
+                "text": "The museum opens daily at 10 AM and offers guided tours on weekends.",
+                "formattedText": "The museum opens daily at 10 AM and offers guided tours on weekends."
+              },
+              {
+                "text": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied.",
+                "formattedText": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied."
+              },
+              {
+                "text": "Our gym membership includes group classes and access to the pool.",
+                "formattedText": "Our gym membership includes group classes and access to the pool."
+              }
+            ],
+            "expectedDoc": 1,
+            "topDoc": 1,
+            "passed": true,
+            "sims": [
+              0.155634,
+              0.818469,
+              0.163601
+            ]
+          },
+          {
+            "id": "wifi_troubleshoot",
+            "query": "Why does my home Wi-Fi keep disconnecting?",
+            "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Why does my home Wi-Fi keep disconnecting?",
+            "docs": [
+              {
+                "text": "The dessert menu includes cheesecake, brownies, and fruit tart.",
+                "formattedText": "The dessert menu includes cheesecake, brownies, and fruit tart."
+              },
+              {
+                "text": "You can review your recent orders in your account purchase history.",
+                "formattedText": "You can review your recent orders in your account purchase history."
+              },
+              {
+                "text": "Frequent Wi-Fi drops can be fixed by restarting the router, updating firmware, and changing the wireless channel.",
+                "formattedText": "Frequent Wi-Fi drops can be fixed by restarting the router, updating firmware, and changing the wireless channel."
+              }
+            ],
+            "expectedDoc": 2,
+            "topDoc": 2,
+            "passed": true,
+            "sims": [
+              0.198604,
+              0.163414,
+              0.631421
+            ]
+          },
+          {
+            "id": "refund_deadline",
+            "query": "How long do I have to request a refund?",
+            "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How long do I have to request a refund?",
+            "docs": [
+              {
+                "text": "Refund requests are accepted within 30 days of purchase when the item is in original condition.",
+                "formattedText": "Refund requests are accepted within 30 days of purchase when the item is in original condition."
+              },
+              {
+                "text": "The conference keynote starts at 9 AM in the main hall.",
+                "formattedText": "The conference keynote starts at 9 AM in the main hall."
+              },
+              {
+                "text": "Use a medium grind when brewing coffee with a drip machine.",
+                "formattedText": "Use a medium grind when brewing coffee with a drip machine."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.750021,
+              0.211744,
+              0.203254
+            ]
+          },
+          {
+            "id": "passport_renewal_docs",
+            "query": "What documents do I need to renew a passport?",
+            "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What documents do I need to renew a passport?",
+            "docs": [
+              {
+                "text": "To care for houseplants, water only when the top soil is dry.",
+                "formattedText": "To care for houseplants, water only when the top soil is dry."
+              },
+              {
+                "text": "Passport renewal usually requires the application form, current passport, compliant photo, and payment.",
+                "formattedText": "Passport renewal usually requires the application form, current passport, compliant photo, and payment."
+              },
+              {
+                "text": "The train to downtown runs every 20 minutes during peak hours.",
+                "formattedText": "The train to downtown runs every 20 minutes during peak hours."
+              }
+            ],
+            "expectedDoc": 1,
+            "topDoc": 1,
+            "passed": true,
+            "sims": [
+              0.144318,
+              0.76982,
+              0.166842
+            ]
+          },
+          {
+            "id": "hard_flight_cancel_vs_change",
+            "query": "How do I cancel my flight reservation?",
+            "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How do I cancel my flight reservation?",
+            "docs": [
+              {
+                "text": "To cancel a flight, go to Manage Booking and select the cancellation option within 24 hours for a full refund.",
+                "formattedText": "To cancel a flight, go to Manage Booking and select the cancellation option within 24 hours for a full refund."
+              },
+              {
+                "text": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied.",
+                "formattedText": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied."
+              },
+              {
+                "text": "Flight status updates are available in the airline app under trip notifications.",
+                "formattedText": "Flight status updates are available in the airline app under trip notifications."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.724907,
+              0.574529,
+              0.431927
+            ]
+          },
+          {
+            "id": "hard_return_vs_exchange",
+            "query": "Can I exchange a product instead of returning it?",
+            "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Can I exchange a product instead of returning it?",
+            "docs": [
+              {
+                "text": "To return an item, ship it back within 30 days in its original packaging for a refund.",
+                "formattedText": "To return an item, ship it back within 30 days in its original packaging for a refund."
+              },
+              {
+                "text": "Exchanges are available in-store or online; select the replacement item and ship the original back within 14 days.",
+                "formattedText": "Exchanges are available in-store or online; select the replacement item and ship the original back within 14 days."
+              },
+              {
+                "text": "Gift cards can be purchased in any denomination and never expire.",
+                "formattedText": "Gift cards can be purchased in any denomination and never expire."
+              }
+            ],
+            "expectedDoc": 1,
+            "topDoc": 1,
+            "passed": true,
+            "sims": [
+              0.544736,
+              0.651699,
+              0.346812
+            ]
+          },
+          {
+            "id": "hard_savings_vs_checking",
+            "query": "What is the interest rate on a savings account?",
+            "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What is the interest rate on a savings account?",
+            "docs": [
+              {
+                "text": "Checking accounts offer unlimited transactions with no minimum balance and a debit card.",
+                "formattedText": "Checking accounts offer unlimited transactions with no minimum balance and a debit card."
+              },
+              {
+                "text": "Savings accounts currently earn 4.5% APY with interest compounded daily and paid monthly.",
+                "formattedText": "Savings accounts currently earn 4.5% APY with interest compounded daily and paid monthly."
+              },
+              {
+                "text": "Credit card rewards include cashback, travel points, and purchase protection.",
+                "formattedText": "Credit card rewards include cashback, travel points, and purchase protection."
+              }
+            ],
+            "expectedDoc": 1,
+            "topDoc": 1,
+            "passed": true,
+            "sims": [
+              0.39842,
+              0.708751,
+              0.28968
+            ]
+          },
+          {
+            "id": "hard_migraine_vs_tension",
+            "query": "What triggers a migraine headache?",
+            "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What triggers a migraine headache?",
+            "docs": [
+              {
+                "text": "Tension headaches are caused by muscle contraction in the head and neck and respond well to over-the-counter painkillers.",
+                "formattedText": "Tension headaches are caused by muscle contraction in the head and neck and respond well to over-the-counter painkillers."
+              },
+              {
+                "text": "Migraines can be triggered by stress, certain foods, hormonal changes, and bright lights, often presenting with aura and nausea.",
+                "formattedText": "Migraines can be triggered by stress, certain foods, hormonal changes, and bright lights, often presenting with aura and nausea."
+              },
+              {
+                "text": "Cluster headaches occur in cyclical patterns and cause severe pain around one eye.",
+                "formattedText": "Cluster headaches occur in cyclical patterns and cause severe pain around one eye."
+              }
+            ],
+            "expectedDoc": 1,
+            "topDoc": 1,
+            "passed": true,
+            "sims": [
+              0.540348,
+              0.647478,
+              0.531056
+            ]
+          },
+          {
+            "id": "hard_python_sort_vs_filter",
+            "query": "How do I sort a list in Python?",
+            "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How do I sort a list in Python?",
+            "docs": [
+              {
+                "text": "Use the built-in sorted() function or list.sort() method to sort a list; both accept a key argument for custom ordering.",
+                "formattedText": "Use the built-in sorted() function or list.sort() method to sort a list; both accept a key argument for custom ordering."
+              },
+              {
+                "text": "Use list comprehensions or the filter() built-in to select elements from a list that match a condition.",
+                "formattedText": "Use list comprehensions or the filter() built-in to select elements from a list that match a condition."
+              },
+              {
+                "text": "The map() function applies a transformation to every element in an iterable and returns a new iterator.",
+                "formattedText": "The map() function applies a transformation to every element in an iterable and returns a new iterator."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.786745,
+              0.55465,
+              0.343585
+            ]
+          },
+          {
+            "id": "hard_civil_vs_criminal",
+            "query": "What is the difference between civil and criminal law?",
+            "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What is the difference between civil and criminal law?",
+            "docs": [
+              {
+                "text": "Civil law handles disputes between individuals or organizations, such as contracts, property, and family matters, with remedies like damages or injunctions.",
+                "formattedText": "Civil law handles disputes between individuals or organizations, such as contracts, property, and family matters, with remedies like damages or injunctions."
+              },
+              {
+                "text": "Criminal law addresses offenses against the state, where the government prosecutes the accused, and penalties include fines, probation, or imprisonment.",
+                "formattedText": "Criminal law addresses offenses against the state, where the government prosecutes the accused, and penalties include fines, probation, or imprisonment."
+              },
+              {
+                "text": "Administrative law governs the actions of government agencies, including rulemaking, enforcement, and adjudication of regulatory matters.",
+                "formattedText": "Administrative law governs the actions of government agencies, including rulemaking, enforcement, and adjudication of regulatory matters."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.511743,
+              0.482752,
+              0.380476
+            ]
+          },
+          {
+            "id": "cross_medical",
+            "query": "What are the symptoms of type 2 diabetes?",
+            "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What are the symptoms of type 2 diabetes?",
+            "docs": [
+              {
+                "text": "Type 2 diabetes symptoms include increased thirst, frequent urination, fatigue, blurred vision, and slow-healing wounds.",
+                "formattedText": "Type 2 diabetes symptoms include increased thirst, frequent urination, fatigue, blurred vision, and slow-healing wounds."
+              },
+              {
+                "text": "The quarterly earnings report showed a 12% increase in revenue driven by cloud services.",
+                "formattedText": "The quarterly earnings report showed a 12% increase in revenue driven by cloud services."
+              },
+              {
+                "text": "Sourdough bread requires a mature starter, strong flour, water, and salt with a 12-hour bulk fermentation.",
+                "formattedText": "Sourdough bread requires a mature starter, strong flour, water, and salt with a 12-hour bulk fermentation."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.762347,
+              0.146066,
+              0.195095
+            ]
+          },
+          {
+            "id": "cross_finance",
+            "query": "How does compound interest work?",
+            "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How does compound interest work?",
+            "docs": [
+              {
+                "text": "Photosynthesis converts carbon dioxide and water into glucose and oxygen using sunlight energy.",
+                "formattedText": "Photosynthesis converts carbon dioxide and water into glucose and oxygen using sunlight energy."
+              },
+              {
+                "text": "Compound interest calculates interest on both the initial principal and the accumulated interest from previous periods, causing exponential growth over time.",
+                "formattedText": "Compound interest calculates interest on both the initial principal and the accumulated interest from previous periods, causing exponential growth over time."
+              },
+              {
+                "text": "The novel follows three generations of a family through war, migration, and reconciliation.",
+                "formattedText": "The novel follows three generations of a family through war, migration, and reconciliation."
+              }
+            ],
+            "expectedDoc": 1,
+            "topDoc": 1,
+            "passed": true,
+            "sims": [
+              0.26538,
+              0.711147,
+              0.276766
+            ]
+          },
+          {
+            "id": "cross_legal",
+            "query": "When does a contract become legally binding?",
+            "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: When does a contract become legally binding?",
+            "docs": [
+              {
+                "text": "A contract becomes legally binding when there is an offer, acceptance, consideration, and mutual intent to be bound, with capacity and lawful purpose.",
+                "formattedText": "A contract becomes legally binding when there is an offer, acceptance, consideration, and mutual intent to be bound, with capacity and lawful purpose."
+              },
+              {
+                "text": "The CPU executes instructions by fetching them from memory, decoding the opcode, and performing the operation in the ALU.",
+                "formattedText": "The CPU executes instructions by fetching them from memory, decoding the opcode, and performing the operation in the ALU."
+              },
+              {
+                "text": "Grilled salmon pairs well with lemon butter sauce, roasted asparagus, and wild rice.",
+                "formattedText": "Grilled salmon pairs well with lemon butter sauce, roasted asparagus, and wild rice."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.730683,
+              0.199763,
+              0.182412
+            ]
+          },
+          {
+            "id": "cross_science",
+            "query": "Why do heavy objects fall at the same rate as light ones in a vacuum?",
+            "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Why do heavy objects fall at the same rate as light ones in a vacuum?",
+            "docs": [
+              {
+                "text": "In a vacuum, gravitational acceleration is constant regardless of mass, so all objects fall at the same rate because there is no air resistance.",
+                "formattedText": "In a vacuum, gravitational acceleration is constant regardless of mass, so all objects fall at the same rate because there is no air resistance."
+              },
+              {
+                "text": "The museum collection includes Impressionist paintings, Ancient Greek pottery, and contemporary sculpture.",
+                "formattedText": "The museum collection includes Impressionist paintings, Ancient Greek pottery, and contemporary sculpture."
+              },
+              {
+                "text": "To propagate succulents, remove a healthy leaf, let it callus for two days, then place it on moist soil.",
+                "formattedText": "To propagate succulents, remove a healthy leaf, let it callus for two days, then place it on moist soil."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.769857,
+              0.172406,
+              0.206324
+            ]
+          },
+          {
+            "id": "cross_code",
+            "query": "What is a race condition in concurrent programming?",
+            "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What is a race condition in concurrent programming?",
+            "docs": [
+              {
+                "text": "A race condition occurs when two or more threads access shared data simultaneously and the outcome depends on the order of execution, leading to unpredictable behavior.",
+                "formattedText": "A race condition occurs when two or more threads access shared data simultaneously and the outcome depends on the order of execution, leading to unpredictable behavior."
+              },
+              {
+                "text": "Annual rainfall in the Pacific Northwest averages 150 centimeters, supporting dense temperate rainforests.",
+                "formattedText": "Annual rainfall in the Pacific Northwest averages 150 centimeters, supporting dense temperate rainforests."
+              },
+              {
+                "text": "The yoga class starts with sun salutations and ends with a five-minute guided meditation.",
+                "formattedText": "The yoga class starts with sun salutations and ends with a five-minute guided meditation."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.702419,
+              0.199933,
+              0.153973
+            ]
+          },
+          {
+            "id": "cross_cooking",
+            "query": "What temperature should I roast a chicken at?",
+            "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: What temperature should I roast a chicken at?",
+            "docs": [
+              {
+                "text": "Roast a whole chicken at 425°F (220°C) for about 20 minutes per pound until the internal temperature reaches 165°F (74°C) in the thickest part of the thigh.",
+                "formattedText": "Roast a whole chicken at 425°F (220°C) for about 20 minutes per pound until the internal temperature reaches 165°F (74°C) in the thickest part of the thigh."
+              },
+              {
+                "text": "Kubernetes orchestrates container workloads across a cluster using pods, services, and deployments.",
+                "formattedText": "Kubernetes orchestrates container workloads across a cluster using pods, services, and deployments."
+              },
+              {
+                "text": "The treaty established trade agreements, mutual defense obligations, and cultural exchange programs between the two nations.",
+                "formattedText": "The treaty established trade agreements, mutual defense obligations, and cultural exchange programs between the two nations."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.758699,
+              0.036077,
+              0.004829
+            ]
+          },
+          {
+            "id": "pool_ten_docs",
+            "query": "How do vaccines work?",
+            "formattedQuery": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How do vaccines work?",
+            "docs": [
+              {
+                "text": "Vaccines introduce a weakened or inactivated pathogen to train the immune system to recognize and fight future infections without causing disease.",
+                "formattedText": "Vaccines introduce a weakened or inactivated pathogen to train the immune system to recognize and fight future infections without causing disease."
+              },
+              {
+                "text": "The impressionist movement emerged in Paris during the 1860s as artists rejected academic conventions.",
+                "formattedText": "The impressionist movement emerged in Paris during the 1860s as artists rejected academic conventions."
+              },
+              {
+                "text": "Reinforced concrete uses steel rebar embedded in concrete to resist both compression and tension forces.",
+                "formattedText": "Reinforced concrete uses steel rebar embedded in concrete to resist both compression and tension forces."
+              },
+              {
+                "text": "Dividends are periodic payments made by corporations to shareholders from profits or retained earnings.",
+                "formattedText": "Dividends are periodic payments made by corporations to shareholders from profits or retained earnings."
+              },
+              {
+                "text": "The alpine ecosystem supports specialized plants and animals adapted to cold temperatures, thin air, and intense UV radiation.",
+                "formattedText": "The alpine ecosystem supports specialized plants and animals adapted to cold temperatures, thin air, and intense UV radiation."
+              },
+              {
+                "text": "Merge sort divides the array recursively and merges sorted halves, achieving O(n log n) time complexity.",
+                "formattedText": "Merge sort divides the array recursively and merges sorted halves, achieving O(n log n) time complexity."
+              },
+              {
+                "text": "The symphony orchestra consists of four instrument families: strings, woodwinds, brass, and percussion.",
+                "formattedText": "The symphony orchestra consists of four instrument families: strings, woodwinds, brass, and percussion."
+              },
+              {
+                "text": "Glacial erosion carves U-shaped valleys and deposits moraines as the ice retreats.",
+                "formattedText": "Glacial erosion carves U-shaped valleys and deposits moraines as the ice retreats."
+              },
+              {
+                "text": "Probate is the legal process of validating a will and distributing the deceased person's assets.",
+                "formattedText": "Probate is the legal process of validating a will and distributing the deceased person's assets."
+              },
+              {
+                "text": "The combustion engine converts chemical energy from fuel into mechanical energy through controlled explosions in cylinders.",
+                "formattedText": "The combustion engine converts chemical energy from fuel into mechanical energy through controlled explosions in cylinders."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.674417,
+              0.154277,
+              0.223955,
+              0.19842,
+              0.25635,
+              0.24237,
+              0.177268,
+              0.256477,
+              0.238637,
+              0.320026
+            ]
+          }
+        ],
+        "pairs": [
+          {
+            "id": "bike_paraphrase",
+            "anchor": "The child is riding a bicycle through the park.",
+            "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The child is riding a bicycle through the park.",
+            "positive": "A kid bikes along a path in the park.",
+            "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: A kid bikes along a path in the park.",
+            "negative": "The stock market closed lower after interest-rate news.",
+            "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The stock market closed lower after interest-rate news.",
+            "passed": true,
+            "simPos": 0.810974,
+            "simNeg": 0.18318,
+            "margin": 0.627794
+          },
+          {
+            "id": "cancel_subscription",
+            "anchor": "Please cancel my subscription before renewal.",
+            "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Please cancel my subscription before renewal.",
+            "positive": "I want to stop the plan so it does not renew.",
+            "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: I want to stop the plan so it does not renew.",
+            "negative": "The mountain trail is closed after heavy snow.",
+            "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The mountain trail is closed after heavy snow.",
+            "passed": true,
+            "simPos": 0.614581,
+            "simNeg": 0.305266,
+            "margin": 0.309315
+          },
+          {
+            "id": "battery_drain",
+            "anchor": "The laptop battery drains very quickly.",
+            "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The laptop battery drains very quickly.",
+            "positive": "My notebook loses charge fast.",
+            "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: My notebook loses charge fast.",
+            "negative": "This pasta sauce tastes sweet and spicy.",
+            "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: This pasta sauce tastes sweet and spicy.",
+            "passed": true,
+            "simPos": 0.704938,
+            "simNeg": 0.139392,
+            "margin": 0.565546
+          },
+          {
+            "id": "order_tracking",
+            "anchor": "I need to track where my order is.",
+            "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: I need to track where my order is.",
+            "positive": "How can I check my package delivery status?",
+            "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: How can I check my package delivery status?",
+            "negative": "The violin concerto was composed in the 1800s.",
+            "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The violin concerto was composed in the 1800s.",
+            "passed": true,
+            "simPos": 0.588273,
+            "simNeg": 0.029606,
+            "margin": 0.558666
+          },
+          {
+            "id": "account_lockout",
+            "anchor": "My account is locked after too many login attempts.",
+            "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: My account is locked after too many login attempts.",
+            "positive": "I cannot sign in because the system temporarily blocked my account.",
+            "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: I cannot sign in because the system temporarily blocked my account.",
+            "negative": "Bake the cake at 350 degrees for thirty minutes.",
+            "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Bake the cake at 350 degrees for thirty minutes.",
+            "passed": true,
+            "simPos": 0.641678,
+            "simNeg": 0.244731,
+            "margin": 0.396947
+          },
+          {
+            "id": "invoice_request",
+            "anchor": "Please send me the invoice for last month.",
+            "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Please send me the invoice for last month.",
+            "positive": "Can you provide the billing statement for the previous month?",
+            "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Can you provide the billing statement for the previous month?",
+            "negative": "The hiking trail follows the river for five miles.",
+            "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The hiking trail follows the river for five miles.",
+            "passed": true,
+            "simPos": 0.618943,
+            "simNeg": 0.268245,
+            "margin": 0.350698
+          },
+          {
+            "id": "slow_internet",
+            "anchor": "The internet speed is much slower tonight.",
+            "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The internet speed is much slower tonight.",
+            "positive": "My connection is unusually slow this evening.",
+            "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: My connection is unusually slow this evening.",
+            "negative": "The novel explores themes of memory and loss.",
+            "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The novel explores themes of memory and loss.",
+            "passed": true,
+            "simPos": 0.745505,
+            "simNeg": 0.142744,
+            "margin": 0.602761
+          },
+          {
+            "id": "adversarial_negation_loan",
+            "anchor": "The bank approved the loan application.",
+            "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The bank approved the loan application.",
+            "positive": "The lending institution accepted the borrower's request for funds.",
+            "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The lending institution accepted the borrower's request for funds.",
+            "negative": "The bank rejected the loan application.",
+            "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The bank rejected the loan application.",
+            "passed": false,
+            "simPos": 0.690303,
+            "simNeg": 0.802254,
+            "margin": -0.111951
+          },
+          {
+            "id": "adversarial_negation_test",
+            "anchor": "The patient tested positive for the infection.",
+            "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The patient tested positive for the infection.",
+            "positive": "Lab results confirmed the presence of the pathogen.",
+            "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Lab results confirmed the presence of the pathogen.",
+            "negative": "The patient tested negative for the infection.",
+            "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The patient tested negative for the infection.",
+            "passed": false,
+            "simPos": 0.688142,
+            "simNeg": 0.880675,
+            "margin": -0.192532
+          },
+          {
+            "id": "adversarial_entity_swap",
+            "anchor": "France exported wine to Germany last quarter.",
+            "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: France exported wine to Germany last quarter.",
+            "positive": "French wine shipments to Germany increased in the recent period.",
+            "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: French wine shipments to Germany increased in the recent period.",
+            "negative": "Germany exported wine to France last quarter.",
+            "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Germany exported wine to France last quarter.",
+            "passed": false,
+            "simPos": 0.84112,
+            "simNeg": 0.973087,
+            "margin": -0.131968
+          },
+          {
+            "id": "adversarial_tense_flip",
+            "anchor": "The company plans to open a new office in Tokyo.",
+            "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The company plans to open a new office in Tokyo.",
+            "positive": "A new Tokyo branch is scheduled to launch soon.",
+            "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: A new Tokyo branch is scheduled to launch soon.",
+            "negative": "The company closed its Tokyo office last year.",
+            "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The company closed its Tokyo office last year.",
+            "passed": false,
+            "simPos": 0.765399,
+            "simNeg": 0.767359,
+            "margin": -0.00196
+          },
+          {
+            "id": "adversarial_quantity",
+            "anchor": "The recipe calls for two tablespoons of sugar.",
+            "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The recipe calls for two tablespoons of sugar.",
+            "positive": "Add a couple of spoonfuls of sugar to the mixture.",
+            "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Add a couple of spoonfuls of sugar to the mixture.",
+            "negative": "The recipe calls for two cups of sugar.",
+            "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The recipe calls for two cups of sugar.",
+            "passed": false,
+            "simPos": 0.631271,
+            "simNeg": 0.924137,
+            "margin": -0.292866
+          },
+          {
+            "id": "technical_paraphrase_gpu",
+            "anchor": "WebGPU provides low-level access to the graphics processor for compute workloads.",
+            "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: WebGPU provides low-level access to the graphics processor for compute workloads.",
+            "positive": "The WebGPU API exposes GPU hardware for parallel computation tasks.",
+            "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The WebGPU API exposes GPU hardware for parallel computation tasks.",
+            "negative": "WebSocket provides full-duplex communication channels over a single TCP connection.",
+            "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: WebSocket provides full-duplex communication channels over a single TCP connection.",
+            "passed": true,
+            "simPos": 0.811786,
+            "simNeg": 0.452001,
+            "margin": 0.359785
+          },
+          {
+            "id": "technical_paraphrase_ml",
+            "anchor": "Gradient descent minimizes the loss function by iteratively updating model parameters.",
+            "formattedAnchor": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: Gradient descent minimizes the loss function by iteratively updating model parameters.",
+            "positive": "The optimizer reduces error by adjusting weights in the direction of steepest descent.",
+            "formattedPositive": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The optimizer reduces error by adjusting weights in the direction of steepest descent.",
+            "negative": "The garbage collector reclaims memory by tracing reachable objects from root references.",
+            "formattedNegative": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: The garbage collector reclaims memory by tracing reachable objects from root references.",
+            "passed": true,
+            "simPos": 0.60749,
+            "simNeg": 0.22535,
+            "margin": 0.38214
+          }
+        ],
+        "durationMs": 19089.894999980927
+      },
+      "runs": [
+        {
+          "embeddingMs": 151.3200000524521,
+          "tokenCount": 34,
+          "embeddingDim": 1024,
+          "finiteRatio": 1,
+          "nonFiniteCount": 0,
+          "l2Norm": 0.9999998025649979,
+          "min": -0.10386504977941513,
+          "max": 0.11568339169025421
+        },
+        {
+          "embeddingMs": 141.8050000667572,
+          "tokenCount": 34,
+          "embeddingDim": 1024,
+          "finiteRatio": 1,
+          "nonFiniteCount": 0,
+          "l2Norm": 0.9999998025649979,
+          "min": -0.10386504977941513,
+          "max": 0.11568339169025421
+        },
+        {
+          "embeddingMs": 167.40499997138977,
+          "tokenCount": 34,
+          "embeddingDim": 1024,
+          "finiteRatio": 1,
+          "nonFiniteCount": 0,
+          "l2Norm": 0.9999998025649979,
+          "min": -0.10386504977941513,
+          "max": 0.11568339169025421
+        }
+      ],
+      "embeddingPreview": [
+        -0.05841,
+        -0.054849,
+        -0.005393,
+        -0.003807,
+        -0.013334,
+        0.085228,
+        -0.027387,
+        -0.064092
+      ],
+      "deviceInfo": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "0x1586",
+        "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "hasTimestampQuery": true
+      },
+      "env": {
+        "library": "transformers.js",
+        "version": "4.x",
+        "device": "webgpu",
+        "browserUserAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+        "browserPlatform": "Linux x86_64",
+        "browserLanguage": "en-US",
+        "browserVendor": "Google Inc.",
+        "dtype": "q4f16",
+        "requestedDtype": "q4f16",
+        "dtypeFallbackUsed": false,
+        "executionProviderMode": "webgpu-only",
+        "executionProviderFallbackUsed": false,
+        "ortProxyMode": "off",
+        "ortProxyFallbackUsed": false,
+        "runnerKind": "feature-extraction",
+        "webgpuBackend": "vulkan",
+        "browserExecutable": null
+      },
+      "benchmarkPolicy": {
+        "source": "/home/x/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+        "schemaVersion": 1,
+        "updated": "2026-03-29"
+      },
+      "determinism": {
+        "seed": 0,
+        "decoding": null,
+        "embedding": {
+          "mode": "feature-extraction",
+          "pooling": "last_token",
+          "normalize": true,
+          "style": "qwen3_embedding"
+        }
+      },
+      "profiling": {
+        "ortConsole": {
+          "eventCount": 0,
+          "durationEventCount": 0,
+          "totalDurationMs": 0,
+          "topOperations": [],
+          "categories": [],
+          "parseErrorCount": 0,
+          "rawLogCount": 0,
+          "enabled": false,
+          "topN": 20
+        }
+      },
+      "cachePrime": {
+        "enabled": false,
+        "primed": false,
+        "primeMs": 0
+      },
+      "firstLoad": {
+        "schemaVersion": 1,
+        "semantics": {
+          "browserLaunchMs": "node launch request -> browser/context ready",
+          "pageReadyMs": "runner navigation + startup",
+          "cachePrimeMs": "untimed warm-opfs prefetch/load pass",
+          "modelLoadMs": "model initialization/load before generation",
+          "firstTokenMs": "ttft from generation start",
+          "firstResponseMs": "modelLoadMs + firstTokenMs",
+          "harnessWarmStartToFirstResponseMs": "pageReadyMs + cachePrimeMs + firstResponseMs",
+          "endToEndFirstResponseMs": "browserLaunchMs + pageReadyMs + cachePrimeMs + firstResponseMs"
+        },
+        "componentsMs": {
+          "browserLaunchMs": 70.59,
+          "pageReadyMs": 88.32,
+          "cachePrimeMs": 0,
+          "modelLoadMs": 20969,
+          "firstTokenMs": 0,
+          "firstResponseMs": 21120.32
+        },
+        "sumsMs": {
+          "firstResponseFromLoadAndFirstTokenMs": 20969,
+          "harnessWarmStartToFirstResponseMs": 21208.64,
+          "endToEndFirstResponseMs": 21279.23
+        },
+        "residualsMs": {
+          "firstResponseResidualMs": 151.32
+        },
+        "consistent": {
+          "firstResponse": false
+        },
+        "mode": {
+          "cachePrimeEnabled": false,
+          "cachePrimePrimed": false,
+          "strictWarmOpfs": false
+        }
+      },
+      "environment": {
+        "host": {
+          "platform": "linux",
+          "arch": "x64",
+          "nodeVersion": "v22.22.1",
+          "osRelease": "7.0.0-22-generic",
+          "cpuModel": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S"
+        },
+        "browser": {
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+          "platform": "Linux x86_64",
+          "language": "en-US",
+          "vendor": "Google Inc.",
+          "executable": null,
+          "channel": null
+        },
+        "gpu": {
+          "api": "webgpu",
+          "backend": "vulkan",
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "device": "0x1586",
+          "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+          "hasF16": true,
+          "hasSubgroups": true,
+          "hasTimestampQuery": true
+        },
+        "runtime": {
+          "library": "transformers.js",
+          "version": "4.x",
+          "surface": "browser",
+          "device": "webgpu",
+          "dtype": "q4f16",
+          "requestedDtype": "q4f16",
+          "executionProviderMode": "webgpu-only",
+          "cacheMode": "warm",
+          "loadMode": "http",
+          "persistentContextRequired": true,
+          "persistentContextUsed": true,
+          "crashRecoveryArgsUsed": false
+        }
+      }
+    }
+  }
+}
