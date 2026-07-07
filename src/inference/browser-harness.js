@@ -1880,7 +1880,25 @@ export async function runBrowserSuite(options = {}) {
       report.timestamp = suiteTimestamp;
     }
     const reportInfo = await saveReport(modelId, report, { timestamp: report.timestamp });
-    return { ...suiteResult, mode, workload, debugSnapshot, report, reportInfo };
+    const requestReceipt = {
+      ...(
+        suiteResult.request && typeof suiteResult.request === 'object'
+          ? suiteResult.request
+          : {}
+      ),
+      runtimeProfile: options.runtimeProfile ?? null,
+      runtimeConfigUrl: options.runtimeConfigUrl ?? null,
+      runtimeConfig: cloneRuntimeConfig(getRuntimeConfig()),
+    };
+    return {
+      ...suiteResult,
+      mode,
+      workload,
+      request: requestReceipt,
+      debugSnapshot,
+      report,
+      reportInfo,
+    };
   });
 }
 

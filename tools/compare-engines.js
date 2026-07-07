@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
-import { execFile } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
 import crypto from 'node:crypto';
 import fsSync from 'node:fs';
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { buildExecutionContractArtifact } from '../src/config/execution-contract-check.js';
@@ -134,6 +135,8 @@ const DEFAULT_RUNS = 3;
 const DEFAULT_SEED = 0;
 const DEFAULT_DOPPLER_RUN_MAX_BUFFER_BYTES = 10 * 1024 * 1024;
 const DEFAULT_DOPPLER_DIAGNOSTIC_MAX_BUFFER_BYTES = 64 * 1024 * 1024;
+const DOPPLER_BENCH_CAPTURE_DIR_PREFIX = 'doppler-compare-bench-';
+const CHILD_PROCESS_TAIL_CHARS = 8000;
 const DOPPLER_COMPARE_COMMANDS = Object.freeze(['bench', 'debug']);
 const DEFAULT_SHARED_SAMPLING = Object.freeze({
   temperature: 0,
@@ -1960,6 +1963,100 @@ function parseJsonBlock(stdout, label) {
   throw new Error(`Could not parse strict JSON payload from ${label}. Full output tail:\n${clipTail(normalized, 2000)}`);
 }
 
+function applyDopplerBenchCaptureRunConfig(runConfig, captureDir) {
+  const normalizedDir = typeof captureDir === 'string' ? captureDir.trim() : '';
+  if (!normalizedDir) {
+    return runConfig;
+  }
+  return {
+    ...runConfig,
+    bench: {
+      ...(runConfig && typeof runConfig.bench === 'object' && !Array.isArray(runConfig.bench)
+        ? runConfig.bench
+        : {}),
+      save: true,
+      saveDir: normalizedDir,
+    },
+  };
+}
+
+async function createDopplerBenchCaptureDir() {
+  return fs.mkdtemp(path.join(os.tmpdir(), DOPPLER_BENCH_CAPTURE_DIR_PREFIX));
+}
+
+async function readDopplerBenchCaptureResult(captureDir, label) {
+  const latestPath = path.join(captureDir, 'latest.json');
+  let raw;
+  try {
+    raw = await fs.readFile(latestPath, 'utf8');
+  } catch (error) {
+    throw new Error(`Could not read saved Doppler bench result for ${label} at ${latestPath}: ${error.message}`);
+  }
+  const parsed = parseJsonBlock(raw, `saved Doppler bench result for ${label}`);
+  if (isComparePlainObject(parsed?.result)) {
+    return parsed;
+  }
+  return {
+    ok: true,
+    request: isComparePlainObject(parsed?.request) ? parsed.request : null,
+    result: parsed,
+  };
+}
+
+async function removeDopplerBenchCaptureDir(captureDir) {
+  if (!captureDir) return;
+  await fs.rm(captureDir, { recursive: true, force: true });
+}
+
+function appendBoundedTail(previous, chunk, maxChars = CHILD_PROCESS_TAIL_CHARS) {
+  const text = `${previous || ''}${chunk == null ? '' : String(chunk)}`;
+  if (text.length <= maxChars) return text;
+  return text.slice(text.length - maxChars);
+}
+
+async function execFileForSavedDopplerBench(command, args, options) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      cwd: options.cwd,
+      stdio: ['ignore', 'ignore', 'pipe'],
+    });
+    let stderrTail = '';
+    let settled = false;
+    let timedOut = false;
+    const timeoutId = setTimeout(() => {
+      timedOut = true;
+      child.kill('SIGTERM');
+    }, options.timeout);
+
+    child.stderr.setEncoding('utf8');
+    child.stderr.on('data', (chunk) => {
+      stderrTail = appendBoundedTail(stderrTail, chunk);
+    });
+
+    child.on('error', (error) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutId);
+      reject(error);
+    });
+
+    child.on('close', (code, signal) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutId);
+      if (timedOut) {
+        reject(new Error(`Doppler bench child timed out after ${options.timeout}ms. Stderr tail:\n${clipTail(stderrTail, 2000)}`));
+        return;
+      }
+      if (code !== 0) {
+        reject(new Error(`Doppler bench child exited with code ${code ?? 'null'} signal ${signal ?? 'null'}. Stderr tail:\n${clipTail(stderrTail, 2000)}`));
+        return;
+      }
+      resolve({ stderr: stderrTail });
+    });
+  });
+}
+
 function hashText(input) {
   return crypto.createHash('sha256').update(input).digest('hex');
 }
@@ -2854,12 +2951,12 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
   const stableBrowserArgs = appendBrowserArgs([], STABLE_BROWSER_ARGS);
   const cliExecutor = dopplerExecution.cliExecutor;
 
-  const buildCliConfig = () => {
+  const buildCliConfig = (benchCaptureDir = null) => {
     const resolvedModelUrl = isSafetensorsFormat && options.safetensorsSourcePath
       ? options.safetensorsSourcePath
       : modelUrl;
     const commandSurface = dopplerExecution.commandSurface;
-    const run = {
+    let run = {
       surface: commandSurface,
     };
     if (isDopplerBrowserCommandSurface(commandSurface)) {
@@ -2873,6 +2970,9 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
         ...(options.noOpfsCache ? { opfsCache: false } : {}),
         browserArgs: stableBrowserArgs,
       };
+    }
+    if (resolvedCommand === 'bench' && benchCaptureDir) {
+      run = applyDopplerBenchCaptureRunConfig(run, benchCaptureDir);
     }
     return {
       request: {
@@ -2889,25 +2989,44 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
   const diagnosticLabel = options.diagnosticLabel ? `, ${options.diagnosticLabel}` : '';
   console.error(`[compare] running Doppler ${resolvedCommand} (${cacheMode}${diagnosticLabel})...`);
   const runOnce = async () => {
-    const cliConfig = buildCliConfig();
-    const args = [
-      path.join(DOPPLER_ROOT, 'src', 'cli', 'doppler-cli.js'),
-      resolvedCommand,
-      '--config',
-      JSON.stringify(cliConfig),
-      '--runtime-config',
-      JSON.stringify(runtimeConfig),
-      '--json',
-    ];
-    const { stdout } = await execFileAsync(cliExecutor, args, {
-      cwd: DOPPLER_ROOT,
-      timeout: resolvedTimeoutMs,
-      maxBuffer: resolvedMaxBufferBytes,
-    });
-    return {
-      ...parseJsonBlock(stdout, `Doppler ${resolvedCommand} (${cacheMode})`),
-      dopplerExecution,
-    };
+    const benchCaptureDir = resolvedCommand === 'bench'
+      ? await createDopplerBenchCaptureDir()
+      : null;
+    try {
+      const cliConfig = buildCliConfig(benchCaptureDir);
+      const args = [
+        path.join(DOPPLER_ROOT, 'src', 'cli', 'doppler-cli.js'),
+        resolvedCommand,
+        '--config',
+        JSON.stringify(cliConfig),
+        '--runtime-config',
+        JSON.stringify(runtimeConfig),
+        '--json',
+      ];
+      let parsed;
+      if (benchCaptureDir) {
+        await execFileForSavedDopplerBench(cliExecutor, args, {
+          cwd: DOPPLER_ROOT,
+          timeout: resolvedTimeoutMs,
+        });
+        parsed = await readDopplerBenchCaptureResult(benchCaptureDir, `Doppler ${resolvedCommand} (${cacheMode})`);
+      } else {
+        const { stdout } = await execFileAsync(cliExecutor, args, {
+          cwd: DOPPLER_ROOT,
+          timeout: resolvedTimeoutMs,
+          maxBuffer: resolvedMaxBufferBytes,
+        });
+        parsed = parseJsonBlock(stdout, `Doppler ${resolvedCommand} (${cacheMode})`);
+      }
+      return {
+        ...parsed,
+        dopplerExecution,
+      };
+    } catch (error) {
+      throw error;
+    } finally {
+      await removeDopplerBenchCaptureDir(benchCaptureDir);
+    }
   };
 
   try {
@@ -6341,6 +6460,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 }
 
 export {
+  applyDopplerBenchCaptureRunConfig,
   attachCompareFairnessAudit,
   buildCompareSection,
   buildCompareFairnessAudit,
@@ -6357,6 +6477,7 @@ export {
   parseJsonBlock,
   parseOnOff,
   redactSecrets,
+  readDopplerBenchCaptureResult,
   resolveComputeDecodeCadence,
   resolveCatalogTransformersjsBenchmarkTarget,
   renderComparePrompt,

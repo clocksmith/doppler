@@ -3,7 +3,7 @@
 Generated from the catalog, support inventory, release matrix, embedding/rerank compare configs, and saved compare receipts.
 This file is an evidence ledger: it records what is verified, what is on Hugging Face according to catalog metadata, where Doppler has comparable performance receipts, and which gates remain.
 
-Updated at: 2026-07-07T17:13:34.366Z
+Updated at: 2026-07-07T18:36:34.752Z
 
 ## Summary
 
@@ -54,7 +54,7 @@ Updated at: 2026-07-07T17:13:34.366Z
 
 | Model | Correctness | Doppler median | TJS median | Latency leader | Doppler throughput | TJS throughput | Throughput leader | Load leader | Claim | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| google-embeddinggemma-300m-q4k-ehf16-af32 | semantic-pass | 60.62 ms | 28.16 ms | transformersjs | 16.26 emb/s | 35.2 emb/s | transformersjs | doppler | claimable | benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260706T164532.json |
+| google-embeddinggemma-300m-q4k-ehf16-af32 | semantic-pass | 60.04 ms | 25.42 ms | transformersjs | 16.74 emb/s | 35.13 emb/s | transformersjs | doppler | claimable | benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260704T154500.json |
 | qwen-3-embedding-0-6b-q4k-ehf16-af32 | semantic-pass | 65.05 ms | 146.46 ms | doppler | 15.28 emb/s | 6.77 emb/s | doppler | transformersjs | claimable | benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260706T171250.json |
 
 ## Rerank Competition Rows
