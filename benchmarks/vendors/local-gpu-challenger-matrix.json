@@ -1165,52 +1165,58 @@
         "status": "configured"
       },
       "latestAnchorEvidence": {
-        "receiptPath": "benchmarks/vendors/results/compare_20260706T170734.json",
-        "timestamp": "2026-07-06T17:00:30.806Z",
+        "receiptPath": "benchmarks/vendors/results/compare_20260707T170557.json",
+        "timestamp": "2026-07-07T17:01:24.502Z",
         "platformTargetId": "linux-amd-vulkan-rocm",
         "harnessId": "gemma-e2b-local-gpu-v1",
         "workloadId": "p064-d064-t0-k1",
         "warmupRuns": 1,
         "timedRuns": 15,
-        "claimGrade": "not-claim-grade",
+        "claimGrade": "local-gpu-comparable",
         "correctness": "mismatch",
-        "winner": "blocked",
-        "summary": "Gemma E2B produced useful diagnostics, but output parity failed, so the matrix must not claim a speed win until correctness is fixed or the lane is explicitly redefined.",
-        "wins": [],
+        "winner": "doppler",
+        "summary": "Fresh local Gemma 4 E2B AF32 INT4-PLE evidence is claim-grade under the explicit mismatch-allowed decode-valid policy: Doppler wins decode throughput and total run time against Transformers.js WebGPU ONNX, but this is not an exact-output claim and first-token/model-load latency still favor TJS.",
+        "wins": [
+          "decode-throughput",
+          "total-run-ms"
+        ],
         "losses": [
-          "output-parity"
+          "exact-output-match",
+          "first-token-ms",
+          "model-load-ms"
         ],
         "blockedReasons": [
-          "output-parity-mismatch",
+          "exact-output-mismatch-disclosed-by-policy",
+          "hosted-doppler-artifact-needed-for-release-claim",
           "throughput-cadence-not-promotable"
         ],
         "metrics": [
           {
             "id": "decodeTokensPerSec",
-            "doppler": 15.75,
-            "competitor": 9.5206,
-            "ratio": 1.6543,
+            "doppler": 16.32,
+            "competitor": 9.2366,
+            "ratio": 1.7669,
             "higherBetter": true
           },
           {
             "id": "firstTokenMs",
-            "doppler": 2036.15,
-            "competitor": 213.47,
-            "ratio": 9.5383,
+            "doppler": 511.6,
+            "competitor": 213.655,
+            "ratio": 2.3945,
             "higherBetter": false
           },
           {
             "id": "totalRunMs",
-            "doppler": 6081.4,
-            "competitor": 6832.405,
-            "ratio": 0.8901,
+            "doppler": 4417.1,
+            "competitor": 7036.405,
+            "ratio": 0.6278,
             "higherBetter": false
           },
           {
             "id": "modelLoadMs",
-            "doppler": 16213,
-            "competitor": 75628.005,
-            "ratio": 0.2144,
+            "doppler": 3457.4,
+            "competitor": 2311.735,
+            "ratio": 1.4956,
             "higherBetter": false
           }
         ]

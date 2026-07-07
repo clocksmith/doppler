@@ -101,7 +101,14 @@ node benchmarks/runners/transformersjs-bench.js --workload g3-p064-d064-t0-k1 --
 
 # Normalize result into vendor registry output
 node tools/vendor-bench.js run --target transformersjs --workload g3-p064-d064-t0-k1 -- node benchmarks/runners/transformersjs-bench.js --workload g3-p064-d064-t0-k1 --cache-mode warm --profile-ops on --profile-top 20 --json
+
+# Add host RAM/CPU and optional ROCm GPU telemetry to a vendor receipt
+node tools/vendor-bench.js run --target transformersjs --resource-telemetry on --workload g3-p064-d064-t0-k1 -- node benchmarks/runners/transformersjs-bench.js --workload g3-p064-d064-t0-k1 --cache-mode warm --json
 ```
+
+Resource telemetry is optional evidence. It records compact process-tree RSS/CPU,
+system RAM, and optional `rocm-smi` GPU summaries by default; use
+`--resource-telemetry-samples` only when the raw time series is needed.
 
 ## Coverage Tracking (Bench vs Profile)
 
@@ -125,6 +132,8 @@ node tools/vendor-bench.js gap --base doppler --target transformersjs
 - `decode_ms_per_token_p50/p95`
 - `model_load_ms`
 - `ort_profiled_total_ms` (Transformers.js harness)
+- `resourceTelemetry.process.rssBytes.max`
+- `efficiencyMetrics.*.decodeTokensPerSecPerPeakRssGiB` (compare artifacts with telemetry)
 - `result.reportInfo.path` (artifact anchor)
 
 ## Canonical Files

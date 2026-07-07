@@ -368,6 +368,33 @@ function assertCommandOutputMatches(result, pattern) {
             },
           },
         },
+        resourceTelemetry: {
+          schemaVersion: 1,
+          enabled: true,
+          label: 'doppler-unit',
+          sampling: {
+            intervalMs: 100,
+            sampleCount: 2,
+            includeSamples: false,
+            sources: { procfs: true, meminfo: true, rocmSmi: true },
+            unavailableReasons: [],
+          },
+          process: {
+            rssBytes: { min: 1024, max: 2147483648, mean: 1073741824, last: 2147483648 },
+            cpuPercent: { min: 10, max: 20, mean: 15, last: 20 },
+          },
+          system: {
+            ramTotalBytes: 8589934592,
+            ramUsedBytes: { min: 1073741824, max: 2147483648, mean: 1610612736, last: 2147483648 },
+          },
+          gpu: {
+            provider: 'rocm-smi',
+            utilizationPercent: { min: 20, max: 40, mean: 30, last: 40 },
+            memoryUsedBytes: { min: 1073741824, max: 4294967296, mean: 2684354560, last: 4294967296 },
+            memoryTotalBytes: 8589934592,
+            powerWatts: { min: 30, max: 50, mean: 40, last: 50 },
+          },
+        },
       },
       transformersjs: {
         generatedText: 'ok',
@@ -389,6 +416,36 @@ function assertCommandOutputMatches(result, pattern) {
             decodeTokens: 64,
           },
         ],
+        timing: {
+          decodeTokensPerSec: 60,
+        },
+        resourceTelemetry: {
+          schemaVersion: 1,
+          enabled: true,
+          label: 'tjs-unit',
+          sampling: {
+            intervalMs: 100,
+            sampleCount: 2,
+            includeSamples: false,
+            sources: { procfs: true, meminfo: true, rocmSmi: true },
+            unavailableReasons: [],
+          },
+          process: {
+            rssBytes: { min: 1024, max: 3221225472, mean: 1610612736, last: 3221225472 },
+            cpuPercent: { min: 20, max: 40, mean: 30, last: 40 },
+          },
+          system: {
+            ramTotalBytes: 8589934592,
+            ramUsedBytes: { min: 2147483648, max: 3221225472, mean: 2684354560, last: 3221225472 },
+          },
+          gpu: {
+            provider: 'rocm-smi',
+            utilizationPercent: { min: 10, max: 30, mean: 20, last: 30 },
+            memoryUsedBytes: { min: 2147483648, max: 6442450944, mean: 4294967296, last: 6442450944 },
+            memoryTotalBytes: 8589934592,
+            powerWatts: { min: 40, max: 60, mean: 50, last: 60 },
+          },
+        },
       },
     });
     assert.equal(bottleneckSection.pairedComparable, true);
@@ -517,6 +574,38 @@ function assertCommandOutputMatches(result, pattern) {
       comparability: {
         gpuMemory: false,
         reason: 'Doppler reports GPU buffer-pool/KV memory; Transformers.js exposes browser JS heap here, not WebGPU allocation residency.',
+      },
+    });
+    assert.equal(bottleneckSection.resourceTelemetry.doppler.label, 'doppler-unit');
+    assert.equal(bottleneckSection.resourceTelemetry.transformersjs.label, 'tjs-unit');
+    assert.deepEqual(bottleneckSection.efficiencyMetrics, {
+      schemaVersion: 1,
+      units: {
+        decodeTokensPerSecPerPeakRssGiB: 'tok/s/GiB RSS',
+        decodeTokensPerSecPerPeakGpuGiB: 'tok/s/GiB GPU memory',
+      },
+      doppler: {
+        peakRssBytes: 2147483648,
+        peakGpuMemoryBytes: 4294967296,
+        meanCpuPercent: 15,
+        meanGpuUtilizationPercent: 30,
+        meanPowerWatts: 40,
+        decodeTokensPerSecPerPeakRssGiB: 60,
+        decodeTokensPerSecPerPeakGpuGiB: 30,
+      },
+      transformersjs: {
+        peakRssBytes: 3221225472,
+        peakGpuMemoryBytes: 6442450944,
+        meanCpuPercent: 30,
+        meanGpuUtilizationPercent: 20,
+        meanPowerWatts: 50,
+        decodeTokensPerSecPerPeakRssGiB: 20,
+        decodeTokensPerSecPerPeakGpuGiB: 10,
+      },
+      comparability: {
+        processTree: true,
+        gpuTelemetry: true,
+        reason: 'Host process-tree RSS/CPU and system/GPU telemetry are sampled by the same parent benchmark tool; GPU memory is device-global when sourced from rocm-smi.',
       },
     });
     const gateParitySection = buildCompareSection({

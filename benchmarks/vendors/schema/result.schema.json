@@ -175,6 +175,41 @@
     "metadata": {
       "type": "object",
       "additionalProperties": true
+    },
+    "resourceTelemetry": {
+      "type": ["object", "null"],
+      "required": ["schemaVersion", "enabled", "sampling"],
+      "properties": {
+        "schemaVersion": { "type": "integer", "const": 1 },
+        "enabled": { "type": "boolean" },
+        "label": { "type": ["string", "null"] },
+        "startedAt": { "type": ["string", "null"] },
+        "endedAt": { "type": ["string", "null"] },
+        "durationMs": { "type": ["number", "null"] },
+        "sampling": {
+          "type": "object",
+          "required": ["intervalMs", "sampleCount", "includeSamples", "sources", "unavailableReasons"],
+          "properties": {
+            "intervalMs": { "type": "integer" },
+            "sampleCount": { "type": "integer" },
+            "includeSamples": { "type": "boolean" },
+            "sources": { "type": "object", "additionalProperties": true },
+            "unavailableReasons": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          },
+          "additionalProperties": true
+        },
+        "process": { "type": ["object", "null"], "additionalProperties": true },
+        "system": { "type": ["object", "null"], "additionalProperties": true },
+        "gpu": { "type": ["object", "null"], "additionalProperties": true },
+        "samples": {
+          "type": "array",
+          "items": { "type": "object", "additionalProperties": true }
+        }
+      },
+      "additionalProperties": true
     }
   },
   "additionalProperties": false

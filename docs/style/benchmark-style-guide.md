@@ -40,6 +40,14 @@ Do not mix fairness axes and engine-specific knobs in a single object.
 - Label warmup vs timed runs explicitly.
 - Emit p50/p95/p99 where supported.
 - Keep submit/readback counters explicit when available.
+- Resource utilization telemetry must be explicit opt-in benchmark evidence. Host
+  process-tree RAM/CPU and system RAM summaries may be compared when sampled by
+  the same parent harness. GPU utilization/memory sampled from vendor tools such
+  as `rocm-smi` must be labeled as device-global unless the source proves
+  per-process residency.
+- Keep resource telemetry out of required claim gates unless the benchmark
+  policy/schema is updated in the same change. Efficiency metrics derived from
+  telemetry belong in optional evidence blocks until promoted by policy.
 
 ## Maintainer checklist
 
