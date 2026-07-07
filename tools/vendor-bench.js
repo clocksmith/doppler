@@ -1596,9 +1596,7 @@ function assertCompareEvidenceRequiredMeasurements(compareReport, requiredMeasur
     }
   }
   if (required.has('qualityParity')) {
-    const exactMatch = compareReport?.correctness?.exactMatch === true;
-    const normalizedMatch = compareReport?.correctness?.normalizedMatch === true;
-    if (!exactMatch && !normalizedMatch) {
+    if (!compareReportSatisfiesOutputPolicy(compareReport)) {
       missing.push('qualityParity');
     }
   }
@@ -1633,6 +1631,42 @@ function resolveClaimCompareSection(compareReport, decodeProfileId) {
     return compareReport.sections.compute;
   }
   return null;
+}
+
+function resolvePrimaryFairnessSection(compareReport) {
+  const primarySection = asNonEmptyStringValue(compareReport?.fairness?.primarySection);
+  if (primarySection) {
+    const parts = primarySection.split('/');
+    if (parts[0] === 'compute' && parts[1]) {
+      const section = compareReport?.sections?.compute?.[parts[1]];
+      if (isJsonObject(section)) return section;
+    }
+    const section = compareReport?.sections?.[primarySection];
+    if (isJsonObject(section)) return section;
+  }
+  return resolveCompareSection(compareReport)?.payload || null;
+}
+
+function compareReportSatisfiesOutputPolicy(compareReport) {
+  const exactMatch = compareReport?.correctness?.exactMatch === true;
+  const normalizedMatch = compareReport?.correctness?.normalizedMatch === true;
+  if (exactMatch || normalizedMatch) {
+    return true;
+  }
+  const reportPolicy = compareReport?.methodology?.outputParity || {};
+  const section = resolvePrimaryFairnessSection(compareReport);
+  const sectionPolicy = section?.outputParityPolicy || {};
+  return (
+    compareReport?.fairness?.claimGrade === true
+    && compareReport?.fairness?.correctnessOk === true
+    && reportPolicy.requireMatch === false
+    && reportPolicy.matchMode === 'decode-valid'
+    && sectionPolicy.requireMatch === false
+    && sectionPolicy.matchMode === 'decode-valid'
+    && section?.pairedComparable === true
+    && section?.invalidReason == null
+    && section?.decodeValidity?.ok === true
+  );
 }
 
 function assertClaimCompareScalar(actual, expected, label) {
@@ -1857,19 +1891,22 @@ function assertClaimMatrixCompareEvidence(compareReport, lane, matrix, workloads
     `${compareEvidenceLabel} methodology.deterministicDecoding.topP`
   );
 
-  if (compareReport?.correctness?.status !== 'match') {
-    throw new Error(`${compareEvidenceLabel} correctness.status must be match`);
+  if (compareReport?.correctness?.status === 'match') {
+    assertClaimCompareScalar(
+      compareReport?.correctness?.exactMatch,
+      true,
+      `${compareEvidenceLabel} correctness.exactMatch`
+    );
+    assertClaimCompareScalar(
+      compareReport?.correctness?.normalizedMatch,
+      true,
+      `${compareEvidenceLabel} correctness.normalizedMatch`
+    );
+  } else if (!compareReportSatisfiesOutputPolicy(compareReport)) {
+    throw new Error(
+      `${compareEvidenceLabel} correctness.status must be match unless outputParityPolicy explicitly allows decode-valid product-format comparison`
+    );
   }
-  assertClaimCompareScalar(
-    compareReport?.correctness?.exactMatch,
-    true,
-    `${compareEvidenceLabel} correctness.exactMatch`
-  );
-  assertClaimCompareScalar(
-    compareReport?.correctness?.normalizedMatch,
-    true,
-    `${compareEvidenceLabel} correctness.normalizedMatch`
-  );
 
   const decodeProfileById = new Map(
     (matrix.sharedRunContract.batchDecodeProfiles || [])
@@ -2418,6 +2455,36 @@ function resolveCompareSection(report) {
   if (!report || typeof report !== 'object' || Array.isArray(report)) return null;
   const sections = report.sections;
   if (!sections || typeof sections !== 'object') return null;
+  const computeSections = isJsonObject(sections.compute) ? sections.compute : null;
+  const throughputSection = computeSections?.throughput;
+  if (
+    computeSections?.throughputCadenceGate?.ok === true
+    && hasComparableSectionPayload(throughputSection)
+    && throughputSection?.pairedComparable !== false
+  ) {
+    return {
+      id: 'compute/throughput',
+      payload: throughputSection,
+    };
+  }
+  const primarySection = asNonEmptyStringValue(report?.fairness?.primarySection);
+  if (primarySection) {
+    const primaryChain = primarySection.split('/').filter(Boolean);
+    let cursor = sections;
+    for (const segment of primaryChain) {
+      if (!cursor || typeof cursor !== 'object') {
+        cursor = null;
+        break;
+      }
+      cursor = cursor[segment];
+    }
+    if (hasComparableSectionPayload(cursor) && cursor?.pairedComparable !== false) {
+      return {
+        id: primarySection,
+        payload: cursor,
+      };
+    }
+  }
   const candidates = [
     ['compute', 'throughput'],
     ['compute', 'parity'],
@@ -2930,6 +2997,9 @@ async function maybeLoadCompareResultSummary(
       transformersjs: readCompareMetric(tjsPayload, metricId),
     };
   }
+  const selectedDecodeProfile = typeof section?.id === 'string' && section.id.startsWith('compute/')
+    ? section.id.slice('compute/'.length)
+    : (typeof report.decodeProfile === 'string' ? report.decodeProfile : null);
   return {
     path: repoPath,
     timestamp: typeof report.timestamp === 'string' ? report.timestamp : null,
@@ -2941,7 +3011,7 @@ async function maybeLoadCompareResultSummary(
     invalidReason: typeof section?.payload?.invalidReason === 'string'
       ? section.payload.invalidReason
       : null,
-    decodeProfile: typeof report.decodeProfile === 'string' ? report.decodeProfile : null,
+    decodeProfile: selectedDecodeProfile,
     computeSectionIds: Object.keys(isJsonObject(report?.sections?.compute) ? report.sections.compute : {})
       .filter((sectionId) => sectionId !== 'throughputCadenceGate')
       .filter((sectionId) => isJsonObject(report.sections.compute[sectionId])),

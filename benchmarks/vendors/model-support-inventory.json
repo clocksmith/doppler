@@ -1504,7 +1504,7 @@
       "tier": "medium",
       "minSizeBytes": 4009916310,
       "minSizeLabel": "3.73 GiB",
-      "status": "benchmark-comparison-needed",
+      "status": "benchmark-receipts-incomplete",
       "preferredArchitecture": {
         "status": "pending-benchmark-comparison",
         "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
@@ -1686,8 +1686,8 @@
           "evidence": {
             "runtimeReport": "reports/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-04-22T18-09-10.471Z.reference.json",
             "runtimeReportExists": true,
-            "compareResult": null,
-            "compareResultExists": false,
+            "compareResult": "benchmarks/vendors/results/compare_20260707T170557.json",
+            "compareResultExists": true,
             "summarySvg": null,
             "summarySvgExists": false,
             "localClaimLaneId": "gemma-4-e2b-it-int4ple-rdrr"
@@ -1730,10 +1730,9 @@
             "primaryNextCommand": "node tools/compare-engines.js --model-id gemma-4-e2b-it-q4k-ehf16-af32-int4ple --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
           },
           "missing": [
-            "compare-result",
             "summary-svg"
           ],
-          "nextGate": "compare-result"
+          "nextGate": "summary-svg"
         },
         {
           "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",

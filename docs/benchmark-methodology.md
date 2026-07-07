@@ -48,6 +48,10 @@ Product-engine note:
   RDRR/direct-source LiteRT vs Transformers.js ONNX/q4f16.
 - Do not describe a product-engine comparison as a format-identical kernel
   comparison.
+- If exact greedy output parity is not required for a product-format throughput
+  lane, the checked-in compare profile must declare `outputParityPolicy` with
+  `requireMatch=false` and `matchMode="decode-valid"`. The artifact remains a
+  throughput receipt only; it must not be cited as correctness-parity evidence.
 - If one engine has no supported format lane, record that as a capability gap
   and keep the paired speed claim scoped to the best available supported path.
 
@@ -75,6 +79,9 @@ Prompt-target note:
 - Model-scoped Doppler tuning for compare lanes must be declared explicitly in
   `benchmarks/vendors/compare-engines.config.json`, typically through
   `dopplerRuntimeProfileByDecodeProfile`.
+- Model-scoped output-parity policy must be declared in
+  `benchmarks/vendors/compare-engines.config.json`. Runner code must not infer a
+  relaxed parity rule from model names or prose.
 - Compare-managed prompt, sampling, and decode-cadence fields must override any
   model-scoped Doppler runtime profile values so the reported lane contract stays stable.
 - Doppler compare artifacts must distinguish request-level cadence from resolved

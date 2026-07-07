@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-07T16:26:14.896Z",
+  "generatedAt": "2026-07-07T17:13:34.366Z",
   "release": {
     "channel": "main-snapshot",
     "version": "0.4.8",
-    "commitSha": "9bddf0502ded2aceb066cb8e3923469cc0b61887",
+    "commitSha": "57045f85e82edb7a4f7f83e101edebe1d0838a13",
     "dirty": true
   },
   "sources": {
@@ -28,8 +28,8 @@
     },
     "compareConfig": {
       "path": "benchmarks/vendors/compare-engines.config.json",
-      "sha256": "20505960da7916ae63e754c5403870a9dcbf66fa1178c43af955f2bfec15b4dc",
-      "bytes": 6979,
+      "sha256": "a9fb9fd824bcc459abebcdded3eeb6efbdfe2e8d30b5c634401c3361f08bbca5",
+      "bytes": 7982,
       "updated": "2026-06-15"
     },
     "compareMetricContract": {
@@ -46,8 +46,8 @@
     },
     "localInferenceClaimMatrix": {
       "path": "benchmarks/vendors/local-inference-claim-matrix.json",
-      "sha256": "64aad9b78584b9e1275031207904e4e3b9d1d5c2b8be7e1617eb970a12b29605",
-      "bytes": 24703,
+      "sha256": "4fabd69052293bfaefc5fc5939edae61b52fcf43737175072b202170de49da4f",
+      "bytes": 24908,
       "updated": "2026-06-27"
     },
     "modelCatalog": {
@@ -1715,19 +1715,15 @@
       "laneId": "gemma-4-e2b-it-int4ple-rdrr",
       "status": "candidate",
       "claimReady": false,
-      "statusReason": "Local reference execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "statusReason": "Local reference execution is verified and p064 parity compare evidence is local-comparable under the explicit Gemma 4 product-format output policy; promotion still requires pinned competitor artifact hash, summary SVG, and broader workload/backend coverage.",
       "missingBackendIds": [
         "chromium-webgpu"
       ],
       "missingWorkloadIds": [
-        "p064-d064-t0-k1",
         "p256-d128-t0-k1",
         "p512-d128-t0-k1"
       ],
-      "missingDecodeProfileIds": [
-        "parity",
-        "throughput"
-      ],
+      "missingDecodeProfileIds": [],
       "missingSurfaceWorkloads": [
         "chromium-webgpu:p064-d064-t0-k1",
         "chromium-webgpu:p256-d128-t0-k1",
@@ -1735,7 +1731,29 @@
       ],
       "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
       "modelLabel": "Gemma 4 E2B Instruct (Q4K/F32a/INT4 PLE)",
-      "surfaces": []
+      "surfaces": [
+        {
+          "backendId": null,
+          "surface": "browser",
+          "compareResult": "benchmarks/vendors/results/compare_20260707T170557.json",
+          "summarySvg": null,
+          "workloadId": "p064-d064-t0-k1",
+          "decodeProfile": "parity",
+          "correctness": "mismatch",
+          "dopplerDecodeTokensPerSec": 16.32,
+          "transformersjsDecodeTokensPerSec": 9.236575077962405,
+          "decodeLeader": "doppler",
+          "dopplerPromptTokensPerSecToFirstToken": 125.1,
+          "transformersjsPromptTokensPerSecToFirstToken": 299.54833727364615,
+          "promptLeader": "transformersjs",
+          "bottleneck": "decode orchestration",
+          "bottleneckClass": "orchestration",
+          "computeSectionIds": [
+            "parity",
+            "throughput"
+          ]
+        }
+      ]
     },
     {
       "laneId": "gemma-4-e2b-it-q4k-rdrr",
@@ -1945,8 +1963,8 @@
       "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-p512-d128-t0-k1-strix-halo-20260626.svg"
     ],
     "latestCompareResult": {
-      "path": "benchmarks/vendors/results/compare_20260707T153509.json",
-      "timestamp": "2026-07-07T15:18:34.821Z",
+      "path": "benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-p064-d064-t0-k1-strix-halo-20260627.compare.json",
+      "timestamp": "2026-06-27T01:12:47.007Z",
       "mode": "compute",
       "section": "compute/throughput",
       "cacheMode": "warm",
@@ -1965,9 +1983,9 @@
         "cliExecutor": "node",
         "commandSurfaceReason": "matches-requested-surface"
       },
-      "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "dopplerModelId": "gemma-3-270m-it-q4k-ehf16-af32",
       "dopplerModelSource": "quickstart-registry",
-      "tjsModelId": "onnx-community/Qwen3.5-0.8B-ONNX",
+      "tjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
       "compareLane": "performance_comparable",
       "compareLaneReason": null,
       "fairness": {
@@ -1984,13 +2002,13 @@
         "status": "match",
         "exactMatch": true,
         "normalizedMatch": true,
-        "matchingPrefixTokens": 128,
+        "matchingPrefixTokens": 64,
         "firstMismatchTokenIndex": -1
       },
-      "workloadId": "p512-d128-t0-k1",
+      "workloadId": "p064-d064-t0-k1",
       "workload": {
-        "prefillTokenTarget": 512,
-        "decodeTokenTarget": 128
+        "prefillTokenTarget": 64,
+        "decodeTokenTarget": 64
       },
       "environment": {
         "host": {
@@ -2076,44 +2094,44 @@
       },
       "metrics": {
         "decodeTokensPerSec": {
-          "doppler": 69.07,
-          "transformersjs": 41.79095637122156
+          "doppler": 119.65,
+          "transformersjs": 106.59177044005392
         },
         "promptTokensPerSecToFirstToken": {
-          "doppler": 553.21,
-          "transformersjs": 10.309534718817888
+          "doppler": 616.57,
+          "transformersjs": 1511.930072765746
         },
         "firstTokenMs": {
-          "doppler": 925.5,
-          "transformersjs": 49662.765000000596
+          "doppler": 103.8,
+          "transformersjs": 42.33000001311302
         },
         "firstResponseMs": {
-          "doppler": 2615.3,
-          "transformersjs": 50856.68500000052
+          "doppler": 1237.4,
+          "transformersjs": 820.7900000214577
         },
         "decodeMs": {
-          "doppler": 1853.1,
-          "transformersjs": 3038.9350000005215
+          "doppler": 534.9,
+          "transformersjs": 591.0399999916553
         },
         "totalRunMs": {
-          "doppler": 2769.95,
-          "transformersjs": 52659.28000000026
+          "doppler": 640.2,
+          "transformersjs": 633.3700000047684
         },
         "modelLoadMs": {
-          "doppler": 1689.8,
-          "transformersjs": 1193.9199999999255
+          "doppler": 1133.6,
+          "transformersjs": 778.4600000083447
         },
         "decodeMsPerTokenP50": {
-          "doppler": 14.48,
-          "transformersjs": 22.485000000335276
+          "doppler": 8.36,
+          "transformersjs": 8.344999998807907
         },
         "decodeMsPerTokenP95": {
-          "doppler": 14.54,
-          "transformersjs": 29.436000000312916
+          "doppler": 9.38,
+          "transformersjs": 12.255000013113017
         },
         "decodeMsPerTokenP99": {
-          "doppler": 14.55,
-          "transformersjs": 59.412199999690074
+          "doppler": 9.47,
+          "transformersjs": 58.8052000141144
         }
       },
       "dopplerBottleneck": {
@@ -2122,47 +2140,143 @@
         "dominant": {
           "id": "readback_map_wait",
           "label": "readback map wait",
-          "ms": 1239.614,
-          "shareOfDecode": 0.669
+          "ms": 291.533,
+          "shareOfDecode": 0.545
         },
-        "decodeWallMs": 1853.1,
+        "decodeWallMs": 534.9,
         "componentsMs": {
-          "commandRecordMs": 591.483,
-          "submitWaitMs": 1239.857,
-          "readbackWaitMs": 1257.157,
-          "effectiveSubmitReadbackWaitMs": 1257.157,
-          "readbackMapWaitMs": 1239.614,
-          "readbackCleanupMs": 17.25,
-          "readbackCopyMs": 0.147,
+          "commandRecordMs": 261.867,
+          "submitWaitMs": 291.6,
+          "readbackWaitMs": 296.333,
+          "effectiveSubmitReadbackWaitMs": 296.333,
+          "readbackMapWaitMs": 291.533,
+          "readbackCleanupMs": 4.733,
+          "readbackCopyMs": 0.033,
           "gpuTimestampMs": null,
-          "orchestrationMs": 1.5,
-          "residualMs": 2.96
+          "orchestrationMs": 0.867,
+          "residualMs": 0
         },
         "recording": {
-          "opCount": 39497,
-          "passCount": 4,
-          "uniqueOpLabels": null,
-          "msPerOp": 0.015,
-          "msPerPass": 147.871,
-          "opsPerExecutedBatchToken": 311,
-          "passesPerExecutedBatchToken": 0.031,
-          "topOps": []
+          "opCount": 15120,
+          "passCount": 189,
+          "uniqueOpLabels": 70,
+          "msPerOp": 0.017,
+          "msPerPass": 1.386,
+          "opsPerExecutedBatchToken": 240,
+          "passesPerExecutedBatchToken": 3,
+          "topOps": [
+            {
+              "label": "attention",
+              "count": 1134,
+              "shareOfOps": 0.075
+            },
+            {
+              "label": "fused_ffn",
+              "count": 1134,
+              "shareOfOps": 0.075
+            },
+            {
+              "label": "kv_cache_write:f32_to_f16",
+              "count": 1134,
+              "shareOfOps": 0.075
+            },
+            {
+              "label": "rmsnorm_qk",
+              "count": 1134,
+              "shareOfOps": 0.075
+            },
+            {
+              "label": "rmsnorm:input_norm",
+              "count": 1134,
+              "shareOfOps": 0.075
+            },
+            {
+              "label": "rmsnorm:post_attn_norm",
+              "count": 1134,
+              "shareOfOps": 0.075
+            },
+            {
+              "label": "rmsnorm:post_ffn_norm",
+              "count": 1134,
+              "shareOfOps": 0.075
+            },
+            {
+              "label": "rmsnorm:pre_ffn_norm",
+              "count": 1134,
+              "shareOfOps": 0.075
+            }
+          ]
         }
       },
       "bottlenecks": [
+        {
+          "metricId": "promptTokensPerSecToFirstToken",
+          "label": "prompt tok/s to first token",
+          "unit": "tok/s",
+          "higherBetter": true,
+          "leader": "transformersjs",
+          "doppler": 616.57,
+          "transformersjs": 1511.930072765746,
+          "gapRatio": 1.452163,
+          "gapPercent": 145.216289
+        },
+        {
+          "metricId": "firstTokenMs",
+          "label": "first token (TTFT)",
+          "unit": "ms",
+          "higherBetter": false,
+          "leader": "transformersjs",
+          "doppler": 103.8,
+          "transformersjs": 42.33000001311302,
+          "gapRatio": 1.452162,
+          "gapPercent": 145.216159
+        },
+        {
+          "metricId": "firstResponseMs",
+          "label": "first response (first token + load)",
+          "unit": "ms",
+          "higherBetter": false,
+          "leader": "transformersjs",
+          "doppler": 1237.4,
+          "transformersjs": 820.7900000214577,
+          "gapRatio": 0.507572,
+          "gapPercent": 50.757197
+        },
         {
           "metricId": "modelLoadMs",
           "label": "model load",
           "unit": "ms",
           "higherBetter": false,
           "leader": "transformersjs",
-          "doppler": 1689.8,
-          "transformersjs": 1193.9199999999255,
-          "gapRatio": 0.415338,
-          "gapPercent": 41.533771
+          "doppler": 1133.6,
+          "transformersjs": 778.4600000083447,
+          "gapRatio": 0.456208,
+          "gapPercent": 45.620841
+        },
+        {
+          "metricId": "totalRunMs",
+          "label": "total run ms",
+          "unit": "ms",
+          "higherBetter": false,
+          "leader": "transformersjs",
+          "doppler": 640.2,
+          "transformersjs": 633.3700000047684,
+          "gapRatio": 0.010784,
+          "gapPercent": 1.078359
+        },
+        {
+          "metricId": "decodeMsPerTokenP50",
+          "label": "decode p50 ms/token",
+          "unit": "ms",
+          "higherBetter": false,
+          "leader": "transformersjs",
+          "doppler": 8.36,
+          "transformersjs": 8.344999998807907,
+          "gapRatio": 0.001797,
+          "gapPercent": 0.179748
         }
       ],
-      "origin": "local"
+      "origin": "fixture"
     }
   }
 }

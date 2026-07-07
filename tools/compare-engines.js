@@ -619,6 +619,7 @@ const DOPPLER_SURFACES = Object.freeze(['auto', 'node', 'browser', 'bun']);
 const DOPPLER_FORMATS = Object.freeze(['rdrr', 'safetensors']);
 const TJS_FORMATS = Object.freeze(['onnx', 'safetensors']);
 const TJS_DTYPES = Object.freeze(['fp16', 'q4', 'q4f16']);
+const OUTPUT_PARITY_MATCH_MODES = Object.freeze(['exact-or-normalized', 'decode-valid']);
 const DEFAULT_DOPPLER_FORMAT = 'rdrr';
 const DEFAULT_TJS_FORMAT = 'onnx';
 const DEFAULT_TJS_DTYPE = 'fp16';
@@ -1379,6 +1380,36 @@ async function loadCompareEnginesConfig(rawPath) {
     return Object.freeze(normalized);
   };
 
+  const normalizeOutputParityPolicy = (value, label) => {
+    if (value == null) {
+      return null;
+    }
+    if (typeof value !== 'object' || Array.isArray(value)) {
+      throw new Error(`${label} must be an object or null`);
+    }
+    if (value.schemaVersion != null && value.schemaVersion !== 1) {
+      throw new Error(`${label}.schemaVersion must be 1 when provided`);
+    }
+    if (typeof value.requireMatch !== 'boolean') {
+      throw new Error(`${label}.requireMatch must be a boolean`);
+    }
+    const matchMode = String(value.matchMode ?? '').trim();
+    if (!OUTPUT_PARITY_MATCH_MODES.includes(matchMode)) {
+      throw new Error(
+        `${label}.matchMode must be one of: ${OUTPUT_PARITY_MATCH_MODES.join(', ')}`
+      );
+    }
+    if (typeof value.reason !== 'string' || value.reason.trim() === '') {
+      throw new Error(`${label}.reason must be a non-empty string`);
+    }
+    return Object.freeze({
+      schemaVersion: 1,
+      requireMatch: value.requireMatch,
+      matchMode,
+      reason: value.reason.trim(),
+    });
+  };
+
   const seen = new Set();
   for (const row of rows) {
     if (!row || typeof row !== 'object' || Array.isArray(row)) {
@@ -1458,6 +1489,10 @@ async function loadCompareEnginesConfig(rawPath) {
       row.dopplerRuntimeProfileByDecodeProfile ?? null,
       `compare-engines.config.json dopplerRuntimeProfileByDecodeProfile for ${row.dopplerModelId}`
     );
+    row.outputParityPolicy = normalizeOutputParityPolicy(
+      row.outputParityPolicy ?? null,
+      `compare-engines.config.json outputParityPolicy for ${row.dopplerModelId}`
+    );
     if (row.defaultDopplerSource === 'quickstart-registry' && row.modelBaseDir != null) {
       throw new Error(
         `compare-engines.config.json modelBaseDir for ${row.dopplerModelId} must be null when defaultDopplerSource is "quickstart-registry"`
@@ -1495,6 +1530,7 @@ function resolveCompareProfile(compareConfig, modelId) {
     dopplerRuntimeProfileByDecodeProfile: profile?.dopplerRuntimeProfileByDecodeProfile || Object.freeze({}),
     compareLane: profile?.compareLane || DEFAULT_COMPARE_LANE,
     compareLaneReason: profile?.compareLaneReason || null,
+    outputParityPolicy: profile?.outputParityPolicy || null,
   };
 }
 
@@ -4350,9 +4386,20 @@ function buildOutputParitySummary(dopplerResult, tjsResult) {
   };
 }
 
-function resolveOutputParityPolicy(sharedContract) {
+function resolveOutputParityPolicy(sharedContract, compareProfile = null) {
   const temperature = Number(sharedContract?.sampling?.temperature);
   const deterministicGreedy = Number.isFinite(temperature) && temperature <= 0;
+  const profilePolicy = compareProfile?.outputParityPolicy ?? null;
+  if (profilePolicy && typeof profilePolicy === 'object' && !Array.isArray(profilePolicy)) {
+    return {
+      schemaVersion: 1,
+      requireMatch: profilePolicy.requireMatch === true,
+      matchMode: profilePolicy.matchMode ?? 'exact-or-normalized',
+      reason: profilePolicy.reason ?? null,
+      source: 'compare-profile',
+      deterministicGreedy,
+    };
+  }
   return {
     schemaVersion: 1,
     requireMatch: deterministicGreedy,
@@ -4360,6 +4407,8 @@ function resolveOutputParityPolicy(sharedContract) {
     reason: deterministicGreedy
       ? 'deterministic-greedy-sampling'
       : 'stochastic-or-non-greedy-sampling',
+    source: 'sampling-default',
+    deterministicGreedy,
   };
 }
 
@@ -4624,12 +4673,16 @@ function buildCompareSection({
         requireMatch: outputParityPolicy.requireMatch === true,
         matchMode: outputParityPolicy.matchMode ?? 'exact-or-normalized',
         reason: outputParityPolicy.reason ?? null,
+        source: outputParityPolicy.source ?? null,
+        deterministicGreedy: outputParityPolicy.deterministicGreedy ?? null,
       }
     : {
         schemaVersion: 1,
         requireMatch: false,
         matchMode: 'exact-or-normalized',
         reason: 'not-required-by-section',
+        source: 'section-default',
+        deterministicGreedy: null,
       };
   const outputParityOk = resolvedOutputParityPolicy.requireMatch !== true
     || outputParity.status === 'match';
@@ -4904,7 +4957,7 @@ function buildCompareFairnessAudit({
     },
     sections: sectionAudits,
     semantics: {
-      claimGrade: 'true means the primary compare section passed paired correctness, prompt/decode validity, same runtime surface, pinned comparator model, and performance-comparable lane gates.',
+      claimGrade: 'true means the primary compare section passed its configured output-parity policy, prompt/decode validity, same runtime surface, pinned comparator model, and performance-comparable lane gates.',
       releaseClaimable: 'true means claimGrade evidence measured the hosted quickstart-registry Doppler artifact.',
       localComparable: 'true means claimGrade evidence exists but is local-artifact evidence, not a hosted release claim.',
       formatFairness: 'different optimized formats are allowed only as disclosed product-format comparisons, not format-identical engine claims.',
@@ -5462,7 +5515,7 @@ async function main() {
     maxTokens,
     promptContract: sharedContract.promptContract,
   });
-  const outputParityPolicy = resolveOutputParityPolicy(sharedContract);
+  const outputParityPolicy = resolveOutputParityPolicy(sharedContract, compareProfile);
   const decodeProfile = parseDecodeProfile(flags['decode-profile']);
   const resolveCompareProfileRuntimeBundle = (profileId) => compareProfileRuntimeBundles.get(profileId) || null;
   const compareProfileRuntimeBundleMetadata = Object.fromEntries(
@@ -6315,6 +6368,7 @@ export {
   resolveDopplerModelSource,
   resolveDopplerThroughputCadenceGate,
   summarizeDopplerDecodeProfileSteps,
+  resolveOutputParityPolicy,
   resolveRunLoadMode,
   usage,
 };

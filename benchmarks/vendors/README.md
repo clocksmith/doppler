@@ -64,8 +64,12 @@ Claim format to keep reports auditable:
 
 Use these before turning a compare result into README copy, a chart, or a release-facing statement:
 
-- Correctness must be clean on the promoted lane.
-  A mismatch compare artifact is diagnostic evidence, not claimable speed evidence.
+- Output-policy status must be clean on the promoted lane.
+  By default, deterministic greedy text or token mismatch is diagnostic evidence,
+  not claimable speed evidence. A product-format throughput lane may relax exact
+  match only when `compare-engines.config.json` declares
+  `outputParityPolicy.requireMatch=false` with `matchMode="decode-valid"`; the
+  claim must then say exact correctness parity is not being claimed.
 - Prompt rendering must be explicit and shared.
   `tools/compare-engines.js` records `promptContract` with raw/rendered prompt
   text and passes the same rendered model-input prompt to both engines whenever
@@ -278,6 +282,8 @@ That claim is valid only if the artifact shows:
   `safetensors` in this harness), not an unavailable LiteRT surrogate.
 - The `promptContract` is shared and both engines produce non-empty text with
   non-zero decode tokens.
+- Exact output parity is either matched or explicitly not required by a
+  checked-in `outputParityPolicy` for a product-format throughput lane.
 - The compare section explicitly records the differing formats and does not
   imply a format-identical kernel benchmark.
 
