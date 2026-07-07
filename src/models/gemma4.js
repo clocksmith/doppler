@@ -24,6 +24,14 @@ const family = createFamily({
       modes: ['text', 'vision'],
     },
     {
+      modelId: 'gemma-4-e2b-it-q4k-ehf16-af16-int4ple',
+      label: 'Gemma 4 E2B Instruct (Q4K/F16a/INT4 PLE)',
+      sourceModel: 'google/gemma-4-e2b-it',
+      hfPath: 'models/gemma-4-e2b-it-q4k-ehf16-af16-int4ple',
+      defaultRuntimeProfile: 'profiles/throughput',
+      modes: ['text', 'vision'],
+    },
+    {
       modelId: 'gemma-4-12b-it-text-w4a16-ct-ehf16-af16',
       label: 'Gemma 4 12B Instruct Text (W4A16 QAT/F16a)',
       sourceModel: 'google/gemma-4-12B-it-qat-w4a16-ct',

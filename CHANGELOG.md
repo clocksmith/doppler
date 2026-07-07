@@ -8,6 +8,14 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 
 ## [Unreleased]
 
+## [0.4.8] - 2026-07-07
+
+### Fixed
+
+- Published the browser runtime capability rules, model-source resolver,
+  execution-v1 runtime, and schema updates required by downstream static
+  consumers such as Simulatte without patching installed package files.
+
 ## [0.4.4] - 2026-06-30
 
 ### Added
