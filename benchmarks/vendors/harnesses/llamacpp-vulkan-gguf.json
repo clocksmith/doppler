@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "id": "llamacpp-vulkan-gguf",
+  "name": "llama.cpp Vulkan GGUF Harness",
+  "execution": {
+    "mode": "external-command",
+    "stdoutFormat": "json",
+    "defaultCommand": null,
+    "examples": [
+      "node tools/vendor-bench.js run --target llamacpp-vulkan-gguf --workload p512-d128-t0-k1 --model qwen-3-5-2b-q4k-gguf -- node benchmarks/runners/llamacpp-bench.js --model /path/to/model.gguf --workload p512-d128-t0-k1 --llama-bench /path/to/llama-bench --runs 15 --json",
+      "node tools/vendor-bench.js import --target llamacpp-vulkan-gguf --input /tmp/llamacpp-vulkan-result.json"
+    ]
+  },
+  "normalization": {
+    "metricPaths": {
+      "decodeTokensPerSec": [
+        "metrics.decodeTokensPerSec"
+      ],
+      "prefillTokensPerSec": [
+        "metrics.prefillTokensPerSec"
+      ],
+      "prefillMs": [
+        "metrics.prefillMs"
+      ],
+      "decodeMs": [
+        "metrics.decodeMs"
+      ],
+      "totalRunMs": [
+        "metrics.totalRunMs"
+      ],
+      "decodeMsPerTokenP50": [
+        "metrics.decodeMsPerTokenP50"
+      ],
+      "decodeMsPerTokenP95": [
+        "metrics.decodeMsPerTokenP95"
+      ],
+      "decodeMsPerTokenP99": [
+        "metrics.decodeMsPerTokenP99"
+      ]
+    },
+    "metadataPaths": {
+      "version": [
+        "environment.runtime.version"
+      ],
+      "model": [
+        "model.id",
+        "model.filename"
+      ],
+      "modelType": [
+        "model.type"
+      ],
+      "backend": [
+        "environment.gpu.backend"
+      ],
+      "runtimeSurface": [
+        "environment.runtime.surface"
+      ]
+    },
+    "requiredMetrics": [
+      "decodeTokensPerSec",
+      "prefillTokensPerSec"
+    ]
+  }
+}

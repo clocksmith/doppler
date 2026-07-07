@@ -402,6 +402,7 @@ export function buildLocalGpuChallengerReport(matrix, catalog, options = {}) {
       status: challenger.status,
       nextGate: challenger.nextGate,
       candidateArtifact: challenger.candidateArtifact,
+      latestEvidence: challenger.latestEvidence || null,
     }));
     return {
       modelId: model.modelId,
@@ -601,6 +602,11 @@ function formatReport(report) {
     lines.push(`  anchor: ${row.anchorComparator.competitorId} -> ${row.anchorComparator.modelId} (${row.anchorComparator.status})`);
     if (row.latestAnchorEvidence) {
       lines.push(`  latest evidence: ${row.latestAnchorEvidence.winner} / ${row.latestAnchorEvidence.claimGrade} / ${row.latestAnchorEvidence.receiptPath}`);
+    }
+    for (const challenger of row.localChallengers) {
+      if (!challenger.latestEvidence) continue;
+      const evidence = challenger.latestEvidence;
+      lines.push(`  local evidence (${challenger.competitorId}): ${evidence.winner} / ${evidence.claimGrade} / ${evidence.receiptPaths.join(', ')}`);
     }
     lines.push(`  challengers: ${challengers}`);
     lines.push(`  harnesses: ${row.recommendedHarnesses.join(', ')}`);

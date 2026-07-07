@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "timestamp": "2026-07-07T22:36:00.155Z",
+  "target": {
+    "id": "llamacpp-vulkan-gguf",
+    "name": "llama.cpp Vulkan GGUF",
+    "category": "native-vulkan-runtime",
+    "website": "https://github.com/ggml-org/llama.cpp"
+  },
+  "harness": {
+    "id": "llamacpp-vulkan-gguf",
+    "name": "llama.cpp Vulkan GGUF Harness",
+    "version": "f48842938+8017"
+  },
+  "workload": {
+    "id": "p256-d128-t0-k1",
+    "name": "Prompt 256 / Decode 128 Greedy"
+  },
+  "model": {
+    "id": "qwen-3-5-2b-q4-k-m-gguf",
+    "name": null
+  },
+  "metrics": {
+    "decodeTokensPerSec": 108.594655,
+    "prefillTokensPerSec": 3101.532033,
+    "prefillMs": 82.540672,
+    "decodeMs": 1178.699242,
+    "totalRunMs": 1261.239914,
+    "decodeMsPerTokenP50": 9.204289198766626,
+    "decodeMsPerTokenP95": 9.250608227490957,
+    "decodeMsPerTokenP99": 9.250608227490957
+  },
+  "source": {
+    "mode": "run",
+    "inputPath": null,
+    "command": [
+      "node",
+      "benchmarks/runners/llamacpp-bench.js",
+      "--model",
+      "/home/x/models/gguf/qwen-3-5-2b-unsloth/Qwen3.5-2B-Q4_K_M.gguf",
+      "--model-id",
+      "qwen-3-5-2b-q4-k-m-gguf",
+      "--workload",
+      "p256-d128-t0-k1",
+      "--llama-bench",
+      "/home/x/src/llama.cpp/build-vulkan/bin/llama-bench",
+      "--runs",
+      "15",
+      "--json"
+    ],
+    "commandTimeoutMs": 1800000,
+    "rawSha256": "e54a4145838477c2bd593316a43525e5186661c7268acfd0a7db91164bbd21e1",
+    "rawBytes": 4130,
+    "host": {
+      "platform": "linux",
+      "arch": "x64",
+      "nodeVersion": "v22.22.1",
+      "osRelease": "7.0.0-22-generic",
+      "cpuModel": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S"
+    }
+  },
+  "environment": {
+    "host": {
+      "platform": "linux",
+      "arch": "x64",
+      "nodeVersion": "v22.22.1",
+      "osRelease": "7.0.0-22-generic",
+      "cpuModel": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S"
+    },
+    "browser": {
+      "userAgent": null,
+      "platform": null,
+      "language": null,
+      "vendor": null,
+      "executable": null,
+      "channel": null
+    },
+    "gpu": {
+      "api": "vulkan",
+      "backend": "vulkan",
+      "vendor": "amd",
+      "architecture": null,
+      "device": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+      "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+      "hasF16": null,
+      "hasSubgroups": null,
+      "hasTimestampQuery": null
+    },
+    "runtime": {
+      "library": "llama.cpp",
+      "version": "f48842938+8017",
+      "surface": "native-vulkan",
+      "device": "Vulkan",
+      "dtype": "qwen35 2B Q4_K - Medium",
+      "requestedDtype": null,
+      "executionProviderMode": "vulkan",
+      "cacheMode": null,
+      "loadMode": "local-gguf"
+    }
+  },
+  "notes": "Qwen 3.5 2B Q4_K_M GGUF via llama.cpp Vulkan on RADV STRIX_HALO; phase-throughput native baseline, not text-output parity evidence.",
+  "metadata": {
+    "version": "f48842938+8017",
+    "model": "qwen-3-5-2b-q4-k-m-gguf",
+    "modelType": "qwen35 2B Q4_K - Medium",
+    "backend": "vulkan",
+    "runtimeSurface": "native-vulkan"
+  }
+}

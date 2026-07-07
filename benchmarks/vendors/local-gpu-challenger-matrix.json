@@ -2,7 +2,7 @@
   "$schema": "schema/local-gpu-challenger-matrix.schema.json",
   "schemaVersion": 1,
   "matrixId": "local-gpu-challenger-matrix",
-  "updated": "2026-07-06",
+  "updated": "2026-07-07",
   "purpose": "Canonical plan for fair local-GPU challenger benchmarks beyond the Transformers.js anchor lanes across platform targets.",
   "selectionPolicy": {
     "hostClass": "multi-platform-local-gpu",
@@ -279,7 +279,7 @@
       "backend": "llama-cpp-vulkan",
       "format": "gguf",
       "claimScope": "local-challenger",
-      "availability": "artifact-and-runner-needed",
+      "availability": "configured",
       "fallbackPolicy": "fail-closed",
       "evidenceKind": "native-vulkan-runner-report"
     },
@@ -290,7 +290,7 @@
       "backend": "pytorch-hip",
       "format": "safetensors",
       "claimScope": "local-challenger",
-      "availability": "blocked-pytorch-rocm-unavailable",
+      "availability": "runtime-smoke-failed",
       "fallbackPolicy": "fail-closed",
       "evidenceKind": "python-rocm-runner-report"
     },
@@ -646,7 +646,7 @@
         {
           "competitorId": "llamacpp-vulkan-gguf",
           "candidateArtifact": null,
-          "status": "artifact-and-runner-needed",
+          "status": "artifact-needed",
           "nextGate": "pin-matching-q4k-gguf"
         }
       ],
@@ -683,8 +683,8 @@
         {
           "competitorId": "hf-transformers-rocm",
           "candidateArtifact": "google/embeddinggemma-300m",
-          "status": "blocked-pytorch-rocm-unavailable",
-          "nextGate": "install-rocm-enabled-torch"
+          "status": "runtime-smoke-failed",
+          "nextGate": "pin-working-rocm-transformers-runtime"
         }
       ],
       "recommendedHarnesses": [
@@ -720,7 +720,7 @@
         {
           "competitorId": "llamacpp-vulkan-gguf",
           "candidateArtifact": null,
-          "status": "artifact-and-runner-needed",
+          "status": "artifact-needed",
           "nextGate": "pin-matching-q4k-gguf"
         }
       ],
@@ -809,7 +809,7 @@
         {
           "competitorId": "llamacpp-vulkan-gguf",
           "candidateArtifact": null,
-          "status": "artifact-and-runner-needed",
+          "status": "artifact-needed",
           "nextGate": "pin-matching-q4k-gguf"
         }
       ],
@@ -906,8 +906,8 @@
         {
           "competitorId": "hf-transformers-rocm",
           "candidateArtifact": "Qwen/Qwen3-Embedding-0.6B",
-          "status": "blocked-pytorch-rocm-unavailable",
-          "nextGate": "install-rocm-enabled-torch"
+          "status": "runtime-smoke-failed",
+          "nextGate": "pin-working-rocm-transformers-runtime"
         }
       ],
       "recommendedHarnesses": [
@@ -992,8 +992,8 @@
         {
           "competitorId": "hf-transformers-rocm",
           "candidateArtifact": "Qwen/Qwen3-Reranker-0.6B",
-          "status": "blocked-pytorch-rocm-unavailable",
-          "nextGate": "install-rocm-enabled-torch"
+          "status": "runtime-smoke-failed",
+          "nextGate": "pin-working-rocm-transformers-runtime"
         },
         {
           "competitorId": "onnxruntime-webgpu-direct",
@@ -1087,9 +1087,56 @@
         },
         {
           "competitorId": "llamacpp-vulkan-gguf",
-          "candidateArtifact": null,
-          "status": "artifact-and-runner-needed",
-          "nextGate": "pin-matching-q4k-gguf"
+          "candidateArtifact": "unsloth/Qwen3.5-2B-GGUF/Qwen3.5-2B-Q4_K_M.gguf",
+          "status": "diagnostic",
+          "nextGate": "text-output-parity-runner",
+          "latestEvidence": {
+            "receiptPaths": [
+              "benchmarks/vendors/results/llamacpp-vulkan-gguf-2026-07-07T22-35-40Z.json",
+              "benchmarks/vendors/results/llamacpp-vulkan-gguf-2026-07-07T22-36-00Z.json",
+              "benchmarks/vendors/results/llamacpp-vulkan-gguf-2026-07-07T22-36-21Z.json"
+            ],
+            "timestamp": "2026-07-07T22:36:21Z",
+            "platformTargetId": "linux-amd-vulkan-rocm",
+            "harnessId": "generation-local-gpu-v1",
+            "claimGrade": "diagnostic",
+            "correctness": "not-measured",
+            "winner": "local-challenger",
+            "summary": "llama.cpp Vulkan GGUF is faster than Doppler on Qwen 3.5 2B decode throughput across p064, p256, and p512 phase-throughput receipts, but the runner does not yet measure text-output parity, so this remains diagnostic native evidence.",
+            "wins": [
+              "native-vulkan-decode-throughput"
+            ],
+            "losses": [
+              "text-output-parity-not-measured"
+            ],
+            "blockedReasons": [
+              "native-runner-needs-text-output-parity",
+              "gguf-quantization-differs-from-doppler-artifact"
+            ],
+            "metrics": [
+              {
+                "id": "p064DecodeTokensPerSec",
+                "doppler": 58.28,
+                "competitor": 108.009623,
+                "ratio": 0.5396,
+                "higherBetter": true
+              },
+              {
+                "id": "p256DecodeTokensPerSec",
+                "doppler": 58.37,
+                "competitor": 108.594655,
+                "ratio": 0.5375,
+                "higherBetter": true
+              },
+              {
+                "id": "p512DecodeTokensPerSec",
+                "doppler": 55.76,
+                "competitor": 108.967997,
+                "ratio": 0.5117,
+                "higherBetter": true
+              }
+            ]
+          }
         }
       ],
       "recommendedHarnesses": [
@@ -1178,8 +1225,8 @@
         {
           "competitorId": "hf-transformers-rocm",
           "candidateArtifact": "google/gemma-4-E2B-it",
-          "status": "blocked-pytorch-rocm-unavailable",
-          "nextGate": "install-rocm-enabled-torch"
+          "status": "runtime-smoke-failed",
+          "nextGate": "pin-working-rocm-transformers-runtime"
         }
       ],
       "recommendedHarnesses": [
