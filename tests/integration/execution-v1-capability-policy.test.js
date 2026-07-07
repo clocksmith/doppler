@@ -169,6 +169,12 @@ assert.equal(gemma3NoF16.laneIntegrity.status, 'transformed',
   'fullF32 widening on hasF16=false flips KV dtype f16→f32 — must show as transformed');
 assert.ok(Array.isArray(gemma3NoF16.laneIntegrity.transforms));
 assert.ok(gemma3NoF16.laneIntegrity.transforms.includes('widenToF32Activations'));
+assert.equal(gemma3NoF16.laneIntegrity.policy?.kind, 'hardware-compatibility');
+assert.equal(gemma3NoF16.laneIntegrity.policy?.dtypeEffect, 'full-f32');
+assert.ok(
+  gemma3NoF16.laneIntegrity.policy?.evidence.includes('tests/integration/execution-v1-capability-policy.test.js'),
+  'lane integrity must expose capability policy evidence'
+);
 
 const qwen08Config = JSON.parse(
   readFileSync('src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json', 'utf8')

@@ -117,6 +117,11 @@ Runtime code must respect dtype and performance invariants from config and devic
 - Do not hardcode `f32` fallbacks when `shader-f16` is available.
 - If a `f32` path is required, require an explicit config flag and log once per session.
 - Treat capability limits (no `shader-f16`) as constraints, not “optimizations.”
+- Execution-v1 capability transforms must consume the classified JSON policy
+  row (`kind`, `dtypeEffect`, `evidence`) from the resolver. Do not add inline
+  dtype fallback branches in pipeline, cache, or kernel wrapper code.
+- Lane receipts must preserve declared lane, executed lane, applied transforms,
+  and the matched capability policy when capability transforms are resolved.
 
 If you need to switch dtype or kernel variants, put the decision in rule maps or schema-driven config, not in ad-hoc conditionals.
 

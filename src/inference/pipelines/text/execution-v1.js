@@ -760,6 +760,7 @@ export function compileExecutionV1(options = {}) {
   // -------------------------------------------------------------------------
   let appliedTransformNames = [];
   let graphWasTransformed = false;
+  let capabilityTransformPolicy = null;
   const graphContext = {
     activationDtype,
     mathDtype,
@@ -774,6 +775,12 @@ export function compileExecutionV1(options = {}) {
 
   if (capabilities) {
     const resolved = resolveCapabilityTransforms(capabilities, platform, graphContext);
+    capabilityTransformPolicy = {
+      kind: resolved.kind ?? null,
+      dtypeEffect: resolved.dtypeEffect ?? null,
+      reason: resolved.reason ?? null,
+      evidence: Array.isArray(resolved.evidence) ? [...resolved.evidence] : [],
+    };
     const sourceScope = kernelPathPolicy.sourceScope ?? kernelPathPolicy.allowSources ?? [];
     const remapAllowed = kernelPathPolicy.mode === 'capability-aware'
       && kernelPathPolicy.onIncompatible === 'remap'
@@ -937,6 +944,7 @@ export function compileExecutionV1(options = {}) {
     executed: executedLane,
     status: laneFieldDelta ? 'transformed' : 'matches',
     transforms: [...appliedTransformNames],
+    policy: capabilityTransformPolicy,
   };
 
   const layerPipelineResult = buildLayerPipelineFromExecution(resolvedSteps, {

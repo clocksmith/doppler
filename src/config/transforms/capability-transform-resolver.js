@@ -20,7 +20,7 @@ const rules = await loadJson(
  *     hasDensePrefillProjectionKernel?,
  *     hasQ4DecodeProjectionKernel?, hasQ4PrefillProjectionKernel?,
  *     hasAvailableQ4PrefillProjectionKernel? }
- * @returns {{ transforms: Function[], names: string[], reason: string }}
+ * @returns {{ transforms: Function[], names: string[], reason: string, kind: string, dtypeEffect: string, evidence: string[] }}
  */
 export function resolveCapabilityTransforms(capabilities, platform, graphContext) {
   const normalizedGraphContext = graphContext ?? {};
@@ -59,6 +59,9 @@ export function resolveCapabilityTransforms(capabilities, platform, graphContext
         transforms,
         names: rule.transforms,
         reason: rule.reason,
+        kind: rule.kind,
+        dtypeEffect: rule.dtypeEffect,
+        evidence: Array.isArray(rule.evidence) ? [...rule.evidence] : [],
       };
     }
   }

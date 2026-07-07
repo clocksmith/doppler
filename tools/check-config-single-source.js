@@ -89,6 +89,7 @@ const REQUIRED_TEXT_SNIPPETS = Object.freeze({
     'src/config/kernels/registry.json',
     'models/catalog.json',
     'src/rules/inference/capability-transforms.rules.json',
+    'npm run capability-policy:check',
     'npm run kernels:registry:check',
     'npm run support:inventory:check',
     'npm run ci:catalog:check',

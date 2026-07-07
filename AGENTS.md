@@ -173,6 +173,25 @@ Use runtime profiles/config payloads, not ad-hoc per-field flags.
   metadata for the lane until the matching browser/WebGPU transcript or parity
   receipt exists.
 
+### Capability Transform / Dtype Policy
+
+Before changing dtype fallback, execution-v1 capability transforms, kernel-path
+remap behavior, or model-scoped runtime lanes, classify the rule in
+`src/rules/inference/capability-transforms.rules.json`:
+
+- `hardware-compatibility`: missing device feature only; no model or platform identity.
+- `runtime-session-compatibility`: resolved session constraint such as `kvDtype=f32`; no model or platform identity.
+- `explicit-lane`: requested f16/selective-f16 lane from a runtime profile or manifest variant; not a fallback.
+- `platform-workaround`: exact platform plus exact model/list and evidence; no silent dtype change.
+- `lane-mismatch-guard`: fail closed when profile and manifest variant disagree.
+- `capability-optimization`: positive capability optimization without dtype change.
+- `default-noop`: final empty-match rule.
+
+Every capability transform rule must include `kind`, `dtypeEffect`, `reason`,
+and `evidence`, and execution receipts must expose the matched policy. Run
+`npm run capability-policy:check` after changing these rules. If behavior cannot
+be classified this way, fail fast instead of adding a silent fallback.
+
 ### Task-Specific Protocols
 
 These docs are loaded by skills on demand — not for every task:

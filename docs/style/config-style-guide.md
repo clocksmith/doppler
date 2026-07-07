@@ -115,9 +115,29 @@ InferenceConfigSchema (runtime.inference)
   - manifest and conversion/runtime config assets (for supported model/config combinations)
   - rule-map alias entries
   - capability-based kernel and dtype policy in registry overlays
+- Capability transform policy lives in
+  `src/rules/inference/capability-transforms.rules.json`. Every rule must carry
+  `kind`, `dtypeEffect`, and `evidence`, and must pass
+  `npm run capability-policy:check`.
 - Any unresolvable choice must raise a typed error before execution begins.
 - `npm run config:single-source:check` owns the inventory for known fallback
   drift patterns; extend it whenever a new prose-only config rule is fixed.
+
+### Capability Transform Categories
+
+| Kind | Purpose | Identity Rules |
+| --- | --- | --- |
+| `hardware-compatibility` | Missing hardware feature adaptation (`hasF16=false`, `hasSubgroups=false`) | no model/platform match |
+| `runtime-session-compatibility` | Resolved session compatibility such as `kvDtype=f32` | no model/platform match |
+| `explicit-lane` | Requested f16 or selective-f16 runtime lane | exact model/list or generic `requiresF16ActivationNarrowing=true` |
+| `platform-workaround` | Known platform bug workaround | exact platform plus exact model/list and evidence |
+| `lane-mismatch-guard` | Fail closed on manifest/profile lane mismatch | exact model/list |
+| `capability-optimization` | Positive capability optimization without dtype change | exact model/list and positive capability |
+| `default-noop` | Final no-transform rule | empty match, last rule |
+
+Do not call an explicit f16 lane a fallback. Do not add a hardware fallback that
+matches model identity. Do not use `contains`, `startsWith`, or `endsWith` on
+model identity in capability rules.
 
 ---
 
@@ -260,6 +280,8 @@ per-field runtime tuning outside the config payload.
   rule name/test.
 - Runtime must not silently escalate precision to `f32`.
 - Any `f32` activation path must be explicit in config/manifest and documented as a stability or capability choice.
+- Capability-transform dtype changes must be classified with `dtypeEffect` and
+  covered by `npm run capability-policy:check`.
 - Runtime execution overlay is strict: only `runtime.inference.session` feeds execution compile.
 
 ---
