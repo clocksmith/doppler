@@ -3,7 +3,7 @@
 Generated from the catalog, support inventory, release matrix, embedding/rerank compare configs, and saved compare receipts.
 This file is an evidence ledger: it records what is verified, what is on Hugging Face according to catalog metadata, where Doppler has comparable performance receipts, and which gates remain.
 
-Updated at: 2026-07-06T17:12:50.494Z
+Updated at: 2026-07-07T16:25:15.625Z
 
 ## Summary
 
@@ -12,17 +12,17 @@ Updated at: 2026-07-06T17:12:50.494Z
 - HF-published models: 14
 - Failed models: 1
 - Verification-needed models: 2
-- Generation compare rows: 12
+- Generation compare rows: 14
 - Generation compare gap rows: 4
 - Embedding compare rows: 2
 - Rerank compare rows: 1
-- Doppler decode-leading generation rows: 10
+- Doppler decode-leading generation rows: 12
 - Transformers.js decode-leading generation rows: 2
 - Doppler embedding latency-leading rows: 1
 - Transformers.js embedding latency-leading rows: 1
 - Doppler rerank latency-leading rows: 0
 - Transformers.js rerank latency-leading rows: 1
-- Evidence-incomplete rows: 26
+- Evidence-incomplete rows: 28
 
 ## Claim Status Rules
 
@@ -45,7 +45,9 @@ Updated at: 2026-07-06T17:12:50.494Z
 | gemma-3-270m-it-q4k-ehf16-af32 | node | p512-d128-t0-k1<br>throughput | exact | 103 tok/s | 97.15 tok/s | doppler | 2453.29 tok/s | 1021.53 tok/s | doppler | command recording | candidate | reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json<br>benchmarks/vendors/results/compare_20260627T200323.json<br>benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-node-p512-d128-t0-k1-strix-halo-20260627T200323.svg |
 | qwen-3-5-0-8b-q4k-ehaf16 | browser | p064-d064-t0-k1<br>throughput | exact | 75.87 tok/s | 41.57 tok/s | doppler | 184.6 tok/s | 9.52 tok/s | doppler | readback map wait | summary-svg-missing | reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json<br>benchmarks/vendors/results/compare_20260705T160226.json |
 | qwen-3-5-0-8b-q4k-ehaf16 | browser | p256-d128-t0-k1<br>throughput | exact | 73.74 tok/s | 43.17 tok/s | doppler | 432.94 tok/s | 9.78 tok/s | doppler | readback map wait | summary-svg-missing | reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json<br>benchmarks/vendors/results/compare_20260705T161224.json |
-| qwen-3-5-2b-q4k-ehaf16 | browser | p064-d064-t0-k1<br>parity | exact | 61.06 tok/s | 40.58 tok/s | doppler | 171.08 tok/s | 9.35 tok/s | doppler | readback map wait | summary-svg-missing | reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json<br>benchmarks/vendors/fixtures/qwen3-5-2b-p064-d064-t0-k1.compare.json |
+| qwen-3-5-2b-q4k-ehaf16 | browser | p064-d064-t0-k1<br>throughput | exact | 60.95 tok/s | 40.1 tok/s | doppler | 168.47 tok/s | 9.9 tok/s | doppler | readback map wait | summary-svg-missing | reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json<br>benchmarks/vendors/results/compare_20260707T154847.json |
+| qwen-3-5-2b-q4k-ehaf16 | browser | p256-d128-t0-k1<br>throughput | exact | 58.98 tok/s | 40.64 tok/s | doppler | 372.61 tok/s | 9.59 tok/s | doppler | readback map wait | summary-svg-missing | reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json<br>benchmarks/vendors/results/compare_20260707T155858.json |
+| qwen-3-5-2b-q4k-ehaf16 | browser | p512-d128-t0-k1<br>throughput | exact | 56.5 tok/s | 41.5 tok/s | doppler | 446.83 tok/s | 9.61 tok/s | doppler | readback map wait | summary-svg-missing | reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json<br>benchmarks/vendors/results/compare_20260707T161623.json |
 
 ## Embedding Competition Rows
 
@@ -85,7 +87,9 @@ Updated at: 2026-07-06T17:12:50.494Z
 | minicpm4-0-5b-f16-af32 | text | missing | browser:missing<br>node:verified<br>bun:missing | transformersjs | failed<br>runtime-verify | runtime-verify<br>hf-publish<br>compare-profile | none |
 | qwen-3-5-0-8b-q4k-ehaf16 | generation | Clocksmith/rdrr@f58f1d0b58641c84e7ea50d13fea0dd4dc91389a<br>models/qwen-3-5-0-8b-q4k-ehaf16 | browser:benchmarked<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/Qwen3.5-0.8B-ONNX<br>onnx/q4f16 | summary-svg-missing<br>summary-svg | summary-svg | reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json<br>benchmarks/vendors/results/compare_20260705T160226.json |
 | qwen-3-5-0-8b-q4k-ehaf16 | generation | Clocksmith/rdrr@f58f1d0b58641c84e7ea50d13fea0dd4dc91389a<br>models/qwen-3-5-0-8b-q4k-ehaf16 | browser:benchmarked<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/Qwen3.5-0.8B-ONNX<br>onnx/q4f16 | summary-svg-missing<br>summary-svg | summary-svg | reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json<br>benchmarks/vendors/results/compare_20260705T161224.json |
-| qwen-3-5-2b-q4k-ehaf16 | generation | Clocksmith/rdrr@977d145bf2478a7fb542e6aca65030585620ca60<br>models/qwen-3-5-2b-q4k-ehaf16 | browser:benchmarked<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/Qwen3.5-2B-ONNX<br>onnx/q4f16 | summary-svg-missing<br>summary-svg | summary-svg | reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json<br>benchmarks/vendors/fixtures/qwen3-5-2b-p064-d064-t0-k1.compare.json |
+| qwen-3-5-2b-q4k-ehaf16 | generation | Clocksmith/rdrr@977d145bf2478a7fb542e6aca65030585620ca60<br>models/qwen-3-5-2b-q4k-ehaf16 | browser:benchmarked<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/Qwen3.5-2B-ONNX<br>onnx/q4f16 | summary-svg-missing<br>summary-svg | summary-svg | reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json<br>benchmarks/vendors/results/compare_20260707T154847.json |
+| qwen-3-5-2b-q4k-ehaf16 | generation | Clocksmith/rdrr@977d145bf2478a7fb542e6aca65030585620ca60<br>models/qwen-3-5-2b-q4k-ehaf16 | browser:benchmarked<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/Qwen3.5-2B-ONNX<br>onnx/q4f16 | summary-svg-missing<br>summary-svg | summary-svg | reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json<br>benchmarks/vendors/results/compare_20260707T155858.json |
+| qwen-3-5-2b-q4k-ehaf16 | generation | Clocksmith/rdrr@977d145bf2478a7fb542e6aca65030585620ca60<br>models/qwen-3-5-2b-q4k-ehaf16 | browser:benchmarked<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/Qwen3.5-2B-ONNX<br>onnx/q4f16 | summary-svg-missing<br>summary-svg | summary-svg | reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json<br>benchmarks/vendors/results/compare_20260707T161623.json |
 | qwen-3-6-27b-q4k-eaf16 | text | Clocksmith/rdrr@3dee21b3b12d65ac7fef9b24cbf759cacc953a67<br>models/qwen-3-6-27b-q4k-eaf16 | browser:verified<br>node:verified<br>bun:missing | transformersjs | verified-no-compare<br>compare-profile | compare-profile | reports/program-bundles/qwen-3-6-27b-q4k-eaf16/capture.node.reference.json |
 | qwen-3-6-27b-q4k-ehaf16 | text | Clocksmith/rdrr@b402f6f27837857d51636da5f78c12bcd47e2a03<br>models/qwen-3-6-27b-q4k-ehaf16 | browser:verified<br>node:missing<br>bun:missing | transformersjs | verified-no-compare<br>compare-profile | compare-profile | reports/program-bundles/qwen-3-6-27b-q4k-ehaf16/2026-04-28T01-19-10.497Z.reference.json |
 | qwen-3-reranker-0-6b-f16-af32 | rerank | Clocksmith/rdrr@cc1fafff8cda609372b608cd92e487f6a2c32bc8<br>models/qwen-3-reranker-0-6b-f16-af32 | browser:missing<br>node:verified<br>bun:missing | transformersjs | verified-no-compare<br>compare-profile | compare-profile | reports/release-claims/qwen-3-reranker-0-6b-f16-af32/2026-07-04T02-00-00.000Z.json |

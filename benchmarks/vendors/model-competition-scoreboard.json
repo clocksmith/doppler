@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-07-06T17:12:50.494Z",
+  "updatedAt": "2026-07-07T16:25:15.625Z",
   "sources": [
     "models/catalog.json",
     "benchmarks/vendors/model-support-inventory.json",
@@ -12,7 +12,7 @@
   ],
   "summary": {
     "catalogModelCount": 23,
-    "scoreboardRowCount": 32,
+    "scoreboardRowCount": 34,
     "runtimeVerifiedModelCount": 20,
     "hfPublishedModelCount": 14,
     "failedModelCount": 1,
@@ -22,12 +22,12 @@
       "node": 20,
       "bun": 0
     },
-    "generationCompareRowCount": 12,
+    "generationCompareRowCount": 14,
     "generationCompareGapRowCount": 4,
     "embeddingCompareRowCount": 2,
     "rerankCompareRowCount": 1,
     "supportGapRowCount": 13,
-    "dopplerDecodeLeaderRowCount": 10,
+    "dopplerDecodeLeaderRowCount": 12,
     "transformersjsDecodeLeaderRowCount": 2,
     "dopplerEmbeddingLatencyLeaderRowCount": 1,
     "transformersjsEmbeddingLatencyLeaderRowCount": 1,
@@ -35,7 +35,7 @@
     "transformersjsRerankLatencyLeaderRowCount": 1,
     "claimReadyRowCount": 3,
     "localComparableRowCount": 0,
-    "evidenceIncompleteRowCount": 26
+    "evidenceIncompleteRowCount": 28
   },
   "rows": [
     {
@@ -1555,7 +1555,7 @@
         "bottleneckClass": "submit-readback-wait"
       },
       "claimStatus": "summary-svg-missing",
-      "claimReason": "Local browser execution is verified and fresh local cross-engine compare receipts cover p064 and p256 with exact output match against Transformers.js q4f16. The p512 contract run is not claimable because the Transformers.js side failed, so the lane remains candidate and missing the p512 competitor receipt.",
+      "claimReason": "Local browser execution is verified and fresh local cross-engine compare receipts cover p064 and p256 with exact output match against Transformers.js q4f16. The p512 local claim-lane receipt remains pending; the separate hosted quickstart p512 receipt is tracked outside this local artifact lane.",
       "evidence": {
         "runtimeReport": "reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json",
         "compareResult": "benchmarks/vendors/results/compare_20260705T160226.json",
@@ -1628,7 +1628,7 @@
         "bottleneckClass": "submit-readback-wait"
       },
       "claimStatus": "summary-svg-missing",
-      "claimReason": "Local browser execution is verified and fresh local cross-engine compare receipts cover p064 and p256 with exact output match against Transformers.js q4f16. The p512 contract run is not claimable because the Transformers.js side failed, so the lane remains candidate and missing the p512 competitor receipt.",
+      "claimReason": "Local browser execution is verified and fresh local cross-engine compare receipts cover p064 and p256 with exact output match against Transformers.js q4f16. The p512 local claim-lane receipt remains pending; the separate hosted quickstart p512 receipt is tracked outside this local artifact lane.",
       "evidence": {
         "runtimeReport": "reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json",
         "compareResult": "benchmarks/vendors/results/compare_20260705T161224.json",
@@ -1644,7 +1644,7 @@
       "nextCommand": "node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
     },
     {
-      "rowId": "qwen-3-5-2b-q4k-ehaf16:generation:browser:p064-d064-t0-k1:parity",
+      "rowId": "qwen-3-5-2b-q4k-ehaf16:generation:browser:p064-d064-t0-k1:throughput",
       "modelId": "qwen-3-5-2b-q4k-ehaf16",
       "label": "Qwen 3.5 2B (Q4K)",
       "family": "qwen3",
@@ -1655,7 +1655,7 @@
       "workloadMode": "generation",
       "surface": "browser",
       "workloadId": "p064-d064-t0-k1",
-      "decodeProfile": "parity",
+      "decodeProfile": "throughput",
       "artifact": {
         "format": "rdrr",
         "architecture": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout",
@@ -1682,16 +1682,16 @@
       "correctness": "exact",
       "metrics": {
         "doppler": {
-          "decodeTokensPerSec": 61.06,
-          "promptTokensPerSecToFirstToken": 171.08
+          "decodeTokensPerSec": 60.95,
+          "promptTokensPerSecToFirstToken": 168.47
         },
         "transformersjs": {
-          "decodeTokensPerSec": 40.58,
-          "promptTokensPerSecToFirstToken": 9.35
+          "decodeTokensPerSec": 40.1,
+          "promptTokensPerSecToFirstToken": 9.9
         },
         "ratios": {
-          "decodeDopplerOverTransformersjs": 1.5047,
-          "promptDopplerOverTransformersjs": 18.3071
+          "decodeDopplerOverTransformersjs": 1.5198,
+          "promptDopplerOverTransformersjs": 17.0142
         },
         "leader": {
           "decode": "doppler",
@@ -1704,7 +1704,153 @@
       "claimReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
       "evidence": {
         "runtimeReport": "reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json",
-        "compareResult": "benchmarks/vendors/fixtures/qwen3-5-2b-p064-d064-t0-k1.compare.json",
+        "compareResult": "benchmarks/vendors/results/compare_20260707T154847.json",
+        "compareResultExists": true,
+        "summarySvg": null,
+        "summarySvgExists": false,
+        "localClaimLaneId": "qwen-3-5-2b-q4k-rdrr"
+      },
+      "missing": [
+        "summary-svg"
+      ],
+      "nextGate": "summary-svg",
+      "nextCommand": "node tools/compare-engines.js --model-id qwen-3-5-2b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
+    },
+    {
+      "rowId": "qwen-3-5-2b-q4k-ehaf16:generation:browser:p256-d128-t0-k1:throughput",
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "label": "Qwen 3.5 2B (Q4K)",
+      "family": "qwen3",
+      "modes": [
+        "text"
+      ],
+      "sourceCheckpointId": "Qwen/Qwen3.5-2B",
+      "workloadMode": "generation",
+      "surface": "browser",
+      "workloadId": "p256-d128-t0-k1",
+      "decodeProfile": "throughput",
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 2496068973,
+        "sizeLabel": "2.32 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "977d145bf2478a7fb542e6aca65030585620ca60",
+          "path": "models/qwen-3-5-2b-q4k-ehaf16"
+        }
+      },
+      "platforms": {
+        "browser": "benchmarked",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/Qwen3.5-2B-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16"
+      },
+      "correctness": "exact",
+      "metrics": {
+        "doppler": {
+          "decodeTokensPerSec": 58.98,
+          "promptTokensPerSecToFirstToken": 372.61
+        },
+        "transformersjs": {
+          "decodeTokensPerSec": 40.64,
+          "promptTokensPerSecToFirstToken": 9.59
+        },
+        "ratios": {
+          "decodeDopplerOverTransformersjs": 1.4514,
+          "promptDopplerOverTransformersjs": 38.8456
+        },
+        "leader": {
+          "decode": "doppler",
+          "prompt": "doppler"
+        },
+        "bottleneck": "readback map wait",
+        "bottleneckClass": "submit-readback-wait"
+      },
+      "claimStatus": "summary-svg-missing",
+      "claimReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json",
+        "compareResult": "benchmarks/vendors/results/compare_20260707T155858.json",
+        "compareResultExists": true,
+        "summarySvg": null,
+        "summarySvgExists": false,
+        "localClaimLaneId": "qwen-3-5-2b-q4k-rdrr"
+      },
+      "missing": [
+        "summary-svg"
+      ],
+      "nextGate": "summary-svg",
+      "nextCommand": "node tools/compare-engines.js --model-id qwen-3-5-2b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
+    },
+    {
+      "rowId": "qwen-3-5-2b-q4k-ehaf16:generation:browser:p512-d128-t0-k1:throughput",
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "label": "Qwen 3.5 2B (Q4K)",
+      "family": "qwen3",
+      "modes": [
+        "text"
+      ],
+      "sourceCheckpointId": "Qwen/Qwen3.5-2B",
+      "workloadMode": "generation",
+      "surface": "browser",
+      "workloadId": "p512-d128-t0-k1",
+      "decodeProfile": "throughput",
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 2496068973,
+        "sizeLabel": "2.32 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "977d145bf2478a7fb542e6aca65030585620ca60",
+          "path": "models/qwen-3-5-2b-q4k-ehaf16"
+        }
+      },
+      "platforms": {
+        "browser": "benchmarked",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": "onnx-community/Qwen3.5-2B-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16"
+      },
+      "correctness": "exact",
+      "metrics": {
+        "doppler": {
+          "decodeTokensPerSec": 56.5,
+          "promptTokensPerSecToFirstToken": 446.83
+        },
+        "transformersjs": {
+          "decodeTokensPerSec": 41.5,
+          "promptTokensPerSecToFirstToken": 9.61
+        },
+        "ratios": {
+          "decodeDopplerOverTransformersjs": 1.3616,
+          "promptDopplerOverTransformersjs": 46.5063
+        },
+        "leader": {
+          "decode": "doppler",
+          "prompt": "doppler"
+        },
+        "bottleneck": "readback map wait",
+        "bottleneckClass": "submit-readback-wait"
+      },
+      "claimStatus": "summary-svg-missing",
+      "claimReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "evidence": {
+        "runtimeReport": "reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json",
+        "compareResult": "benchmarks/vendors/results/compare_20260707T161623.json",
         "compareResultExists": true,
         "summarySvg": null,
         "summarySvgExists": false,

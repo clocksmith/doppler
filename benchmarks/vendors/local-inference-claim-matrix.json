@@ -471,7 +471,7 @@
     {
       "id": "qwen-3-5-0-8b-q4k-rdrr",
       "status": "candidate",
-      "statusReason": "Local browser execution is verified and fresh local cross-engine compare receipts cover p064 and p256 with exact output match against Transformers.js q4f16. The p512 contract run is not claimable because the Transformers.js side failed, so the lane remains candidate and missing the p512 competitor receipt.",
+      "statusReason": "Local browser execution is verified and fresh local cross-engine compare receipts cover p064 and p256 with exact output match against Transformers.js q4f16. The p512 local claim-lane receipt remains pending; the separate hosted quickstart p512 receipt is tracked outside this local artifact lane.",
       "model": {
         "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
         "label": "Qwen 3.5 0.8B (Q4K)",
@@ -652,8 +652,28 @@
       },
       "evidence": {
         "localExecutionReport": "reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json",
-        "compareResult": "benchmarks/vendors/fixtures/qwen3-5-2b-p064-d064-t0-k1.compare.json",
-        "summarySvg": null
+        "compareResult": "benchmarks/vendors/results/compare_20260707T161623.json",
+        "summarySvg": null,
+        "workloadCompareResults": [
+          {
+            "backendId": "chromium-webgpu",
+            "workloadId": "p064-d064-t0-k1",
+            "compareResult": "benchmarks/vendors/results/compare_20260707T154847.json",
+            "summarySvg": null
+          },
+          {
+            "backendId": "chromium-webgpu",
+            "workloadId": "p256-d128-t0-k1",
+            "compareResult": "benchmarks/vendors/results/compare_20260707T155858.json",
+            "summarySvg": null
+          },
+          {
+            "backendId": "chromium-webgpu",
+            "workloadId": "p512-d128-t0-k1",
+            "compareResult": "benchmarks/vendors/results/compare_20260707T161623.json",
+            "summarySvg": null
+          }
+        ]
       }
     },
     {
